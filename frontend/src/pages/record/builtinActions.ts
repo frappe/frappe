@@ -8,6 +8,7 @@ import { routeFor, routeForNew } from "@/router/routeFor";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import { assignItem, type AssignState } from "./assignAct";
 import { renameItem } from "./renameAct";
+import { editorRoute, type EditorEntry } from "@/pages/doctypeEditor/editorEntries";
 
 export function quickActionBuiltins(
   perms: Record<string, any>,
@@ -50,7 +51,7 @@ function followWording({ following }: FollowState) {
 
 /**
  * The header's `⋯` rows: no `display`, so the projection files them under the menu.
- * Four bands by `group`: the reader's own toggles, Assign to and Rename, the record's copies, then Delete.
+ * Five bands by `group`: the reader's own toggles, Assign to and Rename, the record's copies, the DocType editor, then Delete.
  */
 export function headerMenuBuiltins(
   perms: Record<string, any>,
@@ -63,6 +64,7 @@ export function headerMenuBuiltins(
     duplicate?: boolean;
     submitted?: boolean;
     fieldActions?: HeaderItem[];
+    editorEntries?: EditorEntry[];
   } = {}
 ): HeaderItem[] {
   const items: HeaderItem[] = [
@@ -91,10 +93,16 @@ export function headerMenuBuiltins(
   );
   if (options.duplicate)
     items.push({ name: "duplicate", label: "Duplicate", icon: "lucide-copy", group: "copies", run: duplicate });
+  for (const entry of options.editorEntries ?? []) items.push(editorItem(entry));
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single && !options.submitted)
     items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });
   return items;
+}
+
+function editorItem({ name, label, icon, mode }: EditorEntry): HeaderItem {
+  const run = (page: RecordPageApi) => page.router.push(editorRoute(page.doctype, mode));
+  return { name, label, icon, group: "customize", run };
 }
 
 function openComment(page: RecordPageApi) {
