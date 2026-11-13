@@ -10,34 +10,34 @@ import type { RouterConfig } from "@/router/app_router"
 
 let loaded = false
 
-function compiledApp() {
+function appRegistry() {
 	loaded = true
-	return import("@/browserRuntime/compiledApp")
+	return import("@/browserRuntime/appRegistry")
 }
 
 export async function loadAppRuntime(appName: string): Promise<void> {
-	return (await compiledApp()).loadAppRuntime(appName)
+	return (await appRegistry()).loadAppRuntime(appName)
 }
 
 export async function reloadAppRuntime(): Promise<void> {
 	if (!loaded) return
-	return (await compiledApp()).reloadAppRuntime()
+	return (await appRegistry()).reloadAppRuntime()
 }
 
 export async function unloadAppRuntime(): Promise<void> {
 	if (!loaded) return
-	return (await compiledApp()).unloadAppRuntime()
+	return (await appRegistry()).unloadAppRuntime()
 }
 
 export async function loadAppRouterConfig(): Promise<RouterConfig | undefined> {
-	return (await compiledApp()).loadAppRouterConfig()
+	return (await appRegistry()).loadAppRouterConfig()
 }
 
 export async function compilePageScript(page: {
 	page_title?: string
 	script?: string | null
 }): Promise<Record<string, any> | null> {
-	return (await compiledApp()).compilePageScript(page)
+	return (await appRegistry()).compilePageScript(page)
 }
 
 /** Return a page script's syntax error, or null if the module parses. */
@@ -46,5 +46,5 @@ export async function checkAppScript(
 	filename = "page_script.js",
 	databaseApp = false,
 ): Promise<string | null> {
-	return (await compiledApp()).checkAppScript(source, filename, databaseApp)
+	return (await import("@/browserRuntime/compiler")).checkAppScript(source, filename, databaseApp)
 }

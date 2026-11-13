@@ -1,5 +1,5 @@
 import { extractIdentifiers, walk, walkIdentifiers } from "vue/compiler-sfc"
-import { IMPORTABLE_MODULES } from "./importableLibraries.js"
+import { IMPORTABLE_MODULES } from "./importableModuleNames.js"
 
 const COMMONJS_NAMES = ["require", "module", "exports"]
 

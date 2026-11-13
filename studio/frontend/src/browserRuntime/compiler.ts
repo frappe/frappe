@@ -54,13 +54,6 @@ type SucraseOptions = import("sucrase").Options
 export type BabelProgram = ReturnType<typeof import("vue/compiler-sfc").babelParse>["program"]
 type ImportDeclaration = Extract<BabelProgram["body"][number], { type: "ImportDeclaration" }>
 
-let compilerModules: Promise<[typeof import("vue/compiler-sfc"), typeof import("sucrase")]> | null = null
-
-function loadCompilers() {
-	compilerModules ??= Promise.all([import("vue/compiler-sfc"), import("sucrase")])
-	return compilerModules
-}
-
 // Hold the latest compilation of each file, so a rebuild reuses the files that did not change.
 // Keying by path replaces a superseded version instead of keeping it, and holds every file of an
 // app however large it is.
@@ -76,7 +69,7 @@ export function compileFile(filename: string, source: string): Promise<CompiledF
 }
 
 async function toCommonJS(filename: string, source: string): Promise<CompiledFile> {
-	const [, sucrase] = await loadCompilers()
+	const sucrase = await import("sucrase")
 	try {
 		const code = sucrase.transform(source, { ...CJS_OPTIONS, filePath: filename }).code
 		return { code, errors: [] }
@@ -97,7 +90,7 @@ export async function parseModule(
 	code: string,
 	databaseApp = false,
 ): Promise<ParsedModule> {
-	const [sfc] = await loadCompilers()
+	const sfc = await import("vue/compiler-sfc")
 	try {
 		const { program } = sfc.babelParse(code, {
 			sourceType: "module",
@@ -125,6 +118,16 @@ export async function parseModule(
 	} catch (error) {
 		return { ...nothingParsed(), errors: [formatError(filename, error)] }
 	}
+}
+
+/** Return a script's syntax error, or null if the module parses. */
+export async function checkAppScript(
+	source: string,
+	filename = "page_script.js",
+	databaseApp = false,
+): Promise<string | null> {
+	const parsed = await parseModule(filename, source, databaseApp)
+	return parsed.errors.length ? parsed.errors.map(describeError).join("\n") : null
 }
 
 function nothingParsed(): ParsedModule {

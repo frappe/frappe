@@ -15,7 +15,7 @@ import * as vueRouter from "vue-router"
 import * as pinia from "pinia"
 import * as frappeUI from "frappe-ui"
 import * as frappeUIList from "frappe-ui/list"
-import { IMPORTABLE_MODULES } from "./importableLibraries.js"
+import { IMPORTABLE_MODULES } from "./importableModuleNames.js"
 
 const modules: Record<string, Record<string, any>> = {
 	vue,

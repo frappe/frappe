@@ -9,7 +9,6 @@
  */
 
 import { createResource } from "frappe-ui"
-import { parseModule, describeError } from "@/browserRuntime/compiler"
 import { clearAppStyles } from "@/browserRuntime/appStyles"
 import { AppModuleRegistry } from "@/browserRuntime/moduleRegistry"
 import { scrub } from "@/utils/helpers"
@@ -83,14 +82,4 @@ export async function compilePageScript(page: {
 function getRegistry(): AppModuleRegistry {
 	if (!registry) throw new Error("No Studio app runtime is loaded.")
 	return registry
-}
-
-/** Return a page script's syntax error, or null if the module parses. */
-export async function checkAppScript(
-	source: string,
-	filename = "page_script.js",
-	databaseApp = false,
-): Promise<string | null> {
-	const parsed = await parseModule(filename, source, databaseApp)
-	return parsed.errors.length ? parsed.errors.map(describeError).join("\n") : null
 }
