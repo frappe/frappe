@@ -1,4 +1,4 @@
-<!-- The layout crumb stays last: #47275 hangs its layout popover on it. -->
+<!-- The layout crumb stays last: its layout popover hangs on it. -->
 <template>
 	<div class="flex w-full flex-col">
 		<div class="flex h-12 items-center justify-between gap-3">
@@ -10,33 +10,34 @@
 				</Breadcrumbs>
 				<NotSavedBadge v-if="dirty" class="shrink-0" />
 			</div>
-			<div class="hidden shrink-0 items-center lg:flex">
+			<div class="flex shrink-0 items-center gap-2">
 				<TabButtons
 					v-if="modes.length > 1"
-					class="mr-2 shrink-0"
 					:options="modeOptions"
 					:model-value="mode"
 					data-mode-switch
 					@update:model-value="(next) => emit('act', 'editor.set_mode', next as EditorMode)"
 				/>
-				<Tooltip :text="__('Undo')">
-					<Button
-						variant="ghost"
-						icon="lucide-corner-up-left"
-						:label="__('Undo')"
-						:disabled="!canUndo"
-						@click="emit('act', 'editor.undo')"
-					/>
-				</Tooltip>
-				<Tooltip :text="__('Redo')">
-					<Button
-						variant="ghost"
-						icon="lucide-corner-up-right"
-						:label="__('Redo')"
-						:disabled="!canRedo"
-						@click="emit('act', 'editor.redo')"
-					/>
-				</Tooltip>
+				<div class="hidden items-center lg:flex">
+					<Tooltip :text="__('Undo')">
+						<Button
+							variant="ghost"
+							icon="lucide-corner-up-left"
+							:label="__('Undo')"
+							:disabled="!canUndo"
+							@click="emit('act', 'editor.undo')"
+						/>
+					</Tooltip>
+					<Tooltip :text="__('Redo')">
+						<Button
+							variant="ghost"
+							icon="lucide-corner-up-right"
+							:label="__('Redo')"
+							:disabled="!canRedo"
+							@click="emit('act', 'editor.redo')"
+						/>
+					</Tooltip>
+				</div>
 			</div>
 			<Dropdown v-if="menu.length" :options="menu" side="bottom" align="end">
 				<Button variant="ghost" icon="lucide-ellipsis" :label="__('More')" />

@@ -31,6 +31,16 @@ describe("the Customize save toast", () => {
 		).toBe("Saved 1 custom field.");
 	});
 
+	it("drops a new field removed before the save", () => {
+		expect(
+			saveSummary([
+				{ act: "fields.add_field", label: "Due", fieldtype: "Date" },
+				{ act: "fields.set_field_property", fieldname: "custom_due", property: "bold", value: 1 },
+				{ act: "fields.delete_field", fieldname: "custom_due" },
+			]),
+		).toBe("Saved");
+	});
+
 	it("leaves out what the server skipped and what was set back", () => {
 		const edits = [
 			{ act: "fields.set_field_property", fieldname: "subject", property: "label", value: "Topic" },
