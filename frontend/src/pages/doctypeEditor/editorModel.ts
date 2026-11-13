@@ -33,8 +33,6 @@ export interface WorkingState extends LayoutsHolder {
 	settings: SettingsState;
 	/** The fieldnames the database has; a rename or delete checks against them. */
 	saved: string[];
-	/** Each saved field renamed so far, `[saved, current]`. */
-	renames: [string, string][];
 	/** `null` in Design. */
 	customize: CustomizeRules | null;
 }

@@ -75,6 +75,8 @@ function deepFreeze<T>(value: T): T {
 }
 
 const base = deepFreeze(editorBase(state()));
+/** The same tree saved as the site's own layout: a field added with no layout stays off it. */
+const savedBase = editorBase({ ...state(), layouts: { Details: [{ ...state().layouts.Details![0], name: "FL-1", source: "site" }] } });
 
 const canvas = (act: string, value: Record<string, unknown>): FlatEdit => ({
 	act: `canvas.${act}`,
@@ -302,10 +304,12 @@ describe("field acts", () => {
 		expect(columnsOf(working, "log")[0].fields).toEqual(["due_date"]);
 	});
 
-	it("adds a field off the layout when the edit names no layout", () => {
-		const working = replay({ act: "fields.add_field", label: "Kind", fieldtype: "Link", options: "DocType", fieldname: "kind" });
+	it("adds a field with no layout off a saved Details layout, and last on a fallback one, as the save rebuilds it", () => {
+		const add: FlatEdit = { act: "fields.add_field", label: "Kind", fieldtype: "Link", options: "DocType", fieldname: "kind" };
+		const working = replay(add);
 		expect(working.fields.at(-1)).toEqual({ fieldname: "kind", label: "Kind", fieldtype: "Link", options: "DocType" });
-		expect(placed(working)).not.toContain("kind");
+		expect(details(working)[1].sections[0].columns[0].fields).toEqual(["kind"]);
+		expect(placed(workingState(savedBase, [add]))).not.toContain("kind");
 	});
 
 	it("refuses a taken or invalid fieldname", () => {
@@ -378,7 +382,7 @@ describe("settings acts", () => {
 
 describe("fieldsOffLayout", () => {
 	it("lists the fields the layout does not place, marking new and asked ones", () => {
-		const working = workingState(base, [
+		const working = workingState(savedBase, [
 			{ act: "fields.add_field", label: "Ref", fieldtype: "Data" },
 			{ act: "fields.add_field", label: "Break", fieldtype: "Section Break" },
 			{ act: "fields.rename_field", fieldname: "spare", new_fieldname: "extra" },

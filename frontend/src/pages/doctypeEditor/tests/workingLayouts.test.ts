@@ -168,6 +168,35 @@ describe("layouts acts", () => {
 		expect(tabsOf(empty, WIDE)).toEqual(emptyTabs());
 	});
 
+	it("copy a fallback Details from the fields as they are then, as the save rebuilds it", () => {
+		const fields = [
+			{ fieldname: "subject", label: "Subject", fieldtype: "Small Text" },
+			{ fieldname: "more", label: "More", fieldtype: "Section Break" },
+			{ fieldname: "notes", label: "Notes", fieldtype: "Text", reqd: 1 },
+		];
+		const loaded = [
+			{
+				name: "first_tab",
+				sections: [
+					{ name: "section_1", columns: [{ name: "column_1", fields: ["subject"] }] },
+					{ name: "more", label: "More", columns: [{ name: "column_1", fields: ["notes"] }] },
+				],
+			},
+		];
+		const fallback = { name: null, source: "fallback" as const, omitted: [], layout: loaded };
+		const note = editorBase(
+			taskNote({ layouts: { Details: [fallback] }, definition: { ...taskNote().definition, fields } as never }),
+		);
+		const working = workingState(note, [
+			{ act: "fields.rename_field", fieldname: "subject", new_fieldname: "topic" },
+			{ act: "fields.add_field", label: "Due", fieldtype: "Date", layout: { type: "Quick Entry" }, section: "section_1", column: "column_1" },
+			add({ condition: "doc.notes", start: "copy" }),
+		]);
+		expect(tabsOf(working, WIDE)[0].sections[0].columns[0].fields).toEqual(["topic"]);
+		expect(tabsOf(working, WIDE)[0].sections[1].columns[0].fields).toEqual(["notes", "due"]);
+		expect(tabsOf(working, DETAILS)[0].sections[1].columns[0].fields).toEqual(["notes", "due"]);
+	});
+
 	it("refuse a second default, a taken id and a type the DocType does not have", () => {
 		expect(() => workingState(design, [add({ title: "Wide" })])).toThrow(
 			"Only one Details layout can have no condition.",

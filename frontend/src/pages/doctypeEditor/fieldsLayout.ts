@@ -6,9 +6,8 @@ type Tab = LayoutTree[number];
 type Section = Tab["sections"][number];
 type Column = Section["columns"][number];
 
-/** Breaks open containers; every other field goes in the column open last. */
-export function layoutFromFields(fields: RawMetaField[]): LayoutTree {
-	const tabs: LayoutTree = [];
+/** Breaks open containers; every other field goes in the column open last, after any `tabs` to go on from. */
+export function layoutFromFields(fields: RawMetaField[], tabs: LayoutTree = []): LayoutTree {
 	for (const field of fields) {
 		if (field.fieldtype === "Tab Break") tabs.push({ ...container(field), sections: [] });
 		else if (field.fieldtype === "Section Break") lastTab(tabs).sections.push({ ...container(field), columns: [] });

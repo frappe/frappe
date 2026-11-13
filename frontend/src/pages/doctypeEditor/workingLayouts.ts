@@ -51,6 +51,8 @@ export interface LayoutsHolder {
 	definition: Pick<DoctypeDefinition, "istable" | "issingle">;
 	fields: RawMetaField[];
 	saved: string[];
+	/** Each saved field renamed so far, `[saved, current]`. */
+	renames: [string, string][];
 	layouts: WorkingLayouts;
 }
 
@@ -117,7 +119,8 @@ export function fallbackTabs(working: LayoutsHolder, type: FormLayoutType): Layo
 	if (type === "Quick Entry") return quickEntryLayout(fallbackFields(working));
 	if (type === "Side Panel") return sidePanelTabs();
 	const empty = working.layouts.Details?.empty;
-	return empty ? structuredClone(empty.tabs) : layoutFromFields(fallbackFields(working));
+	if (!empty) return layoutFromFields(fallbackFields(working));
+	return layoutFromFields(addedFields(working), structuredClone(empty.tabs));
 }
 
 /** `side_panel_tabs`: the record panel draws a section's header, and its open state, only from a label. */
@@ -178,6 +181,13 @@ function fallbackFields(working: LayoutsHolder): DocField[] {
 	return fields.filter(
 		(field) => working.saved.includes(field.fieldname) && !(field.is_custom_field && !field.is_system_generated),
 	);
+}
+
+/** The save rebuilds the fallback from the fields, so the ones added since the load go after the rest. */
+function addedFields(working: LayoutsHolder): DocField[] {
+	const renamed = new Set(working.renames.map(([, current]) => current));
+	const added = (field: DocField) => !working.saved.includes(field.fieldname) && !renamed.has(field.fieldname);
+	return fallbackFields(working).filter(added);
 }
 
 /** `quick_entry_layout` in `form_layout.py`: the fields Create asks for, a section per condition. */
