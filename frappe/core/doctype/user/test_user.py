@@ -272,7 +272,7 @@ class TestUser(IntegrationTestCase):
 		with (
 			test_user(roles=[], user_type="Website User") as user,
 			patch.object(frappe.local, "login_manager", None, create=True),
-			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "commit") as commit,
 		):
 			sessions = frappe.qb.DocType("Sessions")
 			frappe.qb.into(sessions).columns(sessions.user, sessions.sid, sessions.sessiondata).insert(
@@ -280,9 +280,8 @@ class TestUser(IntegrationTestCase):
 			).run()
 			user.enabled = 0
 			user.save()
-			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 1)
-			frappe.db.after_commit.run()
 			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 0)
+			commit.assert_not_called()
 
 	def test_get_value(self):
 		self.assertEqual(frappe.db.get_value("User", "test@example.com"), "test@example.com")

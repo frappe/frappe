@@ -418,8 +418,22 @@ class User(Document):
 		if login_manager := getattr(frappe.local, "login_manager", None):
 			login_manager.logout(user=self.name)
 		else:
-			# after commit: `delete_session` commits, and a rolled back disable must keep the sessions
-			frappe.db.after_commit.add(partial(clear_sessions, user=self.name, force=True))
+			self.delete_sessions()
+
+	def delete_sessions(self):
+		"""Delete sessions in the current transaction, as `delete_session` would commit mid-save."""
+		from frappe.core.doctype.activity_log.feed import logout_feed
+
+		sessions = DocType("Sessions")
+		sid_hashes = (
+			frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == self.name).run(pluck=True)
+		)
+		if not sid_hashes:
+			return
+
+		frappe.db.delete("Sessions", {"user": self.name})
+		logout_feed(self.name, "Force Logged out by the user")
+		frappe.db.after_commit.add(partial(frappe.cache.hdel, "session", sid_hashes))
 
 	def set_new_password(self, new_password=None):
 		"""Set New Password for user"""
