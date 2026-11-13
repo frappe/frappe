@@ -105,6 +105,8 @@ export class LayoutTreeEditor {
 		const [from, node] = this.parentOfColumn(edit.column, edit.section);
 		remove(from.columns, node);
 		const columns = this.section(edit.to_section).columns;
+		// Column names repeat across sections: one that clashes in its new section takes a new name.
+		if (columns.some((other) => other.name === node.name)) delete node.name;
 		insert(columns, node, edit.index);
 		assignNames(columns, "column");
 	}

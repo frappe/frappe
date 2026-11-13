@@ -5,7 +5,7 @@ import { __, __n } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import { reqdInConditional } from "./editorModel";
 import { allowedFieldtypes } from "./fieldRules";
-import { COMMON_TYPES, FIELDTYPE_GROUPS, typeName } from "./fieldtypes";
+import { COMMON_TYPES, FIELDTYPE_GROUPS, typeName, typeOf } from "./fieldtypes";
 
 export interface TypeGroup {
 	label: string;
@@ -37,6 +37,19 @@ export function typeGroups(canvas: DesignCanvas, fieldname: string): { groups: T
 		],
 		more: [],
 	};
+}
+
+/**
+ * The properties a pick in the type list sets, as one step: "Email" is Data's `Email` option, so
+ * options carry over only within one fieldtype, and never an option that was the type itself.
+ */
+export function typeChange(field: RawMetaField, name: string): Record<string, unknown> {
+	const { fieldtype, options } = typeOf(name);
+	const properties: Record<string, unknown> = { fieldtype };
+	const keeps = fieldtype === field.fieldtype && !typeOf(typeName(field.fieldtype, field.options)).options;
+	const next = options ?? (keeps ? field.options : "");
+	if ((next ?? "") !== (field.options ?? "")) properties.options = next ?? "";
+	return properties;
 }
 
 /** Under Type, once a saved field's type changed. */

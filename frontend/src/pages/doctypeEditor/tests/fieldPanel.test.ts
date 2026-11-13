@@ -4,11 +4,14 @@ const { toast } = vi.hoisted(() => ({ toast: { error: vi.fn(), success: vi.fn() 
 vi.mock("frappe-ui", () => ({ toast }));
 
 import { acts } from "@/acts/dispatcher";
-import { fieldnameMode, removeQuestion, reqdWarning, subtitle, typeGroups, typeNote } from "../fieldPanel";
+import { fieldnameMode, removeQuestion, reqdWarning, subtitle, typeChange, typeGroups, typeNote } from "../fieldPanel";
 import { mountEditor, taskNote } from "./editorFixture";
 
-let stop: () => void;
-afterEach(() => stop());
+let stop: (() => void) | undefined;
+afterEach(() => {
+	stop?.();
+	stop = undefined;
+});
 
 function mount(...args: Parameters<typeof taskNote>) {
 	const mounted = mountEditor(taskNote(...args));
@@ -17,6 +20,15 @@ function mount(...args: Parameters<typeof taskNote>) {
 }
 
 describe("the panel's type list", () => {
+	it("sets the type and its options as one change, dropping an option that was the type", () => {
+		const email = { fieldname: "mail", fieldtype: "Data", options: "Email" };
+		expect(typeChange(email, "Data")).toEqual({ fieldtype: "Data", options: "" });
+		expect(typeChange({ fieldname: "mail", fieldtype: "Data" }, "Email")).toEqual({ fieldtype: "Data", options: "Email" });
+		expect(typeChange({ fieldname: "who", fieldtype: "Link", options: "User" }, "Link")).toEqual({ fieldtype: "Link" });
+		expect(typeChange({ fieldname: "who", fieldtype: "Link", options: "User" }, "Data")).toEqual({ fieldtype: "Data", options: "" });
+	});
+
+
 	it("keeps a saved field with values to the types that keep them, the rest disabled with the reason", () => {
 		const { canvas } = mount();
 		const { groups, more } = typeGroups(canvas, "subject");
@@ -63,7 +75,7 @@ describe("the panel's fieldname, remove and reqd notes", () => {
 		await acts.run("fields.add_field", { label: "Owner", fieldtype: "Data" });
 		expect(fieldnameMode(custom.canvas, "owner")).toBe("follows");
 		expect(fieldnameMode(custom.canvas, "subject")).toBe("renamable");
-		stop();
+		stop?.();
 		const standard = mount({ custom: 0 });
 		expect(fieldnameMode(standard.canvas, "subject")).toBe("locked");
 	});

@@ -37,10 +37,10 @@ export interface ExportResult {
 export interface SaveHost {
 	edits: PendingEdits;
 	canvas: () => DesignCanvas | null;
-	/** Loads the DocType again with no edits staged; its new canvas. */
-	reload: () => Promise<DesignCanvas>;
-	/** A new DocType's first save made it: its own editor opens in place of `/doctype/new`. */
-	created: (doctype: string) => Promise<DesignCanvas>;
+	/** Loads the DocType again with no edits staged; its new canvas, or null once the page moved on. */
+	reload: () => Promise<DesignCanvas | null>;
+	/** A new DocType's first save made it: its own editor opens in place of `/doctype/new`, unless the page moved on. */
+	created: (doctype: string) => Promise<DesignCanvas | null>;
 }
 
 export const SAVE_METHOD = "frappe.desk.doctype_editor.save.save_doctype_editor";
@@ -61,6 +61,7 @@ export class EditorSave {
 		const canvas = this.host.canvas();
 		if (!canvas || this.saving.value) return;
 		this.saving.value = true;
+		this.host.edits.locked.value = true;
 		this.banner.value = null;
 		canvas.errors.value = [];
 		try {
@@ -69,6 +70,7 @@ export class EditorSave {
 			else this.refused(canvas, result);
 		} finally {
 			this.saving.value = false;
+			this.host.edits.locked.value = false;
 		}
 	}
 
@@ -78,6 +80,7 @@ export class EditorSave {
 			step.map(({ act, value }) => ({ ...value, act })),
 		);
 		const canvas = await this.host.reload();
+		if (!canvas) return;
 		const refused: string[] = [];
 		for (const step of steps) {
 			try {
@@ -159,11 +162,12 @@ export class EditorSave {
 				if (result.base_version) this.host.edits.rebase(result.base_version);
 				throw error;
 			});
-			next.askedOnSave.value = asked;
+			if (next) next.askedOnSave.value = asked;
 			return void toast.success(__("Saved"));
 		}
 		const doctype = result.doctype ?? canvas.state.doctype;
 		const next = await this.host.created(doctype);
+		if (!next) return void toast.success(__("{0} is created.", [doctype]));
 		next.askedOnSave.value = asked;
 		this.banner.value = {
 			doctype,

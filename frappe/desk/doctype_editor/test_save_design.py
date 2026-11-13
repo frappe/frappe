@@ -201,6 +201,35 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(error["edit"], 2)
 		self.assertEqual(error["target"]["kind"], "container")
 
+	def test_a_column_moved_onto_its_name_in_another_section_is_renamed(self):
+		details = {"type": "Details"}
+		result = self.save(
+			[
+				{"act": "canvas.add_section", "layout": details, "tab": "first_tab", "name": "one"},
+				{"act": "canvas.add_section", "layout": details, "tab": "first_tab", "name": "two"},
+				{
+					"act": "canvas.move_column",
+					"layout": details,
+					"section": "one",
+					"column": "column_1",
+					"to_section": "two",
+					"index": 1,
+				},
+				{
+					"act": "canvas.place_field",
+					"layout": details,
+					"fieldname": "title",
+					"section": "two",
+					"column": "column_2",
+				},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		[row] = details_rows()
+		[two] = [s for s in json.loads(row.layout)[0]["sections"] if s["name"] == "two"]
+		self.assertEqual([c["name"] for c in two["columns"]], ["column_1", "column_2"])
+		self.assertEqual(two["columns"][1]["fields"], ["title"])
+
 	def test_field_properties_are_set_and_fields_reordered(self):
 		result = self.save(
 			[

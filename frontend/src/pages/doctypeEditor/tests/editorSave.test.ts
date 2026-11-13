@@ -62,6 +62,20 @@ describe("editor.save", () => {
 		expect([edits.dirty.value, edits.payload().base_version]).toEqual([false, NEXT]);
 	});
 
+	it("stages, undoes and redoes nothing while the save runs", async () => {
+		const { edits } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });
+		let answer!: (value: unknown) => void;
+		runMethod.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
+		const saving = acts.run("editor.save");
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "italic", value: 1 });
+		edits.undo();
+		expect([edits.staged.value.length, edits.canUndo.value]).toEqual([1, false]);
+		answer({ data: { saved: false, errors: [{ target: { kind: "banner" }, message: "No" }] } });
+		await saving;
+		expect([edits.staged.value.length, edits.canUndo.value]).toEqual([1, true]);
+	});
+
 	it("is off with nothing to save, and on for a new DocType with no edits", () => {
 		mount();
 		expect(acts.available().map((act) => act.name)).not.toContain("editor.save");

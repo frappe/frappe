@@ -209,6 +209,15 @@ describe("canvas columns", () => {
 		expect(columnsOf(working, "log").map((column) => column.name)).toEqual(["column_2", "column_1"]);
 		expect(columnsOf(working, "main").map((column) => column.name)).toEqual(["column_1"]);
 	});
+
+	it("renames a moved column whose name its new section already has", () => {
+		const working = replay(
+			canvas("move_column", { column: "column_1", section: "main", to_section: "log", index: 1 }),
+		);
+		const log = columnsOf(working, "log");
+		expect(log.map((column) => column.name)).toEqual(["column_1", "column_2"]);
+		expect(log[1].fields).toEqual(["subject", "status"]);
+	});
 });
 
 describe("canvas fields", () => {

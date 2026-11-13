@@ -1,4 +1,4 @@
-import { computed, shallowRef } from "vue";
+import { computed, ref, shallowRef } from "vue";
 import type { FlatEdit } from "./editorModel";
 
 export type EditorTab = "editor" | "settings" | "preview";
@@ -32,9 +32,12 @@ export class PendingEdits {
 	private done = shallowRef<Edit[][]>([]);
 	private undone = shallowRef<Edit[][]>([]);
 
-	readonly canUndo = computed(() => this.done.value.length > 0);
-	readonly canRedo = computed(() => this.undone.value.length > 0);
-	readonly dirty = this.canUndo;
+	/** While a save runs, nothing stages, undoes or redoes: the save's reload drops every edit. */
+	readonly locked = ref(false);
+
+	readonly dirty = computed(() => this.done.value.length > 0);
+	readonly canUndo = computed(() => this.dirty.value && !this.locked.value);
+	readonly canRedo = computed(() => this.undone.value.length > 0 && !this.locked.value);
 	/** Every staged edit in order, as the save sends it; a save error's `edit` indexes this list. */
 	readonly staged = computed<FlatEdit[]>(() =>
 		this.done.value.flat().map((edit) => ({ ...edit.value, act: edit.act })),
@@ -47,7 +50,7 @@ export class PendingEdits {
 
 	/** Stage one change; several edits given together undo as one step. */
 	stage(...edits: Edit[]) {
-		if (!edits.length) return;
+		if (!edits.length || this.locked.value) return;
 		this.done.value = [...this.done.value, edits];
 		this.undone.value = [];
 	}
@@ -55,7 +58,7 @@ export class PendingEdits {
 	/** Undo the last staged change, from either tab, and open the tab it changed. */
 	undo() {
 		const step = this.done.value.at(-1);
-		if (!step) return;
+		if (!step || this.locked.value) return;
 		this.done.value = this.done.value.slice(0, -1);
 		this.undone.value = [...this.undone.value, step];
 		this.openTab(step.at(-1)!.tab);
@@ -63,7 +66,7 @@ export class PendingEdits {
 
 	redo() {
 		const step = this.undone.value.at(-1);
-		if (!step) return;
+		if (!step || this.locked.value) return;
 		this.undone.value = this.undone.value.slice(0, -1);
 		this.done.value = [...this.done.value, step];
 		this.openTab(step.at(-1)!.tab);

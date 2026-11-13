@@ -34,7 +34,7 @@
 			>
 				{{ __("The editor needs a wider window, 1024px or more.") }}
 			</div>
-			<div class="hidden min-h-0 flex-1 border-t lg:flex">
+			<div class="hidden min-h-0 flex-1 border-t lg:flex" :inert="save.saving.value">
 				<ScrollArea class="flex min-h-0 min-w-0 flex-1" :viewport-class="pageGutter">
 					<EditorCanvas
 						v-if="tab === 'editor' && canvas"
@@ -94,7 +94,12 @@ import {
 	type NewDoctype,
 } from "./editorSource";
 import NewDoctypeDialog from "./NewDoctypeDialog.vue";
-import { PendingEdits, type EditorTab, type PendingEditsPayload } from "./pendingEdits";
+import {
+	PendingEdits,
+	type EditorMode,
+	type EditorTab,
+	type PendingEditsPayload,
+} from "./pendingEdits";
 import PreviewTab from "./PreviewTab.vue";
 import SettingsTab from "./SettingsTab.vue";
 
@@ -212,23 +217,36 @@ function reset() {
 	if (save.banner.value?.doctype !== name.value) save.banner.value = null;
 }
 
-async function reload(): Promise<DesignCanvas> {
+async function reload(): Promise<DesignCanvas | null> {
 	const { doctype, mode } = state.value!;
-	const loaded = await loadEditor(doctype, mode);
+	const loaded = await loadFor(loading, doctype, mode);
+	if (!loaded) return null;
 	++loading;
 	edits.clear();
 	open(loaded);
 	return canvas.value!;
 }
 
-async function created(doctype: string): Promise<DesignCanvas> {
-	const loaded = await loadEditor(doctype, "Design");
+async function created(doctype: string): Promise<DesignCanvas | null> {
+	const loaded = await loadFor(loading, doctype, "Design");
+	if (!loaded) return null;
 	++loading;
 	edits.clear();
 	open(loaded);
 	justCreated = doctype;
 	await router.replace(routeFor("DocType", doctype));
 	return canvas.value!;
+}
+
+/** Loads for the editor open now; null once the page moved on to another DocType or mode. */
+async function loadFor(request: number, doctype: string, mode: EditorMode) {
+	try {
+		const loaded = await loadEditor(doctype, mode);
+		return request === loading ? loaded : null;
+	} catch (error) {
+		if (request === loading) throw error;
+		return null;
+	}
 }
 
 function openList() {

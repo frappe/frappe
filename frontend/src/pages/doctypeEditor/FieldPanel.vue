@@ -132,9 +132,16 @@ import { __ } from "@/i18n";
 import { shellDialog } from "@/shell/dialog";
 import type { DesignCanvas } from "./designCanvas";
 import FieldnameRow from "./FieldnameRow.vue";
-import { removeQuestion, reqdWarning, subtitle, typeGroups, typeNote } from "./fieldPanel";
+import {
+	removeQuestion,
+	reqdWarning,
+	subtitle,
+	typeChange,
+	typeGroups,
+	typeNote,
+} from "./fieldPanel";
 import FieldPropertyGroups from "./FieldPropertyGroups.vue";
-import { typeIcon, typeName, typeOf } from "./fieldtypes";
+import { typeIcon, typeName } from "./fieldtypes";
 import PanelHeader from "./PanelHeader.vue";
 import PanelRow from "./PanelRow.vue";
 import PanelSection from "./PanelSection.vue";
@@ -185,18 +192,11 @@ function set(property: string, value: unknown) {
 	});
 }
 
-/** Type and options change as one step: "Email" is Data's `Email` option, and a Link's DocType does not carry over. */
 function pickType(name: string) {
 	if (name === currentType.value) return;
-	const { fieldtype, options } = typeOf(name);
-	const properties: Record<string, unknown> = { fieldtype };
-	const nextOptions =
-		options ?? (fieldtype === props.field.fieldtype ? props.field.options : "");
-	if ((nextOptions ?? "") !== (props.field.options ?? ""))
-		properties.options = nextOptions ?? "";
 	void acts.perform("fields.set_field_property", {
 		fieldname: props.field.fieldname,
-		properties,
+		properties: typeChange(props.field, name),
 	});
 }
 
