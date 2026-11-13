@@ -2,13 +2,15 @@
 import { defineAsyncComponent } from "vue";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
+import type { FormLayoutType } from "@/recordPage/formLayoutSource/types";
 import { shellDialog } from "@/shell/dialog";
 import type { DesignCanvas } from "./designCanvas";
 import type { AddedLayout } from "./layoutActs";
-import type { LayoutMenu, OpenLayoutAct } from "./layoutMenu";
+import { resetSummary, typeLabel, type LayoutMenu, type OpenLayoutAct } from "./layoutMenu";
 
 const AddLayoutDialog = defineAsyncComponent(() => import("./AddLayoutDialog.vue"));
 const LayoutTextDialog = defineAsyncComponent(() => import("./LayoutTextDialog.vue"));
+const ResetLayoutDialog = defineAsyncComponent(() => import("./ResetLayoutDialog.vue"));
 
 export async function addLayout(canvas: DesignCanvas, menu: LayoutMenu) {
 	const types = menu.types.map(({ type, label }) => ({ value: type, label }));
@@ -23,7 +25,7 @@ export async function addLayout(canvas: DesignCanvas, menu: LayoutMenu) {
 export async function runOpenLayoutAct(canvas: DesignCanvas, act: OpenLayoutAct) {
 	const layout = canvas.openLayout.value;
 	if (act === "delete") return acts.perform("layouts.delete", { layout });
-	if (act === "reset_to_app") return acts.perform("layouts.reset_to_app", { type: layout.type });
+	if (act === "reset_to_app") return resetToApp(canvas, layout.type);
 	const open = canvas.layout.value!;
 	if (act === "rename") {
 		const title = await askText(__("Rename layout"), {
@@ -42,6 +44,14 @@ export async function runOpenLayoutAct(canvas: DesignCanvas, act: OpenLayoutAct)
 		confirmLabel: __("Save condition"),
 	});
 	if (condition !== null) await acts.perform("layouts.set_condition", { layout, condition });
+}
+
+/** Asks first, listing the site layouts the reset removes. */
+export async function resetToApp(canvas: DesignCanvas, type: FormLayoutType) {
+	const summary = resetSummary(canvas.working.value, type);
+	const props = { label: typeLabel(type), summary };
+	const reset = await shellDialog().open(ResetLayoutDialog, props, { title: __("Reset to app layout?") });
+	if (reset) await acts.perform("layouts.reset_to_app", { type });
 }
 
 function askText(title: string, props: Record<string, string>): Promise<string | null> {

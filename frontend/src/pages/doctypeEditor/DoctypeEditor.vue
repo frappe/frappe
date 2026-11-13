@@ -111,6 +111,7 @@ import EditorPanel from "./EditorPanel.vue";
 import { customizeHost } from "./customizeHost";
 import { dangerHost } from "./dangerHost";
 import { DesignCanvas } from "./designCanvas";
+import { ForkWarning, forkWarningText } from "./forkWarning";
 import { layoutFromQuery, useLayoutAddress } from "./layoutQuery";
 import { canSave, useEditorActs } from "./editorActs";
 import { EditorSave, type ExportResult } from "./editorSave";
@@ -147,6 +148,10 @@ const name = computed(() => String(route.params.name));
 
 const state = shallowRef<EditorState | null>(null);
 const canvas = shallowRef<DesignCanvas | null>(null);
+const forks = new ForkWarning(async (type) => {
+	const text = forkWarningText(canvas.value!.working.value, type);
+	return Boolean(await shellDialog().confirm({ ...text, confirmLabel: __("Continue") }));
+});
 const pageState = shallowRef<PageStateValue | null>(null);
 const tab = ref<EditorTab>("editor");
 const settingsPlace = ref<SettingsPlace>({ section: "", found: null });
@@ -334,7 +339,7 @@ function open(loaded: EditorState) {
 	});
 	state.value = loaded;
 	child.tables.reset();
-	canvas.value = new DesignCanvas(loaded, edits);
+	canvas.value = new DesignCanvas(loaded, edits, forks);
 	canvas.value.open(layoutFromQuery(route.query));
 }
 

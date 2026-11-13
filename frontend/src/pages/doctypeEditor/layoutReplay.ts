@@ -6,12 +6,16 @@ import {
 	emptyTabs,
 	fallbackTabs,
 	findLayout,
+	forked,
 	typeRefusal,
 	type LayoutRef,
 	type LayoutsHolder,
 	type TypeLayouts,
 	type WorkingLayout,
 } from "./workingLayouts";
+
+/** `ANCHORED_TYPES`: a site field on these renders at its anchor until the site forks the layout. */
+const ANCHORED_TYPES: FormLayoutType[] = ["Details", "New Record"];
 
 export interface AddLayout {
 	type: FormLayoutType;
@@ -27,20 +31,30 @@ export class LayoutReplay {
 	constructor(private state: LayoutsHolder) {}
 
 	/** The layout an edit names; a missing default is made from the fallback, as the save makes it. */
-	resolve(ref: LayoutRef | undefined): WorkingLayout {
+	resolve(ref: LayoutRef | undefined, fork = true): WorkingLayout {
 		const type = ref?.type as FormLayoutType;
 		const of = this.typeLayouts(type);
-		this.touch(of);
+		if (fork) this.touch(of);
 		const found = findLayout(this.state, ref!);
 		if (found) return found;
 		if (ref!.id) throw new EditRefused("This {0} layout no longer exists.", [type]);
 		const made = this.newLayout(fallbackTabs(this.state, type));
+		if (!fork) made.source = of.empty?.source ?? "fallback";
 		of.layouts.push(made);
 		return made;
 	}
 
-	tree(ref: LayoutRef | undefined): LayoutTreeEditor {
-		return new LayoutTreeEditor(this.resolve(ref).tabs);
+	tree(ref: LayoutRef | undefined, fork = true): LayoutTreeEditor {
+		return new LayoutTreeEditor(this.resolve(ref, fork).tabs);
+	}
+
+	/** `place_without_fork`: an unforked Details or New Record anchors a site field, and a fallback Details reorders a standard one. */
+	placesWithoutFork(ref: LayoutRef | undefined, fieldname: string): boolean {
+		const type = ref?.type as FormLayoutType;
+		if (this.state.mode !== "Customize" || !ANCHORED_TYPES.includes(type) || forked(this.state, type)) return false;
+		const byDefault = findLayout(this.state, { type });
+		if (ref!.id && ref!.id !== byDefault?.id) return false;
+		return this.isSiteCustom(fieldname) || (type === "Details" && !byDefault);
 	}
 
 	add({ type, id, title, condition, start }: AddLayout) {
@@ -99,6 +113,14 @@ export class LayoutReplay {
 		}
 		const fallback = this.state.layouts.Details?.empty?.tabs;
 		if (fallback) new LayoutTreeEditor(fallback).unplace_field({ fieldname });
+	}
+
+	private isSiteCustom(fieldname: string): boolean {
+		const field = this.state.fields.find((one) => one.fieldname === fieldname) as
+			| { is_custom_field?: 0 | 1; is_system_generated?: 0 | 1 }
+			| undefined;
+		if (!this.state.saved.includes(fieldname)) return true;
+		return Boolean(field?.is_custom_field && !field.is_system_generated);
 	}
 
 	private typeLayouts(type: FormLayoutType): TypeLayouts {

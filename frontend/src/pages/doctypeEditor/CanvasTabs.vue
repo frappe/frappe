@@ -124,10 +124,14 @@ function tabLabel(tab: LayoutTreeTab, index: number) {
 }
 
 function select(tab: LayoutTreeTab) {
-	void acts.perform("canvas.select", { kind: "tab", tab: tab.name });
+	const selection = { kind: "tab" as const, tab: tab.name! };
+	// A read-only canvas may be a view beside the editor's own, so it selects on itself.
+	if (!props.canvas.editable) return props.canvas.select(selection);
+	void acts.perform("canvas.select", selection);
 }
 
 async function startRename(tab: LayoutTreeTab) {
+	if (!props.canvas.editable) return;
 	renaming.value = tab.name!;
 	await nextTick();
 	renameInput.value?.focus();

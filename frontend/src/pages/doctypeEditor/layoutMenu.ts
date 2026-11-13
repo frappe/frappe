@@ -37,6 +37,13 @@ export interface LayoutMenu {
 	open: { name: string; where: string; acts: OpenLayoutAct[] } | null;
 }
 
+export interface ResetSummary {
+	removes: { name: string; condition: string | null }[];
+	restores: { name: string; condition: string | null }[];
+	/** The badge of what the type goes back to when the app has no layout of it. */
+	fallback: string | null;
+}
+
 export interface NewLayout {
 	type: FormLayoutType;
 	title?: string;
@@ -76,6 +83,17 @@ export function addLayoutRefusal(working: WorkingState, layout: NewLayout): stri
 	}
 }
 
+/** What Reset to app layout removes from a type and what comes back after the save. */
+export function resetSummary(working: WorkingState, type: FormLayoutType): ResetSummary {
+	const of = working.layouts[type];
+	const row = (layout: WorkingLayout) => ({ name: layout.title || layout.condition || LABELS[type](), condition: layout.condition });
+	return {
+		removes: (of?.layouts ?? []).map(row),
+		restores: (of?.app ?? []).map(row),
+		fallback: of?.app.length ? null : badge(of?.empty?.source ?? "none"),
+	};
+}
+
 /** An id the server takes for a new layout until its save names the row. */
 export function newLayoutId(): string {
 	return `new-${Math.random().toString(36).slice(2, 10)}`;
@@ -112,6 +130,10 @@ function openActs(working: WorkingState, type: FormLayoutType, layout: WorkingLa
 		where: layout.condition ? __("{0} when {1}", [where, layout.condition]) : where,
 		acts,
 	};
+}
+
+export function typeLabel(type: FormLayoutType): string {
+	return LABELS[type]();
 }
 
 function badge(source: LayoutSource): string {

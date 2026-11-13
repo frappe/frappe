@@ -37,16 +37,24 @@
 			</p>
 		</template>
 
-		<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="canvas" />
-		<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="canvas" />
-		<div v-else class="mt-6"><CanvasForm :canvas="canvas" /></div>
+		<AppLayoutNotice
+			v-if="appChanged"
+			v-model:viewing="viewingApp"
+			:class="formPage ? 'mt-6' : 'mb-6'"
+			:canvas="canvas"
+		/>
+		<template v-if="!(appChanged && viewingApp)">
+			<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="canvas" />
+			<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="canvas" />
+			<div v-else class="mt-6"><CanvasForm :canvas="canvas" /></div>
 
-		<OffLayoutTray v-if="type === 'Details' || !canvas.editable" :canvas="canvas" />
+			<OffLayoutTray v-if="type === 'Details' || !canvas.editable" :canvas="canvas" />
+		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, watch } from "vue";
+import { computed, defineAsyncComponent, nextTick, ref, watch } from "vue";
 import { RouterLink, type RouteLocationRaw } from "vue-router";
 import { Tooltip, useKeyboardShortcut } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
@@ -63,6 +71,8 @@ import QuickEntryCanvas from "./QuickEntryCanvas.vue";
 import SaveBanner from "./SaveBanner.vue";
 import SidePanelCanvas from "./SidePanelCanvas.vue";
 
+const AppLayoutNotice = defineAsyncComponent(() => import("./AppLayoutNotice.vue"));
+
 const props = defineProps<{
 	canvas: DesignCanvas;
 	save: EditorSave;
@@ -73,6 +83,13 @@ const props = defineProps<{
 provideInertForm();
 
 const type = computed(() => props.canvas.openLayout.value.type);
+const appChanged = computed(() =>
+	Boolean(props.canvas.customize && props.canvas.layout.value?.sourceChanged)
+);
+const viewingApp = ref(false);
+watch([() => props.canvas, () => props.canvas.openLayout.value, appChanged], () => {
+	viewingApp.value = false;
+});
 const formPage = computed(() => type.value === "Details" || type.value === "New Record");
 const metaLine = computed(() => {
 	const { module, app_title, record_count } = props.canvas.state;

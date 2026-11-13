@@ -30,10 +30,9 @@ export function layoutItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Add a layout"),
 			palette: false,
 			when: editing,
-			run: (_context, layout: AddedLayout) => {
+			run: async (_context, layout: AddedLayout) => {
 				const id = newLayoutId();
-				canvas().stage({ act: "layouts.add", id, ...layout });
-				open(host, { type: layout.type, id });
+				if (await canvas().stage({ act: "layouts.add", id, ...layout })) open(host, { type: layout.type, id });
 			},
 		},
 		{

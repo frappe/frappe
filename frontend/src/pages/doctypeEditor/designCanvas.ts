@@ -12,6 +12,7 @@ import {
 } from "./editorModel";
 import { CustomizeView } from "./customizeView";
 import type { EditorState } from "./editorSource";
+import type { ForkWarning } from "./forkWarning";
 import { LayoutTreeEditor } from "./layoutTree";
 import type { EditStage } from "./pendingEdits";
 import { findLayout, layoutOf, type LayoutRef } from "./workingLayouts";
@@ -80,9 +81,11 @@ export class DesignCanvas {
 	readonly customize: CustomizeView | null;
 	private wanted = shallowRef<LayoutRef>(DETAILS);
 
+	/** `forks` asks before an edit forks a layout type; none stages without asking. */
 	constructor(
 		readonly state: EditorState,
 		private edits: EditStage,
+		private forks: ForkWarning | null = null,
 	) {
 		this.base = editorBase(state);
 		this.editable = state.modes.includes(state.mode);
@@ -90,10 +93,12 @@ export class DesignCanvas {
 			state.mode === "Customize" ? new CustomizeView(state, this.base, this.working, () => this.edits.staged.value) : null;
 	}
 
-	/** Stages the edits as one undo step; throws `EditRefused`, and stages nothing, when the replay refuses one. */
-	stage(...edits: FlatEdit[]) {
-		workingState(this.base, [...this.edits.staged.value, ...edits]);
-		this.edits.stage(...edits.map(({ act, ...value }) => ({ act, value, tab: "editor" as const })));
+	/** Stages the edits as one undo step unless the fork warning is cancelled; throws `EditRefused` when the replay refuses one. */
+	stage(...edits: FlatEdit[]): Promise<boolean> {
+		const after = workingState(this.base, [...this.edits.staged.value, ...edits]);
+		const forks = this.forks?.unasked(this.working.value, after) ?? [];
+		if (!forks.length) return Promise.resolve(this.commit(edits));
+		return this.forks!.ask(forks).then((go) => go && this.commit(edits));
 	}
 
 	/** As `stage`, for the Settings tab: undo opens it. Customize sets settings while its canvas is read-only. */
@@ -176,6 +181,11 @@ export class DesignCanvas {
 		const columns = new LayoutTreeEditor(this.tabs.value).section(section).columns;
 		const shortest = columns.reduce((one, other) => (other.fields.length < one.fields.length ? other : one));
 		return { section, column: shortest.name! };
+	}
+
+	private commit(edits: FlatEdit[]): true {
+		this.edits.stage(...edits.map(({ act, ...value }) => ({ act, value, tab: "editor" as const })));
+		return true;
 	}
 
 	private existing(layout: LayoutRef): LayoutRef {

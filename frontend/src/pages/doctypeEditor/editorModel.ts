@@ -156,8 +156,11 @@ class DesignReplay {
 	}
 
 	canvas(edit: FlatEdit, method: keyof LayoutTreeEditor) {
-		if (method === "place_field" || method === "unplace_field") this.field(edit.fieldname as string);
-		const tree = this.layouts.tree(edit.layout as LayoutRef | undefined);
+		const fieldname = edit.fieldname as string;
+		if (method === "place_field" || method === "unplace_field") this.field(fieldname);
+		const ref = edit.layout as LayoutRef | undefined;
+		const fork = !(method === "place_field" && this.layouts.placesWithoutFork(ref, fieldname));
+		const tree = this.layouts.tree(ref, fork);
 		(tree[method] as (edit: FlatEdit) => void)(edit);
 	}
 

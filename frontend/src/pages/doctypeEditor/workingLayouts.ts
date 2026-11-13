@@ -80,6 +80,12 @@ export function tabsOf(working: LayoutsHolder, ref: LayoutRef): LayoutTree {
 	return layoutOf(working, ref)?.tabs ?? [];
 }
 
+/** `CustomizeState.forked`: the type has a site row, saved or made by an edit. */
+export function forked(working: LayoutsHolder, type: FormLayoutType): boolean {
+	const of = working.layouts[type];
+	return Boolean(of && (of.touched || of.layouts.some((layout) => layout.source === "site")));
+}
+
 export function findLayout(working: LayoutsHolder, { type, id }: LayoutRef): WorkingLayout | null {
 	const layouts = working.layouts[type]?.layouts ?? [];
 	return layouts.find((layout) => (id ? layout.id === id : !layout.condition)) ?? null;
