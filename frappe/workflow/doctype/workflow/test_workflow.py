@@ -235,6 +235,18 @@ class TestWorkflow(FrappeTestCase):
 			"invalid python code" in str(se.exception).lower(), msg="Python code validation not working"
 		)
 
+	def test_get_workflow_state_count_requires_workflow_permission(self):
+		"""Only callers who can configure Workflows may use this, regardless of doctype/field chosen."""
+		from frappe.workflow.doctype.workflow.workflow import get_workflow_state_count
+
+		create_new_todo()
+
+		frappe.set_user("test2@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		with self.assertRaises(frappe.PermissionError):
+			get_workflow_state_count(doctype="ToDo", workflow_state_field="workflow_state", states=[])
+
 
 def create_todo_workflow():
 	from frappe.tests.ui_test_helpers import UI_TEST_USER
