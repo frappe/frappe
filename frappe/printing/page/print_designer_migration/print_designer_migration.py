@@ -88,3 +88,9 @@ def preview_conversion(print_format: str, name: str | None = None) -> None:
 	converted = doc.as_dict()
 	converted.update(converted_values(doc)[0], name=None)
 	download_builder_preview_pdf(converted, doc.doc_type, name)
+
+
+@frappe.whitelist()
+def get_print_format_usage(print_format: str) -> list[str]:
+	frappe.only_for("System Manager")
+	return print_format_usage(print_format)

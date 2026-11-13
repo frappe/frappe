@@ -100,10 +100,10 @@ class PrintDesignerMigration {
 				() => frappe.set_route("print-format-builder", row.editor_format),
 				"arrow-up-right"
 			);
-			if (row.editor_format === row.name) add(__("Delete"), () => this.delete_design(row));
 		} else {
 			if (row.sample) add(__("Preview"), () => this.preview(row));
 			add(__("Convert"), () => this.convert(row));
+			if (row.standard !== "Yes") add(__("Delete"), () => this.delete(row));
 		}
 		return $row;
 	}
@@ -205,23 +205,38 @@ class PrintDesignerMigration {
 			});
 	}
 
-	delete_design(row) {
-		frappe.confirm(
-			__(
-				"Delete the Print Designer design of <b>{0}</b>? {0} keeps printing with its print format editor layout. This cannot be undone.",
-				[frappe.utils.escape_html(row.name)]
-			),
-			() =>
-				frappe
-					.xcall(`${CONVERTER}.delete_print_designer_design`, { print_format: row.name })
-					.then(() => {
-						frappe.show_alert({
-							message: __("Deleted the Print Designer design of {0}", [row.name]),
-							indicator: "green",
-						});
-						this.refresh();
-					})
-		);
+	delete(row) {
+		const escape = frappe.utils.escape_html;
+		return frappe
+			.xcall(`${METHOD}.get_print_format_usage`, { print_format: row.name })
+			.then((usage) => {
+				if (usage.length) {
+					frappe.msgprint({
+						title: __("Cannot Delete"),
+						message: __("{0} is still in use: {1}. Pick another format there first.", [
+							`<b>${escape(row.name)}</b>`,
+							usage.map((place) => escape(place)).join(", "),
+						]),
+					});
+					return;
+				}
+				frappe.confirm(
+					__("Delete <b>{0}</b>? This cannot be undone.", [escape(row.name)]),
+					() =>
+						frappe
+							.xcall("frappe.client.delete", {
+								doctype: "Print Format",
+								name: row.name,
+							})
+							.then(() => {
+								frappe.show_alert({
+									message: __("Deleted {0}", [row.name]),
+									indicator: "green",
+								});
+								this.refresh();
+							})
+				);
+			});
 	}
 
 	show_notes(notes) {
