@@ -287,3 +287,38 @@ a.es-button:focus {
     --bt-solid-bg-active: var(--surface-red-9);
     --bt-solid-fg: var(--ink-red-1);
 }
+
+/* bootstrap's .btn-primary/.btn-secondary load later, so each state is restated */
+.es-button:where(:not([data-variant])).btn-primary {
+    --bt-fill-bg: var(--bt-solid-bg);
+    --bt-fill-bg-hover: var(--bt-solid-bg-hover);
+    --bt-fill-bg-active: var(--bt-solid-bg-active);
+    --bt-fg: var(--bt-solid-fg);
+}
+
+.es-button:where(:not([data-variant])):is(.btn-primary, .btn-secondary),
+.es-button:where(:not([data-variant])):is(.btn-primary, .btn-secondary):focus {
+    background: var(--bt-fill-bg);
+    color: var(--bt-fg);
+    border-color: transparent;
+    box-shadow: none;
+}
+
+@media (hover: hover) {
+    .es-button:where(:not([data-variant])):is(.btn-primary, .btn-secondary):hover {
+        background: var(--bt-fill-bg-hover);
+        color: var(--bt-fg);
+        border-color: transparent;
+    }
+}
+
+.es-button:where(:not([data-variant])):is(.btn-primary, .btn-secondary):not(:disabled):not(.disabled):active {
+    background: var(--bt-fill-bg-active);
+    color: var(--bt-fg);
+    border-color: transparent;
+}
+
+.es-button:where(:not([data-variant])):is(.btn-primary, .btn-secondary):is(:disabled, .disabled) {
+    background: var(--bt-disabled-bg);
+    color: var(--bt-disabled-fg);
+}
