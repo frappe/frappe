@@ -272,16 +272,20 @@ class FlowAgent(Document):
 	def session_tool_config(self, session: str | None = None) -> dict[str, Any]:
 		"""Complete tool configuration for one daemon session."""
 		from frappe.flow.daemon import lifecycle
-		from frappe.flow.tools.builtins import SOURCE_TOOL_SLUGS
+		from frappe.flow.tools.builtins import BUILTIN_TOOLS, SOURCE_TOOL_SLUGS
 
 		server_tools = self.server_tools()
+		client_config = self.client_tool_config(session)
+		# the flow server runs its own tools, so it is told which of them ask first
+		asking = {tool.name for tool in BUILTIN_TOOLS if tool.requires_confirmation is True}
+		client_config["confirm_tools"] += [name for name in server_tools if name in asking]
 		return {
 			"system_prompt": self.render_instructions()
 			+ self.skill_index()
 			+ lifecycle.app_source_prompt([name for name in server_tools if name in SOURCE_TOOL_SLUGS]),
 			"tools": server_tools,
 			"extension_tools": self.extension_tools(),
-			**self.client_tool_config(session),
+			**client_config,
 		}
 
 	def render_instructions(self) -> str:

@@ -290,6 +290,14 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		self.assertIn("read_screen", [tool["function"]["name"] for tool in config["client_tools"]])
 		self.assertEqual(config["confirm_tools"], ["execute"])
 
+	def test_fetching_a_page_asks_first(self):
+		for name in ("web_fetch", "web_search"):
+			self.agent_doc.append("tools", {"tool": f"frappe/{name}"})
+		self.agent_doc.save()
+		config = self.agent_doc.session_tool_config()
+		self.assertEqual(config["tools"], ["web_fetch", "web_search"])
+		self.assertEqual(config["confirm_tools"], ["execute", "web_fetch"])
+
 	def test_each_enabled_tool_travels_as_its_kind(self):
 		frappe.get_doc(
 			{

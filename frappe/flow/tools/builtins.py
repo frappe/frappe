@@ -75,7 +75,7 @@ def subagent(
 	_server_only_tool()
 
 
-@tool
+@tool(requires_confirmation=True)
 def web_fetch(url: str, *, ctx: ToolContext) -> str:
 	"""Fetch a public web page and read it as markdown. Pages drawn by JavaScript come back nearly empty."""
 	_server_only_tool()
