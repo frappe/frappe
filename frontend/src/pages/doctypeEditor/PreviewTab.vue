@@ -1,12 +1,12 @@
 <!-- The Preview tab: the record page's own FormLayout on a copy of one record. It never writes:
-     typing changes only the copy, and NO_COMMIT drops the field events. -->
+     typing changes only the copy, NO_COMMIT drops the field events and uploads are refused. -->
 <template>
 	<div class="mx-auto w-full max-w-3xl py-4" data-editor-preview>
 		<div class="mb-1 flex items-center gap-2">
 			<Combobox
 				:model-value="record ?? EMPTY"
 				:options="options"
-				placeholder="Search records"
+				:placeholder="__('Search records')"
 				@update:model-value="
 					emit('pick', $event && $event !== EMPTY ? String($event) : null)
 				"
@@ -46,6 +46,7 @@
 import { computed, provide, ref, watch } from "vue";
 import { Combobox } from "frappe-ui";
 import { getDocument } from "@framework/ui/api";
+import { UploadTransportKey } from "@framework/ui/FileUpload";
 import { FormLayout } from "@framework/ui/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
@@ -57,6 +58,9 @@ const emit = defineEmits<{ pick: [name: string | null] }>();
 
 const EMPTY = "__empty__";
 provide(CommitKey, NO_COMMIT);
+provide(UploadTransportKey, async () => {
+	throw new Error(__("Preview does not upload files."));
+});
 
 const doc = ref<Record<string, any>>({});
 const tab = ref("");
@@ -81,6 +85,8 @@ watch(
 		try {
 			const { data } = await getDocument(props.doctype, name);
 			if (props.record === name) doc.value = structuredClone(data);
+		} catch {
+			if (props.record === name) emit("pick", null);
 		} finally {
 			loading.value = false;
 		}

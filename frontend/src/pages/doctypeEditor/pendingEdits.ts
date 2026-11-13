@@ -61,6 +61,12 @@ export class PendingEdits {
 		this.openTab(edit.tab);
 	}
 
+	/** Drop every edit, for a page that opens another DocType or mode. */
+	clear() {
+		this.done.value = [];
+		this.undone.value = [];
+	}
+
 	payload(): PendingEditsPayload {
 		return { ...this.head, edits: this.done.value };
 	}

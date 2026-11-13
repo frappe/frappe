@@ -147,8 +147,9 @@ class TestDoctypeEditor(IntegrationTestCase):
 			)
 			with set_user(self.manager):
 				save_form_layout("Note", "Details", a_tree("title"), title="Site")
-			[site] = self.open(self.manager, "Note", "Design")["layouts"]["Details"]
+			site, fallback = self.open(self.manager, "Note", "Design")["layouts"]["Details"]
 		self.assertEqual((site["source"], site["title"]), ("site", "Site"))
+		self.assertEqual(fallback["source"], "fallback")
 
 	def test_a_single_lists_only_its_layout_types(self):
 		with developer_mode(True):
@@ -166,6 +167,12 @@ class TestDoctypeEditor(IntegrationTestCase):
 		self.assertEqual(
 			editor["value_counts"]["priority"], frappe.db.count("ToDo", {"priority": ("is", "set")})
 		)
+
+	def test_counts_need_read_on_the_doctype_or_a_parent(self):
+		editor = self.open(self.customizer, "Webhook", "Customize")
+		self.assertEqual((editor["record_count"], editor["value_counts"]), (None, {}))
+		with developer_mode(True):
+			self.assertIsNotNone(self.open(self.manager, "Has Role", "Design")["record_count"])
 
 	def test_the_load_sends_the_version_a_save_compares(self):
 		with developer_mode(True):

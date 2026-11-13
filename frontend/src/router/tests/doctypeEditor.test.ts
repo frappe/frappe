@@ -7,6 +7,7 @@ import type { Boot } from "@/boot";
 import { registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
+import { registerShell, routeFor } from "@/router/routeFor";
 
 registerStandardPages(standardPages);
 
@@ -61,5 +62,14 @@ describe("the DocType editor's address", () => {
 
 	it("leaves a modular prefix alone", async () => {
 		expect((await routeOf("/core/doctype/User", true)).name).toBe("record");
+	});
+
+	it("links a DocType record to the editor, and its standard address to the record page", () => {
+		const router = createShellRouter(boot(false), addresses);
+		registerShell({ boot: boot(false), addresses, router });
+		const editor = router.resolve(routeFor("DocType", "User"));
+		expect([editor.name, editor.path]).toEqual(["doctype-editor", "/doctype/User"]);
+		const record = router.resolve(routeFor("DocType", "User", { standard: true }));
+		expect([record.name, record.path]).toEqual(["standard-record", "/doctype/User/record"]);
 	});
 });

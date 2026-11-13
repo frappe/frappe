@@ -54,6 +54,9 @@ export interface UploadLimits {
 
 export const UploadLimitsKey: InjectionKey<UploadLimits> = Symbol("UploadLimits");
 
+/** A host's transport for every upload under it, e.g. one that refuses where nothing may be written. */
+export const UploadTransportKey: InjectionKey<UploadTransport> = Symbol("UploadTransport");
+
 /**
  * Upload restrictions, in desk's shape (`max_file_size` in bytes,
  * `allowed_file_types` as extensions/MIME globs). Enforced client-side by the

@@ -7,6 +7,7 @@ from frappe.desk.doctype_editor.customize import get_customizations
 from frappe.desk.doctype_editor.layouts import get_editor_layouts
 from frappe.desk.doctype_editor.mode import MODES, check_mode, mode_refusal
 from frappe.desk.doctype_editor.versions import base_version
+from frappe.model import table_fields
 from frappe.model.meta import Meta
 from frappe.modules.utils import get_module_app
 from frappe.query_builder.functions import Count, NullIf
@@ -19,6 +20,7 @@ def get_doctype_editor(doctype: str, mode: str | None = None) -> dict:
 	modes = permitted_modes(doctype)
 	mode = open_mode(doctype, mode, modes)
 	meta = frappe.get_meta(doctype)
+	counted = may_count(meta)
 	editor = {
 		"doctype": doctype,
 		"mode": mode,
@@ -27,8 +29,8 @@ def get_doctype_editor(doctype: str, mode: str | None = None) -> dict:
 		"custom": meta.custom,
 		"module": meta.module,
 		"app_title": app_title(meta),
-		"record_count": record_count(meta),
-		"value_counts": value_counts(meta),
+		"record_count": record_count(meta) if counted else None,
+		"value_counts": value_counts(meta) if counted else {},
 		"layouts": get_editor_layouts(doctype, custom=mode == "Customize"),
 	}
 	editor.update(design_state(doctype) if mode == "Design" else get_customizations(meta))
@@ -64,6 +66,18 @@ def app_title(meta: Meta) -> str | None:
 		return None
 	app = get_module_app(meta.module)
 	return (frappe.get_hooks("app_title", app_name=app) or [app])[0]
+
+
+def may_count(meta: Meta) -> bool:
+	"""Counts are record data: the user reads the DocType, or for a child table one of its parents."""
+	if not meta.istable:
+		return frappe.has_permission(meta.name, "read")
+	table_field = {"options": meta.name, "fieldtype": ["in", table_fields]}
+	parents = {
+		*frappe.get_all("DocField", filters={**table_field, "parenttype": "DocType"}, pluck="parent"),
+		*frappe.get_all("Custom Field", filters=table_field, pluck="dt"),
+	}
+	return any(frappe.has_permission(parent, "read") for parent in parents)
 
 
 def record_count(meta: Meta) -> int | None:

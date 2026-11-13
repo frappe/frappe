@@ -26,7 +26,7 @@
 				"
 				@click="open = index"
 			>
-				{{ one.label || __("Details") }}
+				{{ one.label ? translate(one.label) : __("Details") }}
 			</button>
 		</div>
 
@@ -38,7 +38,7 @@
 				data-canvas-section
 			>
 				<h2 v-if="section.label" class="mb-3 text-base font-medium text-ink-gray-8">
-					{{ section.label }}
+					{{ translate(section.label) }}
 				</h2>
 				<div
 					class="grid gap-4"
@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { __ } from "@/i18n";
 import type { InlineField, LayoutTree } from "@/recordPage/formLayoutSource/types";
 import type { EditorState } from "./editorSource";
@@ -80,6 +80,10 @@ import type { EditorState } from "./editorSource";
 const props = defineProps<{ state: EditorState; layout: LayoutTree; metaLine: string }>();
 
 const open = ref(0);
+watch(
+	() => props.layout,
+	() => (open.value = 0)
+);
 const tabs = computed(() => props.layout ?? []);
 const fields = computed(
 	() => new Map(props.state.definition.fields.map((field) => [field.fieldname, field]))
@@ -91,7 +95,12 @@ function fieldnameOf(field: string | InlineField) {
 
 function labelOf(field: string | InlineField) {
 	const name = fieldnameOf(field);
-	return fields.value.get(name)?.label || (typeof field === "string" ? "" : field.label) || name;
+	const label = fields.value.get(name)?.label || (typeof field === "string" ? "" : field.label);
+	return label ? translate(label) : name;
+}
+
+function translate(label: string) {
+	return __(label, [], props.state.doctype);
 }
 
 function typeOf(field: string | InlineField) {

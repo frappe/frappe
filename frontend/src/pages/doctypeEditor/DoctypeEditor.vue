@@ -137,17 +137,29 @@ const switchTo = computed(() => {
 
 watch(() => [name.value, route.query.mode], load, { immediate: true });
 
+let loading = 0;
+
 async function load() {
+	const request = ++loading;
+	reset();
 	if (name.value === "new") return;
-	pageState.value = null;
 	try {
 		const loaded = await loadEditor(name.value, modeOf(route.query.mode));
-		if (loaded.doctype !== name.value) return;
+		if (request !== loading) return;
 		open(loaded);
-		loadLatest(loaded);
+		loadLatest(loaded, request).catch(() => (latest.value = []));
 	} catch (error) {
-		pageState.value = failedState(error, load);
+		if (request === loading) pageState.value = failedState(error, load);
 	}
+}
+
+function reset() {
+	state.value = null;
+	pageState.value = null;
+	tab.value = "editor";
+	latest.value = [];
+	previewName.value = null;
+	edits.clear();
 }
 
 function startNew(answers: NewDoctype) {
@@ -163,13 +175,15 @@ function open(loaded: EditorState) {
 	state.value = loaded;
 }
 
-async function loadLatest(loaded: EditorState) {
-	if (loaded.definition.issingle || loaded.record_count === 0) return;
+async function loadLatest(loaded: EditorState, request: number) {
+	const { issingle, istable } = loaded.definition;
+	if (issingle || istable || !loaded.record_count) return;
 	const { data } = await listDocuments<{ name: string }>(loaded.doctype, {
 		fields: ["name"],
 		order_by: "modified desc",
 		limit: 20,
 	});
+	if (request !== loading) return;
 	latest.value = data.map((row) => String(row.name));
 	previewName.value = latest.value[0] ?? null;
 }
