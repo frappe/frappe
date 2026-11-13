@@ -1,7 +1,8 @@
-<!-- The DocType's description, light text typed in place under its name. It stages when left. -->
+<!-- The DocType's description, light text typed in place under its name. It stages when left.
+     Customize does not set it, so there it reads with the reason. -->
 <template>
 	<textarea
-		v-if="canvas.editable && !canvas.customize"
+		v-if="editable"
 		ref="input"
 		:value="description"
 		:placeholder="__('Add a description of what one record holds')"
@@ -13,19 +14,34 @@
 		@keydown.enter.exact.prevent="input?.blur()"
 		@change="set(($event.target as HTMLTextAreaElement).value)"
 	/>
-	<p v-else-if="description" class="mt-2 text-base text-ink-gray-6">{{ description }}</p>
+	<Tooltip v-else-if="description" :text="reason">
+		<p class="mt-2 text-base text-ink-gray-6">{{ description }}</p>
+	</Tooltip>
 </template>
 
 <script setup lang="ts">
+import { Tooltip } from "frappe-ui";
 import { computed, nextTick, ref, watch } from "vue";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
+import { settable } from "./settingsModel";
 
 const props = defineProps<{ canvas: DesignCanvas }>();
 
 const input = ref<HTMLTextAreaElement | null>(null);
-const description = computed(() => (props.canvas.working.value.settings.properties.description as string) ?? "");
+const description = computed(
+	() => (props.canvas.working.value.settings.properties.description as string) ?? ""
+);
+const settableHere = computed(() => settable(props.canvas.working.value.settings, "description"));
+const editable = computed(() => props.canvas.editable && settableHere.value);
+const reason = computed(() =>
+	settableHere.value
+		? ""
+		: __("Only {0}'s DocType sets this. Customize cannot change it.", [
+				props.canvas.state.app_title || __("the app"),
+		  ])
+);
 
 watch(description, () => nextTick(grow), { immediate: true });
 

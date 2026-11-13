@@ -103,9 +103,8 @@ function saveItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 /** Save wants edits, or a new DocType, which its first save makes. */
 export function canSave(host: Pick<EditorActsHost, "canvas" | "edits" | "save">): boolean {
 	const canvas = host.canvas();
-	// Customize's canvas is read-only, but its Settings edits still save.
 	if (!canvas || host.save.saving.value) return false;
-	return host.edits.dirty.value || (canvas.editable && Boolean(canvas.state.pending));
+	return host.edits.dirty.value || Boolean(canvas.state.pending);
 }
 
 function hasList(host: EditorActsHost): boolean {
@@ -137,14 +136,12 @@ type Keys = Record<string, unknown>;
 
 /**
  * A list of keys stages as one undo step, as a naming rule's two properties. The description sits
- * in the header, so its undo stays on the Editor tab; Customize sets settings on a read-only canvas.
+ * in the header, so its undo stays on the Editor tab. The settings model refuses a property the
+ * mode does not set, as Customize the description.
  */
 function stageSetting(canvas: DesignCanvas, act: string, keys: Keys | Keys[]) {
 	const edits: FlatEdit[] = (Array.isArray(keys) ? keys : [keys]).map((one) => ({ ...one, act: settingsAct(one.act) ?? act }));
-	if (edits.some((edit) => edit.property === "description")) {
-		if (!canvas.editable) throw new EditRefused("{0} is not a DocType setting the editor sets.", ["description"]);
-		return canvas.stage(...edits);
-	}
+	if (edits.some((edit) => edit.property === "description")) return canvas.stage(...edits);
 	canvas.stageSettings(...edits);
 }
 

@@ -8,7 +8,7 @@ import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import { namingProperties } from "./namingRules";
-import type { SettingsState } from "./settingsModel";
+import { settable, type SettingsState } from "./settingsModel";
 import { kindOf, type SettingRow, type SettingsSection } from "./settingsRows";
 
 /** The tab's open section, and the row Mod+J last found (flashed once). */
@@ -78,9 +78,7 @@ export class SettingsView {
 
 	/** Why this mode cannot change the row's setting; "" when it can. */
 	lock(row: SettingRow): string {
-		const { settable } = this.settings;
-		if (row.control === "permissions" || row.pending || !settable) return "";
-		if (settable.includes(row.props[0])) return "";
+		if (row.control === "permissions" || row.pending || settable(this.settings, row.props[0])) return "";
 		return this.customize
 			? __("Only {0}'s DocType sets this. Customize cannot change it.", [this.app])
 			: __("The editor does not set this.");

@@ -66,6 +66,22 @@ describe("the settings acts", () => {
 		expect(empty.canvas.working.value.settings.properties.autoname).toBe("autoincrement");
 	});
 
+	it("refuse the description where the mode does not set it, even on an editable canvas", async () => {
+		const customize = mount({ mode: "Customize", modes: ["Customize"], custom: 0, settable_properties: ["title_field"] });
+		await acts.perform("settings.set_doctype_property", { property: "description", value: "Notes" });
+		expect(customize.canvas.working.value.settings.properties.description).toBeUndefined();
+		stop();
+		const unsettable = mount({ settable_properties: ["title_field"] });
+		expect(unsettable.canvas.editable).toBe(true);
+		await acts.perform("settings.set_doctype_property", { property: "description", value: "Notes" });
+		expect(unsettable.canvas.working.value.settings.properties.description).toBeUndefined();
+		expect(toast.error).toHaveBeenLastCalledWith("description is not a DocType setting the editor sets.");
+		stop();
+		const design = mount();
+		await acts.run("settings.set_doctype_property", { property: "description", value: "Notes" });
+		expect(design.canvas.working.value.settings.properties.description).toBe("Notes");
+	});
+
 	it("add a mandatory naming_series field with the series in Design", async () => {
 		const mounted = mount();
 		await acts.run("settings.set_naming_series", { options: ["TN-.####", "NOTE-.####"], default: "NOTE-.####" });

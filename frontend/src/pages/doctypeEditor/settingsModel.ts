@@ -62,6 +62,11 @@ export interface SettingsHost {
 	addField(edit: { act: string; label: string; fieldname: string; fieldtype: string }): void;
 }
 
+/** This mode sets the property; before the first save every property is, and the save checks. */
+export function settable(settings: Pick<SettingsState, "settable">, property: string): boolean {
+	return !settings.settable || settings.settable.includes(property);
+}
+
 export function settingsBase(state: EditorState): SettingsState {
 	const { definition } = state;
 	const { fields: _fields, permissions, ...properties } = definition;
@@ -166,7 +171,7 @@ export class SettingsReplay {
 			if (this.state.pending) return;
 			throw new EditRefused("{0} is set when the DocType is created.", [property]);
 		}
-		if (this.state.settable && !this.state.settable.includes(property)) {
+		if (!settable(this.state, property)) {
 			throw new EditRefused("{0} is not a DocType setting the editor sets.", [property]);
 		}
 	}
