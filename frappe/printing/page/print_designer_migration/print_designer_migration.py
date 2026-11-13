@@ -33,11 +33,11 @@ def get_print_designer_formats() -> list[dict]:
 		row.editor_format = copies.get(row.name)
 		if not row.editor_format:
 			row.state = "Not converted"
-		elif not row.disabled:
+		elif not row.disabled or print_format_references(row.name):
 			row.state = "Converted"
 		else:
 			row.state = "Switched over"
-			row.can_delete = row.standard == "No" and not print_format_references(row.name)
+			row.can_delete = row.standard == "No"
 	return rows
 
 

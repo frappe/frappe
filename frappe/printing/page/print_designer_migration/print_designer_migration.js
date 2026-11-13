@@ -73,11 +73,7 @@ class PrintDesignerMigration {
 		const details = [__(row.doc_type)];
 		if (row.editor_format) details.push(__("Copy: {0}", [row.editor_format]));
 		if (row.state === "Switched over" && !row.can_delete) {
-			details.push(
-				row.standard === "Yes"
-					? __("Standard format, kept by its app")
-					: __("Still used, so it cannot be deleted yet")
-			);
+			details.push(__("Standard format, kept by its app"));
 		}
 		const $row = $(`
 			<div class="flex items-center gap-4 px-4 py-3">
