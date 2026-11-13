@@ -751,6 +751,19 @@
       "uncachedLabels",
       "useConditionBuilderContext"
     ],
+    "ui/src/components/ConditionBuilder/internal/dependsOnReader.ts": [
+      "DependsOnReader"
+    ],
+    "ui/src/components/ConditionBuilder/internal/dependsOnRules.ts": [
+      "DOCUMENT_STATUS",
+      "DOCUMENT_STATUSES",
+      "RECORD_IS_NEW",
+      "fieldReference",
+      "referencedField"
+    ],
+    "ui/src/components/ConditionBuilder/internal/dependsOnWriter.ts": [
+      "DependsOnWriter"
+    ],
     "ui/src/components/ConditionBuilder/internal/dragBridge.ts": [
       "useDragBridge"
     ],
@@ -770,6 +783,9 @@
       "READ_OPERATOR",
       "conditionOperators"
     ],
+    "ui/src/components/ConditionBuilder/internal/translate.ts": [
+      "t"
+    ],
     "ui/src/components/ConditionBuilder/tree.ts": [
       "getNode",
       "isGroup",
@@ -782,10 +798,13 @@
       "ConditionExpressionOptions",
       "ConditionField",
       "ConditionGroup",
+      "ConditionNode",
       "ConditionOperator",
       "ConditionOperatorOption",
       "ConditionPath",
+      "ConditionValue",
       "Conjunction",
+      "DependsOnScope",
       "FieldConditionValue"
     ],
     "ui/src/components/DataImport/types.ts": [
@@ -866,7 +885,8 @@
       "OperatorOption",
       "carryOver",
       "defaultValueFor",
-      "getOperators"
+      "getOperators",
+      "isOptionField"
     ],
     "ui/src/components/Filter/types.ts": [
       "FilterCondition",
