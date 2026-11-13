@@ -348,12 +348,15 @@ class TestContainerProperties(IntegrationTestCase):
 			},
 		)
 		self.assertEqual(
-			section["columns"][1], {"name": "right", "label": "Right", "dependsOn": "eval:doc.d", "fields": ["b"]}
+			section["columns"][1],
+			{"name": "right", "label": "Right", "dependsOn": "eval:doc.d", "fields": ["b"]},
 		)
 
 	def test_the_fallback_leaves_unset_properties_out(self):
 		section = get_form_layouts(BREAKS_DT, "Details")["fallback"][0]["sections"][0]
-		self.assertEqual(section, {"name": "section_1", "columns": [{"name": "column_1", "fields": ["c", "d"]}]})
+		self.assertEqual(
+			section, {"name": "section_1", "columns": [{"name": "column_1", "fields": ["c", "d"]}]}
+		)
 
 	def test_only_a_section_starts_open_on_a_condition(self):
 		tab = {"name": "main", "collapsibleDependsOn": "eval:1", "sections": []}
