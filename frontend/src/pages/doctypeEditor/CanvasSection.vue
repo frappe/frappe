@@ -20,6 +20,7 @@
 				@keydown.enter.prevent="($event.target as HTMLInputElement).blur()"
 				@change="setLabel(($event.target as HTMLInputElement).value)"
 			/>
+			<RuleMark :canvas="canvas" kind="section" :node="section" />
 			<template v-if="canvas.editable">
 				<Dropdown :options="menu" side="bottom" align="end">
 					<Button
@@ -79,6 +80,7 @@ import CanvasColumn from "./CanvasColumn.vue";
 import { DRAG_OPTIONS, dropColumn } from "./canvasDrops";
 import { canvasMenu } from "./canvasMenu";
 import type { CanvasSelection, DesignCanvas } from "./designCanvas";
+import RuleMark from "./RuleMark.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; section: LayoutTreeSection }>();
 

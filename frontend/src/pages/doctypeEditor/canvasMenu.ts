@@ -4,6 +4,7 @@ import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import { canvasMove, type Direction } from "./canvasMoves";
 import type { CanvasSelection, DesignCanvas } from "./designCanvas";
+import { fetchAsked } from "./fetchFrom";
 
 export interface CanvasMenuOption {
 	label: string;
@@ -48,7 +49,8 @@ function moveLabels(kind: CanvasSelection["kind"]): [Direction, string, string][
 function ownActs(canvas: DesignCanvas, item: CanvasSelection): CanvasMenuOption[] {
 	const run = (act: string, value: unknown) => () => void acts.perform(act, value);
 	if (item.kind === "field") {
-		return [{ label: __("Remove from layout"), icon: "lucide-eye-off", onClick: run("canvas.unplace_field", item) }];
+		const remove = { label: __("Remove from layout"), icon: "lucide-eye-off", onClick: run("canvas.unplace_field", item) };
+		return [remove, ...fetchActs(canvas, item)];
 	}
 	if (item.kind === "section") {
 		return [
@@ -75,4 +77,31 @@ function ownActs(canvas: DesignCanvas, item: CanvasSelection): CanvasMenuOption[
 			onClick: run("canvas.remove_tab", { tab: item.tab }),
 		},
 	];
+}
+
+/** On a Link field: "Fetch a field…" selects it and opens the field panel's picker. */
+function fetchActs(canvas: DesignCanvas, item: { kind: "field"; fieldname: string }): CanvasMenuOption[] {
+	const field = canvas.field(item.fieldname);
+	if (field?.fieldtype !== "Link" || !field.options) return [];
+	const ask = async () => {
+		const menuClosed = menuGivesFocusBack();
+		await acts.perform("canvas.select", item);
+		await menuClosed;
+		fetchAsked.value = item.fieldname;
+	};
+	return [{ label: __("Fetch a field…"), icon: "lucide-plus", onClick: () => void ask() }];
+}
+
+// The closing menu puts focus back on its ⋯ a frame or more later, and a picker already open
+// would read that as a focus outside and close. 300 ms covers a menu that never gives it back.
+function menuGivesFocusBack(): Promise<void> {
+	return new Promise((resolve) => {
+		const done = () => {
+			document.removeEventListener("focusin", done);
+			clearTimeout(timer);
+			resolve();
+		};
+		const timer = setTimeout(done, 300);
+		document.addEventListener("focusin", done);
+	});
 }

@@ -7,6 +7,7 @@
 		:data-canvas-column="column.name"
 		:data-canvas-selected="selected || undefined"
 	>
+		<RuleMark class="absolute -left-4 top-0" :canvas="canvas" kind="column" :node="column" />
 		<div
 			v-if="canvas.editable && section.columns.length > 1"
 			class="mb-1 flex h-5 items-center gap-0.5 opacity-0 group-hover/column:opacity-100"
@@ -65,6 +66,7 @@ import CanvasField from "./CanvasField.vue";
 import { DRAG_OPTIONS, dropField } from "./canvasDrops";
 import { canvasMenu } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
+import RuleMark from "./RuleMark.vue";
 
 const props = defineProps<{
 	canvas: DesignCanvas;
