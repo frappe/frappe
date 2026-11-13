@@ -2,6 +2,7 @@
 // copy. Each act applies as `frappe/desk/doctype_editor/design_edits.py` applies it on save.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { LayoutTree } from "@/recordPage/formLayoutSource/types";
+import { addChildTable, reorderField } from "./childReplay";
 import { detailsLayout, type EditorState } from "./editorSource";
 import { fieldnameFromLabel, LAYOUT_BREAKS, validFieldname } from "./fieldRules";
 import { EditRefused, LayoutTreeEditor } from "./layoutTree";
@@ -87,6 +88,7 @@ export function reqdInConditional(working: WorkingState): { fieldname: string; c
 	return found;
 }
 
+const DOCTYPE_PROPERTIES = ["description", "editable_grid", "allow_bulk_edit"];
 const RESERVED_PROPERTIES = ["name", "parent", "parenttype", "parentfield", "idx", "doctype"];
 const PLACE_KEYS = ["fieldname", "section", "column", "index", "tab"];
 const CANVAS_ACTS: Record<string, keyof LayoutTreeEditor> = {
@@ -174,8 +176,8 @@ class DesignReplay {
 	}
 
 	setDoctypeProperty({ property, value }: { property: string; value: unknown }) {
-		if (property !== "description") throw new EditRefused("{0} is not a DocType setting.", [property]);
-		this.state.description = (value as string) ?? "";
+		if (!DOCTYPE_PROPERTIES.includes(property)) throw new EditRefused("{0} is not a DocType setting.", [property]);
+		if (property === "description") this.state.description = (value as string) ?? "";
 	}
 
 	private field(fieldname: string): RawMetaField {
@@ -210,6 +212,8 @@ const FIELD_ACTS: Record<string, (replay: DesignReplay, edit: never) => void> = 
 	"fields.set_field_property": (replay, edit) => replay.setFieldProperty(edit),
 	"fields.rename_field": (replay, edit) => replay.renameField(edit),
 	"fields.delete_field": (replay, edit) => replay.deleteField(edit),
+	"fields.reorder_field": (replay, edit) => reorderField(replay.state, edit),
+	"fields.add_child_table": (replay, edit) => addChildTable(replay.state, edit, (added) => replay.addField(added)),
 	"settings.set_doctype_property": (replay, edit) => replay.setDoctypeProperty(edit),
 };
 

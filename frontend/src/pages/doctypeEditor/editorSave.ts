@@ -3,9 +3,10 @@ import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { __, __n } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
+import { CREATE_METHOD, refusedChild, SAVE_METHOD, saveCalls, type ChildSave } from "./childSave";
 import type { DesignCanvas, SaveError } from "./designCanvas";
-import { EditRefused, fieldsOffLayout, type FlatEdit } from "./editorModel";
-import type { BaseVersion, PendingEdits } from "./pendingEdits";
+import { EditRefused, fieldsOffLayout } from "./editorModel";
+import type { BaseVersion, Edit, PendingEdits } from "./pendingEdits";
 
 export type SaveOffer = "editor.reload_and_reapply" | "editor.write_files_again" | "editor.open_list";
 
@@ -42,10 +43,13 @@ export interface SaveHost {
 	reload: () => Promise<DesignCanvas | null>;
 	/** A new DocType's first save made it: its own editor opens in place of `/doctype/new`, unless the page moved on. */
 	created: (doctype: string) => Promise<DesignCanvas | null>;
+	/** The child tables with staged edits, which save with the parent. */
+	children?: () => ChildSave[];
+	/** Opens a child table's editor, to mark its refused edits there. */
+	showChild?: (doctype: string) => Promise<DesignCanvas | null>;
 }
 
-export const SAVE_METHOD = "frappe.desk.doctype_editor.save.save_doctype_editor";
-export const CREATE_METHOD = "frappe.desk.doctype_editor.create.create_doctype";
+export { CREATE_METHOD, SAVE_METHOD };
 export const WRITE_FILES_METHOD = "frappe.core.doctype.doctype.doctype.write_doctype_files";
 
 export class EditorSave {
@@ -66,31 +70,30 @@ export class EditorSave {
 		this.banner.value = null;
 		canvas.errors.value = [];
 		await this.busy(async () => {
-			const result = await this.send(canvas);
+			const { result, child } = await this.send(canvas);
 			if (result.saved) await this.saved(canvas, result);
-			else this.refused(canvas, result);
+			else this.refused((child && (await this.host.showChild?.(child))) || canvas, result);
 		});
 	}
 
 	/** Loads the DocType as it is now and stages each undo step again; the ones it refuses are listed. */
 	async reloadAndReapply() {
 		if (this.saving.value) return;
-		const steps: FlatEdit[][] = this.host.edits.steps.map((step) =>
-			step.map(({ act, value }) => ({ ...value, act })),
-		);
+		const steps = this.host.edits.steps;
 		await this.busy(async () => {
 			const canvas = await this.host.reload();
 			if (canvas) this.reapply(canvas, steps);
 		});
 	}
 
-	private reapply(canvas: DesignCanvas, steps: FlatEdit[][]) {
+	private reapply(canvas: DesignCanvas, steps: readonly Edit[][]) {
 		// The replay is the reload's own staging, so it runs before any late export reloads again.
 		this.host.edits.locked.value = false;
 		const refused: string[] = [];
 		for (const step of steps) {
 			try {
-				canvas.stage(...step);
+				if (step[0].doctype) this.host.edits.stage(...step);
+				else canvas.stage(...step.map(({ act, value }) => ({ ...value, act })));
 			} catch (error) {
 				if (!(error instanceof EditRefused)) throw error;
 				refused.push(__(error.template, error.args));
@@ -161,16 +164,20 @@ export class EditorSave {
 		}
 	}
 
-	private async send(canvas: DesignCanvas): Promise<SaveResult> {
-		const payload = this.host.edits.payload();
-		const { data } = canvas.state.pending
-			? await runMethod<SaveResult>(CREATE_METHOD, {
-					definition: canvas.state.definition,
-					layout: canvas.base.layout,
-					edits: payload.edits,
-				})
-			: await runMethod<SaveResult>(SAVE_METHOD, { ...payload });
-		return data;
+	/** Sends each call in order and stops at the first refused one; a child's save is already in by then. */
+	private async send(canvas: DesignCanvas): Promise<{ result: SaveResult; child?: string }> {
+		const parent = { state: canvas.state, payload: this.host.edits.payload(), layout: canvas.base.layout };
+		const written: string[] = [];
+		let result: SaveResult = { saved: true };
+		for (const call of saveCalls(parent, this.host.children?.() ?? [])) {
+			({ data: result } = await runMethod<SaveResult>(call.method, call.args));
+			if (!result.saved) {
+				const child = refusedChild(call, result.errors);
+				return { result: { ...result, written: [...written, ...(result.written ?? [])] }, child };
+			}
+			if (call.child) written.push(call.child);
+		}
+		return { result };
 	}
 
 	private async saved(canvas: DesignCanvas, result: SaveResult) {

@@ -17,6 +17,14 @@ export interface Edit {
 	act: string;
 	value: Record<string, unknown>;
 	tab: Exclude<EditorTab, "preview">;
+	/** The child table it edits; absent for the DocType the page opened. */
+	doctype?: string;
+}
+
+/** What a canvas replays and stages into. */
+export interface EditStage {
+	readonly staged: { readonly value: FlatEdit[] };
+	stage(...edits: Edit[]): void;
 }
 
 export interface PendingEditsPayload {
@@ -38,15 +46,27 @@ export class PendingEdits {
 	readonly dirty = computed(() => this.done.value.length > 0);
 	readonly canUndo = computed(() => this.dirty.value && !this.locked.value);
 	readonly canRedo = computed(() => this.undone.value.length > 0 && !this.locked.value);
-	/** Every staged edit in order, as the save sends it; a save error's `edit` indexes this list. */
-	readonly staged = computed<FlatEdit[]>(() =>
-		this.done.value.flat().map((edit) => ({ ...edit.value, act: edit.act })),
-	);
+	/** The page DocType's staged edits in order, as the save sends them; a save error's `edit` indexes this list. */
+	readonly staged = computed<FlatEdit[]>(() => this.stagedFor(undefined));
 
 	constructor(
 		private head: Omit<PendingEditsPayload, "edits">,
-		private openTab: (tab: EditorTab) => void,
+		private openTab: (tab: EditorTab, doctype?: string) => void,
 	) {}
+
+	/** One DocType's staged edits in order; `undefined` names the page's own DocType. */
+	stagedFor(doctype: string | undefined): FlatEdit[] {
+		return this.done.value
+			.flat()
+			.filter((edit) => edit.doctype === doctype)
+			.map((edit) => ({ ...edit.value, act: edit.act }));
+	}
+
+	/** The child tables with staged edits. */
+	childDoctypes(): string[] {
+		const doctypes = this.done.value.flat().map((edit) => edit.doctype);
+		return [...new Set(doctypes.filter((doctype): doctype is string => Boolean(doctype)))];
+	}
 
 	/** Stage one change; several edits given together undo as one step. */
 	stage(...edits: Edit[]) {
@@ -61,7 +81,7 @@ export class PendingEdits {
 		if (!step || this.locked.value) return;
 		this.done.value = this.done.value.slice(0, -1);
 		this.undone.value = [...this.undone.value, step];
-		this.openTab(step.at(-1)!.tab);
+		this.reopen(step);
 	}
 
 	redo() {
@@ -69,7 +89,7 @@ export class PendingEdits {
 		if (!step || this.locked.value) return;
 		this.undone.value = this.undone.value.slice(0, -1);
 		this.done.value = [...this.done.value, step];
-		this.openTab(step.at(-1)!.tab);
+		this.reopen(step);
 	}
 
 	/** The undo steps in order, for a reload that applies them again. */
@@ -90,5 +110,10 @@ export class PendingEdits {
 
 	payload(): PendingEditsPayload {
 		return { ...this.head, edits: this.staged.value };
+	}
+
+	private reopen(step: Edit[]) {
+		const last = step.at(-1)!;
+		this.openTab(last.tab, last.doctype);
 	}
 }
