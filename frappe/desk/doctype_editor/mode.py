@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-"""Who may open the DocType editor in each mode (#45862 rules 1 to 4)."""
+"""Who may open the DocType editor in each mode."""
 
 import frappe
 from frappe import _
