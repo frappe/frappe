@@ -6,7 +6,7 @@
 			<EditorHeader
 				v-model:tab="tab"
 				:doctype="state.doctype"
-				:canvas="canvas"
+				:canvas="layoutCanvas"
 				:dirty="dirty"
 				:can-undo="edits.canUndo.value"
 				:can-redo="edits.canRedo.value"
@@ -171,6 +171,7 @@ const edits = new PendingEdits(head, (opened, doctype) => {
 });
 const child = useChildTables(edits, () => canvas.value);
 const { session: openChild, shown } = child;
+const layoutCanvas = computed(() => (openChild.value?.state.pending ? null : shown.value));
 const save = new EditorSave({
 	edits,
 	canvas: () => canvas.value,

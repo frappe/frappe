@@ -100,9 +100,9 @@ const crumbs = computed<Crumb[]>(() => {
 			: [{ label: __("DocType"), route: routeFor("DocType") }, { label: props.doctype }]),
 		...(props.childCrumbs ?? []),
 	];
-	const last = all[all.length - 1];
-	if (!last.route && !last.onClick) last.onClick = () => emit("act", "layouts.open", { type: "Details" });
-	return all;
+	const last = all.pop()!;
+	const details = () => emit("act", "layouts.open", { type: "Details" });
+	return [...all, last.route || last.onClick ? last : { ...last, onClick: details }];
 });
 
 // Design's ⋯ offers the Danger zone's Rename and Delete wherever their acts are offered.

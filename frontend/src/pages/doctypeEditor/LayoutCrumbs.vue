@@ -17,6 +17,12 @@
 			<span class="mx-0.5 text-base text-ink-gray-4" aria-hidden="true">/</span>
 		</template>
 		<LayoutMenu v-if="canvas" :canvas="canvas" />
+		<span
+			v-else
+			class="px-1 py-1 text-lg-medium leading-tighter text-ink-gray-9"
+			data-layout-crumb
+			>{{ __("Details") }}</span
+		>
 	</nav>
 </template>
 
