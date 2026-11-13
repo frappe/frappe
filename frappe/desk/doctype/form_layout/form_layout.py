@@ -677,8 +677,13 @@ def slugify(label: str | None) -> str | None:
 
 
 def get_meta_layout(dt: str, custom: bool = True) -> list:
+	return layout_from_fields(layout_fields(frappe.get_meta(dt), custom))
+
+
+def layout_from_fields(fields: list) -> list:
+	"""The fallback layout: breaks open containers, every other field goes in the column open last."""
 	tabs = []
-	for field in layout_fields(frappe.get_meta(dt), custom):
+	for field in fields:
 		if field.fieldtype == "Tab Break":
 			tabs.append(new_container(field, "sections"))
 		elif field.fieldtype == "Section Break":
