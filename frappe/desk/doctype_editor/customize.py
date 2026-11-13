@@ -12,6 +12,8 @@ from frappe.custom.doctype.customize_form.customize_form import (
 from frappe.model.docfield import supports_translation
 from frappe.model.meta import Meta
 
+APP_ROW_TABLES = {"DocType Link": "links", "DocType Action": "actions", "DocType State": "states"}
+
 
 def get_customizations(meta: Meta) -> dict:
 	"""The site's changes to a standard DocType, and what Customize Form refuses to change."""
@@ -44,7 +46,7 @@ def get_customizations(meta: Meta) -> dict:
 
 
 def property_setters(doctype: str, app_doc, app_fields: dict) -> list[dict]:
-	"""Each Property Setter with `app_value`, the value the app ships; None on a custom field."""
+	"""Each Property Setter with `app_value`, the value the app ships; None on a custom field or row."""
 	rows = frappe.get_all(
 		"Property Setter",
 		filters={"doc_type": doctype},
@@ -62,9 +64,18 @@ def property_setters(doctype: str, app_doc, app_fields: dict) -> list[dict]:
 		order_by="creation",
 	)
 	for row in rows:
-		owner = app_doc if row.doctype_or_field == "DocType" else app_fields.get(row.field_name)
+		owner = setter_owner(row, app_doc, app_fields)
 		row.app_value = owner.get(row.property) if owner else None
 	return rows
+
+
+def setter_owner(row, app_doc, app_fields: dict):
+	"""The app's DocType, field, link, action or state that a Property Setter row overrides."""
+	if row.doctype_or_field == "DocType":
+		return app_doc
+	if table := APP_ROW_TABLES.get(row.doctype_or_field):
+		return next((r for r in app_doc.get(table) if r.name == row.row_name and not r.custom), None)
+	return app_fields.get(row.field_name)
 
 
 def field_locks(df, app_field, not_in_list_view: list) -> dict[str, str]:

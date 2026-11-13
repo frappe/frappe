@@ -15,10 +15,8 @@ from frappe.desk.doctype.form_layout.form_layout import (
 
 
 def get_editor_layouts(doctype: str, custom: bool) -> dict[str, list[dict]]:
-	"""Every layout of each type the DocType allows, site rows first, each with its `source`.
-
-	After the site rows come the app's: its file, or else one entry that says what draws without rows.
-	Design shows the app's layouts, so they are sent even when a site row hides them."""
+	"""Every layout of each type the DocType allows: site rows, then the app's file or a fallback entry."""
+	# Design shows the app's layouts, so they are sent even when a site row hides them.
 	return {
 		type: site_layouts(doctype, type)
 		+ (app_layouts(doctype, type) or [empty_layout(doctype, type, custom)])
