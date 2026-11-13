@@ -154,10 +154,7 @@ def rate_limit(
 
 			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
 
-			value = frappe.cache.get(cache_key) or 0
-			if not value:
-				frappe.cache.setex(cache_key, seconds, 0)
-
+			frappe.cache.set(cache_key, 0, ex=seconds, nx=True)  # nosemgrep: frappe-cache-breaks-multitenancy
 			value = frappe.cache.incrby(cache_key, 1)
 			if value > _limit:
 				frappe.throw(
