@@ -108,6 +108,33 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(placed(row), ["due_date", "title"])
 		self.assertEqual(omitted(row), [])
 
+	def test_a_system_manager_saves_and_renames(self):
+		user = "system-manager-47271@example.com"
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": user,
+					"first_name": "Editor",
+					"roles": [{"role": "System Manager"}],
+				}
+			).insert()
+		self.addCleanup(delete_committed, "User", user)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(user)
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Due Date", "fieldtype": "Date"},
+				{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "more"},
+				{"act": "layouts.add", "type": "Quick Entry", "id": "new-1", "start": "copy"},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		result = rename_field(DOCTYPE, "due_date", "deadline")
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertTrue(frappe.get_meta(DOCTYPE).get_field("deadline"))
+		self.assertEqual(len(frappe.get_all("Form Layout", {"dt": DOCTYPE})), 2)
+
 	def test_canvas_edits_shape_the_details_layout(self):
 		details = {"type": "Details"}
 		result = self.save(
@@ -619,6 +646,8 @@ class TestSaveDesign(IntegrationTestCase):
 
 		def save_theirs():
 			frappe.get_doc("Form Layout", row.name).update({"layout": theirs}).save()
+			# Their request commits on its own; SQLite would roll it back with this save.
+			frappe.db.commit()  # nosemgrep
 
 		with patch.object(DesignSave, "move_renamed_data", side_effect=save_theirs):
 			result = self.save([{"act": "canvas.add_tab", "layout": details, "name": "mine"}])
