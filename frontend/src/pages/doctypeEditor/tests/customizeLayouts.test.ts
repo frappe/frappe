@@ -198,15 +198,25 @@ describe("the wording per source", () => {
 	});
 
 	it("the reset names what comes back", () => {
-		expect(resetWording(working(), "Details")).toEqual({ title: "Reset to app layout?", confirmLabel: "Reset to app layout" });
+		expect(resetWording(working(), "Details")).toEqual({
+			title: "Reset to app layout?",
+			confirmLabel: "Reset to app layout",
+			actLabel: "Reset to app layout",
+		});
 		expect(resetWording(working(), "Quick Entry")).toEqual({
 			title: "Reset to the layout from DocType fields?",
 			confirmLabel: "Reset",
+			actLabel: "Reset to DocType fields",
 		});
-		expect(resetWording(working(), "Side Panel")).toEqual({ title: "Remove the Side panel site layouts?", confirmLabel: "Remove" });
+		expect(resetWording(working(), "Side Panel")).toEqual({
+			title: "Remove the Side panel site layouts?",
+			confirmLabel: "Remove",
+			actLabel: "Remove site layouts",
+		});
 		expect(resetWording(working(), "New Record")).toEqual({
 			title: "Reset New record to the Details layout?",
 			confirmLabel: "Reset",
+			actLabel: "Reset to Details layout",
 		});
 	});
 });

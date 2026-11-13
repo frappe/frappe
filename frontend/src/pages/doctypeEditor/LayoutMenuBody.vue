@@ -68,7 +68,7 @@ import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import { addLayout, runOpenLayoutAct } from "./layoutDialogs";
-import { layoutMenu, type OpenLayoutAct } from "./layoutMenu";
+import { layoutMenu, resetWording, type OpenLayoutAct } from "./layoutMenu";
 import LayoutMenuRow from "./LayoutMenuRow.vue";
 import type { LayoutRef } from "./workingLayouts";
 
@@ -80,7 +80,11 @@ const menu = computed(() => layoutMenu(props.canvas.working.value, props.canvas.
 const ACTS: Record<OpenLayoutAct, { label: () => string; icon: string }> = {
 	edit_condition: { label: () => __("Edit condition…"), icon: "lucide-filter" },
 	rename: { label: () => __("Rename…"), icon: "lucide-pencil" },
-	reset_to_app: { label: () => __("Reset to app layout"), icon: "lucide-rotate-ccw" },
+	reset_to_app: {
+		label: () =>
+			resetWording(props.canvas.working.value, props.canvas.openLayout.value.type).actLabel,
+		icon: "lucide-rotate-ccw",
+	},
 	delete: { label: () => __("Delete layout"), icon: "lucide-trash-2" },
 };
 

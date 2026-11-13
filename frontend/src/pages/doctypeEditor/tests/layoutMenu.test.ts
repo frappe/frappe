@@ -81,12 +81,12 @@ describe("the layout menu", () => {
 describe("Add a layout", () => {
 	const working = workingState(editorBase(leadNote()), []);
 
-	it("asks for a condition, as every type already has a default, if only one it stands in for", () => {
+	it("asks for a condition or an edit of the default, which every type has, if only a stand-in", () => {
 		expect(addLayoutRefusal(working, { type: "Details", title: "Wide" })).toBe(
-			"Details already has a default layout. Give this one a condition.",
+			"Details has one default layout: edit that one, or give this one a condition.",
 		);
 		expect(addLayoutRefusal(working, { type: "Side Panel" })).toBe(
-			"Side panel already has a default layout. Give this one a condition.",
+			"Side panel has one default layout: edit that one, or give this one a condition.",
 		);
 		expect(addLayoutRefusal(working, { type: "Details", title: "Wide", condition: "doc.wide" })).toBeNull();
 		expect(addLayoutRefusal(working, { type: "Side Panel", condition: "doc.wide" })).toBeNull();

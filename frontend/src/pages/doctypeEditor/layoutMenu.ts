@@ -39,6 +39,12 @@ export interface LayoutMenu {
 	open: { name: string; where: string; acts: OpenLayoutAct[] } | null;
 }
 
+export interface ResetWording {
+	title: string;
+	confirmLabel: string;
+	actLabel: string;
+}
+
 export interface ResetSummary {
 	removes: { name: string; condition: string | null }[];
 	restores: { name: string; condition: string | null }[];
@@ -69,7 +75,7 @@ export function addLayoutRefusal(working: WorkingState, layout: NewLayout): stri
 	const refused = typeRefusal(working, layout.type);
 	if (refused) return __(refused.template, refused.args);
 	if (!layout.condition) {
-		return __("{0} already has a default layout. Give this one a condition.", [typeLabel(layout.type)]);
+		return __("{0} has one default layout: edit that one, or give this one a condition.", [typeLabel(layout.type)]);
 	}
 	try {
 		workingState(working, [{ act: "layouts.add", id: newLayoutId(), ...layout }]);
@@ -91,16 +97,28 @@ export function resetSummary(working: WorkingState, type: FormLayoutType): Reset
 	};
 }
 
-/** The reset confirm's title and button, named by what comes back. */
-export function resetWording(working: WorkingState, type: FormLayoutType): { title: string; confirmLabel: string } {
+/** The reset's menu act, confirm title and button, named by what comes back. */
+export function resetWording(working: WorkingState, type: FormLayoutType): ResetWording {
 	const label = typeLabel(type);
 	const source = baseSource(working, type);
-	if (source === "app") return { title: __("Reset to app layout?"), confirmLabel: __("Reset to app layout") };
-	if (source === "fallback") return { title: __("Reset to the layout from DocType fields?"), confirmLabel: __("Reset") };
-	if (source === "same as Details") {
-		return { title: __("Reset {0} to the Details layout?", [label]), confirmLabel: __("Reset") };
+	if (source === "app") {
+		return { title: __("Reset to app layout?"), confirmLabel: __("Reset to app layout"), actLabel: __("Reset to app layout") };
 	}
-	return { title: __("Remove the {0} site layouts?", [label]), confirmLabel: __("Remove") };
+	if (source === "fallback") {
+		return {
+			title: __("Reset to the layout from DocType fields?"),
+			confirmLabel: __("Reset"),
+			actLabel: __("Reset to DocType fields"),
+		};
+	}
+	if (source === "same as Details") {
+		return {
+			title: __("Reset {0} to the Details layout?", [label]),
+			confirmLabel: __("Reset"),
+			actLabel: __("Reset to Details layout"),
+		};
+	}
+	return { title: __("Remove the {0} site layouts?", [label]), confirmLabel: __("Remove"), actLabel: __("Remove site layouts") };
 }
 
 /** `opened` is the open layout when it is of this type. */
