@@ -21,7 +21,9 @@ from frappe.desk.doctype_editor.layout_tree import LayoutTree
 class EditorLayout:
 	"""A site `Form Layout` row, an entry of the app file, or a layout this save adds."""
 
-	def __init__(self, id: str, type: str, tabs: list, title=None, condition=None, row=None, size=None, omitted=None):
+	def __init__(
+		self, id: str, type: str, tabs: list, title=None, condition=None, row=None, size=None, omitted=None
+	):
 		self.id, self.type, self.row = id, type, row
 		self.title, self.condition, self.size = title, condition, size
 		self.omitted = omitted or []
@@ -29,7 +31,12 @@ class EditorLayout:
 		self.deleted = False
 
 	def as_entry(self) -> dict:
-		entry = {"title": self.title, "condition": self.condition, "layout": self.tree.tabs, "omitted": self.omitted}
+		entry = {
+			"title": self.title,
+			"condition": self.condition,
+			"layout": self.tree.tabs,
+			"omitted": self.omitted,
+		}
 		if self.size:
 			entry["size"] = self.size
 		return entry
@@ -50,7 +57,15 @@ class DesignState:
 		if name in self.children or frappe.db.exists("DocType", name):
 			raise EditError(_("A DocType named {0} already exists.").format(name))
 		doc = frappe.new_doc("DocType")
-		doc.update({"name": name, "module": self.doc.module, "custom": self.doc.custom, "istable": 1, "editable_grid": 1})
+		doc.update(
+			{
+				"name": name,
+				"module": self.doc.module,
+				"custom": self.doc.custom,
+				"istable": 1,
+				"editable_grid": 1,
+			}
+		)
 		self.children[name] = DesignState(name, doc)
 		return self.children[name]
 
@@ -144,7 +159,8 @@ class DesignState:
 				return field
 		if self.standard and frappe.db.exists("Custom Field", {"dt": self.name, "fieldname": fieldname}):
 			raise field_error(
-				_("{0} is a site custom field, so an app layout cannot place it.").format(fieldname), fieldname
+				_("{0} is a site custom field, so an app layout cannot place it.").format(fieldname),
+				fieldname,
 			)
 		raise field_error(_("{0} is not a field of {1}.").format(fieldname, self.name), fieldname)
 
@@ -196,4 +212,9 @@ class DesignState:
 
 
 def empty_tabs() -> list:
-	return [{"name": "first_tab", "sections": [{"name": "section_1", "columns": [{"name": "column_1", "fields": []}]}]}]
+	return [
+		{
+			"name": "first_tab",
+			"sections": [{"name": "section_1", "columns": [{"name": "column_1", "fields": []}]}],
+		}
+	]

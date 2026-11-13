@@ -110,13 +110,18 @@ class TestSaveDesign(IntegrationTestCase):
 					"property": "collapsible",
 					"value": 1,
 				},
-				{"act": "canvas.remove_column", "layout": details, "section": "notes_section", "column": "column_1"},
+				{
+					"act": "canvas.remove_column",
+					"layout": details,
+					"section": "notes_section",
+					"column": "column_1",
+				},
 				{"act": "canvas.move_tab", "layout": details, "tab": "more", "index": 0},
 			]
 		)
 		self.assertTrue(result["saved"], result.get("errors"))
 		[row] = details_rows()
-		[more, first] = json.loads(row.layout)
+		[more, _first] = json.loads(row.layout)
 		self.assertEqual(more["name"], "more")
 		[section] = more["sections"]
 		self.assertEqual(section["collapsible"], 1)
@@ -152,7 +157,14 @@ class TestSaveDesign(IntegrationTestCase):
 
 	def test_a_fieldname_is_changed_only_by_renaming(self):
 		result = self.save(
-			[{"act": "fields.set_field_property", "fieldname": "title", "property": "fieldname", "value": "x"}]
+			[
+				{
+					"act": "fields.set_field_property",
+					"fieldname": "title",
+					"property": "fieldname",
+					"value": "x",
+				}
+			]
 		)
 		self.assertFalse(result["saved"])
 		[error] = result["errors"]
@@ -173,7 +185,9 @@ class TestSaveDesign(IntegrationTestCase):
 		)
 		self.assertTrue(result["saved"], result.get("errors"))
 		field = frappe.get_meta(DOCTYPE).get_field("full_name")
-		self.assertEqual((field.fieldtype, field.fetch_from, field.read_only), ("Data", "owner_user.full_name", 1))
+		self.assertEqual(
+			(field.fieldtype, field.fetch_from, field.read_only), ("Data", "owner_user.full_name", 1)
+		)
 		self.assertEqual(field.label, "Full Name")
 		[row] = details_rows()
 		self.assertEqual(placed(row), ["title", "owner_user", "full_name"])
@@ -186,13 +200,23 @@ class TestSaveDesign(IntegrationTestCase):
 				"doctype": "Form Layout",
 				"dt": DOCTYPE,
 				"type": "Quick Entry",
-				"layout": frappe.as_json([{"name": "t", "sections": [{"name": "s", "columns": [{"name": "c", "fields": ["status"]}]}]}]),
+				"layout": frappe.as_json(
+					[
+						{
+							"name": "t",
+							"sections": [{"name": "s", "columns": [{"name": "c", "fields": ["status"]}]}],
+						}
+					]
+				),
 				"omitted": frappe.as_json(["title"]),
 			}
 		).insert()
 
 		result = self.save(
-			[{"act": "fields.delete_field", "fieldname": "title"}, {"act": "fields.delete_field", "fieldname": "status"}]
+			[
+				{"act": "fields.delete_field", "fieldname": "title"},
+				{"act": "fields.delete_field", "fieldname": "status"},
+			]
 		)
 		self.assertTrue(result["saved"], result.get("errors"))
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("status"))
@@ -202,7 +226,16 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual((placed(quick_entry), omitted(quick_entry)), ([], []))
 
 	def test_the_rename_wrapper_moves_data_and_rewrites_layout_rows(self):
-		self.save([{"act": "canvas.place_field", "layout": {"type": "Details"}, "fieldname": "title", "column": "column_1"}])
+		self.save(
+			[
+				{
+					"act": "canvas.place_field",
+					"layout": {"type": "Details"},
+					"fieldname": "title",
+					"column": "column_1",
+				}
+			]
+		)
 		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Kept"}).insert()
 
 		result = rename_field(DOCTYPE, "title", "subject")
@@ -215,7 +248,13 @@ class TestSaveDesign(IntegrationTestCase):
 	def test_a_field_added_in_the_same_save_renames_freely(self):
 		result = self.save(
 			[
-				{"act": "fields.add_field", "label": "Due", "fieldtype": "Date", "layout": {"type": "Details"}, "column": "column_1"},
+				{
+					"act": "fields.add_field",
+					"label": "Due",
+					"fieldtype": "Date",
+					"layout": {"type": "Details"},
+					"column": "column_1",
+				},
 				{"act": "fields.rename_field", "fieldname": "due", "new_fieldname": "due_on"},
 			]
 		)
@@ -227,7 +266,8 @@ class TestSaveDesign(IntegrationTestCase):
 	def test_renaming_a_saved_standard_field_is_refused(self):
 		with patch.dict(frappe.conf, {"developer_mode": 1}):
 			result = self.save(
-				[{"act": "fields.rename_field", "fieldname": "description", "new_fieldname": "details"}], dt="ToDo"
+				[{"act": "fields.rename_field", "fieldname": "description", "new_fieldname": "details"}],
+				dt="ToDo",
 			)
 		self.assertFalse(result["saved"])
 		[error] = result["errors"]
@@ -239,7 +279,12 @@ class TestSaveDesign(IntegrationTestCase):
 		result = self.save(
 			{
 				DOCTYPE: [
-					{"act": "fields.add_child_table", "table_field": "items", "label": "Items", "name": child},
+					{
+						"act": "fields.add_child_table",
+						"table_field": "items",
+						"label": "Items",
+						"name": child,
+					},
 				],
 				child: [{"act": "fields.add_field", "label": "Qty", "fieldtype": "Int"}],
 			}
@@ -253,7 +298,9 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual((table.fieldtype, table.options), ("Table", child))
 
 	def test_edits_for_a_doctype_the_save_does_not_add_are_refused(self):
-		result = self.save({DOCTYPE: [], "ToDo": [{"act": "fields.add_field", "label": "X", "fieldtype": "Data"}]})
+		result = self.save(
+			{DOCTYPE: [], "ToDo": [{"act": "fields.add_field", "label": "X", "fieldtype": "Data"}]}
+		)
 		self.assertFalse(result["saved"])
 		[error] = result["errors"]
 		self.assertEqual((error["target"], error["doctype"]), ({"kind": "banner"}, "ToDo"))
@@ -262,7 +309,13 @@ class TestSaveDesign(IntegrationTestCase):
 		compact = {"type": "Details", "id": "new-1"}
 		result = self.save(
 			[
-				{"act": "layouts.add", "type": "Details", "id": "new-1", "condition": "doc.title", "start": "copy"},
+				{
+					"act": "layouts.add",
+					"type": "Details",
+					"id": "new-1",
+					"condition": "doc.title",
+					"start": "copy",
+				},
 				{"act": "layouts.rename", "layout": compact, "title": "Compact"},
 				{"act": "canvas.add_tab", "layout": compact, "name": "extra"},
 			]
@@ -282,7 +335,9 @@ class TestSaveDesign(IntegrationTestCase):
 	def test_a_save_over_a_changed_doctype_is_refused_as_stale(self):
 		version = base_version(DOCTYPE)
 		frappe.db.set_value("DocType", DOCTYPE, "modified", frappe.utils.add_days(frappe.utils.now(), 1))
-		result = self.save([{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"}], version=version)
+		result = self.save(
+			[{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"}], version=version
+		)
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["code"], "stale")
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
@@ -295,7 +350,16 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(result["errors"][0]["target"], {"kind": "layout", "layout": "Quick Entry"})
 
 	def test_placing_an_unknown_field_is_keyed_to_that_field(self):
-		result = self.save([{"act": "canvas.place_field", "layout": {"type": "Details"}, "fieldname": "nope", "column": "column_1"}])
+		result = self.save(
+			[
+				{
+					"act": "canvas.place_field",
+					"layout": {"type": "Details"},
+					"fieldname": "nope",
+					"column": "column_1",
+				}
+			]
+		)
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["target"], {"kind": "field", "fieldname": "nope"})
 
@@ -304,7 +368,12 @@ class TestSaveDesign(IntegrationTestCase):
 			[
 				{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"},
 				{"act": "fields.add_field", "label": "Party", "fieldtype": "Link"},
-				{"act": "canvas.place_field", "layout": {"type": "Details"}, "fieldname": "due", "column": "column_1"},
+				{
+					"act": "canvas.place_field",
+					"layout": {"type": "Details"},
+					"fieldname": "due",
+					"column": "column_1",
+				},
 			]
 		)
 		self.assertFalse(result["saved"])
@@ -312,6 +381,33 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(result.get("written"), [])
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
 		self.assertEqual(details_rows(), [])
+
+	def test_a_layout_failing_after_the_doctype_saved_reports_what_was_written(self):
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"},
+				{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "due"},
+			]
+		)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["written"], [DOCTYPE])
+		self.assertTrue(frappe.get_meta(DOCTYPE).get_field("due"))
+		self.assertEqual(details_rows(), [])
+
+	def test_a_save_tells_open_desks_once(self):
+		frappe.db.commit()  # nosemgrep: flush the setUp insert's own message
+		with patch("frappe.realtime.emit_via_redis") as emit:
+			result = self.save(
+				[
+					{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"},
+					{"act": "layouts.add", "type": "Details", "id": "new-1", "condition": "doc.title"},
+					{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "more"},
+				]
+			)
+			frappe.db.commit()  # nosemgrep
+		self.assertTrue(result["saved"], result.get("errors"))
+		updates = [call for call in emit.call_args_list if call.args[0] == "doctype_update"]
+		self.assertEqual(len(updates), 1)
 
 
 class TestSaveDesignAppFiles(IntegrationTestCase):
@@ -324,7 +420,12 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 			patch("frappe.desk.doctype.form_layout.app_layout.app_layout_path", side_effect=self.path)
 		)
 		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 1}))
-		for method in ("export_doc", "make_controller_template", "set_base_class_for_controller", "export_types_to_controller"):
+		for method in (
+			"export_doc",
+			"make_controller_template",
+			"set_base_class_for_controller",
+			"export_types_to_controller",
+		):
 			self.enterContext(patch(f"frappe.core.doctype.doctype.doctype.DocType.{method}"))
 		self.addCleanup(frappe.db.rollback)
 
@@ -333,19 +434,30 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 
 	def test_a_standard_doctype_writes_its_app_layout_file(self):
 		result = save_doctype_editor(
-			"ToDo", "Design", base_version("ToDo"), [{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "extra_47271"}]
+			"ToDo",
+			"Design",
+			base_version("ToDo"),
+			[{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "extra_47271"}],
 		)
 		self.assertTrue(result["saved"], result.get("errors"))
 		with open(self.path("ToDo", "Details")) as f:
 			[entry] = json.load(f)
 		self.assertEqual(entry["layout"][-1]["name"], "extra_47271")
 		self.assertTrue(result["base_version"]["app_layouts"]["Details"])
-		self.assertFalse(frappe.get_all("Form Layout", {"dt": "ToDo", "type": "Details", "app": ("is", "not set")}))
+		self.assertFalse(
+			frappe.get_all("Form Layout", {"dt": "ToDo", "type": "Details", "app": ("is", "not set")})
+		)
 
 	def test_an_app_layout_cannot_place_a_site_custom_field(self):
 		fieldname = "custom_editor_47271"
 		frappe.get_doc(
-			{"doctype": "Custom Field", "dt": "ToDo", "fieldname": fieldname, "label": "Editor 47271", "fieldtype": "Data"}
+			{
+				"doctype": "Custom Field",
+				"dt": "ToDo",
+				"fieldname": fieldname,
+				"label": "Editor 47271",
+				"fieldtype": "Data",
+			}
 		).insert()
 		self.addCleanup(frappe.db.sql_ddl, f"alter table `tabToDo` drop column if exists {fieldname}")
 		self.addCleanup(delete_committed, "Custom Field", f"ToDo-{fieldname}")
@@ -353,7 +465,14 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 			"ToDo",
 			"Design",
 			base_version("ToDo"),
-			[{"act": "canvas.place_field", "layout": {"type": "Details"}, "fieldname": fieldname, "column": "column_1"}],
+			[
+				{
+					"act": "canvas.place_field",
+					"layout": {"type": "Details"},
+					"fieldname": fieldname,
+					"column": "column_1",
+				}
+			],
 		)
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["target"], {"kind": "field", "fieldname": fieldname})

@@ -73,7 +73,11 @@ class DesignSave:
 				self.errors.append({**error, "doctype": doctype} if doctype else error)
 
 	def check(self):
-		rows = [layout.row for layout in self.state.all_layouts() if layout.row and layout.type in self.state.touched]
+		rows = [
+			layout.row
+			for layout in self.state.all_layouts()
+			if layout.row and layout.type in self.state.touched
+		]
 		if stale := stale_error(self.doctype, self.base_version, rows, self.written_app_types()):
 			self.errors.insert(0, stale)
 
@@ -97,10 +101,18 @@ class DesignSave:
 			if not self.state.standard:
 				self.write_rows()
 		except frappe.ValidationError as e:
-			frappe.db.rollback(save_point=WRITE_SAVEPOINT)
+			self.roll_back()
 			frappe.local.message_log = frappe.local.message_log[:-1]
 			return [EditError(str(e) or _("The save failed.")).as_dict()]
 		publish_doctype_update(self.doctype)
+
+	def roll_back(self):
+		"""A DocType's DDL commits and drops the savepoint; then only the writes after it roll back."""
+		try:
+			frappe.db.rollback(save_point=WRITE_SAVEPOINT)
+			self.written = []
+		except Exception:
+			frappe.db.rollback()
 
 	def stage_app_layouts(self):
 		"""The DocType's export writes these after its own files (`export_app_layouts`)."""

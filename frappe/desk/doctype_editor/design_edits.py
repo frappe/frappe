@@ -19,7 +19,10 @@ CANVAS_ACTS = {
 	"canvas.add_column": ("add_column", ("section", "name", "index")),
 	"canvas.remove_column": ("remove_column", ("column", "section")),
 	"canvas.move_column": ("move_column", ("column", "section", "to_section", "index")),
-	"canvas.set_container_property": ("set_container_property", ("container", "section", "property", "value")),
+	"canvas.set_container_property": (
+		"set_container_property",
+		("container", "section", "property", "value"),
+	),
 	"canvas.place_field": ("place_field", PLACE_KEYS),
 	"canvas.move_field": ("place_field", PLACE_KEYS),
 	"canvas.unplace_field": ("unplace_field", ("fieldname",)),
@@ -54,7 +57,14 @@ class DesignEdits:
 			raise field_error(_("{0} already has a field {1}.").format(self.state.name, fieldname), fieldname)
 		properties = edit.get("properties") or {}
 		self.state.doc.append(
-			"fields", {**properties, "fieldname": fieldname, "label": label, "fieldtype": fieldtype, "options": edit.get("options")}
+			"fields",
+			{
+				**properties,
+				"fieldname": fieldname,
+				"label": label,
+				"fieldtype": fieldtype,
+				"options": edit.get("options"),
+			},
 		)
 		if edit.get("layout"):
 			self.canvas({**edit, "fieldname": fieldname}, "place_field", PLACE_KEYS)
@@ -64,9 +74,14 @@ class DesignEdits:
 		field = self.state.field(fieldname)
 		if property == "fieldname":
 			raise field_error(_("Rename the field to change its fieldname."), fieldname, property)
-		if property in ("name", "parent", "parenttype", "parentfield", "idx", "doctype") or not field.meta.has_field(
-			property
-		):
+		if property in (
+			"name",
+			"parent",
+			"parenttype",
+			"parentfield",
+			"idx",
+			"doctype",
+		) or not field.meta.has_field(property):
 			raise field_error(_("{0} is not a field property.").format(property), fieldname, property)
 		field.set(property, edit.get("value"))
 
@@ -112,12 +127,22 @@ class DesignEdits:
 			raise EditError(_("A new child table needs a name and a table field."))
 		self.state.add_child(name)
 		self.fields_add_field(
-			{**edit, "fieldname": edit["table_field"], "label": edit.get("label") or name, "fieldtype": "Table", "options": name}
+			{
+				**edit,
+				"fieldname": edit["table_field"],
+				"label": edit.get("label") or name,
+				"fieldtype": "Table",
+				"options": name,
+			}
 		)
 
 	def layouts_add(self, edit: dict):
 		self.state.add_layout(
-			edit.get("type"), edit.get("id"), edit.get("title"), edit.get("condition"), edit.get("start") or "copy"
+			edit.get("type"),
+			edit.get("id"),
+			edit.get("title"),
+			edit.get("condition"),
+			edit.get("start") or "copy",
 		)
 
 	def layouts_rename(self, edit: dict):
