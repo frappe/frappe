@@ -248,6 +248,29 @@ class TestSaveDesign(IntegrationTestCase):
 		quick_entry.reload()
 		self.assertEqual((placed(quick_entry), omitted(quick_entry)), ([], []))
 
+	def test_a_type_with_no_layout_starts_from_what_the_desk_shows(self):
+		self.save(
+			[
+				{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "more"},
+				{"act": "canvas.unplace_field", "layout": {"type": "Details"}, "fieldname": "title"},
+			]
+		)
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Notes", "fieldtype": "Small Text"},
+				{"act": "fields.set_field_property", "fieldname": "title", "property": "reqd", "value": 1},
+				{"act": "canvas.add_tab", "layout": {"type": "Quick Entry"}, "name": "extra"},
+				{"act": "canvas.add_tab", "layout": {"type": "New Record"}, "name": "extra"},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		for type, fields in (("Quick Entry", ["title"]), ("New Record", [])):
+			with self.subTest(type=type):
+				[row] = frappe.get_all(
+					"Form Layout", filters={"dt": DOCTYPE, "type": type}, fields=["layout"]
+				)
+				self.assertEqual(placed(row), fields)
+
 	def test_the_rename_wrapper_moves_data_and_rewrites_layout_rows(self):
 		self.save(
 			[

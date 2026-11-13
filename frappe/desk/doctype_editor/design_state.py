@@ -13,6 +13,7 @@ from frappe.desk.doctype.form_layout.form_layout import (
 	layout_type_refusal,
 	parse_layout,
 	parse_omitted,
+	quick_entry_layout,
 )
 from frappe.desk.doctype_editor.errors import EditError, field_error
 from frappe.desk.doctype_editor.layout_tree import LayoutTree
@@ -133,7 +134,7 @@ class DesignState:
 				return layout
 		if id:
 			raise EditError(_("This {0} layout no longer exists.").format(_(type)), kind="layout", layout=id)
-		layout = EditorLayout(type, type, layout_from_fields(self.doc.fields))
+		layout = EditorLayout(type, type, self.fallback_tabs(type))
 		layouts.append(layout)
 		return layout
 
@@ -151,6 +152,14 @@ class DesignState:
 		for layout in self.layouts_of(type):
 			if not layout.deleted and not layout.condition:
 				return layout.tree.tabs
+		return self.fallback_tabs(type)
+
+	def fallback_tabs(self, type: str) -> list:
+		"""What the desk draws for a type with no layout of its own (`get_layouts`)."""
+		if type == "Quick Entry":
+			return quick_entry_layout(self.doc.fields)
+		if type == "New Record":
+			return copy.deepcopy(self.default_tabs("Details"))
 		return layout_from_fields(self.doc.fields)
 
 	def field(self, fieldname: str):

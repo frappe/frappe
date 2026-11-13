@@ -382,9 +382,13 @@ def opens_in_dialog(dt: str, layouts: list) -> bool:
 
 
 def get_quick_entry_fields(meta, custom: bool = True) -> list:
+	return quick_entry_fields(layout_fields(meta, custom))
+
+
+def quick_entry_fields(fields: list) -> list:
 	return [
 		field
-		for field in layout_fields(meta, custom)
+		for field in fields
 		if (field.reqd or field.allow_in_quick_entry or field.mandatory_depends_on)
 		and not field.read_only
 		and not field.is_virtual
@@ -400,8 +404,12 @@ def mandatory_condition(field) -> str | None:
 
 
 def get_quick_entry_layout(dt: str, custom: bool = True) -> list:
+	return quick_entry_layout(layout_fields(frappe.get_meta(dt), custom))
+
+
+def quick_entry_layout(fields: list) -> list:
 	sections = []
-	for field in get_quick_entry_fields(frappe.get_meta(dt), custom):
+	for field in quick_entry_fields(fields):
 		condition = mandatory_condition(field)
 		if condition or not sections or sections[-1].get("dependsOn"):
 			sections.append(new_quick_entry_section(condition))
