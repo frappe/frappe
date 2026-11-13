@@ -101,9 +101,11 @@ describe("collaboration columns", () => {
 			const sentAt = starsWritten();
 			api.removeFavourite.mockResolvedValue({ data: {} });
 			await toggleStar("ToDo", "g", "me");
-			seedFavourites("ToDo", { favourites: ["g"] }, ["g"], "me", sentAt);
+			seedFavourites("ToDo", { favourites: ["g", "h"] }, ["g", "h"], "me", sentAt);
 			expect(isStarred("ToDo", "g", "me")).toBe(false);
 			expect(cachedUsers("g")).toEqual([]);
+			// the other rows of that page still land
+			expect(isStarred("ToDo", "h", "me")).toBe(true);
 		});
 
 		it("follows a toggle from the list when the call's own reply did not reach the cache", async () => {

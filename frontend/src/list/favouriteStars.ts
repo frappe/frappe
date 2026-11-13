@@ -10,8 +10,9 @@ const stars = reactive(new Map<string, boolean>());
 // A second click while the first is in flight is dropped, so it cannot flip the star back.
 const toggling = new Set<string>();
 
-// Moves on every star written here: a list read sent before it may not overwrite the star.
+// Counts the stars written here, and when each row's last one landed: a list read sent before it may not overwrite it.
 let written = 0;
+const writtenAt = new Map<string, number>();
 export const starsWritten = () => written;
 
 const starKey = (doctype: string, name: string) => `${doctype}\0${name}`;
@@ -36,10 +37,10 @@ export function seedFavourites(
 	user?: string,
 	sentAt = written
 ) {
-	if (sentAt !== written) return;
 	const starred = new Set((answer.favourites as string[] | undefined) ?? []);
 	if (!Array.isArray(answer.favourites)) return;
 	for (const name of names) {
+		if ((writtenAt.get(starKey(doctype, String(name))) ?? 0) > sentAt) continue;
 		const isStar = starred.has(String(name));
 		stars.set(starKey(doctype, name), isStar);
 		if (user) syncCachedPart(doctype, String(name), user, isStar);
@@ -61,7 +62,7 @@ export async function toggleStar(doctype: string, name: string, user: string) {
 		const starred = !isStarred(doctype, name, user);
 		await (starred ? addFavourite : removeFavourite)(doctype, name);
 		stars.set(key, starred);
-		written++;
+		writtenAt.set(key, ++written);
 		syncCachedPart(doctype, name, user, starred);
 	} finally {
 		toggling.delete(key);
