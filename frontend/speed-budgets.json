@@ -4,7 +4,7 @@
   "list": { "budget": { "jsKb": 320, "calls": 7 }, "baseline": { "jsKb": 352.0, "calls": 6 } },
   "record": { "budget": { "jsKb": 460, "calls": 9 }, "baseline": { "jsKb": 442.7, "calls": 8 } },
   "new": { "budget": { "jsKb": 460, "calls": 9 }, "baseline": { "jsKb": 406.4, "calls": 8 } },
-  "editor": { "baseline": { "jsKb": 457.15 } },
+  "editor": { "baseline": { "jsKb": 463.35 } },
   "save": { "baseline": { "calls": 2 } },
   "create": { "baseline": { "calls": 2 } },
   "createAgain": { "baseline": { "calls": 1 } }
