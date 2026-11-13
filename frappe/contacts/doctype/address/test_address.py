@@ -130,7 +130,7 @@ class TestAddress(IntegrationTestCase):
 		add_permission("Address", role, 0, ptype="select")
 		update_permission_property("Address", role, 0, "read", 0, validate=False)
 		# "All" grants owner-only read, which would lift the user above select
-		update_permission_property("Address", "All", 0, "read", 0, validate=False)
+		update_permission_property("Address", "All", 0, "read", 0, validate=False, if_owner=1)
 		user = frappe.get_doc(
 			doctype="User",
 			email=f"select-{frappe.generate_hash(length=8)}@example.com",

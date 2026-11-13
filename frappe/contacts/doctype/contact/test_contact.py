@@ -81,7 +81,7 @@ class TestContact(IntegrationTestCase):
 		add_permission("Contact", role, 0, ptype="select")
 		update_permission_property("Contact", role, 0, "read", 0, validate=False)
 		# "All" grants owner-only read, which would lift the user above select
-		update_permission_property("Contact", "All", 0, "read", 0, validate=False)
+		update_permission_property("Contact", "All", 0, "read", 0, validate=False, if_owner=1)
 		user = frappe.get_doc(
 			doctype="User",
 			email=f"select-{frappe.generate_hash(length=8)}@example.com",
@@ -218,7 +218,7 @@ class TestContact(IntegrationTestCase):
 		self.assertNotIn(unknown, result["user_info"])
 
 		# "All" grants owner-only read, which would still count as Contact access
-		update_permission_property("Contact", "All", 0, "read", 0, validate=False)
+		update_permission_property("Contact", "All", 0, "read", 0, validate=False, if_owner=1)
 		# desk sends a native list
 		with self.set_user(make_caller(can_read_contacts=False).name):
 			result = get_recipient_avatars(frappe.parse_json(emails))

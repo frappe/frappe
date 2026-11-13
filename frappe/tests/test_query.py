@@ -2904,7 +2904,7 @@ class TestQuery(IntegrationTestCase):
 
 		self.addCleanup(lambda: test_user_doc.remove_roles("Blogger"))
 		self.addCleanup(blog_post.delete)
-		self.addCleanup(lambda: update("Test Blog Post", "Blogger", 0, "if_owner", 0))
+		self.addCleanup(lambda: update("Test Blog Post", "Blogger", 0, "if_owner", 0, if_owner=1))
 		self.addCleanup(lambda: frappe.set_user("Administrator"))
 
 		# User shouldn't see it (not owner, if_owner enabled)

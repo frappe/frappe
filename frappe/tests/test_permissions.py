@@ -104,6 +104,23 @@ class TestPermissions(IntegrationTestCase):
 		self.assertNotEqual(permitted_record, full_record)
 		self.assertSequenceSubset(post.meta.default_fields + post.meta.get_search_fields(), permitted_record)
 
+	def test_update_permission_property_respects_if_owner(self):
+		doctype, role = "Test Blog Post", "Sales User"
+
+		owner_rule = add_permission(doctype, role, 0)
+		update_permission_property(doctype, role, 0, "if_owner", 1)
+		open_rule = add_permission(doctype, role, 0)
+		self.assertNotEqual(owner_rule, open_rule)
+
+		update_permission_property(doctype, role, 0, "write", 1, if_owner=1)
+		update_permission_property(doctype, role, 0, "delete", 1, if_owner="0")
+
+		owner_perm = frappe.db.get_value("Custom DocPerm", owner_rule, ["write", "delete"], as_dict=True)
+		open_perm = frappe.db.get_value("Custom DocPerm", open_rule, ["write", "delete"], as_dict=True)
+		self.assertEqual((owner_perm.write, owner_perm.delete), (1, 0))
+		self.assertEqual((open_perm.write, open_perm.delete), (0, 1))
+		self.assertRaises(frappe.ValidationError, update, doctype, role, 0, "if_owner", 1, 0)
+
 	def test_owner_only_export_stays_in_can_export(self):
 		role_name = "Test Export Boot Role"
 		user_name = "test_export_boot@example.com"
@@ -629,9 +646,9 @@ class TestPermissions(IntegrationTestCase):
 
 	def test_if_owner_permission_on_getdoc(self):
 		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
-		update("Test Blog Post", "Blogger", 0, "read", 1)
-		update("Test Blog Post", "Blogger", 0, "write", 1)
-		update("Test Blog Post", "Blogger", 0, "delete", 1)
+		update("Test Blog Post", "Blogger", 0, "read", 1, 1)
+		update("Test Blog Post", "Blogger", 0, "write", 1, 1)
+		update("Test Blog Post", "Blogger", 0, "delete", 1, 1)
 		frappe.clear_cache(doctype="Test Blog Post")
 
 		frappe.set_user("test1@example.com")
@@ -669,7 +686,7 @@ class TestPermissions(IntegrationTestCase):
 		doc.insert(ignore_if_duplicate=True)
 
 		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
-		update("Test Blog Post", "Blogger", 0, "read", 1)
+		update("Test Blog Post", "Blogger", 0, "read", 1, 1)
 		user = frappe.get_doc("User", "test2@example.com")
 		user.add_roles("Website Manager")
 		frappe.clear_cache(doctype="Test Blog Post")

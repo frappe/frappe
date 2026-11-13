@@ -148,6 +148,8 @@ class TestReportview(IntegrationTestCase):
 
 		update_permission_property("ToDo", "All", 0, "export", 1)
 		update_permission_property("ToDo", "All", 0, "if_owner", if_owner)
+		if if_owner:
+			self.addCleanup(update_permission_property, "ToDo", "All", 0, "if_owner", 0, if_owner=1)
 		frappe.clear_cache(doctype="ToDo")
 		self.addCleanup(frappe.clear_cache, doctype="ToDo")
 		frappe.get_doc(doctype="Role", role_name="_Test Exporter").insert(ignore_if_duplicate=True)

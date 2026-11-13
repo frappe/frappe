@@ -149,6 +149,18 @@ def update(
 	if ptype == "report" and value == "1" and if_owner == "1":
 		frappe.throw(_("Cannot set 'Report' permission if 'Only If Creator' permission is set"))
 
+	if ptype == "if_owner" and cint(value) != cint(if_owner):
+		perm_doctype = (
+			"Custom DocPerm" if frappe.db.exists("Custom DocPerm", {"parent": doctype}) else "DocPerm"
+		)
+		if frappe.db.exists(
+			perm_doctype, {"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": cint(value)}
+		):
+			frappe.throw(
+				_("Rule for this doctype, role, permlevel and if-owner combination already exists."),
+				title=_("Not Allowed"),
+			)
+
 	out = update_permission_property(doctype, role, permlevel, ptype, value, if_owner=if_owner)
 
 	if ptype == "if_owner" and value == "1" and cint(permlevel) == 0:
