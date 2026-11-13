@@ -619,7 +619,18 @@ class PrintDesignerConverter:
 		parts, fixed = [], []
 		for column in sorted(columns, key=lambda c: flt(c.get("startX"))):
 			children = column.get("childrens") or []
-			inner = "".join(self.element_html(e) for e in self.flatten(children))
+			inner, cursor = "", 0
+			for child in sorted(children, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))):
+				html = "".join(self.element_html(e) for e in self.flatten([child]))
+				gap, indent = (
+					round(max(flt(child.get("startY")) - cursor, 0)),
+					round(flt(child.get("startX"))),
+				)
+				style = (f"margin-top: {gap}px; " if gap else "") + (
+					f"margin-left: {indent}px;" if indent else ""
+				)
+				inner += f'<div style="{style.strip()}">{html}</div>' if style else html
+				cursor = max(cursor, flt(child.get("startY")) + flt(child.get("height")))
 			parts.append(
 				f'<div style="flex: {round(flt(column.get("width")))} 1 0; min-width: 0; overflow-wrap: anywhere;">{inner}</div>'
 			)
