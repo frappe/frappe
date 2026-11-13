@@ -370,6 +370,7 @@ class PrintFormat(Document):
 			"value",
 			new,
 		)
+		frappe.db.set_value("Print Format", {"converted_from": old}, "converted_from", new)
 
 	def export_doc(self):
 		from frappe.modules.utils import export_module_json
