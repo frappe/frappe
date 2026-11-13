@@ -268,6 +268,20 @@ class TestUser(IntegrationTestCase):
 
 		frappe.copy_doc(self.globalTestRecords["Role"][1]).insert()
 
+	def test_disable_outside_request_ends_sessions(self):
+		with (
+			test_user(roles=[], user_type="Website User") as user,
+			patch.object(frappe.local, "login_manager", None, create=True),
+			patch.object(frappe.db, "commit"),
+		):
+			sessions = frappe.qb.DocType("Sessions")
+			frappe.qb.into(sessions).columns(sessions.user, sessions.sid, sessions.sessiondata).insert(
+				user.name, "sid-to-end", "{}"
+			).run()
+			user.enabled = 0
+			user.save()
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 0)
+
 	def test_get_value(self):
 		self.assertEqual(frappe.db.get_value("User", "test@example.com"), "test@example.com")
 		self.assertEqual(frappe.db.get_value("User", {"email": "test@example.com"}), "test@example.com")

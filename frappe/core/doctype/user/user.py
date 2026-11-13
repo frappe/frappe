@@ -406,13 +406,19 @@ class User(Document):
 		if not cint(self.enabled) and self.name in STANDARD_USERS:
 			frappe.throw(_("User {0} cannot be disabled").format(self.name))
 
-		# clear sessions if disabled
-		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
-			frappe.local.login_manager.logout(user=self.name)
+		if not cint(self.enabled):
+			self.end_sessions()
 
 		# toggle notifications based on the user's status
 		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
 		self.disable_email_fields_if_user_disabled()
+
+	def end_sessions(self):
+		"""Log the user out everywhere, also when disabled from the CLI or a background job."""
+		if login_manager := getattr(frappe.local, "login_manager", None):
+			login_manager.logout(user=self.name)
+		else:
+			clear_sessions(user=self.name, force=True)
 
 	def set_new_password(self, new_password=None):
 		"""Set New Password for user"""
@@ -665,8 +671,7 @@ class User(Document):
 
 		# disable the user and log him/her out
 		self.enabled = 0
-		if getattr(frappe.local, "login_manager", None):
-			frappe.local.login_manager.logout(user=self.name)
+		self.end_sessions()
 
 		# delete todos
 		frappe.db.delete("ToDo", {"allocated_to": self.name})
