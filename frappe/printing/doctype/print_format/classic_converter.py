@@ -68,8 +68,11 @@ def convert_classic_to_beta(format_data, meta, print_format=None) -> tuple[dict,
 		"header": {"columns": [{"label": "", "fields": []}]},
 		"footer": {"columns": [{"label": "", "fields": []}]},
 	}
-	if layout_page_settings({"page": {"size": paper_size}}):
-		layout["page"] = {"size": paper_size}
+	page = {"size": paper_size}
+	if paper_size == "Custom":
+		page.update(width=print_format.get("paper_width"), height=print_format.get("paper_height"))
+	if layout_page_settings({"page": page}):
+		layout["page"] = page
 
 	data = [frappe._dict(df) for df in (format_data or []) if isinstance(df, dict)]
 
