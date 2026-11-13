@@ -3,7 +3,7 @@
 
 from collections.abc import Iterable
 from datetime import timedelta
-from functools import cached_property, lru_cache, partial
+from functools import cached_property, lru_cache
 from typing import Any
 
 import frappe
@@ -418,22 +418,7 @@ class User(Document):
 		if login_manager := getattr(frappe.local, "login_manager", None):
 			login_manager.logout(user=self.name)
 		else:
-			self.delete_sessions()
-
-	def delete_sessions(self):
-		"""Delete sessions in the current transaction, as `delete_session` would commit mid-save."""
-		from frappe.core.doctype.activity_log.feed import logout_feed
-
-		sessions = DocType("Sessions")
-		sid_hashes = (
-			frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == self.name).run(pluck=True)
-		)
-		if not sid_hashes:
-			return
-
-		frappe.db.delete("Sessions", {"user": self.name})
-		logout_feed(self.name, "Force Logged out by the user")
-		frappe.db.after_commit.add(partial(frappe.cache.hdel, "session", sid_hashes))
+			log_out_after_commit(self.name)
 
 	def set_new_password(self, new_password=None):
 		"""Set New Password for user"""
@@ -1623,6 +1608,25 @@ def handle_password_test_fail(feedback: dict):
 		msg="".join(message_parts),
 		title=_("Password requirements not met"),
 	)
+
+
+def log_out_after_commit(user: str):
+	"""Clear the user's sessions once the current transaction commits.
+
+	Not in the open transaction: `delete_session` commits, and `Sessions` has no index on
+	`user`, so a delete by user would lock out every login until the commit. One callback
+	serves the whole transaction, as each commit in it runs the rest of the after-commit queue.
+	"""
+	pending = frappe.flags.setdefault("users_to_log_out", set())
+	if not pending:
+		frappe.db.after_commit.add(_log_out_pending_users)
+		frappe.db.after_rollback.add(pending.clear)
+	pending.add(user)
+
+
+def _log_out_pending_users():
+	for user in frappe.flags.pop("users_to_log_out", ()):
+		clear_sessions(user=user, force=True)
 
 
 def throttle_user_creation():
