@@ -1,11 +1,16 @@
+/**
+ * The rules for database app source.
+ *
+ * Reject code that the browser loader or the app build cannot run. The two call this function,
+ * so preview and build fail on the same code.
+ */
+
 import { extractIdentifiers, walk, walkIdentifiers } from "vue/compiler-sfc"
 import { IMPORTABLE_MODULES } from "./importableModuleNames.js"
 
 const COMMONJS_NAMES = ["require", "module", "exports"]
 
 /**
- * Validate source for both the browser loader and database-app publishing.
- * Both paths use these restrictions so unsupported syntax fails consistently in preview and builds.
  * @param {import('./compiler').BabelProgram} program
  * @param {string} filename
  * @returns {import('./compiler').CompileError[]}

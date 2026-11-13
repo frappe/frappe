@@ -83,7 +83,7 @@ async function toCommonJS(filename: string, source: string): Promise<CompiledFil
  *
  * Library modules load asynchronously, so the caller preloads them before synchronous require()
  * calls. Database apps require literal import() paths so both loaders can discover dependencies,
- * and their source must also satisfy moduleContract.js.
+ * and their source must also pass moduleSyntaxErrors.js.
  */
 export async function parseModule(
 	filename: string,
@@ -97,7 +97,7 @@ export async function parseModule(
 			plugins: filename.endsWith(".ts") ? ["typescript"] : [],
 		})
 		if (databaseApp) {
-			const { moduleSyntaxErrors } = await import("@/browserRuntime/moduleContract")
+			const { moduleSyntaxErrors } = await import("@/browserRuntime/moduleSyntaxErrors")
 			const errors = moduleSyntaxErrors(program, filename)
 			if (errors.length) return { ...nothingParsed(), errors }
 		}
