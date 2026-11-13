@@ -2280,7 +2280,11 @@ def publish_export_result(
 	doctype: str, user: str, error: Exception | None = None, app_layouts: dict | None = None
 ) -> None:
 	"""Tell the saving user how the deferred export went, with the new hash of each app layout file it wrote."""
-	message = {"doctype": doctype, "ok": error is None, "error": (str(error) or repr(error)) if error else None}
+	message = {
+		"doctype": doctype,
+		"ok": error is None,
+		"error": (str(error) or repr(error)) if error else None,
+	}
 	if app_layouts:
 		message["app_layouts"] = app_layouts
 	frappe.publish_realtime("doctype_export", message, user=user)

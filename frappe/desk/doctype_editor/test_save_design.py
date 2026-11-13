@@ -478,7 +478,9 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 			[{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "extra_47271"}],
 		)
 		self.assertTrue(result["saved"], result.get("errors"))
-		with patch("frappe.core.doctype.doctype.doctype.DocType.export_doc", side_effect=OSError("disk full")):
+		with patch(
+			"frappe.core.doctype.doctype.doctype.DocType.export_doc", side_effect=OSError("disk full")
+		):
 			with self.assertRaises(OSError):
 				frappe.local.request.after_response.run()
 		self.assertFalse(os.path.exists(self.path("ToDo", "Details")))
