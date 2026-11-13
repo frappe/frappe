@@ -16,15 +16,19 @@ def extract(fileobj, *args, **kwargs):
 	"""
 	text = fileobj.read().decode()
 	data = json.loads(text)
-	if not isinstance(data, dict):
-		return
-
 	path = Path(getattr(fileobj, "name", ""))
 	doctype = unscrub(path.parent.parent.parent.name)
 	layout_type = unscrub(path.stem)
 
-	for lineno, message, comment in extract_from_nodes(data.get("layout") or [], doctype, text):
-		yield lineno, "_", message, [f"{comment} in the {layout_type} layout"]
+	# A file is a list of layouts; one bare layout is the shape before titled layouts.
+	for entry in data if isinstance(data, list) else [data]:
+		if not isinstance(entry, dict):
+			continue
+		if isinstance(title := entry.get("title"), str) and title:
+			comment = f"Title of a {layout_type} layout of DocType '{doctype}'"
+			yield get_line_number(text, "title", title), "_", title, [comment]
+		for lineno, message, comment in extract_from_nodes(entry.get("layout") or [], doctype, text):
+			yield lineno, "_", message, [f"{comment} in the {layout_type} layout"]
 
 
 def extract_from_nodes(nodes: list, doctype: str, text: str):
