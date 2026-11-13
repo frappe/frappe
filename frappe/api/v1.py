@@ -9,6 +9,7 @@ from frappe.utils import attach_expanded_links
 from frappe.utils.data import sbool
 
 
+@frappe.read_only()
 def document_list(doctype: str):
 	if frappe.form_dict.get("fields"):
 		frappe.form_dict["fields"] = frappe.parse_json(frappe.form_dict["fields"])
@@ -80,6 +81,11 @@ def read_doc(doctype: str, name: str):
 	if "run_method" in frappe.form_dict:
 		return execute_doc_method(doctype, name)
 
+	return get_doc(doctype, name)
+
+
+@frappe.read_only()
+def get_doc(doctype: str, name: str):
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()

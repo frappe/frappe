@@ -78,6 +78,7 @@ def logout():
 	frappe.db.commit()
 
 
+@frappe.read_only()
 def read_doc(doctype: str, name: str):
 	"""
 	GET /api/v2/document/<doctype>/<name>?fields=[...]
@@ -120,6 +121,7 @@ def select_fields(doc: dict, fields: list) -> dict:
 	return selected
 
 
+@frappe.read_only()
 def document_list(doctype: str) -> list[dict[str, Any]]:
 	"""
 	GET /api/v2/document/<doctype>?fields=[...],filters={...},...
@@ -249,6 +251,7 @@ def create_doc(doctype: str):
 	return doc.insert().copy_with_fieldlevel_read_permissions().as_dict()
 
 
+@frappe.read_only()
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
 	"""Return a clean copy of the given document that can be modified and posted as a new document."""
 	doc = frappe.get_doc(doctype, name)

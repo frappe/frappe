@@ -14,6 +14,7 @@ from filetype import guess_mime
 from werkzeug.test import TestResponse
 
 import frappe
+from frappe.api import v1, v2
 from frappe.installer import update_site_config
 from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase
@@ -805,6 +806,76 @@ class TestReadOnlyMode(FrappeAPITestCase):
 			)
 		self.assertEqual(response.status_code, 503)
 		self.assertEqual(response.json["exc_type"], "InReadOnlyMode")
+
+
+class TestDocumentReadsOnReplica(IntegrationTestCase):
+	"""Document reads through the REST API run on the replica, when one is configured.
+
+	The test database stands in for the replica, reached through a second connection,
+	so the document read here has to be committed."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		with cls.set_user("test@example.com"):
+			cls.todo = frappe.get_doc(doctype="ToDo", description=frappe.mock("paragraph")).insert().name
+		frappe.db.commit()
+		cls.addClassCleanup(frappe.db.commit)
+		cls.addClassCleanup(frappe.delete_doc, "ToDo", cls.todo)
+
+	def setUp(self):
+		super().setUp()
+		form_dict = frappe.local.form_dict
+		self.addCleanup(setattr, frappe.local, "form_dict", form_dict)
+		frappe.local.form_dict = frappe._dict()
+
+	def tearDown(self):
+		# a request gets a fresh frappe.local, tests share one
+		for connection in ("primary_db", "replica_db"):
+			if hasattr(frappe.local, connection):
+				delattr(frappe.local, connection)
+		super().tearDown()
+
+	def assertReadsOnReplica(self, endpoint, **kwargs):
+		"""Assert `endpoint` reads on a replica connection and leaves the primary one in place."""
+		read_connections = []
+		connect_replica = frappe.connect_replica
+
+		def spy():
+			switched = connect_replica()
+			read_connections.append(frappe.local.db)
+			return switched
+
+		primary = frappe.local.db
+		replica_conf = {"read_from_replica": 1, "replica_host": frappe.conf.db_host or "127.0.0.1"}
+		with (
+			patch.dict(frappe.local.conf, replica_conf),
+			patch.object(frappe, "connect_replica", spy),
+			self.set_user("test@example.com"),
+		):
+			endpoint(**kwargs)
+
+		self.assertEqual(len(read_connections), 1, f"{endpoint.__name__} did not read on the replica")
+		self.assertIsNot(read_connections[0], primary)
+		self.assertIs(frappe.local.db, primary)
+
+	def test_read_document_v1(self):
+		self.assertReadsOnReplica(v1.read_doc, doctype="ToDo", name=self.todo)
+
+	def test_list_documents_v1(self):
+		self.assertReadsOnReplica(v1.document_list, doctype="ToDo")
+
+	def test_read_document_v2(self):
+		self.assertReadsOnReplica(v2.read_doc, doctype="ToDo", name=self.todo)
+
+	def test_list_documents_v2(self):
+		self.assertReadsOnReplica(v2.document_list, doctype="ToDo")
+
+	def test_count_documents_v2(self):
+		self.assertReadsOnReplica(v2.count, doctype="ToDo")
+
+	def test_copy_document_v2(self):
+		self.assertReadsOnReplica(v2.copy_doc, doctype="ToDo", name=self.todo)
 
 
 class TestWSGIApp(FrappeAPITestCase):
