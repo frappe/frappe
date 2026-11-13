@@ -112,8 +112,7 @@ function settingsItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			name: "set_doctype_property",
 			label: __("Set a DocType property"),
 			palette: false,
-			// The Customize save refuses `settings.*` edits.
-			when: () => Boolean(host.canvas()?.editable && !host.canvas()?.customize),
+			when: () => Boolean(host.canvas()?.editable),
 			run: (_context, keys: { property: string; value: unknown }) =>
 				host.canvas()!.stage({ ...keys, act: "settings.set_doctype_property" }),
 		},
