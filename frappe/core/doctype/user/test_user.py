@@ -276,12 +276,12 @@ class TestUser(IntegrationTestCase):
 		):
 			sessions = frappe.qb.DocType("Sessions")
 			frappe.qb.into(sessions).columns(sessions.user, sessions.sid, sessions.sessiondata).insert(
-				user.name, "sid-to-end", "{}"
+				*[(user.name, f"sid-to-end-{i}", "{}") for i in range(101)]
 			).run()
 			user.enabled = 0
 			user.save()
 			commit.assert_not_called()
-			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 1)
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 101)
 			frappe.db.after_commit.run()
 			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 0)
 

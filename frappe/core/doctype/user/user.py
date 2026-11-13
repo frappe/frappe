@@ -23,7 +23,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
 from frappe.query_builder import Criterion, DocType, Table
 from frappe.rate_limiter import rate_limit
-from frappe.sessions import clear_sessions, hash_sid
+from frappe.sessions import clear_sessions, delete_session, hash_sid
 from frappe.twofactor import should_run_2fa
 from frappe.utils import (
 	cint,
@@ -1625,8 +1625,14 @@ def log_out_after_commit(user: str):
 
 
 def _log_out_pending_users():
+	sessions = DocType("Sessions")
 	for user in frappe.flags.pop("users_to_log_out", ()):
-		clear_sessions(user=user, force=True)
+		# all of them: `clear_sessions` stops at 100
+		sid_hashes = (
+			frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == user).run(pluck=True)
+		)
+		for sid_hash in sid_hashes:
+			delete_session(sid_hash=sid_hash, user=user, reason="Force Logged out by the user")
 
 
 def throttle_user_creation():
