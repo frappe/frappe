@@ -393,6 +393,14 @@ class TestWebsite(IntegrationTestCase):
 		self.assertIn("test.__test", content)
 		self.assertNotIn("Show Error", content)
 
+	def test_render_error_traceback_follows_traceback_setting(self):
+		template = "{{ frappe.form_dict.missing_key.upper() }}"
+		for allowed in (False, True):
+			with patch("frappe.utils.response.is_traceback_allowed", return_value=allowed):
+				with self.assertRaises(Exception) as error:
+					frappe.render_template(template)
+			self.assertEqual("Traceback" in str(error.exception), allowed)
+
 	def test_never_render(self):
 		from pathlib import Path
 		from random import choices
