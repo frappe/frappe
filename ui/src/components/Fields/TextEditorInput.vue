@@ -73,6 +73,7 @@ import { fieldBoxKey } from "./fieldBox";
 import { isEmptyHtml } from "../RichText/html";
 import { richTextBubble, richTextKit, richTextToolbar, useToolbarKey } from "../RichText/kit";
 import { uploadMedia } from "../RichText/upload";
+import { UploadTransportKey } from "../FileUpload/types";
 import type { FieldMeta } from "./types";
 
 const props = defineProps<{
@@ -158,8 +159,9 @@ function onFocusOut(event: FocusEvent) {
 
 // A detached file: the record's save adopts it and applies `make_attachments_public`.
 // Never `attached_to_field`: the File would then overwrite this field's HTML with its URL.
+const transport = inject(UploadTransportKey, undefined);
 function upload(file: File, options?: MediaUploadRequestOptions) {
-	return uploadMedia(file, options);
+	return uploadMedia(file, options, undefined, transport);
 }
 
 const maxHeight = computed(() => {

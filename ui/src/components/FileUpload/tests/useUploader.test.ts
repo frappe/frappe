@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
+import { createApp } from "vue";
 import { useUploader } from "../useUploader";
-import type { UploadTransport } from "../types";
+import { UploadTransportKey, type UploadTransport } from "../types";
 
 /** A fake transport that resolves with a deterministic url and reports progress. */
 function fakeTransport(): UploadTransport {
@@ -17,6 +18,16 @@ function makeFile(name: string, size = 100, type = "text/plain"): File {
 }
 
 describe("useUploader", () => {
+  it("sends through a transport the host provides", async () => {
+    const app = createApp({ render: () => null });
+    app.provide(UploadTransportKey, fakeTransport());
+    const uploader = app.runWithContext(() => useUploader());
+    uploader.add([makeFile("a.txt")]);
+    expect(await uploader.commit()).toEqual([
+      { file_url: "/files/a.txt", file_name: "a.txt", is_private: true },
+    ]);
+  });
+
   it("adds files and commits them via the transport", async () => {
     const uploader = useUploader({
       transport: fakeTransport(),

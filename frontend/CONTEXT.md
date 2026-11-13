@@ -460,6 +460,45 @@ The surface for acts that outlive a page: the shell's own acts, named `shell.<it
 app's global acts from its `acts.js`, named `shell.<app>.<item>`. Same item shape as a page surface, with no
 verbs for scripts yet; `run` receives `(shell, value)`, and `shell.record()` is the saved record open on the page, if any.
 
+### The DocType editor
+
+**DocType editor**: <a id="doctype-editor"></a>
+The page at `/doctype/<name>` where a person changes a DocType: its fields, its layouts and its
+settings. It opens in Design or Customize mode, and has three tabs: Editor, Settings and Preview.
+_Avoid_: Form Builder, Customize Form (the old desk's tools).
+
+**Design mode**: <a id="design-mode"></a>
+The editor changing the DocType itself, its definition and its app layouts. A standard DocType
+opens in it only in developer mode, for a System Manager; a custom DocType, for a System Manager.
+Fields this site added are hidden in it and counted in a note.
+
+**Customize mode**: <a id="customize-mode"></a>
+The editor changing a DocType for this site only, through Custom Fields and Property Setters.
+It needs write on `Customize Form`. Without developer mode a standard DocType opens in it; in
+the URL it is `?mode=customize`.
+
+**Canvas**: <a id="canvas"></a>
+The Editor tab's drawing of a layout: its tabs, sections, columns and field labels. It is the
+editor's own drawing, not the record page's `FormLayout`; Preview shows that one.
+
+**Properties panel**: <a id="properties-panel"></a>
+The panel beside the canvas that shows and changes the selected field's properties.
+
+**Layout menu**: <a id="layout-menu"></a>
+The last breadcrumb of the editor (`Details ▾`), which picks the layout type and row the
+canvas shows. _Avoid_: layout switcher.
+
+**Pending edits**: <a id="pending-edits"></a>
+The editor's changes that are not saved yet: `{doctype, mode, base_version, edits}`, in the
+order they were made. One undo stack covers the Editor and Settings tabs.
+
+**Edit act**: <a id="edit-act"></a>
+An act that adds to the pending edits, so Undo takes it back and Save sends it.
+
+**Immediate act**: <a id="immediate-act"></a>
+An act that the editor runs at once and that stays outside the pending edits, for example
+opening a tab or picking the Preview record.
+
 ### Views
 
 **View type**: <a id="view-type"></a>

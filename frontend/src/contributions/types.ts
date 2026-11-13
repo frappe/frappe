@@ -92,6 +92,8 @@ export type StandardPages = {
   list: () => Promise<unknown>
   record: () => Promise<unknown>
   newRecord: () => Promise<unknown>
+  /** The DocType editor at `/doctype/<name>`; no app replaces it. */
+  doctypeEditor: () => Promise<unknown>
   /** The index at `/apps`, drawn with its own loading state. */
   index: Component
 }

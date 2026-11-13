@@ -52,8 +52,13 @@ export function routeFor(
 	name?: string | null,
 	options: RouteOptions = {}
 ): RouteLocationRaw {
-	const { addresses } = current();
+	const { addresses, router } = current();
 	const params = doctypeParams(doctype);
+	// The editor holds `/doctype/<name>`: a named push to `record` would draw a page a reload does not.
+	if (doctype === "DocType" && name && name !== "new" && router.hasRoute("doctype-editor"))
+		return options.standard
+			? { name: "standard-record", params: { ...params, name }, query: options.query }
+			: { name: "doctype-editor", params: { name }, query: options.query };
 
 	if (!name && addresses.isSingle(doctype)) name = doctype;
 	// `/<doctype>/new` opens a new record, so a record named "new" has only its standard address.
@@ -115,7 +120,11 @@ export function routeForNew(
 	doctype: string,
 	values: Record<string, unknown> = {}
 ): RouteLocationRaw {
-	return { name: "new-record", params: doctypeParams(doctype), query: newRecordQuery(values) };
+	const query = newRecordQuery(values);
+	// The editor holds `/doctype/new` too, as `routeFor` says for a DocType record.
+	if (doctype === "DocType" && current().router.hasRoute("doctype-editor"))
+		return { name: "doctype-editor", params: { name: "new" }, query };
+	return { name: "new-record", params: doctypeParams(doctype), query };
 }
 
 /** `routeForNew` as an address under a list address another app gave, for a router with no doctype routes. */

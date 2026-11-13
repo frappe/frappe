@@ -16,6 +16,7 @@
 import { computed, hasInjectionContext, inject, reactive, ref, type ComputedRef, type Ref } from "vue";
 import {
   UploadLimitsKey,
+  UploadTransportKey,
   type Restrictions,
   type UploadArgs,
   type UploadItem,
@@ -84,7 +85,10 @@ export interface Uploader {
 }
 
 export function useUploader(options: UseUploaderOptions = {}): Uploader {
-  const transport = options.transport ?? lazyDefaultTransport;
+  const transport =
+    options.transport ??
+    (hasInjectionContext() ? inject(UploadTransportKey, null) : null) ??
+    lazyDefaultTransport;
   const restrictions = options.restrictions ?? {};
   const multiple = options.multiple ?? false;
   // The site's own limits, provided by the host; a consumer's `restrictions` still wins.

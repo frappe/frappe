@@ -34,6 +34,7 @@ const registered: StandardPages = {
 	list: async () => page("registered list"),
 	record: async () => page("registered record"),
 	newRecord: async () => page("registered new record"),
+	doctypeEditor: async () => page("registered doctype editor"),
 	index: MainPage,
 };
 
