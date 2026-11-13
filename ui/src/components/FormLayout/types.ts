@@ -57,7 +57,7 @@ export interface FieldUI {
  *
  * Only these three need the carrier: `label`, `options`, `precision`,
  * `placeholder`, `description` and `filters` are set once when the node is
- * built and never recomputed, so an app applies those at build time instead.
+ * built and never recomputed (a DocField's own `link_filters` merge in per render), so an app applies those at build time instead.
  *
  * Plain data, deliberately: it keeps `FormLayout` an independent component that
  * takes a schema and knows nothing about whoever wrote the override.
@@ -135,6 +135,12 @@ export interface RawMetaField {
   /** A custom field's anchor: the field it follows, or the container it opens. */
   insert_after?: string;
   filters?: Record<string, unknown>;
+  /** `[[doctype, fieldname, operator, value], ...]` as JSON; a value may be `eval:doc.x`. */
+  link_filters?: string | unknown[];
+  /** `<link fieldname>.<its target's fieldname>`: copied when that Link changes. */
+  fetch_from?: string;
+  /** Fetch only into an empty value. */
+  fetch_if_empty?: boolean | 0 | 1;
   cannot_add_rows?: boolean | 0 | 1;
   cannot_delete_rows?: boolean | 0 | 1;
   /** Left out of a duplicate. */

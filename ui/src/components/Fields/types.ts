@@ -33,6 +33,8 @@ export interface FieldMeta {
   choices?: OptionChoice[];
   /** Link search filters. */
   filters?: Record<string, unknown>;
+  /** The DocField's own `link_filters`, resolved against the record into `filters` on each render. */
+  linkFilters?: string | unknown[];
   /**
    * Child-table columns from the child's `in_list_view` fields. Used by `Table`
    * (grid columns) and `Table MultiSelect` (its single `Link` field gives the

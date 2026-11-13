@@ -21,6 +21,7 @@ import { FieldErrors } from "./fieldErrors";
 import { FieldsSurface } from "./fields";
 import { FormSurface } from "./form";
 import { FormTabsSurface } from "./formTabs";
+import { LinkFetch } from "./linkFetch";
 import type { FrameSurface } from "@/pageEngine/frame";
 import type { BodySurface } from "@/pageEngine/body";
 import type { HeaderSurface } from "@/pageEngine/headerRenderings";
@@ -334,6 +335,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   });
 
   const cachedReads = new CachedReads(host.doctype, host.docname);
+  const linkFetch = new LinkFetch({
+    doc: () => host.doc.value,
+    fields: () => host.meta.value?.fields,
+    childFields: host.childFields,
+    errors: fieldErrors,
+  });
 
   const commits = fieldErrors.clearingOnEdit(
     createCommitChannel({
@@ -342,6 +349,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       dispatch: (event, row, edited) =>
         edited
           ? hold(async () => {
+              const fetching = linkFetch.run(row ? event.slice(row.parentfield.length + 1) : event, row);
+              if (fetching) await fetching;
               await engine.dispatch(event, detailOf(row));
               await engine.refresh();
             }, true)

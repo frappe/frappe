@@ -25,6 +25,7 @@ export { warnMissingCommit } from "./warnMissingCommit";
 export { CommitKey, LinkTitlesKey, NO_COMMIT } from "./types";
 export { newRowValues, layoutFields, NO_VALUE } from "./newRowValues";
 export { evaluateDependsOn } from "./dependsOn";
+export { resolveLinkFilters, type LinkFilters } from "./linkFilters";
 export {
   flt,
   formatNumber,
