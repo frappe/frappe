@@ -88,18 +88,28 @@ class DesignSave:
 			for child in self.state.children.values():
 				child.doc.insert()
 				self.written.append(child.name)
+			if self.state.standard:
+				self.stage_app_layouts()
 			self.state.doc.save()
 			self.written.append(self.doctype)
 			for old, new in self.state.renames:
 				rename_field(self.doctype, old, new)
-			self.write_layouts()
+			if not self.state.standard:
+				self.write_rows()
 		except frappe.ValidationError as e:
 			frappe.db.rollback(save_point=WRITE_SAVEPOINT)
 			frappe.local.message_log = frappe.local.message_log[:-1]
 			return [EditError(str(e) or _("The save failed.")).as_dict()]
 		publish_doctype_update(self.doctype)
 
-	def write_layouts(self):
+	def stage_app_layouts(self):
+		"""The DocType's export writes these after its own files (`export_app_layouts`)."""
+		self.state.doc.flags.app_layouts = {
+			type: [layout.as_entry() for layout in self.state.layouts_of(type) if not layout.deleted]
+			for type in self.state.touched
+		}
+
+	def write_rows(self):
 		for layout in self.state.all_layouts():
 			if layout.type not in self.state.touched:
 				continue

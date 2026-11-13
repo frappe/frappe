@@ -29,7 +29,7 @@ class EditorLayout:
 		self.deleted = False
 
 	def as_entry(self) -> dict:
-		entry = {"title": self.title, "condition": self.condition, "layout": self.tree.tabs}
+		entry = {"title": self.title, "condition": self.condition, "layout": self.tree.tabs, "omitted": self.omitted}
 		if self.size:
 			entry["size"] = self.size
 		return entry
@@ -76,7 +76,15 @@ class DesignState:
 		if self.standard:
 			app_layouts = read_app_layouts(self.name, type)
 			return [
-				EditorLayout(f"app:{index}", type, parse_layout(entry.layout), entry.title, entry.condition, size=entry.size)
+				EditorLayout(
+					f"app:{index}",
+					type,
+					parse_layout(entry.layout),
+					entry.title,
+					entry.condition,
+					size=entry.size,
+					omitted=list(entry.omitted),
+				)
 				for index, entry in enumerate(app_layouts.entries if app_layouts else ())
 			]
 		rows = frappe.get_all(
@@ -134,6 +142,10 @@ class DesignState:
 		for field in self.doc.fields:
 			if field.fieldname == fieldname:
 				return field
+		if self.standard and frappe.db.exists("Custom Field", {"dt": self.name, "fieldname": fieldname}):
+			raise field_error(
+				_("{0} is a site custom field, so an app layout cannot place it.").format(fieldname), fieldname
+			)
 		raise field_error(_("{0} is not a field of {1}.").format(fieldname, self.name), fieldname)
 
 	def all_layouts(self) -> list[EditorLayout]:

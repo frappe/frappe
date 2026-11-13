@@ -2,6 +2,9 @@
 # License: MIT. See LICENSE
 
 import json
+import os
+import shutil
+import tempfile
 from unittest.mock import patch
 
 import frappe
@@ -45,6 +48,12 @@ def placed(row) -> list[str]:
 		for column in section["columns"]
 		for field in column["fields"]
 	]
+
+
+def delete_committed(doctype: str, name: str):
+	"""Its insert's DDL committed, and the class's rollback runs after this cleanup."""
+	frappe.delete_doc(doctype, name, force=True, ignore_missing=True)
+	frappe.db.commit()  # nosemgrep
 
 
 def omitted(row) -> list[str]:
@@ -303,3 +312,49 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(result.get("written"), [])
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
 		self.assertEqual(details_rows(), [])
+
+
+class TestSaveDesignAppFiles(IntegrationTestCase):
+	"""A standard DocType in developer mode: layouts go to the app file, exported in-process here."""
+
+	def setUp(self):
+		self.folder = tempfile.mkdtemp(prefix="test_save_design_47271_")
+		self.addCleanup(shutil.rmtree, self.folder)
+		self.enterContext(
+			patch("frappe.desk.doctype.form_layout.app_layout.app_layout_path", side_effect=self.path)
+		)
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 1}))
+		for method in ("export_doc", "make_controller_template", "set_base_class_for_controller", "export_types_to_controller"):
+			self.enterContext(patch(f"frappe.core.doctype.doctype.doctype.DocType.{method}"))
+		self.addCleanup(frappe.db.rollback)
+
+	def path(self, dt: str, type: str) -> str:
+		return os.path.join(self.folder, f"{frappe.scrub(type)}.json")
+
+	def test_a_standard_doctype_writes_its_app_layout_file(self):
+		result = save_doctype_editor(
+			"ToDo", "Design", base_version("ToDo"), [{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "extra_47271"}]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		with open(self.path("ToDo", "Details")) as f:
+			[entry] = json.load(f)
+		self.assertEqual(entry["layout"][-1]["name"], "extra_47271")
+		self.assertTrue(result["base_version"]["app_layouts"]["Details"])
+		self.assertFalse(frappe.get_all("Form Layout", {"dt": "ToDo", "type": "Details", "app": ("is", "not set")}))
+
+	def test_an_app_layout_cannot_place_a_site_custom_field(self):
+		fieldname = "custom_editor_47271"
+		frappe.get_doc(
+			{"doctype": "Custom Field", "dt": "ToDo", "fieldname": fieldname, "label": "Editor 47271", "fieldtype": "Data"}
+		).insert()
+		self.addCleanup(delete_committed, "Custom Field", f"ToDo-{fieldname}")
+		result = save_doctype_editor(
+			"ToDo",
+			"Design",
+			base_version("ToDo"),
+			[{"act": "canvas.place_field", "layout": {"type": "Details"}, "fieldname": fieldname, "column": "column_1"}],
+		)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"], {"kind": "field", "fieldname": fieldname})
+		self.assertIn("site custom field", result["errors"][0]["message"])
+		self.assertFalse(os.path.exists(self.path("ToDo", "Details")))
