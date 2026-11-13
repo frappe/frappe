@@ -5,7 +5,7 @@
 		<div class="flex h-12 items-center justify-between gap-3">
 			<div class="flex min-w-0 flex-1 items-center gap-2">
 				<Breadcrumbs class="-ml-0.5" :items="crumbs" data-crumbs />
-				<Badge v-if="dirty" :label="__('Not saved')" theme="orange" class="shrink-0" />
+				<NotSavedBadge v-if="dirty" class="shrink-0" />
 			</div>
 			<div class="hidden shrink-0 items-center lg:flex">
 				<Tooltip :text="__('Undo')">
@@ -47,17 +47,9 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-	Badge,
-	Breadcrumbs,
-	Button,
-	Dropdown,
-	TabList,
-	Tabs,
-	TabTrigger,
-	Tooltip,
-} from "frappe-ui";
+import { Breadcrumbs, Button, Dropdown, TabList, Tabs, TabTrigger, Tooltip } from "frappe-ui";
 import { __ } from "@/i18n";
+import NotSavedBadge from "@/pages/record/NotSavedBadge.vue";
 import { routeFor } from "@/router/routeFor";
 import type { EditorTab } from "./pendingEdits";
 

@@ -10,5 +10,6 @@ export const standardPages: StandardPages = {
 	list: () => import("@/pages/List.vue"),
 	record: () => import("@/pages/Record.vue"),
 	newRecord: () => import("@/pages/NewRecord.vue"),
+	doctypeEditor: () => import("@/pages/doctypeEditor/DoctypeEditor.vue"),
 	index: loadedPage(() => import("@/pages/index/IndexPage.vue"), IndexSkeleton),
 };
