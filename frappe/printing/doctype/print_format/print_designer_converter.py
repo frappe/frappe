@@ -37,6 +37,16 @@ CSS_PROPERTIES = {
 	"whiteSpace": "white-space",
 }
 PAGE_NUMBER_FIELDS = {"page": '<span class="page"></span>', "topage": '<span class="topage"></span>'}
+PRINT_DESIGNER_FIELDS = (
+	"print_designer_print_format",
+	"print_designer_body",
+	"print_designer_header",
+	"print_designer_footer",
+	"print_designer_after_table",
+	"print_designer_settings",
+	"print_designer_preview_img",
+	"print_designer_template_app",
+)
 BARCODE_FORMATS = {"qrcode": "QR", "qr": "QR", "code128": "CODE128", "code39": "CODE39"}
 
 
@@ -94,6 +104,19 @@ def convert(print_format: str) -> dict:
 		target.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
 	usage = print_format_usage(doc.name) if target is not doc else []
 	return {"name": target.name, "notes": notes, "usage": usage}
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_print_designer_design(print_format: str) -> None:
+	"""Remove the Print Designer design that stays on a format after it was converted."""
+	frappe.only_for("System Manager")
+	doc = frappe.get_doc("Print Format", print_format)
+	if doc.get("print_designer") or not doc.print_format_builder_beta or doc.standard == "Yes":
+		frappe.throw(_("{0} is not a converted Print Designer format.").format(frappe.bold(print_format)))
+	meta = frappe.get_meta("Print Format")
+	frappe.db.set_value(
+		"Print Format", doc.name, dict.fromkeys(f for f in PRINT_DESIGNER_FIELDS if meta.has_field(f))
+	)
 
 
 @frappe.whitelist(methods=["POST"])
