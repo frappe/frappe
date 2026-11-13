@@ -110,6 +110,7 @@ watch(
 
 function back() {
 	capture("setup_back", { from_step: props.steps[current.value].name });
+	skipping = false;
 	current.value--;
 }
 
@@ -121,24 +122,37 @@ function done(details: Record<string, unknown> = {}) {
 }
 
 function skipStep() {
-	const step = props.steps[current.value].name;
-	if (status[step] !== "completed") status[step] = "skipped";
-	capture("setup_step_skipped", { step, time_on_step_s: seconds(stepStartedAt) });
+	const step = props.steps[current.value];
+	if (status[step.name] === "completed") return advance();
+	if (step.required) return;
+	status[step.name] = "skipped";
+	capture("setup_step_skipped", { step: step.name, time_on_step_s: seconds(stepStartedAt) });
 	advance();
 }
 
+let skipping = false;
+let skippedFrom = "";
+const nextRequired = (after: number) =>
+	props.steps.findIndex((s, i) => i > after && s.required && status[s.name] !== "completed");
+
 function advance() {
-	if (current.value < props.steps.length - 1) current.value++;
+	if (skipping) {
+		const required = nextRequired(current.value);
+		if (required === -1) finish(true);
+		else current.value = required;
+	} else if (current.value < props.steps.length - 1) current.value++;
 	else finish(false);
 }
 
 function skipAll({ close }: { close: () => void }) {
 	close();
-	capture("setup_skipped", { step: props.steps[current.value].name });
-	finish(true);
+	skipping = true;
+	skippedFrom = props.steps[current.value].name;
+	advance();
 }
 
 function finish(skipped: boolean) {
+	if (skipped) capture("setup_skipped", { step: skippedFrom });
 	const named = (value: string) => Object.keys(status).filter((s) => status[s] === value);
 	const result = { skipped, completed: named("completed"), skippedSteps: named("skipped") };
 	capture("setup_finished", {
