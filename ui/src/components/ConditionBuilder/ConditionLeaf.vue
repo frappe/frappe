@@ -100,12 +100,12 @@
 					:modelValue="valueText"
 					:aria-labelledby="valueNameIds"
 				/>
-				<component
+				<ConditionValueControl
 					v-else
-					:is="VALUE_CONTROLS[control.control]"
-					v-bind="control.props"
 					class="w-full"
-					:modelValue="controlValue"
+					:field="field!"
+					:operator="condition.operator"
+					:modelValue="condition.value"
 					:aria-labelledby="valueNameIds"
 					@update:modelValue="onValueChange"
 				/>
@@ -129,9 +129,9 @@ import { Button, Combobox, Select, TextInput } from "frappe-ui";
 import { carryOver, defaultValueFor } from "../Filter/operators";
 import type { Filter } from "../Filter/types";
 import { valueControl } from "../Filter/valueControl";
-import { VALUE_CONTROLS } from "../Filter/valueControlComponents";
 import { CreateRecordKey, FieldActionsKey, RecordLinkKey } from "../Fields/types";
 import { conditionOperators } from "./adapters";
+import ConditionValueControl from "./ConditionValueControl.vue";
 import { useConditionBuilderContext } from "./internal/context";
 import type {
 	ConditionField,
@@ -237,51 +237,6 @@ const UNNAMEABLE_CONTROLS = [
 const valueNeedsGroup = computed(
 	() => isEditable.value && UNNAMEABLE_CONTROLS.includes(control.value.control)
 );
-
-// Controls that take and emit `string[]`: both coerce a non-array to `[]`, so a
-// stored comma string is dropped the moment the row is touched.
-const ARRAY_CONTROLS = ["multiSelect", "multiLink"];
-
-/** The field's own option list, where the fieldtype has a fixed one. Empty for
- *  a Link, whose values are not enumerable here. */
-const knownOptions = computed<Set<string>>(() => {
-	const options = field.value?.options;
-	if (control.value.control !== "multiSelect" || typeof options !== "string") {
-		return new Set();
-	}
-	return new Set(
-		options
-			.split("\n")
-			.map((option) => option.trim())
-			.filter(Boolean)
-	);
-});
-
-/**
- * Persisted as a comma string while the multi-value controls take arrays. A
- * whole string that is itself a known option wins over splitting, since a value
- * may contain a comma.
- */
-const controlValue = computed<ConditionValue>(() => {
-	const value = props.condition.value;
-	if (!ARRAY_CONTROLS.includes(control.value.control)) return value;
-	if (Array.isArray(value)) return value;
-	if (typeof value !== "string" || value === "") return [];
-
-	const known = knownOptions.value;
-	if (known.has(value.trim())) return [value.trim()];
-
-	const parts = value
-		.split(",")
-		.map((part) => part.trim())
-		.filter(Boolean);
-
-	// One unrecognised part means the comma was inside a value, not between two.
-	if (known.size > 0 && parts.some((part) => !known.has(part))) {
-		return [value.trim()];
-	}
-	return parts;
-});
 
 const fieldText = computed(() => {
 	if (field.value) return field.value.label;
