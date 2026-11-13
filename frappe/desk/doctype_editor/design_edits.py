@@ -4,6 +4,7 @@
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.form_layout.form_layout import LAYOUT_BREAKS
 from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError, field_error
 
@@ -70,6 +71,8 @@ class DesignEdits:
 		)
 		if edit.get("layout"):
 			self.canvas({**edit, "fieldname": fieldname}, "place_field", PLACE_KEYS)
+		elif fieldtype not in LAYOUT_BREAKS:
+			self.state.touch_omitting_layouts()
 
 	def fields_set_field_property(self, edit: dict):
 		fieldname, property = edit.get("fieldname"), edit.get("property")

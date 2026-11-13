@@ -9,6 +9,7 @@ from frappe import _
 from frappe.desk.doctype.form_layout.app_layout import read_app_layouts
 from frappe.desk.doctype.form_layout.form_layout import (
 	FORM_LAYOUT_TYPES,
+	OMITTING_LAYOUT_TYPES,
 	layout_from_fields,
 	layout_type_refusal,
 	parse_layout,
@@ -182,6 +183,14 @@ class DesignState:
 		for type in FORM_LAYOUT_TYPES:
 			if not layout_type_refusal(self.name, type):
 				self.layouts_of(type)
+
+	def touch_omitting_layouts(self):
+		"""Their saved `omitted` must list a field the save adds off the layout."""
+		if self.doc.is_new():
+			return
+		for type in OMITTING_LAYOUT_TYPES:
+			if not layout_type_refusal(self.name, type) and self.layouts_of(type):
+				self.touched.add(type)
 
 	def rename_field(self, old: str, new: str):
 		field = self.field(old)

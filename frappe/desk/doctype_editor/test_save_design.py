@@ -288,6 +288,12 @@ class TestSaveDesign(IntegrationTestCase):
 		[layout] = get_form_layouts(DOCTYPE, "Details")["layouts"]
 		self.assertFalse(layout["source_changed"])
 
+	def test_a_field_added_off_the_layout_is_omitted_from_its_rows(self):
+		self.save([{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "more"}])
+		self.save([{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"}])
+		[row] = details_rows()
+		self.assertEqual(omitted(row), ["due"])
+
 	def test_the_rename_wrapper_moves_data_and_rewrites_layout_rows(self):
 		self.save(
 			[
