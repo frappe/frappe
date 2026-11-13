@@ -173,7 +173,22 @@ function openSection(key: string, open: boolean) {
 }
 
 function sectionOpen(tab: { identity: string }, section: Section, index: number) {
-	return sections.value[sectionKey(tab, section, index)] ?? section.opened ?? true;
+	const key = sectionKey(tab, section, index);
+	return sections.value[key] ?? startsOpen(key, section) ?? section.opened ?? true;
+}
+
+// "Starts open if" is read once per record, as desk reads it on refresh: read live, it
+// would shut a section while the reader types in it.
+const firstOpened = new Map<string, boolean | undefined>();
+watch(
+	() => [props.layout, doc.value?.name],
+	() => firstOpened.clear()
+);
+
+function startsOpen(key: string, section: Section) {
+	if (!section.collapsibleDependsOn) return undefined;
+	if (!firstOpened.has(key)) firstOpened.set(key, section.opened);
+	return firstOpened.get(key);
 }
 
 const autofocusField = computed(() =>

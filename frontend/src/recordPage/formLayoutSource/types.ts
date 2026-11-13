@@ -24,7 +24,6 @@ export interface LayoutTreeSection {
 	hideBorder?: boolean;
 	collapsible?: boolean;
 	opened?: boolean;
-	/** "Starts open if": a collapsible section opens when this holds for the record. */
 	collapsibleDependsOn?: string;
 	dependsOn?: string;
 	columns: LayoutTreeColumn[];

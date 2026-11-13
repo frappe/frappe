@@ -182,6 +182,19 @@ describe("resolveLayout — container properties", () => {
     expect(section(resolveLayout(sectionWith({ collapsible: true }), {})).opened).toBe(true);
   });
 
+  it("keeps a section open while it has an empty mandatory field", () => {
+    const schema = sectionWith({
+      collapsible: true,
+      collapsibleDependsOn: "eval:doc.ships",
+    });
+
+    expect(section(resolveLayout(schema, { show_right: 1 })).opened).toBe(true);
+    expect(
+      section(resolveLayout(schema, { show_right: 1, b: "set" })).opened
+    ).toBe(false);
+    expect(section(resolveLayout(schema, { show_right: 0 })).opened).toBe(false);
+  });
+
   it("ignores Starts open if on a section that cannot collapse", () => {
     const schema = sectionWith({ collapsibleDependsOn: "eval:doc.ships" });
 

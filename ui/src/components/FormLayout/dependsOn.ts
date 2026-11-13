@@ -55,12 +55,11 @@ export function evaluateDependsOn(
   return Array.isArray(value) ? value.length > 0 : Boolean(value);
 }
 
-/** Desk's `in_list` (`number_format.js`), which meta expressions call. */
 function inList(list: unknown[], item: unknown): boolean {
   return list.includes(item);
 }
 
-/** Desk's `cint` (`datatype.js`): leading zeros stripped, `def` (else 0) when not a number. */
+/** Desk's `cint` (`datatype.js`), so `eval:` conditions read numbers as desk does. */
 function cint(value: unknown, def?: number): number {
   if (value === true) return 1;
   if (value === false) return 0;

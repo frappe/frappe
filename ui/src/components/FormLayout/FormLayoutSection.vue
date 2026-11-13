@@ -21,13 +21,6 @@
 					aria-hidden="true"
 				/>
 			</CollapsibleTrigger>
-			<p
-				v-if="section.description"
-				class="section-description text-p-sm text-ink-gray-5"
-				:class="{ 'mt-1': showHeader, 'px-3 sm:px-5': hasTabs }"
-			>
-				<FieldDescription :html="__(section.description, [], labelContext)" />
-			</p>
 
 			<CollapsibleContent
 				class="form-section-content"
@@ -35,6 +28,13 @@
 				force-mount
 				@animationend.self="animating = false"
 			>
+				<p
+					v-if="section.description"
+					class="section-description text-p-sm text-ink-gray-5"
+					:class="{ 'mt-1': showHeader, 'px-3 sm:px-5': hasTabs }"
+				>
+					<FieldDescription :html="__(section.description, [], labelContext)" />
+				</p>
 				<div
 					class="section-body flex sm:flex-row flex-col gap-4"
 					:class="{ 'px-3 sm:px-5': hasTabs }"
@@ -90,7 +90,7 @@ const collapsible = computed(() => showHeader.value && (props.section.collapsibl
 // The host's state when it holds one, else the section's own, starting where the layout says.
 const own = ref(props.section.opened ?? true);
 const opened = computed({
-	get: () => props.open ?? own.value,
+	get: () => !collapsible.value || (props.open ?? own.value),
 	set: (open) => {
 		own.value = open;
 		emit("update:open", open);

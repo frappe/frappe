@@ -1,4 +1,5 @@
 import { evaluateDependsOn } from "./dependsOn";
+import { isEmptyValue } from "./displayValue";
 import type {
   Column,
   FieldMeta,
@@ -146,7 +147,8 @@ export function resolveFieldConditionals<
  * Resolution rules (a node with no expressions passes through unchanged):
  * - field-level rules: see `resolveFieldConditionals`;
  * - section / column / tab `hidden` = its static `hidden` OR `depends_on` false;
- * - a collapsible section with `collapsibleDependsOn` is `opened` when it holds.
+ * - a collapsible section with `collapsibleDependsOn` is `opened` when it holds,
+ *   or while it has an empty mandatory field (desk's `has_missing_mandatory`).
  *
  * `parent` is the enclosing doc (the row dialog passes the parent doc so a
  * child's `parent.x` resolves); it defaults to `doc` for a top-level form,
@@ -177,15 +179,15 @@ export function resolveLayout(
     };
   };
 
-  const resolveSection = (s: Section): Section => ({
-    ...s,
-    hidden: !shown(s),
-    opened:
+  const resolveSection = (s: Section): Section => {
+    const columns = s.columns.map(resolveColumn);
+    const opened =
       s.collapsible && s.collapsibleDependsOn
-        ? evaluateDependsOn(s.collapsibleDependsOn, doc, parent)
-        : s.opened,
-    columns: s.columns.map(resolveColumn),
-  });
+        ? evaluateDependsOn(s.collapsibleDependsOn, doc, parent) ||
+          columns.some((c) => c.fields.some((f) => isMissing(f, doc)))
+        : s.opened;
+    return { ...s, hidden: !shown(s), opened, columns };
+  };
 
   const resolveTab = (t: Tab): Tab => ({
     ...resolveTabConditionals(t, doc, parent),
@@ -227,4 +229,8 @@ export function applyTabOverride(t: Tab): { hidden: boolean; label: string } {
     hidden: t.override?.hidden ?? !!t.hidden,
     label: t.override?.label ?? t.label ?? "",
   };
+}
+
+function isMissing(field: FieldNode, doc: Record<string, any>): boolean {
+  return !!field.reqd && !field.hidden && isEmptyValue(doc[field.fieldname]);
 }
