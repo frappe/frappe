@@ -1,6 +1,4 @@
-<!-- Naming: one radio row per rule; the chosen rule opens its own control under it (a field, a
-     pattern with its tokens, the series), with the next name it gives. A rule that cannot be picked
-     now is disabled with the reason. -->
+<!-- Naming: one radio row per rule; the chosen rule opens its control and its next name under it. -->
 <template>
 	<SettingsRow :row="row" wide>
 		<RadioGroup

@@ -1,6 +1,5 @@
-<!-- A setting's Customize mark, in a 20px slot that is always there (after the row's label), so
-     nothing re-wraps when one appears: a lock (the site may not change it) or a dot (the site
-     changed it) that turns into a reset arrow while its row is hovered. -->
+<!-- A setting's Customize mark: a lock, or a changed dot that turns into a reset arrow on row hover.
+     Its 20px slot is always there, so nothing re-wraps when a mark appears. -->
 <template>
 	<span class="grid size-5 shrink-0 place-items-center">
 		<Tooltip v-if="lock" :text="lock">

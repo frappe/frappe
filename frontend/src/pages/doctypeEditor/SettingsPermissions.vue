@@ -1,8 +1,5 @@
-<!-- Permissions: a table of roles by rights. Read, Write, Create and Delete (Submit, Cancel, Amend
-     on a submittable DocType; Read and Write on a Single), then a "More" count opening the rest. A
-     right ticks what it needs; unticking a need unticks what needs it. Customize edits the site's
-     own rules: the first edit copies the app's, which they then replace. Only a System Manager
-     changes them: for anyone else the table shows locked. -->
+<!-- Permissions: a table of roles by rights. A right ticks the rights it needs, and unticking one
+     unticks the rights that need it. -->
 <template>
 	<div
 		class="relative flex flex-col gap-3 py-2"
@@ -88,6 +85,9 @@
 				</tbody>
 			</table>
 		</div>
+		<ul v-if="errors.length" class="text-p-sm text-ink-red-5" data-setting-errors>
+			<li v-for="error in errors" :key="error">{{ error }}</li>
+		</ul>
 		<Combobox
 			v-if="!locked"
 			:key="rules.length"
@@ -125,7 +125,7 @@ import type { PermissionRow } from "./settingsModel";
 import type { SettingRow } from "./settingsRows";
 import { SettingsViewKey } from "./settingsView";
 
-defineProps<{ row: SettingRow }>();
+const props = defineProps<{ row: SettingRow }>();
 const view = inject(SettingsViewKey)!;
 
 const FLASH =
@@ -137,6 +137,7 @@ const rules = computed(() => view.settings.permissions);
 const shown = computed(() => columns(view.kind));
 const more = computed(() => moreRights(view.kind));
 const roles = ref<string[]>([]);
+const errors = computed(() => view.errors(props.row));
 
 // A role takes one level-0 rule; rules above level 0 come from the Editor's field levels.
 const roleOptions = computed(() => {

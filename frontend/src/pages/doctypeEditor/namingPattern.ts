@@ -1,6 +1,5 @@
-// A naming pattern's next name, as `frappe/model/naming.py` builds it: a Naming Series in dot
-// style (`TN-.YYYY.-.####`) or a `format:` pattern (`format:TN-{MM}-{#####}`). Each counter is
-// kept in `tabSeries` under the text resolved before it.
+// A naming pattern's next name, as `frappe/model/naming.py` builds it (`TN-.YYYY.-.####` or
+// `format:TN-{MM}-{#####}`). Each counter is kept in `tabSeries` under the text resolved before it.
 
 /** The chips "By pattern" inserts; a field chip inserts `{fieldname}`. */
 export const TOKENS = ["{YYYY}", "{MM}", "{DD}", "{#####}"];
@@ -85,7 +84,7 @@ class SeriesParser {
 		}
 		const date = this.date(part);
 		if (date !== undefined) return { text: date };
-		return this.braced ? { field: part } : { text: part };
+		return this.braced || part === "timestamp" ? { field: part } : { text: part };
 	}
 
 	private add(segment: Segment | null) {
@@ -103,6 +102,26 @@ class SeriesParser {
 			YY: year.slice(2),
 			MM: pad(this.today.getMonth() + 1),
 			DD: pad(this.today.getDate()),
+			JJJ: String(dayOfYear(this.today)).padStart(3, "0"),
+			WW: consecutiveWeek(this.today),
 		}[part];
 	}
+}
+
+function dayOfYear(date: Date): number {
+	return utcDayOfYear(new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())));
+}
+
+function utcDayOfYear(day: Date): number {
+	return (day.getTime() - Date.UTC(day.getUTCFullYear(), 0, 1)) / 86_400_000 + 1;
+}
+
+/** The ISO week, except January's days of week 52/53 are "00" and December's of week 1 are "53". */
+function consecutiveWeek(date: Date): string {
+	const thursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+	thursday.setUTCDate(thursday.getUTCDate() + 4 - (thursday.getUTCDay() || 7));
+	const week = Math.ceil(utcDayOfYear(thursday) / 7);
+	if (date.getMonth() === 0 && week >= 52) return "00";
+	if (date.getMonth() === 11 && week <= 1) return "53";
+	return String(week).padStart(2, "0");
 }

@@ -28,6 +28,17 @@ describe("a naming pattern's next name", () => {
 		expect(shown("format:{customer}-.###")).toBe("[<Customer>]-[###]");
 	});
 
+	it("resolves the day of year and a week that runs on across the year's edges, as frappe does", () => {
+		expect(shown("TN-.JJJ.-.WW.-.###")).toBe("TN-317-46-001");
+		expect(nextName("W.WW.", {}, labelOf, new Date(2027, 0, 1))[1].text).toBe("00");
+		expect(nextName("W.WW.", {}, labelOf, new Date(2025, 11, 31))[1].text).toBe("53");
+	});
+
+	it("shows a timestamp in gray, with no counter to look up", () => {
+		expect(seriesPrefixes("TN-.timestamp.-.###", today)).toEqual([]);
+		expect(shown("TN-.timestamp.-.###")).toBe("TN-[<timestamp>]-[###]");
+	});
+
 	it("inserts a chip's token at the caret", () => {
 		expect(TOKENS).toContain("{#####}");
 		expect(insertToken("TN-", "{YYYY}", 3)).toEqual({ pattern: "TN-{YYYY}", caret: 9 });

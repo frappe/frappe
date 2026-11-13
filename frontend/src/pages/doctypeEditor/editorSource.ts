@@ -205,10 +205,7 @@ export function pendingDoctype(answers: NewDoctype, source?: EditorState | null)
 	};
 }
 
-/**
- * The DocType's insert needs the field a naming series rule reads: it goes first in the first column.
- * A copied layout can lack that column, or its section or tab; the field gets new ones there.
- */
+/** The DocType's insert needs the naming series field, so it goes first in the first column, made if missing. */
 function withSeriesField(definition: DoctypeDefinition, layout: LayoutTree) {
 	const needed = String(definition.autoname ?? "").startsWith("naming_series:");
 	if (!needed || definition.fields.some((field) => field.fieldname === "naming_series")) {

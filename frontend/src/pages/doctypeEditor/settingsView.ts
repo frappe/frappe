@@ -1,6 +1,5 @@
-// What the Settings tab's rows read and do: a setting's value, its Customize lock and changed dot,
-// and the acts that change it. Each change goes through `acts.perform`, so it joins the header's
-// Save and the one undo stack.
+// What the Settings tab's rows read and do. Each change goes through `acts.perform`, so it joins
+// the header's Save and the one undo stack.
 import type { InjectionKey, Ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";

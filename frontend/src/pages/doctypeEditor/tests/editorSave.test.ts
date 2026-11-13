@@ -11,6 +11,7 @@ import { acts } from "@/acts/dispatcher";
 import { CREATE_METHOD, SAVE_METHOD, WRITE_FILES_METHOD } from "../editorSave";
 import type { EditorState } from "../editorSource";
 import { ref } from "vue";
+import { rowOf } from "../settingsRows";
 import { SettingsView } from "../settingsView";
 import { mountEditor, taskNote, VERSION } from "./editorFixture";
 
@@ -154,6 +155,16 @@ describe("a refused save", () => {
 		await acts.run("editor.save");
 		expect([mounted.tab.value, mounted.foundSettings]).toEqual(["settings", ["title_field"]]);
 		expect(mounted.canvas.errorsAt("setting", "title_field")).toEqual(["Notes is not a title."]);
+	});
+
+	it("opens the permissions table a save error marks, and shows the error there", async () => {
+		const mounted = mount();
+		const view = new SettingsView(() => mounted.canvas, ref({ section: "", found: null }), () => null);
+		await acts.run("settings.add_permission", { role: "Guest", permlevel: 0, if_owner: 0 });
+		answers({ saved: false, errors: [{ target: { kind: "setting", property: "permissions" }, message: "Guest cannot write." }] });
+		await acts.run("editor.save");
+		expect([mounted.tab.value, mounted.foundSettings]).toEqual(["settings", ["permissions"]]);
+		expect(view.errors(rowOf(mounted.canvas.working.value.settings, "permissions")!)).toEqual(["Guest cannot write."]);
 	});
 
 	it("when stale, reloads and re-applies the edits, and lists the ones refused", async () => {

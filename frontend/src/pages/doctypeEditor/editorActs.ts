@@ -134,11 +134,7 @@ const SETTINGS_ACTS: [string, string][] = [
 
 type Keys = Record<string, unknown>;
 
-/**
- * A list of keys stages as one undo step, as a naming rule's two properties. The description sits
- * in the header, so its undo stays on the Editor tab. The settings model refuses a property the
- * mode does not set, as Customize the description.
- */
+/** A list of keys stages as one undo step. The description sits in the header, so its undo stays on the Editor tab. */
 function stageSetting(canvas: DesignCanvas, act: string, keys: Keys | Keys[]) {
 	const edits: FlatEdit[] = (Array.isArray(keys) ? keys : [keys]).map((one) => ({ ...one, act: settingsAct(one.act) ?? act }));
 	if (edits.some((edit) => edit.property === "description")) return canvas.stage(...edits);

@@ -1,6 +1,5 @@
-// The Settings tab's working state: DocType properties, the naming series and permission rows.
-// Each act applies as `frappe/desk/doctype_editor/settings_edits.py` (and, in Customize,
-// `customize_edits.py`) applies it on save.
+// The Settings tab's working state. Each act applies as `frappe/desk/doctype_editor/settings_edits.py`
+// (and, in Customize, `customize_edits.py`) applies it on save.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { LayoutTree } from "@/recordPage/formLayoutSource/types";
 import type { EditorState } from "./editorSource";

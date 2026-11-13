@@ -94,8 +94,7 @@ class CustomizeSave(DesignSave):
 		clear_permissions_cache(self.doctype)
 
 	def replace_permissions(self):
-		"""Row by row, so the Permission Log names only the rules that changed.
-		The first edit copies the app's rows whole, as v1 does, so columns the editor does not send survive."""
+		"""Row by row, so the Permission Log names only the rules that changed."""
 		if not frappe.db.exists("Custom DocPerm", {"parent": self.doctype}):
 			copy_perms(self.doctype)
 		saved = {

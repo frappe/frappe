@@ -1,7 +1,5 @@
-<!-- One setting: label and help on the left, the control in a 320px column ending on the pane's
-     right edge, so stacked rows share both edges. The Customize mark sits right after the label in
-     a slot that takes no height, so nothing shifts between Design and Customize. `wide` puts the
-     control under the label at full width. The save's errors at the row show under it. -->
+<!-- One setting: label and help, then the control in a 320px column on the pane's right edge, so
+     stacked rows share both edges. The Customize mark's slot takes no height, so the modes line up. -->
 <template>
 	<div class="group/row relative isolate py-2" :data-setting="row.key">
 		<span data-flash aria-hidden="true" :class="FLASH" />
