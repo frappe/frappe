@@ -109,9 +109,9 @@ def complete_prefilled_setup(login_manager=None):
 	args = get_prefilled_setup_args()
 	if not args:
 		return
-	# A failed setup rolls back; the login's own rows must already be in.
-	frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 	try:
+		# A failed setup rolls back; the login's own rows must already be in.
+		frappe.db.commit()
 		complete_app_setup(**args)
 	except Exception:
 		frappe.log_error(title="Setup from the saved region failed")
