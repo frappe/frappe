@@ -548,6 +548,16 @@ describe("Edit layout", () => {
 		expect(createRequests.value).toEqual([]);
 	});
 
+	it("opens the editor at the conditional Quick Entry layout the dialog shows", async () => {
+		const layout = [{ sections: [{ columns: [{ fields: ["title", "company"] }] }] }];
+		server.layouts = { ...server.layouts, layouts: [{ name: "FL-7", condition: "eval:doc.status === 'Open'", layout }] };
+		const { root } = await open("Lead", undefined, EDITOR_ROUTES, shellBoot(["System Manager"]));
+
+		await click(root, "Edit layout");
+
+		expect(router.currentRoute.value.query).toEqual({ mode: "customize", layout: "quick-entry", row: "FL-7" });
+	});
+
 	it("is not offered without the right", async () => {
 		const { root } = await open("Lead", undefined, EDITOR_ROUTES, shellBoot(["Sales User"]));
 

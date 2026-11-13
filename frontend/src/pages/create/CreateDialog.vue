@@ -152,7 +152,7 @@ fetchNewDocument(doctype).then(
 );
 
 const editLayoutRoute = useEditLayoutRoute(meta);
-const editLayout = computed(() => editLayoutRoute("quick-entry"));
+const editLayout = computed(() => editLayoutRoute("quick-entry", quickEntry.editorRow.value));
 
 const layoutFailed = computed(() => Boolean(quickEntry.error.value));
 const size = computed(() => quickEntry.dialogSize.value ?? "xl");

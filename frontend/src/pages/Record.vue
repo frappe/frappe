@@ -89,7 +89,7 @@
 						:reloadDocinfo="reloadDocinfo"
 						:whileOnRecord="visitCheck"
 						:onDetails="(fieldname: string) => !!tabOf(form, fieldname)"
-						:editRoute="editLayoutRoute('side-panel')"
+						:editRoute="editLayoutRoute('side-panel', panelLayout?.editorRow.value)"
 						@expand="expand"
 					/>
 				</template>

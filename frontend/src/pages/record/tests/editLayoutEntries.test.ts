@@ -48,6 +48,7 @@ const DETAILS = [
   { name: "FL-1", title: "VIP", condition: "doc.vip", layout: LAYOUT },
   { name: "FL-2", condition: null, layout: LAYOUT },
 ];
+const SIDE = [{ name: "FL-3", title: "VIP panel", condition: "doc.vip", layout: LAYOUT }];
 
 const fetched: string[] = [];
 let vip = 1;
@@ -56,6 +57,7 @@ async function answer(url: URL): Promise<[number, unknown]> {
   const path = decodeURIComponent(url.pathname);
   if (path === "/api/v2/doctype/Salutation/meta") return [200, { data: META }];
   if (path === `/api/v2/method/${GET_FORM_LAYOUTS}`) {
+    if (url.searchParams.get("type") === "Side Panel") return [200, { data: { layouts: SIDE, fallback: [] } }];
     if (url.searchParams.get("type") !== "Details") return [200, { data: { layouts: [], fallback: [] } }];
     return [200, { data: { layouts: DETAILS, fallback: LAYOUT } }];
   }
@@ -168,9 +170,18 @@ describe("a manager on a saved record", () => {
   });
 
   it("links the panel to the editor's side panel", async () => {
+    vip = 0;
     const { root, router } = await mount();
 
     const query = { mode: "customize", layout: "side-panel" };
+    const editor = router.resolve({ name: "doctype-editor", params: { name: "Salutation" }, query });
+    expect(editPanel(root)?.getAttribute("href")).toBe(editor.href);
+  });
+
+  it("links the panel to the conditional side panel layout the record shows", async () => {
+    const { root, router } = await mount();
+
+    const query = { mode: "customize", layout: "side-panel", row: "FL-3" };
     const editor = router.resolve({ name: "doctype-editor", params: { name: "Salutation" }, query });
     expect(editPanel(root)?.getAttribute("href")).toBe(editor.href);
   });
