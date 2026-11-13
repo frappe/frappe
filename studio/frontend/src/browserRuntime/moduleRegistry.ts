@@ -40,20 +40,20 @@ interface ModuleRecord {
 	/** The names that the file exports. Not set if the file did not compile. */
 	exportNames?: ModuleExports
 	/** The names that the file imports from the app's own modules. */
-	localImports: ModuleImport[]
+	appImports: ModuleImport[]
 	/** The reasons why the file cannot run. */
 	errors?: CompileError[]
 	/** The exports object, set when execution starts. */
-	loaded?: { exports: any }
-	/** The value that the file threw during execution. */
-	thrown?: { error: unknown }
+	exports?: any
+	/** The value that the file threw during execution. The key is not set if it did not throw. */
+	runtimeError?: unknown
 }
 
 export class AppModuleRegistry {
 	private files: Record<string, string>
 	private records = new Map<string, ModuleRecord>()
-	private bare = new Map<string, any>()
-	private prepared: Promise<void> | null = null
+	private libraries = new Map<string, any>()
+	private compiled: Promise<void> | null = null
 
 	constructor(files: Record<string, string>) {
 		this.files = { ...files }
@@ -61,20 +61,20 @@ export class AppModuleRegistry {
 
 	/** Load a module by its exact path relative to the app root, such as stores/catalog.js. */
 	async loadModule(path: string): Promise<any> {
-		await this.prepare()
+		await (this.compiled ??= this.compileAll())
 		return this.load(path, `${path} is not a module in this app.`)
 	}
 
 	/** Add or replace a file and clear only that module's cached exports.
 	 * Other module caches stay unchanged, so cached importers may still hold older exports. */
 	async addFile(path: string, source: string): Promise<void> {
-		await this.prepare()
+		await (this.compiled ??= this.compileAll())
 		let record = this.records.get(path)
 		if (this.files[path] !== source || !record?.factory) {
 			this.files[path] = source
 			record = await this.compile(path, source)
 			this.records.set(path, record)
-			if (!record.errors) this.checkLocalExports(path, record)
+			if (!record.errors) this.checkAppImports(path, record)
 		}
 		if (record.errors) throw new AppCompileError(record.errors)
 	}
@@ -83,28 +83,23 @@ export class AppModuleRegistry {
 		return this.files[path] !== undefined
 	}
 
-	private prepare(): Promise<void> {
-		this.prepared ??= this.compileAll()
-		return this.prepared
-	}
-
 	private async compileAll(): Promise<void> {
 		for (const [path, source] of Object.entries(this.files)) {
 			if (path.endsWith(".js")) this.records.set(path, await this.compile(path, source))
 		}
 		// Every module is compiled by now, so each one's exports are known to the next check.
 		for (const [path, record] of this.records) {
-			if (!record.errors) this.checkLocalExports(path, record)
+			if (!record.errors) this.checkAppImports(path, record)
 		}
 	}
 
 	/** Validate a file's imports, compile it and create its module factory. */
 	private async compile(path: string, source: string): Promise<ModuleRecord> {
-		const record: ModuleRecord = { localImports: [] }
+		const record: ModuleRecord = { appImports: [] }
 		const parsed = await parseModule(path, source, true)
 		const errors = parsed.errors.length
 			? parsed.errors
-			: await this.linkImports(path, parsed.imports, record.localImports)
+			: await this.linkImports(path, parsed.imports, record.appImports)
 		if (!errors.length) {
 			const compiled = await compileFile(path, source)
 			errors.push(...compiled.errors)
@@ -127,34 +122,34 @@ export class AppModuleRegistry {
 		return record
 	}
 
-	/** Validate discovered imports before execution. Local paths must exist in the app, and their
-	 * named imports go into `localImports`. Load renderer library modules and check their
+	/** Validate discovered imports before execution. An app path must name a file of the app, and its
+	 * named imports go into `appImports`. Load renderer library modules and check their
 	 * requested exports. */
 	private async linkImports(
 		path: string,
 		imports: ModuleImport[],
-		localImports: ModuleImport[],
+		appImports: ModuleImport[],
 	): Promise<CompileError[]> {
 		const errors: CompileError[] = []
 		for (const { specifier, names } of imports) {
-			if (isLocalSpecifier(specifier)) {
+			if (isAppSpecifier(specifier)) {
 				const resolved = this.resolve(path, specifier)
 				if (!resolved) {
 					errors.push(importError(path, `Cannot resolve "${specifier}"`))
 				} else if (names.length) {
-					localImports.push({ specifier: resolved, names })
+					appImports.push({ specifier: resolved, names })
 				}
 				continue
 			}
-			if (!this.bare.has(specifier)) {
+			if (!this.libraries.has(specifier)) {
 				try {
-					this.bare.set(specifier, await loadImportableModule(specifier))
+					this.libraries.set(specifier, await loadImportableModule(specifier))
 				} catch (error: any) {
 					errors.push(importError(path, error?.message || String(error)))
 					continue
 				}
 			}
-			const namespace = this.bare.get(specifier)
+			const namespace = this.libraries.get(specifier)
 			for (const name of names) {
 				if (name === "__esModule" || !(name in namespace)) {
 					errors.push(importError(path, `"${specifier}" has no export named "${name}"`))
@@ -165,9 +160,9 @@ export class AppModuleRegistry {
 	}
 
 	/** Check what this file imports from the app's own modules against what they export. */
-	private checkLocalExports(path: string, record: ModuleRecord) {
+	private checkAppImports(path: string, record: ModuleRecord) {
 		const errors: CompileError[] = []
-		for (const { specifier, names } of record.localImports) {
+		for (const { specifier, names } of record.appImports) {
 			for (const name of names) {
 				const binding = this.resolveExport(specifier, name, new Set())
 				if (binding === AMBIGUOUS_EXPORT) {
@@ -190,8 +185,8 @@ export class AppModuleRegistry {
 		const key = `${path}\0${name}`
 		if (seen.has(key)) return null
 		seen = new Set(seen).add(key)
-		const bare = this.bare.get(path)
-		if (bare) return name !== "__esModule" && name in bare ? key : null
+		const library = this.libraries.get(path)
+		if (library) return name !== "__esModule" && name in library ? key : null
 		if (path.endsWith(".css")) return null
 		if (path.endsWith(".json")) {
 			const names = jsonExports(this.files[path])
@@ -202,14 +197,14 @@ export class AppModuleRegistry {
 		const binding = own.bindings[name]
 		if (binding) {
 			if (!binding.from) return `${path}\0${binding.name}`
-			const target = isLocalSpecifier(binding.from) ? this.resolve(path, binding.from) : binding.from
+			const target = isAppSpecifier(binding.from) ? this.resolve(path, binding.from) : binding.from
 			if (!target) return null
 			return binding.name === "*" ? `${target}\0*` : this.resolveExport(target, binding.name, seen)
 		}
 		if (name === "default") return null
 		let found: string | null = null
 		for (const specifier of own.starFrom) {
-			const resolved = isLocalSpecifier(specifier) ? this.resolve(path, specifier) : specifier
+			const resolved = isAppSpecifier(specifier) ? this.resolve(path, specifier) : specifier
 			if (!resolved) return null
 			const nested = this.resolveExport(resolved, name, seen)
 			if (nested === undefined) return undefined
@@ -223,8 +218,8 @@ export class AppModuleRegistry {
 	}
 
 	private require(from: string, specifier: string): any {
-		if (!isLocalSpecifier(specifier)) {
-			const namespace = this.bare.get(specifier)
+		if (!isAppSpecifier(specifier)) {
+			const namespace = this.libraries.get(specifier)
 			if (!namespace) throw new Error(`Cannot resolve "${specifier}" from ${from}`)
 			return namespace
 		}
@@ -246,23 +241,18 @@ export class AppModuleRegistry {
 		if (record?.errors) throw new AppCompileError(record.errors)
 		if (!record?.factory) throw new Error(notAModule)
 		// A module may throw after side effects; revisiting it must not execute those effects again.
-		if (record.thrown) throw record.thrown.error
-		if (record.loaded) return record.loaded.exports
-		const module = { exports: {} }
-		record.loaded = module
+		if ("runtimeError" in record) throw record.runtimeError
+		if (record.exports) return record.exports
+		const exports = (record.exports = {})
 		try {
-			record.factory.call(
-				undefined,
-				module.exports,
-				(specifier: string) => this.require(path, specifier),
-				module,
-			)
+			record.factory.call(undefined, exports, (specifier: string) => this.require(path, specifier), {
+				exports,
+			})
 		} catch (error) {
-			record.thrown = { error }
-			record.loaded = undefined
+			record.runtimeError = error
 			throw error
 		}
-		return module.exports
+		return exports
 	}
 
 	private resolve(from: string, specifier: string): string | null {
@@ -280,7 +270,7 @@ export class AppModuleRegistry {
 	}
 }
 
-function isLocalSpecifier(specifier: string): boolean {
+function isAppSpecifier(specifier: string): boolean {
 	return specifier.startsWith(".") || specifier.startsWith("@app/")
 }
 
