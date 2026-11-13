@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { PendingEdits, type EditorTab } from "../pendingEdits";
 
+const VERSION = { doctype: "2026-11-13 10:00:00", layouts: {}, app_layouts: {} };
+
 function pending() {
 	const opened: EditorTab[] = [];
 	const edits = new PendingEdits(
-		{ doctype: "Note", mode: "design", base_version: "v1" },
+		{ doctype: "Note", mode: "Design", base_version: VERSION },
 		(tab) => opened.push(tab),
 	);
 	return { edits, opened };
@@ -17,8 +19,8 @@ describe("PendingEdits", () => {
 		edits.stage({ act: "settings.set_property", value: { property: "track_changes" }, tab: "settings" });
 		expect(edits.payload()).toEqual({
 			doctype: "Note",
-			mode: "design",
-			base_version: "v1",
+			mode: "Design",
+			base_version: VERSION,
 			edits: [
 				{ act: "canvas.add_tab", value: {}, tab: "editor" },
 				{ act: "settings.set_property", value: { property: "track_changes" }, tab: "settings" },

@@ -7,7 +7,8 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.desk.doctype.form_layout.form_layout import save_form_layout
-from frappe.desk.doctype_editor import base_version, get_doctype_editor
+from frappe.desk.doctype_editor.load import get_doctype_editor
+from frappe.desk.doctype_editor.versions import base_version
 from frappe.permissions import add_permission, update_permission_property
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
@@ -72,47 +73,47 @@ class TestDoctypeEditor(IntegrationTestCase):
 	def test_developer_mode_opens_a_standard_doctype_in_design(self):
 		with developer_mode(True):
 			editor = self.open(self.manager, "ToDo")
-			self.assertEqual((editor["mode"], editor["modes"]), ("design", ["design", "customize"]))
-			self.assertEqual(self.open(self.manager, "ToDo", "customize")["mode"], "customize")
+			self.assertEqual((editor["mode"], editor["modes"]), ("Design", ["Design", "Customize"]))
+			self.assertEqual(self.open(self.manager, "ToDo", "Customize")["mode"], "Customize")
 
 	def test_without_developer_mode_a_standard_doctype_opens_only_in_customize(self):
 		with developer_mode(False):
-			self.assertEqual(self.open(self.manager, "ToDo")["mode"], "customize")
+			self.assertEqual(self.open(self.manager, "ToDo")["mode"], "Customize")
 			with self.assertRaises(frappe.PermissionError):
-				self.open(self.manager, "ToDo", "design")
+				self.open(self.manager, "ToDo", "Design")
 
 	def test_customize_needs_write_on_customize_form(self):
 		with developer_mode(True):
-			self.assertEqual(self.open(self.customizer, "ToDo")["modes"], ["customize"])
+			self.assertEqual(self.open(self.customizer, "ToDo")["modes"], ["Customize"])
 			with self.assertRaises(frappe.PermissionError):
-				self.open(self.customizer, "ToDo", "design")
+				self.open(self.customizer, "ToDo", "Design")
 			with self.assertRaises(frappe.PermissionError):
 				self.open(self.reader, "ToDo")
 
 	def test_a_standard_single_opens_only_in_design(self):
 		with developer_mode(True):
-			self.assertEqual(self.open(self.manager, "System Settings")["modes"], ["design"])
+			self.assertEqual(self.open(self.manager, "System Settings")["modes"], ["Design"])
 		with developer_mode(False), self.assertRaises(frappe.PermissionError):
 			self.open(self.manager, "System Settings")
 
 	def test_a_custom_doctype_opens_in_design_without_developer_mode(self):
 		doctype = new_doctype(custom=1).insert().name
 		with developer_mode(False):
-			self.assertEqual(self.open(self.manager, doctype)["modes"], ["design"])
+			self.assertEqual(self.open(self.manager, doctype)["mode"], "Design")
 			with self.assertRaises(frappe.PermissionError):
-				self.open(self.customizer, doctype)
+				self.open(self.customizer, doctype, "Design")
 
 	def test_design_hides_site_custom_fields_and_counts_them(self):
 		create_custom_field("ToDo", {"fieldname": "editor_47270", "label": "Editor", "fieldtype": "Data"})
 		with developer_mode(True):
-			editor = self.open(self.manager, "ToDo", "design")
+			editor = self.open(self.manager, "ToDo", "Design")
 		fieldnames = {df["fieldname"] for df in editor["definition"]["fields"]}
 		self.assertNotIn("editor_47270", fieldnames)
 		self.assertGreaterEqual(editor["site_custom_fields"], 1)
 		fallback = frappe.as_json(editor["layouts"]["Details"][0]["layout"])
 		self.assertNotIn("editor_47270", fallback)
 
-		customize = self.open(self.manager, "ToDo", "customize")
+		customize = self.open(self.manager, "ToDo", "Customize")
 		self.assertIn("editor_47270", {row["fieldname"] for row in customize["custom_fields"]})
 		self.assertIn("editor_47270", frappe.as_json(customize["layouts"]["Details"][0]["layout"]))
 
@@ -131,7 +132,7 @@ class TestDoctypeEditor(IntegrationTestCase):
 
 	def test_each_layout_type_names_its_source(self):
 		with developer_mode(True):
-			layouts = self.open(self.manager, "Note", "design")["layouts"]
+			layouts = self.open(self.manager, "Note", "Design")["layouts"]
 			self.assertEqual(
 				{type: [layout["source"] for layout in rows] for type, rows in layouts.items()},
 				{
@@ -143,7 +144,7 @@ class TestDoctypeEditor(IntegrationTestCase):
 			)
 			with set_user(self.manager):
 				save_form_layout("Note", "Details", a_tree("title"), title="Site")
-			[site] = self.open(self.manager, "Note", "design")["layouts"]["Details"]
+			[site] = self.open(self.manager, "Note", "Design")["layouts"]["Details"]
 		self.assertEqual((site["source"], site["title"]), ("site", "Site"))
 
 	def test_a_single_lists_only_its_layout_types(self):
@@ -153,7 +154,7 @@ class TestDoctypeEditor(IntegrationTestCase):
 
 	def test_counts_for_a_system_manager_who_is_not_administrator(self):
 		frappe.get_doc(doctype="ToDo", description="editor 47270", priority="").insert()
-		editor = self.open(self.manager, "ToDo", "customize")
+		editor = self.open(self.manager, "ToDo", "Customize")
 		self.assertEqual(editor["record_count"], frappe.db.count("ToDo"))
 		self.assertEqual(
 			editor["value_counts"]["description"],
@@ -163,7 +164,10 @@ class TestDoctypeEditor(IntegrationTestCase):
 			editor["value_counts"]["priority"], frappe.db.count("ToDo", {"priority": ("is", "set")})
 		)
 
-	def test_base_version_moves_when_a_customization_lands(self):
-		before = base_version("ToDo")
-		create_custom_field("ToDo", {"fieldname": "editor_version_47270", "fieldtype": "Data"})
-		self.assertNotEqual(base_version("ToDo"), before)
+	def test_the_load_sends_the_version_a_save_compares(self):
+		with developer_mode(True):
+			before = self.open(self.manager, "Note", "Design")["base_version"]
+			self.assertEqual(before, base_version("Note"))
+			with set_user(self.manager):
+				save_form_layout("Note", "Details", a_tree("title"))
+			self.assertNotEqual(self.open(self.manager, "Note", "Design")["base_version"], before)

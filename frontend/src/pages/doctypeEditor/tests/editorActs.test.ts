@@ -4,13 +4,15 @@ import { acts } from "@/acts/dispatcher";
 import { useEditorActs, type EditorActsHost } from "../editorActs";
 import { PendingEdits, type EditorTab } from "../pendingEdits";
 
+const VERSION = { doctype: "2026-11-13 10:00:00", layouts: {}, app_layouts: {} };
+
 function mount() {
 	const tab = ref<EditorTab>("editor");
 	const previewed: (string | null)[] = [];
 	const host: EditorActsHost = {
 		tab,
 		edits: new PendingEdits(
-			{ doctype: "Note", mode: "design", base_version: "v1" },
+			{ doctype: "Note", mode: "Design", base_version: VERSION },
 			(opened) => (tab.value = opened),
 		),
 		find: () => undefined,

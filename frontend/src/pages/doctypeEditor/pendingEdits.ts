@@ -1,7 +1,15 @@
 import { computed, shallowRef } from "vue";
 
 export type EditorTab = "editor" | "settings" | "preview";
-export type EditorMode = "design" | "customize";
+/** The server's mode names; the address spells Customize `?mode=customize` (#45862). */
+export type EditorMode = "Design" | "Customize";
+
+/** What the editor loaded, as `versions.base_version` returns it; a save compares it to refuse stale edits. */
+export interface BaseVersion {
+	doctype: string;
+	layouts: Record<string, string>;
+	app_layouts: Record<string, string>;
+}
 
 /** One staged edit act: its `<surface>.<item>` name, its one value, and the tab it changed. */
 export interface Edit {
@@ -13,7 +21,7 @@ export interface Edit {
 export interface PendingEditsPayload {
 	doctype: string;
 	mode: EditorMode;
-	base_version: string;
+	base_version: BaseVersion;
 	edits: Edit[];
 }
 
