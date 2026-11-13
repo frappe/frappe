@@ -72,3 +72,52 @@ class TestSaveDesign(IntegrationTestCase):
 		[row] = details_rows()
 		self.assertEqual(placed(row), ["due_date", "title"])
 		self.assertEqual(json.loads(row.omitted or "[]"), [])
+
+	def test_canvas_edits_shape_the_details_layout(self):
+		details = {"type": "Details"}
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Notes", "fieldtype": "Small Text"},
+				{"act": "canvas.add_tab", "layout": details, "name": "more", "label": "More"},
+				{"act": "canvas.add_section", "layout": details, "tab": "more", "name": "notes_section"},
+				{"act": "canvas.add_column", "layout": details, "section": "notes_section"},
+				{
+					"act": "canvas.place_field",
+					"layout": details,
+					"fieldname": "notes",
+					"section": "notes_section",
+					"column": "column_2",
+				},
+				{
+					"act": "canvas.set_container_property",
+					"layout": details,
+					"container": "notes_section",
+					"property": "collapsible",
+					"value": 1,
+				},
+				{"act": "canvas.remove_column", "layout": details, "section": "notes_section", "column": "column_1"},
+				{"act": "canvas.move_tab", "layout": details, "tab": "more", "index": 0},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		[row] = details_rows()
+		[more, first] = json.loads(row.layout)
+		self.assertEqual(more["name"], "more")
+		[section] = more["sections"]
+		self.assertEqual(section["collapsible"], 1)
+		self.assertEqual(section["columns"], [{"name": "column_2", "fields": ["notes"]}])
+		self.assertEqual(placed(row), ["notes", "title"])
+
+	def test_a_column_named_in_two_sections_needs_its_section(self):
+		details = {"type": "Details"}
+		result = self.save(
+			[
+				{"act": "canvas.add_section", "layout": details, "tab": "first_tab", "name": "other"},
+				{"act": "canvas.unplace_field", "layout": details, "fieldname": "title"},
+				{"act": "canvas.place_field", "layout": details, "fieldname": "title", "column": "column_1"},
+			]
+		)
+		self.assertFalse(result["saved"])
+		[error] = result["errors"]
+		self.assertEqual(error["edit"], 2)
+		self.assertEqual(error["target"]["kind"], "container")

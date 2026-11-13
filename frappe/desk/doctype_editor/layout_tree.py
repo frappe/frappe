@@ -70,8 +70,8 @@ class LayoutTree:
 		if fields and receiver and receiver["columns"]:
 			receiver["columns"][-1]["fields"].extend(fields)
 
-	def remove_column(self, column: str):
-		section, node = self.parent_of_column(column)
+	def remove_column(self, column: str, section: str | None = None):
+		section, node = self.parent_of_column(column, section)
 		at = section["columns"].index(node)
 		section["columns"].remove(node)
 		receiver = section["columns"][max(at - 1, 0)] if section["columns"] else None
@@ -88,21 +88,22 @@ class LayoutTree:
 		old_tab["sections"].remove(node)
 		self.tab(tab)["sections"].insert(index, node)
 
-	def move_column(self, column: str, section: str, index: int):
-		old_section, node = self.parent_of_column(column)
+	def move_column(self, column: str, to_section: str, index: int, section: str | None = None):
+		old_section, node = self.parent_of_column(column, section)
 		old_section["columns"].remove(node)
-		self.section(section)["columns"].insert(index, node)
+		self.insert(self.section(to_section)["columns"], node, index)
+		assign_names(self.section(to_section)["columns"], "column")
 
-	def set_container_property(self, container: str, property: str, value):
+	def set_container_property(self, container: str, property: str, value, section: str | None = None):
 		if property not in CONTAINER_PROPERTIES:
 			raise self.container_error(_("{0} is not a container property.").format(property), container)
-		node = self.container(container)
+		node = self.column(container, section) if section else self.container(container)
 		if value in (None, "", False, 0):
 			node.pop(property, None)
 		else:
 			node[property] = value
 
-	def place_field(self, fieldname: str, column: str | None = None, index: int | None = None, tab=None):
+	def place_field(self, fieldname: str, column=None, index: int | None = None, tab=None, section=None):
 		self.unplace_field(fieldname)
 		if tab:
 			target = self.tab(tab)
@@ -110,7 +111,7 @@ class LayoutTree:
 				self.add_section(tab)
 			fields = target["sections"][0]["columns"][-1]["fields"]
 		else:
-			fields = self.column(column)["fields"]
+			fields = self.column(column, section)["fields"]
 		fields.insert(len(fields) if index is None else index, fieldname)
 
 	def unplace_field(self, fieldname: str):
@@ -127,18 +128,24 @@ class LayoutTree:
 	def section(self, name: str) -> dict:
 		return self.find(self.sections(), name)
 
-	def column(self, name: str) -> dict:
-		return self.find(self.columns(), name)
+	def column(self, name: str, section: str | None = None) -> dict:
+		"""Column names repeat across sections, so an unscoped name must be unique in the layout."""
+		if section:
+			return self.find(self.section(section)["columns"], name)
+		matches = [column for column in self.columns() if column["name"] == name]
+		if len(matches) > 1:
+			raise self.container_error(_("Name the section of column {0}.").format(name), name)
+		return self.find(matches, name)
 
 	def container(self, name: str) -> dict:
-		return self.find([*self.tabs, *self.sections(), *self.columns()], name)
+		return self.find([*self.tabs, *self.sections()], name)
 
 	def parent_of_section(self, name: str) -> tuple[dict, dict]:
 		node = self.section(name)
 		return next(tab for tab in self.tabs if node in tab["sections"]), node
 
-	def parent_of_column(self, name: str) -> tuple[dict, dict]:
-		node = self.column(name)
+	def parent_of_column(self, name: str, section: str | None = None) -> tuple[dict, dict]:
+		node = self.column(name, section)
 		return next(section for section in self.sections() if node in section["columns"]), node
 
 	def find(self, nodes: list[dict], name: str) -> dict:

@@ -7,6 +7,8 @@ from frappe import _
 from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError, field_error
 
+PLACE_KEYS = ("fieldname", "section", "column", "index", "tab")
+# A column is named with its section: column names repeat across sections.
 CANVAS_ACTS = {
 	"canvas.add_tab": ("add_tab", ("name", "label", "index")),
 	"canvas.remove_tab": ("remove_tab", ("tab",)),
@@ -15,11 +17,11 @@ CANVAS_ACTS = {
 	"canvas.remove_section": ("remove_section", ("section",)),
 	"canvas.move_section": ("move_section", ("section", "tab", "index")),
 	"canvas.add_column": ("add_column", ("section", "name", "index")),
-	"canvas.remove_column": ("remove_column", ("column",)),
-	"canvas.move_column": ("move_column", ("column", "section", "index")),
-	"canvas.set_container_property": ("set_container_property", ("container", "property", "value")),
-	"canvas.place_field": ("place_field", ("fieldname", "column", "index", "tab")),
-	"canvas.move_field": ("place_field", ("fieldname", "column", "index", "tab")),
+	"canvas.remove_column": ("remove_column", ("column", "section")),
+	"canvas.move_column": ("move_column", ("column", "section", "to_section", "index")),
+	"canvas.set_container_property": ("set_container_property", ("container", "section", "property", "value")),
+	"canvas.place_field": ("place_field", PLACE_KEYS),
+	"canvas.move_field": ("place_field", PLACE_KEYS),
 	"canvas.unplace_field": ("unplace_field", ("fieldname",)),
 }
 
@@ -55,4 +57,4 @@ class DesignEdits:
 			"fields", {**properties, "fieldname": fieldname, "label": label, "fieldtype": fieldtype, "options": edit.get("options")}
 		)
 		if edit.get("layout"):
-			self.canvas({**edit, "fieldname": fieldname}, "place_field", ("fieldname", "column", "index", "tab"))
+			self.canvas({**edit, "fieldname": fieldname}, "place_field", PLACE_KEYS)
