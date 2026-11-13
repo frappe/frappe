@@ -8,8 +8,8 @@ export class ForkWarning {
 	/** `<doctype>\n<type>`: one page opens many DocTypes. */
 	private asked = new Set<string>();
 
-	/** `confirm` resolves `true` to go on with the edit. */
-	constructor(private confirm: (type: FormLayoutType) => Promise<boolean>) {}
+	/** `confirm` resolves `true` to go on with the edit of `working`. */
+	constructor(private confirm: (type: FormLayoutType, working: WorkingState) => Promise<boolean>) {}
 
 	/** The types an edit from `before` to `after` forks that this session has not asked about. */
 	unasked(before: WorkingState, after: WorkingState): FormLayoutType[] {
@@ -17,11 +17,11 @@ export class ForkWarning {
 		return forkedTypes(before, after).filter((type) => !this.asked.has(`${after.doctype}\n${type}`));
 	}
 
-	/** Asks about each of `doctype`'s types in turn; the first Cancel stops. */
-	async ask(doctype: string, types: FormLayoutType[]): Promise<boolean> {
+	/** Asks about each of `working`'s types in turn; the first Cancel stops. */
+	async ask(working: WorkingState, types: FormLayoutType[]): Promise<boolean> {
 		for (const type of types) {
-			if (!(await this.confirm(type))) return false;
-			this.asked.add(`${doctype}\n${type}`);
+			if (!(await this.confirm(type, working))) return false;
+			this.asked.add(`${working.doctype}\n${type}`);
 		}
 		return true;
 	}

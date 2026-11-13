@@ -6,12 +6,13 @@ import { toast } from "frappe-ui";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { ChildTables, CHILD_TABLES } from "./childTables";
 import type { DesignCanvas } from "./designCanvas";
+import type { ForkWarning } from "./forkWarning";
 import type { PendingEdits } from "./pendingEdits";
 
-export function useChildTables(edits: PendingEdits, parent: () => DesignCanvas | null) {
+export function useChildTables(edits: PendingEdits, parent: () => DesignCanvas | null, forks: ForkWarning) {
 	const route = useRoute();
 	const router = useRouter();
-	const tables = new ChildTables(edits, parent);
+	const tables = new ChildTables(edits, parent, forks);
 	provide(CHILD_TABLES, tables);
 	const session = computed(() => tables.open.value);
 	/** The canvas the page shows and its acts edit: the open child table's, else the parent's. */

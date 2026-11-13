@@ -95,7 +95,7 @@ export function mountEditor(
 		void children.show(doctype ? children.tableOf(doctype) : null);
 	});
 	let canvas = new DesignCanvas(initial, edits, options.forks);
-	const children = new ChildTables(edits, () => canvas);
+	const children = new ChildTables(edits, () => canvas, options.forks);
 	const open = (state: EditorState) => {
 		Object.assign(head, { doctype: state.doctype, mode: state.mode, base_version: state.base_version });
 		edits.clear();

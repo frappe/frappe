@@ -104,7 +104,7 @@ export class DesignCanvas {
 		const after = workingState(this.base, [...this.edits.staged.value, ...edits]);
 		const forks = this.forks?.unasked(this.working.value, after) ?? [];
 		if (!forks.length) return Promise.resolve(this.commit(edits));
-		return this.forks!.ask(after.doctype, forks).then((go) => go && this.commit(edits));
+		return this.forks!.ask(this.working.value, forks).then((go) => go && this.commit(edits));
 	}
 
 	/** Stages edits the user staged before a reload, with no fork warning: they answered it then. */

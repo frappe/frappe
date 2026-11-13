@@ -148,9 +148,9 @@ const name = computed(() => String(route.params.name));
 
 const state = shallowRef<EditorState | null>(null);
 const canvas = shallowRef<DesignCanvas | null>(null);
-const forks = new ForkWarning(async (type) => {
+const forks = new ForkWarning(async (type, working) => {
 	const { confirmFork } = await import("./layoutDialogs");
-	return confirmFork(canvas.value!.working.value, type);
+	return confirmFork(working, type);
 });
 const pageState = shallowRef<PageStateValue | null>(null);
 const tab = ref<EditorTab>("editor");
@@ -169,7 +169,7 @@ const edits = new PendingEdits(head, (opened, doctype) => {
 	tab.value = opened;
 	child.reopen(doctype);
 });
-const child = useChildTables(edits, () => canvas.value);
+const child = useChildTables(edits, () => canvas.value, forks);
 const { session: openChild, shown } = child;
 const layoutCanvas = computed(() => (openChild.value?.state.pending ? null : shown.value));
 const save = new EditorSave({

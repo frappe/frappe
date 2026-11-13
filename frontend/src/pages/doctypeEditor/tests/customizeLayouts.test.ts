@@ -2,8 +2,12 @@
 // confirm, and the notice on a site layout whose app layout changed.
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const { dialog } = vi.hoisted(() => ({ dialog: { open: vi.fn(), confirm: vi.fn(), danger: vi.fn() } }));
+const { dialog, runMethod } = vi.hoisted(() => ({
+	dialog: { open: vi.fn(), confirm: vi.fn(), danger: vi.fn() },
+	runMethod: vi.fn(),
+}));
 vi.mock("@/shell/dialog", () => ({ shellDialog: () => dialog }));
+vi.mock("@framework/ui/api", () => ({ runMethod }));
 
 import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
@@ -17,7 +21,7 @@ import { resetSummary, resetWording } from "../layoutMenu";
 import { PendingEdits } from "../pendingEdits";
 import ResetLayoutDialog from "../ResetLayoutDialog.vue";
 import { mountEditor, VERSION } from "./editorFixture";
-import { leadNote } from "./layoutsFixture";
+import { leadNote, tabs } from "./layoutsFixture";
 
 const DETAILS = { type: "Details" } as const;
 const apps: App[] = [];
@@ -38,11 +42,13 @@ function unforked(): EditorState {
 }
 
 function warned(state: EditorState, answers: boolean[] = []) {
-	const confirm = vi.fn(async () => answers.shift() ?? true);
+	const confirm = vi.fn<Confirm>(async () => answers.shift() ?? true);
 	const edits = new PendingEdits({ doctype: state.doctype, mode: state.mode, base_version: VERSION }, () => undefined);
 	const forks = new ForkWarning(confirm);
 	return { canvas: new DesignCanvas(state, edits, forks), edits, confirm, forks };
 }
+
+type Confirm = ConstructorParameters<typeof ForkWarning>[0];
 
 const addSection = { act: "canvas.add_section", layout: DETAILS, tab: "first_tab" };
 
@@ -51,12 +57,12 @@ describe("the warning before a site layout", () => {
 		const { canvas, edits, confirm } = warned(unforked());
 		expect(await canvas.stage(addSection)).toBe(true);
 		expect(await canvas.stage(addSection)).toBe(true);
-		expect(confirm.mock.calls).toEqual([["Details"]]);
+		expect(confirm.mock.calls.map(([type]) => type)).toEqual(["Details"]);
 		expect(edits.staged.value).toHaveLength(2);
 		expect(canvas.working.value.layouts.Details!.layouts.map((layout) => layout.source)).toEqual(["site", "site"]);
 
 		await canvas.stage({ act: "canvas.add_section", layout: { type: "Quick Entry" }, tab: "first_tab" });
-		expect(confirm.mock.calls).toEqual([["Details"], ["Quick Entry"]]);
+		expect(confirm.mock.calls.map(([type]) => type)).toEqual(["Details", "Quick Entry"]);
 	});
 
 	it("asks again on another DocType the same page opens", async () => {
@@ -65,7 +71,26 @@ describe("the warning before a site layout", () => {
 		const other = { ...unforked(), doctype: "Lead Call" };
 		const edits = new PendingEdits({ doctype: other.doctype, mode: other.mode, base_version: VERSION }, () => undefined);
 		await new DesignCanvas(other, edits, forks).stage(addSection);
-		expect(confirm.mock.calls).toEqual([["Details"], ["Details"]]);
+		expect(confirm.mock.calls.map(([type]) => type)).toEqual(["Details", "Details"]);
+	});
+
+	it("asks on a child table's first edit, about the child's layout", async () => {
+		const confirm = vi.fn(async () => true);
+		const parent = unforked();
+		parent.definition.fields.push({ fieldname: "lines", label: "Lines", fieldtype: "Table", options: "Lead Note Line" });
+		const mounted = mountEditor(parent, { forks: new ForkWarning(confirm) });
+		stop = mounted.stop;
+		const line = leadNote({
+			mode: "Customize",
+			doctype: "Lead Note Line",
+			layouts: { Details: [{ name: null, source: "app", condition: null, omitted: [], layout: tabs("qty") }] },
+			definition: { name: "Lead Note Line", istable: 1, fields: [{ fieldname: "qty", label: "Qty", fieldtype: "Float" }] },
+		});
+		runMethod.mockResolvedValueOnce({ data: line });
+		await mounted.children.show("lines");
+		await mounted.children.open.value!.canvas.stage(addSection);
+		expect(confirm).toHaveBeenCalledOnce();
+		expect(confirm).toHaveBeenCalledWith("Details", expect.objectContaining({ doctype: "Lead Note Line" }));
 	});
 
 	it("is not asked while a reload stages the edits again", async () => {
@@ -107,7 +132,7 @@ describe("the warning before a site layout", () => {
 		expect(canvas.working.value.layouts.Details!.layouts[0].source).toBe("app");
 
 		await canvas.stage({ act: "canvas.place_field", layout: DETAILS, fieldname: "notes", section: "main", column: "column_1" });
-		expect(confirm.mock.calls).toEqual([["Details"]]);
+		expect(confirm.mock.calls.map(([type]) => type)).toEqual(["Details"]);
 	});
 });
 
