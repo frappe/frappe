@@ -948,6 +948,9 @@ class DocType(Document):
 			old_path = get_doc_path(previous.module, "doctype", self.name)
 		except Exception:
 			return
+		if not os.path.exists(old_path):
+			# The editor's Move took the folder along.
+			return
 
 		frappe.msgprint(
 			_(

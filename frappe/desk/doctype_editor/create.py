@@ -94,8 +94,9 @@ class DoctypeCreate:
 		return {"saved": False, "doctype": self.name, "errors": [EditError(message).as_dict()]}
 
 
-def remove_doctype(name: str):
+def remove_doctype(name: str, force: bool = True):
+	"""Deletes the DocType, its layouts and its table; without `force`, as v1 does: refused while records link to it."""
 	for layout in frappe.get_all("Form Layout", {"dt": name}, pluck="name"):
 		frappe.delete_doc("Form Layout", layout, force=True, ignore_permissions=True)
-	frappe.delete_doc("DocType", name, force=True, ignore_missing=True)
+	frappe.delete_doc("DocType", name, force=force, ignore_missing=True)
 	frappe.db.sql_ddl(f"drop table if exists `tab{name}`")
