@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 """Design mode's Danger zone: acts on the whole DocType that run at once, outside the undo stack."""
 
+import os
+import re
 import shutil
 from pathlib import Path
 
@@ -12,7 +14,7 @@ from frappe.desk.doctype.form_layout.form_layout import publish_doctype_update
 from frappe.desk.doctype_editor.create import remove_doctype
 from frappe.desk.doctype_editor.mode import check_mode
 from frappe.model.base_document import get_controller
-from frappe.modules import get_doc_path
+from frappe.modules import get_doc_path, get_module_name
 from frappe.utils.nestedset import NestedSet, rebuild_tree
 
 KINDS = ("regular", "submittable", "tree", "child", "single")
@@ -70,6 +72,7 @@ def move_doctype(doctype: str, module: str) -> None:
 	moved = None
 	if not doc.custom:
 		check_app_module(module)
+		check_no_callers(doc)
 		moved = move_folder(doc, module)
 	doc.module = module
 	try:
@@ -172,6 +175,41 @@ def move_folder(doc, module: str) -> tuple[Path, Path] | None:
 	new.parent.mkdir(parents=True, exist_ok=True)
 	shutil.move(old, new)
 	return old, new
+
+
+CODE_SUFFIXES = {".py", ".js", ".ts", ".vue", ".html"}
+SKIPPED_DIRS = {"node_modules", "dist", "__pycache__", ".git"}
+
+
+def check_no_callers(doc) -> None:
+	"""Refused while code outside its folder names its Python path: the move would break that import."""
+	folder = Path(get_doc_path(doc.module, "doctype", doc.name))
+	if not folder.exists():
+		return
+	path = get_module_name(doc.name, doc.module).rsplit(".", 1)[0]
+	# `\b`: frappe.core.doctype.task is not frappe.core.doctype.task_note.
+	named = re.compile(re.escape(path) + r"\b")
+	callers = [str(file) for file in code_files() if folder not in file.parents and named.search(read(file))]
+	if callers:
+		frappe.throw(
+			_("Code outside its folder uses {0}, so moving it would break: {1}").format(
+				frappe.bold(path), ", ".join(callers[:5]) + (" …" if len(callers) > 5 else "")
+			)
+		)
+
+
+def code_files():
+	for app in frappe.get_installed_apps():
+		for root, dirs, files in os.walk(frappe.get_app_path(app)):
+			dirs[:] = [one for one in dirs if one not in SKIPPED_DIRS]
+			yield from (Path(root, name) for name in files if Path(name).suffix in CODE_SUFFIXES)
+
+
+def read(file: Path) -> str:
+	try:
+		return file.read_text(errors="ignore")
+	except OSError:
+		return ""
 
 
 def check_no_folder(module: str, doctype: str) -> Path:

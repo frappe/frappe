@@ -197,6 +197,18 @@ class TestFiles(IntegrationTestCase):
 			move_doctype(DOCTYPE, "Desk")
 		self.assertTrue((folder("Core") / "test_editor_47278.json").exists())
 
+	def test_move_is_refused_while_other_code_imports_from_its_folder(self):
+		make_standard(DOCTYPE, "Core")
+		caller = Path(frappe.get_app_path("frappe", "desk", "test_editor_47278_caller.py"))
+		# Joined here, so this file does not name the path itself.
+		path = ".".join(("frappe.core.doctype", "test_editor_47278", "test_editor_47278"))
+		caller.write_text(f"from {path} import TestEditor47278\n")
+		self.addCleanup(caller.unlink)
+		with self.assertRaises(frappe.ValidationError) as refused:
+			move_doctype(DOCTYPE, "Desk")
+		self.assertIn("test_editor_47278_caller.py", str(refused.exception))
+		self.assertTrue((folder("Core") / "test_editor_47278.json").exists())
+
 	def test_a_failed_save_moves_the_folder_back(self):
 		make_standard(DOCTYPE, "Core")
 		with patch("frappe.core.doctype.doctype.doctype.DocType.save", side_effect=frappe.ValidationError):

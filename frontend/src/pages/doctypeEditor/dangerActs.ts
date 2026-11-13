@@ -58,6 +58,8 @@ export function dangerItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 
 function offered(host: EditorActsHost, key: DangerAct): boolean {
 	const canvas = host.canvas();
+	// A Save or another act holds the edits: one change to the DocType at a time.
+	if (host.edits.locked.value) return false;
 	return Boolean(canvas && settingRows(canvas.working.value.settings, host.danger.scope()).some((row) => row.key === key));
 }
 
@@ -114,6 +116,8 @@ async function remove(host: EditorActsHost) {
 
 /** An act holds every edit until it and the page's follow-up finish: the reload drops what is pending. */
 async function held(host: EditorActsHost, run: () => Promise<void>) {
+	// Another change began while this act's dialog was open: unlocking after this one would free it too early.
+	if (host.edits.locked.value) return void toast.error(__("Another change to this DocType is still running. Try again when it ends."));
 	host.edits.locked.value = true;
 	try {
 		await run();

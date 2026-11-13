@@ -136,6 +136,28 @@ describe("running a Danger zone act", () => {
 		expect(host.deleted).toHaveBeenCalled();
 	});
 
+	it("starts no act while another one holds the edits", async () => {
+		const { host, mounted } = mount();
+		let finish!: () => void;
+		runMethod.mockImplementationOnce(() => new Promise<void>((resolve) => (finish = resolve)));
+		const first = acts.run("danger.move_doctype", { module: "Desk" });
+		await vi.waitFor(() => expect(runMethod).toHaveBeenCalledTimes(1));
+		expect(offered("change_kind")).toBe(false);
+		await expect(acts.run("danger.change_kind", { kind: "tree" })).rejects.toThrow("hidden");
+		finish();
+		await first;
+		expect(mounted.edits.locked.value).toBe(false);
+		expect(host.reload).toHaveBeenCalledTimes(1);
+	});
+
+	it("stops when a Save began while its dialog was open, and leaves that Save's hold", async () => {
+		const { mounted } = mount({}, { askKind: vi.fn(async () => ((mounted.edits.locked.value = true), "tree" as const)) });
+		await acts.run("danger.change_kind");
+		expect(runMethod).not.toHaveBeenCalled();
+		expect(toast.error).toHaveBeenCalled();
+		expect(mounted.edits.locked.value).toBe(true);
+	});
+
 	it("skips the page's follow-up once the reader has left the DocType", async () => {
 		const { host } = mount({}, { showing: vi.fn(() => false) });
 		runMethod.mockResolvedValue({ data: "Task Memo" });
