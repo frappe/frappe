@@ -523,7 +523,7 @@ class Report(Document):
 		if not pf or pf.report != self.name or pf.print_format_for != "Report" or pf.disabled:
 			frappe.throw(_("Selected Print Format is invalid for this Report."))
 
-	def validate_default_letter_head(self, standard_only: bool = True):
+	def validate_default_letter_head(self, standard_only: bool = True) -> None:
 		if not self.default_letter_head:
 			return
 
@@ -547,7 +547,7 @@ class Report(Document):
 			)
 
 	@frappe.whitelist()
-	def set_print_defaults(self, print_format: str | None = None, letter_head: str | None = None):
+	def set_print_defaults(self, print_format: str | None = None, letter_head: str | None = None) -> None:
 		if not self.has_permission("write"):
 			frappe.throw(_("You are not allowed to edit the report."))
 
