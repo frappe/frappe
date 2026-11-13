@@ -79,7 +79,8 @@ name one type.
   <frappe_app>/studio/<studio_app>/<studio_app>.json
   <frappe_app>/studio/<studio_app>/studio_page/<scrubbed_title>/<scrubbed_title>.json
   <frappe_app>/studio/<studio_app>/studio_page/<scrubbed_title>/<scrubbed_title>.ts
-  <frappe_app>/studio/<studio_app>/studio_components/<component_name>.json
+  <frappe_app>/studio/<studio_app>/studio_components/<component_id>.json
+  <frappe_app>/studio/<studio_app>/studio_components/<component_id>.js
   ```
 
 - Page scripts are optional. Use TypeScript (`.ts`) for new page scripts. Keep
@@ -98,7 +99,8 @@ name one type.
   `bench start`. `bench start` runs Studio's Vite dev server, which serves page
   scripts and vue components to the editor and preview. If the dev server is
   not running, start it with `yarn dev` in `studio/frontend`.
-- The watcher imports changed app, page, and component JSON automatically. It
+- The watcher imports changed app, page, and component JSON, and component
+  scripts, automatically. It
   finds `studio/` folders at startup. Restart it if you create a folder later.
   The watcher does not sync deletions. Vite hot-reloads page scripts and vue
   components.
@@ -137,6 +139,10 @@ the exported JSON on disk.
 In a custom app, `studio_page/<scrubbed_title>/<scrubbed_title>.js` refers to
 the page's `script` field. In a standard app, the page script is a file on disk
 with a `.js` or `.ts` extension.
+
+A component script works the same way at `studio_components/<component_id>.js`.
+A standard app scrubs the ID in the file name (`card-1` is `card_1.js`) and
+exports the file only after a page uses the component.
 
 ## Routes and preview
 
@@ -300,6 +306,50 @@ Studio differs from Vue in these points:
 - Store shared code in the app's files and import it with `@app/...`. This
   includes stores, composables, and a standard app's `.vue` components.
 
+## Component code
+
+A Studio Component can have a script. A page script exports a function. A
+component script exports an object: a Vue component definition without a
+template. The component's blocks are the template.
+
+```js
+import { ref, computed } from "vue"
+
+export default {
+	props: {
+		title: { type: String, required: true },
+		size: { type: String, default: "md", studio: { type: "select", options: ["sm", "md"] } },
+	},
+	emits: ["select"],
+	setup(props, { emit }) {
+		const open = ref(false)
+		const heading = computed(() => props.title.toUpperCase())
+
+		function select(item) {
+			emit("select", item)
+		}
+
+		return { open, heading, select }
+	},
+}
+```
+
+- Use only `props`, `emits`, and `setup`. Studio rejects other keys, such as
+  `data`, `methods`, and `components`.
+- `setup` gets Vue's arguments, `(props, { emit })`. It does not get the page
+  `context`. Import what you need, such as `useRoute` from `vue-router`.
+- The props are the component's inputs. Do not write `inputs` rows for a
+  scripted component. Studio saves them from the props. A prop's optional
+  `studio` key sets the editor control (`type`: `text`, `number`, `checkbox`,
+  `textarea`, `select`, `code`, or `color`), its `options`, and a
+  `description`.
+- Blocks in the component read props as `{{ inputs.title }}` and returned
+  values by name, as `{{ heading }}`. The page-code rules for returned values,
+  hooks, and `await` apply.
+- A page sets props in the component block's `componentProps` and handles the
+  events in `emits` in its `componentEvents`. An event that is not in `emits`
+  is a DOM event of the component's root block.
+
 ## Tailwind CSS
 
 - Tailwind classes are supported only in standard apps. The editor and preview
@@ -338,7 +388,8 @@ Export the app first. Choose the smallest tool that does the job:
 - **Built-in component**: use it when it already does the job. Do not write a
   Vue component only to restyle a built-in component.
 - **Studio Component** (`studio_components/*.json`): use it for a reusable
-  layout made of ordinary blocks.
+  layout made of ordinary blocks. Add a script when it needs state, logic, or
+  events. See [Component code](#component-code).
 - **Vue component**: use it only when built-in components and block
   compositions cannot express the UI cleanly. This means a stateful widget (a
   rating input, a drag-and-drop board, a canvas or SVG drawing), a third-party
