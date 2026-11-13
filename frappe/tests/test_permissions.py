@@ -668,7 +668,7 @@ class TestPermissions(IntegrationTestCase):
 		)
 
 		doc.insert()
-		self.addCleanup(frappe.db.delete, "Test Blog Post", {"name": doc.name})
+		self.addCleanup(frappe.delete_doc, doc.doctype, doc.name, delete_permanently=True)
 
 		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
 		update("Test Blog Post", "Blogger", 0, "read", 1)
