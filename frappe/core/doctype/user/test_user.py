@@ -1140,6 +1140,16 @@ class TestNeedsPasswordSetup(IntegrationTestCase):
 		self.assertEqual(check_password(self.user.name, "Eastern_43A1W"), self.user.name)
 		self.assertFalse(needs_password_setup(self.user.name))
 
+	def test_an_empty_first_password_is_refused(self):
+		frappe.set_user(self.user.name)
+		try:
+			for empty in ("", "   "):
+				with self.assertRaises(frappe.ValidationError):
+					set_first_password(empty)
+		finally:
+			frappe.set_user("Administrator")
+		self.assertTrue(needs_password_setup(self.user.name))
+
 	def test_a_first_password_spends_any_reset_link(self):
 		self.user.reload()
 		self.user._reset_password()

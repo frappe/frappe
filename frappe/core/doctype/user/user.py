@@ -1443,6 +1443,8 @@ def set_first_password(new_password: str) -> None:
 	app's setup flow, without a reset link. Anyone else changes theirs the usual way."""
 	from frappe.utils.password import validate_password_size
 
+	if not new_password or not new_password.strip():
+		frappe.throw(_("Enter a password."), title=_("Invalid Password"))
 	validate_password_size(new_password, _("New Password"))
 	if not needs_password_setup():
 		frappe.throw(_("You already have a password. Change it from your settings."), frappe.PermissionError)
