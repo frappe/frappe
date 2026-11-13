@@ -12,14 +12,37 @@ export function resolveLinkFilters(
   doc: Record<string, any>,
   parent: Record<string, any> = doc
 ): LinkFilters | undefined {
-  const rows = parseLinkFilters(stored);
-  if (!rows.length) return undefined;
-  return Object.fromEntries(
-    rows.map(([, fieldname, operator, value]) => [
-      String(fieldname),
-      [String(operator), resolveValue(value, doc, parent)],
-    ])
-  );
+  const filters: LinkFilters = {};
+  for (const [, fieldname, operator, value] of parseLinkFilters(stored)) {
+    try {
+      filters[String(fieldname)] = [String(operator), resolveValue(value, doc, parent)];
+    } catch {
+      // Left out: as null it would match only records with that field empty.
+      continue;
+    }
+  }
+  return Object.keys(filters).length ? filters : undefined;
+}
+
+/**
+ * A script's filters with the DocField's own over them, as desk v1's `link.js`
+ * merges them: an object by key, a list by dropping the rows they replace.
+ */
+export function mergeLinkFilters(
+  script: Record<string, unknown> | unknown[] | undefined,
+  own: LinkFilters,
+  doctype?: string
+): Record<string, unknown> {
+  if (!Array.isArray(script)) return { ...script, ...own };
+  // A script may pass v1's list form, which `filters`' type does not name.
+  const replaced = (row: unknown) => {
+    if (!Array.isArray(row)) return false;
+    const [rowDoctype, fieldname] = row.length >= 4 ? row : [doctype, row[0]];
+    return rowDoctype === doctype && String(fieldname) in own;
+  };
+  return script
+    .filter((row) => !replaced(row))
+    .concat(Object.entries(own).map(([fieldname, rule]) => [fieldname, ...rule])) as unknown as Record<string, unknown>;
 }
 
 function parseLinkFilters(stored: string | unknown[] | undefined): unknown[][] {
@@ -36,7 +59,6 @@ function parseLinkFilters(stored: string | unknown[] | undefined): unknown[][] {
     : [];
 }
 
-// An unset `doc.x` would vanish from the JSON and leave the operator alone on the wire.
 function resolveValue(value: unknown, doc: Record<string, any>, parent: Record<string, any>) {
   if (typeof value !== "string" || !value.startsWith("eval:")) return value;
   return evaluateValue(value.slice(5), doc, parent) ?? null;

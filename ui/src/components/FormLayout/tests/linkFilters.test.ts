@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveLinkFilters } from "../linkFilters";
+import { mergeLinkFilters, resolveLinkFilters } from "../linkFilters";
 import { resolveFieldConditionals } from "../resolveLayout";
 
 const STORED = JSON.stringify([
@@ -22,21 +22,34 @@ describe("resolveLinkFilters", () => {
     });
   });
 
-  it("sends null for an unset field or a failing expression", () => {
+  it("sends null for an unset field and leaves out a failing expression", () => {
     const stored = [
       ["Customer", "company", "=", "eval:doc.company"],
       ["Customer", "territory", "=", "eval:doc.nope.deeper"],
     ];
-    expect(resolveLinkFilters(stored, {})).toEqual({
-      company: ["=", null],
-      territory: ["=", null],
-    });
+    expect(resolveLinkFilters(stored, {})).toEqual({ company: ["=", null] });
+    expect(resolveLinkFilters([stored[1]], {})).toBeUndefined();
   });
 
   it("is undefined when there are none or the JSON is broken", () => {
     expect(resolveLinkFilters(undefined, {})).toBeUndefined();
     expect(resolveLinkFilters("[]", {})).toBeUndefined();
     expect(resolveLinkFilters("[[", {})).toBeUndefined();
+  });
+});
+
+describe("mergeLinkFilters", () => {
+  it("replaces a script's list rows for the same field, as v1 does", () => {
+    const script = [
+      ["Customer", "company", "=", "Script"],
+      ["customer_group", "=", "Retail"],
+      ["Contact", "company", "=", "Other"],
+    ];
+    expect(mergeLinkFilters(script, { company: ["=", "Acme"] }, "Customer")).toEqual([
+      ["customer_group", "=", "Retail"],
+      ["Contact", "company", "=", "Other"],
+      ["company", "=", "Acme"],
+    ]);
   });
 });
 

@@ -1,5 +1,5 @@
 import { evaluateDependsOn } from "./dependsOn";
-import { resolveLinkFilters } from "./linkFilters";
+import { mergeLinkFilters, resolveLinkFilters } from "./linkFilters";
 import type {
   Column,
   FieldMeta,
@@ -124,9 +124,8 @@ export function resolveFieldConditionals<
       evaluateDependsOn(f.readOnlyDependsOn, doc, parent));
 
   // Desk v1 lets the DocField's filters win over a script's (`link.js`).
-  const filters = f.linkFilters
-    ? { ...f.filters, ...resolveLinkFilters(f.linkFilters, doc, parent) }
-    : f.filters;
+  const own = f.linkFilters && resolveLinkFilters(f.linkFilters, doc, parent);
+  const filters = own ? mergeLinkFilters(f.filters, own, f.options) : f.filters;
 
   const override = f.override;
   if (!override) return { ...f, hidden, reqd, readOnly, filters };

@@ -57,7 +57,8 @@ export interface FieldUI {
  *
  * Only these three need the carrier: `label`, `options`, `precision`,
  * `placeholder`, `description` and `filters` are set once when the node is
- * built and never recomputed (a DocField's own `link_filters` merge in per render), so an app applies those at build time instead.
+ * built and never recomputed, so an app applies those at build time instead.
+ * (A DocField's own `link_filters` merge into `filters` on each render.)
  *
  * Plain data, deliberately: it keeps `FormLayout` an independent component that
  * takes a schema and knows nothing about whoever wrote the override.
