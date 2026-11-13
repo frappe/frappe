@@ -281,6 +281,7 @@ def component_signature(component):
 	return {
 		"component_name": component.get("component_name"),
 		"block": frappe.parse_json(component.get("block")),
+		"script": component.get("script") or "",
 		"is_disabled": cint(component.get("is_disabled")),
 		"inputs": [
 			dependency_signature(row, COMPONENT_INPUT_FIELDS, int_fields={"required"})
@@ -295,6 +296,7 @@ def get_component_copy(component):
 		"component_id": component.get("component_id"),
 		"component_name": component.get("component_name"),
 		"block": component.get("block"),
+		"script": component.get("script"),
 		"is_disabled": component.get("is_disabled"),
 		"inputs": [pick(row, COMPONENT_INPUT_FIELDS) for row in component.get("inputs") or []],
 	}
@@ -310,6 +312,8 @@ def validate_component_copy(component):
 		component.get("block"), str | dict
 	):
 		frappe.throw(_("Invalid component definition in copied content."))
+	if not isinstance(component.get("script") or "", str):
+		frappe.throw(_("Invalid component script in copied content."))
 	if not isinstance(component.get("inputs") or [], list) or not all(
 		isinstance(row, dict) for row in component.get("inputs") or []
 	):
@@ -329,6 +333,7 @@ def new_component_from_copy(component):
 def update_component_from_copy(doc, component):
 	doc.component_name = component["component_name"]
 	doc.block = component["block"]
+	doc.script = component.get("script")
 	doc.is_disabled = component.get("is_disabled")
 	doc.set(
 		"inputs",

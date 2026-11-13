@@ -7,10 +7,18 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
-from frappe.studio.export import delete_file, parse_json, remove_empty_values, validate_standard_app_change
+from frappe.studio.export import (
+	can_export,
+	delete_file,
+	parse_json,
+	remove_empty_values,
+	validate_standard_app_change,
+	write_code_file,
+	write_document_file,
+)
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.sync_json import get_studio_folders
-from frappe.studio.utils import validate_file_name, walk_blocks
+from frappe.studio.sync_json import COMPONENT_FOLDER, get_studio_folders
+from frappe.studio.utils import find_script_file, script_extension, validate_file_name, walk_blocks
 
 
 class StudioComponent(Document):
@@ -29,6 +37,7 @@ class StudioComponent(Document):
 		inputs: DF.Table[StudioComponentInput]
 		is_disabled: DF.Check
 		is_standard: DF.Check
+		script: DF.Code | None
 	# end: auto-generated types
 
 	def before_insert(self):
@@ -59,6 +68,9 @@ class StudioComponent(Document):
 		)
 
 	def on_update(self):
+		if can_export(self) and self.has_value_changed("script"):
+			for folder in self.get_export_folders():
+				self.write_script_file(folder)
 		publish_doc_change("Studio Component", self.name)
 
 	def on_trash(self):
@@ -66,11 +78,44 @@ class StudioComponent(Document):
 		if frappe.conf.developer_mode:
 			self.delete_files()
 
+	def export_to_folder(self, folder: str):
+		"""Write the component's JSON, and its script when the folder has none.
+
+		The script file is the copy a developer edits, so only a changed `script` field replaces it."""
+		write_document_file(self, folder=folder, exclude_fields=["script"])
+		if self.script and not os.path.exists(self.get_script_file_path(folder)):
+			self.write_script_file(folder)
+
+	def write_script_file(self, folder: str):
+		"""An existing file keeps its language. A new one is JavaScript, the language of the `script` field."""
+		stem = frappe.scrub(self.name)
+		if self.script:
+			extension = script_extension(folder, stem, default="js")
+			write_code_file(self, folder, code_field="script", extension=extension, filename=stem)
+		else:
+			delete_file(self.get_script_file_path(folder))
+
+	def get_script_file_path(self, folder: str) -> str:
+		return find_script_file(folder, frappe.scrub(self.name))
+
+	def get_export_folders(self) -> list[str]:
+		"""Every standard page using a component exports it, so its files can be in several apps"""
+		folders = []
+		for studio_folder in get_studio_folders():
+			for app_folder in os.listdir(studio_folder):
+				folder = os.path.join(studio_folder, app_folder, COMPONENT_FOLDER)
+				if os.path.exists(os.path.join(folder, f"{frappe.scrub(self.name)}.json")):
+					folders.append(folder)
+		return folders
+
 	def delete_files(self):
-		"""Every standard page using a component exports it, so its file can be in several apps"""
-		for folder in get_studio_folders():
-			for app_folder in os.listdir(folder):
-				delete_file(folder, app_folder, "studio_components", f"{frappe.scrub(self.name)}.json")
+		for folder in self.get_export_folders():
+			delete_component_files(folder, frappe.scrub(self.name))
+
+
+def delete_component_files(folder: str, stem: str):
+	delete_file(find_script_file(folder, stem))
+	delete_file(folder, f"{stem}.json")
 
 
 def mark_components_standard(names: list[str]):
@@ -112,7 +157,7 @@ def fetch_component_batch(names: set[str]) -> list[dict]:
 	components = frappe.get_all(
 		"Studio Component",
 		filters={"name": ["in", names]},
-		fields=["name", "component_name", "component_id", "block", "is_disabled"],
+		fields=["name", "component_name", "component_id", "block", "script", "is_disabled"],
 	)
 	if not components:
 		return []

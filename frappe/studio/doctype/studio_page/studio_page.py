@@ -9,6 +9,7 @@ from frappe.exceptions import TimestampMismatchError
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.studio.doctype.studio_component.studio_component import (
+	delete_component_files,
 	get_components_for_blocks,
 	mark_components_standard,
 )
@@ -447,8 +448,9 @@ class StudioPage(Document):
 			frappe.create_folder(self.get_component_folder_path())
 			mark_components_standard([component.name for component in components])
 		for component in components:
-			doc = frappe.get_doc("Studio Component", component.name)
-			write_document_file(doc, folder=self.get_component_folder_path())
+			frappe.get_doc("Studio Component", component.name).export_to_folder(
+				self.get_component_folder_path()
+			)
 		self.delete_unused_component_files()
 
 	def delete_unused_component_files(self, deleting: bool = False):
@@ -464,7 +466,7 @@ class StudioPage(Document):
 		used = {frappe.scrub(component.name) for component in get_components_for_blocks(blocks)}
 		for file in os.listdir(folder):
 			if file.endswith(".json") and file.removesuffix(".json") not in used:
-				delete_file(folder, file)
+				delete_component_files(folder, file.removesuffix(".json"))
 
 	def get_component_folder_path(self) -> str:
 		return os.path.join(get_export_folder(self.frappe_app, self.studio_app), "studio_components")

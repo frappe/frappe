@@ -6,6 +6,7 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 from frappe.studio.build import build_custom_apps
 from frappe.studio.doctype.studio_component.studio_component import mark_components_standard
+from frappe.studio.sync_json import import_script_file
 from frappe.studio.utils import (
 	get_app_file_path,
 	get_exported_app_folders,
@@ -92,6 +93,7 @@ def sync_components(app_folder):
 		if component.endswith(".json"):
 			component_path = os.path.join(studio_component_folder, component)
 			import_file_by_path(component_path)
+			import_script_file(component_path)
 			names.append(read_json_file(component_path).get("name"))
 	mark_components_standard(names)
 

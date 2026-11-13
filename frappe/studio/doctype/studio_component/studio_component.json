@@ -11,6 +11,7 @@
   "component_name",
   "is_disabled",
   "block",
+  "script",
   "component_id",
   "is_standard",
   "interface_tab",
@@ -60,12 +61,18 @@
    "label": "Is Standard",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "fieldname": "script",
+   "fieldtype": "Code",
+   "label": "Script",
+   "options": "JavaScript"
   }
  ],
  "grid_page_length": 50,
- "index_web_pages_for_search": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-19 12:00:00.000000",
+ "modified": "2026-11-13 06:40:44.906305",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",

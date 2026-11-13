@@ -8,12 +8,14 @@ import os
 
 import frappe
 from frappe.modules.import_file import calculate_hash, import_file_by_path
-from frappe.studio.utils import get_studio_folder
+from frappe.studio.realtime import publish_doc_change
+from frappe.studio.utils import find_script_file, get_studio_folder
 
 # Layout written by the exporters — see StudioApp.get_folder_path and StudioPage.get_folder_path:
 #   <frappe_app>/studio/<studio_app>/<studio_app>.json                -> Studio App
 #   <frappe_app>/studio/<studio_app>/studio_page/<stem>/<stem>.json   -> Studio Page
 #   <frappe_app>/studio/<studio_app>/studio_components/<name>.json    -> Studio Component
+#   <frappe_app>/studio/<studio_app>/studio_components/<name>.js|ts   -> its `script` field
 PAGE_FOLDER = "studio_page"
 COMPONENT_FOLDER = "studio_components"
 
@@ -36,6 +38,9 @@ def sync_file(path: str) -> dict | None:
 	since been removed — a file can be deleted between a watch event and the import — or when the DB
 	already holds it.
 	"""
+	if component_path := get_component_path_from_script(path):
+		return sync_component_script(component_path)
+
 	doctype = get_doctype_from_path(path)
 	if not doctype or not os.path.exists(path) or is_in_sync(path):
 		return None
@@ -43,10 +48,46 @@ def sync_file(path: str) -> dict | None:
 	# `force` because editing JSON on disk doesn't bump its `modified`
 	if not import_file_by_path(path, force=True):
 		return None
+	if doctype == "Studio Component":
+		import_script_file(path)
 
 	# Mirrors frappe stamping `migration_hash` after its own imports.
 	cache_synced_file_hash(path)
 	return synced_doc_identity(path, doctype)
+
+
+def sync_component_script(component_path: str) -> dict | None:
+	"""Import the script beside `component_path` and tell open editors to load the component again."""
+	if not os.path.exists(component_path) or not import_script_file(component_path):
+		return None
+	identity = synced_doc_identity(component_path, "Studio Component")
+	publish_doc_change("Studio Component", identity["name"], source="disk")
+	return identity
+
+
+def import_script_file(component_path: str) -> bool:
+	"""Copy the script beside an exported component JSON into the component's `script` field.
+	Return whether the field changed.
+
+	The JSON carries no script, so importing it leaves the field empty."""
+	folder, file_name = os.path.split(component_path)
+	name = frappe.parse_json(frappe.read_file(component_path)).get("name")
+	script = frappe.read_file(find_script_file(folder, file_name.removesuffix(".json"))) or None
+	if not frappe.db.exists("Studio Component", name):
+		return False
+	if frappe.db.get_value("Studio Component", name, "script") == script:
+		return False
+	frappe.db.set_value("Studio Component", name, "script", script, update_modified=False)
+	return True
+
+
+def get_component_path_from_script(path: str) -> str | None:
+	"""The component JSON a script file belongs to. None if `path` is not a component script."""
+	stem, extension = os.path.splitext(path)
+	parts = get_studio_relative_parts(path)
+	if extension not in (".js", ".ts") or not parts or len(parts) != 3 or parts[1] != COMPONENT_FOLDER:
+		return None
+	return f"{stem}.json"
 
 
 def synced_doc_identity(path: str, doctype: str) -> dict:
@@ -89,8 +130,8 @@ def get_doctype_from_path(path: str) -> str | None:
 def get_studio_relative_parts(path: str) -> list[str] | None:
 	"""Split `path` into parts relative to the `<app>/studio` folder holding it, e.g.
 	["notes", "studio_page", "inbox", "inbox.json"]. None if it isn't under one."""
-	path = os.path.abspath(path)
-	for folder in get_studio_folders():
+	path = os.path.realpath(path)
+	for folder in map(os.path.realpath, get_studio_folders()):
 		if path.startswith(folder + os.sep):
 			return path[len(folder) + 1 :].split(os.sep)
 	return None

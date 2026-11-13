@@ -12,6 +12,24 @@ from frappe.studio.doctype.studio_app.test_studio_app import (
 )
 from frappe.tests import IntegrationTestCase
 
+COMPONENT_SCRIPT = 'export default {\n\tprops: { title: String },\n\temits: ["select"],\n}\n'
+
+
+def export_scripted_component():
+	"""A scripted component used by a page of a standard app, and the path of its script file."""
+	app = make_studio_app(
+		app_name="scripted-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
+	)
+	component = frappe.get_doc(
+		doctype="Studio Component",
+		component_name="Scripted " + frappe.generate_hash(length=10),
+		script=COMPONENT_SCRIPT,
+	).insert()
+	blocks = [{"componentName": component.name, "isStudioComponent": True, "children": []}]
+	page = make_studio_page(app.name, blocks=frappe.as_json(blocks))
+	component.reload()
+	return component, page, os.path.join(page.get_component_folder_path(), f"{component.name}.js")
+
 
 class TestStudioComponent(IntegrationTestCase):
 	def test_component_id_must_scrub_to_a_single_file_name(self):
@@ -79,3 +97,38 @@ class TestStudioComponent(IntegrationTestCase):
 				"children": [{"componentName": "span"}],
 			},
 		)
+
+	def test_script_exports_to_a_file_beside_the_json(self):
+		with exports_in_tempdir():
+			component, _page, script_path = export_scripted_component()
+			self.assertEqual(frappe.read_file(script_path), COMPONENT_SCRIPT)
+			exported = frappe.parse_json(frappe.read_file(script_path.removesuffix(".js") + ".json"))
+			self.assertNotIn("script", exported)
+
+			component.script = "export default {}\n"
+			component.save()
+			self.assertEqual(frappe.read_file(script_path), "export default {}\n")
+
+			component.script = ""
+			component.save()
+			self.assertFalse(os.path.exists(script_path))
+
+	def test_export_keeps_a_script_file_edited_on_disk(self):
+		with exports_in_tempdir():
+			component, page, script_path = export_scripted_component()
+			with open(script_path, "w") as script_file:
+				script_file.write("export default { props: { edited: Boolean } }\n")
+
+			component.component_name = "Renamed"
+			component.save()
+			page.save()
+
+			self.assertEqual(frappe.read_file(script_path), "export default { props: { edited: Boolean } }\n")
+
+	def test_deleting_a_component_removes_its_script_file(self):
+		with exports_in_tempdir():
+			component, page, script_path = export_scripted_component()
+			page.blocks = "[]"
+			page.save()
+			self.assertFalse(os.path.exists(script_path))
+			self.assertTrue(frappe.db.exists("Studio Component", component.name))
