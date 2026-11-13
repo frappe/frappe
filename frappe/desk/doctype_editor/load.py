@@ -109,15 +109,20 @@ def readable_fields(meta: Meta, parents: list[str | None]) -> list:
 def scope_counts(meta: Meta, parent: str | None, fields: list) -> dict[str, int]:
 	"""Counts in one SELECT over the rows the user reads, under `parent` for a child table."""
 	table = frappe.qb.DocType(meta.name)
+	# Field masking rewrites a value whose key is a masked fieldname, so no count is aliased as one.
+	aliases = {df.fieldname: f"{RECORDS}_{index}" for index, df in enumerate(fields)}
 	counts = [Count("*").as_(RECORDS)]
-	counts += [Count(counted_value(table[df.fieldname], df.fieldtype)).as_(df.fieldname) for df in fields]
-	return frappe.qb.get_query(
+	counts += [
+		Count(counted_value(table[df.fieldname], df.fieldtype)).as_(aliases[df.fieldname]) for df in fields
+	]
+	row = frappe.qb.get_query(
 		meta.name,
 		fields=counts,
 		filters={"parenttype": parent} if parent else None,
 		parent_doctype=parent,
 		ignore_permissions=False,
 	).run(as_dict=True)[0]
+	return {RECORDS: row[RECORDS]} | {fieldname: row[alias] for fieldname, alias in aliases.items()}
 
 
 def counted_value(column, fieldtype: str):

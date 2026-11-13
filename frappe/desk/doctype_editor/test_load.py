@@ -203,6 +203,16 @@ class TestDoctypeEditor(IntegrationTestCase):
 		self.assertGreater(managed, 0)
 		self.assertLessEqual(managed, everything - hidden)
 
+	def test_counts_of_masked_fields_stay_numbers(self):
+		masked = [
+			{"label": "Email", "fieldname": "email", "fieldtype": "Data", "options": "Email", "mask": 1},
+			{"label": "Code", "fieldname": "code", "fieldtype": "Data", "mask": 1},
+		]
+		doctype = new_doctype(fields=masked).insert().name
+		frappe.get_doc(doctype=doctype, email="editor-47270@example.com", code="x").insert()
+		editor = self.open(self.manager, doctype)
+		self.assertEqual(editor["value_counts"], {"email": 1, "code": 1})
+
 	def test_counts_need_read_on_the_doctype_or_a_parent(self):
 		editor = self.open(self.customizer, "Webhook", "Customize")
 		self.assertEqual((editor["record_count"], editor["value_counts"]), (None, {}))
