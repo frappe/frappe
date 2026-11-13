@@ -46,13 +46,6 @@
 			@update:model-value="view.set({ sort_order: $event })"
 		/>
 	</div>
-	<Select
-		v-else-if="row.control === 'view'"
-		class="w-[140px]"
-		:model-value="String(view.value(prop) || 'List')"
-		:options="VIEWS"
-		@update:model-value="view.set({ [prop]: $event === 'List' ? '' : $event })"
-	/>
 	<RadioGroup
 		v-else-if="row.control === 'kind'"
 		padded
@@ -86,10 +79,6 @@ const ORDERS = [
 	{ label: __("Ascending"), value: "ASC" },
 	{ label: __("Descending"), value: "DESC" },
 ];
-const VIEWS = ["List", "Report", "Image", "Kanban", "Calendar", "Gantt"].map((value) => ({
-	label: __(value),
-	value,
-}));
 
 const prop = computed(() => props.row.props[0]);
 const fieldOptions = computed(() => view.fieldOptions(props.row.fieldtypes ?? []));

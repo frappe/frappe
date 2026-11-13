@@ -4,7 +4,7 @@ import type { SettingsState } from "./settingsModel";
 
 export type SettingsSection = "naming" | "form" | "list" | "permissions";
 export type DoctypeKind = "regular" | "submittable" | "tree" | "child" | "single";
-export type RowControl = "naming" | "kind" | "switch" | "number" | "field" | "fields" | "sort" | "view" | "permissions";
+export type RowControl = "naming" | "kind" | "switch" | "number" | "field" | "fields" | "sort" | "permissions";
 
 export interface SettingRow {
 	key: string;
@@ -118,16 +118,6 @@ export const SETTING_ROWS: SettingRow[] = [
 	flag("form", "Attachments", "force_private_attachments", "Keep attachments private", "Every attachment is a private file.", NOT_CHILD),
 	flag("form", "Attachments", "protect_attached_files", "Protect attached files", "A submitted record's files cannot be removed.", NOT_CHILD),
 	flag("form", "Rows", "editable_grid", "Editable grid", "Rows are edited in the parent's table, not a dialog.", ["child"]),
-	{
-		key: "default_view",
-		section: "list",
-		group: "List",
-		label: "Default view",
-		help: "The view the DocType opens in.",
-		control: "view",
-		props: ["default_view"],
-		kinds: MANY,
-	},
 	{
 		key: "sort_field",
 		section: "list",

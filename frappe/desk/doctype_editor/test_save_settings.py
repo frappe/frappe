@@ -233,6 +233,17 @@ class TestSaveSettingsCustomize(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Custom DocPerm", masked, "mask"), 1)
 		self.assertEqual(doc_perm("Custom DocPerm", NOTE, "Desk User", if_owner=1).export, 1)
 
+	def test_a_disabled_apps_rule_stays_hidden_and_untouched(self):
+		copy_perms(NOTE)
+		key = {"role": "System Manager", "permlevel": 2, "if_owner": 0}
+		hidden = frappe.db.get_value("Custom DocPerm", {"parent": NOTE, **key})
+		frappe.db.set_value("Custom DocPerm", hidden, "is_app_disabled", 1)
+		shown = get_doctype_editor(NOTE, "Customize")["definition"]["permissions"]
+		self.assertNotIn(key, [{column: row[column] for column in key} for row in shown])
+		result = self.save([perm("export", role="Desk User", if_owner=1)])
+		self.assertTrue(result["saved"], result)
+		self.assertEqual(frappe.db.get_value("Custom DocPerm", hidden, "is_app_disabled"), 1)
+
 	def test_the_last_rule_is_not_removed(self):
 		rows = frappe.get_all("DocPerm", {"parent": NOTE}, ["role", "permlevel", "if_owner"])
 		result = self.save([{"act": "settings.remove_permission", **row} for row in rows])

@@ -99,7 +99,6 @@ export class SettingsView {
 	shipped(row: SettingRow): string {
 		const value = normal(this.appValue(row.props[0]));
 		if (row.control === "switch") return value ? __("On") : __("Off");
-		if (row.control === "view") return __(value || "List");
 		if (!value) return __("none");
 		if (row.control === "field") return this.label(value);
 		if (row.control === "sort") return SORT_LABELS[value] ? __(SORT_LABELS[value]) : this.label(value);

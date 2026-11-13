@@ -14,7 +14,7 @@ from frappe.desk.doctype_editor.save import DesignSave, move_table_rows
 from frappe.desk.doctype_editor.settings_edits import PERMISSION_COLUMNS, permission_key
 from frappe.desk.doctype_editor.versions import changed_error, customizations_version, stale_error
 from frappe.model import table_fields
-from frappe.permissions import reset_perms
+from frappe.permissions import copy_perms, reset_perms
 
 
 class CustomizeSave(DesignSave):
@@ -94,7 +94,10 @@ class CustomizeSave(DesignSave):
 		clear_permissions_cache(self.doctype)
 
 	def replace_permissions(self):
-		"""Row by row, so the Permission Log names only the rules that changed."""
+		"""Row by row, so the Permission Log names only the rules that changed.
+		The first edit copies the app's rows whole, as v1 does, so columns the editor does not send survive."""
+		if not frappe.db.exists("Custom DocPerm", {"parent": self.doctype}):
+			copy_perms(self.doctype)
 		saved = {
 			permission_key(row): row.name
 			for row in frappe.get_all(

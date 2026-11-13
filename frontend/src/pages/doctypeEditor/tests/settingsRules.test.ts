@@ -30,7 +30,7 @@ describe("the rows each kind shows", () => {
 		expect(sections(ofKind("regular"))).toEqual(["naming", "form", "list", "permissions"]);
 		expect(sections(ofKind("child"))).toEqual(["form", "list"]);
 		expect(keys(ofKind("child"))).toContain("editable_grid");
-		expect(keys(ofKind("child")).filter((key) => ["default_view", "allow_import", "allow_bulk_edit"].includes(key))).toEqual(["allow_bulk_edit"]);
+		expect(keys(ofKind("child")).filter((key) => ["allow_import", "allow_bulk_edit"].includes(key))).toEqual(["allow_bulk_edit"]);
 		expect(sections(ofKind("single"))).not.toContain("naming");
 	});
 
