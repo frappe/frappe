@@ -4,7 +4,6 @@ import type { ActItem } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { FormLayoutType } from "@/recordPage/formLayoutSource/types";
 import type { EditorActsHost } from "./editorActs";
-import { newLayoutId } from "./layoutMenu";
 import type { LayoutRef } from "./workingLayouts";
 
 export interface AddedLayout {
@@ -71,4 +70,9 @@ export function layoutItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 function open(host: EditorActsHost, layout: LayoutRef) {
 	host.canvas()!.open(layout);
 	host.tab.value = "editor";
+}
+
+/** An id the server takes for a new layout until its save names the row. */
+export function newLayoutId(): string {
+	return `new-${Math.random().toString(36).slice(2, 10)}`;
 }

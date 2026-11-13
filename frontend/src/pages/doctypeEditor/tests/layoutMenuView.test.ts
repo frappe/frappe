@@ -41,9 +41,15 @@ function mount(component: Component, props: Record<string, unknown>, setup?: (ap
 async function openMenu(state = leadNote()) {
 	editor = mountEditor(state);
 	const root = mount(LayoutMenu, { canvas: editor.canvas });
+	await clickCrumb(root);
+	return root;
+}
+
+/** Opens the menu and waits for its lazy rows' first import. */
+async function clickCrumb(root: Element) {
 	root.querySelector<HTMLButtonElement>("[data-layout-crumb]")!.click();
 	await settle();
-	return root;
+	for (let turn = 0; turn < 100 && !menu(); turn++) await new Promise((resolve) => setTimeout(resolve, 20));
 }
 
 const menu = () => document.body.querySelector("[data-layout-menu]");
@@ -84,8 +90,7 @@ describe("the layout menu", () => {
 		editor = mountEditor(leadNote());
 		editor.canvas.open({ type: "Details", id: "app:1" });
 		const root = mount(LayoutMenu, { canvas: editor.canvas });
-		root.querySelector<HTMLButtonElement>("[data-layout-crumb]")!.click();
-		await settle();
+		await clickCrumb(root);
 		const acts = menu()!.querySelector("[data-layout-acts]")!;
 		expect(acts.textContent).toContain("Shows in the record page's main column when doc.status == 'Done'");
 		expect([...acts.querySelectorAll("[data-layout-act]")].map((act) => act.getAttribute("data-layout-act"))).toEqual([

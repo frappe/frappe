@@ -42,7 +42,13 @@
 			v-model:viewing="viewingApp"
 			:class="formPage ? 'mt-6' : 'mb-6'"
 			:canvas="canvas"
-		/>
+		>
+			<template #default="{ app }">
+				<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="app" />
+				<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="app" />
+				<CanvasForm v-else :canvas="app" />
+			</template>
+		</AppLayoutNotice>
 		<template v-if="!(appChanged && viewingApp)">
 			<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="canvas" />
 			<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="canvas" />

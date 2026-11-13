@@ -4,6 +4,8 @@ import type { FormLayoutType } from "@/recordPage/formLayoutSource/types";
 import { __ } from "@/i18n";
 import { workingState, type WorkingState } from "./editorModel";
 import type { LayoutSource } from "./editorSource";
+import { newLayoutId } from "./layoutActs";
+import { typeLabel } from "./layoutNames";
 import { EditRefused } from "./layoutTree";
 import { baseSource, layoutOf, typeRefusal, type LayoutRef, type WorkingLayout } from "./workingLayouts";
 
@@ -62,16 +64,6 @@ export function layoutMenu(working: WorkingState, open: LayoutRef): LayoutMenu {
 	};
 }
 
-/** What the layout crumb names: the open type's label, or the open conditional layout's name. */
-export function openLayoutName(menu: LayoutMenu): string {
-	for (const type of menu.types) {
-		if (type.open) return type.label;
-		const layout = type.layouts.find((one) => one.open);
-		if (layout) return layout.name;
-	}
-	return LABELS.Details();
-}
-
 /** Why "Add a layout" cannot add this one, or `null`; every type has a default, if only a stand-in, so it needs a condition. */
 export function addLayoutRefusal(working: WorkingState, layout: NewLayout): string | null {
 	const refused = typeRefusal(working, layout.type);
@@ -91,7 +83,7 @@ export function addLayoutRefusal(working: WorkingState, layout: NewLayout): stri
 /** What Reset to app layout removes from a type and what comes back after the save. */
 export function resetSummary(working: WorkingState, type: FormLayoutType): ResetSummary {
 	const of = working.layouts[type];
-	const row = (layout: WorkingLayout) => ({ name: layout.title || layout.condition || LABELS[type](), condition: layout.condition });
+	const row = (layout: WorkingLayout) => ({ name: layout.title || layout.condition || typeLabel(type), condition: layout.condition });
 	return {
 		removes: (of?.layouts ?? []).map(row),
 		restores: (of?.app ?? []).map(row),
@@ -111,18 +103,13 @@ export function resetWording(working: WorkingState, type: FormLayoutType): { tit
 	return { title: __("Remove the {0} site layouts?", [label]), confirmLabel: __("Remove") };
 }
 
-/** An id the server takes for a new layout until its save names the row. */
-export function newLayoutId(): string {
-	return `new-${Math.random().toString(36).slice(2, 10)}`;
-}
-
 /** `opened` is the open layout when it is of this type. */
 function menuType(working: WorkingState, type: FormLayoutType, opened: WorkingLayout | null): MenuType {
 	const fallback = layoutOf(working, { type })!;
 	const conditional = (working.layouts[type]?.layouts ?? []).filter((layout) => layout.condition);
 	return {
 		type,
-		label: LABELS[type](),
+		label: typeLabel(type),
 		icon: ICONS[type],
 		badge: badge(fallback.source),
 		ref: { type },
@@ -143,26 +130,15 @@ function openActs(working: WorkingState, type: FormLayoutType, layout: WorkingLa
 	if (!acts.length) return null;
 	const where = WHERE[type]();
 	return {
-		name: layout.title || layout.condition || LABELS[type](),
+		name: layout.title || layout.condition || typeLabel(type),
 		where: layout.condition ? __("{0} when {1}", [where, layout.condition]) : where,
 		acts,
 	};
 }
 
-export function typeLabel(type: FormLayoutType): string {
-	return LABELS[type]();
-}
-
 function badge(source: LayoutSource): string {
 	return BADGES[source]();
 }
-
-const LABELS: Record<FormLayoutType, () => string> = {
-	Details: () => __("Details"),
-	"Side Panel": () => __("Side panel"),
-	"Quick Entry": () => __("Quick entry"),
-	"New Record": () => __("New record"),
-};
 
 const ICONS: Record<FormLayoutType, string> = {
 	Details: "lucide-file-text",

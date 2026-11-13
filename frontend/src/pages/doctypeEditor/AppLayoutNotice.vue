@@ -1,5 +1,5 @@
 <!-- Customize's notice on a site layout whose app layout changed since the site copied it. While
-     `viewing`, the app layout draws read-only in the canvas's place. -->
+     `viewing`, the slot draws the app layout read-only in the canvas's place. -->
 <template>
 	<div data-app-layout-notice>
 		<Alert
@@ -8,9 +8,7 @@
 			:secondary-action="hasApp && reset ? reset : undefined"
 		/>
 		<div v-if="viewing && app" class="mt-6" data-app-layout-view>
-			<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="app" />
-			<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="app" />
-			<CanvasForm v-else :canvas="app" />
+			<slot :app="app" />
 		</div>
 	</div>
 </template>
@@ -19,16 +17,13 @@
 import { computed, effectScope, onScopeDispose, shallowRef, watch, type EffectScope } from "vue";
 import { Alert } from "frappe-ui";
 import { __ } from "@/i18n";
-import { appLayoutCanvas } from "./appLayout";
-import CanvasForm from "./CanvasForm.vue";
 import type { DesignCanvas } from "./designCanvas";
 import { resetToApp } from "./layoutDialogs";
-import { typeLabel } from "./layoutMenu";
-import QuickEntryCanvas from "./QuickEntryCanvas.vue";
-import SidePanelCanvas from "./SidePanelCanvas.vue";
+import { typeLabel } from "./layoutNames";
 
 const props = defineProps<{ canvas: DesignCanvas }>();
 const viewing = defineModel<boolean>("viewing", { default: false });
+defineSlots<{ default(props: { app: DesignCanvas }): unknown }>();
 
 const type = computed(() => props.canvas.openLayout.value.type);
 const hasApp = computed(() => Boolean(props.canvas.working.value.layouts[type.value]?.app.length));
@@ -45,7 +40,7 @@ watch(
 	() => {
 		appScope?.stop();
 		appScope = viewing.value && hasApp.value ? effectScope(true) : null;
-		app.value = appScope?.run(() => appLayoutCanvas(props.canvas)) ?? null;
+		app.value = appScope?.run(() => props.canvas.appView()) ?? null;
 	},
 	{ immediate: true }
 );

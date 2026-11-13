@@ -14,7 +14,7 @@ import { CustomizeView } from "./customizeView";
 import type { EditorState } from "./editorSource";
 import type { ForkWarning } from "./forkWarning";
 import { LayoutTreeEditor } from "./layoutTree";
-import type { EditStage } from "./pendingEdits";
+import { PendingEdits, type EditStage } from "./pendingEdits";
 import { findLayout, layoutOf, reloadedRef, type LayoutRef, type WorkingLayout } from "./workingLayouts";
 
 export type CanvasSelection =
@@ -139,6 +139,18 @@ export class DesignCanvas {
 		this.selection.value = selection;
 		const tab = selection && this.tabOf(selection);
 		if (tab) this.openTabName.value = tab;
+	}
+
+	/** The app's layouts behind a Customize site layout, read-only as Design reads them, open at the one with this layout's condition, else the default. */
+	appView(): DesignCanvas {
+		const app: EditorState = { ...this.state, mode: "Design", modes: [], custom: 0 };
+		const head = { doctype: app.doctype, mode: app.mode, base_version: app.base_version };
+		const view = new DesignCanvas(app, new PendingEdits(head, () => undefined));
+		const { type } = this.openLayout.value;
+		const condition = this.layout.value?.condition;
+		const same = condition && view.working.value.layouts[type]?.layouts.find((one) => one.condition === condition);
+		view.open(same ? { type, id: same.id } : { type });
+		return view;
 	}
 
 	field(fieldname: string): RawMetaField | undefined {
