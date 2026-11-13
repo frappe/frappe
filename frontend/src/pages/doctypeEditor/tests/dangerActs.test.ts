@@ -66,9 +66,14 @@ describe("which Danger zone acts show", () => {
 		expect(DANGER.some((name) => offered(`danger.${name}`))).toBe(false);
 	});
 
-	it("leaves out Move and Make standard without developer mode", () => {
+	it("leaves out Make standard, but not Move, on a custom DocType without developer mode", () => {
 		mount({}, { scope: () => ({ developerMode: false, administrator: true }) });
-		expect(DANGER.filter((name) => offered(`danger.${name}`))).toEqual(["change_kind", "rename_doctype", "delete_doctype"]);
+		expect(DANGER.filter((name) => offered(`danger.${name}`))).toEqual(["change_kind", "rename_doctype", "move_doctype", "delete_doctype"]);
+	});
+
+	it("leaves out Move on a standard DocType without developer mode", () => {
+		mount({ custom: 0 }, { scope: () => ({ developerMode: false, administrator: true }) });
+		expect(offered("danger.move_doctype")).toBe(false);
 	});
 });
 
