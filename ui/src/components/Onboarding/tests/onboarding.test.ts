@@ -165,6 +165,23 @@ describe("useOnboarding", () => {
     expect(saved.every((s: { completed: boolean }) => s.completed)).toBe(true);
   });
 
+  it("forgets a queued completion the user resets before the saved status is known", async () => {
+    const { call } = await import("frappe-ui");
+    const { onboarding, onStatusLoaded } = await load();
+    vi.mocked(call).mockClear();
+
+    const shown = steps();
+    onboarding.setUp(shown);
+    onboarding.skipAll();
+    onboarding.resetAll();
+    onboarding.updateOnboardingStep("invite_team");
+    onboarding.updateOnboardingStep("invite_team", false);
+
+    onStatusLoaded({});
+    expect(shown.some((s) => s.completed)).toBe(false);
+    expect(vi.mocked(call)).not.toHaveBeenCalled();
+  });
+
   it("applies a step queued before setUp only once", async () => {
     const { call } = await import("frappe-ui");
     const { onboarding, onStatusLoaded } = await load();
