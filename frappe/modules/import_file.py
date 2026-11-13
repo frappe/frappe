@@ -26,7 +26,7 @@ def calculate_hash(path: str) -> str:
 
 
 ignore_values = {
-	"Report": ["disabled", "prepared_report", "add_total_row", "default_print_format", "default_letter_head"],
+	"Report": ["disabled", "prepared_report", "add_total_row", "site_print_defaults"],
 	"Print Format": ["disabled"],
 	"Notification": ["enabled"],
 	"Print Style": ["disabled"],
@@ -34,6 +34,8 @@ ignore_values = {
 	"Onboarding Step": ["is_complete", "is_skipped"],
 	"Workspace": ["is_hidden"],
 }
+
+ignore_values_if_set = {"Report": {"site_print_defaults": ["default_print_format", "default_letter_head"]}}
 
 ignore_doctypes = [""]
 
@@ -272,6 +274,11 @@ def delete_old_doc(doc, reset_permissions):
 		# update ignore values
 		for key in ignore_values.get(doc.doctype) or []:
 			doc.set(key, old_doc.get(key))
+
+	for flag, keys in (ignore_values_if_set.get(doc.doctype) or {}).items():
+		if old_doc.get(flag):
+			for key in keys:
+				doc.set(key, old_doc.get(key))
 
 	# update ignored docs into new doc
 	for df in doc.meta.get_table_fields():

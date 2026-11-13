@@ -62,6 +62,7 @@ class Report(Document):
 		report_script: DF.Code | None
 		report_type: DF.Literal["Report Builder", "Query Report", "Script Report", "Custom Report"]
 		roles: DF.Table[HasRole]
+		site_print_defaults: DF.Check
 		snapshot_report: DF.Check
 		timeout: DF.Int
 	# end: auto-generated types
@@ -517,7 +518,12 @@ class Report(Document):
 		self.validate_default_print_format()
 		self.validate_default_letter_head(standard_only=False)
 		self.db_set(
-			{"default_print_format": print_format, "default_letter_head": letter_head}, update_modified=False
+			{
+				"default_print_format": print_format,
+				"default_letter_head": letter_head,
+				"site_print_defaults": 1,
+			},
+			update_modified=False,
 		)
 
 	@frappe.whitelist()
