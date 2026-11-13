@@ -185,6 +185,61 @@ describe("BulkBar", () => {
 		expect(root.textContent).not.toContain("More");
 		expect(root.textContent).not.toContain("Over the");
 	});
+
+	describe("in a narrow list", () => {
+		afterEach(() => vi.restoreAllMocks());
+		const ghosts = ["Assign To", "Add Tags", "Edit", "Favourite"].map((label) =>
+			entry(label, { label, icon: "lucide-star", button: true, group: "collaborate" })
+		);
+		const trash = entry("delete", { label: "Delete", icon: "lucide-trash-2", group: "danger" });
+		const settle = () => new Promise((resolve) => setTimeout(resolve));
+
+		// The bar is 700px wide with its labels and 400px without, and no wider than its cap.
+		async function mountAt(width: number) {
+			vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+				const full = this.textContent?.includes("Assign To") ? 700 : 400;
+				return { width: this.classList.contains("max-w-full") ? Math.min(full, room.value) : full } as DOMRect;
+			});
+			const room = ref(width);
+			const root = document.createElement("div");
+			document.body.append(root);
+			app = createApp(defineComponent({ render: () => h(BulkBar, { doctype: "ToDo", status: { asked: shallowRef(null) }, cap: 500, locked: false, scope: scopeOf(3).scope, room: room.value, layout: layoutBulk([...ghosts, entry("print"), trash], "ToDo") } as never) }));
+			app.mount(root);
+			await settle();
+			return { root, room };
+		}
+		const labelled = (root: HTMLElement) => ghosts.filter(({ label }) => button(root, label)?.textContent?.trim() === label).map(({ label }) => label);
+
+		it("keeps every label while the bar fits, and before the room is measured", async () => {
+			expect(labelled((await mountAt(900)).root)).toEqual(["Assign To", "Add Tags", "Edit", "Favourite"]);
+			app!.unmount();
+			expect(labelled((await mountAt(0)).root)).toEqual(["Assign To", "Add Tags", "Edit", "Favourite"]);
+		});
+
+		it("drops the ghost buttons' labels for icons with tooltips, and keeps the count, More, trash and ×", async () => {
+			const { root } = await mountAt(600);
+			expect(labelled(root)).toEqual([]);
+			for (const { label } of ghosts) expect(button(root, label)!.getAttribute("aria-label")).toBe(label);
+			expect(root.textContent).toContain("3 selected");
+			expect(button(root, "More")?.textContent?.trim()).toBe("More");
+			expect(button(root, "Delete")).toBeTruthy();
+			expect(button(root, "Clear selection")).toBeTruthy();
+
+			button(root, "Edit")!.dispatchEvent(new FocusEvent("focus"));
+			button(root, "Edit")!.focus();
+			await settle();
+			expect([...document.querySelectorAll("[role=tooltip]")].map((one) => one.textContent?.trim())).toContain("Edit");
+		});
+
+		it("brings the labels back when the list widens, without remounting the buttons", async () => {
+			const { root, room } = await mountAt(600);
+			const edit = button(root, "Edit");
+			room.value = 900;
+			await settle();
+			expect(labelled(root)).toEqual(["Assign To", "Add Tags", "Edit", "Favourite"]);
+			expect(button(root, "Edit")).toBe(edit);
+		});
+	});
 });
 
 describe("useBulkBar", () => {

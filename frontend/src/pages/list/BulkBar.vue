@@ -1,7 +1,9 @@
 <!-- The floating bar over the last rows while rows are selected: the count, the actions, and a clear button. -->
 <template>
 	<div
-		class="flex h-11 items-center rounded-6 bg-surface-base py-2 pe-2 ps-3 text-base shadow-[0_1px_2px_rgb(0_0_0/.06),0_8px_24px_rgb(0_0_0/.12),0_24px_48px_rgb(0_0_0/.1)] ring-1 ring-outline-gray-3"
+		ref="bar"
+		:class="{ 'max-w-full': !fitting }"
+		class="flex h-11 w-max items-center rounded-6 bg-surface-base py-2 pe-2 ps-3 text-base shadow-[0_1px_2px_rgb(0_0_0/.06),0_8px_24px_rgb(0_0_0/.12),0_24px_48px_rgb(0_0_0/.1)] ring-1 ring-outline-gray-3"
 		role="toolbar"
 		:aria-label="__('Bulk actions')"
 	>
@@ -11,7 +13,9 @@
 			:aria-label="__('Deselect all')"
 			@update:modelValue="$emit('clear')"
 		/>
-		<span class="whitespace-nowrap text-ink-gray-9" aria-live="polite">{{ countText }}</span>
+		<span class="min-w-[4ch] truncate text-ink-gray-9" aria-live="polite">{{
+			countText
+		}}</span>
 		<Button
 			v-if="scope.canSelectAll.value"
 			class="ms-1"
@@ -41,15 +45,20 @@
 					@click="entry.onClick"
 				/>
 				<div v-if="layout.transitions.length" :class="[divider, 'mx-1']" />
-				<Button
+				<Tooltip
 					v-for="entry in layout.buttons"
 					:key="entry.name"
-					variant="ghost"
-					:label="barLabel(entry.label)"
-					:icon-left="entry.icon"
-					:disabled="entry.disabled"
-					@click="entry.onClick"
-				/>
+					:text="iconOnly(entry) ? barLabel(entry.label) : ''"
+				>
+					<Button
+						variant="ghost"
+						:label="barLabel(entry.label)"
+						:icon="iconOnly(entry) ? entry.icon : undefined"
+						:icon-left="iconOnly(entry) ? undefined : entry.icon"
+						:disabled="entry.disabled"
+						@click="entry.onClick"
+					/>
+				</Tooltip>
 				<Dropdown
 					v-if="layout.menu.length"
 					v-model:open="menuOpen"
@@ -117,10 +126,10 @@
 
 <script setup lang="ts">
 import { Button, Checkbox, Dropdown, Icon, KeyboardShortcut, Tooltip, toast } from "frappe-ui";
-import { computed, defineAsyncComponent, ref, watch } from "vue";
+import { computed, defineAsyncComponent, nextTick, ref, watch } from "vue";
 import { __ } from "@/i18n";
 import type { BulkScope } from "@/list/useBulkScope";
-import type { BulkLayout } from "./bulkLayout";
+import type { BulkEntry, BulkLayout } from "./bulkLayout";
 import type { BulkStatus } from "./bulkStatus";
 
 const props = defineProps<{
@@ -130,6 +139,8 @@ const props = defineProps<{
 	layout: BulkLayout;
 	locked: boolean;
 	status: BulkStatus;
+	/** The width the bar may take; past it the ghost buttons drop their labels. 0 is unmeasured. */
+	room?: number;
 }>();
 // A ghost button carries 8px of its own padding, so a divider keeps 4px to a button and 12px to text.
 const divider = "h-4 shrink-0 border-s border-outline-gray-2";
@@ -160,6 +171,31 @@ watch(props.status.asked, (action) => {
 });
 
 const overCap = computed(() => !props.locked && props.scope.count.value > props.cap);
+const bar = ref<HTMLElement | null>(null);
+const fitting = ref(true);
+const narrow = ref(false);
+const iconOnly = (entry: BulkEntry) => narrow.value && !fitting.value && !!entry.icon;
+
+// Measures with every label, uncapped, inside one microtask so no labelled frame paints. The bar
+// itself is never observed, and the Tooltips stay mounted, so a refit neither loops nor remounts.
+async function fit() {
+	fitting.value = true;
+	await nextTick();
+	narrow.value =
+		!!props.room && !!bar.value && bar.value.getBoundingClientRect().width > props.room;
+	fitting.value = false;
+}
+const widthSources = [
+	() => props.room,
+	countText,
+	props.scope.totalText,
+	props.scope.canSelectAll,
+	overCap,
+	() => props.layout,
+];
+watch(widthSources, fit, { immediate: true });
+document.fonts?.ready.then(fit);
+
 const shown = computed(
 	() =>
 		props.layout.transitions.length ||
