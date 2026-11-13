@@ -456,7 +456,9 @@ Draft, Submitted, Cancelled) on a submittable DocType. A Table reads as a Check
 
 **`fromDependsOn` returns `null` for anything it cannot show unchanged**: a call,
 a negated group, a comparison with `null`, an unknown field, `==` against a value
-a Check cannot hold. The host then keeps the condition as code, as written. A
+a Check cannot hold, a Check against 0 (a new record leaves a Check unset, which
+`=== 0` does not match), or `==` between two fields. The host then keeps the
+condition as code, as written. A
 tree it does return writes back to the same text, parentheses included, so
 opening a condition and saving it does not rewrite it. Loose forms read as their
 meaning (`doc.is_pos == 1` is "Is POS equals Yes") and are written strict.
@@ -467,7 +469,9 @@ and writes `""` for an empty tree, a bare fieldname for a single "is set" row
 
 A value that compares with another field, not a constant, is a reference:
 `fieldReference("stock_uom")` is `"eval:doc.stock_uom"`, `referencedField` reads
-it back, and both forms take `parent.x`. The built-in value cell does not edit a
+it back, and both forms take `parent.x`. Only an equality or an ordering
+compares with a reference; an `in` or `between` item is always text. The
+built-in value cell does not edit a
 reference. A host that offers one wraps `ConditionValueControl`, the built-in
 cell, in its own `#condition-value`, and shows a field picker when the value is
 a reference.

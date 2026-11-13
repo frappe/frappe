@@ -74,6 +74,9 @@ function readString(rest: string): { token: Token; length: number } {
   let text = "";
   let at = 1;
   while (at < rest.length && rest[at] !== quote) {
+    // A line break ends a string literal: JavaScript refuses the code.
+    if (rest[at] === "\n" || rest[at] === "\r")
+      throw new SyntaxError("Unterminated string");
     if (rest[at] !== "\\") {
       text += rest[at++];
       continue;

@@ -97,7 +97,6 @@ describe("fromDependsOn and toDependsOn", () => {
   it("read nothing as an empty tree and write an empty tree as nothing", () => {
     expect(fromDependsOn("", scope)).toEqual(group([]));
     expect(fromDependsOn(undefined, scope)).toEqual(group([]));
-    expect(fromDependsOn("eval:", scope)).toEqual(group([]));
     expect(toDependsOn(group([]), scope)).toBe("");
     expect(toDependsOn(null, scope)).toBe("");
   });
@@ -282,10 +281,11 @@ describe("fromDependsOn and toDependsOn", () => {
 });
 
 /**
- * Records to evaluate a condition on, each with its parent. A record as Frappe
- * loads it: a Check is 0 or 1 and a table a list, never missing.
+ * Records to evaluate a condition on, each with its parent. A table is always
+ * a list; a new record leaves a Check with no default, and `__islocal`, unset.
  */
 const SAMPLES: [Record<string, unknown>, Record<string, unknown>][] = [
+  [{ items: [], docstatus: 0, __islocal: 1 }, {}],
   [{ is_pos: 0, items: [], docstatus: 0 }, { is_return: 0 }],
   [
     {
@@ -348,11 +348,6 @@ const WRITTEN: [string, string, Tree][] = [
     "a Check against 1",
     "eval:doc.is_pos == 1",
     group([leaf("is_pos", "equals", "Yes")]),
-  ],
-  [
-    "a Check against 0",
-    "eval:doc.is_pos === 0",
-    group([leaf("is_pos", "equals", "No")]),
   ],
   [
     "a Check against text",
@@ -420,6 +415,11 @@ const WRITTEN: [string, string, Tree][] = [
     group([leaf("docstatus", "equals", "Draft")]),
   ],
   ["a Phone read as text", "phone", group([leaf("phone", "is", "set")])],
+  [
+    "a range from no value, as two comparisons",
+    'eval:"" <= doc.remarks && doc.remarks <= "m"',
+    group([leaf("remarks", ">=", ""), leaf("remarks", "<=", "m")]),
+  ],
   [
     "&& before ||",
     "eval:doc.is_pos || doc.customer && doc.remarks",
@@ -515,6 +515,21 @@ describe("fromDependsOn", () => {
     ["a length of text", "eval:doc.remarks.length > 0"],
     ["includes on a field that may be empty", 'eval:doc.remarks.includes("x")'],
     ["an octal number", "eval:doc.grand_total === 010"],
+    ["a Check against 0", "eval:doc.is_pos === 0"],
+    ["a Check unequal to 0", "eval:doc.is_pos != 0"],
+    ["a Check against false", "eval:doc.is_pos == false"],
+    ["a new record against 0", "eval:doc.__islocal == 0"],
+    ["two fields, loosely", "eval:doc.grand_total == doc.remarks"],
+    ["two fields unequal, loosely", "eval:doc.uom != doc.stock_uom"],
+    ["text inside a Check", 'eval:String(doc.is_pos ?? "").includes("1")'],
+    ["text inside a status", 'eval:String(doc.docstatus ?? "").includes("1")'],
+    ["a number or no text", 'eval:(doc.grand_total || "").includes("5")'],
+    ["no text inside", 'eval:!(doc.remarks || "").includes("")'],
+    ["a reference inside", 'eval:(doc.remarks || "").includes("eval:doc.uom")'],
+    ["space before eval", "  eval:doc.remarks"],
+    ["a bare name with a newline", "remarks\n"],
+    ["a line break inside text", 'eval:doc.remarks === "a\nb"'],
+    ["eval with nothing", "eval:"],
   ])("keeps %s as code", (_, text) => {
     expect(fromDependsOn(text, scope)).toBeNull();
   });
@@ -545,6 +560,32 @@ describe("toDependsOn", () => {
         '["eval:doc.y || 1"].includes(doc.customer) && ' +
         'doc.remarks === "eval:doc.items"'
     );
+  });
+
+  it("drops a number row with no number", () => {
+    const tree = group([
+      leaf("grand_total", ">", ""),
+      leaf("grand_total", "equals", "abc"),
+      leaf("grand_total", "between", ["eval:doc.grand_total", 5]),
+      leaf("customer", "is", "set"),
+    ]);
+    expect(toDependsOn(tree, scope)).toBe("customer");
+  });
+
+  it("writes typed list and range items as text, never as references", () => {
+    const tree = group([
+      leaf("customer", "in", "eval:doc.uom, x"),
+      leaf("remarks", "between", ["eval:doc.uom", "z"]),
+    ]);
+    expect(toDependsOn(tree, scope)).toBe(
+      'eval:["eval:doc.uom", "x"].includes(doc.customer) && ' +
+        '("eval:doc.uom" <= doc.remarks && doc.remarks <= "z")'
+    );
+  });
+
+  it("refuses an operator it has no code for", () => {
+    const tree = group([leaf("customer", "descendants of", "x")]);
+    expect(() => toDependsOn(tree, scope)).toThrow();
   });
 
   it("refuses a fieldname that is not a name", () => {
@@ -600,6 +641,12 @@ describe("toDependsOn", () => {
       "a date out of range",
       group([leaf("posting_date", "between", ["2026-01-01", "2026-01-31"])]),
       { posting_date: "2026-02-01" },
+      false,
+    ],
+    [
+      "text inside a Check",
+      group([leaf("is_pos", "like", "0")]),
+      { is_pos: 1 },
       false,
     ],
     [

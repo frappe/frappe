@@ -22,6 +22,10 @@ type Tree = ConditionGroup<Leaf>;
 const JS_OPERATOR: Record<string, string> = {
   equals: "===",
   "not equals": "!==",
+  "<": "<",
+  ">": ">",
+  "<=": "<=",
+  ">=": ">=",
 };
 const SPECIAL_FIELDS = [RECORD_IS_NEW, DOCUMENT_STATUS];
 /** A fieldname, so it is written into the code as a name and never as code. */
@@ -101,11 +105,10 @@ export class DependsOnWriter {
         const literal = (end: unknown) => this.literal(leaf.fieldname, end);
         return `(${literal(from)} <= ${ref} && ${ref} <= ${literal(to)})`;
       }
-      default:
-        return `${ref} ${
-          JS_OPERATOR[leaf.operator] ?? leaf.operator
-        } ${this.literal(leaf.fieldname, leaf.value)}`;
     }
+    const operator = JS_OPERATOR[leaf.operator];
+    if (!operator) throw new Error(`No code for ${leaf.operator}`);
+    return `${ref} ${operator} ${this.value(leaf.fieldname, leaf.value)}`;
   }
 
   private isBareField(leaf: Leaf): boolean {
@@ -130,10 +133,20 @@ export class DependsOnWriter {
       return value === "set" || value === "not set";
     if (leaf.operator === "in" || leaf.operator === "not in")
       return listOf(value).length > 0;
-    if (leaf.operator === "between") return listOf(value).length === 2;
+    if (leaf.operator === "between") {
+      const ends = listOf(value);
+      return ends.length === 2 && ends.every((end) => this.isValue(leaf, end));
+    }
     if (leaf.operator === "like" || leaf.operator === "not like")
       return Boolean(value);
-    return value !== null && value !== undefined;
+    if (referencedField(value)) return true;
+    return value !== null && value !== undefined && this.isValue(leaf, value);
+  }
+
+  /** A number field's row holds a number; `Number("")` would make it 0. */
+  private isValue(leaf: Leaf, value: unknown): boolean {
+    if (!this.isNumber(leaf.fieldname)) return true;
+    return value !== "" && Number.isFinite(Number(value));
   }
 
   private reference(fieldname: string): string {
@@ -142,9 +155,13 @@ export class DependsOnWriter {
     return this.scope.tables.has(fieldname) ? `${ref}.length` : ref;
   }
 
-  /** `String(...)` for a number, which has no `includes`; `|| ""` reads simpler on text. */
+  /** `String(...)` for a number, Check or status, which has no `includes`; `|| ""` reads simpler on text. */
   private orEmpty(fieldname: string, ref: string): string {
-    return this.isNumber(fieldname) ? `String(${ref} ?? "")` : `(${ref} || "")`;
+    const text =
+      !this.isNumber(fieldname) &&
+      !this.isCheck(fieldname) &&
+      fieldname !== DOCUMENT_STATUS;
+    return text ? `(${ref} || "")` : `String(${ref} ?? "")`;
   }
 
   private list(leaf: Leaf): string {
@@ -153,11 +170,16 @@ export class DependsOnWriter {
       .join(", ");
   }
 
-  /** A value as code: a field it references, else text or a number. */
-  private literal(fieldname: string, value: unknown): string {
+  /** A compared value as code: a field it references, else a literal. */
+  private value(fieldname: string, value: unknown): string {
     const field = referencedField(value);
     if (field && this.field(field) && !this.scope.tables.has(field))
       return this.reference(field);
+    return this.literal(fieldname, value);
+  }
+
+  /** A value as text or a number. A list or range item is typed, so never a reference. */
+  private literal(fieldname: string, value: unknown): string {
     if (fieldname === DOCUMENT_STATUS)
       return String(DOCUMENT_STATUSES.indexOf(String(value)));
     const number = Number(value);

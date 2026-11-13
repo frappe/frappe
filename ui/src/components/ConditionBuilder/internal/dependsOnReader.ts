@@ -95,7 +95,7 @@ export class DependsOnReader {
     this.expect("||");
     this.expectEmptyText();
     this.expect(")");
-    return this.rules.contains(field, this.includesText());
+    return this.rules.contains(field, this.includesText(), false);
   }
 
   /** `"a" <= doc.x && doc.x <= "b"`, the form `between` is written in. */
@@ -167,7 +167,7 @@ export class DependsOnReader {
     this.expect(")");
     return {
       kind: "row",
-      leaf: this.rules.contains(field, this.includesText()),
+      leaf: this.rules.contains(field, this.includesText(), true),
     };
   }
 
@@ -177,8 +177,8 @@ export class DependsOnReader {
     const method = this.isMember("includes")
       ? "includes"
       : this.isMember("indexOf")
-      ? "indexOf"
-      : null;
+        ? "indexOf"
+        : null;
     if (!method) throw new SyntaxError("A list is not a condition");
     this.at += 2;
     this.expect("(");
@@ -253,7 +253,8 @@ export class DependsOnReader {
     const start = this.at;
     try {
       return read();
-    } catch {
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
       this.at = start;
       return null;
     }

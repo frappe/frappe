@@ -31,6 +31,8 @@ export const FIELD_REFERENCE = "eval:";
 export const NUMBER_FIELDTYPES = [...NUMERIC_FIELDTYPES, "Duration"];
 
 const EQUAL = ["==", "==="];
+/** `==` and `!=` convert, so they hold for values a row tells apart. */
+const LOOSE = ["==", "!="];
 /** `===` and `!==` never convert, so their value must already be the field's type. */
 const STRICT = ["===", "!=="];
 const UNEQUAL = ["!=", "!=="];
@@ -95,16 +97,27 @@ export class DependsOnRules {
     return row(operand.name, "in", this.listValue(operand.name, items));
   }
 
-  /** `doc.x.includes("y")`. */
-  contains(operand: Operand, text: Literal): Leaf {
+  /**
+   * `(doc.x || "").includes("y")`, or `String(doc.x ?? "")` for a number:
+   * `|| ""` turns 0 into no text, and leaves any other number without `includes`.
+   */
+  contains(operand: Operand, text: Literal, stringOf: boolean): Leaf {
     if (
       operand.kind !== "field" ||
       operand.length ||
-      typeof text !== "string"
+      typeof text !== "string" ||
+      text === "" ||
+      text.startsWith(FIELD_REFERENCE)
     ) {
       throw new SyntaxError("A field contains text");
     }
-    this.field(operand.name);
+    const field = this.field(operand.name);
+    if (field.fieldtype === "Check" || operand.name === DOCUMENT_STATUS) {
+      throw new SyntaxError("A Check or a status holds no text");
+    }
+    if (NUMBER_FIELDTYPES.includes(field.fieldtype) && !stringOf) {
+      throw new SyntaxError("A number is read as text with String");
+    }
     return row(operand.name, "like", text);
   }
 
@@ -116,10 +129,10 @@ export class DependsOnRules {
     if (field.fieldtype === "Check" || operand.name === DOCUMENT_STATUS) {
       throw new SyntaxError("A Check or a status is not ordered");
     }
-    return row(operand.name, "between", [
-      this.value(field, from, true),
-      this.value(field, to, true),
-    ] as string[]);
+    const ends = [this.value(field, from, true), this.value(field, to, true)];
+    // A row drops an empty end as unfinished.
+    if (ends.includes("")) throw new SyntaxError("A range has two ends");
+    return row(operand.name, "between", ends as string[]);
   }
 
   /** `!x`. A negated group has no row of its own, and De Morgan would rewrite it. */
@@ -161,6 +174,9 @@ export class DependsOnRules {
     if (right.length || this.scope.tables.has(right.name)) {
       throw new SyntaxError("Compare with a field's value");
     }
+    // A row compares two fields strictly: `5 == "5"` and `null == undefined` hold.
+    if (LOOSE.includes(op))
+      throw new SyntaxError("Compare two fields strictly");
     this.field(name);
     this.field(right.name);
     return row(name, this.operator(op), fieldReference(right.name));
@@ -260,7 +276,7 @@ export class DependsOnRules {
   }
 }
 
-/** The value a row holds to mean "this record's `name`". */
+/** The value a row holds to compare with the field `name` of the record or its parent. */
 export function fieldReference(name: string): string {
   return `${FIELD_REFERENCE}${
     name.startsWith("parent.") ? name : `doc.${name}`
@@ -283,7 +299,11 @@ function row(
   return { fieldname, operator, value };
 }
 
-/** A Check holds 0 or 1; `==` also matches `true`, `"1"` and the like. */
+/**
+ * A Check against 1; `==` also matches `true` and `"1"`. A new record leaves a
+ * Check with no default unset, which `=== 0` does not match and "No" does, so
+ * a comparison with 0 stays code.
+ */
 function checkRow(
   name: string,
   operator: ConditionOperator,
@@ -291,11 +311,10 @@ function checkRow(
   loose: boolean
 ) {
   const on = value === 1 || (loose && (value === true || value === "1"));
-  const off = value === 0 || (loose && (value === false || value === "0"));
-  if ((!on && !off) || (operator !== "equals" && operator !== "not equals")) {
-    throw new SyntaxError("A Check is on or off");
+  if (!on || (operator !== "equals" && operator !== "not equals")) {
+    throw new SyntaxError("A Check is compared with 1");
   }
-  return row(name, "equals", on === (operator === "equals") ? "Yes" : "No");
+  return row(name, "equals", operator === "equals" ? "Yes" : "No");
 }
 
 function documentStatus(
