@@ -134,8 +134,15 @@ describe("SetupFlow", () => {
   it("moves once on a double click, and finishes once", async () => {
     const { el, finished, slot } = await mountFlow();
 
-    slot().done();
-    slot().done();
+    const first = slot();
+    first.done();
+    first.done();
+    await nextTick();
+    expect(el.textContent).toContain("invite");
+    expect(finished).toEqual([]);
+
+    // The second click of a double click lands after the step has changed.
+    first.done();
     await nextTick();
     expect(el.textContent).toContain("invite");
     expect(finished).toEqual([]);

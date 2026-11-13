@@ -39,8 +39,8 @@
 						name="step"
 						:step="steps[current]"
 						:index="current"
-						:done="done"
-						:skip="skipStep"
+						:done="forStep(current).done"
+						:skip="forStep(current).skip"
 						:back="back"
 						:can-go-back="canGoBack"
 					/>
@@ -122,6 +122,19 @@ function back() {
 // A second click while the step changes, or after the end, must not move again.
 let moving = false;
 watch(current, () => (moving = false));
+
+// The slot's actions belong to the step that rendered them: a late or repeated call
+// from a step that has already changed does nothing.
+function forStep(index: number) {
+	return {
+		done: (details?: Record<string, unknown>) => {
+			if (index === current.value) done(details);
+		},
+		skip: () => {
+			if (index === current.value) skipStep();
+		},
+	};
+}
 
 function done(details: Record<string, unknown> = {}) {
 	if (moving) return;
