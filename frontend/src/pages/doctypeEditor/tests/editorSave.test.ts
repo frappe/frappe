@@ -168,7 +168,7 @@ describe("a refused save", () => {
 		expect([save.saving.value, edits.staged.value.length]).toEqual([false, 1]);
 	});
 
-	it("runs an export that lands during the save once the save's own reload is done", async () => {
+	it("runs this DocType's export that lands during the save once the save's own reload is done", async () => {
 		let reloads = 0;
 		const { save } = mount(taskNote({ custom: 0 }), {
 			reloaded: () => (reloads++, taskNote({ custom: 0, base_version: NEXT })),
@@ -178,6 +178,7 @@ describe("a refused save", () => {
 		runMethod.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
 		const saving = acts.run("editor.save");
 		await save.exported({ doctype: "Task Note", ok: true, app_layouts: { Details: "abc" } });
+		await save.exported({ doctype: "Other", ok: false, error: "Disk full" });
 		expect(reloads).toBe(0);
 		answer({ data: { saved: true, base_version: NEXT, children: [] } });
 		await saving;

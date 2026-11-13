@@ -127,9 +127,9 @@ export class EditorSave {
 
 	/** The export runs after the save's response, so its outcome comes later, by realtime. */
 	async exported(result: ExportResult) {
-		if (this.saving.value) return void (this.lateExport = result);
 		const canvas = this.host.canvas();
 		if (!canvas || result.doctype !== canvas.state.doctype) return;
+		if (this.saving.value) return void (this.lateExport = result);
 		if (result.ok) return this.reloadExported(result);
 		this.banner.value = {
 			doctype: result.doctype,

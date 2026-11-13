@@ -67,10 +67,9 @@ class DoctypeCreate:
 			# Another request created this name first: its DocType is not ours to remove.
 			if not isinstance(e, frappe.DuplicateEntryError):
 				remove_doctype(self.name)
-			if isinstance(e, frappe.ValidationError):
-				return str(e) or _("The DocType was not created.")
-			frappe.log_error(f"DocType editor create of {self.name}")
-			return _("The DocType was not created.")
+			if not isinstance(e, frappe.ValidationError | frappe.NameError):
+				raise
+			return str(e) or _("The DocType was not created.")
 
 	def save(self) -> dict:
 		save = DesignSave(self.name, base_version(self.name), self.edits)
@@ -85,6 +84,7 @@ class DoctypeCreate:
 
 
 def remove_doctype(name: str):
-	frappe.db.delete("Form Layout", {"dt": name})
+	for layout in frappe.get_all("Form Layout", {"dt": name}, pluck="name"):
+		frappe.delete_doc("Form Layout", layout, force=True, ignore_permissions=True)
 	frappe.delete_doc("DocType", name, force=True, ignore_missing=True)
 	frappe.db.sql_ddl(f"drop table if exists `tab{name}`")

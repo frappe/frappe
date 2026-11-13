@@ -141,6 +141,12 @@ class TestCreateDoctype(IntegrationTestCase):
 		self.assertEqual(result["errors"][0]["target"], {"kind": "banner"})
 		self.assertFalse(frappe.db.exists("DocType", DOCTYPE))
 
+	def test_an_unexpected_insert_error_is_raised_after_cleanup(self):
+		with patch("frappe.core.doctype.doctype.doctype.DocType.validate", side_effect=RuntimeError):
+			with self.assertRaises(RuntimeError):
+				create_doctype(definition(), two_tabs(), [])
+		self.assertFalse(frappe.db.exists("DocType", DOCTYPE))
+
 	def test_a_system_manager_full_rights_permission_is_added(self):
 		result = create_doctype(definition(), two_tabs(), [])
 		self.assertTrue(result["saved"], result.get("errors"))
