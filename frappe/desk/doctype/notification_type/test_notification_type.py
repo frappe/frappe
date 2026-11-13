@@ -55,7 +55,7 @@ class TestNotificationType(FrappeTestCase):
 
 	def test_get_notification_types_requires_desk_access(self):
 		# `only_for` is a no-op while `flags.in_test` is set, so switch it off to test the check
-		with patch.object(frappe.local.flags, "in_test", False):
+		with patch.dict(frappe.local.flags, {"in_test": False}):
 			with test_user(roles=[]) as user, self.set_user(user.name):
 				with self.assertRaises(frappe.PermissionError):
 					get_notification_types()
