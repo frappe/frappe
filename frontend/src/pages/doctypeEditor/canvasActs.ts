@@ -145,7 +145,8 @@ function placedOn(layout: { type: string; id?: string }, edit: FlatEdit): FlatEd
 
 /** A read-only field filled from the Link's record, right after the Link, then selected. */
 function fetchField(canvas: DesignCanvas, { link, source }: { link: string; source: FetchSource }) {
-	const fieldname = fetchedFieldname(source, canvas.working.value.fields.map((field) => field.fieldname));
+	const taken = canvas.working.value.fields.map((field) => field.fieldname);
+	const fieldname = fetchedFieldname(source, taken, canvas.customize ? "custom_" : "");
 	const place = canvas.place(link);
 	const at = place ? { section: place.section, column: place.column, index: place.index + 1 } : {};
 	const options = source.options ? { options: source.options } : {};

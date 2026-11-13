@@ -90,6 +90,15 @@ describe("the canvas marks in Customize", () => {
 		expect(canvas.field("custom_due")?.label).toBe("Due");
 	});
 
+	it("a fetched field is a custom field named custom_, as the save names it", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.add_field", { label: "Owner", fieldtype: "Link", options: "User", section: "main", column: "column_1", index: 1 });
+		const source = { fieldname: "full_name", label: "Full Name", fieldtype: "Data" };
+		await acts.run("fields.fetch_field", { link: "custom_owner", source });
+		expect(canvas.field("custom_full_name")?.fetch_from).toBe("custom_owner.full_name");
+		expect(canvas.customize!.marks("custom_full_name").custom).toBe(true);
+	});
+
 	it("draws no marks in Design", () => {
 		const mounted = mountEditor(taskNote());
 		stop = mounted.stop;

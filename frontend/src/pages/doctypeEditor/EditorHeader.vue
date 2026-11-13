@@ -17,7 +17,7 @@
 					:options="modeOptions"
 					:model-value="mode"
 					data-mode-switch
-					@update:model-value="(next: EditorMode) => emit('act', 'editor.set_mode', next)"
+					@update:model-value="(next) => emit('act', 'editor.set_mode', next as EditorMode)"
 				/>
 				<Tooltip :text="__('Undo')">
 					<Button
@@ -80,8 +80,7 @@ import { __ } from "@/i18n";
 import NotSavedBadge from "@/pages/record/NotSavedBadge.vue";
 import { canRoute, routeFor } from "@/router/routeFor";
 import { EDITOR_TABS } from "./editorActs";
-import type { EditorMode } from "./editorSource";
-import type { EditorTab } from "./pendingEdits";
+import type { EditorMode, EditorTab } from "./pendingEdits";
 
 const props = defineProps<{
 	doctype: string;

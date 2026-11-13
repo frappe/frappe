@@ -1,6 +1,7 @@
 // What the field panel shows for one field: its type choices, the notes under Type and
 // Fieldname, the remove question and the property groups. The panel's .vue draws these.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { acts } from "@/acts/dispatcher";
 import { __, __n } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import { reqdInConditional } from "./editorModel";
@@ -94,6 +95,14 @@ export function rowMark(
 	if (!customize.marks(fieldname).changed.includes(property)) return {};
 	const shown = shownValue(property, customize.appValue(fieldname, property));
 	return { changed: true, resetText: __("Reset to {0}'s value ({1})", [appTitle(canvas), shown]) };
+}
+
+/** A panel row's Customize mark, with its reset as one staged edit. */
+export function panelMark(canvas: DesignCanvas, fieldname: string, property: string) {
+	return {
+		...rowMark(canvas, fieldname, property),
+		onReset: () => void acts.perform("fields.reset_field_property", { fieldname, property }),
+	};
 }
 
 /** In Customize a standard field cannot go: the panel's remove hides or shows it instead. */

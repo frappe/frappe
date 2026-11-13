@@ -115,6 +115,7 @@
 			:key="field.options"
 			:canvas="canvas"
 			:field="field"
+			v-bind="mark('link_filters')"
 		/>
 		<PanelRow :label="__('Required')" :box="false" v-bind="mark('reqd')">
 			<div class="flex h-7 items-center px-2">
@@ -133,10 +134,20 @@
 				@change="set('default', text($event))"
 			/>
 		</PanelRow>
-		<PanelRow v-if="fetchable(field)" :label="__('Fetch from')" :box="false">
+		<PanelRow
+			v-if="fetchable(field)"
+			:label="__('Fetch from')"
+			:box="false"
+			v-bind="mark('fetch_from')"
+		>
 			<FetchFromRow :canvas="canvas" :field="field" />
 		</PanelRow>
-		<PanelRow v-if="field.fetch_from" :label="__('Only when empty')" :box="false">
+		<PanelRow
+			v-if="field.fetch_from"
+			:label="__('Only when empty')"
+			:box="false"
+			v-bind="mark('fetch_if_empty')"
+		>
 			<div class="flex h-7 items-center px-2">
 				<Switch
 					size="sm"
@@ -194,7 +205,7 @@ import {
 	removeAction,
 	removeQuestion,
 	reqdWarning,
-	rowMark,
+	panelMark,
 	subtitle,
 	typeChange,
 	typeGroups,
@@ -268,11 +279,7 @@ function setTarget(doctype: string) {
 }
 
 function mark(property: string) {
-	const { fieldname } = props.field;
-	return {
-		...rowMark(props.canvas, fieldname, property),
-		onReset: () => void acts.perform("fields.reset_field_property", { fieldname, property }),
-	};
+	return panelMark(props.canvas, props.field.fieldname, property);
 }
 
 function pickType(name: string) {
