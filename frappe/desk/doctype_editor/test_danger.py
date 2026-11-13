@@ -112,6 +112,9 @@ class TestMoveWithoutDeveloperMode(IntegrationTestCase):
 		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
 		make_custom_doctype(DOCTYPE)
 		self.addCleanup(delete_committed, "DocType", DOCTYPE)
+		make_user(SYSTEM_MANAGER, ["System Manager"])
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(SYSTEM_MANAGER)
 
 	def test_a_custom_doctype_moves(self):
 		move_doctype(DOCTYPE, "Desk")
