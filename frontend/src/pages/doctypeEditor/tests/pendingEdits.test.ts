@@ -21,10 +21,7 @@ describe("PendingEdits", () => {
 			doctype: "Note",
 			mode: "Design",
 			base_version: VERSION,
-			edits: [
-				{ act: "canvas.add_tab", value: {}, tab: "editor" },
-				{ act: "settings.set_property", value: { property: "track_changes" }, tab: "settings" },
-			],
+			edits: [{ act: "canvas.add_tab" }, { act: "settings.set_property", property: "track_changes" }],
 		});
 	});
 
@@ -41,14 +38,32 @@ describe("PendingEdits", () => {
 
 	it("redoes in order and a new edit clears the redo stack", () => {
 		const { edits, opened } = pending();
-		edits.stage({ act: "canvas.add_tab", value: 1, tab: "editor" });
+		edits.stage({ act: "canvas.add_tab", value: { label: "One" }, tab: "editor" });
 		edits.undo();
 		edits.redo();
 		expect(opened).toEqual(["editor", "editor"]);
-		expect(edits.payload().edits.map((edit) => edit.value)).toEqual([1]);
+		expect(edits.payload().edits.map((edit) => edit.label)).toEqual(["One"]);
 		edits.undo();
-		edits.stage({ act: "settings.set_property", value: 2, tab: "settings" });
+		edits.stage({ act: "settings.set_property", value: {}, tab: "settings" });
 		expect(edits.canRedo.value).toBe(false);
 		expect(edits.dirty.value).toBe(true);
+	});
+
+	it("stages several edits as one undo step", () => {
+		const { edits } = pending();
+		edits.stage({ act: "canvas.add_tab", value: { label: "One" }, tab: "editor" });
+		edits.stage(
+			{ act: "fields.set_field_property", value: { fieldname: "ref", property: "label", value: "Code" }, tab: "editor" },
+			{ act: "fields.rename_field", value: { fieldname: "ref", new_fieldname: "code" }, tab: "editor" },
+		);
+		expect(edits.staged.value.map((edit) => edit.act)).toEqual([
+			"canvas.add_tab",
+			"fields.set_field_property",
+			"fields.rename_field",
+		]);
+		edits.undo();
+		expect(edits.payload().edits).toEqual([{ act: "canvas.add_tab", label: "One" }]);
+		edits.redo();
+		expect(edits.payload().edits).toHaveLength(3);
 	});
 });

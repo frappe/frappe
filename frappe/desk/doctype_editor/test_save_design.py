@@ -201,6 +201,35 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(error["edit"], 2)
 		self.assertEqual(error["target"]["kind"], "container")
 
+	def test_a_column_moved_onto_its_name_in_another_section_is_renamed(self):
+		details = {"type": "Details"}
+		result = self.save(
+			[
+				{"act": "canvas.add_section", "layout": details, "tab": "first_tab", "name": "one"},
+				{"act": "canvas.add_section", "layout": details, "tab": "first_tab", "name": "two"},
+				{
+					"act": "canvas.move_column",
+					"layout": details,
+					"section": "one",
+					"column": "column_1",
+					"to_section": "two",
+					"index": 1,
+				},
+				{
+					"act": "canvas.place_field",
+					"layout": details,
+					"fieldname": "title",
+					"section": "two",
+					"column": "column_2",
+				},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		[row] = details_rows()
+		[two] = [s for s in json.loads(row.layout)[0]["sections"] if s["name"] == "two"]
+		self.assertEqual([c["name"] for c in two["columns"]], ["column_1", "column_2"])
+		self.assertEqual(two["columns"][1]["fields"], ["title"])
+
 	def test_field_properties_are_set_and_fields_reordered(self):
 		result = self.save(
 			[
@@ -213,6 +242,21 @@ class TestSaveDesign(IntegrationTestCase):
 		meta = frappe.get_meta(DOCTYPE)
 		self.assertEqual(meta.get_field("title").reqd, 1)
 		self.assertEqual([field.fieldname for field in meta.fields], ["status", "title"])
+
+	def test_the_doctype_description_is_set(self):
+		result = self.save(
+			[{"act": "settings.set_doctype_property", "property": "description", "value": "Tracks work."}]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "description"), "Tracks work.")
+
+	def test_a_doctype_property_other_than_description_is_refused(self):
+		result = self.save([{"act": "settings.set_doctype_property", "property": "istable", "value": 1}])
+		self.assertFalse(result["saved"])
+		[error] = result["errors"]
+		self.assertEqual(error["edit"], 0)
+		self.assertIn("istable", error["message"])
+		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "istable"), 0)
 
 	def test_a_fieldname_is_changed_only_by_renaming(self):
 		result = self.save(
@@ -637,6 +681,13 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["code"], "stale")
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
+
+	def test_a_second_save_with_the_base_version_the_client_sends_back_is_not_stale(self):
+		details = {"type": "Details"}
+		self.save([{"act": "canvas.add_tab", "layout": details, "name": "extra"}])
+		version = json.loads(frappe.as_json(base_version(DOCTYPE)))
+		result = self.save([{"act": "canvas.add_tab", "layout": details, "name": "more"}], version=version)
+		self.assertTrue(result["saved"], result.get("errors"))
 
 	def test_a_row_saved_by_someone_else_during_the_save_is_kept(self):
 		details = {"type": "Details"}

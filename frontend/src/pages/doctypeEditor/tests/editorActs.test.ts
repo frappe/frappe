@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { effectScope, ref } from "vue";
 import { acts } from "@/acts/dispatcher";
 import { useEditorActs, type EditorActsHost } from "../editorActs";
+import { EditorSave } from "../editorSave";
 import { PendingEdits, type EditorTab } from "../pendingEdits";
 
 const VERSION = { doctype: "2026-11-13 10:00:00", layouts: {}, app_layouts: {} };
@@ -9,15 +10,22 @@ const VERSION = { doctype: "2026-11-13 10:00:00", layouts: {}, app_layouts: {} }
 function mount() {
 	const tab = ref<EditorTab>("editor");
 	const previewed: (string | null)[] = [];
+	const edits = new PendingEdits(
+		{ doctype: "Note", mode: "Design", base_version: VERSION },
+		(opened) => (tab.value = opened),
+	);
+	const unused = async () => {
+		throw new Error("no canvas to reload");
+	};
 	const host: EditorActsHost = {
 		tab,
-		edits: new PendingEdits(
-			{ doctype: "Note", mode: "Design", base_version: VERSION },
-			(opened) => (tab.value = opened),
-		),
+		edits,
+		canvas: () => null,
 		find: () => undefined,
 		previewRecord: (name) => previewed.push(name),
 		recordOptions: async () => [],
+		save: new EditorSave({ edits, canvas: () => null, reload: unused, created: unused }),
+		openList: () => undefined,
 	};
 	const scope = effectScope();
 	scope.run(() => useEditorActs(host));

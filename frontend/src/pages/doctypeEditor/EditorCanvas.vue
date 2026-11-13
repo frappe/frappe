@@ -1,105 +1,168 @@
-<!-- The canvas, read-only for now: the Details layout's tabs, sections, columns and field labels.
-     The record page's own FormLayout draws the Preview tab instead. -->
+<!-- The Details canvas: the working state's tabs, sections, columns and fields, at the record page's
+     form width, with the fields this layout does not place under it. Customize draws it read-only. -->
 <template>
-	<div class="mx-auto w-full max-w-3xl py-6" data-editor-canvas>
-		<h1 class="text-xl font-semibold text-ink-gray-9">{{ state.doctype }}</h1>
+	<div
+		class="mx-auto w-full max-w-3xl px-[--page-gutter] pb-[40vh] pt-6"
+		data-editor-canvas
+		@click="acts.perform('canvas.select', null)"
+	>
+		<SaveBanner :save="save" :doctype="canvas.state.doctype" />
+		<h1 class="text-xl font-semibold text-ink-gray-9">{{ canvas.state.doctype }}</h1>
+		<DoctypeDescription :canvas="canvas" />
 		<p class="mt-1 text-p-sm text-ink-gray-5" data-editor-meta>{{ metaLine }}</p>
-		<p v-if="state.site_custom_fields" class="mt-1 text-p-sm text-ink-gray-5">
+		<p v-if="siteFields" class="mt-1 text-p-sm text-ink-gray-5" data-editor-site-fields>
 			{{
 				__n(
-					"{0} field added on this site, edit it in Customize.",
-					"{0} fields added on this site, edit them in Customize.",
-					state.site_custom_fields,
-					[state.site_custom_fields]
+					"{0} field added on this site, edit it in",
+					"{0} fields added on this site, edit them in",
+					siteFields,
+					[siteFields]
 				)
 			}}
+			<RouterLink
+				v-if="customize"
+				:to="customize"
+				class="text-ink-gray-7 underline-offset-2 hover:underline"
+				>{{ __("Customize") }} ↗</RouterLink
+			>
+			<template v-else>{{ __("Customize") }}</template>
 		</p>
 
-		<div v-if="tabs.length > 1" class="mt-6 flex gap-5 border-b" role="tablist">
-			<button
-				v-for="(one, index) in tabs"
-				:key="one.name ?? index"
-				type="button"
-				role="tab"
-				class="-mb-px border-b-2 pb-2 text-base"
-				:class="
-					index === open
-						? 'border-outline-gray-5 text-ink-gray-9'
-						: 'border-transparent text-ink-gray-5'
-				"
-				@click="open = index"
-			>
-				{{ one.label ? translate(one.label) : __("Details") }}
-			</button>
+		<CanvasTabs class="mt-6" :canvas="canvas" />
+
+		<Draggable
+			:model-value="tab?.sections ?? []"
+			:item-key="(section: LayoutTreeSection) => section.name"
+			group="canvas-sections"
+			handle=".section-grip"
+			class="mt-6 flex flex-col gap-10"
+			ghost-class="opacity-40"
+			v-bind="DRAG_OPTIONS"
+			:disabled="!canvas.editable"
+			@change="tab && dropSection($event, tab.name!)"
+		>
+			<template #item="{ element: section }">
+				<CanvasSection :canvas="canvas" :section="section" />
+			</template>
+		</Draggable>
+		<p v-if="tab && !tab.sections.length" class="mt-6 text-base text-ink-gray-5">
+			{{ __("This tab has no sections.") }}
+		</p>
+		<div v-if="canvas.editable" class="mt-10 flex border-t pt-4" data-canvas-add-section>
+			<Button
+				variant="subtle"
+				size="sm"
+				icon-left="lucide-plus"
+				:label="__('Add section')"
+				@click.stop="acts.perform('canvas.add_section')"
+			/>
 		</div>
 
-		<div class="mt-4 flex flex-col gap-3">
-			<section
-				v-for="(section, index) in tabs[open]?.sections ?? []"
-				:key="section.name ?? index"
-				class="rounded-7 border border-outline-gray-1 p-4"
-				data-canvas-section
-			>
-				<h2 v-if="section.label" class="mb-3 text-base font-medium text-ink-gray-8">
-					{{ translate(section.label) }}
-				</h2>
-				<div class="flex gap-4">
-					<div
-						v-for="(column, at) in section.columns"
-						:key="column.name ?? at"
-						class="flex min-w-0 flex-1 flex-col gap-2"
-					>
-						<div
-							v-for="field in column.fields"
-							:key="fieldnameOf(field)"
-							class="flex h-8 items-center justify-between rounded-4 bg-surface-gray-2 px-2.5 text-base text-ink-gray-7"
-							data-canvas-field
-						>
-							<span class="truncate">{{ labelOf(field) }}</span>
-							<span class="shrink-0 text-p-xs text-ink-gray-5">{{
-								typeOf(field)
-							}}</span>
-						</div>
-					</div>
-				</div>
-			</section>
-		</div>
+		<OffLayoutTray :canvas="canvas" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, watch } from "vue";
+import { RouterLink, type RouteLocationRaw } from "vue-router";
+import { Button, useKeyboardShortcut } from "frappe-ui";
+import Draggable from "vuedraggable";
+import { acts } from "@/acts/dispatcher";
 import { __, __n } from "@/i18n";
-import type { InlineField, LayoutTree } from "@/recordPage/formLayoutSource/types";
-import type { EditorState } from "./editorSource";
+import type { LayoutTreeSection } from "./layoutTree";
+import CanvasSection from "./CanvasSection.vue";
+import CanvasTabs from "./CanvasTabs.vue";
+import { DRAG_OPTIONS, dropSection } from "./canvasDrops";
+import { canvasMove, type Direction } from "./canvasMoves";
+import type { DesignCanvas } from "./designCanvas";
+import DoctypeDescription from "./DoctypeDescription.vue";
+import type { EditorSave } from "./editorSave";
+import { provideInertForm } from "./inertForm";
+import OffLayoutTray from "./OffLayoutTray.vue";
+import SaveBanner from "./SaveBanner.vue";
 
-const props = defineProps<{ state: EditorState; layout: LayoutTree; metaLine: string }>();
+const props = defineProps<{
+	canvas: DesignCanvas;
+	save: EditorSave;
+	metaLine: string;
+	/** Customize mode of this DocType, when the person may open it. */
+	customize: RouteLocationRaw | null;
+}>();
 
-const open = ref(0);
+provideInertForm();
+
+const tab = computed(() => props.canvas.openTab.value);
+const siteFields = computed(() =>
+	props.canvas.state.mode === "Design" ? props.canvas.state.site_custom_fields ?? 0 : 0
+);
+
+const ARROWS: [string, Direction][] = [
+	["Alt+ArrowUp", "up"],
+	["Alt+ArrowDown", "down"],
+	["Alt+ArrowLeft", "left"],
+	["Alt+ArrowRight", "right"],
+];
+for (const [combo, direction] of ARROWS) {
+	useKeyboardShortcut({
+		combo: combo as never,
+		description: __("Move the selected item"),
+		group: __("Editor"),
+		enabled: () => props.canvas.editable && Boolean(props.canvas.selection.value),
+		handler: () => move(direction),
+	});
+}
+useKeyboardShortcut({
+	combo: "Slash",
+	description: __("Add field"),
+	group: __("Editor"),
+	enabled: () => props.canvas.editable,
+	handler: () => void acts.perform("fields.add_field"),
+});
+
+function move(direction: Direction) {
+	const selection = props.canvas.selection.value;
+	const found = selection && canvasMove(props.canvas.tabs.value, selection, direction);
+	if (found) void acts.perform(found.act, found.value);
+}
+
 watch(
-	() => props.layout,
-	() => (open.value = 0)
+	() => props.canvas.selection.value,
+	async () => {
+		await nextTick();
+		document
+			.querySelector("[data-editor-canvas] [data-canvas-selected]")
+			?.scrollIntoView({ block: "nearest" });
+	}
 );
-const tabs = computed(() => props.layout ?? []);
-const fields = computed(
-	() => new Map(props.state.definition.fields.map((field) => [field.fieldname, field]))
-);
-
-function fieldnameOf(field: string | InlineField) {
-	return typeof field === "string" ? field : field.fieldname;
-}
-
-function labelOf(field: string | InlineField) {
-	const name = fieldnameOf(field);
-	const label = fields.value.get(name)?.label || (typeof field === "string" ? "" : field.label);
-	return label ? translate(label) : name;
-}
-
-function translate(label: string) {
-	return __(label, [], props.state.doctype);
-}
-
-function typeOf(field: string | InlineField) {
-	return fields.value.get(fieldnameOf(field))?.fieldtype ?? "";
-}
 </script>
+
+<style>
+/* Specific enough to win over the dragged item's own utilities, hover variants included. */
+[data-doctype-editor] .sortable-chosen.canvas-drop-line {
+	height: 2px;
+	min-height: 0;
+	margin: -9px 0;
+	padding: 0;
+	border: 0;
+	border-radius: 1px;
+	overflow: hidden;
+	box-shadow: none;
+	background-color: var(--outline-gray-4);
+	opacity: 1;
+}
+[data-doctype-editor] .sortable-chosen.canvas-drop-line > * {
+	display: none;
+}
+[data-doctype-editor] [data-canvas-empty] > .sortable-chosen.canvas-drop-line {
+	margin: 29px 0 0;
+}
+[data-doctype-editor] [data-canvas-tray-list] > .sortable-chosen.canvas-drop-line {
+	margin: 0;
+}
+[data-doctype-editor] .canvas-tab-drop > .sortable-chosen.canvas-drop-line {
+	display: none;
+}
+.canvas-tab-drop:has(> .canvas-drop-line) {
+	background-color: var(--surface-gray-2);
+}
+</style>

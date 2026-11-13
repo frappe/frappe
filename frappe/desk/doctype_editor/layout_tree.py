@@ -91,8 +91,12 @@ class LayoutTree:
 	def move_column(self, column: str, to_section: str, index: int, section: str | None = None):
 		old_section, node = self.parent_of_column(column, section)
 		old_section["columns"].remove(node)
-		self.insert(self.section(to_section)["columns"], node, index)
-		assign_names(self.section(to_section)["columns"], "column")
+		columns = self.section(to_section)["columns"]
+		# Column names repeat across sections: one that clashes in its new section takes a new name.
+		if any(other.get("name") == node.get("name") for other in columns):
+			node.pop("name", None)
+		self.insert(columns, node, index)
+		assign_names(columns, "column")
 
 	def set_container_property(self, container: str, property: str, value, section: str | None = None):
 		if property not in CONTAINER_PROPERTIES:

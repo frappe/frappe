@@ -1,4 +1,5 @@
 export { default as FormLayout } from "./FormLayout.vue";
+export { default as FormLayoutField } from "./FormLayoutField.vue";
 export { useFieldTypes } from "./useFieldTypes";
 export { registerFieldType, getFieldComponent } from "../Fields/fieldTypes";
 export type { RegisterFieldTypeOptions } from "../Fields/fieldTypes";
