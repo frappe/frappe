@@ -45,6 +45,24 @@
 					</option>
 				</select>
 			</InspectorRow>
+			<template v-if="layout.page?.size === 'Custom'">
+				<StepperRow
+					:label="__('Width')"
+					:model-value="layout.page.width"
+					:min="10"
+					:step="5"
+					unit="mm"
+					@update:model-value="(v) => set_page('width', v)"
+				/>
+				<StepperRow
+					:label="__('Height')"
+					:model-value="layout.page.height"
+					:min="10"
+					:step="5"
+					unit="mm"
+					@update:model-value="(v) => set_page('height', v)"
+				/>
+			</template>
 			<InspectorRow :label="__('Orientation')">
 				<select
 					class="form-control form-control-sm pfb-insp-select"
@@ -181,6 +199,7 @@ import ColorInput from "./inspector/ColorInput.vue";
 import DeskControl from "./DeskControl.vue";
 import ImageUploadControl from "./inspector/ImageUploadControl.vue";
 import SliderRow from "./inspector/SliderRow.vue";
+import StepperRow from "./inspector/StepperRow.vue";
 
 let store = inject("$store");
 let { print_format, letterhead, layout } = store;
@@ -216,14 +235,18 @@ onUnmounted(() => hint_tooltip?.destroy());
 
 const paper_sizes = [
 	{ label: __("Default"), value: "" },
-	...frappe.meta
-		.get_print_sizes()
-		.filter((s) => s !== "Custom")
-		.map((s) => ({ label: s, value: s })),
+	...frappe.meta.get_print_sizes().map((s) => ({ label: __(s), value: s })),
 ];
 
 function set_page(key, value) {
 	const page = { ...layout.value.page, [key]: value };
+	if (page.size === "Custom") {
+		page.width ??= 210;
+		page.height ??= 297;
+	} else {
+		delete page.width;
+		delete page.height;
+	}
 	if (!page.size) delete page.size;
 	if (page.orientation !== "Landscape") delete page.orientation;
 	if (Object.keys(page).length) layout.value.page = page;

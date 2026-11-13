@@ -13,7 +13,7 @@ import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint, cstr
+from frappe.utils.data import cint, cstr, flt
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -417,6 +417,9 @@ def page_number_html(position: str) -> str:
 	)
 
 
+MIN_PAGE_MM, MAX_PAGE_MM = 10, 5000
+
+
 def layout_page_settings(layout: dict | list | None) -> dict:
 	"""The paper size and orientation a builder layout saves, as Print Settings keys."""
 	page = layout.get("page") if isinstance(layout, dict) else None
@@ -424,7 +427,11 @@ def layout_page_settings(layout: dict | list | None) -> dict:
 		return {}
 	settings = {}
 	sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
-	if page.get("size") in sizes and page.get("size") != "Custom":
+	if page.get("size") == "Custom":
+		width, height = (flt(page.get(key)) for key in ("width", "height"))
+		if all(MIN_PAGE_MM <= value <= MAX_PAGE_MM for value in (width, height)):
+			settings.update(pdf_page_size="Custom", pdf_page_width=width, pdf_page_height=height)
+	elif page.get("size") in sizes:
 		settings["pdf_page_size"] = page["size"]
 	if page.get("orientation") in ("Portrait", "Landscape"):
 		settings["page_orientation"] = page["orientation"]
