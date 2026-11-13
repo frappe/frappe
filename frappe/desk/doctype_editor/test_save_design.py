@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.doctype import write_doctype_files
+from frappe.desk.doctype.form_layout.form_layout import get_form_layouts
 from frappe.desk.doctype_editor.rename import rename_field
 from frappe.desk.doctype_editor.save import save_doctype_editor
 from frappe.desk.doctype_editor.versions import base_version
@@ -270,6 +271,22 @@ class TestSaveDesign(IntegrationTestCase):
 					"Form Layout", filters={"dt": DOCTYPE, "type": type}, fields=["layout"]
 				)
 				self.assertEqual(placed(row), fields)
+
+	def test_a_row_the_save_rewrites_matches_its_source_again(self):
+		self.save([{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "more"}])
+		self.save(
+			[
+				{
+					"act": "fields.add_field",
+					"label": "Due",
+					"fieldtype": "Date",
+					"layout": {"type": "Details"},
+					"column": "column_1",
+				}
+			]
+		)
+		[layout] = get_form_layouts(DOCTYPE, "Details")["layouts"]
+		self.assertFalse(layout["source_changed"])
 
 	def test_the_rename_wrapper_moves_data_and_rewrites_layout_rows(self):
 		self.save(
