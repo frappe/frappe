@@ -9,11 +9,13 @@ import "@/setupFrappeUIResource"
 import AppPage from "@/pages/AppPage.vue"
 import { registerGlobalComponents } from "@/globals"
 import { loadPage } from "@/page/pageLoader"
+import { loadAppRuntime } from "@/browserRuntime/appRuntime"
 import useComponentStore from "@/stores/componentStore"
 import getBlockTemplate from "@/utils/blockTemplate"
 
 const APP_NAME = "cypress-guest"
 const COMPONENT_ID = "cypress_header"
+const COUNTER_ID = "cypress_stored_counter"
 const GET_COMPONENT = /\/api\/method\/frappe\.client\.get\?/
 
 const headerBlock = {
@@ -32,6 +34,34 @@ const headerBlock = {
 		},
 	],
 }
+const counterBlock = {
+	...getBlockTemplate("container"),
+	componentId: "counter-root",
+	children: [
+		{
+			componentName: "Button",
+			componentId: "counter-add",
+			componentProps: { label: "{{ label }}" },
+			componentEvents: { click: { event: "click", action: "Run Script", script: "add()" } },
+		},
+	],
+}
+const counterScript = `import { ref, computed } from "vue"
+
+export default {
+	props: { title: { type: String, default: "Count" } },
+	emits: ["change"],
+	setup(props, { emit }) {
+		const count = ref(0)
+		const label = computed(() => props.title + ": " + count.value)
+		function add() {
+			count.value++
+			emit("change", count.value)
+		}
+		return { label, add }
+	},
+}
+`
 const pageBlocks = [
 	{
 		...getBlockTemplate("body"),
@@ -41,6 +71,18 @@ const pageBlocks = [
 				componentId: "header-1",
 				isStudioComponent: true,
 				componentProps: { title: "{{ subject }}" },
+			},
+			{
+				componentName: COUNTER_ID,
+				componentId: "counter-1",
+				isStudioComponent: true,
+				componentEvents: {
+					change: {
+						event: "change",
+						action: "Run Script",
+						script: "function handleEvent(count) { subject.value = 'Counted ' + count }",
+					},
+				},
 			},
 		],
 	},
@@ -53,6 +95,13 @@ describe("studio components for guests", () => {
 		cy.login()
 		cy.remove_doc("Studio App", APP_NAME, true)
 		cy.remove_doc("Studio Component", COMPONENT_ID, true)
+		cy.remove_doc("Studio Component", COUNTER_ID, true)
+		cy.insert_doc("Studio Component", {
+			component_id: COUNTER_ID,
+			component_name: "Cypress Stored Counter",
+			block: JSON.stringify(counterBlock),
+			script: counterScript,
+		})
 		cy.insert_doc("Studio Component", {
 			component_id: COMPONENT_ID,
 			component_name: "Cypress Header",
@@ -85,11 +134,13 @@ describe("studio components for guests", () => {
 		cy.login()
 		cy.remove_doc("Studio App", APP_NAME, true)
 		cy.remove_doc("Studio Component", COMPONENT_ID, true)
+		cy.remove_doc("Studio Component", COUNTER_ID, true)
 	})
 
 	beforeEach(() => {
 		setActivePinia(pinia)
 		useComponentStore().removeCachedComponent(COMPONENT_ID)
+		useComponentStore().removeCachedComponent(COUNTER_ID)
 		// a refused fetch also rejects frappe-ui's own auto fetch, outside the store's catch
 		cy.on("uncaught:exception", (error) => !error.message.includes("frappe.client.get"))
 		cy.asGuest()
@@ -103,6 +154,7 @@ describe("studio components for guests", () => {
 			routes: [{ path: "/", component: AppPage, meta: { pageName } }],
 		})
 		cy.then(() => router.push("/"))
+		cy.then(() => loadAppRuntime(APP_NAME))
 		cy.then(() => loadPage(router, router.currentRoute.value, { meta: {}, fullPath: "" } as any))
 		cy.mount(AppPage, {
 			global: { plugins: [pinia, resourcesPlugin, router, { install: registerGlobalComponents }] },
@@ -128,6 +180,14 @@ describe("studio components for guests", () => {
 
 		cy.contains("button", "E2E {{ 7 * 7 }}").should("be.visible")
 		cy.contains("button", "E2E 49").should("not.exist")
+	})
+
+	it("runs a stored component script, and the page handles the event it emits", () => {
+		mountAppPage()
+
+		cy.contains("button", "Count: 0").click()
+		cy.contains("button", "Count: 1")
+		cy.contains("button", "Counted 1")
 	})
 
 	it("keeps a component from the page payload when a fetch of it is refused later", () => {

@@ -1,13 +1,15 @@
 <template>
-	<StudioComponent v-if="block" :block="block" :breakpoint="props.breakpoint" />
+	<component :is="host" v-if="host && block" v-bind="inputValues">
+		<StudioComponent :block="block" :breakpoint="props.breakpoint" />
+	</component>
 </template>
 
 <script setup lang="ts">
-import { provide, computed } from "vue"
+import { computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
-import { usePageScope } from "@/stores/codeStore"
+import { useComponentInputValues } from "@/utils/useComponentInputValues"
 
 const props = defineProps<{
 	studioComponent: Block
@@ -15,25 +17,12 @@ const props = defineProps<{
 	breakpoint?: string
 }>()
 const componentStore = useComponentStore()
-const pageScope = usePageScope()
 
-const componentContext = computed(() => {
-	const context = props.studioComponent?.getPropsAndAttributes() || {}
-	const componentDoc = componentStore.getComponentDoc(props.studioComponent.componentName)
-	if (componentDoc?.inputs) {
-		componentDoc.inputs.forEach((input: any) => {
-			if (!(input.input_name in context) && input.default !== undefined) {
-				context[input.input_name] = input.default
-			}
-		})
-
-		Object.entries(context).forEach(([inputName, value]) => {
-			context[inputName] = pageScope.evaluateDynamicValues(value, props.evaluationContext)
-		})
-	}
-	return { inputs: context }
-})
-provide("componentContext", componentContext)
+const host = computed(() => componentStore.getComponentHost(props.studioComponent.componentName))
+const inputValues = useComponentInputValues(
+	() => props.studioComponent,
+	() => props.evaluationContext,
+)
 
 const block = computed(() => {
 	const newBlock = componentStore.getNewStudioComponentInstance(props.studioComponent)

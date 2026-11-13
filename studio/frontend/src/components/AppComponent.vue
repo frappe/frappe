@@ -3,6 +3,7 @@
 		v-if="block.isStudioComponent"
 		:studioComponent="block"
 		:evaluationContext="evaluationContext"
+		:listeners="mergedListeners"
 	/>
 	<template v-else-if="block.hasChildren() || block.hasComponentSlots()">
 		<component
@@ -115,6 +116,7 @@ const classes = computed(() => {
 const pageScope = usePageScope()
 const slotScope = inject<ComputedRef<SlotScope> | null>("slotScope", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
+const componentScriptContext = inject<ComputedRef | null>("componentScriptContext", null)
 
 const evaluationContext = computed(() => {
 	return {
@@ -148,7 +150,12 @@ const vModelListeners = computed(() => {
 		if (propValue?.$type === "variable") {
 			const eventName = `update:${propName}`
 			listeners[eventName] = (newValue: any) => {
-				pageScope.setValueInVariable(propValue.name, newValue, evaluationContext.value)
+				pageScope.setValueInVariable(
+					propValue.name,
+					newValue,
+					evaluationContext.value,
+					componentScriptContext?.value,
+				)
 			}
 		}
 	})
@@ -207,7 +214,7 @@ function getEventHandler(event: any): Listener | undefined {
 		}
 	} else if (event.action === "Run Script") {
 		return (...eventArgs: any[]) => {
-			pageScope.executeUserScript(event.script, slotScope?.value, componentContext?.value, eventArgs)
+			pageScope.executeUserScript(event.script, slotScope?.value, componentScriptContext?.value, eventArgs)
 		}
 	}
 }
@@ -241,7 +248,7 @@ const handleSuccess = (event: any) => (data: DataResult) => {
 			event.on_success_script,
 			data,
 			slotScope?.value,
-			componentContext?.value,
+			componentScriptContext?.value,
 			event.eventArgs,
 		)
 	} else {
@@ -257,7 +264,7 @@ const handleError = (event: any) => (error: any) => {
 			event.on_error_script,
 			error,
 			slotScope?.value,
-			componentContext?.value,
+			componentScriptContext?.value,
 			event.eventArgs,
 		)
 	} else {

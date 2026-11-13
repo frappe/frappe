@@ -45,7 +45,7 @@ function studioFolderWatcher(appsDir) {
 		name: "studio-folder-watcher",
 		apply: "serve", // dev mode only
 
-		// Make each exported page script a self-accepting HMR boundary. Page scripts load in the
+		// Make each exported page or component script a self-accepting HMR boundary. Page scripts load in the
 		// exported app's own module graph (via dynamic import), so editing one — or a composable/util
 		// it imports — has no boundary to propagate to and Vite would full-reload. Injecting accept()
 		// lets Vite hot-swap the page script in place (with its deps re-fetched fresh) and hand the
@@ -56,8 +56,13 @@ function studioFolderWatcher(appsDir) {
 			if (!isUnderStudioFolder(id.split("?")[0].replace(/^\/@fs/, ""))) return
 			if (isRouterFile(id)) return { code: code + ROUTER_HMR_FOOTER, map: null }
 			const pageName = pageScriptName(id)
-			if (!pageName) return
-			return { code: code + pageScriptHmrFooter(pageName), map: null }
+			if (pageName) {
+				return { code: code + scriptHmrFooter("__STUDIO_HMR_applyPageScript", pageName), map: null }
+			}
+			const componentId = componentScriptName(id)
+			if (componentId) {
+				return { code: code + scriptHmrFooter("__STUDIO_HMR_applyComponentScript", componentId), map: null }
+			}
 		},
 
 		// Page scripts and their imports now reach a boundary, so let Vite's HMR run for in-graph
@@ -140,6 +145,21 @@ function pageScriptName(id) {
 	}
 }
 
+// A component exports to `studio/<studio_app>/studio_components/<stem>.ts` (or .js); the docname lives
+// in the sibling `<stem>.json`. Returns the component docname for a component-script module id, else null.
+const COMPONENT_SCRIPT_RE = /\/studio\/[^/]+\/studio_components\/[^/]+\.(?:ts|js)$/
+
+function componentScriptName(id) {
+	let file = normalize(id).split("?")[0]
+	if (file.startsWith("/@fs/")) file = file.slice("/@fs".length)
+	if (!COMPONENT_SCRIPT_RE.test(file)) return null
+	try {
+		return JSON.parse(fs.readFileSync(file.replace(/\.(?:ts|js)$/, ".json"), "utf8")).name || null
+	} catch {
+		return null
+	}
+}
+
 function isRouterFile(id) {
 	const ROUTER_FILE_RE = /\/studio\/[^/]+\/router\.(?:ts|js)$/
 	return ROUTER_FILE_RE.test(normalize(id).split("?")[0])
@@ -151,11 +171,11 @@ if (import.meta.hot) {
 }
 `
 
-function pageScriptHmrFooter(pageName) {
+function scriptHmrFooter(applyScript, docname) {
 	return `
 if (import.meta.hot) {
 	import.meta.hot.accept((mod) => {
-		if (mod && window.__STUDIO_HMR_applyPageScript) window.__STUDIO_HMR_applyPageScript(${JSON.stringify(pageName)}, mod)
+		if (mod && window.${applyScript}) window.${applyScript}(${JSON.stringify(docname)}, mod)
 	})
 }
 `

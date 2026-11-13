@@ -29,6 +29,7 @@ export function useLivePreview() {
 	// Reload source before remounting the page after a stored file changes.
 	const reloadAppFiles = useDebounceFn(async () => {
 		await reloadAppRuntime()
+		await useComponentStore().reloadComponentScripts()
 		await remountPage()
 	}, 300)
 

@@ -15,6 +15,11 @@ import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore, { usePageScope } from "@/stores/codeStore"
 import { reloadCustomVueComponents } from "@/utils/customVueComponents"
 import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
+import {
+	registerStudioComponentScripts,
+	unregisterStudioComponentScripts,
+} from "@/data/studioComponentScripts"
+import useComponentStore from "@/stores/componentStore"
 import { loadAppRuntime, reloadAppRuntime, unloadAppRuntime } from "@/browserRuntime/appRuntime"
 import { registerCustomComponentPaths } from "@/utils/componentSlots"
 import type { CustomVueComponentMeta } from "@/types/vue"
@@ -95,10 +100,18 @@ const useStudioStore = defineStore("store", () => {
 	const selectedVueFile = ref<string | null>(null)
 	const selectedVueComponent = ref<string | null>(null)
 
+	const selectedComponentScript = ref<string | null>(null)
+
 	function navigateToCodeFile(studioFilePath: string) {
 		studioLayout.value.leftPanelActiveTab = "Code"
 		studioLayout.value.showLeftPanel = true
 		selectedVueFile.value = studioFilePath
+	}
+
+	function navigateToComponentScript(componentId: string) {
+		studioLayout.value.leftPanelActiveTab = "Code"
+		studioLayout.value.showLeftPanel = true
+		selectedComponentScript.value = componentId
 	}
 
 	function navigateToVueComponent(componentName: string) {
@@ -121,7 +134,7 @@ const useStudioStore = defineStore("store", () => {
 		await setAppBoot(appName)
 		await setAppPages(appName)
 		await setCustomComponents()
-		await setupPageScripts()
+		await registerAppScripts()
 	}
 
 	// the canvas is not a rendered app page, so it asks for the app's studio_app_boot dict
@@ -226,7 +239,7 @@ const useStudioStore = defineStore("store", () => {
 		})
 		if (targetPage) {
 			await setCustomComponents()
-			await setupPageScripts()
+			await registerAppScripts()
 			await setPage(targetPage)
 			toast.success("Page replaced")
 		} else {
@@ -631,15 +644,20 @@ const useStudioStore = defineStore("store", () => {
 	const refreshAppFiles = useDebounceFn(async () => {
 		if (!isDbApp.value) return
 		await reloadAppRuntime()
+		await useComponentStore().reloadComponentScripts()
 		if (activePage.value) await pageScope.loadPageScript(activePage.value)
 	}, 300)
 
-	// Register per-page script files for exported apps so the editor can load them.
-	async function setupPageScripts() {
+	// Register the page and component script files of an exported app so the editor can load them.
+	// Components cached from another app then load their scripts from this app.
+	async function registerAppScripts() {
 		unregisterStudioPageScripts()
+		unregisterStudioComponentScripts()
 		if (activeApp.value?.is_standard) {
 			await registerStudioPageScripts(activeApp.value.frappe_app!)
+			await registerStudioComponentScripts(activeApp.value.frappe_app!, activeApp.value.name)
 		}
+		await useComponentStore().reloadComponentScripts()
 	}
 
 	// build
@@ -859,6 +877,9 @@ const useStudioStore = defineStore("store", () => {
 		customVueComponents,
 		// cross-panel navigation
 		selectedVueFile,
+		selectedComponentScript,
+		navigateToComponentScript,
+		registerAppScripts,
 		selectedVueComponent,
 		navigateToCodeFile,
 		navigateToVueComponent,

@@ -4,6 +4,7 @@ export interface StudioComponent {
 	component_name: string
 	/**	Block : JSON	*/
 	block?: any
+	script?: string | null
 	inputs?: StudioComponentInput[]
 	creation?: string
 	modified?: string

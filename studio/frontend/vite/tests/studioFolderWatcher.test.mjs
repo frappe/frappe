@@ -5,7 +5,7 @@ import path from "node:path"
 import test from "node:test"
 import studioFolderWatcher from "../studioFolderWatcher.js"
 
-test("page scripts and router files accept HMR with either extension", () => {
+test("page scripts, component scripts and router files accept HMR with either extension", () => {
 	const appsDir = fs.mkdtempSync(path.join(os.tmpdir(), "studio-script-hmr-"))
 	try {
 		const appFolder = path.join(appsDir, "example", "studio", "notes")
@@ -21,6 +21,13 @@ test("page scripts and router files accept HMR with either extension", () => {
 				assert.match(result.code, /import\.meta\.hot\.accept/)
 				assert.match(result.code, /__STUDIO_HMR_applyPageScript\("board-page", mod\)/)
 			}
+			const component = path.join(appFolder, "studio_components", `card_1.${extension}`)
+			fs.mkdirSync(path.dirname(component), { recursive: true })
+			fs.writeFileSync(component.replace(/\.(ts|js)$/, ".json"), JSON.stringify({ name: "card-1" }))
+			assert.match(
+				plugin.transform("export default {}", `/@fs${component}?v=1`).code,
+				/__STUDIO_HMR_applyComponentScript\("card-1", mod\)/,
+			)
 			const router = plugin.transform("export default {}", path.join(appFolder, `router.${extension}`))
 			assert.match(router.code, /import\.meta\.hot\.accept/)
 			assert.match(router.code, /window\.location\.reload/)
