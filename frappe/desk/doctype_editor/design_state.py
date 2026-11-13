@@ -18,6 +18,7 @@ from frappe.desk.doctype.form_layout.form_layout import (
 )
 from frappe.desk.doctype_editor.errors import EditError, field_error
 from frappe.desk.doctype_editor.layout_tree import LayoutTree
+from frappe.model import table_fields
 
 
 class EditorLayout:
@@ -199,6 +200,7 @@ class DesignState:
 		saved = self.saved_name(old)
 		if new != saved:
 			self.refuse_taken_fieldname(new, old)
+			self.refuse_deleted_table_rows(field, new)
 		if saved:
 			if self.standard:
 				raise field_error(_("Renaming a saved field of a standard DocType needs a patch."), old)
@@ -220,6 +222,14 @@ class DesignState:
 		if not self.doc.is_new() and frappe.db.has_column(self.name, fieldname):
 			message = _("{0} still holds the data of a deleted field. Choose another fieldname.")
 			raise field_error(message.format(fieldname), key or fieldname)
+
+	def refuse_deleted_table_rows(self, field, fieldname: str):
+		"""A deleted Table field keeps its rows, and a table of that name would show them again."""
+		if field.fieldtype not in table_fields or self.doc.is_new() or not field.options:
+			return
+		if frappe.db.exists(field.options, {"parenttype": self.name, "parentfield": fieldname}):
+			message = _("{0} still holds the rows of a deleted table. Choose another fieldname.")
+			raise field_error(message.format(fieldname), field.fieldname)
 
 	def saved_name(self, fieldname: str) -> str | None:
 		"""The fieldname this field has in the database; None for a field added in this save."""

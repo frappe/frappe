@@ -431,6 +431,37 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertTrue(result["saved"], result.get("errors"))
 		self.assertTrue(frappe.get_meta(DOCTYPE).get_field("seen"))
 
+	def test_a_table_field_is_not_renamed_onto_a_deleted_table_s_rows(self):
+		child = f"{DOCTYPE} Item"
+		self.addCleanup(delete_committed, "DocType", child)
+		added = self.save(
+			{
+				DOCTYPE: [{"act": "fields.add_child_table", "table_field": "items", "name": child}],
+				child: [{"act": "fields.add_field", "label": "Qty", "fieldtype": "Int"}],
+			}
+		)
+		self.assertTrue(added["saved"], added.get("errors"))
+		table = self.save(
+			[
+				{
+					"act": "fields.add_field",
+					"label": "Old Items",
+					"fieldtype": "Table",
+					"options": child,
+				}
+			]
+		)
+		self.assertTrue(table["saved"], table.get("errors"))
+		frappe.get_doc({"doctype": DOCTYPE, "title": "Old", "old_items": [{"qty": 1}]}).insert()
+		deleted = self.save([{"act": "fields.delete_field", "fieldname": "old_items"}])
+		self.assertTrue(deleted["saved"], deleted.get("errors"))
+
+		result = self.save(
+			[{"act": "fields.rename_field", "fieldname": "items", "new_fieldname": "old_items"}]
+		)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"], {"kind": "field", "fieldname": "items"})
+
 	def test_a_renamed_table_field_leaves_other_parents_rows_alone(self):
 		child, other = f"{DOCTYPE} Item", f"{DOCTYPE} Other"
 		self.addCleanup(delete_committed, "DocType", child)
