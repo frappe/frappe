@@ -739,7 +739,7 @@ class PrintDesignerConverter:
 				continue
 			first = fields[0]
 			col = {
-				"label": column.get("label") or first.get("label") or "",
+				"label": html.unescape(column.get("label") or first.get("label") or ""),
 				"fieldname": first["fieldname"],
 				"fieldtype": first.get("fieldtype") or "Data",
 				"width": round(flt(column.get("width")), 1),
@@ -957,7 +957,7 @@ class PrintDesignerConverter:
 		if item.get("is_labelled") and item.get("label"):
 			base = (self.global_styles.get("dynamicText") or {}).get("labelStyle") or {}
 			label_style = css({**base, **(item.get("labelStyle") or {})})
-			value = f'<span style="{label_style}">{escape_html(item["label"])}</span> {value}'
+			value = f'<span style="{label_style}">{escape_html(html.unescape(item["label"]))}</span> {value}'
 		if style:
 			value = f'<span style="{style}">{value}</span>'
 		return value + ("<br>" if item.get("nextLine") else "")
