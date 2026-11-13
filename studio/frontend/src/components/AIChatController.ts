@@ -27,7 +27,6 @@ export interface AIChatContext {
 		resources?: boolean
 		variables?: boolean
 		script?: boolean
-		router?: boolean
 		modified?: string
 	}) => void
 }
@@ -171,7 +170,6 @@ export class AIChatController {
 			resources: !!data.resources,
 			variables: !!data.variables,
 			script: !!data.script,
-			router: !!data.router,
 			modified: data.modified,
 		})
 	}
