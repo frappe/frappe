@@ -2189,7 +2189,6 @@ test("the sidebar's header menu names the account, and leads to the host's apps,
 		state: reactive({ sessions: [], folders: null, sessionsLoading: false, sessionsMore: false, sessionId: null, prefs: { openFolders: [] } }),
 		sessionTitle: (session) => session.title,
 		folderName: (path) => path,
-		searchSessions() {},
 		setFolderOpen() {},
 		setSidebarView() {},
 		setSettingsOpen: (open) => done.push(["settings", open]),
@@ -2216,7 +2215,6 @@ test("a host with no apps or log out keeps Settings alone in the sidebar's menu"
 		state: reactive({ sessions: [], folders: null, sessionsLoading: false, sessionsMore: false, sessionId: null, prefs: { openFolders: [] } }),
 		sessionTitle: (session) => session.title,
 		folderName: (path) => path,
-		searchSessions() {},
 		setFolderOpen() {},
 		setSidebarView() {},
 	}
@@ -2226,7 +2224,7 @@ test("a host with no apps or log out keeps Settings alone in the sidebar's menu"
 	assert.deepEqual([...el.querySelectorAll("[role=menuitem]")].map((item) => item.textContent), ["Settings"])
 })
 
-test("the chat list groups chats by their folder, and says it is loading, not that there are no chats or matches", async (t) => {
+test("the chat list groups chats by their folder, says it is loading, not that there are no chats, and stays as it is while the search finds chats of its own", async (t) => {
 	t.mock.timers.enable({ apis: ["setTimeout"] })
 	const opened = [] // what the rows' buttons asked for
 	const flow = {
@@ -2246,10 +2244,8 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 		},
 		sessionTitle: (session) => session.title,
 		folderName: (path) => path.split("/").pop(),
-		// past a full page, a search goes to the host
-		searchSessions() {
-			flow.state.sessionsLoading = true
-		},
+		// past a full page, the search asks the host too
+		findSessions: async (query) => (query === "old" ? [{ session_id: "o1", title: "Old plan" }] : []),
 		setFolderOpen(cwd, open) {
 			const others = flow.state.prefs.openFolders.filter((path) => path !== cwd)
 			flow.state.prefs.openFolders = open ? [...others, cwd] : others
@@ -2273,24 +2269,29 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	await nextTick()
 	search().querySelector("button").click()
 	await nextTick()
-	await typeSearch(t, el, "beta")
-	assert.ok(el.textContent.includes("Loading"))
-	assert.ok(!el.textContent.includes("No matches"))
-	flow.state.sessionsLoading = false
-	await nextTick()
-	assert.ok(el.textContent.includes("No matches"))
-
-	// chats without a folder list flat
 	const rows = () => [...el.querySelectorAll("[data-stub=SidebarItem]")]
 	const labels = () => rows().map((row) => row.textContent.trim())
+	const found = () => [...el.querySelectorAll("[role=option]")].map((option) => option.textContent.trim())
 	const click = async (label) => {
 		rows().find((row) => row.textContent.trim() === label).querySelector("button").click()
 		await nextTick()
 	}
+	assert.deepEqual(found(), ["New chat", "Alpha"])
+	// a query that matches nothing leaves the list its chats
+	await typeSearch(t, el, "beta")
+	assert.deepEqual(found(), [])
+	assert.deepEqual(labels(), ["New chat", "Search", "Alpha"])
+	// a chat the host finds past the loaded page lists in the search alone, and opens from it
+	await typeSearch(t, el, "old")
+	assert.deepEqual(found(), ["Old plan"])
+	assert.deepEqual(labels(), ["New chat", "Search", "Alpha"])
+	el.querySelector("[role=option]").click()
+	await settle()
+	assert.deepEqual(opened.splice(0), ["o1"])
+
+	// chats without a folder list flat
 	button("Close search").click()
 	await nextTick()
-	t.mock.timers.tick(200) // the cleared query's debounce
-	await settle()
 	assert.deepEqual(labels(), ["New chat", "Search", "Alpha"])
 	assert.ok(el.textContent.includes("Chats") && !el.textContent.includes("Workspaces"))
 
@@ -2344,25 +2345,26 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	assert.deepEqual(labels(), ["New chat", "Search", "app", "api", "Api work"])
 	assert.deepEqual(flow.state.prefs.openFolders, ["/w/api"])
 
-	// a search opens every workspace with a match
+	// a search lists its matches itself: the workspaces stay folded as they were
 	search().querySelector("button").click()
 	await nextTick()
 	await typeSearch(t, el, "app 5")
-	assert.deepEqual(labels(), ["New chat", "Search", "app", "App 5"])
-	assert.equal(rows()[2].querySelector("button").getAttribute("aria-expanded"), "true")
+	assert.deepEqual(found(), ["App 5"])
+	assert.deepEqual(labels(), ["New chat", "Search", "app", "api", "Api work"])
 	assert.equal(el.querySelector("input").getAttribute("aria-label"), "Search chats") // not its close button's title
-	await click("app") // the search holds it open: a click folds nothing, now or after
-	assert.deepEqual(flow.state.prefs.openFolders, ["/w/api"])
 
 	// closing the search clears it
 	button("Close search").click()
 	await nextTick()
 	assert.ok(search() && !el.querySelector("input"))
+	search().querySelector("button").click()
+	await nextTick()
+	assert.equal(el.querySelector("input").value, "")
+	button("Close search").click()
+	await nextTick()
 
 	// the filters menu lists the chats in one list; a drag puts a chat where it's dropped and
 	// switches to manual order, where each keeps its place and a new chat lands on top
-	t.mock.timers.tick(200) // the cleared query's debounce
-	await settle()
 	const pickView = async (label) => {
 		const item = () => [...el.querySelectorAll("[role=menuitem]")].find((option) => option.textContent === label)
 		if (!item()) button("Group and sort").click()
@@ -2542,7 +2544,6 @@ test("a daemon's workspaces list by their own names, a new or empty one on top, 
 		}),
 		sessionTitle: (session) => session.title,
 		folderName: (path) => flow.state.folders.find((folder) => folder.path === path)?.name ?? path.split("/").pop(),
-		searchSessions() {},
 		setFolderOpen() {},
 		setSidebarView(view) {
 			Object.assign(flow.state.prefs, view)
@@ -2580,15 +2581,6 @@ test("a daemon's workspaces list by their own names, a new or empty one on top, 
 	await nextTick()
 	assert.equal(flow.state.prefs.sidebarOrder, "manual")
 	assert.deepEqual(labels(), shown)
-
-	// a search shows only the workspaces with a match
-	search().querySelector("button").click()
-	await nextTick()
-	await typeSearch(t, el, "cart")
-	assert.deepEqual(labels(), ["New chat", "Search", "Shop", "Fix the cart"])
-	button("Close search").click()
-	t.mock.timers.tick(200)
-	await settle()
 
 	// each dialog keeps the workspace it was opened for
 	layout.phone = layout.narrow = true

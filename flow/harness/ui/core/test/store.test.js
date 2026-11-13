@@ -29,6 +29,12 @@ test("the session list pages past the last row shown and searches through the ho
 	await flow.refreshSessions()
 	assert.equal(flow.state.sessionsMore, true)
 
+	// a full page: the palette's search asks the host, and the list stays as it is
+	assert.deepEqual((await flow.findSessions("read")).map((s) => s.session_id), ["s9"])
+	assert.deepEqual(flow.state.sessions.map((s) => s.session_id), ["s0", "s1"])
+	assert.equal(flow.state.sessionQuery, "")
+	calls.length = 1
+
 	// a full page: the search goes to the host, and clearing it reloads the list
 	await flow.searchSessions("read")
 	assert.deepEqual(flow.state.sessions.map((s) => s.session_id), ["s9"])
@@ -48,6 +54,7 @@ test("the session list pages past the last row shown and searches through the ho
 
 	// every session loaded: typing filters locally, no request
 	await flow.searchSessions("read")
+	assert.deepEqual(await flow.findSessions("read"), [])
 	assert.deepEqual(calls, [
 		["", undefined],
 		["read", undefined],
