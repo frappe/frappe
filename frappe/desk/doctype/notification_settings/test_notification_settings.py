@@ -1,6 +1,8 @@
 # Copyright (c) 2021, Frappe Technologies and Contributors
 # See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.doctype.notification_settings.notification_settings import (
@@ -55,5 +57,8 @@ class TestNotificationSettings(FrappeTestCase):
 
 	def test_emailable_types_require_desk_access(self):
 		with test_user(roles=[], user_type="Website User") as user, self.set_user(user.name):
-			with self.assertRaises(frappe.PermissionError):
+			with (
+				patch.dict(frappe.local.flags, {"in_test": False}),
+				self.assertRaises(frappe.PermissionError),
+			):
 				get_emailable_notification_types()
