@@ -130,6 +130,25 @@ describe("useOnboarding", () => {
     expect(showHelpModal.value).toBe(false);
   });
 
+  it("does not save a queued step before the saved status is known", async () => {
+    const { call } = await import("frappe-ui");
+    const { onboarding, onStatusLoaded } = await load();
+    vi.mocked(call).mockClear();
+
+    const shown = steps();
+    onboarding.updateOnboardingStep("invite_team");
+    onboarding.setUp(shown);
+    expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(true);
+    expect(vi.mocked(call)).not.toHaveBeenCalled();
+
+    onStatusLoaded({
+      frappecrm_onboarding_status: [{ name: "a_role_only_step", completed: true }],
+    });
+    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    expect(saved).toContainEqual({ name: "invite_team", completed: true });
+    expect(saved).toContainEqual({ name: "a_role_only_step", completed: true });
+  });
+
   it("applies a step queued before setUp only once", async () => {
     const { call } = await import("frappe-ui");
     const { onboarding, onStatusLoaded } = await load();

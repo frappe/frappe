@@ -20,6 +20,10 @@ const onboardings = reactive<Record<string, OnboardingStep[]>>({});
 const pending = useStorage<Record<string, string[]>>("onboardingPending", {});
 // Queued steps are kept until the saved status has loaded, so that load cannot undo them.
 const statusLoaded: Record<string, boolean> = {};
+const queueStep = (key: string, step: string) => {
+  const queued = (pending.value[key] ||= []);
+  if (!queued.includes(step)) queued.push(step);
+};
 const onboardingStatus = useStorage<StoredStatus>("onboardingStatus", {});
 
 /**
@@ -55,13 +59,15 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
       auto: true,
       onSuccess: (data: Record<string, StoredStep[]>) => {
         onboardingStatus.value[userId] = data;
-        statusLoaded[appName] = true;
+        statusLoaded[pendingKey] = true;
         syncStatus();
         // the panel opens before this status loads; close it if onboarding is already done
         if (isOnboardingStepsCompleted.value && !showHelpCenter.value)
           showHelpModal.value = false;
       },
     });
+  } else {
+    statusLoaded[pendingKey] = true;
   }
 
   const stepsCompleted = computed(
@@ -98,10 +104,7 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
     if (isOnboardingStepsCompleted.value) return;
 
     if (!onboardings[appName]) {
-      if (value) {
-        const queued = (pending.value[pendingKey] ||= []);
-        if (!queued.includes(step)) queued.push(step);
-      }
+      if (value) queueStep(pendingKey, step);
       return;
     }
 
@@ -109,7 +112,8 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
     const saved = onboardingSteps.value.find((s) => s.name === step);
     if (shown) shown.completed = value;
     else if (saved) saved.completed = value;
-    saveSteps();
+    if (statusLoaded[pendingKey]) saveSteps();
+    else if (value) queueStep(pendingKey, step);
 
     callback?.(step, skipped);
 
@@ -126,7 +130,7 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
     onboardings[appName].forEach((step) => {
       step.completed = value;
     });
-    saveSteps(value);
+    if (statusLoaded[pendingKey]) saveSteps(value);
 
     callback?.(value);
   }
@@ -171,8 +175,11 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
       const step = onboardings[appName].find((s) => s.name === name);
       if (step) step.completed = true;
     });
-    if (queued?.length) saveSteps();
-    if (statusLoaded[appName]) delete pending.value[pendingKey];
+    // Saving replaces the whole saved list, so it waits for that list to be known.
+    if (statusLoaded[pendingKey]) {
+      if (queued?.length) saveSteps();
+      delete pending.value[pendingKey];
+    }
 
     // Finished stays finished: a checklist the user completed does not reopen when
     // the app later renames or adds steps.
