@@ -9,7 +9,14 @@
 		<SaveBanner :save="save" :doctype="canvas.state.doctype" />
 		<h1 class="text-xl font-semibold text-ink-gray-9">{{ canvas.state.doctype }}</h1>
 		<DoctypeDescription :canvas="canvas" />
-		<p class="mt-1 text-p-sm text-ink-gray-5" data-editor-meta>{{ metaLine }}</p>
+		<p class="mt-1 text-p-sm text-ink-gray-5" data-editor-meta>
+			<Tooltip
+				:text="__('Your changes stay on this site and survive its updates')"
+				:disabled="!canvas.customize || !canvas.state.app_title"
+			>
+				<span>{{ metaLine }}</span>
+			</Tooltip>
+		</p>
 		<p v-if="siteFields" class="mt-1 text-p-sm text-ink-gray-5" data-editor-site-fields>
 			{{
 				__n(
@@ -65,7 +72,7 @@
 <script setup lang="ts">
 import { computed, nextTick, watch } from "vue";
 import { RouterLink, type RouteLocationRaw } from "vue-router";
-import { Button, useKeyboardShortcut } from "frappe-ui";
+import { Button, Tooltip, useKeyboardShortcut } from "frappe-ui";
 import Draggable from "vuedraggable";
 import { acts } from "@/acts/dispatcher";
 import { __, __n } from "@/i18n";

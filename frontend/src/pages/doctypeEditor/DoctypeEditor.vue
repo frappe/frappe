@@ -14,7 +14,6 @@
 				:saving="save.saving.value"
 				:mode="state.mode"
 				:modes="state.modes"
-				:app-title="state.app_title"
 				:developer-mode="boot.developer_mode"
 				:child-crumbs="child.crumbs.value"
 				@act="(name, value) => acts.perform(name, value)"
