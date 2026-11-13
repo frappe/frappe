@@ -55,6 +55,22 @@ describe("PasswordStep", () => {
     expect(done).toHaveBeenCalledTimes(1);
   });
 
+  it("moves on when the server says a password already exists", async () => {
+    call.mockRejectedValue({
+      exc_type: "PermissionError",
+      messages: ["You already have a password. Change it from your settings."],
+    });
+    const { el, done } = await mountStep();
+    await type(el, "Eastern_43A1W");
+    el.querySelector("form")!.dispatchEvent(new Event("submit"));
+    await nextTick();
+    await nextTick();
+    await nextTick();
+
+    expect(done).toHaveBeenCalledTimes(1);
+    expect(el.textContent).not.toContain("already have a password");
+  });
+
   it("shows the server's reason and stays when it refuses", async () => {
     call.mockRejectedValue({ messages: ["Better add a few more letters."] });
     const { el, done } = await mountStep();

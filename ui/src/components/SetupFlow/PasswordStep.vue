@@ -80,7 +80,14 @@ async function save() {
 		password.value = "";
 		emit("done");
 	} catch (e: unknown) {
-		const messages = (e as { messages?: string[] })?.messages;
+		const { exc_type, messages } = (e as { exc_type?: string; messages?: string[] }) || {};
+		// Refused because a password exists already, say after a reload mid-setup: the
+		// step's job is done, so the flow moves on instead of trapping the user here.
+		if (exc_type === "PermissionError") {
+			password.value = "";
+			emit("done");
+			return;
+		}
 		error.value = messages?.[0] || text.value.failed;
 	} finally {
 		saving.value = false;
