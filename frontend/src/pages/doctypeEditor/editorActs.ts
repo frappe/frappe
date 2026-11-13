@@ -1,5 +1,5 @@
 // The DocType editor's act surfaces. Every act is `<surface>.<item>` and takes one value; later
-// slices add `layouts` and `danger` here, and more `settings`.
+// slices add `layouts` and `danger` here.
 import { toast } from "frappe-ui";
 import { onScopeDispose, type Ref } from "vue";
 import { acts, type ActEntry, type ActItem, type ActOption } from "@/acts/dispatcher";
@@ -9,7 +9,7 @@ import { canvasItems, fieldItems } from "./canvasActs";
 import { childFieldItems } from "./childActs";
 import { customizeItems, modeItems, type CustomizeHost } from "./customizeActs";
 import type { DesignCanvas } from "./designCanvas";
-import { EditRefused } from "./editorModel";
+import { EditRefused, type FlatEdit } from "./editorModel";
 import type { EditorSave } from "./editorSave";
 import { LAYOUT_BREAKS } from "./fieldRules";
 import type { EditorTab, PendingEdits } from "./pendingEdits";
@@ -110,16 +110,32 @@ function hasList(host: EditorActsHost): boolean {
 }
 
 function settingsItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
-	return [
-		{
-			name: "set_doctype_property",
-			label: __("Set a DocType property"),
-			palette: false,
-			when: () => Boolean(host.canvas()?.editable),
-			run: (_context, keys: { property: string; value: unknown }) =>
-				host.canvas()!.stage({ ...keys, act: "settings.set_doctype_property" }),
-		},
-	];
+	return SETTINGS_ACTS.map(([name, label]) => ({
+		name,
+		label: __(label),
+		palette: false,
+		when: () => Boolean(host.canvas()),
+		run: (_context, keys: Record<string, unknown>) => stageSetting(host.canvas()!, { ...keys, act: `settings.${name}` }),
+	}));
+}
+
+const SETTINGS_ACTS: [string, string][] = [
+	["set_doctype_property", "Set a DocType property"],
+	["reset_doctype_property", "Reset a DocType property"],
+	["set_naming_series", "Set the naming series"],
+	["add_permission", "Add a permission rule"],
+	["remove_permission", "Remove a permission rule"],
+	["set_permission", "Set a permission"],
+	["reset_permissions", "Reset to app permissions"],
+];
+
+/** The description sits in the header, so its undo stays on the Editor tab; Customize sets settings on a read-only canvas. */
+function stageSetting(canvas: DesignCanvas, edit: FlatEdit) {
+	if (edit.property === "description") {
+		if (!canvas.editable) throw new EditRefused("{0} is not a DocType setting the editor sets.", ["description"]);
+		return canvas.stage(edit);
+	}
+	canvas.stageSettings(edit);
 }
 
 function navigationItems(host: EditorActsHost): ActItem<EditorActsHost>[] {

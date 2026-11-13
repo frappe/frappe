@@ -33,6 +33,18 @@ export interface DoctypeDefinition {
 	title_field?: string;
 	description?: string;
 	fields: RawMetaField[];
+	permissions?: Record<string, unknown>[];
+	[property: string]: unknown;
+}
+
+/** A Customize load's Property Setter, with the value the app ships. */
+export interface EditorPropertySetter {
+	doctype_or_field: string;
+	field_name?: string | null;
+	property: string;
+	value: string;
+	is_system_generated: 0 | 1;
+	app_value: unknown;
 }
 
 export interface EditorState {
@@ -51,6 +63,13 @@ export interface EditorState {
 	site_custom_fields?: number;
 	/** A child table's parents that the user reads. */
 	parents?: string[];
+	/** The DocType properties this mode's Settings tab sets. */
+	settable_properties?: string[];
+	/** The site has its own permission rows (Custom DocPerm). */
+	site_permissions?: boolean;
+	/** Customize: the app's permission rows (DocPerm). */
+	app_permissions?: Record<string, unknown>[];
+	property_setters?: EditorPropertySetter[];
 	/** Not yet saved: `/doctype/new` builds it on the client. */
 	pending?: boolean;
 	/** Customize: the site's changes, and the property changes Customize Form refuses. */

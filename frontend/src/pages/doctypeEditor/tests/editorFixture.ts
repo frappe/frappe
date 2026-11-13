@@ -117,6 +117,7 @@ export function mountEditor(
 		},
 		edits,
 		head,
+		tab,
 		save,
 		children,
 		created,

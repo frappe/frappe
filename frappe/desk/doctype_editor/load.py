@@ -6,6 +6,7 @@ from frappe import _
 from frappe.desk.doctype_editor.customize import get_customizations
 from frappe.desk.doctype_editor.layouts import get_editor_layouts
 from frappe.desk.doctype_editor.mode import MODES, check_mode, mode_refusal
+from frappe.desk.doctype_editor.settings_edits import CUSTOMIZE_PROPERTIES, DESIGN_PROPERTIES
 from frappe.desk.doctype_editor.versions import base_version
 from frappe.model import table_fields
 from frappe.model.meta import Meta
@@ -36,6 +37,7 @@ def get_doctype_editor(doctype: str, mode: str | None = None) -> dict:
 		"value_counts": values,
 		"layouts": get_editor_layouts(doctype, custom=mode == "Customize"),
 		"site_permissions": bool(frappe.db.exists("Custom DocPerm", {"parent": doctype})),
+		"settable_properties": CUSTOMIZE_PROPERTIES if mode == "Customize" else DESIGN_PROPERTIES,
 	}
 	editor.update(design_state(doctype) if mode == "Design" else get_customizations(meta))
 	if meta.istable:

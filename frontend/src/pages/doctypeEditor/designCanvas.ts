@@ -26,7 +26,7 @@ export type CanvasSelection =
 /** A save's refusal, at what the editor shows it on. */
 export interface SaveError {
 	target: {
-		kind: "field" | "container" | "layout" | "banner";
+		kind: "field" | "container" | "layout" | "setting" | "banner";
 		fieldname?: string;
 		property?: string;
 		layout?: string;
@@ -89,6 +89,12 @@ export class DesignCanvas {
 	stage(...edits: FlatEdit[]) {
 		workingState(this.base, [...this.edits.staged.value, ...edits]);
 		this.edits.stage(...edits.map(({ act, ...value }) => ({ act, value, tab: "editor" as const })));
+	}
+
+	/** As `stage`, for the Settings tab: undo opens it. Customize sets settings while its canvas is read-only. */
+	stageSettings(...edits: FlatEdit[]) {
+		workingState(this.base, [...this.edits.staged.value, ...edits]);
+		this.edits.stage(...edits.map(({ act, ...value }) => ({ act, value, tab: "settings" as const })));
 	}
 
 	select(selection: CanvasSelection | null) {

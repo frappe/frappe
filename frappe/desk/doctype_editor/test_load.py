@@ -250,3 +250,5 @@ class TestDoctypeEditor(IntegrationTestCase):
 			editor = self.open(self.manager, "ToDo", "Design")
 		self.assertTrue(editor["site_permissions"])
 		self.assertNotIn("app_permissions", editor)
+		self.assertIn("track_seen", editor["settable_properties"])
+		self.assertNotIn("track_seen", self.open(self.customizer, "ToDo")["settable_properties"])

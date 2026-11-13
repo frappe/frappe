@@ -14,6 +14,7 @@ import {
 import { detailsLayout, type EditorState } from "./editorSource";
 import { fieldnameFromLabel, LAYOUT_BREAKS, validFieldname } from "./fieldRules";
 import { EditRefused, LayoutTreeEditor } from "./layoutTree";
+import { settingsBase, SettingsReplay, type SettingsState } from "./settingsModel";
 
 export { EditRefused } from "./layoutTree";
 
@@ -29,7 +30,8 @@ export interface WorkingState {
 	fields: RawMetaField[];
 	/** The Details layout the canvas draws. */
 	layout: LayoutTree;
-	description: string;
+	/** The Settings tab's part, description included. */
+	settings: SettingsState;
 	/** The fieldnames the database has; a rename or delete checks against them. */
 	saved: string[];
 	/** Each saved field renamed so far, `[saved, current]`. */
@@ -53,7 +55,7 @@ export function editorBase(state: EditorState): WorkingState {
 		standard: !state.custom,
 		fields: definition.fields,
 		layout: detailsLayout(state)?.layout ?? [],
-		description: definition.description ?? "",
+		settings: settingsBase(state),
 		saved: definition.fields.map((field) => field.fieldname),
 		renames: [],
 		customize: customizeRules(state),
@@ -99,7 +101,6 @@ export function reqdInConditional(working: WorkingState): { fieldname: string; c
 	return found;
 }
 
-const DOCTYPE_PROPERTIES = ["description", "editable_grid", "allow_bulk_edit"];
 const RESERVED_PROPERTIES = ["name", "parent", "parenttype", "parentfield", "idx", "doctype"];
 const PLACE_KEYS = ["fieldname", "section", "column", "index", "tab"];
 const CANVAS_ACTS: Record<string, keyof LayoutTreeEditor> = {
@@ -121,15 +122,19 @@ const CANVAS_ACTS: Record<string, keyof LayoutTreeEditor> = {
 /** Applies edits to a state it owns, act by act. */
 class DesignReplay {
 	private tree: LayoutTreeEditor;
+	private settings: SettingsReplay;
 
 	constructor(
 		readonly state: WorkingState,
 		private loaded: WorkingState,
 	) {
 		this.tree = new LayoutTreeEditor(state.layout);
+		const { settings, fields } = state;
+		this.settings = new SettingsReplay({ settings, fields, addField: (edit) => this.addField(edit) });
 	}
 
 	apply(edit: FlatEdit) {
+		if (edit.act.startsWith("settings.")) return this.settings.apply(edit);
 		const method = CANVAS_ACTS[edit.act];
 		if (method) return this.canvas(edit, method);
 		const handler = FIELD_ACTS[edit.act];
@@ -211,11 +216,6 @@ class DesignReplay {
 		this.tree.unplace_field({ fieldname });
 	}
 
-	setDoctypeProperty({ property, value }: { property: string; value: unknown }) {
-		if (!DOCTYPE_PROPERTIES.includes(property)) throw new EditRefused("{0} is not a DocType setting.", [property]);
-		if (property === "description") this.state.description = (value as string) ?? "";
-	}
-
 	private field(fieldname: string): RawMetaField {
 		const field = this.state.fields.find((each) => each.fieldname === fieldname);
 		if (!field) throw new EditRefused("{0} is not a field of {1}.", [fieldname, this.state.doctype]);
@@ -251,7 +251,6 @@ const FIELD_ACTS: Record<string, (replay: DesignReplay, edit: never) => void> = 
 	"fields.delete_field": (replay, edit) => replay.deleteField(edit),
 	"fields.reorder_field": (replay, edit) => reorderField(replay.state, edit),
 	"fields.add_child_table": (replay, edit) => addChildTable(replay.state, edit, (added) => replay.addField(added)),
-	"settings.set_doctype_property": (replay, edit) => replay.setDoctypeProperty(edit),
 };
 
 /** The fieldname the database has for this field; `null` for a field added since the save. */

@@ -25,7 +25,7 @@ import type { DesignCanvas } from "./designCanvas";
 const props = defineProps<{ canvas: DesignCanvas }>();
 
 const input = ref<HTMLTextAreaElement | null>(null);
-const description = computed(() => props.canvas.working.value.description);
+const description = computed(() => (props.canvas.working.value.settings.properties.description as string) ?? "");
 
 watch(description, () => nextTick(grow), { immediate: true });
 
