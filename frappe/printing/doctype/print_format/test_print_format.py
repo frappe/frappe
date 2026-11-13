@@ -920,6 +920,26 @@ class TestClassicConverter(IntegrationTestCase):
 
 
 class TestPrintDesignerConverter(IntegrationTestCase):
+	def test_print_designer_barcode_built_from_fields_keeps_its_value(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import (
+			convert_print_designer_format,
+		)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		barcode = {"type": "barcode", "barcodeFormat": "code128", "value": "{{ doc.title }}-{{ doc.name }}"}
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "Note",
+				"print_designer_body": frappe.as_json([{"childrens": [barcode]}]),
+			}
+		)
+
+		layout, _notes = convert_print_designer_format(doc)
+
+		self.assertEqual(layout["sections"][0]["columns"][0]["fields"][0]["barcode_value"], "{title}-{name}")
+
 	def test_print_designer_barcode_keeps_its_type(self):
 		from frappe.printing.doctype.print_format.print_designer_converter import (
 			convert_print_designer_format,
