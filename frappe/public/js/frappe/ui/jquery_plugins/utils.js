@@ -14,29 +14,8 @@ export function get_selector(element) {
 	}
 }
 
-export function get_target(element) {
-	const selector = get_selector(element);
-	return selector ? document.querySelector(selector) : null;
-}
-
-export function is_element(value) {
-	return Boolean(value && (value[0] || value).nodeType);
-}
-
-export function to_element(value) {
-	return value && value.jquery ? value[0] : value;
-}
-
 export function reflow(element) {
 	return element.offsetHeight;
-}
-
-export function unique_id(prefix) {
-	let id;
-	do {
-		id = prefix + Math.floor(Math.random() * 1000000);
-	} while (document.getElementById(id));
-	return id;
 }
 
 export function transition_duration(element) {
