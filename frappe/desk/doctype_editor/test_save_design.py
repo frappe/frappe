@@ -721,10 +721,11 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 				frappe.local.request.after_response.run()
 		self.assertFalse(os.path.exists(self.path("ToDo", "Details")))
 
-		write_doctype_files("ToDo")
+		versions = write_doctype_files("ToDo")
 		with open(self.path("ToDo", "Details")) as f:
 			[entry] = json.load(f)
 		self.assertEqual(entry["layout"][-1]["name"], "extra_47271")
+		self.assertEqual(versions, base_version("ToDo")["app_layouts"], "the client's next base version")
 
 	def test_an_export_staging_nothing_leaves_the_app_layouts_alone(self):
 		doc = frappe.get_doc("DocType", "ToDo")

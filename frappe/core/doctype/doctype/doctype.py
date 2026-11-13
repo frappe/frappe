@@ -2292,8 +2292,10 @@ def publish_export_result(
 
 
 @frappe.whitelist(methods=["POST"])
-def write_doctype_files(doctype: str) -> None:
-	"""Run the export of a standard DocType again. It writes `.py` files, so a dev server may restart."""
+def write_doctype_files(doctype: str) -> dict | None:
+	"""Run the export of a standard DocType again. It writes `.py` files, so a dev server may restart.
+
+	Returns the new hash of each app layout file it wrote, the editor's next base version."""
 	frappe.only_for("System Manager")
 	if not frappe.conf.developer_mode:
 		frappe.throw(_("Writing DocType files needs developer mode."), frappe.PermissionError)
@@ -2308,6 +2310,7 @@ def write_doctype_files(doctype: str) -> None:
 		doc.run_module_method("on_doctype_update")
 	except Exception as e:
 		frappe.throw(str(e) or repr(e), title=_("DocType files not written"))
+	return doc.flags.app_layout_versions
 
 
 @frappe.whitelist()
