@@ -82,6 +82,14 @@ describe("the settings acts", () => {
 		expect(design.canvas.working.value.settings.properties.description).toBe("Notes");
 	});
 
+	it("find a setting with Mod+J, which opens it on the Settings tab", async () => {
+		const mounted = mount();
+		const options = await acts.find("editor.find")!.argument!.options("title");
+		expect(options).toContainEqual(expect.objectContaining({ value: { setting: "title_field" }, description: "Settings · Form" }));
+		await acts.run("editor.find", { setting: "title_field" });
+		expect([mounted.tab.value, mounted.foundSettings]).toEqual(["settings", ["title_field"]]);
+	});
+
 	it("add a mandatory naming_series field with the series in Design", async () => {
 		const mounted = mount();
 		await acts.run("settings.set_naming_series", { options: ["TN-.####", "NOTE-.####"], default: "NOTE-.####" });
