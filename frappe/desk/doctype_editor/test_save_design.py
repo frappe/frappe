@@ -21,6 +21,7 @@ DOCTYPE = "Test Editor 47271"
 def make_custom_doctype(name: str = DOCTYPE, fields: list[dict] | None = None, **kwargs):
 	"""A custom DocType with a `title` field; DDL commits, so each test deletes it again."""
 	frappe.delete_doc("DocType", name, force=True, ignore_missing=True)
+	frappe.db.sql_ddl(f"drop table if exists `tab{name}`")
 	doc = frappe.get_doc(
 		{
 			"doctype": "DocType",
@@ -453,6 +454,34 @@ class TestSaveDesign(IntegrationTestCase):
 		fieldname = "heading" if kept else "title"
 		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, fieldname), "Hello")
 		self.assertEqual(details_rows(), [])
+
+	def test_a_deleted_field_s_column_is_not_taken_by_a_new_name(self):
+		self.assertTrue(self.save([{"act": "fields.delete_field", "fieldname": "title"}])["saved"])
+		self.addCleanup(drop_column, DOCTYPE, "title")
+		self.save([{"act": "fields.add_field", "label": "Name Line", "fieldtype": "Data"}])
+		for edit in (
+			{"act": "fields.add_field", "label": "Title", "fieldtype": "Int"},
+			{"act": "fields.rename_field", "fieldname": "name_line", "new_fieldname": "title"},
+		):
+			with self.subTest(edit["act"]):
+				result = self.save([edit])
+				self.assertFalse(result["saved"])
+				self.assertEqual(result["errors"][0]["target"]["kind"], "field", result["errors"])
+
+	def test_a_new_field_takes_only_field_properties(self):
+		result = self.save(
+			[
+				{
+					"act": "fields.add_field",
+					"label": "Due",
+					"fieldtype": "Date",
+					"properties": {"parent": "Note"},
+				}
+			]
+		)
+		self.assertFalse(result["saved"])
+		target = {"kind": "field", "fieldname": "due", "property": "parent"}
+		self.assertEqual(result["errors"][0]["target"], target)
 
 	def test_a_save_tells_open_desks_once(self):
 		frappe.db.commit()  # nosemgrep: flush the setUp insert's own message

@@ -7,6 +7,7 @@ from frappe import _
 from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError, field_error
 
+RESERVED_PROPERTIES = ("name", "parent", "parenttype", "parentfield", "idx", "doctype")
 PLACE_KEYS = ("fieldname", "section", "column", "index", "tab")
 # A column is named with its section: column names repeat across sections.
 CANVAS_ACTS = {
@@ -53,9 +54,10 @@ class DesignEdits:
 		if not label or not fieldtype:
 			raise EditError(_("A new field needs a label and a type."))
 		fieldname = edit.get("fieldname") or frappe.scrub(label)
-		if any(field.fieldname == fieldname for field in self.state.doc.fields):
-			raise field_error(_("{0} already has a field {1}.").format(self.state.name, fieldname), fieldname)
+		self.state.refuse_taken_fieldname(fieldname)
 		properties = edit.get("properties") or {}
+		for property in properties:
+			refuse_property(fieldname, property)
 		self.state.doc.append(
 			"fields",
 			{
@@ -72,17 +74,7 @@ class DesignEdits:
 	def fields_set_field_property(self, edit: dict):
 		fieldname, property = edit.get("fieldname"), edit.get("property")
 		field = self.state.field(fieldname)
-		if property == "fieldname":
-			raise field_error(_("Rename the field to change its fieldname."), fieldname, property)
-		if property in (
-			"name",
-			"parent",
-			"parenttype",
-			"parentfield",
-			"idx",
-			"doctype",
-		) or not field.meta.has_field(property):
-			raise field_error(_("{0} is not a field property.").format(property), fieldname, property)
+		refuse_property(fieldname, property)
 		field.set(property, edit.get("value"))
 
 	def fields_reorder_field(self, edit: dict):
@@ -153,3 +145,10 @@ class DesignEdits:
 
 	def layouts_delete(self, edit: dict):
 		self.state.layout(edit.get("layout")).deleted = True
+
+
+def refuse_property(fieldname: str, property: str):
+	if property == "fieldname":
+		raise field_error(_("Rename the field to change its fieldname."), fieldname, property)
+	if property in RESERVED_PROPERTIES or not frappe.get_meta("DocField").has_field(property):
+		raise field_error(_("{0} is not a field property.").format(property), fieldname, property)

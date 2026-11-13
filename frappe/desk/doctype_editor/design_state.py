@@ -176,8 +176,9 @@ class DesignState:
 
 	def rename_field(self, old: str, new: str):
 		field = self.field(old)
-		if not new or any(each.fieldname == new for each in self.doc.fields):
-			raise field_error(_("{0} already has a field {1}.").format(self.name, new), old)
+		if not new:
+			raise field_error(_("A field needs a fieldname."), old)
+		self.refuse_taken_fieldname(new, old)
 		if old in self.saved_fieldnames:
 			if self.standard:
 				raise field_error(_("Renaming a saved field of a standard DocType needs a patch."), old)
@@ -189,6 +190,16 @@ class DesignState:
 				layout.tree.rename_field(old, new)
 				layout.omitted = [new if each == old else each for each in layout.omitted]
 				self.touched.add(layout.type)
+
+	def refuse_taken_fieldname(self, fieldname: str, key: str | None = None):
+		"""A deleted field keeps its column and data, so its name stays taken."""
+		if any(field.fieldname == fieldname for field in self.doc.fields):
+			raise field_error(
+				_("{0} already has a field {1}.").format(self.name, fieldname), key or fieldname
+			)
+		if not self.doc.is_new() and frappe.db.has_column(self.name, fieldname):
+			message = _("{0} still holds the data of a deleted field. Choose another fieldname.")
+			raise field_error(message.format(fieldname), key or fieldname)
 
 	def note_rename(self, old: str, new: str):
 		"""Fold a chain of renames, so the data moves once from the saved column."""
