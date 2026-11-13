@@ -59,7 +59,13 @@
 						>
 					</span>
 					<Badge
-						v-if="hasEnabled"
+						v-if="notice(row)"
+						theme="gray"
+						label="Unavailable"
+						:title="notice(row)"
+					/>
+					<Badge
+						v-else-if="hasEnabled"
 						:theme="row.enabled ? 'green' : 'gray'"
 						:label="row.enabled ? 'Enabled' : 'Disabled'"
 					/>
@@ -106,6 +112,11 @@ const { rows, loaded, loading, error, hasMore, hasEnabled, load, drop } = useRec
 	props.spec,
 	{ query, filters: () => props.filters }
 );
+
+// why a record can't be used, when its spec knows one
+function notice(row) {
+	return props.spec.notice?.(row, page.state.boot) ?? "";
+}
 
 function edit(name) {
 	editing.value = name;

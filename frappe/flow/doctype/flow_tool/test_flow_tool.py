@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.flow.daemon import lifecycle
-from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools
+from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools, unavailable_tools
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
 
@@ -87,6 +87,52 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 			):
 				frappe.get_doc(_script(slug=f"script_weather_{int(enabled)}")).insert()
 				self.assertEqual(msgprint.called, not enabled)
+
+	def test_execute_and_script_tools_are_unavailable_while_server_scripts_are_off(self):
+		sync_builtin_tools()
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True):
+			script = frappe.get_doc(_script()).insert()
+			self.assertEqual(unavailable_tools(), [])
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False):
+			unavailable = unavailable_tools()
+		self.assertIn("frappe/execute", unavailable)
+		self.assertIn(script.name, unavailable)
+		self.assertNotIn("frappe/create", unavailable)
+
+	def test_a_user_who_cannot_read_tools_learns_only_of_those_on_their_agents(self):
+		sync_builtin_tools()
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True):
+			frappe.get_doc(_script()).insert()
+		model = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Tool Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+		).insert()
+		frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Tool Agent",
+				"model": model.name,
+				"instructions": "Be terse.",
+				"tools": [{"tool": "frappe/execute"}, {"tool": "frappe/create"}],
+				"enabled": 1,
+			}
+		).insert()
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "flow-tool-reader@example.com",
+				"first_name": "Reader",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Flow User"}],
+			}
+		).insert(ignore_permissions=True)
+
+		with (
+			patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False),
+			self.set_user(user.name),
+		):
+			self.assertFalse(frappe.has_permission("Flow Tool", "read"))
+			# the Script tool is on none of their agents
+			self.assertEqual(unavailable_tools(), ["frappe/execute"])
 
 
 class TestFlowToolSystemGenerated(IntegrationTestCase):

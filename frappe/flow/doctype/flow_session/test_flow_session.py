@@ -439,6 +439,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 
 	def setUp(self):
 		sync_builtin_tools()
+		self.enterContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
 		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.model = frappe.get_doc(
