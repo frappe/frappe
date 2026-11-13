@@ -9,7 +9,9 @@
 		data-naming-pattern
 		@blur="commit"
 		@keydown.enter.prevent="commit"
+		@update:model-value="refusal = ''"
 	/>
+	<p v-if="refusal" class="text-p-sm text-ink-red-5" data-pattern-refusal>{{ refusal }}</p>
 	<div v-if="!dotted" class="flex flex-wrap items-center gap-1.5">
 		<Button
 			v-for="token in tokens"
@@ -35,6 +37,7 @@ import { Button, TextInput } from "frappe-ui";
 import { __ } from "@/i18n";
 import NamePreview from "./NamePreview.vue";
 import { TOKENS, insertToken, nextName } from "./namingPattern";
+import { patternRefusal } from "./namingRules";
 import { SettingsViewKey } from "./settingsView";
 
 const props = defineProps<{ autoname: string; counters: Record<string, number> }>();
@@ -44,6 +47,7 @@ const FORMAT = "format:";
 const dotted = computed(() => !props.autoname.toLowerCase().startsWith(FORMAT));
 const body = () => (dotted.value ? props.autoname : props.autoname.slice(FORMAT.length));
 const draft = ref(body());
+const refusal = ref("");
 watch(() => props.autoname, () => (draft.value = body()));
 
 const full = computed(() => (dotted.value ? draft.value : FORMAT + draft.value));
@@ -55,7 +59,10 @@ const tokens = computed(() => {
 const input = ref<{ inputElement: HTMLInputElement | null } | null>(null);
 
 function commit() {
-	if (draft.value.trim() && full.value !== props.autoname) view.setNaming(full.value.trim());
+	const pattern = full.value.trim();
+	if (!draft.value.trim() || pattern === props.autoname) return;
+	refusal.value = patternRefusal(pattern);
+	if (!refusal.value) view.setNaming(pattern);
 }
 
 async function insert(token: string) {

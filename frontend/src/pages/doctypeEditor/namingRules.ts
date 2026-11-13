@@ -46,6 +46,9 @@ export function ruleOf(properties: Record<string, unknown>): Rule {
 	return "script";
 }
 
+/** Field types a record's name can come from. */
+export const NAMEABLE_TYPES = ["Data", "Link", "Select", "Int", "Dynamic Link", "Read Only"];
+
 /** The autoname the New DocType dialog's naming rule starts with; "By fieldname" names by `fieldname`. */
 export function autonameOf(namingRule: string, fieldname: string): string {
 	const rule = (Object.keys(NAMING_RULE) as Rule[]).find((one) => NAMING_RULE[one] === namingRule);
@@ -60,6 +63,32 @@ const DIALOG_AUTONAME: Partial<Record<Rule, string>> = {
 	naming_series: "naming_series:",
 	prompt: "Prompt",
 };
+
+/** "Sales Order" → "SO", "Task" → "TASK": a series' first part. */
+export function seriesAbbreviation(doctype: string): string {
+	const words = doctype.split(/[\s_-]+/).filter(Boolean);
+	const short = words.length > 1 ? words.map((word) => word[0]).join("") : (words[0] ?? "").slice(0, 4);
+	return short.toUpperCase() || "REC";
+}
+
+/** The naming_series field a new DocType named by series starts with: one series, its default. */
+export function seriesField(doctype: string): RawMetaField {
+	const series = `${seriesAbbreviation(doctype)}-.#####`;
+	return {
+		fieldname: "naming_series",
+		label: "Series",
+		fieldtype: "Select",
+		reqd: 1,
+		options: series,
+		default: series,
+	} as RawMetaField;
+}
+
+/** Why a typed pattern cannot be "By pattern"'s autoname, or "": without a dot, "ST-#####" is no pattern frappe reads. */
+export function patternRefusal(autoname: string): string {
+	if (ruleOf({ autoname }) === "format") return "";
+	return __("A pattern needs a dot between its parts, as in ST-.#####");
+}
 
 /** A `format:` pattern is v1's "Expression (old style)"; a dotted one ("ST-.#####") its "Expression". */
 export function namingProperties(autoname: string): { autoname: string; naming_rule: string } {

@@ -1,6 +1,6 @@
 // The Settings tab's rules: which rows each kind shows, the naming rules and the permission rights.
 import { describe, expect, it } from "vitest";
-import { autonameOf, namingProperties, ruleOf, ruleRefusal } from "../namingRules";
+import { autonameOf, namingProperties, patternRefusal, ruleOf, ruleRefusal } from "../namingRules";
 import { columns, moreRights, rightRefusal } from "../permissionColumns";
 import type { PermissionRow, SettingsState } from "../settingsModel";
 import { kindProperties, settingRows, settingSections, type DoctypeKind } from "../settingsRows";
@@ -15,6 +15,7 @@ function settings(overrides: Partial<SettingsState> = {}): SettingsState {
 		savedAutoname: "hash",
 		app: null,
 		sitePermissions: false,
+		permissionsRefusal: "",
 		...overrides,
 	};
 }
@@ -47,6 +48,11 @@ describe("the naming rules", () => {
 		expect(ruleOf({ autoname: "WS-.#####" })).toBe("format");
 		expect(ruleOf({ autoname: "Prompt" })).toBe("prompt");
 		expect(ruleOf({ autoname: "make_name", naming_rule: "By script" })).toBe("script");
+	});
+
+	it("refuses a typed pattern that would read as another rule", () => {
+		expect(["WS-.#####", "format:WS-{#####}", "format:WS-#####"].map(patternRefusal)).toEqual(["", "", ""]);
+		expect(["WS-#####", "hash", "Prompt"].every((pattern) => patternRefusal(pattern))).toBe(true);
 	});
 
 	it("names a braced pattern the old style expression, as v1 does", () => {

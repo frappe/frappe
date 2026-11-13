@@ -23,6 +23,8 @@ PREREQUISITES = {
 	"import": ("create",),
 }
 AUTOINCREMENT = "autoincrement"
+# A permission row's key and its ticks: the rights and `mask`, which v1's Role Permissions Manager sets.
+PERMISSION_COLUMNS = ("role", "permlevel", "if_owner", *std_rights, "mask")
 
 
 class SettingsEdits:

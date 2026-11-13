@@ -107,6 +107,27 @@ class TestCreateDoctype(IntegrationTestCase):
 		[row] = details_rows(DOCTYPE)
 		self.assertEqual(json.loads(row.layout)[1]["sections"][0]["columns"][1]["fields"], ["due_date"])
 
+	def test_each_naming_rule_of_the_dialog_creates_the_doctype(self):
+		"""The definitions `pendingDoctype` sends: a series rule comes with its naming_series field."""
+		series = {"fieldname": "naming_series", "label": "Series", "fieldtype": "Select", "reqd": 1}
+		series |= {"options": "TEST-.#####", "default": "TEST-.#####"}
+		rules = {
+			"By fieldname": ("field:title", []),
+			"Set by user": ("Prompt", []),
+			"Autoincrement": ("autoincrement", []),
+			'By "Naming Series" field': ("naming_series:", [series]),
+			"Random": ("hash", []),
+			"UUID": ("UUID", []),
+		}
+		for naming_rule, (autoname, extra) in rules.items():
+			with self.subTest(naming_rule=naming_rule):
+				drop_doctype()
+				given = definition(naming_rule=naming_rule, autoname=autoname)
+				given["fields"] = extra + given["fields"]
+				result = create_doctype(given, two_tabs(), [])
+				self.assertTrue(result["saved"], result.get("errors"))
+				self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "autoname"), autoname)
+
 	def test_a_failed_edit_leaves_no_doctype_behind(self):
 		edits = [
 			{"act": "canvas.place_field", "layout": DETAILS, "fieldname": "missing", "column": "column_1"}

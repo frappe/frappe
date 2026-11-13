@@ -1,7 +1,8 @@
 <!-- Permissions: a table of roles by rights. Read, Write, Create and Delete (Submit, Cancel, Amend
      on a submittable DocType; Read and Write on a Single), then a "More" count opening the rest. A
      right ticks what it needs; unticking a need unticks what needs it. Customize edits the site's
-     own rules: the first edit copies the app's, which they then replace. -->
+     own rules: the first edit copies the app's, which they then replace. Only a System Manager
+     changes them: for anyone else the table shows locked. -->
 <template>
 	<div class="relative flex flex-col gap-3 py-2" :data-setting="row.key" data-settings-permissions>
 		<span data-flash aria-hidden="true" :class="FLASH" />
@@ -14,7 +15,7 @@
 						: __("{0}'s rules. Your first change copies them, and the site's copy replaces them.", [view.app])
 				}}
 			</p>
-			<Button v-if="site" :label="__('Reset to app permissions')" icon-left="lucide-rotate-ccw" @click="view.permission('reset_permissions')" />
+			<Button v-if="site && !locked" :label="__('Reset to app permissions')" icon-left="lucide-rotate-ccw" @click="view.permission('reset_permissions')" />
 		</div>
 		<p v-else-if="view.siteOverridesPermissions" class="text-p-sm text-ink-gray-6" data-site-override>
 			{{ __("This site uses its own permissions for {0}.", [view.doctype]) }}
@@ -27,7 +28,11 @@
 			</RouterLink>
 		</p>
 
-		<div class="overflow-hidden rounded-6 ring-1 ring-outline-gray-2">
+		<p v-if="locked" class="flex items-center gap-1.5 text-p-sm text-ink-gray-6" data-perm-locked>
+			<span class="lucide-lock size-3.5 shrink-0 text-ink-gray-4" aria-hidden="true" />
+			{{ locked }}
+		</p>
+		<div class="overflow-hidden rounded-6 ring-1 ring-outline-gray-2" :class="locked && 'opacity-60'" :inert="Boolean(locked)">
 			<table class="w-full table-fixed text-base">
 				<thead class="bg-surface-gray-1 text-sm text-ink-gray-5">
 					<tr>
@@ -45,6 +50,7 @@
 			</table>
 		</div>
 		<Combobox
+			v-if="!locked"
 			:key="rules.length"
 			class="w-[200px]"
 			variant="subtle"
@@ -77,6 +83,7 @@ const view = inject(SettingsViewKey)!;
 const FLASH = "pointer-events-none absolute -inset-x-3 inset-y-0 -z-10 rounded-4 bg-surface-gray-3 opacity-0";
 
 const site = computed(() => view.settings.sitePermissions);
+const locked = computed(() => view.settings.permissionsRefusal);
 const rules = computed(() => view.settings.permissions);
 const shown = computed(() => columns(view.kind));
 const more = computed(() => moreRights(view.kind));

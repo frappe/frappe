@@ -1,12 +1,19 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.desk.doctype_editor.create import create_doctype
+from frappe.desk.doctype_editor.load import get_doctype_editor
+from frappe.desk.doctype_editor.mode import permissions_refusal
 from frappe.desk.doctype_editor.save import save_doctype_editor
+from frappe.desk.doctype_editor.test_load import CUSTOMIZER, a_customizer_role, a_user
 from frappe.desk.doctype_editor.test_save_design import DOCTYPE, delete_committed, make_custom_doctype
 from frappe.desk.doctype_editor.versions import base_version
+from frappe.permissions import copy_perms
 from frappe.tests import IntegrationTestCase
+from frappe.tests.classes.context_managers import set_user
 
 NOTE = "Note"
 CREATED = "Test Editor 47277 New"
@@ -181,3 +188,35 @@ class TestSaveSettingsCustomize(IntegrationTestCase):
 		)
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["code"], "stale")
+
+	def test_a_customizer_without_system_manager_cannot_change_permissions(self):
+		"""The refused saves write nothing, so the tearDown's rollback removes the customizer."""
+		customizer = a_user(CUSTOMIZER, a_customizer_role())
+		with set_user(customizer):
+			self.assertEqual(get_doctype_editor(NOTE, "Customize")["permissions_refusal"], permissions_refusal())
+			for edit in (perm("export", role="Desk User", if_owner=1), {"act": "settings.reset_permissions"}):
+				result = self.save([edit])
+				self.assertFalse(result["saved"])
+				self.assertEqual(result["errors"][0]["target"], {"kind": "setting", "property": "permissions"})
+		self.assertFalse(frappe.db.exists("Custom DocPerm", {"parent": NOTE}))
+		self.assertIsNone(get_doctype_editor(NOTE, "Customize")["permissions_refusal"])
+
+	def test_an_edit_keeps_mask_and_the_rows_it_did_not_change(self):
+		copy_perms(NOTE)
+		masked = doc_perm("Custom DocPerm", NOTE).name
+		frappe.db.set_value("Custom DocPerm", masked, "mask", 1)
+		before = set(frappe.get_all("Custom DocPerm", {"parent": NOTE}, pluck="name"))
+		with patch("frappe.desk.doctype_editor.customize_save.clear_permissions_cache") as clear:
+			result = self.save([perm("export", role="Desk User", if_owner=1)])
+		self.assertTrue(result["saved"], result)
+		clear.assert_called_once_with(NOTE)
+		self.assertEqual(set(frappe.get_all("Custom DocPerm", {"parent": NOTE}, pluck="name")), before)
+		self.assertEqual(frappe.db.get_value("Custom DocPerm", masked, "mask"), 1)
+		self.assertEqual(doc_perm("Custom DocPerm", NOTE, "Desk User", if_owner=1).export, 1)
+
+	def test_the_last_rule_is_not_removed(self):
+		rows = frappe.get_all("DocPerm", {"parent": NOTE}, ["role", "permlevel", "if_owner"])
+		result = self.save([{"act": "settings.remove_permission", **row} for row in rows])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"], {"kind": "setting", "property": "permissions"})
+		self.assertFalse(frappe.db.exists("Custom DocPerm", {"parent": NOTE}))

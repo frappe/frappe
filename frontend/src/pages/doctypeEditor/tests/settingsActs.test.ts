@@ -110,4 +110,15 @@ describe("the settings acts", () => {
 		await acts.perform("settings.set_doctype_property", { property: "track_seen", value: 1 });
 		expect(toast.error).toHaveBeenCalledWith("track_seen is not a DocType setting the editor sets.");
 	});
+
+	it("in Customize, refuse every permission act for someone the server refuses", async () => {
+		const refusal = "Only a System Manager can change permissions.";
+		const mounted = mount({ mode: "Customize", modes: ["Customize"], custom: 0, app_permissions: [writer], permissions_refusal: refusal });
+		await acts.perform("settings.set_permission", { ...writerKey, right: "delete", value: 1 });
+		await acts.perform("settings.add_permission", { role: "Reader", permlevel: 0, if_owner: 0 });
+		await acts.perform("settings.remove_permission", writerKey);
+		await acts.perform("settings.reset_permissions", {});
+		expect(toast.error.mock.calls).toEqual(Array(4).fill([refusal]));
+		expect([rows(mounted), mounted.edits.steps]).toEqual([[writer], []]);
+	});
 });

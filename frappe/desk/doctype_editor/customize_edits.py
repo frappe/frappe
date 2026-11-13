@@ -11,13 +11,26 @@ from frappe.desk.doctype_editor.customize_state import ANCHORED_TYPES, Customize
 from frappe.desk.doctype_editor.design_edits import DesignEdits, refuse_property
 from frappe.desk.doctype_editor.errors import field_error
 from frappe.desk.doctype_editor.layout_tree import LayoutTree
+from frappe.desk.doctype_editor.mode import permissions_refusal
 from frappe.desk.doctype_editor.settings_edits import AUTOINCREMENT, CUSTOMIZE_PROPERTIES, setting_error
+
+PERMISSION_ACTS = (
+	"settings.add_permission",
+	"settings.remove_permission",
+	"settings.set_permission",
+	"settings.reset_permissions",
+)
 
 
 class CustomizeEdits(DesignEdits):
 	state: CustomizeState
 
 	properties = CUSTOMIZE_PROPERTIES
+
+	def apply(self, edit: dict):
+		if isinstance(edit, dict) and edit.get("act") in PERMISSION_ACTS and (refusal := permissions_refusal()):
+			raise setting_error(refusal, "permissions")
+		super().apply(edit)
 
 	def canvas(self, edit: dict, method: str, keys: tuple):
 		if method == "place_field" and self.place_without_fork(edit, keys):
@@ -135,7 +148,11 @@ class CustomizeEdits(DesignEdits):
 		self.permission_rows().append(frappe.new_doc("Custom DocPerm").update(values))
 
 	def drop_permission(self, row):
-		self.permission_rows().remove(row)
+		"""With no rows of its own the site would fall back to the app's: removing the last is a reset."""
+		rows = self.permission_rows()
+		if len(rows) == 1:
+			raise setting_error(_("Keep at least one permission rule."), "permissions")
+		rows.remove(row)
 
 	def is_app_setter(self, fieldname: str | None, property: str) -> bool:
 		"""`fieldname` None names a setter of the DocType's own property."""

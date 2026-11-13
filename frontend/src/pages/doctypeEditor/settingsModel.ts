@@ -53,6 +53,8 @@ export interface SettingsState {
 	app: { properties: Record<string, unknown>; permissions: PermissionRow[] } | null;
 	/** Customize: the rows are the site's own (Custom DocPerm), replacing the app's. */
 	sitePermissions: boolean;
+	/** Why the permission acts are refused; "" when they are not. */
+	permissionsRefusal: string;
 }
 
 /** The fields part of the working state a naming series edit adds to. */
@@ -80,6 +82,7 @@ export function settingsBase(state: EditorState): SettingsState {
 		savedAutoname: definition.autoname,
 		app: customize ? { properties: appProperties(state), permissions: (state.app_permissions ?? []).map(permissionRow) } : null,
 		sitePermissions: Boolean(state.site_permissions),
+		permissionsRefusal: state.permissions_refusal ?? "",
 	};
 }
 
@@ -161,6 +164,7 @@ export class SettingsReplay {
 	}
 
 	resetPermissions() {
+		this.refusePermissions();
 		const app = this.customizeOnly();
 		this.state.permissions = structuredClone(app.permissions);
 		this.state.sitePermissions = false;
@@ -196,8 +200,13 @@ export class SettingsReplay {
 		return added;
 	}
 
+	private refusePermissions() {
+		if (this.state.permissionsRefusal) throw new EditRefused(this.state.permissionsRefusal);
+	}
+
 	/** In Customize, the first permission edit makes the rows the site's own. */
 	private ownRows(): PermissionRow[] {
+		this.refusePermissions();
 		if (this.state.app) this.state.sitePermissions = true;
 		return this.state.permissions;
 	}

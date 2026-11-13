@@ -79,6 +79,35 @@ describe("a pending DocType", () => {
 		]);
 	});
 
+	it("starts with a placed naming_series field when a series names its records", () => {
+		const state = pendingDoctype({ name: "Route", module: "Desk", custom: true, naming_rule: 'By "Naming Series" field' });
+		expect(state.definition.fields[0]).toMatchObject({
+			fieldname: "naming_series",
+			fieldtype: "Select",
+			reqd: 1,
+			options: "ROUT-.#####",
+			default: "ROUT-.#####",
+		});
+		expect(state.layouts.Details?.[0].layout[0].sections[0].columns[0].fields).toEqual(["naming_series", "title"]);
+	});
+
+	it("gives a duplicate the naming_series field its new rule needs, leaving the source's layout as is", () => {
+		const answers = { name: "Route Note", module: "Desk", custom: true, naming_rule: 'By "Naming Series" field' };
+		const state = pendingDoctype(answers, source());
+		expect(state.definition.fields.map((field) => field.fieldname)).toEqual(["naming_series", "subject", "status"]);
+		expect(state.definition.fields[0].options).toBe("RN-.#####");
+		expect(state.layouts.Details?.[0].layout[0].sections[0].columns[0].fields).toEqual(["naming_series", "subject", "status"]);
+		expect(LAYOUT[0].sections[0].columns[0].fields).toEqual(["subject", "status"]);
+	});
+
+	it("names a duplicate at random when no field can give its name", () => {
+		const bare = source();
+		bare.definition.naming_rule = "Random";
+		bare.definition.fields = [{ fieldname: "notes", fieldtype: "Text" } as EditorState["definition"]["fields"][number]];
+		const state = pendingDoctype({ name: "Route Note", module: "Desk", custom: true, naming_rule: "By fieldname" }, bare);
+		expect(state.definition).toMatchObject({ naming_rule: "Random", autoname: "hash" });
+	});
+
 	it("copies a duplicate's fields and layout, without the source's record identity", () => {
 		const answers = { name: "Route Note", module: "Desk", custom: true, naming_rule: "By fieldname" };
 		const state = pendingDoctype(answers, source());

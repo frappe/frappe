@@ -8,8 +8,9 @@ import { COPY_OF } from "@/newRecordValues";
 import type {
 	FormLayoutRow,
 	FormLayoutType,
+	LayoutTree,
 } from "@/recordPage/formLayoutSource/types";
-import { autonameOf } from "./namingRules";
+import { NAMEABLE_TYPES, autonameOf, seriesField } from "./namingRules";
 import type { BaseVersion, EditorMode } from "./pendingEdits";
 
 export type LayoutSource =
@@ -70,6 +71,8 @@ export interface EditorState {
 	site_permissions?: boolean;
 	/** Customize: the app's permission rows (DocPerm). */
 	app_permissions?: Record<string, unknown>[];
+	/** Why this person cannot change permissions here (Customize without System Manager). */
+	permissions_refusal?: string | null;
 	property_setters?: EditorPropertySetter[];
 	/** Not yet saved: `/doctype/new` builds it on the client. */
 	pending?: boolean;
@@ -168,12 +171,21 @@ export function copiedAnswers(source: EditorState): Partial<NewDoctype> {
  * with a copy of the source's fields and Details layout when it duplicates one.
  */
 export function pendingDoctype(answers: NewDoctype, source?: EditorState | null): EditorState {
-	const copied = source ? copiedDefinition(answers, source) : null;
 	const field = {
 		fieldname: "title",
 		label: "Title",
 		fieldtype: "Data",
 	} as RawMetaField;
+	const definition = source
+		? copiedDefinition(answers, source)
+		: {
+				name: answers.name,
+				module: answers.module,
+				custom: answers.custom ? 1 : 0,
+				naming_rule: answers.naming_rule,
+				autoname: autonameOf(answers.naming_rule, field.fieldname),
+				fields: [field],
+			};
 	const layout = (source && detailsLayout(source)?.layout) || [
 		{
 			name: "details",
@@ -182,6 +194,7 @@ export function pendingDoctype(answers: NewDoctype, source?: EditorState | null)
 			],
 		},
 	];
+	const named = withSeriesField(definition, layout);
 	return {
 		doctype: answers.name,
 		mode: "Design",
@@ -193,17 +206,26 @@ export function pendingDoctype(answers: NewDoctype, source?: EditorState | null)
 		record_count: null,
 		value_counts: {},
 		layouts: {
-			Details: [{ name: null, layout, omitted: [], source: "fallback" }],
+			Details: [{ name: null, layout: named.layout, omitted: [], source: "fallback" }],
 		},
-		definition: copied ?? {
-			name: answers.name,
-			module: answers.module,
-			custom: answers.custom ? 1 : 0,
-			naming_rule: answers.naming_rule,
-			autoname: autonameOf(answers.naming_rule, field.fieldname),
-			fields: [field],
-		},
+		definition: named.definition,
 		pending: true,
+	};
+}
+
+/** The DocType's insert needs the field a naming series rule reads: it goes first in the first column. */
+function withSeriesField(definition: DoctypeDefinition, layout: LayoutTree) {
+	const needed = String(definition.autoname ?? "").startsWith("naming_series:");
+	if (!needed || definition.fields.some((field) => field.fieldname === "naming_series")) {
+		return { definition, layout };
+	}
+	const [tab, ...tabs] = layout;
+	const [section, ...sections] = tab.sections;
+	const [column, ...columns] = section.columns;
+	const first = { ...column, fields: ["naming_series", ...column.fields] };
+	return {
+		definition: { ...definition, fields: [seriesField(definition.name), ...definition.fields] },
+		layout: [{ ...tab, sections: [{ ...section, columns: [first, ...columns] }, ...sections] }, ...tabs],
 	};
 }
 
@@ -216,21 +238,24 @@ function withoutIdentity<T extends object>(row: T): T {
 	return copy as T;
 }
 
-function firstData(fields: RawMetaField[]): string {
-	return fields.find((field) => field.fieldtype === "Data")?.fieldname ?? "";
+function firstNameable(fields: RawMetaField[]): string {
+	return fields.find((field) => NAMEABLE_TYPES.includes(field.fieldtype))?.fieldname ?? "";
 }
 
 function copiedDefinition(answers: NewDoctype, source: EditorState): DoctypeDefinition {
 	const { definition } = source;
 	const fields = definition.fields.map(withoutIdentity);
 	const sameRule = definition.naming_rule === answers.naming_rule;
+	const autoname = sameRule ? definition.autoname : autonameOf(answers.naming_rule, firstNameable(fields));
+	// "By fieldname" with no field a name can come from: the copy names its records at random instead.
+	const unnamed = autoname === "field:";
 	return {
 		...withoutIdentity(definition),
 		name: answers.name,
 		module: answers.module,
 		custom: answers.custom ? 1 : 0,
-		naming_rule: answers.naming_rule,
-		autoname: sameRule ? definition.autoname : autonameOf(answers.naming_rule, firstData(fields)),
+		naming_rule: unnamed ? "Random" : answers.naming_rule,
+		autoname: unnamed ? "hash" : autoname,
 		fields,
 	};
 }

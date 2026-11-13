@@ -3,6 +3,7 @@
 """The DocType editor's save in Customize mode: Design's save, written through Customize Form."""
 
 import frappe
+from frappe.core.doctype.doctype.doctype import clear_permissions_cache
 from frappe.custom.doctype.custom_field.custom_field import rename_fieldname
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
 from frappe.desk.doctype.form_layout.form_layout import publish_doctype_update
@@ -10,6 +11,7 @@ from frappe.desk.doctype_editor.customize_checks import CustomizeChecks
 from frappe.desk.doctype_editor.customize_edits import CustomizeEdits
 from frappe.desk.doctype_editor.customize_state import CustomizeState
 from frappe.desk.doctype_editor.save import DesignSave, move_table_rows
+from frappe.desk.doctype_editor.settings_edits import PERMISSION_COLUMNS, permission_key
 from frappe.desk.doctype_editor.versions import changed_error, customizations_version, stale_error
 from frappe.model import table_fields
 from frappe.permissions import reset_perms
@@ -84,12 +86,30 @@ class CustomizeSave(DesignSave):
 	def write_permissions(self):
 		"""The edited rows replace the site's; a reset with no later edit leaves the app's."""
 		if self.state.permissions is not None:
-			frappe.db.delete("Custom DocPerm", {"parent": self.doctype})
-			for row in self.state.permissions:
-				row.update({"parent": self.doctype, "parenttype": "DocType", "parentfield": "permissions"})
-				row.insert()
+			self.replace_permissions()
 		elif self.state.reset_permissions:
 			reset_perms(self.doctype)
+		else:
+			return
+		clear_permissions_cache(self.doctype)
+
+	def replace_permissions(self):
+		"""Row by row, so the Permission Log names only the rules that changed."""
+		saved = {
+			permission_key(row): row.name
+			for row in frappe.get_all("Custom DocPerm", {"parent": self.doctype}, PERMISSION_COLUMNS[:3] + ("name",))
+		}
+		for idx, row in enumerate(self.state.permissions, 1):
+			values = {column: row.get(column) for column in PERMISSION_COLUMNS} | {"idx": idx}
+			if name := saved.pop(permission_key(row), None):
+				doc = frappe.get_doc("Custom DocPerm", name)
+				if any(doc.get(column) != value for column, value in values.items()):
+					doc.update(values).save()
+				continue
+			row.update({"parent": self.doctype, "parenttype": "DocType", "parentfield": "permissions", "idx": idx})
+			row.insert()
+		for name in saved.values():
+			frappe.delete_doc("Custom DocPerm", name, ignore_permissions=True, force=True)
 
 	def note_committed(self):
 		"""`rename_fieldname` and Customize Form's DDL commit, so the rollback may leave them written."""

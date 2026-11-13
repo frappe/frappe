@@ -40,7 +40,15 @@ import { __ } from "@/i18n";
 import SettingsPattern from "./SettingsPattern.vue";
 import SettingsRow from "./SettingsRow.vue";
 import SettingsSeries from "./SettingsSeries.vue";
-import { RULES, SHOWN_WHEN_CURRENT, ruleOf, ruleRefusal, type Rule } from "./namingRules";
+import {
+	NAMEABLE_TYPES,
+	RULES,
+	SHOWN_WHEN_CURRENT,
+	ruleOf,
+	ruleRefusal,
+	seriesAbbreviation,
+	type Rule,
+} from "./namingRules";
 import { useSeriesCounters } from "./seriesCounters";
 import type { SettingRow } from "./settingsRows";
 import { SettingsViewKey } from "./settingsView";
@@ -50,7 +58,6 @@ const view = inject(SettingsViewKey)!;
 
 const FIELD = "field:";
 const CONTROLLED: Rule[] = ["field", "format", "naming_series"];
-const NAMEABLE_TYPES = ["Data", "Link", "Select", "Int", "Dynamic Link", "Read Only"];
 
 const autoname = computed(() => String(view.value("autoname") ?? ""));
 const rule = computed(() => ruleOf(view.settings.properties));
@@ -70,17 +77,10 @@ function refusal(one: Rule) {
 
 function pick(one: Rule) {
 	if (one === "field") return view.setNaming(FIELD + (String(view.value("title_field") || "") || nameable.value[0].value));
-	if (one === "format") return view.setNaming(`format:${abbreviation()}-{#####}`);
+	if (one === "format") return view.setNaming(`format:${seriesAbbreviation(view.doctype)}-{#####}`);
 	if (one === "naming_series") {
-		return view.setNaming("naming_series:", series.value ? undefined : [`${abbreviation()}-.#####`]);
+		return view.setNaming("naming_series:", series.value ? undefined : [`${seriesAbbreviation(view.doctype)}-.#####`]);
 	}
 	view.setNaming(one === "uuid" ? "UUID" : one);
-}
-
-/** "Sales Order" → "SO", "Task" → "TASK": a series' first part. */
-function abbreviation() {
-	const words = view.doctype.split(/[\s_-]+/).filter(Boolean);
-	const short = words.length > 1 ? words.map((word) => word[0]).join("") : (words[0] ?? "").slice(0, 4);
-	return short.toUpperCase() || "REC";
 }
 </script>

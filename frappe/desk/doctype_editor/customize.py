@@ -8,9 +8,9 @@ from frappe.custom.doctype.customize_form.customize_form import (
 	ALLOWED_FIELDTYPE_CHANGE,
 	is_standard_or_system_generated_field,
 )
+from frappe.desk.doctype_editor.settings_edits import PERMISSION_COLUMNS
 from frappe.model.docfield import supports_translation
 from frappe.model.meta import Meta
-from frappe.permissions import std_rights
 
 APP_ROW_TABLES = {"DocType Link": "links", "DocType Action": "actions", "DocType State": "states"}
 
@@ -45,7 +45,7 @@ def get_customizations(meta: Meta) -> dict:
 		},
 		"fieldtype_changes": {df.fieldname: fieldtype_changes(df.fieldtype) for df in standard},
 		"app_permissions": [
-			{key: row.get(key) for key in ("role", "permlevel", "if_owner", *std_rights)}
+			{key: row.get(key) for key in PERMISSION_COLUMNS}
 			for row in app_doc.permissions
 		],
 	}
