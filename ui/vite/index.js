@@ -16,7 +16,6 @@ import { fileURLToPath } from "node:url";
 const SINGLETONS = ["vue", "vue-router", "frappe-ui", "reka-ui", "dompurify"];
 
 const packageRoot = path.resolve(fileURLToPath(import.meta.url), "../..");
-const packageSource = path.join(packageRoot, "src");
 
 export default function frameworkUI(options = {}) {
 	const extra = options.dedupe ?? [];
@@ -34,8 +33,8 @@ export default function frameworkUI(options = {}) {
 	];
 }
 
-// This package's deps (leaflet, cropperjs, …) live beside the host app: a bench
-// installs node_modules there, never beside this repo's source.
+// This package's deps (vue, frappe-ui, leaflet, …) live beside the host app: a
+// bench installs node_modules there, never beside this repo's source.
 function resolveOwnDependencies() {
 	let hostImporter;
 	return {
@@ -46,7 +45,7 @@ function resolveOwnDependencies() {
 		// Unenforced, so vite resolves first and this only sees what the walk up
 		// from this package's realpath missed. Bare specifiers only.
 		resolveId(source, importer) {
-			if (!importer?.startsWith(packageSource)) return null;
+			if (!importer?.startsWith(packageRoot)) return null;
 			if (/^[./]/.test(source)) return null;
 			return this.resolve(source, hostImporter);
 		},

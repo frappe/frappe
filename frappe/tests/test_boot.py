@@ -188,6 +188,47 @@ class TestDeskViewModules(IntegrationTestCase):
 		row = next(d for d in rows if d["name"] == dashboard.name)
 		self.assertEqual(row["module"], "Desk")
 
+	def test_a_dashboard_without_charts_or_cards_is_allowed_on_its_own_permission(self):
+		dashboard = frappe.get_doc(
+			{"doctype": "Dashboard", "dashboard_name": "Test Empty Dashboard", "module": "Desk"}
+		).insert(ignore_if_duplicate=True)
+
+		self.assertIn(dashboard.name, [d["name"] for d in DeskViews.get_allowed_dashboards()])
+
+	def test_a_dashboard_whose_charts_the_user_cannot_see_is_not_allowed(self):
+		from unittest.mock import patch
+
+		chart = frappe.get_doc(
+			{
+				"doctype": "Dashboard Chart",
+				"chart_name": "Test Hidden Chart",
+				"chart_type": "Group By",
+				"document_type": "ToDo",
+				"group_by_based_on": "status",
+				"filters_json": "[]",
+				"is_standard": 0,
+			}
+		).insert(ignore_if_duplicate=True)
+		dashboard = frappe.get_doc(
+			{
+				"doctype": "Dashboard",
+				"dashboard_name": "Test Hidden Dashboard",
+				"module": "Desk",
+				"charts": [{"chart": chart.name}],
+			}
+		).insert(ignore_if_duplicate=True)
+
+		with patch("frappe.desk.doctype.dashboard.dashboard.get_permitted_charts", return_value=[]):
+			rows = DeskViews.get_allowed_dashboards()
+
+		self.assertNotIn(dashboard.name, [d["name"] for d in rows])
+
+	def test_a_user_who_cannot_read_dashboards_has_none(self):
+		from unittest.mock import patch
+
+		with patch("frappe.get_list", side_effect=frappe.PermissionError):
+			self.assertEqual(DeskViews.get_allowed_dashboards(), [])
+
 
 class TestPermissionQueries(IntegrationTestCase):
 	@classmethod

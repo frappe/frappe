@@ -94,6 +94,7 @@
   "allowed_doctypes_for_guest_uploads",
   "app_tab",
   "default_app",
+  "dashboards",
   "updates_tab",
   "system_updates_section",
   "disable_system_update_notification",
@@ -697,6 +698,14 @@
    "fieldname": "default_app",
    "fieldtype": "Select",
    "label": "Default App"
+  },
+  {
+   "default": "Insights",
+   "description": "How the standard dashboards that ship an Insights version open. Without the Insights app, they open classic.",
+   "fieldname": "dashboards",
+   "fieldtype": "Select",
+   "label": "Dashboards",
+   "options": "Insights\nClassic"
   },
   {
    "depends_on": "login_with_email_link",

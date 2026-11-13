@@ -45,6 +45,11 @@ export default class NumberCard extends Block {
 		return this.wrapper;
 	}
 
+	// Editor.js calls this when it removes a block, and on every `editor.render`.
+	destroy() {
+		this.block_widget && this.block_widget.destroy();
+	}
+
 	validate(savedData) {
 		if (!savedData.number_card_name) {
 			return false;
