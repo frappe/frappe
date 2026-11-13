@@ -337,7 +337,7 @@ class PrintDesignerConverter:
 				)
 		return {"columns": columns} if gap is None else {"columns": columns, "gap": gap}
 
-	def row_html(self, row: list[dict], total: float = 0) -> str:
+	def row_html(self, row: list[dict], total: float = 0, origin: float = 0) -> str:
 		total = total or self.content_width()
 		compiled = len(row) == 1 and row[0].get("layoutType") == "row"
 		children = row[0].get("childrens") or [] if compiled else row
@@ -357,7 +357,7 @@ class PrintDesignerConverter:
 				left = min(flt(e.get("startX")) for e in stack)
 				right = max(flt(e.get("startX")) + flt(e.get("width")) for e in stack)
 				inner, cursor = "", top
-				for start, end, html, fixed in self.stack_pieces(stack, right - left):
+				for start, end, html, fixed in self.stack_pieces(stack, right - left, left):
 					style = f"margin-top: {round(max(start - cursor, 0))}px;"
 					if fixed and end > max(start, cursor):
 						style += f" min-height: {round(end - max(start, cursor))}px;"
@@ -383,13 +383,18 @@ class PrintDesignerConverter:
 					f'overflow-wrap: anywhere; padding-top: {round(max(offset, 0))}px;">{inner}</div>',
 				)
 			)
+		parts.sort(key=lambda p: p[0])
+		if parts and (indent := round(parts[0][0] - (0 if compiled else origin), 1)) > 0:
+			parts[0] = (parts[0][0], parts[0][1].replace('style="', f'style="margin-left: {indent}px; ', 1))
 		return (
 			f'<div style="display: flex; justify-content: space-between; min-height: {round(height)}px;">'
-			+ "".join(part for _left, part in sorted(parts, key=lambda p: p[0]))
+			+ "".join(part for _left, part in parts)
 			+ "</div>"
 		)
 
-	def stack_pieces(self, stack: list[dict], width: float) -> list[tuple[float, float, str, bool]]:
+	def stack_pieces(
+		self, stack: list[dict], width: float, origin: float = 0
+	) -> list[tuple[float, float, str, bool]]:
 		pieces = []
 		for band in self.overlapping_rows(
 			sorted(stack, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
@@ -397,7 +402,7 @@ class PrintDesignerConverter:
 			if len(self.stacks(band)) > 1:
 				start = min(flt(e.get("startY")) for e in band)
 				end = max(flt(e.get("startY")) + flt(e.get("height")) for e in band)
-				pieces.append((start, end, self.row_html(band, width), False))
+				pieces.append((start, end, self.row_html(band, width, origin), False))
 				continue
 			for element in sorted(band, key=lambda e: flt(e.get("startY"))):
 				start, height = flt(element.get("startY")), flt(element.get("height"))
