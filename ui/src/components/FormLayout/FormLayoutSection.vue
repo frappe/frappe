@@ -21,6 +21,13 @@
 					aria-hidden="true"
 				/>
 			</CollapsibleTrigger>
+			<p
+				v-if="section.description"
+				class="section-description text-p-sm text-ink-gray-5"
+				:class="{ 'mt-1': showHeader, 'px-3 sm:px-5': hasTabs }"
+			>
+				<FieldDescription :html="__(section.description, [], labelContext)" />
+			</p>
 
 			<CollapsibleContent
 				class="form-section-content"
@@ -35,14 +42,14 @@
 					<FormLayoutPart
 						v-if="section.part"
 						:part="section.part"
-						:class="{ 'mt-6': showHeader }"
+						:class="{ 'mt-6': hasHead }"
 						class="w-full"
 					/>
 					<FormLayoutColumn
 						v-else
-						v-for="(column, index) in section.columns"
+						v-for="(column, index) in shownColumns"
 						:key="column.name ?? index"
-						:class="{ 'mt-6': showHeader }"
+						:class="{ 'mt-6': hasHead }"
 						:column="column"
 					/>
 				</div>
@@ -56,6 +63,7 @@ import { computed, inject, ref, watch } from "vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import FormLayoutColumn from "./FormLayoutColumn.vue";
 import FormLayoutPart from "./FormLayoutPart.vue";
+import FieldDescription from "../Fields/FieldDescription.vue";
 import { translate as __ } from "../../utils/translate";
 import { HasTabsKey, LabelContextKey } from "./types";
 import type { Section } from "./types";
@@ -71,6 +79,10 @@ const hasTabs = inject(HasTabsKey);
 const labelContext = inject(LabelContextKey, undefined);
 
 const showHeader = computed(() => !props.section.hideLabel && !!props.section.label);
+
+const hasHead = computed(() => showHeader.value || !!props.section.description);
+
+const shownColumns = computed(() => props.section.columns.filter((column) => !column.hidden));
 
 // A section can only collapse when it has a header to toggle from.
 const collapsible = computed(() => showHeader.value && (props.section.collapsible ?? true));

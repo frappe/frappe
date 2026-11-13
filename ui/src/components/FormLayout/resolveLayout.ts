@@ -145,7 +145,8 @@ export function resolveFieldConditionals<
  *
  * Resolution rules (a node with no expressions passes through unchanged):
  * - field-level rules: see `resolveFieldConditionals`;
- * - section / tab `hidden` = its static `hidden` OR `depends_on` false.
+ * - section / column / tab `hidden` = its static `hidden` OR `depends_on` false;
+ * - a collapsible section with `collapsibleDependsOn` is `opened` when it holds.
  *
  * `parent` is the enclosing doc (the row dialog passes the parent doc so a
  * child's `parent.x` resolves); it defaults to `doc` for a top-level form,
@@ -159,16 +160,30 @@ export function resolveLayout(
   const resolveField = (f: FieldNode): FieldNode =>
     resolveFieldConditionals(f, doc, parent);
 
-  const resolveColumn = (c: Column): Column => ({
-    ...c,
-    fields: c.fields.map(resolveField),
-  });
+  const shown = (container: { hidden?: boolean; dependsOn?: string }) =>
+    !container.hidden &&
+    (!container.dependsOn ||
+      evaluateDependsOn(container.dependsOn, doc, parent));
+
+  // A hidden column hides its fields too, so every reader of `field.hidden` (the
+  // required check, the side panel, autofocus) skips them without knowing columns.
+  const resolveColumn = (c: Column): Column => {
+    const fields = c.fields.map(resolveField);
+    if (shown(c)) return { ...c, fields };
+    return {
+      ...c,
+      hidden: true,
+      fields: fields.map((f) => ({ ...f, hidden: true })),
+    };
+  };
 
   const resolveSection = (s: Section): Section => ({
     ...s,
-    hidden:
-      s.hidden ||
-      (!!s.dependsOn && !evaluateDependsOn(s.dependsOn, doc, parent)),
+    hidden: !shown(s),
+    opened:
+      s.collapsible && s.collapsibleDependsOn
+        ? evaluateDependsOn(s.collapsibleDependsOn, doc, parent)
+        : s.opened,
     columns: s.columns.map(resolveColumn),
   });
 

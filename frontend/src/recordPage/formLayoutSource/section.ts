@@ -5,10 +5,12 @@ export interface SectionSpec {
   name?: string;
   label?: string;
   hideLabel?: boolean;
+  description?: string;
   hideBorder?: boolean;
   collapsible?: boolean;
   /** Explicit initial state; open when unset (see `buildSection`). */
   opened?: boolean;
+  collapsibleDependsOn?: string;
   dependsOn?: string;
 }
 
@@ -18,9 +20,11 @@ export function buildSection(spec: SectionSpec, columns: Column[]): Section {
     name: spec.name,
     label: spec.label,
     hideLabel: Boolean(spec.hideLabel),
+    description: spec.description,
     hideBorder: Boolean(spec.hideBorder),
     collapsible: Boolean(spec.collapsible),
     opened: spec.opened !== false,
+    collapsibleDependsOn: spec.collapsibleDependsOn,
     dependsOn: spec.dependsOn,
     columns,
   };
@@ -28,13 +32,14 @@ export function buildSection(spec: SectionSpec, columns: Column[]): Section {
 
 /** The matching `Column` constructor; `hideLabel` is carried, not dropped. */
 export function buildColumn(
-  spec: { name?: string; label?: string; hideLabel?: boolean },
+  spec: { name?: string; label?: string; hideLabel?: boolean; dependsOn?: string },
   fields: Column["fields"],
 ): Column {
   return {
     name: spec.name,
     label: spec.label,
     hideLabel: Boolean(spec.hideLabel),
+    dependsOn: spec.dependsOn,
     fields,
   };
 }

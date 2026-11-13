@@ -9,8 +9,9 @@
  *
  * Supported forms (meta only ever gives strings):
  * - empty / undefined → `true` (no condition);
- * - `eval:<js>` → run `<js>` with `{ doc, parent }` in scope, **fail-open** to
- *   `true` on throw (never hide a field because its condition errored);
+ * - `eval:<js>` → run `<js>` with `{ doc, parent }` and desk's `in_list` and
+ *   `cint` in scope, **fail-open** to `true` on throw (never hide a field
+ *   because its condition errored);
  * - bare fieldname → truthiness of `doc[fieldname]` (arrays → non-empty).
  *
  * `doc` is the **local** record; `parent` is the enclosing doc, so a child-table
@@ -28,10 +29,13 @@ function _eval(
   doc: Record<string, any>,
   parent: Record<string, any>
 ): any {
-  return new Function("doc", "parent", `let out = ${code}; return out`)(
-    doc,
-    parent
-  );
+  return new Function(
+    "doc",
+    "parent",
+    "in_list",
+    "cint",
+    `let out = ${code}; return out`
+  )(doc, parent, inList, cint);
 }
 
 export function evaluateDependsOn(
@@ -49,4 +53,19 @@ export function evaluateDependsOn(
   }
   const value = doc?.[expression];
   return Array.isArray(value) ? value.length > 0 : Boolean(value);
+}
+
+/** Desk's `in_list` (`number_format.js`), which meta expressions call. */
+function inList(list: unknown[], item: unknown): boolean {
+  return list.includes(item);
+}
+
+/** Desk's `cint` (`datatype.js`): leading zeros stripped, `def` (else 0) when not a number. */
+function cint(value: unknown, def?: number): number {
+  if (value === true) return 1;
+  if (value === false) return 0;
+  let text = String(value);
+  if (text !== "0") text = text.replace(/^0+/, "");
+  const parsed = parseInt(text);
+  return Number.isNaN(parsed) ? def ?? 0 : parsed;
 }

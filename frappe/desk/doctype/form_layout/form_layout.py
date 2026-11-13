@@ -18,6 +18,7 @@ CREATE_LAYOUT_TYPES = ("Quick Entry", "New Record")
 CHILD_LAYOUT_TYPES = ("Details",)
 SINGLE_LAYOUT_TYPES = ("Details", "Side Panel")
 LAYOUT_BREAKS = ("Section Break", "Column Break", "Tab Break")
+SECTION_ONLY_KEYS = ("collapsibleDependsOn",)
 # Mirrors `DROPPED_FIELDTYPES` in `ui/src/components/FormLayout/buildLayoutFromMeta.ts`.
 DROPPED_FIELDTYPES = (*LAYOUT_BREAKS, "Fold", "Attachment Gallery")
 STANDARD_FIELDS = frozenset(default_fields + child_table_fields + optional_fields)
@@ -35,6 +36,7 @@ class FormLayout(Document):
 		self.name_layout()
 		tabs = parse_layout(self.layout)
 		self.validate_entries(tabs)
+		self.validate_section_only_keys(tabs)
 		self.validate_inline_fields(tabs)
 		self.validate_names_are_not_fields(tabs)
 		self.validate_omitted()
@@ -84,6 +86,13 @@ class FormLayout(Document):
 				_("A column holds fieldnames and fields the layout defines, nothing else."),
 				title=_("Invalid Layout"),
 			)
+
+	def validate_section_only_keys(self, tabs: list):
+		for tab in tabs:
+			refuse_section_only_keys(_("Tab"), tab)
+			for section in tab["sections"]:
+				for column in section["columns"]:
+					refuse_section_only_keys(_("Column"), column)
 
 	def validate_inline_fields(self, tabs: list):
 		fields = inline_fields(tabs)
@@ -521,6 +530,15 @@ def refuse_repeated_inline_fields(tabs: list, fields: list[dict]) -> None:
 			)
 
 
+def refuse_section_only_keys(kind: str, container: dict):
+	for key in SECTION_ONLY_KEYS:
+		if key in container:
+			frappe.throw(
+				_("{0} {1} cannot have {2}: only a section can.").format(kind, container["name"], key),
+				title=_("Invalid Layout"),
+			)
+
+
 def refuse_field_name(kind: str, name: str, fieldnames: set[str], dt: str):
 	"""Throw when a tab or section carries a data fieldname of the doctype."""
 	if name not in fieldnames:
@@ -611,10 +629,23 @@ def get_meta_layout(dt: str) -> list:
 
 
 def new_container(field, children_key: str) -> dict:
-	container = {"name": field.fieldname, children_key: []}
-	if field.label:
-		container["label"] = field.label
+	container = {"name": field.fieldname}
+	container.update({key: value for key, value in container_properties(field).items() if value})
+	container[children_key] = []
 	return container
+
+
+def container_properties(field) -> dict:
+	"""The layout node keys a break carries, under the names the layout tree uses."""
+	properties = {"label": field.label, "dependsOn": field.depends_on}
+	if field.fieldtype == "Section Break":
+		properties |= {
+			"description": field.description,
+			"collapsible": bool(field.collapsible),
+			"collapsibleDependsOn": field.collapsible_depends_on,
+			"hideBorder": bool(field.hide_border),
+		}
+	return properties
 
 
 def ensure_tab(tabs: list) -> dict:
