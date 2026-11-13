@@ -1723,6 +1723,24 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		self.assertTrue(child_name)
 		self.assertEqual(frappe.db.get_value(self.doctype_name, child_name, parent_field), root_name)
 
+	def test_tree_alias_import_keeps_rows_with_same_label(self):
+		self._cleanup_docs(("Leaf Node",))
+
+		rows = [("Leaf Node", "0", ""), ("Leaf Node", "0", "")]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		with self.set_user("test@example.com"):
+			Importer(self.doctype_name, data_import=data_import).import_data()
+
+		self.assertEqual(frappe.db.count(self.doctype_name, {"node_label": "Leaf Node"}), 2)
+
+	def test_tree_alias_preview_lists_rows_with_same_label(self):
+		rows = [("Leaf Node", "0", ""), ("Leaf Node", "0", "")]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		with self.set_user("test@example.com"):
+			preview = data_import.get_preview_from_template()
+
+		self.assertEqual(len(preview.tree_preview.nodes), 2)
+
 	def test_tree_alias_update_resolves_parent_link(self):
 		"""UPDATE imports must resolve parent aliases to document names, like INSERT."""
 		meta = frappe.get_meta(self.doctype_name)

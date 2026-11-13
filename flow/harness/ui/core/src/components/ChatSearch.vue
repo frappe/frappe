@@ -6,7 +6,7 @@
 		:filterable="false"
 		title="Search chats"
 		@update:open="emit('update:open', $event)"
-		@update:query="emit('update:query', $event)"
+		@update:query="query = $event"
 		@select="choose"
 	>
 		<!-- the card's own colour, not frappe-ui's transparent: Chrome repaints an unfocused window's
@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
+import { computed, inject, ref, watch } from "vue"
 import {
 	CommandPalette,
 	CommandPaletteEmpty,
@@ -43,18 +43,30 @@ import {
 	CommandPaletteList,
 } from "frappe-ui/experimental"
 
-const props = defineProps({
-	open: { type: Boolean, default: false },
-	query: { type: String, default: "" },
-})
-const emit = defineEmits(["update:open", "update:query", "new", "pick"])
+import { useDebouncedValue } from "../debounce.js"
+
+const props = defineProps({ open: { type: Boolean, default: false } })
+const emit = defineEmits(["update:open", "new", "pick"])
 const flow = inject("flow")
 
-// matched as the query is typed, so the palette's first row is ready for Enter; past a page of chats
-// the sidebar's search reloads them from the server
+const query = ref("")
+watch(() => props.open, (open) => open || (query.value = ""))
+
+// past a page of chats the host matches the rest; only the newest query's answer lands
+const found = ref([])
+const debounced = useDebouncedValue(query, 150)
+watch(debounced, async (q) => {
+	const rows = q.trim() ? await flow.findSessions(q.trim()) : []
+	if (q === debounced.value) found.value = rows
+})
+
+// matched as the query is typed, so the palette's first row is ready for Enter
 const chats = computed(() => {
-	const q = props.query.trim().toLowerCase()
-	return flow.state.sessions.filter((s) => !q || flow.sessionTitle(s).toLowerCase().includes(q)).slice(0, 20)
+	const q = query.value.trim().toLowerCase()
+	const loaded = new Set(flow.state.sessions.map((s) => s.session_id))
+	return [...flow.state.sessions, ...found.value.filter((s) => !loaded.has(s.session_id))]
+		.filter((s) => !q || flow.sessionTitle(s).toLowerCase().includes(q))
+		.slice(0, 20)
 })
 
 function choose(value) {

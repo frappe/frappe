@@ -20,7 +20,7 @@ class FlowProvider(Document):
 		api_key: DF.Password | None
 		base_url: DF.Data | None
 		enabled: DF.Check
-		provider: DF.Data
+		provider: DF.Autocomplete
 	# end: auto-generated types
 
 	def autoname(self):

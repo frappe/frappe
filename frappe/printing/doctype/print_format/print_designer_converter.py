@@ -144,6 +144,7 @@ class PrintDesignerConverter:
 			"header": self.zone(header, flt(self.page.get("headerHeight"))),
 			"sections": self.sections(body),
 			"footer": self.zone(footer, flt(self.page.get("footerHeight"))),
+			"letter_head": "",
 		}
 		if setup := (self.settings.get("userProvidedJinja") or "").strip():
 			layout["global_variables"] = setup
@@ -259,8 +260,10 @@ class PrintDesignerConverter:
 			inner = "".join(self.element_html(e) for e in self.flatten([child]))
 			nested = child.get("childrens") if child.get("layoutType") == "column" else None
 			offset = min(flt(c.get("startY")) for c in nested) if nested else flt(child.get("startY")) - top
+			fits_content = child.get("type") == "text" and not child.get("isFixedSize")
+			basis = "auto" if fits_content else f"{round(flt(child.get('width')) / total * 100, 1)}%"
 			parts.append(
-				f'<div style="flex: 0 1 {round(flt(child.get("width")) / total * 100, 1)}%; min-width: 0; '
+				f'<div style="flex: 0 1 {basis}; min-width: 0; '
 				f'overflow-wrap: anywhere; padding-top: {round(max(offset, 0))}px;">{inner}</div>'
 			)
 		return (
@@ -605,6 +608,7 @@ class PrintDesignerConverter:
 				"fieldname": image["fieldname"],
 				"fieldtype": "Attach Image",
 				"show_label": "hide",
+				"width": f"{round(flt(element.get('width')) / PX_PER_MM, 1)}mm",
 			}
 		url = image.get("file_url")
 		if not url:
@@ -683,9 +687,20 @@ class PrintDesignerConverter:
 			if node["fieldtype"] == "Image":
 				return f'<img src="{escape_html(node["image_url"])}" style="width: {node["width"]}; max-width: 100%;">'
 			if node["fieldtype"] == "Attach Image":
-				return f'{{%- if doc.{node["fieldname"]} -%}}<img src="{{{{ doc.{node["fieldname"]} }}}}" style="max-width: 100%;">{{%- endif -%}}'
+				return f'{{%- if doc.{node["fieldname"]} -%}}<img src="{{{{ doc.{node["fieldname"]} }}}}" style="width: {node["width"]}; max-width: 100%;">{{%- endif -%}}'
 			if node["fieldtype"] == "Table":
 				return self.table_html(element, node)
+			if node["fieldtype"] == "Barcode":
+				value = (
+					f"doc.get({node['barcode_field']!r})"
+					if node.get("barcode_field")
+					else repr(node["barcode_value"])
+				)
+				return (
+					f"{{%- set barcode_value = ({value} or '') | string -%}}"
+					f"{{%- set barcode = get_barcode(barcode_value, {node['barcode_format']!r}) if barcode_value -%}}"
+					f'{{%- if barcode -%}}<img src="{{{{ barcode }}}}" style="width: {node["width"]}; max-width: 100%;">{{%- endif -%}}'
+				)
 			if node["fieldtype"] != "Static Text":
 				return f"{{{{ doc.get_formatted({node['fieldname']!r}) }}}}"
 			inner = node.get("text") or ""

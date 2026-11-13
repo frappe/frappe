@@ -38,6 +38,11 @@ class TestContact(IntegrationTestCase):
 		self.assertEqual(contact.phone, "+91 0000000012")
 		self.assertEqual(contact.mobile_no, "+91 0000000013")
 
+	def test_attach_field_url_scheme_validation(self):
+		with self.set_user("test@example.com"):
+			contact = frappe.new_doc("Contact", first_name="_Test Contact", image="javascript:void(0)")
+			self.assertRaises(frappe.ValidationError, contact.insert)
+
 	def test_get_full_name(self):
 		self.assertEqual(get_full_name(first="John"), "John")
 		self.assertEqual(get_full_name(last="Doe"), "Doe")

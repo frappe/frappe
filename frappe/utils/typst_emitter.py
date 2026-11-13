@@ -254,6 +254,29 @@ def typst_font_paths() -> list[str]:
 	return [os.path.abspath(path)] if os.path.isdir(path) else []
 
 
+_typst_fonts = {}
+
+
+def typst_fonts():
+	"""The fonts Typst prints with. Scanning every system font costs more than the
+	compile itself, so one set is kept per process and rebuilt when the site or its
+	cached families change."""
+	import os
+
+	import typst
+
+	paths = typst_font_paths()
+	# family dirs never hold a dot; dotted entries are fetch sentinels and scratch dirs
+	families = sorted(name for name in os.listdir(paths[0]) if "." not in name) if paths else []
+	key = (*paths, *families)
+	fonts = _typst_fonts.get(key)
+	if fonts is None:
+		fonts = typst.Fonts(font_paths=paths)
+		_typst_fonts.clear()
+		_typst_fonts[key] = fonts
+	return fonts
+
+
 def compile_typst_source(source: str) -> bytes:
 	"""Compile standalone Typst markup in a confined tempdir, against the same
 	font set prints use."""
@@ -267,7 +290,7 @@ def compile_typst_source(source: str) -> bytes:
 		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(path, "w") as f:
 			f.write(source)
-		return typst.compile(path, root=tmp, font_paths=typst_font_paths())
+		return typst.compile(path, root=tmp, font_paths=typst_fonts())
 
 
 def font_family(font: str | None) -> str:
@@ -482,6 +505,7 @@ def _text_value(html_ish: str) -> str:
 	value = _list_markers(value)
 	value = re.sub(r"<br\s*/?>[ \t]*\n?", "\n", value, flags=re.I)
 	value = re.sub(r"</(p|div|tr|li|h[1-6])>[ \t]*\n?", "\n", value, flags=re.I)
+	value = re.sub(r"</t[dh]>(?=<t[dh])", " ", value, flags=re.I)
 	value = frappe.utils.strip_html(value)
 	return unescape_html(value).strip()
 
@@ -619,7 +643,8 @@ class TypstEmitter:
 			f"right: {self._margin_mm('right')}mm)"
 		)
 		page_width, page_height = self._page_size_mm()
-		args = [f"width: {page_width}mm", f"height: {page_height}mm", f"margin: {margins}"]
+		height = "auto" if self.generator.page_options().get("fit-height") else f"{page_height}mm"
+		args = [f"width: {page_width}mm", f"height: {height}", f"margin: {margins}"]
 		background = self._page_background()
 		if background:
 			args.append(f"background: {background}")
@@ -982,6 +1007,8 @@ class TypstEmitter:
 			return ""
 		if df.get("fieldtype") == "Check":
 			return _("Yes") if frappe.utils.cint(value) else _("No")
+		if df.get("fieldtype") == "Attach":
+			return frappe.utils.cstr(value).rsplit("/", 1)[-1]
 		return _text_value(self.doc.get_formatted(fieldname))
 
 	def _label_color(self, df=None) -> str:
@@ -1119,6 +1146,12 @@ class TypstEmitter:
 			return None
 
 	def _embed_image(self, src) -> str | None:
+		import io
+		from contextlib import suppress
+		from xml.etree import ElementTree
+
+		from PIL import Image, ImageFile
+
 		if not src:
 			return None
 		src = str(src)
@@ -1128,10 +1161,23 @@ class TypstEmitter:
 		name = None
 		if data is not None:
 			kind = filetype.image_match(data)
-			if kind and kind.extension in ("png", "apng", "jpg", "gif", "webp"):
-				name = self._asset("png" if kind.extension == "apng" else kind.extension, data)
-			elif not kind and src.split("?", 1)[0].lower().endswith(".svg"):
-				name = self._asset("svg", data)
+			with suppress(OSError, SyntaxError, Image.DecompressionBombError):
+				if kind and kind.extension in ("png", "apng", "jpg", "gif", "webp"):
+					# Typst rejects a cut GIF; verify() skips GIFs, and load() passes one once
+					# frappe.utils.image sets LOAD_TRUNCATED_IMAGES, which Parser does not read
+					if kind.extension == "gif":
+						parser = ImageFile.Parser()
+						parser.feed(data)
+						parser.close()
+					else:
+						with Image.open(io.BytesIO(data)) as image:
+							image.verify()
+					name = self._asset("png" if kind.extension == "apng" else kind.extension, data)
+				elif not kind and src.split("?", 1)[0].lower().endswith(".svg"):
+					# Typst reads every SVG as UTF-8, whatever encoding its XML declaration names
+					root = ElementTree.fromstring(data, ElementTree.XMLParser(encoding="utf-8"))
+					if root.tag.rpartition("}")[2] == "svg":
+						name = self._asset("svg", data)
 		self._embedded[src] = name
 		return name
 

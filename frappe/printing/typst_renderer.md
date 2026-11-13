@@ -28,8 +28,8 @@ enforced at three places: the builder UI (mirrored client-side in
 `print_format_builder/utils.js` to grey the option live), save
 (`validate_typst_renderer`), and render (step 5). A format either renders
 fully through Typst or is refused with every reason named. Blockers: custom
-HTML formats, custom CSS, HTML blocks, Jinja field templates, non-QR barcodes,
-remote image URLs, HTML letter heads, and CSS `custom_style` properties or
+HTML formats, custom CSS, HTML blocks, Jinja field templates, remote image
+URLs, HTML letter heads, and CSS `custom_style` properties or
 values the translator cannot express.
 
 ## How JSON becomes Typst
@@ -80,9 +80,9 @@ Three things to notice:
 | Table | `_table()` / `_table_cell()` | `#table` incl. merged cells, image thumbnails |
 | Repeater | `_repeater()` | `#table` from per-row template tokens |
 | Image / Attach Image | `_image()` → `_embed_image()` | `#image` on an embedded asset |
-| Barcode (QR) | `_barcode()` | `#image` of the server-rendered SVG |
+| Barcode | `_barcode()` | `#image` of the server-rendered SVG |
 | Spacer / Divider | inline | `#v(…)` / ruled `#block` |
-| HTML, Field Template, non-QR barcode | — | blocked; format stays on Chromium |
+| HTML, Field Template | — | blocked; format stays on Chromium |
 
 ## Measured
 
