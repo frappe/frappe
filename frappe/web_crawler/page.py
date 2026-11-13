@@ -1,3 +1,4 @@
+import copy
 import re
 from dataclasses import dataclass, field
 from functools import cached_property
@@ -16,6 +17,16 @@ DISALLOWED_TAGS = ("form", "input", "button", "select", "textarea", "meta", "lin
 MARKDOWN_TYPES = ("text/markdown", "text/x-markdown")
 FRONT_MATTER = re.compile(r"\A\s*---[ \t]*\n(.*?)\n---[ \t]*(?:\n|\Z)", re.S)
 HEADING = re.compile(r"^# (.+)$", re.M)
+# markdown2 slows down quadratically on long Markdown and on long runs of one punctuation mark.
+MAX_MARKDOWN_SIZE = 50 * 1024
+REPEATED_PUNCTUATION = re.compile(r"([^\w\s]|_)\1{9,}")
+BLOCK_TAGS = (
+	"address", "article", "aside", "blockquote", "br", "dd", "div", "dl", "dt", "figcaption", "figure",
+	"footer", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "li", "main", "nav", "ol", "p", "pre",
+	"section", "table", "td", "th", "tr", "ul",
+)  # fmt: skip
+LINE_BREAK, KEPT_SPACE = "\x00", "\x01"
+WHITESPACE = re.compile(r"\s+")
 
 
 @dataclass
@@ -93,10 +104,13 @@ class PageParser:
 		)
 
 	def from_markdown(self) -> CrawledPage:
+		if len(self.download.content) > MAX_MARKDOWN_SIZE:
+			return self.failed("too_large")
 		front_matter, markdown = split_front_matter(self.download.text)
 		heading = HEADING.search(markdown)
 		title = str(front_matter.get("title") or (heading[1] if heading else "")).strip()
-		soup = BeautifulSoup(md_to_html(markdown) or "", "html.parser")
+		html = md_to_html(REPEATED_PUNCTUATION.sub(lambda match: match[1] * 10, markdown))
+		soup = BeautifulSoup(html or "", "html.parser")
 		page = self.build(
 			title=title,
 			description=str(front_matter.get("description") or ""),
@@ -109,7 +123,7 @@ class PageParser:
 		return page
 
 	def build(self, title, description, meta, main, raw_html, links) -> CrawledPage:
-		text = main.get_text("\n", strip=True)
+		text = plain_text(main)
 		return CrawledPage(
 			url=self.download.url,
 			final_url=self.download.final_url,
@@ -164,6 +178,20 @@ class PageParser:
 
 	def failed(self, error: str) -> CrawledPage:
 		return CrawledPage(self.download.url, self.download.final_url, self.download.status, error)
+
+
+def plain_text(element: Tag) -> str:
+	"""The visible text, a line per block element, keeping the spacing of preformatted text."""
+	element = copy.copy(element)
+	for pre in element.find_all("pre"):
+		for string in pre.find_all(string=True):
+			string.replace_with(string.replace("\n", LINE_BREAK).replace(" ", KEPT_SPACE))
+	for tag in element.find_all(BLOCK_TAGS):
+		tag.insert_before(LINE_BREAK)
+		tag.insert_after(LINE_BREAK)
+	text = WHITESPACE.sub(" ", element.get_text())
+	lines = (line.strip().replace(KEPT_SPACE, " ") for line in text.split(LINE_BREAK))
+	return "\n".join(line for line in lines if line)
 
 
 def split_front_matter(text: str) -> tuple[dict, str]:

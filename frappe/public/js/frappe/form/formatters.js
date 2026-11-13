@@ -349,6 +349,10 @@ frappe.form.formatters = {
 	Code: function (value) {
 		return "<pre>" + (value == null ? "" : $("<div>").text(value).html()) + "</pre>";
 	},
+	JSON: function (value) {
+		const text = value && typeof value === "object" ? JSON.stringify(value, null, 1) : value;
+		return frappe.form.formatters.Code(text);
+	},
 	WorkflowState: function (value) {
 		var workflow_state = frappe.get_doc("Workflow State", value);
 		if (workflow_state) {

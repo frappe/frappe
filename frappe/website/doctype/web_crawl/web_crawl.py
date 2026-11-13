@@ -77,7 +77,7 @@ class WebCrawl(Document):
 
 	def validate_new(self):
 		self.validate_methods()
-		crawler = self.crawler()
+		crawler = self.flags.crawler or self.crawler()
 		self.validate_limits(crawler.limits)
 		self.apply_settings(crawler)
 		if not self.flags.ignore_permissions:
@@ -150,9 +150,10 @@ class WebCrawl(Document):
 	def keyword_weights(self) -> dict[str, float]:
 		return {row.keyword: row.weight for row in self.link_priorities}
 
-	def find_running(self) -> "WebCrawl | None":
-		"""The user's crawl with the same settings that is still running.
-		A crawl older than its job timeout is not running, whatever its status says."""
+	def find_running(self, on_success: str | None = None, on_failure: str | None = None) -> "WebCrawl | None":
+		"""The user's crawl with the same fields and callbacks that is still running.
+		A crawl older than its job timeout is not running, whatever its status says.
+		Locking reads, so they also see a crawl committed while `enqueue_crawl` waited for its lock."""
 		filters = {
 			**{fieldname: self.get(fieldname) for fieldname in CRAWL_FIELDS},
 			"owner": frappe.session.user,
@@ -163,25 +164,23 @@ class WebCrawl(Document):
 				add_to_date(now_datetime(), seconds=-CrawlLimits.from_settings().job_timeout()),
 			),
 		}
-		names = frappe.get_all("Web Crawl", filters, pluck="name")
+		crawls = frappe.db.get_values("Web Crawl", filters, ["name", "background_task"], for_update=True)
+		if not crawls:
+			return None
+		callbacks = {"on_success_callback": on_success, "on_failure_callback": on_failure}
+		task_filters = {"name": ("in", [task for _name, task in crawls]), **callbacks}
+		tasks = frappe.db.get_values("Background Task", task_filters, pluck=True, for_update=True)
+		names = [name for name, task in crawls if task in tasks]
 		if not names:
 			return None
 		weights = defaultdict(dict)
-		for row in frappe.get_all(
-			"Web Crawl Link Priority",
-			{"parenttype": "Web Crawl", "parent": ("in", names)},
-			["parent", "keyword", "weight"],
+		priority_filters = {"parenttype": "Web Crawl", "parent": ("in", names)}
+		for parent, keyword, weight in frappe.db.get_values(
+			"Web Crawl Link Priority", priority_filters, ["parent", "keyword", "weight"], for_update=True
 		):
-			weights[row.parent][row.keyword] = row.weight
+			weights[parent][keyword] = weight
 		name = next((name for name in names if weights[name] == self.keyword_weights()), None)
-		return frappe.get_doc("Web Crawl", name) if name else None
-
-	@frappe.whitelist()
-	def start(self):
-		self.check_permission("write")
-		if self.status != "Queued" or self.background_task:
-			frappe.throw(_("This crawl has already started."), title=_("Cannot start"))
-		self.enqueue_job()
+		return frappe.get_doc("Web Crawl", name, for_update=True) if name else None
 
 	@frappe.whitelist()
 	def stop(self):
@@ -194,16 +193,16 @@ class WebCrawl(Document):
 		stop_task(self.background_task)
 		self.reload()
 
-	def enqueue_job(self, on_success=None, on_failure=None):
+	def after_insert(self):
 		task = frappe.enqueue_task(
 			"frappe.website.doctype.web_crawl.web_crawl.run_web_crawl",
-			task_name=_("Web crawl of {0}").format(self.url),
+			task_name=_("Web crawl of {0}").format(self.url)[:140],  # Background Task's Data length
 			queue="long",
 			timeout=CrawlLimits.from_settings().job_timeout(),
 			ref_doctype=self.doctype,
 			ref_docname=self.name,
-			on_success=on_success,
-			on_failure=on_failure,
+			on_success=self.flags.on_success,
+			on_failure=self.flags.on_failure,
 			web_crawl=self.name,
 		)
 		self.db_set("background_task", task.name)
@@ -261,7 +260,11 @@ class WebCrawl(Document):
 			errors[page.url] = error
 		self.pages_crawled += 1
 		self.pages_failed += bool(error)
-		self.db_set({"pages_crawled": self.pages_crawled, "pages_failed": self.pages_failed}, commit=True)
+		self.db_set(
+			{"pages_crawled": self.pages_crawled, "pages_failed": self.pages_failed},
+			commit=True,
+			update_modified=False,
+		)
 
 	def insert_result(self, page: CrawledPage):
 		frappe.get_doc(
@@ -276,7 +279,6 @@ class WebCrawl(Document):
 				"change_status": page.change_status,
 				"title": page.title or page.url,
 				"description": page.description,
-				"text": page.text,
 				"html": page.html,
 				"meta_tags": page.meta,
 			}
@@ -330,14 +332,17 @@ def enqueue_crawl(
 ) -> WebCrawl:
 	"""Crawls `url` in a background job and returns its Web Crawl, or the user's running one with
 	the same fields. `on_page(page, web_crawl)` and `skip_urls(urls)` are dotted paths, called in the job.
-	`fields` are other Web Crawl fields, such as `follow_links`, `max_pages` or `reference_name`."""
+	`fields` are other Web Crawl fields, such as `follow_links`, `max_pages` or `reference_name`.
+	Locks the user's row until the caller's transaction ends."""
 	web_crawl = frappe.new_doc("Web Crawl")
 	web_crawl.update({"url": url, "on_page_method": on_page, "skip_urls_method": skip_urls, **fields})
-	web_crawl.apply_settings(web_crawl.crawler())
-	if running := web_crawl.find_running():
+	web_crawl.flags.update(crawler=web_crawl.crawler(), on_success=on_success, on_failure=on_failure)
+	web_crawl.apply_settings(web_crawl.flags.crawler)
+	# Waits for the user's other enqueue_crawl calls to commit, so identical calls start one crawl.
+	frappe.db.get_value("User", frappe.session.user, "name", for_update=True)
+	if running := web_crawl.find_running(on_success, on_failure):
 		return running
 	web_crawl.insert(ignore_permissions=True)
-	web_crawl.enqueue_job(on_success, on_failure)
 	return web_crawl
 
 
@@ -364,17 +369,21 @@ def has_permission(doc, ptype: str | None = None, user: str | None = None, debug
 
 
 def get_permission_query_conditions(user: str | None = None) -> str | None:
-	return owner_condition("Web Crawl", user)
+	return owner_condition(user)
 
 
-def owner_condition(doctype: str, user: str | None = None) -> str | None:
+def owner_condition(user: str | None = None) -> str | None:
 	"""Lists show only the user's own crawls, because reference access can't be a query condition."""
 	user = user or frappe.session.user
 	if can_manage_crawls(user):
 		return None
-	return f"`tab{doctype}`.`owner` = {frappe.db.escape(user)}"
+	return f"`tabWeb Crawl`.`owner` = {frappe.db.escape(user)}"
 
 
 def can_manage_crawls(user: str) -> bool:
 	"""Users whose roles can write any Web Crawl see every crawl."""
 	return frappe.has_permission("Web Crawl", "write", user=user, ignore_share_permissions=True)
+
+
+def on_doctype_update():
+	frappe.db.add_index("Web Crawl", ["owner", "status"])

@@ -66,8 +66,21 @@ class WebCrawler:
 		if not frappe.utils.validate_url(url, valid_schemes=("http", "https")):
 			frappe.throw(_("{0} is not a valid web address").format(url), title=_("Invalid URL"))
 		if self.limits.is_blocked(url):
-			raise BlockedRequest(_("Web Crawl Settings do not allow the domain of {0}").format(url))
-		validate_request_url(url)
+			frappe.throw(
+				_("Web Crawl Settings do not allow the domain of {0}.").format(url),
+				BlockedRequest,
+				title=_("URL not allowed"),
+			)
+		try:
+			validate_request_url(url)
+		except BlockedRequest:
+			frappe.throw(
+				_("{0} can't be crawled. It must be a public web address that this server can reach.").format(
+					url
+				),
+				BlockedRequest,
+				title=_("URL not allowed"),
+			)
 		return url
 
 	def find_pages(self) -> list[str]:
@@ -97,30 +110,33 @@ class WebCrawler:
 		return Robots(self.fetcher, self.url)
 
 	def frontier(self) -> "CrawlFrontier":
-		"""The start page and its links when following links, and the index files' pages."""
+		"""The start page and its links when following links, and the index files' pages.
+		With neither, the start page alone."""
 		frontier = CrawlFrontier(self.priority)
-		if self.follow_links:
+		if self.follow_links or not self.index_files:
 			frontier.add([self.url], 0)
 		if not self.follow_links or self.limits.max_depth:
 			frontier.add(self.index_urls(), 1)
 		return frontier
 
 	def read_pages(self, frontier: "CrawlFrontier") -> Iterator[CrawledPage]:
-		read = 0
-		while batch := frontier.pop_many(min(self.batch_size(), self.limits.max_pages - read)):
+		# Redirects to a page already read cost no page, so they get a request budget of their own.
+		read, requests = 0, 0
+		while not self.stopped_reason and (batch := frontier.pop_many(self.next_batch_size(read, requests))):
 			urls = [url for url, _depth in batch]
+			requests += len(urls)
+			# A stop ends the crawl after this batch, so the pages it already read are kept.
 			for (url, depth), page in zip(batch, self.read_batch(urls), strict=True):
 				if page.error == TIME_LIMIT:
-					self.stopped_reason = TIME_LIMIT
-					return
+					self.stopped_reason = self.stopped_reason or TIME_LIMIT
+					continue
 				if not frontier.visit(url, page.final_url or url):
 					continue
 				read += 1
 				yield page
 				# A 429 that outlived the retries: the rest would 429 too.
 				if page.status == 429:
-					self.stopped_reason = "rate_limited"
-					return
+					self.stopped_reason = self.stopped_reason or "rate_limited"
 				if self.follow_links and page.ok and depth < self.limits.max_depth:
 					frontier.add(self.filter_urls(list(page.links)), depth + 1, page.links)
 
@@ -150,6 +166,10 @@ class WebCrawler:
 
 	def batch_size(self) -> int:
 		return 1 if self.robots.crawl_delay() else self.limits.concurrent_requests
+
+	def next_batch_size(self, read: int, requests: int) -> int:
+		max_requests = 2 * self.limits.max_pages
+		return max(min(self.batch_size(), self.limits.max_pages - read, max_requests - requests), 0)
 
 	def read_batch(self, urls: list[str]) -> list[CrawledPage]:
 		"""The pages of `urls`, fetched at the same time."""

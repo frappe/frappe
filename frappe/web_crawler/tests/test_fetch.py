@@ -68,6 +68,28 @@ class TestFetchPage(IntegrationTestCase):
 		self.site.add("https://example.com/cafe", body, content_type="text/html")
 		self.assertEqual(fetch_page("https://example.com/cafe").text, "Café")
 
+	def test_text_has_a_line_per_block_and_keeps_preformatted_spacing(self):
+		self.site.page(
+			"https://example.com/contact",
+			"<main><p>A <a href='/c'>Contact</a>\n is a <b>person</b>.</p><pre>if x:\n    y()</pre></main>",
+		)
+		self.assertEqual(
+			fetch_page("https://example.com/contact").text, "A Contact is a person.\nif x:\n    y()"
+		)
+
+	def test_an_unknown_charset_is_read_as_utf8(self):
+		self.site.add("https://example.com/notes.md", "# Notes\n\nCafé", "text/markdown; charset=bogus")
+		page = fetch_page("https://example.com/notes.md")
+		self.assertEqual((page.error, page.title), (None, "Notes"))
+
+	def test_markdown_that_is_slow_to_convert_is_refused_or_shortened(self):
+		self.site.add("https://example.com/big.md", "a" * (60 * 1024), "text/markdown")
+		self.assertEqual(fetch_page("https://example.com/big.md").error, "too_large")
+		self.site.add("https://example.com/ticks.md", "# Ticks\n\n" + "`" * 40000 + "a", "text/markdown")
+		started = time.monotonic()
+		self.assertEqual(fetch_page("https://example.com/ticks.md").title, "Ticks")
+		self.assertLess(time.monotonic() - started, 1)
+
 	def test_markdown_page_keeps_its_source_and_front_matter_title(self):
 		markdown = "---\ntitle: Setup\n---\n# Heading\n\nOpen **settings**.\n\n---\n\nMore."
 		self.site.add("https://example.com/setup.md", markdown, content_type="text/markdown")
@@ -127,7 +149,9 @@ class TestFetchPage(IntegrationTestCase):
 		self.assertEqual(fetch_page("https://example.com/away").error, "blocked")
 
 	def test_internal_and_invalid_addresses_raise(self):
+		frappe.clear_messages()
 		self.assertRaises(BlockedRequest, fetch_page, "http://127.0.0.1/")
+		self.assertIn("public web address", str(frappe.get_message_log()))
 		self.assertRaises(frappe.ValidationError, fetch_page, "ftp://example.com/")
 
 	def test_retry_after_wait_is_capped(self):
@@ -154,15 +178,33 @@ class TestSlowServer(IntegrationTestCase):
 		self.assertEqual(fetch_page(self.url).error, "timed_out")
 		self.assertLess(time.monotonic() - started, 3)
 
+	def test_headers_sent_a_byte_at_a_time_stop_at_the_deadline(self):
+		self.enterContext(patch("frappe.web_crawler.fetch.MAX_RETRIES", 0))
+		self.enterContext(patch("frappe.web_crawler.fetch.MAX_WAIT_SECONDS", 0))
+		started = time.monotonic()
+		self.assertEqual(fetch_page(self.url.replace("/drip", "/trickle")).error, "timed_out")
+		self.assertLess(time.monotonic() - started, 3)
+
 
 class DripHandler(http.server.BaseHTTPRequestHandler):
 	def do_GET(self):
+		if self.path == "/trickle":
+			return self.trickle(b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n" + b"X: y\r\n" * 50)
 		self.send_response(200)
 		self.send_header("Content-Type", "text/html")
 		self.end_headers()
 		try:
 			for _ in range(50):
 				self.wfile.write(b"<p>x</p>")
+				self.wfile.flush()
+				time.sleep(0.1)
+		except BrokenPipeError:
+			pass
+
+	def trickle(self, data: bytes):
+		try:
+			for byte in data:
+				self.wfile.write(bytes([byte]))
 				self.wfile.flush()
 				time.sleep(0.1)
 		except BrokenPipeError:

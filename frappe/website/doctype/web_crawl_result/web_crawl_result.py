@@ -33,10 +33,9 @@ class WebCrawlResult(Document):
 			"Too many redirects",
 		]
 		final_url: DF.SmallText | None
-		html: DF.LongText | None
+		html: DF.Code | None
 		meta_tags: DF.JSON | None
 		status_code: DF.Int
-		text: DF.LongText | None
 		title: DF.SmallText | None
 		url: DF.SmallText | None
 		web_crawl: DF.Link
@@ -55,4 +54,6 @@ def has_permission(
 
 
 def get_permission_query_conditions(user: str | None = None) -> str | None:
-	return owner_condition("Web Crawl Result", user)
+	"""Results of the crawls the user may list."""
+	if condition := owner_condition(user):
+		return f"`tabWeb Crawl Result`.`web_crawl` in (select `name` from `tabWeb Crawl` where {condition})"

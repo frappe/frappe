@@ -61,6 +61,13 @@ class TestCrawl(IntegrationTestCase):
 		pages = list(WebCrawler("https://example.com", follow_links=False, max_pages=1).crawl())
 		self.assertEqual([page.url for page in pages], ["https://example.com/listed"])
 
+	def test_without_index_files_or_links_only_the_start_page_is_read(self):
+		self.site.page("https://example.com/", links("/a"))
+		self.site.add("https://example.com/sitemap.xml", urlset("https://example.com/listed"), XML)
+
+		pages = self.crawl(follow_links=False)
+		self.assertEqual([page.url for page in pages], ["https://example.com"])
+
 	def test_redirect_to_a_page_already_read_costs_no_budget(self):
 		self.site.page("https://example.com/", links("/old", "/new", "/other"))
 		self.site.redirect("https://example.com/old", "https://example.com/")
@@ -71,6 +78,14 @@ class TestCrawl(IntegrationTestCase):
 		self.assertEqual(
 			urls, ["https://example.com", "https://example.com/new", "https://example.com/other"]
 		)
+
+	def test_redirects_to_a_page_already_read_have_a_request_budget(self):
+		self.site.page("https://example.com/", links(*(f"/old-{number}" for number in range(20))))
+		for number in range(20):
+			self.site.redirect(f"https://example.com/old-{number}", "https://example.com/")
+		self.assertEqual(len(self.crawl(max_pages=3)), 1)
+		redirects_read = [url for url in self.site.requested if "/old-" in url]
+		self.assertEqual(len(redirects_read), 2 * 3 - 1)
 
 	def test_pages_are_read_at_the_address_the_link_gives(self):
 		self.site.page("https://example.com/", links("/view?id=1", "/view?id=2", "/docs/#intro", "/docs/"))
@@ -167,6 +182,21 @@ class TestCrawl(IntegrationTestCase):
 		self.assertEqual([page.status for page in pages], [200, 429])
 		self.assertEqual(crawler.stopped_reason, "rate_limited")
 		self.assertEqual(self.site.requested.count("https://example.com/a"), 3)
+
+	def test_a_rate_limit_keeps_the_rest_of_its_batch(self):
+		self.enterContext(change_settings("Web Crawl Settings", {"concurrent_requests": 3}))
+		self.site.page("https://example.com/", links("/a", "/b", "/c"))
+		self.site.add("https://example.com/a", status=429)
+		self.site.page("https://example.com/b", links("/d"))
+		self.site.page("https://example.com/c", "<p>C</p>")
+		crawler = WebCrawler("https://example.com", index_files=False)
+
+		urls = [page.url for page in crawler.crawl()]
+		self.assertEqual(
+			urls[1:], ["https://example.com/a", "https://example.com/b", "https://example.com/c"]
+		)
+		self.assertEqual(crawler.stopped_reason, "rate_limited")
+		self.assertNotIn("https://example.com/d", self.site.requested)
 
 	def test_reads_a_batch_of_pages_at_the_same_time(self):
 		self.enterContext(change_settings("Web Crawl Settings", {"concurrent_requests": 3}))

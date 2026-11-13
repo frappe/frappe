@@ -23,7 +23,7 @@ def normalize_url(url: str) -> str:
 	index.html, the fragment, tracking parameters and the order of parameters make no difference."""
 	parts = urlsplit(url.strip())
 	scheme = "https" if parts.scheme.lower() in WEB_SCHEMES else parts.scheme.lower()
-	host = parts.netloc.lower().rsplit("@", 1)[-1].removeprefix("www.")
+	host = ascii_host(parts.netloc.lower().rsplit("@", 1)[-1]).removeprefix("www.")
 	path = INDEX_FILE.sub("", parts.path).rstrip("/") or "/"
 	return urlunsplit((scheme, host, path, normalize_query(parts.query), ""))
 
@@ -39,8 +39,16 @@ def site_root(url: str) -> str:
 
 
 def bare_host(url: str) -> str:
-	host = (urlsplit(url).hostname or "").rstrip(".")
+	host = ascii_host((urlsplit(url).hostname or "").rstrip("."))
 	return host.removeprefix("www.")
+
+
+def ascii_host(host: str) -> str:
+	"""The host in punycode, so `bücher.de` and `xn--bcher-kva.de` are the same host."""
+	try:
+		return host.encode("idna").decode("ascii")
+	except UnicodeError:
+		return host
 
 
 class Scope:
@@ -78,15 +86,14 @@ class SkipRules:
 
 
 def compile_pattern(pattern: str) -> re.Pattern:
-	"""A regular expression, or a plain substring match when the pattern is not valid regex."""
-	try:
-		return re.compile(pattern)
-	except re.error:
-		return re.compile(re.escape(pattern))
+	"""Matches URLs that contain the pattern, where `*` stands for any text. Not a regular expression,
+	so no pattern can backtrack for minutes on one URL."""
+	return re.compile(".*?".join(re.escape(part) for part in pattern.split("*")))
 
 
 class Robots:
-	"""The site's robots.txt. A missing or unreadable file allows everything."""
+	"""The site's robots.txt, as RFC 9309 reads it: a missing file (4xx) allows everything,
+	an unreachable one (5xx, 429 or no answer) allows nothing."""
 
 	def __init__(self, fetcher: Fetcher, start_url: str):
 		self.user_agent = fetcher.limits.user_agent
@@ -97,7 +104,8 @@ class Robots:
 	def read(self, fetcher: Fetcher, url: str) -> str:
 		try:
 			return fetcher.get(url, ROBOTS_MAX_BYTES, fetcher.limits.page_timeout).text
-		except FetchError:
+		except FetchError as e:
+			self.parser.disallow_all = not (e.status and 400 <= e.status < 500 and e.status != 429)
 			return ""
 
 	def allows(self, url: str) -> bool:

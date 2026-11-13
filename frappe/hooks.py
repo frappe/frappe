@@ -560,6 +560,7 @@ ignore_links_on_delete = [
 	"Flow Knowledge Chunk",
 	"Flow Run",
 	"Flow Session",
+	"Web Crawl",
 ]
 
 # Request Hooks

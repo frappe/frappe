@@ -27,6 +27,11 @@ class TestScope(UnitTestCase):
 		self.assertFalse(scope.contains("https://example.com/docs/../admin"))
 		self.assertFalse(scope.contains("mailto:docs@example.com"))
 
+	def test_unicode_and_punycode_hosts_are_one_site(self):
+		scope = Scope("https://bücher.de/docs")
+		self.assertTrue(scope.contains("https://xn--bcher-kva.de/docs/a"))
+		self.assertEqual(normalize_url("https://Bücher.de/a"), normalize_url("https://xn--bcher-kva.de/a"))
+
 	def test_normalize_url(self):
 		self.assertEqual(normalize_url("HTTPS://Example.com/a/?b=1#c"), "https://example.com/a?b=1")
 		self.assertEqual(normalize_url("https://example.com"), "https://example.com/")
@@ -47,17 +52,24 @@ class TestScope(UnitTestCase):
 		)
 
 	def test_skip_rules(self):
-		rules = SkipRules(("/private/", "[unclosed"))
+		rules = SkipRules(("/private/", "[unclosed", "/blog/*/draft"))
 		for url in (
 			"https://example.com/logo.PNG",
 			"https://example.com/guide.pdf",
 			"javascript:void(0)",
 			"https://example.com/private/page",
 			"https://example.com/[unclosed",
+			"https://example.com/blog/2026/draft-1",
 		):
 			with self.subTest(url=url):
 				self.assertTrue(rules.skips(url))
 		self.assertFalse(rules.skips("https://example.com/guide"))
+		self.assertFalse(rules.skips("https://example.com/blog/draft"))
+
+	def test_skip_patterns_are_not_regular_expressions(self):
+		rules = SkipRules(("(a+)+$",))
+		self.assertFalse(rules.skips("https://example.com/" + "a" * 40 + "!"))
+		self.assertTrue(rules.skips("https://example.com/(a+)+$"))
 
 
 class TestDiscovery(IntegrationTestCase):
@@ -160,6 +172,13 @@ class TestDiscovery(IntegrationTestCase):
 		self.assertEqual(self.find("https://example.com"), ["https://example.com/a"])
 		with self.change_settings("Web Crawl Settings", {"respect_robots_txt": 0}):
 			self.assertEqual(len(self.find("https://example.com")), 2)
+
+	def test_unreachable_robots_txt_allows_nothing_and_a_missing_one_everything(self):
+		self.site.add("https://example.com/sitemap.xml", urlset("https://example.com/a"), XML)
+		for status, expected in ((503, []), (429, []), (410, ["https://example.com/a"])):
+			with self.subTest(status=status):
+				self.site.add("https://example.com/robots.txt", status=status)
+				self.assertEqual(self.find("https://example.com"), expected)
 
 	def test_skip_urls_runs_before_the_page_limit(self):
 		self.site.add(

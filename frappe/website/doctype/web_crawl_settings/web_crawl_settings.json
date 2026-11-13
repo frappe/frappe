@@ -157,7 +157,7 @@
    "label": "Crawl tuning"
   },
   {
-   "description": "URLs that match any of these regular expressions are skipped. Enter one per line. Used by crawls that do not set their own.",
+   "description": "URLs that contain any of these are skipped. Use * for any text, as in /blog/*/draft. Enter one per line. Used by crawls that do not set their own.",
    "fieldname": "skip_patterns",
    "fieldtype": "Small Text",
    "label": "Skip patterns",
@@ -215,7 +215,7 @@
  "issingle": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-13 16:30:00.000000",
+ "modified": "2026-11-13 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Crawl Settings",

@@ -1,4 +1,6 @@
+import threading
 import time
+from concurrent.futures import Future
 from dataclasses import dataclass
 from email.message import Message
 from urllib.parse import urljoin
@@ -78,11 +80,21 @@ class Fetcher:
 			raise FetchError("blocked", response.status_code, response.url)
 
 	def get(self, url: str, max_bytes: int, timeout: float) -> Download:
-		"""The body of `url`, read within `timeout` seconds in total. Raises FetchError."""
+		"""The body of `url`, within `timeout` seconds per attempt and the crawl's deadline. Raises FetchError."""
 		if self.limits.is_blocked(url):
 			raise FetchError("blocked")
-		if self.deadline and time.monotonic() > self.deadline:
+		allowed = (MAX_RETRIES + 1) * (timeout + MAX_WAIT_SECONDS)
+		if self.deadline:
+			allowed = min(allowed, self.deadline - time.monotonic())
+		if allowed <= 0:
 			raise FetchError(TIME_LIMIT)
+		try:
+			return call_with_deadline(self.download, allowed, url, max_bytes, timeout)
+		except TimeoutError:
+			past_deadline = self.deadline and time.monotonic() >= self.deadline
+			raise FetchError(TIME_LIMIT if past_deadline else "timed_out") from None
+
+	def download(self, url: str, max_bytes: int, timeout: float) -> Download:
 		deadline = time.monotonic() + timeout
 		response = self.send(url, timeout)
 		try:
@@ -111,9 +123,32 @@ class Fetcher:
 		header = Message()
 		header["content-type"] = response.headers.get("Content-Type", "")
 		content = read_capped(response, deadline, max_bytes)
-		return Download(
-			url, response.url, status, header.get_content_type(), header.get_content_charset(), content
-		)
+		charset = known_charset(header.get_content_charset())
+		return Download(url, response.url, status, header.get_content_type(), charset, content)
+
+
+def known_charset(charset: str | None) -> str | None:
+	"""The charset when Python can decode it, so an unknown one falls back to UTF-8."""
+	try:
+		return charset and b"a".decode(charset, errors="replace") and charset
+	except LookupError:
+		return None
+
+
+def call_with_deadline(function, seconds: float, *args):
+	"""`function(*args)`, or TimeoutError after `seconds`. A socket timeout only bounds each read,
+	so a server that trickles bytes would otherwise hold the crawl for as long as it likes."""
+	# ponytail: the late thread is abandoned, not killed; it ends with its request or the job process.
+	future = Future()
+
+	def run():
+		try:
+			future.set_result(function(*args))
+		except BaseException as e:
+			future.set_exception(e)
+
+	threading.Thread(target=run, daemon=True).start()
+	return future.result(timeout=seconds)
 
 
 def read_capped(response: requests.Response, deadline: float, max_bytes: int) -> bytes:

@@ -1,12 +1,14 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # See license.txt
 
+from functools import partial
 from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, now_datetime
+from frappe.utils.task_queue import enqueue_task
 from frappe.web_crawler import CrawledPage
 from frappe.web_crawler.tests.fake_site import FakeSite, add_setting_row
 from frappe.website.doctype.web_crawl.web_crawl import WebCrawl, enqueue_crawl
@@ -37,7 +39,10 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 		self.site.page("https://example.com/", '<a href="/a">A</a><a href="/broken">Broken</a><p>Home</p>')
 		self.site.page("https://example.com/a", "<p>Page A</p>")
 		self.site.page("https://example.com/broken", "<p>Broken</p>")
-		self.enterContext(patch("frappe.enqueue_task", return_value=frappe._dict(name="task-1")))
+		self.enterContext(patch("frappe.enqueue"))
+		self.enterContext(
+			patch("frappe.enqueue_task", side_effect=partial(enqueue_task, enqueue_after_commit=False))
+		)
 		self.enterContext(patch.object(frappe.db, "commit"))
 
 	def start_crawl(self, user=OWNER, **caller) -> WebCrawl:
@@ -45,20 +50,6 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 			return enqueue_crawl(
 				"https://example.com", on_page=f"{__name__}.record_page", index_files=0, **caller
 			)
-
-	def insert_background_task(self):
-		frappe.get_doc(
-			{
-				"doctype": "Background Task",
-				"task_id": "task-1",
-				"task_name": "Crawl",
-				"status": "Queued",
-				"user": OWNER,
-				"method": "x",
-				"ref_doctype": "Web Crawl",
-				"ref_docname": frappe.db.get_value("Web Crawl", {"background_task": "task-1"}),
-			}
-		).insert(ignore_permissions=True)
 
 	def test_run_stores_pages_and_summary_and_survives_a_failing_on_page(self):
 		web_crawl = self.start_crawl()
@@ -93,7 +84,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 	def test_enqueue_returns_the_crawl_already_running(self):
 		first = self.start_crawl()
-		self.assertEqual(first.background_task, "task-1")
+		self.assertTrue(first.background_task)
 		self.assertEqual(self.start_crawl().name, first.name)
 
 	def test_enqueue_starts_a_new_crawl_for_another_caller_or_user(self):
@@ -180,9 +171,9 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 		first.db_set("creation", add_days(now_datetime(), -1))
 		self.assertNotEqual(self.start_crawl().name, first.name)
 
-	def test_start_refuses_a_crawl_that_has_started(self):
-		web_crawl = self.start_crawl()
-		self.assertRaises(frappe.ValidationError, web_crawl.start)
+	def test_a_crawl_saved_from_the_desk_starts(self):
+		web_crawl = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com"}).insert()
+		self.assertTrue(web_crawl.background_task)
 
 	def test_invalid_url_is_rejected(self):
 		web_crawl = frappe.get_doc({"doctype": "Web Crawl", "url": "http://127.0.0.1/"})
@@ -204,6 +195,48 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 						{"doctype": "Web Crawl", "url": "https://example.com", fieldname: value}
 					)
 					self.assertRaises(frappe.ValidationError, web_crawl.insert)
+
+	def test_a_long_url_fits_the_task_name(self):
+		long_url = "https://example.com/?q=" + "a" * 200
+		self.site.page(long_url, "<p>Long</p>")
+		with self.set_user(OWNER):
+			web_crawl = enqueue_crawl(long_url, index_files=0)
+		self.assertEqual(
+			len(frappe.db.get_value("Background Task", web_crawl.background_task, "task_name")), 140
+		)
+
+	def test_saving_pages_leaves_the_crawl_unmodified(self):
+		web_crawl = self.start_crawl()
+		web_crawl.reset_results()
+		modified = frappe.db.get_value("Web Crawl", web_crawl.name, "modified")
+		web_crawl.save_page(CrawledPage("https://example.com/a", status=200, text="A"), None, {})
+		self.assertEqual(frappe.db.get_value("Web Crawl", web_crawl.name, "modified"), modified)
+
+	def test_enqueue_starts_a_new_crawl_for_other_callbacks(self):
+		first = self.start_crawl()
+		with self.set_user(OWNER):
+			other = enqueue_crawl(
+				"https://example.com",
+				on_page=f"{__name__}.record_page",
+				index_files=0,
+				on_success=f"{__name__}.record_page",
+			)
+		self.assertNotEqual(other.name, first.name)
+
+	def test_owner_lists_the_results_of_a_crawl_someone_else_ran(self):
+		web_crawl = self.start_crawl()
+		web_crawl.run()
+		self.assertNotEqual(
+			frappe.db.get_value("Web Crawl Result", {"web_crawl": web_crawl.name}, "owner"), OWNER
+		)
+		with self.set_user(OWNER):
+			self.assertTrue(frappe.get_list("Web Crawl Result", {"web_crawl": web_crawl.name}))
+
+	def test_a_referenced_document_can_be_deleted(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Crawl"}).insert()
+		self.start_crawl(reference_doctype="ToDo", reference_name=todo.name)
+		frappe.delete_doc("ToDo", todo.name)
+		self.assertFalse(frappe.db.exists("ToDo", todo.name))
 
 	def test_methods_can_only_be_set_from_code(self):
 		for fieldname in ("on_page_method", "skip_urls_method"):
@@ -263,10 +296,10 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 	def test_only_the_owner_can_stop(self):
 		self.enterContext(patch("rq.job.Job.fetch"))
 		web_crawl = self.start_crawl()
-		self.insert_background_task()
 		with self.set_user(STRANGER):
 			self.assertRaises(frappe.PermissionError, web_crawl.stop)
 		with self.set_user(OWNER):
+			self.assertFalse(frappe.has_permission("Web Crawl", "write", web_crawl.name))
 			web_crawl.stop()
 		self.assertEqual(web_crawl.status, "Cancelled")
 
@@ -275,7 +308,6 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "Crawl", "allocated_to": STRANGER})
 		todo.insert(ignore_permissions=True)
 		web_crawl = self.start_crawl(reference_doctype="ToDo", reference_name=todo.name)
-		self.insert_background_task()
 		with self.set_user(STRANGER):
 			self.assertTrue(frappe.has_permission("Web Crawl", "read", web_crawl.name))
 			self.assertRaises(frappe.PermissionError, web_crawl.stop)
@@ -286,9 +318,8 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 		self.enterContext(patch("rq.job.Job.fetch"))
 		web_crawl = self.start_crawl()
-		self.insert_background_task()
 		with self.set_user(OWNER):
-			stop_task("task-1")
+			stop_task(web_crawl.background_task)
 		web_crawl.reload()
 		self.assertEqual(web_crawl.status, "Cancelled")
 
