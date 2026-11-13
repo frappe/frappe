@@ -6,10 +6,10 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import { editorBase, workingState } from "../editorModel";
 import AddLayoutDialog from "../AddLayoutDialog.vue";
 import LayoutMenu from "../LayoutMenu.vue";
-import { useLayoutAddress } from "../layoutQuery";
+import { openFromAddress, useLayoutAddress } from "../layoutQuery";
 import type { DesignCanvas } from "../designCanvas";
 import { mountEditor } from "./editorFixture";
-import { leadNote } from "./layoutsFixture";
+import { leadNote, tabs } from "./layoutsFixture";
 
 const apps: App[] = [];
 let editor: ReturnType<typeof mountEditor> | null = null;
@@ -134,8 +134,8 @@ describe("the add layout dialog", () => {
 });
 
 describe("the address", () => {
-	async function mountAddress(path: string) {
-		editor = mountEditor(leadNote());
+	async function mountAddress(path: string, state = leadNote()) {
+		editor = mountEditor(state);
 		const canvas = shallowRef<DesignCanvas>(editor.canvas);
 		const router = createRouter({
 			history: createMemoryHistory(),
@@ -161,6 +161,34 @@ describe("the address", () => {
 		canvas.open({ type: "Details", id: "app:1" });
 		await settle();
 		expect(router.currentRoute.value.query).toEqual({ mode: "customize", table: "items", layout: "details", row: "app:1" });
+	});
+
+	it("opens the Details row a new record's link names when New Record has no layout of its own", async () => {
+		const { router, canvas } = await mountAddress("/doctype/lead-note?layout=new-record&row=app:1&from=new-record");
+		openFromAddress(canvas, router.currentRoute.value.query);
+		await settle();
+		expect(canvas.openLayout.value).toEqual({ type: "Details", id: "app:1" });
+		expect(canvas.newRecordUsesDetails.value).toBe(true);
+		expect(router.currentRoute.value.query).toEqual({ layout: "details", row: "app:1" });
+	});
+
+	it("opens a new record's own layout from its link", async () => {
+		const own = { name: null, source: "app" as const, condition: null, omitted: [], layout: tabs("subject") };
+		const state = leadNote();
+		state.layouts["New Record"] = [own];
+		const { router, canvas } = await mountAddress("/doctype/lead-note?layout=new-record&row=app:0&from=new-record", state);
+		openFromAddress(canvas, router.currentRoute.value.query);
+		await settle();
+		expect(canvas.openLayout.value).toEqual({ type: "New Record", id: "app:0" });
+		expect(canvas.newRecordUsesDetails.value).toBe(false);
+		expect(router.currentRoute.value.query).toEqual({ layout: "new-record", row: "app:0" });
+	});
+
+	it("opens a New Record with no layout of its own when the address names it", async () => {
+		const { router, canvas } = await mountAddress("/doctype/lead-note?layout=new-record");
+		openFromAddress(canvas, router.currentRoute.value.query);
+		await settle();
+		expect(canvas.openLayout.value).toEqual({ type: "New Record" });
 	});
 
 	it("opens the layout a changed address names", async () => {

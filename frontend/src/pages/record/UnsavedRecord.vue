@@ -129,8 +129,8 @@ import { shownInDialog, stripTags } from "./saveResponse";
 const props = defineProps<{
 	doctype: string;
 	query: LocationQuery;
-	/** The DocType editor's route at the New Record layout; absent without the right. */
-	editLayout?: RouteLocationRaw | null;
+	/** The DocType editor's route at the New Record row the page draws; `null` without the right. */
+	editLayout?: (row: string | null) => RouteLocationRaw | null;
 	/** At the Details layout, where the required-fields dialog sends a manager. */
 	editDetails?: RouteLocationRaw | null;
 }>();
@@ -318,6 +318,7 @@ function buildController() {
 }
 
 function headerBuiltins(): HeaderItem[] {
+	const editLayout = props.editLayout?.(layout.editorRow.value);
 	return [
 		{
 			name: "doctype",
@@ -336,7 +337,7 @@ function headerBuiltins(): HeaderItem[] {
 			key: "Mod+S",
 			run: save,
 		},
-		...(props.editLayout ? [editLayoutItem(props.editLayout)] : []),
+		...(editLayout ? [editLayoutItem(editLayout)] : []),
 	];
 }
 

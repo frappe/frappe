@@ -112,7 +112,7 @@ import { customizeHost } from "./customizeHost";
 import { dangerHost } from "./dangerHost";
 import { DesignCanvas } from "./designCanvas";
 import { ForkWarning } from "./forkWarning";
-import { layoutFromQuery, useLayoutAddress } from "./layoutQuery";
+import { openFromAddress, useLayoutAddress } from "./layoutQuery";
 import { canSave, useEditorActs } from "./editorActs";
 import { EditorSave, type ExportResult } from "./editorSave";
 import {
@@ -341,7 +341,7 @@ function open(loaded: EditorState) {
 	state.value = loaded;
 	child.tables.reset();
 	canvas.value = new DesignCanvas(loaded, edits, forks);
-	canvas.value.open(layoutFromQuery(route.query));
+	openFromAddress(canvas.value, route.query);
 }
 
 function find(fieldname: string) {

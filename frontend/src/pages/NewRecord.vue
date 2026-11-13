@@ -8,7 +8,7 @@
 		:key="openingKey(route)"
 		:doctype="doctype"
 		:query="route.query"
-		:editLayout="editLayoutRoute('new-record')"
+		:editLayout="editNewRecord"
 		:editDetails="editLayoutRoute('details')"
 	/>
 	<PageFrame v-else :state="{ name: 'notFound' }" />
@@ -29,4 +29,5 @@ const route = useRoute();
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const { meta } = useDoctypeMeta(() => doctype.value ?? "");
 const editLayoutRoute = useEditLayoutRoute(meta);
+const editNewRecord = (row: string | null) => editLayoutRoute("new-record", row);
 </script>

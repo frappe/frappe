@@ -25,9 +25,10 @@ async function settle() {
 	}
 }
 
-async function draw(component: Component, layout: LayoutRef) {
+async function draw(component: Component, layout: LayoutRef, fromNewRecord = false) {
 	editor = mountEditor(leadNote());
-	editor.canvas.open(layout);
+	if (fromNewRecord) editor.canvas.openForNewRecord(layout);
+	else editor.canvas.open(layout);
 	const router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 	const root = document.createElement("div");
 	document.body.appendChild(root);
@@ -61,6 +62,16 @@ describe("the canvas of each layout type", () => {
 	it("keeps Details' tray under its canvas", async () => {
 		const root = await draw(EditorCanvas, { type: "Details" });
 		expect(root.querySelector("[data-canvas-tray]")).not.toBeNull();
+		expect(root.querySelector("[data-new-record-note]")).toBeNull();
+	});
+
+	it("notes that a new record uses the Details layout its Edit layout opened", async () => {
+		const root = await draw(EditorCanvas, { type: "New Record", id: "app:1" }, true);
+		expect(editor.canvas.openLayout.value).toEqual({ type: "Details", id: "app:1" });
+		expect(root.querySelector("[data-new-record-note]")!.textContent).toBe("New record uses the Details layout");
+		editor.canvas.open({ type: "Details" });
+		await nextTick();
+		expect(root.querySelector("[data-new-record-note]")).toBeNull();
 	});
 });
 

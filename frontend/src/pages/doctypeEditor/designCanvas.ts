@@ -13,6 +13,7 @@ import {
 import { CustomizeView } from "./customizeView";
 import type { EditorState } from "./editorSource";
 import type { ForkWarning } from "./forkWarning";
+import { sameLayout } from "./layoutQuery";
 import { LayoutTreeEditor } from "./layoutTree";
 import { PendingEdits, type EditStage } from "./pendingEdits";
 import { findLayout, layoutOf, reloadedRef, type LayoutRef, type WorkingLayout } from "./workingLayouts";
@@ -60,6 +61,12 @@ export class DesignCanvas {
 	/** The layout the canvas draws and every canvas edit names; a gone one falls back to its type's default. */
 	readonly openLayout = computed<LayoutRef>(() => this.existing(this.wanted.value));
 	readonly layout = computed(() => layoutOf(this.working.value, this.openLayout.value));
+	/** Whether the open layout is the Details one a new record with no layout of its own draws. */
+	readonly newRecordUsesDetails = computed(() => {
+		const opened = this.forNewRecord.value;
+		const own = this.working.value.layouts["New Record"]?.layouts.length;
+		return Boolean(opened && sameLayout(opened, this.openLayout.value) && !own);
+	});
 	readonly tabs = computed(() => this.layout.value?.tabs ?? []);
 	readonly selection = shallowRef<CanvasSelection | null>(null);
 	/** The open tab's name; the first tab when it names none that exists. */
@@ -86,6 +93,8 @@ export class DesignCanvas {
 	/** `null` in Design. */
 	readonly customize: CustomizeView | null;
 	private wanted = shallowRef<LayoutRef>(DETAILS);
+	/** The Details layout the new record page's Edit layout opened, until another opens. */
+	private forNewRecord = shallowRef<LayoutRef | null>(null);
 
 	/** `forks` asks before an edit forks a layout type; none stages without asking. */
 	constructor(
@@ -121,10 +130,19 @@ export class DesignCanvas {
 
 	/** Draws another layout, from its first tab, with nothing selected. */
 	open(layout: LayoutRef) {
+		if (this.forNewRecord.value && !sameLayout(layout, this.forNewRecord.value)) this.forNewRecord.value = null;
 		this.wanted.value = layout;
 		this.selection.value = null;
 		this.openTabName.value = "";
 		this.adding.value = null;
+	}
+
+	/** The new record page's Edit layout: a New Record with no layout of its own draws Details, so that opens. */
+	openForNewRecord(layout: LayoutRef) {
+		const newRecord = this.working.value.layouts["New Record"];
+		if (layout.type !== "New Record" || !newRecord || newRecord.layouts.length) return this.open(layout);
+		this.open(layout.id ? { type: "Details", id: layout.id } : DETAILS);
+		this.forNewRecord.value = this.openLayout.value;
 	}
 
 	opened(): OpenedLayout {

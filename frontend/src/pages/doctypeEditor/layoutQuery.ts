@@ -20,11 +20,18 @@ export function useLayoutAddress(canvas: () => DesignCanvas | null) {
 	watch(
 		() => canvas()?.openLayout.value,
 		(open) => {
-			if (!open || sameLayout(layoutFromQuery(route.query), open)) return;
-			const { layout: _layout, row: _row, ...rest } = route.query;
+			if (!open || (sameLayout(layoutFromQuery(route.query), open) && !route.query.from)) return;
+			const { layout: _layout, row: _row, from: _from, ...rest } = route.query;
 			void router.replace({ query: { ...rest, ...layoutQuery(open) } });
 		},
 	);
+}
+
+/** Opens the layout the address names; the new record page's link (`from=new-record`) may open Details instead. */
+export function openFromAddress(canvas: DesignCanvas, query: LocationQuery) {
+	const layout = layoutFromQuery(query);
+	if (first(query.from) === "new-record") canvas.openForNewRecord(layout);
+	else canvas.open(layout);
 }
 
 /** An unknown `layout` opens Details; no `row` opens the type's default. */

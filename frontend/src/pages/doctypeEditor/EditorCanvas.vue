@@ -35,6 +35,13 @@
 				>
 				<template v-else>{{ __("Customize") }}</template>
 			</p>
+			<p
+				v-if="canvas.newRecordUsesDetails.value"
+				class="mt-1 text-p-sm text-ink-gray-5"
+				data-new-record-note
+			>
+				{{ __("New record uses the Details layout") }}
+			</p>
 		</template>
 
 		<AppLayoutNotice

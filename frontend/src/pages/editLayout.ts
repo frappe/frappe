@@ -25,7 +25,7 @@ export function useEditLayoutRoute(meta: MaybeRefOrGetter<LayoutMeta | null | un
 		const rights = { roles: boot.session.roles ?? [], developerMode: boot.developer_mode };
 		const modes = editorEntries(doctype.name, { ...rights, meta: doctype }).map((entry) => entry.mode);
 		if (!modes.length) return null;
-		const query = { mode: editorMode(modes, row), layout, ...(row ? { row } : {}) };
+		const query = { mode: editorMode(modes, row), layout, ...(row ? { row } : {}), ...entryMark(layout) };
 		return routeFor("DocType", doctype.name, { query });
 	};
 }
@@ -34,4 +34,9 @@ export function useEditLayoutRoute(meta: MaybeRefOrGetter<LayoutMeta | null | un
 function editorMode(modes: string[], row?: string | null): "design" | "customize" {
 	if (row && !row.startsWith("app:") && modes.includes("Customize")) return "customize";
 	return modes.includes("Design") ? "design" : "customize";
+}
+
+/** The new record page's link says so: a New Record with no layout of its own draws Details, which the editor opens instead. */
+function entryMark(layout: EditorLayout): { from?: "new-record" } {
+	return layout === "new-record" ? { from: "new-record" } : {};
 }

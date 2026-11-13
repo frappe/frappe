@@ -388,7 +388,7 @@ describe("opening /<doctype>/new", () => {
 describe("Edit layout", () => {
   afterEach(() => delete (boot.session as any).roles);
 
-  it("sits in the ⋯ menu for a System Manager and opens the editor at the New Record layout", async () => {
+  it("sits in the ⋯ menu for a System Manager and opens the editor at the New Record row the page draws", async () => {
     (boot.session as any).roles = ["System Manager"];
     const { root, router } = await mount("/note/new");
     const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
@@ -396,7 +396,9 @@ describe("Edit layout", () => {
     expect(root.querySelector('[aria-label="More actions"]')).not.toBeNull();
     await acts.run("header.edit_layout");
 
-    expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Note" }, query: { mode: "customize", layout: "new-record" } });
+    // The editor opens Details at this row when the New Record has no layout of its own.
+    const query = { mode: "customize", layout: "new-record", row: "1", from: "new-record" };
+    expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Note" }, query });
   });
 
   it("is not offered without the right", async () => {
