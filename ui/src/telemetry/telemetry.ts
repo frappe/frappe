@@ -12,6 +12,8 @@ import {
 
 let client: PulseClient | null = null;
 let removePageviewHook: (() => void) | null = null;
+let lastOptions: TelemetryPluginOptions | null = null;
+let lastFullPath = "";
 
 const appName = ref<string>();
 const isEnabled = ref(false);
@@ -22,6 +24,12 @@ export function useTelemetry() {
     disable: () => {
       isEnabled.value = false;
       client?.stop();
+    },
+    // Installs again with what the app passed, minus `enabled`: the backend's
+    // answer now reflects the choice just saved.
+    enable: (options: TelemetryPluginOptions) => {
+      const { enabled: _enabled, ...installed } = lastOptions ?? options;
+      return telemetryPlugin.install(undefined, { ...installed, ...options });
     },
     capture: (event_name: string, data: Record<string, any> = {}) => {
       if (!isEnabled.value || !appName.value) return;
@@ -53,7 +61,8 @@ function defaultScrubRoute(to: RouteLocationNormalized): string {
 }
 
 export const telemetryPlugin = {
-  async install(app: App, options: TelemetryPluginOptions) {
+  async install(_app: App | undefined, options: TelemetryPluginOptions) {
+    lastOptions = options;
     appName.value = options.app_name;
 
     if (!appName.value) {
@@ -108,7 +117,6 @@ function setupPageviewTracking(
   if (!options.router || (site_age && site_age > 15)) return null;
 
   const scrub = options.scrubRoute || defaultScrubRoute;
-  let lastFullPath = "";
   const capturePageview = (to: RouteLocationNormalized) => {
     // Dedupe so the initial capture and afterEach can't double-count the same route.
     if (!isEnabled.value || !appName.value || to.fullPath === lastFullPath)
