@@ -149,6 +149,22 @@ describe("useOnboarding", () => {
     expect(saved).toContainEqual({ name: "a_role_only_step", completed: true });
   });
 
+  it("keeps Skip all pressed before the saved status is known", async () => {
+    const { call } = await import("frappe-ui");
+    const { onboarding, onStatusLoaded } = await load();
+    vi.mocked(call).mockClear();
+
+    const shown = steps();
+    onboarding.setUp(shown);
+    onboarding.skipAll();
+    expect(vi.mocked(call)).not.toHaveBeenCalled();
+
+    onStatusLoaded({});
+    expect(shown.every((s) => s.completed)).toBe(true);
+    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    expect(saved.every((s: { completed: boolean }) => s.completed)).toBe(true);
+  });
+
   it("applies a step queued before setUp only once", async () => {
     const { call } = await import("frappe-ui");
     const { onboarding, onStatusLoaded } = await load();
