@@ -99,3 +99,6 @@ class DesignEdits:
 				"properties": {"fetch_from": f"{link.fieldname}.{source.fieldname}", "read_only": 1},
 			}
 		)
+
+	def fields_delete_field(self, edit: dict):
+		self.state.delete_field(edit.get("fieldname"))

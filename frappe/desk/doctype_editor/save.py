@@ -84,4 +84,6 @@ class DesignSave:
 			if doc.is_new():
 				doc.fingerprint = source_fingerprint(self.doctype, layout.type)
 			doc.flags.writes_omitted = layout.type in OMITTING_LAYOUT_TYPES
+			if not doc.flags.writes_omitted:
+				doc.omitted = frappe.as_json(layout.omitted) if layout.omitted else None
 			doc.save()

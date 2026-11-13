@@ -45,6 +45,10 @@ def placed(row) -> list[str]:
 	]
 
 
+def omitted(row) -> list[str]:
+	return json.loads(row.omitted or "[]")
+
+
 class TestSaveDesign(IntegrationTestCase):
 	def setUp(self):
 		make_custom_doctype()
@@ -71,7 +75,7 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(frappe.get_meta(DOCTYPE).get_field("due_date").fieldtype, "Date")
 		[row] = details_rows()
 		self.assertEqual(placed(row), ["due_date", "title"])
-		self.assertEqual(json.loads(row.omitted or "[]"), [])
+		self.assertEqual(omitted(row), [])
 
 	def test_canvas_edits_shape_the_details_layout(self):
 		details = {"type": "Details"}
@@ -162,3 +166,26 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(field.label, "Full Name")
 		[row] = details_rows()
 		self.assertEqual(placed(row), ["title", "owner_user", "full_name"])
+
+	def test_a_deleted_field_leaves_every_layout(self):
+		self.save([{"act": "fields.add_field", "label": "Status", "fieldtype": "Data"}])
+		self.save([{"act": "canvas.unplace_field", "layout": {"type": "Details"}, "fieldname": "title"}])
+		quick_entry = frappe.get_doc(
+			{
+				"doctype": "Form Layout",
+				"dt": DOCTYPE,
+				"type": "Quick Entry",
+				"layout": frappe.as_json([{"name": "t", "sections": [{"name": "s", "columns": [{"name": "c", "fields": ["status"]}]}]}]),
+				"omitted": frappe.as_json(["title"]),
+			}
+		).insert()
+
+		result = self.save(
+			[{"act": "fields.delete_field", "fieldname": "title"}, {"act": "fields.delete_field", "fieldname": "status"}]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("status"))
+		[details] = details_rows()
+		self.assertEqual((placed(details), omitted(details)), ([], []))
+		quick_entry.reload()
+		self.assertEqual((placed(quick_entry), omitted(quick_entry)), ([], []))

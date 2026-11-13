@@ -19,9 +19,10 @@ from frappe.desk.doctype_editor.layout_tree import LayoutTree
 class EditorLayout:
 	"""A site `Form Layout` row, an entry of the app file, or a layout this save adds."""
 
-	def __init__(self, id: str, type: str, tabs: list, title=None, condition=None, row=None, size=None):
+	def __init__(self, id: str, type: str, tabs: list, title=None, condition=None, row=None, size=None, omitted=None):
 		self.id, self.type, self.row = id, type, row
 		self.title, self.condition, self.size = title, condition, size
+		self.omitted = omitted or []
 		self.tree = LayoutTree(tabs, id)
 		self.deleted = False
 
@@ -61,11 +62,20 @@ class DesignState:
 		rows = frappe.get_all(
 			"Form Layout",
 			filters={"dt": self.name, "type": type, "app": ("is", "not set")},
-			fields=["name", "title", "condition", "layout", "dialog_size"],
+			fields=["name", "title", "condition", "layout", "dialog_size", "omitted"],
 			order_by="creation asc",
 		)
 		return [
-			EditorLayout(row.name, type, parse_layout(row.layout), row.title, row.condition, row.name, row.dialog_size)
+			EditorLayout(
+				row.name,
+				type,
+				parse_layout(row.layout),
+				row.title,
+				row.condition,
+				row.name,
+				row.dialog_size,
+				parse_omitted(row.omitted),
+			)
 			for row in rows
 		]
 
@@ -100,8 +110,14 @@ class DesignState:
 			if not layout_type_refusal(self.name, type):
 				self.layouts_of(type)
 
-	def touch_every_layout_naming(self, fieldname: str):
+	def delete_field(self, fieldname: str):
+		"""Drop the field and every layout's mention of it; its column and data stay."""
+		self.doc.fields.remove(self.field(fieldname))
+		for idx, field in enumerate(self.doc.fields, start=1):
+			field.idx = idx
 		self.load_every_layout()
 		for layout in self.all_layouts():
-			if fieldname in layout.tree.fieldnames():
+			if fieldname in layout.tree.fieldnames() or fieldname in layout.omitted:
+				layout.tree.unplace_field(fieldname)
+				layout.omitted = [each for each in layout.omitted if each != fieldname]
 				self.touched.add(layout.type)
