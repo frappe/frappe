@@ -34,19 +34,31 @@ class EditorLayout:
 
 
 class DesignState:
-	def __init__(self, doctype: str):
+	def __init__(self, doctype: str, doc=None):
 		self.name = doctype
-		self.doc = frappe.get_doc("DocType", doctype)
+		self.doc = doc or frappe.get_doc("DocType", doctype)
 		self.saved_fieldnames = {field.fieldname for field in self.doc.fields}
 		self.layouts: dict[str, list[EditorLayout]] = {}
 		self.touched: set[str] = set()
 		self.renames: list[tuple[str, str]] = []
+		self.children: dict[str, DesignState] = {}
+
+	def add_child(self, name: str) -> "DesignState":
+		"""A new child DocType, inserted before this one saves (#45866 r12); it takes field edits only."""
+		if name in self.children or frappe.db.exists("DocType", name):
+			raise EditError(_("A DocType named {0} already exists.").format(name))
+		doc = frappe.new_doc("DocType")
+		doc.update({"name": name, "module": self.doc.module, "custom": self.doc.custom, "istable": 1, "editable_grid": 1})
+		self.children[name] = DesignState(name, doc)
+		return self.children[name]
 
 	@property
 	def standard(self) -> bool:
 		return not self.doc.custom
 
 	def layouts_of(self, type: str) -> list[EditorLayout]:
+		if self.doc.is_new():
+			raise EditError(_("Save the new child table {0} before you lay it out.").format(self.name))
 		if type not in self.layouts:
 			validate_target(self.name, type)
 			self.layouts[type] = self.load_layouts(type)
@@ -104,6 +116,8 @@ class DesignState:
 		return [layout for layouts in self.layouts.values() for layout in layouts]
 
 	def load_every_layout(self):
+		if self.doc.is_new():
+			return
 		from frappe.desk.doctype.form_layout.form_layout import FORM_LAYOUT_TYPES
 
 		for type in FORM_LAYOUT_TYPES:

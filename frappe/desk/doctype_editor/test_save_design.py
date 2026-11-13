@@ -223,3 +223,28 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(result["saved"])
 		[error] = result["errors"]
 		self.assertEqual(error["target"], {"kind": "field", "fieldname": "description"})
+
+	def test_a_new_child_table_is_saved_before_its_parent(self):
+		child = f"{DOCTYPE} Item"
+		self.addCleanup(frappe.delete_doc, "DocType", child, force=True, ignore_missing=True)
+		result = self.save(
+			{
+				DOCTYPE: [
+					{"act": "fields.add_child_table", "table_field": "items", "label": "Items", "name": child},
+				],
+				child: [{"act": "fields.add_field", "label": "Qty", "fieldtype": "Int"}],
+			}
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(result["children"], [child])
+		child_doc = frappe.get_doc("DocType", child)
+		self.assertEqual((child_doc.istable, child_doc.custom, child_doc.module), (1, 1, "Custom"))
+		self.assertEqual([field.fieldname for field in child_doc.fields], ["qty"])
+		table = frappe.get_meta(DOCTYPE).get_field("items")
+		self.assertEqual((table.fieldtype, table.options), ("Table", child))
+
+	def test_edits_for_a_doctype_the_save_does_not_add_are_refused(self):
+		result = self.save({DOCTYPE: [], "ToDo": [{"act": "fields.add_field", "label": "X", "fieldtype": "Data"}]})
+		self.assertFalse(result["saved"])
+		[error] = result["errors"]
+		self.assertEqual((error["target"], error["doctype"]), ({"kind": "banner"}, "ToDo"))

@@ -28,10 +28,11 @@ def save_doctype_editor(doctype: str, mode: str, base_version: dict | str, edits
 
 
 class DesignSave:
-	def __init__(self, doctype: str, base_version: dict, edits: list):
+	def __init__(self, doctype: str, base_version: dict, edits: list | dict):
+		"""`edits` is the parent's list, or `{doctype: [edits]}` for the parent and the child tables it adds."""
 		self.doctype = doctype
 		self.base_version = base_version
-		self.edits = edits
+		self.edits = edits if isinstance(edits, dict) else {doctype: edits}
 		self.state = DesignState(doctype)
 		self.errors: list[dict] = []
 
@@ -41,15 +42,31 @@ class DesignSave:
 		if self.errors:
 			return {"saved": False, "errors": self.errors}
 		self.write()
-		return {"saved": True, "base_version": current_version(self.doctype)}
+		return {
+			"saved": True,
+			"base_version": current_version(self.doctype),
+			"children": list(self.state.children),
+		}
 
 	def apply_edits(self):
-		applier = DesignEdits(self.state)
-		for index, edit in enumerate(self.edits):
+		self.apply(self.state, self.edits.get(self.doctype) or [])
+		for doctype, edits in self.edits.items():
+			if doctype == self.doctype:
+				continue
+			if child := self.state.children.get(doctype):
+				self.apply(child, edits, doctype)
+			else:
+				message = _("{0} is not a child table this save adds.").format(doctype)
+				self.errors.append({**EditError(message).as_dict(), "doctype": doctype})
+
+	def apply(self, state: DesignState, edits: list, doctype: str | None = None):
+		applier = DesignEdits(state)
+		for index, edit in enumerate(edits):
 			try:
 				applier.apply(edit)
 			except EditError as e:
-				self.errors.append(e.as_dict(index))
+				error = e.as_dict(index)
+				self.errors.append({**error, "doctype": doctype} if doctype else error)
 
 	def check(self):
 		rows = [layout.row for layout in self.state.all_layouts() if layout.row and layout.type in self.state.touched]
@@ -60,6 +77,8 @@ class DesignSave:
 		return sorted(self.state.touched) if self.state.standard else []
 
 	def write(self):
+		for child in self.state.children.values():
+			child.doc.insert()
 		self.state.doc.save()
 		for old, new in self.state.renames:
 			rename_field(self.doctype, old, new)

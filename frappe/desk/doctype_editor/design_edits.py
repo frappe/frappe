@@ -105,3 +105,12 @@ class DesignEdits:
 
 	def fields_rename_field(self, edit: dict):
 		self.state.rename_field(edit.get("fieldname"), edit.get("new_fieldname"))
+
+	def fields_add_child_table(self, edit: dict):
+		name = edit.get("name")
+		if not name or not edit.get("table_field"):
+			raise EditError(_("A new child table needs a name and a table field."))
+		self.state.add_child(name)
+		self.fields_add_field(
+			{**edit, "fieldname": edit["table_field"], "label": edit.get("label") or name, "fieldtype": "Table", "options": name}
+		)
