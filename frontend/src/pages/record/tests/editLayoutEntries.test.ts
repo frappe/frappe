@@ -86,6 +86,7 @@ const apps: ReturnType<typeof createApp>[] = [];
 beforeEach(() => {
   fetched.length = 0;
   vip = 1;
+  boot.developer_mode = false;
   session.roles = [];
   resetClientScripts();
   resetDoctypeMeta();
@@ -154,14 +155,16 @@ describe("a manager on a saved record", () => {
     expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Salutation" }, query });
   });
 
-  it("names no row when the default Details layout shows", async () => {
+  it("opens the site's default Details layout in Customize, where Design in developer mode reads the app's", async () => {
     vip = 0;
+    boot.developer_mode = true;
     const { router } = await mount();
     const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
 
     await acts.run("header.edit_layout");
 
-    expect(push).toHaveBeenCalledWith(expect.objectContaining({ query: { mode: "customize", layout: "details" } }));
+    const query = { mode: "customize", layout: "details", row: "FL-2" };
+    expect(push).toHaveBeenCalledWith(expect.objectContaining({ query }));
   });
 
   it("links the panel to the editor's side panel", async () => {

@@ -1,4 +1,4 @@
-// The conditional layout a record shows, named as the DocType editor names it, so "Edit layout" opens that one.
+// The layout a record shows, named as the DocType editor names it, so "Edit layout" opens that one.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
 
@@ -22,7 +22,7 @@ async function shown(layouts: unknown[], doc: Record<string, any>) {
 		await Promise.resolve();
 		await nextTick();
 	}
-	return layout.conditionalRow.value;
+	return layout.editorRow.value;
 }
 
 beforeEach(() => {
@@ -32,7 +32,7 @@ beforeEach(() => {
 	fake.runMethod.mockReset();
 });
 
-describe("conditionalRow", () => {
+describe("editorRow", () => {
 	it("names a matching site row by its row name", async () => {
 		const rows = [row("FL-1", "doc.vip"), row("FL-2", null)];
 		expect(await shown(rows, { vip: 1 })).toBe("FL-1");
@@ -48,9 +48,15 @@ describe("conditionalRow", () => {
 		expect(await shown(rows, { vip: 1 })).toBeNull();
 	});
 
-	it("names nothing when the default layout or the fallback shows", async () => {
-		expect(await shown([row("FL-1", "doc.vip"), row("FL-2", null)], {})).toBeNull();
-		expect(await shown([row(null, null)], {})).toBeNull();
+	it("names a default site row too", async () => {
+		expect(await shown([row("FL-1", "doc.vip"), row("FL-2", null)], {})).toBe("FL-2");
+	});
+
+	it("names the app file's default layout too", async () => {
+		expect(await shown([row(null, "doc.vip"), row(null, null)], {})).toBe("app:1");
+	});
+
+	it("names nothing when the fallback shows", async () => {
 		expect(await shown([], {})).toBeNull();
 	});
 });

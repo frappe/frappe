@@ -482,10 +482,7 @@ function headerBuiltins(): HeaderItem[] {
 						developerMode: boot.developer_mode,
 						meta: meta.value,
 					}),
-					editLayout: editLayoutRoute(
-						"details",
-						detailsLayout.value?.conditionalRow.value
-					),
+					editLayout: editLayoutRoute("details", detailsLayout.value?.editorRow.value),
 				}
 			),
 			saved.value.name === docname.value
@@ -907,7 +904,7 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 				doc.value,
 				target.doctype,
 				submitting,
-				editLayoutRoute("details", detailsLayout.value?.conditionalRow.value)
+				editLayoutRoute("details", detailsLayout.value?.editorRow.value)
 			),
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,
