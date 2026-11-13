@@ -776,26 +776,24 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 		)
 		return
 
+	if custom_perm_for_role:
+		frappe.delete_doc("Custom DocPerm", custom_perm_for_role.name, ignore_permissions=True, force=True)
+
 	if not ptype:
 		ptype = "read"
 
-	rule_was_removed = custom_perm_for_role is not None
-	if rule_was_removed:
-		custom_docperm = frappe.get_doc("Custom DocPerm", custom_perm_for_role.name)
-		custom_docperm.set(ptype, 1)
-	else:
-		custom_docperm = frappe.get_doc(
-			{
-				"doctype": "Custom DocPerm",
-				"__islocal": 1,
-				"parent": doctype,
-				"parenttype": "DocType",
-				"parentfield": "permissions",
-				"role": role,
-				"permlevel": permlevel,
-				ptype: 1,
-			}
-		)
+	custom_docperm = frappe.get_doc(
+		{
+			"doctype": "Custom DocPerm",
+			"__islocal": 1,
+			"parent": doctype,
+			"parenttype": "DocType",
+			"parentfield": "permissions",
+			"role": role,
+			"permlevel": permlevel,
+			ptype: 1,
+		}
+	)
 
 	custom_docperm.save()
 
