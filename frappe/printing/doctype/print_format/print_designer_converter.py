@@ -540,6 +540,8 @@ class PrintDesignerConverter:
 				node["custom_style"] = (
 					node.get("custom_style") or ""
 				) + f" min-height: {round(flt(element.get('height')))}px;"
+			if node and element.get("type") == "text" and not element.get("isFixedSize"):
+				node["custom_style"] = (node.get("custom_style") or "") + " white-space: nowrap;"
 			return [node] if node else []
 		if ruled and (line := self.rule(element)):
 			inner = self.element_fields(element, width, ruled=False)
@@ -902,6 +904,8 @@ class PrintDesignerConverter:
 		if element.get("type") == "line":
 			return f'<div style="border-top: 1px solid {element["color"]};"></div>'
 		style = css(self.styled(element))
+		if element.get("type") == "text" and not element.get("isFixedSize"):
+			style = f"{style} white-space: nowrap;".strip()
 		if element.get("type") == "text" and element.get("isDynamic"):
 			inner = "".join(self.dynamic_part(item) for item in element.get("dynamicContent") or [])
 		elif element.get("type") == "text":
