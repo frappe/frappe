@@ -4,9 +4,15 @@
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.form_layout.form_layout import LAYOUT_BREAKS, refuse_field_name
+from frappe.desk.doctype.form_layout.form_layout import (
+	LAYOUT_BREAKS,
+	inline_fields,
+	refuse_field_name,
+	validate_inline_field,
+)
 from frappe.desk.doctype_editor.design_state import DesignState, EditorLayout
 from frappe.desk.doctype_editor.errors import EditError
+from frappe.model.meta import Meta, clear_meta_cache
 
 CHECK_SAVEPOINT = "doctype_editor_check"
 
@@ -34,6 +40,9 @@ class DesignChecks:
 			return [EditError(str(e)).as_dict()]
 		finally:
 			frappe.db.rollback(save_point=CHECK_SAVEPOINT)
+			# DocType validation caches the unsaved meta (`setup_fields_to_fetch`).
+			for doctype in (self.state.name, *self.state.children):
+				clear_meta_cache(doctype)
 		return []
 
 	def layout_errors(self) -> list[dict]:
@@ -63,6 +72,7 @@ class DesignChecks:
 		try:
 			row.validate_layout()
 			self.refuse_names_of_fields(layout)
+			self.refuse_inline_fields(layout)
 		except frappe.ValidationError as e:
 			return EditError(str(e), kind="layout", layout=layout.id).as_dict()
 
@@ -74,6 +84,13 @@ class DesignChecks:
 			refuse_field_name(_("Tab"), tab.get("name"), fieldnames, self.state.name)
 			for section in tab["sections"]:
 				refuse_field_name(_("Section"), section.get("name"), fieldnames, self.state.name)
+
+	def refuse_inline_fields(self, layout: EditorLayout):
+		"""The row's own check reads the saved meta, which lacks the fields this save adds."""
+		if fields := inline_fields(layout.tree.tabs):
+			meta = Meta(self.state.doc)
+			for field in fields:
+				validate_inline_field(field, meta)
 
 
 def validate(doc):

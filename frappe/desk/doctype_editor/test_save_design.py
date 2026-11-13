@@ -650,6 +650,19 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, fieldname), "Hello")
 		self.assertEqual(details_rows(), [])
 
+	def test_a_new_field_named_like_a_layout_s_own_field_writes_nothing(self):
+		inline = {"fieldname": "notes", "label": "Notes", "fieldtype": "Small Text"}
+		tree = [{"sections": [{"columns": [{"fields": ["title", inline]}]}]}]
+		frappe.get_doc(
+			{"doctype": "Form Layout", "dt": DOCTYPE, "type": "New Record", "layout": json.dumps(tree)}
+		).insert()
+		result = self.save([{"act": "fields.add_field", "label": "Notes", "fieldtype": "Data"}])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"]["kind"], "layout", result["errors"])
+		self.assertNotIn("written", result)
+		self.assertFalse(frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "notes"}))
+		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("notes"), "the check leaves no unsaved meta")
+
 	def test_a_doctype_save_failing_after_its_ddl_keeps_renamed_data(self):
 		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Hello"}).insert()
 		with patch(
