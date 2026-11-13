@@ -3,9 +3,13 @@ import "@/index.css"
 
 import { createPinia, setActivePinia } from "pinia"
 import { mount } from "cypress/vue"
+import Block from "@/utils/block"
+import { componentHasDefaultSlot } from "@/utils/componentSlots"
 
 export const pinia = createPinia()
 setActivePinia(pinia)
+
+Block.setDefaultSlotLookup(componentHasDefaultSlot)
 
 declare global {
 	// declared in src/main.ts and src/renderer.ts, which specs don't load

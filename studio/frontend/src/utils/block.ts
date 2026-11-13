@@ -12,7 +12,6 @@ import LucideCode from "~icons/lucide/code"
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 import { unusedOptionName, variantOptionNames } from "./variants"
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
-import { componentHasDefaultSlot, getComponentSlots } from "@/utils/components"
 import { mergeLegacyRawStyles } from "@/patches/mergeLegacyRawStyles"
 
 import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/types"
@@ -76,8 +75,6 @@ class Block implements BlockOptions {
 		}
 		if (options.isCustomVueComponent) {
 			this.isCustomVueComponent = options.isCustomVueComponent
-			// Warm the slot cache so canHaveChildren() knows this component's default slot
-			void getComponentSlots(this.componentName, true)
 		}
 
 		// get component props
@@ -127,6 +124,12 @@ class Block implements BlockOptions {
 
 	static setComponents(components: FrappeUIComponents) {
 		Block.components = components
+	}
+
+	private static hasDefaultSlot: (componentName: string) => boolean = () => false
+
+	static setDefaultSlotLookup(lookup: (componentName: string) => boolean) {
+		Block.hasDefaultSlot = lookup
 	}
 
 	static getComponents() {
@@ -250,19 +253,13 @@ class Block implements BlockOptions {
 	}
 
 	canHaveChildren() {
-		if (
+		return (
 			this.isRoot() ||
 			this.isContainer() ||
 			this.hasComponentSlots() ||
 			this.hasChildren() ||
-			this.hasDefaultSlot()
+			Block.hasDefaultSlot(this.componentName)
 		)
-			return true
-		return false
-	}
-
-	hasDefaultSlot() {
-		return componentHasDefaultSlot(this.componentName)
 	}
 
 	isRoot() {

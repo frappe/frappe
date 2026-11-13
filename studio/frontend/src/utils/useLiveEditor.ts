@@ -1,7 +1,7 @@
 import { inject, onMounted, onBeforeUnmount } from "vue"
 
 import { fetchApp } from "@/utils/helpers"
-import { invalidateComponentCache, getComponentSlots } from "@/utils/components"
+import { invalidateComponentCache, getComponentSlots } from "@/utils/componentSlots"
 import useStudioStore from "@/stores/studioStore"
 import useComponentStore from "@/stores/componentStore"
 
