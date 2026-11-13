@@ -9,6 +9,7 @@ import tempfile
 from unittest.mock import patch
 
 import frappe
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.doctype.form_layout.app_layout import read_app_layouts
 from frappe.desk.doctype.form_layout.app_layout_writer import write_app_layouts
 from frappe.desk.doctype.form_layout.form_layout import get_form_layouts, omitted_fieldnames, save_form_layout
@@ -111,6 +112,21 @@ class TestLayoutTitlesAndFiles(IntegrationTestCase):
 			write_app_layouts("Note", "Details", [{"layout": named_like_a_field}])
 		self.assertFalse(os.path.exists(self.path("Note", "Details")), "a refused list writes nothing")
 
+	def test_a_same_size_rewrite_is_read_again(self):
+		write_app_layouts("Note", "Details", [{"condition": "doc.a", "layout": a_tree("title")}])
+		self.assertEqual(read_app_layouts("Note", "Details").entries[0].condition, "doc.a")
+		write_app_layouts("Note", "Details", [{"condition": "doc.b", "layout": a_tree("title")}])
+		self.assertEqual(read_app_layouts("Note", "Details").entries[0].condition, "doc.b")
+
+	def test_an_empty_list_deletes_the_file(self):
+		write_app_layouts("Note", "New Record", [{"layout": a_tree("title")}])
+		self.assertIsNone(write_app_layouts("Note", "New Record", []))
+		self.assertFalse(os.path.exists(self.path("Note", "New Record")))
+
+	def test_the_writer_refuses_a_type_a_save_refuses(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "child table"):
+			write_app_layouts("Has Role", "Quick Entry", [{"layout": a_tree("role")}])
+
 	def test_the_doctype_export_writes_the_staged_layouts(self):
 		doctype = frappe.get_doc("DocType", "Note")
 		doctype.flags.app_layouts = {"Quick Entry": [{"layout": a_tree("title"), "size": "2xl"}]}
@@ -124,15 +140,16 @@ class TestLayoutTitlesAndFiles(IntegrationTestCase):
 		[layout] = get_form_layouts("Note", "Details")["layouts"]
 		self.assertEqual((layout["name"], layout["title"]), (name, "Short note"))
 
+		save_form_layout("Note", "Details", json.dumps(a_tree("content")), name=str(name))
+		self.assertEqual(frappe.db.get_value("Form Layout", name, "title"), "Short note", "no title keeps it")
+
 	def test_source_changed_turns_true_when_the_app_file_changes(self):
 		version = write_app_layouts("Note", "Details", [{"layout": a_tree("title")}])
-		self.touch()
 		name = save_form_layout("Note", "Details", json.dumps(a_tree("content")))
 		self.assertEqual(frappe.db.get_value("Form Layout", name, "fingerprint"), version)
 		self.assertFalse(get_form_layouts("Note", "Details")["layouts"][0]["source_changed"])
 
 		write_app_layouts("Note", "Details", [{"layout": a_tree("content")}])
-		self.touch()
 		self.assertTrue(get_form_layouts("Note", "Details")["layouts"][0]["source_changed"])
 
 	def test_a_row_forked_from_the_fallback_sees_a_new_app_file(self):
@@ -140,6 +157,17 @@ class TestLayoutTitlesAndFiles(IntegrationTestCase):
 		self.assertFalse(get_form_layouts("Note", "Details")["layouts"][0]["source_changed"])
 		self.write_file([{"layout": a_tree("title")}])
 		self.assertTrue(get_form_layouts("Note", "Details")["layouts"][0]["source_changed"])
+
+	def test_a_site_customization_is_not_a_source_change(self):
+		save_form_layout("Note", "Details", json.dumps(a_tree("content")))
+		written = write_app_layouts("Note", "New Record", [{"layout": a_tree("title")}])
+		self.addCleanup(frappe.clear_cache, doctype="Note")
+		make_property_setter(
+			"Note", None, "field_order", json.dumps(["content", "title"]), "Data", for_doctype=True
+		)
+		make_property_setter("Note", "title", "label", "Heading", "Data")
+		self.assertFalse(get_form_layouts("Note", "Details")["layouts"][0]["source_changed"])
+		self.assertEqual(write_app_layouts("Note", "New Record", [{"layout": a_tree("title")}]), written)
 
 	def test_a_later_save_keeps_the_fingerprint_and_an_old_row_has_none(self):
 		name = save_form_layout("Note", "Details", json.dumps(a_tree("content")))

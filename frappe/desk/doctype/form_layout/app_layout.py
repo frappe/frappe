@@ -15,6 +15,7 @@ from typing import NamedTuple
 import frappe
 from frappe import _
 from frappe.modules.utils import get_doc_path
+from frappe.utils import get_bench_path
 
 
 class AppLayout(NamedTuple):
@@ -27,7 +28,6 @@ class AppLayout(NamedTuple):
 
 class AppLayouts(NamedTuple):
 	entries: tuple[AppLayout, ...]
-	# The hash of the file's content: the fingerprint a forked site row keeps, and the app tier's base_version.
 	version: str
 
 
@@ -40,8 +40,10 @@ def read_app_layouts(dt: str, type: str) -> AppLayouts | None:
 def app_layout_key(dt: str, type: str) -> tuple[str, int, int] | None:
 	"""The file's cache key: its path, modified time and size, so an edited file is read again."""
 	path = app_layout_path(dt, type)
-	if not path:
-		return None
+	return app_layout_key_of(path) if path else None
+
+
+def app_layout_key_of(path: str) -> tuple[str, int, int] | None:
 	try:
 		stat = os.stat(path)
 	except FileNotFoundError:
@@ -71,7 +73,7 @@ def load_app_layouts(path: str, mtime_ns: int, size: int) -> AppLayouts:
 	entries = tuple(entry_of(item) for item in (data if isinstance(data, list) else [data]))
 	if sum(1 for entry in entries if not entry.condition) > 1:
 		frappe.throw(
-			_("The layout file {0} has more than one layout with no condition.").format(path),
+			_("The layout file {0} has more than one layout with no condition.").format(shown_path(path)),
 			title=_("Invalid Layout File"),
 		)
 	return AppLayouts(entries=entries, version=content_hash(content))
@@ -87,3 +89,7 @@ def entry_of(data: dict) -> AppLayout:
 		omitted=tuple(data.get("omitted") or []),
 		size=data.get("size"),
 	)
+
+
+def shown_path(path: str) -> str:
+	return os.path.relpath(path, os.path.join(get_bench_path(), "apps"))

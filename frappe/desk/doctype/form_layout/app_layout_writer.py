@@ -10,6 +10,7 @@ from frappe import _
 from frappe.desk.doctype.form_layout import app_layout
 from frappe.desk.doctype.form_layout.form_layout import (
 	OMITTING_LAYOUT_TYPES,
+	layout_type_refusal,
 	omitted_fieldnames,
 	parse_layout,
 	parse_omitted,
@@ -17,18 +18,36 @@ from frappe.desk.doctype.form_layout.form_layout import (
 )
 
 
-def write_app_layouts(dt: str, type: str, entries: list[dict]) -> str:
-	"""Write `dt`'s layouts of `type` as its app file; return the file's hash, the new base_version."""
+def write_app_layouts(dt: str, type: str, entries: list[dict]) -> str | None:
+	"""Write `dt`'s layouts of `type` as its app file; return the file's hash, the new base_version.
+
+	No entries delete the file, so New Record falls back to Details again; that returns `None`."""
 	validate_target(dt, type)
+	if refusal := layout_type_refusal(dt, type):
+		frappe.throw(refusal, title=_("Invalid Layout"))
 	path = app_layout.app_layout_path(dt, type)
 	if not path:
 		frappe.throw(_("{0} is a custom DocType and has no app files.").format(frappe.bold(dt)))
+	if entries == []:
+		if os.path.exists(path):
+			os.remove(path)
+		return None
 	content = (frappe.as_json(checked_entries(dt, type, entries)) + "\n").encode()
-	os.makedirs(os.path.dirname(path), exist_ok=True)
-	# App source path from the DocType's module; never request-derived.
-	with open(path, "wb") as f:  # nosemgrep
-		f.write(content)
+	replace_file(path, content)
 	return app_layout.content_hash(content)
+
+
+def replace_file(path: str, content: bytes) -> None:
+	"""Swap the file in whole, and move its cache key (modified time, size) even within one clock tick."""
+	old_key = app_layout.app_layout_key_of(path)
+	os.makedirs(os.path.dirname(path), exist_ok=True)
+	temp_path = f"{path}.{os.getpid()}.tmp"
+	# App source path from the DocType's module; never request-derived.
+	with open(temp_path, "wb") as f:  # nosemgrep
+		f.write(content)
+	os.replace(temp_path, path)
+	if old_key and app_layout.app_layout_key_of(path) == old_key:
+		os.utime(path, ns=(old_key[1] + 1, old_key[1] + 1))
 
 
 def checked_entries(dt: str, type: str, entries: list[dict]) -> list[dict]:

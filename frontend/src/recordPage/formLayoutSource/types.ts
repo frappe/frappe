@@ -36,7 +36,7 @@ export interface LayoutTreeTab {
 export type LayoutTree = LayoutTreeTab[];
 
 export interface FormLayoutRow {
-	/** `null` for the app's layout file, which comes last and only when no row is the default. */
+	/** `null` for each of the app file's layouts, which come last and only when no row is the default. */
 	name: string | number | null;
 	/** Names the layout in the layout menu; an app file's layouts carry one too. */
 	title?: string | null;

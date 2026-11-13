@@ -187,7 +187,9 @@ def save_form_layout(
 	if refuse_layout_type(dt, type):
 		return None
 	doc = find_layout_doc(dt, type, name, app)
-	doc.update({"dt": dt, "type": type, "app": app, "layout": layout, "condition": condition, "title": title})
+	doc.update({"dt": dt, "type": type, "app": app, "layout": layout, "condition": condition})
+	if title is not None:
+		doc.title = title
 	if doc.is_new():
 		doc.fingerprint = source_fingerprint(dt, type)
 	# `validate` computes it, once the layout has passed the checks that refuse a malformed one.
@@ -227,15 +229,21 @@ def shows_as_grid(dt: str, parent: str) -> bool:
 
 def refuse_layout_type(dt: str, type: str) -> bool:
 	"""Tell the person a child DocType has only Details and a Single is never created; return whether refused."""
+	message = layout_type_refusal(dt, type)
+	if message:
+		frappe.msgprint(message, title=_("Layout Not Saved"), indicator="orange")
+	return bool(message)
+
+
+def layout_type_refusal(dt: str, type: str) -> str | None:
 	meta = frappe.get_meta(dt)
 	if meta.istable and type not in CHILD_LAYOUT_TYPES:
 		message = _("{0} is a child table, so it has only a Details layout, which its row dialog reads.")
 	elif meta.issingle and type not in SINGLE_LAYOUT_TYPES:
 		message = _("{0} is a Single, which is never created, so it has no {1} layout.")
 	else:
-		return False
-	frappe.msgprint(message.format(frappe.bold(dt), _(type)), title=_("Layout Not Saved"), indicator="orange")
-	return True
+		return None
+	return message.format(frappe.bold(dt), _(type))
 
 
 def get_layouts(dt: str, type: str, app: str | None) -> list[dict]:
@@ -668,8 +676,10 @@ def get_meta_layout(dt: str, custom: bool = True) -> list:
 
 
 def layout_fields(meta: Meta, custom: bool) -> list:
-	"""The meta's fields; without `custom`, the fields the app ships, as a fingerprint hashes them."""
-	return [field for field in meta.fields if custom or not field.get("is_custom_field")]
+	"""The meta's fields; without `custom`, the DocType's own fields, free of Custom Fields and Property Setters."""
+	if custom:
+		return meta.fields
+	return frappe.get_cached_doc("DocType", meta.name).fields
 
 
 def new_container(field, children_key: str) -> dict:
