@@ -8,7 +8,7 @@ import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import { namingProperties } from "./namingRules";
 import { settable, type SettingsState } from "./settingsModel";
-import { kindOf, type SettingRow, type SettingsSection } from "./settingsRows";
+import { kindOf, settingRows, type DangerScope, type SettingRow, type SettingsSection } from "./settingsRows";
 
 /** The tab's open section, and the row Mod+J last found (flashed once). */
 export interface SettingsPlace {
@@ -31,6 +31,8 @@ export class SettingsView {
 		readonly place: Ref<SettingsPlace>,
 		/** Where Customize opens; null when this DocType has no Customize. */
 		readonly customizeRoute: () => RouteLocationRaw | null,
+		/** The Danger zone's scope; `null` hides it. */
+		readonly danger: () => DangerScope | null = () => null,
 	) {}
 
 	private get canvas(): DesignCanvas {
@@ -53,6 +55,10 @@ export class SettingsView {
 		return this.canvas.state.mode;
 	}
 
+	get module() {
+		return this.canvas.state.module;
+	}
+
 	/** Design: the site has its own permission rules (Custom DocPerm), which Customize edits. */
 	get siteOverridesPermissions() {
 		return !this.customize && Boolean(this.canvas.state.site_permissions);
@@ -71,13 +77,18 @@ export class SettingsView {
 		return this.canvas.state.app_title || __("the app");
 	}
 
+	/** The rows the tab shows, the Danger zone's with them. */
+	rows(): SettingRow[] {
+		return settingRows(this.settings, this.danger());
+	}
+
 	value(prop: string): unknown {
 		return this.settings.properties[prop];
 	}
 
 	/** Why this mode cannot change the row's setting; "" when it can. */
 	lock(row: SettingRow): string {
-		if (row.control === "permissions" || row.pending || settable(this.settings, row.props[0])) return "";
+		if (["permissions", "danger"].includes(row.control) || row.pending || settable(this.settings, row.props[0])) return "";
 		return this.customize
 			? __("Only {0}'s DocType sets this. Customize cannot change it.", [this.app])
 			: __("The editor does not set this.");

@@ -77,6 +77,7 @@ import {
 	TabTrigger,
 	Tooltip,
 } from "frappe-ui";
+import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import NotSavedBadge from "@/pages/record/NotSavedBadge.vue";
 import { canRoute, routeFor } from "@/router/routeFor";
@@ -111,8 +112,28 @@ const crumbs = computed(() => [
 	{ label: props.layoutTitle, menu: true, onClick: () => (tab.value = "editor") },
 ]);
 
-const menu = computed(() => {
-	if (props.mode !== "Customize") return [];
+// Design's ⋯ offers the Danger zone's Rename and Delete wherever their acts are offered.
+const DESIGN_MENU = [
+	{ act: "danger.rename_doctype", label: "Rename DocType…", icon: "lucide-pencil" },
+	{
+		act: "danger.delete_doctype",
+		label: "Delete DocType…",
+		icon: "lucide-trash-2",
+		theme: "red",
+	},
+];
+
+const menu = computed(() => (props.mode === "Customize" ? customizeMenu() : designMenu()));
+
+function designMenu() {
+	return DESIGN_MENU.filter((one) => acts.find(one.act)).map(({ act, label, ...one }) => ({
+		...one,
+		label: __(label),
+		onClick: () => emit("act", act),
+	}));
+}
+
+function customizeMenu() {
 	const reset = { label: __("Reset all customizations"), icon: "lucide-rotate-ccw" };
 	const exported = { label: __("Export customizations"), icon: "lucide-package" };
 	return [
@@ -121,7 +142,7 @@ const menu = computed(() => {
 			? [{ ...exported, onClick: () => emit("act", "customize.export") }]
 			: []),
 	];
-});
+}
 
 // A child table has no list to go back to.
 function listRoute() {

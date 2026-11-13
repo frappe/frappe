@@ -13,15 +13,19 @@
 				theme="gray"
 				data-perm-source
 			/>
+			<!-- Locked, there is no first change to copy them. -->
 			<p class="min-w-0 flex-1 text-p-sm text-ink-gray-5">
-				{{
-					site
-						? __("This site's rules replace {0}'s for {1}.", [view.app, view.doctype])
-						: __(
-								"{0}'s rules. Your first change copies them, and the site's copy replaces them.",
-								[view.app]
-						  )
-				}}
+				<template v-if="site">
+					{{ __("This site's rules replace {0}'s for {1}.", [view.app, view.doctype]) }}
+				</template>
+				<template v-else-if="!locked">
+					{{
+						__(
+							"{0}'s rules. Your first change copies them, and the site's copy replaces them.",
+							[view.app]
+						)
+					}}
+				</template>
 			</p>
 			<Button
 				v-if="site && !locked"

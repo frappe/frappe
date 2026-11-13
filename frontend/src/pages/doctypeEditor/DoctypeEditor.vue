@@ -55,6 +55,7 @@
 						v-model:place="settingsPlace"
 						:canvas="shown"
 						:customize="customizeRoute"
+						:danger="dangerScope"
 					/>
 					<RowDialogPreview
 						v-else-if="openChild"
@@ -108,6 +109,7 @@ import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
 import EditorPanel from "./EditorPanel.vue";
 import { customizeHost } from "./customizeHost";
+import { dangerHost } from "./dangerHost";
 import { DesignCanvas } from "./designCanvas";
 import { canSave, useEditorActs } from "./editorActs";
 import { EditorSave, type ExportResult } from "./editorSave";
@@ -192,6 +194,17 @@ useEditorActs({
 		setMode: (mode) => router.push({ query: { ...route.query, mode: mode.toLowerCase() } }),
 		reload,
 	}),
+	danger: dangerHost({
+		scope: () => dangerScope.value,
+		dirty: () => dirty.value,
+		save: saveFirst,
+		discard: () => edits.clear(),
+		reload,
+		// The new name opens as a first save's does: loaded, then the address follows.
+		renamed: created,
+		// Each act settles pending edits first, so the leave guard has nothing to ask.
+		deleted: () => router.push(routeFor("DocType")),
+	}),
 	recordOptions: async (query) =>
 		[null, ...latest.value]
 			.filter(
@@ -201,6 +214,10 @@ useEditorActs({
 });
 
 const layout = computed(() => (state.value ? detailsLayout(state.value) : null));
+// The Danger zone acts on the page's DocType, not on a child table opened from it.
+const dangerScope = computed(() =>
+	openChild.value ? null : { developerMode: boot.developer_mode }
+);
 // A new DocType is not saved until its first save, even with no edits staged.
 const dirty = computed(() => edits.dirty.value || Boolean(state.value?.pending));
 
@@ -355,11 +372,13 @@ function confirmSwitch() {
 				{ message: __("This DocType has changes that are not saved.") },
 				{ title: __("Save before you switch?") }
 			),
-		save: async () => {
-			await save.save();
-			return !dirty.value;
-		},
+		save: saveFirst,
 	});
+}
+
+async function saveFirst() {
+	await save.save();
+	return !dirty.value;
 }
 
 const socket = getSocketInstance();
