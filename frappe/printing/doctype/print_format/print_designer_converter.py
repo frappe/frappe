@@ -538,7 +538,7 @@ class PrintDesignerConverter:
 				"label": column.get("label") or first.get("label") or "",
 				"fieldname": first["fieldname"],
 				"fieldtype": first.get("fieldtype") or "Data",
-				"width": round(flt(column.get("width")) or 10, 1),
+				"width": round(flt(column.get("width")), 1),
 			}
 			if len(fields) > 1:
 				col["merged_fields"] = [
@@ -550,6 +550,11 @@ class PrintDesignerConverter:
 					for f in fields[1:]
 				]
 			columns.append(col)
+		unsized = [col for col in columns if not col["width"]]
+		if unsized:
+			rest = max(100 - sum(col["width"] for col in columns), 5 * len(unsized))
+			for col in unsized:
+				col["width"] = round(rest / len(unsized), 1)
 		style = self.styled(element)
 		header = self.styled(element, "headerStyle")
 		bordered = (
@@ -577,6 +582,8 @@ class PrintDesignerConverter:
 			for k, v in style.items()
 			if k in ("fontSize", "fontFamily", "color", "lineHeight", "letterSpacing")
 		}
+		if style.get("textAlign") in ("center", "right"):
+			text["textAlign"] = style["textAlign"]
 		if size := flt(re.sub(r"[^\d.]", "", str(text.get("fontSize") or "")) or 0):
 			text["fontSize"] = f"{round(size / TABLE_TEXT_SCALE, 2)}px"
 		if text:
