@@ -8,6 +8,7 @@ import type { ChildTables } from "./childTables";
 import type { DesignCanvas, SaveError } from "./designCanvas";
 import { EditRefused, fieldsOffLayout } from "./editorModel";
 import type { BaseVersion, Edit, PendingEdits } from "./pendingEdits";
+import { saveSummary } from "./saveSummary";
 
 export type SaveOffer = "editor.reload_and_reapply" | "editor.write_files_again" | "editor.open_list";
 
@@ -31,6 +32,8 @@ interface SaveResult {
 	doctype?: string;
 	/** A child table's save moves its parents' `modified`: each one's value before and after it. */
 	parents?: Record<string, { was: string; now: string }>;
+	/** Customize changes the save left out, each with the value put back; the rest saved. */
+	skipped?: SaveError[];
 }
 
 /** The realtime `doctype_export` message: how the file export after a save went. */
@@ -219,6 +222,7 @@ export class EditorSave {
 	}
 
 	private async saved(canvas: DesignCanvas, result: SaveResult) {
+		const summary = canvas.customize ? saveSummary(this.host.edits.staged.value) : __("Saved");
 		const asked = fieldsOffLayout(canvas.working.value)
 			.filter(({ field }) => field.reqd)
 			.map(({ field }) => field.fieldname);
@@ -230,7 +234,9 @@ export class EditorSave {
 				throw error;
 			});
 			if (next) next.askedOnSave.value = asked;
-			return void toast.success(__("Saved"));
+			toast.success(summary);
+			for (const skipped of result.skipped ?? []) toast.error(skipped.message);
+			return;
 		}
 		const doctype = result.doctype ?? canvas.state.doctype;
 		const next = await this.host.created(doctype);
