@@ -13,6 +13,7 @@ async function mountFlow(
     { name: "goal" },
     { name: "invite" },
   ],
+  props: { backButton?: boolean } = {},
 ) {
   const { default: SetupFlow } = await import("../SetupFlow.vue");
   const finished: SetupFlowResult[] = [];
@@ -24,6 +25,7 @@ async function mountFlow(
         SetupFlow,
         {
           steps,
+          ...props,
           onFinish: (result: SetupFlowResult) => finished.push(result),
         },
         {
@@ -127,6 +129,26 @@ describe("SetupFlow", () => {
       "setup_finished",
       expect.objectContaining({ skipped: false, steps_completed: 1 }),
     );
+  });
+
+  it("lets the host place Back itself", async () => {
+    const { el, slot } = await mountFlow(
+      [{ name: "goal" }, { name: "invite" }],
+      { backButton: false },
+    );
+    expect(slot().canGoBack).toBe(false);
+    slot().back();
+    await nextTick();
+    expect(el.textContent).toContain("goal");
+
+    slot().done();
+    await nextTick();
+    expect(el.textContent).not.toContain("Back");
+    expect(slot().canGoBack).toBe(true);
+
+    slot().back();
+    await nextTick();
+    expect(el.textContent).toContain("goal");
   });
 
   it("offers no way out of a required step", async () => {
