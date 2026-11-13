@@ -302,13 +302,14 @@ async function created(doctype: string): Promise<DesignCanvas | null> {
 	return canvas.value!;
 }
 
-/** Loads for the editor open now; null once the page moved on to another DocType or mode. */
+/** Loads for the editor open now; null once the page moved on to another DocType or mode, or was left. */
 async function loadFor(request: number, doctype: string, mode: EditorMode) {
+	const current = () => request === loading && !left;
 	try {
 		const loaded = await loadEditor(doctype, mode);
-		return request === loading ? loaded : null;
+		return current() ? loaded : null;
 	} catch (error) {
-		if (request === loading) throw error;
+		if (current()) throw error;
 		return null;
 	}
 }
