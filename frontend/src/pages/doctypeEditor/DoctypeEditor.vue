@@ -37,10 +37,10 @@
 				:viewport-class="pageGutter"
 			>
 				<EditorCanvas
-					v-if="tab === 'editor'"
-					:state="state"
-					:layout="layout?.layout ?? []"
+					v-if="tab === 'editor' && canvas"
+					:canvas="canvas"
 					:meta-line="metaLine"
+					:customize="customizeRoute"
 				/>
 				<SettingsTab v-else-if="tab === 'settings'" />
 				<PreviewTab
@@ -75,6 +75,7 @@ import { failedState, type PageStateValue } from "@/shell/pageState";
 import { useUnloadGuard } from "@/unloadGuard";
 import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
+import { DesignCanvas } from "./designCanvas";
 import { useEditorActs } from "./editorActs";
 import {
 	carriedAnswers,
@@ -96,6 +97,7 @@ const router = useRouter();
 const name = computed(() => String(route.params.name));
 
 const state = shallowRef<EditorState | null>(null);
+const canvas = shallowRef<DesignCanvas | null>(null);
 const pageState = shallowRef<PageStateValue | null>(null);
 const tab = ref<EditorTab>("editor");
 const previewName = ref<string | null>(null);
@@ -113,7 +115,8 @@ const edits = new PendingEdits(head, (opened) => (tab.value = opened));
 useEditorActs({
 	edits,
 	tab,
-	find: () => (tab.value = "editor"),
+	canvas: () => canvas.value,
+	find,
 	previewRecord: (record) => (previewName.value = record),
 	recordOptions: async (query) =>
 		[null, ...latest.value]
@@ -137,6 +140,12 @@ const metaLine = computed(() => {
 		);
 	return parts.join(" · ");
 });
+
+const customizeRoute = computed(() =>
+	state.value?.modes.includes("Customize")
+		? { query: { ...route.query, mode: "customize" } }
+		: null
+);
 
 const switchTo = computed(() => {
 	const other = state.value?.modes.find((mode) => mode !== state.value?.mode);
@@ -181,6 +190,7 @@ async function startAsking(request: number) {
 
 function reset() {
 	state.value = null;
+	canvas.value = null;
 	starting.value = null;
 	pageState.value = null;
 	tab.value = "editor";
@@ -200,6 +210,15 @@ function open(loaded: EditorState) {
 		base_version: loaded.base_version,
 	});
 	state.value = loaded;
+	canvas.value = new DesignCanvas(loaded, edits);
+}
+
+function find(fieldname: string) {
+	tab.value = "editor";
+	const open = canvas.value;
+	if (!open) return;
+	open.select({ kind: "field", fieldname });
+	if (!open.place(fieldname)) open.trayOpen.value = true;
 }
 
 async function loadLatest(loaded: EditorState, request: number) {

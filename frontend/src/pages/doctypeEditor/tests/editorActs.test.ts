@@ -15,6 +15,7 @@ function mount() {
 			{ doctype: "Note", mode: "Design", base_version: VERSION },
 			(opened) => (tab.value = opened),
 		),
+		canvas: () => null,
 		find: () => undefined,
 		previewRecord: (name) => previewed.push(name),
 		recordOptions: async () => [],

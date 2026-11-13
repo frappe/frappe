@@ -2,9 +2,9 @@
 // on save. Keep the two in step: the canvas draws this result before the server sees the edits.
 import type { LayoutTree } from "@/recordPage/formLayoutSource/types";
 
-type LayoutTreeTab = LayoutTree[number];
-type LayoutTreeSection = LayoutTreeTab["sections"][number];
-type LayoutTreeColumn = LayoutTreeSection["columns"][number];
+export type LayoutTreeTab = LayoutTree[number];
+export type LayoutTreeSection = LayoutTreeTab["sections"][number];
+export type LayoutTreeColumn = LayoutTreeSection["columns"][number];
 
 type Named = { name?: string; label?: string };
 
@@ -19,8 +19,15 @@ export const CONTAINER_PROPERTIES = [
 	"collapsibleDependsOn",
 ];
 
-/** An edit the server would refuse too; the message is the server's. */
-export class EditRefused extends Error {}
+/** An edit the server would refuse too; the message is the server's, and `template` translates it. */
+export class EditRefused extends Error {
+	constructor(
+		readonly template: string,
+		readonly args: string[] = [],
+	) {
+		super(template.replace(/\{(\d+)\}/g, (_, at) => args[Number(at)]));
+	}
+}
 
 /** Edits `tabs` in place; the caller hands it a copy. */
 export class LayoutTreeEditor {
@@ -105,7 +112,7 @@ export class LayoutTreeEditor {
 	set_container_property(edit: { container: string; section?: string; property: string; value: unknown }) {
 		const { container, section, property, value } = edit;
 		if (!CONTAINER_PROPERTIES.includes(property)) {
-			throw new EditRefused(`${property} is not a container property.`);
+			throw new EditRefused("{0} is not a container property.", [property]);
 		}
 		const found = section ? this.column(container, section) : this.container(container);
 		const node = found as unknown as Record<string, unknown>;
@@ -150,7 +157,7 @@ export class LayoutTreeEditor {
 	column(name: string, section?: string): LayoutTreeColumn {
 		if (section) return find(this.section(section).columns, name);
 		const matches = this.columns().filter((column) => column.name === name);
-		if (matches.length > 1) throw new EditRefused(`Name the section of column ${name}.`);
+		if (matches.length > 1) throw new EditRefused("Name the section of column {0}.", [name]);
 		return find(matches, name);
 	}
 
@@ -194,7 +201,7 @@ function newNode(name?: string, label?: string): Named {
 
 function find<T extends Named>(nodes: T[], name: string): T {
 	const node = nodes.find((each) => each.name === name);
-	if (!node) throw new EditRefused(`This layout has no ${name}.`);
+	if (!node) throw new EditRefused("This layout has no {0}.", [name]);
 	return node;
 }
 

@@ -117,7 +117,7 @@ class DesignReplay {
 		const method = CANVAS_ACTS[edit.act];
 		if (method) return this.canvas(edit, method);
 		const handler = FIELD_ACTS[edit.act];
-		if (!handler) throw new EditRefused(`${edit.act} is not a Design edit.`);
+		if (!handler) throw new EditRefused("{0} is not a Design edit.", [edit.act]);
 		handler(this, edit as never);
 	}
 
@@ -167,13 +167,13 @@ class DesignReplay {
 	}
 
 	setDoctypeProperty({ property, value }: { property: string; value: unknown }) {
-		if (property !== "description") throw new EditRefused(`${property} is not a DocType setting.`);
+		if (property !== "description") throw new EditRefused("{0} is not a DocType setting.", [property]);
 		this.state.description = (value as string) ?? "";
 	}
 
 	private field(fieldname: string): RawMetaField {
 		const field = this.state.fields.find((each) => each.fieldname === fieldname);
-		if (!field) throw new EditRefused(`${fieldname} is not a field of ${this.state.doctype}.`);
+		if (!field) throw new EditRefused("{0} is not a field of {1}.", [fieldname, this.state.doctype]);
 		return field;
 	}
 
@@ -181,11 +181,12 @@ class DesignReplay {
 	private refuseTakenFieldname(fieldname: string) {
 		if (!validFieldname(fieldname)) {
 			throw new EditRefused(
-				`${fieldname} is not a valid fieldname. Use lowercase letters, digits and underscores.`,
+				"{0} is not a valid fieldname. Use lowercase letters, digits and underscores.",
+				[fieldname],
 			);
 		}
 		if (this.state.fields.some((field) => field.fieldname === fieldname)) {
-			throw new EditRefused(`${this.state.doctype} already has a field ${fieldname}.`);
+			throw new EditRefused("{0} already has a field {1}.", [this.state.doctype, fieldname]);
 		}
 	}
 
@@ -219,7 +220,7 @@ function drawsDetails(edit: FlatEdit): boolean {
 
 function refuseProperty(property: string) {
 	if (property === "fieldname") throw new EditRefused("Rename the field to change its fieldname.");
-	if (RESERVED_PROPERTIES.includes(property)) throw new EditRefused(`${property} is not a field property.`);
+	if (RESERVED_PROPERTIES.includes(property)) throw new EditRefused("{0} is not a field property.", [property]);
 }
 
 function pick(edit: FlatEdit, keys: string[]): Record<string, unknown> {
