@@ -992,9 +992,7 @@ def tile_columns(section, total):
 			style = SIDE_MARGIN.sub("", style).strip()
 			if style and not style.endswith(";"):
 				style += ";"
-			margins = (
-				f"margin-left: {round(margin['left'], 1)}px; margin-right: {round(margin['right'], 1)}px;"
-			)
+			margins = f"margin-inline-start: {round(margin['left'], 1)}px; margin-inline-end: {round(margin['right'], 1)}px;"
 			field["custom_style"] = f"{style} {margins}".strip()
 
 
