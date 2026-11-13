@@ -34,7 +34,7 @@ def get_print_designer_formats() -> list[dict]:
 	for row in rows:
 		row.converted = not row.print_designer
 		if row.doc_type not in samples:
-			samples[row.doc_type] = printable_sample(row.doc_type)
+			samples[row.doc_type] = frappe.has_permission(row.doc_type) and printable_sample(row.doc_type)
 		row.sample = samples[row.doc_type]
 	return rows
 
