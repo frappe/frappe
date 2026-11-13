@@ -39,10 +39,7 @@ export function typeGroups(canvas: DesignCanvas, fieldname: string): { groups: T
 	};
 }
 
-/**
- * The properties a pick in the type list sets, as one step: "Email" is Data's `Email` option, so
- * options carry over only within one fieldtype, and never an option that was the type itself.
- */
+/** What a type pick sets, as one step; "Email" is Data's `Email` option, so it never carries over. */
 export function typeChange(field: RawMetaField, name: string): Record<string, unknown> {
 	const { fieldtype, options } = typeOf(name);
 	const properties: Record<string, unknown> = { fieldtype };

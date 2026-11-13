@@ -2,6 +2,7 @@ import { ref, shallowRef } from "vue";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { __, __n } from "@/i18n";
+import { errorMessage } from "@/recordPage/errorMessage";
 import type { DesignCanvas, SaveError } from "./designCanvas";
 import { EditRefused, fieldsOffLayout, type FlatEdit } from "./editorModel";
 import type { BaseVersion, PendingEdits } from "./pendingEdits";
@@ -50,6 +51,8 @@ export const WRITE_FILES_METHOD = "frappe.core.doctype.doctype.doctype.write_doc
 export class EditorSave {
 	readonly saving = ref(false);
 	readonly banner = shallowRef<SaveBanner | null>(null);
+	/** An export that lands while a save or reload runs waits for it: that reload would race this one. */
+	private lateExport: ExportResult | null = null;
 
 	constructor(private host: SaveHost) {}
 
@@ -60,27 +63,30 @@ export class EditorSave {
 	async save() {
 		const canvas = this.host.canvas();
 		if (!canvas || this.saving.value) return;
-		this.saving.value = true;
-		this.host.edits.locked.value = true;
 		this.banner.value = null;
 		canvas.errors.value = [];
-		try {
+		await this.busy(async () => {
 			const result = await this.send(canvas);
 			if (result.saved) await this.saved(canvas, result);
 			else this.refused(canvas, result);
-		} finally {
-			this.saving.value = false;
-			this.host.edits.locked.value = false;
-		}
+		});
 	}
 
 	/** Loads the DocType as it is now and stages each undo step again; the ones it refuses are listed. */
 	async reloadAndReapply() {
+		if (this.saving.value) return;
 		const steps: FlatEdit[][] = this.host.edits.steps.map((step) =>
 			step.map(({ act, value }) => ({ ...value, act })),
 		);
-		const canvas = await this.host.reload();
-		if (!canvas) return;
+		await this.busy(async () => {
+			const canvas = await this.host.reload();
+			if (canvas) this.reapply(canvas, steps);
+		});
+	}
+
+	private reapply(canvas: DesignCanvas, steps: FlatEdit[][]) {
+		// The replay is the reload's own staging, so it runs before any late export reloads again.
+		this.host.edits.locked.value = false;
 		const refused: string[] = [];
 		for (const step of steps) {
 			try {
@@ -121,6 +127,7 @@ export class EditorSave {
 
 	/** The export runs after the save's response, so its outcome comes later, by realtime. */
 	async exported(result: ExportResult) {
+		if (this.saving.value) return void (this.lateExport = result);
 		const canvas = this.host.canvas();
 		if (!canvas || result.doctype !== canvas.state.doctype) return;
 		if (result.ok) return this.reloadExported(result);
@@ -137,6 +144,21 @@ export class EditorSave {
 	private async reloadExported(result: ExportResult) {
 		if (!this.host.edits.dirty.value) return void (await this.host.reload());
 		if (result.app_layouts) this.rebaseAppLayouts(result.app_layouts);
+	}
+
+	/** Save and Reload hold Save and every edit until they finish; a late export runs after. */
+	private async busy<T>(run: () => Promise<T>): Promise<T> {
+		this.saving.value = true;
+		this.host.edits.locked.value = true;
+		try {
+			return await run();
+		} finally {
+			this.saving.value = false;
+			this.host.edits.locked.value = false;
+			const late = this.lateExport;
+			this.lateExport = null;
+			if (late) void this.exported(late).catch((error) => toast.error(errorMessage(error)));
+		}
 	}
 
 	private async send(canvas: DesignCanvas): Promise<SaveResult> {

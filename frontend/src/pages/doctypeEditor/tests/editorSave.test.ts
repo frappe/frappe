@@ -156,6 +156,33 @@ describe("a refused save", () => {
 			messages: ["status is not a field of Task Note."],
 		});
 	});
+
+	it("holds Save and every edit until the reload re-applies them", async () => {
+		const { save, edits } = mount(taskNote(), { reloaded: () => taskNote({ base_version: NEXT }) });
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });
+		const reapplying = save.reloadAndReapply();
+		expect([save.saving.value, edits.locked.value]).toEqual([true, true]);
+		await save.save();
+		expect(runMethod).not.toHaveBeenCalled();
+		await reapplying;
+		expect([save.saving.value, edits.staged.value.length]).toEqual([false, 1]);
+	});
+
+	it("runs an export that lands during the save once the save's own reload is done", async () => {
+		let reloads = 0;
+		const { save } = mount(taskNote({ custom: 0 }), {
+			reloaded: () => (reloads++, taskNote({ custom: 0, base_version: NEXT })),
+		});
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });
+		let answer!: (value: unknown) => void;
+		runMethod.mockReturnValueOnce(new Promise((resolve) => (answer = resolve)));
+		const saving = acts.run("editor.save");
+		await save.exported({ doctype: "Task Note", ok: true, app_layouts: { Details: "abc" } });
+		expect(reloads).toBe(0);
+		answer({ data: { saved: true, base_version: NEXT, children: [] } });
+		await saving;
+		await vi.waitFor(() => expect(reloads).toBe(2));
+	});
 });
 
 describe("a failed file export", () => {

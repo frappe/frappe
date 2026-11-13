@@ -137,28 +137,30 @@ watch(
 </script>
 
 <style>
-.canvas-drop-line {
-	height: 2px !important;
-	min-height: 0 !important;
-	margin: -9px 0 !important;
-	padding: 0 !important;
-	border: 0 !important;
+/* Specific enough to win over the dragged item's own utilities, hover variants included. */
+[data-doctype-editor] .sortable-chosen.canvas-drop-line {
+	height: 2px;
+	min-height: 0;
+	margin: -9px 0;
+	padding: 0;
+	border: 0;
 	border-radius: 1px;
 	overflow: hidden;
-	background-color: var(--outline-gray-4) !important;
-	opacity: 1 !important;
+	box-shadow: none;
+	background-color: var(--outline-gray-4);
+	opacity: 1;
 }
-.canvas-drop-line > * {
-	display: none !important;
+[data-doctype-editor] .sortable-chosen.canvas-drop-line > * {
+	display: none;
 }
-[data-canvas-empty] > .canvas-drop-line {
-	margin: 29px 0 0 !important;
+[data-doctype-editor] [data-canvas-empty] > .sortable-chosen.canvas-drop-line {
+	margin: 29px 0 0;
 }
-[data-canvas-tray-list] > .canvas-drop-line {
-	margin: 0 !important;
+[data-doctype-editor] [data-canvas-tray-list] > .sortable-chosen.canvas-drop-line {
+	margin: 0;
 }
-.canvas-tab-drop > .canvas-drop-line {
-	display: none !important;
+[data-doctype-editor] .canvas-tab-drop > .sortable-chosen.canvas-drop-line {
+	display: none;
 }
 .canvas-tab-drop:has(> .canvas-drop-line) {
 	background-color: var(--surface-gray-2);

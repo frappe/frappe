@@ -34,7 +34,11 @@
 			>
 				{{ __("The editor needs a wider window, 1024px or more.") }}
 			</div>
-			<div class="hidden min-h-0 flex-1 border-t lg:flex" :inert="save.saving.value">
+			<div
+				class="hidden min-h-0 flex-1 border-t lg:flex"
+				:inert="save.saving.value"
+				data-doctype-editor
+			>
 				<ScrollArea class="flex min-h-0 min-w-0 flex-1" :viewport-class="pageGutter">
 					<EditorCanvas
 						v-if="tab === 'editor' && canvas"
