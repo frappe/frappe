@@ -24,6 +24,8 @@ const JS_OPERATOR: Record<string, string> = {
   "not equals": "!==",
 };
 const SPECIAL_FIELDS = [RECORD_IS_NEW, DOCUMENT_STATUS];
+/** A fieldname, so it is written into the code as a name and never as code. */
+const FIELD_PATH = /^(parent\.)?[A-Za-z_$][\w$]*$/;
 
 export class DependsOnWriter {
   constructor(private scope: DependsOnScope) {}
@@ -32,7 +34,8 @@ export class DependsOnWriter {
     const root = this.prune(tree);
     if (!root.conditions.length) return "";
     const only = root.conditions.length === 1 ? root.conditions[0] : null;
-    if (only && !isGroup(only) && this.isBareField(only)) return only.fieldname;
+    if (only && !isGroup(only) && this.isBareField(only))
+      return checkedPath(only.fieldname);
     return `eval:${this.group(root)}`;
   }
 
@@ -134,9 +137,8 @@ export class DependsOnWriter {
   }
 
   private reference(fieldname: string): string {
-    const ref = fieldname.startsWith("parent.")
-      ? fieldname
-      : `doc.${fieldname}`;
+    const path = checkedPath(fieldname);
+    const ref = path.startsWith("parent.") ? path : `doc.${path}`;
     return this.scope.tables.has(fieldname) ? `${ref}.length` : ref;
   }
 
@@ -151,9 +153,11 @@ export class DependsOnWriter {
       .join(", ");
   }
 
+  /** A value as code: a field it references, else text or a number. */
   private literal(fieldname: string, value: unknown): string {
     const field = referencedField(value);
-    if (field) return field.startsWith("parent.") ? field : `doc.${field}`;
+    if (field && this.field(field) && !this.scope.tables.has(field))
+      return this.reference(field);
     if (fieldname === DOCUMENT_STATUS)
       return String(DOCUMENT_STATUSES.indexOf(String(value)));
     const number = Number(value);
@@ -173,6 +177,12 @@ export class DependsOnWriter {
   private field(fieldname: string) {
     return this.scope.fields.find((one) => one.fieldname === fieldname);
   }
+}
+
+function checkedPath(fieldname: string): string {
+  if (!FIELD_PATH.test(fieldname))
+    throw new Error(`Not a fieldname: ${fieldname}`);
+  return fieldname;
 }
 
 /** A list value as its items: the picked values, or a comma string split. */

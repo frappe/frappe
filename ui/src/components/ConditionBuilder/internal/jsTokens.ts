@@ -53,8 +53,9 @@ function readToken(rest: string): { token: Token; length: number } {
   if (name)
     return { token: { kind: "name", text: name[0] }, length: name[0].length };
 
-  // A number runs into a name (`1e3`, `0x1f`) only in forms this subset refuses.
-  const number = /^\d+(\.\d+)?(?![\w$.])/.exec(rest);
+  // A number runs into a name (`1e3`, `0x1f`) only in forms this subset refuses;
+  // a leading zero (`010`) is octal in sloppy code, so it is refused too.
+  const number = /^(0|[1-9]\d*)(\.\d+)?(?![\w$.])/.exec(rest);
   if (number)
     return {
       token: { kind: "number", text: number[0] },

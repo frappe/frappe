@@ -31,6 +31,8 @@ export const FIELD_REFERENCE = "eval:";
 export const NUMBER_FIELDTYPES = [...NUMERIC_FIELDTYPES, "Duration"];
 
 const EQUAL = ["==", "==="];
+/** `===` and `!==` never convert, so their value must already be the field's type. */
+const STRICT = ["===", "!=="];
 const UNEQUAL = ["!=", "!=="];
 const ORDERING = ["<", ">", "<=", ">="];
 const MIRROR: Record<string, string> = {
@@ -51,15 +53,20 @@ const OPPOSITE: Partial<Record<ConditionOperator, ConditionOperator>> = {
 export class DependsOnRules {
   constructor(private scope: DependsOnScope) {}
 
+  /** `doc.x`, or `doc.x.length` when `x` is a table. */
+  fieldOperand(name: string, length: boolean): Operand {
+    // `doc.items` is an array, true even with no rows; only `.length` asks.
+    if (this.scope.tables.has(name) !== length) {
+      throw new SyntaxError("A table is read by its length");
+    }
+    return { kind: "field", name, length };
+  }
+
   /** A field read on its own: `doc.customer`, `doc.is_pos`, `doc.items.length`. */
   truthy(operand: Operand): ConditionNode {
     if (operand.kind === "row") return operand.leaf;
     if (operand.kind !== "field")
       throw new SyntaxError("A value is not a condition");
-    // `doc.items` is an array, true even with no rows; only `.length` asks.
-    if (this.scope.tables.has(operand.name) !== operand.length) {
-      throw new SyntaxError("A table is read by its length");
-    }
     if (this.field(operand.name).fieldtype === "Check") {
       return row(operand.name, "equals", "Yes");
     }
@@ -101,11 +108,17 @@ export class DependsOnRules {
     return row(operand.name, "like", text);
   }
 
-  between(name: string, from: Literal, to: Literal): Leaf {
-    const field = this.field(name);
-    return row(name, "between", [
-      this.value(field, from),
-      this.value(field, to),
+  /** `from <= x && x <= to`: an ordering, so text against a number converts. */
+  between(operand: Operand, from: Literal, to: Literal): Leaf {
+    if (operand.kind !== "field" || operand.length)
+      throw new SyntaxError("Not a range");
+    const field = this.field(operand.name);
+    if (field.fieldtype === "Check" || operand.name === DOCUMENT_STATUS) {
+      throw new SyntaxError("A Check or a status is not ordered");
+    }
+    return row(operand.name, "between", [
+      this.value(field, from, true),
+      this.value(field, to, true),
     ] as string[]);
   }
 
@@ -158,15 +171,15 @@ export class DependsOnRules {
     const operator = this.operator(op);
     // `== null` and `== undefined` are true of neither "" nor 0: no row says that.
     if (value === null) throw new SyntaxError("Compare with a value");
-    if (field.fieldtype === "Check") return checkRow(name, operator, value);
-    if (typeof value === "boolean")
-      throw new SyntaxError("Only a Check is true or false");
+    const loose = !STRICT.includes(op);
+    if (field.fieldtype === "Check")
+      return checkRow(name, operator, value, loose);
     if (name === DOCUMENT_STATUS) {
       if (ORDERING.includes(op))
         throw new SyntaxError("A status is not ordered");
-      return row(name, operator, documentStatus(value));
+      return row(name, operator, documentStatus(value, loose));
     }
-    return row(name, operator, this.value(field, value));
+    return row(name, operator, this.value(field, value, loose));
   }
 
   /** `doc.items.length > 0` and the like: has rows, or has none. */
@@ -176,7 +189,7 @@ export class DependsOnRules {
       (op === ">" && count === 0) || (UNEQUAL.includes(op) && count === 0);
     const none =
       (EQUAL.includes(op) && count === 0) || (op === "<" && count === 1);
-    if (!this.scope.tables.has(name) || (!some && !none)) {
+    if (!some && !none) {
       throw new SyntaxError("Count a table's rows against 0");
     }
     return row(name, "equals", some ? "Yes" : "No");
@@ -207,27 +220,43 @@ export class DependsOnRules {
     throw new SyntaxError(`Unknown comparison ${op}`);
   }
 
-  /** A list as the field's `in` control holds it: picked values, or a comma string. */
+  /**
+   * A list as the field's `in` control holds it: picked values, or a comma
+   * string. `includes` never converts, and the control drops an empty item and
+   * splits and trims a comma string, so such an item stays code.
+   */
   private listValue(name: string, items: (string | number)[]): ConditionValue {
     const field = this.field(name);
-    if (name === DOCUMENT_STATUS) return items.map(documentStatus);
-    const values = items.map((item) => String(this.value(field, item)));
-    return isOptionField(field.fieldtype) ? values : values.join(", ");
+    if (name === DOCUMENT_STATUS)
+      return items.map((item) => documentStatus(item, false));
+    const values = items.map((item) => String(this.value(field, item, false)));
+    const options = isOptionField(field.fieldtype);
+    const kept = (value: string) =>
+      value !== "" &&
+      (options || (!value.includes(",") && value.trim() === value));
+    if (!values.every(kept)) throw new SyntaxError("A list item is lost");
+    return options ? values : values.join(", ");
   }
 
-  private value(field: ConditionField, value: Literal): string | number {
-    if (typeof value === "boolean" || value === null) {
-      throw new SyntaxError("Compare with text or a number");
+  /**
+   * A literal as the row's value. A number field takes a number, or under `==`
+   * and an ordering the text JavaScript converts to one; any other field takes
+   * text, which never reads as a field reference.
+   */
+  private value(
+    field: ConditionField,
+    value: Literal,
+    loose: boolean
+  ): string | number {
+    const isNumber = NUMBER_FIELDTYPES.includes(field.fieldtype);
+    if (typeof value === "number" && isNumber) return value;
+    if (typeof value !== "string" || value.startsWith(FIELD_REFERENCE)) {
+      throw new SyntaxError("Compare with a value of the field's type");
     }
+    if (!isNumber) return value;
     const number = Number(value);
-    if (
-      NUMBER_FIELDTYPES.includes(field.fieldtype) &&
-      value !== "" &&
-      Number.isFinite(number)
-    ) {
-      return number;
-    }
-    return String(value);
+    if (loose && value.trim() !== "" && Number.isFinite(number)) return number;
+    throw new SyntaxError("A number field never equals text");
   }
 }
 
@@ -254,23 +283,29 @@ function row(
   return { fieldname, operator, value };
 }
 
+/** A Check holds 0 or 1; `==` also matches `true`, `"1"` and the like. */
 function checkRow(
   name: string,
   operator: ConditionOperator,
-  value: string | number | boolean
+  value: string | number | boolean,
+  loose: boolean
 ) {
-  const on = value === 1 || value === true || value === "1";
-  const off = value === 0 || value === false || value === "0";
+  const on = value === 1 || (loose && (value === true || value === "1"));
+  const off = value === 0 || (loose && (value === false || value === "0"));
   if ((!on && !off) || (operator !== "equals" && operator !== "not equals")) {
     throw new SyntaxError("A Check is on or off");
   }
   return row(name, "equals", on === (operator === "equals") ? "Yes" : "No");
 }
 
-function documentStatus(value: string | number | boolean): string {
-  const status = DOCUMENT_STATUSES[Number(value)];
-  if (typeof value === "boolean" || value === "" || !status)
-    throw new SyntaxError("docstatus is 0, 1 or 2");
+function documentStatus(
+  value: string | number | boolean,
+  loose: boolean
+): string {
+  const text = loose && typeof value === "string" && /^[012]$/.test(value);
+  const status =
+    DOCUMENT_STATUSES[typeof value === "number" || text ? Number(value) : NaN];
+  if (!status) throw new SyntaxError("docstatus is 0, 1 or 2");
   return status;
 }
 

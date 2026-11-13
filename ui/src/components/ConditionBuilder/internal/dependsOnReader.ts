@@ -114,7 +114,7 @@ export class DependsOnReader {
     ) {
       throw new SyntaxError("Not a range");
     }
-    return this.rules.between(field.name, from, to);
+    return this.rules.between(field, from, to);
   }
 
   private operand(): Operand {
@@ -141,21 +141,11 @@ export class DependsOnReader {
     this.expect(".");
     const name = this.next();
     if (name.kind !== "name") throw new SyntaxError("Expected a fieldname");
-    const field: Operand = {
-      kind: "field",
-      name: object === "parent" ? `parent.${name.text}` : name.text,
-      length: false,
-    };
-    if (this.isMember("length")) {
-      this.at += 2;
-      return { ...field, length: true };
-    }
-    if (this.isMember("includes"))
-      return {
-        kind: "row",
-        leaf: this.rules.contains(field, this.includesText()),
-      };
-    return field;
+    const fieldname = object === "parent" ? `parent.${name.text}` : name.text;
+    const length = this.isMember("length");
+    if (length) this.at += 2;
+    // `doc.x.includes("y")` throws on an empty field; only the guarded forms read.
+    return this.rules.fieldOperand(fieldname, length);
   }
 
   /** `in_list(["a", "b"], doc.x)`, Frappe's global for a membership. */
