@@ -70,8 +70,13 @@ class DesignSave:
 			try:
 				applier.apply(edit)
 			except EditError as e:
-				error = e.as_dict(index)
-				self.errors.append({**error, "doctype": doctype} if doctype else error)
+				self.add_error(e, index, doctype)
+			except (TypeError, ValueError, KeyError, AttributeError, IndexError):
+				self.add_error(EditError(_("This edit is malformed.")), index, doctype)
+
+	def add_error(self, e: EditError, index: int, doctype: str | None):
+		error = e.as_dict(index)
+		self.errors.append({**error, "doctype": doctype} if doctype else error)
 
 	def check(self):
 		rows = [

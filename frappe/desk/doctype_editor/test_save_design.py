@@ -389,6 +389,20 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["target"], {"kind": "field", "fieldname": "nope"})
 
+	def test_a_malformed_edit_is_keyed_to_that_edit(self):
+		for edit in (
+			{"act": "canvas.add_tab", "layout": "Details", "name": "extra"},
+			{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "extra", "index": "x"},
+			{"act": ["fields.add_field"]},
+		):
+			with self.subTest(edit=edit):
+				result = self.save([edit])
+				self.assertFalse(result["saved"])
+				self.assertEqual(
+					result["errors"],
+					[{"target": {"kind": "banner"}, "message": "This edit is malformed.", "edit": 0}],
+				)
+
 	def test_a_doctype_that_fails_validation_writes_nothing(self):
 		result = self.save(
 			[
