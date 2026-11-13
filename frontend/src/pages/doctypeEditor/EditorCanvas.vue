@@ -6,9 +6,12 @@
 		<p class="mt-1 text-p-sm text-ink-gray-5" data-editor-meta>{{ metaLine }}</p>
 		<p v-if="state.site_custom_fields" class="mt-1 text-p-sm text-ink-gray-5">
 			{{
-				__("{0} fields added on this site, edit them in Customize.", [
+				__n(
+					"{0} field added on this site, edit it in Customize.",
+					"{0} fields added on this site, edit them in Customize.",
 					state.site_custom_fields,
-				])
+					[state.site_custom_fields]
+				)
 			}}
 		</p>
 
@@ -73,7 +76,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { __ } from "@/i18n";
+import { __, __n } from "@/i18n";
 import type { InlineField, LayoutTree } from "@/recordPage/formLayoutSource/types";
 import type { EditorState } from "./editorSource";
 

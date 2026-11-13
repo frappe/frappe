@@ -63,7 +63,7 @@ import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vu
 import { ScrollArea } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import { acts } from "@/acts/dispatcher";
-import { __ } from "@/i18n";
+import { __, __n } from "@/i18n";
 import { discardChanges } from "@/pages/record/discardChanges";
 import { routeFor } from "@/router/routeFor";
 import { shellDialog } from "@/shell/dialog";
@@ -121,7 +121,9 @@ const metaLine = computed(() => {
 	if (!one) return "";
 	const parts = [one.module, one.app_title ? __("From {0}", [one.app_title]) : __("Custom")];
 	if (one.record_count != null)
-		parts.push(__("{0} records", [one.record_count.toLocaleString()]));
+		parts.push(
+			__n("{0} record", "{0} records", one.record_count, [one.record_count.toLocaleString()])
+		);
 	return parts.join(" · ");
 });
 
@@ -135,9 +137,8 @@ const switchTo = computed(() => {
 	};
 });
 
-watch(() => [name.value, route.query.mode], load, { immediate: true });
-
 let loading = 0;
+watch(() => [name.value, route.query.mode], load, { immediate: true });
 
 async function load() {
 	const request = ++loading;
