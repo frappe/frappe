@@ -205,6 +205,52 @@ class TestFlowSafeExec(IntegrationTestCase):
 					safe_exec(SENDMAIL, {"attachments": [attachment]})
 				sendmail.assert_not_called()
 
+	def test_sendmail_takes_no_sender(self):
+		frappe.set_user(self._desk_user())
+		# frappe.sendmail's own argument order still works
+		for call in (
+			'frappe.sendmail(["a@example.com"], subject="Hi", message="Body", sender="")',
+			'frappe.sendmail(["a@example.com"], "", "Hi", "Body")',
+		):
+			with self.subTest(call), patch("frappe.sendmail") as sendmail:
+				self._run(call)
+				sendmail.assert_called_once_with(
+					recipients=["a@example.com"], subject="Hi", message="Body", attachments=[]
+				)
+		for call in (
+			'frappe.sendmail(recipients=["a@example.com"], sender="ceo@example.com")',
+			'frappe.sendmail(["a@example.com"], "ceo@example.com", "Hi")',
+		):
+			with self.subTest(call), patch("frappe.sendmail") as sendmail:
+				with self.assertRaisesRegex(frappe.ValidationError, "takes no sender"):
+					self._run(call)
+				sendmail.assert_not_called()
+
+	def test_sendmail_refers_only_to_records_the_user_may_email(self):
+		user = self._desk_user()
+		mine = frappe.get_doc({"doctype": "ToDo", "description": "mine", "allocated_to": user}).insert()
+		other = frappe.get_doc({"doctype": "ToDo", "description": "not mine"}).insert()
+		note = frappe.get_doc(
+			{"doctype": "Communication", "subject": "Private", "communication_type": "Communication"}
+		).insert()
+		frappe.set_user(user)
+		with patch("frappe.sendmail") as sendmail:
+			self._run(
+				f'frappe.sendmail(["a@example.com"], reference_doctype="ToDo", reference_name="{mine.name}")'
+			)
+			sendmail.assert_called_once()
+		for call in (
+			f'frappe.sendmail(["a@example.com"], reference_doctype="ToDo", reference_name="{other.name}")',
+			f'frappe.sendmail(["a@example.com"], doctype="ToDo", name="{other.name}")',
+			f'frappe.sendmail(["a@example.com"], "", "Hi", "Body", False, True, "ToDo", "{other.name}")',
+			'frappe.sendmail(["a@example.com"], reference_doctype="Flow Tool")',
+			f'frappe.sendmail(["a@example.com"], communication="{note.name}")',
+		):
+			with self.subTest(call), patch("frappe.sendmail") as sendmail:
+				with self.assertRaises(frappe.PermissionError):
+					self._run(call)
+				sendmail.assert_not_called()
+
 	def test_sendmail_prints_with_a_format_the_user_may_print_with(self):
 		user = self._desk_user()
 		todo = frappe.get_doc(
