@@ -13,7 +13,7 @@ from unittest.mock import patch
 from babel.util import pathmatch
 
 import frappe
-from frappe.desk.doctype.form_layout.app_layout import app_layout_key, app_layout_path, read_app_layout
+from frappe.desk.doctype.form_layout.app_layout import app_layout_key, app_layout_path, read_app_layouts
 from frappe.desk.doctype.form_layout.form_layout import (
 	FORM_LAYOUT_TYPES,
 	LAYOUT_BREAKS,
@@ -132,16 +132,16 @@ class TestContactLayoutFiles(IntegrationTestCase):
 				path.endswith(os.path.join("contacts", "doctype", "contact", "frontend", "layouts", name))
 			)
 			self.assertTrue(os.path.exists(path))
-		self.assertIsNone(read_app_layout("Contact", "Details"))
+		self.assertIsNone(read_app_layouts("Contact", "Details"))
 
 	def test_both_files_carry_email_phone_and_mobile_as_inline_fields(self):
 		for type in ("Quick Entry", "New Record"):
-			tabs = json.loads(read_app_layout("Contact", type).layout)
+			tabs = json.loads(read_app_layouts("Contact", type).entries[0].layout)
 			inline = {entry["fieldname"] for entry in layout_entries(tabs) if isinstance(entry, dict)}
 			self.assertEqual(inline, CONTACT_INLINE_FIELDS, type)
 
 	def test_new_record_lists_every_field_of_contact(self):
-		app_layout = read_app_layout("Contact", "New Record")
+		[app_layout] = read_app_layouts("Contact", "New Record").entries
 		tabs = json.loads(app_layout.layout)
 		placed = {entry["fieldname"] if isinstance(entry, dict) else entry for entry in layout_entries(tabs)}
 		own_fields = {
@@ -175,7 +175,13 @@ class TestEveryAppLayoutFile(IntegrationTestCase):
 			text = f.read()
 		data = json.loads(text)
 		self.assertEqual(text, frappe.as_json(data) + "\n", "not written as a server save writes it")
-		self.assertEqual(set(data) - {"size"}, {"layout", "omitted"})
+		entries = data if isinstance(data, list) else [data]
+		self.assertLessEqual(sum(1 for entry in entries if not entry.get("condition")), 1)
+		for entry in entries:
+			self.assert_entry_is_a_valid_row(entry, dt, type)
+
+	def assert_entry_is_a_valid_row(self, data: dict, dt: str, type: str):
+		self.assertEqual(set(data) - {"size", "title", "condition"}, {"layout", "omitted"})
 		if "size" in data:
 			self.assertEqual(type, "Quick Entry", "only Quick Entry opens in a dialog")
 			self.assertIn(
