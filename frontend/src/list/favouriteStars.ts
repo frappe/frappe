@@ -1,6 +1,5 @@
-// The Favourite column's state: which listed rows the person starred. Module state, kept apart
-// so the column can go without touching the rest of the list. A cached record's own `favourites`
-// part answers first, so every write here keeps that part in step, or it would outvote a newer star.
+// Which listed rows the person starred, kept apart so the Favourite column can go alone.
+// A cached record's `favourites` part answers first: each write here keeps it in step, or it outvotes a newer star.
 import { addFavourite, removeFavourite } from "@framework/ui/api";
 import { feedPartWrite, readCachedDocument, settleTicket, takeTicket } from "@framework/ui/cache";
 import { reactive } from "vue";
