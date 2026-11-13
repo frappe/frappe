@@ -150,7 +150,7 @@ def _eval_condition(condition: str, doc: Document) -> bool:
 	from frappe.flow.utils.conditions import evaluate_condition
 	from frappe.utils.safe_exec import get_safe_globals
 
-	context = {"doc": doc, "utils": get_safe_globals().get("frappe").get("utils")}
+	context = {"doc": doc.as_dict(), "utils": get_safe_globals().get("frappe").get("utils")}
 	try:
 		return evaluate_condition(condition, context)
 	except Exception:
