@@ -52,6 +52,7 @@
 					:min="10"
 					:step="5"
 					unit="mm"
+					decimals
 					@update:model-value="(v) => set_page('width', clamp_page_mm(v))"
 				/>
 				<StepperRow
@@ -60,6 +61,7 @@
 					:min="10"
 					:step="5"
 					unit="mm"
+					decimals
 					@update:model-value="(v) => set_page('height', clamp_page_mm(v))"
 				/>
 			</template>
