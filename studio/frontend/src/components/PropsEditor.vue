@@ -180,8 +180,7 @@ const propConfigs = computed<ComponentProps>(() => {
 	}
 	if (props.block.isStudioComponent) {
 		const componentStore = useComponentStore()
-		const componentDoc = componentStore.getComponentDoc(props.block.componentName)
-		return componentDoc?.inputs ? getStudioComponentProps(componentDoc.inputs) : {}
+		return getStudioComponentProps(componentStore.getComponentInputs(props.block.componentName))
 	}
 	if (componentInstance.value) {
 		return getComponentProps(props.block.componentName, componentInstance.value)

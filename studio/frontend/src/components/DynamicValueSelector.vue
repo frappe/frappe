@@ -92,6 +92,15 @@ const dynamicValueOptions = computed(() => {
 				options: componentContext,
 			})
 		}
+		const scriptBindings = Object.entries(props.block?.componentContext || {})
+			.filter(([name]) => name !== "inputs")
+			.map(([name, value]) => {
+				const isFunction = typeof value === "function"
+				return { value: isFunction ? `${name}()` : name, label: name, type: isFunction ? "function" : "ref" }
+			})
+		if (scriptBindings.length > 0) {
+			groups.push({ group: "Component Script", options: scriptBindings })
+		}
 	} else {
 		// Variables group
 		if (store.variableOptions.length > 0) {

@@ -67,7 +67,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			type: input.type,
 			description: input.description || "",
 			default: input.default || "",
-			required: 0,
+			required: input.required ? 1 : 0,
 			options: input.options,
 		}))
 
@@ -91,18 +91,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		const block = componentBlock || getBlockInstance(getBlockTemplate("empty-component"))
 		studioComponentBlock.value = getComponentBlock(componentId, true)
 
-		// Load existing inputs from the component doc
-		if (componentDoc && componentDoc.inputs) {
-			componentInputs.value = componentDoc.inputs.map((input: any) => ({
-				input_name: input.input_name,
-				type: input.type,
-				description: input.description,
-				default: input.default,
-				options: input.options,
-			}))
-		} else {
-			componentInputs.value = []
-		}
+		setComponentInputs(componentId)
 
 		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
@@ -165,6 +154,18 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		studioComponentBlock.value = null
 	}
 
+	/** Load the saved inputs, or the props that the component's script declares. */
+	function setComponentInputs(componentId: string) {
+		componentInputs.value = componentStore.getComponentInputs(componentId).map((input) => ({
+			input_name: input.input_name,
+			type: input.type,
+			description: input.description,
+			default: input.default,
+			options: input.options,
+			required: input.required,
+		}))
+	}
+
 	// component inputs
 	function addComponentInput(input: ComponentInput) {
 		componentInputs.value.push(input)
@@ -194,6 +195,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		promptNewComponent,
 		editComponent,
 		deleteComponent,
+		setComponentInputs,
 		// inputs
 		addComponentInput,
 		updateComponentInput,

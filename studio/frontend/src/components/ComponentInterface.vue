@@ -1,10 +1,31 @@
 <template>
 	<div class="flex select-none flex-col pb-16">
 		<div class="flex flex-col gap-3">
+			<SectionContainer title="Script">
+				<template #actions>
+					<Button
+						size="sm"
+						variant="ghost"
+						:icon="isScripted ? 'lucide-pencil' : 'lucide-plus'"
+						:title="isScripted ? 'Edit script' : 'Add script'"
+						@click="store.navigateToComponentScript(componentId)"
+					/>
+				</template>
+				<ErrorMessage v-if="scriptError" :message="scriptError" />
+				<p v-else class="text-sm text-ink-gray-5">
+					{{
+						isScripted
+							? "The script declares this component's inputs and events."
+							: "Add a script to give this component state, logic and events."
+					}}
+				</p>
+			</SectionContainer>
+
 			<!-- inputs -->
 			<SectionContainer title="Inputs">
 				<template #actions>
 					<Combobox
+						v-if="!isScripted"
 						:options="fieldTypeOptions"
 						@update:modelValue="(value: string) => showAddInputPopover(value)"
 						class="!w-auto"
@@ -31,14 +52,16 @@
 					>
 						<template #trigger>
 							<div
-								class="group flex flex-1 cursor-pointer justify-between rounded-4 border border-outline-gray-2 px-2 py-1 hover:bg-surface-gray-1"
-								@click="editInput(input, index)"
+								class="group flex flex-1 justify-between rounded-4 border border-outline-gray-2 px-2 py-1"
+								:class="isScripted ? '' : 'cursor-pointer hover:bg-surface-gray-1'"
+								@click="!isScripted && editInput(input, index)"
 							>
 								<div class="flex items-center gap-2">
 									<span :class="getFieldTypeIcon(input.type)" class="h-4 w-4 text-ink-gray-4" />
 									<span class="text-sm text-ink-gray-7">{{ input.input_name }}</span>
 								</div>
 								<button
+									v-if="!isScripted"
 									class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
 									@click.stop="componentEditorStore.removeComponentInput(index)"
 								>
@@ -146,8 +169,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, markRaw, computed } from "vue"
-import { Combobox, Popover, FormControl, Button } from "frappe-ui"
+import { ref, markRaw, computed, watch } from "vue"
+import { Combobox, ErrorMessage, Popover, FormControl, Button } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
@@ -155,10 +178,23 @@ import ColorInput from "@/components/ColorInput.vue"
 import PropsEditor from "@/components/PropsEditor.vue"
 import SectionContainer from "@/components/SectionContainer.vue"
 import useComponentEditorStore from "@/stores/componentEditorStore"
+import useComponentStore from "@/stores/componentStore"
+import useStudioStore from "@/stores/studioStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { isCtrlOrCmd } from "@/utils/helpers"
 
+const store = useStudioStore()
+const componentStore = useComponentStore()
 const componentEditorStore = useComponentEditorStore()
 const componentInputs = computed(() => componentEditorStore.componentInputs)
+
+const canvasStore = useCanvasStore()
+const componentId = computed(() => canvasStore.fragmentData.fragmentId ?? "")
+const script = computed(() => componentStore.getComponentScript(componentId.value))
+const isScripted = computed(() => componentStore.hasComponentScript(componentId.value))
+const scriptError = computed(() => componentStore.componentScriptErrors.get(componentId.value))
+// A scripted component declares its inputs as props, so they follow the script.
+watch(script, () => componentId.value && componentEditorStore.setComponentInputs(componentId.value))
 const showEditPopover = ref(false)
 const editingInput = ref<ComponentInput | null>(null)
 const editingIndex = ref<number>(-1)
