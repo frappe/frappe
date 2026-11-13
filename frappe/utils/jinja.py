@@ -138,7 +138,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 				throw(_("Illegal template"))
 			compiled_template = jenv.from_string(template)
 	except TemplateError:
-		_throw_render_error("Jinja Template Error", template=template)
+		_throw_render_error(_("Jinja Template Error"), template=template)
 
 	import time
 
@@ -150,7 +150,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 		with safe_render_flags():
 			return compiled_template.render(context)
 	except Exception as e:
-		_throw_render_error("Context Error", exc=e)
+		_throw_render_error(_("Context Error"), exc=e)
 	finally:
 		if is_path:
 			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
