@@ -4,9 +4,11 @@
 import frappe
 from frappe import _
 from frappe.printing.doctype.print_format.print_designer_converter import (
-	create_editor_format,
-	print_format_references,
+	convert_in_place,
+	converted_values,
+	is_print_designer_format,
 )
+from frappe.printing.doctype.print_format.print_format import printable_sample
 
 
 @frappe.whitelist()
@@ -23,48 +25,18 @@ def get_print_designer_formats() -> list[dict]:
 
 	rows = frappe.get_all(
 		"Print Format",
-		filters={"print_designer": 1},
 		or_filters=or_filters,
-		fields=["name", "doc_type", "disabled", "standard"],
+		fields=["name", "doc_type", "disabled", "print_designer", "print_format_builder_beta"],
 		order_by="doc_type asc, name asc",
 	)
-	copies = editor_copies(rows)
+	rows = [row for row in rows if row.print_designer or row.print_format_builder_beta]
+	samples = {}
 	for row in rows:
-		row.editor_format = copies.get(row.name)
-		if not row.editor_format:
-			row.state = "Not converted"
-		elif not row.disabled or print_format_references(row.name):
-			row.state = "Converted"
-		else:
-			row.state = "Switched over"
-			row.can_delete = row.standard == "No"
+		row.converted = not row.print_designer
+		if row.doc_type not in samples:
+			samples[row.doc_type] = printable_sample(row.doc_type)
+		row.sample = samples[row.doc_type]
 	return rows
-
-
-def editor_copies(rows: list[dict]) -> dict[str, str]:
-	by_name = {row.name: row for row in rows}
-	usable = {"print_format_builder_beta": 1, "print_designer": 0, "disabled": 0}
-	copies = {}
-	for copy in frappe.get_all(
-		"Print Format",
-		filters={"converted_from": ["in", list(by_name)], **usable},
-		fields=["name", "doc_type", "converted_from"],
-		order_by="creation desc",
-	):
-		if copy.doc_type == by_name[copy.converted_from].doc_type:
-			copies.setdefault(copy.converted_from, copy.name)
-
-	named = {_("{0} (Editor)").format(row.name): row for row in rows if row.name not in copies}
-	if named:
-		for copy in frappe.get_all(
-			"Print Format",
-			filters={"name": ["in", list(named)], "converted_from": ["is", "not set"], **usable},
-			fields=["name", "doc_type"],
-		):
-			source = named[copy.name]
-			if copy.doc_type == source.doc_type:
-				copies[source.name] = copy.name
-	return copies
 
 
 @frappe.whitelist(methods=["POST"])
@@ -72,13 +44,27 @@ def convert_all() -> dict:
 	frappe.only_for("System Manager")
 	converted, failed = [], []
 	for row in get_print_designer_formats():
-		if row.state != "Not converted":
+		if row.converted:
 			continue
 		frappe.db.savepoint("convert_print_designer_format")
 		try:
-			converted.append(create_editor_format(row.name)["name"])
+			convert_in_place(row.name)
+			converted.append(row.name)
 		except Exception:
 			frappe.db.rollback(save_point="convert_print_designer_format")
 			frappe.log_error(f"Could not convert Print Designer format {row.name}")
 			failed.append(row.name)
 	return {"converted": converted, "failed": failed}
+
+
+@frappe.whitelist()
+def preview_conversion(print_format: str, name: str | None = None) -> None:
+	from frappe.utils.print_format_generator import download_builder_preview_pdf
+
+	frappe.only_for("System Manager")
+	doc = frappe.get_doc("Print Format", print_format)
+	if not is_print_designer_format(doc):
+		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
+	converted = doc.as_dict()
+	converted.update(converted_values(doc)[0])
+	download_builder_preview_pdf(converted, doc.doc_type, name)
