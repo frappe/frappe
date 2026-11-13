@@ -177,9 +177,8 @@ class PrintDesignerMigration {
 			.xcall(`${CONVERTER}.duplicate_and_convert`, { print_format: row.name })
 			.then(({ name, notes, usage }) => {
 				frappe.show_alert({ message: __("Created {0}", [name]), indicator: "green" });
-				this.show_notes(notes);
 				this.refresh(name);
-				if (!usage.length) return;
+				if (!usage.length) return this.show_notes(notes);
 				frappe.confirm(
 					__("{0} is in use: {1}. Use {2} instead?", [
 						`<b>${escape(row.name)}</b>`,
@@ -192,12 +191,14 @@ class PrintDesignerMigration {
 								print_format: row.name,
 								replacement: name,
 							})
-							.then(() =>
+							.then(() => {
 								frappe.show_alert({
 									message: __("{0} now prints with {1}", [row.name, name]),
 									indicator: "green",
-								})
-							)
+								});
+								this.show_notes(notes);
+							}),
+					() => this.show_notes(notes)
 				);
 			});
 	}
