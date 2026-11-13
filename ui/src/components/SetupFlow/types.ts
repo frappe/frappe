@@ -18,6 +18,9 @@ export interface SetupFlowLabels {
 export interface SetupFlowProps {
   steps: SetupStep[];
   labels?: Partial<SetupFlowLabels>;
+  /** False hides the Back button in the header; the host renders its own from the
+   * slot's `back` and `canGoBack`, say beside its step's actions. */
+  backButton?: boolean;
 }
 
 /** What the setup ended with, for the host to save and act on. */
@@ -35,6 +38,10 @@ export interface SetupStepSlotProps {
   done: (details?: Record<string, unknown>) => void;
   /** Leave this step for later and move on. */
   skip: () => void;
+  /** Return to the previous step. Does nothing when `canGoBack` is false. */
+  back: () => void;
+  /** False on the first step and after a required one. */
+  canGoBack: boolean;
 }
 
 export type ChoiceValue = string | number | boolean;
