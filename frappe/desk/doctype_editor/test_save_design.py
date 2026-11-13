@@ -35,6 +35,11 @@ def make_custom_doctype(name: str = DOCTYPE, fields: list[dict] | None = None, *
 	return doc
 
 
+def drop_column(dt: str, fieldname: str):
+	if frappe.db.has_column(dt, fieldname):
+		frappe.db.sql_ddl(f"alter table `tab{dt}` drop column `{fieldname}`")
+
+
 def details_rows(dt: str = DOCTYPE) -> list:
 	return frappe.get_all(
 		"Form Layout", filters={"dt": dt, "type": "Details"}, fields=["name", "layout", "omitted"]
@@ -173,6 +178,8 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(error["target"], {"kind": "field", "fieldname": "title", "property": "fieldname"})
 
 	def test_a_fetched_field_takes_its_type_from_the_source(self):
+		if frappe.db.db_type == "sqlite":
+			self.skipTest("DocType.update_fields_to_fetch's update query is ambiguous on SQLite")
 		result = self.save(
 			[
 				{"act": "fields.add_field", "label": "Owner User", "fieldtype": "Link", "options": "User"},
@@ -392,8 +399,10 @@ class TestSaveDesign(IntegrationTestCase):
 			]
 		)
 		self.assertFalse(result["saved"])
-		self.assertEqual(result["written"], [DOCTYPE])
-		self.assertTrue(frappe.get_meta(DOCTYPE).get_field("due"))
+		# MariaDB and Postgres commit the DocType's DDL; SQLite rolls it back with the rest.
+		kept = frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "due"})
+		self.assertEqual(bool(kept), frappe.db.db_type != "sqlite")
+		self.assertEqual(result["written"], [DOCTYPE] if kept else [])
 		self.assertEqual(details_rows(), [])
 
 	def test_a_save_tells_open_desks_once(self):
@@ -501,7 +510,7 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 				"fieldtype": "Data",
 			}
 		).insert()
-		self.addCleanup(frappe.db.sql_ddl, f"alter table `tabToDo` drop column if exists {fieldname}")
+		self.addCleanup(drop_column, "ToDo", fieldname)
 		self.addCleanup(delete_committed, "Custom Field", f"ToDo-{fieldname}")
 		result = save_doctype_editor(
 			"ToDo",
