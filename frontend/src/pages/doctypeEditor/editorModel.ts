@@ -3,6 +3,14 @@
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { LayoutTree } from "@/recordPage/formLayoutSource/types";
 import { addChildTable, reorderField } from "./childReplay";
+import {
+	appValue,
+	customFieldname,
+	customizeRules,
+	refuseLocked,
+	refuseStandard,
+	type CustomizeRules,
+} from "./customizeRules";
 import { detailsLayout, type EditorState } from "./editorSource";
 import { fieldnameFromLabel, LAYOUT_BREAKS, validFieldname } from "./fieldRules";
 import { EditRefused, LayoutTreeEditor } from "./layoutTree";
@@ -26,6 +34,8 @@ export interface WorkingState {
 	saved: string[];
 	/** Each saved field renamed so far, `[saved, current]`. */
 	renames: [string, string][];
+	/** `null` in Design. */
+	customize: CustomizeRules | null;
 }
 
 export interface OffLayoutField {
@@ -46,12 +56,13 @@ export function editorBase(state: EditorState): WorkingState {
 		description: definition.description ?? "",
 		saved: definition.fields.map((field) => field.fieldname),
 		renames: [],
+		customize: customizeRules(state),
 	};
 }
 
 /** The base with `edits` applied in order; the base is never changed, so undo is a shorter replay. */
 export function workingState(base: WorkingState, edits: readonly FlatEdit[]): WorkingState {
-	const replay = new DesignReplay(structuredClone(base));
+	const replay = new DesignReplay(structuredClone(base), base);
 	for (const edit of edits) replay.apply(edit);
 	return replay.state;
 }
@@ -111,7 +122,10 @@ const CANVAS_ACTS: Record<string, keyof LayoutTreeEditor> = {
 class DesignReplay {
 	private tree: LayoutTreeEditor;
 
-	constructor(readonly state: WorkingState) {
+	constructor(
+		readonly state: WorkingState,
+		private loaded: WorkingState,
+	) {
 		this.tree = new LayoutTreeEditor(state.layout);
 	}
 
@@ -131,7 +145,7 @@ class DesignReplay {
 	addField(edit: FlatEdit & { label?: string; fieldtype?: string; fieldname?: string; options?: string }) {
 		const { label, fieldtype } = edit;
 		if (!label || !fieldtype) throw new EditRefused("A new field needs a label and a type.");
-		const fieldname = edit.fieldname || fieldnameFromLabel(label);
+		const fieldname = edit.fieldname || newFieldname(this.state, label);
 		this.refuseTakenFieldname(fieldname);
 		const properties = (edit.properties ?? {}) as Record<string, unknown>;
 		for (const property of Object.keys(properties)) refuseProperty(property);
@@ -150,16 +164,32 @@ class DesignReplay {
 	setFieldProperty({ fieldname, property, value }: { fieldname: string; property: string; value: unknown }) {
 		const field = this.field(fieldname);
 		refuseProperty(property);
+		if (this.state.customize) refuseLocked(this.state.customize, fieldname, property);
 		(field as unknown as Record<string, unknown>)[property] = value;
+	}
+
+	resetFieldProperty({ fieldname, property }: { fieldname: string; property: string }) {
+		const rules = this.state.customize;
+		if (!rules) throw new EditRefused("{0} is not a Design edit.", ["fields.reset_field_property"]);
+		const field = this.field(fieldname);
+		refuseProperty(property);
+		const loaded = this.loaded.fields.find((each) => each.fieldname === fieldname);
+		if (!loaded || !rules.standard.includes(fieldname)) {
+			throw new EditRefused("Only a standard field's property can be reset.");
+		}
+		(field as unknown as Record<string, unknown>)[property] = appValue(rules, loaded, property);
 	}
 
 	renameField({ fieldname, new_fieldname }: { fieldname: string; new_fieldname?: string }) {
 		const field = this.field(fieldname);
+		if (this.state.customize) {
+			refuseStandard(this.state.customize, fieldname, "Only a custom field this site added can be renamed.");
+		}
 		if (!new_fieldname) throw new EditRefused("A field needs a fieldname.");
 		const saved = savedName(this.state, fieldname);
 		if (new_fieldname !== saved) this.refuseTakenFieldname(new_fieldname);
 		if (saved !== null) {
-			if (this.state.standard) {
+			if (this.state.standard && !this.state.customize) {
 				throw new EditRefused("Renaming a saved field of a standard DocType needs a patch.");
 			}
 			this.noteRename(saved, new_fieldname);
@@ -170,6 +200,9 @@ class DesignReplay {
 
 	deleteField({ fieldname }: { fieldname: string }) {
 		const field = this.field(fieldname);
+		if (this.state.customize) {
+			refuseStandard(this.state.customize, fieldname, "{0} is a standard field. Hide it instead.");
+		}
 		this.state.fields.splice(this.state.fields.indexOf(field), 1);
 		this.state.renames = this.state.renames.filter(([, current]) => current !== fieldname);
 		this.tree.unplace_field({ fieldname });
@@ -210,6 +243,7 @@ const FIELD_ACTS: Record<string, (replay: DesignReplay, edit: never) => void> = 
 	"fields.add_field": (replay, edit) => replay.addField(edit),
 	"fields.fetch_field": (replay, edit) => replay.fetchField(edit),
 	"fields.set_field_property": (replay, edit) => replay.setFieldProperty(edit),
+	"fields.reset_field_property": (replay, edit) => replay.resetFieldProperty(edit),
 	"fields.rename_field": (replay, edit) => replay.renameField(edit),
 	"fields.delete_field": (replay, edit) => replay.deleteField(edit),
 	"fields.reorder_field": (replay, edit) => reorderField(replay.state, edit),
@@ -222,6 +256,11 @@ export function savedName(state: WorkingState, fieldname: string): string | null
 	const renamed = state.renames.find(([, current]) => current === fieldname);
 	if (renamed) return renamed[0];
 	return state.saved.includes(fieldname) ? fieldname : null;
+}
+
+/** A new field's fieldname: in Customize, a custom field's `custom_` one. */
+export function newFieldname(state: WorkingState, label: string): string {
+	return state.customize ? customFieldname(label) : fieldnameFromLabel(label);
 }
 
 /** The canvas draws the default Details layout; edits to other layouts leave it as it is. */

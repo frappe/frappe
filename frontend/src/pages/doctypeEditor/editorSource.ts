@@ -53,6 +53,28 @@ export interface EditorState {
 	parents?: string[];
 	/** Not yet saved: `/doctype/new` builds it on the client. */
 	pending?: boolean;
+	/** Customize: the site's changes, and the property changes Customize Form refuses. */
+	custom_fields?: CustomFieldRow[];
+	property_setters?: PropertySetterRow[];
+	locks?: Record<string, Record<string, string>>;
+	fieldtype_changes?: Record<string, string[]>;
+}
+
+export interface CustomFieldRow {
+	name: string;
+	fieldname: string;
+	module?: string;
+	is_system_generated: 0 | 1;
+}
+
+export interface PropertySetterRow {
+	field_name: string | null;
+	doctype_or_field: string;
+	property: string;
+	value: string | null;
+	/** The value the app ships; `null` on a custom field. */
+	app_value: unknown;
+	is_system_generated: 0 | 1;
 }
 
 /** The address's `?mode=customize` names the server's `Customize`; any other value asks for the default. */

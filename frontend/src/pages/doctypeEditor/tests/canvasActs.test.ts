@@ -167,7 +167,7 @@ describe("the canvas acts", () => {
 		expect(edits.staged.value).toHaveLength(1);
 	});
 
-	it("stay off every surface outside the Editor tab and in Customize", () => {
+	it("stay off every surface outside the Editor tab, and edit in Customize too", () => {
 		const { tab } = mount();
 		expect(acts.find("canvas.add_section")).toBeDefined();
 		tab.value = "preview";
@@ -175,8 +175,8 @@ describe("the canvas acts", () => {
 		expect(acts.find("fields.add_field")).toBeUndefined();
 		stop();
 		mount("Customize");
-		expect(acts.find("canvas.move_field")).toBeUndefined();
-		expect(acts.find("canvas.select")).toBeDefined();
+		expect(acts.find("canvas.move_field")).toBeDefined();
+		expect(acts.find("fields.reset_field_property")).toBeDefined();
 	});
 });
 
