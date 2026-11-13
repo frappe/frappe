@@ -57,11 +57,17 @@ class FormLayout(Document):
 		"""Refuse a tab or section named like a data field; a script addresses both by one name."""
 		if not tabs:
 			return
-		fieldnames = data_fieldnames(self.dt) | {field["fieldname"] for field in inline_fields(tabs)}
+		fieldnames = data_fieldnames(self.fields_meta()) | {
+			field["fieldname"] for field in inline_fields(tabs)
+		}
 		for tab in tabs:
 			refuse_field_name(_("Tab"), tab["name"], fieldnames, self.dt)
 			for section in tab["sections"]:
 				refuse_field_name(_("Section"), section["name"], fieldnames, self.dt)
+
+	def fields_meta(self) -> Meta:
+		"""The DocType editor checks a layout against the fields its save is about to write."""
+		return self.flags.meta or frappe.get_meta(self.dt)
 
 	def validate_omitted(self):
 		"""Drop each new entry that names no field, with a message; old entries stay."""
@@ -106,7 +112,7 @@ class FormLayout(Document):
 				_("Only a Quick Entry or New Record layout can define a field of its own."),
 				title=_("Invalid Layout"),
 			)
-		meta = frappe.get_meta(self.dt)
+		meta = self.fields_meta()
 		for field in fields:
 			validate_inline_field(field, meta)
 		refuse_repeated_inline_fields(tabs, fields)
@@ -382,9 +388,13 @@ def opens_in_dialog(dt: str, layouts: list) -> bool:
 
 
 def get_quick_entry_fields(meta, custom: bool = True) -> list:
+	return quick_entry_fields(layout_fields(meta, custom))
+
+
+def quick_entry_fields(fields: list) -> list:
 	return [
 		field
-		for field in layout_fields(meta, custom)
+		for field in fields
 		if (field.reqd or field.allow_in_quick_entry or field.mandatory_depends_on)
 		and not field.read_only
 		and not field.is_virtual
@@ -400,8 +410,12 @@ def mandatory_condition(field) -> str | None:
 
 
 def get_quick_entry_layout(dt: str, custom: bool = True) -> list:
+	return quick_entry_layout(layout_fields(frappe.get_meta(dt), custom))
+
+
+def quick_entry_layout(fields: list) -> list:
 	sections = []
-	for field in get_quick_entry_fields(frappe.get_meta(dt), custom):
+	for field in quick_entry_fields(fields):
 		condition = mandatory_condition(field)
 		if condition or not sections or sections[-1].get("dependsOn"):
 			sections.append(new_quick_entry_section(condition))
@@ -533,9 +547,9 @@ def assign_names(nodes: list, kind: str):
 		taken.add(name)
 
 
-def data_fieldnames(dt: str) -> set[str]:
+def data_fieldnames(meta: Meta) -> set[str]:
 	"""Every fieldname a script may hand to `page.fields`; a layout break is a section's own name."""
-	return {field.fieldname for field in frappe.get_meta(dt).fields if field.fieldtype not in LAYOUT_BREAKS}
+	return {field.fieldname for field in meta.fields if field.fieldtype not in LAYOUT_BREAKS}
 
 
 def inline_fields(tabs: list) -> list[dict]:
@@ -677,8 +691,13 @@ def slugify(label: str | None) -> str | None:
 
 
 def get_meta_layout(dt: str, custom: bool = True) -> list:
+	return layout_from_fields(layout_fields(frappe.get_meta(dt), custom))
+
+
+def layout_from_fields(fields: list) -> list:
+	"""The fallback layout: breaks open containers, every other field goes in the column open last."""
 	tabs = []
-	for field in layout_fields(frappe.get_meta(dt), custom):
+	for field in fields:
 		if field.fieldtype == "Tab Break":
 			tabs.append(new_container(field, "sections"))
 		elif field.fieldtype == "Section Break":

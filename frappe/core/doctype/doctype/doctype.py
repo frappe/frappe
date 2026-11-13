@@ -608,9 +608,14 @@ class DocType(Document):
 						self.export_files()
 						run_doctype_module_methods()
 					except Exception as e:
+						if self.flags.app_layouts:
+							# Kept for `write_doctype_files`, which reloads the DocType.
+							frappe.cache.set_value(
+								self.staged_app_layouts_key(), self.flags.app_layouts, expires_in_sec=86400
+							)
 						publish_export_result(self.name, saving_user, e)
 						raise
-					publish_export_result(self.name, saving_user)
+					publish_export_result(self.name, saving_user, app_layouts=self.flags.app_layout_versions)
 
 				request.after_response.add(export_and_report)
 			else:
@@ -960,11 +965,19 @@ class DocType(Document):
 		self.export_app_layouts()
 
 	def export_app_layouts(self):
-		"""Write the layout files a save staged in `flags.app_layouts`, a list of layouts per type."""
+		"""Write the layout files a save staged in `flags.app_layouts`, per type."""
 		from frappe.desk.doctype.form_layout.app_layout_writer import write_app_layouts
 
-		for type, entries in (self.flags.app_layouts or {}).items():
-			write_app_layouts(self.name, type, entries)
+		if not self.flags.app_layouts:
+			return
+		self.flags.app_layout_versions = {
+			type: write_app_layouts(self.name, type, entries)
+			for type, entries in self.flags.app_layouts.items()
+		}
+		frappe.cache.delete_value(self.staged_app_layouts_key())
+
+	def staged_app_layouts_key(self) -> str:
+		return f"doctype_app_layouts_to_export:{self.name}"
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
@@ -2264,17 +2277,25 @@ def get_field(doc, fieldname):
 			return field
 
 
-def publish_export_result(doctype: str, user: str, error: Exception | None = None) -> None:
-	frappe.publish_realtime(
-		"doctype_export",
-		{"doctype": doctype, "ok": error is None, "error": (str(error) or repr(error)) if error else None},
-		user=user,
-	)
+def publish_export_result(
+	doctype: str, user: str, error: Exception | None = None, app_layouts: dict | None = None
+) -> None:
+	"""Tell the saving user how the deferred export went, with the new hash of each app layout file it wrote."""
+	message = {
+		"doctype": doctype,
+		"ok": error is None,
+		"error": (str(error) or repr(error)) if error else None,
+	}
+	if app_layouts:
+		message["app_layouts"] = app_layouts
+	frappe.publish_realtime("doctype_export", message, user=user)
 
 
 @frappe.whitelist(methods=["POST"])
-def write_doctype_files(doctype: str) -> None:
-	"""Run the export of a standard DocType again. It writes `.py` files, so a dev server may restart."""
+def write_doctype_files(doctype: str) -> dict | None:
+	"""Run the export of a standard DocType again. It writes `.py` files, so a dev server may restart.
+
+	Returns the new hash of each app layout file it wrote, the editor's next base version."""
 	frappe.only_for("System Manager")
 	if not frappe.conf.developer_mode:
 		frappe.throw(_("Writing DocType files needs developer mode."), frappe.PermissionError)
@@ -2283,11 +2304,13 @@ def write_doctype_files(doctype: str) -> None:
 	if doc.custom:
 		frappe.throw(_("{0} is a custom DocType and has no app files.").format(frappe.bold(doctype)))
 
+	doc.flags.app_layouts = frappe.cache.get_value(doc.staged_app_layouts_key())
 	try:
 		doc.export_files()
 		doc.run_module_method("on_doctype_update")
 	except Exception as e:
 		frappe.throw(str(e) or repr(e), title=_("DocType files not written"))
+	return doc.flags.app_layout_versions
 
 
 @frappe.whitelist()
