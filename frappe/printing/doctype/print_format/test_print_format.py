@@ -205,20 +205,22 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 				"width": "50mm",
 			}
 		)
-		self.assertIn('data-barcode-value="TEST-123"', html)
-		self.assertIn('"format": "CODE39"', html)
-		self.assertIn('"displayValue": false', html)
+		self.assertIn('src="data:image/svg+xml;base64,', html)
 		self.assertIn("width: 50mm", html)
-		# the client-side renderer must be shipped with the document
-		self.assertIn("print.bundle", html)
-		self.assertIn("render_barcode", html)
+		self.assertNotIn("data-barcode-value", html)
 
 		# value bound to a doc field
 		html = self.render(df | {"barcode_field": "name", "barcode_format": "CODE128"})
-		self.assertIn('data-barcode-value="Administrator"', html)
+		self.assertIn('src="data:image/svg+xml;base64,', html)
+
+		# a value the format cannot encode prints nothing
+		self.assertNotIn(
+			'class="field print-barcode',
+			self.render(df | {"barcode_value": "a*b", "barcode_format": "CODE39"}),
+		)
 
 		# no value -> block is skipped entirely
-		self.assertNotIn("print-barcode", self.render(df | {"barcode_value": ""}))
+		self.assertNotIn('class="field print-barcode', self.render(df | {"barcode_value": ""}))
 
 	def test_qr_code(self):
 		import base64
@@ -245,6 +247,12 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		prefix = "data:image/svg+xml;base64,"
 		self.assertTrue(data_uri.startswith(prefix))
 		self.assertIn(b"<svg", base64.b64decode(data_uri[len(prefix) :]))
+
+	def test_qr_code_returns_nothing_when_the_value_does_not_fit(self):
+		from frappe.utils.print_format_generator import get_qr_code
+
+		with self.set_user("test@example.com"):
+			self.assertIsNone(get_qr_code("x" * 1274))
 
 
 class TestPrintFormatHardening(IntegrationTestCase):
@@ -567,6 +575,42 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertIn("<div>ToDo</div>", html)
 		self.assertIn(f'<small class="sub-heading">{todo.name}</small>', html)
 
+	def test_default_layout_follows_before_print(self):
+		from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Before print test"}).insert()
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		priority = todo.meta.get_field("priority")
+		self.addCleanup(priority.set, "print_hide", priority.print_hide)
+		todo.before_print = lambda settings: priority.set("print_hide", 1)
+
+		generator = PrintFormatGenerator(get_default_print_format("ToDo"), todo)
+		fieldnames = [
+			f["fieldname"] for s in generator.layout["sections"] for c in s["columns"] for f in c["fields"]
+		]
+		self.assertNotIn("priority", fieldnames)
+
+	def test_layout_drops_fields_hidden_in_before_print(self):
+		from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Before print test"}).insert()
+		self.addCleanup(todo.delete, ignore_permissions=True)
+		priority = todo.meta.get_field("priority")
+		self.addCleanup(priority.delete_key, "__print_hide")
+		todo.before_print = lambda settings: priority.set("__print_hide", 1)
+
+		generator = PrintFormatGenerator(get_default_print_format("ToDo"), todo)
+		fieldnames = [
+			f["fieldname"] for s in generator.layout["sections"] for c in s["columns"] for f in c["fields"]
+		]
+		self.assertNotIn("priority", fieldnames)
+
 	def test_print_width_mapping(self):
 		from frappe.printing.doctype.print_format.classic_converter import (
 			distribute_widths,
@@ -666,6 +710,32 @@ class TestClassicConverter(IntegrationTestCase):
 		self.assertIn('data-fieldname="roles"', html)
 		self.assertIn('data-fieldname="idx"', html)
 		self.assertIn("print-heading", html)
+
+	def test_classic_format_prints_on_receipt_paper(self):
+		import io
+
+		from pypdf import PdfReader
+
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": "_Test Classic Receipt",
+				"doc_type": "ToDo",
+				"standard": "No",
+				"print_format_builder": 1,
+				"paper_size": "Receipt 80 mm",
+				"format_data": frappe.as_json([{"fieldname": "description", "print_hide": 0}]),
+			}
+		).insert()
+		self.addCleanup(print_format.delete)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Receipt test"}).insert()
+
+		pdf = frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True)
+		page = PdfReader(io.BytesIO(pdf)).pages[0]
+		self.assertAlmostEqual(float(page.mediabox.width), 80 / 25.4 * 72, delta=1)
+		self.assertLess(float(page.mediabox.height), 297 / 25.4 * 72)
 
 	def test_zero_font_size_renders_at_default(self):
 		# app-shipped classic fixtures carry no font_size, which lands as 0 — the
@@ -804,6 +874,26 @@ class TestClassicConverter(IntegrationTestCase):
 		execute()
 		self.assertEqual(frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data"), modified)
 
+	def test_repair_restores_paper_size(self):
+		from frappe.patches.v16_0.repair_converted_print_formats import execute
+
+		doc = self.make_classic_format()
+		doc.db_set(
+			{
+				"paper_size": "A5",
+				"print_format_builder_beta": 1,
+				"classic_format_data": doc.format_data,
+				"format_data": frappe.as_json({"sections": []}),
+			}
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		execute()
+
+		format_data = frappe.db.get_value("Print Format", self.FORMAT_NAME, "format_data")
+		self.assertEqual(frappe.parse_json(format_data).get("page"), {"size": "A5"})
+
 	def test_migration_skips_corrupt_format(self):
 		"""A format with unparseable format_data is skipped, not fatal to the run."""
 		from frappe.printing.doctype.print_format.classic_converter import migrate_all_classic_formats
@@ -827,6 +917,93 @@ class TestClassicConverter(IntegrationTestCase):
 
 		self.assertIn(self.FORMAT_NAME, report)
 		self.assertNotIn(bad_name, report)
+
+
+class TestPrintDesignerConverter(IntegrationTestCase):
+	def test_print_designer_barcode_keeps_its_type(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import (
+			convert_print_designer_format,
+		)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		barcodes = [
+			{"type": "barcode", "barcodeFormat": "code39", "value": "{{ doc.name }}"},
+			{"type": "barcode", "barcodeFormat": "ean13", "value": "4006381333931", "startX": 400},
+		]
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "Note",
+				"print_designer_body": frappe.as_json([{"childrens": barcodes}]),
+			}
+		)
+
+		layout, notes = convert_print_designer_format(doc)
+
+		columns = layout["sections"][0]["columns"]
+		self.assertEqual([c["fields"][0]["barcode_format"] for c in columns], ["CODE39", "CODE128"])
+		self.assertIn("The EAN13 barcode type was changed to CODE128.", notes)
+
+	def test_print_designer_linked_image_prints_the_linked_document_image(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import (
+			convert_print_designer_format,
+		)
+
+		user_image = frappe.db.get_value("User", "Administrator", "user_image")
+		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")
+		self.addCleanup(frappe.db.set_value, "User", "Administrator", "user_image", user_image)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		image = {
+			"type": "image",
+			"isDynamic": True,
+			"image": {"doctype": "User", "fieldname": "user_image", "parentField": "allocated_to"},
+		}
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "ToDo",
+				"print_designer_body": frappe.as_json([{"childrens": [image]}]),
+			}
+		)
+
+		layout, _notes = convert_print_designer_format(doc)
+
+		html = layout["sections"][0]["columns"][0]["fields"][0]["html"]
+		todo = frappe.get_doc({"doctype": "ToDo", "allocated_to": "Administrator"})
+		self.assertIn("/files/admin.png", frappe.render_template(html, {"doc": todo}))
+
+	def test_print_designer_barcode_beside_text_prints_an_image(self):
+		from frappe.printing.doctype.print_format.print_designer_converter import (
+			convert_print_designer_format,
+		)
+		from frappe.utils.print_format_generator import get_barcode
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		box = {
+			"type": "rectangle",
+			"childrens": [
+				{"type": "text", "content": "Shelf"},
+				{"type": "barcode", "barcodeFormat": "code128", "value": "{{ doc.title }}"},
+			],
+		}
+		doc = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"doc_type": "Note",
+				"print_designer_body": frappe.as_json([{"childrens": [box]}]),
+			}
+		)
+
+		layout, _notes = convert_print_designer_format(doc)
+
+		html = layout["sections"][0]["columns"][0]["fields"][0]["html"]
+		note = frappe.get_doc({"doctype": "Note", "title": "_Test Note"})
+		self.assertIn(
+			"data:image/svg+xml", frappe.render_template(html, {"doc": note, "get_barcode": get_barcode})
+		)
 
 
 class TestPrintFormatChildTableVisibility(IntegrationTestCase):

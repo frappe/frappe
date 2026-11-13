@@ -31,11 +31,11 @@
 		</div>
 		<LoadingState
 			v-if="loading && !loaded"
-			class="justify-center py-8 text-xs text-ink-gray-5"
+			class="justify-center py-8 text-sm text-ink-gray-5"
 		/>
 		<div
 			v-else-if="!rows.length && !error"
-			class="rounded-6 border border-dashed border-outline-gray-2 py-10 text-center text-xs text-ink-gray-5"
+			class="rounded-6 border border-dashed border-outline-gray-2 py-10 text-center text-sm text-ink-gray-5"
 		>
 			No {{ spec.label.toLowerCase() }} yet.
 		</div>
@@ -49,17 +49,23 @@
 					@click="edit(row.name)"
 				>
 					<span class="min-w-0 flex-1">
-						<span class="block truncate text-sm font-medium text-ink-gray-9">{{
+						<span class="block truncate text-base-medium text-ink-gray-9">{{
 							row[spec.titleField] || row.name
 						}}</span>
 						<span
 							v-if="spec.subtitle?.(row)"
-							class="mt-1 block truncate text-2xs text-ink-gray-5"
+							class="mt-1 block truncate text-xs text-ink-gray-5"
 							>{{ spec.subtitle(row) }}</span
 						>
 					</span>
 					<Badge
-						v-if="hasEnabled"
+						v-if="notice(row)"
+						theme="gray"
+						label="Unavailable"
+						:title="notice(row)"
+					/>
+					<Badge
+						v-else-if="hasEnabled"
 						:theme="row.enabled ? 'green' : 'gray'"
 						:label="row.enabled ? 'Enabled' : 'Disabled'"
 					/>
@@ -97,7 +103,7 @@ const props = defineProps({
 });
 const page = inject("flowPage");
 
-// a blank record when one was asked for from outside settings ("Add a model"), else the list
+// a blank record when one was asked for from outside settings ("Add a skill"), else the list
 const mode = ref(page.takeNewRecord(props.spec.key) ? "form" : "list");
 const editing = ref(null);
 const query = ref("");
@@ -106,6 +112,11 @@ const { rows, loaded, loading, error, hasMore, hasEnabled, load, drop } = useRec
 	props.spec,
 	{ query, filters: () => props.filters }
 );
+
+// why a record can't be used, when its spec knows one
+function notice(row) {
+	return props.spec.notice?.(row, page.state.boot) ?? "";
+}
 
 function edit(name) {
 	editing.value = name;

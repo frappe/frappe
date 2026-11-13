@@ -58,6 +58,10 @@ export interface FieldMeta {
   permDenied?: boolean;
   /** Static read-only; `resolveLayout` may flip this from `readOnlyDependsOn`. */
   readOnly?: boolean;
+  /** A `Table` field whose grid offers no way to add a row. */
+  cannotAddRows?: boolean;
+  /** A `Table` field whose grid offers no way to delete a row. */
+  cannotDeleteRows?: boolean;
   /**
    * Raw Frappe conditional expressions, carried verbatim. Not evaluated here —
    * `resolveLayout` bakes them into `hidden` / `reqd` / `readOnly` (Phase 4).

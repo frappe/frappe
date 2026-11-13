@@ -1,6 +1,8 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.doctype.user.test_user import test_user
+from frappe.core.doctype.user.user import get_module_profile
 from frappe.tests import IntegrationTestCase
 
 
@@ -28,6 +30,19 @@ class TestModuleProfile(IntegrationTestCase):
 		new_user.save()
 
 		self.assertEqual(new_user.block_modules[0].module, "Core")
+
+	def test_get_module_profile_requires_read_permission(self):
+		frappe.get_doc(
+			doctype="Module Profile",
+			module_profile_name="_Test Module Profile",
+			block_modules=[{"module": "Core"}],
+		).insert()
+
+		with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
+			self.assertRaises(frappe.PermissionError, get_module_profile, "_Test Module Profile")
+
+		blocked = get_module_profile("_Test Module Profile")
+		self.assertEqual([row.module for row in blocked], ["Core"])
 
 	def test_multiple_block_modules(self):
 		"""Assign multiple blocked modules from profile to user"""

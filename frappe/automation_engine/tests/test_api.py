@@ -8,6 +8,7 @@ from frappe.automation_engine import api
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import RUN
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_api import FrappeAPITestCase
 
 
 def make_automation():
@@ -112,3 +113,23 @@ class TestApi(IntegrationTestCase):
 		runs = api.get_runs("ToDo", todo.name)
 		self.assertEqual(len(runs), 1)
 		self.assertEqual(runs[0].status, "Success")
+
+
+class TestWriteEndpointsArePostOnly(FrappeAPITestCase):
+	ENDPOINTS = ("run_manually", "trial_run")
+
+	def test_get_is_rejected(self):
+		for name in self.ENDPOINTS:
+			with self.subTest(name):
+				response = self.get(self.method(f"frappe.automation_engine.api.{name}"), {"sid": self.sid})
+				self.assertEqual(response.status_code, 403)
+
+	def test_post_reaches_the_endpoint(self):
+		# A missing flow gives 404 from the endpoint itself, so POST got past the method check.
+		for name in self.ENDPOINTS:
+			with self.subTest(name):
+				response = self.post(
+					self.method(f"frappe.automation_engine.api.{name}"),
+					{"sid": self.sid, "automation": "No Such Flow"},
+				)
+				self.assertEqual(response.status_code, 404)

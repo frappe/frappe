@@ -3,7 +3,7 @@
 		role="button"
 		tabindex="0"
 		:aria-expanded="entry.type === 'dir' ? expanded : undefined"
-		class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm hover:bg-surface-gray-2"
+		class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-base hover:bg-surface-gray-2"
 		:class="active ? 'bg-surface-gray-3 font-medium text-ink-gray-9' : 'text-ink-gray-8'"
 		:style="{ paddingLeft: depth * INDENT + 8 + 'px' }"
 		:title="path"

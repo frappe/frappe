@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import frappe
 from frappe.utils.data import cint, cstr
 from frappe.utils.pdf import get_host_url
-from frappe.utils.print_utils import _print_format_doc_or_none, convert_uom, parse_float_and_unit
+from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
 RECEIPT_WIDTHS = {"Receipt 80 mm": "80mm", "Receipt 58 mm": "58mm"}
 
@@ -175,8 +175,8 @@ class Browser:
 		soup = self.soup
 		options = self.options
 		if options.get("block-external-requests"):
-			for script in soup.find_all("script"):
-				script.decompose()
+			for element in soup.find_all(["script", "iframe", "frame", "object", "embed"]):
+				element.decompose()
 			for tag in soup.find_all(True):
 				for attr in [attr for attr in tag.attrs if attr.lower().startswith("on")]:
 					del tag[attr]
@@ -215,11 +215,6 @@ class Browser:
 			if not self.header_height:
 				self.header_page.close()
 				self.header_page = None
-		if not self.header_page:
-			# Fallback only when the caller did not explicitly pass margin-top.
-			# If margin-top is already set (e.g. from PrintFormatGenerator), keep it.
-			if "margin-top" not in options:
-				options["margin-top"] = "15mm"
 
 		if self.footer_page:
 			self.footer_page.wait_for_set_content()
@@ -229,10 +224,6 @@ class Browser:
 			if not self.footer_height:
 				self.footer_page.close()
 				self.footer_page = None
-		if not self.footer_page:
-			# Fallback only when the caller did not explicitly pass margin-bottom.
-			if "margin-bottom" not in options:
-				options["margin-bottom"] = "15mm"
 
 		# Remove instances of them from main content for render_template
 		for html_id in ["header-html", "footer-html"]:
@@ -243,9 +234,11 @@ class Browser:
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 		from frappe.utils.print_format_generator import page_number_html
 
-		if self.is_print_designer or not self.print_format or soup.find(class_=["page", "topage"]):
+		if self.is_print_designer or not self.print_format:
 			return
-		if not frappe.db.exists("Print Format", self.print_format):
+		if any(el.find(class_=["page", "topage"]) for el in soup.find_all(id=["header-html", "footer-html"])):
+			return
+		if not frappe.db.exists("Print Format", self.print_format, cache=True):
 			return
 		print_format = frappe.get_cached_doc("Print Format", self.print_format)
 		position = (print_format.page_number or "").lower().replace(" ", "_")
@@ -300,6 +293,14 @@ class Browser:
 			for style in print_format_css
 			if style.name in attrs
 			and (style.name not in PAGE_MARGIN_SIDES or re.fullmatch(f"0|{PAGE_LENGTH}", style.value.strip()))
+			and (
+				style.name not in ("page-width", "page-height")
+				or re.fullmatch(PAGE_LENGTH, style.value.strip())
+			)
+			and (
+				style.name != "header-spacing"
+				or re.fullmatch(rf"{PAGE_LENGTH}|[+-]?(\d*\.)?\d+", style.value.strip())
+			)
 		}
 		self.options.update(options)
 		self._set_page_size_from_print_format()
@@ -308,11 +309,16 @@ class Browser:
 	def _set_page_size_from_print_format(self):
 		if any(self.options.get(key) for key in ("page-size", "page-width", "page-height")):
 			return
-		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format, cache=True):
 			return
-		paper_size = frappe.get_cached_value("Print Format", self.print_format, "paper_size")
+		paper_size, width, height = frappe.get_cached_value(
+			"Print Format", self.print_format, ["paper_size", "paper_width", "paper_height"]
+		)
 		if receipt_width := RECEIPT_WIDTHS.get(paper_size):
 			self.options |= {"page-width": receipt_width, "page-height": "297mm", "fit-height": True}
+		elif paper_size == "Custom":
+			if width and height:
+				self.options |= {"page-width": f"{width}mm", "page-height": f"{height}mm"}
 		elif paper_size:
 			self.options["page-size"] = paper_size
 
@@ -330,8 +336,10 @@ class Browser:
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 		from frappe.www.printview import get_page_rule_margins
 
-		print_format = _print_format_doc_or_none(self.print_format)
-		if not print_format or not print_format.css or uses_beta_renderer(print_format):
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format, cache=True):
+			return {}
+		print_format = frappe.get_cached_doc("Print Format", self.print_format)
+		if not print_format.css or uses_beta_renderer(print_format):
 			return {}
 		return get_page_rule_margins(print_format.css)
 
@@ -377,14 +385,6 @@ class Browser:
 			"generateOutline": options.get("generate-outline", False),
 		}
 
-		# bad implicit setting of margin #backwards-compatibility
-		if not self.is_print_designer:
-			if not options.get("margin-right"):
-				options["margin-right"] = "15mm"
-
-			if not options.get("margin-left"):
-				options["margin-left"] = "15mm"
-
 		if not options.get("page-height") or not options.get("page-width"):
 			if not (page_size := self.options.get("page-size")):
 				raise frappe.ValidationError("Page size is required")
@@ -411,6 +411,22 @@ class Browser:
 
 		updated_options["paperWidth"] = convert_uom(options["page-width"], "px", "in", only_number=True)
 
+		min_size = convert_uom(30, "mm", "px", only_number=True)
+		default_margin = "15mm" if options["page-height"] > min_size else "0mm"
+		if not self.header_page:
+			options.setdefault("margin-top", default_margin)
+		if not self.footer_page:
+			options.setdefault("margin-bottom", default_margin)
+
+		# bad implicit setting of margin #backwards-compatibility
+		if not self.is_print_designer:
+			side_margin = "15mm" if options["page-width"] > min_size else "0mm"
+			if not options.get("margin-right"):
+				options["margin-right"] = side_margin
+
+			if not options.get("margin-left"):
+				options["margin-left"] = side_margin
+
 		if options.get("margin-left"):
 			updated_options["marginLeft"] = convert_uom(
 				self._get_converted_num(options["margin-left"]), "px", "in", only_number=True
@@ -424,6 +440,12 @@ class Browser:
 		self.printable_width = 96 * (
 			updated_options["paperWidth"] - updated_options["marginLeft"] - updated_options["marginRight"]
 		)
+		if self.printable_width < 1:
+			frappe.throw(
+				frappe._(
+					"Margins leave no room for content on a {0}px wide page. Reduce them or use a larger page size."
+				).format(options.get("page-width"))
+			)
 		if self.header_page:
 			self.header_page.set_device_metrics(width=int(self.printable_width))
 			self.header_height = self.header_page.get_element_height()
@@ -498,7 +520,8 @@ class Browser:
 			header_with_spacing_top_margin + footer_with_bottom_margin
 		)
 
-		if body_height <= 0:
+		body_margins = 96 * (self.body_page.options["marginTop"] + self.body_page.options["marginBottom"])
+		if body_height - body_margins < 1:
 			frappe.throw(
 				frappe._(
 					"Header, footer and margins leave no room for content on a {0}px tall page. Reduce their height or use a larger page size."

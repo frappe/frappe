@@ -5,7 +5,7 @@
 		</summary>
 		<pre
 			v-if="open"
-			class="m-0 mt-1 max-h-[200px] overflow-auto whitespace-pre-wrap break-words font-mono text-xs"
+			class="m-0 mt-1 max-h-[200px] overflow-auto whitespace-pre-wrap break-words font-mono text-sm"
 			>{{ JSON.stringify(value, null, 2) }}</pre
 		>
 	</details>

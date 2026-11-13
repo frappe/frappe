@@ -189,6 +189,45 @@ class TestDownloadReportPdf(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			download_report_pdf(REPORT)
 
+	def test_in_background_emails_the_pdf_to_the_user(self):
+		with (
+			patch("frappe.utils.print_format.get_pdf", return_value=b"%PDF"),
+			patch("frappe.utils.print_format.send_report_email") as send_report_email,
+			patch("frappe.enqueue", side_effect=lambda method, queue, **kwargs: method(**kwargs)),
+		):
+			download_report_pdf("ToDo", no_letterhead=1, in_background=1)
+
+		send_report_email.assert_called_once_with(
+			REPORT_USER, "ToDo", "pdf", b"%PDF", attached_to_name="ToDo"
+		)
+
+	def test_prints_the_value_from_the_report_formatter(self):
+		def formatter(value, column, data, default_formatter):
+			return default_formatter(value, column, data).upper()
+
+		with patch("frappe.desk.report.todo.todo.formatter", formatter, create=True):
+			html = self.printed_html()
+
+		self.assertIn("RENEW THE EXAMPLE.COM DOMAIN", html)
+
+	def test_report_formatter_gets_the_total_row(self):
+		report_run = {
+			"columns": [{"fieldname": "subject"}, {"fieldname": "hours", "fieldtype": "Int"}],
+			"result": [{"subject": "Renew the example.com domain", "hours": 2}, ["", 2]],
+			"add_total_row": 1,
+		}
+
+		def formatter(value, column, data, default_formatter):
+			return f"{value} in total" if data.is_total_row else default_formatter(value, column, data)
+
+		with (
+			patch("frappe.utils.print_format.run", return_value=report_run),
+			patch("frappe.desk.report.todo.todo.formatter", formatter, create=True),
+		):
+			html = self.printed_html()
+
+		self.assertIn("2 in total", html)
+
 
 class TestGetPrintFormatData(IntegrationTestCase):
 	@classmethod

@@ -33,6 +33,7 @@ ignore_values = {
 	"Module Onboarding": ["is_complete"],
 	"Onboarding Step": ["is_complete", "is_skipped"],
 	"Workspace": ["is_hidden"],
+	"Letter Head": ["is_default", "disabled"],
 }
 
 ignore_values_if_set = {"Report": {"site_print_defaults": ["default_print_format", "default_letter_head"]}}

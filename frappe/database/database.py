@@ -3,6 +3,7 @@
 
 import itertools
 import json
+import logging
 import random
 import re
 import string
@@ -33,6 +34,7 @@ from frappe.database.utils import (
 	is_query_type,
 )
 from frappe.exceptions import DoesNotExistError, ImplicitCommitError
+from frappe.model.utils import is_single_doctype
 from frappe.monitor import TRACE_ID_PATTERN, get_trace_id
 from frappe.query_builder import Case
 from frappe.query_builder.functions import Count
@@ -55,8 +57,8 @@ if TYPE_CHECKING:
 
 	from MySQLdb.connections import Connection as MySQLdbConnection
 	from MySQLdb.cursors import Cursor as MySQLdbCursor
-	from psycopg2 import connection as PostgresConnection
-	from psycopg2 import cursor as PostgresCursor
+	from psycopg import Connection as PostgresConnection
+	from psycopg import Cursor as PostgresCursor
 	from pymysql.connections import Connection as MariadbConnection
 	from pymysql.cursors import Cursor as MariadbCursor
 
@@ -130,7 +132,9 @@ class Database:
 
 		self.value_cache = recursive_defaultdict()
 		self.logger = frappe.logger("database")
-		self.logger.setLevel("WARNING")
+		# setLevel clears the level cache of all loggers, even when the level does not change.
+		if self.logger.level != logging.WARNING:
+			self.logger.setLevel(logging.WARNING)
 
 		self.before_commit = CallbackManager()
 		self.after_commit = CallbackManager()
@@ -140,6 +144,9 @@ class Database:
 		# Setting this to true will disable full rollback and commit
 		# You can still use savepoint with partial rollback.
 		self._disable_transaction_control = 0
+
+		# inside `read_only()`: every transaction begins read-only
+		self.in_read_only_transaction = False
 
 		# self.db_type: str
 		# self.last_query (lazy) attribute of last sql query executed
@@ -350,7 +357,9 @@ class Database:
 
 			elif self.is_read_only_mode_error(e):
 				frappe.throw(
-					_(
+					_("This runs in a read-only transaction, so it can not write.")
+					if self.in_read_only_transaction
+					else _(
 						"Site is running in read only mode for maintenance or site update, this action can not be performed right now. Please try again later."
 					),
 					title=_("In Read Only Mode"),
@@ -382,12 +391,6 @@ class Database:
 
 		if auto_commit:
 			self.commit()
-
-		if self.db_type == "postgres" and getattr(self._cursor, "name", None):
-			"""named cursors in Postgres are lazy and don't retrieve column names immediately,
-			so explicitly performed here to avoid early exit during `unbuffered_cursor` usage
-			"""
-			self._cursor.fetchmany(0)
 
 		if not self._cursor.description:
 			return ()
@@ -699,8 +702,6 @@ class Database:
 		        # return last login of **User** `test@example.com`
 		        user = frappe.db.get_values("User", "test@example.com", "*")[0]
 		"""
-
-		from frappe.model.utils import is_single_doctype
 
 		out = None
 		if isinstance(fieldname, list):
@@ -1033,8 +1034,6 @@ class Database:
 		:param update_modified: default True. Set as false, if you don't want to update the timestamp.
 		:param debug: Print the query in the developer / js console.
 		"""
-		from frappe.model.utils import is_single_doctype
-
 		if dn is None or dt == dn:
 			if not is_single_doctype(dt):
 				return
@@ -1250,12 +1249,46 @@ class Database:
 		return defaults.get(frappe.scrub(key))
 
 	def begin(self, *, read_only=False):
-		read_only = read_only or frappe.flags.read_only
+		read_only = read_only or frappe.flags.read_only or self.in_read_only_transaction
 		mode = "READ ONLY" if read_only else ""
 		self.sql(f"START TRANSACTION {mode}")
 
+	@contextmanager
+	def read_only(self):
+		"""Run the block in a read-only transaction: the database refuses every write in it, and a
+		`commit()` or `rollback()` inside begins another read-only one. A commit inside is a
+		rollback, so callbacks queued for after a commit don't run.
+
+		It covers this connection's transaction only, not writes deferred past it
+		(`deferred_insert`, `commit_after_response`) or a replica's connection. The open
+		transaction must have no writes or after-commit callbacks: commit or roll it back first."""
+		if self.in_read_only_transaction:
+			yield
+			return
+		if self.transaction_writes or len(self.after_commit) or self._disable_transaction_control:
+			frappe.throw(
+				_("Commit or roll back the open transaction before starting a read-only one."),
+				title=_("Open Transaction"),
+			)
+		self.in_read_only_transaction = True
+		try:
+			self._set_session_read_only(True)
+			self.rollback()
+			yield
+		finally:
+			self.in_read_only_transaction = False
+			self._set_session_read_only(False)
+			self.rollback()
+
+	def _set_session_read_only(self, read_only: bool) -> None:
+		# on MariaDB, DDL or a raw COMMIT ends a read-only transaction; a read-only session refuses it
+		if self.db_type == "mariadb":
+			self.sql(f"SET SESSION TRANSACTION {'READ ONLY' if read_only else 'READ WRITE'}")
+
 	def commit(self, *, chain=False):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
+		if self.in_read_only_transaction:
+			return self.rollback(chain=chain)
 		if self._disable_transaction_control:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 			return

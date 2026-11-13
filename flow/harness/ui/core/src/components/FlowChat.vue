@@ -2,17 +2,15 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div
-		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8"
-		:style="{
-			'--flow-chat-text': `${store.state.prefs.chatFontSize}px`,
-			'--flow-chat-weight': store.state.prefs.chatFontWeight,
-		}"
+		ref="root"
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8"
+		:style="{ '--flow-chat-weight': store.state.prefs.chatFontWeight }"
 	>
-		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
+		<SessionSidebar :open="sidebarOpen" settings-footer bright @close="store.setSidebarOpen(false)" />
 		<div class="flex min-w-0 flex-1 overflow-clip bg-surface-base md:m-1 md:rounded-5 md:shadow-sm">
-			<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
+			<main ref="chat" class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
 				<ChatHeader :sidebar-open="sidebarOpen" @open-sidebar="store.setSidebarOpen(true)" />
-				<MessageList ref="list" />
+				<MessageList ref="list" center-composer />
 				<Composer ref="composer" />
 			</main>
 			<WorkspacePanel>
@@ -20,16 +18,14 @@
 				<template #actions>
 					<Dropdown class="flex-none" :options="addTabOptions">
 						<template #trigger>
-							<button class="flow-icon-btn" title="New tab">
-								<span class="lucide-plus size-3.5" aria-hidden="true" />
-							</button>
+							<Button variant="ghost" icon="lucide-plus" title="New tab" />
 						</template>
 					</Dropdown>
 				</template>
 				<template #view><EditorView /></template>
 				<template #empty>
 					<button
-						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-base text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
 						@click="store.showFilesView()"
 					>
 						<span
@@ -39,7 +35,7 @@
 						Files
 					</button>
 					<button
-						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-base text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
 						@click="store.showDiffView()"
 					>
 						<span
@@ -72,7 +68,7 @@
 					:class="toast.kind === 'error' ? 'lucide-circle-alert text-ink-red-6' : 'lucide-info text-ink-gray-5'"
 					aria-hidden="true"
 				/>
-				<span class="min-w-0 text-xs leading-relaxed text-ink-gray-8">{{ toast.message }}</span>
+				<span class="min-w-0 text-sm leading-relaxed text-ink-gray-8">{{ toast.message }}</span>
 			</div>
 		</Transition>
 	</div>
@@ -80,6 +76,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import Dialogs from "frappe-ui/src/components/Dialogs.vue"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
@@ -88,6 +85,8 @@ import { installShortcuts } from "../shortcuts.js"
 import { installFocusRings } from "../focusRings.js"
 import { installViewport } from "../viewport.js"
 import { provideComposerHeight } from "../composerHeight.js"
+import { provideFileDrop } from "../fileDrop.js"
+import { CHAT_FONT_SIZE, layout } from "../layout.js"
 import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
 import EditorView from "./EditorView.vue"
@@ -128,8 +127,11 @@ const addTabOptions = [
 
 const sidebarOpen = computed(() => props.store.state.sidebarOpen)
 const composer = ref(null)
+const chat = ref(null)
+const root = ref(null)
 
 provideComposerHeight(composer)
+provideFileDrop(chat, composer, root)
 let uninstallShortcuts = null
 let uninstallFocusRings = null
 let uninstallViewport = null
@@ -142,6 +144,21 @@ onBeforeUnmount(() => {
 	uninstallShortcuts?.()
 	uninstallFocusRings?.()
 	uninstallViewport?.()
+})
+
+// the font size scales the whole UI, the chat's text at its default size with it; the app's
+// stylesheet zooms the page and what opens over it by --flow-zoom
+watch(
+	() => props.store.state.prefs.chatFontSize / CHAT_FONT_SIZE.default,
+	(zoom) => {
+		layout.zoom = zoom
+		document.documentElement.style.setProperty("--flow-zoom", zoom)
+	},
+	{ immediate: true },
+)
+onBeforeUnmount(() => {
+	layout.zoom = 1
+	document.documentElement.style.removeProperty("--flow-zoom")
 })
 
 const toast = ref(null)

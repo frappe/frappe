@@ -13,6 +13,7 @@ import frappe
 from frappe import _
 from frappe.flow.daemon.client import DaemonClient, DaemonError
 from frappe.flow.daemon.lifecycle import _redis_url
+from frappe.flow.lib.review import REVIEW_INSTRUCTIONS
 from frappe.flow.lib.session import (
 	ABANDONED,
 	GONE,
@@ -25,6 +26,10 @@ from frappe.flow.lib.session import (
 	sync_with_retry,
 )
 from frappe.model.document import Document
+from frappe.utils.password import get_decrypted_password
+
+# the session's Approval Mode, as the flow server names it
+APPROVAL_MODES = {"Ask": "ask", "Auto": "auto", "Auto-approve": "auto_approve"}
 
 if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_run.flow_run import FlowRun
@@ -45,7 +50,7 @@ class FlowSession(Document):
 
 		agent: DF.Link
 		attachments: DF.Table[FlowSessionAttachment]
-		auto_approve: DF.Check
+		approval_mode: DF.Literal["Ask", "Auto", "Auto-approve"]
 		last_synced_seq: DF.Int
 		messages: DF.Table[FlowSessionMessage]
 		model: DF.Link | None
@@ -54,6 +59,9 @@ class FlowSession(Document):
 	# end: auto-generated types
 
 	def before_insert(self):
+		# REST inserts skip new_session's check
+		if not self.flags.ignore_permissions:
+			frappe.has_permission("Flow Agent", "read", self.agent, throw=True)
 		# the flow server keeps the model a chat starts on, so the chat names it, not the agent
 		self.model = self.model or frappe.db.get_value("Flow Agent", self.agent, "model")
 
@@ -61,7 +69,7 @@ class FlowSession(Document):
 		self._validate_agent_unchanged()
 		self._validate_model_enabled()
 		if self.source == "Trigger":
-			self.auto_approve = 1
+			self.approval_mode = "Auto-approve"
 
 	def on_update(self):
 		# a model saved on the record, as from Desk, must reach the flow server too
@@ -73,7 +81,7 @@ class FlowSession(Document):
 			_delete_server_session(self.name)
 		except DaemonError as exc:
 			frappe.throw(str(exc), title=_("Flow Server"))
-		frappe.db.delete("Flow Run", {"session": self.name})
+		_delete_runs([self.name])
 		_purge_attachment_chunks(self.name)
 
 	def validate_share(self, docshare):
@@ -113,13 +121,15 @@ class FlowSession(Document):
 		cutoff = frappe.utils.add_days(frappe.utils.now(), -days)
 		sessions = frappe.get_all("Flow Session", filters={"modified": ["<", cutoff]}, pluck="name")
 		for batch in frappe.utils.create_batch(sessions, 100):
+			# lock the chats before their rows, the order a sync takes
+			frappe.db.get_values("Flow Session", {"name": ["in", batch]}, "name", for_update=True)
 			try:
 				for name in batch:
 					_delete_server_session(name)
 			except DaemonError:
 				frappe.log_error(title="Flow Session purge stopped: the flow server refused")
 				return
-			frappe.db.delete("Flow Run", {"session": ["in", batch]})
+			_delete_runs(batch)
 			frappe.db.delete("Flow Session Message", {"parent": ["in", batch]})
 			_delete_attachment_files(batch)
 			frappe.db.delete("Flow Session Attachment", {"parent": ["in", batch]})
@@ -143,6 +153,7 @@ class FlowSession(Document):
 		from frappe.flow.daemon import lifecycle
 		from frappe.flow.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
 		from frappe.flow.lib.model import model_config
+		from frappe.flow.tools.builtins import SCREEN_TOOL_SLUG
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		if not agent.enabled:
@@ -160,7 +171,8 @@ class FlowSession(Document):
 			**agent.session_tool_config(self.name),
 			"subagents": agent.subagent_configs(self.name, context),
 			"skills_enabled": False,
-			"auto_approve": bool(self.auto_approve),
+			"approval_mode": APPROVAL_MODES[self.approval_mode],
+			"review_instructions": REVIEW_INSTRUCTIONS,
 			"max_turns": agent.max_iterations or DEFAULT_MAX_ITERATIONS,
 			"auto_compact": True,
 			"callback_url": lifecycle.callback_url(),
@@ -169,6 +181,22 @@ class FlowSession(Document):
 			"user_context": context,
 			"cwd": str(lifecycle.session_root()),
 		}
+		if self.source == "Trigger":  # nobody is there to tap a reply, and no page to read
+			config["suggest_replies"] = False
+			config["client_tools"] = [
+				t for t in config["client_tools"] if t["function"]["name"] != SCREEN_TOOL_SLUG
+			]
+		else:
+			config["suggest_replies"] = True
+		search_provider = frappe.db.get_single_value("Flow Settings", "search_provider") or "DuckDuckGo"
+		config["web_search"] = {"provider": search_provider.lower()}
+		if search_provider != "DuckDuckGo":
+			config["web_search"]["api_key"] = get_decrypted_password(
+				"Flow Settings", "Flow Settings", "search_api_key"
+			)
+		small_model = frappe.db.get_single_value("Flow Settings", "small_model")
+		if small_model and frappe.db.get_value("Flow Model", small_model, "enabled"):
+			config["small_model"] = model_config(small_model, check_permission=False)
 		if agent.token_budget:  # none: no cap
 			config["token_budget"] = agent.token_budget
 		if frappe.conf.flow_callback_timeout:
@@ -193,6 +221,8 @@ class FlowSession(Document):
 		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import (
 			build_turn,
 			cleanup_indexed_files,
+			hold_sent_files,
+			release_sent_files,
 		)
 		from frappe.flow.doctype.flow_skill.flow_skill import expand_skill_command
 		from frappe.flow.memory.memory import memory_block
@@ -203,6 +233,7 @@ class FlowSession(Document):
 		self.sync()
 		turn = build_turn(self, expand_skill_command(self.agent, input), attachments or [])
 		turn.message += memory_block(self.agent, self.owner, input)
+		hold_sent_files(self.name, [row["file"] for row in turn.attachment_rows])
 		uploaded = []
 		try:
 			with DaemonClient.for_site() as client:
@@ -218,6 +249,7 @@ class FlowSession(Document):
 							client.cleanup_attachments(self.name, uploaded)
 					raise
 		except DaemonError as exc:
+			release_sent_files(self.name)
 			cleanup_indexed_files(self.name, turn.indexed_files)
 			if exc.status == 404:
 				frappe.throw(_(READ_ONLY), title=_("Flow Server"))
@@ -245,6 +277,8 @@ class FlowSession(Document):
 				_claim_attachment_file(self.name, row["file"])
 				self.append("attachments", {**row, "run": run.name})
 			self.save(ignore_permissions=True)
+			session = self.name
+			frappe.db.after_commit.add(lambda: release_sent_files(session))
 		return run
 
 	def resume(self, answers: dict[str, Any], approval_seq: int | None = None) -> FlowRun:
@@ -330,19 +364,27 @@ class FlowSession(Document):
 			client.patch_config(self.name, title=title)
 		self.db_set("title", title)
 
-	def set_auto_approve(self, auto_approve: bool) -> None:
-		"""Whether confirmation tools run unattended; applies from the next tool call."""
-		auto_approve = bool(auto_approve)
-		if self.source == "Trigger" and not auto_approve:
+	def set_approval_mode(self, mode: str) -> None:
+		"""Ask, Auto (the helper model answers the gates) or Auto-approve; applies from the next tool call."""
+		if mode not in self.meta.get_options("approval_mode").split("\n"):
+			frappe.throw(
+				_("Approval mode must be Ask, Auto or Auto-approve."), title=_("Invalid Approval Mode")
+			)
+		if self.source == "Trigger" and mode != "Auto-approve":
 			frappe.throw(_("Trigger sessions always auto-approve tool calls."))
 		with flow_server() as client:
-			client.patch_config(self.name, auto_approve=auto_approve)
-		self.db_set("auto_approve", auto_approve)
+			client.patch_config(self.name, approval_mode=APPROVAL_MODES[mode])
+		self.db_set("approval_mode", mode)
 
 	def entries(self, *, since: int = 0, path: str = "active") -> dict[str, Any]:
 		"""The flow server's log: a snapshot of the active branch, or every row after `since`."""
 		with flow_server() as client:
 			return client.entries(self.name, since=since, path=path)
+
+	def system_prompt(self) -> str:
+		"""The prompt the flow server composed for this session, which every request opens with."""
+		with flow_server() as client:
+			return client.get_session(self.name)["config"]["system_prompt"]
 
 	def sync(self) -> None:
 		"""Record the flow server's log since the last sync into Flow Runs and transcript rows."""
@@ -440,6 +482,18 @@ def _delete_server_session(name: str) -> None:
 				raise
 
 
+def _delete_runs(sessions: list[str]) -> None:
+	runs = frappe.get_all("Flow Run", filters={"session": ["in", sessions]}, pluck="name")
+	# memories outlive the run that saved them. Found first, then cleared by name:
+	# source_run has no index, so an update by it would lock every memory
+	memories = runs and frappe.get_all("Flow Agent Memory", {"source_run": ["in", runs]}, pluck="name")
+	if memories:
+		frappe.db.set_value(
+			"Flow Agent Memory", {"name": ["in", memories]}, "source_run", None, update_modified=False
+		)
+	frappe.db.delete("Flow Run", {"session": ["in", sessions]})
+
+
 def _claim_attachment_file(session: str, file: str) -> None:
 	"""Keep an accepted upload with its session so Frappe treats it as durable."""
 	if frappe.db.get_value("File", file, "attached_to_doctype"):
@@ -460,13 +514,13 @@ def _delete_attachment_files(sessions: list[str]) -> None:
 	"""Delete the uploaded File docs attached to these sessions. Per-doc (not bulk SQL)
 	so File.on_trash runs to remove the on-disk content, and best-effort so one failure
 	never aborts the purge."""
-	files = frappe.get_all("Flow Session Attachment", filters={"parent": ["in", sessions]}, pluck="file")
-	for file in {name for name in files if name}:
-		attached = frappe.db.get_value(
-			"File", file, ["attached_to_doctype", "attached_to_name"], as_dict=True
-		)
-		if attached and attached.attached_to_doctype not in (None, "", "Flow Session"):
-			continue
+	# only files attached to these chats: the rows can name any file
+	files = frappe.get_all(
+		"File",
+		filters={"attached_to_doctype": "Flow Session", "attached_to_name": ["in", sessions]},
+		pluck="name",
+	)
+	for file in files:
 		if frappe.db.exists("Flow Session Attachment", {"file": file, "parent": ["not in", sessions]}):
 			continue
 		try:

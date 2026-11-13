@@ -136,6 +136,7 @@ from typing import IO
 class StorageDriver(ABC):
 	name: str
 	key_prefix: str = ""    # prepended to every new key
+	cache_locally: bool = False   # keep requested blobs on local disk
 
 	@abstractmethod
 	def write(self, key: str, stream: IO[bytes], *, is_private: bool = False) -> None: ...
@@ -183,15 +184,17 @@ storage_drivers = {"s3": "myapp.storage.s3.S3Driver"}
 
 Core ships `local` (default), `s3` (boto3, optional dependency) and
 `memory` (tests). The local driver writes under `private/files/` and
-`public/files/`. The S3 object key is `public/` or `private/` followed by
-the blob key.
+`public/files/`. New S3 object keys are
+`sites/<site-name>/storage/<public|private>/<blob>/<filename>`.
 
 Site prefix: a driver shared by several sites, such as one S3 bucket,
 starts every new key with the site's folder. For S3 it is
-`storage_driver_config.prefix`, or by default 12 hex characters of the
-SHA-256 of the database name (set once, unique on a server, and not shown
-in presigned URLs). The prefix is stored in each key, not added at read
-time, and the driver deletes only keys under the current prefix. A
+`sites/<site-name>/storage/`, using `frappe.local.site`. The prefix is stored
+in each blob key, with the privacy namespace inserted after it in S3.
+Existing keys still resolve to their original objects. The legacy
+`storage_driver_config.prefix`, or 12 hex characters of the SHA-256 of
+the database name, is retained for cleanup of old objects. The driver
+deletes only objects under the current site's new or legacy prefix. A
 staging site restored from production can still read production's
 objects, but its garbage collection never deletes them.
 
@@ -299,7 +302,9 @@ nginx serves any file it finds on disk and passes the rest to Python
 (`try_files ... @webserver`). Python then handles:
 
 - `/files/<blob>/<filename>`: a public blob on another driver. No check;
-  a 302 to the driver's URL, cacheable for half the URL's lifetime.
+  a 302 to the driver's URL, cacheable for half the URL's lifetime. A blob
+  the local cache will download gets `no-cache` instead, so the next
+  request reaches Python.
 - `/private/files/<blob>/<filename>`: a private blob. A valid signature
   or session permission, then a redirect or the bytes.
 - Any other path is a v1 URL. A File row with that `file_url` and a blob
@@ -318,6 +323,79 @@ allow_native_redirect=False)` serves a blob the caller has already
 authorized, with no permission check or access log. It streams by
 default, because some clients (WebDAV) cannot follow a cross-host
 redirect; pass `allow_native_redirect=True` to allow the 302.
+
+### Local cache
+
+With the `storage_local_cache` site config flag on (default off), a driver
+with `cache_locally = True` (S3) keeps a copy of each requested blob on
+the site's disk, where a local blob would sit:
+`{public,private}/files/<blob>/<filename>`. A public copy is on disk at
+its URL path, so nginx serves it with no Python. A private copy goes
+through the serve route and X-Accel, like a local private blob.
+`frappe/storage/cache.py` owns it.
+
+The cache uses the server's disk, so the server's operator sets its limits
+in site config, not a System Manager in System Settings. A missing key
+takes its default:
+
+```json
+"storage_local_cache": 1,
+"storage_local_cache_config": {
+	"max_file_size_mb": 100,
+	"keep_minutes": 300,
+	"grace_minutes": 60
+}
+```
+
+- `stream_blob` serves a cached blob from disk, before it tries the native
+  URL. It uses X-Accel or `send_file`, like a local blob.
+- On a miss, `stream_blob` queues `cache_blob` on the `long` queue, one job
+  per blob (`storage_cache::<blob>`), when the blob is no larger than
+  `max_file_size_mb` (default 100, 0 caches nothing). A larger blob is
+  never cached.
+- `cache_blob` streams the object into a `.part` file, checks the size
+  against `file_size`, then renames it. A failed download leaves no cache
+  file, and the next request queues a new job.
+- A blob is immutable, so a cached file never goes stale. GC deletes the
+  cache file and any held copy with the blob, under the blob's lock.
+  `cache_blob` reads the row again with a row lock before the rename, so a
+  blob that GC deletes during the download leaves no file behind.
+- A private copy lives in `private/files`, so a backup with files holds it.
+
+Expiry. A cached copy lives `keep_minutes` (default 300), then waits
+`grace_minutes` (default 60) in a holding folder. The file's mtime is
+the clock, and its place is the state, so no database row changes.
+
+```
+download --> files/<blob>/<filename> --keep--> private/cache/expiring/... --grace--> deleted
+                      ^----------- a request moves it back, mtime = now --------|
+```
+
+- `sweep_cache` runs every 10 minutes, with the flag on or off. It lists
+  the blob folders in `public/files` and `private/files`, and keeps the
+  ones whose File Blob row has a caching driver and the same privacy. A
+  local blob has the same path shape, so the row's `driver` tells them apart.
+  A site with no File Blob row on a caching driver stops before the scan.
+  `driver` is indexed, so this check is cheap.
+- In each listed folder, the sweep also deletes `.part` files older than
+  the job timeout (60 minutes). A worker that was killed during a download
+  leaves them. A live download keeps its part's mtime fresh.
+- A held copy is out of `public/files`, so nginx no longer finds it and
+  passes the request to Python. `get_cached_path` then moves the copy back,
+  sets its mtime to now and serves it from disk. With the flag off nothing
+  is restored.
+- One lock file out of 64 (`storage_cache_<n>`, by blob name) covers each
+  move and delete. A busy blob is skipped by the sweep, and a request that
+  cannot lock falls back to the native URL. Every step is atomic, so a
+  missing file is a normal case. A move removes the emptied blob folder
+  inside the same lock, and never deletes a file after it.
+- A copy lives at most `keep + grace + 10` minutes without a request, 370
+  by default. A request to nginx just before a move can get one 404.
+- The sweep and `relocate_blobs` share one lock (`storage_cache_sweep`).
+  Relocation to a local driver can keep a cached copy as the blob's file,
+  so the sweep must not list rows while they move. A sweep that finds the
+  lock busy skips its run. It takes the lock before any database read, so
+  its listing sees every relocation commit.
 
 ### Upload
 
@@ -418,7 +496,14 @@ Laravel's `Storage::fake()`.
 - `file_url` keeps working for both generations. `download_private_file`
   and `serve_public_file` serve a v1 URL from its blob when the row has
   one, so `frappe.storage.relocate.relocate_blobs` can move the bytes to
-  another driver without changing `file_url`.
+  another driver without changing `file_url`. S3 drivers sharing the same
+  client and bucket use server-side copies; other transfers stream through
+  Frappe.
+- The `migrate_s3_blob_keys` patch relocates existing S3 blobs into
+  `sites/<site-name>/storage/<public|private>/<blob>/<filename>` in batches,
+  using server-side copies, including multipart copies for large objects,
+  leaving local blobs and `file_url` unchanged. Failed rows can be retried
+  by rerunning the patch; source objects are deleted only after commit.
 - The legacy write path (`utils/file_manager.py`) is not ported. Under
   the flag it forwards to `put_blob`. The old `write_file` /
   `delete_file_data_content` hooks are ignored for v2 rows and
@@ -448,7 +533,7 @@ Each stage is independently shippable and revertible by the flag.
    reads privacy from the prefix stays correct. Public local files are
    on disk at their URL path, so nginx serves them with zero Python.
    Not revocable without deleting the blob. Approved.
-5. Site prefix: stored in each key, defaulting to a hash of the database
-   name; deletes only under the site's own prefix. Approved.
+5. Site prefix: stored in each key as `sites/<site-name>/storage/`; deletes
+   only under the site's own new or legacy prefix. Approved.
 
 No open questions.

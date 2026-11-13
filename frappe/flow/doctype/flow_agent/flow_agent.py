@@ -8,7 +8,13 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
-from frappe.flow.utils.system_generated import block_delete, block_rename, validate_immutable
+from frappe.flow.utils.system_generated import (
+	block_delete,
+	block_insert,
+	block_rename,
+	block_slash_in_name,
+	validate_immutable,
+)
 from frappe.model.document import Document
 from frappe.utils import get_fullname, today
 from frappe.utils.jinja import get_jenv, safe_render_flags
@@ -47,6 +53,7 @@ class FlowAgent(Document):
 		from frappe.flow.doctype.flow_agent_tool.flow_agent_tool import FlowAgentTool
 		from frappe.types import DF
 
+		app: DF.Data | None
 		description: DF.SmallText | None
 		enabled: DF.Check
 		instructions: DF.LongText
@@ -73,12 +80,21 @@ class FlowAgent(Document):
 			warn_existing_sessions([self.name])
 
 	def on_trash(self):
-		from frappe.flow.assistant.assistant import ASSISTANT_AGENT_TITLE
+		from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
 
-		block_delete(self, always=self.name == ASSISTANT_AGENT_TITLE)
+		block_delete(self, always=self.name == ASSISTANT_AGENT_NAME)
 
-	def before_rename(self, old: str, _new: str, _merge: bool = False) -> None:
+	def before_insert(self):
+		block_insert(self)
+
+	def before_rename(self, old: str, new: str, _merge: bool = False) -> None:
+		from frappe.flow.lib.session import block_rename_in_chats
+
 		block_rename(self, old)
+		block_slash_in_name(self, new)
+		block_rename_in_chats(
+			old, frappe.get_all("Flow Agent Sub Agent", filters={"agent": old}, pluck="parent")
+		)
 
 	def after_rename(self, old: str, new: str, _merge: bool = False) -> None:
 		from frappe.flow.memory import store
@@ -86,8 +102,9 @@ class FlowAgent(Document):
 		store.rename_agent(old, new)
 
 	def validate(self):
-		from frappe.flow.assistant.assistant import ASSISTANT_AGENT_TITLE
+		from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
 
+		block_slash_in_name(self)
 		self._validate_max_iterations()
 		self._validate_token_budget()
 		self._validate_skills()
@@ -102,7 +119,7 @@ class FlowAgent(Document):
 				"max_iterations",
 				"tools",
 				# the site may add skills and knowledge to the assistant
-				*(() if self.name == ASSISTANT_AGENT_TITLE else ("knowledge_bases", "skills")),
+				*(() if self.name == ASSISTANT_AGENT_NAME else ("knowledge_bases", "skills")),
 				"sub_agents",
 			),
 		)
@@ -133,37 +150,37 @@ class FlowAgent(Document):
 	def _ensure_knowledge_search_tool(self):
 		"""A bound knowledge base is inert without the search tool. Keep them consistent
 		so any agent with knowledge bases can actually query them, however it was created."""
-		from frappe.flow.tools.builtins import KNOWLEDGE_SEARCH_SLUG
+		from frappe.flow.tools.builtins import KNOWLEDGE_SEARCH_SLUG, builtin_name
 
 		if not self.knowledge_bases:
 			return
-		if any(row.tool == KNOWLEDGE_SEARCH_SLUG for row in self.tools):
+		if any(row.tool == builtin_name(KNOWLEDGE_SEARCH_SLUG) for row in self.tools):
 			return
-		if frappe.db.exists("Flow Tool", KNOWLEDGE_SEARCH_SLUG):
-			self.append("tools", {"tool": KNOWLEDGE_SEARCH_SLUG})
+		if frappe.db.exists("Flow Tool", builtin_name(KNOWLEDGE_SEARCH_SLUG)):
+			self.append("tools", {"tool": builtin_name(KNOWLEDGE_SEARCH_SLUG)})
 
 	def _ensure_skill_tool(self):
 		"""A bound skill is inert without the tool that loads it, same as a knowledge base
 		without its search tool."""
-		from frappe.flow.tools.builtins import SKILL_TOOL_SLUG
+		from frappe.flow.tools.builtins import SKILL_TOOL_SLUG, builtin_name
 
 		if not self.skills:
 			return
-		if any(row.tool == SKILL_TOOL_SLUG for row in self.tools):
+		if any(row.tool == builtin_name(SKILL_TOOL_SLUG) for row in self.tools):
 			return
-		if frappe.db.exists("Flow Tool", SKILL_TOOL_SLUG):
-			self.append("tools", {"tool": SKILL_TOOL_SLUG})
+		if frappe.db.exists("Flow Tool", builtin_name(SKILL_TOOL_SLUG)):
+			self.append("tools", {"tool": builtin_name(SKILL_TOOL_SLUG)})
 
 	def _ensure_subagent_tool(self):
 		"""A bound sub-agent is inert without the tool that runs it."""
-		from frappe.flow.tools.builtins import SUBAGENT_TOOL_SLUG
+		from frappe.flow.tools.builtins import SUBAGENT_TOOL_SLUG, builtin_name
 
 		if not self.sub_agents:
 			return
-		if any(row.tool == SUBAGENT_TOOL_SLUG for row in self.tools):
+		if any(row.tool == builtin_name(SUBAGENT_TOOL_SLUG) for row in self.tools):
 			return
-		if frappe.db.exists("Flow Tool", SUBAGENT_TOOL_SLUG):
-			self.append("tools", {"tool": SUBAGENT_TOOL_SLUG})
+		if frappe.db.exists("Flow Tool", builtin_name(SUBAGENT_TOOL_SLUG)):
+			self.append("tools", {"tool": builtin_name(SUBAGENT_TOOL_SLUG)})
 
 	def client_tool_config(self, session: str | None = None) -> dict[str, list[Any]]:
 		"""The tools' schemas and which pause for approval. `session` binds attachment search."""
@@ -174,40 +191,60 @@ class FlowAgent(Document):
 		}
 
 	def client_tools(self, session: str | None = None) -> list[Tool]:
-		"""This agent's enabled tools, bound to `session` where needed."""
+		"""This agent's enabled tools, bound to `session` where needed. Attachment search is left
+		out until an embedding model is set, since nothing is indexed without one, and execute
+		and Script tools while server scripts are off."""
+		from frappe.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
+			embeddings_configured,
+		)
 		from frappe.flow.memory.memory import MEMORY_TOOL_SLUG
 		from frappe.flow.tools.builtins import (
+			ATTACHMENT_READ_SLUG,
 			ATTACHMENT_SEARCH_SLUG,
+			EXECUTE_SLUG,
 			KNOWLEDGE_SEARCH_SLUG,
 			SERVER_TOOL_SLUGS,
 			SKILL_TOOL_SLUG,
 			bind_load_skill,
+			bind_read_attachment,
 			bind_search_attachments,
 			bind_search_knowledge,
 			bind_update_memory,
+			builtin_name,
 		)
+		from frappe.utils.safe_exec import is_safe_exec_enabled
 
+		daemon_builtins = {builtin_name(slug) for slug in SERVER_TOOL_SLUGS}
+		scripts_off = not is_safe_exec_enabled()
 		resolved: list[Tool] = []
 		for tool_doc in self._enabled_tool_docs():
-			if tool_doc.name in SERVER_TOOL_SLUGS or tool_doc.type == "Server":
+			if tool_doc.name in daemon_builtins or tool_doc.type == "Server":
 				continue
-			if tool_doc.name == KNOWLEDGE_SEARCH_SLUG:
+			if scripts_off and (tool_doc.type == "Script" or tool_doc.name == builtin_name(EXECUTE_SLUG)):
+				continue
+			if tool_doc.name == builtin_name(KNOWLEDGE_SEARCH_SLUG):
 				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
-			elif tool_doc.name == ATTACHMENT_SEARCH_SLUG:
-				resolved.append(bind_search_attachments(session))
-			elif tool_doc.name == MEMORY_TOOL_SLUG:
+			elif tool_doc.name == builtin_name(ATTACHMENT_SEARCH_SLUG):
+				if embeddings_configured():
+					resolved.append(bind_search_attachments(session))
+			elif tool_doc.name == builtin_name(ATTACHMENT_READ_SLUG):
+				resolved.append(bind_read_attachment(session))
+			elif tool_doc.name == builtin_name(MEMORY_TOOL_SLUG):
 				resolved.append(bind_update_memory(self.name, session))
-			elif tool_doc.name == SKILL_TOOL_SLUG:
+			elif tool_doc.name == builtin_name(SKILL_TOOL_SLUG):
 				resolved.append(bind_load_skill(self.name))
 			else:
 				resolved.append(tool_doc.to_tool())
 		return resolved
 
 	def server_tools(self) -> list[str]:
-		"""Enabled daemon tools selected for this agent."""
-		from frappe.flow.tools.builtins import SERVER_TOOL_SLUGS
+		"""Enabled daemon tools selected for this agent, by the names the daemon knows them by."""
+		from frappe.flow.tools.builtins import SERVER_TOOL_SLUGS, builtin_name, tool_call_name
 
-		return [tool.name for tool in self._enabled_tool_docs() if tool.name in SERVER_TOOL_SLUGS]
+		daemon_builtins = {builtin_name(slug) for slug in SERVER_TOOL_SLUGS}
+		return [
+			tool_call_name(tool.name) for tool in self._enabled_tool_docs() if tool.name in daemon_builtins
+		]
 
 	def subagent_configs(self, session: str | None, user_context: dict[str, Any]) -> list[dict[str, Any]]:
 		"""The enabled sub-agents as flow server `subagents` entries: each on its own model, prompt
@@ -241,16 +278,20 @@ class FlowAgent(Document):
 	def session_tool_config(self, session: str | None = None) -> dict[str, Any]:
 		"""Complete tool configuration for one daemon session."""
 		from frappe.flow.daemon import lifecycle
-		from frappe.flow.tools.builtins import SOURCE_TOOL_SLUGS
+		from frappe.flow.tools.builtins import BUILTIN_TOOLS, SOURCE_TOOL_SLUGS
 
 		server_tools = self.server_tools()
+		client_config = self.client_tool_config(session)
+		# the flow server runs its own tools, so it is told which of them ask first
+		asking = {tool.name for tool in BUILTIN_TOOLS if tool.requires_confirmation is True}
+		client_config["confirm_tools"] += [name for name in server_tools if name in asking]
 		return {
 			"system_prompt": self.render_instructions()
 			+ self.skill_index()
 			+ lifecycle.app_source_prompt([name for name in server_tools if name in SOURCE_TOOL_SLUGS]),
 			"tools": server_tools,
 			"extension_tools": self.extension_tools(),
-			**self.client_tool_config(session),
+			**client_config,
 		}
 
 	def render_instructions(self) -> str:
@@ -272,6 +313,10 @@ class FlowAgent(Document):
 	def extension_tools(self) -> list[str]:
 		"""Enabled flow server extension tools selected for this agent."""
 		return [tool.name for tool in self._enabled_tool_docs() if tool.type == "Server"]
+
+	def has_tool(self, name: str) -> bool:
+		"""Whether the Flow Tool `name` is among this agent's enabled tools."""
+		return any(tool_doc.name == name for tool_doc in self._enabled_tool_docs())
 
 	def _enabled_tool_docs(self):
 		for row in self.tools:
@@ -299,9 +344,9 @@ class FlowAgent(Document):
 	def visible_skills(self, *fields: str) -> list[dict[str, Any]]:
 		"""Enabled skills this agent can load, by name: every global one plus its own, and none
 		at all without the tool that loads them, so the index never advertises what it can't."""
-		from frappe.flow.tools.builtins import SKILL_TOOL_SLUG
+		from frappe.flow.tools.builtins import SKILL_TOOL_SLUG, builtin_name
 
-		if not any(row.tool == SKILL_TOOL_SLUG for row in self.tools):
+		if not any(row.tool == builtin_name(SKILL_TOOL_SLUG) for row in self.tools):
 			return []
 		return self._skills(fields)
 
@@ -335,7 +380,13 @@ class FlowAgent(Document):
 		"""Start a conversation driven by this agent on the flow server."""
 		from frappe.flow.lib.session import new_session
 
-		return new_session(self, model=model, title=title, source=source, auto_approve=auto_approve)
+		return new_session(
+			self,
+			model=model,
+			title=title,
+			source=source,
+			approval_mode="Auto-approve" if auto_approve else None,
+		)
 
 	def run(
 		self,

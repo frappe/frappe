@@ -10,8 +10,15 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-from frappe.studio.build import StudioAppBuilder, get_published_custom_apps, get_router_file
-from frappe.studio.doctype.studio_app.studio_app import StudioApp
+from frappe.studio.build import (
+	StudioAppBuilder,
+	StudioAppBuildError,
+	get_published_custom_apps,
+	get_router_file,
+)
+from frappe.studio.doctype.studio_app.studio_app import StudioApp, get_desktop_apps
+from frappe.studio.files import read_db_file, write_db_file
+from frappe.studio.utils import get_exported_app_name
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path, set_request
 from frappe.website.serve import get_response
@@ -23,36 +30,47 @@ class TestStudioApp(FrappeTestCase):
 		self.assertEqual(app.app_title, "My Build App")
 		self.assertEqual(app.route, "my-build-app")
 
-	def test_export_router_script(self):
+	def test_router_file_moves_between_the_database_and_the_repository(self):
 		with exports_in_tempdir():
 			app = make_studio_app(app_title="Routed Custom App", app_name="routed-custom-app")
-			app.router_script = ROUTER_SCRIPT
-			app.save()
+			write_db_file(app.name, "router.js", ROUTER_FILE_SOURCE)
 			context = get_renderer_context(app)
-			self.assertEqual(context.router_script, ROUTER_SCRIPT)
+			self.assertTrue(context.is_db_app)
 			self.assertIsNone(context.router_file)
 
 			app.enable_app_export("frappe")
 			app.reload()
-			self.assertFalse(app.router_script)
-			self.assertEqual(
-				frappe.read_file(app.get_router_file_path()),
-				f"export default {ROUTER_SCRIPT}\n",
-			)
-			app.router_script = ROUTER_SCRIPT
+			router_path = os.path.join(app.get_folder_path(), "router.js")
+			self.assertEqual(frappe.read_file(router_path), ROUTER_FILE_SOURCE)
+			self.assertEqual(read_db_file(app.name, "router.js"), None)
+
 			context = get_renderer_context(app)
-			self.assertEqual(context.router_file, app.get_router_file_path())
-			self.assertIsNone(context.router_script)
+			self.assertFalse(context.is_db_app)
+			self.assertEqual(context.router_file, router_path)
 			with patch.dict(frappe.conf, {"developer_mode": 0}):
 				self.assertIsNone(get_renderer_context(app).router_file)
-			app.router_script = None
-			exported = json.loads(
-				frappe.read_file(os.path.join(app.get_folder_path(), "routed_custom_app.json"))
-			)
-			self.assertNotIn("router_script", exported)
 
 			app.disable_app_export()
-			self.assertEqual(app.reload().router_script, ROUTER_SCRIPT)
+			self.assertEqual(read_db_file(app.name, "router.js"), ROUTER_FILE_SOURCE)
+
+	def test_a_database_app_renders_through_the_browser_runtime(self):
+		app = make_studio_app(app_title="Shop Demo", app_name="shop-demo")
+		make_studio_page(app.name, page_title="Board", route="/board", published=1)
+		write_db_file(app.name, "utils.js", "export const price = 1\n")
+
+		app.reload()
+		self.assertIsNone(app.get_assets_from_manifest())
+
+		gate = "frappe.studio.doctype.studio_app.studio_app.can_build_bundle"
+		with patch(gate, return_value=True):
+			html = get_website_response("shop-demo/board").get_data(as_text=True)
+		self.assertIn("window.is_db_app = true", html)
+		self.assertIn("/assets/frappe/studio/", html)
+		self.assertIn("Could not find app assets", html)
+
+		with patch(gate, return_value=False):
+			html = get_website_response("shop-demo/board").get_data(as_text=True)
+		self.assertNotIn("Could not find app assets", html)
 
 	def test_app_favicon(self):
 		app = make_studio_app(app_title="Favicon App", app_name="favicon-app")
@@ -92,7 +110,8 @@ class TestStudioApp(FrappeTestCase):
 			self.assert_exported_files_kept(app, page)
 
 	def assert_exported_files_kept(self, app, page):
-		self.assertEqual(frappe.read_file(app.get_router_file_path()), f"export default {ROUTER_SCRIPT}\n")
+		router_path = os.path.join(app.get_folder_path(), "router.js")
+		self.assertEqual(frappe.read_file(router_path), ROUTER_FILE_SOURCE)
 		self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('kept')")
 		extra_file = os.path.join(app.get_folder_path(), "Extra.vue")
 		self.assertEqual(frappe.read_file(extra_file), "<template>kept</template>")
@@ -171,6 +190,9 @@ class TestStudioApp(FrappeTestCase):
 
 		self.assertTrue(served_app.is_website_published())
 		self.assertFalse(draft_app.is_website_published())
+		desktop_apps = [app.name for app in get_desktop_apps()]
+		self.assertIn(served_app.name, desktop_apps)
+		self.assertNotIn(draft_app.name, desktop_apps)
 		with self.set_user("Guest"):
 			self.assertEqual(get_website_response(served_app.route).status_code, 200)
 			self.assertEqual(get_website_response(draft_app.route).status_code, 404)
@@ -180,6 +202,27 @@ class TestStudioApp(FrappeTestCase):
 
 class TestStudioAppBuilder(FrappeTestCase):
 	"""Tests build orchestration."""
+
+	def test_the_builder_reads_the_folder_the_export_writes(self):
+		# real path resolution, no tempdir mock: exports land in scrubbed folders
+		app = make_studio_app(app_title="Dash Build App", app_name="dash-build-app")
+		app.frappe_app = "frappe"
+		self.assertTrue(app.get_folder_path().endswith(os.path.join("studio", "dash_build_app")))
+		builder = StudioAppBuilder(app.name, is_standard=True, frappe_app="frappe")
+		self.assertEqual(builder.get_app_folder(), app.get_folder_path())
+
+	def test_bench_build_reads_the_app_name_from_the_app_json(self):
+		with exports_in_tempdir():
+			app, _page = make_exported_app_with_files("dashed-build")
+			folder = app.get_folder_path()
+			self.assertEqual(os.path.basename(folder), "dashed_build")
+			self.assertEqual(get_exported_app_name(folder), "dashed-build")
+			self.assertEqual(get_router_file("frappe", app.name), os.path.join(folder, "router.js"))
+
+	def test_build_fails_when_the_export_folder_is_missing(self):
+		with exports_in_tempdir():
+			builder = StudioAppBuilder("missing-app", is_standard=True, frappe_app="frappe")
+			self.assertRaises(StudioAppBuildError, builder.build)
 
 	def test_extracts_nested_children_components(self):
 		app = make_studio_app(app_title="Nested App", app_name="nested-app")
@@ -328,14 +371,23 @@ class TestStudioAppBuilder(FrappeTestCase):
 				}
 			]
 		}
+		# a draft page is never routed, so neither its components nor its missing ones count
+		draft_data = {
+			"published": 0,
+			"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}],
+		}
 
-		with mock_studio_app_files(app_name, pages={"my_page": page_data}) as studio_folder:
+		with mock_studio_app_files(
+			app_name, pages={"my_page": page_data, "draft": draft_data}
+		) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
-			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
+			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("TextEditor", builder.components)
 			self.assertIn("Dropdown", builder.components)
+			self.assertNotIn("PosHeader", builder.components)
+			self.assertEqual(builder.missing_components, set())
 
 	def test_get_app_components_from_files_extracts_h_function_components(self):
 		app_name = "file-h-func-app"
@@ -353,7 +405,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
-			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
+			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("Avatar", builder.components)
@@ -366,7 +418,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
-			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
+			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("Alert", builder.components)
@@ -384,11 +436,43 @@ class TestStudioAppBuilder(FrappeTestCase):
 			app_name, pages={"page": page_data}, components={"my_widget": comp_data}
 		) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
-			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
+			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("Alert", builder.components)
 			self.assertIn("Badge", builder.components)
+
+	def test_build_stops_when_a_custom_component_is_missing(self):
+		"""Building it anyway emits an unknown element, which renders blank with a clean console."""
+		app_name = "missing-comp-app"
+		page_data = {"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}]}
+
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with (
+				patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder),
+				self.assertRaises(StudioAppBuildError) as raised,
+			):
+				builder.build()
+
+			self.assertIn("PosHeader", str(raised.exception))
+
+	def test_a_custom_component_in_the_app_folder_resolves(self):
+		app_name = "custom-comp-app"
+		page_data = {"blocks": [{"componentName": "PosHeader", "isCustomVueComponent": True, "children": []}]}
+
+		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
+			components_folder = os.path.join(studio_folder, frappe.scrub(app_name), "components")
+			os.makedirs(components_folder)
+			with open(os.path.join(components_folder, "PosHeader.vue"), "w") as f:
+				f.write("<template><header /></template>")
+
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
+				builder.get_app_components_from_files()
+
+			self.assertEqual(builder.missing_components, set())
+			self.assertIn("PosHeader", builder.custom_vue_components)
 
 	def test_collects_icons_from_pages_scripts_and_components(self):
 		app = make_studio_app(app_title="Icon App", app_name="icon-app")
@@ -440,7 +524,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 			app_name, pages={"page": page_data}, components={"file_widget": comp_data}
 		) as studio_folder:
 			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
-			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
+			with patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 		self.assertEqual(builder.icons, {"lucide-house", "lucide-bell"})
@@ -470,21 +554,54 @@ class TestStudioAppBuilder(FrappeTestCase):
 		page_sources = {}
 
 		def read_content_file(command, **kwargs):
-			content_path = argument(command, "--tailwind-content")
+			# The final content argument is the temporary file containing page blocks and scripts.
+			content_path = arguments(command, "--tailwind-content")[-1]
 			with open(content_path) as f:
 				page_sources["text"] = f.read()
 			return run.return_value
 
 		builder = StudioAppBuilder(app.name, is_standard=False)
-		with (
-			patch("frappe.studio.build.subprocess.run", side_effect=read_content_file) as run,
-			patch("frappe.studio.build.os.makedirs"),
-		):
+		builder.out_dir = tempfile.mkdtemp()
+		self.addCleanup(shutil.rmtree, builder.out_dir)
+		with patch("frappe.studio.build.subprocess.run", side_effect=read_content_file) as run:
 			run.return_value.returncode = 0
 			builder.build()
 
 		for css_class in ("bg-page-only", "bg-component-only", "text-script-only"):
 			self.assertIn(css_class, page_sources["text"])
+
+	def test_builds_a_database_app_from_its_database_files(self):
+		app = make_studio_app(app_title="Stored App", app_name="stored-app")
+		page = make_studio_page(app.name, script="export default function setup() {}", published=1)
+		write_db_file(app.name, "router.js", "export default {}\n")
+		write_db_file(app.name, "utils.js", "export const one = 1\n")
+
+		builder = StudioAppBuilder(app.name, is_standard=False)
+		builder.out_dir = tempfile.mkdtemp()
+		self.addCleanup(shutil.rmtree, builder.out_dir)
+		staged = {}
+		with patch("frappe.studio.build.subprocess.run") as run:
+			run.return_value.returncode = 0
+			# Inspect temporary sources before build() removes the directory.
+			run.side_effect = (
+				lambda *a, **kw: staged.update(
+					folder=builder.app_folder,
+					utils=os.path.isfile(os.path.join(builder.app_folder, "utils.js")),
+				)
+				or run.return_value
+			)
+			builder.build()
+
+		command = run.call_args.args[0]
+		self.assertIn("--database-app", command)
+		self.assertIsNone(argument(command, "--custom-components"))
+		self.assertEqual(argument(command, "--router-file"), os.path.join(builder.app_folder, "router.js"))
+		scripts = json.loads(argument(command, "--page-scripts"))
+		self.assertEqual(scripts[0]["page_name"], page.name)
+		self.assertTrue(scripts[0]["file_path"].endswith("/studio_page/test_page/test_page.js"))
+		# The @app resolver requires a studio/<app>/ segment in the temporary source path.
+		self.assertTrue(staged["folder"].endswith(f"/studio/{frappe.scrub(app.name)}"))
+		self.assertTrue(staged["utils"])
 
 	def test_passes_the_app_folder_to_tailwind(self):
 		builder = StudioAppBuilder("folder-app", is_standard=True, frappe_app="frappe")
@@ -492,14 +609,14 @@ class TestStudioAppBuilder(FrappeTestCase):
 			mock_studio_app_files(
 				"folder-app", pages={"page": {"blocks": [{"componentName": "Button"}]}}
 			) as studio_folder,
-			patch("frappe.studio.build.get_studio_folder", return_value=studio_folder),
+			patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder),
 			patch("frappe.studio.build.subprocess.run") as run,
 			patch("frappe.studio.build.os.makedirs"),
 		):
 			run.return_value.returncode = 0
 			builder.build()
 
-		app_folder = os.path.join(studio_folder, "folder-app")
+		app_folder = os.path.join(studio_folder, "folder_app")
 		self.assertEqual(argument(run.call_args.args[0], "--app-folder"), app_folder)
 		self.assertIn(f"{app_folder}/**/*.{{vue,js,ts,jsx,tsx,json}}", run.call_args.args[0])
 
@@ -509,13 +626,13 @@ class TestStudioAppBuilder(FrappeTestCase):
 		page = {"blocks": [{"componentName": "Button", "children": []}]}
 		with (
 			mock_studio_app_files("tailwind-app", pages={"page": page}) as studio_folder,
-			patch("frappe.studio.build.get_studio_folder", return_value=studio_folder),
+			patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder),
 		):
 			frappe_app = os.path.dirname(studio_folder)
 			write_file(os.path.join(frappe_app, "shared", "Shared.vue"), '<p class="tracking-[0.111em]" />')
 			write_file(os.path.join(frappe_app, "desk", "Desk.vue"), '<p class="tracking-[0.222em]" />')
 			write_file(
-				os.path.join(studio_folder, "tailwind-app", "tailwind.config.js"),
+				os.path.join(studio_folder, "tailwind_app", "tailwind.config.js"),
 				'export default { content: ["../../shared/**/*.vue"], safelist: ["tracking-[0.333em]"] }',
 			)
 			builder = StudioAppBuilder("tailwind-app", is_standard=True, frappe_app="frappe")
@@ -571,11 +688,11 @@ class TestStudioAppBuilder(FrappeTestCase):
 		builder.components = {"Button"}
 		with (
 			mock_studio_app_files("routed-app", router="{}") as studio_folder,
-			patch("frappe.studio.build.get_studio_folder", return_value=studio_folder),
+			patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder),
 		):
 			self.assertEqual(
 				get_router_file("frappe", "routed-app"),
-				os.path.join(studio_folder, "routed-app", "router.ts"),
+				os.path.join(studio_folder, "routed_app", "router.js"),
 			)
 			builder.router_file = get_router_file("frappe", "routed-app")
 			with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
@@ -584,7 +701,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 			self.assertEqual(argument(run.call_args.args[0], "--router-file"), builder.router_file)
 
 		# a bench path with spaces must reach vite as one argument
-		builder.router_file = "/Users/me/my bench/apps/frappe/studio/routed-app/router.ts"
+		builder.router_file = "/Users/me/my bench/apps/frappe/studio/routed-app/router.js"
 		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
 			run.return_value.returncode = 0
 			builder._run_vite_build()
@@ -592,7 +709,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 		with (
 			mock_studio_app_files("routed-app") as studio_folder,
-			patch("frappe.studio.build.get_studio_folder", return_value=studio_folder),
+			patch("frappe.studio.utils.get_studio_folder", return_value=studio_folder),
 		):
 			self.assertIsNone(get_router_file("frappe", "routed-app"))
 
@@ -631,11 +748,12 @@ class TestStudioAppBuilder(FrappeTestCase):
 		self.assertTrue(bundled & dependencies.keys(), f"no @framework/ui dependency in {bundled}")
 
 
-ROUTER_SCRIPT = """{
+ROUTER_FILE_SOURCE = """export default {
 	extendRoute(route) {
 		if (route.name === "Board") route.alias = "/tasks"
 	},
-}"""
+}
+"""
 
 
 @contextmanager
@@ -643,8 +761,8 @@ def exports_in_tempdir():
 	"""Exports of every app land in a temp dir."""
 
 	def source_path(app, *path):
-		# the real one does not scrub either: `my-app` exports to studio/my-app/my_app.json
-		return os.path.join(tmpdir, app, *path)
+		# mirror the real resolution: every part it joins is scrubbed (`my-app` exports to studio/my_app)
+		return os.path.join(tmpdir, app, *(frappe.scrub(part) for part in path))
 
 	with (
 		tempfile.TemporaryDirectory() as tmpdir,
@@ -669,12 +787,11 @@ def get_website_response(route):
 
 
 def make_exported_app_with_files(app_name):
-	"""An app exported to studio with a page script, router.ts and a file only the folder has."""
+	"""An app exported to studio with a page script, router.js and a file only the folder has."""
 	app = make_studio_app(app_title=app_name.title(), app_name=app_name)
 	page = make_studio_page(app.name, page_title=f"{app.app_title} Page", script="console.log('kept')")
 	app.reload()  # the first page becomes the app home
-	app.router_script = ROUTER_SCRIPT
-	app.save()
+	write_db_file(app.name, "router.js", ROUTER_FILE_SOURCE)
 	app.enable_app_export("frappe")
 	with open(os.path.join(app.get_folder_path(), "Extra.vue"), "w") as f:
 		f.write("<template>kept</template>")
@@ -782,26 +899,32 @@ def argument(command: list[str], flag: str) -> str | None:
 	return command[command.index(flag) + 1] if flag in command else None
 
 
+def arguments(command: list[str], flag: str) -> list[str]:
+	"""Return the value after each occurrence of a repeated build flag."""
+	return [value for index, value in enumerate(command) if index and command[index - 1] == flag]
+
+
 @contextmanager
 def mock_studio_app_files(app_name, pages=None, components=None, router=None):
 	tmpdir = tempfile.mkdtemp()
 	try:
 		studio_folder = os.path.join(tmpdir, "studio")
-		app_folder = os.path.join(studio_folder, app_name)
+		# the export writes scrubbed folder names (`my-app` lives in `studio/my_app`)
+		app_folder = os.path.join(studio_folder, frappe.scrub(app_name))
 		page_folder = os.path.join(app_folder, "studio_page")
 		os.makedirs(page_folder)
 
 		if router is not None:
-			with open(os.path.join(app_folder, "router.ts"), "w") as f:
+			with open(os.path.join(app_folder, "router.js"), "w") as f:
 				f.write(router)
 
 		if pages:
-			# each page is exported into its own folder holding <stem>.json (+ optional <stem>.ts)
+			# each page is exported into its own folder holding <stem>.json (+ optional <stem>.js)
 			for page_name, page_data in pages.items():
 				page_dir = os.path.join(page_folder, page_name)
 				os.makedirs(page_dir, exist_ok=True)
 				with open(os.path.join(page_dir, f"{page_name}.json"), "w") as f:
-					json.dump(page_data, f)
+					json.dump({"published": 1, **page_data}, f)
 
 		if components:
 			comp_folder = os.path.join(app_folder, "studio_components")

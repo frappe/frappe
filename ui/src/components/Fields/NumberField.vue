@@ -21,7 +21,8 @@ import { computed, inject, nextTick, ref } from "vue";
 import { TextInput } from "frappe-ui";
 import { DocKey, ParentDocKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
-import { flt, formatField, parseLongInt } from "../FormLayout/formatNumber";
+import { formatField } from "../FormLayout/formatNumber";
+import { parseNumberText } from "./parseText";
 import { resolveFieldCurrency } from "../FormLayout/resolveCurrency";
 import { getFormatDefaults } from "../FormLayout/formatDefaults";
 
@@ -90,16 +91,7 @@ function formatted(value: any): string {
 }
 
 function parse(s: string): number | string {
-	// Empty input commits `0` (no null state); `flt('')` already returns 0.
-	const defaults = getFormatDefaults();
-	if (props.field.fieldtype === "Long Int") return parseLongInt(s, defaults.number_format);
-	if (props.field.fieldtype === "Int") {
-		return Math.trunc(flt(s, { numberFormat: defaults.number_format }));
-	}
-	return flt(s, {
-		numberFormat: defaults.number_format,
-		roundingMethod: defaults.rounding_method,
-	});
+	return parseNumberText(props.field.fieldtype, s);
 }
 
 // Show raw value while focused and select-all so a fresh entry overwrites (Frappe's FormattedInput).

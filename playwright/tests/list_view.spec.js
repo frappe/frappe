@@ -1,6 +1,7 @@
 import { test, expect } from "../support";
 
 const CHECK_ALL = ".list-header-subject .list-subject .list-check-all";
+const PHONE = { width: 375, height: 667 };
 
 test.describe("List View", () => {
 	test.beforeAll(async ({ admin }) => {
@@ -158,6 +159,96 @@ test.describe("List View", () => {
 		await api.remove_doc("Web Page", "impressum");
 	});
 
+	test("keeps the selection after a bulk edit", async ({ page, desk, api }) => {
+		const suffix = Date.now().toString(36);
+		const selected = [];
+		for (const route of [`bulk-edit-a-${suffix}`, `bulk-edit-b-${suffix}`]) {
+			const doc = await api.insert_doc("Web Page", {
+				title: route,
+				route,
+				content_type: "Rich Text",
+			});
+			selected.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("Web Page");
+			await desk.clear_filters();
+			for (const name of selected) {
+				await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+			}
+
+			await desk.click_action_button("Edit");
+			await page.waitForFunction(() => cur_dialog?.display);
+			await page.evaluate(async () => {
+				await cur_dialog.set_value("field", "Text Align (Web Page)");
+				await cur_dialog.set_value("value", "Center");
+			});
+			await desk.click_modal_primary_button("Update 2 records");
+			await expect(page.locator(".modal:visible")).toHaveCount(0);
+
+			await expect
+				.poll(() => page.evaluate(() => Array.from(cur_list.checked_docnames).sort()))
+				.toEqual(selected.sort());
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(2);
+		} finally {
+			for (const name of selected) {
+				await api.remove_doc("Web Page", name);
+			}
+		}
+	});
+
+	test("clears the selection when a bulk action is queued", async ({ page, desk, api }) => {
+		// More than 5 docs makes bulk_apply enqueue instead of running inline.
+		const selected = [];
+		for (let i = 0; i < 6; i++) {
+			const doc = await api.insert_doc("ToDo", { description: `queued bulk ${i}` });
+			selected.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			for (const name of selected) {
+				await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+			}
+
+			await desk.click_action_button("Apply Assignment Rule");
+
+			await expect.poll(() => page.evaluate(() => cur_list.checked_docnames.size)).toBe(0);
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(0);
+		} finally {
+			for (const name of selected) {
+				await api.remove_doc("ToDo", name);
+			}
+		}
+	});
+
+	test("clears a partial selection from the header checkbox", async ({ page, desk, api }) => {
+		const todos = [];
+		for (let i = 0; i < 2; i++) {
+			const doc = await api.insert_doc("ToDo", { description: `partial selection ${i}` });
+			todos.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+
+			await page.locator(`.list-row-checkbox[data-name="${todos[0]}"]`).click();
+			const header_check = page.locator(".checkbox-actions .list-check-all");
+			await expect.poll(() => header_check.evaluate((el) => el.indeterminate)).toBe(true);
+
+			await header_check.click();
+			await expect.poll(() => page.evaluate(() => cur_list.checked_docnames.size)).toBe(0);
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(0);
+		} finally {
+			for (const name of todos) {
+				await api.remove_doc("ToDo", name);
+			}
+		}
+	});
+
 	test("keeps selected rows checked after a list rerender", async ({ page, desk }) => {
 		await desk.go_to_list("ToDo");
 		await desk.clear_filters();
@@ -255,17 +346,127 @@ test.describe("List View", () => {
 
 		const order = page.locator(".sort-selector .btn-order");
 		await expect(order).toHaveAttribute("title", "descending");
-		await expect(order.locator(".sort-order use")).toHaveAttribute(
-			"href",
-			"#icon-arrow-down-wide-narrow"
-		);
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-down-wide-narrow");
 
 		await order.click();
 		await expect(order).toHaveAttribute("data-value", "asc");
 		await expect(order).toHaveAttribute("title", "ascending");
-		await expect(order.locator(".sort-order use")).toHaveAttribute(
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-up-narrow-wide");
+	});
+
+	test("sorts from a sheet on phones", async ({ page, desk }) => {
+		await page.setViewportSize(PHONE);
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		await page.evaluate(() => cur_list.sort_selector.set_value("creation", "desc"));
+
+		const sort_button = page.getByRole("button", { name: "Sort", exact: true });
+		const sheet = page.locator(".es-bottom-sheet");
+		const option = (name) => sheet.getByRole("button", { name, exact: true });
+
+		await sort_button.click();
+		await expect(option("Descending")).toHaveAttribute("aria-pressed", "true");
+		await expect(option("Created On")).toHaveAttribute("aria-pressed", "true");
+
+		await option("Ascending").click();
+		await expect(sheet).toBeHidden();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["creation", "asc"]);
+
+		await sort_button.click();
+		await option("Last Updated On").click();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["modified", "asc"]);
+		await expect(sort_button.locator("use")).toHaveAttribute(
 			"href",
 			"#icon-arrow-up-narrow-wide"
 		);
+	});
+
+	test.describe("on a touch phone", () => {
+		test.use({ viewport: PHONE, hasTouch: true });
+
+		test("opens a row's actions on a long press", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+
+			const row = page
+				.locator(".result .list-row-container:has(.list-row-checkbox)")
+				.first();
+			const subject = (await row.locator(".list-subject").innerText()).trim();
+			const box = await row.boundingBox();
+			const point = { x: box.x + box.width - 40, y: box.y + box.height / 2 };
+			const cdp = await page.context().newCDPSession(page);
+			await cdp.send("Input.dispatchTouchEvent", {
+				type: "touchStart",
+				touchPoints: [point],
+			});
+			await page.waitForTimeout(700);
+			await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+			await expect(page.locator(".es-bottom-sheet .es-bottom-sheet__title")).toHaveText(
+				subject
+			);
+			await expect
+				.poll(() =>
+					page.evaluate(() => [frappe.get_route()[0], cur_list.checked_docnames.size])
+				)
+				.toEqual(["List", 1]);
+		});
+	});
+});
+
+test.describe("List View bulk submit", () => {
+	const doctype = "Bulk Submit Row";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: doctype,
+				custom: 1,
+				is_submittable: 1,
+				module: "Custom",
+				fields: [{ fieldname: "title", fieldtype: "Data", label: "Title" }],
+				permissions: [
+					{
+						role: "System Manager",
+						read: 1,
+						write: 1,
+						create: 1,
+						delete: 1,
+						submit: 1,
+						cancel: 1,
+					},
+				],
+			},
+			true
+		);
+	});
+
+	test("refreshes the list when a repeated submit fails", async ({ page, desk, api }) => {
+		const selected = [];
+		for (const title of ["first", "second"]) {
+			const doc = await api.insert_doc(doctype, { title });
+			selected.push(doc.name);
+		}
+
+		await desk.go_to_list(doctype);
+		await desk.clear_filters();
+		for (const name of selected) {
+			await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+		}
+
+		for (let run = 0; run < 2; run++) {
+			await desk.click_action_button("Submit");
+			await desk.click_modal_primary_button("Yes");
+			await expect.poll(() => page.evaluate(() => cur_list.disable_list_update)).toBe(false);
+		}
+		await expect(page.locator(".modal:visible")).toContainText("Cannot submit");
+		await expect
+			.poll(() => page.evaluate(() => cur_list.checked_docnames.size))
+			.toBe(selected.length);
 	});
 });

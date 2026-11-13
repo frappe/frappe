@@ -3,6 +3,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import traceback
@@ -11,12 +12,27 @@ import click
 
 import frappe
 from frappe.bundler import get_node_env
-from frappe.studio.utils import get_exported_app_folders, walk_blocks
+from frappe.studio.utils import (
+	find_script_file,
+	get_export_folder,
+	get_exported_app_folders,
+	get_exported_app_name,
+	get_studio_folder,
+	walk_blocks,
+)
 from frappe.utils import get_files_path
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 EDITOR_ASSETS_BASE = "/assets/frappe/studio/"
 LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
+def can_build_bundle() -> bool:
+	"""Check whether Yarn is available to build an app bundle.
+
+	Without Yarn, database apps use the browser compiler and do not need a build warning.
+	"""
+	return bool(shutil.which("yarn"))
 
 
 class StudioAppBuildError(RuntimeError):
@@ -35,6 +51,7 @@ class StudioAppBuilder:
 		self.components = set()
 		self.studio_component_blocks = {}
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
+		self.missing_components: set[str] = set()
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
 		self.router_file: str | None = None
 		self.app_folder: str | None = None
@@ -59,53 +76,74 @@ class StudioAppBuilder:
 
 	def build(self):
 		if self.is_standard:
+			self.app_folder = self.get_app_folder()
+			if not os.path.isdir(self.app_folder):
+				raise StudioAppBuildError(
+					f"No export folder found for app '{self.app_name}'",
+					f"Expected the exported app at {self.app_folder}.",
+				)
 			self.get_app_components_from_files()
+			self._validate_components_resolved()
 			self.get_page_scripts_from_files()
 			self.router_file = get_router_file(self.frappe_app, self.app_name)
-			self.app_folder = self.get_app_folder()
 			self.tailwind_content = get_tailwind_content(self.app_folder)
 			self._run_vite_build()
 		else:
-			self.get_app_components()
-			with self._write_page_sources() as page_sources:
-				self.tailwind_content = [page_sources.name]
-				self._run_vite_build()
+			with tempfile.TemporaryDirectory() as temp_root:
+				# The same `studio/<app>/` layout as an export: the `@app/` resolver finds this
+				# path segment in the importing file's path.
+				self.app_folder = os.path.join(temp_root, "studio", frappe.scrub(self.app_name))
+				self.page_scripts = write_db_files_to_folder(self.app_name, self.app_folder)
+				self.get_app_components()
+				self.router_file = find_router_file(self.app_folder)
+				with self._write_page_sources() as page_sources:
+					self.tailwind_content = [*get_tailwind_content(self.app_folder), page_sources.name]
+					self._run_vite_build()
 
 	def _write_page_sources(self):
-		"""DB pages aren't on disk, so write them to a file for Tailwind to scan."""
+		"""Write page source to a temporary file so Tailwind can find its CSS classes."""
 		page_sources = tempfile.NamedTemporaryFile("w", suffix=".txt")
 		page_sources.write("\n".join(self.page_sources))
 		page_sources.flush()
 		return page_sources
 
 	def get_app_folder(self) -> str:
-		return os.path.join(get_studio_folder(self.frappe_app), self.app_name)
+		return get_export_folder(self.frappe_app, self.app_name)
+
+	def _validate_components_resolved(self) -> None:
+		"""An unresolved component builds into an unknown element, which renders blank and silent."""
+		if not self.missing_components:
+			return
+		names = ", ".join(sorted(self.missing_components))
+		raise StudioAppBuildError(
+			f"Components used by '{self.app_name}' are missing from its export: {names}",
+			f"Looked under {self.app_folder}. Export them with the app, or drop the blocks using them.",
+		)
 
 	def get_page_scripts_from_files(self):
-		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
+		"""Collect the page script files for the app's published pages, so the build bundles a
 		`setup()` module per page (code mode)."""
-		page_folder = os.path.join(self.get_app_folder(), "studio_page")
-		if not page_folder or not os.path.isdir(page_folder):
+		page_folder = os.path.join(self.app_folder, "studio_page")
+		if not os.path.isdir(page_folder):
 			return
 
 		scripts = []
-		# each page is a folder holding <stem>.json + <stem>.ts
 		for entry in sorted(os.listdir(page_folder)):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
 				continue
-			ts_path = os.path.join(page_dir, f"{entry}.ts")
+			script_path = find_script_file(page_dir, entry)
 			json_path = os.path.join(page_dir, f"{entry}.json")
-			if not (os.path.exists(ts_path) and os.path.exists(json_path)):
+			if not (os.path.exists(script_path) and os.path.exists(json_path)):
 				continue
 			try:
 				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 				with open(json_path) as f:
-					page_name = json.load(f).get("page_name")
+					page_data = json.load(f)
 			except (OSError, json.JSONDecodeError):
 				continue
-			if page_name:
-				scripts.append({"page_name": page_name, "file_path": ts_path})
+			if page_data.get("published") and page_data.get("page_name"):
+				scripts.append({"page_name": page_data["page_name"], "file_path": script_path})
 
 		self.page_scripts = scripts
 		return scripts
@@ -149,6 +187,9 @@ class StudioAppBuilder:
 
 		for glob in self.tailwind_content:
 			command += ["--tailwind-content", glob]
+
+		if not self.is_standard:
+			command += ["--database-app"]
 
 		studio_app_path = frappe.get_app_source_path("frappe", "studio", "frontend")
 		result = subprocess.run(
@@ -197,14 +238,14 @@ class StudioAppBuilder:
 		"""Extract component names from exported JSON files on disk instead of DB records,
 		used during `bench build` when there's no DB access.
 		"""
-		app_folder = self.get_app_folder()
+		# bench build can call this method directly, before build() sets app_folder.
+		app_folder = self.app_folder = self.app_folder or self.get_app_folder()
 		page_folder = os.path.join(app_folder, "studio_page")
 		if not os.path.exists(page_folder):
 			return self.components
 
 		self._load_studio_components_from_files(app_folder)
 
-		# each page is a folder holding <stem>.json + <stem>.ts
 		for entry in os.listdir(page_folder):
 			page_dir = os.path.join(page_folder, entry)
 			if not os.path.isdir(page_dir):
@@ -217,11 +258,15 @@ class StudioAppBuilder:
 				with open(page_path) as f:
 					page_text = f.read()
 				page_data = json.loads(page_text)
-				self._add_icons(page_text)
-				self._add_h_function_components(page_text)
 			except (json.JSONDecodeError, OSError) as e:
 				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
 				continue
+
+			if not page_data.get("published"):
+				continue
+
+			self._add_icons(page_text)
+			self._add_h_function_components(page_text)
 
 			blocks = page_data.get("blocks")
 			if not blocks:
@@ -258,6 +303,8 @@ class StudioAppBuilder:
 			comp_name = block.get("componentName")
 			if comp_name and comp_name in self.studio_component_blocks:
 				self._add_block_components(self.studio_component_blocks[comp_name])
+			elif comp_name:
+				self.missing_components.add(comp_name)
 		else:
 			component_block = frappe.db.get_value("Studio Component", block.get("componentName"), "block")
 			self._add_icons(component_block if isinstance(component_block, str) else None)
@@ -300,14 +347,15 @@ class StudioAppBuilder:
 				continue
 
 	def _add_custom_vue_component(self, componentName: str):
-		if not componentName or not self.frappe_app:
+		if not componentName or not self.app_folder:
 			return
 
-		app_dir = self.get_app_folder()
-		for dirpath, _dirnames, filenames in os.walk(app_dir):
+		for dirpath, _dirnames, filenames in os.walk(self.app_folder):
 			if f"{componentName}.vue" in filenames:
 				self.custom_vue_components[componentName] = os.path.join(dirpath, f"{componentName}.vue")
-				break
+				return
+
+		self.missing_components.add(componentName)
 
 
 def build_standard_apps(apps: list[str] | None = None) -> None:
@@ -319,7 +367,7 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 	failed_apps = []
 	for frappe_app in apps or frappe.get_all_apps():
 		for app_folder in get_exported_app_folders(get_studio_folder(frappe_app)):
-			studio_app = os.path.basename(app_folder)
+			studio_app = get_exported_app_name(app_folder)
 			click.echo(f"\nBuilding Studio App: {studio_app} (from {frappe_app})")
 
 			try:
@@ -367,14 +415,47 @@ def get_published_custom_apps() -> list[str]:
 	return custom_apps
 
 
-def get_studio_folder(frappe_app: str) -> str | None:
-	return frappe.get_app_source_path(frappe_app, "studio")
-
-
 def get_router_file(frappe_app: str, studio_app: str) -> str | None:
-	"""Path of the app's studio/<app>/router.ts, if it ships one."""
-	path = os.path.join(get_studio_folder(frappe_app), studio_app, "router.ts")
+	"""Path of the app's router.ts or router.js, if it ships one."""
+	return find_router_file(get_export_folder(frappe_app, studio_app))
+
+
+def find_router_file(app_folder: str) -> str | None:
+	path = find_script_file(app_folder, "router")
 	return path if os.path.exists(path) else None
+
+
+def write_db_files_to_folder(studio_app: str, app_folder: str) -> list[dict]:
+	"""Write database source files to the export layout for Vite to build.
+
+	Store shared files at the app root and published page scripts at
+	`studio_page/<stem>/<stem>.js`. Return each page script's name and file path.
+	"""
+	from frappe.studio.files import get_db_files
+
+	frappe.create_folder(app_folder)
+	for file in get_db_files(studio_app):
+		write_build_file(os.path.join(app_folder, file["path"]), file["content"])
+
+	pages = frappe.get_all(
+		"Studio Page",
+		filters={"studio_app": studio_app, "published": 1, "script": ("is", "set")},
+		fields=["name", "page_title", "script"],
+	)
+	page_scripts = []
+	for page in pages:
+		stem = frappe.scrub(page.page_title)
+		path = os.path.join(app_folder, "studio_page", stem, f"{stem}.js")
+		write_build_file(path, page.script)
+		page_scripts.append({"page_name": page.name, "file_path": path})
+	return page_scripts
+
+
+def write_build_file(path: str, content: str) -> None:
+	frappe.create_folder(os.path.dirname(path))
+	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+	with open(path, "w", encoding="utf-8") as f:
+		f.write(content)
 
 
 def get_tailwind_content(folder: str) -> list[str]:

@@ -39,6 +39,9 @@ export default defineConfig(({ command }) => {
 			__VUE_PROD_DEVTOOLS__: true,
 		},
 		server: {
+			// the backend and the renderer address this server at the site's hostname, which
+			// resolves to 127.0.0.1; vite's default `localhost` binds only ::1 on macOS
+			host: true,
 			// explicitly set origin of generated assets (images, fonts, etc) during development.
 			// Required for the app renderer running on webserver port
 			// https://vite.dev/guide/backend-integration
@@ -64,10 +67,6 @@ export default defineConfig(({ command }) => {
 				frappeProxy: true,
 				lucideIcons: true,
 				buildConfig: false,
-				// Avoid the plugin's incompatible esbuild adapter on Vite 8.
-				// Vite's pre-bundler already handles frappe-ui's missing optional peers
-				// with an error that loadLanguage catches and adds an install hint to.
-				codeLanguages: false,
 				jinjaBootData: false,
 			}),
 			frameworkui(),
@@ -113,6 +112,12 @@ export default defineConfig(({ command }) => {
 			chunkSizeWarningLimit: 1000,
 		},
 		optimizeDeps: {
+			// Pre-bundling splits frappe-ui in two: its .ts modules are bundled, its .vue files
+			// are served raw, so a module-level singleton (the keyboard shortcut registry, the
+			// imperative dialogs) gets one copy per side and each side only sees its own.
+			// Every frappe-ui module is then served raw and carries a dep hash, so clear
+			// node_modules/.vite when this config changes, or the stale ones 504.
+			exclude: ["frappe-ui"],
 			include: [
 				"engine.io-client",
 				"highlight.js/lib/core",

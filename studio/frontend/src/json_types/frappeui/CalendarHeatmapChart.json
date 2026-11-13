@@ -1,0 +1,128 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "CalendarHeatmapChartProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "date": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "start": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "format": "date-time"
+            }
+          ]
+        },
+        "end": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string",
+              "format": "date-time"
+            }
+          ]
+        },
+        "weekStart": {
+          "type": "string",
+          "enum": [
+            "sunday",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday"
+          ]
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "format": {
+          "type": "object"
+        },
+        "palette": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "sequential"
+            },
+            {
+              "type": "string",
+              "const": "diverging"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "echartOptions": {
+          "type": "object"
+        },
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string",
+          "enum": [
+            "ltr",
+            "rtl"
+          ]
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "data",
+        "date",
+        "value"
+      ]
+    },
+    "CalendarHeatmapChartSlots": {
+      "type": "object",
+      "properties": {
+        "tooltip": {
+          "type": "object"
+        },
+        "title-suffix": {
+          "type": "object"
+        },
+        "actions": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

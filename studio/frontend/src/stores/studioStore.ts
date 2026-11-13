@@ -1,6 +1,7 @@
-import { ref, nextTick, computed, toRaw, readonly } from "vue"
+import { ref, nextTick, computed, toRaw, shallowReadonly, watch } from "vue"
 import { useDark, useDebounceFn, useStorage, useToggle } from "@vueuse/core"
 import router from "@/router/studio_router"
+import { createEditorAppRouter } from "@/router/editor_app_router"
 import { defineStore } from "pinia"
 
 import { fetchApp, fetchPage, confirm, getInitialVariableValue, getRouteVariables } from "@/utils/helpers"
@@ -14,7 +15,8 @@ import useCanvasStore from "@/stores/canvasStore"
 import useCodeStore, { usePageScope } from "@/stores/codeStore"
 import { reloadCustomVueComponents } from "@/utils/customVueComponents"
 import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
-import { registerCustomComponentPaths } from "@/utils/components"
+import { loadAppRuntime, reloadAppRuntime, unloadAppRuntime } from "@/browserRuntime/appRuntime"
+import { registerCustomComponentPaths } from "@/utils/componentSlots"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
@@ -53,6 +55,12 @@ const useStudioStore = defineStore("store", () => {
 		localStorage,
 		{ mergeDefaults: true },
 	)
+	/** The right panel tab a block opens on: a container's props and styles are one combined tab. */
+	function focusRightPanelFor(block: Block) {
+		studioLayout.value.rightPanelActiveTab =
+			block.isRoot() || block.isText() || block.isContainer() ? "Styles" : "Properties"
+	}
+
 	const isDark = useDark({ attribute: "data-theme" })
 	const toggleTheme = useToggle(isDark)
 	const isCanvasDark = useStorage("studioCanvasDarkMode", false)
@@ -101,11 +109,15 @@ const useStudioStore = defineStore("store", () => {
 	}
 
 	const showRouterEditor = ref(false)
+	// Database apps can compile Studio App File source in the browser.
+	const isDbApp = computed(() => activeApp.value?.is_standard === 0)
 
 	async function setApp(appName: string) {
 		const appDoc = await fetchApp(appName)
 		if (!appDoc) return
 		activeApp.value = appDoc
+		if (isDbApp.value) await loadAppRuntime(appName)
+		else await unloadAppRuntime()
 		await setAppBoot(appName)
 		await setAppPages(appName)
 		await setCustomComponents()
@@ -256,7 +268,7 @@ const useStudioStore = defineStore("store", () => {
 		activePage.value = page
 		loadRouteVariables(page)
 		await setPageData(page)
-		await pageScope.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.loadPageScript(page)
 
 		const blocks = JSON.parse(page.draft_blocks || page.blocks || "[]")
 		if (blocks.length === 0) {
@@ -393,18 +405,12 @@ const useStudioStore = defineStore("store", () => {
 
 	// A server tool (AI) wrote the page script straight to the DB / code file, so re-fetch the
 	// page and re-run setup() on the canvas. (Standard pages update only after their app rebuilds.)
-	async function reloadActiveAppRouterScript() {
-		if (!activeApp.value) return
-		const app = await fetchApp(activeApp.value.name)
-		if (app && activeApp.value?.name === app.name) activeApp.value.router_script = app.router_script
-	}
-
 	async function reloadActivePageScript() {
 		if (!activePage.value) return
 		const page = await fetchPage(activePage.value.name)
 		if (!page) return
 		activePage.value = page
-		await pageScope.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.loadPageScript(page)
 	}
 
 	async function publishPage() {
@@ -438,7 +444,8 @@ const useStudioStore = defineStore("store", () => {
 					},
 				},
 			)
-			.then(async () => {
+			.then(async (response: any) => {
+				warnAboutUnresolvedVariants(response?.message?.unresolved_variants)
 				const buildError = await generateAppBuild()
 				activePage.value = await fetchPage(selectedPage.value!)
 				if (!activeApp.value || !activePage.value) return
@@ -516,6 +523,13 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
+	function warnAboutUnresolvedVariants(names: string[] | undefined) {
+		if (!names?.length) return
+		toast.warning("Published with unresolved variants", {
+			description: `${names.join(", ")} — open the page and use Keep to settle on one option.`,
+		})
+	}
+
 	async function publishApp() {
 		// the publish button and the command palette both publish; one at a time
 		if (!activeApp.value || publishingApp.value) return
@@ -529,6 +543,7 @@ const useStudioStore = defineStore("store", () => {
 				async onSuccess(data: any) {
 					activePage.value = await fetchPage(selectedPage.value!)
 					setAppPages(activeApp.value!.name)
+					warnAboutUnresolvedVariants(data?.message?.unresolved_variants)
 					const buildError = data?.message?.build_error
 					if (buildError) {
 						showBuildErrorDialog(
@@ -604,18 +619,22 @@ const useStudioStore = defineStore("store", () => {
 		}, route)
 	}
 
-	// custom components
+	// Only a repository app ships .vue components. An empty app name clears the ones the last app registered.
 	async function setCustomComponents() {
-		await loadCustomVueComponents()
+		const frappeApp = isDbApp.value ? "" : activeApp.value!.frappe_app!
+		customVueComponents.value = await reloadCustomVueComponents(frappeApp, activeApp.value?.name ?? "")
 		await registerCustomComponentPaths(customVueComponents.value)
 	}
 
-	async function loadCustomVueComponents() {
-		const frappeApp = activeApp.value?.is_standard ? activeApp.value.frappe_app! : ""
-		customVueComponents.value = await reloadCustomVueComponents(frappeApp)
-	}
+	// Reload source, components and the active page script after file changes.
+	// Debounce to combine a local save and its realtime event into one refresh.
+	const refreshAppFiles = useDebounceFn(async () => {
+		if (!isDbApp.value) return
+		await reloadAppRuntime()
+		if (activePage.value) await pageScope.loadPageScript(activePage.value)
+	}, 300)
 
-	// Register per-page code scripts (<page>.ts) for exported apps so the editor can load them.
+	// Register per-page script files for exported apps so the editor can load them.
 	async function setupPageScripts() {
 		unregisterStudioPageScripts()
 		if (activeApp.value?.is_standard) {
@@ -675,11 +694,12 @@ const useStudioStore = defineStore("store", () => {
 	const propertyFilter = ref<string | null>(null)
 
 	// data
+	const { router: appRouter, goToPage } = createEditorAppRouter()
 	const routeObject = computed(() => {
 		if (!activePage.value) return ""
 
-		// copy — mutating the live route object would wipe the editor router's own params (appID/pageID)
-		const newRoute = { ...toRaw(router.currentRoute.value) }
+		// Copy the route before applying test parameters, so the router's current route stays intact.
+		const newRoute = { ...toRaw(appRouter.currentRoute.value) }
 		// Seed each dynamic param with its design-time test value (empty string when unset),
 		// e.g. "/hr/:employee/:id" -> { employee, id } filled from routeVariables
 		const paramNames = getRouteVariables(activePage.value.route)
@@ -727,13 +747,30 @@ const useStudioStore = defineStore("store", () => {
 		// re-resolve data sources with the new value, then re-run the page script so bindings that
 		// derive from a resource (e.g. refs seeded from note.doc via a watcher) re-bind to the new doc.
 		await pageScope.setPageResources(page, true)
-		await pageScope.setPageScript(page, Boolean(page.is_standard))
+		await pageScope.loadPageScript(page)
 	}, 300)
 
 	const codeStore = useCodeStore()
 	const pageScope = usePageScope()
 	codeStore.setRouteObject(routeObject)
-	codeStore.setRouterObject(readonly(router))
+	// Keep currentRoute as a ref so scripts can use router.currentRoute.value.
+	// A deep readonly proxy would unwrap it.
+	codeStore.setRouterObject(shallowReadonly(appRouter))
+	// Watch routing inputs only. Canvas edits must not reset navigation made by the page script.
+	const appRouteInputs = computed(() =>
+		JSON.stringify([
+			activePage.value?.name,
+			activePage.value?.route,
+			routeVariables.value,
+			Object.values(appPages.value).map((page) => [page.route, page.page_title]),
+		]),
+	)
+	watch(
+		appRouteInputs,
+		() =>
+			activePage.value && goToPage(Object.values(appPages.value), activePage.value, routeVariables.value),
+		{ immediate: true, flush: "sync" },
+	)
 
 	// A page script (or a composable/util it imports) hot-updated. Re-run it in place when it's the
 	// active page so new refs/functions and changed dependency code show up on the canvas, in the
@@ -790,6 +827,7 @@ const useStudioStore = defineStore("store", () => {
 	return {
 		// layout
 		studioLayout,
+		focusRightPanelFor,
 		isDark,
 		toggleTheme,
 		isCanvasDark,
@@ -805,6 +843,8 @@ const useStudioStore = defineStore("store", () => {
 		showPageOptions,
 		// studio app
 		activeApp,
+		isDbApp,
+		refreshAppFiles,
 		setApp,
 		deleteApp,
 		updateActiveApp,
@@ -816,7 +856,6 @@ const useStudioStore = defineStore("store", () => {
 		getAppPageRoute,
 		// custom components
 		setCustomComponents,
-		loadCustomVueComponents,
 		customVueComponents,
 		// cross-panel navigation
 		selectedVueFile,
@@ -841,7 +880,6 @@ const useStudioStore = defineStore("store", () => {
 		syncPageModified,
 		refreshActivePageModified,
 		reloadActivePageScript,
-		reloadActiveAppRouterScript,
 		publishPage,
 		unpublishPage,
 		revertPage,

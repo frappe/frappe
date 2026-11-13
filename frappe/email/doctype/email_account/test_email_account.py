@@ -187,7 +187,8 @@ class TestEmailAccount(IntegrationTestCase):
 			subject="test-mail-001",
 			now=True,
 		)
-		frappe.db.commit()  # now=True requires commit
+		with patch.object(frappe.db, "commit"):
+			frappe.db.after_commit.run()
 
 		sent_mail = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
@@ -367,7 +368,8 @@ class TestEmailAccount(IntegrationTestCase):
 		message_id = Email(mail_content).mail.get("Message-ID")
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.handle_bad_emails(uid=-1, raw=mail_content, reason="Testing")
+		with patch.object(frappe.db, "commit"):
+			email_account.handle_bad_emails(uid=-1, raw=mail_content, reason="Testing")
 		self.assertTrue(frappe.db.get_value("Unhandled Email", {"message_id": message_id}))
 
 	def test_handle_bad_encoding(self):
@@ -376,7 +378,8 @@ class TestEmailAccount(IntegrationTestCase):
 		mail_content = b"\x80"  # invalid byte
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.handle_bad_emails(uid=uid, raw=mail_content, reason="Testing")
+		with patch.object(frappe.db, "commit"):
+			email_account.handle_bad_emails(uid=uid, raw=mail_content, reason="Testing")
 		self.assertTrue(frappe.db.get_value("Unhandled Email", {"uid": uid}))
 
 	def test_imap_folder(self):
@@ -445,18 +448,29 @@ class TestEmailAccount(IntegrationTestCase):
 			email_account.check_email_server_connection(server, in_receive=True)
 
 	def test_background_receive_auth_error_disables_account(self):
-		# auth failure during background receive disables incoming instead of raising
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.flags.validate_imap_pop_connection = False
 
 		server = MagicMock()
 		server.connect.side_effect = imaplib.IMAP4.error("[AUTHENTICATIONFAILED] Invalid credentials")
 
-		with patch.object(email_account, "handle_incoming_connect_error") as mocked_handler:
-			result = email_account.check_email_server_connection(server, in_receive=True)
+		with (
+			self.set_user("test@example.com"),
+			patch.object(email_account, "handle_incoming_connect_error") as mocked_handler,
+			self.assertRaises(imaplib.IMAP4.error),
+		):
+			email_account.check_email_server_connection(server, in_receive=True)
 
-		self.assertIsNone(result)
 		mocked_handler.assert_called_once()
+
+	def test_background_receive_raises_connection_error(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+
+		server = MagicMock()
+		server.connect.side_effect = OSError("timed out")
+
+		with self.set_user("test@example.com"), self.assertRaises(OSError):
+			email_account.check_email_server_connection(server, in_receive=True)
 
 	def test_append_to(self):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
@@ -619,10 +633,33 @@ class TestEmailAccount(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Communication", {"message_id": "rfq-7@example.com"}))
 		self.assertEqual(self.get_sync_from_uids(email_account), {"RFQ": 8})
 
+	def test_unparseable_mail_keeps_the_rest_of_the_batch(self):
+		email_account = self.make_imap_account({"RFQ": 7})
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		mailbox = IMAPMailbox({"RFQ": {7: "rfq-7", 8: "rfq-8"}})
+		init = InboundMail.__init__
+
+		def init_or_fail(mail, content, email_account, uid=None, *args):
+			if uid == "7":
+				raise ValueError("header could not be decoded")
+			init(mail, content, email_account, uid, *args)
+
+		with patch.object(InboundMail, "__init__", init_or_fail):
+			receive_from_mailbox(mailbox, email_account)
+
+		self.assertTrue(frappe.db.exists("Communication", {"message_id": "rfq-8@example.com"}))
+		self.assertTrue(frappe.db.exists("Unhandled Email", {"email_account": email_account, "uid": "7"}))
+
+	@patch("frappe.email.receive.EmailServer.connect", return_value=True)
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_get_inbound_mails(
-		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
+		email_account,
+		messages=None,
+		mocked_logout=None,
+		mocked_select_imap_folder=None,
+		mocked_connect=None,
 	):
 		from frappe.email.receive import EmailServer
 
@@ -637,10 +674,15 @@ class TestEmailAccount(IntegrationTestCase):
 
 		return mails
 
+	@patch("frappe.email.receive.EmailServer.connect", return_value=True)
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_email_receive(
-		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
+		email_account,
+		messages=None,
+		mocked_logout=None,
+		mocked_select_imap_folder=None,
+		mocked_connect=None,
 	):
 		if messages is None:
 			messages = {}
@@ -650,7 +692,11 @@ class TestEmailAccount(IntegrationTestCase):
 
 		from frappe.email.receive import EmailServer
 
-		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
+		with (
+			patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+		):
 			email_account.receive()
 
 
@@ -802,14 +848,14 @@ class TestInboundMail(IntegrationTestCase):
 
 	def test_reference_document_by_record_name_in_subject(self):
 		# Create email queue record
-		todo = self.new_todo()
+		todo = self.new_todo(sender="test_sender@example.com")
 
 		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
 			"{{ subject }}", f"RE: (#{todo.name})"
 		)
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, "ToDo")
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
 
@@ -821,7 +867,7 @@ class TestInboundMail(IntegrationTestCase):
 			"{{ subject }}", f"RE: {subject}"
 		)
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, "ToDo")
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
 
@@ -861,7 +907,7 @@ class TestInboundMail(IntegrationTestCase):
 			.encode("utf-8")
 		)  # note: encode to bytes because that's what triggered the error
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1, "ToDo")
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
 

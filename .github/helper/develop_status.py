@@ -20,37 +20,54 @@ from datetime import UTC, datetime
 from functools import cache
 
 from roulette import FIX_DEVELOP_LABEL as FIX_LABEL
-from roulette import is_ci, is_docs, is_frontend_code, is_server_side_code
+from roulette import is_ci, is_desk_frontend, is_docs, is_frontend_code, is_server_side_code
 
 REPO = os.environ["GITHUB_REPOSITORY"]
 BRANCHES = ("develop", "desk-v2")
 SUITES = {"server-tests.yml": "Server Success", "ui-tests.yml": "UI Success"}
 TEST_JOBS = {"server-tests.yml": "Integration", "ui-tests.yml": "UI Test"}
+STATUS_JOB = "Update Develop Status"
 
 
-def gh(*args):
-	return json.loads(subprocess.check_output(["gh", "api", *args], text=True))
+def gh(*args, attempts=3):
+	"""A GitHub API call, tried again after a failure such as a dropped connection."""
+	for attempt in range(attempts):
+		try:
+			return json.loads(subprocess.check_output(["gh", "api", *args], text=True))
+		except subprocess.CalledProcessError:
+			if attempt == attempts - 1:
+				raise
+			time.sleep(10)
 
 
 def gate_conclusion(run, gate_job):
-	"""The gate job's result, or None for a run that hasn't finished or was cancelled."""
-	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
-	if any(job["conclusion"] == "cancelled" for job in jobs):
+	"""The gate job's result, or None for a run that hasn't finished or was cancelled. A re-run whose gate job hasn't finished counts as its previous attempt."""
+	path = f"repos/{REPO}/actions/runs/{run['id']}"
+	jobs = gh(f"{path}/jobs")["jobs"]
+	if run["status"] != "completed" and run["run_attempt"] > 1 and not gate_of(jobs, gate_job):
+		jobs = gh(f"{path}/attempts/{run['run_attempt'] - 1}/jobs")["jobs"]
+	if any(job["conclusion"] == "cancelled" and job["name"] != STATUS_JOB for job in jobs):
 		return None
+	return gate_of(jobs, gate_job)
+
+
+def gate_of(jobs, gate_job):
 	return next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)
 
 
 def suite_result(run, workflow):
-	"""("success", "failure" or "pending", failed job url) for a suite run, counting it passed only when its test jobs ran."""
+	"""("success", "failure", "skipped" or "pending", failed job url) for a suite run, counting it passed only when its test jobs ran."""
 	if not run or run["status"] != "completed":
 		return "pending", ""
 	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
-	if any(job["conclusion"] == "cancelled" for job in jobs):
+	if any(job["conclusion"] == "cancelled" and job["name"] != STATUS_JOB for job in jobs):
 		return "pending", ""
 	failed = next((job["html_url"] for job in jobs if job["conclusion"] == "failure"), None)
 	if failed:
 		return "failure", failed
 	tests = [job["conclusion"] for job in jobs if job["name"].startswith(TEST_JOBS[workflow])]
+	if all(c == "skipped" for c in tests):
+		return "skipped", ""
 	gate = next((job["conclusion"] for job in jobs if job["name"] == SUITES[workflow]), None)
 	if gate == "success" and tests and all(c == "success" for c in tests):
 		return "success", ""
@@ -107,7 +124,7 @@ def branch_state(branch):
 
 
 def fix_status(pr):
-	"""A fix pull request can merge only once every suite failing on its branch passed on it."""
+	"""A fix pull request can merge only once every suite failing on its branch passed on it, or was skipped because the pull request does not touch it."""
 	branch = pr["base"]["ref"]
 	results = [suite_result(pr_run(workflow, pr), workflow) for workflow in failing_suites(branch)]
 	failed = next((url for state, url in results if state == "failure"), None)
@@ -148,12 +165,17 @@ def post(pr, started=None):
 	return state
 
 
-def needs_suite(workflow, files):
-	"""Can these changed files affect this suite? Same rules as the pull request plan in roulette.py."""
+def needs_suite(workflow, files, branch="develop"):
+	"""Can these changed files affect this suite? The pull request plan's rules in roulette.py, except that
+	desk-v2's frontend counts for its server suite: desk-v2 pull requests skip the server tests that read it."""
 	if files is None or any(is_ci(f) for f in files):
 		return True
 	if workflow == "server-tests.yml":
-		return any(not (is_docs(f) or is_frontend_code(f)) for f in files)
+		return any(
+			not (is_docs(f) or is_frontend_code(f))
+			or (branch == "desk-v2" and is_desk_frontend(f) and not is_docs(f))
+			for f in files
+		)
 	return any(not (is_docs(f) or is_server_side_code(f)) for f in files)
 
 
@@ -172,7 +194,7 @@ def start_branch(branch, force):
 				continue
 			changes = gh(f"repos/{REPO}/compare/{last['head_sha']}...{head}")["files"]
 			files = [path for f in changes for path in (f["filename"], f.get("previous_filename")) if path]
-			if not needs_suite(workflow, None if len(changes) >= 300 else files):
+			if not needs_suite(workflow, None if len(changes) >= 300 else files, branch):
 				print(f"{workflow} on {branch}: no changes it can see since {last['head_sha'][:7]}")
 				continue
 		subprocess.run(["gh", "workflow", "run", workflow, "--repo", REPO, "--ref", branch], check=True)

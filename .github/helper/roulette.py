@@ -31,6 +31,10 @@ from urllib.error import HTTPError
 
 FULL_CI_LABEL = "run-full-ci"
 FIX_DEVELOP_LABEL = "fixes-develop"
+BUNDLE_SIZE_FILES = (
+	".github/workflows/default-js-bundle-size.yml",
+	".github/helper/compare_default_js_bundle_size.py",
+)
 
 
 @cache
@@ -177,6 +181,11 @@ def is_frontend_code(file):
 	)
 
 
+def is_desk_frontend(file):
+	"""The desk-v2 frontend, and the pages, records and settings an app contributes to it."""
+	return file.startswith(("frontend/", "ui/")) or (file.startswith("frappe/") and "/frontend/" in file)
+
+
 def matches_postgres_filenames(files_list):
 	"""Check if any changed files suggest database involvement."""
 	db_keywords = ["database", "query", "schema", "postgres"]
@@ -199,6 +208,11 @@ def _selftest():
 		"Jinja must run server tests"
 	)
 	assert is_frontend_code("studio/frontend/index.html"), "app pages outside the frappe package are frontend"
+	assert is_desk_frontend("ui/src/index.ts"), "desk-v2's server tests read ui/"
+	assert is_desk_frontend("frappe/desk/navigation_item_type/page/frontend/item.js"), (
+		"test_shell.py reads contributions"
+	)
+	assert not is_desk_frontend("frappe/public/js/frappe/ui/dialog.js"), "desk v1 is not desk-v2's frontend"
 	print("roulette selftest OK")
 
 
@@ -222,6 +236,13 @@ if __name__ == "__main__":
 
 	if not files_list:
 		print("No files' changes detected. Build is shutting")
+		sys.exit(0)
+
+	if build_type == "bundle":
+		if any(is_frontend_code(f) or f in BUNDLE_SIZE_FILES for f in files_list):
+			os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+		else:
+			print("No frontend code was updated, stopping bundle size check.")
 		sys.exit(0)
 
 	# Analyze changed files
@@ -254,7 +275,7 @@ if __name__ == "__main__":
 			sys.exit(0)
 	elif ci_files_changed:
 		print("CI related files were updated, running all build processes.")
-	elif only_docs_changed:
+	elif only_docs_changed and not tests_requested:
 		print("Only docs were updated, stopping build process.")
 		sys.exit(0)
 	elif (

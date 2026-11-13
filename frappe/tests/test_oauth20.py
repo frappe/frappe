@@ -12,11 +12,12 @@ from werkzeug.test import TestResponse
 import frappe
 from frappe.integrations.doctype.oauth_bearer_token.oauth_bearer_token import get_oauth_token_hash
 from frappe.integrations.oauth2 import encode_params, get_openid_configuration, get_resource_url
-from frappe.oauth import OAuthWebRequestValidator
+from frappe.oauth import AUTHORIZATION_CODE_EXPIRY_SECONDS, OAuthWebRequestValidator, get_url_delimiter
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import get_test_client, make_request, suppress_stdout
 from frappe.tests.utils import make_test_records
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+from frappe.utils.data import add_to_date, get_datetime
 from frappe.utils.oauth import build_oauth_url
 
 if TYPE_CHECKING:
@@ -242,6 +243,25 @@ class TestOAuth20(FrappeRequestTestCase):
 		self.assertTrue(response.json.get("active"))
 		self.assertEqual(response.json.get("client_id"), self.client_id)
 
+	def test_introspect_unknown_token_is_inactive(self):
+		self._make_bearer_token()
+		cases = (
+			(frappe.generate_hash(), "access_token"),
+			(frappe.generate_hash(), "refresh_token"),
+			("", "refresh_token"),
+		)
+
+		for token, token_type_hint in cases:
+			with self.subTest(token=token, token_type_hint=token_type_hint):
+				response = self.introspect(
+					token,
+					headers=self.get_client_auth_headers(),
+					token_type_hint=token_type_hint,
+				)
+
+				self.assertEqual(response.status_code, 200)
+				self.assertEqual(response.json, {"active": False})
+
 	def test_introspect_token_rejects_missing_credentials(self):
 		access_token, _token = self._make_bearer_token()
 
@@ -393,6 +413,30 @@ class TestOAuth20(FrappeRequestTestCase):
 
 				self.assertEqual(response.status_code, 415)
 
+	def test_missing_oauth_records_do_not_queue_messages(self):
+		missing_name = frappe.generate_hash()
+		validator = OAuthWebRequestValidator()
+		request = frappe._dict(
+			headers={},
+			client_id=missing_name,
+			client_secret=None,
+			refresh_token=None,
+			token=None,
+		)
+		validations = (
+			(validator.validate_client_id, (missing_name, frappe._dict())),
+			(validator.authenticate_client, (request,)),
+			(validator.authenticate_client_id, (missing_name, frappe._dict())),
+			(validator.validate_id_token, (missing_name, None, frappe._dict())),
+			(validator.validate_jwt_bearer_token, (missing_name, None, frappe._dict())),
+		)
+
+		for validation, args in validations:
+			with self.subTest(validation=validation.__name__):
+				frappe.clear_messages()
+				self.assertFalse(validation(*args))
+				self.assertFalse(frappe.get_message_log())
+
 	def test_confidential_client_authentication(self):
 		basic_credentials = {"headers": self.get_client_auth_headers()}
 		post_credentials = {"client_id": self.client_id, "client_secret": self.client_secret}
@@ -538,6 +582,22 @@ class TestOAuth20(FrappeRequestTestCase):
 		decoded_token = self.decode_id_token(bearer_token.get("id_token"))
 		self.assertEqual(decoded_token["email"], "test@example.com")
 
+	def test_invalid_refresh_token_does_not_leak_lookup(self):
+		# The request thread needs to see the client created in setUp.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		refresh_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.get_client_auth_headers(),
+			data={
+				"grant_type": "refresh_token",
+				"refresh_token": frappe.generate_hash(),
+				"client_id": self.client_id,
+			},
+		)
+
+		self.assertEqual(refresh_response.json.get("error"), "invalid_grant")
+		self.assertNotIn("_server_messages", refresh_response.json)
+
 	def test_refresh_token_is_bound_to_client(self):
 		update_client_for_auth_code_grant(self.client_id)
 		bearer_token = self.get_bearer_token()
@@ -661,6 +721,111 @@ class TestOAuth20(FrappeRequestTestCase):
 				**({"code_verifier": code_verifier} if code_verifier else {}),
 			},
 		)
+
+	def test_expired_authorization_code_is_rejected(self):
+		update_client_for_auth_code_grant(self.client_id)
+		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
+
+		issued_at = get_datetime("2026-01-01 00:00:00")
+		with self.freeze_time(issued_at):
+			resp = self.get(
+				"/api/method/frappe.integrations.oauth2.authorize",
+				{
+					"client_id": self.client_id,
+					"scope": self.scope,
+					"response_type": "code",
+					"redirect_uri": self.redirect_uri,
+				},
+				follow_redirects=True,
+			)
+		query = parse_qs(resp.request.environ["QUERY_STRING"])
+		auth_code = query.get("code")[0]
+
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+		self.assertEqual(
+			frappe.db.get_value("OAuth Authorization Code", auth_code, "expiration_time"),
+			add_to_date(issued_at, seconds=AUTHORIZATION_CODE_EXPIRY_SECONDS, as_datetime=True),
+		)
+
+		# 20 minutes later: past the 10-minute expiry window.
+		with self.freeze_time(add_to_date(issued_at, minutes=20)):
+			token_response = self.post(
+				"/api/method/frappe.integrations.oauth2.get_token",
+				headers=self.get_client_auth_headers(),
+				data={
+					"grant_type": "authorization_code",
+					"code": auth_code,
+					"redirect_uri": self.redirect_uri,
+					"client_id": self.client_id,
+					"scope": self.scope,
+				},
+			)
+
+		self.assertEqual(token_response.status_code, 400)
+		self.assertEqual(token_response.json.get("error"), "invalid_grant")
+		self.assertIsNone(token_response.json.get("access_token"))
+
+		# Refresh this thread's transaction snapshot again: the get_token request
+		# above ran (and committed the validity flip) on its own thread/connection.
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+		# The expired code must also now be marked Invalid, so it can't be
+		# redeemed later even if a client retries after obtaining a fresh clock.
+		self.assertEqual(frappe.db.get_value("OAuth Authorization Code", auth_code, "validity"), "Invalid")
+
+	def test_authorization_code_rejects_mismatched_redirect_uri(self):
+		client = update_client_for_auth_code_grant(self.client_id)
+		other_redirect_uri = "http://localhost:8001"
+		# Register a second redirect_uri on the same client so both are valid
+		# for the client in general, but the code is only bound to one.
+		client.redirect_uris = get_url_delimiter().join([self.redirect_uri, other_redirect_uri])
+		client.save()
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+		self.TEST_CLIENT.set_cookie(key="sid", value=self.sid)
+		resp = self.get(
+			"/api/method/frappe.integrations.oauth2.authorize",
+			{
+				"client_id": self.client_id,
+				"scope": self.scope,
+				"response_type": "code",
+				"redirect_uri": self.redirect_uri,
+			},
+			follow_redirects=True,
+		)
+		query = parse_qs(resp.request.environ["QUERY_STRING"])
+		auth_code = query.get("code")[0]
+
+		# Redeeming with a *different but still client-registered* redirect_uri
+		# must fail: the code is bound to the exact URI it was issued for.
+		mismatched_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.get_client_auth_headers(),
+			data={
+				"grant_type": "authorization_code",
+				"code": auth_code,
+				"redirect_uri": other_redirect_uri,
+				"client_id": self.client_id,
+				"scope": self.scope,
+			},
+		)
+		self.assertEqual(mismatched_response.status_code, 400)
+		self.assertIsNone(mismatched_response.json.get("access_token"))
+
+		# Redeeming with the exact issuing redirect_uri still works.
+		correct_response = self.post(
+			"/api/method/frappe.integrations.oauth2.get_token",
+			headers=self.get_client_auth_headers(),
+			data={
+				"grant_type": "authorization_code",
+				"code": auth_code,
+				"redirect_uri": self.redirect_uri,
+				"client_id": self.client_id,
+				"scope": self.scope,
+			},
+		)
+		self.assertTrue(correct_response.json.get("access_token"))
 
 	def test_revoke_token_with_incorrect_hint(self):
 		bearer_token = self.get_bearer_token()

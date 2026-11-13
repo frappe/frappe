@@ -1,5 +1,6 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import copy
 import datetime
 import functools
 import hashlib
@@ -434,6 +435,16 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 		doc = controller(**data)
 		return get_doc_permission_check(doc, kwargs.get("check_permission"))
 	raise ImportError(data["doctype"])
+
+
+def _get_cached_link_value(doctype: str, name, field_tuple: tuple) -> dict | None:
+	"""Row an earlier link validation or `get_value(cache=True)` cached in this transaction."""
+	if not isinstance(name, str):
+		return None
+	rows = frappe.db.value_cache[doctype][name].get(field_tuple)
+	# get_value caches tuples too, under the same key
+	if rows and isinstance(rows[0], dict):
+		return rows[0]
 
 
 def get_lazy_doc(
@@ -1580,6 +1591,30 @@ class Document(_DocumentBase):
 
 		self.mask_fields()
 
+	def copy_with_fieldlevel_read_permissions(self) -> "Document":
+		"""Return a copy without the values the user is not allowed to read, so that this document stays
+		whole for what is queued on it, such as webhooks and background jobs."""
+		if frappe.session.user == "Administrator" or not self._has_fieldlevel_read_restrictions():
+			return self
+
+		doc = get_doc(copy.deepcopy(self.as_dict()))
+		doc.apply_fieldlevel_read_permissions()
+		return doc
+
+	def _has_fieldlevel_read_restrictions(self) -> bool:
+		"""Whether `apply_fieldlevel_read_permissions` would remove or mask any value for this user."""
+		if self.meta.get_masked_fields():
+			return True
+
+		permlevels = {df.permlevel for df in self.meta.fields if df.permlevel}
+		for table_field in self.meta.get_table_fields(include_computed=True):
+			child_meta = frappe.get_meta(table_field.options)
+			permlevels.update(df.permlevel for df in child_meta.fields if df.permlevel)
+			if child_meta.get_masked_fields(parenttype=self.doctype):
+				return True
+
+		return bool(permlevels - set(self.get_permlevel_access("read")))
+
 	def _restore_masked_fields_from_db(self):
 		"""Restore masked field values from DB so that link-field user-permission checks
 		are not tripped by the XXXXXXXX placeholder sent from the client."""
@@ -1841,9 +1876,7 @@ class Document(_DocumentBase):
 
 		for doc in docs_to_validate:
 			is_submittable = self.meta.is_submittable
-			link_fields = doc.meta.get_link_fields() + doc.meta.get(
-				"fields", {"fieldtype": ("=", "Dynamic Link")}
-			)
+			link_fields = doc.meta.get_link_fields() + doc.meta.get_dynamic_link_fields()
 
 			for df in link_fields:
 				docname = doc.get(df.fieldname)
@@ -1907,8 +1940,14 @@ class Document(_DocumentBase):
 				# Regular doctypes: bulk fetch with chunking
 				result_dict = {}
 				field_tuple = tuple(fields)
+				uncached_names = []
+				for name in names:
+					if row := _get_cached_link_value(doctype, name, field_tuple):
+						result_dict[name] = row
+					else:
+						uncached_names.append(name)
 
-				for name_chunk in _chunk(names, 1000):
+				for name_chunk in _chunk(uncached_names, 1000):
 					results = frappe.db.get_all(
 						doctype,
 						filters={"name": ("in", name_chunk)},
@@ -2351,9 +2390,11 @@ class Document(_DocumentBase):
 		if not doc_to_compare and (amended_from := self.get("amended_from")):
 			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
+		from frappe.core.doctype.version.version import has_agent
+
 		version = frappe.new_doc("Version")
 
-		if not doc_to_compare and not self.flags.updater_reference:
+		if not doc_to_compare and not (self.flags.updater_reference or has_agent()):
 			return
 
 		if version.update_version_info(doc_to_compare, self):
@@ -3084,7 +3125,7 @@ class Document(_DocumentBase):
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
-				elif fieldtype == "Read Only" and not isinstance(value, str):
+				elif fieldtype == "Read Only" and value is not None and not isinstance(value, str):
 					value = cstr(value)
 
 				elif (fieldtype in datetime_fields and value == "") or (
@@ -3548,7 +3589,7 @@ class Document(_DocumentBase):
 		invalid_links = []
 		cancelled_links = []
 
-		for df in self.meta.get_link_fields() + self.meta.get("fields", {"fieldtype": ("=", "Dynamic Link")}):
+		for df in self.meta.get_link_fields() + self.meta.get_dynamic_link_fields():
 			docname = self.get(df.fieldname)
 			if not docname:
 				continue
@@ -3705,6 +3746,7 @@ class Document(_DocumentBase):
 
 	def _validate_data_fields(self):
 		from frappe.utils import (
+			has_unsafe_url_scheme,
 			split_emails,
 			validate_email_address,
 			validate_iban,
@@ -3716,7 +3758,14 @@ class Document(_DocumentBase):
 
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			validate_phone_number_with_country_code(phone, phone_field.fieldname)
+			validate_phone_number_with_country_code(phone, phone_field.fieldname, _(phone_field.label))
+
+		for attach_field in self.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}):
+			file_url = self.get(attach_field.fieldname)
+			if isinstance(file_url, str) and has_unsafe_url_scheme(file_url):
+				frappe.throw(
+					_("'{0}' is not a valid URL").format(frappe.bold(file_url)), title=_("Invalid URL")
+				)
 
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
@@ -3745,6 +3794,10 @@ class Document(_DocumentBase):
 
 			if data_field_options == "URL":
 				validate_url(data, throw=True)
+				if has_unsafe_url_scheme(data):
+					frappe.throw(
+						_("'{0}' is not a valid URL").format(frappe.bold(data)), title=_("Invalid URL")
+					)
 
 			if data_field_options == "IBAN":
 				validate_iban(data, throw=True)
@@ -4250,9 +4303,11 @@ def _document_values_generator(
 		yield tuple(doc_values.get(col) for col in columns)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unlock_document(doctype: str, name: str):
-	frappe.get_lazy_doc(doctype, name).unlock()
+	doc = frappe.get_lazy_doc(doctype, name)
+	doc.check_permission("write")
+	doc.unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
 
 

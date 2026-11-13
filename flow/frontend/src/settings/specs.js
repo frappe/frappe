@@ -1,14 +1,18 @@
+import { formatTokens } from "@flow/ui-core/transcript.js";
+
 // What each settings screen and record page edits. A field's `when` hides it, `locked` disables
 // it; both mirror the doctype's own depends_on rules. `child` maps a multi-link to its child
 // table. `rename` marks the field a record is named after: changing it renames the record. A
 // settings row shows `subtitle` under its title; a search looks in `searchFields` (else
-// `listFields`). On a record's page, `section` heads a group of fields from that one on, and
-// `half` fields pair up side by side.
+// `listFields`).
 const enabled = { name: "enabled", label: "Enabled", type: "check" };
 const system = (doc) => !!doc.is_system_generated;
 // the site may add skills and knowledge to the built-in assistant
-const systemButAssistant = (doc) => system(doc) && doc.name !== "Flow";
+const systemButAssistant = (doc) => system(doc) && doc.name !== "frappe/Flow";
 const saved = (doc) => !!doc.name;
+// the tools among `names` that can't run while server scripts are off, as boot lists them
+const scriptsOff = (names, boot) =>
+	names.filter((name) => boot.unavailable_tools?.includes(name));
 // the harness's /providers list, then two ways to reach any other endpoint
 const PROVIDERS = [
 	{ label: "OpenAI", value: "openai" },
@@ -66,11 +70,20 @@ export const SPECS = {
 		label: "Models",
 		singular: "model",
 		titleField: "title",
-		listFields: ["name", "title", "model_id"],
-		subtitle: (doc) => doc.model_id,
+		listFields: ["name", "title", "model_id", "context_window"],
+		subtitle: (doc) =>
+			[doc.model_id, doc.context_window && `${formatTokens(doc.context_window)} context`]
+				.filter(Boolean)
+				.join(" · "),
 		fields: [
 			{ name: "title", label: "Title", type: "text", required: true, rename: true },
 			enabled,
+			{
+				name: "embedding",
+				label: "Embedding model",
+				type: "check",
+				description: "Turns text into vectors for Knowledge's search. Not offered in chats.",
+			},
 			{
 				name: "provider",
 				label: "Provider",
@@ -86,12 +99,6 @@ export const SPECS = {
 				placeholder: "claude-sonnet-4-6",
 				description:
 					"Pick one of the provider's models, or type any other id. Without a provider, add its prefix: anthropic/claude-sonnet-4-6.",
-			},
-			{
-				name: "context_window",
-				label: "Context window",
-				type: "readonly",
-				description: "Filled in when you save.",
 			},
 			{ name: "api_key", label: "API key", type: "password", when: (doc) => !doc.provider },
 			{
@@ -117,7 +124,7 @@ export const SPECS = {
 				link: "Role",
 				child: "role",
 				description:
-					"Who can use this model; empty means every Flow user. Others pick another model for agents that run on it, but a sub-agent on it works for anyone using its agent. Disabling a role also drops it here, which can leave the model open to every Flow user.",
+					"Who can use this model; empty means every Flow user. A sub-agent on it still works for anyone using its agent.",
 			},
 		],
 		actions: [
@@ -135,8 +142,9 @@ export const SPECS = {
 		label: "Agents",
 		singular: "agent",
 		titleField: "title",
-		listFields: ["name", "title", "description", "model"],
+		listFields: ["name", "title", "model"],
 		searchFields: ["title", "description", "model"],
+		subtitle: (doc) => doc.model,
 		fields: [
 			{
 				name: "title",
@@ -145,16 +153,8 @@ export const SPECS = {
 				required: true,
 				rename: true,
 				locked: system,
-				half: true,
 			},
-			{
-				name: "model",
-				label: "Model",
-				type: "link",
-				link: "Flow Model",
-				required: true,
-				half: true,
-			},
+			enabled,
 			{
 				name: "description",
 				label: "Description",
@@ -163,6 +163,28 @@ export const SPECS = {
 				description:
 					"What this agent is for, read by an agent that has it as a sub-agent.",
 				locked: system,
+			},
+			{
+				name: "model",
+				label: "Model",
+				type: "link",
+				link: "Flow Model",
+				required: true,
+			},
+			{
+				name: "max_iterations",
+				label: "Max iterations",
+				type: "int",
+				description: "How many steps the agent may take before giving up.",
+				locked: system,
+			},
+			{
+				name: "token_budget",
+				label: "Token budget",
+				type: "int",
+				placeholder: "No limit",
+				description:
+					"Tokens a single run may spend, shared with its sub-agents. Cached reads are not counted.",
 			},
 			{
 				name: "instructions",
@@ -181,7 +203,14 @@ export const SPECS = {
 				link: "Flow Tool",
 				child: "tool",
 				locked: system,
-				section: "Capabilities",
+				note: (doc, boot) => {
+					const off = scriptsOff(doc.tools ?? [], boot);
+					return off.length
+						? `Server scripts are off on this bench, so these can't run: ${off
+								.map((name) => name.replace("frappe/", ""))
+								.join(", ")}.`
+						: "";
+				},
 			},
 			{
 				name: "sub_agents",
@@ -212,25 +241,6 @@ export const SPECS = {
 				locked: systemButAssistant,
 			},
 			{
-				name: "max_iterations",
-				label: "Max iterations",
-				type: "int",
-				description: "How many steps the agent may take before giving up.",
-				locked: system,
-				section: "Limits",
-				half: true,
-			},
-			{
-				name: "token_budget",
-				label: "Token budget",
-				type: "int",
-				placeholder: "No limit",
-				description:
-					"Tokens a single run may spend, shared with its sub-agents. Cached reads are not counted.",
-				half: true,
-			},
-			{ ...enabled, section: "Access" },
-			{
 				name: "roles",
 				label: "Roles",
 				type: "multilink",
@@ -247,8 +257,9 @@ export const SPECS = {
 		label: "Skills",
 		singular: "skill",
 		titleField: "title",
-		listFields: ["name", "title", "description", "is_global"],
+		listFields: ["name", "title", "description"],
 		searchFields: ["title", "description"],
+		subtitle: (doc) => doc.description,
 		fields: [
 			{
 				name: "title",
@@ -257,6 +268,20 @@ export const SPECS = {
 				required: true,
 				rename: true,
 				locked: system,
+			},
+			enabled,
+			{
+				name: "is_global",
+				label: "Available to all agents",
+				type: "check",
+				description: "Every agent can use it, not only the ones it is added to.",
+			},
+			{
+				name: "user_invocable",
+				label: "User invocable",
+				type: "check",
+				description:
+					"Anyone chatting with the agent can start it by typing /skill: and its name.",
 			},
 			{
 				name: "description",
@@ -276,20 +301,6 @@ export const SPECS = {
 				description: "The steps to follow.",
 				locked: system,
 			},
-			{ ...enabled, section: "Access" },
-			{
-				name: "is_global",
-				label: "Available to all agents",
-				type: "check",
-				description: "Every agent can use it, not only the ones it is added to.",
-			},
-			{
-				name: "user_invocable",
-				label: "User invocable",
-				type: "check",
-				description:
-					"Anyone chatting with the agent can start it by typing /skill: and its name.",
-			},
 		],
 	},
 	tools: {
@@ -300,11 +311,15 @@ export const SPECS = {
 		titleField: "title",
 		listFields: ["name", "title", "type"],
 		subtitle: (doc) => `${doc.name} · ${doc.type}`,
+		notice: (doc, boot) =>
+			scriptsOff([doc.name], boot).length
+				? "Server scripts are off on this bench, so this tool can't run."
+				: "",
 		fields: [
 			{ name: "title", label: "Title", type: "text", required: true },
 			{
 				name: "slug",
-				label: "Slug",
+				label: "Function name",
 				type: "text",
 				required: true,
 				placeholder: "close_overdue_orders",
@@ -383,6 +398,10 @@ export const SPECS = {
 			"cron_expression",
 		],
 		searchFields: ["title", "agent", "target_doctype"],
+		subtitle: (doc) =>
+			doc.event === "Scheduled"
+				? `${doc.agent} · ${doc.cron_expression}`
+				: `${doc.agent} · ${doc.target_doctype} ${doc.doc_event}`,
 		fields: [
 			{
 				name: "title",
@@ -390,30 +409,32 @@ export const SPECS = {
 				type: "text",
 				required: true,
 				rename: true,
-				half: true,
+				locked: system,
 			},
+			enabled,
 			{
 				name: "agent",
 				label: "Agent",
 				type: "link",
 				link: "Flow Agent",
 				required: true,
-				half: true,
-			},
-			{
-				name: "prompt_template",
-				label: "Prompt template",
-				type: "code",
-				language: "jinja",
-				required: true,
-				description: "What to ask the agent. {{ doc.name }} inserts the record's name.",
+				locked: system,
 			},
 			{
 				name: "event",
 				label: "Event",
 				type: "select",
 				options: ["DocType Event", "Scheduled"],
-				section: "When",
+				locked: system,
+			},
+			{
+				name: "run_as",
+				label: "Run as",
+				type: "link",
+				link: "User",
+				description:
+					"The agent acts as this user. Empty means whoever created the trigger.",
+				locked: system,
 			},
 			{
 				name: "target_doctype",
@@ -421,7 +442,7 @@ export const SPECS = {
 				type: "link",
 				link: "DocType",
 				when: (doc) => doc.event === "DocType Event",
-				half: true,
+				locked: system,
 			},
 			{
 				name: "doc_event",
@@ -429,7 +450,7 @@ export const SPECS = {
 				type: "select",
 				options: ["after_insert", "on_update", "on_submit", "on_cancel", "on_trash"],
 				when: (doc) => doc.event === "DocType Event",
-				half: true,
+				locked: system,
 			},
 			{
 				name: "cron_expression",
@@ -437,6 +458,7 @@ export const SPECS = {
 				type: "text",
 				placeholder: "0 9 * * 5",
 				when: (doc) => doc.event === "Scheduled",
+				locked: system,
 			},
 			{
 				name: "last_fired_at",
@@ -451,15 +473,16 @@ export const SPECS = {
 				language: "python",
 				description:
 					'Only run when this is true, for example doc.status == "Open". A multi-line condition must set result to True or False.',
+				locked: system,
 			},
-			{ ...enabled, section: "Access" },
 			{
-				name: "run_as",
-				label: "Run as",
-				type: "link",
-				link: "User",
-				description:
-					"The agent acts as this user. Empty means whoever created the trigger.",
+				name: "prompt_template",
+				label: "Prompt template",
+				type: "code",
+				language: "jinja",
+				required: true,
+				description: "What to ask the agent. {{ doc.name }} inserts the record's name.",
+				locked: system,
 			},
 		],
 	},
@@ -614,7 +637,7 @@ export const SPECS = {
 				label: "Embedding model",
 				type: "link",
 				link: "Flow Model",
-				description: "An embedding model, such as openai/text-embedding-3-small.",
+				description: "Add one in Models first, such as OpenAI's text-embedding-3-small.",
 			},
 			{
 				name: "embedding_dimension",
@@ -630,6 +653,40 @@ export const SPECS = {
 			},
 			{ name: "chunk_size", label: "Chunk size", type: "int" },
 			{ name: "chunk_overlap", label: "Chunk overlap", type: "int" },
+		],
+	},
+	flow_settings: {
+		key: "flow_settings",
+		doctype: "Flow Settings",
+		label: "Flow settings",
+		single: true,
+		fields: [
+			{
+				name: "small_model",
+				label: "Helper model",
+				type: "link",
+				link: "Flow Model",
+				description: "Does quick side jobs, like chat titles. A cheaper model saves credits.",
+			},
+			{
+				name: "search_provider",
+				label: "Web search",
+				type: "select",
+				options: ["DuckDuckGo", "Brave", "Tavily", "Exa"],
+				description: "The service agents use to search the web.",
+			},
+			{
+				name: "search_api_key",
+				label: "Search API key",
+				type: "password",
+				beside: "search_provider", // a key button beside it, in a form of rows
+				links: {
+					Brave: "https://brave.com/search/api/",
+					Tavily: "https://app.tavily.com",
+					Exa: "https://dashboard.exa.ai/api-keys",
+				},
+				when: (doc) => doc.search_provider && doc.search_provider !== "DuckDuckGo",
+			},
 		],
 	},
 	memories: {

@@ -5,6 +5,7 @@ import json
 from typing import Any
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils.jinja import validate_template
 
@@ -32,6 +33,11 @@ class EmailTemplate(Document):
 		return self.response_html if self.use_html else self.response
 
 	def validate(self):
+		if not self.use_html and not self.response:
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("response")))),
+				frappe.MandatoryError,
+			)
 		validate_template(self.subject)
 		validate_template(self.response_)
 
@@ -94,7 +100,7 @@ def get_email_templates(
 
 	reference_doctype = (filters or {}).get("reference_doctype", "")
 
-	return frappe.get_all(
+	return frappe.get_list(
 		"Email Template",
 		filters={"name": ("like", f"%{txt}%")},
 		or_filters=[

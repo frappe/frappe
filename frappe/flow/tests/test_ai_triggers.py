@@ -6,7 +6,10 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
+from frappe.flow import Agent, Trigger
+from frappe.flow.assistant import ASSISTANT_AGENT_NAME
 from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.lib.trigger import sync_triggers
 from frappe.flow.permissions import FLOW_USER_ROLE
 from frappe.flow.tests.test_fake_daemon import FakeDaemon
 from frappe.flow.tools.builtins import sync_builtin_tools
@@ -128,34 +131,16 @@ class TestDispatch(IntegrationTestCase):
 			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")
 		enqueue.assert_not_called()
 
-	def test_dispatch_checks_the_condition_as_the_run_as_user(self):
-		open_doc = frappe.get_doc({"doctype": "ToDo", "description": "open one"}).insert()
-		closed_doc = frappe.get_doc(
-			{"doctype": "ToDo", "description": "closed one", "status": "Closed"}
-		).insert()
-		script = "status = frappe.db.get_value('ToDo', doc.name, 'status')\nresult = status == 'Closed'"
-		for condition, doc, fires in (
-			("doc.status == 'Closed'", open_doc, False),
-			("doc.status == 'Closed'", closed_doc, True),
-			(script, open_doc, False),
-			(script, closed_doc, True),
-			("doc.status.no_such_method()", closed_doc, False),  # a failing condition skips
-		):
-			with self.subTest(condition=condition, status=doc.status):
-				self.trigger.condition = condition
-				self.trigger.save()
-				with patch("frappe.enqueue") as enqueue, patch("frappe.log_error"):
-					dispatch(doc, "after_insert")
-				self.assertEqual(enqueue.call_count, int(fires))
+	def test_dispatch_skips_what_the_run_user_cannot_read_and_leaves_the_condition_to_the_job(self):
+		reader = _user("dispatch-reader@example.com", FLOW_USER_ROLE)
+		frappe.db.set_value("Flow Trigger", self.trigger.name, {"run_as": reader, "condition": "False"})
+		theirs = frappe.get_doc({"doctype": "ToDo", "description": "theirs", "allocated_to": reader}).insert()
+		not_theirs = frappe.get_doc({"doctype": "ToDo", "description": "not theirs"}).insert()
 
-		# checked as run_as, not as the user whose change fired it
-		self.trigger.run_as = _user("dispatch-service@example.com", "System Manager", FLOW_USER_ROLE)
-		self.trigger.condition = f"frappe.session.user == '{self.trigger.run_as}'"
-		self.trigger.save()
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(closed_doc, "after_insert")
-		enqueue.assert_called_once()
-		self.assertEqual(frappe.session.user, "Administrator")  # restored afterward
+		for doc, fires in ((theirs, True), (not_theirs, False)):
+			with self.subTest(doc=doc.description), patch("frappe.enqueue") as enqueue:
+				dispatch(doc, "after_insert")
+				self.assertEqual(enqueue.call_count, int(fires))
 
 
 class TestDispatchScheduled(IntegrationTestCase):
@@ -246,8 +231,8 @@ class TestFire(IntegrationTestCase):
 		session = frappe.get_doc("Flow Session", run.session)
 		self.assertEqual((session.agent, session.source), (self.agent.name, "Trigger"))
 		# every trigger session runs unattended, so it cannot stop for human approval
-		self.assertTrue(session.auto_approve)
-		self.assertTrue(self.daemon.configs[run.session]["auto_approve"])
+		self.assertEqual(session.approval_mode, "Auto-approve")
+		self.assertEqual(self.daemon.configs[run.session]["approval_mode"], "auto_approve")
 		self.assertEqual(self.turns(), [("run", session.name, run.input)])
 
 		# a scheduled trigger has no target
@@ -320,8 +305,282 @@ class TestFire(IntegrationTestCase):
 			("disabled", {"enabled": 0}, todo.name),
 			("target gone", {"enabled": 1}, "does-not-exist"),
 			("condition false, rechecked after load", {"condition": "doc.status == 'Closed'"}, todo.name),
+			(
+				"the run user cannot read the target",
+				{"condition": None, "run_as": _user("fire-reader@example.com", FLOW_USER_ROLE)},
+				todo.name,
+			),
 		):
 			with self.subTest(case):
 				frappe.db.set_value("Flow Trigger", self.trigger.name, values)
 				self.assertIsNone(fire(self.trigger.name, target_doctype="ToDo", target_name=target))
 				self.assertEqual(self.turns(), [])
+
+	def test_the_condition_and_template_see_only_the_docs_fields(self):
+		from jinja2.exceptions import UndefinedError
+
+		from frappe.flow.triggers.triggers import _eval_condition, _Fields
+
+		fields = _Fields(name="x", items=[frappe._dict(qty=2), frappe._dict(qty=3)])
+		self.assertEqual(fields.items[1].qty, 3)  # a field, not dict.items
+		self.assertTrue(_eval_condition("len(doc.items) == 2 and doc.items[0].qty == 2", fields))
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "template test"}).insert()
+		for template in ("{{ frappe.db.get_value('User', 'Administrator', 'name') }}", "{{ doc.save() }}"):
+			with self.subTest(template):
+				frappe.db.set_value("Flow Trigger", self.trigger.name, "prompt_template", template)
+				with self.assertRaises(UndefinedError):
+					fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+
+	def test_the_prompt_leaves_out_fields_the_run_user_cannot_read(self):
+		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+
+		make_property_setter("ToDo", "description", "permlevel", 1, "Int")
+		self.addCleanup(frappe.clear_cache, doctype="ToDo")
+		reader = _user("fire-fields@example.com", FLOW_USER_ROLE)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "secret note", "allocated_to": reader})
+		todo.insert()
+		frappe.db.set_value(
+			"Flow Trigger",
+			self.trigger.name,
+			{"run_as": reader, "prompt_template": "{{ doc.name }}: {{ doc.description }}"},
+		)
+
+		run = frappe.get_doc(
+			"Flow Run", fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		)
+		self.assertIn(todo.name, run.input)
+		self.assertNotIn("secret note", run.input)
+		self.assertNotIn("None", run.input)  # a hidden field prints blank
+
+
+RUNNER = "trigger-runner@example.com"
+
+
+def shipped_triggers() -> list[Trigger]:
+	"""What an app's `flow_triggers` entry returns."""
+	return [
+		Trigger(
+			title="Research new todo",
+			agent="Researcher",
+			doctype="ToDo",
+			doc_event="after_insert",
+			condition="doc.status == 'Open'",
+			prompt="Look into {{ doc.name }}.",
+			run_as=RUNNER,
+		),
+		Trigger(title="Morning summary", agent="Summariser", cron="0 8 * * 1-5", prompt="Summarise."),
+	]
+
+
+def reshipped_triggers() -> list[Trigger]:
+	"""The same app after an update: one trigger changed, the other dropped."""
+	return [
+		Trigger(
+			title="Research new todo",
+			agent="Researcher",
+			doctype="ToDo",
+			doc_event="on_update",
+			prompt="Look again at {{ doc.name }}.",
+			run_as=RUNNER,
+		)
+	]
+
+
+def broken_triggers() -> list[Trigger]:
+	"""Triggers an app defines wrongly, and one it defines right."""
+	return [
+		Trigger(
+			title="Nobody runs it",
+			agent="Researcher",
+			cron="0 8 * * *",
+			prompt="x",
+			run_as="nobody@example.com",
+		),
+		Trigger(
+			title="Both",
+			agent="Researcher",
+			doctype="ToDo",
+			doc_event="after_insert",
+			cron="0 8 * * *",
+			prompt="x",
+		),
+		Trigger(
+			title="Research new todo",
+			agent="Researcher",
+			doctype="ToDo",
+			doc_event="after_insert",
+			prompt="x",
+		),
+	]
+
+
+def duplicated_triggers() -> list[Trigger]:
+	"""Two triggers an app gives one title."""
+	return [
+		Trigger(title="Daily", agent="Researcher", cron="0 8 * * *", prompt="First."),
+		Trigger(title="Daily", agent="Researcher", cron="0 9 * * *", prompt="Second."),
+	]
+
+
+def failing_triggers() -> list[Trigger]:
+	"""An entry that fails before it returns any trigger."""
+	raise frappe.ValidationError("No triggers today.")
+
+
+class TestShippedTriggers(IntegrationTestCase):
+	"""Triggers apps ship through the `flow_triggers` hook."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		sync_builtin_tools()
+
+	def setUp(self):
+		self.model = frappe.get_doc(_model()).insert()
+		Agent(name="Researcher", model=self.model.name, instructions="Research.").sync()
+		_user(RUNNER, FLOW_USER_ROLE)
+		self.started = frappe.utils.now()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def hooked(self, *functions: str):
+		"""`flow_triggers` lists these functions of this module."""
+		get_hooks = frappe.get_hooks
+
+		def hooks(name=None, *args, **kwargs):
+			if name == "flow_triggers":
+				return [f"{__name__}.{function}" for function in functions]
+			return get_hooks(name, *args, **kwargs)
+
+		return patch("frappe.get_hooks", side_effect=hooks)
+
+	def test_names_are_the_apps_own_unless_named_with_their_app(self):
+		trigger = Trigger(title="Daily", agent="Researcher", cron="0 8 * * *", prompt="x")
+		self.assertEqual((trigger.name, trigger.agent), ("frappe/Daily", "frappe/Researcher"))
+		trigger = Trigger(title="Daily", agent=ASSISTANT_AGENT_NAME, cron="0 8 * * *", prompt="x")
+		self.assertEqual(trigger.agent, ASSISTANT_AGENT_NAME)
+
+	def test_a_shipped_trigger_arrives_switched_on_and_only_its_switch_changes(self):
+		with self.hooked("shipped_triggers"):
+			sync_triggers()
+		doc = frappe.get_doc("Flow Trigger", "frappe/Research new todo")
+		self.assertEqual(
+			(doc.agent, doc.app, doc.is_system_generated, doc.enabled, doc.run_as, doc.doc_event),
+			("frappe/Researcher", "frappe", 1, 1, RUNNER, "after_insert"),
+		)
+
+		# switching off works even once its user is gone
+		frappe.db.set_value("User", RUNNER, "enabled", 0)
+		doc.enabled = 0
+		doc.save()
+		for field, value in (("run_as", None), ("prompt_template", "Mine now.")):
+			with self.subTest(field):
+				doc.set(field, value)
+				self.assertRaisesRegex(frappe.ValidationError, "Cannot change", doc.save)
+				doc.reload()
+		self.assertRaisesRegex(
+			frappe.ValidationError, "Cannot delete", frappe.delete_doc, "Flow Trigger", doc.name
+		)
+
+		# an update rewrites the definition, keeps the site's switch, and drops what it no longer ships
+		with self.hooked("reshipped_triggers"):
+			sync_triggers()
+		doc.reload()
+		self.assertEqual(
+			(doc.doc_event, doc.condition, doc.prompt_template, doc.enabled),
+			("on_update", None, "Look again at {{ doc.name }}.", 0),
+		)
+
+	def test_a_trigger_waits_for_its_agent(self):
+		with self.hooked("shipped_triggers"):
+			sync_triggers()
+			self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Morning summary"))
+
+			Agent(name="Summariser", model=self.model.name, instructions="Summarise.").sync()
+			sync_triggers()
+		doc = frappe.get_doc("Flow Trigger", "frappe/Morning summary")
+		self.assertEqual(
+			(doc.event, doc.cron_expression, doc.run_as),
+			("Scheduled", "0 8 * * 1-5", "Administrator"),
+		)
+
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": doc.agent, "title": "x"}).insert()
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "source": "Trigger", "session": session.name, "trigger": doc.name}
+		).insert(ignore_permissions=True)
+		with self.hooked("reshipped_triggers"):
+			sync_triggers()
+		self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Morning summary"))
+		# its runs stay, and can still be saved
+		run.reload()
+		self.assertIsNone(run.trigger)
+		run.save(ignore_permissions=True)
+
+	def test_migrate_skips_a_trigger_it_cannot_write(self):
+		with self.hooked("broken_triggers", "duplicated_triggers"):
+			sync_triggers()
+		self.assertEqual(frappe.db.get_value("Flow Trigger", "frappe/Daily", "prompt_template"), "First.")
+		self.assertTrue(frappe.db.exists("Flow Trigger", "frappe/Research new todo"))
+		self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Both"))
+		self.assertFalse(frappe.db.exists("Flow Trigger", "frappe/Nobody runs it"))
+
+		# an entry that fails keeps what its app shipped before
+		with self.hooked("failing_triggers"):
+			sync_triggers()
+		self.assertTrue(frappe.db.exists("Flow Trigger", "frappe/Research new todo"))
+
+		titles = (
+			"Flow Trigger frappe/Both skipped",
+			"Flow Trigger frappe/Daily skipped",
+			"Flow Trigger frappe/Nobody runs it skipped",
+			f"Flow Triggers of {__name__}.failing_triggers skipped",
+		)
+		self.assertEqual(
+			sorted(
+				frappe.get_all(
+					"Error Log",
+					{"method": ["in", titles], "creation": [">=", self.started]},
+					["method", "error"],
+					as_list=True,
+				)
+			),
+			[
+				(
+					"Flow Trigger frappe/Both skipped",
+					"Flow Trigger frappe/Both needs a doctype or a cron, not both.",
+				),
+				(
+					"Flow Trigger frappe/Daily skipped",
+					"Flow Trigger frappe/Daily is declared more than once.",
+				),
+				("Flow Trigger frappe/Nobody runs it skipped", "Could not find Run As: nobody@example.com"),
+				(f"Flow Triggers of {__name__}.failing_triggers skipped", "No triggers today."),
+			],
+		)
+
+	def test_the_site_cannot_take_an_apps_name_or_flag(self):
+		agent = "frappe/Researcher"
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"cannot contain /",
+			frappe.get_doc(_trigger(agent, title="crm/Mine")).insert,
+		)
+		self.assertRaisesRegex(
+			frappe.ValidationError,
+			"Only an app",
+			frappe.get_doc(_trigger(agent, is_system_generated=1)).insert,
+		)
+
+	def test_the_patch_renames_the_sites_triggers_named_like_an_apps(self):
+		from frappe.patches.v17_0.free_app_names_from_site_flow_triggers import execute
+
+		for name in ("crm/Mine", "crm-Mine"):
+			doc = frappe.get_doc(_trigger("frappe/Researcher", title=name))
+			doc.name = name
+			doc.db_insert()
+
+		execute()
+		self.assertFalse(frappe.db.exists("Flow Trigger", "crm/Mine"))
+		self.assertEqual(frappe.db.get_value("Flow Trigger", "crm-Mine-2", "title"), "crm-Mine-2")

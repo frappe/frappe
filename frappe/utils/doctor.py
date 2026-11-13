@@ -85,12 +85,12 @@ def any_job_pending(site: str) -> bool:
 		q = get_queue(queue)
 		# pending jobs
 		for job_id in q.get_job_ids():
-			if job_id.startswith(site):
+			if job_id.startswith(f"{site}||"):
 				return True
 
 		# already running jobs
 		for job_id in q.started_job_registry.get_job_ids():
-			if job_id.startswith(site):
+			if job_id.startswith(f"{site}||"):
 				return True
 	return False
 

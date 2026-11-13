@@ -45,6 +45,6 @@ frappe.listview_settings["Deleted Document"] = {
 				});
 			}
 		};
-		doclist.page.add_actions_menu_item(__("Restore"), action, false);
+		doclist.page.add_actions_menu_item(__("Restore"), action, false, null, "archive-restore");
 	},
 };

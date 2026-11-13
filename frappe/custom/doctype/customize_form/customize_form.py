@@ -8,6 +8,9 @@ Thus providing a better UI from user perspective
 
 import json
 
+from pypika.functions import Length
+from pypika.terms import Function
+
 import frappe
 import frappe.translate
 from frappe import _
@@ -54,7 +57,9 @@ class CustomizeForm(Document):
 		doc_type: DF.Link | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
+		enable_upload_first_workflow: DF.Check
 		fields: DF.Table[CustomizeFormField]
+		force_private_attachments: DF.Check
 		force_re_route_to_default_view: DF.Check
 		grid_page_length: DF.Int
 		image_field: DF.Data | None
@@ -236,6 +241,11 @@ class CustomizeForm(Document):
 
 		validate_series(self, self.autoname, self.doc_type)
 		validate_autoincrement_autoname(self)
+		fieldnames = [df.fieldname for df in self.fields]
+		meta_fieldnames = [df.fieldname for df in frappe.get_meta(self.doc_type).fields]
+		self.flags.field_order_unchanged = [f for f in fieldnames if f in meta_fieldnames] == [
+			f for f in meta_fieldnames if f in fieldnames
+		]
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
 		self.update_custom_fields()
@@ -289,6 +299,9 @@ class CustomizeForm(Document):
 		# action and links
 		self.set_property_setters_for_actions_and_links(meta)
 
+		# field order last, with fresh meta, as the changes above can change the default order
+		self.set_property_setter_for_field_order(frappe.get_meta(self.doc_type, cached=False))
+
 	def set_property_setter_for_field_order(self, meta):
 		new_order = [df.fieldname for df in self.fields]
 		existing_order = getattr(meta, "field_order", None)
@@ -303,6 +316,13 @@ class CustomizeForm(Document):
 			return
 
 		if existing_order and new_order == json.loads(existing_order):
+			return
+
+		if (
+			not existing_order
+			and self.flags.field_order_unchanged
+			and new_order == [df.fieldname for df in meta.fields]
+		):
 			return
 
 		frappe.make_property_setter(
@@ -322,8 +342,6 @@ class CustomizeForm(Document):
 			if self.get(prop) != meta.get(prop):
 				self.make_property_setter(prop, self.get(prop), prop_type)
 
-		self.set_property_setter_for_field_order(meta)
-
 	def set_property_setters_for_docfield(self, meta, df, meta_df):
 		for prop, prop_type in docfield_properties.items():
 			if prop != "idx" and (df.get(prop) or "") != (meta_df[0].get(prop) or ""):
@@ -341,8 +359,7 @@ class CustomizeForm(Document):
 			new_value_length = cint(df.get(prop))
 
 			if new_value_length and (old_value_length > new_value_length):
-				self.check_length_for_fieldtypes.append({"df": df, "old_value": meta_df[0].get(prop)})
-				self.validate_fieldtype_length()
+				self.validate_fieldtype_length(df)
 			else:
 				self.flags.update_db = True
 
@@ -594,8 +611,7 @@ class CustomizeForm(Document):
 			# Ignore fieldtype check validation if new field type has unspecified maxlength
 			# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
 			if new_value_length and (old_value_length > new_value_length):
-				self.check_length_for_fieldtypes.append({"df": df, "old_value": old_value})
-				self.validate_fieldtype_length()
+				self.validate_fieldtype_length(df)
 			else:
 				self.flags.update_db = True
 
@@ -606,30 +622,23 @@ class CustomizeForm(Document):
 				)
 			)
 
-	def validate_fieldtype_length(self):
-		for field in self.check_length_for_fieldtypes:
-			df = field.get("df")
-			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
-			fieldname = df.fieldname
-			docs = frappe.db.sql(
-				f"""
-				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
-				FROM `tab{self.doc_type}`
-				WHERE LENGTH({fieldname}) > {max_length}
-			""",
-				as_dict=True,
-			)
-			label = df.label
-			links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
+	def validate_fieldtype_length(self, df):
+		max_length = cint(df.length) or cint(frappe.db.type_map.get(df.fieldtype)[1])
+		field = frappe.qb.DocType(self.doc_type)[df.fieldname]
+		# MariaDB's LENGTH counts bytes; SQLite has no CHAR_LENGTH and its LENGTH counts characters
+		char_length = Length(field) if frappe.db.db_type == "sqlite" else Function("CHAR_LENGTH", field)
+		docs = frappe.qb.from_(self.doc_type).select("name").where(char_length > max_length).run(as_dict=True)
+		label = df.label
+		links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
 
-			if docs:
-				frappe.throw(
-					_(
-						"Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
-					).format(frappe.bold(label), links_str, frappe.bold(max_length)),
-					title=_("Data Too Long"),
-					is_minimizable=len(docs) > 1,
-				)
+		if docs:
+			frappe.throw(
+				_(
+					"Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
+				).format(frappe.bold(label), links_str, frappe.bold(max_length)),
+				title=_("Data Too Long"),
+				is_minimizable=len(docs) > 1,
+			)
 
 		self.flags.update_db = True
 
@@ -746,7 +755,9 @@ doctype_properties = {
 	"editable_grid": "Check",
 	"max_attachments": "Int",
 	"make_attachments_public": "Check",
+	"force_private_attachments": "Check",
 	"protect_attached_files": "Check",
+	"enable_upload_first_workflow": "Check",
 	"track_changes": "Check",
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",

@@ -154,6 +154,18 @@ class TestAuth(IntegrationTestCase):
 			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
 		verify.assert_called_once()
 
+	def test_email_login_ignores_case_and_spaces(self):
+		user = User.find_by_credentials(f" {self.test_user_email.upper()} ", self.test_user_password)
+		self.assertEqual(user.name, self.test_user_email)
+		self.assertTrue(user.is_authenticated)
+
+	def test_administrator_logs_in_by_name_not_email(self):
+		user = User.find_by_credentials("administrator", "", validate_password=False)
+		self.assertEqual(user.name, "Administrator")
+
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		self.assertIsNone(User.find_by_credentials(admin_email, "", validate_password=False))
+
 	def test_user_without_a_password_checks_a_password_hash(self):
 		email = "no_password_auth@example.com"
 		frappe.delete_doc("User", email, force=True)
@@ -525,6 +537,19 @@ class TestIPRestrictionForAPIAuth(IntegrationTestCase):
 		validate_auth()
 		self.assertEqual(frappe.session.user, self.user_email)
 
+	def test_auth_hook_user_without_user_record(self):
+		frappe.local.request = Request(EnvironBuilder().get_environ())
+		frappe.local.request_ip = "10.0.0.1"
+		frappe.set_user("Guest")
+
+		with patch(
+			"frappe.auth.validate_auth_via_hooks",
+			side_effect=lambda: frappe.set_user("no-such-user@example.com"),
+		):
+			validate_auth()
+
+		self.assertEqual(frappe.session.user, "no-such-user@example.com")
+
 
 class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 	"""Failed API key authentication is written to the Activity Log, a bounded number of times."""
@@ -612,8 +637,10 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 
 	def test_failed_key_lookup_is_rejected_without_a_log_entry(self):
 		self._request_with(self.api_key, "x")
+		frappe.db.savepoint("failed_key_lookup")
 		with self.assertRaises(frappe.AuthenticationError):
 			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="ToDo")
+		frappe.db.rollback(save_point="failed_key_lookup")
 
 		self.assertEqual(self._entries(), [])
 
@@ -651,7 +678,7 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 		self.assertFalse(tracker.is_user_allowed())
 
 		# Sleep for lock_interval of time, so that next request con unlock the user access.
-		time.sleep(lock_interval)
+		time.sleep(lock_interval + 1)
 
 		tracker.add_failure_attempt()
 		self.assertTrue(tracker.is_user_allowed())

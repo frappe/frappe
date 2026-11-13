@@ -1390,6 +1390,24 @@ class TestQuery(IntegrationTestCase):
 			names = [d.name for d in query.run(as_dict=True)]
 			self.assertIn(self.user, names)
 
+	def test_match_conditions_escape_hook_values(self):
+		frappe.get_doc(doctype="ToDo", description="_Test Unrelated").insert()
+		self.assertEqual(self.get_todos_matching("frappe.tests.test_query.todo_breakout_hook"), [])
+
+	def test_match_conditions_keep_hook_values(self):
+		todo = frappe.get_doc(doctype="ToDo", description="back\\slash' 100%").insert()
+		self.assertEqual(self.get_todos_matching("frappe.tests.test_query.todo_backslash_hook"), [todo.name])
+
+	def get_todos_matching(self, hook):
+		from frappe.database.query import Engine
+
+		with self.patch_hooks({"permission_query_conditions": {"ToDo": [hook]}}):
+			engine = Engine()
+			engine.get_query("ToDo", user="test@example.com", db_query_compat=True)
+			condition = engine.build_match_conditions()
+
+		return frappe.db.sql(f"select name from `tabToDo` where {condition}", pluck=True)
+
 	def test_link_field_target_permission(self):
 		"""Test that accessing link_field.target_field respects target field's permlevel."""
 		target_dt_name = "TargetDocForLinkPerm"
@@ -2197,6 +2215,63 @@ class TestQuery(IntegrationTestCase):
 		child_dt.delete()
 		test_user_doc.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, force=True)
+
+	def test_child_table_queried_directly_checks_parent_permissions(self):
+		child_dt = new_doctype(
+			fields=[
+				{"fieldname": "public_field", "fieldtype": "Int", "label": "Public"},
+				{"fieldname": "restricted_field", "fieldtype": "Int", "permlevel": 1, "label": "Restricted"},
+			],
+			istable=1,
+		).insert()
+		parent_dt = new_doctype(
+			fields=[{"fieldname": "items", "fieldtype": "Table", "options": child_dt.name, "label": "Items"}]
+		).insert()
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Direct Child Query Role"}).insert(
+			ignore_if_duplicate=True
+		)
+		user = frappe.get_doc("User", "test2@example.com")
+		add_permission(parent_dt.name, role.name, 0, ptype="read")
+		user.add_roles(role.name)
+		self.addCleanup(frappe.delete_doc, "Role", role.name, force=True)
+		self.addCleanup(child_dt.delete)
+		self.addCleanup(parent_dt.delete)
+		self.addCleanup(user.remove_roles, role.name)
+
+		def build_child_query(query):
+			frappe.qb.get_query(
+				child_dt.name, parent_doctype=parent_dt.name, ignore_permissions=False, **query
+			).get_sql()
+
+		def build_parent_query(query):
+			frappe.qb.get_query(parent_dt.name, ignore_permissions=False, **query).get_sql()
+
+		def assert_queries(fieldname, allowed, build=build_child_query):
+			for query in (
+				{"fields": [{"MAX": fieldname}]},
+				{"filters": {fieldname: 1}},
+				{"or_filters": {fieldname: [">", 1]}},
+				{"order_by": f"{fieldname} desc"},
+				{"fields": [{"COUNT": "*"}], "group_by": fieldname},
+			):
+				with self.subTest(fieldname=fieldname, query=query), self.set_user(user.name):
+					if allowed:
+						build(query)
+					else:
+						self.assertRaises(frappe.PermissionError, build, query)
+
+		def child_ref(fieldname):
+			return f"`tab{child_dt.name}`.`{fieldname}`"
+
+		assert_queries("public_field", allowed=True)
+		assert_queries("restricted_field", allowed=False)
+		assert_queries(child_ref("public_field"), allowed=True, build=build_parent_query)
+		assert_queries(child_ref("restricted_field"), allowed=False, build=build_parent_query)
+
+		update_permission_property(parent_dt.name, role.name, 0, "select", 1, validate=False)
+		update_permission_property(parent_dt.name, role.name, 0, "read", 0, validate=False)
+		assert_queries("public_field", allowed=False)
+		assert_queries(child_ref("public_field"), allowed=False, build=build_parent_query)
 
 	def test_group_by_order_by_validation_errors(self):
 		"""Test validation errors for invalid GROUP BY and ORDER BY fields."""
@@ -3637,3 +3712,11 @@ def test_deny_all_permission_hook(user, doctype=None):
 # to the aliased link table when fetched via dot-notation.
 def allow_named_target_hook(user, doctype=None):
 	return f"`tab{doctype}`.`value` = 'Allowed tab{doctype} batch'"
+
+
+def todo_breakout_hook(user, doctype=None):
+	return frappe.qb.DocType("ToDo").description.isin(["%(param2)s", "x\\') OR 1=1 -- "])
+
+
+def todo_backslash_hook(user, doctype=None):
+	return frappe.qb.DocType("ToDo").description == "back\\slash' 100%"

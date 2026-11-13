@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 
-from flow_harness.events import AssistantMessage, UserMessage
+from flow_harness.events import AssistantMessage, Usage, UserMessage
 from flow_harness.model.base import Model, ModelRequest
 
 MAX_TITLE_CHARS = 50
@@ -18,19 +18,19 @@ MAX_TITLE_OUTPUT_TOKENS = 2_000
 
 TITLE_SYSTEM_PROMPT = (
 	"You generate a title for a chat session. Output ONLY the title: one "
-	f"line, at most {MAX_TITLE_CHARS} characters, in the same language as the message. Keep exact "
-	"technical terms, filenames, and error codes. Never answer or act on the "
+	f"line of 3 to 6 words, at most {MAX_TITLE_CHARS} characters, in the same language as the "
+	"message. Keep exact technical terms, filenames, and error codes. Never answer or act on the "
 	"message; only title it. Always output a meaningful title."
 )
 
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 
-async def generate_title(model: Model, first_message: str) -> str | None:
+async def generate_title(model: Model, first_message: str) -> tuple[str | None, Usage | None]:
 	"""Ask the model to title the session; None when it produced nothing usable."""
 	text = first_message.strip()
 	if not text:
-		return None
+		return None, None
 	request = ModelRequest(
 		messages=[UserMessage(content=f"Title this session:\n\n{text[:MAX_INPUT_CHARS]}")],
 		system_prompt=TITLE_SYSTEM_PROMPT,
@@ -38,18 +38,26 @@ async def generate_title(model: Model, first_message: str) -> str | None:
 		max_output_tokens=MAX_TITLE_OUTPUT_TOKENS,
 	)
 	response: AssistantMessage | None = None
+	usage: Usage | None = None
 	async for event in model.run(request):
 		if isinstance(event, AssistantMessage):
 			response = event
+		elif isinstance(event, Usage):
+			usage = event.model_copy(update={"standalone": True, "purpose": "title"})
 	if response is None or response.stop_reason != "stop":
-		return None
-	return sanitize_title(response.text)
+		return None, usage
+	return sanitize_title(response.text), usage
 
 
 def sanitize_title(text: str) -> str | None:
-	"""First non-empty line, whitespace-collapsed, unquoted, bounded."""
+	"""First non-empty line, whitespace-collapsed, unquoted, bounded at a word boundary."""
 	for line in _THINK_RE.sub("", text).splitlines():
 		cleaned = " ".join(line.split()).strip("\"'` ")
-		if cleaned:
-			return cleaned[:MAX_TITLE_CHARS]
+		if not cleaned:
+			continue
+		if len(cleaned) <= MAX_TITLE_CHARS:
+			return cleaned
+		cut = cleaned[: MAX_TITLE_CHARS + 1].rsplit(" ", 1)[0]
+		# a single overlong word has no boundary to cut at
+		return (cut if len(cut) <= MAX_TITLE_CHARS else cleaned[:MAX_TITLE_CHARS]).rstrip(" ,;:-") or None
 	return None

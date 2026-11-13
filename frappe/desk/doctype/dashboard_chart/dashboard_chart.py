@@ -8,6 +8,7 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.desk.desk_views import DeskViews
+from frappe.model import numeric_fieldtypes
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
@@ -142,10 +143,13 @@ def get(
 
 @frappe.whitelist()
 def create_dashboard_chart(args: str | dict[str, Any]):
+	frappe.has_permission("Dashboard Chart", "read", throw=True)
 	args = frappe.parse_json(args)
 	doc = frappe.new_doc("Dashboard Chart")
 
 	doc.update(args)
+	if not frappe.has_permission("Dashboard Chart", "create"):
+		doc.update({"is_public": 0, "is_standard": 0, "module": None, "roles": []})
 
 	if args.get("custom_options"):
 		doc.custom_options = json.dumps(args.get("custom_options"))
@@ -397,6 +401,8 @@ class DashboardChart(Document):
 		if self.chart_type != "Custom" and self.chart_type != "Report":
 			self.check_required_field()
 			self.check_document_type()
+		elif self.chart_type == "Report" and not self.report_name:
+			frappe.throw(_("Report Name is required to create a dashboard chart"))
 
 		self.validate_custom_options()
 
@@ -414,13 +420,31 @@ class DashboardChart(Document):
 		if self.chart_type == "Group By":
 			if not self.group_by_based_on:
 				frappe.throw(_("Group By field is required to create a dashboard chart"))
-			if self.group_by_type in ["Sum", "Average"] and not self.aggregate_function_based_on:
-				frappe.throw(_("Aggregate Function field is required to create a dashboard chart"))
+			self.check_field_type("group_by_based_on", ("Link", "Select"), ("owner",))
+			if self.group_by_type in ["Sum", "Average"]:
+				if not self.aggregate_function_based_on:
+					frappe.throw(_("Aggregate Function field is required to create a dashboard chart"))
+				self.check_field_type("aggregate_function_based_on", (*numeric_fieldtypes, "Duration"))
 		else:
 			if not self.based_on:
 				frappe.throw(_("Time series based on is required to create a dashboard chart"))
-			if self.chart_type in ["Sum", "Average"] and not self.value_based_on:
-				frappe.throw(_("Value Based On field is required to create a dashboard chart"))
+			self.check_field_type("based_on", ("Date", "Datetime"), ("creation", "modified"))
+			if self.chart_type in ["Sum", "Average"]:
+				if not self.value_based_on:
+					frappe.throw(_("Value Based On field is required to create a dashboard chart"))
+				self.check_field_type("value_based_on", (*numeric_fieldtypes, "Duration"))
+
+	def check_field_type(self, fieldname, fieldtypes, allowed=()):
+		value = self.get(fieldname)
+		if value in allowed:
+			return
+		df = frappe.get_meta(self.document_type).get_field(value)
+		if not df or df.fieldtype not in fieldtypes:
+			frappe.throw(
+				_("{0} is not a valid field for {1}").format(
+					frappe.bold(value), _(self.meta.get_label(fieldname))
+				)
+			)
 
 	def check_document_type(self):
 		if frappe.get_meta(self.document_type).issingle:

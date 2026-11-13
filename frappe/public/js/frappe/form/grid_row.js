@@ -968,13 +968,13 @@ export default class GridRow {
 
 		// Delay date_picker widget to prevent temporary layout shift (UX).
 		function handle_date_picker() {
-			let date_time_picker = document.querySelectorAll(".datepicker.active")[0];
+			let date_time_picker = document.querySelectorAll(".air-datepicker.-active-")[0];
 
-			date_time_picker.classList.remove("active");
+			date_time_picker.classList.remove("-active-");
 			date_time_picker.style.width = "220px";
 
 			setTimeout(() => {
-				date_time_picker.classList.add("active");
+				date_time_picker.classList.add("-active-");
 			}, 600);
 		}
 
@@ -1513,15 +1513,7 @@ export default class GridRow {
 	// Escape plain-text field values before passing to frappe.format(), so the formatted
 	// output is safe to inject via .html(). Mirrors the same pre-escaping in base_input.js.
 	_escape_for_format(value, df) {
-		const PLAIN_TEXT_FIELDTYPES = [
-			"Data",
-			"Long Text",
-			"Small Text",
-			"Text",
-			"Password",
-			"MultiSelect",
-		];
-		if (df && PLAIN_TEXT_FIELDTYPES.includes(df.fieldtype)) {
+		if (df && frappe.model.plain_text_fieldtypes.includes(df.fieldtype)) {
 			return frappe.utils.escape_html(cstr(value));
 		}
 		return value;

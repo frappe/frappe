@@ -31,10 +31,11 @@
 			window.frappe_app = "{{ frappe_app }}";
 			window.app_pages = {{ app_pages|tojson }};
 			window.app_home = {{ app_home|tojson }};
-			window.router_script = {{ router_script|tojson }};
+			window.is_db_app = {{ is_db_app|tojson }};
 			window.router_file = {{ router_file|tojson }};
 			window.is_guest = {{ is_guest|tojson }};
 			window.is_developer_mode = {{ is_developer_mode }};
+			window.can_edit_app = {{ can_edit_app|tojson }};
 		</script>
 		{% if is_developer_mode %}
 			<!-- the editor's vite dev server serves the renderer with HMR; protocol-relative so it loads over the page's own scheme -->
