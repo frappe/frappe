@@ -64,6 +64,7 @@ class DesignSave:
 
 	def apply_edits(self):
 		self.apply(self.state, self.edits.get(self.doctype) or [])
+		self.drop_unnamed_children()
 		for doctype, edits in self.edits.items():
 			if doctype == self.doctype:
 				continue
@@ -72,6 +73,11 @@ class DesignSave:
 			else:
 				message = _("{0} is not a child table this save adds.").format(doctype)
 				self.errors.append({**EditError(message).as_dict(), "doctype": doctype})
+
+	def drop_unnamed_children(self):
+		"""A new child table that no Table field names after a later edit is not inserted."""
+		named = {field.options for field in self.state.doc.fields if field.fieldtype in table_fields}
+		self.state.children = {name: child for name, child in self.state.children.items() if name in named}
 
 	def apply(self, state: DesignState, edits: list, doctype: str | None = None):
 		# A child table this save adds is a new DocType, so it takes Design's edits in either mode.
