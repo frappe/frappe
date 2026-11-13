@@ -31,6 +31,21 @@ class TestScope(UnitTestCase):
 		self.assertEqual(normalize_url("HTTPS://Example.com/a/?b=1#c"), "https://example.com/a?b=1")
 		self.assertEqual(normalize_url("https://example.com"), "https://example.com/")
 
+	def test_spellings_of_the_same_page_normalize_alike(self):
+		for url in (
+			"http://www.example.com/docs/",
+			"https://example.com/docs/index.html",
+			"https://example.com/docs/index.php?utm_source=mail&fbclid=1",
+		):
+			with self.subTest(url=url):
+				self.assertEqual(normalize_url(url), "https://example.com/docs")
+		self.assertEqual(
+			normalize_url("https://example.com/a?b=2&a=1"), normalize_url("https://example.com/a?a=1&b=2")
+		)
+		self.assertNotEqual(
+			normalize_url("https://example.com/a?id=1"), normalize_url("https://example.com/a?id=2")
+		)
+
 	def test_skip_rules(self):
 		rules = SkipRules(("/private/", "[unclosed"))
 		for url in (
@@ -49,8 +64,8 @@ class TestDiscovery(IntegrationTestCase):
 	def setUp(self):
 		self.site = FakeSite(self)
 
-	def find(self, url: str, sources=("sitemap",)) -> list[str]:
-		return WebCrawler(url, sources=sources).find_pages()
+	def find(self, url: str, **options) -> list[str]:
+		return WebCrawler(url, **options).find_pages()
 
 	def test_sitemap_under_the_path_wins_over_the_root(self):
 		self.site.add("https://example.com/docs/sitemap.xml", urlset("https://example.com/docs/a"), XML)
@@ -100,7 +115,7 @@ class TestDiscovery(IntegrationTestCase):
 		)
 		self.site.add("https://example.com/docs/_llms/api.txt", "- [Auth](/docs/auth.md)", "text/plain")
 		self.assertEqual(
-			self.find("https://example.com/docs", ("llms.txt",)),
+			self.find("https://example.com/docs"),
 			[
 				"https://example.com/docs/setup.md",
 				"https://example.com/docs/install",
@@ -108,10 +123,23 @@ class TestDiscovery(IntegrationTestCase):
 			],
 		)
 
-	def test_first_list_source_with_pages_wins(self):
+	def test_an_html_page_at_llms_txt_is_not_an_index(self):
 		self.site.page("https://example.com/llms.txt", "<p>An HTML page, not an index</p>")
 		self.site.add("https://example.com/sitemap.xml", urlset("https://example.com/a"), XML)
-		self.assertEqual(self.find("https://example.com", ("llms.txt", "sitemap")), ["https://example.com/a"])
+		self.assertEqual(self.find("https://example.com"), ["https://example.com/a"])
+
+	def test_llms_txt_pages_come_before_sitemap_pages_once_each(self):
+		self.site.add("https://example.com/llms.txt", "- [B](/b)\n- [A](/a)", "text/plain")
+		self.site.add(
+			"https://example.com/sitemap.xml",
+			urlset("https://example.com/a/", "https://www.example.com/c"),
+			XML,
+		)
+		self.assertEqual(
+			self.find("https://example.com"),
+			["https://example.com/b", "https://example.com/a", "https://www.example.com/c"],
+		)
+		self.assertEqual(self.find("https://example.com", index_files=False), [])
 
 	def test_robots_txt_disallow_is_honoured_unless_switched_off(self):
 		self.site.add("https://example.com/robots.txt", "User-agent: *\nDisallow: /private", "text/plain")
@@ -132,7 +160,6 @@ class TestDiscovery(IntegrationTestCase):
 		)
 		crawler = WebCrawler(
 			"https://example.com",
-			sources=("sitemap",),
 			max_pages=1,
 			skip_urls=lambda urls: [url for url in urls if url.endswith("/old")],
 		)

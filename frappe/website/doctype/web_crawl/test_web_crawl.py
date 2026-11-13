@@ -42,7 +42,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 	def start_crawl(self, user=OWNER, **caller) -> WebCrawl:
 		with self.set_user(user):
-			crawler = WebCrawler("https://example.com", sources=("links",))
+			crawler = WebCrawler("https://example.com", index_files=False)
 			return crawler.enqueue(on_page=f"{__name__}.record_page", **caller)
 
 	def insert_background_task(self):
@@ -102,18 +102,17 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 				other = self.start_crawl(user, reference_doctype="User", reference_name=reference_name)
 				self.assertNotEqual(other.name, first.name)
 
-	def test_enqueue_starts_a_new_crawl_for_other_sources(self):
+	def test_enqueue_starts_a_new_crawl_for_other_options(self):
 		first = self.start_crawl()
 		with self.set_user(OWNER):
-			crawler = WebCrawler("https://example.com", sources=("sitemap", "links"))
-			other = crawler.enqueue(on_page=f"{__name__}.record_page")
+			other = WebCrawler("https://example.com").enqueue(on_page=f"{__name__}.record_page")
 		self.assertNotEqual(other.name, first.name)
-		self.assertEqual(other.source_names(), ("sitemap", "links"))
+		self.assertEqual(other.index_files, 1)
 
 	def test_enqueued_keyword_priority_is_stored_and_used(self):
 		with self.set_user(OWNER):
 			crawler = WebCrawler(
-				"https://example.com", sources=("links",), priority=KeywordPriority({"Broken": 5})
+				"https://example.com", index_files=False, priority=KeywordPriority({"Broken": 5})
 			)
 			web_crawl = crawler.enqueue()
 			web_crawl.run()
@@ -125,7 +124,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 	def test_enqueue_refuses_a_priority_it_cannot_store(self):
 		with self.set_user(OWNER):
-			crawler = WebCrawler("https://example.com", sources=("links",), priority=lambda url, text: 1)
+			crawler = WebCrawler("https://example.com", index_files=False, priority=lambda url, text: 1)
 			self.assertRaises(frappe.ValidationError, crawler.enqueue)
 
 	def test_a_crawl_without_tuning_copies_the_settings_tuning(self):
@@ -143,9 +142,27 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 		self.assertEqual((default.keyword_weights(), default.skip_patterns), ({"docs": 2}, "/private/"))
 		self.assertEqual((tuned.keyword_weights(), tuned.skip_patterns), ({"api": 1}, "/blog/"))
 
-	def test_sources_default_to_sitemap_then_links(self):
+	def test_a_new_crawl_reads_index_files_and_follows_links(self):
 		web_crawl = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com"}).insert()
-		self.assertEqual(web_crawl.source_names(), ("sitemap", "links"))
+		self.assertEqual((web_crawl.index_files, web_crawl.follow_links), (1, 1))
+
+	def test_a_rerun_crawl_marks_what_changed_since_the_last_one(self):
+		first = self.start_crawl()
+		with self.set_user(OWNER):
+			first.run()
+		self.site.page("https://example.com/a", "<p>Page A, edited</p>")
+		second = self.start_crawl()
+		with self.set_user(OWNER):
+			second.run()
+
+		for web_crawl, expected in (
+			(first, {"https://example.com": "New", "https://example.com/a": "New"}),
+			(second, {"https://example.com": "Unchanged", "https://example.com/a": "Changed"}),
+		):
+			results = frappe.get_all(
+				"Web Crawl Result", {"web_crawl": web_crawl.name}, ["url", "change_status"]
+			)
+			self.assertEqual({result.url: result.change_status for result in results}, expected)
 
 	def test_enqueue_ignores_a_crawl_older_than_its_job_timeout(self):
 		first = self.start_crawl()

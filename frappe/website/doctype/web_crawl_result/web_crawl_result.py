@@ -16,6 +16,8 @@ class WebCrawlResult(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		change_status: DF.Literal["", "New", "Changed", "Unchanged"]
+		content_hash: DF.Data | None
 		description: DF.SmallText | None
 		error: DF.Data | None
 		final_url: DF.SmallText | None

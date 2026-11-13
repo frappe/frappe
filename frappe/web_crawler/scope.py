@@ -1,5 +1,5 @@
 import re
-from urllib.parse import unquote, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
 from frappe.web_crawler.fetch import Fetcher, FetchError
@@ -14,13 +14,23 @@ ASSET_EXTENSIONS = frozenset(
 )  # fmt: skip
 WEB_SCHEMES = ("http", "https")
 ROBOTS_MAX_BYTES = 512 * 1024
+INDEX_FILE = re.compile(r"/index\.(?:html?|php)$")
+TRACKING_PARAMETERS = re.compile(r"^(?:utm_.*|fbclid|gclid|msclkid|mc_cid|mc_eid)$")
 
 
 def normalize_url(url: str) -> str:
-	"""The key that tells two spellings of a page apart: lower-case host, no fragment or trailing slash."""
+	"""The key that tells two spellings of a page apart. http and https, `www.`, a trailing slash,
+	index.html, the fragment, tracking parameters and the order of parameters make no difference."""
 	parts = urlsplit(url.strip())
-	path = parts.path.rstrip("/") or "/"
-	return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), path, parts.query, ""))
+	scheme = "https" if parts.scheme.lower() in WEB_SCHEMES else parts.scheme.lower()
+	host = parts.netloc.lower().rsplit("@", 1)[-1].removeprefix("www.")
+	path = INDEX_FILE.sub("", parts.path).rstrip("/") or "/"
+	return urlunsplit((scheme, host, path, normalize_query(parts.query), ""))
+
+
+def normalize_query(query: str) -> str:
+	parameters = parse_qsl(query, keep_blank_values=True)
+	return urlencode(sorted((key, value) for key, value in parameters if not TRACKING_PARAMETERS.match(key)))
 
 
 def site_root(url: str) -> str:

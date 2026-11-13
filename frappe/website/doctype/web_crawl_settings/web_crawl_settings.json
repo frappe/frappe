@@ -150,6 +150,7 @@
    "fieldname": "skip_patterns",
    "fieldtype": "Small Text",
    "label": "Skip patterns",
+   "max_height": "8rem",
    "placeholder": "/blog/\n\\?page="
   },
   {

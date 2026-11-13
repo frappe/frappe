@@ -19,7 +19,7 @@ class TestCrawl(IntegrationTestCase):
 		self.site = FakeSite(self)
 
 	def crawl(self, url="https://example.com", **options) -> list:
-		return list(WebCrawler(url, sources=("links",), **options).crawl())
+		return list(WebCrawler(url, index_files=False, **options).crawl())
 
 	def test_follows_links_breadth_first_within_depth_and_page_limits(self):
 		self.site.page("https://example.com/", links("/a", "/b", "https://other.com/x", "/logo.png"))
@@ -36,14 +36,14 @@ class TestCrawl(IntegrationTestCase):
 		self.site.page("https://example.com/listed", "<p>Listed</p>")
 		self.site.add("https://example.com/sitemap.xml", urlset("https://example.com/listed"), XML)
 
-		pages = list(WebCrawler("https://example.com", sources=("sitemap", "links")).crawl())
+		pages = list(WebCrawler("https://example.com").crawl())
 		self.assertEqual([page.url for page in pages], ["https://example.com", "https://example.com/listed"])
 
 	def test_depth_zero_reads_only_the_start_page(self):
 		self.site.page("https://example.com/", links("/a"))
 		self.site.add("https://example.com/sitemap.xml", urlset("https://example.com/listed"), XML)
 
-		pages = list(WebCrawler("https://example.com", sources=("sitemap", "links"), max_depth=0).crawl())
+		pages = list(WebCrawler("https://example.com", max_depth=0).crawl())
 		self.assertEqual([page.url for page in pages], ["https://example.com"])
 
 	def test_redirect_to_a_page_already_read_costs_no_budget(self):
@@ -72,6 +72,41 @@ class TestCrawl(IntegrationTestCase):
 			["https://example.com/view?id=1", "https://example.com/view?id=2", "https://example.com/docs/"],
 		)
 		self.assertNotIn("https://example.com/docs", self.site.requested)
+
+	def test_spellings_of_a_page_already_queued_are_not_read_again(self):
+		self.site.page(
+			"https://example.com/",
+			links("/a", "/a/?utm_source=mail", "http://www.example.com/a/index.html", "/b?id=1", "/b?id=2"),
+		)
+		for path in ("/a", "/b?id=1", "/b?id=2"):
+			self.site.page(f"https://example.com{path}", f"<p>{path}</p>")
+
+		urls = [page.url for page in self.crawl()]
+		self.assertEqual(
+			urls[1:], ["https://example.com/a", "https://example.com/b?id=1", "https://example.com/b?id=2"]
+		)
+
+	def test_pages_are_compared_with_the_previous_crawl(self):
+		self.site.page("https://example.com/", links("/same", "/edited", "/added"))
+		self.site.page("https://example.com/same", "<p>Same</p>")
+		self.site.page("https://example.com/edited", "<p>Edited</p>")
+		self.site.page("https://example.com/added", "<p>Added</p>")
+		first = self.crawl()
+		self.assertEqual({page.change_status for page in first}, {"New"})
+
+		previous = {page.url: page.content_hash for page in first}
+		previous["https://example.com/edited"] = "an older hash"
+		del previous["https://example.com/added"]
+		pages = self.crawl(previous_hashes=previous)
+		self.assertEqual(
+			{page.url: page.change_status for page in pages},
+			{
+				"https://example.com": "Unchanged",
+				"https://example.com/same": "Unchanged",
+				"https://example.com/edited": "Changed",
+				"https://example.com/added": "New",
+			},
+		)
 
 	def test_redirect_off_the_site_is_out_of_scope(self):
 		self.site.page("https://example.com/", links("/away"))
@@ -111,7 +146,7 @@ class TestCrawl(IntegrationTestCase):
 	def test_rate_limit_stops_the_crawl(self):
 		self.site.page("https://example.com/", links("/a", "/b"))
 		self.site.add("https://example.com/a", status=429, **{"Retry-After": "1"})
-		crawler = WebCrawler("https://example.com", sources=("links",))
+		crawler = WebCrawler("https://example.com", index_files=False)
 
 		pages = list(crawler.crawl())
 		self.assertEqual([page.status for page in pages], [200, 429])
@@ -143,7 +178,7 @@ class TestCrawl(IntegrationTestCase):
 	def test_crawl_stops_at_the_time_limit(self):
 		self.site.page("https://example.com/", links("/a", "/b"))
 		self.site.page("https://example.com/a", "<p>A</p>")
-		crawler = WebCrawler("https://example.com", sources=("links",))
+		crawler = WebCrawler("https://example.com", index_files=False)
 		pages = crawler.crawl()
 
 		self.assertEqual(next(pages).url, "https://example.com")

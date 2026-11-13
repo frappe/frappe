@@ -10,7 +10,9 @@
   "final_url",
   "column_break_url",
   "status_code",
+  "content_hash",
   "error",
+  "change_status",
   "content_section",
   "title",
   "description",
@@ -54,12 +56,29 @@
    "read_only": 1
   },
   {
+   "fieldname": "content_hash",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Content hash",
+   "read_only": 1
+  },
+  {
    "description": "Why the page could not be read.",
    "fieldname": "error",
    "fieldtype": "Data",
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Error",
+   "read_only": 1
+  },
+  {
+   "description": "How the page compares with the last completed crawl of the same URL.",
+   "fieldname": "change_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Change status",
+   "options": "\nNew\nChanged\nUnchanged",
    "read_only": 1
   },
   {
@@ -103,7 +122,7 @@
  "in_create": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-13 00:00:00.000000",
+ "modified": "2026-11-13 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Crawl Result",

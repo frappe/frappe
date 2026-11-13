@@ -6,7 +6,6 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_to_date, now_datetime
 from frappe.web_crawler import CrawledPage, KeywordPriority, WebCrawler
-from frappe.web_crawler.crawler import DEFAULT_SOURCES
 from frappe.web_crawler.limits import CrawlLimits
 
 ACTIVE_STATUSES = ("Queued", "Running")
@@ -23,10 +22,11 @@ class WebCrawl(Document):
 		from frappe.website.doctype.web_crawl_link_priority.web_crawl_link_priority import (
 			WebCrawlLinkPriority,
 		)
-		from frappe.website.doctype.web_crawl_source_item.web_crawl_source_item import WebCrawlSourceItem
 
 		background_task: DF.Link | None
 		finished_at: DF.Datetime | None
+		follow_links: DF.Check
+		index_files: DF.Check
 		link_priorities: DF.Table[WebCrawlLinkPriority]
 		max_depth: DF.Int
 		max_pages: DF.Int
@@ -37,7 +37,6 @@ class WebCrawl(Document):
 		reference_name: DF.DynamicLink | None
 		skip_patterns: DF.SmallText | None
 		skip_urls_method: DF.Data | None
-		sources: DF.TableMultiSelect[WebCrawlSourceItem]
 		started_at: DF.Datetime | None
 		status: DF.Literal["Queued", "Running", "Completed", "Failed", "Cancelled"]
 		stopped_reason: DF.Data | None
@@ -48,8 +47,6 @@ class WebCrawl(Document):
 
 	def validate(self):
 		self.validate_methods()
-		if self.is_new() and not self.sources:
-			self.set("sources", [{"source": source} for source in DEFAULT_SOURCES])
 		crawler = self.crawler()
 		if self.is_new():
 			self.max_pages, self.max_depth = crawler.limits.max_pages, crawler.limits.max_depth
@@ -77,19 +74,38 @@ class WebCrawl(Document):
 				title=_("Not permitted"),
 			)
 
-	def crawler(self, skip_urls=None) -> WebCrawler:
+	def crawler(self, skip_urls=None, previous_hashes=None) -> WebCrawler:
 		return WebCrawler(
 			self.url,
-			sources=self.source_names(),
+			index_files=bool(self.index_files),
+			follow_links=bool(self.follow_links),
 			priority=KeywordPriority(self.keyword_weights()) if self.link_priorities else None,
 			max_pages=self.max_pages or None,
 			max_depth=self.max_depth,
 			skip_patterns=tuple((self.skip_patterns or "").split()),
 			skip_urls=skip_urls,
+			previous_hashes=previous_hashes,
 		)
 
-	def source_names(self) -> tuple[str, ...]:
-		return tuple(row.source for row in self.sources)
+	def previous_hashes(self) -> dict[str, str]:
+		"""Content hashes from the last completed crawl of the same URL, user and reference."""
+		filters = {
+			"url": self.url,
+			"owner": self.owner,
+			"reference_doctype": self.reference_doctype,
+			"reference_name": self.reference_name,
+			"status": "Completed",
+			"name": ("!=", self.name),
+		}
+		previous = frappe.get_all("Web Crawl", filters, pluck="name", order_by="creation desc", limit=1)
+		if not previous:
+			return {}
+		results = frappe.get_all(
+			"Web Crawl Result",
+			{"web_crawl": previous[0], "content_hash": ("is", "set")},
+			["url", "final_url", "content_hash"],
+		)
+		return {result.final_url or result.url: result.content_hash for result in results}
 
 	def keyword_weights(self) -> dict[str, float]:
 		return {row.keyword.lower(): row.weight for row in self.link_priorities}
@@ -100,6 +116,8 @@ class WebCrawl(Document):
 		Returns the user's running crawl instead when it has the same settings and caller."""
 		values = {
 			"url": crawler.url,
+			"index_files": int(crawler.index_files),
+			"follow_links": int(crawler.follow_links),
 			"max_pages": crawler.limits.max_pages,
 			"max_depth": crawler.limits.max_depth,
 			"skip_patterns": "\n".join(crawler.skip_patterns) or None,
@@ -110,7 +128,6 @@ class WebCrawl(Document):
 		web_crawl = frappe.get_doc(
 			{
 				"doctype": "Web Crawl",
-				"sources": [{"source": source} for source in crawler.sources],
 				"link_priorities": [
 					{"keyword": keyword, "weight": weight}
 					for keyword, weight in stored_keyword_weights(crawler).items()
@@ -134,10 +151,7 @@ class WebCrawl(Document):
 		}
 		for name in frappe.get_all("Web Crawl", filters=filters, pluck="name"):
 			web_crawl = frappe.get_doc("Web Crawl", name)
-			if (web_crawl.source_names(), web_crawl.keyword_weights()) == (
-				crawler.sources,
-				stored_keyword_weights(crawler),
-			):
+			if web_crawl.keyword_weights() == stored_keyword_weights(crawler):
 				return web_crawl
 		return None
 
@@ -177,7 +191,7 @@ class WebCrawl(Document):
 		self.reset_results()
 		errors = {}
 		try:
-			crawler = self.crawler(get_method(self.skip_urls_method))
+			crawler = self.crawler(get_method(self.skip_urls_method), self.previous_hashes())
 			on_page = get_method(self.on_page_method)
 			for page in crawler.crawl():
 				self.save_page(page, on_page, errors)
@@ -230,7 +244,9 @@ class WebCrawl(Document):
 				"url": page.url,
 				"final_url": page.final_url,
 				"status_code": page.status,
+				"content_hash": page.content_hash,
 				"error": page.error,
+				"change_status": page.change_status,
 				"title": page.title,
 				"description": page.description,
 				"text": page.text,

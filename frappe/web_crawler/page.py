@@ -1,3 +1,4 @@
+import hashlib
 import re
 from dataclasses import dataclass, field
 from functools import cached_property
@@ -33,10 +34,25 @@ class CrawledPage:
 	raw_html: str = field(default="", repr=False)
 	links: dict[str, str] = field(default_factory=dict, repr=False)
 	source_markdown: str = field(default="", repr=False)
+	change_status: str | None = None
 
 	@property
 	def ok(self) -> bool:
 		return self.error is None
+
+	@cached_property
+	def content_hash(self) -> str | None:
+		"""Changes only when the page's main content changes."""
+		return hashlib.sha256(self.text.encode()).hexdigest() if self.ok else None
+
+	def compare(self, previous_hash: str | None):
+		"""Sets `change_status` to New, Changed or Unchanged against an earlier crawl's hash."""
+		if not self.ok:
+			return
+		if not previous_hash:
+			self.change_status = "New"
+		else:
+			self.change_status = "Unchanged" if previous_hash == self.content_hash else "Changed"
 
 	@cached_property
 	def markdown(self) -> str:

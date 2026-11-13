@@ -14,16 +14,13 @@ from frappe.web_crawler.page import CrawledPage, PageParser
 from frappe.web_crawler.scope import Robots, Scope, SkipRules, normalize_url
 from frappe.web_crawler.sources import LlmsTxt, Sitemap, is_sitemap_url
 
-DEFAULT_SOURCES = ("sitemap", "links")
-LIST_SOURCES = ("sitemap", "llms.txt")
-SOURCES = (*LIST_SOURCES, "links")
-
 
 class WebCrawler:
 	"""Reads the pages of one site, within the limits in Web Crawl Settings.
 
-	`sources` without "links" lists pages from the first of sitemap / llms.txt that has any.
-	With "links", links are followed breadth first from the start URL, with sitemap pages as seeds.
+	`index_files` lists pages from the site's llms.txt, then its sitemap.
+	`follow_links` follows links breadth first from the start URL, with the listed pages as seeds.
+	`previous_hashes` maps URLs to `content_hash` values of an earlier crawl, for each page's `change_status`.
 	`priority(url, anchor_text)` orders pages at the same depth (higher first).
 	Without `priority` or `skip_patterns`, the tuning in Web Crawl Settings is used.
 	`skip_urls(urls)` returns the URLs to drop before they are fetched.
@@ -36,19 +33,23 @@ class WebCrawler:
 		self,
 		url: str,
 		*,
-		sources: tuple[str, ...] = DEFAULT_SOURCES,
+		index_files: bool = True,
+		follow_links: bool = True,
 		max_pages: int | None = None,
 		max_depth: int | None = None,
 		skip_patterns: tuple[str, ...] = (),
 		priority: Callable[[str, str], float] | None = None,
 		skip_urls: Callable[[list[str]], list[str]] | None = None,
 		user_agent: str | None = None,
+		previous_hashes: dict[str, str] | None = None,
 	):
 		self.limits = CrawlLimits.from_settings(max_pages, max_depth, user_agent)
 		self.url = self.validate_url(url)
-		self.sources = self.validate_sources(sources)
+		self.index_files = index_files
+		self.follow_links = follow_links
 		self.skip_patterns = tuple(skip_patterns) or self.limits.skip_patterns
 		self.skip_rules = SkipRules(self.skip_patterns)
+		self.previous_hashes = {normalize_url(url): value for url, value in (previous_hashes or {}).items()}
 		self.priority = priority or self.settings_priority()
 		self.skip_urls = skip_urls
 		self.scope = Scope(self.url.rsplit("/", 1)[0] if is_sitemap_url(self.url) else self.url)
@@ -69,24 +70,24 @@ class WebCrawler:
 		validate_request_url(url)
 		return url
 
-	def validate_sources(self, sources: tuple[str, ...]) -> tuple[str, ...]:
-		if unknown := set(sources) - set(SOURCES):
-			frappe.throw(_("Unknown crawl sources: {0}").format(", ".join(sorted(unknown))))
-		return tuple(sources)
-
 	def find_pages(self) -> list[str]:
-		"""Page URLs from the first list source that has any, filtered and capped at max_pages."""
-		for source in self.sources:
-			if source in LIST_SOURCES and (urls := self.filter_urls(self.list_source(source).find())):
-				return urls[: self.limits.max_pages]
-		return []
+		"""Page URLs from the index files, filtered and capped at max_pages."""
+		return self.index_urls()[: self.limits.max_pages]
+
+	def index_urls(self) -> list[str]:
+		"""llms.txt pages first, as the site picked them, then the sitemap's."""
+		if not self.index_files:
+			return []
+		llms_txt = LlmsTxt(self.fetcher, self.url, self.scope)
+		sitemap = Sitemap(self.fetcher, self.url, self.scope, self.robots)
+		return self.filter_urls(llms_txt.find() + sitemap.find())
 
 	def crawl(self) -> Iterator[CrawledPage]:
 		"""Yields each page as it is read. A failed page is yielded with `error` set; it never raises."""
-		if "links" in self.sources:
-			yield from self.follow_links()
-		else:
-			yield from self.read_pages(self.find_pages())
+		pages = self.read_linked_pages() if self.follow_links else self.read_pages(self.find_pages())
+		for page in pages:
+			page.compare(self.previous_hashes.get(normalize_url(page.final_url or page.url)))
+			yield page
 
 	def enqueue(
 		self,
@@ -120,11 +121,6 @@ class WebCrawler:
 	def robots(self) -> Robots:
 		return Robots(self.fetcher, self.url)
 
-	def list_source(self, source: str) -> Sitemap | LlmsTxt:
-		if source == "sitemap":
-			return Sitemap(self.fetcher, self.url, self.scope, self.robots)
-		return LlmsTxt(self.fetcher, self.url, self.scope)
-
 	def read_pages(self, urls: list[str]) -> Iterator[CrawledPage]:
 		seen = set()
 		for batch in batched(urls, self.batch_size(), strict=False):
@@ -138,10 +134,10 @@ class WebCrawler:
 				if self.should_stop(page):
 					return
 
-	def follow_links(self) -> Iterator[CrawledPage]:
+	def read_linked_pages(self) -> Iterator[CrawledPage]:
 		frontier = CrawlFrontier(self.url, self.priority)
-		if "sitemap" in self.sources and self.limits.max_depth:
-			frontier.add(self.filter_urls(self.list_source("sitemap").find()), 1)
+		if self.limits.max_depth:
+			frontier.add(self.index_urls(), 1)
 		read = 0
 		while batch := frontier.pop_many(min(self.batch_size(), self.limits.max_pages - read)):
 			urls = [url for url, _depth in batch]
