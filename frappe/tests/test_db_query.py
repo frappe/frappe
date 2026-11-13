@@ -1103,6 +1103,17 @@ class TestDBQuery(FrappeTestCase):
 				with self.subTest(field=field):
 					self.assertRaises(frappe.DataError, frappe.get_list, "Blog Post", fields=[field], limit=1)
 
+			for field in (
+				"`tabBlog Post`.name,`tabBlog Post`.published",
+				"name as title_alias,published",
+				"concat(name, published) as joined",
+			):
+				with self.subTest(field=field):
+					data = frappe.get_list(
+						"Blog Post", filters={"published": 1}, fields=["name", field], limit=1
+					)
+					self.assertEqual(list(data[0]), ["name"])
+
 	def test_permlevel_fields_in_order_by(self):
 		# A permlevel-protected field must not be usable in order by / group by,
 		# else its value leaks via a sorting side-channel oracle.

@@ -1050,57 +1050,33 @@ from {tables}
 					self.fields[i : i + 1] = permitted_fields
 				continue
 
-			# handle pseudo columns
-			if not column or column.isnumeric():
-				continue
+			if not all(
+				self.is_permitted_column(column, permitted_fields, permitted_child_table_fields)
+				for column in columns
+			):
+				self.remove_field(i)
 
-			# labels / pseudo columns or frappe internals
-			if column[0] in {"'", '"'}:
-				continue
+	def is_permitted_column(self, column, permitted_fields, permitted_child_table_fields):
+		# pseudo columns, labels and `count(*)`
+		if not column or column == "*" or column.isnumeric() or column[0] in {"'", '"'}:
+			return True
 
-			doctype = None
+		if "." in column:
+			table, column = column.split(".", 1)
+			doctype = self.linked_table_aliases.get(table, table).replace("`", "").removeprefix("tab")
 
-			if "." in column:
-				table, column = column.split(".", 1)
-				doctype = self.linked_table_aliases[table] if table in self.linked_table_aliases else table
-				doctype = doctype.replace("`", "").removeprefix("tab")
-
-			# handle child / joined table fields
-			if doctype and doctype != self.doctype:
+			if doctype != self.doctype:
 				if wrap_grave_quotes(table) not in self.query_tables:
 					raise frappe.PermissionError(doctype)
 
 				if doctype not in permitted_child_table_fields:
 					permitted_child_table_fields[doctype] = set(
-						get_permitted_fields(
-							doctype=doctype,
-							parenttype=self.doctype,
-							ignore_virtual=True,
-						)
+						get_permitted_fields(doctype=doctype, parenttype=self.doctype, ignore_virtual=True)
 					)
 
-				if column in permitted_child_table_fields[doctype] or column in OPTIONAL_FIELDS:
-					continue
+				return column in OPTIONAL_FIELDS or column in permitted_child_table_fields[doctype]
 
-				self.remove_field(i)
-				continue
-
-			if column in OPTIONAL_FIELDS or column in permitted_fields:
-				continue
-
-			# field inside function calls / * handles things like count(*)
-			elif "(" in field:
-				if "*" in field:
-					continue
-				else:
-					for column in columns:
-						if column not in permitted_fields:
-							self.remove_field(i)
-							break
-					continue
-			# remove if access not allowed
-			else:
-				self.remove_field(i)
+		return column in OPTIONAL_FIELDS or column in permitted_fields
 
 	def prepare_filter_condition(self, f):
 		"""Returns a filter condition in the format:
