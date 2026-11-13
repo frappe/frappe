@@ -9,6 +9,7 @@ from frappe.desk.doctype.form_layout.form_layout import (
 	publish_doctype_update,
 	source_fingerprint,
 )
+from frappe.desk.doctype_editor.checks import DesignChecks
 from frappe.desk.doctype_editor.design_edits import DesignEdits
 from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError
@@ -80,6 +81,8 @@ class DesignSave:
 		]
 		if stale := stale_error(self.doctype, self.base_version, rows, self.written_app_types()):
 			self.errors.insert(0, stale)
+		if not self.errors:
+			self.errors = DesignChecks(self.state).errors()
 
 	def written_app_types(self) -> list[str]:
 		return sorted(self.state.touched) if self.state.standard else []

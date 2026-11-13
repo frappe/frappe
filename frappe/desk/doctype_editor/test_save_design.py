@@ -391,19 +391,30 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
 		self.assertEqual(details_rows(), [])
 
-	def test_a_layout_failing_after_the_doctype_saved_reports_what_was_written(self):
-		result = self.save(
-			[
-				{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"},
-				{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "due"},
-			]
-		)
-		self.assertFalse(result["saved"])
-		# MariaDB and Postgres commit the DocType's DDL; SQLite rolls it back with the rest.
-		kept = frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "due"})
-		self.assertEqual(bool(kept), frappe.db.db_type != "sqlite")
-		self.assertEqual(result["written"], [DOCTYPE] if kept else [])
-		self.assertEqual(details_rows(), [])
+	def test_a_layout_that_fails_its_checks_writes_nothing(self):
+		details = {"type": "Details"}
+		cases = {
+			"tab named like a new field": [
+				{"act": "canvas.add_tab", "layout": details, "name": "due"},
+			],
+			"two tabs of one name": [
+				{"act": "canvas.add_tab", "layout": details, "name": "extra"},
+				{"act": "canvas.add_tab", "layout": details, "name": "extra"},
+			],
+			"two layouts without a condition": [
+				{"act": "canvas.add_tab", "layout": details, "name": "extra"},
+				{"act": "layouts.add", "type": "Details", "id": "new-1", "start": "empty"},
+			],
+		}
+		for case, edits in cases.items():
+			with self.subTest(case):
+				make_custom_doctype()
+				result = self.save([{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"}, *edits])
+				self.assertFalse(result["saved"])
+				self.assertEqual(result["errors"][0]["target"]["kind"], "layout", result["errors"])
+				self.assertNotIn("written", result)
+				self.assertFalse(frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "due"}))
+				self.assertEqual(details_rows(), [])
 
 	def test_a_save_tells_open_desks_once(self):
 		frappe.db.commit()  # nosemgrep: flush the setUp insert's own message
