@@ -8,6 +8,8 @@ from frappe.desk.doctype.form_layout.form_layout import LAYOUT_BREAKS, refuse_fi
 from frappe.desk.doctype_editor.design_state import DesignState, EditorLayout
 from frappe.desk.doctype_editor.errors import EditError
 
+CHECK_SAVEPOINT = "doctype_editor_check"
+
 
 class DesignChecks:
 	def __init__(self, state: DesignState):
@@ -16,9 +18,23 @@ class DesignChecks:
 	def errors(self) -> list[dict]:
 		messages = len(frappe.local.message_log)
 		try:
-			return self.layout_errors()
+			return [*self.doctype_errors(), *self.layout_errors()]
 		finally:
 			del frappe.local.message_log[messages:]
+
+	def doctype_errors(self) -> list[dict]:
+		"""Each DocType's validation; the new child tables' rows let the parent's Table fields name them."""
+		frappe.db.savepoint(CHECK_SAVEPOINT)
+		try:
+			for child in self.state.children.values():
+				child.doc.run_method("validate")
+				child.doc.db_insert()
+			self.state.doc.run_method("validate")
+		except frappe.ValidationError as e:
+			return [EditError(str(e)).as_dict()]
+		finally:
+			frappe.db.rollback(save_point=CHECK_SAVEPOINT)
+		return []
 
 	def layout_errors(self) -> list[dict]:
 		errors = []

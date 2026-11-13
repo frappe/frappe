@@ -306,6 +306,22 @@ class TestSaveDesign(IntegrationTestCase):
 		table = frappe.get_meta(DOCTYPE).get_field("items")
 		self.assertEqual((table.fieldtype, table.options), ("Table", child))
 
+	def test_a_parent_failing_its_checks_leaves_no_new_child_table(self):
+		child = f"{DOCTYPE} Item"
+		self.addCleanup(frappe.delete_doc, "DocType", child, force=True, ignore_missing=True)
+		result = self.save(
+			{
+				DOCTYPE: [
+					{"act": "fields.add_child_table", "table_field": "items", "name": child},
+					{"act": "fields.add_field", "label": "Party", "fieldtype": "Link"},
+				],
+				child: [{"act": "fields.add_field", "label": "Qty", "fieldtype": "Int"}],
+			}
+		)
+		self.assertFalse(result["saved"])
+		self.assertNotIn("written", result)
+		self.assertFalse(frappe.db.exists("DocType", child))
+
 	def test_edits_for_a_doctype_the_save_does_not_add_are_refused(self):
 		result = self.save(
 			{DOCTYPE: [], "ToDo": [{"act": "fields.add_field", "label": "X", "fieldtype": "Data"}]}
@@ -387,7 +403,7 @@ class TestSaveDesign(IntegrationTestCase):
 		)
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["target"], {"kind": "banner"})
-		self.assertEqual(result.get("written"), [])
+		self.assertNotIn("written", result)
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
 		self.assertEqual(details_rows(), [])
 
