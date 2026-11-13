@@ -35,11 +35,3 @@ function editorMode(modes: string[], row?: string | null): "design" | "customize
 	if (row && !row.startsWith("app:") && modes.includes("Customize")) return "customize";
 	return modes.includes("Design") ? "design" : "customize";
 }
-
-/** Whether either editor entry, Customize form or Edit DocType, opens on the doctype. */
-export function canEditLayout(
-	meta: LayoutMeta,
-	rights: { roles: readonly string[]; developerMode: boolean }
-): boolean {
-	return editorEntries(meta.name, { ...rights, meta }).length > 0;
-}

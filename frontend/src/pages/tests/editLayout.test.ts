@@ -12,32 +12,9 @@ vi.mock("@/router/routeFor", () => ({
 	}),
 }));
 
-import { canEditLayout, useEditLayoutRoute } from "../editLayout";
+import { useEditLayoutRoute } from "../editLayout";
 
-const manager = { roles: ["System Manager"], developerMode: false };
 const standard = { name: "Sales Invoice" };
-
-describe("canEditLayout", () => {
-	it("lets a System Manager customize a standard DocType outside developer mode", () => {
-		expect(canEditLayout(standard, manager)).toBe(true);
-	});
-
-	it("lets a System Manager design a custom DocType", () => {
-		expect(canEditLayout({ name: "Task Note", custom: 1 }, manager)).toBe(true);
-	});
-
-	it("keeps a standard Single shut outside developer mode, and opens it to Design in it", () => {
-		const single = { name: "Print Settings", issingle: 1 };
-		expect(canEditLayout(single, manager)).toBe(false);
-		expect(canEditLayout(single, { ...manager, developerMode: true })).toBe(true);
-	});
-
-	it("refuses anyone without the System Manager role, developer mode or not", () => {
-		const user = { roles: ["Accounts User"], developerMode: true };
-		expect(canEditLayout(standard, user)).toBe(false);
-		expect(canEditLayout({ name: "Task Note", custom: 1 }, user)).toBe(false);
-	});
-});
 
 const blank = { render: () => null };
 const EDITOR = [{ path: "/doctype/:name", name: "doctype-editor", component: blank }];
@@ -77,6 +54,20 @@ describe("useEditLayoutRoute", () => {
 		expect(routeWith(appBoot, { name: "Task Note", custom: 1 })("details", "5021")).toMatchObject({
 			query: { mode: "design" },
 		});
+	});
+
+	it("keeps a standard Single shut outside developer mode, and opens it to Design in it", () => {
+		const single = { name: "Print Settings", issingle: 1 };
+		expect(routeWith(appBoot, single)("details")).toBeNull();
+		expect(routeWith({ ...appBoot, developer_mode: true }, single)("details")).toMatchObject({
+			query: { mode: "design" },
+		});
+	});
+
+	it("refuses anyone without the System Manager role, developer mode or not", () => {
+		const user = { developer_mode: true, session: { roles: ["Accounts User"] } };
+		expect(routeWith(user, standard)("details")).toBeNull();
+		expect(routeWith(user, { name: "Task Note", custom: 1 })("details")).toBeNull();
 	});
 
 	it("gives nothing without the right, without the meta, or on the index, which serves no editor", () => {
