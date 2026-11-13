@@ -30,7 +30,7 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 	is_energy_point_enabled,
 )
 from frappe.utils import add_user_info, cstr, get_system_timezone
-from frappe.utils.change_log import get_versions
+from frappe.utils.change_log import get_app_versions
 from frappe.utils.frappecloud import on_frappecloud
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
@@ -97,7 +97,7 @@ def get_bootinfo():
 
 	if bootinfo.lang:
 		bootinfo.lang = str(bootinfo.lang)
-	bootinfo.versions = {k: v["version"] for k, v in get_versions().items()}
+	bootinfo.versions = {k: v["version"] for k, v in get_app_versions().items()}
 
 	bootinfo.error_report_email = frappe.conf.error_report_email
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
