@@ -105,7 +105,6 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	if context is None:
 		context = {}
 
-<<<<<<< HEAD
 	if is_path or guess_is_path(template):
 		return get_jenv().get_template(template).render(context)
 	else:
@@ -115,40 +114,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 			with safe_render_flags():
 				return get_jenv(restrict_globals=restrict_globals).from_string(template).render(context)
 		except TemplateError:
-			throw(
-				title="Jinja Template Error",
-				msg=f"<pre>{template}</pre><pre>{get_traceback()}</pre>",
-			)
-=======
-	try:
-		if is_path or guess_is_path(template):
-			is_path = True
-			compiled_template = get_template(template)
-		else:
-			jenv: SandboxedEnvironment = get_jenv(restrict_globals=restrict_globals)
-			if safe_render and ".__" in template:
-				throw(_("Illegal template"))
-			compiled_template = jenv.from_string(template)
-	except TemplateError:
-		_throw_render_error(_("Jinja Template Error"), template=template)
-
-	import time
-
-	from frappe.utils.logger import get_logger
-
-	logger = get_logger("render-template")
-	try:
-		start_time = time.monotonic()
-		with safe_render_flags():
-			return compiled_template.render(context)
-	except Exception as e:
-		_throw_render_error(_("Context Error"), exc=e)
-	finally:
-		if is_path:
-			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
-		else:
-			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds")
->>>>>>> 2bdccca (fix: show template render tracebacks only when tracebacks are allowed)
+			_throw_render_error(_("Jinja Template Error"), template=template)
 
 
 def _throw_render_error(title, template=None, exc=frappe.ValidationError):
