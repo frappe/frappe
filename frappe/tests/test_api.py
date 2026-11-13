@@ -847,7 +847,11 @@ class TestDocumentReadsOnReplica(IntegrationTestCase):
 			return switched
 
 		primary = frappe.local.db
-		replica_conf = {"read_from_replica": 1, "replica_host": frappe.conf.db_host or "127.0.0.1"}
+		replica_conf = {
+			"read_from_replica": 1,
+			"replica_host": frappe.conf.db_host or "127.0.0.1",
+			"replica_db_port": frappe.conf.db_port,
+		}
 		with (
 			patch.dict(frappe.local.conf, replica_conf),
 			patch.object(frappe, "connect_replica", spy),
