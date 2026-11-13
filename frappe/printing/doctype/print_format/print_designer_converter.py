@@ -720,13 +720,13 @@ class PrintDesignerConverter:
 			if node.get("table_header") == "none"
 			else "<tr>"
 			+ "".join(
-				f'<th style="{css(self.styled(element, "headerStyle"))}">{escape_html(c["label"])}</th>'
+				f'<th width="{c["width"]}%" style="{css(self.styled(element, "headerStyle"))}">{escape_html(c["label"])}</th>'
 				for c in node["table_columns"]
 			)
 			+ "</tr>"
 		)
 		cells = "".join(
-			f'<td style="{cell}">{{{{ row.get_formatted({c["fieldname"]!r}, doc) }}}}</td>'
+			f'<td width="{c["width"]}%" style="{cell}">{{{{ row.get_formatted({c["fieldname"]!r}, doc) }}}}</td>'
 			for c in node["table_columns"]
 		)
 		return (
