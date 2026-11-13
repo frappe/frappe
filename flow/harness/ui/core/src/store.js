@@ -456,6 +456,14 @@ export function createFlowStore(client, options = {}) {
 		return refreshSessions({ query })
 	}
 
+	// The palette's search past a full page: the host's matches by title, for a list of its
+	// own, so the sidebar keeps the chats it shows. None while every chat is loaded.
+	async function findSessions(query) {
+		if (!state.sessionsMore) return []
+		const data = await guard(() => client.sessions({ query }))
+		return data?.sessions ?? []
+	}
+
 	// only the newest request lands, so an older answer can't end its loading or replace its list
 	let modelsRequest = 0
 	async function refreshModels() {
@@ -1813,6 +1821,7 @@ export function createFlowStore(client, options = {}) {
 		discardAttachments: client.discardAttachments?.bind(client),
 		refreshSessions,
 		loadMoreSessions,
+		findSessions,
 		searchSessions,
 		refreshModels,
 		refreshTools,
