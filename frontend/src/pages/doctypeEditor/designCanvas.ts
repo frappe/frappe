@@ -82,7 +82,7 @@ export class DesignCanvas {
 		this.base = editorBase(state);
 		this.editable = state.modes.includes(state.mode);
 		this.customize =
-			state.mode === "Customize" ? new CustomizeView(state, this.working, () => this.edits.staged.value) : null;
+			state.mode === "Customize" ? new CustomizeView(state, this.base, this.working, () => this.edits.staged.value) : null;
 	}
 
 	/** Stages the edits as one undo step; throws `EditRefused`, and stages nothing, when the replay refuses one. */

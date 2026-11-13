@@ -12,6 +12,7 @@
 			:key="property.key"
 			:label="__(property.label)"
 			:box="property.type !== 'check'"
+			v-bind="mark(property.key)"
 		>
 			<div v-if="property.type === 'check'" class="flex h-7 items-center px-2">
 				<Switch
@@ -41,7 +42,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
-import { PROPERTY_GROUPS } from "./fieldPanel";
+import { PROPERTY_GROUPS, rowMark } from "./fieldPanel";
 import PanelRow from "./PanelRow.vue";
 import PanelSection from "./PanelSection.vue";
 
@@ -58,6 +59,14 @@ const groups = computed(() =>
 
 function value(key: string) {
 	return (props.field as unknown as Record<string, unknown>)[key] as string | number | undefined;
+}
+
+function mark(property: string) {
+	const { fieldname } = props.field;
+	return {
+		...rowMark(props.canvas, fieldname, property),
+		onReset: () => void acts.perform("fields.reset_field_property", { fieldname, property }),
+	};
 }
 
 function set(key: string, next: number | null) {

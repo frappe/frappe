@@ -1,7 +1,7 @@
 // What Customize shows on the canvas and the panel: only what the site changed, and what it may not.
 import type { ComputedRef } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
-import { siteSetters } from "./customizeRules";
+import { appValue, siteSetters } from "./customizeRules";
 import type { FlatEdit, WorkingState } from "./editorModel";
 import type { EditorState } from "./editorSource";
 
@@ -16,6 +16,7 @@ export interface FieldMarks {
 export class CustomizeView {
 	constructor(
 		readonly state: EditorState,
+		private base: WorkingState,
 		private working: ComputedRef<WorkingState>,
 		private staged: () => readonly FlatEdit[],
 	) {}
@@ -46,6 +47,23 @@ export class CustomizeView {
 	fieldtypes(fieldname: string): string[] | null {
 		if (!this.isStandard(fieldname)) return null;
 		return this.state.fieldtype_changes?.[fieldname] ?? [];
+	}
+
+	/** What a reset of `property` puts back: the app's value. */
+	appValue(fieldname: string, property: string): unknown {
+		const loaded = this.base.fields.find((field) => field.fieldname === fieldname);
+		return loaded && this.base.customize ? appValue(this.base.customize, loaded, property) : undefined;
+	}
+
+	/** The field a site's custom field is drawn after; `null` at the start of the form. */
+	anchor(fieldname: string): RawMetaField | null | undefined {
+		if (this.isStandard(fieldname)) return undefined;
+		const drawn = this.working.value.layout.flatMap((tab) =>
+			tab.sections.flatMap((section) => section.columns.flatMap((column) => column.fields)),
+		);
+		const index = drawn.indexOf(fieldname);
+		if (index === -1) return undefined;
+		return index ? (this.field(drawn[index - 1]) ?? null) : null;
 	}
 
 	/** A standard field cannot go, so its remove hides it. */
