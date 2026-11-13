@@ -103,7 +103,7 @@ export const SETTING_ROWS: SettingRow[] = [
 		fieldtypes: ["Attach Image"],
 		kinds: MANY,
 	},
-	flag("form", "Record", "queue_in_background", "Save in the background", "A save runs as a background job.", NOT_CHILD),
+	flag("form", "Record", "queue_in_background", "Submit and cancel in the background", "Submission and cancellation run as background jobs.", ["submittable"]),
 	flag("form", "Creating", "quick_entry", "Quick entry", "A new record opens in a dialog of the required fields.", MANY),
 	flag("form", "Creating", "allow_copy", "Hide copy", "A record's menu has no Duplicate.", MANY),
 	flag("form", "Creating", "allow_auto_repeat", "Auto repeat", "A record can repeat on a schedule.", MANY),
