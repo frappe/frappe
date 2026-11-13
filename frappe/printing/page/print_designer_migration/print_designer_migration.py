@@ -52,7 +52,9 @@ def get_print_designer_formats() -> list[dict]:
 	samples = {}
 	for row in rows:
 		if row.doc_type not in samples:
-			samples[row.doc_type] = frappe.has_permission(row.doc_type) and printable_sample(row.doc_type)
+			samples[row.doc_type] = None
+			if frappe.has_permission(row.doc_type):
+				samples[row.doc_type] = printable_sample(row.doc_type)
 		row.sample = samples[row.doc_type]
 	return rows
 
