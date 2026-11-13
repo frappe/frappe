@@ -59,6 +59,16 @@ def bulk_unfollows(doctype: str):
 	return run_part(UNFOLLOW, doctype, "follows", adding=False)
 
 
+def bulk_favourites(doctype: str):
+	"""POST /document/<doctype>/bulk_favourites: the session user stars the records."""
+	return run_part(FAVOURITE, doctype, "favourites")
+
+
+def bulk_unfavourites(doctype: str):
+	"""DELETE /document/<doctype>/bulk_favourites"""
+	return run_part(UNFAVOURITE, doctype, "favourites", adding=False)
+
+
 def bulk_shares(doctype: str):
 	"""POST /document/<doctype>/bulk_shares. Body: `user` ("everyone" for all), and `write`, `submit`, `share` as 0 or 1."""
 	return run_part(SHARE, doctype, "shares", extra=SHARE_RIGHTS)
@@ -164,6 +174,8 @@ ADD_TAG = BulkAction("Add Tag", add_to_part)
 REMOVE_TAG = BulkAction("Remove Tag", remove_from_part)
 FOLLOW = BulkAction("Follow", follow_one, check=refuse_without_track_changes)
 UNFOLLOW = BulkAction("Unfollow", remove_from_part, check=refuse_without_track_changes)
+FAVOURITE = BulkAction("Favourite", add_to_part)
+UNFAVOURITE = BulkAction("Unfavourite", remove_from_part)
 SHARE = BulkAction("Share", add_to_part)
 MARK_SEEN = BulkAction("Mark as Seen", mark_seen_one, check=refuse_without_track_seen)
 MARK_UNSEEN = BulkAction("Mark as Unseen", mark_unseen_one, check=refuse_without_track_seen)

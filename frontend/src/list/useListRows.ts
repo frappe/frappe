@@ -18,7 +18,8 @@ import {
 	watch,
 	type ComputedRef,
 } from "vue";
-import { seedFavourites } from "./favouriteStars";
+import { currentSession } from "@framework/ui/useSession";
+import { seedFavourites, starsWritten } from "./favouriteStars";
 import { seedRowParts } from "./rowParts";
 
 export type ListRow = { name: string } & Record<string, unknown>;
@@ -188,6 +189,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	async function refresh(current: RowsQuery) {
 		const mine = (refreshing = generation);
 		const limit = shown.value;
+		const sentAt = starsWritten();
 		const outcome = await listDocuments<ListRow>(
 			doctype,
 			{ ...listQuery(current), start: 0, limit },
@@ -197,7 +199,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		refreshing = -1;
 		if (isLostAccess(outcome)) return showError(outcome);
 		if (!(outcome instanceof Error)) {
-			seedParts(outcome);
+			seedParts(outcome, sentAt);
 			pages.value = [landedPage(outcome.data, outcome.has_next_page)];
 			total.value = totalOf(outcome);
 		}
@@ -228,15 +230,16 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		show(rowCount.value + current.limit);
 	}
 
-	function seedParts(answer: ListEnvelope<ListRow>) {
+	function seedParts(answer: ListEnvelope<ListRow>, sentAt: number) {
 		const names = answer.data.map((row) => row.name);
-		seedFavourites(doctype, answer, names);
+		seedFavourites(doctype, answer, names, currentSession()?.user.name, sentAt);
 		seedRowParts(doctype, answer, names);
 	}
 
 	// The first page of a query carries the count; a page from an earlier query lands nowhere.
 	async function fetchPage(page: Page, current: RowsQuery, start: number, limit: number) {
 		const mine = generation;
+		const sentAt = starsWritten();
 		const first = start === 0;
 		try {
 			const answer = await listDocuments<ListRow>(
@@ -245,7 +248,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 				{ include: [...(first ? ["count"] : []), ...(current.include ?? [])] }
 			);
 			if (mine !== generation) return;
-			seedParts(answer);
+			seedParts(answer, sentAt);
 			page.hasNextPage = answer.has_next_page;
 			page.data = answer.data;
 			if (first) total.value = totalOf(answer);

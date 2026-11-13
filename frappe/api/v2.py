@@ -571,6 +571,14 @@ url_rules = [
 	Rule("/document/<doctype>/bulk_tags", methods=["DELETE"], endpoint=bulk_collaboration.bulk_remove_tags),
 	Rule("/document/<doctype>/bulk_follows", methods=["POST"], endpoint=bulk_collaboration.bulk_follows),
 	Rule("/document/<doctype>/bulk_follows", methods=["DELETE"], endpoint=bulk_collaboration.bulk_unfollows),
+	Rule(
+		"/document/<doctype>/bulk_favourites", methods=["POST"], endpoint=bulk_collaboration.bulk_favourites
+	),
+	Rule(
+		"/document/<doctype>/bulk_favourites",
+		methods=["DELETE"],
+		endpoint=bulk_collaboration.bulk_unfavourites,
+	),
 	Rule("/document/<doctype>/bulk_shares", methods=["POST"], endpoint=bulk_collaboration.bulk_shares),
 	Rule("/document/<doctype>/bulk_seen", methods=["POST"], endpoint=bulk_collaboration.bulk_seen),
 	Rule("/document/<doctype>/bulk_seen", methods=["DELETE"], endpoint=bulk_collaboration.bulk_unseen),

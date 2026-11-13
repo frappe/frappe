@@ -161,7 +161,8 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
 			limit: pageSize.value,
-			include: partsFor(shownColumns.value.map((column) => column.fieldname)),
+			// The bar's Favourite reads the stars whether or not the Favourite column is shown.
+			include: [...new Set(["favourites", ...partsFor(shownColumns.value.map((column) => column.fieldname))])],
 		};
 	});
 

@@ -1,18 +1,5 @@
 <!-- The Cards type's renderer: a grid of cards, the List's footer, and the card settings among the controls. -->
 <template>
-	<Teleport v-if="host.bar.value && selection.length && bulk.parts.value" :to="host.bar.value">
-		<component
-			:is="bulk.parts.value.chunk.BulkBar"
-			:scope="scope"
-			:doctype="view.doctype"
-			:status="bulk.parts.value.status"
-			:cap="bulk.cap"
-			:layout="bulk.layout.value"
-			:locked="bulk.locked"
-			v-model:menuOpen="bulk.menuOpen.value"
-			@clear="scope.clear()"
-		/>
-	</Teleport>
 	<Teleport v-if="host.controls.value" :to="host.controls.value">
 		<CardSettings
 			:meta="meta"
@@ -25,7 +12,7 @@
 	<div
 		v-else
 		class="min-h-0 flex-1 overflow-y-auto py-2"
-		:class="pageGutter"
+		:class="[pageGutter, selection.length && BULK_CLEARANCE_CLASS]"
 		@pointerover="bulk.prefetch"
 		@focusin="bulk.prefetch"
 	>
@@ -57,6 +44,19 @@
 			/>
 		</div>
 	</div>
+	<component
+		:is="bulk.parts.value.chunk.BulkIsland"
+		v-if="bulk.parts.value"
+		:open="selection.length > 0 && !error"
+		:scope="scope"
+		:doctype="view.doctype"
+		:status="bulk.parts.value.status"
+		:cap="bulk.cap"
+		:layout="bulk.layout.value"
+		:locked="bulk.locked"
+		v-model:menuOpen="bulk.menuOpen.value"
+		@clear="scope.clear()"
+	/>
 	<ListFooter
 		v-model:pageSize="pageSize"
 		:class="pageGutter"
@@ -103,8 +103,9 @@
 import { ListFooter, useRowCursor, useRowSelection } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { Skeleton } from "frappe-ui";
-import { onScopeDispose, ref, watchEffect } from "vue";
+import { ref } from "vue";
 import { __ } from "@/i18n";
+import { BULK_CLEARANCE_CLASS } from "@/list/bulkClearance";
 import type { ListRow } from "@/list/useListRows";
 import type { View } from "@/list/view";
 import DeleteDialog from "@/pages/list/DeleteDialog.vue";
@@ -190,10 +191,6 @@ const bulk = useBulkBar({
 });
 const { listActs } = bulk;
 const menu = useRowContextMenu(selection);
-
-// The page swaps its controls row for the bar while this is true.
-watchEffect(() => (props.host.selecting.value = selection.value.length > 0 && !!bulk.parts.value));
-onScopeDispose(() => (props.host.selecting.value = false));
 
 function ask(name: string) {
 	target.value = name;

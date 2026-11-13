@@ -208,8 +208,6 @@ function mount(): HTMLElement {
 	document.body.appendChild(root);
 	const host = {
 		controls: ref(null),
-		bar: ref(null),
-		selecting: ref(false),
 		lists: { bulkActions: { provideBuiltins: () => {}, resolve: () => [], visible: () => [] } },
 		onCreate: vi.fn(),
 		acts: () => ({ drawn: () => null }),

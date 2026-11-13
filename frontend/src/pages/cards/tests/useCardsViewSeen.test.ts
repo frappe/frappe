@@ -4,7 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, ref } from "vue";
 import { useCardsView, type CardsView } from "../useCardsView";
 
-const fake = vi.hoisted(() => ({ track: 0 as 0 | 1, query: null as null | (() => { fields: string[] } | null) }));
+const fake = vi.hoisted(() => ({
+	track: 0 as 0 | 1,
+	query: null as null | (() => { fields: string[]; include?: string[] } | null),
+}));
 
 vi.mock("@framework/ui/api", () => ({ listDocuments: vi.fn() }));
 vi.mock("@framework/ui/useDocPermissions", () => ({ useDocPermissions: () => ({ fieldAccess: () => "write" }) }));
@@ -15,7 +18,7 @@ vi.mock("@framework/ui/useSession", () => ({ currentSession: () => ({ user: { na
 vi.mock("@/list/pageState", () => ({ useRememberedPageSize: () => ref(20) }));
 vi.mock("@/list/useListView", () => ({ deleteRow: vi.fn(), filtersDict: () => ({}) }));
 vi.mock("@/list/useListRows", () => ({
-	useListRows: (_doctype: string, query: () => { fields: string[] } | null) => {
+	useListRows: (_doctype: string, query: () => { fields: string[]; include?: string[] } | null) => {
 		fake.query = query;
 		return { rows: ref([]), loadedKey: ref(null) };
 	},
@@ -56,5 +59,12 @@ describe("cards view on a Track Seen doctype", () => {
 		const view = cardsView();
 		expect(fake.query!()!.fields).not.toContain("_seen");
 		expect(view.titleClassOf({ name: "A" })).toBe("");
+	});
+});
+
+describe("cards view read", () => {
+	it("asks for the stars, so the bar's Favourite can flip to Unfavourite", () => {
+		cardsView();
+		expect(fake.query!()!.include).toContain("favourites");
 	});
 });

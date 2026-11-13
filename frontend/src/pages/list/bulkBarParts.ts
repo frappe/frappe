@@ -8,6 +8,7 @@ import { __ } from "@/i18n";
 import { exportFilters } from "@/list/bulkExport";
 import type { ListPageAction, ListPageApi } from "@/listPage/types";
 import { useBulkCollaboration, type BulkCollaboration } from "./bulkCollaboration";
+import { useBulkFavourite } from "./bulkFavourite";
 import { layoutBulk, type BulkEntry, type BulkLayout } from "./bulkLayout";
 import { useBulkOutput, type BulkOutput } from "./bulkOutput";
 import { useBulkPrint, type BulkPrint } from "./bulkPrint";
@@ -15,7 +16,7 @@ import { useBulkStatus, type BulkStatus } from "./bulkStatus";
 import type { ListActs } from "./listActs";
 import type { BulkBarOptions } from "./useBulkBar";
 
-export { default as BulkBar } from "./BulkBar.vue";
+export { default as BulkIsland } from "./BulkIsland.vue";
 export { default as BulkDialogs } from "./BulkDialogs.vue";
 export { PrintDialog } from "./bulkPrint";
 export { lazyBulkCollabDialog } from "./lazyBulkCollabDialog";
@@ -75,6 +76,13 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
     }),
     boot.session.user.name,
   );
+  const favourite = useBulkFavourite({
+    doctype: options.doctype,
+    scope: options.scope,
+    selection,
+    user: boot.session.user.name,
+    reload: options.reload,
+  });
   const print = useBulkPrint(options.scope, boot.max_bulk_print_docs);
   const askPrint = print.ask;
 
@@ -106,6 +114,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
       right: "write",
       run: askEdit,
     },
+    ...favourite.items(),
     {
       name: "copy",
       label: __("Copy to Clipboard"),
@@ -141,7 +150,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
       .map(({ item, hidden }) => ({
         item: {
           ...item,
-          label: item.label && scopedLabel(item.label),
+          label: item.label && scopedLabel(item.name, item.label),
           argument: undefined,
           palette: disabled(item) ? (false as const) : item.palette,
           run: (page: ListPageApi) => item.run!(page, [...selection.value]),
@@ -150,18 +159,26 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
       }));
   }
 
-  function scopedLabel(label: string) {
+  function scopedLabel(name: string, label: string) {
     const { scope } = options;
-    return scope.all.value
-      ? __("{0} all {1} matching", [label, scope.totalText.value])
-      : __("{0} {1} selected", [label, scope.count.value]);
+    const all = scope.all.value;
+    const count = all ? scope.totalText.value : scope.count.value;
+    // The record page's wording: a star is added to and removed from favourites.
+    if (name === "favourite_records")
+      return all ? __("Add all {0} matching to favourites", [count]) : __("Add {0} selected to favourites", [count]);
+    if (name === "unfavourite_records" || name === "unfavourite_matching")
+      return all
+        ? __("Remove all {0} matching from favourites", [count])
+        : __("Remove {0} selected from favourites", [count]);
+    return all ? __("{0} all {1} matching", [label, count]) : __("{0} {1} selected", [label, count]);
   }
 
   // Select all disables what takes row names: it would run on the loaded rows alone. Print has its own cap, checked when it opens.
   const readsScope = (run: unknown) =>
     [askDelete, askEdit, askExport, askPrint].includes(run as never) ||
     status.owns(run as ListPageAction["run"]) ||
-    collab.takesScope(run);
+    collab.takesScope(run) ||
+    favourite.takesScope(run);
   // The exporter takes no `or_filters`: it would export more than the filters show.
   const disabled = ({ name, uncapped, run }: { name: string; uncapped?: boolean; run?: unknown }) =>
     (name === "export" && exportFilters(options.scope.selected()) === null) ||

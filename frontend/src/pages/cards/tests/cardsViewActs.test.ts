@@ -10,6 +10,7 @@ const fake = vi.hoisted(() => ({
 	picked: [] as string[],
 	rows: [] as { name: string }[],
 	selection: null as null | Ref<string[]>,
+	error: null as unknown,
 }));
 
 vi.mock("../useCardsView", () => ({
@@ -32,7 +33,7 @@ vi.mock("../useCardsView", () => ({
 		rows: ref(fake.rows),
 		readFields: () => ["name"],
 		loading: ref(false),
-		error: ref(null),
+		error: ref(fake.error),
 		rowCount: ref(0),
 		totalCount: ref(0),
 		totalCapped: ref(false),
@@ -68,13 +69,14 @@ vi.mock("../CardItem.vue", () => ({
 const mounted: ReturnType<typeof createApp>[] = [];
 
 afterEach(() => {
+	fake.error = null;
 	for (const app of mounted.splice(0)) app.unmount();
 	fake.picked = [];
 	fake.rows = [];
 });
 
 async function mountView(acts: ReturnType<typeof vi.fn>) {
-	const host = { controls: ref(null), bar: ref(null), selecting: ref(false), lists: createListPageLists(), acts, onCreate: () => {} };
+	const host = { controls: ref(null), lists: createListPageLists(), acts, onCreate: () => {} };
 	const app = createApp(CardsView, { view: { doctype: "Note", filters: [], update: () => {} }, host });
 	app.provide("boot", { bulk_actions: 1, bulk_operation_limit: 500, session: { user: { name: "jane@example.com" } } });
 	const root = document.createElement("div");
@@ -99,6 +101,14 @@ describe("CardsView acts", () => {
 		expect(entries().map((entry) => entry.item.name)).toEqual(expect.arrayContaining(["delete", "delete_card"]));
 		expect(state.selection()).toEqual(["NOTE-1"]);
 		expect(state.reload).toBe(reload);
+	});
+
+	it("floats the bulk bar over the cards, but not over an error state", async () => {
+		const acts = vi.fn(() => ({ drawn: () => undefined }));
+		fake.picked = ["NOTE-1"];
+		expect((await mountView(acts)).querySelector("[role=toolbar]")).not.toBeNull();
+		fake.error = new Error("The list did not load");
+		expect((await mountView(acts)).querySelector("[role=toolbar]")).toBeNull();
 	});
 
 	it("offers the bulk actions only while cards are selected, and a card's own delete always", async () => {

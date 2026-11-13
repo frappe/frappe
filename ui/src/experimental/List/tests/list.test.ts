@@ -235,36 +235,31 @@ describe("List selection", () => {
   });
 });
 
-describe("List bar", () => {
-  it("draws the bar in place of the column labels, beside the live header checkbox", async () => {
+describe("List selection", () => {
+  it("keeps the column labels beside the live header checkbox while rows are selected", async () => {
     const state = reactive({ selection: ["A"] });
-    const { root } = await mount(
-      List,
-      {
-        columns,
-        rows,
-        rowMenu: true,
-        get selection() {
-          return state.selection;
-        },
-        "onUpdate:selection": (value: string[]) => (state.selection = value),
+    const { root } = await mount(List, {
+      columns,
+      rows,
+      rowMenu: true,
+      get selection() {
+        return state.selection;
       },
-      { bar: () => h("div", { "data-bar": "" }, "1 selected") }
-    );
+      "onUpdate:selection": (value: string[]) => (state.selection = value),
+    });
     const header = root.querySelector<HTMLElement>("[data-slot='list-header']")!;
     const checkbox = header.querySelector<HTMLInputElement>("input[type='checkbox']")!;
 
-    expect(header.querySelector("[data-slot='list-header-cell']")).toBeNull();
-    expect(header.querySelector("[data-bar]")!.parentElement!.style.gridColumn).toBe("2 / -1");
+    expect(header.querySelectorAll("[data-slot='list-header-cell']")).toHaveLength(3);
     expect(checkbox.indeterminate).toBe(true);
     checkbox.click();
     await flush();
     expect(state.selection).toEqual(["A", "B"]);
   });
 
-  it("draws the column labels while no bar is given", async () => {
-    const { root } = await mount(List, { columns, rows });
-    expect(root.querySelectorAll("[data-slot='list-header-cell']")).toHaveLength(3);
+  it("pads the bottom by the inset, so the last row clears a floating bar", async () => {
+    const { root } = await mount(List, { columns, rows, bottomInset: "4.5rem" });
+    expect(root.innerHTML).toContain("padding-bottom: 4.5rem");
   });
 });
 

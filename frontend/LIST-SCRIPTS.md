@@ -308,7 +308,7 @@ No v2 shape (gap). frappe ships only the List and Cards view types. Keep the cal
 
 **v2 shape:** a bulk action, with `page.bulkActions.add(item)`.
 
-While rows are selected, a bar takes the controls row's place. A script item goes first in its **More** menu, under the doctype's name. The item takes `name`, `label`, `icon`, `run(page, names)`, `right`, `when` and `palette`. `run` gets the selected names as they were at the press.
+While rows are selected, a floating bar at the bottom of the list draws them. A script item goes first in its **More** menu, under the doctype's name. The item takes `name`, `label`, `icon`, `run(page, names)`, `right`, `when` and `palette`. `run` gets the selected names as they were at the press.
 
 Before (`contact_list.js`):
 
