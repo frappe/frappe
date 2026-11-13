@@ -23,6 +23,7 @@ def make_custom_doctype(name: str = DOCTYPE, fields: list[dict] | None = None, *
 	"""A custom DocType with a `title` field; DDL commits, so each test deletes it again."""
 	frappe.delete_doc("DocType", name, force=True, ignore_missing=True)
 	frappe.db.sql_ddl(f"drop table if exists `tab{name}`")
+	frappe.db.delete("Singles", {"doctype": name})
 	frappe.db.delete("Form Layout", {"dt": name})
 	doc = frappe.get_doc(
 		{
@@ -65,6 +66,7 @@ def delete_committed(doctype: str, name: str):
 	frappe.delete_doc(doctype, name, force=True, ignore_missing=True)
 	if doctype == "DocType":
 		frappe.db.sql_ddl(f"drop table if exists `tab{name}`")
+		frappe.db.delete("Singles", {"doctype": name})
 	frappe.db.commit()  # nosemgrep
 
 
@@ -746,6 +748,25 @@ class TestSaveDesign(IntegrationTestCase):
 				result = self.save([edit])
 				self.assertFalse(result["saved"])
 				self.assertEqual(result["errors"][0]["target"]["kind"], "field", result["errors"])
+
+	def test_a_single_doctype_takes_new_and_renamed_fields(self):
+		single = f"{DOCTYPE} Single"
+		make_custom_doctype(single, issingle=1)
+		self.addCleanup(delete_committed, "DocType", single)
+		edits = [
+			{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"},
+			{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "heading"},
+		]
+		result = self.save(edits, dt=single)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertTrue(frappe.get_meta(single).get_field("heading"))
+		frappe.db.set_single_value(single, "heading", "Kept")
+		self.assertTrue(
+			self.save([{"act": "fields.delete_field", "fieldname": "heading"}], dt=single)["saved"]
+		)
+		again = self.save([{"act": "fields.add_field", "label": "Heading", "fieldtype": "Data"}], dt=single)
+		self.assertFalse(again["saved"])
+		self.assertEqual(again["errors"][0]["target"], {"kind": "field", "fieldname": "heading"})
 
 	def test_a_new_field_takes_only_field_properties(self):
 		result = self.save(

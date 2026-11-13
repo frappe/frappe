@@ -219,9 +219,17 @@ class DesignState:
 			raise field_error(
 				_("{0} already has a field {1}.").format(self.name, fieldname), key or fieldname
 			)
-		if not self.doc.is_new() and frappe.db.has_column(self.name, fieldname):
+		if self.holds_deleted_data(fieldname):
 			message = _("{0} still holds the data of a deleted field. Choose another fieldname.")
 			raise field_error(message.format(fieldname), key or fieldname)
+
+	def holds_deleted_data(self, fieldname: str) -> bool:
+		"""A Single keeps its values in `tabSingles`; a virtual DocType has no table."""
+		if self.doc.is_new() or self.doc.is_virtual:
+			return False
+		if self.doc.issingle:
+			return bool(frappe.db.count("Singles", {"doctype": self.name, "field": fieldname}))
+		return frappe.db.has_column(self.name, fieldname)
 
 	def refuse_deleted_table_rows(self, field, fieldname: str):
 		"""A deleted Table field keeps its rows, and a table of that name would show them again."""
