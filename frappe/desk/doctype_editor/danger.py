@@ -67,10 +67,10 @@ def delete_doctype(doctype: str) -> None:
 def move_doctype(doctype: str, module: str) -> None:
 	"""A standard DocType's folder moves with it, so its code goes along."""
 	check_mode(doctype, "Design")
-	check_developer_mode()
 	doc = frappe.get_doc("DocType", doctype)
 	moved = None
 	if not doc.custom:
+		check_developer_mode()
 		check_app_module(module)
 		check_no_callers(doc)
 		moved = move_folder(doc, module)
@@ -151,7 +151,8 @@ def done(doctype: str) -> None:
 def check_developer_mode() -> None:
 	if not frappe.conf.developer_mode:
 		frappe.throw(
-			_("Moving a DocType or making it standard needs developer mode."), frappe.PermissionError
+			_("Moving a standard DocType or making a DocType standard needs developer mode."),
+			frappe.PermissionError,
 		)
 
 

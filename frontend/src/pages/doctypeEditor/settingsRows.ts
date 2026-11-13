@@ -25,8 +25,8 @@ export interface SettingRow {
 	pending?: boolean;
 	/** Danger zone: the button that runs the act `danger.<key>`. */
 	button?: string;
-	/** Danger zone: only in developer mode. */
-	developer?: boolean;
+	/** Danger zone: only in developer mode; `"standard"`: only a standard DocType needs it. */
+	developer?: boolean | "standard";
 	/** Danger zone: only on a custom DocType. */
 	custom?: boolean;
 	/** Danger zone: on a standard DocType, only for Administrator (as v1's rename and delete). */
@@ -195,7 +195,7 @@ export const SETTING_ROWS: SettingRow[] = [
 	}),
 	danger("move_doctype", "Move to another module", "Moves it to another module, and its files with it.", "Move…", {
 		keywords: "module app folder",
-		developer: true,
+		developer: "standard",
 	}),
 	danger("make_standard", "Make it standard", "Writes its files into a module's app, so the app ships it.", "Make standard…", {
 		keywords: "custom module app developer",
@@ -240,7 +240,8 @@ export function settingRows(settings: SettingsState, danger: DangerScope | null 
 function dangerShows(row: SettingRow, settings: SettingsState, danger: DangerScope | null): boolean {
 	if (!danger || settings.pending || settings.app) return false;
 	const custom = Boolean(Number(settings.properties.custom));
-	return (!row.developer || danger.developerMode) && (!row.custom || custom) && (!row.administrator || custom || danger.administrator);
+	const developer = row.developer === "standard" ? !custom : row.developer;
+	return (!developer || danger.developerMode) && (!row.custom || custom) && (!row.administrator || custom || danger.administrator);
 }
 
 /** The sections with at least one row: a child table has no Naming or Permissions, a Single no Naming. */

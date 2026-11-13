@@ -64,8 +64,10 @@ describe("the Danger zone's rows", () => {
 		expect(danger(custom, null)).toEqual([]);
 	});
 
-	it("moves and makes standard only in developer mode, and makes only a custom DocType standard", () => {
-		expect(danger(custom, { developerMode: false, administrator: true })).toEqual(["change_kind", "rename_doctype", "delete_doctype"]);
+	it("moves a standard DocType and makes a custom one standard only in developer mode", () => {
+		const off = { developerMode: false, administrator: true };
+		expect(danger(custom, off)).toEqual(["change_kind", "rename_doctype", "move_doctype", "delete_doctype"]);
+		expect(danger(settings({ properties: { custom: 0 } }), off)).not.toContain("move_doctype");
 		expect(danger(settings({ properties: { custom: 0 } }))).not.toContain("make_standard");
 		expect(danger(settings({ properties: { custom: 0 } }))).toContain("move_doctype");
 	});

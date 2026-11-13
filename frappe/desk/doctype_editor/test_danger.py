@@ -107,6 +107,25 @@ class TestRenameDoctype(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(RENAMED, record.name, "title"), "One")
 
 
+class TestMoveWithoutDeveloperMode(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		make_custom_doctype(DOCTYPE)
+		self.addCleanup(delete_committed, "DocType", DOCTYPE)
+
+	def test_a_custom_doctype_moves(self):
+		move_doctype(DOCTYPE, "Desk")
+		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "module"), "Desk")
+
+	def test_a_standard_doctype_does_not(self):
+		frappe.db.set_value("DocType", DOCTYPE, "custom", 0)
+		with patch("frappe.desk.doctype_editor.danger.move_folder") as move_folder:
+			with self.assertRaises(frappe.PermissionError):
+				move_doctype(DOCTYPE, "Desk")
+		move_folder.assert_not_called()
+		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "module"), "Custom")
+
+
 class TestDeleteDoctype(IntegrationTestCase):
 	def setUp(self):
 		make_custom_doctype(DOCTYPE)
