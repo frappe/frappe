@@ -85,7 +85,7 @@
    "reqd": 1
   },
   {
-   "description": "Run the agent as this user, so its tools act with a defined, least-privilege permission scope. Defaults to the trigger's owner when empty. Prefer a purpose-scoped service user over a full administrator.",
+   "description": "Run the agent as this user, so its tools act with a defined, least-privilege permission scope. Defaults to the trigger's owner when empty; only System Managers can pick another user. Prefer a purpose-scoped service user over a full administrator.",
    "fieldname": "run_as",
    "fieldtype": "Link",
    "label": "Run As",
@@ -142,7 +142,7 @@
    "label": "Condition"
   },
   {
-   "description": "Optional Python expression; the trigger fires only if it is truthy, e.g. <code>doc.status == \"Open\"</code>. Only <code>doc</code> (as a plain dict), <code>utils</code> and <code>len</code> are in scope.",
+   "description": "Optional Python expression; the trigger fires only if it is truthy, e.g. <code>doc.status == \"Open\"</code>. Only <code>doc</code> (its fields), <code>utils</code> and <code>len</code> are in scope.",
    "fieldname": "condition",
    "fieldtype": "Code",
    "label": "Condition",
@@ -154,7 +154,7 @@
    "label": "Prompt"
   },
   {
-   "description": "Jinja template rendered into the agent input. <code>doc</code> and <code>now</code> are in scope, e.g. <code>Summarize {{ doc.doctype }} {{ doc.name }} and suggest next steps: {{ doc.description }}</code>",
+   "description": "Jinja template rendered into the agent input. Only <code>doc</code> (its fields) and <code>now</code> are in scope, e.g. <code>Summarize {{ doc.doctype }} {{ doc.name }} and suggest next steps: {{ doc.description }}</code>",
    "fieldname": "prompt_template",
    "fieldtype": "Code",
    "label": "Prompt Template",
@@ -169,7 +169,7 @@
    "link_fieldname": "trigger"
   }
  ],
- "modified": "2026-11-13 12:00:00.000000",
+ "modified": "2026-11-13 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Trigger",
@@ -184,6 +184,14 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Flow User",
    "write": 1
   }
  ],

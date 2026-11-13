@@ -14,8 +14,9 @@
   tools run as them. System Managers also see Trigger sessions, and an owner may open a session
   to view by every Flow user.
 
-Triggers run as their run_as account or owner, which must be able to read the agent. The flow
-server's callbacks act as the session owner."""
+Triggers run as their run_as account or owner, which must be able to read the agent, and skip
+documents that account cannot read. Flow Users manage their own triggers, which run as them.
+The flow server's callbacks act as the session owner."""
 
 from __future__ import annotations
 
