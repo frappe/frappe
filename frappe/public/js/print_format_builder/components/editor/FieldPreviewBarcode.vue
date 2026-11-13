@@ -14,12 +14,40 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, inject } from "vue";
-import { is_qr_barcode_options } from "../../utils";
+import { ref, computed, watch, watchEffect, inject } from "vue";
+import { linked_target } from "../../composables/linkedValues";
+import { is_qr_barcode_options, text_field_paths } from "../../utils";
 
 const props = defineProps(["df"]);
 const store = inject("$store");
 const preview_doc = computed(() => store.preview_doc.value);
+
+const paths = ref([]);
+watchEffect(async (onCleanup) => {
+	let stale = false;
+	onCleanup(() => (stale = true));
+	const value = props.df.barcode_value || "";
+	const meta = store.meta.value;
+	const links = (meta?.fields || []).filter(
+		(f) => f.fieldtype === "Link" && f.options && value.includes(`{${f.fieldname}.`)
+	);
+	await Promise.all(links.map((f) => frappe.model.with_doctype(f.options)));
+	if (!stale) paths.value = text_field_paths(value, meta);
+});
+
+const linked = ref({});
+watchEffect(() => {
+	const doc = preview_doc.value;
+	for (const path of paths.value) {
+		if (!path.includes(".")) continue;
+		const target = linked_target({ link_path: path }, store.meta.value, doc);
+		if (!target || target.key in linked.value) continue;
+		linked.value[target.key] = "";
+		frappe.db
+			.get_value(target.doctype, target.name, target.fieldname)
+			.then((r) => (linked.value[target.key] = r?.message?.[target.fieldname] ?? ""));
+	}
+});
 
 let barcode_src = ref(null);
 let loading = ref(true);
@@ -47,7 +75,14 @@ let barcode_raw_value = computed(() => {
 	if (props.df.barcode_field) {
 		return preview_doc.value?.[props.df.barcode_field] ?? null;
 	}
-	return props.df.barcode_value || null;
+	const doc = preview_doc.value;
+	const value = (props.df.barcode_value || "").replace(/\{([\w.]+)\}/g, (token, path) => {
+		if (!paths.value.includes(path) || !doc) return token;
+		if (!path.includes(".")) return doc[path] ?? "";
+		const target = linked_target({ link_path: path }, store.meta.value, doc);
+		return target ? linked.value[target.key] ?? "" : "";
+	});
+	return value || null;
 });
 
 // A Barcode docfield stores its own <svg>. That markup is document data, not

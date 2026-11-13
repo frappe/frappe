@@ -16,6 +16,7 @@ TABLE_TEXT_SCALE = 0.9
 COLUMN_PADDING = 15
 SIDE_MARGIN = re.compile(r"margin-(left|right):\s*(-?\d+(?:\.\d+)?)%;\s*")
 JINJA = re.compile(r"{{|{%")
+DOC_FIELD = re.compile(r"{{\s*doc\.(\w+)\s*}}")
 CSS_PROPERTIES = {
 	"fontSize": "font-size",
 	"fontWeight": "font-weight",
@@ -934,13 +935,16 @@ class PrintDesignerConverter:
 		barcode_format = (element.get("barcodeFormat") or "").lower()
 		kind = BARCODE_FORMATS.get(barcode_format, "CODE128")
 		size = f"{round(flt(element.get('width')) / PX_PER_MM, 1)}mm"
-		field = re.fullmatch(r"{{\s*doc\.(\w+)\s*}}", value)
+		field = DOC_FIELD.fullmatch(value)
 		known_field = bool(field and (field.group(1) == "name" or self.meta.get_field(field.group(1))))
-		if (
-			barcode_format
-			and barcode_format not in BARCODE_FORMATS
-			and (known_field or not JINJA.search(value))
-		):
+		static_value = DOC_FIELD.sub(r"{\1}", value)
+		fields = [
+			self.meta.get_field(fieldname) for fieldname in DOC_FIELD.findall(value) if fieldname != "name"
+		]
+		is_static_value = not JINJA.search(static_value) and all(
+			df and df.fieldtype != "Table" for df in fields
+		)
+		if barcode_format and barcode_format not in BARCODE_FORMATS and (known_field or is_static_value):
 			self.notes.append(
 				_("The {0} barcode type was changed to CODE128.").format(barcode_format.upper())
 			)
@@ -954,13 +958,13 @@ class PrintDesignerConverter:
 				"width": size,
 				"custom": 1,
 			}
-		if not JINJA.search(value):
+		if is_static_value:
 			return {
 				"label": "Barcode",
 				"fieldname": self.name("barcode"),
 				"fieldtype": "Barcode",
 				"barcode_format": kind,
-				"barcode_value": value,
+				"barcode_value": static_value,
 				"width": size,
 				"custom": 1,
 			}
@@ -1005,9 +1009,14 @@ class PrintDesignerConverter:
 					if node.get("barcode_field")
 					else repr(node["barcode_value"])
 				)
+				set_barcode_value = f"{{%- set barcode_value = ({value} or '') | string -%}}"
+				if not node.get("barcode_field") and JINJA.search(element.get("value") or ""):
+					set_barcode_value = (
+						"{%- set barcode_value -%}" + element["value"].strip() + "{%- endset -%}"
+					)
 				return (
-					f"{{%- set barcode_value = ({value} or '') | string -%}}"
-					f"{{%- set barcode = get_barcode(barcode_value, {node['barcode_format']!r}) if barcode_value -%}}"
+					set_barcode_value
+					+ f"{{%- set barcode = get_barcode(barcode_value, {node['barcode_format']!r}) if barcode_value -%}}"
 					f'{{%- if barcode -%}}<img src="{{{{ barcode }}}}" style="width: {node["width"]}; max-width: 100%;">{{%- endif -%}}'
 				)
 			if node["fieldtype"] != "Static Text":
