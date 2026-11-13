@@ -37,7 +37,7 @@ class DesignChecks:
 			for child in self.state.children.values():
 				validate(child.doc)
 				child.doc.db_insert()
-			validate(self.state.doc)
+			return self.parent_errors()
 		except frappe.ValidationError as e:
 			return [EditError(str(e)).as_dict()]
 		finally:
@@ -45,6 +45,9 @@ class DesignChecks:
 			# DocType validation caches the unsaved meta (`setup_fields_to_fetch`).
 			for doctype in (self.state.name, *self.state.children):
 				clear_meta_cache(doctype)
+
+	def parent_errors(self) -> list[dict]:
+		validate(self.state.doc)
 		return []
 
 	def layout_errors(self) -> list[dict]:
