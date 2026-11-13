@@ -99,7 +99,7 @@ import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { LayoutTreeTab } from "./layoutTree";
 import { DRAG_OPTIONS, dropField, dropTab } from "./canvasDrops";
-import { canvasMenu } from "./canvasMenu";
+import { canvasMenu, selectOn } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";
 
@@ -124,10 +124,7 @@ function tabLabel(tab: LayoutTreeTab, index: number) {
 }
 
 function select(tab: LayoutTreeTab) {
-	const selection = { kind: "tab" as const, tab: tab.name! };
-	// A read-only canvas may be a view beside the editor's own, so it selects on itself.
-	if (!props.canvas.editable) return props.canvas.select(selection);
-	void acts.perform("canvas.select", selection);
+	selectOn(props.canvas, { kind: "tab", tab: tab.name! });
 }
 
 async function startRename(tab: LayoutTreeTab) {

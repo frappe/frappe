@@ -253,6 +253,30 @@ describe("the app layout changed notice", () => {
 		await settle();
 		expect(root.querySelector("[data-app-layout-view]")).toBeNull();
 	});
+
+	it("selects on the read-only app view, so Delete leaves the hidden site layout alone", async () => {
+		const state = leadNote({ mode: "Customize" });
+		state.layouts["Quick Entry"] = [
+			{ name: "FL-9", source: "site", condition: null, omitted: [], layout: tabs("notes"), source_changed: true },
+			{ name: null, source: "app", condition: null, omitted: [], layout: tabs("notes", "subject") },
+		];
+		const editor = mountEditor(state);
+		stop = editor.stop;
+		editor.canvas.open({ type: "Quick Entry" });
+		const root = mount(EditorCanvas, { canvas: editor.canvas, save: editor.save, customize: null });
+		await until(() => root.querySelector("[data-app-layout-notice]"));
+		button(root, "View app layout").click();
+		await settle();
+
+		root.querySelector<HTMLElement>("[data-app-layout-view] [data-canvas-field='notes']")!.click();
+		await settle();
+		expect(root.querySelector("[data-app-layout-view] [data-canvas-selected]")).not.toBeNull();
+		editor.canvas.select({ kind: "field", fieldname: "notes" });
+		document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete", bubbles: true, cancelable: true }));
+		await settle();
+
+		expect(editor.edits.staged.value).toEqual([]);
+	});
 });
 
 async function settle() {

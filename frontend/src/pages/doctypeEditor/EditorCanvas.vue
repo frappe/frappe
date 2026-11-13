@@ -49,7 +49,7 @@
 				<CanvasForm v-else :canvas="app" />
 			</template>
 		</AppLayoutNotice>
-		<template v-if="!(appChanged && viewingApp)">
+		<template v-if="!showsApp">
 			<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="canvas" />
 			<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="canvas" />
 			<div v-else class="mt-6"><CanvasForm :canvas="canvas" /></div>
@@ -96,6 +96,8 @@ const viewingApp = ref(false);
 watch([() => props.canvas, () => props.canvas.openLayout.value, appChanged], () => {
 	viewingApp.value = false;
 });
+const showsApp = computed(() => appChanged.value && viewingApp.value);
+const editing = () => props.canvas.editable && !showsApp.value;
 const formPage = computed(() => type.value === "Details" || type.value === "New Record");
 const metaLine = computed(() => {
 	const { module, app_title, record_count } = props.canvas.state;
@@ -121,7 +123,7 @@ for (const [combo, direction] of ARROWS) {
 		combo: combo as never,
 		description: __("Move the selected item"),
 		group: __("Editor"),
-		enabled: () => props.canvas.editable && Boolean(props.canvas.selection.value),
+		enabled: () => editing() && Boolean(props.canvas.selection.value),
 		handler: () => move(direction),
 	});
 }
@@ -129,7 +131,7 @@ useKeyboardShortcut({
 	combo: "Slash",
 	description: __("Add field"),
 	group: __("Editor"),
-	enabled: () => props.canvas.editable,
+	enabled: editing,
 	handler: () => void acts.perform("fields.add_field"),
 });
 
@@ -145,7 +147,7 @@ useKeyboardShortcut({
 function placedSelection(): string | null {
 	const { canvas } = props;
 	const selection = canvas.selection.value;
-	if (!canvas.editable || !takesOff(canvas) || selection?.kind !== "field") return null;
+	if (!editing() || !takesOff(canvas) || selection?.kind !== "field") return null;
 	return canvas.place(selection.fieldname) ? selection.fieldname : null;
 }
 

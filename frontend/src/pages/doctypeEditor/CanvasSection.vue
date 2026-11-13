@@ -78,7 +78,7 @@ import type { LayoutTreeColumn, LayoutTreeSection } from "./layoutTree";
 import AddFieldRow from "./AddFieldRow.vue";
 import CanvasColumn from "./CanvasColumn.vue";
 import { DRAG_OPTIONS, dropColumn } from "./canvasDrops";
-import { canvasMenu } from "./canvasMenu";
+import { canvasMenu, selectOn } from "./canvasMenu";
 import type { CanvasSelection, DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";
 
@@ -92,7 +92,7 @@ const selected = computed(() => {
 const menu = computed(() => canvasMenu(props.canvas, { kind: "section", section: name.value }));
 
 function select(selection: CanvasSelection) {
-	void acts.perform("canvas.select", selection);
+	selectOn(props.canvas, selection);
 }
 
 function setLabel(label: string) {

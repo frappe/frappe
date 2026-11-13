@@ -59,12 +59,11 @@
 import { computed } from "vue";
 import { Button, Dropdown } from "frappe-ui";
 import Draggable from "vuedraggable";
-import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { LayoutTreeColumn, LayoutTreeSection } from "./layoutTree";
 import CanvasField from "./CanvasField.vue";
 import { DRAG_OPTIONS, dropField } from "./canvasDrops";
-import { canvasMenu } from "./canvasMenu";
+import { canvasMenu, selectOn } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";
 
@@ -93,6 +92,6 @@ const selected = computed(() => {
 const menu = computed(() => canvasMenu(props.canvas, item.value));
 
 function select() {
-	void acts.perform("canvas.select", item.value);
+	selectOn(props.canvas, item.value);
 }
 </script>

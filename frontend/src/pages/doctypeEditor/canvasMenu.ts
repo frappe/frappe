@@ -1,10 +1,16 @@
 // The "⋯" menu of a field, column, section or tab on the canvas: the moves Alt+Arrow makes, then
-// the item's own acts.
+// the item's own acts. And the click that selects one.
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import { canvasMove, type Direction } from "./canvasMoves";
 import type { CanvasSelection, DesignCanvas } from "./designCanvas";
 import { fetchAsked } from "./fetchFrom";
+
+/** A read-only canvas may be a view beside the editor's own, so it selects on itself. */
+export function selectOn(canvas: DesignCanvas, selection: CanvasSelection) {
+	if (!canvas.editable) return canvas.select(selection);
+	void acts.perform("canvas.select", selection);
+}
 
 export interface CanvasMenuOption {
 	label: string;

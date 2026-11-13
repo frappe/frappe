@@ -9,7 +9,7 @@
 		]"
 		:data-canvas-field="fieldname"
 		:data-canvas-selected="selected || undefined"
-		@click.stop="acts.perform('canvas.select', { kind: 'field', fieldname })"
+		@click.stop="selectOn(canvas, { kind: 'field', fieldname })"
 	>
 		<div
 			v-if="node && panelRows"
@@ -67,10 +67,9 @@
 import { computed } from "vue";
 import { Button, Dropdown } from "frappe-ui";
 import { FormLayoutField, mapField } from "@framework/ui/FormLayout";
-import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import CanvasTable from "./CanvasTable.vue";
-import { canvasMenu } from "./canvasMenu";
+import { canvasMenu, selectOn } from "./canvasMenu";
 import CustomizeMarks from "./CustomizeMarks.vue";
 import type { DesignCanvas } from "./designCanvas";
 import { usePanelRows } from "./inertForm";
