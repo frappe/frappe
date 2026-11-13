@@ -5,7 +5,7 @@ frappe.listview_settings["Web Crawl Result"] = {
 	add_fields: ["error", "change_status"],
 	get_indicator(doc) {
 		if (doc.error) {
-			return [__("Failed"), "red", "error,is,set"];
+			return [__(doc.error), "red", `error,=,${doc.error}`];
 		}
 		if (!doc.change_status) return;
 		const colors = { New: "blue", Changed: "orange", Unchanged: "gray" };

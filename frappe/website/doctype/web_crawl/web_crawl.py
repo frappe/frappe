@@ -274,7 +274,7 @@ class WebCrawl(Document):
 				"content_hash": page.content_hash,
 				"error": ERRORS[page.error] if page.error else None,
 				"change_status": page.change_status,
-				"title": page.title,
+				"title": page.title or page.url,
 				"description": page.description,
 				"text": page.text,
 				"html": page.html,
