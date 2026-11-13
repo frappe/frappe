@@ -35,6 +35,7 @@ def get_doctype_editor(doctype: str, mode: str | None = None) -> dict:
 		"record_count": records,
 		"value_counts": values,
 		"layouts": get_editor_layouts(doctype, custom=mode == "Customize"),
+		"site_permissions": bool(frappe.db.exists("Custom DocPerm", {"parent": doctype})),
 	}
 	editor.update(design_state(doctype) if mode == "Design" else get_customizations(meta))
 	if meta.istable:

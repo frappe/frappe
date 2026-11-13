@@ -10,6 +10,7 @@ from frappe.custom.doctype.customize_form.customize_form import (
 )
 from frappe.model.docfield import supports_translation
 from frappe.model.meta import Meta
+from frappe.permissions import std_rights
 
 APP_ROW_TABLES = {"DocType Link": "links", "DocType Action": "actions", "DocType State": "states"}
 
@@ -43,6 +44,10 @@ def get_customizations(meta: Meta) -> dict:
 			df.fieldname: field_locks(df, app_fields.get(df.fieldname), not_in_list_view) for df in standard
 		},
 		"fieldtype_changes": {df.fieldname: fieldtype_changes(df.fieldtype) for df in standard},
+		"app_permissions": [
+			{key: row.get(key) for key in ("role", "permlevel", "if_owner", *std_rights)}
+			for row in app_doc.permissions
+		],
 	}
 
 
