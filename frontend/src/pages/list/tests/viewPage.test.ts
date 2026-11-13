@@ -1,7 +1,7 @@
 // A view is laid out by its type's renderer: the list page draws the one registered for the view's
 // type in the rows area, and hands it the view and the host.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, type App } from "vue";
+import { createApp, defineComponent, h, type App } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
 function stub(name: string) {
@@ -106,10 +106,12 @@ async function mount(opened: SavedView) {
   app.use(router).provide("addresses", addresses).provide("boot", boot);
   app.mount(root);
   apps.push(app);
-  for (let turn = 0; turn < 3; turn++) {
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await nextTick();
-  }
+  // The renderer loads async: wait until it is drawn, or replaced by the not found state.
+  await vi.waitFor(() =>
+    expect(
+      root.querySelector("[data-renderer], [data-page-state]"),
+    ).not.toBeNull(),
+  );
   return root;
 }
 
