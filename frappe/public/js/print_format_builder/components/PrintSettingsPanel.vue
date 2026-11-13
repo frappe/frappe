@@ -52,7 +52,7 @@
 					:min="10"
 					:step="5"
 					unit="mm"
-					@update:model-value="(v) => set_page('width', v)"
+					@update:model-value="(v) => set_page('width', clamp_page_mm(v))"
 				/>
 				<StepperRow
 					:label="__('Height')"
@@ -60,7 +60,7 @@
 					:min="10"
 					:step="5"
 					unit="mm"
-					@update:model-value="(v) => set_page('height', v)"
+					@update:model-value="(v) => set_page('height', clamp_page_mm(v))"
 				/>
 			</template>
 			<InspectorRow :label="__('Orientation')">
@@ -237,6 +237,10 @@ const paper_sizes = [
 	{ label: __("Default"), value: "" },
 	...frappe.meta.get_print_sizes().map((s) => ({ label: __(s), value: s })),
 ];
+
+function clamp_page_mm(value) {
+	return Math.min(5000, Math.max(10, value || 10));
+}
 
 function set_page(key, value) {
 	const page = { ...layout.value.page, [key]: value };
