@@ -42,12 +42,14 @@ class CustomizeEdits(DesignEdits):
 		if ref.get("id") and (not default or ref["id"] != default.id):
 			return False
 		field = self.state.field(edit.get("fieldname"))
+		drawn = self.state.drawn_tabs(type)
+		tree = self.placed(copy.deepcopy(drawn), edit, keys)
 		if self.state.is_site_custom(field):
-			tree = self.placed(copy.deepcopy(self.state.default_tabs(type)), edit, keys)
 			self.state.anchor(field.fieldname, tree.tabs)
 			return True
 		if type == "Details" and not default:
-			self.state.order_fields(self.placed(self.state.fallback_tabs(type), edit, keys).tabs)
+			self.state.order_fields(tree.tabs)
+			self.state.follow_drawn_order(drawn, tree.tabs)
 			return True
 		return False
 

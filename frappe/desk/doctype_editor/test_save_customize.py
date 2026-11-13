@@ -15,6 +15,7 @@ from frappe.tests import IntegrationTestCase
 
 # Note renders Details from its breaks; Contact ships New Record and Quick Entry layout files.
 NOTE, CONTACT = "Note", "Contact"
+CHILD = "T47273 Customize Row"
 SITE_ROWS = ("Custom Field", "Property Setter", "Form Layout")
 
 
@@ -66,6 +67,8 @@ class TestSaveCustomize(IntegrationTestCase):
 		for (doctype, dt), names in self.before.items():
 			for name in rows_of(doctype, dt) - names:
 				frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+		if frappe.db.exists("DocType", CHILD):
+			frappe.delete_doc("DocType", CHILD, force=True, ignore_permissions=True)
 		for dt in (NOTE, CONTACT):
 			for column in frappe.db.get_table_columns(dt):
 				if column.startswith("custom_t47273"):
@@ -160,6 +163,79 @@ class TestSaveCustomize(IntegrationTestCase):
 			result = save(NOTE, [rename("custom_t47273_old", "custom_t47273_new")])
 		self.assertEqual(result["written"], [NOTE])
 		self.assertIsNotNone(custom_field(NOTE, "custom_t47273_new"))
+
+	def test_a_custom_field_anchors_by_the_fallback_drawn_with_the_sites_custom_fields(self):
+		place = {"layout": {"type": "Details"}, "section": "section_1", "column": "column_1"}
+		self.assertTrue(save(NOTE, [add_field("T47273 A", **place, index=1)])["saved"])
+		self.assertTrue(save(NOTE, [add_field("T47273 B", **place, index=2)])["saved"])
+		self.assertEqual(custom_field(NOTE, "custom_t47273_b").insert_after, "custom_t47273_a")
+
+	def test_a_standard_move_takes_the_anchor_of_the_custom_field_drawn_after_it(self):
+		place = {"layout": {"type": "Details"}, "section": "section_1", "column": "column_1"}
+		self.assertTrue(save(NOTE, [add_field("T47273 A", **place, index=1)])["saved"])
+		move = {"act": "canvas.move_field", "fieldname": "content", **place, "index": 1}
+		self.assertTrue(save(NOTE, [move])["saved"])
+		self.assertEqual(custom_field(NOTE, "custom_t47273_a").insert_after, "content")
+		self.assertEqual(json.loads(property_value(NOTE, None, "field_order"))[:2], ["title", "content"])
+
+	def test_a_renamed_custom_table_keeps_its_rows(self):
+		table = {
+			"act": "fields.add_field",
+			"label": "T47273 Seen",
+			"fieldtype": "Table",
+			"options": "Note Seen By",
+		}
+		self.assertTrue(save(NOTE, [table])["saved"])
+		note = frappe.get_doc(
+			{"doctype": NOTE, "title": "T47273 Note", "custom_t47273_seen": [{"user": "Administrator"}]}
+		).insert()
+		try:
+			result = save(NOTE, [rename("custom_t47273_seen", "custom_t47273_readers")])
+			self.assertTrue(result["saved"], result)
+			self.assertEqual(len(frappe.get_doc(NOTE, note.name).get("custom_t47273_readers")), 1)
+		finally:
+			frappe.delete_doc(NOTE, note.name, force=True)
+			frappe.db.commit()  # nosemgrep: tearDown rolls back first
+
+	def test_a_new_child_table_takes_design_edits(self):
+		table = {"act": "fields.add_child_table", "name": CHILD, "table_field": "custom_t47273_rows"}
+		result = save(NOTE, {NOTE: [table], CHILD: [add_field("T47273 Item")]})
+		self.assertTrue(result["saved"], result)
+		self.assertTrue(frappe.db.exists("DocField", {"parent": CHILD, "fieldname": "t47273_item"}))
+
+	def test_a_changed_app_layout_makes_a_save_on_it_stale(self):
+		version = base_version(CONTACT)
+		version["app_layouts"]["New Record"] = "t47273"
+		layout = parse_layout(read_app_layouts(CONTACT, "New Record").entries[0].layout)
+		section = layout[0]["sections"][0]
+		place = {"section": section["name"], "column": section["columns"][0]["name"], "index": 0}
+		result = save(CONTACT, [add_field("T47273 Late", layout={"type": "New Record"}, **place)], version)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["code"], "stale")
+
+	def test_a_skipped_change_does_not_reach_the_field_checks(self):
+		edit = {
+			"act": "fields.set_field_property",
+			"fieldname": "seen_by_section",
+			"property": "in_list_view",
+		}
+		result = save(NOTE, [{**edit, "value": 1}])
+		self.assertTrue(result["saved"], result)
+		self.assertEqual(result["skipped"][0]["target"]["property"], "in_list_view")
+		self.assertIsNone(property_value(NOTE, "seen_by_section", "in_list_view"))
+
+	def test_a_system_manager_saves_and_only_a_system_manager_renames(self):
+		with self.set_user("test@example.com"):
+			self.assertTrue(save(NOTE, [add_field("T47273 Mine")])["saved"])
+			self.assertTrue(save(NOTE, [rename("custom_t47273_mine", "custom_t47273_ours")])["saved"])
+			with (
+				patch("frappe.desk.doctype_editor.save.check_mode"),
+				patch("frappe.get_roles", return_value=[]),
+			):
+				result = save(NOTE, [rename("custom_t47273_ours", "custom_t47273_theirs")])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"]["fieldname"], "custom_t47273_theirs")
+		self.assertIsNotNone(custom_field(NOTE, "custom_t47273_ours"))
 
 	def test_a_standard_field_cannot_be_renamed(self):
 		rename = {"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "t47273_title"}

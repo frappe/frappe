@@ -9,8 +9,9 @@ from frappe.desk.doctype.form_layout.form_layout import publish_doctype_update
 from frappe.desk.doctype_editor.customize_checks import CustomizeChecks
 from frappe.desk.doctype_editor.customize_edits import CustomizeEdits
 from frappe.desk.doctype_editor.customize_state import CustomizeState
-from frappe.desk.doctype_editor.save import DesignSave
+from frappe.desk.doctype_editor.save import DesignSave, move_table_rows
 from frappe.desk.doctype_editor.versions import changed_error, customizations_version, stale_error
+from frappe.model import table_fields
 
 
 class CustomizeSave(DesignSave):
@@ -45,7 +46,8 @@ class CustomizeSave(DesignSave):
 		return stale_error(self.doctype, self.base_version, self.state.reset_rows, [])
 
 	def written_app_types(self) -> list[str]:
-		return []
+		"""A type with no site row edits its app layout as loaded, so a changed file makes the save stale."""
+		return sorted(type for type in self.state.layouts if not self.state.forked(type))
 
 	def write(self) -> list[dict] | None:
 		"""Customize Form's DDL commits, so a later failure reports what is already written."""
@@ -85,8 +87,13 @@ class CustomizeSave(DesignSave):
 			self.written.remove(self.doctype)
 
 	def rename_custom_fields(self):
+		"""`rename_fieldname` commits, so a table's rows move first and commit with it."""
 		for old, new in self.state.renames:
-			rename_fieldname(self.custom_field_name(old), new)
+			name = self.custom_field_name(old)
+			fieldtype, options = frappe.db.get_value("Custom Field", name, ["fieldtype", "options"])
+			if fieldtype in table_fields:
+				move_table_rows(self.doctype, options, old, new)
+			rename_fieldname(name, new)
 
 	def saved_anchors(self) -> dict:
 		"""Customize Form's save resets every custom field's `insert_after`; a container anchor is put back."""

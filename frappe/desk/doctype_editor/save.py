@@ -74,7 +74,8 @@ class DesignSave:
 				self.errors.append({**EditError(message).as_dict(), "doctype": doctype})
 
 	def apply(self, state: DesignState, edits: list, doctype: str | None = None):
-		applier = self.Edits(state)
+		# A child table this save adds is a new DocType, so it takes Design's edits in either mode.
+		applier = DesignEdits(state) if doctype else self.Edits(state)
 		for index, edit in enumerate(edits):
 			try:
 				applier.apply(edit)
@@ -212,9 +213,13 @@ def move_field_data(doctype: str, old: str, new: str):
 	if not field or field.fieldtype not in table_fields:
 		rename_field(doctype, old, new)
 		return
-	child = frappe.qb.DocType(field.options)
+	move_table_rows(doctype, field.options, old, new)
+	update_property_setters(doctype, old, new)
+	update_user_settings(doctype, old, new)
+
+
+def move_table_rows(doctype: str, child_doctype: str, old: str, new: str):
+	child = frappe.qb.DocType(child_doctype)
 	frappe.qb.update(child).set(child.parentfield, new).where(
 		(child.parenttype == doctype) & (child.parentfield == old)
 	).run()
-	update_property_setters(doctype, old, new)
-	update_user_settings(doctype, old, new)

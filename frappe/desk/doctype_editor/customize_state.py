@@ -78,15 +78,24 @@ class CustomizeState(DesignState):
 			return True
 		return bool(field.get("is_custom_field") and not field.get("is_system_generated"))
 
+	def drawn_tabs(self, type: str) -> list:
+		"""The tree Customize draws: its fallback keeps the site's custom fields at their rows."""
+		if default := self.default_layout(type):
+			return default.tree.tabs
+		if type == "New Record":
+			return self.drawn_tabs("Details")
+		return layout_from_fields(self.doc.fields)
+
 	def anchor(self, fieldname: str, tabs: list):
-		"""The field drawn before it in its column, or the column's name when it is first."""
-		for tab in tabs:
-			for section in tab["sections"]:
-				for column in section["columns"]:
-					if fieldname in column["fields"]:
-						index = column["fields"].index(fieldname)
-						self.set_anchor(fieldname, column["fields"][index - 1] if index else column["name"])
-						return
+		if fieldname in (anchors := drawn_anchors(tabs)):
+			self.set_anchor(fieldname, anchors[fieldname])
+
+	def follow_drawn_order(self, before: list, after: list):
+		"""A reorder that gives a site custom field a new neighbour moves its anchor with it."""
+		old = drawn_anchors(before)
+		for fieldname, anchor in drawn_anchors(after).items():
+			if old.get(fieldname) != anchor and self.is_site_custom(self.field(fieldname)):
+				self.anchors[fieldname] = anchor
 
 	def set_anchor(self, fieldname: str, anchor: str | None):
 		"""Customize Form resets `insert_after` to the row before, so the row moves after a field anchor."""
@@ -139,3 +148,20 @@ class CustomizeState(DesignState):
 
 def column_names(section: dict) -> list[str]:
 	return [name for column in section["columns"] for name in (column["name"], *column["fields"])]
+
+
+def drawn_anchors(tabs: list) -> dict[str, str]:
+	"""Each placed field's anchor: the field drawn before it in its column, or the column's name."""
+	anchors = {}
+	for tab in tabs:
+		for section in tab["sections"]:
+			for column in section["columns"]:
+				names = [entry_name(entry) for entry in column["fields"]]
+				for index, name in enumerate(names):
+					anchors[name] = names[index - 1] if index else column["name"]
+	return anchors
+
+
+def entry_name(entry: str | dict) -> str:
+	"""A layout-only field is a dict entry."""
+	return entry.get("fieldname") if isinstance(entry, dict) else entry

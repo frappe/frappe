@@ -25,7 +25,7 @@ class CustomizeChecks(DesignChecks):
 		self.skipped: list[dict] = []
 
 	def parent_errors(self) -> list[dict]:
-		"""A refusal that does not block skips its change: Customize Form leaves that property alone."""
+		"""A refusal that does not block skips its change: the property goes back to its saved value."""
 		errors = self.rename_errors() + self.refusal_errors()
 		if not errors:
 			validate_fields(self.meta)
@@ -48,6 +48,8 @@ class CustomizeChecks(DesignChecks):
 				if refusal := self.refusal(prop, meta_df, df, meta):
 					error = field_error(refusal.message, df.fieldname, prop).as_dict()
 					(errors if refusal.blocks_save else self.skipped).append(error)
+					if not refusal.blocks_save:
+						df.set(prop, meta_df[0].get(prop))
 		return errors
 
 	def refusal(self, prop: str, meta_df: list, df, meta):
