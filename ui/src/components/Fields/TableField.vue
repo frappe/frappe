@@ -117,6 +117,7 @@ import { Grid } from "../Grid";
 import TextareaField from "./TextareaField.vue";
 import ReadOnlyField from "./ReadOnlyField.vue";
 import { drawsReadValue } from "./readView";
+import { gridColumnWidth } from "./gridColumnWidth";
 import type { GridColumn } from "../Grid";
 import { htmlToText } from "../RichText/html";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
@@ -288,10 +289,10 @@ function alignFor(fieldtype: string): GridColumn["align"] {
 	return undefined;
 }
 
-const columns = computed<(FieldNode & Pick<GridColumn, "align">)[]>(() =>
+const columns = computed<(FieldNode & Pick<GridColumn, "align" | "minWidth">)[]>(() =>
 	(props.field.childFields ?? [])
 		.filter((c) => !c.override?.hidden)
-		.map((c) => ({ ...c, align: alignFor(c.fieldtype) }))
+		.map((c) => ({ ...c, align: alignFor(c.fieldtype), minWidth: gridColumnWidth(c) }))
 );
 
 // Label-less copies keyed by fieldname: the header already shows the label, so cells

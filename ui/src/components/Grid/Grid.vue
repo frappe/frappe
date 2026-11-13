@@ -312,6 +312,7 @@ const MIN_COL_WIDTH = 48;
 // Below this a flexible column stops shrinking and the grid scrolls sideways.
 const FLEX_COL_MIN = 128;
 const colWidths = ref<(number | null)[]>([]);
+const flexMin = (i: number) => props.columns[i]?.minWidth ?? FLEX_COL_MIN;
 watch(
 	() => props.columns,
 	(cols) => {
@@ -324,16 +325,18 @@ watch(
 );
 
 // Header and rows are one css grid spanning every column, so there's no flex seam.
-// A field track is `minmax(FLEX_COL_MIN, 1fr)` while flexible and a fixed `${w}px`
-// once resized — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
+// A flexible track is `minmax(min, min fr)`: it never drops below its `minWidth` and takes
+// leftover space in proportion to it. A resized one is a fixed `${w}px`, so it stays put and can shrink.
 const FIXED_COL = "2.5rem"; // checkbox / `#` / row menu — matches `w-10`
 const canAddRows = computed(
 	() => !props.disabled && !props.cannotAddRows && props.columns.length > 0
 );
 const templateColumns = computed(() => {
-	const fields = colWidths.value.map((w) =>
-		w == null ? `minmax(${FLEX_COL_MIN}px, 1fr)` : `${w}px`
-	);
+	const fields = colWidths.value.map((w, i) => {
+		if (w != null) return `${w}px`;
+		const min = flexMin(i);
+		return `minmax(${min}px, ${min}fr)`;
+	});
 	const lead = props.disabled ? [FIXED_COL] : [FIXED_COL, FIXED_COL]; // (checkbox) + `#`
 	return [...lead, ...fields, FIXED_COL].join(" "); // + row menu
 });
@@ -342,7 +345,7 @@ const templateColumns = computed(() => {
 // backgrounds span the full content when the columns overflow.
 const gridMinWidth = computed(() => {
 	const fixedCount = (props.disabled ? 1 : 2) + 1; // lead tracks + row menu
-	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? FLEX_COL_MIN), 0);
+	const fieldPx = colWidths.value.reduce<number>((sum, w, i) => sum + (w ?? flexMin(i)), 0);
 	return `calc(${fixedCount * 2.5}rem + ${fieldPx}px)`;
 });
 

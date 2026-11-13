@@ -58,6 +58,8 @@ export interface FieldMeta {
   hideSeconds?: boolean;
   /** Initial grid-column width in px for a child-table column; omit for flexible. */
   width?: number;
+  /** The DocField's `columns`: its width as a grid column, 1–10 on desk v1's map; omit for Auto. */
+  gridColumns?: number;
   description?: string;
   placeholder?: string;
   /** Static visibility; `resolveLayout` may flip this from `dependsOn`. */

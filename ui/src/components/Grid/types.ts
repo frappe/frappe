@@ -24,6 +24,11 @@ export interface GridColumn {
    * edge overrides this at runtime.
    */
   width?: number;
+  /**
+   * A flexible column's floor in px (default 128). Flexible columns share the
+   * leftover space in proportion to their floors.
+   */
+  minWidth?: number;
 }
 
 /** Validation error shown below the grid: a message string, or an `Error` with `messages[]`. */
