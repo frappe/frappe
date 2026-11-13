@@ -56,7 +56,7 @@ class CustomizeState(DesignState):
 		return next((each for each in self.layouts_of(type) if not each.deleted and not each.condition), None)
 
 	def fallback_tabs(self, type: str) -> list:
-		"""A fork leaves out the site's custom fields: they keep rendering at their anchors (#45865 r9)."""
+		"""A fork leaves out the site's custom fields: they keep rendering at their anchors."""
 		if type == "New Record":
 			return copy.deepcopy(self.default_tabs("Details"))
 		fields = [field for field in self.doc.fields if not self.is_site_custom(field)]
@@ -79,7 +79,7 @@ class CustomizeState(DesignState):
 		return bool(field.get("is_custom_field") and not field.get("is_system_generated"))
 
 	def anchor(self, fieldname: str, tabs: list):
-		"""The field drawn before it in its column, or the column's name when it is first (#45865 r1, r7)."""
+		"""The field drawn before it in its column, or the column's name when it is first."""
 		for tab in tabs:
 			for section in tab["sections"]:
 				for column in section["columns"]:

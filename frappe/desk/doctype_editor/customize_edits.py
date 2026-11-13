@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-"""Each edit act in Customize mode: the Design acts, written to the site tier (#45865)."""
+"""Each edit act in Customize mode: the Design acts, written to the site tier."""
 
 import copy
 
@@ -68,12 +68,16 @@ class CustomizeEdits(DesignEdits):
 			self.state.anchors[fieldname] = None
 
 	def fields_reset_field_property(self, edit: dict):
-		"""Back to the app's value, so Customize Form deletes that one Property Setter."""
+		"""Back to the app's value, so Customize Form deletes that one Property Setter; an app's setter stays."""
 		fieldname, property = edit.get("fieldname"), edit.get("property")
 		field = self.state.field(fieldname)
 		refuse_property(fieldname, property)
 		if self.state.is_site_custom(field):
 			raise field_error(_("Only a standard field's property can be reset."), fieldname, property)
+		if self.is_app_setter(fieldname, property):
+			if field.meta.has_field(property):
+				field.set(property, frappe.get_meta(self.state.name).get_field(fieldname).get(property))
+			return
 		if not field.meta.has_field(property):
 			self.state.property_deletes.append((fieldname, property))
 			return
@@ -82,3 +86,7 @@ class CustomizeEdits(DesignEdits):
 
 	def layouts_reset_to_app(self, edit: dict):
 		self.state.reset_to_app(edit.get("type"))
+
+	def is_app_setter(self, fieldname: str, property: str) -> bool:
+		filters = {"doc_type": self.state.name, "field_name": fieldname, "property": property}
+		return bool(frappe.db.get_value("Property Setter", filters, "is_system_generated"))

@@ -68,12 +68,21 @@ class CustomizeSave(DesignSave):
 			self.write_rows()
 		except Exception as e:
 			frappe.db.rollback()
+			self.note_committed()
 			return [self.failure(e)]
 		finally:
 			del frappe.local.message_log[messages:]
 			if self.written:
 				frappe.clear_cache(doctype=self.doctype)
 				publish_doctype_update(self.doctype)
+
+	def note_committed(self):
+		"""`rename_fieldname` and Customize Form's DDL commit, so the rollback may leave them written."""
+		committed = customizations_version(self.doctype) != self.base_version.get("customizations")
+		if committed and self.doctype not in self.written:
+			self.written.append(self.doctype)
+		elif not committed and self.doctype in self.written:
+			self.written.remove(self.doctype)
 
 	def rename_custom_fields(self):
 		for old, new in self.state.renames:
@@ -85,13 +94,20 @@ class CustomizeSave(DesignSave):
 		rows = frappe.get_all(
 			"Custom Field", {"dt": self.doctype, "is_system_generated": 0}, ["fieldname", "insert_after"]
 		)
-		return {renamed.get(row.fieldname, row.fieldname): row.insert_after for row in rows}
+		kept = {field.fieldname for field in self.state.doc.fields}
+		deleted = {row.fieldname for row in rows} - kept - renamed.keys()
+		anchors = {}
+		for row in rows:
+			anchor = renamed.get(row.insert_after, row.insert_after)
+			if row.fieldname not in deleted and anchor not in deleted:
+				anchors[renamed.get(row.fieldname, row.fieldname)] = anchor
+		return anchors
 
 	def set_anchors(self, anchors: dict):
-		for fieldname, anchor in anchors.items():
-			name = self.custom_field_name(fieldname)
-			if name and frappe.db.get_value("Custom Field", name, "insert_after") != anchor:
-				frappe.db.set_value("Custom Field", name, "insert_after", anchor)
+		rows = frappe.get_all("Custom Field", {"dt": self.doctype}, ["name", "fieldname", "insert_after"])
+		for row in rows:
+			if row.fieldname in anchors and row.insert_after != anchors[row.fieldname]:
+				frappe.db.set_value("Custom Field", row.name, "insert_after", anchors[row.fieldname])
 
 	def custom_field_name(self, fieldname: str) -> str | None:
 		return frappe.db.get_value("Custom Field", {"dt": self.doctype, "fieldname": fieldname})

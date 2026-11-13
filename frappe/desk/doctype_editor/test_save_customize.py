@@ -5,9 +5,10 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.custom.doctype.customize_form.customize_form import CustomizeForm
 from frappe.desk.doctype.form_layout.app_layout import read_app_layouts
 from frappe.desk.doctype.form_layout.form_layout import parse_layout, source_fingerprint
-from frappe.desk.doctype_editor.customize_acts import export, reset_all
+from frappe.desk.doctype_editor.customize_acts import customization_rows, export, reset_all
 from frappe.desk.doctype_editor.save import save_doctype_editor
 from frappe.desk.doctype_editor.versions import base_version
 from frappe.tests import IntegrationTestCase
@@ -48,6 +49,10 @@ def site_layouts(dt: str, type: str = "Details") -> list:
 
 def add_field(label: str, **place) -> dict:
 	return {"act": "fields.add_field", "label": label, "fieldtype": "Data", **place}
+
+
+def rename(old: str, new: str) -> dict:
+	return {"act": "fields.rename_field", "fieldname": old, "new_fieldname": new}
 
 
 class TestSaveCustomize(IntegrationTestCase):
@@ -128,6 +133,33 @@ class TestSaveCustomize(IntegrationTestCase):
 			save(NOTE, [{"act": "fields.delete_field", "fieldname": "custom_t47273_new"}])["saved"]
 		)
 		self.assertIsNone(custom_field(NOTE, "custom_t47273_new"))
+
+	def test_a_rename_or_delete_moves_the_anchors_on_it(self):
+		save(NOTE, [add_field("T47273 A"), add_field("T47273 B")])
+		frappe.db.set_value(
+			"Custom Field", custom_field(NOTE, "custom_t47273_b").name, "insert_after", "custom_t47273_a"
+		)
+		self.assertTrue(save(NOTE, [rename("custom_t47273_a", "custom_t47273_c")])["saved"])
+		self.assertEqual(custom_field(NOTE, "custom_t47273_b").insert_after, "custom_t47273_c")
+		self.assertTrue(save(NOTE, [{"act": "fields.delete_field", "fieldname": "custom_t47273_c"}])["saved"])
+		self.assertNotIn(
+			custom_field(NOTE, "custom_t47273_b").insert_after, ("custom_t47273_a", "custom_t47273_c")
+		)
+
+	def test_a_failed_write_reports_only_what_committed(self):
+		bold = {"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}
+		refused = patch.object(
+			CustomizeForm, "save_customization", side_effect=frappe.ValidationError("T47273")
+		)
+		with refused:
+			result = save(NOTE, [bold])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["written"], [])
+		save(NOTE, [add_field("T47273 Old")])
+		with refused:
+			result = save(NOTE, [rename("custom_t47273_old", "custom_t47273_new")])
+		self.assertEqual(result["written"], [NOTE])
+		self.assertIsNotNone(custom_field(NOTE, "custom_t47273_new"))
 
 	def test_a_standard_field_cannot_be_renamed(self):
 		rename = {"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "t47273_title"}
@@ -230,6 +262,39 @@ class TestSaveCustomize(IntegrationTestCase):
 		self.assertIsNone(custom_field(NOTE, "custom_t47273_gone"))
 		self.assertIsNone(property_value(NOTE, "title", "bold"))
 		self.assertIsNotNone(custom_field(NOTE, "custom_t47273_kept"))
+
+	def test_a_non_blocking_refusal_saves_and_comes_back_skipped(self):
+		edit = {"act": "fields.set_field_property", "fieldname": "title", "property": "reqd", "value": 0}
+		result = save(NOTE, [edit])
+		self.assertTrue(result["saved"], result)
+		self.assertEqual(result["skipped"][0]["target"]["fieldname"], "title")
+		self.assertIsNone(property_value(NOTE, "title", "reqd"))
+
+	def test_a_reset_keeps_a_property_setter_an_app_made(self):
+		frappe.make_property_setter(
+			{"doctype": NOTE, "fieldname": "title", "property": "bold", "value": 1, "property_type": "Check"}
+		)
+		reset = {"act": "fields.reset_field_property", "fieldname": "title", "property": "bold"}
+		self.assertTrue(save(NOTE, [reset])["saved"])
+		self.assertEqual(property_value(NOTE, "title", "bold"), "1")
+
+	def test_reset_all_keeps_the_fields_only_administrator_may_delete(self):
+		save(NOTE, [add_field("T47273 Admin")])
+		name = custom_field(NOTE, "custom_t47273_admin").name
+		with patch.dict(frappe.session, {"user": "Guest"}):
+			delete, keep = customization_rows(NOTE)
+		self.assertIn(name, keep["custom_fields"])
+		self.assertNotIn(name, delete["custom_fields"])
+
+	def test_without_customize_form_write_every_act_is_refused(self):
+		version = base_version(NOTE)
+		frappe.set_user("Guest")
+		try:
+			self.assertRaises(frappe.PermissionError, save, NOTE, [add_field("T47273 No")], version)
+			self.assertRaises(frappe.PermissionError, reset_all, NOTE)
+			self.assertRaises(frappe.PermissionError, export, NOTE, "Desk")
+		finally:
+			frappe.set_user("Administrator")
 
 	def test_settings_acts_wait_for_their_own_ticket(self):
 		edit = {"act": "settings.set_doctype_property", "property": "description", "value": "T47273"}

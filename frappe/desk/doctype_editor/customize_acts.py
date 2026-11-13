@@ -47,9 +47,9 @@ RESET_DOCTYPES = {
 
 
 def customization_rows(doctype: str) -> tuple[dict, dict]:
-	"""Like desk v1's reset, a naming series' options stay."""
+	"""Like desk v1's reset, a naming series' options stay; so do fields only Administrator may delete."""
 	fields = frappe.get_all(
-		"Custom Field", {"dt": doctype}, ["name", "is_system_generated"], order_by="creation"
+		"Custom Field", {"dt": doctype}, ["name", "is_system_generated", "owner"], order_by="creation"
 	)
 	setters = frappe.get_all(
 		"Property Setter",
@@ -59,7 +59,7 @@ def customization_rows(doctype: str) -> tuple[dict, dict]:
 	)
 	layouts = frappe.get_all("Form Layout", {"dt": doctype}, ["name", "app"], order_by="creation")
 	kept = {
-		"custom_fields": [row.name for row in fields if row.is_system_generated],
+		"custom_fields": [row.name for row in fields if row.is_system_generated or admin_only(row)],
 		"property_setters": [row.name for row in setters if row.is_system_generated or is_series(row)],
 		"layouts": [row.name for row in layouts if row.app],
 	}
@@ -70,3 +70,7 @@ def customization_rows(doctype: str) -> tuple[dict, dict]:
 
 def is_series(setter) -> bool:
 	return setter.field_name == "naming_series" and setter.property == "options"
+
+
+def admin_only(field) -> bool:
+	return field.owner == "Administrator" and frappe.session.user != "Administrator"
