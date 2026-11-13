@@ -24,17 +24,19 @@ class TestSystemSettings(IntegrationTestCase):
 			self.assertEqual(load()["defaults"]["time_zone"], "Australia/Brisbane")
 
 	def test_submission_queue_timeout_cannot_be_more_than_one_hour(self):
-		settings = frappe.get_doc("System Settings")
-		settings.submission_queue_timeout = 3601
-		self.assertRaises(frappe.ValidationError, settings.save)
+		with self.set_user("test@example.com"):
+			settings = frappe.get_doc("System Settings")
+			settings.submission_queue_timeout = 3601
+			self.assertRaises(frappe.ValidationError, settings.save)
 
 	@IntegrationTestCase.change_settings("System Settings", {"submission_queue_timeout": 3600})
 	def test_submission_queue_uses_submission_queue_timeout(self):
-		from frappe.core.doctype.submission_queue.submission_queue import SubmissionQueue
+		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 
-		submission_queue = frappe.new_doc("Submission Queue", ref_doctype="User", ref_docname="Administrator")
-		submission_queue.action_for_queuing = "Submit"
-		with patch.object(SubmissionQueue, "queue_action") as queue_action:
-			submission_queue.after_insert()
+		with self.set_user("test@example.com"):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "Submission Queue Timeout"}).insert()
+			self.addCleanup(todo.unlock)
+			with patch("frappe.utils.background_jobs.enqueue") as enqueue:
+				queue_submission(todo, "submit", alert=False)
 
-		self.assertEqual(queue_action.call_args.kwargs["timeout"], 3600)
+		self.assertEqual(enqueue.call_args.kwargs["timeout"], 3600)
