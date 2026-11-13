@@ -647,6 +647,7 @@ class TestPermissions(IntegrationTestCase):
 		)
 
 		doc.insert()
+		self.addCleanup(frappe.db.delete, "Test Blog Post", {"name": doc.name})
 
 		getdoc("Test Blog Post", doc.name)
 		doclist = [d.name for d in frappe.response.docs]
@@ -666,7 +667,8 @@ class TestPermissions(IntegrationTestCase):
 			}
 		)
 
-		doc.insert(ignore_if_duplicate=True)
+		doc.insert()
+		self.addCleanup(frappe.db.delete, "Test Blog Post", {"name": doc.name})
 
 		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
 		update("Test Blog Post", "Blogger", 0, "read", 1)
