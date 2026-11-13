@@ -4,6 +4,7 @@ import os
 import random
 import shutil
 import string
+import tempfile
 import unittest
 from contextlib import contextmanager
 from pathlib import Path
@@ -941,22 +942,37 @@ class TestDocType(IntegrationTestCase):
 		doc.name = "Test Module Change Warning"
 		doc.module = "Custom"
 
-		messages = []
-		with patch.object(frappe, "msgprint", side_effect=lambda msg, **kwargs: messages.append(msg)):
-			doc.get_doc_before_save = lambda: frappe._dict(module="Core")
-			doc.warn_on_module_change()
-			self.assertEqual(len(messages), 1)
-			self.assertIn("Custom", messages[0])
+		with tempfile.TemporaryDirectory() as tmp:
+			old_folder = Path(tmp) / "test_module_change_warning"
+			messages = []
 
-			messages.clear()
-			doc.get_doc_before_save = lambda: frappe._dict(module="Custom")
-			doc.warn_on_module_change()
-			self.assertEqual(messages, [])
+			def warn_from(module):
+				messages.clear()
+				doc.get_doc_before_save = lambda: frappe._dict(module=module)
+				doc.warn_on_module_change()
 
-			messages.clear()
-			doc.get_doc_before_save = lambda: frappe._dict(module="Does Not Exist")
-			doc.warn_on_module_change()
-			self.assertEqual(messages, [])
+			with (
+				patch.object(frappe, "msgprint", side_effect=lambda msg, **kwargs: messages.append(msg)),
+				patch("frappe.core.doctype.doctype.doctype.get_doc_path", return_value=str(old_folder)),
+			):
+				# The editor's Move took the folder along: nothing is left behind to warn about.
+				warn_from("Core")
+				self.assertEqual(messages, [])
+
+				old_folder.mkdir()
+				warn_from("Core")
+				self.assertEqual(len(messages), 1)
+				self.assertIn("Custom", messages[0])
+
+				warn_from("Custom")
+				self.assertEqual(messages, [])
+
+			with (
+				patch.object(frappe, "msgprint", side_effect=lambda msg, **kwargs: messages.append(msg)),
+				patch("frappe.core.doctype.doctype.doctype.get_doc_path", side_effect=Exception),
+			):
+				warn_from("Does Not Exist")
+				self.assertEqual(messages, [])
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
