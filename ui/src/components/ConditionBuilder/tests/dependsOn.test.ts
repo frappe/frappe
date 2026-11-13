@@ -416,6 +416,16 @@ const WRITTEN: [string, string, Tree][] = [
   ],
   ["a Phone read as text", "phone", group([leaf("phone", "is", "set")])],
   [
+    "listed text that looks like a reference",
+    'eval:["eval:doc.uom", "x"].includes(doc.customer)',
+    group([leaf("customer", "in", ["eval:doc.uom", "x"])]),
+  ],
+  [
+    "a range from text that looks like a reference",
+    'eval:("eval:doc.uom" <= doc.remarks && doc.remarks <= "z")',
+    group([leaf("remarks", "between", ["eval:doc.uom", "z"])]),
+  ],
+  [
     "a range from no value, as two comparisons",
     'eval:"" <= doc.remarks && doc.remarks <= "m"',
     group([leaf("remarks", ">=", ""), leaf("remarks", "<=", "m")]),
@@ -523,6 +533,7 @@ describe("fromDependsOn", () => {
     ["two fields unequal, loosely", "eval:doc.uom != doc.stock_uom"],
     ["text inside a Check", 'eval:String(doc.is_pos ?? "").includes("1")'],
     ["text inside a status", 'eval:String(doc.docstatus ?? "").includes("1")'],
+    ["String on text", 'eval:String(doc.remarks ?? "").includes("x")'],
     ["a number or no text", 'eval:(doc.grand_total || "").includes("5")'],
     ["no text inside", 'eval:!(doc.remarks || "").includes("")'],
     ["a reference inside", 'eval:(doc.remarks || "").includes("eval:doc.uom")'],

@@ -115,8 +115,9 @@ export class DependsOnRules {
     if (field.fieldtype === "Check" || operand.name === DOCUMENT_STATUS) {
       throw new SyntaxError("A Check or a status holds no text");
     }
-    if (NUMBER_FIELDTYPES.includes(field.fieldtype) && !stringOf) {
-      throw new SyntaxError("A number is read as text with String");
+    // The forms differ on a number, which a text field can hold after a fetch.
+    if (NUMBER_FIELDTYPES.includes(field.fieldtype) !== stringOf) {
+      throw new SyntaxError('A number is read with String, text with || ""');
     }
     return row(operand.name, "like", text);
   }
@@ -129,7 +130,10 @@ export class DependsOnRules {
     if (field.fieldtype === "Check" || operand.name === DOCUMENT_STATUS) {
       throw new SyntaxError("A Check or a status is not ordered");
     }
-    const ends = [this.value(field, from, true), this.value(field, to, true)];
+    const ends = [
+      this.value(field, from, true, true),
+      this.value(field, to, true, true),
+    ];
     // A row drops an empty end as unfinished.
     if (ends.includes("")) throw new SyntaxError("A range has two ends");
     return row(operand.name, "between", ends as string[]);
@@ -245,7 +249,9 @@ export class DependsOnRules {
     const field = this.field(name);
     if (name === DOCUMENT_STATUS)
       return items.map((item) => documentStatus(item, false));
-    const values = items.map((item) => String(this.value(field, item, false)));
+    const values = items.map((item) =>
+      String(this.value(field, item, false, true))
+    );
     const options = isOptionField(field.fieldtype);
     const kept = (value: string) =>
       value !== "" &&
@@ -257,16 +263,21 @@ export class DependsOnRules {
   /**
    * A literal as the row's value. A number field takes a number, or under `==`
    * and an ordering the text JavaScript converts to one; any other field takes
-   * text, which never reads as a field reference.
+   * text. A compared value never reads as a field reference; a list item or a
+   * range end is always text, so it may.
    */
   private value(
     field: ConditionField,
     value: Literal,
-    loose: boolean
+    loose: boolean,
+    item = false
   ): string | number {
     const isNumber = NUMBER_FIELDTYPES.includes(field.fieldtype);
     if (typeof value === "number" && isNumber) return value;
-    if (typeof value !== "string" || value.startsWith(FIELD_REFERENCE)) {
+    if (
+      typeof value !== "string" ||
+      (!item && value.startsWith(FIELD_REFERENCE))
+    ) {
       throw new SyntaxError("Compare with a value of the field's type");
     }
     if (!isNumber) return value;

@@ -79,7 +79,7 @@ export function fromDependsOn(
   scope: DependsOnScope
 ): Tree | null {
   // Desk v1 neither trims a condition nor reads `eval:` past its start, and
-  // runs an empty `eval:` as code that returns nothing.
+  // an empty `eval:` throws there, so it stays code.
   const text = condition ?? "";
   const code = text.startsWith("eval:") ? text.slice(5) : null;
   if (!text) return emptyTree();
