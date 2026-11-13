@@ -30,7 +30,8 @@ const emit = defineEmits(["update:modelValue"]);
 
 function adjust(delta) {
 	const current = props.modelValue ?? props.base;
-	emit("update:modelValue", Math.max(props.min, current + delta));
+	const next = props.decimals ? Math.round((current + delta) * 10) / 10 : current + delta;
+	emit("update:modelValue", Math.max(props.min, next));
 }
 
 function on_input(v) {
