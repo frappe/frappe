@@ -1,5 +1,5 @@
 import { evaluateDependsOn } from "./dependsOn";
-import { isEmptyValue } from "./displayValue";
+import { isEmptyValue } from "./emptyValue";
 import type {
   Column,
   FieldMeta,
