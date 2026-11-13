@@ -6,6 +6,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from jinja2.sandbox import SandboxedEnvironment
+
 import frappe
 
 if TYPE_CHECKING:
@@ -29,7 +31,8 @@ def dispatch(doc: Document, method: str | None = None) -> None:
 	deleted_doc = doc.as_dict() if triggers and method == "on_trash" else None
 
 	for trigger in triggers:
-		if trigger.condition and not _passes_condition(trigger, doc):
+		# the condition runs in the job, so it can't slow this save
+		if not frappe.has_permission(doc.doctype, "read", doc, user=trigger.run_as or trigger.owner):
 			continue
 		frappe.enqueue(
 			"frappe.flow.triggers.fire",
@@ -89,12 +92,20 @@ def fire(
 				doc = frappe.get_doc(target_doctype, target_name)
 			except frappe.DoesNotExistError:
 				return None
-		if doc and t.condition and not _eval_condition(t.condition, doc):
+			if not frappe.has_permission(target_doctype, "read", doc):
+				return None
+		if doc:
+			doc.apply_fieldlevel_read_permissions()
+		fields = _Fields(doc.as_dict()) if doc else None
+		if fields and t.condition and not _eval_condition(t.condition, fields):
 			return None
 
-		# System Managers write the template, and Frappe renders it in a sandbox
-		# nosemgrep: frappe-ssti
-		prompt = frappe.render_template(t.prompt_template, {"doc": doc, "now": frappe.utils.now_datetime()})
+		# not frappe.render_template, which gives templates database access
+		prompt = (
+			SandboxedEnvironment(finalize=lambda value: "" if value is None else value)
+			.from_string(t.prompt_template)
+			.render(doc=fields, now=frappe.utils.now_datetime())
+		)
 		agent_doc = frappe.get_doc("Flow Agent", t.agent)
 		run = agent_doc.run(
 			prompt,
@@ -134,23 +145,20 @@ def _enabled_doctype_triggers(target_doctype: str) -> list:
 	)
 
 
-def _passes_condition(trigger, doc: Document) -> bool:
-	"""Evaluate the pre-enqueue condition as the trigger's run identity (matching fire),
-	so a permission-sensitive condition doesn't silently under-fire for the low-privilege
-	user whose action triggered it."""
-	original_user = frappe.session.user
-	frappe.set_user(trigger.run_as or trigger.owner)  # nosemgrep: frappe-setuser
-	try:
-		return _eval_condition(trigger.condition, doc)
-	finally:
-		frappe.set_user(original_user)  # nosemgrep: frappe-setuser
+class _Fields(dict):
+	"""Makes `doc.items` the field, not dict.items."""
+
+	def __getattribute__(self, name: str):
+		if dict.__contains__(self, name):
+			return dict.__getitem__(self, name)
+		return super().__getattribute__(name)
 
 
-def _eval_condition(condition: str, doc: Document) -> bool:
+def _eval_condition(condition: str, doc: _Fields) -> bool:
 	from frappe.flow.utils.conditions import evaluate_condition
 	from frappe.utils.safe_exec import get_safe_globals
 
-	context = {"doc": doc.as_dict(), "utils": get_safe_globals().get("frappe").get("utils")}
+	context = {"doc": doc, "utils": get_safe_globals().get("frappe").get("utils")}
 	try:
 		return evaluate_condition(condition, context)
 	except Exception:
