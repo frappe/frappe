@@ -43,7 +43,13 @@ function row(key: string) {
 }
 
 async function openRow(key: string) {
-	row(key).click();
+	return openButton(row(key));
+}
+
+/** The builder loads on demand, so the popover is ready only when its editor has rendered. */
+async function openButton(button: HTMLButtonElement) {
+	button.click();
+	await vi.waitFor(() => expect(document.querySelector("[data-rule-editor]")).not.toBeNull());
 	await settle();
 	return document.querySelector("[data-rule-editor]")!;
 }
@@ -99,8 +105,7 @@ describe("a container's rule rows", () => {
 		expect(visible.textContent).toContain("Status is set");
 		expect(document.querySelector('[data-rule-row="more.collapsibleDependsOn"]')).toBeNull();
 
-		visible.click();
-		await settle();
+		await openButton(visible);
 		document.querySelector<HTMLButtonElement>("[data-rule-clear]")!.click();
 		await settle();
 		await done();

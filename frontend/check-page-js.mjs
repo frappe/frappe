@@ -13,6 +13,7 @@ export const PAGE_CHUNKS = {
   list: "src/pages/List.vue",
   record: "src/pages/Record.vue",
   new: "src/pages/NewRecord.vue",
+  editor: "src/pages/doctypeEditor/DoctypeEditor.vue",
 };
 
 // Not `import.meta.main`: Node 24.0 and 24.1 lack it, and the check would pass unrun.
@@ -92,7 +93,7 @@ function printSizes(sizes, budgets) {
         {
           "gzip KB": kb,
           baseline: budgets[page].baseline.jsKb,
-          budget: budgets[page].budget.jsKb,
+          budget: budgets[page].budget?.jsKb ?? "none",
         },
       ])
     )

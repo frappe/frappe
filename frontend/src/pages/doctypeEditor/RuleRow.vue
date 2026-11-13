@@ -46,7 +46,8 @@
 				style="max-height: var(--reka-popover-content-available-height)"
 				@keydown.esc.stop="close"
 			>
-				<RuleEditor
+				<component
+					:is="editor"
 					:draft="draft"
 					:title="label"
 					:subject="subject"
@@ -67,7 +68,6 @@ import { Popover, Tooltip } from "frappe-ui";
 import type { ConditionField } from "@framework/ui/ConditionBuilder";
 import PanelRow from "./PanelRow.vue";
 import { RuleDraft, type RuleCodec } from "./ruleDraft";
-import RuleEditor from "./RuleEditor.vue";
 import type { RuleSummary } from "./ruleWords";
 
 const props = defineProps<{
@@ -98,14 +98,17 @@ const PANEL_ROOM = 560;
 const button = ref<HTMLButtonElement | null>(null);
 const open = ref(false);
 const draft = shallowRef<RuleDraft | null>(null);
+// The builder loads as a rule first opens, not with the editor page; an empty popover would close on focus.
+const editor = shallowRef<typeof import("./RuleEditor.vue").default>();
 
 // The popover closes on a click outside, which the row's own button is; that click must not reopen it.
 let closedAt = 0;
 let release = () => {};
 
-function toggle() {
+async function toggle() {
 	if (Date.now() - closedAt < 300) return;
 	if (open.value) return close();
+	editor.value ??= (await import("./RuleEditor.vue")).default;
 	draft.value = new RuleDraft(props.value, props.codec);
 	release = makeRoomBelow(button.value, PANEL_ROOM);
 	open.value = true;
