@@ -1418,24 +1418,6 @@ def needs_password_setup(user: str | None = None) -> bool:
 	)
 
 
-def redirect_to_password_setup() -> None:
-	"""For an app's page controller: send a user who `needs_password_setup` to set one."""
-	if not needs_password_setup():
-		return
-
-	link = frappe.get_doc("User", frappe.session.user)._reset_password()
-	frappe.local.flags.commit = True
-	frappe.local.flags.redirect_location = link
-	# A cached permanent redirect would keep sending them to the spent key.
-	raise frappe.Redirect(302)
-
-
-@frappe.whitelist()
-def password_setup_needed() -> bool:
-	"""For an app's setup flow: whether the signed-in user still has to set a first password."""
-	return needs_password_setup()
-
-
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=5, seconds=60)
 def set_first_password(new_password: str) -> None:
@@ -1443,6 +1425,8 @@ def set_first_password(new_password: str) -> None:
 	app's setup flow, without a reset link. Anyone else changes theirs the usual way."""
 	from frappe.utils.password import validate_password_size
 
+	if frappe.request and frappe.get_request_header("Authorization"):
+		frappe.throw(_("Set your first password from a signed-in browser."), frappe.PermissionError)
 	if not new_password or not new_password.strip():
 		frappe.throw(_("Enter a password."), title=_("Invalid Password"))
 	validate_password_size(new_password, _("New Password"))
