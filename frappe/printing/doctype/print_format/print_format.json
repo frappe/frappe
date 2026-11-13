@@ -54,7 +54,8 @@
   "published_by",
   "classic_format_data",
   "print_format_builder",
-  "print_format_builder_beta"
+  "print_format_builder_beta",
+  "converted_from"
  ],
  "fields": [
   {
@@ -398,12 +399,20 @@
    "no_copy": 1,
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "converted_from",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Converted From",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-27 19:50:52.806105",
+ "modified": "2026-11-13 17:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

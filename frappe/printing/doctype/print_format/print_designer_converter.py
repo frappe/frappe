@@ -67,6 +67,7 @@ def create_editor_format(print_format: str, name: str | None = None) -> dict:
 	target.update(
 		{
 			"doc_type": source.doc_type,
+			"converted_from": source.name,
 			"module": source.module,
 			"standard": "No",
 			"print_format_builder_beta": 1,
