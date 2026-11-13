@@ -233,6 +233,15 @@ class TestPdf(IntegrationTestCase):
 		self.assertGreater(top, baselines[0])
 		self.assertLess(top, baselines[0] + 72)
 
+	def test_header_and_footer_keep_the_document_title(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			"<title>Sales Invoice: SINV-0001</title>"
+			'<div id="header-html"><b>TOP</b></div><p>body text</p><div id="footer-html"><b>BOTTOM</b></div>'
+		)
+		self.assertEqual(PdfReader(io.BytesIO(pdf)).metadata.title, "Sales Invoice: SINV-0001")
+
 	def test_footer_is_measured_at_the_width_it_prints(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
