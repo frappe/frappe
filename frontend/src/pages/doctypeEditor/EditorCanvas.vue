@@ -43,18 +43,11 @@
 				<h2 v-if="section.label" class="mb-3 text-base font-medium text-ink-gray-8">
 					{{ translate(section.label) }}
 				</h2>
-				<div
-					class="grid gap-4"
-					:style="{
-						gridTemplateColumns: `repeat(${
-							section.columns.length || 1
-						}, minmax(0, 1fr))`,
-					}"
-				>
+				<div class="flex gap-4">
 					<div
 						v-for="(column, at) in section.columns"
 						:key="column.name ?? at"
-						class="flex flex-col gap-2"
+						class="flex min-w-0 flex-1 flex-col gap-2"
 					>
 						<div
 							v-for="field in column.fields"

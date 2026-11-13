@@ -120,7 +120,11 @@ export function routeForNew(
 	doctype: string,
 	values: Record<string, unknown> = {}
 ): RouteLocationRaw {
-	return { name: "new-record", params: doctypeParams(doctype), query: newRecordQuery(values) };
+	const query = newRecordQuery(values);
+	// The editor holds `/doctype/new` too, as `routeFor` says for a DocType record.
+	if (doctype === "DocType" && current().router.hasRoute("doctype-editor"))
+		return { name: "doctype-editor", params: { name: "new" }, query };
+	return { name: "new-record", params: doctypeParams(doctype), query };
 }
 
 /** `routeForNew` as an address under a list address another app gave, for a router with no doctype routes. */

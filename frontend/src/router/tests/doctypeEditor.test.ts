@@ -7,7 +7,7 @@ import type { Boot } from "@/boot";
 import { registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
-import { registerShell, routeFor } from "@/router/routeFor";
+import { registerShell, routeFor, routeForNew } from "@/router/routeFor";
 
 registerStandardPages(standardPages);
 
@@ -71,5 +71,17 @@ describe("the DocType editor's address", () => {
 		expect([editor.name, editor.path]).toEqual(["doctype-editor", "/doctype/User"]);
 		const record = router.resolve(routeFor("DocType", "User", { standard: true }));
 		expect([record.name, record.path]).toEqual(["standard-record", "/doctype/User/record"]);
+	});
+
+	it("opens a new DocType in the editor by name and by address alike", async () => {
+		const router = createShellRouter(boot(false), addresses);
+		registerShell({ boot: boot(false), addresses, router });
+		await router.push(routeForNew("DocType"));
+		expect([router.currentRoute.value.name, router.currentRoute.value.path]).toEqual([
+			"doctype-editor",
+			"/doctype/new",
+		]);
+		expect((await routeOf("/doctype/new")).name).toBe("doctype-editor");
+		expect(router.resolve(routeForNew("User")).name).toBe("new-record");
 	});
 });
