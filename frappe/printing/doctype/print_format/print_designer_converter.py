@@ -36,7 +36,24 @@ CSS_PROPERTIES = {
 	"whiteSpace": "white-space",
 }
 PAGE_NUMBER_FIELDS = {"page": '<span class="page"></span>', "topage": '<span class="topage"></span>'}
-BARCODE_FORMATS = {"qrcode": "QR", "qr": "QR", "code128": "CODE128", "code39": "CODE39"}
+BARCODE_FORMATS = {
+	"qrcode": "QR",
+	"qr": "QR",
+	"code128": "CODE128",
+	"code39": "CODE39",
+	"ean": "EAN13",
+	"ean13": "EAN13",
+	"jan": "EAN13",
+	"ean8": "EAN8",
+	"ean14": "EAN14",
+	"gtin": "EAN14",
+	"upc": "UPCA",
+	"upca": "UPCA",
+	"isbn": "ISBN13",
+	"isbn13": "ISBN13",
+	"itf": "ITF",
+	"gs1_128": "GS1_128",
+}
 
 
 def is_print_designer_format(doc) -> bool:

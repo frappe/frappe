@@ -929,7 +929,7 @@ class TestPrintDesignerConverter(IntegrationTestCase):
 		frappe.set_user("test@example.com")
 		barcodes = [
 			{"type": "barcode", "barcodeFormat": "code39", "value": "{{ doc.name }}"},
-			{"type": "barcode", "barcodeFormat": "ean13", "value": "4006381333931", "startX": 400},
+			{"type": "barcode", "barcodeFormat": "issn", "value": "4006381333931", "startX": 400},
 		]
 		doc = frappe.get_doc(
 			{
@@ -943,7 +943,7 @@ class TestPrintDesignerConverter(IntegrationTestCase):
 
 		columns = layout["sections"][0]["columns"]
 		self.assertEqual([c["fields"][0]["barcode_format"] for c in columns], ["CODE39", "CODE128"])
-		self.assertIn("The EAN13 barcode type was changed to CODE128.", notes)
+		self.assertIn("The ISSN barcode type was changed to CODE128.", notes)
 
 	def test_print_designer_linked_image_prints_the_linked_document_image(self):
 		from frappe.printing.doctype.print_format.print_designer_converter import (
