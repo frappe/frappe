@@ -808,7 +808,14 @@ class PrintDesignerConverter:
 
 def add_gap(node, gap):
 	if gap > 3:
-		node["custom_style"] = f"margin-top: {round(gap)}px; " + (node.get("custom_style") or "")
+		style = node.get("custom_style") or ""
+		shorthand = re.compile(r"(^|;)(\s*margin\s*:\s*)(\d+(?:\.\d+)?)px")
+		if shorthand.search(style):
+			node["custom_style"] = shorthand.sub(
+				lambda m: f"{m[1]}{m[2]}{round(flt(m[3]) + gap)}px", style, count=1
+			)
+		else:
+			node["custom_style"] = f"margin-top: {round(gap)}px; " + style
 
 
 def is_white(color) -> bool:
