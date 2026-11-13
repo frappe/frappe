@@ -70,6 +70,7 @@ class PrintDesignerMigration {
 		if (row.disabled) details.push(__("Disabled"));
 		if (row.converted && row.editor_format !== row.name) {
 			details.push(__("Converted to {0}", [row.editor_format]));
+			if (row.usage?.length) details.push(__("Still used: {0}", [row.usage.join(", ")]));
 		}
 		const $row = $(`
 			<div class="flex items-center gap-4 px-4 py-3">
@@ -91,7 +92,10 @@ class PrintDesignerMigration {
 		const $actions = $row.children().last();
 		const add = (label, onclick, icon_right) =>
 			$actions.append(frappe.ui.button({ label, onclick, icon_right }));
-		if (row.converted) {
+		if (row.converted && row.usage?.length) {
+			add(__("Use Copy"), () => this.use_copy(row));
+			add(__("Undo"), () => this.undo(row));
+		} else if (row.converted) {
 			add(
 				__("Edit"),
 				() => frappe.set_route("print-format-builder", row.editor_format),
@@ -182,10 +186,23 @@ class PrintDesignerMigration {
 									message: __("{0} now prints with {1}", [row.name, name]),
 									indicator: "green",
 								});
+								this.refresh();
 								this.show_notes(notes);
 							}),
 					() => this.show_notes(notes)
 				);
+			});
+	}
+
+	use_copy(row) {
+		return frappe
+			.xcall(`${CONVERTER}.use_editor_copy`, { print_format: row.name })
+			.then(() => {
+				frappe.show_alert({
+					message: __("{0} now prints with {1}", [row.name, row.editor_format]),
+					indicator: "green",
+				});
+				this.refresh();
 			});
 	}
 
