@@ -5,7 +5,7 @@ import type { FormLayoutType, LayoutTree } from "@/recordPage/formLayoutSource/t
 import type { DoctypeDefinition, EditorLayout, EditorState, LayoutSource } from "./editorSource";
 import { LAYOUT_BREAKS } from "./fieldRules";
 import { layoutFromFields } from "./fieldsLayout";
-import { EditRefused } from "./layoutTree";
+import { EditRefused, type LayoutTreeSection } from "./layoutTree";
 import type { EditorMode } from "./pendingEdits";
 
 export const LAYOUT_TYPES: FormLayoutType[] = ["Details", "Side Panel", "Quick Entry", "New Record"];
@@ -75,7 +75,7 @@ export function layoutOf(working: LayoutsHolder, ref: LayoutRef): WorkingLayout 
 	if (!working.layouts[ref.type]) return null;
 	const empty = working.layouts[ref.type]!.empty;
 	const source = empty?.source ?? emptySource(ref.type);
-	return { title: null, condition: null, source, tabs: fallbackTabs(working, ref.type), omitted: [] };
+	return { title: null, condition: null, source, tabs: drawnTabs(working, ref.type), omitted: [] };
 }
 
 /** The tree a layout draws; empty for one that is gone. */
@@ -115,12 +115,31 @@ export function reloadedRef(working: LayoutsHolder, ref: LayoutRef, was: Working
 
 /** `fallback_tabs`: what a type with no layout of its own makes its first default from. */
 export function fallbackTabs(working: LayoutsHolder, type: FormLayoutType): LayoutTree {
-	if (type === "New Record") return structuredClone(tabsOf(working, { type: "Details" }));
+	if (type === "New Record") return structuredClone(defaultTabs(working, "Details"));
 	if (type === "Quick Entry") return quickEntryLayout(fallbackFields(working));
 	if (type === "Side Panel") return sidePanelTabs();
+	if (working.mode !== "Customize") return drawnTabs(working, type);
+	return layoutFromFields(inDrawnOrder(working, fallbackFields(working)));
+}
+
+/** `drawn_tabs`: what a type with no layout of its own draws; Customize's keeps the site's custom fields. */
+export function drawnTabs(working: LayoutsHolder, type: FormLayoutType): LayoutTree {
+	if (type === "New Record") return structuredClone(tabsOf(working, { type: "Details" }));
+	if (type !== "Details") return fallbackTabs(working, type);
 	const empty = working.layouts.Details?.empty;
 	if (!empty) return layoutFromFields(fallbackFields(working));
 	return layoutFromFields(addedFields(working), structuredClone(empty.tabs));
+}
+
+/** `default_tabs`: the default's tree, else what the fallback makes. */
+export function defaultTabs(working: LayoutsHolder, type: FormLayoutType): LayoutTree {
+	const found = findLayout(working, { type });
+	return found && !isStandIn(found) ? found.tabs : fallbackTabs(working, type);
+}
+
+/** Customize's place without a fork keeps the drawn fallback as a layout the server never has. */
+export function isStandIn(layout: WorkingLayout): boolean {
+	return layout.source !== "site" && layout.source !== "app";
 }
 
 /** `side_panel_tabs`: the record panel draws a section's header, and its open state, only from a label. */
@@ -181,6 +200,19 @@ function fallbackFields(working: LayoutsHolder): DocField[] {
 	return fields.filter(
 		(field) => working.saved.includes(field.fieldname) && !(field.is_custom_field && !field.is_system_generated),
 	);
+}
+
+/** `order_fields`: a place without a fork moves the form's rows to follow the drawn tree. */
+function inDrawnOrder(working: LayoutsHolder, fields: DocField[]): DocField[] {
+	const standIn = findLayout(working, { type: "Details" });
+	const drawn = standIn && isStandIn(standIn) ? standIn.tabs : drawnTabs(working, "Details");
+	const names = drawn.flatMap((tab) => [tab.name, ...tab.sections.flatMap(sectionNames)]);
+	const at = (field: DocField) => (names.includes(field.fieldname) ? names.indexOf(field.fieldname) : names.length);
+	return [...fields].sort((one, other) => at(one) - at(other));
+}
+
+function sectionNames(section: LayoutTreeSection): unknown[] {
+	return [section.name, ...section.columns.flatMap((column) => [column.name, ...column.fields])];
 }
 
 /** The save rebuilds the fallback from the fields, so the ones added since the load go after the rest. */

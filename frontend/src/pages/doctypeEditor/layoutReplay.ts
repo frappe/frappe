@@ -3,10 +3,13 @@
 import type { FormLayoutType } from "@/recordPage/formLayoutSource/types";
 import { EditRefused, LayoutTreeEditor } from "./layoutTree";
 import {
+	defaultTabs,
+	drawnTabs,
 	emptyTabs,
 	fallbackTabs,
 	findLayout,
 	forked,
+	isStandIn,
 	typeRefusal,
 	type LayoutRef,
 	type LayoutsHolder,
@@ -34,11 +37,11 @@ export class LayoutReplay {
 	resolve(ref: LayoutRef | undefined, fork = true): WorkingLayout {
 		const type = ref?.type as FormLayoutType;
 		const of = this.typeLayouts(type);
-		if (fork) this.touch(of);
+		if (fork) this.touch(type);
 		const found = findLayout(this.state, ref!);
 		if (found) return found;
 		if (ref!.id) throw new EditRefused("This {0} layout no longer exists.", [type]);
-		const made = this.newLayout(fallbackTabs(this.state, type));
+		const made = this.newLayout(fork ? fallbackTabs(this.state, type) : drawnTabs(this.state, type));
 		if (!fork) made.source = of.empty?.source ?? "fallback";
 		of.layouts.push(made);
 		return made;
@@ -63,8 +66,8 @@ export class LayoutReplay {
 			throw new EditRefused("A new layout needs an id of its own.");
 		}
 		if (!condition) this.refuseSecondDefault(type);
-		this.touch(of);
-		const tabs = start === "empty" ? emptyTabs() : structuredClone(this.defaultTabs(type));
+		this.touch(type);
+		const tabs = start === "empty" ? emptyTabs() : structuredClone(defaultTabs(this.state, type));
 		of.layouts.push({ ...this.newLayout(tabs), id, title: title || null, condition: condition || null });
 	}
 
@@ -92,24 +95,24 @@ export class LayoutReplay {
 	}
 
 	renameField(old: string, renamed: string) {
-		for (const [of, layout] of this.everyLayout()) {
+		for (const [type, layout] of this.everyLayout()) {
 			const tree = new LayoutTreeEditor(layout.tabs);
 			if (!tree.fieldnames().includes(old) && !layout.omitted.includes(old)) continue;
 			tree.rename_field(old, renamed);
 			layout.omitted = layout.omitted.map((each) => (each === old ? renamed : each));
-			this.touch(of);
+			this.touch(type);
 		}
 		const fallback = this.state.layouts.Details?.empty?.tabs;
 		if (fallback) new LayoutTreeEditor(fallback).rename_field(old, renamed);
 	}
 
 	deleteField(fieldname: string) {
-		for (const [of, layout] of this.everyLayout()) {
+		for (const [type, layout] of this.everyLayout()) {
 			const tree = new LayoutTreeEditor(layout.tabs);
 			if (!tree.fieldnames().includes(fieldname) && !layout.omitted.includes(fieldname)) continue;
 			tree.unplace_field({ fieldname });
 			layout.omitted = layout.omitted.filter((each) => each !== fieldname);
-			this.touch(of);
+			this.touch(type);
 		}
 		const fallback = this.state.layouts.Details?.empty?.tabs;
 		if (fallback) new LayoutTreeEditor(fallback).unplace_field({ fieldname });
@@ -129,15 +132,15 @@ export class LayoutReplay {
 		return this.state.layouts[type]!;
 	}
 
-	/** `default_tabs`: the default's tree, else what the fallback makes. */
-	private defaultTabs(type: FormLayoutType) {
-		return findLayout(this.state, { type })?.tabs ?? fallbackTabs(this.state, type);
-	}
-
-	/** Customize forks a type it touches: every layout of it saves as a site row. */
-	private touch(of: TypeLayouts) {
+	/** Customize forks a type it touches: every layout of it saves as a site row, a stand-in from the fallback. */
+	private touch(type: FormLayoutType) {
+		const of = this.state.layouts[type]!;
 		of.touched = true;
-		if (this.state.mode === "Customize") for (const layout of of.layouts) layout.source = "site";
+		if (this.state.mode !== "Customize") return;
+		for (const layout of of.layouts) {
+			if (isStandIn(layout)) layout.tabs = fallbackTabs(this.state, type);
+			layout.source = "site";
+		}
 	}
 
 	private newLayout(tabs: WorkingLayout["tabs"]): WorkingLayout {
@@ -152,9 +155,9 @@ export class LayoutReplay {
 		}
 	}
 
-	private *everyLayout(): Generator<[TypeLayouts, WorkingLayout]> {
-		for (const of of Object.values(this.state.layouts)) {
-			for (const layout of of!.layouts) yield [of!, layout];
+	private *everyLayout(): Generator<[FormLayoutType, WorkingLayout]> {
+		for (const [type, of] of Object.entries(this.state.layouts)) {
+			for (const layout of of!.layouts) yield [type as FormLayoutType, layout];
 		}
 	}
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { editorBase, workingState, type FlatEdit } from "../editorModel";
+import { layoutFromFields } from "../fieldsLayout";
 import { emptyTabs, layoutOf, tabsOf } from "../workingLayouts";
 import { leadNote, tabs } from "./layoutsFixture";
 import { taskNote } from "./editorFixture";
@@ -195,6 +196,43 @@ describe("layouts acts", () => {
 		expect(tabsOf(working, WIDE)[0].sections[0].columns[0].fields).toEqual(["topic"]);
 		expect(tabsOf(working, WIDE)[0].sections[1].columns[0].fields).toEqual(["notes", "due"]);
 		expect(tabsOf(working, DETAILS)[0].sections[1].columns[0].fields).toEqual(["notes", "due"]);
+	});
+
+	it("Customize copies and forks a fallback Details without the site's custom fields, as the save does", () => {
+		const fields = [
+			{ fieldname: "subject", label: "Subject", fieldtype: "Small Text" },
+			{ fieldname: "custom_extra", label: "Extra", fieldtype: "Section Break", is_custom_field: 1 },
+			{ fieldname: "custom_rating", label: "Rating", fieldtype: "Int", is_custom_field: 1 },
+			{ fieldname: "more", label: "More", fieldtype: "Section Break" },
+			{ fieldname: "notes", label: "Notes", fieldtype: "Text" },
+		];
+		const drawn = layoutFromFields(fields as never);
+		const fallback = { name: null, source: "fallback" as const, omitted: [], layout: drawn };
+		const definition = { ...leadNote().definition, fields } as never;
+		const note = editorBase(leadNote({ mode: "Customize", layouts: { ...leadNote().layouts, Details: [fallback] }, definition }));
+		const forkedTabs = (first: string[], more: string[]) => [
+			{
+				name: "first_tab",
+				sections: [
+					{ name: "section_1", columns: [{ name: "column_1", fields: first }] },
+					{ name: "more", label: "More", columns: more.length ? [{ name: "column_1", fields: more }] : [] },
+				],
+			},
+		];
+		expect(tabsOf(note, DETAILS)).toEqual(drawn);
+		const copied = workingState(note, [add({ condition: "doc.wide", start: "copy" })]);
+		expect(tabsOf(copied, WIDE)).toEqual(forkedTabs(["subject"], ["notes"]));
+		const renamed = workingState(note, [{ act: "layouts.rename", layout: DETAILS, title: "Main" }]);
+		expect(tabsOf(renamed, DETAILS)).toEqual(forkedTabs(["subject"], ["notes"]));
+		const into = { act: "canvas.place_field", layout: WIDE, fieldname: "notes", section: "custom_extra", column: "column_1" };
+		expect(() => workingState(copied, [into])).toThrow();
+
+		const moved = workingState(note, [
+			{ act: "canvas.place_field", layout: DETAILS, fieldname: "notes", section: "section_1", column: "column_1", index: 0 },
+			add({ condition: "doc.wide", start: "copy" }),
+		]);
+		expect(tabsOf(moved, WIDE)).toEqual(forkedTabs(["notes", "subject"], []));
+		expect(tabsOf(moved, DETAILS)).toEqual(forkedTabs(["notes", "subject"], []));
 	});
 
 	it("refuse a second default, a taken id and a type the DocType does not have", () => {
