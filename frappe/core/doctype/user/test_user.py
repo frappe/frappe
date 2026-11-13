@@ -15,7 +15,6 @@ from frappe.core.doctype.user.user import (
 	User,
 	handle_password_test_fail,
 	needs_password_setup,
-	password_setup_needed,
 	reset_password,
 <<<<<<< HEAD
 =======
@@ -834,13 +833,21 @@ class TestNeedsPasswordSetup(IntegrationTestCase):
 		set_password(self.user.name, "Eastern_43A1W")
 		self.assertFalse(needs_password_setup(self.user.name))
 
-	def test_an_app_can_ask_for_the_signed_in_user(self):
+	def test_a_token_request_cannot_set_the_first_password(self):
+		from frappe.utils import set_request
+
+		had_request = hasattr(frappe.local, "request")
+		set_request(path="/api/method/ping", headers={"Authorization": "token key:secret"})
+		frappe.local.request_ip = "127.0.0.1"
 		frappe.set_user(self.user.name)
 		try:
-			self.assertTrue(password_setup_needed())
+			with self.assertRaises(frappe.PermissionError):
+				set_first_password("Eastern_43A1W")
 		finally:
 			frappe.set_user("Administrator")
-		self.assertFalse(password_setup_needed())
+			if not had_request:
+				del frappe.local.request
+		self.assertTrue(needs_password_setup(self.user.name))
 
 	def test_sets_a_first_password_from_the_app(self):
 		from frappe.utils.password import check_password
