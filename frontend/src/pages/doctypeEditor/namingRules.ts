@@ -46,11 +46,26 @@ export function ruleOf(properties: Record<string, unknown>): Rule {
 	return "script";
 }
 
-/** An old-style pattern ("ST-.#####") keeps its own rule name. */
+/** The autoname the New DocType dialog's naming rule starts with; "By fieldname" names by `fieldname`. */
+export function autonameOf(namingRule: string, fieldname: string): string {
+	const rule = (Object.keys(NAMING_RULE) as Rule[]).find((one) => NAMING_RULE[one] === namingRule);
+	if (rule === "field") return `field:${fieldname}`;
+	return rule ? DIALOG_AUTONAME[rule] ?? "" : "";
+}
+
+const DIALOG_AUTONAME: Partial<Record<Rule, string>> = {
+	hash: "hash",
+	uuid: "UUID",
+	autoincrement: "autoincrement",
+	naming_series: "naming_series:",
+	prompt: "Prompt",
+};
+
+/** A `format:` pattern is v1's "Expression (old style)"; a dotted one ("ST-.#####") its "Expression". */
 export function namingProperties(autoname: string): { autoname: string; naming_rule: string } {
 	const rule = ruleOf({ autoname });
-	const oldStyle = rule === "format" && !autoname.toLowerCase().startsWith("format:");
-	return { autoname, naming_rule: oldStyle ? "Expression (old style)" : NAMING_RULE[rule] };
+	const braced = rule === "format" && autoname.toLowerCase().startsWith("format:");
+	return { autoname, naming_rule: braced ? "Expression (old style)" : NAMING_RULE[rule] };
 }
 
 /** Why the rule cannot be picked now; "" when it can. */

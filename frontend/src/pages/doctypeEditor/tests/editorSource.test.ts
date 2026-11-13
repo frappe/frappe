@@ -66,6 +66,19 @@ describe("a pending DocType", () => {
 		expect([state.pending, state.definition.custom]).toEqual([true, 1]);
 	});
 
+	it("names its records by the dialog's naming rule", () => {
+		const autoname = (naming_rule: string) =>
+			pendingDoctype({ name: "Route", module: "Desk", custom: true, naming_rule }).definition.autoname;
+		expect(["By fieldname", "Set by user", "Autoincrement", 'By "Naming Series" field', "Random", "UUID"].map(autoname)).toEqual([
+			"field:title",
+			"Prompt",
+			"autoincrement",
+			"naming_series:",
+			"hash",
+			"UUID",
+		]);
+	});
+
 	it("copies a duplicate's fields and layout, without the source's record identity", () => {
 		const answers = { name: "Route Note", module: "Desk", custom: true, naming_rule: "By fieldname" };
 		const state = pendingDoctype(answers, source());
@@ -78,6 +91,6 @@ describe("a pending DocType", () => {
 			{ fieldname: "status", fieldtype: "Select" },
 		]);
 		const renamed = pendingDoctype({ ...answers, naming_rule: "Random" }, source());
-		expect(renamed.definition.autoname).toBeUndefined();
+		expect(renamed.definition.autoname).toBe("hash");
 	});
 });

@@ -1,16 +1,16 @@
 <!-- "By pattern": the pattern in a draft that commits on blur or Enter, chips that insert a token
-     at the caret, and the next name it gives. An old-style pattern ("ST-.#####") stays old style. -->
+     at the caret, and the next name it gives. A dotted pattern ("ST-.#####") stays dotted. -->
 <template>
 	<TextInput
 		ref="input"
 		v-model="draft"
 		class="w-[280px] [&_input]:font-mono"
-		:placeholder="oldStyle ? 'ST-.YYYY.-.#####' : 'ST-{YYYY}-{#####}'"
+		:placeholder="dotted ? 'ST-.YYYY.-.#####' : 'ST-{YYYY}-{#####}'"
 		data-naming-pattern
 		@blur="commit"
 		@keydown.enter.prevent="commit"
 	/>
-	<div v-if="!oldStyle" class="flex flex-wrap items-center gap-1.5">
+	<div v-if="!dotted" class="flex flex-wrap items-center gap-1.5">
 		<Button
 			v-for="token in tokens"
 			:key="token"
@@ -41,12 +41,12 @@ const props = defineProps<{ autoname: string; counters: Record<string, number> }
 const view = inject(SettingsViewKey)!;
 
 const FORMAT = "format:";
-const oldStyle = computed(() => !props.autoname.toLowerCase().startsWith(FORMAT));
-const body = () => (oldStyle.value ? props.autoname : props.autoname.slice(FORMAT.length));
+const dotted = computed(() => !props.autoname.toLowerCase().startsWith(FORMAT));
+const body = () => (dotted.value ? props.autoname : props.autoname.slice(FORMAT.length));
 const draft = ref(body());
 watch(() => props.autoname, () => (draft.value = body()));
 
-const full = computed(() => (oldStyle.value ? draft.value : FORMAT + draft.value));
+const full = computed(() => (dotted.value ? draft.value : FORMAT + draft.value));
 const tokens = computed(() => {
 	const field = view.fields.find((one) => one.fieldname && ["Data", "Link", "Select"].includes(one.fieldtype));
 	return field ? [...TOKENS, `{${field.fieldname}}`] : TOKENS;

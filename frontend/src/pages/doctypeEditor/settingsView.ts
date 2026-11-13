@@ -19,17 +19,24 @@ export interface SettingsPlace {
 
 export const SettingsViewKey: InjectionKey<SettingsView> = Symbol("SettingsView");
 
+const SORT_LABELS: Record<string, string> = { creation: "Created on", modified: "Last updated" };
+
 /** A value as Customize Form compares it: unset, 0 and "" are the same. */
 export const normal = (value: unknown) =>
 	value === undefined || value === null || value === 0 || value === "0" ? "" : String(value);
 
 export class SettingsView {
 	constructor(
-		private canvas: DesignCanvas,
+		/** The canvas open now: a save or a reload opens a new one under the same tab. */
+		private currentCanvas: () => DesignCanvas,
 		readonly place: Ref<SettingsPlace>,
 		/** Where Customize opens; null when this DocType has no Customize. */
 		readonly customizeRoute: () => RouteLocationRaw | null,
 	) {}
+
+	private get canvas(): DesignCanvas {
+		return this.currentCanvas();
+	}
 
 	get settings(): SettingsState {
 		return this.canvas.working.value.settings;
@@ -88,6 +95,18 @@ export class SettingsView {
 
 	appValue(prop: string): unknown {
 		return this.settings.app?.properties[prop];
+	}
+
+	/** The app's value of a row as the row shows it: On or Off, field labels, else the text. */
+	shipped(row: SettingRow): string {
+		const value = normal(this.appValue(row.props[0]));
+		if (row.control === "switch") return value ? __("On") : __("Off");
+		if (row.control === "view") return __(value || "List");
+		if (!value) return __("none");
+		if (row.control === "field") return this.label(value);
+		if (row.control === "sort") return SORT_LABELS[value] ? __(SORT_LABELS[value]) : this.label(value);
+		if (row.control === "fields") return value.split(",").map((one) => this.label(one.trim())).join(", ");
+		return value;
 	}
 
 	label(fieldname: string): string {

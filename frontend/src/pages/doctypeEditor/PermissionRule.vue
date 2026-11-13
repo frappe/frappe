@@ -31,9 +31,9 @@
 			<span v-if="rule.permlevel" class="text-ink-gray-4" :aria-label="__('No more rights at this level')">—</span>
 			<Popover v-else side="bottom" align="end">
 				<template #trigger>
-					<Button variant="ghost" size="sm" :label="moreLabel" :aria-label="__('More rights for {0}', [rule.role])" data-perm-more />
+					<Button variant="ghost" size="sm" :label="moreLabel" :icon="moreLabel ? undefined : 'lucide-plus'" :aria-label="__('More rights for {0}', [rule.role])" data-perm-more />
 				</template>
-				<div class="flex w-[220px] flex-col p-1" data-perm-more-popover>
+				<div class="flex w-[260px] flex-col p-1" data-perm-more-popover>
 					<p class="px-1.5 py-1 text-sm text-ink-gray-5">{{ rule.role }}</p>
 					<Checkbox
 						v-for="right in more"
@@ -71,7 +71,7 @@ const view = inject(SettingsViewKey)!;
 const key = computed(() => ({ role: props.rule.role, permlevel: props.rule.permlevel, if_owner: props.rule.if_owner }));
 const moreLabel = computed(() => {
 	const on = props.more.filter((right) => props.rule[right]).length;
-	return on ? `+${on}` : __("None");
+	return on ? `+${on}` : "";
 });
 const menu = computed(() => [
 	{

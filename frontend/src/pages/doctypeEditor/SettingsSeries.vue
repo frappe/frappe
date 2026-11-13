@@ -3,10 +3,11 @@
 <template>
 	<div class="flex w-full flex-col" data-naming-series>
 		<div v-for="option in options" :key="option" class="group/series flex h-8 items-center gap-3" :data-series="option">
-			<span class="flex w-[296px] shrink-0 items-center gap-2">
+			<span class="flex w-[220px] shrink-0 items-center gap-2">
 				<span class="min-w-0 truncate font-mono text-sm text-ink-gray-8">{{ option }}</span>
 				<Badge v-if="option === preferred" :label="__('Default')" theme="gray" size="sm" class="shrink-0" />
 			</span>
+			<span class="lucide-arrow-right size-3.5 shrink-0 text-ink-gray-4" aria-hidden="true" />
 			<NamePreview class="min-w-0 flex-1 truncate" :parts="nextName(option, counters, view.label.bind(view), new Date())" />
 			<span class="flex shrink-0 items-center gap-1 opacity-0 group-hover/series:opacity-100 focus-within:opacity-100">
 				<Button v-if="option !== preferred" size="sm" variant="ghost" :label="__('Make default')" @click="save(options, option)" />

@@ -37,7 +37,7 @@ import { SettingsView, SettingsViewKey, type SettingsPlace } from "./settingsVie
 const props = defineProps<{ canvas: DesignCanvas; customize: RouteLocationRaw | null }>();
 const place = defineModel<SettingsPlace>("place", { required: true });
 
-const view = new SettingsView(props.canvas, place, () => props.customize);
+const view = new SettingsView(() => props.canvas, place, () => props.customize);
 provide(SettingsViewKey, view);
 
 const sections = computed(() => settingSections(view.settings));

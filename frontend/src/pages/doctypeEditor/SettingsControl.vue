@@ -19,7 +19,7 @@
 		v-else-if="row.control === 'field'"
 		class="w-[200px]"
 		:model-value="String(view.value(prop) || NONE)"
-		:options="[{ label: prop === 'title_field' ? __('None, the ID') : __('None'), value: NONE }, ...fieldOptions]"
+		:options="[{ label: prop === 'title_field' ? __('None, the ID') : __('None'), value: NONE }, ...fieldChoices]"
 		@update:model-value="view.set({ [prop]: $event && $event !== NONE ? String($event) : '' })"
 	/>
 	<SettingsFieldList v-else-if="row.control === 'fields'" :row="row" />
@@ -46,6 +46,7 @@
 	<RadioGroup
 		v-else-if="row.control === 'kind'"
 		padded
+		class="-mx-1.5 flex flex-col gap-0.5"
 		:model-value="view.kind"
 		@update:model-value="view.set(kindProperties($event as DoctypeKind))"
 	>
@@ -73,6 +74,12 @@ const VIEWS = ["List", "Report", "Image", "Kanban", "Calendar", "Gantt"].map((va
 
 const prop = computed(() => props.row.props[0]);
 const fieldOptions = computed(() => view.fieldOptions(props.row.fieldtypes ?? []));
+// A field the app set that this row's types leave out (ToDo's title is a Text Editor) still shows its label.
+const fieldChoices = computed(() => {
+	const current = String(view.value(prop.value) || "");
+	if (!current || fieldOptions.value.some((option) => option.value === current)) return fieldOptions.value;
+	return [...fieldOptions.value, { label: view.label(current), value: current }];
+});
 const sortOptions = computed(() => [
 	{ label: __("Created on"), value: "creation" },
 	{ label: __("Last updated"), value: "modified" },

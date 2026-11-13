@@ -9,6 +9,7 @@ import type {
 	FormLayoutRow,
 	FormLayoutType,
 } from "@/recordPage/formLayoutSource/types";
+import { autonameOf } from "./namingRules";
 import type { BaseVersion, EditorMode } from "./pendingEdits";
 
 export type LayoutSource =
@@ -199,6 +200,7 @@ export function pendingDoctype(answers: NewDoctype, source?: EditorState | null)
 			module: answers.module,
 			custom: answers.custom ? 1 : 0,
 			naming_rule: answers.naming_rule,
+			autoname: autonameOf(answers.naming_rule, field.fieldname),
 			fields: [field],
 		},
 		pending: true,
@@ -214,6 +216,10 @@ function withoutIdentity<T extends object>(row: T): T {
 	return copy as T;
 }
 
+function firstData(fields: RawMetaField[]): string {
+	return fields.find((field) => field.fieldtype === "Data")?.fieldname ?? "";
+}
+
 function copiedDefinition(answers: NewDoctype, source: EditorState): DoctypeDefinition {
 	const { definition } = source;
 	const fields = definition.fields.map(withoutIdentity);
@@ -224,7 +230,7 @@ function copiedDefinition(answers: NewDoctype, source: EditorState): DoctypeDefi
 		module: answers.module,
 		custom: answers.custom ? 1 : 0,
 		naming_rule: answers.naming_rule,
-		autoname: sameRule ? definition.autoname : undefined,
+		autoname: sameRule ? definition.autoname : autonameOf(answers.naming_rule, firstData(fields)),
 		fields,
 	};
 }
