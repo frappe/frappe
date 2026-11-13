@@ -1106,7 +1106,7 @@ class TestDBQuery(FrappeTestCase):
 			for field in (
 				"`tabBlog Post`.name,`tabBlog Post`.published",
 				"name as title_alias,published",
-				"concat(name, published) as joined",
+				"ifnull(name, published) as joined",
 			):
 				with self.subTest(field=field):
 					data = frappe.get_list(
