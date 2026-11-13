@@ -571,6 +571,17 @@ class PrintDesignerConverter:
 					produced[0]["custom_style"] = f"margin-left: {round(indent, 1)}%; " + (
 						produced[0].get("custom_style") or ""
 					)
+				spare = (
+					(offset + width - flt(band[0].get("startX")) - flt(band[0].get("width"))) / width * 100
+				)
+				if (
+					produced
+					and spare > 1
+					and (band[0].get("type") == "table" or produced[0].get("align") in ("right", "center"))
+				):
+					produced[0]["custom_style"] = f"margin-right: {round(spare, 1)}%; " + (
+						produced[0].get("custom_style") or ""
+					)
 			else:
 				parts, cursor = [], offset
 				ordered = sorted(band, key=lambda e: flt(e.get("startX")))
