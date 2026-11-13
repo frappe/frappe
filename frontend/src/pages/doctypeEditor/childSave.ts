@@ -50,7 +50,12 @@ export function saveCalls(parent: ParentSave, children: ChildSave[]): SaveCall[]
 	return calls;
 }
 
-/** The child table a refused call's errors belong to, if any. */
-export function refusedChild(call: SaveCall, errors: SaveError[] = []): string | undefined {
-	return call.child ?? (errors as (SaveError & { doctype?: string })[]).find((error) => error.doctype)?.doctype;
+/** A refused call's errors by the DocType each is keyed to; a child's own call keys them all to it. */
+export function errorsByDoctype(call: SaveCall, parent: string, errors: SaveError[] = []): Map<string, SaveError[]> {
+	const groups = new Map<string, SaveError[]>();
+	for (const error of errors) {
+		const doctype = call.child ?? error.doctype ?? parent;
+		groups.set(doctype, [...(groups.get(doctype) ?? []), error]);
+	}
+	return groups;
 }

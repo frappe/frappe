@@ -3,7 +3,8 @@ import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { __, __n } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
-import { CREATE_METHOD, refusedChild, SAVE_METHOD, saveCalls, type ChildSave } from "./childSave";
+import { CREATE_METHOD, errorsByDoctype, SAVE_METHOD, saveCalls, type SaveCall } from "./childSave";
+import type { ChildTables } from "./childTables";
 import type { DesignCanvas, SaveError } from "./designCanvas";
 import { EditRefused, fieldsOffLayout } from "./editorModel";
 import type { BaseVersion, Edit, PendingEdits } from "./pendingEdits";
@@ -43,8 +44,8 @@ export interface SaveHost {
 	reload: () => Promise<DesignCanvas | null>;
 	/** A new DocType's first save made it: its own editor opens in place of `/doctype/new`, unless the page moved on. */
 	created: (doctype: string) => Promise<DesignCanvas | null>;
-	/** The child tables with staged edits, which save with the parent. */
-	children?: () => ChildSave[];
+	/** The page's child tables, whose staged edits save with the parent's. */
+	children?: Pick<ChildTables, "saves" | "saved" | "loaded" | "canvasOf" | "clearErrors">;
 	/** Opens a child table's editor, to mark its refused edits there. */
 	showChild?: (doctype: string) => Promise<DesignCanvas | null>;
 }
@@ -69,10 +70,11 @@ export class EditorSave {
 		if (!canvas || this.saving.value) return;
 		this.banner.value = null;
 		canvas.errors.value = [];
+		this.host.children?.clearErrors();
 		await this.busy(async () => {
-			const { result, child } = await this.send(canvas);
-			if (result.saved) await this.saved(canvas, result);
-			else this.refused((child && (await this.host.showChild?.(child))) || canvas, result);
+			const { result, call } = await this.send(canvas);
+			if (call) await this.refused(canvas, result, call);
+			else await this.saved(canvas, result);
 		});
 	}
 
@@ -82,18 +84,19 @@ export class EditorSave {
 		const steps = this.host.edits.steps;
 		await this.busy(async () => {
 			const canvas = await this.host.reload();
-			if (canvas) this.reapply(canvas, steps);
+			if (canvas) await this.reapply(canvas, steps);
 		});
 	}
 
-	private reapply(canvas: DesignCanvas, steps: readonly Edit[][]) {
+	private async reapply(canvas: DesignCanvas, steps: readonly Edit[][]) {
 		// The replay is the reload's own staging, so it runs before any late export reloads again.
 		this.host.edits.locked.value = false;
 		const refused: string[] = [];
 		for (const step of steps) {
+			const doctype = step[0].doctype;
 			try {
-				if (step[0].doctype) this.host.edits.stage(...step);
-				else canvas.stage(...step.map(({ act, value }) => ({ ...value, act })));
+				const target = doctype ? await this.host.children!.loaded(doctype) : canvas;
+				target.stage(...step.map(({ act, value }) => ({ ...value, act })));
 			} catch (error) {
 				if (!(error instanceof EditRefused)) throw error;
 				refused.push(__(error.template, error.args));
@@ -164,16 +167,16 @@ export class EditorSave {
 		}
 	}
 
-	/** Sends each call in order and stops at the first refused one; a child's save is already in by then. */
-	private async send(canvas: DesignCanvas): Promise<{ result: SaveResult; child?: string }> {
+	/** Sends each call in order and stops at the first refused one; the children saved before it leave the stack. */
+	private async send(canvas: DesignCanvas): Promise<{ result: SaveResult; call?: SaveCall }> {
 		const parent = { state: canvas.state, payload: this.host.edits.payload(), layout: canvas.base.layout };
 		const written: string[] = [];
 		let result: SaveResult = { saved: true };
-		for (const call of saveCalls(parent, this.host.children?.() ?? [])) {
+		for (const call of saveCalls(parent, this.host.children?.saves() ?? [])) {
 			({ data: result } = await runMethod<SaveResult>(call.method, call.args));
 			if (!result.saved) {
-				const child = refusedChild(call, result.errors);
-				return { result: { ...result, written: [...written, ...(result.written ?? [])] }, child };
+				for (const child of written) await this.host.children?.saved(child);
+				return { result: { ...result, written: [...written, ...(result.written ?? [])] }, call };
 			}
 			if (call.child) written.push(call.child);
 		}
@@ -207,21 +210,28 @@ export class EditorSave {
 		};
 	}
 
-	private refused(canvas: DesignCanvas, result: SaveResult) {
-		const errors = result.errors ?? [];
-		canvas.errors.value = errors;
-		const marked = errors.filter((error) => marks(canvas, error));
-		const first = marked.find((error) => error.target.kind === "field");
-		if (first) canvas.select({ kind: "field", fieldname: first.target.fieldname! });
-		const messages = errors.filter((error) => !marked.includes(error)).map((error) => error.message);
-		if (marked.length && !messages.length) messages.push(__("Fix what is marked on the form, then save again."));
+	/** Each refused DocType's errors draw on its own canvas; the first refused child's editor opens. */
+	private async refused(canvas: DesignCanvas, result: SaveResult, call: SaveCall) {
+		const errors = errorsByDoctype(call, canvas.state.doctype, result.errors);
+		const child = [...errors.keys()].find((doctype) => doctype !== canvas.state.doctype);
+		const shown = (child && (await this.host.showChild?.(child))) || canvas;
+		const targets = new Map<DesignCanvas, SaveError[]>();
+		for (const [doctype, own] of errors) {
+			const target = doctype === shown.state.doctype ? shown : (this.host.children?.canvasOf(doctype) ?? canvas);
+			targets.set(target, [...(targets.get(target) ?? []), ...own]);
+		}
+		const marked = [...targets].map(([target, own]) => markErrors(target, own));
+		const messages = marked.flatMap(({ unmarked }) => unmarked);
+		if (marked.some(({ placed }) => placed) && !messages.length) {
+			messages.push(__("Fix what is marked on the form, then save again."));
+		}
 		const written = result.written ?? [];
 		if (written.length) {
 			messages.push(__("Part of the save is written: {0}. Reload to see it.", [written.join(", ")]));
 		}
-		const stale = errors.some((error) => error.code === "stale");
+		const stale = (result.errors ?? []).some((error) => error.code === "stale");
 		this.banner.value = {
-			doctype: canvas.state.doctype,
+			doctype: shown.state.doctype,
 			title: __("Not saved"),
 			messages,
 			offers: stale || written.length ? ["editor.reload_and_reapply"] : [],
@@ -233,6 +243,16 @@ export class EditorSave {
 		const { base_version } = this.host.edits.payload();
 		this.host.edits.rebase({ ...base_version, app_layouts: { ...base_version.app_layouts, ...appLayouts } });
 	}
+}
+
+/** Draws the errors on `canvas` and selects the first marked field; the ones it cannot draw go to the banner. */
+function markErrors(canvas: DesignCanvas, errors: SaveError[]): { placed: boolean; unmarked: string[] } {
+	canvas.errors.value = errors;
+	const marked = errors.filter((error) => marks(canvas, error));
+	const first = marked.find((error) => error.target.kind === "field");
+	if (first) canvas.select({ kind: "field", fieldname: first.target.fieldname! });
+	const unmarked = errors.filter((error) => !marked.includes(error)).map((error) => error.message);
+	return { placed: marked.length > 0, unmarked };
 }
 
 /** A field or section error the canvas draws at its target; the rest go to the banner. */

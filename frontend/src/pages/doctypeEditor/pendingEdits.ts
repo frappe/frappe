@@ -102,6 +102,13 @@ export class PendingEdits {
 		this.head.base_version = version;
 	}
 
+	/** Drop one child table's steps, once its own save call wrote them. */
+	drop(doctype: string) {
+		const others = (steps: Edit[][]) => steps.filter((step) => step[0].doctype !== doctype);
+		this.done.value = others(this.done.value);
+		this.undone.value = others(this.undone.value);
+	}
+
 	/** Drop every edit, for a page that opens another DocType or mode. */
 	clear() {
 		this.done.value = [];

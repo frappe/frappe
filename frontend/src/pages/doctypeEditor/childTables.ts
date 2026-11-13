@@ -52,15 +52,41 @@ export class ChildTables {
 		return this.sessions.value.get(doctype)?.canvas.working.value.fields ?? null;
 	}
 
+	/** A loaded child editor's canvas, else `null`. */
+	canvasOf(doctype: string): DesignCanvas | null {
+		return this.sessions.value.get(doctype)?.canvas ?? null;
+	}
+
+	/** A child editor's canvas, loading the child when no editor has it yet. */
+	async loaded(doctype: string): Promise<DesignCanvas> {
+		return (this.sessions.value.get(doctype) ?? (await this.load(doctype))).canvas;
+	}
+
 	/** Every child table with staged edits; a new one, which the parent's edits add, has no base version. */
 	saves(): ChildSave[] {
 		const added = this.added();
+		const named = this.named();
 		return this.edits.childDoctypes().flatMap((doctype) => {
 			const edits = this.edits.stagedFor(doctype);
-			if (added.includes(doctype)) return [{ doctype, edits }];
+			if (added.includes(doctype)) return named.has(doctype) ? [{ doctype, edits }] : [];
 			const session = this.sessions.value.get(doctype);
-			return session && !session.state.pending ? [{ doctype, edits, base_version: session.state.base_version }] : [];
+			if (!session) throw new Error(`The child table ${doctype} has staged edits but no editor.`);
+			return [{ doctype, edits, base_version: session.state.base_version }];
 		});
+	}
+
+	/** A saved child's own call wrote its edits: they leave the stack, and its editor loads it again. */
+	async saved(doctype: string) {
+		this.edits.drop(doctype);
+		const sessions = new Map(this.sessions.value);
+		sessions.delete(doctype);
+		this.sessions.value = sessions;
+		const open = this.open.value;
+		if (open?.state.doctype === doctype) await this.show(open.table);
+	}
+
+	clearErrors() {
+		for (const session of this.sessions.value.values()) session.canvas.errors.value = [];
 	}
 
 	/** Drops every child editor, for a parent that loads again. */
@@ -69,16 +95,22 @@ export class ChildTables {
 		this.open.value = null;
 	}
 
-	private childOf(table: string): string | null {
-		const field = this.parent()?.field(table);
-		return field?.fieldtype === "Table" && field.options ? field.options : null;
-	}
-
 	/** The child tables the parent's staged edits make. */
 	added(): string[] {
 		return this.edits.staged.value
 			.filter((edit) => edit.act === "fields.add_child_table")
 			.map((edit) => String(edit.name));
+	}
+
+	private childOf(table: string): string | null {
+		const field = this.parent()?.field(table);
+		return field?.fieldtype === "Table" && field.options ? field.options : null;
+	}
+
+	/** The child tables the parent's Table fields name now; a new child no field names is not saved. */
+	private named(): Set<string> {
+		const fields = this.parent()?.working.value.fields ?? [];
+		return new Set(fields.filter((field) => field.fieldtype === "Table" && field.options).map((field) => field.options!));
 	}
 
 	private async load(doctype: string): Promise<ChildSession> {

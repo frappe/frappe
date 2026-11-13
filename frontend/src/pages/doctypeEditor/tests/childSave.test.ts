@@ -21,12 +21,12 @@ function parent(overrides: Partial<EditorState> = {}): EditorState {
 	return state;
 }
 
-function line(): EditorState {
+function line(doctype = "Task Note Line", base_version = LINE_VERSION): EditorState {
 	return taskNote({
-		doctype: "Task Note Line",
-		base_version: LINE_VERSION,
+		doctype,
+		base_version,
 		layouts: {},
-		definition: { name: "Task Note Line", istable: 1, fields: [{ fieldname: "qty", label: "Qty", fieldtype: "Float" }] },
+		definition: { name: doctype, istable: 1, fields: [{ fieldname: "qty", label: "Qty", fieldtype: "Float" }] },
 	});
 }
 
@@ -147,5 +147,78 @@ describe("a save with child tables", () => {
 		edits.undo();
 		await Promise.resolve();
 		expect(children.open.value?.state.doctype).toBe("Task Note Line");
+	});
+
+	it("drops a saved child's steps once its call is in, so the next save sends the parent only", async () => {
+		const { children, edits } = mount();
+		answers(line());
+		await children.show("lines");
+		await acts.run("fields.set_field_property", bold("qty"));
+		await children.show(null);
+		await acts.run("fields.set_field_property", bold("subject"));
+		answers(saved, { saved: false, errors: [{ target: { kind: "field", fieldname: "subject" }, message: "No." }] });
+		await acts.run("editor.save");
+		expect(edits.childDoctypes()).toEqual([]);
+		answers(saved);
+		await acts.run("editor.save");
+		expect(runMethod).toHaveBeenCalledTimes(4);
+		expect(runMethod.mock.calls[3][1]).toMatchObject({ doctype: "Task Note", edits: [{ act: "fields.set_field_property", ...bold("subject") }] });
+	});
+
+	it("reloads every edited child on reload and reapply, and lists a child edit it refuses", async () => {
+		const tasks = { fieldname: "tasks", label: "Tasks", fieldtype: "Table", options: "Task Note Task" };
+		const { children, save } = mount(parent({ definition: { ...parent().definition, fields: [...parent().definition.fields, tasks] } }));
+		answers(line());
+		await children.show("lines");
+		await acts.run("fields.set_field_property", bold("qty"));
+		answers(line("Task Note Task"));
+		await children.show("tasks");
+		await acts.run("fields.set_field_property", bold("qty"));
+		await children.show(null);
+		answers({ saved: false, errors: [{ target: { kind: "banner" }, code: "stale", message: "Changed." }] });
+		await acts.run("editor.save");
+		const fresh = { ...LINE_VERSION, doctype: "2026-11-13 11:00:00" };
+		const renamed = line("Task Note Task");
+		renamed.definition.fields = [{ fieldname: "amount", label: "Amount", fieldtype: "Float" }];
+		answers(line("Task Note Line", fresh), renamed);
+		await acts.run("editor.reload_and_reapply");
+		expect(save.banner.value?.messages).toEqual(["qty is not a field of Task Note Task."]);
+		expect(children.saves()).toEqual([{ doctype: "Task Note Line", edits: [{ act: "fields.set_field_property", ...bold("qty") }], base_version: fresh }]);
+	});
+
+	it("does not send the edits of a new child no Table field names any more", async () => {
+		const { children } = mount();
+		await acts.run("fields.add_field", { label: "Steps", fieldtype: "Table" });
+		await acts.run("fields.add_child_table", { name: "Task Note Step", table_field: "steps" });
+		await children.show("steps");
+		await acts.run("fields.add_field", { label: "Done", fieldtype: "Check" });
+		await children.show(null);
+		await acts.run("fields.set_field_property", { fieldname: "steps", property: "options", value: "Task Note Line" });
+		answers(saved);
+		await acts.run("editor.save");
+		expect(runMethod).toHaveBeenCalledOnce();
+		expect(Array.isArray(runMethod.mock.calls[0][1].edits)).toBe(true);
+	});
+
+	it("marks each refused DocType's errors on its own canvas", async () => {
+		const mounted = mount();
+		const { children } = mounted;
+		await acts.run("fields.add_child_table", { name: "Task Note Step", table_field: "steps" });
+		await children.show("steps");
+		await acts.run("fields.add_field", { label: "Qty", fieldtype: "Int" });
+		await children.show(null);
+		const errors = [
+			{ target: { kind: "field", fieldname: "qty" }, message: "No qty.", doctype: "Task Note Step" },
+			{ target: { kind: "field", fieldname: "subject" }, message: "No subject." },
+		];
+		answers({ saved: false, errors });
+		await acts.run("editor.save");
+		const step = children.open.value!.canvas;
+		expect(step.state.doctype).toBe("Task Note Step");
+		expect([step.errorsAt("field", "qty"), step.errorsAt("field", "subject")]).toEqual([["No qty."], []]);
+		expect(mounted.canvas.errorsAt("field", "subject")).toEqual(["No subject."]);
+		answers(saved);
+		await acts.run("editor.save");
+		expect(step.errors.value).toEqual([]);
 	});
 });

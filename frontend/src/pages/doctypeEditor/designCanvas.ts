@@ -35,6 +35,8 @@ export interface SaveError {
 	/** The index of the staged edit it refuses. */
 	edit?: number;
 	code?: string;
+	/** The child table it refuses, in a call that saves more than one DocType. */
+	doctype?: string;
 }
 
 /** Where a field sits on the layout. */

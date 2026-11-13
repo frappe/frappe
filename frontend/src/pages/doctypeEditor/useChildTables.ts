@@ -13,6 +13,9 @@ export function useChildTables(edits: PendingEdits, parent: () => DesignCanvas |
 	const router = useRouter();
 	const tables = new ChildTables(edits, parent);
 	provide(CHILD_TABLES, tables);
+	const session = computed(() => tables.open.value);
+	/** The canvas the page shows and its acts edit: the open child table's, else the parent's. */
+	const shown = computed(() => session.value?.canvas ?? parent());
 
 	watch(
 		[() => route.query.table, parent],
@@ -27,6 +30,11 @@ export function useChildTables(edits: PendingEdits, parent: () => DesignCanvas |
 		if ((route.query.table ?? null) === table) return;
 		const { table: _open, ...query } = route.query;
 		void router.push({ query: table ? { ...query, table } : query });
+	}
+
+	/** Opens the editor an undo or redo steps back into: the child's for `doctype`, else the parent's. */
+	function reopen(doctype?: string) {
+		open(doctype ? tables.tableOf(doctype) : null);
 	}
 
 	/** Opens the child editor that holds `doctype`; its canvas, or null when no Table field holds it. */
@@ -49,5 +57,7 @@ export function useChildTables(edits: PendingEdits, parent: () => DesignCanvas |
 		return [{ label: field?.label || session.table, onClick: back }, { label: session.state.doctype }];
 	});
 
-	return { tables, open, showChild, crumbs };
+	const tableLabel = computed(() => crumbs.value[0]?.label ?? session.value?.table ?? "");
+
+	return { tables, session, shown, open, reopen, showChild, crumbs, tableLabel };
 }

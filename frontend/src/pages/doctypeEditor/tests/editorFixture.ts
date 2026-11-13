@@ -81,7 +81,7 @@ export function mountEditor(
 			created.push(doctype);
 			return open({ ...next(), doctype, pending: undefined });
 		},
-		children: () => children.saves(),
+		children,
 		showChild: async (doctype) => {
 			await children.show(children.tableOf(doctype));
 			return children.open.value?.canvas ?? null;

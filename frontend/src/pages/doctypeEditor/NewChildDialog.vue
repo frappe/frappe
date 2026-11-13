@@ -38,7 +38,13 @@ import { __ } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { newChildName } from "./childSource";
 
-const props = defineProps<{ parent: string; module: string; label: string }>();
+const props = defineProps<{
+	parent: string;
+	module: string;
+	label: string;
+	/** The new child tables this save already makes. */
+	staged: string[];
+}>();
 const emit = defineEmits<{ create: [name: string]; cancel: [] }>();
 
 const isOpen = ref(true);
@@ -46,14 +52,18 @@ const name = ref(newChildName(props.parent, props.label));
 const taken = ref("");
 const checking = ref(false);
 
-const nameError = computed(() =>
-	taken.value && taken.value === name.value.trim()
+const nameError = computed(() => {
+	const wanted = name.value.trim();
+	if (props.staged.includes(wanted))
+		return __("A new child table named {0} waits for the save", [wanted]);
+	return taken.value && taken.value === wanted
 		? __("A DocType named {0} exists already", [taken.value])
-		: undefined
-);
+		: undefined;
+});
 
 async function create() {
 	const wanted = name.value.trim();
+	if (props.staged.includes(wanted)) return;
 	checking.value = true;
 	try {
 		const { data } = await listDocuments("DocType", {

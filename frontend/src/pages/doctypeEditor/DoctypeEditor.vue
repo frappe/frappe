@@ -45,7 +45,6 @@
 						v-if="tab === 'editor' && shown"
 						:canvas="shown"
 						:save="save"
-						:meta-line="metaLine"
 						:customize="customizeRoute"
 					/>
 					<ChildSettings
@@ -56,7 +55,7 @@
 					<RowDialogPreview
 						v-else-if="openChild"
 						:canvas="openChild.canvas"
-						:table-label="child.crumbs.value[0]?.label ?? openChild.table"
+						:table-label="child.tableLabel.value"
 					/>
 					<PreviewTab
 						v-else-if="!state.pending"
@@ -82,7 +81,7 @@ import { ScrollArea, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import { getSocketInstance } from "@framework/ui/socket";
 import { acts } from "@/acts/dispatcher";
-import { __, __n } from "@/i18n";
+import { __ } from "@/i18n";
 import { COPY_OF } from "@/newRecordValues";
 import { discardChanges } from "@/pages/record/discardChanges";
 import { errorMessage } from "@/recordPage/errorMessage";
@@ -140,18 +139,16 @@ const asking = computed(() => (name.value === "new" && !state.value ? starting.v
 const head = reactive({}) as Omit<PendingEditsPayload, "edits">;
 const edits = new PendingEdits(head, (opened, doctype) => {
 	tab.value = opened;
-	child.open(doctype ? child.tables.tableOf(doctype) : null);
+	child.reopen(doctype);
 });
 const child = useChildTables(edits, () => canvas.value);
-const openChild = computed(() => child.tables.open.value);
-// The canvas the page shows and its acts edit: the open child table's, else the DocType's.
-const shown = computed(() => openChild.value?.canvas ?? canvas.value);
+const { session: openChild, shown } = child;
 const save = new EditorSave({
 	edits,
 	canvas: () => canvas.value,
 	reload,
 	created,
-	children: () => child.tables.saves(),
+	children: child.tables,
 	showChild: child.showChild,
 });
 // The DocType a first save just made: its editor is already open when the route moves to it.
@@ -177,17 +174,6 @@ useEditorActs({
 const layout = computed(() => (state.value ? detailsLayout(state.value) : null));
 // A new DocType is not saved until its first save, even with no edits staged.
 const dirty = computed(() => edits.dirty.value || Boolean(state.value?.pending));
-
-const metaLine = computed(() => {
-	const one = shown.value?.state;
-	if (!one) return "";
-	const parts = [one.module, one.app_title ? __("From {0}", [one.app_title]) : __("Custom")];
-	if (one.record_count != null)
-		parts.push(
-			__n("{0} record", "{0} records", one.record_count, [one.record_count.toLocaleString()])
-		);
-	return parts.join(" · ");
-});
 
 const customizeRoute = computed(() =>
 	state.value?.modes.includes("Customize")

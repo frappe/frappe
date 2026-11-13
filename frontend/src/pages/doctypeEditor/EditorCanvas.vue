@@ -84,7 +84,6 @@ import SaveBanner from "./SaveBanner.vue";
 const props = defineProps<{
 	canvas: DesignCanvas;
 	save: EditorSave;
-	metaLine: string;
 	/** Customize mode of this DocType, when the person may open it. */
 	customize: RouteLocationRaw | null;
 }>();
@@ -92,6 +91,15 @@ const props = defineProps<{
 provideInertForm();
 
 const tab = computed(() => props.canvas.openTab.value);
+const metaLine = computed(() => {
+	const { module, app_title, record_count } = props.canvas.state;
+	const parts = [module, app_title ? __("From {0}", [app_title]) : __("Custom")];
+	if (record_count != null)
+		parts.push(
+			__n("{0} record", "{0} records", record_count, [record_count.toLocaleString()])
+		);
+	return parts.join(" · ");
+});
 const siteFields = computed(() =>
 	props.canvas.state.mode === "Design" ? props.canvas.state.site_custom_fields ?? 0 : 0
 );

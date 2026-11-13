@@ -33,6 +33,7 @@
 		:parent="canvas.state.doctype"
 		:module="canvas.state.module"
 		:label="field.label ?? ''"
+		:staged="tables?.added() ?? []"
 		@create="create"
 		@cancel="naming = false"
 	/>
