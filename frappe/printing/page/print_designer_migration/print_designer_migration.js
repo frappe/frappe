@@ -79,7 +79,10 @@ class PrintDesignerMigration {
 			<div class="flex items-center gap-4 px-4 py-3">
 				<div class="flex flex-col gap-1 flex-1 min-w-0">
 					<div class="flex items-center gap-2">
-						<a class="text-base-medium text-ink-gray-8 truncate">${escape(row.name)}</a>
+						<a class="text-base-medium text-ink-gray-8 truncate" href="${frappe.utils.get_form_link(
+							"Print Format",
+							row.name
+						)}">${escape(row.name)}</a>
 						${frappe.ui.badge.html({ label: state.label, theme: state.theme, size: "sm" })}
 					</div>
 					<div class="text-sm text-ink-gray-5 truncate">${escape(details.join(" · "))}</div>
@@ -88,7 +91,6 @@ class PrintDesignerMigration {
 			</div>
 		`);
 		if (row.name === this.highlight) $row.addClass("highlighted bg-surface-gray-2");
-		$row.find("a").on("click", () => frappe.set_route("Form", "Print Format", row.name));
 
 		const $actions = $row.children().last();
 		const add = (label, onclick, icon_right) =>
