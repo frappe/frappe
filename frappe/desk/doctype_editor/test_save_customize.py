@@ -195,7 +195,8 @@ class TestSaveCustomize(IntegrationTestCase):
 			self.assertEqual(len(frappe.get_doc(NOTE, note.name).get("custom_t47273_readers")), 1)
 		finally:
 			frappe.delete_doc(NOTE, note.name, force=True)
-			frappe.db.commit()  # nosemgrep: tearDown rolls back first
+			# tearDown rolls back first, so commit the delete
+			frappe.db.commit()  # nosemgrep
 
 	def test_a_new_child_table_takes_design_edits(self):
 		table = {"act": "fields.add_child_table", "name": CHILD, "table_field": "custom_t47273_rows"}
