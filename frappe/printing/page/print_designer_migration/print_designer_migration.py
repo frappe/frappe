@@ -42,25 +42,23 @@ def get_print_designer_formats() -> list[dict]:
 
 
 def editor_copies(rows: list[dict]) -> dict[str, str]:
-	names = [row.name for row in rows]
+	by_name = {row.name: row for row in rows}
+	usable = {"print_format_builder_beta": 1, "print_designer": 0, "disabled": 0}
 	copies = {}
 	for copy in frappe.get_all(
 		"Print Format",
-		filters={"converted_from": ["in", names]},
-		fields=["name", "converted_from"],
+		filters={"converted_from": ["in", list(by_name)], **usable},
+		fields=["name", "doc_type", "converted_from"],
 		order_by="creation desc",
 	):
-		copies.setdefault(copy.converted_from, copy.name)
+		if copy.doc_type == by_name[copy.converted_from].doc_type:
+			copies.setdefault(copy.converted_from, copy.name)
 
 	named = {_("{0} (Editor)").format(row.name): row for row in rows if row.name not in copies}
 	if named:
 		for copy in frappe.get_all(
 			"Print Format",
-			filters={
-				"name": ["in", list(named)],
-				"print_format_builder_beta": 1,
-				"converted_from": ["is", "not set"],
-			},
+			filters={"name": ["in", list(named)], "converted_from": ["is", "not set"], **usable},
 			fields=["name", "doc_type"],
 		):
 			source = named[copy.name]
