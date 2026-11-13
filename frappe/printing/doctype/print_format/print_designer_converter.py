@@ -275,7 +275,7 @@ class PrintDesignerConverter:
 	def sections(self, elements) -> list[dict]:
 		elements = sorted(elements or [], key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
 		sections, previous_bottom = [], 0
-		for row in self.rows(elements):
+		for row in self.overlapping_rows(elements):
 			top = min(flt(e.get("startY")) for e in row)
 			section = {"label": "", "columns": self.columns(row)}
 			gap = top - previous_bottom
@@ -285,6 +285,24 @@ class PrintDesignerConverter:
 				sections.append(section)
 			previous_bottom = max(flt(e.get("startY")) + flt(e.get("height")) for e in row)
 		return sections
+
+	def overlapping_rows(self, elements) -> list[list[dict]]:
+		"""Rows that a tall element spans are one band, so the elements beside it
+		stay next to it instead of starting below it."""
+		bands, bottom = [], 0
+		for band in self.rows(elements):
+			top = min(flt(e.get("startY")) for e in band)
+			if (
+				bands
+				and top < bottom - 2
+				and band[0].get("layoutType") != "row"
+				and bands[-1][0].get("layoutType") != "row"
+			):
+				bands[-1].extend(band)
+			else:
+				bands.append(list(band))
+			bottom = max(bottom, *(flt(e.get("startY")) + flt(e.get("height")) for e in band))
+		return bands
 
 	def rows(self, elements) -> list[list[dict]]:
 		"""Group elements into horizontal bands: a compiled row rectangle is one band,
@@ -320,11 +338,14 @@ class PrintDesignerConverter:
 					for c in sorted(children, key=lambda c: flt(c.get("startX")))
 				]
 			row = children
+			top = 0
+		else:
+			top = min(flt(e.get("startY")) for e in row)
 		if any(flt(e.get("width")) > 0.6 * total for e in row) and len(row) > 1:
-			return [{"label": "", "fields": self.free_layout(row, total)}]
-		return self.columns_by_position(row, total)
+			return [{"label": "", "fields": self.free_layout(row, total, top=top)}]
+		return self.columns_by_position(row, total, top)
 
-	def columns_by_position(self, elements, total) -> list[dict]:
+	def columns_by_position(self, elements, total, top=0) -> list[dict]:
 		groups = []
 		for element in sorted(elements, key=lambda e: flt(e.get("startX"))):
 			left = flt(element.get("startX"))
@@ -347,7 +368,7 @@ class PrintDesignerConverter:
 				{
 					"label": "",
 					"width": round(width / total * 100, 1),
-					"fields": self.free_layout(group["items"], width, group["left"]),
+					"fields": self.free_layout(group["items"], width, group["left"], top),
 				}
 			)
 			cursor = group["right"]
@@ -382,10 +403,10 @@ class PrintDesignerConverter:
 			return self.free_layout(children, flt(element.get("width")) or width)
 		return self.free_layout(children, width)
 
-	def free_layout(self, elements, width, offset=0) -> list[dict]:
+	def free_layout(self, elements, width, offset=0, top=0) -> list[dict]:
 		"""Elements placed freely inside a box: a band holding several of them side by
 		side becomes one flex row, a band holding one keeps its own block."""
-		fields, bottom = [], 0
+		fields, bottom = [], top
 		width = width or self.content_width()
 		for band in self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))):
 			top = min(flt(e.get("startY")) for e in band)
