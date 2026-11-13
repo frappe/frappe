@@ -4,7 +4,7 @@ const api = vi.hoisted(() => ({ addFavourite: vi.fn(), removeFavourite: vi.fn() 
 vi.mock("@framework/ui/api", () => api);
 import { feedRecordRead, holdDocument, readCachedDocument, takeTicket } from "@framework/ui/cache";
 import { fetchFields } from "../defaults";
-import { isStarred, seedFavourites, toggleStar } from "../favouriteStars";
+import { isStarred, seedFavourites, starsWritten, toggleStar } from "../favouriteStars";
 import { commentCountOf, partsFor, personOf, seedRowParts } from "../rowParts";
 import { columnsFrom, sortFrom } from "../storedSettings";
 
@@ -94,6 +94,16 @@ describe("collaboration columns", () => {
 			cacheRecord("e", []);
 			seedFavourites("ToDo", { favourites: ["e"] }, ["e"], "me");
 			expect(isStarred("ToDo", "e", "me")).toBe(true);
+		});
+
+		it("ignores a list read sent before a toggle that has landed", async () => {
+			cacheRecord("g", [{ user: "me" }]);
+			const sentAt = starsWritten();
+			api.removeFavourite.mockResolvedValue({ data: {} });
+			await toggleStar("ToDo", "g", "me");
+			seedFavourites("ToDo", { favourites: ["g"] }, ["g"], "me", sentAt);
+			expect(isStarred("ToDo", "g", "me")).toBe(false);
+			expect(cachedUsers("g")).toEqual([]);
 		});
 
 		it("follows a toggle from the list when the call's own reply did not reach the cache", async () => {
