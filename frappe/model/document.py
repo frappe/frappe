@@ -2374,9 +2374,11 @@ class Document(_DocumentBase):
 		if not doc_to_compare and (amended_from := self.get("amended_from")):
 			doc_to_compare = frappe.get_doc(self.doctype, amended_from)
 
+		from frappe.core.doctype.version.version import has_agent
+
 		version = frappe.new_doc("Version")
 
-		if not doc_to_compare and not self.flags.updater_reference:
+		if not doc_to_compare and not (self.flags.updater_reference or has_agent()):
 			return
 
 		if version.update_version_info(doc_to_compare, self):
