@@ -34,6 +34,15 @@ function _eval(
   );
 }
 
+/** The value of an `eval:` body, as a link filter reads it. Throws what the body throws. */
+export function evaluateValue(
+  code: string,
+  doc: Record<string, any>,
+  parent: Record<string, any> = doc
+): unknown {
+  return _eval(code, doc, parent);
+}
+
 export function evaluateDependsOn(
   expression: string | undefined,
   doc: Record<string, any>,

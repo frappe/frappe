@@ -161,6 +161,7 @@ export function mapField(
     label: field.label,
     options: field.options,
     filters: field.filters,
+    linkFilters: field.link_filters || undefined,
     reqd: !!field.reqd,
     default: field.default,
     precision: coercePrecision(field.precision),

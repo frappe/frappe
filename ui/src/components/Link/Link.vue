@@ -231,14 +231,11 @@ watch(
 );
 watch(model, () => (typing.value = false));
 
-watch(
-	[() => props.doctype, () => props.filters],
-	() => {
-		searched = null;
-		if (open.value) loadOptions("");
-	},
-	{ deep: true }
-);
+// By value: a form resolves a field's filters afresh on each render.
+watch([() => props.doctype, () => JSON.stringify(props.filters ?? {})], () => {
+	searched = null;
+	if (open.value) loadOptions("");
+});
 
 onBeforeUnmount(() => handleInputChange.cancel());
 

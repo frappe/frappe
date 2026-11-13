@@ -1,4 +1,5 @@
 import { evaluateDependsOn } from "./dependsOn";
+import { mergeLinkFilters, resolveLinkFilters } from "./linkFilters";
 import type {
   Column,
   FieldMeta,
@@ -122,13 +123,18 @@ export function resolveFieldConditionals<
     (!!f.readOnlyDependsOn &&
       evaluateDependsOn(f.readOnlyDependsOn, doc, parent));
 
+  // Desk v1 lets the DocField's filters win over a script's (`link.js`).
+  const own = f.linkFilters && resolveLinkFilters(f.linkFilters, doc, parent);
+  const filters = own ? mergeLinkFilters(f.filters, own, f.options) : f.filters;
+
   const override = f.override;
-  if (!override) return { ...f, hidden, reqd, readOnly };
+  if (!override) return { ...f, hidden, reqd, readOnly, filters };
 
   // Last word, on purpose: the override is the only thing here that can turn a
   // conditional result off, which is what lets an app beat `depends_on`.
   return {
     ...f,
+    filters,
     hidden: applyOverride(f, "hidden", hidden, override.hidden),
     reqd: applyReqd(f, reqd, override.reqd),
     readOnly: applyOverride(f, "readOnly", readOnly, override.readOnly),
