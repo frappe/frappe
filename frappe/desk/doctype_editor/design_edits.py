@@ -11,7 +11,7 @@ from frappe.desk.doctype_editor.errors import EditError, field_error
 from frappe.model import no_value_fields
 
 RESERVED_PROPERTIES = ("name", "parent", "parenttype", "parentfield", "idx", "doctype")
-DOCTYPE_PROPERTIES = ("description",)
+DOCTYPE_PROPERTIES = ("description", "editable_grid", "allow_bulk_edit")
 PLACE_KEYS = ("fieldname", "section", "column", "index", "tab")
 UNFETCHABLE_TYPES = (*no_value_fields, "Dynamic Link")
 # A column is named with its section: column names repeat across sections.
@@ -128,6 +128,8 @@ class DesignEdits:
 		if not name or not edit.get("table_field"):
 			raise EditError(_("A new child table needs a name and a table field."))
 		self.state.add_child(name)
+		if table := self.state.doc.get("fields", {"fieldname": edit["table_field"]}):
+			return self.fill_table_field(table[0], name)
 		self.fields_add_field(
 			{
 				**edit,
@@ -137,6 +139,11 @@ class DesignEdits:
 				"options": name,
 			}
 		)
+
+	def fill_table_field(self, field, name: str):
+		if field.fieldtype != "Table":
+			raise field_error(_("{0} is not a Table field.").format(field.fieldname), field.fieldname)
+		field.options = name
 
 	def settings_set_doctype_property(self, edit: dict):
 		property = edit.get("property")

@@ -559,6 +559,28 @@ class TestSaveDesign(IntegrationTestCase):
 		table = frappe.get_meta(DOCTYPE).get_field("items")
 		self.assertEqual((table.fieldtype, table.options), ("Table", child))
 
+	def test_a_new_child_table_fills_a_table_field_added_before_it(self):
+		child = f"{DOCTYPE} Line"
+		self.addCleanup(delete_committed, "DocType", child)
+		result = self.save(
+			{
+				DOCTYPE: [
+					{"act": "fields.add_field", "label": "Lines", "fieldtype": "Table", "fieldname": "lines"},
+					{"act": "fields.add_child_table", "table_field": "lines", "name": child},
+				],
+				child: [
+					{"act": "fields.add_field", "label": "Qty", "fieldtype": "Int"},
+					{"act": "settings.set_doctype_property", "property": "allow_bulk_edit", "value": 1},
+				],
+			}
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.db.get_value("DocType", child, "allow_bulk_edit"), 1)
+		tables = [field for field in frappe.get_meta(DOCTYPE).fields if field.fieldtype == "Table"]
+		self.assertEqual(
+			[(field.fieldname, field.label, field.options) for field in tables], [("lines", "Lines", child)]
+		)
+
 	def test_a_renamed_table_field_keeps_its_rows(self):
 		child = f"{DOCTYPE} Item"
 		self.addCleanup(delete_committed, "DocType", child)
