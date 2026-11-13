@@ -1,6 +1,7 @@
 // The actions every record gets from the framework, gated by its rights: quick actions on
 // the panel, the `⋯` menu's rows in the header. Each is an ordinary item a script hides or reorders by name.
 import { deleteDocument } from "@framework/ui/api";
+import type { RouteLocationRaw } from "vue-router";
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import type { TabCreateAction } from "@/recordPage/types";
 import { COPY_OF } from "@/newRecordValues";
@@ -9,6 +10,7 @@ import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import { assignItem, type AssignState } from "./assignAct";
 import { renameItem } from "./renameAct";
 import { editorRoute, type EditorEntry } from "@/pages/doctypeEditor/entries/editorEntries";
+import { editLayoutItem } from "./editLayoutItem";
 
 export function quickActionBuiltins(
   perms: Record<string, any>,
@@ -65,6 +67,8 @@ export function headerMenuBuiltins(
     submitted?: boolean;
     fieldActions?: HeaderItem[];
     editorEntries?: EditorEntry[];
+    /** The editor's route at the layout the record shows; absent without the right. */
+    editLayout?: RouteLocationRaw | null;
   } = {}
 ): HeaderItem[] {
   const items: HeaderItem[] = [
@@ -94,6 +98,7 @@ export function headerMenuBuiltins(
   if (options.duplicate)
     items.push({ name: "duplicate", label: "Duplicate", icon: "lucide-copy", group: "copies", run: duplicate });
   for (const entry of options.editorEntries ?? []) items.push(editorItem(entry));
+  if (options.editLayout) items.push(editLayoutItem(options.editLayout));
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single && !options.submitted)
     items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });

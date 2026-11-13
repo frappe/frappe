@@ -128,8 +128,8 @@ const SESSION: Session = {
 };
 
 const addresses = new Addresses({
-	doctypes: { Lead: ["lead", "crm"], Territory: ["territory", "crm"] },
-	modules: { crm: "CRM" },
+	doctypes: { Lead: ["lead", "crm"], Territory: ["territory", "crm"], DocType: ["doctype", "core"] },
+	modules: { crm: "CRM", core: "Core" },
 });
 const boot = { app: "crm", shell_base: "/apps/crm", prefixes: { crm: { app: "crm", modular: false } } } as unknown as Boot;
 
@@ -233,7 +233,7 @@ const APP_ROUTES = [
 const INDEX_ROUTES = [{ path: "/", name: "home", component: { render: () => null } }];
 
 /** Opens Create the way a caller does and mounts the dialog the shell would draw for it. */
-async function open(doctype: string, values?: Record<string, unknown>, routes = APP_ROUTES) {
+async function open(doctype: string, values?: Record<string, unknown>, routes = APP_ROUTES, shellBoot?: Boot) {
 	router = createRouter({ history: createMemoryHistory(), routes });
 	registerShell({ boot, addresses, router });
 	await router.push(router.hasRoute("list") ? routeFor(doctype) : "/");
@@ -244,6 +244,7 @@ async function open(doctype: string, values?: Record<string, unknown>, routes = 
 	document.body.appendChild(root);
 	const app = createApp(CreateDialog, { request });
 	app.use(router);
+	if (shellBoot) app.provide("boot", shellBoot);
 	app.mount(root);
 	apps.push(app);
 	await settle();
@@ -528,6 +529,30 @@ describe("Edit full form", () => {
 		await click(root, "Edit full form");
 
 		expect(router.currentRoute.value.query).toEqual({ status: "Closed" });
+	});
+});
+
+describe("Edit layout", () => {
+	const EDITOR_ROUTES = [{ path: "/doctype/:name", name: "doctype-editor", component: { render: () => null } }, ...APP_ROUTES];
+	const shellBoot = (roles: string[]) =>
+		({ ...boot, developer_mode: false, session: { ...SESSION, roles } }) as unknown as Boot;
+
+	it("opens the editor at the Quick Entry layout for a System Manager, and resolves null", async () => {
+		const { root, answer } = await open("Lead", undefined, EDITOR_ROUTES, shellBoot(["System Manager"]));
+
+		await click(root, "Edit layout");
+
+		expect(answer).toEqual({ settled: true, doc: null });
+		expect(router.currentRoute.value.path).toBe("/doctype/Lead");
+		expect(router.currentRoute.value.query).toEqual({ layout: "quick-entry" });
+		expect(createRequests.value).toEqual([]);
+	});
+
+	it("is not offered without the right", async () => {
+		const { root } = await open("Lead", undefined, EDITOR_ROUTES, shellBoot(["Sales User"]));
+
+		expect(button(root, "Edit full form")).toBeTruthy();
+		expect(button(root, "Edit layout")).toBeUndefined();
 	});
 });
 

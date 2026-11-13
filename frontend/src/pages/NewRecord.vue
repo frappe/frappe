@@ -8,6 +8,7 @@
 		:key="openingKey(route)"
 		:doctype="doctype"
 		:query="route.query"
+		:editLayout="editLayoutRoute('new-record')"
 	/>
 	<PageFrame v-else :state="{ name: 'notFound' }" />
 </template>
@@ -16,6 +17,8 @@
 import { computed, inject } from "vue";
 import { useRoute } from "vue-router";
 import type { Addresses } from "@/addresses";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { useEditLayoutRoute } from "./editLayout";
 import { openingKey } from "./record/openingKey";
 import PageFrame from "@/shell/PageFrame.vue";
 import UnsavedRecord from "./record/UnsavedRecord.vue";
@@ -23,4 +26,6 @@ import UnsavedRecord from "./record/UnsavedRecord.vue";
 const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
+const { meta } = useDoctypeMeta(() => doctype.value ?? "");
+const editLayoutRoute = useEditLayoutRoute(meta);
 </script>

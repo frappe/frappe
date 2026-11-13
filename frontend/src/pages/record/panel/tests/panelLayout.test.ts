@@ -2,6 +2,7 @@
 // and the proof walk's second act: hide one section by name, its neighbour stands.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref } from "vue";
+import { createMemoryHistory, createRouter } from "vue-router";
 
 vi.mock("frappe-ui", async (importOriginal) => ({
 	...((await importOriginal()) as Record<string, unknown>),
@@ -73,7 +74,8 @@ async function mount(
 	opened: Record<string, boolean> = {},
 	doctype?: string,
 	scrolls = false,
-	layout: FormLayoutSchema = LAYOUT
+	layout: FormLayoutSchema = LAYOUT,
+	extra: Record<string, unknown> = {}
 ) {
 	const doc = ref({ organization: "Frappe" });
 	const sections = layoutSections(layout, doc.value);
@@ -98,9 +100,11 @@ async function mount(
 					doc: doc.value,
 					isOpen: (name: string) => opened[name] ?? true,
 					onToggle: (name: string) => toggled.push(name),
+					...extra,
 				}),
 		})
 	);
+	app.use(createRouter({ history: createMemoryHistory(), routes: [{ path: "/:any(.*)*", component: { render: () => null } }] }));
 	app.provide(CommitKey, NO_COMMIT);
 	app.mount(root);
 	mounted.push(app);
@@ -399,5 +403,26 @@ describe("a header translates with the DocType as context", () => {
 		const lead = await mount(new Surface<PanelSectionItem>(), {}, "Lead");
 		expect(lead.root.textContent).not.toContain("Organisation");
 		expect(lead.root.textContent).toContain("Organization");
+	});
+});
+
+describe("Edit panel", () => {
+	const edit = (root: HTMLElement) =>
+		[...root.querySelectorAll<HTMLAnchorElement>("a")].find((one) => one.textContent?.trim() === "Edit panel");
+
+	it("links to the editor's side panel after the sections, only when handed the route", async () => {
+		const plain = await mount(new Surface<PanelSectionItem>());
+		expect(edit(plain.root)).toBeUndefined();
+
+		const route = "/doctype/Contact?layout=side-panel";
+		const { root } = await mount(new Surface<PanelSectionItem>(), {}, undefined, false, LAYOUT, { editRoute: route });
+		expect(edit(root)?.getAttribute("href")).toBe(route);
+	});
+
+	it("waits for the layout: no link under the skeleton", async () => {
+		const route = "/doctype/Contact?layout=side-panel";
+		const extra = { editRoute: route, loading: true };
+		const { root } = await mount(new Surface<PanelSectionItem>(), {}, undefined, false, LAYOUT, extra);
+		expect(edit(root)).toBeUndefined();
 	});
 });

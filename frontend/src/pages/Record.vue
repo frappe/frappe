@@ -89,6 +89,7 @@
 						:reloadDocinfo="reloadDocinfo"
 						:whileOnRecord="visitCheck"
 						:onDetails="(fieldname: string) => !!tabOf(form, fieldname)"
+						:editRoute="editLayoutRoute('side-panel')"
 						@expand="expand"
 					/>
 				</template>
@@ -197,6 +198,7 @@ import {
 import { DocstatusMover, queueFailureMessage, type QueueFailure } from "./record/queuedDocstatus";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
 import { editorEntries } from "./doctypeEditor/entries/editorEntries";
+import { useEditLayoutRoute } from "./editLayout";
 import { fieldActionQuickActions, fieldActionRows } from "./record/fieldActionEntries";
 import { fieldActionItems } from "@/shell/fieldActions";
 import { renameRecord } from "./record/renameAct";
@@ -283,6 +285,7 @@ let releaseFresh = () => {};
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const docname = computed(() => String(route.params.name));
 const canCreate = useCreateRight(() => doctype.value ?? "");
+const editLayoutRoute = useEditLayoutRoute(meta);
 
 const dirty = computed(() => !sameContent(doc.value, saved.value));
 
@@ -479,6 +482,10 @@ function headerBuiltins(): HeaderItem[] {
 						developerMode: boot.developer_mode,
 						meta: meta.value,
 					}),
+					editLayout: editLayoutRoute(
+						"details",
+						detailsLayout.value?.conditionalRow.value
+					),
 				}
 			),
 			saved.value.name === docname.value
@@ -899,7 +906,8 @@ function buildController({ visit, target, pointer, details, panel, view }: Openi
 				layout,
 				doc.value,
 				target.doctype,
-				submitting
+				submitting,
+				editLayoutRoute("details", detailsLayout.value?.conditionalRow.value)
 			),
 		activateFormTab: (identity) => void (formTab.value = identity),
 		discloseSection: disclosure.disclose,

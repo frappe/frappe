@@ -71,6 +71,7 @@ import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 import { ActKeys } from "@/shell/actKeys";
+import { acts } from "@/acts/dispatcher";
 import { resetViewMemory } from "../viewMemory";
 
 registerStandardPages(standardPages);
@@ -197,8 +198,8 @@ const boot = {
   session: { user: { name: "test@example.com", email: "test@example.com" } },
 } as unknown as Boot;
 const addresses = new Addresses({
-  doctypes: { Note: ["note", "desk"], "Note Settings": ["note-settings", "desk"] },
-  modules: { desk: "Desk" },
+  doctypes: { Note: ["note", "desk"], "Note Settings": ["note-settings", "desk"], DocType: ["doctype", "core"] },
+  modules: { desk: "Desk", core: "Core" },
   singles: ["Note Settings"],
 });
 const socket = { on() {}, off() {}, emit() {} };
@@ -381,6 +382,27 @@ describe("opening /<doctype>/new", () => {
     );
     expect(fieldnames[0]).toBe("__newname");
     expect(input(root, "__newname")!.value).toBe("My Note");
+  });
+});
+
+describe("Edit layout", () => {
+  afterEach(() => delete (boot.session as any).roles);
+
+  it("sits in the ⋯ menu for a System Manager and opens the editor at the New Record layout", async () => {
+    (boot.session as any).roles = ["System Manager"];
+    const { root, router } = await mount("/note/new");
+    const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
+
+    expect(root.querySelector('[aria-label="More actions"]')).not.toBeNull();
+    await acts.run("header.edit_layout");
+
+    expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Note" }, query: { layout: "new-record" } });
+  });
+
+  it("is not offered without the right", async () => {
+    await mount("/note/new");
+
+    expect(acts.find("header.edit_layout")).toBeUndefined();
   });
 });
 

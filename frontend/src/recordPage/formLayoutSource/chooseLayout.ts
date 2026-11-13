@@ -16,6 +16,12 @@ export function chooseRow(
 	return matches[0] ?? rows.find((row) => !row.condition) ?? null;
 }
 
+/** A site row's name, or an app file's layout as `app:<index>` among the app's layouts, which come last. */
+export function editorRowId(rows: FormLayoutRow[], row: FormLayoutRow): string {
+	if (row.name !== null) return String(row.name);
+	return `app:${rows.filter((one) => one.name === null).indexOf(row)}`;
+}
+
 /**
  * The `depends_on` dialect: an optional `eval:` prefix, a bare fieldname, or a JS expression
  * over `doc`. An expression that throws matches nothing, so a broken condition cannot steal the layout.

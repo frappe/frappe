@@ -38,11 +38,16 @@
 			</PanelSection>
 		</div>
 		<PanelSectionsSkeleton v-if="loading" />
+		<div v-else-if="editRoute" class="px-2 pb-3 pt-1">
+			<Button variant="ghost" :label="__('Edit panel')" :route="editRoute" />
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, provide, ref } from "vue";
+import type { RouteLocationRaw } from "vue-router";
+import { Button } from "frappe-ui";
 import { useFieldTypes, warnMissingCommit } from "@framework/ui/FormLayout";
 import { CommitKey, DocKey, ResolveFieldKey, UpdateKey } from "@framework/ui/FormLayout/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
@@ -75,6 +80,8 @@ const props = defineProps<{
 	isOpen: (name: string) => boolean;
 	/** The Side Panel layout is still loading: its sections are drawn as skeletons. */
 	loading?: boolean;
+	/** The editor's route at the Side Panel layout; absent without the right. */
+	editRoute?: RouteLocationRaw | null;
 }>();
 
 const emit = defineEmits<{ toggle: [name: string]; expand: [field: FieldNode] }>();

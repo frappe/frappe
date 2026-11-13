@@ -66,6 +66,7 @@ vi.mock("@/recordPage", async (importOriginal) => {
         loading: computed(() => state.loading.value),
         error: computed(() => null),
         placed: computed(() => []),
+        conditionalRow: computed(() => null),
         reload: () => {},
         settled: () =>
           new Promise<void>((resolve) => {

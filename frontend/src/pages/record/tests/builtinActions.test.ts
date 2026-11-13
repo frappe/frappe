@@ -183,6 +183,24 @@ describe("quickActionBuiltins", () => {
     expect(rows[3]).toMatchObject({ label: "Duplicate", icon: "lucide-copy" });
   });
 
+  it("offers Edit layout in the editor's band before Delete only when handed its route, and opens it", () => {
+    expect(menu({ delete: 1 }).map((item) => item.name)).not.toContain("edit_layout");
+    const route = { name: "doctype-editor", query: { layout: "details", row: "FL-1" } };
+    const rows = headerMenuBuiltins({ delete: 1 }, off, { editLayout: route });
+    expect(rows.map((item) => [item.name, item.group])).toEqual([
+      ["favourite_row", "favourite_band"],
+      ["copy_url", "copies"],
+      ["copy_id", "copies"],
+      ["edit_layout", "customize"],
+      ["delete", "danger"],
+    ]);
+    expect(rows[3]).toMatchObject({ label: "Edit layout", icon: "lucide-layout-template" });
+    expect(rows[3].display).toBeUndefined();
+    const page = fakePage(null);
+    rows[3].run!(page);
+    expect(page.router.push).toHaveBeenCalledWith(route);
+  });
+
   it("duplicates by opening the new record page on a copy of this record", async () => {
     const page = fakePage(null);
     const duplicate = headerMenuBuiltins({}, off, { duplicate: true }).find((item) => item.name === "duplicate")!;
