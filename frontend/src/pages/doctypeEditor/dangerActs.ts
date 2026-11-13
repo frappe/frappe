@@ -69,19 +69,23 @@ async function changeKind(host: EditorActsHost, value?: { kind?: DoctypeKind }) 
 	const state = await settled(host);
 	const kind = state && (value?.kind ?? (await host.danger.askKind(state)));
 	if (!state || !kind) return;
-	await runMethod(DANGER_METHOD.change_kind, { doctype: state.doctype, kind });
-	const label = KINDS.find((one) => one.value === kind)?.label ?? kind;
-	toast.success(__("{0} is a {1} DocType now.", [state.doctype, __(label)]));
-	await host.danger.reload();
+	await held(host, async () => {
+		await runMethod(DANGER_METHOD.change_kind, { doctype: state.doctype, kind }, { nullable: true });
+		const label = KINDS.find((one) => one.value === kind)?.label ?? kind;
+		toast.success(__("{0} is a {1} DocType now.", [state.doctype, __(label)]));
+		await host.danger.reload();
+	});
 }
 
 async function rename(host: EditorActsHost, value?: { name?: string }) {
 	const state = await settled(host);
 	const asked = state && (value?.name ?? (await host.danger.askName(state)));
 	if (!state || !asked) return;
-	const { data: name } = await runMethod<string>(DANGER_METHOD.rename_doctype, { doctype: state.doctype, new_name: asked });
-	toast.success(__("Renamed {0} to {1}.", [state.doctype, name]));
-	await host.danger.renamed(name);
+	await held(host, async () => {
+		const { data: name } = await runMethod<string>(DANGER_METHOD.rename_doctype, { doctype: state.doctype, new_name: asked });
+		toast.success(__("Renamed {0} to {1}.", [state.doctype, name]));
+		await host.danger.renamed(name);
+	});
 }
 
 async function move(host: EditorActsHost, value: { module?: string } | undefined, standard: boolean) {
@@ -89,17 +93,31 @@ async function move(host: EditorActsHost, value: { module?: string } | undefined
 	const module = state && (value?.module ?? (await host.danger.askModule(state, standard)));
 	if (!state || !module) return;
 	const { doctype } = state;
-	await runMethod(standard ? DANGER_METHOD.make_standard : DANGER_METHOD.move_doctype, { doctype, module });
-	toast.success(standard ? __("{0} is standard now, in {1}.", [doctype, module]) : __("Moved {0} to {1}.", [doctype, module]));
-	await host.danger.reload();
+	await held(host, async () => {
+		await runMethod(standard ? DANGER_METHOD.make_standard : DANGER_METHOD.move_doctype, { doctype, module }, { nullable: true });
+		toast.success(standard ? __("{0} is standard now, in {1}.", [doctype, module]) : __("Moved {0} to {1}.", [doctype, module]));
+		await host.danger.reload();
+	});
 }
 
 async function remove(host: EditorActsHost) {
 	const state = await settled(host);
 	if (!state || !(await host.danger.askDelete(state))) return;
-	await runMethod(DANGER_METHOD.delete_doctype, { doctype: state.doctype });
-	toast.success(__("Deleted {0}.", [state.doctype]));
-	await host.danger.deleted();
+	await held(host, async () => {
+		await runMethod(DANGER_METHOD.delete_doctype, { doctype: state.doctype }, { nullable: true });
+		toast.success(__("Deleted {0}.", [state.doctype]));
+		await host.danger.deleted();
+	});
+}
+
+/** An act holds every edit until it and the page's follow-up finish: the reload drops what is pending. */
+async function held(host: EditorActsHost, run: () => Promise<void>) {
+	host.edits.locked.value = true;
+	try {
+		await run();
+	} finally {
+		host.edits.locked.value = false;
+	}
 }
 
 /** Why the Change kind dialog cannot pick `to`; "" when it can. The server counts every row; `records` is what the reader sees. */

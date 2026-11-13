@@ -14,6 +14,7 @@ from frappe.desk.doctype_editor.danger import (
 	move_doctype,
 	rename_doctype,
 )
+from frappe.desk.doctype_editor.test_create import make_user
 from frappe.desk.doctype_editor.test_save_design import delete_committed, make_custom_doctype
 from frappe.modules.utils import doctype_python_modules
 from frappe.tests import IntegrationTestCase
@@ -21,6 +22,8 @@ from frappe.tests import IntegrationTestCase
 DOCTYPE = "Test Editor 47278"
 RENAMED = "Test Editor 47278 Renamed"
 PARENT = "Test Editor 47278 Parent"
+SYSTEM_MANAGER = "danger-47278-sm@example.com"
+NO_ROLES = "danger-47278-none@example.com"
 
 
 class TestChangeKind(IntegrationTestCase):
@@ -61,6 +64,22 @@ class TestChangeKind(IntegrationTestCase):
 	def test_submittable_adds_amended_from(self):
 		change_kind(DOCTYPE, "submittable")
 		self.assertTrue(frappe.get_meta(DOCTYPE).get_field("amended_from"))
+
+	def test_leaving_submittable_drops_submit_cancel_and_amend(self):
+		change_kind(DOCTYPE, "submittable")
+		doc = frappe.get_doc("DocType", DOCTYPE)
+		doc.permissions[0].update({"submit": 1, "cancel": 1, "amend": 1})
+		doc.save()
+		change_kind(DOCTYPE, "regular")
+		rights = frappe.get_doc("DocType", DOCTYPE).permissions[0]
+		self.assertEqual((rights.submit, rights.cancel, rights.amend), (0, 0, 0))
+
+	def test_a_user_without_system_manager_is_refused(self):
+		make_user(NO_ROLES, [])
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(NO_ROLES)
+		with self.assertRaises(frappe.PermissionError):
+			change_kind(DOCTYPE, "submittable")
 
 	def test_a_single_cannot_change_kind(self):
 		with self.assertRaises(frappe.ValidationError):
@@ -132,6 +151,36 @@ class TestFiles(IntegrationTestCase):
 		frappe.conf.developer_mode = 0
 		with self.assertRaises(frappe.PermissionError):
 			make_standard(DOCTYPE, "Core")
+
+	def test_make_standard_is_refused_into_a_module_that_has_its_folder(self):
+		folder("Core").mkdir(parents=True)
+		with self.assertRaises(frappe.ValidationError):
+			make_standard(DOCTYPE, "Core")
+		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "custom"), 1)
+
+	def test_a_standard_doctype_without_a_tree_controller_cannot_become_a_tree(self):
+		make_standard(DOCTYPE, "Core")
+		with self.assertRaises(frappe.ValidationError):
+			change_kind(DOCTYPE, "tree")
+
+	def test_only_administrator_renames_or_deletes_a_standard_doctype(self):
+		make_standard(DOCTYPE, "Core")
+		make_user(SYSTEM_MANAGER, ["System Manager"])
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(SYSTEM_MANAGER)
+		with self.assertRaises(frappe.PermissionError):
+			rename_doctype(DOCTYPE, RENAMED)
+		with self.assertRaises(frappe.PermissionError):
+			delete_doctype(DOCTYPE)
+		self.assertTrue(frappe.db.exists("DocType", DOCTYPE))
+
+	def test_a_system_manager_moves_a_standard_doctype(self):
+		make_standard(DOCTYPE, "Core")
+		make_user(SYSTEM_MANAGER, ["System Manager"])
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(SYSTEM_MANAGER)
+		move_doctype(DOCTYPE, "Desk")
+		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "module"), "Desk")
 
 	def test_move_moves_the_files(self):
 		make_standard(DOCTYPE, "Core")

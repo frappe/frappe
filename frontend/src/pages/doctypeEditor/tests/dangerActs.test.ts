@@ -15,7 +15,11 @@ import { mountEditor, taskNote } from "./editorFixture";
 let stop: () => void;
 beforeEach(() => {
 	runMethod.mockReset();
-	runMethod.mockResolvedValue({ data: null });
+	// Like the real runMethod: a 200 with no data throws unless the caller allows it.
+	runMethod.mockImplementation(async (_method: string, _args: object, options?: { nullable?: boolean }) => {
+		if (!options?.nullable) throw new Error("answered 200 with no data");
+		return { data: null };
+	});
 	toast.success.mockReset();
 });
 afterEach(() => stop());
@@ -68,11 +72,24 @@ describe("which Danger zone acts show", () => {
 });
 
 describe("running a Danger zone act", () => {
+	it("holds every edit until the act and its reload finish", async () => {
+		const seen: boolean[] = [];
+		const { host, mounted } = mount({}, { reload: vi.fn(async () => void seen.push(mounted.edits.locked.value)) });
+		runMethod.mockImplementationOnce(async () => {
+			seen.push(mounted.edits.locked.value);
+			return { data: null };
+		});
+		await acts.run("danger.change_kind");
+		expect(host.reload).toHaveBeenCalled();
+		expect(seen).toEqual([true, true]);
+		expect(mounted.edits.locked.value).toBe(false);
+	});
+
 	it("changes the kind the dialog picks, then reloads", async () => {
 		const { host } = mount();
 		await acts.run("danger.change_kind");
 		expect(host.askKind).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note" }));
-		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.change_kind, { doctype: "Task Note", kind: "submittable" });
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.change_kind, { doctype: "Task Note", kind: "submittable" }, { nullable: true });
 		expect(toast.success).toHaveBeenCalled();
 		expect(host.reload).toHaveBeenCalled();
 	});
@@ -81,7 +98,7 @@ describe("running a Danger zone act", () => {
 		const { host } = mount();
 		await acts.run("danger.change_kind", { kind: "tree" });
 		expect(host.askKind).not.toHaveBeenCalled();
-		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.change_kind, { doctype: "Task Note", kind: "tree" });
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.change_kind, { doctype: "Task Note", kind: "tree" }, { nullable: true });
 	});
 
 	it("does nothing when the dialog is cancelled", async () => {
@@ -104,9 +121,9 @@ describe("running a Danger zone act", () => {
 		const { host } = mount();
 		await acts.run("danger.move_doctype");
 		expect(host.askModule).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note" }), false);
-		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.move_doctype, { doctype: "Task Note", module: "Core" });
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.move_doctype, { doctype: "Task Note", module: "Core" }, { nullable: true });
 		await acts.run("danger.make_standard", { module: "Desk" });
-		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.make_standard, { doctype: "Task Note", module: "Desk" });
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.make_standard, { doctype: "Task Note", module: "Desk" }, { nullable: true });
 		expect(host.reload).toHaveBeenCalledTimes(2);
 	});
 
@@ -114,7 +131,7 @@ describe("running a Danger zone act", () => {
 		const { host } = mount();
 		await acts.run("danger.delete_doctype");
 		expect(host.askDelete).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note", record_count: 4 }));
-		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.delete_doctype, { doctype: "Task Note" });
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.delete_doctype, { doctype: "Task Note" }, { nullable: true });
 		expect(host.deleted).toHaveBeenCalled();
 	});
 

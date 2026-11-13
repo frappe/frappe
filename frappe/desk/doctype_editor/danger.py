@@ -11,8 +11,9 @@ from frappe.cache_manager import clear_controller_cache
 from frappe.desk.doctype.form_layout.form_layout import publish_doctype_update
 from frappe.desk.doctype_editor.create import remove_doctype
 from frappe.desk.doctype_editor.mode import check_mode
+from frappe.model.base_document import get_controller
 from frappe.modules import get_doc_path
-from frappe.utils.nestedset import rebuild_tree
+from frappe.utils.nestedset import NestedSet, rebuild_tree
 
 KINDS = ("regular", "submittable", "tree", "child", "single")
 
@@ -25,6 +26,10 @@ def change_kind(doctype: str, kind: str) -> None:
 	if refusal := kind_refusal(doc, kind):
 		frappe.throw(refusal)
 	doc.update(kind_flags(kind))
+	if not doc.is_submittable:
+		# Else the save refuses Submit, Cancel and Amend on a DocType that no longer submits.
+		for perm in doc.permissions:
+			perm.submit = perm.cancel = perm.amend = 0
 	# A child table has no permissions: give it back the rule a new DocType gets.
 	doc.before_insert()
 	doc.save()
@@ -39,6 +44,7 @@ def change_kind(doctype: str, kind: str) -> None:
 def rename_doctype(doctype: str, new_name: str) -> str:
 	"""Renames its table and every Link and Table field that points to it; returns the new name."""
 	check_mode(doctype, "Design")
+	check_administrator(doctype)
 	new_name = frappe.rename_doc("DocType", doctype, new_name)
 	done(new_name)
 	return new_name
@@ -49,6 +55,7 @@ def rename_doctype(doctype: str, new_name: str) -> str:
 def delete_doctype(doctype: str) -> None:
 	"""Deletes it with its records, layouts and table; custom fields that use it as a child table go too."""
 	check_mode(doctype, "Design")
+	check_administrator(doctype)
 	remove_doctype(doctype)
 	done(doctype)
 
@@ -84,6 +91,7 @@ def make_standard(doctype: str, module: str) -> None:
 	if not doc.custom:
 		frappe.throw(_("{0} is already a standard DocType.").format(frappe.bold(doctype)))
 	check_app_module(module)
+	check_no_folder(module, doctype)
 	doc.custom = 0
 	doc.module = module
 	doc.save()
@@ -95,6 +103,15 @@ def kind_refusal(doc, kind: str) -> str | None:
 		return _("{0} is not a kind of DocType.").format(kind)
 	if doc.issingle or kind == "single":
 		return _("A Single is set when a DocType is made. Make a new DocType instead.")
+	if (
+		kind == "tree"
+		and not doc.is_tree
+		and not doc.custom
+		and not issubclass(get_controller(doc.name), NestedSet)
+	):
+		return _(
+			"{0}'s controller is not a NestedSet, so a tree would not keep its records in place."
+		).format(frappe.bold(doc.name))
 	if bool(doc.istable) == (kind == "child"):
 		return None
 	if frappe.db.count(doc.name):
@@ -135,6 +152,12 @@ def check_developer_mode() -> None:
 		)
 
 
+def check_administrator(doctype: str) -> None:
+	# As v1: only Administrator renames or deletes a standard DocType.
+	if not frappe.db.get_value("DocType", doctype, "custom") and frappe.session.user != "Administrator":
+		frappe.throw(_("Only Administrator can rename or delete a standard DocType."), frappe.PermissionError)
+
+
 def check_app_module(module: str) -> None:
 	if frappe.db.get_value("Module Def", module, "custom") != 0:
 		frappe.throw(_("{0} is not a module of an app.").format(frappe.bold(module)))
@@ -145,9 +168,15 @@ def move_folder(doc, module: str) -> tuple[Path, Path] | None:
 	old = Path(get_doc_path(doc.module, "doctype", doc.name))
 	if not old.exists():
 		return None
-	new = Path(get_doc_path(module, "doctype", doc.name))
-	if new.exists():
-		frappe.throw(_("{0} already has a folder for {1}: {2}").format(module, doc.name, new))
+	new = check_no_folder(module, doc.name)
 	new.parent.mkdir(parents=True, exist_ok=True)
 	shutil.move(old, new)
 	return old, new
+
+
+def check_no_folder(module: str, doctype: str) -> Path:
+	"""Its folder in `module`, refused when one is there already: its old files would pair with new fields."""
+	path = Path(get_doc_path(module, "doctype", doctype))
+	if path.exists():
+		frappe.throw(_("{0} already has a folder for {1}: {2}").format(module, doctype, path))
+	return path
