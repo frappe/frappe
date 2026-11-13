@@ -8,11 +8,11 @@ import frappe
 from frappe import _
 from frappe.desk.doctype.form_layout.app_layout import read_app_layouts
 from frappe.desk.doctype.form_layout.form_layout import (
+	FORM_LAYOUT_TYPES,
 	layout_from_fields,
 	layout_type_refusal,
 	parse_layout,
 	parse_omitted,
-	validate_target,
 )
 from frappe.desk.doctype_editor.errors import EditError, field_error
 from frappe.desk.doctype_editor.layout_tree import LayoutTree
@@ -62,9 +62,15 @@ class DesignState:
 		if self.doc.is_new():
 			raise EditError(_("Save the new child table {0} before you lay it out.").format(self.name))
 		if type not in self.layouts:
-			validate_target(self.name, type)
+			if refusal := self.type_refusal(type):
+				raise EditError(refusal, kind="layout", layout=type)
 			self.layouts[type] = self.load_layouts(type)
 		return self.layouts[type]
+
+	def type_refusal(self, type: str) -> str | None:
+		if type not in FORM_LAYOUT_TYPES:
+			return _("{0} is not a layout type.").format(type)
+		return layout_type_refusal(self.name, type)
 
 	def load_layouts(self, type: str) -> list[EditorLayout]:
 		if self.standard:
@@ -136,8 +142,6 @@ class DesignState:
 	def load_every_layout(self):
 		if self.doc.is_new():
 			return
-		from frappe.desk.doctype.form_layout.form_layout import FORM_LAYOUT_TYPES
-
 		for type in FORM_LAYOUT_TYPES:
 			if not layout_type_refusal(self.name, type):
 				self.layouts_of(type)

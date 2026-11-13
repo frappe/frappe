@@ -269,3 +269,37 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Form Layout", row.name, "condition"), "doc.docstatus == 0")
 		self.save([{"act": "layouts.delete", "layout": ref}])
 		self.assertFalse(frappe.db.exists("Form Layout", row.name))
+
+	def test_a_save_over_a_changed_doctype_is_refused_as_stale(self):
+		version = base_version(DOCTYPE)
+		frappe.db.set_value("DocType", DOCTYPE, "modified", frappe.utils.add_days(frappe.utils.now(), 1))
+		result = self.save([{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"}], version=version)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["code"], "stale")
+		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
+
+	def test_a_layout_type_the_doctype_cannot_have_is_refused(self):
+		frappe.db.set_value("DocType", DOCTYPE, "istable", 1)
+		frappe.clear_cache(doctype=DOCTYPE)
+		result = self.save([{"act": "canvas.add_tab", "layout": {"type": "Quick Entry"}, "name": "more"}])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"], {"kind": "layout", "layout": "Quick Entry"})
+
+	def test_placing_an_unknown_field_is_keyed_to_that_field(self):
+		result = self.save([{"act": "canvas.place_field", "layout": {"type": "Details"}, "fieldname": "nope", "column": "column_1"}])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"], {"kind": "field", "fieldname": "nope"})
+
+	def test_a_doctype_that_fails_validation_writes_nothing(self):
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Due", "fieldtype": "Date"},
+				{"act": "fields.add_field", "label": "Party", "fieldtype": "Link"},
+				{"act": "canvas.place_field", "layout": {"type": "Details"}, "fieldname": "due", "column": "column_1"},
+			]
+		)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"], {"kind": "banner"})
+		self.assertEqual(result.get("written"), [])
+		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
+		self.assertEqual(details_rows(), [])

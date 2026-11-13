@@ -27,6 +27,9 @@ def save_doctype_editor(doctype: str, mode: str, base_version: dict | str, edits
 	return DesignSave(doctype, frappe.parse_json(base_version), frappe.parse_json(edits)).run()
 
 
+WRITE_SAVEPOINT = "doctype_editor_write"
+
+
 class DesignSave:
 	def __init__(self, doctype: str, base_version: dict, edits: list | dict):
 		"""`edits` is the parent's list, or `{doctype: [edits]}` for the parent and the child tables it adds."""
@@ -41,7 +44,8 @@ class DesignSave:
 		self.check()
 		if self.errors:
 			return {"saved": False, "errors": self.errors}
-		self.write()
+		if errors := self.write():
+			return {"saved": False, "written": self.written, "errors": errors}
 		return {
 			"saved": True,
 			"base_version": current_version(self.doctype),
@@ -76,13 +80,23 @@ class DesignSave:
 	def written_app_types(self) -> list[str]:
 		return sorted(self.state.touched) if self.state.standard else []
 
-	def write(self):
-		for child in self.state.children.values():
-			child.doc.insert()
-		self.state.doc.save()
-		for old, new in self.state.renames:
-			rename_field(self.doctype, old, new)
-		self.write_layouts()
+	def write(self) -> list[dict] | None:
+		"""Write in order; a DocType's DDL commits, so a later failure reports what is already written."""
+		self.written: list[str] = []
+		frappe.db.savepoint(WRITE_SAVEPOINT)
+		try:
+			for child in self.state.children.values():
+				child.doc.insert()
+				self.written.append(child.name)
+			self.state.doc.save()
+			self.written.append(self.doctype)
+			for old, new in self.state.renames:
+				rename_field(self.doctype, old, new)
+			self.write_layouts()
+		except frappe.ValidationError as e:
+			frappe.db.rollback(save_point=WRITE_SAVEPOINT)
+			frappe.local.message_log = frappe.local.message_log[:-1]
+			return [EditError(str(e) or _("The save failed.")).as_dict()]
 		publish_doctype_update(self.doctype)
 
 	def write_layouts(self):
