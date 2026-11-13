@@ -114,8 +114,10 @@ async function toggle() {
 	if (Date.now() - closedAt < 300) return;
 	if (open.value) return close();
 	const request = (lastOpened = Symbol());
+	const stop = onDismiss(() => lastOpened === request && (lastOpened = undefined));
 	editor.value ??= (await import("./RuleEditor.vue")).default;
-	if (open.value || request !== lastOpened) return; // a later click during the load wins
+	stop();
+	if (open.value || request !== lastOpened) return; // a later click, outside click or Escape during the load wins
 	draft.value = new RuleDraft(props.value, props.codec);
 	release = makeRoomBelow(button.value, PANEL_ROOM);
 	open.value = true;
@@ -141,6 +143,18 @@ function finish() {
 }
 
 onBeforeUnmount(finish);
+
+/** Calls `cancel` on a click outside the row or on Escape; returns the stop. */
+function onDismiss(cancel: () => void) {
+	const onPointer = (e: Event) => button.value?.contains(e.target as Node) || cancel();
+	const onKey = (e: KeyboardEvent) => e.key === "Escape" && cancel();
+	document.addEventListener("pointerdown", onPointer, true);
+	document.addEventListener("keydown", onKey, true);
+	return () => {
+		document.removeEventListener("pointerdown", onPointer, true);
+		document.removeEventListener("keydown", onKey, true);
+	};
+}
 
 /** A row near the panel's foot would flip the popover above it: scroll the row up, padding the panel's end. */
 function makeRoomBelow(el: HTMLElement | null, need: number) {

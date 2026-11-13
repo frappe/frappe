@@ -99,6 +99,19 @@ describe("the rule popover", () => {
 		expect(row("depends_on").getAttribute("aria-expanded")).toBe("false");
 		expect(row("mandatory_depends_on").getAttribute("aria-expanded")).toBe("true");
 	});
+
+	it.each([
+		["a click outside", () => document.body.dispatchEvent(new Event("pointerdown", { bubbles: true }))],
+		["Escape", () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))],
+	])("drops the pending open on %s while the builder loads", async (_, dismiss) => {
+		mount();
+		row("depends_on").click();
+		dismiss();
+		await settle();
+		await settle();
+		expect(document.querySelector("[data-rule-editor]")).toBeNull();
+		expect(row("depends_on").getAttribute("aria-expanded")).toBe("false");
+	});
 });
 
 describe("a container's rule rows", () => {
