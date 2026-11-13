@@ -28,6 +28,7 @@ export interface DoctypeDefinition {
 	autoname?: string;
 	naming_rule?: string;
 	title_field?: string;
+	description?: string;
 	fields: RawMetaField[];
 }
 
