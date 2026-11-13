@@ -106,6 +106,22 @@ def converted_font(doc) -> str | None:
 	return text.get("fontFamily") or None
 
 
+def has_side_by_side_overlap(elements) -> bool:
+	"""Two elements share some height but sit next to each other, like text beside a tall image."""
+	for i, a in enumerate(elements):
+		for b in elements[i + 1 :]:
+			a_top, b_top = flt(a.get("startY")), flt(b.get("startY"))
+			a_left, b_left = flt(a.get("startX")), flt(b.get("startX"))
+			if (
+				a_top < b_top + flt(b.get("height")) - 2
+				and b_top < a_top + flt(a.get("height")) - 2
+				and (a_left + flt(a.get("width")) <= b_left + 2 or b_left + flt(b.get("width")) <= a_left + 2)
+				and abs(a_top - b_top) > 6
+			):
+				return True
+	return False
+
+
 def load_json(value):
 	if not value:
 		return None
@@ -277,7 +293,7 @@ class PrintDesignerConverter:
 		sections, previous_bottom = [], 0
 		for row in self.overlapping_rows(elements):
 			top = min(flt(e.get("startY")) for e in row)
-			section = {"label": "", "columns": self.columns(row)}
+			section = {"label": "", "columns": self.columns(row, top if sections else 0)}
 			gap = top - previous_bottom
 			if sections and gap > 4:
 				section["margin"] = {"top": round(gap), "right": 0, "bottom": 0, "left": 0}
@@ -322,7 +338,7 @@ class PrintDesignerConverter:
 			bands.append([element])
 		return bands
 
-	def columns(self, row) -> list[dict]:
+	def columns(self, row, top=0) -> list[dict]:
 		total = self.content_width()
 		if len(row) == 1 and row[0].get("layoutType") == "row":
 			children = row[0].get("childrens") or []
@@ -339,9 +355,11 @@ class PrintDesignerConverter:
 				]
 			row = children
 			top = 0
-		else:
-			top = min(flt(e.get("startY")) for e in row)
-		if any(flt(e.get("width")) > 0.6 * total for e in row) and len(row) > 1:
+		if (
+			any(flt(e.get("width")) > 0.6 * total for e in row)
+			and len(row) > 1
+			and not has_side_by_side_overlap(row)
+		):
 			return [{"label": "", "fields": self.free_layout(row, total, top=top)}]
 		return self.columns_by_position(row, total, top)
 
