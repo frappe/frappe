@@ -16,10 +16,10 @@ const NOT_A_COLUMN = new Set(
 );
 
 export class GridColumns {
-	readonly columns = computed(() => this.canvas.working.value.fields.filter((field) => field.in_list_view && isColumn(field)));
+	readonly columns = computed(() => gridColumnsOf(this.canvas.working.value.fields));
 	/** The child's other fields that a grid column can show. */
 	readonly candidates = computed(() =>
-		this.canvas.working.value.fields.filter((field) => !field.in_list_view && isColumn(field)),
+		this.canvas.working.value.fields.filter((field) => !field.in_list_view && canBeColumn(field)),
 	);
 	readonly fit = computed(() => {
 		const room = FORM_PX - GRID_FIXED_PX;
@@ -57,11 +57,17 @@ export class GridColumns {
 	}
 }
 
+/** The grid's columns, in the child's field order. */
+export function gridColumnsOf(fields: RawMetaField[]): RawMetaField[] {
+	return fields.filter((field) => field.in_list_view && canBeColumn(field));
+}
+
 /** A grid column's width in px: its `columns`, else its type's own. */
 export function columnWidth(field: RawMetaField): number {
 	return gridColumnWidth({ fieldtype: field.fieldtype, gridColumns: Number(field.columns) || undefined });
 }
 
-function isColumn(field: RawMetaField): boolean {
+/** A grid column shows a value, so a field with none, or a table, cannot be one. */
+export function canBeColumn(field: RawMetaField): boolean {
 	return !field.hidden && !NOT_A_COLUMN.has(field.fieldtype);
 }

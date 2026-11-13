@@ -1,5 +1,4 @@
-// The data fieldtypes the field panel offers, grouped, with an icon each. Table fields come with
-// their own slice (#47276), so the panel does not offer them.
+// The data fieldtypes the field panel offers, grouped, with an icon each.
 export const FIELDTYPE_GROUPS: { label: string; types: string[] }[] = [
 	{
 		label: "Text",
@@ -8,7 +7,7 @@ export const FIELDTYPE_GROUPS: { label: string; types: string[] }[] = [
 	{ label: "Number", types: ["Int", "Float", "Currency", "Percent", "Rating", "Duration"] },
 	{ label: "Choice", types: ["Check", "Select", "Autocomplete", "Color"] },
 	{ label: "Date and time", types: ["Date", "Datetime", "Time"] },
-	{ label: "Links", types: ["Link", "Dynamic Link"] },
+	{ label: "Links", types: ["Link", "Dynamic Link", "Table"] },
 	{
 		label: "Files and other",
 		types: ["Attach", "Attach Image", "Signature", "Geolocation", "JSON", "Read Only", "HTML", "Barcode"],

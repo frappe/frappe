@@ -18,9 +18,9 @@ describe("newChildName", () => {
 });
 
 describe("pendingChild", () => {
-	it("is an empty editable-grid child table in the parent's module", () => {
+	it("is an empty child table in the parent's module, with the DocType defaults", () => {
 		const child = pendingChild("Task Note Line", taskNote());
 		expect(child).toMatchObject({ doctype: "Task Note Line", module: "Desk", custom: 1, pending: true, mode: "Design" });
-		expect(child.definition).toMatchObject({ istable: 1, editable_grid: 1, fields: [] });
+		expect(child.definition).toMatchObject({ istable: 1, editable_grid: 1, allow_bulk_edit: 1, fields: [] });
 	});
 });

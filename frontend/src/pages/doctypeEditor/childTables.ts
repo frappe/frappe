@@ -74,7 +74,8 @@ export class ChildTables {
 		return field?.fieldtype === "Table" && field.options ? field.options : null;
 	}
 
-	private added(): string[] {
+	/** The child tables the parent's staged edits make. */
+	added(): string[] {
 		return this.edits.staged.value
 			.filter((edit) => edit.act === "fields.add_child_table")
 			.map((edit) => String(edit.name));

@@ -17,9 +17,16 @@
 			:canvas="canvas"
 			:selection="container"
 		/>
-		<p v-else class="px-4 py-6 text-base text-ink-gray-5">
-			{{ __("Select a field, section or tab to edit it.") }}
-		</p>
+		<template v-else>
+			<GridColumnsGroup
+				v-if="canvas.state.definition.istable"
+				:key="canvas.state.doctype"
+				:canvas="canvas"
+			/>
+			<p class="px-4 py-6 text-base text-ink-gray-5">
+				{{ __("Select a field, section or tab to edit it.") }}
+			</p>
+		</template>
 	</aside>
 </template>
 
@@ -29,6 +36,7 @@ import { __ } from "@/i18n";
 import ContainerPanel from "./ContainerPanel.vue";
 import type { DesignCanvas } from "./designCanvas";
 import FieldPanel from "./FieldPanel.vue";
+import GridColumnsGroup from "./GridColumnsGroup.vue";
 
 const props = defineProps<{ canvas: DesignCanvas }>();
 
