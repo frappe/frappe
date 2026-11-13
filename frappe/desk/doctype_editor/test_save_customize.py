@@ -264,6 +264,52 @@ class TestSaveCustomize(IntegrationTestCase):
 		self.assertEqual(row.fingerprint, source_fingerprint(NOTE, "Details"))
 		self.assertIn("t47273", [section["name"] for section in json.loads(row.layout)[0]["sections"]])
 
+	def test_rules_fetch_and_link_filters_on_standard_fields_make_property_setters(self):
+		properties = {
+			"depends_on": "eval:doc.first_name",
+			"mandatory_depends_on": "eval:doc.user",
+			"read_only_depends_on": "eval:!doc.__islocal",
+			"fetch_from": "user.full_name",
+			"fetch_if_empty": "1",
+		}
+		filters = '[["User","enabled","=",1]]'
+		edits = [
+			{"act": "fields.set_field_property", "fieldname": "designation", "property": key, "value": value}
+			for key, value in properties.items()
+		]
+		edits.append(
+			{
+				"act": "fields.set_field_property",
+				"fieldname": "user",
+				"property": "link_filters",
+				"value": filters,
+			}
+		)
+		result = save(CONTACT, edits)
+		self.assertTrue(result["saved"], result)
+		self.assertFalse(result.get("skipped"), result)
+		saved = {key: property_value(CONTACT, "designation", key) for key in properties}
+		self.assertEqual(saved, properties)
+		self.assertEqual(property_value(CONTACT, "user", "link_filters"), filters)
+
+	def test_container_rules_fork_into_the_site_layout(self):
+		details = {"type": "Details"}
+		rule = {"act": "canvas.set_container_property", "layout": details, "value": "eval:doc.public"}
+		edits = [
+			{"act": "canvas.add_section", "layout": details, "tab": "first_tab", "name": "t47273"},
+			{**rule, "container": "first_tab", "property": "dependsOn"},
+			{**rule, "container": "t47273", "property": "dependsOn"},
+			{**rule, "container": "t47273", "property": "collapsibleDependsOn"},
+			{**rule, "container": "column_1", "section": "t47273", "property": "dependsOn"},
+		]
+		self.assertTrue(save(NOTE, edits)["saved"])
+		(row,) = site_layouts(NOTE)
+		tab = json.loads(row.layout)[0]
+		[section] = [each for each in tab["sections"] if each["name"] == "t47273"]
+		rules = (tab, section, section["columns"][0])
+		self.assertEqual([each["dependsOn"] for each in rules], ["eval:doc.public"] * 3)
+		self.assertEqual(section["collapsibleDependsOn"], "eval:doc.public")
+
 	def test_a_quick_entry_placement_forks_the_app_layout(self):
 		tab = parse_layout(read_app_layouts(CONTACT, "Quick Entry").entries[0].layout)[0]["name"]
 		place = {"act": "canvas.place_field", "fieldname": "designation", "tab": tab}

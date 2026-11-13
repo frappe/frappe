@@ -23,6 +23,12 @@
 		>
 			{{ error }}
 		</p>
+		<RuleMark
+			class="absolute right-12 top-0.5"
+			:canvas="canvas"
+			kind="field"
+			:node="canvas.field(fieldname)"
+		/>
 		<div
 			v-if="editable"
 			class="absolute right-1 top-0.5 flex h-5 items-center gap-0.5 rounded-4 bg-surface-base opacity-0 group-hover/field:opacity-100"
@@ -55,6 +61,7 @@ import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import { canvasMenu } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
+import RuleMark from "./RuleMark.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; fieldname: string }>();
 

@@ -138,6 +138,13 @@ class DesignReplay {
 		if (edit.layout) this.canvas({ ...pick(edit, PLACE_KEYS), act: edit.act, layout: edit.layout, fieldname }, "place_field");
 	}
 
+	/** The read-only field `fields.fetch_field` adds; the edit carries the source's label and type. */
+	fetchField(edit: FlatEdit & { link?: string; source?: string }) {
+		const link = this.field(edit.link as string);
+		if (link.fieldtype !== "Link" || !link.options) throw new EditRefused("{0} is not a Link field.", [link.fieldname]);
+		this.addField({ ...edit, properties: { fetch_from: `${link.fieldname}.${edit.source}`, read_only: 1 } });
+	}
+
 	setFieldProperty({ fieldname, property, value }: { fieldname: string; property: string; value: unknown }) {
 		const field = this.field(fieldname);
 		refuseProperty(property);
@@ -199,6 +206,7 @@ class DesignReplay {
 
 const FIELD_ACTS: Record<string, (replay: DesignReplay, edit: never) => void> = {
 	"fields.add_field": (replay, edit) => replay.addField(edit),
+	"fields.fetch_field": (replay, edit) => replay.fetchField(edit),
 	"fields.set_field_property": (replay, edit) => replay.setFieldProperty(edit),
 	"fields.rename_field": (replay, edit) => replay.renameField(edit),
 	"fields.delete_field": (replay, edit) => replay.deleteField(edit),

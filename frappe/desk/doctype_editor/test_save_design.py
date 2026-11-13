@@ -243,6 +243,76 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(meta.get_field("title").reqd, 1)
 		self.assertEqual([field.fieldname for field in meta.fields], ["status", "title"])
 
+	def test_rules_fetch_and_link_filters_are_saved(self):
+		details = {"type": "Details"}
+		properties = {
+			"depends_on": "eval:doc.status=='Open'",
+			"mandatory_depends_on": "eval:doc.status=='Closed'",
+			"read_only_depends_on": "eval:!doc.__islocal",
+			"fetch_from": "owner_user.full_name",
+			"fetch_if_empty": 1,
+		}
+		filters = '[["User","enabled","=",1]]'
+		container_rules = [
+			("first_tab", "dependsOn", "eval:doc.title"),
+			("rules", "dependsOn", "eval:doc.title"),
+			("rules", "collapsibleDependsOn", "eval:doc.status"),
+		]
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Status", "fieldtype": "Data"},
+				{"act": "fields.add_field", "label": "Owner User", "fieldtype": "Link", "options": "User"},
+				{"act": "fields.add_field", "label": "Owner Name", "fieldtype": "Data"},
+				{"act": "canvas.add_section", "layout": details, "tab": "first_tab", "name": "rules"},
+				*(
+					{
+						"act": "fields.set_field_property",
+						"fieldname": "owner_name",
+						"property": key,
+						"value": value,
+					}
+					for key, value in properties.items()
+				),
+				{
+					"act": "fields.set_field_property",
+					"fieldname": "owner_user",
+					"property": "link_filters",
+					"value": filters,
+				},
+				*(
+					{
+						"act": "canvas.set_container_property",
+						"layout": details,
+						"container": container,
+						"property": property,
+						"value": value,
+					}
+					for container, property, value in container_rules
+				),
+				{
+					"act": "canvas.set_container_property",
+					"layout": details,
+					"container": "column_1",
+					"section": "rules",
+					"property": "dependsOn",
+					"value": "eval:doc.title",
+				},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		meta = frappe.get_meta(DOCTYPE)
+		owner_name = meta.get_field("owner_name")
+		self.assertEqual({key: owner_name.get(key) for key in properties}, properties)
+		self.assertEqual(meta.get_field("owner_user").link_filters, filters)
+		[row] = details_rows()
+		[tab] = json.loads(row.layout)
+		[section] = [each for each in tab["sections"] if each["name"] == "rules"]
+		self.assertEqual(
+			(tab["dependsOn"], section["dependsOn"], section["collapsibleDependsOn"]),
+			("eval:doc.title", "eval:doc.title", "eval:doc.status"),
+		)
+		self.assertEqual(section["columns"][0]["dependsOn"], "eval:doc.title")
+
 	def test_the_doctype_description_is_set(self):
 		result = self.save(
 			[{"act": "settings.set_doctype_property", "property": "description", "value": "Tracks work."}]
@@ -296,6 +366,13 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(field.label, "Full Name")
 		[row] = details_rows()
 		self.assertEqual(placed(row), ["title", "owner_user", "full_name"])
+
+	def test_a_field_with_no_value_is_not_fetched(self):
+		link = {"act": "fields.add_field", "label": "Owner User", "fieldtype": "Link", "options": "User"}
+		for source in ("roles", "sb1", "roles_html", "generate_keys"):
+			result = self.save([link, {"act": "fields.fetch_field", "link": "owner_user", "source": source}])
+			self.assertFalse(result["saved"], source)
+			self.assertEqual(result["errors"][0]["target"]["fieldname"], "owner_user")
 
 	def test_a_deleted_field_leaves_every_layout(self):
 		self.save([{"act": "fields.add_field", "label": "Status", "fieldtype": "Data"}])

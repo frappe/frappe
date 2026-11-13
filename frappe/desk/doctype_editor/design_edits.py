@@ -8,10 +8,12 @@ from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.desk.doctype.form_layout.form_layout import LAYOUT_BREAKS
 from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError, field_error
+from frappe.model import no_value_fields
 
 RESERVED_PROPERTIES = ("name", "parent", "parenttype", "parentfield", "idx", "doctype")
 DOCTYPE_PROPERTIES = ("description",)
 PLACE_KEYS = ("fieldname", "section", "column", "index", "tab")
+UNFETCHABLE_TYPES = (*no_value_fields, "Dynamic Link")
 # A column is named with its section: column names repeat across sections.
 CANVAS_ACTS = {
 	"canvas.add_tab": ("add_tab", ("name", "label", "index")),
@@ -102,6 +104,8 @@ class DesignEdits:
 			raise field_error(
 				_("{0} has no field {1}.").format(link.options, edit.get("source")), link.fieldname
 			)
+		if source.fieldtype in UNFETCHABLE_TYPES:
+			raise field_error(_("A {0} field cannot be fetched.").format(_(source.fieldtype)), link.fieldname)
 		self.fields_add_field(
 			{
 				**edit,

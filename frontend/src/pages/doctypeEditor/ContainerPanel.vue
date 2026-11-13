@@ -47,6 +47,27 @@
 			</div>
 		</PanelRow>
 	</PanelSection>
+	<PanelSection
+		v-if="node"
+		:label="__('Rules')"
+		:count="rules.filter((row) => row.value).length"
+	>
+		<RuleRow
+			v-for="row in rules"
+			:key="row.rule.key"
+			:label="__(row.rule.label)"
+			:value="row.value"
+			:summary="words.say(row.value, __(row.rule.empty))"
+			:sentence="words.sentence(row.rule, row.value)"
+			:subject="node.label || __(UNTITLED[selection.kind])"
+			:note="__(row.rule.note)"
+			:row-key="`${name}.${row.rule.key}`"
+			:codec="words"
+			:fields="words.scope.fields"
+			:referable="words.referable()"
+			:commit="(value: string) => set(row.rule.key, value)"
+		/>
+	</PanelSection>
 </template>
 
 <script setup lang="ts">
@@ -59,6 +80,9 @@ import type { CanvasSelection, DesignCanvas } from "./designCanvas";
 import PanelHeader from "./PanelHeader.vue";
 import PanelRow from "./PanelRow.vue";
 import PanelSection from "./PanelSection.vue";
+import { containerRules, ruleValue } from "./ruleRows";
+import RuleRow from "./RuleRow.vue";
+import { RuleWords } from "./ruleWords";
 
 type Container = Exclude<CanvasSelection, { kind: "field" }>;
 
@@ -101,9 +125,18 @@ const switches = computed(() => {
 		{ key: "hideBorder", label: "Hide border" },
 		{ key: "collapsible", label: "Collapsible" },
 	];
-	return section.value?.collapsible
+	return section.value?.collapsible && !section.value.collapsibleDependsOn
 		? [...collapsible, { key: "opened", label: "Opens expanded" }]
 		: collapsible;
+});
+const words = computed(() => RuleWords.of(props.canvas));
+const rules = computed(() => {
+	const container = node.value;
+	if (!container) return [];
+	return containerRules(props.selection.kind, container).map((rule) => ({
+		rule,
+		value: ruleValue(container, rule),
+	}));
 });
 const errors = computed(() =>
 	props.selection.kind === "section" ? props.canvas.errorsAt("container", name.value) : []

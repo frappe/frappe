@@ -61,7 +61,7 @@
 				:model-value="field.options ?? ''"
 				:options="doctypes"
 				:placeholder="__('Choose a DocType')"
-				@update:model-value="set('options', String($event ?? ''))"
+				@update:model-value="setTarget(String($event ?? ''))"
 			/>
 		</PanelRow>
 		<PanelRow v-else-if="field.fieldtype === 'Select'" :label="__('Options')">
@@ -82,6 +82,12 @@
 				@change="set('options', text($event))"
 			/>
 		</PanelRow>
+		<LinkFiltersRow
+			v-if="field.fieldtype === 'Link' && field.options"
+			:key="field.options"
+			:canvas="canvas"
+			:field="field"
+		/>
 		<PanelRow :label="__('Required')" :box="false">
 			<div class="flex h-7 items-center px-2">
 				<Switch
@@ -98,6 +104,22 @@
 				:placeholder="__('None')"
 				@change="set('default', text($event))"
 			/>
+		</PanelRow>
+		<PanelRow v-if="fetchable(field)" :label="__('Fetch from')" :box="false">
+			<FetchFromRow :canvas="canvas" :field="field" />
+		</PanelRow>
+		<PanelRow v-if="field.fetch_from" :label="__('Only when empty')" :box="false">
+			<div class="flex h-7 items-center px-2">
+				<Switch
+					size="sm"
+					:model-value="Boolean(field.fetch_if_empty)"
+					data-panel-fetch-if-empty
+					@update:model-value="set('fetch_if_empty', $event ? 1 : 0)"
+				/>
+			</div>
+		</PanelRow>
+		<PanelRow v-if="field.fieldtype === 'Link' && field.options" label="" :box="false">
+			<FetchAddButton :link="field" />
 		</PanelRow>
 		<PanelRow v-if="field.fieldtype !== 'Check'" :label="__('Placeholder')">
 			<TextInput
@@ -119,6 +141,7 @@
 		</PanelRow>
 		<FieldnameRow :canvas="canvas" :field="field" />
 	</PanelSection>
+	<FieldRules :canvas="canvas" :field="field" />
 	<FieldPropertyGroups :canvas="canvas" :field="field" />
 </template>
 
@@ -131,6 +154,9 @@ import type { Addresses } from "@/addresses";
 import { __ } from "@/i18n";
 import { shellDialog } from "@/shell/dialog";
 import type { DesignCanvas } from "./designCanvas";
+import FetchAddButton from "./FetchAddButton.vue";
+import { fetchable } from "./fetchFrom";
+import FetchFromRow from "./FetchFromRow.vue";
 import FieldnameRow from "./FieldnameRow.vue";
 import {
 	removeQuestion,
@@ -141,7 +167,10 @@ import {
 	typeNote,
 } from "./fieldPanel";
 import FieldPropertyGroups from "./FieldPropertyGroups.vue";
+import FieldRules from "./FieldRules.vue";
 import { typeIcon, typeName } from "./fieldtypes";
+import LinkFiltersRow from "./LinkFiltersRow.vue";
+import { targetChange } from "./linkFilters";
 import PanelHeader from "./PanelHeader.vue";
 import PanelRow from "./PanelRow.vue";
 import PanelSection from "./PanelSection.vue";
@@ -189,6 +218,14 @@ function set(property: string, value: unknown) {
 		fieldname: props.field.fieldname,
 		property,
 		value,
+	});
+}
+
+function setTarget(doctype: string) {
+	if (doctype === (props.field.options ?? "")) return;
+	void acts.perform("fields.set_field_property", {
+		fieldname: props.field.fieldname,
+		properties: targetChange(props.field, doctype),
 	});
 }
 

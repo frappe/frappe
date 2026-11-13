@@ -42,7 +42,7 @@
 							v-else
 							type="button"
 							role="tab"
-							class="border-b-2 pb-2 text-base"
+							class="relative border-b-2 pb-2 text-base"
 							:class="
 								tab === canvas.openTab.value
 									? 'border-outline-gray-5 text-ink-gray-9'
@@ -53,6 +53,12 @@
 							@dblclick="startRename(tab)"
 						>
 							{{ tabLabel(tab, index) }}
+							<RuleMark
+								class="absolute -right-4 top-0.5"
+								:canvas="canvas"
+								kind="tab"
+								:node="tab"
+							/>
 						</button>
 					</template>
 				</Draggable>
@@ -95,6 +101,7 @@ import type { LayoutTreeTab } from "./layoutTree";
 import { DRAG_OPTIONS, dropField, dropTab } from "./canvasDrops";
 import { canvasMenu } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
+import RuleMark from "./RuleMark.vue";
 
 const props = defineProps<{ canvas: DesignCanvas }>();
 

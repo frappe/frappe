@@ -6,6 +6,7 @@ import { DETAILS, type CanvasSelection, type DesignCanvas } from "./designCanvas
 import type { FlatEdit } from "./editorModel";
 import { fieldnameFromLabel, validFieldname } from "./fieldRules";
 import type { EditorActsHost } from "./editorActs";
+import { fetchedFieldname, type FetchSource } from "./fetchFrom";
 
 type Keys = Record<string, unknown>;
 
@@ -85,8 +86,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			run: (_context, keys?: Keys & { label: string; fieldname?: string }) => {
 				const canvas = host.canvas()!;
 				if (!keys) return void (canvas.adding.value = canvas.targetSection());
-				const placed = "section" in keys || "tab" in keys;
-				canvas.stage({ ...keys, act: "fields.add_field", ...(placed ? { layout: DETAILS } : {}) });
+				canvas.stage(placedOn(DETAILS, { ...keys, act: "fields.add_field" }));
 				canvas.select({ kind: "field", fieldname: keys.fieldname || fieldnameFromLabel(keys.label) });
 			},
 		},
@@ -96,6 +96,13 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			palette: false,
 			when,
 			run: (_context, keys: PropertyKeys) => setFieldProperties(host.canvas()!, keys),
+		},
+		{
+			name: "fetch_field",
+			label: __("Fetch a field"),
+			palette: false,
+			when,
+			run: (_context, keys: { link: string; source: FetchSource }) => fetchField(host.canvas()!, keys),
 		},
 		{
 			name: "rename_field",
@@ -121,6 +128,23 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			},
 		},
 	];
+}
+
+/** A field edit that names a place puts the field on `layout`. */
+function placedOn(layout: { type: string; id?: string }, edit: FlatEdit): FlatEdit {
+	return "section" in edit || "tab" in edit ? { ...edit, layout } : edit;
+}
+
+/** A read-only field filled from the Link's record, right after the Link, then selected. */
+function fetchField(canvas: DesignCanvas, { link, source }: { link: string; source: FetchSource }) {
+	const fieldname = fetchedFieldname(source, canvas.working.value.fields.map((field) => field.fieldname));
+	const place = canvas.place(link);
+	const at = place ? { section: place.section, column: place.column, index: place.index + 1 } : {};
+	const options = source.options ? { options: source.options } : {};
+	const label = source.label || source.fieldname;
+	const typed = { fieldname, label, fieldtype: source.fieldtype, ...options };
+	canvas.stage(placedOn(DETAILS, { act: "fields.fetch_field", link, source: source.fieldname, ...typed, ...at }));
+	canvas.select({ kind: "field", fieldname });
 }
 
 /** A label edit of a field added since the save renames it too, in the same undo step. */
