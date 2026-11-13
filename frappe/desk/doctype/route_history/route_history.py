@@ -6,6 +6,7 @@ from typing import Any
 import frappe
 from frappe.deferred_insert import deferred_insert as _deferred_insert
 from frappe.model.document import Document
+from frappe.utils import cstr
 
 
 class RouteHistory(Document):
@@ -30,15 +31,19 @@ class RouteHistory(Document):
 		frappe.db.delete(table, filters=(table.modified < (Now() - Interval(days=days))))
 
 
+MAX_ROUTES_PER_REQUEST = 100
+MAX_ROUTE_LENGTH = 140
+
+
 @frappe.whitelist()
 def deferred_insert(routes: str | list[dict[str, Any]]):
 	routes = [
 		{
 			"user": frappe.session.user,
 			"route": route.get("route"),
-			"creation": route.get("creation"),
 		}
-		for route in frappe.parse_json(routes)
+		for route in frappe.parse_json(routes)[-MAX_ROUTES_PER_REQUEST:]
+		if len(cstr(route.get("route"))) <= MAX_ROUTE_LENGTH
 	]
 
 	_deferred_insert("Route History", routes)
