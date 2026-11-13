@@ -150,6 +150,14 @@ class TestListFilter(UnitTestCase):
 		)
 		self.assertEqual(signature, 'modified=[">","2024-01-01"]')
 
+	def test_filter_value_with_tag_is_saved_as_is(self):
+		filters = [["ToDo", "description", "like", "%<strong>%"]]
+		doc = self._create_filter(filter_name="_test_filter_tag_value", filters=json.dumps(filters))
+		doc.reload()
+
+		self.assertEqual(json.loads(doc.filters), filters)
+		self.assertEqual(doc.route_signature, 'description=["like","%<strong>%"]')
+
 	def test_update_columns_only(self):
 		doc = self._create_filter()
 		new_columns = [{"fieldname": "status", "label": "Status", "width": 120}]

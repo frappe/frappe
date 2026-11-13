@@ -23,13 +23,13 @@ class ListFilter(Document):
 
 		columns: DF.LongText | None
 		filter_name: DF.Data | None
-		filters: DF.LongText | None
+		filters: DF.Code | None
 		for_user: DF.Link | None
 		is_standard: DF.Check
 		layout_order: DF.Int
 		module: DF.Link | None
 		reference_doctype: DF.Link | None
-		route_signature: DF.SmallText | None
+		route_signature: DF.Code | None
 		sort_field: DF.Data | None
 		sort_order: DF.Data | None
 	# end: auto-generated types
