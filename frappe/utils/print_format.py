@@ -313,7 +313,9 @@ def _download_multi_pdf(
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
 			try:
+				first_page = len(pdf_writer.pages)
 				pdf_writer = print_into_writer(doctype, ss)
+				pdf_writer.add_outline_item(str(ss), first_page)
 			except frappe.PermissionError as e:
 				if task_id:
 					publish_failure(task_id, e)
@@ -349,7 +351,9 @@ def _download_multi_pdf(
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
 				try:
+					first_page = len(pdf_writer.pages)
 					pdf_writer = print_into_writer(doctype_name, doc_name)
+					pdf_writer.add_outline_item(str(doc_name), first_page)
 				except frappe.PermissionError as e:
 					if task_id:
 						publish_failure(task_id, e)
