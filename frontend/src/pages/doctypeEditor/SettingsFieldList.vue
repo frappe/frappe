@@ -26,7 +26,9 @@
 			:placeholder="__('Add a field')"
 			@update:model-value="$event && save([...picked, String($event)])"
 		>
-			<template #prefix><span class="lucide-plus size-4 text-ink-gray-5" aria-hidden="true" /></template>
+			<template #prefix
+				><span class="lucide-plus size-4 text-ink-gray-5" aria-hidden="true"
+			/></template>
 		</Combobox>
 	</div>
 </template>
@@ -46,10 +48,12 @@ const picked = computed(() =>
 	String(view.value(prop) || "")
 		.split(",")
 		.map((fieldname) => fieldname.trim())
-		.filter(Boolean),
+		.filter(Boolean)
 );
 const options = computed(() =>
-	view.fieldOptions(props.row.fieldtypes ?? []).filter((option) => !picked.value.includes(option.value)),
+	view
+		.fieldOptions(props.row.fieldtypes ?? [])
+		.filter((option) => !picked.value.includes(option.value))
 );
 
 const save = (fieldnames: string[]) => view.set({ [prop]: fieldnames.join(",") });

@@ -176,7 +176,7 @@ export function pendingDoctype(answers: NewDoctype, source?: EditorState | null)
 		label: "Title",
 		fieldtype: "Data",
 	} as RawMetaField;
-	const definition = source
+	const definition: DoctypeDefinition = source
 		? copiedDefinition(answers, source)
 		: {
 				name: answers.name,

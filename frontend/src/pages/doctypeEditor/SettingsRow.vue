@@ -5,15 +5,28 @@
 <template>
 	<div class="group/row relative isolate py-2" :data-setting="row.key">
 		<span data-flash aria-hidden="true" :class="FLASH" />
-		<div :class="wide ? 'flex flex-col gap-2.5' : 'grid grid-cols-[minmax(0,1fr)_320px] items-start gap-x-3'">
+		<div
+			:class="
+				wide
+					? 'flex flex-col gap-2.5'
+					: 'grid grid-cols-[minmax(0,1fr)_320px] items-start gap-x-3'
+			"
+		>
 			<div class="min-w-0 pt-px">
 				<p class="flex items-center gap-1 text-base text-ink-gray-8">
 					<span class="min-w-0">{{ __(row.label) }}</span>
 					<span class="flex h-0 shrink-0 items-center">
-						<SettingsMark :lock="lock" :changed="changed" :reset-text="resetText" @reset="view.reset(row)" />
+						<SettingsMark
+							:lock="lock"
+							:changed="changed"
+							:reset-text="resetText"
+							@reset="view.reset(row)"
+						/>
 					</span>
 				</p>
-				<p class="mt-0.5 text-p-sm text-ink-gray-5"><slot name="help">{{ __(row.help) }}</slot></p>
+				<p class="mt-0.5 text-p-sm text-ink-gray-5">
+					<slot name="help">{{ __(row.help) }}</slot>
+				</p>
 			</div>
 			<div
 				class="min-w-0"
@@ -39,10 +52,13 @@ import { SettingsViewKey } from "./settingsView";
 const props = defineProps<{ row: SettingRow; wide?: boolean }>();
 const view = inject(SettingsViewKey)!;
 
-const FLASH = "pointer-events-none absolute -inset-x-3 inset-y-0 -z-10 rounded-4 bg-surface-gray-3 opacity-0";
+const FLASH =
+	"pointer-events-none absolute -inset-x-3 inset-y-0 -z-10 rounded-4 bg-surface-gray-3 opacity-0";
 
 const lock = computed(() => view.lock(props.row));
 const changed = computed(() => !lock.value && view.changed(props.row));
 const errors = computed(() => view.errors(props.row));
-const resetText = computed(() => __("Reset to {0}'s value ({1})", [view.app, view.shipped(props.row)]));
+const resetText = computed(() =>
+	__("Reset to {0}'s value ({1})", [view.app, view.shipped(props.row)])
+);
 </script>

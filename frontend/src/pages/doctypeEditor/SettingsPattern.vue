@@ -26,7 +26,10 @@
 	</div>
 	<p class="text-p-sm text-ink-gray-5">
 		{{ __("Next name:") }}
-		<NamePreview v-if="draft.trim()" :parts="nextName(full, counters, view.label.bind(view), new Date())" />
+		<NamePreview
+			v-if="draft.trim()"
+			:parts="nextName(full, counters, view.label.bind(view), new Date())"
+		/>
 		<span v-else class="text-ink-gray-4">{{ __("Type a pattern") }}</span>
 	</p>
 </template>
@@ -48,11 +51,16 @@ const dotted = computed(() => !props.autoname.toLowerCase().startsWith(FORMAT));
 const body = () => (dotted.value ? props.autoname : props.autoname.slice(FORMAT.length));
 const draft = ref(body());
 const refusal = ref("");
-watch(() => props.autoname, () => (draft.value = body()));
+watch(
+	() => props.autoname,
+	() => (draft.value = body())
+);
 
 const full = computed(() => (dotted.value ? draft.value : FORMAT + draft.value));
 const tokens = computed(() => {
-	const field = view.fields.find((one) => one.fieldname && ["Data", "Link", "Select"].includes(one.fieldtype));
+	const field = view.fields.find(
+		(one) => one.fieldname && ["Data", "Link", "Select"].includes(one.fieldtype)
+	);
 	return field ? [...TOKENS, `{${field.fieldname}}`] : TOKENS;
 });
 

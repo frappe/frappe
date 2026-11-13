@@ -13,13 +13,23 @@
 		type="number"
 		min="0"
 		:model-value="Number(view.value(prop)) || 0"
-		@change="view.set({ [prop]: Math.max(0, Math.trunc(Number(($event.target as HTMLInputElement).value)) || 0) })"
+		@change="
+			view.set({
+				[prop]: Math.max(
+					0,
+					Math.trunc(Number(($event.target as HTMLInputElement).value)) || 0
+				),
+			})
+		"
 	/>
 	<Combobox
 		v-else-if="row.control === 'field'"
 		class="w-[200px]"
 		:model-value="String(view.value(prop) || NONE)"
-		:options="[{ label: prop === 'title_field' ? __('None, the ID') : __('None'), value: NONE }, ...fieldChoices]"
+		:options="[
+			{ label: prop === 'title_field' ? __('None, the ID') : __('None'), value: NONE },
+			...fieldChoices,
+		]"
 		@update:model-value="view.set({ [prop]: $event && $event !== NONE ? String($event) : '' })"
 	/>
 	<SettingsFieldList v-else-if="row.control === 'fields'" :row="row" />
@@ -50,7 +60,13 @@
 		:model-value="view.kind"
 		@update:model-value="view.set(kindProperties($event as DoctypeKind))"
 	>
-		<Radio v-for="kind in KINDS" :key="kind.value" :value="kind.value" :label="__(kind.label)" :description="__(kind.description)" />
+		<Radio
+			v-for="kind in KINDS"
+			:key="kind.value"
+			:value="kind.value"
+			:label="__(kind.label)"
+			:description="__(kind.description)"
+		/>
 	</RadioGroup>
 </template>
 
@@ -70,14 +86,18 @@ const ORDERS = [
 	{ label: __("Ascending"), value: "ASC" },
 	{ label: __("Descending"), value: "DESC" },
 ];
-const VIEWS = ["List", "Report", "Image", "Kanban", "Calendar", "Gantt"].map((value) => ({ label: __(value), value }));
+const VIEWS = ["List", "Report", "Image", "Kanban", "Calendar", "Gantt"].map((value) => ({
+	label: __(value),
+	value,
+}));
 
 const prop = computed(() => props.row.props[0]);
 const fieldOptions = computed(() => view.fieldOptions(props.row.fieldtypes ?? []));
 // A field the app set that this row's types leave out (ToDo's title is a Text Editor) still shows its label.
 const fieldChoices = computed(() => {
 	const current = String(view.value(prop.value) || "");
-	if (!current || fieldOptions.value.some((option) => option.value === current)) return fieldOptions.value;
+	if (!current || fieldOptions.value.some((option) => option.value === current))
+		return fieldOptions.value;
 	return [...fieldOptions.value, { label: view.label(current), value: current }];
 });
 const sortOptions = computed(() => [

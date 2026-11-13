@@ -2,15 +2,42 @@
      gives. One is the default; a series can be added, removed or made the default. -->
 <template>
 	<div class="flex w-full flex-col" data-naming-series>
-		<div v-for="option in options" :key="option" class="group/series flex h-8 items-center gap-3" :data-series="option">
+		<div
+			v-for="option in options"
+			:key="option"
+			class="group/series flex h-8 items-center gap-3"
+			:data-series="option"
+		>
 			<span class="flex w-[220px] shrink-0 items-center gap-2">
-				<span class="min-w-0 truncate font-mono text-sm text-ink-gray-8">{{ option }}</span>
-				<Badge v-if="option === preferred" :label="__('Default')" theme="gray" size="sm" class="shrink-0" />
+				<span class="min-w-0 truncate font-mono text-sm text-ink-gray-8">{{
+					option
+				}}</span>
+				<Badge
+					v-if="option === preferred"
+					:label="__('Default')"
+					theme="gray"
+					size="sm"
+					class="shrink-0"
+				/>
 			</span>
-			<span class="lucide-arrow-right size-3.5 shrink-0 text-ink-gray-4" aria-hidden="true" />
-			<NamePreview class="min-w-0 flex-1 truncate" :parts="nextName(option, counters, view.label.bind(view), new Date())" />
-			<span class="flex shrink-0 items-center gap-1 opacity-0 group-hover/series:opacity-100 focus-within:opacity-100">
-				<Button v-if="option !== preferred" size="sm" variant="ghost" :label="__('Make default')" @click="save(options, option)" />
+			<span
+				class="lucide-arrow-right size-3.5 shrink-0 text-ink-gray-4"
+				aria-hidden="true"
+			/>
+			<NamePreview
+				class="min-w-0 flex-1 truncate"
+				:parts="nextName(option, counters, view.label.bind(view), new Date())"
+			/>
+			<span
+				class="flex shrink-0 items-center gap-1 opacity-0 group-hover/series:opacity-100 focus-within:opacity-100"
+			>
+				<Button
+					v-if="option !== preferred"
+					size="sm"
+					variant="ghost"
+					:label="__('Make default')"
+					@click="save(options, option)"
+				/>
 				<Button
 					v-if="options.length > 1"
 					size="sm"
@@ -51,7 +78,7 @@ const options = computed(() =>
 	String(field.value?.options ?? "")
 		.split("\n")
 		.map((option) => option.trim())
-		.filter(Boolean),
+		.filter(Boolean)
 );
 const preferred = computed(() => String(field.value?.default || options.value[0] || ""));
 const example = computed(() => options.value[0] || "ST-.YYYY.-.#####");

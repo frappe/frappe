@@ -3,7 +3,10 @@
 <template>
 	<div class="flex flex-col" :data-section="section">
 		<template v-for="group in groups" :key="group.label">
-			<component :is="group.label ? SettingsGroup : 'div'" v-bind="group.label ? { label: __(group.label) } : {}">
+			<component
+				:is="group.label ? SettingsGroup : 'div'"
+				v-bind="group.label ? { label: __(group.label) } : {}"
+			>
 				<template v-for="row in group.rows" :key="row.key">
 					<SettingsNaming v-if="row.control === 'naming'" :row="row" />
 					<SettingsPermissions v-else-if="row.control === 'permissions'" :row="row" />
@@ -24,7 +27,12 @@ import SettingsGroup from "./SettingsGroup.vue";
 import SettingsNaming from "./SettingsNaming.vue";
 import SettingsPermissions from "./SettingsPermissions.vue";
 import SettingsRow from "./SettingsRow.vue";
-import { settingRows, type RowControl, type SettingRow, type SettingsSection } from "./settingsRows";
+import {
+	settingRows,
+	type RowControl,
+	type SettingRow,
+	type SettingsSection,
+} from "./settingsRows";
 import { SettingsViewKey } from "./settingsView";
 
 const props = defineProps<{ section: SettingsSection }>();

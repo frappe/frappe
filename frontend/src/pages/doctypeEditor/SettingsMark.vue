@@ -4,10 +4,18 @@
 <template>
 	<span class="grid size-5 shrink-0 place-items-center">
 		<Tooltip v-if="lock" :text="lock">
-			<span class="lucide-lock size-3.5 text-ink-gray-4" :aria-label="__('Locked')" data-settings-lock />
+			<span
+				class="lucide-lock size-3.5 text-ink-gray-4"
+				:aria-label="__('Locked')"
+				data-settings-lock
+			/>
 		</Tooltip>
 		<template v-else-if="changed">
-			<span class="grid size-5 place-items-center group-hover/row:hidden" :aria-label="__('Changed on this site')" data-settings-changed>
+			<span
+				class="grid size-5 place-items-center group-hover/row:hidden"
+				:aria-label="__('Changed on this site')"
+				data-settings-changed
+			>
 				<span class="size-1.5 rounded-full bg-surface-gray-7" />
 			</span>
 			<Tooltip :text="resetText">
