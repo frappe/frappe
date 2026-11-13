@@ -109,6 +109,7 @@ async function toggle() {
 	if (Date.now() - closedAt < 300) return;
 	if (open.value) return close();
 	editor.value ??= (await import("./RuleEditor.vue")).default;
+	if (open.value) return; // a second click during the load
 	draft.value = new RuleDraft(props.value, props.codec);
 	release = makeRoomBelow(button.value, PANEL_ROOM);
 	open.value = true;
