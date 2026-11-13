@@ -88,9 +88,7 @@ class TestPageScriptConversion(IntegrationTestCase):
 
 		# The app no longer has a router_script column, so move its value directly.
 		move_router_script_to_file(app.name, "{ setup(router) {} }")
-		self.assertEqual(
-			files.read_store_file(app.name, "router.js"), "export default { setup(router) {} }\n"
-		)
+		self.assertEqual(files.read_db_file(app.name, "router.js"), "export default { setup(router) {} }\n")
 
 		execute()
 		self.assertEqual(frappe.db.get_value("Studio Page", page.name, "script"), converted)

@@ -7,20 +7,20 @@ from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
 from frappe.studio.files import (
-	ALLOWED_STORED_FILE_EXTENSIONS,
+	ALLOWED_DB_FILE_EXTENSIONS,
 	ALLOWED_STUDIO_FILE_EXTENSIONS,
-	create_store_file,
-	delete_store_path,
+	create_db_file,
+	delete_db_path,
 	file_hash,
-	get_store_files,
+	get_db_files,
 	is_db_app,
-	list_store_tree,
-	read_store_file,
-	rename_store_path,
+	list_db_file_tree,
+	read_db_file,
+	rename_db_path,
 	validate_allowed_extension,
 	validate_editable,
 	validate_folder_removable,
-	write_store_file,
+	write_db_file,
 )
 from frappe.studio.utils import (
 	find_script_file,
@@ -235,7 +235,7 @@ def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
 	"""Return the app's editable file tree."""
 	if is_db_app(studio_app):
 		_validate_studio_file_access(on_disk=False)
-		return list_store_tree(studio_app)
+		return list_db_file_tree(studio_app)
 
 	_validate_studio_file_access()
 	root = _studio_app_root(frappe_app, studio_app)
@@ -249,8 +249,8 @@ def read_studio_file(frappe_app: str, studio_app: str, file_path: str, ignore_mi
 	"""Return a file's content plus a hash callers pass back to write_studio_file for conflict checks."""
 	if is_db_app(studio_app):
 		_validate_studio_file_access(on_disk=False)
-		validate_allowed_extension(file_path, ALLOWED_STORED_FILE_EXTENSIONS)
-		content = read_store_file(studio_app, file_path)
+		validate_allowed_extension(file_path, ALLOWED_DB_FILE_EXTENSIONS)
+		content = read_db_file(studio_app, file_path)
 	else:
 		_validate_studio_file_access()
 		validate_allowed_extension(file_path)
@@ -278,7 +278,7 @@ def write_studio_file(
 	"""
 	if is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
-		write_store_file(studio_app, file_path, content, known_hash)
+		write_db_file(studio_app, file_path, content, known_hash)
 		return {"path": file_path, "hash": file_hash(content)}
 
 	_validate_studio_file_access("write")
@@ -306,7 +306,7 @@ def create_studio_file(frappe_app: str, studio_app: str, file_path: str) -> dict
 	"""Create an empty editable file (and any parent folders); error if it already exists."""
 	if is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
-		create_store_file(studio_app, file_path)
+		create_db_file(studio_app, file_path)
 		return {"path": file_path, "hash": file_hash("")}
 
 	_validate_studio_file_access("write")
@@ -343,7 +343,7 @@ def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_pat
 	"""Rename/move an editable file or a folder within the app folder."""
 	if is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
-		rename_store_path(studio_app, file_path, new_path)
+		rename_db_path(studio_app, file_path, new_path)
 		return {"path": new_path}
 
 	_validate_studio_file_access("write")
@@ -376,7 +376,7 @@ def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None
 	"""Delete an editable file, or a folder (with its contents), within the app folder."""
 	if is_db_app(studio_app):
 		_validate_studio_file_access("write", on_disk=False)
-		delete_store_path(studio_app, file_path)
+		delete_db_path(studio_app, file_path)
 		return
 
 	_validate_studio_file_access("write")
@@ -407,7 +407,7 @@ def get_app_files(app_name: str) -> list[dict]:
 	validate_app_viewer_access(app_name)
 	if not is_db_app(app_name):
 		return []
-	return get_store_files(app_name)
+	return get_db_files(app_name)
 
 
 def _validate_studio_file_access(permission_type: str = "read", on_disk: bool = True) -> None:

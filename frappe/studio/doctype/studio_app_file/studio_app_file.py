@@ -4,7 +4,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.studio.files import (
-	ALLOWED_STORED_FILE_EXTENSIONS,
+	ALLOWED_DB_FILE_EXTENSIONS,
 	normalize_path,
 	validate_allowed_extension,
 	validate_editable,
@@ -29,7 +29,7 @@ class StudioAppFile(Document):
 
 	def validate(self):
 		self.file_path = normalize_path(self.file_path)
-		validate_allowed_extension(self.file_path, ALLOWED_STORED_FILE_EXTENSIONS)
+		validate_allowed_extension(self.file_path, ALLOWED_DB_FILE_EXTENSIONS)
 		validate_folder_names(self.file_path)
 		validate_editable(self.studio_app, self.file_path)
 		self.validate_unique_path()

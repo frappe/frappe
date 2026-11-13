@@ -24,9 +24,9 @@ name one type.
 
 | Detail | Custom app (`is_standard` 0) | Standard app (`is_standard` 1) |
 | --- | --- | --- |
-| Source files | The file store: `Studio App File` rows, plus each page's own `script` field | Files under `<frappe_app>/studio/<studio_app>/` |
+| Source files | `Studio App File` records, plus each page's own `script` field | Files under `<frappe_app>/studio/<studio_app>/` |
 | Compiled in the editor and preview | The browser | Vite's dev server |
-| Compiled on publish | Vite, from a copy of the store | Vite |
+| Compiled on publish | Vite, from a copy of the source files | Vite |
 | Languages | `.js`, `.json`, `.css` | `.js`, `.json`, `.css` + `.ts`, `.vue` |
 | Edit | In Studio, on any site | The files or Studio, in developer mode only |
 
@@ -36,7 +36,7 @@ name one type.
   Then write the source files.
 - No build is needed while editing. After you save a file, it runs on the next
   render in the editor and preview. Publishing builds the app with Vite.
-- The browser compiles and runs the source as written. The file store rejects
+- The browser compiles and runs the source as written. A custom app rejects
   `.ts` and `.vue` files, `tsconfig.json`, Tailwind config files, and dotfiles.
   TypeScript syntax inside a `.js` file is a runtime syntax error.
 - Use Studio Components for reusable layouts. Export the app if you need your
@@ -114,10 +114,10 @@ not update `is_standard` or `frappe_app`.
 
 Call `StudioApp.enable_app_export(target_app)` to make a custom app standard.
 This sets `is_standard` and `frappe_app`, writes the JSON files, and moves the
-file store to disk. Existing page scripts become `.js` files, the language they
-were written in. Use `rename_studio_file` to change one to `.ts`.
+source files to disk. Existing page scripts become `.js` files, the language
+they were written in. Use `rename_studio_file` to change one to `.ts`.
 
-Call `disable_app_export` to make the app custom again. The file store cannot
+Call `disable_app_export` to make the app custom again. A custom app cannot
 keep some exported files, including `.ts` and `.vue`. If these files exist,
 `disable_app_export` stops unless you confirm their deletion.
 
@@ -126,7 +126,7 @@ keep some exported files, including `.ts` and `.vue`. If these files exist,
 Use the `frappe.studio.api` file APIs for source files. `list_studio_files` and
 `read_studio_file` read them. `write_studio_file`, `create_studio_file`,
 `rename_studio_file`, and `delete_studio_file` change them. All of these take
-`frappe_app` and `studio_app` and select the correct store. A custom app does
+`frappe_app` and `studio_app` and work for both app types. A custom app does
 not use `frappe_app`.
 
 The APIs support scripts, stylesheets, and shared code. They reject writes to

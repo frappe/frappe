@@ -28,7 +28,7 @@ What a site owner has to review afterwards is in
 import json
 
 import frappe
-from frappe.studio.files import write_store_file
+from frappe.studio.files import write_db_file
 
 VUE_APIS = (
 	"ref",
@@ -93,7 +93,7 @@ def move_router_script_to_file(app_name: str, router_script: str | None) -> None
 	used = get_referenced_names(list(tokenize(router_script)))
 	names = [name for name in IMPORTED_APIS["frappe-ui"] if name in used]
 	imports = f'import {{ {", ".join(names)} }} from "frappe-ui"\n\n' if names else ""
-	write_store_file(app_name, "router.js", f"{imports}export default {router_script.strip()}\n")
+	write_db_file(app_name, "router.js", f"{imports}export default {router_script.strip()}\n")
 
 
 def is_module(script: str) -> bool:

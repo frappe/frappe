@@ -387,13 +387,13 @@ class TestStudioPage(IntegrationTestCase):
 				["stores/data.json", "stores/settings.js"],
 			)
 			pasted = paste_page(target.name, {**copy, "blocks": []})
-			self.assertEqual(files.get_store_files(target.name), copy["files"])
-			files.write_store_file(target.name, "stores/data.json", '{"value": 8}')
+			self.assertEqual(files.get_db_files(target.name), copy["files"])
+			files.write_db_file(target.name, "stores/data.json", '{"value": 8}')
 			copy["files"].insert(0, {"path": "new.js", "content": "export default 1"})
 			with self.assertRaisesRegex(frappe.ValidationError, "different content"):
 				paste_page(target.name, {**copy, "blocks": []}, target_page=pasted.name)
-			self.assertEqual(files.read_store_file(target.name, "stores/data.json"), '{"value": 8}')
-			self.assertIsNone(files.read_store_file(target.name, "new.js"))
+			self.assertEqual(files.read_db_file(target.name, "stores/data.json"), '{"value": 8}')
+			self.assertIsNone(files.read_db_file(target.name, "new.js"))
 
 	def test_paste_rejects_conflicting_files_before_writing(self):
 		with exports_in_tempdir():

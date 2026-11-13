@@ -431,10 +431,10 @@ def write_db_files_to_folder(studio_app: str, app_folder: str) -> list[dict]:
 	Store shared files at the app root and published page scripts at
 	`studio_page/<stem>/<stem>.js`. Return each page script's name and file path.
 	"""
-	from frappe.studio.files import get_store_files
+	from frappe.studio.files import get_db_files
 
 	frappe.create_folder(app_folder)
-	for file in get_store_files(studio_app):
+	for file in get_db_files(studio_app):
 		write_build_file(os.path.join(app_folder, file["path"]), file["content"])
 
 	pages = frappe.get_all(

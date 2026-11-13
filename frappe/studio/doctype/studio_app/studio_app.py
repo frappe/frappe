@@ -19,10 +19,10 @@ from frappe.studio.export import (
 )
 from frappe.studio.files import (
 	discarded_export_files,
-	export_store_to_disk,
-	get_store_files,
-	restore_store_from_disk,
-	write_store_files,
+	export_db_files_to_disk,
+	get_db_files,
+	restore_db_files_from_disk,
+	write_db_files,
 )
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.utils import get_app_file_path, get_export_folder, validate_installed_app, walk_blocks
@@ -398,7 +398,7 @@ class StudioApp(WebsiteGenerator):
 
 		for page_name in self.standard_pages:
 			frappe.get_doc("Studio Page", page_name).export_script_to_file()
-		export_store_to_disk(self)
+		export_db_files_to_disk(self)
 
 	@frappe.whitelist()
 	def get_discarded_export_files(self) -> list[str]:
@@ -419,7 +419,7 @@ class StudioApp(WebsiteGenerator):
 		for page_name in self.standard_pages:
 			frappe.get_doc("Studio Page", page_name).restore_script_from_file()
 		# Preserve source files before save() deletes the export folder.
-		restore_store_from_disk(self)
+		restore_db_files_from_disk(self)
 
 		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)
 
@@ -481,7 +481,7 @@ class StudioApp(WebsiteGenerator):
 				path for name in custom_vue_component_names(blocks) if (path := self.find_vue_component(name))
 			]
 		else:
-			stored = {file["path"]: file["content"] for file in get_store_files(self.name)}
+			stored = {file["path"]: file["content"] for file in get_db_files(self.name)}
 			read = stored.get
 			pending = []
 
@@ -507,7 +507,7 @@ class StudioApp(WebsiteGenerator):
 	def write_files(self, files: list[dict]):
 		"""Put copied files where this app keeps its source."""
 		if not self.is_standard:
-			write_store_files(self.name, files)
+			write_db_files(self.name, files)
 		elif can_export(self):
 			self.write_exported_files(files)
 

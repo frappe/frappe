@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
-"""Store Studio source files and validate their paths.
+"""Read and write Studio source files and validate their paths.
 
 Repository apps (`is_standard`) keep files in `<frappe_app>/studio/<app>/`.
 Editing these files requires developer mode. Database apps keep shared source
@@ -12,9 +12,9 @@ Both app types can produce a Vite build. A database app can also compile its
 source in the browser when no build is available. The browser runs the source
 as it is, so TypeScript and Vue single file components need a repository app.
 
-Enabling export writes stored files to the repository and clears the file store.
+Enabling export writes the database files to the repository and deletes their records.
 Disabling export restores supported files to the database before deleting the
-export folder. The file APIs in `frappe.studio.api` select the app's source store.
+export folder. The file APIs in `frappe.studio.api` select the database or the disk for each app.
 """
 
 import hashlib
@@ -29,8 +29,8 @@ from frappe import _
 # must be edited in the repository.
 ALLOWED_STUDIO_FILE_EXTENSIONS = {".ts", ".js", ".vue", ".json", ".css"}
 # The browser links and runs a database app's source as it is. TypeScript and Vue single file
-# components need the repository's build, so the database store does not keep them.
-ALLOWED_STORED_FILE_EXTENSIONS = {".js", ".json", ".css"}
+# components need the repository's build, so a database app cannot keep them.
+ALLOWED_DB_FILE_EXTENSIONS = {".js", ".json", ".css"}
 TAILWIND_CONFIG_FILES = ("tailwind.config.ts", "tailwind.config.js")
 
 
@@ -67,10 +67,10 @@ def page_script_paths(studio_app: str) -> dict[str, str]:
 	return {f"studio_page/{(stem := frappe.scrub(page.page_title))}/{stem}.js": page.name for page in pages}
 
 
-def list_store_tree(studio_app: str) -> list[dict]:
-	"""Return stored files and page script paths in the disk explorer's tree format."""
-	stored = frappe.get_all("Studio App File", filters={"studio_app": studio_app}, pluck="file_path")
-	files = set(stored) | page_script_paths(studio_app).keys()
+def list_db_file_tree(studio_app: str) -> list[dict]:
+	"""Return database files and page script paths in the disk explorer's tree format."""
+	paths = frappe.get_all("Studio App File", filters={"studio_app": studio_app}, pluck="file_path")
+	files = set(paths) | page_script_paths(studio_app).keys()
 	folders = set()
 	for path in files:
 		folder = posixpath.dirname(path)
@@ -100,8 +100,8 @@ def build_tree(parent: str, folders: set[str], files: set[str]) -> list[dict]:
 	return nodes
 
 
-def get_store_files(studio_app: str) -> list[dict]:
-	"""Return stored source files for the browser compiler and app build."""
+def get_db_files(studio_app: str) -> list[dict]:
+	"""Return a database app's source files for the browser compiler and app build."""
 	rows = frappe.get_all(
 		"Studio App File",
 		filters={"studio_app": studio_app},
@@ -111,9 +111,9 @@ def get_store_files(studio_app: str) -> list[dict]:
 	return [{"path": row.file_path, "content": row.content or ""} for row in rows]
 
 
-def write_store_files(studio_app: str, files: list[dict]) -> None:
+def write_db_files(studio_app: str, files: list[dict]) -> None:
 	"""Install copied source files after checking every path and content conflict."""
-	existing = {file["path"]: file["content"] for file in get_store_files(studio_app)}
+	existing = {file["path"]: file["content"] for file in get_db_files(studio_app)}
 	targets = {}
 	for file in files:
 		if (
@@ -123,9 +123,9 @@ def write_store_files(studio_app: str, files: list[dict]) -> None:
 		):
 			frappe.throw(_("Invalid copied file."))
 		path = normalize_path(file["path"])
-		validate_allowed_extension(path, ALLOWED_STORED_FILE_EXTENSIONS)
+		validate_allowed_extension(path, ALLOWED_DB_FILE_EXTENSIONS)
 		validate_folder_names(path)
-		if not is_storable_file(studio_app, path):
+		if not is_db_file_allowed(studio_app, path):
 			frappe.throw(_("Unsupported copied file: {0}").format(path))
 		if path in targets and targets[path] != file["content"]:
 			frappe.throw(_("The copy contains conflicting versions of {0}.").format(path))
@@ -137,22 +137,22 @@ def write_store_files(studio_app: str, files: list[dict]) -> None:
 		targets[path] = file["content"]
 	for path, content in targets.items():
 		if path not in existing:
-			write_store_file(studio_app, path, content)
+			write_db_file(studio_app, path, content)
 
 
-def read_store_file(studio_app: str, file_path: str) -> str | None:
-	"""Read source from the file store or its owning page. Return None for a missing file."""
+def read_db_file(studio_app: str, file_path: str) -> str | None:
+	"""Read source from its Studio App File record or its owning page. Return None for a missing file."""
 	page = page_script_owner(studio_app, file_path)
 	if page:
 		return frappe.db.get_value("Studio Page", page, "script") or ""
-	row = get_store_row(studio_app, file_path)
+	row = get_db_file_row(studio_app, file_path)
 	if not row:
 		return None
 	return row.content or ""
 
 
-def write_store_file(studio_app: str, file_path: str, content: str, known_hash: str | None = None) -> None:
-	"""Save source to the file store or its owning page, creating a file if needed.
+def write_db_file(studio_app: str, file_path: str, content: str, known_hash: str | None = None) -> None:
+	"""Save source to its Studio App File record or its owning page, creating a file if needed.
 
 	If `known_hash` is supplied, reject the write when the existing content has changed.
 	"""
@@ -161,9 +161,9 @@ def write_store_file(studio_app: str, file_path: str, content: str, known_hash: 
 	page = page_script_owner(studio_app, file_path)
 	if page:
 		return write_page_script(page, content, known_hash)
-	row = get_store_row(studio_app, file_path)
+	row = get_db_file_row(studio_app, file_path)
 	if not row:
-		insert_store_row(studio_app, file_path, content)
+		insert_db_file_row(studio_app, file_path, content)
 		return
 
 	if known_hash and file_hash(row.content or "") != known_hash:
@@ -182,39 +182,39 @@ def write_page_script(page: str, content: str, known_hash: str | None = None) ->
 	doc.save()
 
 
-def create_store_file(studio_app: str, file_path: str) -> None:
-	if store_path_exists(studio_app, file_path):
+def create_db_file(studio_app: str, file_path: str) -> None:
+	if db_path_exists(studio_app, file_path):
 		frappe.throw(_("{0} already exists.").format(file_path))
-	insert_store_row(studio_app, file_path, "")
+	insert_db_file_row(studio_app, file_path, "")
 
 
-def rename_store_path(studio_app: str, file_path: str, new_path: str) -> None:
-	"""Rename a stored file or a folder and all its descendants."""
+def rename_db_path(studio_app: str, file_path: str, new_path: str) -> None:
+	"""Rename a database file or a folder and all its descendants."""
 	old = normalize_path(file_path)
 	new = normalize_path(new_path)
 	if page_script_owner(studio_app, old) or page_script_owner(studio_app, new):
 		frappe.throw(_("A page script is named after its page. Rename the page instead."))
-	row = get_store_row(studio_app, old)
-	children = get_store_rows_under(studio_app, old)
+	row = get_db_file_row(studio_app, old)
+	children = get_db_file_rows_under(studio_app, old)
 	if not row and not children:
 		frappe.throw(_("Not found: {0}").format(file_path))
-	if store_path_exists(studio_app, new):
+	if db_path_exists(studio_app, new):
 		frappe.throw(_("{0} already exists.").format(new_path))
 
 	for child in children:
-		rename_store_row(child.name, new + child.file_path[len(old) :])
+		rename_db_file_row(child.name, new + child.file_path[len(old) :])
 	if row:
-		rename_store_row(row.name, new)
+		rename_db_file_row(row.name, new)
 
 
-def rename_store_row(name: str, new_path: str) -> None:
+def rename_db_file_row(name: str, new_path: str) -> None:
 	doc = frappe.get_doc("Studio App File", name)
 	doc.file_path = new_path
 	doc.save()
 
 
-def delete_store_path(studio_app: str, file_path: str) -> None:
-	"""Delete a stored file or a folder and all its contents.
+def delete_db_path(studio_app: str, file_path: str) -> None:
+	"""Delete a database file or a folder and all its contents.
 
 	For a page script, clear the script on its owning page instead.
 	"""
@@ -222,8 +222,8 @@ def delete_store_path(studio_app: str, file_path: str) -> None:
 	page = page_script_owner(studio_app, path)
 	if page:
 		return write_page_script(page, "")
-	row = get_store_row(studio_app, path)
-	children = get_store_rows_under(studio_app, path)
+	row = get_db_file_row(studio_app, path)
+	children = get_db_file_rows_under(studio_app, path)
 	if not row and not children:
 		frappe.throw(_("Not found: {0}").format(file_path))
 	for child in children:
@@ -232,14 +232,14 @@ def delete_store_path(studio_app: str, file_path: str) -> None:
 		frappe.delete_doc("Studio App File", row.name)
 
 
-def store_path_exists(studio_app: str, path: str) -> bool:
-	"""Check whether a stored entry, page script or descendant already uses this path."""
+def db_path_exists(studio_app: str, path: str) -> bool:
+	"""Check whether a database file, page script or descendant already uses this path."""
 	if page_script_owner(studio_app, path):
 		return True
-	return bool(get_store_row(studio_app, path) or get_store_rows_under(studio_app, path))
+	return bool(get_db_file_row(studio_app, path) or get_db_file_rows_under(studio_app, path))
 
 
-def get_store_row(studio_app: str, file_path: str):
+def get_db_file_row(studio_app: str, file_path: str):
 	return frappe.db.get_value(
 		"Studio App File",
 		{"studio_app": studio_app, "file_path": normalize_path(file_path)},
@@ -248,30 +248,30 @@ def get_store_row(studio_app: str, file_path: str):
 	)
 
 
-def get_store_rows_under(studio_app: str, folder_path: str) -> list[frappe._dict]:
+def get_db_file_rows_under(studio_app: str, folder_path: str) -> list[frappe._dict]:
 	"""Find entries under a folder. Compare paths in Python because SQL LIKE treats `_` as a wildcard."""
 	prefix = normalize_path(folder_path) + "/"
 	rows = frappe.get_all("Studio App File", filters={"studio_app": studio_app}, fields=["name", "file_path"])
 	return [row for row in rows if row.file_path.startswith(prefix)]
 
 
-def insert_store_row(studio_app: str, file_path: str, content: str) -> None:
+def insert_db_file_row(studio_app: str, file_path: str, content: str) -> None:
 	frappe.get_doc(
 		doctype="Studio App File", studio_app=studio_app, file_path=file_path, content=content
 	).insert()
 
 
-def export_store_to_disk(app) -> None:
-	"""Copy stored files to the export folder, then clear the database file store.
+def export_db_files_to_disk(app) -> None:
+	"""Copy database files to the export folder, then delete their records.
 
 	Keep identical existing files. Abort if an existing file has different content.
 	"""
-	if files := get_store_files(app.name):
+	if files := get_db_files(app.name):
 		app.write_exported_files(files)
 		frappe.db.delete("Studio App File", {"studio_app": app.name})
 
 
-def restore_store_from_disk(app) -> None:
+def restore_db_files_from_disk(app) -> None:
 	"""Restore supported source files before disabling export deletes the folder.
 
 	Restore page scripts separately to their page records. Skip generated JSON files,
@@ -283,9 +283,9 @@ def restore_store_from_disk(app) -> None:
 	for dirpath, filenames, folder in walk_export_folder(root):
 		for filename in filenames:
 			path = f"{folder}/{filename}" if folder else filename
-			if not is_storable_file(app.name, path):
+			if not is_db_file_allowed(app.name, path):
 				continue
-			write_store_file(app.name, path, frappe.read_file(os.path.join(dirpath, filename)) or "")
+			write_db_file(app.name, path, frappe.read_file(os.path.join(dirpath, filename)) or "")
 
 
 def walk_export_folder(root: str):
@@ -307,7 +307,7 @@ def walk_export_folder(root: str):
 def discarded_export_files(app) -> list[str]:
 	"""List files that disabling export would delete without preserving their content.
 
-	The store accepts only supported source extensions outside `studio_page/`.
+	The database accepts only supported source extensions outside `studio_page/`.
 	Assets, Tailwind config and extra files beside pages may need separate handling.
 	"""
 	if not app.frappe_app:
@@ -319,7 +319,7 @@ def discarded_export_files(app) -> list[str]:
 	for _dirpath, filenames, folder in walk_export_folder(root):
 		for filename in filenames:
 			path = f"{folder}/{filename}" if folder else filename
-			if not is_storable_file(app.name, path) and not is_regenerated_file(app.name, path):
+			if not is_db_file_allowed(app.name, path) and not is_regenerated_file(app.name, path):
 				discarded.append(path)
 	return sorted(discarded)
 
@@ -334,12 +334,12 @@ def is_regenerated_file(studio_app: str, path: str) -> bool:
 	return is_page_script_path(path) and path.endswith(".js")
 
 
-def is_storable_file(studio_app: str, path: str) -> bool:
-	"""Check whether the file store supports this source file and Studio does not generate it."""
+def is_db_file_allowed(studio_app: str, path: str) -> bool:
+	"""Check whether a database app can keep this source file and Studio does not generate it."""
 	name = posixpath.basename(path)
 	if name.startswith(".") or name == "tsconfig.json" or name.lower() in TAILWIND_CONFIG_FILES:
 		return False
-	if posixpath.splitext(name)[1].lower() not in ALLOWED_STORED_FILE_EXTENSIONS:
+	if posixpath.splitext(name)[1].lower() not in ALLOWED_DB_FILE_EXTENSIONS:
 		return False
 	return not path.startswith("studio_page/") and not is_export_doc_file(studio_app, path)
 
@@ -347,7 +347,7 @@ def is_storable_file(studio_app: str, path: str) -> bool:
 def normalize_path(file_path: str) -> str:
 	"""Return a relative path with forward slashes and reject paths that need further normalization.
 
-	The database store must validate paths itself because it cannot use filesystem resolution.
+	Database files must validate paths here because they cannot use filesystem resolution.
 	"""
 	if not isinstance(file_path, str):
 		frappe.throw(_("Invalid file path: {0}").format(file_path), frappe.PermissionError)

@@ -26,7 +26,7 @@ A page script runs after route matching and is too late for this work.
 
 Keep the config at the app root and use `export default`:
 
-- In a custom app, use `router.js` in the file store (Studio App File).
+- In a custom app, use `router.js` at the app root (a `Studio App File` record).
 - In a standard app, use `router.ts` or `router.js` under
   `<frappe_app>/studio/<studio_app>/`. Read the existing file before editing it
   and keep its extension. Create `router.ts` if neither file exists.
