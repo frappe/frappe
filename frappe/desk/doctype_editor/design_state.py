@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 """A DocType and its layouts loaded fresh, with a Design save's edits applied in memory."""
 
+import copy
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.form_layout.app_layout import read_app_layouts
@@ -106,6 +108,22 @@ class DesignState:
 		layouts.append(layout)
 		return layout
 
+	def add_layout(self, type: str, id: str, title=None, condition=None, start: str = "copy") -> EditorLayout:
+		layouts = self.layouts_of(type)
+		if not id or any(layout.id == id for layout in layouts):
+			raise EditError(_("A new layout needs an id of its own."), kind="layout", layout=id)
+		self.touched.add(type)
+		tabs = copy.deepcopy(self.default_tabs(type)) if start == "copy" else empty_tabs()
+		layout = EditorLayout(id, type, tabs, title, condition)
+		layouts.append(layout)
+		return layout
+
+	def default_tabs(self, type: str) -> list:
+		for layout in self.layouts_of(type):
+			if not layout.deleted and not layout.condition:
+				return layout.tree.tabs
+		return layout_from_fields(self.doc.fields)
+
 	def field(self, fieldname: str):
 		for field in self.doc.fields:
 			if field.fieldname == fieldname:
@@ -159,3 +177,7 @@ class DesignState:
 				layout.tree.unplace_field(fieldname)
 				layout.omitted = [each for each in layout.omitted if each != fieldname]
 				self.touched.add(layout.type)
+
+
+def empty_tabs() -> list:
+	return [{"name": "first_tab", "sections": [{"name": "section_1", "columns": [{"name": "column_1", "fields": []}]}]}]

@@ -248,3 +248,24 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(result["saved"])
 		[error] = result["errors"]
 		self.assertEqual((error["target"], error["doctype"]), ({"kind": "banner"}, "ToDo"))
+
+	def test_layouts_are_added_renamed_conditioned_and_deleted(self):
+		compact = {"type": "Details", "id": "new-1"}
+		result = self.save(
+			[
+				{"act": "layouts.add", "type": "Details", "id": "new-1", "condition": "doc.title", "start": "copy"},
+				{"act": "layouts.rename", "layout": compact, "title": "Compact"},
+				{"act": "canvas.add_tab", "layout": compact, "name": "extra"},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		[row] = frappe.get_all("Form Layout", {"dt": DOCTYPE}, ["name", "title", "condition", "layout"])
+		self.assertEqual((row.title, row.condition), ("Compact", "doc.title"))
+		self.assertEqual([tab["name"] for tab in json.loads(row.layout)], ["first_tab", "extra"])
+		self.assertEqual(placed(row), ["title"])
+
+		ref = {"type": "Details", "id": row.name}
+		self.save([{"act": "layouts.set_condition", "layout": ref, "condition": "doc.docstatus == 0"}])
+		self.assertEqual(frappe.db.get_value("Form Layout", row.name, "condition"), "doc.docstatus == 0")
+		self.save([{"act": "layouts.delete", "layout": ref}])
+		self.assertFalse(frappe.db.exists("Form Layout", row.name))

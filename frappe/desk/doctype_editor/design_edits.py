@@ -114,3 +114,17 @@ class DesignEdits:
 		self.fields_add_field(
 			{**edit, "fieldname": edit["table_field"], "label": edit.get("label") or name, "fieldtype": "Table", "options": name}
 		)
+
+	def layouts_add(self, edit: dict):
+		self.state.add_layout(
+			edit.get("type"), edit.get("id"), edit.get("title"), edit.get("condition"), edit.get("start") or "copy"
+		)
+
+	def layouts_rename(self, edit: dict):
+		self.state.layout(edit.get("layout")).title = edit.get("title")
+
+	def layouts_set_condition(self, edit: dict):
+		self.state.layout(edit.get("layout")).condition = edit.get("condition")
+
+	def layouts_delete(self, edit: dict):
+		self.state.layout(edit.get("layout")).deleted = True
