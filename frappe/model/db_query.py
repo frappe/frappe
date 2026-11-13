@@ -759,10 +759,10 @@ from {tables}
 					# prevent access to global variables
 					_raise_exception()
 
-			if FIELD_QUOTE_PATTERN.match(field):
+			if FIELD_QUOTE_PATTERN.match(lower_field):
 				_raise_exception()
 
-			if FIELD_COMMA_PATTERN.match(field):
+			if FIELD_COMMA_PATTERN.match(lower_field):
 				_raise_exception()
 
 			_is_query(field)

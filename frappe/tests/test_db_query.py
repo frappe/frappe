@@ -1093,7 +1093,13 @@ class TestDBQuery(FrappeTestCase):
 
 	def test_permlevel_fields_cannot_be_added_to_a_single_field(self):
 		with setup_patched_blog_post(), setup_test_user(set_user=True):
-			for field in ("name`,`published", "`name`,`published`", "name` , published"):
+			for field in (
+				"name`,`published",
+				"`name`,`published`",
+				"name` , published",
+				" `name`,`published`",
+				" name,published",
+			):
 				with self.subTest(field=field):
 					self.assertRaises(frappe.DataError, frappe.get_list, "Blog Post", fields=[field], limit=1)
 
