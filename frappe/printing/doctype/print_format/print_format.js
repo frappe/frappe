@@ -121,7 +121,9 @@ frappe.ui.form.on("Print Format", {
 						filters: {
 							doc_type: frm.doc.doc_type,
 							print_format_builder_beta: 1,
+							print_designer: 0,
 							disabled: 0,
+							name: ["!=", frm.doc.name],
 						},
 					}),
 				},

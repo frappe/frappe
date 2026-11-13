@@ -96,7 +96,13 @@ def replace_with_editor_format(print_format: str, editor_format: str) -> dict:
 	target = frappe.get_doc("Print Format", editor_format)
 	if not is_print_designer_format(source):
 		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
-	if not target.print_format_builder_beta or target.disabled or target.doc_type != source.doc_type:
+	if (
+		target.name == source.name
+		or is_print_designer_format(target)
+		or not target.print_format_builder_beta
+		or target.disabled
+		or target.doc_type != source.doc_type
+	):
 		frappe.throw(
 			_("{0} must be an enabled print format editor format for {1}.").format(
 				frappe.bold(editor_format), frappe.bold(source.doc_type)
