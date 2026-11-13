@@ -82,7 +82,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue";
+import {
+	computed,
+	defineAsyncComponent,
+	inject,
+	onBeforeUnmount,
+	reactive,
+	ref,
+	shallowRef,
+	watch,
+} from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { ScrollArea, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
@@ -127,10 +136,11 @@ import PreviewTab from "./PreviewTab.vue";
 import { confirmModeSwitch, guardRouteUpdate } from "./modeSwitch";
 import ModeSwitchDialog from "./ModeSwitchDialog.vue";
 import RowDialogPreview from "./RowDialogPreview.vue";
-import SettingsTab from "./SettingsTab.vue";
 import { SETTING_ROWS } from "./settingsRows";
 import type { SettingsPlace } from "./settingsView";
 import { useChildTables } from "./useChildTables";
+
+const SettingsTab = defineAsyncComponent(() => import("./SettingsTab.vue"));
 
 const route = useRoute();
 const router = useRouter();
