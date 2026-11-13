@@ -927,6 +927,43 @@ class TestImporter(IntegrationTestCase):
 		self.assertIn(expected_id_key, fields_dict, "ID fallback failed")
 		table_field.label = original_label  # maintain sanity in test env
 
+	def test_translated_header_maps_after_english_request(self):
+		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+		self.addCleanup(frappe.local.request_cache.clear)
+
+		frappe.local.lang = "en"
+		self.assertIsNone(get_df_for_column_header(doctype_name, "Titel"))
+
+		frappe.local.request_cache.clear()
+		frappe.local.lang = "de"
+		self.assertEqual(get_df_for_column_header(doctype_name, "Titel").fieldname, "title")
+
+	def test_import_maps_headers_in_user_language(self):
+		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+		self.addCleanup(frappe.local.request_cache.clear)
+		frappe.local.lang = "en"
+		frappe.local.request_cache.clear()
+		frappe.local.job = frappe._dict(user="test@example.com")
+		self.addCleanup(delattr, frappe.local, "job")
+
+		import_file = frappe.get_doc(
+			doctype="File",
+			content="Währungsname\n_Test User Language\n",
+			file_name="data_import_user_language.csv",
+			is_private=1,
+		)
+		import_file.save(ignore_permissions=True)
+		_register_file_cleanup(self, import_file)
+		self.addCleanup(_delete_doctype_records, "Currency", ["_Test User Language"])
+
+		with (
+			self.set_user("test@example.com"),
+			patch("frappe.translate.get_user_lang", return_value="de"),
+		):
+			self.get_importer("Currency", import_file).start_import()
+
+		self.assertTrue(frappe.db.exists("Currency", "_Test User Language"))
+
 	def test_invalid_link_and_select_values_warn_once_per_column(self):
 		import tempfile
 
@@ -1684,6 +1721,24 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 		self.assertTrue(root_name)
 		self.assertTrue(child_name)
 		self.assertEqual(frappe.db.get_value(self.doctype_name, child_name, parent_field), root_name)
+
+	def test_tree_alias_import_keeps_rows_with_same_label(self):
+		self._cleanup_docs(("Leaf Node",))
+
+		rows = [("Leaf Node", "0", ""), ("Leaf Node", "0", "")]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		with self.set_user("test@example.com"):
+			Importer(self.doctype_name, data_import=data_import).import_data()
+
+		self.assertEqual(frappe.db.count(self.doctype_name, {"node_label": "Leaf Node"}), 2)
+
+	def test_tree_alias_preview_lists_rows_with_same_label(self):
+		rows = [("Leaf Node", "0", ""), ("Leaf Node", "0", "")]
+		data_import = self._get_importer(self._make_csv_file(rows))
+		with self.set_user("test@example.com"):
+			preview = data_import.get_preview_from_template()
+
+		self.assertEqual(len(preview.tree_preview.nodes), 2)
 
 	def test_tree_alias_update_resolves_parent_link(self):
 		"""UPDATE imports must resolve parent aliases to document names, like INSERT."""

@@ -44,7 +44,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 			const rows = current_rows.filter((_, row_index) => row_index !== index);
 
 			if (!this.frm) {
-				this.set_model_value(rows).then(() => this.awesomplete.evaluate());
+				this.set_value(rows).then(() => this.awesomplete.evaluate());
 				return;
 			}
 
@@ -87,7 +87,8 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 			// if backspace key pressed on empty input, delete last value
 			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === "") {
 				const rows = this._get_rows().slice(0, -1);
-				this.set_model_value(rows).then(() => this.awesomplete.evaluate());
+				const set = this.frm ? this.set_model_value(rows) : this.set_value(rows);
+				set.then(() => this.awesomplete.evaluate());
 			}
 		});
 	}
@@ -217,10 +218,48 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 	get_options() {
 		return (this.get_link_field() || {}).options;
 	}
+	on_input(e) {
+		// guests can't call the desk search endpoint, so web forms filter options sent with the page
+		if (!this.df.is_web_form) {
+			return super.on_input(e);
+		}
+
+		const term = (e ? e.target.value : this.$input.val()) || "";
+		this.awesomplete.list = this.filter_web_form_options(term);
+	}
+	filter_web_form_options(term) {
+		if (!this._web_form_options) {
+			let options = this.get_link_field().link_options || [];
+			if (typeof options === "string") {
+				options = options[0] === "[" ? JSON.parse(options) : options.split("\n");
+			}
+			this._web_form_options = options
+				.filter(Boolean)
+				.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
+		}
+		// runs on every keystroke, so stop at a dropdown's worth
+		const limit = 50;
+		const query = term.toLowerCase();
+		if (!query) return this._web_form_options.slice(0, limit);
+
+		const matches = [];
+		for (const o of this._web_form_options) {
+			if (
+				o.value.toLowerCase().includes(query) ||
+				(o.label || "").toLowerCase().includes(query)
+			) {
+				matches.push(o);
+			}
+			if (matches.length === limit) break;
+		}
+		return matches;
+	}
 	get_link_field() {
 		if (!this._link_field) {
+			// web forms have no doctype meta, so fall back to the child fields sent by the server
 			const meta = frappe.get_meta(this.df.options);
-			this._link_field = meta?.fields?.find((df) => df.fieldtype === "Link");
+			const fields = meta?.fields?.length ? meta.fields : this.df.fields || [];
+			this._link_field = fields.find((df) => df.fieldtype === "Link");
 			if (!this._link_field) {
 				throw new Error("Table MultiSelect requires a Table with atleast one Link field");
 			}

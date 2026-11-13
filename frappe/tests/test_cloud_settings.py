@@ -398,7 +398,7 @@ class TestCloudSettings(_CloudTestCase):
 	def test_dns_records_are_read_from_the_domain_resource(self):
 		result, call = self._pilot_call(
 			lambda: get_domain_dns_records(" Shop.Example.Com "),
-			{"records": {"cname": [{"type": "CNAME"}], "a": [{"type": "A"}]}},
+			{"cname": [{"type": "CNAME"}, {"type": "TXT"}], "a": [{"type": "A"}]},
 		)
 
 		method, url = call.args[:2]
@@ -408,7 +408,21 @@ class TestCloudSettings(_CloudTestCase):
 			"https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud"
 			"/domains/shop.example.com/dns-records",
 		)
-		self.assertEqual([record["type"] for record in result["records"]], ["CNAME", "A"])
+		self.assertEqual([record["type"] for record in result["records"]], ["CNAME", "TXT", "A"])
+
+	def test_dns_records_keep_pilot_record_sets(self):
+		result, _ = self._pilot_call(
+			lambda: get_domain_dns_records("shop.example.com"),
+			{"cname": [{"type": "CNAME"}], "a": [{"type": "TXT"}, {"type": "A"}]},
+		)
+
+		self.assertEqual(result["cname"], [{"type": "CNAME"}])
+		self.assertEqual(result["a"], [{"type": "TXT"}, {"type": "A"}])
+
+	def test_dns_records_without_record_sets_are_empty(self):
+		result, _ = self._pilot_call(lambda: get_domain_dns_records("shop.example.com"), {})
+
+		self.assertEqual(result, {"records": [], "cname": [], "a": []})
 
 	def test_remove_domain_deletes_the_domain_resource(self):
 		_, call = self._pilot_call(lambda: remove_domain("shop.example.com"), {"ok": True})
@@ -488,6 +502,24 @@ class TestCloudMarketplace(_CloudTestCase):
 		self.assertEqual(result["update_count"], 1)
 		self.assertEqual(set(result["categories"]), {"Applications", "Developer Tools"})
 
+	def test_an_installed_app_names_the_installed_apps_that_require_it(self):
+		from frappe.integrations.frappe_providers import cloud_marketplace
+
+		def get_hooks(hook=None, default=None, app_name=None):
+			return ["frappe/erpnext"] if (hook, app_name) == ("required_apps", "hrms") else []
+
+		client = FakeClient(
+			{
+				"sites/test.localhost/marketplace": self.CATALOG,
+				"sites/test.localhost/apps": {"apps": [{"name": "erpnext"}, {"name": "hrms"}]},
+			}
+		)
+		with patch("frappe.get_hooks", side_effect=get_hooks):
+			apps = {app["name"]: app for app in cloud_marketplace.list_apps(client)["apps"]}
+
+		self.assertEqual(apps["erpnext"]["required_by"], ["hrms"])
+		self.assertEqual(apps["crm"]["required_by"], [])
+
 	def test_installed_apps_sort_first(self):
 		self.assertEqual(self._list()["apps"][0]["name"], "erpnext")
 
@@ -548,6 +580,20 @@ class TestCloudTask(_CloudTestCase):
 		self.assertEqual(url, "https://pilot.example.com/api/v1/sites/ravibakes.frappe.cloud/tasks/task-1")
 		self.assertEqual(result["status"], "success")
 		self.assertEqual(result["task_id"], "task-1")
+
+	def test_get_task_reports_a_failed_task(self):
+		from frappe.integrations.frappe_providers.cloud_settings import get_task
+
+		failed = {"task_id": "task-1", "status": "failed", "exit_code": 1, "error": "Install failed."}
+		with (
+			patch.dict(frappe.conf, PILOT_CONF),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+			patch("requests.request", return_value=Response(failed)),
+		):
+			result = get_task("task-1")
+
+		self.assertEqual(result["status"], "failed")
+		self.assertEqual(result["error"], "Install failed.")
 
 
 class Response:

@@ -445,6 +445,10 @@
 	color: var(--gray-600);
 }
 
+.print-format-doc .child-table .cell-line-label {
+	font-weight: 600;
+}
+
 .print-format-doc .child-table .cell-line * {
 	margin: 0;
 }
@@ -526,6 +530,10 @@ body.print-format-doc .letter-head,
 .print-format-doc .letter-head img {
 	max-width: 100%;
 	height: auto;
+}
+
+.print-format-doc .custom-html img {
+	max-width: 100%;
 }
 
 .print-format-doc .field[data-fieldtype="Rating"] .rating-star {

@@ -279,3 +279,4 @@ frappe.patches.v16_0.set_print_format_for_doctype
 execute:frappe.db.set_single_value("System Settings", "enable_mcp", 1)
 frappe.patches.v16_0.add_core_pdf_generators_to_option_overrides
 frappe.patches.v16_0.set_classic_dashboards
+frappe.patches.v15_0.set_snapshot_report_frequency_to_weekly

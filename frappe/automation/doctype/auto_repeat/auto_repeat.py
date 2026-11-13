@@ -423,8 +423,10 @@ class AutoRepeat(Document):
 		elif "{" in self.subject:
 			subject = frappe.render_template(self.subject, {"doc": new_doc}, restrict_globals=True)
 
-		print_format = self.print_format or "Standard"
+		print_format = self.print_format or frappe.get_meta(new_doc.doctype).default_print_format
 		error_string = None
+		session_user = frappe.session.user
+		frappe.set_user(self.owner)  # nosemgrep: frappe-setuser
 
 		try:
 			attachments = [
@@ -435,8 +437,8 @@ class AutoRepeat(Document):
 					print_format=print_format,
 					lang=new_doc.get("language")
 					or (
-						frappe.get_cached_value("Print Format", self.print_format, "default_print_language")
-						if self.print_format
+						frappe.get_cached_value("Print Format", print_format, "default_print_language")
+						if print_format
 						else None
 					),
 				)
@@ -452,6 +454,8 @@ class AutoRepeat(Document):
 				"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 			).format(frappe.bold(_("Note")), frappe.bold(_("Allow Print for Draft")))
 			attachments = None
+		finally:
+			frappe.set_user(session_user)  # nosemgrep: frappe-setuser
 
 		if error_string:
 			message = error_string

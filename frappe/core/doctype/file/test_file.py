@@ -1,13 +1,14 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
+import io
 import os
 import shutil
 import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
-from unittest.mock import patch
+from unittest.mock import MagicMock, call, patch
 
 import frappe
 from frappe import _
@@ -19,7 +20,7 @@ from frappe.core.api.file import (
 	unzip_file,
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
+from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension, get_web_image
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -116,6 +117,15 @@ class TestFSRollbacks(IntegrationTestCase):
 
 		frappe.db.rollback()
 		self.assertFalse(file.exists_on_disk())
+
+	def test_delete_keeps_file_on_disk_until_commit(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		file_name = content = frappe.generate_hash()
+		file = frappe.new_doc("File", file_name=file_name, content=content).insert()
+
+		file.delete()
+		self.assertTrue(file.exists_on_disk())
 
 
 class TestWriteFileContainment(IntegrationTestCase):
@@ -459,6 +469,7 @@ class TestFile(IntegrationTestCase):
 		)
 		for f in test_file_data:
 			frappe.delete_doc("File", f)
+		frappe.db.after_commit.run()
 
 	def upload_file(self):
 		_file = frappe.get_doc(
@@ -740,6 +751,22 @@ class TestFile(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
 
+	def test_file_unzip_limits_member_count(self):
+		buffer = io.BytesIO()
+		with zipfile.ZipFile(buffer, "w") as archive:
+			for i in range(3):
+				archive.writestr(f"member-{i}.txt", "x")
+		zip_file = frappe.get_doc(
+			doctype="File", file_name="members.zip", content=buffer.getvalue(), is_private=1
+		).insert()
+
+		file_count_before = frappe.db.count("File")
+		with patch.dict(frappe.conf, {"max_zip_extract_members": 2}):
+			self.assertRaisesRegex(ValidationError, "more than the maximum", zip_file.unzip)
+
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+		self.assertEqual(len(zip_file.unzip()), 3)
+
 	@IntegrationTestCase.change_settings("System Settings", {"max_zip_extract_size": 0})
 	def test_file_unzip_respects_dedicated_extract_size_setting(self):
 		file_path = frappe.get_app_path("frappe", "www/_test/assets/file.zip")
@@ -799,6 +826,24 @@ class TestFile(IntegrationTestCase):
 			)
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_zip_files_adds_a_repeated_file_once(self):
+		from frappe.core.doctype.file.file import File
+
+		frappe.set_user("test@example.com")
+		try:
+			file = frappe.get_doc(
+				doctype="File", file_name="zip_0.txt", content=b"x" * 600, is_private=1
+			).insert()
+			with patch("frappe.get_doc", wraps=frappe.get_doc) as get_doc:
+				content = File.zip_files([file.name] * 3)
+		finally:
+			frappe.set_user("Administrator")
+			file.delete()
+
+		with zipfile.ZipFile(io.BytesIO(content)) as zf:
+			self.assertEqual(zf.namelist(), ["zip_0.txt"])
+		self.assertEqual(get_doc.call_args_list.count(call("File", file.name)), 1)
 
 	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
 		fixture_dir = tempfile.mkdtemp()
@@ -1049,6 +1094,26 @@ class TestAttachment(IntegrationTestCase):
 				"Error Log", filters={"reference_doctype": self.test_doctype, "reference_name": doc.name}
 			)
 		)
+
+	def test_unreadable_private_attachment_shows_no_message_on_save(self):
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_unreadable.txt",
+				"content": "Unreadable Content",
+				"is_private": 1,
+			}
+		).insert()
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test unreadable private attachment").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.clear_messages()
+		doc.attachment = file.file_url
+		doc.save(ignore_permissions=True)
+
+		self.assertFalse(frappe.db.exists("File", {"attached_to_name": doc.name, "file_url": file.file_url}))
+		self.assertFalse(frappe.message_log)
 
 	def test_toggle_is_private_leaves_unrelated_field_unchanged(self):
 		self.addCleanup(frappe.set_user, "Administrator")
@@ -1441,6 +1506,38 @@ class TestFileUtils(IntegrationTestCase):
 			normal.delete()
 			shutil.rmtree(sibling_dir)
 
+	def test_get_web_image_follows_redirect_to_allowed_address(self):
+		from io import BytesIO
+
+		from PIL import Image as PILImage
+
+		buf = BytesIO()
+		PILImage.new("RGB", (2, 2)).save(buf, format="JPEG")
+		image_bytes = buf.getvalue()
+
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://8.8.4.4/final.jpg"})
+		final_response = MagicMock(is_redirect=False, content=image_bytes)
+		final_response.raise_for_status.return_value = None
+
+		with patch("requests.get", side_effect=[redirect_response, final_response]) as mock_get:
+			_, _, extn = get_web_image("http://8.8.8.8/initial.jpg")
+
+		self.assertEqual(mock_get.call_count, 2)
+		self.assertEqual(extn, "jpg")
+
+	def test_get_web_image_rejects_redirect_to_restricted_address(self):
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
+
+		with patch("requests.get", side_effect=[redirect_response]) as mock_get:
+			self.assertRaisesRegex(
+				ValidationError,
+				"internal address",
+				get_web_image,
+				"http://8.8.8.8/initial.jpg",
+			)
+
+		mock_get.assert_called_once()
+
 
 class TestFileOptimization(IntegrationTestCase):
 	def test_optimize_file(self):
@@ -1747,6 +1844,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		# Deleting a public File should not delete the private File's disk file
 		doc_pub.delete()
+		frappe.db.after_commit.run()
 		self.assertTrue(os.path.exists(doc_pri.get_full_path()))
 
 		# TODO: Migrate existing Files that have a mismatch between `is_private` and `file_url` prefix?
@@ -1754,6 +1852,7 @@ class TestGuestFileAndAttachments(IntegrationTestCase):
 
 		self.assertEqual(doc_pri.get_content(), content)
 		doc_pri.delete()
+		frappe.db.after_commit.run()
 		self.assertFalse(os.path.exists(doc_pri.get_full_path()))
 
 

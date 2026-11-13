@@ -1035,6 +1035,24 @@ test.describe("Print Format Builder — draft and Save & Apply", () => {
 });
 
 test.describe("Print Format form — renderer notice", () => {
+	let default_generator;
+
+	test.beforeEach(async ({ api }) => {
+		const r = await api.call("frappe.client.get_value", {
+			doctype: "Print Settings",
+			filters: "Print Settings",
+			fieldname: "pdf_generator",
+		});
+		default_generator = r.message.pdf_generator;
+		await api.set_value("Print Settings", "Print Settings", { pdf_generator: "wkhtmltopdf" });
+	});
+
+	test.afterEach(async ({ api }) => {
+		await api.set_value("Print Settings", "Print Settings", {
+			pdf_generator: default_generator,
+		});
+	});
+
 	test("treats an empty renderer on a classic format as wkhtmltopdf", async ({ page, api }) => {
 		await api.insert_doc(
 			"Print Format",

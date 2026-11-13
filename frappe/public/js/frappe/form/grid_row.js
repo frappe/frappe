@@ -120,12 +120,9 @@ export default class GridRow {
 						console.trace(e);
 					});
 			} else {
-				let data = null;
-				if (this.grid.df.get_data) {
-					data = this.grid.df.get_data();
-				} else {
-					data = this.grid.df.data;
-				}
+				// the grid reads df.data, often a copy of df.get_data(), so edit that copy
+				const data = this.grid.get_data();
+				this.grid.df.data = data;
 
 				const index = data.findIndex((d) => d.name === this.doc.name);
 

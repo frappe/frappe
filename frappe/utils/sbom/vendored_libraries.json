@@ -1,0 +1,54 @@
+[
+	{
+		"name": "@fingerprintjs/fingerprintjs",
+		"version": "3.4.2",
+		"license": "MIT",
+		"author": "FingerprintJS, Inc",
+		"path": "frappe/public/js/lib/fingerprintjs.js"
+	},
+	{
+		"name": "fullcalendar",
+		"license": "MIT",
+		"author": "Adam Shaw",
+		"path": "frappe/public/js/lib/fullcalendar"
+	},
+	{
+		"name": "jquery",
+		"version": "2.2.4",
+		"license": "MIT",
+		"author": "jQuery Foundation",
+		"path": "frappe/public/js/lib/jquery"
+	},
+	{
+		"name": "jsignature",
+		"license": "MIT",
+		"author": "Willow Systems Corp, Brinley Ang",
+		"path": "frappe/public/js/lib/jSignature.min.js"
+	},
+	{
+		"name": "leaflet",
+		"version": "1.2.0",
+		"license": "BSD-2-Clause",
+		"author": "Vladimir Agafonkin",
+		"path": "frappe/public/js/lib/leaflet"
+	},
+	{
+		"name": "leaflet-draw",
+		"version": "0.4.12",
+		"license": "MIT",
+		"author": "Jacob Toye, Jon West, Smartrak",
+		"path": "frappe/public/js/lib/leaflet_draw"
+	},
+	{
+		"name": "leaflet-easybutton",
+		"license": "MIT",
+		"author": "Daniel Montague",
+		"path": "frappe/public/js/lib/leaflet_easy_button"
+	},
+	{
+		"name": "leaflet.locatecontrol",
+		"license": "MIT",
+		"author": "Dominik Moritz",
+		"path": "frappe/public/js/lib/leaflet_control_locate"
+	}
+]

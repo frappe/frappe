@@ -69,6 +69,7 @@ from frappe.utils.data import (
 	format_duration,
 	get_datetime,
 	get_first_day_of_week,
+	get_image_thumbnail_uri,
 	get_time,
 	get_timedelta,
 	get_timespan_date_range,
@@ -444,6 +445,12 @@ class TestMoney(IntegrationTestCase):
 				(0, "MRO Zero only."),
 				("Fail", ""),
 			],
+			"USD": [
+				(0.29, "Twenty Nine Cent only."),
+				(0.57, "Fifty Seven Cent only."),
+				(0.58, "Fifty Eight Cent only."),
+				(1.57, "USD One and Fifty Seven Cent only."),
+			],
 		}
 
 		for currency, cases in test_cases.items():
@@ -736,6 +743,32 @@ class TestImage(IntegrationTestCase):
 		restripped_image_content = strip_exif_data(new_image_content, "image/jpeg")
 		self.assertEqual(restripped_image_content, new_image_content)
 
+	def test_image_thumbnail_does_not_read_outside_public_or_private(self):
+		sample = frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg")
+		secret = frappe.get_site_path("private", "files", "thumbnail_traversal_secret.jpg")
+		os.makedirs(os.path.dirname(secret), exist_ok=True)
+		with open(sample, "rb") as src, open(secret, "wb") as dst:
+			dst.write(src.read())
+		self.addCleanup(os.remove, secret)
+
+		frappe.local._print_thumbnail_cache = {}
+		url = "/../private/files/thumbnail_traversal_secret.jpg"
+		self.assertEqual(get_image_thumbnail_uri(url), url)
+
+		link = frappe.get_site_path("public", "files", "thumbnail_traversal_link.jpg")
+		os.symlink(os.path.abspath(secret), link)
+		self.addCleanup(os.remove, link)
+		self.assertEqual(
+			get_image_thumbnail_uri("/files/thumbnail_traversal_link.jpg"),
+			"/files/thumbnail_traversal_link.jpg",
+		)
+
+		public = frappe.get_site_path("public", "files", "thumbnail_public.jpg")
+		with open(sample, "rb") as src, open(public, "wb") as dst:
+			dst.write(src.read())
+		self.addCleanup(os.remove, public)
+		self.assertTrue(get_image_thumbnail_uri("/files/thumbnail_public.jpg").startswith("data:image/"))
+
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
 		content_type = guess_type(image_file_path)[0]
@@ -748,6 +781,18 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(width, 500)
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
+
+	def test_optimize_image_fills_transparency_with_white(self):
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path).convert("RGBA")
+		image.paste((0, 0, 0, 0), (0, 0, image.width // 2, image.height))
+		content = io.BytesIO()
+		image.save(content, format="PNG")
+
+		with self.set_user("test@example.com"):
+			optimized_content = optimize_image(content.getvalue(), "image/jpeg")
+
+		self.assertEqual(Image.open(io.BytesIO(optimized_content)).getpixel((10, 10)), (255, 255, 255))
 
 
 class TestPythonExpressions(IntegrationTestCase):
@@ -1128,6 +1173,22 @@ class TestXlsxUtils(IntegrationTestCase):
 		self.assertEqual(rows[1][1].value, 1500.5)
 		self.assertEqual(rows[2][1].data_type, "n")
 		self.assertEqual(rows[2][1].value, -5)
+
+	def test_time_values_get_number_format(self):
+		"""time / timedelta values must not be written as raw day fractions."""
+		from openpyxl import load_workbook
+
+		from frappe.utils.xlsxutils import XLSXStyleBuilder, make_xlsx
+
+		data = [
+			["in_time", "duration"],
+			[time(8, 0), timedelta(hours=9, minutes=30)],
+		]
+		wb = load_workbook(make_xlsx(data, "Test Sheet"))
+		ws = wb.active
+
+		self.assertEqual(ws["A2"].number_format, XLSXStyleBuilder.get_time_format())
+		self.assertEqual(ws["B2"].number_format, "[h]:mm:ss")
 
 
 class TestCsvUtils(IntegrationTestCase):

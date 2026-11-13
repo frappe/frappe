@@ -55,7 +55,7 @@ from .utils.jinja import (
 	render_template,
 )
 
-__version__ = "16.50.0"
+__version__ = "16.56.0"
 __title__ = "Frappe Framework"
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -485,7 +485,7 @@ def is_whitelisted(method):
 
 		summary = _("You are not permitted to access this resource. Login to access")
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
-		msg = f"<details><summary>{summary}</summary>{detail}</details>"
+		msg = f"<p>{summary}</p><div>{detail}</div>"
 		throw(msg, PermissionError, title=_("Method Not Allowed"))
 
 	if is_guest and method not in xss_safe_methods:

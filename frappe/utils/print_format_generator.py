@@ -6,12 +6,14 @@ import re
 from typing import ClassVar
 from urllib.parse import quote
 
+from bs4 import BeautifulSoup
+
 import frappe
 from frappe import _
 from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint
+from frappe.utils.data import cint, cstr
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -34,6 +36,7 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def download_pdf(
 	doctype: str,
 	name: str | int,
@@ -41,6 +44,8 @@ def download_pdf(
 	letterhead: str | None = None,
 	settings: str | dict | None = None,
 ):
+	from frappe.core.doctype.access_log.access_log import make_access_log
+	from frappe.utils.print_utils import _run_print_pdf_hooks
 	from frappe.www.printview import resolve_print_format, validate_print
 
 	doc = frappe.get_doc(doctype, name)
@@ -50,8 +55,9 @@ def download_pdf(
 		from frappe.utils.print_format import download_pdf as download_jinja_pdf
 
 		return download_jinja_pdf(
-			doctype, name, format=print_format.name if print_format else None, letterhead=letterhead
+			doctype, cstr(name), format=print_format.name if print_format else None, letterhead=letterhead
 		)
+	_run_print_pdf_hooks(doctype, name, print_format.name)
 	if uses_legacy_weasyprint(print_format):
 		from frappe.utils.weasyprint import legacy_generator
 
@@ -59,8 +65,15 @@ def download_pdf(
 	else:
 		generator = PrintFormatGenerator(print_format, doc, letterhead, settings=frappe.parse_json(settings))
 		pdf = generator.render_pdf()
+	make_access_log(
+		doctype=doc.doctype,
+		document=doc.name,
+		file_type="PDF",
+		method="Print",
+		page=f"Print Format: {print_format.name}",
+	)
 
-	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
+	frappe.local.response.filename = "{name}.pdf".format(name=cstr(name).replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = pdf
 	frappe.local.response.type = "pdf"
 
@@ -409,20 +422,25 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	"""Evaluate visibility conditions against a document the way the print does.
 	Returns {condition: {"visible": bool} | {"error": str}}; at most MAX_CONDITIONS
 	distinct expressions are evaluated per call."""
+	frappe.has_permission("Print Format", "write", throw=True)
 	conditions = frappe.parse_json(conditions) if isinstance(conditions, str) else conditions
 	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
 		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
 	conditions = list(dict.fromkeys(c for c in conditions if c.strip() and len(c) <= 2000))[:MAX_CONDITIONS]
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
-	eval_locals = {"doc": doc, "print_settings": frappe.get_cached_doc("Print Settings")}
+	eval_locals = condition_locals(doc, frappe.get_cached_doc("Print Settings"))
 	out = {}
 	for condition in conditions:
 		try:
 			out[condition] = {"visible": bool(frappe.safe_eval(condition, None, eval_locals))}
-		except Exception as e:
-			out[condition] = {"error": str(e)[:200]}
+		except Exception:
+			out[condition] = {"error": _("This condition could not be evaluated")}
 	return out
+
+
+def condition_locals(doc, print_settings) -> dict:
+	return {"doc": doc.as_dict(), "print_settings": print_settings.as_dict()}
 
 
 class PrintFormatGenerator:
@@ -704,7 +722,7 @@ class PrintFormatGenerator:
 			ensure_typst_fonts,
 			letterhead_blockers,
 			typst_blockers,
-			typst_font_paths,
+			typst_fonts,
 		)
 
 		blockers = typst_blockers(self.print_format, self.layout)
@@ -748,7 +766,7 @@ class PrintFormatGenerator:
 				measure_path = write("measure.typ", emitter.measure_source())
 				for label in list(heights):
 					found = json.loads(
-						typst.query(measure_path, f"<{label}>", root=tmp, font_paths=typst_font_paths())
+						typst.query(measure_path, f"<{label}>", root=tmp, font_paths=typst_fonts())
 					)
 					if found:
 						heights[label] = float(found[0].get("value") or 0)
@@ -762,7 +780,7 @@ class PrintFormatGenerator:
 			write_assets(assets)
 			# root pins file access to the tempdir — matters once formats can
 			# carry raw Typst markup (Typst blocks)
-			pdf = typst.compile(path, root=tmp, font_paths=typst_font_paths())
+			pdf = typst.compile(path, root=tmp, font_paths=typst_fonts())
 		if password:
 			pdf = encrypt_pdf(pdf, password)
 		return pdf
@@ -889,7 +907,7 @@ class PrintFormatGenerator:
 
 	def _render_zone_section(self, section: dict, doc, zone_class: str = "") -> str:
 		"""Render a header/footer zone section dict to HTML for the Chrome overlay."""
-		eval_locals = {"doc": doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(doc, self.print_settings)
 		for column in section.get("columns", []):
 			for df in column.get("fields", []):
 				if "renderer" not in df:
@@ -1006,7 +1024,14 @@ class PrintFormatGenerator:
 			fields = [
 				df
 				for df in column.get("fields", [])
-				if self.has_field_access(self.doc, meta, df.get("fieldname"), df.get("source_fieldname"))
+				if self.has_field_access(
+					self.doc,
+					meta,
+					df.get("fieldname"),
+					df.get("source_fieldname")
+					or (df.get("fieldtype") == "Repeater" and df.get("source"))
+					or (df.get("custom") and df.get("barcode_field")),
+				)
 			]
 			column["fields"] = fields
 			for df in fields:
@@ -1051,7 +1076,7 @@ class PrintFormatGenerator:
 		empty across all rows, then renormalize widths. A bad condition fails open."""
 		from frappe.www.printview import column_has_value
 
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		for column in iter_layout_columns(layout):
 			for df in column.get("fields", []):
 				if df.get("fieldtype") != "Table" or not df.get("table_columns"):
@@ -1114,9 +1139,10 @@ class PrintFormatGenerator:
 		self.prepare_linked_field(df)
 		self.prepare_date_format(df)
 		self.filter_conditional_rows(df)
+		self.prepare_html(df)
 
 	def set_field_renderers(self, layout):
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		for section in layout["sections"]:
 			if section.get("visible_if"):
 				section["_hidden"] = not self.eval_condition(
@@ -1140,12 +1166,19 @@ class PrintFormatGenerator:
 		if not df.get("row_condition") or not source:
 			return
 		condition = df["row_condition"]
-		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		eval_locals = condition_locals(self.doc, self.print_settings)
 		kept = []
 		for row in self.doc.get(source) or []:
-			if self.eval_condition(condition, {**eval_locals, "row": row}, f"rows of {source}"):
+			if self.eval_condition(condition, {**eval_locals, "row": row.as_dict()}, f"rows of {source}"):
 				kept.append(row)
 		df["_rows"] = kept
+
+	def prepare_html(self, df):
+		if df.get("renderer") == "HTML" and not df.get("_hidden"):
+			rendered = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				df.get("html") or "", {"doc": self.doc}
+			)
+			df["_html"] = BeautifulSoup(f"<body>{rendered}</body>", "html5lib").body.decode_contents()
 
 	def prepare_barcode(self, df):
 		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""

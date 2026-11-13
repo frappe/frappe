@@ -379,6 +379,15 @@ class TestNaming(IntegrationTestCase):
 			name.startswith("KOOH-on_update"), f"incorrect name generated {name}, missing field value"
 		)
 
+	def test_naming_series_counter_using_fields(self):
+		webhook = frappe.new_doc("Webhook")
+		webhook.webhook_docevent = "on_update"
+		series = NamingSeries("KOOH-.{webhook_docevent}.-.####")
+
+		self.assertEqual(series.get_prefix(webhook), "KOOH-on_update-")
+		series.update_counter(7, webhook)
+		self.assertEqual(series.get_current_value(webhook), 7)
+
 	def test_naming_with_empty_part(self):
 		# check naming with empty part (duplicate dots)
 

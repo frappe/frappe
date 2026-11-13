@@ -6,12 +6,13 @@ authors = [
 description = "Metadata driven, full-stack low code web framework"
 requires-python = ">=3.14,<3.15"
 readme = "README.md"
+license = "MIT"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
     "Babel~=2.18.0",
     "Click~=8.4.1",
-    "filelock~=3.20.1",
+    "filelock~=4.2.4",
     "filetype~=1.2.0",
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
@@ -23,15 +24,18 @@ dependencies = [
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.19.0",
+    "pypdf==6.21.4",
     "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
     "WeasyPrint==70.0",
+    # WeasyPrint allows fonttools[woff]>=4.59.2, which keeps brotli<1.2.1 (CVE-2026-111497)
+    "fonttools[woff]>=4.68.0",
     "typst~=0.15.0",
     "pydyf==0.12.1",
+    "packaging>=24.2",
     "Werkzeug==3.1.9",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
@@ -150,7 +154,7 @@ test = [
 ]
 
 [build-system]
-requires = ["flit_core >=3.4,<4"]
+requires = ["flit_core >=3.12,<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.frappe.testing.function_type_validation]
@@ -169,6 +173,7 @@ watchdog = "~=6.0.0"
 hypothesis = "~=6.77.0"
 responses = "==0.23.1"
 freezegun = "~=1.5.5"
+spdx-tools = "~=0.8.5"
 
 [tool.ruff]
 line-length = 110
@@ -230,7 +235,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { pypdf = false, sqlparse = false } # drop sqlparse after 2026-08-20
+exclude-newer-package = { pypdf = false, filelock = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10
 
 [tool.mypy]
 strict = false

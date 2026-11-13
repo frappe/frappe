@@ -2,6 +2,6 @@
 
 {%- block value -%}
 <div class="value">
-    <pre><code>{{ value }}</code></pre>
+    {% if value %}<pre{% if _val_style %} style="{{ _val_style|e }}"{% endif %}><code>{{ value }}</code></pre>{% endif %}
 </div>
 {%- endblock -%}

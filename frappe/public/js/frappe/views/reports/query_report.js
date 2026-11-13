@@ -1071,15 +1071,17 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						true
 					);
 
-					this.prepared_report_dialog.footer.prepend(`
-					<button type="button" class="btn btn-sm btn-default pull-left" data-action="delete_old_queued_reports">
-						${__("Delete and Generate New")}
-					</button>`);
+					if (frappe.model.can_read("Prepared Report")) {
+						this.prepared_report_dialog.footer.prepend(`
+						<button type="button" class="btn btn-sm btn-default pull-left" data-action="delete_old_queued_reports">
+							${__("Delete and Generate New")}
+						</button>`);
 
-					frappe.utils.bind_actions_with_object(
-						this.prepared_report_dialog.wrapper,
-						this
-					);
+						frappe.utils.bind_actions_with_object(
+							this.prepared_report_dialog.wrapper,
+							this
+						);
+					}
 				} else {
 					this.generate_background_report();
 				}

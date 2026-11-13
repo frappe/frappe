@@ -1342,9 +1342,12 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 	tree_warnings = []
 	nodes_by_id = {node.id: node for node in nodes}
 	duplicate_messages = {}
+	parent_refs = {node.parent for node in nodes}
 
 	for node_id, row_numbers in id_to_rows.items():
-		if len(row_numbers) > 1:
+		if len(row_numbers) > 1 and (
+			node_id not in import_file.header.import_aliases or node_id in parent_refs
+		):
 			message = _("Duplicate ID {0} in rows {1}").format(
 				frappe.bold(escape_html(cstr(node_id))), format_row_numbers_for_warning(row_numbers)
 			)
@@ -1504,14 +1507,14 @@ def sort_tree_payloads(payloads: list, doctype: str, import_type: str | None) ->
 	while stack:
 		payload = stack.pop()
 		node_id = payload_id_by_payload[id(payload)]
-		if not node_id or node_id in seen:
+		if id(payload) in seen:
 			continue
-		seen.add(node_id)
+		seen.add(id(payload))
 		ordered.append(payload)
 		stack.extend(reversed(children_by_parent.get(node_id, [])))
 
-	for payload, node_id, _parent in payload_keys:
-		if not node_id or node_id not in seen:
+	for payload, _node_id, _parent in payload_keys:
+		if id(payload) not in seen:
 			ordered.append(payload)
 
 	return ordered
@@ -1528,21 +1531,25 @@ def _order_tree_preview_nodes(nodes: list) -> list:
 	for children in children_by_parent.values():
 		children.sort(key=lambda n: n.row_number)
 
+	# The tree nests children under their parent's id, so an id other rows point to is shown once.
+	def get_display_key(node):
+		return node.id if node.id in children_by_parent else node.row_number
+
 	ordered = []
 	seen = set()
 
 	stack = [(node, 0) for node in reversed(children_by_parent.get(None, []))]
 	while stack:
 		node, depth = stack.pop()
-		if node.id in seen:
+		if get_display_key(node) in seen:
 			continue
-		seen.add(node.id)
+		seen.add(get_display_key(node))
 		node.depth = depth
 		ordered.append(node)
 		stack.extend((child, depth + 1) for child in reversed(children_by_parent.get(node.id, [])))
 
 	for node in nodes:
-		if node.id not in seen:
+		if get_display_key(node) not in seen:
 			node.depth = 0
 			node.orphan = True
 			ordered.append(node)
@@ -2273,24 +2280,12 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 
 def get_df_for_column_header(doctype, header):
-	from frappe.core.doctype.data_import.import_provider import get_import_provider
-
-	if get_import_provider(doctype):
-		# A provider's fields can depend on the user (e.g. their permissions) and on other
-		# DocTypes, so they can't be shared or cleared with this DocType's cache.
-		return _get_provider_fields_dict(doctype, frappe.session.user).get(header)
-
-	def build_fields_dict_for_doctype():
-		return build_fields_dict_for_column_matching(doctype)
-
-	df_by_labels_and_fieldname = frappe.cache.hget(
-		"data_import_column_header_map", doctype, generator=build_fields_dict_for_doctype
-	)
-	return df_by_labels_and_fieldname.get(header)
+	return _get_fields_dict(doctype, frappe.session.user).get(header)
 
 
 @request_cache
-def _get_provider_fields_dict(doctype, user):
+def _get_fields_dict(doctype, user):
+	# A provider's fields can depend on the user (e.g. their permissions)
 	return build_fields_dict_for_column_matching(doctype)
 
 
