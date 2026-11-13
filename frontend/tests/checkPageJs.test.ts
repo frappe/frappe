@@ -15,6 +15,11 @@ const manifest = {
   },
   "_editor.js": { file: "assets/editor.js" },
   "src/pages/NewRecord.vue": { file: "assets/NewRecord.js", imports: ["_shared.js"] },
+  "src/pages/doctypeEditor/DoctypeEditor.vue": {
+    file: "assets/DoctypeEditor.js",
+    dynamicImports: ["_ruleEditor.js"],
+  },
+  "_ruleEditor.js": { file: "assets/ruleEditor.js" },
 };
 
 const kb = (bytes: number) => Math.round((bytes / 1024) * 10) / 10;
@@ -30,6 +35,7 @@ describe("pageJsKb", () => {
       list: kb(entry + gzipped("assets/List.js") + gzipped("assets/shared.js")),
       record: kb(entry + gzipped("assets/Record.js") + gzipped("assets/shared.js")),
       new: kb(entry + gzipped("assets/NewRecord.js") + gzipped("assets/shared.js")),
+      editor: kb(entry + gzipped("assets/DoctypeEditor.js")),
     });
   });
 

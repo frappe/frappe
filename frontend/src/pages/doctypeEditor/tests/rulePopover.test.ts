@@ -43,7 +43,13 @@ function row(key: string) {
 }
 
 async function openRow(key: string) {
-	row(key).click();
+	return openButton(row(key));
+}
+
+/** The builder loads on demand, so the popover is ready only when its editor has rendered. */
+async function openButton(button: HTMLButtonElement) {
+	button.click();
+	await vi.waitFor(() => expect(document.querySelector("[data-rule-editor]")).not.toBeNull());
 	await settle();
 	return document.querySelector("[data-rule-editor]")!;
 }
@@ -84,6 +90,28 @@ describe("the rule popover", () => {
 		]);
 		expect(row("depends_on").textContent).toContain("Always");
 	});
+
+	it("opens only the row clicked last while the builder loads", async () => {
+		mount();
+		row("depends_on").click();
+		await openRow("mandatory_depends_on");
+		expect(document.querySelectorAll("[data-rule-editor]")).toHaveLength(1);
+		expect(row("depends_on").getAttribute("aria-expanded")).toBe("false");
+		expect(row("mandatory_depends_on").getAttribute("aria-expanded")).toBe("true");
+	});
+
+	it.each([
+		["a click outside", () => document.body.dispatchEvent(new Event("pointerdown", { bubbles: true }))],
+		["Escape", () => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))],
+	])("drops the pending open on %s while the builder loads", async (_, dismiss) => {
+		mount();
+		row("depends_on").click();
+		dismiss();
+		await settle();
+		await settle();
+		expect(document.querySelector("[data-rule-editor]")).toBeNull();
+		expect(row("depends_on").getAttribute("aria-expanded")).toBe("false");
+	});
 });
 
 describe("a container's rule rows", () => {
@@ -99,8 +127,7 @@ describe("a container's rule rows", () => {
 		expect(visible.textContent).toContain("Status is set");
 		expect(document.querySelector('[data-rule-row="more.collapsibleDependsOn"]')).toBeNull();
 
-		visible.click();
-		await settle();
+		await openButton(visible);
 		document.querySelector<HTMLButtonElement>("[data-rule-clear]")!.click();
 		await settle();
 		await done();

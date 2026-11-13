@@ -46,7 +46,8 @@
 				style="max-height: var(--reka-popover-content-available-height)"
 				@keydown.esc.stop="close"
 			>
-				<RuleEditor
+				<component
+					:is="editor"
 					:draft="draft"
 					:title="label"
 					:subject="subject"
@@ -61,13 +62,17 @@
 	</PanelRow>
 </template>
 
+<script lang="ts">
+// Rows share the builder's load: only the row clicked last opens when it arrives.
+let lastOpened: symbol | undefined;
+</script>
+
 <script setup lang="ts">
 import { onBeforeUnmount, ref, shallowRef } from "vue";
 import { Popover, Tooltip } from "frappe-ui";
 import type { ConditionField } from "@framework/ui/ConditionBuilder";
 import PanelRow from "./PanelRow.vue";
 import { RuleDraft, type RuleCodec } from "./ruleDraft";
-import RuleEditor from "./RuleEditor.vue";
 import type { RuleSummary } from "./ruleWords";
 
 const props = defineProps<{
@@ -98,14 +103,24 @@ const PANEL_ROOM = 560;
 const button = ref<HTMLButtonElement | null>(null);
 const open = ref(false);
 const draft = shallowRef<RuleDraft | null>(null);
+// The builder loads as a rule first opens, not with the editor page; an empty popover would close on focus.
+const editor = shallowRef<typeof import("./RuleEditor.vue").default>();
 
 // The popover closes on a click outside, which the row's own button is; that click must not reopen it.
 let closedAt = 0;
 let release = () => {};
 
-function toggle() {
+async function toggle() {
 	if (Date.now() - closedAt < 300) return;
 	if (open.value) return close();
+	const request = (lastOpened = Symbol());
+	const stop = onDismiss(() => lastOpened === request && (lastOpened = undefined));
+	try {
+		editor.value ??= (await import("./RuleEditor.vue")).default;
+	} finally {
+		stop();
+	}
+	if (open.value || request !== lastOpened) return; // a later click, outside click or Escape during the load wins
 	draft.value = new RuleDraft(props.value, props.codec);
 	release = makeRoomBelow(button.value, PANEL_ROOM);
 	open.value = true;
@@ -131,6 +146,18 @@ function finish() {
 }
 
 onBeforeUnmount(finish);
+
+/** Calls `cancel` on a click outside the row or on Escape; returns the stop. */
+function onDismiss(cancel: () => void) {
+	const onPointer = (e: Event) => button.value?.contains(e.target as Node) || cancel();
+	const onKey = (e: KeyboardEvent) => e.key === "Escape" && cancel();
+	document.addEventListener("pointerdown", onPointer, true);
+	document.addEventListener("keydown", onKey, true);
+	return () => {
+		document.removeEventListener("pointerdown", onPointer, true);
+		document.removeEventListener("keydown", onKey, true);
+	};
+}
 
 /** A row near the panel's foot would flip the popover above it: scroll the row up, padding the panel's end. */
 function makeRoomBelow(el: HTMLElement | null, need: number) {
