@@ -348,6 +348,41 @@ class TestBulkCollaboration(IntegrationTestCase):
 		self.assertEqual(result["done"], [])
 		self.assertEqual(len(result["failed"]), 3)
 
+	def test_a_read_only_user_can_favourite_and_unfavourite_and_repeat_the_unstar(self):
+		user = self.share_read_only()
+		frappe.set_user(user)
+		self.body()
+		self.assertCountEqual(routes.bulk_favourites("ToDo")["done"], self.names)
+		self.assertCountEqual(self.starred(), self.names)
+
+		self.assertCountEqual(routes.bulk_unfavourites("ToDo")["done"], self.names)
+		self.assertEqual(self.starred(), [])
+
+		# a record that is not starred is no failure
+		repeat = routes.bulk_unfavourites("ToDo")
+		self.assertEqual(repeat["failed"], [])
+		self.assertCountEqual(repeat["done"], self.names)
+
+	def test_a_user_without_the_gate_cannot_favourite_or_unfavourite(self):
+		user = self.share_read_only()
+		frappe.db.set_value("User", user, "bulk_actions", 0)
+		frappe.clear_document_cache("User", user)
+		frappe.set_user(user)
+		self.body()
+		for route in (routes.bulk_favourites, routes.bulk_unfavourites):
+			with self.assertRaises(frappe.PermissionError, msg=route.__name__):
+				route("ToDo")
+
+	def test_a_background_favourite_run_stars_for_the_user_who_asked(self):
+		user = self.share_read_only()
+		frappe.set_user(user)
+		self.body()
+		result = self.run_in_background(routes.bulk_favourites)
+		self.assertCountEqual(result["done"], self.names)
+		frappe.set_user(user)
+		self.assertCountEqual(self.starred(), self.names)
+		frappe.set_user("Administrator")
+		self.assertEqual(self.starred(), [])
 	def starred(self) -> list[str]:
 		return frappe.get_all(
 			"Favourite",

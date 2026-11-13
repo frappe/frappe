@@ -1,8 +1,9 @@
 // The Favourite column's state: which listed rows the person starred. Module state, kept apart
 // so the column can go without touching the rest of the list. A cached record that holds its
-// own `favourites` part answers first, so a star toggled on the record page shows here.
+// own `favourites` part answers first, so a star toggled on the record page shows here; every
+// write below keeps that part in step, or it would outvote a newer star.
 import { addFavourite, removeFavourite } from "@framework/ui/api";
-import { readCachedDocument } from "@framework/ui/cache";
+import { feedPartWrite, readCachedDocument, settleTicket, takeTicket } from "@framework/ui/cache";
 import { reactive } from "vue";
 
 const stars = reactive(new Map<string, boolean>());
@@ -12,11 +13,27 @@ const toggling = new Set<string>();
 
 const starKey = (doctype: string, name: string) => `${doctype}\0${name}`;
 
+type Favourites = { user: string }[];
+
+/** Rewrites the person's row in a cached record's `favourites` part; a record without it stays out. */
+function syncCachedPart(doctype: string, name: string, user: string, starred: boolean) {
+	const cached = readCachedDocument(doctype, name)?.parts.favourites as Favourites | undefined;
+	if (!cached || cached.some((row) => row.user === user) === starred) return;
+	const others = cached.filter((row) => row.user !== user);
+	const ticket = takeTicket();
+	feedPartWrite(ticket, doctype, name, "favourites", starred ? [...others, { user }] : others);
+	settleTicket(ticket);
+}
+
 /** Marks every row of the page: starred when the read lists it, else not. */
-export function seedFavourites(doctype: string, answer: Record<string, unknown>, names: string[]) {
+export function seedFavourites(doctype: string, answer: Record<string, unknown>, names: string[], user?: string) {
 	const starred = new Set((answer.favourites as string[] | undefined) ?? []);
 	if (!Array.isArray(answer.favourites)) return;
-	for (const name of names) stars.set(starKey(doctype, name), starred.has(String(name)));
+	for (const name of names) {
+		const isStar = starred.has(String(name));
+		stars.set(starKey(doctype, name), isStar);
+		if (user) syncCachedPart(doctype, String(name), user, isStar);
+	}
 }
 
 export function isStarred(doctype: string, name: string, user: string): boolean {
@@ -34,6 +51,7 @@ export async function toggleStar(doctype: string, name: string, user: string) {
 		const starred = !isStarred(doctype, name, user);
 		await (starred ? addFavourite : removeFavourite)(doctype, name);
 		stars.set(key, starred);
+		syncCachedPart(doctype, name, user, starred);
 	} finally {
 		toggling.delete(key);
 	}

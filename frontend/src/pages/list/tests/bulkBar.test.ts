@@ -138,6 +138,7 @@ describe("BulkBar", () => {
 		const { root, clear } = mount({ scope: scopeOf(2).scope, layout: layoutBulk([entry("edit", { label: "Edit", button: true }), trash], "ToDo") });
 		const box = root.querySelector<HTMLInputElement>("input[type=checkbox]")!;
 		expect(box.checked).toBe(true);
+		expect(box.getAttribute("aria-label")).toBe("Deselect all");
 		box.click();
 		expect(clear).toHaveBeenCalledOnce();
 

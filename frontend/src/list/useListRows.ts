@@ -18,6 +18,7 @@ import {
 	watch,
 	type ComputedRef,
 } from "vue";
+import { currentSession } from "@framework/ui/useSession";
 import { seedFavourites } from "./favouriteStars";
 import { seedRowParts } from "./rowParts";
 
@@ -230,7 +231,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 
 	function seedParts(answer: ListEnvelope<ListRow>) {
 		const names = answer.data.map((row) => row.name);
-		seedFavourites(doctype, answer, names);
+		seedFavourites(doctype, answer, names, currentSession()?.user.name);
 		seedRowParts(doctype, answer, names);
 	}
 

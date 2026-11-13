@@ -8,7 +8,7 @@
 		<Checkbox
 			class="me-2"
 			:modelValue="true"
-			:aria-label="__('Clear selection')"
+			:aria-label="__('Deselect all')"
 			@update:modelValue="$emit('clear')"
 		/>
 		<span class="whitespace-nowrap text-ink-gray-9" aria-live="polite">{{ countText }}</span>

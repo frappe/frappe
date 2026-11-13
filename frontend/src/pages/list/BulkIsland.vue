@@ -3,8 +3,7 @@
 	<div class="relative h-0 shrink-0">
 		<div
 			v-if="open"
-			class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24"
-			style="background: linear-gradient(to top, var(--surface-base) 30%, transparent)"
+			class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-24 bg-[linear-gradient(to_top,var(--surface-base)_30%,transparent)]"
 		/>
 		<Transition
 			enter-active-class="transition duration-150 ease-out"

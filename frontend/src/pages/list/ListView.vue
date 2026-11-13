@@ -25,7 +25,7 @@
 		:rowMenu="rowActions.length > 0"
 		:cellClass="(row, column) => seenClassOf(row, column.fieldname)"
 		gutter="var(--page-gutter)"
-		:bottomInset="selection.length ? '4.5rem' : undefined"
+		:bottomInset="selection.length ? BULK_CLEARANCE : undefined"
 		@column-resize="resizeColumn($event.fieldname, $event.width)"
 		@column-reset="resetColumnWidth($event.fieldname)"
 		@row-contextmenu="menu.open($event.name, $event.event)"
@@ -175,6 +175,7 @@ import { mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { List, ListFooter } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { computed, provide, ref } from "vue";
+import { BULK_CLEARANCE } from "@/list/bulkClearance";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import type { View } from "@/list/view";

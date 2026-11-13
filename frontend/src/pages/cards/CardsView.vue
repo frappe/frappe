@@ -12,7 +12,7 @@
 	<div
 		v-else
 		class="min-h-0 flex-1 overflow-y-auto py-2"
-		:class="[pageGutter, selection.length && 'pb-[4.5rem]']"
+		:class="[pageGutter, selection.length && BULK_CLEARANCE_CLASS]"
 		@pointerover="bulk.prefetch"
 		@focusin="bulk.prefetch"
 	>
@@ -47,7 +47,7 @@
 	<component
 		:is="bulk.parts.value.chunk.BulkIsland"
 		v-if="bulk.parts.value"
-		:open="selection.length > 0"
+		:open="selection.length > 0 && !error"
 		:scope="scope"
 		:doctype="view.doctype"
 		:status="bulk.parts.value.status"
@@ -105,6 +105,7 @@ import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { Skeleton } from "frappe-ui";
 import { ref } from "vue";
 import { __ } from "@/i18n";
+import { BULK_CLEARANCE_CLASS } from "@/list/bulkClearance";
 import type { ListRow } from "@/list/useListRows";
 import type { View } from "@/list/view";
 import DeleteDialog from "@/pages/list/DeleteDialog.vue";

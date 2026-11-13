@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const api = vi.hoisted(() => ({ addFavourite: vi.fn(), removeFavourite: vi.fn() }));
 vi.mock("@framework/ui/api", () => api);
+import { feedRecordRead, holdDocument, readCachedDocument, takeTicket } from "@framework/ui/cache";
 import { fetchFields } from "../defaults";
 import { isStarred, seedFavourites, toggleStar } from "../favouriteStars";
 import { commentCountOf, partsFor, personOf, seedRowParts } from "../rowParts";
@@ -70,5 +71,37 @@ describe("collaboration columns", () => {
 		await first;
 		expect(api.addFavourite).toHaveBeenCalledTimes(1);
 		expect(isStarred("ToDo", "c", "me")).toBe(true);
+	});
+
+	describe("a cached record holding its own `favourites` part", () => {
+		// The record page holds its entry while it is open; a held entry keeps a one-part read.
+		const cacheRecord = (name: string, favourites: { user: string }[]) => {
+			holdDocument("ToDo", name);
+			feedRecordRead(takeTicket(), "ToDo", { data: { name, modified: "2026-01-01 10:00:00.000000" }, favourites }, ["favourites"]);
+		};
+		const cachedUsers = (name: string) =>
+			(readCachedDocument("ToDo", name)?.parts.favourites as { user: string }[]).map((row) => row.user);
+
+		it("follows the list read that says a bulk run unstarred it", () => {
+			cacheRecord("d", [{ user: "me" }, { user: "you" }]);
+			expect(isStarred("ToDo", "d", "me")).toBe(true);
+			seedFavourites("ToDo", { favourites: [] }, ["d"], "me");
+			expect(isStarred("ToDo", "d", "me")).toBe(false);
+			expect(cachedUsers("d")).toEqual(["you"]);
+		});
+
+		it("follows the list read that says a bulk run starred it", () => {
+			cacheRecord("e", []);
+			seedFavourites("ToDo", { favourites: ["e"] }, ["e"], "me");
+			expect(isStarred("ToDo", "e", "me")).toBe(true);
+		});
+
+		it("follows a toggle from the list when the call's own reply did not reach the cache", async () => {
+			cacheRecord("f", [{ user: "me" }]);
+			api.removeFavourite.mockResolvedValue({ data: {} });
+			await toggleStar("ToDo", "f", "me");
+			expect(isStarred("ToDo", "f", "me")).toBe(false);
+			expect(cachedUsers("f")).toEqual([]);
+		});
 	});
 });

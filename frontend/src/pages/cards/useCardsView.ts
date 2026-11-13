@@ -92,6 +92,8 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 			filters: filtersDict(view.filters.value),
 			orderBy: serializeOrderBy(view.sort.value),
 			limit: pageSize.value,
+			// The bar's Favourite reads the stars, as the list view's does.
+			include: ["favourites"],
 		};
 	});
 
