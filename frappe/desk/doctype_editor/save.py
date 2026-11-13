@@ -100,6 +100,7 @@ class DesignSave:
 	def write(self) -> list[dict] | None:
 		"""Write in order; a DocType's DDL commits, so a later failure reports what is already written."""
 		self.written: list[str] = []
+		self.loaded_modified = self.state.doc.modified
 		messages = len(frappe.local.message_log)
 		frappe.db.savepoint(WRITE_SAVEPOINT)
 		try:
@@ -139,9 +140,16 @@ class DesignSave:
 			self.written = []
 		except Exception:
 			frappe.db.rollback()
+			if self.doctype not in self.written and self.doctype_committed():
+				self.written.append(self.doctype)
 			if self.doctype in self.written:
 				return self.move_renamed_data_again()
 		return []
+
+	def doctype_committed(self) -> bool:
+		"""Its save can fail after its DDL committed the DocType's rows."""
+		modified = frappe.db.get_value("DocType", self.doctype, "modified")
+		return str(modified) != str(self.loaded_modified)
 
 	def move_renamed_data_again(self) -> list[dict]:
 		try:

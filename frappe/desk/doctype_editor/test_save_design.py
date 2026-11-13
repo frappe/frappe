@@ -650,6 +650,23 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, fieldname), "Hello")
 		self.assertEqual(details_rows(), [])
 
+	def test_a_doctype_save_failing_after_its_ddl_keeps_renamed_data(self):
+		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Hello"}).insert()
+		with patch(
+			"frappe.core.doctype.doctype.doctype.DocType.change_modified_of_parent",
+			side_effect=RuntimeError("lost connection"),
+		):
+			result = self.save(
+				[{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "heading"}]
+			)
+		self.assertFalse(result["saved"])
+		# MariaDB and Postgres commit the DocType's DDL; SQLite rolls it back with the rest.
+		kept = frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "heading"})
+		self.assertEqual(bool(kept), frappe.db.db_type != "sqlite")
+		self.assertEqual(result["written"], [DOCTYPE] if kept else [])
+		fieldname = "heading" if kept else "title"
+		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, fieldname), "Hello")
+
 	def test_a_data_move_failing_after_a_write_failure_is_reported(self):
 		with (
 			patch(
