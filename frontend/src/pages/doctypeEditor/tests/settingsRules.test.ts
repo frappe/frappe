@@ -11,6 +11,7 @@ function settings(overrides: Partial<SettingsState> = {}): SettingsState {
 		settable: null,
 		permissions: [],
 		pending: false,
+		kindFixed: true,
 		records: 3,
 		savedAutoname: "hash",
 		app: null,
@@ -20,7 +21,7 @@ function settings(overrides: Partial<SettingsState> = {}): SettingsState {
 	};
 }
 
-const ofKind = (kind: DoctypeKind, pending = false) => settings({ properties: kindProperties(kind), pending });
+const ofKind = (kind: DoctypeKind, pending = false) => settings({ properties: kindProperties(kind), pending, kindFixed: !pending });
 const keys = (state: SettingsState) => settingRows(state).map((row) => row.key);
 const sections = (state: SettingsState) => settingSections(state).map((section) => section.key);
 
@@ -36,6 +37,10 @@ describe("the rows each kind shows", () => {
 	it("shows the kind row only before the first save", () => {
 		expect(keys(ofKind("regular", true))).toContain("kind");
 		expect(keys(ofKind("regular"))).not.toContain("kind");
+	});
+
+	it("hides the kind row on a new child table its parent made", () => {
+		expect(keys(settings({ properties: kindProperties("child"), pending: true, kindFixed: true }))).not.toContain("kind");
 	});
 });
 

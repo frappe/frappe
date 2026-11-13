@@ -21,7 +21,7 @@ export interface SettingRow {
 	keywords?: string;
 	/** The kinds of DocType that show it; all when absent. */
 	kinds?: DoctypeKind[];
-	/** Only while the DocType is not yet saved. */
+	/** Only while the DocType's kind can still change. */
 	pending?: boolean;
 }
 
@@ -190,7 +190,7 @@ export function kindProperties(kind: DoctypeKind): Record<string, 0 | 1> {
 /** The rows this DocType shows. */
 export function settingRows(settings: SettingsState): SettingRow[] {
 	const kind = kindOf(settings.properties);
-	return SETTING_ROWS.filter((row) => (!row.kinds || row.kinds.includes(kind)) && (!row.pending || settings.pending));
+	return SETTING_ROWS.filter((row) => (!row.kinds || row.kinds.includes(kind)) && (!row.pending || !settings.kindFixed));
 }
 
 /** The sections with at least one row: a child table has no Naming or Permissions, a Single no Naming. */

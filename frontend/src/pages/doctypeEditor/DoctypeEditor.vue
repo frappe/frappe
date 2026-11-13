@@ -49,14 +49,11 @@
 						:save="save"
 						:customize="customizeRoute"
 					/>
-					<ChildSettings
-						v-else-if="tab === 'settings' && openChild"
-						:session="openChild"
-					/>
 					<SettingsTab
-						v-else-if="tab === 'settings' && canvas"
+						v-else-if="tab === 'settings' && shown"
+						:key="shown.state.doctype"
 						v-model:place="settingsPlace"
-						:canvas="canvas"
+						:canvas="shown"
 						:customize="customizeRoute"
 					/>
 					<RowDialogPreview
@@ -107,7 +104,6 @@ import { shellDialog } from "@/shell/dialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import { useUnloadGuard } from "@/unloadGuard";
-import ChildSettings from "./ChildSettings.vue";
 import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
 import EditorPanel from "./EditorPanel.vue";

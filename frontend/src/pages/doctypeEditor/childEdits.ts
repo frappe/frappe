@@ -33,15 +33,6 @@ export class ChildEdits implements EditStage {
 		this.edits.stage(...own);
 	}
 
-	/** A DocType setting: the last staged value, else the loaded one. */
-	setting(state: EditorState, property: "editable_grid" | "allow_bulk_edit"): boolean {
-		const set = this.edits
-			.stagedFor(this.doctype)
-			.filter((edit) => edit.act === "settings.set_doctype_property" && edit.property === property)
-			.at(-1);
-		return Boolean(set ? set.value : state.definition[property]);
-	}
-
 	/** The server refuses a layout for a child table it has not inserted yet, so a new child's edits carry none. */
 	private saved(edit: Edit): Record<string, unknown> {
 		if (!this.pending) return edit.value;

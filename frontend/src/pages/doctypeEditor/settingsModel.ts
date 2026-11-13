@@ -44,8 +44,10 @@ export interface SettingsState {
 	/** The properties this mode sets, the others show locked; `null` before the first save: the save checks. */
 	settable: string[] | null;
 	permissions: PermissionRow[];
-	/** Not yet saved: its kind may still change. */
+	/** Not yet saved. */
 	pending: boolean;
+	/** Its kind cannot change: saved, or a new child table its parent made. */
+	kindFixed: boolean;
 	/** Readable records, `null` when unknown: "Number in order" waits for none. */
 	records: number | null;
 	/** The naming rule the database has: switching to or from "Number in order" checks it. */
@@ -85,6 +87,7 @@ export function settingsBase(state: EditorState): SettingsState {
 		settable: state.settable_properties ?? null,
 		permissions: (permissions ?? []).map(permissionRow),
 		pending: Boolean(state.pending),
+		kindFixed: !state.pending || Boolean(state.kind_fixed),
 		records: state.record_count,
 		savedAutoname: definition.autoname,
 		app: customize ? { properties: appProperties(state), permissions: (state.app_permissions ?? []).map(permissionRow) } : null,

@@ -40,15 +40,6 @@ export interface DoctypeDefinition {
 }
 
 /** A Customize load's Property Setter, with the value the app ships. */
-export interface EditorPropertySetter {
-	doctype_or_field: string;
-	field_name?: string | null;
-	property: string;
-	value: string;
-	is_system_generated: 0 | 1;
-	app_value: unknown;
-}
-
 export interface EditorState {
 	doctype: string;
 	mode: EditorMode;
@@ -73,7 +64,6 @@ export interface EditorState {
 	app_permissions?: Record<string, unknown>[];
 	/** Why this person cannot change permissions here (Customize without System Manager). */
 	permissions_refusal?: string | null;
-	property_setters?: EditorPropertySetter[];
 	/** Not yet saved: `/doctype/new` builds it on the client. */
 	pending?: boolean;
 	/** Customize: the site's changes, and the property changes Customize Form refuses. */
@@ -81,6 +71,8 @@ export interface EditorState {
 	property_setters?: PropertySetterRow[];
 	locks?: Record<string, Record<string, string>>;
 	fieldtype_changes?: Record<string, string[]>;
+	/** A new child table made from its parent's Table field: it stays a child table. */
+	kind_fixed?: boolean;
 }
 
 export interface CustomFieldRow {
