@@ -610,7 +610,7 @@ class DocType(Document):
 					except Exception as e:
 						publish_export_result(self.name, saving_user, e)
 						raise
-					publish_export_result(self.name, saving_user)
+					publish_export_result(self.name, saving_user, app_layouts=self.flags.app_layout_versions)
 
 				request.after_response.add(export_and_report)
 			else:
@@ -963,8 +963,10 @@ class DocType(Document):
 		"""Write the layout files a save staged in `flags.app_layouts`, a list of layouts per type."""
 		from frappe.desk.doctype.form_layout.app_layout_writer import write_app_layouts
 
-		for type, entries in (self.flags.app_layouts or {}).items():
-			write_app_layouts(self.name, type, entries)
+		self.flags.app_layout_versions = {
+			type: write_app_layouts(self.name, type, entries)
+			for type, entries in (self.flags.app_layouts or {}).items()
+		}
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
@@ -2264,12 +2266,14 @@ def get_field(doc, fieldname):
 			return field
 
 
-def publish_export_result(doctype: str, user: str, error: Exception | None = None) -> None:
-	frappe.publish_realtime(
-		"doctype_export",
-		{"doctype": doctype, "ok": error is None, "error": (str(error) or repr(error)) if error else None},
-		user=user,
-	)
+def publish_export_result(
+	doctype: str, user: str, error: Exception | None = None, app_layouts: dict | None = None
+) -> None:
+	"""Tell the saving user how the deferred export went, with the new hash of each app layout file it wrote."""
+	message = {"doctype": doctype, "ok": error is None, "error": (str(error) or repr(error)) if error else None}
+	if app_layouts:
+		message["app_layouts"] = app_layouts
+	frappe.publish_realtime("doctype_export", message, user=user)
 
 
 @frappe.whitelist(methods=["POST"])

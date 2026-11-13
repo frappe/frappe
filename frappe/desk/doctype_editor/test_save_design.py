@@ -12,6 +12,7 @@ from frappe.desk.doctype_editor.rename import rename_field
 from frappe.desk.doctype_editor.save import save_doctype_editor
 from frappe.desk.doctype_editor.versions import base_version
 from frappe.tests import IntegrationTestCase
+from frappe.utils import CallbackManager
 
 DOCTYPE = "Test Editor 47271"
 
@@ -447,6 +448,24 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 		self.assertFalse(
 			frappe.get_all("Form Layout", {"dt": "ToDo", "type": "Details", "app": ("is", "not set")})
 		)
+
+	def test_a_deferred_export_reports_the_new_app_layout_version(self):
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		frappe.local.request = frappe._dict(after_response=CallbackManager())
+		result = save_doctype_editor(
+			"ToDo",
+			"Design",
+			base_version("ToDo"),
+			[{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "extra_47271"}],
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertFalse(os.path.exists(self.path("ToDo", "Details")))
+
+		with patch.object(frappe, "publish_realtime") as publish:
+			frappe.local.request.after_response.run()
+		[message] = [c.args[1] for c in publish.call_args_list if c.args[0] == "doctype_export"]
+		self.assertTrue(message["ok"], message["error"])
+		self.assertEqual(message["app_layouts"], {"Details": base_version("ToDo")["app_layouts"]["Details"]})
 
 	def test_an_app_layout_cannot_place_a_site_custom_field(self):
 		fieldname = "custom_editor_47271"
