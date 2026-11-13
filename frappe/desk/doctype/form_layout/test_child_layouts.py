@@ -74,11 +74,11 @@ class TestChildLayouts(IntegrationTestCase):
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
-		for dt in (PARENT_DT, ROW_DT, TAG_DT, SINGLE_DT):
+		for dt in (CUSTOM_PARENT_DT, PARENT_DT, ROW_DT, TAG_DT, SINGLE_DT):
 			frappe.delete_doc_if_exists("DocType", dt)
-		for user in (PARENT_READER, STRANGER):
+		for user in (PARENT_READER, STRANGER, CUSTOM_READER):
 			frappe.delete_doc_if_exists("User", user)
-		for role in (PARENT_ROLE, STRANGER_ROLE):
+		for role in (PARENT_ROLE, STRANGER_ROLE, CUSTOM_ROLE):
 			frappe.delete_doc_if_exists("Role", role)
 		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()

@@ -10,6 +10,7 @@ from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError, field_error
 
 RESERVED_PROPERTIES = ("name", "parent", "parenttype", "parentfield", "idx", "doctype")
+DOCTYPE_PROPERTIES = ("description",)
 PLACE_KEYS = ("fieldname", "section", "column", "index", "tab")
 # A column is named with its section: column names repeat across sections.
 CANVAS_ACTS = {
@@ -41,7 +42,7 @@ class DesignEdits:
 		if act in CANVAS_ACTS:
 			return self.canvas(edit, *CANVAS_ACTS[act])
 		method = getattr(self, (act or "").replace(".", "_"), None)
-		if not method or not act.startswith(("fields.", "layouts.")):
+		if not method or not act.startswith(("fields.", "layouts.", "settings.")):
 			raise EditError(_("{0} is not a Design edit.").format(act))
 		method(edit)
 
@@ -132,6 +133,12 @@ class DesignEdits:
 				"options": name,
 			}
 		)
+
+	def settings_set_doctype_property(self, edit: dict):
+		property = edit.get("property")
+		if property not in DOCTYPE_PROPERTIES:
+			raise EditError(_("{0} is not a DocType property the editor sets.").format(property))
+		self.state.doc.set(property, edit.get("value"))
 
 	def layouts_add(self, edit: dict):
 		self.state.add_layout(

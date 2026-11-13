@@ -214,6 +214,21 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(meta.get_field("title").reqd, 1)
 		self.assertEqual([field.fieldname for field in meta.fields], ["status", "title"])
 
+	def test_the_doctype_description_is_set(self):
+		result = self.save(
+			[{"act": "settings.set_doctype_property", "property": "description", "value": "Tracks work."}]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "description"), "Tracks work.")
+
+	def test_a_doctype_property_other_than_description_is_refused(self):
+		result = self.save([{"act": "settings.set_doctype_property", "property": "istable", "value": 1}])
+		self.assertFalse(result["saved"])
+		[error] = result["errors"]
+		self.assertEqual(error["edit"], 0)
+		self.assertIn("istable", error["message"])
+		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "istable"), 0)
+
 	def test_a_fieldname_is_changed_only_by_renaming(self):
 		result = self.save(
 			[
