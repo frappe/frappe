@@ -1,6 +1,12 @@
 import { test, expect } from "../support";
 
 test.describe("Success Action", () => {
+	let todo;
+
+	test.afterEach(async ({ api }) => {
+		if (todo) await api.remove_doc("ToDo", todo, true);
+	});
+
 	test("closes its toast once one of its actions is used", async ({ page }) => {
 		await page.goto("/desk/todo");
 
@@ -18,9 +24,10 @@ test.describe("Success Action", () => {
 		});
 		await expect.poll(() => page.evaluate(() => window.cur_frm?.doctype)).toBe("ToDo");
 
-		await page.evaluate(() => {
+		todo = await page.evaluate(async () => {
 			cur_frm.set_value("description", "Success action toast");
-			return cur_frm.save();
+			await cur_frm.save();
+			return cur_frm.docname;
 		});
 
 		const toast = page.locator(".es-toast", { has: page.locator(".next-action-container") });
