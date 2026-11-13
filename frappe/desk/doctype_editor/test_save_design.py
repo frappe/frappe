@@ -349,6 +349,19 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertTrue(result["saved"], result.get("errors"))
 		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, "headline"), "Kept")
 
+	def test_a_renamed_field_deleted_and_added_again_starts_empty(self):
+		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Old"}).insert()
+		result = self.save(
+			[
+				{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "headline"},
+				{"act": "fields.delete_field", "fieldname": "headline"},
+				{"act": "fields.add_field", "label": "Headline", "fieldtype": "Data"},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertIsNone(frappe.db.get_value(DOCTYPE, record.name, "headline"))
+		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, "title"), "Old")
+
 	def test_a_saved_field_renamed_back_keeps_its_name(self):
 		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Kept"}).insert()
 		result = self.save(

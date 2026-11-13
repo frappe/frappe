@@ -237,6 +237,7 @@ class DesignState:
 	def delete_field(self, fieldname: str):
 		"""Drop the field and every layout's mention of it; its column and data stay."""
 		self.doc.fields.remove(self.field(fieldname))
+		self.renames = [pair for pair in self.renames if pair[1] != fieldname]
 		for idx, field in enumerate(self.doc.fields, start=1):
 			field.idx = idx
 		self.load_every_layout()
