@@ -410,6 +410,14 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertTrue(result["saved"], result.get("errors"))
 		self.assertEqual([row.qty for row in frappe.get_doc(DOCTYPE, record.name).lines], [2])
 
+	def test_a_saved_virtual_field_renames_with_no_column(self):
+		make_custom_doctype(
+			fields=[{"fieldname": "shown", "label": "Shown", "fieldtype": "Data", "is_virtual": 1}]
+		)
+		result = self.save([{"act": "fields.rename_field", "fieldname": "shown", "new_fieldname": "seen"}])
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertTrue(frappe.get_meta(DOCTYPE).get_field("seen"))
+
 	def test_a_renamed_table_field_leaves_other_parents_rows_alone(self):
 		child, other = f"{DOCTYPE} Item", f"{DOCTYPE} Other"
 		self.addCleanup(delete_committed, "DocType", child)
