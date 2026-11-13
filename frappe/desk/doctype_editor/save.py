@@ -16,7 +16,12 @@ from frappe.desk.doctype_editor.errors import EditError
 from frappe.desk.doctype_editor.mode import check_mode
 from frappe.desk.doctype_editor.versions import base_version as current_version
 from frappe.desk.doctype_editor.versions import stale_error
-from frappe.model.utils.rename_field import rename_field
+from frappe.model import table_fields
+from frappe.model.utils.rename_field import (
+	rename_field,
+	update_property_setters,
+	update_user_settings,
+)
 
 
 @frappe.desk_v2_only
@@ -124,9 +129,8 @@ class DesignSave:
 		return EditError(_("The save failed.")).as_dict()
 
 	def move_renamed_data(self):
-		"""Unvalidated: a table field has no column of its own to check, only its rows' parentfield."""
 		for old, new in self.state.renames:
-			rename_field(self.doctype, old, new, validate=False)
+			move_field_data(self.doctype, old, new)
 
 	def roll_back(self) -> list[dict]:
 		"""A DocType's DDL commits and drops the savepoint; the full rollback then undoes the data move."""
@@ -178,3 +182,17 @@ class DesignSave:
 			if not doc.flags.writes_omitted:
 				doc.omitted = frappe.as_json(layout.omitted) if layout.omitted else None
 			doc.save()
+
+
+def move_field_data(doctype: str, old: str, new: str):
+	"""The util moves a table's rows of every parent; a value field it checks for a column first."""
+	field = frappe.get_meta(doctype, cached=False).get_field(new)
+	if not field or field.fieldtype not in table_fields:
+		rename_field(doctype, old, new)
+		return
+	child = frappe.qb.DocType(field.options)
+	frappe.qb.update(child).set(child.parentfield, new).where(
+		(child.parenttype == doctype) & (child.parentfield == old)
+	).run()
+	update_property_setters(doctype, old, new)
+	update_user_settings(doctype, old, new)

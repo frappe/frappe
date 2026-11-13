@@ -410,6 +410,24 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertTrue(result["saved"], result.get("errors"))
 		self.assertEqual([row.qty for row in frappe.get_doc(DOCTYPE, record.name).lines], [2])
 
+	def test_a_renamed_table_field_leaves_other_parents_rows_alone(self):
+		child, other = f"{DOCTYPE} Item", f"{DOCTYPE} Other"
+		self.addCleanup(delete_committed, "DocType", child)
+		added = self.save(
+			{
+				DOCTYPE: [{"act": "fields.add_child_table", "table_field": "items", "name": child}],
+				child: [{"act": "fields.add_field", "label": "Qty", "fieldtype": "Int"}],
+			}
+		)
+		self.assertTrue(added["saved"], added.get("errors"))
+		make_custom_doctype(other, [{"fieldname": "items", "fieldtype": "Table", "options": child}])
+		self.addCleanup(delete_committed, "DocType", other)
+		shared = frappe.get_doc({"doctype": other, "items": [{"qty": 5}]}).insert()
+
+		result = self.save([{"act": "fields.rename_field", "fieldname": "items", "new_fieldname": "lines"}])
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual([row.qty for row in frappe.get_doc(other, shared.name).items], [5])
+
 	def test_a_parent_failing_its_checks_leaves_no_new_child_table(self):
 		child = f"{DOCTYPE} Item"
 		self.addCleanup(delete_committed, "DocType", child)
