@@ -340,7 +340,7 @@ class PrintDesignerConverter:
 	def row_html(self, row: list[dict], total: float = 0, origin: float = 0) -> str:
 		total = total or self.content_width()
 		compiled = len(row) == 1 and row[0].get("layoutType") == "row"
-		children = row[0].get("childrens") or [] if compiled else row
+		children = self.printed(row[0].get("childrens") or []) if compiled else row
 		top = 0 if compiled else min(flt(e.get("startY")) for e in row)
 		height = (
 			flt(row[0].get("height"))
@@ -481,18 +481,13 @@ class PrintDesignerConverter:
 			if children and all(
 				c.get("type") == "rectangle" and c.get("layoutType") == "column" for c in children
 			):
-				if any(flt(c.get("width")) < 1 and c.get("childrens") for c in children):
-					self.notes.append(
-						_("A column with no width was left out, as Print Designer did not print it.")
-					)
 				return [
 					{
 						"label": "",
 						"width": round(flt(c.get("width")) / total * 100, 1),
 						"fields": self.element_fields(c, flt(c.get("width"))),
 					}
-					for c in sorted(children, key=lambda c: flt(c.get("startX")))
-					if flt(c.get("width")) >= 1
+					for c in sorted(self.printed(children), key=lambda c: flt(c.get("startX")))
 				]
 			row = children
 			top = 0
@@ -617,9 +612,17 @@ class PrintDesignerConverter:
 			bottom = max(flt(e.get("startY")) + flt(e.get("height")) for e in band)
 		return fields
 
+	def printed(self, elements: list[dict]) -> list[dict]:
+		"""Print Designer clips a column with no width, so nothing in it ever printed."""
+		hidden = [e for e in elements if e.get("layoutType") == "column" and flt(e.get("width")) < 1]
+		note = _("A column with no width was left out, as Print Designer did not print it.")
+		if any(e.get("childrens") for e in hidden) and note not in self.notes:
+			self.notes.append(note)
+		return [e for e in elements if e not in hidden]
+
 	def side_by_side(self, columns) -> dict:
 		parts, fixed = [], []
-		for column in sorted(columns, key=lambda c: flt(c.get("startX"))):
+		for column in sorted(self.printed(columns), key=lambda c: flt(c.get("startX"))):
 			children = column.get("childrens") or []
 			inner, cursor = "", 0
 			for child in sorted(children, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))):
