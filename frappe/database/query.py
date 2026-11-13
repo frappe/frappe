@@ -1078,8 +1078,11 @@ class Engine:
 		if fieldname in OPTIONAL_FIELDS:
 			return
 
-		# Skip field permission check if doctype has no permissions defined
 		meta = frappe.get_meta(doctype)
+		if not parent_doctype and meta.istable:
+			parent_doctype = self.parent_doctype or self.doctype
+
+		# Skip field permission check if doctype has no permissions defined
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
 

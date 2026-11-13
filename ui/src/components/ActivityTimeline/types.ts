@@ -186,6 +186,8 @@ export interface PendingActivity {
 
 export interface EmailItemProps {
   email: EmailActivity;
+  /** For threads where every email shares the subject, e.g. tickets. */
+  hideSubject?: boolean;
 }
 export interface EmailItemSlots {
   /** Replaces the row header (sender, subject, timestamp). */

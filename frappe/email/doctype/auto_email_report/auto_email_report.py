@@ -31,6 +31,7 @@ from frappe.utils import (
 )
 from frappe.utils.csvutils import to_csv
 from frappe.utils.pdf import get_pdf
+from frappe.utils.print_utils import resolve_pdf_generator
 from frappe.utils.xlsxutils import make_xlsx
 
 
@@ -211,7 +212,7 @@ class AutoEmailReport(Document):
 			if len(columns) > 8:
 				options["orientation"] = "landscape"
 			html = get_formatted_html(subject=self.name, message=self.get_html_table(columns, data))
-			return get_pdf(html, options)
+			return get_pdf(html, options, pdf_generator=resolve_pdf_generator())
 
 		else:
 			frappe.throw(_("Invalid Output Format"))

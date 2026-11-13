@@ -206,7 +206,7 @@ def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple
 def get_print_filename(doc: "Document") -> str:
 	from frappe.core.doctype.file.utils import get_safe_file_name
 
-	return get_safe_file_name(doc.name)
+	return get_safe_file_name(cstr(doc.name))
 
 
 def get_rendered_template(
@@ -408,24 +408,27 @@ def get_html_and_style(
 			frappe.clear_last_message()
 			html = None
 
+	print_style = get_print_style(style=style, print_format=print_format)
 	return {
 		"html": html,
-		"style": get_print_style(style=style, print_format=print_format),
-		"page_style": None if is_beta else get_preview_page_css(print_format),
+		"style": print_style,
+		"page_style": None
+		if is_beta
+		else get_preview_page_css(print_format, f"<style>{print_style}</style>{cstr(html)}"),
 	}
 
 
-def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
+def get_preview_page_css(print_format: "PrintFormat" | None = None, html: str = "") -> str:
 	from bs4 import BeautifulSoup
 
 	from frappe.utils.pdf import get_print_format_styles
 	from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
 	from frappe.utils.print_format_generator import page_size_mm
 
-	css = (print_format and print_format.css) or ""
+	soup = BeautifulSoup(html, "html.parser")
 	page_options = {
 		style.name: style.value
-		for style in get_print_format_styles(BeautifulSoup(f"<style>{css}</style>", "html.parser"))
+		for style in get_print_format_styles(soup)
 		if style.name in ("page-size", "orientation")
 		or (style.name in ("page-width", "page-height") and re.fullmatch(PAGE_LENGTH, style.value.strip()))
 	}
@@ -433,6 +436,7 @@ def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
 	if any(page_options.get(key) for key in ("page-size", "page-width", "page-height")):
 		paper_size = None
 	elif not paper_size:
+		css = "".join(cstr(tag.string) for tag in soup.find_all("style"))
 		page_options = get_page_rule_size(css) | page_options
 	if receipt_width := RECEIPT_WIDTHS.get(paper_size):
 		page_width, page_height = parse_float_and_unit(receipt_width)["value"], 0

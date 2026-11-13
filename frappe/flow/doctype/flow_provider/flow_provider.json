@@ -1,6 +1,5 @@
 {
  "actions": [],
- "allow_rename": 1,
  "autoname": "field:provider",
  "creation": "2026-05-30 00:00:00",
  "doctype": "DocType",
@@ -14,11 +13,12 @@
  ],
  "fields": [
   {
-   "description": "LiteLLM provider name, e.g. <code>openai</code>, <code>anthropic</code>, <code>openrouter</code>, <code>gemini</code>. Any Flow Model whose Model ID starts with this provider uses these credentials unless it sets its own.",
+   "description": "Any Flow Model whose Model ID starts with this provider uses these credentials unless it sets its own. For anything else, like Ollama, LM Studio or a gateway, pick OpenAI-compatible endpoint or LiteLLM proxy and set its Base URL.",
    "fieldname": "provider",
-   "fieldtype": "Data",
+   "fieldtype": "Autocomplete",
    "in_list_view": 1,
    "label": "Provider",
+   "options": "[{\"label\": \"OpenAI\", \"value\": \"openai\"}, {\"label\": \"Anthropic\", \"value\": \"anthropic\"}, {\"label\": \"Google Gemini\", \"value\": \"gemini\"}, {\"label\": \"OpenRouter\", \"value\": \"openrouter\"}, {\"label\": \"xAI\", \"value\": \"xai\"}, {\"label\": \"Groq\", \"value\": \"groq\"}, {\"label\": \"DeepSeek\", \"value\": \"deepseek\"}, {\"label\": \"Mistral\", \"value\": \"mistral\"}, {\"label\": \"Cerebras\", \"value\": \"cerebras\"}, {\"label\": \"OpenAI-compatible endpoint\", \"value\": \"custom_openai\"}, {\"label\": \"LiteLLM proxy\", \"value\": \"litellm_proxy\"}]",
    "reqd": 1,
    "unique": 1
   },
@@ -47,7 +47,7 @@
   }
  ],
  "links": [],
- "modified": "2026-05-30 00:00:00.000000",
+ "modified": "2026-11-12 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Provider",

@@ -24,7 +24,7 @@ const { SPECS, newDoc } = await import("../src/settings/specs.js");
 const changes = [];
 const renames = [];
 const newRecords = new Set(); // the tabs asked to open on a blank record, each taken once
-function mount(t, component, props, { can = () => true } = {}) {
+function mount(t, component, props, { can = () => true, boot = {} } = {}) {
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(component, props);
@@ -33,7 +33,7 @@ function mount(t, component, props, { can = () => true } = {}) {
 		changed: (doctype) => changes.push(doctype),
 		renamed: (...args) => renames.push(args),
 		takeNewRecord: (key) => newRecords.delete(key),
-		state: { boot: {} },
+		state: { boot },
 	});
 	app.mount(el);
 	t.after(() => {
@@ -98,6 +98,28 @@ test("settings load and search beyond the first 200 records, keeping the rows sh
 	el.querySelector("li button").click();
 	await nextTick();
 	assert.equal(el.querySelector("[data-stub=DocForm]").getAttribute("name"), "tool-400");
+});
+
+test("while server scripts are off, a tool that can't run says so in the list, and an agent names the ones it has", async (t) => {
+	const boot = { unavailable_tools: ["frappe/execute", "weather"] };
+	assert.match(SPECS.tools.notice({ name: "weather" }, boot), /can't run/);
+	assert.equal(SPECS.tools.notice({ name: "frappe/create" }, boot), "");
+	assert.equal(SPECS.tools.notice({ name: "weather" }, {}), "");
+	const tools = SPECS.agents.fields.find((field) => field.name === "tools");
+	const agent = { tools: ["frappe/create", "frappe/execute", "weather"] };
+	assert.match(tools.note(agent, boot), /can't run: execute, weather\.$/);
+	assert.equal(tools.note({ tools: ["frappe/create"] }, boot), "");
+
+	transport.answers["frappe.client.get_list"] = () => [
+		{ name: "frappe/create", title: "Create", type: "Imported", enabled: 1 },
+		{ name: "frappe/execute", title: "Execute", type: "Imported", enabled: 1 },
+	];
+	const el = mount(t, DocPanel, { spec: SPECS.tools }, { boot });
+	await until(() => el.querySelectorAll("li").length === 2);
+	assert.deepEqual(
+		[...el.querySelectorAll("[data-stub=Badge]")].map((badge) => badge.getAttribute("label")),
+		["Enabled", "Unavailable"]
+	);
 });
 
 test("an older settings search cannot overwrite a newer result", async (t) => {
