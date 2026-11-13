@@ -20,9 +20,10 @@ const onboardings = reactive<Record<string, OnboardingStep[]>>({});
 const pending = useStorage<Record<string, string[]>>("onboardingPending", {});
 // Queued steps are kept until the saved status has loaded, so that load cannot undo them.
 const statusLoaded: Record<string, boolean> = {};
-const queueStep = (key: string, step: string) => {
+const queueStep = (key: string, step: string, completed = true) => {
   const queued = (pending.value[key] ||= []);
-  if (!queued.includes(step)) queued.push(step);
+  if (!completed) pending.value[key] = queued.filter((name) => name !== step);
+  else if (!queued.includes(step)) queued.push(step);
 };
 const onboardingStatus = useStorage<StoredStatus>("onboardingStatus", {});
 
@@ -104,7 +105,7 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
     if (isOnboardingStepsCompleted.value) return;
 
     if (!onboardings[appName]) {
-      if (value) queueStep(pendingKey, step);
+      queueStep(pendingKey, step, value);
       return;
     }
 
@@ -113,7 +114,7 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
     if (shown) shown.completed = value;
     else if (saved) saved.completed = value;
     if (statusLoaded[pendingKey]) saveSteps();
-    else if (value) queueStep(pendingKey, step);
+    else queueStep(pendingKey, step, value);
 
     callback?.(step, skipped);
 
@@ -129,7 +130,7 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
 
     onboardings[appName].forEach((step) => {
       step.completed = value;
-      if (value && !statusLoaded[pendingKey]) queueStep(pendingKey, step.name);
+      if (!statusLoaded[pendingKey]) queueStep(pendingKey, step.name, value);
     });
     if (statusLoaded[pendingKey]) saveSteps(value);
 
