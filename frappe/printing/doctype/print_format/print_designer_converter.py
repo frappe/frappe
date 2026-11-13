@@ -73,8 +73,15 @@ def convert_in_place(print_format: str) -> dict:
 	doc = frappe.get_doc("Print Format", print_format)
 	if not is_print_designer_format(doc):
 		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
+	if doc.standard == "Yes":
+		frappe.throw(
+			_("{0} is a standard format that belongs to its app. Duplicate it and convert the copy.").format(
+				frappe.bold(print_format)
+			),
+			title=_("Cannot Convert"),
+		)
 	values, notes = converted_values(doc)
-	frappe.db.set_value("Print Format", doc.name, values, update_modified=doc.standard != "Yes")
+	frappe.db.set_value("Print Format", doc.name, values)
 	if notes:
 		doc.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
 	frappe.clear_cache(doctype=doc.doc_type)
@@ -92,7 +99,6 @@ def undo_conversion(print_format: str) -> None:
 		"Print Format",
 		doc.name,
 		{"print_designer": 1, "print_format_builder_beta": 0, "format_data": None, "draft_data": None},
-		update_modified=doc.standard != "Yes",
 	)
 	frappe.clear_cache(doctype=doc.doc_type)
 

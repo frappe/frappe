@@ -26,7 +26,7 @@ def get_print_designer_formats() -> list[dict]:
 	rows = frappe.get_all(
 		"Print Format",
 		or_filters=or_filters,
-		fields=["name", "doc_type", "disabled", "print_designer", "print_format_builder_beta"],
+		fields=["name", "doc_type", "disabled", "standard", "print_designer", "print_format_builder_beta"],
 		order_by="doc_type asc, name asc",
 	)
 	rows = [row for row in rows if row.print_designer or row.print_format_builder_beta]
@@ -44,7 +44,7 @@ def convert_all() -> dict:
 	frappe.only_for("System Manager")
 	converted, failed = [], []
 	for row in get_print_designer_formats():
-		if row.converted:
+		if row.converted or row.standard == "Yes":
 			continue
 		frappe.db.savepoint("convert_print_designer_format")
 		try:

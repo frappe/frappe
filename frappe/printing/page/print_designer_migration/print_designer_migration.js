@@ -27,7 +27,7 @@ class PrintDesignerMigration {
 
 	render(rows) {
 		this.page.clear_primary_action();
-		if (rows.some((row) => !row.converted)) {
+		if (rows.some((row) => !row.converted && row.standard !== "Yes")) {
 			this.page.set_primary_action(__("Convert All"), () => this.convert_all());
 		}
 
@@ -68,6 +68,9 @@ class PrintDesignerMigration {
 			: { label: __("Print Designer"), theme: "gray" };
 		const details = [__(row.doc_type)];
 		if (row.disabled) details.push(__("Disabled"));
+		if (!row.converted && row.standard === "Yes") {
+			details.push(__("Standard format, duplicate it to convert"));
+		}
 		const $row = $(`
 			<div class="flex items-center gap-4 px-4 py-3">
 				<div class="flex flex-col gap-1 flex-1 min-w-0">
@@ -97,7 +100,7 @@ class PrintDesignerMigration {
 			add(__("Undo"), () => this.undo(row));
 		} else {
 			if (row.sample) add(__("Preview"), () => this.preview(row));
-			add(__("Convert"), () => this.convert(row));
+			if (row.standard !== "Yes") add(__("Convert"), () => this.convert(row));
 		}
 		return $row;
 	}
@@ -130,11 +133,13 @@ class PrintDesignerMigration {
 					)}</div>`,
 				},
 			],
-			primary_action_label: __("Convert"),
-			primary_action: () => {
-				dialog.hide();
-				this.convert(row);
-			},
+			...(row.standard !== "Yes" && {
+				primary_action_label: __("Convert"),
+				primary_action: () => {
+					dialog.hide();
+					this.convert(row);
+				},
+			}),
 		});
 		const load = () => {
 			const name = dialog.get_value("document");
