@@ -344,6 +344,7 @@ class PersonalDataDeletionRequest(Document):
 
 	@frappe.whitelist()
 	def put_on_hold(self):
+		frappe.only_for("System Manager")
 		self.db_set("status", "On Hold")
 
 
