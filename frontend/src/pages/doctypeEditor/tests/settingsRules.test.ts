@@ -47,14 +47,14 @@ describe("the rows each kind shows", () => {
 describe("the Danger zone's rows", () => {
 	const ALL = ["change_kind", "rename_doctype", "move_doctype", "make_standard", "delete_doctype"];
 	const custom = settings({ properties: { custom: 1 } });
-	const danger = (state: SettingsState, scope: DangerScope | null = { developerMode: true }) =>
+	const danger = (state: SettingsState, scope: DangerScope | null = { developerMode: true, administrator: true }) =>
 		settingRows(state, scope)
 			.filter((row) => row.section === "danger")
 			.map((row) => row.key);
 
 	it("shows on a saved DocType in Design, with its own section", () => {
 		expect(danger(custom)).toEqual(ALL);
-		expect(settingSections(custom, { developerMode: true }).map((section) => section.key)).toContain("danger");
+		expect(settingSections(custom, { developerMode: true, administrator: true }).map((section) => section.key)).toContain("danger");
 		expect(sections(custom)).not.toContain("danger");
 	});
 
@@ -65,9 +65,15 @@ describe("the Danger zone's rows", () => {
 	});
 
 	it("moves and makes standard only in developer mode, and makes only a custom DocType standard", () => {
-		expect(danger(custom, { developerMode: false })).toEqual(["change_kind", "rename_doctype", "delete_doctype"]);
+		expect(danger(custom, { developerMode: false, administrator: true })).toEqual(["change_kind", "rename_doctype", "delete_doctype"]);
 		expect(danger(settings({ properties: { custom: 0 } }))).not.toContain("make_standard");
 		expect(danger(settings({ properties: { custom: 0 } }))).toContain("move_doctype");
+	});
+
+	it("renames and deletes a standard DocType only for Administrator", () => {
+		const manager = { developerMode: true, administrator: false };
+		expect(danger(settings({ properties: { custom: 0 } }), manager)).toEqual(["change_kind", "move_doctype"]);
+		expect(danger(custom, manager)).toEqual(ALL);
 	});
 
 	it("gives a Single no Change kind", () => {

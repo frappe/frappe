@@ -20,6 +20,7 @@ from frappe.tests import IntegrationTestCase
 
 DOCTYPE = "Test Editor 47278"
 RENAMED = "Test Editor 47278 Renamed"
+PARENT = "Test Editor 47278 Parent"
 
 
 class TestChangeKind(IntegrationTestCase):
@@ -32,6 +33,21 @@ class TestChangeKind(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			change_kind(DOCTYPE, "child")
 		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "istable"), 0)
+
+	def test_child_to_regular_is_refused_while_records_exist(self):
+		change_kind(DOCTYPE, "child")
+		row = {"doctype": DOCTYPE, "title": "One", "parent": "p", "parenttype": "Note", "parentfield": "rows"}
+		frappe.get_doc(row).db_insert()
+		with self.assertRaises(frappe.ValidationError):
+			change_kind(DOCTYPE, "regular")
+
+	def test_child_to_regular_is_refused_while_a_doctype_uses_it_as_a_table(self):
+		change_kind(DOCTYPE, "child")
+		table = {"fieldname": "rows", "label": "Rows", "fieldtype": "Table", "options": DOCTYPE}
+		make_custom_doctype(PARENT, fields=[table])
+		self.addCleanup(delete_committed, "DocType", PARENT)
+		with self.assertRaises(frappe.ValidationError):
+			change_kind(DOCTYPE, "regular")
 
 	def test_an_empty_doctype_becomes_a_child_table_and_back(self):
 		change_kind(DOCTYPE, "child")
@@ -53,7 +69,9 @@ class TestChangeKind(IntegrationTestCase):
 	def test_tree_adds_its_fields_and_places_the_records(self):
 		record = frappe.get_doc({"doctype": DOCTYPE, "title": "One"}).insert()
 		change_kind(DOCTYPE, "tree")
-		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "nsm_parent_field"), "parent_test_editor_47278")
+		self.assertEqual(
+			frappe.db.get_value("DocType", DOCTYPE, "nsm_parent_field"), "parent_test_editor_47278"
+		)
 		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, ["lft", "rgt"]), (1, 2))
 
 
@@ -122,3 +140,18 @@ class TestFiles(IntegrationTestCase):
 		self.assertFalse(folder("Core").exists())
 		self.assertTrue((folder("Desk") / "test_editor_47278.json").exists())
 		self.assertTrue((folder("Desk") / "test_editor_47278.py").exists())
+
+	def test_move_is_refused_into_a_module_that_has_its_folder(self):
+		make_standard(DOCTYPE, "Core")
+		folder("Desk").mkdir(parents=True)
+		with self.assertRaises(frappe.ValidationError):
+			move_doctype(DOCTYPE, "Desk")
+		self.assertTrue((folder("Core") / "test_editor_47278.json").exists())
+
+	def test_a_failed_save_moves_the_folder_back(self):
+		make_standard(DOCTYPE, "Core")
+		with patch("frappe.core.doctype.doctype.doctype.DocType.save", side_effect=frappe.ValidationError):
+			with self.assertRaises(frappe.ValidationError):
+				move_doctype(DOCTYPE, "Desk")
+		self.assertTrue((folder("Core") / "test_editor_47278.json").exists())
+		self.assertFalse(folder("Desk").exists())

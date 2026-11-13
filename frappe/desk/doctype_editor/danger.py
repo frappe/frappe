@@ -49,7 +49,7 @@ def rename_doctype(doctype: str, new_name: str) -> str:
 def delete_doctype(doctype: str) -> None:
 	"""Deletes it with its records, layouts and table; custom fields that use it as a child table go too."""
 	check_mode(doctype, "Design")
-	remove_doctype(doctype, force=False)
+	remove_doctype(doctype)
 	done(doctype)
 
 
@@ -60,11 +60,17 @@ def move_doctype(doctype: str, module: str) -> None:
 	check_mode(doctype, "Design")
 	check_developer_mode()
 	doc = frappe.get_doc("DocType", doctype)
+	moved = None
 	if not doc.custom:
 		check_app_module(module)
-		move_folder(doc, module)
+		moved = move_folder(doc, module)
 	doc.module = module
-	doc.save()
+	try:
+		doc.save()
+	except Exception:
+		if moved:
+			shutil.move(moved[1], moved[0])
+		raise
 	done(doctype)
 
 
@@ -89,9 +95,21 @@ def kind_refusal(doc, kind: str) -> str | None:
 		return _("{0} is not a kind of DocType.").format(kind)
 	if doc.issingle or kind == "single":
 		return _("A Single is set when a DocType is made. Make a new DocType instead.")
-	if bool(doc.istable) != (kind == "child") and frappe.db.count(doc.name):
+	if bool(doc.istable) == (kind == "child"):
+		return None
+	if frappe.db.count(doc.name):
 		return _("{0} has records: a child table's rows need a parent record.").format(frappe.bold(doc.name))
+	if doc.istable and (parent := table_parent(doc.name)):
+		return _("{0} is a table in {1}.").format(frappe.bold(doc.name), frappe.bold(parent))
 	return None
+
+
+def table_parent(doctype: str) -> str | None:
+	"""The DocType with a Table field of `doctype`, standard or custom."""
+	table = {"options": doctype, "fieldtype": ("in", frappe.model.table_fields)}
+	return frappe.db.get_value("DocField", table, "parent") or frappe.db.get_value(
+		"Custom Field", table, "dt"
+	)
 
 
 def kind_flags(kind: str) -> dict:
@@ -112,7 +130,9 @@ def done(doctype: str) -> None:
 
 def check_developer_mode() -> None:
 	if not frappe.conf.developer_mode:
-		frappe.throw(_("Moving a DocType or making it standard needs developer mode."), frappe.PermissionError)
+		frappe.throw(
+			_("Moving a DocType or making it standard needs developer mode."), frappe.PermissionError
+		)
 
 
 def check_app_module(module: str) -> None:
@@ -120,10 +140,14 @@ def check_app_module(module: str) -> None:
 		frappe.throw(_("{0} is not a module of an app.").format(frappe.bold(module)))
 
 
-def move_folder(doc, module: str) -> None:
+def move_folder(doc, module: str) -> tuple[Path, Path] | None:
+	"""Moves its folder into `module`; returns (old, new) so a failed save can move it back."""
 	old = Path(get_doc_path(doc.module, "doctype", doc.name))
 	if not old.exists():
-		return
+		return None
 	new = Path(get_doc_path(module, "doctype", doc.name))
+	if new.exists():
+		frappe.throw(_("{0} already has a folder for {1}: {2}").format(module, doc.name, new))
 	new.parent.mkdir(parents=True, exist_ok=True)
 	shutil.move(old, new)
+	return old, new

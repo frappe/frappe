@@ -22,7 +22,7 @@ afterEach(() => stop());
 
 function mount(state: Partial<EditorState> = {}, danger: Partial<DangerHost> = {}) {
 	const host: DangerHost = {
-		scope: () => ({ developerMode: true }),
+		scope: () => ({ developerMode: true, administrator: true }),
 		settle: vi.fn(async () => true),
 		askKind: vi.fn(async () => "submittable" as const),
 		askName: vi.fn(async () => "Task Memo"),
@@ -62,7 +62,7 @@ describe("which Danger zone acts show", () => {
 	});
 
 	it("leaves out Move and Make standard without developer mode", () => {
-		mount({}, { scope: () => ({ developerMode: false }) });
+		mount({}, { scope: () => ({ developerMode: false, administrator: true }) });
 		expect(DANGER.filter((name) => offered(`danger.${name}`))).toEqual(["change_kind", "rename_doctype", "delete_doctype"]);
 	});
 });

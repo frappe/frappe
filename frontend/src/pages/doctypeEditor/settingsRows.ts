@@ -29,11 +29,14 @@ export interface SettingRow {
 	developer?: boolean;
 	/** Danger zone: only on a custom DocType. */
 	custom?: boolean;
+	/** Danger zone: on a standard DocType, only for Administrator (as v1's rename and delete). */
+	administrator?: boolean;
 }
 
 /** What the Danger zone needs beyond the settings; `null` while a child table opened from the DocType shows. */
 export interface DangerScope {
 	developerMode: boolean;
+	administrator: boolean;
 }
 
 export const SECTIONS: { key: SettingsSection; label: string; icon: string }[] = [
@@ -188,6 +191,7 @@ export const SETTING_ROWS: SettingRow[] = [
 	}),
 	danger("rename_doctype", "Rename DocType", "Renames its table and every Link and Table field that points to it.", "Rename…", {
 		keywords: "name",
+		administrator: true,
 	}),
 	danger("move_doctype", "Move to another module", "Moves it to another module, and its files with it.", "Move…", {
 		keywords: "module app folder",
@@ -198,7 +202,10 @@ export const SETTING_ROWS: SettingRow[] = [
 		developer: true,
 		custom: true,
 	}),
-	danger("delete_doctype", "Delete DocType", "Deletes it, its records and its table.", "Delete…", { keywords: "remove drop" }),
+	danger("delete_doctype", "Delete DocType", "Deletes it, its records and its table.", "Delete…", {
+		keywords: "remove drop",
+		administrator: true,
+	}),
 ];
 
 export function kindOf(properties: Record<string, unknown>): DoctypeKind {
@@ -232,7 +239,8 @@ export function settingRows(settings: SettingsState, danger: DangerScope | null 
 /** On a saved DocType in Design (`app` is Customize's alone). */
 function dangerShows(row: SettingRow, settings: SettingsState, danger: DangerScope | null): boolean {
 	if (!danger || settings.pending || settings.app) return false;
-	return (!row.developer || danger.developerMode) && (!row.custom || Boolean(Number(settings.properties.custom)));
+	const custom = Boolean(Number(settings.properties.custom));
+	return (!row.developer || danger.developerMode) && (!row.custom || custom) && (!row.administrator || custom || danger.administrator);
 }
 
 /** The sections with at least one row: a child table has no Naming or Permissions, a Single no Naming. */

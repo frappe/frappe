@@ -216,7 +216,12 @@ useEditorActs({
 const layout = computed(() => (state.value ? detailsLayout(state.value) : null));
 // The Danger zone acts on the page's DocType, not on a child table opened from it.
 const dangerScope = computed(() =>
-	openChild.value ? null : { developerMode: boot.developer_mode }
+	openChild.value
+		? null
+		: {
+				developerMode: boot.developer_mode,
+				administrator: boot.session.user.name === "Administrator",
+		  }
 );
 // A new DocType is not saved until its first save, even with no edits staged.
 const dirty = computed(() => edits.dirty.value || Boolean(state.value?.pending));
