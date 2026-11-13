@@ -36,7 +36,7 @@ def get_customizations(meta: Meta) -> dict:
 			],
 			order_by="creation",
 		),
-		"property_setters": property_setters(meta.name, app_doc, app_fields),
+		"property_setters": property_setters(meta.name, app_doc, {**app_custom_fields(meta.name), **app_fields}),
 		"locks": {
 			df.fieldname: field_locks(df, app_fields.get(df.fieldname), not_in_list_view) for df in standard
 		},
@@ -66,6 +66,12 @@ def property_setters(doctype: str, app_doc, app_fields: dict) -> list[dict]:
 		owner = setter_owner(row, app_doc, app_fields)
 		row.app_value = owner.get(row.property) if owner else None
 	return rows
+
+
+def app_custom_fields(doctype: str) -> dict:
+	"""An app's Custom Fields, whose rows hold the values a site's Property Setter overrides."""
+	rows = frappe.get_all("Custom Field", filters={"dt": doctype, "is_system_generated": 1}, fields=["*"])
+	return {row.fieldname: row for row in rows}
 
 
 def setter_owner(row, app_doc, app_fields: dict):

@@ -31,6 +31,17 @@ describe("the Customize save toast", () => {
 		).toBe("Saved 1 custom field.");
 	});
 
+	it("counts a fetched field and a new Table field as custom fields", () => {
+		expect(
+			saveSummary([
+				{ act: "fields.fetch_field", link: "owner", source: "full_name", fieldname: "custom_full_name" },
+				{ act: "fields.set_field_property", fieldname: "custom_full_name", property: "label", value: "Owner" },
+				{ act: "fields.add_child_table", name: "Task Note Row", table_field: "custom_rows" },
+				{ act: "fields.set_field_property", fieldname: "subject", property: "bold", value: 1 },
+			]),
+		).toBe("Saved 2 custom fields and 1 property change.");
+	});
+
 	it("drops a new field removed before the save", () => {
 		expect(
 			saveSummary([

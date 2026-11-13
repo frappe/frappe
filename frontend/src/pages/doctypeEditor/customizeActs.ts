@@ -5,6 +5,7 @@ import { runMethod } from "@framework/ui/api";
 import type { ActItem } from "@/acts/dispatcher";
 import { __, __n } from "@/i18n";
 import type { EditorActsHost } from "./editorActs";
+import type { EditorState } from "./editorSource";
 import type { EditorMode } from "./pendingEdits";
 
 export const RESET_METHOD = "frappe.desk.doctype_editor.customize_acts.reset_all";
@@ -32,8 +33,9 @@ export interface CustomizeHost {
 	developerMode: boolean;
 	/** Opens the other mode; the route guard asks about pending edits first. */
 	setMode: (mode: EditorMode) => void;
-	askReset: (counts: ResetCounts) => Promise<true | null>;
-	askExport: () => Promise<ExportAnswers | null>;
+	/** The open canvas's DocType, which may be a child table: the one the act writes. */
+	askReset: (state: EditorState, counts: ResetCounts) => Promise<true | null>;
+	askExport: (state: EditorState) => Promise<ExportAnswers | null>;
 	/** Loads the DocType again, dropping pending edits. */
 	reload: () => Promise<unknown>;
 }
@@ -90,17 +92,19 @@ export function resetLines(counts: CustomizationCounts): string[] {
 }
 
 async function resetAll(host: EditorActsHost) {
-	const doctype = host.canvas()!.state.doctype;
+	const state = host.canvas()!.state;
+	const { doctype } = state;
 	const { data: counts } = await runMethod<ResetCounts>(RESET_METHOD, { doctype });
-	if (!(await host.customize.askReset(counts))) return;
+	if (!(await host.customize.askReset(state, counts))) return;
 	await runMethod(RESET_METHOD, { doctype, confirm: 1 });
 	toast.success(__("Reset {0}.", [doctype]));
 	await host.customize.reload();
 }
 
 async function exportCustomizations(host: EditorActsHost) {
-	const doctype = host.canvas()!.state.doctype;
-	const answers = await host.customize.askExport();
+	const state = host.canvas()!.state;
+	const { doctype } = state;
+	const answers = await host.customize.askExport(state);
 	if (!answers) return;
 	const { data: path } = await runMethod<string | null>(EXPORT_METHOD, { doctype, ...answers });
 	toast.success(path ? __("Exported to {0}.", [path]) : __("{0} has no customizations to export.", [doctype]));

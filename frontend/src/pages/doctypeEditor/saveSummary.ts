@@ -20,6 +20,8 @@ export function saveSummary(edits: readonly FlatEdit[], filter: SummaryFilter = 
 	for (const edit of edits) {
 		const fieldname = edit.fieldname as string;
 		if (edit.act === "fields.add_field") added.add(fieldname || customFieldname(edit.label as string));
+		else if (edit.act === "fields.fetch_field") added.add(fieldname);
+		else if (edit.act === "fields.add_child_table") added.add(edit.table_field as string);
 		else if (edit.act === "fields.rename_field" && added.delete(fieldname)) added.add(edit.new_fieldname as string);
 		else if (edit.act === "fields.delete_field" && added.delete(fieldname)) continue;
 		else if (edit.act.startsWith("canvas.") || edit.act.startsWith("layouts.")) layout = true;

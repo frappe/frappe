@@ -1,5 +1,6 @@
 // What Customize allows on top of the Design replay, as `customize_edits.py` and `customize_state.py`
 // check it on save. Plain data, so the working state still clones.
+import { NO_VALUE } from "@framework/ui/FormLayout/noValueFields";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
 import type { EditorState } from "./editorSource";
@@ -12,6 +13,9 @@ export interface CustomizeRules {
 	locks: Record<string, Record<string, string>>;
 	/** The app's value under each of this site's Property Setters, by field and property. */
 	appValues: Record<string, Record<string, unknown>>;
+	/** Each standard field's type as loaded, which `locks` were made for. */
+	types: Record<string, string>;
+	istable: boolean;
 }
 
 export function customizeRules(state: EditorState): CustomizeRules | null {
@@ -20,10 +24,13 @@ export function customizeRules(state: EditorState): CustomizeRules | null {
 	for (const setter of siteSetters(state)) {
 		(appValues[setter.field_name!] ??= {})[setter.property] = setter.app_value;
 	}
+	const standard = state.definition.fields.filter((field) => !siteCustom(field));
 	return {
-		standard: state.definition.fields.filter((field) => !siteCustom(field)).map((field) => field.fieldname),
+		standard: standard.map((field) => field.fieldname),
 		locks: state.locks ?? {},
 		appValues,
+		types: Object.fromEntries(standard.map((field) => [field.fieldname, field.fieldtype])),
+		istable: Boolean(state.definition.istable),
 	};
 }
 
@@ -48,7 +55,22 @@ export function customFieldname(label: string): string {
 /** Customize Form checks options against the field's type at save, so a Select turned Data takes new ones. */
 const OPTIONS_CHANGE = ["Read Only", "HTML", "Data"];
 
+/** `supports_translation` and `get_fields_not_allowed_in_list_view`, which the save checks on the new type. */
+const TRANSLATABLE = ["Data", "Select", "Text", "Small Text", "Text Editor"];
+const NOT_IN_LIST = new Set([...NO_VALUE, "Table", "Table MultiSelect"]);
+const TYPE_LOCKS: Record<string, (fieldtype: string, istable: boolean) => string | undefined> = {
+	translatable: (type) =>
+		TRANSLATABLE.includes(type) ? undefined : __("A {0} field cannot be translated.", [__(type)]),
+	in_list_view: (type, istable) =>
+		NOT_IN_LIST.has(type) && !(istable && ["Button", "HTML"].includes(type))
+			? __("A {0} field cannot show in the list view.", [__(type)])
+			: undefined,
+};
+
 export function lockOf(rules: CustomizeRules, field: RawMetaField, property: string): string | undefined {
+	const loaded = rules.types[field.fieldname];
+	const typeLock = TYPE_LOCKS[property];
+	if (typeLock && loaded && loaded !== field.fieldtype) return typeLock(field.fieldtype, rules.istable);
 	if (property !== "options") return rules.locks[field.fieldname]?.[property];
 	if (!rules.standard.includes(field.fieldname) || OPTIONS_CHANGE.includes(field.fieldtype)) return undefined;
 	return __("Options of a {0} field cannot be changed.", [__(field.fieldtype)]);

@@ -80,7 +80,8 @@ class CustomizeEdits(DesignEdits):
 			if field.meta.has_field(property):
 				field.set(property, frappe.get_meta(self.state.name).get_field(fieldname).get(property))
 			return
-		if not field.meta.has_field(property):
+		if not field.meta.has_field(property) or field.is_custom_field:
+			# An app's Custom Field keeps its value on its own row; the setter is what overrides it.
 			self.state.property_deletes.append((fieldname, property))
 			return
 		filters = {"parent": self.state.name, "fieldname": fieldname}

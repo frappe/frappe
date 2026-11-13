@@ -2,12 +2,10 @@
 import { __ } from "@/i18n";
 import { shellDialog } from "@/shell/dialog";
 import type { CustomizeHost } from "./customizeActs";
-import type { EditorState } from "./editorSource";
 import ExportCustomizationsDialog from "./ExportCustomizationsDialog.vue";
 import ResetAllDialog from "./ResetAllDialog.vue";
 
 export function customizeHost(page: {
-	state: () => EditorState | null;
 	dirty: () => boolean;
 	developerMode: boolean;
 	setMode: CustomizeHost["setMode"];
@@ -17,21 +15,13 @@ export function customizeHost(page: {
 		developerMode: page.developerMode,
 		setMode: page.setMode,
 		reload: page.reload,
-		askReset: (counts) => {
-			const { doctype, app_title } = page.state()!;
-			return shellDialog().open(
+		askReset: ({ doctype, app_title }, counts) =>
+			shellDialog().open(
 				ResetAllDialog,
 				{ doctype, appTitle: app_title, counts, dirty: page.dirty() },
 				{ title: __("Reset {0}?", [doctype]) }
-			);
-		},
-		askExport: () => {
-			const { doctype, module } = page.state()!;
-			return shellDialog().open(
-				ExportCustomizationsDialog,
-				{ doctype, module },
-				{ title: __("Export customizations") }
-			);
-		},
+			),
+		askExport: ({ doctype, module }) =>
+			shellDialog().open(ExportCustomizationsDialog, { doctype, module }, { title: __("Export customizations") }),
 	};
 }

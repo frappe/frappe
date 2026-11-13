@@ -126,6 +126,20 @@ describe("the panel in Customize", () => {
 		expect(toast.error).not.toHaveBeenCalled();
 	});
 
+	it("unlocks Translatable when a Code field becomes Text, as the save checks the new type", async () => {
+		const state = customized();
+		state.definition.fields.find((field) => field.fieldname === "subject")!.fieldtype = "Code";
+		state.locks = { subject: { translatable: "A Code field cannot be translated." } };
+		state.fieldtype_changes = { subject: ["Text"] };
+		const mounted = mountEditor(state);
+		stop = mounted.stop;
+		const { canvas } = mounted;
+		expect(canvas.customize!.lock("subject", "translatable")).toBe("A Code field cannot be translated.");
+		await acts.perform("fields.set_field_property", { fieldname: "subject", property: "fieldtype", value: "Text" });
+		expect(canvas.customize!.lock("subject", "translatable")).toBeUndefined();
+		expect(canvas.customize!.lock("subject", "in_list_view")).toBeUndefined();
+	});
+
 	it("resets one changed property to the app's value and keeps the others", async () => {
 		const { canvas, edits } = mount();
 		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });

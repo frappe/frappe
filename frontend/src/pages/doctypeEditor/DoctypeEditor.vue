@@ -171,7 +171,6 @@ useEditorActs({
 	openList,
 	openChild: child.open,
 	customize: customizeHost({
-		state: () => state.value,
 		dirty: () => dirty.value,
 		developerMode: boot.developer_mode,
 		setMode: (mode) => router.push({ query: { ...route.query, mode: mode.toLowerCase() } }),

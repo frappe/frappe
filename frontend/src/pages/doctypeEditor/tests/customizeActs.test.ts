@@ -71,7 +71,7 @@ describe("Reset all customizations", () => {
 		const host = mount({ mode: "Customize", modes: ["Customize"] });
 		runMethod.mockResolvedValueOnce({ data: COUNTS }).mockResolvedValueOnce({ data: COUNTS });
 		await acts.run("customize.reset_all");
-		expect(host.askReset).toHaveBeenCalledWith(COUNTS);
+		expect(host.askReset).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note" }), COUNTS);
 		expect(runMethod.mock.calls).toEqual([
 			[RESET_METHOD, { doctype: "Task Note" }],
 			[RESET_METHOD, { doctype: "Task Note", confirm: 1 }],
