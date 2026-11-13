@@ -350,7 +350,14 @@ export function bulkUpdateDocuments(
 }
 
 /** The collaboration parts a bulk run changes, each at `bulk_<part>`. */
-export type BulkPart = "assignments" | "assignment_rule" | "tags" | "follows" | "shares" | "seen";
+export type BulkPart =
+  | "assignments"
+  | "assignment_rule"
+  | "tags"
+  | "follows"
+  | "favourites"
+  | "shares"
+  | "seen";
 
 /** Runs one collaboration change over the selected records: `POST` adds, `DELETE` removes. The list rereads after it. */
 export function bulkCollaborate(

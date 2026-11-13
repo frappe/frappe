@@ -224,7 +224,7 @@ describe("seeding", () => {
 		expect(fake.listDocuments.mock.calls[0]).toEqual([
 			"Lead",
 			{ fields: ["name", "title", "status", "amount"], filters: {}, order_by: "amount asc", start: 0, limit: 20 },
-			{ include: ["count"] },
+			{ include: ["count", "favourites"] },
 		]);
 		fake.lists[0].data = [];
 		await settle();
@@ -726,7 +726,7 @@ describe("the rows", () => {
 		expect(page.totalCount.value).toBe(42);
 		expect(fake.listDocuments).toHaveBeenCalledTimes(1);
 		expect(fake.lists[0].query).toMatchObject({ start: 0, limit: 40 });
-		expect(fake.lists[0].include).toEqual(["count"]);
+		expect(fake.lists[0].include).toEqual(["count", "favourites"]);
 
 		app!.unmount();
 		app = null;

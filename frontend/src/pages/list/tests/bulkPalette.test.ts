@@ -295,7 +295,7 @@ describe("the bulk actions in the palette", () => {
       await nextTick();
       const { buttons, menu } = result.layout.value;
       const enabled = [...buttons, ...menu.flatMap((group) => group.options)]
-        .filter((option) => !option.disabled)
+        .filter((option) => !option.disabled && !/favourite$/i.test(option.label))
         .map((option) => option.label);
       const offered = paletteLabels()
         .filter((label) => / all 1,240 matching$/.test(label!))
@@ -303,6 +303,12 @@ describe("the bulk actions in the palette", () => {
       expect(offered.sort()).toEqual(enabled.sort());
       expect(offered).toEqual(expect.arrayContaining(["Print", "Edit", "Export"]));
       expect(offered).not.toContain("Copy to Clipboard");
+      expect(paletteLabels()).toEqual(
+        expect.arrayContaining([
+          "Add all 1,240 matching to favourites",
+          "Remove all 1,240 matching from favourites",
+        ]),
+      );
     });
 
     it("writes a floor total with a plus", async () => {
@@ -325,6 +331,7 @@ describe("the bulk actions in the palette", () => {
         "Apply assignment rule",
         "Remove tags",
         "Share",
+        "Unfavourite",
         "Print",
         "Export",
         "Submit",

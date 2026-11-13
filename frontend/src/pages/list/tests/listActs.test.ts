@@ -34,7 +34,7 @@ vi.mock("@framework/ui/experimental/List", () => ({
     setup:
       (_, { slots }) =>
       () =>
-        h("div", { "data-stub-list": "" }, slots.bar?.()),
+        h("div", { "data-stub-list": "" }),
   }),
   ListFooter: stub("footer"),
 }));
@@ -315,6 +315,7 @@ describe("the list surface", () => {
       "list.add_tags",
       "list.remove_tags",
       "list.edit",
+      "list.favourite_records",
       "list.copy",
       "list.export",
       "list.delete",
@@ -416,6 +417,7 @@ describe("the list surface", () => {
       "Assign to…",
       "Add tags",
       "Edit",
+      "Favourite",
       "Delete",
     ]);
     await acts.run("list.delete");
@@ -459,13 +461,14 @@ describe("the list surface", () => {
         button.textContent?.trim(),
       ),
     ).not.toContain("Create");
-    expect(bulkLabels(root)).toEqual([]);
+    expect(bulkLabels(root)).toEqual(["Favourite"]);
     expect(listActNames()).toEqual([
       "list.favourite",
       "list.open_view",
       "list.set_default_view",
       "list.clear_default_view",
       "list.customize_quick_filter",
+      "list.favourite_records",
       "list.copy",
       "list.download_vcards",
       "list.open_bulk_menu",

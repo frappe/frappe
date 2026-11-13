@@ -407,7 +407,7 @@ The list page has the base page members (`doctype`, `perms`, `roles`, `toast`, `
 | --- | --- |
 | `page.controls` | The controls row, as one list. Built-ins: `quick_filter`, `filter`, `sort`, `columns` and `customize_quick_filter` (the `⋯` entry). An item with `run` draws as a button. |
 | `page.columns` | The table's columns, as one list. Built-ins: the default columns, one per fieldname. `update` sets how a column draws its cells (the cell keys below). |
-| `page.bulkActions` | The actions on the selected rows. Built-ins: the status and collaboration acts, `print`, `edit`, `copy`, `export`, `delete` (see below). While rows are selected, a bar takes the controls row's place and draws them: a script item goes first in the **More** menu, under the doctype's name. |
+| `page.bulkActions` | The actions on the selected rows. Built-ins: the status and collaboration acts, `print`, `edit`, `copy`, `export`, `delete` (see below). While rows are selected, a floating bar at the bottom of the list draws them: a script item goes first in the **More** menu, under the doctype's name. |
 | `page.rowActions` | The actions in a row's menu. No built-ins. |
 | `page.view` | The view: `key` and `type`. |
 | `page.rows` | The rows loaded now; read only. This is not the record page's `page.rows(parentfield)`. |

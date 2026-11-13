@@ -36,6 +36,7 @@ class TestBulkCollaboration(IntegrationTestCase):
 		# the rollback removed the rule but not the map the apply cached
 		clear_doctype_map("Assignment Rule", "Event")
 		frappe.db.delete("DocShare", {"user": USER})
+		frappe.db.delete("Favourite", {"reference_doctype": "ToDo", "reference_name": ["in", self.names]})
 		frappe.db.delete("Background Task", {"task_name": ["like", "%ToDo"]})
 		frappe.db.commit()  # nosemgrep
 
@@ -93,6 +94,8 @@ class TestBulkCollaboration(IntegrationTestCase):
 			("DELETE", "bulk_tags"): routes.bulk_remove_tags,
 			("POST", "bulk_follows"): routes.bulk_follows,
 			("DELETE", "bulk_follows"): routes.bulk_unfollows,
+			("POST", "bulk_favourites"): routes.bulk_favourites,
+			("DELETE", "bulk_favourites"): routes.bulk_unfavourites,
 			("POST", "bulk_shares"): routes.bulk_shares,
 			("POST", "bulk_seen"): routes.bulk_seen,
 			("DELETE", "bulk_seen"): routes.bulk_unseen,
@@ -307,6 +310,53 @@ class TestBulkCollaboration(IntegrationTestCase):
 				"Document Follow",
 				{"ref_doctype": doctype, "ref_docname": name, "user": frappe.session.user},
 			)
+		)
+
+	# Favourite
+
+	def test_favourite_and_unfavourite_the_records(self):
+		self.body()
+		self.assertCountEqual(routes.bulk_favourites("ToDo")["done"], self.names)
+		self.assertCountEqual(self.starred(), self.names)
+
+		# a second run changes nothing and fails nothing
+		self.assertEqual(routes.bulk_favourites("ToDo")["failed"], [])
+		self.assertEqual(len(self.starred()), 3)
+
+		self.assertCountEqual(routes.bulk_unfavourites("ToDo")["done"], self.names)
+		self.assertEqual(self.starred(), [])
+
+	def test_favourites_are_the_session_users_own(self):
+		self.body(names=self.names[:1])
+		routes.bulk_favourites("ToDo")
+		frappe.set_user(ASSIGNEE)
+		self.body(names=self.names[:1])
+		routes.bulk_unfavourites("ToDo")
+		frappe.set_user("Administrator")
+		self.assertEqual(self.starred(), self.names[:1])
+
+	def test_favourite_by_filters(self):
+		frappe.form_dict.clear()
+		frappe.form_dict.update(filters=[["description", "like", f"{PREFIX}%"]])
+		self.assertCountEqual(routes.bulk_favourites("ToDo")["done"], self.names)
+		self.assertCountEqual(routes.bulk_unfavourites("ToDo")["done"], self.names)
+
+	def test_favourite_fails_a_record_the_user_cannot_read(self):
+		frappe.set_user(self.make_user())
+		self.body()
+		result = routes.bulk_favourites("ToDo")
+		self.assertEqual(result["done"], [])
+		self.assertEqual(len(result["failed"]), 3)
+
+	def starred(self) -> list[str]:
+		return frappe.get_all(
+			"Favourite",
+			{
+				"user": frappe.session.user,
+				"reference_doctype": "ToDo",
+				"reference_name": ["in", self.names],
+			},
+			pluck="reference_name",
 		)
 
 	# Share

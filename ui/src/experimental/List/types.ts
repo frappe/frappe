@@ -11,6 +11,8 @@ export interface ListColumn extends Column {
 export type ListRowData = Record<string, unknown>;
 
 export interface ListProps {
+  /** Room under the last row, for a bar that floats over it. */
+  bottomInset?: string;
   columns?: ListColumn[];
   rows?: ListRowData[];
   /** The row property that identifies it, for the selection and the render key. */

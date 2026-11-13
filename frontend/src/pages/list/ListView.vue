@@ -1,5 +1,5 @@
 <!--
-  The List type's renderer: the table with its bulk bar and footer, and the column settings among
+  The List type's renderer: the table with its floating bulk bar and footer, and the column settings among
   the page's controls. The composable holds the state; this lays it out.
 -->
 <template>
@@ -25,25 +25,13 @@
 		:rowMenu="rowActions.length > 0"
 		:cellClass="(row, column) => seenClassOf(row, column.fieldname)"
 		gutter="var(--page-gutter)"
+		:bottomInset="selection.length ? '4.5rem' : undefined"
 		@column-resize="resizeColumn($event.fieldname, $event.width)"
 		@column-reset="resetColumnWidth($event.fieldname)"
 		@row-contextmenu="menu.open($event.name, $event.event)"
 		@pointerover="bulk.prefetch"
 		@focusin="bulk.prefetch"
 	>
-		<template v-if="selection.length && bulk.parts.value" #bar>
-			<component
-				:is="bulk.parts.value.chunk.BulkBar"
-				:scope="scope"
-				:doctype="view.doctype"
-				:status="bulk.parts.value.status"
-				:cap="bulk.cap"
-				:layout="bulk.layout.value"
-				:locked="bulk.locked"
-				v-model:menuOpen="bulk.menuOpen.value"
-				@clear="scope.clear()"
-			/>
-		</template>
 		<template #cell="{ row, column, value }">
 			<FavouriteCell
 				v-if="column.fieldname === '_favourite'"
@@ -122,6 +110,19 @@
 			<PageState :name="filters.length ? 'filtered' : 'empty'" />
 		</template>
 	</List>
+	<component
+		:is="bulk.parts.value.chunk.BulkIsland"
+		v-if="bulk.parts.value"
+		:open="selection.length > 0"
+		:scope="scope"
+		:doctype="view.doctype"
+		:status="bulk.parts.value.status"
+		:cap="bulk.cap"
+		:layout="bulk.layout.value"
+		:locked="bulk.locked"
+		v-model:menuOpen="bulk.menuOpen.value"
+		@clear="scope.clear()"
+	/>
 	<ListFooter
 		v-model:pageSize="pageSize"
 		:class="pageGutter"

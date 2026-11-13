@@ -133,6 +133,19 @@ describe("BulkBar", () => {
 		expect(clear).toHaveBeenCalledOnce();
 	});
 
+	it("starts with a ticked box that clears the selection, and divides the trash icon off", () => {
+		const trash = entry("delete", { label: "Delete", icon: "lucide-trash-2", group: "danger" });
+		const { root, clear } = mount({ scope: scopeOf(2).scope, layout: layoutBulk([entry("edit", { label: "Edit", button: true }), trash], "ToDo") });
+		const box = root.querySelector<HTMLInputElement>("input[type=checkbox]")!;
+		expect(box.checked).toBe(true);
+		box.click();
+		expect(clear).toHaveBeenCalledOnce();
+
+		const bar = root.querySelector("[role=toolbar]")!;
+		const children = [...bar.querySelectorAll("div.border-s, button")].map((one) => (one.tagName === "BUTTON" ? one.getAttribute("aria-label") ?? one.textContent?.trim() : "|"));
+		expect(children.slice(-4)).toEqual(["|", "Delete", "|", "Clear selection"]);
+	});
+
 	it("opens More on a click, with its Tooltip around the button", async () => {
 		const { root } = mount({ scope: scopeOf(2).scope, layout: layoutBulk([entry("edit", { label: "Edit" })], "ToDo") });
 		button(root, "More")!.click();
@@ -223,7 +236,7 @@ describe("useBulkBar", () => {
 		const { layout } = result;
 		expect(labels(layout.value.menu)).toEqual([
 			["ToDo", ["restore"]],
-			["Assign, tag and share", ["Clear assignment","Apply assignment rule","Remove tags","Follow","Unfollow","Share","Mark as seen","Mark as unseen"]],
+			["Assign, tag and share", ["Clear assignment","Apply assignment rule","Remove tags","Follow","Unfollow","Share","Mark as seen","Mark as unseen","Unfavourite"]],
 			["Print and export", ["Print", "Copy to Clipboard", "Export"]],
 			["Submit, cancel and delete", ["Delete"]],
 		]);
@@ -265,6 +278,9 @@ describe("useBulkBar", () => {
 			["mark_unseen", "collaborate", undefined, "read"],
 			["print", "output", undefined, "print"],
 			["edit", "collaborate", true, "write"],
+			["favourite_records", "collaborate", true, "read"],
+			["unfavourite_records", "collaborate", true, "read"],
+			["unfavourite_matching", "collaborate", undefined, "read"],
 			["copy", "output", undefined, undefined],
 			["export", "output", undefined, "export"],
 			["delete", "danger", undefined, "delete"],
