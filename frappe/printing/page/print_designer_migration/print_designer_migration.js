@@ -111,7 +111,7 @@ class PrintDesignerMigration {
 		const pane = (title) => `
 			<div class="flex flex-col gap-2 flex-1 min-w-0">
 				<div class="text-sm text-ink-gray-5">${title}</div>
-				<iframe class="w-full border border-outline-gray-2 rounded" style="height: 70vh"></iframe>
+				<iframe class="print-designer-preview w-full border border-outline-gray-2 rounded"></iframe>
 			</div>`;
 		const dialog = new frappe.ui.Dialog({
 			title: __("Preview {0}", [row.name]),
