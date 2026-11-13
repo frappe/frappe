@@ -843,7 +843,12 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Form Layout", {"dt": DOCTYPE}))
 
 	def test_a_quick_entry_with_no_fields_to_ask_starts_with_one_section(self):
-		place = {"act": "canvas.place_field", "fieldname": "title", "section": "section_1", "column": "column_1"}
+		place = {
+			"act": "canvas.place_field",
+			"fieldname": "title",
+			"section": "section_1",
+			"column": "column_1",
+		}
 		result = self.save([{**place, "index": 0, "layout": {"type": "Quick Entry"}}])
 		self.assertTrue(result["saved"], result.get("errors"))
 		[row] = frappe.get_all("Form Layout", {"dt": DOCTYPE, "type": "Quick Entry"}, ["layout"])
