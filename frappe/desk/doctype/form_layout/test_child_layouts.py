@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.desk.doctype.form_layout.form_layout import (
 	FORM_LAYOUT_TYPES,
 	get_form_layouts,
@@ -26,6 +27,9 @@ PARENT_ROLE = "Test Layout Parent Reader 45901"
 PARENT_READER = "test_layout_parent_reader_45901@example.com"
 STRANGER_ROLE = "Test Layout Stranger 47263"
 STRANGER = "test_layout_stranger_47263@example.com"
+CUSTOM_PARENT_DT = "Test Layout Custom Parent 47263"
+CUSTOM_ROLE = "Test Layout Custom Reader 47263"
+CUSTOM_READER = "test_layout_custom_reader_47263@example.com"
 
 
 def a_tree(fieldname: str) -> str:
@@ -55,6 +59,15 @@ class TestChildLayouts(IntegrationTestCase):
 			permissions=[{"role": PARENT_ROLE, "read": 1, "write": 0, "create": 0, "delete": 0}],
 		).insert(ignore_if_duplicate=True)
 		new_doctype(SINGLE_DT, issingle=1, fields=[data("setting")]).insert(ignore_if_duplicate=True)
+		a_user_with_role(CUSTOM_READER, CUSTOM_ROLE)
+		new_doctype(
+			CUSTOM_PARENT_DT,
+			fields=[data("title")],
+			permissions=[{"role": CUSTOM_ROLE, "read": 1, "write": 0, "create": 0, "delete": 0}],
+		).insert(ignore_if_duplicate=True)
+		create_custom_field(
+			CUSTOM_PARENT_DT, {"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": ROW_DT}
+		)
 		# SQLite rolls back DDL, so each test's rollback would drop the DocTypes.
 		frappe.db.commit()  # nosemgrep
 
@@ -124,6 +137,17 @@ class TestChildLayouts(IntegrationTestCase):
 	def test_a_user_who_reads_no_parent_cannot_read_a_childs_rows(self):
 		with set_user(STRANGER), self.assertRaises(frappe.PermissionError):
 			get_form_layouts(ROW_DT, "Details")
+
+	def test_a_reader_of_a_parent_with_a_custom_table_field_gets_the_childs_rows(self):
+		row = make_layout(dt=ROW_DT, layout=a_tree("item")).insert()
+		with set_user(CUSTOM_READER):
+			self.assertFalse(frappe.has_permission(PARENT_DT, "read"))
+			layouts = get_form_layouts(ROW_DT, "Details")
+		self.assertEqual([one["name"] for one in layouts["layouts"]], [row.name])
+
+	def test_a_table_multiselect_parent_grants_no_read_of_its_childs_rows(self):
+		with set_user(PARENT_READER), self.assertRaises(frappe.PermissionError):
+			get_form_layouts(TAG_DT, "Details")
 
 	def test_a_doctype_reader_gets_a_childs_rows_without_reading_a_parent(self):
 		with set_user(a_manager()):

@@ -305,7 +305,7 @@ const rows = defineModel<Record<string, any>[]>({ default: () => [] });
 
 defineSlots<GridSlots<T>>();
 
-// Per-column track widths: `null` = flexible (`1fr`), a number = fixed px. Seeded
+// Per-column track widths: `null` = flexible (`minmax`), a number = fixed px. Seeded
 // from the column's `width`, overridden by a drag. Re-seeding on a columns change
 // keeps existing drags (the drag wins over `width`) and adds/drops by index.
 const MIN_COL_WIDTH = 48;

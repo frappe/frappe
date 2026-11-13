@@ -203,11 +203,20 @@ def check_child_layout_access(dt: str) -> None:
 	"""A child DocType has no rights of its own: its row dialog is read through a parent's."""
 	if frappe.has_permission("DocType", "read") or frappe.has_permission("Form Layout", "read"):
 		return
-	if any(frappe.has_permission(parent, "read") for parent in get_parent_doctypes([dt])[dt]):
+	parents = get_parent_doctypes([dt])[dt]
+	if any(frappe.has_permission(parent, "read") and shows_as_grid(dt, parent) for parent in parents):
 		return
 	frappe.throw(
 		_("You need read access to a DocType that has {0} as a table.").format(frappe.bold(dt)),
 		frappe.PermissionError,
+	)
+
+
+def shows_as_grid(dt: str, parent: str) -> bool:
+	"""A Table MultiSelect parent never opens a row dialog, so it grants no layout read."""
+	return any(
+		field.fieldtype == "Table" and field.options == dt
+		for field in frappe.get_meta(parent).get_table_fields()
 	)
 
 

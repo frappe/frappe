@@ -238,7 +238,7 @@
    "oldfieldtype": "Data"
   },
   {
-   "description": "Width of the column in a grid, from 1 to 10 (2 = 100px, 4 = 200px). Leave empty for the default width of the field type.",
+   "description": "Grid column width, 1 to 10 (2 = 100px, 4 = 200px). Empty for the field type's default.",
    "fieldname": "columns",
    "fieldtype": "Int",
    "label": "Columns"

@@ -19,15 +19,12 @@ export interface GridColumn {
   align?: "left" | "right" | "center";
   /**
    * Initial track width in px, e.g. set from layout/meta. Omit for a flexible
-   * column that shares leftover space (`1fr`) down to 128px, past which the grid
+   * column that shares leftover space down to its `minWidth`, past which the grid
    * scrolls sideways. Drag-resizing the column's right
    * edge overrides this at runtime.
    */
   width?: number;
-  /**
-   * A flexible column's floor in px (default 128). Flexible columns share the
-   * leftover space in proportion to their floors.
-   */
+  /** A flexible column's floor in px (default 128). */
   minWidth?: number;
 }
 
