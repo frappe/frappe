@@ -2,6 +2,9 @@
 // pending DocType `/doctype/new` edits before its first save.
 import { runMethod } from "@framework/ui/api";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { NEW_NAME } from "@framework/ui/utils";
+import type { LocationQuery } from "vue-router";
+import { COPY_OF } from "@/newRecordValues";
 import type {
 	FormLayoutRow,
 	FormLayoutType,
@@ -84,14 +87,46 @@ export interface NewDoctype {
 	naming_rule: string;
 }
 
-/** A DocType that exists only in the editor until its first save; it starts with one Data field. */
-export function pendingDoctype(answers: NewDoctype): EditorState {
+/** What `routeForNew("DocType", values)` carried: the dialog's first answers and the DocType a duplicate copies. */
+export function carriedAnswers(query: LocationQuery): {
+	answers: Partial<NewDoctype>;
+	copyOf: string | null;
+} {
+	const text = (key: string) => {
+		const given = query[key];
+		return String((Array.isArray(given) ? given[0] : given) ?? "");
+	};
+	const answers: Partial<NewDoctype> = {};
+	const name = text(NEW_NAME) || text("name");
+	if (name) answers.name = name;
+	if (text("module")) answers.module = text("module");
+	if (text("naming_rule")) answers.naming_rule = text("naming_rule");
+	if (text("custom")) answers.custom = text("custom") === "1";
+	return { answers, copyOf: text(COPY_OF) || null };
+}
+
+/** The first answers a duplicate gives: its source's module, kind and naming rule, not its name. */
+export function copiedAnswers(source: EditorState): Partial<NewDoctype> {
+	const { naming_rule } = source.definition;
+	return {
+		module: source.module,
+		custom: Boolean(source.custom),
+		...(naming_rule ? { naming_rule } : {}),
+	};
+}
+
+/**
+ * A DocType that exists only in the editor until its first save. It starts with one Data field, or
+ * with a copy of the source's fields and Details layout when it duplicates one.
+ */
+export function pendingDoctype(answers: NewDoctype, source?: EditorState | null): EditorState {
+	const copied = source ? copiedDefinition(answers, source) : null;
 	const field = {
 		fieldname: "title",
 		label: "Title",
 		fieldtype: "Data",
 	} as RawMetaField;
-	const layout = [
+	const layout = (source && detailsLayout(source)?.layout) || [
 		{
 			name: "details",
 			sections: [
@@ -112,12 +147,36 @@ export function pendingDoctype(answers: NewDoctype): EditorState {
 		layouts: {
 			Details: [{ name: null, layout, omitted: [], source: "fallback" }],
 		},
-		definition: {
+		definition: copied ?? {
 			name: answers.name,
 			module: answers.module,
 			naming_rule: answers.naming_rule,
 			fields: [field],
 		},
 		pending: true,
+	};
+}
+
+// The source's record identity, which `as_dict` sends on the DocType and each row; a copy gets its own.
+const IDENTITY = ["name", "parent", "parenttype", "parentfield", "owner", "creation", "modified", "modified_by"];
+
+function withoutIdentity<T extends object>(row: T): T {
+	const copy: Record<string, unknown> = { ...(row as Record<string, unknown>) };
+	for (const key of IDENTITY) delete copy[key];
+	return copy as T;
+}
+
+function copiedDefinition(answers: NewDoctype, source: EditorState): DoctypeDefinition {
+	const { definition } = source;
+	const fields = definition.fields.map(withoutIdentity);
+	const sameRule = definition.naming_rule === answers.naming_rule;
+	return {
+		...withoutIdentity(definition),
+		name: answers.name,
+		module: answers.module,
+		custom: answers.custom ? 1 : 0,
+		naming_rule: answers.naming_rule,
+		autoname: sameRule ? definition.autoname : undefined,
+		fields,
 	};
 }

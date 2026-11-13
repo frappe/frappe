@@ -16,6 +16,7 @@
 		</template>
 		<NewDoctypeDialog
 			v-if="asking"
+			:initial="asking.answers"
 			@create="startNew"
 			@cancel="router.push(routeFor('DocType'))"
 		/>
@@ -60,11 +61,13 @@
 <script setup lang="ts">
 import { computed, reactive, ref, shallowRef, watch } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
-import { ScrollArea } from "frappe-ui";
+import { ScrollArea, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import { acts } from "@/acts/dispatcher";
 import { __, __n } from "@/i18n";
+import { COPY_OF } from "@/newRecordValues";
 import { discardChanges } from "@/pages/record/discardChanges";
+import { errorMessage } from "@/recordPage/errorMessage";
 import { routeFor } from "@/router/routeFor";
 import { shellDialog } from "@/shell/dialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
@@ -74,6 +77,8 @@ import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
 import { useEditorActs } from "./editorActs";
 import {
+	carriedAnswers,
+	copiedAnswers,
 	detailsLayout,
 	loadEditor,
 	modeOf,
@@ -95,7 +100,11 @@ const pageState = shallowRef<PageStateValue | null>(null);
 const tab = ref<EditorTab>("editor");
 const previewName = ref<string | null>(null);
 const latest = ref<string[]>([]);
-const asking = computed(() => name.value === "new" && !state.value);
+// `/doctype/new`'s first answers, once a duplicate's source has loaded.
+const starting = shallowRef<{ answers: Partial<NewDoctype>; source: EditorState | null } | null>(
+	null
+);
+const asking = computed(() => (name.value === "new" && !state.value ? starting.value : null));
 
 // Filled when the load lands; the payload reads it then.
 const head = reactive({}) as Omit<PendingEditsPayload, "edits">;
@@ -140,12 +149,12 @@ const switchTo = computed(() => {
 });
 
 let loading = 0;
-watch(() => [name.value, route.query.mode], load, { immediate: true });
+watch(() => [name.value, route.query.mode, route.query[COPY_OF]], load, { immediate: true });
 
 async function load() {
 	const request = ++loading;
 	reset();
-	if (name.value === "new") return;
+	if (name.value === "new") return void startAsking(request);
 	try {
 		const loaded = await loadEditor(name.value, modeOf(route.query.mode));
 		if (request !== loading) return;
@@ -156,8 +165,23 @@ async function load() {
 	}
 }
 
+async function startAsking(request: number) {
+	const { answers, copyOf } = carriedAnswers(route.query);
+	let source: EditorState | null = null;
+	if (copyOf) {
+		try {
+			source = await loadEditor(copyOf, "Design");
+		} catch (error) {
+			toast.error(errorMessage(error));
+		}
+	}
+	if (request !== loading) return;
+	starting.value = { answers: { ...(source && copiedAnswers(source)), ...answers }, source };
+}
+
 function reset() {
 	state.value = null;
+	starting.value = null;
 	pageState.value = null;
 	tab.value = "editor";
 	latest.value = [];
@@ -166,7 +190,7 @@ function reset() {
 }
 
 function startNew(answers: NewDoctype) {
-	open(pendingDoctype(answers));
+	open(pendingDoctype(answers, starting.value?.source));
 }
 
 function open(loaded: EditorState) {

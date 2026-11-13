@@ -84,4 +84,11 @@ describe("the DocType editor's address", () => {
 		expect((await routeOf("/doctype/new")).name).toBe("doctype-editor");
 		expect(router.resolve(routeForNew("User")).name).toBe("new-record");
 	});
+
+	it("carries a duplicate's source and Edit full form's values to the editor", async () => {
+		const router = createShellRouter(boot(false), addresses);
+		registerShell({ boot: boot(false), addresses, router });
+		await router.push(routeForNew("DocType", { __copy_of: "ToDo", module: "Desk" }));
+		expect(router.currentRoute.value.fullPath).toBe("/doctype/new?__copy_of=ToDo&module=Desk");
+	});
 });

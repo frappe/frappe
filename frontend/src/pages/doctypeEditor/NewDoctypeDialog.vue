@@ -52,11 +52,16 @@ import { __ } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
 import type { NewDoctype } from "./editorSource";
 
+const props = defineProps<{ initial?: Partial<NewDoctype> }>();
 const emit = defineEmits<{ create: [answers: NewDoctype]; cancel: [] }>();
 
 const isOpen = ref(true);
-const answers = reactive({ name: "", module: "", naming_rule: "Set by user" });
-const kind = ref("custom");
+const answers = reactive({
+	name: props.initial?.name ?? "",
+	module: props.initial?.module ?? "",
+	naming_rule: props.initial?.naming_rule ?? "Set by user",
+});
+const kind = ref(props.initial?.custom === false ? "standard" : "custom");
 const modules = ref<{ label: string; value: string }[]>([]);
 const taken = ref("");
 const checking = ref(false);
