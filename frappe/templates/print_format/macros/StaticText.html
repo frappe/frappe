@@ -4,7 +4,8 @@
 	<div class="value">
 		{%- set _filled = df._text is defined -%}
 		{%- for line in (df._text if _filled else (df.text or '')).split('\n') -%}
-			{{ (line if _filled else _(line))|e }}{% if not loop.last %}<br>{% endif %}
+			{%- set _line = (line if _filled else _(line))|e -%}
+			{{ _line|replace('{page}', '<span class="page"></span>')|replace('{page_count}', '<span class="topage"></span>') if in_zone else _line }}{% if not loop.last %}<br>{% endif %}
 		{%- endfor -%}
 	</div>
 </div>
