@@ -6,7 +6,8 @@ Repository apps (`is_standard`) keep files in `<frappe_app>/studio/<app>/`.
 Editing these files requires developer mode. Database apps keep shared source
 files in Studio App File records and can be edited without developer mode.
 Their page scripts stay in Studio Page records but appear at the same paths
-in the file explorer as repository page scripts.
+in the file explorer as repository page scripts. A component's script stays in
+its Studio Component record and appears at `studio_components/<component>.js`.
 
 Both app types can produce a Vite build. A database app can also compile its
 source in the browser when no build is available. The browser runs the source
@@ -67,10 +68,45 @@ def page_script_paths(studio_app: str) -> dict[str, str]:
 	return {f"studio_page/{(stem := frappe.scrub(page.page_title))}/{stem}.js": page.name for page in pages}
 
 
+def is_component_script_path(path: str) -> bool:
+	"""Match `studio_components/<component>.js`, the component script path used by both source stores."""
+	return bool(re.fullmatch(r"studio_components/[^/]+\.(js|ts)", path))
+
+
+def component_script_owner(file_path: str) -> str | None:
+	"""Return the component that owns this script path, or None if no component matches."""
+	path = normalize_path(file_path)
+	if not is_component_script_path(path) or not path.endswith(".js"):
+		return None
+	component = posixpath.basename(path).removesuffix(".js")
+	return component if frappe.db.exists("Studio Component", component) else None
+
+
+def component_script_paths(studio_app: str) -> set[str]:
+	"""Script paths of the scripted components that the app's pages use."""
+	from frappe.studio.doctype.studio_component.studio_component import get_components_for_blocks
+
+	pages = frappe.get_all(
+		"Studio Page", filters={"studio_app": studio_app}, fields=["blocks", "draft_blocks"]
+	)
+	blocks = [
+		block for page in pages for tree in (page.blocks, page.draft_blocks) for block in parse_blocks(tree)
+	]
+	return {
+		f"studio_components/{component.name}.js"
+		for component in get_components_for_blocks(blocks)
+		if component.script
+	}
+
+
+def parse_blocks(blocks: str | None) -> list[dict]:
+	return frappe.parse_json(blocks) if blocks else []
+
+
 def list_db_file_tree(studio_app: str) -> list[dict]:
-	"""Return database files and page script paths in the disk explorer's tree format."""
+	"""Return database files and script paths in the disk explorer's tree format."""
 	paths = frappe.get_all("Studio App File", filters={"studio_app": studio_app}, pluck="file_path")
-	files = set(paths) | page_script_paths(studio_app).keys()
+	files = set(paths) | page_script_paths(studio_app).keys() | component_script_paths(studio_app)
 	folders = set()
 	for path in files:
 		folder = posixpath.dirname(path)
@@ -141,10 +177,15 @@ def write_db_files(studio_app: str, files: list[dict]) -> None:
 
 
 def read_db_file(studio_app: str, file_path: str) -> str | None:
-	"""Read source from its Studio App File record or its owning page. Return None for a missing file."""
+	"""Read source from its Studio App File record, or from the page or component that owns it.
+	Return None for a missing file."""
 	page = page_script_owner(studio_app, file_path)
 	if page:
 		return frappe.db.get_value("Studio Page", page, "script") or ""
+	component = component_script_owner(file_path)
+	if component:
+		frappe.has_permission("Studio Component", ptype="read", doc=component, throw=True)
+		return frappe.db.get_value("Studio Component", component, "script") or ""
 	row = get_db_file_row(studio_app, file_path)
 	if not row:
 		return None
@@ -152,7 +193,8 @@ def read_db_file(studio_app: str, file_path: str) -> str | None:
 
 
 def write_db_file(studio_app: str, file_path: str, content: str, known_hash: str | None = None) -> None:
-	"""Save source to its Studio App File record or its owning page, creating a file if needed.
+	"""Save source to its Studio App File record, or to the page or component that owns it,
+	creating a file if needed.
 
 	If `known_hash` is supplied, reject the write when the existing content has changed.
 	"""
@@ -161,6 +203,9 @@ def write_db_file(studio_app: str, file_path: str, content: str, known_hash: str
 	page = page_script_owner(studio_app, file_path)
 	if page:
 		return write_page_script(page, content, known_hash)
+	component = component_script_owner(file_path)
+	if component:
+		return write_component_script(component, content, known_hash)
 	row = get_db_file_row(studio_app, file_path)
 	if not row:
 		insert_db_file_row(studio_app, file_path, content)
@@ -182,6 +227,15 @@ def write_page_script(page: str, content: str, known_hash: str | None = None) ->
 	doc.save()
 
 
+def write_component_script(component: str, content: str, known_hash: str | None = None) -> None:
+	"""Save through the owning Studio Component so rendering and export use the updated script."""
+	doc = frappe.get_doc("Studio Component", component)
+	if known_hash and file_hash(doc.script or "") != known_hash:
+		frappe.throw(_("{0} changed since you opened it.").format(doc.component_name))
+	doc.script = content
+	doc.save()
+
+
 def create_db_file(studio_app: str, file_path: str) -> None:
 	if db_path_exists(studio_app, file_path):
 		frappe.throw(_("{0} already exists.").format(file_path))
@@ -194,6 +248,8 @@ def rename_db_path(studio_app: str, file_path: str, new_path: str) -> None:
 	new = normalize_path(new_path)
 	if page_script_owner(studio_app, old) or page_script_owner(studio_app, new):
 		frappe.throw(_("A page script is named after its page. Rename the page instead."))
+	if component_script_owner(old) or component_script_owner(new):
+		frappe.throw(_("A component script is named after its component."))
 	row = get_db_file_row(studio_app, old)
 	children = get_db_file_rows_under(studio_app, old)
 	if not row and not children:
@@ -216,12 +272,15 @@ def rename_db_file_row(name: str, new_path: str) -> None:
 def delete_db_path(studio_app: str, file_path: str) -> None:
 	"""Delete a database file or a folder and all its contents.
 
-	For a page script, clear the script on its owning page instead.
+	For a page or component script, clear the script on its owner instead.
 	"""
 	path = normalize_path(file_path)
 	page = page_script_owner(studio_app, path)
 	if page:
 		return write_page_script(page, "")
+	component = component_script_owner(path)
+	if component:
+		return write_component_script(component, "")
 	row = get_db_file_row(studio_app, path)
 	children = get_db_file_rows_under(studio_app, path)
 	if not row and not children:
@@ -233,8 +292,8 @@ def delete_db_path(studio_app: str, file_path: str) -> None:
 
 
 def db_path_exists(studio_app: str, path: str) -> bool:
-	"""Check whether a database file, page script or descendant already uses this path."""
-	if page_script_owner(studio_app, path):
+	"""Check whether a database file, page or component script, or descendant already uses this path."""
+	if page_script_owner(studio_app, path) or component_script_owner(path):
 		return True
 	return bool(get_db_file_row(studio_app, path) or get_db_file_rows_under(studio_app, path))
 
@@ -329,9 +388,10 @@ def is_regenerated_file(studio_app: str, path: str) -> bool:
 	name = posixpath.basename(path)
 	if name.startswith(".") or name == "tsconfig.json" or is_export_doc_file(studio_app, path):
 		return True
-	# Studio Page.restore_script_from_file preserves page scripts before the folder is deleted.
-	# Only JavaScript survives: the database runtime has no TypeScript compiler.
-	return is_page_script_path(path) and path.endswith(".js")
+	# Studio Page.restore_script_from_file preserves page scripts before the folder is deleted, and a
+	# component's `script` field already holds its file. Only JavaScript survives: the database
+	# runtime has no TypeScript compiler.
+	return (is_page_script_path(path) or is_component_script_path(path)) and path.endswith(".js")
 
 
 def is_db_file_allowed(studio_app: str, path: str) -> bool:
@@ -341,7 +401,9 @@ def is_db_file_allowed(studio_app: str, path: str) -> bool:
 		return False
 	if posixpath.splitext(name)[1].lower() not in ALLOWED_DB_FILE_EXTENSIONS:
 		return False
-	return not path.startswith("studio_page/") and not is_export_doc_file(studio_app, path)
+	if path.startswith("studio_page/") or is_component_script_path(path):
+		return False
+	return not is_export_doc_file(studio_app, path)
 
 
 def normalize_path(file_path: str) -> str:

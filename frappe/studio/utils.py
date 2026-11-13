@@ -116,6 +116,21 @@ def find_script_file(folder: str, stem: str) -> str:
 	return os.path.join(folder, f"{stem}.{script_extension(folder, stem)}")
 
 
+def find_component_scripts(folder: str) -> list[dict]:
+	"""Each exported component that has a script file beside its JSON, as `{component_id, file_path}`."""
+	if not os.path.isdir(folder):
+		return []
+	scripts = []
+	for file in sorted(os.listdir(folder)):
+		file_path = find_script_file(folder, file.removesuffix(".json"))
+		if not file.endswith(".json") or not os.path.exists(file_path):
+			continue
+		component_id = frappe.parse_json(frappe.read_file(os.path.join(folder, file))).get("name")
+		if component_id:
+			scripts.append({"component_id": component_id, "file_path": file_path})
+	return scripts
+
+
 def get_exported_app_name(app_folder: str) -> str:
 	"""The app's name from its exported JSON. The folder name is scrubbed
 	(`my-app` lives in `my_app`), so it cannot name the app."""

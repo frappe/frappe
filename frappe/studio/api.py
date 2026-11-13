@@ -13,6 +13,7 @@ from frappe.studio.files import (
 	delete_db_path,
 	file_hash,
 	get_db_files,
+	is_component_script_path,
 	is_db_app,
 	list_db_file_tree,
 	read_db_file,
@@ -22,7 +23,9 @@ from frappe.studio.files import (
 	validate_folder_removable,
 	write_db_file,
 )
+from frappe.studio.sync_json import COMPONENT_FOLDER, sync_component_script
 from frappe.studio.utils import (
+	find_component_scripts,
 	find_script_file,
 	get_export_folder,
 	get_exported_app_folders,
@@ -231,6 +234,17 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 
 
 @frappe.whitelist()
+def get_studio_component_scripts(frappe_app: str, studio_app: str) -> list[dict]:
+	"""List the component scripts one studio app exports, keyed by the component's docname."""
+	frappe.has_permission("Studio Page", ptype="read", throw=True)
+	validate_installed_app(frappe_app)
+	app_folder = get_export_folder(frappe_app, studio_app)
+	if app_folder not in get_exported_app_folders(get_studio_folder(frappe_app)):
+		return []
+	return find_component_scripts(os.path.join(app_folder, COMPONENT_FOLDER))
+
+
+@frappe.whitelist()
 def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
 	"""Return the app's editable file tree."""
 	if is_db_app(studio_app):
@@ -297,6 +311,7 @@ def write_studio_file(
 	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 	with open(target, "w", encoding="utf-8") as f:
 		f.write(content)
+	_sync_component_script(file_path, target)
 	return {"path": file_path, "hash": file_hash(content)}
 
 
@@ -367,6 +382,8 @@ def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_pat
 
 	os.makedirs(os.path.dirname(destination), exist_ok=True)
 	os.rename(source, destination)
+	_sync_component_script(file_path, source)
+	_sync_component_script(new_path, destination)
 	return {"path": new_path}
 
 
@@ -391,6 +408,7 @@ def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None
 	if not os.path.isfile(target):
 		frappe.throw(_("Not found: {0}").format(file_path))
 	os.remove(target)
+	_sync_component_script(file_path, target)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
@@ -408,6 +426,12 @@ def get_app_files(app_name: str) -> list[dict]:
 	if not is_db_app(app_name):
 		return []
 	return get_db_files(app_name)
+
+
+def _sync_component_script(file_path: str, target: str) -> None:
+	"""Keep a component's `script` field equal to its file, for the apps that read the field."""
+	if is_component_script_path(file_path.strip("/")):
+		sync_component_script(os.path.splitext(target)[0] + ".json")
 
 
 def _validate_studio_file_access(permission_type: str = "read", on_disk: bool = True) -> None:
