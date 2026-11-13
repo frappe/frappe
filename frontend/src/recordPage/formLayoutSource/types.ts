@@ -39,9 +39,13 @@ export interface LayoutTreeTab {
 export type LayoutTree = LayoutTreeTab[];
 
 export interface FormLayoutRow {
-	/** `null` for the app's layout file, which comes last and only when no row is the default. */
+	/** `null` for each of the app file's layouts, which come last and only when no row is the default. */
 	name: string | number | null;
+	/** Names the layout in the layout menu; an app file's layouts carry one too. */
+	title?: string | null;
 	condition?: string | null;
+	/** Site rows with a fingerprint only: whether the app layout or fallback they copied has changed. */
+	source_changed?: boolean;
 	layout: LayoutTree;
 	/** Fieldnames the row keeps off its layout on purpose; Details and New Record read it. */
 	omitted?: string[];

@@ -21,6 +21,7 @@ import { FieldErrors } from "./fieldErrors";
 import { FieldsSurface } from "./fields";
 import { FormSurface } from "./form";
 import { FormTabsSurface } from "./formTabs";
+import { LinkFetch } from "./linkFetch";
 import type { FrameSurface } from "@/pageEngine/frame";
 import type { BodySurface } from "@/pageEngine/body";
 import type { HeaderSurface } from "@/pageEngine/headerRenderings";
@@ -334,6 +335,20 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   });
 
   const cachedReads = new CachedReads(host.doctype, host.docname);
+  const linkFetch = new LinkFetch({
+    doc: () => host.doc.value,
+    fields: () => host.meta.value?.fields,
+    childFields: host.childFields,
+    scriptFilters: (name) => fields.resolve()[name]?.meta?.filters,
+    errors: fieldErrors,
+  });
+  // A fetched field runs its handlers and its own fetch, as v1's `set_value` does.
+  const commitField = async (fieldname: string, row?: RowAddress): Promise<void> => {
+    const fetching = linkFetch.run(fieldname, row);
+    const changed = fetching ? await fetching : [];
+    await engine.dispatch(row ? `${row.parentfield}.${fieldname}` : fieldname, detailOf(row));
+    for (const target of changed) await commitField(target, row);
+  };
 
   const commits = fieldErrors.clearingOnEdit(
     createCommitChannel({
@@ -342,7 +357,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       dispatch: (event, row, edited) =>
         edited
           ? hold(async () => {
-              await engine.dispatch(event, detailOf(row));
+              await commitField(row ? event.slice(row.parentfield.length + 1) : event, row);
               await engine.refresh();
             }, true)
           : fireEvent(event, row),

@@ -168,6 +168,7 @@ export function mapField(
     label: field.label,
     options: field.options,
     filters: field.filters,
+    linkFilters: field.link_filters || undefined,
     reqd: !!field.reqd,
     default: field.default,
     precision: coercePrecision(field.precision),
@@ -193,6 +194,7 @@ export function mapField(
     ...(holdsChildRows(field.fieldtype)
       ? { childFields: resolveChildFields(field, childMetas, decorate) }
       : {}),
+    ...(field.columns ? { gridColumns: field.columns } : {}),
     ...(field.fieldtype === "Duration"
       ? { hideDays: !!field.hide_days, hideSeconds: !!field.hide_seconds }
       : {}),

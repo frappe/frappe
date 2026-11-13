@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "dt",
+  "title",
   "column_break_type",
   "type",
   "app",
@@ -14,7 +15,8 @@
   "condition",
   "layout_section",
   "layout",
-  "omitted"
+  "omitted",
+  "fingerprint"
  ],
  "fields": [
   {
@@ -25,6 +27,12 @@
    "label": "Document Type",
    "options": "DocType",
    "reqd": 1
+  },
+  {
+   "description": "Names the layout in the layout menu.",
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title"
   },
   {
    "fieldname": "column_break_type",
@@ -83,11 +91,19 @@
    "fieldtype": "Code",
    "label": "Omitted Fields",
    "options": "JSON"
+  },
+  {
+   "description": "A hash of the app layout or fallback layout this layout was copied from.",
+   "fieldname": "fingerprint",
+   "fieldtype": "Data",
+   "label": "Fingerprint",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-03 12:00:00.000000",
+ "modified": "2026-11-13 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Layout",

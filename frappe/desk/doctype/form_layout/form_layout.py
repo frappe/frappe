@@ -2,12 +2,15 @@
 # License: MIT. See LICENSE
 
 import copy
+import functools
 import json
 import re
+from collections.abc import Callable
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.form_layout.app_layout import read_app_layout
+from frappe.desk.doctype.form_layout.app_layout import content_hash, read_app_layouts
+from frappe.desk.form.linked_with import get_parent_doctypes
 from frappe.model import child_table_fields, data_fieldtypes, default_fields, optional_fields
 from frappe.model.document import Document
 from frappe.model.meta import Meta
@@ -184,6 +187,7 @@ def save_form_layout(
 	name: str | None = None,
 	condition: str | None = None,
 	app: str | None = None,
+	title: str | None = None,
 ):
 	validate_target(dt, type)
 	if name is not None and not isinstance(name, str):
@@ -193,6 +197,10 @@ def save_form_layout(
 		return None
 	doc = find_layout_doc(dt, type, name, app)
 	doc.update({"dt": dt, "type": type, "app": app, "layout": layout, "condition": condition})
+	if title is not None:
+		doc.title = title
+	if doc.is_new():
+		doc.fingerprint = source_fingerprint(dt, type)
 	# `validate` computes it, once the layout has passed the checks that refuse a malformed one.
 	doc.flags.writes_omitted = type in OMITTING_LAYOUT_TYPES
 	doc.save()
@@ -200,22 +208,51 @@ def save_form_layout(
 
 
 def check_layout_access(dt: str, type: str) -> None:
+	if frappe.is_table(dt):
+		return check_child_layout_access(dt)
 	if type in CREATE_LAYOUT_TYPES and frappe.has_permission(dt, "create"):
 		return
 	frappe.has_permission(dt, "read", throw=True)
 
 
+def check_child_layout_access(dt: str) -> None:
+	"""A child DocType has no rights of its own: its row dialog is read through a parent's."""
+	if frappe.has_permission("DocType", "read") or frappe.has_permission("Form Layout", "read"):
+		return
+	parents = get_parent_doctypes([dt])[dt]
+	if any(frappe.has_permission(parent, "read") and shows_as_grid(dt, parent) for parent in parents):
+		return
+	frappe.throw(
+		_("You need read access to a DocType that has {0} as a table.").format(frappe.bold(dt)),
+		frappe.PermissionError,
+	)
+
+
+def shows_as_grid(dt: str, parent: str) -> bool:
+	"""A Table MultiSelect parent never opens a row dialog, so it grants no layout read."""
+	return any(
+		field.fieldtype == "Table" and field.options == dt
+		for field in frappe.get_meta(parent).get_table_fields()
+	)
+
+
 def refuse_layout_type(dt: str, type: str) -> bool:
 	"""Tell the person a child DocType has only Details and a Single is never created; return whether refused."""
+	message = layout_type_refusal(dt, type)
+	if message:
+		frappe.msgprint(message, title=_("Layout Not Saved"), indicator="orange")
+	return bool(message)
+
+
+def layout_type_refusal(dt: str, type: str) -> str | None:
 	meta = frappe.get_meta(dt)
 	if meta.istable and type not in CHILD_LAYOUT_TYPES:
 		message = _("{0} is a child table, so it has only a Details layout, which its row dialog reads.")
 	elif meta.issingle and type not in SINGLE_LAYOUT_TYPES:
 		message = _("{0} is a Single, which is never created, so it has no {1} layout.")
 	else:
-		return False
-	frappe.msgprint(message.format(frappe.bold(dt), _(type)), title=_("Layout Not Saved"), indicator="orange")
-	return True
+		return None
+	return message.format(frappe.bold(dt), _(type))
 
 
 def get_layouts(dt: str, type: str, app: str | None) -> list[dict]:
@@ -239,40 +276,66 @@ def get_child_layouts(dt: str, app: str | None) -> dict[str, list[dict]]:
 	rows = frappe.get_all(
 		"Form Layout",
 		filters={"dt": ("in", children), "type": "Details"},
-		fields=["name", "dt", "app", "condition", "layout", "omitted"],
+		fields=["name", "dt", "app", "condition", "layout", "omitted", "title", "fingerprint"],
 		order_by="creation asc",
 	)
 	found = {child: [] for child in children}
 	for row in rows:
 		found[row.dt].append(row)
 	return {
-		child: with_app_layout([layout_of(row) for row in rows_in_app(own, app)], child, "Details")
+		child: with_app_layout(row_layouts(rows_in_app(own, app), child, "Details"), child, "Details")
 		for child, own in found.items()
 	}
 
 
 def with_app_layout(layouts: list[dict], dt: str, type: str) -> list[dict]:
-	"""Every site row comes before any app file, and a row with no condition drops the file."""
+	"""Every site row comes before the app file's layouts, and a row with no condition drops the file."""
 	if any(not layout["condition"] for layout in layouts):
 		return layouts
-	app_layout = read_app_layout(dt, type)
-	if not app_layout and type == "New Record":
-		app_layout = read_app_layout(dt, "Details")
-	if app_layout:
+	app_layouts = read_source_app_layouts(dt, type)
+	for entry in app_layouts.entries if app_layouts else ():
 		layouts.append(
 			{
 				"name": None,
-				"condition": None,
-				"layout": parse_layout(app_layout.layout),
-				"omitted": list(app_layout.omitted),
-				"size": app_layout.size,
+				"title": entry.title,
+				"condition": entry.condition,
+				"layout": parse_layout(entry.layout),
+				"omitted": list(entry.omitted),
+				"size": entry.size,
 			}
 		)
 	return layouts
 
 
+def read_source_app_layouts(dt: str, type: str):
+	"""A New Record with no file of its own reads the Details file."""
+	app_layouts = read_app_layouts(dt, type)
+	if not app_layouts and type == "New Record":
+		return read_app_layouts(dt, "Details")
+	return app_layouts
+
+
+def source_fingerprint(dt: str, type: str) -> str:
+	"""The hash of what a new site row of `type` is copied from: the app file, else the fallback."""
+	app_layouts = read_source_app_layouts(dt, type)
+	if app_layouts:
+		return app_layouts.version
+	fallback = (
+		get_quick_entry_layout(dt, custom=False)
+		if type == "Quick Entry"
+		else get_meta_layout(dt, custom=False)
+	)
+	return content_hash(frappe.as_json(fallback).encode())
+
+
 def get_row_layouts(dt: str, type: str, app: str | None) -> list[dict]:
-	return [layout_of(row) for row in rows_in_app(get_layout_rows(dt, type), app)]
+	return row_layouts(rows_in_app(get_layout_rows(dt, type), app), dt, type)
+
+
+def row_layouts(rows: list, dt: str, type: str) -> list[dict]:
+	"""The source is hashed once, and only when a row has a fingerprint to compare it with."""
+	source = functools.cache(lambda: source_fingerprint(dt, type))
+	return [layout_of(row, source) for row in rows]
 
 
 def rows_in_app(rows: list, app: str | None) -> list:
@@ -281,21 +344,25 @@ def rows_in_app(rows: list, app: str | None) -> list:
 	return named or [row for row in rows if not row.app]
 
 
-def layout_of(row) -> dict:
-	return {
+def layout_of(row, source: Callable[[], str]) -> dict:
+	layout = {
 		"name": row.name,
+		"title": row.title,
 		"condition": row.condition,
 		"layout": parse_layout(row.layout),
 		"omitted": parse_omitted(row.omitted),
-		"size": row.dialog_size,
+		"size": row.get("dialog_size"),
 	}
+	if row.fingerprint:
+		layout["source_changed"] = row.fingerprint != source()
+	return layout
 
 
 def get_layout_rows(dt: str, type: str) -> list:
 	return frappe.get_all(
 		"Form Layout",
 		filters={"dt": dt, "type": type},
-		fields=["name", "app", "condition", "layout", "omitted", "dialog_size"],
+		fields=["name", "app", "condition", "layout", "omitted", "dialog_size", "title", "fingerprint"],
 		order_by="creation asc",
 	)
 
@@ -314,10 +381,10 @@ def opens_in_dialog(dt: str, layouts: list) -> bool:
 	return named_by_prompt or any(not field.hidden and not mandatory_condition(field) for field in fields)
 
 
-def get_quick_entry_fields(meta) -> list:
+def get_quick_entry_fields(meta, custom: bool = True) -> list:
 	return [
 		field
-		for field in meta.fields
+		for field in layout_fields(meta, custom)
 		if (field.reqd or field.allow_in_quick_entry or field.mandatory_depends_on)
 		and not field.read_only
 		and not field.is_virtual
@@ -332,9 +399,9 @@ def mandatory_condition(field) -> str | None:
 	return field.mandatory_depends_on
 
 
-def get_quick_entry_layout(dt: str) -> list:
+def get_quick_entry_layout(dt: str, custom: bool = True) -> list:
 	sections = []
-	for field in get_quick_entry_fields(frappe.get_meta(dt)):
+	for field in get_quick_entry_fields(frappe.get_meta(dt), custom):
 		condition = mandatory_condition(field)
 		if condition or not sections or sections[-1].get("dependsOn"):
 			sections.append(new_quick_entry_section(condition))
@@ -428,10 +495,8 @@ def omitted_fieldnames(dt: str, tabs: list, custom: bool = True) -> list[str]:
 	placed = {entry if isinstance(entry, str) else entry.get("fieldname") for entry in layout_entries(tabs)}
 	return [
 		field.fieldname
-		for field in frappe.get_meta(dt).fields
-		if field.fieldtype not in DROPPED_FIELDTYPES
-		and field.fieldname not in placed
-		and (custom or not field.is_custom_field)
+		for field in layout_fields(frappe.get_meta(dt), custom)
+		if field.fieldtype not in DROPPED_FIELDTYPES and field.fieldname not in placed
 	]
 
 
@@ -611,9 +676,9 @@ def slugify(label: str | None) -> str | None:
 	return re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_") or None
 
 
-def get_meta_layout(dt: str) -> list:
+def get_meta_layout(dt: str, custom: bool = True) -> list:
 	tabs = []
-	for field in frappe.get_meta(dt).fields:
+	for field in layout_fields(frappe.get_meta(dt), custom):
 		if field.fieldtype == "Tab Break":
 			tabs.append(new_container(field, "sections"))
 		elif field.fieldtype == "Section Break":
@@ -626,6 +691,13 @@ def get_meta_layout(dt: str) -> list:
 	# and `column_1` can collide with a real fieldname, so repair silently.
 	deduplicate_names(tabs)
 	return tabs
+
+
+def layout_fields(meta: Meta, custom: bool) -> list:
+	"""The meta's fields; without `custom`, the DocType's own fields, free of Custom Fields and Property Setters."""
+	if custom:
+		return meta.fields
+	return frappe.get_cached_doc("DocType", meta.name).fields
 
 
 def new_container(field, children_key: str) -> dict:

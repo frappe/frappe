@@ -58,6 +58,7 @@ export interface FieldUI {
  * Only these three need the carrier: `label`, `options`, `precision`,
  * `placeholder`, `description` and `filters` are set once when the node is
  * built and never recomputed, so an app applies those at build time instead.
+ * (A DocField's own `link_filters` merge into `filters` on each render.)
  *
  * Plain data, deliberately: it keeps `FormLayout` an independent component that
  * takes a schema and knows nothing about whoever wrote the override.
@@ -118,6 +119,8 @@ export interface RawMetaField {
   perm_denied?: boolean | 0 | 1;
   /** Whether a child-table field shows as a grid column. */
   in_list_view?: boolean | 0 | 1;
+  /** A child-table field's grid width, 1–10; 0 is Auto. */
+  columns?: number;
   /** Whether the field is surfaced as a default Quick Filter input (the
    *  `in_standard_filter` flag CRM's `get_quick_filters` reads). */
   in_standard_filter?: boolean | 0 | 1;
@@ -136,6 +139,12 @@ export interface RawMetaField {
   /** A custom field's anchor: the field it follows, or the container it opens. */
   insert_after?: string;
   filters?: Record<string, unknown>;
+  /** `[[doctype, fieldname, operator, value], ...]` as JSON; a value may be `eval:doc.x`. */
+  link_filters?: string | unknown[];
+  /** `<link fieldname>.<its target's fieldname>`: copied when that Link changes. */
+  fetch_from?: string;
+  /** Fetch only into an empty value. */
+  fetch_if_empty?: boolean | 0 | 1;
   cannot_add_rows?: boolean | 0 | 1;
   cannot_delete_rows?: boolean | 0 | 1;
   /** Left out of a duplicate. */

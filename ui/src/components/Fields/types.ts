@@ -33,6 +33,8 @@ export interface FieldMeta {
   choices?: OptionChoice[];
   /** Link search filters. */
   filters?: Record<string, unknown>;
+  /** The DocField's own `link_filters`, resolved against the record into `filters` on each render. */
+  linkFilters?: string | unknown[];
   /**
    * Child-table columns from the child's `in_list_view` fields. Used by `Table`
    * (grid columns) and `Table MultiSelect` (its single `Link` field gives the
@@ -58,6 +60,8 @@ export interface FieldMeta {
   hideSeconds?: boolean;
   /** Initial grid-column width in px for a child-table column; omit for flexible. */
   width?: number;
+  /** The DocField's `columns`: its width as a grid column, 1–10 on desk v1's map; omit for Auto. */
+  gridColumns?: number;
   description?: string;
   placeholder?: string;
   /** Static visibility; `resolveLayout` may flip this from `dependsOn`. */

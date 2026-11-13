@@ -429,6 +429,53 @@ The expression is compiled from the array, so the two always agree about what th
 record means: an entry dropped on read is absent from both, and a row with no
 field is written to neither.
 
+## `depends_on` conditions
+
+A DocField's `depends_on`, `mandatory_depends_on`, `read_only_depends_on` and
+`collapsible_depends_on` hold a bare fieldname or `eval:` JavaScript over `doc`
+and `parent`. `dependsOn` reads the simple subset of that into a tree and writes
+a tree back:
+
+```ts
+import {
+  dependsOnScope,
+  fromDependsOn,
+  toDependsOn,
+} from "@framework/ui/ConditionBuilder";
+
+const scope = dependsOnScope(fields, { parentFields, submittable: true });
+const tree = fromDependsOn(docfield.depends_on, scope); // null: keep it as code
+docfield.depends_on = toDependsOn(tree, scope);
+```
+
+`dependsOnScope` is what a condition may name, and is the builder's `fields`:
+the DocType's fields, a child row's parent fields as `parent.x` ("Parent: X"),
+"Record is new" (`doc.__islocal`), and "Document status" (`doc.docstatus`:
+Draft, Submitted, Cancelled) on a submittable DocType. A Table reads as a Check
+"X (has rows)" over `doc.x.length`.
+
+**`fromDependsOn` returns `null` for anything it cannot show unchanged**: a call,
+a negated group, a comparison with `null`, an unknown field, `==` against a value
+a Check cannot hold, a Check against 0 (a new record leaves a Check unset, which
+`=== 0` does not match), or `==` between two fields. The host then keeps the
+condition as code, as written. A
+tree it does return writes back to the same text, parentheses included, so
+opening a condition and saving it does not rewrite it. Loose forms read as their
+meaning (`doc.is_pos == 1` is "Is POS equals Yes") and are written strict.
+
+`toDependsOn` drops rows that are not finished, collapses a group of one row,
+and writes `""` for an empty tree, a bare fieldname for a single "is set" row
+(or a Check that equals Yes), and `eval:...` for the rest.
+
+A value that compares with another field, not a constant, is a reference:
+`fieldReference("stock_uom")` is `"eval:doc.stock_uom"`, `referencedField` reads
+it back, and both forms take `parent.x`. Only an equality or an ordering
+compares with a reference; an `in` or `between` item is always text. The
+built-in value cell does not edit a
+reference. A host that offers one wraps `ConditionValueControl`, the built-in
+cell, in its own `#condition-value`, and shows a field picker when the value is
+a reference.
+
 ## Slots
 
 | Slot | Replaces |

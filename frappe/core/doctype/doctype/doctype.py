@@ -952,11 +952,19 @@ class DocType(Document):
 		)
 
 	def export_files(self):
-		"""Write the app files of a standard DocType: its JSON, controller and type hints."""
+		"""Write the app files of a standard DocType: its JSON, controller, type hints and layouts."""
 		self.export_doc()
 		self.make_controller_template()
 		self.set_base_class_for_controller()
 		self.export_types_to_controller()
+		self.export_app_layouts()
+
+	def export_app_layouts(self):
+		"""Write the layout files a save staged in `flags.app_layouts`, a list of layouts per type."""
+		from frappe.desk.doctype.form_layout.app_layout_writer import write_app_layouts
+
+		for type, entries in (self.flags.app_layouts or {}).items():
+			write_app_layouts(self.name, type, entries)
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""

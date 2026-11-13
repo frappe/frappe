@@ -628,10 +628,12 @@ An app ships a `Form Layout` for one of its doctypes as a file in the doctype's 
 `side_panel`, `quick_entry` or `new_record`. Contact ships `quick_entry.json` and
 `new_record.json`.
 
-The file holds two keys. `layout` is the tree that a `Form Layout` row stores. `omitted`
-lists the fieldnames that the layout leaves out on purpose. A `quick_entry.json` can also
-hold `size`, the Create dialog's size: a frappe-ui dialog size from `xs` to `7xl`. With no
-`size`, the dialog is `xl`.
+The file holds a list of layouts. Each has two keys. `layout` is the tree that a `Form Layout`
+row stores. `omitted` lists the fieldnames that the layout leaves out on purpose. An entry can
+also hold `title`, its name in the layout menu, and `condition`, as a row's. At most one entry
+has no condition: it is the default. A file of one bare object, the older shape, still reads. A
+`quick_entry.json` entry can also hold `size`, the Create dialog's size: a frappe-ui dialog size
+from `xs` to `7xl`. With no `size`, the dialog is `xl`.
 
 ```json
 {
@@ -682,8 +684,9 @@ desk keeps the layout it has until the page loads again.
 Write the file as a server save writes it: `frappe.as_json` and a final newline. Then the same
 tree and `omitted` always give the same bytes and the same hash. Give each tab, section and
 column a `name`. The server names an unnamed one when it reads the file, but a stored name
-keeps a script's address when a label changes. The server does not check the file when it
-reads it. Frappe's tests check every installed app's file with the checks a row gets on save,
+keeps a script's address when a label changes. The server refuses a file with two defaults
+when it reads it. `write_app_layouts(doctype, type, entries)` writes the file this way, after
+the checks a row gets on save; an empty list deletes it. Frappe's tests check every installed app's file with the checks a row gets on save,
 so an inline field is allowed only in `quick_entry` and `new_record`.
 
 The translation extractor reads every file that `**/doctype/*/frontend/layouts/*.json`
@@ -695,8 +698,8 @@ that adds a field to the doctype also updates the file. Contact's test checks th
 
 Limits:
 
-- A site row made before the upgrade keeps winning. Its admin does not get the fields that a
-  later file adds.
+- A site row keeps winning over a newer file. A row saved with a fingerprint comes back with
+  `source_changed` once the file it copied changes; an older row has no fingerprint.
 - When a doctype that rendered from its breaks gets a `details` or `new_record` file, the
   site's Property Setters on breaks (a section label, `collapsible`) and its `field_order` no
   longer apply on desk v2. They still apply on desk v1. A custom field stays in place through

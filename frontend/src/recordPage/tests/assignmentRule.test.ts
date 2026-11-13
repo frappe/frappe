@@ -9,7 +9,9 @@ vi.mock("frappe-ui", () => ({
   frappeRequest: vi.fn(),
 }));
 vi.mock("@framework/ui/api", () => ({
-  runMethod: vi.fn(async () => ({ data: null })),
+  runMethod: vi.fn(async (method: string, args: Record<string, any>) => ({
+    data: method === "frappe.client.validate_link_and_fetch" ? { name: args.docname } : null,
+  })),
   getMeta: vi.fn(async (doctype: string) => ({ data: state.metas[doctype] ?? null, children: [] })),
 }));
 

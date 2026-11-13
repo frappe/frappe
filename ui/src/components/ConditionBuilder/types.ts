@@ -25,6 +25,14 @@ export interface ConditionOperatorOption {
   value: ConditionOperator;
 }
 
+/** What a `depends_on` condition may name, as `dependsOnScope` builds it. */
+export interface DependsOnScope {
+  fields: ConditionField[];
+
+  /** Table fields, offered as a Check ("has rows") and written `doc.items.length`. */
+  tables: ReadonlySet<string>;
+}
+
 /** Child indices from the root group. `[]` addresses the root itself. */
 export type ConditionPath = number[];
 
