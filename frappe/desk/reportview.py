@@ -21,8 +21,22 @@ from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
 from frappe.utils.data import sbool
 
+<<<<<<< HEAD
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
 SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg")
+=======
+DISALLOWED_PARAMS = (
+	"cmd",
+	"data",
+	"ignore_permissions",
+	"ignore_user_permissions",
+	"view",
+	"user",
+	"csrf_token",
+	"join",
+)
+SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg", "min", "max")
+>>>>>>> e3c4105 (fix: prevent bypassing user permissions in reportview)
 DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
 _FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")
 
