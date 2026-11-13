@@ -6,6 +6,7 @@ import type { FieldMeta } from "../Fields/types";
 import { htmlToText } from "../RichText/html";
 import { groupIban } from "../Fields/dataOptions";
 import { durationUnits } from "../Fields/durationUnits";
+import { isEmptyValue } from "./emptyValue";
 
 export interface DisplayOptions extends FormatFieldOptions {
   /** The record, for a fieldtype that reads a sibling field: Image, Dynamic Link. */
@@ -37,12 +38,6 @@ const PASSWORD_MASK = "••••••••";
 /** Whether the fieldtype shows a summary and a trailing `↗` instead of a control. */
 export function isSummaryField(fieldtype: string): boolean {
   return SUMMARY.includes(fieldtype);
-}
-
-/** Whether a value reads as unset — `null`, blank, or an empty child table. */
-export function isEmptyValue(value: unknown): boolean {
-  if (Array.isArray(value)) return value.length === 0;
-  return value == null || value === "";
 }
 
 /** One line standing in for a value the row cannot render: a count, a first line, or `Set`. */

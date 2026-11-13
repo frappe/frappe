@@ -9,6 +9,7 @@ export interface LayoutTreeColumn {
 	name?: string;
 	label?: string;
 	hideLabel?: boolean;
+	dependsOn?: string;
 	fields: (string | InlineField)[];
 }
 
@@ -19,9 +20,11 @@ export interface LayoutTreeSection {
 	name?: string;
 	label?: string;
 	hideLabel?: boolean;
+	description?: string;
 	hideBorder?: boolean;
 	collapsible?: boolean;
 	opened?: boolean;
+	collapsibleDependsOn?: string;
 	dependsOn?: string;
 	columns: LayoutTreeColumn[];
 }

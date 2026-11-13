@@ -131,6 +131,7 @@ export interface RawMetaField {
   placeholder?: string;
   hide_border?: boolean | 0 | 1;
   collapsible?: boolean | 0 | 1;
+  collapsible_depends_on?: string;
   default?: string;
   depends_on?: string;
   mandatory_depends_on?: string;
@@ -168,6 +169,8 @@ export interface Column {
   name?: string;
   label?: string;
   hideLabel?: boolean;
+  hidden?: boolean;
+  dependsOn?: string;
   fields: FieldNode[];
   parts?: ColumnPart[];
 }
@@ -176,9 +179,12 @@ export interface Section {
   name?: string;
   label?: string;
   hideLabel?: boolean;
+  description?: string;
   hideBorder?: boolean;
   opened?: boolean;
   collapsible?: boolean;
+  /** "Starts open if": on a collapsible section, `resolveLayout` bakes it into `opened`. */
+  collapsibleDependsOn?: string;
   hidden?: boolean;
   /** Conditional visibility; `resolveLayout` bakes it into `hidden`. */
   dependsOn?: string;

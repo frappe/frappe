@@ -29,6 +29,7 @@ const CATALOG: Record<string, string> = {
   "Address:Contact": "Adresse",
   "Billing:Contact": "Facturation",
   "Street:Contact": "Rue",
+  "Where invoices go:Contact": "Où vont les factures",
   Notes: "Remarques",
   Details: "Détails",
 };
@@ -43,6 +44,7 @@ const LAYOUT: FormLayoutSchema = [
     sections: [
       {
         label: "Billing",
+        description: "Where invoices go",
         columns: [
           { label: "Street", fields: [{ fieldname: "street", fieldtype: "Data" }] },
         ],
@@ -86,6 +88,8 @@ async function mount(doctype?: string) {
     identities: () => tabs.map((el) => el.getAttribute("data-tab")),
     sections: () =>
       [...host!.querySelectorAll(".section-header")].map((el) => el.textContent?.trim()),
+    descriptions: () =>
+      [...host!.querySelectorAll(".section-description")].map((el) => el.textContent?.trim()),
     columns: () =>
       [...host!.querySelectorAll(".column > div:first-child")].map((el) =>
         el.textContent?.trim()
@@ -99,6 +103,7 @@ describe("container labels translate with the DocType as context", () => {
     expect(form.labels()).toEqual(["Adresse", "Détails"]);
     expect(form.sections()).toEqual(["Facturation", "Remarques"]);
     expect(form.columns()).toContain("Rue");
+    expect(form.descriptions()).toEqual(["Où vont les factures"]);
   });
 
   it("falls back to the text without context", async () => {
@@ -106,6 +111,7 @@ describe("container labels translate with the DocType as context", () => {
     expect(form.labels()).toEqual(["Address", "Détails"]);
     expect(form.sections()).toEqual(["Billing", "Remarques"]);
     expect(form.columns()).toContain("Street");
+    expect(form.descriptions()).toEqual(["Where invoices go"]);
   });
 
   it("keeps a tab's identity on the source label", async () => {

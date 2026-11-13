@@ -81,7 +81,12 @@ export function compose(...decorators: Decorator[]): Decorator {
 }
 
 function newColumn(field?: RawMetaField): Column {
-  return { name: field?.fieldname, label: field?.label, fields: [] };
+  return {
+    name: field?.fieldname,
+    label: field?.label,
+    dependsOn: field?.depends_on,
+    fields: [],
+  };
 }
 
 function newSection(field?: RawMetaField): Section {
@@ -90,8 +95,10 @@ function newSection(field?: RawMetaField): Section {
   return {
     name: field.fieldname,
     label: field.label,
+    description: field.description,
     hideBorder: !!field.hide_border,
     collapsible,
+    collapsibleDependsOn: field.collapsible_depends_on,
     // Open by default, collapsible or not. The stored-layout path
     // (`joinSection`) defaults `opened` to true and is the production path, so
     // both constructors agree rather than a section opening or closing

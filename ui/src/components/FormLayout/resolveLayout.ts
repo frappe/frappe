@@ -1,4 +1,5 @@
 import { evaluateDependsOn } from "./dependsOn";
+import { isEmptyValue } from "./emptyValue";
 import { mergeLinkFilters, resolveLinkFilters } from "./linkFilters";
 import type {
   Column,
@@ -151,7 +152,9 @@ export function resolveFieldConditionals<
  *
  * Resolution rules (a node with no expressions passes through unchanged):
  * - field-level rules: see `resolveFieldConditionals`;
- * - section / tab `hidden` = its static `hidden` OR `depends_on` false.
+ * - section / column / tab `hidden` = its static `hidden` OR `depends_on` false;
+ * - a collapsible section with `collapsibleDependsOn` is `opened` when it holds,
+ *   or while it has an empty mandatory field (desk's `has_missing_mandatory`).
  *
  * `parent` is the enclosing doc (the row dialog passes the parent doc so a
  * child's `parent.x` resolves); it defaults to `doc` for a top-level form,
@@ -165,18 +168,32 @@ export function resolveLayout(
   const resolveField = (f: FieldNode): FieldNode =>
     resolveFieldConditionals(f, doc, parent);
 
-  const resolveColumn = (c: Column): Column => ({
-    ...c,
-    fields: c.fields.map(resolveField),
-  });
+  const shown = (container: { hidden?: boolean; dependsOn?: string }) =>
+    !container.hidden &&
+    (!container.dependsOn ||
+      evaluateDependsOn(container.dependsOn, doc, parent));
 
-  const resolveSection = (s: Section): Section => ({
-    ...s,
-    hidden:
-      s.hidden ||
-      (!!s.dependsOn && !evaluateDependsOn(s.dependsOn, doc, parent)),
-    columns: s.columns.map(resolveColumn),
-  });
+  // A hidden column hides its fields too, so every reader of `field.hidden` (the
+  // required check, the side panel, autofocus) skips them without knowing columns.
+  const resolveColumn = (c: Column): Column => {
+    const fields = c.fields.map(resolveField);
+    if (shown(c)) return { ...c, fields };
+    return {
+      ...c,
+      hidden: true,
+      fields: fields.map((f) => ({ ...f, hidden: true })),
+    };
+  };
+
+  const resolveSection = (s: Section): Section => {
+    const columns = s.columns.map(resolveColumn);
+    const opened =
+      s.collapsible && s.collapsibleDependsOn
+        ? evaluateDependsOn(s.collapsibleDependsOn, doc, parent) ||
+          columns.some((c) => c.fields.some((f) => isMissing(f, doc)))
+        : s.opened;
+    return { ...s, hidden: !shown(s), opened, columns };
+  };
 
   const resolveTab = (t: Tab): Tab => ({
     ...resolveTabConditionals(t, doc, parent),
@@ -218,4 +235,8 @@ export function applyTabOverride(t: Tab): { hidden: boolean; label: string } {
     hidden: t.override?.hidden ?? !!t.hidden,
     label: t.override?.label ?? t.label ?? "",
   };
+}
+
+function isMissing(field: FieldNode, doc: Record<string, any>): boolean {
+  return !!field.reqd && !field.hidden && isEmptyValue(doc[field.fieldname]);
 }

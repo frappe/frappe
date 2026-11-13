@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  displayValue,
-  isEmptyValue,
-  isSummaryField,
-  summarize,
-} from "../displayValue";
+import { displayValue, isSummaryField, summarize } from "../displayValue";
+import { isEmptyValue } from "../emptyValue";
 import type { FieldMeta } from "../../Fields/types";
 
 function field(fieldtype: string, extra: Partial<FieldMeta> = {}): FieldMeta {

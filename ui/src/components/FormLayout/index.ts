@@ -17,7 +17,8 @@ export {
 } from "./resolveLayout";
 export { identifyTabs, tabStripLabel } from "./tabIdentity";
 export { resolveFieldCurrency, useDocValueReader } from "./resolveCurrency";
-export { displayValue, isEmptyValue, isSummaryField, selectedLinks, summarize } from "./displayValue";
+export { displayValue, isSummaryField, selectedLinks, summarize } from "./displayValue";
+export { isEmptyValue } from "./emptyValue";
 export type { DisplayOptions } from "./displayValue";
 export { useFieldDisplay } from "./useFieldDisplay";
 export type { FieldDisplay } from "./useFieldDisplay";

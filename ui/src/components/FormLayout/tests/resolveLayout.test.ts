@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { resolveFieldConditionals, resolveLayout } from "../resolveLayout";
-import type { FieldMeta, FieldNode, FormLayoutSchema } from "../types";
+import type { FieldMeta, FieldNode, FormLayoutSchema, Section } from "../types";
 
 const schema: FormLayoutSchema = [
   {
@@ -119,6 +119,86 @@ describe("resolveLayout", () => {
       lock_c: true,
     });
     expect(schema).toEqual(before);
+  });
+});
+
+describe("resolveLayout — container properties", () => {
+  const sectionWith = (over: Partial<Section>): FormLayoutSchema => [
+    {
+      name: "main",
+      sections: [
+        {
+          name: "sec",
+          label: "Section",
+          opened: true,
+          ...over,
+          columns: [
+            { name: "left", fields: [{ fieldname: "a", fieldtype: "Data" }] },
+            {
+              name: "right",
+              dependsOn: "eval:doc.show_right",
+              fields: [{ fieldname: "b", fieldtype: "Data", reqd: true }],
+            },
+          ],
+        },
+      ],
+    },
+  ];
+  const section = (layout: FormLayoutSchema) => layout[0].sections[0];
+
+  it("hides a column and every field in it when its depends_on is false", () => {
+    const [left, right] = section(
+      resolveLayout(sectionWith({}), { show_right: false })
+    ).columns;
+
+    expect(right.hidden).toBe(true);
+    expect(right.fields[0].hidden).toBe(true);
+    expect(left.hidden).toBeUndefined();
+    expect(left.fields[0].hidden).toBeFalsy();
+  });
+
+  it("shows a column and its fields when its depends_on is true", () => {
+    const right = section(resolveLayout(sectionWith({}), { show_right: true }))
+      .columns[1];
+
+    expect(right.hidden).toBeUndefined();
+    expect(right.fields[0].hidden).toBeFalsy();
+  });
+
+  it("opens a collapsible section when its Starts open if holds, and closes it when not", () => {
+    const schema = sectionWith({
+      collapsible: true,
+      collapsibleDependsOn: "eval:doc.ships",
+    });
+
+    expect(section(resolveLayout(schema, { ships: 1 })).opened).toBe(true);
+    expect(section(resolveLayout(schema, { ships: 0 })).opened).toBe(false);
+  });
+
+  it("keeps a collapsible section's own opened when it has no Starts open if", () => {
+    const closed = sectionWith({ collapsible: true, opened: false });
+
+    expect(section(resolveLayout(closed, {})).opened).toBe(false);
+    expect(section(resolveLayout(sectionWith({ collapsible: true }), {})).opened).toBe(true);
+  });
+
+  it("keeps a section open while it has an empty mandatory field", () => {
+    const schema = sectionWith({
+      collapsible: true,
+      collapsibleDependsOn: "eval:doc.ships",
+    });
+
+    expect(section(resolveLayout(schema, { show_right: 1 })).opened).toBe(true);
+    expect(
+      section(resolveLayout(schema, { show_right: 1, b: "set" })).opened
+    ).toBe(false);
+    expect(section(resolveLayout(schema, { show_right: 0 })).opened).toBe(false);
+  });
+
+  it("ignores Starts open if on a section that cannot collapse", () => {
+    const schema = sectionWith({ collapsibleDependsOn: "eval:doc.ships" });
+
+    expect(section(resolveLayout(schema, { ships: 0 })).opened).toBe(true);
   });
 });
 

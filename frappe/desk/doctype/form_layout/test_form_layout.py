@@ -32,6 +32,7 @@ HIDDEN_PROMPT_DT = "Test Create Hidden Prompt"
 HIDDEN_TABLE_DT = "Test Create Hidden Table"
 HIDDEN_DOCTYPES = (HIDDEN_DT, HIDDEN_PROMPT_DT, HIDDEN_TABLE_DT)
 OMITTED_DT = "Test Form Layout Omitted"
+BREAKS_DT = "Test Form Layout Breaks"
 
 
 def make_layout(**kwargs):
@@ -294,6 +295,83 @@ class TestFormLayout(IntegrationTestCase):
 			with patch("frappe.publish_realtime") as publish:
 				layout.save()
 		self.assertEqual(sorted(published_doctypes(publish)), ["Note", "ToDo"])
+
+
+class TestContainerProperties(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		breaks = [
+			{"fieldname": "more", "fieldtype": "Tab Break", "label": "More", "depends_on": "eval:doc.a"},
+			{
+				"fieldname": "terms",
+				"fieldtype": "Section Break",
+				"label": "Terms",
+				"depends_on": "b",
+				"description": "Read before you sign",
+				"collapsible": 1,
+				"collapsible_depends_on": "eval:doc.c",
+				"hide_border": 1,
+			},
+			data("a"),
+			{"fieldname": "right", "fieldtype": "Column Break", "label": "Right", "depends_on": "eval:doc.d"},
+			data("b"),
+		]
+		new_doctype(BREAKS_DT, fields=[data("c"), data("d"), *breaks]).insert(ignore_if_duplicate=True)
+		# SQLite rolls back DDL, so each test's rollback would drop the DocType.
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", BREAKS_DT)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_the_fallback_carries_each_break_property(self):
+		with set_user(a_manager()):
+			tab = get_form_layouts(BREAKS_DT, "Details")["fallback"][1]
+		section = tab["sections"][0]
+		self.assertEqual((tab["name"], tab["label"], tab["dependsOn"]), ("more", "More", "eval:doc.a"))
+		self.assertEqual(
+			{key: value for key, value in section.items() if key != "columns"},
+			{
+				"name": "terms",
+				"label": "Terms",
+				"dependsOn": "b",
+				"description": "Read before you sign",
+				"collapsible": True,
+				"collapsibleDependsOn": "eval:doc.c",
+				"hideBorder": True,
+			},
+		)
+		self.assertEqual(
+			section["columns"][1],
+			{"name": "right", "label": "Right", "dependsOn": "eval:doc.d", "fields": ["b"]},
+		)
+
+	def test_the_fallback_leaves_unset_properties_out(self):
+		with set_user(a_manager()):
+			section = get_form_layouts(BREAKS_DT, "Details")["fallback"][0]["sections"][0]
+		self.assertEqual(
+			section, {"name": "section_1", "columns": [{"name": "column_1", "fields": ["c", "d"]}]}
+		)
+
+	def test_only_a_section_starts_open_on_a_condition(self):
+		def save(tree):
+			return save_form_layout("Note", "Details", json.dumps(tree))
+
+		tab = {"name": "main", "collapsibleDependsOn": "eval:1", "sections": []}
+		column = {"name": "left", "collapsibleDependsOn": "eval:1", "fields": []}
+		section = {"name": "terms", "collapsible": 1, "collapsibleDependsOn": "eval:1", "columns": []}
+		with set_user(a_manager()):
+			self.assertRaises(frappe.ValidationError, save, [tab])
+			tree = [{"name": "main", "sections": [{"name": "terms", "columns": [column]}]}]
+			self.assertRaises(frappe.ValidationError, save, tree)
+			self.assertTrue(save([{"name": "main", "sections": [section]}]))
 
 
 class TestOmittedFields(IntegrationTestCase):
