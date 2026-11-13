@@ -36,8 +36,8 @@
 		</div>
 		<p v-else>{{ __("After you save, {0} goes back to: {1}.", [label, summary.fallback]) }}</p>
 		<div class="flex justify-end gap-2">
-			<Button :label="__('Cancel')" @click="close(null)" />
-			<Button variant="solid" :label="__('Reset to app layout')" @click="close(true)" />
+			<Button variant="outline" :label="__('Cancel')" @click="close(null)" />
+			<Button variant="solid" :label="confirmLabel" @click="close(true)" />
 		</div>
 	</div>
 </template>
@@ -47,5 +47,10 @@ import { Button, Icon } from "frappe-ui";
 import { __ } from "@/i18n";
 import type { ResetSummary } from "./layoutMenu";
 
-defineProps<{ label: string; summary: ResetSummary; close: (reset: true | null) => void }>();
+defineProps<{
+	label: string;
+	summary: ResetSummary;
+	confirmLabel: string;
+	close: (reset: true | null) => void;
+}>();
 </script>

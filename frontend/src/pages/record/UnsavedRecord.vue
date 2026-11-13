@@ -131,6 +131,8 @@ const props = defineProps<{
 	query: LocationQuery;
 	/** The DocType editor's route at the New Record layout; absent without the right. */
 	editLayout?: RouteLocationRaw | null;
+	/** At the Details layout, where the required-fields dialog sends a manager. */
+	editDetails?: RouteLocationRaw | null;
 }>();
 
 // No record read has run, so there are no record rights yet; the insert checks them.
@@ -289,7 +291,7 @@ function buildController() {
 				doc.value,
 				props.doctype,
 				false,
-				props.editLayout
+				props.editDetails
 			),
 		activeFormTab: () => activeFormTab.value,
 		activateFormTab: (identity) => void (formTab.value = identity),

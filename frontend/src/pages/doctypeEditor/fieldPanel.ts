@@ -123,6 +123,12 @@ export function takesOff(canvas: DesignCanvas): boolean {
 	return canvas.openLayout.value.type !== "Details";
 }
 
+/** Takes the field off the open layout; with it gone the panel shows the tray again. */
+export async function takeOff(canvas: DesignCanvas, fieldname: string) {
+	await acts.perform("canvas.unplace_field", { fieldname });
+	if (!canvas.place(fieldname)) canvas.select(null);
+}
+
 /** The confirm a remove asks; none for a field added since the save, which has no column. */
 export function removeQuestion(canvas: DesignCanvas, field: RawMetaField): string | null {
 	if (!canvas.savedName(field.fieldname)) return null;

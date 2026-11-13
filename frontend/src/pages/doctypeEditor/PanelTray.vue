@@ -1,6 +1,5 @@
-<!-- The panel outside Details with nothing selected: the fields this layout does not place, then
-     the field types as "New field". A click places the field, or adds one of the type, at the end
-     of the section in view; a field made here goes on this layout only. -->
+<!-- The panel outside Details with nothing selected: the fields this layout leaves off, then "New
+     field" types. A click places or adds at the end of the section in view, on this layout only. -->
 <template>
 	<div class="flex flex-col" data-panel-tray>
 		<PanelSection :label="__('Fields not on this layout')" :count="rows.length" show-count>

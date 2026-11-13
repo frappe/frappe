@@ -10,9 +10,10 @@ import { createMemoryHistory, createRouter } from "vue-router";
 import { DesignCanvas } from "../designCanvas";
 import EditorCanvas from "../EditorCanvas.vue";
 import type { EditorState } from "../editorSource";
-import { ForkWarning } from "../forkWarning";
+import { editorBase } from "../editorModel";
+import { ForkWarning, forkWarningText } from "../forkWarning";
 import { runOpenLayoutAct } from "../layoutDialogs";
-import { resetSummary } from "../layoutMenu";
+import { resetSummary, resetWording } from "../layoutMenu";
 import { PendingEdits } from "../pendingEdits";
 import ResetLayoutDialog from "../ResetLayoutDialog.vue";
 import { mountEditor, VERSION } from "./editorFixture";
@@ -39,7 +40,8 @@ function unforked(): EditorState {
 function warned(state: EditorState, answers: boolean[] = []) {
 	const confirm = vi.fn(async () => answers.shift() ?? true);
 	const edits = new PendingEdits({ doctype: state.doctype, mode: state.mode, base_version: VERSION }, () => undefined);
-	return { canvas: new DesignCanvas(state, edits, new ForkWarning(confirm)), edits, confirm };
+	const forks = new ForkWarning(confirm);
+	return { canvas: new DesignCanvas(state, edits, forks), edits, confirm, forks };
 }
 
 const addSection = { act: "canvas.add_section", layout: DETAILS, tab: "first_tab" };
@@ -55,6 +57,25 @@ describe("the warning before a site layout", () => {
 
 		await canvas.stage({ act: "canvas.add_section", layout: { type: "Quick Entry" }, tab: "first_tab" });
 		expect(confirm.mock.calls).toEqual([["Details"], ["Quick Entry"]]);
+	});
+
+	it("asks again on another DocType the same page opens", async () => {
+		const { canvas, confirm, forks } = warned(unforked());
+		await canvas.stage(addSection);
+		const other = { ...unforked(), doctype: "Lead Call" };
+		const edits = new PendingEdits({ doctype: other.doctype, mode: other.mode, base_version: VERSION }, () => undefined);
+		await new DesignCanvas(other, edits, forks).stage(addSection);
+		expect(confirm.mock.calls).toEqual([["Details"], ["Details"]]);
+	});
+
+	it("is not asked while a reload stages the edits again", async () => {
+		const confirm = vi.fn(async () => true);
+		const mounted = mountEditor(leadNote({ mode: "Customize" }), { reloaded: unforked, forks: new ForkWarning(confirm) });
+		stop = mounted.stop;
+		await mounted.canvas.stage(addSection);
+		await mounted.save.reloadAndReapply();
+		expect(confirm).not.toHaveBeenCalled();
+		expect(mounted.edits.staged.value).toHaveLength(1);
 	});
 
 	it("stages nothing on Cancel, and asks again on the next edit", async () => {
@@ -114,7 +135,7 @@ describe("Reset to app layout", () => {
 	it("draws the rows in its confirm", async () => {
 		const editor = mountEditor(customize());
 		stop = editor.stop;
-		const root = mount(ResetLayoutDialog, { label: "Details", summary: resetSummary(editor.canvas.working.value, "Details"), close: () => undefined });
+		const root = mount(ResetLayoutDialog, { label: "Details", confirmLabel: "Reset to app layout", summary: resetSummary(editor.canvas.working.value, "Details"), close: () => undefined });
 		await nextTick();
 		const texts = (selector: string) => [...root.querySelectorAll(`${selector} li`)].map((row) => row.textContent!.trim());
 		expect(texts("[data-reset-removes]")).toEqual(["Details"]);
@@ -130,6 +151,38 @@ describe("Reset to app layout", () => {
 		expect(dialog.open.mock.calls[0][1].summary.removes).toEqual([{ name: "Details", condition: null }]);
 		await runOpenLayoutAct(editor.canvas, "reset_to_app");
 		expect(editor.edits.staged.value).toEqual([{ act: "layouts.reset_to_app", type: "Details" }]);
+	});
+});
+
+describe("the wording per source", () => {
+	const working = () => editorBase(unforked());
+
+	it("the warning names what the site layout replaces", () => {
+		expect(forkWarningText(working(), "Details").message).toBe(
+			"Saving creates a site layout for Details that replaces the app layout on this site. Every Details layout becomes a site layout, and later changes from the app do not reach them.",
+		);
+		expect(forkWarningText(working(), "Quick Entry").message).toBe(
+			"Saving creates a site layout for Quick entry that replaces the layout made from the DocType's fields.",
+		);
+		expect(forkWarningText(working(), "Side Panel").message).toBe(
+			"Side panel is not set up yet. Saving creates its first layout, as a site layout.",
+		);
+		expect(forkWarningText(working(), "New Record").message).toBe(
+			"New record shows the Details layout until now. Saving gives it a site layout of its own.",
+		);
+	});
+
+	it("the reset names what comes back", () => {
+		expect(resetWording(working(), "Details")).toEqual({ title: "Reset to app layout?", confirmLabel: "Reset to app layout" });
+		expect(resetWording(working(), "Quick Entry")).toEqual({
+			title: "Reset to the layout from DocType fields?",
+			confirmLabel: "Reset",
+		});
+		expect(resetWording(working(), "Side Panel")).toEqual({ title: "Remove the Side panel site layouts?", confirmLabel: "Remove" });
+		expect(resetWording(working(), "New Record")).toEqual({
+			title: "Reset New record to the Details layout?",
+			confirmLabel: "Reset",
+		});
 	});
 });
 

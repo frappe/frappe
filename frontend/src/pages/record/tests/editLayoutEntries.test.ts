@@ -150,7 +150,7 @@ describe("a manager on a saved record", () => {
 
     await acts.run("header.edit_layout");
 
-    const query = { layout: "details", row: "FL-1" };
+    const query = { mode: "customize", layout: "details", row: "FL-1" };
     expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Salutation" }, query });
   });
 
@@ -161,13 +161,13 @@ describe("a manager on a saved record", () => {
 
     await acts.run("header.edit_layout");
 
-    expect(push).toHaveBeenCalledWith(expect.objectContaining({ query: { layout: "details" } }));
+    expect(push).toHaveBeenCalledWith(expect.objectContaining({ query: { mode: "customize", layout: "details" } }));
   });
 
   it("links the panel to the editor's side panel", async () => {
     const { root } = await mount();
 
-    expect(editPanel(root)?.getAttribute("href")).toBe("/apps/frappe/doctype/Salutation?layout=side-panel");
+    expect(editPanel(root)?.getAttribute("href")).toBe("/apps/frappe/doctype/Salutation?mode=customize&layout=side-panel");
   });
 });
 

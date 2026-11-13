@@ -65,7 +65,7 @@ import type { DesignCanvas } from "./designCanvas";
 import DoctypeDescription from "./DoctypeDescription.vue";
 import type { EditorSave } from "./editorSave";
 import { provideInertForm } from "./inertForm";
-import { takesOff } from "./fieldPanel";
+import { takeOff, takesOff } from "./fieldPanel";
 import OffLayoutTray from "./OffLayoutTray.vue";
 import QuickEntryCanvas from "./QuickEntryCanvas.vue";
 import SaveBanner from "./SaveBanner.vue";
@@ -132,7 +132,7 @@ useKeyboardShortcut({
 	description: __("Take the selected field off this layout"),
 	group: __("Editor"),
 	enabled: () => Boolean(placedSelection()),
-	handler: () => void acts.perform("canvas.unplace_field", { fieldname: placedSelection() }),
+	handler: () => void takeOff(props.canvas, placedSelection()!),
 });
 
 /** The selected field, when Delete takes it off the open layout. */

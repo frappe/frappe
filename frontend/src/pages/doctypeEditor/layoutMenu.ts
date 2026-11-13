@@ -5,7 +5,7 @@ import { __ } from "@/i18n";
 import { workingState, type WorkingState } from "./editorModel";
 import type { LayoutSource } from "./editorSource";
 import { EditRefused } from "./layoutTree";
-import { layoutOf, type LayoutRef, type WorkingLayout } from "./workingLayouts";
+import { baseSource, layoutOf, typeRefusal, type LayoutRef, type WorkingLayout } from "./workingLayouts";
 
 export type OpenLayoutAct = "edit_condition" | "rename" | "reset_to_app" | "delete";
 
@@ -72,8 +72,13 @@ export function openLayoutName(menu: LayoutMenu): string {
 	return LABELS.Details();
 }
 
-/** Why "Add a layout" cannot add this one: the save's own refusal, or `null`. */
+/** Why "Add a layout" cannot add this one, or `null`; every type has a default, if only a stand-in, so it needs a condition. */
 export function addLayoutRefusal(working: WorkingState, layout: NewLayout): string | null {
+	const refused = typeRefusal(working, layout.type);
+	if (refused) return __(refused.template, refused.args);
+	if (!layout.condition) {
+		return __("{0} already has a default layout. Give this one a condition.", [typeLabel(layout.type)]);
+	}
 	try {
 		workingState(working, [{ act: "layouts.add", id: newLayoutId(), ...layout }]);
 		return null;
@@ -90,8 +95,20 @@ export function resetSummary(working: WorkingState, type: FormLayoutType): Reset
 	return {
 		removes: (of?.layouts ?? []).map(row),
 		restores: (of?.app ?? []).map(row),
-		fallback: of?.app.length ? null : badge(of?.empty?.source ?? "none"),
+		fallback: of?.app.length ? null : badge(baseSource(working, type)),
 	};
+}
+
+/** The reset confirm's title and button, named by what comes back. */
+export function resetWording(working: WorkingState, type: FormLayoutType): { title: string; confirmLabel: string } {
+	const label = typeLabel(type);
+	const source = baseSource(working, type);
+	if (source === "app") return { title: __("Reset to app layout?"), confirmLabel: __("Reset to app layout") };
+	if (source === "fallback") return { title: __("Reset to the layout from DocType fields?"), confirmLabel: __("Reset") };
+	if (source === "same as Details") {
+		return { title: __("Reset {0} to the Details layout?", [label]), confirmLabel: __("Reset") };
+	}
+	return { title: __("Remove the {0} site layouts?", [label]), confirmLabel: __("Remove") };
 }
 
 /** An id the server takes for a new layout until its save names the row. */

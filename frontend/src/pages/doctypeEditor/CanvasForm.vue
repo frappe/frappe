@@ -1,6 +1,5 @@
-<!-- The open layout's tabs, sections, columns and fields, and "Add section" under a rule. Every
-     canvas draws it: Details and New record on the page, the others inside their frame, where the
-     tab strip shows only once the layout has two tabs. -->
+<!-- The open layout's tabs, sections, columns and fields, and "Add section". Every canvas draws it;
+     inside a frame the tab strip shows only once the layout has two tabs. -->
 <template>
 	<CanvasTabs v-if="tabbed || canvas.tabs.value.length > 1" class="mb-6" :canvas="canvas" />
 	<Draggable

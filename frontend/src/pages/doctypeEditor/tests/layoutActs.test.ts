@@ -5,7 +5,7 @@ const { toast } = vi.hoisted(() => ({ toast: { error: vi.fn(), success: vi.fn() 
 vi.mock("frappe-ui", () => ({ toast }));
 
 import { acts } from "@/acts/dispatcher";
-import { removeAction } from "../fieldPanel";
+import { removeAction, takeOff } from "../fieldPanel";
 import { mountEditor } from "./editorFixture";
 import { leadNote } from "./layoutsFixture";
 
@@ -82,7 +82,9 @@ describe("Take off this layout", () => {
 		await acts.run("layouts.open", { type: "Quick Entry" });
 		const notes = canvas.field("notes")!;
 		expect(removeAction(canvas, notes).label).toBe("Take off this layout");
-		await acts.run("canvas.unplace_field", { fieldname: "notes" });
+		canvas.select({ kind: "field", fieldname: "notes" });
+		await takeOff(canvas, "notes");
+		expect(canvas.selection.value).toBeNull();
 		expect(canvas.offLayout.value.map(({ field }) => field.fieldname)).toContain("notes");
 		expect(canvas.field("notes")).toBeTruthy();
 		expect(removeAction(canvas, notes).label).toBe("");

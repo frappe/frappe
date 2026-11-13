@@ -53,7 +53,7 @@ class CustomizeEdits(DesignEdits):
 		if type not in ANCHORED_TYPES or self.state.forked(type):
 			return False
 		default = self.state.default_layout(type)
-		if ref.get("id") and (not default or ref["id"] != default.id):
+		if ref.get("id") and (not default or str(ref["id"]) != str(default.id)):
 			return False
 		field = self.state.field(edit.get("fieldname"))
 		drawn = self.state.drawn_tabs(type)

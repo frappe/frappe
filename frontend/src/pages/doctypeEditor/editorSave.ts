@@ -95,9 +95,12 @@ export class EditorSave {
 	async reloadAndReapply() {
 		if (this.saving.value) return;
 		const steps = this.host.edits.steps;
+		const opened = this.host.canvas()?.opened();
 		await this.busy(async () => {
 			const canvas = await this.host.reload();
-			if (canvas) await this.reapply(canvas, steps);
+			if (!canvas) return;
+			await this.reapply(canvas, steps);
+			if (opened) canvas.reopen(opened);
 		});
 	}
 
@@ -109,7 +112,7 @@ export class EditorSave {
 			const doctype = step[0].doctype;
 			try {
 				const target = doctype ? await this.host.children!.loaded(doctype) : canvas;
-				target.stage(...step.map(({ act, value }) => ({ ...value, act })));
+				target.restage(...step.map(({ act, value }) => ({ ...value, act })));
 			} catch (error) {
 				if (!(error instanceof EditRefused)) throw error;
 				refused.push(__(error.template, error.args));
@@ -237,12 +240,14 @@ export class EditorSave {
 			.filter(({ field }) => field.reqd)
 			.map(({ field }) => field.fieldname);
 		if (!canvas.state.pending) {
+			const opened = canvas.opened();
 			const next = await this.host.reload().catch((error) => {
 				// The save is in: never replay its edits on a canvas that failed to reload.
 				this.host.edits.clear();
 				if (result.base_version) this.host.edits.rebase(result.base_version);
 				throw error;
 			});
+			next?.reopen(opened);
 			if (next) next.askedOnSave.value = asked;
 			toast.success(summary);
 			for (const skipped of result.skipped ?? []) toast.error(skipped.message);

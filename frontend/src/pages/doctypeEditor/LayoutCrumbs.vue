@@ -5,7 +5,7 @@
 		:aria-label="__('Breadcrumbs')"
 		data-crumbs
 	>
-		<template v-for="crumb in crumbs" :key="crumb.label">
+		<template v-for="(crumb, index) in crumbs" :key="index">
 			<component
 				:is="crumb.route ? RouterLink : 'button'"
 				v-bind="crumb.route ? { to: crumb.route } : { type: 'button' }"

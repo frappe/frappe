@@ -178,7 +178,14 @@ class DesignEdits(SettingsEdits):
 		self.state.layout(edit.get("layout")).condition = edit.get("condition")
 
 	def layouts_delete(self, edit: dict):
-		self.state.layout(edit.get("layout")).deleted = True
+		layout = self.state.layout(edit.get("layout"))
+		if not layout.condition:
+			raise EditError(
+				_("The default {0} layout cannot be deleted.").format(_(layout.type)),
+				kind="layout",
+				layout=layout.id,
+			)
+		layout.deleted = True
 
 
 def refuse_property(fieldname: str, property: str):

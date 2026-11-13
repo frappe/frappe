@@ -16,10 +16,14 @@ export function chooseRow(
 	return matches[0] ?? rows.find((row) => !row.condition) ?? null;
 }
 
-/** A site row's name, or an app file's layout as `app:<index>` among the app's layouts, which come last. */
-export function editorRowId(rows: FormLayoutRow[], row: FormLayoutRow): string {
+/**
+ * A site row's name, or an app file's layout as `app:<index>` among the app's layouts; `null` for
+ * an app layout under site rows, since Customize then loads the site rows only.
+ */
+export function editorRowId(rows: FormLayoutRow[], row: FormLayoutRow): string | null {
 	if (row.name !== null) return String(row.name);
-	return `app:${rows.filter((one) => one.name === null).indexOf(row)}`;
+	const app = rows.filter((one) => one.name === null);
+	return app.length === rows.length ? `app:${app.indexOf(row)}` : null;
 }
 
 /**

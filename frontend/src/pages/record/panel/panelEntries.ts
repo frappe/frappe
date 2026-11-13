@@ -53,7 +53,7 @@ export function layoutItems(sections: LayoutSection[]): PanelSectionItem[] {
 	return sections.map(({ name, label, opened }) => {
 		const item: PanelSectionItem = { name };
 		if (label) item.label = label;
-		if (opened !== undefined) item.opened = opened;
+		if (label && opened !== undefined) item.opened = opened;
 		return item;
 	});
 }

@@ -1,6 +1,5 @@
-<!-- The layout crumb, last in the header's crumbs, and its menu: a 320px popover below it, aligned
-     to its left edge. It lists each layout type with its source and conditional layouts, then the
-     open layout's acts and "Add a layout…". -->
+<!-- The layout crumb and its menu: each layout type with its source and conditional layouts, then
+     the open layout's acts and "Add a layout…". -->
 <template>
 	<Popover v-model:open="shown" side="bottom" align="start" :auto-focus="false">
 		<template #trigger="{ open: isOpen }">

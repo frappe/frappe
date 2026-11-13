@@ -82,12 +82,21 @@ describe("canvas edits on any layout", () => {
 		expect(quick[0].sections[0].columns[0].fields).toEqual(["notes", "spare"]);
 	});
 
-	it("make an empty Side Panel to place the first field on", () => {
+	it("make one empty tab for a Quick Entry with no fields to ask", () => {
+		const fields = taskNote().definition.fields.map((field) => ({ ...field, reqd: 0 as const }));
+		const plain = editorBase(taskNote({ definition: { ...taskNote().definition, fields } }));
+		expect(tabsOf(plain, { type: "Quick Entry" })).toEqual(emptyTabs());
+	});
+
+	it("make a Side Panel of one section with a header to place the first field on", () => {
 		const working = workingState(design, [
 			{ ...place({ type: "Side Panel" }, "notes"), section: "section_1" },
 		]);
 		expect(tabsOf(working, { type: "Side Panel" })).toEqual([
-			{ name: "first_tab", sections: [{ name: "section_1", columns: [{ name: "column_1", fields: ["notes"] }] }] },
+			{
+				name: "first_tab",
+				sections: [{ name: "section_1", label: "Details", columns: [{ name: "column_1", fields: ["notes"] }] }],
+			},
 		]);
 	});
 
@@ -187,6 +196,15 @@ describe("layouts acts", () => {
 			["app:1", "app"],
 		]);
 		expect(reset.layouts.Details!.touched).toBe(false);
+	});
+
+	it("a reset after a canvas edit on an unforked type gives back the app's own tree", () => {
+		const unforked = editorBase(leadNote({ mode: "Customize", layouts: { ...leadNote().layouts, Details: leadNote().layouts.Details!.slice(1) } }));
+		const reset = workingState(unforked, [
+			{ act: "canvas.unplace_field", layout: DETAILS, fieldname: "status" },
+			{ act: "layouts.reset_to_app", type: "Details" },
+		]);
+		expect(tabsOf(reset, DETAILS)).toEqual(tabs("subject", "status"));
 	});
 
 	it("reset to the app layout only in Customize", () => {

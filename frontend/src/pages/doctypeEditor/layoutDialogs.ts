@@ -6,7 +6,7 @@ import type { FormLayoutType } from "@/recordPage/formLayoutSource/types";
 import { shellDialog } from "@/shell/dialog";
 import type { DesignCanvas } from "./designCanvas";
 import type { AddedLayout } from "./layoutActs";
-import { resetSummary, typeLabel, type LayoutMenu, type OpenLayoutAct } from "./layoutMenu";
+import { resetSummary, resetWording, typeLabel, type LayoutMenu, type OpenLayoutAct } from "./layoutMenu";
 
 const AddLayoutDialog = defineAsyncComponent(() => import("./AddLayoutDialog.vue"));
 const LayoutTextDialog = defineAsyncComponent(() => import("./LayoutTextDialog.vue"));
@@ -48,9 +48,10 @@ export async function runOpenLayoutAct(canvas: DesignCanvas, act: OpenLayoutAct)
 
 /** Asks first, listing the site layouts the reset removes. */
 export async function resetToApp(canvas: DesignCanvas, type: FormLayoutType) {
-	const summary = resetSummary(canvas.working.value, type);
-	const props = { label: typeLabel(type), summary };
-	const reset = await shellDialog().open(ResetLayoutDialog, props, { title: __("Reset to app layout?") });
+	const working = canvas.working.value;
+	const { title, confirmLabel } = resetWording(working, type);
+	const props = { label: typeLabel(type), summary: resetSummary(working, type), confirmLabel };
+	const reset = await shellDialog().open(ResetLayoutDialog, props, { title });
 	if (reset) await acts.perform("layouts.reset_to_app", { type });
 }
 

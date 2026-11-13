@@ -396,7 +396,7 @@ describe("Edit layout", () => {
     expect(root.querySelector('[aria-label="More actions"]')).not.toBeNull();
     await acts.run("header.edit_layout");
 
-    expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Note" }, query: { layout: "new-record" } });
+    expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Note" }, query: { mode: "customize", layout: "new-record" } });
   });
 
   it("is not offered without the right", async () => {

@@ -544,7 +544,7 @@ describe("Edit layout", () => {
 
 		expect(answer).toEqual({ settled: true, doc: null });
 		expect(router.currentRoute.value.path).toBe("/doctype/Lead");
-		expect(router.currentRoute.value.query).toEqual({ layout: "quick-entry" });
+		expect(router.currentRoute.value.query).toEqual({ mode: "customize", layout: "quick-entry" });
 		expect(createRequests.value).toEqual([]);
 	});
 

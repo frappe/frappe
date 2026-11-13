@@ -39,8 +39,13 @@ describe("conditionalRow", () => {
 	});
 
 	it("names an app file's layout by its place among the app's layouts", async () => {
-		const rows = [row("FL-1", "doc.lead"), row(null, "doc.partner"), row(null, "doc.vip"), row(null, null)];
+		const rows = [row(null, "doc.partner"), row(null, "doc.vip"), row(null, null)];
 		expect(await shown(rows, { vip: 1 })).toBe("app:1");
+	});
+
+	it("names no app layout shown after site rows, which the editor never loads with them", async () => {
+		const rows = [row("FL-1", "doc.lead"), row(null, "doc.vip"), row(null, null)];
+		expect(await shown(rows, { vip: 1 })).toBeNull();
 	});
 
 	it("names nothing when the default layout or the fallback shows", async () => {

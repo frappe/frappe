@@ -80,6 +80,13 @@ export function tabsOf(working: LayoutsHolder, ref: LayoutRef): LayoutTree {
 	return layoutOf(working, ref)?.tabs ?? [];
 }
 
+/** What a type has beneath any site layout: the app's layouts, else what its fallback draws. */
+export function baseSource(working: LayoutsHolder, type: FormLayoutType): LayoutSource {
+	const of = working.layouts[type];
+	if (of?.app.length) return "app";
+	return of?.empty?.source ?? emptySource(type);
+}
+
 /** `CustomizeState.forked`: the type has a site row, saved or made by an edit. */
 export function forked(working: LayoutsHolder, type: FormLayoutType): boolean {
 	const of = working.layouts[type];
@@ -91,12 +98,31 @@ export function findLayout(working: LayoutsHolder, { type, id }: LayoutRef): Wor
 	return layouts.find((layout) => (id ? layout.id === id : !layout.condition)) ?? null;
 }
 
+/** Where `ref` is after a reload: a save renames rows, so a gone or reused id is found by condition and title. */
+export function reloadedRef(working: LayoutsHolder, ref: LayoutRef, was: WorkingLayout | null): LayoutRef {
+	if (!ref.id || !was) return ref;
+	const same = (layout: WorkingLayout) => (layout.condition ?? "") === (was.condition ?? "");
+	const found = findLayout(working, ref);
+	if (found && same(found)) return ref;
+	const matches = (working.layouts[ref.type]?.layouts ?? []).filter(same);
+	const match = matches.find((layout) => (layout.title ?? "") === (was.title ?? "")) ?? matches[0];
+	if (!match) return ref;
+	return match.condition ? { type: ref.type, id: match.id } : { type: ref.type };
+}
+
 /** `fallback_tabs`: what a type with no layout of its own makes its first default from. */
 export function fallbackTabs(working: LayoutsHolder, type: FormLayoutType): LayoutTree {
 	if (type === "New Record") return structuredClone(tabsOf(working, { type: "Details" }));
 	if (type === "Quick Entry") return quickEntryLayout(fallbackFields(working));
-	if (type === "Side Panel") return emptyTabs();
+	if (type === "Side Panel") return sidePanelTabs();
 	return structuredClone(working.layouts.Details?.empty?.tabs ?? []);
+}
+
+/** `side_panel_tabs`: the record panel draws a section's header, and its open state, only from a label. */
+export function sidePanelTabs(): LayoutTree {
+	const tabs = emptyTabs();
+	tabs[0].sections[0].label = "Details";
+	return tabs;
 }
 
 export function emptyTabs(): LayoutTree {
@@ -132,7 +158,7 @@ function working(row: EditorLayout, appIndex: number): WorkingLayout {
 		title: row.title ?? null,
 		condition: row.condition ?? null,
 		source: row.source,
-		tabs: row.layout,
+		tabs: structuredClone(row.layout),
 		omitted: row.omitted ?? [],
 		...(row.source_changed ? { sourceChanged: true } : {}),
 	};
@@ -167,7 +193,7 @@ function quickEntryLayout(fields: DocField[]): LayoutTree {
 		}
 		sections.at(-1)!.columns[0].fields.push(field.fieldname);
 	}
-	return sections.length ? [{ name: "first_tab", sections }] : [];
+	return sections.length ? [{ name: "first_tab", sections }] : emptyTabs();
 }
 
 function inQuickEntry(field: DocField): boolean {

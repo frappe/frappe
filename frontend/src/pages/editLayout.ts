@@ -23,9 +23,17 @@ export function useEditLayoutRoute(meta: MaybeRefOrGetter<LayoutMeta | null | un
 		const doctype = toValue(meta);
 		if (!boot || !doctype || !router.hasRoute("doctype-editor")) return null;
 		const rights = { roles: boot.session.roles ?? [], developerMode: boot.developer_mode };
-		if (!canEditLayout(doctype, rights)) return null;
-		return routeFor("DocType", doctype.name, { query: row ? { layout, row } : { layout } });
+		const modes = editorEntries(doctype.name, { ...rights, meta: doctype }).map((entry) => entry.mode);
+		if (!modes.length) return null;
+		const query = { mode: editorMode(modes, row), layout, ...(row ? { row } : {}) };
+		return routeFor("DocType", doctype.name, { query });
 	};
+}
+
+/** The editor opens Design when it may; a site row needs Customize, as Design on an app's DocType reads no site rows. */
+function editorMode(modes: string[], row?: string | null): "design" | "customize" {
+	if (row && !row.startsWith("app:") && modes.includes("Customize")) return "customize";
+	return modes.includes("Design") ? "design" : "customize";
 }
 
 /** Whether either editor entry, Customize form or Edit DocType, opens on the doctype. */

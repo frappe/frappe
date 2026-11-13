@@ -9,6 +9,7 @@
 		:doctype="doctype"
 		:query="route.query"
 		:editLayout="editLayoutRoute('new-record')"
+		:editDetails="editLayoutRoute('details')"
 	/>
 	<PageFrame v-else :state="{ name: 'notFound' }" />
 </template>

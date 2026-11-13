@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, effectScope, onScopeDispose, shallowRef, watch, type EffectScope } from "vue";
 import { Alert } from "frappe-ui";
 import { __ } from "@/i18n";
 import { appLayoutCanvas } from "./appLayout";
@@ -32,7 +32,24 @@ const viewing = defineModel<boolean>("viewing", { default: false });
 
 const type = computed(() => props.canvas.openLayout.value.type);
 const hasApp = computed(() => Boolean(props.canvas.working.value.layouts[type.value]?.app.length));
-const app = computed(() => (viewing.value && hasApp.value ? appLayoutCanvas(props.canvas) : null));
+const app = shallowRef<DesignCanvas | null>(null);
+let appScope: EffectScope | null = null;
+watch(
+	[
+		viewing,
+		hasApp,
+		type,
+		() => props.canvas.openLayout.value.id,
+		() => props.canvas.layout.value?.condition,
+	],
+	() => {
+		appScope?.stop();
+		appScope = viewing.value && hasApp.value ? effectScope(true) : null;
+		app.value = appScope?.run(() => appLayoutCanvas(props.canvas)) ?? null;
+	},
+	{ immediate: true }
+);
+onScopeDispose(() => appScope?.stop());
 
 const title = computed(() => {
 	const label = typeLabel(type.value);

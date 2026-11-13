@@ -62,15 +62,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-	Button,
-	Dropdown,
-	TabButtons,
-	TabList,
-	Tabs,
-	TabTrigger,
-	Tooltip,
-} from "frappe-ui";
+import { Button, Dropdown, TabButtons, TabList, Tabs, TabTrigger, Tooltip } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import NotSavedBadge from "@/pages/record/NotSavedBadge.vue";
@@ -101,8 +93,6 @@ const tab = defineModel<EditorTab>("tab", { required: true });
 
 const modeOptions = computed(() => props.modes.map((mode) => ({ label: __(mode), value: mode })));
 
-// A manager reaches Customize from the DocType's own pages, so its crumbs lead back there. The
-// layout menu's crumb follows the last one, which opens Details.
 const crumbs = computed<Crumb[]>(() => {
 	const all: Crumb[] = [
 		...(props.mode === "Customize"

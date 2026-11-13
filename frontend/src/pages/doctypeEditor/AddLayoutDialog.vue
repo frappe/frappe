@@ -27,7 +27,7 @@
 		/>
 		<ErrorMessage v-if="shownRefusal" :message="shownRefusal" data-add-layout-refusal />
 		<div class="flex justify-end gap-2">
-			<Button :label="__('Cancel')" @click="close(null)" />
+			<Button variant="outline" :label="__('Cancel')" @click="close(null)" />
 			<Button
 				type="submit"
 				variant="solid"

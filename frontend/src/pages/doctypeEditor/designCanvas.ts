@@ -15,7 +15,7 @@ import type { EditorState } from "./editorSource";
 import type { ForkWarning } from "./forkWarning";
 import { LayoutTreeEditor } from "./layoutTree";
 import type { EditStage } from "./pendingEdits";
-import { findLayout, layoutOf, type LayoutRef } from "./workingLayouts";
+import { findLayout, layoutOf, reloadedRef, type LayoutRef, type WorkingLayout } from "./workingLayouts";
 
 export type CanvasSelection =
 	| { kind: "field"; fieldname: string }
@@ -38,6 +38,12 @@ export interface SaveError {
 	code?: string;
 	/** The child table it refuses, in a call that saves more than one DocType. */
 	doctype?: string;
+}
+
+/** The open layout as the staged edits draw it, which `reopen` finds again after a reload. */
+export interface OpenedLayout {
+	ref: LayoutRef;
+	layout: WorkingLayout | null;
 }
 
 /** Where a field sits on the layout. */
@@ -98,7 +104,13 @@ export class DesignCanvas {
 		const after = workingState(this.base, [...this.edits.staged.value, ...edits]);
 		const forks = this.forks?.unasked(this.working.value, after) ?? [];
 		if (!forks.length) return Promise.resolve(this.commit(edits));
-		return this.forks!.ask(forks).then((go) => go && this.commit(edits));
+		return this.forks!.ask(after.doctype, forks).then((go) => go && this.commit(edits));
+	}
+
+	/** Stages edits the user staged before a reload, with no fork warning: they answered it then. */
+	restage(...edits: FlatEdit[]) {
+		workingState(this.base, [...this.edits.staged.value, ...edits]);
+		this.commit(edits);
 	}
 
 	/** As `stage`, for the Settings tab: undo opens it. Customize sets settings while its canvas is read-only. */
@@ -113,6 +125,14 @@ export class DesignCanvas {
 		this.selection.value = null;
 		this.openTabName.value = "";
 		this.adding.value = null;
+	}
+
+	opened(): OpenedLayout {
+		return { ref: this.openLayout.value, layout: this.layout.value };
+	}
+
+	reopen({ ref, layout }: OpenedLayout) {
+		this.open(reloadedRef(this.working.value, ref, layout));
 	}
 
 	select(selection: CanvasSelection | null) {

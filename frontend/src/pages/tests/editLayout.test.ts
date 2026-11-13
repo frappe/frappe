@@ -65,7 +65,18 @@ describe("useEditLayoutRoute", () => {
 	it("opens the editor at the layout, and at the row when one is named", () => {
 		const route = routeWith(appBoot, standard);
 		expect(route("side-panel")).toMatchObject({ params: { name: "Sales Invoice" }, query: { layout: "side-panel" } });
-		expect(route("details", "FL-0002")).toMatchObject({ query: { layout: "details", row: "FL-0002" } });
+		expect(route("details", "app:1")).toMatchObject({ query: { layout: "details", row: "app:1" } });
+	});
+
+	it("names the mode the editor opens in, and Customize for a site row, which Design on an app's DocType does not read", () => {
+		const developer = routeWith({ ...appBoot, developer_mode: true }, standard);
+		expect(developer("details")).toMatchObject({ query: { mode: "design" } });
+		expect(developer("details", "app:1")).toMatchObject({ query: { mode: "design" } });
+		expect(developer("details", "5021")).toMatchObject({ query: { mode: "customize", row: "5021" } });
+		expect(routeWith(appBoot, standard)("details")).toMatchObject({ query: { mode: "customize" } });
+		expect(routeWith(appBoot, { name: "Task Note", custom: 1 })("details", "5021")).toMatchObject({
+			query: { mode: "design" },
+		});
 	});
 
 	it("gives nothing without the right, without the meta, or on the index, which serves no editor", () => {

@@ -430,6 +430,8 @@ class TestSaveDesign(IntegrationTestCase):
 					"Form Layout", filters={"dt": DOCTYPE, "type": type}, fields=["layout"]
 				)
 				self.assertEqual(placed(row), fields)
+		[panel] = frappe.get_all("Form Layout", {"dt": DOCTYPE, "type": "Side Panel"}, ["layout"])
+		self.assertEqual(json.loads(panel.layout)[0]["sections"][0]["label"], "Details")
 
 	def test_a_row_the_save_rewrites_matches_its_source_again(self):
 		self.save([{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "more"}])
@@ -825,6 +827,27 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Form Layout", row.name, "condition"), "doc.docstatus == 0")
 		self.save([{"act": "layouts.delete", "layout": ref}])
 		self.assertFalse(frappe.db.exists("Form Layout", row.name))
+
+	def test_a_saved_layout_is_found_by_the_string_id_the_desk_sends(self):
+		self.save([{"act": "layouts.add", "type": "Details", "id": "new-1", "condition": "doc.title"}])
+		[name] = frappe.get_all("Form Layout", {"dt": DOCTYPE}, pluck="name")
+		ref = {"type": "Details", "id": str(name)}
+		result = self.save([{"act": "layouts.rename", "layout": ref, "title": "Compact"}])
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.db.get_value("Form Layout", name, "title"), "Compact")
+
+	def test_the_default_layout_cannot_be_deleted(self):
+		result = self.save([{"act": "layouts.delete", "layout": {"type": "Details"}}])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"]["kind"], "layout")
+		self.assertFalse(frappe.db.exists("Form Layout", {"dt": DOCTYPE}))
+
+	def test_a_quick_entry_with_no_fields_to_ask_starts_with_one_section(self):
+		place = {"act": "canvas.place_field", "fieldname": "title", "section": "section_1", "column": "column_1"}
+		result = self.save([{**place, "index": 0, "layout": {"type": "Quick Entry"}}])
+		self.assertTrue(result["saved"], result.get("errors"))
+		[row] = frappe.get_all("Form Layout", {"dt": DOCTYPE, "type": "Quick Entry"}, ["layout"])
+		self.assertEqual(placed(row), ["title"])
 
 	def test_the_default_layout_moves_to_an_older_row_in_one_save(self):
 		details = {"type": "Details"}

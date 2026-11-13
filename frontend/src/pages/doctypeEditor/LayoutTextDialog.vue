@@ -9,7 +9,7 @@
 			autofocus
 		/>
 		<div class="flex justify-end gap-2">
-			<Button :label="__('Cancel')" @click="close(null)" />
+			<Button variant="outline" :label="__('Cancel')" @click="close(null)" />
 			<Button type="submit" variant="solid" :label="confirmLabel" />
 		</div>
 	</form>

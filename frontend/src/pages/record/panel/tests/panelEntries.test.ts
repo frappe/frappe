@@ -65,6 +65,14 @@ describe("layoutSections", () => {
 			{ name: "bare" },
 		]);
 	});
+
+	it("seeds `opened` only beside a label, so a stored section with no label warns nothing", () => {
+		const opened = [{ ...LAYOUT[0], sections: LAYOUT[0].sections.map((section) => ({ ...section, opened: true })) }];
+		const items = layoutItems(layoutSections(opened as FormLayoutSchema, {}));
+		expect(items).toEqual([{ name: "organization_section", label: "Organization", opened: true }, { name: "bare" }]);
+		panelEntries(items, layoutSections(opened as FormLayoutSchema, {}));
+		expect(warnings).toEqual([]);
+	});
 });
 
 describe("panelEntries", () => {
