@@ -267,7 +267,7 @@ class PrintDesignerConverter:
 
 	def rule(self, element) -> tuple[str, str] | None:
 		"""The side and colour of the one border a drawn box shows, when it is a line."""
-		if element.get("type") != "rectangle" or element.get("layoutType"):
+		if element.get("type") != "rectangle" or (element.get("layoutType") and element.get("childrens")):
 			return None
 		style = {
 			**((self.global_styles.get("rectangle") or {}).get("style") or {}),
@@ -485,7 +485,7 @@ class PrintDesignerConverter:
 					{
 						"label": "",
 						"width": round(flt(c.get("width")) / total * 100, 1),
-						"fields": self.free_layout(c.get("childrens") or [], flt(c.get("width"))),
+						"fields": self.element_fields(c, flt(c.get("width"))),
 					}
 					for c in sorted(children, key=lambda c: flt(c.get("startX")))
 				]
