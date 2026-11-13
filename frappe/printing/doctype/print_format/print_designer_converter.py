@@ -774,7 +774,8 @@ class PrintDesignerConverter:
 			"table_bordered": bordered,
 			"table_radius": 0,
 		}
-		if not bordered and flt(element.get("height")):
+		height_type = element.get("heightType") or ("auto" if element.get("isDynamicHeight") else "fixed")
+		if not bordered and height_type != "auto" and flt(element.get("height")):
 			node["table_min_height"] = round(flt(element.get("height")))
 		if (padding := style.get("paddingTop")) is not None:
 			node["table_cell_padding"] = round(flt(re.sub(r"[^\d.]", "", str(padding)) or 0))
