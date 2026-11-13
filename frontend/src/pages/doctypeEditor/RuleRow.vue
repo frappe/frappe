@@ -62,6 +62,11 @@
 	</PanelRow>
 </template>
 
+<script lang="ts">
+// Rows share the builder's load: only the row clicked last opens when it arrives.
+let lastOpened: symbol | undefined;
+</script>
+
 <script setup lang="ts">
 import { onBeforeUnmount, ref, shallowRef } from "vue";
 import { Popover, Tooltip } from "frappe-ui";
@@ -108,8 +113,9 @@ let release = () => {};
 async function toggle() {
 	if (Date.now() - closedAt < 300) return;
 	if (open.value) return close();
+	const request = (lastOpened = Symbol());
 	editor.value ??= (await import("./RuleEditor.vue")).default;
-	if (open.value) return; // a second click during the load
+	if (open.value || request !== lastOpened) return; // a later click during the load wins
 	draft.value = new RuleDraft(props.value, props.codec);
 	release = makeRoomBelow(button.value, PANEL_ROOM);
 	open.value = true;

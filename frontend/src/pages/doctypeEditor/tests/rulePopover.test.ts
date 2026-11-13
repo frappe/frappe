@@ -90,6 +90,15 @@ describe("the rule popover", () => {
 		]);
 		expect(row("depends_on").textContent).toContain("Always");
 	});
+
+	it("opens only the row clicked last while the builder loads", async () => {
+		mount();
+		row("depends_on").click();
+		await openRow("mandatory_depends_on");
+		expect(document.querySelectorAll("[data-rule-editor]")).toHaveLength(1);
+		expect(row("depends_on").getAttribute("aria-expanded")).toBe("false");
+		expect(row("mandatory_depends_on").getAttribute("aria-expanded")).toBe("true");
+	});
 });
 
 describe("a container's rule rows", () => {
