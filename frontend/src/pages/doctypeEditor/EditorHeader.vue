@@ -4,7 +4,11 @@
 	<div class="flex w-full flex-col">
 		<div class="flex h-12 items-center justify-between gap-3">
 			<div class="flex min-w-0 flex-1 items-center gap-2">
-				<Breadcrumbs class="-ml-0.5" :items="crumbs" data-crumbs />
+				<Breadcrumbs class="-ml-0.5" :items="crumbs" data-crumbs>
+					<template #suffix="{ item }">
+						<Icon v-if="item.menu" name="lucide-chevron-down" class="ml-0.5 size-4" />
+					</template>
+				</Breadcrumbs>
 				<NotSavedBadge v-if="dirty" class="shrink-0" />
 			</div>
 			<div class="hidden shrink-0 items-center lg:flex">
@@ -27,7 +31,7 @@
 					/>
 				</Tooltip>
 			</div>
-			<Dropdown :options="menu" side="bottom" align="end">
+			<Dropdown v-if="menu.length" :options="menu" side="bottom" align="end">
 				<Button variant="ghost" icon="lucide-ellipsis" :label="__('More')" />
 			</Dropdown>
 			<Button variant="solid" :label="__('Save')" disabled />
@@ -47,7 +51,16 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Breadcrumbs, Button, Dropdown, TabList, Tabs, TabTrigger, Tooltip } from "frappe-ui";
+import {
+	Breadcrumbs,
+	Button,
+	Dropdown,
+	Icon,
+	TabList,
+	Tabs,
+	TabTrigger,
+	Tooltip,
+} from "frappe-ui";
 import { __ } from "@/i18n";
 import NotSavedBadge from "@/pages/record/NotSavedBadge.vue";
 import { routeFor } from "@/router/routeFor";
@@ -74,7 +87,7 @@ const TABS: { value: EditorTab; label: string }[] = [
 const crumbs = computed(() => [
 	{ label: __("DocType"), route: routeFor("DocType") },
 	{ label: props.doctype },
-	{ label: `${props.layoutTitle} ▾`, onClick: () => (tab.value = "editor") },
+	{ label: props.layoutTitle, menu: true, onClick: () => (tab.value = "editor") },
 ]);
 
 const menu = computed(() =>
