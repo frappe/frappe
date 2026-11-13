@@ -20,8 +20,8 @@ class PrintDesignerMigration {
 		this.$body = $(page.body);
 	}
 
-	refresh(highlight) {
-		this.highlight = highlight || frappe.get_route()[1];
+	refresh() {
+		this.highlight = frappe.get_route()[1];
 		frappe.xcall(`${METHOD}.get_print_designer_formats`).then((rows) => this.render(rows));
 	}
 
@@ -35,7 +35,7 @@ class PrintDesignerMigration {
 		const $content = $(`<div class="flex flex-col gap-4 p-4"></div>`).appendTo(this.$body);
 		$content.append(
 			`<p class="text-p-sm text-ink-gray-5 max-w-lg m-0">${__(
-				"Converting turns a Print Designer format into a print format editor format with the same name, so everything that prints with it keeps working. Preview shows both side by side first, and Undo turns it back. Standard formats belong to their app, so they are converted as a copy."
+				"Converting turns a Print Designer format into a print format editor format with the same name, so everything that prints with it keeps working. Preview shows both side by side first, and Undo turns it back."
 			)}</p>`
 		);
 
@@ -68,7 +68,9 @@ class PrintDesignerMigration {
 			: { label: __("Print Designer"), theme: "gray" };
 		const details = [__(row.doc_type)];
 		if (row.disabled) details.push(__("Disabled"));
-		if (!row.converted && row.standard === "Yes") details.push(__("Standard"));
+		if (row.converted && row.editor_format !== row.name) {
+			details.push(__("Converted to {0}", [row.editor_format]));
+		}
 		const $row = $(`
 			<div class="flex items-center gap-4 px-4 py-3">
 				<div class="flex flex-col gap-1 flex-1 min-w-0">
@@ -92,18 +94,13 @@ class PrintDesignerMigration {
 		if (row.converted) {
 			add(
 				__("Edit"),
-				() => frappe.set_route("print-format-builder", row.name),
+				() => frappe.set_route("print-format-builder", row.editor_format),
 				"arrow-up-right"
 			);
 			add(__("Undo"), () => this.undo(row));
 		} else {
 			if (row.sample) add(__("Preview"), () => this.preview(row));
-			if (row.standard === "Yes") {
-				add(__("Duplicate and Convert"), () => this.duplicate_and_convert(row));
-			} else {
-				add(__("Convert"), () => this.convert(row));
-				add(__("Delete"), () => this.delete(row));
-			}
+			add(__("Convert"), () => this.convert(row));
 		}
 		return $row;
 	}
@@ -136,11 +133,10 @@ class PrintDesignerMigration {
 					)}</div>`,
 				},
 			],
-			primary_action_label:
-				row.standard === "Yes" ? __("Duplicate and Convert") : __("Convert"),
+			primary_action_label: __("Convert"),
 			primary_action: () => {
 				dialog.hide();
-				row.standard === "Yes" ? this.duplicate_and_convert(row) : this.convert(row);
+				this.convert(row);
 			},
 		});
 		const load = () => {
@@ -159,38 +155,28 @@ class PrintDesignerMigration {
 	}
 
 	convert(row) {
+		const escape = frappe.utils.escape_html;
 		return frappe
-			.xcall(`${CONVERTER}.convert_in_place`, { print_format: row.name })
-			.then(({ notes }) => {
+			.xcall(`${CONVERTER}.convert`, { print_format: row.name })
+			.then(({ name, notes, usage }) => {
 				frappe.show_alert({
 					message: __("Converted {0}", [row.name]),
 					indicator: "green",
 				});
-				this.show_notes(notes);
 				this.refresh();
-			});
-	}
-
-	duplicate_and_convert(row) {
-		const escape = frappe.utils.escape_html;
-		return frappe
-			.xcall(`${CONVERTER}.duplicate_and_convert`, { print_format: row.name })
-			.then(({ name, notes, usage }) => {
-				frappe.show_alert({ message: __("Created {0}", [name]), indicator: "green" });
-				this.refresh(name);
 				if (!usage.length) return this.show_notes(notes);
 				frappe.confirm(
-					__("{0} is in use: {1}. Use {2} instead?", [
-						`<b>${escape(row.name)}</b>`,
-						usage.map((place) => escape(place)).join(", "),
-						`<b>${escape(name)}</b>`,
-					]),
+					__(
+						"{0} belongs to its app, so it was converted as {1}. {0} is in use: {2}. Use {1} there instead?",
+						[
+							`<b>${escape(row.name)}</b>`,
+							`<b>${escape(name)}</b>`,
+							usage.map((place) => escape(place)).join(", "),
+						]
+					),
 					() =>
 						frappe
-							.xcall(`${CONVERTER}.use_print_format_instead`, {
-								print_format: row.name,
-								replacement: name,
-							})
+							.xcall(`${CONVERTER}.use_editor_copy`, { print_format: row.name })
 							.then(() => {
 								frappe.show_alert({
 									message: __("{0} now prints with {1}", [row.name, name]),
@@ -199,40 +185,6 @@ class PrintDesignerMigration {
 								this.show_notes(notes);
 							}),
 					() => this.show_notes(notes)
-				);
-			});
-	}
-
-	delete(row) {
-		const escape = frappe.utils.escape_html;
-		return frappe
-			.xcall(`${METHOD}.get_print_format_usage`, { print_format: row.name })
-			.then((usage) => {
-				if (usage.length) {
-					frappe.msgprint({
-						title: __("Cannot Delete"),
-						message: __("{0} is still in use: {1}. Pick another format there first.", [
-							`<b>${escape(row.name)}</b>`,
-							usage.map((place) => escape(place)).join(", "),
-						]),
-					});
-					return;
-				}
-				frappe.confirm(
-					__("Delete <b>{0}</b>? This cannot be undone.", [escape(row.name)]),
-					() =>
-						frappe
-							.xcall("frappe.client.delete", {
-								doctype: "Print Format",
-								name: row.name,
-							})
-							.then(() => {
-								frappe.show_alert({
-									message: __("Deleted {0}", [row.name]),
-									indicator: "green",
-								});
-								this.refresh();
-							})
 				);
 			});
 	}
@@ -248,7 +200,7 @@ class PrintDesignerMigration {
 	convert_all() {
 		frappe.confirm(
 			__(
-				"Convert every Print Designer format on this list? Each one can be turned back with Undo."
+				"Convert every Print Designer format on this list? Each one can be turned back with Undo. Formats that belong to an app are converted one by one."
 			),
 			() =>
 				frappe
@@ -275,21 +227,25 @@ class PrintDesignerMigration {
 	}
 
 	undo(row) {
-		frappe.confirm(
-			__(
-				"Turn <b>{0}</b> back into its Print Designer format? Changes made to it in the print format editor will be lost.",
-				[frappe.utils.escape_html(row.name)]
-			),
-			() =>
-				frappe
-					.xcall(`${CONVERTER}.undo_conversion`, { print_format: row.name })
-					.then(() => {
-						frappe.show_alert({
-							message: __("{0} is a Print Designer format again", [row.name]),
-							indicator: "green",
-						});
-						this.refresh();
-					})
+		const escape = frappe.utils.escape_html;
+		const message =
+			row.editor_format === row.name
+				? __(
+						"Turn <b>{0}</b> back into its Print Designer format? Changes made to it in the print format editor will be lost.",
+						[escape(row.name)]
+				  )
+				: __(
+						"Delete <b>{1}</b> and use <b>{0}</b> again wherever {1} is used? Changes made to {1} will be lost.",
+						[escape(row.name), escape(row.editor_format)]
+				  );
+		frappe.confirm(message, () =>
+			frappe.xcall(`${CONVERTER}.undo_conversion`, { print_format: row.name }).then(() => {
+				frappe.show_alert({
+					message: __("{0} is a Print Designer format again", [row.name]),
+					indicator: "green",
+				});
+				this.refresh();
+			})
 		);
 	}
 }

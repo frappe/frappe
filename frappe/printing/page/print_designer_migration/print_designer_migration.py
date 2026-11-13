@@ -4,10 +4,11 @@
 import frappe
 from frappe import _
 from frappe.printing.doctype.print_format.print_designer_converter import (
-	convert_in_place,
+	convert,
 	converted_values,
+	editor_copy,
+	editor_copy_name,
 	is_print_designer_format,
-	print_format_usage,
 )
 from frappe.printing.doctype.print_format.print_format import printable_sample
 
@@ -35,9 +36,19 @@ def get_print_designer_formats() -> list[dict]:
 		for row in rows
 		if (row.print_designer or row.print_format_builder_beta) and frappe.db.exists("DocType", row.doc_type)
 	]
+	copies = set()
+	for row in rows:
+		row.editor_format = row.name
+		row.converted = not row.print_designer
+		if row.standard == "Yes":
+			copy = editor_copy(row)
+			row.converted = bool(copy)
+			row.editor_format = copy.name if copy else None
+			copies.add(editor_copy_name(row))
+	rows = [row for row in rows if row.name not in copies]
+
 	samples = {}
 	for row in rows:
-		row.converted = not row.print_designer
 		if row.doc_type not in samples:
 			samples[row.doc_type] = frappe.has_permission(row.doc_type) and printable_sample(row.doc_type)
 		row.sample = samples[row.doc_type]
@@ -53,7 +64,7 @@ def convert_all() -> dict:
 			continue
 		frappe.db.savepoint("convert_print_designer_format")
 		try:
-			convert_in_place(row.name)
+			convert(row.name)
 			converted.append(row.name)
 		except Exception:
 			frappe.db.rollback(save_point="convert_print_designer_format")
@@ -73,9 +84,3 @@ def preview_conversion(print_format: str, name: str | None = None) -> None:
 	converted = doc.as_dict()
 	converted.update(converted_values(doc)[0], name=None)
 	download_builder_preview_pdf(converted, doc.doc_type, name)
-
-
-@frappe.whitelist()
-def get_print_format_usage(print_format: str) -> list[str]:
-	frappe.only_for("System Manager")
-	return print_format_usage(print_format)

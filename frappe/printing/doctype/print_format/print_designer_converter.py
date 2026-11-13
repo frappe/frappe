@@ -7,7 +7,6 @@ import re
 
 import frappe
 from frappe import _
-from frappe.model.naming import append_number_if_name_exists
 from frappe.model.rename_doc import get_link_fields, update_link_field_values
 from frappe.utils import cint, escape_html, flt
 
@@ -68,33 +67,42 @@ def converted_values(doc) -> tuple[dict, list[str]]:
 
 
 @frappe.whitelist(methods=["POST"])
-def convert_in_place(print_format: str) -> dict:
+def convert(print_format: str) -> dict:
 	"""Turn a Print Designer format into an editor format under the same name. The
-	Print Designer fields stay as they are, so undo_conversion can bring it back."""
+	Print Designer fields stay, so undo_conversion can bring it back. A standard format
+	belongs to its app, so it gets an editor copy instead."""
 	frappe.only_for("System Manager")
 	doc = frappe.get_doc("Print Format", print_format)
 	if not is_print_designer_format(doc):
 		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
-	if doc.standard == "Yes":
-		frappe.throw(
-			_("{0} is a standard format that belongs to its app. Duplicate it and convert the copy.").format(
-				frappe.bold(print_format)
-			),
-			title=_("Cannot Convert"),
-		)
 	values, notes = converted_values(doc)
-	frappe.db.set_value("Print Format", doc.name, values)
+	if doc.standard == "Yes":
+		copy = editor_copy(doc)
+		if not copy:
+			copy = frappe.copy_doc(doc)
+			copy.update({"standard": "No", **values})
+			copy.insert(set_name=editor_copy_name(doc))
+		target = copy
+	else:
+		frappe.db.set_value("Print Format", doc.name, values)
+		frappe.clear_cache(doctype=doc.doc_type)
+		target = doc
 	if notes:
-		doc.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
-	frappe.clear_cache(doctype=doc.doc_type)
-	return {"notes": notes}
+		target.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
+	usage = print_format_usage(doc.name) if target is not doc else []
+	return {"name": target.name, "notes": notes, "usage": usage}
 
 
 @frappe.whitelist(methods=["POST"])
 def undo_conversion(print_format: str) -> None:
-	"""Turn a converted format back into the Print Designer format it was."""
+	"""Turn a converted format back into the Print Designer format it was. For a
+	standard format, move everything back from its editor copy and delete the copy."""
 	frappe.only_for("System Manager")
 	doc = frappe.get_doc("Print Format", print_format)
+	if doc.standard == "Yes" and (copy := editor_copy(doc)):
+		move_print_format_usage(copy.name, doc.name)
+		frappe.delete_doc("Print Format", copy.name)
+		return
 	if not was_print_designer_format(doc):
 		frappe.throw(_("{0} was not converted from Print Designer.").format(frappe.bold(print_format)))
 	frappe.db.set_value(
@@ -105,6 +113,16 @@ def undo_conversion(print_format: str) -> None:
 	frappe.clear_cache(doctype=doc.doc_type)
 
 
+@frappe.whitelist(methods=["POST"])
+def use_editor_copy(print_format: str) -> None:
+	"""Point the doctype defaults and every link to a standard format at its editor copy."""
+	frappe.only_for("System Manager")
+	copy = editor_copy(frappe.get_doc("Print Format", print_format))
+	if not copy:
+		frappe.throw(_("{0} has no editor copy.").format(frappe.bold(print_format)))
+	move_print_format_usage(print_format, copy.name)
+
+
 def was_print_designer_format(doc) -> bool:
 	return bool(
 		not doc.get("print_designer")
@@ -113,57 +131,29 @@ def was_print_designer_format(doc) -> bool:
 	)
 
 
-@frappe.whitelist(methods=["POST"])
-def duplicate_and_convert(print_format: str) -> dict:
-	"""Save an editor copy of a Print Designer format, for standard formats that
-	cannot be converted in place."""
-	frappe.only_for("System Manager")
-	source = frappe.get_doc("Print Format", print_format)
-	if not is_print_designer_format(source):
-		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
-	values, notes = converted_values(source)
-	copy = frappe.copy_doc(source)
-	copy.update({"standard": "No", **values})
-	copy.insert(
-		set_name=append_number_if_name_exists(
-			"Print Format", _("{0} (Editor)").format(source.name), separator=" "
-		)
-	)
-	if notes:
-		copy.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
-	return {"name": copy.name, "notes": notes, "usage": print_format_usage(source.name)}
+def editor_copy_name(doc) -> str:
+	return _("{0} (Editor)").format(doc.name)
 
 
-@frappe.whitelist(methods=["POST"])
-def use_print_format_instead(print_format: str, replacement: str) -> None:
-	"""Point the doctype defaults and every link to a print format at its editor copy."""
-	frappe.only_for("System Manager")
-	source = frappe.get_doc("Print Format", print_format)
-	target = frappe.get_doc("Print Format", replacement)
-	if (
-		target.name == source.name
-		or target.doc_type != source.doc_type
-		or not was_print_designer_format(target)
-	):
-		frappe.throw(
-			_("{0} is not an editor copy of {1}.").format(
-				frappe.bold(replacement), frappe.bold(print_format)
-			),
-			title=_("Cannot Replace"),
-		)
-	update_link_field_values(print_format_link_fields(), source.name, target.name, "Print Format")
+def editor_copy(doc):
+	"""The editor copy made from a standard Print Designer format, if it still exists."""
+	name = editor_copy_name(doc)
+	if not frappe.db.exists("Print Format", name):
+		return None
+	copy = frappe.get_doc("Print Format", name)
+	if copy.doc_type == doc.doc_type and copy.standard == "No" and was_print_designer_format(copy):
+		return copy
+
+
+def move_print_format_usage(old: str, new: str) -> None:
+	update_link_field_values(print_format_link_fields(), old, new, "Print Format")
 	doctypes = frappe.get_all(
-		"Property Setter", {"property": "default_print_format", "value": source.name}, pluck="doc_type"
+		"Property Setter", {"property": "default_print_format", "value": old}, pluck="doc_type"
 	)
-	frappe.db.set_value(
-		"Property Setter",
-		{"property": "default_print_format", "value": source.name},
-		"value",
-		target.name,
-	)
-	doctypes += frappe.get_all("DocType", {"default_print_format": source.name}, pluck="name")
-	frappe.db.set_value("DocType", {"default_print_format": source.name}, "default_print_format", target.name)
-	for doctype in {*doctypes, source.doc_type}:
+	frappe.db.set_value("Property Setter", {"property": "default_print_format", "value": old}, "value", new)
+	doctypes += frappe.get_all("DocType", {"default_print_format": old}, pluck="name")
+	frappe.db.set_value("DocType", {"default_print_format": old}, "default_print_format", new)
+	for doctype in set(doctypes):
 		frappe.clear_cache(doctype=doctype)
 
 
