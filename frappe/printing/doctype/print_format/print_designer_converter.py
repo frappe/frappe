@@ -409,7 +409,15 @@ class PrintDesignerConverter:
 						f'padding-top: {round(flt(element.get("startY")) - top)}px;">{inner}</div>'
 					)
 					cursor = left + flt(element.get("width"))
-				produced = [self.html_node('<div style="display: flex;">' + "".join(parts) + "</div>")]
+				fixed = [
+					flt(e.get("startY")) - top + flt(e.get("height"))
+					for e in band
+					if e.get("type") == "text" and not e.get("isDynamicHeight")
+				]
+				row_style = (
+					f"display: flex; min-height: {round(max(fixed))}px;" if fixed else "display: flex;"
+				)
+				produced = [self.html_node(f'<div style="{row_style}">' + "".join(parts) + "</div>")]
 			if produced:
 				add_gap(produced[0], top - bottom)
 				fields.extend(produced)
