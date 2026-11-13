@@ -106,7 +106,7 @@ def converted_font(doc) -> str | None:
 	return text.get("fontFamily") or None
 
 
-def has_side_by_side_overlap(elements) -> bool:
+def has_side_by_side_overlap(elements: list[dict]) -> bool:
 	"""Two elements share some height but sit next to each other, like text beside a tall image."""
 	for i, a in enumerate(elements):
 		for b in elements[i + 1 :]:
@@ -320,7 +320,7 @@ class PrintDesignerConverter:
 			+ "</div>"
 		)
 
-	def stacks(self, elements) -> list[list[dict]]:
+	def stacks(self, elements: list[dict]) -> list[list[dict]]:
 		"""Elements that overlap horizontally, so they print one under the other."""
 		stacks = []
 		for element in sorted(elements, key=lambda e: flt(e.get("startX"))):
@@ -346,7 +346,7 @@ class PrintDesignerConverter:
 			previous_bottom = max(flt(e.get("startY")) + flt(e.get("height")) for e in row)
 		return sections
 
-	def overlapping_rows(self, elements) -> list[list[dict]]:
+	def overlapping_rows(self, elements: list[dict]) -> list[list[dict]]:
 		"""Rows that a tall element spans are one band, so the elements beside it
 		stay next to it instead of starting below it."""
 		bands, bottom = [], 0
