@@ -12,8 +12,7 @@ frappe.ui.form.on("Security Settings", {
 				frappe.ui.alert({
 					theme: "yellow",
 					title: __("Security.txt will be served only under HTTPS."),
-					css_class: "security-txt-banner",
-					attrs: { style: "flex: 0 0 100%; max-width: 100%;" },
+					css_class: "security-txt-banner w-full",
 					footer: frappe.ui.button({
 						label: __("Learn more"),
 						variant: "outline",
