@@ -136,6 +136,18 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(section["columns"], [{"name": "column_2", "fields": ["notes"]}])
 		self.assertEqual(placed(row), ["notes", "title"])
 
+	def test_fields_of_a_removed_container_with_no_sibling_leave_the_layout(self):
+		details = {"type": "Details"}
+		tree = self.save([{"act": "canvas.add_tab", "layout": details, "name": "more"}])
+		self.assertTrue(tree["saved"], tree.get("errors"))
+		[row] = details_rows()
+		section = json.loads(row.layout)[0]["sections"][0]["name"]
+		result = self.save([{"act": "canvas.remove_section", "layout": details, "section": section}])
+		self.assertTrue(result["saved"], result.get("errors"))
+		[row] = details_rows()
+		self.assertEqual(placed(row), [])
+		self.assertEqual(omitted(row), ["title"])
+
 	def test_a_column_named_in_two_sections_needs_its_section(self):
 		details = {"type": "Details"}
 		result = self.save(
