@@ -206,6 +206,7 @@ class TestFlowSafeExec(IntegrationTestCase):
 				sendmail.assert_not_called()
 
 	def test_sendmail_takes_no_sender(self):
+		frappe.set_user(self._desk_user())
 		# frappe.sendmail's own argument order still works
 		for call in (
 			'frappe.sendmail(["a@example.com"], subject="Hi", message="Body", sender="")',

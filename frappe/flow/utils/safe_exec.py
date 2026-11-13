@@ -147,7 +147,10 @@ def _gated_sendmail(*args: Any, **kwargs: Any):
 	"""frappe.sendmail without a sender, for the records and files the user may use."""
 	mail = _SENDMAIL.bind(*args, **kwargs).arguments
 	if mail.pop("sender", None):
-		frappe.throw(_("frappe.sendmail takes no sender here: mail goes out from the site's own account."))
+		frappe.throw(
+			_("frappe.sendmail takes no sender here: mail goes out from the site's own account."),
+			title=_("Invalid Sender"),
+		)
 	# the record picks the account that sends, and the mail is filed under the communication
 	doctype = mail.get("doctype") or mail.get("reference_doctype")
 	name = mail.get("name") or mail.get("reference_name")
