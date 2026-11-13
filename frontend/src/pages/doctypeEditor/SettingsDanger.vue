@@ -40,7 +40,7 @@ const help = computed(() => {
 		);
 	if (props.row.key === "move_doctype") return __("In the {0} module.", [view.module]);
 	if (props.row.key === "delete_doctype" && settings.records === 0)
-		return __("Deletes {0}. It has no records.", [doctype]);
+		return __("Deletes {0} and all its records, none of which you can read.", [doctype]);
 	if (props.row.key === "delete_doctype" && settings.records !== null)
 		return __n(
 			"Deletes {0} and its {1} record.",

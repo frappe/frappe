@@ -45,7 +45,10 @@ const confirmed = computed(() => typed.value === props.doctype);
 const whatGoes = computed(() => {
 	const table = `tab${props.doctype}`;
 	if (props.records === 0)
-		return __("Deletes {0} and its table {1}. It has no records.", [props.doctype, table]);
+		return __("Deletes {0}, all its records (you can read none of them) and its table {1}.", [
+			props.doctype,
+			table,
+		]);
 	const records =
 		props.records === null
 			? __("its records")
