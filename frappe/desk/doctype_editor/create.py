@@ -4,9 +4,11 @@
 
 import frappe
 from frappe import _
+from frappe.core.doctype.doctype.doctype import START_WITH_LETTERS_PATTERN, WHITESPACE_PADDING_PATTERN
 from frappe.desk.doctype.form_layout.form_layout import parse_layout
 from frappe.desk.doctype_editor.design_state import EditorLayout
 from frappe.desk.doctype_editor.errors import EditError
+from frappe.desk.doctype_editor.mode import design_refusal
 from frappe.desk.doctype_editor.save import DesignSave
 from frappe.desk.doctype_editor.versions import base_version
 
@@ -21,10 +23,18 @@ def create_doctype(definition: dict | str, layout: list | str | None, edits: lis
 
 
 def check_create(definition: dict):
-	if "System Manager" not in frappe.get_roles():
-		frappe.throw(_("Design mode needs the System Manager role."), frappe.PermissionError)
-	if not definition.get("custom") and not frappe.conf.developer_mode:
-		frappe.throw(_("Design mode on a standard DocType needs developer mode."), frappe.PermissionError)
+	if not isinstance(definition, dict):
+		frappe.throw(_("The DocType definition must be an object."))
+	if refusal := design_refusal(definition.get("custom")):
+		frappe.throw(refusal, frappe.PermissionError)
+	name = definition.get("name")
+	# The name reaches DDL in remove_doctype: refuse anything a table name could not be.
+	if (
+		not isinstance(name, str)
+		or WHITESPACE_PADDING_PATTERN.search(name)
+		or not START_WITH_LETTERS_PATTERN.match(name)
+	):
+		frappe.throw(_("{0} is not a valid DocType name.").format(frappe.bold(str(name))), frappe.NameError)
 
 
 class DoctypeCreate:
@@ -35,13 +45,15 @@ class DoctypeCreate:
 		self.edits = edits
 
 	def run(self) -> dict:
-		if self.name and frappe.db.exists("DocType", self.name):
+		if frappe.db.exists("DocType", self.name):
 			return self.refused(_("A DocType named {0} already exists.").format(self.name))
 		if error := self.insert():
 			return self.refused(error)
 		result = self.save()
-		if not result["saved"]:
-			remove_doctype(self.name)
+		if result["saved"]:
+			return {**result, "doctype": self.name}
+		for name in {*result.pop("written", []), self.name}:
+			remove_doctype(name)
 		return {**result, "doctype": self.name}
 
 	def insert(self) -> str | None:
@@ -52,7 +64,8 @@ class DoctypeCreate:
 		except Exception as e:
 			frappe.db.rollback()
 			del frappe.local.message_log[messages:]
-			if self.name:
+			# Another request created this name first: its DocType is not ours to remove.
+			if not isinstance(e, frappe.DuplicateEntryError):
 				remove_doctype(self.name)
 			if isinstance(e, frappe.ValidationError):
 				return str(e) or _("The DocType was not created.")

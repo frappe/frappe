@@ -31,6 +31,10 @@ def mode_refusal(doctype: str, mode: str) -> str | None:
 		if not frappe.has_permission("Customize Form", "write"):
 			return _("Customize mode needs write access to Customize Form.")
 		return None
+	return design_refusal(custom)
+
+
+def design_refusal(custom: bool | int) -> str | None:
 	if "System Manager" not in frappe.get_roles():
 		return _("Design mode needs the System Manager role.")
 	if not custom and not frappe.conf.developer_mode:

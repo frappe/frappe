@@ -1,6 +1,5 @@
-// A drop on the canvas as the one act it stages. vuedraggable reports a drop to the list it lands
-// in, as `added` from another list or `moved` within it; the list it left reports `removed`,
-// which stages nothing.
+// vuedraggable reports a drop as `added`/`moved` to the list it lands in and `removed` to the one
+// it left: only the first stages an act, or one drop would stage two.
 import { acts } from "@/acts/dispatcher";
 import type { LayoutTreeColumn, LayoutTreeSection, LayoutTreeTab } from "./layoutTree";
 import type { DesignCanvas } from "./designCanvas";

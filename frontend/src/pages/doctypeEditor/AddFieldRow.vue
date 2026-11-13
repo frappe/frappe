@@ -44,7 +44,7 @@ const props = defineProps<{ canvas: DesignCanvas; section: string }>();
 const input = ref<{ focus: () => void } | null>(null);
 const label = ref("");
 const open = computed(() => props.canvas.adding.value === props.section);
-const doctypes = inject<Addresses | null>("addresses", null)?.doctypes() ?? [];
+const doctypes = inject<Addresses>("addresses")!.doctypes();
 const guess = computed(() => guessFieldtype(label.value, doctypes));
 const typeLabel = computed(() => {
 	const fieldtype = __(guess.value.fieldtype);

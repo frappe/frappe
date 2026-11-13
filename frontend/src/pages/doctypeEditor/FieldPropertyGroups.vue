@@ -26,7 +26,9 @@
 				type="number"
 				:placeholder="property.placeholder ?? __('None')"
 				:model-value="value(property.key) ?? ''"
-				@change="set(property.key, Number(($event.target as HTMLInputElement).value) || 0)"
+				@change="
+					set(property.key, numberOrNull(($event.target as HTMLInputElement).value))
+				"
 			/>
 		</PanelRow>
 	</PanelSection>
@@ -58,12 +60,17 @@ function value(key: string) {
 	return (props.field as unknown as Record<string, unknown>)[key] as string | number | undefined;
 }
 
-function set(key: string, next: number) {
-	if ((value(key) ?? 0) === next) return;
+function set(key: string, next: number | null) {
+	if ((value(key) ?? (next === null ? null : 0)) === next) return;
 	void acts.perform("fields.set_field_property", {
 		fieldname: props.field.fieldname,
 		property: key,
 		value: next,
 	});
+}
+
+// A cleared input unsets the property: 0 is a value (no decimal places), not "the default".
+function numberOrNull(text: string) {
+	return text.trim() === "" ? null : Number(text);
 }
 </script>

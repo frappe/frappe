@@ -1,5 +1,3 @@
-// The editor's save: the pending edits to `save_doctype_editor`, or a new DocType's first save to
-// `create_doctype`; then what a refused, stale or half-written save offers next.
 import { ref, shallowRef } from "vue";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
@@ -155,7 +153,12 @@ export class EditorSave {
 			.filter(({ field }) => field.reqd)
 			.map(({ field }) => field.fieldname);
 		if (!canvas.state.pending) {
-			const next = await this.host.reload();
+			const next = await this.host.reload().catch((error) => {
+				// The save is in: never replay its edits on a canvas that failed to reload.
+				this.host.edits.clear();
+				if (result.base_version) this.host.edits.rebase(result.base_version);
+				throw error;
+			});
 			next.askedOnSave.value = asked;
 			return void toast.success(__("Saved"));
 		}

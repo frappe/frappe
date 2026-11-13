@@ -50,6 +50,18 @@ describe("editor.save", () => {
 		expect(toast.success).toHaveBeenCalledWith("Saved");
 	});
 
+	it("drops the saved edits and takes the new base version when the reload after a save fails", async () => {
+		const { edits } = mount(taskNote(), {
+			reloaded: () => {
+				throw new Error("offline");
+			},
+		});
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });
+		answers({ saved: true, base_version: NEXT, children: [] });
+		await expect(acts.run("editor.save")).rejects.toThrow("offline");
+		expect([edits.dirty.value, edits.payload().base_version]).toEqual([false, NEXT]);
+	});
+
 	it("is off with nothing to save, and on for a new DocType with no edits", () => {
 		mount();
 		expect(acts.available().map((act) => act.name)).not.toContain("editor.save");

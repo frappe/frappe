@@ -120,6 +120,20 @@ class TestCreateDoctype(IntegrationTestCase):
 		self.assertFalse(frappe.db.table_exists(DOCTYPE))
 		self.assertFalse(details_rows(DOCTYPE))
 
+	def test_a_name_no_table_could_have_is_refused_before_any_ddl(self):
+		for name in ("x`, `tabToDo", ["like", "%"], None):
+			with self.assertRaises(frappe.NameError):
+				create_doctype(definition(name=name), two_tabs(), [])
+		self.assertTrue(frappe.db.table_exists("ToDo"))
+
+	def test_a_failed_save_removes_what_it_wrote_and_reports_nothing_written(self):
+		failed = {"saved": False, "written": [DOCTYPE], "errors": [{"target": {"kind": "banner"}}]}
+		with patch("frappe.desk.doctype_editor.create.DesignSave.run", return_value=failed):
+			result = create_doctype(definition(), two_tabs(), [])
+		self.assertNotIn("written", result)
+		self.assertFalse(frappe.db.exists("DocType", DOCTYPE))
+		self.assertFalse(frappe.db.table_exists(DOCTYPE))
+
 	def test_a_definition_failing_validation_leaves_no_doctype_behind(self):
 		fields = [{"fieldname": "status", "label": "Status", "fieldtype": "Link"}]
 		result = create_doctype(definition(fields=fields), None, [])

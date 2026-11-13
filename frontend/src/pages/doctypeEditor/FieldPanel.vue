@@ -141,7 +141,7 @@ import PanelSection from "./PanelSection.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; field: RawMetaField }>();
 
-const doctypes = inject<Addresses | null>("addresses", null)?.doctypes() ?? [];
+const doctypes = inject<Addresses>("addresses")!.doctypes();
 const currentType = computed(() => typeName(props.field.fieldtype, props.field.options));
 const note = computed(() => typeNote(props.canvas, props.field));
 const errors = computed(() => props.canvas.errorsAt("field", props.field.fieldname));
