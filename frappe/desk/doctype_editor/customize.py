@@ -8,6 +8,7 @@ from frappe.custom.doctype.customize_form.customize_form import (
 	ALLOWED_FIELDTYPE_CHANGE,
 	is_standard_or_system_generated_field,
 )
+from frappe.desk.doctype_editor.settings_edits import PERMISSION_COLUMNS
 from frappe.model.docfield import supports_translation
 from frappe.model.meta import Meta
 
@@ -43,6 +44,7 @@ def get_customizations(meta: Meta) -> dict:
 			df.fieldname: field_locks(df, app_fields.get(df.fieldname), not_in_list_view) for df in standard
 		},
 		"fieldtype_changes": {df.fieldname: fieldtype_changes(df.fieldtype) for df in standard},
+		"app_permissions": [{key: row.get(key) for key in PERMISSION_COLUMNS} for row in app_doc.permissions],
 	}
 
 

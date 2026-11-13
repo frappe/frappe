@@ -83,6 +83,7 @@ export function mountEditor(
 	};
 	const next = () => options.reloaded?.() ?? initial;
 	const created: string[] = [];
+	const foundSettings: string[] = [];
 	const save = new EditorSave({
 		edits,
 		canvas: () => canvas,
@@ -96,12 +97,17 @@ export function mountEditor(
 			await children.show(children.tableOf(doctype));
 			return children.open.value?.canvas ?? null;
 		},
+		findSetting: (key) => host.findSetting(key),
 	});
 	const host: EditorActsHost = {
 		edits,
 		tab,
 		canvas: () => children.open.value?.canvas ?? canvas,
 		find: () => undefined,
+		findSetting: (key) => {
+			tab.value = "settings";
+			foundSettings.push(key);
+		},
 		previewRecord: () => undefined,
 		recordOptions: async () => [],
 		save,
@@ -117,9 +123,11 @@ export function mountEditor(
 		},
 		edits,
 		head,
+		tab,
 		save,
 		children,
 		created,
+		foundSettings,
 		stop: () => scope.stop(),
 	};
 }

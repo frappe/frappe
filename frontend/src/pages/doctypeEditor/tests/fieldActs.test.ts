@@ -30,7 +30,7 @@ describe("the field and settings acts", () => {
 		],
 		["fields.rename_field", { fieldname: "subject", new_fieldname: "title" }, (c) => [fieldnames(c), c.place("title")?.index], [["title", "status", "notes", "spare"], 0]],
 		["fields.delete_field", { fieldname: "status" }, (c) => [fieldnames(c), c.place("status")], [["subject", "notes", "spare"], null]],
-		["settings.set_doctype_property", { property: "description", value: "One note on a task" }, (c) => c.working.value.description, "One note on a task"],
+		["settings.set_doctype_property", { property: "description", value: "One note on a task" }, (c) => c.working.value.settings.properties.description, "One note on a task"],
 	];
 
 	it.each(cases)("%s stages one undo step, and undo restores the state", async (act, value, check, expected) => {

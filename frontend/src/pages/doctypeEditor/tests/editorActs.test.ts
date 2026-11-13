@@ -23,9 +23,10 @@ function mount() {
 		edits,
 		canvas: () => null,
 		find: () => undefined,
+		findSetting: () => undefined,
 		previewRecord: (name) => previewed.push(name),
 		recordOptions: async () => [],
-		save: new EditorSave({ edits, canvas: () => null, reload: unused, created: unused }),
+		save: new EditorSave({ edits, canvas: () => null, reload: unused, created: unused, findSetting: () => undefined }),
 		openList: () => undefined,
 		customize: NO_CUSTOMIZE,
 	};

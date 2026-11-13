@@ -10,6 +10,7 @@ vi.mock("@framework/ui/api", () => ({ runMethod }));
 import { acts } from "@/acts/dispatcher";
 import { CREATE_METHOD, SAVE_METHOD, WRITE_FILES_METHOD } from "../editorSave";
 import type { EditorState } from "../editorSource";
+import { settingRows } from "../settingsRows";
 import { mountEditor, taskNote, VERSION } from "./editorFixture";
 
 const LINE_VERSION = { doctype: "2026-11-12 09:00:00", layouts: {}, app_layouts: {} };
@@ -110,6 +111,67 @@ describe("a save with child tables", () => {
 			],
 			"Task Note Step": [{ act: "fields.add_field", label: "Done", fieldtype: "Check" }],
 		});
+	});
+
+	it("saves a child's grid setting from its Settings tab in the child's own call", async () => {
+		const { children } = mount();
+		answers(line());
+		await children.show("lines");
+		await acts.run("settings.set_doctype_property", { property: "editable_grid", value: 0 });
+		expect(children.open.value?.canvas.working.value.settings.properties.editable_grid).toBe(0);
+		await children.show(null);
+		answers(saved);
+		await acts.run("editor.save");
+		expect(runMethod.mock.calls.at(-1)).toEqual([
+			SAVE_METHOD,
+			{
+				doctype: "Task Note Line",
+				mode: "Design",
+				base_version: LINE_VERSION,
+				edits: [{ act: "settings.set_doctype_property", property: "editable_grid", value: 0 }],
+			},
+		]);
+	});
+
+	it("undoes a child's grid setting on the shared stack, and reopens the child to do it", async () => {
+		const { children, edits } = mount();
+		const grid = line();
+		grid.definition.editable_grid = 1;
+		answers(grid);
+		await children.show("lines");
+		await acts.run("settings.set_doctype_property", { property: "editable_grid", value: 0 });
+		const child = children.open.value!;
+		await children.show(null);
+		edits.undo();
+		await Promise.resolve();
+		expect(children.open.value?.state.doctype).toBe("Task Note Line");
+		expect(child.canvas.working.value.settings.properties.editable_grid).toBe(1);
+		expect([edits.childDoctypes(), edits.staged.value]).toEqual([[], []]);
+	});
+
+	it("sends the parent's call with the modified a child's Settings save moved it to", async () => {
+		const { children } = mount();
+		answers(line());
+		await children.show("lines");
+		await acts.run("settings.set_doctype_property", { property: "editable_grid", value: 0 });
+		await children.show(null);
+		await acts.run("fields.set_field_property", bold("subject"));
+		answers({ ...saved, parents: { "Task Note": { was: VERSION.doctype, now: "2026-11-13 10:05:00" } } }, saved);
+		await acts.run("editor.save");
+		expect(runMethod.mock.calls.slice(-2).map(([, args]) => [args.doctype, args.base_version.doctype])).toEqual([
+			["Task Note Line", LINE_VERSION.doctype],
+			["Task Note", "2026-11-13 10:05:00"],
+		]);
+	});
+
+	it("keeps a new child a child table: its Settings tab has no kind row", async () => {
+		const { children } = mount();
+		await acts.run("fields.add_field", { label: "Steps", fieldtype: "Table" });
+		await acts.run("fields.add_child_table", { name: "Task Note Step", table_field: "steps" });
+		await children.show("steps");
+		const keys = settingRows(children.open.value!.canvas.working.value.settings).map((row) => row.key);
+		expect(keys).toContain("editable_grid");
+		expect(keys).not.toContain("kind");
 	});
 
 	it("nests a new child's edits in a new parent's first save too", async () => {

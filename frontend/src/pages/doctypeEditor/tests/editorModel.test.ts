@@ -103,7 +103,7 @@ describe("editorBase", () => {
 	it("starts from the definition's fields, the Details layout and the description", () => {
 		expect(base.fields.map((field) => field.fieldname)).toEqual(["subject", "status", "due", "notes", "spare"]);
 		expect(tabNames(base)).toEqual(["details", "activity"]);
-		expect(base.description).toBe("Notes on tasks");
+		expect(base.settings.properties.description).toBe("Notes on tasks");
 	});
 
 	it("starts with no tabs when the DocType has no Details layout", () => {
@@ -362,7 +362,7 @@ describe("field acts", () => {
 describe("settings acts", () => {
 	it("sets the DocType's description", () => {
 		const working = replay({ act: "settings.set_doctype_property", property: "description", value: "Task notes" });
-		expect(working.description).toBe("Task notes");
+		expect(working.settings.properties.description).toBe("Task notes");
 	});
 
 	it("refuses an act it does not know", () => {

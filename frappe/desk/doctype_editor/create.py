@@ -10,6 +10,7 @@ from frappe.desk.doctype_editor.design_state import EditorLayout
 from frappe.desk.doctype_editor.errors import EditError
 from frappe.desk.doctype_editor.mode import design_refusal
 from frappe.desk.doctype_editor.save import DesignSave
+from frappe.desk.doctype_editor.settings_edits import KIND_PROPERTIES
 from frappe.desk.doctype_editor.versions import base_version
 
 
@@ -43,6 +44,15 @@ class DoctypeCreate:
 		self.name = definition.get("name")
 		self.layout = layout
 		self.edits = edits
+		self.fold_kind()
+
+	def fold_kind(self):
+		"""The kind goes into the insert: a saved DocType's save never changes it."""
+		parent = self.edits if isinstance(self.edits, list) else self.edits.get(self.name) or []
+		for edit in parent:
+			if isinstance(edit, dict) and edit.get("act") == "settings.set_doctype_property":
+				if edit.get("property") in KIND_PROPERTIES:
+					self.definition[edit["property"]] = edit.get("value")
 
 	def run(self) -> dict:
 		if frappe.db.exists("DocType", self.name):
@@ -73,6 +83,7 @@ class DoctypeCreate:
 
 	def save(self) -> dict:
 		save = DesignSave(self.name, base_version(self.name), self.edits)
+		save.state.created = True
 		if self.layout:
 			tabs = parse_layout(frappe.as_json(self.layout))
 			save.state.layouts_of("Details").append(EditorLayout("Details", "Details", tabs))

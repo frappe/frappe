@@ -9,6 +9,7 @@ import type { DesignCanvas, SaveError } from "./designCanvas";
 import { EditRefused, fieldsOffLayout } from "./editorModel";
 import type { BaseVersion, Edit, PendingEdits } from "./pendingEdits";
 import { saveSummary } from "./saveSummary";
+import { rowOf } from "./settingsRows";
 
 export type SaveOffer = "editor.reload_and_reapply" | "editor.write_files_again" | "editor.open_list";
 
@@ -55,6 +56,8 @@ export interface SaveHost {
 	children?: Pick<ChildTables, "saves" | "saved" | "loaded" | "canvasOf" | "clearErrors" | "rebaseAppLayouts">;
 	/** Opens a child table's editor, to mark its refused edits there. */
 	showChild?: (doctype: string) => Promise<DesignCanvas | null>;
+	/** Opens a setting's section on the Settings tab and flashes its row. */
+	findSetting: (key: string) => void;
 }
 
 export { CREATE_METHOD, SAVE_METHOD };
@@ -269,9 +272,8 @@ export class EditorSave {
 		}
 		const marked = [...targets].map(([target, own]) => markErrors(target, own));
 		const messages = marked.flatMap(({ unmarked }) => unmarked);
-		if (marked.some(({ placed }) => placed) && !messages.length) {
-			messages.push(__("Fix what is marked on the form, then save again."));
-		}
+		const note = this.showSetting(shown, targets.get(shown) ?? []) ?? __("Fix what is marked on the form, then save again.");
+		if (marked.some(({ placed }) => placed) && !messages.length) messages.push(note);
 		const written = result.written ?? [];
 		if (written.length) {
 			messages.push(__("Part of the save is written: {0}. Reload to see it.", [written.join(", ")]));
@@ -284,6 +286,16 @@ export class EditorSave {
 			offers: stale || written.length ? ["editor.reload_and_reapply"] : [],
 			failed: true,
 		};
+	}
+
+	/** With no field marked on `canvas`, opens the first marked setting's row in Settings. */
+	private showSetting(canvas: DesignCanvas, errors: SaveError[]): string | null {
+		if (errors.some((error) => error.target.kind === "field" && marks(canvas, error))) return null;
+		const setting = errors.find((error) => error.target.kind === "setting");
+		const row = setting && rowOf(canvas.working.value.settings, setting.target.property!);
+		if (!row) return null;
+		this.host.findSetting(row.key);
+		return __("Fix what is marked in Settings, then save again.");
 	}
 
 	private rebaseAppLayouts(appLayouts: Record<string, string>) {
@@ -302,10 +314,11 @@ function markErrors(canvas: DesignCanvas, errors: SaveError[]): { placed: boolea
 	return { placed: marked.length > 0, unmarked };
 }
 
-/** A field or section error the canvas draws at its target; the rest go to the banner. */
+/** A field, section or setting error drawn at its target; the rest go to the banner. */
 function marks(canvas: DesignCanvas, error: SaveError): boolean {
-	const { kind, fieldname, container } = error.target;
+	const { kind, fieldname, container, property } = error.target;
 	if (kind === "field") return Boolean(fieldname && canvas.field(fieldname));
+	if (kind === "setting") return Boolean(property && rowOf(canvas.working.value.settings, property));
 	if (kind !== "container" || !container) return false;
 	// Column names repeat across sections, so only a section shows its error in place.
 	return canvas.tabs.value.some((tab) => tab.sections.some((section) => section.name === container));

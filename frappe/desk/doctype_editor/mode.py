@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-"""Who may open the DocType editor in each mode."""
+"""Who may open the DocType editor in each mode, and who may change permissions in it."""
 
 import frappe
 from frappe import _
@@ -39,4 +39,11 @@ def design_refusal(custom: bool | int) -> str | None:
 		return _("Design mode needs the System Manager role.")
 	if not custom and not frappe.conf.developer_mode:
 		return _("Design mode on a standard DocType needs developer mode.")
+	return None
+
+
+def permissions_refusal() -> str | None:
+	"""As v1's Role Permissions Manager: writing Customize Form is not enough to change who may do what."""
+	if "System Manager" not in frappe.get_roles():
+		return _("Only a System Manager can change permissions.")
 	return None

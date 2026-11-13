@@ -49,11 +49,13 @@
 						:save="save"
 						:customize="customizeRoute"
 					/>
-					<ChildSettings
-						v-else-if="tab === 'settings' && openChild"
-						:session="openChild"
+					<SettingsTab
+						v-else-if="tab === 'settings' && shown"
+						:key="shown.state.doctype"
+						v-model:place="settingsPlace"
+						:canvas="shown"
+						:customize="customizeRoute"
 					/>
-					<SettingsTab v-else-if="tab === 'settings'" />
 					<RowDialogPreview
 						v-else-if="openChild"
 						:canvas="openChild.canvas"
@@ -77,7 +79,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue";
+import {
+	computed,
+	defineAsyncComponent,
+	inject,
+	onBeforeUnmount,
+	reactive,
+	ref,
+	shallowRef,
+	watch,
+} from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { ScrollArea, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
@@ -93,7 +104,6 @@ import { shellDialog } from "@/shell/dialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import { useUnloadGuard } from "@/unloadGuard";
-import ChildSettings from "./ChildSettings.vue";
 import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
 import EditorPanel from "./EditorPanel.vue";
@@ -122,8 +132,11 @@ import PreviewTab from "./PreviewTab.vue";
 import { confirmModeSwitch, guardRouteUpdate } from "./modeSwitch";
 import ModeSwitchDialog from "./ModeSwitchDialog.vue";
 import RowDialogPreview from "./RowDialogPreview.vue";
-import SettingsTab from "./SettingsTab.vue";
+import { SETTING_ROWS } from "./settingsRows";
+import type { SettingsPlace } from "./settingsView";
 import { useChildTables } from "./useChildTables";
+
+const SettingsTab = defineAsyncComponent(() => import("./SettingsTab.vue"));
 
 const route = useRoute();
 const router = useRouter();
@@ -134,6 +147,7 @@ const state = shallowRef<EditorState | null>(null);
 const canvas = shallowRef<DesignCanvas | null>(null);
 const pageState = shallowRef<PageStateValue | null>(null);
 const tab = ref<EditorTab>("editor");
+const settingsPlace = ref<SettingsPlace>({ section: "", found: null });
 const previewName = ref<string | null>(null);
 const latest = ref<string[]>([]);
 // `/doctype/new`'s first answers, once a duplicate's source has loaded.
@@ -157,6 +171,7 @@ const save = new EditorSave({
 	created,
 	children: child.tables,
 	showChild: child.showChild,
+	findSetting,
 });
 // The DocType a first save just made: its editor is already open when the route moves to it.
 let justCreated: string | null = null;
@@ -166,6 +181,7 @@ useEditorActs({
 	tab,
 	canvas: () => shown.value,
 	find,
+	findSetting,
 	previewRecord: (record) => (previewName.value = record),
 	save,
 	openList,
@@ -300,6 +316,13 @@ function find(fieldname: string) {
 	if (!open) return;
 	open.select({ kind: "field", fieldname });
 	if (!open.place(fieldname)) open.trayOpen.value = true;
+}
+
+function findSetting(key: string) {
+	const row = canvas.value && SETTING_ROWS.find((one) => one.key === key);
+	if (!row) return;
+	tab.value = "settings";
+	settingsPlace.value = { section: row.section, found: { key, at: Date.now() } };
 }
 
 async function loadLatest(loaded: EditorState, request: number) {

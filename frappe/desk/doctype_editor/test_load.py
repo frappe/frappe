@@ -10,7 +10,7 @@ from frappe.desk.doctype.form_layout.form_layout import save_form_layout
 from frappe.desk.doctype_editor.customize import get_customizations
 from frappe.desk.doctype_editor.load import get_doctype_editor
 from frappe.desk.doctype_editor.versions import base_version
-from frappe.permissions import add_permission, update_permission_property
+from frappe.permissions import add_permission, setup_custom_perms, update_permission_property
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
 
@@ -231,3 +231,24 @@ class TestDoctypeEditor(IntegrationTestCase):
 			with set_user(self.manager):
 				save_form_layout("Note", "Details", a_tree("title"))
 			self.assertNotEqual(self.open(self.manager, "Note", "Design")["base_version"], before)
+
+	def test_customize_sends_the_app_permissions_beside_the_site_ones(self):
+		setup_custom_perms("ToDo")
+		update_permission_property("ToDo", "All", 0, "export", 1)
+		editor = self.open(self.customizer, "ToDo")
+		self.assertTrue(editor["site_permissions"])
+		[app_row] = [row for row in editor["app_permissions"] if row["role"] == "All"]
+		self.assertEqual(app_row["export"], 0)
+		[site_row] = [row for row in editor["definition"]["permissions"] if row["role"] == "All"]
+		self.assertEqual(site_row["export"], 1)
+
+	def test_design_tells_when_the_site_has_its_own_permissions(self):
+		frappe.db.delete("Custom DocPerm", {"parent": "ToDo"})
+		with developer_mode(True):
+			self.assertFalse(self.open(self.manager, "ToDo", "Design")["site_permissions"])
+			setup_custom_perms("ToDo")
+			editor = self.open(self.manager, "ToDo", "Design")
+		self.assertTrue(editor["site_permissions"])
+		self.assertNotIn("app_permissions", editor)
+		self.assertIn("track_seen", editor["settable_properties"])
+		self.assertNotIn("track_seen", self.open(self.customizer, "ToDo")["settable_properties"])

@@ -24,10 +24,11 @@ def base_version(doctype: str) -> dict:
 
 
 def customizations_version(doctype: str) -> str:
-	"""Custom Field and Property Setter writes leave the DocType's `modified` alone; names count deletes."""
+	"""Custom Field, Property Setter and Custom DocPerm writes leave the DocType's `modified` alone; names count deletes."""
 	rows = [
 		*frappe.get_all("Custom Field", filters={"dt": doctype}, fields=["name", "modified"]),
 		*frappe.get_all("Property Setter", filters={"doc_type": doctype}, fields=["name", "modified"]),
+		*frappe.get_all("Custom DocPerm", filters={"parent": doctype}, fields=["name", "modified"]),
 	]
 	pairs = sorted((row.name, str(row.modified)) for row in rows)
 	return hashlib.sha256(frappe.as_json(pairs).encode()).hexdigest()

@@ -28,6 +28,7 @@ export function pendingChild(name: string, parent: EditorState): EditorState {
 		definition: { name, module: parent.module, custom: parent.custom, istable: 1, editable_grid: 1, allow_bulk_edit: 1, fields: [] },
 		parents: [],
 		pending: true,
+		kind_fixed: true,
 	};
 }
 
