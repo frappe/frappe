@@ -649,7 +649,9 @@ class PrintDesignerConverter:
 
 	def flatten(self, elements) -> list[dict]:
 		flat = []
-		for element in sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))):
+		for element in sorted(
+			self.printed(elements), key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))
+		):
 			if element.get("type") == "rectangle":
 				inner = self.flatten(element.get("childrens") or [])
 				if line := self.rule(element):
