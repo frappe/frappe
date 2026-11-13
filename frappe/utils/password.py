@@ -80,6 +80,54 @@ def remove_encrypted_password(doctype, name, fieldname="password"):
 	frappe.db.delete("__Auth", {"doctype": doctype, "name": name, "fieldname": fieldname})
 
 
+<<<<<<< HEAD
+=======
+def is_password_reused(user, pwd, doctype="User", fieldname="password"):
+	"""Return True if pwd matches the stored password for user, else False."""
+	result = (
+		frappe.qb.from_(Auth)
+		.select(Auth.password)
+		.where(
+			(Auth.doctype == doctype)
+			& (Auth.name == user)
+			& (Auth.fieldname == fieldname)
+			& (Auth.encrypted == 0)
+		)
+		.limit(1)
+		.run(as_dict=True)
+	)
+
+	return bool(result and verify_password(pwd, result[0].password)[0])
+
+
+@lru_cache(maxsize=1)
+def _placeholder_hash() -> str:
+	return passlibctx.hash(frappe.generate_hash())
+
+
+def verify_against_placeholder(pwd):
+	"""Spend the time of a real verification, so a missing password cannot be told from a wrong one."""
+	verify_password(pwd, _placeholder_hash())
+
+
+def has_password(user: str) -> bool:
+	"""Whether a password is stored for the user. Passwords are hashed rows, which
+	`get_decrypted_password` does not read."""
+	return bool(
+		frappe.qb.from_(Auth)
+		.select(Auth.name)
+		.where(
+			(Auth.doctype == "User")
+			& (Auth.name == user)
+			& (Auth.fieldname == "password")
+			& (Auth.encrypted == 0)
+		)
+		.limit(1)
+		.run()
+	)
+
+
+>>>>>>> 2970ae0 (feat: setup flow for apps, finished at login from the saved region)
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
