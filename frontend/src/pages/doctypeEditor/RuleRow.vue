@@ -115,8 +115,11 @@ async function toggle() {
 	if (open.value) return close();
 	const request = (lastOpened = Symbol());
 	const stop = onDismiss(() => lastOpened === request && (lastOpened = undefined));
-	editor.value ??= (await import("./RuleEditor.vue")).default;
-	stop();
+	try {
+		editor.value ??= (await import("./RuleEditor.vue")).default;
+	} finally {
+		stop();
+	}
 	if (open.value || request !== lastOpened) return; // a later click, outside click or Escape during the load wins
 	draft.value = new RuleDraft(props.value, props.codec);
 	release = makeRoomBelow(button.value, PANEL_ROOM);
