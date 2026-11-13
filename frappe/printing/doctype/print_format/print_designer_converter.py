@@ -287,11 +287,12 @@ class PrintDesignerConverter:
 					children.append(stack[0])
 					continue
 				inner, cursor = "", top
-				for element in sorted(stack, key=lambda e: flt(e.get("startY"))):
-					gap = max(flt(element.get("startY")) - cursor, 0)
-					html = "".join(self.element_html(e) for e in self.flatten([element]))
-					inner += f'<div style="margin-top: {round(gap)}px;">{html}</div>'
-					cursor = max(cursor, flt(element.get("startY")) + flt(element.get("height")))
+				for start, end, html, fixed in self.stack_pieces(stack):
+					style = f"margin-top: {round(max(start - cursor, 0))}px;"
+					if fixed and end > max(start, cursor):
+						style += f" min-height: {round(end - max(start, cursor))}px;"
+					inner += f'<div style="{style}">{html}</div>'
+					cursor = max(cursor, end)
 				left = min(flt(e.get("startX")) for e in stack)
 				right = max(flt(e.get("startX")) + flt(e.get("width")) for e in stack)
 				parts.append(
@@ -319,6 +320,15 @@ class PrintDesignerConverter:
 			+ "".join(part for _left, part in sorted(parts, key=lambda p: p[0]))
 			+ "</div>"
 		)
+
+	def stack_pieces(self, stack: list[dict]) -> list[tuple[float, float, str, bool]]:
+		pieces = []
+		for element in sorted(stack, key=lambda e: flt(e.get("startY"))):
+			start, height = flt(element.get("startY")), flt(element.get("height"))
+			html = "".join(self.element_html(e) for e in self.flatten([element]))
+			fixed = element.get("type") in ("text", "rectangle") and not element.get("isDynamicHeight")
+			pieces.append((start, start + height, html, fixed))
+		return pieces
 
 	def stacks(self, elements: list[dict]) -> list[list[dict]]:
 		"""Elements that overlap horizontally, so they print one under the other."""
