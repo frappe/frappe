@@ -213,20 +213,31 @@ export function pendingDoctype(answers: NewDoctype, source?: EditorState | null)
 	};
 }
 
-/** The DocType's insert needs the field a naming series rule reads: it goes first in the first column. */
+/**
+ * The DocType's insert needs the field a naming series rule reads: it goes first in the first column.
+ * A copied layout can lack that column, or its section or tab; the field gets new ones there.
+ */
 function withSeriesField(definition: DoctypeDefinition, layout: LayoutTree) {
 	const needed = String(definition.autoname ?? "").startsWith("naming_series:");
 	if (!needed || definition.fields.some((field) => field.fieldname === "naming_series")) {
 		return { definition, layout };
 	}
-	const [tab, ...tabs] = layout;
-	const [section, ...sections] = tab.sections;
-	const [column, ...columns] = section.columns;
+	const [tab = { name: "details", sections: [] }, ...tabs] = layout;
+	const [section = { name: freeSectionName(layout), columns: [] }, ...sections] = tab.sections;
+	const [column = { name: "column_1", fields: [] }, ...columns] = section.columns;
 	const first = { ...column, fields: ["naming_series", ...column.fields] };
 	return {
 		definition: { ...definition, fields: [seriesField(definition.name), ...definition.fields] },
 		layout: [{ ...tab, sections: [{ ...section, columns: [first, ...columns] }, ...sections] }, ...tabs],
 	};
+}
+
+/** Section names are unique across a layout's tabs. */
+function freeSectionName(layout: LayoutTree): string {
+	const taken = new Set(layout.flatMap((tab) => tab.sections.map((section) => section.name)));
+	let at = 1;
+	while (taken.has(`section_${at}`)) at++;
+	return `section_${at}`;
 }
 
 // The source's record identity, which `as_dict` sends on the DocType and each row; a copy gets its own.

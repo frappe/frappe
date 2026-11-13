@@ -13,6 +13,8 @@ const LAYOUT = [
 	},
 ];
 
+const SERIES_ANSWERS = { name: "Route Note", module: "Desk", custom: true, naming_rule: 'By "Naming Series" field' };
+
 function source(): EditorState {
 	return {
 		doctype: "Task Note",
@@ -92,12 +94,35 @@ describe("a pending DocType", () => {
 	});
 
 	it("gives a duplicate the naming_series field its new rule needs, leaving the source's layout as is", () => {
-		const answers = { name: "Route Note", module: "Desk", custom: true, naming_rule: 'By "Naming Series" field' };
-		const state = pendingDoctype(answers, source());
+		const state = pendingDoctype(SERIES_ANSWERS, source());
 		expect(state.definition.fields.map((field) => field.fieldname)).toEqual(["naming_series", "subject", "status"]);
 		expect(state.definition.fields[0].options).toBe("RN-.#####");
 		expect(state.layouts.Details?.[0].layout[0].sections[0].columns[0].fields).toEqual(["naming_series", "subject", "status"]);
 		expect(LAYOUT[0].sections[0].columns[0].fields).toEqual(["subject", "status"]);
+	});
+
+	it("makes a column for the naming_series field when the duplicate's first tab has no section", () => {
+		const bare = source();
+		bare.layouts.Details![0].layout = [
+			{ name: "empty", sections: [] },
+			{ name: "more", sections: [{ name: "section_1", columns: [{ name: "column", fields: ["subject"] }] }] },
+		];
+		const state = pendingDoctype(SERIES_ANSWERS, bare);
+		expect(state.layouts.Details?.[0].layout[0]).toEqual({
+			name: "empty",
+			sections: [{ name: "section_2", columns: [{ name: "column_1", fields: ["naming_series"] }] }],
+		});
+		expect(bare.layouts.Details![0].layout[0].sections).toEqual([]);
+	});
+
+	it("makes a column for the naming_series field when the duplicate's first section has none", () => {
+		const bare = source();
+		bare.layouts.Details![0].layout = [{ name: "details", sections: [{ name: "main", columns: [] }] }];
+		const state = pendingDoctype(SERIES_ANSWERS, bare);
+		expect(state.layouts.Details?.[0].layout[0].sections[0]).toEqual({
+			name: "main",
+			columns: [{ name: "column_1", fields: ["naming_series"] }],
+		});
 	});
 
 	it("names a duplicate at random when no field can give its name", () => {
