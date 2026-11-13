@@ -575,7 +575,8 @@ def execute(code: str, description: str, read_only: bool = False, *, ctx: ToolCo
 	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
 	- Writes: create, update, delete, run_action, call_api — the same permission-checked tools you call directly.
 	- Also: read_records, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
-	  frappe.sendmail, frappe.get_print, frappe.utils.* (dates, numbers, strings).
+	  frappe.sendmail (no sender: mail goes out from the site's own account), frappe.get_print,
+	  frappe.utils.* (dates, numbers, strings).
 
 	Sandbox limits — code using these FAILS:
 	- No `import`. `frappe` and `frappe.utils` are already in scope; nothing else can be imported.

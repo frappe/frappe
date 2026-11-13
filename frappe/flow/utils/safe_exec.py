@@ -23,6 +23,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.core.utils import html2text
+from frappe.email import sendmail
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.inplacevar import protected_inplacevar
 from frappe.utils.safe_exec import (
@@ -138,8 +139,27 @@ def _gated_enqueue(function: str, **kwargs: Any):
 	return safe_enqueue(function, **kwargs)
 
 
-def _gated_sendmail(*args: Any, attachments: list | None = None, **kwargs: Any):
-	return frappe.sendmail(*args, attachments=[_readable_attachment(a) for a in attachments or []], **kwargs)
+_SENDMAIL = inspect.signature(sendmail)
+
+
+def _gated_sendmail(*args: Any, **kwargs: Any):
+	"""frappe.sendmail without a sender, for the records and files the user may use."""
+	mail = _SENDMAIL.bind(*args, **kwargs).arguments
+	if mail.pop("sender", None):
+		frappe.throw(
+			_("frappe.sendmail takes no sender here: mail goes out from the site's own account."),
+			title=_("Invalid Sender"),
+		)
+	# the record picks the account that sends, and the mail is filed under the communication
+	doctype = mail.get("doctype") or mail.get("reference_doctype")
+	name = mail.get("name") or mail.get("reference_name")
+	if doctype and not frappe.has_permission(doctype, "email", name or None):
+		raise frappe.PermissionError(_("No permission to email {0} {1}").format(doctype, name or ""))
+	communication = mail.get("communication")
+	if communication and not frappe.has_permission("Communication", "read", communication):
+		raise frappe.PermissionError(_("No permission to read Communication {0}").format(communication))
+	mail["attachments"] = [_readable_attachment(a) for a in mail.get("attachments") or []]
+	return frappe.sendmail(**mail)
 
 
 def _readable_attachment(attachment: dict) -> dict:
