@@ -21,6 +21,14 @@ import NotFound from "@/shell/NotFound.vue";
 const RECORD_ROUTES = new Set(["record", "standard-record"]);
 const VIEW_ROUTES = new Set(["list", "standard-list", "saved-view"]);
 
+// Fixed by #45862: the static segment outranks `/:doctype/:name` and `/:module/:doctype`, so a
+// DocType's record page moves to `/doctype/<name>/record`; the list keeps `/doctype`.
+const DOCTYPE_EDITOR = {
+	path: "/doctype/:name",
+	name: "doctype-editor",
+	component: () => import("@/pages/doctypeEditor/DoctypeEditor.vue"),
+};
+
 export function createShellRouter(boot: Boot, addresses: Addresses) {
 	const modular = isModular(boot);
 	warnIgnoredListPages(addresses, boot.app);
@@ -29,6 +37,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 	const router = createRouter({
 		history: createWebHistory(boot.shell_base),
 		routes: [
+			...(boot.app ? [DOCTYPE_EDITOR] : []),
 			// Contributed pages match before generated routes: `/deals` must beat `/:doctype`.
 			...contributedRoutes(boot.app, modular, addresses),
 			...(boot.app ? generatedRoutes(modular) : indexRoutes()),
