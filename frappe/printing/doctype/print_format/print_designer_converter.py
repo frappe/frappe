@@ -481,6 +481,10 @@ class PrintDesignerConverter:
 			if children and all(
 				c.get("type") == "rectangle" and c.get("layoutType") == "column" for c in children
 			):
+				if any(flt(c.get("width")) < 1 and c.get("childrens") for c in children):
+					self.notes.append(
+						_("A column with no width was left out, as Print Designer did not print it.")
+					)
 				return [
 					{
 						"label": "",
@@ -488,6 +492,7 @@ class PrintDesignerConverter:
 						"fields": self.element_fields(c, flt(c.get("width"))),
 					}
 					for c in sorted(children, key=lambda c: flt(c.get("startX")))
+					if flt(c.get("width")) >= 1
 				]
 			row = children
 			top = 0
