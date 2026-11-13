@@ -13,6 +13,8 @@ from frappe.utils import cint, escape_html, flt
 
 PX_PER_MM = 96 / 25.4
 TABLE_TEXT_SCALE = 0.9
+COLUMN_PADDING = 15
+SIDE_MARGIN = re.compile(r"margin-(left|right):\s*(-?\d+(?:\.\d+)?)%;\s*")
 JINJA = re.compile(r"{{|{%")
 CSS_PROPERTIES = {
 	"fontSize": "font-size",
@@ -302,8 +304,10 @@ class PrintDesignerConverter:
 	def zone(self, elements, height=0) -> dict:
 		earlier_notes = len(self.notes)
 		sections = self.sections(elements)
+		gap = None
 		if len(sections) == 1:
 			columns = sections[0]["columns"]
+			gap = sections[0].get("gap")
 		elif all(len(s["columns"]) == 1 for s in sections):
 			fields = []
 			for section in sections:
@@ -331,7 +335,7 @@ class PrintDesignerConverter:
 						"height": round(height - bottom),
 					}
 				)
-		return {"columns": columns}
+		return {"columns": columns} if gap is None else {"columns": columns, "gap": gap}
 
 	def row_html(self, row: list[dict], total: float = 0) -> str:
 		total = total or self.content_width()
@@ -420,6 +424,7 @@ class PrintDesignerConverter:
 		for row in self.overlapping_rows(elements):
 			top = min(flt(e.get("startY")) for e in row)
 			section = {"label": "", "columns": self.columns(row, top if sections else 0)}
+			tile_columns(section, self.content_width())
 			gap = top - previous_bottom
 			if sections and gap > 4:
 				section["margin"] = {"top": round(gap), "right": 0, "bottom": 0, "left": 0}
@@ -946,6 +951,31 @@ class PrintDesignerConverter:
 		if custom := css(rest):
 			props["custom_style"] = custom
 		return props
+
+
+def tile_columns(section, total):
+	columns = section["columns"]
+	if len(columns) < 2:
+		return
+	section["gap"] = 0
+	last = len(columns) - 1
+	for i, column in enumerate(columns):
+		pad_left = COLUMN_PADDING if i > 0 else 0
+		pad_right = COLUMN_PADDING if i < last else 0
+		outer = flt(column.get("width")) / 100 * total
+		column["width"] = round(max(outer - pad_left - pad_right, 1) / total * 100, 2)
+		for field in column["fields"]:
+			style = (field.get("custom_style") or "").strip()
+			margin = {"left": -pad_left, "right": -pad_right}
+			for side, value in SIDE_MARGIN.findall(style):
+				margin[side] += flt(value) / 100 * outer
+			style = SIDE_MARGIN.sub("", style).strip()
+			if style and not style.endswith(";"):
+				style += ";"
+			margins = (
+				f"margin-left: {round(margin['left'], 1)}px; margin-right: {round(margin['right'], 1)}px;"
+			)
+			field["custom_style"] = f"{style} {margins}".strip()
 
 
 def add_gap(node, gap):
