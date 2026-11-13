@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div v-if="shown">
 		<Checkbox :model-value="enabled" :label="label" @update:model-value="save" />
 		<ErrorMessage class="mt-1" :message="error" />
 	</div>
@@ -24,12 +24,16 @@ const enabled = ref(true);
 const saving = ref(false);
 const error = ref("");
 
+// Hidden for a user who may not read the setting, who could not change it either.
+const shown = ref(true);
+
 onMounted(async () => {
 	const value = await call("frappe.client.get_single_value", {
 		doctype: "System Settings",
 		field: "enable_telemetry",
-	}).catch(() => 1);
-	if (!saving.value) enabled.value = Boolean(Number(value));
+	}).catch(() => null);
+	if (value === null) shown.value = false;
+	else if (!saving.value) enabled.value = Boolean(Number(value));
 });
 
 async function save(share: boolean) {
