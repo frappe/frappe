@@ -131,6 +131,21 @@ describe("SetupFlow", () => {
     );
   });
 
+  it("moves once on a double click, and finishes once", async () => {
+    const { el, finished, slot } = await mountFlow();
+
+    slot().done();
+    slot().done();
+    await nextTick();
+    expect(el.textContent).toContain("invite");
+    expect(finished).toEqual([]);
+
+    slot().done();
+    slot().skip();
+    await nextTick();
+    expect(finished).toHaveLength(1);
+  });
+
   it("lets the host place Back itself", async () => {
     const { el, slot } = await mountFlow(
       [{ name: "goal" }, { name: "invite" }],

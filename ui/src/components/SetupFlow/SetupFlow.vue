@@ -119,7 +119,12 @@ function back() {
 	current.value--;
 }
 
+// A second click while the step changes, or after the end, must not move again.
+let moving = false;
+watch(current, () => (moving = false));
+
 function done(details: Record<string, unknown> = {}) {
+	if (moving) return;
 	const step = props.steps[current.value].name;
 	status[step] = "completed";
 	capture("setup_step_completed", { step, time_on_step_s: seconds(stepStartedAt), ...details });
@@ -127,6 +132,7 @@ function done(details: Record<string, unknown> = {}) {
 }
 
 function skipStep() {
+	if (moving) return;
 	const step = props.steps[current.value];
 	if (status[step.name] === "completed") return advance();
 	if (step.required) return;
@@ -141,6 +147,7 @@ const nextRequired = (after: number) =>
 	props.steps.findIndex((s, i) => i > after && s.required && status[s.name] !== "completed");
 
 function advance() {
+	moving = true;
 	if (skipping) {
 		const required = nextRequired(current.value);
 		if (required === -1) finish(true);
