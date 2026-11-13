@@ -303,7 +303,11 @@ def source_fingerprint(dt: str, type: str) -> str:
 	app_layouts = read_source_app_layouts(dt, type)
 	if app_layouts:
 		return app_layouts.version
-	fallback = get_quick_entry_layout(dt, custom=False) if type == "Quick Entry" else get_meta_layout(dt, custom=False)
+	fallback = (
+		get_quick_entry_layout(dt, custom=False)
+		if type == "Quick Entry"
+		else get_meta_layout(dt, custom=False)
+	)
 	return content_hash(frappe.as_json(fallback).encode())
 
 

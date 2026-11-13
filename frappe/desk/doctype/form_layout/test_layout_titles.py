@@ -70,7 +70,9 @@ class TestLayoutTitlesAndFiles(IntegrationTestCase):
 			get_form_layouts("Note", "Details")
 
 	def test_a_site_default_drops_the_file_and_a_conditional_row_comes_first(self):
-		self.write_file([{"condition": "doc.public", "layout": a_tree("content")}, {"layout": a_tree("title")}])
+		self.write_file(
+			[{"condition": "doc.public", "layout": a_tree("content")}, {"layout": a_tree("title")}]
+		)
 		row = make_layout(condition="doc.title", layout=json.dumps(a_tree("title"))).insert()
 		names = [layout["name"] for layout in get_form_layouts("Note", "Details")["layouts"]]
 		self.assertEqual(names, [row.name, None, None])
