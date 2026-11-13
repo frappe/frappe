@@ -250,7 +250,9 @@ class PrintDesignerConverter:
 			columns = [{"label": "", "fields": fields}]
 		else:
 			del self.notes[earlier_notes:]
-			rows = self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))))
+			rows = self.overlapping_rows(
+				sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
+			)
 			html = "".join(self.row_html(row) for row in rows)
 			columns = [{"label": "", "fields": [self.html_node(html)]}]
 		bottom = max((flt(e.get("startY")) + flt(e.get("height")) for e in elements), default=0)
@@ -278,6 +280,27 @@ class PrintDesignerConverter:
 			else max(flt(e.get("startY")) + flt(e.get("height")) for e in row) - top
 		)
 		parts = []
+		if not compiled:
+			children = []
+			for stack in self.stacks(row):
+				if len(stack) == 1:
+					children.append(stack[0])
+					continue
+				inner, cursor = "", top
+				for element in sorted(stack, key=lambda e: flt(e.get("startY"))):
+					gap = max(flt(element.get("startY")) - cursor, 0)
+					html = "".join(self.element_html(e) for e in self.flatten([element]))
+					inner += f'<div style="margin-top: {round(gap)}px;">{html}</div>'
+					cursor = max(cursor, flt(element.get("startY")) + flt(element.get("height")))
+				left = min(flt(e.get("startX")) for e in stack)
+				right = max(flt(e.get("startX")) + flt(e.get("width")) for e in stack)
+				parts.append(
+					(
+						left,
+						f'<div style="flex: 0 1 {round((right - left) / total * 100, 1)}%; min-width: 0; '
+						f'overflow-wrap: anywhere;">{inner}</div>',
+					)
+				)
 		for child in sorted(children, key=lambda c: flt(c.get("startX"))):
 			inner = "".join(self.element_html(e) for e in self.flatten([child]))
 			nested = child.get("childrens") if child.get("layoutType") == "column" else None
@@ -285,14 +308,29 @@ class PrintDesignerConverter:
 			fits_content = child.get("type") == "text" and not child.get("isFixedSize")
 			basis = "auto" if fits_content else f"{round(flt(child.get('width')) / total * 100, 1)}%"
 			parts.append(
-				f'<div style="flex: 0 1 {basis}; min-width: 0; '
-				f'overflow-wrap: anywhere; padding-top: {round(max(offset, 0))}px;">{inner}</div>'
+				(
+					flt(child.get("startX")),
+					f'<div style="flex: 0 1 {basis}; min-width: 0; '
+					f'overflow-wrap: anywhere; padding-top: {round(max(offset, 0))}px;">{inner}</div>',
+				)
 			)
 		return (
 			f'<div style="display: flex; justify-content: space-between; min-height: {round(height)}px;">'
-			+ "".join(parts)
+			+ "".join(part for _left, part in sorted(parts, key=lambda p: p[0]))
 			+ "</div>"
 		)
+
+	def stacks(self, elements) -> list[list[dict]]:
+		"""Elements that overlap horizontally, so they print one under the other."""
+		stacks = []
+		for element in sorted(elements, key=lambda e: flt(e.get("startX"))):
+			left = flt(element.get("startX"))
+			if stacks and left < stacks[-1][1] - 2:
+				stacks[-1][0].append(element)
+				stacks[-1][1] = max(stacks[-1][1], left + flt(element.get("width")))
+			else:
+				stacks.append([[element], left + flt(element.get("width"))])
+		return [stack for stack, _right in stacks]
 
 	def sections(self, elements) -> list[dict]:
 		elements = sorted(elements or [], key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
