@@ -6,7 +6,7 @@ import functools
 import frappe
 import frappe.share
 from frappe import _, msgprint
-from frappe.app_state import is_module_disabled
+from frappe.app_state import is_disabled_app_filtering_active, is_module_disabled
 from frappe.core.doctype.permission_type.permission_type import get_doctype_ptype_map
 from frappe.query_builder import DocType
 from frappe.utils import cint, cstr
@@ -528,29 +528,62 @@ def get_valid_perms(doctype=None, user=None, roles=None):
 
 	perms = get_perms_for(roles, filters=filters)
 	custom_perms = get_perms_for(roles, "Custom DocPerm", filters=filters)
-
-	doctypes_with_custom_perms = get_doctypes_with_custom_docperms()
-	if doctype and doctype not in doctypes_with_custom_perms:
-		custom_perms.extend(perms)
-
-	elif not doctype:
-		for p in perms:
-			if p["parent"] not in doctypes_with_custom_perms:
-				custom_perms.append(p)
-
-	return custom_perms
+	return apply_custom_perms(perms, custom_perms)
 
 
 def get_all_perms(role):
 	"""Return valid permissions for a given role."""
 	perms = frappe.get_all("DocPerm", fields="*", filters=dict(role=role))
 	custom_perms = frappe.get_all("Custom DocPerm", fields="*", filters=dict(role=role))
-	doctypes_with_custom_perms = frappe.get_all("Custom DocPerm", pluck="parent", distinct=True)
+	return apply_custom_perms(perms, custom_perms)
 
-	for p in perms:
-		if p.parent not in doctypes_with_custom_perms:
-			custom_perms.append(p)
-	return custom_perms
+
+def apply_custom_perms(standard_perms, custom_perms):
+	"""Return the permission rules in effect, given DocPerm rows and Custom DocPerm rows.
+
+	A rule is identified by its DocType, role and permlevel. When a rule has Custom DocPerm rows,
+	they replace its DocPerm rows. Rules without Custom DocPerm rows keep their DocPerm rows.
+	A Custom DocPerm row that grants no permission removes its rule, so it is not returned.
+	Custom DocPerm rows hidden for a disabled app are ignored.
+	"""
+	ignore_disabled_app_rows = is_disabled_app_filtering_active()
+
+	customized_rules = set()
+	effective_perms = []
+
+	for custom_perm in custom_perms:
+		if ignore_disabled_app_rows and custom_perm.get("is_app_disabled"):
+			continue
+
+		customized_rules.add(_get_doctype_role_and_permlevel(custom_perm))
+
+		if _grants_any_permission(custom_perm):
+			effective_perms.append(custom_perm)
+
+	for standard_perm in standard_perms:
+		if _get_doctype_role_and_permlevel(standard_perm) not in customized_rules:
+			effective_perms.append(standard_perm)
+
+	return effective_perms
+
+
+def _get_doctype_role_and_permlevel(perm) -> tuple[str, str, int]:
+	doctype = perm.get("parent")
+	return (doctype, perm.get("role"), cint(perm.get("permlevel")))
+
+
+def _get_permission_types(doctype) -> list[str]:
+	custom_permission_types = get_doctype_ptype_map().get(doctype, [])
+	# `rights` lists the standard permission types,`mask` is a permission column outside it
+	return [*rights, "mask", *custom_permission_types]
+
+
+def _grants_any_permission(perm) -> bool:
+	for permission_type in _get_permission_types(perm.get("parent")):
+		if cint(perm.get(permission_type)):
+			return True
+
+	return False
 
 
 def get_roles(user=None, with_standard=True):
@@ -692,7 +725,7 @@ def update_permission_property(
 	from frappe.core.doctype.custom_docperm.custom_docperm import update_custom_docperm
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
 
-	out = setup_custom_perms(doctype)
+	standard_rule_copied = setup_custom_perms(doctype, role, permlevel)
 
 	custom_docperm = frappe.db.get_value(
 		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel)
@@ -703,14 +736,24 @@ def update_permission_property(
 	if validate:
 		validate_permissions_for_doctype(doctype)
 
-	return out
+	return standard_rule_copied
 
 
-def setup_custom_perms(parent):
-	"""if custom permssions are not setup for the current doctype, set them up"""
-	if not frappe.db.exists("Custom DocPerm", dict(parent=parent)):
-		copy_perms(parent)
-		return True
+def setup_custom_perms(parent, role=None, permlevel=None):
+	"""Copy standard permissions to Custom DocPerm before they are changed.
+
+	Pass `role` and `permlevel` to copy only that rule, so the other rules keep following DocPerm.
+	Return True if this call did the copy, False if the rule was already customized."""
+	rule_filters = {"parent": parent}
+	if role is not None:
+		rule_filters.update(role=role, permlevel=cint(permlevel))
+
+	already_customized = frappe.db.exists("Custom DocPerm", rule_filters)
+	if already_customized:
+		return False
+
+	copy_perms(parent, rule_filters)
+	return True
 
 
 def add_permission(doctype, role, permlevel=0, ptype=None):
@@ -718,11 +761,13 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 	for the given Role and Permission Level"""
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
 
-	setup_custom_perms(doctype)
+	setup_custom_perms(doctype, role, permlevel)
 
-	if frappe.db.get_value(
-		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=0)
-	):
+	custom_perm_for_role = frappe.db.get_value(
+		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=0), "*", as_dict=True
+	)
+	rule_already_exists = bool(custom_perm_for_role) and _grants_any_permission(custom_perm_for_role)
+	if rule_already_exists:
 		frappe.msgprint(
 			_("Rule for this doctype, role, permlevel and if-owner combination already exists.").format(
 				doctype,
@@ -734,18 +779,23 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 	if not ptype:
 		ptype = "read"
 
-	custom_docperm = frappe.get_doc(
-		{
-			"doctype": "Custom DocPerm",
-			"__islocal": 1,
-			"parent": doctype,
-			"parenttype": "DocType",
-			"parentfield": "permissions",
-			"role": role,
-			"permlevel": permlevel,
-			ptype: 1,
-		}
-	)
+	rule_was_removed = custom_perm_for_role is not None
+	if rule_was_removed:
+		custom_docperm = frappe.get_doc("Custom DocPerm", custom_perm_for_role.name)
+		custom_docperm.set(ptype, 1)
+	else:
+		custom_docperm = frappe.get_doc(
+			{
+				"doctype": "Custom DocPerm",
+				"__islocal": 1,
+				"parent": doctype,
+				"parenttype": "DocType",
+				"parentfield": "permissions",
+				"role": role,
+				"permlevel": permlevel,
+				ptype: 1,
+			}
+		)
 
 	custom_docperm.save()
 
@@ -753,12 +803,34 @@ def add_permission(doctype, role, permlevel=0, ptype=None):
 	return custom_docperm.name
 
 
-def copy_perms(parent):
-	"""Copy all DocPerm in to Custom DocPerm for the given document"""
-	for d in frappe.get_all("DocPerm", fields="*", filters=dict(parent=parent)):
+def copy_perms(parent, filters=None):
+	"""Copy the DocPerm rows of `parent` in to Custom DocPerm. Pass `filters` to copy only some of them."""
+	standard_perm_filters = {"parent": parent}
+	if filters:
+		standard_perm_filters.update(filters)
+
+	for standard_perm in frappe.get_all("DocPerm", fields="*", filters=standard_perm_filters):
 		custom_perm = frappe.new_doc("Custom DocPerm")
-		custom_perm.update(d)
+		custom_perm.update(standard_perm)
 		custom_perm.insert(ignore_permissions=True)
+
+
+def add_rule_that_grants_nothing(doctype, role, permlevel):
+	"""Insert a Custom DocPerm row that takes the standard rule of `role` at `permlevel` out of effect."""
+	rule_that_grants_nothing = frappe.new_doc("Custom DocPerm")
+	rule_that_grants_nothing.update(
+		{
+			"parent": doctype,
+			"parenttype": "DocType",
+			"parentfield": "permissions",
+			"role": role,
+			"permlevel": permlevel,
+		}
+	)
+	for permission_type in _get_permission_types(doctype):
+		rule_that_grants_nothing.set(permission_type, 0)
+
+	rule_that_grants_nothing.insert(ignore_permissions=True, ignore_links=True)
 
 
 def reset_perms(doctype):

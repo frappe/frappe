@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.role.role import get_info_based_on_role
 from frappe.tests import IntegrationTestCase
 
@@ -71,3 +72,26 @@ class TestUser(IntegrationTestCase):
 			self.assertIn("test@example.com", [p.parent for p in parents])
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_replicate_role_keeps_access_of_other_roles(self):
+		source_role = frappe.new_doc("Role", role_name=frappe.generate_hash(), desk_access=1).insert().name
+		other_role = frappe.new_doc("Role", role_name=frappe.generate_hash(), desk_access=1).insert().name
+		doctype = (
+			new_doctype(permissions=[{"role": source_role, "read": 1}, {"role": other_role, "read": 1}])
+			.insert()
+			.name
+		)
+		user = frappe.new_doc(
+			"User",
+			email=f"{frappe.generate_hash(length=10)}@example.com",
+			first_name="Replicate",
+			send_welcome_email=0,
+		)
+		user.append("roles", {"role": other_role})
+		user.insert()
+
+		new_role = frappe.get_doc("Role", source_role).replicate_role(source_role, frappe.generate_hash())
+
+		self.assertTrue(frappe.db.exists("Custom DocPerm", {"parent": doctype, "role": new_role}))
+		with self.set_user(user.name):
+			self.assertTrue(frappe.has_permission(doctype, "read"))

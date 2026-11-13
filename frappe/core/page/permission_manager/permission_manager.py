@@ -15,6 +15,8 @@ from frappe.modules.import_file import get_file_path, read_doc_from_file
 from frappe.permissions import (
 	AUTOMATIC_ROLES,
 	add_permission,
+	add_rule_that_grants_nothing,
+	apply_custom_perms,
 	get_all_perms,
 	get_linked_doctypes,
 	reset_perms,
@@ -92,9 +94,11 @@ def get_permissions(doctype: str | None = None, role: str | None = None):
 			custom_roles = frappe.get_all("Role", filters={"is_custom": 1}, pluck="name")
 			filters["role"] = ["not in", custom_roles]
 
-		out = frappe.get_all("Custom DocPerm", fields="*", filters=filters, order_by="permlevel")
-		if not out:
-			out = frappe.get_all("DocPerm", fields="*", filters=filters, order_by="permlevel")
+		out = apply_custom_perms(
+			frappe.get_all("DocPerm", fields="*", filters=filters),
+			frappe.get_all("Custom DocPerm", fields="*", filters=filters),
+		)
+		out.sort(key=lambda d: d.permlevel)
 
 	linked_doctypes = {}
 	for d in out:
@@ -162,7 +166,7 @@ def update(
 @frappe.whitelist()
 def remove(doctype: str, role: str, permlevel: int, if_owner: str | int = 0):
 	frappe.only_for("System Manager")
-	setup_custom_perms(doctype)
+	setup_custom_perms(doctype, role, permlevel)
 
 	custom_docperms = frappe.db.get_values(
 		"Custom DocPerm", {"parent": doctype, "role": role, "permlevel": permlevel, "if_owner": if_owner}
@@ -170,7 +174,16 @@ def remove(doctype: str, role: str, permlevel: int, if_owner: str | int = 0):
 	for name in custom_docperms:
 		frappe.delete_doc("Custom DocPerm", name, ignore_permissions=True, force=True)
 
-	if not frappe.get_all("Custom DocPerm", {"parent": doctype}):
+	rule = {"parent": doctype, "role": role, "permlevel": permlevel}
+	if frappe.db.exists("DocPerm", rule) and not frappe.db.exists("Custom DocPerm", rule):
+		rule = {"parent": doctype, "role": role, "permlevel": permlevel}
+		if frappe.db.exists("DocPerm", rule) and not frappe.db.exists("Custom DocPerm", rule):
+			add_rule_that_grants_nothing(doctype, role, permlevel)
+
+	if not apply_custom_perms(
+		frappe.get_all("DocPerm", fields="*", filters={"parent": doctype}),
+		frappe.get_all("Custom DocPerm", fields="*", filters={"parent": doctype}),
+	):
 		frappe.throw(_("There must be atleast one permission rule."), title=_("Cannot Remove"))
 
 	validate_permissions_for_doctype(doctype, for_remove=True, alert=True)

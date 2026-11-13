@@ -658,7 +658,9 @@ class Meta(Document):
 		self.fields = sorted_fields
 
 	def set_custom_permissions(self):
-		"""Reset `permissions` with Custom DocPerm if exists"""
+		"""Apply Custom DocPerm rules over the standard permissions"""
+		from frappe.permissions import apply_custom_perms
+
 		if frappe.flags.in_patch or frappe.flags.in_install:
 			return
 
@@ -670,11 +672,8 @@ class Meta(Document):
 				update=dict(doctype="Custom DocPerm"),
 			)
 
-			if is_disabled_app_filtering_active():
-				custom_perms = [d for d in custom_perms if not d.get("is_app_disabled")]
-
 			if custom_perms:
-				self.permissions = [Document(d) for d in custom_perms]
+				self.permissions = apply_custom_perms(self.permissions, [Document(d) for d in custom_perms])
 
 	def get_fieldnames_with_value(self, with_field_meta=False, with_virtual_fields=False):
 		def is_value_field(df):

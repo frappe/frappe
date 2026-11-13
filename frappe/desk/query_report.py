@@ -21,7 +21,7 @@ from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
-from frappe.permissions import get_role_permissions, get_roles, has_permission
+from frappe.permissions import get_role_permissions, get_valid_perms, has_permission
 from frappe.utils import cint, cstr, flt, format_datetime, format_duration, formatdate, get_html_format, sbool
 from frappe.utils.caching import request_cache
 
@@ -1146,28 +1146,11 @@ def has_match(
 
 @request_cache
 def has_unrestricted_read_access(doctype, user):
-	roles = get_roles(user)
+	for permission_rule in get_valid_perms(doctype, user):
+		if permission_rule.read and not permission_rule.if_owner:
+			return True
 
-	permission_filters = {
-		"parent": doctype,
-		"role": ["in", roles],
-		"permlevel": 0,
-		"read": 1,
-		"if_owner": 0,
-	}
-
-	standard_perm_exists = frappe.db.exists(
-		"DocPerm",
-		permission_filters,
-	)
-
-	custom_perm_exists = frappe.db.exists(
-		"Custom DocPerm",
-		permission_filters,
-	)
-
-	has_perm = bool(custom_perm_exists or standard_perm_exists)
-	return has_perm
+	return False
 
 
 def get_linked_doctypes(columns, data):
