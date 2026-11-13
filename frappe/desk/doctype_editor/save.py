@@ -118,8 +118,9 @@ class DesignSave:
 		publish_doctype_update(self.doctype)
 
 	def move_renamed_data(self):
+		"""Unvalidated: a table field has no column of its own to check, only its rows' parentfield."""
 		for old, new in self.state.renames:
-			rename_field(self.doctype, old, new)
+			rename_field(self.doctype, old, new, validate=False)
 
 	def roll_back(self):
 		"""A DocType's DDL commits and drops the savepoint; the full rollback then undoes the data move."""
