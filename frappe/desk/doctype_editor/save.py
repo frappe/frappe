@@ -90,6 +90,7 @@ class DesignSave:
 	def write(self) -> list[dict] | None:
 		"""Write in order; a DocType's DDL commits, so a later failure reports what is already written."""
 		self.written: list[str] = []
+		messages = len(frappe.local.message_log)
 		frappe.db.savepoint(WRITE_SAVEPOINT)
 		try:
 			for child in self.state.children.values():
@@ -99,23 +100,31 @@ class DesignSave:
 				self.stage_app_layouts()
 			self.state.doc.save()
 			self.written.append(self.doctype)
-			for old, new in self.state.renames:
-				rename_field(self.doctype, old, new)
+			self.move_renamed_data()
 			if not self.state.standard:
 				self.write_rows()
-		except frappe.ValidationError as e:
+		except Exception as e:
 			self.roll_back()
-			frappe.local.message_log = frappe.local.message_log[:-1]
-			return [EditError(str(e) or _("The save failed.")).as_dict()]
+			del frappe.local.message_log[messages:]
+			if isinstance(e, frappe.ValidationError):
+				return [EditError(str(e) or _("The save failed.")).as_dict()]
+			frappe.log_error(f"DocType editor save of {self.doctype}")
+			return [EditError(_("The save failed.")).as_dict()]
 		publish_doctype_update(self.doctype)
 
+	def move_renamed_data(self):
+		for old, new in self.state.renames:
+			rename_field(self.doctype, old, new)
+
 	def roll_back(self):
-		"""A DocType's DDL commits and drops the savepoint; then only the writes after it roll back."""
+		"""A DocType's DDL commits and drops the savepoint; the full rollback then undoes the data move."""
 		try:
 			frappe.db.rollback(save_point=WRITE_SAVEPOINT)
 			self.written = []
 		except Exception:
 			frappe.db.rollback()
+			if self.doctype in self.written:
+				self.move_renamed_data()
 
 	def stage_app_layouts(self):
 		"""The DocType's export writes these after its own files (`export_app_layouts`)."""

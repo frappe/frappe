@@ -432,6 +432,28 @@ class TestSaveDesign(IntegrationTestCase):
 				self.assertFalse(frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "due"}))
 				self.assertEqual(details_rows(), [])
 
+	def test_a_write_failing_after_the_doctype_saved_keeps_renamed_data(self):
+		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Hello"}).insert()
+		with patch(
+			"frappe.desk.doctype.form_layout.form_layout.FormLayout.validate",
+			side_effect=RuntimeError("disk full"),
+		):
+			result = self.save(
+				[
+					{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "heading"},
+					{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "extra"},
+				]
+			)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"], {"kind": "banner"})
+		# MariaDB and Postgres commit the DocType's DDL; SQLite rolls it back with the rest.
+		kept = frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "heading"})
+		self.assertEqual(bool(kept), frappe.db.db_type != "sqlite")
+		self.assertEqual(result["written"], [DOCTYPE] if kept else [])
+		fieldname = "heading" if kept else "title"
+		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, fieldname), "Hello")
+		self.assertEqual(details_rows(), [])
+
 	def test_a_save_tells_open_desks_once(self):
 		frappe.db.commit()  # nosemgrep: flush the setUp insert's own message
 		with patch("frappe.realtime.emit_via_redis") as emit:
