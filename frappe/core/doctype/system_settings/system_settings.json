@@ -248,7 +248,8 @@
    "fieldname": "submission_queue_timeout",
    "fieldtype": "Int",
    "label": "Submission Queue Timeout",
-   "non_negative": 1
+   "non_negative": 1,
+   "show_description_on_click": 1
   },
   {
    "fieldname": "permissions",
@@ -917,7 +918,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-11-13 12:00:00.000000",
+ "modified": "2026-11-13 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
