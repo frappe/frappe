@@ -103,8 +103,8 @@ class TestFlowTriggerValidation(IntegrationTestCase):
 			({"doc_event": None}, "Doc Event"),
 			(scheduled, "Cron"),
 			({**scheduled, "cron_expression": "this is not cron"}, "cron"),
-			({"condition": "doc.status =="}, "condition"),
-			({"condition": "status = doc.status"}, "result"),  # a script must set result
+			({"condition": "doc.status =="}, "single Python expression"),
+			({"condition": "status = doc.status"}, "single Python expression"),
 			({"prompt_template": "{{ broken"}, "template"),
 		):
 			with self.subTest(overrides), self.assertRaisesRegex(frappe.ValidationError, error):
