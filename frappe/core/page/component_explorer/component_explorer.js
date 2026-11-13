@@ -928,16 +928,16 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Basic (your own actions in the footer)"),
 					items: [
 						{
-							button: { label: "Archive project" },
-							title: "Archive this project?",
-							content: "Its tasks stay readable, but nobody can add to them.",
+							button: { label: __("Archive project") },
+							title: __("Archive this project?"),
+							content: __("Its tasks stay readable, but nobody can add to them."),
 							actions: [
-								{ label: "Cancel", onclick: (e, modal) => modal.hide() },
+								{ label: __("Cancel"), onclick: (e, modal) => modal.hide() },
 								{
-									label: "Archive",
+									label: __("Archive"),
 									variant: "solid",
 									onclick: (e, modal) => {
-										frappe.ui.toast({ message: "Project archived" });
+										frappe.ui.toast({ message: __("Project archived") });
 										modal.hide();
 									},
 								},
@@ -949,27 +949,27 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Sizes"),
 					items: [
 						{
-							button: { label: "Small" },
+							button: { label: __("Small") },
 							size: "small",
-							title: "Small",
-							content: "Narrower than the default.",
+							title: __("Small"),
+							content: __("Narrower than the default."),
 						},
 						{
-							button: { label: "Default" },
-							title: "Default",
-							content: "The width most dialogs use.",
+							button: { label: __("Default") },
+							title: __("Default"),
+							content: __("The width most dialogs use."),
 						},
 						{
-							button: { label: "Large" },
+							button: { label: __("Large") },
 							size: "large",
-							title: "Large",
-							content: "For forms with two columns.",
+							title: __("Large"),
+							content: __("For forms with two columns."),
 						},
 						{
-							button: { label: "Extra large" },
+							button: { label: __("Extra large") },
 							size: "extra-large",
-							title: "Extra large",
-							content: "For forms with three or more columns.",
+							title: __("Extra large"),
+							content: __("For forms with three or more columns."),
 						},
 					],
 				},
@@ -977,10 +977,12 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Centered on the screen"),
 					items: [
 						{
-							button: { label: "Centered" },
+							button: { label: __("Centered") },
 							position: "center",
-							title: "Centered",
-							content: "Sits in the middle of the screen instead of near the top.",
+							title: __("Centered"),
+							content: __(
+								"Sits in the middle of the screen instead of near the top."
+							),
 						},
 					],
 				},
@@ -988,12 +990,12 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Static (Escape and a click outside bounce it)"),
 					items: [
 						{
-							button: { label: "Static" },
+							button: { label: __("Static") },
 							dismissible: "static",
 							show_close_button: false,
-							title: "Static",
-							content: "Only the button closes it.",
-							actions: [{ label: "Done", onclick: (e, modal) => modal.hide() }],
+							title: __("Static"),
+							content: __("Only the button closes it."),
+							actions: [{ label: __("Done"), onclick: (e, modal) => modal.hide() }],
 						},
 					],
 				},
@@ -1001,12 +1003,14 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Events (hide and hidden get the reason)"),
 					items: [
 						{
-							button: { label: "Close me any way" },
-							title: "Events",
-							content: "Press Escape, click outside, use the close button or Done.",
-							actions: [{ label: "Done", onclick: (e, modal) => modal.hide() }],
+							button: { label: __("Close me any way") },
+							title: __("Events"),
+							content: __(
+								"Press Escape, click outside, use the close button or Done."
+							),
+							actions: [{ label: __("Done"), onclick: (e, modal) => modal.hide() }],
 							on_hidden: (reason) =>
-								frappe.ui.toast({ message: `Closed: ${reason}` }),
+								frappe.ui.toast({ message: __("Closed: {0}", [reason]) }),
 						},
 					],
 				},
