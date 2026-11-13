@@ -129,6 +129,7 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
 
     onboardings[appName].forEach((step) => {
       step.completed = value;
+      if (value && !statusLoaded[pendingKey]) queueStep(pendingKey, step.name);
     });
     if (statusLoaded[pendingKey]) saveSteps(value);
 
