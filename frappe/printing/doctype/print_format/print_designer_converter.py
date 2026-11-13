@@ -106,6 +106,17 @@ def converted_font(doc) -> str | None:
 	return text.get("fontFamily") or None
 
 
+def custom_page_size(width_mm: float, height_mm: float, sizes: list[str]) -> dict:
+	from frappe.utils.pdf_generator.browser import PageSize
+
+	short, long = sorted((width_mm, height_mm))
+	for name in sizes:
+		w, h = PageSize.page_sizes.get(name) or (0, 0)
+		if abs(w - short) < 1 and abs(h - long) < 1:
+			return {"size": name, **({"orientation": "Landscape"} if width_mm > height_mm else {})}
+	return {"size": "Custom", "width": round(width_mm, 1), "height": round(height_mm, 1)}
+
+
 def has_side_by_side_overlap(elements: list[dict]) -> bool:
 	"""Two elements share some height but sit next to each other, like text beside a tall image."""
 	for i, a in enumerate(elements):
@@ -183,11 +194,12 @@ class PrintDesignerConverter:
 		page = {}
 		size = (self.settings.get("currentPageSize") or "").lower()
 		sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+		width, height = flt(self.page.get("width")), flt(self.page.get("height"))
 		if match := next((s for s in sizes if s.lower() == size and s != "Custom"), None):
 			page["size"] = match
-		elif size == "custom":
-			self.notes.append(_("The custom paper size was not kept; set the paper size in the editor."))
-		width, height = flt(self.page.get("width")), flt(self.page.get("height"))
+		elif size == "custom" and width and height:
+			page.update(custom_page_size(width / PX_PER_MM, height / PX_PER_MM, sizes))
+			return page
 		if width and height and width > height:
 			page["orientation"] = "Landscape"
 		return page or None
