@@ -374,6 +374,21 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertNotIn("written", result)
 		self.assertFalse(frappe.db.exists("DocType", child))
 
+	def test_a_child_failing_the_document_checks_is_not_written(self):
+		child = f"{DOCTYPE} Item"
+		self.addCleanup(delete_committed, "DocType", child)
+		for field in ({"label": "Qty", "fieldtype": "Bogus"}, {"label": "Q" * 300, "fieldtype": "Int"}):
+			with self.subTest(field=field["label"][:3]):
+				result = self.save(
+					{
+						DOCTYPE: [{"act": "fields.add_child_table", "table_field": "items", "name": child}],
+						child: [{"act": "fields.add_field", "fieldname": "qty", **field}],
+					}
+				)
+				self.assertFalse(result["saved"])
+				self.assertNotIn("written", result)
+				self.assertFalse(frappe.db.exists("DocType", child))
+
 	def test_edits_for_a_doctype_the_save_does_not_add_are_refused(self):
 		result = self.save(
 			{DOCTYPE: [], "ToDo": [{"act": "fields.add_field", "label": "X", "fieldtype": "Data"}]}

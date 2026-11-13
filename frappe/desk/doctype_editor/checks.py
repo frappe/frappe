@@ -27,9 +27,9 @@ class DesignChecks:
 		frappe.db.savepoint(CHECK_SAVEPOINT)
 		try:
 			for child in self.state.children.values():
-				child.doc.run_method("validate")
+				validate(child.doc)
 				child.doc.db_insert()
-			self.state.doc.run_method("validate")
+			validate(self.state.doc)
 		except frappe.ValidationError as e:
 			return [EditError(str(e)).as_dict()]
 		finally:
@@ -74,3 +74,12 @@ class DesignChecks:
 			refuse_field_name(_("Tab"), tab.get("name"), fieldnames, self.state.name)
 			for section in tab["sections"]:
 				refuse_field_name(_("Section"), section.get("name"), fieldnames, self.state.name)
+
+
+def validate(doc):
+	"""The controller's checks, then the document checks a save runs that can fail on editor input."""
+	doc.run_method("validate")
+	doc._validate_mandatory()
+	for each in (doc, *doc.get_all_children()):
+		each._validate_selects()
+		each._validate_length()
