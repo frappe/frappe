@@ -236,6 +236,29 @@ describe("joinLayout — column presentation", () => {
 		});
 		expect(tab.sections[0].columns[1].hideLabel).toBe(false);
 	});
+
+	it("carries a column's depends_on and a section's description and Starts open if", () => {
+		const tree: LayoutTree = [
+			{
+				name: "t",
+				sections: [
+					{
+						name: "s",
+						description: "Shipping details",
+						collapsible: true,
+						collapsibleDependsOn: "eval:doc.ships",
+						columns: [{ name: "c1", dependsOn: "eval:doc.show_c1", fields: [] }],
+					},
+				],
+			},
+		];
+		const [section] = joinLayout(tree, fields)[0].sections;
+		expect(section).toMatchObject({
+			description: "Shipping details",
+			collapsibleDependsOn: "eval:doc.ships",
+		});
+		expect(section.columns[0].dependsOn).toBe("eval:doc.show_c1");
+	});
 });
 
 describe("joinLayout + resolveLayout — the permlevel floor, end to end", () => {

@@ -59,4 +59,22 @@ describe("evaluateDependsOn", () => {
     expect(evaluateDependsOn("eval:parent.qty > 1", { qty: 5 })).toBe(true);
     expect(evaluateDependsOn("eval:parent.qty > 1", { qty: 0 })).toBe(false);
   });
+
+  it("gives eval: desk's in_list", () => {
+    const expression = 'eval:in_list(["Open", "Replied"], doc.status)';
+    expect(evaluateDependsOn(expression, { status: "Open" })).toBe(true);
+    expect(evaluateDependsOn(expression, { status: "Closed" })).toBe(false);
+  });
+
+  it("gives eval: desk's cint", () => {
+    const isOne = (value: unknown) =>
+      evaluateDependsOn("eval:cint(doc.value) === 1", { value });
+    expect(isOne("1")).toBe(true);
+    expect(isOne("001")).toBe(true);
+    expect(isOne("1.9")).toBe(true);
+    expect(isOne(true)).toBe(true);
+    expect(isOne(false)).toBe(false);
+    expect(evaluateDependsOn("eval:cint(doc.value) === 0", { value: "abc" })).toBe(true);
+    expect(evaluateDependsOn("eval:cint(doc.value, 5) === 5", { value: "" })).toBe(true);
+  });
 });

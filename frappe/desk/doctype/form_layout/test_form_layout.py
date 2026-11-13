@@ -318,6 +318,15 @@ class TestContainerProperties(IntegrationTestCase):
 			data("b"),
 		]
 		new_doctype(BREAKS_DT, fields=[data("c"), data("d"), *breaks]).insert(ignore_if_duplicate=True)
+		# SQLite rolls back DDL, so each test's rollback would drop the DocType.
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", BREAKS_DT)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
 
 	def tearDown(self):
 		frappe.db.rollback()

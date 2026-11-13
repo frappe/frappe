@@ -67,5 +67,5 @@ function cint(value: unknown, def?: number): number {
   let text = String(value);
   if (text !== "0") text = text.replace(/^0+/, "");
   const parsed = parseInt(text);
-  return Number.isNaN(parsed) ? def ?? 0 : parsed;
+  return Number.isNaN(parsed) ? (def === undefined ? 0 : def) : parsed;
 }

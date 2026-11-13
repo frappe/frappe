@@ -182,6 +182,33 @@ describe("buildLayoutFromMeta", () => {
     expect(layout[0].sections[0].dependsOn).toBe("eval:doc.show_section");
   });
 
+  it("carries a section's description and Starts open if, and a column's label and depends_on", () => {
+    const layout = buildLayoutFromMeta([
+      field({
+        fieldname: "s",
+        fieldtype: "Section Break",
+        label: "S",
+        description: "Shipping details",
+        collapsible: 1,
+        collapsible_depends_on: "eval:doc.ships",
+      }),
+      field({ fieldname: "a" }),
+      field({
+        fieldname: "c",
+        fieldtype: "Column Break",
+        label: "Right",
+        depends_on: "eval:doc.show_right",
+      }),
+      field({ fieldname: "b" }),
+    ]);
+    const [section] = layout[0].sections;
+
+    expect(section.description).toBe("Shipping details");
+    expect(section.collapsibleDependsOn).toBe("eval:doc.ships");
+    expect(section.columns[1].label).toBe("Right");
+    expect(section.columns[1].dependsOn).toBe("eval:doc.show_right");
+  });
+
   it("maps static read_only to readOnly", () => {
     const layout = buildLayoutFromMeta([
       field({ fieldname: "a", read_only: 1 }),
