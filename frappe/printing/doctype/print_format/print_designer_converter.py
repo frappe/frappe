@@ -7,6 +7,8 @@ import re
 
 import frappe
 from frappe import _
+from frappe.model.naming import append_number_if_name_exists
+from frappe.model.rename_doc import get_link_fields, update_link_field_values
 from frappe.utils import cint, escape_html, flt
 
 PX_PER_MM = 96 / 25.4
@@ -109,6 +111,80 @@ def was_print_designer_format(doc) -> bool:
 		and doc.print_format_builder_beta
 		and (doc.get("print_designer_print_format") or doc.get("print_designer_body"))
 	)
+
+
+@frappe.whitelist(methods=["POST"])
+def duplicate_and_convert(print_format: str) -> dict:
+	"""Save an editor copy of a Print Designer format, for standard formats that
+	cannot be converted in place."""
+	frappe.only_for("System Manager")
+	source = frappe.get_doc("Print Format", print_format)
+	if not is_print_designer_format(source):
+		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
+	values, notes = converted_values(source)
+	copy = frappe.copy_doc(source)
+	copy.update({"standard": "No", **values})
+	copy.insert(
+		set_name=append_number_if_name_exists(
+			"Print Format", _("{0} (Editor)").format(source.name), separator=" "
+		)
+	)
+	if notes:
+		copy.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
+	return {"name": copy.name, "notes": notes, "usage": print_format_usage(source.name)}
+
+
+@frappe.whitelist(methods=["POST"])
+def use_print_format_instead(print_format: str, replacement: str) -> None:
+	"""Point the doctype defaults and every link to a print format at its editor copy."""
+	frappe.only_for("System Manager")
+	source = frappe.get_doc("Print Format", print_format)
+	target = frappe.get_doc("Print Format", replacement)
+	if (
+		target.name == source.name
+		or target.doc_type != source.doc_type
+		or not was_print_designer_format(target)
+	):
+		frappe.throw(
+			_("{0} is not an editor copy of {1}.").format(
+				frappe.bold(replacement), frappe.bold(print_format)
+			),
+			title=_("Cannot Replace"),
+		)
+	update_link_field_values(print_format_link_fields(), source.name, target.name, "Print Format")
+	doctypes = frappe.get_all(
+		"Property Setter", {"property": "default_print_format", "value": source.name}, pluck="doc_type"
+	)
+	frappe.db.set_value(
+		"Property Setter",
+		{"property": "default_print_format", "value": source.name},
+		"value",
+		target.name,
+	)
+	doctypes += frappe.get_all("DocType", {"default_print_format": source.name}, pluck="name")
+	frappe.db.set_value("DocType", {"default_print_format": source.name}, "default_print_format", target.name)
+	for doctype in {*doctypes, source.doc_type}:
+		frappe.clear_cache(doctype=doctype)
+
+
+def print_format_link_fields() -> list[dict]:
+	return [f for f in get_link_fields("Print Format") if f["parent"] != "Customize Form"]
+
+
+def print_format_usage(print_format: str) -> list[str]:
+	"""Where a print format is picked: doctype defaults, and documents or settings that link to it."""
+	defaults = frappe.get_all(
+		"Property Setter", {"property": "default_print_format", "value": print_format}, pluck="doc_type"
+	) + frappe.get_all("DocType", {"default_print_format": print_format}, pluck="name")
+	usage = [_("Default for {0}").format(_(doctype)) for doctype in sorted(set(defaults))]
+	for field in print_format_link_fields():
+		if field["issingle"]:
+			count = int(frappe.db.get_single_value(field["parent"], field["fieldname"]) == print_format)
+		else:
+			count = frappe.db.count(field["parent"], {field["fieldname"]: print_format})
+		if count:
+			usage.append(_("{0}: {1}").format(_(field["parent"]), count))
+	return usage
 
 
 def converted_margins(doc) -> dict:
