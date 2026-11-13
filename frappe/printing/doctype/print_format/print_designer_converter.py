@@ -409,7 +409,15 @@ class PrintDesignerConverter:
 						f'padding-top: {round(flt(element.get("startY")) - top)}px;">{inner}</div>'
 					)
 					cursor = left + flt(element.get("width"))
-				produced = [self.html_node('<div style="display: flex;">' + "".join(parts) + "</div>")]
+				fixed = [
+					flt(e.get("startY")) - top + flt(e.get("height"))
+					for e in band
+					if e.get("type") in ("text", "rectangle") and not e.get("isDynamicHeight")
+				]
+				row_style = (
+					f"display: flex; min-height: {round(max(fixed))}px;" if fixed else "display: flex;"
+				)
+				produced = [self.html_node(f'<div style="{row_style}">' + "".join(parts) + "</div>")]
 			if produced:
 				add_gap(produced[0], top - bottom)
 				fields.extend(produced)
@@ -417,13 +425,20 @@ class PrintDesignerConverter:
 		return fields
 
 	def side_by_side(self, columns) -> dict:
-		parts = []
+		parts, fixed = [], []
 		for column in sorted(columns, key=lambda c: flt(c.get("startX"))):
-			inner = "".join(self.element_html(e) for e in self.flatten(column.get("childrens") or []))
+			children = column.get("childrens") or []
+			inner = "".join(self.element_html(e) for e in self.flatten(children))
 			parts.append(
 				f'<div style="flex: {round(flt(column.get("width")))} 1 0; min-width: 0; overflow-wrap: anywhere;">{inner}</div>'
 			)
-		return self.html_node('<div style="display: flex;">' + "".join(parts) + "</div>")
+			fixed += [
+				flt(c.get("startY")) + flt(c.get("height"))
+				for c in children
+				if c.get("type") in ("text", "rectangle") and not c.get("isDynamicHeight")
+			]
+		row_style = f"display: flex; min-height: {round(max(fixed))}px;" if fixed else "display: flex;"
+		return self.html_node(f'<div style="{row_style}">' + "".join(parts) + "</div>")
 
 	def flatten(self, elements) -> list[dict]:
 		flat = []
