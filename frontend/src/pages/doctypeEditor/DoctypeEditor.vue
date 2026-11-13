@@ -115,6 +115,8 @@ import {
 	type PendingEditsPayload,
 } from "./pendingEdits";
 import PreviewTab from "./PreviewTab.vue";
+import { confirmModeSwitch } from "./modeSwitch";
+import ModeSwitchDialog from "./ModeSwitchDialog.vue";
 import RowDialogPreview from "./RowDialogPreview.vue";
 import SettingsTab from "./SettingsTab.vue";
 import { useChildTables } from "./useChildTables";
@@ -320,6 +322,22 @@ async function confirmLeave() {
 	);
 }
 
+function confirmSwitch() {
+	return confirmModeSwitch({
+		dirty: dirty.value,
+		ask: () =>
+			shellDialog().open(
+				ModeSwitchDialog,
+				{ message: __("This DocType has changes that are not saved.") },
+				{ title: __("Save before you switch?") }
+			),
+		save: async () => {
+			await save.save();
+			return !dirty.value;
+		},
+	});
+}
+
 const socket = getSocketInstance();
 const onExport = (...args: unknown[]) =>
 	save.exported(args[0] as ExportResult).catch((error) => toast.error(errorMessage(error)));
@@ -327,10 +345,9 @@ socket?.on("doctype_export", onExport);
 onBeforeUnmount(() => socket?.off("doctype_export", onExport));
 
 onBeforeRouteLeave(confirmLeave);
-onBeforeRouteUpdate((to, from) =>
-	to.params.name === from.params.name && to.query.mode === from.query.mode
-		? true
-		: confirmLeave()
-);
+onBeforeRouteUpdate((to, from) => {
+	if (to.params.name !== from.params.name) return confirmLeave();
+	return to.query.mode === from.query.mode || confirmSwitch();
+});
 useUnloadGuard(() => dirty.value);
 </script>
