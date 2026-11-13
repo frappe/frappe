@@ -119,7 +119,7 @@ class TestPermissions(IntegrationTestCase):
 		open_perm = frappe.db.get_value("Custom DocPerm", open_rule, ["write", "delete"], as_dict=True)
 		self.assertEqual((owner_perm.write, owner_perm.delete), (1, 0))
 		self.assertEqual((open_perm.write, open_perm.delete), (0, 1))
-		self.assertRaises(frappe.ValidationError, update, doctype, role, 0, "if_owner", 1, 0)
+		self.assertRaises(frappe.ValidationError, update_permission_property, doctype, role, 0, "if_owner", 1)
 
 	def test_owner_only_export_stays_in_can_export(self):
 		role_name = "Test Export Boot Role"

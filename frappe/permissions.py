@@ -694,6 +694,18 @@ def update_permission_property(
 
 	out = setup_custom_perms(doctype)
 
+	if (
+		ptype == "if_owner"
+		and cint(value) != cint(if_owner)
+		and frappe.db.exists(
+			"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=cint(value))
+		)
+	):
+		frappe.throw(
+			_("Rule for this doctype, role, permlevel and if-owner combination already exists."),
+			title=_("Not Allowed"),
+		)
+
 	custom_docperm = frappe.db.get_value(
 		"Custom DocPerm", dict(parent=doctype, role=role, permlevel=permlevel, if_owner=cint(if_owner))
 	)
