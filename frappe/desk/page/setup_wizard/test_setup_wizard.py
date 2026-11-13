@@ -140,7 +140,23 @@ class TestCompleteAppSetup(IntegrationTestCase):
 		)
 
 	def test_a_site_without_a_region_still_gets_the_site_defaults(self):
-		frappe.db.set_single_value("System Settings", "backup_limit", 1)
+		# Like a Frappe Cloud v2 site: no region, so no time zone or formats saved either.
+		fields = ["backup_limit", "time_zone", "date_format", "number_format", "rounding_method"]
+		before = frappe.db.get_singles_dict("System Settings")
+
+		def restore():
+			# A field that had no row falls back to its default; a NULL row would not.
+			for field in fields:
+				if field in before:
+					frappe.db.set_single_value("System Settings", field, before[field])
+				else:
+					frappe.db.delete("Singles", {"doctype": "System Settings", "field": field})
+
+		self.addCleanup(restore)
+		frappe.db.set_single_value(
+			"System Settings",
+			{"backup_limit": 1, "time_zone": None, "date_format": None, "number_format": None},
+		)
 
 		setup_wizard.update_system_settings({})
 
@@ -161,6 +177,8 @@ class TestCompleteAppSetup(IntegrationTestCase):
 
 		self.assertTrue(frappe.db.get_default(setup_wizard.PREFILLED_SETUP_FAILED))
 		self.assertIsNone(setup_wizard.get_prefilled_setup_args())
+		# Kept even when the login was a GET, like an email link.
+		self.assertTrue(frappe.local.flags.commit)
 
 	def test_post_setup_does_not_commit_before_completion_marker(self):
 		with (

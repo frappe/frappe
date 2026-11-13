@@ -111,6 +111,9 @@ def complete_prefilled_setup(login_manager=None):
 		return
 	# A failed setup rolls back; the login's own rows must already be in.
 	frappe.db.commit(chain=True)
+	# A login through an email link is a GET, which the framework rolls back at the end
+	# unless told to keep it: the finished setup, or the note of its failure, must stay.
+	frappe.local.flags.commit = True
 	try:
 		complete_app_setup(**args)
 	except Exception:
@@ -401,37 +404,40 @@ def handle_setup_exception(args):  # nosemgrep
 
 
 def update_system_settings(args):  # nosemgrep
-	# A site set up without a region (Frappe Cloud v2 saves none) still gets the site defaults.
-	values = {
+	defaults = {
 		"float_precision": 3,
 		"rounding_method": "Banker's Rounding",
 		"enable_scheduler": 1 if not frappe.in_test else 0,
 		"backup_limit": 3,  # Default for downloadable backups
 	}
-	if args.get("country"):
-		number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
+	if not args.get("country"):
+		# A site set up without a region (Frappe Cloud v2 saves none) still gets the site
+		# defaults, written directly: saving the doc would insist on a time zone and formats.
+		frappe.db.set_single_value("System Settings", defaults)
+		return
 
-		# replace these as float number formats, as they have 0 precision
-		# and are currency number formats and not for floats
-		if number_format == "#.###":
-			number_format = "#.###,##"
-		elif number_format == "#,###":
-			number_format = "#,###.##"
+	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
 
-		values.update(
-			{
-				"country": args.get("country"),
-				"language": get_language_code(args.get("language")) or "en",
-				"time_zone": args.get("timezone"),
-				"currency": args.get("currency"),
-				"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
-				"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
-				"number_format": number_format,
-			}
-		)
+	# replace these as float number formats, as they have 0 precision
+	# and are currency number formats and not for floats
+	if number_format == "#.###":
+		number_format = "#.###,##"
+	elif number_format == "#,###":
+		number_format = "#,###.##"
 
 	system_settings = frappe.get_doc("System Settings", "System Settings")
-	system_settings.update(values)
+	system_settings.update(
+		{
+			**defaults,
+			"country": args.get("country"),
+			"language": get_language_code(args.get("language")) or "en",
+			"time_zone": args.get("timezone"),
+			"currency": args.get("currency"),
+			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
+			"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
+			"number_format": number_format,
+		}
+	)
 	system_settings.save()
 	if args.get("allow_recording_first_session"):
 		frappe.db.set_default("session_recording_start", now())
