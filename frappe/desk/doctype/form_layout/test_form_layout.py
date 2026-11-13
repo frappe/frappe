@@ -332,7 +332,8 @@ class TestContainerProperties(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_the_fallback_carries_each_break_property(self):
-		tab = get_form_layouts(BREAKS_DT, "Details")["fallback"][1]
+		with set_user(a_manager()):
+			tab = get_form_layouts(BREAKS_DT, "Details")["fallback"][1]
 		section = tab["sections"][0]
 		self.assertEqual((tab["name"], tab["label"], tab["dependsOn"]), ("more", "More", "eval:doc.a"))
 		self.assertEqual(
@@ -353,19 +354,24 @@ class TestContainerProperties(IntegrationTestCase):
 		)
 
 	def test_the_fallback_leaves_unset_properties_out(self):
-		section = get_form_layouts(BREAKS_DT, "Details")["fallback"][0]["sections"][0]
+		with set_user(a_manager()):
+			section = get_form_layouts(BREAKS_DT, "Details")["fallback"][0]["sections"][0]
 		self.assertEqual(
 			section, {"name": "section_1", "columns": [{"name": "column_1", "fields": ["c", "d"]}]}
 		)
 
 	def test_only_a_section_starts_open_on_a_condition(self):
+		def save(tree):
+			return save_form_layout("Note", "Details", json.dumps(tree))
+
 		tab = {"name": "main", "collapsibleDependsOn": "eval:1", "sections": []}
-		self.assertRaises(frappe.ValidationError, make_layout(layout=json.dumps([tab])).insert)
 		column = {"name": "left", "collapsibleDependsOn": "eval:1", "fields": []}
-		tree = [{"name": "main", "sections": [{"name": "terms", "columns": [column]}]}]
-		self.assertRaises(frappe.ValidationError, make_layout(layout=json.dumps(tree)).insert)
 		section = {"name": "terms", "collapsible": 1, "collapsibleDependsOn": "eval:1", "columns": []}
-		make_layout(layout=json.dumps([{"name": "main", "sections": [section]}])).insert()
+		with set_user(a_manager()):
+			self.assertRaises(frappe.ValidationError, save, [tab])
+			tree = [{"name": "main", "sections": [{"name": "terms", "columns": [column]}]}]
+			self.assertRaises(frappe.ValidationError, save, tree)
+			self.assertTrue(save([{"name": "main", "sections": [section]}]))
 
 
 class TestOmittedFields(IntegrationTestCase):

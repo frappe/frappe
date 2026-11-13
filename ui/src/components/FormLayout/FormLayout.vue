@@ -177,11 +177,11 @@ function sectionOpen(tab: { identity: string }, section: Section, index: number)
 	return sections.value[key] ?? startsOpen(key, section) ?? section.opened ?? true;
 }
 
-// "Starts open if" is read once per record, as desk reads it on refresh: read live, it
-// would shut a section while the reader types in it.
+// "Starts open if" is read once per record, as desk reads it on refresh: read live, or on a
+// layout rebuild (a script's field property), it would shut a section the reader types in.
 const firstOpened = new Map<string, boolean | undefined>();
 watch(
-	() => [props.layout, doc.value?.name],
+	() => doc.value?.name,
 	() => firstOpened.clear()
 );
 

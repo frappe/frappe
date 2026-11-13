@@ -203,3 +203,52 @@ describe("sections bound to a host", () => {
     expect(form.state("Notes")).toBe("closed");
   });
 });
+
+describe("a section with Starts open if", () => {
+  const startsOpen = (): FormLayoutSchema => [
+    {
+      name: "details",
+      sections: [
+        section({
+          name: "shipping",
+          label: "Shipping",
+          collapsible: true,
+          collapsibleDependsOn: "eval:!doc.shipped",
+          columns: [{ fields: [{ fieldname: "carrier", fieldtype: "Data", reqd: 1 }] }],
+        }),
+      ],
+    },
+  ];
+
+  function mountStartsOpen() {
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    const layout = ref(startsOpen());
+    const doc = ref<Record<string, any>>({ name: "R-1", shipped: 0 });
+    app = createApp({
+      setup: () => () =>
+        h(FormLayout, {
+          layout: layout.value,
+          doc: doc.value,
+          "onUpdate:doc": (value: any) => (doc.value = value),
+        }),
+    });
+    app.mount(host);
+    const state = () => host!.querySelector(".section-header")!.getAttribute("data-state");
+    return { layout, doc, state };
+  }
+
+  it("keeps its first state through edits and layout rebuilds, and reads again for a new record", async () => {
+    const form = mountStartsOpen();
+    expect(form.state()).toBe("open");
+
+    form.doc.value = { name: "R-1", shipped: 1, carrier: "DHL" };
+    form.layout.value = startsOpen();
+    await nextTick();
+    expect(form.state()).toBe("open");
+
+    form.doc.value = { name: "R-2", shipped: 1, carrier: "DHL" };
+    await nextTick();
+    expect(form.state()).toBe("closed");
+  });
+});
