@@ -44,10 +44,7 @@ def get_customizations(meta: Meta) -> dict:
 			df.fieldname: field_locks(df, app_fields.get(df.fieldname), not_in_list_view) for df in standard
 		},
 		"fieldtype_changes": {df.fieldname: fieldtype_changes(df.fieldtype) for df in standard},
-		"app_permissions": [
-			{key: row.get(key) for key in PERMISSION_COLUMNS}
-			for row in app_doc.permissions
-		],
+		"app_permissions": [{key: row.get(key) for key in PERMISSION_COLUMNS} for row in app_doc.permissions],
 	}
 
 

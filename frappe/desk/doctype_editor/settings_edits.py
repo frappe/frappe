@@ -91,10 +91,24 @@ class SettingsEdits:
 		"""Design adds the naming_series field the rule needs when the DocType has none."""
 		if field := self.state.doc.get("fields", {"fieldname": "naming_series"}):
 			return field[0]
-		self.fields_add_field({"label": _("Series"), "fieldname": "naming_series", "fieldtype": "Select"})
+		self.fields_add_field(
+			{"label": "Series", "fieldname": "naming_series", "fieldtype": "Select", **self.first_column()}
+		)
 		field = self.state.field("naming_series")
 		field.reqd = 1
 		return field
+
+	def first_column(self) -> dict:
+		"""Where the canvas puts the series field: first in the Details layout's first column."""
+		if self.state.type_refusal("Details"):
+			return {}
+		details = {"type": "Details"}
+		tabs = self.state.layout(details).tree.tabs
+		sections = tabs[0]["sections"] if tabs else []
+		if not sections or not sections[0]["columns"]:
+			return {}
+		column = sections[0]["columns"][0]["name"]
+		return {"layout": details, "section": sections[0]["name"], "column": column, "index": 0}
 
 	def permission_rows(self) -> list:
 		return self.state.doc.permissions

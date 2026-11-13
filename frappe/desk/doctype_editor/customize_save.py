@@ -97,7 +97,9 @@ class CustomizeSave(DesignSave):
 		"""Row by row, so the Permission Log names only the rules that changed."""
 		saved = {
 			permission_key(row): row.name
-			for row in frappe.get_all("Custom DocPerm", {"parent": self.doctype}, PERMISSION_COLUMNS[:3] + ("name",))
+			for row in frappe.get_all(
+				"Custom DocPerm", {"parent": self.doctype}, (*PERMISSION_COLUMNS[:3], "name")
+			)
 		}
 		for idx, row in enumerate(self.state.permissions, 1):
 			values = {column: row.get(column) for column in PERMISSION_COLUMNS} | {"idx": idx}
@@ -106,7 +108,9 @@ class CustomizeSave(DesignSave):
 				if any(doc.get(column) != value for column, value in values.items()):
 					doc.update(values).save()
 				continue
-			row.update({"parent": self.doctype, "parenttype": "DocType", "parentfield": "permissions", "idx": idx})
+			row.update(
+				{"parent": self.doctype, "parenttype": "DocType", "parentfield": "permissions", "idx": idx}
+			)
 			row.insert()
 		for name in saved.values():
 			frappe.delete_doc("Custom DocPerm", name, ignore_permissions=True, force=True)

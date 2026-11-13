@@ -130,7 +130,12 @@ class DesignReplay {
 	) {
 		this.tree = new LayoutTreeEditor(state.layout);
 		const { settings, fields } = state;
-		this.settings = new SettingsReplay({ settings, fields, addField: (edit) => this.addField(edit) });
+		this.settings = new SettingsReplay({
+			settings,
+			fields,
+			layout: state.layout,
+			addField: (edit) => this.addField(edit),
+		});
 	}
 
 	apply(edit: FlatEdit) {

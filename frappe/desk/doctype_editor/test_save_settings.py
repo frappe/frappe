@@ -9,7 +9,14 @@ from frappe.desk.doctype_editor.load import get_doctype_editor
 from frappe.desk.doctype_editor.mode import permissions_refusal
 from frappe.desk.doctype_editor.save import save_doctype_editor
 from frappe.desk.doctype_editor.test_load import CUSTOMIZER, a_customizer_role, a_user
-from frappe.desk.doctype_editor.test_save_design import DOCTYPE, delete_committed, make_custom_doctype
+from frappe.desk.doctype_editor.test_save_design import (
+	DOCTYPE,
+	delete_committed,
+	details_rows,
+	make_custom_doctype,
+	omitted,
+	placed,
+)
 from frappe.desk.doctype_editor.versions import base_version
 from frappe.permissions import copy_perms
 from frappe.tests import IntegrationTestCase
@@ -17,6 +24,7 @@ from frappe.tests.classes.context_managers import set_user
 
 NOTE = "Note"
 CREATED = "Test Editor 47277 New"
+WRITER = "Test Editor 47277 Writer"
 SERIES_FIELD = {"fieldname": "naming_series", "label": "Series", "fieldtype": "Select", "options": "T-.###"}
 
 
@@ -28,6 +36,12 @@ def perm(right: str, value: int = 1, role: str = "System Manager", **row) -> dic
 	return {"act": "settings.set_permission", "role": role, "right": right, "value": value, **row}
 
 
+def a_role(name: str) -> str:
+	if not frappe.db.exists("Role", name):
+		frappe.get_doc(doctype="Role", role_name=name).insert(ignore_permissions=True)
+	return name
+
+
 def doc_perm(doctype: str, dt: str, role: str = "System Manager", if_owner: int = 0) -> dict:
 	filters = {"parent": dt, "role": role, "permlevel": 0, "if_owner": if_owner}
 	return frappe.db.get_value(doctype, filters, "*", as_dict=True)
@@ -37,6 +51,7 @@ class TestSaveSettingsDesign(IntegrationTestCase):
 	def setUp(self):
 		make_custom_doctype()
 		self.addCleanup(frappe.delete_doc, "DocType", DOCTYPE, force=True, ignore_missing=True)
+		self.addCleanup(frappe.db.delete, "Form Layout", {"dt": DOCTYPE})
 
 	def save(self, edits: list) -> dict:
 		return save_doctype_editor(DOCTYPE, "Design", base_version(DOCTYPE), edits)
@@ -76,16 +91,16 @@ class TestSaveSettingsDesign(IntegrationTestCase):
 		self.assertTrue(result["saved"], result)
 		field = frappe.get_meta(DOCTYPE, cached=False).get_field("naming_series")
 		self.assertEqual((field.options, field.default), ("T-.####\nU-.####", "U-.####"))
+		self.assertEqual((field.label, field.reqd), ("Series", 1))
+		[row] = details_rows()
+		self.assertEqual(placed(row), ["naming_series", "title"])
+		self.assertEqual(omitted(row), [])
 
 	def test_a_role_gets_read_and_write(self):
-		result = self.save(
-			[
-				{"act": "settings.add_permission", "role": "Blogger"},
-				perm("write", role="Blogger"),
-			]
-		)
+		role = a_role(WRITER)
+		result = self.save([{"act": "settings.add_permission", "role": role}, perm("write", role=role)])
 		self.assertTrue(result["saved"], result)
-		row = doc_perm("DocPerm", DOCTYPE, "Blogger")
+		row = doc_perm("DocPerm", DOCTYPE, role)
 		self.assertEqual((row.read, row.write, row.create), (1, 1, 0))
 
 	def test_a_right_ticks_its_prerequisites_and_unticks_its_dependents(self):
@@ -193,11 +208,15 @@ class TestSaveSettingsCustomize(IntegrationTestCase):
 		"""The refused saves write nothing, so the tearDown's rollback removes the customizer."""
 		customizer = a_user(CUSTOMIZER, a_customizer_role())
 		with set_user(customizer):
-			self.assertEqual(get_doctype_editor(NOTE, "Customize")["permissions_refusal"], permissions_refusal())
+			self.assertEqual(
+				get_doctype_editor(NOTE, "Customize")["permissions_refusal"], permissions_refusal()
+			)
 			for edit in (perm("export", role="Desk User", if_owner=1), {"act": "settings.reset_permissions"}):
 				result = self.save([edit])
 				self.assertFalse(result["saved"])
-				self.assertEqual(result["errors"][0]["target"], {"kind": "setting", "property": "permissions"})
+				self.assertEqual(
+					result["errors"][0]["target"], {"kind": "setting", "property": "permissions"}
+				)
 		self.assertFalse(frappe.db.exists("Custom DocPerm", {"parent": NOTE}))
 		self.assertIsNone(get_doctype_editor(NOTE, "Customize")["permissions_refusal"])
 

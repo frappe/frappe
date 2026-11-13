@@ -2,6 +2,7 @@
 // Each act applies as `frappe/desk/doctype_editor/settings_edits.py` (and, in Customize,
 // `customize_edits.py`) applies it on save.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import type { LayoutTree } from "@/recordPage/formLayoutSource/types";
 import type { EditorState } from "./editorSource";
 import { EditRefused } from "./layoutTree";
 
@@ -61,8 +62,14 @@ export interface SettingsState {
 export interface SettingsHost {
 	settings: SettingsState;
 	fields: RawMetaField[];
-	addField(edit: { act: string; label: string; fieldname: string; fieldtype: string }): void;
+	/** The Details layout the canvas draws. */
+	layout: LayoutTree;
+	addField(edit: SeriesFieldEdit): void;
 }
+
+type SeriesFieldEdit = { act: string; label: string; fieldname: string; fieldtype: string } & Partial<
+	ReturnType<typeof firstColumn>
+>;
 
 /** This mode sets the property; before the first save every property is, and the save checks. */
 export function settable(settings: Pick<SettingsState, "settable">, property: string): boolean {
@@ -194,7 +201,13 @@ export class SettingsReplay {
 		const field = this.host.fields.find((one) => one.fieldname === "naming_series");
 		if (field) return field;
 		if (this.state.app) throw new EditRefused("This DocType has no naming_series field.");
-		this.host.addField({ act: "fields.add_field", label: "Series", fieldname: "naming_series", fieldtype: "Select" });
+		this.host.addField({
+			act: "fields.add_field",
+			label: "Series",
+			fieldname: "naming_series",
+			fieldtype: "Select",
+			...firstColumn(this.host.layout),
+		});
 		const added = this.host.fields.find((one) => one.fieldname === "naming_series")!;
 		added.reqd = 1;
 		return added;
@@ -245,4 +258,12 @@ function appProperties(state: EditorState): Record<string, unknown> {
 function permissionRow(row: Record<string, unknown>): PermissionRow {
 	const rights = Object.fromEntries(RIGHTS.map((right) => [right, row[right] ? 1 : 0]));
 	return { ...rights, role: row.role as string, permlevel: Number(row.permlevel ?? 0), if_owner: row.if_owner ? 1 : 0 } as PermissionRow;
+}
+
+/** Where the canvas puts the series field: first in the Details layout's first column. */
+function firstColumn(layout: LayoutTree) {
+	const section = layout[0]?.sections[0];
+	const column = section?.columns[0];
+	if (!column) return {};
+	return { layout: { type: "Details" }, section: section.name, column: column.name, index: 0 };
 }

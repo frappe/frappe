@@ -15,6 +15,8 @@ def get_series_counters(doctype: str, mode: str, prefixes: str | list[str]) -> d
 	"""Each series prefix's last number, so the editor can show the next name. Reads; never moves a counter."""
 	check_mode(doctype, mode)
 	prefixes = frappe.parse_json(prefixes)
+	if not isinstance(prefixes, list) or not all(isinstance(prefix, str) for prefix in prefixes):
+		frappe.throw(_("Send the series prefixes as a list of text."))
 	if len(prefixes) > MAX_PREFIXES:
 		frappe.throw(_("Ask for at most {0} series at a time.").format(MAX_PREFIXES))
 	current = series_values(prefixes)

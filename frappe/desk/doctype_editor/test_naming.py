@@ -31,3 +31,9 @@ class TestSeriesCounters(IntegrationTestCase):
 	def test_refuses_a_long_list(self):
 		with self.assertRaises(frappe.ValidationError):
 			self.counters(a_user(MANAGER, "System Manager"), [f"P{i}-" for i in range(51)])
+
+	def test_refuses_prefixes_that_are_not_a_list_of_text(self):
+		manager = a_user(MANAGER, "System Manager")
+		for prefixes in ({"ED-47277-": 1}, "ED-47277-", [["ED-47277-"]], [7]):
+			with self.subTest(prefixes=prefixes), self.assertRaises(frappe.ValidationError):
+				self.counters(manager, prefixes)

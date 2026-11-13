@@ -28,7 +28,11 @@ class CustomizeEdits(DesignEdits):
 	properties = CUSTOMIZE_PROPERTIES
 
 	def apply(self, edit: dict):
-		if isinstance(edit, dict) and edit.get("act") in PERMISSION_ACTS and (refusal := permissions_refusal()):
+		if (
+			isinstance(edit, dict)
+			and edit.get("act") in PERMISSION_ACTS
+			and (refusal := permissions_refusal())
+		):
 			raise setting_error(refusal, "permissions")
 		super().apply(edit)
 
