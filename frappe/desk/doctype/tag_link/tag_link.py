@@ -26,7 +26,8 @@ class TagLink(Document):
 
 	def clear_cache(self):
 		super().clear_cache()
-		if has_tags(self.document_type):
+		# Once a doctype has tags the cached value stays true; only "no tags" goes stale
+		if not has_tags(self.document_type):
 			frappe.client_cache.delete_value(f"doctype_has_tags::{self.document_type}")
 
 
@@ -51,6 +52,7 @@ def has_tags(doctype: str):
 	"""Short circuit checks for tags by first checking if users even uses tags"""
 
 	def check_db():
-		return frappe.db.exists("Tag Link", {"document_type": doctype})
+		# client_cache treats None as a miss
+		return bool(frappe.db.exists("Tag Link", {"document_type": doctype}))
 
 	return frappe.client_cache.get_value(f"doctype_has_tags::{doctype}", generator=check_db)
