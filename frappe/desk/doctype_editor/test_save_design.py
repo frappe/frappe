@@ -8,6 +8,7 @@ import tempfile
 from unittest.mock import patch
 
 import frappe
+from frappe.core.doctype.doctype.doctype import write_doctype_files
 from frappe.desk.doctype_editor.rename import rename_field
 from frappe.desk.doctype_editor.save import save_doctype_editor
 from frappe.desk.doctype_editor.versions import base_version
@@ -466,6 +467,26 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 		[message] = [c.args[1] for c in publish.call_args_list if c.args[0] == "doctype_export"]
 		self.assertTrue(message["ok"], message["error"])
 		self.assertEqual(message["app_layouts"], {"Details": base_version("ToDo")["app_layouts"]["Details"]})
+
+	def test_writing_the_files_again_keeps_a_failed_export_s_layouts(self):
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		frappe.local.request = frappe._dict(after_response=CallbackManager())
+		result = save_doctype_editor(
+			"ToDo",
+			"Design",
+			base_version("ToDo"),
+			[{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "extra_47271"}],
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		with patch("frappe.core.doctype.doctype.doctype.DocType.export_doc", side_effect=OSError("disk full")):
+			with self.assertRaises(OSError):
+				frappe.local.request.after_response.run()
+		self.assertFalse(os.path.exists(self.path("ToDo", "Details")))
+
+		write_doctype_files("ToDo")
+		with open(self.path("ToDo", "Details")) as f:
+			[entry] = json.load(f)
+		self.assertEqual(entry["layout"][-1]["name"], "extra_47271")
 
 	def test_an_app_layout_cannot_place_a_site_custom_field(self):
 		fieldname = "custom_editor_47271"

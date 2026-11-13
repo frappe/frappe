@@ -608,6 +608,11 @@ class DocType(Document):
 						self.export_files()
 						run_doctype_module_methods()
 					except Exception as e:
+						if self.flags.app_layouts:
+							# Kept for `write_doctype_files`, which reloads the DocType.
+							frappe.cache.set_value(
+								self.staged_app_layouts_key(), self.flags.app_layouts, expires_in_sec=86400
+							)
 						publish_export_result(self.name, saving_user, e)
 						raise
 					publish_export_result(self.name, saving_user, app_layouts=self.flags.app_layout_versions)
@@ -960,13 +965,18 @@ class DocType(Document):
 		self.export_app_layouts()
 
 	def export_app_layouts(self):
-		"""Write the layout files a save staged in `flags.app_layouts`, a list of layouts per type."""
+		"""Write the layout files a save staged in `flags.app_layouts` (or a failed export kept), per type."""
 		from frappe.desk.doctype.form_layout.app_layout_writer import write_app_layouts
 
+		key = self.staged_app_layouts_key()
 		self.flags.app_layout_versions = {
 			type: write_app_layouts(self.name, type, entries)
-			for type, entries in (self.flags.app_layouts or {}).items()
+			for type, entries in (self.flags.app_layouts or frappe.cache.get_value(key) or {}).items()
 		}
+		frappe.cache.delete_value(key)
+
+	def staged_app_layouts_key(self) -> str:
+		return f"doctype_app_layouts_to_export:{self.name}"
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
