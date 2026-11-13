@@ -241,7 +241,13 @@ class PrintDesignerConverter:
 		if len(sections) == 1:
 			columns = sections[0]["columns"]
 		elif all(len(s["columns"]) == 1 for s in sections):
-			columns = [{"label": "", "fields": [f for s in sections for f in s["columns"][0]["fields"]]}]
+			fields = []
+			for section in sections:
+				section_fields = section["columns"][0]["fields"]
+				if section_fields and (margin := section.get("margin")):
+					add_gap(section_fields[0], flt(margin.get("top")))
+				fields.extend(section_fields)
+			columns = [{"label": "", "fields": fields}]
 		else:
 			del self.notes[earlier_notes:]
 			rows = self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))))
