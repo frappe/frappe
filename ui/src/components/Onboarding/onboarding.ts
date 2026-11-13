@@ -15,8 +15,9 @@ type StoredStep = { name: string; completed: boolean };
 type StoredStatus = Record<string, Record<string, StoredStep[]>>;
 
 const onboardings = reactive<Record<string, OnboardingStep[]>>({});
-// Steps completed before the app has called setUp, such as from a setup page.
-const pending: Record<string, Set<string>> = {};
+// Steps completed before the app has called setUp, such as from a setup page that
+// reloads into the app afterwards. Stored, so that reload does not lose them.
+const pending = useStorage<Record<string, string[]>>("onboardingPending", {});
 // Queued steps are kept until the saved status has loaded, so that load cannot undo them.
 const statusLoaded: Record<string, boolean> = {};
 const onboardingStatus = useStorage<StoredStatus>("onboardingStatus", {});
@@ -35,6 +36,7 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
   // `updateOnboardingStep` and `updateAll` are hoisted function declarations, so
   // TypeScript does not carry the guard above into them. This const does.
   const userId: string = user;
+  const pendingKey = `${userId}:${appName}`;
 
   const isOnboardingStepsCompleted = useStorage(
     "isOnboardingStepsCompleted" + appName + userId,
@@ -96,7 +98,10 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
     if (isOnboardingStepsCompleted.value) return;
 
     if (!onboardings[appName]) {
-      if (value) (pending[appName] ||= new Set()).add(step);
+      if (value) {
+        const queued = (pending.value[pendingKey] ||= []);
+        if (!queued.includes(step)) queued.push(step);
+      }
       return;
     }
 
@@ -161,13 +166,13 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
       step.completed = saved.get(step.name) ?? false;
     });
 
-    const queued = pending[appName];
+    const queued = pending.value[pendingKey];
     queued?.forEach((name) => {
       const step = onboardings[appName].find((s) => s.name === name);
       if (step) step.completed = true;
     });
-    if (queued?.size) saveSteps();
-    if (statusLoaded[appName]) delete pending[appName];
+    if (queued?.length) saveSteps();
+    if (statusLoaded[appName]) delete pending.value[pendingKey];
 
     // Finished stays finished: a checklist the user completed does not reopen when
     // the app later renames or adds steps.
