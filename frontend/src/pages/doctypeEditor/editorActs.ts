@@ -115,7 +115,7 @@ function settingsItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		label: __(label),
 		palette: false,
 		when: () => Boolean(host.canvas()),
-		run: (_context, keys: Record<string, unknown>) => stageSetting(host.canvas()!, { ...keys, act: `settings.${name}` }),
+		run: (_context, keys: Keys | Keys[]) => stageSetting(host.canvas()!, `settings.${name}`, keys),
 	}));
 }
 
@@ -129,13 +129,19 @@ const SETTINGS_ACTS: [string, string][] = [
 	["reset_permissions", "Reset to app permissions"],
 ];
 
-/** The description sits in the header, so its undo stays on the Editor tab; Customize sets settings on a read-only canvas. */
-function stageSetting(canvas: DesignCanvas, edit: FlatEdit) {
-	if (edit.property === "description") {
+type Keys = Record<string, unknown>;
+
+/**
+ * A list of keys stages as one undo step, as a naming rule's two properties. The description sits
+ * in the header, so its undo stays on the Editor tab; Customize sets settings on a read-only canvas.
+ */
+function stageSetting(canvas: DesignCanvas, act: string, keys: Keys | Keys[]) {
+	const edits: FlatEdit[] = (Array.isArray(keys) ? keys : [keys]).map((one) => ({ ...one, act }));
+	if (edits.some((edit) => edit.property === "description")) {
 		if (!canvas.editable) throw new EditRefused("{0} is not a DocType setting the editor sets.", ["description"]);
-		return canvas.stage(edit);
+		return canvas.stage(...edits);
 	}
-	canvas.stageSettings(edit);
+	canvas.stageSettings(...edits);
 }
 
 function navigationItems(host: EditorActsHost): ActItem<EditorActsHost>[] {

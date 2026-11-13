@@ -124,9 +124,9 @@ export class DesignCanvas {
 		return saved ? (this.state.value_counts[saved] ?? 0) : 0;
 	}
 
-	errorsAt(kind: "field" | "container", name: string): string[] {
+	errorsAt(kind: "field" | "container" | "setting", name: string): string[] {
 		return this.errors.value
-			.filter(({ target }) => target.kind === kind && (target.fieldname ?? target.container) === name)
+			.filter(({ target }) => target.kind === kind && (target.fieldname ?? target.container ?? target.property) === name)
 			.map((error) => error.message);
 	}
 
