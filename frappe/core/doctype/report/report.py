@@ -145,6 +145,7 @@ class Report(Document):
 
 	def before_export(self, doc):
 		doc.prepared_report = 0
+		doc.site_print_defaults = 0
 
 	def on_trash(self):
 		if self.is_standard == "Yes":
