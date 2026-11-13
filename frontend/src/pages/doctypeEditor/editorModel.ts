@@ -1,7 +1,6 @@
 // The Design editor's working state: what the editor loaded, with the staged edits replayed on a
 // copy. Each act applies as `frappe/desk/doctype_editor/design_edits.py` applies it on save.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
-import type { LayoutTree } from "@/recordPage/formLayoutSource/types";
 import { addChildTable, reorderField } from "./childReplay";
 import {
 	appValue,
@@ -11,10 +10,12 @@ import {
 	refuseStandard,
 	type CustomizeRules,
 } from "./customizeRules";
-import { detailsLayout, type EditorState } from "./editorSource";
+import type { EditorState } from "./editorSource";
 import { fieldnameFromLabel, LAYOUT_BREAKS, validFieldname } from "./fieldRules";
+import { LayoutReplay } from "./layoutReplay";
 import { EditRefused, LayoutTreeEditor } from "./layoutTree";
 import { settingsBase, SettingsReplay, type SettingsState } from "./settingsModel";
+import { loadedLayouts, tabsOf, type LayoutRef, type LayoutsHolder } from "./workingLayouts";
 
 export { EditRefused } from "./layoutTree";
 
@@ -24,12 +25,10 @@ export interface FlatEdit {
 	[key: string]: unknown;
 }
 
-export interface WorkingState {
-	doctype: string;
-	standard: boolean;
-	fields: RawMetaField[];
-	/** The Details layout the canvas draws. */
-	layout: LayoutTree;
+/** The default Details layout. */
+export const DETAILS: LayoutRef = { type: "Details" };
+
+export interface WorkingState extends LayoutsHolder {
 	/** The Settings tab's part, description included. */
 	settings: SettingsState;
 	/** The fieldnames the database has; a rename or delete checks against them. */
@@ -52,9 +51,11 @@ export function editorBase(state: EditorState): WorkingState {
 	const { definition } = state;
 	return {
 		doctype: state.doctype,
+		mode: state.mode,
 		standard: !state.custom,
+		definition: { istable: definition.istable, issingle: definition.issingle },
 		fields: definition.fields,
-		layout: detailsLayout(state)?.layout ?? [],
+		layouts: loadedLayouts(state, !state.custom),
 		settings: settingsBase(state),
 		saved: definition.fields.map((field) => field.fieldname),
 		renames: [],
@@ -69,9 +70,13 @@ export function workingState(base: WorkingState, edits: readonly FlatEdit[]): Wo
 	return replay.state;
 }
 
-/** The tray's fields: every field the Details layout does not place, layout breaks aside. */
-export function fieldsOffLayout(working: WorkingState, askedOnSave: readonly string[] = []): OffLayoutField[] {
-	const placed = new Set(new LayoutTreeEditor(working.layout).fieldnames());
+/** The tray's fields: every field the layout does not place, layout breaks aside. */
+export function fieldsOffLayout(
+	working: WorkingState,
+	askedOnSave: readonly string[] = [],
+	layout: LayoutRef = DETAILS,
+): OffLayoutField[] {
+	const placed = new Set(new LayoutTreeEditor(tabsOf(working, layout)).fieldnames());
 	return working.fields
 		.filter((field) => !placed.has(field.fieldname) && !LAYOUT_BREAKS.includes(field.fieldtype))
 		.map((field) => ({
@@ -85,7 +90,7 @@ export function fieldsOffLayout(working: WorkingState, askedOnSave: readonly str
 export function reqdInConditional(working: WorkingState): { fieldname: string; container: string }[] {
 	const reqd = new Set(working.fields.filter((field) => field.reqd).map((field) => field.fieldname));
 	const found: { fieldname: string; container: string }[] = [];
-	for (const tab of working.layout) {
+	for (const tab of tabsOf(working, DETAILS)) {
 		for (const section of tab.sections) {
 			for (const column of section.columns) {
 				const hider = [tab, section, column].find((container) => container.dependsOn);
@@ -121,19 +126,22 @@ const CANVAS_ACTS: Record<string, keyof LayoutTreeEditor> = {
 
 /** Applies edits to a state it owns, act by act. */
 class DesignReplay {
-	private tree: LayoutTreeEditor;
+	readonly layouts: LayoutReplay;
 	private settings: SettingsReplay;
 
 	constructor(
 		readonly state: WorkingState,
 		private loaded: WorkingState,
 	) {
-		this.tree = new LayoutTreeEditor(state.layout);
+		this.layouts = new LayoutReplay(state);
 		const { settings, fields } = state;
 		this.settings = new SettingsReplay({
 			settings,
 			fields,
-			layout: state.layout,
+			// The series field goes into the Details default as the replay has it then.
+			get layout() {
+				return tabsOf(state, DETAILS);
+			},
 			addField: (edit) => this.addField(edit),
 		});
 	}
@@ -149,7 +157,8 @@ class DesignReplay {
 
 	canvas(edit: FlatEdit, method: keyof LayoutTreeEditor) {
 		if (method === "place_field" || method === "unplace_field") this.field(edit.fieldname as string);
-		if (drawsDetails(edit)) (this.tree[method] as (edit: FlatEdit) => void)(edit);
+		const tree = this.layouts.tree(edit.layout as LayoutRef | undefined);
+		(tree[method] as (edit: FlatEdit) => void)(edit);
 	}
 
 	addField(edit: FlatEdit & { label?: string; fieldtype?: string; fieldname?: string; options?: string }) {
@@ -208,7 +217,7 @@ class DesignReplay {
 			this.noteRename(saved, new_fieldname);
 		}
 		field.fieldname = new_fieldname;
-		this.tree.rename_field(fieldname, new_fieldname);
+		this.layouts.renameField(fieldname, new_fieldname);
 	}
 
 	deleteField({ fieldname }: { fieldname: string }) {
@@ -218,7 +227,7 @@ class DesignReplay {
 		}
 		this.state.fields.splice(this.state.fields.indexOf(field), 1);
 		this.state.renames = this.state.renames.filter(([, current]) => current !== fieldname);
-		this.tree.unplace_field({ fieldname });
+		this.layouts.deleteField(fieldname);
 	}
 
 	private field(fieldname: string): RawMetaField {
@@ -256,6 +265,14 @@ const FIELD_ACTS: Record<string, (replay: DesignReplay, edit: never) => void> = 
 	"fields.delete_field": (replay, edit) => replay.deleteField(edit),
 	"fields.reorder_field": (replay, edit) => reorderField(replay.state, edit),
 	"fields.add_child_table": (replay, edit) => addChildTable(replay.state, edit, (added) => replay.addField(added)),
+	"layouts.add": (replay, edit) => replay.layouts.add(edit),
+	"layouts.rename": (replay, edit) => replay.layouts.rename(edit),
+	"layouts.set_condition": (replay, edit) => replay.layouts.setCondition(edit),
+	"layouts.delete": (replay, edit) => replay.layouts.delete(edit),
+	"layouts.reset_to_app": (replay, edit: { act: string; type: never }) => {
+		if (replay.state.mode !== "Customize") throw new EditRefused("{0} is not a Design edit.", [edit.act]);
+		replay.layouts.resetToApp(edit);
+	},
 };
 
 /** The fieldname the database has for this field; `null` for a field added since the save. */
@@ -268,12 +285,6 @@ export function savedName(state: WorkingState, fieldname: string): string | null
 /** A new field's fieldname: in Customize, a custom field's `custom_` one. */
 export function newFieldname(state: WorkingState, label: string): string {
 	return state.customize ? customFieldname(label) : fieldnameFromLabel(label);
-}
-
-/** The canvas draws the default Details layout; edits to other layouts leave it as it is. */
-function drawsDetails(edit: FlatEdit): boolean {
-	const layout = edit.layout as { type?: string; id?: string } | undefined;
-	return layout?.type === "Details" && !layout.id;
 }
 
 function refuseProperty(property: string) {

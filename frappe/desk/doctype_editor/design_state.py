@@ -171,6 +171,8 @@ class DesignState:
 			return quick_entry_layout(self.doc.fields)
 		if type == "New Record":
 			return copy.deepcopy(self.default_tabs("Details"))
+		if type == "Side Panel":
+			return empty_tabs()
 		return layout_from_fields(self.doc.fields)
 
 	def field(self, fieldname: str):

@@ -1,8 +1,8 @@
-// The Details canvas's acts. Drag, Alt+Arrow, the menus and the palette all run these, so each
-// change stages through one path; an act's value is the keys of the edit it stages.
+// The canvas's acts, on the layout it has open. Drag, Alt+Arrow, the menus and the palette all run
+// these, so each change stages through one path; an act's value is the keys of the edit it stages.
 import type { ActItem } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
-import { DETAILS, type CanvasSelection, type DesignCanvas } from "./designCanvas";
+import type { CanvasSelection, DesignCanvas } from "./designCanvas";
 import { newFieldname, type FlatEdit } from "./editorModel";
 import { validFieldname } from "./fieldRules";
 import type { EditorActsHost } from "./editorActs";
@@ -86,7 +86,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			run: (_context, keys?: Keys & { label: string; fieldname?: string }) => {
 				const canvas = host.canvas()!;
 				if (!keys) return void (canvas.adding.value = canvas.targetSection());
-				canvas.stage(placedOn(DETAILS, { ...keys, act: "fields.add_field" }));
+				canvas.stage(placedOn(canvas.openLayout.value, { ...keys, act: "fields.add_field" }));
 				canvas.select({ kind: "field", fieldname: keys.fieldname || newFieldname(canvas.working.value, keys.label) });
 			},
 		},
@@ -152,7 +152,7 @@ function fetchField(canvas: DesignCanvas, { link, source }: { link: string; sour
 	const options = source.options ? { options: source.options } : {};
 	const label = source.label || source.fieldname;
 	const typed = { fieldname, label, fieldtype: source.fieldtype, ...options };
-	canvas.stage(placedOn(DETAILS, { act: "fields.fetch_field", link, source: source.fieldname, ...typed, ...at }));
+	canvas.stage(placedOn(canvas.openLayout.value, { act: "fields.fetch_field", link, source: source.fieldname, ...typed, ...at }));
 	canvas.select({ kind: "field", fieldname });
 }
 
@@ -190,7 +190,8 @@ function editing(host: EditorActsHost) {
 }
 
 function stage(host: EditorActsHost, act: string, keys: Keys) {
-	host.canvas()!.stage({ ...keys, act, layout: DETAILS });
+	const canvas = host.canvas()!;
+	canvas.stage({ ...keys, act, layout: canvas.openLayout.value });
 }
 
 /** The name the staging added, found by the names before and after. */

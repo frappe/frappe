@@ -8,8 +8,9 @@ import {
 	type WorkingState,
 } from "../editorModel";
 import type { EditorState } from "../editorSource";
+import { tabsOf } from "../workingLayouts";
 
-const DETAILS = { type: "Details" };
+const DETAILS = { type: "Details" } as const;
 
 function state(): EditorState {
 	return {
@@ -93,11 +94,12 @@ function replay(...edits: FlatEdit[]): WorkingState {
 	return after;
 }
 
-const tabNames = (working: WorkingState) => working.layout.map((tab) => tab.name);
+const details = (working: WorkingState) => tabsOf(working, DETAILS);
+const tabNames = (working: WorkingState) => details(working).map((tab) => tab.name);
 const sectionsOf = (working: WorkingState, tab: string) =>
-	working.layout.find((each) => each.name === tab)!.sections;
+	details(working).find((each) => each.name === tab)!.sections;
 const columnsOf = (working: WorkingState, section: string) =>
-	working.layout.flatMap((tab) => tab.sections).find((each) => each.name === section)!.columns;
+	details(working).flatMap((tab) => tab.sections).find((each) => each.name === section)!.columns;
 
 describe("editorBase", () => {
 	it("starts from the definition's fields, the Details layout and the description", () => {
@@ -108,14 +110,14 @@ describe("editorBase", () => {
 
 	it("starts with no tabs when the DocType has no Details layout", () => {
 		const bare = { ...state(), layouts: {} };
-		expect(editorBase(bare).layout).toEqual([]);
+		expect(details(editorBase(bare))).toEqual([]);
 	});
 });
 
 describe("canvas tabs", () => {
 	it("adds a tab at the end, named from its label", () => {
 		const working = replay(canvas("add_tab", { label: "Billing Info" }));
-		expect(working.layout.at(-1)).toEqual({ name: "billing_info", label: "Billing Info", sections: [] });
+		expect(details(working).at(-1)).toEqual({ name: "billing_info", label: "Billing Info", sections: [] });
 	});
 
 	it("names an unlabelled tab by its position, suffixed when taken", () => {
@@ -175,7 +177,7 @@ describe("canvas sections", () => {
 			canvas("remove_section", { section: "log" }),
 		);
 		expect(sectionsOf(working, "activity")).toEqual([]);
-		expect(JSON.stringify(working.layout)).not.toContain("spare");
+		expect(JSON.stringify(details(working))).not.toContain("spare");
 	});
 
 	it("moves a section into another tab", () => {
@@ -280,7 +282,7 @@ describe("canvas container properties", () => {
 });
 
 const fieldnames = (working: WorkingState) => working.fields.map((field) => field.fieldname);
-const placed = (working: WorkingState) => JSON.stringify(working.layout);
+const placed = (working: WorkingState) => JSON.stringify(details(working));
 
 describe("field acts", () => {
 	it("adds a field named from its label and places it", () => {
@@ -352,7 +354,8 @@ describe("field acts", () => {
 
 	it("leaves the Details canvas alone for an edit to another layout", () => {
 		const working = replay(
-			{ act: "canvas.unplace_field", layout: { type: "Details", id: "Wide" }, fieldname: "status" },
+			{ act: "layouts.add", type: "Details", id: "wide", condition: "doc.wide" },
+			{ act: "canvas.unplace_field", layout: { type: "Details", id: "wide" }, fieldname: "status" },
 			{ act: "fields.set_field_property", fieldname: "status", property: "reqd", value: 1 },
 		);
 		expect(columnsOf(working, "main")[0].fields).toEqual(["subject", "status"]);

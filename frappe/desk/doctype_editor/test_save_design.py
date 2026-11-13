@@ -420,10 +420,11 @@ class TestSaveDesign(IntegrationTestCase):
 				{"act": "fields.set_field_property", "fieldname": "title", "property": "reqd", "value": 1},
 				{"act": "canvas.add_tab", "layout": {"type": "Quick Entry"}, "name": "extra"},
 				{"act": "canvas.add_tab", "layout": {"type": "New Record"}, "name": "extra"},
+				{"act": "canvas.add_tab", "layout": {"type": "Side Panel"}, "name": "extra"},
 			]
 		)
 		self.assertTrue(result["saved"], result.get("errors"))
-		for type, fields in (("Quick Entry", ["title"]), ("New Record", [])):
+		for type, fields in (("Quick Entry", ["title"]), ("New Record", []), ("Side Panel", [])):
 			with self.subTest(type=type):
 				[row] = frappe.get_all(
 					"Form Layout", filters={"dt": DOCTYPE, "type": type}, fields=["layout"]

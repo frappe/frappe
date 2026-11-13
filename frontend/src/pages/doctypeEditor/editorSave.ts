@@ -6,10 +6,11 @@ import { errorMessage } from "@/recordPage/errorMessage";
 import { CREATE_METHOD, errorsByDoctype, SAVE_METHOD, saveCalls, type SaveCall } from "./childSave";
 import type { ChildTables } from "./childTables";
 import type { DesignCanvas, SaveError } from "./designCanvas";
-import { EditRefused, fieldsOffLayout } from "./editorModel";
+import { DETAILS, EditRefused, fieldsOffLayout } from "./editorModel";
 import type { BaseVersion, Edit, PendingEdits } from "./pendingEdits";
 import { saveSummary } from "./saveSummary";
 import { rowOf } from "./settingsRows";
+import { tabsOf } from "./workingLayouts";
 
 export type SaveOffer = "editor.reload_and_reapply" | "editor.write_files_again" | "editor.open_list";
 
@@ -185,7 +186,7 @@ export class EditorSave {
 
 	/** Sends each call in order and stops at the first refused or failed one; the children saved before it leave the stack. */
 	private async send(canvas: DesignCanvas): Promise<{ result: SaveResult; call?: SaveCall }> {
-		const parent = { state: canvas.state, payload: this.host.edits.payload(), layout: canvas.base.layout };
+		const parent = { state: canvas.state, payload: this.host.edits.payload(), layout: tabsOf(canvas.base, DETAILS) };
 		const written: string[] = [];
 		this.writtenChildren = written;
 		let result: SaveResult = { saved: true };

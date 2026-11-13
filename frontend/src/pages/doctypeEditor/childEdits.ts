@@ -1,8 +1,7 @@
 // A child table's share of the page's pending edits: what its canvas replays, and the edits it
 // stages, tagged with the child so they join the parent's undo stack and save.
 import { computed } from "vue";
-import { DETAILS } from "./designCanvas";
-import { editorBase, EditRefused, workingState, type FlatEdit, type WorkingState } from "./editorModel";
+import { DETAILS, editorBase, EditRefused, workingState, type FlatEdit, type WorkingState } from "./editorModel";
 import type { EditorState } from "./editorSource";
 import { LAYOUT_BREAKS } from "./fieldRules";
 import type { Edit, EditStage, PendingEdits } from "./pendingEdits";

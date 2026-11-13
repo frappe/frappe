@@ -2,6 +2,7 @@
 import { computed, ref, shallowRef } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import {
+	DETAILS,
 	editorBase,
 	fieldsOffLayout,
 	savedName,
@@ -13,9 +14,7 @@ import { CustomizeView } from "./customizeView";
 import type { EditorState } from "./editorSource";
 import { LayoutTreeEditor } from "./layoutTree";
 import type { EditStage } from "./pendingEdits";
-
-/** The layout every canvas edit names: the default Details layout. */
-export const DETAILS = { type: "Details" } as const;
+import { findLayout, layoutOf, type LayoutRef } from "./workingLayouts";
 
 export type CanvasSelection =
 	| { kind: "field"; fieldname: string }
@@ -51,7 +50,10 @@ export interface FieldPlace {
 export class DesignCanvas {
 	readonly base: WorkingState;
 	readonly working = computed(() => workingState(this.base, this.edits.staged.value));
-	readonly tabs = computed(() => this.working.value.layout);
+	/** The layout the canvas draws and every canvas edit names; a gone one falls back to its type's default. */
+	readonly openLayout = computed<LayoutRef>(() => this.existing(this.wanted.value));
+	readonly layout = computed(() => layoutOf(this.working.value, this.openLayout.value));
+	readonly tabs = computed(() => this.layout.value?.tabs ?? []);
 	readonly selection = shallowRef<CanvasSelection | null>(null);
 	/** The open tab's name; the first tab when it names none that exists. */
 	readonly openTabName = ref("");
@@ -60,7 +62,9 @@ export class DesignCanvas {
 	);
 	/** The fieldnames the last save's mandatory error asked for. */
 	readonly askedOnSave = shallowRef<string[]>([]);
-	readonly offLayout = computed(() => fieldsOffLayout(this.working.value, this.askedOnSave.value));
+	readonly offLayout = computed(() =>
+		fieldsOffLayout(this.working.value, this.askedOnSave.value, this.openLayout.value),
+	);
 	readonly trayOpen = ref(true);
 	/** The last save's errors; each draws at its field or container. */
 	readonly errors = shallowRef<SaveError[]>([]);
@@ -74,6 +78,7 @@ export class DesignCanvas {
 	readonly editable: boolean;
 	/** `null` in Design. */
 	readonly customize: CustomizeView | null;
+	private wanted = shallowRef<LayoutRef>(DETAILS);
 
 	constructor(
 		readonly state: EditorState,
@@ -95,6 +100,14 @@ export class DesignCanvas {
 	stageSettings(...edits: FlatEdit[]) {
 		workingState(this.base, [...this.edits.staged.value, ...edits]);
 		this.edits.stage(...edits.map(({ act, ...value }) => ({ act, value, tab: "settings" as const })));
+	}
+
+	/** Draws another layout, from its first tab, with nothing selected. */
+	open(layout: LayoutRef) {
+		this.wanted.value = layout;
+		this.selection.value = null;
+		this.openTabName.value = "";
+		this.adding.value = null;
 	}
 
 	select(selection: CanvasSelection | null) {
@@ -163,6 +176,13 @@ export class DesignCanvas {
 		const columns = new LayoutTreeEditor(this.tabs.value).section(section).columns;
 		const shortest = columns.reduce((one, other) => (other.fields.length < one.fields.length ? other : one));
 		return { section, column: shortest.name! };
+	}
+
+	private existing(layout: LayoutRef): LayoutRef {
+		const { layouts } = this.working.value;
+		if (!layouts[layout.type]) return DETAILS;
+		if (layout.id && !findLayout(this.working.value, layout)) return { type: layout.type };
+		return layout;
 	}
 
 	private tabOf(selection: CanvasSelection): string | undefined {
