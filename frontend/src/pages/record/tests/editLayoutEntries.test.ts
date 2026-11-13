@@ -165,9 +165,11 @@ describe("a manager on a saved record", () => {
   });
 
   it("links the panel to the editor's side panel", async () => {
-    const { root } = await mount();
+    const { root, router } = await mount();
 
-    expect(editPanel(root)?.getAttribute("href")).toBe("/apps/frappe/doctype/Salutation?mode=customize&layout=side-panel");
+    const query = { mode: "customize", layout: "side-panel" };
+    const editor = router.resolve({ name: "doctype-editor", params: { name: "Salutation" }, query });
+    expect(editPanel(root)?.getAttribute("href")).toBe(editor.href);
   });
 });
 
