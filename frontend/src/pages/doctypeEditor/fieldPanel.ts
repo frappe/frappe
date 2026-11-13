@@ -174,6 +174,22 @@ export const PROPERTY_GROUPS: { label: string; properties: PanelProperty[] }[] =
 	},
 ];
 
+const FIELD_ROW_LABELS: Record<string, string> = {
+	label: "Label",
+	fieldtype: "Type",
+	options: "Options",
+	reqd: "Required",
+	default: "Default",
+	placeholder: "Placeholder",
+	description: "Help text",
+};
+
+/** The panel's name for a property, for the canvas mark's tooltip. */
+export function propertyLabel(property: string): string {
+	const grouped = PROPERTY_GROUPS.flatMap((group) => group.properties).find((one) => one.key === property);
+	return __(grouped?.label ?? FIELD_ROW_LABELS[property] ?? property);
+}
+
 function enabled(name: string) {
 	return { name, disabled: false };
 }
