@@ -5,10 +5,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "web_crawl",
   "url",
   "final_url",
   "column_break_url",
+  "web_crawl",
   "status_code",
   "content_hash",
   "error",
@@ -21,16 +21,6 @@
   "meta_tags"
  ],
  "fields": [
-  {
-   "fieldname": "web_crawl",
-   "fieldtype": "Link",
-   "in_standard_filter": 1,
-   "label": "Web crawl",
-   "options": "Web Crawl",
-   "read_only": 1,
-   "reqd": 1,
-   "search_index": 1
-  },
   {
    "fieldname": "url",
    "fieldtype": "Small Text",
@@ -48,6 +38,17 @@
   {
    "fieldname": "column_break_url",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "web_crawl",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Web crawl",
+   "options": "Web Crawl",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "status_code",
@@ -75,7 +76,6 @@
    "description": "How the page compares with the last completed crawl of the same URL.",
    "fieldname": "change_status",
    "fieldtype": "Select",
-   "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "Change status",
    "options": "\nNew\nChanged\nUnchanged",
@@ -122,7 +122,7 @@
  "in_create": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-13 12:00:00.000000",
+ "modified": "2026-11-13 16:30:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Crawl Result",

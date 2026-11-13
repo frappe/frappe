@@ -6,20 +6,24 @@
  "field_order": [
   "limits_section",
   "max_pages",
-  "max_depth",
-  "max_redirects",
-  "concurrent_requests",
-  "request_delay",
   "max_crawl_time",
   "column_break_limits",
+  "max_depth",
+  "max_redirects",
+  "speed_section",
+  "concurrent_requests",
+  "column_break_speed",
+  "request_delay",
+  "downloads_section",
   "page_timeout",
   "max_page_size",
+  "column_break_downloads",
   "sitemap_timeout",
   "max_sitemap_size",
   "tuning_section",
-  "link_priorities",
-  "column_break_tuning",
   "skip_patterns",
+  "column_break_tuning",
+  "link_priorities",
   "access_section",
   "user_agent",
   "respect_robots_txt",
@@ -43,6 +47,19 @@
    "reqd": 1
   },
   {
+   "default": "30",
+   "description": "A crawl stops after running for this long.",
+   "fieldname": "max_crawl_time",
+   "fieldtype": "Int",
+   "label": "Maximum crawl time (minutes)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_limits",
+   "fieldtype": "Column Break"
+  },
+  {
    "default": "2",
    "description": "Maximum number of links followed away from the start page.",
    "fieldname": "max_depth",
@@ -63,6 +80,11 @@
    "reqd": 1
   },
   {
+   "fieldname": "speed_section",
+   "fieldtype": "Section Break",
+   "label": "Speed"
+  },
+  {
    "default": "1",
    "description": "Number of pages read at the same time. Sites that set a Crawl-delay in robots.txt are read one page at a time.",
    "fieldname": "concurrent_requests",
@@ -70,6 +92,10 @@
    "label": "Concurrent requests",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_speed",
+   "fieldtype": "Column Break"
   },
   {
    "default": "1",
@@ -80,17 +106,9 @@
    "non_negative": 1
   },
   {
-   "default": "30",
-   "description": "A crawl stops after running for this long.",
-   "fieldname": "max_crawl_time",
-   "fieldtype": "Int",
-   "label": "Maximum crawl time (minutes)",
-   "non_negative": 1,
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_limits",
-   "fieldtype": "Column Break"
+   "fieldname": "downloads_section",
+   "fieldtype": "Section Break",
+   "label": "Downloads"
   },
   {
    "default": "10",
@@ -110,6 +128,10 @@
    "label": "Maximum page size (MB)",
    "non_negative": 1,
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_downloads",
+   "fieldtype": "Column Break"
   },
   {
    "default": "30",
@@ -135,23 +157,23 @@
    "label": "Crawl tuning"
   },
   {
-   "description": "Links whose URL or anchor text contains a keyword are read first. Used by crawls that do not set their own.",
-   "fieldname": "link_priorities",
-   "fieldtype": "Table",
-   "label": "Link priority",
-   "options": "Web Crawl Link Priority"
-  },
-  {
-   "fieldname": "column_break_tuning",
-   "fieldtype": "Column Break"
-  },
-  {
    "description": "URLs that match any of these regular expressions are skipped. Enter one per line. Used by crawls that do not set their own.",
    "fieldname": "skip_patterns",
    "fieldtype": "Small Text",
    "label": "Skip patterns",
    "max_height": "8rem",
    "placeholder": "/blog/\n\\?page="
+  },
+  {
+   "fieldname": "column_break_tuning",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Links whose URL or anchor text contains a keyword are read first. Used by crawls that do not set their own.",
+   "fieldname": "link_priorities",
+   "fieldtype": "Table",
+   "label": "Link priority",
+   "options": "Web Crawl Link Priority"
   },
   {
    "fieldname": "access_section",
@@ -193,7 +215,7 @@
  "issingle": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-12 23:00:00.000000",
+ "modified": "2026-11-13 16:30:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Crawl Settings",
