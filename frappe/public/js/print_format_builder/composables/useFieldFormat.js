@@ -188,14 +188,39 @@ export function useFieldFormat(props, store, preview_doc) {
 		return val;
 	}
 
+	function row_merges(col, row, i) {
+		return text_merges(col).filter((mf) => !mf.show_label || !blank(merged_text(row, i, mf)));
+	}
+
+	function merged_text(row, i, mf) {
+		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i];
+		if (server && mf.fieldname in server) {
+			return frappe.utils.html2text(String(server[mf.fieldname] ?? "")).trim();
+		}
+		return String(format_merged(row, i, mf) ?? "").trim();
+	}
+
+	function merged_label(mf) {
+		if (!mf.show_label) return "";
+		const label = __(
+			frappe.meta.get_label(props.df.options, mf.fieldname),
+			null,
+			props.df.options
+		);
+		return `<span class="cell-line-label">${frappe.utils.escape_html(label)}:</span> `;
+	}
+
 	function merged_line(row, i, mf) {
 		if (!is_merge_html(mf)) {
-			return frappe.utils.escape_html(String(format_merged(row, i, mf) ?? ""));
+			return (
+				merged_label(mf) +
+				frappe.utils.escape_html(String(format_merged(row, i, mf) ?? ""))
+			);
 		}
 		const server = store.preview_child_values.value?.[props.df.fieldname]?.[i]?.[mf.fieldname];
 		const raw = blank(server) ? row[mf.fieldname] : server;
 		if (blank(raw)) return "";
-		return sanitize_html(String(raw));
+		return merged_label(mf) + sanitize_html(String(raw));
 	}
 
 	function cell_image(col, row) {
@@ -236,9 +261,9 @@ export function useFieldFormat(props, store, preview_doc) {
 		format_cell,
 		has_merge,
 		image_merge,
-		text_merges,
 		format_merged,
 		merged_line,
+		row_merges,
 		cell_image,
 		thumb_box,
 		thumb,
