@@ -2052,7 +2052,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			dropdown_container = `
-				<div class="list-row-col hidden-xs inner-group-button" data-name="${doc.name}" data-label="${this.settings.dropdown_button.get_label}">
+				<div class="list-row-col hidden-xs inner-group-button" data-name="${frappe.utils.escape_html(
+					doc.name
+				)}" data-label="${this.settings.dropdown_button.get_label}">
 					${dropdown_buttons}
 				</div>
 			`;
