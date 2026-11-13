@@ -97,7 +97,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 
 	from jinja2 import TemplateError
 
-	from frappe import _, get_traceback, throw
+	from frappe import _, throw
 
 	if not template:
 		return ""
@@ -105,6 +105,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	if context is None:
 		context = {}
 
+<<<<<<< HEAD
 	if is_path or guess_is_path(template):
 		return get_jenv().get_template(template).render(context)
 	else:
@@ -118,6 +119,54 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 				title="Jinja Template Error",
 				msg=f"<pre>{template}</pre><pre>{get_traceback()}</pre>",
 			)
+=======
+	try:
+		if is_path or guess_is_path(template):
+			is_path = True
+			compiled_template = get_template(template)
+		else:
+			jenv: SandboxedEnvironment = get_jenv(restrict_globals=restrict_globals)
+			if safe_render and ".__" in template:
+				throw(_("Illegal template"))
+			compiled_template = jenv.from_string(template)
+	except TemplateError:
+		_throw_render_error("Jinja Template Error", template=template)
+
+	import time
+
+	from frappe.utils.logger import get_logger
+
+	logger = get_logger("render-template")
+	try:
+		start_time = time.monotonic()
+		with safe_render_flags():
+			return compiled_template.render(context)
+	except Exception as e:
+		_throw_render_error("Context Error", exc=e)
+	finally:
+		if is_path:
+			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds ({template})")
+		else:
+			logger.debug(f"Rendering time: {time.monotonic() - start_time:.6f} seconds")
+>>>>>>> 2bdccca (fix: show template render tracebacks only when tracebacks are allowed)
+
+
+def _throw_render_error(title, template=None, exc=frappe.ValidationError):
+	"""Show the traceback only to users allowed to see it; log it for everyone else."""
+	import html
+
+	from frappe.utils.logger import get_logger
+	from frappe.utils.response import is_traceback_allowed
+
+	traceback = frappe.get_traceback()
+	if is_traceback_allowed():
+		source = f"<pre>{html.escape(template)}</pre>" if template else ""
+		msg = f"{source}<pre>{html.escape(traceback)}</pre>"
+	else:
+		get_logger("render-template").error(f"{title}\n{traceback}")
+		msg = frappe._("There was an error while rendering this template.")
+
+	frappe.throw(msg, title=title, exc=exc)
 
 
 def guess_is_path(template):

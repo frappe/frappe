@@ -373,6 +373,7 @@ class TestWebsite(FrappeTestCase):
 		self.assertIn("test.__test", content)
 		self.assertNotIn("Show Error", content)
 
+<<<<<<< HEAD
 	@change_settings("System Settings", {"allow_error_traceback": 1})
 	def test_error_traceback_only_for_system_users(self):
 		traceback = "frappe.exceptions.ValidationError: Illegal template"
@@ -383,6 +384,15 @@ class TestWebsite(FrappeTestCase):
 		frappe.set_user("Administrator")
 		content = get_response_content("/_test/_test_safe_render_on")
 		self.assertIn(traceback, content)
+=======
+	def test_render_error_traceback_follows_traceback_setting(self):
+		template = "{{ frappe.form_dict.missing_key.upper() }}"
+		for allowed in (False, True):
+			with patch("frappe.utils.response.is_traceback_allowed", return_value=allowed):
+				with self.assertRaises(Exception) as error:
+					frappe.render_template(template)
+			self.assertEqual("Traceback" in str(error.exception), allowed)
+>>>>>>> 2bdccca (fix: show template render tracebacks only when tracebacks are allowed)
 
 	def test_never_render(self):
 		from pathlib import Path
