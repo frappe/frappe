@@ -117,7 +117,7 @@ import type { HeaderItem } from "@/pageEngine/types";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { isModular, routeFor, routeForModule } from "@/router/routeFor";
-import { editorEntries, editorRoute } from "@/pages/doctypeEditor/editorEntries";
+import { editorEntries, editorRoute } from "@/pages/doctypeEditor/entries/editorEntries";
 import { openCreate } from "@/shell/create";
 import type { ListPage } from "@/list/useListPage";
 import { createListPage } from "@/listPage/createListPage";

@@ -59,7 +59,11 @@ export class CustomizeView {
 	anchor(fieldname: string): RawMetaField | null | undefined {
 		if (this.isStandard(fieldname)) return undefined;
 		const drawn = this.working.value.layout.flatMap((tab) =>
-			tab.sections.flatMap((section) => section.columns.flatMap((column) => column.fields)),
+			tab.sections.flatMap((section) =>
+				section.columns.flatMap((column) =>
+					column.fields.filter((entry): entry is string => typeof entry === "string"),
+				),
+			),
 		);
 		const index = drawn.indexOf(fieldname);
 		if (index === -1) return undefined;

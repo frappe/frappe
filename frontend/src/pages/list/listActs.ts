@@ -13,7 +13,7 @@ import type { HeaderItem } from "@/pageEngine/types";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { headerEntries } from "@/recordPage/pageActs";
 import { typeKey } from "@/list/view";
-import type { EditorEntry } from "@/pages/doctypeEditor/editorEntries";
+import type { EditorEntry } from "@/pages/doctypeEditor/entries/editorEntries";
 
 export interface ListActsHost {
   /** The list page: the acts' context, and its `controls` items that have `run`. */

@@ -196,7 +196,7 @@ import {
 } from "./record/docstatusActs";
 import { DocstatusMover, queueFailureMessage, type QueueFailure } from "./record/queuedDocstatus";
 import { headerMenuBuiltins, quickActionBuiltins } from "./record/builtinActions";
-import { editorEntries } from "./doctypeEditor/editorEntries";
+import { editorEntries } from "./doctypeEditor/entries/editorEntries";
 import { fieldActionQuickActions, fieldActionRows } from "./record/fieldActionEntries";
 import { fieldActionItems } from "@/shell/fieldActions";
 import { renameRecord } from "./record/renameAct";

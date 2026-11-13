@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { editorEntries } from "../editorEntries";
+import { editorEntries } from "../entries/editorEntries";
 
 const manager = ["System Manager", "All"];
 const names = (entries: { name: string }[]) => entries.map((entry) => entry.name);

@@ -8,7 +8,7 @@ import { routeFor, routeForNew } from "@/router/routeFor";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import { assignItem, type AssignState } from "./assignAct";
 import { renameItem } from "./renameAct";
-import { editorRoute, type EditorEntry } from "@/pages/doctypeEditor/editorEntries";
+import { editorRoute, type EditorEntry } from "@/pages/doctypeEditor/entries/editorEntries";
 
 export function quickActionBuiltins(
   perms: Record<string, any>,

@@ -1,5 +1,5 @@
 // The DocType editor's act surfaces. Every act is `<surface>.<item>` and takes one value; later
-// slices add `layouts`, `danger` and `customize` here, and more `settings`.
+// slices add `layouts` and `danger` here, and more `settings`.
 import { toast } from "frappe-ui";
 import { onScopeDispose, type Ref } from "vue";
 import { acts, type ActEntry, type ActItem, type ActOption } from "@/acts/dispatcher";
@@ -7,6 +7,7 @@ import { __ } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { canvasItems, fieldItems } from "./canvasActs";
 import { childFieldItems } from "./childActs";
+import { customizeItems, modeItems, type CustomizeHost } from "./customizeActs";
 import type { DesignCanvas } from "./designCanvas";
 import { EditRefused } from "./editorModel";
 import type { EditorSave } from "./editorSave";
@@ -29,6 +30,7 @@ export interface EditorActsHost {
 	openList: () => void;
 	/** Opens the child table of the parent's Table field, by its fieldname. */
 	openChild?: (table: string) => void;
+	customize: CustomizeHost;
 }
 
 export const EDITOR_TABS: { value: EditorTab; label: string }[] = [
@@ -45,6 +47,7 @@ export function useEditorActs(host: EditorActsHost) {
 			canvas: () => entries(canvasItems(host)),
 			fields: () => entries([...fieldItems(host), ...childFieldItems(host)]),
 			settings: () => entries(settingsItems(host)),
+			customize: () => entries(customizeItems(host)),
 		},
 		context: () => host,
 		passes: () => true,
@@ -56,7 +59,7 @@ export function useEditorActs(host: EditorActsHost) {
 }
 
 export function editorItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
-	return [...saveItems(host), ...navigationItems(host)];
+	return [...saveItems(host), ...navigationItems(host), ...modeItems(host)];
 }
 
 function saveItems(host: EditorActsHost): ActItem<EditorActsHost>[] {

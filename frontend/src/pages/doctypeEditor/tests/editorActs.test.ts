@@ -4,6 +4,7 @@ import { acts } from "@/acts/dispatcher";
 import { useEditorActs, type EditorActsHost } from "../editorActs";
 import { EditorSave } from "../editorSave";
 import { PendingEdits, type EditorTab } from "../pendingEdits";
+import { NO_CUSTOMIZE } from "./editorFixture";
 
 const VERSION = { doctype: "2026-11-13 10:00:00", layouts: {}, app_layouts: {} };
 
@@ -26,6 +27,7 @@ function mount() {
 		recordOptions: async () => [],
 		save: new EditorSave({ edits, canvas: () => null, reload: unused, created: unused }),
 		openList: () => undefined,
+		customize: NO_CUSTOMIZE,
 	};
 	const scope = effectScope();
 	scope.run(() => useEditorActs(host));

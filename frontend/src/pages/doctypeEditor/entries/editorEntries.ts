@@ -2,7 +2,10 @@
 // holds (roles, developer mode, the DocType's meta), so a page makes no request to draw them.
 import type { RouteLocationRaw } from "vue-router";
 import { routeFor } from "@/router/routeFor";
-import type { EditorMode } from "./pendingEdits";
+
+// The editor's `EditorMode`, spelled out: the record and list pages import this file, and the
+// editor imports theirs.
+type EditorMode = "Design" | "Customize";
 
 export interface EditorEntry {
 	name: "customize_form" | "edit_doctype";

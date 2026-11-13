@@ -1,11 +1,21 @@
 // A DocType editor without its page: the acts, the canvas and the save, on a small "Task Note".
 import { effectScope, ref } from "vue";
 import { ChildTables } from "../childTables";
+import type { CustomizeHost } from "../customizeActs";
 import { DesignCanvas } from "../designCanvas";
 import { useEditorActs, type EditorActsHost } from "../editorActs";
 import { EditorSave } from "../editorSave";
 import type { EditorState } from "../editorSource";
 import { PendingEdits, type BaseVersion, type EditorTab } from "../pendingEdits";
+
+/** A host for tests that do not reach Customize's header acts. */
+export const NO_CUSTOMIZE: CustomizeHost = {
+	developerMode: false,
+	setMode: () => undefined,
+	askReset: async () => null,
+	askExport: async () => null,
+	reload: async () => undefined,
+};
 
 export const VERSION: BaseVersion = { doctype: "2026-11-13 10:00:00", layouts: {}, app_layouts: {} };
 
@@ -54,7 +64,7 @@ export function taskNote(overrides: Partial<EditorState> = {}): EditorState {
 /** Mounts the acts on `initial`; a reload opens `reloaded()` (default: `initial` again) with no edits. */
 export function mountEditor(
 	initial: EditorState,
-	options: { reloaded?: () => EditorState; openList?: () => void } = {},
+	options: { reloaded?: () => EditorState; openList?: () => void; customize?: CustomizeHost } = {},
 ) {
 	const tab = ref<EditorTab>("editor");
 	const head = { doctype: initial.doctype, mode: initial.mode, base_version: initial.base_version };
@@ -97,6 +107,7 @@ export function mountEditor(
 		save,
 		openList: options.openList ?? (() => undefined),
 		openChild: (table) => void children.show(table),
+		customize: options.customize ?? NO_CUSTOMIZE,
 	};
 	const scope = effectScope();
 	scope.run(() => useEditorActs(host));
