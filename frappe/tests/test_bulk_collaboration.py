@@ -383,6 +383,7 @@ class TestBulkCollaboration(IntegrationTestCase):
 		self.assertCountEqual(self.starred(), self.names)
 		frappe.set_user("Administrator")
 		self.assertEqual(self.starred(), [])
+
 	def starred(self) -> list[str]:
 		return frappe.get_all(
 			"Favourite",
