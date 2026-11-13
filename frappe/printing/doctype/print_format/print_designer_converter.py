@@ -269,8 +269,8 @@ class PrintDesignerConverter:
 				)
 		return {"columns": columns}
 
-	def row_html(self, row) -> str:
-		total = self.content_width()
+	def row_html(self, row: list[dict], total: float = 0) -> str:
+		total = total or self.content_width()
 		compiled = len(row) == 1 and row[0].get("layoutType") == "row"
 		children = row[0].get("childrens") or [] if compiled else row
 		top = 0 if compiled else min(flt(e.get("startY")) for e in row)
@@ -286,15 +286,15 @@ class PrintDesignerConverter:
 				if len(stack) == 1:
 					children.append(stack[0])
 					continue
+				left = min(flt(e.get("startX")) for e in stack)
+				right = max(flt(e.get("startX")) + flt(e.get("width")) for e in stack)
 				inner, cursor = "", top
-				for start, end, html, fixed in self.stack_pieces(stack):
+				for start, end, html, fixed in self.stack_pieces(stack, right - left):
 					style = f"margin-top: {round(max(start - cursor, 0))}px;"
 					if fixed and end > max(start, cursor):
 						style += f" min-height: {round(end - max(start, cursor))}px;"
 					inner += f'<div style="{style}">{html}</div>'
 					cursor = max(cursor, end)
-				left = min(flt(e.get("startX")) for e in stack)
-				right = max(flt(e.get("startX")) + flt(e.get("width")) for e in stack)
 				parts.append(
 					(
 						left,
@@ -321,7 +321,7 @@ class PrintDesignerConverter:
 			+ "</div>"
 		)
 
-	def stack_pieces(self, stack: list[dict]) -> list[tuple[float, float, str, bool]]:
+	def stack_pieces(self, stack: list[dict], width: float) -> list[tuple[float, float, str, bool]]:
 		pieces = []
 		for band in self.overlapping_rows(
 			sorted(stack, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
@@ -329,7 +329,7 @@ class PrintDesignerConverter:
 			if len(self.stacks(band)) > 1:
 				start = min(flt(e.get("startY")) for e in band)
 				end = max(flt(e.get("startY")) + flt(e.get("height")) for e in band)
-				pieces.append((start, end, self.row_html(band), False))
+				pieces.append((start, end, self.row_html(band, width), False))
 				continue
 			for element in sorted(band, key=lambda e: flt(e.get("startY"))):
 				start, height = flt(element.get("startY")), flt(element.get("height"))
