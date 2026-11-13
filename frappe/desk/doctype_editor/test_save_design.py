@@ -557,6 +557,7 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 
 	def test_writing_the_files_again_keeps_a_failed_export_s_layouts(self):
 		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		self.addCleanup(frappe.cache.delete_value, frappe.get_doc("DocType", "ToDo").staged_app_layouts_key())
 		frappe.local.request = frappe._dict(after_response=CallbackManager())
 		result = save_doctype_editor(
 			"ToDo",
@@ -576,6 +577,14 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 		with open(self.path("ToDo", "Details")) as f:
 			[entry] = json.load(f)
 		self.assertEqual(entry["layout"][-1]["name"], "extra_47271")
+
+	def test_an_export_staging_nothing_leaves_the_app_layouts_alone(self):
+		doc = frappe.get_doc("DocType", "ToDo")
+		layout = [{"name": "details", "sections": [{"name": "s", "columns": [{"name": "c", "fields": []}]}]}]
+		frappe.cache.set_value(doc.staged_app_layouts_key(), {"Details": [{"layout": layout}]})
+		self.addCleanup(frappe.cache.delete_value, doc.staged_app_layouts_key())
+		doc.export_files()
+		self.assertFalse(os.path.exists(self.path("ToDo", "Details")))
 
 	def test_an_app_layout_cannot_place_a_site_custom_field(self):
 		fieldname = "custom_editor_47271"

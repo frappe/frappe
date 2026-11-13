@@ -965,15 +965,16 @@ class DocType(Document):
 		self.export_app_layouts()
 
 	def export_app_layouts(self):
-		"""Write the layout files a save staged in `flags.app_layouts` (or a failed export kept), per type."""
+		"""Write the layout files a save staged in `flags.app_layouts`, per type."""
 		from frappe.desk.doctype.form_layout.app_layout_writer import write_app_layouts
 
-		key = self.staged_app_layouts_key()
+		if not self.flags.app_layouts:
+			return
 		self.flags.app_layout_versions = {
 			type: write_app_layouts(self.name, type, entries)
-			for type, entries in (self.flags.app_layouts or frappe.cache.get_value(key) or {}).items()
+			for type, entries in self.flags.app_layouts.items()
 		}
-		frappe.cache.delete_value(key)
+		frappe.cache.delete_value(self.staged_app_layouts_key())
 
 	def staged_app_layouts_key(self) -> str:
 		return f"doctype_app_layouts_to_export:{self.name}"
@@ -2301,6 +2302,7 @@ def write_doctype_files(doctype: str) -> None:
 	if doc.custom:
 		frappe.throw(_("{0} is a custom DocType and has no app files.").format(frappe.bold(doctype)))
 
+	doc.flags.app_layouts = frappe.cache.get_value(doc.staged_app_layouts_key())
 	try:
 		doc.export_files()
 		doc.run_module_method("on_doctype_update")
