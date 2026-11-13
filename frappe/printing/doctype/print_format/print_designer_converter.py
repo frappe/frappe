@@ -128,8 +128,7 @@ def replace_with_editor_format(print_format: str, editor_format: str) -> dict:
 	for doctype in set(defaults):
 		frappe.clear_cache(doctype=doctype)
 
-	source.disabled = 1
-	source.save()
+	source.db_set("disabled", 1)
 	return {"name": target.name}
 
 
