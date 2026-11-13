@@ -6,6 +6,7 @@ import { acts, type ActEntry, type ActItem, type ActOption } from "@/acts/dispat
 import { __ } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { canvasItems, fieldItems } from "./canvasActs";
+import { childFieldItems } from "./childActs";
 import type { DesignCanvas } from "./designCanvas";
 import { EditRefused } from "./editorModel";
 import type { EditorSave } from "./editorSave";
@@ -26,6 +27,8 @@ export interface EditorActsHost {
 	save: EditorSave;
 	/** Opens the saved DocType's list. */
 	openList: () => void;
+	/** Opens the child table of the parent's Table field, by its fieldname. */
+	openChild?: (table: string) => void;
 }
 
 export const EDITOR_TABS: { value: EditorTab; label: string }[] = [
@@ -40,7 +43,7 @@ export function useEditorActs(host: EditorActsHost) {
 		surfaces: {
 			editor: () => entries(editorItems(host)),
 			canvas: () => entries(canvasItems(host)),
-			fields: () => entries(fieldItems(host)),
+			fields: () => entries([...fieldItems(host), ...childFieldItems(host)]),
 			settings: () => entries(settingsItems(host)),
 		},
 		context: () => host,

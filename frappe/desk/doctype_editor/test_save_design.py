@@ -559,6 +559,101 @@ class TestSaveDesign(IntegrationTestCase):
 		table = frappe.get_meta(DOCTYPE).get_field("items")
 		self.assertEqual((table.fieldtype, table.options), ("Table", child))
 
+	def test_a_new_child_table_fills_a_table_field_added_before_it(self):
+		child = f"{DOCTYPE} Line"
+		self.addCleanup(delete_committed, "DocType", child)
+		result = self.save(
+			{
+				DOCTYPE: [
+					{"act": "fields.add_field", "label": "Lines", "fieldtype": "Table", "fieldname": "lines"},
+					{"act": "fields.add_child_table", "table_field": "lines", "name": child},
+				],
+				child: [
+					{"act": "fields.add_field", "label": "Qty", "fieldtype": "Int"},
+					{"act": "settings.set_doctype_property", "property": "allow_bulk_edit", "value": 1},
+				],
+			}
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.db.get_value("DocType", child, "allow_bulk_edit"), 1)
+		tables = [field for field in frappe.get_meta(DOCTYPE).fields if field.fieldtype == "Table"]
+		self.assertEqual(
+			[(field.fieldname, field.label, field.options) for field in tables], [("lines", "Lines", child)]
+		)
+
+	def test_a_saved_child_table_saves_its_own_edits(self):
+		child = f"{DOCTYPE} Row"
+		self.addCleanup(delete_committed, "DocType", child)
+		make_custom_doctype(child, [{"fieldname": "qty", "label": "Qty", "fieldtype": "Int"}], istable=1)
+		result = self.save(
+			[{"act": "fields.set_field_property", "fieldname": "qty", "property": "columns", "value": 2}],
+			child,
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.get_meta(child).get_field("qty").columns, 2)
+
+	def test_a_saved_child_tables_save_moves_its_parents_version_for_the_parents_next_save(self):
+		child = f"{DOCTYPE} Row"
+		self.addCleanup(delete_committed, "DocType", child)
+		make_custom_doctype(child, [{"fieldname": "qty", "label": "Qty", "fieldtype": "Int"}], istable=1)
+		table = {"act": "fields.add_field", "label": "Rows", "fieldtype": "Table", "options": child}
+		self.assertTrue(self.save([table])["saved"])
+		version = json.loads(frappe.as_json(base_version(DOCTYPE)))
+		columns = {"act": "fields.set_field_property", "fieldname": "qty", "property": "columns", "value": 2}
+		result = self.save([columns], child)
+		moved = result["parents"][DOCTYPE]
+		self.assertEqual(moved["was"], version["doctype"])
+		bold = {"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}
+		self.assertEqual(self.save([bold], version=version)["errors"][0]["code"], "stale")
+		parent = self.save([bold], version={**version, "doctype": moved["now"]})
+		self.assertTrue(parent["saved"], parent.get("errors"))
+
+	def test_a_table_field_with_rows_keeps_its_child_table(self):
+		child, other, new = f"{DOCTYPE} Item", f"{DOCTYPE} Other", f"{DOCTYPE} New"
+		for name in (child, other, new):
+			self.addCleanup(delete_committed, "DocType", name)
+		for name in (child, other):
+			make_custom_doctype(name, [{"fieldname": "qty", "label": "Qty", "fieldtype": "Int"}], istable=1)
+		table = {"act": "fields.add_field", "label": "Items", "fieldtype": "Table", "options": child}
+		self.assertTrue(self.save([table])["saved"])
+		repoint = {"act": "fields.set_field_property", "fieldname": "items", "property": "options"}
+		empty = self.save([{**repoint, "value": other}])
+		self.assertTrue(empty["saved"], empty.get("errors"))
+		frappe.get_doc({"doctype": DOCTYPE, "title": "Kept", "items": [{"qty": 2}]}).insert()
+
+		for edit in (
+			{**repoint, "value": child},
+			{"act": "fields.add_child_table", "table_field": "items", "name": new},
+		):
+			with self.subTest(act=edit["act"]):
+				result = self.save([edit])
+				self.assertFalse(result["saved"])
+				target = {"kind": "field", "fieldname": "items", "property": "options"}
+				self.assertEqual(result["errors"][0]["target"], target)
+		self.assertEqual(frappe.get_meta(DOCTYPE).get_field("items").options, other)
+		self.assertFalse(frappe.db.exists("DocType", new))
+
+	def test_a_new_child_table_no_table_field_names_is_not_inserted(self):
+		child, kept = f"{DOCTYPE} Item", f"{DOCTYPE} Line"
+		for name in (child, kept):
+			self.addCleanup(delete_committed, "DocType", name)
+		make_custom_doctype(kept, [{"fieldname": "qty", "label": "Qty", "fieldtype": "Int"}], istable=1)
+		result = self.save(
+			[
+				{"act": "fields.add_child_table", "table_field": "items", "name": child},
+				{
+					"act": "fields.set_field_property",
+					"fieldname": "items",
+					"property": "options",
+					"value": kept,
+				},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(result["children"], [])
+		self.assertFalse(frappe.db.exists("DocType", child))
+		self.assertEqual(frappe.get_meta(DOCTYPE).get_field("items").options, kept)
+
 	def test_a_renamed_table_field_keeps_its_rows(self):
 		child = f"{DOCTYPE} Item"
 		self.addCleanup(delete_committed, "DocType", child)
@@ -692,6 +787,7 @@ class TestSaveDesign(IntegrationTestCase):
 				)
 				self.assertFalse(result["saved"])
 				self.assertNotIn("written", result)
+				self.assertEqual(result["errors"][0]["doctype"], child)
 				self.assertFalse(frappe.db.exists("DocType", child))
 
 	def test_edits_for_a_doctype_the_save_does_not_add_are_refused(self):

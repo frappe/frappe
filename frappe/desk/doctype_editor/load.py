@@ -22,7 +22,8 @@ def get_doctype_editor(doctype: str, mode: str | None = None) -> dict:
 	modes = permitted_modes(doctype)
 	mode = open_mode(doctype, mode, modes)
 	meta = frappe.get_meta(doctype)
-	records, values = readable_counts(meta)
+	parents = readable_parents(meta)
+	records, values = readable_counts(meta, parents)
 	editor = {
 		"doctype": doctype,
 		"mode": mode,
@@ -36,6 +37,8 @@ def get_doctype_editor(doctype: str, mode: str | None = None) -> dict:
 		"layouts": get_editor_layouts(doctype, custom=mode == "Customize"),
 	}
 	editor.update(design_state(doctype) if mode == "Design" else get_customizations(meta))
+	if meta.istable:
+		editor["parents"] = parents
 	return editor
 
 
@@ -70,12 +73,9 @@ def app_title(meta: Meta) -> str | None:
 	return (frappe.get_hooks("app_title", app_name=app) or [app])[0]
 
 
-def readable_counts(meta: Meta) -> tuple[int | None, dict[str, int]]:
+def readable_counts(meta: Meta, parents: list[str | None]) -> tuple[int | None, dict[str, int]]:
 	"""How many records the user reads, and how many of them hold a value in each field the user reads."""
-	if meta.issingle or meta.is_virtual:
-		return None, {}
-	parents = readable_parents(meta)
-	if not parents:
+	if meta.issingle or meta.is_virtual or not parents:
 		return None, {}
 	fields = readable_fields(meta, parents)
 	counts = [scope_counts(meta, parent, fields) for parent in parents]

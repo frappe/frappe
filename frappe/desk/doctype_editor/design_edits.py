@@ -8,10 +8,10 @@ from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.desk.doctype.form_layout.form_layout import LAYOUT_BREAKS
 from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError, field_error
-from frappe.model import no_value_fields
+from frappe.model import no_value_fields, table_fields
 
 RESERVED_PROPERTIES = ("name", "parent", "parenttype", "parentfield", "idx", "doctype")
-DOCTYPE_PROPERTIES = ("description",)
+DOCTYPE_PROPERTIES = ("description", "editable_grid", "allow_bulk_edit")
 PLACE_KEYS = ("fieldname", "section", "column", "index", "tab")
 UNFETCHABLE_TYPES = (*no_value_fields, "Dynamic Link")
 # A column is named with its section: column names repeat across sections.
@@ -83,6 +83,8 @@ class DesignEdits:
 		fieldname, property = edit.get("fieldname"), edit.get("property")
 		field = self.state.field(fieldname)
 		refuse_property(fieldname, property)
+		if property == "options":
+			self.refuse_moving_table(field, edit.get("value"))
 		field.set(property, edit.get("value"))
 
 	def fields_reorder_field(self, edit: dict):
@@ -128,6 +130,8 @@ class DesignEdits:
 		if not name or not edit.get("table_field"):
 			raise EditError(_("A new child table needs a name and a table field."))
 		self.state.add_child(name)
+		if table := self.state.doc.get("fields", {"fieldname": edit["table_field"]}):
+			return self.fill_table_field(table[0], name)
 		self.fields_add_field(
 			{
 				**edit,
@@ -137,6 +141,26 @@ class DesignEdits:
 				"options": name,
 			}
 		)
+
+	def fill_table_field(self, field, name: str):
+		if field.fieldtype != "Table":
+			raise field_error(_("{0} is not a Table field.").format(field.fieldname), field.fieldname)
+		self.refuse_moving_table(field, name)
+		field.options = name
+
+	def refuse_moving_table(self, field, options: str | None):
+		"""A saved Table field's rows stay in its saved child table, so a field with rows keeps it."""
+		saved = self.state.saved_name(field.fieldname)
+		saved_field = saved and frappe.get_meta(self.state.name).get_field(saved)
+		if not saved_field or saved_field.fieldtype not in table_fields or saved_field.options == options:
+			return
+		if frappe.db.exists(saved_field.options, {"parenttype": self.state.name, "parentfield": saved}):
+			message = _("{0} has rows in {1}, so it cannot point at another child table.")
+			raise field_error(
+				message.format(field.label or field.fieldname, saved_field.options),
+				field.fieldname,
+				"options",
+			)
 
 	def settings_set_doctype_property(self, edit: dict):
 		property = edit.get("property")

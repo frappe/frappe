@@ -11,7 +11,7 @@ import {
 } from "./editorModel";
 import type { EditorState } from "./editorSource";
 import { LayoutTreeEditor } from "./layoutTree";
-import type { PendingEdits } from "./pendingEdits";
+import type { EditStage } from "./pendingEdits";
 
 /** The layout every canvas edit names: the default Details layout. */
 export const DETAILS = { type: "Details" } as const;
@@ -35,6 +35,8 @@ export interface SaveError {
 	/** The index of the staged edit it refuses. */
 	edit?: number;
 	code?: string;
+	/** The child table it refuses, in a call that saves more than one DocType. */
+	doctype?: string;
 }
 
 /** Where a field sits on the layout. */
@@ -73,7 +75,7 @@ export class DesignCanvas {
 
 	constructor(
 		readonly state: EditorState,
-		private edits: PendingEdits,
+		private edits: EditStage,
 	) {
 		this.base = editorBase(state);
 		this.editable = state.mode === "Design";

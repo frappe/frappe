@@ -54,16 +54,40 @@ class DesignSave:
 		self.check()
 		if self.errors:
 			return {"saved": False, "errors": self.errors}
+		parents = self.parents_modified()
 		if errors := self.write():
 			return {"saved": False, "written": self.written, "errors": errors}
 		return {
 			"saved": True,
 			"base_version": current_version(self.doctype),
 			"children": list(self.state.children),
+			"parents": self.moved_parents(parents),
+		}
+
+	def parents_modified(self) -> dict[str, str]:
+		"""A child table's save moves its parents' `modified` (`change_modified_of_parent`)."""
+		if not self.state.doc.istable:
+			return {}
+		parents = frappe.get_all(
+			"DocField",
+			filters={"fieldtype": ["in", table_fields], "options": self.doctype, "parenttype": "DocType"},
+			pluck="parent",
+			distinct=True,
+		)
+		return parent_versions(parents)
+
+	def moved_parents(self, before: dict[str, str]) -> dict[str, dict]:
+		"""Each parent's `modified` before and after, so its editor's next save is not refused as stale."""
+		after = parent_versions(list(before))
+		return {
+			name: {"was": was, "now": after[name]}
+			for name, was in before.items()
+			if after.get(name, was) != was
 		}
 
 	def apply_edits(self):
 		self.apply(self.state, self.edits.get(self.doctype) or [])
+		self.drop_unnamed_children()
 		for doctype, edits in self.edits.items():
 			if doctype == self.doctype:
 				continue
@@ -72,6 +96,11 @@ class DesignSave:
 			else:
 				message = _("{0} is not a child table this save adds.").format(doctype)
 				self.errors.append({**EditError(message).as_dict(), "doctype": doctype})
+
+	def drop_unnamed_children(self):
+		"""A new child table that no Table field names after a later edit is not inserted."""
+		named = {field.options for field in self.state.doc.fields if field.fieldtype in table_fields}
+		self.state.children = {name: child for name, child in self.state.children.items() if name in named}
 
 	def apply(self, state: DesignState, edits: list, doctype: str | None = None):
 		# A child table this save adds is a new DocType, so it takes Design's edits in either mode.
@@ -223,3 +252,10 @@ def move_table_rows(doctype: str, child_doctype: str, old: str, new: str):
 	frappe.qb.update(child).set(child.parentfield, new).where(
 		(child.parenttype == doctype) & (child.parentfield == old)
 	).run()
+
+
+def parent_versions(doctypes: list[str]) -> dict[str, str]:
+	if not doctypes:
+		return {}
+	rows = frappe.get_all("DocType", filters={"name": ["in", doctypes]}, fields=["name", "modified"])
+	return {row.name: str(row.modified) for row in rows}

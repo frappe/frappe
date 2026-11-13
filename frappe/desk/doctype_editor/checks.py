@@ -34,10 +34,7 @@ class DesignChecks:
 		"""Each DocType's validation; the new child tables' rows let the parent's Table fields name them."""
 		frappe.db.savepoint(CHECK_SAVEPOINT)
 		try:
-			for child in self.state.children.values():
-				validate(child.doc)
-				child.doc.db_insert()
-			return self.parent_errors()
+			return self.child_errors() or self.parent_errors()
 		except frappe.ValidationError as e:
 			return [EditError(str(e)).as_dict()]
 		finally:
@@ -45,6 +42,16 @@ class DesignChecks:
 			# DocType validation caches the unsaved meta (`setup_fields_to_fetch`).
 			for doctype in (self.state.name, *self.state.children):
 				clear_meta_cache(doctype)
+
+	def child_errors(self) -> list[dict]:
+		"""The first new child table's refusal, keyed to that child."""
+		for doctype, child in self.state.children.items():
+			try:
+				validate(child.doc)
+			except frappe.ValidationError as e:
+				return [{**EditError(str(e)).as_dict(), "doctype": doctype}]
+			child.doc.db_insert()
+		return []
 
 	def parent_errors(self) -> list[dict]:
 		validate(self.state.doc)
@@ -126,7 +133,12 @@ class DesignChecks:
 
 def validate(doc):
 	"""The controller's checks, then the document checks a save runs that can fail on editor input."""
-	doc.run_method("validate")
+	# A saved child's validate adds its parent columns with a commit, which ends the check's savepoint.
+	doc.add_child_table_fields = lambda: None
+	try:
+		doc.run_method("validate")
+	finally:
+		del doc.add_child_table_fields
 	doc._validate_mandatory()
 	for each in (doc, *doc.get_all_children()):
 		each._validate_selects()

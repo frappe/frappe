@@ -11,7 +11,10 @@
 		:data-canvas-selected="selected || undefined"
 		@click.stop="acts.perform('canvas.select', { kind: 'field', fieldname })"
 	>
-		<div v-if="node" class="pointer-events-none" inert>
+		<div v-if="table" class="pointer-events-none" inert>
+			<CanvasTable :field="table" />
+		</div>
+		<div v-else-if="node" class="pointer-events-none" inert>
 			<FormLayoutField :field="node" />
 		</div>
 		<div v-else class="flex h-7 items-center text-base text-ink-gray-5">{{ fieldname }}</div>
@@ -59,6 +62,7 @@ import { Button, Dropdown } from "frappe-ui";
 import { FormLayoutField, mapField } from "@framework/ui/FormLayout";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
+import CanvasTable from "./CanvasTable.vue";
 import { canvasMenu } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";
@@ -73,6 +77,10 @@ const selected = computed(() => {
 const node = computed(() => {
 	const field = props.canvas.field(props.fieldname);
 	return field ? mapField(field, {}) : null;
+});
+const table = computed(() => {
+	const field = props.canvas.field(props.fieldname);
+	return field?.fieldtype === "Table" ? field : null;
 });
 const menu = computed(() =>
 	canvasMenu(props.canvas, { kind: "field", fieldname: props.fieldname })

@@ -25,6 +25,8 @@ export interface DoctypeDefinition {
 	custom?: 0 | 1;
 	istable?: 0 | 1;
 	issingle?: 0 | 1;
+	editable_grid?: 0 | 1;
+	allow_bulk_edit?: 0 | 1;
 	is_submittable?: 0 | 1;
 	autoname?: string;
 	naming_rule?: string;
@@ -47,6 +49,8 @@ export interface EditorState {
 	/** Design: the DocType as its app ships it. Customize sends the site meta's fields instead. */
 	definition: DoctypeDefinition;
 	site_custom_fields?: number;
+	/** A child table's parents that the user reads. */
+	parents?: string[];
 	/** Not yet saved: `/doctype/new` builds it on the client. */
 	pending?: boolean;
 }

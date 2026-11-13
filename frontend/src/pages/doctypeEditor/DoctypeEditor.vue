@@ -13,6 +13,7 @@
 				:can-save="canSave({ canvas: () => canvas, edits, save })"
 				:saving="save.saving.value"
 				:switch-to="switchTo"
+				:child-crumbs="child.crumbs.value"
 				@act="(name) => acts.perform(name)"
 			/>
 		</template>
@@ -41,13 +42,21 @@
 			>
 				<ScrollArea class="flex min-h-0 min-w-0 flex-1" :viewport-class="pageGutter">
 					<EditorCanvas
-						v-if="tab === 'editor' && canvas"
-						:canvas="canvas"
+						v-if="tab === 'editor' && shown"
+						:canvas="shown"
 						:save="save"
-						:meta-line="metaLine"
 						:customize="customizeRoute"
 					/>
+					<ChildSettings
+						v-else-if="tab === 'settings' && openChild"
+						:session="openChild"
+					/>
 					<SettingsTab v-else-if="tab === 'settings'" />
+					<RowDialogPreview
+						v-else-if="openChild"
+						:canvas="openChild.canvas"
+						:table-label="child.tableLabel.value"
+					/>
 					<PreviewTab
 						v-else-if="!state.pending"
 						:doctype="state.doctype"
@@ -59,7 +68,7 @@
 						{{ __("Save the DocType to preview its records.") }}
 					</p>
 				</ScrollArea>
-				<EditorPanel v-if="tab === 'editor' && canvas?.editable" :canvas="canvas" />
+				<EditorPanel v-if="tab === 'editor' && shown?.editable" :canvas="shown" />
 			</div>
 		</template>
 	</PageFrame>
@@ -72,7 +81,7 @@ import { ScrollArea, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import { getSocketInstance } from "@framework/ui/socket";
 import { acts } from "@/acts/dispatcher";
-import { __, __n } from "@/i18n";
+import { __ } from "@/i18n";
 import { COPY_OF } from "@/newRecordValues";
 import { discardChanges } from "@/pages/record/discardChanges";
 import { errorMessage } from "@/recordPage/errorMessage";
@@ -81,6 +90,7 @@ import { shellDialog } from "@/shell/dialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import { useUnloadGuard } from "@/unloadGuard";
+import ChildSettings from "./ChildSettings.vue";
 import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
 import EditorPanel from "./EditorPanel.vue";
@@ -105,7 +115,9 @@ import {
 	type PendingEditsPayload,
 } from "./pendingEdits";
 import PreviewTab from "./PreviewTab.vue";
+import RowDialogPreview from "./RowDialogPreview.vue";
 import SettingsTab from "./SettingsTab.vue";
+import { useChildTables } from "./useChildTables";
 
 const route = useRoute();
 const router = useRouter();
@@ -125,19 +137,32 @@ const asking = computed(() => (name.value === "new" && !state.value ? starting.v
 
 // Filled when the load lands; the payload reads it then.
 const head = reactive({}) as Omit<PendingEditsPayload, "edits">;
-const edits = new PendingEdits(head, (opened) => (tab.value = opened));
-const save = new EditorSave({ edits, canvas: () => canvas.value, reload, created });
+const edits = new PendingEdits(head, (opened, doctype) => {
+	tab.value = opened;
+	child.reopen(doctype);
+});
+const child = useChildTables(edits, () => canvas.value);
+const { session: openChild, shown } = child;
+const save = new EditorSave({
+	edits,
+	canvas: () => canvas.value,
+	reload,
+	created,
+	children: child.tables,
+	showChild: child.showChild,
+});
 // The DocType a first save just made: its editor is already open when the route moves to it.
 let justCreated: string | null = null;
 
 useEditorActs({
 	edits,
 	tab,
-	canvas: () => canvas.value,
+	canvas: () => shown.value,
 	find,
 	previewRecord: (record) => (previewName.value = record),
 	save,
 	openList,
+	openChild: child.open,
 	recordOptions: async (query) =>
 		[null, ...latest.value]
 			.filter(
@@ -149,17 +174,6 @@ useEditorActs({
 const layout = computed(() => (state.value ? detailsLayout(state.value) : null));
 // A new DocType is not saved until its first save, even with no edits staged.
 const dirty = computed(() => edits.dirty.value || Boolean(state.value?.pending));
-
-const metaLine = computed(() => {
-	const one = state.value;
-	if (!one) return "";
-	const parts = [one.module, one.app_title ? __("From {0}", [one.app_title]) : __("Custom")];
-	if (one.record_count != null)
-		parts.push(
-			__n("{0} record", "{0} records", one.record_count, [one.record_count.toLocaleString()])
-		);
-	return parts.join(" · ");
-});
 
 const customizeRoute = computed(() =>
 	state.value?.modes.includes("Customize")
@@ -178,7 +192,7 @@ const switchTo = computed(() => {
 });
 
 let loading = 0;
-watch(() => [name.value, route.query.mode, route.query[COPY_OF]], load, { immediate: true });
+watch([name, () => route.query.mode, () => route.query[COPY_OF]], load, { immediate: true });
 
 async function load() {
 	if (justCreated && justCreated === name.value) return void (justCreated = null);
@@ -213,6 +227,7 @@ function reset() {
 	state.value = null;
 	canvas.value = null;
 	starting.value = null;
+	child.tables.reset();
 	pageState.value = null;
 	tab.value = "editor";
 	latest.value = [];
@@ -272,12 +287,13 @@ function open(loaded: EditorState) {
 		base_version: loaded.base_version,
 	});
 	state.value = loaded;
+	child.tables.reset();
 	canvas.value = new DesignCanvas(loaded, edits);
 }
 
 function find(fieldname: string) {
 	tab.value = "editor";
-	const open = canvas.value;
+	const open = shown.value;
 	if (!open) return;
 	open.select({ kind: "field", fieldname });
 	if (!open.place(fieldname)) open.trayOpen.value = true;

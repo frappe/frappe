@@ -64,6 +64,7 @@
 				@update:model-value="setTarget(String($event ?? ''))"
 			/>
 		</PanelRow>
+		<TableFieldRows v-else-if="field.fieldtype === 'Table'" :canvas="canvas" :field="field" />
 		<PanelRow v-else-if="field.fieldtype === 'Select'" :label="__('Options')">
 			<Textarea
 				variant="ghost"
@@ -174,6 +175,7 @@ import { targetChange } from "./linkFilters";
 import PanelHeader from "./PanelHeader.vue";
 import PanelRow from "./PanelRow.vue";
 import PanelSection from "./PanelSection.vue";
+import TableFieldRows from "./TableFieldRows.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; field: RawMetaField }>();
 

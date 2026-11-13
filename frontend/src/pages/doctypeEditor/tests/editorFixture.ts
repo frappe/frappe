@@ -1,5 +1,6 @@
 // A DocType editor without its page: the acts, the canvas and the save, on a small "Task Note".
 import { effectScope, ref } from "vue";
+import { ChildTables } from "../childTables";
 import { DesignCanvas } from "../designCanvas";
 import { useEditorActs, type EditorActsHost } from "../editorActs";
 import { EditorSave } from "../editorSave";
@@ -57,11 +58,16 @@ export function mountEditor(
 ) {
 	const tab = ref<EditorTab>("editor");
 	const head = { doctype: initial.doctype, mode: initial.mode, base_version: initial.base_version };
-	const edits = new PendingEdits(head, (opened) => (tab.value = opened));
+	const edits = new PendingEdits(head, (opened, doctype) => {
+		tab.value = opened;
+		void children.show(doctype ? children.tableOf(doctype) : null);
+	});
 	let canvas = new DesignCanvas(initial, edits);
+	const children = new ChildTables(edits, () => canvas);
 	const open = (state: EditorState) => {
 		Object.assign(head, { doctype: state.doctype, mode: state.mode, base_version: state.base_version });
 		edits.clear();
+		children.reset();
 		canvas = new DesignCanvas(state, edits);
 		return canvas;
 	};
@@ -75,16 +81,22 @@ export function mountEditor(
 			created.push(doctype);
 			return open({ ...next(), doctype, pending: undefined });
 		},
+		children,
+		showChild: async (doctype) => {
+			await children.show(children.tableOf(doctype));
+			return children.open.value?.canvas ?? null;
+		},
 	});
 	const host: EditorActsHost = {
 		edits,
 		tab,
-		canvas: () => canvas,
+		canvas: () => children.open.value?.canvas ?? canvas,
 		find: () => undefined,
 		previewRecord: () => undefined,
 		recordOptions: async () => [],
 		save,
 		openList: options.openList ?? (() => undefined),
+		openChild: (table) => void children.show(table),
 	};
 	const scope = effectScope();
 	scope.run(() => useEditorActs(host));
@@ -95,6 +107,7 @@ export function mountEditor(
 		edits,
 		head,
 		save,
+		children,
 		created,
 		stop: () => scope.stop(),
 	};

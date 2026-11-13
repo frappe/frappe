@@ -84,6 +84,8 @@ const props = defineProps<{
 	saving: boolean;
 	/** The other mode the user may open, if any. */
 	switchTo: { label: string; onClick: () => void } | null;
+	/** The open child table's crumbs, between the DocType's and the layout's. */
+	childCrumbs?: { label: string; onClick?: () => void }[];
 }>();
 const emit = defineEmits<{ act: [name: string] }>();
 const tab = defineModel<EditorTab>("tab", { required: true });
@@ -91,6 +93,7 @@ const tab = defineModel<EditorTab>("tab", { required: true });
 const crumbs = computed(() => [
 	{ label: __("DocType"), route: routeFor("DocType") },
 	{ label: props.doctype },
+	...(props.childCrumbs ?? []),
 	{ label: props.layoutTitle, menu: true, onClick: () => (tab.value = "editor") },
 ]);
 

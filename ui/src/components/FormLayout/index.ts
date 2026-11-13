@@ -3,6 +3,7 @@ export { default as FormLayoutField } from "./FormLayoutField.vue";
 export { useFieldTypes } from "./useFieldTypes";
 export { registerFieldType, getFieldComponent } from "../Fields/fieldTypes";
 export type { RegisterFieldTypeOptions } from "../Fields/fieldTypes";
+export { gridColumnWidth } from "../Fields/gridColumnWidth";
 
 // The file-upload primitive now lives in its own module — import upload
 // consumers, the headless engine, and the source seam from "@framework/ui/FileUpload".
