@@ -22,6 +22,7 @@ def make_custom_doctype(name: str = DOCTYPE, fields: list[dict] | None = None, *
 	"""A custom DocType with a `title` field; DDL commits, so each test deletes it again."""
 	frappe.delete_doc("DocType", name, force=True, ignore_missing=True)
 	frappe.db.sql_ddl(f"drop table if exists `tab{name}`")
+	frappe.db.delete("Form Layout", {"dt": name})
 	doc = frappe.get_doc(
 		{
 			"doctype": "DocType",
@@ -369,6 +370,26 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Form Layout", row.name, "condition"), "doc.docstatus == 0")
 		self.save([{"act": "layouts.delete", "layout": ref}])
 		self.assertFalse(frappe.db.exists("Form Layout", row.name))
+
+	def test_the_default_layout_moves_to_an_older_row_in_one_save(self):
+		details = {"type": "Details"}
+		self.save([{"act": "layouts.add", "type": "Details", "id": "new-1", "condition": "doc.title"}])
+		self.save([{"act": "canvas.add_tab", "layout": details, "name": "more"}])
+		older, newer = (
+			row.name for row in frappe.get_all("Form Layout", {"dt": DOCTYPE}, order_by="creation asc")
+		)
+		result = self.save(
+			[
+				{"act": "layouts.set_condition", "layout": {**details, "id": older}, "condition": ""},
+				{
+					"act": "layouts.set_condition",
+					"layout": {**details, "id": newer},
+					"condition": "doc.title",
+				},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertFalse(frappe.db.get_value("Form Layout", older, "condition"))
 
 	def test_a_save_over_a_changed_doctype_is_refused_as_stale(self):
 		version = base_version(DOCTYPE)

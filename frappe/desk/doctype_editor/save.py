@@ -139,9 +139,9 @@ class DesignSave:
 		}
 
 	def write_rows(self):
-		for layout in self.state.all_layouts():
-			if layout.type not in self.state.touched:
-				continue
+		touched = [layout for layout in self.state.all_layouts() if layout.type in self.state.touched]
+		# A row's save refuses a second default, so the old default gets its condition first.
+		for layout in sorted(touched, key=lambda layout: (not layout.deleted, not layout.condition)):
 			doc = frappe.get_doc("Form Layout", layout.row) if layout.row else frappe.new_doc("Form Layout")
 			if layout.deleted:
 				if layout.row:
