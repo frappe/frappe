@@ -3,11 +3,13 @@
 ## Bindings
 
 - `{{ expression }}` bindings work in props, styles, and visibility.
-- Keep bindings simple. Use property access and at most one short ternary.
-- Put date calculations, pluralization, chained ternaries, and immediately
-  invoked function expressions (IIFEs) in the page script. Define a named
-  helper and call it from the binding, such as
-  `{{ formatDueDate(dataItem.exp_end_date) }}`. In `setup()`, return each
+- Keep bindings simple and THIN. Use property access and at most one short
+  ternary.
+- Real computation, like date calculations, pluralization, chained ternaries,
+  and immediately invoked function expressions (IIFEs), belongs in the page
+  script. Define a named helper and call it from the binding, such as
+  `{{ formatDueDate(dataItem.exp_end_date) }}`, with the `formatDueDate`
+  function declared in the page script. In `setup()`, return each
   script-defined value or helper used by bindings or events.
 - Inline IIFEs run again on every render of each Repeater row. They also make
   bindings difficult to read and debug.
@@ -36,16 +38,16 @@
 - Put event modifiers on the event name. Examples include `dragover.prevent`,
   `drop.prevent`, `submit.prevent.stop`, `keydown.enter`, and `click.stop`.
   Use `.prevent` for `preventDefault` and `.stop` for `stopPropagation`.
-- Handler props inside component props require arrow-function strings such as
-  `"() => { … }"`. This applies to a Dialog action's `onClick` and a Dropdown or
-  ContextMenu option's `onClick`. The component calls the value as a function.
-  A bare statement string causes "onClick is not a function".
+- Handler props living inside component props require arrow-function strings
+  such as `"() => { … }"`. This applies to a Dialog action's `onClick` and a
+  Dropdown or ContextMenu option's `onClick`. The component calls the value as
+  a function. A bare statement string causes "onClick is not a function".
 
 ## Variants
 
-Use `Variants` to compare design options during review. It renders one child
-at a time. For a runtime choice, use `visibilityCondition` on each block or
-bind the prop that changes.
+Use `Variants` to compare design options during review. It is not a runtime
+switch. It renders one child at a time. For a runtime choice, use
+`visibilityCondition` on each block or bind the prop that changes.
 
 - The Keep action keeps one option and deletes the others. Publishing a page
   that still contains `Variants` uses its first option and shows a warning.
@@ -61,8 +63,8 @@ bind the prop that changes.
   props and for `Icon`. There is no `getIcon()` helper or `FeatherIcon`.
 - Use the `Icon` component for a standalone Lucide icon:
   `{"componentName": "Icon", "componentProps": {"icon": "lucide-<name>"}}`.
-- Do not use a raw `span` with a `lucide-*` class. It has no `icon` prop, so the
-  icon picker cannot appear for it.
+- Do not use a raw `span` with a `lucide-*` class. It has no `icon` prop, so
+  the icon picker cannot appear for it.
 - Use an `HTML` block for a custom SVG, such as a logo or illustration.
 
 ## Styles

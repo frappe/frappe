@@ -26,7 +26,7 @@ A page script runs after route matching and is too late for this work.
 
 Keep the config at the app root and use `export default`:
 
-- In a custom app, use `router.js` in the file store.
+- In a custom app, use `router.js` in the file store (Studio App File).
 - In a standard app, use `router.ts` or `router.js` under
   `<frappe_app>/studio/<studio_app>/`. Read the existing file before editing it
   and keep its extension. Create `router.ts` if neither file exists.
@@ -35,7 +35,8 @@ Keep the config at the app root and use `export default`:
 and options follow Vue Router behavior. Studio adds three optional config keys:
 
 - `routerOptions`: options for `createRouter`, except `routes` and `history`.
-- `extendRoute(route)`: change each page's route record before the router exists.
+- `extendRoute(route)`: change each page's route record before the router
+  exists.
 - `setup(router)`: configure the live router. Register guards with
   `router.beforeEach`, `router.afterEach`, or `router.beforeResolve`.
   Use `router.addRoute` for redirects only when necessary.
