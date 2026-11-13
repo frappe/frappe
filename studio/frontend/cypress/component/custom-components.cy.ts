@@ -3,7 +3,7 @@ import {
 	getComponentSlots,
 	getComponentTemplate,
 	registerCustomComponentPaths,
-} from "@/utils/components"
+} from "@/utils/componentSlots"
 
 const cardIn = (app: string) => ({
 	component_name: "Card",

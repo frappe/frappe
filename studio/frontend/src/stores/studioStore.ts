@@ -16,7 +16,7 @@ import useCodeStore, { usePageScope } from "@/stores/codeStore"
 import { reloadCustomVueComponents } from "@/utils/customVueComponents"
 import { registerStudioPageScripts, unregisterStudioPageScripts } from "@/data/studioPageScripts"
 import { loadAppRuntime, reloadAppRuntime, unloadAppRuntime } from "@/browserRuntime/appRuntime"
-import { registerCustomComponentPaths } from "@/utils/components"
+import { registerCustomComponentPaths } from "@/utils/componentSlots"
 import type { CustomVueComponentMeta } from "@/types/vue"
 
 import type { StudioApp } from "@/types/Studio/StudioApp"
