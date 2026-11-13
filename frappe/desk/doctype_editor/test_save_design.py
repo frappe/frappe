@@ -63,6 +63,8 @@ def placed(row) -> list[str]:
 def delete_committed(doctype: str, name: str):
 	"""Its insert's DDL committed, and the class's rollback runs after this cleanup."""
 	frappe.delete_doc(doctype, name, force=True, ignore_missing=True)
+	if doctype == "DocType":
+		frappe.db.sql_ddl(f"drop table if exists `tab{name}`")
 	frappe.db.commit()  # nosemgrep
 
 
