@@ -66,6 +66,12 @@ def delete_committed(doctype: str, name: str):
 	frappe.db.commit()  # nosemgrep
 
 
+def restore_modified(doctype: str, modified):
+	"""A save of a real DocType commits with its DDL, so the rollback cannot undo it."""
+	frappe.db.set_value("DocType", doctype, "modified", modified, update_modified=False)
+	frappe.db.commit()  # nosemgrep
+
+
 def omitted(row) -> list[str]:
 	return json.loads(row.omitted or "[]")
 
@@ -687,6 +693,7 @@ class TestSaveDesignAppFiles(IntegrationTestCase):
 			"export_types_to_controller",
 		):
 			self.enterContext(patch(f"frappe.core.doctype.doctype.doctype.DocType.{method}"))
+		self.addCleanup(restore_modified, "ToDo", frappe.db.get_value("DocType", "ToDo", "modified"))
 		self.addCleanup(frappe.db.rollback)
 
 	def path(self, dt: str, type: str) -> str:
