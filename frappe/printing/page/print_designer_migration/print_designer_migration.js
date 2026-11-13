@@ -20,8 +20,8 @@ class PrintDesignerMigration {
 		this.$body = $(page.body);
 	}
 
-	refresh() {
-		this.highlight = frappe.get_route()[1];
+	refresh(highlight) {
+		this.highlight = highlight || frappe.get_route()[1];
 		frappe.xcall(`${METHOD}.get_print_designer_formats`).then((rows) => this.render(rows));
 	}
 
@@ -35,7 +35,7 @@ class PrintDesignerMigration {
 		const $content = $(`<div class="flex flex-col gap-4 p-4"></div>`).appendTo(this.$body);
 		$content.append(
 			`<p class="text-p-sm text-ink-gray-5 max-w-lg m-0">${__(
-				"Converting turns a Print Designer format into a print format editor format with the same name, so everything that prints with it keeps working. Preview shows both side by side first, and Undo turns it back."
+				"Converting turns a Print Designer format into a print format editor format with the same name, so everything that prints with it keeps working. Preview shows both side by side first, and Undo turns it back. Standard formats belong to their app, so they are converted as a copy."
 			)}</p>`
 		);
 
@@ -68,9 +68,7 @@ class PrintDesignerMigration {
 			: { label: __("Print Designer"), theme: "gray" };
 		const details = [__(row.doc_type)];
 		if (row.disabled) details.push(__("Disabled"));
-		if (!row.converted && row.standard === "Yes") {
-			details.push(__("Standard format, duplicate it to convert"));
-		}
+		if (!row.converted && row.standard === "Yes") details.push(__("Standard"));
 		const $row = $(`
 			<div class="flex items-center gap-4 px-4 py-3">
 				<div class="flex flex-col gap-1 flex-1 min-w-0">
@@ -100,7 +98,12 @@ class PrintDesignerMigration {
 			add(__("Undo"), () => this.undo(row));
 		} else {
 			if (row.sample) add(__("Preview"), () => this.preview(row));
-			if (row.standard !== "Yes") add(__("Convert"), () => this.convert(row));
+			if (row.standard === "Yes") {
+				add(__("Duplicate and Convert"), () => this.duplicate_and_convert(row));
+			} else {
+				add(__("Convert"), () => this.convert(row));
+				add(__("Delete"), () => this.delete(row));
+			}
 		}
 		return $row;
 	}
@@ -133,13 +136,12 @@ class PrintDesignerMigration {
 					)}</div>`,
 				},
 			],
-			...(row.standard !== "Yes" && {
-				primary_action_label: __("Convert"),
-				primary_action: () => {
-					dialog.hide();
-					this.convert(row);
-				},
-			}),
+			primary_action_label:
+				row.standard === "Yes" ? __("Duplicate and Convert") : __("Convert"),
+			primary_action: () => {
+				dialog.hide();
+				row.standard === "Yes" ? this.duplicate_and_convert(row) : this.convert(row);
+			},
 		});
 		const load = () => {
 			const name = dialog.get_value("document");
@@ -164,14 +166,82 @@ class PrintDesignerMigration {
 					message: __("Converted {0}", [row.name]),
 					indicator: "green",
 				});
-				if (notes.length) {
-					frappe.msgprint({
-						title: __("Converted with changes"),
-						message: notes.map((note) => frappe.utils.escape_html(note)).join("<br>"),
-					});
-				}
+				this.show_notes(notes);
 				this.refresh();
 			});
+	}
+
+	duplicate_and_convert(row) {
+		const escape = frappe.utils.escape_html;
+		return frappe
+			.xcall(`${CONVERTER}.duplicate_and_convert`, { print_format: row.name })
+			.then(({ name, notes, usage }) => {
+				frappe.show_alert({ message: __("Created {0}", [name]), indicator: "green" });
+				this.show_notes(notes);
+				this.refresh(name);
+				if (!usage.length) return;
+				frappe.confirm(
+					__("{0} is in use: {1}. Use {2} instead?", [
+						`<b>${escape(row.name)}</b>`,
+						usage.map((place) => escape(place)).join(", "),
+						`<b>${escape(name)}</b>`,
+					]),
+					() =>
+						frappe
+							.xcall(`${CONVERTER}.use_print_format_instead`, {
+								print_format: row.name,
+								replacement: name,
+							})
+							.then(() =>
+								frappe.show_alert({
+									message: __("{0} now prints with {1}", [row.name, name]),
+									indicator: "green",
+								})
+							)
+				);
+			});
+	}
+
+	delete(row) {
+		const escape = frappe.utils.escape_html;
+		return frappe
+			.xcall(`${METHOD}.get_print_format_usage`, { print_format: row.name })
+			.then((usage) => {
+				if (usage.length) {
+					frappe.msgprint({
+						title: __("Cannot Delete"),
+						message: __("{0} is still in use: {1}. Pick another format there first.", [
+							`<b>${escape(row.name)}</b>`,
+							usage.map((place) => escape(place)).join(", "),
+						]),
+					});
+					return;
+				}
+				frappe.confirm(
+					__("Delete <b>{0}</b>? This cannot be undone.", [escape(row.name)]),
+					() =>
+						frappe
+							.xcall("frappe.client.delete", {
+								doctype: "Print Format",
+								name: row.name,
+							})
+							.then(() => {
+								frappe.show_alert({
+									message: __("Deleted {0}", [row.name]),
+									indicator: "green",
+								});
+								this.refresh();
+							})
+				);
+			});
+	}
+
+	show_notes(notes) {
+		if (!notes.length) return;
+		frappe.msgprint({
+			title: __("Converted with changes"),
+			message: notes.map((note) => frappe.utils.escape_html(note)).join("<br>"),
+		});
 	}
 
 	convert_all() {
