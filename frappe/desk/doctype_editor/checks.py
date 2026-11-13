@@ -82,6 +82,8 @@ class DesignChecks:
 			{
 				"dt": self.state.name,
 				"type": layout.type,
+				"title": layout.title,
+				"condition": layout.condition,
 				"layout": frappe.as_json(layout.tree.tabs),
 				"omitted": frappe.as_json(layout.omitted),
 			}
@@ -89,6 +91,7 @@ class DesignChecks:
 		return self.keyed_error(
 			layout,
 			lambda _layout: row.validate_layout(),
+			lambda _layout: row._validate_length(),
 			self.refuse_names_of_fields,
 			self.refuse_inline_fields,
 		)

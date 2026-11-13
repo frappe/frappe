@@ -679,6 +679,9 @@ class TestSaveDesign(IntegrationTestCase):
 				{"act": "canvas.add_tab", "layout": details, "name": "extra"},
 				{"act": "layouts.add", "type": "Details", "id": "new-1", "start": "empty"},
 			],
+			"title longer than the row holds": [
+				{"act": "layouts.rename", "layout": details, "title": "x" * 141},
+			],
 		}
 		for case, edits in cases.items():
 			with self.subTest(case):
