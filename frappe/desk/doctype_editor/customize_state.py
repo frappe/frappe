@@ -14,6 +14,7 @@ from frappe.desk.doctype.form_layout.form_layout import (
 )
 from frappe.desk.doctype_editor.design_state import DesignState, EditorLayout
 from frappe.desk.doctype_editor.errors import EditError, field_error
+from frappe.permissions import std_rights
 
 # A custom field on these renders at its anchor (`insert_after`) until the site forks the layout.
 ANCHORED_TYPES = ("Details", "New Record")
@@ -30,10 +31,23 @@ class CustomizeState(DesignState):
 		self.anchors: dict[str, str | None] = {}
 		self.reset_rows: list[str] = []
 		self.property_deletes: list[tuple[str, str]] = []
+		# None until a permission edit copies the rows in; the save then replaces the site's rows.
+		self.permissions: list | None = None
+		self.reset_permissions = False
 
 	@property
 	def standard(self) -> bool:
 		return False
+
+	def starting_permissions(self) -> list[dict]:
+		"""The site's Custom DocPerm rows, else the app's; after a reset, the app's."""
+		fields = ["role", "permlevel", "if_owner", *std_rights]
+		if not self.reset_permissions and (rows := self.permission_rows_of("Custom DocPerm", fields)):
+			return rows
+		return self.permission_rows_of("DocPerm", fields)
+
+	def permission_rows_of(self, doctype: str, fields: list) -> list[dict]:
+		return frappe.get_all(doctype, {"parent": self.name}, fields, order_by="idx")
 
 	def child_defaults(self) -> dict:
 		return {"module": frappe.get_meta(self.name).module, "custom": 1}

@@ -8,10 +8,10 @@ from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.desk.doctype.form_layout.form_layout import LAYOUT_BREAKS
 from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError, field_error
+from frappe.desk.doctype_editor.settings_edits import SettingsEdits
 from frappe.model import no_value_fields, table_fields
 
 RESERVED_PROPERTIES = ("name", "parent", "parenttype", "parentfield", "idx", "doctype")
-DOCTYPE_PROPERTIES = ("description", "editable_grid", "allow_bulk_edit")
 PLACE_KEYS = ("fieldname", "section", "column", "index", "tab")
 UNFETCHABLE_TYPES = (*no_value_fields, "Dynamic Link")
 # A column is named with its section: column names repeat across sections.
@@ -35,7 +35,7 @@ CANVAS_ACTS = {
 }
 
 
-class DesignEdits:
+class DesignEdits(SettingsEdits):
 	def __init__(self, state: DesignState):
 		self.state = state
 
@@ -161,12 +161,6 @@ class DesignEdits:
 				field.fieldname,
 				"options",
 			)
-
-	def settings_set_doctype_property(self, edit: dict):
-		property = edit.get("property")
-		if property not in DOCTYPE_PROPERTIES:
-			raise EditError(_("{0} is not a DocType property the editor sets.").format(property))
-		self.state.doc.set(property, edit.get("value"))
 
 	def layouts_add(self, edit: dict):
 		self.state.add_layout(

@@ -12,6 +12,7 @@ from frappe.desk.doctype_editor.customize_state import CustomizeState
 from frappe.desk.doctype_editor.save import DesignSave, move_table_rows
 from frappe.desk.doctype_editor.versions import changed_error, customizations_version, stale_error
 from frappe.model import table_fields
+from frappe.permissions import reset_perms
 
 
 class CustomizeSave(DesignSave):
@@ -38,6 +39,7 @@ class CustomizeSave(DesignSave):
 		rows = [
 			*frappe.get_all("Custom Field", {"dt": self.doctype}, ["modified_by", "modified"]),
 			*frappe.get_all("Property Setter", {"doc_type": self.doctype}, ["modified_by", "modified"]),
+			*frappe.get_all("Custom DocPerm", {"parent": self.doctype}, ["modified_by", "modified"]),
 		]
 		last = max(rows, key=lambda row: row.modified, default=None)
 		return (last.modified_by, last.modified) if last else (frappe.session.user, frappe.utils.now())
@@ -63,6 +65,7 @@ class CustomizeSave(DesignSave):
 			self.state.doc.save_customization()
 			self.written.append(self.doctype)
 			self.set_anchors(anchors)
+			self.write_permissions()
 			for fieldname, property in self.state.property_deletes:
 				delete_property_setter(self.doctype, property, fieldname)
 			for row in self.state.reset_rows:
@@ -77,6 +80,16 @@ class CustomizeSave(DesignSave):
 			if self.written:
 				frappe.clear_cache(doctype=self.doctype)
 				publish_doctype_update(self.doctype)
+
+	def write_permissions(self):
+		"""The edited rows replace the site's; a reset with no later edit leaves the app's."""
+		if self.state.permissions is not None:
+			frappe.db.delete("Custom DocPerm", {"parent": self.doctype})
+			for row in self.state.permissions:
+				row.update({"parent": self.doctype, "parenttype": "DocType", "parentfield": "permissions"})
+				row.insert()
+		elif self.state.reset_permissions:
+			reset_perms(self.doctype)
 
 	def note_committed(self):
 		"""`rename_fieldname` and Customize Form's DDL commit, so the rollback may leave them written."""

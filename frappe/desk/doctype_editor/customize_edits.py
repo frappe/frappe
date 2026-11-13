@@ -9,18 +9,15 @@ from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.desk.doctype_editor.customize_state import ANCHORED_TYPES, CustomizeState
 from frappe.desk.doctype_editor.design_edits import DesignEdits, refuse_property
-from frappe.desk.doctype_editor.errors import EditError, field_error
+from frappe.desk.doctype_editor.errors import field_error
 from frappe.desk.doctype_editor.layout_tree import LayoutTree
+from frappe.desk.doctype_editor.settings_edits import AUTOINCREMENT, CUSTOMIZE_PROPERTIES, setting_error
 
 
 class CustomizeEdits(DesignEdits):
 	state: CustomizeState
 
-	def apply(self, edit: dict):
-		act = edit.get("act") if isinstance(edit, dict) else None
-		if (act or "").startswith("settings."):
-			raise EditError(_("{0} is not in Customize mode yet.").format(act))
-		super().apply(edit)
+	properties = CUSTOMIZE_PROPERTIES
 
 	def canvas(self, edit: dict, method: str, keys: tuple):
 		if method == "place_field" and self.place_without_fork(edit, keys):
@@ -100,6 +97,48 @@ class CustomizeEdits(DesignEdits):
 	def layouts_reset_to_app(self, edit: dict):
 		self.state.reset_to_app(edit.get("type"))
 
-	def is_app_setter(self, fieldname: str, property: str) -> bool:
-		filters = {"doc_type": self.state.name, "field_name": fieldname, "property": property}
+	def settings_reset_doctype_property(self, edit: dict):
+		"""Back to the app's value, so Customize Form deletes the site's Property Setter; an app's setter stays."""
+		property = edit.get("property")
+		self.refuse_property(property)
+		if self.is_app_setter(None, property):
+			value = frappe.get_meta(self.state.name).get(property)
+		else:
+			value = frappe.db.get_value("DocType", self.state.name, property)
+		self.state.doc.set(property, value)
+
+	def settings_reset_permissions(self, edit: dict):
+		self.state.permissions = None
+		self.state.reset_permissions = True
+
+	def refuse_autoincrement(self, value: str):
+		if AUTOINCREMENT in (value, self.saved_autoname()) and value != self.saved_autoname():
+			raise setting_error(_("Customize cannot switch to or from Number in order."), "autoname")
+
+	def saved_autoname(self) -> str | None:
+		return frappe.get_meta(self.state.name).autoname
+
+	def series_field(self):
+		if field := self.state.doc.get("fields", {"fieldname": "naming_series"}):
+			return field[0]
+		raise setting_error(_("{0} has no naming_series field.").format(self.state.name), "naming_series")
+
+	def permission_rows(self) -> list:
+		"""The first edit copies the rows the site uses now: its own, else the app's."""
+		if self.state.permissions is None:
+			self.state.permissions = [
+				frappe.new_doc("Custom DocPerm").update(row) for row in self.state.starting_permissions()
+			]
+		return self.state.permissions
+
+	def append_permission(self, values: dict):
+		self.permission_rows().append(frappe.new_doc("Custom DocPerm").update(values))
+
+	def drop_permission(self, row):
+		self.permission_rows().remove(row)
+
+	def is_app_setter(self, fieldname: str | None, property: str) -> bool:
+		"""`fieldname` None names a setter of the DocType's own property."""
+		filters = {"doc_type": self.state.name, "property": property}
+		filters |= {"field_name": fieldname} if fieldname else {"doctype_or_field": "DocType"}
 		return bool(frappe.db.get_value("Property Setter", filters, "is_system_generated"))

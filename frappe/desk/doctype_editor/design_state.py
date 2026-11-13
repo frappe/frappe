@@ -55,6 +55,8 @@ class DesignState:
 		self.touched: set[str] = set()
 		self.renames: list[tuple[str, str]] = []
 		self.children: dict[str, DesignState] = {}
+		# The editor's first save of a new DocType inserted it just now (`create.DoctypeCreate`).
+		self.created = False
 
 	def add_child(self, name: str) -> "DesignState":
 		"""A new child DocType, inserted before this one saves; it takes field edits only."""

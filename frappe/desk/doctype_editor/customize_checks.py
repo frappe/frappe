@@ -6,7 +6,7 @@ from functools import cached_property
 
 import frappe
 from frappe import _
-from frappe.core.doctype.doctype.doctype import validate_fields
+from frappe.core.doctype.doctype.doctype import validate_fields, validate_permissions
 from frappe.custom.doctype.customize_form.customize_form import (
 	docfield_properties,
 	is_standard_or_system_generated_field,
@@ -14,6 +14,7 @@ from frappe.custom.doctype.customize_form.customize_form import (
 from frappe.desk.doctype_editor.checks import DesignChecks
 from frappe.desk.doctype_editor.customize_state import CustomizeState
 from frappe.desk.doctype_editor.errors import field_error
+from frappe.desk.doctype_editor.settings_edits import setting_error
 from frappe.model.meta import Meta
 
 
@@ -26,7 +27,7 @@ class CustomizeChecks(DesignChecks):
 
 	def parent_errors(self) -> list[dict]:
 		"""A refusal that does not block skips its change: the property goes back to its saved value."""
-		errors = self.rename_errors() + self.refusal_errors()
+		errors = self.rename_errors() + self.refusal_errors() + self.permission_errors()
 		if not errors:
 			validate_fields(self.meta)
 		return errors
@@ -51,6 +52,28 @@ class CustomizeChecks(DesignChecks):
 					if not refusal.blocks_save:
 						df.set(prop, meta_df[0].get(prop))
 		return errors
+
+	def permission_errors(self) -> list[dict]:
+		"""DocType's rules on the rows the save writes; they stand in for the DocType's own."""
+		rows = self.state.permissions
+		if rows is None:
+			return []
+		for idx, row in enumerate(rows, start=1):
+			row.update({"parent": self.state.name, "idx": idx})
+		meta = frappe.get_meta(self.state.name)
+		doctype = frappe._dict(
+			name=self.state.name,
+			permissions=rows,
+			issingle=meta.issingle,
+			is_submittable=meta.is_submittable,
+			allow_import=self.state.doc.allow_import,
+			custom=0,
+		)
+		try:
+			validate_permissions(doctype)
+		except frappe.ValidationError as e:
+			return [setting_error(str(e), "permissions").as_dict()]
+		return []
 
 	def refusal(self, prop: str, meta_df: list, df, meta):
 		form = self.state.doc
