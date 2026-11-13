@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.flow.daemon import lifecycle
-from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools
+from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools, unavailable_tools
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
 
@@ -87,6 +87,17 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 			):
 				frappe.get_doc(_script(slug=f"script_weather_{int(enabled)}")).insert()
 				self.assertEqual(msgprint.called, not enabled)
+
+	def test_execute_and_script_tools_are_unavailable_while_server_scripts_are_off(self):
+		sync_builtin_tools()
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True):
+			script = frappe.get_doc(_script()).insert()
+			self.assertEqual(unavailable_tools(), [])
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False):
+			unavailable = unavailable_tools()
+		self.assertIn("frappe/execute", unavailable)
+		self.assertIn(script.name, unavailable)
+		self.assertNotIn("frappe/create", unavailable)
 
 
 class TestFlowToolSystemGenerated(IntegrationTestCase):

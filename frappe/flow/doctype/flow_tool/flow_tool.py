@@ -229,3 +229,14 @@ def sync_server_tools() -> None:
 					"is_system_generated": 1,
 				}
 			).insert(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def unavailable_tools() -> list[str]:
+	"""The tools that cannot run while server scripts are off: execute and every Script tool."""
+	from frappe.flow.tools.builtins import EXECUTE_SLUG, builtin_name
+	from frappe.utils.safe_exec import is_safe_exec_enabled
+
+	if is_safe_exec_enabled() or not frappe.has_permission("Flow Tool", "read"):
+		return []
+	return [builtin_name(EXECUTE_SLUG), *frappe.get_all("Flow Tool", {"type": "Script"}, pluck="name")]

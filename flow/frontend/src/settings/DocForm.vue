@@ -17,6 +17,12 @@
 			>
 				Comes with an app, so greyed-out fields can't be changed.
 			</div>
+			<div
+				v-if="notice"
+				class="rounded-6 border border-outline-gray-2 bg-surface-gray-1 px-3 py-2 text-sm text-ink-gray-7"
+			>
+				{{ notice }}
+			</div>
 			<template v-for="field in visibleFields" :key="field.name">
 				<SettingsRow v-if="rows && !field.beside" :title="field.label" :description="field.description">
 					<div class="flex items-center gap-2">
@@ -40,7 +46,7 @@
 				</SettingsRow>
 				<FieldControl
 					v-else-if="!rows"
-					:field="field"
+					:field="withNote(field)"
 					:doc="doc"
 					:disabled="!canWrite || isLocked(field)"
 				/>
@@ -84,6 +90,7 @@
 </template>
 
 <script setup>
+import { computed, inject } from "vue";
 import { Button, ErrorMessage } from "frappe-ui";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
@@ -122,6 +129,20 @@ const {
 	remove,
 	runAction,
 } = useRecord(props, emit);
+
+// why this record can't be used, when its spec knows one
+const page = inject("flowPage");
+const notice = computed(
+	() => (doc.value && props.spec.notice?.(doc.value, page.state.boot)) || ""
+);
+
+// a field's note on this record follows its description
+function withNote(field) {
+	const note = field.note?.(doc.value, page.state.boot);
+	return note
+		? { ...field, description: [field.description, note].filter(Boolean).join(" ") }
+		: field;
+}
 
 // a field shown `beside` another is its key, asked for in a dialog; a key saved for another
 // choice of that field is not one for this choice
