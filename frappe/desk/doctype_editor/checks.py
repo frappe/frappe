@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 """What a Design save checks before its first write: a DocType's DDL commits, so a later refusal cannot undo it."""
 
+from functools import cached_property
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.form_layout.form_layout import (
@@ -75,6 +77,11 @@ class DesignChecks:
 			if (error := self.keyed_error(layout, self.refuse_names_of_fields, self.refuse_inline_fields))
 		]
 
+	@cached_property
+	def meta(self) -> Meta:
+		"""The fields as this save leaves them."""
+		return Meta(self.state.doc)
+
 	def layout_error(self, layout: EditorLayout) -> dict | None:
 		"""The Form Layout checks, with the fields as this save leaves them."""
 		row = frappe.new_doc("Form Layout")
@@ -88,12 +95,9 @@ class DesignChecks:
 				"omitted": frappe.as_json(layout.omitted),
 			}
 		)
+		row.flags.meta = self.meta
 		return self.keyed_error(
-			layout,
-			lambda _layout: row.validate_layout(),
-			lambda _layout: row._validate_length(),
-			self.refuse_names_of_fields,
-			self.refuse_inline_fields,
+			layout, lambda _layout: row.validate_layout(), lambda _layout: row._validate_length()
 		)
 
 	def keyed_error(self, layout: EditorLayout, *checks) -> dict | None:
@@ -113,11 +117,8 @@ class DesignChecks:
 				refuse_field_name(_("Section"), section.get("name"), fieldnames, self.state.name)
 
 	def refuse_inline_fields(self, layout: EditorLayout):
-		"""The row's own check reads the saved meta, which lacks the fields this save adds."""
-		if fields := inline_fields(layout.tree.tabs):
-			meta = Meta(self.state.doc)
-			for field in fields:
-				validate_inline_field(field, meta)
+		for field in inline_fields(layout.tree.tabs):
+			validate_inline_field(field, self.meta)
 
 
 def validate(doc):

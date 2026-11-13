@@ -732,6 +732,28 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "notes"}))
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("notes"), "the check leaves no unsaved meta")
 
+	def test_a_field_deleted_in_the_save_frees_its_name_for_a_section(self):
+		make_custom_doctype(
+			fields=[
+				{"fieldname": "title", "label": "Title", "fieldtype": "Data"},
+				{"fieldname": "notes", "label": "Notes", "fieldtype": "Small Text"},
+			]
+		)
+		result = self.save(
+			[
+				{"act": "fields.delete_field", "fieldname": "notes"},
+				{
+					"act": "canvas.add_section",
+					"layout": {"type": "Details"},
+					"tab": "first_tab",
+					"name": "notes",
+				},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		[row] = details_rows()
+		self.assertIn("notes", [section["name"] for section in json.loads(row.layout)[0]["sections"]])
+
 	def test_a_new_name_is_checked_against_layouts_the_save_leaves_alone(self):
 		inline = {"fieldname": "customer_note", "label": "Customer Note", "fieldtype": "Data"}
 		trees = {
