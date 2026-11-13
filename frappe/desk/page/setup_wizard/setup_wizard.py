@@ -109,11 +109,12 @@ def complete_prefilled_setup(login_manager=None):
 	args = get_prefilled_setup_args()
 	if not args:
 		return
+	# A failed setup rolls back; the login's own rows must already be in.
+	frappe.db.commit(chain=True)
 	try:
-		# A failed setup rolls back; the login's own rows must already be in.
-		frappe.db.commit()
 		complete_app_setup(**args)
 	except Exception:
+		# Whatever an app's setup hook raised, the login goes through; the wizard takes over.
 		frappe.log_error(title="Setup from the saved region failed")
 		frappe.db.set_default(PREFILLED_SETUP_FAILED, 1)
 		# The login still succeeded; keep the wizard's failure out of its response.
