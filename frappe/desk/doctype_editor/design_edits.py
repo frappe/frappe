@@ -102,3 +102,6 @@ class DesignEdits:
 
 	def fields_delete_field(self, edit: dict):
 		self.state.delete_field(edit.get("fieldname"))
+
+	def fields_rename_field(self, edit: dict):
+		self.state.rename_field(edit.get("fieldname"), edit.get("new_fieldname"))

@@ -15,6 +15,7 @@ from frappe.desk.doctype_editor.errors import EditError
 from frappe.desk.doctype_editor.mode import check_mode
 from frappe.desk.doctype_editor.versions import base_version as current_version
 from frappe.desk.doctype_editor.versions import stale_error
+from frappe.model.utils.rename_field import rename_field
 
 
 @frappe.desk_v2_only
@@ -60,6 +61,8 @@ class DesignSave:
 
 	def write(self):
 		self.state.doc.save()
+		for old, new in self.state.renames:
+			rename_field(self.doctype, old, new)
 		self.write_layouts()
 		publish_doctype_update(self.doctype)
 

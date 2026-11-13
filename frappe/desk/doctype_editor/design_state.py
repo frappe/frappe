@@ -34,7 +34,7 @@ class EditorLayout:
 
 
 class DesignState:
-	def __init__(self, doctype: str, pending: "DesignState | None" = None):
+	def __init__(self, doctype: str):
 		self.name = doctype
 		self.doc = frappe.get_doc("DocType", doctype)
 		self.saved_fieldnames = {field.fieldname for field in self.doc.fields}
@@ -109,6 +109,30 @@ class DesignState:
 		for type in FORM_LAYOUT_TYPES:
 			if not layout_type_refusal(self.name, type):
 				self.layouts_of(type)
+
+	def rename_field(self, old: str, new: str):
+		field = self.field(old)
+		if not new or any(each.fieldname == new for each in self.doc.fields):
+			raise field_error(_("{0} already has a field {1}.").format(self.name, new), old)
+		if old in self.saved_fieldnames:
+			if self.standard:
+				raise field_error(_("Renaming a saved field of a standard DocType needs a patch."), old)
+			self.note_rename(old, new)
+		field.fieldname = new
+		self.load_every_layout()
+		for layout in self.all_layouts():
+			if old in layout.tree.fieldnames() or old in layout.omitted:
+				layout.tree.rename_field(old, new)
+				layout.omitted = [new if each == old else each for each in layout.omitted]
+				self.touched.add(layout.type)
+
+	def note_rename(self, old: str, new: str):
+		"""Fold a chain of renames, so the data moves once from the saved column."""
+		for index, (saved, renamed) in enumerate(self.renames):
+			if renamed == old:
+				self.renames[index] = (saved, new)
+				return
+		self.renames.append((old, new))
 
 	def delete_field(self, fieldname: str):
 		"""Drop the field and every layout's mention of it; its column and data stay."""
