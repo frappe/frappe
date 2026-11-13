@@ -105,12 +105,22 @@ export function panelMark(canvas: DesignCanvas, fieldname: string, property: str
 	};
 }
 
-/** In Customize a standard field cannot go: the panel's remove hides or shows it instead. */
+/** Customize hides a standard field instead of removing it; outside Details a field only leaves the layout. */
 export function removeAction(canvas: DesignCanvas, field: RawMetaField): { label: string; icon: string } {
+	if (takesOff(canvas)) {
+		return canvas.place(field.fieldname)
+			? { label: __("Take off this layout"), icon: "lucide-eye-off" }
+			: { label: "", icon: "" };
+	}
 	if (!canvas.customize?.hidesOnRemove(field.fieldname)) return { label: __("Remove field"), icon: "lucide-trash-2" };
 	return field.hidden
 		? { label: __("Show field"), icon: "lucide-eye" }
 		: { label: __("Hide field"), icon: "lucide-eye-off" };
+}
+
+/** Removing a field from the DocType is a Details act. */
+export function takesOff(canvas: DesignCanvas): boolean {
+	return canvas.openLayout.value.type !== "Details";
 }
 
 /** The confirm a remove asks; none for a field added since the save, which has no column. */

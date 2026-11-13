@@ -1,5 +1,4 @@
-// The DocType editor's act surfaces. Every act is `<surface>.<item>` and takes one value; a later
-// slice adds `layouts` here.
+// The DocType editor's act surfaces. Every act is `<surface>.<item>` and takes one value.
 import { toast } from "frappe-ui";
 import { onScopeDispose, type Ref } from "vue";
 import { acts, type ActEntry, type ActItem, type ActOption } from "@/acts/dispatcher";
@@ -13,6 +12,7 @@ import type { DesignCanvas } from "./designCanvas";
 import { EditRefused, type FlatEdit } from "./editorModel";
 import type { EditorSave } from "./editorSave";
 import { LAYOUT_BREAKS } from "./fieldRules";
+import { layoutItems } from "./layoutActs";
 import type { EditorTab, PendingEdits } from "./pendingEdits";
 import { SECTIONS, settingRows } from "./settingsRows";
 
@@ -54,6 +54,7 @@ export function useEditorActs(host: EditorActsHost) {
 			settings: () => entries(settingsItems(host)),
 			customize: () => entries(customizeItems(host)),
 			danger: () => entries(dangerItems(host)),
+			layouts: () => entries(layoutItems(host)),
 		},
 		context: () => host,
 		passes: () => true,

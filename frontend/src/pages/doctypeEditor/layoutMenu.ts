@@ -55,6 +55,16 @@ export function layoutMenu(working: WorkingState, open: LayoutRef): LayoutMenu {
 	};
 }
 
+/** What the layout crumb names: the open type's label, or the open conditional layout's name. */
+export function openLayoutName(menu: LayoutMenu): string {
+	for (const type of menu.types) {
+		if (type.open) return type.label;
+		const layout = type.layouts.find((one) => one.open);
+		if (layout) return layout.name;
+	}
+	return LABELS.Details();
+}
+
 /** Why "Add a layout" cannot add this one: the save's own refusal, or `null`. */
 export function addLayoutRefusal(working: WorkingState, layout: NewLayout): string | null {
 	try {

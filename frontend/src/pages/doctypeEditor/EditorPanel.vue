@@ -1,5 +1,5 @@
 <!-- The 380px panel beside the Design canvas: the selected field's settings, or the selected tab's,
-     section's or column's. -->
+     section's or column's; with nothing selected outside Details, the fields to place or add. -->
 <template>
 	<aside
 		class="flex w-[380px] shrink-0 flex-col overflow-y-auto border-l border-outline-gray-1"
@@ -16,6 +16,11 @@
 			:key="JSON.stringify(container)"
 			:canvas="canvas"
 			:selection="container"
+		/>
+		<PanelTray
+			v-else-if="takesOff(canvas)"
+			:key="canvas.openLayout.value.type"
+			:canvas="canvas"
 		/>
 		<template v-else>
 			<GridColumnsGroup
@@ -35,8 +40,10 @@ import { computed } from "vue";
 import { __ } from "@/i18n";
 import ContainerPanel from "./ContainerPanel.vue";
 import type { DesignCanvas } from "./designCanvas";
+import { takesOff } from "./fieldPanel";
 import FieldPanel from "./FieldPanel.vue";
 import GridColumnsGroup from "./GridColumnsGroup.vue";
+import PanelTray from "./PanelTray.vue";
 
 const props = defineProps<{ canvas: DesignCanvas }>();
 

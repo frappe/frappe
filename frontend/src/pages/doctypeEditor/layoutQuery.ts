@@ -1,6 +1,8 @@
 // The layout the editor opens, in the address: `?layout=side-panel&row=<id>`.
-import type { LocationQuery } from "vue-router";
+import { watch } from "vue";
+import { useRoute, useRouter, type LocationQuery } from "vue-router";
 import type { FormLayoutType } from "@/recordPage/formLayoutSource/types";
+import type { DesignCanvas } from "./designCanvas";
 import type { LayoutRef } from "./workingLayouts";
 
 const KEYS: Record<FormLayoutType, string> = {
@@ -9,6 +11,21 @@ const KEYS: Record<FormLayoutType, string> = {
 	"Quick Entry": "quick-entry",
 	"New Record": "new-record",
 };
+
+/** Keeps the address on the open layout both ways; other query keys stay, and nothing reloads. */
+export function useLayoutAddress(canvas: () => DesignCanvas | null) {
+	const route = useRoute();
+	const router = useRouter();
+	watch([() => route.query.layout, () => route.query.row], () => canvas()?.open(layoutFromQuery(route.query)));
+	watch(
+		() => canvas()?.openLayout.value,
+		(open) => {
+			if (!open || sameLayout(layoutFromQuery(route.query), open)) return;
+			const { layout: _layout, row: _row, ...rest } = route.query;
+			void router.replace({ query: { ...rest, ...layoutQuery(open) } });
+		},
+	);
+}
 
 /** An unknown `layout` opens Details; no `row` opens the type's default. */
 export function layoutFromQuery(query: LocationQuery): LayoutRef {
@@ -20,6 +37,10 @@ export function layoutFromQuery(query: LocationQuery): LayoutRef {
 
 export function layoutQuery({ type, id }: LayoutRef): { layout: string; row?: string } {
 	return id ? { layout: KEYS[type], row: id } : { layout: KEYS[type] };
+}
+
+export function sameLayout(one: LayoutRef, other: LayoutRef): boolean {
+	return one.type === other.type && (one.id ?? "") === (other.id ?? "");
 }
 
 function first(value: LocationQuery[string] | undefined): string {

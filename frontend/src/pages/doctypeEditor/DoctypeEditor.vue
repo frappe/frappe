@@ -6,7 +6,7 @@
 			<EditorHeader
 				v-model:tab="tab"
 				:doctype="state.doctype"
-				:layout-title="layout?.title || __('Details')"
+				:canvas="canvas"
 				:dirty="dirty"
 				:can-undo="edits.canUndo.value"
 				:can-redo="edits.canRedo.value"
@@ -111,12 +111,12 @@ import EditorPanel from "./EditorPanel.vue";
 import { customizeHost } from "./customizeHost";
 import { dangerHost } from "./dangerHost";
 import { DesignCanvas } from "./designCanvas";
+import { layoutFromQuery, useLayoutAddress } from "./layoutQuery";
 import { canSave, useEditorActs } from "./editorActs";
 import { EditorSave, type ExportResult } from "./editorSave";
 import {
 	carriedAnswers,
 	copiedAnswers,
-	detailsLayout,
 	loadEditor,
 	modeOf,
 	pendingDoctype,
@@ -217,7 +217,6 @@ useEditorActs({
 			.map((record) => ({ value: record, label: record ?? __("Empty form") })),
 });
 
-const layout = computed(() => (state.value ? detailsLayout(state.value) : null));
 // The Danger zone acts on the page's DocType, not on a child table opened from it.
 const dangerScope = computed(() =>
 	openChild.value
@@ -238,6 +237,7 @@ const customizeRoute = computed(() =>
 
 let loading = 0;
 watch([name, () => route.query.mode, () => route.query[COPY_OF]], load, { immediate: true });
+useLayoutAddress(() => canvas.value);
 
 async function load() {
 	if (justCreated && justCreated === name.value) return void (justCreated = null);
@@ -335,6 +335,7 @@ function open(loaded: EditorState) {
 	state.value = loaded;
 	child.tables.reset();
 	canvas.value = new DesignCanvas(loaded, edits);
+	canvas.value.open(layoutFromQuery(route.query));
 }
 
 function find(fieldname: string) {
