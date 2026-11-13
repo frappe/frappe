@@ -75,34 +75,7 @@ async function _load_user_data() {
 
 	// All from the server, not boot: the User form and this module both change them
 	// after boot, and the profile page loads them again when it is shown again.
-	const response = await frappe.db.get_value("User", frappe.session.user, [
-		"full_name",
-		"user_image",
-		"first_name",
-		"middle_name",
-		"last_name",
-		"username",
-		"thread_notify",
-		"time_zone",
-		"notifications",
-		"search_bar",
-		"list_sidebar",
-		"bulk_actions",
-		"view_switcher",
-		"form_sidebar",
-		"timeline",
-		"dashboard",
-		"form_navigation_buttons",
-		"report_split_view",
-		"show_my_space",
-		"dock_mode",
-		"email_signature",
-		"language",
-		"mute_sounds",
-		"send_me_a_copy",
-		"send_read_receipt",
-		"show_absolute_datetime_in_timeline",
-	]);
+	const response = await frappe.call("frappe.core.doctype.user.user.get_settings_dialog_values");
 	return response.message;
 }
 

@@ -19,6 +19,7 @@ from frappe.core.doctype.user.user import (
 	change_password,
 	get_all_roles,
 	get_perm_info,
+	get_settings_dialog_values,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -118,6 +119,20 @@ class TestUser(IntegrationTestCase):
 		set_value("User", user.name, "dock_mode", "Floating")
 		frappe.clear_cache(user=user.name)
 		self.assertEqual(get_desk_settings().dock_mode, "Floating")
+
+	def test_settings_dialog_values_for_user_without_read_on_user(self):
+		"""Desk User has only select on User, so frappe.client.get_value gives such a user just the
+		name of their own User record. The Settings dialog must still show their real values.
+		"""
+		with test_user(roles=["_Test Role 2"], list_sidebar=0, mute_sounds=1, dock_mode="Floating") as user:
+			with self.set_user(user.name):
+				values = get_settings_dialog_values()
+
+		self.assertEqual(values.list_sidebar, 0)
+		self.assertEqual(values.timeline, 1)
+		self.assertEqual(values.mute_sounds, 1)
+		self.assertEqual(values.dock_mode, "Floating")
+		self.assertEqual(values.first_name, user.first_name)
 
 	def test_user_type(self):
 		user_id = frappe.generate_hash() + "@example.com"

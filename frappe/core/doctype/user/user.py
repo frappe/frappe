@@ -1071,6 +1071,44 @@ class User(Document):
 		self.restrict_ip = ",".join(self.get_restricted_ip_list())
 
 
+# What the Settings dialog and the phone Profile page show. Read here and not through
+# frappe.client.get_value: Desk User has only select on User, so get_value returns just the name
+# and every switch would show as off.
+SETTINGS_DIALOG_FIELDS = (
+	"full_name",
+	"user_image",
+	"first_name",
+	"middle_name",
+	"last_name",
+	"username",
+	"thread_notify",
+	"time_zone",
+	"notifications",
+	"search_bar",
+	"list_sidebar",
+	"bulk_actions",
+	"view_switcher",
+	"form_sidebar",
+	"timeline",
+	"dashboard",
+	"form_navigation_buttons",
+	"report_split_view",
+	"show_my_space",
+	"dock_mode",
+	"email_signature",
+	"language",
+	"mute_sounds",
+	"send_me_a_copy",
+	"send_read_receipt",
+	"show_absolute_datetime_in_timeline",
+)
+
+
+@frappe.whitelist()
+def get_settings_dialog_values():
+	return frappe.db.get_value("User", frappe.session.user, SETTINGS_DIALOG_FIELDS, as_dict=True)
+
+
 @frappe.whitelist()
 def get_timezones():
 	return {"timezones": _get_timezones()}
