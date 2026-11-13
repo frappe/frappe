@@ -1607,9 +1607,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return;
 		}
 
-		$.each(this.$checks, (i, el) => {
-			let docname = $(el).attr("data-name");
-			this.$result.find(`.list-row-checkbox[data-name='${docname}']`).prop("checked", true);
+		const names = new Set(Array.from(this.$checks, (el) => el.getAttribute("data-name")));
+		this.$result.find(".list-row-checkbox").each((i, el) => {
+			if (names.has(el.getAttribute("data-name"))) el.checked = true;
 		});
 		this.on_row_checked();
 	}
@@ -1909,20 +1909,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __("Clear Assignment", null, "Button in list view actions menu"),
 				action: () => {
-					frappe.confirm(
-						"Are you sure you want to clear the assignments?",
-						() => {
-							this.disable_list_update = true;
-							bulk_operations.clear_assignment(this.get_checked_items(true), () => {
-								this.disable_list_update = false;
-								this.refresh();
-							});
-						},
-						() => {
-							this.clear_checked_items();
+					frappe.confirm("Are you sure you want to clear the assignments?", () => {
+						this.disable_list_update = true;
+						bulk_operations.clear_assignment(this.get_checked_items(true), () => {
+							this.disable_list_update = false;
 							this.refresh();
-						}
-					);
+						});
+					});
 				},
 				standard: true,
 			};
