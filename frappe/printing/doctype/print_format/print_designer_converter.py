@@ -709,7 +709,10 @@ class PrintDesignerConverter:
 		if item.get("fieldname") != "name" and not df:
 			return None
 		node = {
-			"label": (item.get("label") or (df.label if df else _("Name"))).strip().rstrip(":").strip(),
+			"label": html.unescape(item.get("label") or (df.label if df else _("Name")))
+			.strip()
+			.rstrip(":")
+			.strip(),
 			"fieldname": item["fieldname"],
 			"fieldtype": df.fieldtype if df else "Data",
 		}
