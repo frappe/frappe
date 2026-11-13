@@ -653,6 +653,13 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(result["errors"][0]["code"], "stale")
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
 
+	def test_a_second_save_with_the_base_version_the_client_sends_back_is_not_stale(self):
+		details = {"type": "Details"}
+		self.save([{"act": "canvas.add_tab", "layout": details, "name": "extra"}])
+		version = json.loads(frappe.as_json(base_version(DOCTYPE)))
+		result = self.save([{"act": "canvas.add_tab", "layout": details, "name": "more"}], version=version)
+		self.assertTrue(result["saved"], result.get("errors"))
+
 	def test_a_row_saved_by_someone_else_during_the_save_is_kept(self):
 		details = {"type": "Details"}
 		self.save([{"act": "canvas.add_tab", "layout": details, "name": "extra"}])

@@ -196,7 +196,7 @@ class DesignSave:
 	def locked_row(self, name: str):
 		"""The DocType's save ran since the stale check, so compare again under the row's lock."""
 		doc = frappe.get_doc("Form Layout", name, for_update=True)
-		if str(doc.modified) != (self.base_version.get("layouts") or {}).get(name):
+		if str(doc.modified) != (self.base_version.get("layouts") or {}).get(str(name)):
 			raise StaleWrite(changed_error(doc.modified_by, doc.modified))
 		return doc
 

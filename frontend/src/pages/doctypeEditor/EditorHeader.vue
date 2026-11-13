@@ -34,7 +34,14 @@
 			<Dropdown v-if="menu.length" :options="menu" side="bottom" align="end">
 				<Button variant="ghost" icon="lucide-ellipsis" :label="__('More')" />
 			</Dropdown>
-			<Button variant="solid" :label="__('Save')" disabled />
+			<Button
+				variant="solid"
+				:label="__('Save')"
+				:disabled="!canSave"
+				:loading="saving"
+				data-editor-save
+				@click="emit('act', 'editor.save')"
+			/>
 		</div>
 		<Tabs v-model="tab" class="[&_[role='tablist']]:gap-5 [&_[role='tablist']]:py-2">
 			<TabList variant="underline">
@@ -73,6 +80,8 @@ const props = defineProps<{
 	dirty: boolean;
 	canUndo: boolean;
 	canRedo: boolean;
+	canSave: boolean;
+	saving: boolean;
 	/** The other mode the user may open, if any. */
 	switchTo: { label: string; onClick: () => void } | null;
 }>();

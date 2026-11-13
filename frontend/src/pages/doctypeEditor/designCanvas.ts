@@ -1,7 +1,14 @@
 // The Design canvas: the working state the staged edits make, what is selected, and which tab is open.
 import { computed, ref, shallowRef } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
-import { editorBase, fieldsOffLayout, workingState, type FlatEdit, type WorkingState } from "./editorModel";
+import {
+	editorBase,
+	fieldsOffLayout,
+	savedName,
+	workingState,
+	type FlatEdit,
+	type WorkingState,
+} from "./editorModel";
 import type { EditorState } from "./editorSource";
 import { LayoutTreeEditor } from "./layoutTree";
 import type { PendingEdits } from "./pendingEdits";
@@ -14,6 +21,21 @@ export type CanvasSelection =
 	| { kind: "section"; section: string }
 	| { kind: "column"; section: string; column: string }
 	| { kind: "tab"; tab: string };
+
+/** A save's refusal, at what the editor shows it on. */
+export interface SaveError {
+	target: {
+		kind: "field" | "container" | "layout" | "banner";
+		fieldname?: string;
+		property?: string;
+		layout?: string;
+		container?: string;
+	};
+	message: string;
+	/** The index of the staged edit it refuses. */
+	edit?: number;
+	code?: string;
+}
 
 /** Where a field sits on the layout. */
 export interface FieldPlace {
@@ -37,6 +59,8 @@ export class DesignCanvas {
 	readonly askedOnSave = shallowRef<string[]>([]);
 	readonly offLayout = computed(() => fieldsOffLayout(this.working.value, this.askedOnSave.value));
 	readonly trayOpen = ref(true);
+	/** The last save's errors; each draws at its field or container. */
+	readonly errors = shallowRef<SaveError[]>([]);
 	/** The section whose "Add field" input is open. */
 	readonly adding = shallowRef<string | null>(null);
 	readonly selectedField = computed<RawMetaField | null>(() => {
@@ -69,6 +93,29 @@ export class DesignCanvas {
 
 	field(fieldname: string): RawMetaField | undefined {
 		return this.working.value.fields.find((field) => field.fieldname === fieldname);
+	}
+
+	/** The fieldname the database has; `null` for a field added since the save. */
+	savedName(fieldname: string): string | null {
+		return savedName(this.working.value, fieldname);
+	}
+
+	/** The field as the editor loaded it; `undefined` for one added since. */
+	savedField(fieldname: string): RawMetaField | undefined {
+		const saved = this.savedName(fieldname);
+		return this.base.fields.find((field) => field.fieldname === saved);
+	}
+
+	/** How many records hold a value in the field's column. */
+	valueCount(fieldname: string): number {
+		const saved = this.savedName(fieldname);
+		return saved ? (this.state.value_counts[saved] ?? 0) : 0;
+	}
+
+	errorsAt(kind: "field" | "container", name: string): string[] {
+		return this.errors.value
+			.filter(({ target }) => target.kind === kind && (target.fieldname ?? target.container) === name)
+			.map((error) => error.message);
 	}
 
 	place(fieldname: string): FieldPlace | null {

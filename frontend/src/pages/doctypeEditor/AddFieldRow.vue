@@ -31,9 +31,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import { Badge, Button, TextInput } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
+import type { Addresses } from "@/addresses";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import { guessFieldtype } from "./fieldRules";
@@ -43,7 +44,8 @@ const props = defineProps<{ canvas: DesignCanvas; section: string }>();
 const input = ref<{ focus: () => void } | null>(null);
 const label = ref("");
 const open = computed(() => props.canvas.adding.value === props.section);
-const guess = computed(() => guessFieldtype(label.value));
+const doctypes = inject<Addresses | null>("addresses", null)?.doctypes() ?? [];
+const guess = computed(() => guessFieldtype(label.value, doctypes));
 const typeLabel = computed(() => {
 	const fieldtype = __(guess.value.fieldtype);
 	return guess.value.options ? `${fieldtype} · ${__(guess.value.options)}` : fieldtype;

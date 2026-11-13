@@ -69,6 +69,16 @@ export class PendingEdits {
 		this.openTab(step.at(-1)!.tab);
 	}
 
+	/** The undo steps in order, for a reload that applies them again. */
+	get steps(): readonly Edit[][] {
+		return this.done.value;
+	}
+
+	/** The version a later save compares against, after a save or a file write moved it. */
+	rebase(version: BaseVersion) {
+		this.head.base_version = version;
+	}
+
 	/** Drop every edit, for a page that opens another DocType or mode. */
 	clear() {
 		this.done.value = [];

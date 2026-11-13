@@ -3,7 +3,8 @@
 import type { ActItem } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import { DETAILS, type CanvasSelection, type DesignCanvas } from "./designCanvas";
-import { fieldnameFromLabel } from "./fieldRules";
+import type { FlatEdit } from "./editorModel";
+import { fieldnameFromLabel, validFieldname } from "./fieldRules";
 import type { EditorActsHost } from "./editorActs";
 
 type Keys = Record<string, unknown>;
@@ -65,8 +66,15 @@ export function canvasItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 	];
 }
 
-/** The `fields` acts the canvas needs; the field panel adds the rest. */
+/** One property, or several staged as one undo step, as a type change sets type and options. */
+type PropertyKeys = { fieldname: string } & (
+	| { property: string; value: unknown }
+	| { properties: Record<string, unknown> }
+);
+
+/** The `fields` acts of the canvas and the field panel. */
 export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
+	const when = () => editing(host);
 	return [
 		{
 			name: "add_field",
@@ -82,7 +90,66 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 				canvas.select({ kind: "field", fieldname: keys.fieldname || fieldnameFromLabel(keys.label) });
 			},
 		},
+		{
+			name: "set_field_property",
+			label: __("Set a field property"),
+			palette: false,
+			when,
+			run: (_context, keys: PropertyKeys) => setFieldProperties(host.canvas()!, keys),
+		},
+		{
+			name: "rename_field",
+			label: __("Rename field"),
+			palette: false,
+			when,
+			run: (_context, keys: { fieldname: string; new_fieldname: string }) => {
+				const canvas = host.canvas()!;
+				canvas.stage({ ...keys, act: "fields.rename_field" });
+				reselect(canvas, keys.fieldname, keys.new_fieldname);
+			},
+		},
+		{
+			name: "delete_field",
+			label: __("Remove field"),
+			palette: false,
+			when,
+			run: (_context, keys: { fieldname: string }) => {
+				const canvas = host.canvas()!;
+				canvas.stage({ ...keys, act: "fields.delete_field" });
+				const selected = canvas.selection.value;
+				if (selected?.kind === "field" && selected.fieldname === keys.fieldname) canvas.select(null);
+			},
+		},
 	];
+}
+
+/** A label edit of a field added since the save renames it too, in the same undo step. */
+function setFieldProperties(canvas: DesignCanvas, keys: PropertyKeys) {
+	const { fieldname } = keys;
+	const properties = "properties" in keys ? keys.properties : { [keys.property]: keys.value };
+	const edits: FlatEdit[] = Object.entries(properties).map(([property, value]) => ({
+		act: "fields.set_field_property",
+		fieldname,
+		property,
+		value,
+	}));
+	const follows = "label" in properties ? followedName(canvas, fieldname, String(properties.label ?? "")) : null;
+	if (follows) edits.push({ act: "fields.rename_field", fieldname, new_fieldname: follows });
+	canvas.stage(...edits);
+	if (follows) reselect(canvas, fieldname, follows);
+}
+
+/** The fieldname a new field's label spells, unless it is the same, invalid or another field's. */
+function followedName(canvas: DesignCanvas, fieldname: string, label: string): string | null {
+	if (canvas.savedName(fieldname)) return null;
+	const next = fieldnameFromLabel(label);
+	if (next === fieldname || !validFieldname(next) || canvas.field(next)) return null;
+	return next;
+}
+
+function reselect(canvas: DesignCanvas, from: string, to: string) {
+	const selected = canvas.selection.value;
+	if (selected?.kind === "field" && selected.fieldname === from) canvas.select({ kind: "field", fieldname: to });
 }
 
 function editing(host: EditorActsHost) {

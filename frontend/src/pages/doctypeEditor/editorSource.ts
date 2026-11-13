@@ -25,6 +25,7 @@ export interface DoctypeDefinition {
 	custom?: 0 | 1;
 	istable?: 0 | 1;
 	issingle?: 0 | 1;
+	is_submittable?: 0 | 1;
 	autoname?: string;
 	naming_rule?: string;
 	title_field?: string;
@@ -151,6 +152,7 @@ export function pendingDoctype(answers: NewDoctype, source?: EditorState | null)
 		definition: copied ?? {
 			name: answers.name,
 			module: answers.module,
+			custom: answers.custom ? 1 : 0,
 			naming_rule: answers.naming_rule,
 			fields: [field],
 		},

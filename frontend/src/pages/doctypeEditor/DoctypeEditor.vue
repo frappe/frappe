@@ -10,6 +10,8 @@
 				:dirty="dirty"
 				:can-undo="edits.canUndo.value"
 				:can-redo="edits.canRedo.value"
+				:can-save="canSave({ canvas: () => canvas, edits, save })"
+				:saving="save.saving.value"
 				:switch-to="switchTo"
 				@act="(name) => acts.perform(name)"
 			/>
@@ -32,51 +34,55 @@
 			>
 				{{ __("The editor needs a wider window, 1024px or more.") }}
 			</div>
-			<ScrollArea
-				class="hidden min-h-0 flex-1 border-t lg:flex"
-				:viewport-class="pageGutter"
-			>
-				<EditorCanvas
-					v-if="tab === 'editor' && canvas"
-					:canvas="canvas"
-					:meta-line="metaLine"
-					:customize="customizeRoute"
-				/>
-				<SettingsTab v-else-if="tab === 'settings'" />
-				<PreviewTab
-					v-else-if="!state.pending"
-					:doctype="state.doctype"
-					:record="previewName"
-					:latest="latest"
-					@pick="previewName = $event"
-				/>
-				<p v-else class="py-6 text-base text-ink-gray-5">
-					{{ __("Save the DocType to preview its records.") }}
-				</p>
-			</ScrollArea>
+			<div class="hidden min-h-0 flex-1 border-t lg:flex">
+				<ScrollArea class="flex min-h-0 min-w-0 flex-1" :viewport-class="pageGutter">
+					<EditorCanvas
+						v-if="tab === 'editor' && canvas"
+						:canvas="canvas"
+						:save="save"
+						:meta-line="metaLine"
+						:customize="customizeRoute"
+					/>
+					<SettingsTab v-else-if="tab === 'settings'" />
+					<PreviewTab
+						v-else-if="!state.pending"
+						:doctype="state.doctype"
+						:record="previewName"
+						:latest="latest"
+						@pick="previewName = $event"
+					/>
+					<p v-else class="py-6 text-base text-ink-gray-5">
+						{{ __("Save the DocType to preview its records.") }}
+					</p>
+				</ScrollArea>
+				<EditorPanel v-if="tab === 'editor' && canvas?.editable" :canvas="canvas" />
+			</div>
 		</template>
 	</PageFrame>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, shallowRef, watch } from "vue";
+import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from "vue";
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from "vue-router";
 import { ScrollArea, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
+import { getSocketInstance } from "@framework/ui/socket";
 import { acts } from "@/acts/dispatcher";
 import { __, __n } from "@/i18n";
 import { COPY_OF } from "@/newRecordValues";
 import { discardChanges } from "@/pages/record/discardChanges";
 import { errorMessage } from "@/recordPage/errorMessage";
-import { routeFor } from "@/router/routeFor";
+import { canRoute, routeFor } from "@/router/routeFor";
 import { shellDialog } from "@/shell/dialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import { useUnloadGuard } from "@/unloadGuard";
 import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
+import EditorPanel from "./EditorPanel.vue";
 import { DesignCanvas } from "./designCanvas";
-import { useEditorActs } from "./editorActs";
+import { canSave, useEditorActs } from "./editorActs";
+import { EditorSave, type ExportResult } from "./editorSave";
 import {
 	carriedAnswers,
 	copiedAnswers,
@@ -111,6 +117,9 @@ const asking = computed(() => (name.value === "new" && !state.value ? starting.v
 // Filled when the load lands; the payload reads it then.
 const head = reactive({}) as Omit<PendingEditsPayload, "edits">;
 const edits = new PendingEdits(head, (opened) => (tab.value = opened));
+const save = new EditorSave({ edits, canvas: () => canvas.value, reload, created });
+// The DocType a first save just made: its editor is already open when the route moves to it.
+let justCreated: string | null = null;
 
 useEditorActs({
 	edits,
@@ -118,6 +127,8 @@ useEditorActs({
 	canvas: () => canvas.value,
 	find,
 	previewRecord: (record) => (previewName.value = record),
+	save,
+	openList,
 	recordOptions: async (query) =>
 		[null, ...latest.value]
 			.filter(
@@ -161,6 +172,7 @@ let loading = 0;
 watch(() => [name.value, route.query.mode, route.query[COPY_OF]], load, { immediate: true });
 
 async function load() {
+	if (justCreated && justCreated === name.value) return void (justCreated = null);
 	const request = ++loading;
 	reset();
 	if (name.value === "new") return void startAsking(request);
@@ -197,6 +209,34 @@ function reset() {
 	latest.value = [];
 	previewName.value = null;
 	edits.clear();
+	if (save.banner.value?.doctype !== name.value) save.banner.value = null;
+}
+
+async function reload(): Promise<DesignCanvas> {
+	const { doctype, mode } = state.value!;
+	const loaded = await loadEditor(doctype, mode);
+	++loading;
+	edits.clear();
+	open(loaded);
+	return canvas.value!;
+}
+
+async function created(doctype: string): Promise<DesignCanvas> {
+	const loaded = await loadEditor(doctype, "Design");
+	++loading;
+	edits.clear();
+	open(loaded);
+	justCreated = doctype;
+	await router.replace(routeFor("DocType", doctype));
+	return canvas.value!;
+}
+
+function openList() {
+	const doctype = state.value!.doctype;
+	if (canRoute(doctype)) return void router.push(routeFor(doctype));
+	// The tab's address table predates this DocType: a full load reads a fresh one, and the
+	// router finds the list by the DocType's name.
+	window.location.assign(router.resolve({ name: "list", params: { doctype } }).href);
 }
 
 function startNew(answers: NewDoctype) {
@@ -241,6 +281,12 @@ async function confirmLeave() {
 		__("This DocType has changes that are not saved.")
 	);
 }
+
+const socket = getSocketInstance();
+const onExport = (...args: unknown[]) =>
+	save.exported(args[0] as ExportResult).catch((error) => toast.error(errorMessage(error)));
+socket?.on("doctype_export", onExport);
+onBeforeUnmount(() => socket?.off("doctype_export", onExport));
 
 onBeforeRouteLeave(confirmLeave);
 onBeforeRouteUpdate((to, from) =>

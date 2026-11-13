@@ -40,6 +40,14 @@
 				</span>
 			</template>
 		</div>
+		<p
+			v-for="error in canvas.errorsAt('container', name)"
+			:key="error"
+			class="mb-3 text-p-sm text-ink-red-4"
+			data-canvas-error
+		>
+			{{ error }}
+		</p>
 		<Draggable
 			:model-value="section.columns"
 			:item-key="(column: LayoutTreeColumn) => column.name"

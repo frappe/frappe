@@ -8,6 +8,7 @@ import { acts } from "@/acts/dispatcher";
 import { canvasMove } from "../canvasMoves";
 import { DesignCanvas } from "../designCanvas";
 import { useEditorActs } from "../editorActs";
+import { EditorSave } from "../editorSave";
 import type { EditorState } from "../editorSource";
 import { PendingEdits, type EditorTab } from "../pendingEdits";
 
@@ -82,6 +83,8 @@ function mount(mode: "Design" | "Customize" = "Design") {
 			find: () => undefined,
 			previewRecord: () => undefined,
 			recordOptions: async () => [],
+			save: new EditorSave({ edits, canvas: () => canvas, reload: async () => canvas, created: async () => canvas }),
+			openList: () => undefined,
 		}),
 	);
 	stop = () => scope.stop();

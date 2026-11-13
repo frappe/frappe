@@ -44,6 +44,11 @@ export class Addresses {
 			: null;
 	}
 
+	/** Every doctype's name, for a picker that offers them. */
+	doctypes(): string[] {
+		return Object.keys(this.payload.doctypes);
+	}
+
 	/** A single has no list; `routeFor` sends it to the document itself. */
 	isSingle(doctype: string): boolean {
 		return this.singles.has(doctype);

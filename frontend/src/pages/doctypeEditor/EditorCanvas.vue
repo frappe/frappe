@@ -6,7 +6,9 @@
 		data-editor-canvas
 		@click="acts.perform('canvas.select', null)"
 	>
+		<SaveBanner :save="save" :doctype="canvas.state.doctype" />
 		<h1 class="text-xl font-semibold text-ink-gray-9">{{ canvas.state.doctype }}</h1>
+		<DoctypeDescription :canvas="canvas" />
 		<p class="mt-1 text-p-sm text-ink-gray-5" data-editor-meta>{{ metaLine }}</p>
 		<p v-if="siteFields" class="mt-1 text-p-sm text-ink-gray-5" data-editor-site-fields>
 			{{
@@ -73,11 +75,15 @@ import CanvasTabs from "./CanvasTabs.vue";
 import { DRAG_OPTIONS, dropSection } from "./canvasDrops";
 import { canvasMove, type Direction } from "./canvasMoves";
 import type { DesignCanvas } from "./designCanvas";
+import DoctypeDescription from "./DoctypeDescription.vue";
+import type { EditorSave } from "./editorSave";
 import { provideInertForm } from "./inertForm";
 import OffLayoutTray from "./OffLayoutTray.vue";
+import SaveBanner from "./SaveBanner.vue";
 
 const props = defineProps<{
 	canvas: DesignCanvas;
+	save: EditorSave;
 	metaLine: string;
 	/** Customize mode of this DocType, when the person may open it. */
 	customize: RouteLocationRaw | null;

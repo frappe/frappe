@@ -15,6 +15,14 @@
 			<FormLayoutField :field="node" />
 		</div>
 		<div v-else class="flex h-7 items-center text-base text-ink-gray-5">{{ fieldname }}</div>
+		<p
+			v-for="error in canvas.errorsAt('field', fieldname)"
+			:key="error"
+			class="mt-1 text-p-sm text-ink-red-4"
+			data-canvas-error
+		>
+			{{ error }}
+		</p>
 		<div
 			v-if="editable"
 			class="absolute right-1 top-0.5 flex h-5 items-center gap-0.5 rounded-4 bg-surface-base opacity-0 group-hover/field:opacity-100"

@@ -63,7 +63,7 @@ describe("a pending DocType", () => {
 	it("starts with one Title field when it copies nothing", () => {
 		const state = pendingDoctype({ name: "Route", module: "Desk", custom: true, naming_rule: "Random" });
 		expect(state.definition.fields.map((field) => field.fieldname)).toEqual(["title"]);
-		expect(state.pending).toBe(true);
+		expect([state.pending, state.definition.custom]).toEqual([true, 1]);
 	});
 
 	it("copies a duplicate's fields and layout, without the source's record identity", () => {

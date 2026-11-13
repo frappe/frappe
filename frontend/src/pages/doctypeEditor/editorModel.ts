@@ -206,7 +206,7 @@ const FIELD_ACTS: Record<string, (replay: DesignReplay, edit: never) => void> = 
 };
 
 /** The fieldname the database has for this field; `null` for a field added since the save. */
-function savedName(state: WorkingState, fieldname: string): string | null {
+export function savedName(state: WorkingState, fieldname: string): string | null {
 	const renamed = state.renames.find(([, current]) => current === fieldname);
 	if (renamed) return renamed[0];
 	return state.saved.includes(fieldname) ? fieldname : null;

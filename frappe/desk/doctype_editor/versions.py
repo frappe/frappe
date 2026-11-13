@@ -14,7 +14,8 @@ def base_version(doctype: str) -> dict:
 	app_layouts = {type: read_app_layouts(doctype, type) for type in FORM_LAYOUT_TYPES}
 	return {
 		"doctype": str(frappe.db.get_value("DocType", doctype, "modified")),
-		"layouts": {row.name: str(row.modified) for row in rows},
+		# Keyed as the client sends them back: JSON object keys are strings, and rows autoincrement.
+		"layouts": {str(row.name): str(row.modified) for row in rows},
 		"app_layouts": {type: found.version for type, found in app_layouts.items() if found},
 	}
 
@@ -24,7 +25,9 @@ def stale_error(doctype: str, loaded: dict, rows: list[str], app_types: list[str
 	current = base_version(doctype)
 	loaded = loaded or {}
 	changed = loaded.get("doctype") != current["doctype"]
-	changed |= any(loaded.get("layouts", {}).get(row) != current["layouts"].get(row) for row in rows)
+	changed |= any(
+		loaded.get("layouts", {}).get(str(row)) != current["layouts"].get(str(row)) for row in rows
+	)
 	changed |= any(
 		loaded.get("app_layouts", {}).get(type) != current["app_layouts"].get(type) for type in app_types
 	)
