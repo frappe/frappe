@@ -247,7 +247,8 @@ class SystemSettings(Document):
 		if cint(self.submission_queue_timeout) > MAX_SUBMISSION_QUEUE_TIMEOUT:
 			label = self.meta.get_translated_label("submission_queue_timeout")
 			frappe.throw(
-				_("{0} cannot be more than {1} seconds (1 hour)").format(label, MAX_SUBMISSION_QUEUE_TIMEOUT)
+				_("{0} cannot be more than {1} seconds (1 hour)").format(label, MAX_SUBMISSION_QUEUE_TIMEOUT),
+				title=_("Invalid Submission Queue Timeout"),
 			)
 
 
