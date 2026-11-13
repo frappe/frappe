@@ -1,15 +1,16 @@
 import re
 from html import unescape
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urlsplit
 
 from frappe.web_crawler.fetch import Download, Fetcher, FetchError
 from frappe.web_crawler.scope import Robots, Scope, bare_host, site_root
+from frappe.web_crawler.urls import absolute_url
 
 # Most pages a source may list, and most child sitemaps or indexes it may follow.
 MAX_CANDIDATES = 2000
 MAX_CHILDREN = 5
 LOC = re.compile(r"<loc>([^<]*)</loc>")
-LLMS_LINK = re.compile(r"^\s*[-*] \[(.+?)\]\((\S+?)\)", re.M)
+LLMS_LINK = re.compile(r"^[ \t]*[-*] \[([^\]\n]+)\]\(([^)\s]+)\)", re.M)
 # Mintlify lists big sites as /_llms/<section>.txt.
 LLMS_CHILD_INDEX = re.compile(r"/llms\.txt$|/_llms/.+\.txt$")
 
@@ -59,8 +60,12 @@ class Sitemap(Source):
 	def candidates(self) -> list[str]:
 		if is_sitemap_url(self.start_url):
 			return [self.start_url]
-		named = [url for url in self.robots.sitemaps() if bare_host(url) == self.scope.host]
 		root = site_root(self.start_url)
+		named = [
+			url
+			for href in self.robots.sitemaps()
+			if (url := absolute_url(root, href)) and bare_host(url) == self.scope.host
+		]
 		return list(dict.fromkeys([f"{self.start_url}/sitemap.xml", f"{root}/sitemap.xml", *named]))
 
 	def locs(self, url: str) -> list[str]:
@@ -82,11 +87,14 @@ def parse_sitemap(download: Download | None) -> tuple[str | None, list[str]]:
 		return None, []
 	text = download.text.replace("<![CDATA[", "").replace("]]>", "")
 	kind = next((kind for kind in ("sitemapindex", "urlset") if f"<{kind}" in text), None)
-	return kind, [unescape(loc.strip()) for loc in LOC.findall(text)] if kind else []
+	if not kind:
+		return None, []
+	return kind, [url for loc in LOC.findall(text) if (url := absolute_url(download.url, unescape(loc)))]
 
 
 class LlmsTxt(Source):
-	"""llms.txt under the start path: its page links in order, following child indexes one level."""
+	"""llms.txt under the start path: its page links in order, following child indexes on the same
+	site one level."""
 
 	def find(self) -> list[str]:
 		pages, children = self.parse(f"{self.start_url}/llms.txt")
@@ -99,8 +107,11 @@ class LlmsTxt(Source):
 		if not download:
 			return [], []
 		pages, children = [], []
-		for _title, link in LLMS_LINK.findall(download.text):
-			link = urljoin(url, link)
-			is_index = LLMS_CHILD_INDEX.search(urlsplit(link).path)
-			(children if is_index else pages).append(link)
+		for _title, href in LLMS_LINK.findall(download.text):
+			if not (link := absolute_url(url, href)):
+				continue
+			if not LLMS_CHILD_INDEX.search(urlsplit(link).path):
+				pages.append(link)
+			elif bare_host(link) == self.scope.host:
+				children.append(link)
 		return pages, list(dict.fromkeys(children))

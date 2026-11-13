@@ -6,6 +6,7 @@ from email.message import Message
 from urllib.parse import urljoin
 
 import requests
+from requests.utils import requote_uri
 from urllib3.exceptions import HTTPError, ReadTimeoutError
 from urllib3.util.retry import Retry
 
@@ -73,9 +74,10 @@ class Fetcher:
 		return session
 
 	def refuse_blocked_redirect(self, response: requests.Response, **kwargs):
-		if response.is_redirect and self.limits.is_blocked(
-			urljoin(response.url, response.headers["Location"])
-		):
+		if not response.is_redirect:
+			return
+		# requests requotes a redirect target before it parses it, so the check reads the same host.
+		if self.limits.is_blocked(requote_uri(urljoin(response.url, response.headers["Location"]))):
 			response.close()
 			raise FetchError("blocked", response.status_code, response.url)
 

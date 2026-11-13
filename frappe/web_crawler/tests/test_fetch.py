@@ -9,6 +9,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils.safe_exec import BlockedRequest
 from frappe.web_crawler import fetch_page
 from frappe.web_crawler.fetch import CappedRetry
+from frappe.web_crawler.page import MAX_DEPTH, MAX_LINKS
 from frappe.web_crawler.tests.fake_site import NEUTRAL_SETTINGS, FakeSite, allow_domain, block_domain
 
 ARTICLE = """
@@ -90,15 +91,53 @@ class TestFetchPage(IntegrationTestCase):
 		self.assertEqual(fetch_page("https://example.com/ticks.md").title, "Ticks")
 		self.assertLess(time.monotonic() - started, 1)
 
-	def test_markdown_page_keeps_its_source_and_front_matter_title(self):
+	def test_markdown_page_reads_its_front_matter_title(self):
 		markdown = "---\ntitle: Setup\n---\n# Heading\n\nOpen **settings**.\n\n---\n\nMore."
 		self.site.add("https://example.com/setup.md", markdown, content_type="text/markdown")
 		page = fetch_page("https://example.com/setup.md")
 
 		self.assertEqual(page.title, "Setup")
 		self.assertIn("<strong>settings</strong>", page.html)
+		self.site.add("https://example.com/year.md", "---\ntitle: 2024\n---\nText", "text/markdown")
+		self.assertEqual(fetch_page("https://example.com/year.md").title, "2024")
 		self.assertTrue(page.markdown.startswith("# Heading"))
 		self.assertIn("More.", page.markdown)
+
+	def test_hostile_markdown_front_matter_and_markup_are_harmless(self):
+		aliases = ['a0: &a0 ["x", "x", "x"]'] + [f"a{n}: &a{n} [*a{n - 1}, *a{n - 1}]" for n in range(1, 4)]
+		bomb = "---\n" + "\n".join(aliases) + "\ntitle: *a3\n---\n# Bomb\n\n<script>alert(1)</script>"
+		self.site.add("https://example.com/bomb.md", bomb, "text/markdown")
+		deep = "---\nt: " + "[" * 5000 + "]" * 5000 + "\n---\n# Deep\n\nText"
+		self.site.add("https://example.com/deep.md", deep, "text/markdown")
+
+		page = fetch_page("https://example.com/bomb.md")
+		self.assertEqual(page.title, "Bomb")
+		self.assertNotIn("<script>", page.markdown)
+		self.assertEqual(fetch_page("https://example.com/deep.md").title, "Deep")
+		self.site.add("https://example.com/quotes.md", "> " * 1000 + "Quoted", "text/markdown")
+		self.assertEqual(fetch_page("https://example.com/quotes.md").error, "failed")
+
+	def test_malformed_links_are_dropped_and_links_are_capped(self):
+		anchors = '<a href="http://[x">Bad</a>' + "".join(f'<a href="/p{n}">P</a>' for n in range(MAX_LINKS))
+		self.site.page("https://example.com/many", f"<main><p>Many</p>{anchors}</main>")
+		page = fetch_page("https://example.com/many")
+
+		self.assertTrue(page.ok)
+		self.assertEqual(len(page.links), MAX_LINKS - 1)
+		self.assertNotIn("[x", page.html)
+		self.assertNotIn('href="/p', page.html)
+
+	def test_page_html_has_no_styling_ids_or_deep_nesting(self):
+		attributes = (
+			'style="position:fixed" class="modal" id="frappe" name="boot" data-x="1" ping="/p" poster="/v"'
+		)
+		nested = "<div>" * (MAX_DEPTH + 50) + "Deep" + "</div>" * (MAX_DEPTH + 50)
+		self.site.page("https://example.com/odd", f'<main><a href="/a" {attributes}>A</a>{nested}</main>')
+		page = fetch_page("https://example.com/odd")
+
+		self.assertIn('<a href="https://example.com/a" rel="noopener noreferrer">A</a>', page.html)
+		self.assertIn("Deep", page.text)
+		self.assertNotIn("Deep", page.html)
 
 	def test_error_codes(self):
 		self.site.add("https://example.com/forbidden", status=403)
@@ -141,6 +180,18 @@ class TestFetchPage(IntegrationTestCase):
 		self.assertRaises(BlockedRequest, fetch_page, "https://blocked.com/")
 		self.assertRaises(BlockedRequest, fetch_page, "https://www.blocked.com/")
 		self.assertEqual(fetch_page("https://example.com/away").error, "blocked")
+
+	def test_blocked_domains_match_every_spelling_of_the_host(self):
+		block_domain(self, "bücher.example")
+		block_domain(self, "1.2.3.4")
+		for url in (
+			"https://xn--bcher-kva.example/",
+			"http://16909060/",
+			"http://1.2.772/",
+			"https://bücher.example\\@example.com/",
+		):
+			with self.subTest(url=url):
+				self.assertRaises(BlockedRequest, fetch_page, url)
 
 	def test_allowed_domains(self):
 		self.site.redirect("https://example.com/away", "https://example.org/page")

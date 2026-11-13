@@ -3,6 +3,7 @@ from urllib.parse import parse_qsl, unquote, urlencode, urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
 from frappe.web_crawler.fetch import Fetcher, FetchError
+from frappe.web_crawler.urls import canonical_host
 
 ASSET_EXTENSIONS = frozenset(
 	(
@@ -23,7 +24,7 @@ def normalize_url(url: str) -> str:
 	index.html, the fragment, tracking parameters and the order of parameters make no difference."""
 	parts = urlsplit(url.strip())
 	scheme = "https" if parts.scheme.lower() in WEB_SCHEMES else parts.scheme.lower()
-	host = ascii_host(parts.netloc.lower().rsplit("@", 1)[-1]).removeprefix("www.")
+	host = canonical_host(parts.netloc.rsplit("@", 1)[-1]).removeprefix("www.")
 	path = INDEX_FILE.sub("", parts.path).rstrip("/") or "/"
 	return urlunsplit((scheme, host, path, normalize_query(parts.query), ""))
 
@@ -39,16 +40,7 @@ def site_root(url: str) -> str:
 
 
 def bare_host(url: str) -> str:
-	host = ascii_host((urlsplit(url).hostname or "").rstrip("."))
-	return host.removeprefix("www.")
-
-
-def ascii_host(host: str) -> str:
-	"""The host in punycode, so `bücher.de` and `xn--bcher-kva.de` are the same host."""
-	try:
-		return host.encode("idna").decode("ascii")
-	except UnicodeError:
-		return host
+	return canonical_host(urlsplit(url).hostname or "").removeprefix("www.")
 
 
 class Scope:
@@ -73,7 +65,7 @@ class SkipRules:
 	"""URLs never worth fetching: non-web schemes, asset files and the caller's patterns."""
 
 	def __init__(self, patterns=()):
-		self.patterns = [compile_pattern(pattern) for pattern in patterns]
+		self.patterns = [pattern_parts(pattern) for pattern in patterns]
 
 	def skips(self, url: str) -> bool:
 		parts = urlsplit(url)
@@ -81,14 +73,23 @@ class SkipRules:
 		return (
 			parts.scheme not in WEB_SCHEMES
 			or any(path.endswith(extension) for extension in ASSET_EXTENSIONS)
-			or any(pattern.search(url) for pattern in self.patterns)
+			or any(contains_in_order(url, parts) for parts in self.patterns)
 		)
 
 
-def compile_pattern(pattern: str) -> re.Pattern:
-	"""Matches URLs that contain the pattern, where `*` stands for any text. Not a regular expression,
-	so no pattern can backtrack for minutes on one URL."""
-	return re.compile(".*?".join(re.escape(part) for part in pattern.split("*")))
+def pattern_parts(pattern: str) -> tuple[str, ...]:
+	"""The literal parts of a skip pattern, where `*` stands for any text."""
+	return tuple(part for part in pattern.split("*") if part)
+
+
+def contains_in_order(url: str, parts: tuple[str, ...]) -> bool:
+	"""True when `url` contains each part, in order. Linear in the URL, unlike a regular expression."""
+	position = 0
+	for part in parts:
+		if (position := url.find(part, position)) < 0:
+			return False
+		position += len(part)
+	return True
 
 
 class Robots:

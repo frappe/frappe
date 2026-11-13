@@ -1,7 +1,11 @@
+import time
+
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.web_crawler import WebCrawler
 from frappe.web_crawler.scope import Scope, SkipRules, normalize_url
+from frappe.web_crawler.sources import LLMS_LINK
 from frappe.web_crawler.tests.fake_site import FakeSite
+from frappe.web_crawler.urls import canonical_host
 
 XML = "application/xml"
 
@@ -70,6 +74,23 @@ class TestScope(UnitTestCase):
 		rules = SkipRules(("(a+)+$",))
 		self.assertFalse(rules.skips("https://example.com/" + "a" * 40 + "!"))
 		self.assertTrue(rules.skips("https://example.com/(a+)+$"))
+
+	def test_hostile_input_is_read_in_linear_time(self):
+		started = time.monotonic()
+		SkipRules(("*/print/*",)).skips("https://example.com/" + "a/" * 20000)
+		LLMS_LINK.findall("\n" * 40000)
+		LLMS_LINK.findall("- [a" + "](" * 20000)
+		self.assertLess(time.monotonic() - started, 1)
+
+	def test_canonical_host_reads_every_spelling_of_an_address(self):
+		for host, expected in (
+			("Bücher.Example.", "xn--bcher-kva.example"),
+			("127.1", "127.0.0.1"),
+			("0:0:0:0:0:0:0:1", "::1"),
+			("::ffff:127.0.0.1", "127.0.0.1"),
+		):
+			with self.subTest(host=host):
+				self.assertEqual(canonical_host(host), expected)
 
 
 class TestDiscovery(IntegrationTestCase):
@@ -143,6 +164,13 @@ class TestDiscovery(IntegrationTestCase):
 				"https://example.com/docs/auth.md",
 			],
 		)
+
+	def test_llms_txt_child_indexes_on_another_site_are_not_read(self):
+		self.site.add(
+			"https://example.com/llms.txt", "- [Other](https://other.com/llms.txt)\n- [A](/a)\n", "text/plain"
+		)
+		self.assertEqual(self.find("https://example.com"), ["https://example.com/a"])
+		self.assertNotIn("https://other.com/llms.txt", self.site.requested)
 
 	def test_an_html_page_at_llms_txt_is_not_an_index(self):
 		self.site.page("https://example.com/llms.txt", "<p>An HTML page, not an index</p>")

@@ -25,6 +25,7 @@
    "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "URL",
+   "print_hide": 1,
    "read_only": 1
   },
   {
@@ -32,6 +33,7 @@
    "fieldname": "final_url",
    "fieldtype": "Small Text",
    "label": "Final URL",
+   "print_hide": 1,
    "read_only": 1
   },
   {
@@ -90,12 +92,14 @@
    "fieldtype": "Small Text",
    "in_list_view": 1,
    "label": "Title",
+   "print_hide": 1,
    "read_only": 1
   },
   {
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Description",
+   "print_hide": 1,
    "read_only": 1
   },
   {
@@ -116,7 +120,7 @@
  "in_create": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-13 17:54:39.001606",
+ "modified": "2026-11-13 20:45:37.325245",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Crawl Result",

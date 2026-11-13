@@ -3,6 +3,7 @@ from math import ceil
 from urllib.parse import urlsplit
 
 import frappe
+from frappe.web_crawler.urls import absolute_url, canonical_host
 
 MEGABYTE = 1024 * 1024
 # A site asking for a longer wait (Crawl-delay, Retry-After) would stall the job.
@@ -64,8 +65,10 @@ class CrawlLimits:
 
 	def is_blocked(self, url: str) -> bool:
 		"""True when the URL's host is a blocked domain, or is not an allowed one when any are set.
-		A domain covers its subdomains."""
-		host = (urlsplit(url).hostname or "").strip(".")
+		A domain covers its subdomains. A malformed URL is blocked."""
+		if not (url := absolute_url(url, url)):
+			return True
+		host = canonical_host(urlsplit(url).hostname or "")
 		if in_domains(host, self.blocked_domains):
 			return True
 		return bool(self.allowed_domains) and not in_domains(host, self.allowed_domains)
@@ -87,7 +90,7 @@ class CrawlLimits:
 
 
 def domain_set(rows) -> frozenset[str]:
-	return frozenset(row.domain.strip(".").lower() for row in rows)
+	return frozenset(canonical_host(row.domain) for row in rows)
 
 
 def in_domains(host: str, domains: frozenset[str]) -> bool:

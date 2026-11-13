@@ -31,7 +31,7 @@ class FakeSite:
 			patch(
 				"urllib3.connectionpool.HTTPConnectionPool._make_request",
 				autospec=True,
-				side_effect=lambda *args, **kwargs: self.respond(*args, **kwargs),
+				side_effect=self.dispatch,
 			)
 		)
 		test_case.enterContext(patch("urllib3.util.retry.time.sleep"))
@@ -46,6 +46,10 @@ class FakeSite:
 
 	def redirect(self, url: str, location: str, status: int = 301):
 		self.add(url, status=status, Location=location)
+
+	def dispatch(self, *args, **kwargs):
+		"""Looks `respond` up per request, so a test can replace it."""
+		return self.respond(*args, **kwargs)
 
 	def respond(self, pool, connection, method, path, *args, **kwargs):
 		url = f"{pool.scheme}://{pool.host}{path}"
