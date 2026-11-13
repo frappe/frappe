@@ -99,16 +99,23 @@ def setup_complete(args: str | dict[str, Any]):
 		return {"status": "ok"}
 
 
+# Set after a failed attempt, so the next login gets the desk wizard instead of another attempt.
+PREFILLED_SETUP_FAILED = "prefilled_setup_failed"
+
+
 def complete_prefilled_setup(login_manager=None):
 	"""On login, finish setup with the region Frappe Cloud saved at sign-up, so the site owner
 	skips the desk wizard. A site set up any other way keeps the wizard."""
 	args = get_prefilled_setup_args()
 	if not args:
 		return
+	# A failed setup rolls back; the login's own rows must already be in.
+	frappe.db.commit()
 	try:
 		complete_app_setup(**args)
 	except Exception:
 		frappe.log_error(title="Setup from the saved region failed")
+		frappe.db.set_default(PREFILLED_SETUP_FAILED, 1)
 		# The login still succeeded; keep the wizard's failure out of its response.
 		frappe.clear_messages()
 		frappe.response.pop("setup_wizard_failure_message", None)
@@ -119,6 +126,8 @@ def get_prefilled_setup_args() -> dict | None:
 	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
 
 	if frappe.is_setup_complete() or frappe.conf.skip_setup_wizard:
+		return None
+	if frappe.db.get_default(PREFILLED_SETUP_FAILED):
 		return None
 	if "System Manager" not in frappe.get_roles():
 		return None
@@ -391,34 +400,37 @@ def handle_setup_exception(args):  # nosemgrep
 
 
 def update_system_settings(args):  # nosemgrep
-	if not args.get("country"):
-		return
+	# A site set up without a region (Frappe Cloud v2 saves none) still gets the site defaults.
+	values = {
+		"float_precision": 3,
+		"rounding_method": "Banker's Rounding",
+		"enable_scheduler": 1 if not frappe.in_test else 0,
+		"backup_limit": 3,  # Default for downloadable backups
+	}
+	if args.get("country"):
+		number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
 
-	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
+		# replace these as float number formats, as they have 0 precision
+		# and are currency number formats and not for floats
+		if number_format == "#.###":
+			number_format = "#.###,##"
+		elif number_format == "#,###":
+			number_format = "#,###.##"
 
-	# replace these as float number formats, as they have 0 precision
-	# and are currency number formats and not for floats
-	if number_format == "#.###":
-		number_format = "#.###,##"
-	elif number_format == "#,###":
-		number_format = "#,###.##"
+		values.update(
+			{
+				"country": args.get("country"),
+				"language": get_language_code(args.get("language")) or "en",
+				"time_zone": args.get("timezone"),
+				"currency": args.get("currency"),
+				"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
+				"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
+				"number_format": number_format,
+			}
+		)
 
 	system_settings = frappe.get_doc("System Settings", "System Settings")
-	system_settings.update(
-		{
-			"country": args.get("country"),
-			"language": get_language_code(args.get("language")) or "en",
-			"time_zone": args.get("timezone"),
-			"currency": args.get("currency"),
-			"float_precision": 3,
-			"rounding_method": "Banker's Rounding",
-			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
-			"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
-			"number_format": number_format,
-			"enable_scheduler": 1 if not frappe.in_test else 0,
-			"backup_limit": 3,  # Default for downloadable backups
-		}
-	)
+	system_settings.update(values)
 	system_settings.save()
 	if args.get("allow_recording_first_session"):
 		frappe.db.set_default("session_recording_start", now())
