@@ -17,6 +17,14 @@ class EditError(Exception):
 		return error
 
 
+class StaleWrite(Exception):
+	"""A row changed between the save's stale check and its write."""
+
+	def __init__(self, error: dict):
+		super().__init__(error["message"])
+		self.error = error
+
+
 def field_error(message: str, fieldname: str, property: str | None = None) -> EditError:
 	target = {"kind": "field", "fieldname": fieldname}
 	if property:

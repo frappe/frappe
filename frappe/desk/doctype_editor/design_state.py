@@ -57,7 +57,7 @@ class DesignState:
 		self.children: dict[str, DesignState] = {}
 
 	def add_child(self, name: str) -> "DesignState":
-		"""A new child DocType, inserted before this one saves (#45866 r12); it takes field edits only."""
+		"""A new child DocType, inserted before this one saves; it takes field edits only."""
 		if name in self.children or frappe.db.exists("DocType", name):
 			raise EditError(_("A DocType named {0} already exists.").format(name))
 		doc = frappe.new_doc("DocType")

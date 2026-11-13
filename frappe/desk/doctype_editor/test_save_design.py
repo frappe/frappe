@@ -11,7 +11,7 @@ import frappe
 from frappe.core.doctype.doctype.doctype import write_doctype_files
 from frappe.desk.doctype.form_layout.form_layout import get_form_layouts
 from frappe.desk.doctype_editor.rename import rename_field
-from frappe.desk.doctype_editor.save import save_doctype_editor
+from frappe.desk.doctype_editor.save import DesignSave, save_doctype_editor
 from frappe.desk.doctype_editor.versions import base_version
 from frappe.tests import IntegrationTestCase
 from frappe.utils import CallbackManager
@@ -610,6 +610,21 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["code"], "stale")
 		self.assertFalse(frappe.get_meta(DOCTYPE).get_field("due"))
+
+	def test_a_row_saved_by_someone_else_during_the_save_is_kept(self):
+		details = {"type": "Details"}
+		self.save([{"act": "canvas.add_tab", "layout": details, "name": "extra"}])
+		[row] = details_rows()
+		theirs = json.dumps([{"name": "theirs", "sections": [{"columns": [{"fields": ["title"]}]}]}])
+
+		def save_theirs():
+			frappe.get_doc("Form Layout", row.name).update({"layout": theirs}).save()
+
+		with patch.object(DesignSave, "move_renamed_data", side_effect=save_theirs):
+			result = self.save([{"act": "canvas.add_tab", "layout": details, "name": "mine"}])
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["code"], "stale", result["errors"])
+		self.assertEqual([tab["name"] for tab in json.loads(details_rows()[0].layout)], ["theirs"])
 
 	def test_a_layout_type_the_doctype_cannot_have_is_refused(self):
 		frappe.db.set_value("DocType", DOCTYPE, "istable", 1)

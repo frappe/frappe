@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-"""The DocType editor's save in Design mode: apply the edits, check everything, then write (#45866)."""
+"""The DocType editor's save in Design mode: apply the edits, check everything, then write."""
 
 import frappe
 from frappe import _
@@ -12,10 +12,10 @@ from frappe.desk.doctype.form_layout.form_layout import (
 from frappe.desk.doctype_editor.checks import DesignChecks
 from frappe.desk.doctype_editor.design_edits import DesignEdits
 from frappe.desk.doctype_editor.design_state import DesignState
-from frappe.desk.doctype_editor.errors import EditError
+from frappe.desk.doctype_editor.errors import EditError, StaleWrite
 from frappe.desk.doctype_editor.mode import check_mode
 from frappe.desk.doctype_editor.versions import base_version as current_version
-from frappe.desk.doctype_editor.versions import stale_error
+from frappe.desk.doctype_editor.versions import changed_error, stale_error
 from frappe.model import table_fields
 from frappe.model.utils.rename_field import (
 	rename_field,
@@ -124,6 +124,8 @@ class DesignSave:
 		publish_doctype_update(self.doctype)
 
 	def failure(self, e: Exception) -> dict:
+		if isinstance(e, StaleWrite):
+			return e.error
 		if isinstance(e, frappe.ValidationError):
 			return EditError(str(e) or _("The save failed.")).as_dict()
 		frappe.log_error(f"DocType editor save of {self.doctype}")
@@ -171,7 +173,7 @@ class DesignSave:
 		touched = [layout for layout in self.state.all_layouts() if layout.type in self.state.touched]
 		# A row's save refuses a second default, so the old default gets its condition first.
 		for layout in sorted(touched, key=lambda layout: (not layout.deleted, not layout.condition)):
-			doc = frappe.get_doc("Form Layout", layout.row) if layout.row else frappe.new_doc("Form Layout")
+			doc = self.locked_row(layout.row) if layout.row else frappe.new_doc("Form Layout")
 			if layout.deleted:
 				if layout.row:
 					doc.delete()
@@ -190,6 +192,13 @@ class DesignSave:
 			if not doc.flags.writes_omitted:
 				doc.omitted = frappe.as_json(layout.omitted) if layout.omitted else None
 			doc.save()
+
+	def locked_row(self, name: str):
+		"""The DocType's save ran since the stale check, so compare again under the row's lock."""
+		doc = frappe.get_doc("Form Layout", name, for_update=True)
+		if str(doc.modified) != (self.base_version.get("layouts") or {}).get(name):
+			raise StaleWrite(changed_error(doc.modified_by, doc.modified))
+		return doc
 
 
 def move_field_data(doctype: str, old: str, new: str):

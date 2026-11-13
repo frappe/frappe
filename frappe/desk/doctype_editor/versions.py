@@ -1,6 +1,6 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-"""What the editor loaded, so a save can refuse when someone else changed it since (#45866 r11)."""
+"""What the editor loaded, so a save can refuse when someone else changed it since."""
 
 import frappe
 from frappe import _
@@ -30,7 +30,10 @@ def stale_error(doctype: str, loaded: dict, rows: list[str], app_types: list[str
 	)
 	if not changed:
 		return None
-	by, at = frappe.db.get_value("DocType", doctype, ["modified_by", "modified"])
+	return changed_error(*frappe.db.get_value("DocType", doctype, ["modified_by", "modified"]))
+
+
+def changed_error(by: str, at) -> dict:
 	return {
 		"target": {"kind": "banner"},
 		"code": "stale",
