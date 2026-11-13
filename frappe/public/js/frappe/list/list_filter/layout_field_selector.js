@@ -8,7 +8,7 @@ export default class LayoutFieldSelector {
 		this.list_view = list_view;
 		this.meta = frappe.get_meta(doctype);
 		this.max_number_of_fields = 50;
-		this.subject_field = null;
+		this.set_subject_field(this.meta);
 		this.preserved_widths = preserved_widths || [];
 		this.fields = this.normalize_fields(fields || this.get_default_fields()).uniqBy(
 			(f) => f.fieldname
@@ -56,7 +56,6 @@ export default class LayoutFieldSelector {
 
 	get_default_fields() {
 		const fields = [];
-		this.set_subject_field(this.meta);
 		fields.push({ ...this.subject_field });
 
 		if (frappe.has_indicator(this.doctype)) {
@@ -79,19 +78,6 @@ export default class LayoutFieldSelector {
 				fieldname: field.fieldname,
 			});
 		});
-
-		if (
-			this.meta.title_field &&
-			this.meta.title_field !== "name" &&
-			fields.every((f) => f.fieldname !== "name")
-		) {
-			const has_name = (this.meta.fields || []).some(
-				(f) => f.fieldname === "name" && (f.reqd || f.in_list_view)
-			);
-			if (has_name) {
-				fields.push({ label: __("ID"), fieldname: "name" });
-			}
-		}
 
 		return fields;
 	}
@@ -274,7 +260,6 @@ export default class LayoutFieldSelector {
 			const values = dialog_values.fields || [];
 
 			this.fields = [];
-			this.set_subject_field(this.meta);
 			this.fields.push({ ...this.subject_field });
 			this.set_status_field();
 
@@ -283,7 +268,7 @@ export default class LayoutFieldSelector {
 				if (value === this.subject_field.fieldname) continue;
 				if (value === "status_field") continue;
 
-				const field = frappe.meta.get_docfield(this.doctype, value);
+				const field = frappe.meta.get_field(this.doctype, value);
 				if (field) {
 					this.fields.push({
 						label: __(field.label, null, this.doctype),
@@ -364,6 +349,9 @@ export default class LayoutFieldSelector {
 			if (!this.is_selectable_layout_field(field)) return;
 			candidates.push(field);
 		});
+		if (this.subject_field.fieldname !== "name") {
+			candidates.push(frappe.model.get_std_field("name"));
+		}
 
 		const label_counts = {};
 		candidates.forEach((field) => {
