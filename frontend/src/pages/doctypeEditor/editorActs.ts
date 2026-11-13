@@ -16,7 +16,7 @@ export interface EditorActsHost {
 	recordOptions: (query: string) => Promise<ActOption[]>;
 }
 
-const TABS: { value: EditorTab; label: string }[] = [
+export const EDITOR_TABS: { value: EditorTab; label: string }[] = [
 	{ value: "editor", label: "Editor" },
 	{ value: "settings", label: "Settings" },
 	{ value: "preview", label: "Preview" },
@@ -42,7 +42,8 @@ export function editorItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Undo"),
 			icon: "corner-up-left",
 			key: "Mod+Z",
-			when: () => host.edits.canUndo.value,
+			// Preview's fields are a real form: there Mod+Z stays the field's own undo.
+			when: () => host.tab.value !== "preview" && host.edits.canUndo.value,
 			run: () => host.edits.undo(),
 		},
 		{
@@ -50,7 +51,7 @@ export function editorItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Redo"),
 			icon: "corner-up-right",
 			key: "Mod+Shift+Z",
-			when: () => host.edits.canRedo.value,
+			when: () => host.tab.value !== "preview" && host.edits.canRedo.value,
 			run: () => host.edits.redo(),
 		},
 		{
@@ -58,7 +59,7 @@ export function editorItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Open tab"),
 			argument: {
 				label: __("Tab"),
-				options: () => TABS.map((tab) => ({ value: tab.value, label: __(tab.label) })),
+				options: () => EDITOR_TABS.map((tab) => ({ value: tab.value, label: __(tab.label) })),
 			},
 			run: (_context, tab: EditorTab) => (host.tab.value = tab),
 		},

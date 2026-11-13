@@ -57,4 +57,14 @@ describe("the editor's acts", () => {
 		expect(acts.find("editor.undo")).toBeUndefined();
 		stop();
 	});
+
+	it("leave Mod+Z to Preview's fields", () => {
+		const { host, tab, stop } = mount();
+		host.edits.stage({ act: "settings.set_property", value: {}, tab: "settings" });
+		tab.value = "preview";
+		expect(acts.available().map((act) => act.name)).not.toContain("editor.undo");
+		tab.value = "editor";
+		expect(acts.available().map((act) => act.name)).toContain("editor.undo");
+		stop();
+	});
 });

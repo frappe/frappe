@@ -12,6 +12,7 @@
 				v-model="answers.name"
 				:label="__('Name')"
 				:placeholder="__('Delivery Route')"
+				:error="nameError"
 				autofocus
 			/>
 			<FormControl
@@ -31,7 +32,13 @@
 		<template #actions>
 			<div class="flex justify-end gap-2">
 				<Button :label="__('Cancel')" @click="emit('cancel')" />
-				<Button variant="solid" :label="__('Create')" :disabled="!ready" @click="create" />
+				<Button
+					variant="solid"
+					:label="__('Create')"
+					:disabled="!ready"
+					:loading="checking"
+					@click="create"
+				/>
 			</div>
 		</template>
 	</Dialog>
@@ -39,9 +46,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue";
-import { Button, Dialog, FormControl } from "frappe-ui";
+import { Button, Dialog, FormControl, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import { __ } from "@/i18n";
+import { errorMessage } from "@/recordPage/errorMessage";
 import type { NewDoctype } from "./editorSource";
 
 const emit = defineEmits<{ create: [answers: NewDoctype]; cancel: [] }>();
@@ -50,6 +58,8 @@ const isOpen = ref(true);
 const answers = reactive({ name: "", module: "", naming_rule: "Set by user" });
 const kind = ref("custom");
 const modules = ref<{ label: string; value: string }[]>([]);
+const taken = ref("");
+const checking = ref(false);
 
 const kinds = [
 	{ label: __("Custom: kept on this site"), value: "custom" },
@@ -64,18 +74,41 @@ const namingRules = [
 	"UUID",
 ].map((rule) => ({ label: __(rule), value: rule }));
 
+const nameError = computed(() =>
+	taken.value && taken.value === answers.name.trim()
+		? __("A DocType named {0} exists already", [taken.value])
+		: undefined
+);
 const ready = computed(() => !!answers.name.trim() && !!answers.module);
 
 onMounted(async () => {
-	const { data } = await listDocuments<{ name: string }>("Module Def", {
-		fields: ["name"],
-		order_by: "name asc",
-		limit: 500,
-	});
-	modules.value = data.map((row) => ({ label: row.name, value: row.name }));
+	try {
+		const { data } = await listDocuments<{ name: string }>("Module Def", {
+			fields: ["name"],
+			order_by: "name asc",
+			limit: 500,
+		});
+		modules.value = data.map((row) => ({ label: row.name, value: row.name }));
+	} catch (error) {
+		toast.error(errorMessage(error));
+	}
 });
 
-function create() {
-	emit("create", { ...answers, name: answers.name.trim(), custom: kind.value === "custom" });
+async function create() {
+	const name = answers.name.trim();
+	checking.value = true;
+	try {
+		const { data } = await listDocuments("DocType", {
+			fields: ["name"],
+			filters: { name },
+			limit: 1,
+		});
+		taken.value = data.length ? name : "";
+	} catch (error) {
+		return void toast.error(errorMessage(error));
+	} finally {
+		checking.value = false;
+	}
+	if (!taken.value) emit("create", { ...answers, name, custom: kind.value === "custom" });
 }
 </script>

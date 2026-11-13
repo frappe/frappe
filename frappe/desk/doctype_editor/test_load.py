@@ -129,7 +129,9 @@ class TestDoctypeEditor(IntegrationTestCase):
 		self.assertIn("reqd", editor["locks"]["description"])
 		self.assertIn("options", editor["locks"]["status"])
 		self.assertNotIn("options", editor["locks"].get("sender", {}))
-		self.assertEqual(editor["fieldtype_changes"]["description"], ["Code", "HTML Editor", "Signature", "Text"])
+		self.assertEqual(
+			editor["fieldtype_changes"]["description"], ["Code", "HTML Editor", "Signature", "Text"]
+		)
 		[setter] = [row for row in editor["property_setters"] if row["property"] == "bold"]
 		self.assertEqual((setter["value"], setter["app_value"]), ("1", 0))
 

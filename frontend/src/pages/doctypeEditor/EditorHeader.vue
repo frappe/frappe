@@ -15,7 +15,7 @@
 				<Tooltip :text="__('Undo')">
 					<Button
 						variant="ghost"
-						icon="lucide-undo-2"
+						icon="lucide-corner-up-left"
 						:label="__('Undo')"
 						:disabled="!canUndo"
 						@click="emit('act', 'editor.undo')"
@@ -24,7 +24,7 @@
 				<Tooltip :text="__('Redo')">
 					<Button
 						variant="ghost"
-						icon="lucide-redo-2"
+						icon="lucide-corner-up-right"
 						:label="__('Redo')"
 						:disabled="!canRedo"
 						@click="emit('act', 'editor.redo')"
@@ -39,7 +39,7 @@
 		<Tabs v-model="tab" class="[&_[role='tablist']]:gap-5 [&_[role='tablist']]:py-2">
 			<TabList variant="underline">
 				<TabTrigger
-					v-for="one in TABS"
+					v-for="one in EDITOR_TABS"
 					:key="one.value"
 					:value="one.value"
 					:label="__(one.label)"
@@ -64,6 +64,7 @@ import {
 import { __ } from "@/i18n";
 import NotSavedBadge from "@/pages/record/NotSavedBadge.vue";
 import { routeFor } from "@/router/routeFor";
+import { EDITOR_TABS } from "./editorActs";
 import type { EditorTab } from "./pendingEdits";
 
 const props = defineProps<{
@@ -77,12 +78,6 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ act: [name: string] }>();
 const tab = defineModel<EditorTab>("tab", { required: true });
-
-const TABS: { value: EditorTab; label: string }[] = [
-	{ value: "editor", label: "Editor" },
-	{ value: "settings", label: "Settings" },
-	{ value: "preview", label: "Preview" },
-];
 
 const crumbs = computed(() => [
 	{ label: __("DocType"), route: routeFor("DocType") },

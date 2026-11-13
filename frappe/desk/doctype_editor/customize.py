@@ -24,7 +24,15 @@ def get_customizations(meta: Meta) -> dict:
 		"custom_fields": frappe.get_all(
 			"Custom Field",
 			filters={"dt": meta.name},
-			fields=["name", "fieldname", "label", "fieldtype", "insert_after", "module", "is_system_generated"],
+			fields=[
+				"name",
+				"fieldname",
+				"label",
+				"fieldtype",
+				"insert_after",
+				"module",
+				"is_system_generated",
+			],
 			order_by="creation",
 		),
 		"property_setters": property_setters(meta.name, app_doc, app_fields),
