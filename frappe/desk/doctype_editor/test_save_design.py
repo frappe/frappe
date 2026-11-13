@@ -520,9 +520,12 @@ class TestSaveDesign(IntegrationTestCase):
 
 	def test_a_write_failing_after_the_doctype_saved_keeps_renamed_data(self):
 		record = frappe.get_doc({"doctype": DOCTYPE, "title": "Hello"}).insert()
-		with patch(
-			"frappe.desk.doctype.form_layout.form_layout.FormLayout.validate",
-			side_effect=RuntimeError("disk full"),
+		with (
+			patch(
+				"frappe.desk.doctype.form_layout.form_layout.FormLayout.validate",
+				side_effect=RuntimeError("disk full"),
+			),
+			patch("frappe.desk.doctype_editor.save.publish_doctype_update") as publish,
 		):
 			result = self.save(
 				[
@@ -536,9 +539,31 @@ class TestSaveDesign(IntegrationTestCase):
 		kept = frappe.db.exists("DocField", {"parent": DOCTYPE, "fieldname": "heading"})
 		self.assertEqual(bool(kept), frappe.db.db_type != "sqlite")
 		self.assertEqual(result["written"], [DOCTYPE] if kept else [])
+		self.assertEqual(publish.called, bool(kept), "open desks hear of a written DocType")
 		fieldname = "heading" if kept else "title"
 		self.assertEqual(frappe.db.get_value(DOCTYPE, record.name, fieldname), "Hello")
 		self.assertEqual(details_rows(), [])
+
+	def test_a_data_move_failing_after_a_write_failure_is_reported(self):
+		with (
+			patch(
+				"frappe.desk.doctype.form_layout.form_layout.FormLayout.validate",
+				side_effect=RuntimeError("disk full"),
+			),
+			patch(
+				"frappe.desk.doctype_editor.save.rename_field",
+				side_effect=[None, frappe.db.DataError("bad value")],
+			),
+		):
+			result = self.save(
+				[
+					{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "heading"},
+					{"act": "canvas.add_tab", "layout": {"type": "Details"}, "name": "extra"},
+				]
+			)
+		self.assertFalse(result["saved"])
+		if result["written"]:
+			self.assertEqual(len(result["errors"]), 2, result["errors"])
 
 	def test_a_deleted_field_s_column_is_not_taken_by_a_new_name(self):
 		self.assertTrue(self.save([{"act": "fields.delete_field", "fieldname": "title"}])["saved"])

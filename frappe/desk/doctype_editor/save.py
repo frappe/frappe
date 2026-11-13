@@ -109,20 +109,26 @@ class DesignSave:
 			if not self.state.standard:
 				self.write_rows()
 		except Exception as e:
-			self.roll_back()
+			error = self.failure(e)
+			errors = [error, *self.roll_back()]
 			del frappe.local.message_log[messages:]
-			if isinstance(e, frappe.ValidationError):
-				return [EditError(str(e) or _("The save failed.")).as_dict()]
-			frappe.log_error(f"DocType editor save of {self.doctype}")
-			return [EditError(_("The save failed.")).as_dict()]
+			if self.written:
+				publish_doctype_update(self.doctype)
+			return errors
 		publish_doctype_update(self.doctype)
+
+	def failure(self, e: Exception) -> dict:
+		if isinstance(e, frappe.ValidationError):
+			return EditError(str(e) or _("The save failed.")).as_dict()
+		frappe.log_error(f"DocType editor save of {self.doctype}")
+		return EditError(_("The save failed.")).as_dict()
 
 	def move_renamed_data(self):
 		"""Unvalidated: a table field has no column of its own to check, only its rows' parentfield."""
 		for old, new in self.state.renames:
 			rename_field(self.doctype, old, new, validate=False)
 
-	def roll_back(self):
+	def roll_back(self) -> list[dict]:
 		"""A DocType's DDL commits and drops the savepoint; the full rollback then undoes the data move."""
 		try:
 			frappe.db.rollback(save_point=WRITE_SAVEPOINT)
@@ -130,7 +136,17 @@ class DesignSave:
 		except Exception:
 			frappe.db.rollback()
 			if self.doctype in self.written:
-				self.move_renamed_data()
+				return self.move_renamed_data_again()
+		return []
+
+	def move_renamed_data_again(self) -> list[dict]:
+		try:
+			self.move_renamed_data()
+		except Exception:
+			frappe.db.rollback()
+			frappe.log_error(f"DocType editor data move of {self.doctype}")
+			return [EditError(_("The data of the renamed fields was not moved.")).as_dict()]
+		return []
 
 	def stage_app_layouts(self):
 		"""The DocType's export writes these after its own files (`export_app_layouts`)."""
