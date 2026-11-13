@@ -13,6 +13,7 @@ import click
 import frappe
 from frappe.bundler import get_node_env
 from frappe.studio.utils import (
+	find_component_scripts,
 	find_script_file,
 	get_export_folder,
 	get_exported_app_folders,
@@ -53,6 +54,7 @@ class StudioAppBuilder:
 		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
 		self.missing_components: set[str] = set()
 		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
+		self.component_scripts: dict[str, str] = {}  # {component_id: file_path}
 		self.router_file: str | None = None
 		self.app_folder: str | None = None
 		self.icons: set[str] = set()
@@ -85,6 +87,10 @@ class StudioAppBuilder:
 			self.get_app_components_from_files()
 			self._validate_components_resolved()
 			self.get_page_scripts_from_files()
+			self.component_scripts = {
+				script["component_id"]: script["file_path"]
+				for script in find_component_scripts(os.path.join(self.app_folder, "studio_components"))
+			}
 			self.router_file = get_router_file(self.frappe_app, self.app_name)
 			self.tailwind_content = get_tailwind_content(self.app_folder)
 			self._run_vite_build()
@@ -175,6 +181,9 @@ class StudioAppBuilder:
 
 		if self.page_scripts:
 			command += ["--page-scripts", json.dumps(self.page_scripts)]
+
+		if self.component_scripts:
+			command += ["--component-scripts", json.dumps(self.component_scripts)]
 
 		if self.router_file:
 			command += ["--router-file", self.router_file]
@@ -306,12 +315,28 @@ class StudioAppBuilder:
 			elif comp_name:
 				self.missing_components.add(comp_name)
 		else:
-			component_block = frappe.db.get_value("Studio Component", block.get("componentName"), "block")
+			name = block.get("componentName")
+			component_block, script = frappe.db.get_value("Studio Component", name, ["block", "script"]) or (
+				None,
+				None,
+			)
 			self._add_icons(component_block if isinstance(component_block, str) else None)
 			self._add_page_source(component_block)
+			self._add_component_script(name, script)
 			if isinstance(component_block, str):
 				component_block = frappe.parse_json(component_block)
 			self._add_block_components(component_block)
+
+	def _add_component_script(self, name: str, script: str | None) -> None:
+		"""Write a database component's script where the browser runtime loads it from, so its
+		imports resolve the same way in the build."""
+		if not script or name in self.component_scripts:
+			return
+		path = os.path.join(self.app_folder, "studio_components", f"{name}.js")
+		write_build_file(path, script)
+		self.component_scripts[name] = path
+		self._add_icons(script)
+		self._add_page_source(script)
 
 	def _add_page_source(self, source) -> None:
 		if source:
