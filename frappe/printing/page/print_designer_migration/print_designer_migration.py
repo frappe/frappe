@@ -7,8 +7,8 @@ from frappe.printing.doctype.print_format.print_designer_converter import (
 	convert,
 	converted_values,
 	editor_copy,
-	editor_copy_name,
 	is_print_designer_format,
+	print_format_usage,
 )
 from frappe.printing.doctype.print_format.print_format import printable_sample
 
@@ -44,7 +44,9 @@ def get_print_designer_formats() -> list[dict]:
 			copy = editor_copy(row)
 			row.converted = bool(copy)
 			row.editor_format = copy.name if copy else None
-			copies.add(editor_copy_name(row))
+			if copy:
+				copies.add(copy.name)
+				row.usage = print_format_usage(row.name)
 	rows = [row for row in rows if row.name not in copies]
 
 	samples = {}

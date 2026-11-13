@@ -7,6 +7,7 @@ import re
 
 import frappe
 from frappe import _
+from frappe.model.naming import append_number_if_name_exists
 from frappe.model.rename_doc import get_link_fields, update_link_field_values
 from frappe.utils import cint, escape_html, flt
 
@@ -81,7 +82,9 @@ def convert(print_format: str) -> dict:
 		if not copy:
 			copy = frappe.copy_doc(doc)
 			copy.update({"standard": "No", **values})
-			copy.insert(set_name=editor_copy_name(doc))
+			copy.insert(
+				set_name=append_number_if_name_exists("Print Format", f"{doc.name} (Editor)", separator=" ")
+			)
 		target = copy
 	else:
 		frappe.db.set_value("Print Format", doc.name, values)
@@ -131,18 +134,32 @@ def was_print_designer_format(doc) -> bool:
 	)
 
 
-def editor_copy_name(doc) -> str:
-	return _("{0} (Editor)").format(doc.name)
-
-
 def editor_copy(doc):
-	"""The editor copy made from a standard Print Designer format, if it still exists."""
-	name = editor_copy_name(doc)
-	if not frappe.db.exists("Print Format", name):
+	"""The editor copy made from a standard Print Designer format: a converted format
+	of the same doctype that carries the same Print Designer design."""
+	design_fields = [
+		f
+		for f in ("print_designer_body", "print_designer_print_format")
+		if frappe.get_meta("Print Format").has_field(f)
+	]
+	design = {f: frappe.db.get_value("Print Format", doc.name, f) for f in design_fields}
+	if not any(design.values()):
 		return None
-	copy = frappe.get_doc("Print Format", name)
-	if copy.doc_type == doc.doc_type and copy.standard == "No" and was_print_designer_format(copy):
-		return copy
+	for copy in frappe.get_all(
+		"Print Format",
+		filters={
+			"doc_type": doc.doc_type,
+			"standard": "No",
+			"print_designer": 0,
+			"print_format_builder_beta": 1,
+			"disabled": 0,
+			"name": ["!=", doc.name],
+		},
+		fields=["name", *design_fields],
+		order_by="creation asc",
+	):
+		if all(copy.get(f) == value for f, value in design.items()):
+			return frappe.get_doc("Print Format", copy.name)
 
 
 def move_print_format_usage(old: str, new: str) -> None:
