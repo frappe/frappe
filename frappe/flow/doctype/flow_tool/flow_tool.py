@@ -233,10 +233,20 @@ def sync_server_tools() -> None:
 
 @frappe.whitelist()
 def unavailable_tools() -> list[str]:
-	"""The tools that cannot run while server scripts are off: execute and every Script tool."""
+	"""The tools that cannot run while server scripts are off: execute and every Script tool.
+	A user who cannot read tools gets those on the agents they can read."""
 	from frappe.flow.tools.builtins import EXECUTE_SLUG, builtin_name
 	from frappe.utils.safe_exec import is_safe_exec_enabled
 
-	if is_safe_exec_enabled() or not frappe.has_permission("Flow Tool", "read"):
+	if is_safe_exec_enabled():
 		return []
-	return [builtin_name(EXECUTE_SLUG), *frappe.get_all("Flow Tool", {"type": "Script"}, pluck="name")]
+	tools = [builtin_name(EXECUTE_SLUG), *frappe.get_all("Flow Tool", {"type": "Script"}, pluck="name")]
+	if frappe.has_permission("Flow Tool", "read"):
+		return tools
+	agents = frappe.get_list("Flow Agent", pluck="name")
+	return frappe.get_all(
+		"Flow Agent Tool",
+		filters={"parent": ["in", agents], "tool": ["in", tools]},
+		pluck="tool",
+		distinct=True,
+	)

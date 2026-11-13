@@ -99,6 +99,41 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 		self.assertIn(script.name, unavailable)
 		self.assertNotIn("frappe/create", unavailable)
 
+	def test_a_user_who_cannot_read_tools_learns_only_of_those_on_their_agents(self):
+		sync_builtin_tools()
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True):
+			frappe.get_doc(_script()).insert()
+		model = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Tool Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+		).insert()
+		frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Tool Agent",
+				"model": model.name,
+				"instructions": "Be terse.",
+				"tools": [{"tool": "frappe/execute"}, {"tool": "frappe/create"}],
+				"enabled": 1,
+			}
+		).insert()
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "flow-tool-reader@example.com",
+				"first_name": "Reader",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Flow User"}],
+			}
+		).insert(ignore_permissions=True)
+
+		with (
+			patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False),
+			self.set_user(user.name),
+		):
+			self.assertFalse(frappe.has_permission("Flow Tool", "read"))
+			# the Script tool is on none of their agents
+			self.assertEqual(unavailable_tools(), ["frappe/execute"])
+
 
 class TestFlowToolSystemGenerated(IntegrationTestCase):
 	"""Desk edits can't break system-generated tools; the owning app (ignore_permissions) can."""
