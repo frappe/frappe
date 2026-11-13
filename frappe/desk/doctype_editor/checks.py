@@ -126,7 +126,12 @@ class DesignChecks:
 
 def validate(doc):
 	"""The controller's checks, then the document checks a save runs that can fail on editor input."""
-	doc.run_method("validate")
+	# A saved child's validate adds its parent columns with a commit, which ends the check's savepoint.
+	doc.add_child_table_fields = lambda: None
+	try:
+		doc.run_method("validate")
+	finally:
+		del doc.add_child_table_fields
 	doc._validate_mandatory()
 	for each in (doc, *doc.get_all_children()):
 		each._validate_selects()

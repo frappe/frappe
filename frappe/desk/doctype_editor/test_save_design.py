@@ -581,6 +581,16 @@ class TestSaveDesign(IntegrationTestCase):
 			[(field.fieldname, field.label, field.options) for field in tables], [("lines", "Lines", child)]
 		)
 
+	def test_a_saved_child_table_saves_its_own_edits(self):
+		child = f"{DOCTYPE} Row"
+		self.addCleanup(delete_committed, "DocType", child)
+		make_custom_doctype(child, [{"fieldname": "qty", "label": "Qty", "fieldtype": "Int"}], istable=1)
+		result = self.save(
+			[{"act": "fields.set_field_property", "fieldname": "qty", "property": "columns", "value": 2}], child
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.get_meta(child).get_field("qty").columns, 2)
+
 	def test_a_renamed_table_field_keeps_its_rows(self):
 		child = f"{DOCTYPE} Item"
 		self.addCleanup(delete_committed, "DocType", child)
