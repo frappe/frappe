@@ -2,10 +2,12 @@
 // and the acts that change it. Each change goes through `acts.perform`, so it joins the header's
 // Save and the one undo stack.
 import type { InjectionKey, Ref } from "vue";
+import type { RouteLocationRaw } from "vue-router";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
+import { namingProperties } from "./namingRules";
 import type { SettingsState } from "./settingsModel";
 import { kindOf, type SettingRow, type SettingsSection } from "./settingsRows";
 
@@ -25,6 +27,8 @@ export class SettingsView {
 	constructor(
 		private canvas: DesignCanvas,
 		readonly place: Ref<SettingsPlace>,
+		/** Where Customize opens; null when this DocType has no Customize. */
+		readonly customizeRoute: () => RouteLocationRaw | null,
 	) {}
 
 	get settings(): SettingsState {
@@ -37,6 +41,15 @@ export class SettingsView {
 
 	get doctype() {
 		return this.canvas.state.doctype;
+	}
+
+	get mode() {
+		return this.canvas.state.mode;
+	}
+
+	/** Design: the site has its own permission rules (Custom DocPerm), which Customize edits. */
+	get siteOverridesPermissions() {
+		return !this.customize && Boolean(this.canvas.state.site_permissions);
 	}
 
 	get customize() {
@@ -106,5 +119,23 @@ export class SettingsView {
 		const app = this.settings.app;
 		const props = row.props.filter((prop) => app && normal(this.value(prop)) !== normal(app.properties[prop]));
 		if (props.length) void acts.perform("settings.reset_doctype_property", props.map((property) => ({ property })));
+	}
+
+	/** Sets the naming rule's two properties, and a new series list with them, as one undo step. */
+	setNaming(autoname: string, series?: string[]) {
+		const changes: Record<string, unknown>[] = Object.entries(namingProperties(autoname))
+			.filter(([prop, value]) => normal(this.value(prop)) !== normal(value))
+			.map(([property, value]) => ({ property, value }));
+		if (series) changes.push({ act: "settings.set_naming_series", options: series });
+		if (changes.length) void acts.perform("settings.set_doctype_property", changes);
+	}
+
+	setSeries(options: string[], preferred: string) {
+		void acts.perform("settings.set_naming_series", { options, default: preferred });
+	}
+
+	/** A permission act: add, remove, set or reset rules. */
+	permission(act: "add_permission" | "remove_permission" | "set_permission" | "reset_permissions", keys = {}) {
+		void acts.perform(`settings.${act}`, keys);
 	}
 }

@@ -13,6 +13,7 @@ import { EditRefused, type FlatEdit } from "./editorModel";
 import type { EditorSave } from "./editorSave";
 import { LAYOUT_BREAKS } from "./fieldRules";
 import type { EditorTab, PendingEdits } from "./pendingEdits";
+import { SECTIONS, settingRows } from "./settingsRows";
 
 export interface EditorActsHost {
 	edits: PendingEdits;
@@ -21,6 +22,8 @@ export interface EditorActsHost {
 	canvas: () => DesignCanvas | null;
 	/** Shows a field, on the canvas or in the tray. */
 	find: (fieldname: string) => void;
+	/** Opens a setting's section on the Settings tab and flashes its row. */
+	findSetting: (key: string) => void;
 	/** The record Preview draws, by name; `null` draws an empty form. */
 	previewRecord: (name: string | null) => void;
 	recordOptions: (query: string) => Promise<ActOption[]>;
@@ -100,8 +103,9 @@ function saveItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 /** Save wants edits, or a new DocType, which its first save makes. */
 export function canSave(host: Pick<EditorActsHost, "canvas" | "edits" | "save">): boolean {
 	const canvas = host.canvas();
-	if (!canvas?.editable || host.save.saving.value) return false;
-	return host.edits.dirty.value || Boolean(canvas.state.pending);
+	// Customize's canvas is read-only, but its Settings edits still save.
+	if (!canvas || host.save.saving.value) return false;
+	return host.edits.dirty.value || (canvas.editable && Boolean(canvas.state.pending));
 }
 
 function hasList(host: EditorActsHost): boolean {
@@ -136,12 +140,17 @@ type Keys = Record<string, unknown>;
  * in the header, so its undo stays on the Editor tab; Customize sets settings on a read-only canvas.
  */
 function stageSetting(canvas: DesignCanvas, act: string, keys: Keys | Keys[]) {
-	const edits: FlatEdit[] = (Array.isArray(keys) ? keys : [keys]).map((one) => ({ ...one, act }));
+	const edits: FlatEdit[] = (Array.isArray(keys) ? keys : [keys]).map((one) => ({ ...one, act: settingsAct(one.act) ?? act }));
 	if (edits.some((edit) => edit.property === "description")) {
 		if (!canvas.editable) throw new EditRefused("{0} is not a DocType setting the editor sets.", ["description"]);
 		return canvas.stage(...edits);
 	}
 	canvas.stageSettings(...edits);
+}
+
+/** A key list may name another settings act per key, as picking Naming Series also sets its list. */
+function settingsAct(act: unknown) {
+	return typeof act === "string" && act.startsWith("settings.") ? act : undefined;
 }
 
 function navigationItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
@@ -174,11 +183,15 @@ function navigationItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "find",
-			label: __("Find a field"),
+			label: __("Find a field or setting"),
 			icon: "search",
 			key: "Mod+J",
-			argument: { label: __("Field"), options: (_context, query) => fieldOptions(host, query) },
-			run: (_context, fieldname: string) => host.find(fieldname),
+			argument: {
+				label: __("Field or setting"),
+				options: (_context, query) => [...fieldOptions(host, query), ...settingOptions(host, query)],
+			},
+			run: (_context, found: string | { setting: string }) =>
+				typeof found === "string" ? host.find(found) : host.findSetting(found.setting),
 		},
 		{
 			name: "preview_record",
@@ -213,5 +226,21 @@ function fieldOptions(host: EditorActsHost, query: string): ActOption[] {
 			value: field.fieldname,
 			label: field.label ? __(field.label, [], canvas.state.doctype) : field.fieldname,
 			description: off.has(field.fieldname) ? __("Not on this layout") : field.fieldtype,
+		}));
+}
+
+/** The Settings tab's rows the query matches by label, help or keywords. */
+function settingOptions(host: EditorActsHost, query: string): ActOption[] {
+	const canvas = host.canvas();
+	if (!canvas) return [];
+	const typed = query.toLowerCase();
+	const sections = new Map(SECTIONS.map((section) => [section.key, section]));
+	return settingRows(canvas.working.value.settings)
+		.filter((row) => [__(row.label), row.label, row.help, row.keywords ?? ""].join(" ").toLowerCase().includes(typed))
+		.map((row) => ({
+			value: { setting: row.key },
+			label: __(row.label),
+			description: __("Settings · {0}", [__(sections.get(row.section)!.label)]),
+			icon: sections.get(row.section)!.icon.replace("lucide-", ""),
 		}));
 }

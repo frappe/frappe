@@ -1,0 +1,76 @@
+// The Naming section's rules: which one an autoname is, the properties picking one sets, and why
+// a rule cannot be picked now.
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { __ } from "@/i18n";
+import type { SettingsState } from "./settingsModel";
+
+export type Rule = "hash" | "uuid" | "autoincrement" | "field" | "format" | "naming_series" | "prompt" | "script";
+
+export const RULES: { value: Rule; label: string; help: string }[] = [
+	{ value: "hash", label: "Random ID", help: "Like 8f3k2a91c0." },
+	{ value: "uuid", label: "UUID", help: "Like 0190a6b2-7c1e-7d3a-9f4b-2c8e5d1a6f03." },
+	{ value: "autoincrement", label: "Number in order", help: "1, 2, 3, and on." },
+	{ value: "field", label: "From a field", help: "The value of one field, like a store's name." },
+	{ value: "format", label: "By pattern", help: "Text, dates and a counter, like ST-2026-00042." },
+	{ value: "naming_series", label: "Naming Series", help: "The person picks a series; each series counts on its own." },
+	{ value: "prompt", label: "Ask for it on create", help: "The person who creates a record types its name." },
+	{ value: "script", label: "Set by the app's code", help: "The DocType's Python code names each record." },
+];
+
+/** The `naming_rule` each rule writes next to its autoname. */
+const NAMING_RULE: Record<Rule, string> = {
+	hash: "Random",
+	uuid: "UUID",
+	autoincrement: "Autoincrement",
+	field: "By fieldname",
+	format: "Expression",
+	naming_series: 'By "Naming Series" field',
+	prompt: "Set by user",
+	script: "By script",
+};
+
+/** Rules the list shows only while they are the rule: they are not offered as a choice. */
+export const SHOWN_WHEN_CURRENT: Rule[] = ["uuid", "script"];
+
+export function ruleOf(properties: Record<string, unknown>): Rule {
+	const autoname = String(properties.autoname ?? "").trim();
+	const lower = autoname.toLowerCase();
+	if (properties.naming_rule === "By script") return "script";
+	if (!autoname || lower === "hash") return "hash";
+	if (lower === "uuid") return "uuid";
+	if (lower === "autoincrement") return "autoincrement";
+	if (lower === "prompt") return "prompt";
+	if (lower.startsWith("field:")) return "field";
+	if (lower.startsWith("naming_series:")) return "naming_series";
+	if (lower.startsWith("format:") || autoname.includes(".")) return "format";
+	return "script";
+}
+
+/** An old-style pattern ("ST-.#####") keeps its own rule name. */
+export function namingProperties(autoname: string): { autoname: string; naming_rule: string } {
+	const rule = ruleOf({ autoname });
+	const oldStyle = rule === "format" && !autoname.toLowerCase().startsWith("format:");
+	return { autoname, naming_rule: oldStyle ? "Expression (old style)" : NAMING_RULE[rule] };
+}
+
+/** Why the rule cannot be picked now; "" when it can. */
+export function ruleRefusal(settings: SettingsState, fields: RawMetaField[], rule: Rule): string {
+	const current = ruleOf(settings.properties);
+	if (rule === current) return "";
+	if (current === "script") return __("The app's code names each record. Change it there.");
+	const savedAutoincrement = ruleOf({ autoname: settings.savedAutoname }) === "autoincrement";
+	if ((rule === "autoincrement") !== savedAutoincrement) {
+		const refusal = autoincrementRefusal(settings);
+		if (refusal) return refusal;
+	}
+	if (rule === "naming_series" && settings.app && !fields.some((field) => field.fieldname === "naming_series")) {
+		return __("Needs a Naming Series field. Add one in the Editor first.");
+	}
+	return "";
+}
+
+function autoincrementRefusal(settings: SettingsState): string {
+	if (settings.app) return __("Customize cannot switch to or from Number in order.");
+	if (settings.pending || !settings.records || Number(settings.properties.issingle)) return "";
+	return __("Only while there are no records: this DocType has {0}.", [String(settings.records)]);
+}
