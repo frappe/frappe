@@ -142,3 +142,23 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertFalse(result["saved"])
 		[error] = result["errors"]
 		self.assertEqual(error["target"], {"kind": "field", "fieldname": "title", "property": "fieldname"})
+
+	def test_a_fetched_field_takes_its_type_from_the_source(self):
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Owner User", "fieldtype": "Link", "options": "User"},
+				{
+					"act": "fields.fetch_field",
+					"link": "owner_user",
+					"source": "full_name",
+					"layout": {"type": "Details"},
+					"column": "column_1",
+				},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		field = frappe.get_meta(DOCTYPE).get_field("full_name")
+		self.assertEqual((field.fieldtype, field.fetch_from, field.read_only), ("Data", "owner_user.full_name", 1))
+		self.assertEqual(field.label, "Full Name")
+		[row] = details_rows()
+		self.assertEqual(placed(row), ["title", "owner_user", "full_name"])

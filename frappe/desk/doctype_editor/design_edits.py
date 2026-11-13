@@ -78,3 +78,24 @@ class DesignEdits:
 		fields.insert(len(fields) if index is None else index, field)
 		for idx, each in enumerate(fields, start=1):
 			each.idx = idx
+
+	def fields_fetch_field(self, edit: dict):
+		"""A read-only field filled from a field of the record a Link names, typed like that field."""
+		link = self.state.field(edit.get("link"))
+		if link.fieldtype != "Link" or not link.options:
+			raise field_error(_("{0} is not a Link field.").format(link.fieldname), link.fieldname)
+		source = frappe.get_meta(link.options).get_field(edit.get("source") or "")
+		if not source:
+			raise field_error(
+				_("{0} has no field {1}.").format(link.options, edit.get("source")), link.fieldname
+			)
+		self.fields_add_field(
+			{
+				**edit,
+				"label": edit.get("label") or source.label,
+				"fieldname": edit.get("fieldname") or source.fieldname,
+				"fieldtype": source.fieldtype,
+				"options": source.options,
+				"properties": {"fetch_from": f"{link.fieldname}.{source.fieldname}", "read_only": 1},
+			}
+		)
