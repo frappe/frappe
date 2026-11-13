@@ -41,6 +41,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 			size: ["small", "large", "extra-large"].includes(this.size) ? this.size : null,
 			position: this.position,
 			dismissible: this.dismissible ?? (this.static ? "static" : true),
+			backdrop: this.backdrop,
 			show_close_button: this.show_close_button ?? !this.static,
 			message: this.message,
 			icon: this.icon,

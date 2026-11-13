@@ -24,6 +24,7 @@ frappe.views.CommunicationComposer = class {
 		this.dialog = new frappe.ui.Dialog({
 			title: this.title || this.subject || __("New Email"),
 			no_submit_on_enter: true,
+			backdrop: false,
 			fields: this.get_fields(),
 			primary_action_label: __("Send", null, "Send Email"),
 			primary_action() {
@@ -55,7 +56,6 @@ frappe.views.CommunicationComposer = class {
 	setup_composer_shell() {
 		const $wrapper = this.dialog.$wrapper;
 		$wrapper.addClass("email-composer-modal");
-		$wrapper.attr("data-backdrop", "false");
 
 		this.$fullscreen_btn = $wrapper
 			.find(".btn-modal-minimize")
@@ -152,14 +152,14 @@ frappe.views.CommunicationComposer = class {
 					</div>
 					<div class="flex items-center justify-between gap-2 px-4 py-2 border-t">
 						<div class="email-composer-icon-row flex items-center gap-2">
-							<div class="dropdown">
-								${frappe.ui.button.html({
-									icon: "ellipsis",
-									variant: "ghost",
-									title: __("More options"),
-									attrs: { "data-toggle": "dropdown" },
-								})}
-								<div class="dropdown-menu dropdown-menu-right email-composer-more-menu">
+							${frappe.ui.button.html({
+								icon: "ellipsis",
+								variant: "ghost",
+								title: __("More options"),
+								css_class: "email-composer-more-btn",
+							})}
+							<div class="hidden">
+								<div class="email-composer-more-menu">
 									<div class="dropdown-item email-composer-menu-toggle switch-control" data-action="send-read-receipt" role="switch" tabindex="0" aria-checked="false">
 										${frappe.utils.icon("mail-open", "sm")}
 										<span>${__("Send read receipt")}</span>
@@ -377,6 +377,13 @@ frappe.views.CommunicationComposer = class {
 
 		bindCheckIcon("send-me-a-copy", "send_me_a_copy");
 		bindCheckIcon("send-read-receipt", "send_read_receipt");
+		const more_menu = this.$composer.find(".email-composer-more-menu")[0];
+		new frappe.ui.Popover({
+			trigger: this.$composer.find(".email-composer-more-btn"),
+			content: () => more_menu,
+			align: "end",
+			css_class: "email-composer-more-popover",
+		});
 
 		const $formatBtn = frappe.ui.button({
 			icon: "type",

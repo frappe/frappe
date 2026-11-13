@@ -19,6 +19,7 @@ frappe.provide("frappe.ui");
  * @property {boolean|"static"} [dismissible=true] Escape and a click outside close it; "static" makes them bounce it instead; false ignores them.
  * @property {boolean} [show_close_button=true] The × in the header.
  * @property {boolean} [animate=true] Fade in and out.
+ * @property {boolean} [backdrop=true] Dim the page behind it; false leaves the page as it is.
  * @property {boolean|string|Element} [focus=true] What gets focus once it is open: the modal itself (true), an element or selector inside it, or nothing (false).
  * @property {function} [on_show] Called before it opens.
  * @property {function} [on_shown] Called once it is open and the animation ended.
@@ -419,6 +420,7 @@ frappe.ui.Modal = class Modal {
 	}
 
 	show_backdrop(callback) {
+		if (this.opts.backdrop === false) return callback();
 		this.backdrop = document.createElement("div");
 		this.backdrop.className = "modal-backdrop";
 		if (this.animated) this.backdrop.classList.add("fade");
