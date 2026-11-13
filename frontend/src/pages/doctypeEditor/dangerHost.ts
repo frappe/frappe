@@ -14,7 +14,7 @@ const RenameDoctypeDialog = lazy(() => import("./RenameDoctypeDialog.vue"));
 const ModuleDialog = lazy(() => import("./ModuleDialog.vue"));
 const DeleteDoctypeDialog = lazy(() => import("./DeleteDoctypeDialog.vue"));
 
-interface DangerPage extends Pick<DangerHost, "scope" | "reload" | "renamed" | "deleted"> {
+interface DangerPage extends Pick<DangerHost, "scope" | "reload" | "renamed" | "deleted" | "showing"> {
 	dirty: () => boolean;
 	/** Saves the pending edits; true once none are left. */
 	save: () => Promise<boolean>;
@@ -28,6 +28,7 @@ export function dangerHost(page: DangerPage): DangerHost {
 		reload: page.reload,
 		renamed: page.renamed,
 		deleted: page.deleted,
+		showing: page.showing,
 		settle: () => settle(page),
 		askKind: ({ doctype, definition, record_count }) =>
 			shellDialog().open(

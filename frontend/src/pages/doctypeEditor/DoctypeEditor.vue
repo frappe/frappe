@@ -177,6 +177,8 @@ const save = new EditorSave({
 });
 // The DocType a first save just made: its editor is already open when the route moves to it.
 let justCreated: string | null = null;
+// Set as the page goes: a Danger zone act still running skips its follow-up.
+let left = false;
 
 useEditorActs({
 	edits,
@@ -204,6 +206,8 @@ useEditorActs({
 		renamed: created,
 		// Each act settles pending edits first, so the leave guard has nothing to ask.
 		deleted: () => router.push(routeFor("DocType")),
+		// Another DocType or page since the act began: its follow-up must not pull the reader back.
+		showing: (doctype) => !left && state.value?.doctype === doctype,
 	}),
 	recordOptions: async (query) =>
 		[null, ...latest.value]
@@ -390,7 +394,10 @@ const socket = getSocketInstance();
 const onExport = (...args: unknown[]) =>
 	save.exported(args[0] as ExportResult).catch((error) => toast.error(errorMessage(error)));
 socket?.on("doctype_export", onExport);
-onBeforeUnmount(() => socket?.off("doctype_export", onExport));
+onBeforeUnmount(() => {
+	left = true;
+	socket?.off("doctype_export", onExport);
+});
 
 onBeforeRouteLeave(confirmLeave);
 onBeforeRouteUpdate((to, from) =>

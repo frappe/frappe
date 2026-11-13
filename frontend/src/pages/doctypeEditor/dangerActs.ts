@@ -33,6 +33,8 @@ export interface DangerHost {
 	deleted: () => Promise<unknown>;
 	/** Loads the DocType again. */
 	reload: () => Promise<unknown>;
+	/** True while the page still shows `doctype`: once the reader leaves, an act skips the page's follow-up. */
+	showing: (doctype: string) => boolean;
 }
 
 const ITEMS: { name: DangerAct; label: string; icon: string; run: (host: EditorActsHost, value?: any) => Promise<void> }[] = [
@@ -73,7 +75,7 @@ async function changeKind(host: EditorActsHost, value?: { kind?: DoctypeKind }) 
 		await runMethod(DANGER_METHOD.change_kind, { doctype: state.doctype, kind }, { nullable: true });
 		const label = KINDS.find((one) => one.value === kind)?.label ?? kind;
 		toast.success(__("{0} is a {1} DocType now.", [state.doctype, __(label)]));
-		await host.danger.reload();
+		if (host.danger.showing(state.doctype)) await host.danger.reload();
 	});
 }
 
@@ -84,7 +86,7 @@ async function rename(host: EditorActsHost, value?: { name?: string }) {
 	await held(host, async () => {
 		const { data: name } = await runMethod<string>(DANGER_METHOD.rename_doctype, { doctype: state.doctype, new_name: asked });
 		toast.success(__("Renamed {0} to {1}.", [state.doctype, name]));
-		await host.danger.renamed(name);
+		if (host.danger.showing(state.doctype)) await host.danger.renamed(name);
 	});
 }
 
@@ -96,7 +98,7 @@ async function move(host: EditorActsHost, value: { module?: string } | undefined
 	await held(host, async () => {
 		await runMethod(standard ? DANGER_METHOD.make_standard : DANGER_METHOD.move_doctype, { doctype, module }, { nullable: true });
 		toast.success(standard ? __("{0} is standard now, in {1}.", [doctype, module]) : __("Moved {0} to {1}.", [doctype, module]));
-		await host.danger.reload();
+		if (host.danger.showing(doctype)) await host.danger.reload();
 	});
 }
 
@@ -106,7 +108,7 @@ async function remove(host: EditorActsHost) {
 	await held(host, async () => {
 		await runMethod(DANGER_METHOD.delete_doctype, { doctype: state.doctype }, { nullable: true });
 		toast.success(__("Deleted {0}.", [state.doctype]));
-		await host.danger.deleted();
+		if (host.danger.showing(state.doctype)) await host.danger.deleted();
 	});
 }
 

@@ -29,6 +29,7 @@ export const NO_DANGER: DangerHost = {
 	renamed: async () => undefined,
 	deleted: async () => undefined,
 	reload: async () => undefined,
+	showing: () => false,
 };
 
 export const VERSION: BaseVersion = { doctype: "2026-11-13 10:00:00", layouts: {}, app_layouts: {} };

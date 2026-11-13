@@ -35,6 +35,7 @@ function mount(state: Partial<EditorState> = {}, danger: Partial<DangerHost> = {
 		renamed: vi.fn(async () => undefined),
 		deleted: vi.fn(async () => undefined),
 		reload: vi.fn(async () => undefined),
+		showing: vi.fn(() => true),
 		...danger,
 	};
 	const loaded = taskNote(state);
@@ -133,6 +134,17 @@ describe("running a Danger zone act", () => {
 		expect(host.askDelete).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note", record_count: 4 }));
 		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.delete_doctype, { doctype: "Task Note" }, { nullable: true });
 		expect(host.deleted).toHaveBeenCalled();
+	});
+
+	it("skips the page's follow-up once the reader has left the DocType", async () => {
+		const { host } = mount({}, { showing: vi.fn(() => false) });
+		runMethod.mockResolvedValue({ data: "Task Memo" });
+		for (const act of DANGER) await acts.run(`danger.${act}`);
+		expect(runMethod).toHaveBeenCalledTimes(5);
+		expect(host.showing).toHaveBeenCalledWith("Task Note");
+		expect(host.reload).not.toHaveBeenCalled();
+		expect(host.renamed).not.toHaveBeenCalled();
+		expect(host.deleted).not.toHaveBeenCalled();
 	});
 
 	it("asks about pending edits first, and stops when they stay", async () => {
