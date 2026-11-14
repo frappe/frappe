@@ -97,8 +97,9 @@ for the declaring app. Contributed matches beat generated ones — `/deals` must
 `/:doctype` — and they share one flat namespace.
 
 **Rail**: <a id="rail"></a>
-The shell-owned navigation strip that never disappears, and the `Rail` doctype behind it:
-one record per app per layer. Its contents are **declared rows**, not derived doctypes, and
+The shell-owned navigation strip: always present, except in the sidebar-only navigation layout;
+it floats in the floating-rail layout. The `Rail` doctype is behind it: one record per app per layer.
+Each layer's record also holds that level's **navigation layout**. Its contents are **declared rows**, not derived doctypes, and
 they are not limited to doctypes — a rail item may be a doctype, a module, a page, a record,
 a link or a section. Permission filters that declaration; it does not produce it. A rail item
 is *independent* or *linked*, and it is linked exactly when it opens a sidebar. An app that
@@ -106,6 +107,21 @@ ships **no** `Rail` record still gets a rail, derived from its own doctypes and 
 filtered — which is every app until one converts, and it goes through the same layer merge
 as a declared one, so a person can arrange a derived rail too.
 _Avoid_: dock (that is desk v1's, and a live doctype of its own).
+
+**Navigation layout**: <a id="navigation-layout"></a>
+How one app's navigation draws. It has three values: **rail + sidebar** (`rail_and_sidebar`),
+**sidebar only** (`sidebar_only`) and **floating rail** (`floating_rail`). It is set per app and per
+level. The precedence is person → site → app → `rail_and_sidebar`.
+_Avoid_: layout (alone, a record-page word: App layout, Site layout, `?layout=`), dock, dock mode, dock-less.
+
+**Floating rail**: <a id="floating-rail"></a>
+The navigation layout in which the rail is parked off screen. It slides in from the window's edge
+on the navigation's side. Its pin writes the person's navigation layout.
+_Avoid_: dock (v1's `Dock` DocType is live), peek.
+
+**Utility slots**: <a id="utility-slots"></a>
+Search and notifications. They are fixed at the top, below the logo, in every navigation layout.
+_Avoid_: tray (v1's word).
 
 **Sidebar**: <a id="sidebar"></a>
 The panel a linked rail item opens, and the `Sidebar` doctype behind it. Named for where it is, like the rail — which is what lets
