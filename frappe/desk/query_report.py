@@ -497,7 +497,6 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 
 @frappe.whitelist()
-@frappe.read_only()
 def export_query():
 	"""export from query reports"""
 	from frappe.desk.utils import pop_csv_params

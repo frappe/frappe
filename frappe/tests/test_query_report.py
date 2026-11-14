@@ -1331,11 +1331,6 @@ class TestReportReadsOnReplica(IntegrationTestCase):
 
 		self.assertReadsOnReplica(get_data_for_custom_field, doctype="ToDo", field="description")
 
-	def test_get_reports_in_queued_state(self):
-		from frappe.core.doctype.prepared_report.prepared_report import get_reports_in_queued_state
-
-		self.assertReadsOnReplica(get_reports_in_queued_state, report_name="ToDo", filters={})
-
 	def test_get_filter_dashboard_data(self):
 		from frappe.desk.reportview import get_filter_dashboard_data
 

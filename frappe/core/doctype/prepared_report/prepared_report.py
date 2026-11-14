@@ -299,7 +299,6 @@ def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
 
 
 @frappe.whitelist()
-@frappe.read_only()
 def get_reports_in_queued_state(report_name: str, filters: dict[str, Any] | str | list):
 	return frappe.get_all(
 		"Prepared Report",
