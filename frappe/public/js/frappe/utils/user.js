@@ -25,6 +25,18 @@ frappe.update_user_info = function (user_info) {
 };
 
 frappe.ui.show_change_password_dialog = function (user, on_success) {
+	if (user === "Administrator" && frappe.defaults.is_enabled("disable_admin_pass_login")) {
+		frappe.msgprint({
+			title: __("Password Login Disabled"),
+			message: __(
+				"Password login is disabled. Turn off {0} in System Settings to use password actions.",
+				[frappe.utils.bold(__("Disable Administrator Password Login"))]
+			),
+			indicator: "orange",
+		});
+		return;
+	}
+
 	const dialog = new frappe.ui.Dialog({
 		title: __("Change Password"),
 		fields: [
@@ -56,6 +68,11 @@ frappe.ui.show_change_password_dialog = function (user, on_success) {
 					dialog.hide();
 					frappe.show_alert({ message: __("Password changed"), indicator: "green" });
 					on_success?.();
+				})
+				.catch((error) => {
+					if (error?.responseJSON?.exc_type === "PasswordLoginDisabledError") {
+						dialog.hide();
+					}
 				});
 		},
 	});

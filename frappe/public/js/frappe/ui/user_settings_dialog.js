@@ -343,10 +343,14 @@ function _profile_tab(user_data) {
 						<div class="text-lg-semibold text-ink-gray-8">${frappe.utils.escape_html(full_name)}</div>
 						<div class="text-sm text-ink-gray-6">${frappe.utils.escape_html(email)}</div>
 					</div>
-					${frappe.ui.button.html({
-						label: __("Change Password"),
-						css_class: "change-password-btn ms-auto",
-					})}
+					${
+						!frappe.defaults.is_enabled("disable_user_pass_login")
+							? frappe.ui.button.html({
+									label: __("Change Password"),
+									css_class: "change-password-btn ms-auto",
+							  })
+							: ""
+					}
 				</div>
 			`);
 

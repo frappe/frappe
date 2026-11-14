@@ -150,6 +150,7 @@
 		</div>
 	</section>
 
+	{% if not disable_user_pass_login %}
 	<section class='for-forgot'>
 		<div class="login-content page-card flex flex-col gap-5">
 			{{ logo_section(_('Forgot Password?'), _("Please enter your email, we'll send you password reset link")) }}
@@ -176,6 +177,7 @@
 			</div>
 		</div>
 	</section>
+	{% endif %}
 
 	<section class='for-login-with-email-link'>
 		<div class="login-content page-card flex flex-col gap-5">
