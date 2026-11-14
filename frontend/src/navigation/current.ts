@@ -2,7 +2,7 @@
 // `Sidebar` rail item's link resolves to a row inside its panel, and prefix matching lights two rows.
 
 import type { NavigationItem } from "@/boot";
-import { resolveItemRoute } from "./registry";
+import { canonicalPath } from "./canonical";
 import type { ItemContext, Rendering } from "./types";
 
 /** One route navigation can be standing on, and what being on it means. */
@@ -57,8 +57,9 @@ export function navigationDestinations(
 		// `href` rows leave the prefix and `group`/`expand` rows go nowhere.
 		if (!rendering || !("to" in rendering)) return;
 
-		// Resolvable, because `renderingOf` already resolved it once (`registry.ts`).
-		destinations.push({ path: resolveItemRoute(contexts.rail, rendering.to).path, found });
+		// Where the router lands it: the address standing on a redirect is never the row's spelling.
+		const { router, addresses } = contexts.rail;
+		destinations.push({ path: canonicalPath(router, addresses, rendering.to), found });
 	};
 
 	for (const item of rail) {
