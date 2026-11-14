@@ -30,14 +30,16 @@ import { FormLayout } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import { joinLayout } from "@/recordPage/formLayoutSource/joinLayout";
 import type { DesignCanvas } from "./designCanvas";
+import { DETAILS } from "./editorModel";
 import { refuseWrites } from "./previewRefusals";
+import { tabsOf } from "./workingLayouts";
 
 const props = defineProps<{ canvas: DesignCanvas; tableLabel: string }>();
 
 refuseWrites();
 const doc = ref<Record<string, unknown>>({});
 const layout = computed(() => {
-	const { layout: tree, fields } = props.canvas.working.value;
-	return joinLayout(tree, fields);
+	const working = props.canvas.working.value;
+	return joinLayout(tabsOf(working, DETAILS), working.fields);
 });
 </script>

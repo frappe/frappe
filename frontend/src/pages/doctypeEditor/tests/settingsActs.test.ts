@@ -95,7 +95,7 @@ describe("the settings acts", () => {
 		await acts.run("settings.set_naming_series", { options: ["TN-.####", "NOTE-.####"], default: "NOTE-.####" });
 		const field = mounted.canvas.field("naming_series")!;
 		expect([field.fieldtype, field.reqd, field.options, field.default]).toEqual(["Select", 1, "TN-.####\nNOTE-.####", "NOTE-.####"]);
-		expect(mounted.canvas.working.value.layout[0].sections[0].columns[0].fields).toEqual(["naming_series", "subject", "status"]);
+		expect(mounted.canvas.tabs.value[0].sections[0].columns[0].fields).toEqual(["naming_series", "subject", "status"]);
 		expect(mounted.edits.steps).toHaveLength(1);
 	});
 

@@ -7,6 +7,7 @@ import { DesignCanvas } from "../designCanvas";
 import { useEditorActs, type EditorActsHost } from "../editorActs";
 import { EditorSave } from "../editorSave";
 import type { EditorState } from "../editorSource";
+import type { ForkWarning } from "../forkWarning";
 import { PendingEdits, type BaseVersion, type EditorTab } from "../pendingEdits";
 
 /** A host for tests that do not reach Customize's header acts. */
@@ -79,7 +80,13 @@ export function taskNote(overrides: Partial<EditorState> = {}): EditorState {
 /** Mounts the acts on `initial`; a reload opens `reloaded()` (default: `initial` again) with no edits. */
 export function mountEditor(
 	initial: EditorState,
-	options: { reloaded?: () => EditorState; openList?: () => void; customize?: CustomizeHost; danger?: DangerHost } = {},
+	options: {
+		reloaded?: () => EditorState;
+		openList?: () => void;
+		customize?: CustomizeHost;
+		danger?: DangerHost;
+		forks?: ForkWarning;
+	} = {},
 ) {
 	const tab = ref<EditorTab>("editor");
 	const head = { doctype: initial.doctype, mode: initial.mode, base_version: initial.base_version };
@@ -87,13 +94,13 @@ export function mountEditor(
 		tab.value = opened;
 		void children.show(doctype ? children.tableOf(doctype) : null);
 	});
-	let canvas = new DesignCanvas(initial, edits);
-	const children = new ChildTables(edits, () => canvas);
+	let canvas = new DesignCanvas(initial, edits, options.forks);
+	const children = new ChildTables(edits, () => canvas, options.forks);
 	const open = (state: EditorState) => {
 		Object.assign(head, { doctype: state.doctype, mode: state.mode, base_version: state.base_version });
 		edits.clear();
 		children.reset();
-		canvas = new DesignCanvas(state, edits);
+		canvas = new DesignCanvas(state, edits, options.forks);
 		return canvas;
 	};
 	const next = () => options.reloaded?.() ?? initial;

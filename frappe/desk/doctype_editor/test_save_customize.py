@@ -362,6 +362,14 @@ class TestSaveCustomize(IntegrationTestCase):
 		self.assertTrue(save(NOTE, [{"act": "layouts.reset_to_app", "type": "Details"}])["saved"])
 		self.assertFalse(site_layouts(NOTE))
 
+	def test_a_site_layout_is_found_by_the_string_id_the_desk_sends(self):
+		save(NOTE, [{"act": "layouts.add", "type": "Details", "id": "new", "condition": "doc.public"}])
+		[row] = [row for row in site_layouts(NOTE) if row.condition]
+		ref = {"type": "Details", "id": str(row.name)}
+		result = save(NOTE, [{"act": "layouts.rename", "layout": ref, "title": "T47273"}])
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.db.get_value("Form Layout", row.name, "title"), "T47273")
+
 	def test_a_blocking_refusal_stops_the_save_keyed_to_field_and_property(self):
 		edit = {"act": "fields.set_field_property", "fieldname": "title", "property": "fieldtype"}
 		result = save(NOTE, [{**edit, "value": "Table"}])

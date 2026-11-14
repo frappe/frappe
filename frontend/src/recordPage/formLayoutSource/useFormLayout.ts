@@ -8,7 +8,7 @@ import type { FieldPatch } from "./fieldPatch";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { useDocPermissions, type FieldAccess } from "@framework/ui/useDocPermissions";
 import { landFresh, memoizedState } from "@framework/ui/utils";
-import { chooseRow } from "./chooseLayout";
+import { chooseRow, editorRowId } from "./chooseLayout";
 import { accessAtDocstatus, withAccess } from "./fieldAccess";
 import { joinLayout } from "./joinLayout";
 import type { FormLayoutRow, FormLayoutsResponse, FormLayoutType } from "./types";
@@ -49,6 +49,8 @@ export interface UseFormLayout {
 	dialogSize: ComputedRef<DialogSize | null>;
 	/** Fieldnames the row in use places; empty when no row applies. */
 	placed: ComputedRef<string[]>;
+	/** The DocType editor's id of the row in use; `null` when none applies. */
+	editorRow: ComputedRef<string | null>;
 	/** Re-fetch the layout rows (the meta reloads through `useDoctypeMeta`). */
 	reload: () => void;
 	/** Resolves once the fresh rows and meta have both landed or failed, so a first replay sees the layout. */
@@ -160,6 +162,7 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		dialog: computed(() => Boolean(response.value?.dialog)),
 		dialogSize: computed(() => row.value?.size ?? null),
 		placed: computed(() => placedFieldnames(row.value?.layout ?? null)),
+		editorRow: computed(() => (row.value ? editorRowId(response.value!.layouts, row.value) : null)),
 		reload: () => entry.value.reload(),
 		settled: () => whenSettled(stale),
 		refreshed: () => Promise.all([refreshed(), entry.value.refreshed]).then(() => {}),

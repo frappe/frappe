@@ -14,6 +14,7 @@ import { ref } from "vue";
 import { rowOf } from "../settingsRows";
 import { SettingsView } from "../settingsView";
 import { mountEditor, taskNote, VERSION } from "./editorFixture";
+import { leadNote, tabs } from "./layoutsFixture";
 
 const NEXT = { doctype: "2026-11-13 11:00:00", layouts: {}, app_layouts: { Details: "abc" } };
 
@@ -188,6 +189,25 @@ describe("a refused save", () => {
 			title: "1 edit could not be applied again",
 			messages: ["status is not a field of Task Note."],
 		});
+	});
+
+	it("reopens the open layout after the save, under the id its saved row has", async () => {
+		const saved = leadNote({ base_version: NEXT });
+		const row = { name: null, source: "app", title: "Partners", condition: "doc.partner", omitted: [], layout: tabs() };
+		saved.layouts.Details = [...saved.layouts.Details!, row as never];
+		const mounted = mount(leadNote(), { reloaded: () => saved });
+		await acts.run("layouts.add", { type: "Details", title: "Partners", condition: "doc.partner", start: "empty" });
+		answers({ saved: true, base_version: NEXT, children: [] });
+		await acts.run("editor.save");
+		expect(mounted.canvas.openLayout.value).toEqual({ type: "Details", id: "app:2" });
+	});
+
+	it("keeps a layout the reapply adds open", async () => {
+		const mounted = mount(leadNote(), { reloaded: () => leadNote({ base_version: NEXT }) });
+		await acts.run("layouts.add", { type: "Details", title: "Partners", condition: "doc.partner", start: "empty" });
+		const open = mounted.canvas.openLayout.value;
+		await mounted.save.reloadAndReapply();
+		expect(mounted.canvas.openLayout.value).toEqual(open);
 	});
 
 	it("holds Save and every edit until the reload re-applies them", async () => {

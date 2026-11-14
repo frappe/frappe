@@ -4,9 +4,17 @@
 		<p class="text-p-sm text-ink-gray-7">
 			{{ __("These fields are required but are not on this form.") }}
 		</p>
-		<p v-if="canCustomize" class="mt-1 text-p-sm text-ink-gray-6" data-customize-note>
-			{{ __("Add them to the Details layout so people can see them on the form.") }}
-		</p>
+		<div v-if="editRoute" class="mt-1 flex items-center gap-2">
+			<p class="text-p-sm text-ink-gray-6" data-customize-note>
+				{{ __("Add them to the Details layout so people can see them on the form.") }}
+			</p>
+			<Button
+				class="shrink-0"
+				variant="ghost"
+				:label="__('Edit layout')"
+				@click="openEditor(editRoute)"
+			/>
+		</div>
 		<FormLayout
 			class="mt-4"
 			v-model:doc="values"
@@ -26,14 +34,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, ref, useTemplateRef } from "vue";
+import { provide, ref, useTemplateRef } from "vue";
+import { useRouter, type RouteLocationRaw } from "vue-router";
 import { Button } from "frappe-ui";
 import { FormLayout } from "@framework/ui/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
 import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { FieldErrorsKey, RecordLinkKey } from "@framework/ui/fields/types";
-import { useDocPermissions } from "@framework/ui/useDocPermissions";
-import { useUserRoles } from "@framework/ui/useUserRoles";
 import { __ } from "@/i18n";
 import { FieldErrors, missingRequired } from "@/recordPage";
 import { formData } from "@/recordPage/formDialogLayout";
@@ -46,6 +53,8 @@ const props = defineProps<{
 	doctype: string;
 	/** A Submit asked it: the primary button then saves and submits. */
 	submitting?: boolean;
+	/** The DocType editor's route at the layout the form shows; absent without the right. */
+	editRoute?: RouteLocationRaw | null;
 	close: (value?: any) => void;
 }>();
 
@@ -59,12 +68,11 @@ const values = ref<Record<string, any>>({ ...props.doc });
 const tab = ref("");
 const body = useTemplateRef<HTMLElement>("body");
 
-// The Customize Form check reads that doctype's meta, which loads only when this dialog opens.
-const { roles } = useUserRoles();
-const customizer = useDocPermissions("Customize Form");
-const canCustomize = computed(
-	() => roles.value?.includes("System Manager") && customizer.holds("write")
-);
+const router = useRouter();
+function openEditor(route: RouteLocationRaw) {
+	props.close();
+	void router.push(route);
+}
 
 function submit() {
 	errors.clearAll();

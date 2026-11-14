@@ -68,6 +68,7 @@ import {
 	onBeforeRouteUpdate,
 	useRouter,
 	type LocationQuery,
+	type RouteLocationRaw,
 } from "vue-router";
 import { toast } from "frappe-ui";
 import { copyDocument, createDocument, isApiError } from "@framework/ui/api";
@@ -112,6 +113,7 @@ import RecordHeader from "./RecordHeader.vue";
 import FormSkeleton from "./skeletons/FormSkeleton.vue";
 import HeaderSkeleton from "./skeletons/HeaderSkeleton.vue";
 import { discardChanges } from "./discardChanges";
+import { editLayoutItem } from "./editLayoutItem";
 import { FORM_CLASSES } from "./formClasses";
 import { landOnField, stopLanding } from "./landOnField";
 import { openingKey } from "./openingKey";
@@ -124,7 +126,14 @@ import { reportSaveFailure } from "./recordSave";
 import { useUnloadGuard } from "@/unloadGuard";
 import { shownInDialog, stripTags } from "./saveResponse";
 
-const props = defineProps<{ doctype: string; query: LocationQuery }>();
+const props = defineProps<{
+	doctype: string;
+	query: LocationQuery;
+	/** The DocType editor's route at the New Record row the page draws; `null` without the right. */
+	editLayout?: (row: string | null) => RouteLocationRaw | null;
+	/** At the Details layout, where the required-fields dialog sends a manager. */
+	editDetails?: RouteLocationRaw | null;
+}>();
 
 // No record read has run, so there are no record rights yet; the insert checks them.
 const NO_RIGHTS = {};
@@ -276,7 +285,14 @@ function buildController() {
 		formLayout: () => detailsForm.value,
 		offLayout: () => layout.offLayout.value,
 		askRequired: (asked) =>
-			askRequired(controller.value!.page.dialog, asked, doc.value, props.doctype),
+			askRequired(
+				controller.value!.page.dialog,
+				asked,
+				doc.value,
+				props.doctype,
+				false,
+				props.editDetails
+			),
 		activeFormTab: () => activeFormTab.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
 		focusField: (fieldname, cursor) => void landOnField(landing, fieldname, cursor),
@@ -302,6 +318,7 @@ function buildController() {
 }
 
 function headerBuiltins(): HeaderItem[] {
+	const editLayout = props.editLayout?.(layout.editorRow.value);
 	return [
 		{
 			name: "doctype",
@@ -320,6 +337,7 @@ function headerBuiltins(): HeaderItem[] {
 			key: "Mod+S",
 			run: save,
 		},
+		...(editLayout ? [editLayoutItem(editLayout)] : []),
 	];
 }
 

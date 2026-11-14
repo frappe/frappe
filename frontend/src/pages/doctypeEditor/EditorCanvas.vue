@@ -1,5 +1,5 @@
-<!-- The Details canvas: the working state's tabs, sections, columns and fields, at the record page's
-     form width, with the fields this layout does not place under it. Customize draws it read-only. -->
+<!-- The canvas of the open layout. Details and New record draw at the record page's form width,
+     the Details tray under them; Side panel and Quick entry draw in their own frame. -->
 <template>
 	<div
 		class="mx-auto w-full max-w-3xl px-[--page-gutter] pb-[40vh] pt-6"
@@ -7,86 +7,84 @@
 		@click="acts.perform('canvas.select', null)"
 	>
 		<SaveBanner :save="save" :doctype="canvas.state.doctype" />
-		<h1 class="text-xl font-semibold text-ink-gray-9">{{ canvas.state.doctype }}</h1>
-		<DoctypeDescription :canvas="canvas" />
-		<p class="mt-1 text-p-sm text-ink-gray-5" data-editor-meta>
-			<Tooltip
-				:text="__('Your changes stay on this site and survive its updates')"
-				:disabled="!canvas.customize || !canvas.state.app_title"
+		<template v-if="formPage">
+			<h1 class="text-xl font-semibold text-ink-gray-9">{{ canvas.state.doctype }}</h1>
+			<DoctypeDescription :canvas="canvas" />
+			<p class="mt-1 text-p-sm text-ink-gray-5" data-editor-meta>
+				<Tooltip
+					:text="__('Your changes stay on this site and survive its updates')"
+					:disabled="!canvas.customize || !canvas.state.app_title"
+				>
+					<span>{{ metaLine }}</span>
+				</Tooltip>
+			</p>
+			<p v-if="siteFields" class="mt-1 text-p-sm text-ink-gray-5" data-editor-site-fields>
+				{{
+					__n(
+						"{0} field added on this site, edit it in",
+						"{0} fields added on this site, edit them in",
+						siteFields,
+						[siteFields]
+					)
+				}}
+				<RouterLink
+					v-if="customize"
+					:to="customize"
+					class="text-ink-gray-7 underline-offset-2 hover:underline"
+					>{{ __("Customize") }} ↗</RouterLink
+				>
+				<template v-else>{{ __("Customize") }}</template>
+			</p>
+			<p
+				v-if="canvas.newRecordUsesDetails.value"
+				class="mt-1 text-p-sm text-ink-gray-5"
+				data-new-record-note
 			>
-				<span>{{ metaLine }}</span>
-			</Tooltip>
-		</p>
-		<p v-if="siteFields" class="mt-1 text-p-sm text-ink-gray-5" data-editor-site-fields>
-			{{
-				__n(
-					"{0} field added on this site, edit it in",
-					"{0} fields added on this site, edit them in",
-					siteFields,
-					[siteFields]
-				)
-			}}
-			<RouterLink
-				v-if="customize"
-				:to="customize"
-				class="text-ink-gray-7 underline-offset-2 hover:underline"
-				>{{ __("Customize") }} ↗</RouterLink
-			>
-			<template v-else>{{ __("Customize") }}</template>
-		</p>
+				{{ __("New record uses the Details layout") }}
+			</p>
+		</template>
 
-		<CanvasTabs class="mt-6" :canvas="canvas" />
-
-		<Draggable
-			:model-value="tab?.sections ?? []"
-			:item-key="(section: LayoutTreeSection) => section.name"
-			group="canvas-sections"
-			handle=".section-grip"
-			class="mt-6 flex flex-col gap-10"
-			ghost-class="opacity-40"
-			v-bind="DRAG_OPTIONS"
-			:disabled="!canvas.editable"
-			@change="tab && dropSection($event, tab.name!)"
+		<AppLayoutNotice
+			v-if="appChanged"
+			v-model:viewing="viewingApp"
+			:class="formPage ? 'mt-6' : 'mb-6'"
+			:canvas="canvas"
 		>
-			<template #item="{ element: section }">
-				<CanvasSection :canvas="canvas" :section="section" />
+			<template #default="{ app }">
+				<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="app" />
+				<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="app" />
+				<CanvasForm v-else :canvas="app" />
 			</template>
-		</Draggable>
-		<p v-if="tab && !tab.sections.length" class="mt-6 text-base text-ink-gray-5">
-			{{ __("This tab has no sections.") }}
-		</p>
-		<div v-if="canvas.editable" class="mt-10 flex border-t pt-4" data-canvas-add-section>
-			<Button
-				variant="subtle"
-				size="sm"
-				icon-left="lucide-plus"
-				:label="__('Add section')"
-				@click.stop="acts.perform('canvas.add_section')"
-			/>
-		</div>
+		</AppLayoutNotice>
+		<template v-if="!showsApp">
+			<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="canvas" />
+			<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="canvas" />
+			<div v-else class="mt-6"><CanvasForm :canvas="canvas" /></div>
 
-		<OffLayoutTray :canvas="canvas" />
+			<OffLayoutTray v-if="type === 'Details' || !canvas.editable" :canvas="canvas" />
+		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, watch } from "vue";
+import { computed, defineAsyncComponent, nextTick, ref, watch } from "vue";
 import { RouterLink, type RouteLocationRaw } from "vue-router";
-import { Button, Tooltip, useKeyboardShortcut } from "frappe-ui";
-import Draggable from "vuedraggable";
+import { Tooltip, useKeyboardShortcut } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
 import { __, __n } from "@/i18n";
-import type { LayoutTreeSection } from "./layoutTree";
-import CanvasSection from "./CanvasSection.vue";
-import CanvasTabs from "./CanvasTabs.vue";
-import { DRAG_OPTIONS, dropSection } from "./canvasDrops";
+import CanvasForm from "./CanvasForm.vue";
 import { canvasMove, type Direction } from "./canvasMoves";
 import type { DesignCanvas } from "./designCanvas";
 import DoctypeDescription from "./DoctypeDescription.vue";
 import type { EditorSave } from "./editorSave";
 import { provideInertForm } from "./inertForm";
+import { takeOff, takesOff } from "./fieldPanel";
 import OffLayoutTray from "./OffLayoutTray.vue";
+import QuickEntryCanvas from "./QuickEntryCanvas.vue";
 import SaveBanner from "./SaveBanner.vue";
+import SidePanelCanvas from "./SidePanelCanvas.vue";
+
+const AppLayoutNotice = defineAsyncComponent(() => import("./AppLayoutNotice.vue"));
 
 const props = defineProps<{
 	canvas: DesignCanvas;
@@ -97,7 +95,17 @@ const props = defineProps<{
 
 provideInertForm();
 
-const tab = computed(() => props.canvas.openTab.value);
+const type = computed(() => props.canvas.openLayout.value.type);
+const appChanged = computed(() =>
+	Boolean(props.canvas.customize && props.canvas.layout.value?.sourceChanged)
+);
+const viewingApp = ref(false);
+watch([() => props.canvas, () => props.canvas.openLayout.value, appChanged], () => {
+	viewingApp.value = false;
+});
+const showsApp = computed(() => appChanged.value && viewingApp.value);
+const editing = () => props.canvas.editable && !showsApp.value;
+const formPage = computed(() => type.value === "Details" || type.value === "New Record");
 const metaLine = computed(() => {
 	const { module, app_title, record_count } = props.canvas.state;
 	const parts = [module, app_title ? __("From {0}", [app_title]) : __("Custom")];
@@ -122,7 +130,7 @@ for (const [combo, direction] of ARROWS) {
 		combo: combo as never,
 		description: __("Move the selected item"),
 		group: __("Editor"),
-		enabled: () => props.canvas.editable && Boolean(props.canvas.selection.value),
+		enabled: () => editing() && Boolean(props.canvas.selection.value),
 		handler: () => move(direction),
 	});
 }
@@ -130,9 +138,25 @@ useKeyboardShortcut({
 	combo: "Slash",
 	description: __("Add field"),
 	group: __("Editor"),
-	enabled: () => props.canvas.editable,
+	enabled: editing,
 	handler: () => void acts.perform("fields.add_field"),
 });
+
+useKeyboardShortcut({
+	combo: "Delete",
+	description: __("Take the selected field off this layout"),
+	group: __("Editor"),
+	enabled: () => Boolean(placedSelection()),
+	handler: () => void takeOff(props.canvas, placedSelection()!),
+});
+
+/** The selected field, when Delete takes it off the open layout. */
+function placedSelection(): string | null {
+	const { canvas } = props;
+	const selection = canvas.selection.value;
+	if (!editing() || !takesOff(canvas) || selection?.kind !== "field") return null;
+	return canvas.place(selection.fieldname) ? selection.fieldname : null;
+}
 
 function move(direction: Direction) {
 	const selection = props.canvas.selection.value;

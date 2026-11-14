@@ -141,7 +141,7 @@ class DesignState:
 		self.touched.add(type)
 		id = ref.get("id")
 		for layout in layouts:
-			if not layout.deleted and (layout.id == id if id else not layout.condition):
+			if not layout.deleted and (str(layout.id) == str(id) if id else not layout.condition):
 				return layout
 		if id:
 			raise EditError(_("This {0} layout no longer exists.").format(_(type)), kind="layout", layout=id)
@@ -151,7 +151,7 @@ class DesignState:
 
 	def add_layout(self, type: str, id: str, title=None, condition=None, start: str = "copy") -> EditorLayout:
 		layouts = self.layouts_of(type)
-		if not id or any(layout.id == id for layout in layouts):
+		if not id or any(str(layout.id) == str(id) for layout in layouts):
 			raise EditError(_("A new layout needs an id of its own."), kind="layout", layout=id)
 		self.touched.add(type)
 		tabs = copy.deepcopy(self.default_tabs(type)) if start == "copy" else empty_tabs()
@@ -168,9 +168,11 @@ class DesignState:
 	def fallback_tabs(self, type: str) -> list:
 		"""What the desk draws for a type with no layout of its own (`get_layouts`)."""
 		if type == "Quick Entry":
-			return quick_entry_layout(self.doc.fields)
+			return quick_entry_layout(self.doc.fields) or empty_tabs()
 		if type == "New Record":
 			return copy.deepcopy(self.default_tabs("Details"))
+		if type == "Side Panel":
+			return side_panel_tabs()
 		return layout_from_fields(self.doc.fields)
 
 	def field(self, fieldname: str):
@@ -287,3 +289,10 @@ def empty_tabs() -> list:
 			"sections": [{"name": "section_1", "columns": [{"name": "column_1", "fields": []}]}],
 		}
 	]
+
+
+def side_panel_tabs() -> list:
+	"""The record panel draws a section's header, and its open state, only from a label."""
+	tabs = empty_tabs()
+	tabs[0]["sections"][0]["label"] = "Details"
+	return tabs

@@ -1,6 +1,7 @@
 // The dialog a save opens for the mandatory fields the layout does not show.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, ref } from "vue";
+import { createApp, defineComponent, h, nextTick } from "vue";
+import { createMemoryHistory, createRouter } from "vue-router";
 
 vi.mock("frappe-ui", () => ({
   Button: defineComponent({
@@ -14,12 +15,6 @@ vi.mock("frappe-ui", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-const roles = ref<string[]>([]);
-const writable = ref(false);
-vi.mock("@framework/ui/useUserRoles", () => ({ useUserRoles: () => ({ roles }) }));
-vi.mock("@framework/ui/useDocPermissions", () => ({
-  useDocPermissions: vi.fn(() => ({ holds: () => writable.value })),
-}));
 vi.mock("@framework/ui/FormLayout", async (importOriginal) => ({
   ...((await importOriginal()) as object),
   // The real FormLayout is exercised in Chrome; an input per field that edits the doc is enough here.
@@ -46,17 +41,26 @@ vi.mock("@framework/ui/FormLayout", async (importOriginal) => ({
   }),
 }));
 
-import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { fieldsToLayout } from "@framework/ui/FormLayout";
 import RequiredFieldsDialog from "../dialogs/RequiredFieldsDialog.vue";
 
 const layout = fieldsToLayout([{ fieldname: "batch", fieldtype: "Data", label: "Batch", reqd: true }]);
 
-function render(close = vi.fn(), submitting = false) {
+const blank = { render: () => null };
+const EDITOR = { name: "doctype-editor", params: { name: "Deal" }, query: { layout: "details", row: "FL-7" } };
+
+function render(close = vi.fn(), submitting = false, editRoute?: typeof EDITOR) {
   const root = document.createElement("div");
   document.body.appendChild(root);
-  createApp(RequiredFieldsDialog, { layout, doc: { name: "D-1" }, doctype: "Deal", close, submitting }).mount(root);
-  return { root, close };
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [{ path: "/doctype/:name", name: "doctype-editor", component: blank }, { path: "/", component: blank }],
+  });
+  const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
+  const app = createApp(RequiredFieldsDialog, { layout, doc: { name: "D-1" }, doctype: "Deal", close, submitting, editRoute });
+  app.use(router);
+  app.mount(root);
+  return { root, close, push };
 }
 
 const button = (root: HTMLElement, label: string) =>
@@ -70,33 +74,26 @@ async function settle() {
 
 beforeEach(() => {
   document.body.innerHTML = "";
-  roles.value = [];
-  writable.value = false;
 });
 
 describe("the required-fields dialog", () => {
-  it("tells everyone the fields are not on the form, and names the Customize Form check", () => {
+  it("tells everyone the fields are not on the form, and the layout note and link only with the editor's route", () => {
     const { root } = render();
 
     expect(root.textContent).toContain("These fields are required but are not on this form.");
-    expect(useDocPermissions).toHaveBeenCalledWith("Customize Form");
+    expect(root.querySelector("[data-customize-note]")).toBeNull();
+    expect(button(root, "Edit layout")).toBeUndefined();
   });
 
-  it("adds the layout note only for a System Manager who can write Customize Form", async () => {
-    roles.value = ["System Manager"];
-    const { root } = render();
-    expect(root.querySelector("[data-customize-note]")).toBeNull();
-
-    writable.value = true;
-    await settle();
+  it("gives the note and an Edit layout that closes the dialog, then opens the editor", async () => {
+    const { root, close, push } = render(vi.fn(), false, EDITOR);
     expect(root.querySelector("[data-customize-note]")?.textContent).toContain("Add them to the Details layout");
-  });
 
-  it("does not add the note for a person with write but no System Manager role", async () => {
-    writable.value = true;
-    const { root } = render();
+    button(root, "Edit layout").dispatchEvent(new MouseEvent("click"));
     await settle();
-    expect(root.querySelector("[data-customize-note]")).toBeNull();
+
+    expect(close).toHaveBeenCalledWith();
+    expect(push).toHaveBeenCalledWith(EDITOR);
   });
 
   it("keeps the dialog open while a field is empty, and sends the values once filled", async () => {

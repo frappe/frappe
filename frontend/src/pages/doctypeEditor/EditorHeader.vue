@@ -3,11 +3,7 @@
 	<div class="flex w-full flex-col">
 		<div class="flex h-12 items-center justify-between gap-3">
 			<div class="flex min-w-0 flex-1 items-center gap-2">
-				<Breadcrumbs class="-ml-0.5" :items="crumbs" data-crumbs>
-					<template #suffix="{ item }">
-						<Icon v-if="item.menu" name="lucide-chevron-down" class="ml-0.5 size-4" />
-					</template>
-				</Breadcrumbs>
+				<LayoutCrumbs class="-ml-0.5" :crumbs="crumbs" :canvas="canvas" />
 				<NotSavedBadge v-if="dirty" class="shrink-0" />
 			</div>
 			<div class="flex shrink-0 items-center gap-2">
@@ -66,27 +62,20 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-	Breadcrumbs,
-	Button,
-	Dropdown,
-	Icon,
-	TabButtons,
-	TabList,
-	Tabs,
-	TabTrigger,
-	Tooltip,
-} from "frappe-ui";
+import { Button, Dropdown, TabButtons, TabList, Tabs, TabTrigger, Tooltip } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import NotSavedBadge from "@/pages/record/NotSavedBadge.vue";
 import { canRoute, routeFor } from "@/router/routeFor";
+import type { DesignCanvas } from "./designCanvas";
 import { EDITOR_TABS } from "./editorActs";
+import LayoutCrumbs, { type Crumb } from "./LayoutCrumbs.vue";
 import type { EditorMode, EditorTab } from "./pendingEdits";
 
 const props = defineProps<{
 	doctype: string;
-	layoutTitle: string;
+	/** The canvas the layout crumb opens layouts on; `null` for a new child table, which has none until its first save. */
+	canvas: DesignCanvas | null;
 	dirty: boolean;
 	canUndo: boolean;
 	canRedo: boolean;
@@ -104,13 +93,17 @@ const tab = defineModel<EditorTab>("tab", { required: true });
 
 const modeOptions = computed(() => props.modes.map((mode) => ({ label: __(mode), value: mode })));
 
-const crumbs = computed(() => [
-	...(props.mode === "Customize"
-		? [{ label: props.doctype, route: listRoute() }, { label: __("Customize") }]
-		: [{ label: __("DocType"), route: routeFor("DocType") }, { label: props.doctype }]),
-	...(props.childCrumbs ?? []),
-	{ label: props.layoutTitle, menu: true, onClick: () => (tab.value = "editor") },
-]);
+const crumbs = computed<Crumb[]>(() => {
+	const all: Crumb[] = [
+		...(props.mode === "Customize"
+			? [{ label: props.doctype, route: listRoute() }, { label: __("Customize") }]
+			: [{ label: __("DocType"), route: routeFor("DocType") }, { label: props.doctype }]),
+		...(props.childCrumbs ?? []),
+	];
+	const last = all.pop()!;
+	const details = () => emit("act", "layouts.open", { type: "Details" });
+	return [...all, last.route || last.onClick ? last : { ...last, onClick: details }];
+});
 
 // Design's ⋯ offers the Danger zone's Rename and Delete wherever their acts are offered.
 const DESIGN_MENU = [

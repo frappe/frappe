@@ -99,7 +99,7 @@ import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { LayoutTreeTab } from "./layoutTree";
 import { DRAG_OPTIONS, dropField, dropTab } from "./canvasDrops";
-import { canvasMenu } from "./canvasMenu";
+import { canvasMenu, selectOn } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";
 
@@ -124,10 +124,11 @@ function tabLabel(tab: LayoutTreeTab, index: number) {
 }
 
 function select(tab: LayoutTreeTab) {
-	void acts.perform("canvas.select", { kind: "tab", tab: tab.name });
+	selectOn(props.canvas, { kind: "tab", tab: tab.name! });
 }
 
 async function startRename(tab: LayoutTreeTab) {
+	if (!props.canvas.editable) return;
 	renaming.value = tab.name!;
 	await nextTick();
 	renameInput.value?.focus();

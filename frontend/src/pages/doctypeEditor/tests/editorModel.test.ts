@@ -8,8 +8,9 @@ import {
 	type WorkingState,
 } from "../editorModel";
 import type { EditorState } from "../editorSource";
+import { tabsOf } from "../workingLayouts";
 
-const DETAILS = { type: "Details" };
+const DETAILS = { type: "Details" } as const;
 
 function state(): EditorState {
 	return {
@@ -74,6 +75,8 @@ function deepFreeze<T>(value: T): T {
 }
 
 const base = deepFreeze(editorBase(state()));
+/** The same tree saved as the site's own layout: a field added with no layout stays off it. */
+const savedBase = editorBase({ ...state(), layouts: { Details: [{ ...state().layouts.Details![0], name: "FL-1", source: "site" }] } });
 
 const canvas = (act: string, value: Record<string, unknown>): FlatEdit => ({
 	act: `canvas.${act}`,
@@ -93,11 +96,12 @@ function replay(...edits: FlatEdit[]): WorkingState {
 	return after;
 }
 
-const tabNames = (working: WorkingState) => working.layout.map((tab) => tab.name);
+const details = (working: WorkingState) => tabsOf(working, DETAILS);
+const tabNames = (working: WorkingState) => details(working).map((tab) => tab.name);
 const sectionsOf = (working: WorkingState, tab: string) =>
-	working.layout.find((each) => each.name === tab)!.sections;
+	details(working).find((each) => each.name === tab)!.sections;
 const columnsOf = (working: WorkingState, section: string) =>
-	working.layout.flatMap((tab) => tab.sections).find((each) => each.name === section)!.columns;
+	details(working).flatMap((tab) => tab.sections).find((each) => each.name === section)!.columns;
 
 describe("editorBase", () => {
 	it("starts from the definition's fields, the Details layout and the description", () => {
@@ -106,16 +110,19 @@ describe("editorBase", () => {
 		expect(base.settings.properties.description).toBe("Notes on tasks");
 	});
 
-	it("starts with no tabs when the DocType has no Details layout", () => {
+	it("draws the fields when the DocType has no Details layout", () => {
 		const bare = { ...state(), layouts: {} };
-		expect(editorBase(bare).layout).toEqual([]);
+		const fields = ["subject", "status", "due", "notes", "spare"];
+		expect(details(editorBase(bare))).toEqual([
+			{ name: "first_tab", sections: [{ name: "section_1", columns: [{ name: "column_1", fields }] }] },
+		]);
 	});
 });
 
 describe("canvas tabs", () => {
 	it("adds a tab at the end, named from its label", () => {
 		const working = replay(canvas("add_tab", { label: "Billing Info" }));
-		expect(working.layout.at(-1)).toEqual({ name: "billing_info", label: "Billing Info", sections: [] });
+		expect(details(working).at(-1)).toEqual({ name: "billing_info", label: "Billing Info", sections: [] });
 	});
 
 	it("names an unlabelled tab by its position, suffixed when taken", () => {
@@ -175,7 +182,7 @@ describe("canvas sections", () => {
 			canvas("remove_section", { section: "log" }),
 		);
 		expect(sectionsOf(working, "activity")).toEqual([]);
-		expect(JSON.stringify(working.layout)).not.toContain("spare");
+		expect(JSON.stringify(details(working))).not.toContain("spare");
 	});
 
 	it("moves a section into another tab", () => {
@@ -280,7 +287,7 @@ describe("canvas container properties", () => {
 });
 
 const fieldnames = (working: WorkingState) => working.fields.map((field) => field.fieldname);
-const placed = (working: WorkingState) => JSON.stringify(working.layout);
+const placed = (working: WorkingState) => JSON.stringify(details(working));
 
 describe("field acts", () => {
 	it("adds a field named from its label and places it", () => {
@@ -297,10 +304,12 @@ describe("field acts", () => {
 		expect(columnsOf(working, "log")[0].fields).toEqual(["due_date"]);
 	});
 
-	it("adds a field off the layout when the edit names no layout", () => {
-		const working = replay({ act: "fields.add_field", label: "Kind", fieldtype: "Link", options: "DocType", fieldname: "kind" });
+	it("adds a field with no layout off a saved Details layout, and last on a fallback one, as the save rebuilds it", () => {
+		const add: FlatEdit = { act: "fields.add_field", label: "Kind", fieldtype: "Link", options: "DocType", fieldname: "kind" };
+		const working = replay(add);
 		expect(working.fields.at(-1)).toEqual({ fieldname: "kind", label: "Kind", fieldtype: "Link", options: "DocType" });
-		expect(placed(working)).not.toContain("kind");
+		expect(details(working)[1].sections[0].columns[0].fields).toEqual(["kind"]);
+		expect(placed(workingState(savedBase, [add]))).not.toContain("kind");
 	});
 
 	it("refuses a taken or invalid fieldname", () => {
@@ -352,7 +361,8 @@ describe("field acts", () => {
 
 	it("leaves the Details canvas alone for an edit to another layout", () => {
 		const working = replay(
-			{ act: "canvas.unplace_field", layout: { type: "Details", id: "Wide" }, fieldname: "status" },
+			{ act: "layouts.add", type: "Details", id: "wide", condition: "doc.wide" },
+			{ act: "canvas.unplace_field", layout: { type: "Details", id: "wide" }, fieldname: "status" },
 			{ act: "fields.set_field_property", fieldname: "status", property: "reqd", value: 1 },
 		);
 		expect(columnsOf(working, "main")[0].fields).toEqual(["subject", "status"]);
@@ -372,7 +382,7 @@ describe("settings acts", () => {
 
 describe("fieldsOffLayout", () => {
 	it("lists the fields the layout does not place, marking new and asked ones", () => {
-		const working = workingState(base, [
+		const working = workingState(savedBase, [
 			{ act: "fields.add_field", label: "Ref", fieldtype: "Data" },
 			{ act: "fields.add_field", label: "Break", fieldtype: "Section Break" },
 			{ act: "fields.rename_field", fieldname: "spare", new_fieldname: "extra" },

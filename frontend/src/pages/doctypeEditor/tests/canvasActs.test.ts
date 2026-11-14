@@ -68,13 +68,19 @@ function state(mode: "Design" | "Customize" = "Design"): EditorState {
 
 let stop: () => void;
 
-function mount(mode: "Design" | "Customize" = "Design") {
+/** The same tree saved as the site's own layout, which a field added with no layout stays off. */
+function savedDetails(): EditorState {
+	const loaded = state();
+	return { ...loaded, layouts: { Details: [{ ...loaded.layouts.Details![0], name: "FL-1", source: "site" }] } };
+}
+
+function mount(mode: "Design" | "Customize" = "Design", loaded = state(mode)) {
 	const tab = ref<EditorTab>("editor");
 	const edits = new PendingEdits(
 		{ doctype: "Task Note", mode, base_version: { doctype: "", layouts: {}, app_layouts: {} } },
 		(opened) => (tab.value = opened),
 	);
-	const canvas = new DesignCanvas(state(mode), edits);
+	const canvas = new DesignCanvas(loaded, edits);
 	const scope = effectScope();
 	scope.run(() =>
 		useEditorActs({
@@ -216,7 +222,7 @@ describe("fields.add_field on the canvas", () => {
 
 describe("the tray", () => {
 	it("marks a field added since the save and one the save asked for", async () => {
-		const { canvas } = mount();
+		const { canvas } = mount("Design", savedDetails());
 		await acts.run("fields.add_field", { label: "Ref", fieldtype: "Data" });
 		canvas.askedOnSave.value = ["spare"];
 		expect(canvas.offLayout.value.map(({ field, ...marks }) => ({ fieldname: field.fieldname, ...marks }))).toEqual([

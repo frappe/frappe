@@ -6,6 +6,7 @@ import { ChildEdits } from "./childEdits";
 import type { ChildSave } from "./childSave";
 import { pendingChild } from "./childSource";
 import { DesignCanvas } from "./designCanvas";
+import type { ForkWarning } from "./forkWarning";
 import { loadEditor, type EditorState } from "./editorSource";
 import type { PendingEdits } from "./pendingEdits";
 
@@ -33,6 +34,7 @@ export class ChildTables {
 	constructor(
 		private edits: PendingEdits,
 		private parent: () => DesignCanvas | null,
+		private forks: ForkWarning | null = null,
 	) {}
 
 	/** Opens the child of the parent's Table field `table`; `null`, or a field with no child yet, shows the parent. */
@@ -131,7 +133,7 @@ export class ChildTables {
 		const generation = this.generation;
 		const state = this.added().includes(doctype) ? pendingChild(doctype, parent) : await loadEditor(doctype, parent.mode);
 		const edits = new ChildEdits(this.edits, state);
-		const session = { table: "", state, edits, canvas: new DesignCanvas(state, edits) };
+		const session = { table: "", state, edits, canvas: new DesignCanvas(state, edits, this.forks) };
 		if (generation === this.generation) this.sessions.value = new Map(this.sessions.value).set(doctype, session);
 		return session;
 	}

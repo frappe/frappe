@@ -9,9 +9,18 @@
 		]"
 		:data-canvas-field="fieldname"
 		:data-canvas-selected="selected || undefined"
-		@click.stop="acts.perform('canvas.select', { kind: 'field', fieldname })"
+		@click.stop="selectOn(canvas, { kind: 'field', fieldname })"
 	>
-		<div v-if="table" class="pointer-events-none" :class="{ 'opacity-50': hidden }" inert>
+		<div
+			v-if="node && panelRows"
+			class="grid grid-cols-[130px_1fr] items-center gap-2"
+			:class="{ 'opacity-50': hidden }"
+			data-canvas-panel-row
+		>
+			<span class="truncate text-base text-ink-gray-5">{{ label }}</span>
+			<span class="truncate text-base text-ink-gray-4">{{ __("Add {0}…", [label]) }}</span>
+		</div>
+		<div v-else-if="table" class="pointer-events-none" :class="{ 'opacity-50': hidden }" inert>
 			<CanvasTable :field="table" />
 		</div>
 		<div v-else-if="node" class="pointer-events-none" :class="{ 'opacity-50': hidden }" inert>
@@ -58,16 +67,17 @@
 import { computed } from "vue";
 import { Button, Dropdown } from "frappe-ui";
 import { FormLayoutField, mapField } from "@framework/ui/FormLayout";
-import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import CanvasTable from "./CanvasTable.vue";
-import { canvasMenu } from "./canvasMenu";
+import { canvasMenu, selectOn } from "./canvasMenu";
 import CustomizeMarks from "./CustomizeMarks.vue";
 import type { DesignCanvas } from "./designCanvas";
+import { usePanelRows } from "./inertForm";
 import RuleMark from "./RuleMark.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; fieldname: string }>();
 
+const panelRows = usePanelRows();
 const editable = computed(() => props.canvas.editable);
 const selected = computed(() => {
 	const selection = props.canvas.selection.value;
@@ -81,6 +91,10 @@ const node = computed(() => {
 const table = computed(() => {
 	const field = props.canvas.field(props.fieldname);
 	return field?.fieldtype === "Table" ? field : null;
+});
+const label = computed(() => {
+	const field = props.canvas.field(props.fieldname);
+	return field?.label ? __(field.label, [], props.canvas.state.doctype) : props.fieldname;
 });
 const menu = computed(() =>
 	canvasMenu(props.canvas, { kind: "field", fieldname: props.fieldname })

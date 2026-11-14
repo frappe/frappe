@@ -1,8 +1,8 @@
-// The Details canvas's acts. Drag, Alt+Arrow, the menus and the palette all run these, so each
-// change stages through one path; an act's value is the keys of the edit it stages.
+// The canvas's acts, on the layout it has open. Drag, Alt+Arrow, the menus and the palette all run
+// these, so each change stages through one path; an act's value is the keys of the edit it stages.
 import type { ActItem } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
-import { DETAILS, type CanvasSelection, type DesignCanvas } from "./designCanvas";
+import type { CanvasSelection, DesignCanvas } from "./designCanvas";
 import { newFieldname, type FlatEdit } from "./editorModel";
 import { validFieldname } from "./fieldRules";
 import type { EditorActsHost } from "./editorActs";
@@ -38,9 +38,9 @@ export function canvasItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Add tab"),
 			icon: "plus",
 			when,
-			run: (_context, keys?: Keys) => {
+			run: async (_context, keys?: Keys) => {
 				const canvas = host.canvas()!;
-				const added = adds(canvas, () => stage(host, "canvas.add_tab", keys ?? {}), tabNames);
+				const added = await adds(canvas, () => stage(host, "canvas.add_tab", keys ?? {}), tabNames);
 				if (added) canvas.select({ kind: "tab", tab: added });
 			},
 		},
@@ -49,10 +49,10 @@ export function canvasItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Add section"),
 			icon: "plus",
 			when,
-			run: (_context, keys?: Keys) => {
+			run: async (_context, keys?: Keys) => {
 				const canvas = host.canvas()!;
 				const into = keys ?? { tab: canvas.openTab.value?.name };
-				const added = adds(canvas, () => stage(host, "canvas.add_section", into), sectionNames);
+				const added = await adds(canvas, () => stage(host, "canvas.add_section", into), sectionNames);
 				if (added) canvas.select({ kind: "section", section: added });
 			},
 		},
@@ -83,10 +83,10 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			icon: "plus",
 			key: "A",
 			when: () => editing(host),
-			run: (_context, keys?: Keys & { label: string; fieldname?: string }) => {
+			run: async (_context, keys?: Keys & { label: string; fieldname?: string }) => {
 				const canvas = host.canvas()!;
 				if (!keys) return void (canvas.adding.value = canvas.targetSection());
-				canvas.stage(placedOn(DETAILS, { ...keys, act: "fields.add_field" }));
+				if (!(await canvas.stage(placedOn(canvas.openLayout.value, { ...keys, act: "fields.add_field" })))) return;
 				canvas.select({ kind: "field", fieldname: keys.fieldname || newFieldname(canvas.working.value, keys.label) });
 			},
 		},
@@ -117,10 +117,9 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Rename field"),
 			palette: false,
 			when,
-			run: (_context, keys: { fieldname: string; new_fieldname: string }) => {
+			run: async (_context, keys: { fieldname: string; new_fieldname: string }) => {
 				const canvas = host.canvas()!;
-				canvas.stage({ ...keys, act: "fields.rename_field" });
-				reselect(canvas, keys.fieldname, keys.new_fieldname);
+				if (await canvas.stage({ ...keys, act: "fields.rename_field" })) reselect(canvas, keys.fieldname, keys.new_fieldname);
 			},
 		},
 		{
@@ -128,9 +127,9 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Remove field"),
 			palette: false,
 			when,
-			run: (_context, keys: { fieldname: string }) => {
+			run: async (_context, keys: { fieldname: string }) => {
 				const canvas = host.canvas()!;
-				canvas.stage({ ...keys, act: "fields.delete_field" });
+				if (!(await canvas.stage({ ...keys, act: "fields.delete_field" }))) return;
 				const selected = canvas.selection.value;
 				if (selected?.kind === "field" && selected.fieldname === keys.fieldname) canvas.select(null);
 			},
@@ -144,7 +143,7 @@ function placedOn(layout: { type: string; id?: string }, edit: FlatEdit): FlatEd
 }
 
 /** A read-only field filled from the Link's record, right after the Link, then selected. */
-function fetchField(canvas: DesignCanvas, { link, source }: { link: string; source: FetchSource }) {
+async function fetchField(canvas: DesignCanvas, { link, source }: { link: string; source: FetchSource }) {
 	const taken = canvas.working.value.fields.map((field) => field.fieldname);
 	const fieldname = fetchedFieldname(source, taken, canvas.customize ? "custom_" : "");
 	const place = canvas.place(link);
@@ -152,12 +151,13 @@ function fetchField(canvas: DesignCanvas, { link, source }: { link: string; sour
 	const options = source.options ? { options: source.options } : {};
 	const label = source.label || source.fieldname;
 	const typed = { fieldname, label, fieldtype: source.fieldtype, ...options };
-	canvas.stage(placedOn(DETAILS, { act: "fields.fetch_field", link, source: source.fieldname, ...typed, ...at }));
+	const edit = { act: "fields.fetch_field", link, source: source.fieldname, ...typed, ...at };
+	if (!(await canvas.stage(placedOn(canvas.openLayout.value, edit)))) return;
 	canvas.select({ kind: "field", fieldname });
 }
 
 /** A label edit of a field added since the save renames it too, in the same undo step. */
-function setFieldProperties(canvas: DesignCanvas, keys: PropertyKeys) {
+async function setFieldProperties(canvas: DesignCanvas, keys: PropertyKeys) {
 	const { fieldname } = keys;
 	const properties = "properties" in keys ? keys.properties : { [keys.property]: keys.value };
 	const edits: FlatEdit[] = Object.entries(properties).map(([property, value]) => ({
@@ -168,8 +168,7 @@ function setFieldProperties(canvas: DesignCanvas, keys: PropertyKeys) {
 	}));
 	const follows = "label" in properties ? followedName(canvas, fieldname, String(properties.label ?? "")) : null;
 	if (follows) edits.push({ act: "fields.rename_field", fieldname, new_fieldname: follows });
-	canvas.stage(...edits);
-	if (follows) reselect(canvas, fieldname, follows);
+	if ((await canvas.stage(...edits)) && follows) reselect(canvas, fieldname, follows);
 }
 
 /** The fieldname a new field's label spells, unless it is the same, invalid or another field's. */
@@ -190,13 +189,14 @@ function editing(host: EditorActsHost) {
 }
 
 function stage(host: EditorActsHost, act: string, keys: Keys) {
-	host.canvas()!.stage({ ...keys, act, layout: DETAILS });
+	const canvas = host.canvas()!;
+	return canvas.stage({ ...keys, act, layout: canvas.openLayout.value });
 }
 
 /** The name the staging added, found by the names before and after. */
-function adds(canvas: DesignCanvas, staging: () => void, names: (canvas: DesignCanvas) => string[]) {
+async function adds(canvas: DesignCanvas, staging: () => Promise<boolean>, names: (canvas: DesignCanvas) => string[]) {
 	const before = new Set(names(canvas));
-	staging();
+	if (!(await staging())) return undefined;
 	return names(canvas).find((name) => !before.has(name));
 }
 

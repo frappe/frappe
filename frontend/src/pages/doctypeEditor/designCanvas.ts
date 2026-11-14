@@ -2,6 +2,7 @@
 import { computed, ref, shallowRef } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import {
+	DETAILS,
 	editorBase,
 	fieldsOffLayout,
 	savedName,
@@ -11,11 +12,11 @@ import {
 } from "./editorModel";
 import { CustomizeView } from "./customizeView";
 import type { EditorState } from "./editorSource";
+import type { ForkWarning } from "./forkWarning";
+import { sameLayout } from "./layoutQuery";
 import { LayoutTreeEditor } from "./layoutTree";
-import type { EditStage } from "./pendingEdits";
-
-/** The layout every canvas edit names: the default Details layout. */
-export const DETAILS = { type: "Details" } as const;
+import { PendingEdits, type EditStage } from "./pendingEdits";
+import { findLayout, layoutOf, reloadedRef, type LayoutRef, type WorkingLayout } from "./workingLayouts";
 
 export type CanvasSelection =
 	| { kind: "field"; fieldname: string }
@@ -40,6 +41,12 @@ export interface SaveError {
 	doctype?: string;
 }
 
+/** The open layout as the staged edits draw it, which `reopen` finds again after a reload. */
+export interface OpenedLayout {
+	ref: LayoutRef;
+	layout: WorkingLayout | null;
+}
+
 /** Where a field sits on the layout. */
 export interface FieldPlace {
 	tab: string;
@@ -51,7 +58,16 @@ export interface FieldPlace {
 export class DesignCanvas {
 	readonly base: WorkingState;
 	readonly working = computed(() => workingState(this.base, this.edits.staged.value));
-	readonly tabs = computed(() => this.working.value.layout);
+	/** The layout the canvas draws and every canvas edit names; a gone one falls back to its type's default. */
+	readonly openLayout = computed<LayoutRef>(() => this.existing(this.wanted.value));
+	readonly layout = computed(() => layoutOf(this.working.value, this.openLayout.value));
+	/** Whether the open layout is the Details one a new record with no layout of its own draws. */
+	readonly newRecordUsesDetails = computed(() => {
+		const opened = this.forNewRecord.value;
+		const own = this.working.value.layouts["New Record"]?.layouts.length;
+		return Boolean(opened && sameLayout(opened, this.openLayout.value) && !own);
+	});
+	readonly tabs = computed(() => this.layout.value?.tabs ?? []);
 	readonly selection = shallowRef<CanvasSelection | null>(null);
 	/** The open tab's name; the first tab when it names none that exists. */
 	readonly openTabName = ref("");
@@ -60,7 +76,9 @@ export class DesignCanvas {
 	);
 	/** The fieldnames the last save's mandatory error asked for. */
 	readonly askedOnSave = shallowRef<string[]>([]);
-	readonly offLayout = computed(() => fieldsOffLayout(this.working.value, this.askedOnSave.value));
+	readonly offLayout = computed(() =>
+		fieldsOffLayout(this.working.value, this.askedOnSave.value, this.openLayout.value),
+	);
 	readonly trayOpen = ref(true);
 	/** The last save's errors; each draws at its field or container. */
 	readonly errors = shallowRef<SaveError[]>([]);
@@ -74,10 +92,15 @@ export class DesignCanvas {
 	readonly editable: boolean;
 	/** `null` in Design. */
 	readonly customize: CustomizeView | null;
+	private wanted = shallowRef<LayoutRef>(DETAILS);
+	/** The Details layout the new record page's Edit layout opened, until another opens. */
+	private forNewRecord = shallowRef<LayoutRef | null>(null);
 
+	/** `forks` asks before an edit forks a layout type; none stages without asking. */
 	constructor(
 		readonly state: EditorState,
 		private edits: EditStage,
+		private forks: ForkWarning | null = null,
 	) {
 		this.base = editorBase(state);
 		this.editable = state.modes.includes(state.mode);
@@ -85,10 +108,18 @@ export class DesignCanvas {
 			state.mode === "Customize" ? new CustomizeView(state, this.base, this.working, () => this.edits.staged.value) : null;
 	}
 
-	/** Stages the edits as one undo step; throws `EditRefused`, and stages nothing, when the replay refuses one. */
-	stage(...edits: FlatEdit[]) {
+	/** Stages the edits as one undo step unless the fork warning is cancelled; throws `EditRefused` when the replay refuses one. */
+	stage(...edits: FlatEdit[]): Promise<boolean> {
+		const after = workingState(this.base, [...this.edits.staged.value, ...edits]);
+		const forks = this.forks?.unasked(this.working.value, after) ?? [];
+		if (!forks.length) return Promise.resolve(this.commit(edits));
+		return this.forks!.ask(this.working.value, forks).then((go) => go && this.commit(edits));
+	}
+
+	/** Stages edits the user staged before a reload, with no fork warning: they answered it then. */
+	restage(...edits: FlatEdit[]) {
 		workingState(this.base, [...this.edits.staged.value, ...edits]);
-		this.edits.stage(...edits.map(({ act, ...value }) => ({ act, value, tab: "editor" as const })));
+		this.commit(edits);
 	}
 
 	/** As `stage`, for the Settings tab: undo opens it. Customize sets settings while its canvas is read-only. */
@@ -97,10 +128,47 @@ export class DesignCanvas {
 		this.edits.stage(...edits.map(({ act, ...value }) => ({ act, value, tab: "settings" as const })));
 	}
 
+	/** Draws another layout, from its first tab, with nothing selected. */
+	open(layout: LayoutRef) {
+		if (this.forNewRecord.value && !sameLayout(layout, this.forNewRecord.value)) this.forNewRecord.value = null;
+		this.wanted.value = layout;
+		this.selection.value = null;
+		this.openTabName.value = "";
+		this.adding.value = null;
+	}
+
+	/** The new record page's Edit layout: a New Record with no layout of its own draws Details, so that opens. */
+	openForNewRecord(layout: LayoutRef) {
+		const newRecord = this.working.value.layouts["New Record"];
+		if (layout.type !== "New Record" || !newRecord || newRecord.layouts.length) return this.open(layout);
+		this.open(layout.id ? { type: "Details", id: layout.id } : DETAILS);
+		this.forNewRecord.value = this.openLayout.value;
+	}
+
+	opened(): OpenedLayout {
+		return { ref: this.openLayout.value, layout: this.layout.value };
+	}
+
+	reopen({ ref, layout }: OpenedLayout) {
+		this.open(reloadedRef(this.working.value, ref, layout));
+	}
+
 	select(selection: CanvasSelection | null) {
 		this.selection.value = selection;
 		const tab = selection && this.tabOf(selection);
 		if (tab) this.openTabName.value = tab;
+	}
+
+	/** The app's layouts behind a Customize site layout, read-only as Design reads them, open at the one with this layout's condition, else the default. */
+	appView(): DesignCanvas {
+		const app: EditorState = { ...this.state, mode: "Design", modes: [], custom: 0 };
+		const head = { doctype: app.doctype, mode: app.mode, base_version: app.base_version };
+		const view = new DesignCanvas(app, new PendingEdits(head, () => undefined));
+		const { type } = this.openLayout.value;
+		const condition = this.layout.value?.condition;
+		const same = condition && view.working.value.layouts[type]?.layouts.find((one) => one.condition === condition);
+		view.open(same ? { type, id: same.id } : { type });
+		return view;
 	}
 
 	field(fieldname: string): RawMetaField | undefined {
@@ -163,6 +231,18 @@ export class DesignCanvas {
 		const columns = new LayoutTreeEditor(this.tabs.value).section(section).columns;
 		const shortest = columns.reduce((one, other) => (other.fields.length < one.fields.length ? other : one));
 		return { section, column: shortest.name! };
+	}
+
+	private commit(edits: FlatEdit[]): true {
+		this.edits.stage(...edits.map(({ act, ...value }) => ({ act, value, tab: "editor" as const })));
+		return true;
+	}
+
+	private existing(layout: LayoutRef): LayoutRef {
+		const { layouts } = this.working.value;
+		if (!layouts[layout.type]) return DETAILS;
+		if (layout.id && !findLayout(this.working.value, layout)) return { type: layout.type };
+		return layout;
 	}
 
 	private tabOf(selection: CanvasSelection): string | undefined {

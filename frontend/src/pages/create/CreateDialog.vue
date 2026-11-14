@@ -32,6 +32,13 @@
 					@click="editFullForm"
 				/>
 				<Button
+					v-if="editLayout"
+					variant="ghost"
+					:label="__('Edit layout')"
+					:disabled="saving"
+					@click="openEditor(editLayout)"
+				/>
+				<Button
 					class="ms-auto"
 					variant="solid"
 					:label="__('Save')"
@@ -46,7 +53,7 @@
 
 <script setup lang="ts">
 import { computed, inject, nextTick, onUnmounted, provide, ref, useTemplateRef, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, type RouteLocationRaw } from "vue-router";
 import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { opensInDialog } from "@/contributions/registry";
@@ -63,6 +70,7 @@ import { FieldErrors, missingRequired, useFormLayout } from "@/recordPage";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { formData, initialDoc } from "@/recordPage/formDialogLayout";
 import { landOnFirstMarked } from "@/pages/record/landOnField";
+import { useEditLayoutRoute } from "@/pages/editLayout";
 import { routeForNew } from "@/router/routeFor";
 import type { CreateRequest } from "@/shell/create";
 import { loadDocument } from "@/shell/tabKeepAlive";
@@ -143,6 +151,9 @@ fetchNewDocument(doctype).then(
 	(exception) => (error.value = errorMessage(exception))
 );
 
+const editLayoutRoute = useEditLayoutRoute(meta);
+const editLayout = computed(() => editLayoutRoute("quick-entry", quickEntry.editorRow.value));
+
 const layoutFailed = computed(() => Boolean(quickEntry.error.value));
 const size = computed(() => quickEntry.dialogSize.value ?? "xl");
 
@@ -213,6 +224,12 @@ function editFullForm() {
 	const typed = typedValues(values, formData(layout.value, doc.value), defaults.value);
 	isOpen.value = false;
 	void handOver(typed);
+}
+
+function openEditor(route: RouteLocationRaw) {
+	isOpen.value = false;
+	props.request.settle(null);
+	void router.push(route);
 }
 
 async function handOver(carried: Record<string, any>) {

@@ -12,7 +12,7 @@ from frappe.desk.doctype.form_layout.form_layout import (
 	layout_type_refusal,
 	quick_entry_layout,
 )
-from frappe.desk.doctype_editor.design_state import DesignState, EditorLayout
+from frappe.desk.doctype_editor.design_state import DesignState, EditorLayout, empty_tabs, side_panel_tabs
 from frappe.desk.doctype_editor.errors import EditError, field_error
 from frappe.desk.doctype_editor.settings_edits import PERMISSION_COLUMNS
 
@@ -73,8 +73,12 @@ class CustomizeState(DesignState):
 		"""A fork leaves out the site's custom fields: they keep rendering at their anchors."""
 		if type == "New Record":
 			return copy.deepcopy(self.default_tabs("Details"))
+		if type == "Side Panel":
+			return side_panel_tabs()
 		fields = [field for field in self.doc.fields if not self.is_site_custom(field)]
-		return quick_entry_layout(fields) if type == "Quick Entry" else layout_from_fields(fields)
+		if type == "Quick Entry":
+			return quick_entry_layout(fields) or empty_tabs()
+		return layout_from_fields(fields)
 
 	def touch_omitting_layouts(self):
 		"""Only a site row lists what it omits; an app or fallback layout stays unforked."""

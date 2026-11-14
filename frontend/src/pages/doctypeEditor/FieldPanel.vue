@@ -207,6 +207,8 @@ import {
 	reqdWarning,
 	panelMark,
 	subtitle,
+	takeOff,
+	takesOff,
 	typeChange,
 	typeGroups,
 	typeNote,
@@ -292,6 +294,7 @@ function pickType(name: string) {
 
 async function remove() {
 	const { fieldname, label } = props.field;
+	if (takesOff(props.canvas)) return takeOff(props.canvas, fieldname);
 	if (props.canvas.customize?.hidesOnRemove(fieldname))
 		return set("hidden", props.field.hidden ? 0 : 1);
 	const question = removeQuestion(props.canvas, props.field);

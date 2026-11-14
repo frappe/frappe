@@ -3,8 +3,9 @@ import type { ComputedRef } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { appValue, lockOf, sameValue, siteSetters } from "./customizeRules";
 import { isCheckProperty } from "./fieldPanel";
-import type { FlatEdit, WorkingState } from "./editorModel";
+import { DETAILS, type FlatEdit, type WorkingState } from "./editorModel";
 import type { EditorState } from "./editorSource";
+import { tabsOf } from "./workingLayouts";
 
 export interface FieldMarks {
 	/** The site added it. */
@@ -61,7 +62,7 @@ export class CustomizeView {
 	/** The field a site's custom field is drawn after; `null` at the start of the form. */
 	anchor(fieldname: string): RawMetaField | null | undefined {
 		if (this.isStandard(fieldname)) return undefined;
-		const drawn = this.working.value.layout.flatMap((tab) =>
+		const drawn = tabsOf(this.working.value, DETAILS).flatMap((tab) =>
 			tab.sections.flatMap((section) =>
 				section.columns.flatMap((column) =>
 					column.fields.filter((entry): entry is string => typeof entry === "string"),

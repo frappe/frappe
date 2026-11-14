@@ -18,7 +18,9 @@
 				aria-hidden="true"
 			/>
 		</button>
-		<span v-if="!open && count" class="text-sm text-ink-gray-4">{{ count }}</span>
+		<span v-if="(!open || showCount) && count" class="text-sm text-ink-gray-4">{{
+			count
+		}}</span>
 	</div>
 	<div v-if="open" class="flex flex-col gap-2.5 px-4 pb-3 pt-1">
 		<slot />
@@ -28,9 +30,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-const props = withDefaults(defineProps<{ label: string; startOpen?: boolean; count?: number }>(), {
-	startOpen: true,
-	count: 0,
-});
+const props = withDefaults(
+	defineProps<{ label: string; startOpen?: boolean; count?: number; showCount?: boolean }>(),
+	{ startOpen: true, count: 0, showCount: false }
+);
 const open = ref(props.startOpen);
 </script>

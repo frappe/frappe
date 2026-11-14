@@ -6,7 +6,7 @@
 			<EditorHeader
 				v-model:tab="tab"
 				:doctype="state.doctype"
-				:layout-title="layout?.title || __('Details')"
+				:canvas="layoutCanvas"
 				:dirty="dirty"
 				:can-undo="edits.canUndo.value"
 				:can-redo="edits.canRedo.value"
@@ -111,12 +111,13 @@ import EditorPanel from "./EditorPanel.vue";
 import { customizeHost } from "./customizeHost";
 import { dangerHost } from "./dangerHost";
 import { DesignCanvas } from "./designCanvas";
+import { ForkWarning } from "./forkWarning";
+import { openFromAddress, useLayoutAddress } from "./layoutQuery";
 import { canSave, useEditorActs } from "./editorActs";
 import { EditorSave, type ExportResult } from "./editorSave";
 import {
 	carriedAnswers,
 	copiedAnswers,
-	detailsLayout,
 	loadEditor,
 	modeOf,
 	pendingDoctype,
@@ -147,6 +148,10 @@ const name = computed(() => String(route.params.name));
 
 const state = shallowRef<EditorState | null>(null);
 const canvas = shallowRef<DesignCanvas | null>(null);
+const forks = new ForkWarning(async (type, working) => {
+	const { confirmFork } = await import("./layoutDialogs");
+	return confirmFork(working, type);
+});
 const pageState = shallowRef<PageStateValue | null>(null);
 const tab = ref<EditorTab>("editor");
 const settingsPlace = ref<SettingsPlace>({ section: "", found: null });
@@ -164,8 +169,9 @@ const edits = new PendingEdits(head, (opened, doctype) => {
 	tab.value = opened;
 	child.reopen(doctype);
 });
-const child = useChildTables(edits, () => canvas.value);
+const child = useChildTables(edits, () => canvas.value, forks);
 const { session: openChild, shown } = child;
+const layoutCanvas = computed(() => (openChild.value?.state.pending ? null : shown.value));
 const save = new EditorSave({
 	edits,
 	canvas: () => canvas.value,
@@ -217,7 +223,6 @@ useEditorActs({
 			.map((record) => ({ value: record, label: record ?? __("Empty form") })),
 });
 
-const layout = computed(() => (state.value ? detailsLayout(state.value) : null));
 // The Danger zone acts on the page's DocType, not on a child table opened from it.
 const dangerScope = computed(() =>
 	openChild.value
@@ -238,6 +243,7 @@ const customizeRoute = computed(() =>
 
 let loading = 0;
 watch([name, () => route.query.mode, () => route.query[COPY_OF]], load, { immediate: true });
+useLayoutAddress(() => canvas.value);
 
 async function load() {
 	if (justCreated && justCreated === name.value) return void (justCreated = null);
@@ -334,7 +340,8 @@ function open(loaded: EditorState) {
 	});
 	state.value = loaded;
 	child.tables.reset();
-	canvas.value = new DesignCanvas(loaded, edits);
+	canvas.value = new DesignCanvas(loaded, edits, forks);
+	openFromAddress(canvas.value, route.query);
 }
 
 function find(fieldname: string) {
