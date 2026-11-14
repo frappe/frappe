@@ -45,14 +45,13 @@ def item(**kwargs):
 
 
 class TestRail(IntegrationTestCase):
-	def test_the_eight_shipped_types_are_present(self):
-		"""The framework's own kinds arrive by migrate; `View` is deliberately absent until its doctype exists."""
+	def test_the_shipped_types_are_present(self):
+		"""The framework's own kinds arrive by migrate, `View` among them."""
 		shipped = set(frappe.get_all("Navigation Item Type", pluck="name"))
 		self.assertTrue(
-			{"DocType", "Record", "Module", "Module Contents", "Page", "Link", "Section", "Sidebar"}
+			{"DocType", "Record", "Module", "Module Contents", "Page", "Link", "Section", "Sidebar", "View"}
 			<= shipped
 		)
-		self.assertNotIn("View", shipped)
 
 	def test_a_type_declares_its_permission_bucket(self):
 		"""Every kind names the rule that filters it, so a new kind writes no permission code."""
