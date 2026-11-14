@@ -879,7 +879,7 @@
   {
    "default": "start",
    "depends_on": "enable_desk_v2",
-   "description": "Where desk v2 draws the rail and the sidebar. start = left (right in RTL languages).",
+   "description": "Where the rail and sidebar sit. start = left (right in RTL languages).",
    "fieldname": "navigation_side",
    "fieldtype": "Select",
    "label": "Navigation side",

@@ -816,7 +816,7 @@
    "options": "Floating\nPinned"
   },
   {
-   "description": "Where desk v2 draws the rail and the sidebar. start = left (right in RTL languages). Blank uses the site's value.",
+   "description": "start = left (right in RTL languages). Blank uses the site's value.",
    "fieldname": "navigation_side",
    "fieldtype": "Select",
    "label": "Navigation side",
