@@ -155,9 +155,14 @@ export class ActDispatcher {
 		return !this.lookup(name) && !!this.scopeOf(surfaceOf(name))?.loads?.(name);
 	}
 
-	/** A promise while `name`, which is not held yet, may still load (it starts the load); else nothing. */
-	loaded(name: string): Promise<void> | undefined {
-		return this.lookup(name) ? undefined : this.scopeOf(surfaceOf(name))?.loading?.(name);
+	/** A promise while `name` may still load or its right still settle (it starts them), so `find` can answer; else nothing. */
+	ready(name: string): Promise<void> | undefined {
+		const found = this.lookup(name);
+		const loading = found ? undefined : this.scopeOf(surfaceOf(name))?.loading?.(name);
+		if (loading) return loading.then(() => this.ready(name));
+
+		const right = found?.entry.item.right;
+		return right ? found!.scope.settled(right) : undefined;
 	}
 
 	/** Runs the act inside its scope's hold; rejects with `ActDenied`, or with what the act threw. */

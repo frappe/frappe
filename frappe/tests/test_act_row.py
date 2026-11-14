@@ -75,6 +75,9 @@ class TestAnActRowIsSaved(OwnRowsTestCase):
 	def test_the_size_is_counted_in_utf8_bytes(self):
 		self.refused({"act": "shell.theme", "value": "é" * 60})
 
+	def test_a_value_that_is_not_valid_text_is_refused(self):
+		self.refused({"act": "shell.theme", "value": "\ud800"})
+
 	def test_a_spaced_out_payload_is_stored_compact(self):
 		self.save(an_act('{ "act": "shell.theme", "value": "dark" }'))
 

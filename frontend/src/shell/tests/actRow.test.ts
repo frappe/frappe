@@ -5,13 +5,13 @@ import { effectScope, type EffectScope } from "vue";
 const fake = vi.hoisted(() => ({
 	find: vi.fn(),
 	loads: vi.fn(),
-	loaded: vi.fn(),
+	ready: vi.fn(),
 	perform: vi.fn(),
 	openArgumentStep: vi.fn(),
 }));
 
 vi.mock("@/acts/dispatcher", () => ({
-	acts: { find: fake.find, loads: fake.loads, loaded: fake.loaded, perform: fake.perform },
+	acts: { find: fake.find, loads: fake.loads, ready: fake.ready, perform: fake.perform },
 }));
 vi.mock("../palette", () => ({ openArgumentStep: fake.openArgumentStep }));
 
@@ -80,7 +80,7 @@ describe("a click while the app's acts load", () => {
 	it("waits for the load, then opens the argument step the loaded act has", async () => {
 		let arrive!: () => void;
 		fake.find.mockReturnValue(undefined);
-		fake.loaded.mockReturnValue(new Promise<void>((resolve) => (arrive = resolve)));
+		fake.ready.mockReturnValue(new Promise<void>((resolve) => (arrive = resolve)));
 		const running = row({ act: "shell.crm.new_lead" }).run();
 
 		await Promise.resolve();
@@ -97,13 +97,28 @@ describe("a click while the app's acts load", () => {
 	it("waits for the load, then performs an act with no argument", async () => {
 		let arrive!: () => void;
 		fake.find.mockReturnValue(undefined);
-		fake.loaded.mockReturnValue(new Promise<void>((resolve) => (arrive = resolve)));
+		fake.ready.mockReturnValue(new Promise<void>((resolve) => (arrive = resolve)));
 		const running = row({ act: "shell.crm.sync" }).run();
 
 		fake.find.mockReturnValue({ name: "shell.crm.sync" });
 		arrive();
 		await running;
 		expect(fake.perform).toHaveBeenCalledWith("shell.crm.sync", undefined);
+	});
+});
+
+describe("a click while the act's right settles", () => {
+	it("waits for the right, then opens the argument step", async () => {
+		let settle!: () => void;
+		fake.find.mockReturnValue(undefined);
+		fake.ready.mockReturnValue(new Promise<void>((resolve) => (settle = resolve)));
+		const running = row({ act: "shell.create" }).run();
+
+		fake.find.mockReturnValue({ argument: {} });
+		settle();
+		await running;
+		expect(fake.openArgumentStep).toHaveBeenCalledWith("shell.create");
+		expect(fake.perform).not.toHaveBeenCalled();
 	});
 });
 

@@ -25,9 +25,9 @@ export function useActRow(rendering: () => ActRendering) {
 		timer = setTimeout(() => (spinning.value = true), SPINNER_DELAY_MS);
 
 		try {
-			// An app's act that is still loading: wait, so its `argument` is known before the click decides.
-			const loading = acts.loaded(act);
-			if (loading) await loading;
+			// An act still loading, or one whose right is still settling, is not found yet: wait, so its `argument` is known before the click decides.
+			const pending = acts.ready(act);
+			if (pending) await pending;
 			const argument = acts.find(act)?.argument;
 			if ("value" in rendering() || !argument) await acts.perform(act, value);
 			else openArgumentStep(act);

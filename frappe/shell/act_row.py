@@ -35,7 +35,12 @@ def validate_act_row(row: dict, container: str, scope: str, context):
 
 	compact = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
 
-	if len(compact.encode()) > MAX_PAYLOAD_BYTES:
+	try:
+		size = len(compact.encode())
+	except UnicodeEncodeError:
+		_refuse(_("The saved value of {0} is not valid text.").format(label))
+
+	if size > MAX_PAYLOAD_BYTES:
 		_refuse(_("This action's saved value is too long (over {0} bytes).").format(MAX_PAYLOAD_BYTES))
 
 	row["payload"] = compact
