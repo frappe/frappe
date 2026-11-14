@@ -7,20 +7,26 @@
   it. The lower one is a flex item after the cell rather than a span positioned a
   control's height down, so it starts wherever the cell actually ends and a
   two-line `#condition-conjunction` still works.
+
+  The bracket runs at 28px, under the middle of both "Where" and the operator
+  button, which start at the column's left edge. The bracket stops 4px short of a
+  button's box, as it does of a word.
 -->
 <template>
-	<div class="relative flex min-w-[66px] flex-col self-stretch">
+	<div
+		class="relative flex min-w-[66px] flex-col self-stretch [--stub-gap:0px] has-[button]:[--stub-gap:4px]"
+	>
 		<span
 			v-if="count > 1 && index > 0"
 			aria-hidden="true"
-			class="absolute start-1/2 border-s border-outline-gray-2"
+			class="absolute start-7 border-s border-outline-gray-3"
 			:style="above"
 		/>
 		<slot />
 		<span
 			v-if="count > 1 && index < count - 1"
 			aria-hidden="true"
-			class="w-0 flex-1 self-center border-s border-outline-gray-2"
+			class="ms-7 w-0 flex-1 self-start border-s border-outline-gray-3"
 			:style="below"
 		/>
 	</div>
@@ -50,9 +56,9 @@ const HALF_GAP = 8;
 // Bridges the row gap, then runs down to the word wherever the offset put it.
 const above = computed(() => ({
 	top: `-${HALF_GAP}px`,
-	height: `${HALF_GAP + props.offset}px`,
+	height: `calc(${HALF_GAP + props.offset}px - var(--stub-gap))`,
 }));
 
 // Takes the rest of the column and reaches into the gap below.
-const below = { marginBottom: `-${HALF_GAP}px` };
+const below = { marginTop: "var(--stub-gap)", marginBottom: `-${HALF_GAP}px` };
 </script>

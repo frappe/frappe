@@ -30,7 +30,7 @@
 				</template>
 				<!-- link_filters has no OR: every row joins by "and", as text. -->
 				<template v-if="filters" #condition-conjunction>
-					<span class="text-p-base text-ink-gray-6">{{ __("and") }}</span>
+					<span class="px-2 text-p-base text-ink-gray-6">{{ __("and") }}</span>
 				</template>
 				<!-- With no groups the builder's menu is a red trash; a gray × keeps the accents gray. -->
 				<template v-if="filters" #condition-actions="{ remove }">

@@ -4,13 +4,12 @@
 
   A group holds one operator, so exactly one cell is a control. The repeats are
   text, not disabled buttons: a disabled control is skipped in a screen reader's
-  forms mode and exempt from the contrast minimum. Which is why they are
-  ink-gray-6, not the cell's ink-gray-5, which is 4.18:1 on white and misses
-  1.4.3 at 14px.
+  forms mode and exempt from the contrast minimum. Which is why every word is
+  ink-gray-6, not ink-gray-5, which is 4.18:1 on white and misses 1.4.3 at 14px.
 -->
 <template>
-	<div class="text-p-base text-ink-gray-5">
-		<div v-if="index === 0">{{ labels.where }}</div>
+	<div class="text-p-base text-ink-gray-6">
+		<div v-if="index === 0" class="px-2">{{ labels.where }}</div>
 		<template v-else>
 			<Button
 				v-if="canToggle"
@@ -21,7 +20,7 @@
 				:aria-describedby="hintId"
 				@click="toggle"
 			/>
-			<div v-else class="text-ink-gray-6">{{ word }}</div>
+			<div v-else class="px-2">{{ word }}</div>
 			<span v-if="canToggle" :id="hintId" class="sr-only">
 				{{ labels.conjunctionHint }}
 			</span>
