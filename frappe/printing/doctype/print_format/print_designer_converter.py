@@ -95,17 +95,21 @@ def convert(print_format: str) -> dict:
 	if notes:
 		target.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
 	usage = print_format_usage(doc.name) if target is not doc else []
+	if target is not doc and not usage:
+		frappe.db.set_value("Print Format", doc.name, "disabled", 1)
 	return {"name": target.name, "notes": notes, "usage": usage}
 
 
 @frappe.whitelist(methods=["POST"])
 def use_editor_copy(print_format: str) -> None:
-	"""Point the doctype defaults and every link to a standard format at its editor copy."""
+	"""Point the doctype defaults and every link to a standard format at its editor copy, and
+	turn the standard format off so only the copy is offered."""
 	frappe.only_for("System Manager")
 	copy = editor_copy(frappe.get_doc("Print Format", print_format))
 	if not copy:
 		frappe.throw(_("{0} has no editor copy.").format(frappe.bold(print_format)))
 	move_print_format_usage(print_format, copy.name)
+	frappe.db.set_value("Print Format", print_format, "disabled", 1)
 
 
 def editor_copy(doc):

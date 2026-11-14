@@ -103,7 +103,6 @@ class PrintDesignerMigration {
 		} else {
 			if (row.sample) add(__("Preview"), () => this.preview(row));
 			add(__("Convert"), () => this.convert(row));
-			if (row.standard !== "Yes") add(__("Delete"), () => this.delete(row));
 		}
 		return $row;
 	}
@@ -203,22 +202,6 @@ class PrintDesignerMigration {
 				});
 				this.refresh();
 			});
-	}
-
-	delete(row) {
-		frappe.confirm(
-			__("Delete <b>{0}</b>? This cannot be undone.", [frappe.utils.escape_html(row.name)]),
-			() =>
-				frappe
-					.xcall(`${METHOD}.delete_print_designer_format`, { print_format: row.name })
-					.then(() => {
-						frappe.show_alert({
-							message: __("Deleted {0}", [row.name]),
-							indicator: "green",
-						});
-						this.refresh();
-					})
-		);
 	}
 
 	show_notes(notes) {

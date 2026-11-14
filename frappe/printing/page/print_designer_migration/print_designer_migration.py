@@ -88,21 +88,3 @@ def preview_conversion(print_format: str, name: str | None = None) -> None:
 	converted = doc.as_dict()
 	converted.update(converted_values(doc)[0], name=None)
 	download_builder_preview_pdf(converted, doc.doc_type, name)
-
-
-@frappe.whitelist(methods=["POST"])
-def delete_print_designer_format(print_format: str) -> None:
-	frappe.only_for("System Manager")
-	doc = frappe.get_doc("Print Format", print_format)
-	if not is_print_designer_format(doc) or doc.standard == "Yes":
-		frappe.throw(
-			_("{0} is not a Print Designer format that can be deleted.").format(frappe.bold(print_format))
-		)
-	if usage := print_format_usage(doc.name):
-		frappe.throw(
-			_("{0} is still in use: {1}. Pick another format there first.").format(
-				frappe.bold(doc.name), ", ".join(usage)
-			),
-			title=_("Cannot Delete"),
-		)
-	frappe.delete_doc("Print Format", doc.name)
