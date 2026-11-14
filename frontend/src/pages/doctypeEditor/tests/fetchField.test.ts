@@ -4,8 +4,7 @@ const { toast } = vi.hoisted(() => ({ toast: { error: vi.fn(), success: vi.fn() 
 vi.mock("frappe-ui", () => ({ toast }));
 
 import { acts } from "@/acts/dispatcher";
-import { canvasMenu } from "../canvasMenu";
-import { fetchAsked, fetchFromText, fetchSources, linkFields, parseFetchFrom } from "../fetchFrom";
+import { fetchFromText, fetchSources, linkFields, parseFetchFrom } from "../fetchFrom";
 import { mountEditor, taskNote } from "./editorFixture";
 
 let stop: () => void;
@@ -64,35 +63,6 @@ describe("Fetch a field…", () => {
 			"Language",
 			"owner.language",
 		]);
-	});
-});
-
-describe("the canvas menu's Fetch a field…", () => {
-	it("shows on a Link field, and selects it and asks the panel to open its picker", async () => {
-		const { canvas } = await withOwner();
-		const labels = (fieldname: string) => canvasMenu(canvas, { kind: "field", fieldname }).map((one) => one.label);
-		expect(labels("subject")).not.toContain("Fetch a field…");
-		const fetch = canvasMenu(canvas, { kind: "field", fieldname: "owner" }).find(
-			(one) => one.label === "Fetch a field…",
-		);
-		fetch!.onClick();
-		await vi.waitFor(() => expect(fetchAsked.value).toBe("owner"));
-		expect(canvas.selection.value).toEqual({ kind: "field", fieldname: "owner" });
-		fetchAsked.value = null;
-	});
-
-	it("asks once the closing menu has put focus back, so the picker does not close at once", async () => {
-		const { canvas } = await withOwner();
-		const fetch = canvasMenu(canvas, { kind: "field", fieldname: "owner" }).find(
-			(one) => one.label === "Fetch a field…",
-		);
-		fetch!.onClick();
-		await new Promise((resolve) => setTimeout(resolve, 50));
-		expect(canvas.selection.value).toEqual({ kind: "field", fieldname: "owner" });
-		expect(fetchAsked.value).toBeNull();
-		document.body.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
-		await vi.waitFor(() => expect(fetchAsked.value).toBe("owner"));
-		fetchAsked.value = null;
 	});
 });
 

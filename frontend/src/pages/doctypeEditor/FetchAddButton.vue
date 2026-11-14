@@ -1,5 +1,5 @@
 <!-- "Fetch a field…" on a Link field: FetchMenu on the linked DocType's fields; the pick adds a
-     read-only field after the Link. The canvas "⋯" menu opens it through `fetchAsked`. -->
+     read-only field after the Link. -->
 <template>
 	<Popover v-model:open="open" side="bottom" align="end">
 		<template #trigger>
@@ -18,27 +18,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { Popover } from "frappe-ui";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
-import { fetchAsked } from "./fetchFrom";
 import FetchMenu from "./FetchMenu.vue";
 
 const props = defineProps<{ link: RawMetaField }>();
 
 const open = ref(false);
-
-watch(
-	fetchAsked,
-	(asked) => {
-		if (asked !== props.link.fieldname) return;
-		fetchAsked.value = null;
-		open.value = true;
-	},
-	{ immediate: true }
-);
 
 function pick(link: RawMetaField, source: RawMetaField) {
 	open.value = false;
