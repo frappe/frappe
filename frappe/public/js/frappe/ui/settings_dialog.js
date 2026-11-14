@@ -139,7 +139,7 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
  *       title: __("Settings"),
  *       default_tab: "preferences",
  *       // optional: what the settings belong to, shown above the tab rail
- *       sidebar_header: { title: __("ToDo"), description: __("DocType Settings"), icon: "file" },
+ *       sidebar_header: { title: __("ToDo"), description: __("Document Settings"), icon: "file" },
  *       tabs: [
  *           {
  *               group: __("Configuration"),

@@ -89,13 +89,13 @@ function build_dialog(doctype, has_general) {
 	let dialog = frappe.doctype_settings._dialog;
 	const sidebar_header = {
 		title: __(doctype),
-		description: __("DocType Settings"),
+		description: __("Document Settings"),
 		icon: doctype_icon(doctype),
 	};
 
 	if (!dialog) {
 		dialog = new frappe.ui.SettingsDialog({
-			title: __("DocType Settings"),
+			title: __("Document Settings"),
 			tabs,
 			default_tab,
 			sidebar_header,
