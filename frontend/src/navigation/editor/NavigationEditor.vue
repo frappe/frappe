@@ -112,6 +112,7 @@
 						adding.type
 					"
 					:refusal="refusal"
+					:scope="scope"
 					:start="start"
 					@add="add"
 				/>
@@ -123,6 +124,11 @@
 					:can-place="container !== RAIL && current?.item_type !== 'Section'"
 					:app-title="boot.app_title ?? ''"
 					:refusal="refusal"
+					:view-refusal="
+						publishFirst && publishFirst.key === current?.key
+							? publishFirst.message
+							: null
+					"
 					:icon-for="iconOf"
 					:title-for="titleOf"
 					@update="(fields) => apply(update(draft!, container, selected!, fields))"
@@ -246,6 +252,7 @@ import {
 } from "./edits";
 import { addable, addTypes, servedPages } from "./addTypes";
 import { hasNoPageToOpen } from "./actPicker";
+import { PUBLISH_FIRST } from "./viewPicker";
 import { thisPage } from "./thisPage";
 import EditorAddMenu from "./EditorAddMenu.vue";
 import EditorRowForm from "./EditorRowForm.vue";
@@ -281,6 +288,8 @@ const sidebar = ref("");
 const selected = ref<string | null>(null);
 const showHidden = ref(false);
 const refusal = ref<string | null>(null);
+/** The save's refusal of an own view at Everyone: it shows under the View field of the row it is about. */
+const publishFirst = ref<{ key: string; message: string } | null>(null);
 /** The add form on show: its type, and an id per start so "Add this page" never keeps an old form's values. */
 const adding = ref<{ type: string; id: number } | null>(null);
 let adds = 0;
@@ -435,6 +444,7 @@ async function load(level: Scope, layout?: string): Promise<boolean> {
 	const ticket = ++newest[level];
 	const latest = () => current === opening && ticket === newest[level];
 	failed.value = null;
+	publishFirst.value = null;
 	stale.value = false;
 	try {
 		const response = await fetchArrangements(boot.app!, level);
@@ -648,6 +658,7 @@ async function openForm(key: string) {
 
 /** An edit that refuses leaves the draft alone and says why under the field. */
 function apply(edited: Edited) {
+	publishFirst.value = null;
 	refusal.value = refused(edited) ? edited : null;
 	if (!refused(edited)) draft.value = edited;
 }
@@ -766,6 +777,7 @@ async function save() {
 	const current = opening;
 	saving.value = true;
 	failed.value = null;
+	publishFirst.value = null;
 	let navigation: Navigation | undefined;
 	try {
 		const payload = toPayload(before, edited);
@@ -781,11 +793,28 @@ async function save() {
 		if (current !== opening) return;
 		failed.value = (error as Error).message;
 		stale.value = isApiError(error) && !!error.isTimestampMismatch;
+		if (!navigation) showPublishFirst(before, edited, level);
 		// The rows are in: the next Save needs the version they made.
 		if (navigation) await keepSavedRows(level, edited, failed.value, current);
 	} finally {
 		if (current === opening) saving.value = false;
 	}
+}
+
+/** The server names no row in this refusal: it is about the first View row this level changed. */
+function showPublishFirst(before: Draft, edited: Draft, level: Scope) {
+	if (failed.value !== PUBLISH_FIRST()) return;
+	const changed = toPayload(before, edited);
+	const rows = [...(changed.rail ?? []), ...Object.values(changed.sidebars ?? {}).flat()];
+	const row = rows.find((entry) => entry.item_type === "View" && isOwn(entry.key, level));
+	if (!row) return;
+	publishFirst.value = { key: row.key, message: failed.value };
+	failed.value = null;
+	const sidebars = changed.sidebars ?? {};
+	const holder = (changed.rail ?? []).includes(row)
+		? RAIL
+		: Object.keys(sidebars).find((key) => sidebars[key].includes(row))!;
+	void show(holder, row.key);
 }
 
 /** Reload reads the level again and drops the draft, so a draft with edits asks first. */

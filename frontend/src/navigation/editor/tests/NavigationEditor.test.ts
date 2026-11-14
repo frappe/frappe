@@ -66,7 +66,7 @@ async function open(answer: Arrangements = response()) {
 		onSaved: () => emitted.push("saved"),
 	});
 	app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
-	app.provide("addresses", { doctypes: () => ["Note", "ToDo"] });
+	app.provide("addresses", { doctypes: () => ["Note", "ToDo"], isSingle: () => false });
 	router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 	await router.push("/page");
 	await router.push("/page#customize/rail");
@@ -707,7 +707,7 @@ describe("the editor", () => {
 			api.fetchArrangements.mockResolvedValue(answer);
 			const app = createApp({ render: () => h(NavigationEditor, { target }) });
 			app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
-			app.provide("addresses", { doctypes: () => ["Note", "ToDo"] });
+			app.provide("addresses", { doctypes: () => ["Note", "ToDo"], isSingle: () => false });
 			router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 			await router.push("/page#customize/sidebar");
 			app.use(router);
@@ -812,6 +812,45 @@ describe("the editor", () => {
 			expect(text("[data-editor-pane] [data-refusal]")).toBe(
 				"You can add up to 100 items to this app, over its rail and all its sidebars."
 			);
+		});
+	});
+
+	describe("View rows", () => {
+		const view = row("user:board", {
+			item_type: "View",
+			link_doctype: "DocType",
+			link_to: "ToDo",
+			payload: { view: "board" },
+			label: "Board",
+		});
+		const rename = async () => {
+			click("[data-key='user:board']");
+			await settle();
+			const label = body().querySelector<HTMLInputElement>("[data-field='label'] input, input[data-field='label']")!;
+			label.value = "Boards";
+			label.dispatchEvent(new Event("input", { bubbles: true }));
+			await settle();
+			click("[data-save]");
+			await settle();
+		};
+
+		it("shows the save's publish-first refusal under the View field, not above the footer", async () => {
+			const message = "Publish this view first, so everyone can open it.";
+			api.saveArrangements.mockRejectedValue(new Error(message));
+			await open(response({ rail: [row("todo"), view] }));
+			await rename();
+
+			expect(body().querySelector("[data-save-error]")).toBeNull();
+			const field = body().querySelector("[data-editor-pane] input[data-field='view']")!;
+			expect((field as HTMLInputElement).value).toBe("board");
+			expect(field.closest("div.space-y-1\\.5")?.textContent).toContain(message);
+		});
+
+		it("shows another save error above the footer", async () => {
+			api.saveArrangements.mockRejectedValue(new Error("Not allowed"));
+			await open(response({ rail: [row("todo"), view] }));
+			await rename();
+			expect(text("[data-save-error]")).toContain("Not allowed");
 		});
 	});
 });

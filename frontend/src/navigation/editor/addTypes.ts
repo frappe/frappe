@@ -5,6 +5,7 @@ import { acts, type ActOption } from "@/acts/dispatcher";
 import { pages as contributedPages } from "@/contributions/registry";
 import { __ } from "@/i18n";
 import { actRow } from "./actPicker";
+import { type ListedView, type ViewType, viewRow } from "./viewPicker";
 import type { EditorRow } from "./draft";
 import { RAIL } from "./draft";
 
@@ -19,6 +20,7 @@ export type AddType = {
 export function addTypes(container: string): AddType[] {
 	const all: AddType[] = [
 		{ type: "DocType", label: __("DocType"), icon: "lucide-table", rail: true },
+		{ type: "View", label: __("View"), icon: "lucide-layout-list", rail: true },
 		{ type: "Record", label: __("Record"), icon: "lucide-file-text", rail: true },
 		{ type: "Page", label: __("Page"), icon: "lucide-layout-dashboard", rail: true },
 		{ type: "Link", label: __("Link"), icon: "lucide-link", rail: true },
@@ -61,6 +63,8 @@ export type AddValues = {
 	act: string;
 	preset: boolean;
 	option: ActOption | null;
+	/** The chosen view's key; `viewOptions` of the form holds the entry itself. */
+	view: string;
 };
 
 /** A form's starting values: empty, or the fields "Add this page" read off the page. */
@@ -77,12 +81,15 @@ export function startValues(fields: Partial<EditorRow> = {}): AddValues {
 		act: "",
 		preset: false,
 		option: null,
+		view: "",
 	};
 }
 
 /** What a form needs filled before "Add row"; the refusal is shown under the field. */
 export function missing(type: string, values: AddValues): { field: keyof AddValues; message: string } | null {
 	if (type === "DocType" && !values.doctype) return { field: "doctype", message: __("Pick a DocType.") };
+	if (type === "View" && !values.doctype) return { field: "doctype", message: __("Pick a DocType.") };
+	if (type === "View" && !values.view) return { field: "view", message: __("Pick a view.") };
 	if (type === "Record" && !values.doctype) return { field: "doctype", message: __("Pick a DocType.") };
 	if (type === "Record" && !values.name) return { field: "name", message: __("Pick a record.") };
 	if (type === "Page" && !values.page) return { field: "page", message: __("Pick a page.") };
@@ -96,8 +103,13 @@ export function missing(type: string, values: AddValues): { field: keyof AddValu
 	return null;
 }
 
-/** The row a form adds; the key is the level's own. */
-export function buildRow(type: string, values: AddValues): Omit<EditorRow, "key"> {
+/** The row a form adds; the key is the level's own. A View row needs the chosen `view` entry and the boot's view types. */
+export function buildRow(
+	type: string,
+	values: AddValues,
+	view?: { listed: ListedView; types: ViewType[] }
+): Omit<EditorRow, "key"> {
+	if (type === "View") return viewRow(values.doctype, view!.listed, view!.types);
 	if (type === "DocType") return { item_type: "DocType", link_doctype: "DocType", link_to: values.doctype };
 	if (type === "Record") return { item_type: "Record", link_doctype: values.doctype, link_to: values.name, ...labelOf(values) };
 	if (type === "Page") return { item_type: "Page", link_doctype: "Page", link_to: values.page, ...labelOf(values) };
