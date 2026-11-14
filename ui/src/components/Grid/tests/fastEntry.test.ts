@@ -67,6 +67,14 @@ function input(row: number, column: number): HTMLInputElement {
   return rowEl.querySelectorAll<HTMLInputElement>(".grid-cell input")[column];
 }
 
+// Each cell sits in a frappe-ui Tooltip, which mounts in full on its first focus or
+// hover and replaces the cell's elements (focus moves to the new input). So focus
+// first and take the input after, never hold one across the focus.
+function focusInput(row: number, column: number): HTMLInputElement {
+  input(row, column).focus();
+  return input(row, column);
+}
+
 function press(el: HTMLElement, key: string, mods: KeyboardEventInit = {}) {
   el.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...mods }));
 }
@@ -104,7 +112,7 @@ const twoRows = () => [
 describe("Grid arrow keys", () => {
   it("moves Up and Down to the same column, and stops at the grid's edges", () => {
     render(twoRows());
-    input(0, 1).focus();
+    focusInput(0, 1);
     press(input(0, 1), "ArrowDown");
     expect(document.activeElement).toBe(input(1, 1));
     press(input(1, 1), "ArrowDown");
@@ -117,8 +125,7 @@ describe("Grid arrow keys", () => {
 
   it("moves Left and Right only from the start or end of the text", () => {
     render([{ name: "r1", a: "ab", b: "cd", c: "ef" }]);
-    const b = input(0, 1);
-    b.focus();
+    const b = focusInput(0, 1);
     b.setSelectionRange(1, 1);
     press(b, "ArrowRight");
     expect(document.activeElement).toBe(b);
@@ -138,28 +145,25 @@ describe("Grid arrow keys", () => {
 
   it("leaves the keys to a picker whose open trigger sits beside the input", () => {
     render(twoRows());
-    const a = input(0, 0);
+    const a = focusInput(0, 0);
     const trigger = document.createElement("button");
     trigger.setAttribute("aria-expanded", "true");
     a.parentElement!.appendChild(trigger);
-    a.focus();
     press(a, "ArrowDown");
     expect(document.activeElement).toBe(a);
   });
 
   it("leaves the keys to an open picker", () => {
     render(twoRows());
-    const a = input(0, 0);
+    const a = focusInput(0, 0);
     a.setAttribute("aria-expanded", "true");
-    a.focus();
     press(a, "ArrowDown");
     expect(document.activeElement).toBe(a);
   });
 
   it("does nothing in a read-only grid", () => {
     render(twoRows(), { disabled: true });
-    const a = input(0, 0);
-    a.focus();
+    const a = focusInput(0, 0);
     press(a, "ArrowDown");
     expect(document.activeElement).toBe(a);
   });
@@ -203,8 +207,7 @@ describe("Grid paste", () => {
 
   it("blurs the cell before writing, so its control cannot commit a stale draft, then refocuses it", async () => {
     const { rows } = render(twoRows());
-    const target = input(0, 0);
-    target.focus();
+    const target = focusInput(0, 0);
     const seen: string[] = [];
     target.addEventListener("blur", () => seen.push(`blur:${rows.value[0].a}`));
     paste(target, "x\ty");
