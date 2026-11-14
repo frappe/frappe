@@ -589,10 +589,8 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 								count,
 								__(doctype),
 						  ]);
-				const $link = frappe.ui.button({
+				const review = {
 					label: __("Review pending imports"),
-					variant: "outline",
-					size: "xs",
 					icon_right: "arrow-right",
 					onclick: () => {
 						frm._data_import_dialog?.hide?.();
@@ -603,10 +601,12 @@ frappe.ui.DataImportWizard = class DataImportWizard {
 							import_file: ["is", "set"],
 						});
 					},
-				});
+				};
 				$slot
 					.empty()
-					.append(frappe.ui.alert({ title: message, theme: "blue", footer: $link }));
+					.append(
+						frappe.ui.alert({ title: message, theme: "blue", primary_action: review })
+					);
 			})
 			.catch(() => $slot.remove());
 	}

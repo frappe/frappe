@@ -2161,6 +2161,35 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Actions"),
+					caption: "primary_action, secondary_action",
+					items: [
+						{
+							title: "Permissions for this doctype have been customized.",
+							theme: "yellow",
+							__note: "one action and no description: the button sits inline",
+							primary_action: {
+								label: "Reset to default",
+								onclick: () => frappe.show_alert(__("Reset")),
+							},
+						},
+						{
+							title: "A new version is available",
+							description: "Update now to get the latest fixes.",
+							theme: "blue",
+							__note: "a description or a second action moves the buttons underneath",
+							primary_action: {
+								label: "Update",
+								onclick: () => frappe.show_alert(__("Updating...")),
+							},
+							secondary_action: {
+								label: "Later",
+								onclick: () => frappe.show_alert(__("Later")),
+							},
+						},
+					],
+				},
+				{
 					title: __("Variants"),
 					caption: "variant",
 					items: [
@@ -2200,7 +2229,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							footer: () =>
 								frappe.ui.button({
 									label: "Open Settings",
-									size: "sm",
 									variant: "outline",
 									onclick: () => frappe.show_alert(__("Opening settings...")),
 								}),

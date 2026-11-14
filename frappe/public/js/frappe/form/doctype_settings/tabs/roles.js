@@ -213,12 +213,7 @@ function customized_banner(panel, doctype, reload) {
 		.alert({
 			title: __("Permissions for this doctype have been customized."),
 			theme: "yellow",
-			footer: frappe.ui.button({
-				label: __("Reset to default"),
-				size: "sm",
-				variant: "outline",
-				onclick: reset,
-			}),
+			primary_action: { label: __("Reset to default"), onclick: reset },
 		})
 		.addClass("dts-perm-banner");
 }
