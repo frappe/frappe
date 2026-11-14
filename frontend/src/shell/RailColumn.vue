@@ -56,6 +56,9 @@
 						<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
 					</SidebarRailItem>
 
+					<!-- An action: a button, never current and never linked to a sidebar. -->
+					<ActCell v-else-if="'act' in cell" :cell="cell" />
+
 					<!-- Off this prefix: a full document load, so an `<a>` with `SidebarRailItem`'s classes.
 					     Never current: `current` is a route. -->
 					<Tooltip v-else :text="cell.label" side="right">
@@ -99,17 +102,20 @@ import { Divider, Dropdown, SidebarRail, SidebarRailItem, ScrollArea, Tooltip } 
 import type { NavigationItem } from "@/boot";
 import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
+import { isActAvailable } from "@/navigation/actRow";
 import { labelOf, renderingOf } from "@/navigation/registry";
 import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
 import { useAppMenu } from "./appMenu";
+import ActCell from "./RailActCell.vue";
 import UserMenu from "./UserMenu.vue";
 import UtilitySlots from "./UtilitySlots.vue";
 
 type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
 	| { to: RouteLocationRaw }
 	| { href: string; external?: boolean; ariaLabel?: string }
+	| { act: string; value?: unknown }
 );
 
 const TILE =
@@ -140,7 +146,7 @@ const cells = computed(() => {
 	const walk = (nodes: ItemNode[]) => {
 		for (const node of nodes) {
 			const cell = cellOf(node.item);
-			if (cell) out.push(cell);
+			if (cell && !("act" in cell && !isActAvailable(cell.act))) out.push(cell);
 			walk(node.children);
 		}
 	};
@@ -150,9 +156,10 @@ const cells = computed(() => {
 
 function cellOf(item: NavigationItem): Cell | null {
 	const rendering = renderingOf(item, props.context);
-	if (!rendering || !("to" in rendering || "href" in rendering)) return null;
+	if (!rendering || !("to" in rendering || "href" in rendering || "act" in rendering)) return null;
 
 	const cell = { key: item.key, label: labelOf(item, props.context), icon: item.icon };
+	if ("act" in rendering) return { ...cell, ...rendering };
 	return "to" in rendering
 		? { ...cell, to: rendering.to, sidebar: rendering.sidebar }
 		: {

@@ -10,6 +10,8 @@ interface AppActs {
 	items: () => ActItem[];
 	/** A promise until every app's acts are in, which starts the import if it has not started; then nothing. */
 	pending: () => Promise<void> | undefined;
+	/** Whether they are still to load: reactive, and it starts nothing. */
+	loading: () => boolean;
 }
 
 /** The app acts for the shell's life. */
@@ -23,6 +25,7 @@ export function useAppActs(): AppActs {
 		items: () =>
 			[...(loaded.value ?? new Map())].map(([name, item]) => ({ ...item, name })),
 		pending: () => (loaded.value ? undefined : load()),
+		loading: () => !loaded.value,
 	};
 }
 

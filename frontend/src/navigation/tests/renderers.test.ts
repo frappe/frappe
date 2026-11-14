@@ -74,8 +74,9 @@ beforeEach(() => {
 });
 
 describe("what the framework ships", () => {
-	it("registers a renderer for all eight kinds", () => {
+	it("registers a renderer for all nine kinds", () => {
 		expect(Object.keys(itemRenderers).sort()).toEqual([
+			"Act",
 			"DocType",
 			"Link",
 			"Module",
@@ -91,6 +92,45 @@ describe("what the framework ships", () => {
 		// `doctype` title-cases to "Doctype"; the name is read off the record's own JSON.
 		expect(rendererFor("DocType")).toBeDefined();
 		expect(rendererFor("Doctype")).toBeUndefined();
+	});
+});
+
+describe("Act", () => {
+	const act = (payload?: Record<string, unknown>): NavigationItem => ({
+		key: "user:k3f9a2",
+		item_type: "Act",
+		payload,
+	});
+
+	it("renders the act and its preset value", () => {
+		const item = act({ act: "shell.theme", value: "dark" });
+		expect(renderingOf(item, context([item]))).toEqual({ act: "shell.theme", value: "dark" });
+	});
+
+	it("renders the act alone, with no value key, when it asks on click", () => {
+		const item = act({ act: "shell.create" });
+		const rendering = renderingOf(item, context([item]));
+
+		expect(rendering).toEqual({ act: "shell.create" });
+		expect(rendering).not.toHaveProperty("value");
+	});
+
+	it("keeps a preset that is false or null", () => {
+		const item = act({ act: "shell.flag", value: false });
+		expect(renderingOf(item, context([item]))).toEqual({ act: "shell.flag", value: false });
+	});
+
+	it("is skipped with no act in its payload", () => {
+		for (const payload of [undefined, {}, { value: "dark" }]) {
+			const item = act(payload);
+			expect(renderingOf(item, context([item]))).toBeNull();
+		}
+	});
+
+	it("draws a zap icon, and the act's name as the last label", () => {
+		const item = act({ act: "shell.theme" });
+		expect(iconOf(item)).toBe("zap");
+		expect(labelOf(item, context([item]))).toBe("shell.theme");
 	});
 });
 

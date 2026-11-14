@@ -113,6 +113,7 @@ export function useShellActs(host: ShellActsHost) {
 		passes: (right) => typeof right !== "string" && doctypeRight.passes(right),
 		settled: (right) => (typeof right === "string" ? undefined : doctypeRight.settled(right)),
 		loading: (name) => (isAppAct(name) ? appActs.pending() : undefined),
+		loads: (name) => isAppAct(name) && appActs.loading(),
 		hold: async (work) => work(),
 		failed: (error) => void toast.error(error instanceof Error ? error.message : String(error)),
 	});

@@ -114,11 +114,16 @@ function recentRow(one: RecentVisit, context: PaletteContext): PaletteRow {
 	};
 }
 
+/** Whether the palette's first step lists the act; the navigation picker asks the same. */
+export function listedInPalette(act: AvailableAct): boolean {
+	return act.palette !== false && !!act.label;
+}
+
 /** The acts available now that the palette may show. */
 function actRows(where: (act: AvailableAct) => boolean, boot?: Boot): PaletteRow[] {
 	return acts
 		.available()
-		.filter((act) => act.palette !== false && act.label && where(act))
+		.filter((act) => listedInPalette(act) && where(act))
 		.map((act) => {
 			const app = boot && appOf(act, boot);
 			return {

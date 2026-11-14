@@ -60,6 +60,8 @@ export interface ActScope<Context = any> {
 	settled: (right: ActRight) => Promise<void> | undefined;
 	/** A promise while the act `name`, which it does not hold yet, may still load; else nothing. */
 	loading?: (name: string) => Promise<void> | undefined;
+	/** Whether the act `name`, which it does not hold yet, may still load; reads only reactive state, starts nothing. */
+	loads?: (name: string) => boolean;
 	hold: <T>(work: () => T | Promise<T>) => Promise<T>;
 	/** An act the reader asked for threw; the scope shows it and recovers. */
 	failed: (error: unknown) => void | Promise<void>;
@@ -146,6 +148,11 @@ export class ActDispatcher {
 		const found = this.lookup(name);
 		if (!found || !isAvailable(found.scope, found.entry)) return undefined;
 		return describe(name, found.entry.item, found.scope);
+	}
+
+	/** Whether `name` is not held yet but its scope is still loading acts; for a row that draws before they arrive. */
+	loads(name: string): boolean {
+		return !this.lookup(name) && !!this.scopeOf(surfaceOf(name))?.loads?.(name);
 	}
 
 	/** Runs the act inside its scope's hold; rejects with `ActDenied`, or with what the act threw. */
