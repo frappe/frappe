@@ -202,15 +202,27 @@ def save_form_layout(
 	if refuse_layout_type(dt, type):
 		return None
 	doc = find_layout_doc(dt, type, name, app)
-	doc.update({"dt": dt, "type": type, "app": app, "layout": layout, "condition": condition})
+	values = {"dt": dt, "type": type, "app": app, "layout": layout, "condition": condition}
 	if title is not None:
-		doc.title = title
-	if doc.is_new():
-		doc.fingerprint = source_fingerprint(dt, type)
+		values["title"] = title
+	return write_layout_row(doc, **values).name
+
+
+def write_layout_row(doc: "FormLayout", **values) -> "FormLayout":
+	"""Save `values` on a Form Layout row; a field the caller leaves out keeps its value.
+
+	Every server path that writes a row comes through here: `save_form_layout`, the DocType
+	editor and an app's own mirror. Permission checks stay with the caller.
+	"""
+	doc.update(values)
+	validate_target(doc.dt, doc.type)
+	if message := layout_type_refusal(doc.dt, doc.type):
+		frappe.throw(message, title=_("Layout Not Saved"))
+	doc.fingerprint = source_fingerprint(doc.dt, doc.type)
 	# `validate` computes it, once the layout has passed the checks that refuse a malformed one.
-	doc.flags.writes_omitted = type in OMITTING_LAYOUT_TYPES
+	doc.flags.writes_omitted = doc.type in OMITTING_LAYOUT_TYPES
 	doc.save()
-	return doc.name
+	return doc
 
 
 def check_layout_access(dt: str, type: str) -> None:

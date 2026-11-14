@@ -7,7 +7,7 @@ from frappe import _
 from frappe.desk.doctype.form_layout.form_layout import (
 	OMITTING_LAYOUT_TYPES,
 	publish_doctype_update,
-	source_fingerprint,
+	write_layout_row,
 )
 from frappe.desk.doctype_editor.checks import DesignChecks
 from frappe.desk.doctype_editor.design_edits import DesignEdits
@@ -213,20 +213,17 @@ class DesignSave:
 				if layout.row:
 					doc.delete()
 				continue
-			doc.update(
-				{
-					"dt": self.doctype,
-					"type": layout.type,
-					"title": layout.title,
-					"condition": layout.condition,
-					"layout": frappe.as_json(layout.tree.tabs),
-				}
-			)
-			doc.fingerprint = source_fingerprint(self.doctype, layout.type)
-			doc.flags.writes_omitted = layout.type in OMITTING_LAYOUT_TYPES
-			if not doc.flags.writes_omitted:
-				doc.omitted = frappe.as_json(layout.omitted) if layout.omitted else None
-			doc.save()
+			values = {
+				"dt": self.doctype,
+				"type": layout.type,
+				"title": layout.title,
+				"condition": layout.condition,
+				"layout": frappe.as_json(layout.tree.tabs),
+			}
+			# A Details or New Record row's save computes it from the layout.
+			if layout.type not in OMITTING_LAYOUT_TYPES:
+				values["omitted"] = frappe.as_json(layout.omitted) if layout.omitted else None
+			write_layout_row(doc, **values)
 
 	def locked_row(self, name: str):
 		"""The DocType's save ran since the stale check, so compare again under the row's lock."""
