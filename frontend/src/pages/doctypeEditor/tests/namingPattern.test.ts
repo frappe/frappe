@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { insertToken, nextName, seriesPrefixes, TOKENS } from "../namingPattern";
+import { insertToken, nextName, patternTokens, seriesPrefixes } from "../namingPattern";
 
 const today = new Date(2026, 10, 13);
 const labelOf = (fieldname: string) => ({ customer: "Customer" })[fieldname] ?? fieldname;
@@ -46,8 +46,16 @@ describe("a naming pattern's next name", () => {
 	});
 
 	it("inserts a chip's token at the caret", () => {
-		expect(TOKENS).toContain("{#####}");
+		expect(patternTokens(false)).toEqual(["{YYYY}", "{MM}", "{DD}", "{#####}"]);
 		expect(insertToken("TN-", "{YYYY}", 3)).toEqual({ pattern: "TN-{YYYY}", caret: 9 });
 		expect(insertToken("TN--{#####}", "{MM}", 3)).toEqual({ pattern: "TN-{MM}-{#####}", caret: 7 });
+	});
+
+	it("gives a dotted pattern dotted chips, so its counter counts under the typed prefix", () => {
+		expect(patternTokens(true, "customer")).toEqual([".YYYY.", ".MM.", ".DD.", ".#####.", ".{customer}."]);
+		const pattern = insertToken("ST-.YYYY.-A", ".#####.", 10).pattern;
+		expect(pattern).toBe("ST-.YYYY.-.#####.A");
+		expect(seriesPrefixes(pattern, today)).toEqual(["ST-2026-"]);
+		expect(nextName(pattern, {}, String, today).map((part) => part.text).join("")).toBe("ST-2026-00001A");
 	});
 });

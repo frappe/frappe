@@ -1,8 +1,12 @@
 // A naming pattern's next name, as `frappe/model/naming.py` builds it (`TN-.YYYY.-.####` or
 // `format:TN-{MM}-{#####}`). Each counter is kept in `tabSeries` under the text resolved before it.
 
-/** The chips "By pattern" inserts; a field chip inserts `{fieldname}`. */
-export const TOKENS = ["{YYYY}", "{MM}", "{DD}", "{#####}"];
+/** The chips "By pattern" inserts. A dotted pattern reads `{#####}` as a field, so its chips are dotted parts. */
+export function patternTokens(dotted: boolean, field?: string): string[] {
+	const fieldToken = field ? [dotted ? `.{${field}}.` : `{${field}}`] : [];
+	const tokens = dotted ? [".YYYY.", ".MM.", ".DD.", ".#####."] : ["{YYYY}", "{MM}", "{DD}", "{#####}"];
+	return [...tokens, ...fieldToken];
+}
 
 export interface NamePart {
 	text: string;

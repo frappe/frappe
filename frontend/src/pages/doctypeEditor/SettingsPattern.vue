@@ -12,7 +12,7 @@
 		@update:model-value="refusal = ''"
 	/>
 	<p v-if="refusal" class="text-p-sm text-ink-red-5" data-pattern-refusal>{{ refusal }}</p>
-	<div v-if="!dotted" class="flex flex-wrap items-center gap-1.5">
+	<div class="flex flex-wrap items-center gap-1.5">
 		<Button
 			v-for="token in tokens"
 			:key="token"
@@ -39,7 +39,7 @@ import { computed, inject, nextTick, ref, watch } from "vue";
 import { Button, TextInput } from "frappe-ui";
 import { __ } from "@/i18n";
 import NamePreview from "./NamePreview.vue";
-import { TOKENS, insertToken, nextName } from "./namingPattern";
+import { insertToken, nextName, patternTokens } from "./namingPattern";
 import { patternRefusal } from "./namingRules";
 import { SettingsViewKey } from "./settingsView";
 
@@ -61,7 +61,7 @@ const tokens = computed(() => {
 	const field = view.fields.find(
 		(one) => one.fieldname && ["Data", "Link", "Select"].includes(one.fieldtype)
 	);
-	return field ? [...TOKENS, `{${field.fieldname}}`] : TOKENS;
+	return patternTokens(dotted.value, field?.fieldname);
 });
 
 const input = ref<{ inputElement: HTMLInputElement | null } | null>(null);
