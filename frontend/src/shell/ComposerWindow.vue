@@ -8,7 +8,11 @@
 			:minimizable="false"
 			:storageKey="floatKey"
 			class="pointer-events-auto border border-outline-gray-2"
-			:class="{ 'shadow-lg': docked, 'select-none': dock.dragging.value }"
+			:class="{
+				'shadow-lg': docked,
+				'select-none': dock.dragging.value,
+				'ml-[calc(var(--shell-nav-inset-right,0px)*-1)]': !docked,
+			}"
 			:style="docked ? { height: `${dock.height.value}px` } : undefined"
 			data-composer-card
 			data-composer-window

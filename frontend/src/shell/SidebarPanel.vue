@@ -10,7 +10,9 @@
 			:collapsed="collapsed"
 			width="14rem"
 			collapsedWidth="0px"
-			:class="collapsed || chrome ? 'border-0' : 'border-l border-outline-gray-1'"
+			:class="collapsed || chrome
+					? 'border-0'
+					: ['border-outline-gray-1', navSide() === 'right' ? 'border-r' : 'border-l']"
 			:inert="collapsed"
 		>
 			<NavigationHeader v-if="chrome" />
@@ -76,6 +78,7 @@ import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
 import NavigationHeader from "./NavigationHeader.vue";
 import { shellAct } from "./shellActs";
+import { navSide } from "./navigationSide";
 import SidebarEdge from "./SidebarEdge.vue";
 import SidebarRow from "./SidebarRow.vue";
 import UserMenu from "./UserMenu.vue";

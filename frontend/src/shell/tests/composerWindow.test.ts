@@ -252,6 +252,20 @@ describe("docking and floating", () => {
 	});
 });
 
+describe("beside the navigation on the right", () => {
+	const SHIFT = "ml-[calc(var(--shell-nav-inset-right,0px)*-1)]";
+
+	it("pulls the floating card in by the navigation's width, and not the docked one", async () => {
+		const { controller } = await mountShell();
+		controller.composer.open("comment");
+		await flush();
+		expect(panel()?.className).not.toContain(SHIFT);
+
+		await click("[data-composer-float]");
+		expect(panel()?.className).toContain(SHIFT);
+	});
+});
+
 describe("where the floating card mounts", () => {
 	it("pulls a stored rectangle back on screen before it mounts", async () => {
 		const rect = { x: innerWidth + 400, y: innerHeight + 300, width: 500, height: 400 };

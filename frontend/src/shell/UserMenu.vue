@@ -1,6 +1,6 @@
 <!-- The avatar menu: the person's profile, the shell's acts for them and the page's own rows. The rail and the index draw it. -->
 <template>
-	<Dropdown :options="menu" :side="wide ? 'top' : 'right'" :align="wide ? 'start' : 'end'">
+	<Dropdown :options="menu" :side="wide ? 'top' : awaySide()" :align="wide ? 'start' : 'end'">
 		<button v-if="wide" type="button" data-key="user-menu" :class="WIDE_ROW">
 			<Avatar
 				:image="boot.session.user.user_image"
@@ -30,6 +30,7 @@ import { computed, h, inject } from "vue";
 import { Avatar, Dropdown, useColorScheme, type DropdownOptions } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
+import { awaySide } from "./navigationSide";
 import { pageMenuItems } from "./pageMenu";
 import { colorSchemes, shellAct, shellMenu } from "./shellActs";
 

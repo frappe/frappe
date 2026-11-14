@@ -30,6 +30,7 @@ import { resetNavigationReports } from "@/navigation/registry";
 import { registerShell } from "@/router/routeFor";
 import AppShell from "../AppShell.vue";
 import { registerComposerBand, registerFloatingComposer } from "../composer";
+import { navInsetRight } from "../navigationInset";
 import type { Shell } from "../shellActs";
 import type { ShellHookApi } from "../shellHooks";
 import type { StandingWindowHandle, StandingWindowOptions } from "../standingWindows";
@@ -763,6 +764,22 @@ describe("the row", () => {
 		await attached();
 		expect(row().style.right).toBe("24px");
 		expect(row().style.bottom).toBe("24px");
+	});
+
+	it("sits at the content's bottom-right corner when the navigation is on the right", async () => {
+		await attached();
+		navInsetRight.value = 274;
+		await flush();
+		expect(row().style.right).toBe("298px");
+
+		const release = registerFloatingComposer(at({ left: innerWidth - 484, top: 100 }));
+		await flush();
+		expect(row().style.right).toBe("496px");
+
+		release();
+		navInsetRight.value = 0;
+		await flush();
+		expect(row().style.right).toBe("24px");
 	});
 
 	it("sits 12px left of a floating composer, on the same bottom line", async () => {

@@ -7,7 +7,7 @@
 		<template v-if="chrome">
 			<div class="mb-3 flex shrink-0 items-center justify-center">
 				<!-- A raw button: `Dropdown` cannot reach a trigger through `SidebarRailItem`'s `Tooltip`. -->
-				<Dropdown :options="menu" side="right" align="start">
+				<Dropdown :options="menu" :side="awaySide()" align="start">
 					<button
 						type="button"
 						data-key="app-menu"
@@ -61,7 +61,7 @@
 
 					<!-- Off this prefix: a full document load, so an `<a>` with `SidebarRailItem`'s classes.
 					     Never current: `current` is a route. -->
-					<Tooltip v-else :text="cell.label" side="right">
+					<Tooltip v-else :text="cell.label" :side="awaySide()">
 						<a
 							:href="cell.href"
 							:target="cell.external ? '_blank' : undefined"
@@ -108,6 +108,7 @@ import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
 import { useAppMenu } from "./appMenu";
+import { awaySide } from "./navigationSide";
 import ActCell from "./RailActCell.vue";
 import UserMenu from "./UserMenu.vue";
 import UtilitySlots from "./UtilitySlots.vue";

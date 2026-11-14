@@ -1,6 +1,6 @@
 <!-- The utility slots, Search then Notifications: a rail cell each, or a panel row each. -->
 <template>
-	<Tooltip v-if="form === 'cell'" side="right">
+	<Tooltip v-if="form === 'cell'" :side="awaySide()">
 		<template #content>
 			<span class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4">
 				{{ __("Search") }} <KeyboardShortcut combo="Mod+K" />
@@ -36,6 +36,7 @@
 <script setup lang="ts">
 import { KeyboardShortcut, Tooltip } from "frappe-ui";
 import { __ } from "@/i18n";
+import { awaySide } from "./navigationSide";
 import { openPalette } from "./palette";
 
 defineProps<{ form: "cell" | "row" }>();

@@ -25,6 +25,7 @@ import type { Shell } from "./shellActs";
 import StandingWindowFrame from "./StandingWindowFrame.vue";
 import type { StandingWindow } from "./standingWindows";
 import { useTabKeepAlive } from "./tabKeepAlive";
+import { navInsetRight } from "./navigationInset";
 import { MARGIN } from "./windowDrag";
 
 const props = defineProps<{ windows: readonly StandingWindow[]; shell: Shell }>();
@@ -34,7 +35,7 @@ const GAP = 12;
 
 const viewport = useWindowSize();
 // The most the row may take; a wider row would leave the screen at its right end.
-const room = computed(() => viewport.width.value - 2 * MARGIN);
+const room = computed(() => viewport.width.value - 2 * MARGIN - navInsetRight.value);
 const band = useElementBounding(composerBand);
 // The lane is centred in its band, so it moves sideways with no resize of its own.
 useResizeObserver(
@@ -50,7 +51,7 @@ const row = useElementBounding(rowEl);
 const { box: launcher, dockedLeft } = useFlowLauncher();
 
 const besideComposer = computed(() =>
-	floatingComposer() ? viewport.width.value - card.left.value + GAP : MARGIN
+	floatingComposer() ? viewport.width.value - card.left.value + GAP : MARGIN + navInsetRight.value
 );
 // A launcher dragged into the row's way, or within a gap of its end, sits at the row's right end like a composer.
 const besideLauncher = computed(() => {

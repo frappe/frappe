@@ -11,3 +11,8 @@
 		outline: none;
 	}
 }
+
+/* Toasts sit at the content area's bottom-right corner: the navigation, on the right, sits beside them. */
+:root [data-sonner-toaster][data-x-position="right"] {
+	right: calc(var(--offset-right) + var(--shell-nav-inset-right, 0px));
+}
