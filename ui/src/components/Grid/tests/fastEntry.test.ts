@@ -67,9 +67,7 @@ function input(row: number, column: number): HTMLInputElement {
   return rowEl.querySelectorAll<HTMLInputElement>(".grid-cell input")[column];
 }
 
-// Each cell sits in a frappe-ui Tooltip, which mounts in full on its first focus or
-// hover and replaces the cell's elements (focus moves to the new input). So focus
-// first and take the input after, never hold one across the focus.
+// A cell's Tooltip replaces its input on the first focus, so take the input after focusing.
 function focusInput(row: number, column: number): HTMLInputElement {
   input(row, column).focus();
   return input(row, column);

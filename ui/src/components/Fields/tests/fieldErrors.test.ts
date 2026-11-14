@@ -176,8 +176,7 @@ describe("a grid cell", () => {
   it("rings and clears a cell under a focused input without rebuilding it", async () => {
     const errors = ref<Record<string, FieldError>>({});
     const el = mount(TableField, { field, modelValue: rows }, errors);
-    // The cell's Tooltip mounts in full on this first focus, which replaces the input.
-    // Take the input after it, so the test checks the rebuild an error would cause.
+    // The first focus replaces the input (its Tooltip mounts); take it after.
     cell(el, "r2", "qty").querySelector("input")!.focus();
     const input = cell(el, "r2", "qty").querySelector("input")!;
 
