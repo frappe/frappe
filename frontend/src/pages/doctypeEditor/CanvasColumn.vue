@@ -19,7 +19,7 @@
 		<div
 			v-if="ringed"
 			class="pointer-events-none absolute -top-2 bottom-2 -inset-x-2 z-[1] rounded-8 ring-1"
-			:class="selected ? 'ring-outline-gray-5' : 'ring-outline-gray-2'"
+			:class="selected ? 'ring-outline-gray-5' : 'ring-outline-gray-3'"
 			data-canvas-column-ring
 		/>
 		<span
@@ -30,7 +30,7 @@
 		>
 			<span class="lucide-grip-horizontal size-4" aria-hidden="true" />
 		</span>
-		<RuleMark class="absolute -left-4 top-0" :canvas="canvas" kind="column" :node="column" />
+		<RuleMark class="absolute -left-6 top-0" :canvas="canvas" kind="column" :node="column" />
 		<Draggable
 			:model-value="fieldnames"
 			:item-key="(fieldname: string) => fieldname"

@@ -99,7 +99,7 @@ it("rings the column on hover of its free space, and not over a field", async ()
     .querySelector("[data-canvas-column-band]")!
     .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
   await Promise.resolve();
-  expect(ring()?.className).toContain("ring-outline-gray-2");
+  expect(ring()?.className).toContain("ring-outline-gray-3");
   dom
     .querySelector("[data-canvas-field='owner']")!
     .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));

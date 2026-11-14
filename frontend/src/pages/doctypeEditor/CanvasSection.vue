@@ -8,7 +8,7 @@
 		:data-canvas-selected="selected || undefined"
 		@click.stop="select({ kind: 'section', section: name })"
 	>
-		<div class="relative z-[1] mb-3 flex h-7 items-center gap-1">
+		<div class="relative z-[1] mb-4 flex h-7 items-center gap-1">
 			<input
 				:value="section.label ?? ''"
 				:placeholder="__('Untitled section')"
