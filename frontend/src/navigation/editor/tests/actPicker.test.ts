@@ -140,6 +140,12 @@ describe("a sidebar of acts", () => {
 		expect(hasNoPageToOpen([act, section, inside])).toBe(false);
 	});
 
+	it("keeps the allowed page under a row with no access", () => {
+		const shut = { ...section, no_access: 1 } as EditorRow;
+		const inside = { ...link, parent_key: shut.key } as EditorRow;
+		expect(hasNoPageToOpen([act, shut, inside])).toBe(false);
+	});
+
 	it("is not offered a sidebar of its own", () => {
 		const draft = { rail: [act], sidebars: {}, layout: "", scope: "user" } as never;
 		expect(canGiveSidebar(draft, act)).toBe(false);

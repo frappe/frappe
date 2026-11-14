@@ -86,12 +86,13 @@ export function hasNoPageToOpen(rows: EditorRow[]): boolean {
 	return drawn.length > 0 && drawn.every((row) => row.item_type === "Act");
 }
 
-/** A row is shut when it, or a row above it, is hidden or has no access: saving takes its whole branch off the sidebar. */
+/** A row is shut when it, or a row above it, is hidden (saving takes its whole branch off), or when it has no access itself (its allowed children stay). */
 function isShut(rows: EditorRow[], row: EditorRow): boolean {
+	if (row.no_access) return true;
 	const seen = new Set<string>();
 	let at: EditorRow | undefined = row;
 	while (at && !seen.has(at.key)) {
-		if (at.hidden || at.no_access) return true;
+		if (at.hidden) return true;
 		seen.add(at.key);
 		const parentKey: string | undefined = at.parent_key;
 		at = rows.find((r) => r.key === parentKey);
