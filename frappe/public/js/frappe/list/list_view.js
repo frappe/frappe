@@ -2007,8 +2007,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.settings.button) {
 			const button_html = `
 				<button class="btn btn-action btn-default btn-xs ellipsis"
-					data-name="${doc.name}" data-idx="${doc._idx}"
-					title="${this.settings.button.get_description(doc)}">
+					data-name="${frappe.utils.escape_html(doc.name)}" data-idx="${doc._idx}"
+					title="${frappe.utils.escape_html(this.settings.button.get_description(doc))}">
 						${this.settings.button.get_label(doc)}
 				</button>
 			`;
@@ -2029,7 +2029,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			let button_actions = "";
 			this.settings.dropdown_button.buttons.forEach((button, index) => {
 				if (!button.show || button.show(doc)) {
-					let description = button.get_description ? button.get_description(doc) : "";
+					let description = button.get_description
+						? frappe.utils.escape_html(button.get_description(doc))
+						: "";
 					button_actions += `
 						<a class="dropdown-item" href="#" onclick="return false;" data-idx="${doc._idx}" button-idx="${index}" title="${description}">
 							${button.get_label}
@@ -2050,7 +2052,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			dropdown_container = `
-				<div class="list-row-col hidden-xs inner-group-button" data-name="${doc.name}" data-label="${this.settings.dropdown_button.get_label}">
+				<div class="list-row-col hidden-xs inner-group-button" data-name="${frappe.utils.escape_html(
+					doc.name
+				)}" data-label="${this.settings.dropdown_button.get_label}">
 					${dropdown_buttons}
 				</div>
 			`;
