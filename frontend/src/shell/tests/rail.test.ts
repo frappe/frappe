@@ -324,6 +324,20 @@ describe("a linked item", () => {
 		);
 	});
 
+	it("is linked too when a row keeps its own target and opens a sidebar", () => {
+		const host = rail(
+			[{ key: "books", item_type: "DocType", link_to: "Sales Invoice", opens_sidebar: "user:m2x7qa" }],
+			{
+				sidebars: {
+					"user:m2x7qa": [{ key: "first", item_type: "DocType", link_to: "Sales Invoice" }],
+				},
+			}
+		);
+
+		expect(cell(host, "books")!.getAttribute("data-sidebar")).toBe("user:m2x7qa");
+		expect(target(host, "books")!.getAttribute("href")).toContain("/sales-invoice");
+	});
+
 	it("is not drawn when its sidebar is absent", () => {
 		const host = rail([
 			{ key: "accounts", item_type: "Sidebar", link_to: "module_def_accounts" },

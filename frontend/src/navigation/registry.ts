@@ -41,7 +41,7 @@ export function renderingOf(
 	depth += 1;
 
 	try {
-		const rendering = renderer.render(item, context);
+		const rendering = withOpenedSidebar(item, renderer.render(item, context));
 
 		// Resolved here so an unresolvable route fails in this handler, not inside `RouterLink`.
 		if (rendering && "to" in rendering) resolveItemRoute(context, rendering.to);
@@ -58,6 +58,13 @@ export function renderingOf(
 	} finally {
 		depth -= 1;
 	}
+}
+
+/** A rail row that opens a sidebar keeps its own target and annotates it with that sidebar. */
+function withOpenedSidebar(item: NavigationItem, rendering: Rendering | null): Rendering | null {
+	if (!item.opens_sidebar || !rendering || "sidebar" in rendering) return rendering;
+	if (!("to" in rendering || "href" in rendering)) return rendering;
+	return { ...rendering, sidebar: item.opens_sidebar };
 }
 
 /** An item's route, resolved without reading the current route. */

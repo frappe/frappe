@@ -15,6 +15,7 @@
   "destination_section",
   "link_doctype",
   "link_to",
+  "opens_sidebar",
   "url",
   "column_break_dest",
   "payload",
@@ -85,6 +86,12 @@
    "in_list_view": 1,
    "label": "Link To",
    "options": "link_doctype"
+  },
+  {
+   "description": "The key of the sidebar a rail row opens, when it also opens its own target.",
+   "fieldname": "opens_sidebar",
+   "fieldtype": "Data",
+   "label": "Opens Sidebar"
   },
   {
    "description": "Where a Link row goes.",
@@ -196,7 +203,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-03 18:03:47.000000",
+ "modified": "2026-11-14 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Navigation Item",

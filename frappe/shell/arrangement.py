@@ -14,6 +14,7 @@ from typing import NamedTuple
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.navigation_item.navigation_item import OWN_KEY
 from frappe.desk.doctype.navigation_item.nesting import SECTION, nesting_errors
 from frappe.model.document import Document
 
@@ -39,18 +40,16 @@ ITEMS_FIELD = {"Rail": "items", "Sidebar": "navigation_items"}
 SCOPES = ("user", "site")
 BELOW = {"user": "site", "site": "base"}
 
-# Presentation only: an arrangement never changes what an item opens. `parent_key` is
-# not here; reparenting travels as an anchor, whose `after`/`before` carry the parent.
-OVERRIDABLE = ("label", "icon", "collapsible", "keep_closed")
-
-# A row a level adds is `<scope>:<6 base36>`; the editor makes the key, so a new section's new
-# children can name it before the first save. The prefixes are reserved against shipped keys.
-OWN_KEY = re.compile(r"^(user|site):[0-9a-z]{6}$")
+# Presentation only: an arrangement never changes what an item opens, but `opens_sidebar` is
+# a link to a sidebar beside its target. `parent_key` is not here; reparenting travels as an anchor, whose `after`/`before` carry the parent.
+OVERRIDABLE = ("label", "icon", "collapsible", "keep_closed", "opens_sidebar")
 
 # What an own row stores: the whole item. `hidden` is absent because an own row is deleted, not
 # hidden; `overrides` because it is no delta; `switches_app` because only a shipped row switches app.
 OWN_FIELDS = tuple(field for field in ITEM_FIELDS if field not in ("hidden", "overrides", "switches_app"))
 
+# A key a level adds is `OWN_KEY`; the editor makes it, so a new section's new children can name it
+# before the first save. The prefixes are reserved against shipped keys.
 RESERVED_PREFIXES = tuple(f"{scope}:" for scope in SCOPES)
 
 # A Link's url: a path on this site, or an http(s) address. `\S`: a tab inside `/ /host` is stripped
@@ -205,8 +204,9 @@ def _own_rows_elsewhere(target: "Target") -> int:
 
 def _layers_of(target: "Target") -> dict[str, list[str]]:
 	"""This level's layers of this app, by container; a sidebar the app no longer ships has none that count."""
+	# An own sidebar is no shipped address, and its rows count.
 	filters = {"app": target.app, "standard": 0, "user": target.layer["user"]}
-	rows = frappe.get_all("Sidebar", filters=filters, fields=["name", "link_doctype", "link_to"])
+	rows = frappe.get_all("Sidebar", filters=filters, fields=["name", "key", "link_doctype", "link_to"])
 	shipped = frappe.get_all(
 		"Sidebar", filters={"app": target.app, "standard": 1}, fields=["link_doctype", "link_to"]
 	)
@@ -214,7 +214,7 @@ def _layers_of(target: "Target") -> dict[str, list[str]]:
 
 	return {
 		"Rail": frappe.get_all("Rail", filters=filters, pluck="name"),
-		"Sidebar": [row.name for row in rows if (row.link_doctype, row.link_to) in shipped],
+		"Sidebar": [row.name for row in rows if row.key or (row.link_doctype, row.link_to) in shipped],
 	}
 
 
@@ -439,7 +439,13 @@ def _target(container: str, address: str, scope: str) -> Target:
 	else:
 		app, link_doctype, link_to = _sidebar_address(address)
 		resolve = partial(resolve_sidebar, link_doctype, link_to, check_permission=check_permission)
-		stored |= {"app": app, "link_doctype": link_doctype, "link_to": link_to}
+		# An own sidebar is stored by its key; a shipped one by its address.
+		if link_doctype:
+			stored |= {"app": app, "link_doctype": link_doctype, "link_to": link_to}
+		elif scope == "site" and link_to.startswith("user:"):
+			frappe.throw(_("{0} belongs to a person; the site cannot arrange it.").format(link_to))
+		else:
+			stored |= {"app": app, "key": link_to}
 
 		# A sidebar this person's blocked module removes resolves to nothing, and a save against
 		# nothing is a delete; refuse it instead.
@@ -491,9 +497,12 @@ def _refuse_deep_nesting(container: str, below: list[dict], desired: list[dict],
 
 
 def _sidebar_address(address: str) -> tuple[str, str, str]:
-	"""The app and the `(link_doctype, link_to)` pair behind a scrubbed sidebar address."""
+	"""The app and the `(link_doctype, link_to)` pair behind a sidebar address; an own sidebar's is `("", key)`."""
 	# Read from the standard record: unscrubbing is not a function, and an address no app
-	# ships must be unarrangeable.
+	# ships must be unarrangeable. An own key is read at the site layer or the person's own.
+	if OWN_KEY.fullmatch(address):
+		return _own_sidebar_address(address)
+
 	record = frappe.db.get_value(
 		"Sidebar", {"name": address, "standard": 1}, ["app", "link_doctype", "link_to"], as_dict=True
 	)
@@ -502,6 +511,16 @@ def _sidebar_address(address: str) -> tuple[str, str, str]:
 		frappe.throw(_("{0} is not a sidebar this site ships.").format(address))
 
 	return record.app, record.link_doctype, record.link_to
+
+
+def _own_sidebar_address(key: str) -> tuple[str, str, str]:
+	owner = SITE_LAYER if key.startswith("site:") else frappe.session.user
+	app = frappe.db.get_value("Sidebar", {"key": key, "standard": 0, "user": owner}, "app")
+
+	if not app:
+		frappe.throw(_("{0} is not a sidebar you can arrange.").format(key))
+
+	return app, "", key
 
 
 def _is_site_administrator() -> bool:

@@ -101,6 +101,11 @@ def make_sidebar(items: list[dict], *, standard: int = 0, user: str | None = Non
 		return doc.insert(ignore_permissions=True)
 
 
+def make_own_sidebar(key: str, items: list[dict], *, user: str | None = None, **kwargs):
+	"""A sidebar a level added: a key, no address, and rows it owns."""
+	return make_sidebar(items, key=key, link_doctype=None, link_to=None, user=user, **kwargs)
+
+
 def keys(items: list[dict]) -> list[str]:
 	return [entry["key"] for entry in items]
 

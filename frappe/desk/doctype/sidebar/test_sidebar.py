@@ -3110,3 +3110,58 @@ class TestSidebarSyncOrder(IntegrationTestCase):
 			child = frappe.scrub(table_field.options)
 			position = next(i for i, p in enumerate(parts) if p[-3:] == ["doctype", child, f"{child}.json"])
 			self.assertLess(position, first_record, table_field.options)
+
+
+class TestAnOwnSidebarsKey(IntegrationTestCase):
+	"""A sidebar a level added is addressed by its `key`, not by a `link_doctype`."""
+
+	def setUp(self):
+		frappe.db.savepoint("own_sidebar_key")
+		self.addCleanup(lambda: frappe.db.rollback(save_point="own_sidebar_key"))
+
+	def own(self, key, **kwargs):
+		doc = frappe.get_doc({"doctype": "Sidebar", "app": "frappe", "key": key, **kwargs})
+		return doc.insert(ignore_permissions=True)
+
+	def test_a_keyed_record_is_addressed_and_named_by_a_hash(self):
+		doc = self.own("site:abc123")
+
+		self.assertTrue(doc.is_addressed)
+		self.assertNotEqual(doc.name, "site:abc123")
+		self.assertEqual(doc.title, "site:abc123")
+
+	def test_a_record_with_no_key_and_no_link_is_not_addressed(self):
+		self.assertFalse(frappe.new_doc("Sidebar").is_addressed)
+
+	def test_a_blank_key_is_stored_as_null(self):
+		doc = frappe.new_doc("Sidebar")
+		doc.key = ""
+		doc.blank_the_empty_address()
+
+		self.assertIsNone(doc.key)
+
+	def test_a_key_that_is_not_scope_and_six_base36_is_refused(self):
+		for key in ("abc123", "site:abc12", "site:ABC123", "role:abc123", "site:abc1234", "user:abc12!"):
+			with self.subTest(key=key), self.assertRaises(frappe.ValidationError):
+				self.own(key)
+
+	def test_a_user_key_needs_a_user(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.own("user:abc123")
+
+		self.assertTrue(self.own("user:abc123", user="Administrator").name)
+
+	def test_a_site_key_may_be_a_persons_arrangement_of_the_sites(self):
+		self.own("site:abc123")
+
+		self.assertTrue(self.own("site:abc123", user="Administrator").name)
+
+	def test_a_keyed_record_carries_no_link_and_is_not_standard(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.own("site:abc123", link_doctype="Module Def", link_to="Core")
+
+	def test_one_record_per_key_and_person(self):
+		self.own("site:abc123")
+
+		with self.assertRaises(frappe.UniqueValidationError):
+			self.own("site:abc123")

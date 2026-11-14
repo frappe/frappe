@@ -14,6 +14,7 @@ from frappe.shell.arrangement import (
 	OWN_ROWS_PER_CONTAINER,
 	_as_items,
 	_identity,
+	_sidebar_address,
 	_target,
 	anchors_for,
 	get_arrangement,
@@ -35,6 +36,7 @@ from frappe.tests.test_shell_navigation import (
 	doctype_item,
 	item,
 	keys,
+	make_own_sidebar,
 	make_rail,
 	make_sidebar,
 	shipping,
@@ -1451,3 +1453,62 @@ class TestASectionIsAddedToASidebar(OwnRowsTestCase):
 		)
 
 		self.assertEqual([row.item_type for row in own_stored("Sidebar")], ["Section"])
+
+
+class TestArrangingAnOwnSidebar(OwnRowsTestCase):
+	"""A sidebar a level added is arranged by its key, and only by the level that owns it."""
+
+	def own_sidebar(self, key: str = "site:abc123", **kwargs):
+		return make_own_sidebar(
+			key,
+			[
+				{"doctype": "Navigation Item", **own("site:aaaaaa", "ToDo", added=1)},
+				{"doctype": "Navigation Item", **own("site:aaaaab", "Note", added=1)},
+			],
+			**kwargs,
+		)
+
+	def test_an_own_key_is_an_address(self):
+		self.own_sidebar()
+
+		self.assertEqual(_sidebar_address("site:abc123"), (APP, "", "site:abc123"))
+
+	def test_a_key_no_sidebar_carries_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			_sidebar_address("site:zzzzzz")
+
+	def test_a_persons_own_sidebar_is_not_another_persons_to_arrange(self):
+		self.own_sidebar("user:abc123", user=self.user)
+		other = a_person("test_other_desk_user@example.com", role="Desk User")
+
+		self.assertEqual(_sidebar_address("user:abc123"), (APP, "", "user:abc123"))
+		with set_user(other), self.assertRaises(frappe.ValidationError):
+			_sidebar_address("user:abc123")
+
+	def test_a_person_arranges_the_sites_sidebar_in_their_own_record(self):
+		self.own_sidebar()
+
+		save_arrangement(
+			"Sidebar", "site:abc123", showing(shown("site:aaaaab"), shown("site:aaaaaa", label="First"))
+		)
+
+		self.assertEqual(
+			keys(resolve_navigation(APP)["sidebars"]["site:abc123"]), ["site:aaaaab", "site:aaaaaa"]
+		)
+		self.assertTrue(frappe.db.exists("Sidebar", {"key": "site:abc123", "user": self.user}))
+
+	def test_resetting_the_persons_arrangement_keeps_the_sites_sidebar(self):
+		self.own_sidebar()
+		save_arrangement("Sidebar", "site:abc123", showing(shown("site:aaaaab"), shown("site:aaaaaa")))
+
+		reset_arrangement("Sidebar", "site:abc123")
+
+		self.assertEqual(
+			keys(resolve_navigation(APP)["sidebars"]["site:abc123"]), ["site:aaaaaa", "site:aaaaab"]
+		)
+
+	def test_the_site_cannot_arrange_a_persons_own_sidebar(self):
+		self.own_sidebar("user:abc123", user=self.user)
+
+		with self.assertRaises(frappe.ValidationError):
+			_target("Sidebar", "user:abc123", "site")

@@ -352,6 +352,16 @@ describe("Sidebar", () => {
 		});
 	});
 
+	it("keeps its own target and names the sidebar when a Link row opens one", () => {
+		const link: NavigationItem = {
+			key: "user:abc123",
+			item_type: "Link",
+			url: "/some/page",
+			opens_sidebar: "user:m2x7qa",
+		};
+		expect(renderingOf(link, context([link]))).toMatchObject({ sidebar: "user:m2x7qa" });
+	});
+
 	it("skips rows in it that are not destinations", () => {
 		const sidebars = {
 			module_def_accounts: [

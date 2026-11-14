@@ -7,6 +7,7 @@
 # as Administrator would pass against a filter that does nothing. A Desk User reads `ToDo`, not `Role`.
 
 import contextlib
+import json
 from unittest.mock import patch
 
 import frappe
@@ -21,6 +22,7 @@ from frappe.tests.test_shell_navigation import (
 	doctype_item,
 	item,
 	keys,
+	make_own_sidebar,
 	make_rail,
 	make_sidebar,
 	shipping,
@@ -315,6 +317,138 @@ class TestLinkedSidebars(FilterTestCase):
 
 		self.assertEqual(keys(payload["rail"]), ["core"])
 		self.assertEqual(keys(payload["sidebars"][ADDRESS_KEY]), ["mine"])
+
+
+class TestOpensSidebar(FilterTestCase):
+	"""A row that keeps its own target and opens a sidebar is linked, and so derives from it too."""
+
+	OPENED = "site:abc123"
+
+	def opener(self) -> dict:
+		return item("books", item_type="Section", opens_sidebar=self.OPENED)
+
+	def test_a_linked_row_whose_sidebar_filtered_away_is_dropped(self):
+		make_own_sidebar(self.OPENED, [doctype_item("site:aaaaaa", UNREADABLE, added=1)])
+		make_rail([self.opener()], standard=1)
+
+		with set_user(self.user):
+			payload = resolve_navigation(APP)
+
+		self.assertEqual(keys(payload["rail"]), [])
+		self.assertNotIn(self.OPENED, payload["sidebars"])
+
+	def test_a_linked_row_whose_sidebar_keeps_a_row_stays(self):
+		make_own_sidebar(
+			self.OPENED,
+			[
+				doctype_item("site:aaaaaa", READABLE, added=1),
+				doctype_item("site:aaaaab", UNREADABLE, added=1),
+			],
+		)
+		make_rail([self.opener()], standard=1)
+
+		with set_user(self.user):
+			payload = resolve_navigation(APP)
+
+		self.assertEqual(keys(payload["rail"]), ["books"])
+		self.assertEqual(payload["rail"][0]["opens_sidebar"], self.OPENED)
+		self.assertEqual(keys(payload["sidebars"][self.OPENED]), ["site:aaaaaa"])
+
+
+class TestOwnSidebarsInBoot(FilterTestCase):
+	"""Own sidebars are filed under their key, for the site's and for the person's, and filtered per person."""
+
+	def sidebars(self, user: str) -> dict[str, list[str]]:
+		with set_user(user):
+			return {key: keys(rows) for key, rows in resolve_navigation(APP)["sidebars"].items()}
+
+	def test_a_site_sidebar_is_filed_under_its_key_with_its_rows_filtered(self):
+		make_own_sidebar(
+			"site:abc123",
+			[
+				doctype_item("site:aaaaaa", READABLE, added=1),
+				doctype_item("site:aaaaab", UNREADABLE, added=1),
+			],
+		)
+
+		self.assertEqual(self.sidebars(self.user), {"site:abc123": ["site:aaaaaa"]})
+		self.assertEqual(self.sidebars("Administrator"), {"site:abc123": ["site:aaaaaa", "site:aaaaab"]})
+
+	def test_a_site_sidebar_reaches_every_desk_user(self):
+		make_own_sidebar("site:abc123", [doctype_item("site:aaaaaa", READABLE, added=1)])
+		other = a_desk_user("navigation_filter_other@example.com")
+		self.addCleanup(frappe.clear_cache, user=other)
+
+		self.assertEqual(list(self.sidebars(other)), ["site:abc123"])
+
+	def test_a_persons_own_sidebar_does_not_reach_another_person(self):
+		make_own_sidebar("user:abc123", [doctype_item("user:aaaaaa", READABLE, added=1)], user=self.user)
+		other = a_desk_user("navigation_filter_other@example.com")
+		self.addCleanup(frappe.clear_cache, user=other)
+
+		self.assertEqual(list(self.sidebars(self.user)), ["user:abc123"])
+		self.assertEqual(self.sidebars(other), {})
+
+	def test_a_sidebar_with_no_visible_rows_is_left_out(self):
+		make_own_sidebar("site:abc123", [doctype_item("site:aaaaaa", UNREADABLE, added=1)])
+
+		self.assertEqual(self.sidebars(self.user), {})
+
+	def test_a_persons_record_at_a_site_key_arranges_the_site_sidebar(self):
+		make_own_sidebar(
+			"site:abc123",
+			[doctype_item("site:aaaaaa", READABLE, added=1), doctype_item("site:aaaaab", "Note", added=1)],
+		)
+		make_own_sidebar(
+			"site:abc123",
+			[item("site:aaaaab", label="Mine", overrides=json.dumps(["label"]))],
+			user=self.user,
+		)
+
+		with set_user(self.user):
+			rows = resolve_navigation(APP)["sidebars"]["site:abc123"]
+
+		self.assertEqual([row.get("label") for row in rows], [None, "Mine"])
+
+	def test_a_persons_record_at_a_site_key_is_no_sidebar_without_the_sites(self):
+		make_own_sidebar("site:abc123", [doctype_item("site:aaaaaa", READABLE, added=1)], user=self.user)
+
+		self.assertEqual(self.sidebars(self.user), {})
+
+	def test_the_row_that_opens_a_vanished_sidebar_opens_its_own_target_again(self):
+		make_own_sidebar("site:abc123", [doctype_item("site:aaaaaa", UNREADABLE, added=1)])
+		make_rail([doctype_item("todo", READABLE, opens_sidebar="site:abc123")], standard=1)
+
+		with set_user(self.user):
+			rail = resolve_navigation(APP)["rail"]
+
+		self.assertEqual(keys(rail), ["todo"])
+		self.assertNotIn("opens_sidebar", rail[0])
+		self.assertEqual(rail[0]["link_to"], READABLE)
+
+	def test_the_row_that_opens_a_sidebar_keeps_its_type_and_target(self):
+		make_own_sidebar("site:abc123", [doctype_item("site:aaaaaa", READABLE, added=1)])
+		make_rail([doctype_item("todo", READABLE, opens_sidebar="site:abc123")], standard=1)
+
+		with set_user(self.user):
+			row = resolve_navigation(APP)["rail"][0]
+
+		self.assertEqual(
+			(row["item_type"], row["link_to"], row["opens_sidebar"]), ("DocType", READABLE, "site:abc123")
+		)
+
+
+class TestASidebarRowOpensNothing(FilterTestCase):
+	def test_a_dangling_opens_sidebar_on_a_sidebar_row_is_not_sent(self):
+		make_own_sidebar(
+			"site:abc123",
+			[doctype_item("site:aaaaaa", READABLE, added=1, opens_sidebar="site:zzzzzz")],
+		)
+
+		with set_user(self.user):
+			rows = resolve_navigation(APP)["sidebars"]["site:abc123"]
+
+		self.assertNotIn("opens_sidebar", rows[0])
 
 
 class TestTheModuleVetoOnASidebar(FilterTestCase):
