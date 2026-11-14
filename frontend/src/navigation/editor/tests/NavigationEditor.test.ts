@@ -1,6 +1,6 @@
 // The editor, mounted: it reads a level, edits a draft, and commits with one Save.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, nextTick } from "vue";
+import { createApp, h, nextTick, ref } from "vue";
 
 import type { Boot } from "@/boot";
 import type { Arrangements, EditorRow } from "../draft";
@@ -223,5 +223,44 @@ describe("the editor", () => {
 		);
 		const guides = (key: string) => body().querySelectorAll(`[data-key='${key}'] > span.w-4`).length;
 		expect([guides("s"), guides("i"), guides("c")]).toEqual([0, 1, 2]);
+	});
+
+	it("keeps the Sidebar tab when the editor is opened again on a sidebar", async () => {
+		api.fetchArrangements.mockResolvedValue(
+			response({
+				rail: [row("crm", { item_type: "Sidebar", link_to: "s1" })],
+				sidebars: { s1: [row("lead")] },
+			})
+		);
+		const target = ref<{ tab: "sidebar"; address: string }>({ tab: "sidebar", address: "s1" });
+		const app = createApp({ render: () => h(NavigationEditor, { target: target.value }) });
+		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+		const host = document.createElement("div");
+		document.body.appendChild(host);
+		app.mount(host);
+		unmount = () => app.unmount();
+		await settle();
+		expect(rowsShown()).toEqual(["LEAD"]);
+
+		target.value = { tab: "sidebar", address: "s1" };
+		await settle();
+		expect(rowsShown()).toEqual(["LEAD"]);
+	});
+
+	it("does not let the level change while Reset to default is on its way", async () => {
+		let answer!: (defaults: { rail: EditorRow[]; sidebars: {} }) => void;
+		api.fetchDefaultArrangements.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+		await open(response({ has_saved: true }));
+
+		click("[data-reset]");
+		await nextTick();
+		const everyone = Array.from(body().querySelectorAll<HTMLButtonElement>("[data-level-switch] button")).find(
+			(button) => button.textContent?.trim() === "Everyone"
+		);
+		expect(everyone?.disabled).toBe(true);
+
+		answer({ rail: [row("todo")], sidebars: {} });
+		await settle();
+		expect(rowsShown()).toEqual(["TODO"]);
 	});
 });

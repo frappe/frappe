@@ -128,6 +128,7 @@
 					class="ml-auto"
 					variant="subtle"
 					:label="__('Cancel')"
+					:disabled="saving"
 					@click="emit('close')"
 				/>
 				<Button
@@ -242,8 +243,12 @@ const sidebarOptions = computed(() =>
 	}))
 );
 const levels = computed(() => [
-	{ label: __("Just me"), value: "user", disabled: changed.value },
-	{ label: __("Everyone"), value: "site", disabled: changed.value || !canEditSite.value },
+	{ label: __("Just me"), value: "user", disabled: changed.value || resetting.value },
+	{
+		label: __("Everyone"),
+		value: "site",
+		disabled: changed.value || resetting.value || !canEditSite.value,
+	},
 ]);
 const levelHint = computed(() =>
 	changed.value
@@ -287,7 +292,8 @@ watch(
 
 watch(tab, () => (selected.value = null));
 // A rail edit that stops opening the last sidebar takes its tab away.
-watch(hasSidebars, (has) => !has && (tab.value = "rail"));
+// While a read is on its way the draft is empty, which is not an edit.
+watch(hasSidebars, (has) => !has && draft.value && (tab.value = "rail"));
 watch(sidebar, () => (selected.value = null));
 // A selected row that the list now hides leaves the pane for its nearest visible neighbour.
 watch(showHidden, (on) => !on && selected.value && leaveIfUnlisted(selected.value));
@@ -383,12 +389,14 @@ function drop(key: string, before: string) {
 
 /** The level below is read only now, so opening the editor costs nothing for it; Save commits the reset. */
 async function reset() {
-	if (!draft.value) return;
+	const level = scope.value;
+	const read = reads.value[level];
+	if (!read) return;
 	resetting.value = true;
 	failed.value = null;
 	try {
-		const below = await fetchDefaultArrangements(boot.app!, scope.value);
-		draft.value = resetToDefault(draft.value, below);
+		const below = await fetchDefaultArrangements(boot.app!, level);
+		read.draft = resetToDefault(read.draft, below);
 		selected.value = null;
 	} catch (error) {
 		failed.value = (error as Error).message;
