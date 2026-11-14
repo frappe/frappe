@@ -230,7 +230,6 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { acts } from "@/acts/dispatcher";
 import type { Addresses } from "@/addresses";
 import { __ } from "@/i18n";
-import { shellDialog } from "@/shell/dialog";
 import type { DesignCanvas } from "./designCanvas";
 import FetchedRow from "./FetchedRow.vue";
 import { fetchable } from "./fetchFrom";
@@ -239,14 +238,12 @@ import FieldTabRow from "./FieldTabRow.vue";
 import FieldnameRow from "./FieldnameRow.vue";
 import {
 	removeAction,
-	removeQuestion,
 	reqdWarning,
 	panelMark,
 	subtitle,
-	takeOff,
-	takesOff,
+	removeField,
 	typeChange,
-	typeGroups,
+	typeMenuOptions,
 	typeNote,
 } from "./fieldPanel";
 import FieldPropertyGroups from "./FieldPropertyGroups.vue";
@@ -287,33 +284,7 @@ const titleable = computed(() => {
 });
 const appTitle = computed(() => props.canvas.state.app_title || __("the app"));
 
-const typeMenu = computed(() => {
-	const { groups, more } = typeGroups(props.canvas, props.field.fieldname);
-	const option = ({ name, disabled }: { name: string; disabled: boolean }) => ({
-		label: __(name),
-		icon: typeIcon(name),
-		disabled,
-		onClick: () => pickType(name),
-	});
-	const menu: Record<string, unknown>[] = groups.map((group) => ({
-		group: group.label,
-		hideLabel: !group.label,
-		options: group.types.map(option),
-	}));
-	if (!more.length) return menu;
-	const submenu = more.map((group) => ({
-		group: __(group.label),
-		options: group.types.map(option),
-	}));
-	return [
-		...menu,
-		{
-			group: "",
-			hideLabel: true,
-			options: [{ label: __("More types"), icon: "lucide-shapes", submenu }],
-		},
-	];
-});
+const typeMenu = computed(() => typeMenuOptions(props.canvas, props.field.fieldname, pickType));
 
 function set(property: string, value: unknown) {
 	const current = (props.field as unknown as Record<string, unknown>)[property] ?? "";
@@ -345,21 +316,8 @@ function pickType(name: string) {
 	});
 }
 
-async function remove() {
-	const { fieldname, label } = props.field;
-	if (takesOff(props.canvas)) return takeOff(props.canvas, fieldname);
-	if (props.canvas.customize?.hidesOnRemove(fieldname))
-		return set("hidden", props.field.hidden ? 0 : 1);
-	const question = removeQuestion(props.canvas, props.field);
-	if (question) {
-		const confirmed = await shellDialog().danger({
-			title: __("Remove {0}?", [label || fieldname]),
-			message: question,
-			confirmLabel: __("Remove"),
-		});
-		if (!confirmed) return;
-	}
-	void acts.perform("fields.delete_field", { fieldname });
+function remove() {
+	return removeField(props.canvas, props.field);
 }
 
 function text(event: Event) {

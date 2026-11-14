@@ -8,7 +8,11 @@
 			<span class="size-4" :class="icon" aria-hidden="true" />
 		</div>
 		<div class="min-w-0 flex-1">
-			<p class="truncate text-lg font-semibold text-ink-gray-9" data-panel-title>
+			<p
+				class="truncate text-lg font-semibold"
+				:class="muted ? 'text-ink-gray-4' : 'text-ink-gray-9'"
+				data-panel-title
+			>
 				{{ title }}
 			</p>
 			<p class="mt-0.5 truncate text-sm text-ink-gray-5" data-panel-subtitle>
@@ -48,6 +52,7 @@ withDefaults(
 		removeLabel?: string;
 		removeIcon?: string;
 		removeActive?: boolean;
+		muted?: boolean;
 	}>(),
 	{ removeLabel: "", removeIcon: "lucide-trash-2", removeActive: false }
 );

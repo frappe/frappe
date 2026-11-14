@@ -4,6 +4,7 @@ import { acts } from "@/acts/dispatcher";
 import type { LayoutTreeColumn, LayoutTreeSection, LayoutTreeTab } from "./layoutTree";
 import type { DesignCanvas } from "./designCanvas";
 import { addFieldType, type NewType } from "./newField";
+import { removeField } from "./fieldPanel";
 
 export interface DragChange<T> {
 	added?: { element: T; newIndex: number };
@@ -18,7 +19,8 @@ export function dropField(
 	into: { section: string; column: string } | { tab: string },
 ) {
 	const landed = change.added ?? change.moved;
-	if (!landed) return;
+	// The bin covers the columns, so Sortable still reports a drop under it: that drop is the bin's.
+	if (!landed || canvas.drag.value.overBin) return;
 	const index = "tab" in into ? {} : { index: landed.newIndex };
 	if (typeof landed.element !== "string") return void addFieldType(canvas, landed.element.type, { ...into, ...index });
 	const fieldname = landed.element;
@@ -26,7 +28,25 @@ export function dropField(
 	void acts.perform(act, { fieldname, ...into, ...index });
 }
 
-export function dropOffLayout(change: DragChange<string>) {
+/** Starts a placed field's drag: the bin shows, and it knows which field the item is. */
+export function startDrag(canvas: DesignCanvas, item: HTMLElement) {
+	canvas.drag.value = { active: true, overBin: false, fieldname: item.dataset.canvasField };
+}
+
+/** Ends a placed field's drag: released over the bin, the field leaves as the panel's trash would. */
+export function dropOnBin(canvas: DesignCanvas) {
+	const { overBin, fieldname } = canvas.drag.value;
+	canvas.drag.value = { active: false, overBin: false };
+	const field = fieldname ? canvas.field(fieldname) : undefined;
+	if (!overBin || !field) return;
+	// A hidden field stays hidden: the panel trash would show it again, the bin has no such verb.
+	if (canvas.customize?.hidesOnRemove(field.fieldname) && field.hidden) return;
+	void removeField(canvas, field);
+}
+
+export function dropOffLayout(canvas: DesignCanvas, change: DragChange<string>) {
+	// Over the bin, the drop is the bin's too: a canceled removal must leave the layout as it was.
+	if (canvas.drag.value.overBin) return;
 	if (typeof change.added?.element === "string") void acts.perform("canvas.unplace_field", { fieldname: change.added.element });
 }
 

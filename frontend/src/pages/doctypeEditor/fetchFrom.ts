@@ -1,6 +1,5 @@
 // Fetch from: the Link fields a field fetches through, the fields of the linked DocType it can
 // fetch, and the name of the field "Fetch a field…" adds.
-import { shallowRef } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
 import { fieldnameFromLabel, LAYOUT_BREAKS, validFieldname } from "./fieldRules";
@@ -20,9 +19,6 @@ const UNFETCHABLE = [
 	...["Attachment Gallery", "HTML", "Button", "Heading", "Image", "Fold", "Vue Component"],
 	...["Table", "Table MultiSelect", "Dynamic Link"],
 ];
-
-/** The Link field whose "Fetch a field…" the canvas menu asked the field panel to open. */
-export const fetchAsked = shallowRef<string | null>(null);
 
 export function linkFields(fields: readonly RawMetaField[], except?: string): RawMetaField[] {
 	return fields.filter((field) => field.fieldtype === "Link" && field.options && field.fieldname !== except);

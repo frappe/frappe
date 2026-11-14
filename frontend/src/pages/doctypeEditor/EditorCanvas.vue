@@ -66,6 +66,7 @@
 
 			<OffLayoutTray v-if="type === 'Details' || !canvas.editable" :canvas="canvas" />
 		</template>
+		<FieldBin v-if="canvas.editable" :canvas="canvas" />
 	</div>
 </template>
 
@@ -79,6 +80,7 @@ import CanvasForm from "./CanvasForm.vue";
 import { canvasMove, type Direction } from "./canvasMoves";
 import type { DesignCanvas } from "./designCanvas";
 import DoctypeDescription from "./DoctypeDescription.vue";
+import FieldBin from "./FieldBin.vue";
 import type { EditorSave } from "./editorSave";
 import { provideInertForm } from "./inertForm";
 import { takeOff, takesOff } from "./fieldPanel";
@@ -175,7 +177,8 @@ function move(direction: Direction) {
 
 watch(
 	() => props.canvas.selection.value,
-	async () => {
+	async (selection) => {
+		if (selection?.kind !== "field") return;
 		await nextTick();
 		document
 			.querySelector("[data-editor-canvas] [data-canvas-selected]")
@@ -209,6 +212,16 @@ watch(
 }
 [data-doctype-editor] .canvas-tab-drop > .sortable-chosen.canvas-drop-line {
 	display: none;
+}
+/* Sortable draws the dragged clone at 0.8 opacity over the bin's words: give it a surface, and hide it over the bin. */
+[data-doctype-editor] .sortable-fallback {
+	height: auto !important;
+	opacity: 1 !important;
+	background-color: var(--surface-base);
+	box-shadow: 0 0 0 1px var(--outline-gray-4), 0 4px 12px rgb(0 0 0 / 0.16);
+}
+[data-doctype-editor]:has([data-canvas-bin][data-over]) .sortable-fallback {
+	opacity: 0 !important;
 }
 .canvas-tab-drop:has(> .canvas-drop-line) {
 	background-color: var(--surface-gray-2);

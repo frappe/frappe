@@ -27,7 +27,7 @@
 			v-bind="DRAG_OPTIONS"
 			:disabled="!canvas.editable"
 			data-canvas-tray-list
-			@change="dropOffLayout"
+			@change="dropOffLayout(canvas, $event)"
 		>
 			<template #item="{ element: fieldname }">
 				<div

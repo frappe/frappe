@@ -1,6 +1,6 @@
 // The canvas and the panel of each layout type: the side panel's frame, the Create dialog's frame,
 // and the panel's tray outside Details.
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref, type App, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import EditorCanvas from "../EditorCanvas.vue";
@@ -99,5 +99,20 @@ describe("the panel outside Details", () => {
 	it("shows Details' hint, not the tray", async () => {
 		const root = await draw(EditorPanel, { type: "Details" });
 		expect(root.querySelector("[data-panel-tray]")).toBeNull();
+	});
+});
+
+describe("the canvas scroll on selection", () => {
+	it("follows a selected field, and stays put for a section", async () => {
+		const scroll = vi.fn();
+		Element.prototype.scrollIntoView = scroll;
+		const root = await draw(EditorCanvas, { type: "Details" });
+		const section = root.querySelector("[data-canvas-section]")!.getAttribute("data-canvas-section")!;
+		editor.canvas.select({ kind: "section", section });
+		await settle();
+		expect(scroll).not.toHaveBeenCalled();
+		editor.canvas.select({ kind: "field", fieldname: "subject" });
+		await settle();
+		expect(scroll).toHaveBeenCalledWith({ block: "nearest" });
 	});
 });

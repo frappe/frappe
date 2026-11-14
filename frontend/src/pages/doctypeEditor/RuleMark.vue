@@ -1,7 +1,11 @@
 <!-- A small gray mark on a field, section, column or tab that has a rule; its Tooltip says each rule
      in words. The host positions it so it takes no layout width. -->
 <template>
-	<span v-if="lines.length" class="grid size-4 shrink-0 place-items-center" data-rule-mark>
+	<span
+		v-if="lines.length"
+		class="inline-grid size-4 shrink-0 place-items-center align-middle"
+		data-rule-mark
+	>
 		<Tooltip>
 			<template #content>
 				<div class="max-w-[320px] space-y-1 whitespace-normal break-words">

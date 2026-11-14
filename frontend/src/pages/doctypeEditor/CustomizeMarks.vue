@@ -4,7 +4,7 @@
 	<template v-if="marks">
 		<Tooltip v-if="marks.hidden" :text="__('Hidden on the form')">
 			<span
-				class="lucide-eye-off size-3.5 shrink-0 text-ink-gray-5"
+				class="lucide-eye-off size-3.5 shrink-0 text-ink-gray-9"
 				:aria-label="__('Hidden')"
 				data-canvas-mark="hidden"
 			/>
@@ -17,7 +17,7 @@
 			class="shrink-0"
 			data-canvas-mark="custom"
 		/>
-		<Tooltip v-else-if="marks.changed.length" :text="changedText">
+		<Tooltip v-else-if="marks.changed.length && !marks.hidden" :text="changedText">
 			<span
 				class="grid size-3.5 shrink-0 place-items-center"
 				:aria-label="__('Changed on this site')"

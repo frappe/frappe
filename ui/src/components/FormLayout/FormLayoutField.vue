@@ -1,5 +1,6 @@
 <template>
 	<div
+		ref="root"
 		class="field"
 		:data-fieldname="field.fieldname"
 		:data-fieldtype="field.fieldtype"
@@ -20,11 +21,14 @@
 			@change="(value: any) => onCommit(value)"
 			v-on="field.ui?.on ?? {}"
 		/>
+		<FieldLabelAfter v-if="$slots['label-after']" :host="label">
+			<slot name="label-after" />
+		</FieldLabelAfter>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
 import {
 	AutofocusKey,
 	CommitKey,
@@ -37,10 +41,12 @@ import {
 import { holdsChildRows } from "../Fields/rowIdentity";
 import { drawsReadValue } from "../Fields/readView";
 import ReadOnlyField from "../Fields/ReadOnlyField.vue";
+import { FieldLabelAfter } from "./FieldLabelAfter";
 import { FieldErrorsKey, fieldErrorKey } from "../Fields/types";
 import type { FieldNode } from "./types";
 
 const props = defineProps<{ field: FieldNode }>();
+const slots = defineSlots<{ "label-after"?: () => unknown }>();
 
 const doc = inject(DocKey)!;
 const update = inject(UpdateKey)!;
@@ -54,6 +60,19 @@ const scriptPage = computed(() =>
 	props.field.ui?.component && page?.value ? { page: page.value } : {}
 );
 const error = computed(() => errors?.value[fieldErrorKey(props.field.fieldname)]);
+
+// A host's marks sit inside the control's own label, after its last word, and follow it as the control swaps.
+const root = ref<HTMLElement | null>(null);
+const label = shallowRef<Element | null>(null);
+let watcher: MutationObserver | null = null;
+onMounted(() => {
+	if (!slots["label-after"]) return;
+	const find = () => (label.value = root.value!.querySelector('[data-slot="label"]'));
+	find();
+	watcher = new MutationObserver(find);
+	watcher.observe(root.value!, { childList: true, subtree: true });
+});
+onBeforeUnmount(() => watcher?.disconnect());
 
 // A child table commits through its rows, never under its own fieldname, which
 // ticket 45 retired as a handler key.

@@ -3,17 +3,17 @@
 <template>
 	<div
 		class="group/section relative -m-3 rounded-7 p-3"
-		:class="{ 'ring-1 ring-outline-gray-4': selected }"
+		:class="{ 'ring-1 ring-outline-gray-5': selected }"
 		:data-canvas-section="section.name"
 		:data-canvas-selected="selected || undefined"
 		@click.stop="select({ kind: 'section', section: name })"
 	>
-		<div class="mb-3 flex h-7 items-center gap-1">
+		<div class="relative mb-3 flex h-7 items-center gap-1">
 			<input
 				:value="section.label ?? ''"
 				:placeholder="__('Untitled section')"
 				:readonly="!canvas.editable"
-				class="min-w-0 flex-1 border-0 bg-transparent p-0 text-base-medium text-ink-gray-9 placeholder:font-normal placeholder:text-ink-gray-4 focus:outline-none focus:ring-0"
+				class="min-w-[8ch] max-w-full border-0 [field-sizing:content] bg-transparent p-0 text-base-medium text-ink-gray-9 placeholder:font-normal placeholder:text-ink-gray-4 focus:outline-none focus:ring-0"
 				:aria-label="__('Section label')"
 				data-canvas-section-label
 				@focus="select({ kind: 'section', section: name })"
@@ -21,25 +21,27 @@
 				@change="setLabel(($event.target as HTMLInputElement).value)"
 			/>
 			<RuleMark :canvas="canvas" kind="section" :node="section" />
-			<template v-if="canvas.editable">
+			<div
+				v-if="canvas.editable"
+				class="absolute right-0 top-0 flex items-center rounded-4 bg-surface-base opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100"
+				:class="{ '!opacity-100': selected }"
+				data-canvas-controls
+			>
 				<Dropdown :options="menu" side="bottom" align="end">
 					<Button
 						variant="ghost"
 						size="sm"
 						icon="lucide-ellipsis"
-						class="opacity-0 group-hover/section:opacity-100"
-						:class="{ '!opacity-100': selected }"
 						:aria-label="__('Section actions')"
 					/>
 				</Dropdown>
 				<span
-					class="section-grip flex size-7 shrink-0 cursor-grab items-center justify-center text-ink-gray-4 opacity-0 hover:text-ink-gray-7 group-hover/section:opacity-100"
-					:class="{ '!opacity-100': selected }"
+					class="section-grip flex size-7 shrink-0 cursor-grab items-center justify-center text-ink-gray-4 hover:text-ink-gray-7"
 					:title="__('Drag to move the section')"
 				>
 					<span class="lucide-grip-vertical size-4" aria-hidden="true" />
 				</span>
-			</template>
+			</div>
 		</div>
 		<p
 			v-for="error in canvas.errorsAt('container', name)"
