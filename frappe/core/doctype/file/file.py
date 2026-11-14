@@ -316,26 +316,23 @@ class File(Document):
 		if not self.is_new():
 			filters["name"] = ["!=", self.name]
 
-		private_files = frappe.get_all("File", filters=filters, fields=["name", "owner"])
+		private_files = frappe.get_all(
+			"File",
+			filters=filters,
+			fields=["name", "owner", "is_private", "attached_to_doctype", "attached_to_name"],
+		)
 		if not private_files:
 			return
 
-		user = frappe.session.user
-		if user == "Administrator":
+		# a file can be attached to multiple documents; access to any one of them is enough
+		if any(private_file.owner == frappe.session.user for private_file in private_files):
 			return
 
-		# a file can be attached to multiple documents; access to any one of them is enough
-		for private_file in private_files:
-			if user == private_file.owner:
-				return
-
-			if has_permission(frappe.get_doc("File", private_file.name), "read", user=user):
-				return
-
-		frappe.throw(
-			_("You do not have permission to access this file"),
-			frappe.PermissionError,
-		)
+		if not _find_readable_file(private_files):
+			frappe.throw(
+				_("You do not have permission to access this file"),
+				frappe.PermissionError,
+			)
 
 	def before_save(self):
 		# here, not in validate(): a File subclass may skip super().validate()
@@ -1102,6 +1099,51 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 			return frappe.has_permission(attached_to_doctype, "read", doc=ref_doc, user=user, debug=debug)
 
 	return False
+
+
+def _find_readable_file(files: list[frappe._dict]) -> frappe._dict | None:
+	"""Return the first of `files` the session user can read, by the rules of `has_permission`.
+
+	Rows need `name`, `owner`, `is_private`, `attached_to_doctype` and `attached_to_name`."""
+	user = frappe.session.user
+	can_read_all_files = user == "Administrator" or any(frappe.get_hooks("ignore_file_permissions"))
+	for file in files:
+		if can_read_all_files or not file.is_private or (user != "Guest" and file.owner == user):
+			return file
+
+	if user != "Guest":
+		shared_files = set(
+			frappe.share.get_shared(
+				"File", user, filters=[["share_name", "in", [file.name for file in files]]]
+			)
+		)
+		for file in files:
+			if file.name in shared_files:
+				return file
+
+	readable_doctypes = {}
+	checked_documents = set()
+	for file in files:
+		doctype, name = file.attached_to_doctype, file.attached_to_name
+		if not (doctype and name) or (doctype, name) in checked_documents:
+			continue
+		checked_documents.add((doctype, name))
+
+		try:
+			# a child table cannot be checked without its parent document
+			if doctype not in readable_doctypes and not frappe.is_table(doctype):
+				readable_doctypes[doctype] = frappe.has_permission(doctype, "read", user=user)
+			if not readable_doctypes.get(doctype, True):
+				continue
+			attached_document = frappe.get_lazy_doc(doctype, name)
+		except (ModuleNotFoundError, ImportError):
+			continue
+		except frappe.DoesNotExistError:
+			frappe.clear_last_message()
+			continue
+
+		if frappe.has_permission(doctype, "read", doc=attached_document, user=user):
+			return file
 
 
 def get_permission_query_conditions(user: str | None = None) -> str:
