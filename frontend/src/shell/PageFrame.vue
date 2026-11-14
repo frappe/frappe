@@ -17,7 +17,7 @@
 		:class="gutterVar"
 		:viewportClass="pageGutter"
 	>
-		<PageHeader v-if="title || $slots.header">
+		<PageHeader v-if="title || $slots.header" :class="headerInset()">
 			<slot name="header"><PageHeaderTitle :title="title" /></slot>
 		</PageHeader>
 		<slot />
@@ -25,7 +25,7 @@
 
 	<!-- No padding here: a pane that scrolls both ways puts the gutter on its own viewport. -->
 	<div v-else class="flex min-h-0 flex-1 flex-col overflow-hidden" :class="gutterVar">
-		<PageHeader v-if="title || $slots.header">
+		<PageHeader v-if="title || $slots.header" :class="headerInset()">
 			<slot name="header"><PageHeaderTitle :title="title" /></slot>
 		</PageHeader>
 		<PageState v-if="state" v-bind="state" />
@@ -34,9 +34,18 @@
 </template>
 
 <script lang="ts">
+import { navSide } from "./navigationSide";
+
 /** The side padding a page's content shares with the header row; the frame root sets `--page-gutter`. */
 export const pageGutter = "px-[--page-gutter]";
 const gutterVar = "[--page-gutter:0.75rem] sm:[--page-gutter:1.25rem]";
+
+/** Room for the shell's menu button at the navigation's edge of the row; `--shell-header-inset-start` is 0 unless the drawer draws. */
+function headerInset() {
+	return navSide() === "right"
+		? "pr-[calc(0.75rem+var(--shell-header-inset-start,0px))] sm:pr-[calc(1.25rem+var(--shell-header-inset-start,0px))]"
+		: "pl-[calc(0.75rem+var(--shell-header-inset-start,0px))] sm:pl-[calc(1.25rem+var(--shell-header-inset-start,0px))]";
+}
 </script>
 
 <script setup lang="ts">
