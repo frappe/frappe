@@ -98,7 +98,7 @@ def restore(name: str | int, alert: bool = True):
 		frappe.msgprint(_("Document Restored"))
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def bulk_restore(docnames: str | list[str]):
 	frappe.only_for("System Manager")
 	docnames = frappe.parse_json(docnames)

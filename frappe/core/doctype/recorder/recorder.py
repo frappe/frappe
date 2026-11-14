@@ -140,7 +140,7 @@ def serialize_request(request):
 	return request
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def add_indexes(indexes: str | list[dict]):
 	frappe.only_for("Administrator")
 	indexes = frappe.parse_json(indexes)
@@ -160,7 +160,7 @@ def _add_index(table, column):
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def optimize(recorder_id: str):
 	frappe.only_for("Administrator")
 	frappe.enqueue(_optimize, recorder_id=recorder_id, queue="long")
