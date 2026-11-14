@@ -74,7 +74,8 @@ test.describe("Navigation side in the settings dialog", () => {
 	test("the seam and the toasts follow the side", async ({ page }) => {
 		await page.goto("/apps/desk/todo?sidebar=site:sidchk");
 		const seam = page.locator('button[aria-label="Collapse sidebar"]');
-		const panel = seam.locator("xpath=..");
+		// Outside the overlay the seam's parent is `display: contents` and has no box: the panel is its first sibling.
+		const panel = seam.locator("xpath=preceding-sibling::*[last()]");
 		await expect(seam).toBeVisible();
 		await page.goto("/apps/desk/todo#settings/desk/profile");
 		const side = page
