@@ -168,7 +168,22 @@ def move_print_format_usage(old: str, new: str) -> None:
 
 
 def print_format_link_fields() -> list[dict]:
-	return [f for f in get_link_fields("Print Format") if f["parent"] != "Customize Form"]
+	"""Link fields to Print Format, plus Select and Data fields that hold a print format name."""
+	fields = [f for f in get_link_fields("Print Format") if f["parent"] != "Customize Form"]
+	named = {"fieldtype": ("in", ("Select", "Data")), "fieldname": ("like", "%print_format")}
+	skip = ("DocType", "Customize Form", "Print Format")
+	named_fields = frappe.get_all("DocField", filters=named, fields=["parent", "fieldname"]) + frappe.get_all(
+		"Custom Field", filters=named, fields=["dt as parent", "fieldname"]
+	)
+	for field in named_fields:
+		if field.parent in skip:
+			continue
+		doctype = frappe.db.get_value("DocType", field.parent, ["issingle", "is_virtual"], as_dict=True)
+		if doctype and not doctype.is_virtual:
+			fields.append(
+				{"parent": field.parent, "fieldname": field.fieldname, "issingle": doctype.issingle}
+			)
+	return fields
 
 
 def print_format_usage(print_format: str) -> list[str]:
