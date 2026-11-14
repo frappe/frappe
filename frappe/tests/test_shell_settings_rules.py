@@ -145,20 +145,36 @@ class TestSettingsRules(SettingsDialogTestCase):
 
 	def test_a_role_a_later_fixture_makes_does_not_stop_the_import(self):
 		with authoring():
-			doc = ship(["general"], [component("theme", component="appearance", roles='["Role From A Fixture"]')], insert=False)
+			doc = ship(
+				["general"],
+				[component("theme", component="appearance", roles='["Role From A Fixture"]')],
+				insert=False,
+			)
 
 		doc.run_method("before_import")
 
 	def test_after_migrate_finds_a_role_that_still_does_not_exist(self):
 		with authoring():
-			unchecked(ship(["general"], [component("theme", component="appearance", roles='["No Such Role"]')], insert=False))
+			unchecked(
+				ship(
+					["general"],
+					[component("theme", component="appearance", roles='["No Such Role"]')],
+					insert=False,
+				)
+			)
 
 		with active(HOST), self.assertRaisesRegex(frappe.ValidationError, "No Such Role"):
 			check_shipped_records()
 
 	def test_a_production_migrate_logs_a_missing_role_and_goes_on(self):
 		with authoring():
-			unchecked(ship(["general"], [component("theme", component="appearance", roles='["No Such Role"]')], insert=False))
+			unchecked(
+				ship(
+					["general"],
+					[component("theme", component="appearance", roles='["No Such Role"]')],
+					insert=False,
+				)
+			)
 
 		with (
 			active(HOST),
@@ -202,7 +218,12 @@ class TestSettingsRules(SettingsDialogTestCase):
 				doc.insert()
 
 	def test_import_reads_the_old_shape_and_native_json(self):
-		old = {"key": "theme", "pane": "general", "component": "appearance", "settings": '[{"label": "Theme"}]'}
+		old = {
+			"key": "theme",
+			"pane": "general",
+			"component": "appearance",
+			"settings": '[{"label": "Theme"}]',
+		}
 		new = {
 			"key": "theme",
 			"pane": "general",

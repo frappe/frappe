@@ -320,7 +320,10 @@ class TestSettingsFilter(SettingsDialogTestCase):
 		with authoring():
 			ship(
 				["general"],
-				[single("mine", doctype=SINGLE, roles=creators), component("theme", component="appearance", roles=creators)],
+				[
+					single("mine", doctype=SINGLE, roles=creators),
+					component("theme", component="appearance", roles=creators),
+				],
 			)
 
 		self.assertEqual(blocks_of(visible(READER)), {}, "the reader reads the Single but holds no role")
@@ -330,7 +333,10 @@ class TestSettingsFilter(SettingsDialogTestCase):
 	def test_a_role_does_not_pass_a_block_its_kind_refuses(self):
 		with authoring():
 			readers = json.dumps([READER_ROLE])
-			ship(["general"], [single("system", roles=readers), component("theme", component="appearance", roles=readers)])
+			ship(
+				["general"],
+				[single("system", roles=readers), component("theme", component="appearance", roles=readers)],
+			)
 
 		self.assertEqual(blocks_of(visible(READER)), {"general": ["theme"]})
 		self.assertEqual(blocks_of(visible(READER, gate=lambda app: False)), {})
@@ -380,7 +386,10 @@ class TestSettingsFilter(SettingsDialogTestCase):
 		with authoring():
 			ship(
 				["general"],
-				[single("mine", doctype=SINGLE, fields=json.dumps(["gamma"])), component("theme", component="appearance")],
+				[
+					single("mine", doctype=SINGLE, fields=json.dumps(["gamma"])),
+					component("theme", component="appearance"),
+				],
 			)
 
 		self.assertEqual(blocks_of(visible()), {"general": ["theme"]})
