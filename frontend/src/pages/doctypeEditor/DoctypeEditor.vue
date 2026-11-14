@@ -247,7 +247,8 @@ useLayoutAddress(() => canvas.value);
 
 async function load() {
 	const mode = modeOf(route.query.mode);
-	if (holdsRoute(state.value, name.value, mode)) return;
+	// Unsaved edits, or a DocType not yet saved, still load: a discarded switch must clear them.
+	if (!dirty.value && holdsRoute(state.value, name.value, mode)) return;
 	const current = loads.begin();
 	reset();
 	if (name.value === "new") return void startAsking(current);
