@@ -79,9 +79,13 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			frappe.utils.debounce((e) => {
 				this.set_options().then(() => {
 					let txt = e.target.value;
+					// get_data(txt) already searched on the server for txt, possibly on a field
+					// the option does not show (e.g. an Item found by its barcode): keep what it
+					// returned. Options that do not depend on txt are still filtered here.
+					let searched_on_server = this.df.get_data && this.df.get_data.length > 0;
 					let filtered_options = this._options.filter((opt) => {
 						let match = false;
-						if (this.values.includes(opt.value)) {
+						if (searched_on_server || this.values.includes(opt.value)) {
 							return true;
 						}
 						match =
