@@ -55,6 +55,7 @@
   "notifications",
   "show_my_space",
   "dock_mode",
+  "navigation_side",
   "list_settings_section",
   "bulk_actions",
   "list_sidebar",
@@ -813,6 +814,13 @@
    "fieldtype": "Select",
    "label": "Dock",
    "options": "Floating\nPinned"
+  },
+  {
+   "description": "start = left (right in RTL languages). Blank uses the site's value.",
+   "fieldname": "navigation_side",
+   "fieldtype": "Select",
+   "label": "Navigation side",
+   "options": "\nstart\nend"
   },
   {
    "collapsible": 1,

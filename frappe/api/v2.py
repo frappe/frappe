@@ -94,8 +94,9 @@ def get_session() -> dict[str, Any]:
 		None
 
 	Response:
-		frappe.response["data"]: dict with the keys `user` (name, full_name, email, user_image),
-			`roles`, `lang`, `timezone` and `defaults`, which is empty for anyone but a System User.
+		frappe.response["data"]: dict with the keys `user` (name, full_name, email, user_image,
+			document_follow_notify, navigation_side), `roles`, `lang`, `timezone` and `defaults`, which is
+			empty for anyone but a System User.
 			A Guest gets a Guest body, never a 403.
 	"""
 	from frappe.sessions import get_session_info

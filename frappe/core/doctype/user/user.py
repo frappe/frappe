@@ -134,6 +134,7 @@ class User(Document):
 		mobile_no: DF.Data | None
 		module_profile: DF.Link | None
 		mute_sounds: DF.Check
+		navigation_side: DF.Literal["", "start", "end"]
 		new_password: DF.Password | None
 		notifications: DF.Check
 		onboarding_status: DF.SmallText | None
