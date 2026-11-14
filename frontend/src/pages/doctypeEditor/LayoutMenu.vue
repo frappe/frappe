@@ -4,7 +4,7 @@
 		<template #trigger="{ open: isOpen }">
 			<button
 				type="button"
-				class="flex min-w-0 max-w-[360px] items-center gap-0.5 rounded-4 px-1 py-1 text-lg-medium leading-tighter text-ink-gray-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				class="flex max-w-[360px] shrink-0 items-center gap-0.5 rounded-4 px-0.5 py-1 text-lg-medium leading-tighter text-ink-gray-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 				:class="isOpen ? 'bg-surface-gray-3' : 'hover:bg-surface-gray-2'"
 				data-layout-crumb
 				@pointerenter="preload"

@@ -35,7 +35,8 @@ export interface CustomizeHost {
 	setMode: (mode: EditorMode) => void;
 	/** The open canvas's DocType, which may be a child table: the one the act writes. */
 	askReset: (state: EditorState, counts: ResetCounts) => Promise<true | null>;
-	askExport: (state: EditorState) => Promise<ExportAnswers | null>;
+	/** `changes` is what this site changed: the rows the export carries. */
+	askExport: (state: EditorState, changes: CustomizationCounts) => Promise<ExportAnswers | null>;
 	/** Loads the DocType again, dropping pending edits. */
 	reload: () => Promise<unknown>;
 }
@@ -104,7 +105,8 @@ async function resetAll(host: EditorActsHost) {
 async function exportCustomizations(host: EditorActsHost) {
 	const state = host.canvas()!.state;
 	const { doctype } = state;
-	const answers = await host.customize.askExport(state);
+	const { data: counts } = await runMethod<ResetCounts>(RESET_METHOD, { doctype });
+	const answers = await host.customize.askExport(state, counts.delete);
 	if (!answers) return;
 	const { data: path } = await runMethod<string | null>(EXPORT_METHOD, { doctype, ...answers });
 	toast.success(path ? __("Exported to {0}.", [path]) : __("{0} has no customizations to export.", [doctype]));

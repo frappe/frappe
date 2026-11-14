@@ -1,7 +1,7 @@
 <!-- The open layout's tabs, sections, columns and fields, and "Add section". Every canvas draws it;
-     inside a frame the tab strip shows only once the layout has two tabs. -->
+     the tab strip shows once the layout has two tabs, and until then "Add tab" sits beside "Add section". -->
 <template>
-	<CanvasTabs v-if="tabbed || canvas.tabs.value.length > 1" class="mb-6" :canvas="canvas" />
+	<CanvasTabs v-if="canvas.tabs.value.length > 1" class="mb-6" :canvas="canvas" />
 	<Draggable
 		:model-value="tab?.sections ?? []"
 		:item-key="(section: LayoutTreeSection) => section.name"
@@ -20,13 +20,22 @@
 	<p v-if="tab && !tab.sections.length" class="mt-6 text-base text-ink-gray-5">
 		{{ __("This tab has no sections.") }}
 	</p>
-	<div v-if="canvas.editable" class="mt-10 flex border-t pt-4" data-canvas-add-section>
+	<div v-if="canvas.editable" class="mt-10 flex gap-2 border-t pt-4" data-canvas-add-section>
 		<Button
 			variant="subtle"
 			size="sm"
 			icon-left="lucide-plus"
 			:label="__('Add section')"
 			@click.stop="acts.perform('canvas.add_section')"
+		/>
+		<Button
+			v-if="tabbed && canvas.tabs.value.length < 2"
+			variant="subtle"
+			size="sm"
+			icon-left="lucide-panel-top"
+			:label="__('Add tab')"
+			data-canvas-add-tab
+			@click.stop="acts.perform('canvas.add_tab')"
 		/>
 	</div>
 </template>

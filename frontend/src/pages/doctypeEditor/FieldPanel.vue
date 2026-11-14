@@ -223,11 +223,13 @@ import { TABLE_TYPES, typeIcon, typeName } from "./fieldtypes";
 import LinkFiltersRow from "./LinkFiltersRow.vue";
 import { targetChange } from "./linkFilters";
 import PanelHeader from "./PanelHeader.vue";
+import { providePanelIndex } from "./panelIndex";
 import PanelRow from "./PanelRow.vue";
 import PanelSection from "./PanelSection.vue";
 import TableFieldRows from "./TableFieldRows.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; field: RawMetaField }>();
+providePanelIndex();
 
 const doctypes = inject<Addresses>("addresses")!.doctypes();
 const currentType = computed(() => typeName(props.field.fieldtype, props.field.options));

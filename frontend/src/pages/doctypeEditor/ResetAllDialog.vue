@@ -24,11 +24,16 @@
 			<p v-if="dirty">{{ __("Your edits that are not saved are dropped too.") }}</p>
 		</template>
 		<p v-else>{{ __("This site has not changed {0}. Nothing to reset.", [doctype]) }}</p>
-		<p v-if="keeps.length" class="text-ink-gray-5">
-			{{ __("Keeps {0}: an app made them.", [keeps.join(", ")]) }}
+		<p v-if="keeps.length" class="text-ink-gray-6">
+			{{
+				__("Keeps {0}: {1} made them, and they come back on every migrate.", [
+					keeps.join(", "),
+					appTitle || __("An app"),
+				])
+			}}
 		</p>
 		<div class="flex justify-end gap-2">
-			<Button :label="__('Cancel')" @click="close(null)" />
+			<Button :label="__('Cancel')" autofocus @click="close(null)" />
 			<Button
 				variant="solid"
 				theme="red"
@@ -45,6 +50,7 @@ import { computed } from "vue";
 import { Button, Icon } from "frappe-ui";
 import { __ } from "@/i18n";
 import { resetLines, type ResetCounts } from "./customizeActs";
+import { returnToMore } from "./returnToMore";
 
 const props = defineProps<{
 	doctype: string;
@@ -53,6 +59,8 @@ const props = defineProps<{
 	dirty: boolean;
 	close: (reset: true | null) => void;
 }>();
+
+returnToMore();
 
 const removes = computed(() => resetLines(props.counts.delete));
 const keeps = computed(() => resetLines(props.counts.keep));

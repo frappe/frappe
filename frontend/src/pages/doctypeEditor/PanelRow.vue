@@ -1,6 +1,6 @@
 <!-- `box` wraps a ghost control the way desk's FieldBox does. -->
 <template>
-	<div class="group/row grid grid-cols-[130px_1fr] items-start gap-2">
+	<div ref="root" class="group/row grid grid-cols-[130px_1fr] items-start gap-2">
 		<div class="flex h-7 min-w-0 items-center gap-1">
 			<span class="truncate text-base text-ink-gray-5" :title="label">{{ label }}</span>
 			<Tooltip v-if="lock" :text="lock">
@@ -42,10 +42,12 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { Tooltip } from "frappe-ui";
 import { __ } from "@/i18n";
+import { usePanelRow } from "./panelIndex";
 
-withDefaults(
+const props = withDefaults(
 	defineProps<{
 		label: string;
 		box?: boolean;
@@ -56,4 +58,9 @@ withDefaults(
 	{ box: true, lock: "", resetText: "" }
 );
 defineEmits<{ reset: [] }>();
+const root = ref<HTMLElement | null>(null);
+usePanelRow(
+	() => props.label,
+	() => root.value
+);
 </script>

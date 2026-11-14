@@ -14,32 +14,29 @@
 				:saving="save.saving.value"
 				:mode="state.mode"
 				:modes="state.modes"
+				v-model:finder-open="finderOpen"
 				:developer-mode="boot.developer_mode"
+				:finder="finder"
+				:draft="Boolean(state.pending || openChild?.state.pending)"
 				:child-crumbs="child.crumbs.value"
 				@open-parent="child.open(null)"
 				@act="(name, value) => acts.perform(name, value)"
 			/>
 		</template>
-		<NewDoctypeDialog
-			v-if="asking"
-			:initial="asking.answers"
-			@create="startNew"
-			@cancel="router.push(routeFor('DocType'))"
-		/>
 		<div
-			v-if="!state && !asking"
+			v-if="!state"
 			class="flex flex-1 items-center justify-center text-base text-ink-gray-5"
 		>
 			{{ __("Loading {0}…", [name]) }}
 		</div>
 		<template v-else-if="state">
 			<div
-				class="flex flex-1 items-center justify-center border-t px-6 text-center text-base text-ink-gray-6 lg:hidden"
+				class="flex flex-1 items-center justify-center px-6 text-center text-base text-ink-gray-6 lg:hidden"
 			>
 				{{ __("The editor needs a wider window, 1024px or more.") }}
 			</div>
 			<div
-				class="hidden min-h-0 flex-1 border-t lg:flex"
+				class="hidden min-h-0 flex-1 lg:flex"
 				:inert="save.saving.value"
 				data-doctype-editor
 			>
@@ -108,6 +105,7 @@ import { failedState, type PageStateValue } from "@/shell/pageState";
 import { useUnloadGuard } from "@/unloadGuard";
 import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
+import type { FinderHost } from "./editorFinder";
 import EditorPanel from "./EditorPanel.vue";
 import { customizeHost } from "./customizeHost";
 import { dangerHost } from "./dangerHost";
@@ -119,15 +117,16 @@ import { canSave, useEditorActs } from "./editorActs";
 import { EditorSave, type ExportResult } from "./editorSave";
 import {
 	carriedAnswers,
+	completeAnswers,
 	copiedAnswers,
 	holdsRoute,
 	loadEditor,
 	modeOf,
 	pendingDoctype,
 	type EditorState,
-	type NewDoctype,
 } from "./editorSource";
-import NewDoctypeDialog from "./NewDoctypeDialog.vue";
+import { lastModule } from "./lastModule";
+import { askNewDoctype } from "./newDoctypeFlow";
 import {
 	PendingEdits,
 	type EditorMode,
@@ -159,12 +158,8 @@ const pageState = shallowRef<PageStateValue | null>(null);
 const tab = ref<EditorTab>("editor");
 const settingsPlace = ref<SettingsPlace>({ section: "", found: null });
 const previewName = ref<string | null>(null);
+const finderOpen = ref(false);
 const latest = ref<string[]>([]);
-// `/doctype/new`'s first answers, once a duplicate's source has loaded.
-const starting = shallowRef<{ answers: Partial<NewDoctype>; source: EditorState | null } | null>(
-	null
-);
-const asking = computed(() => (name.value === "new" && !state.value ? starting.value : null));
 
 // Filled when the load lands; the payload reads it then.
 const head = reactive({}) as Omit<PendingEditsPayload, "edits">;
@@ -191,8 +186,7 @@ useEditorActs({
 	edits,
 	tab,
 	canvas: () => shown.value,
-	find,
-	findSetting,
+	toggleFinder: () => (finderOpen.value = !finderOpen.value),
 	previewRecord: (record) => (previewName.value = record),
 	save,
 	openList,
@@ -233,6 +227,20 @@ const dangerScope = computed(() =>
 				administrator: boot.session.user.name === "Administrator",
 		  }
 );
+// Getters: the finder reads them once it opens.
+const finder: FinderHost = {
+	get canvas() {
+		return shown.value;
+	},
+	get scope() {
+		return dangerScope.value;
+	},
+	get panelShown() {
+		return tab.value === "editor";
+	},
+	find,
+	findSetting,
+};
 // A new DocType is not saved until its first save, even with no edits staged.
 const dirty = computed(() => edits.dirty.value || Boolean(state.value?.pending));
 
@@ -269,17 +277,22 @@ async function startAsking(current: Current) {
 		try {
 			source = await loadEditor(copyOf, "Design");
 		} catch (error) {
+			if (!current()) return;
+			// No source to copy: a blank draft would pass for the copy.
 			toast.error(errorMessage(error));
+			return void router.replace(routeFor("DocType"));
 		}
 	}
 	if (!current()) return;
-	starting.value = { answers: { ...(source && copiedAnswers(source)), ...answers }, source };
+	const first = { ...(source && copiedAnswers(source)), ...answers };
+	const complete = completeAnswers(first);
+	if (!complete) return void askNewDoctype(router, first, copyOf, boot.session.user.name);
+	open(pendingDoctype(complete, source));
 }
 
 function reset() {
 	state.value = null;
 	canvas.value = null;
-	starting.value = null;
 	child.tables.reset();
 	pageState.value = null;
 	tab.value = "editor";
@@ -299,8 +312,11 @@ async function reload(): Promise<DesignCanvas | null> {
 }
 
 async function created(doctype: string): Promise<DesignCanvas | null> {
+	// A rename opens through here too; only a draft's first save names the module last used.
+	const firstSave = Boolean(state.value?.pending);
 	const loaded = await loadFor(loads.begin(), doctype, "Design");
 	if (!loaded) return null;
+	if (firstSave) lastModule(boot.session.user.name).remember(loaded.module);
 	edits.clear();
 	open(loaded);
 	await router.replace(routeFor("DocType", doctype));
@@ -324,10 +340,6 @@ function openList() {
 	// The tab's address table predates this DocType: a full load reads a fresh one, and the
 	// router finds the list by the DocType's name.
 	window.location.assign(router.resolve({ name: "list", params: { doctype } }).href);
-}
-
-function startNew(answers: NewDoctype) {
-	open(pendingDoctype(answers, starting.value?.source));
 }
 
 function open(loaded: EditorState) {
