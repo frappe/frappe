@@ -117,7 +117,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 
 		// The document's own name until the island reports a title, so the crumb
 		// trail is right while the island loads.
-		set_island_title(doc.name, doc.name);
+		set_island_title(doc.name);
 
 		island = frappe.ui.mount_island(doc.__onload.island.name, container[0], {
 			...doc.__onload.island.props,
@@ -135,7 +135,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 	 * segment only reaches the document. `Dashboard.show` below does the same.
 	 */
 	function set_island_title(docname, title) {
-		const label = title || docname;
+		const label = title || __(docname);
 		page.set_breadcrumbs([
 			{ label: __("Dashboard"), href: "/desk/dashboard" },
 			{ label: label },
