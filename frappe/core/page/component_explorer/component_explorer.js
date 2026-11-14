@@ -1460,6 +1460,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			groups: [
 				{
 					title: __("Types (same options, four looks)"),
+					caption: "type",
 					items: [
 						{
 							options: [
@@ -1496,6 +1497,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes, with icons (sm is the default)"),
+					caption: "size",
 					items: [
 						{
 							options: [
@@ -1777,6 +1779,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
 						{
 							value: 40,
@@ -1954,6 +1957,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			groups: [
 				{
 					title: __("Types"),
+					caption: "type",
 					items: [
 						{
 							__label: __("Show message"),
@@ -2136,6 +2140,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			groups: [
 				{
 					title: __("Themes"),
+					caption: "theme",
 					items: [
 						{ title: "Payroll runs on the 28th this month", __note: "gray, no icon" },
 						{ title: "Your draft was restored", theme: "blue" },
@@ -2157,6 +2162,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Variants"),
+					caption: "variant",
 					items: [
 						{
 							title: "Leave balances reset on 1 April",
@@ -2209,6 +2215,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			groups: [
 				{
 					title: __("Variants"),
+					caption: "variant",
 					items: [
 						{ label: "Save" },
 						{ label: "Submit", variant: "solid" },
@@ -2228,6 +2235,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
 						{ label: "Extra small", size: "xs" },
 						{ label: "Small" },
@@ -2293,6 +2301,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Variants"),
+					caption: "variant",
 					items: ["solid", "subtle", "outline", "ghost"].map((variant) => ({
 						label: "Save",
 						variant,
@@ -2301,6 +2310,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: ["xs", "sm", "md", "lg"].map((size) => ({
 						label: "Save",
 						size,
@@ -2362,6 +2372,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
 						{ label: "John Doe", size: "xs" },
 						{ label: "John Doe", size: "sm" },
@@ -2374,6 +2385,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Shapes"),
+					caption: "shape",
 					items: [
 						{ label: "John Doe", theme: "blue" },
 						{ label: "John Doe", theme: "blue", shape: "square" },
@@ -2463,6 +2475,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: ["xs", "sm", "md", "lg", "xl"].map((size) => ({
 						__code: `frappe.ui.avatar_group({ avatars, size: "${size}", add: {} })`,
 						avatars: PEOPLE,
@@ -2510,6 +2523,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			groups: [
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
 						{ width: "120px", height: "16px" },
 						{ width: "240px", height: "16px" },
@@ -2518,6 +2532,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Shapes"),
+					caption: "shape",
 					items: [
 						{ width: "32px", height: "32px", css_class: "rounded-full" },
 						{ width: "180px", height: "12px", css_class: "rounded-full" },
@@ -2624,6 +2639,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			groups: [
 				{
 					title: __("Themes"),
+					caption: "theme",
 					items: [
 						{ label: "Open" },
 						{ label: "Info", theme: "blue" },
@@ -2635,6 +2651,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Variants"),
+					caption: "variant",
 					items: [
 						{ label: "Subtle" },
 						{ label: "Solid", theme: "red", variant: "solid" },
@@ -2644,6 +2661,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
 						{ label: "Small", theme: "blue", size: "sm" },
 						{ label: "Medium", theme: "blue" },
@@ -2733,14 +2751,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		"Bottom Sheet": ["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"],
 		"Optional Sections": ["optional_sections.bundle.js", "optional_sections.bundle.css"],
 	};
-	// a group titled "Sizes" captions each example with its `size`, and so on
-	const CAPTION_KEYS = {
-		variants: "variant",
-		sizes: "size",
-		themes: "theme",
-		shapes: "shape",
-		types: "type",
-	};
+	// a group with `caption: "size"` labels each example with its `size`, and so on
+	const CAPTION_KEYS = ["variant", "size", "theme", "shape", "type"];
 
 	const href_of = (name) => `/desk/${ROUTE}/${frappe.scrub(name, "-")}`;
 	const load_bundles = (names) =>
@@ -2774,12 +2786,12 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 
 	// "solid" twice in one group becomes "solid" and "solid · red"
 	function get_captions(group) {
-		const key = CAPTION_KEYS[group.title.split(/[\s(]/)[0].toLowerCase()];
+		const key = group.caption;
 		const runs = group.items.some((opts) => opts.__run);
 		if (!key || runs || !group.items.some((opts) => opts[key]))
 			return group.items.map(() => "");
 		const captions = group.items.map((opts) => opts[key] || __("default"));
-		const others = Object.values(CAPTION_KEYS).filter((other) => other !== key);
+		const others = CAPTION_KEYS.filter((other) => other !== key);
 		return group.items.map((opts, i) => {
 			if (captions.indexOf(captions[i]) === captions.lastIndexOf(captions[i]))
 				return captions[i];
