@@ -7,7 +7,7 @@
 		ref="box"
 		data-floating-rail
 		:data-open="open"
-		class="fixed inset-y-0 z-30 my-auto flex h-fit max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-5 border border-outline-gray-2 bg-surface-sidebar shadow-2xl transition-transform duration-200 ease-out motion-reduce:transition-none [&>[data-slot=sidebar-rail]]:h-auto [&>[data-slot=sidebar-rail]]:min-h-0 [&>[data-slot=sidebar-rail]]:shrink"
+		class="fixed inset-y-0 z-30 my-auto flex h-fit max-h-[calc(100vh-2rem)] flex-col overflow-hidden rounded-5 border border-outline-gray-2 bg-surface-base shadow-2xl transition-transform duration-200 ease-out motion-reduce:transition-none [&>[data-slot=sidebar-rail]]:h-auto [&>[data-slot=sidebar-rail]]:min-h-0 [&>[data-slot=sidebar-rail]]:shrink"
 		:class="[
 			navSide() === 'left' ? 'left-2' : 'right-2',
 			open ? 'translate-x-0' : navSide() === 'left' ? CLOSED_LEFT : CLOSED_RIGHT,
