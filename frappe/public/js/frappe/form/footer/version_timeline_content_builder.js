@@ -347,7 +347,20 @@ function get_version_timeline_content(version_doc, frm) {
 			)
 		);
 		out.push(get_version_comment(version_doc, message));
+	} else if (data.created_by && data.agent) {
+		let message = get_user_message(
+			version_doc.owner,
+			__("You created this document", null, "Form timeline"),
+			__("{0} created this document", [get_user_link(version_doc.owner)], "Form timeline")
+		);
+		out.push(get_version_comment(version_doc, message));
 	}
+
+	if (data.agent) {
+		const agent_msg = get_agent_message(data.agent);
+		out = out.map((message) => `${message} · ${agent_msg}`);
+	}
+
 	const impersonated_by = data.impersonated_by;
 
 	if (impersonated_by) {
@@ -361,6 +374,22 @@ function get_version_timeline_content(version_doc, frm) {
 		out = out.map((message) => `${message} · ${audit_msg.bold()}`);
 	}
 	return out;
+}
+
+function get_agent_message(agent) {
+	const message = __("using {0} via {1}", [
+		frappe.utils.escape_html(agent.name),
+		frappe.utils.escape_html(agent.via),
+	]);
+	if (agent.reference_doctype && agent.reference_name) {
+		return frappe.utils.get_form_link(
+			agent.reference_doctype,
+			agent.reference_name,
+			true,
+			message
+		);
+	}
+	return message;
 }
 
 function get_version_comment(version_doc, text) {

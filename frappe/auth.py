@@ -27,7 +27,14 @@ from frappe.website.utils import get_home_page
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
+<<<<<<< HEAD
 MAX_PASSWORD_SIZE = 512
+=======
+assert SAFE_HTTP_METHODS.isdisjoint(UNSAFE_HTTP_METHODS), "a HTTP method cannot be both safe and unsafe"
+
+API_AUTH_FAILURE_LOG_INTERVAL = 5 * 60  # seconds
+AGENT_NAME_LENGTH = 140
+>>>>>>> d9f1e31 (feat: add agent context to the session)
 
 
 class HTTPRequest:
@@ -655,6 +662,7 @@ def validate_auth():
 	# and bearer tokens bypass the user's IP restrictions entirely.
 	if frappe.session.user != user_before_auth and frappe.session.user not in ("", "Guest"):
 		validate_ip_address(frappe.session.user)
+		set_agent_from_header()
 
 
 def validate_oauth(authorization_header):
@@ -684,14 +692,29 @@ def validate_oauth(authorization_header):
 		body = None
 
 	try:
+<<<<<<< HEAD
 		required_scopes = frappe.db.get_value("OAuth Bearer Token", token, "scopes").split(
 			get_url_delimiter()
+=======
+		token_hash = get_oauth_token_hash(token)
+		token_filters = {"access_token": token_hash}
+		token_details = frappe.db.get_value(
+			"OAuth Bearer Token", token_filters, ("scopes", "user", "client"), as_dict=True
+>>>>>>> d9f1e31 (feat: add agent context to the session)
 		)
 		valid, _oauthlib_request = get_oauth_server().verify_request(
 			uri, http_method, body, headers, required_scopes
 		)
 		if valid:
+<<<<<<< HEAD
 			frappe.set_user(frappe.db.get_value("OAuth Bearer Token", token, "user"))
+=======
+			user = token_details.user
+			if not frappe.get_cached_value("User", user, "enabled"):
+				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
+			frappe.set_user(user)
+			frappe.session.data.oauth_client = token_details.client
+>>>>>>> d9f1e31 (feat: add agent context to the session)
 			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass
@@ -750,6 +773,40 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		frappe.local.form_dict = form_dict
 	else:
 		raise frappe.AuthenticationError
+
+
+def set_agent(
+	name: str, via: str, reference_doctype: str | None = None, reference_name: str | None = None
+) -> None:
+	"""Record the LLM agent that acts for the current user, for attribution in Version.
+
+	Call it after `frappe.set_user`, which clears it. It does nothing in a cookie session,
+	because that session is saved and the agent would stay in it for later requests.
+	"""
+	session_obj = getattr(frappe.local, "session_obj", None)
+	if session_obj and session_obj.sid != "Guest":
+		return
+
+	agent = frappe._dict(name=name[:AGENT_NAME_LENGTH], via=via)
+	if reference_doctype and reference_name:
+		agent.update(reference_doctype=reference_doctype, reference_name=reference_name)
+	frappe.session.data.agent = agent
+
+
+def set_agent_from_header() -> None:
+	"""Read the agent that a token or OAuth client names in the `X-Frappe-Agent` header."""
+	header = (frappe.get_request_header("X-Frappe-Agent") or "").strip()
+	if not header:
+		return
+	client_name = get_oauth_client_name()
+	name = f"{client_name} ({header})" if client_name and client_name != header else header
+	set_agent(name, "API")
+
+
+def get_oauth_client_name() -> str | None:
+	"""The registered name of the OAuth client that made the current request."""
+	if client := frappe.session.data.get("oauth_client"):
+		return frappe.get_cached_value("OAuth Client", client, "app_name")
 
 
 def validate_auth_via_hooks():
