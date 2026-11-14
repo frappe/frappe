@@ -363,7 +363,7 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 		reset("Contact")
 		# "All" grants every user read at permlevel 0 on Contact, which would mask what
 		# the role and the DocShare are actually contributing
-		update("Contact", "All", 0, "read", 0)
+		update("Contact", "All", 0, "read", 0, if_owner=1)
 
 		self._set_roles(self.RESTRICTED_USER, ["Sales User"])
 		self._set_roles(self.SHARED_USER, [])
