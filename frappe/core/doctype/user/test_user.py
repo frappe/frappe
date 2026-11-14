@@ -17,6 +17,7 @@ from frappe.core.doctype.user.user import (
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
+	create_contact,
 	get_all_roles,
 	get_perm_info,
 	handle_password_test_fail,
@@ -493,6 +494,16 @@ class TestUser(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
 
 		frappe.delete_doc("User", new_name)
+
+	def test_contact_follows_a_changed_email(self):
+		with test_user(roles=[]) as user:
+			frappe.db.set_value("User", user.name, "email", f"changed_{user.email}")
+			user.reload()
+
+			create_contact(user)
+
+			emails = frappe.get_all("Contact", filters={"user": user.name}, pluck="email_id")
+			self.assertEqual(emails, [user.email])
 
 	def test_user_rename_defers_the_owner_sweep(self):
 		old_name = "test_user_rename_owner@example.com"
