@@ -95,16 +95,10 @@ class PrintDesignerMigration {
 		if (row.name === this.highlight) $row.addClass("highlighted bg-surface-gray-2");
 
 		const $actions = $row.children().last();
-		const add = (label, onclick, icon_right) =>
-			$actions.append(frappe.ui.button({ label, onclick, icon_right }));
+		const add = (label, onclick) => $actions.append(frappe.ui.button({ label, onclick }));
 		if (row.converted && row.usage?.length) {
 			add(__("Use Copy"), () => this.use_copy(row));
 		} else if (row.converted) {
-			add(
-				__("Edit"),
-				() => frappe.set_route("print-format-builder", row.editor_format),
-				"arrow-up-right"
-			);
 			if (row.editor_format === row.name) add(__("Delete"), () => this.delete_design(row));
 		} else {
 			add(__("Convert"), () => (row.sample ? this.preview(row) : this.convert(row)));
