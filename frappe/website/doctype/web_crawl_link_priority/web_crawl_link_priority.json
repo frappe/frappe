@@ -1,0 +1,45 @@
+{
+ "actions": [],
+ "creation": "2026-11-12 17:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "keyword",
+  "weight"
+ ],
+ "fields": [
+  {
+   "description": "Matched against the link's URL and anchor text.",
+   "fieldname": "keyword",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Keyword",
+   "placeholder": "api",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "Links with a higher total weight are read first.",
+   "fieldname": "weight",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Weight"
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "link_display_mode": "Search",
+ "links": [],
+ "modified": "2026-11-12 22:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Crawl Link Priority",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,59 @@
+# Copyright (c) 2026, Frappe Technologies and contributors
+# For license information, please see license.txt
+
+import frappe
+from frappe.model.document import Document
+from frappe.website.doctype.web_crawl.web_crawl import has_permission as can_read_web_crawl
+from frappe.website.doctype.web_crawl.web_crawl import owner_condition
+
+
+class WebCrawlResult(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+
+		change_status: DF.Literal["", "New", "Changed", "Unchanged"]
+		content_hash: DF.Data | None
+		description: DF.SmallText | None
+		error: DF.Literal[
+			"",
+			"Blocked",
+			"Empty",
+			"Failed",
+			"Not found",
+			"Not HTML",
+			"Outside the start URL",
+			"Server error",
+			"Timed out",
+			"Too large",
+			"Too many redirects",
+		]
+		final_url: DF.SmallText | None
+		html: DF.Code | None
+		meta_tags: DF.JSON | None
+		status_code: DF.Int
+		title: DF.SmallText | None
+		url: DF.SmallText | None
+		web_crawl: DF.Link
+	# end: auto-generated types
+
+	_DOCTYPE_NAME = "Web Crawl Result"
+
+
+def has_permission(
+	doc: WebCrawlResult, ptype: str | None = None, user: str | None = None, debug=False
+) -> bool:
+	web_crawl = frappe.db.get_value(
+		"Web Crawl", doc.web_crawl, ["owner", "reference_doctype", "reference_name"], as_dict=True
+	)
+	return can_read_web_crawl(web_crawl, ptype, user)
+
+
+def get_permission_query_conditions(user: str | None = None) -> str | None:
+	"""Results of the crawls the user may list."""
+	if condition := owner_condition(user):
+		return f"`tabWeb Crawl Result`.`web_crawl` in (select `name` from `tabWeb Crawl` where {condition})"

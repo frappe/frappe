@@ -1,0 +1,151 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-11 23:43:20.403646",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "url",
+  "final_url",
+  "column_break_url",
+  "web_crawl",
+  "status_code",
+  "content_hash",
+  "error",
+  "change_status",
+  "content_section",
+  "title",
+  "description",
+  "html",
+  "meta_tags"
+ ],
+ "fields": [
+  {
+   "fieldname": "url",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "URL",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "description": "The address the page was read from, after redirects.",
+   "fieldname": "final_url",
+   "fieldtype": "Small Text",
+   "label": "Final URL",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_url",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "web_crawl",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Web crawl",
+   "options": "Web Crawl",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "status_code",
+   "fieldtype": "Int",
+   "label": "Status code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "content_hash",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Content hash",
+   "read_only": 1
+  },
+  {
+   "description": "Why the page could not be read.",
+   "fieldname": "error",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Error",
+   "options": "\nBlocked\nEmpty\nFailed\nNot found\nNot HTML\nOutside the start URL\nServer error\nTimed out\nToo large\nToo many redirects",
+   "read_only": 1
+  },
+  {
+   "description": "How the page compares with the last completed crawl of the same URL.",
+   "fieldname": "change_status",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Change status",
+   "options": "\nNew\nChanged\nUnchanged",
+   "read_only": 1
+  },
+  {
+   "fieldname": "content_section",
+   "fieldtype": "Section Break",
+   "label": "Content"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Title",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "html",
+   "fieldtype": "Code",
+   "label": "HTML",
+   "options": "HTML",
+   "read_only": 1
+  },
+  {
+   "fieldname": "meta_tags",
+   "fieldtype": "JSON",
+   "label": "Meta tags",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "in_create": 1,
+ "link_display_mode": "Search",
+ "links": [],
+ "modified": "2026-11-13 20:45:37.325245",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Crawl Result",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Desk User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title"
+}

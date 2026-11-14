@@ -1,0 +1,259 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-11-11 23:43:11.936632",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "url",
+  "column_break_url",
+  "status",
+  "stopped_reason",
+  "pages_section",
+  "index_files",
+  "follow_links",
+  "column_break_pages",
+  "max_pages",
+  "max_depth",
+  "tuning_section",
+  "skip_patterns",
+  "column_break_tuning",
+  "link_priorities",
+  "results_section",
+  "pages_crawled",
+  "pages_failed",
+  "column_break_results",
+  "started_at",
+  "finished_at",
+  "background_task",
+  "caller_section",
+  "reference_doctype",
+  "reference_name",
+  "column_break_caller",
+  "on_page_method",
+  "skip_urls_method"
+ ],
+ "fields": [
+  {
+   "description": "The page to start from, or a sitemap.xml. Only pages under this path are read.",
+   "fieldname": "url",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "URL",
+   "max_height": "3rem",
+   "placeholder": "https://docs.example.com",
+   "reqd": 1,
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_url",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Queued",
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Queued\nRunning\nCompleted\nFailed\nCancelled",
+   "read_only": 1
+  },
+  {
+   "depends_on": "stopped_reason",
+   "description": "Why the crawl stopped before reading every page.",
+   "fieldname": "stopped_reason",
+   "fieldtype": "Select",
+   "label": "Stopped reason",
+   "options": "\nTime limit\nRate limited",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pages_section",
+   "fieldtype": "Section Break",
+   "label": "Pages to read"
+  },
+  {
+   "default": "1",
+   "description": "Read the page lists the site publishes: llms.txt first, then sitemap.xml.",
+   "fieldname": "index_files",
+   "fieldtype": "Check",
+   "label": "Index files",
+   "set_only_once": 1
+  },
+  {
+   "default": "1",
+   "description": "Follow links from the start page, and from the pages the index files list.",
+   "fieldname": "follow_links",
+   "fieldtype": "Check",
+   "label": "Follow links",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_pages",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Maximum number of pages to read.",
+   "fieldname": "max_pages",
+   "fieldtype": "Int",
+   "label": "Maximum pages",
+   "non_negative": 1,
+   "set_only_once": 1
+  },
+  {
+   "depends_on": "follow_links",
+   "description": "Maximum number of links followed away from the start page.",
+   "fieldname": "max_depth",
+   "fieldtype": "Int",
+   "label": "Maximum depth",
+   "non_negative": 1,
+   "set_only_once": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "tuning_section",
+   "fieldtype": "Section Break",
+   "label": "Crawl tuning"
+  },
+  {
+   "description": "URLs that contain any of these are skipped. Use * for any text, as in /blog/*/draft. Enter one per line. If empty, the patterns in Web Crawl Settings are used.",
+   "fieldname": "skip_patterns",
+   "fieldtype": "Small Text",
+   "label": "Skip patterns",
+   "max_height": "8rem",
+   "placeholder": "/blog/\n\\?page=",
+   "set_only_once": 1
+  },
+  {
+   "fieldname": "column_break_tuning",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "follow_links",
+   "description": "Links whose URL or anchor text contains a keyword are read first. If empty, the priorities in Web Crawl Settings are used.",
+   "fieldname": "link_priorities",
+   "fieldtype": "Table",
+   "label": "Link priority",
+   "options": "Web Crawl Link Priority",
+   "set_only_once": 1
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "label": "Results"
+  },
+  {
+   "fieldname": "pages_crawled",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Pages crawled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pages_failed",
+   "fieldtype": "Int",
+   "label": "Pages failed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_results",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "started_at",
+   "fieldtype": "Datetime",
+   "label": "Started at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "finished_at",
+   "fieldtype": "Datetime",
+   "label": "Finished at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "background_task",
+   "fieldtype": "Link",
+   "label": "Background task",
+   "options": "Background Task",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "caller_section",
+   "fieldtype": "Section Break",
+   "label": "Caller"
+  },
+  {
+   "description": "The document this crawl was started for.",
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference document type",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference name",
+   "options": "reference_doctype",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_caller",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Set by the app that started the crawl. Runs for each page that is read.",
+   "fieldname": "on_page_method",
+   "fieldtype": "Data",
+   "label": "On page method",
+   "read_only": 1,
+   "set_only_once": 1
+  },
+  {
+   "description": "Set by the app that started the crawl. Removes URLs before they are read.",
+   "fieldname": "skip_urls_method",
+   "fieldtype": "Data",
+   "label": "Skip URLs method",
+   "read_only": 1,
+   "set_only_once": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "link_display_mode": "Search",
+ "links": [],
+ "modified": "2026-11-13 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Website",
+ "name": "Web Crawl",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Desk User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "url"
+}

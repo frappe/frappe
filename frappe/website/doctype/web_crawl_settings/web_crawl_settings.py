@@ -1,0 +1,87 @@
+# Copyright (c) 2026, Frappe Technologies and contributors
+# For license information, please see license.txt
+
+from math import ceil
+
+import frappe
+from frappe import _
+from frappe.model.document import Document
+from frappe.web_crawler.limits import CrawlLimits
+
+# More parallel requests from one IP risk bot protection blocking it, for every site on the server.
+SAFE_CONCURRENT_REQUESTS = 5
+
+MUST_BE_POSITIVE = (
+	"max_pages",
+	"concurrent_requests",
+	"max_crawl_time",
+	"page_timeout",
+	"max_page_size",
+	"sitemap_timeout",
+	"max_sitemap_size",
+)
+
+
+class WebCrawlSettings(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.types import DF
+		from frappe.website.doctype.web_crawl_domain.web_crawl_domain import WebCrawlDomain
+		from frappe.website.doctype.web_crawl_link_priority.web_crawl_link_priority import (
+			WebCrawlLinkPriority,
+		)
+
+		allowed_domains: DF.Table[WebCrawlDomain]
+		blocked_domains: DF.Table[WebCrawlDomain]
+		concurrent_requests: DF.Int
+		link_priorities: DF.Table[WebCrawlLinkPriority]
+		max_crawl_time: DF.Int
+		max_depth: DF.Int
+		max_page_size: DF.Int
+		max_pages: DF.Int
+		max_redirects: DF.Int
+		max_sitemap_size: DF.Int
+		page_timeout: DF.Int
+		request_delay: DF.Float
+		respect_robots_txt: DF.Check
+		sitemap_timeout: DF.Int
+		skip_patterns: DF.SmallText | None
+		user_agent: DF.Data
+	# end: auto-generated types
+
+	_DOCTYPE_NAME = "Web Crawl Settings"
+
+	def validate(self):
+		for fieldname in MUST_BE_POSITIVE:
+			if self.get(fieldname) <= 0:
+				label = _(self.meta.get_label(fieldname))
+				frappe.throw(_("{0} must be greater than 0.").format(label), title=_("Invalid value"))
+		warn_if_crawl_may_stop_early(CrawlLimits.from_settings(settings=self))
+		self.warn_if_many_concurrent_requests()
+
+	def warn_if_many_concurrent_requests(self):
+		if self.concurrent_requests <= SAFE_CONCURRENT_REQUESTS:
+			return
+		frappe.msgprint(
+			_(
+				"More than {0} concurrent requests may get this server blocked by a site's bot protection."
+			).format(SAFE_CONCURRENT_REQUESTS),
+			title=_("Many concurrent requests"),
+			indicator="orange",
+		)
+
+
+def warn_if_crawl_may_stop_early(limits: CrawlLimits):
+	if (estimate := limits.estimated_crawl_time()) <= limits.max_crawl_time:
+		return
+	frappe.msgprint(
+		_(
+			"A crawl of {0} pages likely takes about {1} minutes, longer than the maximum crawl time of {2} minutes. It will stop early unless Maximum crawl time is raised in Web Crawl Settings."
+		).format(limits.max_pages, ceil(estimate / 60), limits.max_crawl_time // 60),
+		title=_("Crawl may stop early"),
+		indicator="orange",
+	)
