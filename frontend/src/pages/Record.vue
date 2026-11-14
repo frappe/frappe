@@ -282,8 +282,14 @@ let currentVisit = new Visit();
 // A return visit's hold on fresh meta and layouts, let go with its background reads.
 let releaseFresh = () => {};
 
-const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
-const docname = computed(() => String(route.params.name));
+// The route moves on before this page unmounts, and the shell's act keys read its header in between.
+const address = computed<{ doctype: string | null; docname: string }>((previous) => {
+	const { doctype, name } = route.params;
+	if (previous && !(doctype && name)) return previous;
+	return { doctype: addresses.doctypeOf(String(doctype)), docname: String(name) };
+});
+const doctype = computed(() => address.value.doctype);
+const docname = computed(() => address.value.docname);
 const canCreate = useCreateRight(() => doctype.value ?? "");
 const editLayoutRoute = useEditLayoutRoute(meta);
 
