@@ -21,7 +21,7 @@
 				:error="errorOf('doctype')"
 				data-field="doctype"
 			/>
-			<Select
+			<Combobox
 				v-if="type === 'View' && values.doctype"
 				v-model="view"
 				:label="__('View')"
