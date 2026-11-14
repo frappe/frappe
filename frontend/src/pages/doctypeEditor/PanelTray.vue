@@ -1,10 +1,15 @@
-<!-- The panel outside Details with nothing selected: the fields this layout leaves off, then "New
-     field" types. A click places or adds at the end of the section in view, on this layout only. -->
+<!-- The panel with nothing selected: the fields this layout leaves off, then the field types to add. On Details
+     the group shows only while a field is off the layout; a click places at the end of the section in view. -->
 <template>
 	<p class="flex min-h-[42px] items-center px-4 py-2 text-p-sm text-ink-gray-6">
 		{{ __("Select a field or a section heading to edit it here.") }}
 	</p>
-	<div class="flex flex-col" data-panel-tray>
+	<GridColumnsGroup
+		v-if="canvas.state.definition.istable && !takesOff(canvas)"
+		:key="canvas.state.doctype"
+		:canvas="canvas"
+	/>
+	<div v-if="showsGroup" class="flex flex-col" data-panel-tray>
 		<PanelSection :label="__('Fields not on this layout')" :count="rows.length" show-count>
 			<TextInput
 				v-model="fieldQuery"
@@ -21,7 +26,8 @@
 					:key="row.field.fieldname"
 					as="button"
 					type="button"
-					class="!min-h-8 shrink-0 text-left hover:bg-surface-gray-2"
+					class="!min-h-8 shrink-0 text-left hover:bg-surface-gray-2 focus-visible:-outline-offset-2"
+					:title="`${label(row.field)} (${row.field.fieldname})`"
 					:data-panel-tray-field="row.field.fieldname"
 					@click="place(row.field.fieldname)"
 				>
@@ -56,16 +62,18 @@
 			</p>
 		</PanelSection>
 	</div>
-	<NewFieldTypes :canvas="canvas" :label="__('New field')" />
+	<NewFieldTypes :canvas="canvas" :label="showsGroup ? __('New field') : __('Add a field')" />
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { Badge, Icon, ItemListRow, TextInput } from "frappe-ui";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
+import { takesOff } from "./fieldPanel";
+import GridColumnsGroup from "./GridColumnsGroup.vue";
 import { typeIcon, typeName } from "./fieldtypes";
 import NewFieldTypes from "./NewFieldTypes.vue";
 import PanelSection from "./PanelSection.vue";
@@ -74,6 +82,10 @@ const props = defineProps<{ canvas: DesignCanvas }>();
 
 const fieldQuery = ref("");
 const rows = computed(() => props.canvas.offLayout.value);
+const showsGroup = computed(() => takesOff(props.canvas) || rows.value.length > 0);
+watch(showsGroup, (shown) => {
+	if (!shown) fieldQuery.value = "";
+});
 const shownRows = computed(() => {
 	const typed = fieldQuery.value.trim().toLowerCase();
 	return rows.value.filter(({ field }) =>

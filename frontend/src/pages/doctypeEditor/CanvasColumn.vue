@@ -1,4 +1,4 @@
-<!-- One column of a section: its fields, which drag within it and to any other column, the tray
+<!-- One column of a section: its fields, which drag within it and to any other column
      or a tab's name. A click on the free space around its fields (its band) selects it; hover rings
      it first, unless the section is selected. A section of two or more columns drags a ringed
      column by the grip on the ring's top edge. Band and ring take no space. -->

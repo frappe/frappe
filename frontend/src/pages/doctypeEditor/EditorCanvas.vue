@@ -1,5 +1,5 @@
-<!-- The canvas of the open layout. Details and New record draw at the record page's form width,
-     the Details tray under them; Side panel and Quick entry draw in their own frame. -->
+<!-- The canvas of the open layout. Details and New record draw at the record page's form width, Side panel and
+     Quick entry in their own frame. Only a read-only canvas, which has no panel, keeps the off-layout tray. -->
 <template>
 	<div
 		class="mx-auto w-full max-w-3xl px-[--page-gutter] pb-[40vh] pt-6"
@@ -86,7 +86,7 @@
 			<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="canvas" />
 			<div v-else class="mt-6"><CanvasForm :canvas="canvas" /></div>
 
-			<OffLayoutTray v-if="type === 'Details' || !canvas.editable" :canvas="canvas" />
+			<OffLayoutTray v-if="!canvas.editable" :canvas="canvas" />
 		</template>
 		<FieldBin v-if="canvas.editable" :canvas="canvas" />
 	</div>
@@ -235,9 +235,6 @@ watch(
 }
 [data-doctype-editor] [data-canvas-empty] > .sortable-chosen.canvas-drop-line {
 	margin: 29px 0 0;
-}
-[data-doctype-editor] [data-canvas-tray-list] > .sortable-chosen.canvas-drop-line {
-	margin: 0;
 }
 [data-doctype-editor] .canvas-tab-drop > .sortable-chosen.canvas-drop-line {
 	display: none;
