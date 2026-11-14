@@ -1,7 +1,16 @@
 <!-- The avatar menu: the person's profile, the shell's acts for them and the page's own rows. The rail and the index draw it. -->
 <template>
-	<Dropdown :options="menu" side="right" align="end">
+	<Dropdown :options="menu" :side="wide ? 'top' : 'right'" :align="wide ? 'start' : 'end'">
+		<button v-if="wide" type="button" data-key="user-menu" :class="WIDE_ROW">
+			<Avatar
+				:image="boot.session.user.user_image"
+				:label="boot.session.user.full_name"
+				size="md"
+			/>
+			<span class="truncate text-sm text-ink-gray-8">{{ boot.session.user.full_name }}</span>
+		</button>
 		<button
+			v-else
 			type="button"
 			data-key="user-menu"
 			:class="USER_CELL"
@@ -24,6 +33,10 @@ import type { Boot } from "@/boot";
 import { pageMenuItems } from "./pageMenu";
 import { colorSchemes, shellAct, shellMenu } from "./shellActs";
 
+defineProps<{ wide?: boolean }>();
+
+const WIDE_ROW =
+	"flex h-8 w-full min-w-0 items-center gap-2 rounded-4 px-2 text-left transition hover:bg-surface-gray-3 focus-visible:ring-0 focus-visible:focus-ring";
 const USER_CELL =
 	"flex rounded-full transition hover:opacity-90 focus-visible:ring-0 focus-visible:focus-ring";
 

@@ -10,12 +10,17 @@
 			:collapsed="collapsed"
 			width="14rem"
 			collapsedWidth="0px"
-			:class="collapsed ? 'border-0' : 'border-l border-outline-gray-1'"
+			:class="collapsed || chrome ? 'border-0' : 'border-l border-outline-gray-1'"
 			:inert="collapsed"
 		>
-			<!-- 48px, no border: level with the page's header row, whose border stops at this panel's edge. -->
-			<div class="flex h-12 shrink-0 items-center pl-4 pr-2">
-				<p v-if="title" class="truncate text-base font-medium text-ink-gray-8">
+			<NavigationHeader v-if="chrome" />
+			<!-- Without the chrome, 48px and no border: level with the page's header row, whose border stops at this panel's edge. -->
+			<div class="flex shrink-0 items-center pl-4 pr-2" :class="chrome ? 'h-8' : 'h-12'">
+				<p
+					v-if="title"
+					class="truncate font-medium"
+					:class="chrome ? 'text-xs text-ink-gray-5' : 'text-base text-ink-gray-8'"
+				>
 					{{ title }}
 				</p>
 				<Button
@@ -42,10 +47,17 @@
 					/>
 				</nav>
 			</ScrollArea>
+
+			<div
+				v-if="chrome"
+				class="flex h-12 shrink-0 items-center border-t border-outline-gray-1 px-2"
+			>
+				<UserMenu wide />
+			</div>
 		</Sidebar>
 
 		<SidebarEdge
-			v-if="toggle"
+			v-if="toggle && !chrome"
 			:open="!collapsed"
 			:label="toggle.label!"
 			@toggle="acts.perform(toggle.name)"
@@ -62,9 +74,11 @@ import { __ } from "@/i18n";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
+import NavigationHeader from "./NavigationHeader.vue";
 import { shellAct } from "./shellActs";
 import SidebarEdge from "./SidebarEdge.vue";
 import SidebarRow from "./SidebarRow.vue";
+import UserMenu from "./UserMenu.vue";
 
 // `address` is the scrubbed key, which is also what the arrangement endpoints take for a `Sidebar`.
 const props = defineProps<{
@@ -76,6 +90,7 @@ const props = defineProps<{
 	sections?: SectionMemory;
 	customizable?: boolean;
 	collapsed: boolean;
+	chrome?: boolean;
 }>();
 const emit = defineEmits<{ customize: [] }>();
 
