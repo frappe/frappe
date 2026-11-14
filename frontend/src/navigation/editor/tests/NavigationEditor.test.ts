@@ -66,6 +66,7 @@ async function open(answer: Arrangements = response()) {
 		onSaved: () => emitted.push("saved"),
 	});
 	app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+	app.provide("addresses", { doctypes: () => ["Note", "ToDo"] });
 	router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 	await router.push("/page");
 	await router.push("/page#customize/rail");
@@ -165,11 +166,35 @@ describe("the editor", () => {
 		expect(api.saveArrangements.mock.calls[0][2].rail[0].icon).toBe("star");
 	});
 
+	it("gives an own row a sidebar, removes it, and deletes the row", async () => {
+		await open(response({ rail: [row("todo"), row("user:abc123", { label: "Mine" })] }));
+		click("[data-key='user:abc123']");
+		await settle();
+		click("[data-give-sidebar]");
+		await settle();
+		expect(body().querySelector("[data-give-sidebar]")).toBeNull();
+
+		const rail = Array.from(body().querySelectorAll<HTMLElement>("button")).find(
+			(button) => button.textContent?.trim() === "Rail"
+		);
+		rail!.click();
+		await settle();
+		click("[data-key='user:abc123']");
+		await settle();
+		click("[data-remove-sidebar]");
+		await settle();
+		expect(body().querySelector("[data-give-sidebar]")).not.toBeNull();
+
+		click("[data-delete]");
+		await settle();
+		expect(rowsShown()).toEqual(["TODO"]);
+	});
+
 	it("hides a row from the pane's Hide button", async () => {
 		await open();
 		click("[data-key='todo']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		expect(rowsShown()).toEqual([]);
 		expect(body().querySelector("[data-revert]")).not.toBeNull();
@@ -202,7 +227,7 @@ describe("the editor", () => {
 		await open();
 		click("[data-key='todo']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		click("[data-save]");
 		await settle();
@@ -216,7 +241,7 @@ describe("the editor", () => {
 		await open();
 		click("[data-key='todo']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		click("[data-save]");
 		await settle();
@@ -248,7 +273,7 @@ describe("the editor", () => {
 		await open();
 		click("[data-key='todo']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		click("[data-save]");
 		await settle();
@@ -453,7 +478,7 @@ describe("the editor", () => {
 		await open(response({ rail: [row("a"), row("b", { hidden: 1 }), row("c")] }));
 		click("[data-key='a']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		expect(text("[data-editor-pane] p")).toBe("C");
 		expect(body().querySelector("[data-key='c']")!.getAttribute("tabindex")).toBe("0");
@@ -651,7 +676,7 @@ describe("the editor", () => {
 		await settle();
 		click("[data-key='fresh']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		expect(rowsShown()).toEqual(["OTHER"]);
 		const reads = api.fetchArrangements.mock.calls.length;

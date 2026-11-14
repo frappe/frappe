@@ -59,7 +59,7 @@
 					<div class="flex flex-col gap-2 px-6 pt-5">
 						<div class="flex items-center justify-between">
 							<TabButtons v-model="tab" :options="tabs" />
-							<EditorAddMenu :options="[]" />
+							<EditorAddMenu :options="addOptions" />
 						</div>
 						<Select
 							v-if="tab === 'sidebar'"
@@ -88,7 +88,18 @@
 					</div>
 				</div>
 
+				<EditorRowForm
+					v-if="adding"
+					:key="adding"
+					:type="adding"
+					:type-label="
+						addTypes(container).find((entry) => entry.type === adding)?.label ?? adding
+					"
+					:refusal="refusal"
+					@add="add"
+				/>
 				<EditorRowPane
+					v-else
 					:row="current"
 					:scope="scope"
 					:parents="parentOptions"
@@ -99,7 +110,15 @@
 					:title-for="titleOf"
 					@update="(fields) => apply(update(draft!, container, selected!, fields))"
 					@nest="(parent) => apply(nest(draft!, container, selected!, parent))"
+					:move-targets="moveTargets"
+					:can-give-sidebar="!!current && container === RAIL && canGiveSidebar(draft!, current)"
+					:can-remove-sidebar="canRemoveOwnSidebar"
+					:delete-count="deleteCount"
 					@toggle="toggle"
+					@delete="remove"
+					@move-to="moveTo"
+					@give-sidebar="giveSidebar"
+					@remove-sidebar="removeSidebar"
 				/>
 			</div>
 
@@ -174,6 +193,7 @@ import {
 	layoutChanged,
 	openedSidebars,
 	openerOf,
+	newKey,
 	RAIL,
 	resetToDefault,
 	revert,
@@ -182,6 +202,14 @@ import {
 	toPayload,
 } from "./draft";
 import {
+	add as addRow,
+	canGiveSidebar,
+	descendantsToDelete,
+	giveSidebar as giveRowSidebar,
+	isOwn,
+	moveTo as moveRowTo,
+	remove as removeRow,
+	removeSidebar as removeRowSidebar,
 	dropBefore,
 	moveAmongSiblings,
 	nest,
@@ -190,7 +218,9 @@ import {
 	update,
 	type Edited,
 } from "./edits";
+import { addTypes } from "./addTypes";
 import EditorAddMenu from "./EditorAddMenu.vue";
+import EditorRowForm from "./EditorRowForm.vue";
 import EditorOutline from "./EditorOutline.vue";
 import EditorRowPane from "./EditorRowPane.vue";
 
@@ -221,6 +251,7 @@ const sidebar = ref("");
 const selected = ref<string | null>(null);
 const showHidden = ref(false);
 const refusal = ref<string | null>(null);
+const adding = ref<string | null>(null);
 // A reply that comes back after the editor was reopened belongs to the earlier opening.
 // Every request notes the opening it started in, and touches the editor only while that one is open.
 let opening = 0;
@@ -391,7 +422,102 @@ async function switchTo(value: Scope) {
 
 function choose(key: string) {
 	selected.value = key;
+	adding.value = null;
 	refusal.value = null;
+}
+
+const addOptions = computed(() =>
+	addTypes(container.value).map((entry) => ({
+		label: entry.label,
+		icon: entry.icon,
+		onClick: () => {
+			adding.value = entry.type;
+			refusal.value = null;
+		},
+	}))
+);
+
+/** A new row goes last in the list, or last under the selected section. */
+function add(fields: Omit<EditorRow, "key">) {
+	if (!draft.value) return;
+	const row = { ...fields, key: newKey(scope.value) } as EditorRow;
+	const parent =
+		current.value?.item_type === "Section" && container.value !== RAIL
+			? current.value.key
+			: null;
+	const edited = addRow(draft.value, container.value, row, parent, scope.value);
+	apply(edited);
+	if (refused(edited)) return;
+	adding.value = null;
+	selected.value = row.key;
+}
+
+const moveTargets = computed(() =>
+	draft.value && current.value
+		? [RAIL, ...Object.keys(draft.value.sidebars)]
+				.filter((target) => target !== container.value)
+				.map((target) => ({
+					label: target === RAIL ? __("Rail") : sidebarLabel(target),
+					value: target,
+				}))
+		: []
+);
+const canRemoveOwnSidebar = computed(() => {
+	const opens = container.value === RAIL ? current.value?.opens_sidebar : undefined;
+	return !!opens && isOwn(opens, scope.value);
+});
+const deleteCount = computed(() =>
+	current.value && isOwn(current.value.key, scope.value)
+		? 1 + descendantsToDelete(rows.value, current.value.key, scope.value).length
+		: 1
+);
+
+/** Selection after an edit that removes the row from this list moves to its neighbour. */
+function remove() {
+	const key = selected.value;
+	if (!draft.value || !key) return;
+	const edited = removeRow(draft.value, container.value, key, scope.value);
+	const before = rows.value;
+	apply(edited);
+	if (refused(edited)) return;
+	const at = before.findIndex((row) => row.key === key);
+	selected.value = (before[at + 1] ?? before[at - 1])?.key ?? null;
+	if (container.value !== RAIL && !openedSidebars(edited).includes(container.value))
+		fitSidebar(edited);
+}
+
+function moveTo(target: string) {
+	const key = selected.value;
+	if (!draft.value || !key) return;
+	const moved = moveRowTo(draft.value, container.value, key, target, scope.value);
+	refusal.value = refused(moved) ? moved : null;
+	if (refused(moved)) return;
+	draft.value = moved.draft;
+	switchContainer(target);
+	selected.value = moved.key;
+}
+
+function giveSidebar() {
+	if (!draft.value || !selected.value) return;
+	const next = giveRowSidebar(draft.value, selected.value, scope.value);
+	refusal.value = refused(next) ? next : null;
+	if (refused(next)) return;
+	draft.value = next.draft;
+	switchContainer(
+		rowsOf(next.draft, RAIL).find((row) => row.key === selected.value)!.opens_sidebar!
+	);
+	selected.value = next.key;
+}
+
+function removeSidebar() {
+	if (!draft.value || !selected.value) return;
+	apply(removeRowSidebar(draft.value, selected.value, scope.value));
+}
+
+/** Show a container: the Rail tab, or the Sidebar tab on that sidebar. */
+function switchContainer(target: string) {
+	tab.value = target === RAIL ? "rail" : "sidebar";
+	if (target !== RAIL) sidebar.value = target;
 }
 
 /** Enter on a row: select it, then put the cursor in the form's first field. */

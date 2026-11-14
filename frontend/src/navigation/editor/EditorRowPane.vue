@@ -49,12 +49,52 @@
 			<div
 				class="mt-auto flex h-[49px] shrink-0 items-center border-t border-outline-gray-1"
 			>
-				<div class="-mx-2 flex items-center gap-1" data-row-actions>
+				<div class="-mx-2 flex w-full items-center gap-1" data-row-actions>
+					<Dropdown
+						v-if="moveTargets.length"
+						:options="moveOptions"
+						side="top"
+						align="start"
+					>
+						<Button
+							variant="ghost"
+							icon-left="lucide-corner-down-right"
+							:label="__('Move to…')"
+							data-move-to
+						/>
+					</Dropdown>
+					<Button
+						v-if="canGiveSidebar"
+						variant="ghost"
+						icon-left="lucide-panel-left"
+						:label="__('Give it a sidebar')"
+						data-give-sidebar
+						@click="emit('giveSidebar')"
+					/>
+					<Button
+						v-if="canRemoveSidebar"
+						variant="ghost"
+						icon-left="lucide-panel-left-close"
+						:label="__('Remove its sidebar')"
+						data-remove-sidebar
+						@click="emit('removeSidebar')"
+					/>
 					<Button
 						variant="ghost"
 						:icon-left="row.hidden ? 'lucide-eye' : 'lucide-eye-off'"
 						:label="row.hidden ? __('Show') : __('Hide')"
+						data-toggle
 						@click="emit('toggle')"
+					/>
+					<Button
+						v-if="own"
+						class="ml-auto"
+						variant="ghost"
+						theme="red"
+						icon-left="lucide-trash-2"
+						:label="deleteLabel"
+						data-delete
+						@click="emit('delete')"
 					/>
 				</div>
 			</div>
@@ -66,7 +106,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Button, FormControl, Select } from "frappe-ui";
+import { Button, Dropdown, FormControl, Select } from "frappe-ui";
 import { __ } from "@/i18n";
 import IconPicker from "@/icons/IconPicker.vue";
 import { type EditorRow, isOwn, originOf, type Scope } from "./draft";
@@ -78,6 +118,12 @@ const props = defineProps<{
 	/** Rows a row may sit under, as options; empty on the rail. */
 	parents: { label: string; value: string }[];
 	canPlace: boolean;
+	/** The containers this row can move to, as `{label, value}`; empty when it can go nowhere. */
+	moveTargets: { label: string; value: string }[];
+	canGiveSidebar: boolean;
+	canRemoveSidebar: boolean;
+	/** How many own rows Delete takes with this one, itself included. */
+	deleteCount: number;
 	appTitle: string;
 	refusal: string | null;
 	iconFor: (row: EditorRow) => string;
@@ -87,7 +133,21 @@ const emit = defineEmits<{
 	update: [fields: Partial<EditorRow>];
 	nest: [parent: string | null];
 	toggle: [];
+	delete: [];
+	moveTo: [container: string];
+	giveSidebar: [];
+	removeSidebar: [];
 }>();
+
+const moveOptions = computed(() =>
+	props.moveTargets.map((target) => ({
+		label: target.label,
+		onClick: () => emit("moveTo", target.value),
+	}))
+);
+const deleteLabel = computed(() =>
+	props.deleteCount > 1 ? __("Delete with {0} rows", [props.deleteCount - 1]) : __("Delete")
+);
 
 const own = computed(() => !!props.row && isOwn(props.row.key, props.scope));
 const target = computed(() => props.row?.link_to ?? props.row?.url ?? props.row?.item_type ?? "");
