@@ -101,7 +101,7 @@
 					/>
 					<Button
 						v-if="canDelete"
-						class="ml-auto dark:hover:!bg-surface-red-2"
+						class="ml-auto"
 						variant="ghost"
 						theme="red"
 						icon-left="lucide-trash-2"

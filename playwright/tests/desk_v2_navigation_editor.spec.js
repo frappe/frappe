@@ -34,6 +34,9 @@ function tab(page, name) {
 async function add_link(page, url, label) {
 	await page.locator(`${EDITOR} [data-add]`).click();
 	await page.getByRole("menuitem", { name: "Link", exact: true }).click();
+	await expect(
+		page.locator(`${EDITOR} [data-field="url"] input, ${EDITOR} input[data-field="url"]`)
+	).toBeFocused();
 	await page.locator(`${EDITOR} [data-field="url"]`).locator("visible=true").first().fill(url);
 	await page
 		.locator(`${EDITOR} [data-field="label"]`)

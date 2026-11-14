@@ -6,7 +6,7 @@
 			:title="__('Add {0}', [typeLabel])"
 			:origin="__('A new row')"
 		/>
-		<div class="flex flex-col gap-3">
+		<div ref="fields" class="flex flex-col gap-3">
 			<Combobox
 				v-if="type === 'DocType' || type === 'Record'"
 				v-model="doctype"
@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, reactive, ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, reactive, ref } from "vue";
 import { Button, Checkbox, Combobox, FormControl, Select } from "frappe-ui";
 import { Link } from "@framework/ui/Link";
 import { useRouter } from "vue-router";
@@ -119,6 +119,21 @@ const doctype = computed({
 const gap = ref<{ field: keyof AddValues; message: string } | null>(null);
 const errorOf = (field: keyof AddValues) =>
 	gap.value?.field === field ? gap.value.message : undefined;
+
+// The add menu hands focus back to its button once its close has played out, after the form is up: the form takes it back once.
+const fields = ref<HTMLElement | null>(null);
+const firstField = () => fields.value?.querySelector<HTMLElement>("input, button, select");
+function takeBack(event: FocusEvent) {
+	const target = event.target as HTMLElement;
+	if (fields.value?.contains(target)) return;
+	document.removeEventListener("focusin", takeBack);
+	if (target.closest("[data-add]")) firstField()?.focus();
+}
+onMounted(() => {
+	firstField()?.focus();
+	document.addEventListener("focusin", takeBack);
+});
+onBeforeUnmount(() => document.removeEventListener("focusin", takeBack));
 
 const linkNote = computed(() => {
 	const url = values.url.trim();
