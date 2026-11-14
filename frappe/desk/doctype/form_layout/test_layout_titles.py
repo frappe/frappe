@@ -169,12 +169,13 @@ class TestLayoutTitlesAndFiles(IntegrationTestCase):
 		self.assertFalse(get_form_layouts("Note", "Details")["layouts"][0]["source_changed"])
 		self.assertEqual(write_app_layouts("Note", "New Record", [{"layout": a_tree("title")}]), written)
 
-	def test_a_later_save_keeps_the_fingerprint_and_an_old_row_has_none(self):
+	def test_a_later_save_refreshes_the_fingerprint_and_an_old_row_has_none(self):
 		name = save_form_layout("Note", "Details", json.dumps(a_tree("content")))
-		fingerprint = frappe.db.get_value("Form Layout", name, "fingerprint")
 		self.write_file([{"layout": a_tree("title")}])
+		self.assertTrue(get_form_layouts("Note", "Details")["layouts"][0]["source_changed"])
+
 		save_form_layout("Note", "Details", json.dumps(a_tree("title")), name=str(name))
-		self.assertEqual(frappe.db.get_value("Form Layout", name, "fingerprint"), fingerprint)
+		self.assertFalse(get_form_layouts("Note", "Details")["layouts"][0]["source_changed"])
 
 		frappe.db.set_value("Form Layout", name, "fingerprint", None)
 		self.assertNotIn("source_changed", get_form_layouts("Note", "Details")["layouts"][0])

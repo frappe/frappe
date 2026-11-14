@@ -22,6 +22,8 @@ CHILD_LAYOUT_TYPES = ("Details",)
 SINGLE_LAYOUT_TYPES = ("Details", "Side Panel")
 LAYOUT_BREAKS = ("Section Break", "Column Break", "Tab Break")
 SECTION_ONLY_KEYS = ("collapsibleDependsOn",)
+# A `write_layout_row` argument left at this keeps the row's stored value.
+KEEP = object()
 # Mirrors `DROPPED_FIELDTYPES` in `ui/src/components/FormLayout/buildLayoutFromMeta.ts`.
 DROPPED_FIELDTYPES = (*LAYOUT_BREAKS, "Fold", "Attachment Gallery")
 STANDARD_FIELDS = frozenset(default_fields + child_table_fields + optional_fields)
@@ -202,15 +204,49 @@ def save_form_layout(
 	if refuse_layout_type(dt, type):
 		return None
 	doc = find_layout_doc(dt, type, name, app)
-	doc.update({"dt": dt, "type": type, "app": app, "layout": layout, "condition": condition})
-	if title is not None:
-		doc.title = title
-	if doc.is_new():
-		doc.fingerprint = source_fingerprint(dt, type)
+	return write_layout_row(
+		doc,
+		dt=dt,
+		type=type,
+		app=app,
+		layout=layout,
+		condition=condition,
+		title=KEEP if title is None else title,
+	).name
+
+
+def write_layout_row(
+	doc: "FormLayout",
+	*,
+	dt=KEEP,
+	type=KEEP,
+	app=KEEP,
+	layout=KEEP,
+	condition=KEEP,
+	title=KEEP,
+	omitted=KEEP,
+	dialog_size=KEEP,
+) -> "FormLayout":
+	"""Save the given fields on a Form Layout row and refresh its fingerprint; callers check permissions."""
+	values = {
+		"dt": dt,
+		"type": type,
+		"app": app,
+		"layout": layout,
+		"condition": condition,
+		"title": title,
+		"omitted": omitted,
+		"dialog_size": dialog_size,
+	}
+	doc.update({field: value for field, value in values.items() if value is not KEEP})
+	validate_target(doc.dt, doc.type)
+	if message := layout_type_refusal(doc.dt, doc.type):
+		frappe.throw(message, title=_("Layout Not Saved"))
+	doc.fingerprint = source_fingerprint(doc.dt, doc.type)
 	# `validate` computes it, once the layout has passed the checks that refuse a malformed one.
-	doc.flags.writes_omitted = type in OMITTING_LAYOUT_TYPES
+	doc.flags.writes_omitted = doc.type in OMITTING_LAYOUT_TYPES
 	doc.save()
-	return doc.name
+	return doc
 
 
 def check_layout_access(dt: str, type: str) -> None:

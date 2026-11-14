@@ -698,8 +698,11 @@ that adds a field to the doctype also updates the file. Contact's test checks th
 
 Limits:
 
-- A site row keeps winning over a newer file. A row saved with a fingerprint comes back with
-  `source_changed` once the file it copied changes; an older row has no fingerprint.
+- A site row keeps winning over a newer file. Each save stores the file's fingerprint, so a
+  row comes back with `source_changed` once the file changes after its last save; an older
+  row has no fingerprint until its next save. An app that writes its own rows calls
+  `write_layout_row(row, **values)` from `frappe.desk.doctype.form_layout.form_layout`, so its
+  rows get the same checks and fingerprint.
 - When a doctype that rendered from its breaks gets a `details` or `new_record` file, the
   site's Property Setters on breaks (a section label, `collapsible`) and its `field_order` no
   longer apply on desk v2. They still apply on desk v1. A custom field stays in place through
