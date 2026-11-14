@@ -23,6 +23,12 @@ describe("a naming pattern's next name", () => {
 		expect(shown("format:TN-{MM}{DD}-{#####}", { "": 6 })).toBe("TN-1113-00007");
 	});
 
+	it("resolves braced tokens in a dot series first and counts under the prefix they make, as frappe's Expression does", () => {
+		expect(seriesPrefixes("TN-{MM}-.#####", today)).toEqual(["TN-11-"]);
+		expect(shown("TN-{MM}-.#####", { "TN-11-": 4 })).toBe("TN-11-00005");
+		expect(seriesPrefixes("{customer}-.###", today)).toEqual([]);
+	});
+
 	it("shows a field's label in gray, and a counter whose prefix holds a field in gray", () => {
 		expect(seriesPrefixes("format:{customer}-.###", today)).toEqual([]);
 		expect(shown("format:{customer}-.###")).toBe("[<Customer>]-[###]");

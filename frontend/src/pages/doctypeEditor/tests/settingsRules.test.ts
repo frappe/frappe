@@ -1,6 +1,6 @@
 // The Settings tab's rules: which rows each kind shows, the naming rules and the permission rights.
 import { describe, expect, it } from "vitest";
-import { autonameOf, namingProperties, patternRefusal, ruleOf, ruleRefusal } from "../namingRules";
+import { autonameOf, namingProperties, patternRefusal, patternSeed, ruleOf, ruleRefusal } from "../namingRules";
 import { columns, moreRights, rightRefusal } from "../permissionColumns";
 import type { PermissionRow, SettingsState } from "../settingsModel";
 import { kindProperties, settingRows, settingSections, type DangerScope, type DoctypeKind } from "../settingsRows";
@@ -98,6 +98,11 @@ describe("the naming rules", () => {
 	it("refuses a typed pattern that would read as another rule", () => {
 		expect(["WS-.#####", "format:WS-{#####}", "format:WS-#####"].map(patternRefusal)).toEqual(["", "", ""]);
 		expect(["WS-#####", "hash", "Prompt"].every((pattern) => patternRefusal(pattern))).toBe(true);
+	});
+
+	it("starts By pattern with a dot series under the DocType's own prefix", () => {
+		expect(patternSeed("Walk Item")).toBe("WI-.#####");
+		expect(namingProperties(patternSeed("Walk Item")).naming_rule).toBe("Expression");
 	});
 
 	it("names a braced pattern the old style expression, as v1 does", () => {

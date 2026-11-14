@@ -59,6 +59,7 @@ import {
 	NAMEABLE_TYPES,
 	RULES,
 	SHOWN_WHEN_CURRENT,
+	patternSeed,
 	ruleOf,
 	ruleRefusal,
 	seriesAbbreviation,
@@ -97,8 +98,7 @@ function pick(one: Rule) {
 		return view.setNaming(
 			FIELD + (String(view.value("title_field") || "") || nameable.value[0].value)
 		);
-	if (one === "format")
-		return view.setNaming(`format:${seriesAbbreviation(view.doctype)}-{#####}`);
+	if (one === "format") return view.setNaming(patternSeed(view.doctype));
 	if (one === "naming_series") {
 		return view.setNaming(
 			"naming_series:",
