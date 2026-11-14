@@ -1,7 +1,4 @@
-<!--
-  The avatar menu: the person's profile, the shell's acts for them and the page's own rows. The rail and the index draw it.
-  `wide` is a panel footer's row, the avatar with the full name, which opens its menu upward.
--->
+<!-- The avatar menu: the person's profile, the shell's acts for them and the page's own rows. The rail and the index draw it. -->
 <template>
 	<Dropdown :options="menu" :side="wide ? 'top' : 'right'" :align="wide ? 'start' : 'end'">
 		<button v-if="wide" type="button" data-key="user-menu" :class="WIDE_ROW">

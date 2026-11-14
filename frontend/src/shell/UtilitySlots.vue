@@ -1,6 +1,4 @@
-<!--
-  The utility slots, Search then Notifications: a rail cell each, or a panel row each.
--->
+<!-- The utility slots, Search then Notifications: a rail cell each, or a panel row each. -->
 <template>
 	<Tooltip v-if="form === 'cell'" side="right">
 		<template #content>

@@ -1,7 +1,4 @@
-<!--
-  The chrome of a navigation that no rail draws: the app's logo and title as one button that opens
-  the app menu, with the utility slots as rows under it.
--->
+<!-- The chrome where no rail draws it: the app menu button, with the utility slots as rows under it. -->
 <template>
 	<div class="shrink-0">
 		<div class="flex h-12 items-center px-2">
