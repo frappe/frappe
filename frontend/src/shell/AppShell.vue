@@ -62,7 +62,8 @@
 		</div>
 
 		<!-- The hash dialogs: one hash, one Dialog, above any page. -->
-		<CustomizeSidebarDialog
+		<NavigationEditor
+			v-if="editorOpened"
 			:target="customizing"
 			@saved="replace"
 			@close="customize.close()"
@@ -124,7 +125,7 @@ import type { OpenArgument } from "./actKeys";
 import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import { closeRecordDialogs, recordDialog, recordDialogRequests } from "./recordDialog";
-import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
+import type { EditorTarget } from "@/navigation/editor/NavigationEditor.vue";
 import LogoutDialog from "./LogoutDialog.vue";
 import { bulkTrayShown } from "./bulkTrayFlag";
 import { shellDialogs } from "./dialog";
@@ -142,6 +143,9 @@ import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
 
+const NavigationEditor = defineAsyncComponent(
+	() => import("@/navigation/editor/NavigationEditor.vue")
+);
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
 const AboutDialog = defineAsyncComponent(() => import("./AboutDialog.vue"));
 const ShellDialogs = defineAsyncComponent(() => import("./ShellDialogs.vue"));
@@ -316,14 +320,16 @@ const panel = computed(() => {
 const customize = useHashDialog("customize");
 
 // `#customize/rail` or `#customize/sidebar/<address>`; anything else under the root is nothing.
-const customizing = computed<CustomizeTarget | null>(() => {
+const customizing = computed<EditorTarget | null>(() => {
 	const [what, address] = customize.segments.value;
-	if (what === "rail" && boot.app)
-		return { container: "Rail", address: boot.app, title: __("Customize sidebar") };
-	if (what === "sidebar" && address && navigation.value.sidebars[address])
-		return { container: "Sidebar", address, title: __("Customize this sidebar") };
+	if (what === "rail" && boot.app) return { tab: "rail" };
+	if (what === "sidebar" && address && boot.app) return { tab: "sidebar", address };
 	return null;
 });
+
+// Loaded on the first open, then kept, so a close plays the dialog's leave transition.
+const editorOpened = ref(false);
+watch(customizing, (target) => target && (editorOpened.value = true), { immediate: true });
 
 const settings = useHashDialog("settings");
 const openSettings: OpenSettings = (...segments) =>
@@ -368,7 +374,10 @@ const { appActsPending, shell } = useShellActs({
 	confirmLogout: () => void (confirmingLogout.value = true),
 	rail: boot.app
 		? {
-				customize: () => customize.write("rail"),
+				customize: () =>
+					panel.value
+						? customize.write("sidebar", panel.value.address)
+						: customize.write("rail"),
 				shareLink,
 				// No seam in the sidebar-only layout, so no act.
 				sidebarCollapsed: () =>

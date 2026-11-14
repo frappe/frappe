@@ -104,6 +104,13 @@ def get_arrangements(app: str, scope: str = "user") -> dict:
 
 @frappe.desk_v2_only
 @frappe.whitelist()
+def get_default_arrangements(app: str, scope: str = "user") -> dict:
+	"""The rail and sidebars as the level below `scope` leaves them; the editor reads it when Reset to default is clicked."""
+	return _editor("read_default_arrangements")(app, scope)
+
+
+@frappe.desk_v2_only
+@frappe.whitelist()
 def save_arrangements(app: str, scope: str, containers: str | dict, version: str) -> dict:
 	"""Store every container the editor changed in one transaction, and hand back the whole prefix's navigation."""
 	return _editor("write_arrangements")(app, scope, containers, version)

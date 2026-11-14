@@ -231,11 +231,11 @@ describe("each shell act, run by name", () => {
 		expect(assign).not.toHaveBeenCalled();
 	});
 
-	it("customize_sidebar opens the rail's customize dialog", async () => {
+	it("customize_sidebar opens the editor on the sidebar the page shows", async () => {
 		const { router } = await shell();
 		await acts.run("shell.customize_sidebar");
 		await settle();
-		expect(router.currentRoute.value.hash).toBe("#customize/rail");
+		expect(router.currentRoute.value.hash).toBe("#customize/sidebar/module_def_accounts");
 	});
 
 	it("about opens the About dialog at #about, and the palette may list it", async () => {

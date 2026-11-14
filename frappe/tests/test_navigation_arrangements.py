@@ -11,6 +11,7 @@ import frappe
 from frappe.shell.arrangement import (
 	_target,
 	get_arrangements,
+	get_default_arrangements,
 	save_arrangement,
 	save_arrangements,
 	save_navigation_layout,
@@ -64,7 +65,9 @@ class TestGetArrangements(EditorTestCase):
 
 		result = get_arrangements(APP)
 
-		self.assertEqual(set(result), {"version", "can_edit_site", "navigation_layouts", "rail", "sidebars"})
+		self.assertEqual(
+			set(result), {"version", "can_edit_site", "has_saved", "navigation_layouts", "rail", "sidebars"}
+		)
 		self.assertEqual(keys(result["rail"]), ["todo", "note"])
 		self.assertEqual(result["rail"][0]["hidden"], 1)
 		self.assertEqual(keys(result["sidebars"][ADDRESS_KEY]), ["sb_todo", "sb_note"])
@@ -163,6 +166,75 @@ class TestGetArrangements(EditorTestCase):
 
 		with set_user(a_person()):
 			self.assertNotIn(OWN_SIDEBAR, get_arrangements(APP, "site")["sidebars"])
+
+
+class TestGetDefaultArrangements(EditorTestCase):
+	def test_has_saved_says_whether_this_level_stored_a_rail_or_a_sidebar(self):
+		self.assertFalse(get_arrangements(APP)["has_saved"])
+
+		save_arrangement("Rail", APP, [shown("note"), shown("todo")])
+		self.assertTrue(get_arrangements(APP)["has_saved"])
+
+		with set_user("Administrator"):
+			self.assertFalse(get_arrangements(APP, "site")["has_saved"])
+
+	def test_has_saved_counts_a_sidebar_alone(self):
+		save_arrangement("Sidebar", ADDRESS_KEY, [shown("sb_note"), shown("sb_todo")])
+
+		self.assertTrue(get_arrangements(APP)["has_saved"])
+
+	def test_a_person_gets_the_site_level_with_their_own_changes_gone(self):
+		with set_user("Administrator"):
+			save_arrangement("Rail", APP, [shown("note"), shown("todo", hidden=1)], "site")
+		save_arrangement("Rail", APP, [shown("todo"), shown("note")])
+
+		result = get_default_arrangements(APP)
+
+		self.assertEqual(set(result), {"rail", "sidebars"})
+		self.assertEqual(keys(result["rail"]), ["note", "todo"])
+		self.assertEqual(result["rail"][1]["hidden"], 1)
+		self.assertEqual(result["rail"][1]["hidden_by"], "site")
+		self.assertEqual(keys(result["sidebars"][ADDRESS_KEY]), ["sb_todo", "sb_note"])
+
+	def test_the_site_level_gets_what_the_apps_ship(self):
+		with set_user("Administrator"):
+			save_arrangement("Rail", APP, [shown("note"), shown("todo", hidden=1)], "site")
+
+			result = get_default_arrangements(APP, "site")
+
+		self.assertEqual(keys(result["rail"]), ["todo", "note"])
+		self.assertFalse(any(row.get("hidden") for row in result["rail"]))
+
+	def test_the_level_below_has_no_row_or_sidebar_this_level_added(self):
+		make_rail([item("user:k3f9a2", link_doctype="DocType", link_to="Role", added=1)], user=self.user)
+		make_own_sidebar(
+			OWN_SIDEBAR,
+			[item("user:aaaaaa", link_doctype="DocType", link_to="ToDo", added=1)],
+			user=self.user,
+		)
+
+		result = get_default_arrangements(APP)
+
+		self.assertNotIn("user:k3f9a2", keys(result["rail"]))
+		self.assertNotIn(OWN_SIDEBAR, result["sidebars"])
+		self.assertIn(OWN_SIDEBAR, get_arrangements(APP)["sidebars"])
+
+	def test_it_stores_nothing(self):
+		get_default_arrangements(APP)
+
+		self.assertEqual(stored(), [])
+
+	def test_the_site_scope_needs_a_system_manager(self):
+		with self.assertRaises(frappe.PermissionError):
+			get_default_arrangements(APP, "site")
+
+	def test_a_bad_scope_is_a_validation_error(self):
+		for scope in ("everyone", "base", ""):
+			with (
+				self.subTest(scope=scope),
+				self.assertRaisesRegex(frappe.ValidationError, "not an arrangement scope"),
+			):
+				get_default_arrangements(APP, scope)
 
 
 class TestSaveArrangements(EditorTestCase):

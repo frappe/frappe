@@ -434,10 +434,10 @@ describe("the app menu", () => {
 		expect(text).not.toContain("Theme");
 	});
 
-	it("offers Customize sidebar, which runs the shell's customize", async () => {
-		expect(await opened({})).toContain("Customize sidebar");
+	it("offers Customize navigation, which runs the shell's customize", async () => {
+		expect(await opened({})).toContain("Customize navigation");
 		Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"))
-			.find((row) => row.textContent?.trim() === "Customize sidebar")!
+			.find((row) => row.textContent?.trim() === "Customize navigation")!
 			.click();
 		await flush();
 		expect(fake.customize).toHaveBeenCalledOnce();
@@ -455,7 +455,7 @@ describe("the app menu", () => {
 		expect(rows.map((row) => row.textContent?.trim())).toEqual([
 			"All apps",
 			"Settings",
-			"Customize sidebar",
+			"Customize navigation",
 			"Copy link",
 			"About",
 		]);
@@ -498,7 +498,7 @@ describe("the app menu", () => {
 		await flush();
 
 		const rows = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"));
-		expect(rows.map((row) => row.textContent?.trim())).toEqual(["BOOKS", "WIKI", "All apps", "Settings", "Customize sidebar", "About"]);
+		expect(rows.map((row) => row.textContent?.trim())).toEqual(["BOOKS", "WIKI", "All apps", "Settings", "Customize navigation", "About"]);
 		expect(rows[0].querySelector("[data-app-logo]")).not.toBeNull();
 	});
 
@@ -634,9 +634,9 @@ describe("the user menu", () => {
 		expect(menu.querySelector("[role='menuitem']")).toBe(header);
 	});
 
-	it("offers the four rows in order, with Log out in red", async () => {
+	it("offers the five rows in order, with Log out in red", async () => {
 		const menu = await opened();
-		expect(rows(menu)).toEqual(["My settings", "Theme", "Desk v1", "Log out"]);
+		expect(rows(menu)).toEqual(["My settings", "Customize navigation", "Theme", "Desk v1", "Log out"]);
 		expect(row(menu, "Log out").className).toContain("red");
 	});
 
@@ -645,7 +645,7 @@ describe("the user menu", () => {
 		pageMenuItems.value = [{ label: "Arrange apps", icon: "lucide-layout-grid", onClick: arrange }];
 		try {
 			const menu = await opened();
-			expect(rows(menu)).toEqual(["My settings", "Theme", "Arrange apps", "Desk v1", "Log out"]);
+			expect(rows(menu)).toEqual(["My settings", "Customize navigation", "Theme", "Arrange apps", "Desk v1", "Log out"]);
 			row(menu, "Arrange apps").click();
 			await flush();
 			expect(arrange).toHaveBeenCalledOnce();
@@ -659,7 +659,7 @@ describe("the user menu", () => {
 		const groups = Array.from(menu.querySelectorAll("[data-slot='group']")).map((group) =>
 			Array.from(group.querySelectorAll(COMMANDS)).length
 		);
-		expect(groups).toEqual([0, 2, 1, 1]);
+		expect(groups).toEqual([0, 3, 1, 1]);
 	});
 
 	it("opens My settings at desk's Profile pane, in place, and sends Desk v1 to v1's home", async () => {
