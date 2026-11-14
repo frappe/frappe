@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from frappe.database.schema import DBTable, get_definition
+from frappe.database.schema import NOT_NULL_TYPES, DBTable, get_definition
 from frappe.utils import cint, flt
 from frappe.utils.defaults import get_not_null_defaults
 
@@ -189,8 +189,8 @@ class SQLiteTable(DBTable):
 				f"WHERE `{col.fieldname}` IS NOT NULL "
 				f"AND TRIM(CAST(`{col.fieldname}` AS TEXT)) = ''"
 			)
-		for col in self.change_nullability:
-			if not col.not_nullable:
+		for col in {*self.change_nullability, *self.change_type}:
+			if not (col.not_nullable or col.fieldtype in NOT_NULL_TYPES):
 				continue
 			default = col.default or get_not_null_defaults(col.fieldtype)
 			if isinstance(default, str):
