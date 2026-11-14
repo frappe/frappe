@@ -1,0 +1,237 @@
+$print-heading-sizes: (
+	1: 24px,
+	2: 20px,
+	3: 18px,
+	4: 16px,
+	5: 14px,
+	6: 12px,
+);
+
+@function print-headings($levels...) {
+	$selectors: ();
+	@each $level in $levels {
+		$selectors: append($selectors, "h#{$level}, .h#{$level}", comma);
+	}
+	@return $selectors;
+}
+
+#{print-headings(1, 2, 3, 4, 5, 6)} {
+	font-family: inherit;
+	font-weight: 500;
+	line-height: 1.3em;
+	color: inherit;
+
+	small,
+	.small {
+		font-weight: normal;
+		line-height: 1;
+		color: $print-gray-light;
+	}
+}
+#{print-headings(1, 2, 3)} {
+	margin-top: 20px;
+	margin-bottom: 10px;
+
+	small,
+	.small {
+		font-size: 65%;
+	}
+}
+#{print-headings(4, 5, 6)} {
+	margin-top: 10px;
+	margin-bottom: 10px;
+
+	small,
+	.small {
+		font-size: 75%;
+	}
+}
+@each $level, $size in $print-heading-sizes {
+	#{print-headings($level)} {
+		font-size: $size;
+	}
+}
+
+p {
+	margin: 0 0 10px;
+}
+.lead {
+	margin-bottom: 20px;
+	font-size: 16px;
+	font-weight: 300;
+	line-height: 1.4;
+}
+@media (min-width: 768px) {
+	.lead {
+		font-size: 21px;
+	}
+}
+small,
+.small {
+	font-size: 85%;
+}
+mark,
+.mark {
+	padding: 0.2em;
+	background-color: transparent;
+}
+
+@each $align in left, right, center, justify {
+	.text-#{$align} {
+		text-align: $align;
+	}
+}
+.text-nowrap {
+	white-space: nowrap;
+}
+@each $transform in lowercase, uppercase, capitalize {
+	.text-#{$transform} {
+		text-transform: $transform;
+	}
+}
+.text-muted {
+	color: $print-text-muted;
+}
+.text-primary {
+	color: $print-primary;
+}
+@each $state, $colors in $print-states {
+	.text-#{$state} {
+		color: nth($colors, 1);
+	}
+}
+.bg-primary {
+	color: #fff;
+	background-color: $print-primary;
+}
+@each $state, $colors in $print-states {
+	.bg-#{$state} {
+		background-color: transparent;
+	}
+}
+
+.page-header {
+	padding-bottom: 9px;
+	margin: 40px 0 20px;
+	border-bottom: 1px solid #eee;
+}
+
+ul,
+ol {
+	margin-top: 0;
+	margin-bottom: 10px;
+
+	ul,
+	ol {
+		margin-bottom: 0;
+	}
+}
+.list-unstyled {
+	padding-left: 0;
+	list-style: none;
+}
+.list-inline {
+	padding-left: 0;
+	margin-left: -5px;
+	list-style: none;
+
+	> li {
+		display: inline-block;
+		padding-right: 5px;
+		padding-left: 5px;
+	}
+}
+dl {
+	margin-top: 0;
+	margin-bottom: 20px;
+}
+dt,
+dd {
+	line-height: $print-line-height;
+}
+dt {
+	font-weight: bold;
+}
+dd {
+	margin-left: 0;
+}
+.dl-horizontal dd {
+	@extend %clearfix;
+}
+@media (min-width: 768px) {
+	.dl-horizontal {
+		dt {
+			float: left;
+			width: 160px;
+			overflow: hidden;
+			clear: left;
+			text-align: right;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		dd {
+			margin-left: 180px;
+		}
+	}
+}
+
+abbr[title],
+abbr[data-original-title] {
+	border-bottom: 1px dotted $print-gray-light;
+}
+.initialism {
+	font-size: 90%;
+	text-transform: uppercase;
+}
+
+blockquote {
+	padding: 10px 20px;
+	margin: 0 0 20px;
+	font-size: 17.5px;
+	border-left: 5px solid #eee;
+
+	p,
+	ul,
+	ol {
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+	footer,
+	small,
+	.small {
+		display: block;
+		font-size: 80%;
+		line-height: $print-line-height;
+		color: $print-gray-light;
+
+		&:before {
+			content: "\2014 \00A0";
+		}
+	}
+}
+.blockquote-reverse,
+blockquote.pull-right {
+	padding-right: 15px;
+	padding-left: 0;
+	text-align: right;
+	border-right: 5px solid #eee;
+	border-left: 0;
+
+	footer,
+	small,
+	.small {
+		&:before {
+			content: "";
+		}
+		&:after {
+			content: "\00A0 \2014";
+		}
+	}
+}
+
+address {
+	margin-bottom: 20px;
+	font-style: normal;
+	line-height: $print-line-height;
+}

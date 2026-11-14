@@ -18,6 +18,7 @@
 		top: auto;
 		left: auto;
 		margin: 0;
+		min-height: 0;
 		width: 600px;
 		max-width: calc(100vw - 40px);
 		transform: none !important;
@@ -486,34 +487,34 @@
 	.email-composer-icon-row .es-button.active {
 		background-color: var(--surface-gray-3);
 	}
+}
 
-	.email-composer-more-menu {
-		border-radius: var(--radius-lg);
-		padding: 4px;
+.es-popover.email-composer-more-popover {
+	width: auto;
+	padding: 4px;
+}
+
+.email-composer-menu-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	user-select: none;
+	color: var(--ink-gray-7);
+
+	> span:not(.switch-visual) {
+		flex: 1;
 	}
 
-	.email-composer-menu-toggle {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		cursor: pointer;
-		user-select: none;
+	&.active {
+		background-color: transparent;
 		color: var(--ink-gray-7);
 
-		> span:not(.switch-visual) {
-			flex: 1;
-		}
+		.switch-visual {
+			background-color: var(--ink-gray-8);
 
-		&.active {
-			background-color: transparent;
-			color: var(--ink-gray-7);
-
-			.switch-visual {
-				background-color: var(--ink-gray-8);
-
-				.switch-thumb {
-					transform: translateX(10px);
-				}
+			.switch-thumb {
+				transform: translateX(10px);
 			}
 		}
 	}

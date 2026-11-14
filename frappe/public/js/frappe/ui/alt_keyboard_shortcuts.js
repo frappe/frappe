@@ -13,7 +13,6 @@ frappe.ui.keys.get_shortcut_group = (parent) => {
 };
 
 let listener_added = false;
-let $current_dropdown = null;
 let $body = $(document.body);
 
 frappe.ui.keys.bind_shortcut_group_event = () => {
@@ -21,17 +20,10 @@ frappe.ui.keys.bind_shortcut_group_event = () => {
 	listener_added = true;
 
 	function highlight_alt_shortcuts() {
-		if ($current_dropdown) {
-			$current_dropdown.addClass("alt-pressed");
-			$body.removeClass("alt-pressed");
-		} else {
-			$body.addClass("alt-pressed");
-			$current_dropdown && $current_dropdown.removeClass("alt-pressed");
-		}
+		$body.addClass("alt-pressed");
 	}
 
 	function unhighlight_alt_shortcuts() {
-		$current_dropdown && $current_dropdown.removeClass("alt-pressed");
 		$body.removeClass("alt-pressed");
 	}
 
@@ -66,30 +58,11 @@ frappe.ui.keys.bind_shortcut_group_event = () => {
 };
 
 function get_shortcut_for_key(key) {
-	// Get the shortcut for combination of alt+key
-	// Priority 1: Open dropdown
-	// Priority 2: Current Page
-
-	let shortcuts = shortcut_group_list
+	return shortcut_group_list
 		.filter((shortcut_group) => key in shortcut_group.shortcuts_dict)
 		.map((shortcut_group) => shortcut_group.shortcuts_dict[key])
-		.filter((shortcut) => shortcut.$target.is(":visible"));
-
-	let shortcut = null;
-
-	if ($current_dropdown && $current_dropdown.is(".open")) {
-		shortcut = shortcuts.find((shortcut) =>
-			$.contains($current_dropdown[0], shortcut.$target[0])
-		);
-	}
-
-	if (shortcut) return shortcut;
-
-	shortcut = shortcuts.find((shortcut) =>
-		$.contains(window.cur_page.page.page.wrapper[0], shortcut.$target[0])
-	);
-
-	return shortcut;
+		.filter((shortcut) => shortcut.$target.is(":visible"))
+		.find((shortcut) => $.contains(window.cur_page.page.page.wrapper[0], shortcut.$target[0]));
 }
 
 frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
@@ -109,24 +82,8 @@ frappe.ui.keys.AltShortcutGroup = class AltShortcutGroup {
 			this.blacklisted_letters = frappe.utils.is_mac() ? ["e", "l"] : ["q"];
 		}
 
-		$current_dropdown = null;
-		this.bind_events();
 		frappe.ui.keys.bind_shortcut_group_event();
 		shortcut_group_list.push(this);
-	}
-
-	bind_events() {
-		$(document).on("show.bs.dropdown", (e) => {
-			$current_dropdown && $current_dropdown.removeClass("alt-pressed");
-			let $target = $(e.target);
-			if ($target.is(".dropdown, .btn-group")) {
-				$current_dropdown = $target;
-			}
-		});
-		$(document).on("hide.bs.dropdown", () => {
-			$current_dropdown && $current_dropdown.removeClass("alt-pressed");
-			$current_dropdown = null;
-		});
 	}
 
 	add($target, $text_el) {

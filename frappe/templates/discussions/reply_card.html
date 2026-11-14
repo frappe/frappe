@@ -20,10 +20,10 @@
 	<div class="reply-body">
 		{% if frappe.session.user == reply.owner %}
 		<div class="dropdown ml-auto">
-			<svg class="icon icon-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			<svg class="icon icon-sm dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">
 				<use href="#icon-ellipsis"></use>
 			</svg>
-			<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+			<ul class="dropdown-menu">
 				<li>
 					<a class="dropdown-item small" data-action="edit">
 						{{ _("Edit") }}

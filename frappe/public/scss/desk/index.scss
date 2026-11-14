@@ -4,9 +4,10 @@
 @import "../common/icons.scss";
 @import "../common/alert.scss";
 
-@import "~bootstrap/scss/bootstrap";
+@import "../common/base/index";
 @import "global";
 @import "../common/buttons";
+@import "buttons";
 @import "../common/flex";
 @import "mobile";
 @import "module.scss";

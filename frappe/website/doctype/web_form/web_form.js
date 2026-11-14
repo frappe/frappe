@@ -497,11 +497,11 @@ class GetFieldsDialog {
 				>
 			</div>
 			<div class="flex flex-wrap gap-2 mt-3 mb-3">
-				<button class="btn btn-default btn-xs" data-action="select_all">${__("Select All")}</button>
-				<button class="btn btn-default btn-xs" data-action="select_mandatory">
+				<button class="es-button" data-size="xs" data-action="select_all">${__("Select All")}</button>
+				<button class="es-button" data-size="xs" data-action="select_mandatory">
 					${__("Select Mandatory")}
 				</button>
-				<button class="btn btn-default btn-xs" data-action="unselect_all">${__("Unselect All")}</button>
+				<button class="es-button" data-size="xs" data-action="unselect_all">${__("Unselect All")}</button>
 			</div>
 		`);
 		frappe.utils.bind_actions_with_object($header, this);

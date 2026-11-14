@@ -132,9 +132,7 @@ class FileUploader {
 			(hide_dialog_footer) => {
 				if (!this.dialog) return;
 				this.dialog.footer.toggleClass("hide", hide_dialog_footer);
-				this.dialog.$wrapper.data("bs.modal")._config.backdrop = hide_dialog_footer
-					? "static"
-					: true;
+				this.dialog.set_static_backdrop(hide_dialog_footer);
 			}
 		);
 
@@ -171,10 +169,7 @@ class FileUploader {
 
 		this.wrapper = this.dialog.body;
 		this.dialog.show();
-		this.dialog.$wrapper.on("hidden.bs.modal", function () {
-			$(this).data("bs.modal", null);
-			$(this).remove();
-		});
+		this.dialog.on("hidden", (dialog) => dialog.$wrapper.remove());
 	}
 }
 

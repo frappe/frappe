@@ -2742,8 +2742,7 @@ frappe.ui.form.on("Data Import", {
 												css_class: "diw-import-log-expand-btn",
 												title: __("Toggle error details"),
 												attrs: {
-													"data-toggle": "collapse",
-													"data-target": `#${id}`,
+													"data-action": "toggle_log_details",
 													"aria-expanded": "false",
 													"aria-controls": id,
 												},
@@ -2939,6 +2938,11 @@ frappe.ui.form.on("Data Import", {
 				show_all_rows: (_e, $target) => {
 					const $label = $target.closest("[data-row-list]");
 					$label.html($label.attr("data-row-list"));
+				},
+				toggle_log_details: (_e, $target) => {
+					const open = $target.attr("aria-expanded") !== "true";
+					$target.attr("aria-expanded", String(open));
+					wrapper.find(`#${$target.attr("aria-controls")}`).toggleClass("show", open);
 				},
 			});
 

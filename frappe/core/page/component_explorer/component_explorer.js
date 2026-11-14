@@ -928,6 +928,101 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		Modal: {
+			helper: "frappe.ui.modal",
+			groups: [
+				{
+					title: __("Basic (your own actions in the footer)"),
+					items: [
+						{
+							button: { label: __("Archive project") },
+							title: __("Archive this project?"),
+							content: __("Its tasks stay readable, but nobody can add to them."),
+							actions: [
+								{ label: __("Cancel"), onclick: (e, modal) => modal.hide() },
+								{
+									label: __("Archive"),
+									variant: "solid",
+									onclick: (e, modal) => {
+										frappe.ui.toast({ message: __("Project archived") });
+										modal.hide();
+									},
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Sizes"),
+					items: [
+						{
+							button: { label: __("Small") },
+							size: "small",
+							title: __("Small"),
+							content: __("Narrower than the default."),
+						},
+						{
+							button: { label: __("Default") },
+							title: __("Default"),
+							content: __("The width most dialogs use."),
+						},
+						{
+							button: { label: __("Large") },
+							size: "large",
+							title: __("Large"),
+							content: __("For forms with two columns."),
+						},
+						{
+							button: { label: __("Extra large") },
+							size: "extra-large",
+							title: __("Extra large"),
+							content: __("For forms with three or more columns."),
+						},
+					],
+				},
+				{
+					title: __("Centered on the screen"),
+					items: [
+						{
+							button: { label: __("Centered") },
+							position: "center",
+							title: __("Centered"),
+							content: __(
+								"Sits in the middle of the screen instead of near the top."
+							),
+						},
+					],
+				},
+				{
+					title: __("Static (Escape and a click outside bounce it)"),
+					items: [
+						{
+							button: { label: __("Static") },
+							dismissible: "static",
+							show_close_button: false,
+							title: __("Static"),
+							content: __("Only the button closes it."),
+							actions: [{ label: __("Done"), onclick: (e, modal) => modal.hide() }],
+						},
+					],
+				},
+				{
+					title: __("Events (hide and hidden get the reason)"),
+					items: [
+						{
+							button: { label: __("Close me any way") },
+							title: __("Events"),
+							content: __(
+								"Press Escape, click outside, use the close button or Done."
+							),
+							actions: [{ label: __("Done"), onclick: (e, modal) => modal.hide() }],
+							on_hidden: (reason) =>
+								frappe.ui.toast({ message: __("Closed: {0}", [reason]) }),
+						},
+					],
+				},
+			],
+		},
 		"Bottom Sheet": {
 			helper: "frappe.ui.bottom_sheet",
 			groups: [

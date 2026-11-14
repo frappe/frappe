@@ -116,9 +116,7 @@ frappe.ui.Notifications = class Notifications {
 				.appendTo(this.header_actions);
 
 			if (title) {
-				$action
-					.attr("title", title)
-					.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+				frappe.ui.tooltip($action, { text: title, delay: 600 });
 			}
 			return $action;
 		};
@@ -259,9 +257,7 @@ class BaseNotificationsView {
 class NotificationsView extends BaseNotificationsView {
 	make() {
 		this.notifications_icon = this.parent.find(".notifications-icon");
-		this.notifications_icon
-			.attr("title", __("Notifications"))
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+		frappe.ui.tooltip(this.notifications_icon, { text: __("Notifications"), delay: 600 });
 
 		this.setup_notification_listeners();
 

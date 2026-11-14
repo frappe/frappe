@@ -1635,7 +1635,7 @@ def handle_password_test_fail(feedback: dict):
 	message_parts = []
 
 	if warning:
-		message_parts.append(f'<div class="alert alert-warning" role="alert">{warning}</div>')
+		message_parts.append(f"<div>{warning}</div>")
 
 	if suggestions:
 		suggestions_html = (

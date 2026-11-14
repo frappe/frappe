@@ -108,11 +108,11 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			return;
 		}
 
-		this.$next_button = $(`<button class="btn btn-default btn-next btn-sm ml-2">
+		this.$next_button = $(`<button class="es-button btn-next ml-2">
 			${__("Next")}
 		</button>`);
 
-		this.$previous_button = $(`<button class="btn btn-default btn-previous btn-sm">
+		this.$previous_button = $(`<button class="es-button btn-previous">
 			${__("Previous")}
 		</button>`);
 
@@ -486,7 +486,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			$(".success-footer").append(`
 				<a href="/${this.route}/${encodeURIComponent(
 				data.name
-			)}/edit${request_query}" class="edit-button btn btn-default btn-md">
+			)}/edit${request_query}" class="edit-button es-button" data-size="md">
 					${__("Edit your response", null, "Button in web form")}
 				</a>
 			`);
@@ -496,7 +496,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 			$(".success-footer").append(`
 				<a href="/${this.route}/${encodeURIComponent(
 				data.name
-			)}${request_query}" class="view-button btn btn-default btn-md">
+			)}${request_query}" class="view-button es-button" data-size="md">
 					${__("View your response", null, "Button in web form")}
 				</a>
 			`);

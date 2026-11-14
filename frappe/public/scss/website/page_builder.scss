@@ -1,19 +1,6 @@
 .hero-content {
 	margin-top: 3rem;
 	margin-bottom: 3rem;
-
-	.btn-primary {
-		margin-top: 1rem;
-		margin-right: 0.5rem;
-
-		@include media-breakpoint-up(lg) {
-			margin-right: 1rem;
-		}
-	}
-
-	.btn-primary-light {
-		margin-top: 1rem;
-	}
 }
 
 .lead {
@@ -169,7 +156,11 @@
 }
 
 .section-with-cards .card {
-	@include transition();
+	transition: all 0.2s ease-in-out;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
 
 	&:hover {
 		border-color: $gray-500;
@@ -219,35 +210,6 @@
 				font-size: $font-size-lg;
 			}
 		}
-	}
-}
-
-.nav-tabs {
-	flex-wrap: nowrap;
-	overflow-x: auto;
-	overflow-y: hidden;
-	// 1 pixel bottom padding so that the 2px active border is visible
-	padding-bottom: 1px;
-
-	.nav-link {
-		color: $gray-800;
-		font-weight: 500;
-		border: none;
-		padding: 1rem 0.5rem;
-		margin-right: 2rem;
-		white-space: nowrap;
-		@include transition();
-
-		&:hover {
-			color: $primary;
-		}
-	}
-
-	.nav-link.active,
-	.nav-item.show .nav-link {
-		color: darken($primary, 5%);
-		background-color: transparent;
-		border-bottom: 2px solid $primary;
 	}
 }
 
@@ -491,6 +453,12 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	cursor: pointer;
+	list-style: none;
+
+	&::-webkit-details-marker {
+		display: none;
+	}
 }
 
 .collapsible-item-title {
@@ -512,10 +480,14 @@
 }
 
 .collapsible-icon .vertical {
-	@include transition();
+	transition: all 0.2s ease-in-out;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
 }
 
-.collapsible-icon.is-opened .vertical {
+.collapsible-item[open] .collapsible-icon .vertical {
 	opacity: 0;
 }
 

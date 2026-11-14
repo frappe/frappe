@@ -25,7 +25,7 @@
 				{% endif %}
 			{% endif %}
 			{% if primary_action %}
-			<div><a href='{{ primary_action or "/" }}' class='btn btn-primary btn-sm btn-block'>
+			<div><a href='{{ primary_action or "/" }}' class='es-button w-full' data-variant='solid'>
 				{{ primary_label or _("Home") }}</a></div>
 			{% endif %}
 		{% endblock %}
@@ -38,7 +38,7 @@
 			localStorage.setItem('session_last_route', window.location.pathname);
 		}
 
-		$('.btn-primary').focus();
+		$('.error-page .es-button').focus();
 	});
 </script>
 {% endblock %}

@@ -804,11 +804,13 @@ frappe.ui.form.Toolbar = class Toolbar {
 						if (is_amended) {
 							this.page.clear_actions();
 							let btn = this.page.set_secondary_action(__("Amend"), () => {});
-							btn.prop("disabled", true)
-								.wrap('<span style="display:inline-block"></span>')
-								.parent()
-								.attr("title", __("Already amended as {0}", [is_amended]))
-								.tooltip({ delay: { show: 400, hide: 100 }, trigger: "hover" });
+							btn.prop("disabled", true).wrap(
+								'<span style="display:inline-block"></span>'
+							);
+							frappe.ui.tooltip(btn.parent(), {
+								text: __("Already amended as {0}", [is_amended]),
+								delay: 400,
+							});
 							return;
 						}
 						this.set_page_actions(status);

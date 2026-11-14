@@ -853,15 +853,12 @@ class FilterArea {
 			}
 
 			return `<div class="group-by-field list-link form-group frappe-control input-max-width">
-						<a class="btn btn-default btn-sm flex justify-between list-sidebar-button w-100" data-toggle="dropdown"
-						aria-haspopup="true" aria-expanded="false"
+						<a class="btn btn-default btn-sm flex justify-between list-sidebar-button w-100"
 						data-label="${label}" data-fieldname="${fieldname}" data-fieldtype="${fieldtype}"
 						href="#" onclick="return false;">
 							<span class="ellipsis">${__(label)}</span>
 							<span>${frappe.utils.icon("chevrons-up-down", "xs")}</span>
 						</a>
-					<ul class="dropdown-menu group-by-dropdown" role="menu">
-					</ul>
 			</div>`;
 		};
 
@@ -882,73 +879,70 @@ class FilterArea {
 		let html = filtes_to_add.map(get_item_html).join("");
 		this.list_view.page.page_form.find(".standard-filter-section").append(html);
 		this.setup_non_standard_items_dropdown();
-		this.setup_filter_by();
 	}
 
 	setup_non_standard_items_dropdown() {
 		let standard_filter_container = this.list_view.page.page_form.find(
 			".standard-filter-section"
 		);
-		standard_filter_container.find(".group-by-field").on("show.bs.dropdown", (e) => {
-			let $dropdown = $(e.currentTarget).find(".group-by-dropdown");
-			this.set_dropdown_loading_state($dropdown);
-			let fieldname = $(e.currentTarget).find("a").attr("data-fieldname");
-			let fieldtype = $(e.currentTarget).find("a").attr("data-fieldtype");
-
-			if (fieldname == "tags") {
-				$dropdown.addClass("list-stats-dropdown");
-				this.get_stats($dropdown);
-				return;
-			}
-			this.get_group_by_count(fieldname).then((field_count_list) => {
-				if (field_count_list.length) {
-					if (fieldname == "assigned_to") {
-						fieldname = "_assign";
-					}
-					if (fieldname == "tags") {
-						fieldname = "_user_tags";
-					}
-					let applied_filter = this.list_view.get_filter_value(fieldname);
-					this.render_dropdown_items(
-						field_count_list,
-						fieldtype,
-						$dropdown,
-						applied_filter
-					);
-					this.setup_search($dropdown);
-				} else {
-					this.set_empty_state($dropdown);
-				}
+		standard_filter_container.find(".group-by-field > a").each((i, button) => {
+			let $dropdown = $(`<div class="group-by-dropdown"></div>`);
+			let popover = new frappe.ui.Popover({
+				trigger: button,
+				content: () => $dropdown[0],
+				on_open: () => this.load_group_by_dropdown($(button), $dropdown),
+			});
+			$dropdown.on("click", ".group-by-item", (e) => {
+				popover.close();
+				this.filter_by($(button).data("fieldname"), $(e.currentTarget));
 			});
 		});
 	}
 
-	setup_filter_by() {
-		let standard_filter_container = this.list_view.page.page_form.find(
-			".standard-filter-section"
-		);
-		standard_filter_container.on("click", ".group-by-item", (e) => {
-			let $target = $(e.currentTarget);
+	load_group_by_dropdown($button, $dropdown) {
+		this.set_dropdown_loading_state($dropdown);
+		let fieldname = $button.attr("data-fieldname");
+		let fieldtype = $button.attr("data-fieldtype");
 
-			let is_selected = $target.hasClass("selected");
-
-			let fieldname = $target.parents(".group-by-field").find("a").data("fieldname");
-			let value =
-				typeof $target.data("value") === "string"
-					? decodeURIComponent($target.data("value").trim())
-					: $target.data("value");
-
-			if (fieldname == "assigned_to") {
-				fieldname = "_assign";
+		if (fieldname == "tags") {
+			$dropdown.addClass("list-stats-dropdown");
+			this.get_stats($dropdown);
+			return;
+		}
+		this.get_group_by_count(fieldname).then((field_count_list) => {
+			if (field_count_list.length) {
+				if (fieldname == "assigned_to") {
+					fieldname = "_assign";
+				}
+				if (fieldname == "tags") {
+					fieldname = "_user_tags";
+				}
+				let applied_filter = this.list_view.get_filter_value(fieldname);
+				this.render_dropdown_items(field_count_list, fieldtype, $dropdown, applied_filter);
+				this.setup_search($dropdown);
+			} else {
+				this.set_empty_state($dropdown);
 			}
-			if (fieldname == "tags") {
-				fieldname = "_user_tags";
-			}
+		});
+	}
 
-			return this.list_view.filter_area.remove(fieldname).then(() => {
-				if (is_selected) return;
-				return this.apply_filter(fieldname, value);
-			});
+	filter_by(fieldname, $target) {
+		let is_selected = $target.hasClass("selected");
+		let value =
+			typeof $target.data("value") === "string"
+				? decodeURIComponent($target.data("value").trim())
+				: $target.data("value");
+
+		if (fieldname == "assigned_to") {
+			fieldname = "_assign";
+		}
+		if (fieldname == "tags") {
+			fieldname = "_user_tags";
+		}
+
+		return this.list_view.filter_area.remove(fieldname).then(() => {
+			if (is_selected) return;
+			return this.apply_filter(fieldname, value);
 		});
 	}
 
@@ -1321,29 +1315,16 @@ class FilterArea {
 
 			const $dropdown = $(`
 			<div class="input-group-btn mr-0">
-				<button type="button"
-					class="btn btn-default  match-type-dropdown-btn"
-					data-toggle="dropdown"
-					aria-haspopup="true"
-					aria-expanded="false">
+				<button type="button" class="btn btn-default  match-type-dropdown-btn">
 					${getIcon(df.match_type || "≈")}
 
 				</button>
-				<ul class="dropdown-menu match-type-dropdown-menu dropdown-menu-right">
-					<li class="dropdown-item" data-match-type="=">${__("Equals")}</li>
-					<li class="dropdown-item" data-match-type="like">${__("Like")}</li>
-				</ul>
 			</div>
 		`);
 
 			$inputGroup.append($dropdown);
 
-			$dropdown.find(".dropdown-item").on("click", (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				$dropdown.find("button").dropdown("toggle");
-
-				const new_type = $(e.currentTarget).data("match-type");
+			const set_match_type = (new_type) => {
 				const current_type = field.df.match_type || "≈";
 
 				if (new_type === current_type) return;
@@ -1367,6 +1348,15 @@ class FilterArea {
 				if (value) {
 					this.debounced_refresh_list_view();
 				}
+			};
+
+			new frappe.ui.Dropdown({
+				trigger: $dropdown.find("button"),
+				align: "end",
+				options: [
+					{ label: __("Equals"), onclick: () => set_match_type("=") },
+					{ label: __("Like"), onclick: () => set_match_type("like") },
+				],
 			});
 		}, 100);
 	}

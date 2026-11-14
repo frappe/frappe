@@ -547,10 +547,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const containerRect = container.getBoundingClientRect();
 		const btnRect = btn[0].getBoundingClientRect();
 		if (btnRect.right > containerRect.right) {
-			this.page
-				.set_primary_action({ label: __("Add"), options }, primary_action, "plus")
-				.attr("title", add_button_label)
-				.tooltip();
+			const $btn = this.page.set_primary_action(
+				{ label: __("Add"), options },
+				primary_action,
+				"plus"
+			);
+			const tooltip = $btn.data("es-tooltip");
+			if (tooltip) tooltip.set_text(add_button_label);
+			else frappe.ui.tooltip($btn, { text: add_button_label, delay: 0 });
 		}
 	}
 
@@ -1469,18 +1473,18 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.count_upper_bound &&
 				(this.total_count == this.count_upper_bound || this.total_count == null)
 			) {
-				$count.attr(
-					"title",
-					__(
+				$count.data("es-tooltip")?.destroy();
+				frappe.ui.tooltip($count, {
+					text: __(
 						"The count shown is an estimated count. Click here to see the accurate count."
-					)
-				);
-				$count.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+					),
+					delay: 600,
+				});
 				$count.css("cursor", "pointer");
 				$count.on("click", () => {
 					me.count_upper_bound = 0;
 					$count.off("click");
-					$count.tooltip("disable");
+					$count.data("es-tooltip").destroy();
 					me.freeze();
 					me.render_count();
 					$count.css("cursor", "");
@@ -1729,12 +1733,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const format = () => {
 			if (df.fieldtype === "Percent") {
-				return `<div class="progress" style="margin: 0px;">
-						<div class="progress-bar progress-bar-success" role="progressbar"
-							aria-valuenow="${value}"
-							aria-valuemin="0" aria-valuemax="100" style="width: ${Math.round(value)}%;">
-						</div>
-					</div>`;
+				return frappe.ui.progress.html({ value: flt(value), size: "md" });
 			} else if (df.fieldtype === "Data") {
 				return frappe.format(frappe.utils.escape_html(value), df, null, doc);
 			} else {
@@ -2026,26 +2025,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let dropdown_container = "";
 
 		if (this.settings.dropdown_button) {
-			let button_actions = "";
-			this.settings.dropdown_button.buttons.forEach((button, index) => {
-				if (!button.show || button.show(doc)) {
-					let description = button.get_description ? button.get_description(doc) : "";
-					button_actions += `
-						<a class="dropdown-item" href="#" onclick="return false;" data-idx="${doc._idx}" button-idx="${index}" title="${description}">
-							${button.get_label}
-						</a>
-					`;
-				}
-			});
-
 			let dropdown_buttons = "";
-			if (button_actions) {
+			if (this.get_dropdown_buttons(doc).length) {
 				dropdown_buttons = `
-					<button type="button" class="btn btn-xs btn-default ellipsis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<button type="button" class="btn btn-xs btn-default ellipsis" data-idx="${doc._idx}">
 						${this.settings.dropdown_button.get_label}
 						${frappe.utils.icon("chevrons-up-down", "xs")}
 					</button>
-					<div role="menu" class="dropdown-menu">${button_actions}</div>
 				`;
 			}
 
@@ -2056,6 +2042,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			`;
 		}
 		return dropdown_container;
+	}
+
+	get_dropdown_buttons(doc) {
+		return this.settings.dropdown_button.buttons.filter(
+			(button) => !button.show || button.show(doc)
+		);
 	}
 
 	apply_styles_basedon_dropdown() {
@@ -2392,7 +2384,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				return;
 			}
 
-			if ($target.is("[data-toggle='dropdown']")) return true;
+			if ($target.closest(".inner-group-button > button").length) return true;
 
 			// don't open form when checkbox, like, filterable are clicked
 			if (
@@ -2523,18 +2515,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return false;
 		});
 
-		this.$result.on("click", ".inner-group-button .dropdown-item", (e) => {
-			const $button = $(e.currentTarget);
-			const doc = this.data[$button.attr("data-idx")];
-			const btn_idx = parseInt($button.attr("button-idx"), 10);
-			const button = this.settings.dropdown_button.buttons[btn_idx];
-
-			if (button && button.action) {
-				button.action(doc);
-			}
-
-			e.stopPropagation();
-			return false;
+		this.$result.on("click", ".inner-group-button > button", (e) => {
+			const $group = $(e.currentTarget).parent();
+			if ($group.data("es_dropdown")) return;
+			const doc = this.data[$(e.currentTarget).attr("data-idx")];
+			const dropdown = new frappe.ui.Dropdown({
+				trigger: e.currentTarget,
+				options: () =>
+					this.get_dropdown_buttons(doc).map((button) => ({
+						label: button.get_label,
+						description: button.get_description?.(doc),
+						onclick: () => button.action?.(doc),
+					})),
+			});
+			$group.data("es_dropdown", dropdown);
+			dropdown.open();
 		});
 	}
 

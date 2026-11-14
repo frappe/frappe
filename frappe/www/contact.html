@@ -17,8 +17,8 @@
 	{% endif %}
 	<div class="row">
 		<div class="col-md-8">
-			<p id="contact-alert" class="alert alert-warning"
-				style="display: none;">&nbsp;</p>
+			<div id="contact-alert" class="es-alert" role="alert" data-theme="yellow"
+				style="display: none;"><div class="es-alert__content"><span class="es-alert__title"></span></div></div>
 			<div class="form-group">
 				<select name="subject" class="form-control" aria-label="{{ _('Subject') }}">
 				{% if query_options %}
@@ -38,7 +38,7 @@
 				<textarea rows="10" name="message" class="form-control" aria-label="{{ _('Message') }}"></textarea>
 			</div>
 			<div class="form-group">
-				<button class="btn btn-primary btn-send">{{ _("Send") }}</button>
+				<button class="es-button btn-send" data-variant="solid">{{ _("Send") }}</button>
 			</div>
 		</div>
 		{% if address_title %}

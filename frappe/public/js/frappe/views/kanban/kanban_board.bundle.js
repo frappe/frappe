@@ -689,38 +689,24 @@ if (frappe.views.KanbanView) {
 
 			if (!archived_columns.length) return;
 
-			var options = archived_columns.reduce(function (a, b) {
-				return (
-					a +
-					`<li><a class='option'>" +
-					"<span class='ellipsis' style='max-width: 100px; display: inline-block'>" +
-					__(b.title) + "</span>" +
-					"<button style='float:right;' data-column='" + b.title +
-					"' class='btn btn-default btn-xs restore-column text-muted'>"
-					+ __('Restore') + "</button></a></li>`
-				);
-			}, "");
-			var $dropdown = $(
-				"<div class='dropdown pull-right'>" +
-					"<a class='text-muted dropdown-toggle' data-toggle='dropdown'>" +
-					"<span class='dropdown-text'>" +
-					__("Archived Columns") +
-					"</span><i class='caret'></i></a>" +
-					"<ul class='dropdown-menu'>" +
-					options +
-					"</ul>" +
-					"</div>"
-			);
+			var $trigger = $(`<a class="text-muted pull-right"></a>`)
+				.text(__("Archived Columns"))
+				.append(`<i class="caret"></i>`);
+			list_row_right.html($trigger);
 
-			list_row_right.html($dropdown);
-
-			$dropdown.find(".dropdown-menu").on("click", "button.restore-column", function () {
-				var column_title = $(this).data().column;
-				var col = {
-					title: column_title,
-					status: "Archived",
-				};
-				store.restore_column(col);
+			new frappe.ui.Dropdown({
+				trigger: $trigger,
+				options: [
+					{
+						group: __("Restore"),
+						options: archived_columns.map((col) => ({
+							label: __(col.title),
+							icon: "archive-restore",
+							onclick: () =>
+								store.restore_column({ title: col.title, status: "Archived" }),
+						})),
+					},
+				],
 			});
 		}
 
@@ -1336,28 +1322,22 @@ if (frappe.views.KanbanView) {
 				return;
 			}
 
-			self.$kanban_column
-				.find(".column-options .dropdown-menu")
-				.on("click", "[data-action]", function () {
-					var $btn = $(this);
-					var action = $btn.data().action;
-
-					if (action === "archive") {
-						store.archive_column(column);
-					} else if (action === "indicator") {
-						var color = $btn.data().indicator;
-						store.set_indicator({ column, color });
-					}
-				});
-
-			get_column_indicators(function (indicators) {
-				let html = `<li class="button-group">${indicators
-					.map((indicator) => {
-						let classname = frappe.scrub(indicator, "-");
-						return `<div data-action="indicator" data-indicator="${indicator}" class="btn btn-default btn-xs indicator-pill ${classname}"></div>`;
-					})
-					.join("")}</li>`;
-				self.$kanban_column.find(".column-options .dropdown-menu").append(html);
+			new frappe.ui.Dropdown({
+				trigger: self.$kanban_column.find(".column-options > a"),
+				options: [
+					{ label: __("Archive"), onclick: () => store.archive_column(column) },
+					{
+						label: __("Color"),
+						submenu: () =>
+							new Promise((resolve) => get_column_indicators(resolve)).then(
+								(indicators) =>
+									indicators.map((color) => ({
+										label: __(color),
+										onclick: () => store.set_indicator({ column, color }),
+									}))
+							),
+					},
+				],
 			});
 		}
 

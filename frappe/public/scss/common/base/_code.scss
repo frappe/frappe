@@ -1,0 +1,42 @@
+code {
+	@include font-size($code-font-size);
+	color: $code-color;
+	word-wrap: break-word;
+
+	a > & {
+		color: inherit;
+	}
+}
+
+kbd {
+	padding: $kbd-padding-y $kbd-padding-x;
+	@include font-size($kbd-font-size);
+	color: $kbd-color;
+	background-color: $kbd-bg;
+	@include border-radius($border-radius-sm);
+	@include box-shadow($kbd-box-shadow);
+
+	kbd {
+		padding: 0;
+		@include font-size(100%);
+		font-weight: $nested-kbd-font-weight;
+		@include box-shadow(none);
+	}
+}
+
+pre {
+	display: block;
+	@include font-size($code-font-size);
+	color: $pre-color;
+
+	code {
+		@include font-size(inherit);
+		color: inherit;
+		word-break: normal;
+	}
+}
+
+.pre-scrollable {
+	max-height: $pre-scrollable-max-height;
+	overflow-y: scroll;
+}

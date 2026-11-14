@@ -508,25 +508,13 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_card_actions(actions) {
-		this.card_actions = $(`<div class="card-actions dropdown pull-right">
-				<a data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				...
-				</a>
-				<ul class="dropdown-menu" style="max-height: 300px; overflow-y: auto;">
-					${actions
-						.map(
-							(action) =>
-								`<li class="dropdown-item">
-									<a data-action="${action.action}">${action.label}</a>
-								</li>`
-						)
-						.join("")}
-				</ul>
+		this.card_actions = $(`<div class="card-actions pull-right">
+				<a>...</a>
 			</div>`);
 
-		this.card_actions.find("a[data-action]").each((i, o) => {
-			const action = o.dataset.action;
-			$(o).click(actions.find((a) => a.action === action));
+		new frappe.ui.Dropdown({
+			trigger: this.card_actions.find("a"),
+			options: actions.map((action) => ({ label: action.label, onclick: action.handler })),
 		});
 
 		this.action_area.html(this.card_actions);

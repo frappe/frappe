@@ -148,7 +148,11 @@ $navbar-height-lg: 4.5rem;
 		color: $gray-600;
 		text-decoration: none;
 		font-weight: 500;
-		@include transition();
+		transition: all 0.2s ease-in-out;
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+		}
 
 		&:hover {
 			color: $gray-800;
@@ -190,8 +194,5 @@ $navbar-height-lg: 4.5rem;
 	padding-left: 0;
 	padding-right: 0;
 	margin-top: 3rem;
-
-	.breadcrumb {
-		margin-bottom: 0;
-	}
+	margin-bottom: 0;
 }

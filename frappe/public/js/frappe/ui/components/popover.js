@@ -161,7 +161,14 @@ frappe.ui.Popover = class Popover {
 				this.offset
 			);
 		};
+		this.ontriggerkeydown = (e) => {
+			if (e.key === "Escape") {
+				e.stopPropagation();
+				this.close("escape");
+			}
+		};
 		panel.addEventListener("keydown", this.onkeydown);
+		this.trigger_el.addEventListener("keydown", this.ontriggerkeydown);
 		document.addEventListener("pointerdown", this.onpointerdown, { capture: true });
 		document.addEventListener("focusin", this.onfocusin);
 		window.addEventListener("resize", this.onreposition);
@@ -209,6 +216,7 @@ frappe.ui.Popover = class Popover {
 		this.panel = null;
 
 		panel.removeEventListener("keydown", this.onkeydown);
+		this.trigger_el.removeEventListener("keydown", this.ontriggerkeydown);
 		document.removeEventListener("pointerdown", this.onpointerdown, { capture: true });
 		document.removeEventListener("focusin", this.onfocusin);
 		window.removeEventListener("resize", this.onreposition);

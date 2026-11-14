@@ -1,0 +1,337 @@
+@function print-prefix($prefix, $selectors) {
+	$prefixed: ();
+	@each $selector in $selectors {
+		$prefixed: append($prefixed, "#{$prefix}#{$selector}", comma);
+	}
+	@return $prefixed;
+}
+
+@mixin print-control-size($size) {
+	$height: map-get($print-input-heights, $size);
+	$props: map-get($print-control-sizes, $size);
+	height: $height;
+	padding: nth($props, 1);
+	font-size: nth($props, 2);
+	line-height: nth($props, 3);
+	border-radius: nth($props, 4);
+
+	@at-root #{print-prefix(select, &)} {
+		height: $height;
+		line-height: $height;
+	}
+	@at-root #{print-prefix(textarea, &)},
+		#{print-prefix("select[multiple]", &)} {
+		height: auto;
+	}
+}
+
+fieldset {
+	min-width: 0;
+	padding: 0;
+	margin: 0;
+	border: 0;
+}
+legend {
+	display: block;
+	width: 100%;
+	padding: 0;
+	margin-bottom: 20px;
+	font-size: 21px;
+	line-height: inherit;
+	color: #333;
+	border: 0;
+	border-bottom: 1px solid #e5e5e5;
+}
+label {
+	display: inline-block;
+	max-width: 100%;
+	margin-bottom: 5px;
+	font-weight: bold;
+}
+input[type="search"] {
+	box-sizing: border-box;
+}
+input[type="radio"],
+input[type="checkbox"] {
+	margin: 4px 0 0;
+	line-height: normal;
+}
+input[type="file"] {
+	display: block;
+}
+input[type="range"] {
+	display: block;
+	width: 100%;
+}
+select[multiple],
+select[size] {
+	height: auto;
+}
+output {
+	display: block;
+	padding-top: 5px;
+	font-size: $print-font-size;
+	line-height: $print-line-height;
+	color: $print-input-color;
+}
+
+.form-control {
+	display: block;
+	width: 100%;
+	height: 30px;
+	padding: 4px 10px;
+	font-size: $print-font-size;
+	line-height: $print-line-height;
+	color: $print-input-color;
+	background-color: #fff;
+	background-image: none;
+	border: 1px solid $print-border-color;
+	border-radius: $print-radius;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+
+	&::placeholder {
+		color: $print-border-color;
+		opacity: 1;
+	}
+	&[disabled],
+	&[readonly],
+	fieldset[disabled] & {
+		background-color: #eee;
+		opacity: 1;
+	}
+}
+textarea.form-control {
+	height: auto;
+}
+
+.form-group {
+	margin-bottom: 15px;
+}
+
+.radio,
+.checkbox {
+	position: relative;
+	display: block;
+	margin-top: 10px;
+	margin-bottom: 10px;
+
+	label {
+		min-height: 20px;
+		padding-left: 20px;
+		margin-bottom: 0;
+		font-weight: normal;
+	}
+}
+.radio input[type="radio"],
+.radio-inline input[type="radio"],
+.checkbox input[type="checkbox"],
+.checkbox-inline input[type="checkbox"] {
+	position: absolute;
+	margin-left: -20px;
+}
+.radio + .radio,
+.checkbox + .checkbox {
+	margin-top: -5px;
+}
+.radio-inline,
+.checkbox-inline {
+	display: inline-block;
+	padding-left: 20px;
+	margin-bottom: 0;
+	font-weight: normal;
+	vertical-align: middle;
+}
+.radio-inline + .radio-inline,
+.checkbox-inline + .checkbox-inline {
+	margin-top: 0;
+	margin-left: 10px;
+}
+
+.form-control-static {
+	padding-top: 5px;
+	padding-bottom: 5px;
+	margin-bottom: 0;
+
+	&.input-lg,
+	&.input-sm {
+		padding-right: 0;
+		padding-left: 0;
+	}
+}
+
+@each $size in map-keys($print-control-sizes) {
+	.input-#{$size} {
+		@include print-control-size($size);
+	}
+	.form-group-#{$size} .form-control {
+		@include print-control-size($size);
+	}
+}
+
+.has-feedback {
+	position: relative;
+
+	.form-control {
+		padding-right: 37.5px;
+	}
+}
+.form-control-feedback {
+	position: absolute;
+	top: 0;
+	right: 0;
+	z-index: 2;
+	display: block;
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+}
+@each $size, $height in $print-input-heights {
+	.input-#{$size} + .form-control-feedback {
+		width: $height;
+		height: $height;
+		line-height: $height;
+	}
+}
+
+@each $state, $color-name in (success: success, warning: warning, error: danger) {
+	$color: print-state($color-name);
+
+	.has-#{$state} {
+		.help-block,
+		.control-label,
+		.radio,
+		.checkbox,
+		.radio-inline,
+		.checkbox-inline,
+		&.radio label,
+		&.checkbox label,
+		&.radio-inline label,
+		&.checkbox-inline label {
+			color: $color;
+		}
+		.form-control {
+			border-color: $color;
+			box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+		}
+		.input-group-addon {
+			color: $color;
+			background-color: transparent;
+			border-color: $color;
+		}
+		.form-control-feedback {
+			color: $color;
+		}
+	}
+}
+.has-feedback label {
+	~ .form-control-feedback {
+		top: 25px;
+	}
+	&.sr-only ~ .form-control-feedback {
+		top: 0;
+	}
+}
+
+.help-block {
+	display: block;
+	margin-top: 5px;
+	margin-bottom: 10px;
+	color: #6b8196;
+}
+
+@mixin print-inline-form {
+	.form-group {
+		display: inline-block;
+		margin-bottom: 0;
+		vertical-align: middle;
+	}
+	.form-control {
+		display: inline-block;
+		width: auto;
+		vertical-align: middle;
+	}
+	.form-control-static {
+		display: inline-block;
+	}
+	.input-group {
+		display: inline-table;
+		vertical-align: middle;
+
+		.input-group-addon,
+		.input-group-btn,
+		.form-control {
+			width: auto;
+		}
+		> .form-control {
+			width: 100%;
+		}
+	}
+	.control-label {
+		margin-bottom: 0;
+		vertical-align: middle;
+	}
+	.radio,
+	.checkbox {
+		display: inline-block;
+		margin-top: 0;
+		margin-bottom: 0;
+		vertical-align: middle;
+
+		label {
+			padding-left: 0;
+		}
+	}
+	.radio input[type="radio"],
+	.checkbox input[type="checkbox"] {
+		position: relative;
+		margin-left: 0;
+	}
+	.has-feedback .form-control-feedback {
+		top: 0;
+	}
+}
+
+@media (min-width: 768px) {
+	.form-inline {
+		@include print-inline-form;
+	}
+}
+
+.form-horizontal {
+	.radio,
+	.checkbox,
+	.radio-inline,
+	.checkbox-inline {
+		padding-top: 5px;
+		margin-top: 0;
+		margin-bottom: 0;
+	}
+	.radio,
+	.checkbox {
+		min-height: 25px;
+	}
+	.form-group {
+		margin-right: -15px;
+		margin-left: -15px;
+		@extend %clearfix;
+	}
+	.has-feedback .form-control-feedback {
+		right: 15px;
+	}
+}
+@media (min-width: 768px) {
+	.form-horizontal {
+		.control-label {
+			padding-top: 5px;
+			margin-bottom: 0;
+			text-align: right;
+		}
+		.form-group-lg .control-label {
+			padding-top: 14.3px;
+		}
+		.form-group-sm .control-label {
+			padding-top: 6px;
+		}
+	}
+}
