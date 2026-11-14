@@ -11,9 +11,11 @@ import { registerGlobalComponents } from "./globals"
 
 import { COMPONENTS } from "@/data/components"
 import Block from "@/utils/block"
+import { componentHasDefaultSlot } from "@/utils/componentSlots"
 import { initSocket } from "@/socket"
 
 Block.setComponents(COMPONENTS)
+Block.setDefaultSlotLookup(componentHasDefaultSlot)
 
 const studio = createApp(App)
 const pinia = createPinia()

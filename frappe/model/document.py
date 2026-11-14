@@ -3125,7 +3125,7 @@ class Document(_DocumentBase):
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
-				elif fieldtype == "Read Only" and not isinstance(value, str):
+				elif fieldtype == "Read Only" and value is not None and not isinstance(value, str):
 					value = cstr(value)
 
 				elif (fieldtype in datetime_fields and value == "") or (
@@ -3433,6 +3433,9 @@ class Document(_DocumentBase):
 				self.show_unique_validation_message(e)
 			else:
 				raise
+
+		# link validation reads rows from this cache, so drop the stale ones
+		frappe.db.value_cache.pop(self.doctype, None)
 
 	def db_update_all(self):
 		"""Raw update parent + children
