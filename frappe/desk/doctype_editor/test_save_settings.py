@@ -211,7 +211,9 @@ class TestSaveSettingsCustomize(IntegrationTestCase):
 		self.assertEqual(result["errors"][0]["target"]["property"], "autoname")
 
 	def test_only_if_creator_moves_a_site_rule_to_its_new_key(self):
-		role = frappe.get_all("DocPerm", {"parent": NOTE, "permlevel": 0, "if_owner": 0}, pluck="role")[0]
+		# Not "Desk User": Note already ships its own only-if-creator rule, so that move is refused.
+		# A DocPerm query has no stable order (names are random hashes), so name the role.
+		role = "System Manager"
 		result = self.save([{"act": "settings.set_if_owner", "role": role, "value": 1}])
 		self.assertTrue(result["saved"], result)
 		self.assertEqual(doc_perm("Custom DocPerm", NOTE, role, if_owner=1).role, role)
