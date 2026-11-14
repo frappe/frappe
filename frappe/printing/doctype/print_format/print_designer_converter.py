@@ -1009,7 +1009,9 @@ class PrintDesignerConverter:
 					if node.get("barcode_field")
 					else repr(node["barcode_value"])
 				)
-				set_barcode_value = f"{{%- set barcode_value = ({value} or '') | string -%}}"
+				set_barcode_value = (
+					f"{{%- set barcode_value = '' if {value} is none else {value} | string -%}}"
+				)
 				if not node.get("barcode_field") and JINJA.search(element.get("value") or ""):
 					set_barcode_value = (
 						"{%- set barcode_value -%}"
