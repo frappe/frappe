@@ -1,27 +1,8 @@
-<!-- The rule popover's content: Rules (ui's ConditionBuilder: AND/OR groups for a condition, a flat
+<!-- The rule dialog's content: Rules (ui's ConditionBuilder: AND/OR groups for a condition, a flat
      AND list for a Link's filters) or Code, which keeps a rule the builder cannot read as written. -->
 <template>
 	<div class="flex min-w-0 flex-col" data-rule-editor>
-		<div class="flex items-center gap-2 px-4 pb-1 pt-3">
-			<span class="shrink-0 truncate text-base font-medium text-ink-gray-8">{{
-				title
-			}}</span>
-			<span class="min-w-0 truncate text-base text-ink-gray-5">{{ subject }}</span>
-			<Tooltip
-				:text="__('The rules cannot show this code. Edit it until they can, or clear it.')"
-				:disabled="draft.readable.value"
-			>
-				<div class="ml-auto shrink-0">
-					<TabButtons
-						:options="modes"
-						:model-value="draft.mode.value"
-						data-rule-mode
-						@update:model-value="draft.switchTo($event as RuleMode)"
-					/>
-				</div>
-			</Tooltip>
-		</div>
-		<div class="px-4 py-3">
+		<div>
 			<ConditionBuilder
 				v-if="draft.mode.value === 'rules'"
 				:model-value="draft.tree.value"
@@ -79,7 +60,20 @@
 				</p>
 			</template>
 		</div>
-		<div class="flex items-center gap-2 border-t border-outline-gray-1 px-4 py-2.5">
+		<div class="flex items-center gap-2 pt-6">
+			<Tooltip
+				:text="__('The rules cannot show this code. Edit it until they can, or clear it.')"
+				:disabled="draft.readable.value"
+			>
+				<div class="shrink-0">
+					<TabButtons
+						:options="modes"
+						:model-value="draft.mode.value"
+						data-rule-mode
+						@update:model-value="draft.switchTo($event as RuleMode)"
+					/>
+				</div>
+			</Tooltip>
 			<Button
 				class="ml-auto"
 				variant="ghost"
@@ -88,7 +82,7 @@
 				data-rule-clear
 				@click="draft.clear()"
 			/>
-			<Button variant="subtle" :label="__('Done')" data-rule-done @click="$emit('done')" />
+			<Button variant="solid" :label="__('Done')" data-rule-done @click="$emit('done')" />
 		</div>
 	</div>
 </template>
@@ -103,8 +97,6 @@ import RuleValue from "./RuleValue.vue";
 
 const props = defineProps<{
 	draft: RuleDraft;
-	title: string;
-	subject: string;
 	/** Under the empty builder. */
 	note: string;
 	/** The fields a row names: this DocType's for a condition, the target's for filters. */
@@ -141,7 +133,7 @@ const codeNote = computed(() => {
 </script>
 
 <style>
-/* The popover is the card; the builder's root card would be a card in a card. */
+/* The dialog is the card; the builder's root card would be a card in a card. */
 .rule-editor-builder > div.rounded-6,
 .rule-editor-builder [data-slot="condition-empty"] {
 	border-width: 0;

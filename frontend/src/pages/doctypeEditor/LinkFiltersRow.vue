@@ -1,4 +1,4 @@
-<!-- A Link field's Filters (`link_filters`): which records its picker offers. The rule popover's
+<!-- A Link field's Filters (`link_filters`): which records its picker offers. The rule dialog's
      builder against the target DocType's fields, read through the meta cache; a flat AND list. -->
 <template>
 	<RuleRow
