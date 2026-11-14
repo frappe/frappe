@@ -63,6 +63,28 @@ const invoice: NavigationItem = {
 	link_to: "Sales Invoice",
 };
 
+describe("a View row", () => {
+	const open: NavigationItem = {
+		key: "open",
+		item_type: "View",
+		link_to: "Sales Invoice",
+		payload: { view: "overdue" },
+	};
+
+	it("beats the doctype's own row on its view's address", () => {
+		expect(at([invoice, open], {}, "/sales-invoice/view/overdue")).toEqual({ railKey: "open" });
+	});
+
+	it("leaves the doctype's row to every other address", () => {
+		expect(at([invoice, open], {}, "/sales-invoice")).toEqual({ railKey: "invoice" });
+		expect(at([invoice, open], {}, "/sales-invoice/view/paid")).toEqual({ railKey: "invoice" });
+	});
+
+	it("is not marked on a record page", () => {
+		expect(at([open], {}, "/sales-invoice/SINV-1")).toEqual({});
+	});
+});
+
 describe("coverage", () => {
 	it("counts the segments a row covers", () => {
 		expect(coverage("/crm-deal/CRM-DEAL-01", "/crm-deal")).toBe(1);

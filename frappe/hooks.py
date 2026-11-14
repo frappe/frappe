@@ -18,7 +18,16 @@ app_prefix = "desk"
 # No `app_permission` on purpose: its absence means "not a Website User", which `/desk` has always meant.
 
 # The save-time rule for each kind of row a person or the site may add; a module holding `validate_own_row`.
-navigation_item_validators = {"Act": ["frappe.shell.act_row"]}
+navigation_item_validators = {
+	"Act": ["frappe.shell.act_row"],
+	"View": ["frappe.desk.navigation_item_type.view.view"],
+}
+
+# The type's `can_see`, which the `Custom` permission rule asks.
+navigation_item_resolvers = {"View": ["frappe.desk.navigation_item_type.view.view"]}
+
+# What the editor's read merges into a type's rows (e.g. `view_deleted`); a save drops it.
+navigation_item_markers = {"View": ["frappe.desk.navigation_item_type.view.view.mark_rows"]}
 
 # What a stored Client Script imports by bare name; the rule is in frontend/COMPATIBILITY.md.
 import_map = {

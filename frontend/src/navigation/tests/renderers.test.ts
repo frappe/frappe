@@ -74,7 +74,7 @@ beforeEach(() => {
 });
 
 describe("what the framework ships", () => {
-	it("registers a renderer for all nine kinds", () => {
+	it("registers a renderer for all ten kinds", () => {
 		expect(Object.keys(itemRenderers).sort()).toEqual([
 			"Act",
 			"DocType",
@@ -85,6 +85,7 @@ describe("what the framework ships", () => {
 			"Record",
 			"Section",
 			"Sidebar",
+			"View",
 		]);
 	});
 
@@ -131,6 +132,50 @@ describe("Act", () => {
 		const item = act({ act: "shell.theme" });
 		expect(iconOf(item)).toBe("zap");
 		expect(labelOf(item, context([item]))).toBe("shell.theme");
+	});
+});
+
+describe("View", () => {
+	const view = (link_to?: string, payload?: Record<string, unknown>): NavigationItem => ({
+		key: "user:k7f3q2",
+		item_type: "View",
+		link_to,
+		payload,
+	});
+
+	it("opens a saved view at the saved-view route", () => {
+		const item = view("CRM Deal", { view: "open-deals" });
+		expect(renderingOf(item, context([item]))).toEqual({
+			to: { name: "saved-view", params: { doctype: "crm-deal", key: "open-deals" }, query: undefined },
+		});
+	});
+
+	it("opens a plain view at the same route", () => {
+		const item = view("CRM Deal", { view: "cards" });
+		expect(renderingOf(item, context([item]))).toEqual({
+			to: { name: "saved-view", params: { doctype: "crm-deal", key: "cards" }, query: undefined },
+		});
+	});
+
+	it("is skipped with no doctype or no view in its payload", () => {
+		for (const item of [view(undefined, { view: "open" }), view("CRM Deal"), view("CRM Deal", {})]) {
+			expect(renderingOf(item, context([item]))).toBeNull();
+		}
+	});
+
+	it("is skipped for a single, which has no list", () => {
+		const item = view("Accounts Settings", { view: "list" });
+		expect(renderingOf(item, context([item]))).toBeNull();
+	});
+
+	it("draws a list icon, and a plain view's type label as the last label", () => {
+		const withTypes = boot({ view_types: [{ name: "Cards", label: "Card view", icon: null }] });
+		const plain = view("CRM Deal", { view: "cards" });
+		const saved = view("CRM Deal", { view: "open-deals" });
+
+		expect(iconOf(plain)).toBe("list");
+		expect(labelOf(plain, context([plain], { boot: withTypes }))).toBe("Card view");
+		expect(labelOf(saved, context([saved], { boot: withTypes }))).toBe("open-deals");
 	});
 });
 

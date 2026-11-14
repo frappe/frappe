@@ -1,0 +1,15 @@
+{
+ "addable": 1,
+ "creation": "2026-11-15 01:09:01.375981",
+ "docstatus": 0,
+ "doctype": "Navigation Item Type",
+ "idx": 0,
+ "modified": "2026-11-15 01:09:01.375981",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "View",
+ "owner": "Administrator",
+ "permission_rule": "Custom",
+ "target_doctype": "DocType",
+ "type_name": "View"
+}

@@ -71,7 +71,7 @@ def _read_rows(app: str, scope: str, upto: str) -> dict:
 		key: _editor_rows(_target("Sidebar", key, scope), scope, layers.get(address, {}), upto=upto)
 		for key, address in offered.items()
 	}
-	_mark([rail_rows, *sidebars.values()], scope)
+	mark([rail_rows, *sidebars.values()], scope)
 
 	return {"rail": rail_rows, "sidebars": sidebars}
 
@@ -174,24 +174,36 @@ def _with_hidden_by(target: Target, rows: list[dict], upto: str, extra: dict) ->
 	]
 
 
-def _mark(lists: list[list[dict]], scope: str):
+def mark(lists: list[list[dict]], scope: str):
 	"""Merge what each type's `navigation_item_markers` entry says about its rows, e.g. `view_deleted`."""
 	# One call per type over every container, so a marker costs one query however many sidebars there are.
-	by_type: dict[str, list[dict]] = {}
+	# A key is only unique inside its container, so a key two containers share is marked one container at a time.
+	by_type: dict[str, list[list[dict]]] = {}
 
-	for row in (row for rows in lists for row in rows):
-		by_type.setdefault(row.get("item_type"), []).append(row)
+	for rows in lists:
+		for item_type in {row.get("item_type") for row in rows}:
+			by_type.setdefault(item_type, []).append(
+				[row for row in rows if row.get("item_type") == item_type]
+			)
 
 	for item_type, paths in frappe.get_hooks("navigation_item_markers", default={}).items():
-		if item_type not in by_type:
-			continue
+		for group in _marked_together(by_type.get(item_type, [])):
+			marks = {}
+			for path in paths:
+				marks |= frappe.get_attr(path)([row for rows in group for row in rows], scope)
 
-		marks = {}
-		for path in paths:
-			marks |= frappe.get_attr(path)(by_type[item_type], scope)
+			for row in (row for rows in group for row in rows):
+				row |= marks.get(row["key"], {})
 
-		for row in by_type[item_type]:
-			row |= marks.get(row["key"], {})
+
+def _marked_together(containers: list[list[dict]]) -> list[list[list[dict]]]:
+	"""All the containers in one group when no key repeats between them, else each container alone."""
+	keys = [row["key"] for rows in containers for row in rows]
+
+	if len(keys) == len(set(keys)):
+		return [containers] if containers else []
+
+	return [[rows] for rows in containers]
 
 
 def _payload(containers: str | dict) -> dict:

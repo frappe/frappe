@@ -71,10 +71,13 @@ def get_arrangement(container: str, address: str, scope: str = "user") -> list[d
 	target = _target(container, address, scope)
 	arrangement = target.resolve(upto=scope, keep_hidden=True)
 
-	if scope == "site":
-		return arrangement
+	if scope != "site":
+		arrangement = _with_no_access(
+			arrangement, target.resolve(upto=scope, keep_hidden=True, check_permission=False)
+		)
 
-	return _with_no_access(arrangement, target.resolve(upto=scope, keep_hidden=True, check_permission=False))
+	_editor("mark")([arrangement], scope)
+	return arrangement
 
 
 @frappe.desk_v2_only
