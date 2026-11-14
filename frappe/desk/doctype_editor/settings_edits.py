@@ -4,6 +4,7 @@
 
 import frappe
 from frappe import _
+from frappe.core.doctype.doctype.doctype import default_permission
 from frappe.custom.doctype.customize_form.customize_form import doctype_properties
 from frappe.desk.doctype_editor.errors import EditError
 from frappe.permissions import std_rights
@@ -36,6 +37,8 @@ class SettingsEdits:
 		if property == "autoname":
 			self.refuse_autoincrement(value)
 		self.state.doc.set(property, value)
+		if property == "is_submittable":
+			self.follow_kind(value)
 
 	def settings_set_naming_series(self, edit: dict):
 		options = [option.strip() for option in edit.get("options") or []]
@@ -65,6 +68,15 @@ class SettingsEdits:
 		row = self.permission(permission_key(edit))
 		for each in closure(right, bool(edit.get("value"))):
 			row.set(each, 1 if edit.get("value") else 0)
+
+	def follow_kind(self, submittable):
+		"""The default rule gets Submit as `before_insert` gives it, while no edit has changed it."""
+		default = default_permission(False)
+		for row in self.permission_rows():
+			if permission_key(row) == ("System Manager", 0, 0) and all(
+				int(row.get(right) or 0) == default.get(right, 0) for right in std_rights if right != "submit"
+			):
+				row.submit = 1 if submittable else 0
 
 	def refuse_property(self, property: str):
 		# The create folded the kind into its insert, so the edit sets the value the DocType has.

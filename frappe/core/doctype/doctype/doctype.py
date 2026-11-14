@@ -193,22 +193,7 @@ class DocType(Document):
 
 	def before_insert(self):
 		if not self.istable and not self.permissions:
-			self.append(
-				"permissions",
-				{
-					"role": "System Manager",
-					"read": 1,
-					"write": 1,
-					"create": 1,
-					"delete": 1,
-					"report": 1,
-					"export": 1,
-					"share": 1,
-					"print": 1,
-					"email": 1,
-					"submit": 1 if self.is_submittable else 0,
-				},
-			)
+			self.append("permissions", default_permission(self.is_submittable))
 
 	def validate(self):
 		"""Validate DocType before saving.
@@ -1223,6 +1208,23 @@ class DocType(Document):
 
 		if len(unique_links) < len(self.links or []):
 			self.links = unique_links
+
+
+def default_permission(is_submittable: bool | int) -> dict:
+	"""The System Manager rule a DocType inserted with none gets."""
+	return {
+		"role": "System Manager",
+		"read": 1,
+		"write": 1,
+		"create": 1,
+		"delete": 1,
+		"report": 1,
+		"export": 1,
+		"share": 1,
+		"print": 1,
+		"email": 1,
+		"submit": 1 if is_submittable else 0,
+	}
 
 
 def validate_series(dt, autoname=None, name=None):

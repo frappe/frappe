@@ -71,6 +71,11 @@ export function seriesAbbreviation(doctype: string): string {
 	return short.toUpperCase() || "REC";
 }
 
+/** "By pattern"'s first pattern: a dot series, v1's "Expression", counting under its own prefix. */
+export function patternSeed(doctype: string): string {
+	return `${seriesAbbreviation(doctype)}-.#####`;
+}
+
 /** The naming_series field a new DocType named by series starts with: one series, its default. */
 export function seriesField(doctype: string): RawMetaField {
 	const series = `${seriesAbbreviation(doctype)}-.#####`;

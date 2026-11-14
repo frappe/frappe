@@ -175,6 +175,47 @@ class TestCreateDoctype(IntegrationTestCase):
 		self.assertEqual(perm.role, "System Manager")
 		self.assertTrue(perm.read and perm.write and perm.create and perm.delete)
 
+	def test_the_rules_set_up_in_the_editor_are_the_rules_created(self):
+		"""`pendingDoctype` sends the System Manager rule the insert would add; the edits replay over it."""
+		manager = {"role": "System Manager", "permlevel": 0, "if_owner": 0}
+		blogger = {"role": "Blogger", "permlevel": 0, "if_owner": 0}
+		cases = {
+			"kept": ([{"act": "settings.add_permission", **blogger}], ["System Manager", "Blogger"]),
+			"removed": (
+				[
+					{"act": "settings.add_permission", **blogger},
+					{"act": "settings.remove_permission", **manager},
+				],
+				["Blogger"],
+			),
+			"added then removed": (
+				[
+					{"act": "settings.add_permission", **blogger},
+					{"act": "settings.remove_permission", **blogger},
+				],
+				["System Manager"],
+			),
+		}
+		for case, (edits, roles) in cases.items():
+			with self.subTest(case=case):
+				drop_doctype()
+				given = definition(permissions=[{**manager, "read": 1, "write": 1, "create": 1, "delete": 1}])
+				result = create_doctype(given, two_tabs(), edits)
+				self.assertTrue(result["saved"], result.get("errors"))
+				self.assertEqual([row.role for row in frappe.get_doc("DocType", DOCTYPE).permissions], roles)
+
+	def test_a_submittable_kind_gives_the_untouched_system_manager_rule_submit(self):
+		"""As `before_insert` would: the rule `pendingDoctype` sends follows the kind set before the first save."""
+		rule = {"role": "System Manager", "permlevel": 0, "if_owner": 0}
+		rule |= dict.fromkeys(
+			("read", "write", "create", "delete", "report", "export", "share", "print", "email"), 1
+		)
+		kind = [{"act": "settings.set_doctype_property", "property": "is_submittable", "value": 1}]
+		result = create_doctype(definition(permissions=[rule]), two_tabs(), kind)
+		self.assertTrue(result["saved"], result.get("errors"))
+		[perm] = frappe.get_doc("DocType", DOCTYPE).permissions
+		self.assertEqual(perm.submit, 1)
+
 	def test_an_existing_name_is_refused(self):
 		modified = frappe.db.get_value("DocType", "ToDo", "modified")
 		result = create_doctype(definition(name="ToDo"), two_tabs(), [])

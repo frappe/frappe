@@ -1,8 +1,12 @@
 // A naming pattern's next name, as `frappe/model/naming.py` builds it (`TN-.YYYY.-.####` or
 // `format:TN-{MM}-{#####}`). Each counter is kept in `tabSeries` under the text resolved before it.
 
-/** The chips "By pattern" inserts; a field chip inserts `{fieldname}`. */
-export const TOKENS = ["{YYYY}", "{MM}", "{DD}", "{#####}"];
+/** The chips "By pattern" inserts. A dotted pattern reads `{#####}` as a field, so its chips are dotted parts. */
+export function patternTokens(dotted: boolean, field?: string): string[] {
+	const fieldToken = field ? [dotted ? `.{${field}}.` : `{${field}}`] : [];
+	const tokens = dotted ? [".YYYY.", ".MM.", ".DD.", ".#####."] : ["{YYYY}", "{MM}", "{DD}", "{#####}"];
+	return [...tokens, ...fieldToken];
+}
 
 export interface NamePart {
 	text: string;
@@ -40,22 +44,18 @@ export function insertToken(pattern: string, token: string, caret: number): { pa
 }
 
 function segments(pattern: string, today: Date): Segment[] {
-	if (!pattern.startsWith("format:")) {
-		const parts = pattern.split(".");
-		if (!pattern.includes("#")) parts.push("#####");
-		return new SeriesParser(today).parse(parts);
-	}
-	return formatSegments(pattern.slice("format:".length), today);
+	if (pattern.startsWith("format:")) return bracedSegments(pattern.slice("format:".length), today, false);
+	return bracedSegments(pattern.includes("#") ? pattern : `${pattern}.#####`, today, true);
 }
 
-/** Each braced token resolves alone; hashes left outside braces then parse as a dot series. */
-function formatSegments(body: string, today: Date): Segment[] {
+/** Each braced token resolves alone; the rest then parses as a dot series, a format pattern's only where it counts. */
+function bracedSegments(body: string, today: Date, dotted: boolean): Segment[] {
 	const normalised = body.replace(/(?<!\.)(-\.#+)/g, ".$1");
 	const items: (Segment | string)[] = [];
 	for (const piece of normalised.split(/(\{[^}]*\})/)) {
 		if (!piece) continue;
 		if (piece.startsWith("{")) items.push(...new SeriesParser(today, true).parse([piece.slice(1, -1)]));
-		else items.push(...(piece.includes("#") ? piece.split(".") : [{ text: piece }]));
+		else items.push(...(dotted || piece.includes("#") ? piece.split(".") : [{ text: piece }]));
 	}
 	return new SeriesParser(today).parse(items);
 }

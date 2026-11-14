@@ -51,6 +51,13 @@ describe("the panel's type list", () => {
 		expect(more.flatMap((group) => group.types.map((type) => type.name))).toContain("Markdown Editor");
 	});
 
+	it("offers HTML Editor with the text types", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.add_field", { label: "Body", fieldtype: "Data" });
+		const text = typeGroups(canvas, "body").more.find((group) => group.label === "Text");
+		expect(text?.types.map((type) => type.name)).toContain("HTML Editor");
+	});
+
 	it("limits by the saved type, so a second change cannot leave the group", async () => {
 		const { canvas } = mount();
 		await acts.run("fields.set_field_property", { fieldname: "subject", property: "fieldtype", value: "Data" });

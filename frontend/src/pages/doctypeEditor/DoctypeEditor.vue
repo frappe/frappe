@@ -16,6 +16,7 @@
 				:modes="state.modes"
 				:developer-mode="boot.developer_mode"
 				:child-crumbs="child.crumbs.value"
+				@open-parent="child.open(null)"
 				@act="(name, value) => acts.perform(name, value)"
 			/>
 		</template>
