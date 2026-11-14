@@ -263,4 +263,27 @@ describe("the editor", () => {
 		await settle();
 		expect(rowsShown()).toEqual(["TODO"]);
 	});
+
+	it("ignores a read that comes back after the editor was opened again", async () => {
+		let late!: (answer: Arrangements) => void;
+		api.fetchArrangements
+			.mockReturnValueOnce(new Promise((resolve) => (late = resolve)))
+			.mockResolvedValueOnce(response({ rail: [row("fresh")] }));
+		const target = ref<{ tab: "rail" }>({ tab: "rail" });
+		const app = createApp({ render: () => h(NavigationEditor, { target: target.value }) });
+		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+		const host = document.createElement("div");
+		document.body.appendChild(host);
+		app.mount(host);
+		unmount = () => app.unmount();
+		await settle();
+
+		target.value = { tab: "rail" };
+		await settle();
+		expect(rowsShown()).toEqual(["FRESH"]);
+
+		late(response({ rail: [row("stale")] }));
+		await settle();
+		expect(rowsShown()).toEqual(["FRESH"]);
+	});
 });

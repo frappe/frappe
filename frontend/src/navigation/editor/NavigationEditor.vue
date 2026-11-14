@@ -220,6 +220,8 @@ const showHidden = ref(false);
 const refusal = ref<string | null>(null);
 // A reply that comes back after the editor was reopened belongs to the earlier opening.
 let opening = 0;
+// Within one opening, only the newest read of a level may land.
+const newest: Record<Scope, number> = { user: 0, site: 0 };
 const keptLayout = ref<string>();
 
 const draft = computed<Draft | undefined>({
@@ -309,11 +311,13 @@ watch(showHidden, (on) => !on && selected.value && leaveIfUnlisted(selected.valu
 /** `layout` keeps an edited layout over the fresh read, for a reload that follows a half save. */
 async function load(level: Scope, layout?: string): Promise<boolean> {
 	const current = opening;
+	const ticket = ++newest[level];
+	const latest = () => current === opening && ticket === newest[level];
 	failed.value = null;
 	stale.value = false;
 	try {
 		const response = await fetchArrangements(boot.app!, level);
-		if (current !== opening) return false;
+		if (!latest()) return false;
 		keptLayout.value = undefined;
 		const read = fromArrangements(response, level);
 		const edited = layout === undefined ? read : { ...read, layout };
@@ -333,7 +337,7 @@ async function load(level: Scope, layout?: string): Promise<boolean> {
 		if (tab.value === "sidebar" && !offered.length) tab.value = "rail";
 		return true;
 	} catch (error) {
-		if (current === opening) failed.value = (error as Error).message;
+		if (latest()) failed.value = (error as Error).message;
 		return false;
 	}
 }
