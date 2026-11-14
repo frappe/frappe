@@ -8,7 +8,7 @@
 		:data-canvas-selected="selected || undefined"
 		@click.stop="select({ kind: 'section', section: name })"
 	>
-		<div class="relative mb-3 flex h-7 items-center gap-1">
+		<div class="relative z-[1] mb-4 flex h-7 items-center gap-1">
 			<input
 				:value="section.label ?? ''"
 				:placeholder="__('Untitled section')"
@@ -23,7 +23,7 @@
 			<RuleMark :canvas="canvas" kind="section" :node="section" />
 			<div
 				v-if="canvas.editable"
-				class="absolute right-0 top-0 flex items-center rounded-4 bg-surface-base opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100"
+				class="absolute right-0 top-0 flex items-center rounded-4 bg-surface-base opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100 group-has-[[data-canvas-column-ring]]/section:!pointer-events-none group-has-[[data-canvas-column-ring]]/section:!opacity-0"
 				:class="{ '!opacity-100': selected }"
 				data-canvas-controls
 			>
@@ -46,7 +46,7 @@
 		<p
 			v-for="error in canvas.errorsAt('container', name)"
 			:key="error"
-			class="mb-3 text-p-sm text-ink-red-4"
+			class="relative z-[1] mb-3 text-p-sm text-ink-red-4"
 			data-canvas-error
 		>
 			{{ error }}
