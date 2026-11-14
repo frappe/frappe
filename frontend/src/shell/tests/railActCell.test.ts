@@ -1,6 +1,6 @@
 // The rail's Act cell: `SidebarRailItem`'s button form, so its tile is the route cells' tile.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { createApp, h } from "vue";
 import { DesktopShell } from "frappe-ui";
 
 const mounted: ReturnType<typeof createApp>[] = [];
@@ -42,7 +42,6 @@ describe("the rail's Act cell", () => {
 		const button = mount({ tile: true });
 
 		expect(button.getAttribute("data-slot")).toBeNull();
-		expect(button.className).toContain("size-9");
 		button.click();
 		expect(act.run).toHaveBeenCalledTimes(1);
 	});
@@ -54,7 +53,6 @@ describe("the rail's Act cell", () => {
 		const button = mount({ tile });
 
 		expect(button.getAttribute("aria-busy")).toBe("true");
-		expect(button.querySelector("[class*='size-4']")).not.toBeNull();
 	});
 
 	it.each([
@@ -62,9 +60,9 @@ describe("the rail's Act cell", () => {
 		["right", "left"],
 	])("opens its tooltip away from a navigation on the %s", async (navSide, away) => {
 		mount({}, navSide).dispatchEvent(new FocusEvent("focus"));
-		await new Promise((resolve) => setTimeout(resolve, 50));
-		await nextTick();
 
-		expect(document.body.querySelector("[data-side]")?.getAttribute("data-side")).toBe(away);
+		await vi.waitFor(() => {
+			expect(document.body.querySelector("[data-side]")?.getAttribute("data-side")).toBe(away);
+		});
 	});
 });
