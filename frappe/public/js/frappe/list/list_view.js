@@ -1779,11 +1779,11 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					</div>`;
 			} else if (df.fieldtype === "Select") {
 				html = frappe.ui.badge.html({
-					label: __(_value),
-					theme: frappe.utils.guess_colour(_value),
+					label: __(value_display),
+					theme: frappe.utils.guess_colour(value_display),
 					css_class: `${filterable} ellipsis`.trim(),
 					attrs: {
-						"data-filter": `${escaped_fieldname},=,${escaped_value}`,
+						"data-filter": `${fieldname},=,${value}`,
 					},
 				});
 			} else if (df.fieldtype === "Link") {
@@ -1808,7 +1808,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			return `<span class="ellipsis"
-				title="${__(label)}: ${frappe.utils.escape_html(_value)}">
+				title="${__(label)}: ${strip_html_required ? frappe.utils.escape_html(_value) : _value}">
 				${html}
 			</span>`;
 		};
