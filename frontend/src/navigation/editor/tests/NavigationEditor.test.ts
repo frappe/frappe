@@ -178,6 +178,8 @@ describe("the editor", () => {
 		click("[data-give-sidebar]");
 		await settle();
 		expect(body().querySelector("[data-give-sidebar]")).toBeNull();
+		// The tab change does not clear the selection: the sidebar's first row is open in the pane.
+		expect(body().querySelector("[data-editor-pane]")).not.toBeNull();
 
 		const rail = Array.from(body().querySelectorAll<HTMLElement>("button")).find(
 			(button) => button.textContent?.trim() === "Rail"

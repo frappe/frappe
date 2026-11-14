@@ -202,6 +202,7 @@ export function moveTo(draft: Draft, from: string, key: string, to: string, scop
 	const row = rows.find((entry) => entry.key === key);
 	if (!row) return __("This row no longer exists.");
 	if (from === to) return { draft, key };
+	if (sidebarOf(row) === to) return __("{0} cannot go into the sidebar it opens.", [labelOf(row)]);
 
 	const family = [row, ...descendantsOf(rows, key)];
 	if (to === RAIL && (family.length > 1 || row.item_type === "Section")) {
@@ -329,7 +330,7 @@ function descendantsOf(rows: EditorRow[], key: string): EditorRow[] {
 }
 
 function labelOf(row: EditorRow): string {
-	return row.label || row.link_to || row.key;
+	return row.label || row.link_to || row.url || row.key;
 }
 
 export function find(draft: Draft, container: string, key: string): EditorRow | undefined {

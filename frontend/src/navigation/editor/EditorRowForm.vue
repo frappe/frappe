@@ -2,7 +2,7 @@
 <template>
 	<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-5" data-editor-form>
 		<EditorPaneHeading
-			icon="lucide-plus"
+			icon="plus"
 			:title="__('Add {0}', [typeLabel])"
 			:origin="__('A new row')"
 		/>

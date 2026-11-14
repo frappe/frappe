@@ -126,6 +126,12 @@ describe("moveTo", () => {
 		expect(rowsOf(next, "s").every((r) => r.hidden === 1)).toBe(true);
 	});
 
+	it("refuses a row going into the sidebar it opens", () => {
+		const d = draft([row("a", { opens_sidebar: "s" })], { s: [row("x")] });
+		expect(refused(moveTo(d, RAIL, "a", "s", "user"))).toBe(true);
+		expect(refused(dropInto(d, RAIL, "a", "a", "user"))).toBe(true);
+	});
+
 	it("counts the target's cap", () => {
 		const d = draft([row("a")], { s: Array.from({ length: OWN_ROWS_PER_CONTAINER }, (_, n) => own(n)) });
 		expect(refused(moveTo(d, RAIL, "a", "s", "user"))).toBe(true);

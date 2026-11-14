@@ -71,7 +71,7 @@
 							:placeholder="__('Choose a sidebar')"
 						/>
 					</div>
-					<div class="min-h-0 flex-1 overflow-y-auto px-4 py-2">
+					<div ref="listPane" class="min-h-0 flex-1 overflow-y-auto px-4 py-2">
 						<EditorOutline
 							:rows="rows"
 							:show-hidden="showHidden"
@@ -377,6 +377,15 @@ watch(
 );
 
 watch(tab, () => (selected.value = null));
+
+/** An added or moved row can sit past the fold, and another list keeps the old scroll: show the selected row, else the top. */
+const listPane = ref<HTMLElement | null>(null);
+watch([container, selected], async () => {
+	await nextTick();
+	const row = selected.value && listPane.value?.querySelector(`[data-key="${selected.value}"]`);
+	if (row) row.scrollIntoView?.({ block: "nearest" });
+	else listPane.value?.scrollTo?.({ top: 0 });
+});
 // A rail edit that stops opening the last sidebar takes its tab away.
 // While a read is on its way the draft is empty, which is not an edit.
 watch(hasSidebars, (has) => !has && draft.value && (tab.value = "rail"));
@@ -487,7 +496,9 @@ function add(fields: Omit<EditorRow, "key">) {
 const moveTargets = computed(() =>
 	draft.value && current.value
 		? [RAIL, ...Object.keys(draft.value.sidebars)]
-				.filter((target) => target !== container.value)
+				.filter(
+					(target) => target !== container.value && target !== sidebarOf(current.value!)
+				)
 				.map((target) => ({
 					label: target === RAIL ? __("Rail") : sidebarLabel(target),
 					value: target,
@@ -525,8 +536,7 @@ function moveTo(target: string) {
 	refusal.value = refused(moved) ? moved : null;
 	if (refused(moved)) return;
 	draft.value = moved.draft;
-	switchContainer(target);
-	selected.value = moved.key;
+	show(target, moved.key);
 }
 
 function giveSidebar() {
@@ -535,10 +545,10 @@ function giveSidebar() {
 	refusal.value = refused(next) ? next : null;
 	if (refused(next)) return;
 	draft.value = next.draft;
-	switchContainer(
-		rowsOf(next.draft, RAIL).find((row) => row.key === selected.value)!.opens_sidebar!
+	show(
+		rowsOf(next.draft, RAIL).find((row) => row.key === selected.value)!.opens_sidebar!,
+		next.key
 	);
-	selected.value = next.key;
 }
 
 function removeSidebar() {
@@ -550,6 +560,13 @@ function removeSidebar() {
 function switchContainer(target: string) {
 	tab.value = target === RAIL ? "rail" : "sidebar";
 	if (target !== RAIL) sidebar.value = target;
+}
+
+/** Show a container with a row selected: a tab change clears the selection, so it is set once that settles. */
+async function show(target: string, key: string) {
+	switchContainer(target);
+	await nextTick();
+	selected.value = key;
 }
 
 /** Enter on a row: select it, then put the cursor in the form's first field. */
@@ -638,15 +655,13 @@ function drop(onKey: string, middle: boolean) {
 		: dropAcross(draft.value, from.container, from.key, container.value, onKey, scope.value);
 	if (refused(moved)) {
 		// The refusal shows under "Place under" of the dragged row, so go back to it.
-		switchContainer(from.container);
-		selected.value = from.key;
+		show(from.container, from.key);
 		refusal.value = moved;
 		return;
 	}
 	refusal.value = null;
 	draft.value = moved.draft;
-	switchContainer(inside ? opens! : container.value);
-	selected.value = moved.key;
+	show(inside ? opens! : container.value, moved.key);
 }
 
 /** The level below is read only now, so opening the editor costs nothing for it; Save commits the reset. */
@@ -751,7 +766,7 @@ async function keepSavedRows(level: Scope, edited: Draft, reason: string, curren
 }
 
 function titleOf(row: EditorRow): string {
-	return row.label || row.link_to || row.key;
+	return row.label || row.link_to || row.url || row.key;
 }
 
 function iconOf(row: EditorRow): string {

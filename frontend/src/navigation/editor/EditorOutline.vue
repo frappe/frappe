@@ -18,17 +18,24 @@
 			:data-key="row.key"
 			draggable="true"
 			:class="[
-				'group/row flex h-7 cursor-pointer items-center rounded-4 px-2 text-sm outline-none transition focus-visible:focus-ring',
+				'group/row relative flex h-7 cursor-pointer items-center rounded-4 px-2 text-sm outline-none transition focus-visible:focus-ring',
 				row.key === selected
 					? 'bg-surface-elevation-3 text-ink-gray-8 shadow-sm'
 					: 'text-ink-gray-7 hover:bg-surface-gray-2',
+				over?.key === row.key && over.into ? 'ring-1 ring-outline-gray-4' : '',
 			]"
 			@click="emit('select', row.key)"
 			@dragstart="emit('dragStart', row.key)"
-			@dragend="emit('dragEnd')"
-			@dragover.prevent
+			@dragend="end"
+			@dragover.prevent="hover($event, row)"
+			@dragleave="over = null"
 			@drop.prevent="drop($event, row.key)"
 		>
+			<span
+				v-if="over?.key === row.key && !over.into"
+				class="pointer-events-none absolute inset-x-2 -top-px h-0.5 rounded-full bg-surface-gray-6"
+				data-drop-line
+			/>
 			<span
 				v-for="guide in depth"
 				:key="guide"
@@ -71,7 +78,7 @@ import { Badge } from "frappe-ui";
 import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
 import { acts } from "@/acts/dispatcher";
-import { type EditorRow, isOwn, type Scope } from "./draft";
+import { type EditorRow, isOwn, type Scope, sidebarOf } from "./draft";
 
 const props = defineProps<{
 	rows: EditorRow[];
@@ -135,10 +142,27 @@ function badge(row: EditorRow): Badged | null {
 }
 
 /** A drop on the middle third of a row is "onto" it, which a linked rail row takes as "into its sidebar". */
-function drop(event: DragEvent, onKey: string) {
+function onMiddle(event: DragEvent): boolean {
 	const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
 	const at = (event.clientY - box.top) / box.height;
-	emit("drop", onKey, at > 1 / 3 && at < 2 / 3);
+	return at > 1 / 3 && at < 2 / 3;
+}
+
+/** The row a drag hovers: a line above it for "before", a ring for "into its sidebar". */
+const over = ref<{ key: string; into: boolean } | null>(null);
+
+function hover(event: DragEvent, row: EditorRow) {
+	over.value = { key: row.key, into: !!sidebarOf(row) && onMiddle(event) };
+}
+
+function end() {
+	over.value = null;
+	emit("dragEnd");
+}
+
+function drop(event: DragEvent, onKey: string) {
+	over.value = null;
+	emit("drop", onKey, onMiddle(event));
 }
 
 function onKey(event: KeyboardEvent) {
