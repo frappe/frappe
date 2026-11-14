@@ -67,20 +67,34 @@ let format = computed(() => {
 	return is_qr_field.value ? "QR" : null;
 });
 
+// the print encodes Python's str() of the stored value, which writes a whole float as "5.0"
+function raw_text(value, meta, fieldname) {
+	if (value == null) return "";
+	const fieldtype = meta?.fields?.find((f) => f.fieldname === fieldname)?.fieldtype;
+	const is_float = fieldtype !== "Int" && frappe.model.numeric_fieldtypes.includes(fieldtype);
+	return is_float && Number.isInteger(value) ? value.toFixed(1) : String(value);
+}
+
 let barcode_raw_value = computed(() => {
 	if (props.df.fieldtype !== "Barcode") return null;
 	if (!props.df.custom) {
 		return preview_doc.value?.[props.df.fieldname] ?? null;
 	}
-	if (props.df.barcode_field) {
-		return preview_doc.value?.[props.df.barcode_field] ?? null;
-	}
 	const doc = preview_doc.value;
+	if (props.df.barcode_field) {
+		const field = props.df.barcode_field;
+		return raw_text(doc?.[field], store.meta.value, field) || null;
+	}
 	const value = (props.df.barcode_value || "").replace(/\{([\w.]+)\}/g, (token, path) => {
 		if (!paths.value.includes(path) || !doc) return token;
-		if (!path.includes(".")) return doc[path] ?? "";
+		if (!path.includes(".")) return raw_text(doc[path], store.meta.value, path);
 		const target = linked_target({ link_path: path }, store.meta.value, doc);
-		return target ? linked.value[target.key] ?? "" : "";
+		if (!target) return "";
+		return raw_text(
+			linked.value[target.key],
+			frappe.get_meta(target.doctype),
+			target.fieldname
+		);
 	});
 	return value || null;
 });
