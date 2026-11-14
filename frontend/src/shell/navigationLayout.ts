@@ -20,10 +20,14 @@ export const navigationLayout = ref<NavigationLayout>("rail_and_sidebar");
 /** True only for a person's own rail + sidebar over an inherited floating rail: the unpin button shows. */
 export const pinned = ref(false);
 
+/** True while the floating rail may be pinned: the layout below the person's is a floating rail too, so an unpin button follows. */
+export const canPin = ref(false);
+
 /** Takes the layout and the pin off a `Navigation` payload: the boot's, or a save's. */
-export function applyNavigationLayout(navigation: Pick<Navigation, "navigation_layout" | "pinned">) {
+export function applyNavigationLayout(navigation: Pick<Navigation, "navigation_layout" | "pinned" | "can_pin">) {
 	navigationLayout.value = navigation.navigation_layout;
 	pinned.value = navigation.pinned === true;
+	canPin.value = navigation.can_pin === true;
 }
 
 /** Docks the floating rail: the person's layout becomes rail + sidebar. */

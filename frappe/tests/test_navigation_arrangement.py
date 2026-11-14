@@ -702,6 +702,29 @@ class TestNavigationLayout(NavigationTestCase):
 		self.assertNotIn("pinned", save_navigation_layout(APP, "sidebar_only"))
 		self.assertNotIn("pinned", save_navigation_layout(APP, "floating_rail"))
 
+	def test_can_pin_is_a_floating_rail_whose_pin_can_be_undone(self):
+		make_rail([], standard=1, navigation_layout="floating_rail")
+		self.assertIs(resolve_navigation(APP)["can_pin"], True)
+
+		# Pinned: docked, so nothing left to pin.
+		self.assertNotIn("can_pin", save_navigation_layout(APP, "rail_and_sidebar"))
+		self.assertIs(save_navigation_layout(APP, "floating_rail")["can_pin"], True)
+
+	def test_a_floating_rail_over_another_layout_cannot_be_pinned(self):
+		make_rail([], standard=1, navigation_layout="sidebar_only")
+
+		# The person's own choice: a pin would dock it with no unpin button to float it again.
+		navigation = save_navigation_layout(APP, "floating_rail")
+
+		self.assertEqual(navigation["navigation_layout"], "floating_rail")
+		self.assertNotIn("can_pin", navigation)
+		self.assertNotIn("pinned", navigation)
+
+	def test_can_pin_follows_a_site_floating_rail(self):
+		save_navigation_layout(APP, "floating_rail", scope="site")
+
+		self.assertIs(resolve_navigation(APP)["can_pin"], True)
+
 	def test_a_colleague_does_not_see_a_pin(self):
 		make_rail([], standard=1, navigation_layout="floating_rail")
 		save_navigation_layout(APP, "rail_and_sidebar")

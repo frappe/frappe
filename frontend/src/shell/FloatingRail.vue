@@ -15,7 +15,7 @@
 			:context="context"
 			:current="current"
 			:chrome="!hasSidebar"
-			pin="pin"
+			:pin="canPin ? 'pin' : undefined"
 			@pin="emit('pin')"
 		/>
 	</div>
@@ -25,6 +25,7 @@
 import { ref } from "vue";
 import type { NavigationItem } from "@/boot";
 import type { ItemContext } from "@/navigation/types";
+import { canPin } from "./navigationLayout";
 import { navigationSide, navSide } from "./navigationSide";
 import RailColumn from "./RailColumn.vue";
 import { useEdgeReveal } from "./useEdgeReveal";

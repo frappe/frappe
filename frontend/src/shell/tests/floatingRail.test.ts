@@ -23,7 +23,7 @@ import { resetNavigationReports } from "@/navigation/registry";
 import { installTranslate } from "@/i18n";
 import { registerShell } from "@/router/routeFor";
 import AppShell from "../AppShell.vue";
-import { navigationLayout, pinned } from "../navigationLayout";
+import { canPin, navigationLayout, pinned } from "../navigationLayout";
 import { navigationSide } from "../navigationSide";
 
 const addresses = new Addresses({
@@ -68,8 +68,20 @@ function device(width: number, hover = true) {
 	}) as typeof window.matchMedia;
 }
 
-function navigation(layout: NavigationLayout, pinnedLayout = false, rail = [accounts, docs]): Navigation {
-	return { rail, sidebars, navigation_layout: layout, ...(pinnedLayout ? { pinned: true as const } : {}) };
+// A floating rail may be pinned unless `canPin` is off: the layout below it is another one.
+function navigation(
+	layout: NavigationLayout,
+	pinnedLayout = false,
+	rail = [accounts, docs],
+	canPin = layout === "floating_rail"
+): Navigation {
+	return {
+		rail,
+		sidebars,
+		navigation_layout: layout,
+		...(pinnedLayout ? { pinned: true as const } : {}),
+		...(canPin ? { can_pin: true as const } : {}),
+	};
 }
 
 async function shell(nav: Navigation, side = "", path = "/sales-invoice"): Promise<HTMLElement> {
@@ -120,6 +132,7 @@ beforeEach(() => {
 	navigationSide.value = "start";
 	navigationLayout.value = "rail_and_sidebar";
 	pinned.value = false;
+	canPin.value = false;
 	runMethod.mockReset();
 	toastError.mockReset();
 	device(1280);
@@ -227,6 +240,15 @@ describe("pin", () => {
 
 		expect(toastError).toHaveBeenCalledWith("Not permitted");
 		expect(box(host)).not.toBeNull();
+	});
+});
+
+describe("a floating rail over another layout", () => {
+	it("offers no pin, since the person could not unpin it again", async () => {
+		const host = await shell(navigation("floating_rail", false, [accounts, docs], false));
+
+		expect(box(host)).not.toBeNull();
+		expect(key(box(host)!, "pin-navigation")).toBeNull();
 	});
 });
 
