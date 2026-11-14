@@ -1,7 +1,8 @@
 # NESTING — how deep a navigation list may go. A rail is flat; in a sidebar the deepest row is
-# section > item > child. `frontend/src/navigation/nesting.ts` asks the same question.
+# section > item > child, and an Act row holds no child. `frontend/src/navigation/nesting.ts` asks the same question.
 
 SECTION = "Section"
+ACT = "Act"
 RAIL = "Rail"
 
 
@@ -38,6 +39,10 @@ def _too_deep(row, rows: dict, container: str) -> bool:
 	parent = rows.get(row.get("parent_key"))
 	if parent is None or parent.get("item_type") == SECTION:
 		return False
+
+	# An action only runs: it opens nothing for a row to sit under.
+	if parent.get("item_type") == ACT:
+		return True
 
 	# Under an item, which may itself sit only at the top level or in a section.
 	grandparent = rows.get(parent.get("parent_key"))

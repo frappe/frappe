@@ -671,7 +671,7 @@ def _own(item: dict, anchors: list[dict] | None) -> dict:
 	row |= {"doctype": "Navigation Item", "added": 1}
 
 	if isinstance(item.get("payload"), dict):
-		row["payload"] = json.dumps(item["payload"])
+		row["payload"] = json.dumps(item["payload"], separators=(",", ":"), ensure_ascii=False)
 
 	if anchors:
 		row["anchors"] = json.dumps(anchors)

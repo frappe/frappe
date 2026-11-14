@@ -6,6 +6,7 @@ import type { NavigationItem } from "@/boot";
 export type NavigationContainer = "Rail" | "Sidebar";
 
 const SECTION = "Section";
+const ACT = "Act";
 
 /** Whether `item` may sit under `parent` (`null` is the top level); its own rows move with it. */
 export function canNestUnder(
@@ -38,6 +39,9 @@ function isPastTheCap(
 
 	const parent = rows.get(row.parent_key);
 	if (!parent || parent.item_type === SECTION) return false;
+
+	// An action only runs: it opens nothing for a row to sit under.
+	if (parent.item_type === ACT) return true;
 
 	// Under an item, which may itself sit only at the top level or in a section.
 	const grandparent = parent.parent_key ? rows.get(parent.parent_key) : undefined;

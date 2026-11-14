@@ -35,6 +35,10 @@ def sidebar_rows() -> list[dict]:
 	return resolve_navigation(APP)["sidebars"][ADDRESS_KEY]
 
 
+def a_shipped_act(key: str) -> dict:
+	return item(key, item_type="Act", payload=json.dumps({"act": "shell.theme"}))
+
+
 def a_sidebar_to_arrange():
 	"""section `s` > `a` > `b`, and `c` at the top level: the deepest a list may go."""
 	make_sidebar(
@@ -127,6 +131,14 @@ class TestSavingPastTheCap(NavigationTestCase):
 
 		self.assertEqual(parents, {"s": None, "a": "s", "b": "a", "c": "a"})
 
+	def test_a_row_under_an_act_row_is_refused(self):
+		make_sidebar([a_shipped_act("x"), doctype_item("a", "User")], standard=1)
+
+		with set_user(a_person()), self.assertRaises(frappe.ValidationError) as caught:
+			save_arrangement("Sidebar", ADDRESS_KEY, [shown("x"), shown("a", parent_key="x")])
+
+		self.assertIn("nested too deeply", str(caught.exception))
+
 	def test_a_row_left_out_of_the_save_still_counts(self):
 		a_sidebar_to_arrange()
 
@@ -181,6 +193,12 @@ class TestShippingPastTheCap(NavigationTestCase):
 
 
 class TestComposingPastTheCap(NavigationTestCase):
+	def test_a_child_that_layers_put_under_an_act_row_is_lifted(self):
+		make_sidebar([a_shipped_act("x"), doctype_item("a", "User")], standard=1)
+		make_sidebar([moved("a", {"parent_key": "x"})], user=SITE_LAYER)
+
+		self.assertEqual({row["key"]: row.get("parent_key") for row in sidebar_rows()}, {"x": None, "a": None})
+
 	def test_what_layers_compose_past_the_cap_is_lifted_and_nothing_is_dropped(self):
 		make_sidebar(
 			[

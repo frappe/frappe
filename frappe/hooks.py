@@ -17,6 +17,9 @@ app_prefix = "desk"
 
 # No `app_permission` on purpose: its absence means "not a Website User", which `/desk` has always meant.
 
+# The save-time rule for each kind of row a person or the site may add; a module holding `validate_own_row`.
+navigation_item_validators = {"Act": ["frappe.shell.act_row"]}
+
 # What a stored Client Script imports by bare name; the rule is in frontend/COMPATIBILITY.md.
 import_map = {
 	"vue": "vue",
