@@ -518,7 +518,11 @@ const { appActsPending, shell } = useShellActs({
 				// No seam in the sidebar-only layout, a drawer or beside a floating rail, so no act. The overlay's
 				// own state is separate, so `collapsed-sidebar` keeps the wide band's choice.
 				sidebarCollapsed: () =>
-					!panel.value || sidebarOnly.value || floating.value || phone.value || drawer.value
+					!panel.value ||
+					sidebarOnly.value ||
+					floating.value ||
+					phone.value ||
+					drawer.value
 						? null
 						: overlay.value
 						? !overlayOpen.value
