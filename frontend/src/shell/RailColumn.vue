@@ -42,7 +42,7 @@
 				<div
 					v-for="cell in cells"
 					:key="cell.key"
-					v-memo="[cell, cell.key === current]"
+					v-memo="[cell, cell.key === current, navSide()]"
 					:data-key="cell.key"
 					:data-sidebar="cell.sidebar"
 				>
@@ -108,7 +108,7 @@ import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
 import { useAppMenu } from "./appMenu";
-import { awaySide } from "./navigationSide";
+import { awaySide, navSide } from "./navigationSide";
 import ActCell from "./RailActCell.vue";
 import UserMenu from "./UserMenu.vue";
 import UtilitySlots from "./UtilitySlots.vue";

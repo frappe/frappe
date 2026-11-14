@@ -17,6 +17,7 @@ import { openCreate, type CreatedDoc, type CreateOptions } from "./create";
 import { shellDialog, type ShellDialog } from "./dialog";
 import { useRealtime, type ShellRealtime } from "./realtime";
 import type { StandingWindowHandle } from "./standingWindows";
+import { navSide } from "./navigationSide";
 import { loadDocument } from "./tabKeepAlive";
 import { resetWindowHandles, windowHandleOf } from "./windowHandles";
 
@@ -230,7 +231,7 @@ function railItems(rail: RailActsHost): ActItem<Shell>[] {
 		items.push({
 			name: "toggle_sidebar",
 			label: collapsed ? __("Expand sidebar") : __("Collapse sidebar"),
-			icon: collapsed ? "lucide-panel-left-open" : "lucide-panel-left-close",
+			icon: `lucide-panel-${navSide()}-${collapsed ? "open" : "close"}`,
 			run: () => rail.toggleSidebar(),
 		});
 	return items;

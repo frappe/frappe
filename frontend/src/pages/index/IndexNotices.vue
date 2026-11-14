@@ -5,7 +5,8 @@
 <template>
 	<TransitionGroup
 		tag="div"
-		class="fixed bottom-3 right-3 z-10 flex w-80 flex-col gap-2"
+		class="fixed bottom-3 z-10 flex w-80 flex-col gap-2"
+		:class="navSide() === 'right' ? 'right-[62px]' : 'right-3'"
 		:role="cards.length ? 'region' : undefined"
 		:aria-label="cards.length ? __('Notices') : undefined"
 		enter-from-class="translate-y-2 opacity-0"
@@ -63,6 +64,7 @@
 import { computed, defineAsyncComponent, ref } from "vue";
 import { Alert, SidebarRailItem, type AlertAction } from "frappe-ui";
 import { __, __n } from "@/i18n";
+import { navSide } from "@/shell/navigationSide";
 import { loadDocument } from "@/shell/tabKeepAlive";
 import { tuckedNotices, type IndexNoticeList, type NoticeKey } from "./notices";
 

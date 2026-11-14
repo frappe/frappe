@@ -12,6 +12,7 @@ import { registerShell } from "@/router/routeFor";
 import { resetNavigationReports } from "@/navigation/registry";
 import { resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
+import { navigationSide } from "../navigationSide";
 import { closeCreates, createRequests, registerCreateDialog } from "../create";
 import type { Shell } from "../shellActs";
 
@@ -289,6 +290,16 @@ describe("each shell act, run by name", () => {
 		await acts.run("shell.toggle_sidebar");
 		await flush();
 		expect(panel()).toBe("expanded");
+	});
+
+	it("toggle_sidebar draws the panel icon on the navigation's side", async () => {
+		await shell();
+		const icon = () => acts.available().find((act) => act.name === "shell.toggle_sidebar")?.icon;
+		expect(icon()).toBe("lucide-panel-left-close");
+
+		navigationSide.value = "end";
+		expect(icon()).toBe("lucide-panel-right-close");
+		navigationSide.value = "start";
 	});
 
 	it("theme takes a scheme from its argument's options, and refuses any other value", async () => {
