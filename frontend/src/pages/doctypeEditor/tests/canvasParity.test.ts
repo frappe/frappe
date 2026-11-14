@@ -38,7 +38,7 @@ describe("canvas edits, as the server applies them", () => {
 	});
 
 	it.each(fixture.slugs)("names a node labelled %j %j", (label, name) => {
-		const nodes = [{ label }];
+		const nodes: { name?: string; label?: string }[] = [{ label }];
 		assignNames(nodes, "tab");
 		expect(nodes[0].name).toBe(name);
 	});
