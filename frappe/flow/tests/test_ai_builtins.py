@@ -174,7 +174,7 @@ class TestFindApis(IntegrationTestCase):
 	def test_finds_and_describes_python_apis(self):
 		discovery.clear_cache()
 		# a cold index is built by the background job, never inside the tool call
-		with patch("frappe.api.discovery.build_cache_in_background") as queue_build:
+		with patch("frappe.api.discovery._trigger_cache_build") as queue_build:
 			with self.assertRaisesRegex(discovery.DiscoveryCacheUnavailable, "try again"):
 				find_apis(query="test_ai_builtins read_only_whoami", ctx=self.ctx)
 		queue_build.assert_called_once()

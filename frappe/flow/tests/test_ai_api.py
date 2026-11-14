@@ -969,7 +969,7 @@ class TestSessionEndpoints(ApiCase):
 				api.rewind(name, bad)
 		self.assertEqual([c for c in self.daemon.calls if c[0] == "rewind"], [("rewind", name, 0)])
 		# a link on another site can't rewind a chat: GET skips Frappe's CSRF check
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[api.rewind], ("POST",))
+		self.assertEqual(tuple(frappe.allowed_http_methods_for_whitelisted_func[api.rewind]), ("POST",))
 
 	def test_a_compaction_is_a_manual_run_of_its_own_and_a_refused_one_leaves_none(self):
 		name = new_session(self.agent.name, source="Trigger").name
@@ -991,7 +991,7 @@ class TestSessionEndpoints(ApiCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "a run is already active"):
 			api.compact(name)
 		self.assertEqual(frappe.db.count("Flow Run", {"session": name, "input": "/compact"}), 1)
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[api.compact], ("POST",))
+		self.assertEqual(tuple(frappe.allowed_http_methods_for_whitelisted_func[api.compact]), ("POST",))
 
 	def test_abort_cancel_and_entries_pass_through(self):
 		name = self.create()
@@ -1020,7 +1020,7 @@ class TestSessionEndpoints(ApiCase):
 			api.cleanup_attachments,
 		):
 			with self.subTest(method.__name__):
-				self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[method], ("POST",))
+				self.assertEqual(tuple(frappe.allowed_http_methods_for_whitelisted_func[method]), ("POST",))
 
 	def test_set_model_sends_the_models_credentials_and_reasoning_effort(self):
 		name = self.create()
