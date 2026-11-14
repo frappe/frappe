@@ -174,6 +174,17 @@ describe("a save with child tables", () => {
 		expect(children.open.value?.canvas.place("user")).toMatchObject({ section: "main", index: 0 });
 	});
 
+	it("opens a new child undone and made again with another link on that link's field", async () => {
+		const { children, edits } = mount();
+		await acts.run("fields.add_field", { label: "Watchers", fieldtype: "Table MultiSelect" });
+		await acts.run("fields.add_child_table", { name: "Task Note Watcher", table_field: "watchers", link: "User" });
+		await children.show("watchers");
+		edits.undo();
+		await acts.run("fields.add_child_table", { name: "Task Note Watcher", table_field: "watchers", link: "Role" });
+		await children.show("watchers");
+		expect(children.open.value!.canvas.working.value.fields).toMatchObject([{ fieldname: "role", options: "Role" }]);
+	});
+
 	it("adds a Table MultiSelect field for a new child of links that no field names yet", async () => {
 		const { canvas } = mount();
 		await acts.run("fields.add_child_table", { name: "Task Note Watcher", table_field: "watchers", link: "User" });

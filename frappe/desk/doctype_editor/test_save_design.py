@@ -108,7 +108,7 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(placed(row), ["due_date", "title"])
 		self.assertEqual(omitted(row), [])
 
-	def test_a_system_manager_saves_and_renames(self):
+	def as_system_manager(self):
 		user = "system-manager-47271@example.com"
 		if not frappe.db.exists("User", user):
 			frappe.get_doc(
@@ -122,6 +122,9 @@ class TestSaveDesign(IntegrationTestCase):
 		self.addCleanup(delete_committed, "User", user)
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user(user)
+
+	def test_a_system_manager_saves_and_renames(self):
+		self.as_system_manager()
 		result = self.save(
 			[
 				{"act": "fields.add_field", "label": "Due Date", "fieldtype": "Date"},
@@ -587,6 +590,7 @@ class TestSaveDesign(IntegrationTestCase):
 	def test_a_new_child_table_of_links_fills_a_table_multiselect_field(self):
 		child = f"{DOCTYPE} Tag"
 		self.addCleanup(delete_committed, "DocType", child)
+		self.as_system_manager()
 		result = self.save(
 			[
 				{

@@ -18,6 +18,8 @@ export interface ChildSession {
 	state: EditorState;
 	edits: ChildEdits;
 	canvas: DesignCanvas;
+	/** The DocType a new child's Link field names; a child remade with another loads afresh. */
+	link?: string;
 }
 
 export const CHILD_TABLES: InjectionKey<ChildTables> = Symbol("ChildTables");
@@ -42,7 +44,7 @@ export class ChildTables {
 		const wanted = this.shows.begin();
 		const doctype = table ? this.childOf(table) : null;
 		if (!table || !doctype) return void (this.open.value = null);
-		const session = this.sessions.value.get(doctype) ?? (await this.load(doctype));
+		const session = this.cached(doctype) ?? (await this.load(doctype));
 		if (wanted()) this.open.value = { ...session, table };
 	}
 
@@ -54,17 +56,17 @@ export class ChildTables {
 
 	/** A child's fields as its open editor has them, else `null`. */
 	fields(doctype: string): RawMetaField[] | null {
-		return this.sessions.value.get(doctype)?.canvas.working.value.fields ?? null;
+		return this.cached(doctype)?.canvas.working.value.fields ?? null;
 	}
 
 	/** A loaded child editor's canvas, else `null`. */
 	canvasOf(doctype: string): DesignCanvas | null {
-		return this.sessions.value.get(doctype)?.canvas ?? null;
+		return this.cached(doctype)?.canvas ?? null;
 	}
 
 	/** A child editor's canvas, loading the child when no editor has it yet. */
 	async loaded(doctype: string): Promise<DesignCanvas> {
-		return (this.sessions.value.get(doctype) ?? (await this.load(doctype))).canvas;
+		return (this.cached(doctype) ?? (await this.load(doctype))).canvas;
 	}
 
 	/** Every child table with staged edits; a new one, which the parent's edits add, has no base version. */
@@ -120,6 +122,12 @@ export class ChildTables {
 		return link ? String(link) : undefined;
 	}
 
+	/** A loaded editor, unless its new child was undone and made again with another link since it loaded. */
+	private cached(doctype: string): ChildSession | undefined {
+		const session = this.sessions.value.get(doctype);
+		return session?.link === this.linkOf(doctype) ? session : undefined;
+	}
+
 	private additions() {
 		return this.edits.staged.value.filter((edit) => edit.act === "fields.add_child_table");
 	}
@@ -138,9 +146,10 @@ export class ChildTables {
 	private async load(doctype: string): Promise<ChildSession> {
 		const parent = this.parent()!.state;
 		const sameParent = this.shows.watch();
-		const state = this.added().includes(doctype) ? pendingChild(doctype, parent, this.linkOf(doctype)) : await loadEditor(doctype, parent.mode);
+		const link = this.linkOf(doctype);
+		const state = this.added().includes(doctype) ? pendingChild(doctype, parent, link) : await loadEditor(doctype, parent.mode);
 		const edits = new ChildEdits(this.edits, state);
-		const session = { table: "", state, edits, canvas: new DesignCanvas(state, edits, this.forks) };
+		const session = { table: "", state, edits, canvas: new DesignCanvas(state, edits, this.forks), link };
 		if (sameParent()) this.sessions.value = new Map(this.sessions.value).set(doctype, session);
 		return session;
 	}

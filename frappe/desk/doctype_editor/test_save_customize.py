@@ -214,7 +214,8 @@ class TestSaveCustomize(IntegrationTestCase):
 
 	def test_a_new_child_table_of_links_makes_a_table_multiselect_field(self):
 		table = {"act": "fields.add_child_table", "name": CHILD, "table_field": "custom_t47364_users"}
-		result = save(NOTE, [{**table, "label": "T47364 Users", "link": "User"}])
+		with self.set_user("test@example.com"):
+			result = save(NOTE, [{**table, "label": "T47364 Users", "link": "User"}])
 		self.assertTrue(result["saved"], result)
 		field = frappe.get_meta(NOTE).get_field("custom_t47364_users")
 		self.assertEqual((field.fieldtype, field.options), ("Table MultiSelect", CHILD))
