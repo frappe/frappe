@@ -1436,6 +1436,43 @@ class TestDB(IntegrationTestCase):
 			finally:
 				db.close()
 
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_create_missing_sequences(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.database.sequence import create_missing_sequences
+
+		doctype = "autoinc_dt_missing_seq_test"
+		dt = new_doctype(doctype, autoname="autoincrement").insert(ignore_permissions=True)
+		table = f"tab{doctype}"
+		sequence = f"{doctype}_id_seq"
+		quote = '"' if frappe.db.db_type == "postgres" else "`"
+
+		def recreate_sequence_from_rows(names):
+			frappe.db.sql(f"delete from {quote}{table}{quote}")
+			for name in names:
+				frappe.db.sql(
+					f"""insert into {quote}{table}{quote} (name, creation, modified, owner, modified_by)
+					values (%s, now(), now(), 'Administrator', 'Administrator')""",
+					(name,),
+				)
+			frappe.db.sql_ddl(f"drop sequence {quote}{sequence}{quote}")
+			self.assertIn(doctype, create_missing_sequences())
+			return frappe.db.get_next_sequence_val(doctype)
+
+		try:
+			# numeric names only
+			self.assertEqual(recreate_sequence_from_rows([1, 9, 10]), 11)
+
+			# legacy non-numeric names (e.g. hashes) must be ignored
+			if frappe.db.db_type == "postgres":
+				frappe.db.sql_ddl(f'alter table "{table}" alter column name type varchar(140)')
+			else:
+				frappe.db.sql_ddl(f"alter table `{table}` modify name varchar(140)")
+			self.assertEqual(recreate_sequence_from_rows(["2", "9", "10", "e773927ec8"]), 11)
+			self.assertEqual(recreate_sequence_from_rows(["e773927ec8"]), 1)
+		finally:
+			dt.delete(ignore_permissions=True)
+
 
 @run_only_if(db_type_is.MARIADB)
 class TestDDLCommandsMaria(IntegrationTestCase):
