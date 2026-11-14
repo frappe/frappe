@@ -92,7 +92,6 @@ function edit() {
 }
 
 function save(list: string[], chosen: string) {
-	// The dialog puts the default first; with the same default and the same series that is no change.
 	const same = [...list].sort().join("\n") === [...options.value].sort().join("\n");
 	if (same && chosen === preferred.value) return;
 	view.setSeries(list, chosen);

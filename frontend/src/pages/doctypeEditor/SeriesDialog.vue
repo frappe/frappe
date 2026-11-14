@@ -7,7 +7,7 @@
 		size="2xl"
 		@after-leave="emit('closed')"
 	>
-		<div class="flex flex-col" data-series-dialog>
+		<div ref="body" class="flex flex-col" data-series-dialog>
 			<p class="mb-4 text-p-base text-ink-gray-6">
 				{{
 					__("Each series counts on its own. The person who creates a {0} picks one.", [
@@ -101,6 +101,7 @@ import { Button, Dialog, Radio, RadioGroup, TextInput, Tooltip } from "frappe-ui
 import { __ } from "@/i18n";
 import NamePreview from "./NamePreview.vue";
 import { nextName } from "./namingPattern";
+import { useSeriesCounters } from "./seriesCounters";
 import { SettingsViewKey } from "./settingsView";
 
 const props = defineProps<{
@@ -111,23 +112,26 @@ const props = defineProps<{
 const emit = defineEmits<{ done: [list: string[], preferred: string]; closed: [] }>();
 const open = defineModel<boolean>("open", { default: false });
 const view = inject(SettingsViewKey)!;
+const body = ref<HTMLElement>();
 
 let ids = 0;
 const row = (text: string) => reactive({ id: ids++, text });
 const rows = ref(props.series.map(row));
 const chosen = ref(rows.value[Math.max(0, props.series.indexOf(props.preferred))]?.id);
 
-// An example no other row can be mistaken for.
 const example = __("e.g. ST-.YYYY.-.#####");
-// An empty or repeated series is dropped on Done, as the field's options cannot hold it.
 const list = computed(() => [
 	...new Set(rows.value.map((one) => one.text.trim()).filter(Boolean)),
 ]);
 
+// The rows are drafts: a prefix typed here is counted from the site, not from the saved options.
+const drafted = useSeriesCounters(view, () => rows.value.map((one) => one.text.trim()));
+const counted = computed(() => ({ ...props.counters, ...drafted.value }));
+
 function next(text: string) {
 	const series = text.trim();
 	if (!series) return [];
-	return nextName(series, props.counters, view.label.bind(view), new Date());
+	return nextName(series, counted.value, view.label.bind(view), new Date());
 }
 
 function fullName(text: string) {
@@ -145,7 +149,7 @@ function caretToEnd(event: FocusEvent) {
 async function add() {
 	rows.value.push(row(""));
 	await nextTick();
-	const inputs = document.querySelectorAll<HTMLInputElement>("[data-series-row] input");
+	const inputs = body.value?.querySelectorAll<HTMLInputElement>("[data-series-row] input") ?? [];
 	inputs[inputs.length - 1]?.focus();
 }
 
