@@ -222,7 +222,7 @@ describe("Link", () => {
 	});
 
 	it("is a route when the router serves the path inside this prefix", () => {
-		const item: NavigationItem = { key: "deals", item_type: "Link", url: "/apps/crm/deals?x=1#top" };
+		const item: NavigationItem = { key: "deals", item_type: "Link", url: `${boot().shell_base}/deals?x=1#top` };
 		expect(renderingOf(item, context([item]))).toEqual({ to: "/deals?x=1#top" });
 	});
 
@@ -230,7 +230,7 @@ describe("Link", () => {
 		const item: NavigationItem = {
 			key: "deals",
 			item_type: "Link",
-			url: `${window.location.origin}/apps/crm/deals`,
+			url: `${window.location.origin}${boot().shell_base}/deals`,
 		};
 		expect(renderingOf(item, context([item]))).toEqual({ to: "/deals" });
 	});
