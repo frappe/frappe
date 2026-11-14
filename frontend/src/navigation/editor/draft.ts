@@ -114,6 +114,12 @@ export function originOf(key: string): Origin {
 	return "app";
 }
 
+/** A new own row's or sidebar's key: the scope, a colon and six base36 characters. */
+export function newKey(scope: Scope): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(6));
+	return `${scope}:${Array.from(bytes, (byte) => (byte % 36).toString(36)).join("")}`;
+}
+
 export function unmarked(row: EditorRow): EditorRow {
 	const copy = { ...row };
 	for (const marker of MARKERS) delete copy[marker];
