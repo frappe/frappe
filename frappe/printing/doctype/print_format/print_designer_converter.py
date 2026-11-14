@@ -279,7 +279,7 @@ class PrintDesignerConverter:
 
 		layout = {
 			"header": self.zone(header, flt(self.page.get("headerHeight"))),
-			"sections": self.sections(body),
+			"sections": self.sections(body, indent_with_margin=True),
 			"footer": self.zone(footer, flt(self.page.get("footerHeight"))),
 			"letter_head": "",
 		}
@@ -478,16 +478,21 @@ class PrintDesignerConverter:
 				stacks.append([[element], left + flt(element.get("width"))])
 		return [stack for stack, _right in stacks]
 
-	def sections(self, elements) -> list[dict]:
+	def sections(self, elements, indent_with_margin=False) -> list[dict]:
 		elements = sorted(elements or [], key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
 		sections, previous_bottom = [], 0
 		for row in self.overlapping_rows(elements):
 			top = min(flt(e.get("startY")) for e in row)
-			section = {"label": "", "columns": self.columns(row, top if sections else 0)}
+			columns = self.columns(row, top if sections else 0)
+			indent = 0
+			if indent_with_margin and len(columns) > 1 and not columns[0]["fields"]:
+				indent = round(columns.pop(0)["width"] / 100 * self.content_width())
+			section = {"label": "", "columns": columns}
 			tile_columns(section, self.content_width())
 			gap = top - previous_bottom
-			if sections and gap > 4:
-				section["margin"] = {"top": round(gap), "right": 0, "bottom": 0, "left": 0}
+			top_margin = round(gap) if sections and gap > 4 else 0
+			if top_margin or indent:
+				section["margin"] = {"top": top_margin, "right": 0, "bottom": 0, "left": indent}
 			if any(c["fields"] for c in section["columns"]):
 				sections.append(section)
 			previous_bottom = max(flt(e.get("startY")) + flt(e.get("height")) for e in row)
