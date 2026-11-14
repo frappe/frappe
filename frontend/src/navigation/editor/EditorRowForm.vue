@@ -116,7 +116,6 @@ const doctype = computed({
 const gap = ref<{ field: keyof AddValues; message: string } | null>(null);
 const errorOf = (field: keyof AddValues) =>
 	gap.value?.field === field ? gap.value.message : undefined;
-// The error goes as soon as its field changes.
 watch(
 	() => ({ ...values }),
 	(now, before) => {

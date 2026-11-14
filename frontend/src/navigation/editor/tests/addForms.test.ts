@@ -1,8 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Addresses } from "@/addresses";
 import { RAIL } from "../draft";
 import { addable, addTypes, buildRow, missing, servedPages, startValues } from "../addTypes";
 import { thisPage } from "../thisPage";
+
+vi.mock("@/contributions/registry", async (original) => ({
+	...(await original<object>()),
+	pages: [
+		{ app: "frappe", slug: "flow-builder", title: "Flow Builder" },
+		{ app: "frappe", slug: "dropped" },
+		{ app: "erpnext", slug: "pos" },
+	],
+}));
 
 const addresses = new Addresses({
 	doctypes: { ToDo: ["todo", "desk"] },
@@ -43,9 +52,11 @@ describe("add forms", () => {
 		expect(addTypes("sidebar:x").map((entry) => entry.type)).toContain("Section");
 	});
 
-	it("offers no page an app does not serve", () => {
+	it("offers only the pages the app's router serves", () => {
 		expect(servedPages(() => true, "no-such-app")).toEqual([]);
 		expect(servedPages(() => false, "frappe")).toEqual([]);
+		const served = servedPages((name) => name === "page:frappe:flow-builder", "frappe");
+		expect(served).toEqual([{ label: "Flow Builder", value: "flow-builder" }]);
 	});
 });
 
