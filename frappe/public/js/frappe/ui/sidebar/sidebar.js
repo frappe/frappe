@@ -79,6 +79,21 @@ function linked_entities(item) {
 // so its strings are translated when the sidebar renders.
 frappe.ui.sidebar_banners = frappe.ui.sidebar_banners || [];
 
+// The user's own settings dialog, opened from the avatar menu here and on the Desktop page.
+// Not in the desk bundle, so it is loaded on the first click.
+frappe.ui.open_user_settings = function (tab = "profile") {
+	return frappe
+		.require("user_settings_dialog.bundle.js")
+		.then(() => frappe.ui.show_user_settings(tab))
+		.catch((e) => {
+			console.error("Failed to load user_settings_dialog.bundle.js", e);
+			frappe.ui.toast({
+				message: __("Could not open My Settings. Please refresh the page."),
+				type: "error",
+			});
+		});
+};
+
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -415,26 +430,9 @@ frappe.ui.Sidebar = class Sidebar {
 					},
 					{
 						name: "settings",
-						label: __("Settings"),
+						label: __("My Settings"),
 						icon: "settings",
-						onclick: function () {
-							// Not in the desk bundle, so it is loaded on click.
-							frappe
-								.require("user_settings_dialog.bundle.js")
-								.then(() => frappe.ui.show_user_settings("profile"))
-								.catch((e) => {
-									console.error(
-										"Sidebar: failed to load user_settings_dialog.bundle.js",
-										e
-									);
-									frappe.ui.toast({
-										message: __(
-											"Could not open Settings. Please refresh the page."
-										),
-										type: "error",
-									});
-								});
-						},
+						onclick: () => frappe.ui.open_user_settings(),
 					},
 					{
 						name: "workspace-selector",

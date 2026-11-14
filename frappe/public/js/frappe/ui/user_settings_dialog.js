@@ -28,11 +28,11 @@ frappe.ui.show_user_settings = async function (default_tab) {
 	frappe.ui._user_settings_dialog?.$wrapper?.remove();
 
 	const d = new frappe.ui.SettingsDialog({
-		title: __("Settings"),
+		title: __("My Settings"),
 		default_tab: default_tab || "profile",
 		tabs: [
 			{
-				group: __("Settings"),
+				group: __("My Settings"),
 				items: [
 					_profile_tab(user_data),
 					_email_tab(user_data),
@@ -309,6 +309,14 @@ function _profile_tab(user_data) {
 		title: __("Profile"),
 		description: __("Manage your profile information and display picture."),
 		actions: [
+			{
+				// the dialog covers the everyday fields; the User form has the rest
+				label: __("View Full Profile"),
+				click() {
+					frappe.ui._user_settings_dialog?.hide();
+					frappe.set_route("Form", "User", frappe.session.user);
+				},
+			},
 			{
 				label: __("Save"),
 				variant: "solid",
