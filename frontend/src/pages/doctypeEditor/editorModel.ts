@@ -106,7 +106,7 @@ export function reqdInConditional(working: WorkingState): { fieldname: string; c
 
 const RESERVED_PROPERTIES = ["name", "parent", "parenttype", "parentfield", "idx", "doctype"];
 const PLACE_KEYS = ["fieldname", "section", "column", "index", "tab"];
-const CANVAS_ACTS: Record<string, keyof LayoutTreeEditor> = {
+export const CANVAS_ACTS: Record<string, keyof LayoutTreeEditor> = {
 	"canvas.add_tab": "add_tab",
 	"canvas.remove_tab": "remove_tab",
 	"canvas.move_tab": "move_tab",
