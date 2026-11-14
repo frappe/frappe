@@ -1,12 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
-"""The `View` navigation item type: one view of one doctype, a saved view or a plain view type.
-
-Its payload is `{"view": key}`, and `link_to` is the doctype. The type's three hooks live here:
-`can_see` (`navigation_item_resolvers`), `validate_own_row` (`navigation_item_validators`)
-and `mark_rows` (`navigation_item_markers`).
-"""
+"""The `View` navigation item type: one view of one doctype, a saved view or a plain view type."""
 
 import json
 import re
