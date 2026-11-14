@@ -6,11 +6,13 @@
 // `switches_app` says nothing about, because it already goes wherever it goes (`navigation.py`'s
 // `_switching_url`).
 
+import { START_LOCATION } from "vue-router";
+
 export default {
 	icon: "link",
 
 	render(item, { boot, router }) {
-		if (!item.url) return null;
+		if (!item.url || !/^(\/(?![/\\])|https?:\/\/)/i.test(item.url)) return null;
 
 		const path = sitePath(item.url);
 		if (path === null) return { href: item.url, external: true };
@@ -42,6 +44,7 @@ function insidePrefix(path, base, router) {
 	if (rest === null || !/^([/?#]|$)/.test(rest)) return null;
 
 	const relative = rest.startsWith("/") ? rest : `/${rest}`;
-	const resolved = router.resolve(relative);
+	// Against the start location: resolved against the current route, every row would redraw on each navigation.
+	const resolved = router.resolve(relative, START_LOCATION);
 	return resolved.matched.length && resolved.name !== "not-found" ? relative : null;
 }

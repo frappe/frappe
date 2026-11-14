@@ -1383,6 +1383,25 @@ class TestWhatAnOwnRowMustCarry(OwnRowsTestCase):
 
 		self.assertTrue(frappe.db.exists("Rail", {"standard": 0, "user": ""}))
 
+	def test_a_link_with_no_url_is_refused(self):
+		self.refused({"key": "user:k3f9a2", "item_type": "Link", "label": "Nowhere"})
+
+	def test_a_row_kept_as_stored_is_not_judged_again(self):
+		self.save(own("user:k3f9a2", "Note"))
+		frappe.db.set_value("Navigation Item", {"key": "user:k3f9a2"}, "link_to", "Role")
+
+		self.save(own("user:k3f9a2", "Role", label="Renamed"))
+
+		self.assertEqual([row.label for row in own_stored()], ["Renamed"])
+
+	def test_a_row_pointed_somewhere_else_is_judged_again(self):
+		self.save(own("user:k3f9a2", "Note"))
+
+		with self.assertRaises(frappe.ValidationError):
+			self.save(own("user:k3f9a2", "Role"))
+
+		self.assertEqual([row.link_to for row in own_stored()], ["Note"])
+
 	def test_a_link_is_kept(self):
 		self.save({"key": "user:k3f9a2", "item_type": "Link", "url": "/app/todo", "label": "Todos"})
 

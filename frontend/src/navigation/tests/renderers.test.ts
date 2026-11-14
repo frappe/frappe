@@ -235,6 +235,13 @@ describe("Link", () => {
 		expect(renderingOf(item, context([item]))).toEqual({ to: "/deals" });
 	});
 
+	it("is not drawn for an address that is neither a path nor http(s)", () => {
+		for (const url of ["javascript:alert(1)", "//evil.example", "/\\evil.example", "ftp://x"]) {
+			const item: NavigationItem = { key: "bad", item_type: "Link", url };
+			expect(renderingOf(item, context([item])), url).toBeNull();
+		}
+	});
+
 	it("is not drawn with no url, since a Link is nothing else", () => {
 		const item: NavigationItem = { key: "docs", item_type: "Link" };
 		expect(renderingOf(item, context([item]))).toBeNull();

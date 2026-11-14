@@ -334,6 +334,9 @@ def validate_own_row(row: dict, container: str, scope: str, context: NavigationC
 			title=_("Not an Arrangement"),
 		)
 
+	if item_type == "Link" and not row.get("url"):
+		frappe.throw(_("{0} needs a link to open.").format(label), title=_("Not an Arrangement"))
+
 	_check_target(row, context)
 
 	# One role-based pass over the context's cached sets, never a `has_permission` per row. A kind that
@@ -371,7 +374,12 @@ def _check_target(row: dict, context: NavigationContext):
 			_("{0} must name a document type and a document.").format(label), title=_("Not an Arrangement")
 		)
 
-	if link_doctype and not (
+	# Only a kind that opens a document: a Link or a Section names no target, and asking would tell
+	# a person whether a document exists.
+	if not (target or row["item_type"] == "Record"):
+		return
+
+	if not (
 		link_to and frappe.db.exists("DocType", link_doctype) and frappe.db.exists(link_doctype, link_to)
 	):
 		frappe.throw(
