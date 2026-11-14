@@ -128,7 +128,7 @@ class TestSettingsRules(SettingsDialogTestCase):
 			(problem,) = problems_of(doc, {"general"})
 			self.assertIn("no-such-file.vue", problem.message)
 
-			doc.blocks[0].component = "theme"
+			doc.blocks[0].component = "appearance"
 			self.assertEqual(problems_of(doc, {"general"}), [])
 
 	def test_a_wrong_pane_on_an_extending_record_is_reported_not_silent(self):
@@ -145,20 +145,20 @@ class TestSettingsRules(SettingsDialogTestCase):
 
 	def test_a_role_a_later_fixture_makes_does_not_stop_the_import(self):
 		with authoring():
-			doc = ship(["general"], [component("theme", roles='["Role From A Fixture"]')], insert=False)
+			doc = ship(["general"], [component("theme", component="appearance", roles='["Role From A Fixture"]')], insert=False)
 
 		doc.run_method("before_import")
 
 	def test_after_migrate_finds_a_role_that_still_does_not_exist(self):
 		with authoring():
-			unchecked(ship(["general"], [component("theme", roles='["No Such Role"]')], insert=False))
+			unchecked(ship(["general"], [component("theme", component="appearance", roles='["No Such Role"]')], insert=False))
 
 		with active(HOST), self.assertRaisesRegex(frappe.ValidationError, "No Such Role"):
 			check_shipped_records()
 
 	def test_a_production_migrate_logs_a_missing_role_and_goes_on(self):
 		with authoring():
-			unchecked(ship(["general"], [component("theme", roles='["No Such Role"]')], insert=False))
+			unchecked(ship(["general"], [component("theme", component="appearance", roles='["No Such Role"]')], insert=False))
 
 		with (
 			active(HOST),
@@ -188,7 +188,7 @@ class TestSettingsRules(SettingsDialogTestCase):
 
 	def test_a_json_column_that_is_not_a_string_is_a_problem_not_a_crash(self):
 		with authoring():
-			doc = ship(["general"], [component("theme")], insert=False)
+			doc = ship(["general"], [component("theme", component="appearance")], insert=False)
 
 		doc.blocks[0].roles = ["System Manager"]
 		(problem,) = problems_of(doc, {"general"})
@@ -202,12 +202,12 @@ class TestSettingsRules(SettingsDialogTestCase):
 				doc.insert()
 
 	def test_import_reads_the_old_shape_and_native_json(self):
-		old = {"key": "theme", "pane": "general", "component": "theme", "settings": '[{"label": "Theme"}]'}
+		old = {"key": "theme", "pane": "general", "component": "appearance", "settings": '[{"label": "Theme"}]'}
 		new = {
 			"key": "theme",
 			"pane": "general",
 			"kind": "Component",
-			"component": "theme",
+			"component": "appearance",
 			"search_entries": [{"label": "Theme"}],
 			"saves_fields": ["language"],
 			"bindings": {"user": {"type": "Record", "doctype": "User", "resolver": "session_user"}},

@@ -74,12 +74,22 @@
    ]
   },
   {
-   "component": "theme",
+   "bindings": {
+    "user": {
+     "doctype": "User",
+     "resolver": "session_user",
+     "type": "Record"
+    }
+   },
+   "component": "appearance",
    "key": "appearance",
    "kind": "Component",
    "label": "Appearance",
    "pane": "profile",
    "save_mode": "auto",
+   "saves_fields": [
+    "navigation_side"
+   ],
    "search_entries": [
     {
      "keywords": [
@@ -88,6 +98,15 @@
       "color scheme"
      ],
      "label": "Theme"
+    },
+    {
+     "keywords": [
+      "left",
+      "right",
+      "rail",
+      "sidebar"
+     ],
+     "label": "Navigation side"
     }
    ]
   },
@@ -152,6 +171,34 @@
       "reset password"
      ],
      "label": "Change password"
+    }
+   ]
+  },
+  {
+   "bindings": {
+    "site": {
+     "doctype": "System Settings",
+     "type": "Single"
+    }
+   },
+   "component": "site-appearance",
+   "key": "appearance",
+   "kind": "Component",
+   "label": "Appearance",
+   "pane": "system",
+   "save_mode": "auto",
+   "saves_fields": [
+    "navigation_side"
+   ],
+   "search_entries": [
+    {
+     "keywords": [
+      "left",
+      "right",
+      "rail",
+      "sidebar"
+     ],
+     "label": "Navigation side"
     }
    ]
   },
@@ -268,7 +315,7 @@
  "doctype": "Settings Dialog",
  "extends": "",
  "idx": 0,
- "modified": "2026-11-10 12:00:00.000000",
+ "modified": "2026-11-14 12:00:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",

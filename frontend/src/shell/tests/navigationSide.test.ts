@@ -6,6 +6,9 @@ import {
 	navSide,
 	physicalSide,
 	seedNavigationSide,
+	setOwnNavigationSide,
+	setSiteNavigationSide,
+	sideLabel,
 	type NavigationSide,
 } from "../navigationSide";
 
@@ -67,5 +70,40 @@ describe("the seed", () => {
 		seedNavigationSide(session(own, site));
 		expect(navSide()).toBe(expected);
 		expect(awaySide()).toBe(expected === "left" ? "right" : "left");
+	});
+});
+
+describe("a save from the settings dialog", () => {
+	it("a person's value wins over the site's, and a blank one follows it", () => {
+		seedNavigationSide(session("", "start"));
+		setOwnNavigationSide("end");
+		expect(navigationSide.value).toBe("end");
+		setSiteNavigationSide("end");
+		setOwnNavigationSide("start");
+		expect(navigationSide.value).toBe("start");
+		setOwnNavigationSide("");
+		expect(navigationSide.value).toBe("end");
+	});
+
+	it("a site value moves a person with none of their own and no one else", () => {
+		seedNavigationSide(session("", "start"));
+		setSiteNavigationSide("end");
+		expect(navigationSide.value).toBe("end");
+		setOwnNavigationSide("start");
+		setSiteNavigationSide("start");
+		setSiteNavigationSide("end");
+		expect(navigationSide.value).toBe("start");
+	});
+});
+
+describe("sideLabel", () => {
+	it.each([
+		["start", "", "Left"],
+		["end", "", "Right"],
+		["start", "rtl", "Right"],
+		["end", "rtl", "Left"],
+	] as const)("%s in %s reads %s", (side, dir, expected) => {
+		if (dir) document.documentElement.setAttribute("dir", dir);
+		expect(sideLabel(side)).toBe(expected);
 	});
 });

@@ -128,6 +128,11 @@ The panel a linked rail item opens, and the `Sidebar` doctype behind it. Named f
 one row type serve both honestly.
 _Avoid_: using it bare; see **Words that collide**.
 
+**Navigation side**: <a id="navigation-side"></a>
+Which edge the **Rail** and the **Sidebar** are drawn on: `start` (where a line of text starts, left in left-to-right) or `end`. A person's
+own value wins over the site's, and a blank value follows the site. Only `shell/navigationSide.ts` turns it into a physical left or right.
+_Avoid_: side (alone), side panel (a Form Layout type), dock side.
+
 **Navigation Item**: <a id="navigation-item"></a>
 One row of navigation, in a rail or a sidebar. Named for what it does, because a name from
 one surface would name only half of it. A row points at exactly one destination and carries
