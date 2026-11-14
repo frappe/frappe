@@ -129,10 +129,15 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 		return !!this.row;
 	}
 
-	// Add mode where the adapter fixes the doctype and varies the role (the DocType Settings
-	// permissions tab). Role-centric add (role.js) leaves `tab.doctype` unset.
+	// The host fixes the doctype and the role is what varies (the DocType Settings permissions
+	// tab). The Role form does the opposite and leaves `tab.doctype` unset.
+	get fixes_doctype() {
+		return !this.tab.role && !!this.tab.doctype;
+	}
+
+	// Add mode of such a host: the role is picked in the dialog.
 	get is_doctype_centric() {
-		return !this.is_edit && !this.tab.role && !!this.tab.doctype;
+		return !this.is_edit && this.fixes_doctype;
 	}
 
 	show() {
@@ -156,8 +161,14 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 	}
 
 	title() {
-		if (this.is_edit)
-			return __("{0} Permission for {1}", [__(this.row.source), this.row.parent]);
+		if (this.is_edit) {
+			// name what varies: the role where the doctype is fixed, the doctype otherwise
+			const subject = this.fixes_doctype ? this.row.role : this.row.parent;
+			return __("{0} Permission for {1}", [
+				__(this.row.source),
+				frappe.utils.escape_html(subject),
+			]);
+		}
 		return __("Add Permission for {0}", [
 			this.is_doctype_centric ? this.tab.doctype : this.role,
 		]);
@@ -202,6 +213,20 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 					read_only: 1,
 					default: this.tab.doctype,
 				},
+			];
+		}
+		// editing from a doctype's settings: say whose permission this is, as add mode does
+		if (this.is_edit && this.fixes_doctype) {
+			return [
+				{
+					fieldtype: "Link",
+					fieldname: "role",
+					label: __("Role"),
+					options: "Role",
+					read_only: 1,
+					default: this.row.role,
+				},
+				this.doctype_field(),
 			];
 		}
 		return [this.doctype_field()];
