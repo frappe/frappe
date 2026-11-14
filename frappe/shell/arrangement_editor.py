@@ -77,9 +77,10 @@ def _read_rows(app: str, scope: str, upto: str) -> dict:
 
 
 def has_saved(app: str, scope: str) -> bool:
-	"""Whether this level has stored a rail or a sidebar of the app, which is what Reset to default undoes."""
+	"""Whether this level has stored a rail, a sidebar or a layout of the app, which is what Reset to default undoes."""
 	user = frappe.session.user if scope == "user" else SITE_LAYER
 
+	# A layout is stored on the rail's record, which a layout-only level keeps without any rows.
 	return any(frappe.db.exists(doctype, {"app": app, "standard": 0, "user": user}) for doctype in CONTAINERS)
 
 

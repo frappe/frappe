@@ -5,6 +5,7 @@ import {
 	dirty,
 	fromArrangements,
 	openedSidebars,
+	isOwn,
 	originOf,
 	RAIL,
 	resetToDefault,
@@ -63,11 +64,16 @@ describe("the draft", () => {
 	it("resets to the level below and clears own sidebars", () => {
 		const below = { rail: [row("a")], sidebars: {} };
 		const reset = resetToDefault({ ...opened, rail: [row("a"), row("user:x")] }, below);
-		expect(reset).toEqual({ rail: [row("a")], sidebars: {}, layout: "" });
+		expect(reset).toEqual({ rail: [row("a")], sidebars: {}, layout: "", scope: "site" });
 	});
 
 	it("reads origin from the key", () => {
 		expect([originOf("user:abc"), originOf("site:abc"), originOf("crm-deals")]).toEqual(["user", "site", "app"]);
+	});
+
+	it("counts a row as own only at the level that added it", () => {
+		expect([isOwn("user:abc", "user"), isOwn("site:abc", "user"), isOwn("crm-deals", "user")]).toEqual([true, false, false]);
+		expect([isOwn("site:abc", "site"), isOwn("crm-deals", "site")]).toEqual([true, false]);
 	});
 });
 
@@ -100,9 +106,17 @@ describe("the edits", () => {
 	});
 
 	it("gives an own row every field, and a blank label drops the field", () => {
-		const own = { ...opened, rail: [row("user:q", { label: "Q" })] };
+		const own = { ...opened, scope: "user" as const, rail: [row("user:q", { label: "Q" })] };
 		const next = update(own, RAIL, "user:q", { link_to: "x", label: "" }) as typeof opened;
 		expect(next.rail[0]).toEqual({ ...row("user:q"), link_to: "x" });
+	});
+
+	it("gives a site row at Just me only a label, icon and sidebar, and a user row every field", () => {
+		const atUser = { ...opened, scope: "user" as const, rail: [row("site:q"), row("user:q")] };
+		const site = update(atUser, RAIL, "site:q", { link_to: "x", label: "Q" }) as typeof opened;
+		expect(site.rail[0]).toEqual({ ...row("site:q"), label: "Q" });
+		const own = update(atUser, RAIL, "user:q", { link_to: "x" }) as typeof opened;
+		expect(own.rail[1]).toEqual({ ...row("user:q"), link_to: "x" });
 	});
 
 	it("hides and shows, including a row the site hid", () => {

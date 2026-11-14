@@ -13,6 +13,8 @@ export type Draft = {
 	sidebars: Record<string, EditorRow[]>;
 	/** This level's own layout; blank follows the level below. */
 	layout: string;
+	/** The level the draft is saved at: its own rows are the ones added at it. */
+	scope: Scope;
 };
 
 const MARKERS = ["hidden_by", "no_access", "view_deleted"] as const;
@@ -22,6 +24,7 @@ export function fromArrangements(response: Arrangements, scope: Scope): Draft {
 		rail: response.rail,
 		sidebars: response.sidebars,
 		layout: response.navigation_layouts[scope] ?? "",
+		scope,
 	};
 }
 
@@ -96,10 +99,15 @@ export function resetToDefault(draft: Draft, below: Defaults): Draft {
 	for (const container of Object.keys(draft.sidebars)) {
 		if (container in below.sidebars) sidebars[container] = below.sidebars[container];
 	}
-	return { rail: below.rail, sidebars, layout: "" };
+	return { rail: below.rail, sidebars, layout: "", scope: draft.scope };
 }
 
-/** Where a row came from, read from its key: `user:` and `site:` are reserved. */
+/** Whether the draft's level added the row; a row added at a level below is inherited, as an app's is. */
+export function isOwn(key: string, scope: Scope): boolean {
+	return originOf(key) === scope;
+}
+
+/** Where a row was added, read from its key: `user:` and `site:` are reserved. */
 export function originOf(key: string): Origin {
 	if (key.startsWith("user:")) return "user";
 	if (key.startsWith("site:")) return "site";

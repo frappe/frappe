@@ -5,7 +5,7 @@
 		size="4xl"
 		:modelValue="!!target"
 		:dismissible="!changed"
-		@update:modelValue="(open: boolean) => !open && emit('close')"
+		@update:modelValue="(open: boolean) => !open && close()"
 	>
 		<div class="flex h-[640px] flex-col" data-navigation-editor>
 			<header
@@ -90,6 +90,7 @@
 
 				<EditorRowPane
 					:row="current"
+					:scope="scope"
 					:parents="parentOptions"
 					:can-place="container !== RAIL && current?.item_type !== 'Section'"
 					:app-title="boot.app_title ?? ''"
@@ -131,7 +132,7 @@
 					variant="subtle"
 					:label="__('Cancel')"
 					:disabled="saving"
-					@click="emit('close')"
+					@click="cancel"
 				/>
 				<Button
 					variant="solid"
@@ -152,7 +153,8 @@ export type EditorTarget = { tab: "rail" } | { tab: "sidebar"; address: string }
 </script>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, ref, watch } from "vue";
+import { computed, inject, nextTick, onScopeDispose, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { Button, Checkbox, dialog, Dialog, Select, TabButtons, Tooltip } from "frappe-ui";
 import { isApiError } from "@framework/ui/api";
 import {
@@ -196,6 +198,8 @@ const props = defineProps<{ target: EditorTarget | null }>();
 const emit = defineEmits<{ close: []; saved: [Navigation] }>();
 
 const boot = inject<Boot>("boot")!;
+const CLOSING = __("Closing drops the edits you made. Nothing you changed is saved.");
+const router = useRouter();
 const LAYOUTS: Record<string, string> = {
 	rail_and_sidebar: __("Rail + sidebar"),
 	sidebar_only: __("Sidebar only"),
@@ -223,6 +227,31 @@ let opening = 0;
 // Within one opening, only the newest read of a level may land.
 const newest: Record<Scope, number> = { user: 0, site: 0 };
 const keptLayout = ref<string>();
+// Set once the editor is told to close, so the hash change that closes it is not asked about again.
+// Any finished navigation clears it, also a refused one, so a close that did not happen cannot leave the guard off.
+let closing = false;
+let asking: { close: () => void } | undefined;
+
+// Back and any other hash change that would close or reload the editor ask first, as Cancel does.
+const removeGuard = router.beforeEach((to, from) => {
+	if (closing || !props.target || !changed.value || to.hash === from.hash) return;
+	// Cancel is off while a save runs, and so is every other way out.
+	if (saving.value) return false;
+	askToDiscard(CLOSING, __("Discard and close"), () => {
+		closing = true;
+		// After Back the entry behind the editor already holds `to`: step back onto it, so it is not copied over the editor's own.
+		if (router.options.history.state.back === to.fullPath) router.back();
+		else router.replace(to);
+	});
+	return false;
+});
+const removeClosed = router.afterEach(() => {
+	closing = false;
+});
+onScopeDispose(() => {
+	removeGuard();
+	removeClosed();
+});
 
 const draft = computed<Draft | undefined>({
 	get: () => reads.value[scope.value]?.draft,
@@ -288,6 +317,7 @@ watch(
 	(target) => {
 		if (!target) return;
 		opening += 1;
+		closing = false;
 		keptLayout.value = undefined;
 		reads.value = {};
 		saving.value = false;
@@ -449,7 +479,7 @@ async function save() {
 		if (layoutChanged(before, edited))
 			navigation = await saveNavigationLayout(boot.app!, edited.layout, level);
 		if (navigation) emit("saved", navigation);
-		if (current === opening) emit("close");
+		if (current === opening) close();
 	} catch (error) {
 		// The shell takes rows that went in, even when the editor was reopened since.
 		if (navigation) emit("saved", navigation);
@@ -467,18 +497,38 @@ async function save() {
 function reload() {
 	const level = scope.value;
 	const layout = keptLayout.value;
-	const current = opening;
 	if (!changed.value) return void load(level, layout);
-	dialog.confirm({
+	askToDiscard(
+		__("Reloading drops the edits you made. Nothing you changed is saved."),
+		__("Discard and reload"),
+		() => void load(level, layout)
+	);
+}
+
+function close() {
+	closing = true;
+	emit("close");
+}
+
+function cancel() {
+	if (!changed.value) return close();
+	askToDiscard(CLOSING, __("Discard and close"), close);
+}
+
+/** One confirm for every exit that drops the draft; it does nothing if the editor was reopened meanwhile. */
+function askToDiscard(message: string, label: string, discard: () => void) {
+	const current = opening;
+	asking?.close();
+	asking = dialog.confirm({
 		title: __("Discard your changes?"),
-		message: __("Reloading drops the edits you made. Nothing you changed is saved."),
+		message,
 		actions: [
 			{ label: __("Keep editing"), variant: "subtle" },
 			{
-				label: __("Discard and reload"),
+				label,
 				variant: "subtle",
 				theme: "red",
-				onClick: () => void (current === opening && load(level, layout)),
+				onClick: () => void (current === opening && discard()),
 			},
 		],
 	});

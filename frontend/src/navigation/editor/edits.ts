@@ -3,7 +3,7 @@
 
 import { __ } from "@/i18n";
 import { canNestUnder } from "../nesting";
-import { type Draft, type EditorRow, originOf, RAIL, rowsOf, withRows } from "./draft";
+import { type Draft, type EditorRow, isOwn, RAIL, rowsOf, withRows } from "./draft";
 
 export type Edited = Draft | string;
 
@@ -24,10 +24,11 @@ export function update(
 	const row = find(draft, container, key);
 	if (!row) return __("This row no longer exists.");
 
-	const allowed =
-		originOf(key) === "app" ? Object.fromEntries(
-			INHERITED_FIELDS.filter((field) => field in fields).map((field) => [field, fields[field]])
-		) : fields;
+	const allowed = isOwn(key, draft.scope)
+		? fields
+		: Object.fromEntries(
+				INHERITED_FIELDS.filter((field) => field in fields).map((field) => [field, fields[field]])
+		  );
 
 	return replace(draft, container, key, (current) => withoutBlanks({ ...current, ...allowed }));
 }
