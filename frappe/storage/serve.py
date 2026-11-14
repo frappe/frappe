@@ -123,14 +123,14 @@ def can_access(blob: "FileBlob", filename: str) -> bool:
 
 def has_file_permission(blob_name: str) -> bool:
 	"""True if the session user can download any File row linked to the blob, like ``find_file_by_url``."""
-	from frappe.core.doctype.file.file import _find_readable_file
+	from frappe.core.doctype.file.file import _without_unreadable_attachments
 
-	files = frappe.get_all(
-		"File",
-		filters={"blob": blob_name},
-		fields=["name", "owner", "is_private", "attached_to_doctype", "attached_to_name"],
-	)
-	return bool(_find_readable_file(files))
+	files = frappe.get_all("File", filters={"blob": blob_name}, fields="*")
+	for file_data in _without_unreadable_attachments(files):
+		file = frappe.get_doc(doctype="File", **file_data)
+		if file.is_downloadable():
+			return True
+	return False
 
 
 def stream_blob(
