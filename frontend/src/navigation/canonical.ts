@@ -73,7 +73,7 @@ function flatAddress(to: any, addresses: Addresses) {
 
 function wrongModule(to: any, addresses: Addresses, doctype: string) {
 	const address = addresses.addressOf(doctype);
-	if (!address || address[1] === to.params.module) return null;
+	if (!address || !address[1] || address[1] === to.params.module) return null;
 
 	// Not a miss: the record exists and this is the wrong spelling of its address.
 	return { ...to, params: { ...to.params, module: address[1] }, replace: true };

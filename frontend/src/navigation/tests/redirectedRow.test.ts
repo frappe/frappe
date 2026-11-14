@@ -11,7 +11,11 @@ import { currentFrom, navigationDestinations } from "@/navigation/current";
 import { registerContributions } from "@/contributions/registry";
 
 const addresses = new Addresses({
-	doctypes: { Currency: ["currency", "geo"], "Sales Invoice": ["sales-invoice", "accounts"] },
+	doctypes: {
+		Currency: ["currency", "geo"],
+		"Sales Invoice": ["sales-invoice", "accounts"],
+		"Loose Note": ["loose-note", ""],
+	},
 	modules: { geo: "Geo", accounts: "Accounts" },
 });
 
@@ -28,6 +32,7 @@ const router = createRouter({
 		{ path: "/", name: "home", component: stub },
 		{ path: "/:module", name: "module", component: stub },
 		{ path: "/:module/:doctype", name: "list", component: stub },
+		{ path: "/:module/:doctype/new", name: "new-record", component: stub },
 		{ path: "/:module/:doctype/:name", name: "record", component: stub },
 	],
 });
@@ -56,6 +61,24 @@ describe("canonicalPath", () => {
 
 	it("leaves an address that is no doctype's alone", () => {
 		expect(of("/geo/unknown")).toBe("/geo/unknown");
+	});
+
+	it("follows a name spelling and then the wrong module", () => {
+		expect(of("/accounts/Currency")).toBe("/geo/currency");
+	});
+
+	it("reads a flat new and a flat record", () => {
+		expect(of("/currency/new")).toBe("/geo/currency/new");
+		expect(of("/currency/INR")).toBe("/geo/currency/INR");
+	});
+
+	it("keeps a record address that already has its module", () => {
+		expect(of("/accounts/currency/INR")).toBe("/geo/currency/INR");
+		expect(of("/geo/currency/INR")).toBe("/geo/currency/INR");
+	});
+
+	it("does not throw for a doctype with no module", () => {
+		expect(of("/accounts/loose-note")).toBe("/accounts/loose-note");
 	});
 });
 
