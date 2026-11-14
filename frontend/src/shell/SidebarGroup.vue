@@ -32,6 +32,7 @@
 				:context="rowContext"
 				:current="current"
 				:sections="sections"
+				:sidebar="address"
 			/>
 		</div>
 	</div>

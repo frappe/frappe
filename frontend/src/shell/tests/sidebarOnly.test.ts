@@ -140,6 +140,13 @@ describe("SidebarOnly", () => {
 		expect(group(host).querySelector("[data-key='all-deals']")).toBeNull();
 	});
 
+	it("names its group's sidebar in each row's link, so a click stays in the group it was made in", () => {
+		const host = mount({ railKey: "deals", sidebar: "site:aaaaaa", rowKey: "all-deals" });
+
+		const link = group(host).querySelector<HTMLAnchorElement>("[data-key='all-deals'] a")!;
+		expect(new URL(link.href, "http://x").searchParams.get("sidebar")).toBe("site:aaaaaa");
+	});
+
 	it("keeps the rail item's group shut when its sidebar has no rows", () => {
 		const host = mount({}, { sidebars: { "site:aaaaaa": [] } });
 

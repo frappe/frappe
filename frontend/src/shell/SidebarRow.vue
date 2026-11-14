@@ -20,6 +20,7 @@
 				:context="context"
 				:current="current"
 				:sections="sections"
+				:sidebar="sidebar"
 			/>
 		</template>
 	</SidebarSection>
@@ -32,7 +33,7 @@
 			:data-key="item.key"
 			:data-sidebar="destination.sidebar"
 		>
-			<SidebarItem :route="destination.to" :label="label" :active="isCurrent">
+			<SidebarItem :route="target" :label="label" :active="isCurrent">
 				<template #prefix><Icon :name="iconOf(item)" /></template>
 			</SidebarItem>
 		</div>
@@ -97,6 +98,7 @@
 				:context="context"
 				:current="current"
 				:sections="sections"
+				:sidebar="sidebar"
 			/>
 		</div>
 
@@ -115,6 +117,7 @@
 			:node="child"
 			:context="context"
 			:current="current"
+			:sidebar="sidebar"
 		/>
 	</template>
 </template>
@@ -125,7 +128,7 @@ import { LoadingIndicator, SidebarItem, SidebarSection, Skeleton } from "frappe-
 import { useActRow } from "./actRow";
 import { buildTree, containsKey, type ItemNode } from "@/navigation/tree";
 import type { SectionMemory } from "@/navigation/sectionMemory";
-import { iconOf, labelOf, renderingOf } from "@/navigation/registry";
+import { iconOf, labelOf, renderingOf, resolveItemRoute } from "@/navigation/registry";
 import Icon from "@/icons/Icon.vue";
 import LoadingStatus from "./LoadingStatus.vue";
 import type { ItemContext } from "@/navigation/types";
@@ -142,6 +145,8 @@ const props = defineProps<{
 	context: ItemContext;
 	current?: string;
 	sections?: SectionMemory;
+	/** The sidebar these rows are drawn in, named in each link so a destination in several sidebars stays in this one. */
+	sidebar?: string;
 }>();
 
 const item = computed(() => props.node.item);
@@ -156,6 +161,15 @@ const destination = computed(() => {
 const actRendering = computed(() => {
 	const value = rendering.value;
 	return value && "act" in value ? value : null;
+});
+// Where a click goes: the destination, with this sidebar named when it names none of its own.
+const target = computed(() => {
+	const value = destination.value;
+	if (!value || !("to" in value)) return undefined;
+	if (!props.sidebar || value.sidebar) return value.to;
+
+	const { path, query, hash } = resolveItemRoute(props.context, value.to);
+	return { path, query: { ...query, sidebar: props.sidebar }, hash };
 });
 const act = useActRow(() => actRendering.value ?? { act: "" });
 const expander = computed(() => {
