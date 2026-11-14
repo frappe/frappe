@@ -226,12 +226,14 @@ describe("the kinds the rail draws", () => {
 	});
 
 	it("makes a Link a plain anchor, so middle-click and copy-address survive", () => {
-		// A full document load the router cannot resolve, and one `SidebarRailItem` cannot draw.
+		// A full document load the router cannot resolve: `SidebarRailItem`'s link form.
 		const host = rail([{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" }]);
 		const anchor = target(host, "docs") as HTMLAnchorElement;
 
 		expect(anchor.tagName).toBe("A");
 		expect(anchor.getAttribute("href")).toBe("https://docs.frappe.io");
+		expect(anchor.getAttribute("data-slot")).toBe("sidebar-rail-item");
+		expect(anchor.className).toContain("rounded-[7px]");
 	});
 
 	it("opens another origin in a new tab and draws the arrow; a path on this site stays in place", () => {

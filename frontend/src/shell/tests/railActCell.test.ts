@@ -1,39 +1,41 @@
-// The Act cell on the rail: its tooltip opens away from the navigation, on either side.
+// The rail's Act cell: `SidebarRailItem`'s button form, so its tile is the route cells' tile.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h } from "vue";
+import { createApp } from "vue";
 
-vi.mock("frappe-ui", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("frappe-ui")>();
-	const Tooltip = defineComponent({
-		props: ["side"],
-		setup: (props, { slots }) => () => h("div", { "data-tooltip": props.side }, slots.default?.()),
-	});
-	return { ...actual, Tooltip };
-});
-vi.mock("../actRow", () => ({ useActRow: () => ({ spinning: false, run: vi.fn() }) }));
+const run = vi.fn();
+vi.mock("../actRow", () => ({ useActRow: () => ({ spinning: false, run }) }));
 
 import RailActCell from "../RailActCell.vue";
-import { navigationSide } from "../navigationSide";
 
 afterEach(() => {
 	document.body.innerHTML = "";
-	navigationSide.value = "start";
+	run.mockClear();
 });
 
-function tooltipSide(): string | null {
+function mount(props: { tile?: boolean } = {}): HTMLButtonElement {
 	const host = document.body.appendChild(document.createElement("div"));
-	createApp(RailActCell, { cell: { label: "Toggle theme", act: "shell.theme" } }).mount(host);
-	return host.querySelector("[data-tooltip]")!.getAttribute("data-tooltip");
+	createApp(RailActCell, { cell: { label: "Toggle theme", act: "shell.theme" }, ...props }).mount(host);
+	return host.querySelector("button")!;
 }
 
 describe("the rail's Act cell", () => {
-	it("opens its tooltip to the right of a left-hand navigation", () => {
-		navigationSide.value = "start";
-		expect(tooltipSide()).toBe("right");
+	it("is frappe-ui's rail tile as a button, named by its label, and runs its act on click", () => {
+		const button = mount();
+
+		expect(button.getAttribute("data-slot")).toBe("sidebar-rail-item");
+		expect(button.getAttribute("aria-label")).toBe("Toggle theme");
+		expect(button.getAttribute("aria-current")).toBeNull();
+		expect(button.className).toContain("rounded-[7px]");
+		button.click();
+		expect(run).toHaveBeenCalledTimes(1);
 	});
 
-	it("opens its tooltip to the left of a right-hand navigation", () => {
-		navigationSide.value = "end";
-		expect(tooltipSide()).toBe("left");
+	it("is a plain tile on the phone's strip", () => {
+		const button = mount({ tile: true });
+
+		expect(button.getAttribute("data-slot")).toBeNull();
+		expect(button.className).toContain("size-9");
+		button.click();
+		expect(run).toHaveBeenCalledTimes(1);
 	});
 });

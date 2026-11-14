@@ -97,7 +97,7 @@ const root = (host: HTMLElement) => host.querySelector<HTMLElement>("[data-slot=
 const panel = (host: HTMLElement) => host.querySelector<HTMLElement>("[data-slot='sidebar']")!;
 /** The seam, drawn right after the panel. */
 const seam = (host: HTMLElement) => panel(host).nextElementSibling as HTMLElement;
-/** The `side` each menu or tooltip got: the app menu then the avatar menu; the search cell then the off-prefix link. */
+/** The `side` each menu or tooltip got: the app menu then the avatar menu; the utility cell. `SidebarRailItem` cells take theirs from `DesktopShell`. */
 const sides = (host: HTMLElement, kind: "dropdown" | "tooltip") =>
 	[...host.querySelectorAll(`[data-${kind}]`)].map((element) => element.getAttribute(`data-${kind}`));
 const chevron = (host: HTMLElement) => host.querySelector(".lucide-chevron-left")!;
@@ -146,7 +146,7 @@ describe("on the left", () => {
 	it("opens the rail's menus, avatar menu and tooltips to the right", async () => {
 		const host = await shell("start");
 		expect(sides(host, "dropdown")).toEqual(["right", "right"]);
-		expect(sides(host, "tooltip")).toEqual(["right", "right"]);
+		expect(sides(host, "tooltip")).toEqual(["right"]);
 	});
 });
 
@@ -199,7 +199,7 @@ describe("on the right", () => {
 	it("opens the rail's menus, avatar menu and tooltips to the left", async () => {
 		const host = await shell("end");
 		expect(sides(host, "dropdown")).toEqual(["left", "left"]);
-		expect(sides(host, "tooltip")).toEqual(["left", "left"]);
+		expect(sides(host, "tooltip")).toEqual(["left"]);
 	});
 
 	it("sets the inset to the rail plus the open panel, and to the rail alone once it collapses", async () => {
