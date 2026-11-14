@@ -398,9 +398,9 @@ def download_template(
 @frappe.whitelist()
 def get_export_count(
 	doctype: str,
-	export_filters: str | dict[str, Any] | list[list[Any]] | None = None,
+	filters: str | dict[str, Any] | list[list[Any]] | None = None,
 ) -> int:
-	return get_count(doctype, get_export_filters(doctype, export_filters))
+	return get_count(doctype, get_export_filters(doctype, filters))
 
 
 @frappe.whitelist()
