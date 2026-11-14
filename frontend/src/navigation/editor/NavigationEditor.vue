@@ -234,7 +234,7 @@ import {
 	update,
 	type Edited,
 } from "./edits";
-import { addable, addTypes } from "./addTypes";
+import { addable, addTypes, servedPages } from "./addTypes";
 import { thisPage } from "./thisPage";
 import EditorAddMenu from "./EditorAddMenu.vue";
 import EditorRowForm from "./EditorRowForm.vue";
@@ -476,11 +476,14 @@ function stopAdding() {
 const here = computed(() => thisPage(route, addresses, boot.app));
 
 const addOptions = computed(() => {
-	const types = addTypes(container.value).map((entry) => ({
-		label: entry.label,
-		icon: entry.icon,
-		onClick: () => startAdding(entry.type),
-	}));
+	const hasPages = servedPages((name) => router.hasRoute(name), boot.app).length > 0;
+	const types = addTypes(container.value)
+		.filter((entry) => entry.type !== "Page" || hasPages)
+		.map((entry) => ({
+			label: entry.label,
+			icon: entry.icon,
+			onClick: () => startAdding(entry.type),
+		}));
 	const page = here.value;
 	if (!page) return types;
 	return [

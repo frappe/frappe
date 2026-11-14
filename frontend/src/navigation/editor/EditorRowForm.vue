@@ -84,9 +84,8 @@ import { Link } from "@framework/ui/Link";
 import { useRouter } from "vue-router";
 import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
-import { pages as contributedPages } from "@/contributions/registry";
 import { __ } from "@/i18n";
-import { type AddValues, buildRow, isOwnUrl, missing, startValues } from "./addTypes";
+import { type AddValues, buildRow, isOwnUrl, missing, servedPages, startValues } from "./addTypes";
 import type { EditorRow } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
 
@@ -103,10 +102,7 @@ const router = useRouter();
 const doctypes = inject<Addresses>("addresses")!
 	.doctypes()
 	.map((name) => ({ label: name, value: name }));
-// Only the pages this app's router serves: a slug it drops (a clash) would open the not-found page.
-const pages = contributedPages
-	.filter((page) => router.hasRoute(`page:${page.app}:${page.slug}`) && page.app === boot.app)
-	.map((page) => ({ label: page.title ?? page.slug, value: page.slug }));
+const pages = servedPages((name) => router.hasRoute(name), boot.app);
 const values = reactive<AddValues>(startValues(props.start));
 // Another DocType makes the picked record meaningless.
 const doctype = computed({

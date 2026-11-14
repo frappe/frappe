@@ -1,6 +1,7 @@
 // The add-row picker's step list: one entry per type a person can add. A new type adds an entry
 // here and a branch in `EditorRowForm.vue`; nothing else changes.
 
+import { pages as contributedPages } from "@/contributions/registry";
 import { __ } from "@/i18n";
 import type { EditorRow } from "./draft";
 import { RAIL } from "./draft";
@@ -22,6 +23,14 @@ export function addTypes(container: string): AddType[] {
 		{ type: "Section", label: __("Section"), icon: "lucide-heading", rail: false },
 	];
 	return all.filter((entry) => container !== RAIL || entry.rail);
+}
+
+/** The pages a Page row can open: this app's, and only those its router serves (a dropped clash
+ * would open the not-found page). An app with none gets no Page entry in the add menu. */
+export function servedPages(hasRoute: (name: string) => boolean, app: string | null) {
+	return contributedPages
+		.filter((page) => page.app === app && hasRoute(`page:${page.app}:${page.slug}`))
+		.map((page) => ({ label: page.title ?? page.slug, value: page.slug }));
 }
 
 /** The kinds the server takes as an own row: a moved or copied row must be one of them. */

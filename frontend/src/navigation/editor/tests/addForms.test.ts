@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Addresses } from "@/addresses";
 import { RAIL } from "../draft";
-import { addable, addTypes, buildRow, missing, startValues } from "../addTypes";
+import { addable, addTypes, buildRow, missing, servedPages, startValues } from "../addTypes";
 import { thisPage } from "../thisPage";
 
 const addresses = new Addresses({
@@ -41,6 +41,11 @@ describe("add forms", () => {
 		const rail = addTypes(RAIL).map((entry) => entry.type);
 		expect(rail).toEqual(["DocType", "Record", "Page", "Link"]);
 		expect(addTypes("sidebar:x").map((entry) => entry.type)).toContain("Section");
+	});
+
+	it("offers no page an app does not serve", () => {
+		expect(servedPages(() => true, "no-such-app")).toEqual([]);
+		expect(servedPages(() => false, "frappe")).toEqual([]);
 	});
 });
 
