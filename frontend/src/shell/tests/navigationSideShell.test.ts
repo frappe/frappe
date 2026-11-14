@@ -132,7 +132,8 @@ afterEach(() => {
 describe("on the left", () => {
 	it("draws as before: DesktopShell on the left, the panel's border on its left, the seam on its right", async () => {
 		const host = await shell("");
-		expect(root(host).className).not.toContain("flex-row-reverse");
+		expect(root(host).classList.contains("flex-row-reverse")).toBe(false);
+		expect(root(host).classList.contains("rtl:flex-row-reverse")).toBe(true);
 		expect(root(host).className).not.toContain("nav-right");
 		expect(panel(host).className).toContain("border-l");
 		expect(seam(host).className).toContain("left-full");
@@ -152,7 +153,8 @@ describe("on the left", () => {
 describe("on the right", () => {
 	it("hands DesktopShell nav-side right, and draws the content's border on its right", async () => {
 		const host = await shell("end");
-		expect(root(host).className).toContain("flex-row-reverse");
+		expect(root(host).classList.contains("flex-row-reverse")).toBe(true);
+		expect(root(host).classList.contains("rtl:flex-row")).toBe(true);
 		expect(root(host).className).toContain("nav-right");
 	});
 

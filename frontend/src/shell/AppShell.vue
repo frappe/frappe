@@ -10,7 +10,11 @@
 		:scroll="false"
 		:nav-side="navSide()"
 		class="relative h-screen w-screen overflow-clip bg-surface-base text-ink-gray-9"
-		:class="{ 'desk-shell': boot.app, 'nav-right': navSide() === 'right' }"
+		:class="[
+			{ 'desk-shell': boot.app, 'nav-right': navSide() === 'right' },
+			// DesktopShell reverses its row for a right-hand navigation, which in a right-to-left page puts it on the left.
+			navSide() === 'right' ? 'rtl:flex-row' : 'rtl:flex-row-reverse',
+		]"
 	>
 		<template v-if="boot.app" #rail>
 			<RailColumn
