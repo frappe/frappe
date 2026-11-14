@@ -63,9 +63,6 @@ class PrintDesignerMigration {
 
 	render_row(row) {
 		const escape = frappe.utils.escape_html;
-		const badge = row.converted
-			? { label: __("Converted"), theme: "green" }
-			: { label: __("Print Designer"), theme: "gray" };
 		const details = [__(row.doc_type)];
 		if (row.disabled) details.push(__("Disabled"));
 		if (row.converted && row.editor_format !== row.name) {
@@ -80,7 +77,15 @@ class PrintDesignerMigration {
 							"Print Format",
 							row.name
 						)}">${escape(row.name)}</a>
-						${frappe.ui.badge.html({ ...badge, size: "sm" })}
+						${
+							row.converted
+								? frappe.ui.badge.html({
+										label: __("Converted"),
+										theme: "green",
+										size: "sm",
+								  })
+								: ""
+						}
 					</div>
 					<div class="text-sm text-ink-gray-5 truncate">${escape(details.join(" · "))}</div>
 				</div>
@@ -169,14 +174,10 @@ class PrintDesignerMigration {
 				this.refresh();
 				if (!usage.length) return this.show_notes(notes);
 				frappe.confirm(
-					__(
-						"{0} belongs to its app, so it was converted as {1}. {0} is in use: {2}. Use {1} there instead?",
-						[
-							`<b>${escape(row.name)}</b>`,
-							`<b>${escape(name)}</b>`,
-							usage.map((place) => escape(place)).join(", "),
-						]
-					),
+					__("Switch {0} to {1}?", [
+						usage.map((place) => escape(place)).join(", "),
+						`<b>${escape(name)}</b>`,
+					]),
 					() =>
 						frappe
 							.xcall(`${CONVERTER}.use_editor_copy`, { print_format: row.name })
@@ -207,10 +208,9 @@ class PrintDesignerMigration {
 
 	delete_design(row) {
 		frappe.confirm(
-			__(
-				"Delete the Print Designer design of <b>{0}</b>? {0} keeps printing with its print format editor layout. This cannot be undone.",
-				[frappe.utils.escape_html(row.name)]
-			),
+			__("Delete the Print Designer design of <b>{0}</b>?", [
+				frappe.utils.escape_html(row.name),
+			]),
 			() =>
 				frappe
 					.xcall(`${CONVERTER}.delete_print_designer_design`, { print_format: row.name })
