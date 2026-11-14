@@ -3,7 +3,7 @@
   It never takes a sidebar and is never current.
 -->
 <template>
-	<Tooltip :text="cell.label" side="right">
+	<Tooltip :text="cell.label" :side="awaySide()">
 		<button
 			type="button"
 			data-slot="sidebar-rail-item"
@@ -23,6 +23,7 @@
 import { LoadingIndicator, Tooltip } from "frappe-ui";
 import Icon from "@/icons/Icon.vue";
 import { useActRow } from "./actRow";
+import { awaySide } from "./navigationSide";
 
 // `SidebarRailItem`'s own inactive tile.
 const CELL =
