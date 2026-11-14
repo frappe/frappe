@@ -75,11 +75,11 @@ class AutoEmailReport(Document):
 			self.name = append_number_if_name_exists("Auto Email Report", self.name)
 
 	def validate(self):
+		self.validate_user_permission()
 		self.validate_report_count()
 		self.validate_emails()
 		self.validate_report_format()
 		self.validate_mandatory_fields()
-		self.validate_user_permission()
 
 	def validate_user_permission(self):
 		user = frappe.session.user
