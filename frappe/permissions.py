@@ -915,6 +915,14 @@ def is_system_user(user: str | None = None) -> bool:
 	return frappe.get_cached_value("User", user or frappe.session.user, "user_type") == "System User"
 
 
+def validate_desk_user() -> None:
+	"""Raise PermissionError for Website Users and Guest; custom user types may have desk access."""
+	from frappe.utils.user import is_website_user
+
+	if is_website_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+
 def check_doctype_permission(doctype: str, ptype: str = "read") -> None:
 	"""
 	Designed specfically to override DoesNotExistError in some scenarios.
