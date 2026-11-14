@@ -23,7 +23,7 @@
 			<RuleMark :canvas="canvas" kind="section" :node="section" />
 			<div
 				v-if="canvas.editable"
-				class="absolute right-0 top-0 flex items-center rounded-4 bg-surface-base opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100"
+				class="absolute right-0 top-0 flex items-center rounded-4 bg-surface-base opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100 group-has-[[data-canvas-column-ring]]/section:!pointer-events-none group-has-[[data-canvas-column-ring]]/section:!opacity-0"
 				:class="{ '!opacity-100': selected }"
 				data-canvas-controls
 			>
