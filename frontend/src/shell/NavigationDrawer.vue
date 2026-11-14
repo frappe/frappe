@@ -1,7 +1,4 @@
-<!--
-  The navigation as a drawer: a panel from the navigation's side, no wider than 85vw, over a 30% scrim.
-  What it holds is the slot's. A row closes it, and a rail cell that opens a sidebar only browses.
--->
+<!-- A panel from the navigation's side, at most 85vw, over a 30% scrim. -->
 <template>
 	<Transition
 		enter-active-class="transition-opacity duration-200 motion-reduce:transition-none"
@@ -39,6 +36,7 @@
 				navSide() === 'right' ? 'flex-row-reverse rtl:flex-row' : 'rtl:flex-row-reverse',
 			]"
 			@click="onClick"
+			@keydown.tab="trap"
 		>
 			<slot />
 		</div>
@@ -46,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useEventListener } from "@vueuse/core";
 import { __ } from "@/i18n";
@@ -67,7 +65,6 @@ function close() {
 	emit("close");
 }
 
-// A rail cell that opens a sidebar browses: the navigation it causes keeps the drawer open.
 let browsing = false;
 
 function onClick(event: MouseEvent) {
@@ -97,7 +94,34 @@ useEventListener(window, "keydown", (event: KeyboardEvent) => {
 	if (props.open && event.key === "Escape" && !event.defaultPrevented) close();
 });
 
-// Focus goes back to what opened the drawer.
+const FOCUSABLE =
+	'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+// aria-modal: Tab stays inside the panel.
+function trap(event: KeyboardEvent) {
+	const nodes = [...(panel.value?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].filter(
+		(node) => node.checkVisibility?.() !== false
+	);
+	if (!nodes.length) return event.preventDefault();
+	const first = nodes[0];
+	const last = nodes[nodes.length - 1];
+	const active = document.activeElement;
+	if (event.shiftKey && (active === first || active === panel.value)) {
+		event.preventDefault();
+		last.focus();
+	} else if (!event.shiftKey && active === last) {
+		event.preventDefault();
+		first.focus();
+	}
+}
+
+// A resize unmounts the open drawer with its button: focus must not fall to the body.
+onBeforeUnmount(() => {
+	if (props.open && panel.value?.contains(document.activeElement)) {
+		void nextTick(() => document.querySelector<HTMLElement>("main")?.focus());
+	}
+});
+
 let opener: Element | null = null;
 watch(
 	() => props.open,

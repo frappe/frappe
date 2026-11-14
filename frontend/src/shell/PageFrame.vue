@@ -40,7 +40,7 @@ import { navSide } from "./navigationSide";
 export const pageGutter = "px-[--page-gutter]";
 const gutterVar = "[--page-gutter:0.75rem] sm:[--page-gutter:1.25rem]";
 
-/** Room for the shell's menu button at the navigation's edge of the row; `--shell-header-inset-start` is 0 unless the drawer draws. */
+/** `--shell-header-inset-start` is 0 unless the drawer's menu button draws. */
 function headerInset() {
 	return navSide() === "right"
 		? "pr-[calc(0.75rem+var(--shell-header-inset-start,0px))] sm:pr-[calc(1.25rem+var(--shell-header-inset-start,0px))]"

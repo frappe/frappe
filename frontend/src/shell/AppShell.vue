@@ -61,7 +61,6 @@
 			<RouterView />
 		</main>
 
-		<!-- At the navigation's edge of the page header row, which `PageFrame` makes room for. -->
 		<div
 			v-if="drawer"
 			class="absolute top-[10px] z-10"
@@ -287,7 +286,6 @@ const floating = computed(() => !!boot.app && drawMode.value === "floating");
 const overlay = computed(() => !!boot.app && drawMode.value === "rail_overlay");
 const drawer = computed(() => !!boot.app && drawMode.value === "drawer");
 
-// Both start closed, and a change of draw mode (a resize) closes them.
 const overlayOpen = ref(false);
 const drawerOpen = ref(false);
 watch(drawMode, () => {
@@ -463,7 +461,6 @@ function replace(next: Navigation) {
 	boot.navigation = next;
 }
 
-// A navigation closes the overlay sidebar; its own Escape does too, unless a dialog took the key.
 watch(
 	() => route.path,
 	() => (overlayOpen.value = false)
@@ -516,8 +513,7 @@ const { appActsPending, shell } = useShellActs({
 						? customize.write("sidebar", panel.value.address)
 						: customize.write("rail"),
 				shareLink,
-				// No seam in the sidebar-only layout, a drawer or beside a floating rail, so no act. The overlay's
-				// own state is separate, so `collapsed-sidebar` keeps the wide band's choice.
+				// No seam in these draw modes, so no act; the overlay's own state keeps `collapsed-sidebar`.
 				sidebarCollapsed: () =>
 					!panel.value ||
 					sidebarOnly.value ||

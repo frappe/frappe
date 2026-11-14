@@ -248,6 +248,23 @@ describe("the drawer at 820 px", () => {
 		expect(drawer()).not.toBeNull();
 	});
 
+	it("Tab wraps inside the drawer", async () => {
+		await shell("floating_rail");
+		menu()!.click();
+		await flush();
+		const nodes = [...drawer()!.querySelectorAll<HTMLElement>(
+			'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+		)];
+		nodes[nodes.length - 1].focus();
+		const tab = new KeyboardEvent("keydown", { key: "Tab", bubbles: true, cancelable: true });
+		nodes[nodes.length - 1].dispatchEvent(tab);
+		expect(tab.defaultPrevented).toBe(true);
+		expect(document.activeElement).toBe(nodes[0]);
+		const back = new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, bubbles: true, cancelable: true });
+		nodes[0].dispatchEvent(back);
+		expect(document.activeElement).toBe(nodes[nodes.length - 1]);
+	});
+
 	it("is not drawn at 1024 px: the floating rail takes over, and at 767 px the phone draws nothing here", async () => {
 		device(1024);
 		await shell("floating_rail");

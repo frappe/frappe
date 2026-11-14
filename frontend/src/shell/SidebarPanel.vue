@@ -3,7 +3,6 @@
   address does. It collapses to nothing with the seam, through the shell's `toggle_sidebar` act.
 -->
 <template>
-	<!-- An overlay panel takes no width in flow: the scrim and the panel hang off this zero-width seam. -->
 	<div class="group/sidebar relative flex h-full shrink-0" :class="overlay && 'z-30 w-0'">
 		<div
 			v-if="overlay && !collapsed"
@@ -124,7 +123,6 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ customize: []; close: [] }>();
 
-/** A row of the overlay is a destination, so it closes the overlay; a section header does not. */
 function onRowClick(event: MouseEvent) {
 	const target = event.target instanceof Element ? event.target : null;
 	if (target?.closest('[data-slot="sidebar-item"], a[href], button[aria-busy]')) emit("close");

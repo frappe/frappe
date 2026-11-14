@@ -83,6 +83,27 @@ test.describe("Desk v2 narrow navigation", () => {
 		await expect(drawer).toHaveCount(0);
 	});
 
+	test("focus stays in the open drawer, and a resize hands it to the page", async ({ page }) => {
+		await api.call(SAVE, { app: APP, navigation_layout: "sidebar_only", scope: "user" });
+		await page.goto("/apps/desk/todo");
+
+		await page.locator('[data-key="open-navigation"]').click();
+		const drawer = page.locator("[data-navigation-drawer]");
+		await expect(drawer).toBeVisible();
+		for (let i = 0; i < 40; i++) {
+			await page.keyboard.press("Tab");
+			expect(
+				await page.evaluate(
+					() => !!document.activeElement.closest("[data-navigation-drawer]")
+				)
+			).toBe(true);
+		}
+
+		await page.setViewportSize({ width: 1280, height: 900 });
+		await expect(drawer).toHaveCount(0);
+		await expect.poll(() => page.evaluate(() => document.activeElement.tagName)).toBe("MAIN");
+	});
+
 	test("a navigation on the right: the button and the drawer move to the right edge", async ({
 		page,
 	}) => {
