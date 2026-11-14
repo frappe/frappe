@@ -23,14 +23,25 @@ export function cleanUserText(text) {
 	return { text: value, files };
 }
 
+export const CREDIT_SPENT =
+	"Your free AI credits are used up. Grove is coming soon. Until then, connect another provider.";
+
 // `fileId` names the staged File behind a chip, so a steered message the composer is
 // still showing as queued matches its durable row; `modelName` maps a provider model id
-// to the Flow Model the page speaks in.
+// to the Flow Model the page speaks in; `onSiteKey` says the chat's model is Grove's, whose
+// gateway answers 402 once the site's free credits are spent. `settings_tab` is where the
+// page links an error to.
 export function presentEvent(
 	event,
-	{ fileId = (name, fallback) => fallback ?? `file:${name}`, modelName = (id) => id } = {}
+	{
+		fileId = (name, fallback) => fallback ?? `file:${name}`,
+		modelName = (id) => id,
+		onSiteKey = () => false,
+	} = {}
 ) {
 	if (event.type === "model_changed") return { ...event, model: modelName(event.model) };
+	if (event.type === "run_error" && event.status_code === 402 && onSiteKey())
+		return { ...event, message: CREDIT_SPENT, settings_tab: "models" };
 	if (event.type === "user_message")
 		return { ...event, content: presentUserContent(event.content, fileId) };
 	return event;
