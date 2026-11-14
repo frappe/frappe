@@ -133,6 +133,13 @@ describe("a sidebar of acts", () => {
 		expect(hasNoPageToOpen([{ ...act, hidden: 1 } as EditorRow])).toBe(false);
 	});
 
+	it("does not count a page under a hidden section", () => {
+		const hidden = { ...section, hidden: 1 } as EditorRow;
+		const inside = { ...link, parent_key: section.key } as EditorRow;
+		expect(hasNoPageToOpen([act, hidden, { ...inside, parent_key: hidden.key }])).toBe(true);
+		expect(hasNoPageToOpen([act, section, inside])).toBe(false);
+	});
+
 	it("is not offered a sidebar of its own", () => {
 		const draft = { rail: [act], sidebars: {}, layout: "", scope: "user" } as never;
 		expect(canGiveSidebar(draft, act)).toBe(false);

@@ -82,6 +82,19 @@ export function actRow(act: AvailableAct, option?: ActOption): Omit<EditorRow, "
 
 /** Whether a sidebar's visible rows are Acts alone: none of them opens a page, so it has none to open. */
 export function hasNoPageToOpen(rows: EditorRow[]): boolean {
-	const drawn = rows.filter((row) => !row.hidden && !row.no_access && row.item_type !== "Section");
+	const drawn = rows.filter((row) => !isShut(rows, row) && row.item_type !== "Section");
 	return drawn.length > 0 && drawn.every((row) => row.item_type === "Act");
+}
+
+/** A row is shut when it, or a row above it, is hidden or has no access: saving takes its whole branch off the sidebar. */
+function isShut(rows: EditorRow[], row: EditorRow): boolean {
+	const seen = new Set<string>();
+	let at: EditorRow | undefined = row;
+	while (at && !seen.has(at.key)) {
+		if (at.hidden || at.no_access) return true;
+		seen.add(at.key);
+		const parentKey: string | undefined = at.parent_key;
+		at = rows.find((r) => r.key === parentKey);
+	}
+	return false;
 }
