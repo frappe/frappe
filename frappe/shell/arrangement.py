@@ -14,6 +14,7 @@ from typing import NamedTuple
 import frappe
 from frappe import _
 from frappe.desk.doctype.navigation_item.nesting import nesting_errors
+from frappe.model.document import Document
 
 from .navigation import (
 	NAVIGATION_LAYOUTS,
@@ -84,7 +85,7 @@ def reset_arrangement(container: str, address: str, scope: str = "user") -> dict
 	target = _target(container, address, scope)
 
 	# A rail's reset takes its navigation layout with its rows; `_write` would keep the record.
-	_delete(target)
+	_delete(_locked(target))
 
 	return resolve_navigation(target.app)
 
@@ -403,39 +404,40 @@ def _write(target: Target, rows: list[dict]):
 	# A rail layer that sets a navigation layout is not empty: it stays, row-less.
 	# `ignore_permissions`: the gate is the endpoint's; both containers give a Desk User no write.
 	doctype = target.layer["doctype"]
-	existing = _existing(target)
+	doc = _locked(target)
 
-	if not rows and not (existing and _layout_of(doctype, existing)):
-		_delete(target)
+	if not rows and not doc.get("navigation_layout"):
+		_delete(doc)
 		return
 
-	doc = frappe.get_doc(doctype, existing) if existing else frappe.get_doc(dict(target.layer))
 	doc.set(ITEMS_FIELD[doctype], rows)
 	doc.save(ignore_permissions=True)
 
 
 def _write_layout(target: Target, navigation_layout: str):
 	"""Put the navigation layout on this level's rail, and drop the record when it ends up empty."""
-	existing = _existing(target)
-	doc = frappe.get_doc("Rail", existing) if existing else frappe.get_doc(dict(target.layer))
+	doc = _locked(target)
 
 	if not navigation_layout and not doc.items:
-		_delete(target)
+		_delete(doc)
 		return
 
 	doc.navigation_layout = navigation_layout
 	doc.save(ignore_permissions=True)
 
 
-def _delete(target: Target):
-	if existing := _existing(target):
-		frappe.delete_doc(target.layer["doctype"], existing, ignore_permissions=True, delete_permanently=True)
+def _delete(doc: Document):
+	"""Drop a stored layer; a layer never saved has nothing to drop."""
+	if not doc.is_new():
+		frappe.delete_doc(doc.doctype, doc.name, ignore_permissions=True, delete_permanently=True)
 
 
-def _existing(target: Target) -> str | None:
+def _locked(target: Target) -> Document:
+	"""The stored layer, row-locked until the request commits so an empty check cannot go stale."""
 	address = {field: value for field, value in target.layer.items() if field != "doctype"}
-	return frappe.db.get_value(target.layer["doctype"], address)
+	existing = frappe.db.get_value(target.layer["doctype"], address)
 
+	if existing:
+		return frappe.get_doc(target.layer["doctype"], existing, for_update=True)
 
-def _layout_of(doctype: str, name: str) -> str:
-	return frappe.db.get_value(doctype, name, "navigation_layout") if doctype == "Rail" else ""
+	return frappe.get_doc(dict(target.layer))
