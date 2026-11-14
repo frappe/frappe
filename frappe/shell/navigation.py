@@ -7,6 +7,7 @@ import json
 from urllib.parse import quote
 
 import frappe
+from frappe.desk.doctype.navigation_item.nesting import cap_depth
 from frappe.desk.layers import resolve_layers
 
 from .extensions import extend
@@ -93,6 +94,7 @@ def resolve_rail(
 	base = extend(base, _rail_contributions(app), anchorable=shipped)
 
 	return _merge(
+		"Rail",
 		base,
 		_upto(layers, upto),
 		keep_hidden=keep_hidden,
@@ -119,7 +121,7 @@ def resolve_sidebars(app: str, context: NavigationContext | None = None) -> dict
 
 		by_layer = layers.get(address, {})
 		base = by_layer.get("standard", [])
-		items = _merge(base, _upto(by_layer, "user"), context=context)
+		items = _merge("Sidebar", base, _upto(by_layer, "user"), context=context)
 		if items:
 			# Absent, not empty: the payload is read by key, and the rail item for this address
 			# goes with it.
@@ -146,6 +148,7 @@ def resolve_sidebar(
 	by_layer = _sidebar_layers([(link_doctype, link_to)]).get((link_doctype, link_to), {})
 
 	return _merge(
+		"Sidebar",
 		by_layer.get("standard", []),
 		_upto(by_layer, upto),
 		keep_hidden=keep_hidden,
@@ -170,6 +173,7 @@ def _context(app: str, context: "NavigationContext | None", check_permission: bo
 
 
 def _merge(
+	container: str,
 	base: list[dict],
 	layers: list[list[dict]],
 	*,
@@ -190,7 +194,8 @@ def _merge(
 	if context is not None:
 		items = filter_items(items, context)
 
-	return [_on_the_wire(item, hidden) for item in _promote_orphans(items)]
+	# After `_promote_orphans`: a lifted row's new parent has to be a row that is still there.
+	return [_on_the_wire(item, hidden) for item in cap_depth(_promote_orphans(items), container)]
 
 
 def _drop_hidden(items: list[dict], hidden: dict[str, bool]) -> list[dict]:

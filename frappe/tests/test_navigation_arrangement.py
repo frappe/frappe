@@ -37,6 +37,10 @@ def rail_keys() -> list[str]:
 	return keys(resolve_navigation(APP)["rail"])
 
 
+def sidebar_keys() -> list[str]:
+	return keys(resolve_navigation(APP)["sidebars"][ADDRESS_KEY])
+
+
 def showing(*items: dict) -> list[dict]:
 	"""What a client sends: the whole ordered list it is showing, hidden rows and all."""
 	return list(items)
@@ -108,7 +112,7 @@ class TestReduction(NavigationTestCase):
 			self.assertEqual(_as_items([shown("a", parent_key=blank)])[0]["parent_key"], None)
 
 	def test_a_malformed_parent_does_not_move_a_row_to_the_top_level(self):
-		make_rail(
+		make_sidebar(
 			[
 				item("people", item_type="Section", label="People"),
 				doctype_item("user", "User", parent_key="people"),
@@ -117,9 +121,11 @@ class TestReduction(NavigationTestCase):
 		)
 
 		for parent in (["oops"], 0, []):
-			save_arrangement("Rail", APP, showing(shown("people"), shown("user", parent_key=parent)))
+			save_arrangement(
+				"Sidebar", ADDRESS_KEY, showing(shown("people"), shown("user", parent_key=parent))
+			)
 
-		entry = next(e for e in resolve_navigation(APP)["rail"] if e["key"] == "user")
+		entry = next(e for e in resolve_navigation(APP)["sidebars"][ADDRESS_KEY] if e["key"] == "user")
 		self.assertEqual(entry["parent_key"], "people")
 
 	def test_a_key_the_base_does_not_hold_is_dropped(self):
@@ -225,8 +231,8 @@ class TestSavingAnArrangement(NavigationTestCase):
 class TestHidingASection(NavigationTestCase):
 	"""Hiding a section means the whole branch."""
 
-	def section_rail(self):
-		make_rail(
+	def section_sidebar(self):
+		make_sidebar(
 			[
 				item("people", item_type="Section", label="People"),
 				doctype_item("user", "User", parent_key="people"),
@@ -236,25 +242,25 @@ class TestHidingASection(NavigationTestCase):
 		)
 
 	def test_hiding_a_section_takes_its_children_with_it(self):
-		self.section_rail()
+		self.section_sidebar()
 
 		save_arrangement(
-			"Rail",
-			APP,
+			"Sidebar",
+			ADDRESS_KEY,
 			showing(shown("people", hidden=1), shown("user", parent_key="people"), shown("role")),
 		)
 
-		self.assertEqual(rail_keys(), ["role"])
+		self.assertEqual(sidebar_keys(), ["role"])
 
 	def test_an_app_removing_a_section_still_promotes_its_children(self):
-		make_rail([doctype_item("user", "User", parent_key="people")], standard=1)
+		make_sidebar([doctype_item("user", "User", parent_key="people")], standard=1)
 
-		entry = resolve_navigation(APP)["rail"][0]
+		entry = resolve_navigation(APP)["sidebars"][ADDRESS_KEY][0]
 		self.assertNotIn("parent_key", entry)
 
 	def test_moving_a_section_takes_its_children_in_the_list_too(self):
 		"""The list is flat, and the editor draws it back in order."""
-		make_rail(
+		make_sidebar(
 			[
 				item("s1", item_type="Section"),
 				doctype_item("a", "User", parent_key="s1"),
@@ -270,15 +276,15 @@ class TestHidingASection(NavigationTestCase):
 			{"key": "s1"},
 			{"key": "a", "parent_key": "s1"},
 		)
-		save_arrangement("Rail", APP, shown)
+		save_arrangement("Sidebar", ADDRESS_KEY, shown)
 
-		self.assertEqual(rail_keys(), ["s2", "b", "s1", "a"])
+		self.assertEqual(sidebar_keys(), ["s2", "b", "s1", "a"])
 
 	def test_a_nested_subtree_moves_whole(self):
-		make_rail(
+		make_sidebar(
 			[
 				item("s1", item_type="Section"),
-				item("s1a", item_type="Section", parent_key="s1"),
+				doctype_item("s1a", "Role", parent_key="s1"),
 				doctype_item("deep", "User", parent_key="s1a"),
 				item("s2", item_type="Section"),
 				doctype_item("b", "Role", parent_key="s2"),
@@ -293,13 +299,13 @@ class TestHidingASection(NavigationTestCase):
 			{"key": "s1a", "parent_key": "s1"},
 			{"key": "deep", "parent_key": "s1a"},
 		)
-		save_arrangement("Rail", APP, shown)
+		save_arrangement("Sidebar", ADDRESS_KEY, shown)
 
-		self.assertEqual(rail_keys(), ["s2", "b", "s1", "s1a", "deep"])
-		self.assertEqual(keys(get_arrangement("Rail", APP)), [row["key"] for row in shown])
+		self.assertEqual(sidebar_keys(), ["s2", "b", "s1", "s1a", "deep"])
+		self.assertEqual(keys(get_arrangement("Sidebar", ADDRESS_KEY)), [row["key"] for row in shown])
 
 	def test_what_the_editor_saves_is_what_it_reads_back(self):
-		make_rail(
+		make_sidebar(
 			[
 				item("s1", item_type="Section"),
 				doctype_item("a", "User", parent_key="s1"),
@@ -315,23 +321,23 @@ class TestHidingASection(NavigationTestCase):
 			{"key": "s1"},
 			{"key": "a", "parent_key": "s1"},
 		)
-		save_arrangement("Rail", APP, shown)
+		save_arrangement("Sidebar", ADDRESS_KEY, shown)
 
-		self.assertEqual(keys(get_arrangement("Rail", APP)), [row["key"] for row in shown])
+		self.assertEqual(keys(get_arrangement("Sidebar", ADDRESS_KEY)), [row["key"] for row in shown])
 
-	def test_a_section_nested_in_a_hidden_one_goes_too(self):
-		make_rail(
+	def test_an_item_nested_in_a_hidden_section_goes_too(self):
+		make_sidebar(
 			[
 				item("outer", item_type="Section"),
-				item("inner", item_type="Section", parent_key="outer"),
+				doctype_item("inner", "Role", parent_key="outer"),
 				doctype_item("user", "User", parent_key="inner"),
 			],
 			standard=1,
 		)
 
 		save_arrangement(
-			"Rail",
-			APP,
+			"Sidebar",
+			ADDRESS_KEY,
 			showing(
 				shown("outer", hidden=1),
 				shown("inner", parent_key="outer"),
@@ -339,7 +345,7 @@ class TestHidingASection(NavigationTestCase):
 			),
 		)
 
-		self.assertEqual(rail_keys(), [])
+		self.assertNotIn(ADDRESS_KEY, resolve_navigation(APP)["sidebars"])
 
 
 class TestScopes(NavigationTestCase):

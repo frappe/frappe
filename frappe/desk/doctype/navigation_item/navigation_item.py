@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.navigation_item.nesting import nesting_errors
 from frappe.model.document import Document
 
 
@@ -52,8 +53,8 @@ class NavigationItem(Document):
 			)
 
 
-def validate_item_keys(items):
-	"""Refuse a shipped list with an untyped, keyless or duplicate-keyed row; both containers call this."""
+def validate_item_keys(items, container: str):
+	"""Refuse a shipped list with an untyped, keyless, duplicate-keyed or too deeply nested row; both containers call this."""
 	seen = set()
 
 	for item in items:
@@ -80,3 +81,11 @@ def validate_item_keys(items):
 			)
 
 		seen.add(item.key)
+
+	if past := nesting_errors(items, container):
+		frappe.throw(
+			_("{0} sits too deep. A section holds items, and an item holds one more level.").format(
+				frappe.bold(", ".join(past))
+			),
+			title=_("Nested Too Deeply"),
+		)

@@ -122,6 +122,11 @@ def rail_keys(user: str) -> list[str]:
 		return keys(resolve_navigation(APP)["rail"])
 
 
+def sidebar_keys(user: str) -> list[str]:
+	with set_user(user):
+		return keys(resolve_navigation(APP)["sidebars"].get(ADDRESS_KEY, []))
+
+
 class FilterTestCase(NavigationTestCase):
 	def setUp(self):
 		super().setUp()
@@ -232,7 +237,7 @@ class TestTheCascade(FilterTestCase):
 	"""`Derived From Children`: an item is worth showing while something under it survives."""
 
 	def test_a_section_whose_children_all_went_goes_too(self):
-		make_rail(
+		make_sidebar(
 			[
 				item("group", item_type="Section", label="Admin"),
 				doctype_item("theirs", UNREADABLE, parent_key="group"),
@@ -240,10 +245,10 @@ class TestTheCascade(FilterTestCase):
 			standard=1,
 		)
 
-		self.assertEqual(rail_keys(self.user), [])
+		self.assertEqual(sidebar_keys(self.user), [])
 
 	def test_a_section_keeping_one_child_stays(self):
-		make_rail(
+		make_sidebar(
 			[
 				item("group", item_type="Section", label="Mixed"),
 				doctype_item("theirs", UNREADABLE, parent_key="group"),
@@ -252,22 +257,10 @@ class TestTheCascade(FilterTestCase):
 			standard=1,
 		)
 
-		self.assertEqual(rail_keys(self.user), ["group", "mine"])
-
-	def test_an_emptied_section_takes_the_section_holding_it(self):
-		make_rail(
-			[
-				item("outer", item_type="Section", label="Outer"),
-				item("inner", item_type="Section", label="Inner", parent_key="outer"),
-				doctype_item("theirs", UNREADABLE, parent_key="inner"),
-			],
-			standard=1,
-		)
-
-		self.assertEqual(rail_keys(self.user), [])
+		self.assertEqual(sidebar_keys(self.user), ["group", "mine"])
 
 	def test_an_item_dropped_by_any_other_bucket_leaves_its_children(self):
-		make_rail(
+		make_sidebar(
 			[
 				doctype_item("theirs", UNREADABLE),
 				doctype_item("mine", READABLE, parent_key="theirs"),
@@ -276,22 +269,22 @@ class TestTheCascade(FilterTestCase):
 		)
 
 		with set_user(self.user):
-			rail = resolve_navigation(APP)["rail"]
+			rail = resolve_navigation(APP)["sidebars"][ADDRESS_KEY]
 
 		self.assertEqual(keys(rail), ["mine"])
 		self.assertNotIn("parent_key", rail[0])
 
 	def test_a_hidden_section_is_not_counted_as_a_surviving_child(self):
-		make_rail(
+		make_sidebar(
 			[
 				item("group", item_type="Section", label="Mine"),
 				doctype_item("mine", READABLE, parent_key="group"),
 			],
 			standard=1,
 		)
-		make_rail([item("mine", hidden=1)], user=self.user)
+		make_sidebar([item("mine", hidden=1)], user=self.user)
 
-		self.assertEqual(rail_keys(self.user), [])
+		self.assertEqual(sidebar_keys(self.user), [])
 
 
 class TestLinkedSidebars(FilterTestCase):

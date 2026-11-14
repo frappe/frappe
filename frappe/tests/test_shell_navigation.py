@@ -270,13 +270,13 @@ class TestTheWire(NavigationTestCase):
 		self.assertTrue(log_error.called)
 
 	def test_an_item_whose_parent_is_gone_is_promoted(self):
-		make_rail([doctype_item("user", "User", parent_key="people")], standard=1)
+		make_sidebar([doctype_item("user", "User", parent_key="people")], standard=1)
 
-		entry = next(e for e in resolve_navigation(APP)["rail"] if e["key"] == "user")
+		entry = next(e for e in resolve_navigation(APP)["sidebars"][ADDRESS_KEY] if e["key"] == "user")
 		self.assertNotIn("parent_key", entry)
 
 	def test_a_parent_that_is_present_is_kept(self):
-		make_rail(
+		make_sidebar(
 			[
 				item("people", item_type="Section", label="People"),
 				doctype_item("user", "User", parent_key="people"),
@@ -284,7 +284,7 @@ class TestTheWire(NavigationTestCase):
 			standard=1,
 		)
 
-		entry = next(e for e in resolve_navigation(APP)["rail"] if e["key"] == "user")
+		entry = next(e for e in resolve_navigation(APP)["sidebars"][ADDRESS_KEY] if e["key"] == "user")
 		self.assertEqual(entry["parent_key"], "people")
 
 
