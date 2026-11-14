@@ -1,5 +1,5 @@
 // The chrome the rail shares with the panel: the utility slots, the navigation header, the rail's
-// `chrome` and `#foot`, the panel's `chrome` and the wide user menu. Mounted with Vue's own `createApp`.
+// `chrome` and pin, the panel's `chrome` and the wide user menu. Mounted with Vue's own `createApp`.
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
@@ -155,17 +155,20 @@ describe("RailColumn chrome", () => {
 		expect(has(host, "[data-key='user-menu']")).toBe(false);
 	});
 
-	it("draws #foot at the foot, after the avatar, and nothing when it is empty", () => {
-		const foot = { foot: () => h("button", { "data-key": "pin" }) };
-		const host = rail({}, foot);
-		const pin = host.querySelector("[data-key='pin']")!;
+	it("draws the pin or unpin button at the foot, after the avatar, and nothing when there is no pin", () => {
+		const host = rail({ pin: "pin" });
+		const pin = host.querySelector("[data-key='pin-navigation']")!;
 		const avatar = host.querySelector("[data-key='user-menu']")!;
 		expect(avatar.compareDocumentPosition(pin) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(pin.getAttribute("aria-label")).toBe("Pin the navigation");
 		document.body.innerHTML = "";
 
-		expect(has(rail({ chrome: false }, foot), "[data-key='pin']")).toBe(true);
+		const unpin = rail({ pin: "unpin", chrome: false });
+		expect(unpin.querySelector("[data-key='unpin-navigation']")?.getAttribute("aria-label")).toBe(
+			"Unpin the navigation"
+		);
 		document.body.innerHTML = "";
-		expect(has(rail({ chrome: false }), "[data-key='pin']")).toBe(false);
+		expect(has(rail({ chrome: false }), "[data-key^='pin'],[data-key^='unpin']")).toBe(false);
 	});
 });
 

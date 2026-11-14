@@ -2,6 +2,7 @@
 // whether the device can hover, folded into one draw mode. The draw mode is never stored.
 import { breakpointsTailwind, useBreakpoints, useMediaQuery } from "@vueuse/core";
 import { computed, ref } from "vue";
+import { saveNavigationLayout } from "@/arrangement";
 import type { Navigation, NavigationLayout } from "@/boot";
 
 export type WidthBand = "phone" | "narrow" | "wide";
@@ -19,10 +20,24 @@ export const navigationLayout = ref<NavigationLayout>("rail_and_sidebar");
 /** True only for a person's own rail + sidebar over an inherited floating rail: the unpin button shows. */
 export const pinned = ref(false);
 
+/** True while the floating rail may be pinned: the layout below the person's is a floating rail too, so an unpin button follows. */
+export const canPin = ref(false);
+
 /** Takes the layout and the pin off a `Navigation` payload: the boot's, or a save's. */
-export function applyNavigationLayout(navigation: Pick<Navigation, "navigation_layout" | "pinned">) {
+export function applyNavigationLayout(navigation: Pick<Navigation, "navigation_layout" | "pinned" | "can_pin">) {
 	navigationLayout.value = navigation.navigation_layout;
 	pinned.value = navigation.pinned === true;
+	canPin.value = navigation.can_pin === true;
+}
+
+/** Docks the floating rail: the person's layout becomes rail + sidebar. */
+export function pin(app: string): Promise<Navigation> {
+	return saveNavigationLayout(app, "rail_and_sidebar", "user");
+}
+
+/** Lets the rail float again: the person's value goes back to the level below. */
+export function unpin(app: string): Promise<Navigation> {
+	return saveNavigationLayout(app, "floating_rail", "user");
 }
 
 const NARROW: Record<NavigationLayout, DrawMode> = {

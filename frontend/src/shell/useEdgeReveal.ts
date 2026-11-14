@@ -1,0 +1,140 @@
+// When the floating rail shows: the pointer at the window's edge on the navigation's side, held
+// open while it stays near, over the rail, or while focus or a menu is in it. v1's dock numbers.
+import { onBeforeUnmount, onMounted, ref, type Ref } from "vue";
+import type { PhysicalSide } from "./navigationSide";
+
+/** The pointer within this many px of the edge opens the rail. */
+export const EDGE_BAND = 1;
+/** Once open, the rail stays while the pointer is within this many px of the edge. */
+export const STAY_BAND = 90;
+/** On the page scrollbar's side, how long the pointer rests in the edge band before the rail opens. */
+export const END_WAIT = 200;
+
+const THUMB = "[data-slot=scroll-area-thumb]";
+
+interface EdgeReveal {
+	/** The rail on screen. */
+	open: Ref<boolean>;
+	close: () => void;
+}
+
+/** Reveals the rail on `side`; `scrollbarSide` delays the reveal there so a pointer on its way to the thumb does not open it. */
+export function useEdgeReveal(options: {
+	side: () => PhysicalSide;
+	scrollbarSide: () => boolean;
+	rail: Ref<HTMLElement | null>;
+}): EdgeReveal {
+	const open = ref(false);
+	let wait: ReturnType<typeof setTimeout> | undefined;
+	// Where the pointer last was, for when focus leaves a rail the pointer left long ago.
+	let lastAway = Infinity;
+
+	function distance(event: PointerEvent) {
+		return options.side() === "left"
+			? event.clientX
+			: document.documentElement.clientWidth - 1 - event.clientX;
+	}
+
+	function cancelWait() {
+		clearTimeout(wait);
+		wait = undefined;
+	}
+
+	// A click leaves focus on the clicked link; only a keyboard's focus keeps the rail open.
+	function keyboardFocusIn(rail: HTMLElement) {
+		const active = document.activeElement;
+		if (!active || !rail.contains(active)) return false;
+		try {
+			return active.matches(":focus-visible");
+		} catch {
+			return true;
+		}
+	}
+
+	// A menu opened from the rail draws in a portal, so its trigger is what says it shows.
+	function menuOpen(rail: HTMLElement) {
+		return !!rail.querySelector('[aria-expanded="true"]');
+	}
+
+	function holds(target: EventTarget | null) {
+		const rail = options.rail.value;
+		if (!rail) return false;
+		return (target instanceof Node && rail.contains(target)) || keyboardFocusIn(rail) || menuOpen(rail);
+	}
+
+	function onMove(event: PointerEvent) {
+		const away = (lastAway = distance(event));
+
+		if (open.value) {
+			if (away > STAY_BAND && !holds(event.target)) close();
+			return;
+		}
+
+		// A press is a drag or a scroll, never a reveal.
+		if (away >= EDGE_BAND || event.buttons !== 0) return cancelWait();
+		if (!options.scrollbarSide()) return void (open.value = true);
+
+		// The scrollbar's side: a press or the thumb under the pointer is a scroll, not a reveal.
+		const overThumb = event.target instanceof Element && !!event.target.closest(THUMB);
+		if (overThumb) return cancelWait();
+		wait ??= setTimeout(() => {
+			wait = undefined;
+			open.value = true;
+		}, END_WAIT);
+	}
+
+	// A press away from the rail and its menus closes it, whatever holds it for the pointer or keyboard.
+	function onPress(event: PointerEvent) {
+		cancelWait();
+		const rail = options.rail.value;
+		if (!open.value || !rail) return;
+		if (!(event.target instanceof Node && rail.contains(event.target)) && !menuOpen(rail)) close();
+	}
+
+	function onKey(event: KeyboardEvent) {
+		if (event.key !== "Escape" || !open.value || event.defaultPrevented) return;
+		const inside = options.rail.value?.contains(document.activeElement);
+		close();
+		if (inside) document.querySelector<HTMLElement>("main")?.focus();
+	}
+
+	function close() {
+		cancelWait();
+		open.value = false;
+	}
+
+	function onFocusIn(event: FocusEvent) {
+		if (options.rail.value?.contains(event.target as Node)) open.value = true;
+	}
+
+	// A menu's focus moves to its portal first, so the check waits for its trigger to say it shows.
+	function onFocusOut(event: FocusEvent) {
+		if (!options.rail.value?.contains(event.target as Node)) return;
+		setTimeout(() => {
+			if (open.value && lastAway > STAY_BAND && !holds(null)) close();
+		});
+	}
+
+	onMounted(() => {
+		document.documentElement.addEventListener("pointerleave", cancelWait);
+		window.addEventListener("blur", cancelWait);
+		document.addEventListener("pointermove", onMove);
+		document.addEventListener("pointerdown", onPress, true);
+		document.addEventListener("keydown", onKey);
+		document.addEventListener("focusin", onFocusIn);
+		document.addEventListener("focusout", onFocusOut);
+	});
+
+	onBeforeUnmount(() => {
+		cancelWait();
+		document.documentElement.removeEventListener("pointerleave", cancelWait);
+		window.removeEventListener("blur", cancelWait);
+		document.removeEventListener("pointermove", onMove);
+		document.removeEventListener("pointerdown", onPress, true);
+		document.removeEventListener("keydown", onKey);
+		document.removeEventListener("focusin", onFocusIn);
+		document.removeEventListener("focusout", onFocusOut);
+	});
+
+	return { open, close };
+}

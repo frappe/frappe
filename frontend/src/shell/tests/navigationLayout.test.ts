@@ -1,7 +1,7 @@
 // The draw mode: every cell of the spec's table, and the store a navigation payload fills.
 import { afterEach, describe, expect, it } from "vitest";
 import type { NavigationLayout } from "@/boot";
-import { applyNavigationLayout, drawMode, navigationLayout, pinned } from "../navigationLayout";
+import { applyNavigationLayout, canPin, drawMode, navigationLayout, pinned } from "../navigationLayout";
 import type { DrawMode, WidthBand } from "../navigationLayout";
 
 afterEach(() => applyNavigationLayout({ navigation_layout: "rail_and_sidebar" }));
@@ -32,5 +32,13 @@ describe("applyNavigationLayout", () => {
 
 		applyNavigationLayout({ navigation_layout: "sidebar_only" });
 		expect([navigationLayout.value, pinned.value]).toEqual(["sidebar_only", false]);
+	});
+
+	it("takes the right to pin off a payload", () => {
+		applyNavigationLayout({ navigation_layout: "floating_rail", can_pin: true });
+		expect(canPin.value).toBe(true);
+
+		applyNavigationLayout({ navigation_layout: "floating_rail" });
+		expect(canPin.value).toBe(false);
 	});
 });

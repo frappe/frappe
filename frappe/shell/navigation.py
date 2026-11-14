@@ -88,6 +88,11 @@ def resolve_navigation(app: str) -> dict:
 	if _is_pinned(layers.layouts):
 		navigation["pinned"] = True
 
+	# Likewise: a pin writes the person's own `rail_and_sidebar`, and only a floating rail below
+	# makes the unpin button show, so a floating rail over another layout offers no pin.
+	if _can_pin(layers.layouts):
+		navigation["can_pin"] = True
+
 	return navigation
 
 
@@ -154,6 +159,14 @@ def rail_layouts(app: str) -> dict[str, str]:
 def _is_pinned(by_role: dict[str, str]) -> bool:
 	"""The person's own `rail_and_sidebar` sits over an inherited floating rail, which is what a pin writes."""
 	return by_role.get("user") == DEFAULT_LAYOUT and layout_below(by_role, "user") == "floating_rail"
+
+
+def _can_pin(by_role: dict[str, str]) -> bool:
+	"""The floating rail is drawn and the level below the person's is a floating rail: a pin can be undone."""
+	return (
+		resolve_navigation_layout(by_role) == "floating_rail"
+		and layout_below(by_role, "user") == "floating_rail"
+	)
 
 
 def resolve_sidebars(app: str, context: NavigationContext | None = None) -> dict[str, list[dict]]:

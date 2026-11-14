@@ -40,6 +40,8 @@ export type Navigation = {
 	navigation_layout: NavigationLayout;
 	/** Sent only when true: the person's own rail + sidebar sits over an inherited floating rail. */
 	pinned?: true;
+	/** Sent only when true: the floating rail may be pinned, because unpinning it puts the layout back. */
+	can_pin?: true;
 };
 
 /** An app whose shell hook this person may run, with its `add_to_apps_screen` title. */
