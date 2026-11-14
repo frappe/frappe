@@ -1,10 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
-"""The DocType editor replays each edit on the client, and the server replays it again on save.
+"""Compare the editor's hand-made TypeScript copies of the server's rules with the Python originals.
 
-The client's rules are hand-made copies of the server's. These tests read the copies out of the
-TypeScript source and compare them with the Python originals, and replay one fixture of canvas
-edits here and in `canvasParity.test.ts`.
+One canvas-edit fixture is replayed here and in `canvasParity.test.ts`.
 """
 
 import json

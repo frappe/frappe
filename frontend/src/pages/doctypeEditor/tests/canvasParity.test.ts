@@ -29,8 +29,15 @@ describe("canvas edits, as the server applies them", () => {
 	it.each(fixture.cases)("$case", ({ edits, expected, refused }) => {
 		const tabs = structuredClone(fixture.base);
 		if (refused) {
-			expect(() => replay(tabs, edits)).toThrow(EditRefused);
-			expect(() => replay(structuredClone(fixture.base), edits)).toThrow(refused);
+			const error = (() => {
+				try {
+					replay(tabs, edits);
+				} catch (caught) {
+					return caught;
+				}
+			})();
+			expect(error).toBeInstanceOf(EditRefused);
+			expect((error as EditRefused).message).toBe(refused);
 		} else {
 			replay(tabs, edits);
 			expect(wire(tabs)).toEqual(expected);
