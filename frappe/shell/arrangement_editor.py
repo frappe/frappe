@@ -26,14 +26,14 @@ from .arrangement import (
 from .navigation import SITE_LAYER, _boot_key, _sidebar_addresses, resolve_navigation
 from .navigation_filter import NavigationContext
 
-MISMATCH = "Someone changed this since you opened it. Reload to see their changes."
-
 
 def read_arrangements(app: str, scope: str) -> dict:
 	"""The rail, every sidebar, the layouts and the version of one app at one level."""
 	# A sidebar the person's blocked modules remove is left out, not refused: it is not theirs to arrange.
 	from .arrangement import get_navigation_layouts
 
+	# First: a write that lands while the rows resolve must make this version stale, not the rows.
+	version = level_version(app, scope)
 	rail = _target("Rail", app, scope)
 	context = NavigationContext(app)
 	targets = {
@@ -48,7 +48,7 @@ def read_arrangements(app: str, scope: str) -> dict:
 	_mark([rail_rows, *sidebars.values()], scope)
 
 	return {
-		"version": level_version(app, scope),
+		"version": version,
 		"can_edit_site": _is_site_administrator(),
 		"navigation_layouts": get_navigation_layouts(app),
 		"rail": rail_rows,
@@ -200,7 +200,10 @@ def _gate(app: str, scope: str, payload: dict) -> tuple[Target, dict[str, Target
 def _check_version(app: str, scope: str, version: str):
 	"""Step 2: refuse a draft that a save at this level has outdated."""
 	if level_version(app, scope, for_update=True) != version:
-		frappe.throw(_(MISMATCH), frappe.TimestampMismatchError)
+		frappe.throw(
+			_("Someone changed this since you opened it. Reload to see their changes."),
+			frappe.TimestampMismatchError,
+		)
 
 
 def _refuse_rail_parents(items: str | list):
@@ -234,6 +237,9 @@ def _check_rows(app: str, scope: str, reduced: list[tuple[Target, list[dict]]], 
 
 def _check_opener(row: dict, container: str, scope: str, own_keys: set[str], seen: set[str]):
 	sidebar = row["opens_sidebar"]
+
+	if not isinstance(sidebar, str):
+		frappe.throw(_("A sidebar is named by its key."), title=_("Not an Arrangement"))
 
 	if container != "Rail":
 		frappe.throw(_("Only a rail item can open a sidebar."), title=_("Not an Arrangement"))
