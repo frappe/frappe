@@ -110,6 +110,7 @@ def validate_item_keys(items, container: str):
 			title=_("Nested Too Deeply"),
 		)
 
+
 def _reserved_keys_dropped(items):
 	"""Drop, and log, each shipped row whose key a level's own rows use; the rest of the list still loads."""
 	for item in [item for item in items if item.key and item.key.startswith(RESERVED_KEY_PREFIXES)]:

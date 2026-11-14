@@ -746,6 +746,9 @@ def own_stored(doctype: str = "Rail", **filters) -> list[dict]:
 class OwnRowsTestCase(NavigationTestCase):
 	"""Run as a Desk User: Administrator skips the permission filter these rows are tested against."""
 
+	# A rail is flat; the tests of sections and parents run on the module's sidebar.
+	sidebar = False
+
 	def setUp(self):
 		super().setUp()
 		self.user = a_desk_user()
@@ -753,7 +756,7 @@ class OwnRowsTestCase(NavigationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.addCleanup(frappe.clear_cache, user=self.user)
 
-		make_rail(self.shipped(), standard=1)
+		(make_sidebar if self.sidebar else make_rail)(self.shipped(), standard=1)
 
 	def shipped(self) -> list[dict]:
 		return [doctype_item("todo", "ToDo"), doctype_item("note", "Note")]
@@ -823,6 +826,8 @@ class TestOwnRowsSurviveASave(OwnRowsTestCase):
 
 
 class TestWhereAnOwnRowSits(OwnRowsTestCase):
+	sidebar = True
+
 	def shipped(self):
 		return [
 			item("people", item_type="Section", label="People"),
@@ -831,12 +836,15 @@ class TestWhereAnOwnRowSits(OwnRowsTestCase):
 		]
 
 	def parents(self) -> dict[str, str | None]:
-		return {entry["key"]: entry.get("parent_key") for entry in resolve_navigation(APP)["rail"]}
+		return {
+			entry["key"]: entry.get("parent_key")
+			for entry in resolve_navigation(APP)["sidebars"][ADDRESS_KEY]
+		}
 
 	def test_an_own_row_sits_in_an_app_section(self):
 		save_arrangement(
-			"Rail",
-			APP,
+			"Sidebar",
+			ADDRESS_KEY,
 			showing(
 				shown("people"),
 				shown("todo", parent_key="people"),
@@ -850,8 +858,8 @@ class TestWhereAnOwnRowSits(OwnRowsTestCase):
 	def test_an_own_row_sits_in_a_site_section(self):
 		with set_user(a_person()):
 			save_arrangement(
-				"Rail",
-				APP,
+				"Sidebar",
+				ADDRESS_KEY,
 				showing(
 					shown("people"),
 					shown("todo", parent_key="people"),
@@ -863,8 +871,8 @@ class TestWhereAnOwnRowSits(OwnRowsTestCase):
 			)
 
 		save_arrangement(
-			"Rail",
-			APP,
+			"Sidebar",
+			ADDRESS_KEY,
 			showing(
 				shown("people"),
 				shown("todo", parent_key="people"),
@@ -879,13 +887,13 @@ class TestWhereAnOwnRowSits(OwnRowsTestCase):
 
 	def test_an_own_row_sits_at_the_top_level(self):
 		save_arrangement(
-			"Rail",
-			APP,
+			"Sidebar",
+			ADDRESS_KEY,
 			showing(shown("people"), shown("todo", parent_key="people"), shown("note"), own("user:k3f9a2")),
 		)
 
 		self.assertEqual(self.parents()["user:k3f9a2"], None)
-		self.assertEqual(rail_keys()[-1], "user:k3f9a2")
+		self.assertEqual(keys(resolve_navigation(APP)["sidebars"][ADDRESS_KEY])[-1], "user:k3f9a2")
 
 	def test_an_own_row_whose_parent_is_not_in_the_list_moves_to_the_top_level(self):
 		rows = reduce_arrangement(
@@ -922,18 +930,18 @@ class TestWhereAnOwnRowSits(OwnRowsTestCase):
 			section,
 			own("user:bbbbbb", parent_key="user:aaaaaa"),
 		)
-		save_arrangement("Rail", APP, desired)
+		save_arrangement("Sidebar", ADDRESS_KEY, desired)
 		self.assertEqual(self.parents()["user:bbbbbb"], "user:aaaaaa")
 
-		save_arrangement("Rail", APP, [row for row in desired if row["key"] != "user:aaaaaa"])
+		save_arrangement("Sidebar", ADDRESS_KEY, [row for row in desired if row["key"] != "user:aaaaaa"])
 
 		self.assertEqual(self.parents()["user:bbbbbb"], None)
-		self.assertEqual([row.key for row in own_stored()], ["user:bbbbbb"])
+		self.assertEqual([row.key for row in own_stored("Sidebar")], ["user:bbbbbb"])
 
 	def test_an_app_removing_the_section_leaves_the_own_row_at_the_top_level(self):
 		save_arrangement(
-			"Rail",
-			APP,
+			"Sidebar",
+			ADDRESS_KEY,
 			showing(
 				shown("people"),
 				shown("todo", parent_key="people"),
@@ -941,7 +949,8 @@ class TestWhereAnOwnRowSits(OwnRowsTestCase):
 				shown("note"),
 			),
 		)
-		frappe.db.delete("Navigation Item", {"parent": APP, "parenttype": "Rail", "key": "people"})
+		shipped = frappe.db.get_value("Sidebar", {"app": APP, "standard": 1, "link_to": ADDRESS[1]})
+		frappe.db.delete("Navigation Item", {"parent": shipped, "parenttype": "Sidebar", "key": "people"})
 
 		self.assertIn("user:k3f9a2", self.parents())
 		self.assertEqual(self.parents()["user:k3f9a2"], None)
@@ -1017,14 +1026,14 @@ class TestOwnRowRefusals(OwnRowsTestCase):
 	def test_a_shipped_key_with_a_reserved_prefix_is_refused_when_a_person_saves_it(self):
 		for prefix in ("user", "site"):
 			with self.subTest(prefix=prefix), self.assertRaises(frappe.ValidationError):
-				validate_item_keys(self.shipped_rows(f"{prefix}:abcdef"))
+				validate_item_keys(self.shipped_rows(f"{prefix}:abcdef"), "Rail")
 
 	def test_a_shipped_key_with_a_reserved_prefix_is_dropped_on_a_migrate(self):
 		self.addCleanup(frappe.flags.update, {"in_migrate": frappe.flags.in_migrate})
 		frappe.flags.in_migrate = True
 		rows = self.shipped_rows("user:abcdef", "note", "site:abcdef", "todo")
 
-		validate_item_keys(rows)
+		validate_item_keys(rows, "Rail")
 
 		self.assertEqual([(row.key, row.idx) for row in rows], [("note", 1), ("todo", 2)])
 
@@ -1128,6 +1137,8 @@ class TestTheCaps(OwnRowsTestCase):
 
 
 class TestASectionOnlyAnOwnRowKeeps(OwnRowsTestCase):
+	sidebar = True
+
 	def shipped(self):
 		return [
 			item("people", item_type="Section", label="People"),
@@ -1136,20 +1147,22 @@ class TestASectionOnlyAnOwnRowKeeps(OwnRowsTestCase):
 		]
 
 	def test_a_save_keeps_the_section_and_the_own_row_inside_it(self):
-		make_rail(
+		make_sidebar(
 			[item("user:k3f9a2", link_doctype="DocType", link_to="ToDo", added=1, parent_key="people")],
 			user=self.user,
 		)
-		arrangement = get_arrangement("Rail", APP)
+		arrangement = get_arrangement("Sidebar", ADDRESS_KEY)
 		self.assertEqual([row["key"] for row in arrangement], ["people", "note", "user:k3f9a2"])
 
-		save_arrangement("Rail", APP, arrangement)
+		save_arrangement("Sidebar", ADDRESS_KEY, arrangement)
 
-		self.assertEqual(stored()[0].parent_key, "people")
-		self.assertEqual(len(stored()), 1)
+		self.assertEqual(stored("Sidebar")[0].parent_key, "people")
+		self.assertEqual(len(stored("Sidebar")), 1)
 
 
 class TestASectionAnOwnRowYouCannotOpenSitsIn(OwnRowsTestCase):
+	sidebar = True
+
 	def shipped(self):
 		return [
 			item("people", item_type="Section", label="People"),
@@ -1158,17 +1171,17 @@ class TestASectionAnOwnRowYouCannotOpenSitsIn(OwnRowsTestCase):
 		]
 
 	def test_the_row_keeps_its_parent_through_a_save(self):
-		make_rail(
+		make_sidebar(
 			[item("user:k3f9a2", link_doctype="DocType", link_to="Role", added=1, parent_key="people")],
 			user=self.user,
 		)
-		arrangement = get_arrangement("Rail", APP)
+		arrangement = get_arrangement("Sidebar", ADDRESS_KEY)
 		self.assertEqual([row["key"] for row in arrangement], ["people", "note", "user:k3f9a2"])
 		self.assertEqual(arrangement[2]["parent_key"], "people")
 
-		save_arrangement("Rail", APP, arrangement)
+		save_arrangement("Sidebar", ADDRESS_KEY, arrangement)
 
-		self.assertEqual(stored()[0].parent_key, "people")
+		self.assertEqual(stored("Sidebar")[0].parent_key, "people")
 
 
 class TestLostAccess(OwnRowsTestCase):
