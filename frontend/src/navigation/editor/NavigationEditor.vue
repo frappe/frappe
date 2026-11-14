@@ -408,8 +408,12 @@ watch([container, selected], async () => {
 // A rail edit that stops opening the last sidebar takes its tab away.
 // While a read is on its way the draft is empty, which is not an edit.
 watch(hasSidebars, (has) => !has && draft.value && (tab.value = "rail"));
-// Only the sidebar in view holds the selection; a picker refit while the rail is in view keeps it.
-watch(sidebar, () => tab.value === "sidebar" && (selected.value = null));
+// The selection and the add form belong to the sidebar in view; a refit while on the rail keeps them.
+watch(sidebar, () => {
+	if (tab.value !== "sidebar") return;
+	selected.value = null;
+	stopAdding();
+});
 // A selected row that the list now hides leaves the pane for its nearest visible neighbour.
 watch(showHidden, (on) => !on && selected.value && leaveIfUnlisted(selected.value));
 
