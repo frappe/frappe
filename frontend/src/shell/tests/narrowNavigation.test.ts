@@ -133,6 +133,8 @@ describe("rail + sidebar at 820 px (rail_overlay)", () => {
 		expect(shellRoot().style.getPropertyValue("--shell-header-inset-start")).toBe("0px");
 		expect(panel()?.getAttribute("data-state")).toBe("collapsed");
 		expect(scrim()).toBeNull();
+		// The sidebar token is transparent in dark mode: the overlay brings its own ground.
+		expect(panel()?.parentElement?.classList.contains("bg-surface-base")).toBe(true);
 	});
 
 	it("opens from the toggle act over a scrim, leaves collapsed-sidebar alone, and a scrim click closes it", async () => {

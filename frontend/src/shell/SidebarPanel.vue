@@ -16,7 +16,10 @@
 		<div
 			:class="
 				overlay
-					? ['absolute inset-y-0 flex', navSide() === 'right' ? 'right-0' : 'left-0']
+					? [
+							'absolute inset-y-0 flex bg-surface-base',
+							navSide() === 'right' ? 'right-0' : 'left-0',
+					  ]
 					: 'contents'
 			"
 			@click="overlay && onRowClick($event)"
