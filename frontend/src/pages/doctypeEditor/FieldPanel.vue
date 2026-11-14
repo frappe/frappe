@@ -83,7 +83,11 @@
 				@update:model-value="setTarget(String($event ?? ''))"
 			/>
 		</PanelRow>
-		<TableFieldRows v-else-if="field.fieldtype === 'Table'" :canvas="canvas" :field="field" />
+		<TableFieldRows
+			v-else-if="TABLE_TYPES.includes(field.fieldtype)"
+			:canvas="canvas"
+			:field="field"
+		/>
 		<PanelRow
 			v-else-if="field.fieldtype === 'Select'"
 			:label="__('Options')"
@@ -215,7 +219,7 @@ import {
 } from "./fieldPanel";
 import FieldPropertyGroups from "./FieldPropertyGroups.vue";
 import FieldRules from "./FieldRules.vue";
-import { typeIcon, typeName } from "./fieldtypes";
+import { TABLE_TYPES, typeIcon, typeName } from "./fieldtypes";
 import LinkFiltersRow from "./LinkFiltersRow.vue";
 import { targetChange } from "./linkFilters";
 import PanelHeader from "./PanelHeader.vue";

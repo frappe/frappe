@@ -584,6 +584,82 @@ class TestSaveDesign(IntegrationTestCase):
 			[(field.fieldname, field.label, field.options) for field in tables], [("lines", "Lines", child)]
 		)
 
+	def test_a_new_child_table_of_links_fills_a_table_multiselect_field(self):
+		child = f"{DOCTYPE} Tag"
+		self.addCleanup(delete_committed, "DocType", child)
+		result = self.save(
+			[
+				{
+					"act": "fields.add_field",
+					"label": "Tags",
+					"fieldtype": "Table MultiSelect",
+					"fieldname": "tags",
+				},
+				{"act": "fields.add_child_table", "table_field": "tags", "name": child, "link": "ToDo"},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		links = [(f.fieldname, f.fieldtype, f.options, f.in_list_view) for f in frappe.get_meta(child).fields]
+		self.assertEqual(links, [("todo", "Link", "ToDo", 1)])
+		self.assertEqual(frappe.get_meta(DOCTYPE).get_field("tags").options, child)
+
+	def test_a_link_to_doctype_gets_a_fieldname_that_is_not_a_row_column(self):
+		child = f"{DOCTYPE} Kind"
+		self.addCleanup(delete_committed, "DocType", child)
+		result = self.save(
+			[
+				{
+					"act": "fields.add_field",
+					"label": "Kinds",
+					"fieldtype": "Table MultiSelect",
+					"fieldname": "kinds",
+				},
+				{"act": "fields.add_child_table", "table_field": "kinds", "name": child, "link": "DocType"},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual([f.fieldname for f in frappe.get_meta(child).fields], ["doctype_link"])
+
+	def test_a_child_table_must_fit_its_table_field_type(self):
+		self.addCleanup(delete_committed, "DocType", f"{DOCTYPE} Kind")
+		result = self.save(
+			[
+				{"act": "fields.add_field", "label": "Kinds", "fieldtype": "Table", "fieldname": "kinds"},
+				{
+					"act": "fields.add_child_table",
+					"table_field": "kinds",
+					"name": f"{DOCTYPE} Kind",
+					"link": "ToDo",
+				},
+			]
+		)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["target"]["fieldname"], "kinds")
+
+	def test_a_new_child_table_of_links_needs_a_doctype_to_link_to(self):
+		self.addCleanup(delete_committed, "DocType", f"{DOCTYPE} Tag")
+		result = self.save(
+			[
+				{
+					"act": "fields.add_child_table",
+					"table_field": "tags",
+					"name": f"{DOCTYPE} Tag",
+					"link": "No Such T47364",
+				}
+			]
+		)
+		self.assertFalse(result["saved"])
+		self.assertIn("No Such T47364", result["errors"][0]["message"])
+
+	def test_a_table_multiselect_needs_a_child_table_with_a_link_field(self):
+		child = f"{DOCTYPE} Row"
+		self.addCleanup(delete_committed, "DocType", child)
+		make_custom_doctype(child, [{"fieldname": "qty", "label": "Qty", "fieldtype": "Int"}], istable=1)
+		result = self.save(
+			[{"act": "fields.add_field", "label": "Rows", "fieldtype": "Table MultiSelect", "options": child}]
+		)
+		self.assertFalse(result["saved"])
+
 	def test_a_saved_child_table_saves_its_own_edits(self):
 		child = f"{DOCTYPE} Row"
 		self.addCleanup(delete_committed, "DocType", child)

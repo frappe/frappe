@@ -18,12 +18,15 @@ export const FIELDTYPE_GROUPS: { label: string; types: string[] }[] = [
 	{ label: "Number", types: ["Int", "Float", "Currency", "Percent", "Rating", "Duration"] },
 	{ label: "Choice", types: ["Check", "Select", "Autocomplete", "Color"] },
 	{ label: "Date and time", types: ["Date", "Datetime", "Time"] },
-	{ label: "Links", types: ["Link", "Dynamic Link", "Table"] },
+	{ label: "Links", types: ["Link", "Dynamic Link", "Table", "Table MultiSelect"] },
 	{
 		label: "Files and other",
 		types: ["Attach", "Attach Image", "Signature", "Geolocation", "JSON", "Read Only", "HTML", "Barcode"],
 	},
 ];
+
+/** The field types whose options name a child table. */
+export const TABLE_TYPES = ["Table", "Table MultiSelect"];
 
 /** The types the menu lists first; "Email" is Data with the `Email` option, as the record page draws it. */
 export const COMMON_TYPES = [

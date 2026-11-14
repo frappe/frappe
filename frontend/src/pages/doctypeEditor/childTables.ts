@@ -6,6 +6,7 @@ import { ChildEdits } from "./childEdits";
 import type { ChildSave } from "./childSave";
 import { pendingChild } from "./childSource";
 import { DesignCanvas } from "./designCanvas";
+import { TABLE_TYPES } from "./fieldtypes";
 import type { ForkWarning } from "./forkWarning";
 import { loadEditor, type EditorState } from "./editorSource";
 import { LatestWins } from "./latestWins";
@@ -47,7 +48,7 @@ export class ChildTables {
 
 	/** The parent's Table field that holds `doctype`, for an undo that reopens its editor. */
 	tableOf(doctype: string): string | null {
-		const field = this.parent()?.working.value.fields.find((one) => one.fieldtype === "Table" && one.options === doctype);
+		const field = this.parent()?.working.value.fields.find((one) => TABLE_TYPES.includes(one.fieldtype) && one.options === doctype);
 		return field?.fieldname ?? null;
 	}
 
@@ -110,26 +111,34 @@ export class ChildTables {
 
 	/** The child tables the parent's staged edits make. */
 	added(): string[] {
-		return this.edits.staged.value
-			.filter((edit) => edit.act === "fields.add_child_table")
-			.map((edit) => String(edit.name));
+		return this.additions().map((edit) => String(edit.name));
+	}
+
+	/** The DocType a new child's one Link field names, when it was made for a Table MultiSelect. */
+	linkOf(doctype: string): string | undefined {
+		const link = this.additions().find((edit) => edit.name === doctype)?.link;
+		return link ? String(link) : undefined;
+	}
+
+	private additions() {
+		return this.edits.staged.value.filter((edit) => edit.act === "fields.add_child_table");
 	}
 
 	private childOf(table: string): string | null {
 		const field = this.parent()?.field(table);
-		return field?.fieldtype === "Table" && field.options ? field.options : null;
+		return field && TABLE_TYPES.includes(field.fieldtype) && field.options ? field.options : null;
 	}
 
-	/** The child tables the parent's Table fields name now; a new child no field names is not saved. */
+	/** The child tables the parent's table fields name now; a new child no field names is not saved. */
 	private named(): Set<string> {
 		const fields = this.parent()?.working.value.fields ?? [];
-		return new Set(fields.filter((field) => field.fieldtype === "Table" && field.options).map((field) => field.options!));
+		return new Set(fields.filter((field) => TABLE_TYPES.includes(field.fieldtype) && field.options).map((field) => field.options!));
 	}
 
 	private async load(doctype: string): Promise<ChildSession> {
 		const parent = this.parent()!.state;
 		const sameParent = this.shows.watch();
-		const state = this.added().includes(doctype) ? pendingChild(doctype, parent) : await loadEditor(doctype, parent.mode);
+		const state = this.added().includes(doctype) ? pendingChild(doctype, parent, this.linkOf(doctype)) : await loadEditor(doctype, parent.mode);
 		const edits = new ChildEdits(this.edits, state);
 		const session = { table: "", state, edits, canvas: new DesignCanvas(state, edits, this.forks) };
 		if (sameParent()) this.sessions.value = new Map(this.sessions.value).set(doctype, session);

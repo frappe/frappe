@@ -1,6 +1,7 @@
 // A child table made from the parent's editor: its prefilled name, and the pending DocType its
 // editor opens until the parent's save inserts it.
 import type { EditorState } from "./editorSource";
+import { fieldnameFromLabel } from "./fieldRules";
 
 /** "<Parent> <singular label>", so "Sales Invoice" and "Payment Plans" make "Sales Invoice Payment Plan". */
 export function newChildName(parent: string, label: string): string {
@@ -10,8 +11,18 @@ export function newChildName(parent: string, label: string): string {
 	return [parent, ...words].join(" ");
 }
 
-/** An empty child table in the parent's module, custom when the parent is. */
-export function pendingChild(name: string, parent: EditorState): EditorState {
+// The server suffixes a Link fieldname that is a row column (`doctype`, `parent`, …) the same way.
+const ROW_COLUMNS = ["doctype", "name", "owner", "creation", "modified", "modified_by", "docstatus", "idx", "parent", "parentfield", "parenttype"];
+
+function linkFieldname(link: string): string {
+	const fieldname = fieldnameFromLabel(link);
+	return ROW_COLUMNS.includes(fieldname) ? `${fieldname}_link` : fieldname;
+}
+
+/** An empty child table in the parent's module, custom when the parent is.
+ * A child of `link` holds that one Link field. */
+export function pendingChild(name: string, parent: EditorState, link?: string): EditorState {
+	const fields = link ? [{ fieldname: linkFieldname(link), label: link, fieldtype: "Link", options: link, in_list_view: 1 }] : [];
 	return {
 		doctype: name,
 		mode: "Design",
@@ -25,7 +36,7 @@ export function pendingChild(name: string, parent: EditorState): EditorState {
 		layouts: {
 			Details: [{ name: null, layout: [{ name: "details", sections: [{ name: "main", columns: [{ name: "column", fields: [] }] }] }], omitted: [], source: "fallback" }],
 		},
-		definition: { name, module: parent.module, custom: parent.custom, istable: 1, editable_grid: 1, allow_bulk_edit: 1, fields: [] },
+		definition: { name, module: parent.module, custom: parent.custom, istable: 1, editable_grid: 1, allow_bulk_edit: 1, fields },
 		parents: [],
 		pending: true,
 		kind_fixed: true,
