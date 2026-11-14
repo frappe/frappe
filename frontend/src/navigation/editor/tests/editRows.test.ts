@@ -191,7 +191,7 @@ describe("review fixes", () => {
 		expect(canGiveSidebar(d, row("m", { item_type: "Module" }))).toBe(false);
 	});
 
-	it("keeps hidden on a moved row, and lifts an inherited child whose own parent left", () => {
+	it("shows a moved row, and lifts an inherited child whose own parent left", () => {
 		const d = draft([row("b", { opens_sidebar: "s" })], {
 			s: [own(1, { hidden: 1 }), row("c", { parent_key: "user:000001" })],
 			t: [row("y")],
@@ -199,7 +199,7 @@ describe("review fixes", () => {
 		const opened = draft([row("b", { opens_sidebar: "s" }), row("z", { opens_sidebar: "t" })], d.sidebars);
 		const { draft: next } = ok(moveTo(opened, "s", "user:000001", "t", "user")) as { draft: Draft };
 		const moved = rowsOf(next, "t").find((r) => r.key === "user:000001")!;
-		expect(moved.hidden).toBe(1);
+		expect(moved.hidden).toBeUndefined();
 		const left = rowsOf(next, "s").find((r) => r.key === "c")!;
 		expect(left.parent_key).toBeUndefined();
 		expect(left.hidden).toBe(1);

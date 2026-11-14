@@ -229,7 +229,8 @@ export function moveTo(draft: Draft, from: string, key: string, to: string, scop
 	const rename = new Map(copies.map(({ member, key }) => [member.key, key]));
 	const moved = copies.map(({ member, key }): EditorRow => {
 		// A copy drops the inherited row's sidebar: the server takes no opens_sidebar it did not add.
-		const { hidden_by, no_access, view_deleted, opens_sidebar, ...rest } = member;
+		// Nor does it keep hidden on an own row: a moved row shows in its new place.
+		const { hidden, hidden_by, no_access, view_deleted, opens_sidebar, ...rest } = member;
 		const own = { ...rest, key } as EditorRow;
 		if (member.key === row.key || !member.parent_key) delete own.parent_key;
 		else own.parent_key = rename.get(member.parent_key);

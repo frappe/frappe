@@ -555,8 +555,20 @@ function remove() {
 	const before = rows.value;
 	apply(edited);
 	if (refused(edited)) return;
+	// The nearest row the list still shows: the deleted row's own children went with it.
+	const kept = new Set(
+		rowsOf(edited, container.value)
+			.filter((row) => showHidden.value || !row.hidden)
+			.map((row) => row.key),
+	);
 	const at = before.findIndex((row) => row.key === key);
-	selected.value = (before[at + 1] ?? before[at - 1])?.key ?? null;
+	const neighbour =
+		before.slice(at + 1).find((row) => kept.has(row.key)) ??
+		before
+			.slice(0, at)
+			.reverse()
+			.find((row) => kept.has(row.key));
+	selected.value = neighbour?.key ?? null;
 	if (container.value !== RAIL && !openedSidebars(edited).includes(container.value))
 		fitSidebar(edited);
 }

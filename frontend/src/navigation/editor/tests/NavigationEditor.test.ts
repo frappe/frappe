@@ -179,7 +179,7 @@ describe("the editor", () => {
 		await settle();
 		expect(body().querySelector("[data-give-sidebar]")).toBeNull();
 		// The tab change does not clear the selection: the sidebar's first row is open in the pane.
-		expect(body().querySelector("[data-editor-pane]")).not.toBeNull();
+		expect(text("[data-editor-pane] p")).toBe("Mine");
 
 		const rail = Array.from(body().querySelectorAll<HTMLElement>("button")).find(
 			(button) => button.textContent?.trim() === "Rail"
@@ -770,15 +770,36 @@ describe("the editor", () => {
 			expect(body().querySelector("[data-editor-pane]")).not.toBeNull();
 		});
 
-		it("offers Delete only on a row this level added", async () => {
+		it("offers Delete only on a row this level added, and Hide only on one it did not", async () => {
 			await open(response({ rail: [row("site:abc123", { label: "Shared" }), own(1)] }));
 			click("[data-key='site:abc123']");
 			await settle();
 			expect(body().querySelector("[data-delete]")).toBeNull();
+			expect(body().querySelector("[data-row-actions] [data-toggle]")).not.toBeNull();
 
 			click(`[data-key='${own(1).key}']`);
 			await settle();
 			expect(body().querySelector("[data-delete]")).not.toBeNull();
+			expect(body().querySelector("[data-row-actions] [data-toggle]")).toBeNull();
+		});
+
+		it("selects the next row the list shows after a section goes with its rows", async () => {
+			await openOn(
+				sidebarResponse([
+					own(1, { item_type: "Section" }),
+					own(2, { parent_key: own(1).key }),
+					row("todo", { hidden: 1 }),
+					own(3),
+				]),
+				{ tab: "sidebar", address: "s1" }
+			);
+			click(`[data-key='${own(1).key}']`);
+			await settle();
+			expect(text("[data-delete]")).toBe("Delete with 1 row");
+			click("[data-delete]");
+			await settle();
+			expect(rowsShown()).toEqual(["Own 3Added"]);
+			expect(text("[data-editor-pane] p")).toBe("Own 3");
 		});
 
 		it("says why a rail row's edit is refused, in the pane", async () => {

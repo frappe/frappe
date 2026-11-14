@@ -194,6 +194,31 @@ test.describe("Desk v2 navigation editor", () => {
 		await expect(tab(page, "Sidebar")).toHaveCount(0);
 	});
 
+	test("saves an own sidebar, keeps it on reopening, and drops it with its last row", async ({
+		page,
+	}) => {
+		await open_editor(page);
+		await add_link(page, "/apps/todo", "Home base");
+		await page.locator(`${EDITOR} [data-give-sidebar]`).click();
+		await page.locator(`${EDITOR} [data-save]`).click();
+		await expect(page.locator(EDITOR)).toHaveCount(0);
+
+		await open_editor(page);
+		await tab(page, "Sidebar").click();
+		await expect(page.locator(`${EDITOR} [data-editor-list] li`)).toHaveCount(1);
+		await page.locator(`${EDITOR} [data-editor-list] li`).first().click();
+		await page.locator(`${EDITOR} [data-delete]`).click();
+		// The sidebar goes with its last row, and Home base is a plain row again.
+		await expect(tab(page, "Sidebar")).toHaveCount(0);
+		await row_named(page, "Home base").click();
+		await expect(page.locator(`${EDITOR} [data-give-sidebar]`)).toBeVisible();
+		await expect(page.locator(`${EDITOR} [data-remove-sidebar]`)).toHaveCount(0);
+
+		await page.locator(`${EDITOR} [data-revert]`).click();
+		await page.locator(EDITOR).getByRole("button", { name: "Cancel" }).click();
+		await reset_and_save(page);
+	});
+
 	test("drags a row onto the other tab and drops it before a row there", async ({ page }) => {
 		await open_editor(page);
 		await add_link(page, "/apps/todo", "Home base");

@@ -59,7 +59,7 @@
 					<Dropdown
 						v-if="moveTargets.length"
 						:options="moveOptions"
-						side="top"
+						side="bottom"
 						align="start"
 					>
 						<Button
@@ -85,7 +85,9 @@
 						data-remove-sidebar
 						@click="emit('removeSidebar')"
 					/>
+					<!-- An own row is deleted, not hidden: the server keeps no hidden on it. -->
 					<Button
+						v-if="!canDelete"
 						variant="ghost"
 						:icon-left="row.hidden ? 'lucide-eye' : 'lucide-eye-off'"
 						:label="row.hidden ? __('Show') : __('Hide')"
@@ -154,7 +156,11 @@ const moveOptions = computed(() =>
 	})),
 );
 const deleteLabel = computed(() =>
-	props.deleteCount > 1 ? __("Delete with {0} rows", [props.deleteCount - 1]) : __("Delete"),
+	props.deleteCount > 2
+		? __("Delete with {0} rows", [props.deleteCount - 1])
+		: props.deleteCount === 2
+			? __("Delete with 1 row")
+			: __("Delete"),
 );
 
 const own = computed(() => !!props.row && isOwn(props.row.key, props.scope));
