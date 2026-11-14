@@ -1423,6 +1423,15 @@ class TestWhatAnOwnRowMustCarry(OwnRowsTestCase):
 
 		self.refused(page_row("user:k3f9a2", page))
 
+	def test_a_page_link_keeps_its_name_with_or_without_a_page_record(self):
+		page = frappe.get_all("Page", pluck="name", limit=1)[0]
+		for link_to in (page, "no-such-page-47416"):
+			item = frappe.new_doc("Navigation Item")
+			item.update(page_row("user:k3f9a2", link_to))
+
+			self.assertEqual(item.get_invalid_links(), ([], []))
+			self.assertEqual(item.link_to, link_to)
+
 	def test_a_record_you_can_open_is_kept(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "t47399", "public": 1}).insert(
 			ignore_permissions=True
