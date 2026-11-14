@@ -1,7 +1,11 @@
 <!-- One Danger zone row: what the act does to this DocType, and a red button that runs it. The act
      asks with its own dialog and writes at once, outside Save and undo. -->
 <template>
-	<SettingsRow :row="row" class="!py-3 [&:not(:first-child)]:border-t border-outline-gray-1">
+	<SettingsRow
+		:row="row"
+		compact
+		class="!py-3 [&:not(:first-child)]:border-t border-outline-gray-1"
+	>
 		<template #help>{{ help }}</template>
 		<Button
 			variant="subtle"

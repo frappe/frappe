@@ -1,5 +1,5 @@
 <!-- One setting: label and help, then the control in a 320px column on the pane's right edge, so
-     stacked rows share both edges. The Customize mark's slot takes no height, so the modes line up. -->
+     stacked rows share both edges; `compact` fits the column to the button, for the Danger zone. -->
 <template>
 	<div class="group/row relative isolate py-2" :data-setting="row.key">
 		<span data-flash aria-hidden="true" :class="FLASH" />
@@ -7,7 +7,12 @@
 			:class="
 				wide
 					? 'flex flex-col gap-2.5'
-					: 'grid grid-cols-[minmax(0,1fr)_320px] items-start gap-x-3'
+					: [
+							'grid items-start gap-x-3',
+							compact
+								? 'grid-cols-[minmax(0,1fr)_auto]'
+								: 'grid-cols-[minmax(0,1fr)_320px]',
+					  ]
 			"
 		>
 			<div class="min-w-0 pt-px">
@@ -28,7 +33,7 @@
 			</div>
 			<div
 				class="min-w-0"
-				:class="[!wide && 'flex min-h-7 items-center justify-end', lock && 'opacity-60']"
+				:class="[!wide && 'flex h-[21px] items-center justify-end', lock && 'opacity-60']"
 				:inert="Boolean(lock)"
 			>
 				<slot />
@@ -47,7 +52,7 @@ import SettingsMark from "./SettingsMark.vue";
 import type { SettingRow } from "./settingsRows";
 import { SettingsViewKey } from "./settingsView";
 
-const props = defineProps<{ row: SettingRow; wide?: boolean }>();
+const props = defineProps<{ row: SettingRow; wide?: boolean; compact?: boolean }>();
 const view = inject(SettingsViewKey)!;
 
 const FLASH =

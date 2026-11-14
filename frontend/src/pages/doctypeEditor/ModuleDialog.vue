@@ -2,13 +2,23 @@
      DocType, or one made standard, goes in an app's module. It closes with the module. -->
 <template>
 	<div class="flex flex-col gap-4" :data-module-dialog="standard ? 'standard' : 'move'">
-		<Combobox
-			v-model="picked"
-			:label="__('Module')"
-			:options="modules"
-			:placeholder="__('Choose a module')"
-		/>
-		<p class="text-p-base text-ink-gray-7">{{ consequence }}</p>
+		<div class="flex flex-col gap-1.5">
+			<Combobox
+				v-model="picked"
+				:label="__('Module')"
+				:options="modules"
+				:placeholder="__('Choose a module')"
+			/>
+			<p
+				class="text-p-sm"
+				:class="[
+					picked ? 'text-ink-gray-6' : 'text-ink-gray-5',
+					standard && 'min-h-[39px]',
+				]"
+			>
+				{{ picked ? consequence : unpicked }}
+			</p>
+		</div>
 		<div class="flex justify-end gap-2">
 			<Button :label="__('Cancel')" @click="close(null)" />
 			<Button
@@ -43,6 +53,9 @@ const modules = ref<{ label: string; value: string; description?: string }[]>([]
 // The files go in an app: only a custom DocType that stays custom may move to a site's own module.
 const appModules = props.standard || !props.custom;
 
+const unpicked = props.standard
+	? __("The module, and with it the app its files go in.")
+	: __("The module, and with it the app it belongs to.");
 const consequence = computed(() => {
 	if (props.standard)
 		return __(

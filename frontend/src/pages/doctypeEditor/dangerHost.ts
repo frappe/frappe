@@ -36,8 +36,8 @@ export function dangerHost(page: DangerPage): DangerHost {
 				{ doctype, kind: kindOf(definition), records: record_count },
 				{ title: __("Change {0}'s kind", [doctype]) }
 			),
-		askName: ({ doctype }) =>
-			shellDialog().open(RenameDoctypeDialog, { doctype }, { title: __("Rename {0}", [doctype]) }),
+		askName: ({ doctype, record_count }) =>
+			shellDialog().open(RenameDoctypeDialog, { doctype, records: record_count ?? null }, { title: __("Rename {0}", [doctype]) }),
 		askModule: ({ doctype, module, custom }, standard) =>
 			shellDialog().open(
 				ModuleDialog,

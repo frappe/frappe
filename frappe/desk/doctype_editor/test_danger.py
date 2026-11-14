@@ -13,6 +13,7 @@ from frappe.desk.doctype_editor.danger import (
 	make_standard,
 	move_doctype,
 	rename_doctype,
+	rename_effects,
 )
 from frappe.desk.doctype_editor.test_create import make_user
 from frappe.desk.doctype_editor.test_save_design import delete_committed, make_custom_doctype
@@ -105,6 +106,62 @@ class TestRenameDoctype(IntegrationTestCase):
 		self.assertEqual(rename_doctype(DOCTYPE, RENAMED), RENAMED)
 		self.assertFalse(frappe.db.exists("DocType", DOCTYPE))
 		self.assertEqual(frappe.db.get_value(RENAMED, record.name, "title"), "One")
+
+
+class TestRenameEffects(IntegrationTestCase):
+	def setUp(self):
+		make_custom_doctype(DOCTYPE)
+		self.addCleanup(delete_committed, "DocType", DOCTYPE)
+		self.addCleanup(delete_committed, "DocType", PARENT)
+
+	def test_it_counts_the_link_and_table_fields_that_point_to_it(self):
+		self.assertEqual(rename_effects(DOCTYPE), 0)
+		fields = [
+			{"fieldname": "link", "label": "Link", "fieldtype": "Link", "options": DOCTYPE},
+			{"fieldname": "again", "label": "Again", "fieldtype": "Link", "options": DOCTYPE},
+			{"fieldname": "other", "label": "Other", "fieldtype": "Link", "options": "User"},
+		]
+		make_custom_doctype(PARENT, fields=fields)
+		self.assertEqual(rename_effects(DOCTYPE), 2)
+
+	def test_it_counts_custom_fields_and_table_fields_but_not_its_own(self):
+		make_custom_doctype(DOCTYPE, istable=1)
+		make_custom_doctype(
+			PARENT, fields=[{"fieldname": "rows", "label": "Rows", "fieldtype": "Table", "options": DOCTYPE}]
+		)
+		for dt in (PARENT, DOCTYPE):
+			field = frappe.get_doc(
+				{
+					"doctype": "Custom Field",
+					"dt": dt,
+					"fieldname": "test_47441_link",
+					"fieldtype": "Link",
+					"options": DOCTYPE,
+				}
+			).insert()
+			self.addCleanup(delete_committed, "Custom Field", field.name)
+		self.assertEqual(rename_effects(DOCTYPE), 2)
+
+	def test_it_counts_table_multiselect_fields(self):
+		make_custom_doctype(
+			DOCTYPE,
+			istable=1,
+			fields=[{"fieldname": "user", "label": "User", "fieldtype": "Link", "options": "User"}],
+		)
+		make_custom_doctype(
+			PARENT,
+			fields=[
+				{"fieldname": "users", "label": "Users", "fieldtype": "Table MultiSelect", "options": DOCTYPE}
+			],
+		)
+		self.assertEqual(rename_effects(DOCTYPE), 1)
+
+	def test_it_is_for_a_system_manager(self):
+		make_user(NO_ROLES, [])
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(NO_ROLES)
+		with self.assertRaises(frappe.PermissionError):
+			rename_effects(DOCTYPE)
 
 
 class TestMoveWithoutDeveloperMode(IntegrationTestCase):

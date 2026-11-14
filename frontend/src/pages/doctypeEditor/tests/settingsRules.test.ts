@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { autonameOf, namingProperties, patternRefusal, patternSeed, ruleOf, ruleRefusal } from "../namingRules";
 import { columns, moreRights, rightRefusal } from "../permissionColumns";
 import type { PermissionRow, SettingsState } from "../settingsModel";
-import { kindProperties, settingRows, settingSections, type DangerScope, type DoctypeKind } from "../settingsRows";
+import { KINDS, kindProperties, settingRows, settingSections, type DangerScope, type DoctypeKind } from "../settingsRows";
 
 function settings(overrides: Partial<SettingsState> = {}): SettingsState {
 	return {
@@ -112,7 +112,7 @@ describe("the naming rules", () => {
 	});
 
 	it("refuses Number in order while records exist, and Customize's switch to it", () => {
-		expect(ruleRefusal(settings(), [], "autoincrement")).toBe("Only while there are no records: this DocType has 3.");
+		expect(ruleRefusal(settings(), [], "autoincrement")).toBe("Not while 3 records exist: their names are not numbers.");
 		expect(ruleRefusal(settings({ records: 0 }), [], "autoincrement")).toBe("");
 		const app = { properties: {}, permissions: [] };
 		expect(ruleRefusal(settings({ app }), [], "autoincrement")).toBe("Customize cannot switch to or from Number in order.");
@@ -120,10 +120,10 @@ describe("the naming rules", () => {
 
 	it("refuses a naming series in Customize without the field, and any switch from a script", () => {
 		const app = { properties: {}, permissions: [] };
-		expect(ruleRefusal(settings({ app }), [], "naming_series")).toBe("Needs a Naming Series field. Add one in the Editor first.");
+		expect(ruleRefusal(settings({ app }), [], "naming_series")).toBe("Add a Select field named naming_series first.");
 		expect(ruleRefusal(settings({ app }), [{ fieldname: "naming_series" }] as never, "naming_series")).toBe("");
 		const scripted = settings({ properties: { naming_rule: "By script", autoname: "x" } });
-		expect(ruleRefusal(scripted, [], "hash")).toBe("The app's code names each record. Change it there.");
+		expect(ruleRefusal(scripted, [], "hash")).toBe("Another rule would be ignored.");
 	});
 });
 
@@ -141,5 +141,17 @@ describe("the permission rights", () => {
 		expect(rightRefusal(row(1), "create", true)).toBe("A rule above level 0 only reads and writes its fields.");
 		expect(rightRefusal(row(0), "create", true)).toBe("");
 		expect(rightRefusal(row(0), "import", false)).toBe("Turn on Allow import in List and search first.");
+	});
+});
+
+describe("the prototype's look", () => {
+	it("lists the kinds as Regular, Submittable, Tree, Child table, Single", () => {
+		expect(KINDS.map((kind) => kind.label)).toEqual(["Regular", "Submittable", "Tree", "Child table", "Single"]);
+	});
+
+	it("puts a Default view row first in List and search, for the kinds with a list", () => {
+		expect(settingRows(ofKind("regular")).filter((row) => row.section === "list")[0].key).toBe("default_view");
+		expect(keys(ofKind("single"))).not.toContain("default_view");
+		expect(keys(ofKind("child"))).not.toContain("default_view");
 	});
 });

@@ -53,6 +53,18 @@ def rename_doctype(doctype: str, new_name: str) -> str:
 
 
 @frappe.desk_v2_only
+@frappe.whitelist(methods=["GET"])
+def rename_effects(doctype: str) -> int:
+	"""How many Link, Table and Table MultiSelect fields in other DocTypes point to it; they follow a rename."""
+	check_mode(doctype, "Design")
+	check_administrator(doctype)
+	points_here = {"fieldtype": ["in", ("Link", *frappe.model.table_fields)], "options": doctype}
+	return frappe.db.count("DocField", {**points_here, "parent": ["!=", doctype]}) + frappe.db.count(
+		"Custom Field", {**points_here, "dt": ["!=", doctype]}
+	)
+
+
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def delete_doctype(doctype: str) -> None:
 	"""Deletes it with its records, layouts and table; custom fields that use it as a child table go too."""

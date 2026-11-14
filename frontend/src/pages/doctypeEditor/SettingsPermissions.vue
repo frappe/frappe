@@ -63,13 +63,13 @@
 			:inert="Boolean(locked)"
 		>
 			<table class="w-full table-fixed text-base">
-				<thead class="bg-surface-gray-1 text-sm text-ink-gray-5">
+				<thead class="bg-surface-gray-1 text-sm text-ink-gray-6">
 					<tr>
 						<th class="px-3 py-2 text-left font-normal">{{ __("Role") }}</th>
 						<th
 							v-for="right in shown"
 							:key="right"
-							class="w-[52px] px-1 py-2 text-center font-normal"
+							class="w-14 px-1 py-2 text-center font-normal"
 						>
 							{{ __(RIGHT_LABELS[right]) }}
 						</th>
@@ -84,6 +84,7 @@
 						:rule="rule"
 						:shown="shown"
 						:more="more"
+						:creator="view.kind !== 'single'"
 						:last="rules.length === 1"
 					/>
 				</tbody>

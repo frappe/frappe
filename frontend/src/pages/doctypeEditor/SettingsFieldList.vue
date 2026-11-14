@@ -19,7 +19,7 @@
 		</span>
 		<Combobox
 			:key="picked.join()"
-			class="w-40"
+			class="w-[200px]"
 			variant="subtle"
 			:model-value="''"
 			:options="options"

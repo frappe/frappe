@@ -21,8 +21,13 @@ def get_customizations(meta: Meta) -> dict:
 	app_fields = {df.fieldname: df for df in app_doc.fields}
 	standard = [df for df in meta.fields if is_standard_or_system_generated_field(df)]
 	not_in_list_view = get_fields_not_allowed_in_list_view(meta)
+	definition = meta.as_dict(no_nulls=True)
+	# Meta reads Custom DocPerm by `creation`, which a copy leaves in any order: the rules keep `idx`.
+	definition["permissions"] = sorted(
+		definition.get("permissions") or [], key=lambda row: row.get("idx") or 0
+	)
 	return {
-		"definition": meta.as_dict(no_nulls=True),
+		"definition": definition,
 		"custom_fields": frappe.get_all(
 			"Custom Field",
 			filters={"dt": meta.name},

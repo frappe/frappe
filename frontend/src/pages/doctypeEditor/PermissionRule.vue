@@ -48,7 +48,7 @@
 			<!-- A rule above level 0 only reads and writes its fields: no more rights to give. -->
 			<span
 				v-if="rule.permlevel"
-				class="text-ink-gray-4"
+				class="text-ink-gray-5"
 				:aria-label="__('No more rights at this level')"
 				>—</span
 			>
@@ -63,18 +63,32 @@
 						data-perm-more
 					/>
 				</template>
-				<div class="flex w-[260px] flex-col p-1" data-perm-more-popover>
-					<p class="px-1.5 py-1 text-sm text-ink-gray-5">{{ rule.role }}</p>
+				<div class="flex w-[200px] flex-col p-1" data-perm-more-popover>
+					<p class="px-1.5 py-1 text-sm text-ink-gray-6">{{ rule.role }}</p>
 					<Checkbox
 						v-for="right in more"
 						:key="right"
 						padded
+						:title="RIGHT_HELP[right] ? __(RIGHT_HELP[right]) : undefined"
 						:label="__(RIGHT_LABELS[right])"
-						:description="refusal(right) || __(RIGHT_HELP[right] ?? '')"
+						:description="refusal(right) || undefined"
 						:disabled="Boolean(refusal(right))"
 						:model-value="Boolean(rule[right])"
 						:data-perm-right="right"
 						@update:model-value="toggle(right, Boolean($event))"
+					/>
+					<Checkbox
+						v-if="creator"
+						padded
+						:title="__('Only the records this role\'s people created.')"
+						:label="__('Only if creator')"
+						:description="creatorRefusal || undefined"
+						:disabled="Boolean(creatorRefusal)"
+						:model-value="Boolean(rule.if_owner)"
+						data-perm-if-owner
+						@update:model-value="
+							view.permission('set_if_owner', { ...key, value: $event ? 1 : 0 })
+						"
 					/>
 				</div>
 			</Popover>
@@ -100,7 +114,13 @@ import { RIGHT_HELP, RIGHT_LABELS, rightRefusal } from "./permissionColumns";
 import type { PermissionRow, Right } from "./settingsModel";
 import { SettingsViewKey } from "./settingsView";
 
-const props = defineProps<{ rule: PermissionRow; shown: Right[]; more: Right[]; last: boolean }>();
+const props = defineProps<{
+	rule: PermissionRow;
+	shown: Right[];
+	more: Right[];
+	creator: boolean;
+	last: boolean;
+}>();
 const view = inject(SettingsViewKey)!;
 
 const key = computed(() => ({
@@ -109,8 +129,20 @@ const key = computed(() => ({
 	if_owner: props.rule.if_owner,
 }));
 const moreLabel = computed(() => {
-	const on = props.more.filter((right) => props.rule[right]).length;
+	const on = props.more.filter((right) => props.rule[right]).length + props.rule.if_owner;
 	return on ? `+${on}` : "";
+});
+// Only if creator is part of the rule's key: a twin rule with the other value blocks the move.
+const creatorRefusal = computed(() => {
+	if (props.rule.permlevel && !props.rule.if_owner)
+		return __("Only if creator is for level 0 rules.");
+	const twin = view.settings.permissions.some(
+		(one) =>
+			one.role === props.rule.role &&
+			one.permlevel === props.rule.permlevel &&
+			one.if_owner !== props.rule.if_owner
+	);
+	return twin ? __("{0} already has that rule.", [props.rule.role]) : "";
 });
 const menu = computed(() => [
 	{
