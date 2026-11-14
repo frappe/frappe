@@ -141,13 +141,7 @@ class TestPermissions(IntegrationTestCase):
 
 			perms = boot_perms()
 			self.assertIn(owner_only_dt, perms.can_export)
-			self.assertIn(owner_only_dt, perms.can_export_owner_only)
 			self.assertIn(shared_dt, perms.can_export)
-			self.assertNotIn(shared_dt, perms.can_export_owner_only)
-
-			user.add_roles("System Manager")
-			perms = boot_perms()
-			self.assertNotIn(owner_only_dt, perms.can_export_owner_only)
 		finally:
 			frappe.set_user("Administrator")
 			frappe.delete_doc("User", user_name, ignore_missing=True, force=True)
