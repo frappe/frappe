@@ -133,6 +133,33 @@ class TestDocument(IntegrationTestCase):
 		doc.save()
 		self.assertEqual(doc.child_table[-1].some_fieldname, default)
 
+	def test_fetch_from_a_child_row_updated_in_the_same_transaction(self):
+		child_table = new_doctype(istable=1).insert().name
+		parent = new_doctype(
+			fields=[{"fieldtype": "Table", "options": child_table, "fieldname": "child_table"}]
+		).insert()
+		linked = new_doctype(
+			fields=[
+				{"fieldtype": "Link", "options": child_table, "fieldname": "row", "label": "Row"},
+				{
+					"fieldtype": "Data",
+					"fieldname": "row_value",
+					"label": "Row Value",
+					"fetch_from": "row.some_fieldname",
+					"read_only": 1,
+				},
+			]
+		).insert()
+
+		doc = frappe.get_doc({"doctype": parent.name, "child_table": [{"some_fieldname": "old"}]}).insert()
+		link = frappe.get_doc({"doctype": linked.name, "row": doc.child_table[0].name}).insert()
+		self.assertEqual(link.row_value, "old")
+
+		doc.child_table[0].some_fieldname = "new"
+		doc.save()
+		link.save()
+		self.assertEqual(link.row_value, "new")
+
 	def test_insert_with_child(self):
 		d = frappe.get_doc(
 			{
