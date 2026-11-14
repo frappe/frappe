@@ -2024,9 +2024,9 @@ fraction.js@^5.3.4:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-5.3.4.tgz#8c0fcc6a9908262df4ed197427bdeef563e0699a"
   integrity sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==
 
-"frappe-ui@github:frappe/frappe-ui#fa69f53219da81368845db20b1ac0ad3a8ae62fe":
-  version "1.1.0"
-  resolved "https://codeload.github.com/frappe/frappe-ui/tar.gz/fa69f53219da81368845db20b1ac0ad3a8ae62fe"
+"frappe-ui@github:frappe/frappe-ui#08a64a3dc41fba3f93119a9e1bd03098ef95205a":
+  version "1.2.0"
+  resolved "https://codeload.github.com/frappe/frappe-ui/tar.gz/08a64a3dc41fba3f93119a9e1bd03098ef95205a"
   dependencies:
     "@codemirror/autocomplete" "^6.0.0"
     "@codemirror/commands" "^6.0.0"
