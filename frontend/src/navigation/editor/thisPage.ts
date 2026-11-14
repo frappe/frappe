@@ -1,5 +1,5 @@
-// "Add this page": the page under the dialog as a row to add. A saved view maps to a View row,
-// which #47418 owns, so it offers nothing until that lands.
+// "Add this page": the page under the dialog as a row to add. A saved view offers nothing: a
+// View row is not addable yet.
 
 import type { Addresses } from "@/addresses";
 import type { EditorRow } from "./draft";

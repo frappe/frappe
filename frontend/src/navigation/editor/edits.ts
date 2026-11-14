@@ -197,7 +197,7 @@ export function remove(draft: Draft, container: string, key: string, scope: Scop
 
 /**
  * Move a row to the end of another container. An own row keeps its key and fields. An inherited
- * row is hidden in place and an own copy with a new key goes into the target (#47392 R1-Q6).
+ * row is hidden in place and an own copy with a new key goes into the target.
  * The children come along; a row with children cannot go to the rail. Only a kind the server takes
  * as an own row can be copied, and a row that opens a sidebar cannot go into one. The last row
  * out of an own sidebar takes the sidebar with it.
@@ -275,7 +275,7 @@ export function dropAcross(
 	return refused(placed) ? placed : { draft: placed, key: moved.key };
 }
 
-/** A drop onto a rail row that opens a sidebar puts the row at the end of that sidebar (R1-Q9). */
+/** A drop onto a rail row that opens a sidebar puts the row at the end of that sidebar. */
 export function dropInto(draft: Draft, from: string, key: string, railKey: string, scope: Scope): Moved {
 	const opener = find(draft, RAIL, railKey);
 	const sidebar = sidebarOf(opener);
@@ -289,7 +289,7 @@ export function canGiveSidebar(draft: Draft, row: EditorRow): boolean {
 	return addable(row.item_type) && row.item_type !== "Section" && !row.opens_sidebar && !openerOf(draft, row.key);
 }
 
-/** A new own sidebar whose first row copies the item's target; the item then opens it (#47392 R1-Q3). */
+/** A new own sidebar whose first row copies the item's target; the item then opens it. */
 export function giveSidebar(draft: Draft, railKey: string, scope: Scope): Moved {
 	const item = find(draft, RAIL, railKey);
 	if (!item) return __("This row no longer exists.");
@@ -320,7 +320,7 @@ export function removeSidebar(draft: Draft, railKey: string, scope: Scope): Edit
 }
 
 /**
- * An own sidebar that an edit left empty goes, and its opener stays a plain row (#47416 Q17).
+ * An own sidebar that an edit left empty goes, and its opener stays a plain row.
  * A Sidebar row that names it keeps it: that row has nothing else to open.
  */
 function dropIfEmpty(draft: Draft, container: string, scope: Scope): Draft {

@@ -49,7 +49,7 @@ class NavigationItem(Document):
 		page = self.link_to
 		invalid, cancelled = super().get_invalid_links(is_submittable, link_value_cache)
 		# A page an app draws in the frontend has no `Page` record, and the base check sets a missing link to None.
-		if self.item_type == "Page":
+		if self.item_type == "Page" and self.link_doctype == "Page":
 			self.link_to = page
 			invalid = [link for link in invalid if link[0] != "link_to"]
 

@@ -6,7 +6,7 @@
 			<p v-if="!own" class="-mt-3 mb-5 text-sm text-ink-gray-5">
 				{{
 					__(
-						"You can rename it, change its icon, hide it or move it. Its type and target stay.",
+						"You can rename it, change its icon, hide it or move it. Its type and target stay."
 					)
 				}}
 			</p>
@@ -42,13 +42,18 @@
 						data-field="parent"
 						@update:modelValue="(value: string) => emit('nest', value || null)"
 					/>
-					<p v-if="refusal" class="text-p-sm text-ink-red-7" data-refusal>
+					<p v-if="refusal" class="text-p-sm text-ink-red-7" role="alert" data-refusal>
 						{{ refusal }}
 					</p>
 				</div>
 			</div>
 			<!-- With no Place under, a refused Move to, sidebar or delete says why above the actions. -->
-			<p v-if="refusal && !canPlace" class="mt-3 text-p-sm text-ink-red-7" data-refusal>
+			<p
+				v-if="refusal && !canPlace"
+				class="mt-3 text-p-sm text-ink-red-7"
+				role="alert"
+				data-refusal
+			>
 				{{ refusal }}
 			</p>
 
@@ -153,14 +158,14 @@ const moveOptions = computed(() =>
 	props.moveTargets.map((target) => ({
 		label: target.label,
 		onClick: () => emit("moveTo", target.value),
-	})),
+	}))
 );
 const deleteLabel = computed(() =>
 	props.deleteCount > 2
 		? __("Delete with {0} rows", [props.deleteCount - 1])
 		: props.deleteCount === 2
-			? __("Delete with 1 row")
-			: __("Delete"),
+		? __("Delete with 1 row")
+		: __("Delete")
 );
 
 const own = computed(() => !!props.row && isOwn(props.row.key, props.scope));

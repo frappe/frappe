@@ -312,7 +312,7 @@ const draft = computed<Draft | undefined>({
 const opened = computed(() => reads.value[scope.value]?.opened);
 const hasSaved = computed(() => !!reads.value[scope.value]?.hasSaved);
 const changed = computed(
-	() => !!draft.value && !!opened.value && dirty(opened.value, draft.value),
+	() => !!draft.value && !!opened.value && dirty(opened.value, draft.value)
 );
 const container = computed(() => (tab.value === "rail" ? RAIL : sidebar.value));
 const rows = computed(() => (draft.value ? rowsOf(draft.value, container.value) : []));
@@ -329,7 +329,7 @@ const sidebarOptions = computed(() =>
 	openedKeys.value.map((key) => ({
 		label: sidebarLabel(key),
 		value: key,
-	})),
+	}))
 );
 const levels = computed(() => [
 	{ label: __("Just me"), value: "user", disabled: changed.value || resetting.value },
@@ -343,8 +343,8 @@ const levelHint = computed(() =>
 	changed.value
 		? __("Save or discard your changes first.")
 		: canEditSite.value
-			? ""
-			: __("Only System Managers can change it for everyone"),
+		? ""
+		: __("Only System Managers can change it for everyone")
 );
 const layoutOptions = computed(() => {
 	const below =
@@ -383,7 +383,7 @@ watch(
 		if (target.tab === "sidebar") sidebar.value = target.address;
 		load("user");
 	},
-	{ immediate: true },
+	{ immediate: true }
 );
 
 // The other tab offers other types: a form left open would add to a list it was not started on.
@@ -530,7 +530,7 @@ const moveTargets = computed(() => {
 			(target) =>
 				target !== container.value &&
 				target !== sidebarOf(row) &&
-				(target === RAIL || !(own && sidebarOf(row))),
+				(target === RAIL || !(own && sidebarOf(row)))
 		)
 		.map((target) => ({
 			label: target === RAIL ? __("Rail") : sidebarLabel(target),
@@ -544,7 +544,7 @@ const canRemoveOwnSidebar = computed(() => {
 const deleteCount = computed(() =>
 	current.value && isOwn(current.value.key, scope.value)
 		? 1 + descendantsToDelete(rows.value, current.value.key, scope.value).length
-		: 1,
+		: 1
 );
 
 /** Selection after an edit that removes the row from this list moves to its neighbour. */
@@ -559,7 +559,7 @@ function remove() {
 	const kept = new Set(
 		rowsOf(edited, container.value)
 			.filter((row) => showHidden.value || !row.hidden)
-			.map((row) => row.key),
+			.map((row) => row.key)
 	);
 	const at = before.findIndex((row) => row.key === key);
 	const neighbour =
@@ -591,7 +591,7 @@ function giveSidebar() {
 	draft.value = next.draft;
 	show(
 		rowsOf(next.draft, RAIL).find((row) => row.key === selected.value)!.opens_sidebar!,
-		next.key,
+		next.key
 	);
 }
 
@@ -620,7 +620,7 @@ async function openForm(key: string) {
 	await nextTick();
 	document
 		.querySelector<HTMLInputElement>(
-			"[data-editor-pane] [data-field='label'] input, [data-editor-pane] input[data-field='label']",
+			"[data-editor-pane] [data-field='label'] input, [data-editor-pane] input[data-field='label']"
 		)
 		?.focus();
 }
@@ -679,7 +679,7 @@ onBeforeUnmount(() => {
 	clearHover();
 });
 
-/** Held over the other tab for 500 ms, a drag switches to it (R1-Q9). */
+/** Held over the other tab for 500 ms, a drag switches to it. */
 function overTabs(event: DragEvent) {
 	if (!dragging.value || !isRowDrag(event)) return;
 	const buttons = [...(event.currentTarget as HTMLElement).querySelectorAll("button")];

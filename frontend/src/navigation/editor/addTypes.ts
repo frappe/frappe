@@ -1,5 +1,5 @@
-// The add-row picker's step list: one entry per type a person can add. #47402 (Act) and #47418
-// (View) each add an entry here and a branch in `EditorRowForm.vue`; nothing else changes.
+// The add-row picker's step list: one entry per type a person can add. A new type adds an entry
+// here and a branch in `EditorRowForm.vue`; nothing else changes.
 
 import { __ } from "@/i18n";
 import type { EditorRow } from "./draft";

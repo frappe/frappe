@@ -59,7 +59,9 @@
 					:label="__('Starts closed')"
 				/>
 			</template>
-			<p v-if="refusal" class="text-p-sm text-ink-red-7" data-refusal>{{ refusal }}</p>
+			<p v-if="refusal" class="text-p-sm text-ink-red-7" role="alert" data-refusal>
+				{{ refusal }}
+			</p>
 		</div>
 		<div
 			class="mt-auto flex h-[49px] shrink-0 items-center justify-end border-t border-outline-gray-1"
@@ -100,7 +102,7 @@ const pages = [
 	{ label: __("Pick a page"), value: "" },
 	...contributedPages
 		.filter(
-			(page) => router.hasRoute(`page:${page.app}:${page.slug}`) && page.app === boot.app,
+			(page) => router.hasRoute(`page:${page.app}:${page.slug}`) && page.app === boot.app
 		)
 		.map((page) => ({ label: page.title ?? page.slug, value: page.slug })),
 ];
