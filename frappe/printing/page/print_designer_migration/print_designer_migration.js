@@ -27,7 +27,7 @@ class PrintDesignerMigration {
 
 	render(rows) {
 		this.page.clear_primary_action();
-		if (rows.some((row) => !row.converted && row.standard !== "Yes")) {
+		if (rows.some((row) => !row.converted)) {
 			this.page.set_primary_action(__("Convert All"), () => this.convert_all());
 		}
 
