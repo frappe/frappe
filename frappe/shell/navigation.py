@@ -194,8 +194,10 @@ def resolve_sidebar(
 	check_permission: bool = True,
 	layers: dict[str, list[dict]] | None = None,
 ) -> list[dict]:
-	"""One sidebar at one address, for a caller that wants that one and not the prefix."""
-	# `layers`: this address's layers by role, for a caller that loaded many addresses in one go.
+	"""One sidebar at one address, for a caller that wants that one and not the prefix.
+
+	`layers` is this address's layers by role, for a caller that loaded many addresses in one go.
+	"""
 	# No app to build a context for: the one rule that reaches across containers runs on the rail.
 	context = NavigationContext("") if check_permission else None
 

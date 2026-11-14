@@ -1,8 +1,3 @@
-# ARRANGEMENT EDITOR — the one read and the one write behind the navigation editor.
-
-# The editor holds a draft of every container of one app at one level, so it reads them all at
-# once and writes the changed ones in one request: a refusal anywhere writes nothing.
-
 import hashlib
 import json
 
@@ -29,7 +24,6 @@ from .navigation_filter import NavigationContext
 
 def read_arrangements(app: str, scope: str) -> dict:
 	"""The rail, every sidebar, the layouts and the version of one app at one level."""
-	# A sidebar the person's blocked modules remove is left out, not refused: it is not theirs to arrange.
 	from .arrangement import get_navigation_layouts
 
 	# First: a write that lands while the rows resolve must make this version stale, not the rows.
@@ -44,7 +38,6 @@ def read_arrangements(app: str, scope: str) -> dict:
 		and not (scope == "site" and address[1].startswith("user:"))
 		and (key := _boot_key(address))
 	}
-	# One pair of queries for every sidebar, not one per sidebar and resolve.
 	layers = _sidebar_layers(list(offered.values()))
 
 	rail_rows = _editor_rows(rail, scope)
@@ -82,7 +75,6 @@ def write_arrangements(app: str, scope: str, containers: str | dict, version: st
 	stored = _own_sidebars(rail, scope)
 	_check_rows(rail, scope, reduced, stored)
 
-	# What this save leaves unopened is deleted below, so it neither counts toward the caps nor is written.
 	doomed = _unopened(rail, scope, reduced, stored)
 	reduced = [(target, rows) for target, rows in reduced if target.layer.get("key") not in doomed]
 	_check_caps(
@@ -103,8 +95,6 @@ def write_arrangements(app: str, scope: str, containers: str | dict, version: st
 
 def level_version(app: str, scope: str, for_update: bool = False) -> str:
 	"""A hash of this level's records of the app, which changes with any write to them."""
-	# One person's write to a container and another's to a different one still differ: the editor
-	# holds all of them, so a stale draft of any is a stale draft.
 	user = frappe.session.user if scope == "user" else SITE_LAYER
 	records = []
 
@@ -113,7 +103,6 @@ def level_version(app: str, scope: str, for_update: bool = False) -> str:
 		query = frappe.qb.from_(table).select(table.name, table.modified)
 		query = query.where((table.app == app) & (table.standard == 0) & (table.user == user))
 
-		# A desk v1 sidebar carries no address and is no container of the editor.
 		if doctype == "Sidebar":
 			query = query.where(table.key.notnull() | table.link_doctype.notnull())
 
@@ -124,12 +113,8 @@ def level_version(app: str, scope: str, for_update: bool = False) -> str:
 	return hashlib.sha1(json.dumps(sorted(records)).encode()).hexdigest()
 
 
-# What the read adds to each row
-
-
 def _editor_rows(target: Target, scope: str, layers: dict | None = None) -> list[dict]:
 	"""One container up to this level, hidden rows kept, with what the editor draws a row by."""
-	# `layers`: the sidebar's stored layers, when the caller has loaded them for every sidebar.
 	extra = {"layers": layers} if layers is not None else {}
 	rows = target.resolve(upto=scope, keep_hidden=True, **extra)
 
@@ -146,7 +131,6 @@ def _with_hidden_by(target: Target, rows: list[dict], scope: str, extra: dict) -
 	if not any(row.get("hidden") for row in rows):
 		return rows
 
-	# A person's own hide only counts for what the site left showing.
 	by_site = set()
 
 	if scope == "user":
@@ -179,9 +163,6 @@ def _mark(lists: list[list[dict]], scope: str):
 
 		for row in by_type[item_type]:
 			row |= marks.get(row["key"], {})
-
-
-# The write, check by check
 
 
 def _payload(containers: str | dict) -> dict:
@@ -247,7 +228,6 @@ def _check_rows(rail: Target, scope: str, reduced: list[tuple[Target, list[dict]
 	for target, rows in reduced:
 		_validate_own_rows(target, target.layer["doctype"], scope, _added(rows))
 
-	# A payload sidebar with no rows is not stored, so it cannot be opened.
 	kept = {key for key in stored if key not in _by_key(reduced, scope)} | {
 		key for key, rows in _by_key(reduced, scope).items() if rows
 	}
@@ -257,7 +237,6 @@ def _check_rows(rail: Target, scope: str, reduced: list[tuple[Target, list[dict]
 		for row in (row for row in rows if row.get("opens_sidebar")):
 			_check_opener(row, target.layer["doctype"], scope, kept, seen)
 
-	# A rail the payload leaves be keeps its openers, so it may not lose the sidebar one of them opens.
 	if not any(target.layer["doctype"] == "Rail" for target, _rows in reduced):
 		emptied = set(_by_key(reduced, scope)) - kept
 		opened = _stored_openers(rail) & emptied
@@ -323,7 +302,6 @@ def _unopened(
 	rail: Target, scope: str, reduced: list[tuple[Target, list[dict]]], stored: dict[str, str]
 ) -> set[str]:
 	"""Step 8: the keys of this level's own sidebars, stored or sent, that no rail row of this level opens after the save."""
-	# How "Remove its sidebar" and deleting an own rail row reach the server.
 	rails = [rows for target, rows in reduced if target.layer["doctype"] == "Rail"]
 	opened = (
 		{row["opens_sidebar"] for row in rails[0] if row.get("opens_sidebar")}

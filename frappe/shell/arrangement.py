@@ -196,9 +196,11 @@ def _check_caps(
 	saving: "list[Target] | None" = None,
 	ignoring: "set[str] | None" = None,
 ):
-	"""Refuse more own rows than one app may carry at this level; `_known` caps one container."""
-	# `saving`: every layer this save writes, whose stored rows the payload replaces.
-	# `ignoring`: records this save deletes, whose rows are gone once it lands.
+	"""Refuse more own rows than one app may carry at this level; `_known` caps one container.
+
+	`saving` is every layer this save writes, whose stored rows the payload replaces, and `ignoring`
+	the records it deletes, whose rows are gone once it lands.
+	"""
 	if not own_rows:
 		return
 
