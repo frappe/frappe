@@ -230,6 +230,20 @@ class TestPrintFormatBuilderElements(IntegrationTestCase):
 		self.assertTrue(get_barcode("5901234123457", "EAN13"))
 		self.assertIsNone(get_barcode("5901234123450", "EAN13"))
 
+	def test_isbn_barcode_accepts_hyphens(self):
+		from frappe.utils.print_format_generator import get_barcode
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		self.assertEqual(get_barcode("978-0-306-40615-7", "ISBN13"), get_barcode("9780306406157", "ISBN13"))
+
+	def test_gs1_barcode_with_brackets_prints_nothing(self):
+		from frappe.utils.print_format_generator import get_barcode
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		self.assertIsNone(get_barcode("(01)09501101530003", "GS1_128"))
+
 	def test_qr_code(self):
 		import base64
 
