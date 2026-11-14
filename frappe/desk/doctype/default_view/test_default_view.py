@@ -1,7 +1,11 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
+from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.desk.doctype.default_view import resolver
 from frappe.desk.doctype.default_view.api import clear, save
 from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.doctype_view.test_doctype_view import (
@@ -148,7 +152,9 @@ class TestResolver(DefaultViewTestCase):
 			frappe.generate_hash(), "A Deleted Doctype", "", "", "List"
 		).run()
 
-		self.assertEqual(DefaultViews(self.person).addresses(), {DOCTYPE: self.site_view})
+		addresses = DefaultViews(self.person).addresses()
+		self.assertEqual(addresses[DOCTYPE], self.site_view)
+		self.assertNotIn("A Deleted Doctype", addresses)
 
 	def test_boot_carries_each_resolved_default(self):
 		make_default(view=self.site_view).insert()
@@ -157,6 +163,66 @@ class TestResolver(DefaultViewTestCase):
 			boot = get_boot("/apps/desk")
 
 		self.assertEqual(boot["default_views"].get(DOCTYPE), self.site_view)
+
+
+class TestDoctypeFallback(DefaultViewTestCase):
+	def setUp(self):
+		super().setUp()
+		self.addCleanup(self.set_doctype_default, None)
+		self.set_doctype_default(None)
+
+	def set_doctype_default(self, value: str | None):
+		frappe.db.set_value("DocType", DOCTYPE, "default_view", value)
+		frappe.db.delete(
+			"Property Setter",
+			{"doc_type": DOCTYPE, "property": "default_view", "doctype_or_field": "DocType"},
+		)
+		frappe.clear_cache(doctype=DOCTYPE)
+
+	def test_a_doctype_with_only_its_own_default_view_opens_in_it(self):
+		self.set_doctype_default("List")
+
+		self.assertEqual(default_of(self.person), "list")
+		self.assertEqual(DefaultViews(self.person).addresses().get(DOCTYPE), "list")
+
+	def test_a_customized_default_view_opens_in_it(self):
+		make_property_setter(DOCTYPE, None, "default_view", "Cards", "Select", for_doctype=True)
+		frappe.clear_cache(doctype=DOCTYPE)
+
+		self.assertEqual(default_of(self.person), "cards")
+
+	def test_a_v1_view_with_no_v2_view_type_is_ignored(self):
+		for v1_view in ("Report", "Kanban", "Calendar", "Tree"):
+			self.set_doctype_default(v1_view)
+			self.assertIsNone(default_of(self.person), v1_view)
+
+	def test_a_default_view_record_wins(self):
+		self.set_doctype_default("Cards")
+		make_default(view=self.site_view).insert()
+		self.assertEqual(default_of(self.person), self.site_view)
+
+		make_default(user=self.person, type="List").insert()
+		self.assertEqual(default_of(self.person), "list")
+
+	def test_an_app_view_file_wins(self):
+		self.set_doctype_default("Cards")
+
+		with patch.object(resolver, "app_defaults", return_value={DOCTYPE: self.site_view}):
+			self.assertEqual(default_of(self.person), self.site_view)
+
+	def test_a_dangling_record_falls_through_to_the_doctype_s_default(self):
+		self.set_doctype_default("Cards")
+		make_default(user=self.person, view="gone").insert()
+
+		self.assertEqual(default_of(self.person), "cards")
+
+	def test_a_doctype_the_person_cannot_read_has_no_default(self):
+		frappe.db.set_value("DocType", PRIVATE_DOCTYPE, "default_view", "List")
+		frappe.clear_cache(doctype=PRIVATE_DOCTYPE)
+		self.addCleanup(frappe.db.set_value, "DocType", PRIVATE_DOCTYPE, "default_view", None)
+		self.addCleanup(frappe.clear_cache, doctype=PRIVATE_DOCTYPE)
+
+		self.assertIsNone(default_of(self.person, PRIVATE_DOCTYPE))
 
 
 class TestApi(DefaultViewTestCase):
