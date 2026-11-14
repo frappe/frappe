@@ -197,7 +197,9 @@ class TestComposingPastTheCap(NavigationTestCase):
 		make_sidebar([a_shipped_act("x"), doctype_item("a", "User")], standard=1)
 		make_sidebar([moved("a", {"parent_key": "x"})], user=SITE_LAYER)
 
-		self.assertEqual({row["key"]: row.get("parent_key") for row in sidebar_rows()}, {"x": None, "a": None})
+		self.assertEqual(
+			{row["key"]: row.get("parent_key") for row in sidebar_rows()}, {"x": None, "a": None}
+		)
 
 	def test_what_layers_compose_past_the_cap_is_lifted_and_nothing_is_dropped(self):
 		make_sidebar(

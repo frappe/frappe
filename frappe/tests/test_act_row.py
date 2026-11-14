@@ -142,4 +142,3 @@ class TestAnActRowSurvivesTheFilter(NavigationTestCase):
 			keys = [row["key"] for row in resolve_navigation(APP)["rail"]]
 
 		self.assertEqual(keys, ["theme"])
-
