@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createApp, h, ref, type App } from "vue";
+import { createApp, defineComponent, h, ref, type App } from "vue";
 
 const { selectOn } = vi.hoisted(() => ({ selectOn: vi.fn() }));
 vi.mock("../canvasMenu", () => ({ selectOn }));
 vi.mock("../CanvasField.vue", () => ({
-  default: {
+  default: defineComponent({
     props: ["fieldname"],
-    render() {
+    render(): unknown {
       return h("div", { "data-canvas-field": this.fieldname }, this.fieldname);
     },
-  },
+  }),
 }));
 vi.mock("../RuleMark.vue", () => ({ default: { render: () => null } }));
 vi.mock("../canvasDrops", () => ({
@@ -19,9 +19,9 @@ vi.mock("../canvasDrops", () => ({
   startDrag: vi.fn(),
 }));
 vi.mock("vuedraggable", () => ({
-  default: {
+  default: defineComponent({
     props: ["modelValue"],
-    render() {
+    render(): unknown {
       return h(
         "div",
         this.modelValue.map((one: string) =>
@@ -29,7 +29,7 @@ vi.mock("vuedraggable", () => ({
         ),
       );
     },
-  },
+  }),
 }));
 
 import CanvasColumn from "../CanvasColumn.vue";
@@ -48,6 +48,7 @@ function mount(options: { editable?: boolean; columns?: number } = {}) {
   const canvas = {
     editable: options.editable ?? true,
     selection: ref<unknown>(null),
+    drag: ref({ active: false, overBin: false }),
   };
   app = createApp({
     render: () =>
@@ -64,8 +65,12 @@ const column = () => dom.querySelector("[data-canvas-column]")!;
 const ring = () => dom.querySelector("[data-canvas-column-ring]");
 const grip = () => dom.querySelector("[data-canvas-column-grip]");
 
+const reachedSection = vi.fn();
+
 beforeEach(() => {
+  reachedSection.mockClear();
   dom = document.createElement("div");
+  dom.addEventListener("click", reachedSection);
   document.body.append(dom);
   selectOn.mockClear();
 });
@@ -85,6 +90,7 @@ it("selects the column on a click in its band, not on a field", () => {
     section: "sec",
     column: "col0",
   });
+  expect(reachedSection).not.toHaveBeenCalled();
   selectOn.mockClear();
   dom
     .querySelector("[data-canvas-field='status']")!
@@ -105,7 +111,14 @@ it("rings the column on hover of its free space, and not over a field", async ()
     .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
   await Promise.resolve();
   expect(ring()).toBeNull();
+  dom
+    .querySelector("[data-canvas-column-band]")!
+    .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  await Promise.resolve();
+  expect(ring()).not.toBeNull();
   column().dispatchEvent(new MouseEvent("mouseleave"));
+  await Promise.resolve();
+  expect(ring()).toBeNull();
 });
 
 it("does not ring a hovered column while its section is selected", async () => {
@@ -116,7 +129,16 @@ it("does not ring a hovered column while its section is selected", async () => {
     .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
   await Promise.resolve();
   expect(ring()).toBeNull();
-  column().dispatchEvent(new MouseEvent("mouseleave"));
+});
+
+it("does not ring a hovered column while a field is dragged", async () => {
+  const canvas = mount();
+  canvas.drag.value = { active: true, overBin: false };
+  dom
+    .querySelector("[data-canvas-column-band]")!
+    .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  await Promise.resolve();
+  expect(ring()).toBeNull();
 });
 
 it("draws a grip on the ring of a column in a section of two or more", async () => {
@@ -124,7 +146,8 @@ it("draws a grip on the ring of a column in a section of two or more", async () 
   canvas.selection.value = { kind: "column", section: "sec", column: "col0" };
   await Promise.resolve();
   expect(ring()?.className).toContain("ring-outline-gray-5");
-  expect(grip()).not.toBeNull();
+  // The section's column Draggable takes this class as its drag handle.
+  expect(grip()?.classList.contains("column-grip")).toBe(true);
 });
 
 it("has no grip in a one-column section", async () => {

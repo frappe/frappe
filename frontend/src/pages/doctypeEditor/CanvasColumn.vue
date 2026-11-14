@@ -31,7 +31,12 @@
 		>
 			<span class="lucide-grip-horizontal size-4" aria-hidden="true" />
 		</span>
-		<RuleMark class="absolute -left-6 top-0" :canvas="canvas" kind="column" :node="column" />
+		<RuleMark
+			class="absolute -left-6 top-0 z-[2]"
+			:canvas="canvas"
+			kind="column"
+			:node="column"
+		/>
 		<Draggable
 			:model-value="fieldnames"
 			:item-key="(fieldname: string) => fieldname"
@@ -97,8 +102,12 @@ const sectionSelected = computed(() => {
 	const selection = props.canvas.selection.value;
 	return selection?.kind === "section" && selection.section === item.value.section;
 });
+// A field being dragged shows its own drop line; a ring beside it would read as a second target.
+const dragging = computed(() => props.canvas.drag.value.active);
 const ringed = computed(
-	() => props.canvas.editable && (selected.value || (hovered.value && !sectionSelected.value)),
+	() =>
+		props.canvas.editable &&
+		(selected.value || (hovered.value && !sectionSelected.value && !dragging.value)),
 );
 
 // A field inside the column keeps its own hover ring and click.
