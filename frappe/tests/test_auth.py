@@ -81,6 +81,10 @@ class TestAuth(IntegrationTestCase):
 		frappe.local.response["http_status_code"] = None
 		frappe.db.commit()
 
+	def setUp(self):
+		super().setUp()
+		frappe.cache.delete_value(f"rl:password_expired_reset:{self.test_user_email}")
+
 	def set_system_settings(self, k, v):
 		frappe.db.set_single_value("System Settings", k, v)
 		frappe.clear_cache()
@@ -353,6 +357,38 @@ class TestAuth(IntegrationTestCase):
 		frappe.local.login_manager = LoginManager()
 
 		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
+
+	def test_forced_password_reset_is_rate_limited_per_user(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		self.addCleanup(frappe.form_dict.clear)
+
+		with self.change_settings(
+			"System Settings", commit=True, force_user_to_reset_password=1, password_reset_limit=1
+		):
+			set_request(method="POST", path="/api/method/login")
+			frappe.form_dict.usr = self.test_user_email
+			frappe.form_dict.pwd = self.test_user_password
+			frappe.local.response = frappe._dict()
+			frappe.local.cookie_manager = CookieManager()
+
+			frappe.local.request_ip = "127.0.0.71"
+			LoginManager()
+			self.assertEqual(frappe.local.response.get("message"), "Password Reset")
+			counter = frappe.cache.make_key(f"rl:password_expired_reset:{self.test_user_email}")
+			self.assertGreater(frappe.cache.ttl(counter), 0)
+
+			reset_key = frappe.db.get_value("User", self.test_user_email, "reset_password_key")
+			emails_before = frappe.db.count("Email Queue")
+
+			frappe.local.request_ip = "127.0.0.72"
+			with self.assertRaises(frappe.RateLimitExceededError):
+				LoginManager()
+
+		self.assertEqual(frappe.db.get_value("User", self.test_user_email, "reset_password_key"), reset_key)
+		self.assertEqual(frappe.db.count("Email Queue"), emails_before)
 
 	def test_login_lands_on_default_app(self):
 		from frappe.auth import LoginManager
