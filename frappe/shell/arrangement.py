@@ -7,6 +7,7 @@
 # that sent anchors would be diffing against a base it holds a stale copy of.
 
 import json
+import re
 from collections.abc import Callable
 from functools import partial
 from typing import NamedTuple
@@ -17,6 +18,7 @@ from frappe.desk.doctype.navigation_item.nesting import nesting_errors
 from frappe.model.document import Document
 
 from .navigation import (
+	ITEM_FIELDS,
 	NAVIGATION_LAYOUTS,
 	SITE_LAYER,
 	layout_below,
@@ -41,13 +43,36 @@ BELOW = {"user": "site", "site": "base"}
 # not here; reparenting travels as an anchor, whose `after`/`before` carry the parent.
 OVERRIDABLE = ("label", "icon", "collapsible", "keep_closed")
 
+# A row a level adds is `<scope>:<6 base36>`; the editor makes the key, so a new section's new
+# children can name it before the first save. The prefixes are reserved against shipped keys.
+OWN_KEY = re.compile(r"^(user|site):[0-9a-z]{6}$")
+
+# What an own row stores: the whole item. `hidden` is absent because an own row is deleted, not
+# hidden; `overrides` because it is no delta; `switches_app` because only a shipped row switches app.
+OWN_FIELDS = tuple(field for field in ITEM_FIELDS if field not in ("hidden", "overrides", "switches_app"))
+
+RESERVED_PREFIXES = tuple(f"{scope}:" for scope in SCOPES)
+
+# A Link's url: a path on this site, or an http(s) address. `\S`: a tab inside `/ /host` is stripped
+# by the browser, which would turn the path into a protocol-relative address.
+OWN_URL = re.compile(r"(?:/(?![/\\])|(?i:https?)://)\S*")
+
+OWN_ROWS_PER_CONTAINER = 50
+OWN_ROWS_PER_APP = 100
+
 
 @frappe.desk_v2_only
 @frappe.whitelist()
 def get_arrangement(container: str, address: str, scope: str = "user") -> list[dict]:
 	"""The list to arrange: resolved up to and including `scope`, hidden rows kept."""
 	# Hidden rows stay, or hiding would be a one-way door.
-	return _target(container, address, scope).resolve(upto=scope, keep_hidden=True)
+	target = _target(container, address, scope)
+	arrangement = target.resolve(upto=scope, keep_hidden=True)
+
+	if scope == "site":
+		return arrangement
+
+	return _with_no_access(arrangement, target.resolve(upto=scope, keep_hidden=True, check_permission=False))
 
 
 @frappe.desk_v2_only
@@ -59,7 +84,8 @@ def save_arrangement(container: str, address: str, items: str | list, scope: str
 	desired = _as_items(items)
 
 	_refuse_deep_nesting(container, below, desired)
-	rows = reduce_arrangement(below, desired)
+	rows = reduce_arrangement(_with_unseen_parents(target, below, desired, scope), desired, scope)
+	_check_caps(target, [row for row in rows if row.get("added")])
 
 	# An empty reduction drops the layer, so this is the one place a save can become a reset.
 	# It may only do so when the submission accounted for the whole list below.
@@ -126,6 +152,116 @@ def get_navigation_layouts(app: str) -> dict[str, str]:
 		)
 
 	return {"standard": "", "site": "", "user": ""} | rail_layouts(app)
+
+
+# What a level may add, and what it may see of what it added
+
+
+def _check_caps(target: "Target", own_rows: list[dict]):
+	"""Refuse more own rows than one app may carry at this level; `_known` caps one container."""
+	if not own_rows:
+		return
+
+	# Every save at this level takes this row first, so saves to one app's containers count in turn.
+	frappe.db.get_value("User", target.layer["user"] or "Administrator", "name", for_update=True)
+
+	if len(own_rows) + _own_rows_elsewhere(target) > OWN_ROWS_PER_APP:
+		frappe.throw(
+			_("You can add up to {0} items to {1}, over its rail and all its sidebars.").format(
+				OWN_ROWS_PER_APP, frappe.bold(target.app)
+			),
+			title=_("Too Many Items"),
+		)
+
+
+def _own_rows_elsewhere(target: "Target") -> int:
+	"""The rows this level has added to this app outside the layer being saved, in one query."""
+	item = frappe.qb.DocType("Navigation Item")
+	saved = _existing(target)
+	in_layers = None
+
+	for container, layers in _layers_of(target).items():
+		layers = [name for name in layers if name != saved]
+
+		if layers:
+			criterion = (item.parenttype == container) & item.parent.isin(layers)
+			in_layers = criterion if in_layers is None else in_layers | criterion
+
+	if in_layers is None:
+		return 0
+
+	# `parentfield`: a `Sidebar` record's v1 `items` rows are not rows this level added.
+	# A locking read: a plain one reads the transaction's snapshot, which a save that committed since misses.
+	query = frappe.qb.from_(item).select(item.name).where((item.added == 1) & in_layers)
+	query = query.where(item.parentfield.isin(list(ITEMS_FIELD.values())))
+
+	return len(query.for_update().run())
+
+
+def _layers_of(target: "Target") -> dict[str, list[str]]:
+	"""This level's layers of this app, by container; a sidebar the app no longer ships has none that count."""
+	filters = {"app": target.app, "standard": 0, "user": target.layer["user"]}
+	rows = frappe.get_all("Sidebar", filters=filters, fields=["name", "link_doctype", "link_to"])
+	shipped = frappe.get_all(
+		"Sidebar", filters={"app": target.app, "standard": 1}, fields=["link_doctype", "link_to"]
+	)
+	shipped = {(row.link_doctype, row.link_to) for row in shipped}
+
+	return {
+		"Rail": frappe.get_all("Rail", filters=filters, pluck="name"),
+		"Sidebar": [row.name for row in rows if (row.link_doctype, row.link_to) in shipped],
+	}
+
+
+def _with_unseen_parents(target: "Target", below: list[dict], desired: list[dict], scope: str) -> list[dict]:
+	"""The base, plus a section the filter dropped for being empty that an own row of the person's still sits in."""
+	# `get_arrangement` lists such a section, so the save must know it, or the row would lose its parent.
+	held = {item["key"] for item in below}
+	parents = {item.get("parent_key") for item in desired if str(item.get("key")).startswith("user:")}
+
+	if scope == "site" or not parents - held - {None}:
+		return below
+
+	unfiltered = target.resolve(upto=BELOW["user"], keep_hidden=True, check_permission=False)
+
+	return [item for item in unfiltered if item["key"] in held or item["key"] in parents]
+
+
+def _with_ancestors(keys: set[str], by_key: dict[str, dict]) -> set[str]:
+	"""These keys and every section above them, so a row kept for the person keeps its parent."""
+	found = set()
+
+	for key in keys:
+		while key in by_key and key not in found:
+			found.add(key)
+			key = by_key[key].get("parent_key")
+
+	return found
+
+
+def _with_no_access(arrangement: list[dict], unfiltered: list[dict]) -> list[dict]:
+	"""The person's list plus their own rows they can no longer open, so the editor can show and delete them."""
+	# Inherited rows they cannot see stay out: those are not theirs to arrange. The unfiltered
+	# list gives the order and the parents, so a section the filter dropped keeps its rows.
+	visible = {item["key"]: item for item in arrangement}
+	by_key = {item["key"]: item for item in unfiltered}
+	kept = set(visible) | _with_ancestors({key for key in by_key if key.startswith("user:")}, by_key)
+	listed = [item for item in unfiltered if item["key"] in kept]
+	present = {item["key"] for item in listed}
+	result = []
+
+	for item in listed:
+		row = {**visible.get(item["key"], {**item, "no_access": 1})}
+		parent = item.get("parent_key")
+
+		if parent in present:
+			row["parent_key"] = parent
+		else:
+			row.pop("parent_key", None)
+
+		result.append(row)
+
+	return result
 
 
 # Addressing and the gate
@@ -275,29 +411,141 @@ def _accounts_for(below: list[dict], desired: list[dict]) -> bool:
 # The reduction
 
 
-def reduce_arrangement(base: list[dict], desired: list[dict]) -> list[dict]:
+def reduce_arrangement(base: list[dict], desired: list[dict], scope: str) -> list[dict]:
 	"""The whole ordered list a client is showing, as the smallest layer that produces it."""
-	# A key the base does not hold is dropped, not refused: the app may have removed it while
-	# the editor was open. Dropping first also bounds `anchors_for` to the base's length.
+	# A key the base does not hold is dropped, not refused: the app may have removed it while the
+	# editor was open. Only the keys this scope adds are kept, whole, and capped before any walk.
 	below = {item["key"]: item for item in base if item.get("key")}
-	desired = _known(desired, below)
+	desired = _orphans_lifted(_known(desired, below, scope), below)
 	anchors = anchors_for(base, desired)
-
-	return [row for item in desired if (row := _delta(item, below[item["key"]], anchors.get(item["key"])))]
-
-
-def _known(desired: list[dict], below: dict[str, dict]) -> list[dict]:
-	"""The client's list, keeping only rows the layer below holds, and each key once (first wins)."""
-	seen = set()
-	kept = []
+	rows = []
 
 	for item in desired:
 		key = item["key"]
-		if key in below and key not in seen:
-			seen.add(key)
-			kept.append(item)
+		row = _delta(item, below[key], anchors.get(key)) if key in below else _own(item, anchors.get(key))
+
+		if row:
+			rows.append(row)
+
+	return rows
+
+
+def _known(desired: list[dict], below: dict[str, dict], scope: str) -> list[dict]:
+	"""The client's list, keeping the rows the layer below holds and the rows this level adds, each key once."""
+	seen = set()
+	kept = []
+	added = 0
+
+	for item in desired:
+		key = item["key"]
+
+		# The layer below may have deleted its own row while the editor was open: dropped, as a stale bare key is.
+		if key not in below and key.startswith(f"{BELOW[scope]}:"):
+			continue
+
+		if key not in below and key.startswith(RESERVED_PREFIXES):
+			_check_own_key(key, scope, seen)
+		elif key not in below or key in seen:
+			continue
+
+		seen.add(key)
+		kept.append(item)
+
+		if key not in below:
+			added += 1
+
+		if added > OWN_ROWS_PER_CONTAINER:
+			frappe.throw(
+				_("You can add up to {0} items here.").format(OWN_ROWS_PER_CONTAINER),
+				title=_("Too Many Items"),
+			)
 
 	return kept
+
+
+def _check_own_key(key: str, scope: str, seen: set[str]):
+	"""Refuse an own key of the wrong shape or level, or one the list already used."""
+	if not OWN_KEY.fullmatch(key) or not key.startswith(f"{scope}:"):
+		frappe.throw(
+			_("{0} is not a key this level can add. It is {1}: and six lowercase letters or digits.").format(
+				frappe.bold(key), scope
+			),
+			title=_("Not an Arrangement"),
+		)
+
+	if key in seen:
+		frappe.throw(_("{0} is in this list twice.").format(frappe.bold(key)), title=_("Not an Arrangement"))
+
+
+def _orphans_lifted(desired: list[dict], below: dict[str, dict]) -> list[dict]:
+	"""An own row whose parent is not in the list, or whose parents lead back to it, goes to the top level."""
+	parents = {item["key"]: item.get("parent_key") for item in desired}
+
+	return [
+		{**item, "parent_key": None}
+		if item["key"] not in below
+		and parents[item["key"]]
+		and (parents[item["key"]] not in parents or _in_a_cycle(item["key"], parents))
+		else item
+		for item in desired
+	]
+
+
+def _in_a_cycle(key: str, parents: dict[str, str | None]) -> bool:
+	seen = set()
+	at = parents.get(key)
+
+	while at and at not in seen:
+		if at == key:
+			return True
+		seen.add(at)
+		at = parents.get(at)
+
+	return False
+
+
+def _own(item: dict, anchors: list[dict] | None) -> dict:
+	"""One row this level adds: the whole item, so nothing below it has to still hold it."""
+	_check_own_content(item)
+
+	row = {field: _scalar(item.get(field)) for field in OWN_FIELDS if field in item}
+	row |= {"doctype": "Navigation Item", "added": 1}
+
+	if isinstance(item.get("payload"), dict):
+		row["payload"] = json.dumps(item["payload"])
+
+	if anchors:
+		row["anchors"] = json.dumps(anchors)
+	else:
+		row.pop("anchors", None)
+
+	return row
+
+
+def _check_own_content(item: dict):
+	"""Refuse an own row whose url opens anything but a path or an http(s) address, or whose payload is not an object."""
+	url = item.get("url")
+	payload = item.get("payload")
+
+	if url and not (isinstance(url, str) and OWN_URL.fullmatch(url)):
+		frappe.throw(
+			_(
+				"{0} is not a link this item can open. Use a path on this site, or an http or https address."
+			).format(frappe.bold(str(url)[:140])),
+			title=_("Not an Arrangement"),
+		)
+
+	if isinstance(payload, str) and payload:
+		try:
+			payload = json.loads(payload)
+		except ValueError:
+			pass
+
+	if payload and not isinstance(payload, dict):
+		frappe.throw(
+			_("The payload of {0} is not an object.").format(frappe.bold(item["key"])),
+			title=_("Not an Arrangement"),
+		)
 
 
 def _delta(item: dict, below: dict, anchors: list[dict] | None) -> dict | None:
@@ -403,6 +651,13 @@ def _longest_common(before: list[str], after: list[str]) -> set[str]:
 
 
 # The stored layer
+
+
+def _existing(target: Target) -> str | None:
+	"""The name of the record this layer is stored in, if it has one."""
+	address = {field: value for field, value in target.layer.items() if field != "doctype"}
+
+	return frappe.db.get_value(target.layer["doctype"], address)
 
 
 def _write(target: Target, rows: list[dict]):

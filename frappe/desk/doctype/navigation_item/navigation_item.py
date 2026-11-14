@@ -53,9 +53,21 @@ class NavigationItem(Document):
 			)
 
 
+# A person's or the site's own rows are keyed `user:` or `site:` and six characters; an app's
+# shipped key may not start there, or it would read as a row a level added.
+RESERVED_KEY_SCOPES = ("user", "site")
+RESERVED_KEY_PREFIXES = tuple(f"{scope}:" for scope in RESERVED_KEY_SCOPES)
+
+# A sync from the app's files must not fail a site's migrate for a third-party app's key.
+SYNC_FLAGS = ("in_install", "in_patch", "in_migrate", "in_import", "in_fixtures")
+
+
 def validate_item_keys(items, container: str):
 	"""Refuse a shipped list with an untyped, keyless, duplicate-keyed or too deeply nested row; both containers call this."""
 	seen = set()
+
+	if any(frappe.flags.get(flag) for flag in SYNC_FLAGS):
+		_reserved_keys_dropped(items)
 
 	for item in items:
 		if not item.item_type:
@@ -70,6 +82,14 @@ def validate_item_keys(items, container: str):
 					item.idx, frappe.bold(item.label or item.link_to or item.item_type)
 				),
 				title=_("Missing Key"),
+			)
+
+		if item.key.startswith(RESERVED_KEY_PREFIXES):
+			frappe.throw(
+				_("Row {0} has the key {1}, which starts with a prefix a person's own rows use.").format(
+					item.idx, frappe.bold(item.key)
+				),
+				title=_("Reserved Key"),
 			)
 
 		if item.key in seen:
@@ -89,3 +109,14 @@ def validate_item_keys(items, container: str):
 			),
 			title=_("Nested Too Deeply"),
 		)
+
+def _reserved_keys_dropped(items):
+	"""Drop, and log, each shipped row whose key a level's own rows use; the rest of the list still loads."""
+	for item in [item for item in items if item.key and item.key.startswith(RESERVED_KEY_PREFIXES)]:
+		frappe.logger("shell").warning(
+			f"Dropped the shipped row {item.key!r}: its key starts with a prefix a person's own rows use."
+		)
+		items.remove(item)
+
+	for idx, item in enumerate(items, start=1):
+		item.idx = idx
