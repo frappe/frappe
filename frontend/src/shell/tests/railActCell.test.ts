@@ -1,39 +1,68 @@
-// The Act cell on the rail: its tooltip opens away from the navigation, on either side.
+// The rail's Act cell: `SidebarRailItem`'s button form, so its tile is the route cells' tile.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h } from "vue";
+import { createApp, h } from "vue";
+import { DesktopShell } from "frappe-ui";
 
-vi.mock("frappe-ui", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("frappe-ui")>();
-	const Tooltip = defineComponent({
-		props: ["side"],
-		setup: (props, { slots }) => () => h("div", { "data-tooltip": props.side }, slots.default?.()),
-	});
-	return { ...actual, Tooltip };
-});
-vi.mock("../actRow", () => ({ useActRow: () => ({ spinning: false, run: vi.fn() }) }));
+const mounted: ReturnType<typeof createApp>[] = [];
+const act = vi.hoisted(() => ({ spinning: false, run: vi.fn() }));
+vi.mock("../actRow", () => ({ useActRow: () => act }));
 
 import RailActCell from "../RailActCell.vue";
-import { navigationSide } from "../navigationSide";
 
 afterEach(() => {
+	mounted.splice(0).forEach((app) => app.unmount());
 	document.body.innerHTML = "";
-	navigationSide.value = "start";
+	act.run.mockClear();
+	act.spinning = false;
 });
 
-function tooltipSide(): string | null {
+function mount(props: { tile?: boolean } = {}, side = "left"): HTMLButtonElement {
 	const host = document.body.appendChild(document.createElement("div"));
-	createApp(RailActCell, { cell: { label: "Toggle theme", act: "shell.theme" } }).mount(host);
-	return host.querySelector("[data-tooltip]")!.getAttribute("data-tooltip");
+	const cell = () => h(RailActCell, { cell: { label: "Toggle theme", act: "shell.theme" }, ...props });
+	const app = createApp({
+		render: () => h(DesktopShell, { navSide: side as "left" | "right" }, { rail: cell }),
+	});
+	app.mount(host);
+	mounted.push(app);
+	return host.querySelector("button")!;
 }
 
 describe("the rail's Act cell", () => {
-	it("opens its tooltip to the right of a left-hand navigation", () => {
-		navigationSide.value = "start";
-		expect(tooltipSide()).toBe("right");
+	it("is frappe-ui's rail tile as a button, named by its label, and runs its act on click", () => {
+		const button = mount();
+
+		expect(button.getAttribute("data-slot")).toBe("sidebar-rail-item");
+		expect(button.getAttribute("aria-label")).toBe("Toggle theme");
+		expect(button.getAttribute("aria-current")).toBeNull();
+		button.click();
+		expect(act.run).toHaveBeenCalledTimes(1);
 	});
 
-	it("opens its tooltip to the left of a right-hand navigation", () => {
-		navigationSide.value = "end";
-		expect(tooltipSide()).toBe("left");
+	it("is a plain tile on the phone's strip", () => {
+		const button = mount({ tile: true });
+
+		expect(button.getAttribute("data-slot")).toBeNull();
+		button.click();
+		expect(act.run).toHaveBeenCalledTimes(1);
+	});
+
+	it.each([false, true])("marks itself busy while its act runs, in the rail and phone forms (tile %s)", (tile) => {
+		expect(mount({ tile }).getAttribute("aria-busy")).toBe("false");
+		mounted.splice(0).forEach((app) => app.unmount());
+		act.spinning = true;
+		const button = mount({ tile });
+
+		expect(button.getAttribute("aria-busy")).toBe("true");
+	});
+
+	it.each([
+		["left", "right"],
+		["right", "left"],
+	])("opens its tooltip away from a navigation on the %s", async (navSide, away) => {
+		mount({}, navSide).dispatchEvent(new FocusEvent("focus"));
+
+		await vi.waitFor(() => {
+			expect(document.body.querySelector("[data-side]")?.getAttribute("data-side")).toBe(away);
+		});
 	});
 });

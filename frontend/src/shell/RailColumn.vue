@@ -59,28 +59,23 @@
 					<!-- An action: a button, never current and never linked to a sidebar. -->
 					<ActCell v-else-if="'act' in cell" :cell="cell" />
 
-					<!-- Off this prefix: a full document load, so an `<a>` with `SidebarRailItem`'s classes.
-					     Never current: `current` is a route. -->
-					<Tooltip v-else :text="cell.label" :side="awaySide()">
-						<a
-							:href="cell.href"
-							:target="cell.external ? '_blank' : undefined"
-							:rel="cell.external ? 'noopener' : undefined"
-							data-slot="sidebar-rail-item"
-							:class="CELL"
-							:aria-label="cell.ariaLabel ?? cell.label"
-						>
-							<Icon v-if="cell.icon" :name="cell.icon" />
-							<span v-else class="text-sm font-medium">{{
-								cell.label.charAt(0)
-							}}</span>
-							<span
-								v-if="cell.external"
-								class="lucide-arrow-up-right absolute -right-1 -top-1 size-3 text-ink-gray-5"
-								aria-hidden="true"
-							/>
-						</a>
-					</Tooltip>
+					<!-- Off this prefix: a full document load, so `SidebarRailItem`'s link form, never current.
+					     Its `aria-label` is its `label`, so an external cell's label carries the new-tab note. -->
+					<SidebarRailItem
+						v-else
+						:href="cell.href"
+						:label="cell.ariaLabel ?? cell.label"
+						:target="cell.external ? '_blank' : undefined"
+						:rel="cell.external ? 'noopener' : undefined"
+					>
+						<Icon v-if="cell.icon" :name="cell.icon" />
+						<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
+						<span
+							v-if="cell.external"
+							class="lucide-arrow-up-right absolute -right-1 -top-1 size-3 text-ink-gray-5"
+							aria-hidden="true"
+						/>
+					</SidebarRailItem>
 				</div>
 			</nav>
 		</ScrollArea>
@@ -130,9 +125,6 @@ const TILE =
 	"flex size-7 items-center justify-center rounded-4 transition focus-visible:ring-0 focus-visible:focus-ring";
 const LETTER_TILE =
 	"bg-surface-gray-3 text-sm font-medium text-ink-gray-8 hover:bg-surface-gray-4";
-// `SidebarRailItem`'s own inactive tile.
-const CELL =
-	"relative flex size-7 shrink-0 items-center justify-center rounded-4 bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
 // The shell decides `current`, one row across rail and panel; a context is composed once per list.
 const props = withDefaults(
 	defineProps<{
