@@ -75,7 +75,7 @@ class PrintDesignerMigration {
 					<div class="flex items-center gap-2">
 						<a class="text-base-medium text-ink-gray-8 truncate" href="${frappe.utils.get_form_link(
 							"Print Format",
-							row.name
+							row.converted ? row.editor_format : row.name
 						)}">${escape(row.name)}</a>
 						${
 							row.converted
