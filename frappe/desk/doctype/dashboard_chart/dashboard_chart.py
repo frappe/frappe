@@ -12,6 +12,7 @@ from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
 from frappe.permissions import get_cached_doctypes_with_read, get_doctypes_with_read
+from frappe.query_builder.functions import Date, UnixTimestamp
 from frappe.utils import cint, flt, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
 from frappe.utils.data import format_date
@@ -231,31 +232,19 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	doctype = chart.document_type
 	datefield = chart.based_on
 	year = cint(heatmap_year) if heatmap_year else getdate(nowdate()).year
-	year_start_date = datetime.date(year, 1, 1).strftime("%Y-%m-%d")
-	next_year_start_date = datetime.date(year + 1, 1, 1).strftime("%Y-%m-%d")
 
-	filters.append([doctype, datefield, ">", f"{year_start_date}"])
-	filters.append([doctype, datefield, "<", f"{next_year_start_date}"])
+	filters.append([doctype, datefield, ">", f"{year}-01-01"])
+	filters.append([doctype, datefield, "<", f"{year + 1}-01-01"])
 
-	if frappe.db.db_type == "mariadb":
-		timestamp_field = f"unix_timestamp({datefield})"
-	else:
-		timestamp_field = f"extract(epoch from timestamp {datefield})"
-
-	data = dict(
-		frappe.get_all(
-			doctype,
-			fields=[
-				timestamp_field,
-				{aggregate_function: value_field},
-			],
-			filters=filters,
-			group_by=f"date({datefield})",
-			as_list=1,
-			order_by=f"{datefield} asc",
-			ignore_ifnull=True,
-		)
+	day_timestamp = UnixTimestamp(Date(frappe.qb.DocType(doctype)[datefield]))
+	# grouped on the query itself: get_all on this branch takes neither a function nor a column
+	# position in group_by
+	query = frappe.qb.get_query(
+		doctype,
+		fields=[day_timestamp, {aggregate_function: value_field}],
+		filters=filters,
 	)
+	data = dict(query.groupby(day_timestamp).orderby(day_timestamp).run(as_list=True))
 
 	return {
 		"labels": [],
