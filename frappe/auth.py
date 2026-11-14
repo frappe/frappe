@@ -142,6 +142,7 @@ class LoginManager:
 
 		if frappe.local.request.path == "/api/method/login":
 			if self.login() is False:
+				frappe.set_user("Guest")  # nosemgrep: frappe-setuser
 				return
 			self.resume = False
 		else:
