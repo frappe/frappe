@@ -907,3 +907,101 @@ class TestPermissions(IntegrationTestCase):
 		with self.set_user("test@example.com"):
 			# No one has this role, so user shouldn't have permission.
 			self.assertNotIn(doctype, get_doctypes_with_read())
+
+	def test_custom_rule_does_not_freeze_other_standard_rules(self):
+		editor, reader = _make_role(), _make_role()
+		with self.set_user("Administrator"):
+			doctype = new_doctype(permissions=[{"role": editor, "read": 1}]).insert().name
+		user = _make_user_with_role(reader)
+
+		update(doctype, editor, 0, "print", 1)
+		frappe.get_doc(
+			doctype="DocPerm",
+			parent=doctype,
+			parenttype="DocType",
+			parentfield="permissions",
+			role=reader,
+			read=1,
+		).db_insert()
+		frappe.clear_cache(doctype=doctype)
+
+		with self.set_user(user):
+			self.assertTrue(frappe.has_permission(doctype, "read"))
+			self.assertIn(doctype, get_doctypes_with_read())
+
+	def test_removed_standard_rule_stays_removed_until_reset(self):
+		role = _make_role()
+		with self.set_user("Administrator"):
+			doctype = (
+				new_doctype(permissions=[{"role": "System Manager", "read": 1}, {"role": role, "read": 1}])
+				.insert()
+				.name
+			)
+		user = _make_user_with_role(role)
+
+		remove(doctype, role, 0)
+
+		with self.set_user(user):
+			self.assertFalse(frappe.has_permission(doctype, "read"))
+		self.assertNotIn(role, [perm.role for perm in frappe.get_meta(doctype).permissions])
+		self.assertNotIn(doctype, [perm.parent for perm in frappe.permissions.get_all_perms(role)])
+
+		reset(doctype)
+
+		with self.set_user(user):
+			self.assertTrue(frappe.has_permission(doctype, "read"))
+
+	def test_patch_keeps_effective_permissions_and_is_idempotent(self):
+		from frappe.patches.v17_0.custom_docperm_override_per_rule import preserve_effective_permissions
+
+		copied, edited, removed, added_later = (_make_role() for _ in range(4))
+		with self.set_user("Administrator"):
+			doctype = (
+				new_doctype(permissions=[{"role": role, "read": 1} for role in (copied, edited, removed)])
+				.insert()
+				.name
+			)
+			for role, write in ((copied, 0), (edited, 1)):
+				frappe.get_doc(
+					doctype="Custom DocPerm",
+					parent=doctype,
+					parenttype="DocType",
+					parentfield="permissions",
+					role=role,
+					read=1,
+					write=write,
+				).insert()
+			frappe.get_doc(
+				doctype="DocPerm",
+				parent=doctype,
+				parenttype="DocType",
+				parentfield="permissions",
+				role=added_later,
+				read=1,
+			).db_insert()
+
+			preserve_effective_permissions(doctype)
+			custom_rows_after_first_run = frappe.db.count("Custom DocPerm", {"parent": doctype})
+			preserve_effective_permissions(doctype)
+
+		self.assertEqual(frappe.db.count("Custom DocPerm", {"parent": doctype}), custom_rows_after_first_run)
+		frappe.clear_cache(doctype=doctype)
+		effective_perms = sorted(
+			(perm.role, perm.read, perm.write) for perm in frappe.get_meta(doctype).permissions
+		)
+		self.assertEqual(effective_perms, sorted([(copied, 1, 0), (edited, 1, 1)]))
+
+
+def _make_role() -> str:
+	return frappe.new_doc("Role", role_name=frappe.generate_hash(), desk_access=1).insert().name
+
+
+def _make_user_with_role(role: str) -> str:
+	user = frappe.new_doc(
+		"User",
+		email=f"{frappe.generate_hash(length=10)}@example.com",
+		first_name="Perm",
+		send_welcome_email=0,
+	)
+	user.append("roles", {"role": role})
+	return user.insert().name
