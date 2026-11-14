@@ -278,6 +278,8 @@ class TestSSRFGuard(IntegrationTestCase):
 			"http://localhost/",
 			"http://169.254.169.254/latest/meta-data/",
 			"http://[::1]/",
+			"http://224.0.0.1/",
+			"http://[ff02::1]/",
 			"file:///etc/passwd",
 			"ftp://example.com/",
 		]

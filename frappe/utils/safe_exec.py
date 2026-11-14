@@ -400,7 +400,7 @@ def validate_request_address(ip: str):
 	except ValueError:
 		raise BlockedRequest(f"Could not parse address: {ip}")
 
-	if not addr.is_global:
+	if not addr.is_global or addr.is_multicast:
 		raise BlockedRequest("Requests to internal network addresses are not permitted")
 
 

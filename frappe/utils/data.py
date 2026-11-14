@@ -1683,7 +1683,7 @@ def validate_egress_url(url: str) -> None:
 			ip = ipaddress.ip_address(record[4][0])
 		except (ValueError, IndexError):
 			continue
-		if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+		if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
 			raise ValueError(f"Requests to internal address {ip} are not permitted")
 
 
