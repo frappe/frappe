@@ -38,6 +38,19 @@ class TestNavigationSide(IntegrationTestCase):
 		with set_user("test@example.com"):
 			self.assertEqual(get_session_info()["user"]["navigation_side"], "")
 
+	def test_a_person_saves_their_own_side_and_reads_it_from_the_session(self):
+		with set_user("test@example.com"):
+			user = frappe.get_doc("User", "test@example.com")
+			user.navigation_side = "end"
+			user.save()
+			self.assertEqual(get_session_info()["user"]["navigation_side"], "end")
+
+	def test_a_person_cannot_save_another_persons_side(self):
+		with set_user("test@example.com"):
+			user = frappe.get_doc("User", "Administrator")
+			user.navigation_side = "end"
+			self.assertRaises(frappe.PermissionError, user.save)
+
 	def test_a_system_settings_save_puts_the_side_in_the_site_defaults(self):
 		settings = frappe.get_doc("System Settings")
 		settings.navigation_side = "start"
