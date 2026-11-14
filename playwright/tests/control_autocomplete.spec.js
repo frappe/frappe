@@ -58,4 +58,63 @@ test.describe("Control Autocomplete", () => {
 			d.hide();
 		});
 	});
+<<<<<<< HEAD
+=======
+
+	test("should keep typed text when the window loses focus", async ({ page, desk }) => {
+		const fieldname = "autocomplete_3";
+		await get_dialog_with_autocomplete(page, desk, fieldname, ["Option 1", "Option 2"]);
+
+		const input = page.locator(
+			`.control-input > .awesomplete > input[data-fieldname=${fieldname}]`
+		);
+		await input.pressSequentially("Opt");
+		await input.evaluate(async (el) => {
+			document.hasFocus = () => false;
+			el.dispatchEvent(new Event("change", { bubbles: true }));
+			el.dispatchEvent(new FocusEvent("blur"));
+			await new Promise((resolve) => setTimeout(resolve));
+		});
+
+		await expect(input).toHaveValue("Opt");
+	});
+
+	test("should keep the set value when options share a label", async ({ page, desk }) => {
+		const fieldname = "autocomplete_4";
+		const dialog = await get_dialog_with_autocomplete(page, desk, fieldname, [
+			{ label: "Option 1", value: "option_1" },
+			{ label: "Option 1", value: "option_1_copy" },
+		]);
+		const value = await dialog.evaluate(async (d, fieldname) => {
+			await d.set_value(fieldname, "option_1_copy");
+			return d.get_value(fieldname);
+		}, fieldname);
+		expect(value).toBe("option_1_copy");
+	});
+
+	test("passes the form to a get_query function", async ({ page, desk }) => {
+		await desk.new_form("ToDo");
+		const form_passed = await page.evaluate(() => {
+			const frm = cur_frm;
+			let query_frm;
+			const control = frappe.ui.form.make_control({
+				parent: $("<div>"),
+				df: {
+					fieldtype: "Autocomplete",
+					fieldname: "autocomplete_query",
+					get_query: (doc, cdt, cdn, form) => {
+						query_frm = form;
+						return {};
+					},
+				},
+				frm: frm,
+				render_input: true,
+			});
+
+			control.execute_query_if_exists("");
+			return query_frm === frm;
+		});
+		expect(form_passed).toBe(true);
+	});
+>>>>>>> f6f285f (fix(autocomplete): return the selected value instead of the first option with the same label)
 });
