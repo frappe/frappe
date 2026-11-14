@@ -98,6 +98,8 @@ export interface SessionUser {
   email: string;
   user_image: string | null;
   document_follow_notify: boolean;
+  /** The person's own side: `start`, `end` or blank for the site's. */
+  navigation_side?: string;
 }
 
 /** The signed-in person and the site settings a client renders for them. */

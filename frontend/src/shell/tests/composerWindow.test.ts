@@ -78,6 +78,7 @@ import {
 	setComposerWindow,
 } from "../composer";
 import ComposerWindow from "../ComposerWindow.vue";
+import { navInsetRight } from "../navigationInset";
 
 const USER = {
 	name: "ann@example.com",
@@ -249,6 +250,54 @@ describe("docking and floating", () => {
 		expect(panel()?.style.left).toBe("10px");
 		expect(preferredWindow()).toBe("docked");
 		expect(controller.composer.window).toBe("floating");
+	});
+});
+
+describe("beside the navigation on the right", () => {
+	const WIDTH = 460;
+
+	beforeEach(() => {
+		// jsdom lays nothing out; give the card its width and the window its own.
+		vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(innerWidth);
+		vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(WIDTH);
+	});
+
+	afterEach(() => {
+		navInsetRight.value = 0;
+	});
+
+	async function floatAt(x: number) {
+		const rect = { x, y: 40, width: WIDTH, height: 400 };
+		localStorage.setItem(FLOAT_KEY, JSON.stringify({ mode: "floating", rect }));
+		const { controller } = await mountShell();
+		controller.composer.open("comment", { window: "floating" });
+		await flush();
+		return panel()!;
+	}
+
+	it("pulls the card out of the navigation, and no further left than the window's edge", async () => {
+		navInsetRight.value = 320;
+		const card = await floatAt(innerWidth - WIDTH);
+		card.style.left = `${innerWidth - WIDTH}px`;
+		await flush();
+		expect(card.style.transform).toBe("translateX(-320px)");
+
+		card.style.left = "0px";
+		await flush();
+		expect(card.style.transform).toBe("");
+	});
+
+	it("follows the navigation's width, and leaves the card alone when it is on the left", async () => {
+		const card = await floatAt(innerWidth - WIDTH);
+		expect(card.style.transform).toBe("");
+
+		navInsetRight.value = 200;
+		await flush();
+		expect(card.style.transform).toBe("translateX(-200px)");
+
+		navInsetRight.value = 0;
+		await flush();
+		expect(card.style.transform).toBe("");
 	});
 });
 

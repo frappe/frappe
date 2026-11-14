@@ -6,9 +6,15 @@
 	<!-- Clipped: an sr-only span in a pane can have the shell as its containing block; unclipped, it makes
 	     the page taller than the window and the page itself scrolls. -->
 	<DesktopShell
+		ref="shellEl"
 		:scroll="false"
+		:nav-side="navSide()"
 		class="relative h-screen w-screen overflow-clip bg-surface-base text-ink-gray-9"
-		:class="{ 'desk-shell': boot.app }"
+		:class="[
+			{ 'desk-shell': boot.app, 'nav-right': navSide() === 'right' },
+			// DesktopShell reverses its row for a right-hand navigation, which in a right-to-left page puts it on the left.
+			navSide() === 'right' ? 'rtl:flex-row' : 'rtl:flex-row-reverse',
+		]"
 	>
 		<template v-if="boot.app" #rail>
 			<RailColumn
@@ -39,7 +45,8 @@
 
 		<div
 			v-if="!boot.app"
-			class="absolute bottom-3 left-[11px] z-10 flex flex-col items-center"
+			class="absolute bottom-3 z-10 flex flex-col items-center"
+			:class="navSide() === 'right' ? 'right-[11px]' : 'left-[11px]'"
 			data-index-foot
 		>
 			<div data-index-foot-notices />
@@ -115,6 +122,8 @@ import { bulkTrayShown } from "./bulkTrayFlag";
 import { shellDialogs } from "./dialog";
 import { openArgumentStep, paletteOpen } from "./palette";
 import { PaletteKey } from "./paletteKey";
+import { useNavigationInset } from "./navigationInset";
+import { navSide, seedNavigationSide } from "./navigationSide";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
 import { useShellHooks } from "./shellHooks";
@@ -139,6 +148,14 @@ const ShellPalette = defineAsyncComponent(() =>
 );
 
 const boot = inject<Boot>("boot")!;
+seedNavigationSide(boot.session);
+
+const shellEl = ref<{ $el: HTMLElement } | null>(null);
+useNavigationInset(
+	computed(() =>
+		shellEl.value?.$el.querySelector<HTMLElement>('[data-slot="desktop-shell-content"]')
+	)
+);
 const addresses = inject<Addresses>("addresses")!;
 useStaleBuildNotice();
 const router = useRouter();
@@ -345,8 +362,11 @@ const standingWindows = useShellHooks(boot.shell_hooks, shell);
 </script>
 
 <style scoped>
-/* The content's left edge; the panel draws the other one, and drops it while collapsed. */
+/* The content's edge beside the navigation; the panel draws the other one, and drops it while collapsed. */
 .desk-shell :deep([data-slot="desktop-shell-content"]) {
 	@apply border-l border-outline-gray-1 bg-surface-base;
+}
+.desk-shell.nav-right :deep([data-slot="desktop-shell-content"]) {
+	@apply border-l-0 border-r;
 }
 </style>

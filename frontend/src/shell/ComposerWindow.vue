@@ -117,6 +117,7 @@ import {
 	setComposerWindow,
 	type ComposerWindow,
 } from "./composer";
+import { keepClearOfNavigation } from "./navigationInset";
 
 defineProps<{ user: SessionUser }>();
 
@@ -157,7 +158,9 @@ watch(
 	[body, docked],
 	([element, isDocked], _old, onCleanup) => {
 		const card = element?.closest<HTMLElement>("[data-composer-window]");
-		if (card && !isDocked) onCleanup(registerFloatingComposer(card));
+		if (!card || isDocked) return;
+		onCleanup(registerFloatingComposer(card));
+		onCleanup(keepClearOfNavigation(card));
 	},
 	{ flush: "post" }
 );

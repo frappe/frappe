@@ -1,6 +1,7 @@
 // Drags a standing window out of the row. The position is the window's left and its distance
 // from the viewport bottom, so a taller body grows upward as it does in the row.
 import { onUnmounted } from "vue";
+import { navInsetRight } from "./navigationInset";
 import type { StandingWindow } from "./standingWindows";
 
 export const MARGIN = 24;
@@ -11,7 +12,7 @@ export interface Placement {
 	bottom: number;
 }
 
-/** Keeps `placed` inside the shell's margin for a window `width` wide, at least `minHeight` tall. */
+/** Keeps `placed` inside the shell's margin and clear of a right-hand navigation, for a window `width` wide, at least `minHeight` tall. */
 export function clampPlacement(
 	placed: Placement,
 	viewport: { width: number; height: number },
@@ -19,7 +20,7 @@ export function clampPlacement(
 	minHeight = 0
 ): Placement {
 	return {
-		left: clamp(placed.left, viewport.width - MARGIN - width),
+		left: clamp(placed.left, viewport.width - navInsetRight.value - MARGIN - width),
 		bottom: clamp(placed.bottom, viewport.height - MARGIN - minHeight),
 	};
 }
