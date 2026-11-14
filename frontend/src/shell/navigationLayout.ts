@@ -28,12 +28,12 @@ export function applyNavigationLayout(navigation: Pick<Navigation, "navigation_l
 
 /** Docks the floating rail: the person's own layout becomes rail + sidebar. Resolves to the app's new navigation. */
 export function pin(app: string): Promise<Navigation> {
-	return saveNavigationLayout(app, "rail_and_sidebar");
+	return saveNavigationLayout(app, "rail_and_sidebar", "user");
 }
 
 /** Lets the rail float again: the person's value goes back to the level below (the save writes it blank). */
 export function unpin(app: string): Promise<Navigation> {
-	return saveNavigationLayout(app, "floating_rail");
+	return saveNavigationLayout(app, "floating_rail", "user");
 }
 
 const NARROW: Record<NavigationLayout, DrawMode> = {

@@ -78,7 +78,7 @@ import {
 	setComposerWindow,
 } from "../composer";
 import ComposerWindow from "../ComposerWindow.vue";
-import { navInsetRight } from "../navigationInset";
+import { navInsetLeft, navInsetRight } from "../navigationInset";
 
 const USER = {
 	name: "ann@example.com",
@@ -264,6 +264,7 @@ describe("beside the navigation on the right", () => {
 
 	afterEach(() => {
 		navInsetRight.value = 0;
+		navInsetLeft.value = 0;
 	});
 
 	async function floatAt(x: number) {
@@ -296,6 +297,23 @@ describe("beside the navigation on the right", () => {
 		expect(card.style.transform).toBe("translateX(-200px)");
 
 		navInsetRight.value = 0;
+		await flush();
+		expect(card.style.transform).toBe("");
+	});
+
+	it("pushes the card out from under a navigation on the left", async () => {
+		navInsetLeft.value = 300;
+		const card = await floatAt(40);
+		card.style.left = "40px";
+		await flush();
+		expect(card.style.transform).toBe("translateX(260px)");
+
+		card.style.left = "400px";
+		await flush();
+		expect(card.style.transform).toBe("");
+
+		navInsetLeft.value = 0;
+		card.style.left = "40px";
 		await flush();
 		expect(card.style.transform).toBe("");
 	});
