@@ -17,10 +17,12 @@ Auth = Table("__Auth")
 MAX_PASSWORD_SIZE = 512
 
 passlibctx = CryptContext(
-	schemes=[
-		"pbkdf2_sha256",
-		"argon2",
-	],
+	schemes=["argon2", "pbkdf2_sha256"],
+	deprecated=["auto"],
+	argon2__type="ID",
+	argon2__memory_cost=7 * 1024,  # takes argument in KiB
+	argon2__rounds=5,
+	argon2__parallelism=1,
 )
 
 
