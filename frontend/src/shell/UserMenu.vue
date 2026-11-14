@@ -48,7 +48,11 @@ const { colorScheme } = useColorScheme();
 const menu = computed<DropdownOptions>(() =>
 	[
 		[profileHeader()],
-		[...shellMenu(["my_settings"]), ...themeRow(), ...pageMenuItems.value],
+		[
+			...shellMenu(["my_settings", "customize_sidebar"]),
+			...themeRow(),
+			...pageMenuItems.value,
+		],
 		shellMenu(["desk_v1"]),
 		shellMenu(["log_out"]).map((option) => ({ ...option, theme: "red" as const })),
 	]

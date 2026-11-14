@@ -21,6 +21,10 @@ from .arrangement import (
 from .navigation import SITE_LAYER, _boot_key, _sidebar_addresses, _sidebar_layers, resolve_navigation
 from .navigation_filter import NavigationContext
 
+# The level a level's Reset to default restores, and the key prefixes of what each level adds.
+BELOW = {"user": "site", "site": "base"}
+ADDED_BY = {"user": ("user:",), "site": ("user:", "site:")}
+
 
 def read_arrangements(app: str, scope: str) -> dict:
 	"""The rail, every sidebar, the layouts and the version of one app at one level."""
@@ -28,32 +32,57 @@ def read_arrangements(app: str, scope: str) -> dict:
 
 	# First: a write that lands while the rows resolve must make this version stale, not the rows.
 	version = level_version(app, scope)
+
+	return {
+		"version": version,
+		"can_edit_site": _is_site_administrator(),
+		"has_saved": has_saved(app, scope),
+		"navigation_layouts": get_navigation_layouts(app),
+		**_read_rows(app, scope, upto=scope),
+	}
+
+
+def read_default_arrangements(app: str, scope: str) -> dict:
+	"""The rail and every sidebar as the level below `scope` leaves them: what Reset to default restores."""
+	if scope not in BELOW:
+		frappe.throw(_("{0} is not an arrangement scope.").format(scope))
+	return _read_rows(app, scope, upto=BELOW[scope])
+
+
+def _read_rows(app: str, scope: str, upto: str) -> dict:
+	"""The rail and the sidebars of one app, resolved up to `upto`, for a caller allowed at `scope`."""
 	rail = _target("Rail", app, scope)
 	context = NavigationContext(app)
+	# What `upto` leaves has none of the rows and sidebars this level adds.
+	adds = ADDED_BY[scope] if upto != scope else ()
 	offered = {
 		key: address
 		for address in _sidebar_addresses(app)
 		# The site level arranges what everyone gets, not what this manager's blocked modules leave them.
 		if (scope == "site" or context.address_is_offered(*address))
 		and not (scope == "site" and address[1].startswith("user:"))
+		and not any(address[1].startswith(prefix) for prefix in adds)
 		and (key := _boot_key(address))
 	}
 	layers = _sidebar_layers(list(offered.values()))
 
-	rail_rows = _editor_rows(rail, scope)
+	rail_rows = _editor_rows(rail, scope, upto=upto)
 	sidebars = {
-		key: _editor_rows(_target("Sidebar", key, scope), scope, layers.get(address, {}))
+		key: _editor_rows(_target("Sidebar", key, scope), scope, layers.get(address, {}), upto=upto)
 		for key, address in offered.items()
 	}
 	_mark([rail_rows, *sidebars.values()], scope)
 
-	return {
-		"version": version,
-		"can_edit_site": _is_site_administrator(),
-		"navigation_layouts": get_navigation_layouts(app),
-		"rail": rail_rows,
-		"sidebars": sidebars,
-	}
+	return {"rail": rail_rows, "sidebars": sidebars}
+
+
+def has_saved(app: str, scope: str) -> bool:
+	"""Whether this level has stored a rail or a sidebar of the app, which is what Reset to default undoes."""
+	user = frappe.session.user if scope == "user" else SITE_LAYER
+
+	return any(
+		frappe.db.exists(doctype, {"app": app, "standard": 0, "user": user}) for doctype in CONTAINERS
+	)
 
 
 def write_arrangements(app: str, scope: str, containers: str | dict, version: str) -> dict:
@@ -113,32 +142,33 @@ def level_version(app: str, scope: str, for_update: bool = False) -> str:
 	return hashlib.sha1(json.dumps(sorted(records)).encode()).hexdigest()
 
 
-def _editor_rows(target: Target, scope: str, layers: dict | None = None) -> list[dict]:
-	"""One container up to this level, hidden rows kept, with what the editor draws a row by."""
+def _editor_rows(target: Target, scope: str, layers: dict | None = None, upto: str = "") -> list[dict]:
+	"""One container up to `upto` (this level by default), hidden rows kept, with what the editor draws a row by."""
+	upto = upto or scope
 	extra = {"layers": layers} if layers is not None else {}
-	rows = target.resolve(upto=scope, keep_hidden=True, **extra)
+	rows = target.resolve(upto=upto, keep_hidden=True, **extra)
 
 	if scope == "user":
 		rows = _with_no_access(
-			rows, target.resolve(upto=scope, keep_hidden=True, check_permission=False, **extra)
+			rows, target.resolve(upto=upto, keep_hidden=True, check_permission=False, **extra)
 		)
 
-	return _with_hidden_by(target, rows, scope, extra)
+	return _with_hidden_by(target, rows, upto, extra)
 
 
-def _with_hidden_by(target: Target, rows: list[dict], scope: str, extra: dict) -> list[dict]:
+def _with_hidden_by(target: Target, rows: list[dict], upto: str, extra: dict) -> list[dict]:
 	"""Each hidden row, with the level whose layer hid it."""
 	if not any(row.get("hidden") for row in rows):
 		return rows
 
 	by_site = set()
 
-	if scope == "user":
+	if upto == "user":
 		below = target.resolve(upto="site", keep_hidden=True, check_permission=False, **extra)
 		by_site = {row["key"] for row in below if row.get("hidden")}
 
 	return [
-		{**row, "hidden_by": "site" if row["key"] in by_site or scope == "site" else "user"}
+		{**row, "hidden_by": "site" if row["key"] in by_site or upto != "user" else "user"}
 		if row.get("hidden")
 		else row
 		for row in rows

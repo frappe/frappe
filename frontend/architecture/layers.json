@@ -337,11 +337,6 @@
     "frontend/src/addresses.ts": [
       "Addresses"
     ],
-    "frontend/src/arrangement.ts": [
-      "Address",
-      "ArrangedItem",
-      "dropOn"
-    ],
     "frontend/src/contributions/types.ts": [
       "PageContribution"
     ],

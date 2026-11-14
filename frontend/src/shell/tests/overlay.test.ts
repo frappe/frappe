@@ -1,4 +1,4 @@
-// The overlay host: the customize dialog addressed by the hash, and the helper under it.
+// The overlay host: the navigation editor addressed by the hash, and the helper under it.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type Component } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
@@ -13,10 +13,17 @@ import { resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
 import { useHashDialog } from "../useHashDialog";
 
-// The dialog loads its list when the hash names one; an empty list is enough to prove it opened.
+// The editor reads its level when the hash names one; an empty level is enough to prove it opened.
 vi.mock("@/arrangement", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@/arrangement")>()),
-	fetchArrangement: vi.fn().mockResolvedValue([]),
+	fetchArrangements: vi.fn().mockResolvedValue({
+		version: "v1",
+		can_edit_site: false,
+		has_saved: false,
+		navigation_layouts: { standard: "", site: "", user: "" },
+		rail: [],
+		sidebars: {},
+	}),
 }));
 
 const addresses = new Addresses({
@@ -97,11 +104,16 @@ function dialog() {
 }
 
 function list() {
-	return document.body.querySelector("[data-testid='customize']");
+	return document.body.querySelector("[data-navigation-editor]");
+}
+
+/** The editor's chunk is a dynamic import, which lands some turns after the hash. */
+async function editorOpens() {
+	await vi.waitFor(() => expect(list()).not.toBeNull(), { timeout: 10000 });
 }
 
 function dialogTitle() {
-	return dialog()?.querySelector("h3")?.textContent?.trim();
+	return dialog()?.querySelector("h2")?.textContent?.trim();
 }
 
 beforeAll(async () => {
@@ -120,8 +132,8 @@ describe("the dialog, addressed by the hash", () => {
 	it("opens the rail's list over the page at #customize/rail", async () => {
 		const { host } = await shell("/sales-invoice#customize/rail");
 
-		expect(list()).not.toBeNull();
-		expect(dialogTitle()).toBe("Customize sidebar");
+		await editorOpens();
+		expect(dialogTitle()).toBe("Customize navigation");
 		// The page is still under it: the panel the address opens is drawn.
 		expect(host.querySelector("[data-slot='sidebar']")).not.toBeNull();
 	});
@@ -129,8 +141,8 @@ describe("the dialog, addressed by the hash", () => {
 	it("opens a panel's list at #customize/sidebar/<address>", async () => {
 		await shell("/sales-invoice#customize/sidebar/module_def_accounts");
 
-		expect(list()).not.toBeNull();
-		expect(dialogTitle()).toBe("Customize this sidebar");
+		await editorOpens();
+		expect(dialogTitle()).toBe("Customize navigation");
 	});
 
 	it("opens nothing for a sidebar this prefix does not have", async () => {
@@ -150,9 +162,11 @@ describe("the dialog, addressed by the hash", () => {
 		await settle();
 
 		expect(router.currentRoute.value.hash).toBe("#customize/sidebar/module_def_accounts");
-		expect(list()).not.toBeNull();
+		await editorOpens();
 
-		dialog()!.querySelector<HTMLElement>("[aria-label='Close']")!.click();
+		Array.from(list()!.querySelectorAll("button"))
+			.find((button) => button.textContent?.trim() === "Cancel")!
+			.click();
 		await settle();
 
 		expect(router.currentRoute.value.fullPath).toBe("/sales-invoice?from=here");
@@ -164,7 +178,7 @@ describe("the dialog, addressed by the hash", () => {
 
 		host.querySelector<HTMLElement>("[aria-label='Customize this sidebar']")!.click();
 		await settle();
-		expect(list()).not.toBeNull();
+		await editorOpens();
 
 		router.go(-1);
 		await settle();

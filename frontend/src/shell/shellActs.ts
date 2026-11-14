@@ -213,7 +213,7 @@ function railItems(rail: RailActsHost): ActItem<Shell>[] {
 		},
 		{
 			name: "customize_sidebar",
-			label: __("Customize sidebar"),
+			label: __("Customize navigation"),
 			icon: "lucide-settings-2",
 			run: () => rail.customize(),
 		},

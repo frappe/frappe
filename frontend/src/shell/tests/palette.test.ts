@@ -485,8 +485,8 @@ describe("the groups", () => {
 		await shell("/crm-deal");
 		await open();
 
-		await type("sidebar");
-		expect(drawn()).toEqual([["Desk", "Customize sidebar"]]);
+		await type("navigation");
+		expect(drawn()).toEqual([["Desk", "Customize navigation"]]);
 		await type("log");
 		expect(drawn()).toEqual([["Desk", "Log out"]]);
 		await type("create");
