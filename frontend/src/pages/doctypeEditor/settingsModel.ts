@@ -198,7 +198,7 @@ export class SettingsReplay {
 	private followKind(submittable: boolean) {
 		const rights = RIGHTS.filter((right) => right !== "submit");
 		const untouched = (row: PermissionRow) =>
-			sameKey(row, DEFAULT_PERMISSION) &&
+			sameKey(row, { ...DEFAULT_PERMISSION, if_owner: 0 }) &&
 			rights.every((right) => row[right] === ((DEFAULT_PERMISSION as Record<string, unknown>)[right] ?? 0));
 		for (const row of this.state.permissions.filter(untouched)) row.submit = submittable ? 1 : 0;
 	}
