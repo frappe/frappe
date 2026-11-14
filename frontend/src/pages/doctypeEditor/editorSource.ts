@@ -102,6 +102,11 @@ export function modeOf(query: unknown): EditorMode | undefined {
 			: undefined;
 }
 
+/** A route that names the DocType and mode the canvas holds loads nothing: a first save moves `/doctype/new` to its own. */
+export function holdsRoute(state: EditorState | null, name: string, mode: EditorMode | undefined): boolean {
+	return state?.doctype === name && state.mode === (mode ?? "Design");
+}
+
 export async function loadEditor(
 	doctype: string,
 	mode?: EditorMode,
