@@ -4,7 +4,7 @@
 -->
 <template>
 	<!-- Bound, never `null`: left unset, `Sidebar` collapses itself below the `sm` breakpoint. -->
-	<Sidebar :collapsed="false" width="15rem" class="border-0">
+	<Sidebar :collapsed="false" :width="width" class="border-0">
 		<NavigationHeader />
 
 		<ScrollArea class="min-h-0 flex-1" viewportClass="px-2 pb-2 pt-0.5">
@@ -52,13 +52,17 @@ import SidebarGroup from "./SidebarGroup.vue";
 import SidebarRow from "./SidebarRow.vue";
 import UserMenu from "./UserMenu.vue";
 
-const props = defineProps<{
-	items: NavigationItem[];
-	contexts: NavigationContexts;
-	sidebars: Record<string, NavigationItem[]>;
-	sections: Record<string, SectionMemory>;
-	current: CurrentNavigation;
-}>();
+const props = withDefaults(
+	defineProps<{
+		items: NavigationItem[];
+		contexts: NavigationContexts;
+		sidebars: Record<string, NavigationItem[]>;
+		sections: Record<string, SectionMemory>;
+		current: CurrentNavigation;
+		width?: string;
+	}>(),
+	{ width: "15rem" }
+);
 
 const { appTitle } = useAppMenu();
 const context = computed(() => props.contexts.rail);

@@ -9,14 +9,15 @@
 		ref="shellEl"
 		:scroll="false"
 		:nav-side="navSide()"
+		:style="{ '--shell-header-inset-start': drawer ? '2.25rem' : '0px' }"
 		class="relative h-screen w-screen overflow-clip bg-surface-base text-ink-gray-9"
 		:class="[
-			{ 'desk-shell': boot.app && !phone, 'nav-right': navSide() === 'right' },
+			{ 'desk-shell': boot.app && !phone && !drawer, 'nav-right': navSide() === 'right' },
 			// DesktopShell reverses its row for a right-hand navigation, which in a right-to-left page puts it on the left.
 			navSide() === 'right' ? 'rtl:flex-row' : 'rtl:flex-row-reverse',
 		]"
 	>
-		<template v-if="boot.app && !sidebarOnly && !floating && !phone" #rail>
+		<template v-if="boot.app && !sidebarOnly && !floating && !phone && !drawer" #rail>
 			<RailColumn
 				:items="navigation.rail"
 				:context="contexts.rail"
@@ -26,7 +27,7 @@
 			/>
 		</template>
 
-		<template v-if="boot.app && !phone" #sidebar>
+		<template v-if="boot.app && !phone && !drawer" #sidebar>
 			<SidebarOnly
 				v-if="sidebarOnly"
 				:items="navigation.rail"
@@ -43,10 +44,12 @@
 				:title="panel.title"
 				:current="current.rowKey"
 				:sections="sections[panel.address]"
-				:collapsed="!floating && sidebarCollapsed"
+				:collapsed="overlay ? !overlayOpen : !floating && sidebarCollapsed"
 				:chrome="floating"
 				:customizable="!floating"
+				:overlay="overlay"
 				@customize="customize.write('sidebar', panel.address)"
+				@close="overlayOpen = false"
 			/>
 		</template>
 
@@ -57,6 +60,58 @@
 		>
 			<RouterView />
 		</main>
+
+		<div
+			v-if="drawer"
+			class="absolute top-[10px] z-10"
+			:class="navSide() === 'right' ? 'right-5' : 'left-5'"
+		>
+			<Button
+				variant="ghost"
+				icon="lucide-menu"
+				data-key="open-navigation"
+				:label="__('Open navigation')"
+				:aria-expanded="drawerOpen"
+				aria-haspopup="dialog"
+				@click="drawerOpen = true"
+			/>
+		</div>
+
+		<NavigationDrawer
+			v-if="drawer"
+			:open="drawerOpen"
+			:has-sidebar="!!panel"
+			@close="drawerOpen = false"
+		>
+			<SidebarOnly
+				v-if="navigationLayout === 'sidebar_only'"
+				width="min(18rem, 85vw)"
+				:items="navigation.rail"
+				:contexts="contexts"
+				:sidebars="navigation.sidebars"
+				:sections="sections"
+				:current="current"
+			/>
+			<template v-else>
+				<RailColumn
+					:items="navigation.rail"
+					:context="contexts.rail"
+					:current="current.railKey"
+					:chrome="!panel"
+				/>
+				<SidebarPanel
+					v-if="panel"
+					:address="panel.address"
+					:items="panel.items"
+					:context="panel.context"
+					:title="panel.title"
+					:current="current.rowKey"
+					:sections="sections[panel.address]"
+					:collapsed="false"
+					chrome
+				/>
+			</template>
+		</NavigationDrawer>
 
 		<FloatingRail
 			v-if="floating"
@@ -129,9 +184,10 @@
 </template>
 
 <script setup lang="ts">
+import { useEventListener } from "@vueuse/core";
 import { computed, defineAsyncComponent, inject, nextTick, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
-import { DesktopShell, Dialogs, ToastProvider, toast } from "frappe-ui";
+import { Button, DesktopShell, Dialogs, ToastProvider, toast } from "frappe-ui";
 import { keepInHistory } from "@framework/ui/utils";
 import type { Addresses } from "@/addresses";
 import { browserMemory } from "@/browserMemory";
@@ -158,7 +214,15 @@ import FloatingRail from "./FloatingRail.vue";
 import { openArgumentStep, paletteOpen } from "./palette";
 import { PaletteKey } from "./paletteKey";
 import { useNavigationInset } from "./navigationInset";
-import { applyNavigationLayout, pin, pinned, unpin, useDrawMode } from "./navigationLayout";
+import NavigationDrawer from "./NavigationDrawer.vue";
+import {
+	applyNavigationLayout,
+	navigationLayout,
+	pin,
+	pinned,
+	unpin,
+	useDrawMode,
+} from "./navigationLayout";
 import { navSide, seedNavigationSide } from "./navigationSide";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
@@ -217,9 +281,17 @@ const navigation = ref<Navigation>(
 
 applyNavigationLayout(navigation.value);
 
-// The other draw modes (overlay, drawer) draw the rail until their tickets land.
 const sidebarOnly = computed(() => !!boot.app && drawMode.value === "sidebar_only");
 const floating = computed(() => !!boot.app && drawMode.value === "floating");
+const overlay = computed(() => !!boot.app && drawMode.value === "rail_overlay");
+const drawer = computed(() => !!boot.app && drawMode.value === "drawer");
+
+const overlayOpen = ref(false);
+const drawerOpen = ref(false);
+watch(drawMode, () => {
+	overlayOpen.value = false;
+	drawerOpen.value = false;
+});
 const unpinnable = computed(() => pinned.value && drawMode.value === "rail");
 
 // One context per container: `Module Contents` measures against `context.items`, so a
@@ -389,6 +461,15 @@ function replace(next: Navigation) {
 	boot.navigation = next;
 }
 
+watch(
+	() => route.path,
+	() => (overlayOpen.value = false)
+);
+useEventListener(window, "keydown", (event: KeyboardEvent) => {
+	if (overlayOpen.value && event.key === "Escape" && !event.defaultPrevented)
+		overlayOpen.value = false;
+});
+
 // The pin and the unpin: a save of the person's layout, then the new navigation drawn at once.
 // A second press while one is saving does nothing; focus on the button that went lands on the new one.
 let saving = false;
@@ -432,12 +513,21 @@ const { appActsPending, shell } = useShellActs({
 						? customize.write("sidebar", panel.value.address)
 						: customize.write("rail"),
 				shareLink,
-				// No seam in the sidebar-only layout or beside a floating rail, so no act.
+				// No seam in these draw modes, so no act; the overlay's own state keeps `collapsed-sidebar`.
 				sidebarCollapsed: () =>
-					panel.value && !sidebarOnly.value && !floating.value && !phone.value
-						? sidebarCollapsed.value
-						: null,
-				toggleSidebar: () => void (sidebarCollapsed.value = !sidebarCollapsed.value),
+					!panel.value ||
+					sidebarOnly.value ||
+					floating.value ||
+					phone.value ||
+					drawer.value
+						? null
+						: overlay.value
+						? !overlayOpen.value
+						: sidebarCollapsed.value,
+				toggleSidebar: () => {
+					if (overlay.value) overlayOpen.value = !overlayOpen.value;
+					else sidebarCollapsed.value = !sidebarCollapsed.value;
+				},
 		  }
 		: undefined,
 });
