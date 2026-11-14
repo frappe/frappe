@@ -20,7 +20,7 @@
 							v-if="boot.app_logo"
 							:src="boot.app_logo"
 							alt=""
-							class="size-7 rounded-[7px]"
+							class="size-7 rounded-4"
 						/>
 						<span v-else>{{ appTitle.charAt(0).toUpperCase() }}</span>
 					</button>
@@ -119,12 +119,12 @@ type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
 );
 
 const TILE =
-	"flex size-7 items-center justify-center rounded-[7px] transition focus-visible:ring-0 focus-visible:focus-ring";
+	"flex size-7 items-center justify-center rounded-4 transition focus-visible:ring-0 focus-visible:focus-ring";
 const LETTER_TILE =
 	"bg-surface-gray-3 text-sm font-medium text-ink-gray-8 hover:bg-surface-gray-4";
 // `SidebarRailItem`'s own inactive tile.
 const CELL =
-	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
+	"relative flex size-7 shrink-0 items-center justify-center rounded-4 bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
 // The shell decides `current`, one row across rail and panel; a context is composed once per list.
 const props = withDefaults(
 	defineProps<{
