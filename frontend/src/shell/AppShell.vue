@@ -16,7 +16,7 @@
 			navSide() === 'right' ? 'rtl:flex-row' : 'rtl:flex-row-reverse',
 		]"
 	>
-		<template v-if="boot.app" #rail>
+		<template v-if="boot.app && !sidebarOnly" #rail>
 			<RailColumn
 				:items="navigation.rail"
 				:context="contexts.rail"
@@ -25,8 +25,16 @@
 		</template>
 
 		<template v-if="boot.app" #sidebar>
+			<SidebarOnly
+				v-if="sidebarOnly"
+				:items="navigation.rail"
+				:contexts="contexts"
+				:sidebars="navigation.sidebars"
+				:sections="sections"
+				:current="current"
+			/>
 			<SidebarPanel
-				v-if="panel"
+				v-else-if="panel"
 				:address="panel.address"
 				:items="panel.items"
 				:context="panel.context"
@@ -123,11 +131,13 @@ import { shellDialogs } from "./dialog";
 import { openArgumentStep, paletteOpen } from "./palette";
 import { PaletteKey } from "./paletteKey";
 import { useNavigationInset } from "./navigationInset";
+import { applyNavigationLayout, useDrawMode } from "./navigationLayout";
 import { navSide, seedNavigationSide } from "./navigationSide";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
 import { useShellHooks } from "./shellHooks";
 import { useStaleBuildNotice } from "./staleBuild";
+import SidebarOnly from "./SidebarOnly.vue";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
@@ -167,6 +177,12 @@ watch(() => route.path, closeRecordDialogs);
 const navigation = ref<Navigation>(
 	boot.navigation ?? { rail: [], sidebars: {}, navigation_layout: "rail_and_sidebar" }
 );
+
+applyNavigationLayout(navigation.value);
+
+// The other draw modes (floating, overlay, drawer, phone) draw the rail until their tickets land.
+const { drawMode } = useDrawMode();
+const sidebarOnly = computed(() => !!boot.app && drawMode.value === "sidebar_only");
 
 // One context per container: `Module Contents` measures against `context.items`, so a
 // sidebar row handed the rail's list would answer about the rail.
@@ -329,6 +345,7 @@ watch(paletteOpen, (isOpen) => isOpen && (paletteLoaded.value = true), { immedia
 
 function replace(next: Navigation) {
 	navigation.value = next;
+	applyNavigationLayout(next);
 	boot.navigation = next;
 }
 
@@ -353,7 +370,9 @@ const { appActsPending, shell } = useShellActs({
 		? {
 				customize: () => customize.write("rail"),
 				shareLink,
-				sidebarCollapsed: () => (panel.value ? sidebarCollapsed.value : null),
+				// No seam in the sidebar-only layout, so no act.
+				sidebarCollapsed: () =>
+					panel.value && !sidebarOnly.value ? sidebarCollapsed.value : null,
 				toggleSidebar: () => void (sidebarCollapsed.value = !sidebarCollapsed.value),
 		  }
 		: undefined,
