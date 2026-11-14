@@ -83,7 +83,7 @@ frappe.ui.keys.add_shortcut = ({
 
 // the key's own target: an input in an island's shadow root leaves document.activeElement on the
 // island's host
-function key_target(e) {
+export function key_target(e) {
 	return e.originalEvent?.composedPath()[0] || document.activeElement;
 }
 
@@ -99,7 +99,7 @@ function is_island_key(e) {
 	return !root.host.closest(".modal, .grid-row-open");
 }
 
-function is_input(element) {
+export function is_input(element) {
 	return $(element).is("input, select, textarea, [contenteditable=true]");
 }
 
