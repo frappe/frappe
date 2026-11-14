@@ -113,4 +113,18 @@ describe("useEdgeReveal", () => {
 		main.remove();
 		stop();
 	});
+
+	it("does not open while a button is held, and a press away from the rail closes it", () => {
+		const { reveal, rail, stop } = mountReveal("left", false);
+		move(0, { buttons: 1 });
+		expect(reveal.open.value).toBe(false);
+
+		move(0);
+		expect(reveal.open.value).toBe(true);
+		rail.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+		expect(reveal.open.value).toBe(true);
+		document.body.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+		expect(reveal.open.value).toBe(false);
+		stop();
+	});
 });

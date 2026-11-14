@@ -44,12 +44,23 @@ export function useEdgeReveal(options: {
 		wait = undefined;
 	}
 
+	// A click leaves focus on the clicked link; only a keyboard's focus keeps the rail open.
+	function keyboardFocusIn(rail: HTMLElement) {
+		const active = document.activeElement;
+		if (!active || !rail.contains(active)) return false;
+		try {
+			return active.matches(":focus-visible");
+		} catch {
+			return true;
+		}
+	}
+
 	function holds(target: EventTarget | null) {
 		const rail = options.rail.value;
 		if (!rail) return false;
 		return (
 			(target instanceof Node && rail.contains(target)) ||
-			rail.contains(document.activeElement) ||
+			keyboardFocusIn(rail) ||
 			// A menu opened from the rail draws in a portal, so its trigger is what says it shows.
 			!!rail.querySelector('[aria-expanded="true"]')
 		);
@@ -63,16 +74,23 @@ export function useEdgeReveal(options: {
 			return;
 		}
 
-		if (away >= EDGE_BAND) return cancelWait();
+		// A press is a drag or a scroll, never a reveal.
+		if (away >= EDGE_BAND || event.buttons !== 0) return cancelWait();
 		if (!options.scrollbarSide()) return void (open.value = true);
 
 		// The scrollbar's side: a press or the thumb under the pointer is a scroll, not a reveal.
 		const overThumb = event.target instanceof Element && !!event.target.closest(THUMB);
-		if (event.buttons !== 0 || overThumb) return cancelWait();
+		if (overThumb) return cancelWait();
 		wait ??= setTimeout(() => {
 			wait = undefined;
 			open.value = true;
 		}, END_WAIT);
+	}
+
+	// A press away from the rail and its menus dismisses it, which a tap on a touch screen cannot do by moving.
+	function onPress(event: PointerEvent) {
+		cancelWait();
+		if (open.value && !holds(event.target)) close();
 	}
 
 	function onKey(event: KeyboardEvent) {
@@ -101,7 +119,7 @@ export function useEdgeReveal(options: {
 
 	onMounted(() => {
 		document.addEventListener("pointermove", onMove);
-		document.addEventListener("pointerdown", cancelWait, true);
+		document.addEventListener("pointerdown", onPress, true);
 		document.addEventListener("keydown", onKey);
 		document.addEventListener("focusin", onFocusIn);
 		document.addEventListener("focusout", onFocusOut);
@@ -110,7 +128,7 @@ export function useEdgeReveal(options: {
 	onBeforeUnmount(() => {
 		cancelWait();
 		document.removeEventListener("pointermove", onMove);
-		document.removeEventListener("pointerdown", cancelWait, true);
+		document.removeEventListener("pointerdown", onPress, true);
 		document.removeEventListener("keydown", onKey);
 		document.removeEventListener("focusin", onFocusIn);
 		document.removeEventListener("focusout", onFocusOut);

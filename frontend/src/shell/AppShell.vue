@@ -22,7 +22,7 @@
 				:context="contexts.rail"
 				:current="current.railKey"
 				:pin="unpinnable ? 'unpin' : undefined"
-				@unpin="setLayout(unpin)"
+				@unpin="setLayout(unpin, 'main')"
 			/>
 		</template>
 
@@ -64,7 +64,7 @@
 			:context="contexts.rail"
 			:current="current.railKey"
 			:has-sidebar="!!panel"
-			@pin="setLayout(pin)"
+			@pin="setLayout(pin, '[data-key=unpin-navigation]')"
 		/>
 
 		<div
@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, inject, onUnmounted, ref, watch } from "vue";
+import { computed, defineAsyncComponent, inject, nextTick, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { DesktopShell, Dialogs, ToastProvider, toast } from "frappe-ui";
 import { keepInHistory } from "@framework/ui/utils";
@@ -375,11 +375,21 @@ function replace(next: Navigation) {
 }
 
 // The pin and the unpin: a save of the person's layout, then the new navigation drawn at once.
-async function setLayout(save: (app: string) => Promise<Navigation>) {
+// A second press while one is saving does nothing; focus on the button that went lands on the new one.
+let saving = false;
+async function setLayout(save: (app: string) => Promise<Navigation>, focusAfter: string) {
+	if (saving) return;
+	saving = true;
 	try {
 		replace(await save(boot.app!));
+		await nextTick();
+		if (document.activeElement === document.body || !document.activeElement) {
+			document.querySelector<HTMLElement>(focusAfter)?.focus();
+		}
 	} catch (error) {
 		toast.error(error instanceof Error ? error.message : String(error));
+	} finally {
+		saving = false;
 	}
 }
 

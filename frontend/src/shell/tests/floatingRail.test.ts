@@ -137,7 +137,7 @@ describe("a floating rail", () => {
 		expect(box(host)!.contains(rails(host)[0])).toBe(true);
 		expect(box(host)!.getAttribute("data-open")).toBe("false");
 		expect(panel(host)).not.toBeNull();
-		expect(panel(host)!.nextElementSibling?.className ?? "").not.toContain("cursor-");
+		expect(host.querySelector("[class*='cursor-w-resize'], [class*='cursor-e-resize']")).toBeNull();
 	});
 
 	it("takes the box to the navigation's side", async () => {
@@ -168,7 +168,7 @@ describe("a floating rail", () => {
 	it("does not customize or collapse the sidebar from there", async () => {
 		const host = await shell(navigation("floating_rail"));
 
-		expect(key(panel(host)!, "customize-sidebar")).toBeNull();
+		expect(panel(host)!.querySelector("[aria-label='Customize this sidebar']")).toBeNull();
 		expect(panel(host)!.getAttribute("data-state")).toBe("expanded");
 	});
 
@@ -199,6 +199,23 @@ describe("pin", () => {
 		expect(rails(host)).toHaveLength(1);
 		expect(key(rails(host)[0], "unpin-navigation")).not.toBeNull();
 		expect(key(host, "pin-navigation")).toBeNull();
+		// Docked, the sidebar is customizable again.
+		expect(panel(host)!.querySelector("[aria-label='Customize this sidebar']")).not.toBeNull();
+	});
+
+	it("ignores a second press while the save runs, and moves focus to the unpin button", async () => {
+		let finish!: (value: unknown) => void;
+		runMethod.mockReturnValue(new Promise((resolve) => (finish = resolve)));
+		const host = await shell(navigation("floating_rail"));
+		const button = key(box(host)!, "pin-navigation")!;
+
+		button.click();
+		button.click();
+		finish({ data: navigation("rail_and_sidebar", true) });
+		await flush();
+
+		expect(runMethod).toHaveBeenCalledTimes(1);
+		expect(document.activeElement).toBe(key(rails(host)[0], "unpin-navigation"));
 	});
 
 	it("says so and keeps the rail floating when the save fails", async () => {
