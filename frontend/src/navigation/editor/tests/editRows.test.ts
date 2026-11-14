@@ -213,6 +213,18 @@ describe("moves the server could not take", () => {
 		expect(left.hidden).toBe(1);
 	});
 
+	it("refuses to move or copy a row whose target the person lost, alone or as a child", () => {
+		const d = draft([row("b", { opens_sidebar: "s" }), own(1, { no_access: 1 })], {
+			s: [own(2), own(3, { parent_key: "user:000002", no_access: 1 })],
+			t: [row("y")],
+		});
+		const opened = draft([...d.rail, row("z", { opens_sidebar: "t" })], d.sidebars);
+		expect(refused(moveTo(opened, RAIL, "user:000001", "s"))).toBe(true);
+		expect(refused(moveTo(opened, "s", "user:000002", "t"))).toBe(true);
+		expect(canGiveSidebar(opened, own(1, { no_access: 1 }))).toBe(false);
+		expect(refused(giveSidebar(opened, "user:000001"))).toBe(true);
+	});
+
 	it("refuses a sidebar the draft no longer holds", () => {
 		const d = draft([row("a")]);
 		expect(refused(add(d, "gone", own(1), null))).toBe(true);

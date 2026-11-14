@@ -211,6 +211,9 @@ export function moveTo(draft: Draft, from: string, key: string, to: string): Mov
 	}
 	const fixed = family.find((member) => !isOwn(member.key, scope) && !addable(member.item_type));
 	if (fixed) return __("{0} cannot be moved. Hide it instead.", [labelOf(fixed)]);
+	// The server checks a moved row's target again in its new place, so a lost target would block Save.
+	const lost = family.find((member) => member.no_access);
+	if (lost) return __("{0} cannot be moved: you have no access to it.", [labelOf(lost)]);
 
 	const copies = family.map((member) => ({ member, key: isOwn(member.key, scope) ? member.key : newKey(scope) }));
 	const added = copies.filter(({ member, key }) => key !== member.key).length;
@@ -282,7 +285,13 @@ export function dropInto(draft: Draft, from: string, key: string, railKey: strin
 
 /** Whether a rail row can be given a sidebar: it opens none yet, and the server takes a copy of it as the first row. */
 export function canGiveSidebar(draft: Draft, row: EditorRow): boolean {
-	return addable(row.item_type) && row.item_type !== "Section" && !row.opens_sidebar && !openerOf(draft, row.key);
+	return (
+		addable(row.item_type) &&
+		row.item_type !== "Section" &&
+		!row.no_access &&
+		!row.opens_sidebar &&
+		!openerOf(draft, row.key)
+	);
 }
 
 /** A new own sidebar whose first row copies the item's target; the item then opens it. */
@@ -315,10 +324,7 @@ export function removeSidebar(draft: Draft, railKey: string): Edited {
 	return dropSidebar(replace(draft, RAIL, railKey, () => rest), item.opens_sidebar);
 }
 
-/**
- * An own sidebar that an edit left empty goes, and its opener stays a plain row.
- * A Sidebar row that names it keeps it: that row has nothing else to open.
- */
+/** An own sidebar an edit left empty goes, and its opener stays a plain row; a Sidebar row keeps it. */
 function dropIfEmpty(draft: Draft, container: string): Draft {
 	if (container === RAIL || !isOwn(container, draft.scope) || rowsOf(draft, container).length) return draft;
 	const opener = openerOf(draft, container);
