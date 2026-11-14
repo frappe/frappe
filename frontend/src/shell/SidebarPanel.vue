@@ -37,7 +37,11 @@
 								'border-outline-gray-1',
 								navSide() === 'right' ? 'border-r' : 'border-l',
 						  ],
-					overlay && !collapsed && 'shadow-2xl',
+					overlay &&
+						!collapsed &&
+						(navSide() === 'right'
+							? 'shadow-[-12px_0_24px_-12px_rgb(0_0_0/0.3)]'
+							: 'shadow-[12px_0_24px_-12px_rgb(0_0_0/0.3)]'),
 				]"
 				:inert="collapsed"
 			>

@@ -12,7 +12,7 @@
 		:style="{ '--shell-header-inset-start': drawer ? '2.25rem' : '0px' }"
 		class="relative h-screen w-screen overflow-clip bg-surface-base text-ink-gray-9"
 		:class="[
-			{ 'desk-shell': boot.app && !phone, 'nav-right': navSide() === 'right' },
+			{ 'desk-shell': boot.app && !phone && !drawer, 'nav-right': navSide() === 'right' },
 			// DesktopShell reverses its row for a right-hand navigation, which in a right-to-left page puts it on the left.
 			navSide() === 'right' ? 'rtl:flex-row' : 'rtl:flex-row-reverse',
 		]"
