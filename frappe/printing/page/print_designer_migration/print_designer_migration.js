@@ -100,6 +100,7 @@ class PrintDesignerMigration {
 				() => frappe.set_route("print-format-builder", row.editor_format),
 				"arrow-up-right"
 			);
+			if (row.editor_format === row.name) add(__("Delete"), () => this.delete_design(row));
 		} else {
 			if (row.sample) add(__("Preview"), () => this.preview(row));
 			add(__("Convert"), () => this.convert(row));
@@ -202,6 +203,25 @@ class PrintDesignerMigration {
 				});
 				this.refresh();
 			});
+	}
+
+	delete_design(row) {
+		frappe.confirm(
+			__(
+				"Delete the Print Designer design of <b>{0}</b>? {0} keeps printing with its print format editor layout. This cannot be undone.",
+				[frappe.utils.escape_html(row.name)]
+			),
+			() =>
+				frappe
+					.xcall(`${CONVERTER}.delete_print_designer_design`, { print_format: row.name })
+					.then(() => {
+						frappe.show_alert({
+							message: __("Deleted the Print Designer design of {0}", [row.name]),
+							indicator: "green",
+						});
+						this.refresh();
+					})
+		);
 	}
 
 	show_notes(notes) {
