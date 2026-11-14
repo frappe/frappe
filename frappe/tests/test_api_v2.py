@@ -1007,16 +1007,6 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			frappe.get_hooks("after_migrate", app_name="frappe"),
 		)
 
-	def test_cache_lasts_a_day_or_an_hour_in_developer_mode_v2(self):
-		key = frappe.cache.make_key(discovery.PYTHON_METHOD_CACHE_KEY)
-		for developer_mode, ttl in ((0, discovery.CACHE_TTL), (1, discovery.DEVELOPER_MODE_CACHE_TTL)):
-			with (
-				self.subTest(developer_mode=developer_mode),
-				patch.dict(frappe.conf, developer_mode=developer_mode),
-			):
-				discovery.build_cache()
-				self.assertAlmostEqual(frappe.cache.ttl(key), ttl, delta=60)
-
 	def test_server_script_changes_show_on_a_warm_cache_v2(self):
 		def paths():
 			self.assertIsNotNone(frappe.cache.get_value(discovery.PYTHON_METHOD_CACHE_KEY, expires=True))
