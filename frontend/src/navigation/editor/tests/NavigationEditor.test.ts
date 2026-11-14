@@ -698,4 +698,101 @@ describe("the editor", () => {
 		expect(body().querySelector<HTMLButtonElement>("[data-save]")!.disabled).toBe(false);
 		expect(emitted).toEqual(["saved"]);
 	});
+
+	describe("adding and deleting (#47416)", () => {
+		const own = (n: number, more: Partial<EditorRow> = {}) =>
+			row(`user:${String(n).padStart(6, "0")}`, { label: `Own ${n}`, ...more });
+		const sidebarResponse = (rows: EditorRow[]) =>
+			response({
+				rail: [row("crm", { item_type: "Sidebar", link_to: "s1" })],
+				sidebars: { s1: rows },
+			});
+
+		async function openOn(answer: Arrangements, target: { tab: "sidebar"; address: string }) {
+			api.fetchArrangements.mockResolvedValue(answer);
+			const app = createApp({ render: () => h(NavigationEditor, { target }) });
+			app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+			app.provide("addresses", { doctypes: () => ["Note", "ToDo"] });
+			const host = document.createElement("div");
+			document.body.appendChild(host);
+			app.mount(host);
+			unmount = () => app.unmount();
+			await settle();
+		}
+
+		/** Open "+ Add" and pick a type by its label. */
+		async function startAdding(label: string) {
+			const trigger = body().querySelector<HTMLElement>("[data-add]")!;
+			trigger.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, button: 0 }));
+			trigger.click();
+			await settle();
+			const item = Array.from(body().querySelectorAll<HTMLElement>("[role='menuitem']")).find(
+				(entry) => entry.textContent?.trim() === label
+			);
+			item!.click();
+			await settle();
+		}
+
+		const tabButton = (label: string) =>
+			Array.from(body().querySelectorAll<HTMLElement>("button")).find(
+				(button) => button.textContent?.trim() === label
+			)!;
+
+		it("puts a new section at the top level while a section is selected", async () => {
+			await openOn(sidebarResponse([own(1, { item_type: "Section" }), own(2, { parent_key: own(1).key })]), {
+				tab: "sidebar",
+				address: "s1",
+			});
+			click(`[data-key='${own(1).key}']`);
+			await settle();
+			await startAdding("Section");
+			const label = body().querySelector<HTMLInputElement>("[data-editor-form] [data-field='label'] input, [data-editor-form] input[data-field='label']")!;
+			label.value = "Later";
+			label.dispatchEvent(new Event("input", { bubbles: true }));
+			click("[data-add-row]");
+			await settle();
+
+			expect(rowsShown()).toEqual(["Own 1Added", "Own 2Added", "LaterAdded"]);
+			const guides = Array.from(body().querySelectorAll("[data-editor-list] [data-key]")).map(
+				(entry) => entry.querySelectorAll(":scope > span.w-4").length
+			);
+			expect(guides).toEqual([0, 1, 0]);
+		});
+
+		it("closes the add form when the tab changes", async () => {
+			await openOn(sidebarResponse([own(1)]), { tab: "sidebar", address: "s1" });
+			await startAdding("DocType");
+			expect(body().querySelector("[data-editor-form]")).not.toBeNull();
+
+			tabButton("Rail").click();
+			await settle();
+			expect(body().querySelector("[data-editor-form]")).toBeNull();
+			expect(body().querySelector("[data-editor-pane]")).not.toBeNull();
+		});
+
+		it("offers Delete only on a row this level added", async () => {
+			await open(response({ rail: [row("site:abc123", { label: "Shared" }), own(1)] }));
+			click("[data-key='site:abc123']");
+			await settle();
+			expect(body().querySelector("[data-delete]")).toBeNull();
+
+			click(`[data-key='${own(1).key}']`);
+			await settle();
+			expect(body().querySelector("[data-delete]")).not.toBeNull();
+		});
+
+		it("says why a rail row's edit is refused, in the pane", async () => {
+			const rail = Array.from({ length: 50 }, (_, n) => own(n + 1));
+			rail[0] = { ...rail[0], opens_sidebar: "user:sb0001" };
+			const sidebar = Array.from({ length: 50 }, (_, n) => own(n + 101));
+			await open(response({ rail, sidebars: { "user:sb0001": sidebar } }));
+			click(`[data-key='${own(2).key}']`);
+			await settle();
+			click("[data-give-sidebar]");
+			await settle();
+			expect(text("[data-editor-pane] [data-refusal]")).toBe(
+				"You can add up to 100 items to this app, over its rail and all its sidebars."
+			);
+		});
+	});
 });

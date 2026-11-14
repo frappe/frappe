@@ -211,3 +211,31 @@ describe("review fixes", () => {
 		expect(refused(moveTo(d, RAIL, "a", "gone", "user"))).toBe(true);
 	});
 });
+
+describe("an own sidebar left empty (#47416 Q17)", () => {
+	const opener = own(1, { opens_sidebar: "user:sb0001" });
+	const start = () => draft([opener, own(2)], { "user:sb0001": [own(3)] });
+
+	it("goes on Delete of its last row, and its opener stays a plain row", () => {
+		const next = ok(remove(start(), "user:sb0001", own(3).key, "user"));
+		expect(next.sidebars).toEqual({});
+		expect(next.rail[0]).toEqual(row(own(1).key));
+	});
+
+	it("goes on Move to of its last row", () => {
+		const moved = ok(moveTo(start(), "user:sb0001", own(3).key, RAIL, "user"));
+		expect(moved.draft.sidebars).toEqual({});
+		expect(moved.draft.rail[0].opens_sidebar).toBeUndefined();
+		expect(keys(moved.draft, RAIL)).toEqual([own(1).key, own(2).key, own(3).key]);
+	});
+
+	it("stays while it holds a row, and an inherited sidebar stays empty", () => {
+		const two = draft([opener], { "user:sb0001": [own(3), own(4)] });
+		expect(ok(remove(two, "user:sb0001", own(3).key, "user")).sidebars["user:sb0001"]).toHaveLength(1);
+
+		const site = draft([row("crm", { opens_sidebar: "site:sb0001" })], { "site:sb0001": [own(3)] });
+		const next = ok(remove(site, "site:sb0001", own(3).key, "user"));
+		expect(next.sidebars["site:sb0001"]).toEqual([]);
+		expect(next.rail[0].opens_sidebar).toBe("site:sb0001");
+	});
+});

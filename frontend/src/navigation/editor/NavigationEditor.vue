@@ -386,7 +386,11 @@ watch(
 	{ immediate: true },
 );
 
-watch(tab, () => (selected.value = null));
+// The other tab offers other types: a form left open would add to a list it was not started on.
+watch(tab, () => {
+	selected.value = null;
+	stopAdding();
+});
 // A sidebar a Discard, a reset or a removal took away leaves the picker for one still there.
 watch(openedKeys, () => draft.value && fitSidebar(draft.value));
 

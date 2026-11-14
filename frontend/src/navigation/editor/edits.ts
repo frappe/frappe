@@ -171,7 +171,8 @@ export function descendantsToDelete(rows: EditorRow[], key: string, scope: Scope
 
 /**
  * Delete an own row and its own descendants; inherited children are lifted to the top level.
- * A row that opens one of this level's own sidebars takes that sidebar with it.
+ * A row that opens one of this level's own sidebars takes that sidebar with it, and the last row
+ * of an own sidebar takes the sidebar too.
  */
 export function remove(draft: Draft, container: string, key: string, scope: Scope): Edited {
 	if (!find(draft, container, key)) return __("This row no longer exists.");
@@ -191,14 +192,15 @@ export function remove(draft: Draft, container: string, key: string, scope: Scop
 	for (const row of rows.filter((entry) => gone.has(entry.key))) {
 		if (row.opens_sidebar && isOwn(row.opens_sidebar, scope)) next = dropSidebar(next, row.opens_sidebar);
 	}
-	return next;
+	return dropIfEmpty(next, container, scope);
 }
 
 /**
  * Move a row to the end of another container. An own row keeps its key and fields. An inherited
  * row is hidden in place and an own copy with a new key goes into the target (#47392 R1-Q6).
  * The children come along; a row with children cannot go to the rail. Only a kind the server takes
- * as an own row can be copied, and a row that opens a sidebar cannot go into one.
+ * as an own row can be copied, and a row that opens a sidebar cannot go into one. The last row
+ * out of an own sidebar takes the sidebar with it.
  */
 export function moveTo(draft: Draft, from: string, key: string, to: string, scope: Scope): Moved {
 	const rows = rowsOf(draft, from);
@@ -247,7 +249,7 @@ export function moveTo(draft: Draft, from: string, key: string, to: string, scop
 
 	const target = rowsOf(draft, to);
 	const next = withRows(withRows(draft, from, left), to, [...target, ...moved]);
-	return { draft: next, key: rename.get(row.key)! };
+	return { draft: dropIfEmpty(next, from, scope), key: rename.get(row.key)! };
 }
 
 /** Drop a row before a row of another container, or among the rows of the same one. */
@@ -314,6 +316,20 @@ export function removeSidebar(draft: Draft, railKey: string, scope: Scope): Edit
 
 	const { opens_sidebar, ...rest } = item;
 	return dropSidebar(replace(draft, RAIL, railKey, () => rest), item.opens_sidebar);
+}
+
+/**
+ * An own sidebar that an edit left empty goes, and its opener stays a plain row (#47416 Q17).
+ * A Sidebar row that names it keeps it: that row has nothing else to open.
+ */
+function dropIfEmpty(draft: Draft, container: string, scope: Scope): Draft {
+	if (container === RAIL || !isOwn(container, scope) || rowsOf(draft, container).length) return draft;
+	const opener = openerOf(draft, container);
+	if (opener && opener.opens_sidebar !== container) return draft;
+	if (!opener) return dropSidebar(draft, container);
+
+	const { opens_sidebar, ...plain } = opener;
+	return dropSidebar(replace(draft, RAIL, opener.key, () => plain), container);
 }
 
 function dropSidebar(draft: Draft, sidebar: string): Draft {
