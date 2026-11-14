@@ -1,6 +1,6 @@
 // The address a path is redirected to by the router's guard, resolved without navigating.
 
-import { START_LOCATION, type Router, type RouteLocationRaw } from "vue-router";
+import { START_LOCATION, type RouteLocation, type RouteLocationRaw, type Router } from "vue-router";
 import type { Addresses } from "@/addresses";
 
 /** The guard's address redirects, as a location; null when the address is already canonical or a miss. */
@@ -32,14 +32,21 @@ export function canonicalPath(
 ): string {
 	// Never against the current route, or every row would redraw on each route change.
 	let resolved = router.resolve(to, START_LOCATION);
-	// Bounded: a redirect chain is two hops at most, and a loop must not hang the shell.
-	for (let hop = 0; hop < 3; hop += 1) {
-		const next = canonicalAddress(resolved, addresses);
+	for (let hop = 0; hop < 4; hop += 1) {
+		const next = recordRedirect(resolved) ?? canonicalAddress(resolved, addresses);
 		if (!next) break;
 		resolved = router.resolve(next, START_LOCATION);
 	}
 
 	return resolved.path;
+}
+
+/** The location a matched route record redirects to, which `router.resolve` leaves unfollowed. */
+function recordRedirect(resolved: RouteLocation): RouteLocationRaw | null {
+	const redirect = resolved.matched[resolved.matched.length - 1]?.redirect;
+	if (!redirect) return null;
+	const target = typeof redirect === "function" ? redirect(resolved, START_LOCATION) : redirect;
+	return typeof target === "string" ? { path: target } : target;
 }
 
 /**

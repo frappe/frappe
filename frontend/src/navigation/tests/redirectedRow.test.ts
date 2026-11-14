@@ -33,6 +33,16 @@ const router = createRouter({
 		{ path: "/:module", name: "module", component: stub },
 		{ path: "/:module/:doctype", name: "list", component: stub },
 		{ path: "/:module/:doctype/new", name: "new-record", component: stub },
+		{
+			path: "/:module/:doctype/view/record",
+			redirect: ({ params, query, hash }: any) => ({
+				name: "standard-record",
+				params: { ...params, name: "view" },
+				query,
+				hash,
+			}),
+		},
+		{ path: "/:module/:doctype/:name/record", name: "standard-record", component: stub },
 		{ path: "/:module/:doctype/:name", name: "record", component: stub },
 	],
 });
@@ -75,6 +85,10 @@ describe("canonicalPath", () => {
 	it("keeps a record address that already has its module", () => {
 		expect(of("/accounts/currency/INR")).toBe("/geo/currency/INR");
 		expect(of("/geo/currency/INR")).toBe("/geo/currency/INR");
+	});
+
+	it("follows a route redirect before the module redirect", () => {
+		expect(of("/accounts/currency/view/record")).toBe("/geo/currency/view/record");
 	});
 
 	it("does not throw for a doctype with no module", () => {
