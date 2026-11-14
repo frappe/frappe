@@ -27,7 +27,7 @@
 				/></template>
 				<span
 					class="block truncate"
-					:class="one.key === 'danger' ? 'text-ink-red-6' : 'text-ink-gray-8'"
+					:class="one.key === 'danger' ? 'text-ink-red-7' : 'text-ink-gray-8'"
 					>{{ __(one.label) }}</span
 				>
 			</ItemListRow>

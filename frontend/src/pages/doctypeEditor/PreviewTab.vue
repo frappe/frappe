@@ -2,7 +2,7 @@
      typing changes only the copy, and `refuseWrites` drops field events, uploads and Create. -->
 <template>
 	<div class="mx-auto w-full max-w-3xl py-4" data-editor-preview>
-		<div class="mb-1 flex items-center gap-2">
+		<div class="mb-1 flex items-center gap-2 px-5">
 			<Combobox
 				:model-value="record ?? EMPTY"
 				:options="options"
@@ -19,9 +19,10 @@
 						data-preview-record
 					>
 						<span class="shrink-0">{{ __("Previewing") }}</span>
-						<span class="truncate text-ink-gray-8">{{
+						<span class="min-w-0 truncate text-ink-gray-8">{{
 							record ?? __("an empty form")
 						}}</span>
+						<span v-if="title" class="min-w-0 truncate">{{ title }}</span>
 						<span class="lucide-chevron-down size-4 shrink-0" aria-hidden="true" />
 					</button>
 				</template>
@@ -52,7 +53,12 @@ import { FORM_CLASSES } from "@/pages/record/formClasses";
 import { useFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
 import { refuseWrites } from "./previewRefusals";
 
-const props = defineProps<{ doctype: string; record: string | null; latest: string[] }>();
+const props = defineProps<{
+	doctype: string;
+	record: string | null;
+	latest: string[];
+	titleField: string;
+}>();
 const emit = defineEmits<{ pick: [name: string | null] }>();
 
 const EMPTY = "__empty__";
@@ -66,6 +72,12 @@ const details = useFormLayout({
 	type: "Details",
 	doc,
 	fallback: "meta",
+});
+
+// The record's title, once it loads, after its name; a record titled by its ID shows no second word.
+const title = computed(() => {
+	const value = props.titleField && props.record ? doc.value[props.titleField] : null;
+	return value && value !== props.record ? String(value) : "";
 });
 
 const options = computed(() => [

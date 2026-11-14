@@ -106,20 +106,23 @@ export function namingProperties(autoname: string): { autoname: string; naming_r
 export function ruleRefusal(settings: SettingsState, fields: RawMetaField[], rule: Rule): string {
 	const current = ruleOf(settings.properties);
 	if (rule === current) return "";
-	if (current === "script") return __("The app's code names each record. Change it there.");
+	if (current === "script") return __("Another rule would be ignored.");
 	const savedAutoincrement = ruleOf({ autoname: settings.savedAutoname }) === "autoincrement";
 	if ((rule === "autoincrement") !== savedAutoincrement) {
-		const refusal = autoincrementRefusal(settings);
+		const refusal = autoincrementRefusal(settings, rule);
 		if (refusal) return refusal;
 	}
-	if (rule === "naming_series" && settings.app && !fields.some((field) => field.fieldname === "naming_series")) {
-		return __("Needs a Naming Series field. Add one in the Editor first.");
+	if (rule === "naming_series" && !fields.some((field) => field.fieldname === "naming_series")) {
+		return __("Add a Select field named naming_series first.");
 	}
 	return "";
 }
 
-function autoincrementRefusal(settings: SettingsState): string {
+function autoincrementRefusal(settings: SettingsState, rule: Rule): string {
 	if (settings.app) return __("Customize cannot switch to or from Number in order.");
 	if (settings.pending || !settings.records || Number(settings.properties.issingle)) return "";
-	return __("Only while there are no records: this DocType has {0}.", [String(settings.records)]);
+	const count = settings.records.toLocaleString();
+	return rule === "autoincrement"
+		? __("Not while {0} records exist: their names are not numbers.", [count])
+		: __("Not while {0} records have numbers for names.", [count]);
 }

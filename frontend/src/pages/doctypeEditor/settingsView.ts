@@ -161,7 +161,7 @@ export class SettingsView {
 	}
 
 	/** A permission act: add, remove, set or reset rules. */
-	permission(act: "add_permission" | "remove_permission" | "set_permission" | "reset_permissions", keys = {}) {
+	permission(act: "add_permission" | "remove_permission" | "set_permission" | "set_if_owner" | "reset_permissions", keys = {}) {
 		void acts.perform(`settings.${act}`, keys);
 	}
 }

@@ -92,6 +92,51 @@ describe("the settings acts", () => {
     );
   });
 
+  it("limit a rule to its creator, which moves the rule to another key", async () => {
+    const mounted = mount();
+    await acts.run("settings.set_if_owner", { ...writerKey, value: 1 });
+    expect(rows(mounted).map((row) => [row.role, row.if_owner])).toEqual([
+      ["Writer", 1],
+    ]);
+    await acts.run("settings.set_if_owner", {
+      ...writerKey,
+      if_owner: 1,
+      value: 0,
+    });
+    expect(rows(mounted)[0].if_owner).toBe(0);
+  });
+
+  it("refuse Only if creator above level 0, and when the other rule already exists", async () => {
+    const mounted = mount();
+    await acts.run("settings.add_permission", {
+      role: "Writer",
+      permlevel: 1,
+      if_owner: 0,
+    });
+    await acts.perform("settings.set_if_owner", {
+      role: "Writer",
+      permlevel: 1,
+      if_owner: 0,
+      value: 1,
+    });
+    expect(toast.error).toHaveBeenCalledWith(
+      "Only if creator is for level 0 rules.",
+    );
+    await acts.run("settings.add_permission", {
+      role: "Writer",
+      permlevel: 0,
+      if_owner: 1,
+    });
+    toast.error.mockReset();
+    await acts.perform("settings.set_if_owner", { ...writerKey, value: 1 });
+    expect(toast.error).toHaveBeenCalledWith("Writer already has that rule.");
+    expect(
+      rows(mounted)
+        .filter((row) => row.role === "Writer" && !row.permlevel)
+        .map((row) => row.if_owner),
+    ).toEqual([0, 1]);
+  });
+
   it("give a new DocType's untouched System Manager rule Submit while it is submittable, as its insert would", async () => {
     const mounted = mountEditor(
       pendingDoctype({

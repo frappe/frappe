@@ -65,6 +65,7 @@
 						:doctype="state.doctype"
 						:record="previewName"
 						:latest="latest"
+						:title-field="String(state.definition.title_field ?? '')"
 						@pick="previewName = $event"
 					/>
 					<p v-else class="py-6 text-base text-ink-gray-5">

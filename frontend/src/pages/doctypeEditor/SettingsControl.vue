@@ -22,6 +22,13 @@
 			})
 		"
 	/>
+	<Select
+		v-else-if="row.control === 'view'"
+		class="w-[140px]"
+		:model-value="String(view.value(prop) || VIEWS[0])"
+		:options="VIEWS.map((one) => ({ label: __(one), value: one }))"
+		@update:model-value="view.set({ [prop]: $event === VIEWS[0] ? '' : $event })"
+	/>
 	<Combobox
 		v-else-if="row.control === 'field'"
 		class="w-[200px]"
@@ -75,6 +82,7 @@ const props = defineProps<{ row: SettingRow }>();
 const view = inject(SettingsViewKey)!;
 
 const NONE = "__none";
+const VIEWS = ["List", "Report", "Image", "Kanban", "Calendar", "Gantt"];
 const ORDERS = [
 	{ label: __("Ascending"), value: "ASC" },
 	{ label: __("Descending"), value: "DESC" },

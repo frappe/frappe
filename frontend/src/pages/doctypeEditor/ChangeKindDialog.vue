@@ -15,10 +15,10 @@
 				:label="__(one.label)"
 				:description="refusal(one.value) || __(one.description)"
 				:disabled="Boolean(refusal(one.value))"
-				:class="one.value === picked && 'bg-surface-gray-2'"
+				class="[&[disabled]_[data-slot=label]]:text-ink-gray-5 [&_[data-slot=description]]:text-ink-gray-5"
 			/>
 		</RadioGroup>
-		<p v-if="notes.length" class="text-p-sm text-ink-gray-6" data-kind-notes>
+		<p class="min-h-[39px] text-p-sm text-ink-gray-6" data-kind-notes>
 			{{ notes.join(" ") }}
 		</p>
 		<div class="flex justify-end gap-2">

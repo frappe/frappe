@@ -143,6 +143,7 @@ const SETTINGS_ACTS: [string, string][] = [
   ["add_permission", "Add a permission rule"],
   ["remove_permission", "Remove a permission rule"],
   ["set_permission", "Set a permission"],
+  ["set_if_owner", "Limit a rule to the records its people created"],
   ["reset_permissions", "Reset to app permissions"],
 ];
 

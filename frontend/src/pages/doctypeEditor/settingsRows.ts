@@ -4,7 +4,7 @@ import type { SettingsState } from "./settingsModel";
 
 export type SettingsSection = "naming" | "form" | "list" | "permissions" | "danger";
 export type DoctypeKind = "regular" | "submittable" | "tree" | "child" | "single";
-export type RowControl = "naming" | "kind" | "switch" | "number" | "field" | "fields" | "sort" | "permissions" | "danger";
+export type RowControl = "naming" | "kind" | "switch" | "number" | "view" | "field" | "fields" | "sort" | "permissions" | "danger";
 
 export interface SettingRow {
 	key: string;
@@ -49,10 +49,10 @@ export const SECTIONS: { key: SettingsSection; label: string; icon: string }[] =
 
 export const KINDS: { value: DoctypeKind; label: string; description: string }[] = [
 	{ value: "regular", label: "Regular", description: "Many records, with a list to find them in." },
-	{ value: "child", label: "Child table", description: "Rows inside another DocType's table. No list of its own." },
-	{ value: "single", label: "Single", description: "One record only, like a settings page." },
 	{ value: "submittable", label: "Submittable", description: "Records are drafted, then submitted and locked." },
 	{ value: "tree", label: "Tree", description: "Records nest under each other, like groups and their members." },
+	{ value: "child", label: "Child table", description: "Rows inside another DocType's table. No list of its own." },
+	{ value: "single", label: "Single", description: "One record only, like a settings page." },
 ];
 
 const MANY: DoctypeKind[] = ["regular", "submittable", "tree"];
@@ -145,6 +145,17 @@ export const SETTING_ROWS: SettingRow[] = [
 	flag("form", "Attachments", "force_private_attachments", "Keep attachments private", "Every attachment is a private file.", NOT_CHILD),
 	flag("form", "Attachments", "protect_attached_files", "Protect attached files", "A submitted record's files cannot be removed.", NOT_CHILD),
 	flag("form", "Rows", "editable_grid", "Editable grid", "Rows are edited in the parent's table, not a dialog.", ["child"]),
+	{
+		key: "default_view",
+		section: "list",
+		group: "List",
+		label: "Default view",
+		help: "The view the DocType opens in.",
+		control: "view",
+		props: ["default_view"],
+		keywords: "list report image kanban calendar gantt",
+		kinds: MANY,
+	},
 	{
 		key: "sort_field",
 		section: "list",

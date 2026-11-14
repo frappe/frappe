@@ -18,6 +18,7 @@ PERMISSION_ACTS = (
 	"settings.add_permission",
 	"settings.remove_permission",
 	"settings.set_permission",
+	"settings.set_if_owner",
 	"settings.reset_permissions",
 )
 

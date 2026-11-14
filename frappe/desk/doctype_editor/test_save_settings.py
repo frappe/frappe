@@ -8,7 +8,7 @@ from frappe.desk.doctype_editor.create import create_doctype
 from frappe.desk.doctype_editor.load import get_doctype_editor
 from frappe.desk.doctype_editor.mode import permissions_refusal
 from frappe.desk.doctype_editor.save import save_doctype_editor
-from frappe.desk.doctype_editor.test_load import CUSTOMIZER, a_customizer_role, a_user
+from frappe.desk.doctype_editor.test_load import CUSTOMIZER, MANAGER, a_customizer_role, a_user
 from frappe.desk.doctype_editor.test_save_design import (
 	DOCTYPE,
 	delete_committed,
@@ -103,6 +103,38 @@ class TestSaveSettingsDesign(IntegrationTestCase):
 		row = doc_perm("DocPerm", DOCTYPE, role)
 		self.assertEqual((row.read, row.write, row.create), (1, 1, 0))
 
+	def test_only_if_creator_moves_a_rule_to_the_other_key(self):
+		result = self.save([{"act": "settings.set_if_owner", "role": "System Manager", "value": 1}])
+		self.assertTrue(result["saved"], result)
+		self.assertEqual(doc_perm("DocPerm", DOCTYPE, if_owner=1).role, "System Manager")
+		self.assertIsNone(doc_perm("DocPerm", DOCTYPE, if_owner=0))
+
+	def test_only_if_creator_is_saved_by_a_system_manager(self):
+		manager = a_user(MANAGER, "System Manager")
+		with set_user(manager):
+			result = self.save([{"act": "settings.set_if_owner", "role": "System Manager", "value": 1}])
+		self.assertTrue(result["saved"], result)
+		self.assertEqual(doc_perm("DocPerm", DOCTYPE, if_owner=1).role, "System Manager")
+
+	def test_only_if_creator_is_refused_when_the_other_rule_exists(self):
+		edits = [
+			{"act": "settings.add_permission", "role": "System Manager", "if_owner": 1},
+			{"act": "settings.set_if_owner", "role": "System Manager", "value": 1},
+		]
+		result = self.save(edits)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["edit"], 1)
+		self.assertEqual(result["errors"][0]["target"], {"kind": "setting", "property": "permissions"})
+
+	def test_only_if_creator_is_refused_above_level_0(self):
+		edits = [
+			{"act": "settings.add_permission", "role": "System Manager", "permlevel": 1},
+			{"act": "settings.set_if_owner", "role": "System Manager", "permlevel": 1, "value": 1},
+		]
+		result = self.save(edits)
+		self.assertFalse(result["saved"])
+		self.assertEqual(result["errors"][0]["edit"], 1)
+
 	def test_a_right_ticks_its_prerequisites_and_unticks_its_dependents(self):
 		frappe.db.set_value("DocType", DOCTYPE, "is_submittable", 1)
 		result = self.save([perm("cancel"), perm("amend")])
@@ -178,6 +210,13 @@ class TestSaveSettingsCustomize(IntegrationTestCase):
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["target"]["property"], "autoname")
 
+	def test_only_if_creator_moves_a_site_rule_to_its_new_key(self):
+		role = frappe.get_all("DocPerm", {"parent": NOTE, "permlevel": 0, "if_owner": 0}, pluck="role")[0]
+		result = self.save([{"act": "settings.set_if_owner", "role": role, "value": 1}])
+		self.assertTrue(result["saved"], result)
+		self.assertEqual(doc_perm("Custom DocPerm", NOTE, role, if_owner=1).role, role)
+		self.assertIsNone(doc_perm("Custom DocPerm", NOTE, role, if_owner=0))
+
 	def test_a_first_edit_copies_the_app_rows_and_a_reset_removes_them(self):
 		app_roles = set(frappe.get_all("DocPerm", {"parent": NOTE}, pluck="role"))
 		result = self.save([perm("export", role="Desk User", if_owner=1)])
@@ -203,6 +242,20 @@ class TestSaveSettingsCustomize(IntegrationTestCase):
 		)
 		self.assertFalse(result["saved"])
 		self.assertEqual(result["errors"][0]["code"], "stale")
+
+	def test_only_if_creator_is_saved_by_a_system_manager(self):
+		manager = a_user(MANAGER, "System Manager")
+		role = a_role(WRITER)
+		with set_user(manager):
+			result = self.save(
+				[
+					{"act": "settings.add_permission", "role": role},
+					{"act": "settings.set_if_owner", "role": role, "value": 1},
+				]
+			)
+		self.assertTrue(result["saved"], result)
+		self.assertIsNotNone(doc_perm("Custom DocPerm", NOTE, role, if_owner=1))
+		self.assertIsNone(doc_perm("Custom DocPerm", NOTE, role, if_owner=0))
 
 	def test_a_customizer_without_system_manager_cannot_change_permissions(self):
 		"""The refused saves write nothing, so the tearDown's rollback removes the customizer."""
@@ -243,6 +296,23 @@ class TestSaveSettingsCustomize(IntegrationTestCase):
 		result = self.save([perm("export", role="Desk User", if_owner=1)])
 		self.assertTrue(result["saved"], result)
 		self.assertEqual(frappe.db.get_value("Custom DocPerm", hidden, "is_app_disabled"), 1)
+
+	def test_the_site_rules_keep_the_order_they_were_saved_in(self):
+		result = self.save([perm("export", role="Desk User", if_owner=1)])
+		self.assertTrue(result["saved"], result)
+		saved = frappe.get_all(
+			"Custom DocPerm", {"parent": NOTE}, ["name", "role", "if_owner"], order_by="idx"
+		)
+		# Meta reads the rows by `creation`, which a copy leaves equal or out of order.
+		for at, row in enumerate(reversed(saved)):
+			frappe.db.set_value(
+				"Custom DocPerm", row.name, "creation", f"2026-01-01 00:00:0{at % 10}", update_modified=False
+			)
+		frappe.clear_cache(doctype=NOTE)
+		shown = get_doctype_editor(NOTE, "Customize")["definition"]["permissions"]
+		self.assertEqual(
+			[(row["role"], row["if_owner"]) for row in shown], [(row.role, row.if_owner) for row in saved]
+		)
 
 	def test_the_last_rule_is_not_removed(self):
 		rows = frappe.get_all("DocPerm", {"parent": NOTE}, ["role", "permlevel", "if_owner"])

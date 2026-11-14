@@ -69,6 +69,17 @@ class SettingsEdits:
 		for each in closure(right, bool(edit.get("value"))):
 			row.set(each, 1 if edit.get("value") else 0)
 
+	def settings_set_if_owner(self, edit: dict):
+		"""Only if creator is part of a rule's key, so ticking it moves the row to another key."""
+		row = self.permission(permission_key(edit))
+		value = 1 if edit.get("value") else 0
+		if value and row.permlevel:
+			raise setting_error(_("Only if creator is for level 0 rules."), "permissions")
+		target = (row.role, int(row.permlevel or 0), value)
+		if target != permission_key(row) and self.permission(target, missing_ok=True):
+			raise setting_error(_("{0} already has that rule.").format(row.role), "permissions")
+		row.if_owner = value
+
 	def follow_kind(self, submittable):
 		"""The default rule gets Submit as `before_insert` gives it, while no edit has changed it."""
 		default = default_permission(False)

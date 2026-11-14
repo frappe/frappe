@@ -187,6 +187,18 @@ export class SettingsReplay {
 		for (const right of closure(edit.right, Boolean(edit.value))) row[right] = edit.value ? 1 : 0;
 	}
 
+	/** Only if creator is part of a rule's key, so ticking it moves the row to another key. */
+	setIfOwner(edit: PermissionKey & { value: unknown }) {
+		const row = this.permission(edit, this.ownRows());
+		const value = edit.value ? (1 as const) : (0 as const);
+		if (value && row.permlevel) throw new EditRefused("Only if creator is for level 0 rules.");
+		const target = { role: row.role, permlevel: row.permlevel, if_owner: value };
+		if (!sameKey(row, target) && this.ownRows().some((one) => sameKey(one, target))) {
+			throw new EditRefused("{0} already has that rule.", [row.role]);
+		}
+		row.if_owner = value;
+	}
+
 	resetPermissions() {
 		this.refusePermissions();
 		const app = this.customizeOnly();
@@ -269,6 +281,7 @@ const SETTINGS_ACTS: Record<string, (replay: SettingsReplay, edit: never) => voi
 	"settings.add_permission": (replay, edit) => replay.addPermission(edit),
 	"settings.remove_permission": (replay, edit) => replay.removePermission(edit),
 	"settings.set_permission": (replay, edit) => replay.setPermission(edit),
+	"settings.set_if_owner": (replay, edit) => replay.setIfOwner(edit),
 	"settings.reset_permissions": (replay) => replay.resetPermissions(),
 };
 

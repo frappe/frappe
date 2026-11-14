@@ -4,7 +4,7 @@
 	<TextInput
 		ref="input"
 		v-model="draft"
-		class="w-[280px] [&_input]:font-mono"
+		class="w-full [&_input]:font-mono"
 		:placeholder="dotted ? 'ST-.YYYY.-.#####' : 'ST-{YYYY}-{#####}'"
 		data-naming-pattern
 		@blur="commit"

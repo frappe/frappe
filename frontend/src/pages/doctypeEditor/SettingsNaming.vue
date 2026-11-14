@@ -11,13 +11,14 @@
 				<Radio
 					:value="one.value"
 					:label="__(one.label)"
-					:description="refusal(one.value) || __(one.help)"
+					:description="(!byScript && refusal(one.value)) || __(one.help)"
 					:disabled="Boolean(refusal(one.value))"
+					class="[&[disabled]_[data-slot=label]]:text-ink-gray-5 [&_[data-slot=description]]:text-ink-gray-5"
 					:data-naming-rule="one.value"
 				/>
 				<div
 					v-if="one.value === rule && CONTROLLED.includes(rule)"
-					class="flex flex-col gap-2 pb-2 pl-7 pr-1.5"
+					class="flex w-fit max-w-full flex-col gap-2 pb-2 pl-7 pr-1.5"
 					data-naming-control
 				>
 					<template v-if="rule === 'field'">
@@ -45,6 +46,11 @@
 				</div>
 			</template>
 		</RadioGroup>
+		<p v-if="byScript" class="mt-2 text-p-sm text-ink-gray-5" data-naming-by-script>
+			{{
+				__("{0}'s code names its records; another rule would be ignored.", [view.doctype])
+			}}
+		</p>
 	</SettingsRow>
 </template>
 
@@ -62,7 +68,6 @@ import {
 	patternSeed,
 	ruleOf,
 	ruleRefusal,
-	seriesAbbreviation,
 	type Rule,
 } from "./namingRules";
 import { useSeriesCounters } from "./seriesCounters";
@@ -80,6 +85,7 @@ const rule = computed(() => ruleOf(view.settings.properties));
 const rules = computed(() =>
 	RULES.filter((one) => !SHOWN_WHEN_CURRENT.includes(one.value) || one.value === rule.value)
 );
+const byScript = computed(() => rule.value === "script" && !view.settings.pending);
 const nameable = computed(() => view.fieldOptions(NAMEABLE_TYPES));
 const series = computed(() => view.fields.find((field) => field.fieldname === "naming_series"));
 const counters = useSeriesCounters(view, () =>
@@ -99,12 +105,7 @@ function pick(one: Rule) {
 			FIELD + (String(view.value("title_field") || "") || nameable.value[0].value)
 		);
 	if (one === "format") return view.setNaming(patternSeed(view.doctype));
-	if (one === "naming_series") {
-		return view.setNaming(
-			"naming_series:",
-			series.value ? undefined : [`${seriesAbbreviation(view.doctype)}-.#####`]
-		);
-	}
+	if (one === "naming_series") return view.setNaming("naming_series:");
 	view.setNaming(one === "uuid" ? "UUID" : one);
 }
 </script>
