@@ -6,7 +6,7 @@ import json
 import frappe
 from frappe.desk.doctype.form_layout.form_layout import source_fingerprint, write_layout_row
 from frappe.desk.doctype.form_layout.test_app_layout import a_tree
-from frappe.desk.doctype.form_layout.test_form_layout import a_manager
+from frappe.desk.doctype.form_layout.test_form_layout import a_manager, a_reader
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
 
@@ -46,3 +46,16 @@ class TestLayoutRowWriter(IntegrationTestCase):
 		for dt, type in (("Note", "Sidebar"), (["Note"], "Details")):
 			with self.assertRaises(frappe.ValidationError):
 				self.write(dt=dt, type=type, layout="[]")
+
+	def test_an_app_mirror_writes_a_row_for_a_user_without_layout_rights(self):
+		"""As CRM's v1 mirror does: the app checked the user's rights, so the row skips them."""
+		with set_user(a_reader()):
+			row = frappe.new_doc("Form Layout")
+			row.flags.ignore_permissions = True
+			self.write(row, dt="Note", type="Quick Entry", app="frappe", dialog_size="md", layout="[]")
+			row = frappe.get_doc("Form Layout", row.name)
+			row.flags.ignore_permissions = True
+			self.write(row, layout=json.dumps(a_tree("title")))
+		self.assertEqual((row.app, row.dialog_size), ("frappe", "md"))
+		self.assertEqual(row.fingerprint, source_fingerprint("Note", "Quick Entry"))
+		self.assertEqual(json.loads(row.layout)[0]["sections"][0]["columns"][0]["fields"], ["title"])
