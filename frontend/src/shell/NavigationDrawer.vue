@@ -33,7 +33,11 @@
 			tabindex="-1"
 			data-navigation-drawer
 			class="fixed inset-y-0 z-50 flex w-fit max-w-[85vw] overflow-hidden bg-surface-base shadow-2xl focus:outline-none"
-			:class="navSide() === 'left' ? 'left-0' : 'right-0'"
+			:class="[
+				navSide() === 'left' ? 'left-0' : 'right-0',
+				// The rail on the outer edge, as DesktopShell draws it.
+				navSide() === 'right' ? 'flex-row-reverse rtl:flex-row' : 'rtl:flex-row-reverse',
+			]"
 			@click="onClick"
 		>
 			<slot />
@@ -72,13 +76,15 @@ function onClick(event: MouseEvent) {
 	if (cell) {
 		browsing = !!cell.closest("[data-sidebar]");
 		if (!browsing) close();
+		// A cell that is already current causes no navigation to reset the flag.
+		else void nextTick(() => setTimeout(() => (browsing = false), 300));
 		return;
 	}
 	if (target?.closest('[data-slot="sidebar-item"], a[href], button[aria-busy]')) close();
 }
 
 watch(
-	() => route.fullPath,
+	() => route.path,
 	() => {
 		const stay = browsing && props.hasSidebar;
 		browsing = false;

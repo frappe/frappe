@@ -204,6 +204,7 @@ describe("the drawer at 820 px", () => {
 		menu()!.click();
 		await flush();
 		expect(drawer()!.className).toContain("right-0");
+		expect(drawer()!.className).toContain("flex-row-reverse");
 		expect(menu()!.parentElement!.className).toContain("right-5");
 	});
 

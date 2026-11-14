@@ -73,6 +73,7 @@
 				data-key="open-navigation"
 				:label="__('Open navigation')"
 				:aria-expanded="drawerOpen"
+				aria-haspopup="dialog"
 				@click="drawerOpen = true"
 			/>
 		</div>
@@ -464,7 +465,7 @@ function replace(next: Navigation) {
 
 // A navigation closes the overlay sidebar; its own Escape does too, unless a dialog took the key.
 watch(
-	() => route.fullPath,
+	() => route.path,
 	() => (overlayOpen.value = false)
 );
 useEventListener(window, "keydown", (event: KeyboardEvent) => {
