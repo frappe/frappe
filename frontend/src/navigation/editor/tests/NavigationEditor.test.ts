@@ -286,4 +286,86 @@ describe("the editor", () => {
 		await settle();
 		expect(rowsShown()).toEqual(["FRESH"]);
 	});
+
+	it("keeps the newest read of a level when an older read of it lands last", async () => {
+		let first!: (answer: Arrangements) => void;
+		await open();
+		api.fetchArrangements
+			.mockReturnValueOnce(new Promise((resolve) => (first = resolve)))
+			.mockResolvedValueOnce(response({ rail: [row("second")] }));
+		const level = (label: string) =>
+			Array.from(body().querySelectorAll<HTMLButtonElement>("[data-level-switch] button")).find(
+				(button) => button.textContent?.trim() === label
+			)!;
+
+		level("Everyone").click();
+		await settle();
+		level("Just me").click();
+		await settle();
+		level("Everyone").click();
+		await settle();
+		expect(api.fetchArrangements).toHaveBeenCalledTimes(3);
+		expect(rowsShown()).toEqual(["SECOND"]);
+
+		first(response({ rail: [row("first")] }));
+		await settle();
+		expect(rowsShown()).toEqual(["SECOND"]);
+	});
+
+	it("leaves a reopened editor alone when a save of the earlier opening ends late", async () => {
+		let rowsSaved!: (navigation: unknown) => void;
+		api.saveArrangements.mockReturnValue(new Promise((resolve) => (rowsSaved = resolve)));
+		api.saveNavigationLayout.mockRejectedValue(new Error("No layout"));
+		api.fetchDefaultArrangements.mockResolvedValue({ rail: [row("todo")], sidebars: {} });
+		api.fetchArrangements.mockResolvedValue(
+			response({
+				has_saved: true,
+				navigation_layouts: { standard: "", site: "", user: "sidebar_only" },
+				rail: [row("todo"), row("user:abc123")],
+			})
+		);
+		const emitted: string[] = [];
+		const target = ref<{ tab: "rail" }>({ tab: "rail" });
+		const app = createApp({
+			render: () =>
+				h(NavigationEditor, {
+					target: target.value,
+					onClose: () => emitted.push("close"),
+					onSaved: () => emitted.push("saved"),
+				}),
+		});
+		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+		const host = document.createElement("div");
+		document.body.appendChild(host);
+		app.mount(host);
+		unmount = () => app.unmount();
+		await settle();
+
+		// Reset to default changes the rows and the layout: the save goes out in two calls.
+		click("[data-reset]");
+		await settle();
+		click("[data-save]");
+		await nextTick();
+
+		// The editor opens again while that save is on its way, and the new draft takes an edit.
+		api.fetchArrangements.mockResolvedValue(response({ rail: [row("fresh"), row("other")] }));
+		target.value = { tab: "rail" };
+		await settle();
+		click("[data-key='fresh']");
+		await settle();
+		click("[data-row-actions] button");
+		await settle();
+		expect(rowsShown()).toEqual(["OTHER"]);
+		const reads = api.fetchArrangements.mock.calls.length;
+
+		rowsSaved({ rail: [], sidebars: {} });
+		await settle();
+		expect(api.saveNavigationLayout).toHaveBeenCalledOnce();
+		expect(api.fetchArrangements).toHaveBeenCalledTimes(reads);
+		expect(rowsShown()).toEqual(["OTHER"]);
+		expect(body().querySelector("[data-revert]")).not.toBeNull();
+		expect(body().querySelector("[data-save-error]")).toBeNull();
+		expect(body().querySelector<HTMLButtonElement>("[data-save]")!.disabled).toBe(false);
+		expect(emitted).toEqual(["saved"]);
+	});
 });

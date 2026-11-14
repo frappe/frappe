@@ -219,6 +219,7 @@ const selected = ref<string | null>(null);
 const showHidden = ref(false);
 const refusal = ref<string | null>(null);
 // A reply that comes back after the editor was reopened belongs to the earlier opening.
+// Every request notes the opening it started in, and touches the editor only while that one is open.
 let opening = 0;
 // Within one opening, only the newest read of a level may land.
 const newest: Record<Scope, number> = { user: 0, site: 0 };
@@ -290,6 +291,9 @@ watch(
 		opening += 1;
 		keptLayout.value = undefined;
 		reads.value = {};
+		saving.value = false;
+		resetting.value = false;
+		refusal.value = null;
 		scope.value = "user";
 		selected.value = null;
 		showHidden.value = false;
@@ -407,16 +411,18 @@ async function reset() {
 	const level = scope.value;
 	const read = reads.value[level];
 	if (!read) return;
+	const current = opening;
 	resetting.value = true;
 	failed.value = null;
 	try {
 		const below = await fetchDefaultArrangements(boot.app!, level);
+		if (current !== opening) return;
 		read.draft = resetToDefault(read.draft, below);
 		selected.value = null;
 	} catch (error) {
-		failed.value = (error as Error).message;
+		if (current === opening) failed.value = (error as Error).message;
 	} finally {
-		resetting.value = false;
+		if (current === opening) resetting.value = false;
 	}
 }
 
@@ -439,19 +445,22 @@ async function save() {
 		if (navigation) emit("saved", navigation);
 		if (current === opening) emit("close");
 	} catch (error) {
+		// The shell takes rows that went in, even when the editor was reopened since.
+		if (navigation) emit("saved", navigation);
+		if (current !== opening) return;
 		failed.value = (error as Error).message;
 		stale.value = isApiError(error) && !!error.isTimestampMismatch;
-		// The rows are in: the shell shows them, and the next Save needs the version they made.
-		if (navigation) await keepSavedRows(edited, navigation, failed.value);
+		// The rows are in: the next Save needs the version they made.
+		if (navigation) await keepSavedRows(level, edited, failed.value, current);
 	} finally {
-		saving.value = false;
+		if (current === opening) saving.value = false;
 	}
 }
 
 /** The layout save failed after the rows went in. The layout stays edited, on top of a fresh read. */
-async function keepSavedRows(edited: Draft, navigation: Navigation, reason: string) {
-	emit("saved", navigation);
-	const reloaded = await load(scope.value, edited.layout);
+async function keepSavedRows(level: Scope, edited: Draft, reason: string, current: number) {
+	const reloaded = await load(level, edited.layout);
+	if (current !== opening) return;
 	if (!reloaded) keptLayout.value = edited.layout;
 	failed.value = __("Your rows are saved, but the layout is not: {0}", [reason]);
 	stale.value = !reloaded;
