@@ -975,6 +975,28 @@ class TestFile(IntegrationTestCase):
 			self.assertIsNone(find_file_by_url("/private/files/CaseCheck.txt"))
 			self.assertEqual(find_file_by_url("/private/files/casecheck.txt").owner, "test4@example.com")
 
+	def test_find_file_by_url_checks_an_unreadable_doctype_once(self):
+		for i in range(3):
+			translation = frappe.get_doc(
+				doctype="Translation",
+				language="de",
+				source_text=f"Shared {i}",
+				translated_text=f"Geteilt {i}",
+			).insert()
+			file = frappe.get_doc(
+				doctype="File",
+				file_name="test_shared_translation.txt",
+				content="shared translation",
+				is_private=1,
+				attached_to_doctype="Translation",
+				attached_to_name=translation.name,
+			).insert()
+
+		with self.set_user("test@example.com"):
+			find_file_by_url(file.file_url)
+			with self.assertQueryCount(3):
+				self.assertIsNone(find_file_by_url(file.file_url))
+
 	def test_remove_file_by_url_ignores_urls_that_differ_in_case(self):
 		note = frappe.get_doc(doctype="Note", title="Case check", public=1).insert()
 		self.addCleanup(note.delete)
