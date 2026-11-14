@@ -14,8 +14,7 @@
 			:inert="collapsed"
 		>
 			<NavigationHeader v-if="chrome" />
-			<!-- 48px, no border: level with the page's header row, whose border stops at this panel's edge.
-			     Under the chrome the title is a label: the app's name is already above it. -->
+			<!-- Without the chrome, 48px and no border: level with the page's header row, whose border stops at this panel's edge. -->
 			<div class="flex shrink-0 items-center pl-4 pr-2" :class="chrome ? 'h-8' : 'h-12'">
 				<p
 					v-if="title"
@@ -91,7 +90,6 @@ const props = defineProps<{
 	sections?: SectionMemory;
 	customizable?: boolean;
 	collapsed: boolean;
-	// Carries the app menu, the utility slots and the avatar, where no rail does, and has no seam.
 	chrome?: boolean;
 }>();
 const emit = defineEmits<{ customize: [] }>();

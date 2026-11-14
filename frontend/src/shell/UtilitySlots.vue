@@ -1,6 +1,5 @@
 <!--
-  The utility slots, in the order Search, Notifications: a rail cell each, or a panel row each.
-  Notifications draws nothing until the notifications feature fills its slot.
+  The utility slots, Search then Notifications: a rail cell each, or a panel row each.
 -->
 <template>
 	<Tooltip v-if="form === 'cell'" side="right">

@@ -1,5 +1,5 @@
 <!--
-  The rail on frappe-ui's `SidebarRail`: an icon column with the app tile first, which opens the app menu.
+  The rail on frappe-ui's `SidebarRail`: an icon column. With `chrome`, the app tile that opens the app menu comes first.
   A heading has no icon form, so its children draw flat; rows fetched on demand are not drawn.
 -->
 <template>
@@ -113,7 +113,6 @@ const LETTER_TILE =
 const CELL =
 	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
 // The shell decides `current`, one row across rail and panel; a context is composed once per list.
-// `chrome` off draws only the items: the logo, the utility slots and the avatar are drawn elsewhere.
 const props = withDefaults(
 	defineProps<{
 		items: NavigationItem[];
