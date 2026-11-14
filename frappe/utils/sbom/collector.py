@@ -8,6 +8,7 @@ import contextlib
 import importlib
 import importlib.metadata
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -297,13 +298,13 @@ def _vcs_source(distribution: importlib.metadata.Distribution) -> tuple[str | No
 
 
 def _js_roots(app: str) -> list[Path]:
-	"""Return the app root and its direct child directories that have a package.json."""
-	app_root = Path(frappe.get_app_path(app, ".."))
-	return [
-		directory
-		for directory in (app_root, *sorted(app_root.iterdir()))
-		if directory.is_dir() and (directory / "package.json").exists()
-	]
+	"""Return each directory in the app that has a yarn.lock and a package.json, at any depth."""
+	roots = []
+	for directory, subdirectories, files in os.walk(frappe.get_app_path(app, "..")):
+		subdirectories[:] = sorted(d for d in subdirectories if d != "node_modules" and not d.startswith("."))
+		if "yarn.lock" in files and "package.json" in files:
+			roots.append(Path(directory))
+	return roots
 
 
 def _read_json(path: Path) -> dict | None:
