@@ -615,6 +615,7 @@ class TypstEmitter:
 		in_page_header = bool(repeat_header_footer and self.header_src)
 		in_page_footer = bool(repeat_header_footer and self.footer_src)
 		lines = [
+			f"#set document(title: {q(f'{self.doc.doctype}: {self.doc.name}')})",
 			self._page_setup(
 				header_zone=self.header_src if in_page_header else None,
 				footer_zone=self.footer_src if in_page_footer else None,
