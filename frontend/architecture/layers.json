@@ -219,6 +219,13 @@
     },
     {
       "from": "frontend/src/public.ts",
+      "to": "frontend/src/shell/navigationSide.ts",
+      "why": "The names an app may import include sideLabel and the side setters, which the settings dialog's Appearance blocks call and which live with the shell's side store.",
+      "ticket": 47406,
+      "title": "Navigation — build: the navigation side in the settings dialog"
+    },
+    {
+      "from": "frontend/src/public.ts",
       "to": "frontend/src/pageEngine/",
       "why": "The names an app may import include createPageEngine, which lives in the page engines layer.",
       "ticket": 43085,

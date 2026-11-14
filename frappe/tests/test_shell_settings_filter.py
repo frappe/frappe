@@ -272,7 +272,7 @@ class TestSettingsFilter(SettingsDialogTestCase):
 
 	def test_a_component_block_with_no_binding_shows_to_whoever_may_enter_its_app(self):
 		with authoring():
-			ship(["general"], [component("theme")])
+			ship(["general"], [component("theme", component="appearance")])
 			ship(blocks=[component("dialer")], app=EXTENDER, extends=HOST)
 
 		self.assertEqual(blocks_of(visible()), {"general": ["theme", "dialer"]})
@@ -320,7 +320,10 @@ class TestSettingsFilter(SettingsDialogTestCase):
 		with authoring():
 			ship(
 				["general"],
-				[single("mine", doctype=SINGLE, roles=creators), component("theme", roles=creators)],
+				[
+					single("mine", doctype=SINGLE, roles=creators),
+					component("theme", component="appearance", roles=creators),
+				],
 			)
 
 		self.assertEqual(blocks_of(visible(READER)), {}, "the reader reads the Single but holds no role")
@@ -330,7 +333,10 @@ class TestSettingsFilter(SettingsDialogTestCase):
 	def test_a_role_does_not_pass_a_block_its_kind_refuses(self):
 		with authoring():
 			readers = json.dumps([READER_ROLE])
-			ship(["general"], [single("system", roles=readers), component("theme", roles=readers)])
+			ship(
+				["general"],
+				[single("system", roles=readers), component("theme", component="appearance", roles=readers)],
+			)
 
 		self.assertEqual(blocks_of(visible(READER)), {"general": ["theme"]})
 		self.assertEqual(blocks_of(visible(READER, gate=lambda app: False)), {})
@@ -380,7 +386,10 @@ class TestSettingsFilter(SettingsDialogTestCase):
 		with authoring():
 			ship(
 				["general"],
-				[single("mine", doctype=SINGLE, fields=json.dumps(["gamma"])), component("theme")],
+				[
+					single("mine", doctype=SINGLE, fields=json.dumps(["gamma"])),
+					component("theme", component="appearance"),
+				],
 			)
 
 		self.assertEqual(blocks_of(visible()), {"general": ["theme"]})
@@ -403,7 +412,7 @@ class TestSettingsFilter(SettingsDialogTestCase):
 				["general", "system"],
 				[
 					single("mine", doctype=SINGLE),
-					component("theme", search_entries=settings),
+					component("theme", component="appearance", search_entries=settings),
 					single("smtp", pane="system"),
 					component(
 						"mail",
@@ -443,7 +452,7 @@ class TestSettingsFilter(SettingsDialogTestCase):
 			desk_blocks(AUTHOR),
 			{
 				"profile": PROFILE_BLOCKS,
-				"system": ["regional", "login", "password", "two-factor", "email", "files"],
+				"system": ["appearance", "regional", "login", "password", "two-factor", "email", "files"],
 			},
 		)
 
@@ -484,7 +493,7 @@ class TestSettingsFilter(SettingsDialogTestCase):
 		self.assertEqual(blocks_of(visible()), {"general": ["mine"]})
 
 		with authoring():
-			record.append("blocks", component("theme"))
+			record.append("blocks", component("theme", component="appearance"))
 			record.save()
 
 		self.assertEqual(blocks_of(visible()), {"general": ["mine", "theme"]})

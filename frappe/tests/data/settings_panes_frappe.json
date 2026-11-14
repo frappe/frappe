@@ -75,7 +75,17 @@
    },
    {
     "app": "frappe",
-    "component": "theme",
+    "bindings": {
+     "user": {
+      "doctype": "User",
+      "resolver": "session_user",
+      "type": "Record"
+     }
+    },
+    "component": "appearance",
+    "fields": [
+     "navigation_side"
+    ],
     "key": "appearance",
     "label": "Appearance",
     "save_mode": "auto",
@@ -87,6 +97,15 @@
        "color scheme"
       ],
       "label": "Theme"
+     },
+     {
+      "keywords": [
+       "left",
+       "right",
+       "rail",
+       "sidebar"
+      ],
+      "label": "Navigation side"
      }
     ]
    },
@@ -163,6 +182,33 @@
  {
   "app": "frappe",
   "blocks": [
+   {
+    "app": "frappe",
+    "bindings": {
+     "site": {
+      "doctype": "System Settings",
+      "type": "Single"
+     }
+    },
+    "component": "site-appearance",
+    "fields": [
+     "navigation_side"
+    ],
+    "key": "appearance",
+    "label": "Appearance",
+    "save_mode": "auto",
+    "settings": [
+     {
+      "keywords": [
+       "left",
+       "right",
+       "rail",
+       "sidebar"
+      ],
+      "label": "Navigation side"
+     }
+    ]
+   },
    {
     "app": "frappe",
     "binding": {

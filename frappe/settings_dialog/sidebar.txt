@@ -11,6 +11,7 @@ Group
     desk/profile/session-defaults
     desk/profile/password
   desk/system
+    desk/system/appearance
     desk/system/regional
     desk/system/login
     desk/system/password

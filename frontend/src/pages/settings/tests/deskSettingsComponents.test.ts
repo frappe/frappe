@@ -1,4 +1,4 @@
-// Desk's own settings components, as the build discovers them: the theme, the photo, the language
+// Desk's own settings components, as the build discovers them: appearance, the photo, the language
 // and time zone over the session user's binding, the session defaults read and saved by method, and
 // the password change.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -13,10 +13,17 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 import { useColorScheme } from "frappe-ui";
 import { getFieldComponent, registerFieldType } from "@framework/ui/FormLayout";
 import { resetSession, setSession } from "@framework/ui/useSession";
+import {
+	navigationSide,
+	ownNavigationSide,
+	seedNavigationSide,
+	siteNavigationSide,
+} from "@/shell/navigationSide";
 import { settingsComponentFor } from "@/contributions/registry";
 
 const NAMES = [
-	"theme",
+	"appearance",
+	"site-appearance",
 	"profile-photo",
 	"language-and-time-zone",
 	"session-defaults",
@@ -84,6 +91,7 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 	resetSession();
 	useColorScheme().setColorScheme("light");
+	seedNavigationSide({ user: {} });
 });
 
 async function settle() {
@@ -128,10 +136,10 @@ describe("desk's settings components", () => {
 		for (const name of NAMES) expect(settingsComponentFor("frappe", name)).toBeTypeOf("function");
 	});
 
-	it("theme: one row whose select shows the scheme in use, with its icon, and applies a pick", async () => {
+	it("appearance: the theme select shows the scheme in use, with its icon, and applies a pick", async () => {
 		const { colorScheme, setColorScheme } = useColorScheme();
 		setColorScheme("light");
-		await mount("theme");
+		await mount("appearance", { user: userBinding({}) });
 		const trigger = document.querySelector<HTMLElement>("button[role='combobox']")!;
 
 		expect(trigger.textContent).toContain("Light");
@@ -152,6 +160,90 @@ describe("desk's settings components", () => {
 		expect(colorScheme.value).toBe("dark");
 		expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
 		expect(trigger.textContent).toContain("Dark");
+	});
+
+	async function pickOption(trigger: HTMLElement, label: string) {
+		trigger.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, button: 0 }));
+		trigger.click();
+		await settle();
+		const option = Array.from(document.querySelectorAll<HTMLElement>("[role='option']")).find(
+			(one) => one.textContent?.trim() === label
+		)!;
+		for (const type of ["pointerdown", "pointerup"])
+			option.dispatchEvent(new PointerEvent(type, { bubbles: true, button: 0, pointerType: "mouse" }));
+		option.click();
+		await settle();
+	}
+
+	const sideTrigger = () =>
+		document.querySelector<HTMLElement>("[data-fieldname='navigation_side'] button[role='combobox']")!;
+
+	it("appearance: the navigation side offers the site's value, saves a pick through the binding and redraws the shell", async () => {
+		seedNavigationSide({ user: {}, defaults: { navigation_side: "end" } });
+		const user = userBinding({ navigation_side: "" });
+		await mount("appearance", { user });
+
+		expect(sideTrigger().textContent).toContain("Site default (Right)");
+		await pickOption(sideTrigger(), "Left");
+
+		expect(user.doc.navigation_side).toBe("start");
+		expect(user.commit).toHaveBeenCalledOnce();
+		expect(ownNavigationSide.value).toBe("start");
+		expect(navigationSide.value).toBe("start");
+
+		await pickOption(sideTrigger(), "Site default (Right)");
+
+		expect(user.doc.navigation_side).toBe("");
+		expect(navigationSide.value).toBe("end");
+	});
+
+	it("appearance: a refused save shows under the row and leaves the shell alone", async () => {
+		const user = userBinding({ navigation_side: "" });
+		user.commit.mockImplementation(async () => {
+			user.error = "Not allowed";
+		});
+		await mount("appearance", { user });
+
+		await pickOption(sideTrigger(), "Right");
+
+		expect(document.body.textContent).toContain("Not allowed");
+		expect(navigationSide.value).toBe("start");
+	});
+
+	it("appearance: when the save settles on another session's value, the shell follows that value", async () => {
+		const user = userBinding({ navigation_side: "" });
+		user.commit.mockImplementation(async () => {
+			user.doc.navigation_side = "start";
+		});
+		await mount("appearance", { user });
+
+		await pickOption(sideTrigger(), "Right");
+
+		expect(navigationSide.value).toBe("start");
+	});
+
+	it("site appearance: a pick saves System Settings and moves a person with no side of their own", async () => {
+		const site = userBinding({ navigation_side: "start" });
+		await mount("site-appearance", { site });
+
+		expect(sideTrigger().textContent).toContain("Left");
+		await pickOption(sideTrigger(), "Right");
+
+		expect(site.doc.navigation_side).toBe("end");
+		expect(site.commit).toHaveBeenCalledOnce();
+		expect(siteNavigationSide.value).toBe("end");
+		expect(navigationSide.value).toBe("end");
+	});
+
+	it("site appearance: a person's own side stays when the site's changes", async () => {
+		seedNavigationSide({ user: { navigation_side: "start" } });
+		const site = userBinding({ navigation_side: "start" });
+		await mount("site-appearance", { site });
+
+		await pickOption(sideTrigger(), "Right");
+
+		expect(siteNavigationSide.value).toBe("end");
+		expect(navigationSide.value).toBe("start");
 	});
 
 	it("profile photo: shows the person and removes the photo through the binding", async () => {

@@ -9,6 +9,13 @@ export {
 	type RouteOptions,
 } from "@/router/routeFor";
 export type { ContentEntry } from "@/contents";
+export {
+	setOwnNavigationSide,
+	setSiteNavigationSide,
+	sideLabel,
+	siteNavigationSide,
+	type NavigationSide,
+} from "@/shell/navigationSide";
 export { useUnloadGuard } from "@/unloadGuard";
 export { askReload, type AfterSave, type SavedBinding } from "@/afterSave";
 export { createPageEngine, FIRST_PAINT_LIMIT_MS, Surface } from "@/pageEngine";

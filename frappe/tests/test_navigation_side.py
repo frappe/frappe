@@ -6,6 +6,7 @@
 import frappe
 from frappe.cache_manager import clear_defaults_cache
 from frappe.sessions import get_session_info
+from frappe.shell.settings import get_panes
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
 
@@ -75,3 +76,52 @@ class TestNavigationSide(IntegrationTestCase):
 		for side in ("", "start", "end"):
 			user.navigation_side = side
 			user.save()
+
+
+def block(user: str, pane: str, key: str) -> dict | None:
+	"""A frappe block of the settings dialog as `user` is shown it, or None."""
+	with set_user(user):
+		panes = get_panes()["panes"]
+	return next(
+		(
+			one
+			for each in panes
+			if each["app"] == "frappe" and each["key"] == pane
+			for one in each["blocks"]
+			if one["key"] == key
+		),
+		None,
+	)
+
+
+class TestNavigationSideBlocks(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_the_profile_appearance_block_binds_the_session_user_and_saves_only_the_side(self):
+		one = block("test@example.com", "profile", "appearance")
+		self.assertEqual(one["component"], "appearance")
+		self.assertEqual(
+			one["bindings"], {"user": {"type": "Record", "doctype": "User", "resolver": "session_user"}}
+		)
+		self.assertEqual(one["fields"], ["navigation_side"])
+
+	def test_the_system_appearance_block_saves_the_site_side_on_its_own(self):
+		one = block("Administrator", "system", "appearance")
+		self.assertEqual(one["component"], "site-appearance")
+		self.assertEqual(one["bindings"], {"site": {"type": "Single", "doctype": "System Settings"}})
+		self.assertEqual((one["fields"], one["save_mode"]), (["navigation_side"], "auto"))
+
+	def test_the_system_appearance_block_is_hidden_from_a_plain_desk_user(self):
+		plain = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "navigation_side_plain@example.com",
+				"first_name": "Plain",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Desk User"}],
+			}
+		).insert()
+		self.assertNotIn("System Manager", frappe.get_roles(plain.name))
+		self.assertIsNone(block(plain.name, "system", "appearance"))
+		self.assertIsNotNone(block(plain.name, "profile", "appearance"))
