@@ -1,10 +1,5 @@
-// The `Link` kind: a URL its author chose, pointing wherever they pointed it.
-//
-// The only kind that is `Always Visible`. A path inside this prefix is a route; any other path on
-// this site is a full page load in place; another origin opens in a new tab, marked `external`.
-// The server leaves it alone for the same reason — a `Link` row is the one contributed item
-// `switches_app` says nothing about, because it already goes wherever it goes (`navigation.py`'s
-// `_switching_url`).
+// The `Link` kind: a URL its author chose, always visible. The server leaves it alone: it already
+// goes wherever it goes (`navigation.py`'s `_switching_url`).
 
 import { START_LOCATION } from "vue-router";
 

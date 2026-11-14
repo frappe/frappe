@@ -65,7 +65,11 @@
 							:rel="cell.external ? 'noopener' : undefined"
 							data-slot="sidebar-rail-item"
 							:class="CELL"
-							:aria-label="cell.label"
+							:aria-label="
+								cell.external
+									? __('{0} (opens in a new tab)', [cell.label])
+									: cell.label
+							"
 						>
 							<Icon v-if="cell.icon" :name="cell.icon" />
 							<span v-else class="text-sm font-medium">{{

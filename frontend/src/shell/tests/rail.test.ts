@@ -245,6 +245,8 @@ describe("the kinds the rail draws", () => {
 		expect(docs.getAttribute("target")).toBe("_blank");
 		expect(docs.getAttribute("rel")).toBe("noopener");
 		expect(docs.querySelector(".lucide-arrow-up-right")).not.toBeNull();
+		expect(docs.getAttribute("aria-label")).toContain("(opens in a new tab)");
+		expect(here.getAttribute("aria-label")).not.toContain("(opens in a new tab)");
 		expect(here.getAttribute("target")).toBeNull();
 		expect(here.querySelector(".lucide-arrow-up-right")).toBeNull();
 	});

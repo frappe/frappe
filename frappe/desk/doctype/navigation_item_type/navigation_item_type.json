@@ -55,7 +55,7 @@
   },
   {
    "default": "0",
-   "description": "Whether a person or the site may add an item of this kind to a rail or a sidebar. Kinds that need a setup an item cannot carry stay off.",
+   "description": "Whether a person or the site may add this type to a rail or sidebar.",
    "fieldname": "addable",
    "fieldtype": "Check",
    "label": "Addable"

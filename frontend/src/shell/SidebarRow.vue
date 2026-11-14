@@ -49,11 +49,13 @@
 					<Icon :name="iconOf(item)" />
 				</span>
 				<span class="ml-2 min-w-0 flex-1 truncate text-sm">{{ label }}</span>
-				<span
-					v-if="destination.external"
-					class="lucide-arrow-up-right mx-2 size-3 shrink-0 text-ink-gray-5"
-					aria-hidden="true"
-				/>
+				<template v-if="destination.external">
+					<span
+						class="lucide-arrow-up-right mx-2 size-3 shrink-0 text-ink-gray-5"
+						aria-hidden="true"
+					/>
+					<span class="sr-only">{{ __("Opens in a new tab") }}</span>
+				</template>
 			</a>
 		</div>
 

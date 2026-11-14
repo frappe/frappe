@@ -13,6 +13,7 @@ import { registerShell } from "@/router/routeFor";
 import { itemContext } from "@/navigation/context";
 import RailColumn from "../RailColumn.vue";
 import SidebarPanel from "../SidebarPanel.vue";
+import { installTranslate } from "@/i18n";
 import UserMenu from "../UserMenu.vue";
 import UtilitySlots from "../UtilitySlots.vue";
 import NavigationHeader from "../NavigationHeader.vue";
@@ -89,6 +90,7 @@ function mount(render: (context: ReturnType<typeof itemContext>) => ReturnType<t
 	app.provide("boot", crm);
 	app.provide("addresses", addresses);
 	app.use(router);
+	installTranslate(app);
 	app.mount(host);
 	mounted.push(app);
 	return host;
@@ -239,6 +241,7 @@ describe("SidebarPanel links", () => {
 		expect(anchor("docs").getAttribute("target")).toBe("_blank");
 		expect(anchor("docs").getAttribute("rel")).toBe("noopener");
 		expect(anchor("docs").querySelector(".lucide-arrow-up-right")).not.toBeNull();
+		expect(anchor("docs").textContent).toContain("Opens in a new tab");
 		expect(anchor("here").getAttribute("target")).toBeNull();
 		expect(anchor("here").querySelector(".lucide-arrow-up-right")).toBeNull();
 	});
