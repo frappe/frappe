@@ -248,8 +248,6 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		});
 	}
 
-	// What the settings belong to: an icon, a title and a line under it. The rail turns into a
-	// strip of tabs on a phone, which has no room for it.
 	render_sidebar_header() {
 		const header = this.sidebar_header;
 		if (!header || !header.title) return;
@@ -279,7 +277,6 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		this.sidebar_header = header;
 		this.$sidebar.find(".settings-dialog-sidebar-header").remove();
 		this.render_sidebar_header();
-		// the header leads the rail
 		this.$sidebar.find(".settings-dialog-sidebar-header").prependTo(this.$sidebar);
 	}
 

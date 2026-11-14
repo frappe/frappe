@@ -154,12 +154,10 @@
     margin-inline-start: calc(var(--spacing) * 1.5);
 }
 
-/* row: the label takes the theme's color */
 .es-alert .es-alert__action[data-variant="ghost"] {
     --bt-fg: var(--es-al-action);
 }
 
-/* banner: a raised white button, then a quiet one */
 .es-alert[data-layout="banner"] .es-alert__action[data-variant="outline"] {
     border-color: transparent;
     box-shadow: var(--shadow-sm);

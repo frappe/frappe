@@ -310,7 +310,6 @@ function _profile_tab(user_data) {
 		description: __("Manage your profile information and display picture."),
 		actions: [
 			{
-				// the dialog covers the everyday fields; the User form has the rest
 				label: __("View Full Profile"),
 				click() {
 					frappe.ui._user_settings_dialog?.hide();

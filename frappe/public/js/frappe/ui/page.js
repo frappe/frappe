@@ -652,10 +652,8 @@ frappe.ui.Page = class Page {
 				window.matchMedia("(max-width: 767.98px)").matches) ||
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
-		// each segment is its rows, with the heading it was given, if any
 		const segments = [[]];
 		const headed = new Map();
-		// where a row goes: its heading's segment, or the open one without a heading
 		const segment_for = (heading) => {
 			if (heading) {
 				if (!headed.has(heading)) {

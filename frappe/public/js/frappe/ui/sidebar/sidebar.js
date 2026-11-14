@@ -79,8 +79,6 @@ function linked_entities(item) {
 // so its strings are translated when the sidebar renders.
 frappe.ui.sidebar_banners = frappe.ui.sidebar_banners || [];
 
-// The user's own settings dialog, opened from the avatar menu here and on the Desktop page.
-// Not in the desk bundle, so it is loaded on the first click.
 frappe.ui.open_user_settings = function (tab = "profile") {
 	return frappe
 		.require("user_settings_dialog.bundle.js")

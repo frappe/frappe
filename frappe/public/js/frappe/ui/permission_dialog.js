@@ -162,7 +162,6 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 
 	title() {
 		if (this.is_edit) {
-			// name what varies: the role where the doctype is fixed, the doctype otherwise
 			const subject = this.fixes_doctype ? this.row.role : this.row.parent;
 			return __("{0} Permission for {1}", [
 				__(this.row.source),
@@ -215,7 +214,6 @@ frappe.ui.PermissionDialog = class PermissionDialog {
 				},
 			];
 		}
-		// editing from a doctype's settings: say whose permission this is, as add mode does
 		if (this.is_edit && this.fixes_doctype) {
 			return [
 				{

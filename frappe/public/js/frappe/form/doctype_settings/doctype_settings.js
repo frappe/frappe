@@ -87,7 +87,6 @@ function build_dialog(doctype, has_general) {
 
 	const default_tab = has_general ? "general" : undefined;
 	let dialog = frappe.doctype_settings._dialog;
-	// one dialog serves every DocType, so it says which one it is open for
 	const sidebar_header = {
 		title: __(doctype),
 		description: __("DocType Settings"),

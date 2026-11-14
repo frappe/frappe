@@ -598,7 +598,6 @@ body {
 		}
 	}
 
-	// A shortcut is a way to somewhere, so it is sized like a button and not like a card of data.
 	&.shortcut-widget-box {
 		cursor: pointer;
 		padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);

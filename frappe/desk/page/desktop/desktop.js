@@ -277,8 +277,6 @@ class DesktopPage {
 		let is_dark = document.documentElement.getAttribute("data-theme") === "dark";
 		let menu_items = [
 			{
-				// the same dialog the sidebar's avatar menu opens; the full User form is a
-				// button away inside it
 				icon: "settings",
 				label: "My Settings",
 				onclick: () => frappe.ui.open_user_settings(),

@@ -2890,12 +2890,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
-		// the menu's headings
 		const permissions = __("Permissions");
 		const customize = __("Customize");
 		const list_view = __("List View");
 
-		// what changes this view comes first, then the DocType, then who may see it
 		items.push({
 			label: __("Customize Quick Filters", null, "Customize qucik filters of List View"),
 			action: () => {
@@ -2918,7 +2916,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			!frappe.model.core_doctypes_list.includes(doctype)
 		) {
 			items.push({
-				// named for its DocType: a bare "Settings" could be any of several
 				label: __("Settings - {0}", [__(doctype)]),
 				action: () => {
 					// The DocType Settings feature ships as its own on-demand bundle

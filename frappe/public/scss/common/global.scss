@@ -8,9 +8,8 @@ body {
 	font-variation-settings: "opsz" 24;
 }
 
-// A form control starts from the browser's own font, which leaves the variation settings and the
-// tracking behind, so a button's label was drawn at a wider optical size and tighter than the
-// text around it. frappe-ui gets both from Tailwind's preflight.
+// A form control starts from the browser's own font, which drops the body's variation settings
+// and tracking. frappe-ui gets both back from Tailwind's preflight.
 button,
 input,
 optgroup,
