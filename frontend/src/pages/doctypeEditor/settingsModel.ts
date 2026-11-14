@@ -31,6 +31,20 @@ const PREREQUISITES: Partial<Record<Right, Right[]>> = {
 	amend: ["write", "create"],
 	import: ["create"],
 };
+// `default_permission` in doctype.py: a new DocType starts with it, and its Submit follows the kind.
+export const DEFAULT_PERMISSION = {
+	role: "System Manager",
+	permlevel: 0,
+	read: 1,
+	write: 1,
+	create: 1,
+	delete: 1,
+	report: 1,
+	export: 1,
+	share: 1,
+	print: 1,
+	email: 1,
+};
 /** Set when the DocType is created; a saved one refuses them. */
 export const KIND_PROPERTIES = ["istable", "issingle", "is_submittable", "is_tree"];
 const AUTOINCREMENT = "autoincrement";
@@ -133,6 +147,7 @@ export class SettingsReplay {
 		this.refuseProperty(property);
 		if (property === "autoname") this.refuseAutoincrement(value as string);
 		this.state.properties[property] = value;
+		if (property === "is_submittable") this.followKind(Boolean(value));
 	}
 
 	resetDoctypeProperty({ property }: { property: string }) {
@@ -177,6 +192,15 @@ export class SettingsReplay {
 		const app = this.customizeOnly();
 		this.state.permissions = structuredClone(app.permissions);
 		this.state.sitePermissions = false;
+	}
+
+	/** The default rule gets Submit as the insert gives it, while no edit has changed it. */
+	private followKind(submittable: boolean) {
+		const rights = RIGHTS.filter((right) => right !== "submit");
+		const untouched = (row: PermissionRow) =>
+			sameKey(row, DEFAULT_PERMISSION) &&
+			rights.every((right) => row[right] === ((DEFAULT_PERMISSION as Record<string, unknown>)[right] ?? 0));
+		for (const row of this.state.permissions.filter(untouched)) row.submit = submittable ? 1 : 0;
 	}
 
 	private refuseProperty(property: string) {

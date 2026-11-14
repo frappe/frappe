@@ -68,6 +68,25 @@ describe("a pending DocType", () => {
 		expect([state.pending, state.definition.custom]).toEqual([true, 1]);
 	});
 
+	it("starts with the System Manager rule its insert would add, so the table shows what the save makes", () => {
+		const state = pendingDoctype({ name: "Route", module: "Desk", custom: true, naming_rule: "Random" });
+		expect(state.definition.permissions).toEqual([
+			{
+				role: "System Manager",
+				permlevel: 0,
+				read: 1,
+				write: 1,
+				create: 1,
+				delete: 1,
+				report: 1,
+				export: 1,
+				share: 1,
+				print: 1,
+				email: 1,
+			},
+		]);
+	});
+
 	it("names its records by the dialog's naming rule", () => {
 		const autoname = (naming_rule: string) =>
 			pendingDoctype({ name: "Route", module: "Desk", custom: true, naming_rule }).definition.autoname;

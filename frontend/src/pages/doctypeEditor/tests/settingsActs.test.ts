@@ -4,7 +4,7 @@ const { toast } = vi.hoisted(() => ({ toast: { error: vi.fn(), success: vi.fn() 
 vi.mock("frappe-ui", () => ({ toast }));
 
 import { acts } from "@/acts/dispatcher";
-import type { EditorState } from "../editorSource";
+import { pendingDoctype, type EditorState } from "../editorSource";
 import { mountEditor, taskNote } from "./editorFixture";
 
 let stop: () => void;
@@ -42,6 +42,19 @@ describe("the settings acts", () => {
 		expect([added.read, added.write, added.create]).toEqual([1, 0, 0]);
 		await acts.perform("settings.add_permission", { role: "Reader", permlevel: 0, if_owner: 0 });
 		expect(toast.error).toHaveBeenCalledWith("Reader already has a row at level 0.");
+	});
+
+	it("give a new DocType's untouched System Manager rule Submit while it is submittable, as its insert would", async () => {
+		const mounted = mountEditor(pendingDoctype({ name: "Route", module: "Desk", custom: true, naming_rule: "Random" }));
+		stop = mounted.stop;
+		const manager = () => mounted.canvas.working.value.settings.permissions.find((row) => row.role === "System Manager")!;
+		await acts.run("settings.set_doctype_property", { property: "is_submittable", value: 1 });
+		expect(manager().submit).toBe(1);
+		await acts.run("settings.set_doctype_property", { property: "is_submittable", value: 0 });
+		expect(manager().submit).toBe(0);
+		await acts.run("settings.set_permission", { role: "System Manager", permlevel: 0, if_owner: 0, right: "export", value: 0 });
+		await acts.run("settings.set_doctype_property", { property: "is_submittable", value: 1 });
+		expect(manager().submit).toBe(0);
 	});
 
 	it("undo opens the tab of each change, across the Editor and Settings tabs", async () => {

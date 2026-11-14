@@ -11,6 +11,7 @@ import type {
 	LayoutTree,
 } from "@/recordPage/formLayoutSource/types";
 import { NAMEABLE_TYPES, autonameOf, seriesField } from "./namingRules";
+import { DEFAULT_PERMISSION } from "./settingsModel";
 import type { BaseVersion, EditorMode } from "./pendingEdits";
 
 export type LayoutSource =
@@ -177,6 +178,7 @@ export function pendingDoctype(answers: NewDoctype, source?: EditorState | null)
 				naming_rule: answers.naming_rule,
 				autoname: autonameOf(answers.naming_rule, field.fieldname),
 				fields: [field],
+				permissions: [{ ...DEFAULT_PERMISSION }],
 			};
 	const layout = (source && detailsLayout(source)?.layout) || [
 		{
