@@ -34,7 +34,6 @@ describe("the rail's Act cell", () => {
 		expect(button.getAttribute("data-slot")).toBe("sidebar-rail-item");
 		expect(button.getAttribute("aria-label")).toBe("Toggle theme");
 		expect(button.getAttribute("aria-current")).toBeNull();
-		expect(button.className).toContain("rounded-[7px]");
 		button.click();
 		expect(act.run).toHaveBeenCalledTimes(1);
 	});

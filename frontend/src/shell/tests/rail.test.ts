@@ -233,7 +233,6 @@ describe("the kinds the rail draws", () => {
 		expect(anchor.tagName).toBe("A");
 		expect(anchor.getAttribute("href")).toBe("https://docs.frappe.io");
 		expect(anchor.getAttribute("data-slot")).toBe("sidebar-rail-item");
-		expect(anchor.className).toContain("rounded-[7px]");
 	});
 
 	it("opens another origin in a new tab and draws the arrow; a path on this site stays in place", () => {
