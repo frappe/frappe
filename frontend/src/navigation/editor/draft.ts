@@ -45,6 +45,11 @@ export function openerOf(draft: Draft, key: string): EditorRow | undefined {
 	);
 }
 
+/** The sidebar a rail row opens, if it opens one. */
+export function sidebarOf(row: EditorRow | undefined): string | undefined {
+	return row?.opens_sidebar ?? (row?.item_type === "Sidebar" ? row.link_to : undefined);
+}
+
 /** The sidebars a rail row opens: the only ones the editor offers a tab for. */
 export function openedSidebars(draft: Draft): string[] {
 	return Object.keys(draft.sidebars).filter((key) => openerOf(draft, key));

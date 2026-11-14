@@ -24,9 +24,10 @@
 					: 'text-ink-gray-7 hover:bg-surface-gray-2',
 			]"
 			@click="emit('select', row.key)"
-			@dragstart="dragged = row.key"
+			@dragstart="emit('dragStart', row.key)"
+			@dragend="emit('dragEnd')"
 			@dragover.prevent
-			@drop.prevent="drop(row.key)"
+			@drop.prevent="drop($event, row.key)"
 		>
 			<span
 				v-for="guide in depth"
@@ -83,11 +84,11 @@ const props = defineProps<{
 const emit = defineEmits<{
 	select: [key: string];
 	move: [key: string, by: 1 | -1];
-	dropBefore: [key: string, before: string];
+	dragStart: [key: string];
+	dragEnd: [];
+	drop: [onKey: string, middle: boolean];
 	open: [key: string];
 }>();
-
-const dragged = ref<string | null>(null);
 
 const list = computed(() => {
 	const shown = props.rows.filter((row) => props.showHidden || !row.hidden);
@@ -133,9 +134,11 @@ function badge(row: EditorRow): Badged | null {
 	return null;
 }
 
-function drop(before: string) {
-	if (dragged.value && dragged.value !== before) emit("dropBefore", dragged.value, before);
-	dragged.value = null;
+/** A drop on the middle third of a row is "onto" it, which a linked rail row takes as "into its sidebar". */
+function drop(event: DragEvent, onKey: string) {
+	const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
+	const at = (event.clientY - box.top) / box.height;
+	emit("drop", onKey, at > 1 / 3 && at < 2 / 3);
 }
 
 function onKey(event: KeyboardEvent) {

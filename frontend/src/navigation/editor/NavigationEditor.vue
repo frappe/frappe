@@ -58,7 +58,9 @@
 				<div class="flex min-h-0 flex-col border-r border-outline-gray-1">
 					<div class="flex flex-col gap-2 px-6 pt-5">
 						<div class="flex items-center justify-between">
-							<TabButtons v-model="tab" :options="tabs" />
+							<div @dragover="overTabs" @dragleave="clearHover">
+								<TabButtons v-model="tab" :options="tabs" />
+							</div>
 							<EditorAddMenu :options="addOptions" />
 						</div>
 						<Select
@@ -80,7 +82,9 @@
 							@select="choose"
 							@open="openForm"
 							@move="move"
-							@drop-before="drop"
+							@drag-start="(key: string) => (dragging = { container, key })"
+							@drag-end="clearDrag"
+							@drop="drop"
 						/>
 					</div>
 					<div class="border-t border-outline-gray-1 px-6 py-3">
@@ -195,6 +199,7 @@ import {
 	layoutChanged,
 	openedSidebars,
 	openerOf,
+	sidebarOf,
 	newKey,
 	RAIL,
 	resetToDefault,
@@ -212,7 +217,8 @@ import {
 	moveTo as moveRowTo,
 	remove as removeRow,
 	removeSidebar as removeRowSidebar,
-	dropBefore,
+	dropAcross,
+	dropInto as dropRowInto,
 	moveAmongSiblings,
 	nest,
 	refused,
@@ -590,8 +596,57 @@ function leaveIfUnlisted(key: string) {
 	selected.value = neighbour?.key ?? null;
 }
 
-function drop(key: string, before: string) {
-	if (draft.value) apply(dropBefore(draft.value, container.value, key, before));
+const dragging = ref<{ container: string; key: string } | null>(null);
+let hoverTimer: ReturnType<typeof setTimeout> | undefined;
+let hovered: string | undefined;
+
+function clearHover() {
+	clearTimeout(hoverTimer);
+	hovered = undefined;
+}
+
+function clearDrag() {
+	dragging.value = null;
+	clearHover();
+}
+
+/** Held over the other tab for 500 ms, a drag switches to it (R1-Q9). */
+function overTabs(event: DragEvent) {
+	if (!dragging.value) return;
+	const buttons = [...(event.currentTarget as HTMLElement).querySelectorAll("button")];
+	const over = buttons.indexOf((event.target as HTMLElement).closest("button")!);
+	const next = tabs.value[over]?.value as "rail" | "sidebar" | undefined;
+	if (!next || next === tab.value) return clearHover();
+	if (hovered === next) return;
+	clearHover();
+	hovered = next;
+	hoverTimer = setTimeout(() => {
+		tab.value = next;
+		hovered = undefined;
+	}, 500);
+}
+
+/** A drop before a row, or on the middle of a rail row that opens a sidebar, from either container. */
+function drop(onKey: string, middle: boolean) {
+	const from = dragging.value;
+	clearDrag();
+	if (!draft.value || !from || from.key === onKey) return;
+	const opens = sidebarOf(rowsOf(draft.value, RAIL).find((row) => row.key === onKey));
+	const inside = middle && container.value === RAIL && !!opens && opens in draft.value.sidebars;
+	const moved = inside
+		? dropRowInto(draft.value, from.container, from.key, onKey, scope.value)
+		: dropAcross(draft.value, from.container, from.key, container.value, onKey, scope.value);
+	if (refused(moved)) {
+		// The refusal shows under "Place under" of the dragged row, so go back to it.
+		switchContainer(from.container);
+		selected.value = from.key;
+		refusal.value = moved;
+		return;
+	}
+	refusal.value = null;
+	draft.value = moved.draft;
+	switchContainer(inside ? opens! : container.value);
+	selected.value = moved.key;
 }
 
 /** The level below is read only now, so opening the editor costs nothing for it; Save commits the reset. */

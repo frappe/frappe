@@ -10,6 +10,7 @@ import {
 	newKey,
 	isOwn,
 	openerOf,
+	sidebarOf,
 	RAIL,
 	rowsOf,
 	withRows,
@@ -257,7 +258,7 @@ export function dropAcross(
 /** A drop onto a rail row that opens a sidebar puts the row at the end of that sidebar (R1-Q9). */
 export function dropInto(draft: Draft, from: string, key: string, railKey: string, scope: Scope): Moved {
 	const opener = find(draft, RAIL, railKey);
-	const sidebar = opener?.opens_sidebar ?? (opener?.item_type === "Sidebar" ? opener.link_to : undefined);
+	const sidebar = sidebarOf(opener);
 	if (!sidebar || !(sidebar in draft.sidebars)) return __("That row opens no sidebar.");
 	if (from === sidebar) return { draft, key };
 	return moveTo(draft, from, key, sidebar, scope);
