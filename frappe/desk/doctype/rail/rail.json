@@ -43,6 +43,7 @@
    "in_standard_filter": 1,
    "label": "User",
    "not_nullable": 1,
+   "search_index": 1,
    "options": "User"
   },
   {

@@ -8,7 +8,13 @@ import json
 from unittest.mock import patch
 
 import frappe
-from frappe.shell.arrangement import _target, get_arrangements, save_arrangement, save_arrangements
+from frappe.shell.arrangement import (
+	_target,
+	get_arrangements,
+	save_arrangement,
+	save_arrangements,
+	save_navigation_layout,
+)
 from frappe.shell.navigation import resolve_navigation
 from frappe.tests.classes.context_managers import set_user
 from frappe.tests.test_navigation_arrangement import (
@@ -410,3 +416,41 @@ class TestSaveArrangements(EditorTestCase):
 
 		with self.assertRaisesRegex(frappe.ValidationError, "named by its address or key"):
 			save_arrangements(APP, "user", {"sidebars": {1: []}}, version)
+
+	def test_a_person_saves_their_arrangement_of_a_site_sidebar(self):
+		make_own_sidebar(
+			"site:abc123",
+			[
+				item("site:aaaaaa", link_doctype="DocType", link_to="ToDo", added=1),
+				item("site:bbbbbb", link_doctype="DocType", link_to="Note", added=1),
+			],
+			user="",
+		)
+		rail = [shown("todo"), shown("note")]
+
+		save(rail=rail, sidebars={"site:abc123": [shown("site:bbbbbb"), shown("site:aaaaaa")]})
+
+		self.assertEqual(
+			keys(resolve_navigation(APP)["sidebars"]["site:abc123"]), ["site:bbbbbb", "site:aaaaaa"]
+		)
+		self.assertTrue(frappe.db.exists("Sidebar", {"key": "site:abc123", "user": self.user}))
+		self.assertTrue(frappe.db.exists("Sidebar", {"key": "site:abc123", "user": ""}))
+
+	def test_the_site_scope_lists_a_sidebar_the_managers_blocked_modules_hide(self):
+		offered = "frappe.shell.arrangement_editor.NavigationContext.address_is_offered"
+
+		with patch(offered, return_value=False), set_user("Administrator"):
+			self.assertIn(ADDRESS_KEY, get_arrangements(APP, "site")["sidebars"])
+
+	def test_the_layout_is_saved_after_the_rows_with_the_version_read_before_both(self):
+		# The editor saves rows first: the layout write moves the rail's `modified` and stales the version.
+		version = get_arrangements(APP)["version"]
+
+		save(rail=[shown("note"), shown("todo")], version=version)
+		save_navigation_layout(APP, "sidebar_only")
+
+		self.assertEqual(resolve_navigation(APP)["navigation_layout"], "sidebar_only")
+		self.assertEqual(keys(resolve_navigation(APP)["rail"]), ["note", "todo"])
+
+		with self.assertRaises(frappe.TimestampMismatchError):
+			save(rail=[shown("todo"), shown("note")], version=version)

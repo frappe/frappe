@@ -39,7 +39,8 @@ def read_arrangements(app: str, scope: str) -> dict:
 	offered = {
 		key: address
 		for address in _sidebar_addresses(app)
-		if context.address_is_offered(*address)
+		# The site level arranges what everyone gets, not what this manager's blocked modules leave them.
+		if (scope == "site" or context.address_is_offered(*address))
 		and not (scope == "site" and address[1].startswith("user:"))
 		and (key := _boot_key(address))
 	}
@@ -82,7 +83,7 @@ def write_arrangements(app: str, scope: str, containers: str | dict, version: st
 	_check_rows(rail, scope, reduced, stored)
 
 	# What this save leaves unopened is deleted below, so it neither counts toward the caps nor is written.
-	doomed = _unopened(rail, reduced, stored)
+	doomed = _unopened(rail, scope, reduced, stored)
 	reduced = [(target, rows) for target, rows in reduced if target.layer.get("key") not in doomed]
 	_check_caps(
 		rail,
@@ -247,8 +248,8 @@ def _check_rows(rail: Target, scope: str, reduced: list[tuple[Target, list[dict]
 		_validate_own_rows(target, target.layer["doctype"], scope, _added(rows))
 
 	# A payload sidebar with no rows is not stored, so it cannot be opened.
-	kept = {key for key in stored if key not in _by_key(reduced)} | {
-		key for key, rows in _by_key(reduced).items() if rows
+	kept = {key for key in stored if key not in _by_key(reduced, scope)} | {
+		key for key, rows in _by_key(reduced, scope).items() if rows
 	}
 	seen = set()
 
@@ -258,7 +259,7 @@ def _check_rows(rail: Target, scope: str, reduced: list[tuple[Target, list[dict]
 
 	# A rail the payload leaves be keeps its openers, so it may not lose the sidebar one of them opens.
 	if not any(target.layer["doctype"] == "Rail" for target, _rows in reduced):
-		emptied = set(_by_key(reduced)) - kept
+		emptied = set(_by_key(reduced, scope)) - kept
 		opened = _stored_openers(rail) & emptied
 
 		if opened:
@@ -289,12 +290,13 @@ def _check_opener(row: dict, container: str, scope: str, kept: set[str], seen: s
 	seen.add(sidebar)
 
 
-def _by_key(reduced: list[tuple[Target, list[dict]]]) -> dict[str, list[dict]]:
-	"""The own sidebars the payload names, by key."""
+def _by_key(reduced: list[tuple[Target, list[dict]]], scope: str) -> dict[str, list[dict]]:
+	"""The sidebars this level added that the payload names, by key."""
+	# Not a person's arrangement of the site's sidebar: that sidebar is the site's, whatever the person does to it.
 	return {
 		target.layer["key"]: rows
 		for target, rows in reduced
-		if target.layer["doctype"] == "Sidebar" and "key" in target.layer
+		if target.layer["doctype"] == "Sidebar" and target.layer.get("key", "").startswith(f"{scope}:")
 	}
 
 
@@ -317,7 +319,9 @@ def _stored_openers(rail: Target) -> set[str]:
 	return set(frappe.get_all("Navigation Item", filters=filters, pluck="opens_sidebar"))
 
 
-def _unopened(rail: Target, reduced: list[tuple[Target, list[dict]]], stored: dict[str, str]) -> set[str]:
+def _unopened(
+	rail: Target, scope: str, reduced: list[tuple[Target, list[dict]]], stored: dict[str, str]
+) -> set[str]:
 	"""Step 8: the keys of this level's own sidebars, stored or sent, that no rail row of this level opens after the save."""
 	# How "Remove its sidebar" and deleting an own rail row reach the server.
 	rails = [rows for target, rows in reduced if target.layer["doctype"] == "Rail"]
@@ -327,4 +331,4 @@ def _unopened(rail: Target, reduced: list[tuple[Target, list[dict]]], stored: di
 		else _stored_openers(rail)
 	)
 
-	return (set(stored) | set(_by_key(reduced))) - opened
+	return (set(stored) | set(_by_key(reduced, scope))) - opened
