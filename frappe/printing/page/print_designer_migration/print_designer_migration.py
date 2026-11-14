@@ -7,6 +7,7 @@ from frappe.printing.doctype.print_format.print_designer_converter import (
 	convert,
 	converted_values,
 	editor_copy,
+	editor_copy_name,
 	is_print_designer_format,
 	print_format_usage,
 )
@@ -47,6 +48,8 @@ def get_print_designer_formats() -> list[dict]:
 			if copy:
 				copies.add(copy.name)
 				row.usage = print_format_usage(row.name)
+			else:
+				row.copy_name = editor_copy_name(row.name)
 	rows = [row for row in rows if row.name not in copies]
 
 	samples = {}
@@ -64,7 +67,7 @@ def convert_all() -> dict:
 	frappe.only_for("System Manager")
 	converted, failed = [], []
 	for row in get_print_designer_formats():
-		if row.converted or row.standard == "Yes":
+		if row.converted:
 			continue
 		frappe.db.savepoint("convert_print_designer_format")
 		try:

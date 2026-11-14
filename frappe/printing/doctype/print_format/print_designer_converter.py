@@ -83,7 +83,7 @@ def converted_values(doc) -> tuple[dict, list[str]]:
 def convert(print_format: str) -> dict:
 	"""Turn a Print Designer format into an editor format under the same name. The
 	Print Designer fields stay on the record, like classic_format_data. A standard format
-	belongs to its app, so it gets an editor copy instead."""
+	belongs to its app, so it gets an editor copy that takes its place everywhere."""
 	frappe.only_for("System Manager")
 	doc = frappe.get_doc("Print Format", print_format)
 	if not is_print_designer_format(doc):
@@ -96,9 +96,9 @@ def convert(print_format: str) -> dict:
 			copy.update(
 				{"standard": "No", "disabled": 0, "module": None, "converted_from": doc.name, **values}
 			)
-			copy.insert(
-				set_name=append_number_if_name_exists("Print Format", f"{doc.name} (Editor)", separator=" ")
-			)
+			copy.insert(set_name=editor_copy_name(doc.name))
+		move_print_format_usage(doc.name, copy.name)
+		turn_off(doc)
 		target = copy
 	else:
 		frappe.db.set_value("Print Format", doc.name, values)
@@ -106,10 +106,11 @@ def convert(print_format: str) -> dict:
 		target = doc
 	if notes:
 		target.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
-	usage = print_format_usage(doc.name) if target is not doc else []
-	if target is not doc and not usage:
-		turn_off(doc)
-	return {"name": target.name, "notes": notes, "usage": usage}
+	return {"name": target.name, "notes": notes}
+
+
+def editor_copy_name(print_format: str) -> str:
+	return append_number_if_name_exists("Print Format", f"{print_format} (Editor)", separator=" ")
 
 
 @frappe.whitelist(methods=["POST"])

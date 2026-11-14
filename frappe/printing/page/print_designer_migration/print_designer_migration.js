@@ -35,7 +35,7 @@ class PrintDesignerMigration {
 		const $content = $(`<div class="flex flex-col gap-4 p-4"></div>`).appendTo(this.$body);
 		$content.append(
 			`<p class="text-p-sm text-ink-gray-5 max-w-lg m-0">${__(
-				"Converting turns a Print Designer format into a print format editor format with the same name, so everything that prints with it keeps working. Preview shows both side by side first."
+				"Converting turns a Print Designer format into a print format editor format with the same name, so everything that prints with it keeps working. Convert shows both side by side first."
 			)}</p>`
 		);
 
@@ -107,8 +107,7 @@ class PrintDesignerMigration {
 			);
 			if (row.editor_format === row.name) add(__("Delete"), () => this.delete_design(row));
 		} else {
-			if (row.sample) add(__("Preview"), () => this.preview(row));
-			add(__("Convert"), () => this.convert(row));
+			add(__("Convert"), () => (row.sample ? this.preview(row) : this.convert(row)));
 		}
 		return $row;
 	}
@@ -122,9 +121,17 @@ class PrintDesignerMigration {
 				<iframe class="print-designer-preview w-full border border-outline-gray-2 rounded"></iframe>
 			</div>`;
 		const dialog = new frappe.ui.Dialog({
-			title: __("Preview {0}", [row.name]),
+			title: __("Convert {0}", [row.name]),
 			size: "extra-large",
 			fields: [
+				{
+					fieldname: "copy_name",
+					fieldtype: "HTML",
+					hidden: !row.copy_name,
+					options: `<div class="text-base text-ink-gray-7">${__("Saved as {0}", [
+						`<b>${frappe.utils.escape_html(row.copy_name || "")}</b>`,
+					])}</div>`,
+				},
 				{
 					fieldname: "document",
 					fieldtype: "Link",
@@ -163,34 +170,15 @@ class PrintDesignerMigration {
 	}
 
 	convert(row) {
-		const escape = frappe.utils.escape_html;
 		return frappe
 			.xcall(`${CONVERTER}.convert`, { print_format: row.name })
-			.then(({ name, notes, usage }) => {
+			.then(({ notes }) => {
 				frappe.show_alert({
 					message: __("Converted {0}", [row.name]),
 					indicator: "green",
 				});
 				this.refresh();
-				if (!usage.length) return this.show_notes(notes);
-				frappe.confirm(
-					__("Switch {0} to {1}?", [
-						usage.map((place) => escape(place)).join(", "),
-						`<b>${escape(name)}</b>`,
-					]),
-					() =>
-						frappe
-							.xcall(`${CONVERTER}.use_editor_copy`, { print_format: row.name })
-							.then(() => {
-								frappe.show_alert({
-									message: __("{0} now prints with {1}", [row.name, name]),
-									indicator: "green",
-								});
-								this.refresh();
-								this.show_notes(notes);
-							}),
-					() => this.show_notes(notes)
-				);
+				this.show_notes(notes);
 			});
 	}
 
@@ -233,34 +221,28 @@ class PrintDesignerMigration {
 	}
 
 	convert_all() {
-		frappe.confirm(
-			__(
-				"Convert every Print Designer format on this list? Preview a few first if you are unsure. Formats that belong to an app are converted one by one."
-			),
-			() =>
-				frappe
-					.xcall(`${METHOD}.convert_all`, {}, "POST", { freeze: true })
-					.then(({ converted, failed }) => {
-						frappe.show_alert({
-							message:
-								converted.length === 1
-									? __("Converted 1 format")
-									: __("Converted {0} formats", [converted.length]),
-							indicator: "green",
+		frappe.confirm(__("Convert every Print Designer format on this list?"), () =>
+			frappe
+				.xcall(`${METHOD}.convert_all`, {}, "POST", { freeze: true })
+				.then(({ converted, failed }) => {
+					frappe.show_alert({
+						message:
+							converted.length === 1
+								? __("Converted 1 format")
+								: __("Converted {0} formats", [converted.length]),
+						indicator: "green",
+					});
+					if (failed.length) {
+						frappe.msgprint({
+							title: __("Some formats were not converted"),
+							message: __("{0}. The details are in the Error Log.", [
+								failed.map((name) => frappe.utils.escape_html(name)).join(", "),
+							]),
+							indicator: "orange",
 						});
-						if (failed.length) {
-							frappe.msgprint({
-								title: __("Some formats were not converted"),
-								message: __("{0}. The details are in the Error Log.", [
-									failed
-										.map((name) => frappe.utils.escape_html(name))
-										.join(", "),
-								]),
-								indicator: "orange",
-							});
-						}
-						this.refresh();
-					})
+					}
+					this.refresh();
+				})
 		);
 	}
 }
