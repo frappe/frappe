@@ -1002,7 +1002,7 @@ export default class GridRow {
 
 					if ($grid_field.length) {
 						// the cell clips the dropdown, so park it on the grid and place it
-						// by hand; $home is where it belongs once it closes again
+						// by hand; $home is where it belongs once focus leaves
 						let $home = $dropdown.parent();
 						let $wrapper = $(
 							`<div class="awesomplete ${$dropdown.attr("id")}"></div>`
@@ -1025,7 +1025,7 @@ export default class GridRow {
 							width: `${element_position.width}px`,
 						});
 
-						$(event.target).one("awesomplete-close", () => {
+						$(event.target).one("focusout", () => {
 							$home.append($dropdown);
 							$wrapper.remove();
 							// let the next focus park and re-measure it
