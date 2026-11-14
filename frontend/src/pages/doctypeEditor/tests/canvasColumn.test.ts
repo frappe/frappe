@@ -108,6 +108,17 @@ it("rings the column on hover of its free space, and not over a field", async ()
   column().dispatchEvent(new MouseEvent("mouseleave"));
 });
 
+it("does not ring a hovered column while its section is selected", async () => {
+  const canvas = mount();
+  canvas.selection.value = { kind: "section", section: "sec" };
+  dom
+    .querySelector("[data-canvas-column-band]")!
+    .dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+  await Promise.resolve();
+  expect(ring()).toBeNull();
+  column().dispatchEvent(new MouseEvent("mouseleave"));
+});
+
 it("draws a grip on the ring of a column in a section of two or more", async () => {
   const canvas = mount();
   canvas.selection.value = { kind: "column", section: "sec", column: "col0" };

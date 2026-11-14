@@ -1,6 +1,7 @@
 <!-- One column of a section: its fields, which drag within it and to any other column, the tray
-     or a tab's name. A click on its band (free space out to half the gutter, 16px above and below)
-     selects it; hover rings it first. A section of two columns or more drags a ringed column by
+     or a tab's name. A click on its band (the free space around its fields: below the last one,
+     between fields and in the gutter, minus the 6px each field claims for its own ring) selects it;
+     hover rings it first, unless the section itself is selected. A section of two columns or more drags a ringed column by
      the grip on its ring's top edge. The band and ring take no space, so nothing moves. -->
 <template>
 	<div
@@ -18,7 +19,7 @@
 		/>
 		<div
 			v-if="ringed"
-			class="pointer-events-none absolute -top-2 bottom-2 -inset-x-2 z-[1] rounded-8 ring-1"
+			class="pointer-events-none absolute -top-2 bottom-2 -inset-x-2 z-[1] rounded-7 ring-1"
 			:class="selected ? 'ring-outline-gray-5' : 'ring-outline-gray-3'"
 			data-canvas-column-ring
 		/>
@@ -81,7 +82,7 @@ const item = computed(() => ({
 	column: props.column.name!,
 }));
 const fieldnames = computed(() =>
-	props.column.fields.map((entry) => (typeof entry === "string" ? entry : entry.fieldname))
+	props.column.fields.map((entry) => (typeof entry === "string" ? entry : entry.fieldname)),
 );
 const selected = computed(() => {
 	const selection = props.canvas.selection.value;
@@ -92,7 +93,13 @@ const selected = computed(() => {
 	);
 });
 const hovered = ref(false);
-const ringed = computed(() => props.canvas.editable && (selected.value || hovered.value));
+const sectionSelected = computed(() => {
+	const selection = props.canvas.selection.value;
+	return selection?.kind === "section" && selection.section === item.value.section;
+});
+const ringed = computed(
+	() => props.canvas.editable && (selected.value || (hovered.value && !sectionSelected.value)),
+);
 
 // A field inside the column keeps its own hover ring and click.
 function onField(event: Event) {
