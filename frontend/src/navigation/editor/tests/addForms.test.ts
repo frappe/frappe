@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Addresses } from "@/addresses";
 import { RAIL } from "../draft";
-import { addTypes, buildRow, missing, startValues } from "../addTypes";
+import { addable, addTypes, buildRow, missing, startValues } from "../addTypes";
 import { thisPage } from "../thisPage";
 
 const addresses = new Addresses({
@@ -68,5 +68,23 @@ describe("this page", () => {
 	it("offers nothing on a saved view or an unknown route", () => {
 		expect(thisPage({ name: "saved-view", params: { doctype: "todo" } }, addresses, "desk")).toBeNull();
 		expect(thisPage({ name: "home", params: {} }, addresses, "desk")).toBeNull();
+	});
+});
+
+describe("Link url", () => {
+	it("takes a path or an http(s) address, as the server does", () => {
+		const link = (url: string) => missing("Link", { ...startValues(), url })?.field ?? null;
+		expect(link("/app/todo")).toBeNull();
+		expect(link("HTTPS://example.com")).toBeNull();
+		expect(link("//evil.com")).toBe("url");
+		expect(link("/\\evil.com")).toBe("url");
+		expect(link("javascript:alert(1)")).toBe("url");
+		expect(link("/a b")).toBe("url");
+	});
+
+	it("knows the addable kinds from the picker's list", () => {
+		expect(addable("Section")).toBe(true);
+		expect(addable("Module")).toBe(false);
+		expect(addable("Sidebar")).toBe(false);
 	});
 });

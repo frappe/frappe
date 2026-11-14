@@ -6,7 +6,7 @@
 			<p v-if="!own" class="-mt-3 mb-5 text-sm text-ink-gray-5">
 				{{
 					__(
-						"You can rename it, change its icon, hide it or move it. Its type and target stay."
+						"You can rename it, change its icon, hide it or move it. Its type and target stay.",
 					)
 				}}
 			</p>
@@ -42,14 +42,20 @@
 						data-field="parent"
 						@update:modelValue="(value: string) => emit('nest', value || null)"
 					/>
-					<p v-if="refusal" class="text-xs text-ink-red-4" data-refusal>{{ refusal }}</p>
+					<p v-if="refusal" class="text-p-sm text-ink-red-7" data-refusal>
+						{{ refusal }}
+					</p>
 				</div>
 			</div>
+			<!-- With no Place under, a refused Move to, sidebar or delete says why above the actions. -->
+			<p v-if="refusal && !canPlace" class="mt-3 text-p-sm text-ink-red-7" data-refusal>
+				{{ refusal }}
+			</p>
 
 			<div
 				class="mt-auto flex h-[49px] shrink-0 items-center border-t border-outline-gray-1"
 			>
-				<div class="-mx-2 flex w-full items-center gap-1" data-row-actions>
+				<div class="-mx-2 flex flex-1 items-center gap-1" data-row-actions>
 					<Dropdown
 						v-if="moveTargets.length"
 						:options="moveOptions"
@@ -87,8 +93,8 @@
 						@click="emit('toggle')"
 					/>
 					<Button
-						v-if="own"
-						class="ml-auto"
+						v-if="canDelete"
+						class="ml-auto dark:hover:!bg-surface-red-2"
 						variant="ghost"
 						theme="red"
 						icon-left="lucide-trash-2"
@@ -122,6 +128,8 @@ const props = defineProps<{
 	moveTargets: { label: string; value: string }[];
 	canGiveSidebar: boolean;
 	canRemoveSidebar: boolean;
+	/** The level being edited added this row: only such a row can be deleted. */
+	canDelete: boolean;
 	/** How many own rows Delete takes with this one, itself included. */
 	deleteCount: number;
 	appTitle: string;
@@ -143,10 +151,10 @@ const moveOptions = computed(() =>
 	props.moveTargets.map((target) => ({
 		label: target.label,
 		onClick: () => emit("moveTo", target.value),
-	}))
+	})),
 );
 const deleteLabel = computed(() =>
-	props.deleteCount > 1 ? __("Delete with {0} rows", [props.deleteCount - 1]) : __("Delete")
+	props.deleteCount > 1 ? __("Delete with {0} rows", [props.deleteCount - 1]) : __("Delete"),
 );
 
 const own = computed(() => !!props.row && isOwn(props.row.key, props.scope));

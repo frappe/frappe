@@ -3,6 +3,7 @@
 
 import { __ } from "@/i18n";
 import { canNestUnder } from "../nesting";
+import { addable } from "./addTypes";
 import {
 	type Draft,
 	type EditorRow,
@@ -137,6 +138,7 @@ export function add(
 	parentKey: string | null,
 	scope: Scope
 ): Edited {
+	if (!exists(draft, container)) return __("That sidebar no longer exists.");
 	const capped = overCap(draft, container, 1, scope);
 	if (capped) return capped;
 	if (container === RAIL && row.item_type === "Section") return __("The rail holds no sections.");
@@ -195,19 +197,27 @@ export function remove(draft: Draft, container: string, key: string, scope: Scop
 /**
  * Move a row to the end of another container. An own row keeps its key and fields. An inherited
  * row is hidden in place and an own copy with a new key goes into the target (#47392 R1-Q6).
- * The children come along; a row with children cannot go to the rail.
+ * The children come along; a row with children cannot go to the rail. Only a kind the server takes
+ * as an own row can be copied, and a row that opens a sidebar cannot go into one.
  */
 export function moveTo(draft: Draft, from: string, key: string, to: string, scope: Scope): Moved {
 	const rows = rowsOf(draft, from);
 	const row = rows.find((entry) => entry.key === key);
 	if (!row) return __("This row no longer exists.");
 	if (from === to) return { draft, key };
+	if (!exists(draft, to)) return __("That sidebar no longer exists.");
 	if (sidebarOf(row) === to) return __("{0} cannot go into the sidebar it opens.", [labelOf(row)]);
 
 	const family = [row, ...descendantsOf(rows, key)];
 	if (to === RAIL && (family.length > 1 || row.item_type === "Section")) {
 		return __("{0} cannot go to the rail. The rail is flat and holds no sections.", [labelOf(row)]);
 	}
+
+	if (to !== RAIL && family.some((member) => sidebarOf(member) && isOwn(member.key, scope))) {
+		return __("{0} opens a sidebar. Remove its sidebar first.", [labelOf(row)]);
+	}
+	const fixed = family.find((member) => !isOwn(member.key, scope) && !addable(member.item_type));
+	if (fixed) return __("{0} cannot be moved. Hide it instead.", [labelOf(fixed)]);
 
 	const copies = family.map((member) => ({ member, key: isOwn(member.key, scope) ? member.key : newKey(scope) }));
 	const added = copies.filter(({ member, key }) => key !== member.key).length;
@@ -216,18 +226,24 @@ export function moveTo(draft: Draft, from: string, key: string, to: string, scop
 
 	const rename = new Map(copies.map(({ member, key }) => [member.key, key]));
 	const moved = copies.map(({ member, key }): EditorRow => {
-		const { hidden, hidden_by, no_access, view_deleted, opens_sidebar, ...rest } = member;
+		// A copy drops the inherited row's sidebar: the server takes no opens_sidebar it did not add.
+		const { hidden_by, no_access, view_deleted, opens_sidebar, ...rest } = member;
 		const own = { ...rest, key } as EditorRow;
 		if (member.key === row.key || !member.parent_key) delete own.parent_key;
 		else own.parent_key = rename.get(member.parent_key);
 		return isOwn(member.key, scope) && opens_sidebar ? { ...own, opens_sidebar } : own;
 	});
 
-	// Own rows leave the source; inherited ones stay there, hidden.
+	// Own rows leave the source; inherited ones stay there, hidden, at the top level when their parent left.
 	const leaving = new Set(family.filter((member) => isOwn(member.key, scope)).map((member) => member.key));
 	const left = rows
 		.filter((entry) => !leaving.has(entry.key))
-		.map((entry) => (family.includes(entry) && !isOwn(entry.key, scope) ? { ...entry, hidden: 1 as const } : entry));
+		.map((entry) => {
+			if (!family.includes(entry)) return entry;
+			const { parent_key, ...rest } = entry;
+			const kept = parent_key && !leaving.has(parent_key) ? { ...rest, parent_key } : rest;
+			return { ...kept, hidden: 1 as const };
+		});
 
 	const target = rowsOf(draft, to);
 	const next = withRows(withRows(draft, from, left), to, [...target, ...moved]);
@@ -265,16 +281,20 @@ export function dropInto(draft: Draft, from: string, key: string, railKey: strin
 	return moveTo(draft, from, key, sidebar, scope);
 }
 
-/** Whether a rail row can be given a sidebar: it opens none yet. */
+/** Whether a rail row can be given a sidebar: it opens none yet, and the server takes a copy of it as the first row. */
 export function canGiveSidebar(draft: Draft, row: EditorRow): boolean {
-	return row.item_type !== "Sidebar" && !row.opens_sidebar && !openerOf(draft, row.key);
+	return addable(row.item_type) && row.item_type !== "Section" && !row.opens_sidebar && !openerOf(draft, row.key);
 }
 
 /** A new own sidebar whose first row copies the item's target; the item then opens it (#47392 R1-Q3). */
 export function giveSidebar(draft: Draft, railKey: string, scope: Scope): Moved {
 	const item = find(draft, RAIL, railKey);
 	if (!item) return __("This row no longer exists.");
-	if (!canGiveSidebar(draft, item)) return __("{0} already opens a sidebar.", [labelOf(item)]);
+	if (!canGiveSidebar(draft, item)) {
+		return sidebarOf(item) || openerOf(draft, item.key)
+			? __("{0} already opens a sidebar.", [labelOf(item)])
+			: __("{0} cannot have a sidebar of its own.", [labelOf(item)]);
+	}
 
 	const sidebar = newKey(scope);
 	const capped = overCap(draft, sidebar, 1, scope);
@@ -321,6 +341,11 @@ function overCap(
 			OWN_ROWS_PER_APP,
 		]);
 	}
+}
+
+/** The rail, or a sidebar the draft still holds; a sidebar dropped since is gone. */
+function exists(draft: Draft, container: string): boolean {
+	return container === RAIL || container in draft.sidebars;
 }
 
 function descendantsOf(rows: EditorRow[], key: string): EditorRow[] {

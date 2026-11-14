@@ -24,6 +24,19 @@ export function addTypes(container: string): AddType[] {
 	return all.filter((entry) => container !== RAIL || entry.rail);
 }
 
+/** The kinds the server takes as an own row: a moved or copied row must be one of them. */
+export function addable(itemType: string | undefined): boolean {
+	return addTypes("").some((entry) => entry.type === itemType);
+}
+
+// The server's OWN_URL: a path on this site (not `//` or `/\`, which leave it), or an http(s) address.
+const OWN_URL = /^(?:\/(?![/\\])|https?:\/\/)\S*$/i;
+
+/** Whether a Link row may open this url; the same check the server makes as it stores the row. */
+export function isOwnUrl(url: string): boolean {
+	return OWN_URL.test(url);
+}
+
 export type AddValues = {
 	doctype: string;
 	name: string;
@@ -55,6 +68,9 @@ export function missing(type: string, values: AddValues): { field: keyof AddValu
 	if (type === "Record" && !values.name) return { field: "name", message: __("Pick a record.") };
 	if (type === "Page" && !values.page) return { field: "page", message: __("Pick a page.") };
 	if (type === "Link" && !values.url.trim()) return { field: "url", message: __("Write a link.") };
+	if (type === "Link" && !isOwnUrl(values.url.trim())) {
+		return { field: "url", message: __("Use a path on this site, or an http or https address.") };
+	}
 	if (type === "Section" && !values.label.trim()) return { field: "label", message: __("Give the section a label.") };
 	return null;
 }

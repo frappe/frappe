@@ -6,6 +6,13 @@ import type { Arrangements, Defaults, EditorRow, Origin, Payload, Scope } from "
 /** The container id of the rail; a sidebar's id is its address or key, which never starts with a colon. */
 export const RAIL = ":rail";
 
+/** The drag data a row carries; a drag without it (a file, a link from elsewhere) moves no row. */
+export const ROW_DRAG = "application/x-navigation-row";
+
+export function isRowDrag(event: DragEvent): boolean {
+	return !!event.dataTransfer?.types.includes(ROW_DRAG);
+}
+
 export type { Arrangements, Defaults, EditorRow, Origin, Payload, Scope };
 
 export type Draft = {

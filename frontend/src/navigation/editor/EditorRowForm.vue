@@ -7,46 +7,48 @@
 			:origin="__('A new row')"
 		/>
 		<div class="flex flex-col gap-3">
-			<div v-if="type === 'DocType' || type === 'Record'" class="flex flex-col gap-1.5">
-				<label class="text-xs text-ink-gray-5">{{ __("DocType") }}</label>
-				<Combobox
-					v-model="doctype"
-					:options="doctypes"
-					:placeholder="__('Pick a DocType')"
-					data-field="doctype"
-				/>
-			</div>
-			<div v-if="type === 'Record' && values.doctype" class="flex flex-col gap-1.5">
-				<label class="text-xs text-ink-gray-5">{{ __("Record") }}</label>
-				<Link
-					:key="values.doctype"
-					v-model="values.name"
-					:doctype="values.doctype"
-					data-field="name"
-				/>
-			</div>
+			<Combobox
+				v-if="type === 'DocType' || type === 'Record'"
+				v-model="doctype"
+				:label="__('DocType')"
+				:options="doctypes"
+				:placeholder="__('Pick a DocType')"
+				:error="errorOf('doctype')"
+				data-field="doctype"
+			/>
+			<Link
+				v-if="type === 'Record' && values.doctype"
+				:key="values.doctype"
+				v-model="values.name"
+				:label="__('Record')"
+				:doctype="values.doctype"
+				:error="errorOf('name')"
+				data-field="name"
+			/>
 			<Select
 				v-if="type === 'Page'"
 				v-model="values.page"
 				:label="__('Page')"
 				:options="pages"
+				:error="errorOf('page')"
 				data-field="page"
 			/>
-			<template v-if="type === 'Link'">
-				<FormControl
-					v-model="values.url"
-					type="text"
-					:label="__('Link')"
-					placeholder="/app/todo"
-					data-field="url"
-				/>
-				<p class="text-xs text-ink-gray-5" data-link-note>{{ linkNote }}</p>
-			</template>
+			<FormControl
+				v-if="type === 'Link'"
+				v-model="values.url"
+				type="text"
+				:label="__('Link')"
+				placeholder="/app/todo"
+				:description="linkNote"
+				:error="errorOf('url')"
+				data-field="url"
+			/>
 			<FormControl
 				v-if="type !== 'DocType'"
 				v-model="values.label"
 				type="text"
 				:label="__('Label')"
+				:error="errorOf('label')"
 				data-field="label"
 			/>
 			<template v-if="type === 'Section'">
@@ -57,7 +59,7 @@
 					:label="__('Starts closed')"
 				/>
 			</template>
-			<p v-if="problem" class="text-xs text-ink-red-4" data-refusal>{{ problem }}</p>
+			<p v-if="refusal" class="text-p-sm text-ink-red-7" data-refusal>{{ refusal }}</p>
 		</div>
 		<div
 			class="mt-auto flex h-[49px] shrink-0 items-center justify-end border-t border-outline-gray-1"
@@ -76,7 +78,7 @@ import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { pages as contributedPages } from "@/contributions/registry";
 import { __ } from "@/i18n";
-import { type AddValues, buildRow, missing, startValues } from "./addTypes";
+import { type AddValues, buildRow, isOwnUrl, missing, startValues } from "./addTypes";
 import type { EditorRow } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
 
@@ -98,7 +100,7 @@ const pages = [
 	{ label: __("Pick a page"), value: "" },
 	...contributedPages
 		.filter(
-			(page) => router.hasRoute(`page:${page.app}:${page.slug}`) && page.app === boot.app
+			(page) => router.hasRoute(`page:${page.app}:${page.slug}`) && page.app === boot.app,
 		)
 		.map((page) => ({ label: page.title ?? page.slug, value: page.slug })),
 ];
@@ -111,21 +113,22 @@ const doctype = computed({
 		values.name = "";
 	},
 });
-const gap = ref<string | null>(null);
-const problem = computed(() => props.refusal ?? gap.value);
+// What the form lacks, shown under the field that lacks it; the editor's own refusal shows under the form.
+const gap = ref<{ field: keyof AddValues; message: string } | null>(null);
+const errorOf = (field: keyof AddValues) =>
+	gap.value?.field === field ? gap.value.message : undefined;
 
 const linkNote = computed(() => {
 	const url = values.url.trim();
 	if (!url) return __("This site: write it as a /path so it opens in place.");
+	if (!isOwnUrl(url)) return __("Only /paths and http(s) links can be added.");
 	if (url.startsWith("/")) return __("Internal: opens here, in place.");
-	if (/^https?:\/\//i.test(url))
-		return __("External: opens in a new tab, marked with an arrow.");
-	return __("Only /paths and http(s) links can be added.");
+	return __("External: opens in a new tab, marked with an arrow.");
 });
 
 function submit() {
 	const lacking = missing(props.type, values);
-	gap.value = lacking?.message ?? null;
+	gap.value = lacking;
 	if (lacking) return;
 	// A page with no label of its own takes its title, not its slug.
 	const title = pages.find((page) => page.value === values.page)?.label;

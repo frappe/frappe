@@ -178,3 +178,36 @@ describe("sidebars", () => {
 		expect(refused(removeSidebar(d, "a", "user"))).toBe(true);
 	});
 });
+
+describe("review fixes", () => {
+	it("refuses to copy a kind the server cannot take, and a sidebar opener into a sidebar", () => {
+		const d = draft([row("m", { item_type: "Module" }), own(1, { opens_sidebar: "user:00000s" }), row("b", { opens_sidebar: "s" })], {
+			s: [row("x")],
+			"user:00000s": [own(2)],
+		});
+		expect(refused(moveTo(d, RAIL, "m", "s", "user"))).toBe(true);
+		expect(refused(moveTo(d, RAIL, "user:000001", "s", "user"))).toBe(true);
+		expect(refused(giveSidebar(d, "m", "user"))).toBe(true);
+		expect(canGiveSidebar(d, row("m", { item_type: "Module" }))).toBe(false);
+	});
+
+	it("keeps hidden on a moved row, and lifts an inherited child whose own parent left", () => {
+		const d = draft([row("b", { opens_sidebar: "s" })], {
+			s: [own(1, { hidden: 1 }), row("c", { parent_key: "user:000001" })],
+			t: [row("y")],
+		});
+		const opened = draft([row("b", { opens_sidebar: "s" }), row("z", { opens_sidebar: "t" })], d.sidebars);
+		const { draft: next } = ok(moveTo(opened, "s", "user:000001", "t", "user")) as { draft: Draft };
+		const moved = rowsOf(next, "t").find((r) => r.key === "user:000001")!;
+		expect(moved.hidden).toBe(1);
+		const left = rowsOf(next, "s").find((r) => r.key === "c")!;
+		expect(left.parent_key).toBeUndefined();
+		expect(left.hidden).toBe(1);
+	});
+
+	it("refuses a sidebar the draft no longer holds", () => {
+		const d = draft([row("a")]);
+		expect(refused(add(d, "gone", own(1), null, "user"))).toBe(true);
+		expect(refused(moveTo(d, RAIL, "a", "gone", "user"))).toBe(true);
+	});
+});

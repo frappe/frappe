@@ -22,18 +22,18 @@
 				row.key === selected
 					? 'bg-surface-elevation-3 text-ink-gray-8 shadow-sm'
 					: 'text-ink-gray-7 hover:bg-surface-gray-2',
-				over?.key === row.key && over.into ? 'ring-1 ring-outline-gray-4' : '',
+				over?.key === row.key && over.into ? 'ring-2 ring-outline-gray-5' : '',
 			]"
 			@click="emit('select', row.key)"
-			@dragstart="emit('dragStart', row.key)"
+			@dragstart="start($event, row.key)"
 			@dragend="end"
-			@dragover.prevent="hover($event, row)"
+			@dragover="hover($event, row)"
 			@dragleave="over = null"
-			@drop.prevent="drop($event, row.key)"
+			@drop="drop($event, row.key)"
 		>
 			<span
 				v-if="over?.key === row.key && !over.into"
-				class="pointer-events-none absolute inset-x-2 -top-px h-0.5 rounded-full bg-surface-gray-6"
+				class="pointer-events-none absolute inset-x-2 -top-0.5 h-0.5 rounded-full bg-surface-gray-7"
 				data-drop-line
 			/>
 			<span
@@ -78,7 +78,7 @@ import { Badge } from "frappe-ui";
 import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
 import { acts } from "@/acts/dispatcher";
-import { type EditorRow, isOwn, type Scope, sidebarOf } from "./draft";
+import { type EditorRow, isOwn, isRowDrag, ROW_DRAG, type Scope, sidebarOf } from "./draft";
 
 const props = defineProps<{
 	rows: EditorRow[];
@@ -152,7 +152,16 @@ function onMiddle(event: DragEvent): boolean {
 const over = ref<{ key: string; into: boolean } | null>(null);
 
 function hover(event: DragEvent, row: EditorRow) {
+	if (!isRowDrag(event)) return;
+	event.preventDefault();
 	over.value = { key: row.key, into: !!sidebarOf(row) && onMiddle(event) };
+}
+
+/** Firefox starts no drag without data. */
+function start(event: DragEvent, key: string) {
+	event.dataTransfer?.setData(ROW_DRAG, key);
+	if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+	emit("dragStart", key);
 }
 
 function end() {
@@ -162,6 +171,8 @@ function end() {
 
 function drop(event: DragEvent, onKey: string) {
 	over.value = null;
+	if (!isRowDrag(event)) return;
+	event.preventDefault();
 	emit("drop", onKey, onMiddle(event));
 }
 

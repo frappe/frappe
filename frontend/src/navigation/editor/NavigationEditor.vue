@@ -27,7 +27,9 @@
 							:options="layoutOptions"
 							:disabled="!draft || saving || resetting"
 							data-layout-picker
-							@update:modelValue="(layout: string) => draft && (draft = { ...draft, layout })"
+							@update:modelValue="
+								(layout: string) => draft && (draft = { ...draft, layout })
+							"
 						/>
 						<Tooltip :text="levelHint" :disabled="!levelHint">
 							<TabButtons
@@ -43,7 +45,7 @@
 				</div>
 			</header>
 
-			<p v-if="failed && !draft" class="m-auto text-sm text-ink-red-4">
+			<p v-if="failed && !draft" class="m-auto text-sm text-ink-red-7">
 				{{ __("Could not load the navigation: {0}", [failed]) }}
 			</p>
 			<span v-else-if="!draft" role="status" class="sr-only m-auto">{{
@@ -94,10 +96,11 @@
 
 				<EditorRowForm
 					v-if="adding"
-					:key="adding"
-					:type="adding"
+					:key="adding.id"
+					:type="adding.type"
 					:type-label="
-						addTypes(container).find((entry) => entry.type === adding)?.label ?? adding
+						addTypes(container).find((entry) => entry.type === adding!.type)?.label ??
+						adding.type
 					"
 					:refusal="refusal"
 					:start="start"
@@ -116,8 +119,11 @@
 					@update="(fields) => apply(update(draft!, container, selected!, fields))"
 					@nest="(parent) => apply(nest(draft!, container, selected!, parent))"
 					:move-targets="moveTargets"
-					:can-give-sidebar="!!current && container === RAIL && canGiveSidebar(draft!, current)"
+					:can-give-sidebar="
+						!!current && container === RAIL && canGiveSidebar(draft!, current)
+					"
 					:can-remove-sidebar="canRemoveOwnSidebar"
+					:can-delete="!!current && isOwn(current.key, scope)"
 					:delete-count="deleteCount"
 					@toggle="toggle"
 					@delete="remove"
@@ -127,7 +133,7 @@
 				/>
 			</div>
 
-			<p v-if="failed && draft" class="px-6 pb-2 text-sm text-ink-red-4" data-save-error>
+			<p v-if="failed && draft" class="px-6 pb-2 text-sm text-ink-red-7" data-save-error>
 				{{ failed }}
 				<Button v-if="stale" variant="ghost" :label="__('Reload')" @click="reload" />
 			</p>
@@ -177,7 +183,7 @@ export type EditorTarget = { tab: "rail" } | { tab: "sidebar"; address: string }
 </script>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onScopeDispose, ref, watch } from "vue";
+import { computed, inject, nextTick, onBeforeUnmount, onScopeDispose, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Button, Checkbox, dialog, Dialog, Select, TabButtons, Tooltip } from "frappe-ui";
 import { isApiError } from "@framework/ui/api";
@@ -196,6 +202,7 @@ import {
 	type EditorRow,
 	dirty,
 	fromArrangements,
+	isRowDrag,
 	layoutChanged,
 	openedSidebars,
 	openerOf,
@@ -226,7 +233,7 @@ import {
 	update,
 	type Edited,
 } from "./edits";
-import { addTypes } from "./addTypes";
+import { addable, addTypes } from "./addTypes";
 import { thisPage } from "./thisPage";
 import EditorAddMenu from "./EditorAddMenu.vue";
 import EditorRowForm from "./EditorRowForm.vue";
@@ -262,7 +269,9 @@ const sidebar = ref("");
 const selected = ref<string | null>(null);
 const showHidden = ref(false);
 const refusal = ref<string | null>(null);
-const adding = ref<string | null>(null);
+/** The add form on show: its type, and an id per start so "Add this page" never keeps an old form's values. */
+const adding = ref<{ type: string; id: number } | null>(null);
+let adds = 0;
 const start = ref<Omit<EditorRow, "key"> | undefined>();
 // A reply that comes back after the editor was reopened belongs to the earlier opening.
 // Every request notes the opening it started in, and touches the editor only while that one is open.
@@ -303,7 +312,7 @@ const draft = computed<Draft | undefined>({
 const opened = computed(() => reads.value[scope.value]?.opened);
 const hasSaved = computed(() => !!reads.value[scope.value]?.hasSaved);
 const changed = computed(
-	() => !!draft.value && !!opened.value && dirty(opened.value, draft.value)
+	() => !!draft.value && !!opened.value && dirty(opened.value, draft.value),
 );
 const container = computed(() => (tab.value === "rail" ? RAIL : sidebar.value));
 const rows = computed(() => (draft.value ? rowsOf(draft.value, container.value) : []));
@@ -320,7 +329,7 @@ const sidebarOptions = computed(() =>
 	openedKeys.value.map((key) => ({
 		label: sidebarLabel(key),
 		value: key,
-	}))
+	})),
 );
 const levels = computed(() => [
 	{ label: __("Just me"), value: "user", disabled: changed.value || resetting.value },
@@ -334,8 +343,8 @@ const levelHint = computed(() =>
 	changed.value
 		? __("Save or discard your changes first.")
 		: canEditSite.value
-		? ""
-		: __("Only System Managers can change it for everyone")
+			? ""
+			: __("Only System Managers can change it for everyone"),
 );
 const layoutOptions = computed(() => {
 	const below =
@@ -366,6 +375,7 @@ watch(
 		saving.value = false;
 		resetting.value = false;
 		refusal.value = null;
+		stopAdding();
 		scope.value = "user";
 		selected.value = null;
 		showHidden.value = false;
@@ -373,10 +383,12 @@ watch(
 		if (target.tab === "sidebar") sidebar.value = target.address;
 		load("user");
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 
 watch(tab, () => (selected.value = null));
+// A sidebar a Discard, a reset or a removal took away leaves the picker for one still there.
+watch(openedKeys, () => draft.value && fitSidebar(draft.value));
 
 /** An added or moved row can sit past the fold, and another list keeps the old scroll: show the selected row, else the top. */
 const listPane = ref<HTMLElement | null>(null);
@@ -389,7 +401,8 @@ watch([container, selected], async () => {
 // A rail edit that stops opening the last sidebar takes its tab away.
 // While a read is on its way the draft is empty, which is not an edit.
 watch(hasSidebars, (has) => !has && draft.value && (tab.value = "rail"));
-watch(sidebar, () => (selected.value = null));
+// Only the sidebar in view holds the selection; a picker refit while the rail is in view keeps it.
+watch(sidebar, () => tab.value === "sidebar" && (selected.value = null));
 // A selected row that the list now hides leaves the pane for its nearest visible neighbour.
 watch(showHidden, (on) => !on && selected.value && leaveIfUnlisted(selected.value));
 
@@ -436,6 +449,7 @@ async function switchTo(value: Scope) {
 	if (changed.value || value === scope.value) return;
 	scope.value = value;
 	selected.value = null;
+	stopAdding();
 	const cached = reads.value[value];
 	if (cached) fitSidebar(cached.draft);
 	else await load(value);
@@ -443,8 +457,13 @@ async function switchTo(value: Scope) {
 
 function choose(key: string) {
 	selected.value = key;
-	adding.value = null;
+	stopAdding();
 	refusal.value = null;
+}
+
+function stopAdding() {
+	adding.value = null;
+	start.value = undefined;
 }
 
 const here = computed(() => thisPage(route, addresses, boot.app));
@@ -473,7 +492,7 @@ const addOptions = computed(() => {
 });
 
 function startAdding(type: string, fields?: Omit<EditorRow, "key">) {
-	adding.value = type;
+	adding.value = { type, id: ++adds };
 	start.value = fields;
 	refusal.value = null;
 }
@@ -482,29 +501,38 @@ function startAdding(type: string, fields?: Omit<EditorRow, "key">) {
 function add(fields: Omit<EditorRow, "key">) {
 	if (!draft.value) return;
 	const row = { ...fields, key: newKey(scope.value) } as EditorRow;
+	// A section sits at the top level, so only another kind goes under the selected section.
 	const parent =
-		current.value?.item_type === "Section" && container.value !== RAIL
+		current.value?.item_type === "Section" &&
+		row.item_type !== "Section" &&
+		container.value !== RAIL
 			? current.value.key
 			: null;
 	const edited = addRow(draft.value, container.value, row, parent, scope.value);
 	apply(edited);
 	if (refused(edited)) return;
-	adding.value = null;
+	stopAdding();
 	selected.value = row.key;
 }
 
-const moveTargets = computed(() =>
-	draft.value && current.value
-		? [RAIL, ...Object.keys(draft.value.sidebars)]
-				.filter(
-					(target) => target !== container.value && target !== sidebarOf(current.value!)
-				)
-				.map((target) => ({
-					label: target === RAIL ? __("Rail") : sidebarLabel(target),
-					value: target,
-				}))
-		: []
-);
+/** Where Move to… offers the row: an inherited row the server cannot take as a copy goes nowhere, and a row that opens a sidebar into none. */
+const moveTargets = computed(() => {
+	const row = current.value;
+	if (!draft.value || !row) return [];
+	const own = isOwn(row.key, scope.value);
+	if (!own && !addable(row.item_type)) return [];
+	return [RAIL, ...openedKeys.value]
+		.filter(
+			(target) =>
+				target !== container.value &&
+				target !== sidebarOf(row) &&
+				(target === RAIL || !(own && sidebarOf(row))),
+		)
+		.map((target) => ({
+			label: target === RAIL ? __("Rail") : sidebarLabel(target),
+			value: target,
+		}));
+});
 const canRemoveOwnSidebar = computed(() => {
 	const opens = container.value === RAIL ? current.value?.opens_sidebar : undefined;
 	return !!opens && isOwn(opens, scope.value);
@@ -512,7 +540,7 @@ const canRemoveOwnSidebar = computed(() => {
 const deleteCount = computed(() =>
 	current.value && isOwn(current.value.key, scope.value)
 		? 1 + descendantsToDelete(rows.value, current.value.key, scope.value).length
-		: 1
+		: 1,
 );
 
 /** Selection after an edit that removes the row from this list moves to its neighbour. */
@@ -547,7 +575,7 @@ function giveSidebar() {
 	draft.value = next.draft;
 	show(
 		rowsOf(next.draft, RAIL).find((row) => row.key === selected.value)!.opens_sidebar!,
-		next.key
+		next.key,
 	);
 }
 
@@ -564,6 +592,7 @@ function switchContainer(target: string) {
 
 /** Show a container with a row selected: a tab change clears the selection, so it is set once that settles. */
 async function show(target: string, key: string) {
+	stopAdding();
 	switchContainer(target);
 	await nextTick();
 	selected.value = key;
@@ -575,7 +604,7 @@ async function openForm(key: string) {
 	await nextTick();
 	document
 		.querySelector<HTMLInputElement>(
-			"[data-editor-pane] [data-field='label'] input, [data-editor-pane] input[data-field='label']"
+			"[data-editor-pane] [data-field='label'] input, [data-editor-pane] input[data-field='label']",
 		)
 		?.focus();
 }
@@ -627,9 +656,16 @@ function clearDrag() {
 	clearHover();
 }
 
+// A drag the list no longer holds the row of (a tab change took it away) ends on the window, not on the row.
+window.addEventListener("dragend", clearDrag);
+onBeforeUnmount(() => {
+	window.removeEventListener("dragend", clearDrag);
+	clearHover();
+});
+
 /** Held over the other tab for 500 ms, a drag switches to it (R1-Q9). */
 function overTabs(event: DragEvent) {
-	if (!dragging.value) return;
+	if (!dragging.value || !isRowDrag(event)) return;
 	const buttons = [...(event.currentTarget as HTMLElement).querySelectorAll("button")];
 	const over = buttons.indexOf((event.target as HTMLElement).closest("button")!);
 	const next = tabs.value[over]?.value as "rail" | "sidebar" | undefined;
