@@ -133,7 +133,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			<div class="flex gap-3 mb-8 ${apps.length ? "" : "hidden"}">
 				${apps.map((app) => `<img class="setup-intro__logo" src="${app.logo}" alt="">`).join("")}
 			</div>
-			<div class="setup-intro__hello grid text-12xl text-ink-gray-9" aria-hidden="true"></div>
+			<div class="setup-intro__hello grid text-ink-gray-9" aria-hidden="true"></div>
 			<p class="setup-intro__tagline mt-2 mb-0 text-p-lg text-ink-gray-5"></p>
 		</div>`).appendTo(this.parent);
 		this.$intro.find(".setup-intro__tagline").text(tagline);

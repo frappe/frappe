@@ -105,29 +105,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						count === 1
 							? __("1 uploaded file is waiting for review.")
 							: __("{0} uploaded files are waiting for review.", [count]),
-					footer: () => [
-						frappe.ui.button({
-							label: __("View All"),
-							variant: "outline",
-							onclick: () => {
-								// The dialog ships as its own on-demand bundle (kept out
-								// of desk.bundle.js), so load it before opening.
-								frappe.require("attachment_queue_review.bundle.js", () => {
-									frappe.ui.attachment_queue.show_pending(this.doctype);
-								});
-							},
-						}),
-						frappe.ui.button({
-							icon: "x",
-							variant: "ghost",
-							tooltip: __("Dismiss"),
-							// Only the notice goes away; no queue entry is touched.
-							onclick: () => {
-								this._attachment_notice_dismissed = true;
-								$notice.remove();
-							},
-						}),
-					],
+					primary_action: {
+						label: __("View All"),
+						onclick: () => {
+							// The dialog ships as its own on-demand bundle (kept out
+							// of desk.bundle.js), so load it before opening.
+							frappe.require("attachment_queue_review.bundle.js", () => {
+								frappe.ui.attachment_queue.show_pending(this.doctype);
+							});
+						},
+					},
+					dismissible: true,
+					// Only the notice goes away; no queue entry is touched.
+					on_dismiss: () => {
+						this._attachment_notice_dismissed = true;
+					},
 				});
 
 				this.page.main.prepend($notice);
@@ -2860,24 +2852,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
+		const permissions = __("Permissions");
+		const customize = __("Customize");
+		const list_view = __("List View");
 
-		if (frappe.user_roles.includes("System Manager")) {
-			items.push({
-				label: __("User Permissions", null, "Button in list view menu"),
-				action: () =>
-					frappe.set_route("list", "user-permission", {
-						allow: doctype,
-					}),
-				standard: true,
-			});
-		}
+		items.push({
+			label: __("Customize Quick Filters", null, "Customize qucik filters of List View"),
+			action: () => {
+				this.make_group_by_fields_modal();
+			},
+			standard: true,
+			class: "hidden-xs",
+			group: list_view,
+		});
 
-		if (frappe.user_roles.includes("System Manager")) {
-			items.push({
-				label: __("Role Permissions Manager", null, "Button in list view menu"),
-				action: () => frappe.set_route("permission-manager", doctype),
-				standard: true,
-			});
+		if (frappe.user.has_role("System Manager")) {
+			if (this.get_view_settings) {
+				items.push(this.get_view_settings());
+			}
 		}
 
 		if (
@@ -2885,6 +2877,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			frappe.model.can_create("Property Setter") &&
 			!frappe.model.core_doctypes_list.includes(doctype)
 		) {
+			items.push({
+				label: __("Settings - {0}", [__(doctype)]),
+				action: () => {
+					// The DocType Settings feature ships as its own on-demand bundle
+					// (kept out of desk.bundle.js), so load it before opening.
+					frappe.require("doctype_settings.bundle.js", () => {
+						frappe.doctype_settings.open(doctype);
+					});
+				},
+				standard: true,
+				group: customize,
+			});
+
 			items.push({
 				label: __("Customize", null, "Button in list view menu"),
 				action: () => {
@@ -2899,18 +2904,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 				standard: true,
 				shortcut: "Ctrl+Y",
-			});
-
-			items.push({
-				label: __("Settings"),
-				action: () => {
-					// The DocType Settings feature ships as its own on-demand bundle
-					// (kept out of desk.bundle.js), so load it before opening.
-					frappe.require("doctype_settings.bundle.js", () => {
-						frappe.doctype_settings.open(doctype);
-					});
-				},
-				standard: true,
+				group: customize,
 			});
 		}
 
@@ -2920,22 +2914,29 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				label: __("Edit DocType", null, "Button in list view menu"),
 				action: () => frappe.set_route("form", "doctype", doctype),
 				standard: true,
+				group: customize,
 			});
 		}
 
-		items.push({
-			label: __("Customize Quick Filters", null, "Customize qucik filters of List View"),
-			action: () => {
-				this.make_group_by_fields_modal();
-			},
-			standard: true,
-			class: "hidden-xs",
-		});
+		if (frappe.user_roles.includes("System Manager")) {
+			items.push({
+				label: __("User Permissions", null, "Button in list view menu"),
+				action: () =>
+					frappe.set_route("list", "user-permission", {
+						allow: doctype,
+					}),
+				standard: true,
+				group: permissions,
+			});
+		}
 
-		if (frappe.user.has_role("System Manager")) {
-			if (this.get_view_settings) {
-				items.push(this.get_view_settings());
-			}
+		if (frappe.user_roles.includes("System Manager")) {
+			items.push({
+				label: __("Role Permissions Manager", null, "Button in list view menu"),
+				action: () => frappe.set_route("permission-manager", doctype),
+				standard: true,
+				group: permissions,
+			});
 		}
 
 		return items;
@@ -3019,6 +3020,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			label: __("List Settings", null, "Button in list view menu"),
 			action: () => this.show_list_settings(),
 			standard: true,
+			group: __("List View"),
 		};
 	}
 

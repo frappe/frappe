@@ -53,6 +53,19 @@ function strip_trailing_slash(path) {
 	return path.replace(/\/$/, "");
 }
 
+frappe.ui.open_user_settings = function (tab = "profile") {
+	return frappe
+		.require("user_settings_dialog.bundle.js")
+		.then(() => frappe.ui.show_user_settings(tab))
+		.catch((e) => {
+			console.error("Failed to load user_settings_dialog.bundle.js", e);
+			frappe.ui.toast({
+				message: __("Could not open My Settings. Please refresh the page."),
+				type: "error",
+			});
+		});
+};
+
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -442,26 +455,9 @@ frappe.ui.Sidebar = class Sidebar {
 					},
 					{
 						name: "settings",
-						label: __("Settings"),
+						label: __("My Settings"),
 						icon: "settings",
-						onclick: function () {
-							// Not in the desk bundle, so it is loaded on click.
-							frappe
-								.require("user_settings_dialog.bundle.js")
-								.then(() => frappe.ui.show_user_settings("profile"))
-								.catch((e) => {
-									console.error(
-										"Sidebar: failed to load user_settings_dialog.bundle.js",
-										e
-									);
-									frappe.ui.toast({
-										message: __(
-											"Could not open Settings. Please refresh the page."
-										),
-										type: "error",
-									});
-								});
-						},
+						onclick: () => frappe.ui.open_user_settings(),
 					},
 					{
 						name: "workspace-selector",

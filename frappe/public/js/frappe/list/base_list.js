@@ -259,7 +259,9 @@ frappe.views.BaseList = class BaseList {
 					item.label,
 					item.action,
 					item.standard,
-					item.shortcut
+					item.shortcut,
+					undefined,
+					item.group
 				);
 				if (item.class) {
 					$item && $item.addClass(item.class);
