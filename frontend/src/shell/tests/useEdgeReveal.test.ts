@@ -80,6 +80,20 @@ describe("useEdgeReveal", () => {
 		stop();
 	});
 
+	it("cancels the wait when the pointer leaves the document or the window loses focus", () => {
+		const { reveal, stop } = mountReveal("right", true);
+		move(999);
+		document.documentElement.dispatchEvent(new MouseEvent("pointerleave"));
+		vi.advanceTimersByTime(END_WAIT);
+		expect(reveal.open.value).toBe(false);
+
+		move(999);
+		window.dispatchEvent(new Event("blur"));
+		vi.advanceTimersByTime(END_WAIT);
+		expect(reveal.open.value).toBe(false);
+		stop();
+	});
+
 	it("stays within the stay band and over the rail, and closes beyond it", () => {
 		const { reveal, rail, inner, stop } = mountReveal("left", false);
 		move(0);
@@ -125,6 +139,19 @@ describe("useEdgeReveal", () => {
 		expect(reveal.open.value).toBe(true);
 		document.body.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
 		expect(reveal.open.value).toBe(false);
+		stop();
+	});
+
+	it("a press away closes it even while keyboard focus is in the rail and the pointer is in the stay band", () => {
+		const { reveal, inner, stop } = mountReveal("left", false);
+		move(0);
+		const focusVisible = vi.spyOn(inner, "matches").mockReturnValue(true);
+		inner.focus();
+		move(STAY_BAND - 10);
+		expect(reveal.open.value).toBe(true);
+		document.body.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+		expect(reveal.open.value).toBe(false);
+		focusVisible.mockRestore();
 		stop();
 	});
 });

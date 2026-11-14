@@ -18,11 +18,7 @@ interface EdgeReveal {
 	close: () => void;
 }
 
-/**
- * `side` is the window edge the rail is on. `scrollbarSide` is true when the page scrollbar is on
- * that edge, so a pointer on its way to the thumb must not open the rail at once. `rail` is the
- * rail's own element: pointer, focus and open menus inside it keep it open.
- */
+/** Reveals the rail on `side`; `scrollbarSide` delays the reveal there so a pointer on its way to the thumb does not open it. */
 export function useEdgeReveal(options: {
 	side: () => PhysicalSide;
 	scrollbarSide: () => boolean;
@@ -30,7 +26,7 @@ export function useEdgeReveal(options: {
 }): EdgeReveal {
 	const open = ref(false);
 	let wait: ReturnType<typeof setTimeout> | undefined;
-	// Where the pointer last was, for the moment focus leaves a rail the pointer has long left.
+	// Where the pointer last was, for when focus leaves a rail the pointer left long ago.
 	let lastAway = Infinity;
 
 	function distance(event: PointerEvent) {
@@ -55,15 +51,15 @@ export function useEdgeReveal(options: {
 		}
 	}
 
+	// A menu opened from the rail draws in a portal, so its trigger is what says it shows.
+	function menuOpen(rail: HTMLElement) {
+		return !!rail.querySelector('[aria-expanded="true"]');
+	}
+
 	function holds(target: EventTarget | null) {
 		const rail = options.rail.value;
 		if (!rail) return false;
-		return (
-			(target instanceof Node && rail.contains(target)) ||
-			keyboardFocusIn(rail) ||
-			// A menu opened from the rail draws in a portal, so its trigger is what says it shows.
-			!!rail.querySelector('[aria-expanded="true"]')
-		);
+		return (target instanceof Node && rail.contains(target)) || keyboardFocusIn(rail) || menuOpen(rail);
 	}
 
 	function onMove(event: PointerEvent) {
@@ -87,10 +83,12 @@ export function useEdgeReveal(options: {
 		}, END_WAIT);
 	}
 
-	// A press away from the rail and its menus dismisses it, which a tap on a touch screen cannot do by moving.
+	// A press away from the rail and its menus closes it, whatever holds it for the pointer or keyboard.
 	function onPress(event: PointerEvent) {
 		cancelWait();
-		if (open.value && !holds(event.target)) close();
+		const rail = options.rail.value;
+		if (!open.value || !rail) return;
+		if (!(event.target instanceof Node && rail.contains(event.target)) && !menuOpen(rail)) close();
 	}
 
 	function onKey(event: KeyboardEvent) {
@@ -118,6 +116,8 @@ export function useEdgeReveal(options: {
 	}
 
 	onMounted(() => {
+		document.documentElement.addEventListener("pointerleave", cancelWait);
+		window.addEventListener("blur", cancelWait);
 		document.addEventListener("pointermove", onMove);
 		document.addEventListener("pointerdown", onPress, true);
 		document.addEventListener("keydown", onKey);
@@ -127,6 +127,8 @@ export function useEdgeReveal(options: {
 
 	onBeforeUnmount(() => {
 		cancelWait();
+		document.documentElement.removeEventListener("pointerleave", cancelWait);
+		window.removeEventListener("blur", cancelWait);
 		document.removeEventListener("pointermove", onMove);
 		document.removeEventListener("pointerdown", onPress, true);
 		document.removeEventListener("keydown", onKey);

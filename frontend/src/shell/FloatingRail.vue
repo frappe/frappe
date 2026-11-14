@@ -1,7 +1,4 @@
-<!--
-  The floating rail: the rail parked off screen, in a rounded box that slides in from the window's edge on the
-  navigation's side. It stays in the tab order while closed: focus in it opens it.
--->
+<!-- The floating rail: the rail parked off screen in a box that slides in from the navigation's edge. -->
 <template>
 	<div
 		ref="box"

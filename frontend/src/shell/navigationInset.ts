@@ -12,7 +12,7 @@ export const navInsetRight = shallowRef(0);
 /** The same, from the window's left edge, when the navigation is on the left. */
 export const navInsetLeft = shallowRef(0);
 
-/** Keeps `navInsetRight`, `navInsetLeft` and the CSS variable on `:root` in step with the shell's content element. */
+/** Keeps both insets and the CSS variable on `:root` in step with the shell's content element. */
 export function useNavigationInset(content: Ref<HTMLElement | null | undefined>) {
 	const { width, left } = useElementBounding(content);
 	const inset = computed(() =>
@@ -48,7 +48,7 @@ export function navigationUndershoot(left: number, inset: number) {
 	return Math.max(0, inset - left);
 }
 
-/** The sideways shift that keeps a float clear of the navigation on either side; the left one wins when the float is wider than the room. */
+/** The sideways shift that keeps a float clear of the navigation; the left side wins when the room is short. */
 export function navigationShift(
 	left: number,
 	width: number,
@@ -60,7 +60,7 @@ export function navigationShift(
 	return undershoot ? undershoot - overshoot : overshoot ? -overshoot : 0;
 }
 
-/** Pulls a floating window's card back from the navigation on either side, so a drag keeps it whole on screen. Returns the stop. */
+/** Keeps a floating window's card clear of the navigation on either side. Returns the stop. */
 export function keepClearOfNavigation(card: HTMLElement) {
 	function apply() {
 		const shift = navigationShift(
