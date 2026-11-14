@@ -42,9 +42,18 @@ export function hasSymbol(name: string): boolean {
 	return spriteLoaded.value && names.has(symbolId(name));
 }
 
+/** Every symbol name the sprite holds, sorted. Empty until the sprite lands. */
+export function symbolNames(): string[] {
+	// Reads the ref so a picker opened before the sprite landed recomputes when it does.
+	if (!spriteLoaded.value) return [];
+	return [...names].map((id) => id.slice(ICON_PREFIX.length)).sort();
+}
+
+const ICON_PREFIX = "icon-";
+
 /** The sprite's own spelling of a symbol id. */
 export function symbolId(name: string): string {
-	return `icon-${name}`;
+	return `${ICON_PREFIX}${name}`;
 }
 
 /** A symbol's inner geometry once the sprite lands, or `null` for a name it does not hold. */

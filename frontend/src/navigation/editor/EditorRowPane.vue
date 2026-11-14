@@ -27,14 +27,13 @@
 					data-field="label"
 					@update:modelValue="(value: string) => emit('update', { label: value })"
 				/>
-				<FormControl
-					type="text"
-					:modelValue="row.icon ?? ''"
-					:label="__('Icon')"
-					:placeholder="__('lucide name, e.g. star')"
-					data-field="icon"
-					@update:modelValue="(value: string) => emit('update', { icon: value })"
-				/>
+				<div data-field="icon">
+					<IconPicker
+						:modelValue="row.icon ?? ''"
+						:label="__('Icon')"
+						@update:modelValue="(value: string) => emit('update', { icon: value })"
+					/>
+				</div>
 				<div v-if="canPlace" class="flex flex-col gap-1">
 					<Select
 						:modelValue="row.parent_key ?? ''"
@@ -69,6 +68,7 @@
 import { computed } from "vue";
 import { Button, FormControl, Select } from "frappe-ui";
 import { __ } from "@/i18n";
+import IconPicker from "@/icons/IconPicker.vue";
 import { type EditorRow, originOf } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
 

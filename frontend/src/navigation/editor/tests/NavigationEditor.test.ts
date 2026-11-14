@@ -5,6 +5,7 @@ import { createApp, h, nextTick, ref } from "vue";
 import { ApiError } from "@framework/ui/api";
 import type { Boot } from "@/boot";
 import type { Arrangements, EditorRow } from "../draft";
+import { resetSprite } from "@/icons/sprite";
 import NavigationEditor from "../NavigationEditor.vue";
 
 const api = vi.hoisted(() => ({
@@ -78,7 +79,10 @@ beforeEach(() => {
 	Object.values(api).forEach((fn) => fn.mockReset());
 	confirm.mockReset();
 });
-afterEach(() => unmount());
+afterEach(() => {
+	unmount();
+	vi.unstubAllGlobals();
+});
 
 describe("the editor", () => {
 	it("reads the level and lists the rail, hidden rows only on request", async () => {
@@ -113,6 +117,35 @@ describe("the editor", () => {
 		expect(payload.rail[0].label).toBe("Tasks");
 		expect(api.saveNavigationLayout).not.toHaveBeenCalled();
 		expect(emitted).toEqual(["saved", "close"]);
+	});
+
+	it("sets a row's icon from the picker into the draft", async () => {
+		resetSprite();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn().mockResolvedValue({
+				ok: true,
+				text: () => Promise.resolve('<svg><symbol id="icon-star"></symbol></svg>'),
+			})
+		);
+		api.saveArrangements.mockResolvedValue({ rail: [], sidebars: {} });
+		await open();
+		click("[data-key='todo']");
+		await settle();
+
+		const trigger = body().querySelector<HTMLElement>("[data-field='icon'] button")!;
+		trigger.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, button: 0 }));
+		trigger.click();
+		await settle();
+		const star = [...document.querySelectorAll<HTMLElement>('[role="option"]')].find(
+			(option) => option.textContent?.trim() === "star"
+		)!;
+		star.click();
+		await settle();
+		click("[data-save]");
+		await settle();
+
+		expect(api.saveArrangements.mock.calls[0][2].rail[0].icon).toBe("star");
 	});
 
 	it("hides a row from the pane's Hide button", async () => {
