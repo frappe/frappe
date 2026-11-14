@@ -233,6 +233,23 @@ describe("the kinds the rail draws", () => {
 		expect(anchor.tagName).toBe("A");
 		expect(anchor.getAttribute("href")).toBe("https://docs.frappe.io");
 	});
+
+	it("opens another origin in a new tab and draws the arrow; a path on this site stays in place", () => {
+		const host = rail([
+			{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" },
+			{ key: "here", item_type: "Link", url: "/app/todo" },
+		]);
+		const docs = target(host, "docs") as HTMLAnchorElement;
+		const here = target(host, "here") as HTMLAnchorElement;
+
+		expect(docs.getAttribute("target")).toBe("_blank");
+		expect(docs.getAttribute("rel")).toBe("noopener");
+		expect(docs.querySelector(".lucide-arrow-up-right")).not.toBeNull();
+		expect(docs.getAttribute("aria-label")).toContain("(opens in a new tab)");
+		expect(here.getAttribute("aria-label")).not.toContain("(opens in a new tab)");
+		expect(here.getAttribute("target")).toBeNull();
+		expect(here.querySelector(".lucide-arrow-up-right")).toBeNull();
+	});
 });
 
 describe("headings", () => {

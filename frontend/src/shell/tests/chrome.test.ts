@@ -13,6 +13,7 @@ import { registerShell } from "@/router/routeFor";
 import { itemContext } from "@/navigation/context";
 import RailColumn from "../RailColumn.vue";
 import SidebarPanel from "../SidebarPanel.vue";
+import { installTranslate } from "@/i18n";
 import UserMenu from "../UserMenu.vue";
 import UtilitySlots from "../UtilitySlots.vue";
 import NavigationHeader from "../NavigationHeader.vue";
@@ -89,6 +90,7 @@ function mount(render: (context: ReturnType<typeof itemContext>) => ReturnType<t
 	app.provide("boot", crm);
 	app.provide("addresses", addresses);
 	app.use(router);
+	installTranslate(app);
 	app.mount(host);
 	mounted.push(app);
 	return host;
@@ -217,6 +219,31 @@ describe("SidebarPanel chrome", () => {
 		expect(has(host, "[data-key='app-menu']")).toBe(false);
 		expect(has(host, "[data-key='user-menu']")).toBe(false);
 		expect(host.querySelector("[data-slot='sidebar']")?.className).toContain("border-l");
+	});
+});
+
+describe("SidebarPanel links", () => {
+	it("opens another origin in a new tab with an arrow, and a path on this site in place", () => {
+		const host = mount((context) =>
+			h(SidebarPanel, {
+				address: "crm",
+				items: [
+					{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" },
+					{ key: "here", item_type: "Link", url: "/app/todo" },
+				],
+				context,
+				title: "Deals",
+				collapsed: false,
+			})
+		);
+		const anchor = (key: string) => host.querySelector(`[data-key='${key}'] a`)!;
+
+		expect(anchor("docs").getAttribute("target")).toBe("_blank");
+		expect(anchor("docs").getAttribute("rel")).toBe("noopener");
+		expect(anchor("docs").querySelector(".lucide-arrow-up-right")).not.toBeNull();
+		expect(anchor("docs").textContent).toContain("Opens in a new tab");
+		expect(anchor("here").getAttribute("target")).toBeNull();
+		expect(anchor("here").querySelector(".lucide-arrow-up-right")).toBeNull();
 	});
 });
 

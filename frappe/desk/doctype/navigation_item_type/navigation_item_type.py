@@ -20,6 +20,7 @@ class NavigationItemType(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		addable: DF.Check
 		module: DF.Link
 		permission_rule: DF.Literal[
 			"Readable DocType",

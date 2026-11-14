@@ -212,7 +212,34 @@ describe("Link", () => {
 		};
 		expect(renderingOf(item, context([item]))).toEqual({
 			href: "https://docs.frappe.io",
+			external: true,
 		});
+	});
+
+	it("loads a path on this site in place when the router does not serve it", () => {
+		const item: NavigationItem = { key: "todo", item_type: "Link", url: "/app/todo" };
+		expect(renderingOf(item, context([item]))).toEqual({ href: "/app/todo" });
+	});
+
+	it("is a route when the router serves the path inside this prefix", () => {
+		const item: NavigationItem = { key: "deals", item_type: "Link", url: `${boot().shell_base}/deals?x=1#top` };
+		expect(renderingOf(item, context([item]))).toEqual({ to: "/deals?x=1#top" });
+	});
+
+	it("takes this origin's full address for a path on this site", () => {
+		const item: NavigationItem = {
+			key: "deals",
+			item_type: "Link",
+			url: `${window.location.origin}${boot().shell_base}/deals`,
+		};
+		expect(renderingOf(item, context([item]))).toEqual({ to: "/deals" });
+	});
+
+	it("is not drawn for an address that is neither a path nor http(s)", () => {
+		for (const url of ["javascript:alert(1)", "//evil.example", "/\\evil.example", "ftp://x"]) {
+			const item: NavigationItem = { key: "bad", item_type: "Link", url };
+			expect(renderingOf(item, context([item])), url).toBeNull();
+		}
 	});
 
 	it("is not drawn with no url, since a Link is nothing else", () => {

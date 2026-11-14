@@ -13,7 +13,8 @@ import type { ContentEntry } from "@/contents";
 export type Rendering =
 	// Complete: the shell resolves it against the start location, never the current route.
 	| { to: RouteLocationRaw; sidebar?: string }
-	| { href: string; sidebar?: string }
+	// `external`: another origin, which opens in a new tab and says so.
+	| { href: string; sidebar?: string; external?: boolean }
 	| { group: true }
 	| { expand: () => Promise<NavigationItem[]> };
 

@@ -27,7 +27,7 @@ from .navigation import (
 	resolve_rail,
 	resolve_sidebar,
 )
-from .navigation_filter import NavigationContext
+from .navigation_filter import DERIVED_FROM_CHILDREN, NavigationContext, filter_items
 from .permissions import has_app_permission
 
 # `Sidebar` holds desk v1's `items` beside desk v2's `navigation_items`; naming the
@@ -57,6 +57,9 @@ RESERVED_PREFIXES = tuple(f"{scope}:" for scope in SCOPES)
 # by the browser, which would turn the path into a protocol-relative address.
 OWN_URL = re.compile(r"(?:/(?![/\\])|(?i:https?)://)\S*")
 
+# What an own row opens, and so what `validate_own_row` judges.
+OWN_TARGET = ("item_type", "link_doctype", "link_to", "url", "payload")
+
 OWN_ROWS_PER_CONTAINER = 50
 OWN_ROWS_PER_APP = 100
 
@@ -85,7 +88,9 @@ def save_arrangement(container: str, address: str, items: str | list, scope: str
 
 	_refuse_deep_nesting(container, below, desired, scope)
 	rows = reduce_arrangement(_with_unseen_parents(target, below, desired, scope), desired, scope)
-	_check_caps(target, [row for row in rows if row.get("added")])
+	own_rows = [row for row in rows if row.get("added")]
+	_check_caps(target, own_rows)
+	_validate_own_rows(target, container, scope, own_rows)
 
 	# An empty reduction drops the layer, so this is the one place a save can become a reset.
 	# It may only do so when the submission accounted for the whole list below.
@@ -272,6 +277,129 @@ def _with_no_access(arrangement: list[dict], unfiltered: list[dict]) -> list[dic
 
 
 # Addressing and the gate
+
+
+def _validate_own_rows(target: "Target", container: str, scope: str, own_rows: list[dict]):
+	"""Validate the rows this save adds or changes; a row it keeps as stored may have lost its target since."""
+	# Else one own row whose DocType was removed or whose access was taken away would block every save.
+	stored = _stored_own_rows(target)
+	changed = [row for row in own_rows if _identity(row) != stored.get(row["key"])]
+
+	if not changed:
+		return
+
+	context = NavigationContext(target.app)
+
+	for row in changed:
+		validate_own_row(row, container, scope, context)
+
+
+def _stored_own_rows(target: "Target") -> dict[str, tuple]:
+	layer = _existing(target)
+
+	if not layer:
+		return {}
+
+	rows = frappe.get_all(
+		"Navigation Item",
+		filters={"parent": layer, "parenttype": target.layer["doctype"], "added": 1},
+		fields=["key", *OWN_TARGET],
+	)
+
+	return {row.key: _identity(row) for row in rows}
+
+
+def _identity(row: dict) -> tuple:
+	"""What an own row opens: the part a validator judges."""
+	payload = row.get("payload")
+
+	# A stored payload is text and a client may send it back as an object: compare what they mean.
+	if isinstance(payload, str) and payload:
+		try:
+			payload = json.loads(payload)
+		except ValueError:
+			pass
+
+	return (
+		*(row.get(field) or "" for field in OWN_TARGET[:-1]),
+		json.dumps(payload, sort_keys=True) if payload else "",
+	)
+
+
+def validate_own_row(row: dict, container: str, scope: str, context: NavigationContext):
+	"""Refuse an own row of a kind that cannot be added, or whose target cannot be opened."""
+	# The url and the payload are checked as the row is stored (`_check_own_content`).
+	item_type = row.get("item_type")
+	label = frappe.bold(row["key"])
+
+	if item_type not in context.addable_types:
+		frappe.throw(
+			_("{0} cannot be added: {1} is not a kind of item that a person or the site may add.").format(
+				label, frappe.bold(str(item_type))
+			),
+			title=_("Not an Arrangement"),
+		)
+
+	if item_type == SECTION and container == "Rail":
+		frappe.throw(
+			_("A rail has no sections, so {0} cannot be added to it.").format(label),
+			title=_("Not an Arrangement"),
+		)
+
+	if item_type == "Link" and not row.get("url"):
+		frappe.throw(_("{0} needs a link to open.").format(label), title=_("Not an Arrangement"))
+
+	_check_target(row, context)
+
+	# One role-based pass over the context's cached sets, never a `has_permission` per row. A kind that
+	# only reads its children holds no target to open, and Administrator opens everything.
+	if (
+		scope == "user"
+		and context.rule(item_type) != DERIVED_FROM_CHILDREN
+		and not filter_items([row], context)
+	):
+		frappe.throw(
+			_("You cannot open the target of {0}, so you cannot add it to your own navigation.").format(
+				label
+			),
+			title=_("No Access"),
+		)
+
+	for path in frappe.get_hooks("navigation_item_validators", default={}).get(item_type) or []:
+		frappe.get_attr(f"{path}.validate_own_row")(row, container, scope, context)
+
+
+def _check_target(row: dict, context: NavigationContext):
+	"""The kind's own target doctype, if it names one, and a record that exists."""
+	label = frappe.bold(row["key"])
+	link_doctype = row.get("link_doctype")
+	link_to = row.get("link_to")
+	target = context.target(row["item_type"])
+
+	if target and link_doctype != target:
+		frappe.throw(
+			_("{0} must open a {1}.").format(label, frappe.bold(target)), title=_("Not an Arrangement")
+		)
+
+	if row["item_type"] == "Record" and not (link_doctype and link_to):
+		frappe.throw(
+			_("{0} must name a document type and a document.").format(label), title=_("Not an Arrangement")
+		)
+
+	# Only a kind that opens a document: a Link or a Section names no target, and asking would tell
+	# a person whether a document exists.
+	if not (target or row["item_type"] == "Record"):
+		return
+
+	if not (
+		link_to and frappe.db.exists("DocType", link_doctype) and frappe.db.exists(link_doctype, link_to)
+	):
+		frappe.throw(
+			_("{0} points to {1} {2}, which does not exist.").format(
+				label, link_doctype, frappe.bold(str(link_to))
+			),
+			title=_("Not an Arrangement"),
+		)
 
 
 class Target(NamedTuple):

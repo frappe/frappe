@@ -61,14 +61,21 @@
 					<Tooltip v-else :text="cell.label" side="right">
 						<a
 							:href="cell.href"
+							:target="cell.external ? '_blank' : undefined"
+							:rel="cell.external ? 'noopener' : undefined"
 							data-slot="sidebar-rail-item"
 							:class="CELL"
-							:aria-label="cell.label"
+							:aria-label="cell.ariaLabel ?? cell.label"
 						>
 							<Icon v-if="cell.icon" :name="cell.icon" />
 							<span v-else class="text-sm font-medium">{{
 								cell.label.charAt(0)
 							}}</span>
+							<span
+								v-if="cell.external"
+								class="lucide-arrow-up-right absolute -right-1 -top-1 size-3 text-ink-gray-5"
+								aria-hidden="true"
+							/>
 						</a>
 					</Tooltip>
 				</div>
@@ -102,7 +109,7 @@ import UtilitySlots from "./UtilitySlots.vue";
 
 type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
 	| { to: RouteLocationRaw }
-	| { href: string }
+	| { href: string; external?: boolean; ariaLabel?: string }
 );
 
 const TILE =
@@ -148,6 +155,15 @@ function cellOf(item: NavigationItem): Cell | null {
 	const cell = { key: item.key, label: labelOf(item, props.context), icon: item.icon };
 	return "to" in rendering
 		? { ...cell, to: rendering.to, sidebar: rendering.sidebar }
-		: { ...cell, href: rendering.href, sidebar: rendering.sidebar };
+		: {
+				...cell,
+				href: rendering.href,
+				external: rendering.external,
+				// Built here, with the label, so it is redone whenever the label is: the cell's `v-memo` sees a new cell.
+				ariaLabel: rendering.external
+					? __("{0} (opens in a new tab)", [cell.label])
+					: undefined,
+				sidebar: rendering.sidebar,
+		  };
 }
 </script>

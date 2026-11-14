@@ -231,6 +231,11 @@ class NavigationContext:
 	def target(self, item_type: str | None) -> str | None:
 		return self._types.get(item_type, (None, None))[1]
 
+	@cached_property
+	def addable_types(self) -> set[str]:
+		"""The kinds a person or the site may add to a container."""
+		return set(frappe.get_all("Navigation Item Type", filters={"addable": 1}, pluck="name"))
+
 	def resolver(self, item_type: str):
 		"""The `can_see` an app contributed beside its renderer, or None."""
 		# Two apps claiming one type is a collision, not an ordering: the later app wins, loudly.
