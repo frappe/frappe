@@ -280,3 +280,14 @@ execute:frappe.db.set_single_value("System Settings", "enable_mcp", 1)
 frappe.patches.v16_0.add_core_pdf_generators_to_option_overrides
 frappe.patches.v16_0.set_classic_dashboards
 frappe.patches.v15_0.set_snapshot_report_frequency_to_weekly
+<<<<<<< HEAD
+=======
+frappe.patches.v17_0.flow_server_session_approval_mode
+frappe.patches.v17_0.mark_flow_embedding_model
+frappe.patches.v10_0.reload_countries_and_currencies # 2026-11-12
+
+
+[post_fixture_sync]
+frappe.patches.v17_0.add_core_pdf_generators_to_option_overrides
+frappe.patches.v17_0.migrate_s3_blob_keys
+>>>>>>> 3dcb56a (fix(geo): add Georgian Lari (GEL) as Georgia's currency)
