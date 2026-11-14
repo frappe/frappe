@@ -8,13 +8,13 @@
   ink-gray-6, not ink-gray-5, which is 4.18:1 on white and misses 1.4.3 at 14px.
 -->
 <template>
-	<div class="text-p-base text-ink-gray-6">
+	<div class="w-full text-p-base text-ink-gray-6">
 		<div v-if="index === 0" class="px-2">{{ labels.where }}</div>
 		<template v-else>
 			<Button
 				v-if="canToggle"
 				variant="subtle"
-				class="w-max"
+				class="w-full justify-between"
 				iconRight="lucide-refresh-cw"
 				:label="word"
 				:aria-describedby="hintId"

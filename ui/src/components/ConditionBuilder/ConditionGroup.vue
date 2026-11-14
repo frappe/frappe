@@ -65,6 +65,7 @@
 					<ConditionRule
 						:index="index"
 						:count="group.conditions.length"
+						:conjunction="conjunction"
 						:offset="firstLineOffset(condition)"
 					>
 						<div
