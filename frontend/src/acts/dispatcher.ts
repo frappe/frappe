@@ -143,6 +143,11 @@ export class ActDispatcher {
 		return listed;
 	}
 
+	/** The acts the palette's first step lists: a label, and not `palette: false`. The navigation picker asks the same. */
+	listed(): AvailableAct[] {
+		return this.available().filter((act) => act.palette !== false && !!act.label);
+	}
+
 	/** One act by its full name while `available()` would list it; reads only its own surface. */
 	find(name: string): AvailableAct | undefined {
 		const found = this.lookup(name);

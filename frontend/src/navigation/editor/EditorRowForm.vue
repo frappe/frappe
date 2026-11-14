@@ -49,8 +49,35 @@
 				:error="errorOf('url')"
 				data-field="url"
 			/>
+			<Combobox
+				v-if="type === 'Act'"
+				v-model="act"
+				:label="__('Act')"
+				:options="actOptions"
+				:placeholder="__('Pick an act')"
+				:error="errorOf('act')"
+				data-field="act"
+			/>
+			<Select
+				v-if="type === 'Act' && chosenAct?.argument"
+				v-model="mode"
+				:label="chosenAct.argument.label"
+				:options="modes"
+				data-field="mode"
+			/>
+			<Combobox
+				v-if="type === 'Act' && values.preset"
+				v-model="option"
+				v-model:query="optionQuery"
+				:label="__('Value')"
+				:options="presetOptions"
+				:loading="loadingOptions"
+				:placeholder="__('Pick a value')"
+				:error="errorOf('option')"
+				data-field="option"
+			/>
 			<FormControl
-				v-if="type !== 'DocType'"
+				v-if="type !== 'DocType' && type !== 'Act'"
 				v-model="values.label"
 				type="text"
 				:label="__('Label')"
@@ -78,16 +105,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, inject, markRaw, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { Button, Checkbox, Combobox, FormControl, Select } from "frappe-ui";
 import { Link } from "@framework/ui/Link";
 import { useRouter } from "vue-router";
+import { acts } from "@/acts/dispatcher";
 import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { type AddValues, buildRow, isOwnUrl, missing, servedPages, startValues } from "./addTypes";
+import { keyOf, pickableActs } from "./actPicker";
 import type { EditorRow } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
+import { useActOptions } from "./useActOptions";
 
 const props = defineProps<{
 	type: string;
@@ -112,6 +142,58 @@ const doctype = computed({
 		values.name = "";
 	},
 });
+
+const actOptions = computed(() =>
+	pickableActs().map((entry) => ({ label: entry.label!, value: entry.name, icon: entry.icon }))
+);
+const optionQuery = ref("");
+const chosenAct = computed(() => acts.find(values.act));
+const act = computed({
+	get: () => values.act || null,
+	set: (picked: string | null) => {
+		values.act = picked ?? "";
+		values.preset = false;
+		values.option = null;
+		optionQuery.value = "";
+	},
+});
+const modes = [
+	{ label: __("Ask on click"), value: "ask" },
+	{ label: __("Preset"), value: "preset" },
+];
+const mode = computed({
+	get: () => (values.preset ? "preset" : "ask"),
+	set: (picked: string) => {
+		values.preset = picked === "preset";
+		values.option = null;
+		optionQuery.value = "";
+	},
+});
+const { options: found, loading: loadingOptions } = useActOptions(
+	computed(() => (values.preset ? values.act : "")),
+	optionQuery
+);
+// A Combobox value is a string or number, and an option's value may be neither: it picks by a key, so a re-asked list keeps the pick.
+const presetOptions = computed(() =>
+	found.value.map(({ option, refusal }) => ({
+		label: option.label,
+		value: keyOf(option),
+		icon: option.icon,
+		description:
+			refusal ??
+			(typeof option.disabled === "string" ? option.disabled : option.description),
+		disabled: !!refusal || !!option.disabled,
+	}))
+);
+const option = computed({
+	get: () => (values.option ? keyOf(values.option) : null),
+	set: (picked: string | null) => {
+		// Raw, so the list's own object is what the model holds.
+		const chosen = found.value.find(({ option }) => keyOf(option) === picked)?.option;
+		values.option = chosen ? markRaw(chosen) : null;
+	},
+});
+
 // What the form lacks, shown under the field that lacks it; the editor's own refusal shows under the form.
 const gap = ref<{ field: keyof AddValues; message: string } | null>(null);
 const errorOf = (field: keyof AddValues) =>

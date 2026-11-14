@@ -288,6 +288,8 @@ export function canGiveSidebar(draft: Draft, row: EditorRow): boolean {
 	return (
 		addable(row.item_type) &&
 		row.item_type !== "Section" &&
+		// An act only runs, so it opens no page for a sidebar to copy.
+		row.item_type !== "Act" &&
 		!row.no_access &&
 		!row.opens_sidebar &&
 		!openerOf(draft, row.key)
