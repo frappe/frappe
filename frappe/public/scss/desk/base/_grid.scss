@@ -1,0 +1,81 @@
+@use "sass:math";
+
+$grid-columns: 12;
+$grid-column-breakpoints: xs, sm, md, lg;
+
+.container {
+	width: 100%;
+	padding-right: 15px;
+	padding-left: 15px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	margin-right: -15px;
+	margin-left: -15px;
+}
+
+.no-gutters {
+	margin-right: 0;
+	margin-left: 0;
+
+	> .col,
+	> [class*="col-"] {
+		padding-right: 0;
+		padding-left: 0;
+	}
+}
+
+@function column-width($i) {
+	@return math.div(math.round(math.div($i, $grid-columns) * 1e10), 1e8) * 1%;
+}
+
+@function grid-infix($bp) {
+	@return if($bp == xs, "", "-#{$bp}");
+}
+
+$all-columns: ();
+@each $bp in $grid-column-breakpoints {
+	$infix: grid-infix($bp);
+	$all-columns: append($all-columns, ".col#{$infix}", comma);
+	@for $i from 1 through $grid-columns {
+		$all-columns: append($all-columns, ".col#{$infix}-#{$i}", comma);
+	}
+}
+
+#{$all-columns} {
+	position: relative;
+	width: 100%;
+	padding-right: 15px;
+	padding-left: 15px;
+}
+
+@each $bp in $grid-column-breakpoints {
+	$infix: grid-infix($bp);
+
+	@include media-breakpoint-up($bp) {
+		.col#{$infix} {
+			flex-basis: 0;
+			flex-grow: 1;
+			max-width: 100%;
+		}
+
+		@for $i from 1 through $grid-columns {
+			.col#{$infix}-#{$i} {
+				flex: 0 0 column-width($i);
+				max-width: column-width($i);
+			}
+		}
+
+		@if $bp == xs {
+			@for $i from 1 through $grid-columns - 1 {
+				.offset-#{$i} {
+					margin-left: column-width($i);
+				}
+			}
+		}
+	}
+}

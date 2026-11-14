@@ -240,7 +240,6 @@ frappe.ui.NamingSeriesTable = class NamingSeriesTable {
 		this.frm = opts.frm;
 		this.transactions = opts.transactions || [];
 		this.$wrapper = opts.frm.get_field(opts.fieldname).$wrapper;
-		this.theme_observer = null;
 	}
 	render() {
 		this.$wrapper.html(`
@@ -265,24 +264,6 @@ frappe.ui.NamingSeriesTable = class NamingSeriesTable {
 		const $rows = this.$wrapper.find(".naming-series-table-rows");
 		this.map_configure_button($rows);
 		this.get_row_data($rows);
-
-		if (this.theme_observer) {
-			this.theme_observer.disconnect();
-		}
-
-		this.theme_observer = new MutationObserver(() => {
-			const badge_class = this.get_current_badge_class();
-
-			this.$wrapper
-				.find(".badge")
-				.removeClass("badge-light badge-dark")
-				.addClass(badge_class);
-		});
-
-		this.theme_observer.observe(document.documentElement, {
-			attributes: true,
-			attributeFilter: ["data-theme"],
-		});
 	}
 
 	map_configure_button($rows) {
@@ -355,25 +336,17 @@ frappe.ui.NamingSeriesTable = class NamingSeriesTable {
     `);
 	}
 
-	get_current_badge_class() {
-		return document.documentElement.getAttribute("data-theme") === "dark"
-			? "badge-dark"
-			: "badge-light";
-	}
-
 	series_list_background(series_list) {
 		if (!series_list.length) {
 			return `<span class="text-muted">${__("Not configured")}</span>`;
 		}
 
-		const badge_class = this.get_current_badge_class();
-
 		return series_list
-			.map(
-				(s) => `<span class="badge ${badge_class}"
-					style="margin: 2px; font-family: monospace; font-weight: normal;">
-					${frappe.utils.escape_html(s)}
-				</span>`
+			.map((s) =>
+				frappe.ui.badge.html({
+					label: s,
+					attrs: { style: "margin: 2px; font-family: var(--font-family-monospace);" },
+				})
 			)
 			.join("");
 	}

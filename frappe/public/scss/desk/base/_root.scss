@@ -1,0 +1,9 @@
+:root {
+	--red: #dc3545;
+	--yellow: #ffc107;
+	--primary: #{$primary};
+	--danger: #{$danger};
+	--light: #{$gray-100};
+	--font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+		"Courier New", monospace;
+}

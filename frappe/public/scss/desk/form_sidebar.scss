@@ -141,11 +141,6 @@
 		}
 	}
 
-	a.close {
-		position: absolute;
-		right: 5px;
-	}
-
 	.form-sidebar-stats {
 		li:first-child {
 			@include flex(flex, space-between, center, null);
@@ -400,7 +395,7 @@ body[data-route^="Form"] {
 		top: 0;
 		right: 0;
 		opacity: 0.3;
-		background: #000;
+		background: var(--black);
 		z-index: 1100;
 		height: 100%;
 		width: 100%;

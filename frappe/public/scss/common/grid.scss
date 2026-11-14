@@ -520,7 +520,11 @@
 	border-bottom: 1px solid var(--table-border-color);
 	background-color: var(--fg-color);
 
-	@include transition(0.2s);
+	transition: 0.2s;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
 
 	td {
 		vertical-align: top;

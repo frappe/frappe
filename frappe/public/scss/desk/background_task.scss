@@ -106,30 +106,6 @@
 			&:empty {
 				display: none;
 			}
-
-			&:not(:empty) + .progress {
-				margin-top: 8px;
-			}
-		}
-
-		.progress {
-			width: 100%;
-			height: 4px;
-			margin-top: 16px;
-			background-color: var(--outline-gray-1);
-			border-radius: 2px;
-			box-shadow: none;
-
-			.progress-bar {
-				border-radius: 2px;
-
-				// Bootstrap's own `.progress-bar` fill is invisible on the dark track, so dark
-				// paints its own. Through the token rather than a literal white: gray-10 is the
-				// surface that inverts with the theme, which is what this wanted all along.
-				[data-theme="dark"] & {
-					background-color: var(--surface-gray-10) !important;
-				}
-			}
 		}
 	}
 

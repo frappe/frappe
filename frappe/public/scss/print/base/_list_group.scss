@@ -1,0 +1,85 @@
+.list-group {
+	padding-left: 0;
+	margin-bottom: 20px;
+}
+.list-group-item {
+	position: relative;
+	display: block;
+	padding: 10px 15px;
+	margin-bottom: -1px;
+	background-color: #fff;
+	border: 1px solid #ddd;
+
+	&:first-child {
+		border-top-left-radius: $print-radius;
+		border-top-right-radius: $print-radius;
+	}
+	&:last-child {
+		margin-bottom: 0;
+		border-bottom-right-radius: $print-radius;
+		border-bottom-left-radius: $print-radius;
+	}
+}
+a.list-group-item {
+	color: $print-input-color;
+
+	.list-group-item-heading {
+		color: #333;
+	}
+}
+.list-group-item.disabled {
+	color: $print-gray-light;
+	background-color: #eee;
+
+	.list-group-item-heading {
+		color: inherit;
+	}
+	.list-group-item-text {
+		color: $print-gray-light;
+	}
+}
+.list-group-item.active {
+	z-index: 2;
+	color: inherit;
+	background-color: $print-light-bg;
+	border-color: $print-light-bg;
+
+	.list-group-item-heading {
+		&,
+		> small,
+		> .small {
+			color: inherit;
+		}
+	}
+	.list-group-item-text {
+		color: #fff;
+	}
+}
+@each $state, $colors in $print-states {
+	$color: nth($colors, 1);
+
+	.list-group-item-#{$state} {
+		color: $color;
+		background-color: transparent;
+	}
+	a.list-group-item-#{$state} {
+		color: $color;
+
+		.list-group-item-heading {
+			color: inherit;
+		}
+		&.active {
+			color: #fff;
+			background-color: $color;
+			border-color: $color;
+		}
+	}
+}
+.list-group-item-heading {
+	margin-top: 0;
+	margin-bottom: 5px;
+}
+.list-group-item-text {
+	margin-bottom: 0;
+	line-height: 1.3;
+}
