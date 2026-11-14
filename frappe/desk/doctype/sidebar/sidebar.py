@@ -312,12 +312,7 @@ class Sidebar(Document, DeskViews):
 		self.key = self.key or None
 
 	def validate_own_key(self):
-		"""Refuse a key that is not `<scope>:<6 base36>`, or whose scope the record's level cannot hold.
-
-		A `user:` sidebar is one person's, so it needs a `user`; a record with no `user` is the
-		site's, so only a `site:` key fits it. A `site:` key with a `user` is that person's own
-		arrangement of the site's sidebar, at the same key.
-		"""
+		"""Refuse a key that is not `<scope>:<6 base36>`, or whose scope the record's level cannot hold."""
 		if not self.key:
 			return
 

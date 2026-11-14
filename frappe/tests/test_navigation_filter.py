@@ -450,6 +450,20 @@ class TestASidebarRowOpensNothing(FilterTestCase):
 
 		self.assertNotIn("opens_sidebar", rows[0])
 
+	def test_an_empty_section_in_a_sidebar_is_not_kept_by_its_dangling_opens_sidebar(self):
+		make_own_sidebar(
+			"site:abc123",
+			[
+				item("site:aaaaaa", item_type="Section", added=1, opens_sidebar="site:zzzzzz"),
+				doctype_item("site:aaaaab", READABLE, added=1),
+			],
+		)
+
+		with set_user(self.user):
+			rows = resolve_navigation(APP)["sidebars"]["site:abc123"]
+
+		self.assertEqual(keys(rows), ["site:aaaaab"])
+
 
 class TestTheModuleVetoOnASidebar(FilterTestCase):
 	"""`block_modules` reaching a sidebar through the module it is addressed at."""

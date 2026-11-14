@@ -132,14 +132,15 @@ def _holds_something(
 	context: "NavigationContext",
 ) -> bool:
 	"""What is under a derived item: a `Section`'s child rows, or the rows of the sidebar it opens."""
-	# `None` from `linked` means the sidebars are not resolved here; unknown is not empty.
+	# `None` from `linked` means the sidebars are being resolved: a `Sidebar` row is not empty yet,
+	# and a sidebar row opens nothing, so its `opens_sidebar` holds nothing.
 	item = items[index]
 	linked = context.linked
 
 	if context.target(item.get("item_type")) == "Sidebar":
 		return linked is None or item.get("link_to") in linked
 
-	if item.get("opens_sidebar") and (linked is None or item["opens_sidebar"] in linked):
+	if item.get("opens_sidebar") and linked is not None and item["opens_sidebar"] in linked:
 		return True
 
 	return any(child in kept for child in children.get(item.get("key"), []))

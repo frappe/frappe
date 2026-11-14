@@ -157,10 +157,8 @@ def _is_pinned(by_role: dict[str, str]) -> bool:
 
 
 def resolve_sidebars(app: str, context: NavigationContext | None = None) -> dict[str, list[dict]]:
-	"""Every sidebar this app ships, and every own sidebar of this level and the person's, resolved.
-
-	A shipped sidebar is keyed by its scrubbed address and an own sidebar by its `key`; a scrub holds no `:`.
-	"""
+	"""Every sidebar this app ships and every own sidebar of this level and the person's, resolved."""
+	# A shipped sidebar is keyed by its scrubbed address and an own sidebar by its `key`; a scrub holds no `:`.
 	# Empty until an app ships rows: derivation produces a rail and nothing else.
 	addresses = _sidebar_addresses(app)
 	if not addresses:
