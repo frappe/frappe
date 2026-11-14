@@ -50,6 +50,26 @@ test.describe("Espresso components", () => {
 			await expect(page).toHaveURL(/\/component-explorer\/button$/);
 			await expect(page.locator('.explorer-groups[data-component="Button"]')).toBeAttached();
 		});
+
+		test("a component still loading when the page is left keeps off the next page's title", async ({
+			page,
+		}) => {
+			let release;
+			const held = new Promise((resolve) => (release = resolve));
+			await page.route(/desk_charts\.bundle/, async (route) => {
+				await held;
+				await route.continue();
+			});
+			await page.goto("/desk/component-explorer/stat-card");
+			await page.waitForFunction(() => frappe.pages["component-explorer"]?.render_component);
+			await page.evaluate(() => frappe.set_route("List", "ToDo"));
+			await expect(page).toHaveTitle(/To ?Do/);
+
+			release();
+			await page.waitForFunction(() => frappe.ui.stat_card);
+			await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 100)));
+			await expect(page).toHaveTitle(/To ?Do/);
+		});
 	});
 
 	test.describe("Dropdown", () => {

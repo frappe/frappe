@@ -3095,6 +3095,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	}
 
 	$(wrapper).on("show", show_route);
+	// a render still loading when the page is left must not retitle the next page
+	$(wrapper).on("hide", () => render_token++);
 
 	// Deterministic entry point for UI tests: show one component's variants
 	// without going through the grid. See playwright/tests/es_components.spec.js.
