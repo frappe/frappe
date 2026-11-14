@@ -184,20 +184,9 @@ export const ListFilterAPI = {
 			});
 	},
 
-	/** Persist layout columns and route signature only (debounced during column resize). */
-	update_layout_columns(layout, columns, { debounce = true } = {}) {
+	/** Persist layout columns and route signature only. */
+	update_layout_columns(layout, columns) {
 		if (!layout?.name || !this.can_edit_layout(layout)) return Promise.resolve();
-
-		if (debounce) {
-			if (!this._debounced_save_layout_columns) {
-				this._debounced_save_layout_columns = frappe.utils.debounce(
-					(layout, columns) => this._save_layout_columns(layout, columns),
-					500
-				);
-			}
-			this._debounced_save_layout_columns(layout, columns);
-			return Promise.resolve();
-		}
 
 		return this._save_layout_columns(layout, columns);
 	},

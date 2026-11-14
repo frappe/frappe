@@ -25,7 +25,7 @@ export default class LayoutFieldSelector {
 		});
 	}
 
-	/** Default column width when none is saved on the layout. */
+	/** Starting width for a column that is new to the layout. */
 	get_default_column_width(fieldname, idx) {
 		if (idx === 0) return 200;
 		if (fieldname === "status_field") return 150;
@@ -33,10 +33,13 @@ export default class LayoutFieldSelector {
 	}
 
 	get_field_width(field, idx) {
-		if (cint(field.width)) return cint(field.width);
+		if (field.width !== undefined) return cint(field.width);
 
 		const preserved = this.preserved_widths.find((col) => col.fieldname === field.fieldname);
-		if (preserved?.width) return cint(preserved.width);
+		if (preserved) return cint(preserved.width);
+
+		const user_width = this.list_view.get_user_column_widths()[field.fieldname];
+		if (cint(user_width)) return cint(user_width);
 
 		const list_col = (this.list_view.columns || []).find(
 			(col) =>
@@ -156,7 +159,7 @@ export default class LayoutFieldSelector {
 								class="form-control text-right layout-column-width"
 								data-fieldname="${field.fieldname}"
 								style="background-color: var(--modal-bg); height: 22px;"
-								value="${width}"
+								value="${width || ""}"
 							>
 						</div>
 						<div class="col-1 flex align-items-center justify-content-center px-0">
@@ -225,10 +228,9 @@ export default class LayoutFieldSelector {
 			};
 			const type = $el.data("type");
 			if (type) field.type = type;
-			const width = cint(
+			field.width = cint(
 				$el.find(`.layout-column-width[data-fieldname="${fieldname}"]`).val()
 			);
-			if (width) field.width = width;
 			next_fields.push(field);
 		});
 		this.fields = next_fields;
@@ -272,6 +274,7 @@ export default class LayoutFieldSelector {
 
 		d.set_primary_action(__("Save"), (dialog_values) => {
 			const values = dialog_values.fields || [];
+			const existing = Object.fromEntries(this.fields.map((f) => [f.fieldname, f]));
 
 			this.fields = [];
 			this.set_subject_field(this.meta);
@@ -295,7 +298,9 @@ export default class LayoutFieldSelector {
 				}
 			}
 
-			this.fields = this.fields.uniqBy((f) => f.fieldname);
+			this.fields = this.fields
+				.uniqBy((f) => f.fieldname)
+				.map((f) => existing[f.fieldname] || f);
 			this.render();
 			d.hide();
 		});
@@ -393,12 +398,12 @@ export default class LayoutFieldSelector {
 	get_columns() {
 		this.sync_fields_from_dom();
 
-		return this.fields.map((field, idx) => {
+		return this.fields.map((field) => {
 			const column = {
 				fieldname: field.fieldname,
 				label: __(field.label, null, this.doctype),
-				width: cint(field.width) || this.get_default_column_width(field.fieldname, idx),
 			};
+			if (cint(field.width)) column.width = cint(field.width);
 			if (field.type) column.type = field.type;
 			return column;
 		});
