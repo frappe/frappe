@@ -1,7 +1,7 @@
 // The editor, mounted: it reads a level, edits a draft, and commits with one Save.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref } from "vue";
-import { createMemoryHistory, createRouter, type Router } from "vue-router";
+import { createWebHistory, createRouter, type Router } from "vue-router";
 
 import { ApiError } from "@framework/ui/api";
 import type { Boot } from "@/boot";
@@ -66,7 +66,7 @@ async function open(answer: Arrangements = response()) {
 		onSaved: () => emitted.push("saved"),
 	});
 	app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
-	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 	await router.push("/page");
 	await router.push("/page#customize/rail");
 	app.use(router);
@@ -94,6 +94,12 @@ describe("the editor", () => {
 	it("marks only the rows the level itself added, a site row is inherited at Just me", async () => {
 		await open(response({ rail: [row("todo"), row("site:wiki"), row("user:mine")] }));
 		expect(rowsShown()).toEqual(["TODO", "SITE:WIKI", "USER:MINEAdded"]);
+		click("[data-key='site:wiki']");
+		await settle();
+		expect(text("[data-editor-pane]")).toContain("You can rename it, change its icon");
+		click("[data-key='user:mine']");
+		await settle();
+		expect(text("[data-editor-pane]")).not.toContain("You can rename it, change its icon");
 	});
 
 	it("reads the level and lists the rail, hidden rows only on request", async () => {
@@ -297,9 +303,22 @@ describe("the editor", () => {
 			expect(router.currentRoute.value.hash).toBe("#customize/rail");
 			expect(body().querySelector("[data-save]")).not.toBeNull();
 
+			const editorEntry = router.options.history.state.position;
 			confirm.mock.calls[0][0].actions[1].onClick();
 			await settle();
 			expect(router.currentRoute.value.hash).toBe("");
+			expect(router.options.history.state.position).toBe((editorEntry as number) - 1);
+		});
+
+		it("lets no exit through while a save runs", async () => {
+			api.saveArrangements.mockReturnValue(new Promise(() => {}));
+			await open();
+			await hide();
+			click("[data-save]");
+			await settle();
+			await router.replace({ hash: "" });
+			expect(confirm).not.toHaveBeenCalled();
+			expect(router.currentRoute.value.hash).toBe("#customize/rail");
 		});
 
 		it("replaces the open confirm when Back is pressed again", async () => {
@@ -464,7 +483,7 @@ describe("the editor", () => {
 		const target = ref<{ tab: "sidebar"; address: string }>({ tab: "sidebar", address: "s1" });
 		const app = createApp({ render: () => h(NavigationEditor, { target: target.value }) });
 		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
-	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 	await router.push("/page");
 	await router.push("/page#customize/rail");
 	app.use(router);
@@ -511,7 +530,7 @@ describe("the editor", () => {
 			.mockResolvedValueOnce(response(sidebars("shared", "deal")));
 		const app = createApp({ render: () => h(NavigationEditor, { target: { tab: "sidebar", address: "mine" } }) });
 		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
-	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 	await router.push("/page");
 	await router.push("/page#customize/rail");
 	app.use(router);
@@ -543,7 +562,7 @@ describe("the editor", () => {
 		const target = ref<{ tab: "rail" }>({ tab: "rail" });
 		const app = createApp({ render: () => h(NavigationEditor, { target: target.value }) });
 		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
-	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 	await router.push("/page");
 	await router.push("/page#customize/rail");
 	app.use(router);
@@ -610,7 +629,7 @@ describe("the editor", () => {
 				}),
 		});
 		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
-	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 	await router.push("/page");
 	await router.push("/page#customize/rail");
 	app.use(router);

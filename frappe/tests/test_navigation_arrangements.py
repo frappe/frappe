@@ -191,6 +191,12 @@ class TestGetDefaultArrangements(EditorTestCase):
 		with set_user("Administrator"):
 			self.assertFalse(get_arrangements(APP, "site")["has_saved"])
 
+	def test_clearing_a_layout_alone_leaves_nothing_saved(self):
+		save_navigation_layout(APP, "sidebar_only")
+		save_navigation_layout(APP, "")
+
+		self.assertFalse(get_arrangements(APP)["has_saved"])
+
 	def test_has_saved_counts_a_site_layout_alone_at_the_site_level(self):
 		with set_user("Administrator"):
 			save_navigation_layout(APP, "floating_rail", scope="site")

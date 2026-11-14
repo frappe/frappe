@@ -236,9 +236,13 @@ let asking: { close: () => void } | undefined;
 // Back and any other hash change that would close or reload the editor ask first, as Cancel does.
 const removeGuard = router.beforeEach((to, from) => {
 	if (closing || !props.target || !changed.value || to.hash === from.hash) return;
+	// Cancel is off while a save runs, and so is every other way out.
+	if (saving.value) return false;
 	askToDiscard(CLOSING, __("Discard and close"), () => {
 		closing = true;
-		router.replace(to);
+		// After Back the entry behind the editor already holds `to`: step back onto it, so it is not copied over the editor's own.
+		if (router.options.history.state.back === to.fullPath) router.back();
+		else router.replace(to);
 	});
 	return false;
 });
