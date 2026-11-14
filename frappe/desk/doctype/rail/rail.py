@@ -106,7 +106,7 @@ class Rail(Document):
 		if not self.standard:
 			return
 
-		validate_item_keys(self.items)
+		validate_item_keys(self.items, "Rail")
 
 	def on_update(self):
 		self.export_rail()

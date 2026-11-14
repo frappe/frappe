@@ -1,0 +1,438 @@
+{
+	"cases": [
+		{
+			"name": "a flat sidebar",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType"
+				}
+			],
+			"errors": [],
+			"capped": {
+				"a": null,
+				"b": null
+			},
+			"moves": [
+				{
+					"key": "a",
+					"parent": "b",
+					"allowed": true
+				},
+				{
+					"key": "a",
+					"parent": null,
+					"allowed": true
+				}
+			]
+		},
+		{
+			"name": "section, item, child is the deepest row",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "s",
+					"item_type": "Section"
+				},
+				{
+					"key": "a",
+					"item_type": "DocType",
+					"parent_key": "s"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				},
+				{
+					"key": "c",
+					"item_type": "DocType"
+				}
+			],
+			"errors": [],
+			"capped": {
+				"s": null,
+				"a": "s",
+				"b": "a",
+				"c": null
+			},
+			"moves": [
+				{
+					"key": "c",
+					"parent": "s",
+					"allowed": true
+				},
+				{
+					"key": "c",
+					"parent": "a",
+					"allowed": true
+				},
+				{
+					"key": "c",
+					"parent": "b",
+					"allowed": false
+				},
+				{
+					"key": "a",
+					"parent": "c",
+					"allowed": false
+				},
+				{
+					"key": "a",
+					"parent": "s",
+					"allowed": true
+				},
+				{
+					"key": "a",
+					"parent": "a",
+					"allowed": false
+				},
+				{
+					"key": "b",
+					"parent": "a",
+					"allowed": true
+				},
+				{
+					"key": "b",
+					"parent": null,
+					"allowed": true
+				},
+				{
+					"key": "s",
+					"parent": "c",
+					"allowed": false
+				},
+				{
+					"key": "s",
+					"parent": null,
+					"allowed": true
+				}
+			]
+		},
+		{
+			"name": "a top-level item holds a child",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				}
+			],
+			"errors": [],
+			"capped": {
+				"a": null,
+				"b": "a"
+			},
+			"moves": []
+		},
+		{
+			"name": "a grandchild under a section's item",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "s",
+					"item_type": "Section"
+				},
+				{
+					"key": "a",
+					"item_type": "DocType",
+					"parent_key": "s"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				},
+				{
+					"key": "c",
+					"item_type": "DocType",
+					"parent_key": "b"
+				}
+			],
+			"errors": [
+				"c"
+			],
+			"capped": {
+				"s": null,
+				"a": "s",
+				"b": "a",
+				"c": "a"
+			},
+			"moves": []
+		},
+		{
+			"name": "a grandchild under a top-level item",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				},
+				{
+					"key": "c",
+					"item_type": "DocType",
+					"parent_key": "b"
+				}
+			],
+			"errors": [
+				"c"
+			],
+			"capped": {
+				"a": null,
+				"b": "a",
+				"c": "a"
+			},
+			"moves": []
+		},
+		{
+			"name": "a section under an item",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType"
+				},
+				{
+					"key": "s",
+					"item_type": "Section",
+					"parent_key": "a"
+				}
+			],
+			"errors": [
+				"s"
+			],
+			"capped": {
+				"a": null,
+				"s": null
+			},
+			"moves": []
+		},
+		{
+			"name": "a section under a section",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "s1",
+					"item_type": "Section"
+				},
+				{
+					"key": "s2",
+					"item_type": "Section",
+					"parent_key": "s1"
+				}
+			],
+			"errors": [
+				"s2"
+			],
+			"capped": {
+				"s1": null,
+				"s2": null
+			},
+			"moves": []
+		},
+		{
+			"name": "an item under a nested section keeps its section",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType"
+				},
+				{
+					"key": "s",
+					"item_type": "Section",
+					"parent_key": "a"
+				},
+				{
+					"key": "x",
+					"item_type": "DocType",
+					"parent_key": "s"
+				}
+			],
+			"errors": [
+				"s"
+			],
+			"capped": {
+				"a": null,
+				"s": null,
+				"x": "s"
+			},
+			"moves": []
+		},
+		{
+			"name": "a chain lifts until it fits",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				},
+				{
+					"key": "c",
+					"item_type": "DocType",
+					"parent_key": "b"
+				},
+				{
+					"key": "d",
+					"item_type": "DocType",
+					"parent_key": "c"
+				}
+			],
+			"errors": [
+				"c",
+				"d"
+			],
+			"capped": {
+				"a": null,
+				"b": "a",
+				"c": "a",
+				"d": "a"
+			},
+			"moves": []
+		},
+		{
+			"name": "a parent that is not in the list is no depth",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType",
+					"parent_key": "gone"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				}
+			],
+			"errors": [],
+			"capped": {
+				"a": "gone",
+				"b": "a"
+			},
+			"moves": []
+		},
+		{
+			"name": "a parent cycle ends at the top level",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType",
+					"parent_key": "b"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				}
+			],
+			"errors": [
+				"a",
+				"b"
+			],
+			"capped": {
+				"a": null,
+				"b": null
+			},
+			"moves": []
+		},
+		{
+			"name": "a flat rail",
+			"container": "Rail",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType"
+				}
+			],
+			"errors": [],
+			"capped": {
+				"a": null,
+				"b": null
+			},
+			"moves": [
+				{
+					"key": "a",
+					"parent": "b",
+					"allowed": false
+				},
+				{
+					"key": "a",
+					"parent": null,
+					"allowed": true
+				}
+			]
+		},
+		{
+			"name": "a rail row with a parent",
+			"container": "Rail",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "DocType"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				}
+			],
+			"errors": [
+				"b"
+			],
+			"capped": {
+				"a": null,
+				"b": null
+			},
+			"moves": []
+		},
+		{
+			"name": "a rail section holds nothing",
+			"container": "Rail",
+			"items": [
+				{
+					"key": "s",
+					"item_type": "Section"
+				},
+				{
+					"key": "a",
+					"item_type": "DocType",
+					"parent_key": "s"
+				}
+			],
+			"errors": [
+				"a"
+			],
+			"capped": {
+				"s": null,
+				"a": null
+			},
+			"moves": []
+		}
+	]
+}

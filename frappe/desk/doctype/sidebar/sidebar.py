@@ -506,7 +506,7 @@ class Sidebar(Document, DeskViews):
 		if not self.standard:
 			return
 
-		validate_item_keys(self.navigation_items)
+		validate_item_keys(self.navigation_items, "Sidebar")
 
 	def clear_cache(self):
 		super().clear_cache()

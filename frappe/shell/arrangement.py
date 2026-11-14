@@ -13,6 +13,7 @@ from typing import NamedTuple
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.navigation_item.nesting import nesting_errors
 
 from .navigation import SITE_LAYER, resolve_navigation, resolve_rail, resolve_sidebar
 from .navigation_filter import NavigationContext
@@ -48,6 +49,7 @@ def save_arrangement(container: str, address: str, items: str | list, scope: str
 	below = target.resolve(upto=BELOW[scope], keep_hidden=True)
 	desired = _as_items(items)
 
+	_refuse_deep_nesting(container, below, desired)
 	rows = reduce_arrangement(below, desired)
 
 	# An empty reduction drops the layer, so this is the one place a save can become a reset.
@@ -145,6 +147,23 @@ def _target(container: str, address: str, scope: str) -> Target:
 		)
 
 	return Target(app, resolve, {"doctype": container, **stored})
+
+
+def _refuse_deep_nesting(container: str, below: list[dict], desired: list[dict]):
+	"""Refuse a list that nests past the cap, in the rows the save keeps and the rows it leaves be."""
+	# The type is the layer below's, not the client's. A row the client left out keeps its place.
+	known = {item["key"]: item for item in below if item.get("key")}
+	kept = [{**item, "item_type": known[item["key"]].get("item_type")} for item in _known(desired, known)]
+	named = {item["key"] for item in kept}
+	left_out = [item for item in below if item.get("key") not in named]
+
+	if past := nesting_errors(kept + left_out, container):
+		frappe.throw(
+			_("{0} is nested too deeply. A section holds items, and an item holds one more level.").format(
+				frappe.bold(", ".join(past))
+			),
+			title=_("Nested Too Deeply"),
+		)
 
 
 def _sidebar_address(address: str) -> tuple[str, str, str]:
