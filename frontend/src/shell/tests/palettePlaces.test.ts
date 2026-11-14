@@ -119,7 +119,7 @@ describe("a sidebar row and a doctype row", () => {
 	};
 
 	function goToRows(rail: NavigationItem[], query: string) {
-		const withSidebar = { ...context, boot: { ...boot, navigation: { rail, sidebars: {} } } };
+		const withSidebar = { ...context, boot: { ...boot, navigation: { rail, sidebars: {}, navigation_layout: "rail_and_sidebar" as const } } };
 		registerShell(withSidebar);
 		return goTo.rows(query, withSidebar).map((row) => [row.id, row.label, row.description]);
 	}
@@ -139,7 +139,7 @@ describe("a sidebar row and a doctype row", () => {
 
 	it("keeps the doctype row's Tab narrowing on a link row that stands in for it", () => {
 		const link: NavigationItem = { key: "link", item_type: "Link", label: "Deals", url: `${boot.shell_base}/crm-deal` };
-		const withSidebar = { ...context, boot: { ...boot, navigation: { rail: [link], sidebars: {} } } };
+		const withSidebar = { ...context, boot: { ...boot, navigation: { rail: [link], sidebars: {}, navigation_layout: "rail_and_sidebar" as const } } };
 		registerShell(withSidebar);
 		expect(goTo.rows("deal", withSidebar).map((row) => [row.id, row.doctype])).toEqual([
 			[`sidebar:${link.url}`, "CRM Deal"],
@@ -232,7 +232,7 @@ describe("a place another app owns", () => {
 
 	it("keeps the owner's address on the sidebar row that stands in for the doctype", () => {
 		const link: NavigationItem = { key: "todo", item_type: "DocType", link_to: "ToDo", label: "My ToDos" };
-		const withSidebar = { ...context, boot: { ...boot, navigation: { rail: [link], sidebars: {} } } };
+		const withSidebar = { ...context, boot: { ...boot, navigation: { rail: [link], sidebars: {}, navigation_layout: "rail_and_sidebar" as const } } };
 		registerShell(withSidebar);
 		const [todo] = goTo.rows("todo", withSidebar);
 

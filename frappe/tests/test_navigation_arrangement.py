@@ -12,9 +12,11 @@ from frappe.shell.arrangement import (
 	_target,
 	anchors_for,
 	get_arrangement,
+	get_navigation_layouts,
 	reduce_arrangement,
 	reset_arrangement,
 	save_arrangement,
+	save_navigation_layout,
 )
 from frappe.shell.navigation import resolve_navigation
 from frappe.tests.classes.context_managers import set_user
@@ -543,3 +545,175 @@ class TestSidebarArrangement(NavigationTestCase):
 
 		self.assertEqual(rail_keys(), ["role", "user"])
 		self.assertEqual(keys(resolve_navigation(APP)["sidebars"][ADDRESS_KEY]), ["user", "role"])
+
+
+def layout() -> str:
+	return resolve_navigation(APP)["navigation_layout"]
+
+
+def stored_layer(user: str = "") -> str | None:
+	return frappe.db.get_value("Rail", {"app": APP, "standard": 0, "extends": "", "user": user})
+
+
+class TestNavigationLayout(NavigationTestCase):
+	def test_it_is_rail_and_sidebar_when_nothing_sets_it(self):
+		self.assertEqual(layout(), "rail_and_sidebar")
+		self.assertNotIn("pinned", resolve_navigation(APP))
+
+	def test_person_beats_site_beats_app_beats_the_default(self):
+		make_rail([], standard=1, navigation_layout="floating_rail")
+		self.assertEqual(layout(), "floating_rail")
+
+		save_navigation_layout(APP, "sidebar_only", scope="site")
+		self.assertEqual(layout(), "sidebar_only")
+
+		save_navigation_layout(APP, "rail_and_sidebar")
+		self.assertEqual(layout(), "rail_and_sidebar")
+
+	def test_a_blank_level_falls_through(self):
+		make_rail([], standard=1, navigation_layout="sidebar_only")
+		make_rail([doctype_item("user", "User")], user=frappe.session.user)
+
+		self.assertEqual(layout(), "sidebar_only")
+
+	def test_a_derived_rail_takes_a_site_value(self):
+		save_navigation_layout(APP, "floating_rail", scope="site")
+
+		self.assertEqual(layout(), "floating_rail")
+
+	def test_an_extension_record_is_never_read(self):
+		make_rail([], standard=1, extends="erpnext")
+		frappe.db.set_value("Rail", {"app": APP, "extends": "erpnext"}, "navigation_layout", "floating_rail")
+
+		self.assertEqual(layout(), "rail_and_sidebar")
+
+	def test_a_user_write_touches_only_the_session_users_record_and_makes_a_row_less_one(self):
+		save_navigation_layout(APP, "sidebar_only")
+
+		mine = frappe.get_doc("Rail", stored_layer(frappe.session.user))
+		self.assertEqual((mine.navigation_layout, mine.items), ("sidebar_only", []))
+		self.assertIsNone(stored_layer())
+
+	def test_a_site_write_needs_a_system_manager(self):
+		reader = a_person("test_desk_user@example.com", role="Desk User")
+
+		with set_user(reader):
+			save_navigation_layout(APP, "sidebar_only")
+
+			with self.assertRaises(frappe.PermissionError):
+				save_navigation_layout(APP, "sidebar_only", scope="site")
+
+	def test_an_unknown_value_is_refused(self):
+		for value in ("dock", "Sidebar Only"):
+			with self.assertRaises(frappe.ValidationError):
+				save_navigation_layout(APP, value)
+
+		self.assertIsNone(stored_layer(frappe.session.user))
+
+	def test_a_value_equal_to_the_level_below_writes_blank(self):
+		save_navigation_layout(APP, "floating_rail", scope="site")
+		save_navigation_layout(APP, "sidebar_only")
+		self.assertEqual(layout(), "sidebar_only")
+
+		# Unpinning back to what the site says clears the record: a later site change still reaches them.
+		save_navigation_layout(APP, "floating_rail")
+
+		self.assertIsNone(stored_layer(frappe.session.user))
+		self.assertEqual(layout(), "floating_rail")
+
+	def test_the_default_over_nothing_writes_nothing(self):
+		save_navigation_layout(APP, "rail_and_sidebar")
+
+		self.assertIsNone(stored_layer(frappe.session.user))
+
+	def test_it_comes_back_with_the_navigation(self):
+		self.assertEqual(save_navigation_layout(APP, "sidebar_only")["navigation_layout"], "sidebar_only")
+
+	def test_a_rows_save_keeps_the_layout(self):
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		save_navigation_layout(APP, "sidebar_only")
+
+		save_arrangement("Rail", APP, showing(shown("role"), shown("user")))
+
+		self.assertEqual(layout(), "sidebar_only")
+
+	def test_a_rows_save_that_empties_the_rows_keeps_a_record_that_has_a_layout(self):
+		make_rail([doctype_item("user", "User")], standard=1)
+		save_arrangement("Rail", APP, showing(shown("user", hidden=1)))
+		save_navigation_layout(APP, "sidebar_only")
+
+		save_arrangement("Rail", APP, showing(shown("user")))
+
+		mine = frappe.get_doc("Rail", stored_layer(frappe.session.user))
+		self.assertEqual((mine.navigation_layout, mine.items), ("sidebar_only", []))
+
+	def test_a_rows_save_that_empties_the_rows_drops_a_record_with_no_layout(self):
+		make_rail([doctype_item("user", "User")], standard=1)
+		save_arrangement("Rail", APP, showing(shown("user", hidden=1)))
+		save_arrangement("Rail", APP, showing(shown("user")))
+
+		self.assertIsNone(stored_layer(frappe.session.user))
+
+	def test_clearing_the_layout_keeps_a_record_that_has_rows(self):
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		save_arrangement("Rail", APP, showing(shown("role"), shown("user")))
+		save_navigation_layout(APP, "sidebar_only")
+
+		save_navigation_layout(APP, "rail_and_sidebar")
+
+		self.assertEqual(rail_keys(), ["role", "user"])
+
+	def test_a_rail_reset_drops_the_rows_and_the_layout(self):
+		make_rail([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		save_arrangement("Rail", APP, showing(shown("role"), shown("user")))
+		save_navigation_layout(APP, "sidebar_only")
+
+		reset_arrangement("Rail", APP)
+
+		self.assertIsNone(stored_layer(frappe.session.user))
+		self.assertEqual(layout(), "rail_and_sidebar")
+		self.assertEqual(rail_keys(), ["user", "role"])
+
+	def test_a_sidebar_reset_leaves_the_layout_alone(self):
+		make_sidebar([doctype_item("user", "User"), doctype_item("role", "Role")], standard=1)
+		save_arrangement("Sidebar", ADDRESS_KEY, showing(shown("role"), shown("user")))
+		save_navigation_layout(APP, "sidebar_only")
+
+		reset_arrangement("Sidebar", ADDRESS_KEY)
+
+		self.assertEqual(layout(), "sidebar_only")
+
+	def test_pinned_is_the_persons_own_rail_and_sidebar_over_an_inherited_floating_rail(self):
+		make_rail([], standard=1, navigation_layout="floating_rail")
+		self.assertNotIn("pinned", resolve_navigation(APP))
+
+		self.assertIs(save_navigation_layout(APP, "rail_and_sidebar")["pinned"], True)
+
+		self.assertNotIn("pinned", save_navigation_layout(APP, "sidebar_only"))
+		self.assertNotIn("pinned", save_navigation_layout(APP, "floating_rail"))
+
+	def test_a_colleague_does_not_see_a_pin(self):
+		make_rail([], standard=1, navigation_layout="floating_rail")
+		save_navigation_layout(APP, "rail_and_sidebar")
+
+		with set_user(a_person()):
+			self.assertEqual(layout(), "floating_rail")
+			self.assertNotIn("pinned", resolve_navigation(APP))
+
+	def test_get_navigation_layouts_gives_the_three_raw_values(self):
+		make_rail([], standard=1, navigation_layout="floating_rail")
+		save_navigation_layout(APP, "sidebar_only", scope="site")
+
+		self.assertEqual(
+			get_navigation_layouts(APP), {"standard": "floating_rail", "site": "sidebar_only", "user": ""}
+		)
+
+		with set_user(a_person()):
+			self.assertEqual(get_navigation_layouts(APP)["site"], "sidebar_only")
+
+	def test_get_navigation_layouts_refuses_an_app_the_person_may_not_enter(self):
+		with set_user("Guest"), self.assertRaises(frappe.PermissionError):
+			get_navigation_layouts(APP)
+
+		with self.assertRaises(frappe.ValidationError):
+			get_navigation_layouts("no_such_app")

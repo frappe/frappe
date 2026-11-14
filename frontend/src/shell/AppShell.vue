@@ -147,7 +147,9 @@ const route = useRoute();
 watch(() => route.fullPath, closeCreates);
 watch(() => route.path, closeRecordDialogs);
 
-const navigation = ref<Navigation>(boot.navigation ?? { rail: [], sidebars: {} });
+const navigation = ref<Navigation>(
+	boot.navigation ?? { rail: [], sidebars: {}, navigation_layout: "rail_and_sidebar" }
+);
 
 // One context per container: `Module Contents` measures against `context.items`, so a
 // sidebar row handed the rail's list would answer about the rail.

@@ -10,6 +10,7 @@
   "extends",
   "user",
   "standard",
+  "navigation_layout",
   "items_section",
   "items"
  ],
@@ -53,6 +54,14 @@
    "in_standard_filter": 1,
    "label": "Standard",
    "read_only_depends_on": "eval: !frappe.boot.developer_mode"
+  },
+  {
+   "depends_on": "eval:!doc.extends",
+   "description": "How this app's navigation draws. Blank uses the level below.",
+   "fieldname": "navigation_layout",
+   "fieldtype": "Select",
+   "label": "Navigation layout",
+   "options": "\nrail_and_sidebar\nsidebar_only\nfloating_rail"
   },
   {
    "fieldname": "items_section",
