@@ -2,7 +2,18 @@
 export const FIELDTYPE_GROUPS: { label: string; types: string[] }[] = [
 	{
 		label: "Text",
-		types: ["Data", "Small Text", "Text", "Long Text", "Text Editor", "Markdown Editor", "Code", "Password", "Phone"],
+		types: [
+			"Data",
+			"Small Text",
+			"Text",
+			"Long Text",
+			"Text Editor",
+			"Markdown Editor",
+			"HTML Editor",
+			"Code",
+			"Password",
+			"Phone",
+		],
 	},
 	{ label: "Number", types: ["Int", "Float", "Currency", "Percent", "Rating", "Duration"] },
 	{ label: "Choice", types: ["Check", "Select", "Autocomplete", "Color"] },
@@ -39,6 +50,7 @@ const ICONS: Record<string, string> = {
 	"Long Text": "lucide-text",
 	"Text Editor": "lucide-pilcrow",
 	"Markdown Editor": "lucide-pilcrow",
+	"HTML Editor": "lucide-file-code",
 	Code: "lucide-code",
 	Password: "lucide-key-round",
 	Phone: "lucide-phone",
