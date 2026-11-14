@@ -14,6 +14,7 @@
   "app",
   "link_doctype",
   "link_to",
+  "key",
   "user",
   "items_section",
   "items",
@@ -72,6 +73,15 @@
    "options": "link_doctype"
   },
   {
+   "description": "An own sidebar's key, `<scope>:<6 base36>`. Set by the editor; a rail item names the sidebar it opens by it.",
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Key",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "description": "Whose own arrangement this is. Blank means the app's or the site's layer, told apart by Standard.",
    "fieldname": "user",
    "fieldtype": "Link",
@@ -125,7 +135,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-03 17:55:12.000000",
+ "modified": "2026-11-14 09:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Sidebar",

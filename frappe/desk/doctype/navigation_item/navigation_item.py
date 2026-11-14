@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import re
+
 import frappe
 from frappe import _
 from frappe.desk.doctype.navigation_item.nesting import nesting_errors
@@ -29,6 +31,7 @@ class NavigationItem(Document):
 		label: DF.Data | None
 		link_doctype: DF.Link | None
 		link_to: DF.DynamicLink | None
+		opens_sidebar: DF.Data | None
 		overrides: DF.Code | None
 		parent: DF.Data
 		parent_key: DF.Data | None
@@ -57,6 +60,9 @@ class NavigationItem(Document):
 # shipped key may not start there, or it would read as a row a level added.
 RESERVED_KEY_SCOPES = ("user", "site")
 RESERVED_KEY_PREFIXES = tuple(f"{scope}:" for scope in RESERVED_KEY_SCOPES)
+
+# A row a level adds, and a sidebar a level adds, are named `<scope>:<6 base36>`; the editor makes the key.
+OWN_KEY = re.compile(r"^(user|site):[0-9a-z]{6}$")
 
 # A sync from the app's files must not fail a site's migrate for a third-party app's key.
 SYNC_FLAGS = ("in_install", "in_patch", "in_migrate", "in_import", "in_fixtures")

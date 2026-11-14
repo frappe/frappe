@@ -352,6 +352,32 @@ describe("Sidebar", () => {
 		});
 	});
 
+	it("keeps its own target and puts the sidebar in the route's query when a Link row opens one", () => {
+		const link: NavigationItem = {
+			key: "user:abc123",
+			item_type: "Link",
+			url: `${boot().shell_base}/deals?x=1#top`,
+			opens_sidebar: "user:m2x7qa",
+		};
+		expect(renderingOf(link, context([link]))).toEqual({
+			to: { path: "/deals", query: { x: "1", sidebar: "user:m2x7qa" }, hash: "#top" },
+			sidebar: "user:m2x7qa",
+		});
+	});
+
+	it("names the sidebar on a row that leaves the prefix, with nowhere to put a query", () => {
+		const link: NavigationItem = {
+			key: "user:abc123",
+			item_type: "Link",
+			url: "/app/todo",
+			opens_sidebar: "user:m2x7qa",
+		};
+		expect(renderingOf(link, context([link]))).toEqual({
+			href: "/app/todo",
+			sidebar: "user:m2x7qa",
+		});
+	});
+
 	it("skips rows in it that are not destinations", () => {
 		const sidebars = {
 			module_def_accounts: [

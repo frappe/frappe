@@ -22,6 +22,7 @@ ITEM_FIELDS = (
 	"item_type",
 	"link_doctype",
 	"link_to",
+	"opens_sidebar",
 	"url",
 	"payload",
 	"label",
@@ -43,6 +44,7 @@ WIRE_FIELDS = (
 	"item_type",
 	"link_doctype",
 	"link_to",
+	"opens_sidebar",
 	"url",
 	"payload",
 	"label",
@@ -75,8 +77,9 @@ def resolve_navigation(app: str) -> dict:
 
 	layers = _rail_layers(app)
 	navigation = {
-		"rail": resolve_rail(app, context=context, layers=layers),
-		"sidebars": sidebars,
+		"rail": _without_missing_sidebars(resolve_rail(app, context=context, layers=layers), sidebars),
+		# A sidebar row opens nothing beside its target.
+		"sidebars": {key: _without_missing_sidebars(rows, {}) for key, rows in sidebars.items()},
 		"navigation_layout": resolve_navigation_layout(layers.layouts),
 	}
 
@@ -86,6 +89,17 @@ def resolve_navigation(app: str) -> dict:
 		navigation["pinned"] = True
 
 	return navigation
+
+
+def _without_missing_sidebars(rail: list[dict], sidebars: dict[str, list[dict]]) -> list[dict]:
+	"""The rail with `opens_sidebar` dropped where its sidebar is not here, so the row opens its own target."""
+	# No visible rows, or not this person's: the row then draws as independent.
+	return [
+		{field: value for field, value in row.items() if field != "opens_sidebar"}
+		if row.get("opens_sidebar") and row["opens_sidebar"] not in sidebars
+		else row
+		for row in rail
+	]
 
 
 def resolve_rail(
@@ -143,7 +157,8 @@ def _is_pinned(by_role: dict[str, str]) -> bool:
 
 
 def resolve_sidebars(app: str, context: NavigationContext | None = None) -> dict[str, list[dict]]:
-	"""Every sidebar this app ships, resolved and keyed by scrubbed address."""
+	"""Every sidebar this app ships and every own sidebar of this level and the person's, resolved."""
+	# A shipped sidebar is keyed by its scrubbed address and an own sidebar by its `key`; a scrub holds no `:`.
 	# Empty until an app ships rows: derivation produces a rail and nothing else.
 	addresses = _sidebar_addresses(app)
 	if not addresses:
@@ -165,7 +180,7 @@ def resolve_sidebars(app: str, context: NavigationContext | None = None) -> dict
 		if items:
 			# Absent, not empty: the payload is read by key, and the rail item for this address
 			# goes with it.
-			resolved[frappe.scrub(f"{address[0]} {address[1]}")] = items
+			resolved[_boot_key(address)] = items
 
 	return resolved
 
@@ -468,9 +483,10 @@ def _layer_role(record) -> str:
 
 
 def _sidebar_addresses(app: str) -> list[tuple[str, str]]:
-	"""The addresses of the sidebars this app ships, from the standard rows."""
-	# `link_doctype` set is the whole test for a desk v2 row; v1's sidebars carry no address.
-	return [
+	"""The addresses of the sidebars this app ships, then the own sidebars of the site and this person."""
+	# `link_doctype` set is the whole test for a shipped desk v2 row; v1's sidebars carry no address.
+	# An own sidebar's address is `("", key)`.
+	shipped = [
 		(record.link_doctype, record.link_to)
 		for record in frappe.get_all(
 			"Sidebar",
@@ -481,32 +497,62 @@ def _sidebar_addresses(app: str) -> list[tuple[str, str]]:
 		if record.link_to
 	]
 
+	return shipped + [("", key) for key in _own_sidebar_keys(app)]
 
-def _sidebar_layers(addresses: list[tuple[str, str]]) -> dict[tuple[str, str], dict[str, list[dict]]]:
-	"""Every layer of every one of those addresses, in one pair of queries, not one per sidebar."""
-	doctypes = {address[0] for address in addresses}
+
+def _own_sidebar_keys(app: str) -> list[str]:
+	"""The keys this app's own sidebars carry at the site layer and this person's."""
+	# A person's record at a `site:` key arranges the site's sidebar; it is no sidebar when the site's is gone.
 	records = frappe.get_all(
 		"Sidebar",
 		filters={
-			"link_doctype": ("in", doctypes),
+			"app": app,
+			"standard": 0,
+			"key": ("is", "set"),
 			"user": ("in", (SITE_LAYER, frappe.session.user)),
 		},
-		fields=["name", "standard", "user", "link_doctype", "link_to"],
+		fields=["key", "user"],
+		order_by="key",
+	)
+
+	return [record.key for record in records if record.user == SITE_LAYER or record.key.startswith("user:")]
+
+
+def _sidebar_layers(addresses: list[tuple[str, str]]) -> dict[tuple[str, str], dict[str, list[dict]]]:
+	"""Every layer of every one of those addresses, in one pair of queries, not one per sidebar."""
+	doctypes = {address[0] for address in addresses if address[0]}
+	keys = {address[1] for address in addresses if not address[0]}
+	records = frappe.get_all(
+		"Sidebar",
+		filters={"user": ("in", (SITE_LAYER, frappe.session.user))},
+		or_filters=[
+			*([["link_doctype", "in", list(doctypes)]] if doctypes else []),
+			*([["key", "in", list(keys)]] if keys else []),
+		],
+		fields=["name", "standard", "user", "link_doctype", "link_to", "key"],
 	)
 	# A tuple is not a filter, so the pair is checked here; a row at an address this app does
 	# not ship is another app's, or a delta over nothing.
 	wanted = set(addresses)
-	records = [record for record in records if (record.link_doctype, record.link_to) in wanted]
+	records = [record for record in records if _record_address(record) in wanted]
 
 	# `navigation_items`, never `items`: one `Sidebar` document holds v1's table beside v2's.
 	rows = _rows_by_parent("Sidebar", "navigation_items", [record.name for record in records])
 	layers: dict[tuple[str, str], dict[str, list[dict]]] = {}
 
 	for record in records:
-		address = (record.link_doctype, record.link_to)
-		layers.setdefault(address, {})[_layer_role(record)] = rows.get(record.name, [])
+		layers.setdefault(_record_address(record), {})[_layer_role(record)] = rows.get(record.name, [])
 
 	return layers
+
+
+def _record_address(record) -> tuple[str, str]:
+	return (record.link_doctype, record.link_to) if record.link_doctype else ("", record.key)
+
+
+def _boot_key(address: tuple[str, str]) -> str:
+	"""What `navigation.sidebars` files a sidebar under: the key of an own one, else the scrubbed address."""
+	return frappe.scrub(f"{address[0]} {address[1]}") if address[0] else address[1]
 
 
 def _rows_by_parent(parenttype: str, parentfield: str, parents: list[str]) -> dict[str, list[dict]]:

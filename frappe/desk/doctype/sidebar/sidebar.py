@@ -40,7 +40,11 @@ from frappe import _
 from frappe.app_state import get_disabled_modules
 from frappe.database.utils import drop_index_if_exists
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.navigation_item.navigation_item import drop_reserved_keys, validate_item_keys
+from frappe.desk.doctype.navigation_item.navigation_item import (
+	OWN_KEY,
+	drop_reserved_keys,
+	validate_item_keys,
+)
 from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE
 from frappe.desk.utils import is_item_allowed
 from frappe.model.document import Document
@@ -204,6 +208,7 @@ class Sidebar(Document, DeskViews):
 		app: DF.Autocomplete | None
 		header_icon: DF.Icon | None
 		items: DF.Table[SidebarItem]
+		key: DF.Data | None
 		link_doctype: DF.Link | None
 		link_to: DF.DynamicLink | None
 		merged_from: DF.LongText | None
@@ -218,11 +223,11 @@ class Sidebar(Document, DeskViews):
 	def is_addressed(self) -> bool:
 		"""Whether this is a desk v2 sidebar, which is to say whether it has an address.
 
-		The address is the whole test. Desk v1's sidebars carry none and never will: nothing
-		writes `link_doctype` on them, and the fixture conversion does not either. So one column
-		decides which desk a row belongs to, and no migration has to stamp the existing rows.
+		The address is the whole test: a `link_doctype`, or a `key` for a sidebar a level added.
+		Desk v1's sidebars carry neither and never will: nothing writes either column on them,
+		and the fixture conversion does not either. So no migration has to stamp the existing rows.
 		"""
-		return bool(self.link_doctype)
+		return bool(self.link_doctype or self.key)
 
 	def autoname(self):
 		"""Name a desk v2 sidebar after its address, and leave desk v1's to `field:title`.
@@ -274,6 +279,7 @@ class Sidebar(Document, DeskViews):
 	def validate(self):
 		self.user = self.user or SITE_LAYER
 		self.blank_the_empty_address()
+		self.validate_own_key()
 		self.validate_app_content()
 		self.set_default_title()
 		self.validate_title_is_its_own()
@@ -303,6 +309,33 @@ class Sidebar(Document, DeskViews):
 			self.link_doctype = None
 			self.link_to = None
 
+		self.key = self.key or None
+
+	def validate_own_key(self):
+		"""Refuse a key that is not `<scope>:<6 base36>`, or whose scope the record's level cannot hold."""
+		if not self.key:
+			return
+
+		if not OWN_KEY.fullmatch(self.key):
+			frappe.throw(
+				_(
+					"{0} is not a sidebar key. It reads user: or site:, then six lowercase letters or digits."
+				).format(frappe.bold(self.key)),
+				title=_("Invalid Key"),
+			)
+
+		if self.key.startswith("user:") and not self.user:
+			frappe.throw(
+				_("A {0} sidebar belongs to a person, so it needs a user.").format("user:"),
+				title=_("Invalid Key"),
+			)
+
+		if self.link_doctype or self.standard:
+			frappe.throw(
+				_("A sidebar a level added has a key and no address, and is not standard."),
+				title=_("Invalid Key"),
+			)
+
 	def set_default_title(self):
 		"""Title an untitled sidebar after its module.
 
@@ -319,7 +352,7 @@ class Sidebar(Document, DeskViews):
 		module's name to ship a sidebar for it.
 		"""
 		if not self.title:
-			self.title = self.link_to if self.is_addressed else self.module
+			self.title = self.link_to or self.key if self.is_addressed else self.module
 
 	def before_import(self):
 		"""Run the title check on the one path that skips `validate`.
@@ -751,6 +784,8 @@ def on_doctype_update():
 		("link_doctype", "link_to", "user", "standard"),
 		constraint_name="unique_sidebar_address",
 	)
+	# `NULL` is distinct, so only a keyed record is held to one record per key and person.
+	frappe.db.add_unique("Sidebar", ("key", "user"), constraint_name="unique_sidebar_key")
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):

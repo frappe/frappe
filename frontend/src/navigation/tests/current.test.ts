@@ -165,6 +165,34 @@ describe("a rail item that opens a sidebar", () => {
 	});
 });
 
+describe("a rail row that opens its own sidebar", () => {
+	const opener: NavigationItem = { ...invoice, key: "books", opens_sidebar: "user:m2x7qa" };
+	// `giveSidebar` copies the row's target into the sidebar's first row.
+	const sidebars = { "user:m2x7qa": [{ ...invoice, key: "first" }, { ...deal, key: "second" }] };
+
+	it("is marked on the sidebar's first page, through that sidebar", () => {
+		expect(at([opener], sidebars, "/sales-invoice")).toEqual({
+			railKey: "books",
+			sidebar: "user:m2x7qa",
+			rowKey: "first",
+		});
+	});
+
+	it("stays marked on the sidebar's other pages", () => {
+		expect(at([opener], sidebars, "/crm-deal")).toMatchObject({
+			railKey: "books",
+			sidebar: "user:m2x7qa",
+			rowKey: "second",
+		});
+	});
+
+	it("competes through its own target again once the sidebar is not in boot", () => {
+		// The resolver drops `opens_sidebar` then, so the wire row is a plain one.
+		const { opens_sidebar: _gone, ...plain } = opener;
+		expect(at([plain], {}, "/sales-invoice")).toEqual({ railKey: "books" });
+	});
+});
+
 // Many destinations sit in more than one panel; `Item` sits in six on ERPNext.
 describe("the panel the reader is already in", () => {
 	// Two panels both listing Sales Invoice, Buying above Stock. Rail order answers Buying.

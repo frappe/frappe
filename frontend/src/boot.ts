@@ -13,6 +13,8 @@ export type NavigationItem = {
 	parent_key?: string;
 	link_doctype?: string;
 	link_to?: string;
+	/** The key of the sidebar this rail row opens, beside its own target. */
+	opens_sidebar?: string;
 	/**
 	 * An absolute href off this prefix (a `Link` item, or a contributed item that switches
 	 * app). Following it is a full document load, so the row is an `<a>`, not a `RouterLink`.
