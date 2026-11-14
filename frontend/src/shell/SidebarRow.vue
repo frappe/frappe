@@ -124,11 +124,12 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { START_LOCATION } from "vue-router";
 import { LoadingIndicator, SidebarItem, SidebarSection, Skeleton } from "frappe-ui";
 import { useActRow } from "./actRow";
 import { buildTree, containsKey, type ItemNode } from "@/navigation/tree";
 import type { SectionMemory } from "@/navigation/sectionMemory";
-import { iconOf, labelOf, renderingOf, resolveItemRoute } from "@/navigation/registry";
+import { iconOf, labelOf, renderingOf } from "@/navigation/registry";
 import Icon from "@/icons/Icon.vue";
 import LoadingStatus from "./LoadingStatus.vue";
 import type { ItemContext } from "@/navigation/types";
@@ -168,7 +169,7 @@ const target = computed(() => {
 	if (!value || !("to" in value)) return undefined;
 	if (!props.sidebar || value.sidebar) return value.to;
 
-	const { path, query, hash } = resolveItemRoute(props.context, value.to);
+	const { path, query, hash } = props.context.router.resolve(value.to, START_LOCATION);
 	return { path, query: { ...query, sidebar: props.sidebar }, hash };
 });
 const act = useActRow(() => actRendering.value ?? { act: "" });
