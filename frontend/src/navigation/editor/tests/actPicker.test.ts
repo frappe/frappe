@@ -30,22 +30,23 @@ describe("the Act step", () => {
 	});
 
 	it("writes a preset row's payload, label and the option's icon", () => {
+		// The row stores a sprite name: `Icon` draws no `lucide-` one.
 		const option = { value: "dark", label: "Dark", icon: "lucide-moon" };
 		expect(actRow(theme as never, option)).toEqual({
 			item_type: "Act",
 			payload: { act: "shell.theme", value: "dark" },
 			label: "Theme: Dark",
-			icon: "lucide-moon",
+			icon: "moon",
 		});
 	});
 
 	it("falls back to the act's icon, and writes no value for Ask on click", () => {
-		expect(actRow(theme as never, { value: "dark", label: "Dark" }).icon).toBe("lucide-sun-moon");
+		expect(actRow(theme as never, { value: "dark", label: "Dark" }).icon).toBe("sun-moon");
 		expect(actRow(theme as never)).toEqual({
 			item_type: "Act",
 			payload: { act: "shell.theme" },
 			label: "Theme",
-			icon: "lucide-sun-moon",
+			icon: "sun-moon",
 		});
 		expect(actRow(create as never)).not.toHaveProperty("icon");
 	});

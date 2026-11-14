@@ -78,7 +78,7 @@
 							role="status"
 							data-no-page-warning
 						>
-							<Icon name="lucide-triangle-alert" class="mt-0.5 size-3.5 shrink-0" />
+							<Icon name="triangle-alert" class="mt-0.5 size-3.5 shrink-0" />
 							{{ __("This sidebar has no page to open") }}
 						</p>
 					</div>

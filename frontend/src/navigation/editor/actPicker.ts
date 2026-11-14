@@ -69,9 +69,9 @@ function isDeepEqual(a: unknown, b: unknown): boolean {
 	);
 }
 
-/** The row an act, and its preset when it has one, adds. Label and icon are written so it draws at first paint. */
+/** The row an act, and its preset when it has one, adds. Label and icon are written so it draws at first paint; the icon is a sprite name, not a `lucide-` one. */
 export function actRow(act: AvailableAct, option?: ActOption): Omit<EditorRow, "key"> {
-	const icon = option?.icon ?? act.icon;
+	const icon = (option?.icon ?? act.icon)?.replace(/^lucide-/, "");
 	return {
 		item_type: "Act",
 		payload: payloadOf(act.name, option),
