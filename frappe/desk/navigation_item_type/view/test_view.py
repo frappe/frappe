@@ -257,10 +257,24 @@ class TestMarkRows(ViewTestCase):
 
 		self.assertEqual(marks, {"user:b": {"view_deleted": 1}})
 
-	def test_a_row_whose_doctype_is_gone_is_marked(self):
+	def test_a_row_whose_doctype_is_gone_is_marked_at_the_site_scope_and_reads_no_access_at_the_user_scope(
+		self,
+	):
 		row = a_view_row("No Such Doctype", {"view": "list"})
 
+		self.assertEqual(mark_rows([row], "site"), {KEY: {"view_deleted": 1}})
+		self.assertEqual(mark_rows([row], "user"), {})
+
+	def test_a_deleted_view_on_a_doctype_the_person_cannot_read_is_left_for_no_access(self):
+		key = self.made("Mine", user=self.user)
+		frappe.db.delete("Doctype View", {"reference_doctype": "ToDo", "key": key})
+		row = self.row(key)
+
 		self.assertEqual(mark_rows([row], "user"), {KEY: {"view_deleted": 1}})
+
+		with patch("frappe.has_permission", return_value=False):
+			self.assertEqual(mark_rows([row], "user"), {})
+			self.assertEqual(mark_rows([row], "site"), {KEY: {"view_deleted": 1}})
 
 	def test_the_site_scope_marks_a_view_only_the_person_had(self):
 		key = self.made("Mine", user=self.user)

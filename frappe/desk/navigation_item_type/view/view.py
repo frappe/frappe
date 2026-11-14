@@ -47,18 +47,22 @@ def validate_shipped_row(item):
 
 
 def mark_rows(items: list[dict], scope: str) -> dict[str, dict]:
-	"""`{key: {"view_deleted": 1}}` for each row whose doctype is gone or whose view no longer opens at `scope`."""
+	"""`{key: {"view_deleted": 1}}` for each row whose doctype is gone or whose view no longer opens at `scope`.
+
+	In the user scope a doctype the person cannot read stays unmarked: the row reads "No access" instead.
+	"""
 	doctypes = {item.get("link_to") for item in items}
 	existing = set(frappe.get_all("DocType", filters={"name": ("in", doctypes)}, pluck="name"))
 	targets = [(item.get("link_to"), view_key(item.get("payload"))) for item in items]
 	opened = open_views(
 		[target for target in targets if target[0] in existing and target[1]], own=scope != "site"
 	)
+	readable = existing if scope == "site" else {d for d in existing if frappe.has_permission(d, "read")}
 
 	return {
 		item["key"]: {"view_deleted": 1}
 		for item, target in zip(items, targets, strict=True)
-		if target not in opened
+		if target not in opened and (scope == "site" or target[0] in readable)
 	}
 
 

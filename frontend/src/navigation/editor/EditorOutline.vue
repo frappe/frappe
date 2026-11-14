@@ -130,8 +130,8 @@ type Badged = { label: string; theme: "gray" | "red" };
 
 /** One state per row, the heaviest first. */
 function badge(row: EditorRow): Badged | null {
-	if (row.no_access) return { label: __("No access"), theme: "red" };
 	if (row.view_deleted) return { label: __("View deleted"), theme: "red" };
+	if (row.no_access) return { label: __("No access"), theme: "red" };
 	if (row.item_type === "Act" && !actAvailable(String(row.payload?.act ?? "")))
 		return { label: __("Not available"), theme: "red" };
 	if (row.hidden && row.hidden_by === "site" && props.scope === "user")

@@ -781,6 +781,22 @@ describe("the editor", () => {
 			expect(body().querySelector("[data-row-actions] [data-toggle]")).toBeNull();
 		});
 
+		it("ranks View deleted above No access on a row that carries both", async () => {
+			const view = { item_type: "View", link_to: "ToDo", payload: { view: "gone" } } as const;
+			await open(
+				response({
+					rail: [
+						row("deleted", { ...view, no_access: 1, view_deleted: 1 }),
+						row("locked", { ...view, no_access: 1 }),
+					],
+				}),
+			);
+
+			expect(text("[data-key='deleted']")).toContain("View deleted");
+			expect(text("[data-key='deleted']")).not.toContain("No access");
+			expect(text("[data-key='locked']")).toContain("No access");
+		});
+
 		it("selects the next row the list shows after a section goes with its rows", async () => {
 			await openOn(
 				sidebarResponse([
