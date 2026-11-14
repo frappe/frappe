@@ -14,7 +14,7 @@ RAIL = "Rail"
 
 def nesting_errors(items: list, container: str) -> list[str]:
 	"""The keys of the rows that sit past the cap."""
-	# A parent that is not in the list is no depth: the resolver promotes such a row to the top.
+	# An item whose parent is not in the list is no depth: the resolver promotes it to the top.
 	rows = {row.get("key"): row for row in items if row.get("key")}
 
 	return [key for key, row in rows.items() if _too_deep(row, rows, container)]

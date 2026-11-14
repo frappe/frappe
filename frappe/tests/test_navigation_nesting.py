@@ -127,6 +127,13 @@ class TestSavingPastTheCap(NavigationTestCase):
 
 		self.assertEqual(parents, {"s": None, "a": "s", "b": "a", "c": "a"})
 
+	def test_a_row_left_out_of_the_save_still_counts(self):
+		a_sidebar_to_arrange()
+
+		# `b` is left out and stays under `a`; moving `a` under `c` would put `b` past the cap.
+		with set_user(a_person()), self.assertRaises(frappe.ValidationError):
+			save_arrangement("Sidebar", ADDRESS_KEY, [shown("s"), shown("c"), shown("a", parent_key="c")])
+
 	def test_an_inherited_section_cannot_be_nested_by_calling_it_an_item(self):
 		a_sidebar_to_arrange()
 

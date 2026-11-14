@@ -150,15 +150,19 @@ def _target(container: str, address: str, scope: str) -> Target:
 
 
 def _refuse_deep_nesting(container: str, below: list[dict], desired: list[dict]):
-	"""Refuse a list that nests past the cap, in the rows the save keeps."""
+	"""Refuse a list that nests past the cap, in the rows the save keeps and the rows it leaves be."""
 	# The type is the layer below's, not the client's: a client that called a section an item
-	# could nest it. The rows are the ones `reduce_arrangement` keeps.
+	# could nest it. A row the client left out keeps its place, so it counts too.
 	known = {item["key"]: item for item in below if item.get("key")}
 	kept = [{**item, "item_type": known[item["key"]].get("item_type")} for item in _known(desired, known)]
+	named = {item["key"] for item in kept}
+	left_out = [item for item in below if item.get("key") not in named]
 
-	if nesting_errors(kept, container):
+	if past := nesting_errors(kept + left_out, container):
 		frappe.throw(
-			_("This is nested too deeply. A section holds items, and an item holds one more level."),
+			_("{0} is nested too deeply. A section holds items, and an item holds one more level.").format(
+				frappe.bold(", ".join(past))
+			),
 			title=_("Nested Too Deeply"),
 		)
 
