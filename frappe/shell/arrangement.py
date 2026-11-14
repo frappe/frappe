@@ -311,7 +311,19 @@ def _stored_own_rows(target: "Target") -> dict[str, tuple]:
 
 def _identity(row: dict) -> tuple:
 	"""What an own row opens: the part a validator judges."""
-	return tuple(row.get(field) or "" for field in OWN_TARGET)
+	payload = row.get("payload")
+
+	# A stored payload is text and a client may send it back as an object: compare what they mean.
+	if isinstance(payload, str) and payload:
+		try:
+			payload = json.loads(payload)
+		except ValueError:
+			pass
+
+	return (
+		*(row.get(field) or "" for field in OWN_TARGET[:-1]),
+		json.dumps(payload, sort_keys=True) if payload else "",
+	)
 
 
 def validate_own_row(row: dict, container: str, scope: str, context: NavigationContext):

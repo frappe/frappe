@@ -13,6 +13,7 @@ from frappe.shell.arrangement import (
 	OWN_ROWS_PER_APP,
 	OWN_ROWS_PER_CONTAINER,
 	_as_items,
+	_identity,
 	_target,
 	anchors_for,
 	get_arrangement,
@@ -1289,6 +1290,13 @@ class TestLostAccess(OwnRowsTestCase):
 		self.assertFalse(hasattr(row, "no_access") and row.no_access)
 		self.assertTrue(frappe.get_meta("Navigation Item").get_field("no_access") is None)
 
+	def test_a_payload_is_the_same_whatever_its_spelling(self):
+		spelled = {"payload": '{"b": 1, "a": [1,2]}'}
+		sent = {"payload": {"a": [1, 2], "b": 1}}
+
+		self.assertEqual(_identity(spelled), _identity(sent))
+		self.assertNotEqual(_identity(spelled), _identity({"payload": {"a": [1, 3], "b": 1}}))
+
 	def test_the_editor_can_delete_it(self):
 		self.an_own_row_you_cannot_open()
 
@@ -1412,7 +1420,7 @@ class TestWhatAnOwnRowMustCarry(OwnRowsTestCase):
 
 		def validate(row, container, scope, context):
 			calls.append((row["key"], container, scope))
-			frappe.throw("No.")
+			raise frappe.ValidationError
 
 		real = frappe.get_hooks
 
