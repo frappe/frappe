@@ -53,7 +53,7 @@ frappe.ui.form.on("Custom Field", {
 			set_field_options("insert_after", "");
 			return;
 		}
-		var insert_after = frm.doc.insert_after || null;
+		var insert_after = frm.doc.insert_after;
 		return frappe.call({
 			method: "frappe.custom.doctype.custom_field.custom_field.get_fields_label",
 			args: { doctype: frm.doc.dt, fieldname: frm.doc.fieldname },
@@ -67,11 +67,9 @@ frappe.ui.form.on("Custom Field", {
 							return v.value;
 						});
 
-						if (insert_after == null || !fieldnames.includes(insert_after)) {
-							insert_after = fieldnames[-1];
+						if (insert_after && !fieldnames.includes(insert_after)) {
+							frm.set_value("insert_after", "");
 						}
-
-						frm.set_value("insert_after", insert_after);
 					}
 				}
 			},
