@@ -1,0 +1,33 @@
+// Upload-first review. Layout and color live on the utility classes in the
+// markup; only what they cannot express is here.
+
+.attachment-queue-review {
+	height: 60vh;
+}
+
+.attachment-queue-review-list {
+	// the pane scrolls as a whole, so the table inside it does not scroll on its own
+	.embedded-list-table-wrap {
+		max-height: none;
+		overflow: visible;
+	}
+
+	tbody tr.selected,
+	tbody tr.selected:hover {
+		background: var(--highlight-color);
+	}
+}
+
+.attachment-queue-review-preview-body {
+	iframe {
+		width: 100%;
+		height: 100%;
+		border: 0;
+	}
+
+	img {
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: contain;
+	}
+}

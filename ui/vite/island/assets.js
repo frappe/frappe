@@ -48,7 +48,8 @@ export function findBenchRoot(from) {
  *
  * `subdir` names the output directory under the app's dist. A build owns every
  * assets.json key pointing into its own directory, so two builds that write for
- * the same app need two directories or they drop each other's keys.
+ * the same app need two directories or they drop each other's keys. The
+ * framework page-island build passes its own.
  */
 export function benchPaths(benchRoot, app, subdir = ISLAND_DIST_SUBDIR) {
 	const sitesPath = path.join(benchRoot, "sites");

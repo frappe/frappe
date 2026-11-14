@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.island import get_island_assets, get_ui_islands
+from frappe.utils.island import get_island_assets, get_ui_islands, page_island_name
 
 # The handlers the cases below declare. A `doc_events` handler is a dotted path,
 # so these reach `run_method` the way an app's own does.
@@ -51,10 +51,26 @@ class TestUiIslandsRegistry(IntegrationTestCase):
 		):
 			self.assertEqual(get_ui_islands(), ["frappe.example"])
 
+	def test_a_page_island_takes_its_app_from_its_name(self):
+		# Framework builds every page island, into framework's own dist, so the
+		# URL names framework whatever app the page belongs to.
+		with self.patch_assets_json(
+			{
+				"frappe.page.one.island.js": "/assets/frappe/dist/page-island/one.js",
+				"nosuchapp.page.two.island.js": "/assets/frappe/dist/page-island/two.js",
+			}
+		):
+			self.assertEqual(get_ui_islands(), ["frappe.page.one"])
+
 	def test_the_registry_reaches_the_browser_through_boot(self):
 		# The desk loader resolves island names on the client, so boot must carry them.
 		with patch.object(frappe.local, "request", None, create=True):
 			self.assertIn("ui_islands", frappe.sessions.get())
+
+
+class TestPageIslandName(IntegrationTestCase):
+	def test_the_name_carries_the_app_and_the_page(self):
+		self.assertEqual(page_island_name("insights", "sales-dashboard"), "insights.page.sales-dashboard")
 
 
 class TestIslandAssets(IntegrationTestCase):

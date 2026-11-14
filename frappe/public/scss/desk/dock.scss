@@ -351,11 +351,12 @@ body.dock-pinned .dock .dock-user-button {
 @mixin dock-owns-search-and-notifications {
 	.body-sidebar .standard-items-band {
 		> .navbar-modal-search-mobile,
-		> .sidebar-notification {
+		> .sidebar-notification,
+		> .sidebar-flow {
 			display: none;
 		}
 
-		&:not(:has(> :not(.hidden, .navbar-modal-search-mobile, .sidebar-notification))) {
+		&:not(:has(> :not(.hidden, .navbar-modal-search-mobile, .sidebar-notification, .sidebar-flow))) {
 			padding-top: 0;
 			margin-bottom: 0;
 		}

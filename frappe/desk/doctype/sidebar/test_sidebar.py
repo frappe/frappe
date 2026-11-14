@@ -3,6 +3,7 @@
 
 import json
 from contextlib import contextmanager
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
@@ -984,6 +985,45 @@ class TestCanonicalShell(IntegrationTestCase):
 		index = ShellIndex(shell_payload({"Stock": {"workspaces": ["Stock", "Warehousing"]}}))
 
 		self.assertEqual(dict(index.workspace_owners()), {"Stock": "Stock", "Warehousing": "Stock"})
+
+
+class TestCanonicalShellOfASystemOrSharedPage(IntegrationTestCase):
+	"""A system page opens in no shell and a shared page in any. Only the first changes the map:
+	a shared page still has to open somewhere when nothing states a shell.
+	"""
+
+	SIDEBARS = shell_payload({"Build": {"lists": [("Page", "desktop")]}, "Printing": {}})
+
+	def build(self):
+		perm_ctx = SimpleNamespace(
+			can_read=[],
+			allowed_reports={},
+			allowed_pages={
+				"desktop": {"module": "Build", "system_page": 1},
+				"print": {"module": "Printing", "shared_page": 1},
+			},
+			get_allowed_dashboards=lambda cache: [],
+		)
+		canonical, _home = build_canonical_shells(self.SIDEBARS, {}, perm_ctx)
+		return canonical["Page"]
+
+	def test_a_system_page_is_not_in_the_map(self):
+		self.assertNotIn("desktop", self.build())
+
+	def test_a_shared_page_opens_in_its_module_when_nothing_states_a_shell(self):
+		self.assertEqual(self.build()["print"], "Printing")
+
+	def test_the_desk_is_told_which_pages_are_which(self):
+		from frappe.desk.desk_views import DeskViews
+
+		email = user_with_roles("test-sidebar-page-flags@example.com", ["Desk User"])
+		self.enterContext(self.set_user(email))
+		pages = DeskViews.get_allowed_pages()
+
+		self.assertEqual(pages["print"].get("shared_page"), 1)
+		self.assertNotIn("system_page", pages["print"])
+		self.assertEqual(pages["desktop"].get("system_page"), 1)
+		self.assertNotIn("shared_page", pages["desktop"])
 
 
 class TestCanonicalShellPayload(IntegrationTestCase):
@@ -2508,6 +2548,83 @@ class TestAppSidebarLayer(IntegrationTestCase):
 			):
 				with self.assertRaises(frappe.ValidationError):
 					call()
+
+
+class TestPageItemRoute(IntegrationTestCase):
+	"""`Sidebar Item.route` is the path inside the page an item opens."""
+
+	PAGE = "permission-manager"
+
+	def setUp(self):
+		if not frappe.db.exists("Module Def", MODULE):
+			with no_developer_mode():
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
+				).insert()
+
+	def tearDown(self):
+		for name in frappe.get_all("Sidebar", filters={"module": MODULE}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
+
+	def sidebar_with(self, *items, **item):
+		doc = frappe.new_doc("Sidebar")
+		doc.module = MODULE
+		for row in items or (item,):
+			doc.append("items", {"type": "Link", "label": "Dashboard", **row})
+		with developer_mode():
+			return doc.insert(ignore_permissions=True)
+
+	def test_the_boot_payload_carries_the_route(self):
+		"""The desk picks the sidebar for a route from this payload."""
+		self.sidebar_with(link_type="Page", link_to=self.PAGE, route="payroll")
+
+		items = filter_sidebar_items(frappe.get_doc("Sidebar", MODULE).items, None, check_permission=False)
+
+		self.assertEqual(items[0]["route"], "payroll")
+
+	def test_a_route_is_stored_without_surrounding_whitespace(self):
+		"""A stray space would break the link and split one destination into two identities."""
+		doc = self.sidebar_with(link_type="Page", link_to=self.PAGE, route=" payroll ")
+
+		self.assertEqual(frappe.get_doc("Sidebar", doc.name).items[0].route, "payroll")
+
+	def test_a_route_that_leaves_the_page_is_refused(self):
+		for route in ("/payroll", "../payroll", "payroll/../../todo", "https://example.com"):
+			with self.subTest(route=route), self.assertRaises(frappe.ValidationError):
+				self.sidebar_with(link_type="Page", link_to=self.PAGE, route=route)
+
+	def test_a_query_or_a_fragment_is_not_a_route(self):
+		for route in ("payroll?dashboard=1", "payroll#top"):
+			with self.subTest(route=route), self.assertRaises(frappe.ValidationError):
+				self.sidebar_with(link_type="Page", link_to=self.PAGE, route=route)
+
+	def test_only_a_page_item_has_a_route_inside_it(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.sidebar_with(link_type="DocType", link_to="User", route="payroll")
+
+	def test_a_page_item_needs_no_route(self):
+		doc = self.sidebar_with(link_type="Page", link_to=self.PAGE)
+
+		self.assertFalse(frappe.get_doc("Sidebar", doc.name).items[0].route)
+
+	def test_an_item_with_no_route_keeps_the_key_it_always_had(self):
+		"""`Custom Sidebar` rows on customer sites name items by this string."""
+		self.assertEqual(
+			item_key({"type": "Link", "link_type": "Page", "link_to": self.PAGE}),
+			"Link|Page|permission-manager||",
+		)
+
+	def test_both_routes_survive_the_filter_that_drops_duplicates(self):
+		self.sidebar_with(
+			{"link_type": "Page", "link_to": self.PAGE, "route": "accounts"},
+			{"link_type": "Page", "link_to": self.PAGE, "route": "payments"},
+		)
+
+		items = filter_sidebar_items(frappe.get_doc("Sidebar", MODULE).items, None, check_permission=False)
+
+		self.assertEqual([item["route"] for item in items], ["accounts", "payments"])
 
 
 class TestPrivateShell(IntegrationTestCase):

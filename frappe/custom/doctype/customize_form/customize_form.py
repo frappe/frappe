@@ -52,6 +52,7 @@ class CustomizeForm(Document):
 		doc_type: DF.Link | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
+		enable_upload_first_workflow: DF.Check
 		fields: DF.Table[CustomizeFormField]
 		force_re_route_to_default_view: DF.Check
 		grid_page_length: DF.Int
@@ -59,6 +60,7 @@ class CustomizeForm(Document):
 		is_calendar_and_gantt: DF.Check
 		istable: DF.Check
 		label: DF.Data | None
+		link_display_mode: DF.Literal["Search", "Select"]
 		link_filters: DF.JSON | None
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
@@ -81,6 +83,7 @@ class CustomizeForm(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		show_image_in_link: DF.Check
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
@@ -741,6 +744,7 @@ doctype_properties = {
 	"max_attachments": "Int",
 	"make_attachments_public": "Check",
 	"protect_attached_files": "Check",
+	"enable_upload_first_workflow": "Check",
 	"track_changes": "Check",
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",
@@ -759,6 +763,8 @@ doctype_properties = {
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",
+	"link_display_mode": "Select",
+	"show_image_in_link": "Check",
 	"grid_page_length": "Int",
 	"rows_threshold_for_grid_search": "Int",
 }

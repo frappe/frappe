@@ -1,0 +1,1189 @@
+# Copyright (c) 2026, Frappe Technologies and contributors
+# License: MIT. See LICENSE
+
+from __future__ import annotations
+
+import json
+import re
+from collections.abc import Callable
+from functools import partial
+from typing import Any, Literal, NoReturn
+
+import frappe
+from frappe import _
+from frappe.api import discovery
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
+from frappe.database.utils import DefaultOrderBy
+from frappe.flow.lib.tool import Pending, Tool, ToolContext, tool
+from frappe.flow.utils.safe_exec import safe_exec
+from frappe.handler import run_server_script
+from frappe.model.base_document import get_controller
+from frappe.model.document import Document
+from frappe.query_builder.functions import Count
+
+MAX_READ_LIMIT = 200
+LAYOUT_FIELDTYPES = frozenset({"Section Break", "Column Break", "Tab Break", "HTML", "Heading"})
+_CONFIRM_STR_LIMIT = 120
+_ERROR_LIMIT = 300
+_BATCH_SAVEPOINT = "flow_batch"
+_LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
+SOURCE_TOOL_SLUGS = frozenset({"read", "grep"})
+SUBAGENT_TOOL_SLUG = "subagent"
+SCREEN_TOOL_SLUG = "read_screen"
+SCREEN_EVENT = "flow:read_screen"
+SCREEN_TIMEOUT = 20  # seconds the user's panel has to answer
+SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG, "web_fetch", "web_search"}
+
+
+def builtin_name(slug: str) -> str:
+	"""The Flow Tool of one of Flow's own tools, named like any app's."""
+	return f"frappe/{slug}"
+
+
+def tool_call_name(name: str) -> str:
+	"""What the model calls the Flow Tool `name`: `crm__read_records` for `crm/read_records`.
+	Flow's own and the site's go by their function name."""
+	return name.removeprefix("frappe/").replace("/", "__")
+
+
+def _server_only_tool() -> None:
+	raise RuntimeError("This tool runs on the Flow server")
+
+
+@tool
+def read(path: str, offset: int | None = None, limit: int | None = None, *, ctx: ToolContext) -> str:
+	"""Read a text or image file from the source of an app installed on this site."""
+	_server_only_tool()
+
+
+@tool
+def grep(pattern: str, path: str = ".", include: str | None = None, *, ctx: ToolContext) -> str:
+	"""Search installed app source files for a regular-expression pattern."""
+	_server_only_tool()
+
+
+@tool
+def subagent(
+	task: str,
+	description: str,
+	agent: str | None = None,
+	subagent_id: str | None = None,
+	*,
+	ctx: ToolContext,
+) -> str:
+	"""Hand a self-contained task to a sub-agent with a fresh context and get back only its final answer."""
+	_server_only_tool()
+
+
+@tool(requires_confirmation=True)
+def web_fetch(url: str, *, ctx: ToolContext) -> str:
+	"""Fetch a public web page and read it as markdown. Pages drawn by JavaScript come back nearly empty."""
+	_server_only_tool()
+
+
+@tool
+def web_search(query: str, *, ctx: ToolContext) -> str:
+	"""Search the web and return the top results, each with its title, URL and a short snippet."""
+	_server_only_tool()
+
+
+def _summarize_values(values: dict) -> str:
+	"""Truncate long values for confirm prompts — keeps the display scannable."""
+	display = {}
+	for k, v in (values or {}).items():
+		if isinstance(v, str) and len(v) > _CONFIRM_STR_LIMIT:
+			display[k] = v[:_CONFIRM_STR_LIMIT] + f"… ({len(v)} chars)"
+		elif isinstance(v, list) and len(v) > 6:
+			display[k] = [*v[:6], f"… +{len(v) - 6} more"]
+		else:
+			display[k] = v
+	return json.dumps(display, indent=2, default=str, ensure_ascii=False)
+
+
+@tool
+def find_doctypes(
+	search: str | None = None, module: str | None = None, limit: int = 40, *, ctx: ToolContext
+) -> dict[str, Any]:
+	"""Find exact DocType names before describe/read — never guess names.
+
+	Search by keyword (substring of the name) and/or filter by module. Returns `total`, the
+	number of matches, and up to `limit` of them as `doctypes`, each {name, module} you can read.
+	If `total` is higher, search more narrowly or raise `limit`.
+	Child tables are excluded; single DocTypes are included.
+	"""
+	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
+	filters: dict[str, Any] = {"istable": 0}
+	if module:
+		filters["module"] = module
+	if search:
+		filters["name"] = ["like", f"%{search}%"]
+	rows = frappe.get_all("DocType", filters=filters, fields=["name", "module"], order_by="name")
+	if frappe.session.user != "Administrator":
+		user = frappe.get_user()
+		if not user.can_read:
+			user.build_permissions()
+		readable = {*user.can_read, *user.all_read}
+		rows = [r for r in rows if r["name"] in readable]
+	return {"total": len(rows), "doctypes": rows[:limit]}
+
+
+@tool
+def describe(
+	doctype: str, name: str | None = None, parent_doctype: str | None = None, *, ctx: ToolContext
+) -> dict[str, Any]:
+	"""Inspect a DocType's fields and your permissions. Pass `name` to also get a record's available actions.
+
+	For a child table used by more than one DocType, pass the one you mean as `parent_doctype`.
+	"""
+	parent_doctype = _parent_doctype(doctype, parent_doctype)
+	if not frappe.has_permission(doctype, "read", parent_doctype=parent_doctype):
+		raise PermissionError(f"No permission to read {doctype}")
+
+	meta = frappe.get_meta(doctype)
+	fields = [
+		{
+			"fieldname": f.fieldname,
+			"label": f.label,
+			"type": f.fieldtype,
+			"options": f.options,
+			"required": bool(f.reqd),
+		}
+		for f in meta.fields
+		if f.fieldtype not in LAYOUT_FIELDTYPES
+	]
+	permissions = {
+		# reported to the model, not used as a check
+		# nosemgrep: unchecked-frappe-permission-call
+		p: bool(frappe.has_permission(doctype, p, parent_doctype=parent_doctype))
+		for p in ("read", "write", "create", "delete")
+	}
+	result: dict[str, Any] = {"doctype": doctype, "fields": fields, "permissions": permissions}
+
+	if name:
+		if not frappe.has_permission(doctype, "read", name):
+			raise PermissionError(f"No permission to read {doctype} {name}")
+		doc = frappe.get_doc(doctype, name)
+		result["name"] = doc.name
+		result["docstatus"] = int(doc.docstatus)
+		result["actions"] = _doc_actions(doc, meta)
+	return result
+
+
+@tool
+def find_apis(query: str, *, ctx: ToolContext) -> list[dict[str, Any]]:
+	"""Find whitelisted APIs and document methods whose path or docstring has every word of `query`.
+
+	Never guess an API's path: find it here, get its arguments with describe_api, then run it
+	with call_api, or a document method with run_action. Returns up to 50 matches, each an API's
+	`path` or a document method's `doctype` and `method`, with the first line of its docstring.
+	If the index is being generated, grep the apps' code for `@frappe.whitelist` instead of retrying.
+	"""
+	return discovery.search(query)["results"]
+
+
+@tool
+def describe_api(method: str, doctype: str | None = None, *, ctx: ToolContext) -> dict[str, Any]:
+	"""Get a whitelisted API's arguments and docstring by its dotted path, or a document method's
+	by its name and `doctype`.
+
+	`path` is the API as it runs now, after any app's override. One with `read_only` true runs
+	through call_api without asking the user. If the index is being generated, read the function's
+	code for its arguments instead of retrying.
+	"""
+	if doctype:
+		found = discovery.doctype_method(doctype, method)
+		if method == "rename":
+			found["params"] = [{"name": "new_name", "required": True, "type": "str"}]
+			found["docstring"] = "Rename the document to `new_name`."
+			found.pop("source", None)
+		return found
+	found = discovery.method(method)
+	script = _api_server_script(method)
+	if script and frappe.has_permission("Server Script", "read", doc=script):
+		# its code shows the args it reads
+		found["source"] = frappe.db.get_value("Server Script", script, "script")
+	found["read_only"] = is_read_function(method)
+	return found
+
+
+@tool
+def read_records(
+	doctype: str,
+	filters: dict | None = None,
+	fields: list[str] | None = None,
+	limit: int = 20,
+	order_by: str | None = None,
+	parent_doctype: str | None = None,
+	*,
+	ctx: ToolContext,
+) -> dict[str, Any]:
+	"""Read records from a DocType, honouring the user's permissions.
+
+	`filters` is a dict like {"status": "Open"} or {"qty": [">", 5]}. `fields` defaults
+	to the record name. Returns `total`, the number of matching records, and up to `limit`
+	of them (capped at 200) as `records`. If `total` is higher, the rest exist: narrow
+	`filters` or raise `limit`.
+	A single DocType returns its one record, with every field unless `fields` is given.
+	For a child table used by more than one DocType, pass the one you mean as `parent_doctype`.
+	"""
+	if frappe.get_meta(doctype).issingle:
+		records = _read_single(doctype, filters, fields)
+		return {"total": len(records), "records": records}
+	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
+	if parent_doctype := _parent_doctype(doctype, parent_doctype):
+		# frappe matches child rows to parents by name only
+		if isinstance(filters, list):
+			filters = [*filters, ["parenttype", "=", parent_doctype]]
+		else:
+			filters = {**(filters or {}), "parenttype": parent_doctype}
+	query = {"filters": filters, "fields": fields or ["name"], "parent_doctype": parent_doctype}
+	records = frappe.get_list(doctype, **query, limit=limit + 1, order_by=order_by or DefaultOrderBy)
+	total = _count(doctype, query) if len(records) > limit else len(records)
+	return {"total": total, "records": records[:limit]}
+
+
+def _read_single(doctype: str, filters: dict | None, fields: list[str] | None) -> list[dict[str, Any]]:
+	"""A Single's one record as its form shows it to this user, if it matches `filters`."""
+	doc = frappe.get_doc(doctype)
+	doc.check_permission("read")
+	doc.apply_fieldlevel_read_permissions()
+	values = doc.as_dict(no_nulls=True)
+	if filters and not frappe.utils.evaluate_filters(values, filters):
+		return []
+	return [{f: values.get(f) for f in fields} if fields else values]
+
+
+def _parent_doctype(doctype: str, given: str | None) -> str | None:
+	"""The DocType a child table is read through: the one given, else its only parent."""
+	if not frappe.get_meta(doctype).istable:
+		return None
+	table = {"fieldtype": ["in", frappe.model.table_fields], "options": doctype}
+	parents = sorted(
+		set(frappe.get_all("DocField", filters=table, pluck="parent"))
+		| set(frappe.get_all("Custom Field", filters=table, pluck="dt"))
+	)
+	if given in parents:
+		return given
+	if not given and len(parents) == 1:
+		return parents[0]
+	raise ValueError(
+		f"{doctype} is a child table; pass parent_doctype, one of: {', '.join(parents) or 'none'}"
+	)
+
+
+def _count(doctype: str, query: dict[str, Any]) -> int:
+	"""How many rows the read finds with no limit."""
+	if frappe.get_meta(doctype).is_virtual:
+		# the virtual doctype's own count, called the way reportview does
+		# nosemgrep: frappe-codeinjection-eval
+		return frappe.call(get_controller(doctype).get_count, args=frappe._dict(query), **query)
+	rows = frappe.get_list(doctype, **query, order_by=None, run=False)
+	return frappe.qb.from_(rows).select(Count("*")).run()[0][0]
+
+
+@tool(
+	background=lambda args: bool(
+		frappe.db.get_value("Report", {"name": args.get("report_name")}, "prepared_report")
+	)
+)
+def run_report(
+	report_name: str,
+	filters: dict | None = None,
+	limit: int = 20,
+	*,
+	ctx: ToolContext,
+) -> dict[str, Any]:
+	"""Run a Query or Script report, such as General Ledger, honouring the user's permissions.
+
+	Find names with read_records("Report", {"name": ["like", "%ledger%"]}, ["name", "ref_doctype"]),
+	or by the DocType a report covers, {"ref_doctype": "Sales Invoice"}.
+	`filters` is a dict like {"company": "Acme", "from_date": "2026-01-01"}; a failed or empty run
+	lists the filters it can find (may be incomplete). Returns the columns, the full row count, the report's total row if
+	it has one, and up to `limit` rows (capped at 200). To work over more rows, run the report inside execute with
+	frappe.call("frappe.desk.query_report.run", report_name=..., filters=..., ignore_prepared_report=True) and return
+	only what you need, such as totals or the top rows.
+	"""
+	from frappe.desk.query_report import get_report_doc, run
+
+	report = get_report_doc(report_name)  # raises if missing, forbidden or disabled
+	if report.report_type == "Report Builder":
+		raise ValueError(f"{report_name} is a Report Builder report; read its DocType with read_records.")
+	# a failing query report breaks the transaction
+	if report.report_type == "Query Report":
+		given = filters or report.custom_filters or {}
+		if missing := set(re.findall(r"%\((\w+)\)s", report.query or "")) - set(given):
+			raise ValueError(f"Missing filters: {', '.join(sorted(missing))}")
+	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
+	try:
+		# saved filters apply only when none are passed
+		data = run(
+			report_name, filters=filters or {}, ignore_prepared_report=True, are_default_filters=not filters
+		)
+	except Exception as e:
+		cause = e
+		if isinstance(e, frappe.InReadOnlyMode):  # frappe's failure log hid the report's error
+			while cause.__context__:
+				cause = cause.__context__
+		raise ValueError(f"{_error_text(cause)}\nThe report's filters {_report_filters(report_name)}") from e
+
+	fieldnames = [c["fieldname"] for c in data["columns"]]
+	columns = [
+		{"fieldname": c["fieldname"], "label": c.get("label")} for c in data["columns"] if not c.get("hidden")
+	]
+	rows = data["result"] or []
+	total_row = rows[-1] if data.get("add_total_row") and rows else None
+	row_count = len(rows) - 1 if total_row is not None else len(rows)
+	# count and total before the rows, so a cut keeps them
+	result: dict[str, Any] = {"columns": columns, "row_count": row_count}
+	if total_row is not None:
+		result["total_row"] = _report_row(total_row, fieldnames, columns)
+	result["rows"] = [_report_row(row, fieldnames, columns) for row in rows[: min(limit, row_count)]]
+	if not row_count:
+		result["available_filters"] = _report_filters(report_name)
+	return result
+
+
+def _report_row(row: Any, fieldnames: list[str], columns: list[dict]) -> dict[str, Any]:
+	"""A row keyed by fieldname, shown columns only; the total row arrives as a list."""
+	cells = row if isinstance(row, dict) else dict(zip(fieldnames, row, strict=True))
+	return {c["fieldname"]: cells.get(c["fieldname"]) for c in columns}
+
+
+def _report_filters(report_name: str) -> str:
+	"""Filter fieldnames from the report's Report Filter rows and its JS."""
+	from frappe.desk.query_report import get_script
+
+	script = get_script(report_name)
+	names = [f.fieldname + ("*" if f.mandatory else "") for f in script["filters"]]
+	# a JS filter runs to the next fieldname
+	parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
+	names += [
+		name + ("*" if re.search(r"""reqd["']?\s*:\s*(1|true)""", rest) else "")
+		for name, rest in zip(parts[1::2], parts[2::2], strict=True)
+	]
+	# legend first; long errors get cut
+	return "(* = required) " + ", ".join(dict.fromkeys(names)) if names else "none found (may be incomplete)"
+
+
+KNOWLEDGE_SEARCH_SLUG = "search_knowledge"
+
+_KNOWLEDGE_SEARCH_DESCRIPTION = """Search this agent's knowledge bases for passages relevant to `query`.
+
+Use this to ground answers in the agent's curated knowledge before relying on your own. Returns the \
+most relevant chunks, each with its text, similarity score, and source. The knowledge bases searched \
+are fixed by the agent's configuration — you cannot choose, add, or widen them."""
+
+
+def bind_search_knowledge(kbs: list[str]) -> Tool:
+	"""Build a `search_knowledge` tool scoped to `kbs`. The model sees only `query`; the
+	knowledge bases come from the agent's config and cannot be chosen or widened. The
+	registered builtin binds an empty list, so an unbound call fails closed in `retrieve`."""
+
+	def search_knowledge(query: str, *, ctx: ToolContext) -> list[dict[str, Any]]:
+		from frappe.flow.knowledge.retriever import retrieve
+
+		return retrieve(query, kbs=kbs)
+
+	return tool(search_knowledge, description=_knowledge_search_description(kbs))
+
+
+def _knowledge_search_description(kbs: list[str]) -> str:
+	"""Append the bound knowledge bases' descriptions so the model knows what's searchable
+	and when to call the tool."""
+	if not kbs:
+		return _KNOWLEDGE_SEARCH_DESCRIPTION
+	rows = frappe.get_all(
+		"Flow Knowledge Base",
+		filters={"name": ["in", kbs], "enabled": 1},
+		fields=["title", "description"],
+	)
+	listed = "\n".join(f"- {r.title}: {r.description}" for r in rows if r.description)
+	if not listed:
+		return _KNOWLEDGE_SEARCH_DESCRIPTION
+	return f"{_KNOWLEDGE_SEARCH_DESCRIPTION}\n\nThis agent's knowledge bases:\n{listed}"
+
+
+search_knowledge = bind_search_knowledge([])
+
+
+ATTACHMENT_SEARCH_SLUG = "search_attachments"
+
+_ATTACHMENT_SEARCH_DESCRIPTION = """Search the attached files indexed for retrieval for passages relevant to `query`.
+
+Only files sent with relevant excerpts were indexed. Returns the most relevant chunks, each with \
+its text, similarity score and file name. To read an attached file's lines, use read_attachment."""
+
+
+def bind_search_attachments(session: str | None) -> Tool:
+	"""A `search_attachments` tool scoped to one session. Unbound (None), it finds nothing."""
+
+	def search_attachments(query: str, *, ctx: ToolContext) -> list[dict[str, Any]]:
+		from frappe.flow.knowledge.retriever import retrieve_attachments
+
+		if not session:
+			return []
+		names = dict(
+			frappe.get_all(
+				"Flow Session Attachment",
+				filters={"parent": session},
+				fields=["file", "file_name"],
+				as_list=True,
+			)
+		)
+		return [
+			{"file": names.get(hit["attachment"]), "content": hit["content"], "score": hit["score"]}
+			for hit in retrieve_attachments(query, session=session)
+		]
+
+	return tool(search_attachments, description=_ATTACHMENT_SEARCH_DESCRIPTION)
+
+
+search_attachments = bind_search_attachments(None)
+
+
+ATTACHMENT_READ_SLUG = "read_attachment"
+
+_ATTACHMENT_READ_DESCRIPTION = """Read lines of a file attached to this conversation.
+
+`file` is the attachment's File (the file attribute of its <file> block) or its file name. Returns up to `limit` lines \
+(1,000 by default, at most 20,000 characters) from line `offset`; a table's header is line 1, then \
+one CSV line per row. The result ends with where to continue. \
+Without `file`, lists this conversation's attached files with their File names and URLs."""
+
+
+def bind_read_attachment(session: str | None) -> Tool:
+	"""A `read_attachment` tool scoped to one session. Unbound (None), it finds nothing."""
+
+	def read_attachment(
+		file: str | None = None, offset: int = 1, limit: int | None = None, *, ctx: ToolContext
+	) -> Any:
+		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import (
+			read_attachment as read,
+		)
+
+		if not session:
+			return []
+		return read(session, file, offset, limit)
+
+	return tool(read_attachment, description=_ATTACHMENT_READ_DESCRIPTION)
+
+
+read_attachment = bind_read_attachment(None)
+
+
+_UPDATE_MEMORY_DESCRIPTION = """Save a durable fact to memory, or revise one by passing its memory_id.
+
+Memories relevant to the user's message are shown with it in a <memory> block, with their ids, \
+in this and future conversations. Save stable, reusable facts: identifiers and mappings (e.g. an \
+invoice item name to its ERP item code), business rules, corrections the user gives you, and their \
+preferences. Do not save transient conversation state, secrets, or anything you can re-derive by \
+reading records. Write one short, self-contained, third-person fact per memory; when a fact \
+changes, revise the shown memory instead of adding another.
+
+scope:
+- "agent" — true for everyone who uses this agent (mappings, business rules, conventions). Saved \
+for the current user only, unless they manage the agent.
+- "user" — specific to the current user (their preferences and defaults)."""
+
+
+def bind_update_memory(agent: str | None, session: str | None = None) -> Tool:
+	"""An `update_memory` tool bound to `agent` and `session`. Unbound (None), it refuses."""
+
+	def update_memory(
+		content: str,
+		scope: Literal["agent", "user"],
+		memory_id: str | None = None,
+		*,
+		ctx: ToolContext,
+	) -> dict[str, Any]:
+		from frappe.flow.memory.memory import save_memory
+
+		if not agent:
+			frappe.throw(_("Memory is not configured for this agent."), title=_("Memory Unavailable"))
+		return save_memory(agent, content=content, scope=scope, memory_id=memory_id, session=session)
+
+	return tool(update_memory, description=_UPDATE_MEMORY_DESCRIPTION)
+
+
+update_memory = bind_update_memory(None)
+
+
+SKILL_TOOL_SLUG = "load_skill"
+
+_LOAD_SKILL_DESCRIPTION = """Load a skill's full instructions by name, then follow them.
+
+The skills you can load are listed in the <available_skills> block of your instructions, each with \
+a description of when it applies. When a task matches one, call this with that exact name before \
+starting the task, and treat what you get back as authoritative for it. When the instructions \
+mention a file, such as references/forms.md, call this again with the same name and that path as \
+`file` to read it; a folder path lists the files in it."""
+
+
+def bind_load_skill(agent: str | None) -> Tool:
+	"""A `load_skill` tool scoped to `agent`'s skills. Unbound (None), it refuses."""
+
+	def load_skill(name: str, file: str | None = None, *, ctx: ToolContext) -> str:
+		from frappe.flow.doctype.flow_skill.flow_skill import skill_file
+
+		if not agent:
+			frappe.throw(_("Skills are not configured for this agent."), title=_("Skill Unavailable"))
+		available = {row.name for row in frappe.get_doc("Flow Agent", agent).visible_skills()}
+		if name not in available:
+			frappe.throw(
+				_("No skill named {0}. Available: {1}").format(name, ", ".join(sorted(available)) or "none"),
+				title=_("Unknown Skill"),
+			)
+		if file:
+			return skill_file(name, file)
+		return frappe.db.get_value("Flow Skill", name, "instructions")
+
+	return tool(load_skill, description=_LOAD_SKILL_DESCRIPTION)
+
+
+load_skill = bind_load_skill(None)
+
+
+EXECUTE_SLUG = "execute"
+
+
+@tool(
+	requires_confirmation=lambda args: args.get("read_only") is not True,
+	confirm_prompt=lambda args: args.get("description") or _("Run Python code"),
+)
+def execute(code: str, description: str, read_only: bool = False, *, ctx: ToolContext) -> Any:
+	"""Run Python in a permission-respecting sandbox for computation, emails, or multi-record work.
+
+	`description` is one short, plain-English sentence stating what this code does, for a
+	non-technical user who approves it — e.g. "Count open ToDos". Describe the intent, not the code.
+
+	Set `read_only` to true when the code only reads: it runs at once, without asking the user, in a
+	read-only transaction. A write, a job, an email or a function that is not a declared read fails
+	there; call it again without `read_only`, and the user approves it before it runs.
+
+	Do NOT write `import` statements — imports are blocked and the whole script fails. `frappe`
+	and `frappe.utils` are already in scope; everything you can use is listed below, so never
+	start with `import ...`.
+
+	Every function here enforces the current user's permissions — there is no way to read or
+	write data the user cannot access. Assign the value to return to a variable named `result`.
+	Example (no imports, just use `frappe` directly):
+	    result = frappe.db.count("ToDo", {"status": "Open"})
+
+	Available:
+	- Reads: frappe.get_list (supports group_by and aggregates via dict fields, e.g.
+	  fields=[{"SUM": "qty", "as": "total"}] or [{"COUNT": "*", "as": "n"}]),
+	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
+	- Writes: create, update, delete, run_action, call_api — the same permission-checked tools you call directly.
+	- Also: read_records, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
+	  frappe.sendmail (no sender: mail goes out from the site's own account), frappe.get_print,
+	  frappe.utils.* (dates, numbers, strings).
+
+	Sandbox limits — code using these FAILS:
+	- No `import`. `frappe` and `frappe.utils` are already in scope; nothing else can be imported.
+	- No names or attributes starting with `_` (no dunders, no `obj._private`).
+	- No raw database access: frappe.db.sql, frappe.qb, frappe.db.set_value and frappe.get_all are
+	  unavailable — use frappe.get_list and the write tools, which respect permissions.
+	- Unavailable builtins: open, eval, exec, compile, getattr, setattr, hasattr,
+	  globals, locals, vars, dir, type, input. Available: len, range, str, int, float,
+	  bool, sum, sorted, enumerate, zip, min, max, abs, dict, list, set, tuple.
+	- `str.format()` / `.format_map()` are blocked — use f-strings or `%` formatting.
+	- `print()` output is logged, not returned — put what you want back into `result`.
+
+	Without `read_only`, the user approves each call before it runs.
+	"""
+	if not read_only:
+		return _run_code(code, ctx)
+	ctx.read_only = True
+	try:
+		with frappe.db.read_only():
+			result = _run_code(code, ctx)
+			# a function the code called caught the database's refusal
+			if frappe.db.transaction_writes:
+				raise frappe.InReadOnlyMode(_("It tried to write."))
+			return result
+	except Exception as e:
+		if not _needs_approval(e):
+			raise
+		raise ValueError(
+			_error_text(e)
+			+ "\n"
+			+ _(
+				"This code changes something, so it can't run as read_only. Call execute again without read_only; the user approves it before it runs."
+			)
+		) from e
+	finally:
+		ctx.read_only = False
+
+
+def _run_code(code: str, ctx: ToolContext) -> Any:
+	ctx.failure = None
+	# sandboxed; the user approves each call that is not read-only
+	# nosemgrep: frappe-codeinjection-eval
+	exec_globals, _locals = safe_exec(code, script_filename="ai_execute", tool_context=ctx)
+	if ctx.failure:
+		raise ValueError(f"{ctx.failure}\nA failure fails the whole call, even when caught.") from (
+			ctx.failure
+		)
+	return exec_globals.get("result")
+
+
+def _needs_approval(error: BaseException) -> bool:
+	"""Whether read-only code failed for writing or reaching outside the database."""
+	from frappe.flow.utils.safe_exec import NeedsApproval
+
+	seen = set()
+	while error is not None and id(error) not in seen:
+		if isinstance(error, frappe.InReadOnlyMode | NeedsApproval):
+			return True
+		seen.add(id(error))
+		error = error.__cause__ or error.__context__
+	return False
+
+
+def _error_text(e: Exception) -> str:
+	"""Some frappe exceptions carry their message in the message log, not str() — fall back to the type."""
+	return (str(e).strip() or e.__class__.__name__)[:_ERROR_LIMIT]
+
+
+def _summarize_names(names: list[str] | None, limit: int = 6) -> str:
+	names = names or []
+	shown = ", ".join(str(n) for n in names[:limit])
+	if len(names) > limit:
+		shown += f" … +{len(names) - limit} more"
+	return shown or "—"
+
+
+def _doc_actions(doc: Any, meta: Any) -> dict[str, Any]:
+	"""Actions the current user can run on this record: lifecycle, workflow, methods."""
+	lifecycle: list[str] = []
+	if getattr(meta, "is_submittable", 0):
+		lifecycle.append(_LIFECYCLE_BY_DOCSTATUS.get(int(doc.docstatus)))
+	if int(doc.docstatus) != 1 and frappe.has_permission(doc.doctype, "delete", doc.name):
+		lifecycle.append("delete")
+	if getattr(meta, "allow_rename", 0):
+		lifecycle.append("rename")
+	return {
+		"lifecycle": [a for a in lifecycle if a],
+		"workflow": sorted(_workflow_actions(doc)),
+		"methods": _whitelisted_methods(doc.doctype),
+	}
+
+
+def _workflow_actions(doc: Any) -> set[str]:
+	from frappe.model.workflow import get_transitions, get_workflow_name
+
+	if not get_workflow_name(doc.doctype):
+		return set()
+	try:
+		return {t.get("action") for t in get_transitions(doc) if t.get("action")}
+	except Exception:
+		return set()
+
+
+def _whitelisted_methods(doctype: str) -> list[str]:
+	"""Custom whitelisted controller methods (the app-specific form buttons), excluding base Document methods."""
+	from frappe.model.base_document import get_controller
+	from frappe.model.document import Document
+
+	try:
+		controller = get_controller(doctype)
+	except Exception:
+		return []
+	base = set(dir(Document))
+	methods = set()
+	for attr_name in dir(controller):
+		if attr_name.startswith("_") or attr_name in base:
+			continue
+		attr = getattr(controller, attr_name, None)
+		if callable(attr) and getattr(attr, "__func__", attr) in frappe.whitelisted:
+			methods.add(attr_name)
+	return sorted(methods)
+
+
+def _resolve_method(doc: Any, action: str) -> Any:
+	method = getattr(doc, action, None)
+	if callable(method) and getattr(method, "__func__", method) in frappe.whitelisted:
+		return method
+	return None
+
+
+def _apply_action(doctype: str, name: str, action: str, args: dict[str, Any]) -> Any:
+	doc = frappe.get_doc(doctype, name, check_permission=True)
+	if action == "submit":
+		doc.submit()
+		return {"name": doc.name, "docstatus": int(doc.docstatus)}
+	if action == "cancel":
+		doc.cancel()
+		return {"name": doc.name, "docstatus": int(doc.docstatus)}
+	if action == "amend":
+		amended = frappe.copy_doc(doc)
+		amended.amended_from = doc.name
+		amended.insert()
+		return {"name": amended.name}
+	if action in _workflow_actions(doc):
+		from frappe.model.workflow import apply_workflow
+
+		apply_workflow(doc, action)
+		return {"name": doc.name, "action": action}
+	if _resolve_method(doc, action) is not None:
+		return doc.run_method(action, **args)
+	raise ValueError(f"Unknown action {action!r} for {doctype}")
+
+
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: (
+		_("Create {0} {1} record(s):\n\n{2}").format(
+			len(args.get("records") or []),
+			args.get("doctype", "?"),
+			_summarize_values((args.get("records") or [{}])[0]),
+		)
+	),
+)
+def create(doctype: str, records: list[dict[str, Any]], *, ctx: ToolContext) -> dict[str, Any]:
+	"""Create one or more records. `records` is a list of field-value dicts, each validated and inserted.
+
+	If any record fails, none are created.
+	"""
+	if not frappe.has_permission(doctype, "create"):
+		raise PermissionError(f"No permission to create {doctype}")
+
+	created: list[str] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
+	for row, values in enumerate(records):
+		try:
+			doc = frappe.new_doc(doctype)
+			doc.update(values or {})
+			doc.insert()
+			created.append(doc.name)
+		except Exception as e:
+			_undo_batch(f"Record {row + 1} of {len(records)}", e, ctx)
+	return {"doctype": doctype, "created": created}
+
+
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: (
+		_("Update {0} {1} ({2}):\n\n{3}").format(
+			len(args.get("names") or []),
+			args.get("doctype", "?"),
+			_summarize_names(args.get("names")),
+			_summarize_values(args.get("values")),
+		)
+	),
+)
+def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolContext) -> dict[str, Any]:
+	"""Apply the same field values to one or more existing records. Runs full validation per record.
+
+	If any record fails, none are changed.
+	"""
+	updated: list[str] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
+	for name in names:
+		try:
+			if not frappe.has_permission(doctype, "write", name):
+				raise frappe.PermissionError(_("No permission to update {0} {1}.").format(doctype, name))
+			if frappe.get_meta(doctype).istable:
+				doc, row = _parent_and_row(doctype, name)
+				row.update(values or {})
+			else:
+				doc = frappe.get_doc(doctype, name)
+				doc.update(values or {})
+			doc.save()
+			updated.append(name)
+		except Exception as e:
+			_undo_batch(name, e, ctx)
+	return {"doctype": doctype, "updated": updated}
+
+
+@tool(
+	requires_confirmation=True,
+	confirm_prompt=lambda args: (
+		_("Delete {0} {1}: {2}").format(
+			len(args.get("names") or []),
+			args.get("doctype", "?"),
+			_summarize_names(args.get("names")),
+		)
+	),
+)
+def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any]:
+	"""Delete one or more records.
+
+	If any record can't be deleted, for example because another record links to it, none are.
+	"""
+	deleted: list[str] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
+	for name in names:
+		try:
+			if not frappe.has_permission(doctype, "delete", name):
+				raise frappe.PermissionError(_("No permission to delete {0} {1}.").format(doctype, name))
+			if frappe.get_meta(doctype).istable:
+				parent, row = _parent_and_row(doctype, name)
+				parent.remove(row)
+				parent.save()
+			else:
+				frappe.delete_doc(doctype, name, ignore_missing=False)
+			deleted.append(name)
+		except Exception as e:
+			_undo_batch(name, e, ctx)
+	return {"doctype": doctype, "deleted": deleted}
+
+
+def _parent_and_row(doctype: str, name: str) -> tuple[Document, Document]:
+	"""A child row and its parent: changes go through the parent, so its checks run."""
+	parent = frappe.db.get_value(doctype, name, ["name", "parenttype", "parent", "parentfield"], as_dict=True)
+	if not parent:
+		raise frappe.DoesNotExistError(doctype=doctype)
+	doc = frappe.get_doc(parent.parenttype, parent.parent)
+	# the name as stored: an autoincrement row's is an int, not the "5" it was asked by
+	return doc, doc.getone(parent.parentfield, {"name": parent.name})
+
+
+def _call_api_prompt(call: dict[str, Any]) -> str:
+	args = dict(call.get("args") or {})
+	lines = []
+	doctype, name = args.get("doctype"), args.get("name")
+	if isinstance(doctype, str) and isinstance(name, str) and frappe.db.exists("DocType", doctype):
+		del args["doctype"], args["name"]
+		lines.append(f"{_(doctype)}: {_record_title(doctype, name)}")
+		lines.extend(_field_lines(doctype, args))
+	lines.extend(f"{_(frappe.unscrub(key))}: {_in_words(value)}" for key, value in args.items())
+	return "\n".join(lines)
+
+
+def _run_action_prompt(call: dict[str, Any]) -> str:
+	action = call.get("action")
+	if is_function_path(action):
+		return _call_api_prompt(call)
+	return _("Run '{0}' on {1} {2}: {3}").format(
+		action,
+		len(call.get("names") or []),
+		call.get("doctype", "?"),
+		_summarize_names(call.get("names")),
+	)
+
+
+def _field_lines(doctype: str, args: dict) -> list[str]:
+	"""set_value's `fieldname` and `value` as the field's label and its formatted value; pops them."""
+	fieldname = args.get("fieldname")
+	if isinstance(fieldname, str) and "value" in args:
+		values = {fieldname: args["value"]}
+		del args["fieldname"], args["value"]
+	elif isinstance(fieldname, dict):
+		values = args.pop("fieldname")
+	else:
+		return []
+	meta = frappe.get_meta(doctype)
+	lines = []
+	for field, value in values.items():
+		df = meta.get_field(field)
+		label = _(df.label) if df and df.label else _(frappe.unscrub(field))
+		shown = frappe.format_value(value, df) if df and not isinstance(value, list | dict) else value
+		lines.append(f"{label}: {_in_words(shown)}")
+	return lines
+
+
+def _record_title(doctype: str, name: str) -> str:
+	"""The record's title, when the user may read it; else its name."""
+	meta = frappe.get_meta(doctype)
+	title_field = meta.get_title_field()
+	if meta.issingle or title_field == "name" or not frappe.db.exists(doctype, name):
+		return name
+	if not frappe.has_permission(doctype, "read", name):
+		return name
+	return _in_words(frappe.db.get_value(doctype, name, title_field)) or name
+
+
+def _in_words(value: Any) -> str:
+	if isinstance(value, list):
+		return ", ".join(_in_words(v) for v in value)
+	if isinstance(value, dict):
+		return ", ".join(f"{_(frappe.unscrub(k))}: {_in_words(v)}" for k, v in value.items())
+	text = " ".join(frappe.utils.strip_html_tags(str(value if value is not None else "")).split())
+	return text[:_CONFIRM_STR_LIMIT] + "…" if len(text) > _CONFIRM_STR_LIMIT else text
+
+
+@tool(
+	requires_confirmation=lambda args: not is_read_function(args.get("action")),
+	confirm_prompt=_run_action_prompt,
+)
+def run_action(
+	doctype: str,
+	names: list[str],
+	action: str,
+	args: dict[str, Any] | None = None,
+	*,
+	ctx: ToolContext,
+) -> dict[str, Any]:
+	"""Run a document action found via describe: submit, cancel, amend, rename, a workflow transition, or a whitelisted method.
+
+	A whitelisted function's dotted path runs once with `args` as its arguments, ignoring `doctype`
+	and `names`; one its developer marked a read runs without asking the user.
+	If it fails on any record, none are changed.
+	"""
+	if is_function_path(action):
+		return call_api(method=action, args=args, ctx=ctx)
+	return _run_action(doctype, names, action, args, ctx=ctx)
+
+
+@tool(
+	requires_confirmation=lambda args: not is_read_function(args.get("method")),
+	confirm_prompt=_call_api_prompt,
+)
+def call_api(method: str, args: dict[str, Any] | None = None, *, ctx: ToolContext) -> dict[str, Any]:
+	"""Call a whitelisted Python API or API Server Script found through find_apis and describe_api,
+	or in the apps' code.
+
+	Pass its path as `method` and its arguments as `args`. Document methods use run_action.
+	An API its developer marked read-only runs without approval in a read-only transaction;
+	all other calls require the user's approval. Failures roll back the call's writes.
+	"""
+	if not is_read_function(method):
+		return _call_api(method, args, ctx=ctx)
+	with frappe.db.read_only():
+		result = _call_api(method, args, ctx=ctx)
+		# the function caught the database's refusal
+		if frappe.db.transaction_writes:
+			raise ValueError(
+				_("{0} tried to write, so it is not a read. Nothing was saved.").format(
+					function_title(method)
+				)
+			)
+		return result
+
+
+def _call_api(method: str, args: dict[str, Any] | None = None, *, ctx: ToolContext) -> dict[str, Any]:
+	args = args or {}
+	script = _api_server_script(method)
+	if not script and not is_function_path(method):
+		frappe.throw(_("Pass a whitelisted API's path from find_apis."), title=_("Invalid API"))
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
+	try:
+		if script:
+			call = partial(run_server_script, script)
+		else:
+			fn = frappe.get_attr(frappe.override_whitelisted_method(method))
+			frappe.is_whitelisted(fn)
+			# nosemgrep: frappe-codeinjection-eval
+			call = partial(frappe.call, fn, **args)
+		result = _call_as_request(call, args)
+	except Exception as e:
+		_undo_batch(function_title(method), e, ctx)
+	if isinstance(result, Document):
+		result = result.as_dict(no_nulls=True)
+	return {"action": method, "title": function_title(method), "result": result}
+
+
+def _run_action(
+	doctype: str, names: list[str], action: str, args: dict[str, Any] | None = None, *, ctx: ToolContext
+) -> dict[str, Any]:
+	args = args or {}
+
+	if is_function_path(action):
+		return _call_api(action, args, ctx=ctx)
+
+	if action == "rename":
+		if len(names) != 1:
+			raise ValueError("rename acts on a single document; pass exactly one name.")
+		new_name = args.get("new_name")
+		if not new_name:
+			raise ValueError("rename requires args.new_name.")
+		return {"action": "rename", "old": names[0], "new": frappe.rename_doc(doctype, names[0], new_name)}
+
+	results: list[dict[str, Any]] = []
+	frappe.db.savepoint(_BATCH_SAVEPOINT)
+	for name in names:
+		try:
+			results.append({"name": name, "result": _apply_action(doctype, name, action, args)})
+		except Exception as e:
+			_undo_batch(name, e, ctx)
+	return {"action": action, "results": results}
+
+
+@tool
+def read_screen(*, ctx: ToolContext) -> Pending:
+	"""The page open beside this chat: its URL, title and on-screen text, with fields as "Label: value",
+	headings as "#" lines and the open tab marked in "Tabs:". A Desk form adds whether it is unsaved and
+	which required fields are empty; a Desk list or report sends only its filters, so read the records
+	yourself. Call it when the user means what is in front of them ("this record", "this page", "why
+	can't I save this"). No answer means the chat is not open beside a page."""
+	if not ctx.result_token:
+		frappe.throw(_("read_screen can only answer a call that waits for a result."))
+	frappe.publish_realtime(
+		SCREEN_EVENT, {"session": ctx.session_id, "token": ctx.result_token}, user=ctx.user
+	)
+	return Pending(timeout=SCREEN_TIMEOUT)
+
+
+def _undo_batch(record: str, error: Exception, ctx: ToolContext) -> NoReturn:
+	"""Undo every write since the batch began, then fail naming the record that broke it."""
+	try:
+		frappe.db.rollback(save_point=_BATCH_SAVEPOINT)
+		undone = "Nothing was saved."
+	except Exception:  # a commit in the batch, such as before a schema change, took the savepoint
+		frappe.db.rollback()
+		undone = "Some earlier changes may already be committed; check the records before retrying."
+	failure = ValueError(f"{record}: {_error_text(error)}\n{undone}")
+	failure.__cause__ = error
+	ctx.failure = failure
+	raise failure
+
+
+def _call_as_request(call: Callable[[], Any], args: dict[str, Any]) -> Any:
+	"""Run `call` as desk's API call does: `args` are the request's form_dict, and
+	what it puts in frappe.response is its reply, which may not be a file."""
+	form_dict, response = frappe.local.form_dict, frappe.local.response
+	# a request's starting response; server scripts only see a non-empty one
+	frappe.local.form_dict, frappe.local.response = frappe._dict(args), frappe._dict({"docs": []})
+	try:
+		result = call()
+		if frappe.response.get("type"):
+			raise ValueError(
+				f"It replies with a {frappe.response.type} file, not data, so it can't run here."
+			)
+		return frappe.response.get("message") if result is None else result
+	finally:
+		frappe.local.form_dict, frappe.local.response = form_dict, response
+
+
+def is_function_path(action: Any) -> bool:
+	"""Whether a run_action `action` is a function's dotted path rather than a record action."""
+	return isinstance(action, str) and bool(re.fullmatch(r"\w+(\.\w+)+", action))
+
+
+def is_read_function(path: Any) -> bool:
+	"""Whether `path` names a whitelisted function its developer marked `@frappe.read_only()`."""
+	if not is_function_path(path) or _api_server_script(path):
+		return False
+	try:
+		method = frappe.get_attr(frappe.override_whitelisted_method(path))
+	except Exception:
+		return False
+	return method in frappe.whitelisted and getattr(method, "read_only", False)
+
+
+def _api_server_script(path: Any) -> str | None:
+	"""The API Server Script that answers `path` after overrides, as a request to it would run."""
+	if not isinstance(path, str):
+		return None
+	return get_server_script_map().get("_api", {}).get(frappe.override_whitelisted_method(path))
+
+
+def function_title(path: str) -> str:
+	"""A function's name in words, from the last two parts of its path: "Assign To: Add"."""
+	return ": ".join(_(frappe.unscrub(part)) for part in path.split(".")[-2:])
+
+
+@tool(
+	# a box the user could not save shows no card: the call runs and says why
+	requires_confirmation=lambda args: (
+		secret_field_refusal(args.get("doctype"), args.get("name"), args.get("fieldname")) is None
+	),
+	confirm_prompt=lambda args: args.get("reason") or "",
+	needs_user=True,
+)
+def request_secret(
+	doctype: str, name: str, fieldname: str, reason: str, *, ctx: ToolContext
+) -> dict[str, Any]:
+	"""Ask the user for a password, API key or token and save it into a Password field of a record.
+
+	The user types it into a password box; it goes straight into the field and never reaches you or
+	the chat, so never ask for one in a message. Create or find the record first, then name the field
+	(see describe). `reason` is one line on what it is for. You learn only that it was saved, or why not.
+	"""
+	if refusal := secret_field_refusal(doctype, name, fieldname):
+		frappe.throw(refusal, title=_("Not Saved"))
+	# before the saved flag: a chat that showed no box can't take one left by an earlier card
+	if frappe.db.get_value("Flow Session", ctx.session_id, "approval_mode") == "Auto-approve":
+		frappe.throw(
+			_(
+				"This chat approves calls by itself, so it cannot show the password box. Ask the user to switch the chat to Ask for approval, then call this again."
+			),
+			title=_("Not Saved"),
+		)
+	if frappe.cache.get_value(_secret_key(ctx.session_id, doctype, name, fieldname)):
+		frappe.cache.delete_value(_secret_key(ctx.session_id, doctype, name, fieldname))
+		field = frappe.get_meta(doctype).get_label(fieldname)
+		return {"doctype": doctype, "name": name, "field": _(field), "saved": True}
+	frappe.throw(_("The user entered nothing, so nothing was saved."), title=_("Not Saved"))
+
+
+def secret_field_refusal(doctype: Any, name: Any, fieldname: Any) -> str | None:
+	"""Why the user can't set this Password field; None when they can."""
+	if not all(isinstance(value, str) and value for value in (doctype, name, fieldname)):
+		return _("doctype, name and fieldname are required.")
+	if not frappe.db.exists("DocType", doctype):
+		return _("There is no DocType {0}.").format(doctype)
+	if frappe.get_meta(doctype).istable:
+		return _("{0} is a child table; ask for a Password field on its parent record.").format(doctype)
+	df = frappe.get_meta(doctype).get_field(fieldname)
+	if not df or df.fieldtype != "Password":
+		return _("{0} has no Password field {1}.").format(doctype, fieldname)
+	if not frappe.db.exists(doctype, name):
+		return _("{0} {1} does not exist; create it first.").format(doctype, name)
+	doc = frappe.get_doc(doctype, name)
+	if not frappe.has_permission(doctype, "write", doc=doc) or not doc.has_permlevel_access_to(
+		fieldname, df, "write"
+	):
+		return _("You don't have permission to change {0} on {1} {2}.").format(
+			df.label or fieldname, doctype, name
+		)
+	return None
+
+
+def save_secret(session: str, args: dict, password: str) -> None:
+	"""Save `password` into the field a request_secret call names, as the user, and let the call
+	know it was saved; the value itself goes nowhere else."""
+	doctype, name, fieldname = (args.get(key) for key in ("doctype", "name", "fieldname"))
+	if refusal := secret_field_refusal(doctype, name, fieldname):
+		frappe.throw(refusal, title=_("Not Saved"))
+	doc = frappe.get_doc(doctype, name)
+	doc.set(fieldname, password)
+	doc.save()
+	frappe.cache.set_value(
+		_secret_key(session, doctype, name, fieldname), 1, expires_in_sec=SECRET_SAVED_SECONDS
+	)
+
+
+# the card is answered right after the save; this only covers a slow resume
+SECRET_SAVED_SECONDS = 15 * 60
+
+
+def _secret_key(session: str, doctype: str, name: str, fieldname: str) -> str:
+	return f"flow_secret_saved:{session}:{doctype}:{name}:{fieldname}"
+
+
+BUILTIN_TOOLS: list[Tool] = [
+	find_doctypes,
+	describe,
+	find_apis,
+	describe_api,
+	read_records,
+	run_report,
+	read,
+	grep,
+	subagent,
+	web_fetch,
+	web_search,
+	search_knowledge,
+	search_attachments,
+	read_attachment,
+	update_memory,
+	load_skill,
+	create,
+	update,
+	delete,
+	run_action,
+	call_api,
+	execute,
+	read_screen,
+	request_secret,
+]
+
+
+def sync_builtin_tools() -> None:
+	"""Write Flow's own tools as locked Imported Flow Tools, the way an app's are written."""
+	from frappe.flow.lib.agent import _ensure_tool
+
+	for builtin in BUILTIN_TOOLS:
+		_ensure_tool(builtin)

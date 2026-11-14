@@ -1,4 +1,5 @@
 $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1 4.00001L2.66667 5.80001L7 1.20001' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+$dash-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M1.5 3.5H6.5' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>");
 
 [data-theme="dark"] {
 	--shadow-inset: var(--fg-color);
@@ -6,11 +7,6 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	--highlight-shadow: 1px 1px 10px var(--blue-900), 0px 0px 4px var(--blue-500);
 
 	--shadow-base: 0px 4px 8px rgba(114, 176, 233, 0.06), 0px 0px 4px rgba(112, 172, 228, 0.12);
-
-	// sidebar toggle
-	.page-title .sidebar-toggle-btn {
-		--icon-stroke: var(--gray-300);
-	}
 
 	// progress bar
 
@@ -32,9 +28,14 @@ $check-icon-dark: url("data:image/svg+xml, <svg viewBox='0 0 8 7' fill='none' xm
 	--checkbox-focus-shadow: var(--focus-default);
 
 	input[type="checkbox"] {
-		&:checked {
+		&:checked,
+		&:indeterminate {
 			background-color: var(--surface-gray-10);
 			background-image: $check-icon-dark, var(--checkbox-gradient);
+		}
+
+		&:indeterminate {
+			background-image: $dash-icon-dark, var(--checkbox-gradient);
 		}
 
 		&.disabled-selected,

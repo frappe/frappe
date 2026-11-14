@@ -140,7 +140,13 @@ async function execute() {
 	for (const result of results) {
 		await write_assets_json(result.metafile);
 	}
-	RUN_BUILD_COMMAND && run_build_command_for_apps(APPS);
+	if (RUN_BUILD_COMMAND) {
+		run_build_command_for_apps(APPS);
+		if (APPS.includes("frappe")) {
+			run_frontend_build("studio", path.resolve(__dirname, "..", "studio", "frontend"));
+			run_frontend_build("flow", path.resolve(__dirname, "..", "flow"));
+		}
+	}
 	if (!WATCH_MODE) {
 		process.exit(0);
 	}
@@ -553,6 +559,25 @@ function run_build_command_for_apps(apps) {
 	}
 
 	process.chdir(cwd);
+}
+
+// The studio editor (studio/frontend/) and the flow page (flow/) are vite apps inside this
+// repo, built like app frontends; their output is part of frappe's assets, so a failure fails
+// the build.
+function run_frontend_build(name, frontend_path) {
+	let { execSync } = require("child_process");
+
+	// every build, not only on a fresh checkout: an install made before an update lacks what the
+	// new lockfile adds. Yarn returns in under a second when the install is current
+	log("\nInstalling dependencies for", chalk.bold(name));
+	execSync("yarn install --frozen-lockfile", {
+		cwd: frontend_path,
+		encoding: "utf8",
+		stdio: "inherit",
+	});
+
+	log("\nRunning build command for", chalk.bold(name));
+	execSync("yarn build", { cwd: frontend_path, encoding: "utf8", stdio: "inherit" });
 }
 
 async function notify_redis({ error, success, changed_files }) {

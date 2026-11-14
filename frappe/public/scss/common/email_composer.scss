@@ -43,6 +43,15 @@
 		overflow: hidden;
 	}
 
+	// docked on a phone, it meets the screen's bottom edge: square corners, clear of the home bar
+	@include media-breakpoint-down(sm) {
+		&:not(.expanded) .modal-content {
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
+			padding-bottom: env(safe-area-inset-bottom);
+		}
+	}
+
 	.modal-body {
 		display: flex;
 		flex-direction: column;
@@ -56,6 +65,10 @@
 			flex-direction: column;
 			flex: 1;
 			min-height: 0;
+
+			@include media-breakpoint-down(sm) {
+				flex: 1 0 auto;
+			}
 		}
 	}
 
@@ -376,6 +389,18 @@
 
 		.ql-toolbar.ql-snow {
 			display: none;
+		}
+	}
+
+	// on a phone a long mail grows and the window scrolls as one, not a small box inside it
+	@include media-breakpoint-down(sm) {
+		.email-composer-message-area,
+		.email-composer-message-area .frappe-control {
+			flex: 1 0 auto;
+		}
+
+		.ql-editor {
+			overflow-y: visible;
 		}
 	}
 

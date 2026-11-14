@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" href="/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Frappe Studio</title>
+	</head>
+	<body>
+		<!-- For the main app builder -->
+		<div id="studio"></div>
+		<div id="modals"></div>
+		<div id="popovers"></div>
+
+		<script>
+			window.csrf_token = "{{ csrf_token }}"
+			window.site_url = "{{ site_url }}"
+			window.site_name = "{{ site_name }}"
+			window.is_developer_mode = "{{ is_developer_mode }}"
+		</script>
+		<script type="module" src="/src/main.ts"></script>
+	</body>
+</html>

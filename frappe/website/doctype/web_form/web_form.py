@@ -195,10 +195,7 @@ class WebForm(WebsiteGenerator):
 
 	# export
 	def on_update(self):
-		"""
-		Writes the .txt for this page and if write_content is checked,
-		it will write out a .html file
-		"""
+		"""In developer mode, export a standard Web Form's JSON and create its .js and .py stubs."""
 		path = export_module_json(self, self.is_standard, self.module)
 
 		if path:
@@ -206,9 +203,10 @@ class WebForm(WebsiteGenerator):
 			if not os.path.exists(path + ".js"):
 				with open(path + ".js", "w") as f:
 					f.write(
-						"""frappe.ready(function() {
+						"""frappe.ready(function () {
 	// bind events here
-})"""
+});
+"""
 					)
 
 			# py
@@ -217,11 +215,18 @@ class WebForm(WebsiteGenerator):
 					f.write(
 						"""import frappe
 
+
 def get_context(context):
 	# do your magic here
 	pass
 """
 					)
+
+	def clear_cache(self):
+		frappe.cache.delete_key("bootinfo")
+		frappe.db.after_commit.add(lambda: frappe.cache.delete_key("bootinfo"))
+		frappe.db.after_rollback.add(lambda: frappe.cache.delete_key("bootinfo"))
+		return super().clear_cache()
 
 	def get_context(self, context):
 		"""Build context to render the `web_form.html` template"""
@@ -1460,5 +1465,9 @@ def get_permitted_link_values(web_form, link_doctype):
 
 
 @redis_cache(ttl=60 * 60)
-def get_published_web_forms() -> dict[str, str]:
-	return frappe.get_all("Web Form", ["name", "route", "modified"], {"published": 1})
+def get_published_web_forms() -> list[dict]:
+	return frappe.get_all(
+		"Web Form",
+		["name", "title", "route", "modified", "doc_type", "key_required", "allow_edit"],
+		{"published": 1},
+	)

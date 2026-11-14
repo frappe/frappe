@@ -115,7 +115,7 @@ export const mount = (el, context) =>
   mountVueIsland(el, { ...context, component: Dashboard });
 ```
 
-`mountVueIsland` opens the shadow root, adopts the app's stylesheet, mirrors the host theme, gives frappe-ui's overlays a portal target inside the root, and returns the handle. Pass `configure(app)` to register plugins and global components. Pass `routes` if the island needs navigation of its own.
+`mountVueIsland` opens the shadow root, adopts the app's stylesheet, mirrors the host theme, gives frappe-ui's overlays a portal target inside the root, and returns the handle. Pass `configure(app)` to register plugins and global components. Pass `routes` if the island needs navigation of its own; they run on a memory history, or on the `history` you pass, such as a web history for an island that fills its page.
 
 Inside a component, `useHost()` returns the host context: `locale`, `timezone`, `user`, `theme`, `navigate`. Every field is optional, so a component still renders in a unit test.
 
@@ -190,6 +190,48 @@ A page island fills a page. It draws no page header. It reports two things, and 
 An `onClick` runs in the island. An `href` is a URL to a page outside the host app. The host decides what a link out of the app does. Desk opens it in a new tab.
 
 Both are plain events. A Vue host binds `@title` and `@actions`. A desk caller passes `onTitle` and `onActions`. An island that fills less than a page reports neither. See [decision 0010](island/decisions/0010-a-page-island-reports-title-and-actions.md).
+
+### A desk page drawn by an island
+
+The steps above are what an app does to put an island on a page it wrote itself. A desk **route** drawn by an island needs none of them. Set a `Page` to type **Frappe UI** and desk does the rest: it builds the page, mounts the island, and sets the head from what the island reports. There is no entry list and no frontend to set up. See [decision 0012](island/decisions/0012-a-desk-page-can-be-an-island.md).
+
+Saving the Page writes the starter beside its json, in place of the page script every other type gets:
+
+```
+insights/insights/insights/page/sales_dashboard/
+├── sales_dashboard.json          type: "Frappe UI"
+├── sales_dashboard.island.js     the entry, already written
+└── sales_dashboard.vue           the component, yours to edit
+```
+
+Then `bench build`, and `/app/sales-dashboard` is the page. `bench watch` rebuilds on save and re-mounts the island in place, with no reload.
+
+The component receives the part of the URL below the page, and reports its chrome:
+
+```vue
+<script setup>
+defineProps({ route: Array, query: Object });
+const emit = defineEmits(["title", "actions"]);
+</script>
+```
+
+`route` is the segments after the page name and `query` its parameters. Both update in place, so a route change re-renders the component instead of re-mounting the island. `useHost()` works as it does in any island.
+
+The island is named `<app>.page.<page name>`, derived from the Page on both sides, so `<Island name="insights.page.sales-dashboard">` hosts the same page inside a frappe-ui app.
+
+**What a page island may import.** Framework builds these, one build for every page on the bench, rooted at `apps/frappe/island-toolchain/`. So a page island compiles against `frappe-ui`, `@framework/ui`, `vue` and what those bring, and nothing of the app's own. See [decision 0013](island/decisions/0013-framework-builds-page-islands.md).
+
+**A page the app draws itself.** A page that needs the app's own components names one of the app's islands instead, in the Page's `island` field:
+
+```json
+{ "doctype": "Page", "name": "insights-dashboard", "type": "Frappe UI", "island": "insights.dashboard" }
+```
+
+Framework then builds nothing for the page and scaffolds nothing beside its json, so the page needs no folder and need not be Standard. Desk mounts the named island and the page keeps everything the type gives it: the mount, the unmount, the route race, `route` and `query` as props, and the head. The island is the app's own, so it takes its content from props and not from the desk route.
+
+**Framework's own islands.** Desk draws its charts with `frappe.chart`, an island framework builds from a fixed table in `ui/vite/island/framework.js`, on the same toolchain, into `dist/island/`. `bench build` runs that build on every bench, and its failure fails the command. See [decision 0015](island/decisions/0015-framework-builds-its-own-islands.md). Apps draw with `frappe.ui.chart(el, config)`. `frappe.Chart`, `frappe.utils.make_chart` and `frappe.ui.RealtimeChart` are deprecated, see [decision 0016](island/decisions/0016-desk-charts-are-frappe-ui-charts.md).
+
+**The toolchain installs itself.** The first build on a bench runs `yarn install` in `apps/frappe/island-toolchain/`. If the install fails, `bench build` fails and names the command to run by hand.
 
 ### CSS
 

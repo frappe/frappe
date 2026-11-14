@@ -1,0 +1,107 @@
+@import "@flow/ui-core/flow.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Frappe's own Inter, bundled so the app looks the same offline or behind a font blocker. */
+@font-face {
+	font-family: InterVariable;
+	font-style: normal;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("./fonts/InterVariable.woff2") format("woff2");
+}
+
+@font-face {
+	font-family: InterVariable;
+	font-style: italic;
+	font-weight: 100 900;
+	font-display: swap;
+	src: url("./fonts/InterVariable-Italic.woff2") format("woff2");
+}
+
+/* Light-theme tuning: frappe-ui's stock outlines (#ededed/#e2e2e2) all but
+   vanish on the white surface; darken each step so borders actually read. */
+:root {
+	--outline-gray-1: #e6e6e6;
+	--outline-gray-2: #d6d6d6;
+	--outline-gray-3: #bdbdbd;
+}
+
+/* Dark-theme tuning: frappe-ui's stock dark base is #0F0F0F; lift it to the
+   #171717 the frappe-ui site uses, shifting the neighboring surfaces and
+   outlines coherently. Overriding the themed variables is the supported
+   theming layer — components stay token-pure. */
+[data-theme="dark"] {
+	--surface-base: #171717;
+	--surface-sidebar: #141414;
+	--surface-gray-1: #1f1f1f;
+	--surface-gray-2: #292929;
+	--surface-gray-3: #383838;
+	--surface-gray-4: #424242;
+	--surface-elevation-1: #1f1f1f;
+	--surface-elevation-2: #292929;
+	--surface-elevation-3: #383838;
+	--outline-base: #242424;
+	--outline-elevation-2: #383838;
+	--outline-gray-1: #242424;
+	--outline-gray-2: #383838;
+	--outline-gray-3: #424242;
+}
+
+html,
+body,
+#app {
+	height: 100%;
+	margin: 0;
+}
+
+/* Appearance's font size zooms the whole UI (FlowChat sets --flow-zoom, the size over 15px): the
+   app and what opens over it outside #app. A menu's wrapper is placed in screen pixels, so its
+   content zooms and the wrapper doesn't */
+#app,
+body > :not(#app, [data-reka-popper-content-wrapper]),
+[data-reka-popper-content-wrapper] > * {
+	zoom: var(--flow-zoom, 1);
+}
+/* a menu as wide as its field: the field's width is in screen pixels, its zoomed content's in CSS */
+[data-reka-popper-content-wrapper] > .min-w-\[--reka-select-trigger-width\] {
+	min-width: calc(var(--reka-select-trigger-width) / var(--flow-zoom, 1));
+}
+[data-reka-popper-content-wrapper] .min-w-\[--reka-combobox-trigger-width\] {
+	min-width: calc(var(--reka-combobox-trigger-width) / var(--flow-zoom, 1));
+}
+/* 100vh grows with the zoom: dialogs centre in the window, and the settings dialog and the chat
+   search keep to it */
+.dialog-scroll-container > div {
+	min-height: calc(100vh / var(--flow-zoom, 1));
+}
+@media (min-width: 640px) {
+	.dialog-content > [data-orientation="vertical"] {
+		height: min(860px, calc(100vh / var(--flow-zoom, 1) - 8rem));
+	}
+}
+@media (max-width: 639px) {
+	.dialog-content > [data-orientation="vertical"] {
+		height: calc(100dvh / var(--flow-zoom, 1) - 6rem);
+	}
+}
+[data-slot="command-palette"] {
+	max-height: calc(60vh / var(--flow-zoom, 1));
+}
+/* a dialog held near the top, the chat search's */
+.dialog-scroll-container > .pt-\[20vh\] {
+	padding-top: calc(20vh / var(--flow-zoom, 1));
+}
+
+body {
+	font-family: InterVariable, Inter, system-ui, sans-serif;
+	background: var(--surface-base);
+	-webkit-font-smoothing: antialiased;
+}
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--surface-gray-4) transparent;
+}

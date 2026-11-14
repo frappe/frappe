@@ -102,6 +102,7 @@
   "column_break_ewhs",
   "hide_empty_read_only_fields",
   "disable_product_suggestion",
+  "use_classic_charts",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -125,6 +126,7 @@
   "link_field_results_limit",
   "column_break_nebx",
   "allow_clearing_link_fields",
+  "enable_combobox_link_field",
   "api_logging_section",
   "log_api_requests",
   "ai_agents_tab",
@@ -817,10 +819,17 @@
   },
   {
    "default": "0",
-   "description": "Adds a clear (\u00d7) button to Link fields, allowing users to quickly remove the selected value.",
+   "description": "Adds a clear (\u00d7) button to Link fields when Combobox fields are off. Combobox fields always show it.",
    "fieldname": "allow_clearing_link_fields",
    "fieldtype": "Check",
    "label": "Allow Clearing Link Fields"
+  },
+  {
+   "default": "0",
+   "description": "Use the new Combobox for Link, Autocomplete and MultiSelect fields.",
+   "fieldname": "enable_combobox_link_field",
+   "fieldtype": "Check",
+   "label": "Enable Combobox Fields (Beta)"
   },
   {
    "depends_on": "eval:doc.allow_guests_to_upload_files == 1",
@@ -905,6 +914,13 @@
   {
    "fieldname": "frappectl_help",
    "fieldtype": "HTML"
+  },
+  {
+   "default": "0",
+   "description": "Draw charts the way earlier versions did. Sites updated from an earlier version start with this on.",
+   "fieldname": "use_classic_charts",
+   "fieldtype": "Check",
+   "label": "Use Classic Charts"
   }
  ],
  "icon": "fa fa-cog",

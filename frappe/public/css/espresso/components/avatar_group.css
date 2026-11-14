@@ -1,0 +1,148 @@
+/* Espresso Avatar Group — overlapping avatars, a +N circle and an optional
+ * add button.
+ *
+ * Markup:
+ *   <div class="es-avatar-group" data-size="sm" data-shape="square">
+ *     <span class="es-avatar-group__stack">
+ *       <span class="es-avatar">…</span> …   — each in a
+ *         <button class="es-avatar-group__item"> when the avatars are clickable
+ *       <span class="es-avatar es-avatar-group__more">…+4…</span>
+ *     </span>
+ *     <button class="es-button es-avatar-group__add" data-icon-button="true">…</button>
+ *   </div>
+ *
+ * Attributes (all optional):
+ *   data-size    xs | sm | md | lg | xl | 2xl | 3xl   (default: md)
+ *   data-shape   circle | square                      (default: circle)
+ *
+ * The ring between avatars takes the page colour; set --es-ag-ring where the
+ * group sits on another surface (a card, a sidebar). */
+
+.es-avatar-group {
+
+    /* --es-av-size and --es-av-radius come from avatar.css */
+    --es-ag-round: var(--radius-full);
+    --es-ag-ring: var(--surface-base);
+
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing);
+    vertical-align: middle;
+}
+
+.es-avatar-group[data-shape="square"] {
+    --es-ag-round: var(--es-av-radius);
+}
+
+.es-avatar-group__stack {
+    display: inline-flex;
+    align-items: center;
+}
+
+.es-avatar-group__stack > * + * {
+    margin-inline-start: calc(var(--es-av-size) * -0.25);
+}
+
+/* the ring goes on the rounded children: the avatar root stays square so its
+   status indicator isn't clipped */
+.es-avatar-group__stack .es-avatar > img,
+.es-avatar-group__stack .es-avatar > .es-avatar__fallback {
+    box-shadow: 0 0 0 2px var(--es-ag-ring);
+}
+
+.es-avatar-group__item {
+    position: relative;
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    border-radius: var(--es-ag-round);
+    background: none;
+    cursor: pointer;
+}
+
+/* the avatar under the pointer or focus comes to the front of the stack */
+.es-avatar-group__stack > .es-avatar:hover,
+.es-avatar-group__item:hover,
+.es-avatar-group__item:focus-visible {
+    z-index: 2;
+}
+
+.es-avatar-group__item:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}
+
+/* later avatars overlap earlier ones; keep status dots above them */
+.es-avatar-group__stack .es-avatar__indicator {
+    z-index: 1;
+}
+
+.es-avatar-group__more > .es-avatar__fallback {
+    font-size: calc(var(--es-av-size) * 0.4);
+    font-weight: var(--font-weight-medium);
+    color: var(--ink-gray-8);
+}
+
+.es-avatar-group__add.es-button {
+    --es-bt-h: var(--es-av-size);
+    --es-bt-icon: calc(var(--es-av-size) * 0.55);
+    border-radius: var(--es-ag-round);
+}
+
+/* the hover card fits whatever the caller puts in it */
+.es-hover-card.es-avatar-group__hover-card {
+    width: auto;
+}
+
+/* the read-only +N takes keyboard focus to show its list */
+.es-avatar-group__more[tabindex]:focus-visible {
+    border-radius: var(--es-ag-round);
+    outline: var(--focus-outline-default);
+    outline-offset: 2px;
+}
+
+/* ---- the +N list (a popover, or a hover card when read-only):
+        the hidden people, one per row ---- */
+.es-popover.es-avatar-group__popover {
+    width: auto;
+    min-width: calc(var(--spacing) * 44);
+    max-width: calc(var(--spacing) * 72);
+    padding: var(--spacing);
+}
+
+.es-avatar-group__list {
+    display: flex;
+    flex-direction: column;
+}
+
+.es-avatar-group__list-item {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+    width: 100%;
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    border: 0;
+    border-radius: var(--radius);
+    background: none;
+    font-size: var(--text-base);
+    line-height: calc(var(--spacing) * 4);
+    color: var(--ink-gray-7);
+    text-align: start;
+}
+
+button.es-avatar-group__list-item {
+    cursor: pointer;
+    outline: none;
+}
+
+button.es-avatar-group__list-item:hover,
+button.es-avatar-group__list-item:focus-visible {
+    background: var(--surface-alpha-gray-2);
+}
+
+.es-avatar-group__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
