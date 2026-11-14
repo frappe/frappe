@@ -298,3 +298,115 @@ class TestSaveArrangements(EditorTestCase):
 	def test_the_site_scope_needs_a_system_manager(self):
 		with self.assertRaises(frappe.PermissionError):
 			save(scope="site", version="x")
+
+	def test_a_new_own_key_creates_its_sidebar_record(self):
+		save(
+			rail=[shown("todo"), own("user:rrrrrr", "Note", opens_sidebar=OWN_SIDEBAR), shown("note")],
+			sidebars={OWN_SIDEBAR: [own("user:aaaaaa", "ToDo")]},
+		)
+
+		record = frappe.db.get_value(
+			"Sidebar", {"key": OWN_SIDEBAR}, ["app", "user", "standard", "link_doctype"], as_dict=True
+		)
+
+		self.assertEqual((record.app, record.user, record.standard), (APP, self.user, 0))
+		self.assertFalse(record.link_doctype)
+
+	def test_a_site_key_at_user_scope_is_refused_as_a_sidebar_and_as_an_opener(self):
+		with self.assertRaises(frappe.ValidationError):
+			save(sidebars={"site:abc123": [own("user:aaaaaa", "ToDo")]})
+
+		with self.assertRaises(frappe.ValidationError):
+			save(rail=[shown("todo", opens_sidebar="site:abc123"), shown("note")])
+
+		self.assertFalse(frappe.db.exists("Sidebar", {"key": "site:abc123"}))
+
+	def test_a_system_manager_saves_the_site_level_in_one_call(self):
+		with set_user("Administrator"):
+			version = get_arrangements(APP, "site")["version"]
+
+			save(
+				rail=[shown("todo"), own("site:rrrrrr", "Note", opens_sidebar="site:abc123"), shown("note")],
+				sidebars={"site:abc123": [own("site:aaaaaa", "ToDo")]},
+				scope="site",
+				version=version,
+			)
+
+			result = get_arrangements(APP, "site")
+
+			self.assertNotEqual(result["version"], version)
+			self.assertEqual(keys(result["sidebars"]["site:abc123"]), ["site:aaaaaa"])
+			self.assertEqual(frappe.db.get_value("Sidebar", {"key": "site:abc123"}, "user"), "")
+
+			with self.assertRaises(frappe.TimestampMismatchError):
+				save(rail=[shown("todo"), shown("note")], scope="site", version=version)
+
+		# A person sees the site's sidebar, and their own level is untouched.
+		self.assertIn("site:abc123", resolve_navigation(APP)["sidebars"])
+		self.assertEqual(get_arrangements(APP)["version"], hashlib.sha1(b"[]").hexdigest())
+
+	def test_the_caps_leave_out_a_sidebar_this_save_deletes(self):
+		make_own_sidebar(
+			"user:storeb",
+			[item(f"user:s{i:05d}", link_doctype="DocType", link_to="ToDo", added=1) for i in range(60)],
+			user=self.user,
+		)
+		make_rail(
+			[
+				item(
+					"user:k3f9a2",
+					link_doctype="DocType",
+					link_to="ToDo",
+					added=1,
+					opens_sidebar="user:storeb",
+				)
+			],
+			user=self.user,
+		)
+		rows = [own(f"user:r{i:05d}", "Note") for i in range(45)]
+
+		# Nothing opens `user:storeb` after this save, so its rows are not the person's any more.
+		save(
+			rail=[shown("todo"), shown("note")],
+			sidebars={ADDRESS_KEY: [shown("sb_todo"), shown("sb_note"), *rows]},
+		)
+
+		self.assertFalse(frappe.db.exists("Sidebar", {"key": "user:storeb"}))
+		self.assertEqual(len(own_stored("Sidebar")), 45)
+
+	def test_a_sidebar_sent_with_no_rows_cannot_be_opened(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "not a sidebar this level added"):
+			save(rail=[shown("todo", opens_sidebar=OWN_SIDEBAR), shown("note")], sidebars={OWN_SIDEBAR: []})
+
+		self.assertFalse(frappe.db.exists("Sidebar", {"key": OWN_SIDEBAR}))
+
+	def test_a_sidebar_cannot_be_emptied_while_a_stored_rail_row_opens_it(self):
+		save(
+			rail=[shown("todo"), own("user:rrrrrr", "Note", opens_sidebar=OWN_SIDEBAR), shown("note")],
+			sidebars={OWN_SIDEBAR: [own("user:aaaaaa", "ToDo")]},
+		)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Remove the item that opens it first"):
+			save(sidebars={OWN_SIDEBAR: []})
+
+		with self.assertRaisesRegex(frappe.ValidationError, "not a sidebar this level added"):
+			save(
+				rail=[shown("todo"), own("user:rrrrrr", "Note", opens_sidebar=OWN_SIDEBAR), shown("note")],
+				sidebars={OWN_SIDEBAR: []},
+			)
+
+		self.assertTrue(frappe.db.exists("Sidebar", {"key": OWN_SIDEBAR}))
+
+	def test_a_sidebar_named_by_a_non_string_is_refused(self):
+		with self.assertRaisesRegex(frappe.ValidationError, "named by its key"):
+			save(rail=[shown("todo", opens_sidebar=5), shown("note")])
+
+	def test_containers_that_are_no_rail_and_map_of_sidebars_are_refused(self):
+		version = get_arrangements(APP)["version"]
+
+		for containers in ("[]", "not json", {"sidebars": []}):
+			with self.assertRaisesRegex(frappe.ValidationError, "rail and a map of sidebars"):
+				save_arrangements(APP, "user", containers, version)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "named by its address or key"):
+			save_arrangements(APP, "user", {"sidebars": {1: []}}, version)

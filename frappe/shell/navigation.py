@@ -192,15 +192,21 @@ def resolve_sidebar(
 	upto: str = "user",
 	keep_hidden: bool = False,
 	check_permission: bool = True,
+	layers: dict[str, list[dict]] | None = None,
 ) -> list[dict]:
 	"""One sidebar at one address, for a caller that wants that one and not the prefix."""
+	# `layers`: this address's layers by role, for a caller that loaded many addresses in one go.
 	# No app to build a context for: the one rule that reaches across containers runs on the rail.
 	context = NavigationContext("") if check_permission else None
 
 	if context is not None and not context.address_is_offered(link_doctype, link_to):
 		return []
 
-	by_layer = _sidebar_layers([(link_doctype, link_to)]).get((link_doctype, link_to), {})
+	by_layer = (
+		layers
+		if layers is not None
+		else _sidebar_layers([(link_doctype, link_to)]).get((link_doctype, link_to), {})
+	)
 
 	return _merge(
 		"Sidebar",

@@ -82,6 +82,7 @@ def get_arrangement(container: str, address: str, scope: str = "user") -> list[d
 def save_arrangement(container: str, address: str, items: str | list, scope: str = "user") -> dict:
 	"""Store one layer's arrangement and hand back the whole prefix's navigation."""
 	target = _target(container, address, scope)
+	lock_level(target)
 	rows = reduce_container(target, container, scope, items)
 	own_rows = [row for row in rows if row.get("added")]
 	_check_caps(target, own_rows)
@@ -117,6 +118,7 @@ def save_arrangements(app: str, scope: str, containers: str | dict, version: str
 def reset_arrangement(container: str, address: str, scope: str = "user") -> dict:
 	"""Delete one layer and hand back what the prefix resolves to without it."""
 	target = _target(container, address, scope)
+	lock_level(target)
 
 	# A rail's reset takes its navigation layout with its rows; `_write` would keep the record.
 	_delete(_locked(target))
@@ -129,6 +131,7 @@ def reset_arrangement(container: str, address: str, scope: str = "user") -> dict
 def save_navigation_layout(app: str, navigation_layout: str, scope: str = "user") -> dict:
 	"""Set how this level draws the app's navigation, and hand back the whole prefix's navigation."""
 	target = _target("Rail", app, scope)
+	lock_level(target)
 
 	if navigation_layout and navigation_layout not in NAVIGATION_LAYOUTS:
 		frappe.throw(
@@ -186,15 +189,21 @@ def reduce_container(target: "Target", container: str, scope: str, items: str | 
 	return rows
 
 
-def _check_caps(target: "Target", own_rows: list[dict], saving: "list[Target] | None" = None):
+def _check_caps(
+	target: "Target",
+	own_rows: list[dict],
+	saving: "list[Target] | None" = None,
+	ignoring: "set[str] | None" = None,
+):
 	"""Refuse more own rows than one app may carry at this level; `_known` caps one container."""
 	# `saving`: every layer this save writes, whose stored rows the payload replaces.
+	# `ignoring`: records this save deletes, whose rows are gone once it lands.
 	if not own_rows:
 		return
 
 	lock_level(target)
 
-	if len(own_rows) + _own_rows_elsewhere(target, saving or [target]) > OWN_ROWS_PER_APP:
+	if len(own_rows) + _own_rows_elsewhere(target, saving or [target], ignoring or set()) > OWN_ROWS_PER_APP:
 		frappe.throw(
 			_("You can add up to {0} items to {1}, over its rail and all its sidebars.").format(
 				OWN_ROWS_PER_APP, frappe.bold(target.app)
@@ -208,10 +217,10 @@ def lock_level(target: "Target"):
 	frappe.db.get_value("User", target.layer["user"] or "Administrator", "name", for_update=True)
 
 
-def _own_rows_elsewhere(target: "Target", saving: "list[Target]") -> int:
-	"""The rows this level has added to this app outside the layers being saved, in one query."""
+def _own_rows_elsewhere(target: "Target", saving: "list[Target]", ignoring: "set[str]") -> int:
+	"""The rows this level has added to this app outside the layers being saved or deleted, in one query."""
 	item = frappe.qb.DocType("Navigation Item")
-	saved = {_existing(layer) for layer in saving}
+	saved = {_existing(layer) for layer in saving} | ignoring
 	in_layers = None
 
 	for container, layers in _layers_of(target).items():
