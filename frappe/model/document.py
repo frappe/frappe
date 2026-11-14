@@ -3434,6 +3434,9 @@ class Document(_DocumentBase):
 			else:
 				raise
 
+		# link validation reads rows from this cache, so drop the stale ones
+		frappe.db.value_cache.pop(self.doctype, None)
+
 	def db_update_all(self):
 		"""Raw update parent + children
 		DOES NOT VALIDATE AND CALL TRIGGERS"""
