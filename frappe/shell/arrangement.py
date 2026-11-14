@@ -444,6 +444,10 @@ def _check_target(row: dict, context: NavigationContext):
 	if not (target or row["item_type"] == "Record"):
 		return
 
+	# A page an app draws in the frontend has no `Page` record, so a Page row only needs a name.
+	if row["item_type"] == "Page" and link_to:
+		return
+
 	if not (
 		link_to and frappe.db.exists("DocType", link_doctype) and frappe.db.exists(link_doctype, link_to)
 	):

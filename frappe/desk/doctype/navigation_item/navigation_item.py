@@ -45,6 +45,16 @@ class NavigationItem(Document):
 	def validate(self):
 		self.validate_type_on_an_item()
 
+	def get_invalid_links(self, is_submittable=False, link_value_cache=None):
+		page = self.link_to
+		invalid, cancelled = super().get_invalid_links(is_submittable, link_value_cache)
+		# A page an app draws in the frontend has no `Page` record, and the base check sets a missing link to None.
+		if self.item_type == "Page":
+			self.link_to = page
+			invalid = [link for link in invalid if link[0] != "link_to"]
+
+		return invalid, cancelled
+
 	def validate_type_on_an_item(self):
 		"""An added row is the item and names its type; `item_type` is not `reqd` because a delta row has none."""
 		if self.added and not self.item_type:

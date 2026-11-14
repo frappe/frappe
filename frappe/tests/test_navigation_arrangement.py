@@ -1397,6 +1397,21 @@ class TestWhatAnOwnRowMustCarry(OwnRowsTestCase):
 			{"key": "user:k3f9a2", "item_type": "Record", "link_doctype": "Role", "link_to": "No Such Role"}
 		)
 
+	def test_a_page_row_needs_a_page_name_but_no_page_record(self):
+		self.refused({"key": "user:k3f9a2", "item_type": "Page", "link_doctype": "Page"})
+		frappe.set_user("Administrator")
+
+		self.save(
+			{
+				"key": "user:k3f9a2",
+				"item_type": "Page",
+				"link_doctype": "Page",
+				"link_to": "no-such-page-47416",
+			}
+		)
+
+		self.assertEqual([row.link_to for row in own_stored()], ["no-such-page-47416"])
+
 	def test_a_record_you_can_open_is_kept(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "t47399", "public": 1}).insert(
 			ignore_permissions=True
