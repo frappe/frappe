@@ -136,6 +136,15 @@ class TestBuildWindow(IntegrationTestCase):
 
 		self.assertEqual(carried, [expected])
 
+	def test_a_continuation_without_progress_builds_the_index(self):
+		"""A fresh build that died before writing progress leaves an empty temp database behind."""
+		note = frappe.get_doc(doctype="Note", title="Orphaned Temp Build", content="body").insert()
+		sqlite3.connect(self.search._get_db_path(is_temp=True)).execute("PRAGMA journal_mode = WAL")
+
+		self.search.build_index(is_continuation=True)
+
+		self.assertEqual(self.indexed_title(note.name), "Orphaned Temp Build")
+
 	def test_the_index_reports_complete_without_the_vocabulary_pass(self):
 		"""_is_indexing_complete waits on the vocabulary flag, which the skipped pass never sets."""
 		self.search.build_index()
