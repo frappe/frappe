@@ -1,7 +1,4 @@
-<!--
-  An Act row on the rail: `SidebarRailItem` in its button form, so it draws the same tile as a route cell. It never
-  takes a sidebar and is never current. On the phone's tile strip (`tile`) it is a plain button beside the route tiles.
--->
+<!-- An Act row on the rail: `SidebarRailItem` as a button, or a plain tile button on the phone strip. -->
 <template>
 	<button
 		v-if="tile"
@@ -27,7 +24,6 @@ import { LoadingIndicator, SidebarRailItem } from "frappe-ui";
 import Icon from "@/icons/Icon.vue";
 import { useActRow } from "./actRow";
 
-// The phone's route tiles, so an Act tile sits level with them.
 const PHONE_TILE =
 	"flex size-9 shrink-0 items-center justify-center rounded-4 bg-surface-gray-3 text-base text-ink-gray-8 transition focus-visible:ring-0 focus-visible:focus-ring";
 
