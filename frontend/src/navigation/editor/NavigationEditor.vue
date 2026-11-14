@@ -202,6 +202,7 @@ import {
 	type EditorRow,
 	dirty,
 	fromArrangements,
+	isOwn,
 	isRowDrag,
 	layoutChanged,
 	openedSidebars,
@@ -220,7 +221,6 @@ import {
 	canGiveSidebar,
 	descendantsToDelete,
 	giveSidebar as giveRowSidebar,
-	isOwn,
 	moveTo as moveRowTo,
 	remove as removeRow,
 	removeSidebar as removeRowSidebar,
@@ -512,7 +512,7 @@ function add(fields: Omit<EditorRow, "key">) {
 		container.value !== RAIL
 			? current.value.key
 			: null;
-	const edited = addRow(draft.value, container.value, row, parent, scope.value);
+	const edited = addRow(draft.value, container.value, row, parent);
 	apply(edited);
 	if (refused(edited)) return;
 	stopAdding();
@@ -551,7 +551,7 @@ const deleteCount = computed(() =>
 function remove() {
 	const key = selected.value;
 	if (!draft.value || !key) return;
-	const edited = removeRow(draft.value, container.value, key, scope.value);
+	const edited = removeRow(draft.value, container.value, key);
 	const before = rows.value;
 	apply(edited);
 	if (refused(edited)) return;
@@ -576,7 +576,7 @@ function remove() {
 function moveTo(target: string) {
 	const key = selected.value;
 	if (!draft.value || !key) return;
-	const moved = moveRowTo(draft.value, container.value, key, target, scope.value);
+	const moved = moveRowTo(draft.value, container.value, key, target);
 	refusal.value = refused(moved) ? moved : null;
 	if (refused(moved)) return;
 	draft.value = moved.draft;
@@ -585,7 +585,7 @@ function moveTo(target: string) {
 
 function giveSidebar() {
 	if (!draft.value || !selected.value) return;
-	const next = giveRowSidebar(draft.value, selected.value, scope.value);
+	const next = giveRowSidebar(draft.value, selected.value);
 	refusal.value = refused(next) ? next : null;
 	if (refused(next)) return;
 	draft.value = next.draft;
@@ -597,7 +597,7 @@ function giveSidebar() {
 
 function removeSidebar() {
 	if (!draft.value || !selected.value) return;
-	apply(removeRowSidebar(draft.value, selected.value, scope.value));
+	apply(removeRowSidebar(draft.value, selected.value));
 }
 
 /** Show a container: the Rail tab, or the Sidebar tab on that sidebar. */
@@ -703,8 +703,8 @@ function drop(onKey: string, middle: boolean) {
 	const opens = sidebarOf(rowsOf(draft.value, RAIL).find((row) => row.key === onKey));
 	const inside = middle && container.value === RAIL && !!opens && opens in draft.value.sidebars;
 	const moved = inside
-		? dropRowInto(draft.value, from.container, from.key, onKey, scope.value)
-		: dropAcross(draft.value, from.container, from.key, container.value, onKey, scope.value);
+		? dropRowInto(draft.value, from.container, from.key, onKey)
+		: dropAcross(draft.value, from.container, from.key, container.value, onKey);
 	if (refused(moved)) {
 		// The refusal shows under "Place under" of the dragged row, so go back to it.
 		show(from.container, from.key);

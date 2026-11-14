@@ -17,11 +17,6 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("@/arrangement", () => api);
 
-vi.mock("vue-router", () => ({
-	useRoute: () => ({ name: "home", params: {} }),
-	useRouter: () => ({ hasRoute: () => false }),
-}));
-
 const confirm = vi.hoisted(() => vi.fn());
 vi.mock("frappe-ui", async (original) => ({
 	...(await original<object>()),
@@ -713,6 +708,9 @@ describe("the editor", () => {
 			const app = createApp({ render: () => h(NavigationEditor, { target }) });
 			app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
 			app.provide("addresses", { doctypes: () => ["Note", "ToDo"] });
+			router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+			await router.push("/page#customize/sidebar");
+			app.use(router);
 			const host = document.createElement("div");
 			document.body.appendChild(host);
 			app.mount(host);

@@ -135,11 +135,10 @@ export function add(
 	draft: Draft,
 	container: string,
 	row: EditorRow,
-	parentKey: string | null,
-	scope: Scope
+	parentKey: string | null
 ): Edited {
 	if (!exists(draft, container)) return __("That sidebar no longer exists.");
-	const capped = overCap(draft, container, 1, scope);
+	const capped = overCap(draft, container, 1);
 	if (capped) return capped;
 	if (container === RAIL && row.item_type === "Section") return __("The rail holds no sections.");
 
@@ -174,7 +173,8 @@ export function descendantsToDelete(rows: EditorRow[], key: string, scope: Scope
  * A row that opens one of this level's own sidebars takes that sidebar with it, and the last row
  * of an own sidebar takes the sidebar too.
  */
-export function remove(draft: Draft, container: string, key: string, scope: Scope): Edited {
+export function remove(draft: Draft, container: string, key: string): Edited {
+	const { scope } = draft;
 	if (!find(draft, container, key)) return __("This row no longer exists.");
 	if (!isOwn(key, scope)) return __("Only a row you added can be deleted. Hide it instead.");
 
@@ -192,7 +192,7 @@ export function remove(draft: Draft, container: string, key: string, scope: Scop
 	for (const row of rows.filter((entry) => gone.has(entry.key))) {
 		if (row.opens_sidebar && isOwn(row.opens_sidebar, scope)) next = dropSidebar(next, row.opens_sidebar);
 	}
-	return dropIfEmpty(next, container, scope);
+	return dropIfEmpty(next, container);
 }
 
 /**
@@ -202,7 +202,8 @@ export function remove(draft: Draft, container: string, key: string, scope: Scop
  * as an own row can be copied, and a row that opens a sidebar cannot go into one. The last row
  * out of an own sidebar takes the sidebar with it.
  */
-export function moveTo(draft: Draft, from: string, key: string, to: string, scope: Scope): Moved {
+export function moveTo(draft: Draft, from: string, key: string, to: string): Moved {
+	const { scope } = draft;
 	const rows = rowsOf(draft, from);
 	const row = rows.find((entry) => entry.key === key);
 	if (!row) return __("This row no longer exists.");
@@ -223,7 +224,7 @@ export function moveTo(draft: Draft, from: string, key: string, to: string, scop
 
 	const copies = family.map((member) => ({ member, key: isOwn(member.key, scope) ? member.key : newKey(scope) }));
 	const added = copies.filter(({ member, key }) => key !== member.key).length;
-	const capped = overCap(draft, to, copies.length, scope, added);
+	const capped = overCap(draft, to, copies.length, added);
 	if (capped) return capped;
 
 	const rename = new Map(copies.map(({ member, key }) => [member.key, key]));
@@ -250,7 +251,7 @@ export function moveTo(draft: Draft, from: string, key: string, to: string, scop
 
 	const target = rowsOf(draft, to);
 	const next = withRows(withRows(draft, from, left), to, [...target, ...moved]);
-	return { draft: dropIfEmpty(next, from, scope), key: rename.get(row.key)! };
+	return { draft: dropIfEmpty(next, from), key: rename.get(row.key)! };
 }
 
 /** Drop a row before a row of another container, or among the rows of the same one. */
@@ -259,15 +260,14 @@ export function dropAcross(
 	from: string,
 	key: string,
 	to: string,
-	beforeKey: string,
-	scope: Scope
+	beforeKey: string
 ): Moved {
 	if (from === to) {
 		const dropped = dropBefore(draft, from, key, beforeKey);
 		return refused(dropped) ? dropped : { draft: dropped, key };
 	}
 
-	const moved = moveTo(draft, from, key, to, scope);
+	const moved = moveTo(draft, from, key, to);
 	if (refused(moved)) return moved;
 	if (!find(moved.draft, to, beforeKey)) return moved;
 
@@ -276,12 +276,12 @@ export function dropAcross(
 }
 
 /** A drop onto a rail row that opens a sidebar puts the row at the end of that sidebar. */
-export function dropInto(draft: Draft, from: string, key: string, railKey: string, scope: Scope): Moved {
+export function dropInto(draft: Draft, from: string, key: string, railKey: string): Moved {
 	const opener = find(draft, RAIL, railKey);
 	const sidebar = sidebarOf(opener);
 	if (!sidebar || !(sidebar in draft.sidebars)) return __("That row opens no sidebar.");
 	if (from === sidebar) return { draft, key };
-	return moveTo(draft, from, key, sidebar, scope);
+	return moveTo(draft, from, key, sidebar);
 }
 
 /** Whether a rail row can be given a sidebar: it opens none yet, and the server takes a copy of it as the first row. */
@@ -290,7 +290,7 @@ export function canGiveSidebar(draft: Draft, row: EditorRow): boolean {
 }
 
 /** A new own sidebar whose first row copies the item's target; the item then opens it. */
-export function giveSidebar(draft: Draft, railKey: string, scope: Scope): Moved {
+export function giveSidebar(draft: Draft, railKey: string): Moved {
 	const item = find(draft, RAIL, railKey);
 	if (!item) return __("This row no longer exists.");
 	if (!canGiveSidebar(draft, item)) {
@@ -299,21 +299,21 @@ export function giveSidebar(draft: Draft, railKey: string, scope: Scope): Moved 
 			: __("{0} cannot have a sidebar of its own.", [labelOf(item)]);
 	}
 
-	const sidebar = newKey(scope);
-	const capped = overCap(draft, sidebar, 1, scope);
+	const sidebar = newKey(draft.scope);
+	const capped = overCap(draft, sidebar, 1);
 	if (capped) return capped;
 
 	const { key, parent_key, opens_sidebar, hidden, hidden_by, no_access, view_deleted, ...target } = item;
-	const first = { ...target, key: newKey(scope) } as EditorRow;
+	const first = { ...target, key: newKey(draft.scope) } as EditorRow;
 	const opened = replace(draft, RAIL, railKey, (row) => ({ ...row, opens_sidebar: sidebar }));
 	return { draft: { ...opened, sidebars: { ...opened.sidebars, [sidebar]: [first] } }, key: first.key };
 }
 
 /** Clear the row's `opens_sidebar` and drop that sidebar; offered for the level's own sidebar only. */
-export function removeSidebar(draft: Draft, railKey: string, scope: Scope): Edited {
+export function removeSidebar(draft: Draft, railKey: string): Edited {
 	const item = find(draft, RAIL, railKey);
 	if (!item?.opens_sidebar) return __("This row opens no sidebar.");
-	if (!isOwn(item.opens_sidebar, scope)) return __("Only a sidebar you added can be removed.");
+	if (!isOwn(item.opens_sidebar, draft.scope)) return __("Only a sidebar you added can be removed.");
 
 	const { opens_sidebar, ...rest } = item;
 	return dropSidebar(replace(draft, RAIL, railKey, () => rest), item.opens_sidebar);
@@ -323,8 +323,8 @@ export function removeSidebar(draft: Draft, railKey: string, scope: Scope): Edit
  * An own sidebar that an edit left empty goes, and its opener stays a plain row.
  * A Sidebar row that names it keeps it: that row has nothing else to open.
  */
-function dropIfEmpty(draft: Draft, container: string, scope: Scope): Draft {
-	if (container === RAIL || !isOwn(container, scope) || rowsOf(draft, container).length) return draft;
+function dropIfEmpty(draft: Draft, container: string): Draft {
+	if (container === RAIL || !isOwn(container, draft.scope) || rowsOf(draft, container).length) return draft;
 	const opener = openerOf(draft, container);
 	if (opener && opener.opens_sidebar !== container) return draft;
 	if (!opener) return dropSidebar(draft, container);
@@ -339,14 +339,8 @@ function dropSidebar(draft: Draft, sidebar: string): Draft {
 }
 
 /** The refusal when adding `count` rows to `container` passes a cap; `added` counts only new own rows. */
-function overCap(
-	draft: Draft,
-	container: string,
-	count: number,
-	scope: Scope,
-	added = count
-): string | undefined {
-	const own = (rows: EditorRow[]) => rows.filter((row) => isOwn(row.key, scope)).length;
+function overCap(draft: Draft, container: string, count: number, added = count): string | undefined {
+	const own = (rows: EditorRow[]) => rows.filter((row) => isOwn(row.key, draft.scope)).length;
 	const inContainer = own(rowsOf(draft, container));
 	if (inContainer + count > OWN_ROWS_PER_CONTAINER) {
 		return __("You can add up to {0} items here.", [OWN_ROWS_PER_CONTAINER]);
