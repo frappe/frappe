@@ -532,6 +532,34 @@ describe("an authored icon", () => {
 	});
 });
 
+describe("an Act cell", () => {
+	const dark: NavigationItem = {
+		key: "go-dark",
+		item_type: "Act",
+		label: "Go dark",
+		payload: { act: "shell.theme", value: "dark" },
+	};
+
+	it("is a button that runs its act, is never current and opens no sidebar", async () => {
+		const host = rail([dark], { current: "go-dark" });
+
+		const button = target(host, "go-dark") as HTMLElement;
+		expect(button.tagName).toBe("BUTTON");
+		expect(button.getAttribute("aria-label")).toBe("Go dark");
+		expect(marked(host)).toEqual([]);
+
+		button.click();
+		await flush();
+		expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+		useColorScheme().setColorScheme("light");
+	});
+
+	it("is left out while no act answers to its name", () => {
+		const gone = { ...dark, payload: { act: "shell.gone" } };
+		expect(cell(rail([gone]), "go-dark")).toBeNull();
+	});
+});
+
 describe("the person's cell", () => {
 	function userCell(host: HTMLElement) {
 		return host.querySelector<HTMLElement>("[data-key='user-menu']")!;

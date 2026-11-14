@@ -155,6 +155,11 @@ export class ActDispatcher {
 		return !this.lookup(name) && !!this.scopeOf(surfaceOf(name))?.loads?.(name);
 	}
 
+	/** A promise while `name`, which is not held yet, may still load (it starts the load); else nothing. */
+	loaded(name: string): Promise<void> | undefined {
+		return this.lookup(name) ? undefined : this.scopeOf(surfaceOf(name))?.loading?.(name);
+	}
+
 	/** Runs the act inside its scope's hold; rejects with `ActDenied`, or with what the act threw. */
 	async run(name: string, value?: unknown): Promise<unknown> {
 		const checked = this.check(name);

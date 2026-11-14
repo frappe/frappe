@@ -5,12 +5,13 @@ import { effectScope, type EffectScope } from "vue";
 const fake = vi.hoisted(() => ({
 	find: vi.fn(),
 	loads: vi.fn(),
+	loaded: vi.fn(),
 	perform: vi.fn(),
 	openArgumentStep: vi.fn(),
 }));
 
 vi.mock("@/acts/dispatcher", () => ({
-	acts: { find: fake.find, loads: fake.loads, perform: fake.perform },
+	acts: { find: fake.find, loads: fake.loads, loaded: fake.loaded, perform: fake.perform },
 }));
 vi.mock("../palette", () => ({ openArgumentStep: fake.openArgumentStep }));
 
@@ -72,6 +73,37 @@ describe("a click", () => {
 		fake.find.mockReturnValue({ argument: {} });
 		await row({ act: "shell.create", value: "Note" }).run();
 		expect(fake.perform).toHaveBeenCalledWith("shell.create", "Note");
+	});
+});
+
+describe("a click while the app's acts load", () => {
+	it("waits for the load, then opens the argument step the loaded act has", async () => {
+		let arrive!: () => void;
+		fake.find.mockReturnValue(undefined);
+		fake.loaded.mockReturnValue(new Promise<void>((resolve) => (arrive = resolve)));
+		const running = row({ act: "shell.crm.new_lead" }).run();
+
+		await Promise.resolve();
+		expect(fake.openArgumentStep).not.toHaveBeenCalled();
+		expect(fake.perform).not.toHaveBeenCalled();
+
+		fake.find.mockReturnValue({ argument: {} });
+		arrive();
+		await running;
+		expect(fake.openArgumentStep).toHaveBeenCalledWith("shell.crm.new_lead");
+		expect(fake.perform).not.toHaveBeenCalled();
+	});
+
+	it("waits for the load, then performs an act with no argument", async () => {
+		let arrive!: () => void;
+		fake.find.mockReturnValue(undefined);
+		fake.loaded.mockReturnValue(new Promise<void>((resolve) => (arrive = resolve)));
+		const running = row({ act: "shell.crm.sync" }).run();
+
+		fake.find.mockReturnValue({ name: "shell.crm.sync" });
+		arrive();
+		await running;
+		expect(fake.perform).toHaveBeenCalledWith("shell.crm.sync", undefined);
 	});
 });
 
