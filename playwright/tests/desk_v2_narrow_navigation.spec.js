@@ -77,7 +77,9 @@ test.describe("Desk v2 narrow navigation", () => {
 
 		await button.click();
 		await expect(drawer).toBeVisible();
-		await page.locator("[data-navigation-drawer-scrim]").click({ position: { x: 790, y: 400 } });
+		await page
+			.locator("[data-navigation-drawer-scrim]")
+			.click({ position: { x: 790, y: 400 } });
 		await expect(drawer).toHaveCount(0);
 	});
 
