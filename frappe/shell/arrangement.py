@@ -99,18 +99,19 @@ def save_arrangement(container: str, address: str, items: str | list, scope: str
 @frappe.whitelist()
 def get_arrangements(app: str, scope: str = "user") -> dict:
 	"""Everything the navigation editor shows for one app at one level, in one call."""
-	from .arrangement_editor import read_arrangements
-
-	return read_arrangements(app, scope)
+	return _editor("read_arrangements")(app, scope)
 
 
 @frappe.desk_v2_only
 @frappe.whitelist()
 def save_arrangements(app: str, scope: str, containers: str | dict, version: str) -> dict:
 	"""Store every container the editor changed in one transaction, and hand back the whole prefix's navigation."""
-	from .arrangement_editor import write_arrangements
+	return _editor("write_arrangements")(app, scope, containers, version)
 
-	return write_arrangements(app, scope, containers, version)
+
+def _editor(function: str) -> Callable:
+	"""The editor's read or write, by name: the editor builds on this module, which must not import it back."""
+	return frappe.get_attr(f"frappe.shell.arrangement_editor.{function}")
 
 
 @frappe.desk_v2_only
