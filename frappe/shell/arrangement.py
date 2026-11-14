@@ -671,7 +671,7 @@ def _own(item: dict, anchors: list[dict] | None) -> dict:
 	row |= {"doctype": "Navigation Item", "added": 1}
 
 	if isinstance(item.get("payload"), dict):
-		row["payload"] = json.dumps(item["payload"])
+		row["payload"] = _compact_json(item["payload"])
 
 	if anchors:
 		row["anchors"] = json.dumps(anchors)
@@ -679,6 +679,18 @@ def _own(item: dict, anchors: list[dict] | None) -> dict:
 		row.pop("anchors", None)
 
 	return row
+
+
+def _compact_json(payload) -> str:
+	"""The stored form of an object payload: as short as it goes, so a re-save keeps what a validator measured."""
+	text = json.dumps(payload, separators=(",", ":"), ensure_ascii=False)
+
+	try:
+		text.encode()
+	except UnicodeEncodeError:  # a lone surrogate: only the escaped form is storable text
+		return json.dumps(payload, separators=(",", ":"))
+
+	return text
 
 
 def _check_own_content(item: dict):

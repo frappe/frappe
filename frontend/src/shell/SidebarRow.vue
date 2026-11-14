@@ -59,6 +59,22 @@
 			</a>
 		</div>
 
+		<!-- An action: it opens no place, so it is never current. Not drawn while its act is missing. -->
+		<div v-else-if="actRendering && act.available.value" :data-key="item.key" :class="ROW">
+			<button
+				type="button"
+				:class="ROW_TARGET"
+				:aria-busy="act.spinning.value"
+				@click="act.run"
+			>
+				<span class="grid shrink-0 place-items-center">
+					<LoadingIndicator v-if="act.spinning.value" class="size-4" />
+					<Icon v-else :name="iconOf(item)" />
+				</span>
+				<span class="ml-2 min-w-0 flex-1 truncate text-sm">{{ label }}</span>
+			</button>
+		</div>
+
 		<!-- Rows fetched on demand; they land at this row's own level. -->
 		<div v-else-if="expander" :data-key="item.key" :class="ROW">
 			<button type="button" :class="ROW_TARGET" :aria-expanded="expanded" @click="expand">
@@ -105,7 +121,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { SidebarItem, SidebarSection, Skeleton } from "frappe-ui";
+import { LoadingIndicator, SidebarItem, SidebarSection, Skeleton } from "frappe-ui";
+import { useActRow } from "./actRow";
 import { buildTree, containsKey, type ItemNode } from "@/navigation/tree";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { iconOf, labelOf, renderingOf } from "@/navigation/registry";
@@ -136,6 +153,11 @@ const destination = computed(() => {
 	const value = rendering.value;
 	return value && ("to" in value || "href" in value) ? value : null;
 });
+const actRendering = computed(() => {
+	const value = rendering.value;
+	return value && "act" in value ? value : null;
+});
+const act = useActRow(() => actRendering.value ?? { act: "" });
 const expander = computed(() => {
 	const value = rendering.value;
 	return value && "expand" in value ? value : null;

@@ -15,6 +15,8 @@ export type Rendering =
 	| { to: RouteLocationRaw; sidebar?: string }
 	// `external`: another origin, which opens in a new tab and says so.
 	| { href: string; sidebar?: string; external?: boolean }
+	// Runs a shell act when clicked: it opens no place, so it is never current. `value` is a preset.
+	| { act: string; value?: unknown }
 	| { group: true }
 	| { expand: () => Promise<NavigationItem[]> };
 

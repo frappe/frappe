@@ -325,6 +325,36 @@ describe("the panel is a container, not a view of the rail", () => {
 	});
 });
 
+describe("an Act row in the panel", () => {
+	const dark: NavigationItem = {
+		key: "go-dark",
+		item_type: "Act",
+		label: "Go dark",
+		payload: { act: "shell.theme", value: "dark" },
+	};
+
+	it("is a button that runs its act and is never marked current", async () => {
+		const { host } = await shell([accounts], { module_def_accounts: [dark, invoice] }, "/sales-invoice");
+
+		const row = panel(host)?.querySelector("[data-key='go-dark']");
+		const button = row?.querySelector("button");
+		expect(button?.textContent?.trim()).toBe("Go dark");
+		expect(row?.querySelector("a")).toBeNull();
+		expect(marked(panel(host))).toEqual(["invoice"]);
+
+		button!.click();
+		await flush();
+		expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+		document.documentElement.removeAttribute("data-theme");
+	});
+
+	it("is not drawn while no act answers to its name", async () => {
+		const gone = { ...dark, payload: { act: "shell.gone" } };
+		const { host } = await shell([accounts], { module_def_accounts: [gone, invoice] }, "/sales-invoice");
+		expect(panel(host)?.querySelector("[data-key='go-dark']")).toBeNull();
+	});
+});
+
 describe("what the panel draws", () => {
 	const section: NavigationItem = { key: "billing", item_type: "Section", label: "Billing" };
 	const nested = { ...invoice, parent_key: "billing" };

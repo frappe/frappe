@@ -433,6 +433,85 @@
 				"a": null
 			},
 			"moves": []
+		},
+		{
+			"name": "an item under an act row",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "s",
+					"item_type": "Section"
+				},
+				{
+					"key": "a",
+					"item_type": "Act",
+					"parent_key": "s"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				},
+				{
+					"key": "c",
+					"item_type": "DocType"
+				}
+			],
+			"errors": [
+				"b"
+			],
+			"capped": {
+				"s": null,
+				"a": "s",
+				"b": "s",
+				"c": null
+			},
+			"moves": [
+				{
+					"key": "c",
+					"parent": "a",
+					"allowed": false
+				},
+				{
+					"key": "c",
+					"parent": "s",
+					"allowed": true
+				},
+				{
+					"key": "a",
+					"parent": "s",
+					"allowed": true
+				}
+			]
+		},
+		{
+			"name": "a child of a top-level act row",
+			"container": "Sidebar",
+			"items": [
+				{
+					"key": "a",
+					"item_type": "Act"
+				},
+				{
+					"key": "b",
+					"item_type": "DocType",
+					"parent_key": "a"
+				}
+			],
+			"errors": [
+				"b"
+			],
+			"capped": {
+				"a": null,
+				"b": null
+			},
+			"moves": [
+				{
+					"key": "b",
+					"parent": null,
+					"allowed": true
+				}
+			]
 		}
 	]
 }

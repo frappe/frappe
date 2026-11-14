@@ -20,7 +20,7 @@
 							v-if="boot.app_logo"
 							:src="boot.app_logo"
 							alt=""
-							class="size-7 rounded-[7px]"
+							class="size-7 rounded-4"
 						/>
 						<span v-else>{{ appTitle.charAt(0).toUpperCase() }}</span>
 					</button>
@@ -55,6 +55,9 @@
 						<Icon v-if="cell.icon" :name="cell.icon" />
 						<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
 					</SidebarRailItem>
+
+					<!-- An action: a button, never current and never linked to a sidebar. -->
+					<ActCell v-else-if="'act' in cell" :cell="cell" />
 
 					<!-- Off this prefix: a full document load, so an `<a>` with `SidebarRailItem`'s classes.
 					     Never current: `current` is a route. -->
@@ -99,26 +102,29 @@ import { Divider, Dropdown, SidebarRail, SidebarRailItem, ScrollArea, Tooltip } 
 import type { NavigationItem } from "@/boot";
 import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
+import { isActAvailable } from "./actRow";
 import { labelOf, renderingOf } from "@/navigation/registry";
 import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
 import { useAppMenu } from "./appMenu";
+import ActCell from "./RailActCell.vue";
 import UserMenu from "./UserMenu.vue";
 import UtilitySlots from "./UtilitySlots.vue";
 
 type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
 	| { to: RouteLocationRaw }
 	| { href: string; external?: boolean; ariaLabel?: string }
+	| { act: string; value?: unknown }
 );
 
 const TILE =
-	"flex size-7 items-center justify-center rounded-[7px] transition focus-visible:ring-0 focus-visible:focus-ring";
+	"flex size-7 items-center justify-center rounded-4 transition focus-visible:ring-0 focus-visible:focus-ring";
 const LETTER_TILE =
 	"bg-surface-gray-3 text-sm font-medium text-ink-gray-8 hover:bg-surface-gray-4";
 // `SidebarRailItem`'s own inactive tile.
 const CELL =
-	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
+	"relative flex size-7 shrink-0 items-center justify-center rounded-4 bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
 // The shell decides `current`, one row across rail and panel; a context is composed once per list.
 const props = withDefaults(
 	defineProps<{
@@ -140,7 +146,7 @@ const cells = computed(() => {
 	const walk = (nodes: ItemNode[]) => {
 		for (const node of nodes) {
 			const cell = cellOf(node.item);
-			if (cell) out.push(cell);
+			if (cell && !("act" in cell && !isActAvailable(cell.act))) out.push(cell);
 			walk(node.children);
 		}
 	};
@@ -150,9 +156,11 @@ const cells = computed(() => {
 
 function cellOf(item: NavigationItem): Cell | null {
 	const rendering = renderingOf(item, props.context);
-	if (!rendering || !("to" in rendering || "href" in rendering)) return null;
+	if (!rendering || !("to" in rendering || "href" in rendering || "act" in rendering))
+		return null;
 
 	const cell = { key: item.key, label: labelOf(item, props.context), icon: item.icon };
+	if ("act" in rendering) return { ...cell, ...rendering };
 	return "to" in rendering
 		? { ...cell, to: rendering.to, sidebar: rendering.sidebar }
 		: {

@@ -184,6 +184,23 @@ describe("a module's bare address", () => {
 		);
 	});
 
+	it("skips an Act row, which opens no place", async () => {
+		const act = {
+			key: "go-dark",
+			item_type: "Act",
+			payload: { act: "shell.theme", value: "dark" },
+		} as unknown as NavigationItem;
+		const router = routerFor(
+			erpnext({ rail: [act, sidebar("module_def_stock")], sidebars: { module_def_stock: [act, doctype("Item")] } })
+		);
+
+		await router.push("/");
+		expect(router.currentRoute.value.fullPath).toBe("/stock/item?sidebar=module_def_stock");
+
+		await router.push("/stock");
+		expect(router.currentRoute.value.fullPath).toBe("/stock/item?sidebar=module_def_stock");
+	});
+
 	it("skips a row that leads to another landing", async () => {
 		const router = routerFor(
 			erpnext({
