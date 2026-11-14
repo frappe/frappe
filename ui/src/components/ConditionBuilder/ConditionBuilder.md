@@ -135,10 +135,10 @@ drawn where it sits.
 
 **The cost is width, and at `maxDepth` 4 it is severe.** A nested group sits in a
 row of its parent, so each level spends that row's leading tracks before the
-group's own contents start: the conjunction cell (`minmax(66px, max-content)`),
+group's own contents start: the conjunction cell (`max-content`, about 62px),
 the drag handle (`w-4`), the two `gap-x-2`s between them, and, under
-`bordered="all"`, the card's own `border` and `p-3`. That is **111px of start
-edge per level**, and the innermost leaf row then spends another 98px on its own
+`bordered="all"`, the card's own `border` and `p-3`. That is **about 107px of
+start edge per level**, and the innermost leaf row then spends another 94px on its own
 conjunction cell and handle before its field control begins.
 
 At the default `maxDepth` of 4 that is roughly **540px gone before the deepest

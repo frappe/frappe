@@ -1,4 +1,4 @@
-// The rule rows as the panel draws them: open the popover, edit or not, close it.
+// The rule rows as the panel draws them: open the dialog, edit or not, close it.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
 
@@ -46,7 +46,7 @@ async function openRow(key: string) {
 	return openButton(row(key));
 }
 
-/** The builder loads on demand, so the popover is ready only when its editor has rendered. */
+/** The builder loads on demand, so the dialog is ready only when its editor has rendered. */
 async function openButton(button: HTMLButtonElement) {
 	button.click();
 	await vi.waitFor(() => expect(document.querySelector("[data-rule-editor]")).not.toBeNull());
@@ -59,18 +59,29 @@ async function done() {
 	await settle();
 }
 
-describe("the rule popover", () => {
+describe("the rule dialog", () => {
 	it("shows each row's words in the panel", () => {
 		mount({ depends_on: "eval:doc.status=='Open'" });
 		expect(row("depends_on").textContent).toContain("Status is Open");
 		expect(row("mandatory_depends_on").textContent).toContain("Never");
 	});
 
+	it("titles the dialog with the rule and the field, with Rules | Code, Clear and Done in its footer", async () => {
+		mount();
+		await openRow("mandatory_depends_on");
+		const dialog = document.querySelector<HTMLElement>("[role=dialog]")!;
+		const title = document.getElementById(dialog.getAttribute("aria-labelledby")!)!;
+		expect(title.textContent).toBe("Mandatory if · Subject");
+		const footer = document.querySelector("[data-rule-done]")!.parentElement!;
+		expect(footer.querySelector("[data-rule-mode]")).not.toBeNull();
+		expect(footer.querySelector("[data-rule-clear]")!.textContent).toBe("Clear condition");
+	});
+
 	it("keeps an unreadable rule as written: open in Code, closed with nothing staged", async () => {
 		const raw = "eval:frappe.user.has_role('Accounts User')";
 		const editor = mount({ read_only_depends_on: raw });
-		const popover = await openRow("read_only_depends_on");
-		expect(popover.querySelector<HTMLTextAreaElement>("[data-rule-code]")!.value).toBe(
+		const builder = await openRow("read_only_depends_on");
+		expect(builder.querySelector<HTMLTextAreaElement>("[data-rule-code]")!.value).toBe(
 			"frappe.user.has_role('Accounts User')",
 		);
 		await done();
@@ -78,10 +89,10 @@ describe("the rule popover", () => {
 		expect(editor.edits.staged.value).toEqual([]);
 	});
 
-	it("stages an edited rule once, as one undo step, when the popover closes", async () => {
+	it("stages an edited rule once, as one undo step, when the dialog closes", async () => {
 		const editor = mount({ depends_on: "eval:doc.status=='Open'" });
-		const popover = await openRow("depends_on");
-		popover.querySelector<HTMLButtonElement>("[data-rule-clear]")!.click();
+		const builder = await openRow("depends_on");
+		builder.querySelector<HTMLButtonElement>("[data-rule-clear]")!.click();
 		await settle();
 		expect(editor.edits.staged.value).toEqual([]);
 		await done();
@@ -89,6 +100,19 @@ describe("the rule popover", () => {
 			{ act: "fields.set_field_property", fieldname: "subject", property: "depends_on", value: "" },
 		]);
 		expect(row("depends_on").textContent).toContain("Always");
+	});
+
+	it("stages the edit and returns focus to the row when Escape closes the dialog", async () => {
+		const editor = mount({ depends_on: "eval:doc.status=='Open'" });
+		const builder = await openRow("depends_on");
+		builder.querySelector<HTMLButtonElement>("[data-rule-clear]")!.click();
+		await settle();
+		document.activeElement!.dispatchEvent(
+			new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+		);
+		await vi.waitFor(() => expect(document.querySelector("[data-rule-editor]")).toBeNull());
+		expect(editor.edits.staged.value).toHaveLength(1);
+		await vi.waitFor(() => expect(document.activeElement).toBe(row("depends_on")));
 	});
 
 	it("opens only the row clicked last while the builder loads", async () => {
@@ -128,6 +152,7 @@ describe("a container's rule rows", () => {
 		expect(document.querySelector('[data-rule-row="more.collapsibleDependsOn"]')).toBeNull();
 
 		await openButton(visible);
+		expect(document.querySelector("[role=dialog]")!.textContent).toContain("Visible if · Untitled section");
 		document.querySelector<HTMLButtonElement>("[data-rule-clear]")!.click();
 		await settle();
 		await done();

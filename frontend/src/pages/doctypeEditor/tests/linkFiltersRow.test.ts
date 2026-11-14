@@ -65,6 +65,17 @@ describe("a Link field's Filters row", () => {
 		expect(row.textContent).toContain("Company is this record's Billing Company");
 	});
 
+	it("opens the filters in the same dialog, titled with the field", async () => {
+		getMeta.mockResolvedValue({ data: CUSTOMER });
+		const row = await mount("");
+		row.click();
+		await vi.waitFor(() => expect(document.querySelector("[data-rule-editor]")).not.toBeNull());
+		const dialog = document.querySelector("[role=dialog]")!;
+		const title = document.getElementById(dialog.getAttribute("aria-labelledby")!)!;
+		expect(title.textContent).toBe("Filters · Customer");
+		expect(document.querySelector("[data-rule-clear]")!.textContent).toBe("Clear filters");
+	});
+
 	it("says Any <DocType> with no filters", async () => {
 		getMeta.mockResolvedValue({ data: CUSTOMER });
 		expect((await mount("")).textContent).toContain("Any Customer");

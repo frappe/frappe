@@ -65,10 +65,11 @@
 					<ConditionRule
 						:index="index"
 						:count="group.conditions.length"
+						:conjunction="conjunction"
 						:offset="firstLineOffset(condition)"
 					>
 						<div
-							class="flex min-h-7 items-center justify-center"
+							class="flex min-h-7 items-center justify-start"
 							:style="firstLineStyle(condition)"
 						>
 							<slot v-if="index === 0" name="condition-where" v-bind="whereProps()">

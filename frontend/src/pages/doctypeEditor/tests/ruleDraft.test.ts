@@ -8,7 +8,7 @@ const words = new RuleWords([
 	{ fieldname: "urgent", label: "Urgent", fieldtype: "Check" },
 ]);
 
-describe("the rule popover's draft", () => {
+describe("the rule dialog's draft", () => {
 	it("opens a readable rule in Rules, and writes the edited tree back as the stored text", () => {
 		const draft = new RuleDraft('eval:doc.status=="Open"', words);
 		expect(draft.mode.value).toBe("rules");
