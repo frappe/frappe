@@ -541,6 +541,8 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 			frappe.qb.from_(global_search)
 			.select(global_search.doctype, global_search.name, global_search.content, rank.as_("rank"))
 			.where(rank)
+			# a document whose name is the search text must not fall victim to the limit
+			.orderby(global_search.name == word, order=frappe.qb.desc)
 			.orderby("rank", order=frappe.qb.desc)
 			.limit(limit)
 		)
@@ -557,7 +559,7 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 
 		results.extend(result)
 
-	for r in sort_search_results(results, allowed_doctypes):
+	for r in sort_search_results(results, allowed_doctypes, text):
 		if r.rank > 0.0:
 			try:
 				meta = frappe.get_meta(r.doctype)
@@ -574,10 +576,11 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 	return sorted_results
 
 
-def sort_search_results(results: list, doctypes: list[str]) -> list:
-	"""Order hits by the DocType priority from Global Search Settings, then by relevance."""
+def sort_search_results(results: list, doctypes: list[str], text: str = "") -> list:
+	"""Order hits by exact name match, then the DocType priority from Global Search Settings, then relevance."""
 	priority = {doctype: idx for idx, doctype in enumerate(doctypes)}
-	return sorted(results, key=lambda r: (priority[r.doctype], -r.rank))
+	query = text.strip().casefold()
+	return sorted(results, key=lambda r: (r.name.casefold() != query, priority[r.doctype], -r.rank))
 
 
 WEB_SEARCH_MAX_SEGMENTS = 5
