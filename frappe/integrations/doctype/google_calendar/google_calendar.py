@@ -19,6 +19,7 @@ from frappe.utils import (
 	add_days,
 	add_to_date,
 	get_datetime,
+	get_email_address,
 	get_request_site_address,
 	get_system_timezone,
 	get_weekdays,
@@ -411,7 +412,7 @@ def update_participants_in_event(calendar_event: "Event", google_event: dict):
 		attendee["email"] for attendee in google_event.get("attendees", []) if not attendee.get("self")
 	]
 	in_system_participants = frappe.get_all(
-		"User", filters={"email": ("in", google_event_participants)}, pluck="email"
+		"User", filters={"email": ("in", google_event_participants)}, pluck="name"
 	)
 
 	existing_calendar_participants = [
@@ -810,7 +811,7 @@ def get_conference_data(doc):
 def get_attendees(doc):
 	"""Return a list of dicts with attendee emails, if available in event_participants table."""
 	attendees, email_not_found = [], []
-	owner = frappe.db.get_value("Google Calendar", doc.google_calendar, "user")
+	owner = get_email_address(frappe.db.get_value("Google Calendar", doc.google_calendar, "user"))
 
 	for participant in doc.event_participants:
 		p_email = participant.get("email")

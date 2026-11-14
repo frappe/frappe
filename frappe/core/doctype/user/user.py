@@ -32,6 +32,7 @@ from frappe.utils import (
 	format_datetime,
 	get_formatted_email,
 	get_system_timezone,
+	get_user_by_email,
 	now_datetime,
 	today,
 	validate_time_zone,
@@ -733,7 +734,7 @@ class User(Document):
 			note.save(ignore_permissions=True)
 
 		# Unlink user from all of its invitation docs
-		invites = frappe.get_docs("User Invitation", filters={"email": self.name})
+		invites = frappe.get_docs("User Invitation", filters={"user": self.name})
 		for invite_doc in invites:
 			invite_doc.user = None
 			invite_doc.save(ignore_permissions=True)
@@ -1357,8 +1358,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	if is_signup_disabled():
 		allow = False
 
-	existing_user = frappe.db.get("User", {"email": email})
-	if existing_user:
+	if get_user_by_email(email, skip_standard_users=False):
 		allow = False
 
 	if not allow:
@@ -1454,15 +1454,18 @@ def set_first_password(new_password: str) -> None:
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
 def reset_password(user: str) -> None:
+	"""Send a password reset link to the user whose email is given."""
 	# Always return the same generic response regardless of whether the user
 	# exists, is disabled, or is restricted. This prevents username enumeration
 	# via different messages or HTTP status codes (CWE-204).
 
 	try:
-		user_doc: User = frappe.get_doc("User", user)
-		if user_doc.name != "Administrator" and user_doc.enabled:
-			user_doc.validate_reset_password()
-			user_doc._reset_password(send_email=True)
+		if user_id := get_user_by_email(user):
+			user_doc: User = frappe.get_doc("User", user_id)
+
+			if user_doc.enabled:
+				user_doc.validate_reset_password()
+				user_doc._reset_password(send_email=True)
 		# For Administrator or disabled users: silently skip — same response below
 	except frappe.DoesNotExistError:
 		frappe.clear_messages()

@@ -88,6 +88,12 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(len(sent_emails), 1)
 		self.assertIn("invited", sent_emails[0].message.lower())
 
+	def test_administrator_email_cannot_be_invited(self):
+		invitation = self.get_dummy_invitation()
+		invitation.email = frappe.db.get_value("User", "Administrator", "email")
+
+		self.assertRaises(frappe.ValidationError, invitation.insert)
+
 	def test_update_invitation_status_to_expired(self):
 		invitation = self.get_dummy_invitation()
 		invitation.insert()

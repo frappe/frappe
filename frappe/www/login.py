@@ -11,7 +11,7 @@ from frappe.apps import get_default_path
 from frappe.auth import LoginManager
 from frappe.core.doctype.navbar_settings.navbar_settings import get_app_logo
 from frappe.rate_limiter import rate_limit
-from frappe.utils import cint, get_request_host, get_url
+from frappe.utils import cint, get_request_host, get_url, get_user_by_email
 from frappe.utils.data import escape_html
 from frappe.utils.html_utils import get_icon_html
 from frappe.utils.jinja import guess_is_path
@@ -170,10 +170,12 @@ def send_login_link(email: str):
 def _generate_temporary_login_link(email: str, expiry: int):
 	assert isinstance(email, str)
 
-	if not frappe.db.exists("User", {"name": email, "enabled": 1}):
+	user = get_user_by_email(email)
+
+	if not user or not frappe.db.get_value("User", user, "enabled"):
 		frappe.throw(_("No active user found with email address {0}").format(email), frappe.DoesNotExistError)
 	key = frappe.generate_hash()
-	frappe.cache.set_value(f"one_time_login_key:{key}", email, expires_in_sec=expiry * 60)
+	frappe.cache.set_value(f"one_time_login_key:{key}", user, expires_in_sec=expiry * 60)
 
 	return get_url(f"/api/method/frappe.www.login.login_via_key?key={key}", allow_header_override=False)
 
@@ -182,11 +184,11 @@ def _generate_temporary_login_link(email: str, expiry: int):
 @rate_limit(limit=get_login_with_email_link_ratelimit, seconds=60 * 60)
 def login_via_key(key: str):
 	cache_key = f"one_time_login_key:{key}"
-	email = frappe.cache.get_value(cache_key)
+	user = frappe.cache.get_value(cache_key)
 
-	if email:
+	if user:
 		frappe.cache.delete_value(cache_key)
-		frappe.local.login_manager.login_as(email)
+		frappe.local.login_manager.login_as(user)
 
 		redirect_post_login(
 			desk_user=frappe.db.get_value("User", frappe.session.user, "user_type") == "System User"

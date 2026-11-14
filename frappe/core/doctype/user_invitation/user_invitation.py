@@ -102,8 +102,12 @@ class UserInvitation(Document):
 			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
 		):
 			frappe.throw(title=_("Error"), msg=_("Invitation already exists"))
-		user_enabled = frappe.db.get_value("User", self.email, "enabled")
-		if user_enabled is not None and user_enabled == 0:
+		user_id = frappe.utils.get_user_by_email(self.email, skip_standard_users=False)
+
+		if user_id in frappe.STANDARD_USERS:
+			frappe.throw(title=_("Error"), msg=_("Standard users can't be invited"))
+
+		if user_id and not frappe.db.get_value("User", user_id, "enabled"):
 			frappe.throw(title=_("Error"), msg=_("User is disabled"))
 
 	def send_invitation_mail(self):
@@ -139,15 +143,14 @@ class UserInvitation(Document):
 			frappe.throw(title=_("Error"), msg=_("Invitation is cancelled"))
 		self.status = "Accepted"
 		self.accepted_at = frappe.utils.now()
-		self.user = self.email
 		self.key = None
 		return True
 
 	def _upsert_user(self, ignore_permissions: bool = False):
 		user: Document | None = None
 		user_inserted = False
-		if frappe.db.exists("User", self.user):
-			user = frappe.get_doc("User", self.user)
+		if user_id := frappe.utils.get_user_by_email(self.email):
+			user = frappe.get_doc("User", user_id)
 		else:
 			user = frappe.new_doc("User")
 			user.user_type = "System User"
@@ -156,6 +159,7 @@ class UserInvitation(Document):
 			user.send_welcome_email = False
 			user.insert(ignore_permissions)
 			user_inserted = True
+		self.user = user.name
 		user.append_roles(*[r.role for r in self.roles])
 		return user, user_inserted
 
