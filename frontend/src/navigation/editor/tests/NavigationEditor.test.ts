@@ -1,6 +1,7 @@
 // The editor, mounted: it reads a level, edits a draft, and commits with one Save.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref } from "vue";
+import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { ApiError } from "@framework/ui/api";
 import type { Boot } from "@/boot";
@@ -54,6 +55,7 @@ const text = (selector: string) => body().querySelector(selector)?.textContent?.
 const rowsShown = () => Array.from(body().querySelectorAll("[data-editor-list] li")).map((li) => li.textContent?.trim());
 
 let unmount = () => {};
+let router: Router;
 
 async function open(answer: Arrangements = response()) {
 	api.fetchArrangements.mockResolvedValue(answer);
@@ -64,6 +66,10 @@ async function open(answer: Arrangements = response()) {
 		onSaved: () => emitted.push("saved"),
 	});
 	app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	await router.push("/page");
+	await router.push("/page#customize/rail");
+	app.use(router);
 	const host = document.createElement("div");
 	document.body.appendChild(host);
 	app.mount(host);
@@ -245,6 +251,91 @@ describe("the editor", () => {
 		expect(rowsShown()).toEqual(["OTHER"]);
 	});
 
+	describe("leaving with edits", () => {
+		const hide = async () => {
+			click("[data-key='todo']");
+			await settle();
+			click("[data-row-actions] button");
+			await settle();
+		};
+		const labels = () =>
+			confirm.mock.calls[0][0].actions.map((action: { label: string }) => action.label);
+
+		it("asks before Cancel drops edits, and closes only on Discard", async () => {
+			const emitted = await open();
+			await hide();
+			click("footer button:not([data-save]):not([data-revert])");
+			await settle();
+			expect(confirm).toHaveBeenCalledOnce();
+			expect(confirm.mock.calls[0][0].title).toBe("Discard your changes?");
+			expect(labels()).toEqual(["Keep editing", "Discard and close"]);
+			expect(emitted).toEqual([]);
+
+			confirm.mock.calls[0][0].actions[1].onClick();
+			expect(emitted).toEqual(["close"]);
+		});
+
+		it("closes Cancel at once when nothing changed", async () => {
+			const emitted = await open();
+			click("footer button:not([data-save]):not([data-revert])");
+			await settle();
+			expect(confirm).not.toHaveBeenCalled();
+			expect(emitted).toEqual(["close"]);
+		});
+
+		it("keeps Back on the editor until Discard, then lets it through", async () => {
+			await open();
+			await hide();
+			router.back();
+			await settle();
+			expect(confirm).toHaveBeenCalledOnce();
+			expect(router.currentRoute.value.hash).toBe("#customize/rail");
+			expect(body().querySelector("[data-save]")).not.toBeNull();
+
+			confirm.mock.calls[0][0].actions[1].onClick();
+			await settle();
+			expect(router.currentRoute.value.hash).toBe("");
+		});
+
+		it("asks before a hash change closes the editor, and leaves a clean one alone", async () => {
+			await open();
+			await hide();
+			await router.replace({ hash: "" });
+			await settle();
+			expect(confirm).toHaveBeenCalledOnce();
+			expect(router.currentRoute.value.hash).toBe("#customize/rail");
+
+			click("[data-revert]");
+			await settle();
+			await router.replace({ hash: "" });
+			expect(confirm).toHaveBeenCalledOnce();
+			expect(router.currentRoute.value.hash).toBe("");
+		});
+
+		it("does not ask when a Save closes the editor", async () => {
+			api.saveArrangements.mockResolvedValue({ rail: [], sidebars: {} });
+			const emitted = await open();
+			await hide();
+			click("[data-save]");
+			await settle();
+			expect(emitted).toContain("close");
+			await router.replace({ hash: "" });
+			expect(confirm).not.toHaveBeenCalled();
+			expect(router.currentRoute.value.hash).toBe("");
+		});
+
+		it("keeps the edits when the person chooses Keep editing", async () => {
+			const emitted = await open();
+			await hide();
+			click("footer button:not([data-save]):not([data-revert])");
+			await settle();
+			expect(confirm.mock.calls[0][0].actions[0].onClick).toBeUndefined();
+			expect(emitted).toEqual([]);
+			expect(body().querySelector("[data-revert]")).not.toBeNull();
+		});
+	});
+
+
 	it("moves focus from a row to the form on Enter", async () => {
 		await open(response({ rail: [row("todo"), row("note")] }));
 		const item = body().querySelector<HTMLElement>("[data-key='note']")!;
@@ -329,6 +420,10 @@ describe("the editor", () => {
 		const target = ref<{ tab: "sidebar"; address: string }>({ tab: "sidebar", address: "s1" });
 		const app = createApp({ render: () => h(NavigationEditor, { target: target.value }) });
 		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	await router.push("/page");
+	await router.push("/page#customize/rail");
+	app.use(router);
 		const host = document.createElement("div");
 		document.body.appendChild(host);
 		app.mount(host);
@@ -372,6 +467,10 @@ describe("the editor", () => {
 			.mockResolvedValueOnce(response(sidebars("shared", "deal")));
 		const app = createApp({ render: () => h(NavigationEditor, { target: { tab: "sidebar", address: "mine" } }) });
 		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	await router.push("/page");
+	await router.push("/page#customize/rail");
+	app.use(router);
 		const host = document.createElement("div");
 		document.body.appendChild(host);
 		app.mount(host);
@@ -400,6 +499,10 @@ describe("the editor", () => {
 		const target = ref<{ tab: "rail" }>({ tab: "rail" });
 		const app = createApp({ render: () => h(NavigationEditor, { target: target.value }) });
 		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	await router.push("/page");
+	await router.push("/page#customize/rail");
+	app.use(router);
 		const host = document.createElement("div");
 		document.body.appendChild(host);
 		app.mount(host);
@@ -463,6 +566,10 @@ describe("the editor", () => {
 				}),
 		});
 		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+	router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+	await router.push("/page");
+	await router.push("/page#customize/rail");
+	app.use(router);
 		const host = document.createElement("div");
 		document.body.appendChild(host);
 		app.mount(host);

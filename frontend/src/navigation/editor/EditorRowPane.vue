@@ -69,11 +69,12 @@ import { computed } from "vue";
 import { Button, FormControl, Select } from "frappe-ui";
 import { __ } from "@/i18n";
 import IconPicker from "@/icons/IconPicker.vue";
-import { type EditorRow, originOf } from "./draft";
+import { type EditorRow, isOwn, originOf, type Scope } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
 
 const props = defineProps<{
 	row: EditorRow | undefined;
+	scope: Scope;
 	/** Rows a row may sit under, as options; empty on the rail. */
 	parents: { label: string; value: string }[];
 	canPlace: boolean;
@@ -88,7 +89,7 @@ const emit = defineEmits<{
 	toggle: [];
 }>();
 
-const own = computed(() => !!props.row && originOf(props.row.key) !== "app");
+const own = computed(() => !!props.row && isOwn(props.row.key, props.scope));
 const target = computed(() => props.row?.link_to ?? props.row?.url ?? props.row?.item_type ?? "");
 const originLabel = computed(() => {
 	const origin = props.row ? originOf(props.row.key) : "app";

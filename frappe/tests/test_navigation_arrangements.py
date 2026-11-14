@@ -183,6 +183,22 @@ class TestGetDefaultArrangements(EditorTestCase):
 
 		self.assertTrue(get_arrangements(APP)["has_saved"])
 
+	def test_has_saved_counts_a_layout_alone(self):
+		save_navigation_layout(APP, "sidebar_only")
+
+		self.assertTrue(get_arrangements(APP)["has_saved"])
+
+		with set_user("Administrator"):
+			self.assertFalse(get_arrangements(APP, "site")["has_saved"])
+
+	def test_has_saved_counts_a_site_layout_alone_at_the_site_level(self):
+		with set_user("Administrator"):
+			save_navigation_layout(APP, "floating_rail", scope="site")
+
+			self.assertTrue(get_arrangements(APP, "site")["has_saved"])
+
+		self.assertFalse(get_arrangements(APP)["has_saved"])
+
 	def test_a_person_gets_the_site_level_with_their_own_changes_gone(self):
 		with set_user("Administrator"):
 			save_arrangement("Rail", APP, [shown("note"), shown("todo", hidden=1)], "site")
