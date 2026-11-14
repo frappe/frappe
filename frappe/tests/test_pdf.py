@@ -348,6 +348,24 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.decrypt("qwe"))
 		self.assertGreaterEqual(len(reader.pages), 2)
 
+	def test_bulk_pdf_bookmarks_each_document(self):
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		names = [
+			frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
+			for description in ("Call Northwind Traders", "Follow up with Litware")
+		]
+
+		_download_multi_pdf("ToDo", frappe.as_json(names))
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertEqual(
+			[(item.title, reader.get_destination_page_number(item)) for item in reader.outline],
+			[(names[0], 0), (names[1], 1)],
+		)
+
 	def test_bulk_pdf_by_doctype_skips_a_deleted_document(self):
 		from frappe.utils.print_format import _download_multi_pdf
 
