@@ -33,7 +33,7 @@ import { usePanelGroup } from "./panelIndex";
 
 const props = withDefaults(
 	defineProps<{ label: string; startOpen?: boolean; count?: number; showCount?: boolean }>(),
-	{ startOpen: true, count: 0, showCount: false },
+	{ startOpen: true, count: 0, showCount: false }
 );
 const open = ref(props.startOpen);
 usePanelGroup(() => props.label, open);

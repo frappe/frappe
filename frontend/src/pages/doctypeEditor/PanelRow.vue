@@ -55,12 +55,12 @@ const props = withDefaults(
 		changed?: boolean;
 		resetText?: string;
 	}>(),
-	{ box: true, lock: "", resetText: "" },
+	{ box: true, lock: "", resetText: "" }
 );
 defineEmits<{ reset: [] }>();
 const root = ref<HTMLElement | null>(null);
 usePanelRow(
 	() => props.label,
-	() => root.value,
+	() => root.value
 );
 </script>

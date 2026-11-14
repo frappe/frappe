@@ -12,7 +12,9 @@
 				data-editor-finder
 			>
 				<span class="lucide-search size-4 shrink-0" aria-hidden="true" />
-				<span class="flex-1 truncate text-left max-[1343px]:hidden">{{ placeholder }}</span>
+				<span class="flex-1 truncate text-left max-[1343px]:hidden">{{
+					placeholder
+				}}</span>
 				<KeyboardShortcut combo="Mod+J" class="max-[1343px]:hidden" />
 			</button>
 		</template>
@@ -22,7 +24,7 @@
 					v-model="query"
 					:placeholder="placeholder"
 					:aria-label="placeholder"
-				:title="placeholder"
+					:title="placeholder"
 					autofocus
 					@keydown.down.prevent="move(1)"
 					@keydown.up.prevent="move(-1)"
@@ -104,7 +106,7 @@ function move(by: number) {
 	void nextTick(() =>
 		list.value
 			?.querySelector(`[data-finder-row="${key}"]`)
-			?.scrollIntoView({ block: "nearest" }),
+			?.scrollIntoView({ block: "nearest" })
 	);
 }
 
