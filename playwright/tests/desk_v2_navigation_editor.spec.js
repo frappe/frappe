@@ -92,6 +92,8 @@ test.describe("Desk v2 navigation editor", () => {
 			.locator(`${EDITOR} [data-save-error]`)
 			.getByRole("button", { name: "Reload" })
 			.click();
+		// The hide is unsaved, so Reload asks before it drops it.
+		await page.getByRole("button", { name: "Discard and reload" }).click();
 
 		await expect(page.locator(`${EDITOR} [data-save-error]`)).toHaveCount(0);
 		await expect(row(page, first)).toHaveCount(0);
