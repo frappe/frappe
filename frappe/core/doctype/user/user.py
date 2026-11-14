@@ -23,7 +23,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
 from frappe.query_builder import Criterion, DocType, Table
 from frappe.rate_limiter import rate_limit
-from frappe.sessions import clear_sessions, hash_sid
+from frappe.sessions import clear_sessions, delete_session, hash_sid
 from frappe.twofactor import should_run_2fa
 from frappe.utils import (
 	cint,
@@ -407,13 +407,19 @@ class User(Document):
 		if not cint(self.enabled) and self.name in STANDARD_USERS:
 			frappe.throw(_("User {0} cannot be disabled").format(self.name))
 
-		# clear sessions if disabled
-		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
-			frappe.local.login_manager.logout(user=self.name)
+		if not cint(self.enabled):
+			self.end_sessions()
 
 		# toggle notifications based on the user's status
 		toggle_notifications(self.name, enable=cint(self.enabled), ignore_permissions=True)
 		self.disable_email_fields_if_user_disabled()
+
+	def end_sessions(self):
+		"""Log the user out everywhere, also when disabled from the CLI or a background job."""
+		if login_manager := getattr(frappe.local, "login_manager", None):
+			login_manager.logout(user=self.name)
+		else:
+			log_out_after_commit(self.name)
 
 	def set_new_password(self, new_password=None):
 		"""Set New Password for user"""
@@ -666,8 +672,7 @@ class User(Document):
 
 		# disable the user and log him/her out
 		self.enabled = 0
-		if getattr(frappe.local, "login_manager", None):
-			frappe.local.login_manager.logout(user=self.name)
+		self.end_sessions()
 
 		# delete todos
 		frappe.db.delete("ToDo", {"allocated_to": self.name})
@@ -1649,6 +1654,31 @@ def handle_password_test_fail(feedback: dict):
 		msg="".join(message_parts),
 		title=_("Password requirements not met"),
 	)
+
+
+def log_out_after_commit(user: str):
+	"""Clear the user's sessions once the current transaction commits.
+
+	Not in the open transaction: `delete_session` commits, and `Sessions` has no index on
+	`user`, so a delete by user would lock out every login until the commit. One callback
+	serves the whole transaction, as each commit in it runs the rest of the after-commit queue.
+	"""
+	pending = frappe.flags.setdefault("users_to_log_out", set())
+	if not pending:
+		frappe.db.after_commit.add(_log_out_pending_users)
+		frappe.db.after_rollback.add(pending.clear)
+	pending.add(user)
+
+
+def _log_out_pending_users():
+	sessions = DocType("Sessions")
+	for user in frappe.flags.pop("users_to_log_out", ()):
+		# all of them: `clear_sessions` stops at 100
+		sid_hashes = (
+			frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == user).run(pluck=True)
+		)
+		for sid_hash in sid_hashes:
+			delete_session(sid_hash=sid_hash, user=user, reason="Force Logged out by the user")
 
 
 def throttle_user_creation():
