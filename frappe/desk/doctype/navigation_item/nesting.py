@@ -1,12 +1,5 @@
-# NESTING — how deep a navigation list may go, one rule for the save, the shipped record and the resolver.
-
-# A rail is flat. In a sidebar a `Section` sits at the top level only, and an item sits at the
-# top level, in a section, or under an item that is itself at the top level or in a section; an
-# item under an item holds nothing. The deepest row is section > item > child.
-# `frontend/src/navigation/nesting.ts` asks the same question for the editor, and both suites
-# read `frontend/src/navigation/tests/nesting.cases.json`.
-
-# Rows are dicts or documents: a shipped record is checked as the documents it holds.
+# NESTING — how deep a navigation list may go. A rail is flat; in a sidebar the deepest row is
+# section > item > child. `frontend/src/navigation/nesting.ts` asks the same question.
 
 SECTION = "Section"
 RAIL = "Rail"
@@ -22,9 +15,8 @@ def nesting_errors(items: list, container: str) -> list[str]:
 
 def cap_depth(items: list[dict], container: str) -> list[dict]:
 	"""The list with every row past the cap lifted to its parent's parent; the order stays."""
-	# A lift can leave the row, or the rows under it, still past the cap, so it repeats; each pass
-	# moves a row up, so it ends. A `parent_key` cycle keeps lifting round itself, so whatever
-	# is still past the cap after the passes goes to the top level.
+	# A lift can leave rows still past the cap, so it repeats; a parent cycle never settles and
+	# goes to the top level.
 	for _pass in range(len(items)):
 		past = set(nesting_errors(items, container))
 		if not past:

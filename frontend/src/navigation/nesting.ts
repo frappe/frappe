@@ -1,6 +1,5 @@
-// How deep a navigation list may go, for the editor's drag and "Move to…". The server holds
-// the same rule in `frappe/desk/doctype/navigation_item/nesting.py` and enforces it; this only keeps the editor from
-// offering a move the save would refuse. Both read `tests/nesting.cases.json`.
+// The editor's side of the depth cap, enforced by `navigation_item/nesting.py`.
+// Both read `tests/nesting.cases.json`.
 
 import type { NavigationItem } from "@/boot";
 
@@ -8,11 +7,7 @@ export type NavigationContainer = "Rail" | "Sidebar";
 
 const SECTION = "Section";
 
-/**
- * Whether `item` may sit under `parent` (`null` is the top level) in `items`, the list both
- * live in. The rows under `item` move with it, so a move that pushes one of them past the
- * cap is refused too.
- */
+/** Whether `item` may sit under `parent` (`null` is the top level); its own rows move with it. */
 export function canNestUnder(
 	item: NavigationItem,
 	parent: NavigationItem | null,

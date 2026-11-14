@@ -194,7 +194,7 @@ def _merge(
 	if context is not None:
 		items = filter_items(items, context)
 
-	# After `_promote_orphans`: a lifted row's new parent has to be a row that is still there.
+	# After `_promote_orphans`: a lifted row's new parent must still be there.
 	return [_on_the_wire(item, hidden) for item in cap_depth(_promote_orphans(items), container)]
 
 
