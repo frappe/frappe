@@ -83,12 +83,14 @@ frappe.data_import.DataExporter = class DataExporter {
 				},
 				{
 					fieldtype: "HTML",
-					fieldname: "select_all_buttons",
+					fieldname: "picker_header",
 				},
 				...this.get_field_source().groups.map((group) => ({
 					label: group.label,
 					fieldname: group.fieldname,
 					fieldtype: "MultiCheck",
+					search_placeholder: __("Search Fields"),
+					select_all: true,
 					columns: 2,
 					on_change: () => this.update_primary_action(),
 					options: this.get_multicheck_options(group),
@@ -101,8 +103,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		});
 
 		this.make_filter_area();
-		this.make_select_all_buttons();
-		this.setup_search_input();
+		this.make_picker_header();
 
 		this.dialog.show();
 	}
@@ -152,7 +153,7 @@ frappe.data_import.DataExporter = class DataExporter {
 		});
 	}
 
-	make_select_all_buttons() {
+	make_picker_header() {
 		let for_insert = is_insert_import_type(this.exporting_for);
 		let section_title = for_insert
 			? __("Select Fields To Insert")
@@ -160,12 +161,9 @@ frappe.data_import.DataExporter = class DataExporter {
 		let section_heading = this.exporting_for
 			? `<h6 class="form-section-heading uppercase">${section_title}</h6>`
 			: "";
-		let $select_all_buttons = $(`
+		let $picker_header = $(`
 			<div class="mb-3">
 				${section_heading}
-				<button class="btn btn-default btn-xs" data-action="select_all">
-					${__("Select All")}
-				</button>
 				${
 					for_insert
 						? `<button class="btn btn-default btn-xs" data-action="select_mandatory">
@@ -173,13 +171,10 @@ frappe.data_import.DataExporter = class DataExporter {
 				</button>`
 						: ""
 				}
-				<button class="btn btn-default btn-xs" data-action="unselect_all">
-					${__("Unselect All")}
-				</button>
 			</div>
 		`);
-		frappe.utils.bind_actions_with_object($select_all_buttons, this);
-		this.dialog.get_field("select_all_buttons").$wrapper.html($select_all_buttons);
+		frappe.utils.bind_actions_with_object($picker_header, this);
+		this.dialog.get_field("picker_header").$wrapper.html($picker_header);
 	}
 
 	select_all() {
@@ -413,26 +408,7 @@ frappe.data_import.DataExporter = class DataExporter {
 			});
 	}
 
-	setup_search_input() {
-		const $wrapper = this.dialog.get_field("select_all_buttons").$wrapper;
-
-		// prevent duplicate search inputs
-		if (this.dialog.$wrapper.find(".filters-search").length) return;
-
-		$wrapper.before(`
-			<div class="filters-search">
-				<input
-					type="text"
-					placeholder="${__("Search")}"
-					data-element="search"
-					class="form-control input-xs"
-				>
-			</div>
-		`);
-	}
-
 	setup_on_page_show() {
-		frappe.utils.setup_search(this.dialog.$body, ".unit-checkbox", ".label-area");
 		if (this.exporting_for) {
 			this.select_mandatory();
 		} else {

@@ -16,12 +16,10 @@ function show_configure_search_fields_dialog(doctype, frm) {
 						fieldname: "doctype_heading",
 					},
 					{
-						fieldtype: "HTML",
-						fieldname: "search_bar",
-					},
-					{
 						fieldname: "search_fields",
 						fieldtype: "MultiCheck",
+						search_placeholder: __("Search Fields"),
+						select_all: true,
 						columns: 2,
 						sort_options: false,
 						options,
@@ -58,20 +56,7 @@ function show_configure_search_fields_dialog(doctype, frm) {
 				<div class="mb-3 font-weight-bold">${frappe.utils.escape_html(__(doctype))}</div>
 			`);
 
-			dialog.get_field("search_bar").$wrapper.html(`
-				<div class="filters-search mb-3">
-					<input
-						type="text"
-						placeholder="${__("Search")}"
-						data-element="search"
-						class="form-control input-xs"
-					>
-				</div>
-			`);
-
 			dialog.show();
-
-			frappe.utils.setup_search(dialog.$body, ".unit-checkbox", ".label-area");
 		},
 	});
 }

@@ -1129,6 +1129,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			label: __(this.doctype),
 			fieldname: this.doctype,
 			fieldtype: "MultiCheck",
+			search_placeholder: __("Search Columns"),
+			select_all: true,
 			columns: 2,
 			options: columns[this.doctype]
 				.filter((df) => {
@@ -1155,6 +1157,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				label: __(label) + ` (${__(cdt)})`,
 				fieldname: df.options,
 				fieldtype: "MultiCheck",
+				search_placeholder: __("Search Columns"),
+				select_all: true,
 				columns: 2,
 				options: columns[cdt]
 					.filter((df) => {
@@ -1734,27 +1738,6 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						},
 					});
 
-					const $bulk = $(`
-						<div class="mb-3">
-							<button class="btn btn-default btn-xs" data-action="select_all">${__("Select All")}</button>
-							<button class="btn btn-default btn-xs" data-action="unselect_all">${__("Unselect All")}</button>
-						</div>
-					`);
-					const toggleAll = (checked) =>
-						d.$wrapper.find(":checkbox").prop("checked", checked).trigger("change");
-					$bulk.on("click", "[data-action=select_all]", () => toggleAll(true));
-					$bulk.on("click", "[data-action=unselect_all]", () => toggleAll(false));
-					d.$body.prepend($bulk);
-
-					d.$body.prepend(`
-						<div class="columns-search">
-							<input type="text" placeholder="${__(
-								"Search"
-							)}" data-element="search" class="form-control input-xs">
-						</div>
-					`);
-
-					frappe.utils.setup_search(d.$body, ".unit-checkbox", ".label-area");
 					d.show();
 				},
 			},

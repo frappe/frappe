@@ -81,7 +81,7 @@ async function open_picker_on(desk, fields = [], doc_type) {
 }
 
 async function check_only(desk, fieldnames) {
-	await picker(desk).locator('[data-action="unselect_all"]').click();
+	await picker(desk).locator(".bulk-select-options .deselect-all").click();
 	for (const fieldname of fieldnames) {
 		await checkbox(desk, fieldname).check();
 	}
@@ -186,7 +186,7 @@ test.describe("Web Form Get Fields", () => {
 
 		const unit = (fieldname) =>
 			picker(desk).locator(`.unit-checkbox:has(.label-area[data-unit='${fieldname}'])`);
-		const search = picker(desk).locator('[data-element="search"]');
+		const search = picker(desk).getByPlaceholder("Search Fields");
 
 		// the search is bound, cleared and focused only once the dialog has finished opening
 		await expect(search).toBeFocused();
@@ -199,10 +199,10 @@ test.describe("Web Form Get Fields", () => {
 	test("Ticks and unticks the whole list", async ({ desk }) => {
 		await open_picker_on(desk);
 
-		await picker(desk).locator('[data-action="unselect_all"]').click();
+		await picker(desk).locator(".bulk-select-options .deselect-all").click();
 		await expect(picker(desk).locator('input[type="checkbox"]:checked')).toHaveCount(0);
 
-		await picker(desk).locator('[data-action="select_all"]').click();
+		await picker(desk).locator(".bulk-select-options .select-all").click();
 		await expect(picker(desk).locator('input[type="checkbox"]:not(:checked)')).toHaveCount(0);
 	});
 
@@ -277,7 +277,7 @@ test.describe("Web Form Get Fields", () => {
 	}) => {
 		await open_picker_on(desk);
 
-		await picker(desk).locator('[data-action="select_all"]').click();
+		await picker(desk).locator(".bulk-select-options .select-all").click();
 		await desk.click_modal_primary_button("Update");
 
 		await expect_web_form_fields(page, (fields) => {
@@ -297,7 +297,7 @@ test.describe("Web Form Get Fields", () => {
 	test("Rebuilds the layout in doctype order", async ({ page, desk }) => {
 		await open_picker_on(desk);
 
-		await picker(desk).locator('[data-action="select_all"]').click();
+		await picker(desk).locator(".bulk-select-options .select-all").click();
 		await desk.click_modal_primary_button("Update");
 
 		await expect_web_form_fields(page, (fields) => {
@@ -325,7 +325,7 @@ test.describe("Web Form Get Fields", () => {
 	test("Names page 1 after the DocType's opening tab", async ({ page, desk }) => {
 		await open_picker_on(desk);
 
-		await picker(desk).locator('[data-action="select_all"]').click();
+		await picker(desk).locator(".bulk-select-options .select-all").click();
 		await desk.click_modal_primary_button("Update");
 
 		await expect_web_form_fields(page, (fields) => {
@@ -411,7 +411,7 @@ test.describe("Web Form Get Fields", () => {
 	test("Saves a web form left with no fields", async ({ page, desk }) => {
 		await open_picker_on(desk, [{ fieldname: "kind", fieldtype: "Select", label: "Kind" }]);
 
-		await picker(desk).locator('[data-action="unselect_all"]').click();
+		await picker(desk).locator(".bulk-select-options .deselect-all").click();
 		await desk.click_modal_primary_button("Update");
 
 		await expect.poll(() => web_form_fields(page)).toHaveLength(0);
@@ -476,7 +476,7 @@ test.describe("Web Form Get Fields", () => {
 	}) => {
 		await open_picker_on_leftover_rows(desk, seed_note_and_open);
 
-		await picker(desk).locator('[data-action="select_all"]').click();
+		await picker(desk).locator(".bulk-select-options .select-all").click();
 		await desk.click_modal_primary_button("Update");
 
 		await expect_web_form_fields(page, (fields) => {

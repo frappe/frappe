@@ -3002,15 +3002,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}, 1500);
 		});
 
-		d.$body.prepend(`
-			<div class="filters-search">
-				<input type="text"
-					placeholder="${__("Search")}"
-					data-element="search" class="form-control input-xs">
-			</div>
-		`);
-
-		frappe.utils.setup_search(d.$body, ".unit-checkbox", ".label-area");
 		d.show();
 	}
 
@@ -3042,6 +3033,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			label: __(this.doctype),
 			fieldname: "group_by_fields",
 			fieldtype: "MultiCheck",
+			search_placeholder: __("Search Fields"),
+			select_all: true,
 			columns: 2,
 			options: fields.map((df) => ({
 				label: __(df.label, null, df.parent),

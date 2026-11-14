@@ -105,6 +105,7 @@ frappe.listview_settings["User Permission"] = {
 						label: __("Applicable Document Types"),
 						fieldname: "applicable_doctypes",
 						fieldtype: "MultiCheck",
+						search_placeholder: __("Search Document Types"),
 						options: [],
 						columns: 2,
 						hidden: 1,

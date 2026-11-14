@@ -56,6 +56,7 @@ function setup_email_types_editor(frm) {
 			fieldtype: "MultiCheck",
 			select_all: true,
 			columns: 4,
+			search_placeholder: __("Search Notification Types"),
 			get_data: () =>
 				frappe
 					.xcall(

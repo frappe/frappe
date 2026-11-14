@@ -11,6 +11,7 @@ frappe.ModuleEditor = class ModuleEditor {
 				fieldtype: "MultiCheck",
 				select_all: true,
 				columns: "15rem",
+				search_placeholder: __("Search Modules"),
 				get_data: () => {
 					return this.frm.doc.__onload.all_modules.map((module) => {
 						return {
