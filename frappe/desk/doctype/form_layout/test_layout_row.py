@@ -19,8 +19,8 @@ class TestLayoutRowWriter(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def write(self, doc=None, **values):
-		return write_layout_row(doc or frappe.new_doc("Form Layout"), **values)
+	def write(self, doc=None, **fields):
+		return write_layout_row(doc or frappe.new_doc("Form Layout"), **fields)
 
 	def test_a_new_row_gets_its_values_and_the_source_fingerprint(self):
 		row = self.write(dt="Note", type="Details", layout=json.dumps(a_tree("content")), title="Short")

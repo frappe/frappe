@@ -22,6 +22,8 @@ CHILD_LAYOUT_TYPES = ("Details",)
 SINGLE_LAYOUT_TYPES = ("Details", "Side Panel")
 LAYOUT_BREAKS = ("Section Break", "Column Break", "Tab Break")
 SECTION_ONLY_KEYS = ("collapsibleDependsOn",)
+# A `write_layout_row` argument left at this keeps the row's stored value.
+KEEP = object()
 # Mirrors `DROPPED_FIELDTYPES` in `ui/src/components/FormLayout/buildLayoutFromMeta.ts`.
 DROPPED_FIELDTYPES = (*LAYOUT_BREAKS, "Fold", "Attachment Gallery")
 STANDARD_FIELDS = frozenset(default_fields + child_table_fields + optional_fields)
@@ -202,19 +204,41 @@ def save_form_layout(
 	if refuse_layout_type(dt, type):
 		return None
 	doc = find_layout_doc(dt, type, name, app)
-	values = {"dt": dt, "type": type, "app": app, "layout": layout, "condition": condition}
-	if title is not None:
-		values["title"] = title
-	return write_layout_row(doc, **values).name
+	return write_layout_row(
+		doc,
+		dt=dt,
+		type=type,
+		app=app,
+		layout=layout,
+		condition=condition,
+		title=KEEP if title is None else title,
+	).name
 
 
-def write_layout_row(doc: "FormLayout", **values) -> "FormLayout":
-	"""Save `values` on a Form Layout row; a field the caller leaves out keeps its value.
-
-	`save_form_layout`, the DocType editor and an app's own mirror write through here, so each
-	gets the same checks and a fresh fingerprint. Permission checks stay with the caller.
-	"""
-	doc.update(values)
+def write_layout_row(
+	doc: "FormLayout",
+	*,
+	dt=KEEP,
+	type=KEEP,
+	app=KEEP,
+	layout=KEEP,
+	condition=KEEP,
+	title=KEEP,
+	omitted=KEEP,
+	dialog_size=KEEP,
+) -> "FormLayout":
+	"""Save the given fields on a Form Layout row and refresh its fingerprint; callers check permissions."""
+	values = {
+		"dt": dt,
+		"type": type,
+		"app": app,
+		"layout": layout,
+		"condition": condition,
+		"title": title,
+		"omitted": omitted,
+		"dialog_size": dialog_size,
+	}
+	doc.update({field: value for field, value in values.items() if value is not KEEP})
 	validate_target(doc.dt, doc.type)
 	if message := layout_type_refusal(doc.dt, doc.type):
 		frappe.throw(message, title=_("Layout Not Saved"))

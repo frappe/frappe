@@ -5,6 +5,7 @@
 import frappe
 from frappe import _
 from frappe.desk.doctype.form_layout.form_layout import (
+	KEEP,
 	OMITTING_LAYOUT_TYPES,
 	publish_doctype_update,
 	write_layout_row,
@@ -213,17 +214,21 @@ class DesignSave:
 				if layout.row:
 					doc.delete()
 				continue
-			values = {
-				"dt": self.doctype,
-				"type": layout.type,
-				"title": layout.title,
-				"condition": layout.condition,
-				"layout": frappe.as_json(layout.tree.tabs),
-			}
-			# A Details or New Record row's save computes it from the layout.
-			if layout.type not in OMITTING_LAYOUT_TYPES:
-				values["omitted"] = frappe.as_json(layout.omitted) if layout.omitted else None
-			write_layout_row(doc, **values)
+			write_layout_row(
+				doc,
+				dt=self.doctype,
+				type=layout.type,
+				title=layout.title,
+				condition=layout.condition,
+				layout=frappe.as_json(layout.tree.tabs),
+				omitted=self.written_omitted(layout),
+			)
+
+	def written_omitted(self, layout):
+		"""A Details or New Record row's save computes `omitted` from the layout."""
+		if layout.type in OMITTING_LAYOUT_TYPES:
+			return KEEP
+		return frappe.as_json(layout.omitted) if layout.omitted else None
 
 	def locked_row(self, name: str):
 		"""The DocType's save ran since the stale check, so compare again under the row's lock."""
