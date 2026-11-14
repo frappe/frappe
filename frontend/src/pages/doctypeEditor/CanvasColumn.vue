@@ -102,7 +102,8 @@ const sectionSelected = computed(() => {
 	const selection = props.canvas.selection.value;
 	return selection?.kind === "section" && selection.section === item.value.section;
 });
-// A field being dragged shows its own drop line; a ring beside it would read as a second target.
+// A field being dragged shows its own drop line; a hover ring beside it would read as a second target.
+// A selected column keeps its ring: selection outlives a drag, as a selected field's ring does.
 const dragging = computed(() => props.canvas.drag.value.active);
 const ringed = computed(
 	() =>
