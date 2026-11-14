@@ -24,15 +24,18 @@
 						"{0} field added on this site, edit it in",
 						"{0} fields added on this site, edit them in",
 						siteFields,
-						[siteFields]
+						[siteFields],
 					)
 				}}
 				<RouterLink
 					v-if="customize"
 					:to="customize"
 					class="text-ink-gray-7 underline-offset-2 hover:underline"
-					>{{ __("Customize") }} ↗</RouterLink
-				>
+					>{{ __("Customize")
+					}}<span
+						class="lucide-arrow-up-right ml-0.5 inline-block size-3 align-[-1px]"
+						aria-hidden="true"
+				/></RouterLink>
 				<template v-else>{{ __("Customize") }}</template>
 			</p>
 			<p
@@ -83,6 +86,7 @@ import OffLayoutTray from "./OffLayoutTray.vue";
 import QuickEntryCanvas from "./QuickEntryCanvas.vue";
 import SaveBanner from "./SaveBanner.vue";
 import SidePanelCanvas from "./SidePanelCanvas.vue";
+import { KINDS, kindOf } from "./settingsRows";
 
 const AppLayoutNotice = defineAsyncComponent(() => import("./AppLayoutNotice.vue"));
 
@@ -97,7 +101,7 @@ provideInertForm();
 
 const type = computed(() => props.canvas.openLayout.value.type);
 const appChanged = computed(() =>
-	Boolean(props.canvas.customize && props.canvas.layout.value?.sourceChanged)
+	Boolean(props.canvas.customize && props.canvas.layout.value?.sourceChanged),
 );
 const viewingApp = ref(false);
 watch([() => props.canvas, () => props.canvas.openLayout.value, appChanged], () => {
@@ -107,16 +111,21 @@ const showsApp = computed(() => appChanged.value && viewingApp.value);
 const editing = () => props.canvas.editable && !showsApp.value;
 const formPage = computed(() => type.value === "Details" || type.value === "New Record");
 const metaLine = computed(() => {
-	const { module, app_title, record_count } = props.canvas.state;
+	const { module, app_title, record_count, pending } = props.canvas.state;
+	if (pending) return [module, __(draftKind(props.canvas))].join(" · ");
 	const parts = [module, app_title ? __("From {0}", [app_title]) : __("Custom")];
 	if (record_count != null)
 		parts.push(
-			__n("{0} record", "{0} records", record_count, [record_count.toLocaleString()])
+			__n("{0} record", "{0} records", record_count, [record_count.toLocaleString()]),
 		);
 	return parts.join(" · ");
 });
+function draftKind(canvas: DesignCanvas) {
+	const kind = kindOf(canvas.working.value.settings.properties);
+	return KINDS.find((one) => one.value === kind)!.label;
+}
 const siteFields = computed(() =>
-	props.canvas.state.mode === "Design" ? props.canvas.state.site_custom_fields ?? 0 : 0
+	props.canvas.state.mode === "Design" ? (props.canvas.state.site_custom_fields ?? 0) : 0,
 );
 
 const ARROWS: [string, Direction][] = [
@@ -171,7 +180,7 @@ watch(
 		document
 			.querySelector("[data-editor-canvas] [data-canvas-selected]")
 			?.scrollIntoView({ block: "nearest" });
-	}
+	},
 );
 </script>
 

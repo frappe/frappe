@@ -105,8 +105,9 @@ describe("Export customizations", () => {
 	it("writes the file with the reader's answers", async () => {
 		const answers = { module: "Desk", sync_on_migrate: true, with_permissions: false };
 		mount({ mode: "Customize", modes: ["Design", "Customize"] }, { developerMode: true, askExport: async () => answers });
-		runMethod.mockResolvedValueOnce({ data: "frappe/desk/custom/task_note.json" });
+		runMethod.mockResolvedValueOnce({ data: COUNTS }).mockResolvedValueOnce({ data: "frappe/desk/custom/task_note.json" });
 		await acts.run("customize.export");
+		expect(runMethod).toHaveBeenCalledWith(RESET_METHOD, { doctype: "Task Note" });
 		expect(runMethod).toHaveBeenCalledWith(EXPORT_METHOD, { doctype: "Task Note", ...answers });
 		expect(toast.success).toHaveBeenCalledWith("Exported to frappe/desk/custom/task_note.json.");
 	});

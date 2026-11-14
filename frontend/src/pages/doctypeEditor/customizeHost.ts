@@ -21,7 +21,11 @@ export function customizeHost(page: {
 				{ doctype, appTitle: app_title, counts, dirty: page.dirty() },
 				{ title: __("Reset {0}?", [doctype]) }
 			),
-		askExport: ({ doctype, module }) =>
-			shellDialog().open(ExportCustomizationsDialog, { doctype, module }, { title: __("Export customizations") }),
+		askExport: ({ doctype, module }, changes) =>
+			shellDialog().open(
+				ExportCustomizationsDialog,
+				{ doctype, module, changes },
+				{ title: __("Export customizations") }
+			),
 	};
 }
