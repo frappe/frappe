@@ -14,8 +14,7 @@ describe("add forms", () => {
 	it("builds a Record row on its doctype and name", () => {
 		const values = { ...startValues(), doctype: "ToDo", name: "TD-1" };
 		expect(missing("Record", values)).toBeNull();
-		expect(buildRow("Record", "user:abc123", values)).toEqual({
-			key: "user:abc123",
+		expect(buildRow("Record", values)).toEqual({
 			item_type: "Record",
 			link_doctype: "ToDo",
 			link_to: "TD-1",
@@ -29,8 +28,7 @@ describe("add forms", () => {
 
 	it("builds a Page row that names the Page doctype", () => {
 		const values = { ...startValues(), page: "deals", label: " Deals " };
-		expect(buildRow("Page", "k", values)).toEqual({
-			key: "k",
+		expect(buildRow("Page", values)).toEqual({
 			item_type: "Page",
 			link_doctype: "Page",
 			link_to: "deals",

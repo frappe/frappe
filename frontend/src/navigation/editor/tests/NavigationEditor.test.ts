@@ -694,7 +694,7 @@ describe("the editor", () => {
 		expect(emitted).toEqual(["saved"]);
 	});
 
-	describe("adding and deleting (#47416)", () => {
+	describe("adding, deleting and moving rows", () => {
 		const own = (n: number, more: Partial<EditorRow> = {}) =>
 			row(`user:${String(n).padStart(6, "0")}`, { label: `Own ${n}`, ...more });
 		const sidebarResponse = (rows: EditorRow[]) =>

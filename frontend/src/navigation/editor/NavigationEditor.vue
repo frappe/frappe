@@ -219,6 +219,7 @@ import {
 import {
 	add as addRow,
 	canGiveSidebar,
+	carriesSidebar,
 	descendantsToDelete,
 	giveSidebar as giveRowSidebar,
 	moveTo as moveRowTo,
@@ -398,7 +399,9 @@ watch(openedKeys, () => draft.value && fitSidebar(draft.value));
 const listPane = ref<HTMLElement | null>(null);
 watch([container, selected], async () => {
 	await nextTick();
-	const row = selected.value && listPane.value?.querySelector(`[data-key="${selected.value}"]`);
+	const row =
+		selected.value &&
+		listPane.value?.querySelector(`[data-key="${CSS.escape(selected.value)}"]`);
 	if (row) row.scrollIntoView?.({ block: "nearest" });
 	else listPane.value?.scrollTo?.({ top: 0 });
 });
@@ -530,7 +533,7 @@ const moveTargets = computed(() => {
 			(target) =>
 				target !== container.value &&
 				target !== sidebarOf(row) &&
-				(target === RAIL || !(own && sidebarOf(row)))
+				(target === RAIL || !carriesSidebar(row, scope.value))
 		)
 		.map((target) => ({
 			label: target === RAIL ? __("Rail") : sidebarLabel(target),
@@ -569,8 +572,6 @@ function remove() {
 			.reverse()
 			.find((row) => kept.has(row.key));
 	selected.value = neighbour?.key ?? null;
-	if (container.value !== RAIL && !openedSidebars(edited).includes(container.value))
-		fitSidebar(edited);
 }
 
 function moveTo(target: string) {
@@ -600,7 +601,6 @@ function removeSidebar() {
 	apply(removeRowSidebar(draft.value, selected.value));
 }
 
-/** Show a container: the Rail tab, or the Sidebar tab on that sidebar. */
 function switchContainer(target: string) {
 	tab.value = target === RAIL ? "rail" : "sidebar";
 	if (target !== RAIL) sidebar.value = target;

@@ -150,6 +150,6 @@ function submit() {
 	// A page with no label of its own takes its title, not its slug.
 	const title = pages.find((page) => page.value === values.page)?.label;
 	const label = props.type === "Page" && !values.label.trim() && title ? title : values.label;
-	emit("add", buildRow(props.type, "", { ...values, label }));
+	emit("add", buildRow(props.type, { ...values, label }));
 }
 </script>

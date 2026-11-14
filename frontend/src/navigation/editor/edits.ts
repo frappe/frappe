@@ -168,11 +168,7 @@ export function descendantsToDelete(rows: EditorRow[], key: string, scope: Scope
 	return gone;
 }
 
-/**
- * Delete an own row and its own descendants; inherited children are lifted to the top level.
- * A row that opens one of this level's own sidebars takes that sidebar with it, and the last row
- * of an own sidebar takes the sidebar too.
- */
+/** Delete an own row and its own descendants; inherited children are lifted to the top level. */
 export function remove(draft: Draft, container: string, key: string): Edited {
 	const { scope } = draft;
 	if (!find(draft, container, key)) return __("This row no longer exists.");
@@ -195,13 +191,7 @@ export function remove(draft: Draft, container: string, key: string): Edited {
 	return dropIfEmpty(next, container);
 }
 
-/**
- * Move a row to the end of another container. An own row keeps its key and fields. An inherited
- * row is hidden in place and an own copy with a new key goes into the target.
- * The children come along; a row with children cannot go to the rail. Only a kind the server takes
- * as an own row can be copied, and a row that opens a sidebar cannot go into one. The last row
- * out of an own sidebar takes the sidebar with it.
- */
+/** Move a row to the end of another container; an inherited row is hidden in place and an own copy moves. */
 export function moveTo(draft: Draft, from: string, key: string, to: string): Moved {
 	const { scope } = draft;
 	const rows = rowsOf(draft, from);
@@ -216,7 +206,7 @@ export function moveTo(draft: Draft, from: string, key: string, to: string): Mov
 		return __("{0} cannot go to the rail. The rail is flat and holds no sections.", [labelOf(row)]);
 	}
 
-	if (to !== RAIL && family.some((member) => sidebarOf(member) && isOwn(member.key, scope))) {
+	if (to !== RAIL && family.some((member) => carriesSidebar(member, scope))) {
 		return __("{0} opens a sidebar. Remove its sidebar first.", [labelOf(row)]);
 	}
 	const fixed = family.find((member) => !isOwn(member.key, scope) && !addable(member.item_type));
@@ -252,6 +242,12 @@ export function moveTo(draft: Draft, from: string, key: string, to: string): Mov
 	const target = rowsOf(draft, to);
 	const next = withRows(withRows(draft, from, left), to, [...target, ...moved]);
 	return { draft: dropIfEmpty(next, from), key: rename.get(row.key)! };
+}
+
+/** Whether a row takes a sidebar with it, so it cannot go into one: it is own and opens one, or it opens an own one. */
+export function carriesSidebar(row: EditorRow, scope: Scope): boolean {
+	const sidebar = sidebarOf(row);
+	return !!sidebar && (isOwn(row.key, scope) || isOwn(sidebar, scope));
 }
 
 /** Drop a row before a row of another container, or among the rows of the same one. */

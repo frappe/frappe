@@ -76,13 +76,12 @@ export function missing(type: string, values: AddValues): { field: keyof AddValu
 }
 
 /** The row a form adds; the key is the level's own. */
-export function buildRow(type: string, key: string, values: AddValues): EditorRow {
-	if (type === "DocType") return { key, item_type: "DocType", link_doctype: "DocType", link_to: values.doctype };
-	if (type === "Record") return { key, item_type: "Record", link_doctype: values.doctype, link_to: values.name, ...labelOf(values) };
-	if (type === "Page") return { key, item_type: "Page", link_doctype: "Page", link_to: values.page, ...labelOf(values) };
-	if (type === "Link") return { key, item_type: "Link", url: values.url.trim(), ...labelOf(values) };
+export function buildRow(type: string, values: AddValues): Omit<EditorRow, "key"> {
+	if (type === "DocType") return { item_type: "DocType", link_doctype: "DocType", link_to: values.doctype };
+	if (type === "Record") return { item_type: "Record", link_doctype: values.doctype, link_to: values.name, ...labelOf(values) };
+	if (type === "Page") return { item_type: "Page", link_doctype: "Page", link_to: values.page, ...labelOf(values) };
+	if (type === "Link") return { item_type: "Link", url: values.url.trim(), ...labelOf(values) };
 	return {
-		key,
 		item_type: "Section",
 		label: values.label.trim(),
 		...(values.collapsible ? { collapsible: 1 as const } : {}),

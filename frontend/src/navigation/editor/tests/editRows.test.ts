@@ -179,7 +179,7 @@ describe("sidebars", () => {
 	});
 });
 
-describe("review fixes", () => {
+describe("moves the server could not take", () => {
 	it("refuses to copy a kind the server cannot take, and a sidebar opener into a sidebar", () => {
 		const d = draft([row("m", { item_type: "Module" }), own(1, { opens_sidebar: "user:00000s" }), row("b", { opens_sidebar: "s" })], {
 			s: [row("x")],
@@ -189,6 +189,14 @@ describe("review fixes", () => {
 		expect(refused(moveTo(d, RAIL, "user:000001", "s"))).toBe(true);
 		expect(refused(giveSidebar(d, "m"))).toBe(true);
 		expect(canGiveSidebar(d, row("m", { item_type: "Module" }))).toBe(false);
+	});
+
+	it("refuses to move an inherited row that opens an own sidebar into a sidebar", () => {
+		const d = draft([row("todo", { opens_sidebar: "user:00000s" }), row("crm", { opens_sidebar: "s" })], {
+			s: [row("x")],
+			"user:00000s": [own(2)],
+		});
+		expect(refused(moveTo(d, RAIL, "todo", "s"))).toBe(true);
 	});
 
 	it("shows a moved row, and lifts an inherited child whose own parent left", () => {
@@ -212,7 +220,7 @@ describe("review fixes", () => {
 	});
 });
 
-describe("an own sidebar left empty (#47416 Q17)", () => {
+describe("an own sidebar left empty", () => {
 	const opener = own(1, { opens_sidebar: "user:sb0001" });
 	const start = () => draft([opener, own(2)], { "user:sb0001": [own(3)] });
 
