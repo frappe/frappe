@@ -163,7 +163,10 @@ def _is_pinned(by_role: dict[str, str]) -> bool:
 
 def _can_pin(by_role: dict[str, str]) -> bool:
 	"""The floating rail is drawn and the level below the person's is a floating rail: a pin can be undone."""
-	return resolve_navigation_layout(by_role) == "floating_rail" and layout_below(by_role, "user") == "floating_rail"
+	return (
+		resolve_navigation_layout(by_role) == "floating_rail"
+		and layout_below(by_role, "user") == "floating_rail"
+	)
 
 
 def resolve_sidebars(app: str, context: NavigationContext | None = None) -> dict[str, list[dict]]:
