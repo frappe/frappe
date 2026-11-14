@@ -21,13 +21,8 @@ test.describe("Desk v2 floating rail", () => {
 		});
 	const reset = async (scope) => api.call(RESET, { container: "Rail", address: APP, scope });
 	const records = async () =>
-		(
-			await api.get_list(
-				"Rail",
-				["name", "user", "navigation_layout"],
-				[["app", "=", APP]]
-			)
-		).data;
+		(await api.get_list("Rail", ["name", "user", "navigation_layout"], [["app", "=", APP]]))
+			.data;
 
 	test.beforeAll(async ({ playwright }, workerInfo) => {
 		request = await playwright.request.newContext({
@@ -60,7 +55,9 @@ test.describe("Desk v2 floating rail", () => {
 		await page.goto("/apps/desk/todo");
 		const box = page.locator("[data-floating-rail]");
 		await expect(box).toHaveAttribute("data-open", "false");
-		await expect.poll(async () => (await box.boundingBox()).x + (await box.boundingBox()).width).toBeLessThan(0);
+		await expect
+			.poll(async () => (await box.boundingBox()).x + (await box.boundingBox()).width)
+			.toBeLessThan(0);
 
 		await page.mouse.move(300, 300);
 		await page.mouse.move(0, 300);
@@ -71,7 +68,9 @@ test.describe("Desk v2 floating rail", () => {
 		await expect(box).toHaveAttribute("data-open", "false");
 	});
 
-	test("carries the app menu and the avatar itself on a page with no sidebar", async ({ page }) => {
+	test("carries the app menu and the avatar itself on a page with no sidebar", async ({
+		page,
+	}) => {
 		await page.goto("/apps/desk/todo");
 		const box = page.locator("[data-floating-rail]");
 		await expect(box).toHaveAttribute("data-open", "false");
@@ -101,7 +100,9 @@ test.describe("Desk v2 floating rail", () => {
 		await page.mouse.move(width - 1, 300);
 		await page.waitForTimeout(250);
 		await expect(box).toHaveAttribute("data-open", "true");
-		await expect.poll(async () => (await box.boundingBox()).x + (await box.boundingBox()).width).toBe(width - 8);
+		await expect
+			.poll(async () => (await box.boundingBox()).x + (await box.boundingBox()).width)
+			.toBe(width - 8);
 	});
 
 	test("pins to dock the rail, keeps it docked on a reload, and unpins to float it again", async ({
