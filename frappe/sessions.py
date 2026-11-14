@@ -240,6 +240,7 @@ def get_session_info() -> dict:
 			"email": user.email,
 			"user_image": user.user_image,
 			"document_follow_notify": bool(user.document_follow_notify),
+			"navigation_side": user.navigation_side or "",
 		},
 		"roles": frappe.get_roles(),
 		"lang": frappe.local.lang or "en",

@@ -94,6 +94,7 @@
   "app_tab",
   "default_app",
   "enable_desk_v2",
+  "navigation_side",
   "updates_tab",
   "system_updates_section",
   "disable_system_update_notification",
@@ -874,6 +875,15 @@
    "fieldname": "enable_desk_v2",
    "fieldtype": "Check",
    "label": "Enable Desk v2"
+  },
+  {
+   "default": "start",
+   "depends_on": "enable_desk_v2",
+   "description": "Where desk v2 draws the rail and the sidebar. start = left (right in RTL languages).",
+   "fieldname": "navigation_side",
+   "fieldtype": "Select",
+   "label": "Navigation side",
+   "options": "start\nend"
   },
   {
    "fieldname": "ai_agents_tab",
