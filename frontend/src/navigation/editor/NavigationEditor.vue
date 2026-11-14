@@ -27,7 +27,9 @@
 							:options="layoutOptions"
 							:disabled="!draft || saving || resetting"
 							data-layout-picker
-							@update:modelValue="(layout: string) => draft && (draft = { ...draft, layout })"
+							@update:modelValue="
+								(layout: string) => draft && (draft = { ...draft, layout })
+							"
 						/>
 						<Tooltip :text="levelHint" :disabled="!levelHint">
 							<TabButtons
@@ -43,7 +45,7 @@
 				</div>
 			</header>
 
-			<p v-if="failed && !draft" class="m-auto text-sm text-ink-red-4">
+			<p v-if="failed && !draft" class="m-auto text-sm text-ink-red-7">
 				{{ __("Could not load the navigation: {0}", [failed]) }}
 			</p>
 			<span v-else-if="!draft" role="status" class="sr-only m-auto">{{
@@ -58,8 +60,10 @@
 				<div class="flex min-h-0 flex-col border-r border-outline-gray-1">
 					<div class="flex flex-col gap-2 px-6 pt-5">
 						<div class="flex items-center justify-between">
-							<TabButtons v-model="tab" :options="tabs" />
-							<EditorAddMenu :options="[]" />
+							<div @dragover="overTabs" @dragleave="clearHover">
+								<TabButtons v-model="tab" :options="tabs" />
+							</div>
+							<EditorAddMenu :options="addOptions" />
 						</div>
 						<Select
 							v-if="tab === 'sidebar'"
@@ -69,7 +73,7 @@
 							:placeholder="__('Choose a sidebar')"
 						/>
 					</div>
-					<div class="min-h-0 flex-1 overflow-y-auto px-4 py-2">
+					<div ref="listPane" class="min-h-0 flex-1 overflow-y-auto px-4 py-2">
 						<EditorOutline
 							:rows="rows"
 							:show-hidden="showHidden"
@@ -80,7 +84,9 @@
 							@select="choose"
 							@open="openForm"
 							@move="move"
-							@drop-before="drop"
+							@drag-start="(key: string) => (dragging = { container, key })"
+							@drag-end="clearDrag"
+							@drop="drop"
 						/>
 					</div>
 					<div class="border-t border-outline-gray-1 px-6 py-3">
@@ -88,7 +94,20 @@
 					</div>
 				</div>
 
+				<EditorRowForm
+					v-if="adding"
+					:key="adding.id"
+					:type="adding.type"
+					:type-label="
+						addTypes(container).find((entry) => entry.type === adding!.type)?.label ??
+						adding.type
+					"
+					:refusal="refusal"
+					:start="start"
+					@add="add"
+				/>
 				<EditorRowPane
+					v-else
 					:row="current"
 					:scope="scope"
 					:parents="parentOptions"
@@ -99,11 +118,22 @@
 					:title-for="titleOf"
 					@update="(fields) => apply(update(draft!, container, selected!, fields))"
 					@nest="(parent) => apply(nest(draft!, container, selected!, parent))"
+					:move-targets="moveTargets"
+					:can-give-sidebar="
+						!!current && container === RAIL && canGiveSidebar(draft!, current)
+					"
+					:can-remove-sidebar="canRemoveOwnSidebar"
+					:can-delete="!!current && isOwn(current.key, scope)"
+					:delete-count="deleteCount"
 					@toggle="toggle"
+					@delete="remove"
+					@move-to="moveTo"
+					@give-sidebar="giveSidebar"
+					@remove-sidebar="removeSidebar"
 				/>
 			</div>
 
-			<p v-if="failed && draft" class="px-6 pb-2 text-sm text-ink-red-4" data-save-error>
+			<p v-if="failed && draft" class="px-6 pb-2 text-sm text-ink-red-7" data-save-error>
 				{{ failed }}
 				<Button v-if="stale" variant="ghost" :label="__('Reload')" @click="reload" />
 			</p>
@@ -153,8 +183,8 @@ export type EditorTarget = { tab: "rail" } | { tab: "sidebar"; address: string }
 </script>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, onScopeDispose, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { computed, inject, nextTick, onBeforeUnmount, onScopeDispose, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { Button, Checkbox, dialog, Dialog, Select, TabButtons, Tooltip } from "frappe-ui";
 import { isApiError } from "@framework/ui/api";
 import {
@@ -163,6 +193,7 @@ import {
 	saveArrangements,
 	saveNavigationLayout,
 } from "@/arrangement";
+import type { Addresses } from "@/addresses";
 import type { Boot, Navigation } from "@/boot";
 import { __ } from "@/i18n";
 import { iconOf as kindIcon } from "../registry";
@@ -171,9 +202,13 @@ import {
 	type EditorRow,
 	dirty,
 	fromArrangements,
+	isOwn,
+	isRowDrag,
 	layoutChanged,
 	openedSidebars,
 	openerOf,
+	sidebarOf,
+	newKey,
 	RAIL,
 	resetToDefault,
 	revert,
@@ -182,7 +217,16 @@ import {
 	toPayload,
 } from "./draft";
 import {
-	dropBefore,
+	add as addRow,
+	canGiveSidebar,
+	carriesSidebar,
+	descendantsToDelete,
+	giveSidebar as giveRowSidebar,
+	moveTo as moveRowTo,
+	remove as removeRow,
+	removeSidebar as removeRowSidebar,
+	dropAcross,
+	dropInto as dropRowInto,
 	moveAmongSiblings,
 	nest,
 	refused,
@@ -190,7 +234,10 @@ import {
 	update,
 	type Edited,
 } from "./edits";
+import { addable, addTypes, servedPages } from "./addTypes";
+import { thisPage } from "./thisPage";
 import EditorAddMenu from "./EditorAddMenu.vue";
+import EditorRowForm from "./EditorRowForm.vue";
 import EditorOutline from "./EditorOutline.vue";
 import EditorRowPane from "./EditorRowPane.vue";
 
@@ -198,7 +245,9 @@ const props = defineProps<{ target: EditorTarget | null }>();
 const emit = defineEmits<{ close: []; saved: [Navigation] }>();
 
 const boot = inject<Boot>("boot")!;
+const addresses = inject<Addresses>("addresses")!;
 const CLOSING = __("Closing drops the edits you made. Nothing you changed is saved.");
+const route = useRoute();
 const router = useRouter();
 const LAYOUTS: Record<string, string> = {
 	rail_and_sidebar: __("Rail + sidebar"),
@@ -221,6 +270,10 @@ const sidebar = ref("");
 const selected = ref<string | null>(null);
 const showHidden = ref(false);
 const refusal = ref<string | null>(null);
+/** The add form on show: its type, and an id per start so "Add this page" never keeps an old form's values. */
+const adding = ref<{ type: string; id: number } | null>(null);
+let adds = 0;
+const start = ref<Omit<EditorRow, "key"> | undefined>();
 // A reply that comes back after the editor was reopened belongs to the earlier opening.
 // Every request notes the opening it started in, and touches the editor only while that one is open.
 let opening = 0;
@@ -323,6 +376,7 @@ watch(
 		saving.value = false;
 		resetting.value = false;
 		refusal.value = null;
+		stopAdding();
 		scope.value = "user";
 		selected.value = null;
 		showHidden.value = false;
@@ -333,11 +387,33 @@ watch(
 	{ immediate: true }
 );
 
-watch(tab, () => (selected.value = null));
+// The other tab offers other types: a form left open would add to a list it was not started on.
+watch(tab, () => {
+	selected.value = null;
+	stopAdding();
+});
+// A sidebar a Discard, a reset or a removal took away leaves the picker for one still there.
+watch(openedKeys, () => draft.value && fitSidebar(draft.value));
+
+/** An added or moved row can sit past the fold, and another list keeps the old scroll: show the selected row, else the top. */
+const listPane = ref<HTMLElement | null>(null);
+watch([container, selected], async () => {
+	await nextTick();
+	const row =
+		selected.value &&
+		listPane.value?.querySelector(`[data-key="${CSS.escape(selected.value)}"]`);
+	if (row) row.scrollIntoView?.({ block: "nearest" });
+	else listPane.value?.scrollTo?.({ top: 0 });
+});
 // A rail edit that stops opening the last sidebar takes its tab away.
 // While a read is on its way the draft is empty, which is not an edit.
 watch(hasSidebars, (has) => !has && draft.value && (tab.value = "rail"));
-watch(sidebar, () => (selected.value = null));
+// The selection and the add form belong to the sidebar in view; a refit while on the rail keeps them.
+watch(sidebar, () => {
+	if (tab.value !== "sidebar") return;
+	selected.value = null;
+	stopAdding();
+});
 // A selected row that the list now hides leaves the pane for its nearest visible neighbour.
 watch(showHidden, (on) => !on && selected.value && leaveIfUnlisted(selected.value));
 
@@ -384,6 +460,7 @@ async function switchTo(value: Scope) {
 	if (changed.value || value === scope.value) return;
 	scope.value = value;
 	selected.value = null;
+	stopAdding();
 	const cached = reads.value[value];
 	if (cached) fitSidebar(cached.draft);
 	else await load(value);
@@ -391,7 +468,159 @@ async function switchTo(value: Scope) {
 
 function choose(key: string) {
 	selected.value = key;
+	stopAdding();
 	refusal.value = null;
+}
+
+function stopAdding() {
+	adding.value = null;
+	start.value = undefined;
+}
+
+const here = computed(() => thisPage(route, addresses, boot.app));
+
+const addOptions = computed(() => {
+	const hasPages = servedPages((name) => router.hasRoute(name), boot.app).length > 0;
+	const types = addTypes(container.value)
+		.filter((entry) => entry.type !== "Page" || hasPages)
+		.map((entry) => ({
+			label: entry.label,
+			icon: entry.icon,
+			onClick: () => startAdding(entry.type),
+		}));
+	const page = here.value;
+	if (!page) return types;
+	return [
+		{
+			group: __("This page"),
+			options: [
+				{
+					label: __("Add this page ({0})", [page.label]),
+					icon: "lucide-pin",
+					onClick: () => startAdding(page.type, page.fields),
+				},
+			],
+		},
+		{ group: __("New row"), options: types },
+	];
+});
+
+function startAdding(type: string, fields?: Omit<EditorRow, "key">) {
+	adding.value = { type, id: ++adds };
+	start.value = fields;
+	refusal.value = null;
+}
+
+/** A new row goes last in the list, or last under the selected section. */
+function add(fields: Omit<EditorRow, "key">) {
+	if (!draft.value) return;
+	const row = { ...fields, key: newKey(scope.value) } as EditorRow;
+	// A section sits at the top level, so only another kind goes under the selected section.
+	const parent =
+		current.value?.item_type === "Section" &&
+		row.item_type !== "Section" &&
+		container.value !== RAIL
+			? current.value.key
+			: null;
+	const edited = addRow(draft.value, container.value, row, parent);
+	apply(edited);
+	if (refused(edited)) return;
+	stopAdding();
+	selected.value = row.key;
+	// The form that held focus is gone: the new row takes it.
+	nextTick(() => document.getElementById(`editor-row-${row.key}`)?.focus());
+}
+
+/** Where Move to… offers the row: an inherited row the server cannot take as a copy goes nowhere, and a row that opens a sidebar into none. */
+const moveTargets = computed(() => {
+	const row = current.value;
+	if (!draft.value || !row) return [];
+	const own = isOwn(row.key, scope.value);
+	if (!own && !addable(row.item_type)) return [];
+	return [RAIL, ...openedKeys.value]
+		.filter(
+			(target) =>
+				target !== container.value &&
+				target !== sidebarOf(row) &&
+				(target === RAIL || !carriesSidebar(row, scope.value))
+		)
+		.map((target) => ({
+			label: target === RAIL ? __("Rail") : sidebarLabel(target),
+			value: target,
+		}));
+});
+const canRemoveOwnSidebar = computed(() => {
+	const opens = container.value === RAIL ? current.value?.opens_sidebar : undefined;
+	return !!opens && isOwn(opens, scope.value);
+});
+const deleteCount = computed(() =>
+	current.value && isOwn(current.value.key, scope.value)
+		? 1 + descendantsToDelete(rows.value, current.value.key, scope.value).length
+		: 1
+);
+
+/** Selection after an edit that removes the row from this list moves to its neighbour. */
+function remove() {
+	const key = selected.value;
+	if (!draft.value || !key) return;
+	const edited = removeRow(draft.value, container.value, key);
+	const before = rows.value;
+	apply(edited);
+	if (refused(edited)) return;
+	// The nearest row the list still shows: the deleted row's own children went with it.
+	const kept = new Set(
+		rowsOf(edited, container.value)
+			.filter((row) => showHidden.value || !row.hidden)
+			.map((row) => row.key)
+	);
+	const at = before.findIndex((row) => row.key === key);
+	const neighbour =
+		before.slice(at + 1).find((row) => kept.has(row.key)) ??
+		before
+			.slice(0, at)
+			.reverse()
+			.find((row) => kept.has(row.key));
+	selected.value = neighbour?.key ?? null;
+}
+
+function moveTo(target: string) {
+	const key = selected.value;
+	if (!draft.value || !key) return;
+	const moved = moveRowTo(draft.value, container.value, key, target);
+	refusal.value = refused(moved) ? moved : null;
+	if (refused(moved)) return;
+	draft.value = moved.draft;
+	show(target, moved.key);
+}
+
+function giveSidebar() {
+	if (!draft.value || !selected.value) return;
+	const next = giveRowSidebar(draft.value, selected.value);
+	refusal.value = refused(next) ? next : null;
+	if (refused(next)) return;
+	draft.value = next.draft;
+	show(
+		rowsOf(next.draft, RAIL).find((row) => row.key === selected.value)!.opens_sidebar!,
+		next.key
+	);
+}
+
+function removeSidebar() {
+	if (!draft.value || !selected.value) return;
+	apply(removeRowSidebar(draft.value, selected.value));
+}
+
+function switchContainer(target: string) {
+	tab.value = target === RAIL ? "rail" : "sidebar";
+	if (target !== RAIL) sidebar.value = target;
+}
+
+/** Show a container with a row selected: a tab change clears the selection, so it is set once that settles. */
+async function show(target: string, key: string) {
+	stopAdding();
+	switchContainer(target);
+	await nextTick();
+	selected.value = key;
 }
 
 /** Enter on a row: select it, then put the cursor in the form's first field. */
@@ -438,8 +667,62 @@ function leaveIfUnlisted(key: string) {
 	selected.value = neighbour?.key ?? null;
 }
 
-function drop(key: string, before: string) {
-	if (draft.value) apply(dropBefore(draft.value, container.value, key, before));
+const dragging = ref<{ container: string; key: string } | null>(null);
+let hoverTimer: ReturnType<typeof setTimeout> | undefined;
+let hovered: string | undefined;
+
+function clearHover() {
+	clearTimeout(hoverTimer);
+	hovered = undefined;
+}
+
+function clearDrag() {
+	dragging.value = null;
+	clearHover();
+}
+
+// A drag the list no longer holds the row of (a tab change took it away) ends on the window, not on the row.
+window.addEventListener("dragend", clearDrag);
+onBeforeUnmount(() => {
+	window.removeEventListener("dragend", clearDrag);
+	clearHover();
+});
+
+/** Held over the other tab for 500 ms, a drag switches to it. */
+function overTabs(event: DragEvent) {
+	if (!dragging.value || !isRowDrag(event)) return;
+	const buttons = [...(event.currentTarget as HTMLElement).querySelectorAll("button")];
+	const over = buttons.indexOf((event.target as HTMLElement).closest("button")!);
+	const next = tabs.value[over]?.value as "rail" | "sidebar" | undefined;
+	if (!next || next === tab.value) return clearHover();
+	if (hovered === next) return;
+	clearHover();
+	hovered = next;
+	hoverTimer = setTimeout(() => {
+		tab.value = next;
+		hovered = undefined;
+	}, 500);
+}
+
+/** A drop before a row, or on the middle of a rail row that opens a sidebar, from either container. */
+function drop(onKey: string, middle: boolean) {
+	const from = dragging.value;
+	clearDrag();
+	if (!draft.value || !from || from.key === onKey) return;
+	const opens = sidebarOf(rowsOf(draft.value, RAIL).find((row) => row.key === onKey));
+	const inside = middle && container.value === RAIL && !!opens && opens in draft.value.sidebars;
+	const moved = inside
+		? dropRowInto(draft.value, from.container, from.key, onKey)
+		: dropAcross(draft.value, from.container, from.key, container.value, onKey);
+	if (refused(moved)) {
+		// The refusal shows under "Place under" of the dragged row, so go back to it.
+		show(from.container, from.key);
+		refusal.value = moved;
+		return;
+	}
+	refusal.value = null;
+	draft.value = moved.draft;
+	show(inside ? opens! : container.value, moved.key);
 }
 
 /** The level below is read only now, so opening the editor costs nothing for it; Save commits the reset. */
@@ -544,7 +827,7 @@ async function keepSavedRows(level: Scope, edited: Draft, reason: string, curren
 }
 
 function titleOf(row: EditorRow): string {
-	return row.label || row.link_to || row.key;
+	return row.label || row.link_to || row.url || row.key;
 }
 
 function iconOf(row: EditorRow): string {

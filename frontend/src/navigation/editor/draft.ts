@@ -6,6 +6,13 @@ import type { Arrangements, Defaults, EditorRow, Origin, Payload, Scope } from "
 /** The container id of the rail; a sidebar's id is its address or key, which never starts with a colon. */
 export const RAIL = ":rail";
 
+/** The drag data a row carries; a drag without it (a file, a link from elsewhere) moves no row. */
+export const ROW_DRAG = "application/x-navigation-row";
+
+export function isRowDrag(event: DragEvent): boolean {
+	return !!event.dataTransfer?.types.includes(ROW_DRAG);
+}
+
 export type { Arrangements, Defaults, EditorRow, Origin, Payload, Scope };
 
 export type Draft = {
@@ -43,6 +50,11 @@ export function openerOf(draft: Draft, key: string): EditorRow | undefined {
 	return draft.rail.find(
 		(row) => row.opens_sidebar === key || (row.item_type === "Sidebar" && row.link_to === key)
 	);
+}
+
+/** The sidebar a rail row opens, if it opens one. */
+export function sidebarOf(row: EditorRow | undefined): string | undefined {
+	return row?.opens_sidebar ?? (row?.item_type === "Sidebar" ? row.link_to : undefined);
 }
 
 /** The sidebars a rail row opens: the only ones the editor offers a tab for. */
@@ -112,6 +124,12 @@ export function originOf(key: string): Origin {
 	if (key.startsWith("user:")) return "user";
 	if (key.startsWith("site:")) return "site";
 	return "app";
+}
+
+/** A new own row's or sidebar's key: the scope, a colon and six base36 characters. */
+export function newKey(scope: Scope): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(6));
+	return `${scope}:${Array.from(bytes, (byte) => (byte % 36).toString(36)).join("")}`;
 }
 
 export function unmarked(row: EditorRow): EditorRow {

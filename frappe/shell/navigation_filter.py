@@ -179,7 +179,11 @@ class NavigationContext:
 		return self.administrator or module in self.readable_modules
 
 	def page_is_permitted(self, page: str | None) -> bool:
-		return bool(page) and (self.administrator or page in self.permitted_pages)
+		"""A page with a Page record keeps that record's roles; a page an app draws with none is left to its own route."""
+		if not page:
+			return False
+
+		return self.administrator or page in self.permitted_pages or page not in self.recorded_pages
 
 	def address_is_offered(self, link_doctype: str | None, link_to: str | None) -> bool:
 		"""Whether a whole sidebar's address survives this user's own vetoes."""
@@ -226,6 +230,10 @@ class NavigationContext:
 		from frappe.desk.desk_views import DeskViews
 
 		return set(DeskViews.get_allowed_pages())
+
+	@cached_property
+	def recorded_pages(self) -> set[str]:
+		return set(frappe.get_all("Page", pluck="name"))
 
 	# The type table
 

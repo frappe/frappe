@@ -18,16 +18,24 @@
 			:data-key="row.key"
 			draggable="true"
 			:class="[
-				'group/row flex h-7 cursor-pointer items-center rounded-4 px-2 text-sm outline-none transition focus-visible:focus-ring',
+				'group/row relative flex h-7 cursor-pointer items-center rounded-4 px-2 text-sm outline-none transition focus-visible:focus-ring',
 				row.key === selected
 					? 'bg-surface-elevation-3 text-ink-gray-8 shadow-sm'
 					: 'text-ink-gray-7 hover:bg-surface-gray-2',
+				over?.key === row.key && over.into ? 'ring-2 ring-outline-gray-5' : '',
 			]"
 			@click="emit('select', row.key)"
-			@dragstart="dragged = row.key"
-			@dragover.prevent
-			@drop.prevent="drop(row.key)"
+			@dragstart="start($event, row.key)"
+			@dragend="end"
+			@dragover="hover($event, row)"
+			@dragleave="over = null"
+			@drop="drop($event, row.key)"
 		>
+			<span
+				v-if="over?.key === row.key && !over.into"
+				class="pointer-events-none absolute inset-x-2 -top-0.5 h-0.5 rounded-full bg-surface-gray-7"
+				data-drop-line
+			/>
 			<span
 				v-for="guide in depth"
 				:key="guide"
@@ -70,7 +78,7 @@ import { Badge } from "frappe-ui";
 import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
 import { acts } from "@/acts/dispatcher";
-import { type EditorRow, isOwn, type Scope } from "./draft";
+import { type EditorRow, isOwn, isRowDrag, ROW_DRAG, type Scope, sidebarOf } from "./draft";
 
 const props = defineProps<{
 	rows: EditorRow[];
@@ -83,11 +91,11 @@ const props = defineProps<{
 const emit = defineEmits<{
 	select: [key: string];
 	move: [key: string, by: 1 | -1];
-	dropBefore: [key: string, before: string];
+	dragStart: [key: string];
+	dragEnd: [];
+	drop: [onKey: string, middle: boolean];
 	open: [key: string];
 }>();
-
-const dragged = ref<string | null>(null);
 
 const list = computed(() => {
 	const shown = props.rows.filter((row) => props.showHidden || !row.hidden);
@@ -133,9 +141,39 @@ function badge(row: EditorRow): Badged | null {
 	return null;
 }
 
-function drop(before: string) {
-	if (dragged.value && dragged.value !== before) emit("dropBefore", dragged.value, before);
-	dragged.value = null;
+/** A drop on the middle third of a row is "onto" it, which a linked rail row takes as "into its sidebar". */
+function onMiddle(event: DragEvent): boolean {
+	const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
+	const at = (event.clientY - box.top) / box.height;
+	return at > 1 / 3 && at < 2 / 3;
+}
+
+/** The row a drag hovers: a line above it for "before", a ring for "into its sidebar". */
+const over = ref<{ key: string; into: boolean } | null>(null);
+
+function hover(event: DragEvent, row: EditorRow) {
+	if (!isRowDrag(event)) return;
+	event.preventDefault();
+	over.value = { key: row.key, into: !!sidebarOf(row) && onMiddle(event) };
+}
+
+/** Firefox starts no drag without data. */
+function start(event: DragEvent, key: string) {
+	event.dataTransfer?.setData(ROW_DRAG, key);
+	if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+	emit("dragStart", key);
+}
+
+function end() {
+	over.value = null;
+	emit("dragEnd");
+}
+
+function drop(event: DragEvent, onKey: string) {
+	over.value = null;
+	if (!isRowDrag(event)) return;
+	event.preventDefault();
+	emit("drop", onKey, onMiddle(event));
 }
 
 function onKey(event: KeyboardEvent) {

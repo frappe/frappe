@@ -66,6 +66,7 @@ async function open(answer: Arrangements = response()) {
 		onSaved: () => emitted.push("saved"),
 	});
 	app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+	app.provide("addresses", { doctypes: () => ["Note", "ToDo"] });
 	router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
 	await router.push("/page");
 	await router.push("/page#customize/rail");
@@ -165,11 +166,37 @@ describe("the editor", () => {
 		expect(api.saveArrangements.mock.calls[0][2].rail[0].icon).toBe("star");
 	});
 
+	it("gives an own row a sidebar, removes it, and deletes the row", async () => {
+		await open(response({ rail: [row("todo"), row("user:abc123", { label: "Mine" })] }));
+		click("[data-key='user:abc123']");
+		await settle();
+		click("[data-give-sidebar]");
+		await settle();
+		expect(body().querySelector("[data-give-sidebar]")).toBeNull();
+		// The tab change does not clear the selection: the sidebar's first row is open in the pane.
+		expect(text("[data-editor-pane] p")).toBe("Mine");
+
+		const rail = Array.from(body().querySelectorAll<HTMLElement>("button")).find(
+			(button) => button.textContent?.trim() === "Rail"
+		);
+		rail!.click();
+		await settle();
+		click("[data-key='user:abc123']");
+		await settle();
+		click("[data-remove-sidebar]");
+		await settle();
+		expect(body().querySelector("[data-give-sidebar]")).not.toBeNull();
+
+		click("[data-delete]");
+		await settle();
+		expect(rowsShown()).toEqual(["TODO"]);
+	});
+
 	it("hides a row from the pane's Hide button", async () => {
 		await open();
 		click("[data-key='todo']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		expect(rowsShown()).toEqual([]);
 		expect(body().querySelector("[data-revert]")).not.toBeNull();
@@ -202,7 +229,7 @@ describe("the editor", () => {
 		await open();
 		click("[data-key='todo']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		click("[data-save]");
 		await settle();
@@ -216,7 +243,7 @@ describe("the editor", () => {
 		await open();
 		click("[data-key='todo']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		click("[data-save]");
 		await settle();
@@ -248,7 +275,7 @@ describe("the editor", () => {
 		await open();
 		click("[data-key='todo']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		click("[data-save]");
 		await settle();
@@ -453,7 +480,7 @@ describe("the editor", () => {
 		await open(response({ rail: [row("a"), row("b", { hidden: 1 }), row("c")] }));
 		click("[data-key='a']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		expect(text("[data-editor-pane] p")).toBe("C");
 		expect(body().querySelector("[data-key='c']")!.getAttribute("tabindex")).toBe("0");
@@ -651,7 +678,7 @@ describe("the editor", () => {
 		await settle();
 		click("[data-key='fresh']");
 		await settle();
-		click("[data-row-actions] button");
+		click("[data-row-actions] [data-toggle]");
 		await settle();
 		expect(rowsShown()).toEqual(["OTHER"]);
 		const reads = api.fetchArrangements.mock.calls.length;
@@ -665,5 +692,126 @@ describe("the editor", () => {
 		expect(body().querySelector("[data-save-error]")).toBeNull();
 		expect(body().querySelector<HTMLButtonElement>("[data-save]")!.disabled).toBe(false);
 		expect(emitted).toEqual(["saved"]);
+	});
+
+	describe("adding, deleting and moving rows", () => {
+		const own = (n: number, more: Partial<EditorRow> = {}) =>
+			row(`user:${String(n).padStart(6, "0")}`, { label: `Own ${n}`, ...more });
+		const sidebarResponse = (rows: EditorRow[]) =>
+			response({
+				rail: [row("crm", { item_type: "Sidebar", link_to: "s1" })],
+				sidebars: { s1: rows },
+			});
+
+		async function openOn(answer: Arrangements, target: { tab: "sidebar"; address: string }) {
+			api.fetchArrangements.mockResolvedValue(answer);
+			const app = createApp({ render: () => h(NavigationEditor, { target }) });
+			app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+			app.provide("addresses", { doctypes: () => ["Note", "ToDo"] });
+			router = createRouter({ history: createWebHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
+			await router.push("/page#customize/sidebar");
+			app.use(router);
+			const host = document.createElement("div");
+			document.body.appendChild(host);
+			app.mount(host);
+			unmount = () => app.unmount();
+			await settle();
+		}
+
+		/** Open "+ Add" and pick a type by its label. */
+		async function startAdding(label: string) {
+			const trigger = body().querySelector<HTMLElement>("[data-add]")!;
+			trigger.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, button: 0 }));
+			trigger.click();
+			await settle();
+			const item = Array.from(body().querySelectorAll<HTMLElement>("[role='menuitem']")).find(
+				(entry) => entry.textContent?.trim() === label
+			);
+			item!.click();
+			await settle();
+		}
+
+		const tabButton = (label: string) =>
+			Array.from(body().querySelectorAll<HTMLElement>("button")).find(
+				(button) => button.textContent?.trim() === label
+			)!;
+
+		it("puts a new section at the top level while a section is selected", async () => {
+			await openOn(sidebarResponse([own(1, { item_type: "Section" }), own(2, { parent_key: own(1).key })]), {
+				tab: "sidebar",
+				address: "s1",
+			});
+			click(`[data-key='${own(1).key}']`);
+			await settle();
+			await startAdding("Section");
+			const label = body().querySelector<HTMLInputElement>("[data-editor-form] [data-field='label'] input, [data-editor-form] input[data-field='label']")!;
+			label.value = "Later";
+			label.dispatchEvent(new Event("input", { bubbles: true }));
+			click("[data-add-row]");
+			await settle();
+
+			expect(rowsShown()).toEqual(["Own 1Added", "Own 2Added", "LaterAdded"]);
+			const guides = Array.from(body().querySelectorAll("[data-editor-list] [data-key]")).map(
+				(entry) => entry.querySelectorAll(":scope > span.w-4").length
+			);
+			expect(guides).toEqual([0, 1, 0]);
+		});
+
+		it("closes the add form when the tab changes", async () => {
+			await openOn(sidebarResponse([own(1)]), { tab: "sidebar", address: "s1" });
+			await startAdding("DocType");
+			expect(body().querySelector("[data-editor-form]")).not.toBeNull();
+
+			tabButton("Rail").click();
+			await settle();
+			expect(body().querySelector("[data-editor-form]")).toBeNull();
+			expect(body().querySelector("[data-editor-pane]")).not.toBeNull();
+		});
+
+		it("offers Delete only on a row this level added, and Hide only on one it did not", async () => {
+			await open(response({ rail: [row("site:abc123", { label: "Shared" }), own(1)] }));
+			click("[data-key='site:abc123']");
+			await settle();
+			expect(body().querySelector("[data-delete]")).toBeNull();
+			expect(body().querySelector("[data-row-actions] [data-toggle]")).not.toBeNull();
+
+			click(`[data-key='${own(1).key}']`);
+			await settle();
+			expect(body().querySelector("[data-delete]")).not.toBeNull();
+			expect(body().querySelector("[data-row-actions] [data-toggle]")).toBeNull();
+		});
+
+		it("selects the next row the list shows after a section goes with its rows", async () => {
+			await openOn(
+				sidebarResponse([
+					own(1, { item_type: "Section" }),
+					own(2, { parent_key: own(1).key }),
+					row("todo", { hidden: 1 }),
+					own(3),
+				]),
+				{ tab: "sidebar", address: "s1" }
+			);
+			click(`[data-key='${own(1).key}']`);
+			await settle();
+			expect(text("[data-delete]")).toBe("Delete with 1 row");
+			click("[data-delete]");
+			await settle();
+			expect(rowsShown()).toEqual(["Own 3Added"]);
+			expect(text("[data-editor-pane] p")).toBe("Own 3");
+		});
+
+		it("says why a rail row's edit is refused, in the pane", async () => {
+			const rail = Array.from({ length: 50 }, (_, n) => own(n + 1));
+			rail[0] = { ...rail[0], opens_sidebar: "user:sb0001" };
+			const sidebar = Array.from({ length: 50 }, (_, n) => own(n + 101));
+			await open(response({ rail, sidebars: { "user:sb0001": sidebar } }));
+			click(`[data-key='${own(2).key}']`);
+			await settle();
+			click("[data-give-sidebar]");
+			await settle();
+			expect(text("[data-editor-pane] [data-refusal]")).toBe(
+				"You can add up to 100 items to this app, over its rail and all its sidebars."
+			);
+		});
 	});
 });

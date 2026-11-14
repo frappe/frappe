@@ -42,19 +42,72 @@
 						data-field="parent"
 						@update:modelValue="(value: string) => emit('nest', value || null)"
 					/>
-					<p v-if="refusal" class="text-xs text-ink-red-4" data-refusal>{{ refusal }}</p>
+					<p v-if="refusal" class="text-p-sm text-ink-red-7" role="alert" data-refusal>
+						{{ refusal }}
+					</p>
 				</div>
 			</div>
+			<!-- With no Place under, a refused Move to, sidebar or delete says why above the actions. -->
+			<p
+				v-if="refusal && !canPlace"
+				class="mt-3 text-p-sm text-ink-red-7"
+				role="alert"
+				data-refusal
+			>
+				{{ refusal }}
+			</p>
 
 			<div
 				class="mt-auto flex h-[49px] shrink-0 items-center border-t border-outline-gray-1"
 			>
-				<div class="-mx-2 flex items-center gap-1" data-row-actions>
+				<div class="-mx-2 flex flex-1 items-center gap-1" data-row-actions>
+					<Dropdown
+						v-if="moveTargets.length"
+						:options="moveOptions"
+						side="bottom"
+						align="start"
+					>
+						<Button
+							variant="ghost"
+							icon-left="lucide-corner-down-right"
+							:label="__('Move to…')"
+							data-move-to
+						/>
+					</Dropdown>
 					<Button
+						v-if="canGiveSidebar"
+						variant="ghost"
+						icon-left="lucide-panel-left"
+						:label="__('Give it a sidebar')"
+						data-give-sidebar
+						@click="emit('giveSidebar')"
+					/>
+					<Button
+						v-if="canRemoveSidebar"
+						variant="ghost"
+						icon-left="lucide-panel-left-close"
+						:label="__('Remove its sidebar')"
+						data-remove-sidebar
+						@click="emit('removeSidebar')"
+					/>
+					<!-- An own row is deleted, not hidden: the server keeps no hidden on it. -->
+					<Button
+						v-if="!canDelete"
 						variant="ghost"
 						:icon-left="row.hidden ? 'lucide-eye' : 'lucide-eye-off'"
 						:label="row.hidden ? __('Show') : __('Hide')"
+						data-toggle
 						@click="emit('toggle')"
+					/>
+					<Button
+						v-if="canDelete"
+						class="ml-auto"
+						variant="ghost"
+						theme="red"
+						icon-left="lucide-trash-2"
+						:label="deleteLabel"
+						data-delete
+						@click="emit('delete')"
 					/>
 				</div>
 			</div>
@@ -66,10 +119,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Button, FormControl, Select } from "frappe-ui";
+import { Button, Dropdown, FormControl, Select } from "frappe-ui";
 import { __ } from "@/i18n";
 import IconPicker from "@/icons/IconPicker.vue";
-import { type EditorRow, isOwn, originOf, type Scope } from "./draft";
+import { type EditorRow, isOwn, originOf, RAIL, type Scope } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
 
 const props = defineProps<{
@@ -78,6 +131,14 @@ const props = defineProps<{
 	/** Rows a row may sit under, as options; empty on the rail. */
 	parents: { label: string; value: string }[];
 	canPlace: boolean;
+	/** The containers this row can move to, as `{label, value}`; empty when it can go nowhere. */
+	moveTargets: { label: string; value: string }[];
+	canGiveSidebar: boolean;
+	canRemoveSidebar: boolean;
+	/** The level being edited added this row: only such a row can be deleted. */
+	canDelete: boolean;
+	/** How many own rows Delete takes with this one, itself included. */
+	deleteCount: number;
 	appTitle: string;
 	refusal: string | null;
 	iconFor: (row: EditorRow) => string;
@@ -87,7 +148,31 @@ const emit = defineEmits<{
 	update: [fields: Partial<EditorRow>];
 	nest: [parent: string | null];
 	toggle: [];
+	delete: [];
+	moveTo: [container: string];
+	giveSidebar: [];
+	removeSidebar: [];
 }>();
+
+// The rail first, then the sidebars under their own heading, so "Rail" never reads as a sidebar's name.
+const moveOptions = computed(() => {
+	const option = (target: { label: string; value: string }) => ({
+		label: target.label,
+		onClick: () => emit("moveTo", target.value),
+	});
+	const sidebars = props.moveTargets.filter((target) => target.value !== RAIL).map(option);
+	return [
+		...props.moveTargets.filter((target) => target.value === RAIL).map(option),
+		...(sidebars.length ? [{ group: __("Sidebars"), options: sidebars }] : []),
+	];
+});
+const deleteLabel = computed(() =>
+	props.deleteCount > 2
+		? __("Delete with {0} rows", [props.deleteCount - 1])
+		: props.deleteCount === 2
+		? __("Delete with 1 row")
+		: __("Delete")
+);
 
 const own = computed(() => !!props.row && isOwn(props.row.key, props.scope));
 const target = computed(() => props.row?.link_to ?? props.row?.url ?? props.row?.item_type ?? "");

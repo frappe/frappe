@@ -1,4 +1,4 @@
-<!-- "+ Add", below itself and aligned to its right edge; disabled until the add forms bring rows. -->
+<!-- "+ Add", below itself and aligned to its right edge; each choice opens that type's form. -->
 <template>
 	<Dropdown :options="options" align="end" side="bottom">
 		<Button
@@ -6,7 +6,6 @@
 			variant="ghost"
 			icon-left="lucide-plus"
 			:label="__('Add')"
-			:disabled="!options.length"
 			data-add
 		/>
 	</Dropdown>

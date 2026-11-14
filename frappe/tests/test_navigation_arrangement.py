@@ -757,6 +757,10 @@ def own(key: str, doctype: str = "ToDo", **kwargs) -> dict:
 	return {"key": key, "item_type": "DocType", "link_doctype": "DocType", "link_to": doctype, **kwargs}
 
 
+def page_row(key: str, page: str) -> dict:
+	return {"key": key, "item_type": "Page", "link_doctype": "Page", "link_to": page, "label": "A page"}
+
+
 def stored(doctype: str = "Rail", **filters) -> list[dict]:
 	"""The rows of the layer the session user's save wrote."""
 	name = frappe.db.get_value(doctype, {"standard": 0, "user": frappe.session.user, **filters})
@@ -1396,6 +1400,37 @@ class TestWhatAnOwnRowMustCarry(OwnRowsTestCase):
 		self.refused(
 			{"key": "user:k3f9a2", "item_type": "Record", "link_doctype": "Role", "link_to": "No Such Role"}
 		)
+
+	def test_a_page_row_needs_a_page_name_but_no_page_record(self):
+		self.refused({"key": "user:k3f9a2", "item_type": "Page", "link_doctype": "Page"})
+
+		self.save(page_row("user:k3f9a2", "no-such-page-47416"))
+
+		self.assertEqual([row.link_to for row in own_stored()], ["no-such-page-47416"])
+		self.assertIn("user:k3f9a2", rail_keys())
+
+	def test_a_site_page_row_with_no_page_record_shows_for_a_person(self):
+		with set_user(a_person()):
+			self.save(page_row("site:k3f9a2", "no-such-page-47416"), scope="site")
+
+		self.assertIn("site:k3f9a2", rail_keys())
+
+	def test_a_page_with_a_page_record_keeps_its_roles(self):
+		from frappe.desk.desk_views import DeskViews
+
+		allowed = set(DeskViews.get_allowed_pages())
+		page = next(name for name in frappe.get_all("Page", pluck="name") if name not in allowed)
+
+		self.refused(page_row("user:k3f9a2", page))
+
+	def test_a_page_link_keeps_its_name_with_or_without_a_page_record(self):
+		page = frappe.get_all("Page", pluck="name", limit=1)[0]
+		for link_to in (page, "no-such-page-47416"):
+			item = frappe.new_doc("Navigation Item")
+			item.update(page_row("user:k3f9a2", link_to))
+
+			self.assertEqual(item.get_invalid_links(), ([], []))
+			self.assertEqual(item.link_to, link_to)
 
 	def test_a_record_you_can_open_is_kept(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "t47399", "public": 1}).insert(
