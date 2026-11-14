@@ -1,7 +1,9 @@
 <!-- A Table or Table MultiSelect field on the parent's canvas: the record page's own control, read-only
      with no rows, drawn from the child's fields as its editor has them, so a grid's columns show. -->
 <template>
-	<FormLayoutField :field="node" />
+	<FormLayoutField :field="node">
+		<template v-if="$slots['label-after']" #label-after><slot name="label-after" /></template>
+	</FormLayoutField>
 </template>
 
 <script setup lang="ts">

@@ -84,6 +84,11 @@ export class DesignCanvas {
 	readonly errors = shallowRef<SaveError[]>([]);
 	/** The section whose "Add field" input is open. */
 	readonly adding = shallowRef<string | null>(null);
+	/** The bin's state while a placed field is dragged: shown, the field, and the pointer over it. */
+	readonly drag = shallowRef<{ active: boolean; overBin: boolean; fieldname?: string }>({
+		active: false,
+		overBin: false,
+	});
 	readonly selectedField = computed<RawMetaField | null>(() => {
 		const selected = this.selection.value;
 		if (selected?.kind !== "field") return null;

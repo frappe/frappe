@@ -1,5 +1,5 @@
-// The "⋯" menu of a field, column, section or tab on the canvas: the moves Alt+Arrow makes, then
-// the item's own acts. And the click that selects one.
+// The "⋯" menu of a column or section on the canvas: the moves Alt+Arrow makes, then the item's
+// own acts. And the click that selects one.
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import { canvasMove, type Direction } from "./canvasMoves";

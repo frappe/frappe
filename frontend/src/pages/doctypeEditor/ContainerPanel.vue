@@ -3,7 +3,8 @@
 <template>
 	<PanelHeader
 		:icon="ICONS[selection.kind]"
-		:title="node?.label || __(UNTITLED[selection.kind])"
+		:title="title"
+		:muted="!node?.label"
 		:subtitle="subtitle"
 		:remove-label="removable ? __(REMOVE[selection.kind]) : undefined"
 		@remove="remove"
@@ -211,6 +212,13 @@ const rules = computed(() => {
 const errors = computed(() =>
 	props.selection.kind === "section" ? props.canvas.errorsAt("container", name.value) : []
 );
+/** An unlabelled first tab reads "Details", as on the strip. */
+const title = computed(() => {
+	if (node.value?.label) return node.value.label;
+	const first =
+		props.selection.kind === "tab" && props.canvas.tabs.value[0]?.name === name.value;
+	return first ? __("Details") : __(UNTITLED[props.selection.kind]);
+});
 const removable = computed(() => {
 	const { kind } = props.selection;
 	if (kind === "tab") return props.canvas.tabs.value.length > 1;

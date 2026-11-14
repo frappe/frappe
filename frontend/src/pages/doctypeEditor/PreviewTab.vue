@@ -39,7 +39,11 @@
 			:layout="details.layout.value"
 			:doctype="doctype"
 			:class="FORM_CLASSES"
-		/>
+		>
+			<template #tab-label="{ label, unlabelled }">
+				<span :class="{ 'text-ink-gray-4': unlabelled }">{{ label }}</span>
+			</template>
+		</FormLayout>
 	</div>
 </template>
 

@@ -2,15 +2,41 @@
 // Fieldname, the remove question and the property groups. The panel's .vue draws these.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { acts } from "@/acts/dispatcher";
+import { shellDialog } from "@/shell/dialog";
 import { __, __n } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import { reqdInConditional } from "./editorModel";
 import { allowedFieldtypes } from "./fieldRules";
-import { COMMON_TYPES, FIELDTYPE_GROUPS, TABLE_TYPES, typeName, typeOf } from "./fieldtypes";
+import { COMMON_TYPES, FIELDTYPE_GROUPS, TABLE_TYPES, typeIcon, typeName, typeOf } from "./fieldtypes";
 
 export interface TypeGroup {
 	label: string;
 	types: { name: string; disabled: boolean }[];
+}
+
+/** The type Dropdown's options for a field; an unsaved name offers every type. */
+export function typeMenuOptions(canvas: DesignCanvas, fieldname: string, pick: (name: string) => void) {
+	const { groups, more } = typeGroups(canvas, fieldname);
+	const option = ({ name, disabled }: { name: string; disabled: boolean }) => ({
+		label: __(name),
+		icon: typeIcon(name),
+		disabled,
+		onClick: () => pick(name),
+	});
+	const menu: Record<string, unknown>[] = groups.map((group) => ({
+		group: group.label,
+		hideLabel: !group.label,
+		options: group.types.map(option),
+	}));
+	if (!more.length) return menu;
+	const submenu = more.map((group) => ({
+		group: __(group.label),
+		options: group.types.map(option),
+	}));
+	return [
+		...menu,
+		{ group: "", hideLabel: true, options: [{ label: __("More types"), icon: "lucide-shapes", submenu }] },
+	];
 }
 
 /** A saved field keeps to the types its values survive; in Customize a standard field, to Customize Form's. */
@@ -129,6 +155,29 @@ export function takesOff(canvas: DesignCanvas): boolean {
 export async function takeOff(canvas: DesignCanvas, fieldname: string) {
 	await acts.perform("canvas.unplace_field", { fieldname });
 	if (!canvas.place(fieldname)) canvas.select(null);
+}
+
+/** The panel trash and the canvas bin: off this layout, hidden in Customize, or deleted after its confirm. */
+export async function removeField(canvas: DesignCanvas, field: RawMetaField) {
+	const { fieldname, label } = field;
+	if (takesOff(canvas)) return takeOff(canvas, fieldname);
+	if (canvas.customize?.hidesOnRemove(fieldname)) {
+		return void acts.perform("fields.set_field_property", {
+			fieldname,
+			property: "hidden",
+			value: field.hidden ? 0 : 1,
+		});
+	}
+	const question = removeQuestion(canvas, field);
+	if (question) {
+		const confirmed = await shellDialog().danger({
+			title: __("Remove {0}?", [label || fieldname]),
+			message: question,
+			confirmLabel: __("Remove"),
+		});
+		if (!confirmed) return;
+	}
+	void acts.perform("fields.delete_field", { fieldname });
 }
 
 /** The confirm a remove asks; none for a field added since the save, which has no column. */

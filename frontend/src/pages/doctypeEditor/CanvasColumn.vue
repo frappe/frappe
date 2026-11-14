@@ -2,12 +2,17 @@
      or a tab's name. A section of two columns or more shows each column's grip and "⋯". -->
 <template>
 	<div
-		class="group/column relative flex min-w-0 flex-col"
-		:class="{ 'rounded-6 ring-1 ring-outline-gray-4': selected }"
+		class="group/column relative -m-1.5 flex min-w-0 flex-col rounded-6 p-1.5"
+		:class="{ 'ring-1 ring-outline-gray-5': selected }"
 		:data-canvas-column="column.name"
 		:data-canvas-selected="selected || undefined"
 	>
-		<RuleMark class="absolute -left-4 top-0" :canvas="canvas" kind="column" :node="column" />
+		<RuleMark
+			class="absolute -left-[10px] top-1.5"
+			:canvas="canvas"
+			kind="column"
+			:node="column"
+		/>
 		<div
 			v-if="canvas.editable && section.columns.length > 1"
 			class="mb-1 flex h-5 items-center gap-0.5 opacity-0 group-hover/column:opacity-100"
@@ -40,6 +45,8 @@
 			ghost-class="canvas-drop-line"
 			v-bind="DRAG_OPTIONS"
 			:disabled="!canvas.editable"
+			@start="startDrag(canvas, $event.item)"
+			@end="dropOnBin(canvas)"
 			@change="dropField(canvas, $event, { section: section.name!, column: column.name! })"
 		>
 			<template #item="{ element: fieldname }">
@@ -48,7 +55,7 @@
 		</Draggable>
 		<div
 			v-if="!fieldnames.length"
-			class="pointer-events-none absolute inset-x-0 bottom-4 flex h-[60px] items-center justify-center rounded-4 border border-dashed border-outline-gray-2 text-base text-ink-gray-4"
+			class="pointer-events-none absolute inset-x-1.5 bottom-[22px] flex h-[60px] items-center justify-center rounded-4 border border-dashed border-outline-gray-2 text-base text-ink-gray-4"
 		>
 			{{ __("Drop a field here") }}
 		</div>
@@ -62,7 +69,7 @@ import Draggable from "vuedraggable";
 import { __ } from "@/i18n";
 import type { LayoutTreeColumn, LayoutTreeSection } from "./layoutTree";
 import CanvasField from "./CanvasField.vue";
-import { DRAG_OPTIONS, dropField } from "./canvasDrops";
+import { DRAG_OPTIONS, dropField, dropOnBin, startDrag } from "./canvasDrops";
 import { canvasMenu, selectOn } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";

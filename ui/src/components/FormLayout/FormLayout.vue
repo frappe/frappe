@@ -13,6 +13,9 @@
 				`[&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tab']]:shrink-0 [&_[role='tabpanel']]:overflow-visible !overflow-visible`,
 			]"
 		>
+			<template v-if="$slots['tab-label']" #tab-label="{ tab }">
+				<slot name="tab-label" :label="tab.label" :unlabelled="tab.unlabelled" />
+			</template>
 			<template #tab-suffix="{ tab }">
 				<span
 					v-if="markedTabs.has(tab.value)"
@@ -113,6 +116,7 @@ const visibleTabs = computed(() => {
 	return tabs.map((tab) => ({
 		...tab,
 		value: tab.identity,
+		unlabelled: !tab.label,
 		label: tabStripLabel(tab.label && translate(tab.label, [], props.doctype), multipleTabs),
 		sections: tab.sections.filter((section) => !section.hidden),
 	}));

@@ -1,10 +1,10 @@
 <!-- One field on the canvas, drawn by the record page's own control on an inert form. A click
-     selects it, a drag moves it, and its "⋯" holds the keyboard moves. -->
+     selects it and a drag moves it; its marks sit in the control's label, after the last word. -->
 <template>
 	<div
-		class="group/field relative -m-2 rounded-6 p-2"
+		class="group/field relative -m-1.5 rounded-6 p-1.5"
 		:class="[
-			selected ? 'ring-1 ring-outline-gray-4' : 'hover:ring-1 hover:ring-outline-gray-2',
+			selected ? 'ring-1 ring-outline-gray-5' : 'hover:ring-1 hover:ring-outline-gray-2',
 			{ 'cursor-grab active:cursor-grabbing': editable },
 		]"
 		:data-canvas-field="fieldname"
@@ -17,14 +17,27 @@
 			:class="{ 'opacity-50': hidden }"
 			data-canvas-panel-row
 		>
-			<span class="truncate text-base text-ink-gray-5">{{ label }}</span>
+			<span class="truncate text-base text-ink-gray-5">
+				{{ label }}<FieldMarks :canvas="canvas" :fieldname="fieldname" />
+			</span>
 			<span class="truncate text-base text-ink-gray-4">{{ __("Add {0}…", [label]) }}</span>
 		</div>
 		<div v-else-if="table" class="pointer-events-none" :class="{ 'opacity-50': hidden }" inert>
-			<CanvasTable :field="table" />
+			<CanvasTable :field="table">
+				<template #label-after
+					><FieldMarks :canvas="canvas" :fieldname="fieldname"
+				/></template>
+			</CanvasTable>
 		</div>
 		<div v-else-if="node" class="pointer-events-none" :class="{ 'opacity-50': hidden }" inert>
-			<FormLayoutField :field="node" />
+			<FormLayoutField :field="node">
+				<template #label-after
+					><span v-if="node.fieldtype === 'HTML'" class="mr-2 text-sm text-ink-gray-6">{{
+						label
+					}}</span
+					><FieldMarks :canvas="canvas" :fieldname="fieldname"
+				/></template>
+			</FormLayoutField>
 		</div>
 		<div v-else class="flex h-7 items-center text-base text-ink-gray-5">{{ fieldname }}</div>
 		<p
@@ -35,46 +48,28 @@
 		>
 			{{ error }}
 		</p>
-		<div class="absolute right-1 top-0.5 flex h-5 items-center gap-1">
-			<RuleMark :canvas="canvas" kind="field" :node="canvas.field(fieldname)" />
-			<div
-				v-if="editable"
-				class="flex items-center gap-0.5 rounded-4 bg-surface-base opacity-0 group-hover/field:opacity-100"
-				:class="{ '!opacity-100': selected }"
-				data-canvas-controls
-			>
-				<Dropdown :options="menu" side="bottom" align="end">
-					<Button
-						variant="ghost"
-						size="sm"
-						class="!h-5 !w-5"
-						icon="lucide-ellipsis"
-						:aria-label="__('Field actions')"
-					/>
-				</Dropdown>
-				<span
-					class="lucide-grip-vertical size-4 text-ink-gray-4"
-					:title="__('Drag to move the field')"
-					aria-hidden="true"
-				/>
-			</div>
-			<CustomizeMarks :canvas="canvas" :fieldname="fieldname" />
-		</div>
+		<span
+			v-if="editable"
+			class="pointer-events-none absolute right-1 top-1 grid size-5 place-items-center rounded-4 bg-surface-base text-ink-gray-4 opacity-0 group-hover/field:opacity-100"
+			:class="{ '!opacity-100': selected }"
+			data-canvas-controls
+			aria-hidden="true"
+		>
+			<span class="lucide-grip-vertical size-4" />
+		</span>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Button, Dropdown } from "frappe-ui";
 import { FormLayoutField, mapField } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import CanvasTable from "./CanvasTable.vue";
-import { canvasMenu, selectOn } from "./canvasMenu";
-import CustomizeMarks from "./CustomizeMarks.vue";
+import { selectOn } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import { TABLE_TYPES } from "./fieldtypes";
 import { usePanelRows } from "./inertForm";
-import RuleMark from "./RuleMark.vue";
+import FieldMarks from "./FieldMarks.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; fieldname: string }>();
 
@@ -97,7 +92,4 @@ const label = computed(() => {
 	const field = props.canvas.field(props.fieldname);
 	return field?.label ? __(field.label, [], props.canvas.state.doctype) : props.fieldname;
 });
-const menu = computed(() =>
-	canvasMenu(props.canvas, { kind: "field", fieldname: props.fieldname })
-);
 </script>
