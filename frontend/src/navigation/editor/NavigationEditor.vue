@@ -230,7 +230,6 @@ const keptLayout = ref<string>();
 // Set once the editor is told to close, so the hash change that closes it is not asked about again.
 // Any finished navigation clears it, also a refused one, so a close that did not happen cannot leave the guard off.
 let closing = false;
-// The confirm now on screen; a second exit replaces it instead of stacking a second one.
 let asking: { close: () => void } | undefined;
 
 // Back and any other hash change that would close or reload the editor ask first, as Cancel does.
@@ -511,7 +510,6 @@ function close() {
 	emit("close");
 }
 
-/** Cancel closes at once when nothing changed, and asks first when the draft has edits. */
 function cancel() {
 	if (!changed.value) return close();
 	askToDiscard(CLOSING, __("Discard and close"), close);
