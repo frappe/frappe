@@ -88,16 +88,23 @@ const props = defineProps<{
 	/** The open child table's crumbs, between the DocType's and the layout's. */
 	childCrumbs?: { label: string; onClick?: () => void }[];
 }>();
-const emit = defineEmits<{ act: [name: string, value?: unknown] }>();
+const emit = defineEmits<{ act: [name: string, value?: unknown]; openParent: [] }>();
 const tab = defineModel<EditorTab>("tab", { required: true });
 
 const modeOptions = computed(() => props.modes.map((mode) => ({ label: __(mode), value: mode })));
 
 const crumbs = computed<Crumb[]>(() => {
+	const parent = props.childCrumbs?.length ? { onClick: () => emit("openParent") } : {};
 	const all: Crumb[] = [
 		...(props.mode === "Customize"
-			? [{ label: props.doctype, route: listRoute() }, { label: __("Customize") }]
-			: [{ label: __("DocType"), route: routeFor("DocType") }, { label: props.doctype }]),
+			? [
+					{ label: props.doctype, route: listRoute() },
+					{ label: __("Customize"), ...parent },
+			  ]
+			: [
+					{ label: __("DocType"), route: routeFor("DocType") },
+					{ label: props.doctype, ...parent },
+			  ]),
 		...(props.childCrumbs ?? []),
 	];
 	const last = all.pop()!;
