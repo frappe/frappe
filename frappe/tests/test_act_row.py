@@ -6,7 +6,6 @@
 import json
 
 import frappe
-from frappe.shell.act_row import validate_act_row
 from frappe.shell.arrangement import reset_arrangement, save_arrangement
 from frappe.shell.navigation import resolve_navigation
 from frappe.tests.classes.context_managers import set_user
@@ -107,13 +106,14 @@ class TestAnActRowIsSaved(OwnRowsTestCase):
 		self.refused({"act": "shell.theme", "label": "x"})
 
 
-class TestAnActRowOpensNoSidebar(NavigationTestCase):
-	def test_the_validator_refuses_opens_sidebar(self):
-		# The field arrives with own sidebars: until then a save never carries it.
-		row = an_act({"act": "shell.theme"}, opens_sidebar="some-sidebar")
+class TestAnActRowOpensNoSidebar(OwnRowsTestCase):
+	def test_a_save_refuses_an_act_that_opens_a_sidebar(self):
+		row = an_act({"act": "shell.theme"}, opens_sidebar="site:abc123")
 
 		with self.assertRaisesRegex(frappe.ValidationError, "can't open a sidebar"):
-			validate_act_row(row, "Rail", "user", None)
+			save_arrangement("Rail", APP, showing(shown("todo"), row))
+
+		self.assertFalse(stored())
 
 
 class TestAnActRowSurvivesTheFilter(NavigationTestCase):
