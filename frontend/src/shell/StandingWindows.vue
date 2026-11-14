@@ -51,7 +51,9 @@ const row = useElementBounding(rowEl);
 const { box: launcher, dockedLeft } = useFlowLauncher();
 
 const besideComposer = computed(() =>
-	floatingComposer() ? viewport.width.value - card.left.value + GAP : MARGIN + navInsetRight.value
+	floatingComposer()
+		? viewport.width.value - card.left.value + GAP
+		: MARGIN + navInsetRight.value
 );
 // A launcher dragged into the row's way, or within a gap of its end, sits at the row's right end like a composer.
 const besideLauncher = computed(() => {

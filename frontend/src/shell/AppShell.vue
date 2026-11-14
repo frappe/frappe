@@ -148,7 +148,9 @@ seedNavigationSide(boot.session);
 
 const shellEl = ref<{ $el: HTMLElement } | null>(null);
 useNavigationInset(
-	computed(() => shellEl.value?.$el.querySelector<HTMLElement>('[data-slot="desktop-shell-content"]'))
+	computed(() =>
+		shellEl.value?.$el.querySelector<HTMLElement>('[data-slot="desktop-shell-content"]')
+	)
 );
 const addresses = inject<Addresses>("addresses")!;
 useStaleBuildNotice();

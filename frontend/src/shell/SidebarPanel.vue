@@ -10,9 +10,11 @@
 			:collapsed="collapsed"
 			width="14rem"
 			collapsedWidth="0px"
-			:class="collapsed || chrome
+			:class="
+				collapsed || chrome
 					? 'border-0'
-					: ['border-outline-gray-1', navSide() === 'right' ? 'border-r' : 'border-l']"
+					: ['border-outline-gray-1', navSide() === 'right' ? 'border-r' : 'border-l']
+			"
 			:inert="collapsed"
 		>
 			<NavigationHeader v-if="chrome" />
