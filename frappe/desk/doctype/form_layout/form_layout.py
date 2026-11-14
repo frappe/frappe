@@ -211,8 +211,8 @@ def save_form_layout(
 def write_layout_row(doc: "FormLayout", **values) -> "FormLayout":
 	"""Save `values` on a Form Layout row; a field the caller leaves out keeps its value.
 
-	Every server path that writes a row comes through here: `save_form_layout`, the DocType
-	editor and an app's own mirror. Permission checks stay with the caller.
+	`save_form_layout`, the DocType editor and an app's own mirror write through here, so each
+	gets the same checks and a fresh fingerprint. Permission checks stay with the caller.
 	"""
 	doc.update(values)
 	validate_target(doc.dt, doc.type)
