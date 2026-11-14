@@ -65,11 +65,7 @@
 							:rel="cell.external ? 'noopener' : undefined"
 							data-slot="sidebar-rail-item"
 							:class="CELL"
-							:aria-label="
-								cell.external
-									? __('{0} (opens in a new tab)', [cell.label])
-									: cell.label
-							"
+							:aria-label="cell.ariaLabel ?? cell.label"
 						>
 							<Icon v-if="cell.icon" :name="cell.icon" />
 							<span v-else class="text-sm font-medium">{{
@@ -113,7 +109,7 @@ import UtilitySlots from "./UtilitySlots.vue";
 
 type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
 	| { to: RouteLocationRaw }
-	| { href: string; external?: boolean }
+	| { href: string; external?: boolean; ariaLabel?: string }
 );
 
 const TILE =
@@ -163,6 +159,10 @@ function cellOf(item: NavigationItem): Cell | null {
 				...cell,
 				href: rendering.href,
 				external: rendering.external,
+				// Built here, with the label, so it is redone whenever the label is: the cell's `v-memo` sees a new cell.
+				ariaLabel: rendering.external
+					? __("{0} (opens in a new tab)", [cell.label])
+					: undefined,
 				sidebar: rendering.sidebar,
 		  };
 }
