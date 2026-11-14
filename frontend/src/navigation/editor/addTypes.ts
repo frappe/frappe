@@ -1,8 +1,10 @@
 // The add-row picker's step list: one entry per type a person can add. A new type adds an entry
 // here and a branch in `EditorRowForm.vue`; nothing else changes.
 
+import { acts, type ActOption } from "@/acts/dispatcher";
 import { pages as contributedPages } from "@/contributions/registry";
 import { __ } from "@/i18n";
+import { actRow } from "./actPicker";
 import type { EditorRow } from "./draft";
 import { RAIL } from "./draft";
 
@@ -20,6 +22,7 @@ export function addTypes(container: string): AddType[] {
 		{ type: "Record", label: __("Record"), icon: "lucide-file-text", rail: true },
 		{ type: "Page", label: __("Page"), icon: "lucide-layout-dashboard", rail: true },
 		{ type: "Link", label: __("Link"), icon: "lucide-link", rail: true },
+		{ type: "Act", label: __("Act"), icon: "lucide-zap", rail: true },
 		{ type: "Section", label: __("Section"), icon: "lucide-heading", rail: false },
 	];
 	return all.filter((entry) => container !== RAIL || entry.rail);
@@ -54,6 +57,10 @@ export type AddValues = {
 	label: string;
 	collapsible: boolean;
 	keepClosed: boolean;
+	/** The act's full name, and its preset when one is chosen: a blank `option` asks on click. */
+	act: string;
+	preset: boolean;
+	option: ActOption | null;
 };
 
 /** A form's starting values: empty, or the fields "Add this page" read off the page. */
@@ -67,6 +74,9 @@ export function startValues(fields: Partial<EditorRow> = {}): AddValues {
 		label: fields.item_type === "DocType" ? "" : (fields.label ?? ""),
 		collapsible: false,
 		keepClosed: false,
+		act: "",
+		preset: false,
+		option: null,
 	};
 }
 
@@ -80,6 +90,8 @@ export function missing(type: string, values: AddValues): { field: keyof AddValu
 	if (type === "Link" && !isOwnUrl(values.url.trim())) {
 		return { field: "url", message: __("Use a path on this site, or an http or https address.") };
 	}
+	if (type === "Act" && !acts.find(values.act)) return { field: "act", message: __("Pick an act.") };
+	if (type === "Act" && values.preset && !values.option) return { field: "option", message: __("Pick a value.") };
 	if (type === "Section" && !values.label.trim()) return { field: "label", message: __("Give the section a label.") };
 	return null;
 }
@@ -90,6 +102,7 @@ export function buildRow(type: string, values: AddValues): Omit<EditorRow, "key"
 	if (type === "Record") return { item_type: "Record", link_doctype: values.doctype, link_to: values.name, ...labelOf(values) };
 	if (type === "Page") return { item_type: "Page", link_doctype: "Page", link_to: values.page, ...labelOf(values) };
 	if (type === "Link") return { item_type: "Link", url: values.url.trim(), ...labelOf(values) };
+	if (type === "Act") return actRow(acts.find(values.act)!, values.preset ? values.option! : undefined);
 	return {
 		item_type: "Section",
 		label: values.label.trim(),

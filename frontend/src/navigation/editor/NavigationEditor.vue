@@ -72,6 +72,15 @@
 							:options="sidebarOptions"
 							:placeholder="__('Choose a sidebar')"
 						/>
+						<p
+							v-if="tab === 'sidebar' && hasNoPageToOpen(rows)"
+							class="flex items-start gap-1.5 text-p-sm text-ink-gray-6"
+							role="status"
+							data-no-page-warning
+						>
+							<Icon name="lucide-triangle-alert" class="mt-0.5 size-3.5 shrink-0" />
+							{{ __("This sidebar has no page to open") }}
+						</p>
 					</div>
 					<div ref="listPane" class="min-h-0 flex-1 overflow-y-auto px-4 py-2">
 						<EditorOutline
@@ -196,6 +205,7 @@ import {
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation } from "@/boot";
 import { __ } from "@/i18n";
+import Icon from "@/icons/Icon.vue";
 import { iconOf as kindIcon } from "../registry";
 import {
 	type Draft,
@@ -235,6 +245,7 @@ import {
 	type Edited,
 } from "./edits";
 import { addable, addTypes, servedPages } from "./addTypes";
+import { hasNoPageToOpen } from "./actPicker";
 import { thisPage } from "./thisPage";
 import EditorAddMenu from "./EditorAddMenu.vue";
 import EditorRowForm from "./EditorRowForm.vue";
@@ -361,7 +372,8 @@ const layoutOptions = computed(() => {
 const parentOptions = computed(() => [
 	{ label: __("Top level"), value: "" },
 	...rows.value
-		.filter((row) => row.key !== selected.value && !row.no_access)
+		// An act only runs: no row sits under it.
+		.filter((row) => row.key !== selected.value && !row.no_access && row.item_type !== "Act")
 		.map((row) => ({ label: titleOf(row), value: row.key })),
 ]);
 
