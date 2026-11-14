@@ -2,13 +2,13 @@
      Every section shows open, whatever its collapse settings say. -->
 <template>
 	<div
-		class="group/section relative -m-3 rounded-7 p-3"
+		class="group/section relative -m-3 rounded-7 p-3 has-[[data-canvas-column-ring]]:!ring-0"
 		:class="{ 'ring-1 ring-outline-gray-5': selected }"
 		:data-canvas-section="section.name"
 		:data-canvas-selected="selected || undefined"
 		@click.stop="select({ kind: 'section', section: name })"
 	>
-		<div class="relative mb-3 flex h-7 items-center gap-1">
+		<div class="relative z-[1] mb-3 flex h-7 items-center gap-1">
 			<input
 				:value="section.label ?? ''"
 				:placeholder="__('Untitled section')"
