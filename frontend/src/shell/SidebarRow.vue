@@ -39,11 +39,21 @@
 
 		<!-- Outside this prefix: a full document load, so an `<a>`. -->
 		<div v-else-if="destination && 'href' in destination" :data-key="item.key" :class="ROW">
-			<a :href="destination.href" :class="ROW_TARGET">
+			<a
+				:href="destination.href"
+				:class="ROW_TARGET"
+				:target="destination.external ? '_blank' : undefined"
+				:rel="destination.external ? 'noopener' : undefined"
+			>
 				<span class="grid shrink-0 place-items-center">
 					<Icon :name="iconOf(item)" />
 				</span>
 				<span class="ml-2 min-w-0 flex-1 truncate text-sm">{{ label }}</span>
+				<span
+					v-if="destination.external"
+					class="lucide-arrow-up-right mx-2 size-3 shrink-0 text-ink-gray-5"
+					aria-hidden="true"
+				/>
 			</a>
 		</div>
 

@@ -212,7 +212,27 @@ describe("Link", () => {
 		};
 		expect(renderingOf(item, context([item]))).toEqual({
 			href: "https://docs.frappe.io",
+			external: true,
 		});
+	});
+
+	it("loads a path on this site in place when the router does not serve it", () => {
+		const item: NavigationItem = { key: "todo", item_type: "Link", url: "/app/todo" };
+		expect(renderingOf(item, context([item]))).toEqual({ href: "/app/todo" });
+	});
+
+	it("is a route when the router serves the path inside this prefix", () => {
+		const item: NavigationItem = { key: "deals", item_type: "Link", url: "/apps/crm/deals?x=1#top" };
+		expect(renderingOf(item, context([item]))).toEqual({ to: "/deals?x=1#top" });
+	});
+
+	it("takes this origin's full address for a path on this site", () => {
+		const item: NavigationItem = {
+			key: "deals",
+			item_type: "Link",
+			url: `${window.location.origin}/apps/crm/deals`,
+		};
+		expect(renderingOf(item, context([item]))).toEqual({ to: "/deals" });
 	});
 
 	it("is not drawn with no url, since a Link is nothing else", () => {

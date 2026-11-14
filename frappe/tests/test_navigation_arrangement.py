@@ -1312,3 +1312,115 @@ class TestLostAccess(OwnRowsTestCase):
 
 		for stored_only in ("added", "overrides", "no_access", "anchors", "hidden", "switches_app"):
 			self.assertNotIn(stored_only, wire)
+
+
+class TestWhatAnOwnRowMustCarry(OwnRowsTestCase):
+	def shipped(self):
+		return [doctype_item("todo", "ToDo"), doctype_item("note", "Note"), doctype_item("secret", "Role")]
+
+	def save(self, *added: dict, scope: str = "user", container: str = "Rail"):
+		address = APP if container == "Rail" else ADDRESS_KEY
+		return save_arrangement(
+			container, address, showing(shown("todo"), shown("note"), *added), scope=scope
+		)
+
+	def refused(self, *added: dict, **kwargs):
+		with self.assertRaises(frappe.ValidationError):
+			self.save(*added, **kwargs)
+
+		self.assertFalse(stored())
+
+	def test_the_kinds_an_app_ships_for_adding_are_addable(self):
+		addable = set(frappe.get_all("Navigation Item Type", filters={"addable": 1}, pluck="name"))
+
+		self.assertTrue({"DocType", "Record", "Page", "Link", "Section"} <= addable)
+		self.assertFalse(addable & {"Module", "Module Contents", "Sidebar"})
+
+	def test_a_kind_that_is_not_addable_is_refused(self):
+		for item_type in ("Module", "Module Contents", "Sidebar", "No Such Kind"):
+			with self.subTest(item_type=item_type):
+				self.refused(own("user:k3f9a2", item_type=item_type))
+
+	def test_a_section_is_refused_in_a_rail(self):
+		self.refused({"key": "user:k3f9a2", "item_type": "Section", "label": "Mine"})
+
+	def test_a_kind_that_names_a_doctype_must_open_it(self):
+		self.refused(own("user:k3f9a2", link_doctype="Page", link_to="todo"))
+		self.refused(
+			{"key": "user:k3f9a2", "item_type": "Page", "link_doctype": "DocType", "link_to": "ToDo"}
+		)
+
+	def test_a_record_names_a_doctype_and_a_document(self):
+		for fields in ({}, {"link_doctype": "Note"}, {"link_to": "x"}):
+			with self.subTest(fields=fields):
+				self.refused({"key": "user:k3f9a2", "item_type": "Record", **fields})
+
+	def test_a_target_that_does_not_exist_is_refused(self):
+		self.refused(own("user:k3f9a2", "No Such DocType"))
+		self.refused(
+			{"key": "user:k3f9a2", "item_type": "Record", "link_doctype": "No Such DocType", "link_to": "x"}
+		)
+		self.refused(
+			{"key": "user:k3f9a2", "item_type": "Record", "link_doctype": "Role", "link_to": "No Such Role"}
+		)
+
+	def test_a_record_you_can_open_is_kept(self):
+		note = frappe.get_doc({"doctype": "Note", "title": "t47399", "public": 1}).insert(
+			ignore_permissions=True
+		)
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
+		self.save({"key": "user:k3f9a2", "item_type": "Record", "link_doctype": "Note", "link_to": note.name})
+
+		self.assertEqual([row.key for row in own_stored()], ["user:k3f9a2"])
+
+	def test_a_target_you_cannot_open_is_refused_for_a_person(self):
+		self.refused(own("user:k3f9a2", "Role"))
+
+	def test_a_target_the_person_cannot_open_is_kept_by_the_site(self):
+		with set_user(a_person()):
+			self.save(own("site:k3f9a2", "Role"), scope="site")
+
+		self.assertTrue(frappe.db.exists("Rail", {"standard": 0, "user": ""}))
+
+	def test_a_link_is_kept(self):
+		self.save({"key": "user:k3f9a2", "item_type": "Link", "url": "/app/todo", "label": "Todos"})
+
+		self.assertEqual([row.item_type for row in own_stored()], ["Link"])
+
+	def test_a_kinds_own_validator_runs_on_its_rows(self):
+		calls = []
+
+		def validate(row, container, scope, context):
+			calls.append((row["key"], container, scope))
+			frappe.throw("No.")
+
+		real = frappe.get_hooks
+
+		def hooks(hook=None, **kwargs):
+			if hook == "navigation_item_validators":
+				return {"DocType": ["frappe.tests.test_navigation_arrangement"]}
+			return real(hook, **kwargs)
+
+		with (
+			patch("frappe.get_hooks", hooks),
+			patch("frappe.tests.test_navigation_arrangement.validate_own_row", validate, create=True),
+		):
+			self.refused(own("user:k3f9a2"))
+
+		self.assertEqual(calls, [("user:k3f9a2", "Rail", "user")])
+
+
+class TestASectionIsAddedToASidebar(OwnRowsTestCase):
+	sidebar = True
+
+	def test_a_section_is_kept_in_a_sidebar(self):
+		save_arrangement(
+			"Sidebar",
+			ADDRESS_KEY,
+			showing(
+				shown("todo"), shown("note"), {"key": "user:k3f9a2", "item_type": "Section", "label": "Mine"}
+			),
+		)
+
+		self.assertEqual([row.item_type for row in own_stored("Sidebar")], ["Section"])

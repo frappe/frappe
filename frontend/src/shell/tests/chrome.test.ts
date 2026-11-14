@@ -220,6 +220,30 @@ describe("SidebarPanel chrome", () => {
 	});
 });
 
+describe("SidebarPanel links", () => {
+	it("opens another origin in a new tab with an arrow, and a path on this site in place", () => {
+		const host = mount((context) =>
+			h(SidebarPanel, {
+				address: "crm",
+				items: [
+					{ key: "docs", item_type: "Link", url: "https://docs.frappe.io" },
+					{ key: "here", item_type: "Link", url: "/app/todo" },
+				],
+				context,
+				title: "Deals",
+				collapsed: false,
+			})
+		);
+		const anchor = (key: string) => host.querySelector(`[data-key='${key}'] a`)!;
+
+		expect(anchor("docs").getAttribute("target")).toBe("_blank");
+		expect(anchor("docs").getAttribute("rel")).toBe("noopener");
+		expect(anchor("docs").querySelector(".lucide-arrow-up-right")).not.toBeNull();
+		expect(anchor("here").getAttribute("target")).toBeNull();
+		expect(anchor("here").querySelector(".lucide-arrow-up-right")).toBeNull();
+	});
+});
+
 describe("UserMenu wide", () => {
 	it("draws the avatar with the full name, and the cell without it", () => {
 		const wide = mountComponent(UserMenu, { wide: true }).querySelector("[data-key='user-menu']")!;

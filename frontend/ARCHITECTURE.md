@@ -197,6 +197,7 @@ cut or a `ui/` change reshapes them.
 | `search_doctype_records` (`frappe.shell.palette`) | A Tab-narrowed palette's records: `search_widget` on one doctype the user can read, 10 at most, a record named exactly as typed first, labelled and addressed as `search_records` does. No cache |
 | Visibility rules (`NavigationContext`) | Decides per row whether the user may see it |
 | `navigation_item_resolvers` hook | An app supplies the visibility rule for its own item type |
+| `navigation_item_validators` hook | An app supplies the save-time rule for rows of its own item type that a person or the site adds |
 | Arrangement | Stores only the difference between a user's or site's order and the layer below |
 | `get_boot` | The boot payload for a path |
 | `get_addresses` | The address table, HTTP-cached on `metadata_version` |
@@ -623,6 +624,7 @@ Every way an app, a site admin or a user changes the desk, with the layer that h
 | app_boot hook | App | 2 | hooks.py | Extra keys in the boot payload |  |  |
 | add_to_apps_screen hook | App | 2 | hooks.py | The app's tile on /apps |  |  |
 | navigation_item_resolvers hook | App | 2 | hooks.py | Who can see the app's own item type | item.js item file |  |
+| navigation_item_validators hook | App | 2 | hooks.py | Whether a row of the app's item type may be added | item.js item file |  |
 | Cross-app rail rows (app:key) | App | 2 | Navigation rows shipped by another app | Adds rows to another app's rail |  |  |
 | Settings panes and blocks | App | 1 | A Settings Dialog record shipped with the app; `extends` adds blocks to a host's panes | The app's panes in the settings dialog |  |  |
 | Settings component file | App | 9 | A `.vue` file in the app's `frontend/settings/` folder | One component block in a settings pane |  |  |
