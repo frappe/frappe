@@ -50,6 +50,13 @@ frappe.doctype_settings.open = function (doctype) {
 	);
 };
 
+// The DocType's own icon when it names one in the icon set; older DocTypes carry a Font Awesome
+// class there, which the set cannot draw.
+function doctype_icon(doctype) {
+	const icon = frappe.get_meta(doctype)?.icon;
+	return icon && !icon.includes(" ") ? icon : "file";
+}
+
 function build_dialog(doctype, has_general) {
 	const builders = frappe.doctype_settings.builders;
 	const tabs = [];
@@ -80,15 +87,23 @@ function build_dialog(doctype, has_general) {
 
 	const default_tab = has_general ? "general" : undefined;
 	let dialog = frappe.doctype_settings._dialog;
+	// one dialog serves every DocType, so it says which one it is open for
+	const sidebar_header = {
+		title: __(doctype),
+		description: __("DocType Settings"),
+		icon: doctype_icon(doctype),
+	};
 
 	if (!dialog) {
 		dialog = new frappe.ui.SettingsDialog({
 			title: __("DocType Settings"),
 			tabs,
 			default_tab,
+			sidebar_header,
 		});
 		frappe.doctype_settings._dialog = dialog;
 	} else {
+		dialog.sidebar_header = sidebar_header;
 		dialog.reset(tabs, default_tab);
 	}
 
