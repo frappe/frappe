@@ -1,4 +1,4 @@
-# ARRANGEMENT — the three endpoints a person's navigation edits go through.
+# ARRANGEMENT — the endpoints a person's navigation edits go through.
 
 # A move is an anchor, not a position: a saved layer names the rows that moved and what each
 # moved next to, so an item the app ships later still has somewhere to land.
@@ -15,7 +15,15 @@ import frappe
 from frappe import _
 from frappe.desk.doctype.navigation_item.nesting import nesting_errors
 
-from .navigation import SITE_LAYER, resolve_navigation, resolve_rail, resolve_sidebar
+from .navigation import (
+	NAVIGATION_LAYOUTS,
+	SITE_LAYER,
+	layout_below,
+	rail_layouts,
+	resolve_navigation,
+	resolve_rail,
+	resolve_sidebar,
+)
 from .navigation_filter import NavigationContext
 from .permissions import has_app_permission
 
@@ -75,9 +83,41 @@ def reset_arrangement(container: str, address: str, scope: str = "user") -> dict
 	"""Delete one layer and hand back what the prefix resolves to without it."""
 	target = _target(container, address, scope)
 
-	_write(target, [])
+	# A rail's reset takes its navigation layout with its rows; `_write` would keep the record.
+	_delete(target)
 
 	return resolve_navigation(target.app)
+
+
+@frappe.desk_v2_only
+@frappe.whitelist()
+def save_navigation_layout(app: str, navigation_layout: str, scope: str = "user") -> dict:
+	"""Set how this level draws the app's navigation, and hand back the whole prefix's navigation."""
+	target = _target("Rail", app, scope)
+
+	if navigation_layout and navigation_layout not in NAVIGATION_LAYOUTS:
+		frappe.throw(_("{0} is not a navigation layout.").format(frappe.bold(str(navigation_layout))))
+
+	# Equal to the level below is blank, so a later change there still reaches this level.
+	if navigation_layout == layout_below(rail_layouts(app), scope):
+		navigation_layout = ""
+
+	_write_layout(target, navigation_layout)
+
+	return resolve_navigation(app)
+
+
+@frappe.desk_v2_only
+@frappe.whitelist()
+def get_navigation_layouts(app: str) -> dict[str, str]:
+	"""The layout each level sets for this app, blank where unset; the editor labels "Default (…)" with it."""
+	if not isinstance(app, str) or app not in frappe.get_active_apps():
+		frappe.throw(_("{0} is not an app on this site.").format(app))
+
+	if not has_app_permission(app):
+		frappe.throw(_("You are not permitted to arrange {0}.").format(app), frappe.PermissionError)
+
+	return {"standard": "", "site": "", "user": ""} | rail_layouts(app)
 
 
 # Addressing and the gate
@@ -360,16 +400,42 @@ def _longest_common(before: list[str], after: list[str]) -> set[str]:
 def _write(target: Target, rows: list[dict]):
 	"""Put these rows in this layer, and delete the layer when there are none."""
 	# An empty layer and no layer resolve identically, so keeping one is a row that means nothing.
+	# A rail layer that sets a navigation layout is not empty: it stays, row-less.
 	# `ignore_permissions`: the gate is the endpoint's; both containers give a Desk User no write.
 	doctype = target.layer["doctype"]
-	address = {field: value for field, value in target.layer.items() if field != "doctype"}
-	existing = frappe.db.get_value(doctype, address)
+	existing = _existing(target)
 
-	if not rows:
-		if existing:
-			frappe.delete_doc(doctype, existing, ignore_permissions=True, delete_permanently=True)
+	if not rows and not (existing and _layout_of(doctype, existing)):
+		_delete(target)
 		return
 
 	doc = frappe.get_doc(doctype, existing) if existing else frappe.get_doc(dict(target.layer))
 	doc.set(ITEMS_FIELD[doctype], rows)
 	doc.save(ignore_permissions=True)
+
+
+def _write_layout(target: Target, navigation_layout: str):
+	"""Put the navigation layout on this level's rail, and drop the record when it ends up empty."""
+	existing = _existing(target)
+	doc = frappe.get_doc("Rail", existing) if existing else frappe.get_doc(dict(target.layer))
+
+	if not navigation_layout and not doc.items:
+		_delete(target)
+		return
+
+	doc.navigation_layout = navigation_layout
+	doc.save(ignore_permissions=True)
+
+
+def _delete(target: Target):
+	if existing := _existing(target):
+		frappe.delete_doc(target.layer["doctype"], existing, ignore_permissions=True, delete_permanently=True)
+
+
+def _existing(target: Target) -> str | None:
+	address = {field: value for field, value in target.layer.items() if field != "doctype"}
+	return frappe.db.get_value(target.layer["doctype"], address)
+
+
+def _layout_of(doctype: str, name: str) -> str:
+	return frappe.db.get_value(doctype, name, "navigation_layout") if doctype == "Rail" else ""

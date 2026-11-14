@@ -33,6 +33,7 @@ class Rail(Document):
 		app: DF.Autocomplete
 		extends: DF.Autocomplete
 		items: DF.Table[NavigationItem]
+		navigation_layout: DF.Literal["", "rail_and_sidebar", "sidebar_only", "floating_rail"]
 		standard: DF.Check
 		user: DF.Link
 	# end: auto-generated types
@@ -49,6 +50,7 @@ class Rail(Document):
 		self.extends = self.extends or NO_HOST
 		self.validate_app_content()
 		self.blank_the_host()
+		self.blank_the_layout_on_an_extension()
 		self.refuse_extending_itself()
 		self.refuse_a_second_record_at_this_address()
 		self.validate_item_keys()
@@ -57,6 +59,11 @@ class Rail(Document):
 		"""Clear `extends` outside the app layer: `depends_on` hides the field but does not stop an API write."""
 		if not self.standard:
 			self.extends = NO_HOST
+
+	def blank_the_layout_on_an_extension(self):
+		"""An extension record only adds rows: `depends_on` hides the layout but does not stop an API write."""
+		if self.extends:
+			self.navigation_layout = ""
 
 	def refuse_extending_itself(self):
 		"""An app extending itself is its own rail written twice."""

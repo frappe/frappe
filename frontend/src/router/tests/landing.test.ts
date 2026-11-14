@@ -65,7 +65,7 @@ afterEach(() => {
 	document.body.innerHTML = "";
 });
 
-function erpnext(navigation?: Navigation): Boot {
+function erpnext(navigation?: Omit<Navigation, "navigation_layout">): Boot {
 	return {
 		app: "erpnext",
 		app_title: "ERPNext",

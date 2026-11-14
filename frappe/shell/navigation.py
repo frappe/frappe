@@ -4,6 +4,7 @@
 # registry and `has_app_permission`, so a second trust boundary here would duplicate it.
 
 import json
+from typing import NamedTuple
 from urllib.parse import quote
 
 import frappe
@@ -56,9 +57,14 @@ SITE_LAYER = ""
 # `Rail.NO_HOST`: an app's own rail extends nobody, and the layer query below filters on it.
 NO_HOST = ""
 
+# `Rail.navigation_layout`, and the levels it resolves through, person first.
+NAVIGATION_LAYOUTS = ("rail_and_sidebar", "sidebar_only", "floating_rail")
+DEFAULT_LAYOUT = "rail_and_sidebar"
+LAYOUT_LEVELS = ("user", "site", "standard")
+
 
 def resolve_navigation(app: str) -> dict:
-	"""`{"rail": [...], "sidebars": {address: [...]}}` for one prefix, as the session user sees it."""
+	"""`{"rail", "sidebars", "navigation_layout"}` for one prefix, as the session user sees it."""
 	# Sidebars are keyed by scrubbed address, which is what a rail item of type `Sidebar` carries
 	# in `link_to`; no one record's name identifies a sidebar merged from three rows.
 
@@ -67,7 +73,19 @@ def resolve_navigation(app: str) -> dict:
 	context = NavigationContext(app)
 	sidebars = context.sidebars
 
-	return {"rail": resolve_rail(app, context=context), "sidebars": sidebars}
+	layers = _rail_layers(app)
+	navigation = {
+		"rail": resolve_rail(app, context=context, layers=layers),
+		"sidebars": sidebars,
+		"navigation_layout": resolve_navigation_layout(layers.layouts),
+	}
+
+	# Sent only when true: a person who pinned a floating rail is the rare case, and the boot is
+	# byte-budgeted.
+	if _is_pinned(layers.layouts):
+		navigation["pinned"] = True
+
+	return navigation
 
 
 def resolve_rail(
@@ -77,6 +95,7 @@ def resolve_rail(
 	keep_hidden: bool = False,
 	check_permission: bool = True,
 	context: NavigationContext | None = None,
+	layers: "RailLayers | None" = None,
 ) -> list[dict]:
 	"""One app's rail: its own layer plus what other apps add to it, then the site's, then this user's."""
 	# `upto` and `keep_hidden` are the arrangement editor's, and `check_permission=False` is its
@@ -84,8 +103,8 @@ def resolve_rail(
 
 	# Extension happens to the base, before the site and user layers, so a person's arrangement
 	# of a host rail is one row. A derived base takes the same merge, so the overlay works on it.
-	layers = _rail_layers(app)
-	base = layers.pop("standard", None)
+	rows = dict((layers or _rail_layers(app)).rows)
+	base = rows.pop("standard", None)
 	# A derived base's keys are doctype names nobody authored, so an anchor may not name one.
 	shipped = base is not None
 	if base is None:
@@ -96,10 +115,31 @@ def resolve_rail(
 	return _merge(
 		"Rail",
 		base,
-		_upto(layers, upto),
+		_upto(rows, upto),
 		keep_hidden=keep_hidden,
 		context=_context(app, context, check_permission),
 	)
+
+
+def resolve_navigation_layout(by_role: dict[str, str]) -> str:
+	"""The first value set at person, then site, then app; `rail_and_sidebar` when none is."""
+	return layout_below(by_role, None)
+
+
+def layout_below(by_role: dict[str, str], role: str | None) -> str:
+	"""What a layer's blank resolves to: the levels under `role` (all of them when it is `None`)."""
+	levels = LAYOUT_LEVELS[LAYOUT_LEVELS.index(role) + 1 :] if role else LAYOUT_LEVELS
+	return next((by_role[level] for level in levels if by_role.get(level)), DEFAULT_LAYOUT)
+
+
+def rail_layouts(app: str) -> dict[str, str]:
+	"""The navigation layout each level of this app's rail sets; a level with no record is absent."""
+	return _rail_layers(app).layouts
+
+
+def _is_pinned(by_role: dict[str, str]) -> bool:
+	"""The person's own `rail_and_sidebar` sits over an inherited floating rail, which is what a pin writes."""
+	return by_role.get("user") == DEFAULT_LAYOUT and layout_below(by_role, "user") == "floating_rail"
 
 
 def resolve_sidebars(app: str, context: NavigationContext | None = None) -> dict[str, list[dict]]:
@@ -368,7 +408,14 @@ def _parse_payload(item: dict) -> dict:
 # reads the layers on the person's behalf, and the containers' `has_permission` hooks guard the API.
 
 
-def _rail_layers(app: str) -> dict[str, list[dict]]:
+class RailLayers(NamedTuple):
+	"""One app's rail layers by role: the rows each holds, and the navigation layout it sets."""
+
+	rows: dict[str, list[dict]]
+	layouts: dict[str, str]
+
+
+def _rail_layers(app: str) -> RailLayers:
 	"""One app's three rail layers, by role, in one pair of queries."""
 	# `standard` is absent, not empty, when the app ships no rail; only absent derives a base.
 	records = frappe.get_all(
@@ -378,14 +425,16 @@ def _rail_layers(app: str) -> dict[str, list[dict]]:
 			"extends": NO_HOST,
 			"user": ("in", (SITE_LAYER, frappe.session.user)),
 		},
-		fields=["name", "standard", "user"],
+		fields=["name", "standard", "user", "navigation_layout"],
 	)
 
 	rows = _rows_by_parent("Rail", "items", [record.name for record in records])
-	layers = {}
+	layers = RailLayers({}, {})
 
 	for record in records:
-		layers[_layer_role(record)] = rows.get(record.name, [])
+		role = _layer_role(record)
+		layers.rows[role] = rows.get(record.name, [])
+		layers.layouts[role] = record.navigation_layout or ""
 
 	# `extends` is blank in the filter, so a record this app ships for another app's rail never
 	# arrives as a second standard layer.

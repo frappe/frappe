@@ -65,7 +65,13 @@ def moved(key: str, *anchors: dict, **kwargs) -> dict:
 
 
 def make_rail(
-	items: list[dict], *, standard: int = 0, user: str | None = None, app: str = APP, extends: str = ""
+	items: list[dict],
+	*,
+	standard: int = 0,
+	user: str | None = None,
+	app: str = APP,
+	extends: str = "",
+	**fields,
 ):
 	doc = frappe.get_doc(
 		doctype="Rail",
@@ -74,6 +80,7 @@ def make_rail(
 		standard=standard,
 		user=user or "",
 		items=items,
+		**fields,
 	)
 	with shipping():
 		return doc.insert(ignore_permissions=True)

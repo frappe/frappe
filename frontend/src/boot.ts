@@ -25,6 +25,9 @@ export type NavigationItem = {
 	keep_closed?: 1;
 };
 
+/** How one app's navigation draws. The DocType's blank means the level below, so it never arrives blank. */
+export type NavigationLayout = "rail_and_sidebar" | "sidebar_only" | "floating_rail";
+
 export type Navigation = {
 	rail: NavigationItem[];
 	/**
@@ -32,6 +35,9 @@ export type Navigation = {
 	 * by record name. An address that resolved to nothing is absent, not empty.
 	 */
 	sidebars: Record<string, NavigationItem[]>;
+	navigation_layout: NavigationLayout;
+	/** Sent only when true: the person's own rail + sidebar sits over an inherited floating rail. */
+	pinned?: true;
 };
 
 /** An app whose shell hook this person may run, with its `add_to_apps_screen` title. */

@@ -139,6 +139,30 @@ class TestRail(IntegrationTestCase):
 		self.addCleanup(rail.delete)
 		self.assertFalse(rail.extends)
 
+	def test_an_extension_record_has_no_navigation_layout(self):
+		"""An extension only adds rows, and hiding the field does not stop an API write."""
+		with authoring():
+			rail = make_rail(
+				standard=1,
+				extends=HOST,
+				navigation_layout="floating_rail",
+				items=[item(key="a", link_to="User")],
+			)
+			rail.insert()
+			self.addCleanup(rail.delete)
+
+		self.assertFalse(rail.navigation_layout)
+
+	def test_an_app_rail_keeps_its_navigation_layout(self):
+		with authoring():
+			rail = make_rail(
+				standard=1, navigation_layout="sidebar_only", items=[item(key="a", link_to="User")]
+			)
+			rail.insert()
+			self.addCleanup(rail.delete)
+
+		self.assertEqual(rail.navigation_layout, "sidebar_only")
+
 	def test_an_app_cannot_extend_itself(self):
 		"""It is its own rail written twice, and both copies would merge into one list."""
 		rail = make_rail(standard=1, extends=APP, items=[item(key="users", link_to="User")])

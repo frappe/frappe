@@ -182,5 +182,6 @@
 				"label": "Territories"
 			}
 		]
-	}
+	},
+	"navigation_layout": "rail_and_sidebar"
 }

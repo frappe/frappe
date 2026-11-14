@@ -29,7 +29,7 @@ describe.each([
 	{ shape: "flat", modular: false, prefix: "" },
 	{ shape: "modular", modular: true, prefix: "/accounts" },
 ])("the default view on a $shape app", ({ modular, prefix }) => {
-	function routerFor(default_views: Record<string, string>, navigation?: Boot["navigation"]) {
+	function routerFor(default_views: Record<string, string>, navigation?: Omit<Boot["navigation"], "navigation_layout">) {
 		const boot = {
 			app: "erpnext",
 			shell_base: "/apps/erpnext",
