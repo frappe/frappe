@@ -86,7 +86,7 @@ const item = computed(() => ({
 	column: props.column.name!,
 }));
 const fieldnames = computed(() =>
-	props.column.fields.map((entry) => (typeof entry === "string" ? entry : entry.fieldname)),
+	props.column.fields.map((entry) => (typeof entry === "string" ? entry : entry.fieldname))
 );
 const selected = computed(() => {
 	const selection = props.canvas.selection.value;
@@ -106,7 +106,7 @@ const dragging = computed(() => props.canvas.drag.value.active);
 const ringed = computed(
 	() =>
 		props.canvas.editable &&
-		(selected.value || (hovered.value && !sectionSelected.value && !dragging.value)),
+		(selected.value || (hovered.value && !sectionSelected.value && !dragging.value))
 );
 
 // A field inside the column keeps its own hover ring and click.
