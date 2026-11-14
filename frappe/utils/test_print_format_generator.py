@@ -649,6 +649,19 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		html = generator._render_zone_section(section, todo)
 		self.assertIn(todo.description, html)
 
+	def test_zone_static_text_prints_page_numbers(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = self._make_todo()
+		section = {
+			"columns": [{"fields": [{"fieldtype": "Static Text", "text": "Page {page} of {page_count}"}]}]
+		}
+		html = PrintFormatGenerator(pf.name, todo)._render_zone_section(section, todo)
+		self.assertIn('Page <span class="page"></span> of <span class="topage"></span>', html)
+
 	def test_letterhead_resolution_precedence(self):
 		"""Beta renders resolve a letter head like templates do, with the layout's own choice on top."""
 		from frappe.utils.print_format_generator import PrintFormatGenerator

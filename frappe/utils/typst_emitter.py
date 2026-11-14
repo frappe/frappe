@@ -67,6 +67,13 @@ PAGE_NUMBER_POSITIONS = {
 	"Bottom Right": ("footer", "right"),
 }
 
+PAGE_NUMBER_TOKEN = re.compile(r"\{(page|page_count)\}")
+# the semicolon ends the expression, so text right after a token such as "(" stays text
+PAGE_NUMBER_COUNTERS = {
+	"page": '#context counter(page).display("1");',
+	"page_count": "#context counter(page).final().first();",
+}
+
 RIGHT_ALIGNED_FIELDTYPES = frozenset({"Currency", "Float", "Int", "Percent"})
 
 #: color keywords valid in both CSS and Typst — any other name is a blocker,
@@ -945,6 +952,7 @@ class TypstEmitter:
 
 	def _field_body(self, section, df) -> str:
 		fieldtype = df.get("fieldtype") or "Data"
+		in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
 		if fieldtype == "Typst":
 			return self._typst_block(df)
 		if fieldtype == "Divider":
@@ -953,7 +961,6 @@ class TypstEmitter:
 			height = frappe.utils.flt(df.get("height")) or 13
 			return f"#v({pt(height)}pt)"
 		if fieldtype == "Table":
-			in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
 			return self._table(df, keep_together=section.get("keep_together") or in_zone)
 		if fieldtype == "Barcode":
 			return self._barcode(df)
@@ -971,14 +978,18 @@ class TypstEmitter:
 		if fieldtype == "Repeater":
 			return self._repeater(df)
 		if fieldtype == "Static Text":
-			return self._static_text(df)
+			return self._static_text(df, in_zone)
 		return self._data_field(section, df)
 
-	def _static_text(self, df) -> str:
+	def _static_text(self, df: dict, in_zone: bool = False) -> str:
 		text = (df.get("_text") if "_text" in df else _(df.get("text") or "")).strip()
 		if not text:
 			return ""
-		out = self._text_props(df, typst_escape(text).replace("\n", " \\\n"))
+		parts = PAGE_NUMBER_TOKEN.split(text) if in_zone else [text]
+		markup = "".join(
+			PAGE_NUMBER_COUNTERS[part] if i % 2 else typst_escape(part) for i, part in enumerate(parts)
+		)
+		out = self._text_props(df, markup.replace("\n", " \\\n"))
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out

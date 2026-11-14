@@ -731,6 +731,20 @@ class TestTypstRender(IntegrationTestCase):
 		source, _assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
 		self.assertIn("margin: (top: 0.0mm, bottom: 0.0mm, left: 0.0mm, right: 0.0mm)", source)
 
+	def test_footer_static_text_counts_pages(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		footer = {"fieldtype": "Static Text", "text": "Page {page} of {page_count}"}
+		pf = self.make(layout_with(footer={"columns": [{"label": "", "fields": [footer]}]}))
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		source, _assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
+		self.assertIn(
+			'Page #context counter(page).display("1"); of #context counter(page).final().first();', source
+		)
+
 	def test_field_alignment_matches_html(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 		from frappe.utils.typst_emitter import TypstEmitter
