@@ -54,11 +54,13 @@ def mark_rows(items: list[dict], scope: str) -> dict[str, dict]:
 	opened = open_views(
 		[target for target in targets if target[0] in existing and target[1]], own=scope != "site"
 	)
+	# In the user scope a doctype the person cannot read stays unmarked: the row reads "No access" instead.
+	readable = existing if scope == "site" else {d for d in existing if frappe.has_permission(d, "read")}
 
 	return {
 		item["key"]: {"view_deleted": 1}
 		for item, target in zip(items, targets, strict=True)
-		if target not in opened
+		if target not in opened and (scope == "site" or target[0] in readable)
 	}
 
 

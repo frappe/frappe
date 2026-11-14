@@ -48,7 +48,7 @@ describe("add forms", () => {
 
 	it("offers Record and Page on the rail, and Section only in a sidebar", () => {
 		const rail = addTypes(RAIL).map((entry) => entry.type);
-		expect(rail).toEqual(["DocType", "Record", "Page", "Link", "Act"]);
+		expect(rail).toEqual(["DocType", "View", "Record", "Page", "Link", "Act"]);
 		expect(addTypes("sidebar:x").map((entry) => entry.type)).toContain("Section");
 	});
 

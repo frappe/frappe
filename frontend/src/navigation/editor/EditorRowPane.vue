@@ -20,6 +20,16 @@
 					class="[&_input]:text-ink-gray-7"
 				/>
 				<FormControl
+					v-if="row.item_type === 'View'"
+					:modelValue="viewKeyOf(row)"
+					:label="__('View')"
+					variant="outline"
+					disabled
+					class="[&_input]:text-ink-gray-7"
+					:error="viewRefusal ?? undefined"
+					data-field="view"
+				/>
+				<FormControl
 					type="text"
 					:modelValue="row.label ?? ''"
 					:label="__('Label')"
@@ -124,6 +134,7 @@ import { __ } from "@/i18n";
 import IconPicker from "@/icons/IconPicker.vue";
 import { type EditorRow, isOwn, originOf, RAIL, type Scope } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
+import { viewKeyOf } from "./viewPicker";
 
 const props = defineProps<{
 	row: EditorRow | undefined;
@@ -141,6 +152,8 @@ const props = defineProps<{
 	deleteCount: number;
 	appTitle: string;
 	refusal: string | null;
+	/** The save's refusal of this View row's view, shown under its View field. */
+	viewRefusal?: string | null;
 	iconFor: (row: EditorRow) => string;
 	titleFor: (row: EditorRow) => string;
 }>();

@@ -13,13 +13,23 @@
 		/>
 		<div ref="fields" class="flex flex-col gap-3">
 			<Combobox
-				v-if="type === 'DocType' || type === 'Record'"
+				v-if="type === 'DocType' || type === 'Record' || type === 'View'"
 				v-model="doctype"
 				:label="__('DocType')"
-				:options="doctypes"
+				:options="type === 'View' ? viewDoctypes : doctypes"
 				:placeholder="__('Pick a DocType')"
 				:error="errorOf('doctype')"
 				data-field="doctype"
+			/>
+			<Combobox
+				v-if="type === 'View' && values.doctype"
+				v-model="view"
+				:label="__('View')"
+				:options="viewOptions"
+				:placeholder="loadingViews ? __('Loading...') : __('Pick a view')"
+				:disabled="loadingViews"
+				:error="errorOf('view') ?? viewsFailure ?? undefined"
+				data-field="view"
 			/>
 			<Link
 				v-if="type === 'Record' && values.doctype"
@@ -77,7 +87,7 @@
 				data-field="option"
 			/>
 			<FormControl
-				v-if="type !== 'DocType' && type !== 'Act'"
+				v-if="type !== 'DocType' && type !== 'Act' && type !== 'View'"
 				v-model="values.label"
 				type="text"
 				:label="__('Label')"
@@ -115,23 +125,26 @@ import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { type AddValues, buildRow, isOwnUrl, missing, servedPages, startValues } from "./addTypes";
 import { keyOf, pickableActs } from "./actPicker";
-import type { EditorRow } from "./draft";
+import type { EditorRow, Scope } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
 import { useActOptions } from "./useActOptions";
+import { useViewOptions } from "./useViewOptions";
 
 const props = defineProps<{
 	type: string;
 	typeLabel: string;
 	refusal: string | null;
+	scope: Scope;
 	start?: Partial<EditorRow>;
 }>();
 const emit = defineEmits<{ add: [row: Omit<EditorRow, "key">] }>();
 
 const boot = inject<Boot>("boot")!;
 const router = useRouter();
-const doctypes = inject<Addresses>("addresses")!
-	.doctypes()
-	.map((name) => ({ label: name, value: name }));
+const addresses = inject<Addresses>("addresses")!;
+const doctypes = addresses.doctypes().map((name) => ({ label: name, value: name }));
+// A Single has no list, so no view of it.
+const viewDoctypes = doctypes.filter((entry) => !addresses.isSingle(entry.value));
 const pages = servedPages((name) => router.hasRoute(name), boot.app);
 const values = reactive<AddValues>(startValues(props.start));
 // Another DocType makes the picked record meaningless.
@@ -140,7 +153,23 @@ const doctype = computed({
 	set: (picked: string | null) => {
 		values.doctype = picked ?? "";
 		values.name = "";
+		values.view = "";
 	},
+});
+
+const {
+	views,
+	options: viewOptions,
+	loading: loadingViews,
+	failure: viewsFailure,
+} = useViewOptions(
+	computed(() => (props.type === "View" ? values.doctype : "")),
+	computed(() => props.scope),
+	boot.app!
+);
+const view = computed({
+	get: () => values.view || null,
+	set: (picked: string | null) => (values.view = picked ?? ""),
 });
 
 const actOptions = computed(() =>
@@ -235,6 +264,14 @@ function submit() {
 	// A page with no label of its own takes its title, not its slug.
 	const title = pages.find((page) => page.value === values.page)?.label;
 	const label = props.type === "Page" && !values.label.trim() && title ? title : values.label;
-	emit("add", buildRow(props.type, { ...values, label }));
+	const listed = views.value.find((entry) => entry.key === values.view);
+	emit(
+		"add",
+		buildRow(
+			props.type,
+			{ ...values, label },
+			{ listed: listed!, types: boot.view_types ?? [] }
+		)
+	);
 }
 </script>
