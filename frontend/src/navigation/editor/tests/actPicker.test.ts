@@ -1,12 +1,9 @@
 // The Act step of the add-row picker: the acts it lists, the options it disables, the row it writes.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const fake = vi.hoisted(() => ({ available: vi.fn(), find: vi.fn() }));
+const fake = vi.hoisted(() => ({ listed: vi.fn(), find: vi.fn() }));
 
-vi.mock("@/acts/dispatcher", () => ({ acts: { available: fake.available, find: fake.find } }));
-vi.mock("@/shell/paletteGroups", () => ({
-	listedInPalette: (act: { palette?: boolean; label?: string }) => act.palette !== false && !!act.label,
-}));
+vi.mock("@/acts/dispatcher", () => ({ acts: { listed: fake.listed, find: fake.find } }));
 
 import { addTypes, addable, buildRow, missing, startValues } from "../addTypes";
 import { actRow, hasNoPageToOpen, optionRefusal, pickableActs } from "../actPicker";
@@ -18,18 +15,12 @@ const theme = { name: "shell.theme", label: "Theme", icon: "lucide-sun-moon", ar
 const create = { name: "shell.create", label: "Create" };
 
 beforeEach(() => {
-	fake.available.mockReturnValue([
-		theme,
-		create,
-		{ name: "shell.hidden", label: "Hidden", palette: false },
-		{ name: "shell.nolabel" },
-		{ name: "list.create", label: "New" },
-	]);
+	fake.listed.mockReturnValue([theme, create, { name: "list.create", label: "New" }]);
 	fake.find.mockImplementation((name: string) => [theme, create].find((act) => act.name === name));
 });
 
 describe("the Act step", () => {
-	it("lists the acts the palette lists, a shell act or an app's, by label", () => {
+	it("lists the palette's acts that are a shell act or an app's, by label", () => {
 		expect(pickableActs().map((act) => act.name)).toEqual(["shell.create", "shell.theme"]);
 	});
 

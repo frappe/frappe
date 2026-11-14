@@ -3,7 +3,6 @@
 
 import { acts, type ActOption, type AvailableAct } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
-import { listedInPalette } from "@/shell/paletteGroups";
 import type { EditorRow } from "./draft";
 
 /** The most bytes a stored payload takes as compact JSON; one row's share of the boot budget. */
@@ -15,8 +14,8 @@ const ACT_NAME = /^shell\.[a-z0-9_]+(\.[a-z0-9_]+)?$/;
 /** The acts the palette's first step lists, for the person who is editing, that a row can name. */
 export function pickableActs(): AvailableAct[] {
 	return acts
-		.available()
-		.filter((act) => listedInPalette(act) && ACT_NAME.test(act.name) && byteLength(act.name) <= PAYLOAD_CAP_BYTES)
+		.listed()
+		.filter((act) => ACT_NAME.test(act.name) && byteLength(act.name) <= PAYLOAD_CAP_BYTES)
 		.sort((a, b) => a.label!.localeCompare(b.label!));
 }
 
