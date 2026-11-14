@@ -77,12 +77,11 @@ def search(query: str, *, agent: str, user: str) -> list[str]:
 	dimension = ensure_table()
 	scope = "agent = ? and (scope = 'Agent' or user = ?)"
 	with _connect() as db:
-		names = dict(db.execute(f"select rowid, id from {TABLE_NAME} where {scope}", (agent, user)))
-		if not names:
+		if not db.execute(f"select 1 from {TABLE_NAME} where {scope} limit 1", (agent, user)).fetchone():
 			return []
-		keyword = _keyword_search(db, TABLE_NAME, scope, [agent, user], query, TOP_K)
+		keyword = _keyword_search(db, TABLE_NAME, scope, [agent, user], query, TOP_K, column="id")
 	if not dimension:
-		return [names[rowid] for rowid in keyword]
+		return keyword
 
 	from frappe.flow.knowledge.embedder import embed_texts
 
@@ -90,15 +89,15 @@ def search(query: str, *, agent: str, user: str) -> list[str]:
 	with _connect() as db:
 		nearest = db.execute(
 			# a zero vector has no distance
-			f"select rowid, vec_distance_cosine(vector, ?) as distance from {TABLE_NAME} "
+			f"select id, vec_distance_cosine(vector, ?) as distance from {TABLE_NAME} "
 			f"where {scope} and distance is not null",
 			(_vector_bytes(vector), agent, user),
 		).fetchall()
 	scored = []
-	for rowid, distance in nearest:
-		score = 1.0 - distance + (KEYWORD_BONUS if rowid in keyword else 0.0)
-		if score >= MIN_SCORE and rowid in names:
-			scored.append((score, names[rowid]))
+	for name, distance in nearest:
+		score = 1.0 - distance + (KEYWORD_BONUS if name in keyword else 0.0)
+		if score >= MIN_SCORE:
+			scored.append((score, name))
 	scored.sort(reverse=True)
 	return [name for _score, name in scored[:TOP_K]]
 

@@ -287,6 +287,19 @@ class TestKeywordRetrieval(MemoryCase):
 		self.assertNotIn("Ravi", block)
 		self.assertNotIn("Pune", block)
 
+	def test_a_memory_saved_mid_search_does_not_break_it(self):
+		first = save_memory(self.agent.name, content=ACME, scope="agent")
+		keyword_search = store._keyword_search
+		saved = []
+
+		def save_then_search(*args, **kwargs):
+			saved.append(save_memory(self.agent.name, content="Acme pays by wire.", scope="agent"))
+			return keyword_search(*args, **kwargs)
+
+		with patch.object(store, "_keyword_search", side_effect=save_then_search):
+			found = store.search("Where do we bill Acme?", agent=self.agent.name, user=self.user)
+		self.assertEqual(set(found), {first["memory_id"], saved[0]["memory_id"]})
+
 
 class TestHybridRetrieval(MemoryCase):
 	"""With an embedding model, similarity decides and a shared keyword nudges."""

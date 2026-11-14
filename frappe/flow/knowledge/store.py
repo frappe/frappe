@@ -248,8 +248,10 @@ def _search(
 	return [(*rows[rowid], scores[rowid]) for rowid in best if rowid in rows]
 
 
-def _keyword_search(db, table: str, where: str, values: list, text: str, limit: int) -> list[int]:
-	"""Rowids of the best keyword matches for `text`."""
+def _keyword_search(
+	db, table: str, where: str, values: list, text: str, limit: int, column: str = "rowid"
+) -> list:
+	"""`column` of the best keyword matches for `text`."""
 	# FTS5 rejects raw text, so each word is quoted
 	words = dict.fromkeys(re.findall(r"[^\W_]+", text.lower()))
 	match = " OR ".join(f'"{word}"' for word in words if word not in STOP_WORDS)
@@ -257,7 +259,7 @@ def _keyword_search(db, table: str, where: str, values: list, text: str, limit: 
 		return []
 	fts = f"{table}_fts"
 	query = (
-		f"select {table}.rowid from {fts} join {table} on {table}.rowid = {fts}.rowid "
+		f"select {table}.{column} from {fts} join {table} on {table}.rowid = {fts}.rowid "
 		f"where {fts} match ? and ({where}) order by {fts}.rank limit ?"
 	)
 	return [row[0] for row in db.execute(query, [match, *values, limit])]
