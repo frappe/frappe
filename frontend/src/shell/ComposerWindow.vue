@@ -8,11 +8,7 @@
 			:minimizable="false"
 			:storageKey="floatKey"
 			class="pointer-events-auto border border-outline-gray-2"
-			:class="{
-				'shadow-lg': docked,
-				'select-none': dock.dragging.value,
-				'ml-[calc(var(--shell-nav-inset-right,0px)*-1)]': !docked,
-			}"
+			:class="{ 'shadow-lg': docked, 'select-none': dock.dragging.value }"
 			:style="docked ? { height: `${dock.height.value}px` } : undefined"
 			data-composer-card
 			data-composer-window
@@ -121,6 +117,7 @@ import {
 	setComposerWindow,
 	type ComposerWindow,
 } from "./composer";
+import { keepClearOfNavigation } from "./navigationInset";
 
 defineProps<{ user: SessionUser }>();
 
@@ -143,10 +140,10 @@ const writer = computed(() => {
 });
 // A draft set from outside the writer, as a failed post does, draws in a fresh editor.
 const commentRevision = computed(() =>
-	draftRevision(composerState.doctype, composerState.name, COMMENT_WRITER)
+	draftRevision(composerState.doctype, composerState.name, COMMENT_WRITER),
 );
 const emailRevision = computed(() =>
-	draftRevision(composerState.doctype, composerState.name, EMAIL_WRITER)
+	draftRevision(composerState.doctype, composerState.name, EMAIL_WRITER),
 );
 
 // The window's own changes; the header's controls move the card and keep the choice.
@@ -161,9 +158,11 @@ watch(
 	[body, docked],
 	([element, isDocked], _old, onCleanup) => {
 		const card = element?.closest<HTMLElement>("[data-composer-window]");
-		if (card && !isDocked) onCleanup(registerFloatingComposer(card));
+		if (!card || isDocked) return;
+		onCleanup(registerFloatingComposer(card));
+		onCleanup(keepClearOfNavigation(card));
 	},
-	{ flush: "post" }
+	{ flush: "post" },
 );
 
 // The window takes its place from storage when it mounts; the store's, maybe one open's, must win.
@@ -178,7 +177,7 @@ function storeWindow(shown: string) {
 		if (kept?.rect)
 			localStorage.setItem(
 				floatKey,
-				JSON.stringify({ rect: onScreen(kept.rect), mode: composerState.window })
+				JSON.stringify({ rect: onScreen(kept.rect), mode: composerState.window }),
 			);
 		// With no rectangle the window starts from `v-model`; a partial entry would break it.
 		else localStorage.removeItem(floatKey);
@@ -219,7 +218,7 @@ function place(placement: ComposerWindow, float?: () => void) {
 
 function resize(event: PointerEvent) {
 	const card = (event.currentTarget as HTMLElement).closest<HTMLElement>(
-		"[data-composer-window]"
+		"[data-composer-window]",
 	);
 	dock.begin(event, card?.offsetHeight ?? dock.height.value);
 }
