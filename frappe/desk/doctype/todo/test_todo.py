@@ -130,6 +130,14 @@ class TestToDo(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
+	def test_save_checks_stored_document(self):
+		todo = create_new_todo("Test stored", "testperm@example.com")
+
+		with self.set_user("test4@example.com"):
+			todo = frappe.get_doc("ToDo", todo.name)
+			todo.allocated_to = "test4@example.com"
+			self.assertRaises(frappe.PermissionError, todo.save)
+
 	def test_fetch_if_empty(self):
 		frappe.db.delete("ToDo")
 

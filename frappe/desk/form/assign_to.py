@@ -76,6 +76,9 @@ def _add(
 	if not args:
 		args = frappe.local.form_dict
 
+	if not ignore_permissions:
+		frappe.get_doc(args["doctype"], args["name"]).check_permission()
+
 	users_with_duplicate_todo = []
 	shared_with_users = []
 
@@ -86,8 +89,6 @@ def _add(
 			"status": "Open",
 			"allocated_to": assign_to,
 		}
-		if not ignore_permissions:
-			frappe.get_doc(args["doctype"], args["name"]).check_permission()
 
 		if validate_assignees:
 			frappe.share.validate_user_access(assign_to, _("Allocated To"))
