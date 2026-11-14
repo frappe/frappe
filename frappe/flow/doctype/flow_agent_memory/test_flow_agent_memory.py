@@ -300,6 +300,22 @@ class TestKeywordRetrieval(MemoryCase):
 			found = store.search("Where do we bill Acme?", agent=self.agent.name, user=self.user)
 		self.assertEqual(set(found), {first["memory_id"], saved[0]["memory_id"]})
 
+	def test_a_slower_rebuild_does_not_drop_a_memory_saved_after_a_faster_one(self):
+		first = save_memory(self.agent.name, content=ACME, scope="agent")
+		store.drop_table()
+		rows = store._rows
+		saved = []
+
+		def rebuild_and_save_meanwhile(docs, dimension):
+			with patch.object(store, "_rows", rows):
+				saved.append(save_memory(self.agent.name, content="Acme pays by wire.", scope="agent"))
+			return rows([doc for doc in docs if doc.name == first["memory_id"]], dimension)
+
+		with patch.object(store, "_rows", side_effect=rebuild_and_save_meanwhile):
+			store.ensure_table()
+		found = store.search("Acme", agent=self.agent.name, user=self.user)
+		self.assertEqual(set(found), {first["memory_id"], saved[0]["memory_id"]})
+
 
 class TestHybridRetrieval(MemoryCase):
 	"""With an embedding model, similarity decides and a shared keyword nudges."""

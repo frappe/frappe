@@ -123,6 +123,9 @@ def ensure_table() -> int:
 	)
 	rows = _rows(docs, dimension)
 	with _connect(write=True) as db:
+		# another worker rebuilt it meanwhile
+		if _shape(db, TABLE_NAME) == shape:
+			return dimension
 		_drop_table(db, TABLE_NAME)
 		_create_table(
 			db,
