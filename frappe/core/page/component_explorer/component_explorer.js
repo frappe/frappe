@@ -2165,7 +2165,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					caption: "primary_action, secondary_action",
 					items: [
 						{
-							title: "Permissions for this doctype have been customized.",
+							title: "Permissions for this DocType have been customized.",
 							theme: "yellow",
 							__note: "one action and no description: the button sits inline",
 							primary_action: {

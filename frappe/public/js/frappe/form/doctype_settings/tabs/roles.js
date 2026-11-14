@@ -211,7 +211,7 @@ function customized_banner(panel, doctype, reload) {
 
 	return frappe.ui
 		.alert({
-			title: __("Permissions for this doctype have been customized."),
+			title: __("Permissions for this DocType have been customized."),
 			theme: "yellow",
 			primary_action: { label: __("Reset to default"), onclick: reset },
 		})
