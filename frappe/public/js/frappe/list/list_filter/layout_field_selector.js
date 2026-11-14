@@ -83,14 +83,10 @@ export default class LayoutFieldSelector {
 		if (
 			this.meta.title_field &&
 			this.meta.title_field !== "name" &&
+			!this.list_view.settings?.hide_name_column &&
 			fields.every((f) => f.fieldname !== "name")
 		) {
-			const has_name = (this.meta.fields || []).some(
-				(f) => f.fieldname === "name" && (f.reqd || f.in_list_view)
-			);
-			if (has_name) {
-				fields.push({ label: __("ID"), fieldname: "name" });
-			}
+			fields.push({ label: __("ID"), fieldname: "name" });
 		}
 
 		return fields;
@@ -283,7 +279,10 @@ export default class LayoutFieldSelector {
 				if (value === this.subject_field.fieldname) continue;
 				if (value === "status_field") continue;
 
-				const field = frappe.meta.get_docfield(this.doctype, value);
+				const field =
+					value === "name"
+						? { fieldname: "name", label: __("ID") }
+						: frappe.meta.get_docfield(this.doctype, value);
 				if (field) {
 					this.fields.push({
 						label: __(field.label, null, this.doctype),
@@ -349,6 +348,13 @@ export default class LayoutFieldSelector {
 				{ doctype: this.doctype }
 			)
 			.then((fields) => {
+				if (
+					this.meta.title_field &&
+					this.meta.title_field !== "name" &&
+					!this.list_view.settings?.hide_name_column
+				) {
+					fields.push("name");
+				}
 				const field = dialog.get_field("fields");
 				field.df.options = this.get_doctype_field_options(fields);
 				dialog.refresh();
@@ -377,6 +383,15 @@ export default class LayoutFieldSelector {
 			checked: selected.has(field.fieldname),
 			description: field.fieldname,
 		}));
+
+		if (this.meta.title_field && this.meta.title_field !== "name") {
+			options.unshift({
+				label: __("ID"),
+				value: "name",
+				checked: selected.has("name"),
+				description: "name",
+			});
+		}
 
 		if (frappe.has_indicator(this.doctype)) {
 			options.unshift({
