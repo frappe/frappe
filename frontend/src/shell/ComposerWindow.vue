@@ -117,7 +117,7 @@ import {
 	setComposerWindow,
 	type ComposerWindow,
 } from "./composer";
-import { keepClearOfNavigation } from "./navigationInset";
+import { keepClearOfNavigation, navInsetBottom } from "./navigationInset";
 
 defineProps<{ user: SessionUser }>();
 
@@ -197,10 +197,12 @@ function storedFloat() {
 // A browser window that shrank since the rectangle was kept would mount the card off screen.
 function onScreen(rect: { x: number; y: number; width: number; height: number }) {
 	const width = Math.min(rect.width, innerWidth);
-	const height = Math.min(rect.height, innerHeight);
+	// On a phone the tab bar takes the foot of the window.
+	const room = innerHeight - navInsetBottom.value;
+	const height = Math.min(rect.height, room);
 	return {
 		x: clamp(rect.x, 0, innerWidth - width),
-		y: clamp(rect.y, 0, innerHeight - height),
+		y: clamp(rect.y, 0, room - height),
 		width,
 		height,
 	};

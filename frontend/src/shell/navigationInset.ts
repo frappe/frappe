@@ -5,6 +5,10 @@ import { computed, onBeforeUnmount, shallowRef, watch, watchEffect, type Ref } f
 import { navSide } from "./navigationSide";
 
 export const NAV_INSET_RIGHT = "--shell-nav-inset-right";
+export const NAV_INSET_BOTTOM = "--shell-nav-inset-bottom";
+
+/** The tab bar's height, safe area included, while the phone navigation draws, else 0: floats add it to their bottom offset. */
+export const navInsetBottom = shallowRef(0);
 
 /** The rail's width, plus the sidebar's while it is open, when the navigation is on the right; else 0. */
 export const navInsetRight = shallowRef(0);
@@ -13,12 +17,18 @@ export const navInsetRight = shallowRef(0);
 export const navInsetLeft = shallowRef(0);
 
 /** Keeps both insets and the CSS variable on `:root` in step with the shell's content element. */
-export function useNavigationInset(content: Ref<HTMLElement | null | undefined>) {
+export function useNavigationInset(
+	content: Ref<HTMLElement | null | undefined>,
+	phone: Ref<boolean> = shallowRef(false)
+) {
 	const { width } = useElementBounding(content);
 	// The content ends at the window's other edge, so what it leaves of the width is the navigation's,
-	// whichever side it is on: a side change moves the content without resizing it.
+	// whichever side it is on: a side change moves the content without resizing it. The phone draws
+	// no side navigation, so it reaches in from no side.
 	const reach = computed(() =>
-		content.value ? Math.max(0, Math.round(document.documentElement.clientWidth - width.value)) : 0
+		!phone.value && content.value
+			? Math.max(0, Math.round(document.documentElement.clientWidth - width.value))
+			: 0
 	);
 	const inset = computed(() => (navSide() === "right" ? reach.value : 0));
 	const insetLeft = computed(() => (navSide() === "left" ? reach.value : 0));
@@ -36,7 +46,23 @@ export function useNavigationInset(content: Ref<HTMLElement | null | undefined>)
 	});
 }
 
-/** How far a float at `left`, `width` wide, reaches into the navigation on the right of a viewport. */
+/** Keeps `navInsetBottom` and the CSS variable on `:root` at the measured height of the phone tab bar. */
+export function useTabBarInset(bar: Ref<HTMLElement | null | undefined>) {
+	const { height } = useElementBounding(bar);
+
+	watchEffect(() => {
+		const inset = Math.round(height.value);
+		navInsetBottom.value = inset;
+		document.documentElement.style.setProperty(NAV_INSET_BOTTOM, `${inset}px`);
+	});
+
+	onBeforeUnmount(() => {
+		navInsetBottom.value = 0;
+		document.documentElement.style.removeProperty(NAV_INSET_BOTTOM);
+	});
+}
+
+/** How far a float at `left`, `width` wide, reaches into the navigation at the end of a viewport; the same sum serves the tab bar, from `top` and `height`. */
 export function navigationOvershoot(left: number, width: number, viewport: number, inset: number) {
 	return Math.max(0, left - Math.max(0, viewport - inset - width));
 }
@@ -58,7 +84,7 @@ export function navigationShift(
 	return undershoot ? undershoot - overshoot : overshoot ? -overshoot : 0;
 }
 
-/** Keeps a floating window's card clear of the navigation on either side. Returns the stop. */
+/** Keeps a floating window's card clear of the navigation on either side and of the tab bar at the foot, so a drag or a kept position keeps it whole on screen. Returns the stop. */
 export function keepClearOfNavigation(card: HTMLElement) {
 	function apply() {
 		const shift = navigationShift(
@@ -67,13 +93,24 @@ export function keepClearOfNavigation(card: HTMLElement) {
 			document.documentElement.clientWidth,
 			{ left: navInsetLeft.value, right: navInsetRight.value }
 		);
-		const next = shift ? `translateX(${shift}px)` : "";
+		// With no tab bar, a card taller than the window is the window's matter, not the bar's.
+		const down = navInsetBottom.value
+			? navigationOvershoot(
+					parseFloat(card.style.top) || 0,
+					card.offsetHeight,
+					document.documentElement.clientHeight,
+					navInsetBottom.value
+				)
+			: 0;
+		const next = [shift && `translateX(${shift}px)`, down && `translateY(${-down}px)`]
+			.filter(Boolean)
+			.join(" ");
 		if (next !== card.style.transform) card.style.transform = next;
 	}
 
 	const observer = new MutationObserver(apply);
 	observer.observe(card, { attributes: true, attributeFilter: ["style"] });
-	const stopWatch = watch([navInsetRight, navInsetLeft], apply, { flush: "post" });
+	const stopWatch = watch([navInsetRight, navInsetLeft, navInsetBottom], apply, { flush: "post" });
 	window.addEventListener("resize", apply);
 	apply();
 

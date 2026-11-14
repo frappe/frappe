@@ -25,7 +25,7 @@ import type { Shell } from "./shellActs";
 import StandingWindowFrame from "./StandingWindowFrame.vue";
 import type { StandingWindow } from "./standingWindows";
 import { useTabKeepAlive } from "./tabKeepAlive";
-import { navInsetRight } from "./navigationInset";
+import { navInsetBottom, navInsetRight } from "./navigationInset";
 import { MARGIN } from "./windowDrag";
 
 const props = defineProps<{ windows: readonly StandingWindow[]; shell: Shell }>();
@@ -59,7 +59,7 @@ const besideComposer = computed(() =>
 const besideLauncher = computed(() => {
 	const box = launcher.value;
 	const rowRight = viewport.width.value - besideComposer.value;
-	const lineBottom = viewport.height.value - MARGIN;
+	const lineBottom = viewport.height.value - MARGIN - navInsetBottom.value;
 	const onLine = box && box.top < lineBottom && box.bottom > lineBottom - row.height.value;
 	const inWay = box && box.right > rowRight - row.width.value && box.left < rowRight + GAP;
 	return onLine && inWay ? viewport.width.value - box.left + GAP : 0;
@@ -80,7 +80,9 @@ const overlapsBand = computed(() => {
 	return rowRight - row.width.value < band.right.value && rowRight > band.left.value;
 });
 const bottom = computed(() =>
-	composerBand() && overlapsBand.value ? viewport.height.value - band.top.value + GAP : MARGIN
+	composerBand() && overlapsBand.value
+		? viewport.height.value - band.top.value + GAP
+		: MARGIN + navInsetBottom.value
 );
 // A row too wide for the room minimises its open windows from the left, sparing the one just
 // opened (else the rightmost), and a pill that still does not fit truncates its title.

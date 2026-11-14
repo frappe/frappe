@@ -78,7 +78,7 @@ import {
 	setComposerWindow,
 } from "../composer";
 import ComposerWindow from "../ComposerWindow.vue";
-import { navInsetLeft, navInsetRight } from "../navigationInset";
+import { navInsetBottom, navInsetLeft, navInsetRight } from "../navigationInset";
 
 const USER = {
 	name: "ann@example.com",
@@ -340,6 +340,23 @@ describe("where the floating card mounts", () => {
 		expect(panel()?.style.top).toBe("0px");
 		expect(panel()?.style.width).toBe(`${innerWidth}px`);
 		expect(panel()?.style.height).toBe(`${innerHeight}px`);
+	});
+});
+
+describe("above the phone tab bar", () => {
+	afterEach(() => {
+		navInsetBottom.value = 0;
+	});
+
+	it("mounts a stored rectangle clear of the bar, and no taller than the room above it", async () => {
+		navInsetBottom.value = 59;
+		const rect = { x: 10, y: innerHeight, width: 300, height: innerHeight + 100 };
+		localStorage.setItem(FLOAT_KEY, JSON.stringify({ mode: "floating", rect }));
+		const { controller } = await mountShell();
+		controller.composer.open("comment", { window: "floating" });
+		await flush();
+		expect(panel()?.style.top).toBe("0px");
+		expect(panel()?.style.height).toBe(`${innerHeight - 59}px`);
 	});
 });
 

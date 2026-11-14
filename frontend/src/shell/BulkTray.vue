@@ -2,7 +2,7 @@
 <template>
 	<div
 		v-if="runs.length"
-		class="fixed bottom-24 right-[calc(1rem+var(--shell-nav-inset-right,0px))] z-20 flex w-80 flex-col overflow-hidden rounded-5 bg-surface-base shadow-2xl"
+		class="fixed bottom-[calc(6rem+var(--shell-nav-inset-bottom,0px))] right-[calc(1rem+var(--shell-nav-inset-right,0px))] z-20 flex w-80 flex-col overflow-hidden rounded-5 bg-surface-base shadow-2xl"
 	>
 		<div
 			class="flex h-10 items-center justify-between border-b border-outline-gray-1 ps-3 pe-1"

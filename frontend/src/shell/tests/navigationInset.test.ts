@@ -2,7 +2,15 @@
 import { readFileSync } from "node:fs";
 import { createApp, defineComponent, h, nextTick, ref } from "vue";
 import { describe, expect, it, vi } from "vitest";
-import { navigationOvershoot, navigationShift, navInsetLeft, navInsetRight, useNavigationInset } from "../navigationInset";
+import {
+	keepClearOfNavigation,
+	navigationOvershoot,
+	navigationShift,
+	navInsetBottom,
+	navInsetLeft,
+	navInsetRight,
+	useNavigationInset,
+} from "../navigationInset";
 import { navigationSide } from "../navigationSide";
 import { clampPlacement, MARGIN } from "../windowDrag";
 
@@ -47,6 +55,51 @@ describe("the toast viewport", () => {
 		expect(css).toMatch(
 			/\[data-sonner-toaster\]\[data-x-position="right"\]\s*\{\s*right: calc\(var\(--offset-right\) \+ var\(--shell-nav-inset-right, 0px\)\);/
 		);
+	});
+});
+
+describe("the bottom inset", () => {
+	it("lifts a toast above the tab bar", () => {
+		const css = readFileSync("src/index.css", "utf8");
+		expect(css).toContain("var(--offset-bottom, 32px) + var(--shell-nav-inset-bottom, 0px)");
+		expect(css).toContain("var(--mobile-offset-bottom, 16px) + var(--shell-nav-inset-bottom, 0px)");
+	});
+
+	it("keeps a dragged standing window above the tab bar", () => {
+		const viewport = { width: 390, height: 800 };
+		expect(clampPlacement({ left: 0, bottom: 0 }, viewport, 300).bottom).toBe(MARGIN);
+
+		navInsetBottom.value = 59;
+		expect(clampPlacement({ left: 0, bottom: 0 }, viewport, 300).bottom).toBe(MARGIN + 59);
+		navInsetBottom.value = 0;
+	});
+});
+
+describe("keepClearOfNavigation", () => {
+	function card(top: number, height: number) {
+		const element = document.createElement("div");
+		element.style.left = "10px";
+		element.style.top = `${top}px`;
+		Object.defineProperty(element, "offsetWidth", { value: 300 });
+		Object.defineProperty(element, "offsetHeight", { value: height });
+		return element;
+	}
+
+	it("lifts a card that reaches into the tab bar", () => {
+		const root = document.documentElement;
+		Object.defineProperty(root, "clientWidth", { value: 390, configurable: true });
+		Object.defineProperty(root, "clientHeight", { value: 800, configurable: true });
+		navInsetBottom.value = 59;
+		const low = card(500, 300);
+		const stop = keepClearOfNavigation(low);
+		expect(low.style.transform).toBe("translateY(-59px)");
+		stop();
+		expect(low.style.transform).toBe("");
+
+		const clear = card(100, 300);
+		keepClearOfNavigation(clear)();
+		expect(clear.style.transform).toBe("");
+		navInsetBottom.value = 0;
 	});
 });
 

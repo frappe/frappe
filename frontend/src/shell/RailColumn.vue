@@ -106,7 +106,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import type { RouteLocationRaw } from "vue-router";
 import {
 	Button,
 	Divider,
@@ -119,22 +118,13 @@ import {
 import type { NavigationItem } from "@/boot";
 import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
-import { isActAvailable } from "./actRow";
-import { labelOf, renderingOf } from "@/navigation/registry";
-import type { ItemNode } from "@/navigation/tree";
-import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
 import { useAppMenu } from "./appMenu";
 import { awaySide, navSide } from "./navigationSide";
 import ActCell from "./RailActCell.vue";
+import { useRailCells } from "./railCells";
 import UserMenu from "./UserMenu.vue";
 import UtilitySlots from "./UtilitySlots.vue";
-
-type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
-	| { to: RouteLocationRaw }
-	| { href: string; external?: boolean; ariaLabel?: string }
-	| { act: string; value?: unknown }
-);
 
 const TILE =
 	"flex size-7 items-center justify-center rounded-4 transition focus-visible:ring-0 focus-visible:focus-ring";
@@ -162,40 +152,8 @@ const pinLabel = computed(() =>
 
 const { boot, appTitle, menu, loadApps } = useAppMenu();
 
-const tree = useItemTree(() => props.items, "the rail");
-
-// Depth-first and flat: a heading contributes its children and nothing else.
-const cells = computed(() => {
-	const out: Cell[] = [];
-	const walk = (nodes: ItemNode[]) => {
-		for (const node of nodes) {
-			const cell = cellOf(node.item);
-			if (cell && !("act" in cell && !isActAvailable(cell.act))) out.push(cell);
-			walk(node.children);
-		}
-	};
-	walk(tree.value);
-	return out;
-});
-
-function cellOf(item: NavigationItem): Cell | null {
-	const rendering = renderingOf(item, props.context);
-	if (!rendering || !("to" in rendering || "href" in rendering || "act" in rendering))
-		return null;
-
-	const cell = { key: item.key, label: labelOf(item, props.context), icon: item.icon };
-	if ("act" in rendering) return { ...cell, ...rendering };
-	return "to" in rendering
-		? { ...cell, to: rendering.to, sidebar: rendering.sidebar }
-		: {
-				...cell,
-				href: rendering.href,
-				external: rendering.external,
-				// Built here, with the label, so it is redone whenever the label is: the cell's `v-memo` sees a new cell.
-				ariaLabel: rendering.external
-					? __("{0} (opens in a new tab)", [cell.label])
-					: undefined,
-				sidebar: rendering.sidebar,
-		  };
-}
+const cells = useRailCells(
+	() => props.items,
+	() => props.context
+);
 </script>

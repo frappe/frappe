@@ -1,7 +1,25 @@
 <!-- The avatar menu: the person's profile, the shell's acts for them and the page's own rows. The rail and the index draw it. -->
 <template>
-	<Dropdown :options="menu" :side="wide ? 'top' : awaySide()" :align="wide ? 'start' : 'end'">
-		<button v-if="wide" type="button" data-key="user-menu" :class="WIDE_ROW">
+	<Dropdown
+		:options="menu"
+		:side="wide || tab ? 'top' : awaySide()"
+		:align="wide ? 'start' : 'end'"
+	>
+		<button
+			v-if="tab"
+			type="button"
+			data-key="user-menu"
+			:aria-label="__('You')"
+			class="flex min-h-14 flex-col items-center justify-center gap-1 py-2 transition active:scale-95"
+		>
+			<Avatar
+				:image="boot.session.user.user_image"
+				:label="boot.session.user.full_name"
+				size="md"
+			/>
+			<span class="text-xs-medium leading-tighter text-ink-gray-5">{{ __("You") }}</span>
+		</button>
+		<button v-else-if="wide" type="button" data-key="user-menu" :class="WIDE_ROW">
 			<Avatar
 				:image="boot.session.user.user_image"
 				:label="boot.session.user.full_name"
@@ -29,12 +47,13 @@
 import { computed, h, inject } from "vue";
 import { Avatar, Dropdown, useColorScheme, type DropdownOptions } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
+import { __ } from "@/i18n";
 import type { Boot } from "@/boot";
 import { awaySide } from "./navigationSide";
 import { pageMenuItems } from "./pageMenu";
 import { colorSchemes, shellAct, shellMenu } from "./shellActs";
 
-defineProps<{ wide?: boolean }>();
+defineProps<{ wide?: boolean; tab?: boolean }>();
 
 const WIDE_ROW =
 	"flex h-8 w-full min-w-0 items-center gap-2 rounded-4 px-2 text-left transition hover:bg-surface-gray-3 focus-visible:ring-0 focus-visible:focus-ring";
