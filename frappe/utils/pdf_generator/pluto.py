@@ -172,12 +172,16 @@ class PlutoPage:
 			"isodate": now.isoformat(),
 			"time": format_time(now),
 		}
+		original = copy.copy(template)
 		previous = template
 		for page_no in range(1, total_pages + 1):
-			wrapper = template if page_no == 1 else copy.copy(template)
+			wrapper = template if page_no == 1 else copy.copy(original)
 			for class_name, value in {**values, "page": page_no}.items():
 				for element in wrapper.select(f".{class_name}"):
 					element.string = cstr(value)
+			if page_no != total_pages:
+				for element in wrapper.select(".visible-last-page"):
+					element["style"] = f"{element.get('style', '')};visibility: hidden"
 			if page_no > 1:
 				previous.insert_after(wrapper)
 				previous = wrapper

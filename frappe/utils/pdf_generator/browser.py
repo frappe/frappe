@@ -161,6 +161,7 @@ class Browser:
 			"page_info_page",
 			"page_info_frompage",
 			"page_info_topage",
+			"visible-last-page",
 		]
 
 		# Loop through the classes to check
