@@ -198,7 +198,10 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 			} else {
 				// Normal insert mode
 				me.insert(values).then(() => {
-					let messagetxt = __("{1} saved", [__(me.doctype), me.doc.name.bold()]);
+					let messagetxt = __("{1} saved", [
+						__(me.doctype),
+						frappe.utils.bold(me.doc.name),
+					]);
 					me.dialog.animation_speed = "slow";
 					me.dialog.hide();
 					if (frappe.route_hooks.after_save) {
