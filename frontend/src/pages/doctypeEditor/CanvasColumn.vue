@@ -1,8 +1,7 @@
 <!-- One column of a section: its fields, which drag within it and to any other column, the tray
-     or a tab's name. A click on its band (the free space around its fields: below the last one,
-     between fields and in the gutter, minus the 6px each field claims for its own ring) selects it;
-     hover rings it first, unless the section itself is selected. A section of two columns or more drags a ringed column by
-     the grip on its ring's top edge. The band and ring take no space, so nothing moves. -->
+     or a tab's name. A click on the free space around its fields (its band) selects it; hover rings
+     it first, unless the section is selected. A section of two or more columns drags a ringed
+     column by the grip on the ring's top edge. Band and ring take no space. -->
 <template>
 	<div
 		class="relative flex min-w-0 flex-col"
@@ -102,8 +101,7 @@ const sectionSelected = computed(() => {
 	const selection = props.canvas.selection.value;
 	return selection?.kind === "section" && selection.section === item.value.section;
 });
-// A field being dragged shows its own drop line; a hover ring beside it would read as a second target.
-// A selected column keeps its ring: selection outlives a drag, as a selected field's ring does.
+// While a field drags, only its drop line shows: a hover ring would look like a second target.
 const dragging = computed(() => props.canvas.drag.value.active);
 const ringed = computed(
 	() =>
