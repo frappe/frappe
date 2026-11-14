@@ -69,7 +69,7 @@ describe("BulkTray", () => {
 	it("sits 16px in from the right, plus the navigation's width when it is on the right", async () => {
 		fake.runs.push(run());
 		await mount(BulkTray);
-		expect(document.querySelector<HTMLElement>(".bottom-24")!.className).toContain(
+		expect(document.querySelector<HTMLElement>("[class*='bottom-[calc(6rem']")!.className).toContain(
 			"right-[calc(1rem+var(--shell-nav-inset-right,0px))]"
 		);
 	});

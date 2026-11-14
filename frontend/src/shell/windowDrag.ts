@@ -1,7 +1,7 @@
 // Drags a standing window out of the row. The position is the window's left and its distance
 // from the viewport bottom, so a taller body grows upward as it does in the row.
 import { onUnmounted } from "vue";
-import { navInsetRight } from "./navigationInset";
+import { navInsetBottom, navInsetRight } from "./navigationInset";
 import type { StandingWindow } from "./standingWindows";
 
 export const MARGIN = 24;
@@ -21,7 +21,7 @@ export function clampPlacement(
 ): Placement {
 	return {
 		left: clamp(placed.left, viewport.width - navInsetRight.value - MARGIN - width),
-		bottom: clamp(placed.bottom, viewport.height - MARGIN - minHeight),
+		bottom: clamp(placed.bottom, viewport.height - MARGIN - minHeight, MARGIN + navInsetBottom.value),
 	};
 }
 
@@ -82,6 +82,6 @@ function swallowClick() {
 	setTimeout(() => window.removeEventListener("click", stop, { capture: true }));
 }
 
-function clamp(value: number, max: number) {
-	return Math.max(MARGIN, Math.min(value, max));
+function clamp(value: number, max: number, min = MARGIN) {
+	return Math.max(min, Math.min(value, max));
 }

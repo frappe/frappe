@@ -33,7 +33,7 @@
 				</button>
 			</Dropdown>
 		</div>
-		<div class="flex flex-col gap-0.5 px-2 pb-2">
+		<div v-if="utilities" class="flex flex-col gap-0.5 px-2 pb-2">
 			<UtilitySlots form="row" />
 		</div>
 	</div>
@@ -44,6 +44,8 @@ import { Dropdown } from "frappe-ui";
 import { __ } from "@/i18n";
 import { useAppMenu } from "./appMenu";
 import UtilitySlots from "./UtilitySlots.vue";
+
+withDefaults(defineProps<{ utilities?: boolean }>(), { utilities: true });
 
 const { boot, appTitle, menu, loadApps } = useAppMenu();
 </script>

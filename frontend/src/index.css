@@ -16,3 +16,14 @@
 :root [data-sonner-toaster][data-x-position="right"] {
 	right: calc(var(--offset-right) + var(--shell-nav-inset-right, 0px));
 }
+
+/* On a phone the tab bar sits at the foot, so a toast stands above it. The `data-y-position`
+   attribute matches sonner's own <=600px rule for a bottom toaster, which would otherwise win. */
+:root [data-sonner-toaster][data-y-position="bottom"] {
+	bottom: calc(var(--offset-bottom, 32px) + var(--shell-nav-inset-bottom, 0px));
+}
+@media (max-width: 600px) {
+	:root [data-sonner-toaster][data-y-position="bottom"] {
+		bottom: calc(var(--mobile-offset-bottom, 16px) + var(--shell-nav-inset-bottom, 0px));
+	}
+}

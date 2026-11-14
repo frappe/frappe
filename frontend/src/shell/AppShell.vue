@@ -11,12 +11,12 @@
 		:nav-side="navSide()"
 		class="relative h-screen w-screen overflow-clip bg-surface-base text-ink-gray-9"
 		:class="[
-			{ 'desk-shell': boot.app, 'nav-right': navSide() === 'right' },
+			{ 'desk-shell': boot.app && !phone, 'nav-right': navSide() === 'right' },
 			// DesktopShell reverses its row for a right-hand navigation, which in a right-to-left page puts it on the left.
 			navSide() === 'right' ? 'rtl:flex-row' : 'rtl:flex-row-reverse',
 		]"
 	>
-		<template v-if="boot.app && !sidebarOnly && !floating" #rail>
+		<template v-if="boot.app && !sidebarOnly && !floating && !phone" #rail>
 			<RailColumn
 				:items="navigation.rail"
 				:context="contexts.rail"
@@ -26,7 +26,7 @@
 			/>
 		</template>
 
-		<template v-if="boot.app" #sidebar>
+		<template v-if="boot.app && !phone" #sidebar>
 			<SidebarOnly
 				v-if="sidebarOnly"
 				:items="navigation.rail"
@@ -50,10 +50,10 @@
 			/>
 		</template>
 
-		<!-- `tabindex`: Escape in the floating rail hands focus back here. -->
+		<!-- `tabindex`: Escape in the floating rail hands focus back here. The phone tab bar is fixed over the foot, so the page ends above it. -->
 		<main
 			tabindex="-1"
-			class="flex min-h-0 flex-1 flex-col focus:outline-none [&>*]:min-h-0 [&>*]:flex-1"
+			class="flex min-h-0 flex-1 flex-col pb-[var(--shell-nav-inset-bottom,0px)] focus:outline-none [&>*]:min-h-0 [&>*]:flex-1"
 		>
 			<RouterView />
 		</main>
@@ -65,6 +65,15 @@
 			:current="current.railKey"
 			:has-sidebar="!!panel"
 			@pin="setLayout(pin, '[data-key=unpin-navigation]')"
+		/>
+
+		<PhoneNavigation
+			v-if="phone"
+			:items="navigation.rail"
+			:contexts="contexts"
+			:sidebars="navigation.sidebars"
+			:sections="sections"
+			:current="current"
 		/>
 
 		<div
@@ -166,6 +175,8 @@ const NavigationEditor = defineAsyncComponent(
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
 const AboutDialog = defineAsyncComponent(() => import("./AboutDialog.vue"));
 const ShellDialogs = defineAsyncComponent(() => import("./ShellDialogs.vue"));
+// Only the phone width draws it, so the wider pages do not carry its code.
+const PhoneNavigation = defineAsyncComponent(() => import("./PhoneNavigation.vue"));
 const BulkTray = defineAsyncComponent(() => import("./BulkTray.vue"));
 const StandingWindows = defineAsyncComponent(() => import("./StandingWindows.vue"));
 // Keys wait for no paint, so their code stays out of the cold-load chunk.
@@ -181,11 +192,16 @@ const ShellPalette = defineAsyncComponent(() =>
 const boot = inject<Boot>("boot")!;
 seedNavigationSide(boot.session);
 
+const { drawMode } = useDrawMode();
+// The index page has no app and so no navigation: nothing to draw, nothing to clear.
+const phone = computed(() => !!boot.app && drawMode.value === "phone");
+
 const shellEl = ref<{ $el: HTMLElement } | null>(null);
 useNavigationInset(
 	computed(() =>
 		shellEl.value?.$el.querySelector<HTMLElement>('[data-slot="desktop-shell-content"]')
-	)
+	),
+	phone
 );
 const addresses = inject<Addresses>("addresses")!;
 useStaleBuildNotice();
@@ -201,8 +217,7 @@ const navigation = ref<Navigation>(
 
 applyNavigationLayout(navigation.value);
 
-// The other draw modes (overlay, drawer, phone) draw the rail until their tickets land.
-const { drawMode } = useDrawMode();
+// The other draw modes (overlay, drawer) draw the rail until their tickets land.
 const sidebarOnly = computed(() => !!boot.app && drawMode.value === "sidebar_only");
 const floating = computed(() => !!boot.app && drawMode.value === "floating");
 const unpinnable = computed(() => pinned.value && drawMode.value === "rail");
@@ -419,7 +434,7 @@ const { appActsPending, shell } = useShellActs({
 				shareLink,
 				// No seam in the sidebar-only layout or beside a floating rail, so no act.
 				sidebarCollapsed: () =>
-					panel.value && !sidebarOnly.value && !floating.value
+					panel.value && !sidebarOnly.value && !floating.value && !phone.value
 						? sidebarCollapsed.value
 						: null,
 				toggleSidebar: () => void (sidebarCollapsed.value = !sidebarCollapsed.value),
