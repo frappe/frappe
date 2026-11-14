@@ -9,7 +9,7 @@
 		<TextRow
 			v-if="!selected_field.barcode_field"
 			:label="__('Value')"
-			:placeholder="__('Static value')"
+			:placeholder="__('Text or {fieldname}')"
 			:model-value="selected_field.barcode_value"
 			@update:model-value="(v) => (selected_field.barcode_value = v)"
 		/>

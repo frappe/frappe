@@ -180,6 +180,31 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("data:image/svg+xml;base64", html)
 		self.assertNotIn('data-barcode-value="HELLO-QR"', html)
 
+	def test_barcode_value_fills_field_placeholders_with_raw_values(self):
+		from frappe.utils.print_format_generator import get_barcode, get_html
+
+		barcode = {
+			"fieldtype": "Barcode",
+			"fieldname": "_barcode1",
+			"custom": 1,
+			"barcode_value": "{priority}/{date}",
+		}
+		print_format = self._make_print_format(
+			format_data=json.dumps({"sections": [{"columns": [{"fields": [barcode]}]}]})
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "Send the Q3 price list to Contoso",
+				"priority": "High",
+				"date": "2026-02-11",
+			}
+		).insert()
+
+		self.assertIn(get_barcode("High/2026-02-11"), get_html("ToDo", todo.name, print_format.name))
+
 	def test_screen_preview_is_full_page_width(self):
 		"""On screen the preview sheet is the full page width (A4 = 210mm) with the
 		margins as padding, so it looks like a page — not the narrow content width."""
