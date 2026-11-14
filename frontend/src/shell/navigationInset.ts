@@ -22,9 +22,8 @@ export function useNavigationInset(
 	phone: Ref<boolean> = shallowRef(false)
 ) {
 	const { width } = useElementBounding(content);
-	// The content ends at the window's other edge, so what it leaves of the width is the navigation's,
-	// whichever side it is on: a side change moves the content without resizing it. The phone draws
-	// no side navigation, so it reaches in from no side.
+	// What the content leaves of the width is the navigation's, on whichever side: a side change
+	// moves the content without resizing it. The phone draws no side navigation.
 	const reach = computed(() =>
 		!phone.value && content.value
 			? Math.max(0, Math.round(document.documentElement.clientWidth - width.value))
