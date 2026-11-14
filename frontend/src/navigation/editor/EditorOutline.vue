@@ -70,7 +70,7 @@ import { Badge } from "frappe-ui";
 import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
 import { acts } from "@/acts/dispatcher";
-import { type EditorRow, originOf, type Scope } from "./draft";
+import { type EditorRow, isOwn, type Scope } from "./draft";
 
 const props = defineProps<{
 	rows: EditorRow[];
@@ -129,7 +129,7 @@ function badge(row: EditorRow): Badged | null {
 	if (row.hidden && row.hidden_by === "site" && props.scope === "user")
 		return { label: __("Hidden for everyone"), theme: "gray" };
 	if (row.hidden) return { label: __("Hidden"), theme: "gray" };
-	if (originOf(row.key) !== "app") return { label: __("Added"), theme: "gray" };
+	if (isOwn(row.key, props.scope)) return { label: __("Added"), theme: "gray" };
 	return null;
 }
 

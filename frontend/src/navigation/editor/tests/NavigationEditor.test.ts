@@ -91,6 +91,11 @@ afterEach(() => {
 });
 
 describe("the editor", () => {
+	it("marks only the rows the level itself added, a site row is inherited at Just me", async () => {
+		await open(response({ rail: [row("todo"), row("site:wiki"), row("user:mine")] }));
+		expect(rowsShown()).toEqual(["TODO", "SITE:WIKI", "USER:MINEAdded"]);
+	});
+
 	it("reads the level and lists the rail, hidden rows only on request", async () => {
 		await open();
 		expect(text("[data-navigation-editor] h2")).toBe("Customize navigation");
@@ -295,6 +300,36 @@ describe("the editor", () => {
 			confirm.mock.calls[0][0].actions[1].onClick();
 			await settle();
 			expect(router.currentRoute.value.hash).toBe("");
+		});
+
+		it("replaces the open confirm when Back is pressed again", async () => {
+			const first = { close: vi.fn() };
+			confirm.mockReturnValueOnce(first);
+			await open();
+			await hide();
+			router.back();
+			await settle();
+			await router.replace({ hash: "" });
+			await settle();
+			expect(confirm).toHaveBeenCalledTimes(2);
+			expect(first.close).toHaveBeenCalledOnce();
+		});
+
+		it("asks again after a close navigation that another guard refused", async () => {
+			await open();
+			await hide();
+			const refuse = router.beforeEach((to) => (to.hash === "" ? false : undefined));
+			router.back();
+			await settle();
+			confirm.mock.calls[0][0].actions[1].onClick();
+			await settle();
+			expect(router.currentRoute.value.hash).toBe("#customize/rail");
+			refuse();
+
+			await router.replace({ hash: "" });
+			await settle();
+			expect(confirm).toHaveBeenCalledTimes(2);
+			expect(router.currentRoute.value.hash).toBe("#customize/rail");
 		});
 
 		it("asks before a hash change closes the editor, and leaves a clean one alone", async () => {
