@@ -1,7 +1,7 @@
 frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	const page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("Component Explorer"),
+		title: __("Components"),
 		single_column: true,
 	});
 
@@ -712,10 +712,13 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		"Hover Card": {
 			helper: "frappe.ui.hover_card",
 			make: (opts) => {
+				const avatar = opts.__avatar
+					? frappe.ui.avatar.html({ label: opts.__avatar, theme: "blue", size: "sm" })
+					: "";
 				const $trigger = $(
-					`<a href="#" onclick="return false" class="text-base">${frappe.utils.escape_html(
-						opts.__trigger || __("@jane")
-					)}</a>`
+					`<a href="#" onclick="return false" class="text-base ${
+						avatar ? "d-inline-flex align-items-center gap-2" : ""
+					}">${avatar}${frappe.utils.escape_html(opts.__trigger || __("@jane"))}</a>`
 				);
 				frappe.ui.hover_card($trigger, opts);
 				return $trigger;
@@ -726,6 +729,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					items: [
 						{
 							__code: "frappe.ui.hover_card(user_link_el, {\n  content: () => build_user_card(user),  // any element, built fresh per open\n})",
+							__avatar: "Jane Smith",
+							__trigger: "Jane Smith",
 							content: () => {
 								const wrap = $(`
 									<div>
@@ -752,7 +757,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						{
 							__code: 'frappe.ui.hover_card(link_el, { content: "...", open_delay: 200, close_delay: 150 })',
 							__trigger: __("Fast card"),
-							content: "Opens after 200ms instead of the default 700ms.",
+							content: "Jane Smith · Product engineer",
+							__note: "opens after 200ms instead of the default 700ms",
 							open_delay: 200,
 							close_delay: 150,
 						},
@@ -783,7 +789,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					items: [
 						{
 							__trigger: __("Top"),
-							text: "Top is the default",
+							text: "Opens on top",
+							__note: "top is the default side",
 						},
 						{
 							__trigger: __("Right"),
@@ -888,7 +895,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
-		BottomSheet: {
+		"Bottom Sheet": {
 			helper: "frappe.ui.bottom_sheet",
 			groups: [
 				{
@@ -1335,6 +1342,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		},
 		Tabs: {
 			helper: "frappe.ui.tabs",
+			wide: true,
 			stacked: true,
 			groups: [
 				{
@@ -1344,20 +1352,19 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							tabs: [
 								{
 									label: "Details",
-									content:
-										"The content function of a tab runs once, on first activation.",
+									content: "Name, owner and status of this record.",
 								},
 								{
 									label: "Activity",
-									content: "Rendered lazily when this tab was first opened.",
+									content: "Edits and comments appear here, newest first.",
 								},
 								{ label: "Archived", disabled: true },
 								{
 									label: "Settings",
-									content:
-										"Use an element or a function returning one for real content.",
+									content: "Notification and sharing preferences.",
 								},
 							],
+							__note: "tab content runs once, on first activation; pass an element or a function returning one",
 							on_change: (i, tab) =>
 								frappe.ui.toast({ message: __("Switched to {0}", [tab.label]) }),
 						},
@@ -1420,6 +1427,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			groups: [
 				{
 					title: __("Types (same options, four looks)"),
+					caption: "type",
 					items: [
 						{
 							options: [
@@ -1456,6 +1464,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes, with icons (sm is the default)"),
+					caption: "size",
 					items: [
 						{
 							options: [
@@ -1571,6 +1580,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		},
 		Stepper: {
 			helper: "frappe.ui.stepper",
+			preview: { group: 6, item: 0 },
+			wide: true,
 			stacked: true,
 			groups: [
 				{
@@ -1687,6 +1698,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		},
 		Progress: {
 			helper: "frappe.ui.progress",
+			wide: true,
 			stacked: true,
 			groups: [
 				{
@@ -1695,11 +1707,17 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
-						{ value: 40, size: "sm", label: "sm (default)" },
-						{ value: 40, size: "md", label: "md" },
-						{ value: 40, size: "lg", label: "lg" },
-						{ value: 40, size: "xl", label: "xl" },
+						{
+							value: 40,
+							size: "sm",
+							label: "Uploading files",
+							__note: "sm is the default",
+						},
+						{ value: 40, size: "md", label: "Uploading files" },
+						{ value: 40, size: "lg", label: "Uploading files" },
+						{ value: 40, size: "xl", label: "Uploading files" },
 					],
 				},
 				{
@@ -1729,7 +1747,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Live (updates via set_value)"),
 					items: [
 						{
-							__label: __("Animate the first bar above"),
+							__label: __("Animate progress"),
 							__code: 'const progress = $(".es-progress").first().data("es-progress");\ntimer = setInterval(() => progress.set_value(progress.get_value() + 5), 200);',
 							__run: () => {
 								const progress = $(".explorer-preview .es-progress")
@@ -1862,13 +1880,15 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		},
 		Toast: {
 			helper: "frappe.ui.toast",
+			preview_label: __("Show toast"),
 			html: (opts) => "",
 			groups: [
 				{
 					title: __("Types"),
+					caption: "type",
 					items: [
 						{
-							__label: __("Message (default, no icon)"),
+							__label: __("Show message"),
 							__code: 'frappe.ui.toast({ message: "Draft restored" })',
 							__run: () => frappe.ui.toast({ message: "Draft restored" }),
 						},
@@ -1937,7 +1957,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Same id updates in place"),
 					items: [
 						{
-							__label: __("Run 3-step progress"),
+							__label: __("Show progress"),
 							__code: 'frappe.ui.toast({ id: "sync", message: "Step " + n + " of 3...", type: "info" })',
 							__run: () => {
 								let n = 0;
@@ -1974,7 +1994,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Legacy html content (frappe.show_alert)"),
 					items: [
 						{
-							__label: __("HTML message with inline link"),
+							__label: __("Show message with link"),
 							__code: 'frappe.show_alert({ message: `Email sent <span data-action="undo" style="text-decoration: underline; cursor: pointer">Undo</span>`, indicator: "green" }, 7, { undo: () => frappe.ui.toast({ message: "Undone" }) })',
 							__run: () =>
 								frappe.show_alert(
@@ -1988,7 +2008,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								),
 						},
 						{
-							__label: __("Unsafe html gets stripped"),
+							__label: __("Show unsafe HTML"),
 							__code: 'frappe.show_alert({ message: `<b>Bold is fine</b> <img src=x onerror="alert(1)"> <a href="javascript:alert(1)">bad link</a>`, indicator: "blue" })',
 							__run: () =>
 								frappe.show_alert({
@@ -2041,13 +2061,16 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		},
 		Alert: {
 			helper: "frappe.ui.alert",
+			wide: true,
+			preview: { group: 0, item: 1 },
 			html: (opts) => frappe.ui.alert.html(opts),
 			stacked: true,
 			groups: [
 				{
 					title: __("Themes"),
+					caption: "theme",
 					items: [
-						{ title: "Heads up — plain gray, no icon" },
+						{ title: "Payroll runs on the 28th this month", __note: "gray, no icon" },
 						{ title: "Your draft was restored", theme: "blue" },
 						{ title: "This document is locked", theme: "yellow" },
 						{ title: "Import failed for 3 rows", theme: "red" },
@@ -2067,14 +2090,21 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Variants"),
+					caption: "variant",
 					items: [
-						{ title: "Subtle is the default", theme: "blue", variant: "subtle" },
 						{
-							title: "Outline keeps the icon, drops the fill",
+							title: "Leave balances reset on 1 April",
+							theme: "blue",
+							variant: "subtle",
+							__note: "subtle is the default",
+						},
+						{
+							title: "Your timesheet is due on Friday",
+							__note: "outline keeps the icon and drops the fill",
 							theme: "blue",
 							variant: "outline",
 						},
-						{ title: "Plain outline", variant: "outline" },
+						{ title: "Expense claims close at month end", variant: "outline" },
 					],
 				},
 				{
@@ -2113,6 +2143,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			groups: [
 				{
 					title: __("Variants"),
+					caption: "variant",
 					items: [
 						{ label: "Save" },
 						{ label: "Submit", variant: "solid" },
@@ -2132,6 +2163,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
 						{ label: "Extra small", size: "xs" },
 						{ label: "Small" },
@@ -2197,6 +2229,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Variants"),
+					caption: "variant",
 					items: ["solid", "subtle", "outline", "ghost"].map((variant) => ({
 						label: "Save",
 						variant,
@@ -2205,6 +2238,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: ["xs", "sm", "md", "lg"].map((size) => ({
 						label: "Save",
 						size,
@@ -2266,6 +2300,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
 						{ label: "John Doe", size: "xs" },
 						{ label: "John Doe", size: "sm" },
@@ -2278,6 +2313,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Shapes"),
+					caption: "shape",
 					items: [
 						{ label: "John Doe", theme: "blue" },
 						{ label: "John Doe", theme: "blue", shape: "square" },
@@ -2367,6 +2403,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: ["xs", "sm", "md", "lg", "xl"].map((size) => ({
 						__code: `frappe.ui.avatar_group({ avatars, size: "${size}", add: {} })`,
 						avatars: PEOPLE,
@@ -2408,10 +2445,13 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		},
 		Skeleton: {
 			helper: "frappe.ui.skeleton",
+			wide: true,
+			preview: { group: 1 },
 			html: (opts) => frappe.ui.skeleton.html(opts),
 			groups: [
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
 						{ width: "120px", height: "16px" },
 						{ width: "240px", height: "16px" },
@@ -2420,6 +2460,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Shapes"),
+					caption: "shape",
 					items: [
 						{ width: "32px", height: "32px", css_class: "rounded-full" },
 						{ width: "180px", height: "12px", css_class: "rounded-full" },
@@ -2429,6 +2470,19 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		},
 		Divider: {
 			helper: "frappe.ui.divider",
+			wide: true,
+			// a vertical line needs a row with a height, or it has none to fill
+			make: (opts) => {
+				const $line = $(frappe.ui.divider(opts));
+				if (opts.orientation !== "vertical") return $line;
+				const label = (text) => `<span class="text-p-base text-ink-gray-5">${text}</span>`;
+				return $('<div class="explorer-divider-row"></div>').append(
+					label(__("Left")),
+					$line,
+					label(__("Right"))
+				);
+			},
+			preview: { group: 1, item: 0 },
 			html: (opts) => frappe.ui.divider.html(opts),
 			groups: [
 				{
@@ -2495,6 +2549,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Long current page (truncates)"),
 					items: [
 						{
+							__fill: true,
 							items: [
 								{ label: "Home", href: "#" },
 								{
@@ -2512,6 +2567,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			groups: [
 				{
 					title: __("Themes"),
+					caption: "theme",
 					items: [
 						{ label: "Open" },
 						{ label: "Info", theme: "blue" },
@@ -2523,6 +2579,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Variants"),
+					caption: "variant",
 					items: [
 						{ label: "Subtle" },
 						{ label: "Solid", theme: "red", variant: "solid" },
@@ -2532,6 +2589,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 				{
 					title: __("Sizes"),
+					caption: "size",
 					items: [
 						{ label: "Small", theme: "blue", size: "sm" },
 						{ label: "Medium", theme: "blue" },
@@ -2613,94 +2671,362 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		return path.split(".").reduce((obj, key) => obj[key], window);
 	}
 
-	const $body = $(`
-		<div class="explorer flex flex-col gap-4 px-4 py-4">
-			<div class="explorer-picker"></div>
-			<div class="explorer-groups flex flex-col gap-4"></div>
-		</div>
-	`).appendTo(page.main);
+	const ROUTE = "component-explorer";
+	const NAMES = Object.keys(COMPONENTS).sort((a, b) => a.localeCompare(b));
+	const NAME_BY_SLUG = Object.fromEntries(NAMES.map((name) => [frappe.scrub(name, "-"), name]));
+	const LAZY_BUNDLES = {
+		"Stat Card": ["desk_charts.bundle.js", "desk_charts.bundle.css"],
+		"Bottom Sheet": ["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"],
+		"Optional Sections": ["optional_sections.bundle.js", "optional_sections.bundle.css"],
+	};
+	// a group with `caption: "size"` labels each example with its `size`, and so on
+	const CAPTION_KEYS = ["variant", "size", "theme", "shape", "type"];
 
-	let selected_component;
-	async function render_component(name) {
-		selected_component = name;
-		if (name === "Stat Card") {
-			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
-			if (selected_component !== name) return;
-		}
-		if (name === "BottomSheet") {
-			await frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]);
-			if (selected_component !== name) return;
-		}
-		if (name === "Optional Sections") {
-			await frappe.require(["optional_sections.bundle.js", "optional_sections.bundle.css"]);
-			if (selected_component !== name) return;
-		}
-		const component = COMPONENTS[name];
-		const $groups = $body.find(".explorer-groups").empty();
-		if (!component) return;
-		// marks which component is on screen — UI tests wait on this
-		// attribute after switching components
-		$groups.attr("data-component", name);
+	const href_of = (name) => `/desk/${ROUTE}/${frappe.scrub(name, "-")}`;
+	const load_bundles = (names) =>
+		Promise.all(
+			names
+				.filter((name) => LAZY_BUNDLES[name])
+				.map((name) => frappe.require(LAZY_BUNDLES[name]))
+		);
 
-		component.groups.forEach((group) => {
-			const $group = $(`
-				<div class="explorer-group flex flex-col gap-2" data-testid="${frappe.scrub(group.title, "-")}">
-					<div class="text-base-semibold text-ink-gray-8">${frappe.utils.escape_html(group.title)}</div>
-					<div class="flex gap-3 items-stretch">
-						<pre dir="ltr" class="flex-1 rounded-md border m-0 px-4 py-3 text-ink-gray-8 text-p-sm overflow-x-auto"><code></code></pre>
-						<div class="flex-1 min-w-0 flex ${
-							component.stacked ? "flex-col items-stretch" : "flex-wrap items-center"
-						} gap-2 rounded-md border px-4 py-4 explorer-preview"></div>
-					</div>
-				</div>
-			`);
-			const code = group.items
-				.map((opts) => opts.__code || to_code(component, opts))
-				.join("\n");
-			$group.find("code").text(code);
-			const $preview = $group.find(".explorer-preview");
-			const make = component.make || helper_fn(component.helper);
-			group.items.forEach((opts) => {
-				// some things (like toasts) show themselves elsewhere — those
-				// items carry their own code text and a Run trigger
-				if (opts.__run) {
-					$preview.append(
-						frappe.ui.button({
-							label: opts.__label || __("Run"),
-							size: "sm",
-							variant: "outline",
-							onclick: opts.__run,
-						})
-					);
-					return;
-				}
-				$preview.append(make(opts));
+	function item_code(component, opts) {
+		const code = opts.__code || to_code(component, opts);
+		return opts.__note ? `// ${opts.__note}\n${code}` : code;
+	}
+
+	function count_examples(component) {
+		return component.groups.reduce((total, group) => total + group.items.length, 0);
+	}
+
+	function make_example(component, opts, run_label) {
+		// toasts and the like show themselves elsewhere: the example is their trigger
+		if (opts.__run) {
+			return frappe.ui.button({
+				label: run_label || opts.__label || __("Run"),
+				size: "sm",
+				variant: "outline",
+				onclick: opts.__run,
 			});
-			$groups.append($group);
+		}
+		return (component.make || helper_fn(component.helper))(opts);
+	}
+
+	// "solid" twice in one group becomes "solid" and "solid · red"
+	function get_captions(group) {
+		const key = group.caption;
+		const runs = group.items.some((opts) => opts.__run);
+		if (!key || runs || !group.items.some((opts) => opts[key]))
+			return group.items.map(() => "");
+		const captions = group.items.map((opts) => opts[key] || __("default"));
+		const others = CAPTION_KEYS.filter((other) => other !== key);
+		return group.items.map((opts, i) => {
+			if (captions.indexOf(captions[i]) === captions.lastIndexOf(captions[i]))
+				return captions[i];
+			const extra = others.map((other) => opts[other]).filter(Boolean);
+			return [captions[i], ...extra.slice(0, 1)].join(" · ");
 		});
 	}
 
-	const picker = frappe.ui.form.make_control({
-		parent: $body.find(".explorer-picker"),
-		df: {
-			fieldtype: "Autocomplete",
-			fieldname: "component",
-			label: __("Component"),
-			options: Object.keys(COMPONENTS).sort(),
-			change: () => {
-				const name = picker.get_value();
-				// the picker reports again on blur; redrawing then would swallow the click that blurred it
-				if (name !== selected_component) render_component(name);
+	// "Picker (a tap applies and closes)" -> title "Picker", note "a tap applies and closes"
+	function split_title(title) {
+		const at = title.indexOf(" (");
+		if (at < 0) return { title, note: "" };
+		return { title: title.slice(0, at), note: title.slice(at + 2).replace(/\)$/, "") };
+	}
+
+	const $root = $('<div class="explorer"></div>').appendTo(page.main);
+	let search_term = "";
+	let $grid_view;
+	let render_token = 0;
+
+	// ---- grid ----
+
+	// shrinking below 0.85 makes text unreadable, so a taller preview fades out instead
+	function fit_stage(clip) {
+		const stage = clip.firstElementChild;
+		if (!clip.clientWidth || !stage) return;
+		const natural = Math.max(stage.offsetWidth, stage.scrollWidth);
+		const scale = Math.max(0.85, Math.min(1, clip.clientWidth / natural));
+		stage.style.setProperty("--explorer-scale", scale);
+		clip.classList.toggle("is-tall", stage.offsetHeight * scale > clip.clientHeight);
+	}
+
+	function build_card(name) {
+		const component = COMPONENTS[name];
+		const count = count_examples(component);
+		const $card = $(`
+			<a class="explorer-card" href="${href_of(name)}">
+				<div class="explorer-card__preview">
+					<div class="explorer-card__clip">
+						<div inert class="explorer-card__stage ${component.stacked ? "is-stacked" : ""} ${
+			component.wide ? "is-fill" : ""
+		}"></div>
+					</div>
+				</div>
+				<div class="explorer-card__body">
+					<div class="explorer-card__name text-base-medium text-ink-gray-8"></div>
+					<div class="text-base text-ink-gray-5">${
+						count === 1 ? __("1 variant") : __("{0} variants", [count])
+					}</div>
+				</div>
+			</a>
+		`);
+		const $name = $card.find(".explorer-card__name").text(name);
+		frappe.ui.tooltip($name, { text: name, only_on_overflow: true });
+
+		const pick = component.preview || { group: 0, item: 0 };
+		const group = component.groups[pick.group];
+		const items = pick.item === undefined ? group.items : [group.items[pick.item]];
+		const $stage = $card.find(".explorer-card__stage");
+		const $examples = items.map((opts) =>
+			make_example(component, opts, component.preview_label)
+		);
+		if (items.length === 1) $stage.append($examples[0]);
+		else $stage.append($('<div class="explorer-card__stack"></div>').append($examples));
+		const clip = $card.find(".explorer-card__clip")[0];
+		new ResizeObserver(() => fit_stage(clip)).observe(clip);
+		return $card;
+	}
+
+	function update_grid() {
+		const query = search_term.trim().toLowerCase();
+		let shown = 0;
+		$grid_view.find(".explorer-card").each((_, card) => {
+			const match = card.dataset.name.toLowerCase().includes(query);
+			card.hidden = !match;
+			if (match) shown++;
+		});
+		const total = NAMES.length;
+		const noun = (n) => (n === 1 ? __("1 component") : __("{0} components", [n]));
+		$grid_view
+			.find(".explorer-count")
+			.text(!query ? noun(total) : __("{0} of {1} components", [shown, total]))
+			.toggle(!query || !!shown);
+		$grid_view.find(".explorer-grid").toggle(!!shown);
+		const $empty = $grid_view.find(".explorer-empty").empty().toggle(!shown);
+		if (shown) return;
+		$empty.append(
+			frappe.ui.empty_state({
+				icon: "search",
+				title: __('No components match "{0}"', [search_term.trim()]),
+				actions: [
+					{
+						label: __("Clear search"),
+						onclick: () =>
+							$grid_view.find(".explorer-search").val("").trigger("input").focus(),
+					},
+				],
+			})
+		);
+	}
+
+	async function build_grid() {
+		await load_bundles(NAMES);
+		const $view = $(`
+			<div>
+				<div class="explorer-toolbar">
+					<input type="search" class="form-control explorer-search" placeholder="${__(
+						"Search"
+					)}" aria-label="${__("Search")}">
+					<div class="explorer-count text-base text-ink-gray-5"></div>
+				</div>
+				<div class="explorer-grid"></div>
+				<div class="explorer-empty"></div>
+			</div>
+		`);
+		const $grid = $view.find(".explorer-grid");
+		NAMES.forEach((name) => {
+			const $card = build_card(name);
+			$card[0].dataset.name = name;
+			$grid.append($card);
+		});
+		$view
+			.find(".explorer-search")
+			.val(search_term)
+			.on("keydown", (e) => {
+				// Escape clears the field; keep the desk from taking focus away
+				if (e.key === "Escape") {
+					e.stopPropagation();
+					e.target.value = "";
+					$(e.target).trigger("input");
+				}
+			})
+			.on("input", (e) => {
+				search_term = e.target.value;
+				update_grid();
+			});
+		return $view;
+	}
+
+	async function show_grid() {
+		const token = ++render_token;
+		page.$title_area.find(".explorer-back").remove();
+		page.set_breadcrumbs([{ label: __("Components") }]);
+		frappe.utils.set_title(__("Components"));
+		if (!$grid_view) {
+			const $built = await build_grid();
+			if (token !== render_token) return;
+			$grid_view = $built;
+		}
+		$root.children().detach();
+		$root.append($grid_view);
+		update_grid();
+	}
+
+	// ---- one component ----
+
+	function build_example(component, opts, caption) {
+		const code = item_code(component, opts);
+		const $example = $(`
+			<div class="explorer-example ${opts.__fill ? "is-fill" : ""}">
+				<div class="explorer-example__item"></div>
+				${caption ? '<div class="explorer-example__caption text-p-sm text-ink-gray-5"></div>' : ""}
+				<div class="explorer-example__copy"></div>
+			</div>
+		`);
+		$example.find(".explorer-example__item").append(make_example(component, opts));
+		$example.find(".explorer-example__caption").text(caption);
+		// on touch there is no hover: a tap on an example shows its copy button
+		$example.on("click", () => {
+			$example.closest(".explorer-canvas").find(".is-active").removeClass("is-active");
+			$example.addClass("is-active");
+		});
+		$example.find(".explorer-example__copy").append(
+			frappe.ui.button({
+				icon: "copy",
+				size: "xs",
+				variant: "ghost",
+				tooltip: __("Copy code"),
+				onclick: () => frappe.utils.copy_to_clipboard(code, __("Copied")),
+			})
+		);
+		return $example;
+	}
+
+	function build_group(component, group) {
+		const captions = get_captions(group);
+		const $group = $(`
+			<section class="explorer-group" data-testid="${frappe.scrub(split_title(group.title).title, "-")}">
+				<div class="explorer-group__head">
+					<h3 class="explorer-group__title text-base-medium text-ink-gray-8"></h3>
+					<div class="explorer-group__toggle"></div>
+				</div>
+				<div class="explorer-preview explorer-canvas ${component.stacked ? "is-stacked" : ""} ${
+			component.wide ? "is-wide" : ""
+		} ${captions.some(Boolean) ? "has-captions" : ""}"></div>
+				<pre dir="ltr" class="explorer-code text-ink-gray-8 text-p-sm" hidden><code></code></pre>
+			</section>
+		`);
+		const { title, note } = split_title(group.title);
+		$group.find(".explorer-group__title").text(title);
+		const code = group.items.map((opts) => item_code(component, opts)).join("\n");
+		$group.find("code").text(note ? `// ${note}\n${code}` : code);
+
+		const $code = $group.find(".explorer-code");
+		const $toggle = frappe.ui.button({
+			label: __("Code"),
+			icon: "code",
+			size: "sm",
+			variant: "ghost",
+			attrs: { "aria-expanded": "false" },
+			onclick: () => {
+				const open = $code[0].hidden;
+				$code[0].hidden = !open;
+				$toggle.attr("aria-expanded", String(open));
 			},
-		},
-		render_input: true,
-	});
+		});
+		$group.find(".explorer-group__toggle").append($toggle);
 
-	picker.set_value("Button");
-	render_component("Button");
+		const $canvas = $group.find(".explorer-canvas");
+		group.items.forEach((opts, i) => {
+			$canvas.append(build_example(component, opts, captions[i]));
+		});
+		// on a phone, labels sit above their examples when a beside-layout would overflow
+		const canvas = $canvas[0];
+		new ResizeObserver(() => {
+			canvas.classList.remove("labels-above");
+			if (canvas.scrollWidth > canvas.clientWidth + 1) canvas.classList.add("labels-above");
+		}).observe(canvas);
+		return $group;
+	}
 
-	// Deterministic entry point for UI tests: switch the shown component
-	// without driving the Autocomplete widget. Safe to expose — the
-	// explorer is a dev-only page. See playwright/tests/es_components.spec.js.
+	function build_pager(name) {
+		const index = NAMES.indexOf(name);
+		const link = (target, side) => {
+			if (!target) return '<span class="explorer-pager__slot"></span>';
+			const arrow = frappe.utils.icon(side === "prev" ? "arrow-left" : "arrow-right", "sm");
+			const label = `<span class="explorer-pager__label">${frappe.utils.escape_html(
+				target
+			)}</span>`;
+			return `<a class="explorer-pager__link explorer-pager__link--${side} text-base text-ink-gray-6" href="${href_of(
+				target
+			)}">${side === "prev" ? arrow + label : label + arrow}</a>`;
+		};
+		return $(
+			`<nav class="explorer-pager" aria-label="${__("Components")}">${link(
+				NAMES[index - 1],
+				"prev"
+			)}${link(NAMES[index + 1], "next")}</nav>`
+		);
+	}
+
+	async function render_component(name) {
+		const token = ++render_token;
+		const component = COMPONENTS[name];
+		if (!component) return show_grid();
+		await load_bundles([name]);
+		if (token !== render_token) return;
+
+		page.set_breadcrumbs([
+			{ label: __("Components"), href: `/desk/${ROUTE}` },
+			{ label: name },
+		]);
+		// breadcrumbs collapse on phones, so a back button takes their place there
+		page.$title_area.find(".explorer-back").remove();
+		page.$title_area.prepend(
+			$('<span class="explorer-back"></span>').append(
+				frappe.ui.button({
+					icon: "chevron-left",
+					variant: "ghost",
+					tooltip: __("Components"),
+					onclick: () => frappe.set_route(ROUTE),
+				})
+			)
+		);
+		frappe.utils.set_title(name);
+
+		const $view = $(`
+			<div class="explorer-view">
+				<div><code class="explorer-helper text-p-sm text-ink-gray-6"></code></div>
+				<div class="explorer-groups" data-component="${frappe.utils.escape_html(name)}"></div>
+			</div>
+		`);
+		$view.find(".explorer-helper").text(component.helper);
+		const $groups = $view.find(".explorer-groups");
+		component.groups.forEach((group) => $groups.append(build_group(component, group)));
+		$view.append(build_pager(name));
+
+		$root.children().detach();
+		$root.append($view);
+		frappe.utils.scroll_to(0);
+	}
+
+	// ---- routing ----
+
+	function show_route() {
+		const slug = frappe.get_route()[1];
+		if (!slug) return show_grid();
+		const name = NAME_BY_SLUG[slug];
+		if (!name) return frappe.set_route(ROUTE);
+		return render_component(name);
+	}
+
+	$(wrapper).on("show", show_route);
+	// a render still loading when the page is left must not retitle the next page
+	$(wrapper).on("hide", () => render_token++);
+
+	// Deterministic entry point for UI tests: show one component's variants
+	// without going through the grid. See playwright/tests/es_components.spec.js.
 	frappe.pages["component-explorer"].render_component = render_component;
 };
