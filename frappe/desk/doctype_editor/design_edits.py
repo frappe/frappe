@@ -9,7 +9,7 @@ from frappe.desk.doctype.form_layout.form_layout import LAYOUT_BREAKS
 from frappe.desk.doctype_editor.design_state import DesignState
 from frappe.desk.doctype_editor.errors import EditError, field_error
 from frappe.desk.doctype_editor.settings_edits import SettingsEdits
-from frappe.model import no_value_fields, table_fields
+from frappe.model import child_table_fields, default_fields, no_value_fields, table_fields
 
 RESERVED_PROPERTIES = ("name", "parent", "parenttype", "parentfield", "idx", "doctype")
 PLACE_KEYS = ("fieldname", "section", "column", "index", "tab")
@@ -126,24 +126,46 @@ class DesignEdits(SettingsEdits):
 		self.state.rename_field(edit.get("fieldname"), edit.get("new_fieldname"))
 
 	def fields_add_child_table(self, edit: dict):
-		name = edit.get("name")
+		"""A child with `link` holds that one Link field, for a Table MultiSelect."""
+		name, link = edit.get("name"), edit.get("link")
 		if not name or not edit.get("table_field"):
 			raise EditError(_("A new child table needs a name and a table field."))
-		self.state.add_child(name)
+		if link and (
+			not isinstance(link, str) or not frappe.db.exists("DocType", {"name": link, "istable": 0})
+		):
+			raise EditError(_("{0} is not a DocType a field can link to.").format(link))
+		child = self.state.add_child(name)
+		if link:
+			fieldname = SPECIAL_CHAR_PATTERN.sub("", frappe.scrub(link))
+			if fieldname in (*default_fields, *child_table_fields):
+				fieldname = f"{fieldname}_link"
+			child.doc.append(
+				"fields",
+				{
+					"fieldname": fieldname,
+					"label": link,
+					"fieldtype": "Link",
+					"options": link,
+					"in_list_view": 1,
+				},
+			)
 		if table := self.state.doc.get("fields", {"fieldname": edit["table_field"]}):
+			if (table[0].fieldtype == "Table MultiSelect") != bool(link):
+				message = _("{0} needs a child table that fits its type.")
+				raise field_error(message.format(table[0].fieldname), table[0].fieldname, "options")
 			return self.fill_table_field(table[0], name)
 		self.fields_add_field(
 			{
 				**edit,
 				"fieldname": edit["table_field"],
 				"label": edit.get("label") or name,
-				"fieldtype": "Table",
+				"fieldtype": "Table MultiSelect" if link else "Table",
 				"options": name,
 			}
 		)
 
 	def fill_table_field(self, field, name: str):
-		if field.fieldtype != "Table":
+		if field.fieldtype not in table_fields:
 			raise field_error(_("{0} is not a Table field.").format(field.fieldname), field.fieldname)
 		self.refuse_moving_table(field, name)
 		field.options = name

@@ -12,7 +12,7 @@ export function childFieldItems(host: EditorActsHost): ActItem<EditorActsHost>[]
 			label: __("New child table"),
 			palette: false,
 			when: editing,
-			run: (_context, keys: { name: string; table_field: string; label?: string }) =>
+			run: (_context, keys: { name: string; table_field: string; label?: string; link?: string }) =>
 				host.canvas()!.stage({ ...keys, act: "fields.add_child_table" }),
 		},
 		{

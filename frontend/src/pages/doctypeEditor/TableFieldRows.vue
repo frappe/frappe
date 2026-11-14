@@ -1,5 +1,5 @@
-<!-- A Table field's rows in the field panel: its child table, the jump to the child's own editor,
-     where its fields and grid columns are edited, and the columns its grid shows. -->
+<!-- A Table or Table MultiSelect field's rows in the field panel: its child table, the jump to the
+     child's own editor, where its fields and grid columns are edited, and a Table's grid columns. -->
 <template>
 	<PanelRow :label="__('Child table')">
 		<ChildTablePicker :canvas="canvas" :field="field" />
@@ -18,7 +18,11 @@
 			/>
 		</button>
 	</PanelRow>
-	<PanelRow v-if="field.options && childFields" :label="__('Grid')" :box="false">
+	<PanelRow
+		v-if="field.fieldtype === 'Table' && field.options && childFields"
+		:label="__('Grid')"
+		:box="false"
+	>
 		<p class="px-2 py-1 text-base leading-5 text-ink-gray-6" data-grid-summary>
 			{{ columns || __("No columns yet") }}
 		</p>

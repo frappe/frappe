@@ -1,5 +1,5 @@
-<!-- A Table field on the parent's canvas: the record page's own grid, read-only with no rows, drawn from the
-     child's fields as its editor has them, so the columns and their widths show. -->
+<!-- A Table or Table MultiSelect field on the parent's canvas: the record page's own control, read-only
+     with no rows, drawn from the child's fields as its editor has them, so a grid's columns show. -->
 <template>
 	<FormLayoutField :field="node" />
 </template>

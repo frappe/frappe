@@ -6,7 +6,7 @@ import { __, __n } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
 import { reqdInConditional } from "./editorModel";
 import { allowedFieldtypes } from "./fieldRules";
-import { COMMON_TYPES, FIELDTYPE_GROUPS, typeName, typeOf } from "./fieldtypes";
+import { COMMON_TYPES, FIELDTYPE_GROUPS, TABLE_TYPES, typeName, typeOf } from "./fieldtypes";
 
 export interface TypeGroup {
 	label: string;
@@ -40,11 +40,13 @@ export function typeGroups(canvas: DesignCanvas, fieldname: string): { groups: T
 	);
 }
 
-/** What a type pick sets, as one step; "Email" is Data's `Email` option, so it never carries over. */
+/** What a type pick sets, as one step; "Email" is Data's `Email` option, so it never carries over.
+ * Table and Table MultiSelect keep their child: a saved table with rows cannot point at another. */
 export function typeChange(field: RawMetaField, name: string): Record<string, unknown> {
 	const { fieldtype, options } = typeOf(name);
 	const properties: Record<string, unknown> = { fieldtype };
-	const keeps = fieldtype === field.fieldtype && !typeOf(typeName(field.fieldtype, field.options)).options;
+	const sameKind = fieldtype === field.fieldtype || [fieldtype, field.fieldtype].every((type) => TABLE_TYPES.includes(type));
+	const keeps = sameKind && !typeOf(typeName(field.fieldtype, field.options)).options;
 	const next = options ?? (keeps ? field.options : "");
 	if ((next ?? "") !== (field.options ?? "")) properties.options = next ?? "";
 	return properties;

@@ -6,6 +6,7 @@ import { ChildEdits } from "./childEdits";
 import type { ChildSave } from "./childSave";
 import { pendingChild } from "./childSource";
 import { DesignCanvas } from "./designCanvas";
+import { TABLE_TYPES } from "./fieldtypes";
 import type { ForkWarning } from "./forkWarning";
 import { loadEditor, type EditorState } from "./editorSource";
 import { LatestWins } from "./latestWins";
@@ -17,6 +18,8 @@ export interface ChildSession {
 	state: EditorState;
 	edits: ChildEdits;
 	canvas: DesignCanvas;
+	/** The DocType a new child's Link field names; a child remade with another loads afresh. */
+	link?: string;
 }
 
 export const CHILD_TABLES: InjectionKey<ChildTables> = Symbol("ChildTables");
@@ -41,29 +44,29 @@ export class ChildTables {
 		const wanted = this.shows.begin();
 		const doctype = table ? this.childOf(table) : null;
 		if (!table || !doctype) return void (this.open.value = null);
-		const session = this.sessions.value.get(doctype) ?? (await this.load(doctype));
+		const session = this.cached(doctype) ?? (await this.load(doctype));
 		if (wanted()) this.open.value = { ...session, table };
 	}
 
 	/** The parent's Table field that holds `doctype`, for an undo that reopens its editor. */
 	tableOf(doctype: string): string | null {
-		const field = this.parent()?.working.value.fields.find((one) => one.fieldtype === "Table" && one.options === doctype);
+		const field = this.parent()?.working.value.fields.find((one) => TABLE_TYPES.includes(one.fieldtype) && one.options === doctype);
 		return field?.fieldname ?? null;
 	}
 
 	/** A child's fields as its open editor has them, else `null`. */
 	fields(doctype: string): RawMetaField[] | null {
-		return this.sessions.value.get(doctype)?.canvas.working.value.fields ?? null;
+		return this.cached(doctype)?.canvas.working.value.fields ?? null;
 	}
 
 	/** A loaded child editor's canvas, else `null`. */
 	canvasOf(doctype: string): DesignCanvas | null {
-		return this.sessions.value.get(doctype)?.canvas ?? null;
+		return this.cached(doctype)?.canvas ?? null;
 	}
 
 	/** A child editor's canvas, loading the child when no editor has it yet. */
 	async loaded(doctype: string): Promise<DesignCanvas> {
-		return (this.sessions.value.get(doctype) ?? (await this.load(doctype))).canvas;
+		return (this.cached(doctype) ?? (await this.load(doctype))).canvas;
 	}
 
 	/** Every child table with staged edits; a new one, which the parent's edits add, has no base version. */
@@ -110,28 +113,43 @@ export class ChildTables {
 
 	/** The child tables the parent's staged edits make. */
 	added(): string[] {
-		return this.edits.staged.value
-			.filter((edit) => edit.act === "fields.add_child_table")
-			.map((edit) => String(edit.name));
+		return this.additions().map((edit) => String(edit.name));
+	}
+
+	/** The DocType a new child's one Link field names, when it was made for a Table MultiSelect. */
+	linkOf(doctype: string): string | undefined {
+		const link = this.additions().find((edit) => edit.name === doctype)?.link;
+		return link ? String(link) : undefined;
+	}
+
+	/** A loaded editor, unless its new child was undone and made again with another link since it loaded. */
+	private cached(doctype: string): ChildSession | undefined {
+		const session = this.sessions.value.get(doctype);
+		return session?.link === this.linkOf(doctype) ? session : undefined;
+	}
+
+	private additions() {
+		return this.edits.staged.value.filter((edit) => edit.act === "fields.add_child_table");
 	}
 
 	private childOf(table: string): string | null {
 		const field = this.parent()?.field(table);
-		return field?.fieldtype === "Table" && field.options ? field.options : null;
+		return field && TABLE_TYPES.includes(field.fieldtype) && field.options ? field.options : null;
 	}
 
-	/** The child tables the parent's Table fields name now; a new child no field names is not saved. */
+	/** The child tables the parent's table fields name now; a new child no field names is not saved. */
 	private named(): Set<string> {
 		const fields = this.parent()?.working.value.fields ?? [];
-		return new Set(fields.filter((field) => field.fieldtype === "Table" && field.options).map((field) => field.options!));
+		return new Set(fields.filter((field) => TABLE_TYPES.includes(field.fieldtype) && field.options).map((field) => field.options!));
 	}
 
 	private async load(doctype: string): Promise<ChildSession> {
 		const parent = this.parent()!.state;
 		const sameParent = this.shows.watch();
-		const state = this.added().includes(doctype) ? pendingChild(doctype, parent) : await loadEditor(doctype, parent.mode);
+		const link = this.linkOf(doctype);
+		const state = this.added().includes(doctype) ? pendingChild(doctype, parent, link) : await loadEditor(doctype, parent.mode);
 		const edits = new ChildEdits(this.edits, state);
-		const session = { table: "", state, edits, canvas: new DesignCanvas(state, edits, this.forks) };
+		const session = { table: "", state, edits, canvas: new DesignCanvas(state, edits, this.forks), link };
 		if (sameParent()) this.sessions.value = new Map(this.sessions.value).set(doctype, session);
 		return session;
 	}

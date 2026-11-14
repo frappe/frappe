@@ -26,6 +26,9 @@ describe("the panel's type list", () => {
 		expect(typeChange({ fieldname: "mail", fieldtype: "Data" }, "Email")).toEqual({ fieldtype: "Data", options: "Email" });
 		expect(typeChange({ fieldname: "who", fieldtype: "Link", options: "User" }, "Link")).toEqual({ fieldtype: "Link" });
 		expect(typeChange({ fieldname: "who", fieldtype: "Link", options: "User" }, "Data")).toEqual({ fieldtype: "Data", options: "" });
+		const roles = { fieldname: "roles", fieldtype: "Table", options: "Has Role" };
+		expect(typeChange(roles, "Table MultiSelect")).toEqual({ fieldtype: "Table MultiSelect" });
+		expect(typeChange(roles, "Link")).toEqual({ fieldtype: "Link", options: "" });
 	});
 
 

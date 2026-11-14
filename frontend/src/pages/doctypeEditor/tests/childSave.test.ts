@@ -164,6 +164,33 @@ describe("a save with child tables", () => {
 		]);
 	});
 
+	it("opens a new child of links for a Table MultiSelect, holding its one Link field", async () => {
+		const { children } = mount();
+		await acts.run("fields.add_field", { label: "Watchers", fieldtype: "Table MultiSelect" });
+		await acts.run("fields.add_child_table", { name: "Task Note Watcher", table_field: "watchers", link: "User" });
+		await children.show("watchers");
+		const fields = children.open.value!.canvas.working.value.fields;
+		expect(fields).toMatchObject([{ fieldname: "user", fieldtype: "Link", options: "User", in_list_view: 1 }]);
+		expect(children.open.value?.canvas.place("user")).toMatchObject({ section: "main", index: 0 });
+	});
+
+	it("opens a new child undone and made again with another link on that link's field", async () => {
+		const { children, edits } = mount();
+		await acts.run("fields.add_field", { label: "Watchers", fieldtype: "Table MultiSelect" });
+		await acts.run("fields.add_child_table", { name: "Task Note Watcher", table_field: "watchers", link: "User" });
+		await children.show("watchers");
+		edits.undo();
+		await acts.run("fields.add_child_table", { name: "Task Note Watcher", table_field: "watchers", link: "Role" });
+		await children.show("watchers");
+		expect(children.open.value!.canvas.working.value.fields).toMatchObject([{ fieldname: "role", options: "Role" }]);
+	});
+
+	it("adds a Table MultiSelect field for a new child of links that no field names yet", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.add_child_table", { name: "Task Note Watcher", table_field: "watchers", link: "User" });
+		expect(canvas.field("watchers")).toMatchObject({ fieldtype: "Table MultiSelect", options: "Task Note Watcher" });
+	});
+
 	it("keeps a new child a child table: its Settings tab has no kind row", async () => {
 		const { children } = mount();
 		await acts.run("fields.add_field", { label: "Steps", fieldtype: "Table" });

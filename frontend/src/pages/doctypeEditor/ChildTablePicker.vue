@@ -1,5 +1,6 @@
 <!-- A Table field's "Child table": child DocTypes only, the parent's module first, and "New child
-     table…" at its foot. A Table field with no child yet opens it by itself. -->
+     table…" at its foot. A Table MultiSelect lists only children with a Link field, as v1 requires.
+     A field with no child yet opens it by itself. -->
 <template>
 	<Combobox
 		v-model:open="open"
@@ -34,13 +35,14 @@
 		:module="canvas.state.module"
 		:label="field.label ?? ''"
 		:staged="tables?.added() ?? []"
+		:multiselect
 		@create="create"
 		@cancel="naming = false"
 	/>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from "vue";
+import { computed, inject, onMounted, ref, watch } from "vue";
 import { Combobox, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
@@ -63,6 +65,7 @@ const tables = inject(CHILD_TABLES, null);
 const open = ref(false);
 const naming = ref(false);
 const saved = ref<ChildOption[]>([]);
+const multiselect = computed(() => props.field.fieldtype === "Table MultiSelect");
 const locked = computed(
 	() =>
 		props.canvas.state.mode === "Customize" &&
@@ -71,11 +74,13 @@ const locked = computed(
 
 const groups = computed(() => {
 	const module = props.canvas.state.module;
-	const added = (tables?.added() ?? []).map((name) => ({
-		label: name,
-		value: name,
-		description: __("New, not saved"),
-	}));
+	const added = (tables?.added() ?? [])
+		.filter((name) => !multiselect.value || tables?.linkOf(name))
+		.map((name) => ({
+			label: name,
+			value: name,
+			description: __("New, not saved"),
+		}));
 	const option = (one: ChildOption) => ({
 		label: one.name,
 		value: one.name,
@@ -91,21 +96,30 @@ const groups = computed(() => {
 	].filter((group) => group.options.length);
 });
 
-onMounted(async () => {
+onMounted(() => {
 	if (!props.field.options && !props.canvas.savedName(props.field.fieldname))
 		openWhenFocusSettles();
+});
+
+watch(multiselect, loadChildren, { immediate: true });
+
+async function loadChildren(links: boolean) {
+	const filters = [["DocType", "istable", "=", 1]];
+	if (links) filters.push(["DocField", "fieldtype", "=", "Link"]);
 	try {
 		const { data } = await listDocuments<ChildOption>("DocType", {
 			fields: ["name", "module", "custom"],
-			filters: { istable: 1 },
+			filters,
+			// The DocField filter joins one row per Link field.
+			group_by: "name",
 			order_by: "name asc",
 			limit: 1000,
 		});
-		saved.value = data;
+		if (links === multiselect.value) saved.value = data;
 	} catch (error) {
 		toast.error(errorMessage(error));
 	}
-});
+}
 
 /** A pick in the type menu hands focus back to its trigger as the menu closes, which would close this list. */
 function openWhenFocusSettles() {
@@ -128,8 +142,9 @@ function startNew() {
 	naming.value = true;
 }
 
-function create(name: string) {
+function create(name: string, link?: string) {
 	naming.value = false;
-	void acts.perform("fields.add_child_table", { name, table_field: props.field.fieldname });
+	const keys = { name, table_field: props.field.fieldname };
+	void acts.perform("fields.add_child_table", link ? { ...keys, link } : keys);
 }
 </script>

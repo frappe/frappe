@@ -51,6 +51,10 @@ class DesignChecks:
 			except frappe.ValidationError as e:
 				return [{**EditError(str(e)).as_dict(), "doctype": doctype}]
 			child.doc.db_insert()
+			# A Table MultiSelect's check reads the child's Link field from the database.
+			for row in child.doc.get_all_children():
+				row.name = row.name or frappe.generate_hash()
+				row.db_insert()
 		return []
 
 	def parent_errors(self) -> list[dict]:

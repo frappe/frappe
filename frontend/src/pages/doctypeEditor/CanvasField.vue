@@ -72,6 +72,7 @@ import CanvasTable from "./CanvasTable.vue";
 import { canvasMenu, selectOn } from "./canvasMenu";
 import CustomizeMarks from "./CustomizeMarks.vue";
 import type { DesignCanvas } from "./designCanvas";
+import { TABLE_TYPES } from "./fieldtypes";
 import { usePanelRows } from "./inertForm";
 import RuleMark from "./RuleMark.vue";
 
@@ -90,7 +91,7 @@ const node = computed(() => {
 });
 const table = computed(() => {
 	const field = props.canvas.field(props.fieldname);
-	return field?.fieldtype === "Table" ? field : null;
+	return field && TABLE_TYPES.includes(field.fieldtype) ? field : null;
 });
 const label = computed(() => {
 	const field = props.canvas.field(props.fieldname);
