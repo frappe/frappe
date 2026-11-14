@@ -21,6 +21,13 @@
 		<span v-if="(!open || showCount) && count" class="text-sm text-ink-gray-4">{{
 			count
 		}}</span>
+		<div
+			v-if="$slots.actions"
+			class="ml-auto flex cursor-default items-center gap-1"
+			@click.stop
+		>
+			<slot name="actions" />
+		</div>
 	</div>
 	<div v-show="open" class="flex flex-col gap-2.5 px-4 pb-3 pt-1">
 		<slot />

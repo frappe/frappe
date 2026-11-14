@@ -55,10 +55,10 @@ export const KINDS: { value: DoctypeKind; label: string; description: string }[]
 	{ value: "single", label: "Single", description: "One record only, like a settings page." },
 ];
 
-const MANY: DoctypeKind[] = ["regular", "submittable", "tree"];
+export const MANY: DoctypeKind[] = ["regular", "submittable", "tree"];
 const NOT_CHILD: DoctypeKind[] = [...MANY, "single"];
 const NOT_SINGLE: DoctypeKind[] = [...MANY, "child"];
-const TITLE_TYPES = ["Data", "Small Text", "Link", "Select", "Dynamic Link", "Read Only"];
+export const TITLE_TYPES = ["Data", "Small Text", "Link", "Select", "Dynamic Link", "Read Only"];
 const SEARCH_TYPES = [...TITLE_TYPES, "Int", "Float", "Currency", "Date", "Phone"];
 
 const flag = (section: SettingsSection, group: string, prop: string, label: string, help: string, kinds?: DoctypeKind[]): SettingRow => ({

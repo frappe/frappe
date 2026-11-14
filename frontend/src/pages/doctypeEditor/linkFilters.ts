@@ -86,7 +86,7 @@ export class LinkFilters implements LeafContext, RuleCodec {
 	say(raw: string | null | undefined): RuleSummary {
 		const tree = this.read(raw);
 		if (!tree) return { kind: "code", text: (raw ?? "").trim() };
-		if (!tree.conditions.length) return { kind: "empty", text: __("Any {0}", [__(this.doctype)]) };
+		if (!tree.conditions.length) return { kind: "empty", text: __("All {0}", [allOf(this.doctype)]) };
 		return { kind: "rules", text: sayGroup(tree, this, false) };
 	}
 
@@ -189,4 +189,14 @@ function finished(leaf: Leaf): boolean {
 	if (!leaf.fieldname) return false;
 	const value = leaf.value;
 	return !(value === "" || value === null || (Array.isArray(value) && !value.length));
+}
+
+/** "Customer" to "customers" in English; a translated name stays as translated. */
+function allOf(doctype: string): string {
+	const name = __(doctype);
+	if (name !== doctype) return name;
+	const word = name.toLowerCase();
+	if (/[^aeiou]y$/.test(word)) return `${word.slice(0, -1)}ies`;
+	if (/(s|x|ch|sh)$/.test(word)) return `${word}es`;
+	return `${word}s`;
 }

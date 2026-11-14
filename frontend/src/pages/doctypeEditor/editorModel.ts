@@ -218,6 +218,8 @@ class DesignReplay {
 			this.noteRename(saved, new_fieldname);
 		}
 		field.fieldname = new_fieldname;
+		const { properties } = this.state.settings;
+		if (properties.title_field === fieldname) properties.title_field = new_fieldname;
 		this.layouts.renameField(fieldname, new_fieldname);
 	}
 
@@ -228,6 +230,8 @@ class DesignReplay {
 		}
 		this.state.fields.splice(this.state.fields.indexOf(field), 1);
 		this.state.renames = this.state.renames.filter(([, current]) => current !== fieldname);
+		const { properties } = this.state.settings;
+		if (properties.title_field === fieldname) properties.title_field = "";
 		this.layouts.deleteField(fieldname);
 	}
 

@@ -223,14 +223,13 @@ export class DesignCanvas {
 		return this.openTab.value?.sections.at(-1)?.name ?? null;
 	}
 
-	/** Where a field added to `section` goes: after the selected field there, else at the end of its shortest column. */
+	/** Where a field added to `section` goes: after the selected field there, else at the end of its last column. */
 	addPlace(section: string): { section: string; column: string; index?: number } {
 		const selected = this.selection.value;
 		const place = selected?.kind === "field" ? this.place(selected.fieldname) : null;
 		if (place?.section === section) return { section, column: place.column, index: place.index + 1 };
-		const columns = new LayoutTreeEditor(this.tabs.value).section(section).columns;
-		const shortest = columns.reduce((one, other) => (other.fields.length < one.fields.length ? other : one));
-		return { section, column: shortest.name! };
+		const last = new LayoutTreeEditor(this.tabs.value).section(section).columns.at(-1)!;
+		return { section, column: last.name! };
 	}
 
 	private commit(edits: FlatEdit[]): true {

@@ -64,6 +64,19 @@ class TestSaveSettingsDesign(IntegrationTestCase):
 		saved = frappe.db.get_value("DocType", DOCTYPE, ["title_field", "search_fields", "track_changes"])
 		self.assertEqual(saved, ("title", "title", 1))
 
+	def test_the_title_field_follows_its_rename_and_clears_on_its_delete(self):
+		result = self.save(
+			[
+				prop("title_field", "title"),
+				{"act": "fields.rename_field", "fieldname": "title", "new_fieldname": "headline"},
+			]
+		)
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertEqual(frappe.db.get_value("DocType", DOCTYPE, "title_field"), "headline")
+		result = self.save([{"act": "fields.delete_field", "fieldname": "headline"}])
+		self.assertTrue(result["saved"], result.get("errors"))
+		self.assertFalse(frappe.db.get_value("DocType", DOCTYPE, "title_field"))
+
 	def test_the_kind_of_a_saved_doctype_is_refused(self):
 		result = self.save([prop("istable", 1)])
 		self.assertFalse(result["saved"])

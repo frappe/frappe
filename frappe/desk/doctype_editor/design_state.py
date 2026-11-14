@@ -217,6 +217,8 @@ class DesignState:
 				raise field_error(_("Renaming a saved field of a standard DocType needs a patch."), old)
 			self.note_rename(saved, new)
 		field.fieldname = new
+		if self.doc.title_field == old:
+			self.doc.title_field = new
 		self.load_every_layout()
 		for layout in self.all_layouts():
 			if old in layout.tree.fieldnames() or old in layout.omitted:
@@ -272,6 +274,8 @@ class DesignState:
 		"""Drop the field and every layout's mention of it; its column and data stay."""
 		self.doc.fields.remove(self.field(fieldname))
 		self.renames = [pair for pair in self.renames if pair[1] != fieldname]
+		if self.doc.title_field == fieldname:
+			self.doc.title_field = ""
 		for idx, field in enumerate(self.doc.fields, start=1):
 			field.idx = idx
 		self.load_every_layout()

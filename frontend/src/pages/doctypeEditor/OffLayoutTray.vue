@@ -20,7 +20,7 @@
 			v-show="canvas.trayOpen.value"
 			:model-value="fieldnames"
 			:item-key="(fieldname: string) => fieldname"
-			:group="{ name: 'canvas-fields', pull: 'clone', put: canvas.editable }"
+			:group="{ name: 'canvas-fields', pull: 'clone', put: (_to: unknown, from: { el: HTMLElement }) => canvas.editable && !from.el.hasAttribute('data-new-field-types') }"
 			:sort="false"
 			class="mt-2 flex min-h-8 flex-col"
 			ghost-class="canvas-drop-line"

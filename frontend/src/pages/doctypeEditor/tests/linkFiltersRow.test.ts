@@ -76,9 +76,9 @@ describe("a Link field's Filters row", () => {
 		expect(document.querySelector("[data-rule-clear]")!.textContent).toBe("Clear filters");
 	});
 
-	it("says Any <DocType> with no filters", async () => {
+	it("says All <doctypes> with no filters", async () => {
 		getMeta.mockResolvedValue({ data: CUSTOMER });
-		expect((await mount("")).textContent).toContain("Any Customer");
+		expect((await mount("")).textContent).toContain("All customers");
 	});
 
 	it("shows the row disabled, with a note, when the target cannot be read", async () => {

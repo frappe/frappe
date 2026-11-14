@@ -1,7 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { getTranslations } from "@framework/ui/api";
+import { loadTranslations } from "@/i18n";
 import type { ConditionField } from "@framework/ui/ConditionBuilder";
 import { LinkFilters, targetChange } from "../linkFilters";
 import { RuleWords } from "../ruleWords";
+
+vi.mock("@framework/ui/api", async (original) => ({
+	...(await original<object>()),
+	getTranslations: vi.fn().mockResolvedValue({ data: {} }),
+}));
 
 const CUSTOMER: ConditionField[] = [
 	{ label: "Disabled", value: "disabled", fieldname: "disabled", fieldtype: "Check" },
@@ -46,7 +53,7 @@ describe("a Link field's filters", () => {
 			text: "Disabled is off and Company is this record's Billing Company",
 		});
 		expect(filters.sentence(raw)).toBe("Filters: Disabled is off and Company is this record's Billing Company");
-		expect(filters.say("")).toEqual({ kind: "empty", text: "Any Customer" });
+		expect(filters.say("")).toEqual({ kind: "empty", text: "All customers" });
 		expect(filters.write({ conjunction: "and", conditions: [] })).toBe("");
 	});
 
@@ -116,5 +123,18 @@ describe("a Link field's filters", () => {
 		const raw = JSON.stringify([["Customer", "customer_name", "=", "Acme,Inc"]]);
 		expect(filters.code(raw)).toBe('[\n  ["Customer", "customer_name", "=", "Acme,Inc"]\n]');
 		expect(filters.fromCode(filters.code(raw))).toBe(raw);
+	});
+});
+
+describe("the all-records summary", () => {
+	it("keeps a translated name as translated", async () => {
+		vi.mocked(getTranslations).mockResolvedValue({ data: { Customer: "Kunde", "All {0}": "Alle {0}" } });
+		await loadTranslations("v1", "de");
+		try {
+			expect(filters.say("").text).toBe("Alle Kunde");
+		} finally {
+			vi.mocked(getTranslations).mockResolvedValue({ data: {} });
+			await loadTranslations("v2", "en");
+		}
 	});
 });

@@ -7,7 +7,7 @@
 		variant="ghost"
 		side="bottom"
 		align="start"
-		class="w-full"
+		class="w-full border-0"
 		:model-value="field.options || null"
 		:options="groups"
 		:disabled="locked"

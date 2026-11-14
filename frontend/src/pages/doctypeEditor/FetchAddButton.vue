@@ -5,7 +5,7 @@
 		<template #trigger>
 			<button
 				type="button"
-				class="flex h-7 w-full min-w-0 items-center gap-1.5 rounded-4 px-2 text-left text-base text-ink-gray-8"
+				class="flex h-7 w-full min-w-0 items-center gap-2 rounded-4 px-2 text-left text-base text-ink-gray-8"
 				:class="open ? 'bg-surface-gray-3' : 'hover:bg-surface-gray-2'"
 				data-fetch-add
 			>

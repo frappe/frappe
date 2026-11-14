@@ -1,6 +1,6 @@
-<!-- The field's Rules: Visible if, Mandatory if and Read-only if, each one line in words. -->
+<!-- The field's Conditions: Visible if, Mandatory if and Read-only if, each one line in words. -->
 <template>
-	<PanelSection :label="__('Rules')" :count="rows.filter((row) => row.value).length">
+	<PanelSection :label="__('Conditions')" :count="rows.filter((row) => row.value).length">
 		<RuleRow
 			v-for="row in rows"
 			:key="row.rule.key"
