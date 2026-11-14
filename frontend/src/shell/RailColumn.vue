@@ -89,8 +89,17 @@
 		<div v-if="chrome" class="mt-3 flex shrink-0 items-center justify-center">
 			<UserMenu />
 		</div>
-		<div v-if="$slots.foot" class="mt-3 flex shrink-0 items-center justify-center">
-			<slot name="foot" />
+		<!-- The pin of a floating rail, or the unpin of a pinned one. -->
+		<div v-if="pin" class="mt-3 flex shrink-0 items-center justify-center">
+			<Tooltip :text="pinLabel" :side="awaySide()">
+				<Button
+					variant="ghost"
+					:icon="pin === 'pin' ? 'lucide-pin' : 'lucide-pin-off'"
+					:data-key="`${pin}-navigation`"
+					:aria-label="pinLabel"
+					@click="emit(pin)"
+				/>
+			</Tooltip>
 		</div>
 	</SidebarRail>
 </template>
@@ -98,7 +107,15 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { RouteLocationRaw } from "vue-router";
-import { Divider, Dropdown, SidebarRail, SidebarRailItem, ScrollArea, Tooltip } from "frappe-ui";
+import {
+	Button,
+	Divider,
+	Dropdown,
+	SidebarRail,
+	SidebarRailItem,
+	ScrollArea,
+	Tooltip,
+} from "frappe-ui";
 import type { NavigationItem } from "@/boot";
 import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
@@ -133,8 +150,14 @@ const props = withDefaults(
 		context: ItemContext;
 		current?: string;
 		chrome?: boolean;
+		/** The foot's button: `pin` on a floating rail, `unpin` on a pinned one; none draws no button. */
+		pin?: "pin" | "unpin";
 	}>(),
 	{ chrome: true }
+);
+const emit = defineEmits<{ pin: []; unpin: [] }>();
+const pinLabel = computed(() =>
+	props.pin === "unpin" ? __("Unpin the navigation") : __("Pin the navigation")
 );
 
 const { boot, appTitle, menu, loadApps } = useAppMenu();

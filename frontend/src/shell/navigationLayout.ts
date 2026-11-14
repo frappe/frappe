@@ -2,6 +2,7 @@
 // whether the device can hover, folded into one draw mode. The draw mode is never stored.
 import { breakpointsTailwind, useBreakpoints, useMediaQuery } from "@vueuse/core";
 import { computed, ref } from "vue";
+import { saveNavigationLayout } from "@/arrangement";
 import type { Navigation, NavigationLayout } from "@/boot";
 
 export type WidthBand = "phone" | "narrow" | "wide";
@@ -23,6 +24,16 @@ export const pinned = ref(false);
 export function applyNavigationLayout(navigation: Pick<Navigation, "navigation_layout" | "pinned">) {
 	navigationLayout.value = navigation.navigation_layout;
 	pinned.value = navigation.pinned === true;
+}
+
+/** Docks the floating rail: the person's own layout becomes rail + sidebar. Resolves to the app's new navigation. */
+export function pin(app: string): Promise<Navigation> {
+	return saveNavigationLayout(app, "rail_and_sidebar");
+}
+
+/** Lets the rail float again: the person's value goes back to the level below (the save writes it blank). */
+export function unpin(app: string): Promise<Navigation> {
+	return saveNavigationLayout(app, "floating_rail");
 }
 
 const NARROW: Record<NavigationLayout, DrawMode> = {

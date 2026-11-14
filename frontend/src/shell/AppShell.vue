@@ -16,11 +16,13 @@
 			navSide() === 'right' ? 'rtl:flex-row' : 'rtl:flex-row-reverse',
 		]"
 	>
-		<template v-if="boot.app && !sidebarOnly" #rail>
+		<template v-if="boot.app && !sidebarOnly && !floating" #rail>
 			<RailColumn
 				:items="navigation.rail"
 				:context="contexts.rail"
 				:current="current.railKey"
+				:pin="unpinnable ? 'unpin' : undefined"
+				@unpin="setLayout(unpin)"
 			/>
 		</template>
 
@@ -41,15 +43,29 @@
 				:title="panel.title"
 				:current="current.rowKey"
 				:sections="sections[panel.address]"
-				:collapsed="sidebarCollapsed"
-				customizable
+				:collapsed="!floating && sidebarCollapsed"
+				:chrome="floating"
+				:customizable="!floating"
 				@customize="customize.write('sidebar', panel.address)"
 			/>
 		</template>
 
-		<main class="flex min-h-0 flex-1 flex-col [&>*]:min-h-0 [&>*]:flex-1">
+		<!-- `tabindex`: Escape in the floating rail hands focus back here. -->
+		<main
+			tabindex="-1"
+			class="flex min-h-0 flex-1 flex-col focus:outline-none [&>*]:min-h-0 [&>*]:flex-1"
+		>
 			<RouterView />
 		</main>
+
+		<FloatingRail
+			v-if="floating"
+			:items="navigation.rail"
+			:context="contexts.rail"
+			:current="current.railKey"
+			:has-sidebar="!!panel"
+			@pin="setLayout(pin)"
+		/>
 
 		<div
 			v-if="!boot.app"
@@ -106,7 +122,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, inject, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
-import { DesktopShell, Dialogs, ToastProvider } from "frappe-ui";
+import { DesktopShell, Dialogs, ToastProvider, toast } from "frappe-ui";
 import { keepInHistory } from "@framework/ui/utils";
 import type { Addresses } from "@/addresses";
 import { browserMemory } from "@/browserMemory";
@@ -129,10 +145,11 @@ import type { EditorTarget } from "@/navigation/editor/NavigationEditor.vue";
 import LogoutDialog from "./LogoutDialog.vue";
 import { bulkTrayShown } from "./bulkTrayFlag";
 import { shellDialogs } from "./dialog";
+import FloatingRail from "./FloatingRail.vue";
 import { openArgumentStep, paletteOpen } from "./palette";
 import { PaletteKey } from "./paletteKey";
 import { useNavigationInset } from "./navigationInset";
-import { applyNavigationLayout, useDrawMode } from "./navigationLayout";
+import { applyNavigationLayout, pin, pinned, unpin, useDrawMode } from "./navigationLayout";
 import { navSide, seedNavigationSide } from "./navigationSide";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
@@ -184,9 +201,11 @@ const navigation = ref<Navigation>(
 
 applyNavigationLayout(navigation.value);
 
-// The other draw modes (floating, overlay, drawer, phone) draw the rail until their tickets land.
+// The other draw modes (overlay, drawer, phone) draw the rail until their tickets land.
 const { drawMode } = useDrawMode();
 const sidebarOnly = computed(() => !!boot.app && drawMode.value === "sidebar_only");
+const floating = computed(() => !!boot.app && drawMode.value === "floating");
+const unpinnable = computed(() => pinned.value && drawMode.value === "rail");
 
 // One context per container: `Module Contents` measures against `context.items`, so a
 // sidebar row handed the rail's list would answer about the rail.
@@ -355,6 +374,15 @@ function replace(next: Navigation) {
 	boot.navigation = next;
 }
 
+// The pin and the unpin: a save of the person's layout, then the new navigation drawn at once.
+async function setLayout(save: (app: string) => Promise<Navigation>) {
+	try {
+		replace(await save(boot.app!));
+	} catch (error) {
+		toast.error(error instanceof Error ? error.message : String(error));
+	}
+}
+
 const collapsedMemory = browserMemory(
 	"collapsed-sidebar",
 	boot.session.user.name,
@@ -379,9 +407,11 @@ const { appActsPending, shell } = useShellActs({
 						? customize.write("sidebar", panel.value.address)
 						: customize.write("rail"),
 				shareLink,
-				// No seam in the sidebar-only layout, so no act.
+				// No seam in the sidebar-only layout or beside a floating rail, so no act.
 				sidebarCollapsed: () =>
-					panel.value && !sidebarOnly.value ? sidebarCollapsed.value : null,
+					panel.value && !sidebarOnly.value && !floating.value
+						? sidebarCollapsed.value
+						: null,
 				toggleSidebar: () => void (sidebarCollapsed.value = !sidebarCollapsed.value),
 		  }
 		: undefined,
