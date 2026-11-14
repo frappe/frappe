@@ -40,7 +40,7 @@ from frappe import _
 from frappe.app_state import get_disabled_modules
 from frappe.database.utils import drop_index_if_exists
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.doctype.navigation_item.navigation_item import validate_item_keys
+from frappe.desk.doctype.navigation_item.navigation_item import drop_reserved_keys, validate_item_keys
 from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE
 from frappe.desk.utils import is_item_allowed
 from frappe.model.document import Document
@@ -335,6 +335,9 @@ class Sidebar(Document, DeskViews):
 		unique name -- and it leaves exactly one way to collide, which is a row whose stored title
 		has drifted away from its name.
 		"""
+		if self.standard:
+			drop_reserved_keys(self.navigation_items)
+
 		if self.is_addressed:
 			return
 

@@ -6,10 +6,15 @@
 # An item whose anchor does not resolve is appended, never dropped: an app cannot pin a host
 # it does not ship, so a missing anchor is the expected case.
 
+import frappe
+from frappe.desk.doctype.navigation_item.navigation_item import RESERVED_KEY_SCOPES
 from frappe.desk.layers import anchor_attempts, place_by_anchors
 
 # A colon cannot occur in an app name, which is a Python module name.
 NAMESPACE = ":"
+
+# Skipped apps already named in the log, so a boot per request does not repeat the line.
+_reported: set[str] = set()
 
 
 def namespaced(app: str, key: str) -> str:
@@ -24,6 +29,9 @@ def extend(base: list[dict], contributions: list[tuple[str, list[dict]]], *, anc
 	placed = []
 
 	for app, rows in contributions:
+		if _is_reserved(app):
+			continue
+
 		for row in rows:
 			item = _contributed(app, row)
 			if item is None:
@@ -40,6 +48,20 @@ def extend(base: list[dict], contributions: list[tuple[str, list[dict]]], *, anc
 		targets |= {item["key"] for item in base if item.get("key")}
 
 	return _anchor(merged, placed, targets)
+
+
+def _is_reserved(app: str) -> bool:
+	"""An app named `user` or `site` would namespace its keys into a level's own rows; it adds nothing."""
+	if app not in RESERVED_KEY_SCOPES:
+		return False
+
+	if app not in _reported:
+		_reported.add(app)
+		frappe.logger("shell").warning(
+			f"The app {app!r} adds nothing to a rail: its name is a reserved key prefix."
+		)
+
+	return True
 
 
 def _contributed(app: str, row: dict) -> dict | None:

@@ -4,10 +4,14 @@
 """The overlay write endpoints, `frappe/shell/arrangement.py`."""
 
 import json
+from unittest.mock import patch
 
 import frappe
+from frappe.desk.doctype.navigation_item.navigation_item import validate_item_keys
 from frappe.exceptions import FrappeTypeError
 from frappe.shell.arrangement import (
+	OWN_ROWS_PER_APP,
+	OWN_ROWS_PER_CONTAINER,
 	_as_items,
 	_target,
 	anchors_for,
@@ -18,9 +22,12 @@ from frappe.shell.arrangement import (
 	save_arrangement,
 	save_navigation_layout,
 )
+from frappe.shell.extensions import _reported, extend
 from frappe.shell.navigation import resolve_navigation
 from frappe.tests.classes.context_managers import set_user
+from frappe.tests.test_navigation_filter import a_desk_user
 from frappe.tests.test_shell_navigation import (
+	ADDRESS,
 	ADDRESS_KEY,
 	APP,
 	NavigationTestCase,
@@ -72,39 +79,39 @@ class TestReduction(NavigationTestCase):
 	def test_an_unchanged_list_writes_nothing(self):
 		base = [shown("a"), shown("b"), shown("c")]
 
-		self.assertEqual(reduce_arrangement(base, base), [])
+		self.assertEqual(reduce_arrangement(base, base, "user"), [])
 
 	def test_only_the_rows_that_moved_are_written(self):
 		base = [shown("a"), shown("b"), shown("c")]
-		rows = reduce_arrangement(base, [shown("c"), shown("a"), shown("b")])
+		rows = reduce_arrangement(base, [shown("c"), shown("a"), shown("b")], "user")
 
 		self.assertEqual([row["key"] for row in rows], ["c"])
 		self.assertEqual(json.loads(rows[0]["anchors"]), [{"before": "a"}])
 
 	def test_a_rename_is_a_field_level_override(self):
 		base = [shown("a", label="Accounts")]
-		rows = reduce_arrangement(base, [shown("a", label="Money")])
+		rows = reduce_arrangement(base, [shown("a", label="Money")], "user")
 
 		self.assertEqual(rows[0]["label"], "Money")
 		self.assertEqual(json.loads(rows[0]["overrides"]), ["label"])
 
 	def test_clearing_a_label_the_app_shipped_is_expressible(self):
-		rows = reduce_arrangement([shown("a", label="Accounts")], [shown("a", label="")])
+		rows = reduce_arrangement([shown("a", label="Accounts")], [shown("a", label="")], "user")
 
 		self.assertEqual(json.loads(rows[0]["overrides"]), ["label"])
 		self.assertEqual(rows[0]["label"], "")
 
 	def test_clearing_an_already_blank_field_says_nothing(self):
-		self.assertEqual(reduce_arrangement([shown("a")], [shown("a", label="")]), [])
+		self.assertEqual(reduce_arrangement([shown("a")], [shown("a", label="")], "user"), [])
 
 	def test_a_hide_is_written_and_an_unhide_is_written(self):
-		self.assertEqual(reduce_arrangement([shown("a")], [shown("a", hidden=1)])[0]["hidden"], 1)
-		self.assertEqual(reduce_arrangement([shown("a", hidden=1)], [shown("a")])[0]["hidden"], 0)
+		self.assertEqual(reduce_arrangement([shown("a")], [shown("a", hidden=1)], "user")[0]["hidden"], 1)
+		self.assertEqual(reduce_arrangement([shown("a", hidden=1)], [shown("a")], "user")[0]["hidden"], 0)
 
 	def test_a_key_or_parent_that_is_not_a_name_is_dropped(self):
 		base = [shown("a"), shown("b")]
 
-		self.assertEqual(reduce_arrangement(base, _as_items([{"key": ["!=", ""]}, shown("a")])), [])
+		self.assertEqual(reduce_arrangement(base, _as_items([{"key": ["!=", ""]}, shown("a")]), "user"), [])
 
 		# A parent that is not a name drops the row; blank means `None` or `""` only.
 		for parent in ({"x": 1}, ["s"], 0, False, [], {}):
@@ -131,7 +138,7 @@ class TestReduction(NavigationTestCase):
 		self.assertEqual(entry["parent_key"], "people")
 
 	def test_a_key_the_base_does_not_hold_is_dropped(self):
-		rows = reduce_arrangement([shown("a")], [shown("gone"), shown("a")])
+		rows = reduce_arrangement([shown("a")], [shown("gone"), shown("a")], "user")
 
 		self.assertEqual([row["key"] for row in rows], [])
 
@@ -139,7 +146,7 @@ class TestReduction(NavigationTestCase):
 		base = [shown("s1"), shown("a", parent_key="s1"), shown("s2"), shown("b", parent_key="s2")]
 		desired = [shown("s1"), shown("s2"), shown("b", parent_key="s2"), shown("a", parent_key="s1")]
 
-		self.assertEqual(reduce_arrangement(base, desired), [])
+		self.assertEqual(reduce_arrangement(base, desired, "user"), [])
 
 	def test_a_row_moved_to_the_front_names_a_row_that_is_not_also_moving(self):
 		base = [shown(key) for key in "abcde"]
@@ -151,23 +158,23 @@ class TestReduction(NavigationTestCase):
 
 	def test_a_key_sent_twice_keeps_its_first_position(self):
 		base = [shown("a"), shown("b")]
-		rows = reduce_arrangement(base, [shown("b")] * 5000 + [shown("a")])
+		rows = reduce_arrangement(base, [shown("b")] * 5000 + [shown("a")], "user")
 
 		# The repeats are gone before anything compares orders.
 		self.assertEqual(len(rows), 1)
-		self.assertEqual(rows, reduce_arrangement(base, [shown("b"), shown("a")]))
+		self.assertEqual(rows, reduce_arrangement(base, [shown("b"), shown("a")], "user"))
 
 	def test_an_override_that_is_not_a_scalar_is_read_as_blank(self):
-		self.assertEqual(reduce_arrangement([shown("a")], [shown("a", label=["x"])]), [])
+		self.assertEqual(reduce_arrangement([shown("a")], [shown("a", label=["x"])], "user"), [])
 
-		row = reduce_arrangement([shown("a", label="Accounts")], [shown("a", label={"x": 1})])[0]
+		row = reduce_arrangement([shown("a", label="Accounts")], [shown("a", label={"x": 1})], "user")[0]
 		self.assertIsNone(row["label"])
 
 	def test_the_fewest_possible_rows_move(self):
 		base = [shown(key) for key in "abcdef"]
 		desired = [shown(key) for key in "bcdefa"]
 
-		self.assertEqual([row["key"] for row in reduce_arrangement(base, desired)], ["a"])
+		self.assertEqual([row["key"] for row in reduce_arrangement(base, desired, "user")], ["a"])
 
 
 class TestSavingAnArrangement(NavigationTestCase):
@@ -717,3 +724,591 @@ class TestNavigationLayout(NavigationTestCase):
 
 		with self.assertRaises(frappe.ValidationError):
 			get_navigation_layouts("no_such_app")
+
+
+def own(key: str, doctype: str = "ToDo", **kwargs) -> dict:
+	"""A row a level adds: the editor sends the whole item with a key it made."""
+	return {"key": key, "item_type": "DocType", "link_doctype": "DocType", "link_to": doctype, **kwargs}
+
+
+def stored(doctype: str = "Rail", **filters) -> list[dict]:
+	"""The rows of the layer the session user's save wrote."""
+	name = frappe.db.get_value(doctype, {"standard": 0, "user": frappe.session.user, **filters})
+	field = "items" if doctype == "Rail" else "navigation_items"
+
+	return frappe.get_doc(doctype, name).get(field) if name else []
+
+
+def own_stored(doctype: str = "Rail", **filters) -> list[dict]:
+	return [row for row in stored(doctype, **filters) if row.added]
+
+
+class OwnRowsTestCase(NavigationTestCase):
+	"""Run as a Desk User: Administrator skips the permission filter these rows are tested against."""
+
+	# A rail is flat; the tests of sections and parents run on the module's sidebar.
+	sidebar = False
+
+	def setUp(self):
+		super().setUp()
+		self.user = a_desk_user()
+		frappe.set_user(self.user)
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.clear_cache, user=self.user)
+
+		(make_sidebar if self.sidebar else make_rail)(self.shipped(), standard=1)
+
+	def shipped(self) -> list[dict]:
+		return [doctype_item("todo", "ToDo"), doctype_item("note", "Note")]
+
+
+class TestOwnRowsSurviveASave(OwnRowsTestCase):
+	def test_a_save_keeps_an_own_row_whole(self):
+		save_arrangement(
+			"Rail", APP, showing(shown("todo"), own("user:k3f9a2", "Note", label="Mine"), shown("note"))
+		)
+
+		row = next(row for row in stored() if row.key == "user:k3f9a2")
+		self.assertEqual((row.added, row.item_type, row.link_to, row.label), (1, "DocType", "Note", "Mine"))
+		self.assertEqual(rail_keys(), ["todo", "user:k3f9a2", "note"])
+
+	def test_a_second_save_of_the_same_list_writes_the_same_layer(self):
+		desired = showing(shown("todo"), own("user:k3f9a2"), shown("note"))
+		save_arrangement("Rail", APP, desired)
+		first = [(row.key, row.anchors) for row in stored()]
+
+		save_arrangement("Rail", APP, desired)
+
+		self.assertEqual([(row.key, row.anchors) for row in stored()], first)
+		self.assertEqual(len(stored()), 1)
+
+	def test_an_own_row_stores_no_hidden_overrides_or_switch(self):
+		save_arrangement(
+			"Rail",
+			APP,
+			showing(
+				shown("todo"),
+				own("user:k3f9a2", hidden=1, overrides='["label"]', switches_app=1),
+				shown("note"),
+			),
+		)
+
+		row = stored()[0]
+		self.assertEqual((row.hidden, row.overrides, row.switches_app), (0, None, 0))
+
+	def test_an_own_row_is_not_a_delta_in_the_reduction(self):
+		base = [shown("a"), shown("b")]
+
+		rows = reduce_arrangement(base, [shown("a"), own("user:k3f9a2"), shown("b")], "user")
+
+		self.assertEqual([(row["key"], row.get("added")) for row in rows], [("user:k3f9a2", 1)])
+		self.assertEqual(json.loads(rows[0]["anchors"]), [{"after": "a"}])
+
+	def test_two_own_rows_naming_each_other_as_parents_are_lifted_and_saved(self):
+		save_arrangement(
+			"Rail",
+			APP,
+			showing(
+				shown("todo"),
+				own("user:k3f9a2", parent_key="user:k3f9a3"),
+				own("user:k3f9a3", parent_key="user:k3f9a2"),
+				shown("note"),
+			),
+		)
+
+		parents = {row.key: row.parent_key for row in own_stored()}
+		self.assertEqual(parents, {"user:k3f9a2": None, "user:k3f9a3": None})
+
+	def test_an_own_row_absent_from_the_list_is_deleted(self):
+		save_arrangement("Rail", APP, showing(shown("todo"), own("user:k3f9a2"), shown("note")))
+
+		save_arrangement("Rail", APP, showing(shown("note"), shown("todo")))
+
+		self.assertEqual(own_stored(), [])
+		self.assertEqual(rail_keys(), ["note", "todo"])
+
+	def test_an_inherited_row_absent_from_the_list_is_not_deleted(self):
+		save_arrangement("Rail", APP, showing(shown("note"), shown("todo")))
+
+		save_arrangement("Rail", APP, showing(shown("note"), own("user:k3f9a2")))
+
+		self.assertIn("todo", rail_keys())
+
+	def test_a_bare_key_the_base_does_not_hold_is_still_dropped(self):
+		save_arrangement("Rail", APP, showing(shown("todo"), shown("gone"), shown("note")))
+
+		self.assertFalse(stored())
+
+
+class TestWhereAnOwnRowSits(OwnRowsTestCase):
+	sidebar = True
+
+	def shipped(self):
+		return [
+			item("people", item_type="Section", label="People"),
+			doctype_item("todo", "ToDo", parent_key="people"),
+			doctype_item("note", "Note"),
+		]
+
+	def parents(self) -> dict[str, str | None]:
+		return {
+			entry["key"]: entry.get("parent_key")
+			for entry in resolve_navigation(APP)["sidebars"][ADDRESS_KEY]
+		}
+
+	def test_an_own_row_sits_in_an_app_section(self):
+		save_arrangement(
+			"Sidebar",
+			ADDRESS_KEY,
+			showing(
+				shown("people"),
+				shown("todo", parent_key="people"),
+				own("user:k3f9a2", parent_key="people"),
+				shown("note"),
+			),
+		)
+
+		self.assertEqual(self.parents()["user:k3f9a2"], "people")
+
+	def test_an_own_row_sits_in_a_site_section(self):
+		with set_user(a_person()):
+			save_arrangement(
+				"Sidebar",
+				ADDRESS_KEY,
+				showing(
+					shown("people"),
+					shown("todo", parent_key="people"),
+					shown("note"),
+					own("site:p81c0d", item_type="Section", label="Shared", link_doctype=None, link_to=None),
+					own("site:q1w2e3", parent_key="site:p81c0d"),
+				),
+				scope="site",
+			)
+
+		save_arrangement(
+			"Sidebar",
+			ADDRESS_KEY,
+			showing(
+				shown("people"),
+				shown("todo", parent_key="people"),
+				shown("note"),
+				shown("site:p81c0d", label="Shared"),
+				shown("site:q1w2e3", parent_key="site:p81c0d"),
+				own("user:k3f9a2", parent_key="site:p81c0d"),
+			),
+		)
+
+		self.assertEqual(self.parents()["user:k3f9a2"], "site:p81c0d")
+
+	def test_an_own_row_sits_at_the_top_level(self):
+		save_arrangement(
+			"Sidebar",
+			ADDRESS_KEY,
+			showing(shown("people"), shown("todo", parent_key="people"), shown("note"), own("user:k3f9a2")),
+		)
+
+		self.assertEqual(self.parents()["user:k3f9a2"], None)
+		self.assertEqual(keys(resolve_navigation(APP)["sidebars"][ADDRESS_KEY])[-1], "user:k3f9a2")
+
+	def test_an_own_row_whose_parent_is_not_in_the_list_moves_to_the_top_level(self):
+		rows = reduce_arrangement(
+			[shown("a"), shown("b")],
+			[
+				shown("a"),
+				own("user:k3f9a2", parent_key="user:gone00"),
+				own("user:k3f9a3", parent_key="user:k3f9a3"),
+			],
+			"user",
+		)
+
+		self.assertEqual([row.get("parent_key") for row in rows], [None, None])
+
+	def test_own_rows_that_are_each_others_parents_go_to_the_top_level(self):
+		rows = reduce_arrangement(
+			[shown("a")],
+			[
+				shown("a"),
+				own("user:aaaaaa", parent_key="user:bbbbbb"),
+				own("user:bbbbbb", parent_key="user:aaaaaa"),
+			],
+			"user",
+		)
+
+		self.assertEqual([row.get("parent_key") for row in rows], [None, None])
+
+	def test_deleting_an_own_section_leaves_its_children_at_the_top_level(self):
+		section = own("user:aaaaaa", item_type="Section", label="Mine", link_doctype=None, link_to=None)
+		desired = showing(
+			shown("people"),
+			shown("todo", parent_key="people"),
+			shown("note"),
+			section,
+			own("user:bbbbbb", parent_key="user:aaaaaa"),
+		)
+		save_arrangement("Sidebar", ADDRESS_KEY, desired)
+		self.assertEqual(self.parents()["user:bbbbbb"], "user:aaaaaa")
+
+		save_arrangement("Sidebar", ADDRESS_KEY, [row for row in desired if row["key"] != "user:aaaaaa"])
+
+		self.assertEqual(self.parents()["user:bbbbbb"], None)
+		self.assertEqual([row.key for row in own_stored("Sidebar")], ["user:bbbbbb"])
+
+	def test_an_app_removing_the_section_leaves_the_own_row_at_the_top_level(self):
+		save_arrangement(
+			"Sidebar",
+			ADDRESS_KEY,
+			showing(
+				shown("people"),
+				shown("todo", parent_key="people"),
+				own("user:k3f9a2", parent_key="people"),
+				shown("note"),
+			),
+		)
+		shipped = frappe.db.get_value("Sidebar", {"app": APP, "standard": 1, "link_to": ADDRESS[1]})
+		frappe.db.delete("Navigation Item", {"parent": shipped, "parenttype": "Sidebar", "key": "people"})
+
+		self.assertIn("user:k3f9a2", self.parents())
+		self.assertEqual(self.parents()["user:k3f9a2"], None)
+
+
+class TestOwnRowRefusals(OwnRowsTestCase):
+	def refused(self, *desired: dict, scope: str = "user"):
+		with self.assertRaises(frappe.ValidationError):
+			save_arrangement("Rail", APP, showing(shown("todo"), shown("note"), *desired), scope=scope)
+
+		self.assertFalse(stored())
+
+	def test_a_key_of_the_wrong_shape_is_refused(self):
+		for key in ("user:", "user:short", "user:toolong1", "user:K3F9A2", "user:k3f9a-", "user:k3f9a2:x"):
+			with self.subTest(key=key):
+				self.refused(own(key))
+
+	def test_a_key_with_a_trailing_newline_is_refused(self):
+		self.refused(own("user:k3f9a2\n"))
+
+	def test_a_key_the_site_level_no_longer_holds_is_dropped_from_a_user_save(self):
+		save_arrangement("Rail", APP, showing(shown("todo"), shown("note"), own("site:p81c0d")))
+
+		self.assertFalse(stored())
+
+	def test_a_user_save_keeps_a_site_row_the_site_level_still_holds(self):
+		with set_user(a_person()):
+			save_arrangement(
+				"Rail", APP, showing(shown("todo"), shown("note"), own("site:p81c0d")), scope="site"
+			)
+
+		save_arrangement("Rail", APP, showing(shown("todo"), shown("note"), shown("site:p81c0d")))
+
+		self.assertFalse(stored())
+
+	def test_a_link_that_opens_anything_but_a_path_or_http_is_refused(self):
+		for url in (
+			"javascript:alert(1)",
+			"//evil.example",
+			"/\\evil.example",
+			"/\t/evil.example",
+			"ftp://x",
+			"data:text/html,x",
+			" /a",
+			"mailto:a@b.c",
+		):
+			with self.subTest(url=url):
+				self.refused(own("user:k3f9a2", url=url))
+
+	def test_a_link_to_a_path_or_an_http_address_is_kept(self):
+		for url in ("/app/todo", "https://example.com/a?b=1", "HTTP://example.com"):
+			with self.subTest(url=url):
+				save_arrangement(
+					"Rail", APP, showing(shown("todo"), shown("note"), own("user:k3f9a2", url=url))
+				)
+				self.assertEqual(own_stored()[0].url, url)
+
+	def test_a_payload_that_is_not_an_object_is_refused(self):
+		for payload in ([1], "[1]", 3, "not json"):
+			with self.subTest(payload=payload):
+				self.refused(own("user:k3f9a2", payload=payload))
+
+	def test_a_key_the_list_repeats_is_refused(self):
+		self.refused(own("user:k3f9a2"), own("user:k3f9a2", "Note"))
+
+	def test_a_user_prefixed_key_is_refused_in_a_site_save(self):
+		with set_user(a_person()):
+			self.refused(own("user:k3f9a2"), scope="site")
+
+	def shipped_rows(self, *keys: str) -> list[frappe._dict]:
+		return [frappe._dict(idx=idx, key=key, item_type="DocType") for idx, key in enumerate(keys, 1)]
+
+	def test_a_shipped_key_with_a_reserved_prefix_is_refused_when_a_person_saves_it(self):
+		for prefix in ("user", "site"):
+			with self.subTest(prefix=prefix), self.assertRaises(frappe.ValidationError):
+				validate_item_keys(self.shipped_rows(f"{prefix}:abcdef"), "Rail")
+
+	def test_a_shipped_key_with_a_reserved_prefix_is_dropped_on_a_migrate(self):
+		self.addCleanup(frappe.flags.update, {"in_migrate": frappe.flags.in_migrate})
+		frappe.flags.in_migrate = True
+		rows = self.shipped_rows("user:abcdef", "note", "site:abcdef", "todo")
+
+		validate_item_keys(rows, "Rail")
+
+		self.assertEqual([(row.key, row.idx) for row in rows], [("note", 1), ("todo", 2)])
+
+	def test_a_shipped_key_with_a_reserved_prefix_is_dropped_on_an_import(self):
+		"""`import_doc` skips `validate`, so each container drops the row from `before_import`."""
+		from frappe.modules.import_file import import_doc
+
+		self.addCleanup(frappe.flags.update, {"in_import": False})
+		rows = [
+			doctype_item("user:abcdef", "User"),
+			doctype_item("todo", "ToDo"),
+			doctype_item("site:abcdef", "Role"),
+			doctype_item("note", "Note"),
+		]
+		imports = (
+			("Rail", "items", {"app": APP, "name": APP}),
+			("Sidebar", "navigation_items", {"app": APP, "link_doctype": ADDRESS[0], "link_to": ADDRESS[1]}),
+		)
+
+		for doctype, field, address in imports:
+			with self.subTest(doctype=doctype):
+				name = import_doc({"doctype": doctype, "standard": 1, field: rows, **address}).name
+				doc = frappe.get_doc(doctype, name)
+
+				self.assertEqual([row.key for row in doc.get(field)], ["todo", "note"])
+				self.assertEqual([row.idx for row in doc.get(field)], [1, 2])
+
+	def test_an_app_named_for_a_level_adds_nothing_and_is_logged_once(self):
+		row = {"key": "k", "item_type": "DocType"}
+		_reported.discard("user")
+
+		with patch("frappe.logger") as logger:
+			first = extend([], [("user", [row]), ("crm", [row])], anchorable=True)
+			extend([], [("user", [row])], anchorable=True)
+
+		self.assertEqual([entry["key"] for entry in first], ["crm:k"])
+		self.assertEqual(logger.return_value.warning.call_count, 1)
+
+
+class TestTheCaps(OwnRowsTestCase):
+	def adding(self, count: int, scope_prefix: str = "user", start: int = 0) -> list[dict]:
+		return [own(f"{scope_prefix}:{index:06x}") for index in range(start, start + count)]
+
+	def test_fifty_rows_in_one_container_are_kept_and_the_next_is_refused(self):
+		save_arrangement("Rail", APP, showing(*self.adding(OWN_ROWS_PER_CONTAINER)))
+		self.assertEqual(len(stored()), OWN_ROWS_PER_CONTAINER)
+
+		with self.assertRaises(frappe.ValidationError) as caught:
+			save_arrangement("Rail", APP, showing(*self.adding(OWN_ROWS_PER_CONTAINER + 1)))
+
+		self.assertIn("up to 50", str(caught.exception))
+		self.assertEqual(len(stored()), OWN_ROWS_PER_CONTAINER)
+
+	def test_the_hundred_and_first_row_in_one_app_is_refused(self):
+		make_sidebar([doctype_item("user", "User")], standard=1)
+		make_sidebar([doctype_item("role", "Role")], standard=1, link_to="Desk")
+
+		with set_user(a_person()):
+			save_arrangement("Rail", APP, showing(*self.adding(OWN_ROWS_PER_CONTAINER, "site")), scope="site")
+			save_arrangement(
+				"Sidebar",
+				ADDRESS_KEY,
+				showing(shown("user"), *self.adding(OWN_ROWS_PER_CONTAINER, "site", 100)),
+				scope="site",
+			)
+
+			with self.assertRaises(frappe.ValidationError) as caught:
+				save_arrangement(
+					"Sidebar",
+					"module_def_desk",
+					showing(shown("role"), *self.adding(1, "site", 200)),
+					scope="site",
+				)
+
+		self.assertIn(str(OWN_ROWS_PER_APP), str(caught.exception))
+
+	def test_a_sidebar_the_app_no_longer_ships_does_not_count(self):
+		make_sidebar([doctype_item("user", "User")], standard=1)
+		make_sidebar([doctype_item("role", "Role")], standard=1, link_to="Desk")
+
+		with set_user(a_person()):
+			save_arrangement("Rail", APP, showing(*self.adding(OWN_ROWS_PER_CONTAINER, "site")), scope="site")
+			save_arrangement(
+				"Sidebar",
+				ADDRESS_KEY,
+				showing(shown("user"), *self.adding(OWN_ROWS_PER_CONTAINER, "site", 100)),
+				scope="site",
+			)
+			frappe.db.delete("Sidebar", {"app": APP, "standard": 1, "link_to": ADDRESS[1]})
+
+			save_arrangement(
+				"Sidebar",
+				"module_def_desk",
+				showing(shown("role"), *self.adding(1, "site", 200)),
+				scope="site",
+			)
+
+		self.assertEqual(len(stored("Sidebar", user="", link_to="Desk")), 1)
+
+	def test_replacing_a_containers_rows_does_not_count_the_rows_being_replaced(self):
+		make_sidebar([doctype_item("user", "User")], standard=1)
+
+		with set_user(a_person()):
+			save_arrangement("Rail", APP, showing(*self.adding(OWN_ROWS_PER_CONTAINER, "site")), scope="site")
+			save_arrangement(
+				"Sidebar",
+				ADDRESS_KEY,
+				showing(shown("user"), *self.adding(OWN_ROWS_PER_CONTAINER, "site", 100)),
+				scope="site",
+			)
+
+			save_arrangement(
+				"Rail", APP, showing(*self.adding(OWN_ROWS_PER_CONTAINER, "site", 200)), scope="site"
+			)
+
+		self.assertEqual(len(stored(user="")), OWN_ROWS_PER_CONTAINER)
+
+	def test_a_levels_rows_do_not_count_against_the_other_levels_cap(self):
+		with set_user(a_person()):
+			save_arrangement("Rail", APP, showing(*self.adding(OWN_ROWS_PER_CONTAINER, "site")), scope="site")
+
+		save_arrangement("Rail", APP, showing(shown("todo"), *self.adding(OWN_ROWS_PER_CONTAINER)))
+
+		self.assertEqual(len(stored()), OWN_ROWS_PER_CONTAINER)
+
+
+class TestASectionOnlyAnOwnRowKeeps(OwnRowsTestCase):
+	sidebar = True
+
+	def shipped(self):
+		return [
+			item("people", item_type="Section", label="People"),
+			doctype_item("secret", "Role", parent_key="people"),
+			doctype_item("note", "Note"),
+		]
+
+	def test_a_save_keeps_the_section_and_the_own_row_inside_it(self):
+		make_sidebar(
+			[item("user:k3f9a2", link_doctype="DocType", link_to="ToDo", added=1, parent_key="people")],
+			user=self.user,
+		)
+		arrangement = get_arrangement("Sidebar", ADDRESS_KEY)
+		self.assertEqual([row["key"] for row in arrangement], ["people", "note", "user:k3f9a2"])
+
+		save_arrangement("Sidebar", ADDRESS_KEY, arrangement)
+
+		self.assertEqual(stored("Sidebar")[0].parent_key, "people")
+		self.assertEqual(len(stored("Sidebar")), 1)
+
+
+class TestASectionAnOwnRowYouCannotOpenSitsIn(OwnRowsTestCase):
+	sidebar = True
+
+	def shipped(self):
+		return [
+			item("people", item_type="Section", label="People"),
+			doctype_item("secret", "Role", parent_key="people"),
+			doctype_item("note", "Note"),
+		]
+
+	def test_the_row_keeps_its_parent_through_a_save(self):
+		make_sidebar(
+			[item("user:k3f9a2", link_doctype="DocType", link_to="Role", added=1, parent_key="people")],
+			user=self.user,
+		)
+		arrangement = get_arrangement("Sidebar", ADDRESS_KEY)
+		self.assertEqual([row["key"] for row in arrangement], ["people", "note", "user:k3f9a2"])
+		self.assertEqual(arrangement[2]["parent_key"], "people")
+
+		save_arrangement("Sidebar", ADDRESS_KEY, arrangement)
+
+		self.assertEqual(stored("Sidebar")[0].parent_key, "people")
+
+
+class TestAParentYouCannotOpenStaysHidden(OwnRowsTestCase):
+	sidebar = True
+
+	def shipped(self):
+		return [doctype_item("secret", "Role"), doctype_item("note", "Note")]
+
+	def test_an_own_row_under_an_unreadable_item_does_not_list_the_item(self):
+		make_sidebar(
+			[item("user:k3f9a2", link_doctype="DocType", link_to="ToDo", added=1, parent_key="secret")],
+			user=self.user,
+		)
+
+		arrangement = get_arrangement("Sidebar", ADDRESS_KEY)
+
+		self.assertEqual([row["key"] for row in arrangement], ["note", "user:k3f9a2"])
+		self.assertNotIn("parent_key", arrangement[1])
+
+	def test_a_save_naming_an_unreadable_item_as_parent_lifts_the_row(self):
+		desired = showing(shown("note"), own("user:k3f9a2", parent_key="secret"))
+
+		save_arrangement("Sidebar", ADDRESS_KEY, desired)
+
+		self.assertEqual(stored("Sidebar")[0].parent_key, None)
+
+
+class TestLostAccess(OwnRowsTestCase):
+	def shipped(self):
+		return [doctype_item("todo", "ToDo"), doctype_item("note", "Note"), doctype_item("secret", "Role")]
+
+	def an_own_row_you_cannot_open(self):
+		# Written straight to the layer: this is the row left behind when access was taken away.
+		make_rail(
+			[
+				item(
+					"user:k3f9a2",
+					link_doctype="DocType",
+					link_to="Role",
+					added=1,
+					anchors=json.dumps([{"after": "note"}]),
+				)
+			],
+			user=self.user,
+		)
+
+	def test_an_own_row_you_cannot_open_leaves_boot_and_comes_back_marked(self):
+		self.an_own_row_you_cannot_open()
+
+		self.assertNotIn("user:k3f9a2", rail_keys())
+		arrangement = get_arrangement("Rail", APP)
+		self.assertEqual([row["key"] for row in arrangement], ["todo", "note", "user:k3f9a2"])
+		self.assertEqual(arrangement[-1].get("no_access"), 1)
+		self.assertFalse(any(row.get("no_access") for row in arrangement[:-1]))
+
+	def test_an_inherited_row_you_cannot_open_stays_out(self):
+		self.assertNotIn("secret", keys(get_arrangement("Rail", APP)))
+
+	def test_a_save_keeps_the_row_and_never_stores_the_marker(self):
+		self.an_own_row_you_cannot_open()
+
+		save_arrangement("Rail", APP, get_arrangement("Rail", APP)[::-1])
+
+		row = next(row for row in stored() if row.key == "user:k3f9a2")
+		self.assertEqual(row.added, 1)
+		self.assertFalse(hasattr(row, "no_access") and row.no_access)
+		self.assertTrue(frappe.get_meta("Navigation Item").get_field("no_access") is None)
+
+	def test_the_editor_can_delete_it(self):
+		self.an_own_row_you_cannot_open()
+
+		save_arrangement(
+			"Rail", APP, [row for row in get_arrangement("Rail", APP) if row["key"] != "user:k3f9a2"]
+		)
+
+		self.assertFalse(stored())
+
+	def test_the_site_scope_reads_unfiltered_and_needs_no_marker(self):
+		with set_user(a_person()):
+			arrangement = get_arrangement("Rail", APP, "site")
+
+		self.assertIn("secret", keys(arrangement))
+		self.assertFalse(any(row.get("no_access") for row in arrangement))
+
+	def test_own_rows_carry_nothing_of_how_they_were_stored_on_the_wire(self):
+		save_arrangement("Rail", APP, showing(shown("todo"), own("user:k3f9a2"), shown("note")))
+
+		wire = next(entry for entry in resolve_navigation(APP)["rail"] if entry["key"] == "user:k3f9a2")
+
+		for stored_only in ("added", "overrides", "no_access", "anchors", "hidden", "switches_app"):
+			self.assertNotIn(stored_only, wire)

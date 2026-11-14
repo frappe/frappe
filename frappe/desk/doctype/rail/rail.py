@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.database.utils import drop_index_if_exists
-from frappe.desk.doctype.navigation_item.navigation_item import validate_item_keys
+from frappe.desk.doctype.navigation_item.navigation_item import drop_reserved_keys, validate_item_keys
 from frappe.model.document import Document
 
 # Blank, not `None`: every `NULL` is distinct to the unique index, so a nullable column
@@ -54,6 +54,11 @@ class Rail(Document):
 		self.refuse_extending_itself()
 		self.refuse_a_second_record_at_this_address()
 		self.validate_item_keys()
+
+	def before_import(self):
+		"""`import_doc` skips `validate`, so a shipped row with a reserved key is dropped here."""
+		if self.standard:
+			drop_reserved_keys(self.items)
 
 	def blank_the_host(self):
 		"""Clear `extends` outside the app layer: `depends_on` hides the field but does not stop an API write."""
