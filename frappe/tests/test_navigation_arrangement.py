@@ -804,6 +804,21 @@ class TestOwnRowsSurviveASave(OwnRowsTestCase):
 		self.assertEqual([(row["key"], row.get("added")) for row in rows], [("user:k3f9a2", 1)])
 		self.assertEqual(json.loads(rows[0]["anchors"]), [{"after": "a"}])
 
+	def test_two_own_rows_naming_each_other_as_parents_are_lifted_and_saved(self):
+		save_arrangement(
+			"Rail",
+			APP,
+			showing(
+				shown("todo"),
+				own("user:k3f9a2", parent_key="user:k3f9a3"),
+				own("user:k3f9a3", parent_key="user:k3f9a2"),
+				shown("note"),
+			),
+		)
+
+		parents = {row.key: row.parent_key for row in own_stored()}
+		self.assertEqual(parents, {"user:k3f9a2": None, "user:k3f9a3": None})
+
 	def test_an_own_row_absent_from_the_list_is_deleted(self):
 		save_arrangement("Rail", APP, showing(shown("todo"), own("user:k3f9a2"), shown("note")))
 
@@ -1036,6 +1051,30 @@ class TestOwnRowRefusals(OwnRowsTestCase):
 		validate_item_keys(rows, "Rail")
 
 		self.assertEqual([(row.key, row.idx) for row in rows], [("note", 1), ("todo", 2)])
+
+	def test_a_shipped_key_with_a_reserved_prefix_is_dropped_on_an_import(self):
+		"""`import_doc` skips `validate`, so each container drops the row from `before_import`."""
+		from frappe.modules.import_file import import_doc
+
+		self.addCleanup(frappe.flags.update, {"in_import": False})
+		rows = [
+			doctype_item("user:abcdef", "User"),
+			doctype_item("todo", "ToDo"),
+			doctype_item("site:abcdef", "Role"),
+			doctype_item("note", "Note"),
+		]
+		imports = (
+			("Rail", "items", {"app": APP, "name": APP}),
+			("Sidebar", "navigation_items", {"app": APP, "link_doctype": ADDRESS[0], "link_to": ADDRESS[1]}),
+		)
+
+		for doctype, field, address in imports:
+			with self.subTest(doctype=doctype):
+				name = import_doc({"doctype": doctype, "standard": 1, field: rows, **address}).name
+				doc = frappe.get_doc(doctype, name)
+
+				self.assertEqual([row.key for row in doc.get(field)], ["todo", "note"])
+				self.assertEqual([row.idx for row in doc.get(field)], [1, 2])
 
 	def test_an_app_named_for_a_level_adds_nothing_and_is_logged_once(self):
 		row = {"key": "k", "item_type": "DocType"}

@@ -338,9 +338,10 @@ def _refuse_deep_nesting(container: str, below: list[dict], desired: list[dict],
 	# The type is the layer below's, not the client's, except for a row this level adds.
 	# A row the client left out keeps its place.
 	known = {item["key"]: item for item in below if item.get("key")}
+	# Parents that are missing or loop are lifted first, as the save will lift them.
 	kept = [
 		{**item, "item_type": known[item["key"]].get("item_type")} if item["key"] in known else item
-		for item in _known(desired, known, scope)
+		for item in _orphans_lifted(_known(desired, known, scope), known)
 	]
 	named = {item["key"] for item in kept}
 	left_out = [item for item in below if item.get("key") not in named]
