@@ -14,16 +14,14 @@ export const navInsetLeft = shallowRef(0);
 
 /** Keeps both insets and the CSS variable on `:root` in step with the shell's content element. */
 export function useNavigationInset(content: Ref<HTMLElement | null | undefined>) {
-	const { width, left } = useElementBounding(content);
-	const inset = computed(() =>
-		navSide() === "right" && content.value
-			? Math.max(0, Math.round(document.documentElement.clientWidth - width.value))
-			: 0
+	const { width } = useElementBounding(content);
+	// The content ends at the window's other edge, so what it leaves of the width is the navigation's,
+	// whichever side it is on: a side change moves the content without resizing it.
+	const reach = computed(() =>
+		content.value ? Math.max(0, Math.round(document.documentElement.clientWidth - width.value)) : 0
 	);
-
-	const insetLeft = computed(() =>
-		navSide() === "left" && content.value ? Math.max(0, Math.round(left.value)) : 0
-	);
+	const inset = computed(() => (navSide() === "right" ? reach.value : 0));
+	const insetLeft = computed(() => (navSide() === "left" ? reach.value : 0));
 
 	watchEffect(() => {
 		navInsetRight.value = inset.value;

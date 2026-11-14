@@ -1,8 +1,45 @@
 // The inset the corner floats add to their right offset, and the toast viewport's rule for it.
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
-import { navigationOvershoot, navigationShift, navInsetRight } from "../navigationInset";
+import { createApp, defineComponent, h, nextTick, ref } from "vue";
+import { describe, expect, it, vi } from "vitest";
+import { navigationOvershoot, navigationShift, navInsetLeft, navInsetRight, useNavigationInset } from "../navigationInset";
+import { navigationSide } from "../navigationSide";
 import { clampPlacement, MARGIN } from "../windowDrag";
+
+// The content's measured box, which only changes when the content itself resizes.
+const bounds = vi.hoisted(() => ({ width: { value: 0 } }));
+vi.mock("@vueuse/core", async (original) => {
+	const { ref } = await import("vue");
+	bounds.width = ref(1000);
+	return { ...(await original<object>()), useElementBounding: () => ({ width: bounds.width, left: ref(0) }) };
+});
+
+describe("useNavigationInset", () => {
+	it("follows a side change that moves the content without resizing it", async () => {
+		// A 1280px window and 1000px of content: the navigation's 280px is on whichever side it is drawn.
+		const clientWidth = vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(1280);
+		navigationSide.value = "start";
+		const app = createApp(
+			defineComponent({
+				setup() {
+					useNavigationInset(ref(document.createElement("div")));
+					return () => h("div");
+				},
+			})
+		);
+		app.mount(document.createElement("div"));
+		await nextTick();
+		expect([navInsetLeft.value, navInsetRight.value]).toEqual([280, 0]);
+
+		navigationSide.value = "end";
+		await nextTick();
+		expect([navInsetLeft.value, navInsetRight.value]).toEqual([0, 280]);
+
+		app.unmount();
+		clientWidth.mockRestore();
+		navigationSide.value = "start";
+	});
+});
 
 describe("the toast viewport", () => {
 	it("adds the navigation's inset to sonner's right offset", () => {
