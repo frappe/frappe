@@ -113,7 +113,7 @@
 					v-else-if="item.kind === 'error'"
 					class="break-words rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-base text-ink-red-6"
 				>
-					{{ item.error.message }}
+					<slot name="error" :error="item.error">{{ item.error.message }}</slot>
 				</div>
 			</template>
 
