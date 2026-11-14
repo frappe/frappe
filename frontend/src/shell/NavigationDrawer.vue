@@ -95,7 +95,6 @@ useEventListener(window, "keydown", (event: KeyboardEvent) => {
 const FOCUSABLE =
 	'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-// aria-modal: Tab stays inside the panel.
 function trap(event: KeyboardEvent) {
 	const nodes = [...(panel.value?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])].filter(
 		(node) => node.checkVisibility?.() !== false
