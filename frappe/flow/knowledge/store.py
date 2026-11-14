@@ -256,14 +256,11 @@ def _keyword_search(db, table: str, where: str, values: list, text: str, limit: 
 	if not match:
 		return []
 	fts = f"{table}_fts"
-	return [
-		row[0]
-		for row in db.execute(
-			f"select {table}.rowid from {fts} join {table} on {table}.rowid = {fts}.rowid "
-			f"where {fts} match ? and ({where}) order by {fts}.rank limit ?",
-			[match, *values, limit],
-		)
-	]
+	query = (
+		f"select {table}.rowid from {fts} join {table} on {table}.rowid = {fts}.rowid "
+		f"where {fts} match ? and ({where}) order by {fts}.rank limit ?"
+	)
+	return [row[0] for row in db.execute(query, [match, *values, limit])]
 
 
 def _create_table(db, table: str, columns: str, dimension: int, shape: str | None = None) -> None:
