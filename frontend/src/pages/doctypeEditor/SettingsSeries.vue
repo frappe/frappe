@@ -1,17 +1,19 @@
 <!-- The Naming Series list: the options of the naming_series field, each with the next name it
-     gives. One is the default; a series can be added, removed or made the default. -->
+     gives. "Edit series" opens a dialog that edits them all at once. -->
 <template>
 	<div class="flex w-full flex-col" data-naming-series>
 		<div
 			v-for="option in options"
 			:key="option"
-			class="group/series flex h-8 items-center gap-3"
+			class="flex h-7 items-center gap-3"
 			:data-series="option"
 		>
-			<span class="flex w-[220px] shrink-0 items-center gap-2">
-				<span class="min-w-0 truncate font-mono text-sm text-ink-gray-8">{{
-					option
-				}}</span>
+			<span class="flex w-[296px] shrink-0 items-center gap-2">
+				<Tooltip :text="option">
+					<span class="block min-w-0 truncate font-mono text-sm text-ink-gray-8">{{
+						option
+					}}</span>
+				</Tooltip>
 				<Badge
 					v-if="option === preferred"
 					:label="__('Default')"
@@ -20,58 +22,50 @@
 					class="shrink-0"
 				/>
 			</span>
-			<span
-				class="lucide-arrow-right size-3.5 shrink-0 text-ink-gray-4"
-				aria-hidden="true"
-			/>
-			<NamePreview
-				class="min-w-0 flex-1 truncate"
-				:parts="nextName(option, counters, view.label.bind(view), new Date())"
-			/>
-			<span
-				class="flex shrink-0 items-center gap-1 opacity-0 group-hover/series:opacity-100 focus-within:opacity-100"
-			>
-				<Button
-					v-if="option !== preferred"
-					size="sm"
-					variant="ghost"
-					:label="__('Make default')"
-					@click="save(options, option)"
+			<Tooltip :text="fullName(option)">
+				<NamePreview
+					class="block min-w-0 flex-1 truncate whitespace-nowrap"
+					:parts="next(option)"
 				/>
-				<Button
-					v-if="options.length > 1"
-					size="sm"
-					variant="ghost"
-					icon="lucide-x"
-					:aria-label="__('Remove {0}', [option])"
-					@click="remove(option)"
-				/>
-			</span>
+			</Tooltip>
 		</div>
-		<TextInput
-			v-model="adding"
-			class="mt-1 w-[280px] [&_input]:font-mono"
-			:placeholder="__('Add a series, like {0}', [example])"
-			data-series-add
-			@keydown.enter.prevent="add"
-			@blur="add"
-		/>
-		<p class="mt-1.5 text-p-sm text-ink-gray-5">
-			{{ __("A dot ends the text part; # marks the counter's digits.") }}
+		<p class="mt-1 text-p-sm text-ink-gray-5">
+			{{ __("The series are the options of the Naming Series field.") }}
 		</p>
+		<Button
+			size="sm"
+			variant="subtle"
+			:label="__('Edit series')"
+			class="mt-2 w-fit"
+			data-series-edit
+			@click="edit"
+		/>
+		<SeriesDialog
+			v-if="shown"
+			v-model:open="open"
+			:series="options"
+			:preferred="preferred"
+			:counters="counters"
+			@done="save"
+			@closed="shown = false"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, inject, ref } from "vue";
-import { Badge, Button, TextInput } from "frappe-ui";
+import { Badge, Button, Tooltip } from "frappe-ui";
 import { __ } from "@/i18n";
 import NamePreview from "./NamePreview.vue";
+import SeriesDialog from "./SeriesDialog.vue";
 import { nextName } from "./namingPattern";
 import { SettingsViewKey } from "./settingsView";
 
-defineProps<{ counters: Record<string, number> }>();
+const props = defineProps<{ counters: Record<string, number> }>();
 const view = inject(SettingsViewKey)!;
+// The dialog is built on open, so it starts from the field's current options each time.
+const shown = ref(false);
+const open = ref(false);
 
 const field = computed(() => view.fields.find((one) => one.fieldname === "naming_series"));
 const options = computed(() =>
@@ -81,20 +75,25 @@ const options = computed(() =>
 		.filter(Boolean)
 );
 const preferred = computed(() => String(field.value?.default || options.value[0] || ""));
-const example = computed(() => options.value[0] || "ST-.YYYY.-.#####");
-const adding = ref("");
 
-function add() {
-	const option = adding.value.trim();
-	if (!option || options.value.includes(option)) return;
-	adding.value = "";
-	save([...options.value, option], preferred.value || option);
+function next(option: string) {
+	return nextName(option, props.counters, view.label.bind(view), new Date());
 }
 
-function remove(option: string) {
-	const rest = options.value.filter((one) => one !== option);
-	save(rest, option === preferred.value ? rest[0] : preferred.value);
+function fullName(option: string) {
+	return next(option)
+		.map((part) => part.text)
+		.join("");
 }
 
-const save = (list: string[], chosen: string) => view.setSeries(list, chosen);
+function edit() {
+	shown.value = true;
+	open.value = true;
+}
+
+function save(list: string[], chosen: string) {
+	const same = [...list].sort().join("\n") === [...options.value].sort().join("\n");
+	if (same && chosen === preferred.value) return;
+	view.setSeries(list, chosen);
+}
 </script>
