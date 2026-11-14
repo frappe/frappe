@@ -176,8 +176,9 @@ describe("a grid cell", () => {
   it("rings and clears a cell under a focused input without rebuilding it", async () => {
     const errors = ref<Record<string, FieldError>>({});
     const el = mount(TableField, { field, modelValue: rows }, errors);
+    // The first focus replaces the input (its Tooltip mounts); take it after.
+    cell(el, "r2", "qty").querySelector("input")!.focus();
     const input = cell(el, "r2", "qty").querySelector("input")!;
-    input.focus();
 
     errors.value = { [qtyOfR2]: MESSAGE };
     await nextTick();
