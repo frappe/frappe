@@ -930,6 +930,92 @@ class TestUser(IntegrationTestCase):
 			probe.assert_called_once()
 			frappe.set_user("Administrator")
 
+	def test_update_password_keeps_the_session_of_a_logged_in_user(self):
+		# starting and ending a session commits, leave it to the class rollback
+		with (
+			patch.object(frappe.db, "commit"),
+			test_user(roles=[], new_password="Eastern_43A1W") as user,
+			self.guest_request(),
+		):
+			frappe.local.login_manager.login_as(user.name)
+			sid = frappe.session.sid
+
+			update_password("Western_43A1W", old_password="Eastern_43A1W")
+			update_password("Northern_43A1W", key=self.reset_password(user))
+
+			self.assertEqual(frappe.session.sid, sid)
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 1)
+
+	def test_update_password_with_reset_key_refuses_another_logged_in_user(self):
+		from frappe.utils.password import check_password
+
+		# a regressed guard would log in, which commits
+		with (
+			patch.object(frappe.db, "commit"),
+			test_user(roles=[], new_password="Eastern_43A1W") as user,
+		):
+			key = self.reset_password(user)
+			with self.set_user("testpassword@example.com"):
+				# the failed request is rolled back, which keeps the link usable
+				frappe.db.savepoint("logged_in_reset")
+				self.assertRaisesRegex(
+					frappe.ValidationError,
+					"You are logged in as",
+					update_password,
+					"Western_43A1W",
+					key=key,
+				)
+				frappe.db.rollback(save_point="logged_in_reset")
+				# a link that cannot be used anyway says so first
+				self.assertEqual(
+					update_password("Western_43A1W", key="wrong_key"),
+					"The reset password link has either been used before or is invalid",
+				)
+
+			self.assertEqual(frappe.db.get_value("User", user.name, "reset_password_key"), sha256_hash(key))
+			check_password(user.name, "Eastern_43A1W")
+
+	def test_update_password_with_reset_key_logs_in_a_guest(self):
+		# starting and ending a session commits, leave it to the class rollback
+		with (
+			patch.object(frappe.db, "commit"),
+			test_user(roles=[], new_password="Eastern_43A1W") as user,
+			self.guest_request(),
+		):
+			update_password("Western_43A1W", key=self.reset_password(user))
+
+			self.assertEqual(frappe.session.user, user.name)
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 1)
+
+	def test_update_password_with_reset_key_sends_a_2fa_guest_to_login(self):
+		with (
+			patch.object(frappe.db, "commit"),
+			test_user(roles=[], new_password="Eastern_43A1W") as user,
+			patch.object(user_module, "should_run_2fa", return_value=True),
+			self.guest_request(),
+		):
+			self.assertEqual(update_password("Western_43A1W", key=self.reset_password(user)), "/login")
+
+			self.assertEqual(frappe.session.user, "Guest")
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 0)
+
+	@contextmanager
+	def guest_request(self):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		names = ("request", "cookie_manager", "login_manager")
+		saved = {name: getattr(frappe.local, name, None) for name in names}
+		try:
+			with self.set_user("Guest"):
+				set_request(path="/random")
+				frappe.local.cookie_manager = CookieManager()
+				frappe.local.login_manager = LoginManager()
+				yield
+		finally:
+			for name, value in saved.items():
+				setattr(frappe.local, name, value)
+
 	@contextmanager
 	def outgoing_email_account(self):
 		exists = frappe.db.exists
