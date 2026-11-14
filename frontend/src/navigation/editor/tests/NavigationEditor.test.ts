@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref } from "vue";
 
+import { ApiError } from "@framework/ui/api";
 import type { Boot } from "@/boot";
 import type { Arrangements, EditorRow } from "../draft";
 import NavigationEditor from "../NavigationEditor.vue";
@@ -13,6 +14,12 @@ const api = vi.hoisted(() => ({
 	saveNavigationLayout: vi.fn(),
 }));
 vi.mock("@/arrangement", () => api);
+
+const confirm = vi.hoisted(() => vi.fn());
+vi.mock("frappe-ui", async (original) => ({
+	...(await original<object>()),
+	dialog: { confirm },
+}));
 
 const row = (key: string, more: Partial<EditorRow> = {}): EditorRow => ({
 	key,
@@ -69,6 +76,7 @@ const click = (selector: string) => body().querySelector<HTMLElement>(selector)!
 beforeEach(() => {
 	document.body.innerHTML = "";
 	Object.values(api).forEach((fn) => fn.mockReset());
+	confirm.mockReset();
 });
 afterEach(() => unmount());
 
@@ -139,7 +147,7 @@ describe("the editor", () => {
 	});
 
 	it("shows the error and a Reload on a stale version", async () => {
-		const stale = Object.assign(new Error("Changed meanwhile"), { isTimestampMismatch: true });
+		const stale = new ApiError({ type: "TimestampMismatchError", message: "Changed meanwhile" }, 417);
 		api.saveArrangements.mockRejectedValue(stale);
 		await open();
 		click("[data-key='todo']");
@@ -149,6 +157,59 @@ describe("the editor", () => {
 		click("[data-save]");
 		await settle();
 		expect(text("[data-save-error]")).toContain("Changed meanwhile");
+		expect(body().querySelector("[data-save-error] button")?.textContent?.trim()).toBe("Reload");
+	});
+
+	it("asks before a Reload drops a draft with edits, and reads only when told to discard", async () => {
+		const stale = new ApiError({ type: "TimestampMismatchError", message: "Changed meanwhile" }, 417);
+		api.saveArrangements.mockRejectedValue(stale);
+		await open();
+		click("[data-key='todo']");
+		await settle();
+		click("[data-row-actions] button");
+		await settle();
+		click("[data-save]");
+		await settle();
+
+		api.fetchArrangements.mockResolvedValue(response({ version: "v2", rail: [row("other")] }));
+		const reads = api.fetchArrangements.mock.calls.length;
+		click("[data-save-error] button");
+		await settle();
+		expect(confirm).toHaveBeenCalledOnce();
+		expect(api.fetchArrangements).toHaveBeenCalledTimes(reads);
+		expect(body().querySelector("[data-revert]")).not.toBeNull();
+
+		const { actions } = confirm.mock.calls[0][0];
+		expect(actions.map((action: { label: string; variant: string }) => [action.label, action.variant])).toEqual([
+			["Keep editing", "subtle"],
+			["Discard and reload", "subtle"],
+		]);
+		expect(actions[0].onClick).toBeUndefined();
+		actions[1].onClick();
+		await settle();
+		expect(api.fetchArrangements).toHaveBeenCalledTimes(reads + 1);
+		expect(rowsShown()).toEqual(["OTHER"]);
+		expect(body().querySelector("[data-save-error]")).toBeNull();
+	});
+
+	it("reloads at once when the draft has no edits left", async () => {
+		const stale = new ApiError({ type: "TimestampMismatchError", message: "Changed meanwhile" }, 417);
+		api.saveArrangements.mockRejectedValue(stale);
+		await open();
+		click("[data-key='todo']");
+		await settle();
+		click("[data-row-actions] button");
+		await settle();
+		click("[data-save]");
+		await settle();
+		click("[data-revert]");
+		await settle();
+
+		api.fetchArrangements.mockResolvedValue(response({ version: "v2", rail: [row("other")] }));
+		click("[data-save-error] button");
+		await settle();
+		expect(confirm).not.toHaveBeenCalled();
+		expect(rowsShown()).toEqual(["OTHER"]);
 	});
 
 	it("moves focus from a row to the form on Enter", async () => {
@@ -259,9 +320,43 @@ describe("the editor", () => {
 		);
 		expect(everyone?.disabled).toBe(true);
 
+		// The draft cannot take an edit or a Save until the reset lands.
+		expect(body().querySelector("[data-editor-pane]")?.closest("[inert]")).not.toBeNull();
+		expect(body().querySelector<HTMLButtonElement>("[data-save]")!.disabled).toBe(true);
+
 		answer({ rail: [row("todo")], sidebars: {} });
 		await settle();
 		expect(rowsShown()).toEqual(["TODO"]);
+	});
+
+	it("moves to a sidebar the other level opens when the level changes", async () => {
+		const sidebars = (key: string, lead: string) => ({
+			rail: [row("crm", { item_type: "Sidebar", link_to: key })],
+			sidebars: { [key]: [row(lead)] },
+		});
+		api.fetchArrangements
+			.mockResolvedValueOnce(response(sidebars("mine", "lead")))
+			.mockResolvedValueOnce(response(sidebars("shared", "deal")));
+		const app = createApp({ render: () => h(NavigationEditor, { target: { tab: "sidebar", address: "mine" } }) });
+		app.provide("boot", { app: "crm", app_title: "CRM" } as unknown as Boot);
+		const host = document.createElement("div");
+		document.body.appendChild(host);
+		app.mount(host);
+		unmount = () => app.unmount();
+		await settle();
+		expect(rowsShown()).toEqual(["LEAD"]);
+
+		const level = (label: string) =>
+			Array.from(body().querySelectorAll<HTMLButtonElement>("[data-level-switch] button")).find(
+				(button) => button.textContent?.trim() === label
+			)!;
+		level("Everyone").click();
+		await settle();
+		expect(rowsShown()).toEqual(["DEAL"]);
+
+		level("Just me").click();
+		await settle();
+		expect(rowsShown()).toEqual(["LEAD"]);
 	});
 
 	it("ignores a read that comes back after the editor was opened again", async () => {

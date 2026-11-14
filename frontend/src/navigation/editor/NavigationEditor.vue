@@ -25,7 +25,7 @@
 							side="bottom"
 							align="end"
 							:options="layoutOptions"
-							:disabled="!draft || saving"
+							:disabled="!draft || saving || resetting"
 							data-layout-picker
 							@update:modelValue="(layout: string) => draft && (draft = { ...draft, layout })"
 						/>
@@ -50,7 +50,11 @@
 				__("Loading")
 			}}</span>
 
-			<div v-else class="grid min-h-0 flex-1 grid-cols-[300px_1fr]" :inert="saving">
+			<div
+				v-else
+				class="grid min-h-0 flex-1 grid-cols-[300px_1fr]"
+				:inert="saving || resetting"
+			>
 				<div class="flex min-h-0 flex-col border-r border-outline-gray-1">
 					<div class="flex flex-col gap-2 px-6 pt-5">
 						<div class="flex items-center justify-between">
@@ -100,12 +104,7 @@
 
 			<p v-if="failed && draft" class="px-6 pb-2 text-sm text-ink-red-4" data-save-error>
 				{{ failed }}
-				<Button
-					v-if="stale"
-					variant="ghost"
-					:label="__('Reload')"
-					@click="load(scope, keptLayout)"
-				/>
+				<Button v-if="stale" variant="ghost" :label="__('Reload')" @click="reload" />
 			</p>
 
 			<footer class="flex items-center gap-2 border-t border-outline-gray-1 px-6 py-4">
@@ -138,7 +137,7 @@
 					variant="solid"
 					:label="__('Save')"
 					:loading="saving"
-					:disabled="!changed"
+					:disabled="!changed || resetting"
 					data-save
 					@click="save"
 				/>
@@ -154,7 +153,7 @@ export type EditorTarget = { tab: "rail" } | { tab: "sidebar"; address: string }
 
 <script setup lang="ts">
 import { computed, inject, nextTick, ref, watch } from "vue";
-import { Button, Checkbox, Dialog, Select, TabButtons, Tooltip } from "frappe-ui";
+import { Button, Checkbox, dialog, Dialog, Select, TabButtons, Tooltip } from "frappe-ui";
 import { isApiError } from "@framework/ui/api";
 import {
 	fetchArrangements,
@@ -336,9 +335,7 @@ async function load(level: Scope, layout?: string): Promise<boolean> {
 		};
 		canEditSite.value = response.can_edit_site;
 		layouts.value = response.navigation_layouts;
-		const offered = openedSidebars(read);
-		if (!offered.includes(sidebar.value)) sidebar.value = offered[0] ?? "";
-		if (tab.value === "sidebar" && !offered.length) tab.value = "rail";
+		fitSidebar(read);
 		return true;
 	} catch (error) {
 		if (latest()) failed.value = (error as Error).message;
@@ -346,11 +343,20 @@ async function load(level: Scope, layout?: string): Promise<boolean> {
 	}
 }
 
+/** The level in view may open other sidebars than the last one: keep the picked sidebar only if it is still there. */
+function fitSidebar(read: Draft) {
+	const offered = openedSidebars(read);
+	if (!offered.includes(sidebar.value)) sidebar.value = offered[0] ?? "";
+	if (tab.value === "sidebar" && !offered.length) tab.value = "rail";
+}
+
 async function switchTo(value: Scope) {
 	if (changed.value || value === scope.value) return;
 	scope.value = value;
 	selected.value = null;
-	if (!reads.value[value]) await load(value);
+	const cached = reads.value[value];
+	if (cached) fitSidebar(cached.draft);
+	else await load(value);
 }
 
 function choose(key: string) {
@@ -455,6 +461,27 @@ async function save() {
 	} finally {
 		if (current === opening) saving.value = false;
 	}
+}
+
+/** Reload reads the level again and drops the draft, so a draft with edits asks first. */
+function reload() {
+	const level = scope.value;
+	const layout = keptLayout.value;
+	const current = opening;
+	if (!changed.value) return void load(level, layout);
+	dialog.confirm({
+		title: __("Discard your changes?"),
+		message: __("Reloading drops the edits you made. Nothing you changed is saved."),
+		actions: [
+			{ label: __("Keep editing"), variant: "subtle" },
+			{
+				label: __("Discard and reload"),
+				variant: "subtle",
+				theme: "red",
+				onClick: () => void (current === opening && load(level, layout)),
+			},
+		],
+	});
 }
 
 /** The layout save failed after the rows went in. The layout stays edited, on top of a fresh read. */
