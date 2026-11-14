@@ -520,6 +520,8 @@ function add(fields: Omit<EditorRow, "key">) {
 	if (refused(edited)) return;
 	stopAdding();
 	selected.value = row.key;
+	// The form that held focus is gone: the new row takes it.
+	nextTick(() => document.getElementById(`editor-row-${row.key}`)?.focus());
 }
 
 /** Where Move to… offers the row: an inherited row the server cannot take as a copy goes nowhere, and a row that opens a sidebar into none. */

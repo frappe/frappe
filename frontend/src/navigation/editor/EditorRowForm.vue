@@ -1,6 +1,11 @@
 <!-- The right pane while a new row is being added: the type's fields and a subtle "Add row". -->
 <template>
-	<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-5" data-editor-form>
+	<form
+		class="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-5"
+		novalidate
+		data-editor-form
+		@submit.prevent="submit"
+	>
 		<EditorPaneHeading
 			icon="plus"
 			:title="__('Add {0}', [typeLabel])"
@@ -30,6 +35,7 @@
 				v-model="values.page"
 				:label="__('Page')"
 				:options="pages"
+				:placeholder="__('Pick a page')"
 				:error="errorOf('page')"
 				data-field="page"
 			/>
@@ -66,13 +72,13 @@
 		<div
 			class="mt-auto flex h-[49px] shrink-0 items-center justify-end border-t border-outline-gray-1"
 		>
-			<Button variant="subtle" :label="__('Add row')" data-add-row @click="submit" />
+			<Button variant="subtle" type="submit" :label="__('Add row')" data-add-row />
 		</div>
-	</div>
+	</form>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onBeforeUnmount, onMounted, reactive, ref } from "vue";
+import { computed, inject, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { Button, Checkbox, Combobox, FormControl, Select } from "frappe-ui";
 import { Link } from "@framework/ui/Link";
 import { useRouter } from "vue-router";
@@ -98,14 +104,9 @@ const doctypes = inject<Addresses>("addresses")!
 	.doctypes()
 	.map((name) => ({ label: name, value: name }));
 // Only the pages this app's router serves: a slug it drops (a clash) would open the not-found page.
-const pages = [
-	{ label: __("Pick a page"), value: "" },
-	...contributedPages
-		.filter(
-			(page) => router.hasRoute(`page:${page.app}:${page.slug}`) && page.app === boot.app
-		)
-		.map((page) => ({ label: page.title ?? page.slug, value: page.slug })),
-];
+const pages = contributedPages
+	.filter((page) => router.hasRoute(`page:${page.app}:${page.slug}`) && page.app === boot.app)
+	.map((page) => ({ label: page.title ?? page.slug, value: page.slug }));
 const values = reactive<AddValues>(startValues(props.start));
 // Another DocType makes the picked record meaningless.
 const doctype = computed({
@@ -119,6 +120,13 @@ const doctype = computed({
 const gap = ref<{ field: keyof AddValues; message: string } | null>(null);
 const errorOf = (field: keyof AddValues) =>
 	gap.value?.field === field ? gap.value.message : undefined;
+// The error goes as soon as its field changes.
+watch(
+	() => ({ ...values }),
+	(now, before) => {
+		if (gap.value && now[gap.value.field] !== before[gap.value.field]) gap.value = null;
+	}
+);
 
 // The add menu hands focus back to its button once its close has played out, after the form is up: the form takes it back once.
 const fields = ref<HTMLElement | null>(null);

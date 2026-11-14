@@ -122,7 +122,7 @@ import { computed } from "vue";
 import { Button, Dropdown, FormControl, Select } from "frappe-ui";
 import { __ } from "@/i18n";
 import IconPicker from "@/icons/IconPicker.vue";
-import { type EditorRow, isOwn, originOf, type Scope } from "./draft";
+import { type EditorRow, isOwn, originOf, RAIL, type Scope } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
 
 const props = defineProps<{
@@ -154,12 +154,18 @@ const emit = defineEmits<{
 	removeSidebar: [];
 }>();
 
-const moveOptions = computed(() =>
-	props.moveTargets.map((target) => ({
+// The rail first, then the sidebars under their own heading, so "Rail" never reads as a sidebar's name.
+const moveOptions = computed(() => {
+	const option = (target: { label: string; value: string }) => ({
 		label: target.label,
 		onClick: () => emit("moveTo", target.value),
-	}))
-);
+	});
+	const sidebars = props.moveTargets.filter((target) => target.value !== RAIL).map(option);
+	return [
+		...props.moveTargets.filter((target) => target.value === RAIL).map(option),
+		...(sidebars.length ? [{ group: __("Sidebars"), items: sidebars }] : []),
+	];
+});
 const deleteLabel = computed(() =>
 	props.deleteCount > 2
 		? __("Delete with {0} rows", [props.deleteCount - 1])
