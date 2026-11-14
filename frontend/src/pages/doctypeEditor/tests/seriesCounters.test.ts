@@ -40,21 +40,11 @@ describe("the series counters", () => {
 		expect(call).toHaveBeenCalledTimes(1);
 	});
 
-	it("reads the counters once a new DocType's first save ends pending", async () => {
-		const saving = reactive({ doctype: "ToDo", mode: "design", settings: { pending: true } });
-		const scope = effectScope();
-		const counters = scope.run(() => useSeriesCounters(saving as unknown as SettingsView, () => ["NOTE-.#####"]))!;
-		await vi.advanceTimersByTimeAsync(300);
-		expect(call).not.toHaveBeenCalled();
-		saving.settings.pending = false;
-		await nextTick();
-		await vi.advanceTimersByTimeAsync(300);
-		expect(counters.value).toEqual({ "NOTE-": 25 });
-		scope.stop();
+	it("reads a new DocType's counters before its first save: a key may count another DocType's records", async () => {
+		expect(await countersOf(["format:WI-{#####}"], true)).toEqual({ "": 25 });
 	});
 
-	it("reads nothing for a DocType not yet saved, or a pattern without a key", async () => {
-		expect(await countersOf(["NOTE-.#####"], true)).toEqual({});
+	it("reads nothing for a pattern without a key", async () => {
 		expect(await countersOf(["format:{customer}-.###"])).toEqual({});
 		expect(call).not.toHaveBeenCalled();
 	});
