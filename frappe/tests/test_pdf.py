@@ -246,6 +246,21 @@ class TestPdf(IntegrationTestCase):
 		for number, page in enumerate(pages, start=1):
 			self.assertIn(f"Page {number} of {len(pages)}", page.extract_text())
 
+	def test_footer_visible_last_page_prints_on_last_page_only(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		html = (
+			"<p>row</p>" * 120 + '<div id="footer-html"><p class="visible-last-page">Grand Total</p>'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		for pdf_generator in ("chrome", "PlutoPrint"):
+			with self.subTest(pdf_generator=pdf_generator):
+				pdf = pdfgen.get_pdf(html, pdf_generator=pdf_generator)
+				texts = [page.extract_text() for page in PdfReader(io.BytesIO(pdf)).pages]
+				self.assertGreater(len(texts), 1)
+				self.assertNotIn("Grand Total", "".join(texts[:-1]))
+				self.assertIn("Grand Total", texts[-1])
+
 	def test_pdf_renders_while_another_render_has_a_tab_open(self):
 		from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
 		from frappe.utils.pdf import get_host_url
