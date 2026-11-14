@@ -126,6 +126,10 @@ const linkNote = computed(() => {
 function submit() {
 	const lacking = missing(props.type, values);
 	gap.value = lacking?.message ?? null;
-	if (!lacking) emit("add", buildRow(props.type, "", values));
+	if (lacking) return;
+	// A page with no label of its own takes its title, not its slug.
+	const title = pages.find((page) => page.value === values.page)?.label;
+	const label = props.type === "Page" && !values.label.trim() && title ? title : values.label;
+	emit("add", buildRow(props.type, "", { ...values, label }));
 }
 </script>
