@@ -22,7 +22,7 @@ function linkFieldname(link: string): string {
 /** An empty child table in the parent's module, custom when the parent is.
  * A child of `link` holds that one Link field. */
 export function pendingChild(name: string, parent: EditorState, link?: string): EditorState {
-	const fields = link ? [{ fieldname: linkFieldname(link), label: link, fieldtype: "Link", options: link, in_list_view: 1 }] : [];
+	const fields = link ? [{ fieldname: linkFieldname(link), label: link, fieldtype: "Link", options: link, in_list_view: 1 as const }] : [];
 	return {
 		doctype: name,
 		mode: "Design",
