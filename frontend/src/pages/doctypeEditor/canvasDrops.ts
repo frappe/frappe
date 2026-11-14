@@ -44,7 +44,9 @@ export function dropOnBin(canvas: DesignCanvas) {
 	void removeField(canvas, field);
 }
 
-export function dropOffLayout(change: DragChange<string>) {
+export function dropOffLayout(canvas: DesignCanvas, change: DragChange<string>) {
+	// Over the bin, the drop is the bin's too: a canceled removal must leave the layout as it was.
+	if (canvas.drag.value.overBin) return;
 	if (typeof change.added?.element === "string") void acts.perform("canvas.unplace_field", { fieldname: change.added.element });
 }
 

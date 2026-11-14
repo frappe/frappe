@@ -12,7 +12,7 @@ import AddFieldRow from "../AddFieldRow.vue";
 import PanelHeader from "../PanelHeader.vue";
 import { acts } from "@/acts/dispatcher";
 import FieldBin from "../FieldBin.vue";
-import { dropField, dropOnBin, startDrag } from "../canvasDrops";
+import { dropField, dropOffLayout, dropOnBin, startDrag } from "../canvasDrops";
 import { mountEditor, taskNote } from "./editorFixture";
 
 let app: App | undefined;
@@ -129,6 +129,17 @@ describe("dropping on the bin", () => {
 		canvas.drag.value = { active: true, overBin: false };
 		dropField(canvas, { moved: { element: "subject", newIndex: 0 } }, { section: "main", column: "c1" });
 		expect(move).toHaveBeenCalledWith("canvas.move_field", expect.objectContaining({ fieldname: "subject" }));
+		move.mockRestore();
+	});
+
+	it("takes a field off the layout from the tray, except under the bin", () => {
+		const canvas = drag(true);
+		const move = vi.spyOn(acts, "perform").mockResolvedValue(undefined as any);
+		dropOffLayout(canvas, { added: { element: "subject", newIndex: 0 } });
+		expect(move).not.toHaveBeenCalled();
+		canvas.drag.value = { active: true, overBin: false };
+		dropOffLayout(canvas, { added: { element: "subject", newIndex: 0 } });
+		expect(move).toHaveBeenCalledWith("canvas.unplace_field", { fieldname: "subject" });
 		move.mockRestore();
 	});
 });
