@@ -18,7 +18,11 @@
 					<span>{{ metaLine }}</span>
 				</Tooltip>
 			</p>
-			<p v-if="siteFields" class="mt-1 text-p-sm text-ink-gray-5" data-editor-site-fields>
+			<p
+				v-if="siteFields && !isChild"
+				class="mt-1 text-p-sm text-ink-gray-5"
+				data-editor-site-fields
+			>
 				{{
 					__n(
 						"{0} field added on this site, edit it in",
@@ -38,6 +42,24 @@
 				/></RouterLink>
 				<template v-else>{{ __("Customize") }}</template>
 			</p>
+			<!-- The heading names the grid, so the control hides its own label. -->
+			<div v-if="isChild && table" class="mt-8" data-child-grid>
+				<p id="child-grid-heading" class="mb-1.5 text-sm text-ink-gray-6">
+					{{
+						__("{0} in {1}", [
+							table.field.label || table.field.fieldname,
+							table.parent,
+						])
+					}}
+				</p>
+				<div
+					role="group"
+					aria-labelledby="child-grid-heading"
+					class="[&_[data-slot=label]]:hidden"
+				>
+					<CanvasTable :field="table.field" />
+				</div>
+			</div>
 			<p
 				v-if="canvas.newRecordUsesDetails.value"
 				class="mt-1 text-p-sm text-ink-gray-5"
@@ -76,7 +98,9 @@ import { RouterLink, type RouteLocationRaw } from "vue-router";
 import { Tooltip, useKeyboardShortcut } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
 import { __, __n } from "@/i18n";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import CanvasForm from "./CanvasForm.vue";
+import CanvasTable from "./CanvasTable.vue";
 import { canvasMove, type Direction } from "./canvasMoves";
 import type { DesignCanvas } from "./designCanvas";
 import DoctypeDescription from "./DoctypeDescription.vue";
@@ -97,6 +121,8 @@ const props = defineProps<{
 	save: EditorSave;
 	/** Customize mode of this DocType, when the person may open it. */
 	customize: RouteLocationRaw | null;
+	/** The parent's Table field this child's editor opened from; its grid shows under the meta line. */
+	table?: { field: RawMetaField; parent: string } | null;
 }>();
 
 provideInertForm();
@@ -112,8 +138,11 @@ watch([() => props.canvas, () => props.canvas.openLayout.value, appChanged], () 
 const showsApp = computed(() => appChanged.value && viewingApp.value);
 const editing = () => props.canvas.editable && !showsApp.value;
 const formPage = computed(() => type.value === "Details" || type.value === "New Record");
+const isChild = computed(() => Boolean(props.canvas.state.definition.istable && props.table));
 const metaLine = computed(() => {
 	const { module, app_title, record_count, pending } = props.canvas.state;
+	if (isChild.value)
+		return [module, __("Child table"), __("This form is the row's dialog.")].join(" · ");
 	if (pending) return [module, __(draftKind(props.canvas))].join(" · ");
 	const parts = [module, app_title ? __("From {0}", [app_title]) : __("Custom")];
 	if (record_count != null)

@@ -149,4 +149,16 @@ describe("the header's controls", () => {
         .trim(),
     ).toBe("DocType/Walk Order");
   });
+
+  it("shows no layout crumb in a child's editor, and keeps the parent's crumbs", async () => {
+    const root = mountHeader("Design", vi.fn());
+    await nextTick();
+    expect(root.querySelector("[data-layout-crumb]")).toBeNull();
+    expect(
+      root
+        .querySelector("[data-crumbs]")!
+        .textContent!.replace(/\s+/g, " ")
+        .trim(),
+    ).toBe("DocType/Walk Order/Items/Walk Order Item");
+  });
 });

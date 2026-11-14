@@ -15,7 +15,9 @@ export interface MenuLayout {
 	ref: LayoutRef;
 	/** The title, else the condition. */
 	name: string;
-	badge: string;
+	/** The condition, when the layout has a title to show before it. */
+	condition?: string;
+	source: string;
 	open: boolean;
 }
 
@@ -23,7 +25,7 @@ export interface MenuType {
 	type: FormLayoutType;
 	label: string;
 	icon: string;
-	badge: string;
+	source: string;
 	/** The type's default. */
 	ref: LayoutRef;
 	open: boolean;
@@ -36,7 +38,7 @@ export interface LayoutMenu {
 	/** Why the menu lists fewer types. */
 	note: string | null;
 	/** The open layout's acts; `null` when it has none. */
-	open: { name: string; where: string; acts: OpenLayoutAct[] } | null;
+	open: { acts: OpenLayoutAct[] } | null;
 }
 
 export interface ResetWording {
@@ -65,8 +67,8 @@ export function layoutMenu(working: WorkingState, open: LayoutRef): LayoutMenu {
 	);
 	return {
 		types,
-		note: working.definition.istable ? __("A child table's rows use Details only") : null,
-		open: opened ? openActs(working, open.type, opened) : null,
+		note: working.definition.istable ? __("A child table's rows use Details only.") : null,
+		open: opened ? openActs(working, opened) : null,
 	};
 }
 
@@ -93,7 +95,7 @@ export function resetSummary(working: WorkingState, type: FormLayoutType): Reset
 	return {
 		removes: (of?.layouts ?? []).map(row),
 		restores: (of?.app ?? []).map(row),
-		fallback: of?.app.length ? null : badge(baseSource(working, type)),
+		fallback: of?.app.length ? null : source(baseSource(working, type)),
 	};
 }
 
@@ -129,33 +131,29 @@ function menuType(working: WorkingState, type: FormLayoutType, opened: WorkingLa
 		type,
 		label: typeLabel(type),
 		icon: ICONS[type],
-		badge: badge(fallback.source),
+		source: source(fallback.source),
 		ref: { type },
 		open: Boolean(opened && !opened.condition),
 		layouts: conditional.map((layout) => ({
 			ref: { type, id: layout.id },
 			name: layout.title || layout.condition!,
-			badge: badge(layout.source),
+			condition: layout.title ? layout.condition! : undefined,
+			source: source(layout.source),
 			open: layout === opened,
 		})),
 	};
 }
 
-function openActs(working: WorkingState, type: FormLayoutType, layout: WorkingLayout): LayoutMenu["open"] {
-	const acts: OpenLayoutAct[] = layout.condition ? ["edit_condition", "rename"] : [];
+function openActs(working: WorkingState, layout: WorkingLayout): LayoutMenu["open"] {
+	const acts: OpenLayoutAct[] = layout.condition ? ["rename", "edit_condition"] : [];
 	if (working.mode === "Customize" && layout.source === "site") acts.push("reset_to_app");
 	if (layout.condition) acts.push("delete");
 	if (!acts.length) return null;
-	const where = WHERE[type]();
-	return {
-		name: layout.title || layout.condition || typeLabel(type),
-		where: layout.condition ? __("{0} when {1}", [where, layout.condition]) : where,
-		acts,
-	};
+	return { acts };
 }
 
-function badge(source: LayoutSource): string {
-	return BADGES[source]();
+function source(of: LayoutSource): string {
+	return SOURCES[of]();
 }
 
 const ICONS: Record<FormLayoutType, string> = {
@@ -165,17 +163,10 @@ const ICONS: Record<FormLayoutType, string> = {
 	"New Record": "lucide-file-plus",
 };
 
-const WHERE: Record<FormLayoutType, () => string> = {
-	Details: () => __("Shows in the record page's main column"),
-	"Side Panel": () => __("Shows on the record page's right side"),
-	"Quick Entry": () => __("Shows in the Create dialog"),
-	"New Record": () => __("Shows on a new record's page until its first save"),
-};
-
-const BADGES: Record<LayoutSource, () => string> = {
-	app: () => __("App layout"),
-	site: () => __("Site layout"),
-	fallback: () => __("From DocType fields"),
+const SOURCES: Record<LayoutSource, () => string> = {
+	app: () => __("App"),
+	site: () => __("Site"),
+	fallback: () => __("From fields"),
 	none: () => __("Not set up"),
-	"same as Details": () => __("Same as Details"),
+	"same as Details": () => __("From Details"),
 };

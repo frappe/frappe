@@ -82,3 +82,13 @@ describe("the tray of each layout", () => {
 		expect(tray().map((row) => row.fieldname)).toEqual(["notes", "spare"]);
 	});
 });
+
+describe("the tray", () => {
+	it("leaves out a hidden field", async () => {
+		open({ type: "Details" });
+		await acts.run("canvas.unplace_field", { fieldname: "status" });
+		expect(tray().map((row) => row.fieldname)).toContain("status");
+		await acts.run("fields.set_field_property", { fieldname: "status", property: "hidden", value: 1 });
+		expect(tray().map((row) => row.fieldname)).not.toContain("status");
+	});
+});

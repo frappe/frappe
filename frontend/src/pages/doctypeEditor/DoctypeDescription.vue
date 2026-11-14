@@ -5,7 +5,7 @@
 		v-if="editable"
 		ref="input"
 		:value="description"
-		:placeholder="__('Add a description of what one record holds')"
+		:placeholder="holds"
 		rows="1"
 		class="mt-2 block w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-base text-ink-gray-6 placeholder:text-ink-gray-4 focus:outline-none focus:ring-0"
 		:aria-label="__('Description')"
@@ -29,6 +29,11 @@ import { settable } from "./settingsModel";
 
 const props = defineProps<{ canvas: DesignCanvas }>();
 
+const holds = computed(() =>
+	props.canvas.state.definition.istable
+		? __("Add a description of what one row holds")
+		: __("Add a description of what one record holds")
+);
 const input = ref<HTMLTextAreaElement | null>(null);
 const description = computed(
 	() => (props.canvas.working.value.settings.properties.description as string) ?? ""

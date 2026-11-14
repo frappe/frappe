@@ -154,7 +154,7 @@ describe("Reset to app layout", () => {
 			],
 			fallback: null,
 		});
-		expect(resetSummary(editor.canvas.working.value, "Quick Entry")).toMatchObject({ restores: [], fallback: "From DocType fields" });
+		expect(resetSummary(editor.canvas.working.value, "Quick Entry")).toMatchObject({ restores: [], fallback: "From fields" });
 	});
 
 	it("draws the rows in its confirm", async () => {

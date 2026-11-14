@@ -22,14 +22,18 @@
 			<p class="text-base-medium text-ink-gray-8">
 				{{ __("No fields on the side panel yet") }}
 			</p>
-			<p class="text-p-sm text-ink-gray-5">
-				{{ __("Each field you add shows on every record's right side.") }}
+			<p class="text-p-sm text-ink-gray-6">
+				{{
+					__(
+						"Pick fields from the panel on the right. Each one shows on every record's right side."
+					)
+				}}
 			</p>
 			<Button
 				v-if="canvas.editable"
 				variant="subtle"
 				size="sm"
-				icon-left="lucide-plus"
+				icon-right="lucide-arrow-right"
 				:label="__('Add a field')"
 				@click.stop="addField"
 			/>
