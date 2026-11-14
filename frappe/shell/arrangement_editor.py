@@ -80,9 +80,7 @@ def has_saved(app: str, scope: str) -> bool:
 	"""Whether this level has stored a rail or a sidebar of the app, which is what Reset to default undoes."""
 	user = frappe.session.user if scope == "user" else SITE_LAYER
 
-	return any(
-		frappe.db.exists(doctype, {"app": app, "standard": 0, "user": user}) for doctype in CONTAINERS
-	)
+	return any(frappe.db.exists(doctype, {"app": app, "standard": 0, "user": user}) for doctype in CONTAINERS)
 
 
 def write_arrangements(app: str, scope: str, containers: str | dict, version: str) -> dict:

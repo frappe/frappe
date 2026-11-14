@@ -65,7 +65,9 @@ class TestGetArrangements(EditorTestCase):
 
 		result = get_arrangements(APP)
 
-		self.assertEqual(set(result), {"version", "can_edit_site", "has_saved", "navigation_layouts", "rail", "sidebars"})
+		self.assertEqual(
+			set(result), {"version", "can_edit_site", "has_saved", "navigation_layouts", "rail", "sidebars"}
+		)
 		self.assertEqual(keys(result["rail"]), ["todo", "note"])
 		self.assertEqual(result["rail"][0]["hidden"], 1)
 		self.assertEqual(keys(result["sidebars"][ADDRESS_KEY]), ["sb_todo", "sb_note"])
@@ -228,7 +230,10 @@ class TestGetDefaultArrangements(EditorTestCase):
 
 	def test_a_bad_scope_is_a_validation_error(self):
 		for scope in ("everyone", "base", ""):
-			with self.subTest(scope=scope), self.assertRaisesRegex(frappe.ValidationError, "not an arrangement scope"):
+			with (
+				self.subTest(scope=scope),
+				self.assertRaisesRegex(frappe.ValidationError, "not an arrangement scope"),
+			):
 				get_default_arrangements(APP, scope)
 
 

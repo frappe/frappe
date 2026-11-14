@@ -12,14 +12,17 @@ function row(page, key) {
 }
 
 async function row_keys(page) {
-	return page.locator(`${EDITOR} [data-editor-list] li`).evaluateAll((rows) =>
-		rows.map((row) => row.dataset.key)
-	);
+	return page
+		.locator(`${EDITOR} [data-editor-list] li`)
+		.evaluateAll((rows) => rows.map((row) => row.dataset.key));
 }
 
 async function hide_and_save(page, key) {
 	await row(page, key).click();
-	await page.locator(`${EDITOR} [data-row-actions]`).getByRole("button", { name: "Hide" }).click();
+	await page
+		.locator(`${EDITOR} [data-row-actions]`)
+		.getByRole("button", { name: "Hide" })
+		.click();
 	await page.locator(`${EDITOR} [data-save]`).click();
 }
 
@@ -47,7 +50,10 @@ test.describe("Desk v2 navigation editor", () => {
 		await expect(row(page, first)).toContainText("Hidden");
 
 		await row(page, first).click();
-		await page.locator(`${EDITOR} [data-row-actions]`).getByRole("button", { name: "Show" }).click();
+		await page
+			.locator(`${EDITOR} [data-row-actions]`)
+			.getByRole("button", { name: "Show" })
+			.click();
 		await page.locator(`${EDITOR} [data-save]`).click();
 		await expect(page.locator(EDITOR)).toHaveCount(0);
 
@@ -82,7 +88,10 @@ test.describe("Desk v2 navigation editor", () => {
 
 		await hide_and_save(page, second);
 		await expect(page.locator(`${EDITOR} [data-save-error]`)).toBeVisible();
-		await page.locator(`${EDITOR} [data-save-error]`).getByRole("button", { name: "Reload" }).click();
+		await page
+			.locator(`${EDITOR} [data-save-error]`)
+			.getByRole("button", { name: "Reload" })
+			.click();
 
 		await expect(page.locator(`${EDITOR} [data-save-error]`)).toHaveCount(0);
 		await expect(row(page, first)).toHaveCount(0);

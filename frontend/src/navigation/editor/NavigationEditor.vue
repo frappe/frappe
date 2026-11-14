@@ -1,7 +1,4 @@
-<!--
-  The navigation editor: the rail and every sidebar of the app, at one level, in two panes. A
-  draft takes every edit; Save is the one commit. Replaces the old customize dialog.
--->
+<!-- The navigation editor: the rail and every sidebar at one level. A draft takes every edit; Save is the one commit. -->
 <template>
 	<Dialog
 		bare
@@ -28,7 +25,7 @@
 							side="bottom"
 							align="end"
 							:options="layoutOptions"
-							:disabled="!draft"
+							:disabled="!draft || saving"
 							data-layout-picker
 							@update:modelValue="(layout: string) => draft && (draft = { ...draft, layout })"
 						/>
@@ -53,7 +50,7 @@
 				__("Loading")
 			}}</span>
 
-			<div v-else class="grid min-h-0 flex-1 grid-cols-[300px_1fr]">
+			<div v-else class="grid min-h-0 flex-1 grid-cols-[300px_1fr]" :inert="saving">
 				<div class="flex min-h-0 flex-col border-r border-outline-gray-1">
 					<div class="flex flex-col gap-2 px-6 pt-5">
 						<div class="flex items-center justify-between">
@@ -103,7 +100,12 @@
 
 			<p v-if="failed && draft" class="px-6 pb-2 text-sm text-ink-red-4" data-save-error>
 				{{ failed }}
-				<Button v-if="stale" variant="ghost" :label="__('Reload')" @click="load(scope)" />
+				<Button
+					v-if="stale"
+					variant="ghost"
+					:label="__('Reload')"
+					@click="load(scope, keptLayout)"
+				/>
 			</p>
 
 			<footer class="flex items-center gap-2 border-t border-outline-gray-1 px-6 py-4">
@@ -112,6 +114,7 @@
 					class="-ml-2"
 					variant="ghost"
 					:label="__('Discard changes')"
+					:disabled="saving"
 					data-revert
 					@click="draft = revert(opened!)"
 				/>
@@ -215,6 +218,9 @@ const sidebar = ref("");
 const selected = ref<string | null>(null);
 const showHidden = ref(false);
 const refusal = ref<string | null>(null);
+// A reply that comes back after the editor was reopened belongs to the earlier opening.
+let opening = 0;
+const keptLayout = ref<string>();
 
 const draft = computed<Draft | undefined>({
 	get: () => reads.value[scope.value]?.draft,
@@ -279,6 +285,8 @@ watch(
 	() => props.target,
 	(target) => {
 		if (!target) return;
+		opening += 1;
+		keptLayout.value = undefined;
 		reads.value = {};
 		scope.value = "user";
 		selected.value = null;
@@ -300,10 +308,13 @@ watch(showHidden, (on) => !on && selected.value && leaveIfUnlisted(selected.valu
 
 /** `layout` keeps an edited layout over the fresh read, for a reload that follows a half save. */
 async function load(level: Scope, layout?: string): Promise<boolean> {
+	const current = opening;
 	failed.value = null;
 	stale.value = false;
 	try {
 		const response = await fetchArrangements(boot.app!, level);
+		if (current !== opening) return false;
+		keptLayout.value = undefined;
 		const read = fromArrangements(response, level);
 		const edited = layout === undefined ? read : { ...read, layout };
 		reads.value = {
@@ -322,7 +333,7 @@ async function load(level: Scope, layout?: string): Promise<boolean> {
 		if (tab.value === "sidebar" && !offered.length) tab.value = "rail";
 		return true;
 	} catch (error) {
-		failed.value = (error as Error).message;
+		if (current === opening) failed.value = (error as Error).message;
 		return false;
 	}
 }
@@ -407,33 +418,37 @@ async function reset() {
 
 /** The rows first, then the layout, each only when its part changed; the last answer is the navigation. */
 async function save() {
-	const read = reads.value[scope.value];
+	const level = scope.value;
+	const read = reads.value[level];
 	if (!read) return;
+	const { draft: edited, opened: before } = read;
+	const current = opening;
 	saving.value = true;
 	failed.value = null;
 	let navigation: Navigation | undefined;
 	try {
-		const payload = toPayload(read.opened, read.draft);
+		const payload = toPayload(before, edited);
 		if (Object.keys(payload).length)
-			navigation = await saveArrangements(boot.app!, scope.value, payload, read.version);
-		if (layoutChanged(read.opened, read.draft))
-			navigation = await saveNavigationLayout(boot.app!, read.draft.layout, scope.value);
+			navigation = await saveArrangements(boot.app!, level, payload, read.version);
+		if (layoutChanged(before, edited))
+			navigation = await saveNavigationLayout(boot.app!, edited.layout, level);
 		if (navigation) emit("saved", navigation);
-		emit("close");
+		if (current === opening) emit("close");
 	} catch (error) {
 		failed.value = (error as Error).message;
 		stale.value = isApiError(error) && !!error.isTimestampMismatch;
 		// The rows are in: the shell shows them, and the next Save needs the version they made.
-		if (navigation) await keepSavedRows(read, navigation, failed.value);
+		if (navigation) await keepSavedRows(edited, navigation, failed.value);
 	} finally {
 		saving.value = false;
 	}
 }
 
 /** The layout save failed after the rows went in. The layout stays edited, on top of a fresh read. */
-async function keepSavedRows(read: Opened, navigation: Navigation, reason: string) {
+async function keepSavedRows(edited: Draft, navigation: Navigation, reason: string) {
 	emit("saved", navigation);
-	const reloaded = await load(scope.value, read.draft.layout);
+	const reloaded = await load(scope.value, edited.layout);
+	if (!reloaded) keptLayout.value = edited.layout;
 	failed.value = __("Your rows are saved, but the layout is not: {0}", [reason]);
 	stale.value = !reloaded;
 }

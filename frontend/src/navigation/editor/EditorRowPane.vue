@@ -1,7 +1,4 @@
-<!--
-  The right pane: the chosen row's heading, its fields and its actions. The target is read-only
-  here; changing one is the add forms' job (#47416). Edits apply as you type.
--->
+<!-- The right pane: the chosen row's heading, fields and actions. Edits apply as you type. -->
 <template>
 	<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 pt-5" data-editor-pane>
 		<template v-if="row">

@@ -4,7 +4,6 @@ import {
 	type EditorRow,
 	dirty,
 	fromArrangements,
-	newKey,
 	openedSidebars,
 	originOf,
 	RAIL,
@@ -67,9 +66,8 @@ describe("the draft", () => {
 		expect(reset).toEqual({ rail: [row("a")], sidebars: {}, layout: "" });
 	});
 
-	it("reads origin from the key and makes a six-character key", () => {
+	it("reads origin from the key", () => {
 		expect([originOf("user:abc"), originOf("site:abc"), originOf("crm-deals")]).toEqual(["user", "site", "app"]);
-		expect(newKey("user")).toMatch(/^user:[0-9a-z]{6}$/);
 	});
 });
 
@@ -147,6 +145,17 @@ describe("the edits", () => {
 		expect(refused(nest(deep, "side", "r", "q"))).toBe(true);
 		expect(refused(nest(deep, "side", "p", "r"))).toBe(true);
 		expect(refused(nest(deep, "side", "r", "p"))).toBe(false);
+	});
+
+	it("places a nested row last under its parent, wherever it was", () => {
+		const flat = { ...opened, sidebars: { side: [row("a"), row("b"), row("c")] } };
+		const next = nest(flat, "side", "c", "a") as typeof opened;
+		expect(next.sidebars.side.map((r) => [r.key, r.parent_key])).toEqual([
+			["a", undefined],
+			["c", "a"],
+			["b", undefined],
+		]);
+		expect(nest(flat, "side", "b", null)).toBe(flat);
 	});
 
 	it("refuses a row under its own child", () => {

@@ -56,9 +56,16 @@ export function nest(draft: Draft, container: string, key: string, parentKey: st
 		]);
 	}
 
-	return replace(draft, container, key, ({ parent_key, ...rest }) =>
+	if (row.parent_key === parent?.key) return draft;
+
+	const nested = replace(draft, container, key, ({ parent_key, ...rest }) =>
 		parent ? { ...rest, parent_key: parent.key } : rest
 	);
+
+	// The row lands last in its new group, so it draws under its parent.
+	const nestedRows = rowsOf(nested, container);
+	const order = [...siblingKeys(nestedRows, parent?.key).filter((entry) => entry !== key), key];
+	return withRows(nested, container, flatten(nestedRows, parent?.key, order));
 }
 
 /**

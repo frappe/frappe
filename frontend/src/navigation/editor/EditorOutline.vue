@@ -1,8 +1,4 @@
-<!--
-  The left pane's list: one container at a time, a listbox. Up and Down select, Alt+Up and
-  Alt+Down move the row among its siblings, Enter hands focus to the form, and a drop lands
-  before the row under the pointer.
--->
+<!-- The left pane's listbox: Up and Down select, Alt+Up and Alt+Down move, Enter opens the form. -->
 <template>
 	<ul
 		v-if="list.length"
