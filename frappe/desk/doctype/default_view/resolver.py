@@ -55,10 +55,23 @@ class DefaultViews:
 	def doctype_layer(self, doctypes: list[str] | None) -> dict[str, frappe._dict]:
 		"""The doctype's own `default_view`, a view type's name; v1 values with no v2 view type never resolve."""
 		layer = {}
-		for doctype in self.existing(set(doctypes_with_default_view(doctypes))):
+		for doctype in self.with_default_view(doctypes):
 			if default_view := frappe.get_meta(doctype).default_view:
 				layer[doctype] = frappe._dict(view=None, type=default_view)
 		return layer
+
+	def with_default_view(self, doctypes: list[str] | None) -> set[str]:
+		"""Doctypes whose DocType row names a v2 view type, or that Customize Form sets (it may override to any value)."""
+		filters = {"name": ("in", doctypes)} if doctypes is not None else {}
+		own = frappe.get_all(
+			"DocType", filters={**filters, "default_view": ("in", list(view_types()))}, pluck="name"
+		)
+
+		customized = {"doctype_or_field": "DocType", "property": "default_view"}
+		if doctypes is not None:
+			customized["doc_type"] = ("in", doctypes)
+		setters = frappe.get_all("Property Setter", filters=customized, pluck="doc_type")
+		return {*own, *self.existing(set(setters))}
 
 	def existing(self, doctypes: set[str]) -> list[str]:
 		"""The doctypes still on the site: deleting a DocType leaves the rows that point at it."""
@@ -66,17 +79,6 @@ class DefaultViews:
 			return []
 
 		return frappe.get_all("DocType", filters={"name": ("in", doctypes)}, pluck="name")
-
-
-def doctypes_with_default_view(doctypes: list[str] | None) -> list[str]:
-	"""Doctypes that set a default view on the DocType or in Customize Form; their meta then answers, cached."""
-	filters = {"name": ("in", doctypes)} if doctypes is not None else {}
-	own = frappe.get_all("DocType", filters={**filters, "default_view": ("is", "set")}, pluck="name")
-
-	customized = {"doctype_or_field": "DocType", "property": "default_view", "value": ("is", "set")}
-	if doctypes is not None:
-		customized["doc_type"] = ("in", doctypes)
-	return [*own, *frappe.get_all("Property Setter", filters=customized, pluck="doc_type")]
 
 
 def segment(doctype: str, pointer: frappe._dict | None, views: dict) -> str | None:

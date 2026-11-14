@@ -191,6 +191,23 @@ class TestDoctypeFallback(DefaultViewTestCase):
 
 		self.assertEqual(default_of(self.person), "cards")
 
+	def test_boot_carries_the_fallback(self):
+		self.set_doctype_default("Cards")
+
+		self.assertEqual(DefaultViews(self.person).addresses()[DOCTYPE], "cards")
+
+	def test_customize_form_overrides_the_doctype_s_own_default(self):
+		self.set_doctype_default("List")
+		make_property_setter(DOCTYPE, None, "default_view", "Cards", "Select", for_doctype=True)
+		frappe.clear_cache(doctype=DOCTYPE)
+		self.assertEqual(default_of(self.person), "cards")
+
+		frappe.db.set_value(
+			"Property Setter", {"doc_type": DOCTYPE, "property": "default_view"}, "value", "Report"
+		)
+		frappe.clear_cache(doctype=DOCTYPE)
+		self.assertIsNone(default_of(self.person))
+
 	def test_a_v1_view_with_no_v2_view_type_is_ignored(self):
 		for v1_view in ("Report", "Kanban", "Calendar", "Tree"):
 			self.set_doctype_default(v1_view)
