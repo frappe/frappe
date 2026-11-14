@@ -13,6 +13,7 @@ import {
 import { generatedRoutes, indexRoutes } from "./generated";
 import { contributedRoutes } from "./contributed";
 import { afterFramePaint } from "./mainPage";
+import { canonicalAddress } from "@/navigation/canonical";
 import { isModular } from "./routeFor";
 import { landingOf } from "@/navigation/landing";
 import { flushPendingRecordDialog } from "@/shell/recordDialog";
@@ -52,14 +53,13 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 
 	// Canonicalise the doctype segment to its slug, never away from it: the slug is the address.
 	router.beforeResolve((to, from) => {
-		// The module is checked first: a record must not render under a module it does not belong to.
+		// A record must not render under a module it does not belong to, nor a doctype under its name.
+		const canonical = canonicalAddress(to, addresses);
+		if (canonical) return canonical;
+
 		if (modular && typeof to.params.module === "string" && to.params.module) {
-			if (!addresses.hasModule(to.params.module)) {
-				// Not a module: it may be a flat address read through a modular table, somebody's old
-				// link. Redirect it to the canonical address; anything longer is ambiguous and stays a miss.
-				const flat = flatAddress(to, addresses);
-				return flat ?? miss(to);
-			}
+			// Not a module and no flat address reads through it: a miss.
+			if (!addresses.hasModule(to.params.module)) return miss(to);
 		}
 
 		// No `replace`: the bare address never enters history, and forcing one drops the entry before it.
@@ -81,9 +81,6 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 				if (typeof to.params.module === "string") params.module = to.params.module;
 				return { name: "record", params, query: to.query, replace: true };
 			}
-			const checked = modular ? checkModule(to, addresses) : true;
-			if (checked !== true) return checked;
-
 			// A single's address is its document, and a submittable needs Submit and Cancel: never a dialog.
 			const dialog = addresses.isSingle(doctype) || addresses.isSubmittable(doctype)
 				? undefined
@@ -98,48 +95,11 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 			return true;
 		}
 
-		const canonical = addresses.slugOfName(segment);
-		if (canonical)
-			return {
-				...to,
-				params: { ...to.params, doctype: canonical },
-				replace: true,
-			};
-
 		// The shell owns the miss; otherwise `/:doctype` swallows every unknown path as an empty list.
 		return miss(to);
 	});
 
 	return router;
-}
-
-/**
- * The flat form of an address this prefix spells with a module, `/sales-invoice` or
- * `/sales-invoice/SI-001`. Returns the canonical location, or null.
- */
-function flatAddress(to: any, addresses: Addresses) {
-	const doctype = addresses.doctypeOf(String(to.params.module));
-	const address = doctype ? addresses.addressOf(doctype) : null;
-	if (!address || !address[1]) return null;
-
-	const params: Record<string, string> = {
-		module: address[1],
-		doctype: address[0],
-	};
-
-	// `/:module` matched -- the list.
-	if (!to.params.doctype)
-		return { name: "list", params, query: to.query, replace: true };
-
-	// `/:module/:doctype` matched, so the second segment is a docname. Three segments is
-	// already a complete record address and is not re-read.
-	if (!to.params.name) {
-		const name = String(to.params.doctype);
-		if (name === "new") return { name: "new-record", params, query: to.query, replace: true };
-		return { name: "record", params: { ...params, name }, query: to.query, replace: true };
-	}
-
-	return null;
 }
 
 /** A single has no list, so a list page declared for one never opens. */
@@ -159,16 +119,6 @@ function miss(to: { path: string }) {
 		params: { pathMatch: to.path.slice(1).split("/") },
 		replace: true,
 	};
-}
-
-/** Under a modular prefix the module segment must be the doctype's own module. */
-function checkModule(to: any, addresses: Addresses) {
-	const doctype = addresses.doctypeOf(String(to.params.doctype));
-	const address = doctype ? addresses.addressOf(doctype) : null;
-	if (!address || address[1] === to.params.module) return true;
-
-	// Not a miss: the record exists and this is the wrong spelling of its address.
-	return { ...to, params: { ...to.params, module: address[1] }, replace: true };
 }
 
 /** Starts loading the renderer of the view type an address segment names, once the frame paints. */
