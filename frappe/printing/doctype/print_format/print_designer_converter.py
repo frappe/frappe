@@ -93,7 +93,9 @@ def convert(print_format: str) -> dict:
 		copy = editor_copy(doc)
 		if not copy:
 			copy = frappe.copy_doc(doc)
-			copy.update({"standard": "No", "disabled": 0, "converted_from": doc.name, **values})
+			copy.update(
+				{"standard": "No", "disabled": 0, "module": None, "converted_from": doc.name, **values}
+			)
 			copy.insert(
 				set_name=append_number_if_name_exists("Print Format", f"{doc.name} (Editor)", separator=" ")
 			)
