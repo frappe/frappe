@@ -1,8 +1,9 @@
 // The canvas and the panel of each layout type: the side panel's frame, the Create dialog's frame,
-// and the panel's tray outside Details.
+// and the panel's group of fields off the layout.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref, type App, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
+import { acts } from "@/acts/dispatcher";
 import EditorCanvas from "../EditorCanvas.vue";
 import EditorPanel from "../EditorPanel.vue";
 import type { LayoutRef } from "../workingLayouts";
@@ -28,6 +29,7 @@ async function settle() {
 async function draw(component: Component, layout: LayoutRef, fromNewRecord = false, extra: Record<string, unknown> = {}) {
 	editor = mountEditor(leadNote());
 	if (extra.table) editor.canvas.state.definition.istable = 1;
+	if (extra.readOnly) Object.assign(editor.canvas, { editable: false });
 	if (fromNewRecord) editor.canvas.openForNewRecord(layout);
 	else editor.canvas.open(layout);
 	const router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
@@ -35,7 +37,7 @@ async function draw(component: Component, layout: LayoutRef, fromNewRecord = fal
 	document.body.appendChild(root);
 	const props =
 		component === EditorCanvas
-			? { canvas: editor.canvas, save: editor.save, metaLine: "", customize: null, ...extra }
+			? { canvas: editor.canvas, save: editor.save, metaLine: "", customize: null, ...(extra.table ? { table: extra.table } : {}) }
 			: { canvas: editor.canvas };
 	const app = createApp(defineComponent({ render: () => h(component, props) }));
 	app.use(router).provide("addresses", { doctypes: () => ref([]) });
@@ -63,10 +65,19 @@ describe("the canvas of each layout type", () => {
 		expect(create!.closest("[inert]")).not.toBeNull();
 	});
 
-	it("keeps Details' tray under its canvas", async () => {
+	it("draws no tray under Details' canvas", async () => {
 		const root = await draw(EditorCanvas, { type: "Details" });
-		expect(root.querySelector("[data-canvas-tray]")).not.toBeNull();
+		expect(root.querySelector("[data-canvas-tray]")).toBeNull();
 		expect(root.querySelector("[data-new-record-note]")).toBeNull();
+	});
+
+	it("keeps a plain list of the fields off the layout under a read-only canvas", async () => {
+		const root = await draw(EditorCanvas, { type: "Details" }, false, { readOnly: true });
+		const tray = root.querySelector("[data-canvas-tray]")!;
+		expect(tray).not.toBeNull();
+		expect(tray.textContent).toContain("Fields not on this layout");
+		expect([...tray.querySelectorAll("[data-canvas-tray-field]")].map((row) => row.getAttribute("data-canvas-tray-field"))).toEqual(["notes", "spare"]);
+		expect(tray.querySelector("button[class*='opacity-0']")).toBeNull();
 	});
 
 	it("notes that a new record uses the Details layout its Edit layout opened", async () => {
@@ -90,7 +101,7 @@ describe("the canvas of a child table", () => {
 	});
 });
 
-describe("the panel outside Details", () => {
+describe("the panel's group of fields off the layout", () => {
 	it("lists the fields not on this layout first, and places a clicked one", async () => {
 		const root = await draw(EditorPanel, { type: "Quick Entry" });
 		const tray = () => [...root.querySelectorAll("[data-panel-tray-field]")].map((row) => row.getAttribute("data-panel-tray-field"));
@@ -111,9 +122,48 @@ describe("the panel outside Details", () => {
 		expect(editor.canvas.place("date")).toBeNull();
 	});
 
-	it("shows Details' hint, not the tray", async () => {
+	it("filters the group by what is typed, and forgets the query once the group goes", async () => {
 		const root = await draw(EditorPanel, { type: "Details" });
+		const rowsNow = () => [...root.querySelectorAll("[data-panel-tray-field]")].map((row) => row.getAttribute("data-panel-tray-field"));
+		const search = root.querySelector<HTMLInputElement>("[data-panel-tray-search]")!;
+		search.value = "sp";
+		search.dispatchEvent(new Event("input", { bubbles: true }));
+		await settle();
+		expect(rowsNow()).toEqual(["spare"]);
+		expect(root.querySelector('[data-panel-tray-field="spare"]')!.getAttribute("title")).toBe("Spare (spare)");
+		root.querySelector<HTMLButtonElement>('[data-panel-tray-field="spare"]')!.click();
+		await settle();
+		expect(root.textContent).toContain("No field matches.");
+		await acts.perform("canvas.place_field", { fieldname: "notes", tab: editor.canvas.openTab.value?.name });
+		await settle();
 		expect(root.querySelector("[data-panel-tray]")).toBeNull();
+		await acts.perform("canvas.unplace_field", { fieldname: "notes" });
+		await settle();
+		expect(rowsNow()).toEqual(["notes"]);
+	});
+
+	it("draws no group on Details while every field is on the layout", async () => {
+		const root = await draw(EditorPanel, { type: "Details" });
+		for (const fieldname of ["notes", "spare"]) {
+			root.querySelector<HTMLButtonElement>(`[data-panel-tray-field="${fieldname}"]`)!.click();
+			await settle();
+		}
+		expect(root.querySelector("[data-panel-tray]")).toBeNull();
+		expect(root.querySelector("[data-panel-new-field]")!.textContent).toContain("Add a field");
+	});
+
+	it("lists Details' off-layout fields first, and places a clicked one back", async () => {
+		const root = await draw(EditorPanel, { type: "Details" });
+		const tray = () => [...root.querySelectorAll("[data-panel-tray-field]")].map((row) => row.getAttribute("data-panel-tray-field"));
+		expect(tray()).toEqual(["notes", "spare"]);
+		expect(root.querySelector("[data-panel-new-field]")!.textContent).toContain("New field");
+		root.querySelector<HTMLButtonElement>('[data-panel-tray-field="notes"]')!.click();
+		await settle();
+		expect(tray()).toEqual(["spare"]);
+		root.querySelector<HTMLButtonElement>('[data-panel-tray-field="spare"]')!.click();
+		await settle();
+		expect(root.querySelector("[data-panel-tray]")).toBeNull();
+		expect(editor.canvas.place("spare")).not.toBeNull();
 	});
 });
 
