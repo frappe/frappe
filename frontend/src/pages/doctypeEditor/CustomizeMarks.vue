@@ -40,6 +40,6 @@ const props = defineProps<{ canvas: DesignCanvas; fieldname: string }>();
 
 const marks = computed(() => props.canvas.customize?.marks(props.fieldname) ?? null);
 const changedText = computed(() =>
-	__("Changed on this site: {0}", [(marks.value?.changed ?? []).map(propertyLabel).join(", ")]),
+	__("Changed on this site: {0}", [(marks.value?.changed ?? []).map(propertyLabel).join(", ")])
 );
 </script>

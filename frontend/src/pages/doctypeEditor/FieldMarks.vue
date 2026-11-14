@@ -31,7 +31,7 @@ import { RuleWords } from "./ruleWords";
 const props = defineProps<{ canvas: DesignCanvas; fieldname: string }>();
 
 const titled = computed(
-	() => props.canvas.working.value.settings.properties.title_field === props.fieldname,
+	() => props.canvas.working.value.settings.properties.title_field === props.fieldname
 );
 const ruled = computed(() => {
 	const node = props.canvas.field(props.fieldname);

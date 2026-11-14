@@ -24,7 +24,7 @@
 						"{0} field added on this site, edit it in",
 						"{0} fields added on this site, edit them in",
 						siteFields,
-						[siteFields],
+						[siteFields]
 					)
 				}}
 				<RouterLink
@@ -103,7 +103,7 @@ provideInertForm();
 
 const type = computed(() => props.canvas.openLayout.value.type);
 const appChanged = computed(() =>
-	Boolean(props.canvas.customize && props.canvas.layout.value?.sourceChanged),
+	Boolean(props.canvas.customize && props.canvas.layout.value?.sourceChanged)
 );
 const viewingApp = ref(false);
 watch([() => props.canvas, () => props.canvas.openLayout.value, appChanged], () => {
@@ -118,7 +118,7 @@ const metaLine = computed(() => {
 	const parts = [module, app_title ? __("From {0}", [app_title]) : __("Custom")];
 	if (record_count != null)
 		parts.push(
-			__n("{0} record", "{0} records", record_count, [record_count.toLocaleString()]),
+			__n("{0} record", "{0} records", record_count, [record_count.toLocaleString()])
 		);
 	return parts.join(" · ");
 });
@@ -127,7 +127,7 @@ function draftKind(canvas: DesignCanvas) {
 	return KINDS.find((one) => one.value === kind)!.label;
 }
 const siteFields = computed(() =>
-	props.canvas.state.mode === "Design" ? (props.canvas.state.site_custom_fields ?? 0) : 0,
+	props.canvas.state.mode === "Design" ? props.canvas.state.site_custom_fields ?? 0 : 0
 );
 
 const ARROWS: [string, Direction][] = [
@@ -183,7 +183,7 @@ watch(
 		document
 			.querySelector("[data-editor-canvas] [data-canvas-selected]")
 			?.scrollIntoView({ block: "nearest" });
-	},
+	}
 );
 </script>
 
@@ -218,9 +218,7 @@ watch(
 	height: auto !important;
 	opacity: 1 !important;
 	background-color: var(--surface-base);
-	box-shadow:
-		0 0 0 1px var(--outline-gray-4),
-		0 4px 12px rgb(0 0 0 / 0.16);
+	box-shadow: 0 0 0 1px var(--outline-gray-4), 0 4px 12px rgb(0 0 0 / 0.16);
 }
 [data-doctype-editor]:has([data-canvas-bin][data-over]) .sortable-fallback {
 	opacity: 0 !important;

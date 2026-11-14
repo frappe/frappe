@@ -20,7 +20,7 @@ const section = (name: string) => ({
 
 function strip() {
 	const state = taskNote();
-	state.layouts.Details[0].layout = [section("details"), { ...section("more"), label: "More" }] as never;
+	state.layouts.Details![0].layout = [section("details"), { ...section("more"), label: "More" }] as never;
 	const editor = mountEditor(state);
 	stop = editor.stop;
 	const root = document.body.appendChild(document.createElement("div"));
