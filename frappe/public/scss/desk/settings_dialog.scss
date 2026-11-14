@@ -317,6 +317,11 @@ table + .settings-dialog-section-heading {
 		display: none;
 	}
 
+	// two classes, to win over the `flex` utility on the same element
+	.settings-dialog-sidebar .settings-dialog-sidebar-header {
+		display: none;
+	}
+
 	.settings-dialog-tab-group {
 		display: contents;
 	}
