@@ -7,12 +7,20 @@ from frappe.tests import IntegrationTestCase
 
 
 class TestPermissionLog(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.manager = "perm-log-manager@example.com"
+		if not frappe.db.exists("User", cls.manager):
+			frappe.get_doc(doctype="User", email=cls.manager, first_name="Perm Log Manager").insert()
+		frappe.get_doc("User", cls.manager).add_roles("System Manager")
+
 	def test_user_timeline_shows_role_changes(self):
 		user = frappe.get_doc(doctype="User", email="perm-log@example.com", first_name="Perm Log").insert()
 		user.add_roles("Website Manager")
 		user.remove_roles("Website Manager")
 
-		content = " ".join(item["content"] for item in get_timeline_content("User", user.name))
+		content = self.get_timeline_text(user.name)
 		self.assertIn("added <b>Website Manager</b> to Roles Assigned", content)
 		self.assertIn("removed <b>Website Manager</b> from Roles Assigned", content)
 
@@ -27,7 +35,7 @@ class TestPermissionLog(IntegrationTestCase):
 		user.module_profile = module_profile.name
 		user.save()
 
-		content = " ".join(item["content"] for item in get_timeline_content("User", user.name))
+		content = self.get_timeline_text(user.name)
 		self.assertNotIn("Module Profile", content)
 
 	def test_user_timeline_skips_role_profile_changes(self):
@@ -44,5 +52,9 @@ class TestPermissionLog(IntegrationTestCase):
 			custom_changes={"from": {"role_profile_name": ""}, "to": {"role_profile_name": "Perm Log RP A"}},
 		)
 
-		content = " ".join(item["content"] for item in get_timeline_content("User", user.name))
+		content = self.get_timeline_text(user.name)
 		self.assertNotIn("Role Profile", content)
+
+	def get_timeline_text(self, user: str) -> str:
+		with self.set_user(self.manager):
+			return " ".join(item["content"] for item in get_timeline_content("User", user))

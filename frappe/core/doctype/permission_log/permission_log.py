@@ -6,6 +6,7 @@ from typing import Optional
 
 import frappe
 from frappe import _
+from frappe.desk.form.activity import is_field_visible
 from frappe.model.document import Document
 from frappe.utils import comma_and, cstr, escape_html, get_fullname, get_link_to_form
 
@@ -118,7 +119,7 @@ def get_timeline_content(doctype: str, docname: str) -> list[dict]:
 	)
 
 	meta = frappe.get_meta(doctype)
-	tracked_fields = frappe.get_doc(doctype, docname).get_permission_log_options().get("fields") or ()
+	tracked_fields = frappe.get_doc({"doctype": doctype}).get_permission_log_options().get("fields") or ()
 	timeline_content = []
 	for log in logs:
 		if phrases := describe_log(log, meta, tracked_fields):
@@ -136,29 +137,14 @@ def describe_log(log, meta, tracked_fields) -> list[str]:
 
 	phrases = []
 	for fieldname in dict.fromkeys([*current, *previous]):
-		if fieldname not in tracked_fields or shown_by_version(meta.get_field(fieldname)):
+		if fieldname not in tracked_fields or is_field_visible(meta, None, fieldname):
 			continue
-		label = escape_html(_(meta.get_label(fieldname)))
-		phrases.extend(describe_change(label, previous.get(fieldname), current.get(fieldname)))
+		label = escape_html(meta.get_translated_label(fieldname))
+		phrases.extend(
+			describe_row_changes(label, previous.get(fieldname) or [], current.get(fieldname) or [])
+		)
 
 	return phrases
-
-
-def shown_by_version(df) -> bool:
-	return bool(df and (not df.hidden or df.show_on_timeline))
-
-
-def describe_change(label: str, previous, current) -> list[str]:
-	if isinstance(previous, list) or isinstance(current, list):
-		return describe_row_changes(label, previous or [], current or [])
-
-	if previous == current or not (previous or current):
-		return []
-	if not current:
-		return [_("cleared {0}").format(label)]
-	if not previous:
-		return [_("set {0} to {1}").format(label, format_value(current))]
-	return [_("changed {0} from {1} to {2}").format(label, format_value(previous), format_value(current))]
 
 
 def describe_row_changes(label: str, removed_rows: list[dict], added_rows: list[dict]) -> list[str]:
