@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""LanceDB index over Flow Agent Memory rows, used to find the memories relevant to a message.
+"""SQLite index over Flow Agent Memory rows, used to find the memories relevant to a message.
 
 The rows are the source of truth. The table holds the scoping columns, the content (full-text
 indexed) and a vector when an embedding model is configured. It is rebuilt from the rows
@@ -12,10 +12,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import pyarrow as pa
-
 import frappe
-from frappe.flow.knowledge.store import _connect, _ensure_fts_index, _quote
+from frappe.flow.knowledge.store import (
+	_connect,
+	_create_table,
+	_drop_table,
+	_keyword_search,
+	_placeholders,
+	_shape,
+	_vector_bytes,
+)
 
 if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_agent_memory.flow_agent_memory import FlowAgentMemory
@@ -30,133 +36,133 @@ KEYWORD_BONUS = 0.1
 
 def sync(doc: FlowAgentMemory) -> None:
 	"""Upsert an Active memory; drop it for any other status. A failure fails the save."""
-	table = ensure_table()
-	rows = _rows(table, [doc]) if doc.status == "Active" else []
-	table.delete(f"id = {_quote(doc.name)}")
-	if rows:
-		table.add(rows)
-		_ensure_fts_index(table)
+	dimension = ensure_table()
+	# embed first, so a failed call keeps the old row
+	rows = _rows([doc], dimension) if doc.status == "Active" else []
+	with _connect(write=True) as db:
+		db.execute(f"delete from {TABLE_NAME} where id = ?", (doc.name,))
+		_insert(db, rows)
 
 
 def remove(name: str) -> None:
 	try:
-		db = _connect()
-		if TABLE_NAME in db.list_tables().tables:
-			db.open_table(TABLE_NAME).delete(f"id = {_quote(name)}")
+		with _connect(write=True) as db:
+			if _shape(db, TABLE_NAME) is not None:
+				db.execute(f"delete from {TABLE_NAME} where id = ?", (name,))
 	except Exception:
 		frappe.log_error(title="Agent memory index cleanup failed")
 
 
 def rename_agent(old: str, new: str) -> None:
 	"""Move a renamed agent's memories to its new name."""
-	db = _connect()
-	if TABLE_NAME in db.list_tables().tables:
-		db.open_table(TABLE_NAME).update(where=f"agent = {_quote(old)}", values={"agent": new})
+	with _connect(write=True) as db:
+		if _shape(db, TABLE_NAME) is not None:
+			db.execute(f"update {TABLE_NAME} set agent = ? where agent = ?", (new, old))
 
 
 def make_personal(names: list[str], user: str) -> None:
 	"""Move shared memories to `user`'s own, keeping their vectors."""
-	db = _connect()
-	if names and TABLE_NAME in db.list_tables().tables:
-		ids = ", ".join(_quote(name) for name in names)
-		db.open_table(TABLE_NAME).update(where=f"id IN ({ids})", values={"scope": "User", "user": user})
+	if not names:
+		return
+	with _connect(write=True) as db:
+		if _shape(db, TABLE_NAME) is not None:
+			db.execute(
+				f"update {TABLE_NAME} set scope = 'User', user = ? where id in ({_placeholders(names)})",
+				[user, *names],
+			)
 
 
 def search(query: str, *, agent: str, user: str) -> list[str]:
 	"""Names of the memories relevant to `query`, best first, within `agent` and `user`'s scope."""
-	table = ensure_table()
-	scope = f"agent = {_quote(agent)} AND (scope = 'Agent' OR user = {_quote(user)})"
-	in_scope = table.count_rows(scope)
-	if not in_scope:
-		return []
-	_ensure_fts_index(table)
-	keyword = table.search(query, query_type="fts").where(scope, prefilter=True).limit(TOP_K).to_list()
-	if "vector" not in table.schema.names:
-		return [row["id"] for row in keyword]
+	dimension = ensure_table()
+	scope = "agent = ? and (scope = 'Agent' or user = ?)"
+	with _connect() as db:
+		names = dict(db.execute(f"select rowid, id from {TABLE_NAME} where {scope}", (agent, user)))
+		if not names:
+			return []
+		keyword = _keyword_search(db, TABLE_NAME, scope, [agent, user], query, TOP_K)
+	if not dimension:
+		return [names[rowid] for rowid in keyword]
 
 	from frappe.flow.knowledge.embedder import embed_texts
 
 	(vector,) = embed_texts([query])
-	keyword_ids = {row["id"] for row in keyword}
-	nearest = (
-		table.search(vector, vector_column_name="vector")
-		.distance_type("cosine")
-		.where(scope, prefilter=True)
-		.limit(in_scope)
-		.to_list()
-	)
+	with _connect() as db:
+		nearest = db.execute(
+			# a zero vector has no distance
+			f"select rowid, vec_distance_cosine(vector, ?) as distance from {TABLE_NAME} "
+			f"where {scope} and distance is not null",
+			(_vector_bytes(vector), agent, user),
+		).fetchall()
 	scored = []
-	for row in nearest:
-		score = 1.0 - row["_distance"] + (KEYWORD_BONUS if row["id"] in keyword_ids else 0.0)
-		if score >= MIN_SCORE:
-			scored.append((score, row["id"]))
+	for rowid, distance in nearest:
+		score = 1.0 - distance + (KEYWORD_BONUS if rowid in keyword else 0.0)
+		if score >= MIN_SCORE and rowid in names:
+			scored.append((score, names[rowid]))
 	scored.sort(reverse=True)
 	return [name for _score, name in scored[:TOP_K]]
 
 
 def drop_table() -> None:
 	"""Drop the index; the next write or search rebuilds it."""
-	db = _connect()
-	if TABLE_NAME in db.list_tables().tables:
-		db.drop_table(TABLE_NAME)
+	with _connect(write=True) as db:
+		_drop_table(db, TABLE_NAME)
 
 
-def ensure_table():
-	"""Open the memories table, recreating it from the rows when its shape no longer
-	matches the settings (embedding model or vector width)."""
-	db = _connect()
-	schema = _schema()
-	if TABLE_NAME in db.list_tables().tables:
-		table = db.open_table(TABLE_NAME)
-		if table.schema.equals(schema, check_metadata=True):
-			return table
-		db.drop_table(TABLE_NAME)
-	table = db.create_table(TABLE_NAME, schema=schema)
+def ensure_table() -> int:
+	"""Rebuild the table from the rows if the embedding model or width changed.
+	Returns the vector width, 0 for none."""
+	dimension, shape = _dimension_and_shape()
+	with _connect() as db:
+		if _shape(db, TABLE_NAME) == shape:
+			return dimension
+
 	docs = frappe.get_all(
 		"Flow Agent Memory",
 		filters={"status": "Active"},
 		fields=["name", "agent", "scope", "user", "content"],
 	)
-	if docs:
-		table.add(_rows(table, docs))
-		_ensure_fts_index(table)
-	return table
-
-
-def _schema() -> pa.Schema:
-	settings = frappe.get_cached_doc("Flow Knowledge Settings")
-	fields = [
-		pa.field("id", pa.string()),
-		pa.field("agent", pa.string()),
-		pa.field("scope", pa.string()),
-		pa.field("user", pa.string()),
-		pa.field("content", pa.string()),
-	]
-	model = ""
-	if settings.embedding_model and settings.embedding_dimension:
-		# by id and server, so a rename keeps the index
-		model_id, base_url = frappe.get_cached_value(
-			"Flow Model", settings.embedding_model, ["model_id", "base_url"]
+	rows = _rows(docs, dimension)
+	with _connect(write=True) as db:
+		_drop_table(db, TABLE_NAME)
+		_create_table(
+			db,
+			TABLE_NAME,
+			"seq integer primary key, id text unique, agent text, scope text, user text",
+			dimension,
+			shape,
 		)
-		model = f"{model_id} {base_url}" if base_url else model_id
-		fields.append(pa.field("vector", pa.list_(pa.float32(), int(settings.embedding_dimension))))
-	return pa.schema(fields, metadata={"embedding_model": model})
+		db.execute(f"create index {TABLE_NAME}_agent on {TABLE_NAME}(agent)")
+		_insert(db, rows)
+	return dimension
 
 
-def _rows(table, docs: list[Any]) -> list[dict[str, Any]]:
-	rows = [
-		{
-			"id": doc.name,
-			"agent": doc.agent,
-			"scope": doc.scope,
-			"user": doc.user or "",
-			"content": doc.content,
-		}
-		for doc in docs
-	]
-	if "vector" in table.schema.names:
+def _dimension_and_shape() -> tuple[int, str]:
+	"""Vector width (0 without a model) and the marker the table is checked against."""
+	settings = frappe.get_cached_doc("Flow Knowledge Settings")
+	if not (settings.embedding_model and settings.embedding_dimension):
+		return 0, "0"
+	# by id and server, so a rename keeps the index
+	model_id, base_url = frappe.get_cached_value(
+		"Flow Model", settings.embedding_model, ["model_id", "base_url"]
+	)
+	dimension = int(settings.embedding_dimension)
+	return dimension, f"{dimension} {model_id} {base_url or ''}".strip()
+
+
+def _rows(docs: list[Any], dimension: int) -> list[tuple]:
+	vectors = [None] * len(docs)
+	if dimension and docs:
 		from frappe.flow.knowledge.embedder import embed_texts
 
-		for row, vector in zip(rows, embed_texts([row["content"] for row in rows]), strict=True):
-			row["vector"] = vector
-	return rows
+		vectors = [_vector_bytes(vector) for vector in embed_texts([doc.content for doc in docs])]
+	return [
+		(doc.name, doc.agent, doc.scope, doc.user or "", doc.content, vector)
+		for doc, vector in zip(docs, vectors, strict=True)
+	]
+
+
+def _insert(db, rows: list[tuple]) -> None:
+	db.executemany(
+		f"insert into {TABLE_NAME}(id, agent, scope, user, content, vector) values (?, ?, ?, ?, ?, ?)", rows
+	)

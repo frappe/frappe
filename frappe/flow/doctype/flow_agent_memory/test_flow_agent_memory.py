@@ -52,7 +52,7 @@ def _memory(agent: str, **overrides: Any) -> dict:
 class MemoryCase(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
-		# LanceDB writes aren't covered by the tx rollback below; reset the (test-only) index.
+		# Index writes aren't covered by the tx rollback below; reset the (test-only) index.
 		store.drop_table()
 		_settings(embedding_model="", embedding_dimension=0)
 		self.model = frappe.get_doc(
@@ -165,7 +165,7 @@ class TestSaveMemory(MemoryCase):
 
 		with (
 			self.subTest("the index is down"),
-			patch("frappe.flow.memory.store.ensure_table", side_effect=RuntimeError("lance down")),
+			patch("frappe.flow.memory.store.ensure_table", side_effect=RuntimeError("index down")),
 			self.assertRaises(RuntimeError),
 		):
 			save_memory(self.agent.name, content=ACME, scope="agent")

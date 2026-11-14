@@ -92,11 +92,11 @@ dependencies = [
     "json_repair~=0.59",
     # flow
     "frappe-flow==0.1.26",
-    "lancedb~=0.33",
     "onnxruntime~=1.27",
     "pdfplumber~=0.11",
     "python-docx~=1.1",
     "rapidocr~=3.0",
+    "sqlite-vec~=0.1.9",
     # integration dependencies
     "google-api-python-client~=2.201.0",
     "google-auth-oauthlib~=1.5.0",
