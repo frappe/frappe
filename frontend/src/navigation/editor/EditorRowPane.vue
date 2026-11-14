@@ -163,7 +163,7 @@ const moveOptions = computed(() => {
 	const sidebars = props.moveTargets.filter((target) => target.value !== RAIL).map(option);
 	return [
 		...props.moveTargets.filter((target) => target.value === RAIL).map(option),
-		...(sidebars.length ? [{ group: __("Sidebars"), items: sidebars }] : []),
+		...(sidebars.length ? [{ group: __("Sidebars"), options: sidebars }] : []),
 	];
 });
 const deleteLabel = computed(() =>
