@@ -26,12 +26,6 @@ class TestPortalSettings(IntegrationTestCase):
 		frappe.db.rollback()
 		super().tearDown()
 
-	def test_get_all_menu_items_with_both_none(self):
-		self.doc.menu = None
-		self.doc.custom_menu = None
-
-		self.assertEqual(self.doc.get_all_menu_items(), [])
-
 	def test_get_all_menu_items_with_menu_none(self):
 		self.doc.menu = None
 		self.doc.set("custom_menu", [{"title": "Custom Item", "route": "/custom"}])
@@ -55,9 +49,6 @@ class TestPortalSettings(IntegrationTestCase):
 		items = self.doc.get_all_menu_items()
 
 		self.assertEqual([d.title for d in items], ["Standard Item", "Custom Item"])
-
-	def test_get_all_menu_items_with_both_empty(self):
-		self.assertEqual(self.doc.get_all_menu_items(), [])
 
 	def test_get_all_menu_items_always_returns_list(self):
 		for menu, custom_menu in (

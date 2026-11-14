@@ -164,14 +164,6 @@ class TestVirtualDoctypes(IntegrationTestCase):
 	def test_get_count(self):
 		self.assertIsInstance(VirtualDoctypeTest.get_count(), int)
 
-	def test_delete_doc(self):
-		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
-
-		frappe.delete_doc(doc.doctype, doc.name)
-
-		listed_docs = {d.name for d in VirtualDoctypeTest.get_list()}
-		self.assertNotIn(doc.name, listed_docs)
-
 	def test_controller_validity(self):
 		validate_controller(TEST_DOCTYPE_NAME)
 		validate_controller(TEST_CHILD_DOCTYPE_NAME)

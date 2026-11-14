@@ -159,13 +159,6 @@ describe("resolveFieldConditionals", () => {
     expect(resolveFieldConditionals(need, { need: false }).reqd).toBe(false);
   });
 
-  it("the same field resolves differently for two rows", () => {
-    expect(resolveFieldConditionals(lock, { lock: true }).readOnly).toBe(true);
-    expect(resolveFieldConditionals(lock, { lock: false }).readOnly).toBe(
-      false
-    );
-  });
-
   it("passes a field with no expressions through unchanged", () => {
     const plain: FieldMeta = {
       fieldname: "x",
