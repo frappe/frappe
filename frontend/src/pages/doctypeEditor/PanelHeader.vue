@@ -1,7 +1,7 @@
 <!-- The panel's head: icon tile, title, subtitle, then remove and close, as frappe/crm#3419's
      PanelHeader. -->
 <template>
-	<div class="flex items-start gap-2.5 px-4 pb-3 pt-4">
+	<div class="flex items-center gap-2.5 px-4 pb-3 pt-4">
 		<div
 			class="grid size-9 shrink-0 place-items-center rounded-4 bg-surface-gray-2 text-ink-gray-6"
 		>
@@ -18,7 +18,7 @@
 		<div class="-mr-1 flex shrink-0 items-center">
 			<Tooltip v-if="removeLabel" :text="removeLabel">
 				<Button
-					variant="ghost"
+					:variant="removeActive ? 'subtle' : 'ghost'"
 					:icon="removeIcon"
 					:label="removeLabel"
 					@click="$emit('remove')"
@@ -47,8 +47,9 @@ withDefaults(
 		subtitle: string;
 		removeLabel?: string;
 		removeIcon?: string;
+		removeActive?: boolean;
 	}>(),
-	{ removeLabel: "", removeIcon: "lucide-trash-2" }
+	{ removeLabel: "", removeIcon: "lucide-trash-2", removeActive: false }
 );
 defineEmits<{ remove: []; close: [] }>();
 </script>

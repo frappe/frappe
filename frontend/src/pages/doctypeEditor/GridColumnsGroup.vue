@@ -1,7 +1,12 @@
 <!-- The child editor's Grid columns group: a bar of the columns' widths against the form's, then one
      row per column (drag to reorder, − n + for its width, × to take it off), then Add column. -->
 <template>
-	<PanelSection :label="__('Grid columns')" :count="columns.length" data-grid-columns>
+	<PanelSection :label="__('Grid columns')" data-grid-columns>
+		<template #actions
+			><span class="text-sm text-ink-gray-4" data-grid-count>{{
+				columns.length
+			}}</span></template
+		>
 		<div class="flex flex-col gap-1.5">
 			<div class="relative h-2">
 				<div class="flex h-full gap-0.5 overflow-hidden rounded-full bg-surface-gray-2">

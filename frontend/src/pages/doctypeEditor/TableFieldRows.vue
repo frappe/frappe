@@ -17,14 +17,12 @@
 				aria-hidden="true"
 			/>
 		</button>
-	</PanelRow>
-	<PanelRow
-		v-if="field.fieldtype === 'Table' && field.options && childFields"
-		:label="__('Grid')"
-		:box="false"
-	>
-		<p class="px-2 py-1 text-base leading-5 text-ink-gray-6" data-grid-summary>
-			{{ columns || __("No columns yet") }}
+		<p
+			v-if="field.fieldtype === 'Table' && field.options && childFields"
+			class="px-2 pb-1 text-p-sm text-ink-gray-5"
+			data-grid-summary
+		>
+			{{ columns ? __("Grid: {0}", [columns]) : __("No grid columns yet") }}
 		</p>
 	</PanelRow>
 </template>

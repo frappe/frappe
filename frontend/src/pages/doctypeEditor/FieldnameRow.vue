@@ -1,7 +1,7 @@
 <!-- The panel's Fieldname row: a new field's follows its label until the save; a saved one renames
      on a custom DocType and is locked on a standard one. -->
 <template>
-	<PanelRow :label="__('Fieldname')" :box="false">
+	<PanelRow :label="__('Fieldname')" :box="false" :lock="lane">
 		<template v-if="mode === 'renamable'">
 			<div
 				class="min-h-7 rounded-4 focus-within:bg-surface-gray-2 focus-within:ring-1 focus-within:ring-inset focus-within:ring-outline-gray-3 hover:bg-surface-gray-2"
@@ -36,17 +36,15 @@
 					{{ field.fieldname }}
 				</span>
 				<span
-					v-if="mode === 'locked'"
+					v-if="mode === 'locked' && !lane"
 					class="lucide-lock size-3.5 shrink-0 text-ink-gray-4"
 					aria-hidden="true"
 				/>
 			</div>
-			<p class="pb-1 text-p-sm text-ink-gray-5" data-panel-fieldname-note>
+			<p v-if="!lane" class="pb-1 text-p-sm text-ink-gray-5" data-panel-fieldname-note>
 				{{
 					mode === "locked"
-						? __(
-								"A standard field keeps its fieldname. Renaming it needs a patch in the app."
-						  )
+						? lockedNote
 						: canvas.state.pending
 						? __("Follows the label until the first save.")
 						: __("Follows the label until you save.")
@@ -69,6 +67,12 @@ import PanelRow from "./PanelRow.vue";
 const props = defineProps<{ canvas: DesignCanvas; field: RawMetaField }>();
 
 const mode = computed(() => fieldnameMode(props.canvas, props.field.fieldname));
+const lockedNote = computed(() =>
+	__("A standard field keeps its fieldname. Renaming it needs a patch in the app.")
+);
+const lane = computed(() =>
+	props.canvas.customize && mode.value === "locked" ? lockedNote.value : ""
+);
 const was = computed(() => {
 	const saved = props.canvas.savedName(props.field.fieldname);
 	return saved && saved !== props.field.fieldname ? saved : "";

@@ -3,6 +3,7 @@
 import { acts } from "@/acts/dispatcher";
 import type { LayoutTreeColumn, LayoutTreeSection, LayoutTreeTab } from "./layoutTree";
 import type { DesignCanvas } from "./designCanvas";
+import { addFieldType, type NewType } from "./newField";
 
 export interface DragChange<T> {
 	added?: { element: T; newIndex: number };
@@ -13,19 +14,20 @@ export interface DragChange<T> {
 /** A field dropped in a column, or on a tab's name: the end of that tab's first section. */
 export function dropField(
 	canvas: DesignCanvas,
-	change: DragChange<string>,
+	change: DragChange<string | NewType>,
 	into: { section: string; column: string } | { tab: string },
 ) {
 	const landed = change.added ?? change.moved;
 	if (!landed) return;
+	const index = "tab" in into ? {} : { index: landed.newIndex };
+	if (typeof landed.element !== "string") return void addFieldType(canvas, landed.element.type, { ...into, ...index });
 	const fieldname = landed.element;
 	const act = canvas.place(fieldname) ? "canvas.move_field" : "canvas.place_field";
-	const index = "tab" in into ? {} : { index: landed.newIndex };
 	void acts.perform(act, { fieldname, ...into, ...index });
 }
 
 export function dropOffLayout(change: DragChange<string>) {
-	if (change.added) void acts.perform("canvas.unplace_field", { fieldname: change.added.element });
+	if (typeof change.added?.element === "string") void acts.perform("canvas.unplace_field", { fieldname: change.added.element });
 }
 
 export function dropSection(change: DragChange<LayoutTreeSection>, tab: string) {

@@ -7,6 +7,7 @@
 		:subtitle="subtitle(canvas, field)"
 		:remove-label="removal.label"
 		:remove-icon="removal.icon"
+		:remove-active="removal.icon === 'lucide-eye'"
 		@remove="remove"
 		@close="acts.perform('canvas.select', null)"
 	/>
@@ -58,10 +59,16 @@
 		</PanelRow>
 		<PanelRow v-if="anchor !== undefined" :label="__('Placed after')" :box="false">
 			<div class="flex min-h-7 flex-col justify-center px-2" data-panel-anchor>
-				<p class="flex h-7 items-center truncate text-base text-ink-gray-8">
-					{{ anchor ? anchor.label || anchor.fieldname : __("The start of the form") }}
+				<p class="flex h-7 items-center text-base text-ink-gray-8">
+					<span class="min-w-0 truncate">{{
+						anchor ? anchor.label || anchor.fieldname : __("The start of the form")
+					}}</span>
 				</p>
 				<p class="pb-1 text-p-sm text-ink-gray-5">
+					<template v-if="anchor"
+						><code class="font-mono">{{ anchor.fieldname }}</code
+						>.
+					</template>
 					{{
 						__("Drag it to move it. It keeps this place when {0} adds fields.", [
 							appTitle,
@@ -70,6 +77,11 @@
 				</p>
 			</div>
 		</PanelRow>
+		<FieldTabRow
+			v-if="canvas.tabs.value.length > 1 && canvas.place(field.fieldname)"
+			:canvas="canvas"
+			:field="field"
+		/>
 		<PanelRow
 			v-if="field.fieldtype === 'Link'"
 			:label="__('Links to')"
@@ -77,6 +89,7 @@
 		>
 			<Combobox
 				variant="ghost"
+				class="w-full min-w-0 border-0"
 				:model-value="field.options ?? ''"
 				:options="doctypes"
 				:placeholder="__('Choose a DocType')"
@@ -96,7 +109,7 @@
 			<Textarea
 				variant="ghost"
 				:rows="3"
-				class="!resize-none"
+				class="!resize-none [textarea&]:text-base"
 				:placeholder="__('One per line')"
 				:model-value="field.options ?? ''"
 				@change="set('options', text($event))"
@@ -121,6 +134,11 @@
 			:field="field"
 			v-bind="mark('link_filters')"
 		/>
+		<FetchedRow
+			v-if="field.fieldtype === 'Link' && field.options"
+			:canvas="canvas"
+			:field="field"
+		/>
 		<PanelRow :label="__('Required')" :box="false" v-bind="mark('reqd')">
 			<div class="flex h-7 items-center px-2">
 				<Switch
@@ -130,7 +148,12 @@
 				/>
 			</div>
 		</PanelRow>
-		<PanelRow :label="__('Default')" v-bind="mark('default')">
+		<TitleFieldRow v-if="titleable" :canvas="canvas" :field="field" />
+		<PanelRow
+			v-if="!TABLE_TYPES.includes(field.fieldtype)"
+			:label="__('Default')"
+			v-bind="mark('default')"
+		>
 			<TextInput
 				variant="ghost"
 				:model-value="field.default ?? ''"
@@ -160,12 +183,20 @@
 					@update:model-value="set('fetch_if_empty', $event ? 1 : 0)"
 				/>
 			</div>
-		</PanelRow>
-		<PanelRow v-if="field.fieldtype === 'Link' && field.options" label="" :box="false">
-			<FetchAddButton :link="field" />
+			<p class="px-2 pb-1 text-p-sm text-ink-gray-5" data-panel-fetch-hint>
+				{{
+					field.fetch_if_empty
+						? __("Copies from {0} only while this field is empty.", [
+								fetchSource || __("the link"),
+						  ])
+						: __("Copies from {0} on every save; a typed value is replaced.", [
+								fetchSource || __("the link"),
+						  ])
+				}}
+			</p>
 		</PanelRow>
 		<PanelRow
-			v-if="field.fieldtype !== 'Check'"
+			v-if="field.fieldtype !== 'Check' && !TABLE_TYPES.includes(field.fieldtype)"
 			:label="__('Placeholder')"
 			v-bind="mark('placeholder')"
 		>
@@ -180,7 +211,7 @@
 			<Textarea
 				variant="ghost"
 				:rows="1"
-				class="!min-h-7 !resize-none !py-1"
+				class="!min-h-7 !resize-none !py-1 [textarea&]:text-base"
 				:model-value="field.description ?? ''"
 				:placeholder="__('Add help text…')"
 				@change="set('description', text($event))"
@@ -201,9 +232,10 @@ import type { Addresses } from "@/addresses";
 import { __ } from "@/i18n";
 import { shellDialog } from "@/shell/dialog";
 import type { DesignCanvas } from "./designCanvas";
-import FetchAddButton from "./FetchAddButton.vue";
+import FetchedRow from "./FetchedRow.vue";
 import { fetchable } from "./fetchFrom";
 import FetchFromRow from "./FetchFromRow.vue";
+import FieldTabRow from "./FieldTabRow.vue";
 import FieldnameRow from "./FieldnameRow.vue";
 import {
 	removeAction,
@@ -222,10 +254,13 @@ import FieldRules from "./FieldRules.vue";
 import { TABLE_TYPES, typeIcon, typeName } from "./fieldtypes";
 import LinkFiltersRow from "./LinkFiltersRow.vue";
 import { targetChange } from "./linkFilters";
+import { settable } from "./settingsModel";
+import { kindOf, MANY, TITLE_TYPES } from "./settingsRows";
 import PanelHeader from "./PanelHeader.vue";
 import { providePanelIndex } from "./panelIndex";
 import PanelRow from "./PanelRow.vue";
 import PanelSection from "./PanelSection.vue";
+import TitleFieldRow from "./TitleFieldRow.vue";
 import TableFieldRows from "./TableFieldRows.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; field: RawMetaField }>();
@@ -238,6 +273,18 @@ const errors = computed(() => props.canvas.errorsAt("field", props.field.fieldna
 const warning = computed(() => reqdWarning(props.canvas, props.field.fieldname));
 const removal = computed(() => removeAction(props.canvas, props.field));
 const anchor = computed(() => props.canvas.customize?.anchor(props.field.fieldname));
+const fetchSource = computed(() => {
+	const link = props.field.fetch_from?.split(".")[0] ?? "";
+	return props.canvas.field(link)?.options ?? "";
+});
+const titleable = computed(() => {
+	const { settings } = props.canvas.working.value;
+	return (
+		settable(settings, "title_field") &&
+		MANY.includes(kindOf(settings.properties)) &&
+		TITLE_TYPES.includes(props.field.fieldtype)
+	);
+});
 const appTitle = computed(() => props.canvas.state.app_title || __("the app"));
 
 const typeMenu = computed(() => {

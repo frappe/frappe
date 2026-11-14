@@ -5,12 +5,12 @@
 		<template #trigger>
 			<button
 				type="button"
-				class="flex h-7 w-full min-w-0 items-center gap-1.5 rounded-4 px-2 text-left text-base"
+				class="flex h-7 w-full min-w-0 items-center gap-2 rounded-4 px-2 text-left text-base"
 				:class="open ? 'bg-surface-gray-3' : 'hover:bg-surface-gray-2'"
 				:title="words"
 				data-fetch-row
 			>
-				<span v-if="!value" class="min-w-0 flex-1 truncate text-ink-gray-5">{{
+				<span v-if="!value" class="min-w-0 flex-1 truncate text-ink-gray-4">{{
 					__("None")
 				}}</span>
 				<span

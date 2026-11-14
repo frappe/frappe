@@ -2,6 +2,7 @@
 // fetch, and the name of the field "Fetch a field…" adds.
 import { shallowRef } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { __ } from "@/i18n";
 import { fieldnameFromLabel, LAYOUT_BREAKS, validFieldname } from "./fieldRules";
 
 /** The field of the linked DocType a fetch copies. */
@@ -54,4 +55,17 @@ export function fetchedFieldname(source: FetchSource, taken: readonly string[], 
 	let fieldname = base;
 	for (let n = 1; taken.includes(fieldname); n++) fieldname = `${base}_${n}`;
 	return fieldname;
+}
+
+const FETCHED_SHOWN = 3;
+
+/** "Fetched now: A, B, C and 4 more." for the fields that copy from the Link; "" when none does. */
+export function fetchedLine(fields: readonly RawMetaField[], link: string): string {
+	const names = fields
+		.filter((field) => parseFetchFrom(field.fetch_from)?.link === link)
+		.map((field) => field.label || field.fieldname);
+	if (!names.length) return "";
+	const shown = names.slice(0, FETCHED_SHOWN).join(", ");
+	const rest = names.length - FETCHED_SHOWN;
+	return __("Fetched now: {0}.", [rest > 0 ? __("{0} and {1} more", [shown, rest]) : shown]);
 }

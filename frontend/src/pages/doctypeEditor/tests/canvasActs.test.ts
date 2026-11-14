@@ -211,8 +211,12 @@ describe("fields.add_field on the canvas", () => {
 		expect(canvas.adding.value).toBe("main");
 	});
 
-	it("goes after the selected field of that section, else to its shortest column", async () => {
-		const { canvas } = mount();
+	it("goes after the selected field of that section, else to its last column", async () => {
+		const loaded = state();
+		const [main] = loaded.layouts.Details![0].layout[0].sections;
+		main.columns[0].fields = ["subject"];
+		main.columns[1].fields = ["status", "due"];
+		const { canvas } = mount("Design", loaded);
 		expect(canvas.addPlace("main")).toEqual({ section: "main", column: "column_2" });
 		canvas.select({ kind: "field", fieldname: "subject" });
 		expect(canvas.addPlace("main")).toEqual({ section: "main", column: "column_1", index: 1 });
