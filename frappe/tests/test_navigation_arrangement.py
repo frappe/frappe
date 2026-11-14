@@ -1223,6 +1223,31 @@ class TestASectionAnOwnRowYouCannotOpenSitsIn(OwnRowsTestCase):
 		self.assertEqual(stored("Sidebar")[0].parent_key, "people")
 
 
+class TestAParentYouCannotOpenStaysHidden(OwnRowsTestCase):
+	sidebar = True
+
+	def shipped(self):
+		return [doctype_item("secret", "Role"), doctype_item("note", "Note")]
+
+	def test_an_own_row_under_an_unreadable_item_does_not_list_the_item(self):
+		make_sidebar(
+			[item("user:k3f9a2", link_doctype="DocType", link_to="ToDo", added=1, parent_key="secret")],
+			user=self.user,
+		)
+
+		arrangement = get_arrangement("Sidebar", ADDRESS_KEY)
+
+		self.assertEqual([row["key"] for row in arrangement], ["note", "user:k3f9a2"])
+		self.assertNotIn("parent_key", arrangement[1])
+
+	def test_a_save_naming_an_unreadable_item_as_parent_lifts_the_row(self):
+		desired = showing(shown("note"), own("user:k3f9a2", parent_key="secret"))
+
+		save_arrangement("Sidebar", ADDRESS_KEY, desired)
+
+		self.assertEqual(stored("Sidebar")[0].parent_key, None)
+
+
 class TestLostAccess(OwnRowsTestCase):
 	def shipped(self):
 		return [doctype_item("todo", "ToDo"), doctype_item("note", "Note"), doctype_item("secret", "Role")]

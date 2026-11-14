@@ -14,7 +14,7 @@ from typing import NamedTuple
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.navigation_item.nesting import nesting_errors
+from frappe.desk.doctype.navigation_item.nesting import SECTION, nesting_errors
 from frappe.model.document import Document
 
 from .navigation import (
@@ -224,17 +224,24 @@ def _with_unseen_parents(target: "Target", below: list[dict], desired: list[dict
 
 	unfiltered = target.resolve(upto=BELOW["user"], keep_hidden=True, check_permission=False)
 
-	return [item for item in unfiltered if item["key"] in held or item["key"] in parents]
+	return [
+		item
+		for item in unfiltered
+		if item["key"] in held or (item["key"] in parents and item.get("item_type") == SECTION)
+	]
 
 
 def _with_ancestors(keys: set[str], by_key: dict[str, dict]) -> set[str]:
 	"""These keys and every section above them, so a row kept for the person keeps its parent."""
-	found = set()
+	# Only a section: any other inherited parent carries a destination the person may not read.
+	found = set(keys)
 
 	for key in keys:
-		while key in by_key and key not in found:
-			found.add(key)
-			key = by_key[key].get("parent_key")
+		parent = by_key[key].get("parent_key")
+
+		while parent in by_key and by_key[parent].get("item_type") == SECTION and parent not in found:
+			found.add(parent)
+			parent = by_key[parent].get("parent_key")
 
 	return found
 

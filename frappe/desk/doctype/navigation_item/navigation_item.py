@@ -112,9 +112,7 @@ def validate_item_keys(items, container: str):
 
 
 def drop_reserved_keys(items):
-	"""Drop, and log, each shipped row whose key a level's own rows use; the rest of the list still loads.
-
-	`import_doc` skips `validate`, so each container also calls this from `before_import`."""
+	"""Drop, and log, each shipped row whose key a level's own rows use; the rest of the list still loads."""
 	for item in [item for item in items if item.key and item.key.startswith(RESERVED_KEY_PREFIXES)]:
 		frappe.logger("shell").warning(
 			f"Dropped the shipped row {item.key!r}: its key starts with a prefix a person's own rows use."
