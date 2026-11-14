@@ -96,7 +96,6 @@ const draft = shallowRef<RuleDraft | null>(null);
 const editor = shallowRef<typeof import("./RuleEditor.vue").default>();
 
 async function toggle() {
-	if (open.value) return close();
 	const request = (lastOpened = Symbol());
 	const stop = onDismiss(() => lastOpened === request && (lastOpened = undefined));
 	try {
@@ -110,16 +109,12 @@ async function toggle() {
 }
 
 function close() {
-	finish();
-}
-
-function finish() {
 	if (!open.value) return;
 	open.value = false;
 	if (draft.value?.changed()) props.commit(draft.value.value.value);
 }
 
-onBeforeUnmount(finish);
+onBeforeUnmount(close);
 
 /** Calls `cancel` on a click outside the row or on Escape; returns the stop. */
 function onDismiss(cancel: () => void) {

@@ -35,7 +35,7 @@ import { RuleWords } from "./ruleWords";
 const props = defineProps<{ canvas: DesignCanvas; field: RawMetaField }>();
 
 const words = computed(() => RuleWords.of(props.canvas));
-// Each commit names the field it was drawn for: a dialog closing as another field is picked stages here.
+// Each commit names the field it was drawn for: a row unmounting as another field is picked stages here.
 const rows = computed(() => {
 	const { fieldname } = props.field;
 	return FIELD_RULES.map((rule) => ({
