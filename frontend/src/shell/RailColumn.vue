@@ -102,7 +102,7 @@ import { Divider, Dropdown, SidebarRail, SidebarRailItem, ScrollArea, Tooltip } 
 import type { NavigationItem } from "@/boot";
 import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
-import { isActAvailable } from "@/navigation/actRow";
+import { isActAvailable } from "./actRow";
 import { labelOf, renderingOf } from "@/navigation/registry";
 import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
@@ -156,7 +156,8 @@ const cells = computed(() => {
 
 function cellOf(item: NavigationItem): Cell | null {
 	const rendering = renderingOf(item, props.context);
-	if (!rendering || !("to" in rendering || "href" in rendering || "act" in rendering)) return null;
+	if (!rendering || !("to" in rendering || "href" in rendering || "act" in rendering))
+		return null;
 
 	const cell = { key: item.key, label: labelOf(item, props.context), icon: item.icon };
 	if ("act" in rendering) return { ...cell, ...rendering };

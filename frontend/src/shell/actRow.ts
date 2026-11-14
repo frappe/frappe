@@ -1,9 +1,9 @@
-// What an Act row does, for the sidebar's row and the rail's cell alike: whether it draws, what a
-// click runs, and the spinner. It runs the same two things the palette's act row does.
+// What an Act row does, for the sidebar row and the rail cell alike: whether it draws, what a click
+// runs (the same two things the palette's act row does), and the spinner.
 
 import { computed, onScopeDispose, ref } from "vue";
 import { acts } from "@/acts/dispatcher";
-import { openArgumentStep } from "@/shell/palette";
+import { openArgumentStep } from "./palette";
 
 /** A run shows its spinner only after this long, so a quick act does not flash it. */
 export const SPINNER_DELAY_MS = 300;

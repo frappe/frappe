@@ -12,7 +12,7 @@ const fake = vi.hoisted(() => ({
 vi.mock("@/acts/dispatcher", () => ({
 	acts: { find: fake.find, loads: fake.loads, perform: fake.perform },
 }));
-vi.mock("@/shell/palette", () => ({ openArgumentStep: fake.openArgumentStep }));
+vi.mock("../palette", () => ({ openArgumentStep: fake.openArgumentStep }));
 
 import { isActAvailable, SPINNER_DELAY_MS, useActRow } from "../actRow";
 

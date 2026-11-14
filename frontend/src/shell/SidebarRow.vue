@@ -61,7 +61,12 @@
 
 		<!-- An action: it opens no place, so it is never current. Not drawn while its act is missing. -->
 		<div v-else-if="actRendering && act.available.value" :data-key="item.key" :class="ROW">
-			<button type="button" :class="ROW_TARGET" :aria-busy="act.spinning.value" @click="act.run">
+			<button
+				type="button"
+				:class="ROW_TARGET"
+				:aria-busy="act.spinning.value"
+				@click="act.run"
+			>
 				<span class="grid shrink-0 place-items-center">
 					<LoadingIndicator v-if="act.spinning.value" class="size-4" />
 					<Icon v-else :name="iconOf(item)" />
@@ -117,7 +122,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { LoadingIndicator, SidebarItem, SidebarSection, Skeleton } from "frappe-ui";
-import { useActRow } from "@/navigation/actRow";
+import { useActRow } from "./actRow";
 import { buildTree, containsKey, type ItemNode } from "@/navigation/tree";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { iconOf, labelOf, renderingOf } from "@/navigation/registry";

@@ -22,13 +22,15 @@
 <script setup lang="ts">
 import { LoadingIndicator, Tooltip } from "frappe-ui";
 import Icon from "@/icons/Icon.vue";
-import { useActRow } from "@/navigation/actRow";
+import { useActRow } from "./actRow";
 
 // `SidebarRailItem`'s own inactive tile.
 const CELL =
 	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
 
-const props = defineProps<{ cell: { label: string; icon?: string; act: string; value?: unknown } }>();
+const props = defineProps<{
+	cell: { label: string; icon?: string; act: string; value?: unknown };
+}>();
 
 const { spinning, run } = useActRow(() => props.cell);
 </script>
