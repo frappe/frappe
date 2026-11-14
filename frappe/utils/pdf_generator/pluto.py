@@ -76,6 +76,8 @@ def plutoprint_blockers(print_format=None) -> list[str]:
 	if importlib.util.find_spec("plutoprint") is None:
 		blockers.append(_("PlutoPrint is not installed on this server"))
 	if print_format:
+		if print_format.get("print_designer"):
+			blockers.append(_("Print Designer"))
 		source = "\n".join(cstr(print_format.get(field)) for field in ("html", "css", "format_data"))
 		if SCRIPT.search(JINJA_TAG.sub("", source)):
 			blockers.append(_("JavaScript"))
