@@ -250,6 +250,17 @@ describe("the drawer at 820 px", () => {
 		expect(drawer()).not.toBeNull();
 	});
 
+	it("a browsing cell keeps the drawer when its navigation waits on a prompt", async () => {
+		await shell("floating_rail");
+		menu()!.click();
+		await flush();
+		router.beforeEach(() => new Promise<void>((resolve) => setTimeout(resolve, 450)));
+		drawer()!.querySelector<HTMLElement>("[data-sidebar] [data-slot='sidebar-rail-item']")!.click();
+		await router.push("/sales-order");
+		await new Promise((resolve) => setTimeout(resolve, 400));
+		expect(drawer()).not.toBeNull();
+	});
+
 	it("Tab wraps inside the drawer", async () => {
 		await shell("floating_rail");
 		menu()!.click();

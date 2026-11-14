@@ -70,11 +70,9 @@ let browsing = false;
 function onClick(event: MouseEvent) {
 	const target = event.target instanceof Element ? event.target : null;
 	const cell = target?.closest('[data-slot="sidebar-rail-item"]');
+	browsing = !!cell?.closest("[data-sidebar]");
 	if (cell) {
-		browsing = !!cell.closest("[data-sidebar]");
 		if (!browsing) close();
-		// A cell that is already current causes no navigation to reset the flag.
-		else void nextTick(() => setTimeout(() => (browsing = false), 300));
 		return;
 	}
 	if (target?.closest('[data-slot="sidebar-item"], a[href], button[aria-busy]')) close();
