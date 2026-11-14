@@ -8,6 +8,8 @@ from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.utils import cint, today, validate_time_zone
 
+MAX_SUBMISSION_QUEUE_TIMEOUT = 3600
+
 
 class SystemSettings(Document):
 	_DOCTYPE_NAME = "System Settings"
@@ -112,6 +114,7 @@ class SystemSettings(Document):
 		show_external_link_warning: DF.Literal["Never", "Ask", "Always"]
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
+		submission_queue_timeout: DF.Int
 		sync_in_batch: DF.Check
 		sync_timeout: DF.Int
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
@@ -176,6 +179,7 @@ class SystemSettings(Document):
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
 			)
 		self.validate_snapshot_reports()
+		self.validate_submission_queue_timeout()
 
 	def validate_otp_sms_template(self):
 		if not self.enable_two_factor_auth or self.two_factor_method != "SMS" or not self.otp_sms_template:
@@ -238,6 +242,14 @@ class SystemSettings(Document):
 			old_doc.frequency != self.frequency
 		):
 			snapshot_report_scheduler(self.enable_snapshot_reports, self.frequency)
+
+	def validate_submission_queue_timeout(self):
+		if cint(self.submission_queue_timeout) > MAX_SUBMISSION_QUEUE_TIMEOUT:
+			label = self.meta.get_translated_label("submission_queue_timeout")
+			frappe.throw(
+				_("{0} cannot be more than {1} seconds (1 hour)").format(label, MAX_SUBMISSION_QUEUE_TIMEOUT),
+				title=_("Invalid Submission Queue Timeout"),
+			)
 
 
 def update_last_reset_password_date():
