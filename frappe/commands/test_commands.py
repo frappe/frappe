@@ -828,6 +828,12 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual(self.returncode, 1)
 		self.assertIn("NonExistentDoctypeXYZ", self.stderr + self.stdout)
 
+	@skipIf(frappe.conf.db_type != "sqlite", "Only for SQLite")
+	def test_backup_stream_declined_on_sqlite(self):
+		self.execute("bench --site {site} backup --stream")
+		self.assertEqual(self.returncode, 1)
+		self.assertIn("not supported for SQLite", self.stderr + self.stdout)
+
 	@skipIf(
 		not (frappe.conf.db_type == "mariadb"),
 		"Only for MariaDB",
@@ -879,6 +885,8 @@ class TestBackups(BaseTestCommands):
 			db_port=frappe.conf.db_port,
 			db_type=frappe.conf.db_type,
 		)
+		# without a destination the dump would fail before it ever ran
+		odb.set_backup_file_name()
 		with self.assertRaises(Exception):
 			odb.take_dump()
 
