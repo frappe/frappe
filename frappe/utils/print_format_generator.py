@@ -207,6 +207,11 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 		return None
 
 	name, options = LINEAR_BARCODE_FORMATS[barcode_format]
+	if barcode_format == "ISBN13":
+		value = value.replace("-", "")
+	# brackets around GS1 application identifiers are label text; python-barcode would encode them
+	elif barcode_format == "GS1_128" and "(" in value:
+		return None
 	try:
 		code = barcode.get(name, value, options=options)
 		modules = "".join(code.build())
