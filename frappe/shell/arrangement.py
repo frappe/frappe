@@ -97,9 +97,12 @@ def save_navigation_layout(app: str, navigation_layout: str, scope: str = "user"
 	target = _target("Rail", app, scope)
 
 	if navigation_layout and navigation_layout not in NAVIGATION_LAYOUTS:
-		frappe.throw(_("{0} is not a navigation layout.").format(frappe.bold(str(navigation_layout))))
+		frappe.throw(
+			_("{0} is not a navigation layout.").format(frappe.bold(str(navigation_layout))),
+			title=_("Not a Navigation Layout"),
+		)
 
-	# Equal to the level below is blank, so a later change there still reaches this level.
+	# Stored as the value, a later change below would stop reaching this level.
 	if navigation_layout == layout_below(rail_layouts(app), scope):
 		navigation_layout = ""
 
@@ -113,10 +116,14 @@ def save_navigation_layout(app: str, navigation_layout: str, scope: str = "user"
 def get_navigation_layouts(app: str) -> dict[str, str]:
 	"""The layout each level sets for this app, blank where unset; the editor labels "Default (…)" with it."""
 	if not isinstance(app, str) or app not in frappe.get_active_apps():
-		frappe.throw(_("{0} is not an app on this site.").format(app))
+		frappe.throw(_("{0} is not an app on this site.").format(app), title=_("Not an App"))
 
 	if not has_app_permission(app):
-		frappe.throw(_("You are not permitted to arrange {0}.").format(app), frappe.PermissionError)
+		frappe.throw(
+			_("You are not permitted to arrange {0}.").format(app),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)
 
 	return {"standard": "", "site": "", "user": ""} | rail_layouts(app)
 
