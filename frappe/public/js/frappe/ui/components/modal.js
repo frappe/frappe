@@ -386,6 +386,7 @@ frappe.ui.Modal = class Modal {
 			e.preventDefault();
 			this.hide("escape");
 		} else if (this.dismissible === "static") {
+			e.preventDefault();
 			this.bounce();
 		}
 	}
