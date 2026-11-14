@@ -87,6 +87,16 @@ class TestAnActRowIsSaved(OwnRowsTestCase):
 
 		self.assertEqual(own_stored()[0].payload, '{"act":"shell.theme","value":"é"}')
 
+	def test_a_saved_payload_of_wide_characters_stays_as_stored_on_a_re_save(self):
+		payload = {"act": "shell.theme", "value": "é" * 40}
+		self.save(an_act(payload))
+		stored_payload = own_stored()[0].payload
+
+		self.save(an_act(payload))
+
+		self.assertEqual(own_stored()[0].payload, stored_payload)
+		self.assertLessEqual(len(stored_payload.encode()), 128)
+
 	def test_a_payload_that_is_not_an_object_is_refused(self):
 		for payload in ('["shell.theme"]', '"shell.theme"', "not json", "[]"):
 			with self.subTest(payload=payload):
