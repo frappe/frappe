@@ -242,7 +242,10 @@ class PrintDesignerMigration {
 					.xcall(`${METHOD}.convert_all`, {}, "POST", { freeze: true })
 					.then(({ converted, failed }) => {
 						frappe.show_alert({
-							message: __("Converted {0} formats", [converted.length]),
+							message:
+								converted.length === 1
+									? __("Converted 1 format")
+									: __("Converted {0} formats", [converted.length]),
 							indicator: "green",
 						});
 						if (failed.length) {
