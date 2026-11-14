@@ -230,10 +230,9 @@ const keptLayout = ref<string>();
 // Set once the editor is told to close, so the hash change that closes it is not asked about again.
 let closing = false;
 
-// Back and any other hash change that would close the editor ask first, as Cancel does.
-const removeGuard = router.beforeEach((to) => {
-	if (closing || !props.target || !changed.value) return;
-	if (to.hash.replace(/^#/, "").split("/")[0] === "customize") return;
+// Back and any other hash change that would close or reload the editor ask first, as Cancel does.
+const removeGuard = router.beforeEach((to, from) => {
+	if (closing || !props.target || !changed.value || to.hash === from.hash) return;
 	askToDiscard(CLOSING, __("Discard and close"), () => {
 		closing = true;
 		router.replace(to);

@@ -312,6 +312,15 @@ describe("the editor", () => {
 			expect(router.currentRoute.value.hash).toBe("");
 		});
 
+		it("asks before a move to another editor hash reloads the draft", async () => {
+			await open();
+			await hide();
+			await router.replace({ hash: "#customize/sidebar/side" });
+			await settle();
+			expect(confirm).toHaveBeenCalledOnce();
+			expect(router.currentRoute.value.hash).toBe("#customize/rail");
+		});
+
 		it("does not ask when a Save closes the editor", async () => {
 			api.saveArrangements.mockResolvedValue({ rail: [], sidebars: {} });
 			const emitted = await open();
