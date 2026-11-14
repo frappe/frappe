@@ -1,4 +1,3 @@
-// The Act step of the add-row picker: the acts it lists, the options it disables, the row it writes.
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const fake = vi.hoisted(() => ({ listed: vi.fn(), find: vi.fn() }));
@@ -6,7 +5,7 @@ const fake = vi.hoisted(() => ({ listed: vi.fn(), find: vi.fn() }));
 vi.mock("@/acts/dispatcher", () => ({ acts: { listed: fake.listed, find: fake.find } }));
 
 import { addTypes, addable, buildRow, missing, startValues } from "../addTypes";
-import { actRow, hasNoPageToOpen, optionRefusal, pickableActs } from "../actPicker";
+import { actRow, hasNoPageToOpen, keyOf, optionRefusal, pickableActs } from "../actPicker";
 import { RAIL } from "../draft";
 import type { EditorRow } from "../draft";
 import { canGiveSidebar } from "../edits";
@@ -59,12 +58,45 @@ describe("the Act step", () => {
 	});
 
 	it("builds the row from the form's values", () => {
-		const values = { ...startValues(), act: "shell.theme", preset: true, option: { value: "dark", label: "Dark" } };
+		const values = {
+			...startValues(),
+			act: "shell.theme",
+			preset: true,
+			option: { value: "dark", label: "Dark" },
+		};
 		expect(buildRow("Act", values)).toMatchObject({ item_type: "Act", label: "Theme: Dark" });
 	});
 });
 
+describe("an act name", () => {
+	it("takes shell.<item> and shell.<app>.<item>, not a third segment, and fits the cap with its wrapper", () => {
+		const names = [
+			"shell.erpnext.stock",
+			"shell.a.b.c",
+			`shell.${"a".repeat(119)}`,
+			`shell.${"a".repeat(100)}`,
+		];
+		fake.listed.mockReturnValue(names.map((name) => ({ name, label: name })));
+		expect(pickableActs().map((act) => act.name)).toEqual([
+			`shell.${"a".repeat(100)}`,
+			"shell.erpnext.stock",
+		]);
+	});
+});
+
 describe("an option as a preset", () => {
+	it("disables a Map, a Set and a class instance, which JSON turns into {}", () => {
+		class Box {}
+		for (const value of [new Map([[1, 2]]), new Set([1]), new Box()]) {
+			expect(optionRefusal("shell.theme", { label: "x", value })).toBe("Can't be saved");
+		}
+	});
+
+	it("keys an option by its label and value, so a re-asked list keeps the pick", () => {
+		expect(keyOf({ label: "Dark", value: "dark" })).toBe(keyOf({ label: "Dark", value: "dark" }));
+		expect(keyOf({ label: "Dark", value: "dark" })).not.toBe(keyOf({ label: "Dark", value: "light" }));
+	});
+
 	it("disables a value that does not survive JSON", () => {
 		for (const value of [undefined, () => 1, NaN, { gone: undefined }, new Date(0)]) {
 			expect(optionRefusal("shell.theme", { value, label: "X" })).toBe("Can't be saved");
@@ -78,7 +110,9 @@ describe("an option as a preset", () => {
 		expect(optionRefusal(act, { value: "x".repeat(room), label: "X" })).toBeNull();
 		expect(optionRefusal(act, { value: "x".repeat(room + 1), label: "X" })).toBe("Too long to save");
 		// Bytes, not characters.
-		expect(optionRefusal(act, { value: "é".repeat(Math.floor(room / 2) + 1), label: "X" })).toBe("Too long to save");
+		expect(optionRefusal(act, { value: "é".repeat(Math.floor(room / 2) + 1), label: "X" })).toBe(
+			"Too long to save"
+		);
 	});
 });
 

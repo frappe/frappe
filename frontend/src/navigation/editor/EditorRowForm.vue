@@ -114,7 +114,7 @@ import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { type AddValues, buildRow, isOwnUrl, missing, servedPages, startValues } from "./addTypes";
-import { pickableActs } from "./actPicker";
+import { keyOf, pickableActs } from "./actPicker";
 import type { EditorRow } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
 import { useActOptions } from "./useActOptions";
@@ -143,12 +143,10 @@ const doctype = computed({
 	},
 });
 
-// An Act row: the act, then Ask on click or a Preset from the act's own options. Another act makes the preset meaningless.
-const actOptions = pickableActs().map((entry) => ({
-	label: entry.label!,
-	value: entry.name,
-	icon: entry.icon,
-}));
+const actOptions = computed(() =>
+	pickableActs().map((entry) => ({ label: entry.label!, value: entry.name, icon: entry.icon }))
+);
+const optionQuery = ref("");
 const chosenAct = computed(() => acts.find(values.act));
 const act = computed({
 	get: () => values.act || null,
@@ -156,6 +154,7 @@ const act = computed({
 		values.act = picked ?? "";
 		values.preset = false;
 		values.option = null;
+		optionQuery.value = "";
 	},
 });
 const modes = [
@@ -167,31 +166,30 @@ const mode = computed({
 	set: (picked: string) => {
 		values.preset = picked === "preset";
 		values.option = null;
+		optionQuery.value = "";
 	},
 });
-const optionQuery = ref("");
 const { options: found, loading: loadingOptions } = useActOptions(
 	computed(() => (values.preset ? values.act : "")),
 	optionQuery
 );
-// A Combobox value is a string or number, and an option's value may be neither: it picks by position.
+// A Combobox value is a string or number, and an option's value may be neither: it picks by a key, so a re-asked list keeps the pick.
 const presetOptions = computed(() =>
-	found.value.map(({ option, refusal }, index) => ({
+	found.value.map(({ option, refusal }) => ({
 		label: option.label,
-		value: index,
+		value: keyOf(option),
 		icon: option.icon,
-		description: refusal ?? option.description,
+		description:
+			refusal ??
+			(typeof option.disabled === "string" ? option.disabled : option.description),
 		disabled: !!refusal || !!option.disabled,
 	}))
 );
 const option = computed({
-	get: () => {
-		const at = found.value.findIndex(({ option }) => option === values.option);
-		return at < 0 ? null : at;
-	},
-	set: (picked: number | null) => {
+	get: () => (values.option ? keyOf(values.option) : null),
+	set: (picked: string | null) => {
 		// Raw, so the list's own object is what the model holds.
-		const chosen = picked === null ? undefined : found.value[picked]?.option;
+		const chosen = found.value.find(({ option }) => keyOf(option) === picked)?.option;
 		values.option = chosen ? markRaw(chosen) : null;
 	},
 });

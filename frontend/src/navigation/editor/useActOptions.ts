@@ -1,6 +1,3 @@
-// The option picker of an Act row's Preset: the act's own `argument.options(query)`, as the palette's
-// argument step asks it, with each option marked when it cannot be saved as a preset.
-
 import { computed, ref, shallowRef, watch, type Ref } from "vue";
 import { refDebounced } from "@vueuse/core";
 import { acts, type ActOption } from "@/acts/dispatcher";
@@ -16,11 +13,14 @@ export function useActOptions(act: Ref<string>, query: Ref<string>) {
 	const loading = ref(false);
 	let latest = 0;
 
-	// An older reply that lands after a newer ask is dropped.
 	async function ask(name: string, text: string) {
 		const argument = acts.find(name)?.argument;
 		const ticket = ++latest;
-		if (!argument) return void (found.value = []);
+		if (!argument) {
+			found.value = [];
+			loading.value = false;
+			return;
+		}
 
 		loading.value = true;
 		try {
@@ -37,7 +37,10 @@ export function useActOptions(act: Ref<string>, query: Ref<string>) {
 	watch([act, settled], ([name, text]) => ask(name, text), { immediate: true });
 
 	const options = computed<PresetOption[]>(() =>
-		found.value.map((option) => ({ option, refusal: optionRefusal(act.value, option) }))
+		found.value.map((option) => ({
+			option,
+			refusal: optionRefusal(act.value, option),
+		}))
 	);
 
 	return { options, loading };
