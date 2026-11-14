@@ -63,11 +63,11 @@ const sides = computed(() => [
 
 const refused = ref("");
 
-/** The shell redraws only once the save is accepted; a refusal shows under the row. */
+/** The shell redraws only once the save is accepted, with the value the binding settled on; a refusal shows under the row. */
 async function pick(value: string) {
 	user.doc.navigation_side = value;
 	await user.commit();
 	refused.value = user.error;
-	if (!refused.value) setOwnNavigationSide(value);
+	if (!refused.value) setOwnNavigationSide(user.doc.navigation_side || "");
 }
 </script>

@@ -210,6 +210,18 @@ describe("desk's settings components", () => {
 		expect(navigationSide.value).toBe("start");
 	});
 
+	it("appearance: when the save settles on another session's value, the shell follows that value", async () => {
+		const user = userBinding({ navigation_side: "" });
+		user.commit.mockImplementation(async () => {
+			user.doc.navigation_side = "start";
+		});
+		await mount("appearance", { user });
+
+		await pickOption(sideTrigger(), "Right");
+
+		expect(navigationSide.value).toBe("start");
+	});
+
 	it("site appearance: a pick saves System Settings and moves a person with no side of their own", async () => {
 		const site = userBinding({ navigation_side: "start" });
 		await mount("site-appearance", { site });
