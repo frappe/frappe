@@ -17,6 +17,11 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("@/arrangement", () => api);
 
+vi.mock("vue-router", () => ({
+	useRoute: () => ({ name: "home", params: {} }),
+	useRouter: () => ({ hasRoute: () => false }),
+}));
+
 const confirm = vi.hoisted(() => vi.fn());
 vi.mock("frappe-ui", async (original) => ({
 	...(await original<object>()),

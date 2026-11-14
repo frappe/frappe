@@ -7,12 +7,30 @@
 			:origin="__('A new row')"
 		/>
 		<div class="flex flex-col gap-3">
+			<div v-if="type === 'DocType' || type === 'Record'" class="flex flex-col gap-1.5">
+				<label class="text-xs text-ink-gray-5">{{ __("DocType") }}</label>
+				<Combobox
+					v-model="doctype"
+					:options="doctypes"
+					:placeholder="__('Pick a DocType')"
+					data-field="doctype"
+				/>
+			</div>
+			<div v-if="type === 'Record' && values.doctype" class="flex flex-col gap-1.5">
+				<label class="text-xs text-ink-gray-5">{{ __("Record") }}</label>
+				<Link
+					:key="values.doctype"
+					v-model="values.name"
+					:doctype="values.doctype"
+					data-field="name"
+				/>
+			</div>
 			<Select
-				v-if="type === 'DocType'"
-				v-model="values.doctype"
-				:label="__('DocType')"
-				:options="doctypes"
-				data-field="doctype"
+				v-if="type === 'Page'"
+				v-model="values.page"
+				:label="__('Page')"
+				:options="pages"
+				data-field="page"
 			/>
 			<template v-if="type === 'Link'">
 				<FormControl
@@ -51,28 +69,47 @@
 
 <script setup lang="ts">
 import { computed, inject, reactive, ref } from "vue";
-import { Button, Checkbox, FormControl, Select } from "frappe-ui";
+import { Button, Checkbox, Combobox, FormControl, Select } from "frappe-ui";
+import { Link } from "@framework/ui/Link";
+import { useRouter } from "vue-router";
 import type { Addresses } from "@/addresses";
+import type { Boot } from "@/boot";
+import { pages as contributedPages } from "@/contributions/registry";
 import { __ } from "@/i18n";
-import { type AddValues, buildRow, missing } from "./addTypes";
+import { type AddValues, buildRow, missing, startValues } from "./addTypes";
 import type { EditorRow } from "./draft";
 import EditorPaneHeading from "./EditorPaneHeading.vue";
 
-const props = defineProps<{ type: string; typeLabel: string; refusal: string | null }>();
+const props = defineProps<{
+	type: string;
+	typeLabel: string;
+	refusal: string | null;
+	start?: Partial<EditorRow>;
+}>();
 const emit = defineEmits<{ add: [row: Omit<EditorRow, "key">] }>();
 
-const doctypes = [
-	{ label: __("Pick a DocType"), value: "" },
-	...inject<Addresses>("addresses")!
-		.doctypes()
-		.map((name) => ({ label: name, value: name })),
+const boot = inject<Boot>("boot")!;
+const router = useRouter();
+const doctypes = inject<Addresses>("addresses")!
+	.doctypes()
+	.map((name) => ({ label: name, value: name }));
+// Only the pages this app's router serves: a slug it drops (a clash) would open the not-found page.
+const pages = [
+	{ label: __("Pick a page"), value: "" },
+	...contributedPages
+		.filter(
+			(page) => router.hasRoute(`page:${page.app}:${page.slug}`) && page.app === boot.app
+		)
+		.map((page) => ({ label: page.title ?? page.slug, value: page.slug })),
 ];
-const values = reactive<AddValues>({
-	doctype: "",
-	url: "",
-	label: "",
-	collapsible: false,
-	keepClosed: false,
+const values = reactive<AddValues>(startValues(props.start));
+// Another DocType makes the picked record meaningless.
+const doctype = computed({
+	get: () => values.doctype || null,
+	set: (picked: string | null) => {
+		values.doctype = picked ?? "";
+		values.name = "";
+	},
 });
 const gap = ref<string | null>(null);
 const problem = computed(() => props.refusal ?? gap.value);

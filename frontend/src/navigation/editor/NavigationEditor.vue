@@ -96,6 +96,7 @@
 						addTypes(container).find((entry) => entry.type === adding)?.label ?? adding
 					"
 					:refusal="refusal"
+					:start="start"
 					@add="add"
 				/>
 				<EditorRowPane
@@ -173,7 +174,7 @@ export type EditorTarget = { tab: "rail" } | { tab: "sidebar"; address: string }
 
 <script setup lang="ts">
 import { computed, inject, nextTick, onScopeDispose, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { Button, Checkbox, dialog, Dialog, Select, TabButtons, Tooltip } from "frappe-ui";
 import { isApiError } from "@framework/ui/api";
 import {
@@ -182,6 +183,7 @@ import {
 	saveArrangements,
 	saveNavigationLayout,
 } from "@/arrangement";
+import type { Addresses } from "@/addresses";
 import type { Boot, Navigation } from "@/boot";
 import { __ } from "@/i18n";
 import { iconOf as kindIcon } from "../registry";
@@ -219,6 +221,7 @@ import {
 	type Edited,
 } from "./edits";
 import { addTypes } from "./addTypes";
+import { thisPage } from "./thisPage";
 import EditorAddMenu from "./EditorAddMenu.vue";
 import EditorRowForm from "./EditorRowForm.vue";
 import EditorOutline from "./EditorOutline.vue";
@@ -228,7 +231,9 @@ const props = defineProps<{ target: EditorTarget | null }>();
 const emit = defineEmits<{ close: []; saved: [Navigation] }>();
 
 const boot = inject<Boot>("boot")!;
+const addresses = inject<Addresses>("addresses")!;
 const CLOSING = __("Closing drops the edits you made. Nothing you changed is saved.");
+const route = useRoute();
 const router = useRouter();
 const LAYOUTS: Record<string, string> = {
 	rail_and_sidebar: __("Rail + sidebar"),
@@ -252,6 +257,7 @@ const selected = ref<string | null>(null);
 const showHidden = ref(false);
 const refusal = ref<string | null>(null);
 const adding = ref<string | null>(null);
+const start = ref<Omit<EditorRow, "key"> | undefined>();
 // A reply that comes back after the editor was reopened belongs to the earlier opening.
 // Every request notes the opening it started in, and touches the editor only while that one is open.
 let opening = 0;
@@ -426,16 +432,36 @@ function choose(key: string) {
 	refusal.value = null;
 }
 
-const addOptions = computed(() =>
-	addTypes(container.value).map((entry) => ({
+const here = computed(() => thisPage(route, addresses, boot.app));
+
+const addOptions = computed(() => {
+	const types = addTypes(container.value).map((entry) => ({
 		label: entry.label,
 		icon: entry.icon,
-		onClick: () => {
-			adding.value = entry.type;
-			refusal.value = null;
+		onClick: () => startAdding(entry.type),
+	}));
+	const page = here.value;
+	if (!page) return types;
+	return [
+		{
+			group: __("This page"),
+			options: [
+				{
+					label: __("Add this page ({0})", [page.label]),
+					icon: "lucide-pin",
+					onClick: () => startAdding(page.type, page.fields),
+				},
+			],
 		},
-	}))
-);
+		{ group: __("New row"), options: types },
+	];
+});
+
+function startAdding(type: string, fields?: Omit<EditorRow, "key">) {
+	adding.value = type;
+	start.value = fields;
+	refusal.value = null;
+}
 
 /** A new row goes last in the list, or last under the selected section. */
 function add(fields: Omit<EditorRow, "key">) {
