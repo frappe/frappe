@@ -113,12 +113,14 @@ import { customizeHost } from "./customizeHost";
 import { dangerHost } from "./dangerHost";
 import { DesignCanvas } from "./designCanvas";
 import { ForkWarning } from "./forkWarning";
+import { LatestWins, type Current } from "./latestWins";
 import { openFromAddress, useLayoutAddress } from "./layoutQuery";
 import { canSave, useEditorActs } from "./editorActs";
 import { EditorSave, type ExportResult } from "./editorSave";
 import {
 	carriedAnswers,
 	copiedAnswers,
+	holdsRoute,
 	loadEditor,
 	modeOf,
 	pendingDoctype,
@@ -182,10 +184,8 @@ const save = new EditorSave({
 	showChild: child.showChild,
 	findSetting,
 });
-// The DocType a first save just made: its editor is already open when the route moves to it.
-let justCreated: string | null = null;
-// Set as the page goes: a Danger zone act still running skips its follow-up.
-let left = false;
+// The latest load wins; it also ends with the page, so a Danger zone act still running skips its follow-up.
+const loads = new LatestWins();
 
 useEditorActs({
 	edits,
@@ -214,7 +214,7 @@ useEditorActs({
 		// Each act settles pending edits first, so the leave guard has nothing to ask.
 		deleted: () => router.push(routeFor("DocType")),
 		// Another DocType or page since the act began: its follow-up must not pull the reader back.
-		showing: (doctype) => !left && state.value?.doctype === doctype,
+		showing: (doctype) => !loads.isStopped && state.value?.doctype === doctype,
 	}),
 	recordOptions: async (query) =>
 		[null, ...latest.value]
@@ -242,26 +242,27 @@ const customizeRoute = computed(() =>
 		: null
 );
 
-let loading = 0;
 watch([name, () => route.query.mode, () => route.query[COPY_OF]], load, { immediate: true });
 useLayoutAddress(() => canvas.value);
 
 async function load() {
-	if (justCreated && justCreated === name.value) return void (justCreated = null);
-	const request = ++loading;
+	const mode = modeOf(route.query.mode);
+	// Unsaved edits, or a DocType not yet saved, still load: a discarded switch must clear them.
+	if (!dirty.value && holdsRoute(state.value, name.value, mode)) return;
+	const current = loads.begin();
 	reset();
-	if (name.value === "new") return void startAsking(request);
+	if (name.value === "new") return void startAsking(current);
 	try {
-		const loaded = await loadEditor(name.value, modeOf(route.query.mode));
-		if (request !== loading) return;
+		const loaded = await loadEditor(name.value, mode);
+		if (!current()) return;
 		open(loaded);
-		loadLatest(loaded, request).catch(() => (latest.value = []));
+		loadLatest(loaded, current).catch(() => (latest.value = []));
 	} catch (error) {
-		if (request === loading) pageState.value = failedState(error, load);
+		if (current()) pageState.value = failedState(error, load);
 	}
 }
 
-async function startAsking(request: number) {
+async function startAsking(current: Current) {
 	const { answers, copyOf } = carriedAnswers(route.query);
 	let source: EditorState | null = null;
 	if (copyOf) {
@@ -271,7 +272,7 @@ async function startAsking(request: number) {
 			toast.error(errorMessage(error));
 		}
 	}
-	if (request !== loading) return;
+	if (!current()) return;
 	starting.value = { answers: { ...(source && copiedAnswers(source)), ...answers }, source };
 }
 
@@ -290,28 +291,24 @@ function reset() {
 
 async function reload(): Promise<DesignCanvas | null> {
 	const { doctype, mode } = state.value!;
-	const loaded = await loadFor(loading, doctype, mode);
+	const loaded = await loadFor(loads.begin(), doctype, mode);
 	if (!loaded) return null;
-	++loading;
 	edits.clear();
 	open(loaded);
 	return canvas.value!;
 }
 
 async function created(doctype: string): Promise<DesignCanvas | null> {
-	const loaded = await loadFor(loading, doctype, "Design");
+	const loaded = await loadFor(loads.begin(), doctype, "Design");
 	if (!loaded) return null;
-	++loading;
 	edits.clear();
 	open(loaded);
-	justCreated = doctype;
 	await router.replace(routeFor("DocType", doctype));
 	return canvas.value!;
 }
 
 /** Loads for the editor open now; null once the page moved on to another DocType or mode, or was left. */
-async function loadFor(request: number, doctype: string, mode: EditorMode) {
-	const current = () => request === loading && !left;
+async function loadFor(current: Current, doctype: string, mode: EditorMode) {
 	try {
 		const loaded = await loadEditor(doctype, mode);
 		return current() ? loaded : null;
@@ -360,7 +357,7 @@ function findSetting(key: string) {
 	settingsPlace.value = { section: row.section, found: { key, at: Date.now() } };
 }
 
-async function loadLatest(loaded: EditorState, request: number) {
+async function loadLatest(loaded: EditorState, current: Current) {
 	const { issingle, istable } = loaded.definition;
 	if (issingle || istable || !loaded.record_count) return;
 	const { data } = await listDocuments<{ name: string }>(loaded.doctype, {
@@ -368,7 +365,7 @@ async function loadLatest(loaded: EditorState, request: number) {
 		order_by: "modified desc",
 		limit: 20,
 	});
-	if (request !== loading) return;
+	if (!current()) return;
 	latest.value = data.map((row) => String(row.name));
 	previewName.value = latest.value[0] ?? null;
 }
@@ -404,7 +401,7 @@ const onExport = (...args: unknown[]) =>
 	save.exported(args[0] as ExportResult).catch((error) => toast.error(errorMessage(error)));
 socket?.on("doctype_export", onExport);
 onBeforeUnmount(() => {
-	left = true;
+	loads.stop();
 	socket?.off("doctype_export", onExport);
 });
 

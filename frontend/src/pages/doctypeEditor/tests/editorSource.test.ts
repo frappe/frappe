@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	carriedAnswers,
 	copiedAnswers,
+	holdsRoute,
 	pendingDoctype,
 	type EditorState,
 } from "../editorSource";
@@ -165,5 +166,20 @@ describe("a pending DocType", () => {
 		]);
 		const renamed = pendingDoctype({ ...answers, naming_rule: "Random" }, source());
 		expect(renamed.definition.autoname).toBe("hash");
+	});
+});
+
+describe("a route that names the open DocType", () => {
+	const open = { doctype: "Task Note", mode: "Design" } as EditorState;
+
+	it("loads nothing when the DocType and mode are the ones held", () => {
+		expect(holdsRoute(open, "Task Note", undefined)).toBe(true);
+		expect(holdsRoute(open, "Task Note", "Design")).toBe(true);
+	});
+
+	it("loads when the DocType, the mode or the page's state differs", () => {
+		expect(holdsRoute(open, "Other", undefined)).toBe(false);
+		expect(holdsRoute(open, "Task Note", "Customize")).toBe(false);
+		expect(holdsRoute(null, "Task Note", undefined)).toBe(false);
 	});
 });
