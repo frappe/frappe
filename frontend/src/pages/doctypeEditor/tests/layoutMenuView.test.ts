@@ -56,20 +56,20 @@ const menu = () => document.body.querySelector("[data-layout-menu]");
 const rowTexts = () =>
 	[...document.body.querySelectorAll("[data-layout-row]")].map((row) => {
 		const name = row.querySelector("span.block")!.textContent!.trim();
-		const badge = row.textContent!.trim().slice(name.length).trim();
-		return [row.getAttribute("data-layout-row"), `${name} · ${badge}`, Boolean(row.querySelector("[data-layout-open]"))];
+		const source = row.querySelector("[data-layout-source]")!.textContent;
+		return [row.getAttribute("data-layout-row"), `${name} · ${source}`, row.getAttribute("aria-current") === "true"];
 	});
 
 describe("the layout menu", () => {
-	it("names the open layout on its crumb, and lists each type with its badge and conditional layouts", async () => {
+	it("names the open layout on its crumb, and lists each type with its source and conditional layouts", async () => {
 		const root = await openMenu();
 		expect(root.querySelector("[data-layout-crumb]")!.textContent).toContain("Details");
 		expect(rowTexts()).toEqual([
-			["Details", "Details · App layout", true],
-			["Details/app:1", "Done · App layout", false],
+			["Details", "Details · App", true],
+			["Details/app:1", "Done · App", false],
 			["Side Panel", "Side panel · Not set up", false],
-			["Quick Entry", "Quick entry · From DocType fields", false],
-			["New Record", "New record · Same as Details", false],
+			["Quick Entry", "Quick entry · From fields", false],
+			["New Record", "New record · From Details", false],
 		]);
 		expect(menu()!.querySelector("[data-layout-acts]")).toBeNull();
 		expect(menu()!.querySelector("[data-layout-add]")).not.toBeNull();
@@ -86,16 +86,16 @@ describe("the layout menu", () => {
 		expect(root.querySelector("[data-layout-crumb]")!.textContent).toContain("Done");
 	});
 
-	it("ends with the open conditional layout's acts under its name and where it shows", async () => {
+	it("ends with the open conditional layout's acts, without a header", async () => {
 		editor = mountEditor(leadNote());
 		editor.canvas.open({ type: "Details", id: "app:1" });
 		const root = mount(LayoutMenu, { canvas: editor.canvas });
 		await clickCrumb(root);
 		const acts = menu()!.querySelector("[data-layout-acts]")!;
-		expect(acts.textContent).toContain("Shows in the record page's main column when doc.status == 'Done'");
+		expect(acts.textContent).not.toContain("Shows in");
 		expect([...acts.querySelectorAll("[data-layout-act]")].map((act) => act.getAttribute("data-layout-act"))).toEqual([
-			"edit_condition",
 			"rename",
+			"edit_condition",
 			"delete",
 		]);
 		acts.querySelector<HTMLButtonElement>('[data-layout-act="delete"]')!.click();
@@ -108,7 +108,7 @@ describe("the layout menu", () => {
 		await openMenu({ ...state, definition: { ...state.definition, istable: 1 } });
 		const types = rowTexts().filter(([key]) => !String(key).includes("/"));
 		expect(types.map(([key]) => key)).toEqual(["Details"]);
-		expect(menu()!.textContent).toContain("A child table's rows use Details only");
+		expect(menu()!.textContent).toContain("A child table's rows use Details only.");
 	});
 });
 
@@ -120,16 +120,20 @@ describe("the add layout dialog", () => {
 		const root = mount(AddLayoutDialog, { working, types, type: "Details", close: (one: unknown) => closed.push(one) });
 		await settle();
 		const submit = () => root.querySelector<HTMLButtonElement>("[data-add-layout-submit]")!.click();
+		const fill = (selector: string, value: string) => {
+			const input = root.querySelector<HTMLInputElement>(`[data-${selector}] input, input[data-${selector}]`)!;
+			input.value = value;
+			input.dispatchEvent(new Event("input"));
+		};
+		expect(root.querySelector<HTMLButtonElement>("[data-add-layout-submit]")!.disabled).toBe(true);
+		fill("add-layout-title", "Partner contacts");
+		await settle();
+		expect(root.querySelector<HTMLButtonElement>("[data-add-layout-submit]")!.disabled).toBe(true);
+		fill("add-layout-condition", "doc.partner");
+		await settle();
 		submit();
 		await settle();
-		expect(root.querySelector("[data-add-layout-refusal]")?.textContent).toBeTruthy();
-		expect(closed).toEqual([]);
-		const condition = root.querySelector<HTMLInputElement>("[data-add-layout-condition] input, input[data-add-layout-condition]")!;
-		condition.value = "doc.partner";
-		condition.dispatchEvent(new Event("input"));
-		submit();
-		await settle();
-		expect(closed).toEqual([{ type: "Details", title: "", condition: "doc.partner", start: "copy" }]);
+		expect(closed).toEqual([{ type: "Details", title: "Partner contacts", condition: "doc.partner", start: "copy" }]);
 	});
 });
 

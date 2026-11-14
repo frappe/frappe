@@ -46,6 +46,7 @@
 						:canvas="shown"
 						:save="save"
 						:customize="customizeRoute"
+						:table="childTable"
 					/>
 					<SettingsTab
 						v-else-if="tab === 'settings' && shown"
@@ -83,6 +84,7 @@ import {
 	computed,
 	defineAsyncComponent,
 	inject,
+	nextTick,
 	onBeforeUnmount,
 	reactive,
 	ref,
@@ -169,7 +171,21 @@ const edits = new PendingEdits(head, (opened, doctype) => {
 	child.reopen(doctype);
 });
 const child = useChildTables(edits, () => canvas.value, forks);
+const childTable = computed(() => {
+	const field = canvas.value?.working.value.fields.find(
+		(one) => one.fieldname === openChild.value?.table
+	);
+	return field && canvas.value ? { field, parent: canvas.value.state.doctype } : null;
+});
 const { session: openChild, shown } = child;
+// A child's editor opens at its own top, not at the parent's scroll position.
+watch(shown, () =>
+	nextTick(() =>
+		document
+			.querySelector("[data-doctype-editor] [data-reka-scroll-area-viewport]")
+			?.scrollTo(0, 0)
+	)
+);
 const layoutCanvas = computed(() => (openChild.value?.state.pending ? null : shown.value));
 const save = new EditorSave({
 	edits,

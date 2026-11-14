@@ -14,31 +14,31 @@ function menu(state = leadNote(), edits: FlatEdit[] = [], open: LayoutRef = DETA
 }
 
 const rows = (built: ReturnType<typeof layoutMenu>) =>
-	built.types.map((type) => [type.label, type.badge, ...type.layouts.map((layout) => `${layout.name}: ${layout.badge}`)]);
+	built.types.map((type) => [type.label, type.source, ...type.layouts.map((layout) => `${layout.name}: ${layout.source}`)]);
 
 describe("the layout menu", () => {
 	it("lists each type with its source, and its conditional layouts under it", () => {
 		expect(rows(menu())).toEqual([
-			["Details", "App layout", "Done: App layout"],
+			["Details", "App", "Done: App"],
 			["Side panel", "Not set up"],
-			["Quick entry", "From DocType fields"],
-			["New record", "Same as Details"],
+			["Quick entry", "From fields"],
+			["New record", "From Details"],
 		]);
 	});
 
 	it("shows Customize the site rows, and names an untitled layout by its condition", () => {
 		const customize = leadNote({ mode: "Customize" });
 		customize.layouts.Details!.unshift({ name: "FL-2", source: "site", condition: "doc.x", omitted: [], layout: [] });
-		expect(rows(menu(customize))[0]).toEqual(["Details", "Site layout", "doc.x: Site layout"]);
+		expect(rows(menu(customize))[0]).toEqual(["Details", "Site", "doc.x: Site"]);
 	});
 
 	it("gives a child table Details only, with a note, and a Single Details and Side panel", () => {
 		const child = menu(taskNote({ definition: { ...taskNote().definition, istable: 1 } }));
-		expect(rows(child)).toEqual([["Details", "From DocType fields"]]);
-		expect(child.note).toBe("A child table's rows use Details only");
+		expect(rows(child)).toEqual([["Details", "From fields"]]);
+		expect(child.note).toBe("A child table's rows use Details only.");
 		const single = menu(taskNote({ definition: { ...taskNote().definition, issingle: 1 } }));
 		expect(rows(single)).toEqual([
-			["Details", "From DocType fields"],
+			["Details", "From fields"],
 			["Side panel", "Not set up"],
 		]);
 		expect(single.note).toBeNull();
@@ -46,14 +46,14 @@ describe("the layout menu", () => {
 
 	it("reads a staged edit: Design makes an app layout on a standard DocType, a site layout on a custom one", () => {
 		const place: FlatEdit = { act: "canvas.add_tab", layout: { type: "Quick Entry" }, name: "more" };
-		expect(rows(menu(leadNote(), [place]))[2]).toEqual(["Quick entry", "App layout"]);
-		expect(rows(menu(taskNote(), [{ ...place, layout: DETAILS }]))[0]).toEqual(["Details", "Site layout"]);
+		expect(rows(menu(leadNote(), [place]))[2]).toEqual(["Quick entry", "App"]);
+		expect(rows(menu(taskNote(), [{ ...place, layout: DETAILS }]))[0]).toEqual(["Details", "Site"]);
 	});
 
 	it("reads a staged Customize edit as a site layout", () => {
 		const customize = leadNote({ mode: "Customize" });
 		const edit: FlatEdit = { act: "canvas.add_tab", layout: { type: "New Record" }, name: "more" };
-		expect(rows(menu(customize, [edit]))[3]).toEqual(["New record", "Site layout"]);
+		expect(rows(menu(customize, [edit]))[3]).toEqual(["New record", "Site"]);
 	});
 
 	it("marks the open layout and ends with its acts and where it shows", () => {
@@ -61,9 +61,7 @@ describe("the layout menu", () => {
 		expect(built.types[0].open).toBe(false);
 		expect(built.types[0].layouts[0].open).toBe(true);
 		expect(built.open).toEqual({
-			name: "Done",
-			where: "Shows in the record page's main column when doc.status == 'Done'",
-			acts: ["edit_condition", "rename", "delete"],
+			acts: ["rename", "edit_condition", "delete"],
 		});
 	});
 
@@ -71,8 +69,6 @@ describe("the layout menu", () => {
 		expect(menu().open).toBeNull();
 		expect(menu().types[0].open).toBe(true);
 		expect(menu(leadNote({ mode: "Customize" })).open).toEqual({
-			name: "Details",
-			where: "Shows in the record page's main column",
 			acts: ["reset_to_app"],
 		});
 	});

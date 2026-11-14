@@ -63,7 +63,7 @@ function fieldItems({ canvas, find }: FinderHost, typed: string): FinderItem[] {
   if (!canvas) return [];
   const sections = sectionLabels(canvas);
   const off = new Set(
-    canvas.offLayout.value.map(({ field }) => field.fieldname),
+    canvas.allOffLayout.value.map(({ field }) => field.fieldname),
   );
   return canvas.working.value.fields
     .filter((field) => !LAYOUT_BREAKS.includes(field.fieldtype))

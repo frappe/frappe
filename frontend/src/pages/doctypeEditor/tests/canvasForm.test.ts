@@ -15,7 +15,7 @@ const dom = document.createElement("div");
 
 function mount(
   tabCount: number,
-  props: { tabbed?: boolean; editable?: boolean } = {},
+  props: { tabbed?: boolean; editable?: boolean; istable?: boolean } = {},
 ) {
   const tabs = Array.from({ length: tabCount }, (_, index) => ({
     name: `tab${index}`,
@@ -23,6 +23,7 @@ function mount(
   }));
   const canvas = {
     editable: props.editable ?? true,
+    state: { definition: { istable: props.istable ? 1 : 0 } },
     tabs: ref(tabs),
     openTab: ref(tabs[0]),
   };
@@ -56,5 +57,10 @@ it("leaves Add tab to the strip from two tabs up", () => {
 
 it("offers no Add tab inside a frame", () => {
   mount(1, { tabbed: false });
+  expect(labels()).toEqual(["Add section"]);
+});
+
+it("offers no Add tab on a child table", () => {
+  mount(1, { istable: true });
   expect(labels()).toEqual(["Add section"]);
 });

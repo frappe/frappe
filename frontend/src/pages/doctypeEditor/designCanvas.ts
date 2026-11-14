@@ -76,8 +76,13 @@ export class DesignCanvas {
 	);
 	/** The fieldnames the last save's mandatory error asked for. */
 	readonly askedOnSave = shallowRef<string[]>([]);
-	readonly offLayout = computed(() =>
+	/** Every field this layout leaves out, hidden ones too (the finder says where each one is). */
+	readonly allOffLayout = computed(() =>
 		fieldsOffLayout(this.working.value, this.askedOnSave.value, this.openLayout.value),
+	);
+	/** The tray's fields: a hidden field is not listed, unless the last save asked for it. */
+	readonly offLayout = computed(() =>
+		this.allOffLayout.value.filter(({ field, asked }) => !field.hidden || asked),
 	);
 	readonly trayOpen = ref(true);
 	/** The last save's errors; each draws at its field or container. */

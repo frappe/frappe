@@ -6,8 +6,8 @@
 				<LayoutCrumbs
 					class="-ml-0.5"
 					:crumbs="crumbs"
-					:canvas="draft ? null : canvas"
-					:draft="draft"
+					:canvas="noLayout ? null : canvas"
+					:draft="noLayout"
 				/>
 				<Badge v-if="dirty" :label="__('Not saved')" theme="amber" class="shrink-0" />
 			</div>
@@ -128,6 +128,9 @@ const finderOpen = defineModel<boolean>("finderOpen", { required: true });
 
 const modeOptions = computed(() => props.modes.map((mode) => ({ label: __(mode), value: mode })));
 
+/** A new DocType has no saved layout to name, and a child table's rows use Details only. */
+const noLayout = computed(() => props.draft || Boolean(props.childCrumbs?.length));
+
 const crumbs = computed<Crumb[]>(() => {
 	const parent = props.childCrumbs?.length ? { onClick: () => emit("openParent") } : {};
 	const all: Crumb[] = [
@@ -146,7 +149,7 @@ const crumbs = computed<Crumb[]>(() => {
 	const details = () => emit("act", "layouts.open", { type: "Details" });
 	return [
 		...all,
-		last.route || last.onClick || props.draft ? last : { ...last, onClick: details },
+		last.route || last.onClick || noLayout.value ? last : { ...last, onClick: details },
 	];
 });
 

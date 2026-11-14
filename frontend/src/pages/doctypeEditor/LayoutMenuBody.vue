@@ -1,13 +1,13 @@
 <!-- The layout menu's rows: each layout type with its source and conditional layouts, then the open
      layout's acts and "Add a layout…". -->
 <template>
-	<div class="flex w-80 flex-col divide-y divide-outline-gray-1" data-layout-menu>
+	<div class="flex w-96 flex-col divide-y divide-outline-elevation-2" data-layout-menu>
 		<div class="flex flex-col gap-px p-1.5">
 			<template v-for="type in menu.types" :key="type.type">
 				<LayoutMenuRow
 					:icon="type.icon"
 					:name="type.label"
-					:badge="type.badge"
+					:source="type.source"
 					:open="type.open"
 					:data-layout-row="type.type"
 					@click="pick(type.ref)"
@@ -17,7 +17,8 @@
 					:key="layout.ref.id"
 					indented
 					:name="layout.name"
-					:badge="layout.badge"
+					:source="layout.source"
+					:condition="layout.condition"
 					:open="layout.open"
 					:data-layout-row="`${type.type}/${layout.ref.id}`"
 					@click="pick(layout.ref)"
@@ -36,17 +37,12 @@
 			class="flex flex-col gap-px p-1.5"
 			data-layout-acts
 		>
-			<div class="px-2 pb-1.5 pt-1">
-				<p class="truncate text-sm-medium text-ink-gray-5" :title="menu.open.name">
-					{{ menu.open.name }}
-				</p>
-				<p class="mt-1 text-sm text-ink-gray-4">{{ menu.open.where }}</p>
-			</div>
 			<LayoutMenuRow
 				v-for="act in menu.open.acts"
 				:key="act"
 				:icon="ACTS[act].icon"
 				:name="ACTS[act].label()"
+				:danger="act === 'delete'"
 				:data-layout-act="act"
 				@click="run(act)"
 			/>
@@ -54,7 +50,7 @@
 		<div v-if="canvas.editable" class="flex flex-col p-1.5">
 			<LayoutMenuRow
 				icon="lucide-plus"
-				:name="__('Add a layout…')"
+				:name="__('Add layout…')"
 				data-layout-add
 				@click="add"
 			/>
@@ -78,8 +74,8 @@ const emit = defineEmits<{ close: [] }>();
 const menu = computed(() => layoutMenu(props.canvas.working.value, props.canvas.openLayout.value));
 
 const ACTS: Record<OpenLayoutAct, { label: () => string; icon: string }> = {
-	edit_condition: { label: () => __("Edit condition…"), icon: "lucide-filter" },
-	rename: { label: () => __("Rename…"), icon: "lucide-pencil" },
+	edit_condition: { label: () => __("Edit condition…"), icon: "lucide-pencil" },
+	rename: { label: () => __("Rename…"), icon: "lucide-type" },
 	reset_to_app: {
 		label: () =>
 			resetWording(props.canvas.working.value, props.canvas.openLayout.value.type).actLabel,

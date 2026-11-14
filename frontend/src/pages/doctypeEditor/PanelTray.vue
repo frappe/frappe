@@ -1,6 +1,9 @@
 <!-- The panel outside Details with nothing selected: the fields this layout leaves off, then "New
      field" types. A click places or adds at the end of the section in view, on this layout only. -->
 <template>
+	<p class="flex min-h-[42px] items-center px-4 py-2 text-p-sm text-ink-gray-6">
+		{{ __("Select a field or a section heading to edit it here.") }}
+	</p>
 	<div class="flex flex-col" data-panel-tray>
 		<PanelSection :label="__('Fields not on this layout')" :count="rows.length" show-count>
 			<TextInput

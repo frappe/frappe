@@ -25,8 +25,9 @@ async function settle() {
 	}
 }
 
-async function draw(component: Component, layout: LayoutRef, fromNewRecord = false) {
+async function draw(component: Component, layout: LayoutRef, fromNewRecord = false, extra: Record<string, unknown> = {}) {
 	editor = mountEditor(leadNote());
+	if (extra.table) editor.canvas.state.definition.istable = 1;
 	if (fromNewRecord) editor.canvas.openForNewRecord(layout);
 	else editor.canvas.open(layout);
 	const router = createRouter({ history: createMemoryHistory(), routes: [{ path: "/:rest(.*)*", component: { render: () => null } }] });
@@ -34,7 +35,7 @@ async function draw(component: Component, layout: LayoutRef, fromNewRecord = fal
 	document.body.appendChild(root);
 	const props =
 		component === EditorCanvas
-			? { canvas: editor.canvas, save: editor.save, metaLine: "", customize: null }
+			? { canvas: editor.canvas, save: editor.save, metaLine: "", customize: null, ...extra }
 			: { canvas: editor.canvas };
 	const app = createApp(defineComponent({ render: () => h(component, props) }));
 	app.use(router).provide("addresses", { doctypes: () => ref([]) });
@@ -57,6 +58,9 @@ describe("the canvas of each layout type", () => {
 		const frame = root.querySelector("[data-canvas-quick-entry]")!;
 		expect(frame.textContent).toContain("New Lead Note");
 		expect(frame.querySelector('[data-canvas-field="notes"]')).not.toBeNull();
+		const create = [...frame.querySelectorAll("button")].find((one) => one.textContent?.trim() === "Create");
+		expect(create).toBeDefined();
+		expect(create!.closest("[inert]")).not.toBeNull();
 	});
 
 	it("keeps Details' tray under its canvas", async () => {
@@ -72,6 +76,17 @@ describe("the canvas of each layout type", () => {
 		editor.canvas.open({ type: "Details" });
 		await nextTick();
 		expect(root.querySelector("[data-new-record-note]")).toBeNull();
+	});
+});
+
+describe("the canvas of a child table", () => {
+	const table = { field: { fieldname: "items", label: "Items", fieldtype: "Table", options: "Lead Note" }, parent: "Sales Invoice" };
+
+	it("notes it is the row's dialog and draws the parent's grid under the meta", async () => {
+		const root = await draw(EditorCanvas, { type: "Details" }, false, { table });
+		expect(root.querySelector("[data-editor-meta]")!.textContent).toContain("Child table · This form is the row's dialog.");
+		expect(root.querySelector("[data-child-grid]")!.textContent).toContain("Items in Sales Invoice");
+		expect(root.querySelector("[data-editor-site-fields]")).toBeNull();
 	});
 });
 

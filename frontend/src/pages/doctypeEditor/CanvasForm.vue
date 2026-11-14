@@ -1,5 +1,6 @@
 <!-- The open layout's tabs, sections, columns and fields, and "Add section". Every canvas draws it;
-     the tab strip shows once the layout has two tabs, and until then "Add tab" sits beside "Add section". -->
+     the tab strip shows once the layout has two tabs, and until then "Add tab" sits beside "Add section"
+     (not on the Side panel or a child table). -->
 <template>
 	<CanvasTabs v-if="canvas.tabs.value.length > 1" class="mb-6" :canvas="canvas" />
 	<Draggable
@@ -29,7 +30,7 @@
 			@click.stop="acts.perform('canvas.add_section')"
 		/>
 		<Button
-			v-if="tabbed && canvas.tabs.value.length < 2"
+			v-if="takesTabs && canvas.tabs.value.length < 2"
 			variant="subtle"
 			size="sm"
 			icon-left="lucide-panel-top"
@@ -56,5 +57,7 @@ const props = withDefaults(defineProps<{ canvas: DesignCanvas; tabbed?: boolean 
 	tabbed: true,
 });
 
+/** The Side panel and a child table's row dialog have no tabs. */
+const takesTabs = computed(() => props.tabbed && !props.canvas.state.definition.istable);
 const tab = computed(() => props.canvas.openTab.value);
 </script>
