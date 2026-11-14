@@ -46,6 +46,14 @@ def add_user(email, password, username=None, mobile_no=None):
 	frappe.db.commit()
 
 
+def init_request_user(site, sites_path):
+	frappe.init(site, sites_path=sites_path, force=True, is_request=True)
+	try:
+		return frappe.session.user
+	finally:
+		frappe.destroy()
+
+
 class TestAuth(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -77,6 +85,12 @@ class TestAuth(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", k, v)
 		frappe.clear_cache()
 		frappe.db.commit()
+
+	def test_request_init_on_cold_module_map_keeps_guest(self):
+		frappe.client_cache.delete_value("installed_app_modules")
+		with ThreadPoolExecutor(max_workers=1) as executor:
+			user = executor.submit(init_request_user, frappe.local.site, frappe.local.sites_path).result()
+		self.assertEqual(user, "Guest")
 
 	def test_validate_ip_address_without_a_request(self):
 		with (

@@ -116,6 +116,10 @@ class FlowModel(Document):
 		self.context_window = _detect_context_window(self.model_id) or self.context_window or 0
 
 	def _validate_provider_known(self):
+		from frappe.flow.lib.model import SITE_PROVIDER
+
+		if self.provider == SITE_PROVIDER:
+			return  # not LiteLLM's: the flow server routes it, and Grove knows its models
 		try:
 			import litellm
 		except ImportError:
@@ -137,15 +141,15 @@ class FlowModel(Document):
 				title=_("Missing Dependency"),
 			)
 
-		from frappe.flow.lib.model import resolve_provider_credentials
+		from frappe.flow.lib.model import litellm_route, resolve_provider_credentials
 
-		provider_creds = resolve_provider_credentials(self.model_id)
+		provider_creds = resolve_provider_credentials(self.model_id, self.provider)
 		api_key = self.get_password("api_key", raise_exception=False) or provider_creds.get("api_key") or None
-		base_url = self.base_url or provider_creds.get("base_url")
+		model, base_url = litellm_route(self.model_id, self.base_url or provider_creds.get("base_url"))
 
 		kwargs = {
 			**self.model_params(),
-			"model": self.model_id,
+			"model": model,
 			"api_key": api_key,
 			"messages": [{"role": "user", "content": "ping"}],
 			"max_tokens": 1,

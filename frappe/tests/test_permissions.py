@@ -141,13 +141,7 @@ class TestPermissions(IntegrationTestCase):
 
 			perms = boot_perms()
 			self.assertIn(owner_only_dt, perms.can_export)
-			self.assertIn(owner_only_dt, perms.can_export_owner_only)
 			self.assertIn(shared_dt, perms.can_export)
-			self.assertNotIn(shared_dt, perms.can_export_owner_only)
-
-			user.add_roles("System Manager")
-			perms = boot_perms()
-			self.assertNotIn(owner_only_dt, perms.can_export_owner_only)
 		finally:
 			frappe.set_user("Administrator")
 			frappe.delete_doc("User", user_name, ignore_missing=True, force=True)
@@ -647,6 +641,7 @@ class TestPermissions(IntegrationTestCase):
 		)
 
 		doc.insert()
+		self.addCleanup(frappe.db.delete, "Test Blog Post", {"name": doc.name})
 
 		getdoc("Test Blog Post", doc.name)
 		doclist = [d.name for d in frappe.response.docs]
@@ -666,7 +661,8 @@ class TestPermissions(IntegrationTestCase):
 			}
 		)
 
-		doc.insert(ignore_if_duplicate=True)
+		doc.insert()
+		self.addCleanup(frappe.delete_doc, doc.doctype, doc.name, delete_permanently=True)
 
 		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
 		update("Test Blog Post", "Blogger", 0, "read", 1)

@@ -38,6 +38,8 @@ export class FrappeClient {
 				const model = this.modelRows.find((row) => row.name === selected);
 				return model?.model_id === id ? selected : this.modelByProviderId.get(id) ?? id;
 			},
+			onSiteKey: () =>
+				this.modelRows.find((row) => row.name === this.configs.get(sid)?.model)?.provider === "grove",
 		});
 	}
 

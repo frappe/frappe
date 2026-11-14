@@ -1,6 +1,6 @@
 [project]
 name = "frappe-flow"
-version = "0.1.26"
+version = "0.1.27"
 description = "An open-source agent harness."
 readme = "README.md"
 license = "MIT"
