@@ -565,6 +565,7 @@ REPORT_PDF_ROWS_PER_TABLE = 1000
 
 @frappe.whitelist(methods=["POST"])
 @frappe.concurrent_limit()
+@frappe.read_only()
 def download_report_pdf(
 	report_name: str,
 	filters: str | dict | None = None,

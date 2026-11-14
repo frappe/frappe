@@ -1280,3 +1280,63 @@ def create_mock_data():
 	data.filters = {"label_1": "Filter Value", "label_2": None, "label_3": list(range(5))}
 
 	return data
+
+
+class TestReportReadsOnReplica(IntegrationTestCase):
+	"""Report reads run on the replica, when one is configured.
+
+	The test database stands in for the replica, reached through a second connection."""
+
+	def tearDown(self):
+		# a request gets a fresh frappe.local, tests share one
+		for connection in ("primary_db", "replica_db"):
+			if hasattr(frappe.local, connection):
+				delattr(frappe.local, connection)
+		super().tearDown()
+
+	def assertReadsOnReplica(self, endpoint, **kwargs):
+		"""Assert `endpoint` reads on a replica connection and leaves the primary one in place."""
+		from unittest.mock import patch
+
+		read_connections = []
+		connect_replica = frappe.connect_replica
+
+		def spy():
+			switched = connect_replica()
+			read_connections.append(frappe.local.db)
+			return switched
+
+		primary = frappe.local.db
+		replica_conf = {
+			"read_from_replica": 1,
+			"replica_host": frappe.conf.db_host or "127.0.0.1",
+			"replica_db_port": frappe.conf.db_port,
+		}
+		with (
+			patch.dict(frappe.local.conf, replica_conf),
+			patch.object(frappe, "connect_replica", spy),
+			self.set_user("test@example.com"),
+		):
+			endpoint(**kwargs)
+
+		self.assertEqual(len(read_connections), 1, f"{endpoint.__name__} did not read on the replica")
+		self.assertIsNot(read_connections[0], primary)
+		self.assertIs(frappe.local.db, primary)
+
+	def test_get_script(self):
+		self.assertReadsOnReplica(get_script, report_name="ToDo")
+
+	def test_get_data_for_custom_field(self):
+		from frappe.desk.query_report import get_data_for_custom_field
+
+		self.assertReadsOnReplica(get_data_for_custom_field, doctype="ToDo", field="description")
+
+	def test_get_reports_in_queued_state(self):
+		from frappe.core.doctype.prepared_report.prepared_report import get_reports_in_queued_state
+
+		self.assertReadsOnReplica(get_reports_in_queued_state, report_name="ToDo", filters={})
+
+	def test_get_filter_dashboard_data(self):
+		from frappe.desk.reportview import get_filter_dashboard_data
+
+		self.assertReadsOnReplica(get_filter_dashboard_data, stats=[], doctype="ToDo")

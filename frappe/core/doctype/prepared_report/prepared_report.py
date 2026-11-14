@@ -299,6 +299,7 @@ def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_reports_in_queued_state(report_name: str, filters: dict[str, Any] | str | list):
 	return frappe.get_all(
 		"Prepared Report",
@@ -390,6 +391,7 @@ def create_json_gz_file(data, dt, dn, report_name):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def download_attachment(dn: str, format: str):
 	pr = frappe.get_doc("Prepared Report", dn)
 	if not frappe.has_permission("Prepared Report", "read", doc=pr):

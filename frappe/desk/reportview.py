@@ -1241,6 +1241,7 @@ def get_stats(stats: str | list, doctype: str, filters: str | list | dict | None
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_filter_dashboard_data(stats: str | list, doctype: str, filters: str | list | dict | None = None):
 	"""get tags info"""
 	tags = frappe.parse_json(stats)

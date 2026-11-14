@@ -94,6 +94,7 @@ def get_permitted_report_print_format(print_format: str) -> frappe._dict:
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_print_format_data(print_format: str):
 	pf = get_permitted_report_print_format(print_format)
 
@@ -220,6 +221,7 @@ def normalize_result(result, columns):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_script(report_name: str):
 	report = get_report_doc(report_name)
 	module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
@@ -495,6 +497,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def export_query():
 	"""export from query reports"""
 	from frappe.desk.utils import pop_csv_params
@@ -938,6 +941,7 @@ def add_total_row(
 
 
 @frappe.whitelist()
+@frappe.read_only()
 def get_data_for_custom_field(doctype: str, field: str, names: str | list[str] | None = None):
 	if not frappe.has_permission(doctype, "read"):
 		frappe.throw(_("Not Permitted to read {0}").format(_(doctype)), frappe.PermissionError)
