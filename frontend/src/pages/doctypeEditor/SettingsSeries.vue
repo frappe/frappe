@@ -10,7 +10,9 @@
 		>
 			<span class="flex w-[296px] shrink-0 items-center gap-2">
 				<Tooltip :text="option">
-					<span class="block min-w-0 truncate font-mono text-sm text-ink-gray-8">{{ option }}</span>
+					<span class="block min-w-0 truncate font-mono text-sm text-ink-gray-8">{{
+						option
+					}}</span>
 				</Tooltip>
 				<Badge
 					v-if="option === preferred"
@@ -21,7 +23,10 @@
 				/>
 			</span>
 			<Tooltip :text="fullName(option)">
-				<NamePreview class="block min-w-0 flex-1 truncate whitespace-nowrap" :parts="next(option)" />
+				<NamePreview
+					class="block min-w-0 flex-1 truncate whitespace-nowrap"
+					:parts="next(option)"
+				/>
 			</Tooltip>
 		</div>
 		<p class="mt-1 text-p-sm text-ink-gray-5">
