@@ -801,12 +801,16 @@ async function save() {
 	}
 }
 
-/** The server names no row in this refusal: it is about the first View row this level changed. */
+/** The server names no row in this refusal: it is about an own View row, the first one added since the last save. */
 function showPublishFirst(before: Draft, edited: Draft, level: Scope) {
 	if (failed.value !== PUBLISH_FIRST()) return;
 	const changed = toPayload(before, edited);
 	const rows = [...(changed.rail ?? []), ...Object.values(changed.sidebars ?? {}).flat()];
-	const row = rows.find((entry) => entry.item_type === "View" && isOwn(entry.key, level));
+	const saved = new Set(
+		[...before.rail, ...Object.values(before.sidebars).flat()].map((entry) => entry.key)
+	);
+	const own = rows.filter((entry) => entry.item_type === "View" && isOwn(entry.key, level));
+	const row = own.find((entry) => !saved.has(entry.key)) ?? own[0];
 	if (!row) return;
 	publishFirst.value = { key: row.key, message: failed.value };
 	failed.value = null;
