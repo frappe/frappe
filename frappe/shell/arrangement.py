@@ -82,30 +82,34 @@ def get_arrangement(container: str, address: str, scope: str = "user") -> list[d
 def save_arrangement(container: str, address: str, items: str | list, scope: str = "user") -> dict:
 	"""Store one layer's arrangement and hand back the whole prefix's navigation."""
 	target = _target(container, address, scope)
-	below = target.resolve(upto=BELOW[scope], keep_hidden=True)
-	desired = _as_items(items)
-
-	_refuse_deep_nesting(container, below, desired, scope)
-	rows = reduce_arrangement(_with_unseen_parents(target, below, desired, scope), desired, scope)
+	rows = reduce_container(target, container, scope, items)
 	own_rows = [row for row in rows if row.get("added")]
 	_check_caps(target, own_rows)
 	_validate_own_rows(target, container, scope, own_rows)
-
-	# An empty reduction drops the layer, so this is the one place a save can become a reset.
-	# It may only do so when the submission accounted for the whole list below.
-	if below and not rows and not _accounts_for(below, desired):
-		frappe.throw(
-			_(
-				"This arrangement does not cover everything {0} is showing, so it cannot be saved as one. Reload it, or reset it to go back to how it arrived."
-			).format(frappe.bold(target.app)),
-			title=_("Not an Arrangement"),
-		)
 
 	_write(target, rows)
 
 	# The whole prefix comes back: hiding a rail item of type `Sidebar` changes which sidebars
 	# are reachable, so a response scoped to the one list would be a half-truth.
 	return resolve_navigation(target.app)
+
+
+@frappe.desk_v2_only
+@frappe.whitelist()
+def get_arrangements(app: str, scope: str = "user") -> dict:
+	"""Everything the navigation editor shows for one app at one level, in one call."""
+	from .arrangement_editor import read_arrangements
+
+	return read_arrangements(app, scope)
+
+
+@frappe.desk_v2_only
+@frappe.whitelist()
+def save_arrangements(app: str, scope: str, containers: str | dict, version: str) -> dict:
+	"""Store every container the editor changed in one transaction, and hand back the whole prefix's navigation."""
+	from .arrangement_editor import write_arrangements
+
+	return write_arrangements(app, scope, containers, version)
 
 
 @frappe.desk_v2_only
@@ -161,15 +165,36 @@ def get_navigation_layouts(app: str) -> dict[str, str]:
 # What a level may add, and what it may see of what it added
 
 
-def _check_caps(target: "Target", own_rows: list[dict]):
+def reduce_container(target: "Target", container: str, scope: str, items: str | list) -> list[dict]:
+	"""The layer a client's whole list for one container reduces to; refuses a list nested too deeply."""
+	below = target.resolve(upto=BELOW[scope], keep_hidden=True)
+	desired = _as_items(items)
+
+	_refuse_deep_nesting(container, below, desired, scope)
+	rows = reduce_arrangement(_with_unseen_parents(target, below, desired, scope), desired, scope)
+
+	# An empty reduction drops the layer, so this is the one place a save can become a reset.
+	# It may only do so when the submission accounted for the whole list below.
+	if below and not rows and not _accounts_for(below, desired):
+		frappe.throw(
+			_(
+				"This arrangement does not cover everything {0} is showing, so it cannot be saved as one. Reload it, or reset it to go back to how it arrived."
+			).format(frappe.bold(target.app)),
+			title=_("Not an Arrangement"),
+		)
+
+	return rows
+
+
+def _check_caps(target: "Target", own_rows: list[dict], saving: "list[Target] | None" = None):
 	"""Refuse more own rows than one app may carry at this level; `_known` caps one container."""
+	# `saving`: every layer this save writes, whose stored rows the payload replaces.
 	if not own_rows:
 		return
 
-	# Every save at this level takes this row first, so saves to one app's containers count in turn.
-	frappe.db.get_value("User", target.layer["user"] or "Administrator", "name", for_update=True)
+	lock_level(target)
 
-	if len(own_rows) + _own_rows_elsewhere(target) > OWN_ROWS_PER_APP:
+	if len(own_rows) + _own_rows_elsewhere(target, saving or [target]) > OWN_ROWS_PER_APP:
 		frappe.throw(
 			_("You can add up to {0} items to {1}, over its rail and all its sidebars.").format(
 				OWN_ROWS_PER_APP, frappe.bold(target.app)
@@ -178,14 +203,19 @@ def _check_caps(target: "Target", own_rows: list[dict]):
 		)
 
 
-def _own_rows_elsewhere(target: "Target") -> int:
-	"""The rows this level has added to this app outside the layer being saved, in one query."""
+def lock_level(target: "Target"):
+	"""Take this level's row first, so every save to one app's containers at this level runs in turn."""
+	frappe.db.get_value("User", target.layer["user"] or "Administrator", "name", for_update=True)
+
+
+def _own_rows_elsewhere(target: "Target", saving: "list[Target]") -> int:
+	"""The rows this level has added to this app outside the layers being saved, in one query."""
 	item = frappe.qb.DocType("Navigation Item")
-	saved = _existing(target)
+	saved = {_existing(layer) for layer in saving}
 	in_layers = None
 
 	for container, layers in _layers_of(target).items():
-		layers = [name for name in layers if name != saved]
+		layers = [name for name in layers if name not in saved]
 
 		if layers:
 			criterion = (item.parenttype == container) & item.parent.isin(layers)
@@ -332,6 +362,10 @@ def validate_own_row(row: dict, container: str, scope: str, context: NavigationC
 	item_type = row.get("item_type")
 	label = frappe.bold(row["key"])
 
+	# Before the addable check, so a Sidebar row hears this and not "cannot be added".
+	if container == "Sidebar" and (item_type == "Sidebar" or row.get("opens_sidebar")):
+		frappe.throw(_("Remove its sidebar first."), title=_("Not an Arrangement"))
+
 	if item_type not in context.addable_types:
 		frappe.throw(
 			_("{0} cannot be added: {1} is not a kind of item that a person or the site may add.").format(
@@ -410,8 +444,9 @@ class Target(NamedTuple):
 	layer: dict
 
 
-def _target(container: str, address: str, scope: str) -> Target:
+def _target(container: str, address: str, scope: str, new_in: str = "") -> Target:
 	"""Check the arguments and the caller, and describe the layer they name."""
+	# `new_in`: the app a sidebar key with no record yet is created for; only the editor's save passes it.
 	# No `user` argument anywhere here: the user scope is the session user and nothing else.
 
 	# Explicit type checks: `validate_argument_types` only runs in a request, and `address` goes
@@ -437,7 +472,7 @@ def _target(container: str, address: str, scope: str) -> Target:
 		resolve = partial(resolve_rail, app, check_permission=check_permission)
 		stored |= {"app": app, "extends": ""}
 	else:
-		app, link_doctype, link_to = _sidebar_address(address)
+		app, link_doctype, link_to = _sidebar_address(address, new_in, scope)
 		resolve = partial(resolve_sidebar, link_doctype, link_to, check_permission=check_permission)
 		# An own sidebar is stored by its key; a shipped one by its address.
 		if link_doctype:
@@ -496,12 +531,12 @@ def _refuse_deep_nesting(container: str, below: list[dict], desired: list[dict],
 		)
 
 
-def _sidebar_address(address: str) -> tuple[str, str, str]:
+def _sidebar_address(address: str, new_in: str = "", scope: str = "") -> tuple[str, str, str]:
 	"""The app and the `(link_doctype, link_to)` pair behind a sidebar address; an own sidebar's is `("", key)`."""
 	# Read from the standard record: unscrubbing is not a function, and an address no app
 	# ships must be unarrangeable. An own key is read at the site layer or the person's own.
 	if OWN_KEY.fullmatch(address):
-		return _own_sidebar_address(address)
+		return _own_sidebar_address(address, new_in, scope)
 
 	record = frappe.db.get_value(
 		"Sidebar", {"name": address, "standard": 1}, ["app", "link_doctype", "link_to"], as_dict=True
@@ -513,9 +548,13 @@ def _sidebar_address(address: str) -> tuple[str, str, str]:
 	return record.app, record.link_doctype, record.link_to
 
 
-def _own_sidebar_address(key: str) -> tuple[str, str, str]:
+def _own_sidebar_address(key: str, new_in: str = "", scope: str = "") -> tuple[str, str, str]:
 	owner = SITE_LAYER if key.startswith("site:") else frappe.session.user
 	app = frappe.db.get_value("Sidebar", {"key": key, "standard": 0, "user": owner}, "app")
+
+	# A level adds only its own: a person's `site:` key with no record stays unarrangeable.
+	if not app and new_in and key.startswith(f"{scope}:"):
+		app = new_in
 
 	if not app:
 		frappe.throw(_("{0} is not a sidebar you can arrange.").format(key))
