@@ -8,16 +8,12 @@
   control's height down, so it starts wherever the cell actually ends and a
   two-line `#condition-conjunction` still works.
 
-  The column is as wide as "Where" or the operator button, whichever is wider; a
-  hidden copy of each sizes it in every row of a group with more than one.
-
-  The bracket runs at 28px, under the middle of both "Where" and the operator
-  button, which start at the column's left edge. The bracket stops 4px short of a
-  button's box, as it does of a word.
+  The column is as wide as "Where" or the operator button: a hidden copy of each sizes
+  it in every row, so a group's controls stay in line.
 -->
 <template>
 	<div
-		class="relative flex w-max flex-col self-stretch [--stub-gap:0px] has-[div:not([inert])_button]:[--stub-gap:4px]"
+		class="relative flex w-max flex-col self-stretch [--stub-gap:0px] has-[button]:[--stub-gap:4px]"
 	>
 		<span
 			v-if="count > 1 && index > 0"
@@ -26,15 +22,12 @@
 			:style="above"
 		/>
 		<slot />
-		<div aria-hidden="true" inert class="invisible flex h-0 flex-col overflow-hidden">
+		<div aria-hidden="true" class="invisible flex h-0 flex-col overflow-hidden">
 			<span class="px-2 text-p-base">{{ labels.where }}</span>
-			<Button
-				v-if="count > 1"
-				variant="subtle"
-				iconRight="lucide-refresh-cw"
-				tabindex="-1"
-				:label="conjunction === 'and' ? labels.and : labels.or"
-			/>
+			<span v-if="count > 1" class="inline-flex items-center gap-2 px-2 text-base">
+				{{ conjunction === "and" ? labels.and : labels.or }}
+				<span class="size-4" />
+			</span>
 		</div>
 		<span
 			v-if="count > 1 && index < count - 1"
@@ -47,7 +40,6 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { Button } from "frappe-ui";
 import { useConditionBuilderContext } from "./internal/context";
 import type { Conjunction } from "./types";
 
