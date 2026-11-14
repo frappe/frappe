@@ -76,7 +76,7 @@ Every field is a dict in a column's `fields`. Every block that is not a DocType 
 | `Table` | `fieldname` and `options` of the child table, `table_columns` | The child table. See below. |
 | `Repeater` | `source` (child table fieldname), `repeater_columns` | Child rows with your own cell text. Each column: `template` (list of `{"t": "f", "v": "<fieldname>"}` for a value or `{"t": "t", "v": "text"}` for text), `align`, `color` (hex), `width` (percent). |
 | `Image` | `image_url`, `width` (CSS length like `40mm`) | A fixed image, or the field's own image value. |
-| `Barcode` | `barcode_format` (`CODE128`, `CODE39` or `QR`), `barcode_field` or `barcode_value`, `show_text`, `width` | A barcode or QR code of a field or a fixed value. |
+| `Barcode` | `barcode_format` (`CODE128`, `CODE39`, `EAN13`, `EAN8`, `EAN14`, `UPCA`, `ISBN13`, `ITF`, `GS1_128` or `QR`), `barcode_field` or `barcode_value`, `show_text`, `width` | A barcode or QR code of a field or a fixed value. EAN, UPC and ISBN values may leave out their check digit; a wrong one prints nothing. A `GS1_128` value has no brackets around its application identifiers, for example `0109501101530003`. |
 | `Divider` | `custom_style` | A horizontal line. |
 | `Spacer` | `height` (px) | Vertical space. |
 | `Field Template` | `field_template` (a Print Format Field Template) | A shared template. |

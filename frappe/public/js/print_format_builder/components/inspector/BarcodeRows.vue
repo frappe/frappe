@@ -46,7 +46,18 @@ import { useSelectedField } from "./useSelectedField";
 
 const { store, selected_field, set_field_prop } = useSelectedField();
 
-const formats = ["CODE128", "CODE39", "QR"].map((f) => ({ value: f, label: f }));
+const formats = [
+	"CODE128",
+	"CODE39",
+	"EAN13",
+	"EAN8",
+	"EAN14",
+	"UPCA",
+	"ISBN13",
+	"ITF",
+	"GS1_128",
+	"QR",
+].map((f) => ({ value: f, label: f }));
 const field_options = computed(() => [
 	{ label: __("Static value"), value: "" },
 	{ label: __("ID (name)"), value: "name" },
