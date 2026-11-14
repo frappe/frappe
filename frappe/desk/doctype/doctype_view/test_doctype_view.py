@@ -8,7 +8,7 @@ from frappe.desk.doctype.default_view import api as default_view_api
 from frappe.desk.doctype.doctype_view import api
 from frappe.desk.doctype.doctype_view.api import find, get, reset, save
 from frappe.desk.doctype.doctype_view.doctype_view import DoctypeView, DuplicateViewError, ViewKeyBusyError
-from frappe.desk.doctype.doctype_view.key_space import KeySpace
+from frappe.desk.doctype.doctype_view.key_space import KeySpace, find_views, open_views
 from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.exceptions import FrappeTypeError
 from frappe.model.document import Document
@@ -462,3 +462,45 @@ class TestFind(DoctypeViewTestCase):
 			self.assertRaises(frappe.DoesNotExistError, find, DOCTYPE, "no-such-view")
 			self.assertRaises(frappe.DoesNotExistError, find, DOCTYPE, "")
 			self.assertRaises(frappe.PermissionError, find, PRIVATE_DOCTYPE, "anything")
+
+
+class TestFindViewsAndOpenViews(DoctypeViewTestCase):
+	def test_find_views_without_own_skips_a_person_s_rows(self):
+		make_view(label="Mine", user=self.person, settings={}).insert()
+		make_view(label="Shared", settings={}).insert()
+		targets = [(DOCTYPE, "mine"), (DOCTYPE, "shared")]
+
+		self.assertEqual(set(find_views(targets, user=self.person)), set(targets))
+		self.assertEqual(set(find_views(targets, user=self.person, own=False)), {(DOCTYPE, "shared")})
+
+	def test_find_views_reads_the_site_s_view_beside_an_app_view_and_asks_once(self):
+		make_view(label="Shared", settings={}).insert()
+
+		with self.assertQueryCount(1):
+			found = find_views([(DOCTYPE, "shared"), ("ToDo", "open"), (DOCTYPE, "gone")], user=self.person)
+
+		self.assertEqual(set(found), {(DOCTYPE, "shared"), ("ToDo", "open")})
+
+	def test_open_views_opens_plain_keys_saved_keys_and_app_views(self):
+		make_view(label="Mine", user=self.person, settings={}).insert()
+		targets = [
+			(DOCTYPE, "list"),
+			(DOCTYPE, "cards"),
+			(DOCTYPE, "mine"),
+			("ToDo", "open"),
+			(DOCTYPE, "gone"),
+		]
+
+		self.assertEqual(
+			open_views(targets, user=self.person), {target for target in targets if target[1] != "gone"}
+		)
+		self.assertNotIn((DOCTYPE, "mine"), open_views(targets, user=self.person, own=False))
+
+	def test_open_views_drops_a_type_that_does_not_apply(self):
+		make_view(label="Shared", settings={}).insert()
+		targets = [(DOCTYPE, "list"), (DOCTYPE, "shared")]
+
+		with patch("frappe.desk.doctype.doctype_view.key_space.applies_to", return_value=False):
+			self.assertEqual(open_views(targets, user=self.person), set())
+
+		self.assertEqual(open_views(targets, user=self.person), {(DOCTYPE, "list"), (DOCTYPE, "shared")})

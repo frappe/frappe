@@ -118,6 +118,11 @@ def validate_item_keys(items, container: str):
 
 		seen.add(item.key)
 
+		if item.item_type == "View":
+			from frappe.desk.navigation_item_type.view.view import validate_shipped_row
+
+			validate_shipped_row(item)
+
 	if past := nesting_errors(items, container):
 		frappe.throw(
 			_("{0} sits too deep. A section holds items, and an item holds one more level.").format(

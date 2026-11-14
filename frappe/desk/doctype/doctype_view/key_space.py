@@ -5,7 +5,7 @@ import unicodedata
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.view_type.view_type import type_keys
+from frappe.desk.doctype.view_type.view_type import applies_to, type_keys, view_types
 
 from .app_views import app_views
 from .doctype_view import PLAIN_VIEW, SITE_ROW
@@ -63,9 +63,10 @@ def reserved_keys() -> frozenset[str]:
 
 
 def find_views(
-	targets: list[tuple[str, str]], user: str | None = None
+	targets: list[tuple[str, str]], user: str | None = None, own: bool = True
 ) -> dict[tuple[str, str], frappe._dict]:
 	"""`{(doctype, key): view}` for each target `user` sees, their own before the site's before an app's; one query."""
+	# `own=False` is what everyone sees: the site's rows and the apps', never a person's.
 	user = user or frappe.session.user
 	keys = {key for _doctype, key in targets if key and key != PLAIN_VIEW}
 	if not keys:
@@ -76,7 +77,7 @@ def find_views(
 		filters={
 			"reference_doctype": ("in", {doctype for doctype, _key in targets}),
 			"key": ("in", keys),
-			"user": ("in", (user, SITE_ROW)),
+			"user": ("in", (user, SITE_ROW) if own else (SITE_ROW,)),
 		},
 		fields=["name", "reference_doctype", "key", "label", "type", "user"],
 	)
@@ -84,6 +85,28 @@ def find_views(
 	for row in sorted(rows, key=lambda row: row.user != SITE_ROW):
 		found[(row.reference_doctype, row.key)] = row  # the site's first, so the person's own overwrites it
 	return {target: found[target] for target in targets if target in found}
+
+
+def open_views(
+	targets: list[tuple[str, str]], user: str | None = None, own: bool = True
+) -> set[tuple[str, str]]:
+	"""The (doctype, key) targets that open: a plain view whose type fits, or a saved view whose type still fits."""
+	plain = type_keys()
+	saved = [target for target in targets if target[1] not in plain]
+	opened = {(doctype, key) for doctype, key in targets if key in plain and fits(plain[key], doctype)}
+
+	for target, view in find_views(saved, user, own).items():
+		if fits(view.type, target[0]):
+			opened.add(target)
+	return opened
+
+
+def fits(view_type: str, doctype: str) -> bool:
+	"""Whether the type exists and applies to the doctype; a doctype that is gone fits nothing."""
+	try:
+		return view_type in view_types() and applies_to(view_type, doctype)
+	except frappe.DoesNotExistError:
+		return False
 
 
 def app_row(doctype: str, key: str) -> frappe._dict:
