@@ -16,7 +16,7 @@ class WorkspaceShortcut(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		color: DF.Color | None
+		color: DF.Data | None
 		doc_view: DF.Literal[
 			"", "List", "Report Builder", "Dashboard", "Tree", "New", "Calendar", "Kanban", "Image"
 		]
