@@ -66,6 +66,17 @@
 							</h2>
 						</template>
 					</template>
+					<template #error="{ error }">
+						{{ error.message }}
+						<button
+							v-if="error.settings_tab === 'models' && page.can('Flow Model', 'write')"
+							type="button"
+							class="underline"
+							@click="openSettings(error.settings_tab)"
+						>
+							Connect a provider
+						</button>
+					</template>
 				</MessageList>
 				<Composer
 					v-if="!readOnly && !needsSetup"
@@ -323,6 +334,11 @@ const readOnlyNote = computed(() => {
 const needsSetup = computed(
 	() => !page.state.boot.models?.length || !page.state.boot.agents?.length
 );
+// an error's link: settings on its tab
+function openSettings(tab) {
+	page.state.settingsTab = tab;
+	store.setSettingsOpen(true);
+}
 
 // the launcher listens for the header's ×; a new tab takes the chat over from the panel
 const host = inject("flowHost", null);

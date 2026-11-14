@@ -1,7 +1,7 @@
 """Where a model name becomes a `Model`.
 
 `get_model` dispatches on the model name's prefix: a registered native provider (the
-mock, Codex, or OpenCode Go provider) wins; everything else falls through to
+mock, Codex, OpenCode Go or Grove provider) wins; everything else falls through to
 `LiteLLMModel`, the broad API-key path. This module is the one place providers are
 registered, so provider modules stay import-order free.
 """
@@ -18,6 +18,7 @@ from flow_harness.model.errors import ProviderError
 from flow_harness.model.litellm import LiteLLMModel
 from flow_harness.model.mock import MockModel
 from flow_harness.model.providers.codex import CodexAuthProvider, CodexModel
+from flow_harness.model.providers.grove import grove_model
 from flow_harness.model.providers.opencode import opencode_go_model
 from flow_harness.model.retry import run_with_retries
 
@@ -52,6 +53,7 @@ def get_model(
 register_provider("mock", lambda name, **kwargs: MockModel())
 register_provider("codex", CodexModel)
 register_provider("opencode-go", opencode_go_model)
+register_provider("grove", grove_model)
 register_auth_provider(CodexAuthProvider())
 
 __all__ = [
