@@ -6,7 +6,6 @@ import {
 	navSide,
 	physicalSide,
 	seedNavigationSide,
-	sideLabel,
 	type NavigationSide,
 } from "../navigationSide";
 
@@ -68,16 +67,5 @@ describe("the seed", () => {
 		seedNavigationSide(session(own, site));
 		expect(navSide()).toBe(expected);
 		expect(awaySide()).toBe(expected === "left" ? "right" : "left");
-	});
-});
-
-describe("sideLabel", () => {
-	it.each([
-		["start", "ltr", "Left"],
-		["end", "ltr", "Right"],
-		["start", "rtl", "Right"],
-		["end", "rtl", "Left"],
-	] as [NavigationSide, string, string][])("%s in %s reads %s", (side, dir, label) => {
-		expect(sideLabel(side, dir)).toBe(label);
 	});
 });

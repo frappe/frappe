@@ -1,7 +1,6 @@
 // Which edge the navigation (rail and sidebar) is drawn on. The stored value is `start` or `end`;
 // only this file turns it into a physical `left` or `right`, from the page's text direction.
 import { ref } from "vue";
-import { __ } from "@/i18n";
 
 export type NavigationSide = "start" | "end";
 export type PhysicalSide = "left" | "right";
@@ -24,10 +23,6 @@ function firstSide(...values: unknown[]): NavigationSide {
 /** `start` is where a line of text starts: left in LTR, right in RTL. */
 export function physicalSide(side: NavigationSide, dir: string): PhysicalSide {
 	return (side === "start") === (dir !== "rtl") ? "left" : "right";
-}
-
-export function sideLabel(side: NavigationSide, dir: string): string {
-	return physicalSide(side, dir) === "left" ? __("Left") : __("Right");
 }
 
 /** Plain functions, not computeds: `dir` is a DOM attribute, which Vue does not track. */
