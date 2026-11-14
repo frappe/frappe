@@ -992,7 +992,7 @@ class TestFile(IntegrationTestCase):
 				attached_to_name=translation.name,
 			).insert()
 
-		with self.set_user("test@example.com"):
+		with self.set_user("test4@example.com"):
 			find_file_by_url(file.file_url)
 			with self.assertQueryCount(3):
 				self.assertIsNone(find_file_by_url(file.file_url))
