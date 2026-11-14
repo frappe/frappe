@@ -52,7 +52,7 @@ def _memory(agent: str, **overrides: Any) -> dict:
 class MemoryCase(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
-		# LanceDB writes aren't covered by the tx rollback below; reset the (test-only) index.
+		# Index writes aren't covered by the tx rollback below; reset the (test-only) index.
 		store.drop_table()
 		_settings(embedding_model="", embedding_dimension=0)
 		self.model = frappe.get_doc(
@@ -165,7 +165,7 @@ class TestSaveMemory(MemoryCase):
 
 		with (
 			self.subTest("the index is down"),
-			patch("frappe.flow.memory.store.ensure_table", side_effect=RuntimeError("lance down")),
+			patch("frappe.flow.memory.store.ensure_table", side_effect=RuntimeError("index down")),
 			self.assertRaises(RuntimeError),
 		):
 			save_memory(self.agent.name, content=ACME, scope="agent")
@@ -286,6 +286,35 @@ class TestKeywordRetrieval(MemoryCase):
 		self.assertIn(own["memory_id"], block)
 		self.assertNotIn("Ravi", block)
 		self.assertNotIn("Pune", block)
+
+	def test_a_memory_saved_mid_search_does_not_break_it(self):
+		first = save_memory(self.agent.name, content=ACME, scope="agent")
+		keyword_search = store._keyword_search
+		saved = []
+
+		def save_then_search(*args, **kwargs):
+			saved.append(save_memory(self.agent.name, content="Acme pays by wire.", scope="agent"))
+			return keyword_search(*args, **kwargs)
+
+		with patch.object(store, "_keyword_search", side_effect=save_then_search):
+			found = store.search("Where do we bill Acme?", agent=self.agent.name, user=self.user)
+		self.assertEqual(set(found), {first["memory_id"], saved[0]["memory_id"]})
+
+	def test_a_slower_rebuild_does_not_drop_a_memory_saved_after_a_faster_one(self):
+		first = save_memory(self.agent.name, content=ACME, scope="agent")
+		store.drop_table()
+		rows = store._rows
+		saved = []
+
+		def rebuild_and_save_meanwhile(docs, dimension):
+			with patch.object(store, "_rows", rows):
+				saved.append(save_memory(self.agent.name, content="Acme pays by wire.", scope="agent"))
+			return rows([doc for doc in docs if doc.name == first["memory_id"]], dimension)
+
+		with patch.object(store, "_rows", side_effect=rebuild_and_save_meanwhile):
+			store.ensure_table()
+		found = store.search("Acme", agent=self.agent.name, user=self.user)
+		self.assertEqual(set(found), {first["memory_id"], saved[0]["memory_id"]})
 
 
 class TestHybridRetrieval(MemoryCase):
