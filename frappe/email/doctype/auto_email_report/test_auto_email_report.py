@@ -45,8 +45,12 @@ class TestAutoEmailReport(IntegrationTestCase):
 			auto_email_report.save()
 
 	def test_run_as_user_permission(self):
-		frappe.get_doc("User", "test1@example.com").add_roles("System Manager")
-		frappe.get_doc("User", "test2@example.com").add_roles("Report Manager")
+		test1 = frappe.get_doc("User", "test1@example.com")
+		test1.add_roles("System Manager")
+		self.addCleanup(test1.remove_roles, "System Manager")
+		test2 = frappe.get_doc("User", "test2@example.com")
+		test2.add_roles("Report Manager")
+		self.addCleanup(test2.remove_roles, "Report Manager")
 		auto_email_report = get_auto_email_report()
 		auto_email_report.filters = json.dumps({"user": "test1@example.com", "doctype": "DocType"})
 		auto_email_report.save()
