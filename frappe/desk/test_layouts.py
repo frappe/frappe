@@ -238,6 +238,29 @@ class TestSavingLayouts(IntegrationTestCase):
 		expected = ["Shortcut", "Card", "Number Card", "Chart", "Quick List", "Custom Block", "Onboarding"]
 		self.assertEqual(types, expected)
 
+	def test_an_old_renderer_page_saves_its_own_content_and_rows(self):
+		frappe.set_user("Administrator")
+		make_workspace("Layout Old", renderer="Legacy")
+		card_links = dumps([{"label": "ToDo", "link_type": "DocType", "link_to": "ToDo"}])
+		rows = {
+			"shortcut": [{"label": "S", "type": "DocType", "link_to": "ToDo"}],
+			"card": [{"label": "C", "links": card_links}],
+		}
+		save_page("Layout Old", 1, rows, dumps([block("shortcut", "S"), block("card", "C")]))
+
+		page = frappe.get_doc("Workspace", "Layout Old")
+		self.assertEqual([b["type"] for b in loads(page.content)], ["shortcut", "card"])
+		self.assertEqual([row.label for row in page.shortcuts], ["S"])
+		self.assertEqual([row.label for row in page.links], ["C", "ToDo"])
+		self.assertFalse(frappe.db.exists("Workspace Layout", {"workspace": "Layout Old"}))
+
+		save_page("Layout Old", 1, {}, dumps([block("shortcut", "S")]))
+		self.assertFalse(frappe.get_doc("Workspace", "Layout Old").links, "the dropped card's rows go")
+
+		frappe.db.set_value("Workspace", "Layout Page", "renderer", "Legacy")
+		frappe.set_user(MANAGER)
+		self.assertRaises(frappe.ValidationError, save_page, "Layout Page", 1, {}, dumps([]))
+
 
 class TestV16CopiesPatch(IntegrationTestCase):
 	@classmethod

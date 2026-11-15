@@ -202,6 +202,7 @@ async function create_page() {
 			public: is_public ? 1 : 0,
 			for_user: is_public ? "" : frappe.session.user,
 			content: "[]",
+			renderer: "Frappe UI",
 		},
 	});
 	frappe.ui.update_workspace_pages(message);

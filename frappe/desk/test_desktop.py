@@ -368,7 +368,7 @@ def block(block_type, name=None, text=None):
 	return {"id": frappe.generate_hash(length=10), "type": block_type, "data": data}
 
 
-def make_workspace(title, content=(), public=1, **values):
+def make_workspace(title, content=(), public=1, renderer="Frappe UI", **values):
 	frappe.delete_doc_if_exists("Custom Workspace", title)
 	for name in frappe.get_all("Workspace", {"title": title}, pluck="name"):
 		frappe.delete_doc("Workspace", name, force=True)
@@ -378,6 +378,7 @@ def make_workspace(title, content=(), public=1, **values):
 	doc.module = "Desk"
 	doc.public = public
 	doc.hide_custom = 1
+	doc.renderer = renderer
 	doc.content = dumps(list(content))
 	for key, value in values.items():
 		if key in ("charts", "links", "roles"):

@@ -122,9 +122,9 @@ class TestWorkspace(IntegrationTestCase):
 				blocks=blocks,
 			)
 
-			[saved] = json.loads(frappe.db.get_value("Workspace", workspace.name, "content"))
-			widget = frappe.get_doc("Widget", saved["data"]["widget"])
-			self.assertEqual((widget.type, widget.get_config()["link_to"]), ("Shortcut", "ToDo"))
+			saved = frappe.get_doc("Workspace", workspace.name)
+			self.assertEqual(json.loads(saved.content)[0]["type"], "shortcut")
+			self.assertEqual([(row.label, row.link_to) for row in saved.shortcuts], [("ToDo", "ToDo")])
 		finally:
 			frappe.delete_doc("Workspace", workspace.name, force=True, ignore_missing=True)
 

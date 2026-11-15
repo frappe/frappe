@@ -79,6 +79,22 @@ frappe.views.Workspace = class Workspace {
 		return !page.public || this.has_access;
 	}
 
+	// This renderer draws only `Workspace.content`; an app's page outside developer mode is
+	// edited as a site layout, which only the new renderer draws.
+	saves_content(page) {
+		return !page.public || !page.standard || frappe.boot.developer_mode;
+	}
+
+	offer_new_layout(page) {
+		frappe.confirm(
+			__(
+				"Changes to {0} are saved as a site layout, which only the new layout shows. Switch to it?",
+				[__(page.title)]
+			),
+			() => frappe.ui.switch_workspace_renderer(page, "Frappe UI")
+		);
+	}
+
 	setup_sidebar() {
 		if (this._page) {
 			this.sidebar.setup(this._page.name);
@@ -372,6 +388,7 @@ frappe.views.Workspace = class Workspace {
 
 	async start_editing() {
 		if (!this.editor || !this.editor.readOnly || !this.is_read_only) return;
+		if (!this.saves_content(this._page)) return this.offer_new_layout(this._page);
 		this.is_read_only = false;
 		await this.editor.readOnly.toggle();
 		this.editor.isReady.then(() => {
@@ -961,9 +978,6 @@ frappe.views.Workspace = class Workspace {
 					args: { workspace: page.name },
 					freeze: true,
 					callback: () => {
-						// Back on the app's layout, so the next layout save freezes it
-						// again and is worth warning about again.
-						page.is_layout_customized = 0;
 						frappe.show_alert({
 							message: __("Workspace reset to standard"),
 							indicator: "green",
@@ -1006,20 +1020,14 @@ frappe.views.Workspace = class Workspace {
 			this.page.set_primary_action(
 				__("Save"),
 				() => {
-					// A standard workspace's first layout save freezes it against app
-					// updates, so it is confirmed before it happens rather than reported
-					// afterwards.
-					this.confirm_layout_freeze(page).then((go_ahead) => {
-						if (!go_ahead) return;
-						this.clear_page_actions();
-						this.body.removeClass("edit-mode");
-						$("#full-search-button").removeClass("hidden");
-						this.save_page(page).then((saved) => {
-							if (!saved) return;
-							this.undo.readOnly = true;
-							this.editor.readOnly.toggle();
-							this.is_read_only = true;
-						});
+					this.clear_page_actions();
+					this.body.removeClass("edit-mode");
+					$("#full-search-button").removeClass("hidden");
+					this.save_page(page).then((saved) => {
+						if (!saved) return;
+						this.undo.readOnly = true;
+						this.editor.readOnly.toggle();
+						this.is_read_only = true;
 					});
 				},
 				null,
@@ -1065,28 +1073,6 @@ frappe.views.Workspace = class Workspace {
 		}
 		$(this.workspace_actions_button).remove();
 		this.add_workspace_controls = false;
-	}
-
-	// A standard workspace's layout is stored as a snapshot, so saving one stops the app's later
-	// layout changes from reaching this site, while its roles, icon and visibility keep updating,
-	// because those are stored as a diff. Warn at the point the user causes it, and only the first
-	// time: once the snapshot exists there is nothing left to warn about.
-	confirm_layout_freeze(page) {
-		const freezes = page.standard && !page.is_layout_customized && !frappe.boot.developer_mode;
-		if (!freezes) return Promise.resolve(true);
-
-		return new Promise((resolve) => {
-			frappe.confirm(
-				__(
-					"<b>{0}</b> is shipped by its app. Saving this layout keeps your arrangement, and the app's later changes to this page's layout will stop showing up here. Its roles, icon and visibility keep following the app either way, and <b>Reset to Standard</b> undoes this.",
-					[__(page.title)]
-				),
-				() => resolve(true),
-				() => resolve(false),
-				__("Save Layout"),
-				__("Cancel")
-			);
-		});
 	}
 
 	make_blocks_sortable() {
@@ -1257,9 +1243,6 @@ frappe.views.Workspace = class Workspace {
 					},
 					callback: function (res) {
 						if (res.message) {
-							// The layout snapshot now exists, so the freeze has already
-							// happened; do not warn about it again before the next save.
-							page.is_layout_customized = 1;
 							me.discard = true;
 							me.reload();
 							if (navigator.webdriver) return;

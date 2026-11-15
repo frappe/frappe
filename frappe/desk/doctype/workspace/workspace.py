@@ -10,6 +10,7 @@ from frappe.desk.desk_views import DeskViews
 from frappe.desk.desktop import get_workspaces
 from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
 from frappe.desk.layouts import with_ids
+from frappe.desk.legacy_widgets import WIDGET_PARENTFIELD
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -851,6 +852,7 @@ def new_page(new_page: dict):
 	# caller still works.
 	doc.module = page.get("module") or first_module_of_app(page.get("app"))
 	doc.hide_custom = 1
+	doc.renderer = page.get("renderer") or doc.renderer
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
@@ -1054,6 +1056,9 @@ def save_page(
 	page = frappe.parse_json(blocks)
 	new_widgets = frappe.parse_json(new_widgets or "{}")
 	validate_blocks_are_set_up(page, new_widgets)
+	if workspace.doc.renderer == "Legacy":
+		save_legacy_page(name, page, new_widgets)
+		return {"name": name, "public": frappe.parse_json(public), "label": workspace.doc.label}
 
 	can_edit = can_edit_workspace(workspace.doc)
 	if page_settings and can_edit:
@@ -1079,6 +1084,59 @@ def save_page(
 		doc.content = dumps(merge(base, [changes]))
 		doc.save()
 	return {"name": name, "public": frappe.parse_json(public), "label": workspace.doc.label}
+
+
+LEGACY_TABLES = {
+	"shortcut": "Workspace Shortcut",
+	"chart": "Workspace Chart",
+	"quick_list": "Workspace Quick List",
+	"number_card": "Workspace Number Card",
+	"custom_block": "Workspace Custom Block",
+}
+
+
+def save_legacy_page(name: str, page: list, new_widgets: dict):
+	"""The old renderer draws only `Workspace.content`, so its editor writes there, with each new
+	block's row in the workspace's own tables. A layout would never show on its page."""
+	doc = frappe.get_doc("Workspace", name)
+	if save_target(doc, None):
+		frappe.throw(_("Switch to the new layout to edit this workspace."), title=_("Old Layout"))
+	doc.content = dumps(page)
+	for block_type, rows in new_widgets.items():
+		if block_type == "card":
+			doc.build_links_table_from_card(rows)
+		elif block_type in LEGACY_TABLES:
+			doc.extend(WIDGET_PARENTFIELD[block_type], [strip_name(row) for row in rows])
+	keep_used_rows(doc, page)
+	doc.save()
+
+
+def strip_name(row: dict) -> dict:
+	return {key: value for key, value in row.items() if key != "name"}
+
+
+def keep_used_rows(doc, page: list):
+	"""Drop the rows no block of `page` names, keeping the last row of each label."""
+	used = defaultdict(set)
+	for block in page:
+		used[block["type"]].add((block.get("data") or {}).get(f"{block['type']}_name"))
+	for block_type in LEGACY_TABLES:
+		rows = {row.label: row for row in doc.get(WIDGET_PARENTFIELD[block_type])}
+		doc.set(
+			WIDGET_PARENTFIELD[block_type], [row for label, row in rows.items() if label in used[block_type]]
+		)
+	doc.set("links", used_card_rows(doc.links, used["card"]))
+
+
+def used_card_rows(rows: list, used: set) -> list:
+	"""`links` rows without the cards no block names: each Card Break and the Links under it."""
+	kept, keep = [], True
+	for row in rows:
+		if row.type == "Card Break":
+			keep = row.label in used
+		if keep:
+			kept.append(row)
+	return kept
 
 
 def apply_widget_edits(page: list, edits: dict) -> list:
