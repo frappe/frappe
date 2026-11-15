@@ -48,7 +48,7 @@ class NumberCard(Document):
 		report_name: DF.Link | None
 		show_full_number: DF.Check
 		show_percentage_stats: DF.Check
-		stats_time_interval: DF.Literal["Daily", "Weekly", "Monthly", "Yearly"]
+		stats_time_interval: DF.Literal["Daily", "Weekly", "Monthly", "Quarterly", "Yearly"]
 		type: DF.Literal["Document Type", "Report", "Custom"]
 	# end: auto-generated types
 
@@ -180,6 +180,11 @@ def get_percentage_difference(
 	if not doc.get("show_percentage_stats"):
 		return
 
+	return percentage_difference(doc, filters, result)
+
+
+def percentage_difference(doc, filters, result: float | int):
+	"""The change from the card's previous period to `result`, in percent."""
 	previous_result = calculate_previous_result(doc, filters)
 	if previous_result == 0:
 		return None
@@ -200,6 +205,8 @@ def calculate_previous_result(doc, filters):
 		previous_date = add_to_date(current_date, weeks=-1)
 	elif doc.stats_time_interval == "Monthly":
 		previous_date = add_to_date(current_date, months=-1)
+	elif doc.stats_time_interval == "Quarterly":
+		previous_date = add_to_date(current_date, months=-3)
 	else:
 		previous_date = add_to_date(current_date, years=-1)
 

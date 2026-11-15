@@ -7,6 +7,7 @@ const STATS_CAPTIONS = {
 	Daily: "since yesterday",
 	Weekly: "since last week",
 	Monthly: "since last month",
+	Quarterly: "since last 3 months",
 	Yearly: "since last year",
 };
 
@@ -72,6 +73,7 @@ const TREND_START = {
 	Daily: (today) => window.frappe.datetime.add_days(today, 1 - TREND_POINTS),
 	Weekly: (today) => window.frappe.datetime.add_days(today, 7 * (1 - TREND_POINTS)),
 	Monthly: (today) => window.frappe.datetime.add_months(today, 1 - TREND_POINTS),
+	Quarterly: (today) => window.frappe.datetime.add_months(today, 3 * (1 - TREND_POINTS)),
 	Yearly: (today) => window.frappe.datetime.add_months(today, 12 * (1 - TREND_POINTS)),
 };
 
@@ -105,7 +107,7 @@ export async function load_trend({ card, filters }) {
 	return values.some((value) => value) ? values : null;
 }
 
-function format_doctype_number(card, number) {
+export function format_doctype_number(card, number) {
 	if (card.function === "Count") return Promise.resolve(number);
 	return new Promise((resolve) =>
 		window.frappe.model.with_doctype(card.document_type, () => {

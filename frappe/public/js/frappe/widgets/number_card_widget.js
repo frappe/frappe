@@ -471,6 +471,7 @@ export default class NumberCardWidget extends Widget {
 			Daily: __("since yesterday"),
 			Weekly: __("since last week"),
 			Monthly: __("since last month"),
+			Quarterly: __("since last 3 months"),
 			Yearly: __("since last year"),
 		}[this.card_doc.stats_time_interval];
 	}

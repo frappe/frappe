@@ -9,6 +9,7 @@ from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules import get_module_path, scrub
 from frappe.modules.export_file import strip_default_fields
+from frappe.utils.data import cast
 
 
 class Widget(Document):
@@ -65,6 +66,8 @@ class Widget(Document):
 		links = []
 		values = dict(config)
 		for field in self.get_fields():
+			if config.get(field.fieldname) is None and field.default is not None:
+				config[field.fieldname] = cast(field.fieldtype, field.default)
 			value = config.get(field.fieldname)
 			if field.fieldtype in ("Link", "Dynamic Link"):
 				config.pop(field.fieldname, None)
@@ -119,10 +122,9 @@ def new_widget_name(label: str, widget_type: str, module: str | None) -> str:
 	return append_number_if_name_exists("Widget", name)
 
 
-def short_filters(filters: list | dict, doctype: str | None) -> list:
-	"""Filter rows as `[field, op, value]`. A row on a child table keeps its doctype."""
+def short_filters(filters: list | dict, doctype: str | None) -> list | dict:
+	"""Filter rows as `[field, op, value]`. A row on a child table keeps its doctype, and a report's
+	filters, a dict, stay as they are."""
 	if isinstance(filters, dict):
-		filters = [
-			[field, *(value if isinstance(value, list) else ["=", value])] for field, value in filters.items()
-		]
+		return filters
 	return [row[1:] if row[0] == doctype else row for row in filters]

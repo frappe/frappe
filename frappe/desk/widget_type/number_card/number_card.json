@@ -1,0 +1,149 @@
+{
+ "creation": "2026-11-15 08:41:20.827205",
+ "docstatus": 0,
+ "doctype": "Widget Type",
+ "fields": [
+  {
+   "default": "Document Type",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_standard_filter": 0,
+   "label": "Type",
+   "options": "Document Type\nReport\nCustom",
+   "reqd": 1
+  },
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 0
+  },
+  {
+   "fieldname": "parent_document_type",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Parent Document Type",
+   "options": "DocType",
+   "reqd": 0
+  },
+  {
+   "default": "Count",
+   "fieldname": "function",
+   "fieldtype": "Select",
+   "in_standard_filter": 0,
+   "label": "Function",
+   "options": "Count\nSum\nAverage\nMinimum\nMaximum",
+   "reqd": 0
+  },
+  {
+   "fieldname": "aggregate_function_based_on",
+   "fieldtype": "Data",
+   "in_standard_filter": 0,
+   "label": "Aggregate Function Based On",
+   "reqd": 0
+  },
+  {
+   "fieldname": "report_name",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Report Name",
+   "options": "Report",
+   "reqd": 0
+  },
+  {
+   "fieldname": "report_field",
+   "fieldtype": "Data",
+   "in_standard_filter": 0,
+   "label": "Field",
+   "reqd": 0
+  },
+  {
+   "fieldname": "report_function",
+   "fieldtype": "Select",
+   "in_standard_filter": 0,
+   "label": "Function",
+   "options": "Sum\nAverage\nMinimum\nMaximum",
+   "reqd": 0
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Data",
+   "in_standard_filter": 0,
+   "label": "Method",
+   "reqd": 0
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "JSON",
+   "in_standard_filter": 1,
+   "label": "Filters",
+   "options": "document_type",
+   "reqd": 0
+  },
+  {
+   "default": "1",
+   "fieldname": "show_percentage_stats",
+   "fieldtype": "Check",
+   "in_standard_filter": 0,
+   "label": "Show Percentage Stats",
+   "reqd": 0
+  },
+  {
+   "default": "Daily",
+   "fieldname": "stats_time_interval",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Stats Time Interval",
+   "options": "Daily\nWeekly\nMonthly\nQuarterly\nYearly",
+   "reqd": 0
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "in_standard_filter": 0,
+   "label": "Color",
+   "reqd": 0
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 0
+  },
+  {
+   "fieldname": "show_full_number",
+   "fieldtype": "Check",
+   "in_standard_filter": 0,
+   "label": "Show Full Number",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2026-11-15 08:41:20.827205",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Number Card",
+ "owner": "Administrator",
+ "sizes": [
+  {
+   "cols": 2,
+   "rows": 2.166666667,
+   "size": "S"
+  },
+  {
+   "cols": 3,
+   "rows": 2.166666667,
+   "size": "M"
+  },
+  {
+   "cols": 6,
+   "rows": 2.166666667,
+   "size": "L"
+  }
+ ],
+ "type_name": "Number Card"
+}

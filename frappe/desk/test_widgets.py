@@ -5,11 +5,13 @@ from unittest.mock import patch
 
 import frappe
 from frappe.desk.desktop import get_workspace
+from frappe.desk.doctype.number_card.number_card import get_result, percentage_difference
 from frappe.desk.test_desktop import make_user, make_workspace
-from frappe.desk.widgets import clear_types_cache
+from frappe.desk.widgets import clear_types_cache, preview, refresh
 from frappe.tests import IntegrationTestCase
 
 READER = "widget-reader@example.com"
+OTHER_READER = "widget-other-reader@example.com"
 
 
 class TestWidgets(IntegrationTestCase):
@@ -20,6 +22,7 @@ class TestWidgets(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.addCleanup(clear_types_cache)
 		make_user(READER, ["Desk User"])
+		make_user(OTHER_READER, ["Desk User"])
 
 	def test_names_are_module_and_label_with_the_type_on_a_clash(self):
 		make_widget_type("WT Other")
@@ -136,6 +139,58 @@ class TestWidgets(IntegrationTestCase):
 		content = read_page([placed.name, shortcut.name], hide_custom=0)["content"]
 		self.assertEqual([b["data"]["widget"] for b in content], [placed.name, shortcut.name])
 
+	def test_a_number_card_shows_what_number_card_works_out(self):
+		card = make_number_card("Open ToDos", stats_time_interval="Monthly")
+		frappe.get_doc({"doctype": "ToDo", "description": "open", "allocated_to": READER}).insert()
+		expected = frappe._dict(card.get_config())
+		rows = [["status", "=", "Open"]]
+
+		data = read_page([card.name])["widgets"]["widget"][card.name]["data"]
+		value = get_result(expected, list(rows))
+
+		self.assertEqual(data["value"], value)
+		self.assertEqual(data["delta"], percentage_difference(expected, list(rows), value))
+		self.assertEqual(data["stats_time_interval"], "Monthly")
+
+	def test_a_reader_picks_their_own_period(self):
+		card = make_number_card("Period")
+		frappe.set_user(READER)
+		mine = refresh([card.name], {card.name: {"stats_time_interval": "Quarterly"}})
+		self.assertEqual(mine[card.name]["data"]["stats_time_interval"], "Quarterly")
+
+		frappe.set_user(OTHER_READER)
+		theirs = read_page([card.name])["widgets"]["widget"][card.name]["data"]
+		self.assertEqual(theirs["stats_time_interval"], "Daily")
+
+	def test_a_reader_may_change_only_the_props_marked_for_it(self):
+		card = make_number_card("Locked")
+		frappe.set_user(READER)
+		self.assertRaises(frappe.PermissionError, refresh, [card.name], {card.name: {"function": "Sum"}})
+		self.assertRaises(
+			frappe.ValidationError, refresh, [card.name], {card.name: {"stats_time_interval": "Hourly"}}
+		)
+
+		frappe.set_user("Administrator")
+		card.hide_filter = 1
+		card.save()
+		frappe.set_user(READER)
+		self.assertRaises(
+			frappe.PermissionError, refresh, [card.name], {card.name: {"stats_time_interval": "Weekly"}}
+		)
+
+	def test_refresh_leaves_out_what_the_reader_may_not_read(self):
+		errors = make_number_card("Errors", document_type="Error Log", filters=[])
+		frappe.set_user(READER)
+		self.assertEqual(refresh([errors.name, "WT No Such Widget"]), {})
+
+	def test_a_draft_preview_needs_write_on_widget(self):
+		config = {"type": "Document Type", "document_type": "ToDo", "function": "Count"}
+		frappe.set_user(READER)
+		self.assertRaises(frappe.PermissionError, preview, "Number Card", config)
+
+		frappe.set_user("Administrator")
+		self.assertIn("value", preview("Number Card", config)["data"])
+
 
 def read_page(names: list[str], hide_custom: int = 1) -> dict:
 	frappe.set_user("Administrator")
@@ -160,6 +215,11 @@ def make_widget(widget_type, label, module=None, **config):
 	return frappe.get_doc(
 		{"doctype": "Widget", "type": widget_type, "label": label, "module": module, "config": config}
 	).insert()
+
+
+def make_number_card(label, **config):
+	values = {"document_type": "ToDo", "function": "Count", "filters": [["ToDo", "status", "=", "Open"]]}
+	return make_widget("Number Card", label, **(values | config))
 
 
 def make_link(link_to, **config):

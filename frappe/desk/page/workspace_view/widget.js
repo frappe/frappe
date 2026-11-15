@@ -3,7 +3,15 @@
 import { computed, inject, ref } from "vue";
 import { provideWidget } from "@framework/ui/widget";
 
-export function provide_widget_state({ widget, data, loading = ref(false), error = ref(null) }) {
+export function provide_widget_state({
+	widget,
+	data,
+	loading = ref(false),
+	error = ref(null),
+	filters = ref({}),
+	setFilters = () => {},
+	refresh = () => {},
+}) {
 	const state = {
 		widget,
 		config: computed(() => widget.value.config || {}),
@@ -12,9 +20,9 @@ export function provide_widget_state({ widget, data, loading = ref(false), error
 		error,
 		size: inject("tile_size", ref("M")),
 		editing: inject("editing", ref(false)),
-		filters: ref({}),
-		setFilters: () => {},
-		refresh: () => {},
+		filters,
+		setFilters,
+		refresh,
 	};
 	provideWidget(state);
 	return state;

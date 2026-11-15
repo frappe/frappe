@@ -20,6 +20,8 @@ from frappe.desk.utils import is_item_allowed
 from frappe.utils.caching import request_cache
 
 TYPES_CACHE_KEY = "widget_types"
+# the most widgets one refresh call works out
+MAX_REFRESH = 50
 LINK_FIELDTYPES = ("Link", "Dynamic Link")
 
 
@@ -47,8 +49,10 @@ class WidgetType:
 
 	def filters(self, reader_filters: dict | None = None, key: str = "filters") -> list:
 		"""The filters prop `key`, replaced by the reader's own when they set one."""
-		rows = frappe.parse_json((reader_filters or {}).get(key) or self.config.get(key) or [])
-		return [[frappe.session.user if value == "@me" else value for value in row] for row in rows]
+		filters = frappe.parse_json((reader_filters or {}).get(key) or self.config.get(key) or [])
+		if isinstance(filters, dict):
+			return filters
+		return [[frappe.session.user if value == "@me" else value for value in row] for row in filters]
 
 	def get_list(self, doctype: str, **kwargs) -> list:
 		return frappe.get_list(doctype, **kwargs)
@@ -61,7 +65,7 @@ class WidgetType:
 		return rows[0]["result"] if rows else 0
 
 	def cached_data(self, filters: dict | None = None):
-		if not self.cache_ttl:
+		if not self.cache_ttl or self.widget.is_new():
 			return self.get_data(filters)
 		key = self.cache_key(filters)
 		hit = frappe.cache.get_value(key, user=frappe.session.user)
@@ -165,6 +169,45 @@ def build_widgets(names, reader_filters: dict | None = None) -> dict:
 def build_widget(name: str, filters: dict | None = None) -> dict | None:
 	widget = get(name)
 	return payload(widget, filters) if widget else None
+
+
+@frappe.whitelist(methods=["POST"])
+def refresh(names: list[str], filters: dict | None = None) -> dict:
+	"""Fresh data for the named widgets, each with the reader's own filters: `{name: {prop: value}}`."""
+	filters = frappe.parse_json(filters) or {}
+	refreshed = {}
+	for name in frappe.parse_json(names)[:MAX_REFRESH]:
+		widget = get(name)
+		if not widget:
+			continue
+		reader = reader_filters(widget, filters.get(name))
+		widget.clear_cached_data(reader)
+		if (fresh := payload(widget, reader)) is not None:
+			refreshed[name] = fresh
+	return refreshed
+
+
+@frappe.whitelist(methods=["POST"])
+def preview(type: str, config: dict, label: str = "") -> dict | None:
+	"""A draft widget the editor has not saved yet, drawn as it would be."""
+	frappe.has_permission("Widget", "write", throw=True)
+	return build_unsaved_widget("preview", type, label, frappe.parse_json(config))
+
+
+def reader_filters(widget: WidgetType, values: dict | None) -> dict | None:
+	"""The reader's own values for the props a reader may change, refused for any other prop."""
+	if not values:
+		return None
+	if widget.widget.hide_filter:
+		frappe.throw(_("This widget's filters cannot be changed."), frappe.PermissionError)
+	fields = {field.fieldname: field for field in widget.widget.get_fields() if field.in_standard_filter}
+	for fieldname, value in values.items():
+		field = fields.get(fieldname)
+		if not field:
+			frappe.throw(_("{0} cannot be changed by a reader.").format(fieldname), frappe.PermissionError)
+		if field.fieldtype == "Select" and value not in (field.options or "").split("\n"):
+			frappe.throw(_("{0} is not an option for {1}.").format(value, _(field.label)))
+	return values
 
 
 def build_unsaved_widget(name: str, widget_type: str, label: str, config: dict) -> dict | None:

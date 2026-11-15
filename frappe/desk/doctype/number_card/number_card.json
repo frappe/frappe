@@ -108,7 +108,7 @@
    "fieldname": "stats_time_interval",
    "fieldtype": "Select",
    "label": "Stats Time Interval",
-   "options": "Daily\nWeekly\nMonthly\nYearly"
+   "options": "Daily\nWeekly\nMonthly\nQuarterly\nYearly"
   },
   {
    "depends_on": "eval: doc.type == 'Document Type'",
@@ -229,8 +229,9 @@
   }
  ],
  "icon": "square-sigma",
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-05-29 19:20:37.543999",
+ "modified": "2026-11-15 08:40:53.388252",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Number Card",
