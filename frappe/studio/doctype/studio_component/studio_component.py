@@ -130,8 +130,10 @@ class StudioComponent(Document):
 	def is_used(self) -> bool:
 		return bool(self.get_users())
 
+	@frappe.whitelist()
 	def get_users(self) -> list[str]:
 		"""Titles of the pages and components that have a block which still means this component."""
+		self.check_permission("read")
 		users = []
 		for component in self.get_referencing_docs("Studio Component", self.component_id):
 			title, block = frappe.db.get_value("Studio Component", component, ["component_name", "block"])
