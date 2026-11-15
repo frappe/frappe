@@ -11,6 +11,10 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 });
 
 frappe.ui.form.on("Print Format", {
+	after_delete: function () {
+		frappe.route_flags.replace_route = true;
+		frappe.set_route("List", "Print Format");
+	},
 	before_save: function (frm) {
 		frm._created_this_save = frm.is_new();
 	},
