@@ -3,12 +3,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref, type App, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
+import { getTranslations } from "@framework/ui/api";
 import { acts } from "@/acts/dispatcher";
+import { loadTranslations } from "@/i18n";
 import EditorCanvas from "../EditorCanvas.vue";
 import EditorPanel from "../EditorPanel.vue";
 import type { LayoutRef } from "../workingLayouts";
 import { mountEditor } from "./editorFixture";
 import { leadNote } from "./layoutsFixture";
+
+vi.mock("@framework/ui/api", async (original) => ({
+	...(await original<object>()),
+	getTranslations: vi.fn().mockResolvedValue({ data: {} }),
+}));
 
 const apps: App[] = [];
 let editor: ReturnType<typeof mountEditor>;
@@ -95,6 +102,18 @@ describe("the meta line", () => {
 	it("names a Custom module once", async () => {
 		const root = await draw(EditorCanvas, { type: "Details" }, false, { module: "Custom" });
 		expect(root.querySelector("[data-editor-meta]")!.textContent).toMatch(/^\s*Custom( · [\d,]+ records?)?\s*$/);
+	});
+
+	it("names it once in a language that renames Custom", async () => {
+		vi.mocked(getTranslations).mockResolvedValue({ data: { Custom: "Benutzerdefiniert" } });
+		await loadTranslations("v1", "de");
+		try {
+			const root = await draw(EditorCanvas, { type: "Details" }, false, { module: "Custom" });
+			expect(root.querySelector("[data-editor-meta]")!.textContent).not.toContain("Benutzerdefiniert");
+		} finally {
+			vi.mocked(getTranslations).mockResolvedValue({ data: {} });
+			await loadTranslations("v2", "en");
+		}
 	});
 });
 
