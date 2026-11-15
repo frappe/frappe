@@ -1723,9 +1723,7 @@ class TestWebFormNewDocType(IntegrationTestCase):
 				**kwargs,
 			}
 		)
-		self.addCleanup(
-			lambda: self.delete_web_form_and_doctype(web_form.name, f"webform-{web_form.name}")
-		)
+		self.addCleanup(lambda: self.delete_web_form_and_doctype(web_form.name, f"webform-{web_form.name}"))
 		return web_form.insert()
 
 	def delete_web_form_and_doctype(self, web_form_name, doctype_name):
@@ -1751,6 +1749,26 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		self.assertEqual(field.label, "First Name")
 		self.assertEqual(field.fieldtype, "Data")
 		self.assertEqual(field.reqd, 1)
+
+	def test_generated_doctype_onload_lists_web_form_managed_fields(self):
+		web_form = self.new_web_form(
+			"Test Web Form Managed Fields",
+			fields=[
+				{"fieldname": "first_name", "label": "First Name", "fieldtype": "Data", "reqd": 1},
+				{"fieldname": "details", "label": "Details", "fieldtype": "Section Break"},
+			],
+		)
+
+		doctype = frappe.get_doc("DocType", web_form.doc_type)
+		doctype.run_method("onload")
+		managed = doctype.get_onload().web_form_managed_fields
+		self.assertEqual(managed["web_form"], web_form.name)
+		self.assertEqual([df["fieldname"] for df in managed["fields"]], ["first_name"])
+		self.assertEqual(managed["fields"][0]["reqd"], 1)
+
+		other = frappe.get_doc("DocType", "Note")
+		other.run_method("onload")
+		self.assertIsNone(other.get_onload().get("web_form_managed_fields"))
 
 	def test_new_doctype_without_module_goes_to_custom(self):
 		web_form = self.new_web_form("Test Web Form No Module", module=None)
@@ -1780,6 +1798,83 @@ class TestWebFormNewDocType(IntegrationTestCase):
 		meta = frappe.get_meta(doctype_name)
 		self.assertTrue(meta.has_field("last_name"))
 		self.assertEqual(meta.get_field("last_name").label, "Last Name")
+
+	def test_sync_fields_to_doctype_updates_label_and_fieldtype(self):
+		web_form = self.new_web_form("Test Web Form Sync Field Change")
+
+		web_form.web_form_fields[0].update({"label": "Given Name", "fieldtype": "Small Text"})
+		web_form.save()
+
+		field = frappe.get_meta(web_form.doc_type).get_field("first_name")
+		self.assertEqual(field.label, "Given Name")
+		self.assertEqual(field.fieldtype, "Small Text")
+
+	def test_sync_fields_to_doctype_updates_other_properties(self):
+		web_form = self.new_web_form("Test Web Form Sync Properties")
+
+		web_form.web_form_fields[0].update({"reqd": 0, "default": "Ada", "description": "As on your ID"})
+		web_form.save()
+
+		field = frappe.get_meta(web_form.doc_type).get_field("first_name")
+		self.assertEqual(field.reqd, 0)
+		self.assertEqual(field.default, "Ada")
+		self.assertEqual(field.description, "As on your ID")
+
+	def test_sync_fields_to_doctype_removes_deleted_field_and_keeps_data(self):
+		web_form = self.new_web_form(
+			"Test Web Form Sync Remove",
+			fields=[
+				{"fieldname": "first_name", "label": "First Name", "fieldtype": "Data"},
+				{"fieldname": "last_name", "label": "Last Name", "fieldtype": "Data"},
+			],
+		)
+		record = frappe.get_doc({"doctype": web_form.doc_type, "last_name": "Lovelace"}).insert()
+
+		web_form.web_form_fields.pop()
+		web_form.save()
+
+		self.assertFalse(frappe.get_meta(web_form.doc_type).has_field("last_name"))
+		self.assertEqual(frappe.db.get_value(web_form.doc_type, record.name, "last_name"), "Lovelace")
+
+	def test_sync_fields_to_doctype_follows_web_form_order(self):
+		web_form = self.new_web_form(
+			"Test Web Form Sync Order",
+			fields=[
+				{"fieldname": "first_name", "label": "First Name", "fieldtype": "Data"},
+				{"label": "More", "fieldtype": "Page Break"},
+				{"fieldname": "last_name", "label": "Last Name", "fieldtype": "Data"},
+			],
+		)
+
+		web_form.web_form_fields.reverse()
+		web_form.save()
+
+		fields = frappe.get_meta(web_form.doc_type).fields
+		self.assertEqual([df.fieldtype for df in fields], ["Data", "Tab Break", "Data"])
+		self.assertEqual([fields[0].fieldname, fields[2].fieldname], ["last_name", "first_name"])
+
+	def test_sync_fields_to_doctype_keeps_fields_added_from_desk(self):
+		web_form = self.new_web_form("Test Web Form Sync Desk Field")
+		doctype = frappe.get_doc("DocType", web_form.doc_type)
+		doctype.append("fields", {"fieldname": "notes", "label": "Notes", "fieldtype": "Small Text"})
+		doctype.save()
+
+		web_form.reload()
+		web_form.append("web_form_fields", {"fieldname": "city", "label": "City", "fieldtype": "Data"})
+		web_form.save()
+
+		fieldnames = [df.fieldname for df in frappe.get_meta(web_form.doc_type).fields]
+		self.assertEqual(fieldnames, ["first_name", "city", "notes"])
+
+	def test_sync_fields_to_doctype_rejects_incompatible_fieldtype(self):
+		web_form = self.new_web_form("Test Web Form Sync Incompatible")
+		frappe.get_doc({"doctype": web_form.doc_type, "first_name": "Faris"}).insert()
+
+		web_form.web_form_fields[0].fieldtype = "Int"
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be converted"):
+			web_form.save()
+
+		self.assertEqual(frappe.get_meta(web_form.doc_type).get_field("first_name").fieldtype, "Data")
 
 	def test_new_doctype_names_fields_added_without_fieldname(self):
 		web_form = self.new_web_form(
@@ -1849,9 +1944,7 @@ class TestWebFormNewDocType(IntegrationTestCase):
 			}
 		)
 		self.addCleanup(
-			lambda: frappe.delete_doc(
-				"Web Form", web_form.name, ignore_permissions=True, force=True
-			)
+			lambda: frappe.delete_doc("Web Form", web_form.name, ignore_permissions=True, force=True)
 			if web_form.name and frappe.db.exists("Web Form", web_form.name)
 			else None
 		)

@@ -22,6 +22,8 @@ frappe.ui.form.on("DocType", {
 				frappe.throw(fields);
 			}
 		}
+
+		return frm.events.confirm_web_form_overwrite(frm);
 	},
 
 	after_save: function (frm) {
@@ -97,11 +99,57 @@ frappe.ui.form.on("DocType", {
 			? __("In Grid View")
 			: __("In List View");
 
+		if (!frm.is_dirty()) {
+			frm.saved_fields = JSON.parse(JSON.stringify(frm.doc.fields || []));
+		}
+
 		frm.cscript.autoname(frm);
 		frm.cscript.set_naming_rule_description(frm);
 		frm.trigger("setup_default_views");
 
 		render_form_builder(frm);
+	},
+
+	confirm_web_form_overwrite(frm) {
+		const managed = frm.doc.__onload?.web_form_managed_fields;
+		const changed = managed && get_fields_overwritten_by_web_form(frm, managed.fields);
+		if (!changed?.length) return;
+
+		return new Promise((resolve) => {
+			let decided = false;
+			const dialog = new frappe.ui.Dialog({
+				title: __("Fields Managed by Web Form"),
+				primary_action_label: __("Save Anyway"),
+				primary_action: () => {
+					decided = true;
+					dialog.hide();
+					resolve();
+				},
+				secondary_action_label: __("Discard"),
+				secondary_action: () => {
+					decided = true;
+					frappe.validated = false;
+					dialog.hide();
+					frm.reload_doc().then(resolve);
+				},
+			});
+			dialog.onhide = () => {
+				if (decided) return;
+				frappe.validated = false;
+				resolve();
+			};
+
+			const web_form_link = `<a href="/desk/web-form/${encodeURIComponent(
+				managed.web_form
+			)}">${frappe.utils.escape_html(managed.web_form)}</a>`;
+			dialog.$body.append(
+				`<p>${__(
+					"Web Form {0} manages these fields: {1}. Saving the Web Form overwrites your changes to them.",
+					[web_form_link, changed.map((f) => frappe.utils.escape_html(f)).join(", ")]
+				)}</p>`
+			);
+			dialog.show();
+		});
 	},
 
 	istable: (frm) => {
@@ -158,6 +206,23 @@ frappe.ui.form.on("DocField", {
 		frm.trigger("setup_default_views");
 	},
 });
+
+function get_fields_overwritten_by_web_form(frm, managed_fields) {
+	const keys = ["label", "fieldtype", "options", "reqd", "default", "description"];
+	const by_fieldname = (fields) =>
+		Object.fromEntries((fields || []).map((df) => [df.fieldname, df]));
+	const differs = (a, b) =>
+		!a || !b ? a !== b : keys.some((key) => (a[key] || null) !== (b[key] || null));
+
+	const current = by_fieldname(frm.doc.fields);
+	const saved = by_fieldname(frm.saved_fields);
+	return managed_fields
+		.filter((managed) => {
+			const df = current[managed.fieldname];
+			return differs(df, managed) && differs(df, saved[managed.fieldname]);
+		})
+		.map((managed) => managed.label || managed.fieldname);
+}
 
 function render_form_builder(frm) {
 	if (frappe.form_builder && frappe.form_builder.doctype === frm.doc.name) {

@@ -207,11 +207,10 @@ class WebForm(WebsiteGenerator):
 		}
 
 	def sync_fields_to_doctype(self):
-		"""Add Web Form Field rows that don't exist yet on the target DocType,
-		so fields can keep being designed from the Web Form itself after the
-		DocType has already been created. Only applies to a DocType that this
-		very Web Form created on the fly - any other DocType (even a Custom
-		one picked manually) keeps the original strict behaviour."""
+		"""Make the target DocType's fields match the Web Form's: add, update, remove
+		and reorder. Fields added to the DocType from Desk are kept at the end.
+		Only applies to a DocType that this very Web Form created on the fly - any
+		other DocType (even a Custom one picked manually) keeps the original strict behaviour."""
 		if not self.created_new_doctype:
 			return
 
@@ -222,14 +221,43 @@ class WebForm(WebsiteGenerator):
 		if not meta.custom:
 			return
 
-		missing_fields = [d for d in self.web_form_fields if d.fieldname and not meta.has_field(d.fieldname)]
-		if not missing_fields:
+		target_doctype = frappe.get_doc("DocType", self.doc_type)
+		before = [field_signature(df) for df in target_doctype.fields]
+
+		# breaks have no fieldname to match on, so they are rebuilt from the Web Form
+		docfields = {
+			df.fieldname: df
+			for df in target_doctype.fields
+			if df.fieldtype not in ("Section Break", "Column Break", "Tab Break")
+		}
+
+		fields = []
+		for d in self.web_form_fields:
+			new = self.as_docfield(d)
+			if docfield := docfields.pop(d.fieldname, None):
+				docfield.update(new)
+				new = docfield
+			fields.append(new)
+
+		removed = self.get_removed_fieldnames()
+		fields += [df for fieldname, df in docfields.items() if fieldname not in removed]
+
+		if [field_signature(df) for df in fields] == before:
 			return
 
-		target_doctype = frappe.get_doc("DocType", self.doc_type)
-		for d in missing_fields:
-			target_doctype.append("fields", self.as_docfield(d))
+		target_doctype.set("fields", fields)
+		for idx, df in enumerate(target_doctype.fields, 1):
+			df.idx = idx
 		target_doctype.save()
+
+	def get_removed_fieldnames(self):
+		"""Fieldnames removed from the Web Form in this save."""
+		before = self.get_doc_before_save()
+		if not before:
+			return set()
+
+		current = {d.fieldname for d in self.web_form_fields}
+		return {d.fieldname for d in before.web_form_fields if d.fieldname and d.fieldname not in current}
 
 	def validate_guest_key_link_fields(self):
 		if not is_guest_key_web_form(self):
@@ -1053,6 +1081,30 @@ def process_link_field(
 def get_web_form_module(doc):
 	if doc.is_standard:
 		return get_doc_module(doc.module, doc.doctype, doc.name)
+
+
+def field_signature(df):
+	"""The DocField properties a Web Form controls. A break's fieldname is random, so it is left out."""
+	keys = ("label", "fieldtype", "options", "reqd", "default", "description")
+	if df.get("fieldtype") not in ("Section Break", "Column Break", "Tab Break"):
+		keys = ("fieldname", *keys)
+	return tuple(df.get(key) or None for key in keys)
+
+
+def get_web_form_managed_fields(doctype):
+	"""The Web Form that created `doctype`, and the fields it overwrites on every save."""
+	web_form = frappe.db.get_value("Web Form", {"doc_type": doctype, "created_new_doctype": 1})
+	if not web_form:
+		return None
+
+	doc = frappe.get_doc("Web Form", web_form)
+	fields = [doc.as_docfield(d) for d in doc.web_form_fields if d.fieldname]
+	return {
+		"web_form": web_form,
+		"fields": [
+			df for df in fields if df["fieldtype"] not in ("Section Break", "Column Break", "Tab Break")
+		],
+	}
 
 
 @frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
