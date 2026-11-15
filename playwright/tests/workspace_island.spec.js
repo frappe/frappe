@@ -8,6 +8,7 @@ const BLOCK = "Playwright Block";
 const BLUE_BLOCK = "Playwright Blue Block";
 const LATE_BLOCK = "Playwright Late Block";
 const LAYOUT_ROLE = "Playwright Layout Role";
+const LAYOUT = "Playwright Role Layout";
 const LAYOUT_USER = "playwright-layout@example.com";
 const SAVE_CHART_CONFIG = "dashboard_settings.save_chart_config";
 
@@ -372,15 +373,14 @@ test.describe("Workspace island", () => {
 
 		await page.goto("/desk/playwright-island");
 		await expect(tile(CARD)).toBeVisible();
-		await page.evaluate(() =>
-			$(frappe.pages["workspace-view"].page.menu)
-				.find(".dropdown-item")
-				.filter((i, item) => item.innerText.trim() === "Edit")
-				.click()
-		);
-		await expect(page).toHaveTitle(/Editing/);
+		await open_editor(page);
 
-		await tile("Playwright ToDos").locator(".ws-pick").dragTo(tile(CARD).locator(".ws-pick"));
+		const from = await settled_box(tile("Playwright ToDos").locator(".ws-pick"));
+		const to = await settled_box(tile(CARD).locator(".ws-pick"));
+		await page.mouse.move(from.x + 10, from.y + 10);
+		await page.mouse.down();
+		await page.mouse.move(to.x + 10, to.y + 10, { steps: 10 });
+		await page.mouse.up();
 		const saved = page.waitForResponse((res) => res.url().includes("save_page"));
 		await page.getByRole("button", { name: "Save" }).click();
 		expect((await saved).ok()).toBeTruthy();
@@ -396,29 +396,23 @@ test.describe("Workspace island", () => {
 		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
 		await open_editor(page);
 
-		await page.getByRole("button", { name: "Add text" }).click();
-		await page.getByLabel("Text", { exact: true }).fill("Added by the editor");
 		const panel = page.locator("aside");
+		await add_block(page, "Text");
+		await panel.getByLabel("Text", { exact: true }).fill("Added by the editor");
 		await panel.getByText("Body", { exact: true }).click();
 		await panel.getByText("M", { exact: true }).click();
 
-		await page.getByRole("button", { name: "Add block" }).click();
-		await page.getByRole("menuitem", { name: "Shortcut" }).click();
-		await page.getByLabel("Label").fill("Added Notes");
-		await panel.getByRole("combobox").nth(1).click();
-		await page.keyboard.type("Note");
-		await page.getByRole("option", { name: /^Note\b(?! Seen)/ }).click();
-
-		const saved = page.waitForResponse((res) => res.url().includes("save_page"));
-		await page.getByRole("button", { name: "Save" }).click();
-		expect((await saved).ok()).toBeTruthy();
+		await add_block(page, "Shortcut");
+		await panel.getByLabel("Label").fill("Added Notes");
+		await pick(page, prop(panel, "Link To"), "Note", /^Note\b(?! Seen)/);
+		await save(page);
 
 		await page.reload();
 		await expect(page.locator(".ws-tile", { hasText: "Added by the editor" })).toBeVisible();
 		await expect(page.locator(".ws-tile", { hasText: "Added Notes" })).toBeVisible();
 	});
 
-	test("an editor sets up a number card in the pane and saves it with the page", async ({
+	test("an editor sets up a number card in the pane and saves it as a widget", async ({
 		page,
 		admin,
 	}) => {
@@ -428,23 +422,13 @@ test.describe("Workspace island", () => {
 		await open_editor(page);
 
 		const panel = page.locator("aside");
-		await panel.getByRole("button", { name: "Number Card" }).click();
-		await expect(page.getByText("Choose what to count")).toBeVisible();
+		await add_block(page, "Number Card");
 		await panel.getByLabel("Label").fill(label);
-		await panel.getByRole("button", { name: "Edit", exact: true }).click();
-		await expect(panel.getByText("Add blocks")).toHaveCount(0);
-		await panel.locator(".field[data-fieldname='document_type'] [data-slot=input]").click();
-		await page.keyboard.type("ToDo");
-		await page.getByRole("option", { name: /^ToDo\b/ }).click();
-		await expect(page.getByText("Choose what to count")).toHaveCount(0);
+		await pick(page, prop(panel, "Document Type"), "ToDo", /^ToDo\b/);
+		await save(page);
 
-		const saved = page.waitForResponse((res) => res.url().includes("save_page"));
-		await page.getByRole("button", { name: "Save" }).click();
-		expect((await saved).ok()).toBeTruthy();
-
-		const card = (await admin.get_doc("Number Card", label)).data;
-		expect(card.document_type).toBe("ToDo");
-		expect(card.function).toBe("Count");
+		const [widget] = (await admin.get_list("Widget", ["type"], [["label", "=", label]])).data;
+		expect(widget.type).toBe("Number Card");
 		await page.reload();
 		await expect(page.locator(".ws-tile", { hasText: label })).toBeVisible();
 	});
@@ -454,9 +438,9 @@ test.describe("Workspace island", () => {
 		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
 		await open_editor(page);
 
-		await page.locator("aside").getByRole("button", { name: "Number Card" }).click();
+		await add_block(page, "Number Card");
 		await page.getByRole("button", { name: "Save" }).click();
-		await expect(page.getByText("Document Type and Function are required")).toBeVisible();
+		await expect(page.getByText("is not set up yet")).toBeVisible();
 		await expect(page).toHaveTitle(/Editing/);
 	});
 
@@ -487,7 +471,7 @@ test.describe("Workspace island", () => {
 		await open_editor(page);
 
 		const panel = page.locator("aside");
-		await panel.getByRole("button", { name: "Custom Block" }).click();
+		await add_block(page, "Custom Block");
 		await panel.getByRole("button", { name: "Edit", exact: true }).click();
 		await panel
 			.locator(".field[data-fieldname='html'] .cm-content")
@@ -509,16 +493,16 @@ test.describe("Workspace island", () => {
 		await open_editor(page);
 
 		const panel = page.locator("aside");
-		await panel.getByRole("button", { name: "Number Card" }).click();
-		await panel.getByLabel("Card", { exact: true }).click();
-		await page.keyboard.type(CARD);
-		await page.getByRole("option", { name: CARD }).first().click();
-		await expect(panel.locator(".field[data-fieldname='function']")).toBeVisible();
+		await add_block(page, "Chart");
+		await panel.getByLabel("Chart", { exact: true }).click();
+		await page.keyboard.type(CHART);
+		await page.getByRole("option", { name: CHART }).first().click();
+		await expect(panel.locator(".field[data-fieldname='chart_type']")).toBeVisible();
 		await expect(panel.getByText("Add blocks")).toHaveCount(0);
 
 		await panel.getByRole("button", { name: "Back" }).click();
 		await expect(panel.getByText("Add blocks")).toBeVisible();
-		await expect(panel.locator(".field[data-fieldname='function']")).toHaveCount(0);
+		await expect(panel.locator(".field[data-fieldname='chart_type']")).toHaveCount(0);
 	});
 
 	test("a card link added in the pane is named after what it opens", async ({ page }) => {
@@ -560,28 +544,35 @@ test.describe("Workspace island", () => {
 		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
 		await open_editor(page);
 
-		await page.locator("aside").getByRole("button", { name: "Onboarding" }).click();
+		await add_block(page, "Onboarding");
 		await page.locator("aside").getByRole("button", { name: "Edit", exact: true }).click();
 		await expect(page.locator("aside .field[data-fieldname='title'] input")).toBeVisible();
 	});
 
-	test("a role layout reaches only people holding the role", async ({ page, desk }) => {
+	test("a new layout is a draft until saved and reaches only those its condition holds for", async ({
+		page,
+		desk,
+		admin,
+	}) => {
 		await page.goto("/desk/playwright-island");
 		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
 		await open_editor(page);
 
-		await page.getByRole("button", { name: "Default" }).click();
-		await page.getByRole("menuitem", { name: "New layout for a role" }).click();
-		const role = page.locator(".modal.show input[data-fieldname='role']");
-		await role.fill(LAYOUT_ROLE);
-		await role.blur();
-		await page.locator(".modal.show").getByRole("button", { name: "Create" }).click();
+		await open_picker(page);
+		await page.getByRole("menuitem", { name: "New layout" }).click();
+		const panel = page.locator("aside");
+		await panel.getByLabel("Name").fill(LAYOUT);
+		await panel.getByLabel("Show when").fill(`"${LAYOUT_ROLE}" in frappe.get_roles()`);
+		const layouts = await admin.get_list(
+			"Workspace Layout",
+			["name"],
+			[["layout_name", "=", LAYOUT]]
+		);
+		expect(layouts.data).toEqual([]);
 
-		await page.getByRole("button", { name: "Add text" }).click();
-		await page.getByLabel("Text", { exact: true }).fill("Only for the role");
-		const saved = page.waitForResponse((res) => res.url().includes("save_page"));
-		await page.getByRole("button", { name: "Save" }).click();
-		expect((await saved).ok()).toBeTruthy();
+		await add_block(page, "Text");
+		await panel.getByLabel("Text", { exact: true }).fill("Only for the role");
+		await save(page);
 
 		await page.goto("/desk/playwright-island");
 		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
@@ -592,22 +583,40 @@ test.describe("Workspace island", () => {
 		await expect(page.getByText("Only for the role")).toBeVisible();
 	});
 
-	test("an editor previews a role layout and deletes it", async ({ page }) => {
+	test("viewing as someone moves the pencil to the layout they get", async ({ page }) => {
 		await page.goto("/desk/playwright-island");
 		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
 		await open_editor(page);
 
-		await page.getByRole("button", { name: "Default" }).click();
-		await page.getByRole("menuitem", { name: `${LAYOUT_ROLE} · Site` }).click();
-		await page.getByRole("button", { name: "Preview" }).click();
-		await expect(page.getByText(`Previewing the ${LAYOUT_ROLE} layout`)).toBeVisible();
+		await page.locator("aside").getByLabel("View as").click();
+		await page.keyboard.type(LAYOUT_USER);
+		await page
+			.getByRole("option", { name: new RegExp(LAYOUT_USER) })
+			.first()
+			.click();
+		await expect(page.getByText("Only for the role")).toBeVisible();
+		await open_picker(page);
+		await expect(page.getByRole("menuitem", { name: new RegExp(LAYOUT) })).toBeVisible();
+	});
+
+	test("an editor resets a layout's changes, then deletes it", async ({ page }) => {
+		await page.goto("/desk/playwright-island");
+		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
+		await open_editor(page);
+
+		await open_picker(page);
+		await page.getByRole("menuitem", { name: new RegExp(LAYOUT) }).click();
 		await expect(page.getByText("Only for the role")).toBeVisible();
 
-		await page.getByRole("button", { name: "Menu", exact: true }).click();
-		await page.getByRole("menuitem", { name: "Delete layout" }).click();
+		await page.getByRole("button", { name: "Reset" }).click();
 		await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
-		await expect(page.getByRole("button", { name: "Default" })).toBeVisible();
 		await expect(page.getByText("Only for the role")).toHaveCount(0);
+		await expect(page.locator("aside").getByLabel("Name")).toHaveValue(LAYOUT);
+
+		await page.locator("aside").getByRole("button", { name: "Delete layout" }).click();
+		await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
+		await open_picker(page);
+		await expect(page.getByRole("menuitem", { name: new RegExp(LAYOUT) })).toHaveCount(0);
 	});
 
 	test("the grid has 12, 6 and 2 columns at desk's breakpoints", async ({ page }) => {
@@ -667,11 +676,48 @@ test.describe("Switching renderer", () => {
 		await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
 		await expect(page).toHaveTitle(/Editing/);
 		await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
-		await page.getByRole("button", { name: "Menu", exact: true }).click();
-		await expect(page.getByRole("menuitem").first()).toBeVisible();
-		await expect(page.getByRole("menuitem", { name: "Switch to old layout" })).toHaveCount(0);
+		await expect(page.getByText("Switch to old layout")).toHaveCount(0);
 	});
 });
+
+// where an element is once the editor pane has finished sliding the grid over
+async function settled_box(locator) {
+	let last = null;
+	for (;;) {
+		const box = await locator.boundingBox();
+		if (last && box.x === last.x && box.y === last.y) return box;
+		last = box;
+		await locator.page().waitForTimeout(100);
+	}
+}
+
+async function add_block(page, type) {
+	await page.locator("aside").getByRole("button", { name: type, exact: true }).click();
+}
+
+// a prop's row in the widget's form, found by its label
+function prop(panel, label) {
+	return panel.locator(`[data-slot=list-row]:has(span[title="${label}"])`);
+}
+
+async function pick(page, row, text, option) {
+	await row.locator("button, input").first().click();
+	await page.keyboard.type(text);
+	await page.getByRole("option", { name: option }).first().click();
+}
+
+async function save(page) {
+	const saved = page.waitForResponse((res) => res.url().includes("save_page"));
+	await page.getByRole("button", { name: "Save" }).click();
+	expect((await saved).ok()).toBeTruthy();
+}
+
+async function open_picker(page) {
+	await page
+		.getByRole("button", { name: /Default|Layout|·/ })
+		.first()
+		.click();
+}
 
 async function open_editor(page) {
 	await page.evaluate(() =>
