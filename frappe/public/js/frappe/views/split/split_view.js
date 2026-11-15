@@ -105,10 +105,8 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	}
 
 	setup_paging_area() {
-		// the next page loads by itself (see SplitPane), so the column has no footer;
-		// ListView still writes its count somewhere
+		// the next page loads by itself (see SplitPane), so the column has no footer
 		this.$paging_area = $("<div></div>");
-		this.$count = $("<span></span>");
 	}
 
 	async setup_view() {
@@ -338,19 +336,18 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	apply_styles_basedon_dropdown() {}
 
 	get_count_element() {
-		return this.$count;
+		return $();
 	}
 
 	render_count() {
 		const request = (this.count_request = (this.count_request || 0) + 1);
 		this.is_count_loading = true;
-		const get_count = this.list_view_settings?.disable_count
-			? Promise.resolve("")
+		const counted = this.list_view_settings?.disable_count
+			? Promise.resolve()
 			: this.get_count_str();
-		get_count.then((count) => {
+		counted.then(() => {
 			if (request !== this.count_request) return;
 			this.is_count_loading = false;
-			this.$count.text(count);
 			this.update_empty_detail();
 			this.detail?.update_position?.();
 		});
