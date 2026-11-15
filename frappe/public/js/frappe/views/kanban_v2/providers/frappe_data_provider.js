@@ -1,5 +1,6 @@
 // Board data provider. Custom providers implement the same methods:
 // loadBoard, loadColumnPage, moveCard, moveCards, moveColumnOrder, onRemoteUpdate.
+// A move the server refused with a message it already showed rejects with error.server_message_shown.
 const KANBAN_METHOD = "frappe.desk.doctype.kanban_board.kanban_board";
 
 export class FrappeDataProvider {
@@ -26,6 +27,16 @@ export class FrappeDataProvider {
 				...args,
 			},
 		});
+	}
+
+	async save(opts) {
+		try {
+			return await frappe.call(opts);
+		} catch (error) {
+			const response = error?.responseJSON;
+			if (response?._server_messages || response?.exc) error.server_message_shown = true;
+			throw error;
+		}
 	}
 
 	expandCards(compressed) {
@@ -114,7 +125,7 @@ export class FrappeDataProvider {
 
 	// Returns the column the server saved, which may differ from toColumn.
 	async moveCard(input) {
-		const r = await frappe.call({
+		const r = await this.save({
 			method: "frappe.client.set_value",
 			args: {
 				doctype: this.config.doctype,
@@ -128,7 +139,7 @@ export class FrappeDataProvider {
 
 	// Returns {failed: names not moved, saved: {name: saved column}}.
 	async moveCards(cardIds, toColumn) {
-		const r = await frappe.call({
+		const r = await this.save({
 			method: "frappe.client.bulk_update",
 			args: {
 				docs: cardIds.map((name) => ({

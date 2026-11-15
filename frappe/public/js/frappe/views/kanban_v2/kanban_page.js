@@ -1206,12 +1206,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 	}
 
-	/** True when the failed request already put the server's message on screen. */
-	has_server_message(error) {
-		const response = error?.responseJSON || error;
-		return Boolean(response?._server_messages || response?.exc || frappe.msg_dialog?.display);
-	}
-
 	/** The title the card shows, or nothing when the card isn't on the board. */
 	get_card_title(card_id) {
 		return this.get_card(card_id)?.[this.title_field] || null;
@@ -1235,8 +1229,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			onCardOpen: (card) => frappe.set_route("Form", this.doctype, card.name),
 			onSelectionChange: opts.onSelectionChange || ((ids) => this.update_selection_bar(ids)),
 			onMoveError: (mv, error) => {
-				// a refusal from the server already showed its own message
-				if (this.has_server_message(error)) return;
+				if (error?.server_message_shown) return;
 				const count = (mv.cardIds || []).length;
 				const title = this.get_card_title(mv.cardId);
 				frappe.ui.toast({
