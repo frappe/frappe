@@ -358,7 +358,7 @@ frappe.views.Workspace = class Workspace {
 
 			parse_content(current_page);
 
-			this.content = current_page.content;
+			this.content = current_page.content && [...current_page.content];
 			this.content && this.add_custom_cards_in_content();
 			this.content && this.add_hidden_notice_in_content(current_page);
 			this.add_mount_notice(current_page);
@@ -388,6 +388,17 @@ frappe.views.Workspace = class Workspace {
 	}
 
 	add_custom_cards_in_content() {
+		if (
+			this.content.some(
+				(item) =>
+					item.type == "card" &&
+					(item.data?.card_name === "Custom Documents" ||
+						item.data?.card_name === "Custom Reports")
+			)
+		) {
+			return;
+		}
+
 		let index = -1;
 		this.content.find((item, i) => {
 			if (item.type == "card") index = i;
