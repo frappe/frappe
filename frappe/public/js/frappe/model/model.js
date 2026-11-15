@@ -911,6 +911,10 @@ $.extend(frappe.model, {
 				default_views.push("Tree");
 			}
 
+			if (meta.allow_split_view) {
+				default_views.push("Split");
+			}
+
 			if (frm.doc.image_field) {
 				default_views.push("Image");
 			}

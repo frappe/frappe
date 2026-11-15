@@ -39,6 +39,13 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			return;
 		}
 
+		// a typed link or a remembered view can name a split the DocType does not allow
+		if (view_name === "Split" && !frappe.get_meta(doctype)?.allow_split_view) {
+			frappe.route_flags.replace_route = true;
+			frappe.set_route("List", doctype, "List");
+			return;
+		}
+
 		let view_class = frappe.views[view_name + "View"];
 		if (!view_class) view_class = frappe.views.ListView;
 
@@ -60,6 +67,10 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 	}
 
 	before_show() {
+		// a split view is one page whatever record it has open, which is the route's last part
+		if (this.route[2] === "Split") {
+			this.page_name = this.route.slice(0, 3).join("/");
+		}
 		if (this.re_route_to_view()) {
 			return false;
 		}

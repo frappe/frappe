@@ -135,6 +135,10 @@ frappe.views.ListViewSelect = class ListViewSelect {
 				condition: frappe.model.can_get_report(this.doctype),
 				action: () => this.set_route("report"),
 			},
+			Split: {
+				condition: this.list_view.meta.allow_split_view,
+				action: () => this.set_route("split"),
+			},
 			Dashboard: {
 				condition: true,
 				action: () => this.set_route("dashboard"),

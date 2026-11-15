@@ -1443,6 +1443,7 @@ frappe.views.view_icon_map = {
 	Image: "image",
 	List: "list",
 	Report: "sheet",
+	Split: "columns-2",
 	Calendar: "calendar",
 	Gantt: "square-chart-gantt",
 	Kanban: "square-kanban",
@@ -1454,6 +1455,7 @@ frappe.views.view_icon_map = {
 frappe.views.get_view_label_map = () => ({
 	List: __("List View"),
 	Report: __("Report View"),
+	Split: __("Split View"),
 	Dashboard: __("Dashboard View"),
 	Gantt: __("Gantt View"),
 	Kanban: __("Kanban View"),
@@ -1468,6 +1470,7 @@ frappe.views.get_view_label_map = () => ({
 frappe.views.view_modes = [
 	"List",
 	"Report",
+	"Split",
 	"Dashboard",
 	"Gantt",
 	"Kanban",

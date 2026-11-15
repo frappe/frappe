@@ -31,6 +31,8 @@ import "./frappe/ui/components/progress.js";
 import "./frappe/ui/components/rating.js";
 import "./frappe/ui/components/stepper.js";
 import "./frappe/ui/components/list.js";
+import "./frappe/ui/components/split_pane.js";
+import "./frappe/ui/components/detail_loader.js";
 import "./frappe/ui/components/empty_state.js";
 import "./frappe/ui/components/panel_header.js";
 import "./frappe/ui/sidebar/sidebar_panel.js";
