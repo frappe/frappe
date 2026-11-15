@@ -71,8 +71,7 @@ function getPropSource(input: StudioComponentInput, defaultSource?: string): str
 	const studio = []
 	// String, Number and Boolean already name their control
 	if (!["text", "number", "checkbox", "code"].includes(input.type)) studio.push(`type: "${input.type}"`)
-	const options = (input.options || "").split("\n").filter((option) => option.trim())
-	if (input.type === "select") studio.push(`options: ${JSON.stringify(options)}`)
+	if (input.type === "select") studio.push(`options: ${JSON.stringify(getOptions(input))}`)
 	if (input.description) studio.push(`description: ${JSON.stringify(input.description)}`)
 	if (studio.length) parts.push(`studio: { ${studio.join(", ")} }`)
 
@@ -84,15 +83,27 @@ function getPropSource(input: StudioComponentInput, defaultSource?: string): str
 function getDefaultLiteral(input: StudioComponentInput): string | undefined {
 	const value = input.default
 	if (value === undefined || value === null || value === "") return undefined
-	if (input.type === "number") return Number.isFinite(Number(value)) ? String(Number(value)) : undefined
-	if (input.type === "checkbox") return String(["true", "1"].includes(String(value)))
+	if (input.type === "number") {
+		if (!Number.isFinite(Number(value))) throw new Error("The default value must be a number.")
+		return String(Number(value))
+	}
+	// Vue gives a Boolean prop without a default the value false
+	if (input.type === "checkbox") return ["true", "1"].includes(String(value)) ? "true" : undefined
+	if (input.type === "select" && !getOptions(input).includes(String(value))) {
+		throw new Error("The default value must be one of the options.")
+	}
 	// Vue calls a factory for each instance, so two instances do not share one object
 	if (input.type === "code") return `() => (${value})`
 	return JSON.stringify(value)
 }
 
+function getOptions(input: StudioComponentInput): string[] {
+	return (input.options || "").split("\n").filter((option) => option.trim())
+}
+
+// The script gives a default as text, and a number or checkbox control gives a number or a boolean.
 function isSameDefault(previous: StudioComponentInput, input: StudioComponentInput): boolean {
-	return (previous.default ?? "") === (input.default ?? "") && previous.type === input.type
+	return String(previous.default ?? "") === String(input.default ?? "") && previous.type === input.type
 }
 
 /** The text of an entry's `default`, so a value that the form cannot show, such as a factory, stays. */

@@ -126,6 +126,7 @@
 								<component
 									:is="editingInput.inputControl"
 									:type="editingInput.inputType"
+									:options="editingInput.type === 'select' ? defaultOptions : undefined"
 									label="Default Value"
 									v-model="editingInput.default"
 								/>
@@ -216,6 +217,10 @@ const draftInput = ref<ComponentInput | null>(null)
 const shownInputs = computed(() =>
 	draftInput.value ? [...componentInputs.value, draftInput.value] : componentInputs.value,
 )
+const defaultOptions = computed(() => {
+	const options = (editingInput.value?.options || "").split("\n").filter((option) => option.trim())
+	return [{ label: "No default", value: "" }, ...options.map((option) => ({ label: option, value: option }))]
+})
 const showEditPopover = ref(false)
 const editingInput = ref<ComponentInput | null>(null)
 const editingIndex = ref<number>(-1)
@@ -274,15 +279,27 @@ const showAddInputPopover = (fieldType: string) => {
 	}, 10) // Small delay to ensure DOM is updated
 }
 
+const DEFAULT_CONTROLS: Record<string, string> = {
+	number: "number",
+	checkbox: "checkbox",
+	textarea: "textarea",
+	select: "select",
+}
+
 const setInputControl = () => {
-	if (!editingInput.value) return
-	if (editingInput.value.type === "code") {
-		editingInput.value.inputControl = markRaw(Code)
-	} else if (editingInput.value.type === "color") {
-		editingInput.value.inputControl = markRaw(ColorInput)
+	const input = editingInput.value
+	if (!input) return
+	// a checkbox holds true or false, and each other control holds text
+	if (input.type === "checkbox") input.default = ["true", "1"].includes(String(input.default))
+	else if (typeof input.default === "boolean") input.default = ""
+
+	if (input.type === "code") {
+		input.inputControl = markRaw(Code)
+	} else if (input.type === "color") {
+		input.inputControl = markRaw(ColorInput)
 	} else {
-		editingInput.value.inputControl = "FormControl"
-		editingInput.value.inputType = editingInput.value?.type === "textarea" ? "textarea" : "text"
+		input.inputControl = "FormControl"
+		input.inputType = DEFAULT_CONTROLS[input.type] ?? "text"
 	}
 }
 
