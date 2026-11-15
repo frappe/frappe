@@ -3,7 +3,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { attempt, get, post } from "../api.js";
 import BlockPanel from "./BlockPanel.vue";
 import PaneSettings from "./PaneSettings.vue";
-import { RECORDS, save_record } from "./records.js";
+import { blank_record, drawn_from_record, record_link, save_record } from "./records.js";
 import {
 	WIDGETS,
 	addable_types,
@@ -89,7 +89,8 @@ function with_items(payload) {
 }
 
 // A Widget whose props change is redrawn as it would be saved.
-const widget_state = (widget) => JSON.stringify([widget.label, widget.config, widget.items]);
+const widget_state = (widget) =>
+	JSON.stringify([widget.label, widget.config, widget.items, widget.record]);
 
 watch(
 	() => [
@@ -114,6 +115,11 @@ function schedule_preview(id) {
 
 async function preview(widget) {
 	const type = widget_types[widget.type];
+	const from_record = drawn_from_record(widget);
+	if (from_record) {
+		widget.data = from_record;
+		return;
+	}
 	if (type.child_type) {
 		const items = widget.items.filter((item) => item.link_to);
 		widget.data = { items: items.map((item) => ({ ...item, name: item.widget })) };
@@ -186,6 +192,8 @@ function insert(block) {
 
 function add_block(type) {
 	const { block, widget } = new_widget(type, widget_types[type], title_of(type));
+	const link = record_link(block, widget);
+	if (link) Object.assign(widget, { record: blank_record(link.type), record_changed: true });
 	widgets.value.widget[block.id] = widget;
 	insert(block);
 }
@@ -209,9 +217,10 @@ async function save() {
 	if (!dirty.value) return emit("done");
 	try {
 		for (const block of blocks.value) {
-			const widget = RECORDS[block.type] && widget_of(block);
-			if (!widget) continue;
-			await save_record(block.type, widget);
+			const widget = widget_of(block);
+			const link = widget && record_link(block, widget);
+			if (!link) continue;
+			await save_record(link, widget);
 			if (block.type === "onboarding") block.data.onboarding_name = widget.name;
 		}
 		const {

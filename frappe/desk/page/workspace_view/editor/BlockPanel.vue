@@ -20,7 +20,7 @@ import {
 	text_size,
 } from "./editor.js";
 import RecordForm from "./RecordForm.vue";
-import { RECORDS, blank_record, can_edit, load_record } from "./records.js";
+import { RECORDS, blank_record, can_edit, load_record, record_link } from "./records.js";
 
 // The selected block's fields, its size and its removal. Every change applies to the canvas live.
 const props = defineProps({
@@ -141,10 +141,13 @@ const height = computed({
 const is_text = computed(() => ["header", "paragraph"].includes(props.block.type));
 const title = computed(() => props.widget_type?.name);
 const presets = computed(() => props.widget_type?.sizes);
-const record_spec = computed(() => RECORDS[props.block.type]);
+// where the block names the record it shows, if it shows one
+const record_at = computed(() => props.widget && record_link(props.block, props.widget));
+const record_type = computed(() => record_at.value?.type);
+const record_spec = computed(() => RECORDS[record_type.value]);
 const record = computed(() => (record_spec.value ? props.widget?.record : null));
-const editable = computed(() => record.value && can_edit(props.block.type, record.value));
-const linked = computed(() => record_spec.value && props.widget?.[record_spec.value.link]);
+const editable = computed(() => record.value && can_edit(record_type.value, record.value));
+const linked = computed(() => record_at.value?.holder[record_at.value.field]);
 const can_create = computed(
 	() => record_spec.value && window.frappe.model.can_create(record_spec.value.doctype)
 );
@@ -158,11 +161,11 @@ const fields = computed(() =>
 );
 
 watch(
-	() => record_spec.value && !props.widget?.record && props.widget?.[record_spec.value.link],
+	() => record_spec.value && !props.widget?.record && linked.value,
 	(name) => {
 		if (!name) return;
 		attempt(async () => {
-			props.widget.record = await load_record(props.block.type, name);
+			props.widget.record = await load_record(record_type.value, name);
 		});
 	},
 	{ immediate: true }
@@ -201,6 +204,12 @@ function link_doctype(field) {
 	return typeof field.link === "function" ? field.link(props.widget) : field.link;
 }
 
+function set_record(name) {
+	const { holder, field } = record_at.value;
+	holder[field] = name;
+	emit("change");
+}
+
 // Picking a record or making one opens its form.
 function pick(name) {
 	if (!name) return;
@@ -209,18 +218,17 @@ function pick(name) {
 	} else if (name !== linked.value) {
 		props.widget.record = null;
 		props.widget.record_changed = false;
-		set({ field: record_spec.value.link }, name);
+		set_record(name);
 	}
 	form_open.value = true;
 }
 
 // A new record is named after the widget, so a typed name becomes its label.
 function create(query) {
-	const { link } = record_spec.value;
-	props.widget[link] = null;
-	props.widget.record = blank_record(props.block.type);
+	set_record(null);
+	props.widget.record = blank_record(record_type.value);
 	props.widget.record_changed = true;
-	if (query && props.block.type === "onboarding") {
+	if (query && record_type.value === "onboarding") {
 		props.widget.record.title = props.widget.title = query;
 	} else if (query) {
 		set({ field: "label" }, query);
@@ -294,12 +302,7 @@ function open_full_form() {
 				}}
 			</p>
 
-			<WidgetFields
-				v-if="block.type === 'widget' && widget && can_edit_widget"
-				:widget="widget"
-				:widget_type="widget_type"
-			/>
-			<template v-else-if="widget && block.type !== 'widget'">
+			<template v-if="widget && (block.type !== 'widget' || can_edit_widget)">
 				<template v-if="form_open">
 					<p
 						v-if="record && (!editable || record.name)"
@@ -318,7 +321,7 @@ function open_full_form() {
 					<div v-if="record" class="col-span-2 min-w-0 [&_pre]:overflow-x-auto">
 						<RecordForm
 							:key="linked || block.id"
-							:type="block.type"
+							:type="record_type"
 							:widget="widget"
 							:locked="!editable"
 							@change="emit('change')"
@@ -335,7 +338,13 @@ function open_full_form() {
 				</template>
 
 				<template v-else>
-					<template v-if="block.type !== 'onboarding'">
+					<WidgetFields
+						v-if="block.type === 'widget'"
+						:widget="widget"
+						:widget_type="widget_type"
+						:skip="record_at?.field"
+					/>
+					<template v-else-if="block.type !== 'onboarding'">
 						<span class="text-sm text-ink-gray-6">{{ __("Label") }}</span>
 						<TextInput
 							:aria-label="__('Label')"

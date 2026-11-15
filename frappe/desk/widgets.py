@@ -47,6 +47,17 @@ class WidgetType:
 	def validate(self):
 		"""Called when the widget is saved, after its config is split into links."""
 
+	def require(self, fieldnames: list[str]):
+		"""Refuse a widget missing any of `fieldnames`, which could never be drawn."""
+		labels = {field.fieldname: _(field.label) for field in self.doc.get_fields()}
+		if missing := [labels.get(name, name) for name in fieldnames if not self.config.get(name)]:
+			frappe.throw(
+				_("{0} is not set up yet. Set {1}, or remove it.").format(
+					frappe.bold(self.doc.label), ", ".join(missing)
+				),
+				title=_("Unfinished Block"),
+			)
+
 	def filters(self, reader_filters: dict | None = None, key: str = "filters") -> list:
 		"""The filters prop `key`, replaced by the reader's own when they set one."""
 		filters = frappe.parse_json((reader_filters or {}).get(key) or self.config.get(key) or [])

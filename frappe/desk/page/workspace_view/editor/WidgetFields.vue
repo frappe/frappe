@@ -13,6 +13,8 @@ import { short_filters } from "../widget.js";
 const props = defineProps({
 	widget: { type: Object, required: true },
 	widget_type: { type: Object, required: true },
+	// a prop the pane draws on its own, as the record it names
+	skip: { type: String, default: null },
 });
 
 const __ = window.__;
@@ -25,7 +27,9 @@ const is_items = (field) => field.fieldtype === "Table";
 const layout = computed(() =>
 	buildLayoutFromMeta(
 		props.widget_type.fields
-			.filter((field) => !is_filter(field) && !is_items(field))
+			.filter(
+				(field) => !is_filter(field) && !is_items(field) && field.fieldname !== props.skip
+			)
 			.map((field) => ({ ...field, label: __(field.label) })),
 		{}
 	).map((tab) => ({

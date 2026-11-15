@@ -181,6 +181,39 @@ export const RECORDS = {
 	},
 };
 
+// Widget Type -> the record type above it shows, the prop naming that record, and what its
+// renderer draws from an unsaved record
+const RECORD_PROPS = {
+	Chart: { type: "chart", field: "chart" },
+	"Custom Block": {
+		type: "custom_block",
+		field: "custom_block",
+		draw: ({ html, style, script }) => ({ html, style, script }),
+	},
+	Onboarding: { type: "onboarding", field: "onboarding" },
+};
+
+// A Widget's data drawn from the record the pane is editing, before either is saved.
+export function drawn_from_record(widget) {
+	const draw = RECORD_PROPS[widget.type]?.draw;
+	return widget.record_changed && draw ? draw(widget.record) : null;
+}
+
+// Where a block names its record: an old block in its widget row, a Widget in its config.
+export function record_link(block, widget) {
+	if (block.type !== "widget") {
+		return (
+			RECORDS[block.type] && {
+				type: block.type,
+				holder: widget,
+				field: RECORDS[block.type].link,
+			}
+		);
+	}
+	const prop = RECORD_PROPS[widget.type];
+	return prop && { type: prop.type, holder: widget.config, field: prop.field };
+}
+
 const copy = (doc) => JSON.parse(JSON.stringify(doc));
 
 export function blank_record(type) {
@@ -272,16 +305,16 @@ async function name_new(type, record, label) {
 	else record.name = await free_name(doctype, name);
 }
 
-// Writes a widget's edited record and points the widget at it.
-export async function save_record(type, widget) {
+// Writes a widget's edited record and points the block at it.
+export async function save_record({ type, holder, field }, widget) {
 	if (!widget.record_changed) return;
-	const { doctype, link } = RECORDS[type];
+	const { doctype } = RECORDS[type];
 	const doc = { doctype, ...widget.record };
 	const method = doc.name ? "save" : "insert";
 	if (!doc.name) await name_new(type, doc, doc.title || widget.label);
 	const saved = await post(`frappe.client.${method}`, { doc });
 	window.frappe.model.sync(copy(saved));
-	widget[link] = saved.name;
+	holder[field] = saved.name;
 	widget.record = saved;
 	widget.record_changed = false;
 }
