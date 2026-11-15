@@ -8,7 +8,7 @@ from frappe.printing.doctype.print_format.print_designer_converter import (
 	converted_values,
 	editor_copy,
 	editor_copy_name,
-	is_print_designer_format,
+	get_print_designer_format,
 	print_format_usage,
 )
 from frappe.printing.doctype.print_format.print_format import printable_sample
@@ -85,9 +85,7 @@ def preview_conversion(print_format: str, name: str | None = None) -> None:
 	from frappe.utils.print_format_generator import download_builder_preview_pdf
 
 	frappe.only_for("System Manager")
-	doc = frappe.get_doc("Print Format", print_format)
-	if not is_print_designer_format(doc):
-		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
+	doc = get_print_designer_format(print_format)
 	converted = doc.as_dict()
 	converted.update(converted_values(doc)[0], name=None)
 	download_builder_preview_pdf(converted, doc.doc_type, name)
@@ -98,9 +96,7 @@ def preview_print_designer(print_format: str, name: str) -> None:
 	from frappe.utils.print_format import download_pdf
 
 	frappe.only_for("System Manager")
-	doc = frappe.get_doc("Print Format", print_format)
-	if not is_print_designer_format(doc):
-		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
+	doc = get_print_designer_format(print_format)
 
 	def last_error():
 		return frappe.get_all(
