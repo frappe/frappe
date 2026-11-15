@@ -18,7 +18,7 @@
 				<Draggable
 					:model-value="[]"
 					item-key="name"
-					:group="{ name: 'canvas-fields', pull: false, put: canvas.editable }"
+					:group="{ name: 'canvas-fields', pull: false, put: canvas.editable ? ['canvas-fields'] : false }"
 					:sort="false"
 					class="canvas-tab-drop -mb-px flex shrink-0 rounded-t-4"
 					ghost-class="canvas-drop-line"
