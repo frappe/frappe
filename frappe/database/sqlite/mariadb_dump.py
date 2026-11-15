@@ -53,6 +53,9 @@ CATALOG_DISPLAY_WIDTHS = {
 TEXT_INDEX_PREFIX = 140
 MAX_STATEMENT_BYTES = 1024 * 1024
 MAX_REPORTED_PROBLEMS = 25
+RESTORE_SQL_MODE = (
+	"STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_AUTO_VALUE_ON_ZERO"
+)
 TABLE_OPTIONS = "ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
 
 
@@ -424,7 +427,8 @@ class MariaDBDumpWriter:
 	def write(self, path, header: str):
 		with self.snapshot() as connection, gzip.open(path, "wt", encoding="utf-8") as dump:
 			dump.write(header)
-			dump.write("SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\nSET AUTOCOMMIT=0;\n\n")
+			dump.write(f"SET NAMES utf8mb4;\nSET SESSION sql_mode='{RESTORE_SQL_MODE}';\n")
+			dump.write("SET FOREIGN_KEY_CHECKS=0;\nSET AUTOCOMMIT=0;\n\n")
 			for table in self.get_tables(connection):
 				self.write_table(connection, dump, table)
 			self.write_sequences(connection, dump)
