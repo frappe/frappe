@@ -368,6 +368,9 @@ frappe.router = {
 			if (default_view === "Report" && !frappe.model.can_get_report(doctype_route.doctype)) {
 				default_view = null;
 			}
+			if (default_view === "Split" && !meta.allow_split_view) {
+				default_view = null;
+			}
 			if (route[1] && route[1] === "view" && route[2]) {
 				route = this.get_standard_route_for_list(
 					route,

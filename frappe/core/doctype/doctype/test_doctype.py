@@ -54,6 +54,13 @@ class TestDocType(IntegrationTestCase):
 			doc = new_doctype(name).insert()
 			doc.delete()
 
+	def test_default_view_split_needs_allow_split_view(self):
+		self.assertRaises(frappe.ValidationError, new_doctype(default_view="Split").insert)
+
+		doc = new_doctype(default_view="Split", allow_split_view=1).insert()
+		self.assertEqual(frappe.get_meta(doc.name).default_view, "Split")
+		doc.delete()
+
 	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
 	def test_validate_name_fits_postgres_identifier(self):
 		self.assertRaises(frappe.NameError, new_doctype("Test " + "x" * 56).insert)
