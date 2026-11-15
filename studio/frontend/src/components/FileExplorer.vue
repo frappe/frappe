@@ -367,8 +367,8 @@ const runtimeScriptError = computed(() => {
 	return isEditingActivePageScript.value ? pageScope.pageScriptError : null
 })
 
-// the app doc exports to <scrub(app)>.json at the studio root
-const appJsonPath = computed(() => `${scrub(app.value?.name ?? "")}.json`)
+// the app doc exports to <folder name>.json at the studio root
+const appJsonPath = computed(() => `${app.value?.folder_name ?? ""}.json`)
 const isExportDocFile = (path: string) =>
 	path.toLowerCase().endsWith(".json") &&
 	(path.startsWith("studio_page/") || path.startsWith("studio_components/") || path === appJsonPath.value)
@@ -789,7 +789,7 @@ async function onStudioFilesChanged() {
 // unsaved changes here — then save()'s hash check guards the conflict instead.
 async function onStudioFileChanged({ path }: { path: string }) {
 	if (!openFile.value || dirty.value) return
-	if (path !== `${location.value.studio_app}/${openFile.value.path}`) return
+	if (path !== `${app.value?.folder_name}/${openFile.value.path}`) return
 	try {
 		const file = await readStudioFile(location.value, openFile.value.path)
 		openFile.value.hash = file.hash
@@ -808,7 +808,7 @@ async function onAppFileChange(info: { doctype: string; name: string; studio_app
 	if (info.studio_app !== location.value.studio_app) return
 	await onStudioFilesChanged()
 	if (openFile.value && info.name === openFile.value.path) {
-		await onStudioFileChanged({ path: `${info.studio_app}/${info.name}` })
+		await onStudioFileChanged({ path: `${app.value?.folder_name}/${info.name}` })
 	}
 }
 
