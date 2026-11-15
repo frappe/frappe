@@ -1,6 +1,7 @@
 import contextlib
 import gzip
 import hashlib
+import json
 import math
 import re
 import sqlite3
@@ -443,6 +444,8 @@ class MariaDBDumpWriter:
 	def snapshot(self):
 		connection = sqlite3.connect(f"file:{self.database_path}?mode=ro", uri=True, timeout=15)
 		connection.text_factory = str
+		connection.create_function("mariadb_collation_key", 1, collation_key, deterministic=True)
+		connection.execute("PRAGMA temp_store = FILE")
 		try:
 			connection.execute("BEGIN")
 			connection.execute("SELECT count(*) FROM sqlite_master").fetchone()
@@ -620,12 +623,9 @@ class MariaDBDumpWriter:
 		if not columns:
 			return
 		target_columns = [shape.columns[column] for column in columns]
-		keys = [
-			(key, [columns.index(column) for column in key])
-			for key in shape.distinct_keys
-			if set(key) <= set(columns)
-		]
-		seen_keys = [{} for _ in keys]
+		for key in shape.distinct_keys:
+			if set(key) <= set(columns):
+				self.check_key(connection, table, key)
 		prefix = (
 			f"INSERT INTO {quote_identifier(table)} ({', '.join(map(quote_identifier, columns))}) VALUES\n"
 		)
@@ -635,7 +635,6 @@ class MariaDBDumpWriter:
 		batch, batch_bytes = [], 0
 		while rows := cursor.fetchmany(1000):
 			for row in rows:
-				self.check_keys(table, keys, seen_keys, row)
 				values = (
 					"("
 					+ ",".join(
@@ -653,18 +652,26 @@ class MariaDBDumpWriter:
 			dump.write(prefix + ",\n".join(batch) + ";\n")
 		dump.write("\n")
 
-	def check_keys(self, table: str, keys, seen_keys, row):
-		for (key, positions), seen in zip(keys, seen_keys, strict=True):
-			values = tuple(row[position] for position in positions)
-			if None in values:
-				continue
-			collated = tuple(collation_key(value) for value in values)
-			if (first := seen.setdefault(collated, values)) != values:
-				self.add_problem(
-					_(
-						"{0}: {1} values {2} and {3} are equal under MariaDB's case- and accent-insensitive collation"
-					).format(table, "/".join(key), first, values)
-				)
+	def check_key(self, connection, table: str, key: tuple[str, ...]):
+		"""Report values of `key` that differ in SQLite but are equal under MariaDB's collation.
+
+		The grouping runs in SQLite, which spills to temporary files, so memory stays bounded for large tables.
+		"""
+		columns = ", ".join(map(quote_sqlite_identifier, key))
+		collated = ", ".join(f"mariadb_collation_key({quote_sqlite_identifier(column)})" for column in key)
+		not_null = " AND ".join(f"{quote_sqlite_identifier(column)} IS NOT NULL" for column in key)
+		collisions = connection.execute(
+			f"SELECT json_group_array(json_array({columns})) FROM "
+			f"(SELECT DISTINCT {columns} FROM {quote_sqlite_identifier(table)} WHERE {not_null}) "
+			f"GROUP BY {collated} HAVING count(*) > 1 LIMIT {MAX_REPORTED_PROBLEMS}"
+		)
+		for (values,) in collisions:
+			first, second = (tuple(value) for value in json.loads(values)[:2])
+			self.add_problem(
+				_(
+					"{0}: {1} values {2} and {3} are equal under MariaDB's case- and accent-insensitive collation"
+				).format(table, "/".join(key), first, second)
+			)
 
 	def literal(self, table: str, row, value, column: Column) -> str:
 		value = self.coerce(table, row, value, column)
