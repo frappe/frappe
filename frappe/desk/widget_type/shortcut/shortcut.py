@@ -1,4 +1,5 @@
 import frappe
+from frappe import _
 from frappe.desk.widget_type.link.link import Link
 
 
@@ -9,6 +10,11 @@ class Shortcut(Link):
 
 	def has_permission(self, user=None) -> bool:
 		return self.link_type == "URL" or super().has_permission(user)
+
+	def validate(self):
+		url = self.config.get("url") or ""
+		if self.link_type == "URL" and not url.startswith(("https://", "http://", "/")):
+			frappe.throw(_("A shortcut's URL must start with https://, http:// or /."))
 
 	def get_data(self, filters=None):
 		domain = self.config.get("restrict_to_domain")

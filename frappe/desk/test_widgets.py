@@ -260,9 +260,14 @@ def make_shortcut(label, module=None, **config):
 
 
 def make_widget(widget_type, label, module=None, **config):
-	return frappe.get_doc(
-		{"doctype": "Widget", "type": widget_type, "label": label, "module": module, "config": config}
-	).insert()
+	doc = {"doctype": "Widget", "type": widget_type, "label": label, "module": module, "config": config}
+	return insert_as_app(frappe.get_doc(doc), module)
+
+
+def insert_as_app(doc, module):
+	"""An app's record arrives with the app's files; outside developer mode that is an import."""
+	with patch.dict(frappe.flags, {"in_import": bool(module) and not frappe.conf.developer_mode}):
+		return doc.insert()
 
 
 def make_number_card(label, **config):

@@ -34,6 +34,11 @@ class Widget(Document):
 		self.name = new_widget_name(self.label, self.type, self.module)
 
 	def before_validate(self):
+		# an app's widget comes from its files, or from a developer saving one there
+		if self.module and not (
+			frappe.conf.developer_mode or frappe.flags.in_import or frappe.flags.in_install
+		):
+			self.module = None
 		links = {row.fieldname: row.link_name for row in self.links}
 		self.split_config(links | frappe.parse_json(self.config or "{}"))
 		# Frappe checked links before this filled them
@@ -107,7 +112,7 @@ def clear_pages_cache():
 	"""A merged page holds the items of the cards a layout reaches into."""
 	from frappe.desk.layouts import PAGES_KEY
 
-	frappe.cache.delete_value(PAGES_KEY)
+	frappe.cache.delete_keys(f"{PAGES_KEY}|")
 
 
 def new_widget_name(label: str, widget_type: str, module: str | None) -> str:

@@ -65,7 +65,7 @@ class WidgetType:
 		return rows[0]["result"] if rows else 0
 
 	def cached_data(self, filters: dict | None = None):
-		if not self.cache_ttl or self.doc.is_new():
+		if not self.cache_ttl or self.doc.flags.no_cache:
 			return self.get_data(filters)
 		key = self.cache_key(filters)
 		hit = frappe.cache.get_value(key, user=frappe.session.user)
@@ -202,7 +202,7 @@ def refresh(names: list[str], filters: dict | None = None) -> dict:
 def preview(type: str, config: dict, label: str = "") -> dict | None:
 	"""A draft widget the editor has not saved yet, drawn as it would be."""
 	frappe.has_permission("Widget", "write", throw=True)
-	return build_unsaved_widget("preview", type, label, frappe.parse_json(config))
+	return build_unsaved_widget("preview", type, label, frappe.parse_json(config), cache=False)
 
 
 def reader_filters(widget: WidgetType, values: dict | None) -> dict | None:
@@ -221,10 +221,14 @@ def reader_filters(widget: WidgetType, values: dict | None) -> dict | None:
 	return values
 
 
-def build_unsaved_widget(name: str, widget_type: str, label: str, config: dict) -> dict | None:
-	"""The payload of a widget generated for the page, which has no record."""
+def build_unsaved_widget(
+	name: str, widget_type: str, label: str, config: dict, cache: bool = True
+) -> dict | None:
+	"""The payload of a widget the page generates, which has no record. A draft's config changes
+	with each preview, so it is never cached."""
 	doc = frappe.new_doc("Widget", type=widget_type, label=label, config=frappe.as_json(config))
 	doc.name = name
+	doc.flags.no_cache = not cache
 	widget_class = get_type_class(widget_type)
 	return payload(widget_class(doc), None) if widget_class else None
 

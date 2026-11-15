@@ -62,9 +62,11 @@ def with_ids(content: list) -> list:
 
 def merged_content(doc, layouts: list[dict]) -> list:
 	"""The workspace's default with `layouts` applied, shared by every user with the same set."""
-	key = "|".join([doc.name, short_hash(doc.content or ""), *(layout["name"] for layout in layouts)])
+	key = "|".join([short_hash(doc.content or ""), *(layout["name"] for layout in layouts)])
 	return frappe.cache.hget(
-		PAGES_KEY, key, lambda: merge(loads(doc.content or "[]"), [layout["changes"] for layout in layouts])
+		pages_key(doc.name),
+		key,
+		lambda: merge(loads(doc.content or "[]"), [layout["changes"] for layout in layouts]),
 	)
 
 
@@ -133,14 +135,23 @@ def strength(layout: dict, owner: str | None) -> tuple:
 	)
 
 
-def clear_caches(workspace: str | None = None, user: str | None = None, all_users: bool = False):
+def pages_key(workspace: str) -> str:
+	"""The merged pages of one workspace, so a save forgets only that workspace's."""
+	return f"{PAGES_KEY}|{workspace}"
+
+
+def clear_caches(
+	workspace: str | None = None, user: str | None = None, all_users: bool = False, conditions: bool = True
+):
 	if workspace:
 		frappe.cache.hdel(LAYOUTS_KEY, workspace)
+		frappe.cache.delete_value(pages_key(workspace))
 	if all_users:
 		frappe.cache.delete_value(USER_LAYOUTS_KEY)
 	elif user:
 		frappe.cache.hdel(USER_LAYOUTS_KEY, user)
-	frappe.cache.delete_value([PAGES_KEY, CONDITIONS_KEY])
+	if conditions:
+		frappe.cache.delete_value(CONDITIONS_KEY)
 
 
 def condition_holds(expression: str | None, user: str | None = None) -> bool:

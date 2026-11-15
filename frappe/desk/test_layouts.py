@@ -15,7 +15,7 @@ from frappe.desk.doctype.workspace.workspace import delete_layout, new_page, res
 from frappe.desk.doctype.workspace_layout.workspace_layout import remove_layouts_without_files
 from frappe.desk.layouts import block_id, item_id
 from frappe.desk.test_desktop import block, make_chart, make_named, make_user, make_workspace
-from frappe.desk.test_widgets import make_card, make_custom_block, make_link, make_shortcut
+from frappe.desk.test_widgets import insert_as_app, make_card, make_custom_block, make_link, make_shortcut
 from frappe.patches.v17_0.make_custom_workspace_copies_layouts import execute
 from frappe.tests import IntegrationTestCase
 from frappe.utils.logging import get_log_db
@@ -124,7 +124,7 @@ class TestLayouts(IntegrationTestCase):
 		self.assertEqual(shown(MANAGER), [])
 
 	def test_saving_a_layout_clears_the_conditions_it_was_read_with(self):
-		layout = make_layout("App", module="Desk", condition="False", hide=[id_of(self.todos)])
+		layout = make_layout("Named", condition="False", hide=[id_of(self.todos)])
 		self.assertEqual(shown(US), ["ToDos", "Notes"])
 
 		layout.condition = "True"
@@ -271,10 +271,10 @@ class TestV16CopiesPatch(IntegrationTestCase):
 		made_up = {"shortcut": [{"type": "DocType", "link_to": "ToDo", "label": "Audit"}]}
 		make_v16_copy(copy, made_up)
 
-		execute()
+		run_patch()
 		self.assertEqual(labels(US), ["My Notes", "Audit", "My ToDos"])
 
-		execute()
+		run_patch()
 		self.assertEqual(frappe.db.count("Workspace Layout", {"workspace": "Layout Page"}), 1)
 
 		app = frappe.get_doc("Workspace", "Layout Page")
@@ -286,7 +286,7 @@ class TestV16CopiesPatch(IntegrationTestCase):
 	def test_a_users_copy_becomes_their_own_layout(self):
 		make_v16_copy([block("shortcut", "My Notes")], {}, user=US)
 
-		execute()
+		run_patch()
 
 		self.assertEqual(labels(US), ["My Notes"])
 		self.assertEqual(labels(INDIA), ["My ToDos", "My Notes"])
@@ -345,7 +345,7 @@ class TestDrafts(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		self.addCleanup(frappe.set_user, "Administrator")
 		make_user(US, ["Desk User"])
-		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		make_user(MANAGER, ["Desk User", "Workspace Manager", "System Manager"])
 		self.todos, self.notes = make_shortcut("ToDos"), make_shortcut("Notes", link_to="Note")
 		frappe.db.delete("Workspace Layout", {"workspace": "Layout Page"})
 		make_workspace(
@@ -504,6 +504,35 @@ class TestReset(IntegrationTestCase):
 		self.assertEqual(shown(US), [])
 
 
+class TestLayoutSafety(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		make_user(US, ["Desk User"])
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		frappe.db.delete("Workspace Layout", {"workspace": "Layout Page"})
+		make_workspace("Layout Page", content=[])
+
+	def test_a_reader_may_keep_only_a_layout_of_their_own(self):
+		frappe.set_user(US)
+		for layout in ({}, {"module": "Desk", "layout_name": "Mine"}, {"user": INDIA}):
+			doc = frappe.get_doc({"doctype": "Workspace Layout", "workspace": "Layout Page", **layout})
+			self.assertRaises(frappe.PermissionError, doc.insert)
+
+	def test_a_layouts_text_is_sanitized(self):
+		heading = {"type": "header", "id": "h1", "data": {"text": "<b>Hi</b><script>alert(1)</script>"}}
+		layout = make_layout(None, add=[{"after": None, "block": heading}])
+		text = frappe.parse_json(layout.changes)["add"][0]["block"]["data"]["text"]
+		self.assertEqual(text, "<b>Hi</b>")
+
+	def test_only_a_system_manager_writes_a_condition(self):
+		frappe.set_user(MANAGER)
+		settings = {"layout_name": "Anyone", "condition": "True"}
+		save_page("Layout Page", 1, {}, dumps([]), layout_settings=settings)
+		self.assertIsNone(frappe.db.get_value("Workspace Layout", {"layout_name": "Anyone"}, "condition"))
+
+
 class TestDeletesAndRenames(IntegrationTestCase):
 	def setUp(self):
 		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
@@ -531,7 +560,7 @@ class TestDeletesAndRenames(IntegrationTestCase):
 		self.assertEqual(shown(US), ["ToDos"])
 
 		for record in records:
-			frappe.get_doc(record).insert()
+			insert_as_app(frappe.get_doc(record), module)
 		self.assertEqual(shown(US), ["GST", "ToDos"])
 
 	def app_records(self, module):
@@ -567,6 +596,11 @@ def make_module(name):
 			{"doctype": "Module Def", "module_name": name, "app_name": "frappe", "custom": 1}
 		).insert()
 	return name
+
+
+def run_patch():
+	with patch.dict(frappe.flags, {"in_patch": True}):
+		execute()
 
 
 def make_v16_copy(content: list, widgets: dict, user: str | None = None):
@@ -612,13 +646,12 @@ def id_of(widget) -> str:
 
 
 def make_layout(layout_name, module=None, condition=None, **changes):
-	return frappe.get_doc(
-		{
-			"doctype": "Workspace Layout",
-			"workspace": "Layout Page",
-			"layout_name": layout_name,
-			"module": module,
-			"condition": condition,
-			"changes": changes,
-		}
-	).insert()
+	doc = {
+		"doctype": "Workspace Layout",
+		"workspace": "Layout Page",
+		"layout_name": layout_name,
+		"module": module,
+		"condition": condition,
+		"changes": changes,
+	}
+	return insert_as_app(frappe.get_doc(doc), module)

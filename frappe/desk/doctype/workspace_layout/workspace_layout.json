@@ -52,7 +52,8 @@
    "fieldname": "condition",
    "fieldtype": "Code",
    "label": "Show When",
-   "options": "Python"
+   "options": "Python",
+   "permlevel": 1
   },
   {
    "fieldname": "changes",
@@ -63,7 +64,7 @@
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-15 20:29:18.470153",
+ "modified": "2026-11-15 20:34:42.625137",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Layout",
@@ -100,6 +101,17 @@
    "read": 1,
    "role": "Desk User",
    "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "Workspace Manager"
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "write": 1,
+   "role": "System Manager"
   }
  ],
  "row_format": "Dynamic",

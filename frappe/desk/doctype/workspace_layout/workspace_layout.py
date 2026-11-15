@@ -36,7 +36,14 @@ class WorkspaceLayout(Document):
 		if self.module:
 			self.name = f"{self.module}-{self.workspace}-{self.layout_name}"
 
+	def before_validate(self):
+		from frappe.desk.doctype.workspace.workspace import sanitize_content
+
+		# a layout carries headings and paragraphs the page draws as HTML, as a workspace's own do
+		self.changes = sanitize_content(frappe.as_json(frappe.parse_json(self.changes or "{}"), indent=None))
+
 	def validate(self):
+		self.validate_owner()
 		if self.module and not self.layout_name:
 			frappe.throw(_("An app's layout needs a name."), title=_("Layout Name"))
 		if self.user and (self.module or self.condition):
@@ -48,6 +55,22 @@ class WorkspaceLayout(Document):
 			and len(frappe.as_json(frappe.parse_json(self.changes or "{}"))) > USER_LAYOUT_MAX_LENGTH
 		):
 			frappe.throw(_("This layout is too large to save. Remove some blocks and try again."))
+
+	def validate_owner(self):
+		"""Anyone may keep a layout of their own. The site's are a Workspace Manager's, and an app's
+		come from its files or a developer."""
+		from frappe.desk.doctype.workspace.workspace import is_workspace_manager
+
+		if frappe.flags.in_import or frappe.flags.in_patch or frappe.flags.in_install:
+			return
+		if self.module and not frappe.conf.developer_mode:
+			frappe.throw(_("An app's layout can be changed only in developer mode."), frappe.PermissionError)
+		if self.user and self.user != frappe.session.user:
+			frappe.throw(_("A layout of your own can only be yours."), frappe.PermissionError)
+		if not self.user and not is_workspace_manager():
+			frappe.throw(
+				_("You need to be Workspace Manager to change the site's layouts."), frappe.PermissionError
+			)
 
 	def validate_name_is_free(self):
 		"""A layout's name picks it out among the layouts its app, or the site, ships for a page."""
@@ -75,7 +98,8 @@ class WorkspaceLayout(Document):
 			frappe.throw(_("Show When is not a Python expression: {0}").format(e.msg), title=_("Show When"))
 
 	def on_update(self):
-		clear_caches(self.workspace, self.user)
+		# a person's own layout has no condition, so everyone else's condition results still hold
+		clear_caches(self.workspace, self.user, conditions=not self.user)
 		if self.is_exported():
 			self.export()
 
@@ -88,8 +112,7 @@ class WorkspaceLayout(Document):
 		return exports_to_app(self.module)
 
 	def file_path(self) -> str:
-		folder = os.path.join(get_module_path(self.module), "workspace", scrub(self.workspace), "layouts")
-		return os.path.join(folder, f"{scrub(self.layout_name)}.json")
+		return layout_file(self.module, self.workspace, self.layout_name)
 
 	def export(self):
 		write_record(self, self.file_path())
@@ -98,11 +121,15 @@ class WorkspaceLayout(Document):
 def remove_layouts_without_files(app: str):
 	"""An app's folder is the whole truth about its layouts: one whose file is gone goes too."""
 	modules = frappe.get_all("Module Def", filters={"app_name": app}, pluck="name")
-	layouts = frappe.get_all("Workspace Layout", filters={"module": ("in", modules)}, pluck="name")
-	for name in layouts:
-		layout = frappe.get_doc("Workspace Layout", name)
-		if not os.path.exists(layout.file_path()):
-			frappe.delete_doc("Workspace Layout", name, ignore_permissions=True)
+	fields = ["name", "module", "workspace", "layout_name"]
+	for layout in frappe.get_all("Workspace Layout", filters={"module": ("in", modules)}, fields=fields):
+		if not os.path.exists(layout_file(layout.module, layout.workspace, layout.layout_name)):
+			frappe.delete_doc("Workspace Layout", layout.name, ignore_permissions=True)
+
+
+def layout_file(module: str, workspace: str, layout_name: str) -> str:
+	folder = os.path.join(get_module_path(module), "workspace", scrub(workspace), "layouts")
+	return os.path.join(folder, f"{scrub(layout_name)}.json")
 
 
 def has_permission(doc, ptype="read", user=None, debug=False):

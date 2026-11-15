@@ -23,7 +23,6 @@ bench_cache_keys = ("assets_json",)
 global_cache_keys = (
 	"app_hooks",
 	"workspace_layouts",
-	"workspace_merged_pages",
 	"installed_apps",
 	"all_apps",
 	"app_modules",
@@ -86,6 +85,7 @@ doctype_cache_keys = (
 
 wildcard_keys = (
 	"document_cache::*",
+	"workspace_merged_pages|*",
 	"table_columns::*",
 	*doctype_map_keys,
 )
