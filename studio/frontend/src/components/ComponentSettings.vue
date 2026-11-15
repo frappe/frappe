@@ -217,7 +217,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, markRaw, computed, watch } from "vue"
+import { ref, markRaw, computed } from "vue"
 import { Combobox, Dropdown, ErrorMessage, Popover, FormControl, Button, Switch, dialog } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
@@ -241,11 +241,8 @@ const canvasStore = useCanvasStore()
 const componentId = computed(() => canvasStore.fragmentData.fragmentId ?? "")
 const componentDoc = computed(() => componentStore.getComponentDoc(componentId.value))
 const isGlobal = computed(() => !componentDoc.value?.studio_app)
-const script = computed(() => componentStore.getComponentScript(componentId.value))
 const scriptError = computed(() => componentStore.componentScriptErrors.get(componentId.value))
 const emits = computed(() => componentStore.getComponentEmits(componentId.value))
-// A scripted component declares its inputs as props, so they follow the script.
-watch(script, () => componentId.value && componentEditorStore.setComponentInputs(componentId.value))
 
 const componentMenu = [
 	{ label: "Rename", icon: "lucide-pencil", onClick: renameComponent },

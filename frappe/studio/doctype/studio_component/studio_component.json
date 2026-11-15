@@ -79,7 +79,7 @@
   }
  ],
  "grid_page_length": 50,
- "link_display_mode": "Search",
+ "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2026-11-15 01:54:41.154833",
  "modified_by": "Administrator",

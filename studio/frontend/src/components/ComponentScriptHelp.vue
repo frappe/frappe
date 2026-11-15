@@ -51,7 +51,7 @@ export default {
 			<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">add()</code>
 			. To choose the control for a prop, add
 			<code class="rounded-4 bg-surface-gray-2 px-1 text-xs">
-				studio: { type: "select", options: ["sm", "md"] }
+				meta: { control: "select", options: ["sm", "md"] }
 			</code>
 			to it.
 		</p>
