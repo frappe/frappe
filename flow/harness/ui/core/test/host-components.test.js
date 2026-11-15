@@ -1488,13 +1488,13 @@ test("a run of tool calls shares one line, the latest calls while it works and w
 	await nextTick()
 	assert.equal(line().textContent, "Reading file a.js, b.js")
 
-	// settled, it lists what the calls did, and left open it holds its turn unfolded
+	// settled, it lists what the calls did and says one failed; left open it holds its turn unfolded
 	applyEvent(conversation, { type: "assistant_message", seq: 7, ts: 15, content: [{ type: "tool_call", ...readB }], stop_reason: "tool_use" })
-	applyEvent(conversation, { type: "tool_result", seq: 8, ts: 16, tool_call_id: "c4", content: "let b" })
+	applyEvent(conversation, { type: "tool_result", seq: 8, ts: 16, tool_call_id: "c4", content: "no such file", is_error: true })
 	applyEvent(conversation, { type: "assistant_message", seq: 9, ts: 17, content: [{ type: "text", text: "Tidy." }], stop_reason: "stop" })
 	applyEvent(conversation, { type: "run_ended", seq: 10, ts: 17, reason: "done" })
 	await nextTick()
-	assert.equal(line().textContent, "Ran commands, Read files")
+	assert.equal(line().textContent, "Ran commands, Read files · 1 failed")
 	assert.equal(line().querySelector(".flow-shimmer"), null)
 	assert.ok(rowButton(el, "List files"))
 	const fold = el.querySelector("[data-turn-fold] button")

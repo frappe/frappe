@@ -14,7 +14,14 @@
 				:class="open ? 'rotate-90' : ''"
 				aria-hidden="true"
 			/>
-			<span class="min-w-0 truncate text-base" :class="sealed ? 'text-ink-gray-6 group-hover:text-ink-gray-8' : 'flow-shimmer'">{{ headline }}</span>
+			<span class="flex min-w-0 items-baseline text-base text-ink-gray-6 group-hover:text-ink-gray-8">
+				<span class="min-w-0 truncate" :class="sealed ? '' : 'flow-shimmer'">{{ headline }}</span>
+				<!-- a finished run says so when calls in it failed, without being opened -->
+				<span v-if="sealed && failures" class="flex-none">
+					<span class="whitespace-pre text-ink-gray-4"> · </span>
+					<span class="text-ink-red-5">{{ failures }} failed</span>
+				</span>
+			</span>
 		</button>
 		<!-- rows sit tight; the block's own padding keeps a run's gap to the text around it
 		     (opened, the line above supplies the top) -->
@@ -36,7 +43,7 @@
 import { computed, inject, nextTick, ref } from "vue"
 
 import { usePanelOpen } from "../panels.js"
-import { compactDisplayText, displayText, stepDoneLabel, stepLiveLabel } from "../transcript.js"
+import { compactDisplayText, displayText, stepDecision, stepDoneLabel, stepLiveLabel } from "../transcript.js"
 import ThoughtStep from "./ThoughtStep.vue"
 import ToolStep from "./ToolStep.vue"
 
@@ -80,6 +87,14 @@ const headline = computed(() => {
 	if (!runningStep.value && WAITS.has(props.liveLabel)) return props.liveLabel
 	return latestCalls() ?? tailLabel.value ?? "Thinking"
 })
+
+// calls that errored or the user refused
+const failures = computed(
+	() =>
+		props.steps.filter(
+			(step) => step.result?.is_error === true || ["denied", "cancelled"].includes(stepDecision(step.result)?.status),
+		).length,
+)
 
 // the latest call, joined with the back-to-back calls of its kind before it: "Reading file a.js, b.js"
 function latestCalls() {
