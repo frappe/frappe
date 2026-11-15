@@ -1,0 +1,44 @@
+{
+ "creation": "2026-11-15 08:48:58.120207",
+ "docstatus": 0,
+ "doctype": "Widget Type",
+ "fields": [
+  {
+   "fieldname": "custom_block",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Custom Block",
+   "options": "Custom HTML Block",
+   "reqd": 1
+  }
+ ],
+ "idx": 0,
+ "modified": "2026-11-15 08:48:58.120207",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Custom Block",
+ "owner": "Administrator",
+ "sizes": [
+  {
+   "cols": 4,
+   "rows": 0.0,
+   "size": "M"
+  },
+  {
+   "cols": 6,
+   "rows": 0.0,
+   "size": "L"
+  },
+  {
+   "cols": 8,
+   "rows": 0.0,
+   "size": "XL"
+  },
+  {
+   "cols": 12,
+   "rows": 0.0,
+   "size": "Wide"
+  }
+ ],
+ "type_name": "Custom Block"
+}

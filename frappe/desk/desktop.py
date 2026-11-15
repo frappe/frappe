@@ -182,28 +182,9 @@ class Workspace(DeskViews):
 		return self.user.allow_modules
 
 	def get_onboarding_doc(self, onboarding):
-		# Check if onboarding is enabled
-		if not frappe.get_system_settings("enable_onboarding"):
-			return None
+		from frappe.desk.widget_type.onboarding.onboarding import open_onboarding
 
-		# a block can outlive the onboarding it names; that hides the block, not the workspace
-		is_complete = frappe.db.get_value("Module Onboarding", onboarding, "is_complete")
-		if is_complete is None or is_complete:
-			return None
-
-		doc = frappe.get_doc("Module Onboarding", onboarding)
-
-		# Check if user is allowed
-		allowed_roles = set(doc.get_allowed_roles())
-		user_roles = set(frappe.get_roles())
-		if not allowed_roles & user_roles:
-			return None
-
-		# Check if already complete
-		if doc.check_completion():
-			return None
-
-		return doc
+		return open_onboarding(onboarding)
 
 	def get_onboardings(self):
 		from frappe.desk.doctype.onboarding_step.onboarding_step import get_step_details

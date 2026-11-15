@@ -8,6 +8,7 @@ import Fold from "./Fold.vue";
 const props = defineProps({
 	widget: { type: Object, required: true },
 });
+const emit = defineEmits(["changed"]);
 
 const frappe = window.frappe;
 const __ = window.__;
@@ -141,11 +142,11 @@ function toggle(step) {
 }
 
 function skip(step) {
-	update_step(step, "is_skipped");
+	update_step(step, "is_skipped").then(() => emit("changed"));
 }
 
 function unskip(step) {
-	update_step(step, "is_skipped", 0);
+	update_step(step, "is_skipped", 0).then(() => emit("changed"));
 }
 
 function status(step) {

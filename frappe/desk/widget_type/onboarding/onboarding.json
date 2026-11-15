@@ -1,0 +1,34 @@
+{
+ "creation": "2026-11-15 08:48:58.124073",
+ "docstatus": 0,
+ "doctype": "Widget Type",
+ "fields": [
+  {
+   "fieldname": "onboarding",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Onboarding",
+   "options": "Module Onboarding",
+   "reqd": 1
+  }
+ ],
+ "idx": 0,
+ "modified": "2026-11-15 08:48:58.124073",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Onboarding",
+ "owner": "Administrator",
+ "sizes": [
+  {
+   "cols": 6,
+   "rows": 0.0,
+   "size": "L"
+  },
+  {
+   "cols": 12,
+   "rows": 0.0,
+   "size": "Wide"
+  }
+ ],
+ "type_name": "Onboarding"
+}

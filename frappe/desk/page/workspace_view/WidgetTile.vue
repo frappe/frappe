@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, toRef, watch } from "vue";
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, toRef, watch } from "vue";
 import Card from "../../widget_type/card/card.vue";
 import NumberCard from "../../widget_type/number_card/number_card.vue";
 import Shortcut from "../../widget_type/shortcut/shortcut.vue";
@@ -16,6 +16,17 @@ const BUILT_IN = {
 	"frappe.widget.shortcut": Shortcut,
 	"frappe.widget.card": Card,
 	"frappe.widget.number_card": NumberCard,
+	// most pages have none of these, so they load on first use
+	"frappe.widget.quick_list": defineAsyncComponent(() =>
+		import("../../widget_type/quick_list/quick_list.vue")
+	),
+	"frappe.widget.chart": defineAsyncComponent(() => import("../../widget_type/chart/chart.vue")),
+	"frappe.widget.custom_block": defineAsyncComponent(() =>
+		import("../../widget_type/custom_block/custom_block.vue")
+	),
+	"frappe.widget.onboarding": defineAsyncComponent(() =>
+		import("../../widget_type/onboarding/onboarding.vue")
+	),
 };
 
 const data = ref(props.widget.data);

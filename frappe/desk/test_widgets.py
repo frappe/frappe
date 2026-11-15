@@ -6,7 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.desktop import get_workspace
 from frappe.desk.doctype.number_card.number_card import get_result, percentage_difference
-from frappe.desk.test_desktop import make_user, make_workspace
+from frappe.desk.test_desktop import make_chart, make_named, make_user, make_workspace
 from frappe.desk.widgets import clear_types_cache, preview, refresh
 from frappe.tests import IntegrationTestCase
 
@@ -191,6 +191,50 @@ class TestWidgets(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		self.assertIn("value", preview("Number Card", config)["data"])
 
+	def test_a_chart_quick_list_or_custom_block_the_reader_may_not_read_is_left_out(self):
+		make_chart("WT Error Chart", "Error Log")
+		make_chart("WT ToDo Chart", "ToDo")
+		readable = make_widget("Chart", "ToDos", chart="WT ToDo Chart")
+		hidden = [
+			make_widget("Chart", "Errors", chart="WT Error Chart"),
+			make_widget("Quick List", "Errors", document_type="Error Log"),
+			make_widget(
+				"Custom Block", "Managers", custom_block=make_custom_block("WT Managers", ["System Manager"])
+			),
+			make_widget("Custom Block", "Mine", custom_block=make_custom_block("WT Mine", private=1)),
+		]
+		frappe.set_user(READER)
+
+		page = read_page([readable.name] + [widget.name for widget in hidden])
+
+		self.assertEqual(list(page["widgets"]["widget"]), [readable.name])
+
+	def test_a_finished_onboarding_is_left_out(self):
+		frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
+		step = make_named(
+			"Onboarding Step", "WT Step", title="WT Step", action="Go to Page", path="/desk/todo"
+		)
+		make_named(
+			"Module Onboarding",
+			"WT Onboarding",
+			title="WT Onboarding",
+			module="Desk",
+			success_message="Done",
+			documentation_url="https://example.com",
+			allow_roles=[{"role": "Desk User"}],
+			steps=[{"step": step.name}],
+		)
+		widget = make_widget("Onboarding", "Get Started", onboarding="WT Onboarding")
+		frappe.set_user(READER)
+		steps = read_page([widget.name])["widgets"]["widget"][widget.name]["data"]["steps"]
+		self.assertEqual([s["name"] for s in steps], [step.name])
+
+		frappe.set_user("Administrator")
+		frappe.db.set_value("Onboarding Step", step.name, "is_complete", 1)
+		widget.save()
+		frappe.set_user(READER)
+		self.assertEqual(read_page([widget.name])["content"], [])
+
 
 def read_page(names: list[str], hide_custom: int = 1) -> dict:
 	frappe.set_user("Administrator")
@@ -220,6 +264,20 @@ def make_widget(widget_type, label, module=None, **config):
 def make_number_card(label, **config):
 	values = {"document_type": "ToDo", "function": "Count", "filters": [["ToDo", "status", "=", "Open"]]}
 	return make_widget("Number Card", label, **(values | config))
+
+
+def make_custom_block(name, roles=(), private=0):
+	frappe.delete_doc_if_exists("Custom HTML Block", name)
+	doc = frappe.get_doc(
+		{
+			"doctype": "Custom HTML Block",
+			"html": "<p>hi</p>",
+			"private": private,
+			"roles": [{"role": role} for role in roles],
+		}
+	)
+	doc.name = name
+	return doc.insert().name
 
 
 def make_link(link_to, **config):

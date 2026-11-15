@@ -1,0 +1,76 @@
+{
+ "creation": "2026-11-15 08:48:57.594282",
+ "docstatus": 0,
+ "doctype": "Widget Type",
+ "fields": [
+  {
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Document Type",
+   "options": "DocType",
+   "reqd": 1
+  },
+  {
+   "fieldname": "filters",
+   "fieldtype": "JSON",
+   "in_standard_filter": 0,
+   "label": "Filters",
+   "options": "document_type",
+   "reqd": 0
+  },
+  {
+   "default": "creation desc",
+   "fieldname": "order_by",
+   "fieldtype": "Data",
+   "in_standard_filter": 0,
+   "label": "Order By",
+   "reqd": 0
+  },
+  {
+   "fieldname": "hide_refresh",
+   "fieldtype": "Check",
+   "in_standard_filter": 0,
+   "label": "Hide Refresh",
+   "reqd": 0
+  },
+  {
+   "fieldname": "hide_new",
+   "fieldtype": "Check",
+   "in_standard_filter": 0,
+   "label": "Hide New",
+   "reqd": 0
+  },
+  {
+   "fieldname": "hide_view_list",
+   "fieldtype": "Check",
+   "in_standard_filter": 0,
+   "label": "Hide View List",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2026-11-15 08:48:57.594282",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Quick List",
+ "owner": "Administrator",
+ "sizes": [
+  {
+   "cols": 4,
+   "rows": 4.0,
+   "size": "M"
+  },
+  {
+   "cols": 6,
+   "rows": 4.0,
+   "size": "L"
+  },
+  {
+   "cols": 8,
+   "rows": 4.0,
+   "size": "XL"
+  }
+ ],
+ "type_name": "Quick List"
+}

@@ -1,0 +1,63 @@
+{
+ "creation": "2026-11-15 08:48:58.114369",
+ "docstatus": 0,
+ "doctype": "Widget Type",
+ "fields": [
+  {
+   "fieldname": "chart",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Chart",
+   "options": "Dashboard Chart",
+   "reqd": 1
+  },
+  {
+   "description": "Blank for the chart's own",
+   "fieldname": "filters",
+   "fieldtype": "JSON",
+   "in_standard_filter": 1,
+   "label": "Filters",
+   "reqd": 0
+  },
+  {
+   "fieldname": "timespan",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Timespan",
+   "options": "\nLast Year\nLast Quarter\nLast Month\nLast Week\nSelect Date Range",
+   "reqd": 0
+  },
+  {
+   "fieldname": "time_interval",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Time Interval",
+   "options": "\nYearly\nQuarterly\nMonthly\nWeekly\nDaily",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2026-11-15 08:49:07.312380",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Chart",
+ "owner": "Administrator",
+ "sizes": [
+  {
+   "cols": 6,
+   "rows": 4.0,
+   "size": "L"
+  },
+  {
+   "cols": 8,
+   "rows": 4.0,
+   "size": "XL"
+  },
+  {
+   "cols": 12,
+   "rows": 4.0,
+   "size": "Wide"
+  }
+ ],
+ "type_name": "Chart"
+}
