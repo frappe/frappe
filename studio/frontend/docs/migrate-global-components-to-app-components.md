@@ -29,12 +29,13 @@ global component contains one of the app's `.vue` components.
    `<frappe_app>/studio/<studio_app>/<studio_app>.json`. The folder name is the
    scrubbed name (`my-app` is in `my_app`), so do not take the name from the
    folder.
-2. In `studio_components/<component_id>.json`, add `studio_app` and change
-   `name`:
+2. In `studio_components/<component_id>.json`, add `studio_app`, change
+   `name`, and set `is_standard`:
 
    ```json
    {
     "component_id": "header",
+    "is_standard": 1,
     "name": "helpdesk/header",
     "studio_app": "helpdesk"
    }
@@ -42,10 +43,49 @@ global component contains one of the app's `.vue` components.
 
    `name` is `<studio_app>/<component_id>`. Do not change `component_id`, the
    file name, or the script file.
+
+   Some exported components do not have `is_standard` yet. Set it on each
+   one, also on a component that stays global. A component without it is
+   handled as one made on the site: a site outside developer mode can change
+   it, and a patch can rewrite it.
 3. Do not change the pages. A block names a component by its `component_id`,
    and the app's own component is used before a global one with the same id.
 4. A component inside a moved component must be available too. Move it to the
    app, or keep it global.
+
+## Move input rows to script props
+
+A component now declares what it accepts as `props` in its script. A component
+JSON that has `inputs` rows and no script file still works, but the editor can
+no longer change the rows. A patch converts the components that were made on
+a site. It cannot convert a component of an exported app, because the JSON
+file is its source. Convert each one in the same change:
+
+1. Create `studio_components/<component_id>.js` beside the JSON, if the
+   component has no script file:
+
+   ```js
+   export default {
+   	props: {
+   		categories: null,
+   		columns: { type: Number, default: 3 },
+   	},
+   }
+   ```
+
+2. Write one prop for each row. Use `String`, `Number`, or `Boolean` when the
+   row's type is text, number, or checkbox. Use `null` when the value can be
+   an array or an object, or when the row's type is not one of these.
+3. A row's `default` is text, and the component gets it as a string. Write it
+   as a string: `default: "md"`. For a number or a checkbox, write the value of
+   that type: `default: 3` or `default: true`. Give an array or object default
+   as a function: `default: () => []`. A default with a `{{ }}` binding has no
+   equal as a prop default: set the value in `setup`, or on each page that
+   uses the component.
+4. Remove the `inputs` key from the component JSON.
+
+Blocks in the component still read a value as `{{ inputs.columns }}`, and
+pages still set it in `componentProps`. Do not change them.
 
 ## Remove the old global component
 

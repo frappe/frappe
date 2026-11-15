@@ -347,8 +347,10 @@ export default {
   `data`, `methods`, and `components`.
 - `setup` gets Vue's arguments, `(props, { emit })`. It does not get the page
   `context`. Import what you need, such as `useRoute` from `vue-router`.
-- The props are the component's inputs. Do not write `inputs` rows for a
-  scripted component. Studio saves them from the props. A prop's optional
+- Declare what a component accepts as `props` in its script. There is no other
+  place: do not write `inputs` rows in the component JSON. A component that
+  only has `inputs` rows is an older one, and Studio still reads them. Write
+  `props` as a plain object, so the editor's form can change it. A prop's optional
   `studio` key sets the editor control (`type`: `text`, `number`, `checkbox`,
   `textarea`, `select`, `code`, or `color`), its `options`, and a
   `description`.
