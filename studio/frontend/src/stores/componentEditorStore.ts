@@ -132,8 +132,10 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 						studioComponents.reload()
 						componentStore.removeCachedComponent(component.component_id)
 					})
-					.catch(() => {
-						toast.error(`Failed to delete component '${component.component_name}'`)
+					.catch((error: any) => {
+						toast.error(`Failed to delete component '${component.component_name}'`, {
+							description: error?.messages?.join(", "),
+						})
 					})
 			}
 		}

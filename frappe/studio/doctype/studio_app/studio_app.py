@@ -251,7 +251,10 @@ class StudioApp(WebsiteGenerator):
 			frappe.delete_doc("Studio Page", page, force=True)
 		frappe.db.delete("Studio App File", {"studio_app": self.name})
 		for component in self.components:
-			frappe.delete_doc("Studio Component", component, force=True)
+			doc = frappe.get_doc("Studio Component", component)
+			# the components of one app can use each other
+			doc.flags.is_app_deleted = True
+			doc.delete(force=True)
 		self.delete_app_build()
 
 		if can_export(self):
