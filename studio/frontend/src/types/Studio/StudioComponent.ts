@@ -16,7 +16,8 @@ export interface StudioComponentInput {
 	input_name: string
 	type: string
 	description?: string
-	default?: string
+	/** Text, or the value of a number or checkbox control in the editor's form. */
+	default?: string | number | boolean
 	required?: number
 	options?: string // For select type
 }
@@ -26,7 +27,7 @@ export interface ComponentInput {
 	input_name: string
 	type: string
 	description?: string
-	default?: string
+	default?: string | number | boolean
 	options?: string // For select type
 	required?: number
 	showPopover?: boolean
