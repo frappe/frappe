@@ -38,7 +38,7 @@ from frappe.database.sqlite.query_parameters import (
 )
 from frappe.database.sqlite.schema import SQLiteTable, quote_identifier
 from frappe.database.utils import FallBackDateTimeStr, convert_backtick_identifiers
-from frappe.utils import get_datetime, get_table_name, now
+from frappe.utils import CallbackManager, get_datetime, get_table_name, now
 
 _TRANSPILABLE_STATEMENTS = (exp.Select, exp.Insert, exp.Update, exp.Delete, exp.Union)
 
@@ -632,7 +632,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		request = getattr(frappe.local, "request", None)
 		return request is not None and request.method not in ("GET", "HEAD", "OPTIONS")
 
-	def begin(self, *, read_only=False):
+	def begin(self, *, read_only=False, defer_writer_lock=False):
 		if read_only or frappe.flags.read_only or self.in_read_only_transaction:
 			if self._conn:
 				self._conn.close()
@@ -647,7 +647,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._read_only_connection = False
 
 		try:
-			immediate = self.is_write_request and not getattr(self, "_read_only_connection", False)
+			immediate = (
+				self.is_write_request
+				and not defer_writer_lock
+				and not getattr(self, "_read_only_connection", False)
+			)
 			self.sql("BEGIN IMMEDIATE" if immediate else "BEGIN")
 		except sqlite3.OperationalError as e:
 			if not self.is_nested_transaction_error(e):
@@ -674,9 +678,24 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.transaction_writes = 0
 		self._invalidate_transactional_schema_cache()
 		self._transaction_has_schema_changes = False
-		self.begin()  # explicitly start a new transaction
+		self.start_next_transaction(self.after_commit)
+
+	def start_next_transaction(self, callbacks: CallbackManager) -> None:
+		"""Begin the next transaction and run `callbacks`, then retake the writer lock for a write request.
+
+		The callbacks run before the lock wait, so a busy writer can not stop them after the transaction settled.
+		"""
+		self.begin(defer_writer_lock=True)
 		self.value_cache.clear()
-		self.run_after_transaction_callbacks(self.after_commit)
+		changes_before_callbacks = self._conn.total_changes
+		self.run_after_transaction_callbacks(callbacks)
+		if (
+			self.is_write_request
+			and not getattr(self, "_read_only_connection", False)
+			and self._conn.total_changes == changes_before_callbacks
+		):
+			self._conn.rollback()
+			self.begin()
 
 	def rollback(self, *, save_point=None, chain=None):
 		"""`ROLLBACK` current transaction. Optionally rollback to a known save_point."""
@@ -695,9 +714,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 			self._conn.rollback()
 			self._invalidate_transactional_schema_cache()
 			self._transaction_has_schema_changes = False
-			self.begin()
-			self.value_cache.clear()
-			self.run_after_transaction_callbacks(self.after_rollback)
+			self.start_next_transaction(self.after_rollback)
 		else:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)
 

@@ -96,6 +96,31 @@ class TestDB(IntegrationTestCase):
 		other.rollback()
 
 	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_write_request_callbacks_run_before_writer_lock_is_retaken(self):
+		previous_request = getattr(frappe.local, "request", None)
+		self.addCleanup(setattr, frappe.local, "request", previous_request)
+		set_request(method="POST", path="/api/method/ping")
+
+		db = get_db(cur_db_name=frappe.conf.db_name)
+		db.connect()
+		self.addCleanup(db.close)
+		other = sqlite3.connect(db.get_db_path(), timeout=0)
+		self.addCleanup(other.close)
+
+		def take_and_release_writer_lock():
+			other.execute("BEGIN IMMEDIATE")
+			other.rollback()
+
+		for end_transaction, callbacks in ((db.commit, db.after_commit), (db.rollback, db.after_rollback)):
+			ran = []
+			callbacks.add(take_and_release_writer_lock)
+			callbacks.add(lambda: ran.append(1))
+			end_transaction()
+			self.assertEqual(ran, [1])
+			with self.assertRaisesRegex(sqlite3.OperationalError, "database is locked"):
+				other.execute("BEGIN IMMEDIATE")
+
+	@run_only_if(db_type_is.SQLITE)
 	def test_sqlite_add_index_accepts_quoted_columns(self):
 		frappe.db.add_index("ToDo", ["`status`", "allocated_to"], "todo_quoted_status_index")
 		self.assertTrue(frappe.db.has_index("tabToDo", "todo_quoted_status_index"))
