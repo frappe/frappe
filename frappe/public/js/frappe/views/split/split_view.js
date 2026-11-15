@@ -212,7 +212,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		const rows = Array.isArray(r.message) ? r.message : r.message?.values || [];
 		// read from the reply, as rows dropped from this.data since must not end the loading
 		this.is_last_page_full = rows.length >= this.page_length;
-		this.is_count_loading = true;
+		if (this.start === 0) this.is_count_loading = true;
 		super.prepare_data(r);
 	}
 
