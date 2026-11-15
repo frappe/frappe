@@ -34,7 +34,14 @@ export class FrappeDataProvider {
 			return await frappe.call(opts);
 		} catch (error) {
 			const response = error?.responseJSON;
-			if (response?._server_messages || response?.exc) error.server_message_shown = true;
+			if (
+				response?._server_messages ||
+				response?.exc ||
+				response?._error_message ||
+				frappe.msg_dialog?.msg_area?.html()
+			) {
+				error.server_message_shown = true;
+			}
 			throw error;
 		}
 	}

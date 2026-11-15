@@ -252,6 +252,31 @@ test.describe("Kanban v2 Board", () => {
 		expect(moves[0].title).toBeTruthy();
 	});
 
+	test("shows one message when the server refuses a move", async ({ page }) => {
+		await visit_kanban_v2(page);
+		await page.route("**/api/method/frappe.client.set_value", (route) =>
+			route.fulfill({
+				status: 403,
+				json: { exc_type: "PermissionError", _error_message: "Not allowed to move" },
+			})
+		);
+
+		const name = await column_cards(page, "Open").first().getAttribute("data-name");
+		const refused = page.waitForResponse(is_post_to("frappe.client.set_value"));
+		await page.evaluate(
+			(name) => cur_list._kanban.board.engine.applyMove(name, "Open", "Closed", 0),
+			name
+		);
+		expect((await refused).status()).toBe(403);
+
+		await expect(page.locator(".msgprint")).toContainText("Not allowed to move");
+		await expect(
+			page.locator(`.kn-column[data-col="Open"] .kn-card[data-name="${name}"]`)
+		).toBeAttached();
+		// applyMove resolves after onMoveError, so a second message would be up by now
+		await expect(page.locator(".es-toast", { hasText: "Could not move" })).toHaveCount(0);
+	});
+
 	test("folds the sidebar while the board shows and unfolds it after", async ({ page }) => {
 		await visit_kanban_v2(page);
 		await expect(page.locator("body")).toHaveClass(/(^|\s)sidebar-collapsed(\s|$)/);
