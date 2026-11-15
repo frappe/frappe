@@ -1,6 +1,12 @@
 <template>
 	<div class="flex select-none flex-col pb-16">
 		<div class="flex flex-col gap-3">
+			<FormControl
+				type="checkbox"
+				label="Global Component"
+				v-model="componentEditorStore.isGlobal"
+				:title="'All apps can use a global component. Uncheck it to keep the component in this app.'"
+			/>
 			<SectionContainer title="Script">
 				<template #actions>
 					<Button

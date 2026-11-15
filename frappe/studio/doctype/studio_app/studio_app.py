@@ -26,13 +26,18 @@ from frappe.studio.files import (
 	write_db_files,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import get_app_file_path, get_export_folder, validate_installed_app, walk_blocks
+from frappe.studio.utils import (
+	IMPORT_RE,
+	get_app_file_path,
+	get_export_folder,
+	validate_installed_app,
+	walk_blocks,
+)
 from frappe.utils import get_files_path, sbool
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.utils import cleanup_page_name
 from frappe.website.website_generator import WebsiteGenerator
 
-IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
 EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
 # Read one of an app's source files by its app-relative path, or None when the app has no such file.
 ReadFile = Callable[[str], str | None]

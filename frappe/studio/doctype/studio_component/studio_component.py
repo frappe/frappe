@@ -8,6 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.studio.export import (
+	SYNC_FLAGS,
 	can_export,
 	delete_file,
 	parse_json,
@@ -19,6 +20,7 @@ from frappe.studio.export import (
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.sync_json import COMPONENT_FOLDER, get_studio_folders
 from frappe.studio.utils import (
+	IMPORT_RE,
 	find_script_file,
 	get_export_folder,
 	get_exported_app_folders,
@@ -74,6 +76,65 @@ class StudioComponent(Document):
 		validate_standard_app_change(self)
 		# the docname holds the id, so the two cannot disagree
 		self.component_id = get_component_id(self.name)
+		if not self.studio_app:
+			self.validate_no_app_dependencies()
+
+	def validate_no_app_dependencies(self):
+		"""A global component renders in every app, and outside an app. So it cannot use the
+		files of one app."""
+		if imports := IMPORT_RE.findall(self.script or ""):
+			frappe.throw(
+				_(
+					'A global component cannot import a file of one app: {0}. Import only libraries such as "vue", or edit the component and uncheck "Global Component".'
+				).format(", ".join(imports)),
+				title=_("Script not saved"),
+			)
+		is_edit = self.has_value_changed("block") and not any(frappe.flags.get(flag) for flag in SYNC_FLAGS)
+		if is_edit and (app_components := get_app_vue_components(self.block)):
+			frappe.msgprint(
+				_(
+					'This global component will not work in other apps. It uses {0} from this app. To keep it local to this app, edit the component and uncheck "Global Component".'
+				).format(", ".join(app_components)),
+				title=_("Global component uses an app's Vue component"),
+				indicator="orange",
+			)
+
+	@frappe.whitelist()
+	def set_app(self, studio_app: str | None = None) -> dict:
+		"""Move a global component to `studio_app`, or make an app's component global when no app
+		is given. The id stays, so the docname changes and the blocks that use it do not.
+
+		A global component stays, beside the app's new one, when another app uses it."""
+		self.check_permission("write")
+		studio_app = studio_app or None
+		if studio_app == (self.studio_app or None):
+			return {"name": self.name, "is_global_kept": False}
+		if studio_app:
+			frappe.has_permission("Studio App", ptype="write", doc=studio_app, throw=True)
+		elif frappe.db.exists("Studio Component", self.component_id):
+			frappe.throw(_("A global component with the ID {0} already exists.").format(self.component_id))
+
+		folders = self.get_export_folders()
+		moved = frappe.copy_doc(self)
+		moved.studio_app = studio_app
+		moved.insert()
+		is_global_kept = bool(studio_app) and self.is_used()
+		if not is_global_kept:
+			# the moved component takes over the files
+			self.flags.keep_files = True
+			self.delete()
+		for folder in folders if not studio_app else moved.get_export_folders():
+			moved.export_to_folder(folder)
+		return {"name": moved.name, "is_global_kept": is_global_kept}
+
+	def is_used(self) -> bool:
+		"""Whether a block of a page or a component still means this component."""
+		trees = []
+		for component in self.get_referencing_docs("Studio Component", self.component_id):
+			trees.append(frappe.db.get_value("Studio Component", component, "block"))
+		for page in self.get_referencing_docs("Studio Page", self.component_id):
+			trees.extend(frappe.db.get_value("Studio Page", page, ["blocks", "draft_blocks"]))
+		return any(self.component_id in extract_component_names(tree) for tree in trees if tree)
 
 	def before_rename(self, old, new, merge=False):
 		"""Renaming the document changes the component's id. The new name can be the id alone."""
@@ -144,7 +205,7 @@ class StudioComponent(Document):
 
 	def on_trash(self):
 		validate_standard_app_change(self)
-		if frappe.conf.developer_mode:
+		if frappe.conf.developer_mode and not self.flags.keep_files:
 			self.delete_files()
 
 	def export_to_folder(self, folder: str):
@@ -213,6 +274,12 @@ def rename_component_in_blocks(blocks, old_id: str, new_id: str) -> bool:
 			block["componentName"] = new_id
 			renamed = True
 	return renamed
+
+
+def get_app_vue_components(blocks) -> list[str]:
+	"""Names of the app `.vue` components that a block tree uses."""
+	names = {block.get("componentName") for block in walk_blocks(blocks) if block.get("isCustomVueComponent")}
+	return sorted(name for name in names if name)
 
 
 def validate_component_id(component_id: str | None):

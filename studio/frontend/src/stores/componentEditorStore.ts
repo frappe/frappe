@@ -16,6 +16,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)
 	const studioComponentBlock = ref<Block | null>(null)
 	const componentInputs = ref<ComponentInput[]>([])
+	// whether the component being edited is available in all apps
+	const isGlobal = ref(false)
 	const componentStore = useComponentStore()
 
 	async function createComponent(componentName: string, block?: Block | null, isGlobal = false) {
@@ -61,9 +63,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		})
 	}
 
-	function saveComponent(block: Block, docname: string) {
+	async function saveComponent(block: Block, componentId: string) {
 		const payload: any = {
-			name: docname,
 			block: getBlockObjectCopy(block),
 		}
 
@@ -76,18 +77,33 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			options: input.options,
 		}))
 
-		return studioComponents.setValue.submit(payload, {
-			onSuccess(data: StudioComponent) {
-				componentStore.cacheComponent(data)
-				resetStudioComponent()
-				toast.success("Component saved")
-			},
-			onError(error: any) {
-				toast.error("Failed to save component", {
-					description: error.messages.join(", "),
-				})
-			},
+		try {
+			// the component's docname changes when it moves between the app and global
+			const moved = await moveComponent(componentStore.getComponentDoc(componentId))
+			const data = await studioComponents.setValue.submit({ ...payload, name: moved.name })
+			// before a message from the server, which shows next and must stay on top
+			toast.success("Component saved", {
+				description: moved.is_global_kept
+					? "Another app uses the global component, so it was kept."
+					: undefined,
+			})
+			await componentStore.cacheComponent(data)
+			studioComponents.reload()
+			resetStudioComponent()
+		} catch (error: any) {
+			toast.error("Failed to save component", { description: error?.messages?.join(", ") })
+		}
+	}
+
+	/** Apply the "Global Component" choice: make the component global, or a component of the open app. */
+	async function moveComponent(componentDoc: StudioComponent) {
+		if (isGlobal.value === !componentDoc.studio_app) return { name: componentDoc.name }
+		const { message } = await studioComponents.runDocMethod.submit({
+			name: componentDoc.name,
+			method: "set_app",
+			studio_app: isGlobal.value ? null : useStudioStore().activeApp?.name,
 		})
+		return message as { name: string; is_global_kept?: boolean }
 	}
 
 	async function editComponent(componentId: string) {
@@ -97,11 +113,12 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		studioComponentBlock.value = getComponentBlock(componentId, true)
 
 		setComponentInputs(componentId)
+		isGlobal.value = !componentDoc.studio_app
 
 		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
 			block,
-			(editedBlock) => saveComponent(editedBlock, componentDoc.name),
+			(editedBlock) => saveComponent(editedBlock, componentId),
 			"Save Component",
 			componentDoc.component_name,
 			componentDoc.component_id,
@@ -200,6 +217,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		promptNewComponent,
 		editComponent,
 		deleteComponent,
+		isGlobal,
 		setComponentInputs,
 		// inputs
 		addComponentInput,
