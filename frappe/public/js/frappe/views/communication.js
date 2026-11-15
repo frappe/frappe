@@ -511,6 +511,8 @@ frappe.views.CommunicationComposer = class {
 				),
 		});
 
+		if (this.frm) return $dropdown;
+
 		// nothing to pick from, so no button
 		$dropdown.addClass("hidden");
 		this.get_email_template_names()
