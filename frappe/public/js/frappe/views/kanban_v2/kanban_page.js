@@ -1155,19 +1155,46 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 	}
 
+	/** True when the failed request already put the server's message on screen. */
+	has_server_message(error) {
+		const response = error?.responseJSON || error;
+		return Boolean(response?._server_messages || response?.exc || frappe.msg_dialog?.display);
+	}
+
+	/** The title the card shows, or nothing when the card isn't on the board. */
+	get_card_title(card_id) {
+		return this.get_card(card_id)?.[this.title_field] || null;
+	}
+
+	get_card(card_id) {
+		const engines = this.board?.boards
+			? this.board.boards.map((entry) => entry.board?.engine)
+			: [this.board?.engine];
+		for (const engine of engines) {
+			const card = engine?.findCard?.(card_id);
+			if (card) return card;
+		}
+		return null;
+	}
+
 	board_options(provider, opts = {}) {
 		const settings = this.settings || {};
 		// settings.callbacks override these; for onSelectionChange both run
 		const base_callbacks = {
 			onCardOpen: (card) => frappe.set_route("Form", this.doctype, card.name),
 			onSelectionChange: opts.onSelectionChange || ((ids) => this.update_selection_bar(ids)),
-			onMoveError: (mv) => {
+			onMoveError: (mv, error) => {
+				// a refusal from the server already showed its own message
+				if (this.has_server_message(error)) return;
 				const count = (mv.cardIds || []).length;
+				const title = this.get_card_title(mv.cardId);
 				frappe.ui.toast({
 					message:
 						count > 1
 							? __("Could not move {0} cards", [count])
-							: __("Could not move {0}", [mv.cardId]),
+							: title
+							? __("Could not move {0}", [title])
+							: __("Could not move the card"),
 					type: "error",
 				});
 			},
