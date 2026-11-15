@@ -462,6 +462,9 @@ class TestSessionEndpoints(ApiCase):
 			api.screen_result(sid, "t4", screen={})
 
 	def test_a_users_chat_preferences_are_kept_and_come_with_boot(self):
+		other = _ensure_user("prefs-other-user@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(_ensure_user("prefs-user@example.com"))
 		self.assertEqual(api.boot()["prefs"], {})
 		api.set_prefs({"mode": "ask", "separateToolCalls": True})
 		# None follows the page's default
@@ -469,6 +472,9 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(api.boot()["prefs"], {"mode": None, "separateToolCalls": True})
 		for bad in ({"mode": "everything"}, {"separateToolCalls": 1}, {"theme": None}):
 			self.assertRaises(frappe.ValidationError, api.set_prefs, bad)
+		# each user's own
+		frappe.set_user(other)
+		self.assertEqual(api.boot()["prefs"], {})
 
 	def test_boot_names_an_apps_agent_after_its_app_only_when_another_app_shares_its_name(self):
 		for name in ("crm/Support", "helpdesk/Support", "crm/Sales Coach"):
