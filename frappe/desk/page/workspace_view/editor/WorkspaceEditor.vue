@@ -3,14 +3,14 @@ import { computed, reactive, ref, watch } from "vue";
 import { attempt, get, post } from "../api.js";
 import BlockPanel from "./BlockPanel.vue";
 import PaneSettings from "./PaneSettings.vue";
-import { RECORDS, blank_record, save_record } from "./records.js";
+import { RECORDS, save_record } from "./records.js";
 import {
-	BLOCK_TYPES,
 	WIDGETS,
+	addable_types,
 	move,
 	name_key,
-	new_block,
 	new_section_break,
+	new_widget,
 	new_text,
 	set_size,
 	to_save,
@@ -28,8 +28,9 @@ const emit = defineEmits(["saved", "done", "switch", "new-layout", "created", "a
 const frappe = window.frappe;
 const __ = window.__;
 
+const widget_types = props.workspace.widget_types;
 const blocks = ref(with_ids(props.workspace.content));
-const widgets = ref(JSON.parse(JSON.stringify(props.workspace.widgets)));
+const widgets = ref(with_items(JSON.parse(JSON.stringify(props.workspace.widgets))));
 const touched = ref(new Set());
 const selected_id = ref(null);
 const previewing = ref(false);
@@ -64,12 +65,69 @@ const table_of = (type) => (type === "onboarding" ? "onboardings" : WIDGETS[type
 function widget_type_of(block) {
 	if (block.type !== "widget") return null;
 	const name = widgets.value.widget?.[block.id]?.type;
-	return name && { name, ...props.workspace.widget_types[name] };
+	return name && { name, ...widget_types[name] };
 }
 
 function widget_of(block) {
+	if (block.type === "widget") return widgets.value.widget?.[block.id] || null;
 	const table = table_of(block.type);
 	return table ? widgets.value[table][block.data[name_key(block.type)]] : null;
+}
+
+// A container's items, as the links the pane edits.
+function with_items(payload) {
+	for (const widget of Object.values(payload.widget || {})) {
+		if (!widget_types[widget.type]?.child_type) continue;
+		widget.items = (widget.data?.items || []).map((item) => ({
+			widget: item.name,
+			label: item.label,
+			link_type: item.link_type,
+			link_to: item.link_to,
+		}));
+	}
+	return payload;
+}
+
+// A Widget whose props change is redrawn as it would be saved.
+const widget_state = (widget) => JSON.stringify([widget.label, widget.config, widget.items]);
+
+watch(
+	() => [
+		selected_id.value,
+		selected.value?.type === "widget" && selected_widget.value
+			? widget_state(selected_widget.value)
+			: null,
+	],
+	([id, state], [was_id, was_state] = []) => {
+		if (!state || id !== was_id || state === was_state) return;
+		touched.value.add(id);
+		schedule_preview(id);
+	}
+);
+
+const previews = {};
+
+function schedule_preview(id) {
+	clearTimeout(previews[id]);
+	previews[id] = setTimeout(() => preview(widgets.value.widget[id]), 400);
+}
+
+async function preview(widget) {
+	const type = widget_types[widget.type];
+	if (type.child_type) {
+		const items = widget.items.filter((item) => item.link_to);
+		widget.data = { items: items.map((item) => ({ ...item, name: item.widget })) };
+		return;
+	}
+	if (type.fields.some((field) => field.reqd && !widget.config[field.fieldname])) return;
+	await attempt(async () => {
+		const fresh = await post("frappe.desk.widgets.preview", {
+			type: widget.type,
+			config: widget.config,
+			label: widget.label,
+		});
+		widget.data = fresh?.data ?? null;
+	});
 }
 
 // An onboarding picked here has no steps until the page is saved and loaded again, so they are
@@ -101,29 +159,23 @@ function on_move(id, target) {
 	move(blocks.value, id, target);
 }
 
-const TITLES = {
-	number_card: __("Number Card"),
-	chart: __("Chart"),
-	shortcut: __("Shortcut"),
-	card: __("Card"),
-	quick_list: __("Quick List"),
-	onboarding: __("Onboarding"),
-	custom_block: __("Custom Block"),
-	text: __("Text"),
-	spacer: __("Section break"),
-};
+const BLOCKS = [...addable_types(widget_types), "text", "spacer"];
+
+const TITLES = { text: __("Text"), spacer: __("Section break") };
+const title_of = (type) => TITLES[type] || __(type);
 
 const ICONS = {
-	number_card: "lucide-hash",
-	chart: "lucide-chart-column",
-	shortcut: "lucide-mouse-pointer-click",
-	card: "lucide-square-stack",
-	quick_list: "lucide-list",
-	onboarding: "lucide-list-checks",
-	custom_block: "lucide-code",
+	"Number Card": "lucide-hash",
+	Chart: "lucide-chart-column",
+	Shortcut: "lucide-mouse-pointer-click",
+	Card: "lucide-square-stack",
+	"Quick List": "lucide-list",
+	Onboarding: "lucide-list-checks",
+	"Custom Block": "lucide-code",
 	text: "lucide-type",
 	spacer: "lucide-separator-horizontal",
 };
+const icon_of = (type) => ICONS[type] || "lucide-box";
 
 // A new block goes after the selected one, or last, and is selected.
 function insert(block) {
@@ -133,13 +185,8 @@ function insert(block) {
 }
 
 function add_block(type) {
-	const { block, widget } = new_block(type, widgets.value, TITLES[type]);
-	if (widget) {
-		if (RECORDS[type])
-			Object.assign(widget, { record: blank_record(type), record_changed: true });
-		widgets.value[table_of(type)][widget.label] = widget;
-		touched.value.add(block.id);
-	}
+	const { block, widget } = new_widget(type, widget_types[type], title_of(type));
+	widgets.value.widget[block.id] = widget;
 	insert(block);
 }
 
@@ -167,13 +214,18 @@ async function save() {
 			await save_record(block.type, widget);
 			if (block.type === "onboarding") block.data.onboarding_name = widget.name;
 		}
-		const { blocks: saved, new_widgets } = to_save(blocks.value, widgets.value, touched.value);
+		const {
+			blocks: saved,
+			new_widgets,
+			widget_edits,
+		} = to_save(blocks.value, widgets.value, touched.value, widget_types);
 		const name = props.workspace.draft ? await create_page() : props.workspace.name;
 		await post("frappe.desk.doctype.workspace.workspace.save_page", {
 			name,
 			public: props.workspace.public ? 1 : 0,
 			new_widgets,
 			blocks: saved,
+			...(Object.keys(widget_edits).length && { widget_edits }),
 			...(props.workspace.layout && { layout: props.workspace.layout }),
 			...(props.workspace.layout_fields?.length && { layout_settings }),
 			...(settings_changed.value && !props.workspace.draft && { page_settings }),
@@ -417,14 +469,14 @@ defineExpose({ blocks, widgets, selected_id, previewing, editing, dirty, on_move
 			</div>
 			<div class="grid grid-cols-4 gap-1">
 				<button
-					v-for="type in [...BLOCK_TYPES, 'text', 'spacer']"
+					v-for="type in BLOCKS"
 					:key="type"
 					type="button"
 					class="flex w-full flex-col items-center gap-1 rounded-4 px-0.5 py-2 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 					@click="add(type)"
 				>
-					<span :class="ICONS[type]" class="size-4" aria-hidden="true" />
-					<span class="whitespace-nowrap text-2xs">{{ TITLES[type] }}</span>
+					<span :class="icon_of(type)" class="size-4" aria-hidden="true" />
+					<span class="whitespace-nowrap text-2xs">{{ title_of(type) }}</span>
 				</button>
 			</div>
 		</section>
@@ -457,8 +509,8 @@ defineExpose({ blocks, widgets, selected_id, previewing, editing, dirty, on_move
 					:key="selected.id"
 					:block="selected"
 					:widget="selected_widget"
-					:title="widget_type_of(selected)?.name"
-					:presets="widget_type_of(selected)?.sizes"
+					:widget_type="widget_type_of(selected)"
+					:can_edit_widget="workspace.can_edit || !selected_widget?.name"
 					@change="touched.add(selected.id)"
 					@resize="
 						(preset) => set_size(selected, preset, widget_type_of(selected)?.sizes)

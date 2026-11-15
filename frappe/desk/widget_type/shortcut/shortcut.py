@@ -13,6 +13,13 @@ class Shortcut(Link):
 
 	def validate(self):
 		url = self.config.get("url") or ""
+		if not (url if self.link_type == "URL" else self.link_to):
+			frappe.throw(
+				_("{0} is not set up yet. Choose what it opens, or remove it.").format(
+					frappe.bold(self.doc.label)
+				),
+				title=_("Unfinished Block"),
+			)
 		if self.link_type == "URL" and not url.startswith(("https://", "http://", "/")):
 			frappe.throw(_("A shortcut's URL must start with https://, http:// or /."))
 

@@ -53,7 +53,7 @@ function blocked_text(link) {
 			</Popover>
 		</div>
 		<ul class="-mx-2 flex flex-col">
-			<li v-for="link in data.items" :key="link.label + link.link_to">
+			<li v-for="link in data?.items || []" :key="link.label + link.link_to">
 				<Tooltip v-if="is_blocked(link)" :text="blocked_text(link)">
 					<ItemListRow disabled>
 						<span class="block truncate">{{ link.label }}</span>

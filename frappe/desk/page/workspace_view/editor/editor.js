@@ -2,11 +2,11 @@
 
 import { SIZES, block_size } from "../grid.js";
 
-// Block type -> the payload's widget table, the stored fields of one widget, and the size and
-// values a new one starts with. Onboarding is a block alone, with no widget row.
+// Old block type -> the payload's widget table and the stored fields of one widget. Onboarding is
+// a block alone, with no widget row.
 export const WIDGETS = {
-	number_card: { table: "number_cards", fields: ["label", "number_card_name"], size: "M" },
-	chart: { table: "charts", fields: ["label", "chart_name"], size: "L" },
+	number_card: { table: "number_cards", fields: ["label", "number_card_name"] },
+	chart: { table: "charts", fields: ["label", "chart_name"] },
 	shortcut: {
 		table: "shortcuts",
 		fields: [
@@ -22,15 +22,8 @@ export const WIDGETS = {
 			"format",
 			"stats_filter",
 		],
-		size: "M",
-		defaults: { type: "DocType" },
 	},
-	card: {
-		table: "cards",
-		fields: ["label", "icon", "description", "links"],
-		size: "M",
-		defaults: { links: [] },
-	},
+	card: { table: "cards", fields: ["label", "icon", "description", "links"] },
 	quick_list: {
 		table: "quick_lists",
 		fields: [
@@ -43,9 +36,8 @@ export const WIDGETS = {
 			"hide_new",
 			"hide_view_list",
 		],
-		size: "M",
 	},
-	custom_block: { table: "custom_blocks", fields: ["label", "custom_block_name"], size: "M" },
+	custom_block: { table: "custom_blocks", fields: ["label", "custom_block_name"] },
 };
 
 // what `build_links_table_from_card` reads from a stored card's links
@@ -59,15 +51,31 @@ const CARD_LINK_KEYS = [
 	"is_query_report",
 ];
 
-export const BLOCK_TYPES = [
-	"number_card",
-	"chart",
-	"shortcut",
-	"card",
-	"quick_list",
-	"onboarding",
-	"custom_block",
+// Widget types a page makes itself, which are never added by hand
+const GENERATED_TYPES = ["Module Customizations"];
+
+// frappe's own types first, in the order people reach for them
+const FIRST_TYPES = [
+	"Number Card",
+	"Chart",
+	"Shortcut",
+	"Card",
+	"Quick List",
+	"Onboarding",
+	"Custom Block",
 ];
+
+// The Widget Types a block can be: those with sizes, so not a container's items.
+export function addable_types(widget_types) {
+	const rank = (name) =>
+		FIRST_TYPES.includes(name) ? FIRST_TYPES.indexOf(name) : FIRST_TYPES.length;
+	return Object.keys(widget_types)
+		.filter(
+			(name) =>
+				Object.keys(widget_types[name].sizes).length && !GENERATED_TYPES.includes(name)
+		)
+		.sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+}
 
 // Text is one item with sizes: three heading sizes and Body, which is a paragraph.
 export const TEXT_SIZES = { Large: 3, Medium: 4, Small: 5, Body: null };
@@ -129,24 +137,43 @@ export function move(blocks, id, target) {
 	blocks.splice(target.after ? at + 1 : at, 0, block);
 }
 
-// A new block of `type` with its widget, labelled so no other widget of its type shares the label.
-export function new_block(type, widgets, title) {
-	const block = { id: new_id(), type, data: {} };
-	if (type === "onboarding") {
-		let label = title;
-		for (let n = 2; widgets.onboardings[label]; n++) label = `${title} ${n}`;
-		block.data.onboarding_name = label;
-		set_size(block, "Wide");
-		return { block, widget: { label, title: label, is_complete: 0, steps: [] } };
-	}
+// A new Widget block of `type`, a draft until the page is saved, with its props' defaults.
+export function new_widget(type, widget_type, label) {
+	const block = { id: new_id(), type: "widget", data: {} };
+	const sizes = Object.keys(widget_type.sizes);
+	set_size(block, sizes.includes("M") ? "M" : sizes[0], widget_type.sizes);
+	const config = Object.fromEntries(
+		widget_type.fields
+			.filter((field) => field.default != null)
+			.map((field) => [field.fieldname, default_of(field)])
+	);
+	const items = widget_type.child_type ? [] : undefined;
+	return {
+		block,
+		widget: { name: null, type, label, config, items, data: null, renamed: true },
+	};
+}
 
-	const spec = WIDGETS[type];
-	let label = title;
-	for (let n = 2; widgets[spec.table][label]; n++) label = `${title} ${n}`;
-	block.data[name_key(type)] = label;
-	set_size(block, spec.size);
-	const widget = { label, renamed: true, ...JSON.parse(JSON.stringify(spec.defaults || {})) };
-	return { block, widget };
+const default_of = (field) =>
+	field.fieldtype === "Check" ? Number(field.default) : field.default;
+
+// A container's items as its config holds them: a saved item by name, a new one as a draft.
+export function config_of(widget, widget_type) {
+	if (!widget_type.child_type || !widget.items) return widget.config;
+	const widgets = widget.items
+		.filter((item) => item.link_to)
+		.map((item) =>
+			item.widget
+				? { widget: item.widget }
+				: {
+						draft: {
+							type: widget_type.child_type,
+							label: item.label || item.link_to,
+							config: { link_type: item.link_type, link_to: item.link_to },
+						},
+				  }
+		);
+	return { ...widget.config, widgets };
 }
 
 export function new_text() {
@@ -191,17 +218,36 @@ function escape_html(text) {
 }
 
 /**
- * What `save_page` takes: the blocks as EditorJS stores them, and the widgets this session
- * touched in the stored shape. A touched widget's block points at its new label. A Body text
- * with nothing in it is left out.
+ * What `save_page` takes: the blocks, the old widgets this session touched in their stored shape,
+ * and the Widgets it edited. A touched old widget's block points at its new label, a new Widget
+ * block carries its draft. A Body text with nothing in it is left out.
  */
-export function to_save(blocks, widgets, touched) {
+export function to_save(blocks, widgets, touched, widget_types) {
 	const new_widgets = {};
+	const widget_edits = {};
 	const stored = [];
 	for (const { id, type, data, generated, hidden_by } of blocks) {
 		// made by the page, or hidden by a weaker layout: neither is this layout's to save
 		if (generated || hidden_by) continue;
 		if (type === "paragraph" && !text_of({ data }).trim()) continue;
+
+		const widget = type === "widget" && widgets.widget?.[id];
+		if (widget) {
+			const config = config_of(widget, widget_types[widget.type]);
+			if (!widget.name) {
+				const draft = { type: widget.type, label: widget.label, config };
+				stored.push({ id, type, data: { ...data, draft } });
+				continue;
+			}
+			if (touched.has(id)) {
+				widget_edits[widget.name] = {
+					config,
+					...(widget.renamed && { label: widget.label }),
+				};
+			}
+			stored.push({ id, type, data });
+			continue;
+		}
 
 		const spec = WIDGETS[type];
 		if (!spec || !touched.has(id)) {
@@ -223,5 +269,5 @@ export function to_save(blocks, widgets, touched) {
 		row.label = item.renamed ? item.label : data[name_key(type)];
 		stored.push({ id, type, data: { ...data, [name_key(type)]: row.label } });
 	}
-	return { blocks: JSON.stringify(stored), new_widgets };
+	return { blocks: JSON.stringify(stored), new_widgets, widget_edits };
 }
