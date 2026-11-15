@@ -113,12 +113,12 @@ export function getInputsFromProps(props: ComponentScript["props"] = {}): Studio
 	if (Array.isArray(props)) return props.map((name) => ({ input_name: name, type: "text" }))
 	return Object.entries(props).map(([name, prop]) => {
 		const options = prop && typeof prop === "object" && !Array.isArray(prop) ? prop : { type: prop }
-		const studio = options.studio || {}
+		const meta = options.meta || {}
 		return {
 			input_name: name,
-			type: studio.type || getInputType(options.type),
-			description: studio.description,
-			options: studio.options?.join("\n"),
+			type: meta.type || getInputType(options.type),
+			description: meta.description,
+			options: meta.options?.join("\n"),
 			required: options.required ? 1 : 0,
 			default: getInputDefault(options.default),
 		}
