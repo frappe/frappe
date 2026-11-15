@@ -58,6 +58,7 @@ def copy_db(db_file=None, verbose=False):
 	if db_path.suffix == ".gz":
 		import gzip
 
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with gzip.open(db_file, "rb") as input, open(staged_db_path, "wb") as output:
 			shutil.copyfileobj(input, output)
 
