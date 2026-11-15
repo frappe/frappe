@@ -150,10 +150,6 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 
 	/** Whether the component was deleted. */
 	async function deleteComponent(component: Pick<StudioComponent, "name" | "component_id" | "component_name">) {
-		if (isComponentUsed(component.component_id)) {
-			toast.error("Component is used in this page. You cannot delete it.")
-			return false
-		}
 		if (!(await confirm(`Are you sure you want to delete the component '${component.component_name}'?`))) {
 			return false
 		}
@@ -169,29 +165,6 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			})
 			return false
 		}
-	}
-
-	function isComponentUsed(componentId: string): Boolean {
-		const checkComponent = (block: Block) => {
-			if (block.isStudioComponent && block.componentName === componentId) {
-				return true
-			}
-			if (block.children) {
-				for (const child of block.children) {
-					if (checkComponent(child)) {
-						return true
-					}
-				}
-			}
-			return false
-		}
-		// the page, also while a component is open on the fragment canvas
-		for (const block of useStudioStore().pageBlocks[0]?.children || []) {
-			if (checkComponent(block)) {
-				return true
-			}
-		}
-		return false
 	}
 
 	function resetStudioComponent() {
