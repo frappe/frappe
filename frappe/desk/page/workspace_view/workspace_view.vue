@@ -9,7 +9,7 @@ import {
 	watch,
 } from "vue";
 import { Alert, FrappeUIProvider, setConfig } from "frappe-ui";
-import { attempt, get, post } from "./api.js";
+import { get } from "./api.js";
 import WorkspaceGrid from "./WorkspaceGrid.vue";
 import EmptyWorkspace from "./EmptyWorkspace.vue";
 import { block_rects, glide } from "./grid.js";
@@ -46,15 +46,16 @@ const blocks_root = ref(null);
 // One grid draws the page read and edited, so its tiles keep their data across the switch.
 const canvas = computed(() => {
 	if (editing.value && editor.value) {
-		const { blocks, widgets, previewing, selected_id, variant } = editor.value;
+		const { blocks, widgets, previewing, selected_id, editing: layout } = editor.value;
 		return {
-			content: blocks,
+			// a block a weaker layout hid is drawn faded to edit, and left out of the preview
+			content: previewing ? blocks.filter((block) => !block.hidden_by) : blocks,
 			widgets,
 			widget_types: editing.value.widget_types,
 			editing: !previewing,
 			previewing,
 			selected_id,
-			variant,
+			layout,
 		};
 	}
 	const page = workspace.value;
@@ -147,12 +148,6 @@ function actions() {
 	if (workspace.value.can_edit) {
 		list.push({ label: __("Manage"), onClick: () => (managing.value = true) });
 	}
-	if (workspace.value.is_layout_customized && workspace.value.can_edit) {
-		list.push({ label: __("Reset to Standard"), onClick: reset });
-	}
-	if (workspace.value.own_layout) {
-		list.push({ label: __("Reset to Shared Layout"), onClick: reset_own_layout });
-	}
 	return list;
 }
 
@@ -162,21 +157,9 @@ const can_open_editor = computed(
 	() => !frappe.is_mobile() && (workspace.value?.can_edit || workspace.value?.can_edit_own)
 );
 
-function reset_own_layout() {
-	frappe.confirm(__("Drop your own layout of this workspace and see the shared one?"), () =>
-		attempt(async () => {
-			await post(
-				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_my_workspace_layout",
-				{ workspace: workspace.value.name }
-			);
-			load();
-		})
-	);
-}
-
 // `layout` names the Workspace Layout to edit, over the weaker ones that apply.
 async function edit(layout) {
-	const params = { name: workspace.value.name };
+	const params = { name: workspace.value.name, edit: 1 };
 	if (typeof layout === "string") params.layout = layout;
 	const [page, module] = await Promise.all([
 		get("frappe.desk.desktop.get_workspace", params),
@@ -196,23 +179,6 @@ async function stop_editing() {
 	await load();
 	editing.value = null;
 	editor.value = null;
-}
-
-function reset() {
-	const message = __(
-		"Reset <b>{0}</b> to the standard, app-shipped version? This removes all site customizations.",
-		[frappe.utils.escape_html(workspace.value.title)]
-	);
-	frappe.confirm(message, () =>
-		attempt(async () => {
-			await post(
-				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
-				{ workspace: workspace.value.name }
-			);
-			frappe.show_alert({ message: __("Workspace reset to standard"), indicator: "green" });
-			load();
-		})
-	);
 }
 
 function open_target() {
@@ -280,9 +246,9 @@ onBeforeUnmount(() => window.removeEventListener("beforeunload", warn_before_unl
 								class="mb-4"
 								icon="lucide-eye"
 								:title="
-									canvas.variant
+									canvas.layout
 										? __('Previewing the {0} layout with your data.', [
-												__(canvas.variant),
+												canvas.layout.label,
 										  ])
 										: __('Previewing the default layout with your data.')
 								"

@@ -73,19 +73,10 @@ def merged_content(doc, layouts: list[dict]) -> list:
 	)
 
 
-def matched_layouts(doc, until: str | None = None) -> list[dict]:
-	"""The layouts of `doc` that apply to the session user, weakest first.
-
-	`until` names a layout to stop at: it and the weaker ones that apply, whatever its own condition.
-	"""
+def matched_layouts(doc) -> list[dict]:
+	"""The layouts of `doc` that apply to the session user, weakest first."""
 	layouts = sorted(workspace_layouts(doc.name), key=lambda layout: strength(layout, owner_app(doc)))
-	matched = []
-	for layout in layouts:
-		if layout["name"] == until:
-			return [*matched, layout]
-		if condition_holds(layout["condition"]):
-			matched.append(layout)
-	return matched
+	return [layout for layout in layouts if condition_holds(layout["condition"])]
 
 
 def layouts_under(doc, layout: dict) -> list[dict]:
@@ -187,32 +178,40 @@ def condition_namespace():
 # Merging
 
 
-def merge(content: list, changes_list: list[dict]) -> list:
-	"""`content` with each layout's changes applied in order, hides last."""
+def merge(
+	content: list, changes_list: list[dict], origins: list | None = None, faded: dict | None = None
+) -> list:
+	"""`content` with each layout's changes applied in order, hides last.
+
+	`origins` names the layout each set of changes came from, written on the blocks it adds. A
+	block `faded` names stays, marked `hidden_by` the layout that hid it, for an editor to see.
+	"""
 	blocks = [dict(block) for block in with_ids(content)]
 	hidden = {block for changes in changes_list for block in changes.get("hide") or []}
 	if hidden - {block["id"] for block in blocks}:
 		for block in blocks:
 			open_container(block)
 
-	for changes in changes_list:
+	for index, changes in enumerate(changes_list):
 		for entry in changes.get("add") or []:
-			add(blocks, entry, hidden)
+			add(blocks, entry, hidden, origins[index] if origins else None)
 		for entry in changes.get("move") or []:
 			move(blocks, entry, hidden)
 		for block_id_, size in (changes.get("resize") or {}).items():
 			if block := find(blocks, block_id_):
 				block["data"] = {**block["data"], **(size if isinstance(size, dict) else {"col": size})}
 
-	return drop_hidden(blocks, hidden)
+	return drop_hidden(blocks, hidden, faded or {})
 
 
-def add(blocks: list, entry: dict, hidden: set):
+def add(blocks: list, entry: dict, hidden: set, origin: str | None = None):
 	siblings = siblings_of(blocks, entry.get("in"))
 	if siblings is None:
 		return
 	block = new_item(entry["in"], entry["block"]) if entry.get("in") else {**entry["block"]}
 	block["id"] = block.get("id") or block_id(block)
+	if origin:
+		block["origin"] = origin
 	if any(sibling["id"] == block["id"] for sibling in siblings):
 		return
 	place(siblings, block, entry.get("after"), hidden)
@@ -276,10 +275,12 @@ def find(blocks: list, block_id_: str) -> dict | None:
 	return next((block for block in blocks if block["id"] == block_id_), None)
 
 
-def drop_hidden(blocks: list, hidden: set) -> list:
+def drop_hidden(blocks: list, hidden: set, faded: dict) -> list:
 	kept = []
 	for block in blocks:
-		if block["id"] in hidden:
+		if block["id"] in faded:
+			block["hidden_by"] = faded[block["id"]]
+		elif block["id"] in hidden:
 			continue
 		if "items" in (block.get("data") or {}):
 			items = [item for item in block["data"]["items"] if item["id"] not in hidden]
@@ -369,3 +370,96 @@ def text_changed(old: dict, new: dict) -> bool:
 
 def words_of(block: dict) -> dict:
 	return {key: value for key, value in (block.get("data") or {}).items() if key not in ("col", "row")}
+
+
+# The editor
+
+# the site's edit of a workspace before its first save
+UNSAVED_SITE_EDIT = {
+	"name": None,
+	"workspace": None,
+	"layout_name": None,
+	"module": None,
+	"user": None,
+	"condition": None,
+	"changes": {},
+}
+
+
+def editing_layout(doc, name: str | None) -> dict | None:
+	"""The layout an editor works on: the one named, else the site's edit of an app's workspace
+	outside developer mode, else None for the workspace's own default."""
+	layouts = workspace_layouts(doc.name)
+	if name:
+		return next((layout for layout in layouts if layout["name"] == name), None)
+	if doc.public and doc.standard and not frappe.conf.developer_mode:
+		return next((layout for layout in layouts if is_site_edit(layout)), UNSAVED_SITE_EDIT)
+	return None
+
+
+def is_site_edit(layout: dict) -> bool:
+	return not (layout["module"] or layout["user"] or layout["condition"])
+
+
+def editor_content(doc, layout: dict | None) -> list:
+	"""What an editor draws: `layout` over the weaker layouts that apply, each block naming the layout
+	that added it, and the blocks a weaker layout hid kept, faded, naming that layout."""
+	weaker = layouts_under(doc, layout) if layout else []
+	stack = [*weaker, layout] if layout else []
+	own_hides = set(((layout or {}).get("changes") or {}).get("hide") or [])
+	faded = {i: origin_of(w) for w in weaker for i in w["changes"].get("hide") or [] if i not in own_hides}
+	blocks = merge(
+		loads(doc.content or "[]"), [s["changes"] for s in stack], [origin_of(s) for s in stack], faded
+	)
+	default = default_origin(doc)
+	return [{**block, "origin": block.get("origin") or default} for block in blocks]
+
+
+def origin_of(layout: dict) -> str:
+	if layout["user"]:
+		return _("You")
+	if not layout["module"]:
+		return _("Site")
+	return app_title(frappe.local.module_app.get(frappe.scrub(layout["module"])))
+
+
+def default_origin(doc) -> str:
+	return app_title(owner_app(doc)) if doc.standard else _("Site")
+
+
+def app_title(app: str | None) -> str:
+	return (frappe.get_hooks("app_title", app_name=app) or [app])[0] if app else _("Site")
+
+
+def picker_rows(doc, editing: dict | None) -> list[dict]:
+	"""Every layout of the workspace for the editor's picker, strongest first, then the default."""
+	from frappe.desk.doctype.workspace.workspace import is_workspace_manager
+
+	layouts = workspace_layouts(doc.name)
+	if doc.standard and not any(is_site_edit(layout) for layout in layouts):
+		layouts = [*layouts, UNSAVED_SITE_EDIT]
+	owner = owner_app(doc)
+	manager = is_workspace_manager()
+	rows = [
+		{
+			"name": layout["name"],
+			"label": layout["layout_name"] or (_("Mine") if layout["user"] else _("Site edits")),
+			"section": _("This site") if not (layout["module"] or layout["user"]) else origin_of(layout),
+			"condition": layout["condition"],
+			"editable": can_edit_layout(layout, manager),
+			"editing": layout is editing
+			or bool(editing and layout["name"] and layout["name"] == editing["name"]),
+		}
+		for layout in sorted(layouts, key=lambda layout: strength(layout, owner), reverse=True)
+	]
+	default = {"name": "", "label": _("Default"), "section": "", "condition": None}
+	default_editable = bool(frappe.conf.developer_mode or not doc.standard)
+	return [*rows, {**default, "editable": default_editable, "editing": editing is None, "is_default": 1}]
+
+
+def can_edit_layout(layout: dict, manager: bool) -> bool:
+	if layout["user"]:
+		return layout["user"] == frappe.session.user
+	if layout["module"]:
+		return bool(frappe.conf.developer_mode)
+	return manager

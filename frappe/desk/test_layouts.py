@@ -283,6 +283,52 @@ class TestV16CopiesPatch(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Custom Workspace", {"workspace": "Layout Page"}))
 
 
+class TestEditor(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		make_user(US, ["Desk User"])
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		self.todos, self.notes, self.gst = (make_shortcut(label) for label in ("ToDos", "Notes", "GST"))
+		frappe.db.delete("Workspace Layout", {"workspace": "Layout Page"})
+		make_workspace(
+			"Layout Page", content=[widget_block(self.todos), widget_block(self.notes)], standard=1
+		)
+		self.app = make_layout("Accounts", module="Desk", hide=[id_of(self.notes)])
+		self.app_extra = make_layout(
+			"India", module="Desk", add=[{"after": None, "block": widget_block(self.gst)}]
+		)
+		self.site = make_layout("Site edits", hide=[id_of(self.todos)])
+
+	def test_a_manager_edits_the_sites_layout_and_sees_the_apps_locked(self):
+		frappe.set_user(MANAGER)
+		rows = {row["label"]: row for row in get_workspace("Layout Page", edit=1)["layouts"]}
+
+		self.assertTrue(rows["Site edits"]["editable"] and rows["Site edits"]["editing"])
+		self.assertFalse(
+			rows["Accounts"]["editable"] or rows["India"]["editable"] or rows["Default"]["editable"]
+		)
+
+	def test_the_editor_draws_the_weaker_layouts_under_the_one_edited_and_says_where_blocks_came_from(self):
+		frappe.set_user(MANAGER)
+		page = get_workspace("Layout Page", layout=self.app_extra.name, edit=1)
+
+		drawn = {block["data"]["widget"]: block for block in page["content"]}
+		self.assertNotIn("hidden_by", drawn[self.todos.name], "a stronger layout's hide is not drawn")
+		self.assertEqual(drawn[self.notes.name]["hidden_by"], "Frappe Framework")
+		self.assertEqual(drawn[self.gst.name]["origin"], "Frappe Framework")
+
+	def test_a_reader_gets_no_picker(self):
+		frappe.set_user(US)
+		self.assertEqual(get_workspace("Layout Page", edit=1)["layouts"], [])
+
+	def test_an_apps_layout_is_saved_only_in_developer_mode(self):
+		frappe.set_user(MANAGER)
+		page = dumps([drawn(self.todos)])
+		self.assertRaises(frappe.PermissionError, save_page, "Layout Page", 1, {}, page, layout=self.app.name)
+
+
 class TestDeletesAndRenames(IntegrationTestCase):
 	def setUp(self):
 		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))

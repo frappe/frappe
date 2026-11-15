@@ -318,8 +318,15 @@ function tile_for(block) {
 							block.type === 'paragraph'
 								? ['ws-frame', editing && '-mx-3 -my-1.5 px-3 py-1.5']
 								: 'ws-block h-full',
+							block.hidden_by && 'opacity-40',
 						]"
 					>
+						<span
+							v-if="block.hidden_by"
+							class="absolute end-2 top-2 z-10 rounded-2 bg-surface-gray-2 px-1.5 py-0.5 text-xs text-ink-gray-7"
+						>
+							{{ __("Hidden · {0}", [block.hidden_by]) }}
+						</span>
 						<component :is="tile.component" v-if="tile" v-bind="tile.props" />
 						<div
 							v-else-if="editing"
@@ -328,7 +335,7 @@ function tile_for(block) {
 							{{ __(block.type.replace("_", " ")) }}
 						</div>
 						<div
-							v-if="editing"
+							v-if="editing && !block.hidden_by"
 							class="ws-pick"
 							:class="{ 'ws-picked': selected === block.id }"
 							@click="emit('select', block)"

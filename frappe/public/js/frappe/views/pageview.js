@@ -219,7 +219,8 @@ frappe.views.Page = class Page {
 	 * "secondary" are the page's two action buttons, and "toolbar" is a button
 	 * beside them, or a row of the dropdown button named by `group`.
 	 * "breadcrumb" actions are the rows of a crumb after the title, labelled by
-	 * their `group`, for a choice that sits under the page, such as its layout.
+	 * their `group`, for a choice that sits under the page, such as its layout. A row
+	 * can carry a `section`, `description`, `icon`, `disabled` and `selected`.
 	 * A "primary" action can also carry a `tooltip`.
 	 */
 	set_island_chrome() {
@@ -240,7 +241,7 @@ frappe.views.Page = class Page {
 		this.crumb_menu = crumbs.length
 			? new frappe.ui.Dropdown({
 					trigger: page.$breadcrumbs.find(".es-breadcrumbs__item").last(),
-					options: crumbs.map((a) => ({ label: a.label, onclick: a.onClick })),
+					options: crumb_sections(crumbs),
 			  })
 			: null;
 		frappe.utils.set_title(label);
@@ -295,6 +296,25 @@ frappe.views.Page = class Page {
 		}
 	}
 };
+
+// Breadcrumb rows, in sections by their `section`, each keeping its description and state.
+function crumb_sections(crumbs) {
+	const sections = [];
+	for (const crumb of crumbs) {
+		const row = {
+			label: crumb.label,
+			description: crumb.description,
+			icon: crumb.icon,
+			disabled: crumb.disabled,
+			selected: crumb.selected,
+			onclick: crumb.onClick,
+		};
+		const last = sections.at(-1);
+		if (last && last.group === crumb.section) last.options.push(row);
+		else sections.push({ group: crumb.section, hide_label: !crumb.section, options: [row] });
+	}
+	return sections;
+}
 
 frappe.show_not_found = function (page_name) {
 	frappe.show_message_page({

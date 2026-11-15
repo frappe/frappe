@@ -5,7 +5,6 @@ import BlockPanel from "./BlockPanel.vue";
 import { RECORDS, blank_record, save_record } from "./records.js";
 import {
 	BLOCK_TYPES,
-	DEFAULT_LAYOUT,
 	WIDGETS,
 	move,
 	name_key,
@@ -33,23 +32,23 @@ const widgets = ref(JSON.parse(JSON.stringify(props.workspace.widgets)));
 const touched = ref(new Set());
 const selected_id = ref(null);
 const previewing = ref(false);
-const variant = ref(props.workspace.variant);
-const layouts = ref([...(props.workspace.layouts || [])]);
-const copied_from = ref(null);
-const layout = computed(() => layouts.value.find((l) => l.role === variant.value));
+const layouts = props.workspace.layouts || [];
+const editing = layouts.find((row) => row.editing);
 const initial = JSON.stringify(blocks.value);
-const dirty = computed(
-	() =>
-		layout.value?.source === "New" ||
-		touched.value.size > 0 ||
-		JSON.stringify(blocks.value) !== initial
-);
+const dirty = computed(() => touched.value.size > 0 || JSON.stringify(blocks.value) !== initial);
 
 const selected = computed(() => blocks.value.find((block) => block.id === selected_id.value));
 const selected_widget = computed(() => selected.value && widget_of(selected.value));
 const form_open = ref(false);
 
 const table_of = (type) => (type === "onboarding" ? "onboardings" : WIDGETS[type]?.table);
+
+// a Widget block's type, with its sizes and title
+function widget_type_of(block) {
+	if (block.type !== "widget") return null;
+	const name = widgets.value.widget?.[block.id]?.type;
+	return name && { name, ...props.workspace.widget_types[name] };
+}
 
 function widget_of(block) {
 	const table = table_of(block.type);
@@ -170,79 +169,6 @@ function discard() {
 	frappe.confirm(__("Discard your unsaved changes?"), () => emit("done"));
 }
 
-function reset_workspace() {
-	frappe.confirm(
-		__("Reset {0} to the app's version? This removes every change this site made to it.", [
-			frappe.utils.escape_html(props.workspace.title),
-		]),
-		() =>
-			attempt(async () => {
-				await post(
-					"frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
-					{ workspace: props.workspace.name }
-				);
-				emit("saved");
-			})
-	);
-}
-
-const layout_label = (l) => (l.role ? __(l.role) : __("Default"));
-
-function layout_actions() {
-	if (!layouts.value.length) return [];
-	const group = `${layout_label(layout.value || {})} · ${__(layout.value?.source || "New")}`;
-	return [
-		...layouts.value.map((l) => ({
-			label: `${layout_label(l)} · ${__(l.source)}`,
-			placement: "breadcrumb",
-			group,
-			onClick: () => switch_to(l.role),
-		})),
-		{
-			label: __("New layout for a role"),
-			placement: "breadcrumb",
-			group,
-			onClick: new_layout,
-		},
-	];
-}
-
-function switch_to(role) {
-	if (role === variant.value) return;
-	if (!dirty.value) return emit("switch", role);
-	frappe.confirm(__("Discard your unsaved changes?"), () => emit("switch", role));
-}
-
-// A new layout starts as a whole copy of the one on screen, and exists once it is saved.
-function new_layout() {
-	const taken = [...layouts.value.map((l) => l.role).filter(Boolean)];
-	frappe.prompt(
-		{
-			fieldname: "role",
-			fieldtype: "Link",
-			options: "Role",
-			label: __("Role"),
-			reqd: 1,
-			get_query: () => ({
-				filters: {
-					name: ["not in", [...taken, "Guest", "All", "Desk User", "Administrator"]],
-					desk_access: 1,
-				},
-			}),
-		},
-		({ role }) => {
-			copied_from.value ??= variant.value || DEFAULT_LAYOUT;
-			layouts.value.push({ role, source: "New" });
-			variant.value = role;
-			for (const block of blocks.value) {
-				if (WIDGETS[block.type]) touched.value.add(block.id);
-			}
-		},
-		__("New layout for a role"),
-		__("Create")
-	);
-}
-
 // What saving this layout does, said before the first save freezes anything.
 const hint = computed(() => {
 	const target = props.workspace.save_target;
@@ -258,15 +184,6 @@ const hint = computed(() => {
 			text: __("Your edits make a layout of your own. Everyone else keeps the shared one."),
 		};
 	}
-	if (target === "site copy" && !["Site copy", "Site", "New"].includes(layout.value?.source)) {
-		return {
-			icon: "lucide-triangle-alert",
-			text: __(
-				"Saving makes a site copy of this layout. It stops getting updates from {0}.",
-				[layout.value?.source]
-			),
-		};
-	}
 	return null;
 });
 
@@ -274,45 +191,6 @@ const save_tooltip = computed(() => {
 	const target = props.workspace.save_target;
 	return target?.includes("/") ? __("Save writes to {0}", [target]) : null;
 });
-
-function reset_layout() {
-	frappe.confirm(__("Bring back the app's {0} layout?", [layout_label(layout.value)]), () =>
-		attempt(async () => {
-			await post(
-				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
-				{ workspace: props.workspace.name, variant: variant.value || DEFAULT_LAYOUT }
-			);
-			emit("saved", variant.value);
-		})
-	);
-}
-
-function reset_own_layout() {
-	frappe.confirm(__("Drop your own layout of this workspace and see the shared one?"), () =>
-		attempt(async () => {
-			await post(
-				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_my_workspace_layout",
-				{ workspace: props.workspace.name }
-			);
-			emit("done");
-		})
-	);
-}
-
-function delete_layout() {
-	frappe.confirm(__("Delete the {0} layout?", [layout_label(layout.value)]), () =>
-		attempt(async () => {
-			await post(
-				"frappe.desk.doctype.custom_workspace.custom_workspace.delete_workspace_layout",
-				{
-					workspace: props.workspace.name,
-					variant: variant.value,
-				}
-			);
-			emit("switch", null);
-		})
-	);
-}
 
 function delete_workspace() {
 	frappe.confirm(__("Delete {0}?", [frappe.utils.escape_html(props.workspace.title)]), () =>
@@ -336,39 +214,41 @@ const menu = computed(() => {
 			{ label: __("Delete workspace"), icon: "lucide-trash-2", onClick: delete_workspace },
 		];
 	}
-	if (props.workspace.save_target === "own") {
-		if (props.workspace.own_layout) {
-			items.push({
-				label: __("Reset to shared layout"),
-				icon: "lucide-undo-2",
-				onClick: reset_own_layout,
-			});
-		}
-		return items;
-	}
-	if (layout.value?.source === "Site copy") {
-		items.push({
-			label: __("Reset this layout"),
-			icon: "lucide-undo-2",
-			onClick: reset_layout,
-		});
-	}
-	if (layout.value?.source === "Site" && variant.value) {
-		items.push({ label: __("Delete layout"), icon: "lucide-trash-2", onClick: delete_layout });
-	}
-	if (props.workspace.standard) {
-		items.push({
-			label: __("Reset workspace"),
-			icon: "lucide-rotate-ccw",
-			onClick: reset_workspace,
-		});
-	}
 	return items;
 });
 
+// The breadcrumb picker: every layout, strongest first, the one being edited marked.
+function picker_actions() {
+	if (!layouts.length) return [];
+	return layouts.map((row) => ({
+		label: row.label,
+		section: row.section,
+		description: row_description(row),
+		icon: row.editing ? "pencil" : row.editable ? undefined : "lock",
+		disabled: !row.editable,
+		selected: row.editing,
+		placement: "breadcrumb",
+		group: editing ? `${editing.section} · ${editing.label}` : __("Layouts"),
+		onClick: () => switch_to(row),
+	}));
+}
+
+function row_description(row) {
+	const condition = row.is_default
+		? __("The page every layout changes")
+		: row.condition || __("Everyone");
+	return row.editable ? condition : `${condition} · ${__("view only")}`;
+}
+
+function switch_to(row) {
+	if (row.editing) return;
+	if (!dirty.value) return emit("switch", row.name);
+	frappe.confirm(__("Discard your unsaved changes?"), () => emit("switch", row.name));
+}
+
 watch(
 	() => [
-		...layout_actions(),
+		...picker_actions(),
 		...(props.workspace.public
 			? [
 					{
@@ -385,7 +265,7 @@ watch(
 	{ immediate: true }
 );
 
-defineExpose({ blocks, widgets, selected_id, previewing, variant, dirty, on_move, add_text });
+defineExpose({ blocks, widgets, selected_id, previewing, editing, dirty, on_move, add_text });
 </script>
 
 <template>
@@ -436,8 +316,12 @@ defineExpose({ blocks, widgets, selected_id, previewing, variant, dirty, on_move
 					:key="selected.id"
 					:block="selected"
 					:widget="selected_widget"
+					:title="widget_type_of(selected)?.name"
+					:presets="widget_type_of(selected)?.sizes"
 					@change="touched.add(selected.id)"
-					@resize="(preset) => set_size(selected, preset)"
+					@resize="
+						(preset) => set_size(selected, preset, widget_type_of(selected)?.sizes)
+					"
 					@remove="remove"
 					@close="selected_id = null"
 					@form="(open) => (form_open = open)"

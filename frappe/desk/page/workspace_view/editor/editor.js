@@ -2,9 +2,6 @@
 
 import { SIZES, block_size } from "../grid.js";
 
-// names the default layout to the server, where a role would name a role layout
-export const DEFAULT_LAYOUT = "<default>";
-
 // Block type -> the payload's widget table, the stored fields of one widget, and the size and
 // values a new one starts with. Onboarding is a block alone, with no widget row.
 export const WIDGETS = {
@@ -77,15 +74,16 @@ export const TEXT_SIZES = { Large: 3, Medium: 4, Small: 5, Body: null };
 
 export const name_key = (type) => `${type}_name`;
 
-export function sizes_of(type) {
-	return Object.keys(SIZES[type] || {});
+// `presets` are a Widget Type's sizes, for a widget block
+export function sizes_of(type, presets = SIZES[type]) {
+	return Object.keys(presets || {});
 }
 
 // A preset is stored as `col`, plus `row` when the preset has a fixed height. A Tall block
 // stays Tall at its new width.
-export function set_size(block, preset) {
+export function set_size(block, preset, presets = SIZES[block.type]) {
 	const tall = height_of(block) === "Tall";
-	const [col, row] = SIZES[block.type][preset];
+	const [col, row] = presets[preset];
 	block.data.col = col;
 	if (row) block.data.row = tall ? row * TALL : row;
 	else delete block.data.row;
@@ -200,8 +198,9 @@ function escape_html(text) {
 export function to_save(blocks, widgets, touched) {
 	const new_widgets = {};
 	const stored = [];
-	for (const { id, type, data, generated } of blocks) {
-		if (generated) continue;
+	for (const { id, type, data, generated, hidden_by } of blocks) {
+		// made by the page, or hidden by a weaker layout: neither is this layout's to save
+		if (generated || hidden_by) continue;
 		if (type === "paragraph" && !text_of({ data }).trim()) continue;
 
 		const spec = WIDGETS[type];

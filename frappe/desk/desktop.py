@@ -17,7 +17,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	effective_renderer,
 	get_customization,
 )
-from frappe.desk.layouts import matched_layouts, merged_content
+from frappe.desk.layouts import editing_layout, editor_content, matched_layouts, merged_content, picker_rows
 from frappe.desk.utils import is_item_allowed
 from frappe.desk.widgets import build_unsaved_widget, build_widgets, get_types
 from frappe.utils import cint
@@ -437,18 +437,22 @@ LINK_FIELDS = (
 
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
-def get_workspace(name: str, layout: str | None = None) -> dict:
+def get_workspace(name: str, layout: str | None = None, edit: bool | int = False) -> dict:
 	"""Everything the workspace island draws, filtered to what the session user may read.
 
-	`layout` names a Workspace Layout to draw over the weaker ones, for an editor only.
+	With `edit`, an editor gets the page they edit: `layout`, or where their save would go, drawn
+	over the weaker layouts.
 	"""
 	from frappe.desk.doctype.workspace.workspace import can_edit_workspace
 
 	workspace = open_workspace({"name": name})
 	can_edit = can_edit_workspace(workspace.doc)
 	doc = workspace.doc
-	layout = layout if can_edit else None
-	stored = merged_content(doc, matched_layouts(doc, until=layout))
+	editing = editing_layout(doc, layout) if can_edit and cint(edit) else None
+	if can_edit and cint(edit):
+		stored = editor_content(doc, editing)
+	else:
+		stored = merged_content(doc, matched_layouts(doc))
 	widgets = readable_widgets(workspace, stored)
 	_fold_chart_settings(widgets["charts"])
 	_load_custom_blocks(widgets["custom_blocks"])
@@ -458,7 +462,7 @@ def get_workspace(name: str, layout: str | None = None) -> dict:
 	content = [block for block in stored if is_drawable(block, widgets)]
 	add_module_customizations(doc, content, widgets["widget"])
 	if can_edit:
-		context = editor_context(doc)
+		context = editor_context(doc, editing)
 	elif doc.public:
 		context = {"layouts": [], "save_target": "own"}
 	else:
@@ -468,7 +472,7 @@ def get_workspace(name: str, layout: str | None = None) -> dict:
 		"name": doc.name,
 		"title": _(doc.title),
 		"public": bool(doc.public),
-		"layout": layout,
+		"layout": editing and editing["name"],
 		"content": content,
 		"widgets": widgets,
 		"widget_types": get_types(),
@@ -519,20 +523,22 @@ def add_module_customizations(doc, content: list, widgets: dict) -> None:
 		content.append({"id": name, "type": "widget", "generated": 1, "data": {"widget": name, "col": 4}})
 
 
-def editor_context(doc) -> dict:
-	"""Where a save goes: the app's file in developer mode, else the site's layout."""
+def editor_context(doc, editing: dict | None) -> dict:
+	"""The editor's picker, and where Save writes: an app's file in developer mode, else the site."""
 	from frappe.desk.doctype.workspace.workspace import get_workspace_app
 
 	if not doc.public:
 		return {"layouts": [], "save_target": "private"}
-	if not doc.standard:
-		return {"layouts": [], "save_target": "site"}
-	if frappe.conf.developer_mode:
+	layouts = picker_rows(doc, editing)
+	if not (doc.standard and frappe.conf.developer_mode):
+		return {"layouts": layouts, "save_target": "site"}
+	if editing and editing["module"]:
+		path = frappe.get_doc("Workspace Layout", editing["name"]).file_path()
+	else:
 		scrubbed = frappe.scrub(doc.name)
 		path = os.path.join(frappe.get_module_path(doc.module), "workspace", scrubbed, f"{scrubbed}.json")
-		app = get_workspace_app(doc)
-		return {"layouts": [], "save_target": os.path.relpath(path, frappe.get_app_source_path(app))}
-	return {"layouts": [], "save_target": "site"}
+	app = get_workspace_app(doc)
+	return {"layouts": layouts, "save_target": os.path.relpath(path, frappe.get_app_source_path(app))}
 
 
 def own_layout_name(workspace: str) -> str | None:

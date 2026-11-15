@@ -25,6 +25,9 @@ import { RECORDS, blank_record, can_edit, load_record } from "./records.js";
 const props = defineProps({
 	block: { type: Object, required: true },
 	widget: { type: Object, default: null },
+	// a Widget block's type name and sizes
+	title: { type: String, default: null },
+	presets: { type: Object, default: null },
 });
 
 const emit = defineEmits(["change", "resize", "remove", "close", "form"]);
@@ -162,10 +165,13 @@ watch(
 );
 
 const size_options = computed(() =>
-	sizes_of(props.block.type).map((name) => ({ label: __(name), value: name }))
+	sizes_of(props.block.type, props.presets || undefined).map((name) => ({
+		label: __(name),
+		value: name,
+	}))
 );
 const size = computed({
-	get: () => block_size(props.block).name,
+	get: () => block_size(props.block, props.presets || undefined).name,
 	set: (preset) => emit("resize", preset),
 });
 
@@ -290,7 +296,12 @@ function remove_link(index) {
 				<template v-if="form_open">
 					{{ linked || __("New {0}", [__(record_spec.doctype)]) }}
 				</template>
-				<template v-else>{{ TITLES[block.type] || __("Block") }}</template>
+				<template v-else>
+					{{ __(title || "") || TITLES[block.type] || __("Block") }}
+					<span v-if="block.origin" class="font-normal text-ink-gray-5">
+						· {{ block.origin }}
+					</span>
+				</template>
 			</span>
 			<Button
 				size="sm"
