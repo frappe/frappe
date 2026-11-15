@@ -274,6 +274,26 @@ describe("a refused save, then an Undo", () => {
 		await acts.run("editor.save");
 		expect(canvas.errorsAt("field", "topic")).toEqual(["subject is held by a deleted field."]);
 	});
+
+	it("clears an error that names no edit once Undo has taken back every edit", async () => {
+		const { canvas, save } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });
+		refuse({ target: { kind: "field", fieldname: "subject" }, message: "subject is not valid." });
+		await acts.run("editor.save");
+		expect(canvas.errorsAt("field", "subject")).toEqual(["subject is not valid."]);
+		await acts.run("editor.undo");
+		expect([canvas.errorsAt("field", "subject"), save.banner.value]).toEqual([[], null]);
+	});
+
+	it("puts the error back under the name the remaining renames give", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.rename_field", { fieldname: "subject", new_fieldname: "topic" });
+		refuse(field("subject", 0));
+		await acts.run("editor.save");
+		await acts.run("fields.rename_field", { fieldname: "topic", new_fieldname: "heading" });
+		await acts.run("editor.undo");
+		expect(canvas.errorsAt("field", "topic")).toEqual(["subject refused."]);
+	});
 });
 
 describe("a failed file export", () => {

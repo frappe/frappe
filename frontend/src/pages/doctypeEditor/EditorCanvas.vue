@@ -251,11 +251,10 @@ watch(
 }
 /* The dragged tab's own padding sits its label high above the underline. */
 .canvas-tab-drop.sortable-fallback {
-	border-radius: 8px;
+	@apply rounded-4;
 }
 .canvas-tab-drop.sortable-fallback > button {
-	border-bottom-width: 0;
-	padding-block: 7px;
+	@apply rounded-4 border-b-transparent pb-1.5 pt-2;
 }
 .canvas-tab-drop:has(> .canvas-drop-line) {
 	background-color: var(--surface-gray-2);

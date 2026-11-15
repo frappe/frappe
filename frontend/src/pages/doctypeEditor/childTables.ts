@@ -5,7 +5,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { ChildEdits } from "./childEdits";
 import type { ChildSave } from "./childSave";
 import { pendingChild } from "./childSource";
-import { DesignCanvas } from "./designCanvas";
+import { DesignCanvas, type SaveError } from "./designCanvas";
 import { TABLE_TYPES } from "./fieldtypes";
 import type { ForkWarning } from "./forkWarning";
 import { loadEditor, type EditorState } from "./editorSource";
@@ -113,11 +113,9 @@ export class ChildTables {
 		session.state = { ...session.state, base_version: { ...base_version, app_layouts: { ...base_version.app_layouts, ...appLayouts } } };
 	}
 
-	/** Drops each session's errors whose staged edit an Undo took back; `staged` counts a DocType's edits. */
-	dropUndoneErrors(staged: (doctype: string) => number) {
-		for (const [doctype, { canvas }] of this.sessions.value) {
-			canvas.errors.value = canvas.errors.value.filter(({ edit }) => edit === undefined || edit < staged(doctype));
-		}
+	/** Settles each session's errors after an Undo; `settle` returns the ones that still hold for a DocType. */
+	dropUndoneErrors(settle: (doctype: string, errors: SaveError[]) => SaveError[]) {
+		for (const [doctype, { canvas }] of this.sessions.value) canvas.errors.value = settle(doctype, canvas.errors.value);
 	}
 
 	hasErrors(): boolean {

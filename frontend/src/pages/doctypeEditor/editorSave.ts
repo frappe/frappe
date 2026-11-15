@@ -298,13 +298,17 @@ export class EditorSave {
 		};
 	}
 
-	/** After an Undo: drops each error whose staged edit is gone, and the banner when it held only those. */
+	/** After an Undo: drops each error whose staged edit is gone (all of them once nothing is staged), and the banner when it held only those. */
 	undone() {
 		const canvas = this.host.canvas();
 		if (!canvas) return;
-		const staged = (doctype: string) => this.host.edits.stagedFor(doctype === canvas.state.doctype ? undefined : doctype).length;
-		canvas.errors.value = canvas.errors.value.filter(({ edit }) => edit === undefined || edit < staged(canvas.state.doctype));
-		this.host.children?.dropUndoneErrors(staged);
+		const settle = (doctype: string, errors: SaveError[]) => {
+			const edits = this.host.edits.stagedFor(doctype === canvas.state.doctype ? undefined : doctype);
+			const kept = errors.filter(({ edit }) => edit === undefined ? edits.length > 0 : edit < edits.length);
+			return kept.map((error) => renamedError(error, edits));
+		};
+		canvas.errors.value = settle(canvas.state.doctype, canvas.errors.value);
+		this.host.children?.dropUndoneErrors(settle);
 		const left = canvas.errors.value.length || this.host.children?.hasErrors();
 		if (this.banner.value && this.banner.value === this.refusal && !left && !this.refusal.offers.length) this.banner.value = null;
 	}
@@ -327,7 +331,7 @@ export class EditorSave {
 
 /** Draws the errors on `canvas` and selects the first marked field; the ones it cannot draw go to the banner. */
 function markErrors(canvas: DesignCanvas, refused: SaveError[], staged: FlatEdit[]): { placed: boolean; unmarked: string[] } {
-	const errors = refused.map((error) => renamedError(canvas, error, staged));
+	const errors = refused.map((error) => renamedError(error, staged));
 	canvas.errors.value = errors;
 	const marked = errors.filter((error) => marks(canvas, error));
 	const first = marked.find((error) => error.target.kind === "field");
@@ -336,15 +340,15 @@ function markErrors(canvas: DesignCanvas, refused: SaveError[], staged: FlatEdit
 	return { placed: marked.length > 0, unmarked };
 }
 
-/** The server keys a field's error to the name before a rename; the canvas already holds the new one. */
-function renamedError(canvas: DesignCanvas, error: SaveError, staged: FlatEdit[]): SaveError {
-	const { fieldname } = error.target;
-	if (error.target.kind !== "field" || !fieldname || error.edit === undefined) return error;
-	let current = fieldname;
+/** The server keys a field's error to the name before a rename; the canvas holds the name after the renames that are still staged. */
+function renamedError(error: SaveError, staged: FlatEdit[]): SaveError {
+	const keyed = error.keyed ?? error.target.fieldname;
+	if (error.target.kind !== "field" || !keyed || error.edit === undefined) return error;
+	let current = keyed;
 	for (const edit of staged.slice(error.edit)) {
 		if (edit.act === "fields.rename_field" && edit.fieldname === current) current = edit.new_fieldname as string;
 	}
-	return { ...error, target: { ...error.target, fieldname: current } };
+	return { ...error, keyed, target: { ...error.target, fieldname: current } };
 }
 
 /** A field, section or setting error drawn at its target; the rest go to the banner. */

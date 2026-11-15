@@ -36,6 +36,8 @@ export interface SaveError {
 	message: string;
 	/** The index of the staged edit it refuses. */
 	edit?: number;
+	/** The field name the server used, before the staged renames. */
+	keyed?: string;
 	code?: string;
 	/** The child table it refuses, in a call that saves more than one DocType. */
 	doctype?: string;
