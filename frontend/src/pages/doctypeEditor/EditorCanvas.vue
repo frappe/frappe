@@ -249,6 +249,14 @@ watch(
 [data-doctype-editor]:has([data-canvas-bin][data-over]) .sortable-fallback {
 	opacity: 0 !important;
 }
+/* A dragged tab is a closed card, so it rounds all four corners and centres its label (the tab's own padding sits it high above the underline). */
+.canvas-tab-drop.sortable-fallback {
+	border-radius: 8px;
+}
+.canvas-tab-drop.sortable-fallback > button {
+	border-bottom-width: 0;
+	padding-block: 7px;
+}
 .canvas-tab-drop:has(> .canvas-drop-line) {
 	background-color: var(--surface-gray-2);
 }
