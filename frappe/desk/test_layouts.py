@@ -11,6 +11,7 @@ from frappe.desk.doctype.workspace_layout.workspace_layout import remove_layouts
 from frappe.desk.layouts import block_id, item_id
 from frappe.desk.test_desktop import block, make_chart, make_named, make_user, make_workspace
 from frappe.desk.test_widgets import make_card, make_custom_block, make_link, make_shortcut
+from frappe.patches.v17_0.make_custom_workspace_copies_layouts import execute
 from frappe.tests import IntegrationTestCase
 from frappe.utils.logging import get_log_db
 
@@ -226,6 +227,81 @@ class TestSavingLayouts(IntegrationTestCase):
 		types = [frappe.db.get_value("Widget", b["data"]["widget"], "type") for b in content]
 		expected = ["Shortcut", "Card", "Number Card", "Chart", "Quick List", "Custom Block", "Onboarding"]
 		self.assertEqual(types, expected)
+
+
+class TestV16CopiesPatch(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# a v16 site still has the columns the patch reads; a new site never had them
+		for column in ("user", "content", "widgets"):
+			if not frappe.db.has_column("Custom Workspace", column):
+				frappe.db.sql_ddl(f"alter table `tabCustom Workspace` add column `{column}` longtext")
+
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		make_user(US, ["Desk User"])
+		make_user(INDIA, ["Desk User"])
+		frappe.db.delete("Workspace Layout", {"workspace": "Layout Page"})
+		frappe.db.delete("Custom Workspace", {"workspace": "Layout Page"})
+		make_workspace(
+			"Layout Page",
+			content=[block("shortcut", "My ToDos"), block("shortcut", "My Notes")],
+			standard=1,
+			shortcuts=[
+				{"type": "DocType", "link_to": "ToDo", "label": "My ToDos"},
+				{"type": "DocType", "link_to": "Note", "label": "My Notes"},
+			],
+		)
+
+	def test_a_site_copy_draws_the_same_page_and_still_gets_the_apps_new_block(self):
+		copy = [block("shortcut", "My Notes"), block("shortcut", "Audit"), block("shortcut", "My ToDos")]
+		made_up = {"shortcut": [{"type": "DocType", "link_to": "ToDo", "label": "Audit"}]}
+		make_v16_copy(copy, made_up)
+
+		execute()
+		self.assertEqual(labels(US), ["My Notes", "Audit", "My ToDos"])
+
+		execute()
+		self.assertEqual(frappe.db.count("Workspace Layout", {"workspace": "Layout Page"}), 1)
+
+		app = frappe.get_doc("Workspace", "Layout Page")
+		app.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "New In App"})
+		app.content = dumps([*loads(app.content), block("shortcut", "New In App")])
+		app.save()
+		self.assertEqual(labels(US), ["My Notes", "Audit", "My ToDos", "New In App"])
+
+	def test_a_users_copy_becomes_their_own_layout(self):
+		make_v16_copy([block("shortcut", "My Notes")], {}, user=US)
+
+		execute()
+
+		self.assertEqual(labels(US), ["My Notes"])
+		self.assertEqual(labels(INDIA), ["My ToDos", "My Notes"])
+		self.assertFalse(frappe.db.exists("Custom Workspace", {"workspace": "Layout Page"}))
+
+
+def make_v16_copy(content: list, widgets: dict, user: str | None = None):
+	row = frappe.get_doc({"doctype": "Custom Workspace", "workspace": "Layout Page"}).insert()
+	table = frappe.qb.DocType("Custom Workspace")
+	frappe.qb.update(table).set(table.content, dumps(content)).set(table.widgets, dumps(widgets)).set(
+		table.user, user
+	).where(table.name == row.name).run()
+
+
+def labels(user: str) -> list[str]:
+	"""Each drawn block's label, old label-keyed blocks and Widgets alike."""
+	current = frappe.session.user
+	frappe.set_user(user)
+	page = get_workspace("Layout Page")
+	frappe.set_user(current)
+	widgets = page["widgets"]["widget"]
+	return [
+		widgets[b["id"]]["label"] if b["type"] == "widget" else b["data"][f"{b['type']}_name"]
+		for b in page["content"]
+	]
 
 
 def drawn(widget) -> dict:

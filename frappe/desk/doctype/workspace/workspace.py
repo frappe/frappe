@@ -1122,8 +1122,8 @@ def editable_layout(workspace: str, name: str):
 	return target
 
 
-def own_layout(workspace: str):
-	filters = {"workspace": workspace, "user": frappe.session.user}
+def own_layout(workspace: str, user: str | None = None):
+	filters = {"workspace": workspace, "user": user or frappe.session.user}
 	return find_or_new_layout(filters)
 
 
