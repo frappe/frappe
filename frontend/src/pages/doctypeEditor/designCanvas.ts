@@ -90,6 +90,8 @@ export class DesignCanvas {
 	readonly errors = shallowRef<SaveError[]>([]);
 	/** The Add field tray's search, kept here so it survives the panel showing a field and back. */
 	readonly typeQuery = ref("");
+	/** The "Fields not on this layout" search, kept for the same reason. */
+	readonly fieldQuery = ref("");
 	/** The section whose "Add field" input is open. */
 	readonly adding = shallowRef<string | null>(null);
 	/** The bin's state while a placed field is dragged: shown, the field, and the pointer over it. */

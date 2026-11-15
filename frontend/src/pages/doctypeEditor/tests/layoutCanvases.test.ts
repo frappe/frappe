@@ -130,6 +130,7 @@ describe("the panel's group of fields off the layout", () => {
 		search.dispatchEvent(new Event("input", { bubbles: true }));
 		await settle();
 		expect(rowsNow()).toEqual(["spare"]);
+		expect(editor.canvas.fieldQuery.value).toBe("sp");
 		expect(root.querySelector('[data-panel-tray-field="spare"]')!.getAttribute("title")).toBe("Spare (spare)");
 		root.querySelector<HTMLButtonElement>('[data-panel-tray-field="spare"]')!.click();
 		await settle();

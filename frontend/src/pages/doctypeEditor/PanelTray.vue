@@ -12,7 +12,7 @@
 	<div v-if="showsGroup" class="flex flex-col" data-panel-tray>
 		<PanelSection :label="__('Fields not on this layout')" :count="rows.length" show-count>
 			<TextInput
-				v-model="fieldQuery"
+				v-model="canvas.fieldQuery.value"
 				:placeholder="__('Find a field')"
 				data-panel-tray-search
 			>
@@ -80,14 +80,13 @@ import PanelSection from "./PanelSection.vue";
 
 const props = defineProps<{ canvas: DesignCanvas }>();
 
-const fieldQuery = ref("");
 const rows = computed(() => props.canvas.offLayout.value);
 const showsGroup = computed(() => takesOff(props.canvas) || rows.value.length > 0);
 watch(showsGroup, (shown) => {
-	if (!shown) fieldQuery.value = "";
+	if (!shown) props.canvas.fieldQuery.value = "";
 });
 const shownRows = computed(() => {
-	const typed = fieldQuery.value.trim().toLowerCase();
+	const typed = props.canvas.fieldQuery.value.trim().toLowerCase();
 	return rows.value.filter(({ field }) =>
 		`${label(field)} ${field.fieldname}`.toLowerCase().includes(typed)
 	);
