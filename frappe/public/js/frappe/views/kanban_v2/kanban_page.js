@@ -375,15 +375,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			});
 			return;
 		}
-		// filters passed in the link apply to this visit only, so a board that carries them
-		// (or carried them last time) is set up again instead of being reused as it is
+		// link filters apply to this visit only, so a board that has or had them is set up again
 		const route_filters = this.take_route_filters(route_options);
-		if (
-			this.current_board === board_name &&
-			this.board &&
-			!route_filters.length &&
-			!this._has_route_filters
-		) {
+		const has_route_filters = route_filters.length > 0 || this._has_route_filters;
+		if (this.current_board === board_name && this.board && !has_route_filters) {
 			return;
 		}
 		this.current_board = board_name;
@@ -407,9 +402,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.doctype = board.reference_doctype;
 		this.field_name = board.field_name;
 		this.filters = JSON.parse(board.filters || "[]");
-		// a visit with route filters (or after one) starts from the board's saved filters and
-		// its own route filters; otherwise setup_quick_filters carries the typed values over
-		if (route_filters.length || this._has_route_filters) this.remove_quick_filters();
+		// otherwise setup_quick_filters carries the typed values over
+		if (has_route_filters) this.remove_quick_filters();
 		// only boards shipped by an app have translations
 		const title =
 			board.is_standard === "Yes" ? __(board.kanban_board_name) : board.kanban_board_name;

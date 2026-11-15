@@ -37,7 +37,6 @@ export class FrappeDataProvider {
 			if (
 				response?._server_messages ||
 				response?.exc ||
-				response?._error_message ||
 				frappe.msg_dialog?.msg_area?.html()
 			) {
 				error.server_message_shown = true;
