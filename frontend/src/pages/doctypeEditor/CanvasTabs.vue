@@ -10,7 +10,7 @@
 			class="flex min-w-0 flex-1 gap-5 overflow-x-auto overflow-y-hidden"
 			role="tablist"
 			ghost-class="opacity-40"
-			v-bind="DRAG_OPTIONS"
+			v-bind="TAB_DRAG_OPTIONS"
 			:disabled="!canvas.editable"
 			@change="dropTab"
 		>
@@ -85,7 +85,7 @@ import { tabStripLabel } from "@framework/ui/FormLayout";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { LayoutTreeTab } from "./layoutTree";
-import { DRAG_OPTIONS, dropField, dropTab } from "./canvasDrops";
+import { DRAG_OPTIONS, dropField, dropTab, TAB_DRAG_OPTIONS } from "./canvasDrops";
 import { selectOn } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";

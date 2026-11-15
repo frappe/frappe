@@ -81,6 +81,22 @@ describe("the field-type list", () => {
 		expect([...document.querySelectorAll("[data-panel-new-type]")].map((row) => row.getAttribute("data-panel-new-type"))).toEqual(["Currency"]);
 	});
 
+	it("keeps the search when the panel shows a field and comes back", async () => {
+		const { canvas } = await mount(state(), NewFieldTypes, (canvas) => ({ canvas, label: "Add a field" }));
+		const search = document.querySelector<HTMLInputElement>("input")!;
+		search.value = "currency";
+		search.dispatchEvent(new Event("input"));
+		await nextTick();
+		app?.unmount();
+		document.body.innerHTML = "";
+		app = createApp({ render: () => h(NewFieldTypes, { canvas, label: "Add a field" }) });
+		app.provide("addresses", { doctypes: () => [] });
+		app.mount(document.body.appendChild(document.createElement("div")));
+		await nextTick();
+		expect(document.querySelector<HTMLInputElement>("input")!.value).toBe("currency");
+		expect(document.querySelectorAll("[data-panel-new-type]").length).toBe(1);
+	});
+
 	it("drops a dragged type into a column, or on a tab's name, as a new field", async () => {
 		const { canvas } = await mount(state(), NewFieldTypes, (canvas) => ({ canvas, label: "Add a field" }));
 		dropField(canvas, { added: { element: { type: "Check" }, newIndex: 1 } } as never, { section: "main", column: "column_1" });

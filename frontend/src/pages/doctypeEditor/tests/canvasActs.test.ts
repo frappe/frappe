@@ -200,6 +200,21 @@ describe("fields.add_field on the canvas", () => {
 		edits.undo();
 		expect(canvas.field("due_on")).toBeUndefined();
 		expect(canvas.place("due_on")).toBeNull();
+		expect(canvas.selection.value).toBeNull();
+	});
+
+	it("drops a selected section, and the field it held, once an Undo removes them", async () => {
+		const { canvas, edits } = mount();
+		await acts.run("canvas.add_section", { tab: "activity", label: "Calls" });
+		const name = canvas.tabs.value[1].sections.at(-1)!.name!;
+		canvas.select({ kind: "section", section: name });
+		canvas.select({ kind: "column", section: name, column: canvas.tabs.value[1].sections.at(-1)!.columns[0].name! });
+		expect(canvas.selection.value?.kind).toBe("column");
+		edits.undo();
+		expect(canvas.selection.value).toBeNull();
+		edits.redo();
+		canvas.select({ kind: "section", section: name });
+		expect(canvas.selection.value).toEqual({ kind: "section", section: name });
 	});
 
 	it("with no value opens Add field in the selected section, else the open tab's last", async () => {

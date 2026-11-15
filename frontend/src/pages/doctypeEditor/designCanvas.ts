@@ -68,7 +68,8 @@ export class DesignCanvas {
 		return Boolean(opened && sameLayout(opened, this.openLayout.value) && !own);
 	});
 	readonly tabs = computed(() => this.layout.value?.tabs ?? []);
-	readonly selection = shallowRef<CanvasSelection | null>(null);
+	/** What is selected; `null` once its field, section, column or tab is gone, as after an Undo. */
+	readonly selection = computed<CanvasSelection | null>(() => this.alive(this.chosen.value));
 	/** The open tab's name; the first tab when it names none that exists. */
 	readonly openTabName = ref("");
 	readonly openTab = computed(
@@ -87,6 +88,8 @@ export class DesignCanvas {
 	readonly trayOpen = ref(true);
 	/** The last save's errors; each draws at its field or container. */
 	readonly errors = shallowRef<SaveError[]>([]);
+	/** The Add field tray's search, kept here so it survives the panel showing a field and back. */
+	readonly typeQuery = ref("");
 	/** The section whose "Add field" input is open. */
 	readonly adding = shallowRef<string | null>(null);
 	/** The bin's state while a placed field is dragged: shown, the field, and the pointer over it. */
@@ -102,6 +105,7 @@ export class DesignCanvas {
 	readonly editable: boolean;
 	/** `null` in Design. */
 	readonly customize: CustomizeView | null;
+	private chosen = shallowRef<CanvasSelection | null>(null);
 	private wanted = shallowRef<LayoutRef>(DETAILS);
 	/** The Details layout the new record page's Edit layout opened, until another opens. */
 	private forNewRecord = shallowRef<LayoutRef | null>(null);
@@ -142,7 +146,7 @@ export class DesignCanvas {
 	open(layout: LayoutRef) {
 		if (this.forNewRecord.value && !sameLayout(layout, this.forNewRecord.value)) this.forNewRecord.value = null;
 		this.wanted.value = layout;
-		this.selection.value = null;
+		this.chosen.value = null;
 		this.openTabName.value = "";
 		this.adding.value = null;
 	}
@@ -164,9 +168,15 @@ export class DesignCanvas {
 	}
 
 	select(selection: CanvasSelection | null) {
-		this.selection.value = selection;
+		this.chosen.value = selection;
 		const tab = selection && this.tabOf(selection);
 		if (tab) this.openTabName.value = tab;
+	}
+
+	/** A rename moves the selection with its field; it reads the raw choice, which the renamed-away name no longer shows. */
+	reselectRenamed(from: string, to: string) {
+		const chosen = this.chosen.value;
+		if (chosen?.kind === "field" && chosen.fieldname === from) this.select({ kind: "field", fieldname: to });
 	}
 
 	/** The app's layouts behind a Customize site layout, read-only as Design reads them, open at the one with this layout's condition, else the default. */
@@ -252,6 +262,15 @@ export class DesignCanvas {
 		if (!layouts[layout.type]) return DETAILS;
 		if (layout.id && !findLayout(this.working.value, layout)) return { type: layout.type };
 		return layout;
+	}
+
+	private alive(selection: CanvasSelection | null): CanvasSelection | null {
+		if (!selection) return null;
+		if (selection.kind === "field") return this.field(selection.fieldname) ? selection : null;
+		if (selection.kind === "tab") return this.tabs.value.some((tab) => tab.name === selection.tab) ? selection : null;
+		const section = this.tabs.value.flatMap((tab) => tab.sections).find((one) => one.name === selection.section);
+		if (selection.kind === "section") return section ? selection : null;
+		return section?.columns.some((one) => one.name === selection.column) ? selection : null;
 	}
 
 	private tabOf(selection: CanvasSelection): string | undefined {

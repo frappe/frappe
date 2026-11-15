@@ -113,6 +113,17 @@ export class ChildTables {
 		session.state = { ...session.state, base_version: { ...base_version, app_layouts: { ...base_version.app_layouts, ...appLayouts } } };
 	}
 
+	/** Drops each session's errors whose staged edit an Undo took back; `staged` counts a DocType's edits. */
+	dropUndoneErrors(staged: (doctype: string) => number) {
+		for (const [doctype, { canvas }] of this.sessions.value) {
+			canvas.errors.value = canvas.errors.value.filter(({ edit }) => edit === undefined || edit < staged(doctype));
+		}
+	}
+
+	hasErrors(): boolean {
+		return [...this.sessions.value.values()].some(({ canvas }) => canvas.errors.value.length > 0);
+	}
+
 	clearErrors() {
 		for (const session of this.sessions.value.values()) session.canvas.errors.value = [];
 	}

@@ -22,18 +22,19 @@ export interface CanvasMenuOption {
 export type MenuItem = Extract<CanvasSelection, { kind: "section" }>;
 
 export function canvasMenu(canvas: DesignCanvas, item: MenuItem): CanvasMenuOption[] {
-	const moves = MOVES.map(([direction, label, icon]) => {
+	const moves = MOVES.map(([direction, name, icon]) => {
 		const move = canvasMove(canvas.tabs.value, item, direction);
-		return { label, icon, disabled: !move, onClick: () => move && acts.perform(move.act, move.value) };
+		return { label: name(), icon, disabled: !move, onClick: () => move && acts.perform(move.act, move.value) };
 	});
 	return [...moves, ...ownActs(item)];
 }
 
-const MOVES: [Direction, string, string][] = [
-	["up", __("Move up"), "lucide-arrow-up"],
-	["down", __("Move down"), "lucide-arrow-down"],
-	["left", __("Move to the tab before"), "lucide-arrow-left"],
-	["right", __("Move to the tab after"), "lucide-arrow-right"],
+/** Labels are read when the menu opens: `__()` at module load runs before the translations arrive. */
+const MOVES: [Direction, () => string, string][] = [
+	["up", () => __("Move up"), "lucide-arrow-up"],
+	["down", () => __("Move down"), "lucide-arrow-down"],
+	["left", () => __("Move to the tab before"), "lucide-arrow-left"],
+	["right", () => __("Move to the tab after"), "lucide-arrow-right"],
 ];
 
 function ownActs(item: MenuItem): CanvasMenuOption[] {

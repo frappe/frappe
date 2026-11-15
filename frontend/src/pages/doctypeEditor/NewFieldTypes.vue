@@ -3,17 +3,17 @@
 <template>
 	<div class="flex flex-col" data-panel-new-field>
 		<PanelSection :label="label">
-			<TextInput v-model="query" :placeholder="__('Search field types')">
+			<TextInput v-model="canvas.typeQuery.value" :placeholder="__('Search field types')">
 				<template #prefix
 					><Icon name="lucide-search" class="size-4 text-ink-gray-5"
 				/></template>
-				<template v-if="query" #suffix
+				<template v-if="canvas.typeQuery.value" #suffix
 					><button
 						type="button"
 						class="grid size-5 place-items-center rounded-3 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 						:aria-label="__('Clear')"
 						data-types-clear
-						@click="query = ''"
+						@click="canvas.typeQuery.value = ''"
 					>
 						<Icon name="lucide-x" class="size-3.5" /></button
 				></template>
@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 // @ts-ignore, vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
 import { Icon, ItemListRow, TextInput } from "frappe-ui";
@@ -68,9 +68,8 @@ const props = defineProps<{ canvas: DesignCanvas; label: string }>();
 
 const TYPES = [...FIELDTYPE_GROUPS.flatMap((group) => group.types), "Email"].sort();
 
-const query = ref("");
 const types = computed<NewType[]>(() => {
-	const typed = query.value.trim().toLowerCase();
+	const typed = props.canvas.typeQuery.value.trim().toLowerCase();
 	return TYPES.filter((name) => __(name).toLowerCase().includes(typed)).map((type) => ({
 		type,
 	}));
