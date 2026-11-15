@@ -145,7 +145,6 @@ const metaLine = computed(() => {
 		return [module, __("Child table"), __("This form is the row's dialog.")].join(" · ");
 	if (pending) return [module, __(draftKind(props.canvas))].join(" · ");
 	const origin = app_title ? __("From {0}", [app_title]) : __("Custom");
-	// A module named Custom would read "Custom · Custom".
 	const parts = origin === module ? [module] : [module, origin];
 	if (record_count != null)
 		parts.push(

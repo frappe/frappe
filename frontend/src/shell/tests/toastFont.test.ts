@@ -1,4 +1,4 @@
-// vue-sonner sets its own font stack on the toaster; the app's sheet must override it (#47444).
+// vue-sonner sets its own font stack on the toaster; the app's sheet must override it.
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 

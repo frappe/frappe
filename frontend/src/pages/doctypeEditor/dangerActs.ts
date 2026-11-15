@@ -3,6 +3,7 @@
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import type { ActItem } from "@/acts/dispatcher";
+import { errorMessage } from "@/recordPage/errorMessage";
 import { __, __n } from "@/i18n";
 import type { EditorActsHost } from "./editorActs";
 import type { EditorState } from "./editorSource";
@@ -145,8 +146,22 @@ async function answer<V, R>(
 ): Promise<R | null> {
 	if (value) return call(value);
 	let started: Promise<R | null> = Promise.resolve(null);
-	const result = await ask((picked) => (started = call(picked)));
-	return result ?? (await started.catch(() => null));
+	let running = false;
+	const result = await ask((picked) => {
+		running = true;
+		started = call(picked);
+		started.then(stop, stop);
+		return started;
+	});
+	if (result !== null) return result;
+	const lost = running; // the dialog is gone, so a failure now has nowhere to show but a toast
+	return started.catch((error) => {
+		if (lost) toast.error(errorMessage(error));
+		return null;
+	});
+	function stop() {
+		running = false;
+	}
 }
 
 /** The edits stay locked from the act's dialog opening until it and the page's follow-up finish: the reload drops what is pending. */

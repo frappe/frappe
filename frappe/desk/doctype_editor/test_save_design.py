@@ -689,7 +689,7 @@ class TestSaveDesign(IntegrationTestCase):
 		bold = {"act": "fields.set_field_property", "fieldname": "title", "property": "bold", "value": 1}
 		stale = self.save([bold], version=version)["errors"][0]
 		self.assertEqual(stale["code"], "stale")
-		self.assertRegex(stale["message"], r"^Changed by .+ (just now|yesterday|.+ ago)\.$")
+		self.assertRegex(stale["message"], r"^Changed by .+ .+ ago\.$")
 		parent = self.save([bold], version={**version, "doctype": moved["now"]})
 		self.assertTrue(parent["saved"], parent.get("errors"))
 

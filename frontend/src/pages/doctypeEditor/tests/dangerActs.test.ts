@@ -192,6 +192,13 @@ describe("running a Danger zone act", () => {
 		expect(host.deleted).toHaveBeenCalled();
 	});
 
+	it("toasts a failure that lands after the reader closed the dialog", async () => {
+		mount({}, { askDelete: vi.fn(async (_state, submit) => (void submit().catch(() => {}), null)) });
+		runMethod.mockRejectedValue(new Error("Link exists"));
+		await acts.run("danger.delete_doctype");
+		expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Link exists"));
+	});
+
 	it("skips the page's follow-up once the reader has left the DocType", async () => {
 		const { host } = mount({}, { showing: vi.fn(() => false) });
 		runMethod.mockResolvedValue({ data: "Task Memo" });

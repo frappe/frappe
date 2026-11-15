@@ -57,6 +57,7 @@
 				<p
 					v-if="draft.problem.value"
 					class="mt-2 text-p-sm text-ink-red-6"
+					role="alert"
 					data-rule-problem
 				>
 					{{ draft.problem.value }}

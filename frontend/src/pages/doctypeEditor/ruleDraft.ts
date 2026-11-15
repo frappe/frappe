@@ -1,6 +1,5 @@
 // What the rule dialog edits: a draft of one stored rule, in Rules (a builder tree) or Code (the text
-// as written). The row stages the draft once, when Done is pressed, so a session is one undo step;
-// closing any other way drops it.
+// as written). The row stages it once, on Done, so a session is one undo step.
 import { computed, ref, shallowRef } from "vue";
 import { emptyTree } from "@framework/ui/ConditionBuilder";
 import type { RuleTree } from "./ruleWords";
