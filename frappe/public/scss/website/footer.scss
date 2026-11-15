@@ -76,7 +76,6 @@
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	justify-content: space-between;
 	gap: 0.375rem 2rem;
 	// plus the divider, as the navbar counts its own
 	min-height: calc(var(--navbar-height) + 1px);
@@ -101,20 +100,39 @@
 }
 
 .footer-links {
+	display: flex;
+	flex: 1 1 auto;
+	flex-wrap: wrap;
+	gap: 0.375rem 2rem;
+
 	&:not(:has(.footer-link)) {
 		display: none;
 	}
 
-	> .row {
+	> .footer-col-left,
+	> .footer-col-right {
+		display: flex;
+		flex-wrap: wrap;
 		gap: 0 1.25rem;
-		margin: 0;
 
-		@include media-breakpoint-down(xs) {
-			justify-content: center;
+		&:empty {
+			display: none;
 		}
+	}
 
-		> * {
-			display: contents;
+	@include media-breakpoint-up(sm) {
+		> .footer-col-right {
+			margin-inline-start: auto;
+		}
+	}
+
+	@include media-breakpoint-down(xs) {
+		flex-direction: column;
+		gap: 0.5rem;
+
+		> .footer-col-left,
+		> .footer-col-right {
+			justify-content: center;
 		}
 	}
 }
