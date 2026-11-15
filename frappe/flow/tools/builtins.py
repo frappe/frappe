@@ -945,11 +945,7 @@ def call_api(method: str, args: dict[str, Any] | None = None, *, ctx: ToolContex
 		result = _call_api(method, args, ctx=ctx)
 		# the function caught the database's refusal
 		if frappe.db.transaction_writes:
-			raise ValueError(
-				_("{0} tried to write, so it is not a read. Nothing was saved.").format(
-					function_title(method)
-				)
-			)
+			raise ValueError(_("{0} tried to write, so it is not a read. Nothing was saved.").format(method))
 		return result
 
 
@@ -969,7 +965,7 @@ def _call_api(method: str, args: dict[str, Any] | None = None, *, ctx: ToolConte
 			call = partial(frappe.call, fn, **args)
 		result = _call_as_request(call, args)
 	except Exception as e:
-		_undo_batch(function_title(method), e, ctx)
+		_undo_batch(method, e, ctx)  # by its path, as the model called it
 	if isinstance(result, Document):
 		result = result.as_dict(no_nulls=True)
 	return {"action": method, "title": function_title(method), "result": result}

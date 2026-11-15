@@ -314,6 +314,16 @@ test("each call reaches its frappe.flow.api endpoint and answers with the server
 	);
 });
 
+test("a user's approval mode and step rows are kept on the site, the store's other settings are not", async () => {
+	const transport = fakeTransport();
+	const prefs = { mode: "ask", separateToolCalls: true };
+	const client = new FrappeClient({ boot: { models: [], prefs }, transport });
+	assert.deepEqual(client.settings(), { settings: prefs });
+	await client.updateSettings({ mode: null, chatFontSize: 16, presets: [] });
+	await client.updateSettings({ lastModel: "Sonnet" });
+	assert.deepEqual(transport.calls, [["frappe.flow.api.set_prefs", { prefs: { mode: null } }]]);
+});
+
 test("a sync that fails after a run ends is retried once, then dropped quietly", async () => {
 	const { fakeSocket } = await import("./helpers/socket.js");
 	const reported = [];
