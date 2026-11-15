@@ -1217,28 +1217,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return this.get_card(card_id)?.[this.title_field] || null;
 	}
 
-	/** Runs settings.before_move on a single-card move (see settings.js). */
-	async run_before_move(mv) {
-		const hook = this.settings?.before_move;
-		if (!hook || (mv.cardIds || []).length > 1) return true;
-		let outcome;
-		try {
-			outcome = await hook({
-				name: mv.cardId,
-				title: this.get_card_title(mv.cardId),
-				from: mv.fromColumn,
-				to: mv.toColumn,
-				board_name: this.current_board,
-				doc: this.get_card(mv.cardId),
-			});
-		} catch (error) {
-			console.error(error);
-			return false;
-		}
-		if (outcome === "done") this.board?.refresh?.();
-		return outcome === "move" || outcome === undefined;
-	}
-
 	get_card(card_id) {
 		const engines = this.board?.boards
 			? this.board.boards.map((entry) => entry.board?.engine)
@@ -1252,7 +1230,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	board_options(provider, opts = {}) {
 		const settings = this.settings || {};
-		// settings.callbacks override these; for onSelectionChange and onBeforeCardMove both run
+		// settings.callbacks override these; for onSelectionChange both run
 		const base_callbacks = {
 			onCardOpen: (card) => frappe.set_route("Form", this.doctype, card.name),
 			onSelectionChange: opts.onSelectionChange || ((ids) => this.update_selection_bar(ids)),
@@ -1272,8 +1250,22 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				});
 			},
 			onAddCard: (columnId) => this.add_document(columnId),
-			onBeforeCardMove: (mv) => this.run_before_move(mv),
 		};
+		const callbacks = { ...(settings.callbacks || {}) };
+		const before_move = callbacks.onBeforeCardMove;
+		if (before_move) {
+			// the card's title, doc and board, and the page, so a handler can take over the move
+			callbacks.onBeforeCardMove = (move) =>
+				before_move(
+					{
+						...move,
+						title: this.get_card_title(move.cardId),
+						doc: this.get_card(move.cardId),
+						board_name: this.current_board,
+					},
+					this
+				);
+		}
 		// the sheet opens the form, so a double tap doesn't
 		if (this.touch) {
 			base_callbacks.onCardClick = (card, ev) => this.on_card_tap(card, ev);
@@ -1298,7 +1290,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				: (card, el) => this.render_card(card, el),
 			renderColumnHeader: settings.renderColumnHeader,
 			renderEmptyState: settings.renderEmptyState,
-			callbacks: this.merge_callbacks(base_callbacks, settings.callbacks || {}),
+			callbacks: this.merge_callbacks(base_callbacks, callbacks),
 			// settings.options: extra engine options, e.g. addColumn
 			...(settings.options || {}),
 		};
@@ -1376,24 +1368,15 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	merge_callbacks(base, custom) {
 		const out = {};
-		const compose = {
-			onSelectionChange:
-				(b, c) =>
-				(...args) => {
-					b(...args);
-					return c(...args);
-				},
-			// settings.before_move runs first; either one can cancel the move
-			onBeforeCardMove:
-				(b, c) =>
-				async (...args) =>
-					(await b(...args)) !== false && c(...args),
-		};
+		const compose = new Set(["onSelectionChange"]);
 		for (const k of new Set([...Object.keys(base), ...Object.keys(custom)])) {
 			const b = base[k];
 			const c = custom[k];
-			if (b && c && compose[k]) {
-				out[k] = compose[k](b, c);
+			if (b && c && compose.has(k)) {
+				out[k] = (...args) => {
+					b(...args);
+					return c(...args);
+				};
 			} else {
 				out[k] = c || b;
 			}

@@ -36,11 +36,10 @@
  *
  * Move callbacks (canMoveCard, onBeforeCardMove, onCardMove, onAfterCardMove)
  * run once per card, also on multi-card drags; `move.cardIds` lists every card.
- * onBeforeCardMove may be async; returning false cancels the whole drag.
- * before_move({ name, title, from, to, board_name, doc }) takes over a single-card move, e.g. to
- * open the dialog that creates the record the target column stands for. It may be async and
- * returns "move" (carry on), "cancel" (the card stays) or "done" (it changed the record itself,
- * so the board reloads). It runs before onBeforeCardMove, and either one can cancel the move.
+ * onBeforeCardMove(move, page) may be async; returning false cancels the whole drag. `move` also
+ * carries the card's `title`, `doc` and `board_name`, so it can take over a move (e.g. open the
+ * dialog that creates the record the target column stands for), return false and call
+ * page.board.refresh() once that changed the record.
  * hide_empty_fields: true leaves a field out of a card when it has no value, instead of a hint.
  * setup_page(page) runs after the board is built, to reshape the header (title, breadcrumbs, actions).
  * onCardClick(card, ev) replaces what a click does, on touch the tap that opens the card's sheet.
