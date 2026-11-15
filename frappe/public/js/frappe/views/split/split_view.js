@@ -211,6 +211,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		const rows = Array.isArray(r.message) ? r.message : r.message?.values || [];
 		// read from the reply, as rows dropped from this.data since must not end the loading
 		this.is_last_page_full = rows.length >= this.page_length;
+		this.is_count_loading = true;
 		super.prepare_data(r);
 	}
 
@@ -218,11 +219,20 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		return Boolean(this.is_last_page_full);
 	}
 
-	/** Where a row is among all the records that match the filters: { index (1-based), total }. */
+	/**
+	 * Where a row is among all the records that match the filters: { index (1-based), total,
+	 * is_estimate }. `is_estimate` means there are at least `total`, as more rows can load and the
+	 * count is off, capped or still loading.
+	 */
 	get_position(name = this.selected_name) {
 		const index = this.data.findIndex((doc) => doc.name === name) + 1;
-		const total = this.total_count ?? this.data.length;
-		return { index, total: Math.max(total, this.data.length) };
+		const loaded = this.data.length;
+		if (!this.has_more()) return { index, total: loaded, is_estimate: false };
+		const count = this.is_count_loading ? null : this.total_count;
+		if (count == null || count === this.count_upper_bound) {
+			return { index, total: Math.max(loaded, cint(count) - 1), is_estimate: true };
+		}
+		return { index, total: Math.max(loaded, count), is_estimate: count < loaded };
 	}
 
 	/** Steps the selection; past the last loaded row it brings in the next page first. */
@@ -319,12 +329,14 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	}
 
 	render_count() {
-		if (this.list_view_settings?.disable_count) {
-			this.$count.text("");
-			this.update_empty_detail();
-			return;
-		}
-		this.get_count_str().then((count) => {
+		const request = (this.count_request = (this.count_request || 0) + 1);
+		this.is_count_loading = true;
+		const get_count = this.list_view_settings?.disable_count
+			? Promise.resolve("")
+			: this.get_count_str();
+		get_count.then((count) => {
+			if (request !== this.count_request) return;
+			this.is_count_loading = false;
 			this.$count.text(count);
 			this.update_empty_detail();
 			this.detail?.update_position?.();

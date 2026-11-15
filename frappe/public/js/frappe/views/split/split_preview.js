@@ -96,7 +96,7 @@ frappe.views.SplitViewPreview = class SplitViewPreview {
 	/** Up and down through the list, and where the open record is in it, e.g. "2 of 14". */
 	update_position() {
 		const view = this.view;
-		const { index, total } = view.get_position(this.name);
+		const { index, total, is_estimate } = view.get_position(this.name);
 		const $bar = this.$position_bar;
 		$bar.find("*").each((_, node) => $(node).data("es-tooltip")?.destroy());
 		$bar.empty().append(
@@ -111,14 +111,14 @@ frappe.views.SplitViewPreview = class SplitViewPreview {
 				icon: "chevron-down",
 				variant: "ghost",
 				tooltip: __("Next (j)"),
-				disabled: !view.data.length || (index > 0 && index >= total),
+				disabled: !view.data.length || (index > 0 && index >= total && !view.has_more()),
 				onclick: () => view.select_next(1),
 			}),
 			index
 				? $('<span class="split-view-position text-p-sm"></span>').text(
 						__("{0} of {1}", [
 							format_number(index, null, 0),
-							format_number(total, null, 0),
+							`${format_number(total, null, 0)}${is_estimate ? "+" : ""}`,
 						])
 				  )
 				: null
