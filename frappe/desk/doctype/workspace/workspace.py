@@ -276,6 +276,12 @@ class Workspace(Document, DeskViews):
 				title=_("Permission Error"),
 			)
 
+	def after_rename(self, old_name, new_name, merge=False):
+		from frappe.desk.layouts import clear_caches
+
+		# layouts follow the rename by their Link; the cached ones still name the old page
+		clear_caches(old_name, all_users=True)
+
 	def clear_cache(self):
 		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
 

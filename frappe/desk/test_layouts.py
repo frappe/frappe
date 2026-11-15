@@ -283,6 +283,71 @@ class TestV16CopiesPatch(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("Custom Workspace", {"workspace": "Layout Page"}))
 
 
+class TestDeletesAndRenames(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		make_user(US, ["Desk User"])
+		self.todos = make_shortcut("ToDos")
+		for name in ("Layout Page", "Layout Page Renamed"):
+			frappe.db.delete("Workspace Layout", {"workspace": name})
+			frappe.db.delete("Workspace", {"name": name})
+		make_workspace("Layout Page", content=[widget_block(self.todos)])
+
+	def test_uninstalling_a_companion_keeps_the_sites_edits_for_a_reinstall(self):
+		from frappe.installer import _delete_linked_documents, _get_module_linked_doctype_field_map
+
+		module = make_module("WL Companion")
+		gst, einvoice = make_shortcut("GST", module=module), make_shortcut("E-Invoice", module=module)
+		adds = [{"after": None, "block": widget_block(w)} for w in (einvoice, gst)]
+		make_layout("India", module=module, add=adds)
+		make_layout("Site", hide=[id_of(einvoice)])
+		self.assertEqual(shown(US), ["GST", "ToDos"])
+
+		records = [frappe.get_doc(dt, name).as_dict() for dt, name in self.app_records(module)]
+		_delete_linked_documents(module, _get_module_linked_doctype_field_map(), dry_run=False)
+		self.assertEqual(shown(US), ["ToDos"])
+
+		for record in records:
+			frappe.get_doc(record).insert()
+		self.assertEqual(shown(US), ["GST", "ToDos"])
+
+	def app_records(self, module):
+		return [
+			(doctype, name)
+			for doctype in ("Widget", "Workspace Layout")
+			for name in frappe.get_all(doctype, {"module": module}, pluck="name")
+		]
+
+	def test_deleting_a_site_workspace_drops_its_layouts(self):
+		make_layout("Site", hide=[id_of(self.todos)])
+		frappe.delete_doc("Workspace", "Layout Page")
+
+		make_workspace("Layout Page", content=[widget_block(self.todos)])
+		self.assertEqual(shown(US), ["ToDos"])
+		self.assertFalse(frappe.db.exists("Workspace Layout", {"workspace": "Layout Page"}))
+
+	def test_renaming_a_workspace_keeps_its_site_layout(self):
+		notes = make_shortcut("Notes", link_to="Note")
+		make_workspace("Layout Page", content=[widget_block(self.todos), widget_block(notes)])
+		make_layout("Site", hide=[id_of(self.todos)])
+
+		frappe.rename_doc("Workspace", "Layout Page", "Layout Page Renamed", force=True)
+
+		frappe.set_user(US)
+		page = get_workspace("Layout Page Renamed")
+		self.assertEqual([page["widgets"]["widget"][b["id"]]["label"] for b in page["content"]], ["Notes"])
+
+
+def make_module(name):
+	if not frappe.db.exists("Module Def", name):
+		frappe.get_doc(
+			{"doctype": "Module Def", "module_name": name, "app_name": "frappe", "custom": 1}
+		).insert()
+	return name
+
+
 def make_v16_copy(content: list, widgets: dict, user: str | None = None):
 	row = frappe.get_doc({"doctype": "Custom Workspace", "workspace": "Layout Page"}).insert()
 	table = frappe.qb.DocType("Custom Workspace")
