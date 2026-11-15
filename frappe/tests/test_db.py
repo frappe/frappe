@@ -121,6 +121,24 @@ class TestDB(IntegrationTestCase):
 				other.execute("BEGIN IMMEDIATE")
 
 	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_add_index_keeps_single_quoted_column_index(self):
+		self.addCleanup(frappe.db.sql_ddl, "DROP INDEX IF EXISTS `todo_quoted_reference_name_index`")
+		self.addCleanup(
+			frappe.db.delete,
+			"Property Setter",
+			{"doc_type": "ToDo", "field_name": "reference_name", "property": "search_index"},
+		)
+		frappe.db.add_index("ToDo", ["`reference_name`"], "todo_quoted_reference_name_index")
+		self.assertEqual(
+			frappe.db.get_value(
+				"Property Setter",
+				{"doc_type": "ToDo", "field_name": "reference_name", "property": "search_index"},
+				"value",
+			),
+			"1",
+		)
+
+	@run_only_if(db_type_is.SQLITE)
 	def test_sqlite_add_index_accepts_quoted_columns(self):
 		frappe.db.add_index("ToDo", ["`status`", "allocated_to"], "todo_quoted_status_index")
 		self.assertTrue(frappe.db.has_index("tabToDo", "todo_quoted_status_index"))

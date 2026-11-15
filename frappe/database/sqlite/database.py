@@ -484,7 +484,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		# via code or console.
 		if (
 			len(fields) == 1
-			and original_fields == fields
+			and [field.strip("`") for field in original_fields] == fields
 			and not (frappe.flags.in_install or frappe.flags.in_migrate)
 		):
 			make_property_setter(
