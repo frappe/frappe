@@ -9,7 +9,8 @@ import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/utils
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "frappe-ui"
-import type { StudioComponent, ComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponent, StudioComponentInput, ComponentInput } from "@/types/Studio/StudioComponent"
+import { setScriptProp } from "@/utils/componentScriptProps"
 import useComponentStore from "@/stores/componentStore"
 
 const useComponentEditorStore = defineStore("componentEditorStore", () => {
@@ -64,18 +65,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	}
 
 	async function saveComponent(block: Block, componentId: string) {
-		const payload: any = {
-			block: getBlockObjectCopy(block),
-		}
-
-		payload.inputs = componentInputs.value.map((input) => ({
-			input_name: input.input_name,
-			type: input.type,
-			description: input.description || "",
-			default: input.default || "",
-			required: input.required ? 1 : 0,
-			options: input.options,
-		}))
+		const payload = { block: getBlockObjectCopy(block) }
 
 		try {
 			// the component's docname changes when it moves between the app and global
@@ -188,25 +178,26 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		}))
 	}
 
-	// component inputs
-	function addComponentInput(input: ComponentInput) {
-		componentInputs.value.push(input)
-	}
-
-	function updateComponentInput(index: number, input: ComponentInput) {
-		if (index >= 0 && index < componentInputs.value.length) {
-			componentInputs.value[index] = input
+	/**
+	 * Add, change or remove one prop in the component's script, and save the script.
+	 * Pass only `input` to add a prop, and only `previous` to remove one.
+	 */
+	async function saveComponentProp(
+		componentId: string,
+		previous: StudioComponentInput | null,
+		input: StudioComponentInput | null,
+	) {
+		const componentDoc = componentStore.getComponentDoc(componentId)
+		try {
+			const script = setScriptProp(componentDoc.script || "", previous, input)
+			const data = await studioComponents.setValue.submit({ name: componentDoc.name, script })
+			await componentStore.cacheComponent(data)
+			setComponentInputs(componentId)
+			return true
+		} catch (error: any) {
+			toast.error("Failed to save the prop", { description: error?.messages?.join(", ") || error?.message })
+			return false
 		}
-	}
-
-	function removeComponentInput(index: number) {
-		if (index >= 0 && index < componentInputs.value.length) {
-			componentInputs.value.splice(index, 1)
-		}
-	}
-
-	function clearComponentInputs() {
-		componentInputs.value = []
 	}
 
 	return {
@@ -219,11 +210,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		deleteComponent,
 		isGlobal,
 		setComponentInputs,
-		// inputs
-		addComponentInput,
-		updateComponentInput,
-		removeComponentInput,
-		clearComponentInputs,
+		saveComponentProp,
 	}
 })
 

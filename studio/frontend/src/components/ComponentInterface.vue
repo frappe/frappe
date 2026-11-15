@@ -21,17 +21,16 @@
 				<p v-else class="text-sm text-ink-gray-5">
 					{{
 						isScripted
-							? "The script declares this component's inputs and events."
+							? "The script declares this component's props and events."
 							: "Add a script to give this component state, logic and events."
 					}}
 				</p>
 			</SectionContainer>
 
-			<!-- inputs -->
-			<SectionContainer title="Inputs">
+			<SectionContainer title="Props">
 				<template #actions>
 					<Combobox
-						v-if="!isScripted"
+						v-if="!propsReadOnlyReason"
 						:options="fieldTypeOptions"
 						@update:modelValue="(value: string) => showAddInputPopover(value)"
 						class="!w-auto"
@@ -42,9 +41,9 @@
 					</Combobox>
 				</template>
 
-				<div class="flex flex-col gap-1" v-if="componentInputs.length > 0">
+				<div class="flex flex-col gap-1" v-if="shownInputs.length > 0">
 					<Popover
-						v-for="(input, index) in componentInputs"
+						v-for="(input, index) in shownInputs"
 						:key="input.input_name"
 						:open="showEditPopover && editingIndex === index"
 						@update:open="
@@ -59,17 +58,17 @@
 						<template #trigger>
 							<div
 								class="group flex flex-1 justify-between rounded-4 border border-outline-gray-2 px-2 py-1"
-								:class="isScripted ? '' : 'cursor-pointer hover:bg-surface-gray-1'"
-								@click="!isScripted && editInput(input, index)"
+								:class="propsReadOnlyReason ? '' : 'cursor-pointer hover:bg-surface-gray-1'"
+								@click="!propsReadOnlyReason && editInput(input, index)"
 							>
 								<div class="flex items-center gap-2">
 									<span :class="getFieldTypeIcon(input.type)" class="h-4 w-4 text-ink-gray-4" />
 									<span class="text-sm text-ink-gray-7">{{ input.input_name }}</span>
 								</div>
 								<button
-									v-if="!isScripted"
+									v-if="!propsReadOnlyReason"
 									class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
-									@click.stop="componentEditorStore.removeComponentInput(index)"
+									@click.stop="componentEditorStore.saveComponentProp(componentId, input, null)"
 								>
 									<span class="lucide-x h-4 w-4" />
 								</button>
@@ -85,7 +84,7 @@
 									type="text"
 									label="Name"
 									v-model="editingInput.input_name"
-									placeholder="e.g. user_name"
+									placeholder="e.g. title"
 									autocomplete="off"
 									:required="true"
 								/>
@@ -159,11 +158,11 @@
 					</Popover>
 				</div>
 
-				<EmptyState v-else message="No inputs added" />
+				<EmptyState v-else message="No props added" />
+				<p v-if="propsReadOnlyReason" class="text-sm text-ink-gray-5">{{ propsReadOnlyReason }}</p>
 			</SectionContainer>
 
-			<!-- Test Inputs -->
-			<SectionContainer title="Test Inputs">
+			<SectionContainer title="Test Props">
 				<PropsEditor
 					v-if="componentEditorStore.studioComponentBlock"
 					:block="componentEditorStore.studioComponentBlock"
@@ -188,6 +187,7 @@ import useComponentStore from "@/stores/componentStore"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { isCtrlOrCmd } from "@/utils/helpers"
+import { getPropsReadOnlyReason } from "@/utils/componentScriptProps"
 
 const store = useStudioStore()
 const componentStore = useComponentStore()
@@ -201,6 +201,21 @@ const isScripted = computed(() => componentStore.hasComponentScript(componentId.
 const scriptError = computed(() => componentStore.componentScriptErrors.get(componentId.value))
 // A scripted component declares its inputs as props, so they follow the script.
 watch(script, () => componentId.value && componentEditorStore.setComponentInputs(componentId.value))
+// The form writes each prop into the script. A script that builds its props in another way
+// is changed by hand.
+const propsReadOnlyReason = computed(() => {
+	const componentDoc = componentStore.getComponentDoc(componentId.value)
+	// an older component: its input rows still work, and a script with props replaces them
+	if (!componentDoc?.script?.trim() && componentDoc?.inputs?.length) {
+		return "This component declares its inputs in an older format. Declare them as props in a script to change them."
+	}
+	return getPropsReadOnlyReason(componentDoc?.script || "")
+})
+// a new prop is in the list while its form is open, and in the script after it is saved
+const draftInput = ref<ComponentInput | null>(null)
+const shownInputs = computed(() =>
+	draftInput.value ? [...componentInputs.value, draftInput.value] : componentInputs.value,
+)
 const showEditPopover = ref(false)
 const editingInput = ref<ComponentInput | null>(null)
 const editingIndex = ref<number>(-1)
@@ -235,33 +250,27 @@ const editInput = (input: ComponentInput, index: number) => {
 	showEditPopover.value = true
 }
 
-const saveInput = () => {
-	if (editingInput.value && editingIndex.value >= 0) {
-		componentEditorStore.updateComponentInput(editingIndex.value, editingInput.value)
-	}
-	showEditPopover.value = false
-	editingInput.value = null
-	editingIndex.value = -1
+const saveInput = async () => {
+	if (!editingInput.value) return
+	const { inputControl, inputType, showPopover, ...input } = editingInput.value
+	const previous = componentInputs.value[editingIndex.value] ?? null
+	if (await componentEditorStore.saveComponentProp(componentId.value, previous, input)) cancelEdit()
 }
 
 const cancelEdit = () => {
 	showEditPopover.value = false
 	editingInput.value = null
 	editingIndex.value = -1
+	draftInput.value = null
 }
 
 const showAddInputPopover = (fieldType: string) => {
-	const fieldTypeLabel = fieldTypeOptions.find((opt) => opt.value === fieldType)?.label || fieldType
-	const newInputData: ComponentInput = {
-		input_name: fieldTypeLabel,
-		type: fieldType,
-		description: "",
-		default: "",
-	}
-	componentEditorStore.addComponentInput(newInputData)
-	const newIndex = componentInputs.value.length - 1
+	const names = componentInputs.value.map((input) => input.input_name)
+	let name = fieldType
+	for (let count = 2; names.includes(name); count++) name = `${fieldType}${count}`
+	draftInput.value = { input_name: name, type: fieldType, description: "", default: "" }
 	setTimeout(() => {
-		editInput(newInputData, newIndex)
+		editInput(draftInput.value!, componentInputs.value.length)
 	}, 10) // Small delay to ensure DOM is updated
 }
 

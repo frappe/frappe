@@ -11,6 +11,7 @@ import { registerGlobalComponents } from "@/globals"
 import { loadPage } from "@/page/pageLoader"
 import { loadAppRuntime } from "@/browserRuntime/appRuntime"
 import useComponentStore from "@/stores/componentStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import getBlockTemplate from "@/utils/blockTemplate"
 
 const APP_NAME = "cypress-guest"
@@ -206,5 +207,47 @@ describe("studio components for guests", () => {
 		})
 		cy.wait("@getComponent").its("response.statusCode").should("eq", 403)
 		cy.then(() => expect(store.componentMap.get(COMPONENT_ID)?.componentName).to.equal("container"))
+	})
+})
+
+describe("studio component props", () => {
+	const PROPS_ID = "cypress_form_props"
+
+	before(() => {
+		cy.login()
+		cy.remove_doc("Studio Component", PROPS_ID, true)
+		cy.insert_doc("Studio Component", {
+			component_id: PROPS_ID,
+			component_name: "Cypress Form Props",
+			block: JSON.stringify(getBlockTemplate("container")),
+		})
+	})
+
+	after(() => {
+		cy.login()
+		cy.remove_doc("Studio Component", PROPS_ID, true)
+	})
+
+	it("saves a prop from the form in the component's script", () => {
+		setActivePinia(pinia)
+		const store = useComponentStore()
+		const size = { input_name: "size", type: "select", options: "sm\nmd", default: "md" }
+		store.removeCachedComponent(PROPS_ID)
+		cy.then(() => store.loadComponent(PROPS_ID))
+		cy.then(() => useComponentEditorStore().saveComponentProp(PROPS_ID, null, size)).should("equal", true)
+
+		cy.get_doc("Studio Component", PROPS_ID).then((doc) => {
+			expect(doc.data.script).to.include(
+				'size: { type: String, default: "md", studio: { type: "select", options: ["sm","md"] } },',
+			)
+		})
+		cy.then(() => {
+			const inputs = store.getComponentInputs(PROPS_ID)
+			expect(inputs.map((input) => [input.input_name, input.type, input.default])).to.deep.equal([
+				["size", "select", "md"],
+			])
+			return useComponentEditorStore().saveComponentProp(PROPS_ID, inputs[0], null)
+		})
+		cy.then(() => expect(store.getComponentInputs(PROPS_ID)).to.deep.equal([]))
 	})
 })

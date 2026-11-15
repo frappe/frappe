@@ -9,6 +9,7 @@ import { registerGlobalComponents } from "@/globals"
 import useComponentStore from "@/stores/componentStore"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { getInputsFromProps, validateComponentScript, type ComponentScript } from "@/utils/componentScript"
+import { getPropsReadOnlyReason, setScriptProp } from "@/utils/componentScriptProps"
 import { getBlockInstance } from "@/utils/serializer"
 
 const COMPONENT_ID = "cypress_counter"
@@ -198,5 +199,59 @@ describe("component scripts", () => {
 		expect(inputs[0].required).to.equal(1)
 		expect(inputs[4].options).to.equal("sm\nmd")
 		expect(getInputsFromProps(["title"])).to.deep.equal([{ input_name: "title", type: "text" }])
+	})
+
+	it("writes a prop from the form into the script, and leaves the rest of the script as written", () => {
+		const title = { input_name: "title", type: "text", required: 1 }
+		const size = { input_name: "size", type: "select", options: "sm\nmd", default: "md" }
+		let script = setScriptProp("", null, title)
+		expect(script).to.equal("export default {\n\tprops: {\n\t\ttitle: { type: String, required: true },\n\t},\n}\n")
+
+		script = setScriptProp(script, null, size)
+		expect(script).to.include('size: { type: String, default: "md", studio: { type: "select", options: ["sm","md"] } },')
+		script = setScriptProp(script, title, { ...title, input_name: "heading", required: 0 })
+		expect(script).to.include("\t\theading: String,\n").and.not.include("title")
+		script = setScriptProp(script, size, null)
+		expect(script).to.equal("export default {\n\tprops: {\n\t\theading: String,\n\t},\n}\n")
+		expect(() => setScriptProp(script, null, { input_name: "heading", type: "text" })).to.throw("already exists")
+
+		const written = [
+			'import { ref } from "vue"',
+			"",
+			"// a counter",
+			"export default {",
+			"\tprops: { rows: { type: Array, default: () => [] }, open: Boolean },",
+			"\tsetup() {",
+			"\t\treturn { count: ref(0) }",
+			"\t},",
+			"}",
+			"",
+		].join("\n")
+		const rows = { input_name: "rows", type: "code" }
+		const edited = setScriptProp(written, rows, { ...rows, description: "The rows to show" })
+		expect(edited).to.equal(
+			written.replace(
+				"rows: { type: Array, default: () => [] }",
+				'rows: { default: () => [], studio: { description: "The rows to show" } }',
+			),
+		)
+		expect(setScriptProp(written, null, { input_name: "step", type: "number", default: "2" })).to.include(
+			"open: Boolean, step: { type: Number, default: 2 } },",
+		)
+		expect(setScriptProp("export default {\n\tsetup() {},\n}\n", null, title)).to.equal(
+			"export default {\n\tprops: {\n\t\ttitle: { type: String, required: true },\n\t},\n\tsetup() {},\n}\n",
+		)
+		expect(() => setScriptProp(written, null, { input_name: "bad", type: "code", default: "[1," })).to.throw(
+			"not valid JavaScript",
+		)
+	})
+
+	it("leaves props to the script when the form cannot change them safely", () => {
+		expect(getPropsReadOnlyReason("")).to.equal("")
+		expect(getPropsReadOnlyReason("export default { props: { title: String } }")).to.equal("")
+		expect(getPropsReadOnlyReason("export default { props: { ...base, title: String } }")).to.include("another object")
+		expect(getPropsReadOnlyReason('export default { props: ["title"] }')).to.include("as an object")
+		expect(getPropsReadOnlyReason("export default { props: {")).to.include("syntax error")
+		expect(getPropsReadOnlyReason("export default function setup() {}")).to.include("export an object")
 	})
 })
