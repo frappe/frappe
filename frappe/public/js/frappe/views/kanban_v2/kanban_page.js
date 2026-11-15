@@ -407,9 +407,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.doctype = board.reference_doctype;
 		this.field_name = board.field_name;
 		this.filters = JSON.parse(board.filters || "[]");
-		// a visit starts from the board's saved filters and its own route filters, so the last
-		// visit's quick filter boxes go before setup_quick_filters can carry them over
-		this.remove_quick_filters();
+		// a visit with route filters (or after one) starts from the board's saved filters and
+		// its own route filters; otherwise setup_quick_filters carries the typed values over
+		if (route_filters.length || this._has_route_filters) this.remove_quick_filters();
 		// only boards shipped by an app have translations
 		const title =
 			board.is_standard === "Yes" ? __(board.kanban_board_name) : board.kanban_board_name;

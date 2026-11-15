@@ -162,6 +162,31 @@ test.describe("Kanban v2 Board", () => {
 		}
 	});
 
+	test("keeps a typed quick filter when the board opens again", async ({ page, admin }) => {
+		const { data: open_todos } = await admin.get_list(
+			"ToDo",
+			["name"],
+			[["status", "=", "Open"]]
+		);
+		expect(open_todos.length).toBeGreaterThan(1);
+		const high = open_todos[0].name;
+		await admin.set_value("ToDo", high, { priority: "High" });
+		try {
+			await visit_kanban_v2(page);
+			const filtered = wait_for_board_data(page);
+			await priority_box(page).selectOption("High");
+			await filtered;
+			await expect(column_cards(page, "Open")).toHaveCount(1);
+
+			await reopen_board(page);
+			await expect(priority_box(page)).toHaveValue("High");
+			await expect(column_cards(page, "Open")).toHaveCount(1);
+			await expect(column_cards(page, "Open").first()).toHaveAttribute("data-name", high);
+		} finally {
+			await admin.set_value("ToDo", high, { priority: "Medium" });
+		}
+	});
+
 	test("orders the cards with the sort selector", async ({ page }) => {
 		await visit_kanban_v2(page);
 		await expect(column_cards(page, "Open").nth(1)).toBeAttached();
