@@ -83,7 +83,7 @@
 						v-for="component in customVueComponents"
 						:key="component.component_name"
 						:data-vue-component-name="component.component_name"
-						class="user-component group/vue-component flex cursor-grab select-none items-center justify-between rounded-4 p-1 hover:bg-surface-gray-1"
+						class="user-component group/vue-component flex min-h-8 cursor-grab select-none items-center justify-between rounded-4 p-1 hover:bg-surface-gray-1"
 						:class="{
 							'border border-outline-gray-4': store.selectedVueComponent === component.component_name,
 						}"
@@ -92,11 +92,7 @@
 						:data-is-custom-vue-component="true"
 					>
 						<div class="flex items-center gap-2 text-ink-gray-7">
-							<div
-								class="flex h-6 w-6 items-center justify-center rounded-4 bg-surface-green-1 text-ink-green-5"
-							>
-								<LucideCode class="h-3 w-3" />
-							</div>
+							<span class="lucide-code mx-1 h-4 w-4 text-ink-green-6" />
 							<p class="text-sm">{{ component.component_name }}</p>
 						</div>
 						<div class="invisible group-hover/vue-component:visible has-[.active-item]:visible">
@@ -190,7 +186,6 @@ import { confirm } from "@/utils/helpers"
 import type { leftPanelComponentTabOptions, FrappeUIComponent } from "@/types"
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import type { CustomVueComponentMeta } from "@/types/vue"
-import LucideCode from "~icons/lucide/code"
 
 const canvasStore = useCanvasStore()
 const store = useStudioStore()
