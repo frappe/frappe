@@ -1664,6 +1664,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	field_value(card, df, opts = {}) {
 		const val = card[df.fieldname];
 		if (val === undefined || val === null || val === "") return null;
+		// an amount of 0 on a card almost always means "not filled in"
+		if (df.fieldtype === "Currency" && !flt(val)) return null;
 
 		const el = document.createElement("div");
 		el.className = "text-sm text-ink-gray-6 truncate min-w-0";
