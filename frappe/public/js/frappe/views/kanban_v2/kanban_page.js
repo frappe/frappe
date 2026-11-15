@@ -428,6 +428,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			})
 		);
 		this.setup_group_button();
+		// last, so a doctype can reshape the header the board just built
+		if (this.settings.setup_page) this.settings.setup_page(this);
 	}
 
 	/** The link's filters: the URL query, else the route options, as the list view reads them. */
@@ -1431,7 +1433,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 		for (const fieldname of this.card_field_list) {
 			const df = this.field_df(fieldname);
-			if (df) rows.appendChild(this.field_row(card, df));
+			const row = df && this.field_row(card, df);
+			if (row) rows.appendChild(row);
 		}
 		el.appendChild(rows);
 		el.appendChild(this.card_footer(card));
@@ -1595,6 +1598,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		}
 
 		const value = this.field_value(card, df);
+		if (!value && this.settings.hide_empty_fields) return null;
 		if (value) {
 			row.appendChild(value);
 		} else {
