@@ -19,6 +19,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 )
 from frappe.desk.layouts import (
 	NEW_LAYOUT,
+	default_origin,
 	editing_layout,
 	editor_content,
 	matched_layouts,
@@ -492,6 +493,9 @@ def get_workspace(
 		"layout": editing and editing["name"],
 		"new_layout": editing is NEW_LAYOUT,
 		"view_as": viewer,
+		"has_changes": bool(editing and editing["changes"]),
+		"page_overrides": page_overrides(doc) if can_edit else [],
+		"owner_title": default_origin(doc),
 		"layout_settings": editing and {key: editing[key] for key in ("layout_name", "condition", "module")},
 		**settings_fields(doc, editing, can_edit),
 		"page_settings": {
@@ -604,6 +608,13 @@ def settings_fields(doc, editing: dict | None, can_edit: bool) -> dict:
 		"page_fields": page_fields + (module if page_fields and developer else []),
 		"layout_fields": layout_fields + (module if named else []),
 	}
+
+
+def page_overrides(doc) -> list[str]:
+	from frappe.desk.doctype.custom_workspace.custom_workspace import overridden_fields
+
+	customization = get_customization(doc.name) if doc.standard else None
+	return overridden_fields(customization) if customization else []
 
 
 def own_layout_name(workspace: str) -> str | None:

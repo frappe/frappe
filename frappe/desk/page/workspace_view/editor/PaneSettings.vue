@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from "vue";
-import { Select, Switch, TextInput, Textarea } from "frappe-ui";
+import { Button, Select, Switch, TextInput, Textarea } from "frappe-ui";
 import { Link } from "@framework/ui";
 
 // What the pencil is on, with no block selected: the page's own fields, and the layout's name,
@@ -13,9 +13,13 @@ const props = defineProps({
 	// the user the page is drawn for, and whether the editor may pick another
 	view_as: { type: String, default: null },
 	can_view_as: { type: Boolean, default: false },
+	can_delete_layout: { type: Boolean, default: false },
+	// page fields the site changed from the app's, and whose app that is
+	overrides: { type: Array, default: () => [] },
+	owner_title: { type: String, default: "" },
 });
 
-const emit = defineEmits(["change", "view-as"]);
+const emit = defineEmits(["change", "view-as", "delete-layout", "reset-field"]);
 const __ = window.__;
 const frappe = window.frappe;
 
@@ -92,6 +96,15 @@ const has = (fields, field) => fields.includes(field);
 				:model-value="layout.module || ''"
 				@update:model-value="(value) => set(layout, 'module', value)"
 			/>
+			<Button
+				v-if="can_delete_layout"
+				class="self-start"
+				theme="red"
+				variant="subtle"
+				icon-left="lucide-trash-2"
+				:label="__('Delete layout')"
+				@click="emit('delete-layout')"
+			/>
 		</template>
 
 		<template v-if="page && page_fields.length">
@@ -109,6 +122,14 @@ const has = (fields, field) => fields.includes(field);
 				:aria-label="__('Icon')"
 				:model-value="page.icon"
 				@update:model-value="(value) => set(page, 'icon', value)"
+			/>
+			<Button
+				v-if="overrides.includes('icon')"
+				class="-mt-2 self-start"
+				variant="ghost"
+				size="sm"
+				:label="__('Reset to {0}\'s', [owner_title])"
+				@click="emit('reset-field', 'icon')"
 			/>
 			<Select
 				v-if="has(page_fields, 'module')"

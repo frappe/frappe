@@ -193,16 +193,37 @@ def _get_or_new(workspace: str) -> "CustomWorkspace":
 	return frappe.get_doc({"doctype": "Custom Workspace", "workspace": workspace})
 
 
+# A site's overrides of an app's page, each with the value that means "the app's own".
+OVERRIDES = {"icon": None, "indicator_color": None, "visibility": "Inherit", "override_sequence": 0}
+
+
 @frappe.whitelist(methods=["POST"])
-def reset_workspace_customization(workspace: str) -> None:
-	"""Restore the app's workspace. A site's move to Frappe UI stays: it goes one way, and reset is
-	not a way back."""
+def reset_page_fields(workspace: str, fields: list[str] | None = None) -> None:
+	"""Bring back the app's value of each of `fields`, or of every override when none are named.
+	`roles` names the role changes. A site's move to Frappe UI stays: it goes one way."""
 	from frappe.desk.doctype.workspace.workspace import is_workspace_manager
 
 	if not is_workspace_manager():
 		frappe.throw(_("You need to be Workspace Manager to reset a workspace."), frappe.PermissionError)
+	if not frappe.db.exists("Custom Workspace", workspace):
+		return
 
-	renderer = frappe.db.get_value("Custom Workspace", workspace, "renderer")
-	frappe.delete_doc_if_exists("Custom Workspace", workspace)
-	if renderer == "Frappe UI":
-		upsert_property_customization(workspace, renderer=renderer)
+	customization = frappe.get_doc("Custom Workspace", workspace)
+	fields = frappe.parse_json(fields) or [*OVERRIDES, "roles"]
+	for field in fields:
+		if field == "roles":
+			customization.set("added_roles", [])
+			customization.set("removed_roles", [])
+		elif field in OVERRIDES:
+			customization.set(field, OVERRIDES[field])
+	customization.save(ignore_permissions=True)
+
+
+def overridden_fields(customization) -> list[str]:
+	"""The page fields a site has changed from the app's."""
+	changed = [
+		field for field, default in OVERRIDES.items() if (customization.get(field) or default) != default
+	]
+	if customization.added_roles or customization.removed_roles:
+		changed.append("roles")
+	return changed

@@ -294,6 +294,50 @@ function view_as_user(user) {
 	dirty.value ? confirm_discard(open) : open();
 }
 
+// Reset clears what the layout changes, and keeps its name and condition.
+function reset_layout() {
+	frappe.confirm(__("Undo every change this layout makes to the page?"), () =>
+		attempt(async () => {
+			await post("frappe.desk.doctype.workspace.workspace.reset_layout", {
+				workspace: props.workspace.name,
+				...(props.workspace.layout && { layout: props.workspace.layout }),
+			});
+			emit("switch", props.workspace.layout || undefined, viewer());
+		})
+	);
+}
+
+function delete_layout() {
+	frappe.confirm(__("Delete the {0} layout?", [layout_settings.layout_name]), () =>
+		attempt(async () => {
+			await post("frappe.desk.doctype.workspace.workspace.delete_layout", {
+				workspace: props.workspace.name,
+				layout: props.workspace.layout,
+			});
+			emit("switch", undefined, viewer());
+		})
+	);
+}
+
+function reset_field(field) {
+	attempt(async () => {
+		await post("frappe.desk.doctype.custom_workspace.custom_workspace.reset_page_fields", {
+			workspace: props.workspace.name,
+			fields: [field],
+		});
+		emit("switch", props.workspace.layout || undefined, viewer());
+	});
+}
+
+const viewer = () => (props.workspace.view_as ? { view_as: props.workspace.view_as } : {});
+
+// on every editable layout but the default, once it changes something
+const can_reset = computed(() =>
+	props.workspace.can_edit
+		? Boolean(props.workspace.layout_settings && props.workspace.has_changes)
+		: props.workspace.own_layout
+);
+
 function confirm_discard(then) {
 	frappe.confirm(__("Discard your unsaved changes?"), then);
 }
@@ -325,6 +369,16 @@ watch(
 			  ]
 			: []),
 		...menu.value,
+		...(can_reset.value
+			? [
+					{
+						label: __("Reset"),
+						icon: "undo-2",
+						placement: "secondary",
+						onClick: reset_layout,
+					},
+			  ]
+			: []),
 		{ label: __("Save"), placement: "primary", tooltip: save_tooltip.value, onClick: save },
 	],
 	(actions) => emit("actions", actions),
@@ -380,6 +434,11 @@ defineExpose({ blocks, widgets, selected_id, previewing, editing, dirty, on_move
 				:can_view_as="layouts.length > 0 && !is_draft"
 				@change="settings_changed = true"
 				@view-as="view_as_user"
+				:can_delete_layout="Boolean(workspace.layout && workspace.layout_fields?.length)"
+				:overrides="workspace.page_overrides"
+				:owner_title="workspace.owner_title"
+				@delete-layout="delete_layout"
+				@reset-field="reset_field"
 			/>
 			<Transition
 				mode="out-in"

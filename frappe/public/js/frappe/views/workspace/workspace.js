@@ -957,7 +957,7 @@ frappe.views.Workspace = class Workspace {
 			),
 			() => {
 				frappe.call({
-					method: "frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
+					method: "frappe.desk.doctype.custom_workspace.custom_workspace.reset_page_fields",
 					args: { workspace: page.name },
 					freeze: true,
 					callback: () => {

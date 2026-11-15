@@ -8,7 +8,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
 	effective_renderer,
 	effective_roles,
-	reset_workspace_customization,
+	reset_page_fields,
 	upsert_property_customization,
 )
 from frappe.desk.layouts import with_ids
@@ -115,14 +115,22 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		frappe.delete_doc_if_exists("Custom Workspace", self.WORKSPACE)
 		frappe.db.delete("Workspace", {"name": self.WORKSPACE})
 
-	def test_reset_removes_customization(self):
+	def test_reset_brings_back_the_apps_fields(self):
 		frappe.get_doc(
-			{"doctype": "Custom Workspace", "workspace": self.WORKSPACE, "visibility": "Hidden"}
+			{
+				"doctype": "Custom Workspace",
+				"workspace": self.WORKSPACE,
+				"visibility": "Hidden",
+				"icon": "star",
+			}
 		).insert()
-		self.assertTrue(frappe.db.exists("Custom Workspace", self.WORKSPACE))
 
-		reset_workspace_customization(self.WORKSPACE)
-		self.assertFalse(frappe.db.exists("Custom Workspace", self.WORKSPACE))
+		reset_page_fields(self.WORKSPACE, ["visibility"])
+		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
+		self.assertEqual((customization.visibility, customization.icon), ("Inherit", "star"))
+
+		reset_page_fields(self.WORKSPACE)
+		self.assertFalse(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "icon"))
 
 	def test_renderer_is_a_diff_and_reset_keeps_it(self):
 		from frappe.desk.desktop import Workspace
@@ -133,7 +141,7 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")
 
 		upsert_property_customization(self.WORKSPACE, visibility="Hidden")
-		reset_workspace_customization(self.WORKSPACE)
+		reset_page_fields(self.WORKSPACE)
 		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
 		self.assertEqual(customization.visibility, "Inherit")
 		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")

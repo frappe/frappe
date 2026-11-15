@@ -7,7 +7,11 @@ from unittest.mock import patch
 
 import frappe
 from frappe.desk.desktop import get_workspace, view_as
-from frappe.desk.doctype.workspace.workspace import new_page, save_page
+from frappe.desk.doctype.custom_workspace.custom_workspace import (
+	reset_page_fields,
+	upsert_settings_customization,
+)
+from frappe.desk.doctype.workspace.workspace import delete_layout, new_page, reset_layout, save_page
 from frappe.desk.doctype.workspace_layout.workspace_layout import remove_layouts_without_files
 from frappe.desk.layouts import block_id, item_id
 from frappe.desk.test_desktop import block, make_chart, make_named, make_user, make_workspace
@@ -422,6 +426,74 @@ class TestViewAs(IntegrationTestCase):
 		preview = get_workspace("Layout Page", view_as=INDIA)["content"]
 		frappe.set_user(INDIA)
 		self.assertEqual(preview, get_workspace("Layout Page")["content"])
+
+
+class TestReset(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		make_user(US, ["Desk User"])
+		make_user(INDIA, ["Desk User"])
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		self.todos, self.notes = make_shortcut("ToDos"), make_shortcut("Notes", link_to="Note")
+		frappe.db.delete("Workspace Layout", {"workspace": "Layout Page"})
+		frappe.db.delete("Custom Workspace", {"workspace": "Layout Page"})
+		make_workspace(
+			"Layout Page", content=[widget_block(self.todos), widget_block(self.notes)], standard=1
+		)
+		make_layout("App", module="Desk", hide=[id_of(self.notes)])
+
+	def test_resetting_the_site_edit_brings_back_every_app_change(self):
+		site = make_layout(None, hide=[id_of(self.todos)])
+		self.assertEqual(shown(US), [])
+
+		frappe.set_user(MANAGER)
+		reset_layout("Layout Page")
+
+		self.assertEqual(shown(US), ["ToDos"])
+		self.assertFalse(frappe.db.exists("Workspace Layout", site.name))
+		rows = {row["label"]: row for row in get_workspace("Layout Page", edit=1)["layouts"]}
+		self.assertIn("Site edits", rows, "the row stays, empty")
+
+	def test_resetting_a_named_layout_keeps_its_name_and_condition(self):
+		named = make_layout("Managers", condition="True", hide=[id_of(self.todos)])
+		frappe.set_user(MANAGER)
+		reset_layout("Layout Page", named.name)
+
+		named.reload()
+		self.assertEqual((named.layout_name, named.condition, named.changes), ("Managers", "True", "{}"))
+
+	def test_a_users_reset_brings_back_the_shared_page_for_them_only(self):
+		for user in (US, INDIA):
+			frappe.set_user(user)
+			save_page("Layout Page", 1, {}, dumps([]))
+
+		frappe.set_user(US)
+		reset_layout("Layout Page")
+
+		self.assertEqual(shown(US), ["ToDos"])
+		self.assertEqual(shown(INDIA), [])
+
+	def test_deleting_an_app_layout_in_developer_mode_removes_its_file(self):
+		frappe.conf.developer_mode = 1
+		layout = make_layout("WL Deleted", module="Desk", hide=[id_of(self.todos)])
+		self.assertTrue(os.path.exists(path := layout.file_path()))
+
+		delete_layout("Layout Page", layout.name)
+
+		self.assertFalse(os.path.exists(path))
+		self.assertRaises(frappe.ValidationError, delete_layout, "Layout Page", make_layout(None).name)
+
+	def test_resetting_a_page_field_keeps_the_block_edits(self):
+		upsert_settings_customization("Layout Page", icon="star")
+		make_layout(None, hide=[id_of(self.todos)])
+
+		frappe.set_user(MANAGER)
+		reset_page_fields("Layout Page", ["icon"])
+
+		self.assertFalse(frappe.db.get_value("Custom Workspace", "Layout Page", "icon"))
+		self.assertEqual(shown(US), [])
 
 
 class TestDeletesAndRenames(IntegrationTestCase):

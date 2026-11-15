@@ -1128,6 +1128,34 @@ def save_target(doc, layout: str | None, settings: dict | None = None):
 	return None
 
 
+@frappe.whitelist(methods=["POST"])
+def reset_layout(workspace: str, layout: str | None = None) -> None:
+	"""Clear the changes of the layout being edited, keeping its name and condition. The site's edit
+	and a person's own layout have nothing but changes, so they go."""
+	target = save_target(frappe.get_doc("Workspace", workspace), layout)
+	if not target:
+		frappe.throw(_("The default is the page every layout changes. It has nothing to reset."))
+	if target.is_new():
+		return
+	if target.layout_name:
+		target.changes = {}
+		target.save(ignore_permissions=True)
+	else:
+		target.delete(ignore_permissions=True)
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_layout(workspace: str, layout: str) -> None:
+	"""Delete a named layout: the site's, or in developer mode an app's, with its file."""
+	doc = frappe.get_doc("Workspace", workspace)
+	if not can_edit_workspace(doc):
+		frappe.throw(_("You are not permitted to edit this workspace."), frappe.PermissionError)
+	target = editable_layout(workspace, layout)
+	if not target.layout_name:
+		frappe.throw(_("Only a named layout can be deleted. Reset this one instead."))
+	target.delete(ignore_permissions=True)
+
+
 def new_layout(workspace: str):
 	return frappe.get_doc({"doctype": "Workspace Layout", "workspace": workspace})
 
