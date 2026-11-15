@@ -543,8 +543,8 @@ class BackupGenerator:
 			db_path,
 			self.backup_path_db,
 			self.get_dump_header(),
-			include_tables=self.backup_includes if self.partial else None,
-			exclude_tables=self.backup_excludes if self.partial else None,
+			include_tables=self.backup_includes,
+			exclude_tables=self.backup_excludes,
 			verbose=self.verbose,
 		)
 
