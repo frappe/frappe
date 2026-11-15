@@ -23,7 +23,7 @@ test("page scripts, component scripts and router files accept HMR with either ex
 			}
 			const component = path.join(appFolder, "studio_components", `card_1.${extension}`)
 			fs.mkdirSync(path.dirname(component), { recursive: true })
-			fs.writeFileSync(component.replace(/\.(ts|js)$/, ".json"), JSON.stringify({ name: "card-1" }))
+			fs.writeFileSync(component.replace(/\.(ts|js)$/, ".json"), JSON.stringify({ name: "notes/card-1", component_id: "card-1" }))
 			assert.match(
 				plugin.transform("export default {}", `/@fs${component}?v=1`).code,
 				/__STUDIO_HMR_applyComponentScript\("card-1", mod\)/,
