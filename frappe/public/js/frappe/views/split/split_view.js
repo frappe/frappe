@@ -57,8 +57,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		});
 	}
 
-	// Picking a record changes only the route's last part, and the list factory hands that route
-	// to this same page; the list, its data and its scroll stay, only the detail changes.
+	// picking a record routes back to this same page, which keeps the list and swaps the detail
 	show() {
 		if (!this.init_promise || !this.is_same_list_as_last_route()) {
 			return super.show().then(() => this.show_selected(this.get_route_name(), true));
@@ -105,7 +104,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	}
 
 	setup_paging_area() {
-		// the next page loads by itself (see SplitPane), so the column has no footer
 		this.$paging_area = $("<div></div>");
 	}
 
@@ -118,7 +116,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	}
 
 	setup_split_layout() {
-		// the split wants the width, so on a wide screen the sidebar folds to its rail while it shows
 		this.pane = new frappe.ui.SplitPane({
 			empty: { title: __("Nothing to show") },
 			on_select: (name, event) => this.on_select(name, event),
@@ -131,7 +128,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 			},
 		});
 		this.$split = this.pane.$el.appendTo(this.$frappe_list);
-		// the split runs edge to edge under the filters, so the list drops its side margins
 		this.$frappe_list.addClass("has-split-view");
 		this.$detail = this.pane.$detail;
 		this.item_list = this.pane.item_list;
@@ -151,9 +147,9 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	}
 
 	on_select(name, event) {
-		// Enter on the open row goes on to its form; ItemList sends Enter as a keydown
+		// ItemList sends Enter on a row as a keydown
 		if (event?.type === "keydown" && name === this.selected_name) return this.open_form(name);
-		// Enter on a focused row acts on that row, so a step moves focus along with the selection
+		// Enter acts on the focused row, so focus follows a step
 		const focus_row = !event && $(document.activeElement).closest(".es-item-list__row").length;
 		this.select(name);
 		if (focus_row) {
@@ -174,12 +170,10 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		return $(".modal:visible").length > 0;
 	}
 
-	// keys already taken by what has focus (a focused row) stay theirs
 	is_key_taken(e) {
 		return e.isDefaultPrevented() || this.is_dialog_open();
 	}
 
-	// j, k, up and down come from SplitPane
 	setup_keyboard_navigation() {
 		const is_control_focused = () =>
 			$(document.activeElement).is("a, button, [role=button], [role=radio]");
@@ -272,8 +266,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		this.$split.toggleClass("has-selection", Boolean(name));
 		this.render_detail();
 
-		// on a narrow screen the detail takes the list's place, so it starts at the top and the
-		// list comes back where it was left; other pages share the scroller
+		// below 1024px the detail takes the list's place in the shared scroller
 		if (!this.pane.is_wide && this.is_current_route()) {
 			const scroller = document.querySelector(".main-section");
 			if (name && !was_open) this.list_scroll_top = scroller?.scrollTop;
@@ -285,7 +278,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		frappe.set_route("Form", this.doctype, name);
 	}
 
-	// the split fills the screen under the filters; on a narrow screen the page scrolls
 	set_result_height() {
 		this.pane?.fit_height();
 	}
@@ -296,7 +288,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	}
 
 	render() {
-		// a record opened from the URL stays open while it is not in the loaded rows
 		this.pane.set_items(this.data.map((doc) => this.get_item(doc)));
 		this.load_row_data(this.data, true);
 		this.detail?.update_position?.();
@@ -361,7 +352,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		const name = this.selected_name;
 		frappe.db.exists(this.doctype, name).then((exists) => {
 			if (exists || this.selected_name !== name) return;
-			// while another view shows, only the selection goes, not the route
 			if (this.is_current_route()) this.select(null, { replace: true });
 			else this.show_selected(null);
 		});
@@ -443,10 +433,8 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	}
 
 	get_indicator(doc) {
-		// frappe.get_indicator asks listview_settings.get_indicator first
 		const indicator = frappe.get_indicator(doc, this.doctype);
 		if (!indicator) return undefined;
-		// there is no black badge
 		return {
 			label: cstr(indicator[0]),
 			theme: indicator[1] === "black" ? "gray" : indicator[1],
@@ -507,7 +495,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 			});
 			return;
 		}
-		// a custom panel draws its own header, so the way back to the list sits above it
 		this.make_back_button().addClass("split-view-back").appendTo(this.$detail);
 		const $wrapper = $('<div class="split-view-custom-detail"></div>').appendTo(this.$detail);
 		this.detail = render_detail({ name, $wrapper, view: this }) || null;

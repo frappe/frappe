@@ -79,7 +79,6 @@ frappe.views.SplitViewPreview = class SplitViewPreview {
 		this.$panel
 			.find(".split-view-preview-badge")
 			.html(indicator ? frappe.ui.badge.html(indicator) : "");
-		// the first thing the row's subtext says, so the header reads as the row that was clicked
 		const row = this.view.data.find((row) => row.name === this.name) || doc;
 		this.subtitle = cstr(this.view.get_item(row).subtitle).split(" · ")[0];
 		this.$panel.find(".split-view-preview-subtitle").text(this.subtitle);
@@ -181,7 +180,6 @@ frappe.views.SplitViewPreview = class SplitViewPreview {
 		$section.find(".split-view-section-heading").text(this.get_label(df));
 		const text = $section.find(".split-view-section-text")[0];
 		if (["Text Editor", "Markdown Editor"].includes(df.fieldtype)) {
-			// as the form shows it read-only
 			text.innerHTML = this.view.format_value(df, doc);
 		} else {
 			text.textContent = cstr(doc[df.fieldname]);
@@ -236,16 +234,13 @@ frappe.views.SplitViewPreview = class SplitViewPreview {
 	has_value_to_show(df, doc, { permlevels, badge }) {
 		if (!frappe.model.is_value_type(df.fieldtype) || df.hidden) return false;
 		if (!permlevels.includes(cint(df.permlevel))) return false;
-		// the header shows a short title in full; a long one is repeated here
 		const is_long = LONG_TEXT_FIELDTYPES.includes(df.fieldtype);
 		if (df.fieldname === this.view.meta.title_field && !is_long) return false;
-		// nor is a status repeated that the header's badge already shows
 		const value = doc[df.fieldname];
 		if (df.fieldtype === "Select" && value && __(value) === badge) return false;
 		if (df.fieldtype === "Check") return Boolean(cint(value));
 		if (df.fieldtype === "Rating") return flt(value) > 0;
 		if (value == null || value === "") return false;
-		// nor a value the header's title or subtext already shows
 		const text = this.view.get_plain_text(this.view.format_value(df, doc));
 		return ![this.title, this.subtitle].includes(text);
 	}
@@ -257,7 +252,6 @@ frappe.views.SplitViewPreview = class SplitViewPreview {
 		} else if (df.fieldtype === "Check") {
 			el.textContent = __("Yes");
 		} else if (df.fieldtype === "Rating") {
-			// stars, as the list shows them
 			el.innerHTML = this.view.format_value(df, doc);
 		} else {
 			el.textContent = this.view.get_plain_text(this.view.format_value(df, doc));

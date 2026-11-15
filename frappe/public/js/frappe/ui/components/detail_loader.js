@@ -1,8 +1,6 @@
 frappe.provide("frappe.ui");
 
-// a load faster than this never shows a skeleton
 const SKELETON_DELAY = 250;
-// a skeleton, once shown, stays at least this long so it cannot blink
 const SKELETON_MIN_DURATION = 300;
 const CACHE_SIZE = 50;
 
