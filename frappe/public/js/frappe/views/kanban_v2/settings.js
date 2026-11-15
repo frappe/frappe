@@ -37,6 +37,10 @@
  * Move callbacks (canMoveCard, onBeforeCardMove, onCardMove, onAfterCardMove)
  * run once per card, also on multi-card drags; `move.cardIds` lists every card.
  * onBeforeCardMove may be async; returning false cancels the whole drag.
+ * before_move({ name, title, from, to, board_name, doc }) takes over a single-card move, e.g. to
+ * open the dialog that creates the record the target column stands for. It may be async and
+ * returns "move" (carry on), "cancel" (the card stays) or "done" (it changed the record itself,
+ * so the board reloads). It runs before onBeforeCardMove, and either one can cancel the move.
  * onCardClick(card, ev) replaces what a click does, on touch the tap that opens the card's sheet.
  */
 frappe.provide("frappe.kanban_v2.settings");
