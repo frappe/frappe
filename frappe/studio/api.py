@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
+from frappe.studio.doctype.studio_component.studio_component import find_component
 from frappe.studio.files import (
 	ALLOWED_DB_FILE_EXTENSIONS,
 	ALLOWED_STUDIO_FILE_EXTENSIONS,
@@ -234,8 +235,19 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 
 
 @frappe.whitelist()
+def get_studio_component(component_id: str, studio_app: str | None = None) -> dict:
+	"""The component that `component_id` means in the app: the app's own, or else the global one."""
+	name = find_component(component_id, studio_app)
+	if not name:
+		frappe.throw(_("Component {0} not found").format(component_id), frappe.DoesNotExistError)
+	doc = frappe.get_doc("Studio Component", name)
+	doc.check_permission("read")
+	return doc.as_dict()
+
+
+@frappe.whitelist()
 def get_studio_component_scripts(frappe_app: str, studio_app: str) -> list[dict]:
-	"""List the component scripts one studio app exports, keyed by the component's docname."""
+	"""List the component scripts one studio app exports, keyed by the component's id."""
 	frappe.has_permission("Studio Page", ptype="read", throw=True)
 	validate_installed_app(frappe_app)
 	app_folder = get_export_folder(frappe_app, studio_app)

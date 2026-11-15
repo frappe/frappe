@@ -10,6 +10,7 @@ from urllib.parse import quote
 import frappe
 from frappe import _
 from frappe.studio.build import can_build_bundle, get_editor_assets
+from frappe.studio.doctype.studio_component.studio_component import get_component_name
 from frappe.studio.export import (
 	can_export,
 	delete_folder,
@@ -212,6 +213,10 @@ class StudioApp(WebsiteGenerator):
 		return frappe.get_all("Studio Page", filters={"studio_app": self.name}, pluck="name")
 
 	@property
+	def components(self):
+		return frappe.get_all("Studio Component", filters={"studio_app": self.name}, pluck="name")
+
+	@property
 	def standard_pages(self):
 		return frappe.get_all(
 			"Studio Page", filters={"studio_app": self.name, "is_standard": 1}, pluck="name"
@@ -240,6 +245,8 @@ class StudioApp(WebsiteGenerator):
 		for page in self.pages:
 			frappe.delete_doc("Studio Page", page, force=True)
 		frappe.db.delete("Studio App File", {"studio_app": self.name})
+		for component in self.components:
+			frappe.delete_doc("Studio Component", component, force=True)
 		self.delete_app_build()
 
 		if can_export(self):
@@ -270,6 +277,16 @@ class StudioApp(WebsiteGenerator):
 			frappe.throw(_("Folder {0} already exists.").format(self.get_folder_path(new)))
 
 	def after_rename(self, old, new, merge=False):
+		# a component's docname carries the name of its app
+		for component in frappe.get_all(
+			"Studio Component", filters={"studio_app": new}, fields=["name", "component_id"]
+		):
+			frappe.rename_doc(
+				"Studio Component",
+				component.name,
+				get_component_name(component.component_id, new),
+				force=True,
+			)
 		if not can_export(self):
 			return
 
@@ -279,6 +296,10 @@ class StudioApp(WebsiteGenerator):
 		if os.path.exists(old_file):
 			os.replace(old_file, get_app_file_path(self.get_folder_path()))
 		self.export_app()
+		for component in self.components:
+			doc = frappe.get_doc("Studio Component", component)
+			for folder in doc.get_export_folders():
+				doc.export_to_folder(folder)
 
 	def move_export_to(self, target_app: str):
 		"""Carry the export folder, files and all, into another Frappe app. Exported page scripts

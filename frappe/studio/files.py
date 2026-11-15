@@ -73,13 +73,14 @@ def is_component_script_path(path: str) -> bool:
 	return bool(re.fullmatch(r"studio_components/[^/]+\.(js|ts)", path))
 
 
-def component_script_owner(file_path: str) -> str | None:
-	"""Return the component that owns this script path, or None if no component matches."""
+def component_script_owner(studio_app: str, file_path: str) -> str | None:
+	"""Return the component that owns this script path in the app, or None if no component matches."""
+	from frappe.studio.doctype.studio_component.studio_component import find_component
+
 	path = normalize_path(file_path)
 	if not is_component_script_path(path) or not path.endswith(".js"):
 		return None
-	component = posixpath.basename(path).removesuffix(".js")
-	return component if frappe.db.exists("Studio Component", component) else None
+	return find_component(posixpath.basename(path).removesuffix(".js"), studio_app)
 
 
 def component_script_paths(studio_app: str) -> set[str]:
@@ -93,8 +94,8 @@ def component_script_paths(studio_app: str) -> set[str]:
 		block for page in pages for tree in (page.blocks, page.draft_blocks) for block in parse_blocks(tree)
 	]
 	return {
-		f"studio_components/{component.name}.js"
-		for component in get_components_for_blocks(blocks)
+		f"studio_components/{component.component_id}.js"
+		for component in get_components_for_blocks(blocks, studio_app)
 		if component.script
 	}
 
@@ -182,7 +183,7 @@ def read_db_file(studio_app: str, file_path: str) -> str | None:
 	page = page_script_owner(studio_app, file_path)
 	if page:
 		return frappe.db.get_value("Studio Page", page, "script") or ""
-	component = component_script_owner(file_path)
+	component = component_script_owner(studio_app, file_path)
 	if component:
 		frappe.has_permission("Studio Component", ptype="read", doc=component, throw=True)
 		return frappe.db.get_value("Studio Component", component, "script") or ""
@@ -203,7 +204,7 @@ def write_db_file(studio_app: str, file_path: str, content: str, known_hash: str
 	page = page_script_owner(studio_app, file_path)
 	if page:
 		return write_page_script(page, content, known_hash)
-	component = component_script_owner(file_path)
+	component = component_script_owner(studio_app, file_path)
 	if component:
 		return write_component_script(component, content, known_hash)
 	row = get_db_file_row(studio_app, file_path)
@@ -248,7 +249,7 @@ def rename_db_path(studio_app: str, file_path: str, new_path: str) -> None:
 	new = normalize_path(new_path)
 	if page_script_owner(studio_app, old) or page_script_owner(studio_app, new):
 		frappe.throw(_("A page script is named after its page. Rename the page instead."))
-	if component_script_owner(old) or component_script_owner(new):
+	if component_script_owner(studio_app, old) or component_script_owner(studio_app, new):
 		frappe.throw(_("A component script is named after its component."))
 	row = get_db_file_row(studio_app, old)
 	children = get_db_file_rows_under(studio_app, old)
@@ -278,7 +279,7 @@ def delete_db_path(studio_app: str, file_path: str) -> None:
 	page = page_script_owner(studio_app, path)
 	if page:
 		return write_page_script(page, "")
-	component = component_script_owner(path)
+	component = component_script_owner(studio_app, path)
 	if component:
 		return write_component_script(component, "")
 	row = get_db_file_row(studio_app, path)
@@ -293,7 +294,7 @@ def delete_db_path(studio_app: str, file_path: str) -> None:
 
 def db_path_exists(studio_app: str, path: str) -> bool:
 	"""Check whether a database file, page or component script, or descendant already uses this path."""
-	if page_script_owner(studio_app, path) or component_script_owner(path):
+	if page_script_owner(studio_app, path) or component_script_owner(studio_app, path):
 		return True
 	return bool(get_db_file_row(studio_app, path) or get_db_file_rows_under(studio_app, path))
 

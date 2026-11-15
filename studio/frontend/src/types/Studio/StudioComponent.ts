@@ -2,6 +2,8 @@ export interface StudioComponent {
 	name: string
 	component_id: string
 	component_name: string
+	/** The app that owns the component. A component without an app is available in every app. */
+	studio_app?: string | null
 	/**	Block : JSON	*/
 	block?: any
 	script?: string | null

@@ -18,7 +18,15 @@ from frappe.studio.export import (
 )
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.sync_json import COMPONENT_FOLDER, get_studio_folders
-from frappe.studio.utils import find_script_file, script_extension, validate_file_name, walk_blocks
+from frappe.studio.utils import (
+	find_script_file,
+	get_export_folder,
+	get_exported_app_folders,
+	get_exported_app_name,
+	script_extension,
+	validate_file_name,
+	walk_blocks,
+)
 
 
 class StudioComponent(Document):
@@ -38,13 +46,19 @@ class StudioComponent(Document):
 		is_disabled: DF.Check
 		is_standard: DF.Check
 		script: DF.Code | None
+		studio_app: DF.Link | None
 	# end: auto-generated types
 
-	def before_insert(self):
+	def autoname(self):
 		if not self.component_id:
 			self.component_id = append_number_if_name_exists(
-				"Studio Component", frappe.scrub(self.component_name)
+				"Studio Component",
+				frappe.scrub(self.component_name),
+				fieldname="component_id",
+				separator="_",
+				filters={"studio_app": self.studio_app or ("is", "not set")},
 			)
+		self.name = get_component_name(self.component_id, self.studio_app)
 
 	def before_export(self, doc):
 		doc.block = parse_json(doc.block)
@@ -62,7 +76,7 @@ class StudioComponent(Document):
 	def validate_component_id(self):
 		# the scrubbed id names the component's exported file, so it must stay a single path segment
 		validate_file_name(
-			self.name,
+			self.component_id,
 			_("Component ID cannot be empty or contain slashes."),
 			title=_("Invalid Component ID"),
 		)
@@ -82,13 +96,13 @@ class StudioComponent(Document):
 		"""Write the component's JSON, and its script when the folder has none.
 
 		The script file is the copy a developer edits, so only a changed `script` field replaces it."""
-		write_document_file(self, folder=folder, exclude_fields=["script"])
+		write_document_file(self, folder=folder, exclude_fields=["script"], filename=self.get_file_stem())
 		if self.script and not os.path.exists(self.get_script_file_path(folder)):
 			self.write_script_file(folder)
 
 	def write_script_file(self, folder: str):
 		"""An existing file keeps its language. A new one is JavaScript, the language of the `script` field."""
-		stem = frappe.scrub(self.name)
+		stem = self.get_file_stem()
 		if self.script:
 			extension = script_extension(folder, stem, default="js")
 			write_code_file(self, folder, code_field="script", extension=extension, filename=stem)
@@ -96,21 +110,37 @@ class StudioComponent(Document):
 			delete_file(self.get_script_file_path(folder))
 
 	def get_script_file_path(self, folder: str) -> str:
-		return find_script_file(folder, frappe.scrub(self.name))
+		return find_script_file(folder, self.get_file_stem())
+
+	def get_file_stem(self) -> str:
+		return frappe.scrub(self.component_id)
 
 	def get_export_folders(self) -> list[str]:
-		"""Every standard page using a component exports it, so its files can be in several apps"""
-		folders = []
-		for studio_folder in get_studio_folders():
-			for app_folder in os.listdir(studio_folder):
-				folder = os.path.join(studio_folder, app_folder, COMPONENT_FOLDER)
-				if os.path.exists(os.path.join(folder, f"{frappe.scrub(self.name)}.json")):
-					folders.append(folder)
-		return folders
+		"""The folders that hold this component's files. An app's component is in the app's folder.
+		Every standard page using a global component exports it, so its files can be in several apps."""
+		if self.studio_app:
+			frappe_app = frappe.db.get_value("Studio App", self.studio_app, "frappe_app")
+			folders = [get_export_folder(frappe_app, self.studio_app)] if frappe_app else []
+		else:
+			folders = [
+				app_folder
+				for studio_folder in get_studio_folders()
+				for app_folder in get_exported_app_folders(studio_folder)
+				# an app's own component with this id uses the same file name
+				if not frappe.db.exists(
+					"Studio Component",
+					get_component_name(self.component_id, get_exported_app_name(app_folder)),
+				)
+			]
+		return [
+			folder
+			for folder in (os.path.join(app_folder, COMPONENT_FOLDER) for app_folder in folders)
+			if os.path.exists(os.path.join(folder, f"{self.get_file_stem()}.json"))
+		]
 
 	def delete_files(self):
 		for folder in self.get_export_folders():
-			delete_component_files(folder, frappe.scrub(self.name))
+			delete_component_files(folder, self.get_file_stem())
 
 
 def delete_component_files(folder: str, stem: str):
@@ -125,14 +155,27 @@ def mark_components_standard(names: list[str]):
 	)
 
 
-def get_components_for_blocks(blocks) -> list[dict]:
-	"""Fetch component definitions referenced by a block tree, one depth at a time."""
+def get_component_name(component_id: str, studio_app: str | None = None) -> str:
+	"""The docname. An id is unique only inside its app, so an app's component carries the app's name."""
+	return f"{studio_app}/{component_id}" if studio_app else component_id
+
+
+def find_component(component_id: str, studio_app: str | None = None) -> str | None:
+	"""The docname of the component that `component_id` means in `studio_app`: the app's own
+	component, or else the global one."""
+	names = [get_component_name(component_id, studio_app), component_id]
+	return next((name for name in names if frappe.db.exists("Studio Component", name)), None)
+
+
+def get_components_for_blocks(blocks, studio_app: str | None = None) -> list[dict]:
+	"""Fetch component definitions referenced by a block tree, one depth at a time.
+	The trees reference a component by its id, which `studio_app` resolves."""
 	components = []
 	requested_components = set()
 	to_fetch = extract_component_names(blocks)
 	while to_fetch:
 		requested_components.update(to_fetch)
-		batch = fetch_component_batch(to_fetch)
+		batch = fetch_component_batch(to_fetch, studio_app)
 		components.extend(batch)
 		to_fetch = get_nested_component_names(batch) - requested_components
 	return components
@@ -153,12 +196,17 @@ def get_nested_component_names(components) -> set[str]:
 	return names
 
 
-def fetch_component_batch(names: set[str]) -> list[dict]:
-	components = frappe.get_all(
+def fetch_component_batch(component_ids: set[str], studio_app: str | None = None) -> list[dict]:
+	"""The components that these ids mean in `studio_app`. The app's own component hides a global
+	one with the same id."""
+	names = [get_component_name(component_id, studio_app) for component_id in component_ids]
+	found = frappe.get_all(
 		"Studio Component",
-		filters={"name": ["in", names]},
-		fields=["name", "component_name", "component_id", "block", "script", "is_disabled"],
+		filters={"name": ["in", [*names, *component_ids]]},
+		fields=["name", "component_name", "component_id", "studio_app", "block", "script", "is_disabled"],
+		order_by="studio_app desc",
 	)
+	components = list({component.component_id: component for component in reversed(found)}.values())
 	if not components:
 		return []
 

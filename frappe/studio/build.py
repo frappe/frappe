@@ -12,6 +12,7 @@ import click
 
 import frappe
 from frappe.bundler import get_node_env
+from frappe.studio.doctype.studio_component.studio_component import find_component
 from frappe.studio.utils import (
 	find_component_scripts,
 	find_script_file,
@@ -316,10 +317,9 @@ class StudioAppBuilder:
 				self.missing_components.add(comp_name)
 		else:
 			name = block.get("componentName")
-			component_block, script = frappe.db.get_value("Studio Component", name, ["block", "script"]) or (
-				None,
-				None,
-			)
+			component_block, script = frappe.db.get_value(
+				"Studio Component", find_component(name, self.app_name), ["block", "script"]
+			) or (None, None)
 			self._add_icons(component_block if isinstance(component_block, str) else None)
 			self._add_page_source(component_block)
 			self._add_component_script(name, script)
@@ -361,7 +361,7 @@ class StudioAppBuilder:
 				component = json.loads(component_text)
 				self._add_icons(component_text)
 
-				component_name = component.get("name")
+				component_name = component.get("component_id")
 				block = component.get("block")
 
 				if component_name and block:
