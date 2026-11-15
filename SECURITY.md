@@ -4,6 +4,8 @@ The Frappe team and community take security issues in the Frappe Framework serio
 
 Before you report, please read our [security policy](https://frappe.io/security). It covers scope, what to include in a report, disclosure, CVE assignment and credits.
 
+## Supported Versions
+
 We provide security fixes for the following versions of Frappe Framework:
 
 | Version | Supported          |
