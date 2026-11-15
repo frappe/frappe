@@ -327,7 +327,7 @@ import { ref, computed } from "vue"
 export default {
 	props: {
 		title: { type: String, required: true },
-		size: { type: String, default: "md", meta: { type: "select", options: ["sm", "md"] } },
+		size: { type: String, default: "md", meta: { control: "select", options: ["sm", "md"] } },
 	},
 	emits: ["select"],
 	setup(props, { emit }) {
@@ -351,7 +351,7 @@ export default {
   place: do not write `inputs` rows in the component JSON. A component that
   only has `inputs` rows is an older one, and Studio still reads them. Write
   `props` as a plain object, so the editor's form can change it. A prop's optional
-  `meta` key sets the editor control (`type`: `text`, `number`, `checkbox`,
+  `meta` key sets the editor control (`control`: `text`, `number`, `checkbox`,
   `textarea`, `select`, `code`, or `color`), its `options`, and a
   `description`.
 - Blocks in the component read props as `{{ inputs.title }}` and returned

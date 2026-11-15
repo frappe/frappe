@@ -187,7 +187,7 @@ describe("component scripts", () => {
 			step: { type: Number, default: 1 },
 			open: Boolean,
 			rows: { type: Array, default: () => [] },
-			size: { type: String, default: "md", meta: { type: "select", options: ["sm", "md"] } },
+			size: { type: String, default: "md", meta: { control: "select", options: ["sm", "md"] } },
 		})
 		expect(inputs.map((input) => [input.input_name, input.type, input.default])).to.deep.equal([
 			["title", "text", undefined],
@@ -208,7 +208,7 @@ describe("component scripts", () => {
 		expect(script).to.equal("export default {\n\tprops: {\n\t\ttitle: { type: String, required: true },\n\t},\n}\n")
 
 		script = setScriptProp(script, null, size)
-		expect(script).to.include('size: { type: String, default: "md", meta: { type: "select", options: ["sm","md"] } },')
+		expect(script).to.include('size: { type: String, default: "md", meta: { control: "select", options: ["sm","md"] } },')
 		script = setScriptProp(script, title, { ...title, input_name: "heading", required: 0 })
 		expect(script).to.include("\t\theading: String,\n").and.not.include("title")
 		script = setScriptProp(script, size, null)

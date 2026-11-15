@@ -116,7 +116,7 @@ export function getInputsFromProps(props: ComponentScript["props"] = {}): Studio
 		const meta = options.meta || {}
 		return {
 			input_name: name,
-			type: meta.type || getInputType(options.type),
+			type: meta.control || getInputType(options.type),
 			description: meta.description,
 			options: meta.options?.join("\n"),
 			required: options.required ? 1 : 0,
