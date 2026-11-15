@@ -354,7 +354,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 	}
 
-	async load_from_route() {
+	/** `route_options`: what frappe.route_options held, read when the URL has no query. */
+	async load_from_route(route_options = null) {
 		// the hide handler undoes the layout, so re-apply it each time the page shows
 		this.apply_page_shell();
 
@@ -366,7 +367,17 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			});
 			return;
 		}
-		if (this.current_board === board_name && this.board) return;
+		// filters passed in the link apply to this visit only, so a board that carries them
+		// (or carried them last time) is set up again instead of being reused as it is
+		const route_filters = this.take_route_filters(route_options);
+		if (
+			this.current_board === board_name &&
+			this.board &&
+			!route_filters.length &&
+			!this._has_route_filters
+		) {
+			return;
+		}
 		this.current_board = board_name;
 
 		this.page.set_title(board_name, null, true);
@@ -394,6 +405,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.page.set_title(title, null, true);
 
 		await frappe.model.with_doctype(this.doctype);
+		this.add_route_filters(route_filters);
 		this.setup_meta();
 		this.setup_toolbar();
 		// before the board loads: it reads its filters from the boxes and the panel
@@ -407,6 +419,49 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			})
 		);
 		this.setup_group_button();
+	}
+
+	/** The link's filters: the URL query, else the route options, as the list view reads them. */
+	take_route_filters(route_options) {
+		let params = new URLSearchParams(window.location.search);
+		if (!params.toString() && route_options) params = new Map(Object.entries(route_options));
+		const entries = [];
+		params.forEach((value, field) => entries.push([field, value]));
+		return entries;
+	}
+
+	/**
+	 * Puts the link's field filters on top of the board's saved ones. They live in this.filters only,
+	 * so they show in the Filter button and clear like any filter, but the Kanban Board isn't changed.
+	 */
+	add_route_filters(entries) {
+		this._has_route_filters = false;
+		const added = [];
+		for (let [field, value] of entries) {
+			const is_field =
+				frappe.meta.get_field(this.doctype, field) ||
+				frappe.model.std_fields_list.includes(field);
+			if (!is_field) continue;
+			if (typeof value === "string" && value.startsWith("[") && value.endsWith("]")) {
+				try {
+					value = JSON.parse(value);
+				} catch {
+					// a plain value that only looks like a list
+				}
+			}
+			const pairs = Array.isArray(value) && Array.isArray(value[0]) ? value : [value];
+			for (const pair of pairs) {
+				added.push(
+					Array.isArray(pair)
+						? [this.doctype, field, pair[0], pair[1]]
+						: [this.doctype, field, "=", pair]
+				);
+			}
+		}
+		if (!added.length) return;
+		const fields = new Set(added.map((filter) => filter[1]));
+		this.filters = [...this.filters.filter((filter) => !fields.has(filter[1])), ...added];
+		this._has_route_filters = true;
 	}
 
 	setup_meta() {
@@ -2447,8 +2502,9 @@ frappe.views.KanbanV2View = class KanbanV2View {
 	}
 
 	show() {
+		const route_options = frappe.route_options;
 		frappe.route_options = {};
-		return this._kanban.load_from_route();
+		return this._kanban.load_from_route(route_options);
 	}
 
 	/** The view switcher carries these filters to the next view, as from a list view. */
