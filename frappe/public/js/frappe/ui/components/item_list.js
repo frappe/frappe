@@ -1,4 +1,4 @@
-import { validated, safe_href, icon_html } from "./utils.js";
+import { validated, safe_attrs, safe_href, icon_html } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -70,21 +70,14 @@ frappe.ui.ItemList = class ItemList {
 	/** @param {ItemListOpts} opts */
 	constructor(opts = {}) {
 		this.opts = opts;
-		this.el = document.createElement("div");
+		this.$el = $(`<div ${safe_attrs(opts.attrs, "ItemList").join(" ")}></div>`);
+		this.el = this.$el[0];
 		this.el.className = ["es-item-list", opts.css_class].filter(Boolean).join(" ");
 		if (opts.variant === "flat") this.el.dataset.variant = "flat";
-		for (const [name, value] of Object.entries(opts.attrs || {})) {
-			if (/^[a-zA-Z][\w.:-]*$/.test(name) && !/^on/i.test(name)) {
-				this.el.setAttribute(name, value === true ? "" : value);
-			} else {
-				console.warn(`frappe.ui.ItemList: refusing unsafe attribute "${name}"`);
-			}
-		}
 
 		this.is_expanded = false;
 		this.selected = opts.selected ?? null;
 		this.groups = opts.groups || null;
-		this.$el = $(this.el);
 		this.$el.data("es-item-list", this);
 		this.set_items(opts.items || []);
 	}
