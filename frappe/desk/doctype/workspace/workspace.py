@@ -84,9 +84,7 @@ class Workspace(Document, DeskViews):
 		# This runs in `before_validate` rather than `validate` because a fixture import sets
 		# `ignore_validate`, which skips `validate` but not the sanitizer, and the import is the
 		# write that damaged every workspace shipping markup in its blocks.
-		self.content = sanitize_content(self.content)
-		if self.content:
-			self.content = dumps(with_ids(loads(self.content)))
+		self.content = sanitize_content(content_with_ids(self.content))
 
 	def validate(self):
 		self.title = strip_html(self.title)
@@ -657,6 +655,13 @@ def sanitize_content(content: str | None) -> str | None:
 	# `<` and `>` only occur inside a string literal here, because JSON's own syntax has no angle
 	# brackets, so escaping them in the serialized form cannot change the structure.
 	return dumps(sanitize_strings(document)).replace("<", "\\u003c").replace(">", "\\u003e")
+
+
+def content_with_ids(content: str | None) -> str | None:
+	try:
+		return dumps(with_ids(loads(content))) if content else content
+	except ValueError:
+		return content
 
 
 def sanitize_strings(value):

@@ -96,6 +96,18 @@ class TestWorkspace(IntegrationTestCase):
 			workspace.save()
 		self.assertEqual(frappe.db.get_value("Workspace", workspace.name, "renderer"), "Legacy")
 
+	def test_a_heading_keeps_its_markup_through_a_save(self):
+		heading = '<span class="h4"><b>Hello</b></span>'
+		workspace = create_workspace(
+			name="Heading Test", label="Heading Test", public=1, title="Heading Test"
+		)
+		workspace.content = json.dumps([{"type": "header", "data": {"text": heading, "col": 12}}])
+		workspace.insert()
+		self.addCleanup(frappe.delete_doc, "Workspace", workspace.name, force=True)
+
+		[block] = json.loads(frappe.db.get_value("Workspace", workspace.name, "content"))
+		self.assertEqual(block["data"]["text"], heading)
+
 	def test_save_page_with_new_widgets_as_dict(self):
 		"""save_page receives new_widgets already parsed into a dict by the request layer."""
 		from frappe.desk.doctype.workspace.workspace import save_page
