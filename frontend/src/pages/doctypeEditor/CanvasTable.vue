@@ -1,6 +1,7 @@
 <!-- A Table or Table MultiSelect field on the parent's canvas: the record page's own control, read-only
      with no rows, drawn from the child's fields as its editor has them, so a grid's columns show.
-     While the child's meta loads, or when it failed, the field says so in place of its columns. -->
+     While the child's meta loads, or when it failed, the field says so in place of its columns. The
+     grid is inert; the failed block is not, so its Try again works. -->
 <template>
 	<div v-if="child.loading.value" class="flex flex-col gap-1.5" data-child-columns="loading">
 		<LoadingStatus />
@@ -20,9 +21,13 @@
 		/>
 		<Button :label="__('Try again')" @click="child.reload()" />
 	</div>
-	<FormLayoutField v-else :field="node">
-		<template v-if="$slots['label-after']" #label-after><slot name="label-after" /></template>
-	</FormLayoutField>
+	<div v-else class="pointer-events-none" inert>
+		<FormLayoutField :field="node">
+			<template v-if="$slots['label-after']" #label-after
+				><slot name="label-after"
+			/></template>
+		</FormLayoutField>
+	</div>
 </template>
 
 <script setup lang="ts">

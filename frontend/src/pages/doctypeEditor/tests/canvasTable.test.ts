@@ -48,6 +48,7 @@ it("shows the failure and a Try again that reloads the meta", () => {
 	const root = mount();
 	const failed = root.querySelector("[data-child-columns='failed']")!;
 	expect(failed.textContent).toContain("Could not load the columns of Invoice Item.");
+	expect(failed.closest("[inert]")).toBeNull();
 	failed.querySelector("button")!.click();
 	expect(reload).toHaveBeenCalledOnce();
 	expect(root.querySelector("[data-grid]")).toBeNull();
@@ -56,6 +57,6 @@ it("shows the failure and a Try again that reloads the meta", () => {
 it("draws the grid once the meta has its fields, empty ones included", () => {
 	meta.value = { fields: [] };
 	const root = mount();
-	expect(root.querySelector("[data-grid]")).not.toBeNull();
+	expect(root.querySelector("[inert] [data-grid]")).not.toBeNull();
 	expect(root.querySelector("[data-child-columns]")).toBeNull();
 });
