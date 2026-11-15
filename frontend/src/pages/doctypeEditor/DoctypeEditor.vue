@@ -24,7 +24,7 @@
 			/>
 		</template>
 		<div
-			v-if="!state || child.tables.loading.value"
+			v-if="!state || (child.tables.loading.value && !openChild)"
 			class="flex flex-1 items-center justify-center text-base text-ink-gray-5"
 		>
 			{{ __("Loading {0}…", [child.tables.loading.value ?? name]) }}

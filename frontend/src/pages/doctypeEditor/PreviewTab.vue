@@ -34,7 +34,11 @@
 		</div>
 		<div v-if="failure" class="flex flex-col items-start gap-2 px-5 py-4" data-preview-failure>
 			<ErrorMessage :message="asErrorHtml(failure.message)" />
-			<Button :label="__('Try again')" @click="failure.retry" />
+			<Button
+				:label="__('Try again')"
+				:loading="details.loading.value"
+				@click="failure.retry"
+			/>
 		</div>
 		<FormSkeleton
 			v-else-if="details.loading.value"
@@ -68,6 +72,7 @@ import { FORM_CLASSES } from "@/pages/record/formClasses";
 import FormSkeleton from "@/pages/record/skeletons/FormSkeleton.vue";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { asErrorHtml } from "./asErrorHtml";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { useFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
 import { refuseWrites } from "./previewRefusals";
 
@@ -92,6 +97,7 @@ const details = useFormLayout({
 	doc,
 	fallback: "meta",
 });
+const meta = useDoctypeMeta(() => props.doctype);
 
 // The record's title, once it loads, after its name; a record titled by its ID shows no second word.
 const title = computed(() => {
@@ -104,11 +110,16 @@ const options = computed(() => [
 	...props.latest.map((name) => ({ label: name, value: name })),
 ]);
 
-// A failed read keeps the picked record: the page says why, and Try again reads it once more.
 const failure = computed(() => {
 	if (details.error.value) {
 		const reason = errorMessage(details.error.value);
-		return { message: __("Could not load the layout. {0}", [reason]), retry: details.reload };
+		return {
+			message: __("Could not load the layout. {0}", [reason]),
+			retry: () => {
+				meta.reload();
+				details.reload();
+			},
+		};
 	}
 	if (!recordError.value || !props.record) return null;
 	const name = props.record;
@@ -125,7 +136,7 @@ async function load(name: string) {
 	} catch (error) {
 		if (props.record === name) recordError.value = error;
 	} finally {
-		loading.value = false;
+		if (props.record === name) loading.value = false;
 	}
 }
 

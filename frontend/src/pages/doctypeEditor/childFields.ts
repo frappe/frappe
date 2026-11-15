@@ -7,7 +7,6 @@ import { CHILD_TABLES } from "./childTables";
 
 export interface ChildFields {
 	fields: ComputedRef<RawMetaField[] | null>;
-	/** The saved meta is on its way: there are no fields yet and no failure. */
 	loading: ComputedRef<boolean>;
 	error: ComputedRef<unknown>;
 	reload: () => void;

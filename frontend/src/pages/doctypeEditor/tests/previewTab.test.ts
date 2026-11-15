@@ -12,6 +12,8 @@ vi.mock("@framework/ui/api", async (original) => ({
 const layoutLoading = ref(false);
 const layoutError = ref<unknown>(null);
 const reloadLayout = vi.fn();
+const reloadMeta = vi.fn();
+vi.mock("@framework/ui/useDoctypeMeta", () => ({ useDoctypeMeta: () => ({ reload: reloadMeta }) }));
 vi.mock("@/recordPage/formLayoutSource/useFormLayout", () => ({
 	useFormLayout: () => ({
 		layout: computed(() => ({ tabs: [] })),
@@ -34,6 +36,7 @@ afterEach(() => {
 	layoutLoading.value = false;
 	layoutError.value = null;
 	reloadLayout.mockReset();
+	reloadMeta.mockReset();
 	getDocument.mockReset();
 	picks.length = 0;
 });
@@ -70,6 +73,7 @@ it("shows the layout's error with a Try again that reloads it", () => {
 	expect(failure(root)!.textContent).toContain("Could not load the layout. Layout read failed");
 	failure(root)!.querySelector("button")!.click();
 	expect(reloadLayout).toHaveBeenCalledOnce();
+	expect(reloadMeta).toHaveBeenCalledOnce();
 });
 
 it("shows a failed record read and keeps the picked record", async () => {

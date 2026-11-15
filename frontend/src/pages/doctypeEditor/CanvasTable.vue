@@ -1,7 +1,4 @@
-<!-- A Table or Table MultiSelect field on the parent's canvas: the record page's own control, read-only
-     with no rows, drawn from the child's fields as its editor has them, so a grid's columns show.
-     While the child's meta loads, or when it failed, the field says so in place of its columns. The
-     grid is inert; the failed block is not, so its Try again works. -->
+<!-- A Table field on the parent's canvas, drawn from the child's fields. Only the grid is inert: Try again must stay clickable. -->
 <template>
 	<div v-if="child.loading.value" class="flex flex-col gap-1.5" data-child-columns="loading">
 		<LoadingStatus />
