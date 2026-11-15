@@ -111,6 +111,14 @@ export function getStore(print_format_name) {
 			frappe.model.with_doc("Print Format", print_format_name, () => {
 				let _print_format = frappe.get_doc("Print Format", print_format_name);
 				if (!_print_format) {
+					const [view, doctype, name] = frappe.get_prev_route();
+					if (
+						view !== "Form" ||
+						doctype !== "Print Format" ||
+						name !== print_format_name
+					) {
+						return frappe.show_not_found();
+					}
 					frappe.route_flags.replace_route = true;
 					return frappe.set_route("List", "Print Format");
 				}
