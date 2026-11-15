@@ -20,11 +20,15 @@
 	{%- endif -%}
 	{%- endblock -%}
 	{%- block value -%}
+<<<<<<< HEAD
 	{%- if legacy -%}
 	<div class="value">{{ doc.get_formatted(df.fieldname) }}</div>
 	{%- else -%}
 	<div class="value"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>{{ df.get("_value") or doc.get_formatted(df.fieldname) }}</div>
 	{%- endif -%}
+=======
+	<div class="value{% if _val_style %} value--colored{% endif %}"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>{{ df.get("_value") or doc.get_formatted(df.fieldname) }}</div>
+>>>>>>> f750923 (fix(print): field value color doesn't reach links or code in rich text)
 	{%- endblock -%}
 </div>
 {% endif %}
