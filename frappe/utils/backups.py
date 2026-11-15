@@ -176,7 +176,7 @@ class BackupGenerator:
 			)
 
 		self.set_backup_tables_from_config()
-		self.partial = (self.backup_includes or self.backup_excludes) and not self.ignore_conf
+		self.partial = bool(self.backup_includes or self.backup_excludes)
 
 	def set_backup_tables_from_config(self):
 		"""Set self.backup_includes, self.backup_excludes based on site config.
