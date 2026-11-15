@@ -345,6 +345,14 @@ body.pfb-dragging * {
 	outline: none;
 }
 
+.print-format-doc .ql-snow a {
+	color: var(--text-color);
+}
+
+.print-format-doc .ql-editor {
+	color: inherit;
+}
+
 .pfb-static-text-input {
 	resize: vertical;
 	margin-bottom: 6px;
