@@ -297,3 +297,51 @@ class TestStudioComponent(IntegrationTestCase):
 			self.assertEqual(sorted(os.listdir(folder)), [f"{component_id}.js", f"{component_id}.json"])
 			exported = frappe.parse_json(frappe.read_file(os.path.join(folder, f"{component_id}.json")))
 			self.assertEqual((exported.name, exported.get("studio_app")), (component_id, None))
+
+	def test_input_rows_of_a_site_component_become_script_props(self):
+		from frappe.studio.doctype.studio_component.patches import move_inputs_to_script_props
+
+		def make_component(label, inputs, **fields):
+			return frappe.get_doc(
+				doctype="Studio Component",
+				component_name=f"{label} {frappe.generate_hash(length=10)}",
+				inputs=inputs,
+				**fields,
+			).insert()
+
+		plain = make_component(
+			"Plain",
+			[
+				{"input_name": "title", "type": "text", "required": 1},
+				{"input_name": "size", "type": "select", "options": "sm\nmd", "default": "md"},
+				{"input_name": "rows", "type": "Data", "description": "The rows to show"},
+				{"input_name": "open", "type": "checkbox"},
+			],
+		)
+		bound = make_component(
+			"Bound", [{"input_name": "title", "type": "text", "default": "{{ page.title }}"}]
+		)
+		typed = make_component("Typed", [{"input_name": "step", "type": "number", "default": "2"}])
+		standard = make_component("Standard", [{"input_name": "title", "type": "text"}])
+		standard.db_set("is_standard", 1)
+
+		move_inputs_to_script_props.execute()
+		move_inputs_to_script_props.execute()
+
+		plain.reload()
+		self.assertEqual(plain.inputs, [])
+		self.assertEqual(
+			plain.script,
+			"export default {\n"
+			"\tprops: {\n"
+			"\t\ttitle: { type: String, required: true },\n"
+			'\t\tsize: { type: String, default: "md", studio: { type: "select", options: ["sm","md"] } },\n'
+			'\t\trows: { studio: { description: "The rows to show" } },\n'
+			"\t\topen: Boolean,\n"
+			"\t},\n"
+			"}\n",
+		)
+		for kept in (bound, typed, standard):
+			kept.reload()
+			self.assertFalse(kept.script)
+			self.assertEqual(len(kept.inputs), 1)
