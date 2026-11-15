@@ -1,5 +1,5 @@
 <template>
-	<!-- its list hangs under it, over the composer -->
+	<!-- its list hangs under it, over the composer; rows a menu's height, a chat's title each -->
 	<span class="relative z-20">
 		<Button
 			ref="trigger"
@@ -36,7 +36,7 @@
 					:key="s.session_id"
 					data-palette-item
 					:aria-current="s.session_id === flow.state.sessionId ? 'true' : undefined"
-					class="flow-palette-row"
+					class="flow-palette-row !min-h-7"
 					@click="choose(s.session_id)"
 				>
 					<span class="min-w-0 truncate">{{ flow.sessionTitle(s) }}</span>

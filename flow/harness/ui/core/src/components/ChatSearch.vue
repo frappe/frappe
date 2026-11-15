@@ -16,13 +16,13 @@
 		<CommandPaletteList>
 			<!-- held off the field's rule as far as the rows sit from the sides; a group brings its own -->
 			<div v-if="!query.trim()" class="pt-2.5">
-				<CommandPaletteItem value="new">
+				<CommandPaletteItem value="new" :class="ROW">
 					<template #prefix><span class="lucide-square-pen mr-2.5 size-4 flex-none text-ink-gray-6" aria-hidden="true" /></template>
 					New chat
 				</CommandPaletteItem>
 			</div>
 			<CommandPaletteGroup :label="query.trim() ? 'Chats' : 'Recent'">
-				<CommandPaletteItem v-for="s in chats" :key="s.session_id" :value="s.session_id">
+				<CommandPaletteItem v-for="s in chats" :key="s.session_id" :value="s.session_id" :class="ROW">
 					<template #prefix><span class="lucide-message-circle mr-2.5 size-4 flex-none text-ink-gray-6" aria-hidden="true" /></template>
 					{{ flow.sessionTitle(s) }}
 				</CommandPaletteItem>
@@ -49,6 +49,8 @@ const props = defineProps({
 })
 const emit = defineEmits(["update:open", "update:query", "new", "pick"])
 const flow = inject("flow")
+// a row in the chat's regular weight, as the sidebar lists the same titles; frappe-ui's is medium
+const ROW = "!text-base !leading-tighter"
 
 // matched as the query is typed, so the palette's first row is ready for Enter; past a page of chats
 // the sidebar's search reloads them from the server
