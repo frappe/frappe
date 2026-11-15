@@ -1358,11 +1358,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	merge_callbacks(base, custom) {
 		const out = {};
-		const compose = new Set(["onSelectionChange"]);
 		for (const k of new Set([...Object.keys(base), ...Object.keys(custom)])) {
 			const b = base[k];
 			const c = custom[k];
-			if (b && c && compose.has(k)) {
+			if (b && c && k === "onSelectionChange") {
 				out[k] = (...args) => {
 					b(...args);
 					return c(...args);
