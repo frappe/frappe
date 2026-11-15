@@ -68,16 +68,16 @@ def get_prop(input) -> str:
 	if input.default:
 		parts.append(f"default: {json.dumps(input.default)}")
 
-	studio = []
+	meta = []
 	if input.type in ("textarea", "select", "color"):
-		studio.append(f'type: "{input.type}"')
+		meta.append(f'type: "{input.type}"')
 	if input.type == "select":
 		options = [option for option in (input.options or "").split("\n") if option.strip()]
-		studio.append(f"options: {json.dumps(options, separators=(',', ':'))}")
+		meta.append(f"options: {json.dumps(options, separators=(',', ':'))}")
 	if input.description:
-		studio.append(f"description: {json.dumps(input.description)}")
-	if studio:
-		parts.append(f"studio: {{ {', '.join(studio)} }}")
+		meta.append(f"description: {json.dumps(input.description)}")
+	if meta:
+		parts.append(f"meta: {{ {', '.join(meta)} }}")
 
 	name = input.input_name if IDENTIFIER.fullmatch(input.input_name) else json.dumps(input.input_name)
 	if parts == [f"type: {prop_type}"]:

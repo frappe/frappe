@@ -68,12 +68,12 @@ function getPropSource(input: StudioComponentInput, defaultSource?: string): str
 	defaultSource ??= getDefaultLiteral(input)
 	if (defaultSource) parts.push(`default: ${defaultSource}`)
 
-	const studio = []
+	const meta = []
 	// String, Number and Boolean already name their control
-	if (!["text", "number", "checkbox", "code"].includes(input.type)) studio.push(`type: "${input.type}"`)
-	if (input.type === "select") studio.push(`options: ${JSON.stringify(getOptions(input))}`)
-	if (input.description) studio.push(`description: ${JSON.stringify(input.description)}`)
-	if (studio.length) parts.push(`studio: { ${studio.join(", ")} }`)
+	if (!["text", "number", "checkbox", "code"].includes(input.type)) meta.push(`type: "${input.type}"`)
+	if (input.type === "select") meta.push(`options: ${JSON.stringify(getOptions(input))}`)
+	if (input.description) meta.push(`description: ${JSON.stringify(input.description)}`)
+	if (meta.length) parts.push(`meta: { ${meta.join(", ")} }`)
 
 	const name = /^[A-Za-z_$][\w$]*$/.test(input.input_name) ? input.input_name : JSON.stringify(input.input_name)
 	if (parts.length === 1 && type) return `${name}: ${type}`
