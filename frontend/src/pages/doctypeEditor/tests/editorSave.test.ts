@@ -239,6 +239,43 @@ describe("a refused save", () => {
 	});
 });
 
+describe("a refused save, then an Undo", () => {
+	const refuse = (...errors: unknown[]) => answers({ saved: false, errors });
+	const field = (fieldname: string, edit: number, message = `${fieldname} refused.`) => ({ target: { kind: "field", fieldname }, message, edit });
+
+	it("clears the error and the banner of the edit it takes back", async () => {
+		const { canvas, save } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });
+		refuse(field("subject", 0));
+		await acts.run("editor.save");
+		expect(canvas.errorsAt("field", "subject")).toEqual(["subject refused."]);
+		expect(save.banner.value).not.toBeNull();
+		await acts.run("editor.undo");
+		expect(canvas.errorsAt("field", "subject")).toEqual([]);
+		expect(save.banner.value).toBeNull();
+	});
+
+	it("keeps the error of an edit that is still staged", async () => {
+		const { canvas, save } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });
+		await acts.run("fields.set_field_property", { fieldname: "notes", property: "bold", value: 1 });
+		refuse(field("subject", 0), field("notes", 1));
+		await acts.run("editor.save");
+		await acts.run("editor.undo");
+		expect(canvas.errorsAt("field", "notes")).toEqual([]);
+		expect(canvas.errorsAt("field", "subject")).toEqual(["subject refused."]);
+		expect(save.banner.value).not.toBeNull();
+	});
+
+	it("shows an error keyed to the name before a rename under the renamed field", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.rename_field", { fieldname: "subject", new_fieldname: "topic" });
+		refuse(field("subject", 0, "subject is held by a deleted field."));
+		await acts.run("editor.save");
+		expect(canvas.errorsAt("field", "topic")).toEqual(["subject is held by a deleted field."]);
+	});
+});
+
 describe("a failed file export", () => {
 	it("offers Write files again, which writes them and moves the base version", async () => {
 		const { save, edits } = mount(taskNote({ custom: 0 }));

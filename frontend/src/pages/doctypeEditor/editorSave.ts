@@ -71,7 +71,7 @@ export class EditorSave {
 	private lateExports: ExportResult[] = [];
 	/** The child tables the last save wrote, whose exports report here too. */
 	private writtenChildren: string[] = [];
-	/** The banner the last refused save raised, so an Undo clears only that one. */
+	/** The banner the last refused save raised. */
 	private refusal: SaveBanner | null = null;
 
 	constructor(private host: SaveHost) {}
@@ -339,7 +339,7 @@ function markErrors(canvas: DesignCanvas, refused: SaveError[], staged: FlatEdit
 /** The server keys a field's error to the name before a rename; the canvas already holds the new one. */
 function renamedError(canvas: DesignCanvas, error: SaveError, staged: FlatEdit[]): SaveError {
 	const { fieldname } = error.target;
-	if (error.target.kind !== "field" || !fieldname || canvas.field(fieldname) || error.edit === undefined) return error;
+	if (error.target.kind !== "field" || !fieldname || error.edit === undefined) return error;
 	let current = fieldname;
 	for (const edit of staged.slice(error.edit)) {
 		if (edit.act === "fields.rename_field" && edit.fieldname === current) current = edit.new_fieldname as string;

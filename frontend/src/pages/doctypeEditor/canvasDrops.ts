@@ -75,5 +75,5 @@ export const DRAG_OPTIONS = {
 	preventOnFilter: false,
 };
 
-/** A tab is a button, so its strip lets a press on the button start the drag: a click still selects and a double-click still renames. */
+/** A tab is a button, so its strip filters only the rename input. */
 export const TAB_DRAG_OPTIONS = { ...DRAG_OPTIONS, filter: "input" };

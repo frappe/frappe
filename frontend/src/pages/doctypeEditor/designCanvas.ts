@@ -68,7 +68,7 @@ export class DesignCanvas {
 		return Boolean(opened && sameLayout(opened, this.openLayout.value) && !own);
 	});
 	readonly tabs = computed(() => this.layout.value?.tabs ?? []);
-	/** What is selected; `null` once its field, section, column or tab is gone, as after an Undo. */
+	/** What is selected; `null` once its target is gone. */
 	readonly selection = computed<CanvasSelection | null>(() => this.alive(this.chosen.value));
 	/** The open tab's name; the first tab when it names none that exists. */
 	readonly openTabName = ref("");
@@ -88,9 +88,9 @@ export class DesignCanvas {
 	readonly trayOpen = ref(true);
 	/** The last save's errors; each draws at its field or container. */
 	readonly errors = shallowRef<SaveError[]>([]);
-	/** The Add field tray's search, kept here so it survives the panel showing a field and back. */
+	/** The Add field tray's search. */
 	readonly typeQuery = ref("");
-	/** The "Fields not on this layout" search, kept for the same reason. */
+	/** The "Fields not on this layout" search. */
 	readonly fieldQuery = ref("");
 	/** The section whose "Add field" input is open. */
 	readonly adding = shallowRef<string | null>(null);
