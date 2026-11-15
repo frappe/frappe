@@ -174,13 +174,12 @@ function reset_own_layout() {
 	);
 }
 
-// The editor opens on the default layout, whichever layout the reader was shown.
-async function edit(variant) {
+// `layout` names the Workspace Layout to edit, over the weaker ones that apply.
+async function edit(layout) {
+	const params = { name: workspace.value.name };
+	if (typeof layout === "string") params.layout = layout;
 	const [page, module] = await Promise.all([
-		get("frappe.desk.desktop.get_workspace", {
-			name: workspace.value.name,
-			variant: variant || "<default>",
-		}),
+		get("frappe.desk.desktop.get_workspace", params),
 		import("./editor/WorkspaceEditor.vue"),
 	]);
 	if (workspace.value?.name !== page.name) return;

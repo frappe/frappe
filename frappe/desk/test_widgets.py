@@ -241,7 +241,10 @@ def read_page(names: list[str], hide_custom: int = 1) -> dict:
 	content = [{"id": name, "type": "widget", "data": {"widget": name, "col": 4}} for name in names]
 	workspace = make_workspace("WT Page", content=content, hide_custom=hide_custom)
 	frappe.set_user(READER)
-	return get_workspace(workspace.name)
+	page = get_workspace(workspace.name)
+	# keyed by widget name, which is what each test knows
+	page["widgets"]["widget"] = {widget["name"]: widget for widget in page["widgets"]["widget"].values()}
+	return page
 
 
 def count_of(widget) -> int:

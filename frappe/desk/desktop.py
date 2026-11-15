@@ -18,10 +18,9 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	get_customization,
 	replace_widgets,
 )
-from frappe.desk.doctype.workspace_variant.workspace_variant import DEFAULT_LAYOUT
+from frappe.desk.layouts import matched_layouts, merged_content
 from frappe.desk.utils import is_item_allowed
-from frappe.desk.widgets import build_unsaved_widget, build_widgets, get_types, widget_names
-from frappe.permissions import AUTOMATIC_ROLES
+from frappe.desk.widgets import build_unsaved_widget, build_widgets, get_types
 from frappe.utils import cint
 from frappe.utils.caching import request_cache
 
@@ -46,7 +45,6 @@ class Workspace(DeskViews):
 		self.workspace_manager = "Workspace Manager" in frappe.get_roles()
 
 		self.user = frappe.get_user()
-		self.variant = None
 
 		# A standard workspace stays the live, app-owned base; a site's customization is a
 		# separate delta merged on top here. Use a fresh (non-cached) doc on the merge path
@@ -109,38 +107,6 @@ class Workspace(DeskViews):
 		if not self.doc.content:
 			return []
 		return [x["data"]["onboarding_name"] for x in loads(self.doc.content) if x["type"] == "onboarding"]
-
-	def use_layout(self, requested: str | None = None) -> None:
-		"""Draw the role layout whose role the session holds. Holding the roles of two or more
-		layouts, as Administrator and the user who set up the site do, gets the default.
-
-		`requested` names a layout to draw instead: a role, or `DEFAULT_LAYOUT`. A private
-		workspace has one layout and never walks.
-		"""
-		if not self.doc.public:
-			return
-
-		rows = {row.role: row for row in self.doc.get("variants") or []}
-		# app import skips validate, so a hand-edited JSON may still bind an automatic role
-		for role in AUTOMATIC_ROLES:
-			rows.pop(role, None)
-
-		if requested:
-			role = requested if requested in rows else None
-		else:
-			roles = set(frappe.get_roles())
-			held = [role for role in rows if role in roles]
-			role = held[0] if len(held) == 1 else None
-		if not role:
-			return
-
-		if self.doc_is_shared:
-			self.doc = frappe.get_doc("Workspace", self.page_name)
-			self.doc_is_shared = False
-		self.doc.content = rows[role].content or "[]"
-		replace_widgets(self.doc, loads(rows[role].widgets or "{}"))
-		self.onboarding_list = self.get_onboarding_names()
-		self.variant = role
 
 	def use_user_layout(self) -> bool:
 		"""Draw the session user's own layout of a shared workspace, if they saved one."""
@@ -424,7 +390,7 @@ def get_desktop_page(page: str | dict):
 			"quick_lists": workspace.quick_lists,
 			"number_cards": workspace.number_cards,
 			"custom_blocks": workspace.custom_blocks,
-			"widgets": build_widgets(widget_names(loads(workspace.doc.content or "[]"))),
+			"widgets": build_widgets(merged_content(workspace.doc, matched_layouts(workspace.doc))),
 		}
 	except DoesNotExistError:
 		return {}
@@ -488,31 +454,30 @@ LINK_FIELDS = (
 
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
-def get_workspace(name: str, variant: str | None = None) -> dict:
+def get_workspace(name: str, layout: str | None = None) -> dict:
 	"""Everything the workspace island draws, filtered to what the session user may read.
 
-	`variant` asks for one layout, a role or `DEFAULT_LAYOUT`, and only an editor gets it.
+	`layout` names a Workspace Layout to draw over the weaker ones, for an editor only.
 	"""
 	from frappe.desk.doctype.workspace.workspace import can_edit_workspace
 
 	workspace = open_workspace({"name": name})
-	doc = workspace.doc
-	can_edit = can_edit_workspace(doc)
-	workspace.use_layout(variant if can_edit else None)
+	can_edit = can_edit_workspace(workspace.doc)
 	own_layout = not can_edit and workspace.use_user_layout()
 	doc = workspace.doc
-	widgets = readable_widgets(workspace)
+	layout = layout if can_edit else None
+	stored = merged_content(doc, matched_layouts(doc, until=layout))
+	widgets = readable_widgets(workspace, stored)
 	_fold_chart_settings(widgets["charts"])
 	_load_custom_blocks(widgets["custom_blocks"])
 	for card in widgets["cards"].values():
 		card["links"] = [{field: link.get(field) for field in LINK_FIELDS} for link in card["links"]]
 
-	stored = loads(doc.content or "[]")
 	content = [block for block in stored if is_drawable(block, widgets)]
 	add_module_customizations(doc, content, widgets["widget"])
 	customization = get_customization(name) if doc.standard else None
 	if can_edit:
-		context = editor_context(doc, customization, workspace.variant)
+		context = editor_context(doc, customization)
 	elif doc.public:
 		context = {"layouts": [], "save_target": "own"}
 	else:
@@ -522,7 +487,7 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		"name": doc.name,
 		"title": _(doc.title),
 		"public": bool(doc.public),
-		"variant": workspace.variant,
+		"layout": layout,
 		"content": content,
 		"widgets": widgets,
 		"widget_types": get_types(),
@@ -532,7 +497,7 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		"no_access": has_widget(stored) and not has_widget(content),
 		"is_hidden": bool(doc.is_hidden),
 		"standard": bool(doc.standard),
-		"is_layout_customized": is_layout_customized(customization, workspace.variant),
+		"is_layout_customized": is_layout_customized(customization),
 		**context,
 	}
 
@@ -574,8 +539,8 @@ def add_module_customizations(doc, content: list, widgets: dict) -> None:
 		content.append({"id": name, "type": "widget", "generated": 1, "data": {"widget": name, "col": 4}})
 
 
-def editor_context(doc, customization, variant: str | None) -> dict:
-	"""What the editor shows about where a save goes: the layouts, and the file or site copy."""
+def editor_context(doc, customization) -> dict:
+	"""What the editor shows about where a save goes: the file or the site copy."""
 	from frappe.desk.doctype.workspace.workspace import get_workspace_app
 
 	if not doc.public:
@@ -583,30 +548,19 @@ def editor_context(doc, customization, variant: str | None) -> dict:
 
 	base = frappe.get_cached_doc("Workspace", doc.name)
 	if not base.standard:
-		layouts = [{"role": None, "source": "Site"}]
-		layouts += [{"role": row.role, "source": "Site"} for row in base.variants]
-		return {"layouts": layouts, "save_target": "site"}
+		return {"layouts": [], "save_target": "site"}
 
 	app = get_workspace_app(base)
-	app_title = (frappe.get_hooks("app_title", app_name=app) or [app])[0] if app else _("App")
-	site_roles = [row.role for row in customization.variants] if customization else []
-	app_roles = [row.role for row in base.variants]
-
-	layouts = [
-		{"role": None, "source": "Site copy" if customization and customization.content else app_title}
-	]
-	layouts += [{"role": r, "source": "Site copy" if r in site_roles else app_title} for r in app_roles]
-	layouts += [{"role": r, "source": "Site"} for r in site_roles if r not in app_roles]
-
-	if frappe.conf.developer_mode and not is_layout_customized(customization, variant):
+	if frappe.conf.developer_mode and not is_layout_customized(customization):
 		scrubbed = frappe.scrub(base.name)
 		path = os.path.join(frappe.get_module_path(base.module), "workspace", scrubbed, f"{scrubbed}.json")
-		return {"layouts": layouts, "save_target": os.path.relpath(path, frappe.get_app_source_path(app))}
-	return {"layouts": layouts, "save_target": "site copy"}
+		return {"layouts": [], "save_target": os.path.relpath(path, frappe.get_app_source_path(app))}
+	return {"layouts": [], "save_target": "site copy"}
 
 
-def readable_widgets(workspace) -> dict:
-	"""The drawn layout's widgets the session user may read, keyed by widget table and label."""
+def readable_widgets(workspace, content: list) -> dict:
+	"""The widgets of `content` the session user may read: old ones keyed by widget table and label,
+	Widgets by block id."""
 	workspace.build_workspace()
 	built = {
 		"chart": workspace.charts["items"],
@@ -622,7 +576,7 @@ def readable_widgets(workspace) -> dict:
 	}
 
 	widgets = {key: {} for key, _fields in WIDGET_FIELDS.values()}
-	for block in loads(workspace.doc.content or "[]"):
+	for block in content:
 		block_type = block.get("type")
 		if block_type not in WIDGET_FIELDS:
 			continue
@@ -631,17 +585,13 @@ def readable_widgets(workspace) -> dict:
 		if item is not None:
 			key, fields = WIDGET_FIELDS[block_type]
 			widgets[key][block_name] = {field: item.get(field) for field in fields}
-	widgets["widget"] = build_widgets(widget_names(loads(workspace.doc.content or "[]")))
+	widgets["widget"] = build_widgets(content)
 	return widgets
 
 
-def is_layout_customized(customization, variant: str | None) -> bool:
+def is_layout_customized(customization) -> bool:
 	"""Whether the layout drawn is the site's copy rather than the app's."""
-	if not customization:
-		return False
-	if variant:
-		return variant in {row.role for row in customization.variants}
-	return bool(customization.content)
+	return bool(customization and customization.content)
 
 
 def _find_widget(items: list, block_type: str, block_name: str | None):
@@ -657,7 +607,7 @@ def _find_widget(items: list, block_type: str, block_name: str | None):
 def is_drawable(block: dict, widgets: dict) -> bool:
 	block_type = block.get("type")
 	if block_type == "widget":
-		return block["data"]["widget"] in widgets["widget"]
+		return block["id"] in widgets["widget"]
 	if block_type not in WIDGET_FIELDS:
 		return True
 	key, _fields = WIDGET_FIELDS[block_type]

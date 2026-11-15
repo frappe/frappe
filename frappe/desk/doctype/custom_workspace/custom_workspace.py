@@ -5,11 +5,6 @@ from json import dumps, loads
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.workspace_variant.workspace_variant import (
-	DEFAULT_LAYOUT,
-	sanitize_variants,
-	validate_variants,
-)
 from frappe.model.document import Document
 
 # Block `type` -> Workspace child-table parentfield. Every widget block is matched to
@@ -51,7 +46,6 @@ class CustomWorkspace(Document):
 
 	if TYPE_CHECKING:
 		from frappe.core.doctype.has_role.has_role import HasRole
-		from frappe.desk.doctype.workspace_variant.workspace_variant import WorkspaceVariant
 		from frappe.types import DF
 
 		added_roles: DF.Table[HasRole]
@@ -77,7 +71,6 @@ class CustomWorkspace(Document):
 		renderer: DF.Literal["Inherit", "Frappe UI"]
 		sequence_id: DF.Float
 		user: DF.Link | None
-		variants: DF.Table[WorkspaceVariant]
 		visibility: DF.Literal["Inherit", "Visible", "Hidden"]
 		widgets: DF.LongText | None
 		workspace: DF.Link
@@ -90,7 +83,6 @@ class CustomWorkspace(Document):
 
 		self.content = sanitize_content(self.content)
 		self.widgets = sanitize_content(self.widgets)
-		sanitize_variants(self.variants)
 
 	def autoname(self):
 		# the site's row is named after its workspace, which is how every reader finds it
@@ -102,7 +94,6 @@ class CustomWorkspace(Document):
 			return
 		if not frappe.db.get_value("Workspace", self.workspace, "standard"):
 			frappe.throw(_("Only standard (app-shipped) workspaces can be customized."))
-		validate_variants(self.variants)
 
 	def validate_user_layout(self):
 		if not frappe.db.get_value("Workspace", self.workspace, "public"):
@@ -254,12 +245,6 @@ def _apply_content(doc, customization) -> None:
 		doc.content = customization.content
 		replace_widgets(doc, loads(customization.widgets or "{}"))
 
-	# a site row replaces the app's row for its role in place; the site's own come last
-	site_rows = {row.role: row for row in customization.variants}
-	rows = [site_rows.pop(row.role, row) for row in doc.variants]
-	rows.extend(site_rows.values())
-	doc.set("variants", [{"role": r.role, "content": r.content, "widgets": r.widgets} for r in rows])
-
 
 def replace_widgets(doc, widgets: dict) -> None:
 	"""Make a layout's widget rows exactly the stored set (a role layout's `widgets` is whole)."""
@@ -274,32 +259,17 @@ def replace_widgets(doc, widgets: dict) -> None:
 	doc.build_links_table_from_card(widgets.get("card") or [])
 
 
-def upsert_content_customization(
-	workspace: str, edited_content: list, new_widgets: dict, variant: str | None = None
-) -> None:
+def upsert_content_customization(workspace: str, edited_content: list, new_widgets: dict) -> None:
 	"""Persist a layout edit to a standard workspace as a site snapshot (never touches the base).
 
-	The first edit of a layout copies its whole widget set in, so the snapshot keeps every widget
-	the app layout had. A later save only adds the widgets new in that session.
+	The first edit copies the workspace's whole widget set in, so the snapshot keeps every widget
+	the app had. A later save only adds the widgets new in that session.
 	"""
 	customization = _get_or_new(workspace)
 	base = frappe.get_cached_doc("Workspace", workspace)
-
-	if variant and variant != DEFAULT_LAYOUT:
-		row = next((r for r in customization.variants if r.role == variant), None)
-		if row:
-			widgets = loads(row.widgets or "{}")
-		else:
-			app_row = next((r for r in base.variants if r.role == variant), None)
-			widgets = loads(app_row.widgets or "{}") if app_row else {}
-			row = customization.append("variants", {"role": variant})
-		row.content = dumps(edited_content)
-		row.widgets = dumps(_prune_widgets(merge_widgets(widgets, new_widgets), edited_content))
-	else:
-		widgets = loads(customization.widgets or "{}") if customization.content else snapshot_widgets(base)
-		customization.content = dumps(edited_content)
-		customization.widgets = dumps(_prune_widgets(merge_widgets(widgets, new_widgets), edited_content))
-
+	widgets = loads(customization.widgets or "{}") if customization.content else snapshot_widgets(base)
+	customization.content = dumps(edited_content)
+	customization.widgets = dumps(_prune_widgets(merge_widgets(widgets, new_widgets), edited_content))
 	customization.save(ignore_permissions=True)
 
 
@@ -418,59 +388,15 @@ def _get_or_new(workspace: str) -> "CustomWorkspace":
 
 
 @frappe.whitelist(methods=["POST"])
-def reset_workspace_customization(workspace: str, variant: str | None = None) -> None:
-	"""Restore the app's workspace, or with `variant` only that layout (a role or the default).
-
-	A site's move to Frappe UI stays: it goes one way, and reset is not a way back.
-	"""
+def reset_workspace_customization(workspace: str) -> None:
+	"""Restore the app's workspace. A site's move to Frappe UI stays: it goes one way, and reset is
+	not a way back."""
 	from frappe.desk.doctype.workspace.workspace import is_workspace_manager
 
 	if not is_workspace_manager():
 		frappe.throw(_("You need to be Workspace Manager to reset a workspace."), frappe.PermissionError)
 
-	if not variant:
-		renderer = frappe.db.get_value("Custom Workspace", workspace, "renderer")
-		frappe.delete_doc_if_exists("Custom Workspace", workspace)
-		if renderer == "Frappe UI":
-			upsert_property_customization(workspace, renderer=renderer)
-		return
-
-	if not frappe.db.exists("Custom Workspace", workspace):
-		return
-	customization = frappe.get_doc("Custom Workspace", workspace)
-	if variant == DEFAULT_LAYOUT:
-		customization.content = None
-		customization.widgets = None
-	else:
-		base_roles = {row.role for row in frappe.get_cached_doc("Workspace", workspace).variants}
-		if variant not in base_roles:
-			frappe.throw(
-				_("The {0} layout is this site's own, so there is no app layout to go back to.").format(
-					_(variant)
-				)
-			)
-		customization.set("variants", [row for row in customization.variants if row.role != variant])
-	customization.save(ignore_permissions=True)
-
-
-@frappe.whitelist(methods=["POST"])
-def delete_workspace_layout(workspace: str, variant: str) -> None:
-	"""Delete a role layout the site added. An app's own layout is reset, never deleted."""
-	from frappe.desk.doctype.workspace.workspace import is_workspace_manager
-
-	if not is_workspace_manager():
-		frappe.throw(_("You need to be Workspace Manager to delete a layout."), frappe.PermissionError)
-
-	base = frappe.get_doc("Workspace", workspace)
-	if base.standard and not frappe.conf.developer_mode:
-		if variant in {row.role for row in base.variants}:
-			frappe.throw(_("The {0} layout comes with the app. Reset it instead.").format(_(variant)))
-		if not frappe.db.exists("Custom Workspace", workspace):
-			return
-		customization = frappe.get_doc("Custom Workspace", workspace)
-		customization.set("variants", [row for row in customization.variants if row.role != variant])
-		customization.save(ignore_permissions=True)
-		return
-
-	base.set("variants", [row for row in base.variants if row.role != variant])
-	base.save(ignore_permissions=True)
+	renderer = frappe.db.get_value("Custom Workspace", workspace, "renderer")
+	frappe.delete_doc_if_exists("Custom Workspace", workspace)
+	if renderer == "Frappe UI":
+		upsert_property_customization(workspace, renderer=renderer)

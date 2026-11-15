@@ -22,6 +22,8 @@ bench_cache_keys = ("assets_json",)
 
 global_cache_keys = (
 	"app_hooks",
+	"workspace_layouts",
+	"workspace_merged_pages",
 	"installed_apps",
 	"all_apps",
 	"app_modules",
@@ -72,6 +74,8 @@ user_cache_keys = (
 	"allowed_dashboards",
 	"desk_sidebar_items",
 	"contacts",
+	"workspace_layout_conditions",
+	"workspace_user_layouts",
 )
 
 doctype_cache_keys = (

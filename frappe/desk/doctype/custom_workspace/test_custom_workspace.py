@@ -6,12 +6,12 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
-	delete_workspace_layout,
 	effective_renderer,
 	effective_roles,
 	reset_workspace_customization,
 	upsert_property_customization,
 )
+from frappe.desk.layouts import with_ids
 from frappe.tests import IntegrationTestCase
 
 BASE_CONTENT = [
@@ -291,7 +291,9 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 			frappe.db.set_value("Workspace", self.WORKSPACE, "renderer", "Frappe UI")
 			set_workspace_renderer(self.WORKSPACE, "Frappe UI")
 		self.assertEqual(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "renderer"), "Inherit")
-		self.assertEqual(loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content")), BASE_CONTENT)
+		self.assertEqual(
+			loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content")), with_ids(BASE_CONTENT)
+		)
 
 	def test_layout_customization_marks_the_page_as_frozen(self):
 		# The desk warns before the save that freezes a layout, so the payload has to say whether
@@ -327,135 +329,3 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 				frappe.get_doc({"doctype": "Custom Workspace", "workspace": private.name}).insert()
 		finally:
 			frappe.db.delete("Workspace", {"name": private.name})
-
-
-class TestSiteLayouts(IntegrationTestCase):
-	WORKSPACE = "CW Layouts Test"
-	ONE = "CW Role One"
-	TWO = "CW Role Two"
-	SITE = "CW Role Site"
-	USER = "test-cw-layouts@example.com"
-
-	def setUp(self):
-		frappe.set_user("Administrator")
-		self.addCleanup(frappe.set_user, "Administrator")
-		for role in (self.ONE, self.TWO, self.SITE):
-			if not frappe.db.exists("Role", role):
-				frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": 1}).insert()
-		if frappe.db.exists("User", self.USER):
-			frappe.delete_doc("User", self.USER, force=True)
-		frappe.get_doc(
-			{"doctype": "User", "email": self.USER, "first_name": "CW", "send_welcome_email": 0}
-		).insert()
-
-		ws = frappe.new_doc("Workspace")
-		ws.label = ws.title = self.WORKSPACE
-		ws.module = "Desk"
-		ws.public = 1
-		ws.standard = 1
-		ws.content = dumps([header("Default")])
-		ws.append("variants", {"role": self.ONE, "content": dumps([header("One")]), "widgets": "{}"})
-		ws.append("variants", {"role": self.TWO, "content": dumps([header("Two")]), "widgets": "{}"})
-		ws.insert(ignore_if_duplicate=True)
-
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		frappe.delete_doc_if_exists("Custom Workspace", self.WORKSPACE)
-		frappe.delete_doc("Workspace", self.WORKSPACE, force=True, ignore_missing=True)
-
-	def save(self, variant, text):
-		from frappe.desk.doctype.workspace.workspace import save_page
-
-		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			save_page(self.WORKSPACE, public=1, new_widgets={}, blocks=dumps([header(text)]), variant=variant)
-
-	def seen_by(self, *roles):
-		from frappe.desk.desktop import get_workspace
-
-		frappe.set_user("Administrator")
-		user = frappe.get_doc("User", self.USER)
-		user.set("roles", [{"role": role} for role in ("Desk User", *roles)])
-		user.save()
-		frappe.set_user(self.USER)
-		payload = get_workspace(self.WORKSPACE)
-		frappe.set_user("Administrator")
-		return payload["content"][0]["data"]["text"], payload["is_layout_customized"]
-
-	def ship(self, **changes):
-		"""What a migrate does to the app's record."""
-		ws = frappe.get_doc("Workspace", self.WORKSPACE)
-		ws.update(changes)
-		with patch.dict(frappe.conf, {"developer_mode": 1}):
-			ws.save()
-
-	def test_editing_one_layout_freezes_only_it(self):
-		self.save(self.TWO, "Site Two")
-		self.ship(content=dumps([header("New Default")]))
-		frappe.db.set_value(
-			"Workspace Variant",
-			{"parent": self.WORKSPACE, "role": self.ONE},
-			"content",
-			dumps([header("New One")]),
-		)
-
-		self.assertEqual(self.seen_by(self.TWO), ("Site Two", True))
-		self.assertEqual(self.seen_by(self.ONE), ("New One", False))
-		self.assertEqual(self.seen_by(), ("New Default", False))
-
-	def test_a_site_only_layout_reaches_its_role(self):
-		self.save(self.SITE, "Site Only")
-		self.save(self.TWO, "Site Two")
-		self.assertEqual(self.seen_by(self.SITE, self.TWO)[0], "Default")
-		self.assertEqual(self.seen_by(self.SITE)[0], "Site Only")
-
-	def test_reset_one_layout(self):
-		self.save(self.ONE, "Site One")
-		self.save(self.TWO, "Site Two")
-		reset_workspace_customization(self.WORKSPACE, self.ONE)
-
-		self.assertEqual(self.seen_by(self.ONE), ("One", False))
-		self.assertEqual(self.seen_by(self.TWO), ("Site Two", True))
-
-	def test_reset_refuses_a_site_only_layout(self):
-		self.save(self.SITE, "Site Only")
-		with self.assertRaises(frappe.ValidationError):
-			reset_workspace_customization(self.WORKSPACE, self.SITE)
-
-	def test_a_layout_the_app_drops_stays_as_the_sites(self):
-		self.save(self.TWO, "Site Two")
-		ws = frappe.get_doc("Workspace", self.WORKSPACE)
-		ws.set("variants", [row for row in ws.variants if row.role != self.TWO])
-		with patch.dict(frappe.conf, {"developer_mode": 1}):
-			ws.save()
-
-		self.assertEqual(self.seen_by(self.TWO), ("Site Two", True))
-		with self.assertRaises(frappe.ValidationError):
-			reset_workspace_customization(self.WORKSPACE, self.TWO)
-
-	def test_a_site_only_layout_can_be_deleted_and_an_app_one_cannot(self):
-		self.save(self.SITE, "Site Only")
-		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			delete_workspace_layout(self.WORKSPACE, self.SITE)
-			with self.assertRaises(frappe.ValidationError):
-				delete_workspace_layout(self.WORKSPACE, self.ONE)
-		self.assertEqual(self.seen_by(self.SITE), ("Default", False))
-
-	def test_the_editor_lists_layouts_with_their_source(self):
-		from frappe.desk.desktop import get_workspace
-
-		self.save(self.TWO, "Site Two")
-		self.save(self.SITE, "Site Only")
-		self.seen_by("Workspace Manager")
-		frappe.set_user(self.USER)
-		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			payload = get_workspace(self.WORKSPACE)
-
-		sources = [(layout["role"], layout["source"]) for layout in payload["layouts"]]
-		self.assertEqual([role for role, _source in sources], [None, self.ONE, self.TWO, self.SITE])
-		self.assertEqual(sources[2][1], "Site copy")
-		self.assertEqual(sources[3][1], "Site")
-		self.assertEqual(payload["save_target"], "site copy")
-
-
-def header(text):
-	return {"id": frappe.generate_hash(length=8), "type": "header", "data": {"text": text, "col": 12}}

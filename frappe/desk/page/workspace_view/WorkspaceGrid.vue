@@ -241,13 +241,13 @@ const sections = computed(() =>
 
 function widget_type_of(block) {
 	if (block.type !== "widget") return null;
-	return props.widget_types[props.widgets.widget?.[block.data.widget]?.type];
+	return props.widget_types[props.widgets.widget?.[block.id]?.type];
 }
 
 function tile_for(block) {
 	if (block.type === "paragraph") return { component: TextBlock, props: { block } };
 	if (block.type === "widget") {
-		const widget = props.widgets.widget?.[block.data.widget];
+		const widget = props.widgets.widget?.[block.id];
 		const type = widget && props.widget_types[widget.type];
 		return type ? { component: WidgetTile, props: { widget, island: type.island } } : null;
 	}

@@ -156,13 +156,19 @@ def load_type_class(module: str, type_name: str) -> type[WidgetType]:
 	return getattr(module, type_name.replace(" ", "").replace("-", ""))
 
 
-def build_widgets(names, reader_filters: dict | None = None) -> dict:
-	"""Each named widget's payload, leaving out the ones the session user does not get."""
+def build_widgets(content: list) -> dict:
+	"""Each widget block's payload by block id, leaving out the ones the session user does not get.
+
+	A container's block may carry its own `items`, which layouts changed, in place of its widget's.
+	"""
 	widgets = {}
-	for name in dict.fromkeys(names):
-		payload = build_widget(name, (reader_filters or {}).get(name))
-		if payload is not None:
-			widgets[name] = payload
+	for block in content:
+		if block.get("type") != "widget" or not (widget := get(block["data"]["widget"])):
+			continue
+		if "items" in block["data"]:
+			widget.config["widgets"] = [{"widget": item["widget"]} for item in block["data"]["items"]]
+		if (built := payload(widget, None)) is not None:
+			widgets[block["id"]] = built
 	return widgets
 
 
@@ -237,10 +243,6 @@ def payload(widget: WidgetType, filters: dict | None) -> dict | None:
 		"hide_filter": widget.widget.hide_filter,
 		"data": data,
 	}
-
-
-def widget_names(content: list) -> list[str]:
-	return [block["data"]["widget"] for block in content if block.get("type") == "widget"]
 
 
 @request_cache

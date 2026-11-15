@@ -5,13 +5,13 @@ from unittest.mock import patch
 
 import frappe
 from frappe.desk.desktop import (
-	DEFAULT_LAYOUT,
 	get_desktop_page,
 	get_recent_activity,
 	get_workspace,
 	get_workspaces,
 )
 from frappe.desk.doctype.workspace.workspace import save_page
+from frappe.desk.layouts import block_id
 from frappe.tests import IntegrationTestCase
 from frappe.utils.logging import get_log_db
 
@@ -96,7 +96,7 @@ class TestGetWorkspace(IntegrationTestCase):
 		)
 		links = payload["widgets"]["cards"]["Things"]["links"]
 		self.assertEqual([link["link_to"] for link in links], ["ToDo"])
-		self.assertIsNone(payload["variant"])
+		self.assertIsNone(payload["layout"])
 		self.assertFalse(payload["can_edit"])
 
 	def test_no_access_when_every_widget_is_dropped(self):
@@ -274,83 +274,6 @@ class TestGetWorkspace(IntegrationTestCase):
 		self.assertNotIn("content", pages["GW Island"])
 
 
-class TestRoleLayouts(IntegrationTestCase):
-	ONE = "GW Role One"
-	TWO = "GW Role Two"
-	BOTH = "test-gw-both@example.com"
-	ONLY_TWO = "test-gw-two@example.com"
-
-	def setUp(self):
-		frappe.set_user("Administrator")
-		self.addCleanup(frappe.set_user, "Administrator")
-		for role in (self.ONE, self.TWO):
-			if not frappe.db.exists("Role", role):
-				frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": 1}).insert()
-		make_user(DESK_USER, ["Desk User"])
-		make_user(MANAGER, ["Desk User", "Workspace Manager"])
-		make_user(self.BOTH, ["Desk User", self.ONE, self.TWO])
-		make_user(self.ONLY_TWO, ["Desk User", self.TWO])
-		make_workspace(
-			"GW Layouts",
-			content=[block("header", text="Default")],
-			variants=[layout(self.ONE, "One"), layout(self.TWO, "Two")],
-		)
-
-	def heading(self, **kwargs):
-		payload = get_workspace("GW Layouts", **kwargs)
-		return payload["variant"], payload["content"][0]["data"]["text"]
-
-	def test_the_one_held_layout_wins(self):
-		frappe.set_user(self.ONLY_TWO)
-		self.assertEqual(self.heading(), (self.TWO, "Two"))
-		frappe.set_user(DESK_USER)
-		self.assertEqual(self.heading(), (None, "Default"))
-
-	def test_holding_two_layouts_gets_the_default(self):
-		frappe.set_user(self.BOTH)
-		self.assertEqual(self.heading(), (None, "Default"))
-
-	def test_administrator_holds_every_role(self):
-		self.assertEqual(self.heading(), (None, "Default"))
-
-	def test_a_layout_carries_its_own_widgets(self):
-		frappe.set_user("Administrator")
-		ws = frappe.get_doc("Workspace", "GW Layouts")
-		ws.variants[1].content = dumps([block("shortcut", "Two Notes")])
-		ws.variants[1].widgets = dumps(
-			{"shortcut": [{"type": "DocType", "link_to": "Note", "label": "Two Notes"}]}
-		)
-		ws.save()
-
-		frappe.set_user(self.ONLY_TWO)
-		payload = get_workspace("GW Layouts")
-		self.assertEqual(list(payload["widgets"]["shortcuts"]), ["Two Notes"])
-
-	def test_automatic_and_unknown_roles_never_match(self):
-		ws = frappe.get_doc("Workspace", "GW Layouts")
-		ws.variants = []
-		ws.append("variants", layout("All", "All"))
-		ws.append("variants", layout("GW No Such Role", "Missing"))
-		ws.flags.ignore_validate = True
-		ws.flags.ignore_links = True
-		ws.save()
-
-		frappe.set_user(DESK_USER)
-		self.assertEqual(self.heading(), (None, "Default"))
-
-	def test_only_an_editor_picks_a_layout(self):
-		frappe.set_user(DESK_USER)
-		self.assertEqual(self.heading(variant=self.TWO), (None, "Default"))
-		frappe.set_user(MANAGER)
-		self.assertEqual(self.heading(variant=self.TWO), (self.TWO, "Two"))
-		self.assertEqual(self.heading(variant=DEFAULT_LAYOUT), (None, "Default"))
-
-	def test_a_private_workspace_never_walks(self):
-		private = make_workspace("GW Private Layouts", public=0, for_user=self.BOTH)
-		frappe.set_user(self.BOTH)
-		self.assertIsNone(get_workspace(private.name, variant=self.ONE)["variant"])
-
-
 class TestSavingLayouts(IntegrationTestCase):
 	ROLE = "GW Role One"
 
@@ -403,32 +326,7 @@ class TestSavingLayouts(IntegrationTestCase):
 		frappe.set_user(MANAGER)
 		save_page("GW Secret Page", 1, {}, dumps([text]))
 		frappe.set_user("Administrator")
-		self.assertEqual(self.stored("GW Secret Page"), [text["id"], chart["id"]])
-
-	def test_a_new_role_layout_keeps_the_unread_widgets_of_its_source(self):
-		make_chart("GW Secret", "Error Log")
-		chart = block("chart", "Secret")
-		other = block("chart", "Elsewhere")
-		make_workspace(
-			"GW Copy",
-			content=[other],
-			charts=[{"label": "Elsewhere", "chart_name": "GW Secret"}],
-			variants=[
-				{
-					"role": "System Manager",
-					"content": dumps([chart]),
-					"widgets": dumps({"chart": [{"label": "Secret", "chart_name": "GW Secret"}]}),
-				}
-			],
-		)
-		text = block("header", text="New")
-		frappe.set_user(MANAGER)
-		save_page("GW Copy", 1, {}, dumps([text]), variant=self.ROLE, copied_from="System Manager")
-		frappe.set_user("Administrator")
-
-		row = next(r for r in frappe.get_doc("Workspace", "GW Copy").variants if r.role == self.ROLE)
-		self.assertEqual([b["id"] for b in loads(row.content)], [chart["id"], text["id"]])
-		self.assertEqual([w["label"] for w in loads(row.widgets)["chart"]], ["Secret"])
+		self.assertEqual(self.stored("GW Secret Page"), [text["id"], block_id(chart)])
 
 	def test_a_hidden_onboarding_is_not_a_lack_of_access(self):
 		make_workspace(
@@ -528,14 +426,6 @@ class TestRecentActivity(IntegrationTestCase):
 		self.assertEqual([event.name for event in activity], [self.commented.name])
 
 
-def layout(role, text, widgets=None):
-	return {
-		"role": role,
-		"content": dumps([block("header", text=text)]),
-		"widgets": dumps(widgets or {}),
-	}
-
-
 def block(block_type, name=None, text=None):
 	data = {"col": 12}
 	if name:
@@ -557,7 +447,7 @@ def make_workspace(title, content=(), public=1, **values):
 	doc.hide_custom = 1
 	doc.content = dumps(list(content))
 	for key, value in values.items():
-		if key in ("charts", "links", "roles", "variants"):
+		if key in ("charts", "links", "roles"):
 			for row in value:
 				doc.append(key, row if isinstance(row, dict) else {"role": row})
 		else:

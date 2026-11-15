@@ -162,6 +162,10 @@ def sync_for(app_name, force=0, reset_permissions=False):
 		# print each progress bar on new line
 		print()
 
+	from frappe.desk.doctype.workspace_layout.workspace_layout import remove_layouts_without_files
+
+	remove_layouts_without_files(app_name)
+
 	# The icon grid's fixtures use their own entry point because of the desktop-mode guard: an
 	# Apps-mode site holds no icon rows, shipped or generated, and switching to the grid is what
 	# imports them.
@@ -205,8 +209,12 @@ def get_doc_files(files, start_path, doctypes=None):
 			if doc_path not in files:
 				files.append(doc_path)
 
-	# Widgets: widgets/{widget type}/{name}.json. Only the type folders are read.
-	for doc_path in sorted(glob.glob(os.path.join(start_path, "widgets", "*", "*.json"))):
+	# Widgets: widgets/{widget type}/{name}.json, where only the type folders are read. Then the
+	# layouts that place them: workspace/{workspace}/layouts/{name}.json. A folder holding only
+	# layouts has no workspace json, so it never makes a Workspace.
+	widget_files = sorted(glob.glob(os.path.join(start_path, "widgets", "*", "*.json")))
+	layout_files = sorted(glob.glob(os.path.join(start_path, "workspace", "*", "layouts", "*.json")))
+	for doc_path in widget_files + layout_files:
 		if doc_path not in files:
 			files.append(doc_path)
 

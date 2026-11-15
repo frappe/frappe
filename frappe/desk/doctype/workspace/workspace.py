@@ -9,11 +9,7 @@ from frappe import _
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.desktop import get_workspaces, is_layout_customized, save_new_widget
 from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
-from frappe.desk.doctype.workspace_variant.workspace_variant import (
-	DEFAULT_LAYOUT,
-	sanitize_variants,
-	validate_variants,
-)
+from frappe.desk.layouts import with_ids
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -39,7 +35,6 @@ class Workspace(Document, DeskViews):
 		from frappe.desk.doctype.workspace_number_card.workspace_number_card import WorkspaceNumberCard
 		from frappe.desk.doctype.workspace_quick_list.workspace_quick_list import WorkspaceQuickList
 		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
-		from frappe.desk.doctype.workspace_variant.workspace_variant import WorkspaceVariant
 		from frappe.types import DF
 
 		charts: DF.Table[WorkspaceChart]
@@ -68,7 +63,7 @@ class Workspace(Document, DeskViews):
 		link_to: DF.DynamicLink | None
 		link_type: DF.Literal["DocType", "Page", "Report"]
 		links: DF.Table[WorkspaceLink]
-		module: DF.Link | None
+		module: DF.Link
 		module_onboarding: DF.Link | None
 		number_cards: DF.Table[WorkspaceNumberCard]
 		parent_page: DF.Link | None
@@ -82,7 +77,6 @@ class Workspace(Document, DeskViews):
 		standard: DF.Check
 		title: DF.Data
 		type: DF.Literal["Workspace", "Link", "URL"]
-		variants: DF.Table[WorkspaceVariant]
 	# end: auto-generated types
 
 	def before_validate(self):
@@ -90,7 +84,8 @@ class Workspace(Document, DeskViews):
 		# `ignore_validate`, which skips `validate` but not the sanitizer, and the import is the
 		# write that damaged every workspace shipping markup in its blocks.
 		self.content = sanitize_content(self.content)
-		sanitize_variants(self.get("variants") or [])
+		if self.content:
+			self.content = dumps(with_ids(loads(self.content)))
 
 	def validate(self):
 		self.title = strip_html(self.title)
@@ -141,7 +136,6 @@ class Workspace(Document, DeskViews):
 				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
 
 		self.validate_duplicate_widget_labels()
-		self.validate_variants()
 		self.validate_shared_page_has_a_module()
 		self.validate_private_page_is_yours()
 		self.ship_on_new_renderer()
@@ -161,12 +155,6 @@ class Workspace(Document, DeskViews):
 		previous = self.get_doc_before_save()
 		if previous and previous.renderer == "Frappe UI" and self.renderer != "Frappe UI":
 			frappe.throw(_("A workspace on the new layout cannot go back to the old one."))
-
-	def validate_variants(self):
-		variants = self.get("variants") or []
-		if variants and not self.public:
-			frappe.throw(_("A private workspace has one layout."), title=_("Role Layouts"))
-		validate_variants(variants)
 
 	def validate_private_page_is_yours(self):
 		"""A private page belongs to the person named in `for_user`, and only they may write one.
@@ -1034,17 +1022,10 @@ def save_page(
 	public: str | int,
 	new_widgets: dict,
 	blocks: str,
-	variant: str | None = None,
-	copied_from: str | None = None,
 ):
-	"""Save one layout of a workspace: `variant` names a role layout, else the default.
-
-	`copied_from` names the layout a new role layout started as.
-	"""
+	"""Save a workspace's blocks."""
 	public = frappe.parse_json(public)
 	new_widgets = frappe.parse_json(new_widgets or "{}")
-	if variant == DEFAULT_LAYOUT:
-		variant = None
 
 	doc = frappe.get_doc("Workspace", name)
 	can_edit = can_edit_workspace(doc)
@@ -1057,7 +1038,7 @@ def save_page(
 		save_own_layout(name, frappe.parse_json(blocks), new_widgets)
 		return {"name": name, "public": public, "label": doc.label}
 
-	blocks = dumps(merge_unseen_blocks(name, variant, frappe.parse_json(blocks), new_widgets, copied_from))
+	blocks = dumps(merge_unseen_blocks(name, frappe.parse_json(blocks)))
 
 	from frappe.desk.doctype.custom_workspace.custom_workspace import (
 		get_customization,
@@ -1068,18 +1049,12 @@ def save_page(
 	# changes are stored as a delta on top of the live base, so app updates keep arriving. In
 	# developer mode the app author edits the base itself so it exports to JSON, unless the layout
 	# on screen is the site's copy, which must not end up in the app's file.
-	if doc.standard and (
-		not frappe.conf.developer_mode or is_layout_customized(get_customization(name), variant)
-	):
-		upsert_content_customization(name, frappe.parse_json(blocks), new_widgets, variant)
+	if doc.standard and (not frappe.conf.developer_mode or is_layout_customized(get_customization(name))):
+		upsert_content_customization(name, frappe.parse_json(blocks), new_widgets)
 		return {"name": name, "public": public, "label": doc.label}
 
 	if not doc.type:
 		doc.type = "Workspace"
-
-	if variant:
-		save_variant(doc, variant, frappe.parse_json(blocks), new_widgets)
-		return {"name": name, "public": public, "label": doc.label}
 
 	doc.content = blocks
 
@@ -1095,7 +1070,6 @@ def save_own_layout(name: str, content: list, new_widgets: dict) -> None:
 	from frappe.desk.doctype.custom_workspace.custom_workspace import save_user_layout
 
 	workspace = open_workspace({"name": name})
-	workspace.use_layout()
 	save_user_layout(workspace.doc, content, new_widgets)
 
 
@@ -1151,27 +1125,20 @@ def stored_widget(block: dict, stored_widgets: dict) -> dict | None:
 	return widget
 
 
-def merge_unseen_blocks(
-	name: str, variant: str | None, blocks: list, new_widgets: dict, copied_from: str | None = None
-) -> list:
+def merge_unseen_blocks(name: str, blocks: list) -> list:
 	"""Put back the blocks the editor could not see, each after the block it followed.
 
 	An editor is shown only the widgets they may read, so their save would otherwise drop the
 	rest for everyone. The stored layout and the saving user's permissions say which those are.
-	A block that draws for nobody is not put back. A new role layout takes them from the layout
-	it was copied from, and adds their widgets to `new_widgets`, since it has none of its own.
+	A block that draws for nobody is not put back.
 	"""
 	from frappe.desk.desktop import Workspace, is_drawable, readable_widgets
 	from frappe.desk.doctype.custom_workspace.custom_workspace import snapshot_widgets
 
 	workspace = Workspace({"name": name})
-	workspace.use_layout(variant or DEFAULT_LAYOUT)
-	is_new_layout = bool(variant) and not workspace.variant
-	if is_new_layout:
-		workspace.use_layout(copied_from or DEFAULT_LAYOUT)
 	stored = loads(workspace.doc.content or "[]")
 	stored_widgets = snapshot_widgets(workspace.doc)
-	widgets = readable_widgets(workspace)
+	widgets = readable_widgets(workspace, stored)
 
 	merged = list(blocks)
 	kept = {block_key(block) for block in merged}
@@ -1182,10 +1149,8 @@ def merge_unseen_blocks(
 			onboarding = block["data"].get("onboarding_name")
 			if not onboarding or not frappe.db.exists("Module Onboarding", onboarding):
 				continue
-		elif not (widget := stored_widget(block, stored_widgets)):
+		elif not stored_widget(block, stored_widgets):
 			continue
-		elif is_new_layout:
-			new_widgets.setdefault(block["type"], []).append(widget)
 		before = (block_key(b) for b in reversed(stored[:index]))
 		anchor = next((key for key in before if key in kept), None)
 		at = 0 if anchor is None else [block_key(b) for b in merged].index(anchor) + 1
@@ -1196,17 +1161,6 @@ def merge_unseen_blocks(
 
 def block_key(block: dict) -> str:
 	return block.get("id") or dumps(block, sort_keys=True)
-
-
-def save_variant(doc, role: str, content: list, new_widgets: dict) -> None:
-	"""Write a role layout onto the workspace itself, which exports with it in developer mode."""
-	from frappe.desk.doctype.custom_workspace.custom_workspace import _prune_widgets, merge_widgets
-
-	row = next((r for r in doc.variants if r.role == role), None) or doc.append("variants", {"role": role})
-	widgets = merge_widgets(loads(row.widgets or "{}"), new_widgets)
-	row.content = dumps(content)
-	row.widgets = dumps(_prune_widgets(widgets, content))
-	doc.save(ignore_permissions=True)
 
 
 @frappe.whitelist(methods=["POST"])
