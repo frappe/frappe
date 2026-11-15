@@ -16,11 +16,7 @@ from frappe.core.doctype.user.user import (
 	handle_password_test_fail,
 	needs_password_setup,
 	reset_password,
-<<<<<<< HEAD
-=======
-	rewrite_owner_fields,
 	set_first_password,
->>>>>>> 2970ae0 (feat: setup flow for apps, finished at login from the saved region)
 	sign_up,
 	test_password_strength,
 	update_password,
@@ -33,7 +29,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
-from frappe.utils import get_url
+from frappe.utils import get_url, today
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user

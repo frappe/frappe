@@ -17,7 +17,23 @@ from frappe.utils.synchronization import LockTimeoutError, filelock
 from . import install_fixtures
 
 
-def get_setup_stages(args):  # nosemgrep
+def site_requires_builtin_wizard() -> bool:
+	for app in frappe.get_installed_apps():
+		hooks = frappe.get_hooks(app_name=app)
+		if hooks.get("setup_wizard_stages") or hooks.get("setup_wizard_complete"):
+			return True
+	return False
+
+
+def get_setup_wizard_url() -> str:
+	"""Setup UI for a fresh site: an app's `setup_wizard_url` hook (last installed wins), else the desk wizard."""
+	urls = frappe.get_hooks("setup_wizard_url")
+	if urls and not site_requires_builtin_wizard():
+		return urls[-1]
+	return "/app/setup-wizard"
+
+
+def get_setup_stages(args, include_app_input_stages=True):  # nosemgrep
 	# App setup stage functions should not include frappe.db.commit
 	# That is done by frappe after successful completion of all stages
 	stages = [
@@ -35,7 +51,9 @@ def get_setup_stages(args):  # nosemgrep
 		}
 	]
 
-	stages += get_stages_hooks(args) + get_setup_complete_hooks(args)
+	if include_app_input_stages:
+		stages += get_stages_hooks(args)
+	stages += get_setup_complete_hooks(args)
 
 	stages.append(
 		{
@@ -74,15 +92,10 @@ def setup_complete(args: str | dict[str, Any]):
 		return {"status": "ok"}
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
 # Set after a failed attempt, so the next login gets the desk wizard instead of another attempt.
 PREFILLED_SETUP_FAILED = "prefilled_setup_failed"
 
 
->>>>>>> 8404ba9 (fix(setup): site defaults without a region, and one attempt at login)
 def complete_prefilled_setup(login_manager=None):
 	"""On login, finish setup with the region Frappe Cloud saved at sign-up, so the site owner
 	skips the desk wizard. A site set up any other way keeps the wizard."""
@@ -173,7 +186,6 @@ def complete_app_setup(
 		frappe.throw(_("Setup is already in progress. Please try again in a moment."))
 
 
->>>>>>> 2970ae0 (feat: setup flow for apps, finished at login from the saved region)
 @frappe.whitelist()
 def initialize_system_settings_and_user(
 	system_settings_data: str | dict[str, Any], user_data: str | dict[str, Any]
@@ -287,12 +299,7 @@ def enable_setup_wizard_complete(app_name):
 
 def update_global_settings(args):  # nosemgrep
 	if args.language and args.language != "English":
-<<<<<<< HEAD
-		set_default_language(get_language_code(args.lang))
-		frappe.db.commit()
-=======
 		set_default_language(get_language_code(args.language))
->>>>>>> 2970ae0 (feat: setup flow for apps, finished at login from the saved region)
 	frappe.clear_cache()
 
 	update_system_settings(args)

@@ -37,17 +37,7 @@ from frappe.utils import (
 )
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
-<<<<<<< HEAD
-from frappe.utils.password import check_password, get_password_reset_limit
-=======
-from frappe.utils.password import (
-	check_password,
-	get_password_reset_limit,
-	has_password,
-	is_password_reused,
-	verify_against_placeholder,
-)
->>>>>>> 2970ae0 (feat: setup flow for apps, finished at login from the saved region)
+from frappe.utils.password import check_password, get_password_reset_limit, has_password
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
