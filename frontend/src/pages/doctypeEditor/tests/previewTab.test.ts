@@ -1,6 +1,6 @@
 // The Preview tab's layout and record reads: a skeleton while they load, the error and Try again when they fail.
 import { afterEach, expect, it, vi } from "vitest";
-import { computed, createApp, h, ref } from "vue";
+import { computed, createApp, h, nextTick, ref } from "vue";
 import PreviewTab from "../PreviewTab.vue";
 
 const { getDocument } = vi.hoisted(() => ({ getDocument: vi.fn() }));
@@ -93,4 +93,20 @@ it("reads the record again on Try again", async () => {
 	failure(root)!.querySelector("button")!.click();
 	await vi.waitFor(() => expect(failure(root)).toBeNull());
 	expect(root.querySelector("[data-form]")).not.toBeNull();
+});
+
+it("clears the Loading line when the record is emptied during a pending read", async () => {
+	getDocument.mockReturnValue(new Promise(() => {}));
+	const record = ref<string | null>("TN-1");
+	const root = document.createElement("div");
+	document.body.appendChild(root);
+	app = createApp({
+		render: () => h(PreviewTab, { doctype: "Task Note", record: record.value, latest: ["TN-1"], titleField: "" }),
+	});
+	app.mount(root);
+	await nextTick();
+	expect(root.textContent).toContain("Loading…");
+	record.value = null;
+	await nextTick();
+	expect(root.textContent).not.toContain("Loading…");
 });

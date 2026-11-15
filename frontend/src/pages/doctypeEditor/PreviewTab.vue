@@ -144,7 +144,11 @@ watch(
 	() => props.record,
 	(name) => {
 		recordError.value = null;
-		if (!name) return void (doc.value = {});
+		if (!name) {
+			doc.value = {};
+			loading.value = false;
+			return;
+		}
 		return load(name);
 	},
 	{ immediate: true }

@@ -54,6 +54,8 @@ export class ChildTables {
 		try {
 			const session = cached ?? (await this.load(doctype));
 			if (wanted()) this.open.value = { ...session, table };
+		} catch (error) {
+			if (wanted()) throw error;
 		} finally {
 			if (wanted()) this.loading.value = null;
 		}

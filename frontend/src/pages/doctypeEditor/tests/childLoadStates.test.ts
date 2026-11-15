@@ -50,7 +50,7 @@ async function mountPage(path: string) {
 	app = createApp(
 		defineComponent({
 			setup() {
-				child = useChildTables(editor!.edits, () => editor!.canvas, new ForkWarning());
+				child = useChildTables(editor!.edits, () => editor!.canvas, new ForkWarning(async () => true));
 				return () => null;
 			},
 		}),
@@ -76,4 +76,18 @@ it("leaves the address when the child fails to load, so the same Edit opens it a
 	expect(child.shown.value).toBe(editor!.canvas);
 	child.open("lines");
 	await vi.waitFor(() => expect(router.currentRoute.value.query.table).toBe("lines"));
+});
+
+it("ignores the failure of a read the address has moved past", async () => {
+	const { router, child } = await mountPage("/doctype/task-note?table=lines");
+	const first = loads.get("Line")!;
+	await router.push("/doctype/task-note");
+	await router.push("/doctype/task-note?table=lines");
+	await nextTick();
+	loads.get("Line")!.resolve(taskNote({ doctype: "Line", definition: { name: "Line", fields: [] } } as Partial<EditorState>));
+	await vi.waitFor(() => expect(child.tables.open.value?.state.doctype).toBe("Line"));
+	first.reject(new Error("Could not load"));
+	await new Promise((done) => setTimeout(done, 20));
+	expect(router.currentRoute.value.query.table).toBe("lines");
+	expect(child.tables.open.value?.state.doctype).toBe("Line");
 });
