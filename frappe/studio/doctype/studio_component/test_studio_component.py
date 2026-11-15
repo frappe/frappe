@@ -192,3 +192,46 @@ class TestStudioComponent(IntegrationTestCase):
 
 			frappe.delete_doc("Studio App", new_name)
 			self.assertFalse(frappe.db.exists("Studio Component", renamed.name))
+
+	def test_renaming_a_component_changes_its_id_everywhere(self):
+		with exports_in_tempdir():
+			suffix = frappe.generate_hash(length=10)
+			old_id, new_id = f"autocomplete_{suffix}", f"combobox_{suffix}"
+			blocks = frappe.as_json([{"componentName": old_id, "isStudioComponent": True}])
+			pages = {}
+			for label in ("renamed", "other"):
+				app = make_studio_app(app_name=f"{label}-{suffix}", is_standard=1, frappe_app="frappe")
+				frappe.get_doc(
+					doctype="Studio Component",
+					component_id=old_id,
+					component_name="Autocomplete",
+					studio_app=app.name,
+					script=COMPONENT_SCRIPT,
+				).insert()
+				pages[label] = make_studio_page(app.name, blocks=blocks)
+			page = pages["renamed"]
+			component = frappe.get_doc("Studio Component", f"{page.studio_app}/{old_id}")
+
+			component.component_id = "edited"
+			component.save()
+			self.assertEqual(component.component_id, old_id)
+
+			frappe.rename_doc("Studio Component", component.name, new_id)
+
+			renamed = frappe.get_doc("Studio Component", f"{page.studio_app}/{new_id}")
+			self.assertEqual(renamed.component_id, new_id)
+			page.reload()
+			self.assertEqual(get_blocks(page)[0]["componentName"], new_id)
+			folder = page.get_component_folder_path()
+			self.assertEqual(sorted(os.listdir(folder)), [f"{new_id}.js", f"{new_id}.json"])
+			self.assertEqual(
+				frappe.parse_json(frappe.read_file(page.get_folder_path(True))).blocks, get_blocks(page)
+			)
+			self.assertEqual(
+				frappe.parse_json(frappe.read_file(os.path.join(folder, f"{new_id}.json"))).name, renamed.name
+			)
+
+			other = pages["other"]
+			other.reload()
+			self.assertEqual(get_blocks(other)[0]["componentName"], old_id)
+			self.assertTrue(os.path.exists(os.path.join(other.get_component_folder_path(), f"{old_id}.js")))

@@ -58,6 +58,7 @@ class StudioComponent(Document):
 				separator="_",
 				filters={"studio_app": self.studio_app or ("is", "not set")},
 			)
+		validate_component_id(self.component_id)
 		self.name = get_component_name(self.component_id, self.studio_app)
 
 	def before_export(self, doc):
@@ -71,15 +72,69 @@ class StudioComponent(Document):
 
 	def validate(self):
 		validate_standard_app_change(self)
-		self.validate_component_id()
+		# the docname holds the id, so the two cannot disagree
+		self.component_id = get_component_id(self.name)
 
-	def validate_component_id(self):
-		# the scrubbed id names the component's exported file, so it must stay a single path segment
-		validate_file_name(
-			self.component_id,
-			_("Component ID cannot be empty or contain slashes."),
-			title=_("Invalid Component ID"),
+	def before_rename(self, old, new, merge=False):
+		"""Renaming the document changes the component's id. The new name can be the id alone."""
+		if merge:
+			frappe.throw(_("Components cannot be merged."))
+		validate_standard_app_change(self)
+		owner, _separator, component_id = new.rpartition("/")
+		if owner and owner != self.studio_app:
+			frappe.throw(_("A component cannot move to another app."))
+		validate_component_id(component_id)
+		return {"new": get_component_name(component_id, self.studio_app)}
+
+	def after_rename(self, old, new, merge=False):
+		old_id, new_id = get_component_id(old), get_component_id(new)
+		if old_id == new_id:
+			# its app was renamed, which moves the files and keeps the id
+			return
+		self.component_id = old_id
+		folders = self.get_export_folders()
+		for folder in folders:
+			rename_component_files(folder, frappe.scrub(old_id), frappe.scrub(new_id))
+		self.db_set("component_id", new_id, update_modified=False)
+		for folder in folders:
+			self.export_to_folder(folder)
+		self.rename_references(old_id, new_id)
+
+	def rename_references(self, old_id: str, new_id: str):
+		"""Point every block that meant this component at its new id."""
+		for component in self.get_referencing_docs("Studio Component", old_id):
+			doc = frappe.get_doc("Studio Component", component)
+			block = parse_json(doc.block)
+			if not rename_component_in_blocks(block, old_id, new_id):
+				continue
+			doc.block = block
+			doc.save()
+			for folder in doc.get_export_folders():
+				doc.export_to_folder(folder)
+
+		for page in self.get_referencing_docs("Studio Page", old_id):
+			doc = frappe.get_doc("Studio Page", page)
+			trees = {field: parse_json(doc.get(field)) for field in ("blocks", "draft_blocks")}
+			if not any([rename_component_in_blocks(tree, old_id, new_id) for tree in trees.values()]):
+				continue
+			for field, tree in trees.items():
+				if tree:
+					doc.set(field, frappe.as_json(tree, indent=None))
+			doc._skip_validate = True  # blocks only change
+			doc.save()
+
+	def get_referencing_docs(self, doctype: str, old_id: str) -> list[str]:
+		"""Pages or components whose blocks can mean this component by `old_id`: those of its app,
+		or for a global component, those of every app that has no component of its own with that id."""
+		if self.studio_app:
+			return frappe.get_all(doctype, filters={"studio_app": self.studio_app}, pluck="name")
+		apps_with_their_own = frappe.get_all(
+			"Studio Component",
+			filters={"component_id": old_id, "studio_app": ("is", "set")},
+			pluck="studio_app",
 		)
+		docs = frappe.get_all(doctype, fields=["name", "studio_app"])
+		return [doc.name for doc in docs if doc.studio_app not in apps_with_their_own]
 
 	def on_update(self):
 		if can_export(self) and self.has_value_changed("script"):
@@ -143,6 +198,32 @@ class StudioComponent(Document):
 			delete_component_files(folder, self.get_file_stem())
 
 
+def rename_component_files(folder: str, old_stem: str, new_stem: str):
+	old_script = find_script_file(folder, old_stem)
+	if os.path.exists(old_script):
+		os.replace(old_script, os.path.join(folder, new_stem + os.path.splitext(old_script)[1]))
+	os.replace(os.path.join(folder, f"{old_stem}.json"), os.path.join(folder, f"{new_stem}.json"))
+
+
+def rename_component_in_blocks(blocks, old_id: str, new_id: str) -> bool:
+	"""Rename the component in a parsed block tree. Return whether a block changed."""
+	renamed = False
+	for block in walk_blocks(blocks):
+		if block.get("isStudioComponent") and block.get("componentName") == old_id:
+			block["componentName"] = new_id
+			renamed = True
+	return renamed
+
+
+def validate_component_id(component_id: str | None):
+	# the scrubbed id names the component's exported file, so it must stay a single path segment
+	validate_file_name(
+		component_id,
+		_("Component ID cannot be empty or contain slashes."),
+		title=_("Invalid Component ID"),
+	)
+
+
 def delete_component_files(folder: str, stem: str):
 	delete_file(find_script_file(folder, stem))
 	delete_file(folder, f"{stem}.json")
@@ -158,6 +239,10 @@ def mark_components_standard(names: list[str]):
 def get_component_name(component_id: str, studio_app: str | None = None) -> str:
 	"""The docname. An id is unique only inside its app, so an app's component carries the app's name."""
 	return f"{studio_app}/{component_id}" if studio_app else component_id
+
+
+def get_component_id(name: str) -> str:
+	return name.rpartition("/")[2]
 
 
 def find_component(component_id: str, studio_app: str | None = None) -> str | None:

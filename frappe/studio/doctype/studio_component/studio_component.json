@@ -27,7 +27,8 @@
    "fieldname": "component_id",
    "fieldtype": "Data",
    "label": "Component ID",
-   "no_copy": 1
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "fieldname": "interface_tab",
@@ -80,7 +81,7 @@
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-15 01:12:36.513307",
+ "modified": "2026-11-15 01:54:41.154833",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
