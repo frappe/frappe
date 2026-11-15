@@ -209,6 +209,10 @@
 		}
 
 		.footer-info > .footer-col-left {
+			grid-row: 1;
+		}
+
+		&:has(.footer-logo) .footer-info > .footer-col-left {
 			grid-row: 2;
 		}
 
