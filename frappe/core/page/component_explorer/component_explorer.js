@@ -26,6 +26,21 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			)
 		);
 
+	// sample rows for the Item List examples
+	const APPLICANTS = [
+		["jane", "Jane Cooper", "Referred by Alex Morgan", "2d ago"],
+		["wade", "Wade Warren", "wade@example.com", "6d ago"],
+		["esther", "Esther Howard", "esther@example.com", "9d ago"],
+	].map(([id, title, subtitle, meta]) => ({
+		id,
+		title,
+		subtitle,
+		meta,
+		avatar: { label: title },
+		href: `/desk/job-applicant/${id}`,
+	}));
+	const [JANE, WADE, ESTHER] = APPLICANTS;
+
 	// the quick entry example's fields, read back by its Save action
 	let explorer_todo_fields;
 	let explorer_contact_fields;
@@ -1784,12 +1799,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							},
 							items: [
 								{
-									id: "jane",
-									title: "Jane Cooper",
-									subtitle: "Referred by Alex Morgan",
-									meta: "2d ago",
-									avatar: { label: "Jane Cooper" },
-									href: "/desk/job-applicant/jane",
+									...JANE,
 									actions: [
 										{
 											label: "Shortlist",
@@ -1810,23 +1820,12 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 										},
 									],
 								},
+								{ ...WADE, badge: { label: "On hold" } },
 								{
-									id: "wade",
-									title: "Wade Warren",
-									subtitle: "wade@example.com",
-									meta: "6d ago",
-									avatar: { label: "Wade Warren" },
-									badge: { label: "On hold" },
-									href: "/desk/job-applicant/wade",
-								},
-								{
-									id: "esther",
+									...ESTHER,
 									title: "Esther Howard-Montgomery-Featherstonehaugh the Third of Westminster",
 									subtitle:
 										"Referred by Alexander Montgomery-Featherstonehaugh from the Engineering department",
-									meta: "9d ago",
-									avatar: { label: "Esther Howard" },
-									href: "/desk/job-applicant/esther",
 								},
 							],
 						},
@@ -1838,32 +1837,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 						{
 							__code: 'new frappe.ui.ItemList({\n  variant: "flat",\n  items: applicants,\n})',
 							variant: "flat",
-							items: [
-								{
-									id: "jane",
-									title: "Jane Cooper",
-									subtitle: "Referred by Alex Morgan",
-									meta: "2d ago",
-									avatar: { label: "Jane Cooper" },
-									href: "/desk/job-applicant/jane",
-								},
-								{
-									id: "wade",
-									title: "Wade Warren",
-									subtitle: "wade@example.com",
-									meta: "6d ago",
-									avatar: { label: "Wade Warren" },
-									href: "/desk/job-applicant/wade",
-								},
-								{
-									id: "esther",
-									title: "Esther Howard",
-									subtitle: "esther@example.com",
-									meta: "9d ago",
-									avatar: { label: "Esther Howard" },
-									href: "/desk/job-applicant/esther",
-								},
-							],
+							items: APPLICANTS,
 						},
 					],
 				},
@@ -1901,33 +1875,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 								event.preventDefault();
 								list.set_selected(item.id);
 							},
-							items: [
-								{
-									id: "jane",
-									title: "Jane Cooper",
-									subtitle: "Referred by Alex Morgan",
-									meta: "2d ago",
-									avatar: { label: "Jane Cooper" },
-									href: "/desk/job-applicant/jane",
-								},
-								{
-									id: "wade",
-									title: "Wade Warren",
-									subtitle: "wade@example.com",
-									meta: "6d ago",
-									avatar: { label: "Wade Warren" },
-									badge: { label: "On hold" },
-									href: "/desk/job-applicant/wade",
-								},
-								{
-									id: "esther",
-									title: "Esther Howard",
-									subtitle: "esther@example.com",
-									meta: "9d ago",
-									avatar: { label: "Esther Howard" },
-									href: "/desk/job-applicant/esther",
-								},
-							],
+							items: [JANE, { ...WADE, badge: { label: "On hold" } }, ESTHER],
 						},
 					],
 				},
