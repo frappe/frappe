@@ -118,7 +118,7 @@ def restore_workspace_edits(workspace: str) -> dict:
 
 	layout = site_edit(workspace)
 	layout.changes = changes_from_copy(base, replay.content, replay.widgets)
-	layout.save(ignore_permissions=True)
+	layout.save()
 
 	customization = _get_or_new(workspace)
 	customization.set("added_roles", [{"role": role} for role in replay.added_roles])

@@ -179,6 +179,11 @@ class TestSavingLayouts(IntegrationTestCase):
 		layout = frappe.get_doc("Workspace Layout", {"workspace": "Layout Page", "user": US})
 		self.assertFalse(frappe.has_permission("Workspace Layout", "read", layout, user=INDIA))
 
+		frappe.set_user(US)
+		edits = {self.todos.name: {"label": "Mine"}}
+		page = dumps([drawn(self.notes)])
+		self.assertRaises(frappe.PermissionError, save_page, "Layout Page", 1, {}, page, widget_edits=edits)
+
 	def test_editing_an_apps_widget_on_a_site_saves_a_site_copy_in_its_place(self):
 		frappe.set_user("Administrator")
 		app_widget = make_shortcut("App ToDos", module="Desk")
@@ -361,6 +366,9 @@ class TestDrafts(IntegrationTestCase):
 
 		self.assertEqual(shown(MANAGER), ["Notes"])
 		self.assertEqual(shown(US), ["ToDos", "Notes"])
+		self.assertRaises(
+			frappe.ValidationError, save_page, "Layout Page", 1, {}, dumps([]), layout_settings=settings
+		)
 
 	def test_a_developers_module_choice_writes_that_apps_file(self):
 		frappe.conf.developer_mode = 1

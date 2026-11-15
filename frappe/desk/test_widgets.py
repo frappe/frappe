@@ -31,6 +31,7 @@ class TestWidgets(IntegrationTestCase):
 
 		self.assertEqual(shortcut.name, "Desk-Profit and Loss")
 		self.assertEqual(other.name, "Desk-Profit and Loss (WT Other)")
+		self.assertEqual(make_shortcut("Profit and Loss", module="Desk").name, "Desk-Profit and Loss-1")
 
 		shortcut.label = "Profit"
 		shortcut.save()

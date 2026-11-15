@@ -1,6 +1,6 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
-import { attempt, post } from "../api.js";
+import { attempt, get, post } from "../api.js";
 import BlockPanel from "./BlockPanel.vue";
 import PaneSettings from "./PaneSettings.vue";
 import { RECORDS, blank_record, save_record } from "./records.js";
@@ -187,7 +187,6 @@ async function save() {
 	}
 }
 
-// A new page is made, with its settings, when its draft is first saved.
 async function create_page() {
 	const title = window.strip_html(page_settings.title || "").trim();
 	if (!title) throw new Error(__("Give the workspace a title."));
@@ -261,7 +260,6 @@ const menu = computed(() => {
 	return items;
 });
 
-// The breadcrumb picker: every layout, strongest first, the one being edited marked.
 function picker_actions() {
 	if (!layouts.length) return [];
 	const rows = layouts.map((row) => ({
@@ -288,13 +286,19 @@ function picker_actions() {
 		: [...rows, new_row];
 }
 
-// The pencil moves to where an edit for that person shows, drawn over what applies to them.
 function view_as_user(user) {
-	const open = () => emit("switch", undefined, { view_as: user || undefined });
+	const open = () =>
+		attempt(async () => {
+			if (!user) return emit("switch", undefined, {});
+			const { layout } = await get("frappe.desk.desktop.view_as", {
+				workspace: props.workspace.name,
+				user,
+			});
+			emit("switch", layout || undefined, { view_as: user });
+		});
 	dirty.value ? confirm_discard(open) : open();
 }
 
-// Reset clears what the layout changes, and keeps its name and condition.
 function reset_layout() {
 	frappe.confirm(__("Undo every change this layout makes to the page?"), () =>
 		attempt(async () => {

@@ -8,7 +8,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules import get_module_path, scrub
-from frappe.modules.export_file import strip_default_fields
+from frappe.modules.export_file import exports_to_app, write_record
 from frappe.utils.data import cast
 
 
@@ -48,10 +48,12 @@ class Widget(Document):
 		widget_class(self).validate()
 
 	def on_update(self):
+		clear_pages_cache()
 		if self.is_exported():
 			self.export()
 
 	def on_trash(self):
+		clear_pages_cache()
 		if self.is_exported() and os.path.exists(path := self.file_path()):
 			os.remove(path)
 
@@ -90,12 +92,7 @@ class Widget(Document):
 		return [frappe._dict(field) for field in fields]
 
 	def is_exported(self) -> bool:
-		return bool(
-			frappe.conf.developer_mode
-			and self.module
-			and not frappe.flags.in_import
-			and not frappe.db.get_value("Module Def", self.module, "custom")
-		)
+		return exports_to_app(self.module)
 
 	def file_path(self) -> str:
 		return os.path.join(
@@ -103,21 +100,27 @@ class Widget(Document):
 		)
 
 	def export(self):
-		path = self.file_path()
-		frappe.create_folder(os.path.dirname(path))
-		with open(path, "w") as f:  # nosemgrep
-			f.write(frappe.as_json(strip_default_fields(self, self.as_dict(no_nulls=True))) + "\n")
+		write_record(self, self.file_path())
+
+
+def clear_pages_cache():
+	"""A merged page holds the items of the cards a layout reaches into."""
+	from frappe.desk.layouts import PAGES_KEY
+
+	frappe.cache.delete_value(PAGES_KEY)
 
 
 def new_widget_name(label: str, widget_type: str, module: str | None) -> str:
-	"""`<module>-<label>` for an app's widget, `(<Type>)` added once when another type took it.
+	"""`<module>-<label>` for an app's widget, `(<Type>)` added once when a widget of another type
+	took it, and numbered when one of its own type did.
 
 	A site's widget takes the bare label, numbered when taken.
 	"""
 	if not module:
 		return append_number_if_name_exists("Widget", label)
 	name = f"{module}-{label}"
-	if frappe.db.exists("Widget", name):
+	taken_by = frappe.db.get_value("Widget", name, "type")
+	if taken_by and taken_by != widget_type:
 		name = f"{name} ({widget_type})"
 	return append_number_if_name_exists("Widget", name)
 

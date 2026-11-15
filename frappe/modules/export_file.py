@@ -196,3 +196,21 @@ def create_init_py(module_path, dt, dn):
 	create_if_not_exists(os.path.join(module_path))
 	create_if_not_exists(os.path.join(module_path, dt))
 	create_if_not_exists(os.path.join(module_path, dt, dn))
+
+
+def exports_to_app(module: str | None) -> bool:
+	"""Whether a record of `module` is written to its app's files on save: in developer mode, for a
+	module an app ships, outside an import."""
+	return bool(
+		frappe.conf.developer_mode
+		and module
+		and not frappe.flags.in_import
+		and not frappe.db.get_value("Module Def", module, "custom")
+	)
+
+
+def write_record(doc, path: str) -> None:
+	"""Write `doc` as JSON at `path`, for a record that lives in a folder of its own choosing."""
+	frappe.create_folder(os.path.dirname(path))
+	with open(path, "w") as f:  # nosemgrep
+		f.write(frappe.as_json(strip_default_fields(doc, doc.as_dict(no_nulls=True))) + "\n")

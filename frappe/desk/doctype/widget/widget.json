@@ -1,7 +1,7 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "allow_rename": 1,
+ "allow_rename": 0,
  "autoname": "Prompt",
  "creation": "2026-11-15 08:20:02.283048",
  "doctype": "DocType",
@@ -62,7 +62,7 @@
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-15 08:20:02.283048",
+ "modified": "2026-11-15 20:29:18.470153",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Widget",
@@ -90,6 +90,14 @@
    "report": 1,
    "role": "Workspace Manager",
    "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "if_owner": 1,
+   "read": 1,
+   "role": "Desk User",
    "write": 1
   }
  ],

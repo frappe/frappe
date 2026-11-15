@@ -97,7 +97,7 @@ def make_widget(block_type: str, row: dict, data: dict, module: str | None) -> s
 			"config": config,
 		}
 	)
-	return widget.insert(ignore_permissions=True).name
+	return widget.insert().name
 
 
 def shortcut(row, data, module):
@@ -117,7 +117,7 @@ def card(row, data, module):
 def make_link(link: dict, module: str | None) -> str:
 	config = {key: link.get(key) for key in LINK_PROPS}
 	widget = {"doctype": "Widget", "type": "Link", "label": link.get("label") or link["link_to"]}
-	return frappe.get_doc({**widget, "module": module, "config": config}).insert(ignore_permissions=True).name
+	return frappe.get_doc({**widget, "module": module, "config": config}).insert().name
 
 
 def number_card(row, data, module):

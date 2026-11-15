@@ -32,7 +32,7 @@ class WidgetType:
 	cache_ttl = 300
 
 	def __init__(self, widget):
-		self.widget = widget
+		self.doc = widget
 		self.name = widget.name
 		self.config = widget.get_config()
 
@@ -42,7 +42,7 @@ class WidgetType:
 
 	def has_permission(self, user: str | None = None) -> bool:
 		"""Whether `user` may see this widget: by default, they can read every record it links to."""
-		return all(can_read(row.link_doctype, row.link_name, user) for row in self.widget.links)
+		return all(can_read(row.link_doctype, row.link_name, user) for row in self.doc.links)
 
 	def validate(self):
 		"""Called when the widget is saved, after its config is split into links."""
@@ -50,12 +50,12 @@ class WidgetType:
 	def filters(self, reader_filters: dict | None = None, key: str = "filters") -> list:
 		"""The filters prop `key`, replaced by the reader's own when they set one."""
 		filters = frappe.parse_json((reader_filters or {}).get(key) or self.config.get(key) or [])
-		if isinstance(filters, dict):
-			return filters
-		return [[frappe.session.user if value == "@me" else value for value in row] for row in filters]
-
-	def get_list(self, doctype: str, **kwargs) -> list:
-		return frappe.get_list(doctype, **kwargs)
+		rows = (
+			[[field, "=", value] for field, value in filters.items()]
+			if isinstance(filters, dict)
+			else filters
+		)
+		return [[frappe.session.user if value == "@me" else value for value in row] for row in rows]
 
 	def count(self, doctype: str, filters: list | None = None) -> int:
 		return self.aggregate(doctype, "COUNT", "*", filters)
@@ -65,7 +65,7 @@ class WidgetType:
 		return rows[0]["result"] if rows else 0
 
 	def cached_data(self, filters: dict | None = None):
-		if not self.cache_ttl or self.widget.is_new():
+		if not self.cache_ttl or self.doc.is_new():
 			return self.get_data(filters)
 		key = self.cache_key(filters)
 		hit = frappe.cache.get_value(key, user=frappe.session.user)
@@ -80,7 +80,7 @@ class WidgetType:
 
 	def cache_key(self, filters: dict | None) -> str:
 		digest = hashlib.md5(json.dumps(filters or {}, sort_keys=True).encode()).hexdigest()
-		return f"widget_data|{self.name}|{self.widget.modified}|{digest}"
+		return f"widget_data|{self.name}|{self.doc.modified}|{digest}"
 
 
 def get_types() -> dict:
@@ -119,9 +119,12 @@ def field_spec(row) -> dict:
 
 
 def island_name(widget_type) -> str:
-	return (
-		f"{frappe.local.module_app[frappe.scrub(widget_type.module)]}.widget.{frappe.scrub(widget_type.name)}"
-	)
+	return f"{app_of(widget_type.module)}.widget.{frappe.scrub(widget_type.name)}"
+
+
+def app_of(module: str | None) -> str | None:
+	"""The app that ships `module`, or None for a site's own module or one whose app is gone."""
+	return frappe.local.module_app.get(frappe.scrub(module)) if module else None
 
 
 def get(name: str) -> WidgetType | None:
@@ -144,7 +147,9 @@ def get_type_class(type_name: str) -> type[WidgetType] | None:
 
 @request_cache
 def load_type_class(module: str, type_name: str) -> type[WidgetType]:
-	app = frappe.local.module_app[frappe.scrub(module)]
+	app = app_of(module)
+	if not app:
+		return WidgetType
 	scrubbed = frappe.scrub(type_name)
 	path = f"{app}.{frappe.scrub(module)}.widget_type.{scrubbed}.{scrubbed}"
 	try:
@@ -204,9 +209,9 @@ def reader_filters(widget: WidgetType, values: dict | None) -> dict | None:
 	"""The reader's own values for the props a reader may change, refused for any other prop."""
 	if not values:
 		return None
-	if widget.widget.hide_filter:
+	if widget.doc.hide_filter:
 		frappe.throw(_("This widget's filters cannot be changed."), frappe.PermissionError)
-	fields = {field.fieldname: field for field in widget.widget.get_fields() if field.in_standard_filter}
+	fields = {field.fieldname: field for field in widget.doc.get_fields() if field.in_standard_filter}
 	for fieldname, value in values.items():
 		field = fields.get(fieldname)
 		if not field:
@@ -231,16 +236,17 @@ def payload(widget: WidgetType, filters: dict | None) -> dict | None:
 	try:
 		data = widget.cached_data(filters)
 	except Exception:
-		widget.widget.log_error(_("Widget {0} failed to load").format(widget.name))
+		# one widget that fails leaves the page, never takes it down
+		frappe.log_error(_("Widget {0} failed to load").format(widget.name))
 		return None
 	if data is None:
 		return None
 	return {
 		"name": widget.name,
-		"label": _(widget.widget.label),
-		"type": widget.widget.type,
+		"label": _(widget.doc.label),
+		"type": widget.doc.type,
 		"config": widget.config,
-		"hide_filter": widget.widget.hide_filter,
+		"hide_filter": widget.doc.hide_filter,
 		"data": data,
 	}
 

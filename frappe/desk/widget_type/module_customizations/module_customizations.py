@@ -9,7 +9,7 @@ class ModuleCustomizations(WidgetType):
 	cache_ttl = 0
 
 	def get_data(self, filters=None):
-		module = self.config.get("module") or self.widget.module
+		module = self.config.get("module") or self.doc.module
 		links = get_custom_doctype_list(module) + get_custom_report_list(module)
 		items = [link for link in links if is_item_allowed(link["link_to"], link["link_type"], desk_views())]
 		return {"items": items} if items else None

@@ -1026,7 +1026,7 @@ def add_private_to_sidebar(workspace):
 		add_user_sidebar_item(module, workspace.for_user, row)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def save_page(
 	name: str,
 	public: str | int,
@@ -1055,11 +1055,14 @@ def save_page(
 	new_widgets = frappe.parse_json(new_widgets or "{}")
 	validate_blocks_are_set_up(page, new_widgets)
 
-	if page_settings and can_edit_workspace(workspace.doc):
+	can_edit = can_edit_workspace(workspace.doc)
+	if page_settings and can_edit:
 		apply_page_settings(name, frappe.parse_json(page_settings))
 	target = save_target(workspace.doc, layout, frappe.parse_json(layout_settings))
-	page = apply_widget_edits(page, frappe.parse_json(widget_edits) or {}, can_edit_workspace(workspace.doc))
-	viewer = view_as if can_edit_workspace(workspace.doc) else None
+	if widget_edits and not can_edit:
+		frappe.throw(_("Only an editor of this workspace may change its widgets."), frappe.PermissionError)
+	page = apply_widget_edits(page, frappe.parse_json(widget_edits) or {})
+	viewer = view_as if can_edit else None
 	base = base_page(workspace.doc, target, viewer)
 	base_ids = {block["id"] for block in base}
 	module = widget_module(workspace.doc, target)
@@ -1070,33 +1073,33 @@ def save_page(
 
 	if target:
 		target.changes = changes
-		target.save(ignore_permissions=True)
+		target.save()
 	else:
 		doc = frappe.get_doc("Workspace", name)
 		doc.content = dumps(merge(base, [changes]))
-		doc.save(ignore_permissions=True)
+		doc.save()
 	return {"name": name, "public": frappe.parse_json(public), "label": workspace.doc.label}
 
 
-def apply_widget_edits(page: list, edits: dict, can_edit: bool) -> list:
+def apply_widget_edits(page: list, edits: dict) -> list:
 	"""`page` with each edited Widget saved, and its block naming the copy when the edit made one."""
-	saved = {name: save_widget_edit(name, edit, can_edit) for name, edit in edits.items()}
+	saved = {name: save_widget_edit(name, edit) for name, edit in edits.items()}
 	return [
 		with_widget(block, saved[block["data"]["widget"]]) if names_widget(block, saved) else block
 		for block in page
 	]
 
 
-def save_widget_edit(name: str, edit: dict, can_edit: bool) -> str:
-	"""Save an edit to a Widget. An app's Widget edited on a site, or anyone's edited by a reader for
-	themselves, is copied as a site Widget so migrate and other people keep the original."""
+def save_widget_edit(name: str, edit: dict) -> str:
+	"""Save an edit to a Widget. An app's Widget edited on a site is copied as a site Widget, so
+	migrate keeps the original."""
 	widget = frappe.get_doc("Widget", name)
-	if not can_edit or (widget.module and not frappe.conf.developer_mode):
+	if widget.module and not frappe.conf.developer_mode:
 		widget = frappe.copy_doc(widget)
 		widget.module = None
 	widget.label = edit.get("label") or widget.label
 	widget.config = frappe.as_json(edit.get("config") or widget.get_config())
-	widget.save(ignore_permissions=True)
+	widget.save()
 	return widget.name
 
 
@@ -1139,9 +1142,9 @@ def reset_layout(workspace: str, layout: str | None = None) -> None:
 		return
 	if target.layout_name:
 		target.changes = {}
-		target.save(ignore_permissions=True)
+		target.save()
 	else:
-		target.delete(ignore_permissions=True)
+		target.delete()
 
 
 @frappe.whitelist(methods=["POST"])
@@ -1153,7 +1156,7 @@ def delete_layout(workspace: str, layout: str) -> None:
 	target = editable_layout(workspace, layout)
 	if not target.layout_name:
 		frappe.throw(_("Only a named layout can be deleted. Reset this one instead."))
-	target.delete(ignore_permissions=True)
+	target.delete()
 
 
 def new_layout(workspace: str):
@@ -1186,7 +1189,7 @@ def apply_page_settings(name: str, settings: dict):
 			upsert_settings_customization(name, icon=settings["icon"])
 		return
 	doc.update({field: settings[field] for field in PAGE_SETTINGS if field in settings})
-	doc.save(ignore_permissions=True)
+	doc.save()
 
 
 def editable_layout(workspace: str, name: str):

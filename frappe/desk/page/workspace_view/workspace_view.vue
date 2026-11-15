@@ -85,7 +85,6 @@ const preview_title = computed(() => {
 		: __("Previewing the default layout with your data.");
 });
 
-// Previewing as someone else draws their whole page, as saved.
 const preview_page = shallowRef(null);
 watch(
 	() => editor.value?.previewing && editing.value?.view_as,
@@ -186,7 +185,6 @@ const can_open_editor = computed(
 	() => !frappe.is_mobile() && (workspace.value?.can_edit || workspace.value?.can_edit_own)
 );
 
-// `layout` names the Workspace Layout to edit, over the weaker ones that apply.
 async function edit(layout, extra = {}) {
 	const given = Object.entries(extra).filter(([, value]) => value !== undefined);
 	const params = { name: workspace.value.name, edit: 1, ...Object.fromEntries(given) };

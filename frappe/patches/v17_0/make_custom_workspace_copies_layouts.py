@@ -10,10 +10,12 @@ def execute():
 	if not frappe.db.has_column("Custom Workspace", "content"):
 		return
 
-	copies = frappe.db.sql(
-		"""select name, workspace, user, content, widgets from `tabCustom Workspace`
-		where ifnull(content, '') != ''""",
-		as_dict=True,
+	table = frappe.qb.DocType("Custom Workspace")
+	copies = (
+		frappe.qb.from_(table)
+		.select(table.name, table.workspace, table.user, table.content, table.widgets)
+		.where(table.content.isnotnull() & (table.content != ""))
+		.run(as_dict=True)
 	)
 	for copy in copies:
 		if frappe.db.exists("Workspace", copy.workspace):
@@ -25,7 +27,7 @@ def save_as_layout(copy):
 	base = frappe.get_doc("Workspace", copy.workspace)
 	layout = own_layout(copy.workspace, copy.user) if copy.user else site_edit(copy.workspace)
 	layout.changes = changes_from_copy(base, loads(copy.content), loads(copy.widgets or "{}"))
-	layout.save(ignore_permissions=True)
+	layout.save()
 
 
 def forget_copy(copy):

@@ -23,6 +23,7 @@ from json import loads
 
 import frappe
 from frappe import _
+from frappe.desk.widgets import app_of
 
 LAYOUTS_KEY = "workspace_layouts"
 USER_LAYOUTS_KEY = "workspace_user_layouts"
@@ -34,9 +35,6 @@ CONDITION_TTL = 600
 LABELLED_BLOCKS = ("chart", "number_card", "shortcut", "card", "quick_list", "custom_block", "onboarding")
 
 OTHER_APP, OWNER_APP, SITE, USER = range(4)
-
-
-# Block ids
 
 
 def block_id(block: dict) -> str:
@@ -60,9 +58,6 @@ def short_hash(text: str) -> str:
 
 def with_ids(content: list) -> list:
 	return [{**block, "id": block_id(block)} for block in content]
-
-
-# The page a user gets
 
 
 def merged_content(doc, layouts: list[dict]) -> list:
@@ -108,19 +103,34 @@ def load_layouts(filters: dict) -> list[dict]:
 
 
 def owner_app(doc) -> str | None:
-	return frappe.local.module_app.get(frappe.scrub(doc.module)) if doc.module else None
+	return app_of(doc.module)
+
+
+def layout_kind(layout: dict) -> str:
+	"""Who made a layout: one person, the site, or an app."""
+	if layout["user"]:
+		return "user"
+	return "app" if layout["module"] else "site"
+
+
+def is_site_edit(layout: dict) -> bool:
+	"""The site's own edit of a page: no name to pick it by, no condition, so it always applies."""
+	return layout_kind(layout) == "site" and not layout["condition"]
 
 
 def strength(layout: dict, owner: str | None) -> tuple:
-	"""Sorts weakest first. A site's edit, which has no condition, is its strongest site layout."""
-	if layout["user"]:
+	"""Sorts weakest first. A site's edit is its strongest site layout."""
+	kind = layout_kind(layout)
+	if kind == "user":
 		return (USER,)
-	if not layout["module"]:
-		return (SITE, not layout["condition"], layout["layout_name"] or "")
-	app = frappe.local.module_app.get(frappe.scrub(layout["module"])) or ""
-	if app == owner:
-		return (OWNER_APP, "", layout["layout_name"] or "")
-	return (OTHER_APP, app, layout["layout_name"] or "")
+	if kind == "site":
+		return (SITE, is_site_edit(layout), layout["layout_name"] or "")
+	app = app_of(layout["module"]) or ""
+	return (
+		(OWNER_APP, "", layout["layout_name"] or "")
+		if app == owner
+		else (OTHER_APP, app, layout["layout_name"] or "")
+	)
 
 
 def clear_caches(workspace: str | None = None, user: str | None = None, all_users: bool = False):
@@ -131,9 +141,6 @@ def clear_caches(workspace: str | None = None, user: str | None = None, all_user
 	elif user:
 		frappe.cache.hdel(USER_LAYOUTS_KEY, user)
 	frappe.cache.delete_value([PAGES_KEY, CONDITIONS_KEY])
-
-
-# Conditions
 
 
 def condition_holds(expression: str | None, user: str | None = None) -> bool:
@@ -155,7 +162,8 @@ def evaluate(expression: str, user: str) -> bool:
 	try:
 		return bool(frappe.safe_eval(expression, eval_globals={"frappe": condition_namespace(user)}))
 	except Exception:
-		frappe.log_error(_("Workspace layout condition failed"), message=expression)
+		# a condition that raises counts as false, so a typo never takes the page down
+		frappe.log_error(_("Workspace layout condition failed: {0}").format(expression))
 		return False
 
 
@@ -173,9 +181,6 @@ def condition_namespace(user: str):
 		session=frappe._dict(user=user),
 		defaults=frappe._dict(get_user_default=lambda key: frappe.defaults.get_user_default(key, user)),
 	)
-
-
-# Merging
 
 
 def merge(
@@ -197,8 +202,8 @@ def merge(
 			add(blocks, entry, hidden, origins[index] if origins else None)
 		for entry in changes.get("move") or []:
 			move(blocks, entry, hidden)
-		for block_id_, size in (changes.get("resize") or {}).items():
-			if block := find(blocks, block_id_):
+		for target_id, size in (changes.get("resize") or {}).items():
+			if block := find(blocks, target_id):
 				block["data"] = {**block["data"], **(size if isinstance(size, dict) else {"col": size})}
 
 	return drop_hidden(blocks, hidden, faded or {})
@@ -266,13 +271,13 @@ def container_children(widget_name: str | None) -> list[str] | None:
 	from frappe.desk.widgets import get, get_types
 
 	widget = get(widget_name) if widget_name else None
-	if not widget or not get_types()[widget.widget.type]["child_type"]:
+	if not widget or not get_types()[widget.doc.type]["child_type"]:
 		return None
 	return [row["widget"] for row in widget.config.get("widgets") or []]
 
 
-def find(blocks: list, block_id_: str) -> dict | None:
-	return next((block for block in blocks if block["id"] == block_id_), None)
+def find(blocks: list, target_id: str) -> dict | None:
+	return next((block for block in blocks if block["id"] == target_id), None)
 
 
 def drop_hidden(blocks: list, hidden: set, faded: dict) -> list:
@@ -287,9 +292,6 @@ def drop_hidden(blocks: list, hidden: set, faded: dict) -> list:
 			block["data"] = {**block["data"], "items": items}
 		kept.append(block)
 	return kept
-
-
-# Saving
 
 
 def diff(base: list, page: list, visible: set) -> dict:
@@ -321,7 +323,7 @@ def moves(base: list, page: list, changes: dict) -> list:
 	"""The fewest moves that put the blocks both share in the page's order, else every block."""
 	base_ids = [block["id"] for block in base]
 	page_ids = [block["id"] for block in page]
-	shared = [block_id_ for block_id_ in page_ids if block_id_ in base_ids]
+	shared = [target_id for target_id in page_ids if target_id in base_ids]
 	kept = set(longest_common_order([i for i in base_ids if i in shared], shared))
 	few = [move_entry(page_ids, i) for i in shared if i not in kept]
 	if order_matches(base, {**changes, "move": few}, page_ids):
@@ -329,9 +331,9 @@ def moves(base: list, page: list, changes: dict) -> list:
 	return [move_entry(page_ids, i) for i in page_ids]
 
 
-def move_entry(page_ids: list, block_id_: str) -> dict:
-	index = page_ids.index(block_id_)
-	return {"id": block_id_, "after": page_ids[index - 1] if index else None}
+def move_entry(page_ids: list, target_id: str) -> dict:
+	index = page_ids.index(target_id)
+	return {"id": target_id, "after": page_ids[index - 1] if index else None}
 
 
 def order_matches(base: list, changes: dict, page_ids: list) -> bool:
@@ -372,8 +374,6 @@ def words_of(block: dict) -> dict:
 	return {key: value for key, value in (block.get("data") or {}).items() if key not in ("col", "row")}
 
 
-# The editor
-
 # the site's edit of a workspace before its first save
 UNSAVED_SITE_EDIT = {
 	"name": None,
@@ -403,10 +403,6 @@ def editing_layout(doc, name: str | None, new: bool = False) -> dict | None:
 	return None
 
 
-def is_site_edit(layout: dict) -> bool:
-	return not (layout["module"] or layout["user"] or layout["condition"])
-
-
 def editor_content(doc, layout: dict | None, user: str | None = None) -> list:
 	"""What an editor draws: `layout` over the weaker layouts that apply to `user`, each block naming
 	the layout that added it, and the blocks a weaker layout hid kept, faded, naming that layout."""
@@ -422,11 +418,10 @@ def editor_content(doc, layout: dict | None, user: str | None = None) -> list:
 
 
 def origin_of(layout: dict) -> str:
-	if layout["user"]:
-		return _("You")
-	if not layout["module"]:
-		return _("Site")
-	return app_title(frappe.local.module_app.get(frappe.scrub(layout["module"])))
+	kind = layout_kind(layout)
+	if kind == "app":
+		return app_title(app_of(layout["module"]))
+	return _("You") if kind == "user" else _("Site")
 
 
 def default_origin(doc) -> str:
@@ -450,7 +445,7 @@ def picker_rows(doc, editing: dict | None) -> list[dict]:
 		{
 			"name": layout["name"],
 			"label": layout["layout_name"] or (_("Mine") if layout["user"] else _("Site edits")),
-			"section": _("This site") if not (layout["module"] or layout["user"]) else origin_of(layout),
+			"section": _("This site") if layout_kind(layout) == "site" else origin_of(layout),
 			"condition": layout["condition"],
 			"editable": can_edit_layout(layout, manager),
 			"editing": layout is editing
@@ -464,11 +459,10 @@ def picker_rows(doc, editing: dict | None) -> list[dict]:
 
 
 def can_edit_layout(layout: dict, manager: bool) -> bool:
-	if layout["user"]:
+	kind = layout_kind(layout)
+	if kind == "user":
 		return layout["user"] == frappe.session.user
-	if layout["module"]:
-		return bool(frappe.conf.developer_mode)
-	return manager
+	return bool(frappe.conf.developer_mode) if kind == "app" else manager
 
 
 def strongest_editable(doc, user: str) -> dict | None:
@@ -479,5 +473,5 @@ def strongest_editable(doc, user: str) -> dict | None:
 		return next((layout for layout in reversed(matched) if layout["module"]), None)
 	if not doc.standard:
 		return None
-	sites = [layout for layout in matched if not (layout["module"] or layout["user"])]
+	sites = [layout for layout in matched if layout_kind(layout) == "site"]
 	return sites[-1] if sites else UNSAVED_SITE_EDIT
