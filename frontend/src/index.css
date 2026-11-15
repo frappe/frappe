@@ -12,6 +12,12 @@
 	}
 }
 
+/* vue-sonner's own sheet gives the toaster a `ui-sans-serif, system-ui` stack, which draws as monospace
+   where no such face is installed. A toast takes the app's font. */
+:root [data-sonner-toaster] {
+	font-family: inherit;
+}
+
 /* Toasts sit at the content area's bottom-right corner: the navigation, on the right, sits beside them. */
 :root [data-sonner-toaster][data-x-position="right"] {
 	right: calc(var(--offset-right) + var(--shell-nav-inset-right, 0px));
