@@ -16,10 +16,12 @@ import TextBlock from "./TextBlock.vue";
 import NumberCardTile from "./tiles/NumberCardTile.vue";
 import ShortcutTile from "./tiles/ShortcutTile.vue";
 import CardTile from "./tiles/CardTile.vue";
+import WidgetTile from "./WidgetTile.vue";
 
 const props = defineProps({
 	content: { type: Array, required: true },
 	widgets: { type: Object, required: true },
+	widget_types: { type: Object, default: () => ({}) },
 	// the editor's canvas: blocks are picked and dragged instead of used
 	editing: { type: Boolean, default: false },
 	selected: { type: String, default: null },
@@ -231,14 +233,24 @@ const sections = computed(() =>
 		divider,
 		tiles: blocks.map((block) => ({
 			block,
-			size: block_size(block),
+			size: block_size(block, widget_type_of(block)?.sizes),
 			tile: tile_for(block),
 		})),
 	}))
 );
 
+function widget_type_of(block) {
+	if (block.type !== "widget") return null;
+	return props.widget_types[props.widgets.widget?.[block.data.widget]?.type];
+}
+
 function tile_for(block) {
 	if (block.type === "paragraph") return { component: TextBlock, props: { block } };
+	if (block.type === "widget") {
+		const widget = props.widgets.widget?.[block.data.widget];
+		const type = widget && props.widget_types[widget.type];
+		return type ? { component: WidgetTile, props: { widget, island: type.island } } : null;
+	}
 	const tile = TILES[block.type];
 	if (!tile) return null;
 	const widget = props.widgets[tile.widgets][block.data[tile.key]];

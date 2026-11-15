@@ -1,0 +1,51 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-11-15 08:19:56.977796",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "size",
+  "cols",
+  "rows"
+ ],
+ "fields": [
+  {
+   "fieldname": "size",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Size",
+   "reqd": 1
+  },
+  {
+   "fieldname": "cols",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Columns",
+   "reqd": 1
+  },
+  {
+   "fieldname": "rows",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Rows"
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "link_display_mode": "Search",
+ "links": [],
+ "modified": "2026-11-15 08:19:56.977796",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Widget Type Size",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

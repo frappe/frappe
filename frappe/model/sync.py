@@ -31,6 +31,7 @@ IMPORTABLE_DOCTYPES = [
 	("website", "web_template"),
 	("email", "notification"),
 	("printing", "print_style"),
+	("desk", "widget_type"),
 	("desk", "workspace"),
 	("desk", "workspace_sidebar"),
 	("desk", "sidebar"),
@@ -203,6 +204,11 @@ def get_doc_files(files, start_path, doctypes=None):
 		for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", folder, "*.json")):
 			if doc_path not in files:
 				files.append(doc_path)
+
+	# Widgets: widgets/{widget type}/{name}.json. Only the type folders are read.
+	for doc_path in sorted(glob.glob(os.path.join(start_path, "widgets", "*", "*.json"))):
+		if doc_path not in files:
+			files.append(doc_path)
 
 	# DocType Settings Maps: doctype_settings_map/{name}.json
 	for doc_path in glob.glob(os.path.join(start_path, "doctype_settings_map", "*.json")):

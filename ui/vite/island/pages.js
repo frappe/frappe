@@ -39,7 +39,18 @@ export function pageIslandName(app, page) {
 }
 
 /**
- * Every Frappe UI page on the bench.
+ * A widget type's renderer sits beside its record the same way, and is built
+ * with the pages:
+ *
+ *     apps/<app>/<app>/<module>/widget_type/<type>/<type>.island.js
+ *
+ * It is named `<app>.widget.<type folder>`. See island_name in
+ * frappe/desk/widgets.py.
+ */
+export const WIDGET_ISLAND_INFIX = "widget";
+
+/**
+ * Every Frappe UI page and widget type renderer on the bench.
  *
  * @param {string} benchRoot   the directory holding `apps/` and `sites/`
  * @param {string[]} apps      app names, as `sites/apps.txt` lists them
@@ -52,21 +63,30 @@ export function discoverPageIslands(benchRoot, apps) {
 	const claimed = new Map();
 
 	for (const app of apps) {
-		for (const page of appPages(path.join(benchRoot, "apps", app, app))) {
-			const name = pageIslandName(app, page.name);
-
+		const appPath = path.join(benchRoot, "apps", app, app);
+		const islands = [
+			...appPages(appPath).map((page) => ({
+				...page,
+				name: pageIslandName(app, page.name),
+			})),
+			...appWidgetTypes(appPath).map((type) => ({
+				...type,
+				name: `${app}.${WIDGET_ISLAND_INFIX}.${type.name}`,
+			})),
+		];
+		for (const { name, dir, entry } of islands) {
 			// One build now takes every app's pages, so two apps can reach the
 			// same key. Last one wins would swap one page's island for another.
 			const other = claimed.get(name);
 			if (other)
 				throw new Error(
-					`island: two pages both claim "${name}":\n  ${other}\n  ${page.dir}\n` +
+					`island: two pages both claim "${name}":\n  ${other}\n  ${dir}\n` +
 						"An island name is one bench-wide namespace. Rename one of the pages."
 				);
-			claimed.set(name, page.dir);
+			claimed.set(name, dir);
 
-			entries[name] = page.entry;
-			dirs.push(page.dir);
+			entries[name] = entry;
+			dirs.push(dir);
 		}
 	}
 
@@ -88,6 +108,19 @@ function appPages(appPath) {
 	}
 
 	return pages;
+}
+
+/** The widget types of one app that ship a renderer beside their record. */
+function appWidgetTypes(appPath) {
+	const types = [];
+	for (const module of subdirectories(appPath)) {
+		for (const dir of subdirectories(path.join(module, "widget_type"))) {
+			const base = path.basename(dir);
+			const entry = path.join(dir, `${base}.island.js`);
+			if (fs.existsSync(entry)) types.push({ name: base, dir, entry });
+		}
+	}
+	return types;
 }
 
 /**

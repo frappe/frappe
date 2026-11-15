@@ -80,6 +80,9 @@
       "import": "./island/host.js"
     },
     "./island/Island.vue": "./island/Island.vue",
+    "./widget": {
+      "import": "./widget/index.js"
+    },
     "./vite": {
       "import": "./vite/index.js"
     },

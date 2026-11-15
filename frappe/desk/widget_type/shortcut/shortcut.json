@@ -1,0 +1,110 @@
+{
+ "creation": "2026-11-15 08:22:35.442056",
+ "docstatus": 0,
+ "doctype": "Widget Type",
+ "fields": [
+  {
+   "default": "DocType",
+   "fieldname": "type",
+   "fieldtype": "Select",
+   "in_standard_filter": 0,
+   "label": "Type",
+   "options": "DocType\nReport\nPage\nDashboard\nURL",
+   "reqd": 1
+  },
+  {
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "in_standard_filter": 0,
+   "label": "Link To",
+   "options": "type",
+   "reqd": 0
+  },
+  {
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "in_standard_filter": 0,
+   "label": "URL",
+   "reqd": 0
+  },
+  {
+   "fieldname": "doc_view",
+   "fieldtype": "Select",
+   "in_standard_filter": 0,
+   "label": "DocType View",
+   "options": "\nList\nReport Builder\nDashboard\nTree\nNew\nCalendar\nKanban\nImage",
+   "reqd": 0
+  },
+  {
+   "fieldname": "kanban_board",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Kanban Board",
+   "options": "Kanban Board",
+   "reqd": 0
+  },
+  {
+   "fieldname": "stats_filter",
+   "fieldtype": "JSON",
+   "in_standard_filter": 0,
+   "label": "Count Filter",
+   "options": "link_to",
+   "reqd": 0
+  },
+  {
+   "description": "For example: {} Open",
+   "fieldname": "format",
+   "fieldtype": "Data",
+   "in_standard_filter": 0,
+   "label": "Format",
+   "reqd": 0
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Select",
+   "in_standard_filter": 0,
+   "label": "Color",
+   "options": "\nGrey\nGreen\nRed\nOrange\nPink\nYellow\nBlue\nCyan\nAmber\nViolet",
+   "reqd": 0
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "in_standard_filter": 0,
+   "label": "Icon",
+   "reqd": 0
+  },
+  {
+   "fieldname": "restrict_to_domain",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Restrict to Domain",
+   "options": "Domain",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2026-11-15 08:22:35.442056",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Shortcut",
+ "owner": "Administrator",
+ "sizes": [
+  {
+   "cols": 3,
+   "rows": 0.0,
+   "size": "S"
+  },
+  {
+   "cols": 4,
+   "rows": 0.0,
+   "size": "M"
+  },
+  {
+   "cols": 6,
+   "rows": 0.0,
+   "size": "L"
+  }
+ ],
+ "type_name": "Shortcut"
+}

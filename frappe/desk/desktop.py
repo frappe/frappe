@@ -20,6 +20,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 )
 from frappe.desk.doctype.workspace_variant.workspace_variant import DEFAULT_LAYOUT
 from frappe.desk.utils import is_item_allowed
+from frappe.desk.widgets import build_widgets, get_types, widget_names
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.utils import cint
 from frappe.utils.caching import request_cache
@@ -442,6 +443,7 @@ def get_desktop_page(page: str | dict):
 			"quick_lists": workspace.quick_lists,
 			"number_cards": workspace.number_cards,
 			"custom_blocks": workspace.custom_blocks,
+			"widgets": build_widgets(widget_names(loads(workspace.doc.content or "[]"))),
 		}
 	except DoesNotExistError:
 		return {}
@@ -541,6 +543,7 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		"variant": workspace.variant,
 		"content": content,
 		"widgets": widgets,
+		"widget_types": get_types(),
 		"can_edit": can_edit,
 		"can_edit_own": bool(doc.public) and not can_edit,
 		"own_layout": own_layout,
@@ -630,6 +633,7 @@ def readable_widgets(workspace) -> dict:
 		if item is not None:
 			key, fields = WIDGET_FIELDS[block_type]
 			widgets[key][block_name] = {field: item.get(field) for field in fields}
+	widgets["widget"] = build_widgets(widget_names(loads(workspace.doc.content or "[]")))
 	return widgets
 
 
@@ -654,6 +658,8 @@ def _find_widget(items: list, block_type: str, block_name: str | None):
 
 def is_drawable(block: dict, widgets: dict) -> bool:
 	block_type = block.get("type")
+	if block_type == "widget":
+		return block["data"]["widget"] in widgets["widget"]
 	if block_type not in WIDGET_FIELDS:
 		return True
 	key, _fields = WIDGET_FIELDS[block_type]
@@ -662,7 +668,10 @@ def is_drawable(block: dict, widgets: dict) -> bool:
 
 def has_widget(content: list) -> bool:
 	# an onboarding that is finished or switched off is hidden from everyone, whatever they may read
-	return any(block.get("type") in WIDGET_FIELDS and block.get("type") != "onboarding" for block in content)
+	return any(
+		block.get("type") in (*WIDGET_FIELDS, "widget") and block.get("type") != "onboarding"
+		for block in content
+	)
 
 
 def _fold_chart_settings(charts: dict) -> None:

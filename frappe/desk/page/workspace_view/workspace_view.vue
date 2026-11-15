@@ -50,6 +50,7 @@ const canvas = computed(() => {
 		return {
 			content: blocks,
 			widgets,
+			widget_types: editing.value.widget_types,
 			editing: !previewing,
 			previewing,
 			selected_id,
@@ -61,6 +62,7 @@ const canvas = computed(() => {
 		page && {
 			content: page.content,
 			widgets: page.widgets,
+			widget_types: page.widget_types,
 			hidden: page.is_hidden,
 			no_access: page.no_access,
 		}
@@ -312,6 +314,7 @@ onBeforeUnmount(() => window.removeEventListener("beforeunload", warn_before_unl
 							v-else
 							:content="canvas.content"
 							:widgets="canvas.widgets"
+							:widget_types="canvas.widget_types"
 							:editing="canvas.editing"
 							:selected="canvas.selected_id"
 							@select="(block) => (editor.selected_id = block.id)"

@@ -1,0 +1,201 @@
+# Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
+# License: MIT. See LICENSE
+"""Widgets: one thing drawn on a workspace, of a Widget Type that says what it holds and how it draws.
+
+A type's Python class lives beside its record, found the way a DocType's controller is:
+
+    <app>/<module>/widget_type/<type>/<type>.py  ->  class <Type>(WidgetType)
+
+The server works out each widget's data while it builds the page. A widget that is missing, whose
+type is missing, that the user may not read, or whose `get_data` returns None is left off the page.
+"""
+
+import hashlib
+import importlib
+import json
+
+import frappe
+from frappe import _
+from frappe.desk.utils import is_item_allowed
+from frappe.utils.caching import request_cache
+
+TYPES_CACHE_KEY = "widget_types"
+LINK_FIELDTYPES = ("Link", "Dynamic Link")
+
+
+class WidgetType:
+	"""The base of every widget type's class. A type overrides what it needs."""
+
+	# seconds a widget's data stays cached per user; 0 turns the cache off
+	cache_ttl = 300
+
+	def __init__(self, widget):
+		self.widget = widget
+		self.name = widget.name
+		self.config = widget.get_config()
+
+	def get_data(self, filters: dict | None = None):
+		"""What the renderer draws. None leaves the widget off the page."""
+		return {}
+
+	def has_permission(self, user: str | None = None) -> bool:
+		"""Whether `user` may see this widget: by default, they can read every record it links to."""
+		return all(can_read(row.link_doctype, row.link_name, user) for row in self.widget.links)
+
+	def validate(self):
+		"""Called when the widget is saved, after its config is split into links."""
+
+	def filters(self, reader_filters: dict | None = None, key: str = "filters") -> list:
+		"""The filters prop `key`, replaced by the reader's own when they set one."""
+		rows = frappe.parse_json((reader_filters or {}).get(key) or self.config.get(key) or [])
+		return [[frappe.session.user if value == "@me" else value for value in row] for row in rows]
+
+	def get_list(self, doctype: str, **kwargs) -> list:
+		return frappe.get_list(doctype, **kwargs)
+
+	def count(self, doctype: str, filters: list | None = None) -> int:
+		return self.aggregate(doctype, "COUNT", "*", filters)
+
+	def aggregate(self, doctype: str, function: str, field: str, filters: list | None = None):
+		rows = frappe.get_list(doctype, fields=[{function: field, "as": "result"}], filters=filters or [])
+		return rows[0]["result"] if rows else 0
+
+	def cached_data(self, filters: dict | None = None):
+		if not self.cache_ttl:
+			return self.get_data(filters)
+		key = self.cache_key(filters)
+		hit = frappe.cache.get_value(key, user=frappe.session.user)
+		if hit is not None:
+			return hit["data"]
+		data = self.get_data(filters)
+		frappe.cache.set_value(key, {"data": data}, user=frappe.session.user, expires_in_sec=self.cache_ttl)
+		return data
+
+	def clear_cached_data(self, filters: dict | None = None):
+		frappe.cache.delete_value(self.cache_key(filters), user=frappe.session.user)
+
+	def cache_key(self, filters: dict | None) -> str:
+		digest = hashlib.md5(json.dumps(filters or {}, sort_keys=True).encode()).hexdigest()
+		return f"widget_data|{self.name}|{self.widget.modified}|{digest}"
+
+
+def get_types() -> dict:
+	"""Every Widget Type on the site: its island, sizes and props."""
+	return frappe.client_cache.get_value(TYPES_CACHE_KEY, generator=build_types)
+
+
+def clear_types_cache():
+	frappe.client_cache.delete_value(TYPES_CACHE_KEY)
+
+
+def build_types() -> dict:
+	types = {}
+	for doc in frappe.get_all("Widget Type", pluck="name"):
+		widget_type = frappe.get_doc("Widget Type", doc)
+		types[widget_type.name] = {
+			"module": widget_type.module,
+			"island": widget_type.island or island_name(widget_type),
+			"child_type": widget_type.child_type,
+			"sizes": {row.size: [row.cols, row.rows or None] for row in widget_type.sizes},
+			"fields": [field_spec(row) for row in widget_type.fields],
+		}
+	return types
+
+
+def field_spec(row) -> dict:
+	return {
+		"fieldname": row.fieldname,
+		"label": row.label,
+		"fieldtype": row.fieldtype,
+		"options": row.options,
+		"reqd": row.reqd,
+		"default": row.default,
+		"in_standard_filter": row.in_standard_filter,
+	}
+
+
+def island_name(widget_type) -> str:
+	return (
+		f"{frappe.local.module_app[frappe.scrub(widget_type.module)]}.widget.{frappe.scrub(widget_type.name)}"
+	)
+
+
+def get(name: str) -> WidgetType | None:
+	"""The widget `name` with its type's class, or None when it or its type is missing."""
+	try:
+		widget = frappe.get_cached_doc("Widget", name)
+	except frappe.DoesNotExistError:
+		frappe.clear_last_message()
+		return None
+	widget_class = get_type_class(widget.type)
+	return widget_class(widget) if widget_class else None
+
+
+def get_type_class(type_name: str) -> type[WidgetType] | None:
+	spec = get_types().get(type_name)
+	if not spec:
+		return None
+	return load_type_class(spec["module"], type_name)
+
+
+@request_cache
+def load_type_class(module: str, type_name: str) -> type[WidgetType]:
+	app = frappe.local.module_app[frappe.scrub(module)]
+	scrubbed = frappe.scrub(type_name)
+	path = f"{app}.{frappe.scrub(module)}.widget_type.{scrubbed}.{scrubbed}"
+	try:
+		module = importlib.import_module(path)
+	except ModuleNotFoundError as e:
+		if not path.startswith(e.name or ""):
+			raise
+		return WidgetType
+	return getattr(module, type_name.replace(" ", "").replace("-", ""))
+
+
+def build_widgets(names, reader_filters: dict | None = None) -> dict:
+	"""Each named widget's payload, leaving out the ones the session user does not get."""
+	widgets = {}
+	for name in dict.fromkeys(names):
+		payload = build_widget(name, (reader_filters or {}).get(name))
+		if payload is not None:
+			widgets[name] = payload
+	return widgets
+
+
+def build_widget(name: str, filters: dict | None = None) -> dict | None:
+	widget = get(name)
+	if not widget or not widget.has_permission():
+		return None
+	try:
+		data = widget.cached_data(filters)
+	except Exception:
+		widget.widget.log_error(_("Widget {0} failed to load").format(name))
+		return None
+	if data is None:
+		return None
+	return {
+		"name": name,
+		"label": _(widget.widget.label),
+		"type": widget.widget.type,
+		"config": widget.config,
+		"hide_filter": widget.widget.hide_filter,
+		"data": data,
+	}
+
+
+def widget_names(content: list) -> list[str]:
+	return [block["data"]["widget"] for block in content if block.get("type") == "widget"]
+
+
+@request_cache
+def can_read(doctype: str, name: str, user: str | None = None) -> bool:
+	if doctype in ("DocType", "Report", "Page", "Dashboard", "Workspace"):
+		return is_item_allowed(name, doctype, desk_views())
+	return frappe.has_permission(doctype, "read", name, user=user)
+
+
+@request_cache
+def desk_views():
+	from frappe.desk.desk_views import DeskViews
+
+	return DeskViews()

@@ -32,6 +32,8 @@ ISLAND_CSS_SUFFIX = ".island.css"
 # Sits between the app and the page name, so a page island and an island an app
 # builds itself can never claim the same name.
 PAGE_ISLAND_INFIX = "page"
+# A widget type's renderer, which framework builds with the pages: `<app>.widget.<type>`.
+WIDGET_ISLAND_INFIX = "widget"
 
 ASSET_APP = re.compile(r"^/assets/([^/]+)/")
 
@@ -64,9 +66,10 @@ def island_app(name: str, url: str) -> str | None:
 	Framework builds every page island, into framework's own dist, so a page
 	island's URL names framework and its name names the app whose page it draws.
 	"""
-	app, infix, _page = name.partition(f".{PAGE_ISLAND_INFIX}.")
-	if infix:
-		return app
+	for framework_built in (PAGE_ISLAND_INFIX, WIDGET_ISLAND_INFIX):
+		app, infix, _rest = name.partition(f".{framework_built}.")
+		if infix:
+			return app
 
 	if match := ASSET_APP.match(url):
 		return match.group(1)

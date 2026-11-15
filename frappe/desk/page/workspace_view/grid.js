@@ -24,8 +24,9 @@ export const SIZES = {
 const SMALL = new Set(["S", "M"]);
 const SHRINKS = new Set(["quick_list"]);
 
-export function block_size(block) {
-	const presets = Object.entries(SIZES[block.type] || { Full: [12, null] });
+// `sizes` are a Widget Type's, for a widget block
+export function block_size(block, sizes = SIZES[block.type]) {
+	const presets = Object.entries(sizes || { Full: [12, null] });
 	const col = Number(block.data?.col) || 12;
 
 	// nearest width, and the smaller one on a tie
