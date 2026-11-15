@@ -22,13 +22,11 @@
 			</span>
 			<span class="truncate text-base text-ink-gray-4">{{ __("Add {0}…", [label]) }}</span>
 		</div>
-		<div v-else-if="table" class="pointer-events-none" :class="{ 'opacity-50': hidden }" inert>
-			<CanvasTable :field="table">
-				<template #label-after
-					><FieldMarks :canvas="canvas" :fieldname="fieldname"
-				/></template>
-			</CanvasTable>
-		</div>
+		<CanvasTable v-else-if="table" :field="table" :class="{ 'opacity-50': hidden }">
+			<template #label-after
+				><FieldMarks :canvas="canvas" :fieldname="fieldname"
+			/></template>
+		</CanvasTable>
 		<div v-else-if="node" class="pointer-events-none" :class="{ 'opacity-50': hidden }" inert>
 			<FormLayoutField :field="node">
 				<template #label-after
