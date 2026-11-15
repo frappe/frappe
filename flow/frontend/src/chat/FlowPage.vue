@@ -118,7 +118,7 @@
 					{{ readOnlyNote }}
 				</p>
 			</main>
-			<WorkspacePanel v-if="!pageKind">
+			<WorkspacePanel v-if="!pageKind" :beside-navbar="panelHost">
 				<template #empty>
 					<p class="text-sm text-ink-gray-4">A sub-agent's thread opens here.</p>
 				</template>
@@ -308,7 +308,7 @@ const placeholder = computed(() => {
 });
 // the header names a chat's agent where the harness names its folder
 const { current: agent, title: agentTitle } = useAgent(store, page);
-const agentCrumb = computed(() => (agent.value ? { icon: "lucide-bot", label: agentTitle.value } : null));
+const agentCrumb = computed(() => (agent.value ? { label: agentTitle.value } : null));
 // someone else's chat is view-only: its tools would run as its owner
 const readOnly = computed(() => Boolean(page.state.readOnly[store.state.sessionId]));
 // only its owner shares a chat, once it has loaded and said who that is

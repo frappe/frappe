@@ -21,7 +21,7 @@
 		     chat shows no crumb, title or line under them until its first message goes out -->
 		<div v-if="started" class="flex min-w-0 items-center gap-2" :class="editing && 'flex-1'" :title="editing ? undefined : headerTitle">
 			<span v-if="lead" class="hidden min-w-0 flex-none items-center gap-1.5 text-base text-ink-gray-5 sm:flex">
-				<span class="size-3.5 flex-none" :class="lead.icon" aria-hidden="true" />
+				<span v-if="lead.icon" class="size-3.5 flex-none" :class="lead.icon" aria-hidden="true" />
 				<span class="max-w-[220px] truncate">{{ lead.label }}</span>
 			</span>
 			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-base text-ink-gray-3 sm:inline">/</span>

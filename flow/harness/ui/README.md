@@ -40,8 +40,10 @@ filesystem must change, so it can reuse the components instead of copying them:
   suggestions/highlighting in the composer; defaults to `true`.
 - `workspace` — `false` when the host mounts no workspace panel: a sub-agent's row
   then expands in place instead of opening the child's thread in a tab.
-- `presentTool(name, args)` — `{ icon, label, subject, title, body, argsComponent }`, any
-  subset, for the host's own tools in transcript rows and approval cards. An `icon` here, as
+- `presentTool(name, args)` — `{ icon, label, done, subject, codeSubject, title, body, argsComponent }`, any
+  subset, for the host's own tools in transcript rows and approval cards; `done` is the
+  past-tense label a finished run of calls lists ("Read records"); `codeSubject` sets the subject
+  in code font (a function's dotted path). An `icon` here, as
   everywhere a host names one, is a `lucide-*` class.
 - `turnActions` — a component rendered after each finished turn's copy button, with
   `turnKey`, `text` and `ts` props (Flow's feedback thumbs).
@@ -63,6 +65,11 @@ The composer shows progress, waits on pending preparation when sending, and
 discards removed uploads. Prepared IDs are reused on send. Clients without
 these methods continue uploading on send; discard must preserve files already
 claimed by an accepted turn.
+
+A run of tool calls shares one line: the call in hand while the run works, then what
+they did, and it opens to their rows. `prefs.separateToolCalls` puts every call on its own
+row instead, set with `setSeparateToolCalls(on)`: the harness offers it in its Appearance
+settings, the Flow Frappe app in its General settings, kept per user on the site.
 
 `argsComponent` is a Vue component receiving an `arguments` prop. It renders in
 expanded tool rows (including rows inside `ToolGroup`) and replaces the default

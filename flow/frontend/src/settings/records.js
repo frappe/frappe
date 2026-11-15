@@ -146,7 +146,9 @@ export function useRecord(props, emit) {
 		if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
 			event.preventDefault();
 			const dialogOf = (el) => el?.closest?.("[role=dialog]") ?? null;
-			if (canWrite.value && dialogOf(event.target) === dialogOf(form.value)) save();
+			// in the island's shadow root, event.target is only the root's host
+			const target = event.composedPath()[0];
+			if (canWrite.value && dialogOf(target) === dialogOf(form.value)) save();
 		}
 	}
 	onMounted(() => window.addEventListener("keydown", onKey));

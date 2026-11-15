@@ -343,6 +343,22 @@ export function stepLabel(name) {
 	return STEP_LABELS[name] ?? humanizeToolName(name)
 }
 
+// what a finished run of calls did, in the past tense; extension tools keep their name
+const STEP_DONE = {
+	subagent: "Ran sub-agents",
+	read: "Read files",
+	grep: "Searched code",
+	bash: "Ran commands",
+	edit: "Edited files",
+	write: "Wrote files",
+	web_fetch: "Read pages",
+	web_search: "Searched the web",
+}
+
+export function stepDoneLabel(name) {
+	return STEP_DONE[name] ?? humanizeToolName(name)
+}
+
 // Leading row icons for the built-in tools; extension tools get the generic wrench.
 const STEP_ICONS = {
 	subagent: "lucide-bot",
@@ -964,9 +980,9 @@ function withoutFlowFields(object) {
 	)
 }
 
-// ids of the rows an item can expand: its tool calls and thoughts
+// ids of the rows an item can expand: a group's own fold, its tool calls and thoughts
 export function panelIds(item) {
-	if (item.kind === "group") return item.steps.map((step) => step.call?.id ?? step.id)
+	if (item.kind === "group") return [item.key, ...item.steps.map((step) => step.call?.id ?? step.id)]
 	return item.kind === "thinking" ? [item.key] : []
 }
 
