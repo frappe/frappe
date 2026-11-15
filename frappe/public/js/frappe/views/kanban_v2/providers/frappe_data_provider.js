@@ -12,6 +12,11 @@ export class FrappeDataProvider {
 		this.config.reportview_args.filters = JSON.stringify(filters || []);
 	}
 
+	setOrderBy(order_by) {
+		if (!this.config.reportview_args) this.config.reportview_args = {};
+		this.config.reportview_args.order_by = order_by;
+	}
+
 	call(method, args) {
 		return frappe.call({
 			method: `${KANBAN_METHOD}.${method}`,

@@ -67,6 +67,8 @@ const SELECT_STYLES = {
 	archived: { theme: "gray", icon: "archive" },
 };
 
+const DEFAULT_SORT = { sort_by: "modified", sort_order: "desc" };
+
 /**
  * Kanban v2 board page. Route: List/{Doctype}/Kanban/{board_name}.
  * Customize via `frappe.kanban_v2.settings` / `extend_settings` (see settings.js).
@@ -417,6 +419,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		// before the board loads: it reads its filters from the boxes and the panel
 		await this.setup_quick_filters();
 		this.sync_filter_group_to_board();
+		this.apply_saved_sort();
 		this.mount_board();
 		// so opening Kanban without a board name comes back here
 		frappe.model.user_settings.save(this.doctype, "last_view", "Kanban").then(() =>
@@ -752,9 +755,50 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		$filter_section.empty();
 
 		this.setup_filter_button($filter_section);
+		this.setup_sort_selector($filter_section);
 		this.setup_group_button($filter_section);
 		this.setup_settings_button($filter_section);
 		this.sync_board_height();
+	}
+
+	/** The list view's sort selector, in the same place: right after the Filter button. */
+	setup_sort_selector($parent) {
+		this.sort_selector = new frappe.ui.SortSelector({
+			parent: $parent,
+			doctype: this.doctype,
+			args: { ...DEFAULT_SORT },
+			onchange: (sort_by, sort_order) => this.on_sort_change(sort_by, sort_order),
+		});
+	}
+
+	get_order_by() {
+		return this.sort_selector
+			? this.sort_selector.get_sql_string()
+			: `${DEFAULT_SORT.sort_by} ${DEFAULT_SORT.sort_order}`;
+	}
+
+	/** Each board remembers its own sort, as the list view remembers its. */
+	apply_saved_sort() {
+		const saved = frappe.get_user_settings(this.doctype, "Kanban").sorts?.[this.current_board];
+		this.sort_selector.set_value(
+			saved?.sort_by || DEFAULT_SORT.sort_by,
+			saved?.sort_order || DEFAULT_SORT.sort_order
+		);
+	}
+
+	on_sort_change(sort_by, sort_order) {
+		const sorts = {
+			...(frappe.get_user_settings(this.doctype, "Kanban").sorts || {}),
+			[this.current_board]: { sort_by, sort_order },
+		};
+		frappe.model.user_settings.save(this.doctype, "Kanban", { sorts });
+		if (this.group_by_field) {
+			this.mount_board(); // each swimlane has its own provider
+			return;
+		}
+		if (!this.provider) return;
+		this.provider.setOrderBy(this.get_order_by());
+		this.board.refresh();
 	}
 
 	async setup_quick_filters() {
@@ -1154,7 +1198,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			reportview_args: {
 				doctype: this.doctype,
 				fields: JSON.stringify(this.fields),
-				order_by: "modified desc",
+				order_by: this.get_order_by(),
 				filters: JSON.stringify(filters),
 				with_comment_count: 1,
 			},
