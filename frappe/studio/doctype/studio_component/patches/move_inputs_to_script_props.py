@@ -70,7 +70,7 @@ def get_prop(input) -> str:
 
 	meta = []
 	if input.type in ("textarea", "select", "color"):
-		meta.append(f'type: "{input.type}"')
+		meta.append(f'control: "{input.type}"')
 	if input.type == "select":
 		options = [option for option in (input.options or "").split("\n") if option.strip()]
 		meta.append(f"options: {json.dumps(options, separators=(',', ':'))}")

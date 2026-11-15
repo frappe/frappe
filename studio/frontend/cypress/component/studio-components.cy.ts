@@ -239,7 +239,7 @@ describe("studio component props", () => {
 
 		cy.get_doc("Studio Component", PROPS_ID).then((doc) => {
 			expect(doc.data.script).to.include(
-				'size: { type: String, default: "md", meta: { type: "select", options: ["sm","md"] } },',
+				'size: { type: String, default: "md", meta: { control: "select", options: ["sm","md"] } },',
 			)
 		})
 		cy.then(() => {

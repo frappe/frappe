@@ -335,7 +335,7 @@ class TestStudioComponent(IntegrationTestCase):
 			"export default {\n"
 			"\tprops: {\n"
 			"\t\ttitle: { type: String, required: true },\n"
-			'\t\tsize: { type: String, default: "md", meta: { type: "select", options: ["sm","md"] } },\n'
+			'\t\tsize: { type: String, default: "md", meta: { control: "select", options: ["sm","md"] } },\n'
 			'\t\trows: { meta: { description: "The rows to show" } },\n'
 			"\t\topen: Boolean,\n"
 			"\t},\n"
