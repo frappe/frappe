@@ -21,7 +21,11 @@
 		<p class="min-h-[39px] text-p-sm text-ink-gray-6" data-kind-notes>
 			{{ notes.join(" ") }}
 		</p>
-		<p v-if="error" class="text-p-sm text-ink-red-6" role="alert" data-danger-error>
+		<p
+			class="min-h-5 text-p-sm text-ink-red-6"
+			role="alert"
+			:data-danger-error="error ? '' : null"
+		>
 			{{ error }}
 		</p>
 		<div class="flex justify-end gap-2">
@@ -31,6 +35,9 @@
 				:label="__('Change kind')"
 				:disabled="picked === kind"
 				:loading="working"
+				ref="confirmButton"
+				:style="confirmStyle"
+				:loading-text="working ? '\u00a0' : undefined"
 				@click="send(picked)"
 			/>
 		</div>
@@ -55,7 +62,10 @@ const props = defineProps<{
 }>();
 
 const picked = ref<DoctypeKind>(props.kind);
-const { working, error, send } = useDangerSubmit(props.submit, props.close);
+const { working, error, send, confirmButton, confirmStyle } = useDangerSubmit(
+	props.submit,
+	props.close
+);
 const notes = computed(() => kindNotes(props.doctype, props.kind, picked.value));
 
 function refusal(kind: DoctypeKind) {

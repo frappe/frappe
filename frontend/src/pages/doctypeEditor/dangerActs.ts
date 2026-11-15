@@ -145,7 +145,7 @@ async function answer<V, R>(
 	ask: (submit: (value: V) => Promise<R>) => Promise<R | null>,
 ): Promise<R | null> {
 	if (value) return call(value);
-	let started: Promise<R | null> = Promise.resolve(null);
+	let started = undefined as Promise<R> | undefined;
 	let running = false;
 	const result = await ask((picked) => {
 		running = true;
@@ -153,7 +153,7 @@ async function answer<V, R>(
 		started.then(stop, stop);
 		return started;
 	});
-	if (result !== null) return result;
+	if (result !== null || !started) return result;
 	const lost = running; // the dialog is gone, so a failure now has nowhere to show but a toast
 	return started.catch((error) => {
 		if (lost) toast.error(errorMessage(error));
