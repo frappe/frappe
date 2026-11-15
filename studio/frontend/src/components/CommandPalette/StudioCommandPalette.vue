@@ -158,7 +158,7 @@ const componentItems = computed<PaletteItem[]>(() => {
 		.map((component: StudioComponent) => ({
 			name: `component-${component.component_id}`,
 			title: component.component_name,
-			icon: "lucide-box",
+			icon: component.studio_app ? "lucide-box" : "lucide-globe",
 			action: () => useComponentEditorStore().editComponent(component.component_id),
 		}))
 })
