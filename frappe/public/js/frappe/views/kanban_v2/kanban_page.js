@@ -779,9 +779,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	get_order_by() {
-		return this.sort_selector
-			? this.sort_selector.get_sql_string()
-			: `${DEFAULT_SORT.sort_by} ${DEFAULT_SORT.sort_order}`;
+		return this.sort_selector.get_sql_string();
 	}
 
 	/** Each board remembers its own sort, as the list view remembers its. */
@@ -799,13 +797,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			[this.current_board]: { sort_by, sort_order },
 		};
 		frappe.model.user_settings.save(this.doctype, "Kanban", { sorts });
-		if (this.group_by_field) {
-			this.mount_board(); // each swimlane has its own provider
-			return;
-		}
-		if (!this.provider) return;
-		this.provider.setOrderBy(this.get_order_by());
-		this.board.refresh();
+		this.reload_board();
 	}
 
 	async setup_quick_filters() {
@@ -1124,13 +1116,18 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		const key = JSON.stringify(this.get_effective_filters());
 		if (key === this._loaded_key) return;
 		this._loaded_key = key;
+		this.reload_board();
+	}
+
+	/** Grouped boards mount again, as the lanes depend on the filtered set; others reload in place. */
+	reload_board() {
 		if (this.group_by_field) {
-			// the lanes depend on the filtered set
 			this.mount_board();
 			return;
 		}
 		if (!this.provider) return;
 		this.provider.setFilters(this.get_effective_filters());
+		this.provider.setOrderBy(this.get_order_by());
 		this.board.refresh();
 	}
 
