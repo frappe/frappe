@@ -407,6 +407,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		this.doctype = board.reference_doctype;
 		this.field_name = board.field_name;
 		this.filters = JSON.parse(board.filters || "[]");
+		// a visit starts from the board's saved filters and its own route filters, so the last
+		// visit's quick filter boxes go before setup_quick_filters can carry them over
+		this.remove_quick_filters();
 		// only boards shipped by an app have translations
 		const title =
 			board.is_standard === "Yes" ? __(board.kanban_board_name) : board.kanban_board_name;
@@ -810,29 +813,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				'<div class="standard-filter-section kanban-v2-quick-filters flex"></div>'
 			).insertBefore(this.$filter_section);
 		}
-		// the boxes' filters outlive them (board or swimlane change), each replacing the filter its
-		// box would hold: the new boxes take back the ones they can hold, the rest stay in the panel
-		const quick = this.get_quick_filters();
-		const boxed = new Set(quick.map(([, fn]) => fn));
-		this.filters = (this.filters || [])
-			.filter(
-				([doctype, fn, cond, val]) =>
-					!(
-						doctype === this.doctype &&
-						boxed.has(fn) &&
-						frappe.ui.FilterGroup.fits_box(page.fields_dict[fn], cond, val)
-					)
-			)
-			.concat(quick);
-		(this._quick_filter_fields || []).forEach((fn) => {
-			const f = page.fields_dict[fn];
-			if (f) {
-				f.$wrapper && f.$wrapper.remove();
-				delete page.fields_dict[fn];
-			}
-		});
-		this.$quick_filters.empty();
-		this._quick_filter_fields = [];
+		// on a swimlane change the boxes' filters outlive them, next to the panel's: the new boxes
+		// take back the ones they can hold, the rest stay in the panel
+		this.filters = this.get_quick_filters().concat(this.filters || []);
+		this.remove_quick_filters();
 
 		const excluded = new Set([this.field_name, this.group_by_field].filter(Boolean));
 		const meta = frappe.get_meta(this.doctype);
@@ -852,6 +836,19 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		});
 
 		await this.seed_quick_filters();
+	}
+
+	/** Drops the quick filter boxes together with the filters they hold. */
+	remove_quick_filters() {
+		(this._quick_filter_fields || []).forEach((fn) => {
+			const f = this.page.fields_dict[fn];
+			if (f) {
+				f.$wrapper && f.$wrapper.remove();
+				delete this.page.fields_dict[fn];
+			}
+		});
+		this.$quick_filters?.empty();
+		this._quick_filter_fields = [];
 	}
 
 	/** Mirrors the list view's standard filters. */
