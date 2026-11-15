@@ -738,4 +738,137 @@ test.describe("Espresso components", () => {
 			await expect(page.locator(".es-toast")).toContainText("Paid");
 		});
 	});
+
+	test.describe("Item List", () => {
+		const applicants = (page) => explorer_group(page, "Rows");
+		const row = (group, title) =>
+			group.locator(".es-item-list__row", { hasText: containing(title) }).first();
+		const use_list = (group, change) =>
+			group.locator(".es-item-list").evaluate((el, change) => {
+				const list = $(el).data("es-item-list");
+				return new Function("list", change)(list);
+			}, change);
+
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Item List");
+		});
+
+		test("rows with an href are links, so cmd-click and middle-click work", async ({
+			page,
+		}) => {
+			const rows = applicants(page).locator(".es-item-list__row");
+
+			await expect(rows).toHaveCount(3);
+			await expect(rows.first()).toHaveJSProperty("tagName", "A");
+			await expect(rows.first()).toHaveAttribute("href", "/desk/job-applicant/jane");
+		});
+
+		test("a title with markup renders as text", async ({ page }) => {
+			const group = applicants(page);
+
+			await use_list(group, 'list.update_item("wade", { title: "<b>Wade</b> Warren" })');
+			await expect(row(group, "Warren").locator(".es-item-list__title")).toHaveText(
+				"<b>Wade</b> Warren"
+			);
+			await expect(group.locator(".es-item-list b")).toHaveCount(0);
+		});
+
+		test("update_item changes one row and keeps the others", async ({ page }) => {
+			const group = applicants(page);
+
+			await use_list(
+				group,
+				'list.update_item("wade", { subtitle: "wade@acme.com", meta: "1h ago" })'
+			);
+			await expect(row(group, "Wade Warren").locator(".es-item-list__subtitle")).toHaveText(
+				"wade@acme.com"
+			);
+			await expect(row(group, "Wade Warren").locator(".es-item-list__meta")).toHaveText(
+				"1h ago"
+			);
+			await expect(group.locator(".es-item-list__row")).toHaveCount(3);
+		});
+
+		test("remove_item drops the row", async ({ page }) => {
+			const group = applicants(page);
+
+			await use_list(group, 'list.remove_item("wade")');
+			await expect(group.locator(".es-item-list__row")).toHaveCount(2);
+			await expect(row(group, "Wade Warren")).toHaveCount(0);
+		});
+
+		test("max folds the list until Show all, and set_items keeps it open", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Folds after max");
+			const rows = group.locator(".es-item-list__row");
+			const more = group.locator(".es-item-list__more");
+
+			await expect(rows).toHaveCount(3);
+			await expect(more).toHaveText("Show all 7");
+
+			await more.click();
+			await expect(rows).toHaveCount(7);
+			await expect(more).toHaveCount(0);
+
+			await use_list(group, "list.set_items(list.get_items().slice(0, 5))");
+			await expect(rows).toHaveCount(5);
+		});
+
+		test("no items shows the empty state instead of the box", async ({ page }) => {
+			const list = explorer_group(page, "Empty (shows").locator(".es-item-list");
+
+			await expect(list).toHaveAttribute("data-empty", "");
+			await expect(list.getByText("No new applicants")).toBeVisible();
+			await expect(list.locator(".es-item-list__row")).toHaveCount(0);
+		});
+
+		test("selected marks one row, follows set_selected and survives a re-render", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Selected row");
+			const selected = group.locator(".es-item-list__row[data-selected]");
+
+			await expect(selected).toHaveCount(1);
+			await expect(selected).toContainText("Wade Warren");
+			await expect(selected).toHaveAttribute("aria-current", "true");
+
+			await row(group, "Jane Cooper").click();
+			await expect(selected).toContainText("Jane Cooper");
+			await expect(group.locator("[aria-current]")).toHaveCount(1);
+
+			await use_list(group, "list.set_items(list.get_items().slice())");
+			await expect(selected).toContainText("Jane Cooper");
+
+			await use_list(group, 'list.remove_item("jane")');
+			await expect(selected).toHaveCount(0);
+			expect(await use_list(group, "return list.get_selected()")).toBeNull();
+
+			await use_list(group, 'list.set_selected("esther")');
+			await expect(selected).toContainText("Esther Howard");
+			await use_list(group, "list.set_selected(null)");
+			await expect(selected).toHaveCount(0);
+		});
+
+		test("flat variant drops the box", async ({ page }) => {
+			const flat = explorer_group(page, "Flat variant").locator(".es-item-list");
+			await expect(flat).toHaveAttribute("data-variant", "flat");
+			await expect(flat).toHaveCSS("border-top-width", "0px");
+			await expect(flat.locator(".es-item-list__row")).toHaveCount(3);
+		});
+
+		test("an action click does not open the row", async ({ page }) => {
+			const group = applicants(page);
+			const jane = row(group, "Jane Cooper");
+			const opened = page.locator(".es-toast", { hasText: containing("Opened") });
+
+			await jane.hover();
+			await jane.getByRole("button", { name: "Shortlist" }).click();
+			await expect(jane.locator(".es-badge")).toHaveText("Shortlisted");
+			await expect(opened).toHaveCount(0);
+
+			await jane.locator(".es-item-list__title").click();
+			await expect(opened.first()).toContainText("Opened Jane Cooper");
+		});
+	});
 });

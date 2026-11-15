@@ -1768,6 +1768,217 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		"Item List": {
+			helper: "frappe.ui.item_list",
+			wide: true,
+			stacked: true,
+			groups: [
+				{
+					title: __("Rows (avatar, meta, badge and hover actions)"),
+					items: [
+						{
+							__code: 'frappe.ui.item_list({\n  items: [\n    { id: "jane", title: "Jane Cooper", subtitle: "Referred by Alex Morgan", meta: "2d ago",\n      avatar: { label: "Jane Cooper" }, href: "/desk/job-applicant/jane",\n      actions: [\n        { label: "Shortlist", onclick: (item, list) => list.update_item(item.id, { badge: { label: "Shortlisted", theme: "green" }, actions: [] }) },\n        { label: "Reject", variant: "ghost", theme: "red", onclick: (item, list) => list.remove_item(item.id) },\n      ] },\n    { id: "wade", title: "Wade Warren", subtitle: "wade@example.com", meta: "6d ago", avatar: { label: "Wade Warren" }, badge: { label: "On hold" }, href: "/desk/job-applicant/wade" },\n  ],\n  on_click: (item, list, event) => { event.preventDefault(); open_applicant(item.id); },\n})',
+							on_click: (item, list, event) => {
+								event.preventDefault();
+								frappe.ui.toast({ message: `Opened ${item.title}` });
+							},
+							items: [
+								{
+									id: "jane",
+									title: "Jane Cooper",
+									subtitle: "Referred by Alex Morgan",
+									meta: "2d ago",
+									avatar: { label: "Jane Cooper" },
+									href: "/desk/job-applicant/jane",
+									actions: [
+										{
+											label: "Shortlist",
+											onclick: (item, list) =>
+												list.update_item(item.id, {
+													badge: {
+														label: "Shortlisted",
+														theme: "green",
+													},
+													actions: [],
+												}),
+										},
+										{
+											label: "Reject",
+											variant: "ghost",
+											theme: "red",
+											onclick: (item, list) => list.remove_item(item.id),
+										},
+									],
+								},
+								{
+									id: "wade",
+									title: "Wade Warren",
+									subtitle: "wade@example.com",
+									meta: "6d ago",
+									avatar: { label: "Wade Warren" },
+									badge: { label: "On hold" },
+									href: "/desk/job-applicant/wade",
+								},
+								{
+									id: "esther",
+									title: "Esther Howard-Montgomery-Featherstonehaugh the Third of Westminster",
+									subtitle:
+										"Referred by Alexander Montgomery-Featherstonehaugh from the Engineering department",
+									meta: "9d ago",
+									avatar: { label: "Esther Howard" },
+									href: "/desk/job-applicant/esther",
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Flat variant (inside a pane, no box)"),
+					items: [
+						{
+							__code: 'new frappe.ui.ItemList({\n  variant: "flat",\n  items: applicants,\n})',
+							variant: "flat",
+							items: [
+								{
+									id: "jane",
+									title: "Jane Cooper",
+									subtitle: "Referred by Alex Morgan",
+									meta: "2d ago",
+									avatar: { label: "Jane Cooper" },
+									href: "/desk/job-applicant/jane",
+								},
+								{
+									id: "wade",
+									title: "Wade Warren",
+									subtitle: "wade@example.com",
+									meta: "6d ago",
+									avatar: { label: "Wade Warren" },
+									href: "/desk/job-applicant/wade",
+								},
+								{
+									id: "esther",
+									title: "Esther Howard",
+									subtitle: "esther@example.com",
+									meta: "9d ago",
+									avatar: { label: "Esther Howard" },
+									href: "/desk/job-applicant/esther",
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Grouped rows (a heading and count per group)"),
+					items: [
+						{
+							__code: 'new frappe.ui.ItemList({\n  groups: [\n    { id: "due", label: "Feedback due", count: 2 },\n    { id: "cleared", label: "Cleared", count: 1 },\n  ],\n  items: [\n    { id: "jane", group: "due", title: "Jane Cooper", subtitle: "Panel on 12 Nov" },\n    ...\n  ],\n})',
+							groups: [
+								{ id: "due", label: "Feedback due", count: 2 },
+								{ id: "cleared", label: "Cleared", count: 1 },
+							],
+							items: [
+								["jane", "due", "Jane Cooper", "Panel on 12 Nov"],
+								["wade", "due", "Wade Warren", "Panel on 13 Nov"],
+								["esther", "cleared", "Esther Howard", "Cleared by Alex Morgan"],
+							].map(([id, group, title, subtitle]) => ({
+								id,
+								group,
+								title,
+								subtitle,
+								avatar: { label: title },
+								href: `/desk/job-applicant/${id}`,
+							})),
+						},
+					],
+				},
+				{
+					title: __("Selected row (the caller owns the state)"),
+					items: [
+						{
+							__code: 'const list = new frappe.ui.ItemList({\n  items: applicants,\n  selected: "wade",\n  on_click: (item, list, event) => {\n    event.preventDefault();\n    list.set_selected(item.id);\n  },\n});\nlist.get_selected();  // "wade"\nlist.set_selected(null);  // clear',
+							selected: "wade",
+							on_click: (item, list, event) => {
+								event.preventDefault();
+								list.set_selected(item.id);
+							},
+							items: [
+								{
+									id: "jane",
+									title: "Jane Cooper",
+									subtitle: "Referred by Alex Morgan",
+									meta: "2d ago",
+									avatar: { label: "Jane Cooper" },
+									href: "/desk/job-applicant/jane",
+								},
+								{
+									id: "wade",
+									title: "Wade Warren",
+									subtitle: "wade@example.com",
+									meta: "6d ago",
+									avatar: { label: "Wade Warren" },
+									badge: { label: "On hold" },
+									href: "/desk/job-applicant/wade",
+								},
+								{
+									id: "esther",
+									title: "Esther Howard",
+									subtitle: "esther@example.com",
+									meta: "9d ago",
+									avatar: { label: "Esther Howard" },
+									href: "/desk/job-applicant/esther",
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Folds after max"),
+					items: [
+						{
+							__code: 'frappe.ui.item_list({\n  items: openings,  // 7 rows\n  max: 3,\n  more_label: __("Show all {0}"),\n})',
+							max: 3,
+							items: [
+								[
+									"Software Engineer",
+									"Engineering · Mumbai",
+									"3 new · 1 of 2 hired",
+								],
+								["Product Designer", "Design · Remote", "1 hired"],
+								["Account Executive", "Sales · Delhi", "5 new · 0 of 3 hired"],
+								["HR Generalist", "People", "2 new"],
+								["Data Analyst", "Finance · Pune", "1 of 1 hired"],
+								["Support Lead", "Customer Success", "4 new"],
+								["Office Manager", "Admin · Mumbai", "0 of 1 hired"],
+							].map(([title, subtitle, meta], index) => ({
+								id: `opening-${index}`,
+								title,
+								subtitle,
+								meta,
+								icon: "briefcase",
+								badge:
+									index === 2
+										? { label: "Closes in 3 days", theme: "amber" }
+										: undefined,
+							})),
+						},
+					],
+				},
+				{
+					title: __("Empty (shows an empty state instead of the box)"),
+					items: [
+						{
+							items: [],
+							empty: {
+								icon: "users",
+								title: "No new applicants",
+								description:
+									"Applications from the job post and ones you add land here.",
+							},
+						},
+					],
+				},
+			],
+		},
 		Progress: {
 			helper: "frappe.ui.progress",
 			wide: true,
