@@ -1,0 +1,70 @@
+{
+ "creation": "2026-11-15 08:35:46.194034",
+ "docstatus": 0,
+ "doctype": "Widget Type",
+ "fields": [
+  {
+   "default": "DocType",
+   "fieldname": "link_type",
+   "fieldtype": "Select",
+   "in_standard_filter": 0,
+   "label": "Link Type",
+   "options": "DocType\nPage\nReport",
+   "reqd": 1
+  },
+  {
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "in_standard_filter": 0,
+   "label": "Link To",
+   "options": "link_type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "doctype_layout",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "DocType Layout",
+   "options": "DocType Layout",
+   "reqd": 0
+  },
+  {
+   "description": "DocTypes that need a record first, comma separated",
+   "fieldname": "dependencies",
+   "fieldtype": "Data",
+   "in_standard_filter": 0,
+   "label": "Dependencies",
+   "reqd": 0
+  },
+  {
+   "fieldname": "only_for",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Only for Country",
+   "options": "Country",
+   "reqd": 0
+  },
+  {
+   "fieldname": "onboard",
+   "fieldtype": "Check",
+   "in_standard_filter": 0,
+   "label": "Onboard",
+   "reqd": 0
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_standard_filter": 0,
+   "label": "Description",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "modified": "2026-11-15 08:35:46.194034",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Link",
+ "owner": "Administrator",
+ "sizes": [],
+ "type_name": "Link"
+}

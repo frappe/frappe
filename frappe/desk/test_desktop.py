@@ -554,6 +554,7 @@ def make_workspace(title, content=(), public=1, **values):
 	doc.label = doc.title = title
 	doc.module = "Desk"
 	doc.public = public
+	doc.hide_custom = 1
 	doc.content = dumps(list(content))
 	for key, value in values.items():
 		if key in ("charts", "links", "roles", "variants"):

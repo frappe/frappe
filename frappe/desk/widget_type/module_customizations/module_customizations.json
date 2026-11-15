@@ -1,0 +1,31 @@
+{
+ "creation": "2026-11-15 08:35:46.565151",
+ "docstatus": 0,
+ "doctype": "Widget Type",
+ "fields": [
+  {
+   "description": "Blank for the widget's own module",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "in_standard_filter": 0,
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 0
+  }
+ ],
+ "idx": 0,
+ "island": "frappe.widget.card",
+ "modified": "2026-11-15 08:35:46.565151",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Module Customizations",
+ "owner": "Administrator",
+ "sizes": [
+  {
+   "cols": 4,
+   "rows": 0.0,
+   "size": "M"
+  }
+ ],
+ "type_name": "Module Customizations"
+}

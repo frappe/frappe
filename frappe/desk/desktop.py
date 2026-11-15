@@ -20,7 +20,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 )
 from frappe.desk.doctype.workspace_variant.workspace_variant import DEFAULT_LAYOUT
 from frappe.desk.utils import is_item_allowed
-from frappe.desk.widgets import build_widgets, get_types, widget_names
+from frappe.desk.widgets import build_unsaved_widget, build_widgets, get_types, widget_names
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.utils import cint
 from frappe.utils.caching import request_cache
@@ -528,6 +528,7 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 
 	stored = loads(doc.content or "[]")
 	content = [block for block in stored if is_drawable(block, widgets)]
+	add_module_customizations(doc, content, widgets["widget"])
 	customization = get_customization(name) if doc.standard else None
 	if can_edit:
 		context = editor_context(doc, customization, workspace.variant)
@@ -574,6 +575,22 @@ def open_workspace(page: dict) -> Workspace:
 	if not workspace.doc.for_user and not workspace.is_permitted():
 		raise frappe.PermissionError(_("You are not permitted to open this workspace"))
 	return workspace
+
+
+MODULE_CUSTOMIZATIONS = "Module Customizations"
+
+
+def add_module_customizations(doc, content: list, widgets: dict) -> None:
+	"""The generated card of the module's custom DocTypes and Reports goes last, unless the page
+	places one itself or hides it."""
+	if doc.hide_custom or any(w["type"] == MODULE_CUSTOMIZATIONS for w in widgets.values()):
+		return
+	name = f"{MODULE_CUSTOMIZATIONS}-{doc.name}"
+	label = _("Custom Documents and Reports")
+	widget = build_unsaved_widget(name, MODULE_CUSTOMIZATIONS, label, {"module": doc.module})
+	if widget:
+		widgets[name] = widget
+		content.append({"id": name, "type": "widget", "generated": 1, "data": {"widget": name, "col": 4}})
 
 
 def editor_context(doc, customization, variant: str | None) -> dict:

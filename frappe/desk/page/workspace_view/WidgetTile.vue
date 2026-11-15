@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, toRef } from "vue";
+import Card from "../../widget_type/card/card.vue";
 import Shortcut from "../../widget_type/shortcut/shortcut.vue";
 import { provide_widget_state } from "./widget.js";
 
@@ -11,6 +12,7 @@ const props = defineProps({
 
 const BUILT_IN = {
 	"frappe.widget.shortcut": Shortcut,
+	"frappe.widget.card": Card,
 };
 
 const widget = toRef(props, "widget");

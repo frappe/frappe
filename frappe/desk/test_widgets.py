@@ -101,11 +101,46 @@ class TestWidgets(IntegrationTestCase):
 		frappe.set_user(READER)
 		self.assertEqual(count_of(widget), 1)
 
+	def test_a_card_shows_only_the_links_the_reader_may_open(self):
+		todo = make_link("ToDo")
+		note = make_link("Note")
+		errors = make_link("Error Log")
+		card = make_card("Things", [todo, note, errors])
+		gone = make_card("Admin Things", [errors])
+		frappe.set_user(READER)
 
-def read_page(names: list[str]) -> dict:
+		page = read_page([card.name, gone.name])
+
+		rows = page["widgets"]["widget"][card.name]["data"]["items"]
+		self.assertEqual([row["link_to"] for row in rows], ["ToDo", "Note"])
+		self.assertNotIn(gone.name, page["widgets"]["widget"])
+
+	def test_a_link_says_which_records_it_needs_first(self):
+		link = make_link("ToDo", dependencies="WT Missing DocType, ToDo")
+		card = make_card("Needs", [link])
+		frappe.set_user(READER)
+
+		row = read_page([card.name])["widgets"]["widget"][card.name]["data"]["items"][0]
+
+		self.assertEqual(row["incomplete_dependencies"], ["WT Missing DocType"])
+
+	def test_the_customizations_card_shows_once_where_it_is_placed(self):
+		make_report("WT Custom Report")
+		placed = make_widget("Module Customizations", "Our Reports", module="Desk")
+		shortcut = make_shortcut("First")
+
+		appended = read_page([shortcut.name], hide_custom=0)["content"]
+		self.assertEqual(appended[0]["data"]["widget"], shortcut.name)
+		self.assertEqual(len(appended), 2, "a page that shows custom reports gets the card last")
+
+		content = read_page([placed.name, shortcut.name], hide_custom=0)["content"]
+		self.assertEqual([b["data"]["widget"] for b in content], [placed.name, shortcut.name])
+
+
+def read_page(names: list[str], hide_custom: int = 1) -> dict:
 	frappe.set_user("Administrator")
 	content = [{"id": name, "type": "widget", "data": {"widget": name, "col": 4}} for name in names]
-	workspace = make_workspace("WT Page", content=content)
+	workspace = make_workspace("WT Page", content=content, hide_custom=hide_custom)
 	frappe.set_user(READER)
 	return get_workspace(workspace.name)
 
@@ -125,6 +160,14 @@ def make_widget(widget_type, label, module=None, **config):
 	return frappe.get_doc(
 		{"doctype": "Widget", "type": widget_type, "label": label, "module": module, "config": config}
 	).insert()
+
+
+def make_link(link_to, **config):
+	return make_widget("Link", link_to, link_type="DocType", link_to=link_to, **config)
+
+
+def make_card(label, links):
+	return make_widget("Card", label, widgets=[{"widget": link.name} for link in links])
 
 
 def make_widget_type(name):

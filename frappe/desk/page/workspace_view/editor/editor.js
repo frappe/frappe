@@ -200,7 +200,8 @@ function escape_html(text) {
 export function to_save(blocks, widgets, touched) {
 	const new_widgets = {};
 	const stored = [];
-	for (const { id, type, data } of blocks) {
+	for (const { id, type, data, generated } of blocks) {
+		if (generated) continue;
 		if (type === "paragraph" && !text_of({ data }).trim()) continue;
 
 		const spec = WIDGETS[type];

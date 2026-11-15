@@ -164,17 +164,30 @@ def build_widgets(names, reader_filters: dict | None = None) -> dict:
 
 def build_widget(name: str, filters: dict | None = None) -> dict | None:
 	widget = get(name)
-	if not widget or not widget.has_permission():
+	return payload(widget, filters) if widget else None
+
+
+def build_unsaved_widget(name: str, widget_type: str, label: str, config: dict) -> dict | None:
+	"""The payload of a widget generated for the page, which has no record."""
+	doc = frappe.new_doc("Widget", type=widget_type, label=label, config=frappe.as_json(config))
+	doc.name = name
+	widget_class = get_type_class(widget_type)
+	return payload(widget_class(doc), None) if widget_class else None
+
+
+def payload(widget: WidgetType, filters: dict | None) -> dict | None:
+	"""What the browser gets for one widget, or None when this user does not get it."""
+	if not widget.has_permission():
 		return None
 	try:
 		data = widget.cached_data(filters)
 	except Exception:
-		widget.widget.log_error(_("Widget {0} failed to load").format(name))
+		widget.widget.log_error(_("Widget {0} failed to load").format(widget.name))
 		return None
 	if data is None:
 		return None
 	return {
-		"name": name,
+		"name": widget.name,
 		"label": _(widget.widget.label),
 		"type": widget.widget.type,
 		"config": widget.config,
