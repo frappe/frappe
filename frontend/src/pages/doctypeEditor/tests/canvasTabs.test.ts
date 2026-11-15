@@ -1,6 +1,7 @@
 // The tab strip: an unlabelled first tab reads gray until it is selected, then takes normal ink.
 import { afterEach, describe, expect, it } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
+// @ts-expect-error sortablejs ships no types here; it is the engine under vue-draggable-next
 import Sortable from "sortablejs";
 import CanvasTabs from "../CanvasTabs.vue";
 import { DRAG_OPTIONS, TAB_DRAG_OPTIONS } from "../canvasDrops";
