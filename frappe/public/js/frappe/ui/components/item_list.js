@@ -207,7 +207,7 @@ frappe.ui.ItemList = class ItemList {
 		if (item.meta) row.append(this.make_part("span", "es-item-list__meta", item.meta));
 		const controls = this.make_controls(item, Boolean(href));
 		if (controls) row.append(controls);
-		if (has_actions) row.append(this.make_actions(item));
+		if (has_actions) row.append(this.make_actions(item, Boolean(href)));
 
 		row.addEventListener("click", (event) => this.handle_click(item, event));
 		row.addEventListener("keydown", (event) => this.handle_keydown(item, event));
@@ -267,31 +267,36 @@ frappe.ui.ItemList = class ItemList {
 		const controls = document.createElement("span");
 		controls.className = "es-item-list__controls";
 		for (const node of content) controls.append(...(node.jquery ? node.get() : [node]));
-		// the row is a link or a button too; what happens in the controls must not trigger it
-		controls.addEventListener("click", (event) => {
-			event.stopPropagation();
-			if (is_link && !event.target.closest("input, select, textarea"))
-				event.preventDefault();
-		});
-		// keydown needs no stop: handle_keydown ignores keys pressed on anything but the row itself
+		this.contain_clicks(controls, is_link);
 		return controls;
 	}
 
-	make_actions(item) {
+	/**
+	 * Keeps clicks inside controls and actions from opening the row or following its link, including clicks
+	 * that land on the container (a busy button ignores pointer events). Keys need no stop: handle_keydown
+	 * ignores keys pressed on anything but the row itself.
+	 */
+	contain_clicks(element, is_link) {
+		const contain = (event) => {
+			event.stopPropagation();
+			if (is_link && !event.target.closest("input, select, textarea"))
+				event.preventDefault();
+		};
+		element.addEventListener("click", contain);
+		element.addEventListener("auxclick", contain);
+	}
+
+	make_actions(item, is_link) {
 		const actions = document.createElement("span");
 		actions.className = "es-item-list__actions";
+		this.contain_clicks(actions, is_link);
 		for (const action of item.actions) {
 			const $button = frappe.ui.button({
 				label: action.label,
 				variant: validated(action.variant, VARIANTS, "action variant", "ItemList"),
 				theme: validated(action.theme, THEMES, "action theme", "ItemList"),
 				size: "sm",
-				onclick: (event) => {
-					// the row is a link or a button too; the action must not trigger it
-					event.preventDefault();
-					event.stopPropagation();
-					return action.onclick?.(item, this);
-				},
+				onclick: () => action.onclick?.(item, this),
 			});
 			actions.append($button[0]);
 		}
