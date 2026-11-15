@@ -357,6 +357,7 @@ class SendMailContext:
 		else:
 			update_fields = {"status": "Sent"}
 
+		self.end_read_snapshot()
 		self.queue_doc.update_status(**update_fields, commit=True)
 
 		if not exc_type and self.queue_doc.redact_message_after_send:
@@ -386,7 +387,13 @@ class SendMailContext:
 
 	def update_recipient_status_to_sent(self, recipient):
 		self.sent_to_atleast_one_recipient = True
+		self.end_read_snapshot()
 		recipient.update_db(status="Sent", commit=True)
+
+	def end_read_snapshot(self):
+		"""Commit before writing the send result, so a write committed elsewhere during the slow send
+		does not make SQLite refuse this write as coming from a stale snapshot."""
+		frappe.db.commit()  # nosemgrep
 
 	def get_message_object(self, message):
 		policy = SMTP.clone(refold_source="none")
