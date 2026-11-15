@@ -249,6 +249,13 @@ watch(
 [data-doctype-editor]:has([data-canvas-bin][data-over]) .sortable-fallback {
 	opacity: 0 !important;
 }
+/* The dragged tab's own padding sits its label high above the underline. */
+.canvas-tab-drop.sortable-fallback {
+	@apply rounded-4;
+}
+.canvas-tab-drop.sortable-fallback > button {
+	@apply rounded-4 border-b-transparent pb-1.5 pt-2;
+}
 .canvas-tab-drop:has(> .canvas-drop-line) {
 	background-color: var(--surface-gray-2);
 }

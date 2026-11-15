@@ -74,3 +74,6 @@ export const DRAG_OPTIONS = {
 	filter: "button, input",
 	preventOnFilter: false,
 };
+
+/** A tab is a button, so its strip filters only the rename input. */
+export const TAB_DRAG_OPTIONS = { ...DRAG_OPTIONS, filter: "input" };

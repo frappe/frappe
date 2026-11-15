@@ -175,7 +175,10 @@ function navigationItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
       key: "Mod+Z",
       // Preview's fields are a real form: there Mod+Z stays the field's own undo.
       when: () => host.tab.value !== "preview" && host.edits.canUndo.value,
-      run: () => host.edits.undo(),
+      run: () => {
+        host.edits.undo();
+        host.save.undone();
+      },
     },
     {
       name: "redo",

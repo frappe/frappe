@@ -6,7 +6,7 @@ import { errorMessage } from "@/recordPage/errorMessage";
 import { CREATE_METHOD, errorsByDoctype, SAVE_METHOD, saveCalls, type SaveCall } from "./childSave";
 import type { ChildTables } from "./childTables";
 import type { DesignCanvas, SaveError } from "./designCanvas";
-import { DETAILS, EditRefused, fieldsOffLayout } from "./editorModel";
+import { DETAILS, EditRefused, fieldsOffLayout, type FlatEdit } from "./editorModel";
 import type { BaseVersion, Edit, PendingEdits } from "./pendingEdits";
 import { saveSummary } from "./saveSummary";
 import { rowOf } from "./settingsRows";
@@ -54,7 +54,7 @@ export interface SaveHost {
 	/** A new DocType's first save made it: its own editor opens in place of `/doctype/new`, unless the page moved on. */
 	created: (doctype: string) => Promise<DesignCanvas | null>;
 	/** The page's child tables, whose staged edits save with the parent's. */
-	children?: Pick<ChildTables, "saves" | "saved" | "loaded" | "canvasOf" | "clearErrors" | "rebaseAppLayouts">;
+	children?: Pick<ChildTables, "saves" | "saved" | "loaded" | "canvasOf" | "clearErrors" | "rebaseAppLayouts" | "dropUndoneErrors" | "hasErrors">;
 	/** Opens a child table's editor, to mark its refused edits there. */
 	showChild?: (doctype: string) => Promise<DesignCanvas | null>;
 	/** Opens a setting's section on the Settings tab and flashes its row. */
@@ -71,6 +71,8 @@ export class EditorSave {
 	private lateExports: ExportResult[] = [];
 	/** The child tables the last save wrote, whose exports report here too. */
 	private writtenChildren: string[] = [];
+	/** The banner the last refused save raised. */
+	private refusal: SaveBanner | null = null;
 
 	constructor(private host: SaveHost) {}
 
@@ -276,7 +278,9 @@ export class EditorSave {
 			const target = doctype === shown.state.doctype ? shown : (this.host.children?.canvasOf(doctype) ?? canvas);
 			targets.set(target, [...(targets.get(target) ?? []), ...own]);
 		}
-		const marked = [...targets].map(([target, own]) => markErrors(target, own));
+		const marked = [...targets].map(([target, own]) =>
+			markErrors(target, own, this.host.edits.stagedFor(target === canvas ? undefined : target.state.doctype)),
+		);
 		const messages = marked.flatMap(({ unmarked }) => unmarked);
 		const note = this.showSetting(shown, targets.get(shown) ?? []) ?? __("Fix what is marked on the form, then save again.");
 		if (marked.some(({ placed }) => placed) && !messages.length) messages.push(note);
@@ -285,13 +289,28 @@ export class EditorSave {
 			messages.push(__("Part of the save is written: {0}. Reload to see it.", [written.join(", ")]));
 		}
 		const stale = (result.errors ?? []).some((error) => error.code === "stale");
-		this.banner.value = {
+		this.banner.value = this.refusal = {
 			doctype: shown.state.doctype,
 			title: __("Not saved"),
 			messages,
 			offers: stale || written.length ? ["editor.reload_and_reapply"] : [],
 			failed: true,
 		};
+	}
+
+	/** After an Undo: drops each error whose staged edit is gone (all of them once nothing is staged), and the banner when it held only those. */
+	undone() {
+		const canvas = this.host.canvas();
+		if (!canvas) return;
+		const settle = (doctype: string, errors: SaveError[]) => {
+			const edits = this.host.edits.stagedFor(doctype === canvas.state.doctype ? undefined : doctype);
+			const kept = errors.filter(({ edit }) => edit === undefined ? edits.length > 0 : edit < edits.length);
+			return kept.map((error) => renamedError(error, edits));
+		};
+		canvas.errors.value = settle(canvas.state.doctype, canvas.errors.value);
+		this.host.children?.dropUndoneErrors(settle);
+		const left = canvas.errors.value.length || this.host.children?.hasErrors();
+		if (this.banner.value && this.banner.value === this.refusal && !left && !this.refusal.offers.length) this.banner.value = null;
 	}
 
 	/** With no field marked on `canvas`, opens the first marked setting's row in Settings. */
@@ -311,13 +330,25 @@ export class EditorSave {
 }
 
 /** Draws the errors on `canvas` and selects the first marked field; the ones it cannot draw go to the banner. */
-function markErrors(canvas: DesignCanvas, errors: SaveError[]): { placed: boolean; unmarked: string[] } {
+function markErrors(canvas: DesignCanvas, refused: SaveError[], staged: FlatEdit[]): { placed: boolean; unmarked: string[] } {
+	const errors = refused.map((error) => renamedError(error, staged));
 	canvas.errors.value = errors;
 	const marked = errors.filter((error) => marks(canvas, error));
 	const first = marked.find((error) => error.target.kind === "field");
 	if (first) canvas.select({ kind: "field", fieldname: first.target.fieldname! });
 	const unmarked = errors.filter((error) => !marked.includes(error)).map((error) => error.message);
 	return { placed: marked.length > 0, unmarked };
+}
+
+/** The server keys a field's error to the name before a rename; the canvas holds the name after the renames that are still staged. */
+function renamedError(error: SaveError, staged: FlatEdit[]): SaveError {
+	const keyed = error.keyed ?? error.target.fieldname;
+	if (error.target.kind !== "field" || !keyed || error.edit === undefined) return error;
+	let current = keyed;
+	for (const edit of staged.slice(error.edit)) {
+		if (edit.act === "fields.rename_field" && edit.fieldname === current) current = edit.new_fieldname as string;
+	}
+	return { ...error, keyed, target: { ...error.target, fieldname: current } };
 }
 
 /** A field, section or setting error drawn at its target; the rest go to the banner. */

@@ -5,7 +5,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { ChildEdits } from "./childEdits";
 import type { ChildSave } from "./childSave";
 import { pendingChild } from "./childSource";
-import { DesignCanvas } from "./designCanvas";
+import { DesignCanvas, type SaveError } from "./designCanvas";
 import { TABLE_TYPES } from "./fieldtypes";
 import type { ForkWarning } from "./forkWarning";
 import { loadEditor, type EditorState } from "./editorSource";
@@ -111,6 +111,15 @@ export class ChildTables {
 		if (!session) return;
 		const { base_version } = session.state;
 		session.state = { ...session.state, base_version: { ...base_version, app_layouts: { ...base_version.app_layouts, ...appLayouts } } };
+	}
+
+	/** Settles each session's errors after an Undo; `settle` returns the ones that still hold for a DocType. */
+	dropUndoneErrors(settle: (doctype: string, errors: SaveError[]) => SaveError[]) {
+		for (const [doctype, { canvas }] of this.sessions.value) canvas.errors.value = settle(doctype, canvas.errors.value);
+	}
+
+	hasErrors(): boolean {
+		return [...this.sessions.value.values()].some(({ canvas }) => canvas.errors.value.length > 0);
 	}
 
 	clearErrors() {

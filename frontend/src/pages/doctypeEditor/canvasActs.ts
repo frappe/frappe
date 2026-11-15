@@ -119,7 +119,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			when,
 			run: async (_context, keys: { fieldname: string; new_fieldname: string }) => {
 				const canvas = host.canvas()!;
-				if (await canvas.stage({ ...keys, act: "fields.rename_field" })) reselect(canvas, keys.fieldname, keys.new_fieldname);
+				if (await canvas.stage({ ...keys, act: "fields.rename_field" })) canvas.reselectRenamed(keys.fieldname, keys.new_fieldname);
 			},
 		},
 		{
@@ -168,7 +168,7 @@ async function setFieldProperties(canvas: DesignCanvas, keys: PropertyKeys) {
 	}));
 	const follows = "label" in properties ? followedName(canvas, fieldname, String(properties.label ?? "")) : null;
 	if (follows) edits.push({ act: "fields.rename_field", fieldname, new_fieldname: follows });
-	if ((await canvas.stage(...edits)) && follows) reselect(canvas, fieldname, follows);
+	if ((await canvas.stage(...edits)) && follows) canvas.reselectRenamed(fieldname, follows);
 }
 
 /** The fieldname a new field's label spells, unless it is the same, invalid or another field's. */
@@ -177,11 +177,6 @@ function followedName(canvas: DesignCanvas, fieldname: string, label: string): s
 	const next = newFieldname(canvas.working.value, label);
 	if (next === fieldname || !validFieldname(next) || canvas.field(next)) return null;
 	return next;
-}
-
-function reselect(canvas: DesignCanvas, from: string, to: string) {
-	const selected = canvas.selection.value;
-	if (selected?.kind === "field" && selected.fieldname === from) canvas.select({ kind: "field", fieldname: to });
 }
 
 function editing(host: EditorActsHost) {

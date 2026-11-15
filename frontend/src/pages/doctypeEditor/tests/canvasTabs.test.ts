@@ -1,7 +1,10 @@
 // The tab strip: an unlabelled first tab reads gray until it is selected, then takes normal ink.
 import { afterEach, describe, expect, it } from "vitest";
 import { createApp, h, nextTick, type App } from "vue";
+// @ts-expect-error sortablejs ships no types here; it is the engine under vue-draggable-next
+import Sortable from "sortablejs";
 import CanvasTabs from "../CanvasTabs.vue";
+import { DRAG_OPTIONS, TAB_DRAG_OPTIONS } from "../canvasDrops";
 import { mountEditor, taskNote } from "./editorFixture";
 
 let app: App | undefined;
@@ -51,5 +54,19 @@ describe("CanvasTabs", () => {
 		expect(tabs(root)[0].getAttribute("aria-selected")).toBe("true");
 		expect(gray(tabs(root)[0])).toBe(false);
 		expect(tabs(root)[0].classList.contains("text-ink-gray-9")).toBe(true);
+	});
+
+	it("lets a press on a tab start its drag, but not one on the rename input", () => {
+		expect([TAB_DRAG_OPTIONS.filter, DRAG_OPTIONS.filter]).toEqual(["input", "button, input"]);
+	});
+
+	it("takes a field on a tab's name but not another tab, which would drop it as a new field", async () => {
+		const root = strip();
+		await nextTick();
+		const target = Sortable.get(root.querySelector<HTMLElement>("[data-canvas-tab]")!)!;
+		const group = target.options.group as { checkPut: (to: unknown, from: unknown) => boolean };
+		const listOf = (name: string) => ({ options: { group: { name } } });
+		expect(group.checkPut(target, listOf("canvas-fields"))).toBe(true);
+		expect(group.checkPut(target, listOf("canvas-tabs"))).toBe(false);
 	});
 });
