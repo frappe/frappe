@@ -1832,6 +1832,37 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Controls (always visible; a click on them never opens the row)"),
+					items: [
+						{
+							__code: 'frappe.ui.item_list({\n  items: applicants.map((applicant) => ({\n    ...applicant,\n    stage: "Applied",\n    controls: (item, list) =>\n      frappe.ui.dropdown({\n        button: { label: item.stage, size: "sm", icon_right: "chevron-down" },\n        options: stages.map((stage) => ({\n          label: stage,\n          onclick: () => list.update_item(item.id, { stage }),\n        })),\n      }),\n  })),\n  on_click: (item, list, event) => { event.preventDefault(); open_applicant(item.id); },\n})',
+							on_click: (item, list, event) => {
+								event.preventDefault();
+								frappe.ui.toast({ message: `Opened ${item.title}` });
+							},
+							items: APPLICANTS.map((applicant) => ({
+								...applicant,
+								stage: "Applied",
+								controls: (item, list) =>
+									frappe.ui.dropdown({
+										button: {
+											label: item.stage,
+											size: "sm",
+											icon_right: "chevron-down",
+										},
+										options: ["Applied", "Shortlisted", "Rejected"].map(
+											(stage) => ({
+												label: stage,
+												onclick: () =>
+													list.update_item(item.id, { stage }),
+											})
+										),
+									}),
+							})),
+						},
+					],
+				},
+				{
 					title: __("Flat variant (inside a pane, no box)"),
 					items: [
 						{

@@ -870,6 +870,70 @@ test.describe("Espresso components", () => {
 			await jane.locator(".es-item-list__title").click();
 			await expect(opened.first()).toContainText("Opened Jane Cooper");
 		});
+
+		test("a second click on a busy action does not open the row", async ({ page }) => {
+			const group = applicants(page);
+			const jane = row(group, "Jane Cooper");
+			const hold = jane.locator(".es-item-list__actions .es-button");
+			const opened = page.locator(".es-toast", { hasText: containing("Opened") });
+
+			await use_list(
+				group,
+				'list.update_item("jane", { actions: [{ label: "Hold", onclick: () => new Promise(() => {}) }] })'
+			);
+			await jane.hover();
+			await hold.click();
+			await expect(hold).toHaveAttribute("aria-busy", "true");
+			// a busy button ignores pointer events, so this click lands on the actions around it
+			await hold.click({ force: true });
+			await expect(opened).toHaveCount(0);
+		});
+
+		test("controls show without hover", async ({ page }) => {
+			const group = explorer_group(page, "Controls");
+
+			await page.mouse.move(0, 0);
+			await expect(group.locator(".es-item-list__controls")).toHaveCount(3);
+			await expect(
+				row(group, "Wade Warren").getByRole("button", { name: "Applied" })
+			).toBeVisible();
+		});
+
+		test("a control click in a link row neither opens the row nor follows the link", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Controls");
+			const jane = row(group, "Jane Cooper");
+			const opened = page.locator(".es-toast", { hasText: containing("Opened") });
+			const url = page.url();
+
+			await expect(jane).toHaveJSProperty("tagName", "A");
+			await jane.getByRole("button", { name: "Applied" }).click();
+			await menu_item(page, "Shortlisted").click();
+			await expect(jane.getByRole("button", { name: "Shortlisted" })).toBeVisible();
+			await expect(opened).toHaveCount(0);
+			expect(page.url()).toBe(url);
+
+			await jane.locator(".es-item-list__title").click();
+			await expect(opened.first()).toContainText("Opened Jane Cooper");
+		});
+
+		test("groups show a heading and count, with their rows under them", async ({ page }) => {
+			const list = explorer_group(page, "Grouped rows").locator(".es-item-list");
+			const heads = list.locator(".es-item-list__group-head");
+			const rows_under = (head) =>
+				head.locator("xpath=following-sibling::*[1]").locator(".es-item-list__row");
+
+			await expect(list).toHaveAttribute("data-grouped", "");
+			await expect(heads).toHaveCount(2);
+			await expect(heads.locator(".es-item-list__group-label")).toHaveText([
+				"Feedback due",
+				"Cleared",
+			]);
+			await expect(heads.locator(".es-item-list__group-count")).toHaveText(["2", "1"]);
+			await expect(rows_under(heads.nth(0))).toHaveText([/Jane Cooper/, /Wade Warren/]);
+			await expect(rows_under(heads.nth(1))).toHaveText([/Esther Howard/]);
+		});
 	});
 
 	test.describe("Rating", () => {
