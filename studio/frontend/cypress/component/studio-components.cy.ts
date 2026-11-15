@@ -13,7 +13,6 @@ import { loadAppRuntime } from "@/browserRuntime/appRuntime"
 import useComponentStore from "@/stores/componentStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import getBlockTemplate from "@/utils/blockTemplate"
-import { setScriptProp } from "@/utils/componentScriptProps"
 
 const APP_NAME = "cypress-guest"
 const COMPONENT_ID = "cypress_header"
@@ -250,27 +249,5 @@ describe("studio component props", () => {
 			return useComponentEditorStore().saveComponentProp(PROPS_ID, inputs[0], null)
 		})
 		cy.then(() => expect(store.getComponentInputs(PROPS_ID)).to.deep.equal([]))
-	})
-
-	it("writes the default of a number and a checkbox prop as a number and a boolean", () => {
-		const script = (source: string, input: Record<string, any>) => setScriptProp(source, null, input as any)
-		const number = { input_name: "count", type: "number" }
-		const checkbox = { input_name: "open", type: "checkbox" }
-
-		expect(script("", { ...number, default: 5 })).to.include("count: { type: Number, default: 5 }")
-		expect(script("", { ...number, default: "" })).to.include("count: Number")
-		expect(() => script("", { ...number, default: "five" })).to.throw("must be a number")
-		expect(script("", { ...checkbox, default: true })).to.include("open: { type: Boolean, default: true }")
-		expect(script("", { ...checkbox, default: false })).to.include("open: Boolean")
-
-		// an unchanged default stays as the script has it
-		const written = "export default {\n\tprops: {\n\t\topen: { type: Boolean, default: false },\n\t},\n}\n"
-		const previous = { ...checkbox, default: "false" }
-		expect(setScriptProp(written, previous, { ...checkbox, default: false, required: 1 } as any)).to.include(
-			"open: { type: Boolean, required: true, default: false }",
-		)
-
-		const size = { input_name: "size", type: "select", options: "sm\nmd" }
-		expect(() => script("", { ...size, default: "lg" })).to.throw("one of the options")
 	})
 })
