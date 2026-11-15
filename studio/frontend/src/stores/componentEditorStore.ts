@@ -1,5 +1,5 @@
 import { defineStore } from "pinia"
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import { dialog } from "frappe-ui"
 import { studioComponents } from "@/data/studioComponents"
 import useStudioStore from "@/stores/studioStore"
@@ -16,10 +16,13 @@ import useComponentStore from "@/stores/componentStore"
 const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)
 	const studioComponentBlock = ref<Block | null>(null)
-	const componentInputs = ref<ComponentInput[]>([])
 	// the pages and components that use the component being edited
 	const componentUsers = ref<string[]>([])
 	const componentStore = useComponentStore()
+	/** The props that the script of the open component declares, or its saved inputs. */
+	const componentInputs = computed<ComponentInput[]>(() =>
+		componentStore.getComponentInputs(useCanvasStore().fragmentData.fragmentId ?? ""),
+	)
 
 	async function createComponent(componentName: string, block?: Block | null, isGlobal = false) {
 		const component: any = { component_name: componentName }
@@ -131,7 +134,6 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		const block = componentBlock || getBlockInstance(getBlockTemplate("empty-component"))
 		studioComponentBlock.value = getComponentBlock(componentId, true)
 
-		setComponentInputs(componentId)
 		loadComponentUsers(componentId)
 
 		const canvasStore = useCanvasStore()
@@ -196,18 +198,6 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		studioComponentBlock.value = null
 	}
 
-	/** Load the saved inputs, or the props that the component's script declares. */
-	function setComponentInputs(componentId: string) {
-		componentInputs.value = componentStore.getComponentInputs(componentId).map((input) => ({
-			input_name: input.input_name,
-			type: input.type,
-			description: input.description,
-			default: input.default,
-			options: input.options,
-			required: input.required,
-		}))
-	}
-
 	/**
 	 * Add, change or remove one prop in the component's script, and save the script.
 	 * Pass only `input` to add a prop, and only `previous` to remove one.
@@ -222,7 +212,6 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			const script = setScriptProp(componentDoc.script || "", previous, input)
 			const data = await studioComponents.setValue.submit({ name: componentDoc.name, script })
 			await componentStore.cacheComponent(data)
-			setComponentInputs(componentId)
 			toast.success(input ? "Prop saved" : "Prop removed")
 			return true
 		} catch (error: any) {
@@ -242,7 +231,6 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		setGlobal,
 		renameComponent,
 		componentUsers,
-		setComponentInputs,
 		saveComponentProp,
 	}
 })

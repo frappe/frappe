@@ -118,7 +118,7 @@ class StudioComponent(Document):
 		moved = frappe.copy_doc(self)
 		moved.studio_app = studio_app
 		moved.insert()
-		is_global_kept = bool(studio_app) and self.is_used()
+		is_global_kept = bool(studio_app) and bool(self.get_users())
 		if not is_global_kept:
 			# the moved component takes over the files and the blocks that use the id
 			self.flags.is_moved = True
@@ -126,9 +126,6 @@ class StudioComponent(Document):
 		for folder in folders if not studio_app else moved.get_export_folders():
 			moved.export_to_folder(folder)
 		return {"name": moved.name, "is_global_kept": is_global_kept}
-
-	def is_used(self) -> bool:
-		return bool(self.get_users())
 
 	@frappe.whitelist()
 	def get_users(self) -> list[str]:
