@@ -62,12 +62,17 @@ class TestStudioComponent(IntegrationTestCase):
 				app_name="exported-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
 			component = frappe.get_doc(
-				doctype="Studio Component", component_name="Exported", studio_app=app.name
+				doctype="Studio Component",
+				component_name="Exported",
+				studio_app=app.name,
+				script=COMPONENT_SCRIPT,
 			).insert()
 			blocks = [{"componentName": component.component_id, "isStudioComponent": True, "children": []}]
 			page = make_studio_page(app.name, blocks=frappe.as_json(blocks))
 			path = os.path.join(page.get_component_folder_path(), "exported.json")
+			script_path = path.removesuffix(".json") + ".js"
 			self.assertTrue(os.path.exists(path))
+			self.assertTrue(os.path.exists(script_path))
 			self.assertTrue(frappe.parse_json(frappe.read_file(path)).is_standard)
 			self.assertTrue(frappe.db.get_value("Studio Component", component.name, "is_standard"))
 
@@ -75,6 +80,7 @@ class TestStudioComponent(IntegrationTestCase):
 			self.assertTrue(os.path.exists(path))
 			page.blocks = "[]"
 			page.save()
+			self.assertFalse(os.path.exists(script_path))
 			component.reload().delete()
 
 			self.assertFalse(os.path.exists(path))
@@ -137,7 +143,7 @@ class TestStudioComponent(IntegrationTestCase):
 
 	def test_script_exports_to_a_file_beside_the_json(self):
 		with exports_in_tempdir():
-			component, _page, script_path = export_scripted_component()
+			component, page, script_path = export_scripted_component()
 			self.assertEqual(frappe.read_file(script_path), COMPONENT_SCRIPT)
 			exported = frappe.parse_json(frappe.read_file(script_path.removesuffix(".js") + ".json"))
 			self.assertNotIn("script", exported)
@@ -146,29 +152,18 @@ class TestStudioComponent(IntegrationTestCase):
 			component.save()
 			self.assertEqual(frappe.read_file(script_path), "export default {}\n")
 
-			component.script = ""
-			component.save()
-			self.assertFalse(os.path.exists(script_path))
-
-	def test_export_keeps_a_script_file_edited_on_disk(self):
-		with exports_in_tempdir():
-			component, page, script_path = export_scripted_component()
+			# a save that does not change the script keeps a file edited on disk
 			with open(script_path, "w") as script_file:
 				script_file.write("export default { props: { edited: Boolean } }\n")
-
 			component.component_name = "Renamed"
 			component.save()
 			page.save()
-
 			self.assertEqual(frappe.read_file(script_path), "export default { props: { edited: Boolean } }\n")
 
-	def test_deleting_a_component_removes_its_script_file(self):
-		with exports_in_tempdir():
-			component, page, script_path = export_scripted_component()
-			page.blocks = "[]"
-			page.save()
+			component.reload()
+			component.script = ""
+			component.save()
 			self.assertFalse(os.path.exists(script_path))
-			self.assertTrue(frappe.db.exists("Studio Component", component.name))
 
 	def test_two_apps_can_each_have_a_component_with_the_same_id(self):
 		with exports_in_tempdir():

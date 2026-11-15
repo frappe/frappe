@@ -244,6 +244,24 @@ describe("component scripts", () => {
 		expect(() => setScriptProp(written, null, { input_name: "bad", type: "code", default: "[1," })).to.throw(
 			"not valid JavaScript",
 		)
+
+		// a number and a checkbox give their default as a number and a boolean
+		const number = { input_name: "count", type: "number" }
+		const checkbox = { input_name: "open", type: "checkbox" }
+		const add = (input: Record<string, any>) => setScriptProp("", null, input as any)
+		expect(add({ ...number, default: 5 })).to.include("count: { type: Number, default: 5 }")
+		expect(add({ ...number, default: "" })).to.include("count: Number")
+		expect(() => add({ ...number, default: "five" })).to.throw("must be a number")
+		expect(add({ ...checkbox, default: true })).to.include("open: { type: Boolean, default: true }")
+		expect(add({ ...checkbox, default: false })).to.include("open: Boolean")
+		expect(() => add({ ...size, default: "lg" })).to.throw("one of the options")
+
+		// an unchanged default stays as the script has it
+		const typed = "export default {\n\tprops: {\n\t\topen: { type: Boolean, default: false },\n\t},\n}\n"
+		const previous = { ...checkbox, default: "false" }
+		expect(setScriptProp(typed, previous, { ...checkbox, default: false, required: 1 } as any)).to.include(
+			"open: { type: Boolean, required: true, default: false }",
+		)
 	})
 
 	it("leaves props to the script when the form cannot change them safely", () => {
