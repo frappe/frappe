@@ -92,6 +92,7 @@ describe("a Link field's Filters row", () => {
 		await nextTick();
 		expect(document.querySelector("[data-rule-problem]")!.textContent).toContain("has two filters");
 		expect(document.querySelector<HTMLButtonElement>("[data-rule-done]")!.disabled).toBe(true);
+		expect(document.querySelector<HTMLButtonElement>("[data-rule-clear]")!.disabled).toBe(false);
 	});
 
 	it("says All <doctypes> with no filters", async () => {

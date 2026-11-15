@@ -38,9 +38,8 @@
 				:label="__('Rename')"
 				:disabled="!changed"
 				:loading="working"
-				ref="confirmButton"
-				:style="confirmStyle"
-				:loading-text="working ? '\u00a0' : undefined"
+				data-danger-confirm
+				:aria-busy="working"
 			/>
 		</div>
 	</form>
@@ -60,10 +59,7 @@ const props = defineProps<{
 	submit: (name: string) => Promise<string>;
 	close: (name: string | null) => void;
 }>();
-const { working, error, send, confirmButton, confirmStyle } = useDangerSubmit(
-	props.submit,
-	props.close
-);
+const { working, error, send } = useDangerSubmit(props.submit, props.close);
 
 const name = ref(props.doctype);
 const input = ref<TextInputExposed | null>(null);

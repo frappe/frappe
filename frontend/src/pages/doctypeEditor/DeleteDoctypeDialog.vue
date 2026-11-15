@@ -28,9 +28,8 @@
 				:label="__('Delete {0}', [doctype])"
 				:disabled="!confirmed"
 				:loading="working"
-				ref="confirmButton"
-				:style="confirmStyle"
-				:loading-text="working ? '\u00a0' : undefined"
+				data-danger-confirm
+				:aria-busy="working"
 			/>
 		</div>
 	</form>
@@ -49,10 +48,7 @@ const props = defineProps<{
 	submit: () => Promise<true>;
 	close: (deleted: true | null) => void;
 }>();
-const { working, error, send, confirmButton, confirmStyle } = useDangerSubmit(
-	props.submit,
-	props.close
-);
+const { working, error, send } = useDangerSubmit(props.submit, props.close);
 
 const typed = ref("");
 const input = ref<TextInputExposed | null>(null);

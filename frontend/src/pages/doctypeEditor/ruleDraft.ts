@@ -29,6 +29,10 @@ export class RuleDraft {
 	readonly problem = computed(() =>
 		this.mode.value === "rules" ? this.treeProblem(this.tree.value) : this.textProblem(this.fromCode()),
 	);
+	/** Whether Clear has anything to drop: the staged rule or what the open tab holds. */
+	readonly clearable = computed(
+		() => !!this.value.value || (this.mode.value === "code" ? !!this.code.value.trim() : this.tree.value.conditions.length > 0),
+	);
 	private codeShownFrom: string;
 
 	constructor(

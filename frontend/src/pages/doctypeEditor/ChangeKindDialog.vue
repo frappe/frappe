@@ -35,9 +35,8 @@
 				:label="__('Change kind')"
 				:disabled="picked === kind"
 				:loading="working"
-				ref="confirmButton"
-				:style="confirmStyle"
-				:loading-text="working ? '\u00a0' : undefined"
+				data-danger-confirm
+				:aria-busy="working"
 				@click="send(picked)"
 			/>
 		</div>
@@ -62,10 +61,7 @@ const props = defineProps<{
 }>();
 
 const picked = ref<DoctypeKind>(props.kind);
-const { working, error, send, confirmButton, confirmStyle } = useDangerSubmit(
-	props.submit,
-	props.close
-);
+const { working, error, send } = useDangerSubmit(props.submit, props.close);
 const notes = computed(() => kindNotes(props.doctype, props.kind, picked.value));
 
 function refusal(kind: DoctypeKind) {

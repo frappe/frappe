@@ -23,10 +23,7 @@ export interface DangerHost {
 	scope: () => DangerScope | null;
 	/** Save first, Discard or Cancel when edits are pending; true to go on, with none left. */
 	settle: () => Promise<boolean>;
-	/**
-	 * Each dialog sends the act's server call with `submit`, shows what it throws and stays open, and
-	 * closes with what it answers. `null` when the reader cancels.
-	 */
+	/** Sends the act's call through `submit`, stays open on an error; `null` when the reader cancels. */
 	askKind: (state: EditorState, submit: (kind: DoctypeKind) => Promise<DoctypeKind>) => Promise<DoctypeKind | null>;
 	askName: (state: EditorState, submit: (name: string) => Promise<string>) => Promise<string | null>;
 	/** The module to move to, or with `standard`, the app module its files go in. */
@@ -135,10 +132,7 @@ async function remove(host: EditorActsHost) {
 	});
 }
 
-/**
- * What the act's server call answers: at once for a given `value`, else through the dialog, which runs the
- * call itself and stays open with the error when it fails. A call the reader closed the dialog on still counts.
- */
+/** What the act's call answers: at once for a given `value`, else through its dialog. */
 async function answer<V, R>(
 	value: V | undefined,
 	call: (value: V) => Promise<R>,

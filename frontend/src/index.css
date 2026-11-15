@@ -33,3 +33,17 @@
 		bottom: calc(var(--mobile-offset-bottom, 16px) + var(--shell-nav-inset-bottom, 0px));
 	}
 }
+
+/* A danger dialog's confirm button shows its spinner over the label, so the button keeps its width while it
+   works: the spinner beside the label would widen it and push Cancel. */
+[data-danger-confirm][aria-busy="true"] {
+	position: relative;
+}
+[data-danger-confirm][aria-busy="true"] > svg {
+	position: absolute;
+	inset: 0;
+	margin: auto;
+}
+[data-danger-confirm][aria-busy="true"] > span {
+	visibility: hidden;
+}

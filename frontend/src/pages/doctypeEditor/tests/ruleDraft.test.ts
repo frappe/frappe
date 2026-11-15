@@ -64,6 +64,21 @@ describe("the rule dialog's draft", () => {
 		expect([draft.value.value, draft.mode.value, draft.tree.value.conditions]).toEqual(["", "rules", []]);
 	});
 
+	it("can clear a draft that has a problem and no staged rule", () => {
+		const filters = new LinkFilters(
+			"Customer",
+			[{ label: "Credit Days", value: "credit_days", fieldname: "credit_days", fieldtype: "Int" }],
+			words,
+		);
+		const draft = new RuleDraft("", filters);
+		expect(draft.clearable.value).toBe(false);
+		draft.switchTo("code");
+		draft.setCode('[["Customer","credit_days",">",30],["Customer","credit_days","<",60]]');
+		expect([draft.value.value, !!draft.problem.value, draft.clearable.value]).toEqual(["", true, true]);
+		draft.clear();
+		expect([draft.problem.value, draft.clearable.value]).toEqual(["", false]);
+	});
+
 	it("does not stage link filters that name a field twice, and says why", () => {
 		const filters = new LinkFilters(
 			"Customer",

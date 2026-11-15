@@ -33,9 +33,8 @@
 				:label="standard ? __('Make standard') : __('Move')"
 				:disabled="!picked"
 				:loading="working"
-				ref="confirmButton"
-				:style="confirmStyle"
-				:loading-text="working ? '\u00a0' : undefined"
+				data-danger-confirm
+				:aria-busy="working"
 				@click="send(picked)"
 			/>
 		</div>
@@ -60,10 +59,7 @@ const props = defineProps<{
 	submit: (module: string) => Promise<string>;
 	close: (module: string | null) => void;
 }>();
-const { working, error, send, confirmButton, confirmStyle } = useDangerSubmit(
-	props.submit,
-	props.close
-);
+const { working, error, send } = useDangerSubmit(props.submit, props.close);
 
 const picked = ref<string | null>(null);
 const modules = ref<{ label: string; value: string; description?: string }[]>([]);

@@ -86,7 +86,7 @@
 				class="ml-auto"
 				variant="ghost"
 				:label="filters ? __('Clear filters') : __('Clear condition')"
-				:disabled="!draft.value.value"
+				:disabled="!draft.clearable.value"
 				data-rule-clear
 				@click="draft.clear()"
 			/>
