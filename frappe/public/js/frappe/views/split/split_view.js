@@ -56,14 +56,27 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	// Picking a record changes only the route's last part, and the list factory hands that route
 	// to this same page; the list, its data and its scroll stay, only the detail changes.
 	show() {
-		if (this.init_promise && this.is_same_list_as_last_route()) {
-			// the router read the filters back off the URL; they are already applied
-			frappe.route_options = null;
-			this.update_url_with_filters();
-			this.show_selected(this.get_route_name());
-			return Promise.resolve();
+		if (!this.init_promise || !this.is_same_list_as_last_route()) {
+			return super.show().then(() => this.show_selected(this.get_route_name(), true));
 		}
-		return super.show().then(() => this.show_selected(this.get_route_name(), true));
+		if (this.has_new_route_filters()) {
+			return this.before_refresh()
+				.then(() => this.refresh())
+				.then(() => this.show_selected(this.get_route_name()));
+		}
+		frappe.route_options = null;
+		this.update_url_with_filters();
+		this.show_selected(this.get_route_name());
+		return Promise.resolve();
+	}
+
+	/** Whether the route brings filters other than the ones applied; none keeps the applied ones. */
+	has_new_route_filters() {
+		const incoming = frappe.route_options || {};
+		if ($.isEmptyObject(incoming)) return false;
+		const current = Object.fromEntries(this.get_search_params());
+		const keys = new Set([...Object.keys(current), ...Object.keys(incoming)]);
+		return [...keys].some((key) => cstr(current[key]) !== cstr(incoming[key]));
 	}
 
 	get_list_route() {
