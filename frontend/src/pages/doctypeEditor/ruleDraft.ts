@@ -1,5 +1,6 @@
 // What the rule dialog edits: a draft of one stored rule, in Rules (a builder tree) or Code (the text
-// as written). The row stages the draft once, when the dialog closes, so a session is one undo step.
+// as written). The row stages the draft once, when Done is pressed, so a session is one undo step;
+// closing any other way drops it.
 import { computed, ref, shallowRef } from "vue";
 import { emptyTree } from "@framework/ui/ConditionBuilder";
 import type { RuleTree } from "./ruleWords";
@@ -25,7 +26,10 @@ export class RuleDraft {
 	readonly code = ref("");
 	readonly mode = ref<RuleMode>("rules");
 	readonly readable = computed(() => this.codec.read(this.value.value) !== null);
-	readonly problem = computed(() => this.codec.problem?.(this.tree.value) ?? "");
+	/** Why the draft cannot be staged; "" when it can. */
+	readonly problem = computed(() =>
+		this.mode.value === "rules" ? this.treeProblem(this.tree.value) : this.textProblem(this.fromCode()),
+	);
 	private codeShownFrom: string;
 
 	constructor(
@@ -52,11 +56,13 @@ export class RuleDraft {
 
 	setCode(text: string) {
 		this.code.value = text;
-		this.value.value = this.codec.fromCode(text, this.codeShownFrom);
+		// Same as setTree: text with a problem is not staged.
+		if (!this.problem.value) this.value.value = this.fromCode();
 	}
 
-	/** Rules only while the builder can read the draft. */
+	/** Rules only while the builder can read the draft, and no mode while the draft has a problem. */
 	switchTo(mode: RuleMode) {
+		if (this.problem.value) return;
 		if (mode === "rules") {
 			const tree = this.codec.read(this.value.value);
 			if (!tree) return;
@@ -74,5 +80,18 @@ export class RuleDraft {
 		this.codeShownFrom = "";
 		this.mode.value = "rules";
 		this.value.value = "";
+	}
+
+	private fromCode(): string {
+		return this.codec.fromCode(this.code.value, this.codeShownFrom);
+	}
+
+	private treeProblem(tree: RuleTree): string {
+		return this.codec.problem?.(tree) ?? "";
+	}
+
+	private textProblem(text: string): string {
+		const tree = this.codec.read(text);
+		return tree ? this.treeProblem(tree) : "";
 	}
 }

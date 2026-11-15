@@ -85,6 +85,38 @@ describe("the rule dialog's draft", () => {
 		expect(draft.problem.value).toBe("");
 	});
 
+	it("does not stage code or switch mode while link filters have a problem", () => {
+		const filters = new LinkFilters(
+			"Customer",
+			[{ label: "Credit Days", value: "credit_days", fieldname: "credit_days", fieldtype: "Int" }],
+			words,
+		);
+		const raw = JSON.stringify([["Customer", "credit_days", ">", 30]]);
+		const draft = new RuleDraft(raw, filters);
+		draft.switchTo("code");
+		draft.setCode('[["Customer","credit_days",">",30],["Customer","credit_days","<",60]]');
+		expect(draft.problem.value).toContain("Credit Days has two filters");
+		expect(draft.value.value).toBe(raw);
+		draft.switchTo("rules");
+		expect(draft.mode.value).toBe("code");
+
+		draft.setCode('[["Customer","credit_days",">",40]]');
+		expect(draft.problem.value).toBe("");
+		expect(draft.value.value).toBe('[["Customer","credit_days",">",40]]');
+		draft.switchTo("rules");
+		expect(draft.mode.value).toBe("rules");
+
+		draft.setTree({
+			conjunction: "and",
+			conditions: [
+				{ fieldname: "credit_days", operator: ">", value: "1" },
+				{ fieldname: "credit_days", operator: "<", value: "9" },
+			],
+		});
+		draft.switchTo("code");
+		expect(draft.mode.value).toBe("rules");
+	});
+
 	it("edits link filters the same way, the code as indented JSON", () => {
 		const filters = new LinkFilters(
 			"Customer",

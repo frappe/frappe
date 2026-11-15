@@ -3,7 +3,7 @@
  * A file larger than the chunk size goes in parts, and only the last part answers with it.
  */
 import { takeTicket } from "../cache";
-import { ApiError, readEnvelope, type Envelope } from "./envelope";
+import { ApiError, httpFailure, readEnvelope, type Envelope } from "./envelope";
 import { fed, fedAfter, feedPartReply } from "./feed";
 import { apiUrl, parseBody, requestHeaders } from "./request";
 import type { Users } from "./index";
@@ -122,7 +122,7 @@ async function failure(response: Response, url: string): Promise<ApiError> {
     if (error instanceof ApiError) return error;
   }
   return new ApiError(
-    { type: "HTTPError", message: `${source} failed with status ${response.status}` },
+    { type: "HTTPError", message: httpFailure(source, response.status) },
     response.status
   );
 }

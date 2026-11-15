@@ -22,11 +22,15 @@ export interface DangerHost {
 	scope: () => DangerScope | null;
 	/** Save first, Discard or Cancel when edits are pending; true to go on, with none left. */
 	settle: () => Promise<boolean>;
-	askKind: (state: EditorState) => Promise<DoctypeKind | null>;
-	askName: (state: EditorState) => Promise<string | null>;
+	/**
+	 * Each dialog sends the act's server call with `submit`, shows what it throws and stays open, and
+	 * closes with what it answers. `null` when the reader cancels.
+	 */
+	askKind: (state: EditorState, submit: (kind: DoctypeKind) => Promise<DoctypeKind>) => Promise<DoctypeKind | null>;
+	askName: (state: EditorState, submit: (name: string) => Promise<string>) => Promise<string | null>;
 	/** The module to move to, or with `standard`, the app module its files go in. */
-	askModule: (state: EditorState, standard: boolean) => Promise<string | null>;
-	askDelete: (state: EditorState) => Promise<true | null>;
+	askModule: (state: EditorState, standard: boolean, submit: (module: string) => Promise<string>) => Promise<string | null>;
+	askDelete: (state: EditorState, submit: () => Promise<true>) => Promise<true | null>;
 	/** Opens the editor at the DocType's new name. */
 	renamed: (name: string) => Promise<unknown>;
 	/** Leaves for the DocType list. */
@@ -71,10 +75,14 @@ async function settled(host: EditorActsHost): Promise<EditorState | null> {
 
 async function changeKind(host: EditorActsHost, value?: { kind?: DoctypeKind }) {
 	const state = await settled(host);
-	const kind = state && (value?.kind ?? (await host.danger.askKind(state)));
-	if (!state || !kind) return;
+	if (!state) return;
 	await held(host, async () => {
-		await runMethod(DANGER_METHOD.change_kind, { doctype: state.doctype, kind }, { nullable: true });
+		const call = async (kind: DoctypeKind) => {
+			await runMethod(DANGER_METHOD.change_kind, { doctype: state.doctype, kind }, { nullable: true });
+			return kind;
+		};
+		const kind = await answer(value?.kind, call, (submit) => host.danger.askKind(state, submit));
+		if (!kind) return;
 		const label = KINDS.find((one) => one.value === kind)?.label ?? kind;
 		toast.success(__("{0} is a {1} DocType now.", [state.doctype, __(label)]));
 		if (host.danger.showing(state.doctype)) await host.danger.reload();
@@ -83,10 +91,14 @@ async function changeKind(host: EditorActsHost, value?: { kind?: DoctypeKind }) 
 
 async function rename(host: EditorActsHost, value?: { name?: string }) {
 	const state = await settled(host);
-	const asked = state && (value?.name ?? (await host.danger.askName(state)));
-	if (!state || !asked) return;
+	if (!state) return;
 	await held(host, async () => {
-		const { data: name } = await runMethod<string>(DANGER_METHOD.rename_doctype, { doctype: state.doctype, new_name: asked });
+		const call = async (asked: string) => {
+			const { data } = await runMethod<string>(DANGER_METHOD.rename_doctype, { doctype: state.doctype, new_name: asked });
+			return data;
+		};
+		const name = await answer(value?.name, call, (submit) => host.danger.askName(state, submit));
+		if (!name) return;
 		toast.success(__("Renamed {0} to {1}.", [state.doctype, name]));
 		if (host.danger.showing(state.doctype)) await host.danger.renamed(name);
 	});
@@ -94,11 +106,15 @@ async function rename(host: EditorActsHost, value?: { name?: string }) {
 
 async function move(host: EditorActsHost, value: { module?: string } | undefined, standard: boolean) {
 	const state = await settled(host);
-	const module = state && (value?.module ?? (await host.danger.askModule(state, standard)));
-	if (!state || !module) return;
+	if (!state) return;
 	const { doctype } = state;
 	await held(host, async () => {
-		await runMethod(standard ? DANGER_METHOD.make_standard : DANGER_METHOD.move_doctype, { doctype, module }, { nullable: true });
+		const call = async (module: string) => {
+			await runMethod(standard ? DANGER_METHOD.make_standard : DANGER_METHOD.move_doctype, { doctype, module }, { nullable: true });
+			return module;
+		};
+		const module = await answer(value?.module, call, (submit) => host.danger.askModule(state, standard, submit));
+		if (!module) return;
 		toast.success(standard ? __("{0} is standard now, in {1}.", [doctype, module]) : __("Moved {0} to {1}.", [doctype, module]));
 		if (host.danger.showing(doctype)) await host.danger.reload();
 	});
@@ -106,17 +122,35 @@ async function move(host: EditorActsHost, value: { module?: string } | undefined
 
 async function remove(host: EditorActsHost) {
 	const state = await settled(host);
-	if (!state || !(await host.danger.askDelete(state))) return;
+	if (!state) return;
 	await held(host, async () => {
-		await runMethod(DANGER_METHOD.delete_doctype, { doctype: state.doctype }, { nullable: true });
+		const call = async () => {
+			await runMethod(DANGER_METHOD.delete_doctype, { doctype: state.doctype }, { nullable: true });
+			return true as const;
+		};
+		if (!(await answer<unknown, true>(undefined, call, (submit) => host.danger.askDelete(state, () => submit(undefined))))) return;
 		toast.success(__("Deleted {0}.", [state.doctype]));
 		if (host.danger.showing(state.doctype)) await host.danger.deleted();
 	});
 }
 
-/** An act holds every edit until it and the page's follow-up finish: the reload drops what is pending. */
+/**
+ * What the act's server call answers: at once for a given `value`, else through the dialog, which runs the
+ * call itself and stays open with the error when it fails. A call the reader closed the dialog on still counts.
+ */
+async function answer<V, R>(
+	value: V | undefined,
+	call: (value: V) => Promise<R>,
+	ask: (submit: (value: V) => Promise<R>) => Promise<R | null>,
+): Promise<R | null> {
+	if (value) return call(value);
+	let started: Promise<R | null> = Promise.resolve(null);
+	const result = await ask((picked) => (started = call(picked)));
+	return result ?? (await started.catch(() => null));
+}
+
+/** The edits stay locked from the act's dialog opening until it and the page's follow-up finish: the reload drops what is pending. */
 async function held(host: EditorActsHost, run: () => Promise<void>) {
-	// Another change began while this act's dialog was open: unlocking after this one would free it too early.
 	if (host.edits.locked.value) return void toast.error(__("Another change to this DocType is still running. Try again when it ends."));
 	host.edits.locked.value = true;
 	try {

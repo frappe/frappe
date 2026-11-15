@@ -28,10 +28,11 @@ function mount(state: Partial<EditorState> = {}, danger: Partial<DangerHost> = {
 	const host: DangerHost = {
 		scope: () => ({ developerMode: true, administrator: true }),
 		settle: vi.fn(async () => true),
-		askKind: vi.fn(async () => "submittable" as const),
-		askName: vi.fn(async () => "Task Memo"),
-		askModule: vi.fn(async () => "Core"),
-		askDelete: vi.fn(async () => true as const),
+		// A dialog confirms by sending the call, as the real ones do.
+		askKind: vi.fn(async (_state, submit) => submit("submittable")),
+		askName: vi.fn(async (_state, submit) => submit("Task Memo")),
+		askModule: vi.fn(async (_state, _standard, submit) => submit("Core")),
+		askDelete: vi.fn(async (_state, submit) => submit()),
 		renamed: vi.fn(async () => undefined),
 		deleted: vi.fn(async () => undefined),
 		reload: vi.fn(async () => undefined),
@@ -94,7 +95,7 @@ describe("running a Danger zone act", () => {
 	it("changes the kind the dialog picks, then reloads", async () => {
 		const { host } = mount();
 		await acts.run("danger.change_kind");
-		expect(host.askKind).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note" }));
+		expect(host.askKind).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note" }), expect.any(Function));
 		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.change_kind, { doctype: "Task Note", kind: "submittable" }, { nullable: true });
 		expect(toast.success).toHaveBeenCalled();
 		expect(host.reload).toHaveBeenCalled();
@@ -126,7 +127,7 @@ describe("running a Danger zone act", () => {
 	it("moves to the module the dialog picks, and makes standard in one", async () => {
 		const { host } = mount();
 		await acts.run("danger.move_doctype");
-		expect(host.askModule).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note" }), false);
+		expect(host.askModule).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note" }), false, expect.any(Function));
 		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.move_doctype, { doctype: "Task Note", module: "Core" }, { nullable: true });
 		await acts.run("danger.make_standard", { module: "Desk" });
 		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.make_standard, { doctype: "Task Note", module: "Desk" }, { nullable: true });
@@ -136,7 +137,7 @@ describe("running a Danger zone act", () => {
 	it("deletes once confirmed, then leaves for the DocType list", async () => {
 		const { host } = mount();
 		await acts.run("danger.delete_doctype");
-		expect(host.askDelete).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note", record_count: 4 }));
+		expect(host.askDelete).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note", record_count: 4 }), expect.any(Function));
 		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.delete_doctype, { doctype: "Task Note" }, { nullable: true });
 		expect(host.deleted).toHaveBeenCalled();
 	});
@@ -155,12 +156,40 @@ describe("running a Danger zone act", () => {
 		expect(host.reload).toHaveBeenCalledTimes(1);
 	});
 
-	it("stops when a Save began while its dialog was open, and leaves that Save's hold", async () => {
-		const { mounted } = mount({}, { askKind: vi.fn(async () => ((mounted.edits.locked.value = true), "tree" as const)) });
+	it("locks the edits while its dialog is open, and frees them when the dialog is cancelled", async () => {
+		let lockedOpen: boolean | undefined;
+		const { mounted } = mount({}, {
+			askKind: vi.fn(async () => ((lockedOpen = mounted.edits.locked.value), null)),
+		});
 		await acts.run("danger.change_kind");
+		expect(lockedOpen).toBe(true);
+		expect(mounted.edits.locked.value).toBe(false);
 		expect(runMethod).not.toHaveBeenCalled();
-		expect(toast.error).toHaveBeenCalled();
-		expect(mounted.edits.locked.value).toBe(true);
+	});
+
+	it("leaves the dialog to show a failed call, and goes no further", async () => {
+		let shown = "";
+		const { host, mounted } = mount({}, {
+			askName: vi.fn(async (_state, submit) => {
+				await submit("Task Memo").catch((error: Error) => (shown = error.message));
+				return null;
+			}),
+		});
+		runMethod.mockRejectedValueOnce(new Error("Task Memo already exists"));
+		await acts.run("danger.rename_doctype");
+		expect(shown).toBe("Task Memo already exists");
+		expect(toast.success).not.toHaveBeenCalled();
+		expect(host.renamed).not.toHaveBeenCalled();
+		expect(mounted.edits.locked.value).toBe(false);
+	});
+
+	it("finishes the act when the reader closes the dialog while its call runs", async () => {
+		const { host } = mount({}, {
+			askDelete: vi.fn(async (_state, submit) => (void submit(), null)),
+		});
+		await acts.run("danger.delete_doctype");
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.delete_doctype, { doctype: "Task Note" }, { nullable: true });
+		expect(host.deleted).toHaveBeenCalled();
 	});
 
 	it("skips the page's follow-up once the reader has left the DocType", async () => {

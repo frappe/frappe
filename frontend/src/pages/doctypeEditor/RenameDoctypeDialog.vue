@@ -1,4 +1,4 @@
-<!-- The Danger zone's Rename: the new name, and what moves with it. It closes with the name. -->
+<!-- The Danger zone's Rename: the new name, and what moves with it. It closes with the name the server answers; a failure stays in the dialog. -->
 <template>
 	<form class="flex flex-col gap-4" data-rename-doctype-dialog @submit.prevent="rename">
 		<TextInput ref="input" v-model="name" :label="__('New name')" />
@@ -23,9 +23,10 @@
 				<span>{{ linkLine }}</span>
 			</li>
 		</ul>
+		<p v-if="error" class="text-p-sm text-ink-red-6" role="alert" data-danger-error>{{ error }}</p>
 		<div class="flex justify-end gap-2">
-			<Button :label="__('Cancel')" @click="close(null)" />
-			<Button type="submit" variant="solid" :label="__('Rename')" :disabled="!changed" />
+			<Button :label="__('Cancel')" :disabled="working" @click="close(null)" />
+			<Button type="submit" variant="solid" :label="__('Rename')" :disabled="!changed" :loading="working" />
 		</div>
 	</form>
 </template>
@@ -35,13 +36,16 @@ import { computed, onMounted, ref } from "vue";
 import { Button, TextInput, type TextInputExposed } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { __, __n } from "@/i18n";
+import { useDangerSubmit } from "./dangerSubmit";
 
 const EFFECTS = "frappe.desk.doctype_editor.danger.rename_effects";
 const props = defineProps<{
 	doctype: string;
 	records: number | null;
+	submit: (name: string) => Promise<string>;
 	close: (name: string | null) => void;
 }>();
+const { working, error, send } = useDangerSubmit(props.submit, props.close);
 
 const name = ref(props.doctype);
 const input = ref<TextInputExposed | null>(null);
@@ -84,6 +88,6 @@ const linkLine = computed(() =>
 const changed = computed(() => target.value !== props.doctype);
 
 function rename() {
-	if (changed.value) props.close(target.value);
+	if (changed.value) send(target.value);
 }
 </script>
