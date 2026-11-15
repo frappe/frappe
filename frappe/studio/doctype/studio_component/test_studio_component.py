@@ -235,3 +235,65 @@ class TestStudioComponent(IntegrationTestCase):
 			other.reload()
 			self.assertEqual(get_blocks(other)[0]["componentName"], old_id)
 			self.assertTrue(os.path.exists(os.path.join(other.get_component_folder_path(), f"{old_id}.js")))
+
+	def test_a_global_component_cannot_depend_on_one_app(self):
+		app_import = 'import { useCart } from "@app/stores/cart"\nexport default {}\n'
+		library_import = 'import { ref } from "vue"\nexport default {}\n'
+		vue_block = {
+			"componentName": "div",
+			"children": [{"componentName": "Cart", "isCustomVueComponent": True}],
+		}
+		app = make_studio_app(app_name="owner-" + frappe.generate_hash(length=10))
+
+		component = frappe.get_doc(doctype="Studio Component", component_name="Global", script=app_import)
+		self.assertRaises(frappe.ValidationError, component.insert)
+		component.script = library_import
+		component.block = vue_block
+		component.insert()
+		self.assertIn("Cart", frappe.as_json(frappe.get_message_log()))
+
+		frappe.clear_messages()
+		frappe.get_doc(
+			doctype="Studio Component",
+			component_name="Owned",
+			studio_app=app.name,
+			script=app_import,
+			block=vue_block,
+		).insert()
+		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_a_global_component_moves_to_the_app_that_uses_it(self):
+		with exports_in_tempdir():
+			suffix = frappe.generate_hash(length=10)
+			component = frappe.get_doc(
+				doctype="Studio Component", component_name=f"Card {suffix}", script=COMPONENT_SCRIPT
+			).insert()
+			component_id = component.component_id
+			blocks = frappe.as_json([{"componentName": component_id, "isStudioComponent": True}])
+			app = make_studio_app(app_name=f"owner-{suffix}", is_standard=1, frappe_app="frappe")
+			page = make_studio_page(app.name, blocks=blocks)
+			other_page = make_studio_page(make_studio_app(app_name=f"other-{suffix}").name, blocks=blocks)
+
+			component.reload()
+			moved = component.set_app(app.name)
+
+			self.assertEqual(moved, {"name": f"{app.name}/{component_id}", "is_global_kept": True})
+			self.assertEqual(page.get_components(get_blocks(page))[0].name, moved["name"])
+			self.assertEqual(other_page.get_components(get_blocks(other_page))[0].name, component_id)
+			folder = page.get_component_folder_path()
+			exported = frappe.parse_json(frappe.read_file(os.path.join(folder, f"{component_id}.json")))
+			self.assertEqual(exported.studio_app, app.name)
+
+			frappe.delete_doc("Studio Page", other_page.name, force=True)
+			leftover = frappe.get_doc("Studio Component", component_id)
+			second_app = make_studio_app(app_name=f"second-{suffix}")
+			self.assertFalse(leftover.set_app(second_app.name)["is_global_kept"])
+			self.assertFalse(frappe.db.exists("Studio Component", component_id))
+
+			owned = frappe.get_doc("Studio Component", moved["name"])
+			self.assertEqual(owned.set_app()["name"], component_id)
+			self.assertFalse(frappe.db.exists("Studio Component", moved["name"]))
+			self.assertEqual(page.get_components(get_blocks(page))[0].name, component_id)
+			self.assertEqual(sorted(os.listdir(folder)), [f"{component_id}.js", f"{component_id}.json"])
+			exported = frappe.parse_json(frappe.read_file(os.path.join(folder, f"{component_id}.json")))
+			self.assertEqual((exported.name, exported.get("studio_app")), (component_id, None))

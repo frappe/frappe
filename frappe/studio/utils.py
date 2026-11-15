@@ -15,6 +15,10 @@ def camel_case_to_kebab_case(text, remove_spaces=False):
 	return text
 
 
+# an import of one of the app's own files: `@app/...`, or a relative path
+IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
+
+
 def walk_blocks(blocks):
 	"""Yield all blocks recursively, including children and slots."""
 	if isinstance(blocks, str):

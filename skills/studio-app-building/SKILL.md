@@ -88,6 +88,9 @@ name one type.
   `<studio_app>/<component_id>`. A component without `studio_app` is global: all
   apps can use it, and its `name` is its `component_id`. A block's `componentName` is
   the `component_id`: the app's own component is used before a global one.
+- Set `studio_app` on each component that you write for an exported app. A
+  global component cannot import the app's files (`@app/` or a relative path)
+  and must not contain the app's `.vue` components.
 
 - Page scripts are optional. Use TypeScript (`.ts`) for new page scripts. Keep
   existing `.js` files in JavaScript. Do not create both extensions for one
