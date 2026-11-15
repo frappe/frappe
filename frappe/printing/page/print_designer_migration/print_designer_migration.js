@@ -152,11 +152,7 @@ class PrintDesignerMigration {
 			const name = dialog.get_value("document");
 			if (!name) return;
 			const [original, converted] = dialog.fields_dict.panes.$wrapper.find("iframe");
-			original.src = pdf("frappe.utils.print_format.download_pdf", {
-				doctype: row.doc_type,
-				name,
-				format: row.name,
-			});
+			original.src = pdf(`${METHOD}.preview_print_designer`, { print_format: row.name, name });
 			converted.src = pdf(`${METHOD}.preview_conversion`, { print_format: row.name, name });
 		};
 		dialog.show();

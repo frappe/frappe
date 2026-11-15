@@ -91,3 +91,34 @@ def preview_conversion(print_format: str, name: str | None = None) -> None:
 	converted = doc.as_dict()
 	converted.update(converted_values(doc)[0], name=None)
 	download_builder_preview_pdf(converted, doc.doc_type, name)
+
+
+@frappe.whitelist()
+def preview_print_designer(print_format: str, name: str) -> None:
+	from frappe.utils.print_format import download_pdf
+
+	frappe.only_for("System Manager")
+	doc = frappe.get_doc("Print Format", print_format)
+	if not is_print_designer_format(doc):
+		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
+
+	def last_error():
+		return frappe.get_all(
+			"Error Log",
+			filters={"reference_doctype": "Print Format", "reference_name": print_format},
+			pluck="name",
+			order_by="creation desc",
+			limit=1,
+		)
+
+	logged = last_error()
+	download_pdf(doc.doc_type, name, print_format)
+	if last_error() != logged:
+		message = _("Print Designer can't render this format.")
+		frappe.local.response.update(
+			type="download",
+			display_content_as="inline",
+			content_type="text/html",
+			filename="preview.html",
+			filecontent=f'<p style="font-family: sans-serif; color: #7c7c7c; text-align: center">{message}</p>',
+		)
