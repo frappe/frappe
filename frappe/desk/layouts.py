@@ -513,11 +513,11 @@ def can_edit_layout(layout: dict, manager: bool) -> bool:
 
 def strongest_editable(doc, user: str) -> dict | None:
 	"""Where an edit for `user` shows: the strongest app layout that applies to them for a developer,
-	else the strongest site layout, or the site's edit before its first save. None is the default."""
+	else the strongest site layout, or the site's edit of an app's page before its first save. None
+	is the default."""
 	matched = matched_layouts(doc, user)
-	if frappe.conf.developer_mode:
-		return next((layout for layout in reversed(matched) if layout["module"]), None)
-	if not doc.standard:
-		return None
+	apps = [layout for layout in matched if layout["module"]] if frappe.conf.developer_mode else []
 	sites = [layout for layout in matched if layout_kind(layout) == "site"]
-	return sites[-1] if sites else UNSAVED_SITE_EDIT
+	if apps or sites:
+		return (apps or sites)[-1]
+	return UNSAVED_SITE_EDIT if doc.standard and not frappe.conf.developer_mode else None

@@ -494,6 +494,16 @@ class TestViewAs(IntegrationTestCase):
 		mine = get_workspace("Layout Page", edit=1)
 		self.assertEqual([b["data"]["widget"] for b in mine["content"]], [self.todos.name])
 
+	def test_viewing_as_a_user_on_a_sites_own_page_lands_on_their_named_layout(self):
+		make_workspace("Layout Page", content=[widget_block(self.todos)])
+		india = make_layout(
+			"India Desk", condition='frappe.defaults.get_user_default("layout_country") == "India"'
+		)
+
+		frappe.set_user(MANAGER)
+		self.assertEqual(view_as("Layout Page", INDIA)["layout"], india.name)
+		self.assertIsNone(view_as("Layout Page", US)["layout"], "nothing applies, so the default")
+
 	def test_preview_as_a_user_is_what_they_see(self):
 		frappe.set_user(MANAGER)
 		preview = get_workspace("Layout Page", view_as=INDIA)["content"]
