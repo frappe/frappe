@@ -120,21 +120,42 @@ class StudioComponent(Document):
 		moved.insert()
 		is_global_kept = bool(studio_app) and self.is_used()
 		if not is_global_kept:
-			# the moved component takes over the files
-			self.flags.keep_files = True
+			# the moved component takes over the files and the blocks that use the id
+			self.flags.is_moved = True
 			self.delete()
 		for folder in folders if not studio_app else moved.get_export_folders():
 			moved.export_to_folder(folder)
 		return {"name": moved.name, "is_global_kept": is_global_kept}
 
 	def is_used(self) -> bool:
-		"""Whether a block of a page or a component still means this component."""
-		trees = []
+		return bool(self.get_users())
+
+	def get_users(self) -> list[str]:
+		"""Titles of the pages and components that have a block which still means this component."""
+		users = []
 		for component in self.get_referencing_docs("Studio Component", self.component_id):
-			trees.append(frappe.db.get_value("Studio Component", component, "block"))
+			title, block = frappe.db.get_value("Studio Component", component, ["component_name", "block"])
+			if self.is_in_blocks(block):
+				users.append(_("{0} (component)").format(title))
 		for page in self.get_referencing_docs("Studio Page", self.component_id):
-			trees.extend(frappe.db.get_value("Studio Page", page, ["blocks", "draft_blocks"]))
-		return any(self.component_id in extract_component_names(tree) for tree in trees if tree)
+			title, *trees = frappe.db.get_value("Studio Page", page, ["page_title", "blocks", "draft_blocks"])
+			if any(self.is_in_blocks(tree) for tree in trees):
+				users.append(_("{0} (page)").format(title))
+		return users
+
+	def is_in_blocks(self, tree: str | None) -> bool:
+		return bool(tree) and self.component_id in extract_component_names(tree)
+
+	def validate_not_used(self):
+		users = self.get_users()
+		if users:
+			frappe.throw(
+				_("{0} is used in: {1}. Remove it from there first.").format(
+					self.component_name, ", ".join(users)
+				),
+				title=_("Component not deleted"),
+				exc=frappe.LinkExistsError,
+			)
 
 	def before_rename(self, old, new, merge=False):
 		"""Renaming the document changes the component's id. The new name can be the id alone."""
@@ -205,7 +226,11 @@ class StudioComponent(Document):
 
 	def on_trash(self):
 		validate_standard_app_change(self)
-		if frappe.conf.developer_mode and not self.flags.keep_files:
+		if self.flags.is_moved:
+			return
+		if not self.flags.is_app_deleted:
+			self.validate_not_used()
+		if frappe.conf.developer_mode:
 			self.delete_files()
 
 	def export_to_folder(self, folder: str):

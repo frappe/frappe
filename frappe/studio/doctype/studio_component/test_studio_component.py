@@ -61,17 +61,53 @@ class TestStudioComponent(IntegrationTestCase):
 			app = make_studio_app(
 				app_name="exported-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
-			component = frappe.get_doc(doctype="Studio Component", component_name="Exported").insert()
-			blocks = [{"componentName": component.name, "isStudioComponent": True, "children": []}]
+			component = frappe.get_doc(
+				doctype="Studio Component", component_name="Exported", studio_app=app.name
+			).insert()
+			blocks = [{"componentName": component.component_id, "isStudioComponent": True, "children": []}]
 			page = make_studio_page(app.name, blocks=frappe.as_json(blocks))
-			path = os.path.join(page.get_component_folder_path(), f"{frappe.scrub(component.name)}.json")
+			path = os.path.join(page.get_component_folder_path(), "exported.json")
 			self.assertTrue(os.path.exists(path))
 			self.assertTrue(frappe.parse_json(frappe.read_file(path)).is_standard)
 			self.assertTrue(frappe.db.get_value("Studio Component", component.name, "is_standard"))
 
-			component.delete()
+			self.assertRaises(frappe.LinkExistsError, component.delete)
+			self.assertTrue(os.path.exists(path))
+			page.blocks = "[]"
+			page.save()
+			component.reload().delete()
 
 			self.assertFalse(os.path.exists(path))
+
+	def test_a_component_in_use_cannot_be_deleted(self):
+		app = make_studio_app(app_name="uses-" + frappe.generate_hash(length=10))
+		card = frappe.get_doc(doctype="Studio Component", component_name="Card", studio_app=app.name).insert()
+		use_card = {"componentName": card.component_id, "isStudioComponent": True, "children": []}
+		card_list = frappe.get_doc(
+			doctype="Studio Component", component_name="Card List", studio_app=app.name, block=use_card
+		).insert()
+		page = make_studio_page(app.name, blocks="[]")
+		page.draft_blocks = frappe.as_json([use_card])
+		page.save()
+
+		with self.assertRaises(frappe.LinkExistsError) as error:
+			card.delete()
+		self.assertIn("Card List (component)", str(error.exception))
+		self.assertIn(f"{page.page_title} (page)", str(error.exception))
+
+		page.draft_blocks = "[]"
+		page.save()
+		card_list.delete()
+		card.reload().delete()
+		self.assertFalse(frappe.db.exists("Studio Component", card.name))
+
+		# an app's components can use each other, and go with the app
+		card = frappe.get_doc(doctype="Studio Component", component_name="Card", studio_app=app.name).insert()
+		frappe.get_doc(
+			doctype="Studio Component", component_name="Card List", studio_app=app.name, block=use_card
+		).insert()
+		app.delete()
+		self.assertFalse(frappe.db.exists("Studio Component", card.name))
 
 	def test_export_drops_empty_block_values(self):
 		block = {
