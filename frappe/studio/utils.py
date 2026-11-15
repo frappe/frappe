@@ -125,7 +125,7 @@ def find_component_scripts(folder: str) -> list[dict]:
 		file_path = find_script_file(folder, file.removesuffix(".json"))
 		if not file.endswith(".json") or not os.path.exists(file_path):
 			continue
-		component_id = frappe.parse_json(frappe.read_file(os.path.join(folder, file))).get("name")
+		component_id = frappe.parse_json(frappe.read_file(os.path.join(folder, file))).get("component_id")
 		if component_id:
 			scripts.append({"component_id": component_id, "file_path": file_path})
 	return scripts

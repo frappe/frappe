@@ -14,8 +14,8 @@ from frappe.studio.utils import find_script_file, get_studio_folder
 # Layout written by the exporters — see StudioApp.get_folder_path and StudioPage.get_folder_path:
 #   <frappe_app>/studio/<studio_app>/<studio_app>.json                -> Studio App
 #   <frappe_app>/studio/<studio_app>/studio_page/<stem>/<stem>.json   -> Studio Page
-#   <frappe_app>/studio/<studio_app>/studio_components/<name>.json    -> Studio Component
-#   <frappe_app>/studio/<studio_app>/studio_components/<name>.js|ts   -> its `script` field
+#   <frappe_app>/studio/<studio_app>/studio_components/<id>.json      -> Studio Component
+#   <frappe_app>/studio/<studio_app>/studio_components/<id>.js|ts     -> its `script` field
 PAGE_FOLDER = "studio_page"
 COMPONENT_FOLDER = "studio_components"
 
@@ -71,7 +71,7 @@ def import_script_file(component_path: str) -> bool:
 
 	The JSON carries no script, so importing it leaves the field empty."""
 	folder, file_name = os.path.split(component_path)
-	name = frappe.parse_json(frappe.read_file(component_path)).get("name")
+	name = get_exported_component_name(component_path)
 	script = frappe.read_file(find_script_file(folder, file_name.removesuffix(".json"))) or None
 	if not frappe.db.exists("Studio Component", name):
 		return False
@@ -79,6 +79,14 @@ def import_script_file(component_path: str) -> bool:
 		return False
 	frappe.db.set_value("Studio Component", name, "script", script, update_modified=False)
 	return True
+
+
+def get_exported_component_name(component_path: str) -> str:
+	"""The docname of an exported component. A file written by hand may not carry it."""
+	from frappe.studio.doctype.studio_component.studio_component import get_component_name
+
+	data = frappe.parse_json(frappe.read_file(component_path))
+	return get_component_name(data.get("component_id") or data.get("name"), data.get("studio_app"))
 
 
 def get_component_path_from_script(path: str) -> str | None:
@@ -92,9 +100,10 @@ def get_component_path_from_script(path: str) -> str | None:
 
 def synced_doc_identity(path: str, doctype: str) -> dict:
 	data = frappe.parse_json(frappe.read_file(path))
+	is_component = doctype == "Studio Component"
 	return {
 		"doctype": doctype,
-		"name": data.get(DOCNAME_FIELD[doctype]),
+		"name": get_exported_component_name(path) if is_component else data.get(DOCNAME_FIELD[doctype]),
 		"studio_app": get_studio_relative_parts(path)[0],
 	}
 

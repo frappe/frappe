@@ -28,10 +28,10 @@ export function useLiveEditor() {
 
 		if (source !== "disk") return
 
-		// components are global (no app scope), so react regardless of which app is open. Re-fetching
-		// the definition re-renders its instances reactively — no page rebuild needed.
+		// A global component can change while any app is open. Re-fetching the definition
+		// re-renders its instances reactively — no page rebuild needed.
 		if (doctype === "Studio Component") {
-			await useComponentStore().reloadComponent(name)
+			await useComponentStore().reloadComponentDoc(name)
 			return
 		}
 

@@ -1,6 +1,6 @@
 import { defineStore } from "pinia"
 import { markRaw, reactive, shallowReactive, type Component } from "vue"
-import { createDocumentResource } from "frappe-ui"
+import { call } from "frappe-ui"
 import Block from "@/utils/block"
 import type { StudioComponent, StudioComponentInput } from "@/types/Studio/StudioComponent"
 import { compileComponentScript } from "@/browserRuntime/appRuntime"
@@ -36,14 +36,29 @@ const useComponentStore = defineStore("componentStore", () => {
 		if (componentDoc) setComponentScript(componentDoc, () => validateComponentScript(module.default))
 	})
 
-	async function fetchComponent(componentName: string) {
-		const componentDoc = await createDocumentResource({
-			doctype: "Studio Component",
-			name: componentName,
-			auto: true,
+	// A block names a component by its id. The app decides which component that id means:
+	// its own component, or else the global one.
+	let studioApp: string | undefined
+
+	function setStudioApp(appName: string) {
+		if (appName === studioApp) return
+		studioApp = appName
+		for (const componentId of [...componentDocMap.keys()]) removeCachedComponent(componentId)
+	}
+
+	function fetchComponent(componentId: string): Promise<StudioComponent> {
+		return call("frappe.studio.api.get_studio_component", {
+			component_id: componentId,
+			studio_app: studioApp ?? window.app_name,
 		})
-		await componentDoc.get.promise
-		return componentDoc.doc as StudioComponent
+	}
+
+	/** Reload a component that changed on the server, given its docname: `<app>/<id>`, or `<id>`. */
+	async function reloadComponentDoc(name: string) {
+		const separator = name.lastIndexOf("/")
+		const owner = separator === -1 ? null : name.slice(0, separator)
+		if (owner && owner !== (studioApp ?? window.app_name)) return
+		await reloadComponent(name.slice(separator + 1))
 	}
 
 	async function getComponent(componentName: string): Promise<Block | undefined> {
@@ -247,6 +262,8 @@ const useComponentStore = defineStore("componentStore", () => {
 		loadComponent,
 		setComponents,
 		reloadComponent,
+		reloadComponentDoc,
+		setStudioApp,
 		getComponent,
 		getComponentDoc,
 		getComponentName,

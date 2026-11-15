@@ -20,6 +20,7 @@ import {
 	unregisterStudioComponentScripts,
 } from "@/data/studioComponentScripts"
 import useComponentStore from "@/stores/componentStore"
+import { loadStudioComponents } from "@/data/studioComponents"
 import { loadAppRuntime, reloadAppRuntime, unloadAppRuntime } from "@/browserRuntime/appRuntime"
 import { registerCustomComponentPaths } from "@/utils/components"
 import type { CustomVueComponentMeta } from "@/types/vue"
@@ -129,6 +130,8 @@ const useStudioStore = defineStore("store", () => {
 		const appDoc = await fetchApp(appName)
 		if (!appDoc) return
 		activeApp.value = appDoc
+		useComponentStore().setStudioApp(appName)
+		loadStudioComponents(appName)
 		if (isDbApp.value) await loadAppRuntime(appName)
 		else await unloadAppRuntime()
 		await setAppBoot(appName)

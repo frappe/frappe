@@ -35,7 +35,7 @@ export function useLivePreview() {
 
 	const onDocUpdate = (info: any) => {
 		if (info?.doctype === "Studio Component") {
-			useComponentStore().reloadComponent(info.name)
+			useComponentStore().reloadComponentDoc(info.name)
 		} else if (info?.doctype === "Studio Page" && info?.name === router.currentRoute.value.meta.pageName) {
 			reloadPage(info.name)
 		} else if (

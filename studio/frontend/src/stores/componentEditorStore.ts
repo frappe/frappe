@@ -2,6 +2,7 @@ import { defineStore } from "pinia"
 import { ref } from "vue"
 import { dialog } from "frappe-ui"
 import { studioComponents } from "@/data/studioComponents"
+import useStudioStore from "@/stores/studioStore"
 import { confirm } from "@/utils/helpers"
 import getBlockTemplate from "@/utils/blockTemplate"
 import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
@@ -17,8 +18,9 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const componentInputs = ref<ComponentInput[]>([])
 	const componentStore = useComponentStore()
 
-	async function createComponent(componentName: string, block?: Block | null) {
+	async function createComponent(componentName: string, block?: Block | null, isGlobal = false) {
 		const component: any = { component_name: componentName }
+		if (!isGlobal) component.studio_app = useStudioStore().activeApp?.name
 		if (block) {
 			component.block = getBlockObjectCopy(block)
 			if (component.block?.parentSlotName) {
@@ -48,17 +50,20 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		dialog.prompt({
 			title: "Create Component",
 			confirmLabel: "Create",
-			fields: [{ name: "componentName", label: "Component Name", required: true }],
+			fields: [
+				{ name: "componentName", label: "Component Name", required: true },
+				{ name: "isGlobalComponent", label: "Global Component", type: "checkbox" },
+			],
 			onConfirm: async ({ values }: { values: Record<string, any> }) => {
-				const component = await createComponent(values.componentName, options.block)
+				const component = await createComponent(values.componentName, options.block, values.isGlobalComponent)
 				if (component) options.onCreated(component)
 			},
 		})
 	}
 
-	function saveComponent(block: Block, componentName: string) {
+	function saveComponent(block: Block, docname: string) {
 		const payload: any = {
-			name: componentName,
+			name: docname,
 			block: getBlockObjectCopy(block),
 		}
 
@@ -96,7 +101,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
 			block,
-			(editedBlock) => saveComponent(editedBlock, componentDoc.component_id),
+			(editedBlock) => saveComponent(editedBlock, componentDoc.name),
 			"Save Component",
 			componentDoc.component_name,
 			componentDoc.component_id,
@@ -114,7 +119,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			)
 			if (confirmed) {
 				studioComponents.delete
-					.submit(component.component_id)
+					.submit(component.name)
 					.then(() => {
 						toast.success(`Component '${component.component_name}' deleted`)
 						studioComponents.reload()

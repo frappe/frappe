@@ -2,7 +2,6 @@
  "actions": [],
  "allow_bulk_edit": 1,
  "allow_rename": 1,
- "autoname": "field:component_id",
  "beta": 1,
  "creation": "2025-08-16 20:44:59.726936",
  "doctype": "DocType",
@@ -13,6 +12,7 @@
   "block",
   "script",
   "component_id",
+  "studio_app",
   "is_standard",
   "interface_tab",
   "inputs"
@@ -27,8 +27,7 @@
    "fieldname": "component_id",
    "fieldtype": "Data",
    "label": "Component ID",
-   "no_copy": 1,
-   "unique": 1
+   "no_copy": 1
   },
   {
    "fieldname": "interface_tab",
@@ -67,16 +66,25 @@
    "fieldtype": "Code",
    "label": "Script",
    "options": "JavaScript"
+  },
+  {
+   "description": "The app that owns the component. A component without an app is available in every app.",
+   "fieldname": "studio_app",
+   "fieldtype": "Link",
+   "label": "Studio App",
+   "options": "Studio App",
+   "search_index": 1,
+   "set_only_once": 1
   }
  ],
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-13 06:40:44.906305",
+ "modified": "2026-11-15 01:12:36.513307",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
- "naming_rule": "By fieldname",
+ "naming_rule": "By script",
  "owner": "Administrator",
  "permissions": [
   {

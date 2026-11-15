@@ -16,7 +16,7 @@ import getBlockTemplate from "@/utils/blockTemplate"
 const APP_NAME = "cypress-guest"
 const COMPONENT_ID = "cypress_header"
 const COUNTER_ID = "cypress_stored_counter"
-const GET_COMPONENT = /\/api\/method\/frappe\.client\.get\?/
+const GET_COMPONENT = "**/api/method/frappe.studio.api.get_studio_component"
 
 const headerBlock = {
 	...getBlockTemplate("container"),
@@ -141,10 +141,8 @@ describe("studio components for guests", () => {
 		setActivePinia(pinia)
 		useComponentStore().removeCachedComponent(COMPONENT_ID)
 		useComponentStore().removeCachedComponent(COUNTER_ID)
-		// a refused fetch also rejects frappe-ui's own auto fetch, outside the store's catch
-		cy.on("uncaught:exception", (error) => !error.message.includes("frappe.client.get"))
 		cy.asGuest()
-		cy.intercept("GET", GET_COMPONENT).as("getComponent")
+		cy.intercept("POST", GET_COMPONENT).as("getComponent")
 	})
 
 	function mountAppPage() {
@@ -191,7 +189,7 @@ describe("studio components for guests", () => {
 	})
 
 	it("keeps a component from the page payload when a fetch of it is refused later", () => {
-		cy.intercept("GET", GET_COMPONENT, (request) =>
+		cy.intercept("POST", GET_COMPONENT, (request) =>
 			request.continue((response) => {
 				response.setDelay(100)
 			}),

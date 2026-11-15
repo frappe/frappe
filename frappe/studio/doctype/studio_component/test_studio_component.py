@@ -10,6 +10,7 @@ from frappe.studio.doctype.studio_app.test_studio_app import (
 	make_studio_app,
 	make_studio_page,
 )
+from frappe.studio.doctype.studio_page.studio_page import get_blocks
 from frappe.tests import IntegrationTestCase
 
 COMPONENT_SCRIPT = 'export default {\n\tprops: { title: String },\n\temits: ["select"],\n}\n'
@@ -132,3 +133,62 @@ class TestStudioComponent(IntegrationTestCase):
 			page.save()
 			self.assertFalse(os.path.exists(script_path))
 			self.assertTrue(frappe.db.exists("Studio Component", component.name))
+
+	def test_two_apps_can_each_have_a_component_with_the_same_id(self):
+		with exports_in_tempdir():
+			suffix = frappe.generate_hash(length=10)
+			component_id = f"header_{suffix}"
+			blocks = frappe.as_json([{"componentName": component_id, "isStudioComponent": True}])
+			global_component = frappe.get_doc(
+				doctype="Studio Component", component_id=component_id, component_name="Global"
+			).insert()
+			pages = {}
+			for label in ("First", "Second"):
+				app = make_studio_app(
+					app_name=f"{label.lower()}-{suffix}", is_standard=1, frappe_app="frappe"
+				)
+				frappe.get_doc(
+					doctype="Studio Component",
+					component_id=component_id,
+					component_name=label,
+					studio_app=app.name,
+					script=COMPONENT_SCRIPT,
+				).insert()
+				pages[label] = make_studio_page(app.name, blocks=blocks)
+			other_page = make_studio_page(make_studio_app(app_name=f"other-{suffix}").name, blocks=blocks)
+
+			self.assertEqual(global_component.name, component_id)
+			for label, page in pages.items():
+				component = page.get_components(get_blocks(page))[0]
+				self.assertEqual(component.name, f"{page.studio_app}/{component_id}")
+				folder = page.get_component_folder_path()
+				exported = frappe.parse_json(frappe.read_file(os.path.join(folder, f"{component_id}.json")))
+				self.assertEqual(exported.component_name, label)
+				self.assertTrue(os.path.exists(os.path.join(folder, f"{component_id}.js")))
+			self.assertEqual(other_page.get_components(get_blocks(other_page))[0].name, global_component.name)
+
+			global_component.script = COMPONENT_SCRIPT
+			global_component.save()
+			self.assertEqual(global_component.get_export_folders(), [])
+
+	def test_an_app_takes_its_components_with_it(self):
+		with exports_in_tempdir():
+			suffix = frappe.generate_hash(length=10)
+			app = make_studio_app(app_name=f"owner-{suffix}", is_standard=1, frappe_app="frappe")
+			component = frappe.get_doc(
+				doctype="Studio Component", component_name="Card", studio_app=app.name
+			).insert()
+			blocks = [{"componentName": component.component_id, "isStudioComponent": True}]
+			make_studio_page(app.name, blocks=frappe.as_json(blocks))
+
+			new_name = f"renamed-{suffix}"
+			frappe.rename_doc("Studio App", app.name, new_name)
+			self.assertFalse(frappe.db.exists("Studio Component", component.name))
+			renamed = frappe.get_doc("Studio Component", f"{new_name}/card")
+			exported = frappe.parse_json(
+				frappe.read_file(os.path.join(renamed.get_export_folders()[0], "card.json"))
+			)
+			self.assertEqual((exported.name, exported.studio_app), (renamed.name, new_name))
+
+			frappe.delete_doc("Studio App", new_name)
+			self.assertFalse(frappe.db.exists("Studio Component", renamed.name))
