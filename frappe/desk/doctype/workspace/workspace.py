@@ -1036,6 +1036,7 @@ def save_page(
 	widget_edits: dict | None = None,
 	layout_settings: dict | None = None,
 	page_settings: dict | None = None,
+	view_as: str | None = None,
 ):
 	"""Save the page an editor drew as changes to where it goes: `layout`, the site's or the user's
 	own layout, or the default. Blocks it adds or edits become Widgets.
@@ -1043,7 +1044,7 @@ def save_page(
 	`widget_edits` is `{widget name: {label, config}}` for the Widgets the editor changed.
 	`layout_settings` (`layout_name`, `condition`, `module`) names and conditions the layout, and
 	without `layout` makes a new one. `page_settings` (`title`, `icon`, `module`, `hide_custom`)
-	changes the workspace itself.
+	changes the workspace itself. `view_as` names the user the editor drew the page for.
 	"""
 	from frappe.desk.desktop import drawable_ids, open_workspace
 	from frappe.desk.layouts import diff, merge, with_ids
@@ -1058,7 +1059,8 @@ def save_page(
 		apply_page_settings(name, frappe.parse_json(page_settings))
 	target = save_target(workspace.doc, layout, frappe.parse_json(layout_settings))
 	page = apply_widget_edits(page, frappe.parse_json(widget_edits) or {}, can_edit_workspace(workspace.doc))
-	base = base_page(workspace.doc, target)
+	viewer = view_as if can_edit_workspace(workspace.doc) else None
+	base = base_page(workspace.doc, target, viewer)
 	base_ids = {block["id"] for block in base}
 	module = widget_module(workspace.doc, target)
 	page = with_ids(
@@ -1190,13 +1192,13 @@ def find_or_new_layout(filters: dict):
 	)
 
 
-def base_page(doc, target) -> list:
+def base_page(doc, target, user: str | None = None) -> list:
 	"""What a save is written against: the default, or for a layout the weaker ones over it."""
 	from frappe.desk.layouts import layouts_under, merged_content, with_ids
 
 	if not target:
 		return with_ids(loads(frappe.db.get_value("Workspace", doc.name, "content") or "[]"))
-	return merged_content(doc, layouts_under(doc, target.as_dict()))
+	return merged_content(doc, layouts_under(doc, target.as_dict(), user))
 
 
 def widget_module(doc, target) -> str | None:

@@ -6,7 +6,7 @@ from json import dumps, loads
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.desktop import get_workspace
+from frappe.desk.desktop import get_workspace, view_as
 from frappe.desk.doctype.workspace.workspace import new_page, save_page
 from frappe.desk.doctype.workspace_layout.workspace_layout import remove_layouts_without_files
 from frappe.desk.layouts import block_id, item_id
@@ -383,6 +383,45 @@ class TestDrafts(IntegrationTestCase):
 		)
 		self.addCleanup(frappe.delete_doc, "Workspace", "WL New")
 		self.assertTrue(frappe.db.get_value("Workspace", "WL New", "hide_custom"))
+
+
+class TestViewAs(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		for user in (INDIA, US):
+			make_user(user, ["Desk User"])
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		frappe.defaults.set_user_default("layout_country", "India", INDIA)
+		self.todos, self.gst = make_shortcut("ToDos"), make_shortcut("GST", link_to="Note")
+		frappe.db.delete("Workspace Layout", {"workspace": "Layout Page"})
+		make_workspace("Layout Page", content=[widget_block(self.todos)], standard=1)
+		india = 'frappe.defaults.get_user_default("layout_country") == "India"'
+		make_layout(
+			"India", module="Desk", condition=india, add=[{"after": None, "block": widget_block(self.gst)}]
+		)
+		self.site = make_layout(None, resize={id_of(self.todos): 6})
+
+	def test_a_reader_may_not_view_as_someone_else(self):
+		frappe.set_user(US)
+		self.assertRaises(frappe.PermissionError, view_as, "Layout Page", INDIA)
+
+	def test_viewing_as_a_user_lands_on_the_site_layout_over_theirs(self):
+		frappe.set_user(MANAGER)
+		self.assertEqual(view_as("Layout Page", INDIA)["layout"], self.site.name)
+
+		page = get_workspace("Layout Page", edit=1, view_as=INDIA)
+		self.assertEqual(page["layout"], self.site.name)
+		self.assertEqual([b["data"]["widget"] for b in page["content"]], [self.gst.name, self.todos.name])
+		mine = get_workspace("Layout Page", edit=1)
+		self.assertEqual([b["data"]["widget"] for b in mine["content"]], [self.todos.name])
+
+	def test_preview_as_a_user_is_what_they_see(self):
+		frappe.set_user(MANAGER)
+		preview = get_workspace("Layout Page", view_as=INDIA)["content"]
+		frappe.set_user(INDIA)
+		self.assertEqual(preview, get_workspace("Layout Page")["content"])
 
 
 class TestDeletesAndRenames(IntegrationTestCase):

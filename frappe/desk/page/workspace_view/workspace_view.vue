@@ -47,10 +47,15 @@ const blocks_root = ref(null);
 const canvas = computed(() => {
 	if (editing.value && editor.value) {
 		const { blocks, widgets, previewing, selected_id, editing: layout } = editor.value;
+		const seen = previewing && preview_page.value;
 		return {
 			// a block a weaker layout hid is drawn faded to edit, and left out of the preview
-			content: previewing ? blocks.filter((block) => !block.hidden_by) : blocks,
-			widgets,
+			content: seen
+				? seen.content
+				: previewing
+				? blocks.filter((block) => !block.hidden_by)
+				: blocks,
+			widgets: seen ? seen.widgets : widgets,
 			widget_types: editing.value.widget_types,
 			editing: !previewing,
 			previewing,
@@ -70,6 +75,30 @@ const canvas = computed(() => {
 	);
 });
 const pane_open = computed(() => !!canvas.value?.editing);
+
+const preview_title = computed(() => {
+	const viewer = editing.value?.view_as;
+	if (viewer) return __("Previewing {0}'s page as saved, with your data.", [viewer]);
+	const layout = canvas.value?.layout;
+	return layout
+		? __("Previewing the {0} layout with your data.", [layout.label])
+		: __("Previewing the default layout with your data.");
+});
+
+// Previewing as someone else draws their whole page, as saved.
+const preview_page = shallowRef(null);
+watch(
+	() => editor.value?.previewing && editing.value?.view_as,
+	async (viewer) => {
+		preview_page.value = null;
+		if (!viewer) return;
+		const page = await get("frappe.desk.desktop.get_workspace", {
+			name: editing.value.name,
+			view_as: viewer,
+		});
+		if (editor.value?.previewing) preview_page.value = page;
+	}
+);
 
 // The pane slides in from the edge as the blocks glide over to make room, and back out the same way.
 const DRAWER = "cubic-bezier(0.32, 0.72, 0, 1)";
@@ -159,7 +188,8 @@ const can_open_editor = computed(
 
 // `layout` names the Workspace Layout to edit, over the weaker ones that apply.
 async function edit(layout, extra = {}) {
-	const params = { name: workspace.value.name, edit: 1, ...extra };
+	const given = Object.entries(extra).filter(([, value]) => value !== undefined);
+	const params = { name: workspace.value.name, edit: 1, ...Object.fromEntries(given) };
 	if (typeof layout === "string") params.layout = layout;
 	const [page] = await Promise.all([
 		get("frappe.desk.desktop.get_workspace", params),
@@ -292,13 +322,7 @@ onBeforeUnmount(() => window.removeEventListener("beforeunload", warn_before_unl
 								v-if="canvas.previewing"
 								class="mb-4"
 								icon="lucide-eye"
-								:title="
-									canvas.layout
-										? __('Previewing the {0} layout with your data.', [
-												canvas.layout.label,
-										  ])
-										: __('Previewing the default layout with your data.')
-								"
+								:title="preview_title"
 							/>
 						</Transition>
 						<Alert

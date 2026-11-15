@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { Select, Switch, TextInput, Textarea } from "frappe-ui";
+import { Link } from "@framework/ui";
 
 // What the pencil is on, with no block selected: the page's own fields, and the layout's name,
 // condition and, for a developer, the app it ships with.
@@ -9,9 +10,12 @@ const props = defineProps({
 	page_fields: { type: Array, default: () => [] },
 	layout: { type: Object, default: null },
 	layout_fields: { type: Array, default: () => [] },
+	// the user the page is drawn for, and whether the editor may pick another
+	view_as: { type: String, default: null },
+	can_view_as: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["change"]);
+const emit = defineEmits(["change", "view-as"]);
 const __ = window.__;
 const frappe = window.frappe;
 
@@ -46,6 +50,16 @@ const has = (fields, field) => fields.includes(field);
 
 <template>
 	<section class="flex flex-col gap-4 border-t border-outline-gray-2 p-5">
+		<div v-if="can_view_as" class="flex flex-col gap-1.5">
+			<span class="text-sm text-ink-gray-6">{{ __("View as") }}</span>
+			<Link
+				doctype="User"
+				:aria-label="__('View as')"
+				:placeholder="__('You')"
+				:model-value="view_as"
+				@update:model-value="(user) => emit('view-as', user)"
+			/>
+		</div>
 		<template v-if="layout && layout_fields.length">
 			<span class="text-base font-medium text-ink-gray-8">{{ __("Layout") }}</span>
 			<TextInput

@@ -73,29 +73,29 @@ def merged_content(doc, layouts: list[dict]) -> list:
 	)
 
 
-def matched_layouts(doc) -> list[dict]:
-	"""The layouts of `doc` that apply to the session user, weakest first."""
-	layouts = sorted(workspace_layouts(doc.name), key=lambda layout: strength(layout, owner_app(doc)))
-	return [layout for layout in layouts if condition_holds(layout["condition"])]
+def matched_layouts(doc, user: str | None = None) -> list[dict]:
+	"""The layouts of `doc` that apply to `user`, the session user by default, weakest first."""
+	layouts = sorted(workspace_layouts(doc.name, user), key=lambda layout: strength(layout, owner_app(doc)))
+	return [layout for layout in layouts if condition_holds(layout["condition"], user)]
 
 
-def layouts_under(doc, layout: dict) -> list[dict]:
-	"""The layouts weaker than `layout` that apply to the session user, weakest first."""
+def layouts_under(doc, layout: dict, user: str | None = None) -> list[dict]:
+	"""The layouts weaker than `layout` that apply to `user`, weakest first."""
 	owner = owner_app(doc)
 	return [
 		match
-		for match in matched_layouts(doc)
+		for match in matched_layouts(doc, user)
 		if match["name"] != layout.get("name") and strength(match, owner) < strength(layout, owner)
 	]
 
 
-def workspace_layouts(workspace: str) -> list[dict]:
+def workspace_layouts(workspace: str, user: str | None = None) -> list[dict]:
+	"""The app and site layouts of `workspace`, and `user`'s own."""
+	user = user or frappe.session.user
 	shared = frappe.cache.hget(
 		LAYOUTS_KEY, workspace, lambda: load_layouts({"workspace": workspace, "user": ""})
 	)
-	own = frappe.cache.hget(
-		USER_LAYOUTS_KEY, frappe.session.user, lambda: load_layouts({"user": frappe.session.user})
-	)
+	own = frappe.cache.hget(USER_LAYOUTS_KEY, user, lambda: load_layouts({"user": user}))
 	return shared + [layout for layout in own if layout["workspace"] == workspace]
 
 
@@ -136,33 +136,33 @@ def clear_caches(workspace: str | None = None, user: str | None = None, all_user
 # Conditions
 
 
-def condition_holds(expression: str | None) -> bool:
+def condition_holds(expression: str | None, user: str | None = None) -> bool:
 	if not expression:
 		return True
-	user = frappe.session.user
+	user = user or frappe.session.user
 	cached = frappe.cache.hget(CONDITIONS_KEY, user) or {}
 	if cached.get("at", 0) < time.time() - CONDITION_TTL:
 		cached = {"at": time.time(), "results": {}}
 	results = cached["results"]
 	if expression not in results:
-		results[expression] = evaluate(expression)
+		results[expression] = evaluate(expression, user)
 		frappe.cache.hset(CONDITIONS_KEY, user, cached)
 	return results[expression]
 
 
-def evaluate(expression: str) -> bool:
-	"""Whether a layout's condition holds for the session user. One that raises counts as false."""
+def evaluate(expression: str, user: str) -> bool:
+	"""Whether a layout's condition holds for `user`. One that raises counts as false."""
 	try:
-		return bool(frappe.safe_eval(expression, eval_globals={"frappe": condition_namespace()}))
+		return bool(frappe.safe_eval(expression, eval_globals={"frappe": condition_namespace(user)}))
 	except Exception:
 		frappe.log_error(_("Workspace layout condition failed"), message=expression)
 		return False
 
 
-def condition_namespace():
-	"""All a condition can read: who the user is and how the site is set up."""
+def condition_namespace(user: str):
+	"""All a condition can read: who `user` is and how the site is set up."""
 	return frappe._dict(
-		get_roles=frappe.get_roles,
+		get_roles=lambda: frappe.get_roles(user),
 		get_installed_apps=frappe.get_installed_apps,
 		get_system_settings=frappe.get_system_settings,
 		db=frappe._dict(
@@ -170,8 +170,8 @@ def condition_namespace():
 			exists=frappe.db.exists,
 			get_value=frappe.db.get_value,
 		),
-		session=frappe._dict(user=frappe.session.user),
-		defaults=frappe._dict(get_user_default=frappe.defaults.get_user_default),
+		session=frappe._dict(user=user),
+		defaults=frappe._dict(get_user_default=lambda key: frappe.defaults.get_user_default(key, user)),
 	)
 
 
@@ -407,10 +407,10 @@ def is_site_edit(layout: dict) -> bool:
 	return not (layout["module"] or layout["user"] or layout["condition"])
 
 
-def editor_content(doc, layout: dict | None) -> list:
-	"""What an editor draws: `layout` over the weaker layouts that apply, each block naming the layout
-	that added it, and the blocks a weaker layout hid kept, faded, naming that layout."""
-	weaker = layouts_under(doc, layout) if layout else []
+def editor_content(doc, layout: dict | None, user: str | None = None) -> list:
+	"""What an editor draws: `layout` over the weaker layouts that apply to `user`, each block naming
+	the layout that added it, and the blocks a weaker layout hid kept, faded, naming that layout."""
+	weaker = layouts_under(doc, layout, user) if layout else []
 	stack = [*weaker, layout] if layout else []
 	own_hides = set(((layout or {}).get("changes") or {}).get("hide") or [])
 	faded = {i: origin_of(w) for w in weaker for i in w["changes"].get("hide") or [] if i not in own_hides}
@@ -469,3 +469,15 @@ def can_edit_layout(layout: dict, manager: bool) -> bool:
 	if layout["module"]:
 		return bool(frappe.conf.developer_mode)
 	return manager
+
+
+def strongest_editable(doc, user: str) -> dict | None:
+	"""Where an edit for `user` shows: the strongest app layout that applies to them for a developer,
+	else the strongest site layout, or the site's edit before its first save. None is the default."""
+	matched = matched_layouts(doc, user)
+	if frappe.conf.developer_mode:
+		return next((layout for layout in reversed(matched) if layout["module"]), None)
+	if not doc.standard:
+		return None
+	sites = [layout for layout in matched if not (layout["module"] or layout["user"])]
+	return sites[-1] if sites else UNSAVED_SITE_EDIT

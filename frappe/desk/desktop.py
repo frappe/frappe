@@ -24,6 +24,7 @@ from frappe.desk.layouts import (
 	matched_layouts,
 	merged_content,
 	picker_rows,
+	strongest_editable,
 )
 from frappe.desk.utils import is_item_allowed
 from frappe.desk.widgets import build_unsaved_widget, build_widgets, get_types
@@ -445,23 +446,30 @@ LINK_FIELDS = (
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
 def get_workspace(
-	name: str, layout: str | None = None, edit: bool | int = False, new_layout: bool | int = False
+	name: str,
+	layout: str | None = None,
+	edit: bool | int = False,
+	new_layout: bool | int = False,
+	view_as: str | None = None,
 ) -> dict:
 	"""Everything the workspace island draws, filtered to what the session user may read.
 
 	With `edit`, an editor gets the page they edit: `layout`, or where their save would go, drawn
 	over the weaker layouts. With `new_layout`, the page a new layout of the site's starts from.
+	`view_as` draws the layouts that apply to that user instead, for an editor only.
 	"""
 	from frappe.desk.doctype.workspace.workspace import can_edit_workspace
 
 	workspace = open_workspace({"name": name})
 	can_edit = can_edit_workspace(workspace.doc)
 	doc = workspace.doc
-	editing = editing_layout(doc, layout, cint(new_layout)) if can_edit and cint(edit) else None
+	viewer = view_as if can_edit and view_as else None
+	editing = None
 	if can_edit and cint(edit):
-		stored = editor_content(doc, editing)
+		editing = editing_for(doc, layout, cint(new_layout), viewer)
+		stored = editor_content(doc, editing, viewer)
 	else:
-		stored = merged_content(doc, matched_layouts(doc))
+		stored = merged_content(doc, matched_layouts(doc, viewer))
 	widgets = readable_widgets(workspace, stored)
 	_fold_chart_settings(widgets["charts"])
 	_load_custom_blocks(widgets["custom_blocks"])
@@ -483,6 +491,7 @@ def get_workspace(
 		"public": bool(doc.public),
 		"layout": editing and editing["name"],
 		"new_layout": editing is NEW_LAYOUT,
+		"view_as": viewer,
 		"layout_settings": editing and {key: editing[key] for key in ("layout_name", "condition", "module")},
 		**settings_fields(doc, editing, can_edit),
 		"page_settings": {
@@ -557,6 +566,28 @@ def editor_context(doc, editing: dict | None) -> dict:
 		path = os.path.join(frappe.get_module_path(doc.module), "workspace", scrubbed, f"{scrubbed}.json")
 	app = get_workspace_app(doc)
 	return {"layouts": layouts, "save_target": os.path.relpath(path, frappe.get_app_source_path(app))}
+
+
+def editing_for(doc, layout: str | None, new: bool, viewer: str | None) -> dict | None:
+	"""The layout named, or with someone viewed as, the one their edit would show in."""
+	if viewer and not layout and not new:
+		return strongest_editable(doc, viewer)
+	return editing_layout(doc, layout, new)
+
+
+@frappe.whitelist(methods=["GET"])
+def view_as(workspace: str, user: str) -> dict:
+	"""Which layouts of `workspace` apply to `user`, and the one an edit for them would show in."""
+	from frappe.desk.doctype.workspace.workspace import can_edit_workspace
+
+	doc = open_workspace({"name": workspace}).doc
+	if not can_edit_workspace(doc):
+		frappe.throw(
+			_("Only an editor of this workspace may view it as someone else."), frappe.PermissionError
+		)
+	applies = [layout["name"] for layout in matched_layouts(doc, user)]
+	target = strongest_editable(doc, user)
+	return {"applies": applies, "layout": target and target["name"]}
 
 
 def settings_fields(doc, editing: dict | None, can_edit: bool) -> dict:

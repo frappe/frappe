@@ -177,6 +177,7 @@ async function save() {
 			...(props.workspace.layout && { layout: props.workspace.layout }),
 			...(props.workspace.layout_fields?.length && { layout_settings }),
 			...(settings_changed.value && !props.workspace.draft && { page_settings }),
+			...(props.workspace.view_as && { view_as: props.workspace.view_as }),
 		});
 		frappe.show_alert({ message: __("Saved"), indicator: "green" });
 		if (props.workspace.draft) emit("created", name);
@@ -287,6 +288,12 @@ function picker_actions() {
 		: [...rows, new_row];
 }
 
+// The pencil moves to where an edit for that person shows, drawn over what applies to them.
+function view_as_user(user) {
+	const open = () => emit("switch", undefined, { view_as: user || undefined });
+	dirty.value ? confirm_discard(open) : open();
+}
+
 function confirm_discard(then) {
 	frappe.confirm(__("Discard your unsaved changes?"), then);
 }
@@ -300,8 +307,9 @@ function row_description(row) {
 
 function switch_to(row) {
 	if (row.editing) return;
-	if (!dirty.value) return emit("switch", row.name);
-	frappe.confirm(__("Discard your unsaved changes?"), () => emit("switch", row.name));
+	const viewer = props.workspace.view_as ? { view_as: props.workspace.view_as } : {};
+	if (!dirty.value) return emit("switch", row.name, viewer);
+	confirm_discard(() => emit("switch", row.name, viewer));
 }
 
 watch(
@@ -368,7 +376,10 @@ defineExpose({ blocks, widgets, selected_id, previewing, editing, dirty, on_move
 				:page_fields="workspace.page_fields"
 				:layout="layout_settings"
 				:layout_fields="workspace.layout_fields"
+				:view_as="workspace.view_as"
+				:can_view_as="layouts.length > 0 && !is_draft"
 				@change="settings_changed = true"
+				@view-as="view_as_user"
 			/>
 			<Transition
 				mode="out-in"
