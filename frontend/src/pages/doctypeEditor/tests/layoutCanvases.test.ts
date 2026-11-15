@@ -29,6 +29,7 @@ async function settle() {
 async function draw(component: Component, layout: LayoutRef, fromNewRecord = false, extra: Record<string, unknown> = {}) {
 	editor = mountEditor(leadNote());
 	if (extra.table) editor.canvas.state.definition.istable = 1;
+	if (extra.module) editor.canvas.state.module = String(extra.module);
 	if (extra.readOnly) Object.assign(editor.canvas, { editable: false });
 	if (fromNewRecord) editor.canvas.openForNewRecord(layout);
 	else editor.canvas.open(layout);
@@ -87,6 +88,13 @@ describe("the canvas of each layout type", () => {
 		editor.canvas.open({ type: "Details" });
 		await nextTick();
 		expect(root.querySelector("[data-new-record-note]")).toBeNull();
+	});
+});
+
+describe("the meta line", () => {
+	it("names a Custom module once", async () => {
+		const root = await draw(EditorCanvas, { type: "Details" }, false, { module: "Custom" });
+		expect(root.querySelector("[data-editor-meta]")!.textContent).toMatch(/^\s*Custom( · [\d,]+ records?)?\s*$/);
 	});
 });
 
