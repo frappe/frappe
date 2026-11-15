@@ -1,7 +1,8 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { attempt, post } from "../api.js";
 import BlockPanel from "./BlockPanel.vue";
+import PaneSettings from "./PaneSettings.vue";
 import { RECORDS, blank_record, save_record } from "./records.js";
 import {
 	BLOCK_TYPES,
@@ -22,7 +23,7 @@ const props = defineProps({
 	workspace: { type: Object, required: true },
 });
 
-const emit = defineEmits(["saved", "done", "switch", "actions"]);
+const emit = defineEmits(["saved", "done", "switch", "new-layout", "created", "actions"]);
 
 const frappe = window.frappe;
 const __ = window.__;
@@ -35,7 +36,23 @@ const previewing = ref(false);
 const layouts = props.workspace.layouts || [];
 const editing = layouts.find((row) => row.editing);
 const initial = JSON.stringify(blocks.value);
-const dirty = computed(() => touched.value.size > 0 || JSON.stringify(blocks.value) !== initial);
+// a new layout or a new page is unsaved from the start, and nothing exists until Save
+const is_draft = props.workspace.draft || props.workspace.new_layout;
+const page_settings = reactive({ ...props.workspace.page_settings });
+const layout_settings = reactive({
+	layout_name: "",
+	condition: "",
+	module: "",
+	...props.workspace.layout_settings,
+});
+const settings_changed = ref(false);
+const dirty = computed(
+	() =>
+		is_draft ||
+		settings_changed.value ||
+		touched.value.size > 0 ||
+		JSON.stringify(blocks.value) !== initial
+);
 
 const selected = computed(() => blocks.value.find((block) => block.id === selected_id.value));
 const selected_widget = computed(() => selected.value && widget_of(selected.value));
@@ -151,18 +168,44 @@ async function save() {
 			if (block.type === "onboarding") block.data.onboarding_name = widget.name;
 		}
 		const { blocks: saved, new_widgets } = to_save(blocks.value, widgets.value, touched.value);
+		const name = props.workspace.draft ? await create_page() : props.workspace.name;
 		await post("frappe.desk.doctype.workspace.workspace.save_page", {
-			name: props.workspace.name,
+			name,
 			public: props.workspace.public ? 1 : 0,
 			new_widgets,
 			blocks: saved,
 			...(props.workspace.layout && { layout: props.workspace.layout }),
+			...(props.workspace.layout_fields?.length && { layout_settings }),
+			...(settings_changed.value && !props.workspace.draft && { page_settings }),
 		});
 		frappe.show_alert({ message: __("Saved"), indicator: "green" });
-		emit("done");
+		if (props.workspace.draft) emit("created", name);
+		else emit("done");
 	} catch (e) {
 		frappe.msgprint(frappe.utils.escape_html(e.message));
 	}
+}
+
+// A new page is made, with its settings, when its draft is first saved.
+async function create_page() {
+	const title = window.strip_html(page_settings.title || "").trim();
+	if (!title) throw new Error(__("Give the workspace a title."));
+	const is_public = props.workspace.public;
+	const name = is_public ? title : `${title}-${frappe.session.user}`;
+	const message = await post("frappe.desk.doctype.workspace.workspace.new_page", {
+		new_page: {
+			name,
+			label: name,
+			title,
+			icon: page_settings.icon,
+			module: page_settings.module,
+			public: is_public ? 1 : 0,
+			for_user: is_public ? "" : frappe.session.user,
+			content: "[]",
+		},
+	});
+	frappe.ui.update_workspace_pages(message);
+	return name;
 }
 
 function discard() {
@@ -220,7 +263,7 @@ const menu = computed(() => {
 // The breadcrumb picker: every layout, strongest first, the one being edited marked.
 function picker_actions() {
 	if (!layouts.length) return [];
-	return layouts.map((row) => ({
+	const rows = layouts.map((row) => ({
 		label: row.label,
 		section: row.section,
 		description: row_description(row),
@@ -231,6 +274,21 @@ function picker_actions() {
 		group: editing ? `${editing.section} · ${editing.label}` : __("Layouts"),
 		onClick: () => switch_to(row),
 	}));
+	const new_row = {
+		label: __("New layout"),
+		icon: "plus",
+		placement: "breadcrumb",
+		group: rows[0].group,
+		onClick: () =>
+			dirty.value ? confirm_discard(() => emit("new-layout")) : emit("new-layout"),
+	};
+	return props.workspace.new_layout
+		? rows.map((row) => ({ ...row, group: __("New layout") }))
+		: [...rows, new_row];
+}
+
+function confirm_discard(then) {
+	frappe.confirm(__("Discard your unsaved changes?"), then);
 }
 
 function row_description(row) {
@@ -304,6 +362,14 @@ defineExpose({ blocks, widgets, selected_id, previewing, editing, dirty, on_move
 			</div>
 		</section>
 		<div class="min-h-0 overflow-y-auto">
+			<PaneSettings
+				v-if="!selected && !form_open"
+				:page="page_settings"
+				:page_fields="workspace.page_fields"
+				:layout="layout_settings"
+				:layout_fields="workspace.layout_fields"
+				@change="settings_changed = true"
+			/>
 			<Transition
 				mode="out-in"
 				enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"

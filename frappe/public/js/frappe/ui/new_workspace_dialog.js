@@ -86,42 +86,6 @@ frappe.ui.new_workspace_dialog = async function () {
 				reqd: 1,
 			},
 			{
-				label: __("Type"),
-				fieldtype: "Select",
-				fieldname: "type",
-				options: ["Workspace", "Link", "URL"],
-				default: "Workspace",
-				reqd: 1,
-				onchange: function () {
-					d.set_df_property("link_type", "hidden", this.get_value() != "Link");
-					d.set_df_property("link_to", "hidden", this.get_value() != "Link");
-				},
-			},
-			{
-				label: __("Link Type"),
-				depends_on: `eval:doc.type=='Link'`,
-				mandatory_depends_on: `eval:doc.type=='Link'`,
-				fieldtype: "Select",
-				fieldname: "link_type",
-				options: ["DocType", "Page", "Report"],
-			},
-			{
-				label: __("Link To"),
-				depends_on: `eval:doc.type=='Link'`,
-				mandatory_depends_on: `eval:doc.type=='Link'`,
-				fieldtype: "Dynamic Link",
-				fieldname: "link_to",
-				options: "link_type",
-			},
-			{
-				label: __("External Link"),
-				depends_on: `eval:doc.type=='URL'`,
-				mandatory_depends_on: `eval:doc.type=='URL'`,
-				fieldtype: "Data",
-				fieldname: "external_link",
-				options: "URL",
-			},
-			{
 				label: __("Access"),
 				fieldtype: "Select",
 				fieldname: "access",
@@ -213,18 +177,12 @@ frappe.ui.new_workspace_dialog = async function () {
 				roles: values.access === ACCESS_GROUP ? values.roles || [] : [],
 				parent_page: values.parent || "",
 				module: values.module || frappe.app.sidebar?.current_module_def(),
-				type: values.type,
-				link_type: values.link_type,
-				link_to: values.link_to,
-				external_link: values.external_link,
 			};
 
 			create_workspace(new_page).then(() => {
-				if (new_page.type === "Workspace") {
-					// a new workspace opens in its renderer's editor
-					frappe.ui.open_workspace_editor = new_page.name;
-					frappe.set_route(frappe.ui.workspace_route(new_page));
-				}
+				// a new workspace opens in its renderer's editor
+				frappe.ui.open_workspace_editor = new_page.name;
+				frappe.set_route(frappe.ui.workspace_route(new_page));
 			});
 		},
 	});

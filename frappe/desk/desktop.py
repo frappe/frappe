@@ -17,7 +17,14 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	effective_renderer,
 	get_customization,
 )
-from frappe.desk.layouts import editing_layout, editor_content, matched_layouts, merged_content, picker_rows
+from frappe.desk.layouts import (
+	NEW_LAYOUT,
+	editing_layout,
+	editor_content,
+	matched_layouts,
+	merged_content,
+	picker_rows,
+)
 from frappe.desk.utils import is_item_allowed
 from frappe.desk.widgets import build_unsaved_widget, build_widgets, get_types
 from frappe.utils import cint
@@ -437,18 +444,20 @@ LINK_FIELDS = (
 
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
-def get_workspace(name: str, layout: str | None = None, edit: bool | int = False) -> dict:
+def get_workspace(
+	name: str, layout: str | None = None, edit: bool | int = False, new_layout: bool | int = False
+) -> dict:
 	"""Everything the workspace island draws, filtered to what the session user may read.
 
 	With `edit`, an editor gets the page they edit: `layout`, or where their save would go, drawn
-	over the weaker layouts.
+	over the weaker layouts. With `new_layout`, the page a new layout of the site's starts from.
 	"""
 	from frappe.desk.doctype.workspace.workspace import can_edit_workspace
 
 	workspace = open_workspace({"name": name})
 	can_edit = can_edit_workspace(workspace.doc)
 	doc = workspace.doc
-	editing = editing_layout(doc, layout) if can_edit and cint(edit) else None
+	editing = editing_layout(doc, layout, cint(new_layout)) if can_edit and cint(edit) else None
 	if can_edit and cint(edit):
 		stored = editor_content(doc, editing)
 	else:
@@ -473,6 +482,15 @@ def get_workspace(name: str, layout: str | None = None, edit: bool | int = False
 		"title": _(doc.title),
 		"public": bool(doc.public),
 		"layout": editing and editing["name"],
+		"new_layout": editing is NEW_LAYOUT,
+		"layout_settings": editing and {key: editing[key] for key in ("layout_name", "condition", "module")},
+		**settings_fields(doc, editing, can_edit),
+		"page_settings": {
+			"title": doc.title,
+			"icon": doc.icon,
+			"module": doc.module,
+			"hide_custom": doc.hide_custom,
+		},
 		"content": content,
 		"widgets": widgets,
 		"widget_types": get_types(),
@@ -539,6 +557,22 @@ def editor_context(doc, editing: dict | None) -> dict:
 		path = os.path.join(frappe.get_module_path(doc.module), "workspace", scrubbed, f"{scrubbed}.json")
 	app = get_workspace_app(doc)
 	return {"layouts": layouts, "save_target": os.path.relpath(path, frappe.get_app_source_path(app))}
+
+
+def settings_fields(doc, editing: dict | None, can_edit: bool) -> dict:
+	"""Which of the page's and the edited layout's settings the editor may change. A site changes
+	only the icon of an app's page; only a developer picks a module."""
+	developer = bool(frappe.conf.developer_mode)
+	page_fields = []
+	if can_edit:
+		page_fields = ["title", "icon", "hide_custom"] if developer or not doc.standard else ["icon"]
+	named = editing is NEW_LAYOUT or bool(editing and editing["layout_name"])
+	layout_fields = ["layout_name", "condition"] if named else []
+	module = ["module"] if developer else []
+	return {
+		"page_fields": page_fields + (module if page_fields and developer else []),
+		"layout_fields": layout_fields + (module if named else []),
+	}
 
 
 def own_layout_name(workspace: str) -> str | None:

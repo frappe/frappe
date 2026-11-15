@@ -386,9 +386,15 @@ UNSAVED_SITE_EDIT = {
 }
 
 
-def editing_layout(doc, name: str | None) -> dict | None:
-	"""The layout an editor works on: the one named, else the site's edit of an app's workspace
-	outside developer mode, else None for the workspace's own default."""
+# a layout an editor is making, drawn over the layouts a site's own named layout sits on
+NEW_LAYOUT = {**UNSAVED_SITE_EDIT, "condition": "True", "layout_name": ""}
+
+
+def editing_layout(doc, name: str | None, new: bool = False) -> dict | None:
+	"""The layout an editor works on: a new one, the one named, else the site's edit of an app's
+	workspace outside developer mode, else None for the workspace's own default."""
+	if new:
+		return NEW_LAYOUT
 	layouts = workspace_layouts(doc.name)
 	if name:
 		return next((layout for layout in layouts if layout["name"] == name), None)

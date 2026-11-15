@@ -850,10 +850,7 @@ def new_page(new_page: dict):
 	# created from (`current_module`). Fall back to the mounted app's first module so an older
 	# caller still works.
 	doc.module = page.get("module") or first_module_of_app(page.get("app"))
-	doc.type = page.get("type")
-	doc.link_to = page.get("link_to")
-	doc.link_type = page.get("link_type")
-	doc.external_link = page.get("external_link")
+	doc.hide_custom = 1
 	doc.sequence_id = last_sequence_id(doc) + 1
 	doc.save(ignore_permissions=True)
 
@@ -1037,11 +1034,16 @@ def save_page(
 	blocks: str,
 	layout: str | None = None,
 	widget_edits: dict | None = None,
+	layout_settings: dict | None = None,
+	page_settings: dict | None = None,
 ):
 	"""Save the page an editor drew as changes to where it goes: `layout`, the site's or the user's
 	own layout, or the default. Blocks it adds or edits become Widgets.
 
 	`widget_edits` is `{widget name: {label, config}}` for the Widgets the editor changed.
+	`layout_settings` (`layout_name`, `condition`, `module`) names and conditions the layout, and
+	without `layout` makes a new one. `page_settings` (`title`, `icon`, `module`, `hide_custom`)
+	changes the workspace itself.
 	"""
 	from frappe.desk.desktop import drawable_ids, open_workspace
 	from frappe.desk.layouts import diff, merge, with_ids
@@ -1052,7 +1054,9 @@ def save_page(
 	new_widgets = frappe.parse_json(new_widgets or "{}")
 	validate_blocks_are_set_up(page, new_widgets)
 
-	target = save_target(workspace.doc, layout)
+	if page_settings and can_edit_workspace(workspace.doc):
+		apply_page_settings(name, frappe.parse_json(page_settings))
+	target = save_target(workspace.doc, layout, frappe.parse_json(layout_settings))
 	page = apply_widget_edits(page, frappe.parse_json(widget_edits) or {}, can_edit_workspace(workspace.doc))
 	base = base_page(workspace.doc, target)
 	base_ids = {block["id"] for block in base}
@@ -1102,7 +1106,7 @@ def with_widget(block: dict, widget: str) -> dict:
 	return {**block, "id": None, "data": {**block["data"], "widget": widget}}
 
 
-def save_target(doc, layout: str | None):
+def save_target(doc, layout: str | None, settings: dict | None = None):
 	"""The Workspace Layout a save writes, or None for the workspace's own default.
 
 	A developer writes the default or an app's layout to its file. A Workspace Manager writes the
@@ -1112,11 +1116,47 @@ def save_target(doc, layout: str | None):
 		if not doc.public:
 			frappe.throw(_("You are not permitted to edit this workspace."), frappe.PermissionError)
 		return own_layout(doc.name)
+	if settings:
+		target = editable_layout(doc.name, layout) if layout else new_layout(doc.name)
+		return with_settings(target, settings)
 	if layout:
 		return editable_layout(doc.name, layout)
 	if doc.public and doc.standard and not frappe.conf.developer_mode:
 		return site_edit(doc.name)
 	return None
+
+
+def new_layout(workspace: str):
+	return frappe.get_doc({"doctype": "Workspace Layout", "workspace": workspace})
+
+
+def with_settings(layout, settings: dict):
+	"""`layout` named and conditioned as the editor's Layout section says. Only a developer picks
+	an app's module, which puts the layout in that app's files."""
+	layout.layout_name = settings.get("layout_name") or layout.layout_name
+	layout.condition = settings.get("condition") or None
+	if frappe.conf.developer_mode:
+		layout.module = settings.get("module") or None
+	if not layout.layout_name:
+		frappe.throw(_("Give the layout a name."), title=_("Layout Name"))
+	return layout
+
+
+PAGE_SETTINGS = ("title", "icon", "module", "hide_custom")
+
+
+def apply_page_settings(name: str, settings: dict):
+	"""A workspace's own fields, from the editor's Page section. On an app's workspace outside
+	developer mode, a site changes only its icon, as an override the app's updates leave alone."""
+	from frappe.desk.doctype.custom_workspace.custom_workspace import upsert_settings_customization
+
+	doc = frappe.get_doc("Workspace", name)
+	if doc.standard and not frappe.conf.developer_mode:
+		if settings.get("icon") and settings["icon"] != doc.icon:
+			upsert_settings_customization(name, icon=settings["icon"])
+		return
+	doc.update({field: settings[field] for field in PAGE_SETTINGS if field in settings})
+	doc.save(ignore_permissions=True)
 
 
 def editable_layout(workspace: str, name: str):

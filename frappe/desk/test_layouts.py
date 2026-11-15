@@ -1,12 +1,13 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import os
 from json import dumps, loads
 from unittest.mock import patch
 
 import frappe
 from frappe.desk.desktop import get_workspace
-from frappe.desk.doctype.workspace.workspace import save_page
+from frappe.desk.doctype.workspace.workspace import new_page, save_page
 from frappe.desk.doctype.workspace_layout.workspace_layout import remove_layouts_without_files
 from frappe.desk.layouts import block_id, item_id
 from frappe.desk.test_desktop import block, make_chart, make_named, make_user, make_workspace
@@ -327,6 +328,61 @@ class TestEditor(IntegrationTestCase):
 		frappe.set_user(MANAGER)
 		page = dumps([drawn(self.todos)])
 		self.assertRaises(frappe.PermissionError, save_page, "Layout Page", 1, {}, page, layout=self.app.name)
+
+
+class TestDrafts(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		make_user(US, ["Desk User"])
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		self.todos, self.notes = make_shortcut("ToDos"), make_shortcut("Notes", link_to="Note")
+		frappe.db.delete("Workspace Layout", {"workspace": "Layout Page"})
+		make_workspace(
+			"Layout Page", content=[widget_block(self.todos), widget_block(self.notes)], standard=1
+		)
+
+	def test_a_new_layout_is_saved_with_its_condition_and_nothing_exists_before(self):
+		frappe.set_user(MANAGER)
+		draft = get_workspace("Layout Page", edit=1, new_layout=1)
+		self.assertTrue(draft["new_layout"])
+		self.assertEqual(
+			draft["layout_fields"], ["layout_name", "condition"], "only a developer picks a module"
+		)
+		self.assertFalse(frappe.db.exists("Workspace Layout", {"workspace": "Layout Page"}))
+
+		settings = {"layout_name": "Managers", "condition": '"Workspace Manager" in frappe.get_roles()'}
+		save_page("Layout Page", 1, {}, dumps([drawn(self.notes)]), layout_settings=settings)
+
+		self.assertEqual(shown(MANAGER), ["Notes"])
+		self.assertEqual(shown(US), ["ToDos", "Notes"])
+
+	def test_a_developers_module_choice_writes_that_apps_file(self):
+		frappe.conf.developer_mode = 1
+		settings = {"layout_name": "WL Exported", "condition": "", "module": "Desk"}
+		save_page("Layout Page", 1, {}, dumps([drawn(self.todos)]), layout_settings=settings)
+
+		layout = frappe.get_doc(
+			"Workspace Layout", {"workspace": "Layout Page", "layout_name": "WL Exported"}
+		)
+		self.addCleanup(lambda: layout.delete())
+		self.assertTrue(layout.file_path().startswith(frappe.get_module_path("Desk")))
+		self.assertTrue(os.path.exists(layout.file_path()))
+
+	def test_a_new_workspace_hides_the_generated_custom_card(self):
+		new_page(
+			{
+				"title": "WL New",
+				"name": "WL New",
+				"label": "WL New",
+				"public": 1,
+				"module": "Desk",
+				"content": "[]",
+			}
+		)
+		self.addCleanup(frappe.delete_doc, "Workspace", "WL New")
+		self.assertTrue(frappe.db.get_value("Workspace", "WL New", "hide_custom"))
 
 
 class TestDeletesAndRenames(IntegrationTestCase):

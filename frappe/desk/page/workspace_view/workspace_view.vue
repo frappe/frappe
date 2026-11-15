@@ -144,7 +144,7 @@ function correct_private_segment() {
 function actions() {
 	const list = [];
 	if (can_open_editor.value) list.push({ label: __("Edit"), onClick: () => edit() });
-	list.push({ label: __("New Workspace"), onClick: () => frappe.ui.new_workspace_dialog() });
+	list.push({ label: __("New Workspace"), onClick: new_workspace });
 	if (workspace.value.can_edit) {
 		list.push({ label: __("Manage"), onClick: () => (managing.value = true) });
 	}
@@ -158,21 +158,68 @@ const can_open_editor = computed(
 );
 
 // `layout` names the Workspace Layout to edit, over the weaker ones that apply.
-async function edit(layout) {
-	const params = { name: workspace.value.name, edit: 1 };
+async function edit(layout, extra = {}) {
+	const params = { name: workspace.value.name, edit: 1, ...extra };
 	if (typeof layout === "string") params.layout = layout;
-	const [page, module] = await Promise.all([
+	const [page] = await Promise.all([
 		get("frappe.desk.desktop.get_workspace", params),
-		import("./editor/WorkspaceEditor.vue"),
+		load_editor(),
 	]);
 	if (workspace.value?.name !== page.name) return;
-	WorkspaceEditor.value = module.default;
+	open_editor(page);
+}
+
+async function load_editor() {
+	WorkspaceEditor.value ||= (await import("./editor/WorkspaceEditor.vue")).default;
+}
+
+function open_editor(page) {
 	editing.value = page;
 	edit_count.value++;
 	const title = editing.value.public
 		? __("Editing {0}", [editing.value.title])
 		: __("Private / Editing {0}", [editing.value.title]);
 	emit("title", title);
+}
+
+// A new workspace is a draft in the editor, drawn over this page, until it is saved.
+async function new_workspace() {
+	if (!can_open_editor.value) return frappe.ui.new_workspace_dialog();
+	await load_editor();
+	const has_access = frappe.boot.workspaces.has_access;
+	const module =
+		frappe.app.sidebar?.current_module_def?.() || workspace.value.page_settings?.module;
+	open_editor({
+		draft: true,
+		name: null,
+		title: __("New Workspace"),
+		public: has_access ? 1 : 0,
+		content: [],
+		widgets: EMPTY_WIDGETS,
+		widget_types: workspace.value.widget_types,
+		layouts: [],
+		page_settings: { title: "", icon: "", module, hide_custom: 1 },
+		page_fields: frappe.boot.developer_mode ? ["title", "icon", "module"] : ["title", "icon"],
+		layout_fields: [],
+	});
+}
+
+const EMPTY_WIDGETS = {
+	charts: {},
+	number_cards: {},
+	shortcuts: {},
+	cards: {},
+	quick_lists: {},
+	custom_blocks: {},
+	onboardings: {},
+	widget: {},
+};
+
+function open_created(name) {
+	const page = frappe.boot.workspaces.pages.find((p) => p.name === name);
+	editing.value = null;
+	editor.value = null;
+	frappe.set_route(frappe.ui.workspace_route(page || { name, public: 1 }));
 }
 
 async function stop_editing() {
@@ -306,6 +353,8 @@ onBeforeUnmount(() => window.removeEventListener("beforeunload", warn_before_unl
 						:workspace="editing"
 						@saved="edit"
 						@switch="edit"
+						@new-layout="edit(null, { new_layout: 1 })"
+						@created="open_created"
 						@done="stop_editing"
 						@actions="(list) => emit('actions', list)"
 					/>
