@@ -8,7 +8,6 @@
  * Every setting is optional, in `frappe.listview_settings[doctype].split_view`:
  *
  *   fields: ["job_title"]          extra fields to fetch for the rows
- *   tabs_field: "status"           a Select field; a tab row over the list filters by its options
  *   get_item(doc, row_data) {}     returns { title, subtitle, meta, badge, avatar }, any of them,
  *                                  to replace that part of the row (see frappe.ui.ItemList);
  *                                  row_data is what get_row_data returned for the row, if anything
@@ -22,8 +21,6 @@
  *                                  changing the record, call view.refresh_item(name), or
  *                                  view.refresh() when other rows changed too. Without it,
  *                                  frappe.views.SplitViewPreview (split_preview.js) shows it.
- *   empty_detail: { title, description }
- *                                  the detail pane while nothing is selected
  *
  * A custom detail can also call view.select_next(offset), which loads the next page when it steps
  * past the last loaded row, and view.get_position(name), e.g. for "3 of 14".
@@ -92,7 +89,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		for (const field of this.split_settings.fields || []) {
 			this._add_field(field);
 		}
-		this._add_field(this.split_settings.tabs_field);
 	}
 
 	setup_paging_area() {
@@ -113,7 +109,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	setup_split_layout() {
 		// the split wants the width, so on a wide screen the sidebar folds to its rail while it shows
 		this.pane = new frappe.ui.SplitPane({
-			list_header: this.make_tabs() || undefined,
 			empty: { title: __("Nothing to show") },
 			on_select: (name, event) => this.on_select(name, event),
 			has_more: () => this.has_more(),
@@ -158,70 +153,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		}
 	}
 
-	make_tabs() {
-		const fieldname = this.split_settings.tabs_field;
-		const df = fieldname && frappe.meta.get_docfield(this.doctype, fieldname);
-		if (!df || df.fieldtype !== "Select") return null;
-
-		// the counts go in their own spans so a new count does not rebuild the tabs
-		this.tab_counts = new Map();
-		const make_count = (value) => {
-			const count = document.createElement("span");
-			count.className = "split-view-tab-count";
-			this.tab_counts.set(value, count);
-			return count;
-		};
-		const options = (df.options || "").split("\n").filter(Boolean);
-		this.tabs = new frappe.ui.TabButtons({
-			label: __(df.label, null, this.doctype),
-			options: [
-				{ label: __("All"), value: "", suffix: make_count("") },
-				...options.map((option) => ({
-					label: __(option, null, this.doctype),
-					value: option,
-					suffix: make_count(option),
-				})),
-			],
-			value: "",
-			on_change: (value) => this.filter_by_tab(value),
-		});
-		return $('<div class="split-view-tabs"></div>').append(this.tabs.$el);
-	}
-
-	filter_by_tab(value) {
-		const fieldname = this.split_settings.tabs_field;
-		// The filter goes through the filter area, so it shows there and in the URL. A standard
-		// filter holds one value, and the filter area would not add a second while the first is
-		// still being cleared, so the tab replaces it in place.
-		const field = this.page.fields_dict[fieldname];
-		if (field) return field.set_value(value);
-		return this.filter_area.remove(fieldname).then(() => {
-			if (value) return this.filter_area.add(this.doctype, fieldname, "=", value);
-		});
-	}
-
-	update_tabs() {
-		if (!this.tabs) return;
-		const fieldname = this.split_settings.tabs_field;
-		const filter = this.get_filters_for_args().find((f) => f[1] === fieldname);
-		const value = filter?.[2] === "=" ? filter[3] : "";
-		if (this.tabs.find_by_value(value)) this.tabs.set_value(value, { silent: true });
-
-		// one call for every tab; it leaves out the tab's own filter but keeps the others
-		this.filter_area.get_group_by_count(fieldname).then((counts) => {
-			let total = 0;
-			const by_value = {};
-			for (const { name, count } of counts) {
-				by_value[name || ""] = count;
-				total += count;
-			}
-			for (const [option, count_element] of this.tab_counts) {
-				const count = option ? by_value[option] || 0 : total;
-				count_element.textContent = format_number(count, null, 0);
-			}
-		});
-	}
-
 	setup_events() {
 		this.setup_realtime_updates();
 		this.setup_new_doc_event();
@@ -235,7 +166,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		);
 	}
 
-	// keys already taken by what has focus (tab buttons, a focused row) stay theirs
+	// keys already taken by what has focus (a focused row) stay theirs
 	is_key_taken(e) {
 		return e.isDefaultPrevented() || this.is_typing(e);
 	}
@@ -347,10 +278,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		this.toggle_actions_menu_button(false);
 	}
 
-	refresh(refresh_header) {
-		return super.refresh(refresh_header).then(() => this.update_tabs());
-	}
-
 	render() {
 		// a record opened from the URL stays open while it is not in the loaded rows
 		this.pane.set_items(this.data.map((doc) => this.get_item(doc)));
@@ -454,7 +381,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 				this.load_row_data([doc]);
 			}
 			this.render_count();
-			this.update_tabs();
 		});
 	}
 
@@ -466,7 +392,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 			title,
 			subtitle: this.get_item_subtitle(doc, [title, indicator?.label]),
 			meta: this.get_relative_time(doc.modified),
-			// every row would say the same, e.g. "Open" on the Open tab
+			// every row would say the same, e.g. "Open" when filtered by status Open
 			badge: this.is_pinned_by_filters(indicator) ? undefined : indicator,
 			avatar: this.meta.image_field
 				? { label: title, image: doc[this.meta.image_field] || undefined }
@@ -481,7 +407,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		return cstr(frappe.datetime.prettyDate(datetime, true)).replace(/(\d)\s+/, "$1");
 	}
 
-	/** Whether the filters, a tab's included, already say what the indicator would. */
+	/** Whether the filters already say what the indicator would. */
 	is_pinned_by_filters(indicator) {
 		if (!indicator?.filter) return false;
 		const [fieldname, operator, ...value] = indicator.filter.split(",");
@@ -580,12 +506,11 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	}
 
 	render_empty_detail() {
-		const custom = this.split_settings.empty_detail || {};
 		frappe.ui
 			.empty_state({
 				icon: "columns-2",
-				title: custom.title || __("Select a {0}", [__(this.doctype)]),
-				description: custom.description || this.get_empty_description(),
+				title: __("Select a {0}", [__(this.doctype)]),
+				description: this.get_empty_description(),
 				css_class: "split-view-empty",
 			})
 			.appendTo(this.$detail);
@@ -593,7 +518,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 
 	// the count arrives after the rows, so the empty state is drawn again with it
 	update_empty_detail() {
-		if (this.selected_name || this.split_settings.empty_detail?.description) return;
+		if (this.selected_name) return;
 		this.destroy_detail();
 		this.render_empty_detail();
 	}

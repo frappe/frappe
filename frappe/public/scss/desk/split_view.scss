@@ -35,18 +35,6 @@ $split-view-wide: 1024px;
 	flex: none;
 }
 
-.split-view-tabs {
-	padding: calc(var(--spacing) * 2);
-	overflow-x: auto;
-	scrollbar-width: none;
-}
-
-.split-view-tab-count {
-	margin-inline-start: calc(var(--spacing) * 1.5);
-	color: var(--ink-gray-5);
-	font-variant-numeric: tabular-nums;
-}
-
 // the rows keep their rounded hover and selection inside a gutter
 .split-view-rows {
 	flex: 1;
