@@ -1,0 +1,53 @@
+/* Espresso Rating — read-only stars, matching frappe-ui's Rating. Built by
+ * frappe.ui.rating; each star is two clipped halves so a 0.5 step can fill one.
+ * Size via data-size="xs|sm|md|lg" on .es-rating (sm, 16px, is the default). */
+.es-rating {
+	--es-rating-star: calc(var(--spacing) * 4);
+	display: inline-flex;
+	flex-shrink: 0;
+	gap: calc(var(--spacing) * 0.5);
+	line-height: 1;
+}
+
+.es-rating[data-size="xs"] {
+	--es-rating-star: calc(var(--spacing) * 3.5);
+}
+
+.es-rating[data-size="md"] {
+	--es-rating-star: calc(var(--spacing) * 5);
+}
+
+.es-rating[data-size="lg"] {
+	--es-rating-star: calc(var(--spacing) * 6);
+}
+
+.es-rating__star {
+	position: relative;
+	display: inline-flex;
+	width: var(--es-rating-star);
+	height: var(--es-rating-star);
+}
+
+.es-rating__half {
+	position: absolute;
+	inset: 0;
+	display: inline-flex;
+	color: var(--surface-gray-4);
+}
+
+.es-rating__half[data-state="filled"] {
+	color: var(--yellow-500);
+}
+
+.es-rating__half[data-half="left"] {
+	clip-path: inset(0 50% 0 0);
+}
+
+.es-rating__half[data-half="right"] {
+	clip-path: inset(0 0 0 50%);
+}
+
+.es-rating__half svg {
+	width: 100%;
+	height: 100%;
+}

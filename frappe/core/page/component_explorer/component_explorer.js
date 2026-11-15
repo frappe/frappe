@@ -2049,6 +2049,42 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		Rating: {
+			helper: "frappe.ui.rating",
+			html: (opts) => frappe.ui.rating.html(opts),
+			groups: [
+				{
+					title: __("Values"),
+					items: [
+						{ value: 5 },
+						{ value: 4 },
+						{ value: 3.7, __note: "rounds to 4 stars" },
+						{ value: 0 },
+					],
+				},
+				{
+					title: __("Sizes"),
+					caption: "size",
+					items: [
+						{ value: 4, size: "xs" },
+						{ value: 4, size: "sm", __note: "sm is the default" },
+						{ value: 4, size: "md" },
+						{ value: 4, size: "lg" },
+					],
+				},
+				{
+					title: __("Half steps"),
+					items: [
+						{ value: 3.5, step: 0.5 },
+						{ value: 3.7, step: 0.5, __note: "rounds to 3.5" },
+					],
+				},
+				{
+					title: __("Max"),
+					items: [{ value: 7, max: 10, size: "xs" }],
+				},
+			],
+		},
 		"Stat Card": {
 			helper: "frappe.ui.stat_card",
 			groups: [

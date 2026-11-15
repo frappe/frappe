@@ -871,4 +871,20 @@ test.describe("Espresso components", () => {
 			await expect(opened.first()).toContainText("Opened Jane Cooper");
 		});
 	});
+
+	test.describe("Rating", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Rating");
+		});
+
+		test("rounds the value to the step and names it for screen readers", async ({ page }) => {
+			const whole = explorer_group(page, "Values").locator(".es-rating").nth(2);
+			await expect(whole).toHaveAttribute("aria-label", "4 out of 5");
+			await expect(whole.locator('.es-rating__half[data-state="filled"]')).toHaveCount(8);
+
+			const half = explorer_group(page, "Half steps").locator(".es-rating").first();
+			await expect(half).toHaveAttribute("aria-label", "3.5 out of 5");
+			await expect(half.locator('.es-rating__half[data-state="filled"]')).toHaveCount(7);
+		});
+	});
 });
