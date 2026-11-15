@@ -145,8 +145,8 @@ function pageScriptName(id) {
 	}
 }
 
-// A component exports to `studio/<studio_app>/studio_components/<stem>.ts` (or .js); the docname lives
-// in the sibling `<stem>.json`. Returns the component docname for a component-script module id, else null.
+// A component exports to `studio/<studio_app>/studio_components/<stem>.ts` (or .js); its id lives
+// in the sibling `<stem>.json`. Returns the component id for a component-script module id, else null.
 const COMPONENT_SCRIPT_RE = /\/studio\/[^/]+\/studio_components\/[^/]+\.(?:ts|js)$/
 
 function componentScriptName(id) {
@@ -154,7 +154,8 @@ function componentScriptName(id) {
 	if (file.startsWith("/@fs/")) file = file.slice("/@fs".length)
 	if (!COMPONENT_SCRIPT_RE.test(file)) return null
 	try {
-		return JSON.parse(fs.readFileSync(file.replace(/\.(?:ts|js)$/, ".json"), "utf8")).name || null
+		const json = JSON.parse(fs.readFileSync(file.replace(/\.(?:ts|js)$/, ".json"), "utf8"))
+		return json.component_id || json.name || null
 	} catch {
 		return null
 	}
