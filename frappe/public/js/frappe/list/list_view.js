@@ -16,13 +16,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (route.length === 2) {
 			const user_settings = frappe.get_user_settings(doctype);
 			const last_view = user_settings.last_view;
-			const is_valid =
-				frappe.views.is_valid(last_view) &&
-				(last_view !== "Split" || frappe.get_meta(doctype)?.allow_split_view);
 			frappe.set_route(
 				"list",
 				frappe.router.doctype_layout || doctype,
-				is_valid ? last_view.toLowerCase() : "list"
+				frappe.views.is_valid(last_view) ? last_view.toLowerCase() : "list"
 			);
 			return true;
 		}
