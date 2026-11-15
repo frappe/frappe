@@ -5,23 +5,17 @@
 On v15 and v16 a Workspace Manager could edit an app-shipped workspace in place, and every save
 wrote a Version row. The upgrade re-imports the workspace from the app's JSON, which wipes the
 edit from the live row but keeps the Version rows: a reload-delete never touches them. This page
-reads those rows back and writes the edit as a Custom Workspace, the delta develop uses for all
-site edits, so the workspace renders as it did before the upgrade at the same URL.
+reads those rows back and writes the edit as the site's Workspace Layout, with its roles and
+properties on the Custom Workspace, so the workspace renders as it did before the upgrade.
 """
 
 from json import JSONDecodeError, dumps, loads
 
 import frappe
 from frappe import _
-from frappe.desk.doctype.custom_workspace.custom_workspace import (
-	WIDGET_PARENTFIELD,
-	_get_or_new,
-	_prune_widgets,
-	get_customization,
-	merge_widgets,
-	snapshot_widgets,
-)
-from frappe.desk.doctype.workspace.workspace import check_workspace_manager, workspace_payload
+from frappe.desk.doctype.custom_workspace.custom_workspace import _get_or_new, get_customization
+from frappe.desk.doctype.workspace.workspace import check_workspace_manager, site_edit, workspace_payload
+from frappe.desk.legacy_widgets import WIDGET_PARENTFIELD, changes_from_copy
 from frappe.utils import cint, escape_html
 
 PARENTFIELD_WIDGET = {parentfield: widget for widget, parentfield in WIDGET_PARENTFIELD.items()}
@@ -122,9 +116,11 @@ def restore_workspace_edits(workspace: str) -> dict:
 	if replay.content is None:
 		frappe.throw(_("No pre-upgrade layout edit is recorded for {0}.").format(bold(workspace)))
 
+	layout = site_edit(workspace)
+	layout.changes = changes_from_copy(base, replay.content, replay.widgets)
+	layout.save(ignore_permissions=True)
+
 	customization = _get_or_new(workspace)
-	customization.content = dumps(replay.content)
-	customization.widgets = dumps(stored_widgets(replay, base))
 	customization.set("added_roles", [{"role": role} for role in replay.added_roles])
 	customization.set("removed_roles", [{"role": role} for role in replay.removed_roles])
 	for field, default in CUSTOMIZATION_PROPERTIES.items():
@@ -226,7 +222,7 @@ def replay_versions(versions: list[frappe._dict], base) -> frappe._dict:
 
 	widgets = {PARENTFIELD_WIDGET[pf]: list(rows.values()) for pf, rows in added.items() if rows}
 	if content is not None:
-		widgets = _prune_widgets(widgets, content)
+		widgets = prune_widgets(widgets, content)
 		drop_shadowed_widgets(widgets, base, warnings)
 		recover_dropped_widgets(content, widgets, base, versions[-1].creation)
 		warn_about_missing_widgets(content, widgets, base, warnings)
@@ -447,19 +443,22 @@ def get_state(workspace, replay) -> str:
 	return "Overwritten"
 
 
-def stored_widgets(replay, base) -> dict:
-	"""The added widgets as a customization stores them: the layout's whole widget set."""
-	if replay.content is None:
-		return replay.widgets
-	return _prune_widgets(merge_widgets(snapshot_widgets(base), replay.widgets), replay.content)
-
-
 def holds_replay(customization, replay) -> bool:
-	"""Whether the customization is exactly what restoring would write."""
+	"""Whether the site still has what restoring wrote: a restore saves the layout, then the
+	customization, so a later edit of either changes one of them after the other."""
+	layout_modified = frappe.db.get_value(
+		"Workspace Layout",
+		{
+			"workspace": customization.workspace,
+			"module": ("is", "not set"),
+			"user": ("is", "not set"),
+			"condition": ("is", "not set"),
+		},
+		"modified",
+	)
 	return (
-		loads(customization.content or "[]") == replay.content
-		and loads(customization.widgets or "{}")
-		== stored_widgets(replay, frappe.get_cached_doc("Workspace", customization.workspace))
+		bool(layout_modified)
+		and layout_modified <= customization.modified
 		and sorted(r.role for r in customization.added_roles) == replay.added_roles
 		and sorted(r.role for r in customization.removed_roles) == replay.removed_roles
 		and all(
@@ -467,6 +466,22 @@ def holds_replay(customization, replay) -> bool:
 			for field, default in CUSTOMIZATION_PROPERTIES.items()
 		)
 	)
+
+
+def prune_widgets(widgets: dict, content: list) -> dict:
+	"""The rows `content` names, one per label."""
+	named = {
+		(block.get("type"), (block.get("data") or {}).get(f"{block.get('type')}_name")) for block in content
+	}
+	return {
+		widget_type: kept
+		for widget_type, rows in widgets.items()
+		if (
+			kept := list(
+				{row["label"]: row for row in rows if (widget_type, row.get("label")) in named}.values()
+			)
+		)
+	}
 
 
 def summarize(replay) -> dict:

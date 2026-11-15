@@ -7,7 +7,7 @@ from json import dumps, loads
 import frappe
 from frappe import _
 from frappe.desk.desk_views import DeskViews
-from frappe.desk.desktop import get_workspaces, is_layout_customized, save_new_widget
+from frappe.desk.desktop import get_workspaces
 from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
 from frappe.desk.layouts import with_ids
 from frappe.desk.utils import validate_route_conflict
@@ -399,8 +399,15 @@ class Workspace(Document, DeskViews):
 
 		self.delete_desktop_icon()
 		self.drop_sidebar_rows()
-		# people's own layouts of this page mean nothing without it
-		frappe.db.delete("Custom Workspace", {"workspace": self.name, "user": ("is", "set")})
+		self.drop_site_and_user_layouts()
+
+	def drop_site_and_user_layouts(self):
+		"""The site's and people's layouts of this page mean nothing without it. An app's layout stays:
+		its file is the truth, and a page of the same name may come back."""
+		from frappe.desk.layouts import clear_caches
+
+		frappe.db.delete("Workspace Layout", {"workspace": self.name, "module": ("is", "not set")})
+		clear_caches(self.name, all_users=True)
 
 	def drop_sidebar_rows(self):
 		"""Take this page out of every sidebar that lists it.
@@ -1022,55 +1029,137 @@ def save_page(
 	public: str | int,
 	new_widgets: dict,
 	blocks: str,
+	layout: str | None = None,
+	widget_edits: dict | None = None,
 ):
-	"""Save a workspace's blocks."""
-	public = frappe.parse_json(public)
-	new_widgets = frappe.parse_json(new_widgets or "{}")
+	"""Save the page an editor drew as changes to where it goes: `layout`, the site's or the user's
+	own layout, or the default. Blocks it adds or edits become Widgets.
 
-	doc = frappe.get_doc("Workspace", name)
-	can_edit = can_edit_workspace(doc)
-	if not can_edit and not doc.public:
-		frappe.throw(_("You are not permitted to edit this workspace."), frappe.PermissionError)
-
-	validate_blocks_are_set_up(frappe.parse_json(blocks), new_widgets)
-
-	if not can_edit:
-		save_own_layout(name, frappe.parse_json(blocks), new_widgets)
-		return {"name": name, "public": public, "label": doc.label}
-
-	blocks = dumps(merge_unseen_blocks(name, frappe.parse_json(blocks)))
-
-	from frappe.desk.doctype.custom_workspace.custom_workspace import (
-		get_customization,
-		upsert_content_customization,
-	)
-
-	# A standard (app-shipped) workspace is never edited in place on a site. The site's layout
-	# changes are stored as a delta on top of the live base, so app updates keep arriving. In
-	# developer mode the app author edits the base itself so it exports to JSON, unless the layout
-	# on screen is the site's copy, which must not end up in the app's file.
-	if doc.standard and (not frappe.conf.developer_mode or is_layout_customized(get_customization(name))):
-		upsert_content_customization(name, frappe.parse_json(blocks), new_widgets)
-		return {"name": name, "public": public, "label": doc.label}
-
-	if not doc.type:
-		doc.type = "Workspace"
-
-	doc.content = blocks
-
-	save_new_widget(doc, name, blocks, new_widgets)
-
-	return {"name": name, "public": public, "label": doc.label}
-
-
-def save_own_layout(name: str, content: list, new_widgets: dict) -> None:
-	"""Save the session user's own layout of a shared workspace they may open, over the layout
-	they were shown."""
-	from frappe.desk.desktop import open_workspace
-	from frappe.desk.doctype.custom_workspace.custom_workspace import save_user_layout
+	`widget_edits` is `{widget name: {label, config}}` for the Widgets the editor changed.
+	"""
+	from frappe.desk.desktop import drawable_ids, open_workspace
+	from frappe.desk.layouts import diff, merge, with_ids
+	from frappe.desk.legacy_widgets import as_widget_blocks
 
 	workspace = open_workspace({"name": name})
-	save_user_layout(workspace.doc, content, new_widgets)
+	page = frappe.parse_json(blocks)
+	new_widgets = frappe.parse_json(new_widgets or "{}")
+	validate_blocks_are_set_up(page, new_widgets)
+
+	target = save_target(workspace.doc, layout)
+	page = apply_widget_edits(page, frappe.parse_json(widget_edits) or {}, can_edit_workspace(workspace.doc))
+	base = base_page(workspace.doc, target)
+	base_ids = {block["id"] for block in base}
+	module = widget_module(workspace.doc, target)
+	page = with_ids(
+		as_widget_blocks(page, new_widgets, module, lambda block: block.get("id") not in base_ids)
+	)
+	changes = diff(base, page, drawable_ids(workspace, base))
+
+	if target:
+		target.changes = changes
+		target.save(ignore_permissions=True)
+	else:
+		doc = frappe.get_doc("Workspace", name)
+		doc.content = dumps(merge(base, [changes]))
+		doc.save(ignore_permissions=True)
+	return {"name": name, "public": frappe.parse_json(public), "label": workspace.doc.label}
+
+
+def apply_widget_edits(page: list, edits: dict, can_edit: bool) -> list:
+	"""`page` with each edited Widget saved, and its block naming the copy when the edit made one."""
+	saved = {name: save_widget_edit(name, edit, can_edit) for name, edit in edits.items()}
+	return [
+		with_widget(block, saved[block["data"]["widget"]]) if names_widget(block, saved) else block
+		for block in page
+	]
+
+
+def save_widget_edit(name: str, edit: dict, can_edit: bool) -> str:
+	"""Save an edit to a Widget. An app's Widget edited on a site, or anyone's edited by a reader for
+	themselves, is copied as a site Widget so migrate and other people keep the original."""
+	widget = frappe.get_doc("Widget", name)
+	if not can_edit or (widget.module and not frappe.conf.developer_mode):
+		widget = frappe.copy_doc(widget)
+		widget.module = None
+	widget.label = edit.get("label") or widget.label
+	widget.config = frappe.as_json(edit.get("config") or widget.get_config())
+	widget.save(ignore_permissions=True)
+	return widget.name
+
+
+def names_widget(block: dict, names: dict) -> bool:
+	return block.get("type") == "widget" and block["data"]["widget"] in names
+
+
+def with_widget(block: dict, widget: str) -> dict:
+	return {**block, "id": None, "data": {**block["data"], "widget": widget}}
+
+
+def save_target(doc, layout: str | None):
+	"""The Workspace Layout a save writes, or None for the workspace's own default.
+
+	A developer writes the default or an app's layout to its file. A Workspace Manager writes the
+	site's layouts of an app's workspace and a site workspace's default. Anyone else, their own layout.
+	"""
+	if not can_edit_workspace(doc):
+		if not doc.public:
+			frappe.throw(_("You are not permitted to edit this workspace."), frappe.PermissionError)
+		return own_layout(doc.name)
+	if layout:
+		return editable_layout(doc.name, layout)
+	if doc.public and doc.standard and not frappe.conf.developer_mode:
+		return site_edit(doc.name)
+	return None
+
+
+def editable_layout(workspace: str, name: str):
+	target = frappe.get_doc("Workspace Layout", name)
+	if target.workspace != workspace or target.user:
+		frappe.throw(_("{0} is not a layout of this workspace.").format(name), frappe.PermissionError)
+	if target.module and not frappe.conf.developer_mode:
+		frappe.throw(_("An app's layout can be changed only in developer mode."), frappe.PermissionError)
+	return target
+
+
+def own_layout(workspace: str):
+	filters = {"workspace": workspace, "user": frappe.session.user}
+	return find_or_new_layout(filters)
+
+
+def site_edit(workspace: str):
+	"""The site's edit of a workspace: the layout with no app, no user and no condition."""
+	filters = {"workspace": workspace, "module": "", "user": "", "condition": ""}
+	return find_or_new_layout(filters)
+
+
+def find_or_new_layout(filters: dict):
+	name = frappe.db.get_value(
+		"Workspace Layout", {key: value or ("is", "not set") for key, value in filters.items()}
+	)
+	if name:
+		return frappe.get_doc("Workspace Layout", name)
+	return frappe.get_doc(
+		{"doctype": "Workspace Layout", **{key: value for key, value in filters.items() if value}}
+	)
+
+
+def base_page(doc, target) -> list:
+	"""What a save is written against: the default, or for a layout the weaker ones over it."""
+	from frappe.desk.layouts import layouts_under, merged_content, with_ids
+
+	if not target:
+		return with_ids(loads(frappe.db.get_value("Workspace", doc.name, "content") or "[]"))
+	return merged_content(doc, layouts_under(doc, target.as_dict()))
+
+
+def widget_module(doc, target) -> str | None:
+	"""A developer's new widgets belong to the app they ship with; anyone else's to the site."""
+	if not frappe.conf.developer_mode:
+		return None
+	if target:
+		return target.module
+	return doc.module if doc.standard else None
 
 
 # Block type -> the field a widget of that type cannot do without, and the doctype it names.
@@ -1109,58 +1198,6 @@ def validate_blocks_are_set_up(blocks: list, new_widgets: dict) -> None:
 			_("An Onboarding block is not set up yet. Choose an onboarding, or remove it."),
 			title=_("Unfinished Block"),
 		)
-
-
-def stored_widget(block: dict, stored_widgets: dict) -> dict | None:
-	"""The widget row `block` names, if it still points at something that exists."""
-	block_type = block["type"]
-	name = (block.get("data") or {}).get(f"{block_type}_name")
-	widget = next((w for w in stored_widgets.get(block_type, []) if w.get("label") == name), None)
-	if not widget or not is_widget_set_up(block_type, widget):
-		return None
-	if block_type in WIDGET_RECORDS:
-		field, doctype = WIDGET_RECORDS[block_type]
-		if not frappe.db.exists(doctype, widget.get(field)):
-			return None
-	return widget
-
-
-def merge_unseen_blocks(name: str, blocks: list) -> list:
-	"""Put back the blocks the editor could not see, each after the block it followed.
-
-	An editor is shown only the widgets they may read, so their save would otherwise drop the
-	rest for everyone. The stored layout and the saving user's permissions say which those are.
-	A block that draws for nobody is not put back.
-	"""
-	from frappe.desk.desktop import Workspace, is_drawable, readable_widgets
-	from frappe.desk.doctype.custom_workspace.custom_workspace import snapshot_widgets
-
-	workspace = Workspace({"name": name})
-	stored = loads(workspace.doc.content or "[]")
-	stored_widgets = snapshot_widgets(workspace.doc)
-	widgets = readable_widgets(workspace, stored)
-
-	merged = list(blocks)
-	kept = {block_key(block) for block in merged}
-	for index, block in enumerate(stored):
-		if is_drawable(block, widgets):
-			continue
-		if block["type"] == "onboarding":
-			onboarding = block["data"].get("onboarding_name")
-			if not onboarding or not frappe.db.exists("Module Onboarding", onboarding):
-				continue
-		elif not stored_widget(block, stored_widgets):
-			continue
-		before = (block_key(b) for b in reversed(stored[:index]))
-		anchor = next((key for key in before if key in kept), None)
-		at = 0 if anchor is None else [block_key(b) for b in merged].index(anchor) + 1
-		merged.insert(at, block)
-		kept.add(block_key(block))
-	return merged
-
-
-def block_key(block: dict) -> str:
-	return block.get("id") or dumps(block, sort_keys=True)
 
 
 @frappe.whitelist(methods=["POST"])

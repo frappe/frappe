@@ -16,7 +16,6 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
 	effective_renderer,
 	get_customization,
-	replace_widgets,
 )
 from frappe.desk.layouts import matched_layouts, merged_content
 from frappe.desk.utils import is_item_allowed
@@ -107,22 +106,6 @@ class Workspace(DeskViews):
 		if not self.doc.content:
 			return []
 		return [x["data"]["onboarding_name"] for x in loads(self.doc.content) if x["type"] == "onboarding"]
-
-	def use_user_layout(self) -> bool:
-		"""Draw the session user's own layout of a shared workspace, if they saved one."""
-		from frappe.desk.doctype.custom_workspace.custom_workspace import get_user_layout
-
-		row = get_user_layout(self.page_name) if self.doc.public else None
-		if not row:
-			return False
-
-		if self.doc_is_shared:
-			self.doc = frappe.get_doc("Workspace", self.page_name)
-			self.doc_is_shared = False
-		self.doc.content = row.content or "[]"
-		replace_widgets(self.doc, loads(row.widgets or "{}"))
-		self.onboarding_list = self.get_onboarding_names()
-		return True
 
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
@@ -463,7 +446,6 @@ def get_workspace(name: str, layout: str | None = None) -> dict:
 
 	workspace = open_workspace({"name": name})
 	can_edit = can_edit_workspace(workspace.doc)
-	own_layout = not can_edit and workspace.use_user_layout()
 	doc = workspace.doc
 	layout = layout if can_edit else None
 	stored = merged_content(doc, matched_layouts(doc, until=layout))
@@ -475,9 +457,8 @@ def get_workspace(name: str, layout: str | None = None) -> dict:
 
 	content = [block for block in stored if is_drawable(block, widgets)]
 	add_module_customizations(doc, content, widgets["widget"])
-	customization = get_customization(name) if doc.standard else None
 	if can_edit:
-		context = editor_context(doc, customization)
+		context = editor_context(doc)
 	elif doc.public:
 		context = {"layouts": [], "save_target": "own"}
 	else:
@@ -493,11 +474,10 @@ def get_workspace(name: str, layout: str | None = None) -> dict:
 		"widget_types": get_types(),
 		"can_edit": can_edit,
 		"can_edit_own": bool(doc.public) and not can_edit,
-		"own_layout": own_layout,
+		"own_layout": not can_edit and bool(own_layout_name(doc.name)),
 		"no_access": has_widget(stored) and not has_widget(content),
 		"is_hidden": bool(doc.is_hidden),
 		"standard": bool(doc.standard),
-		"is_layout_customized": is_layout_customized(customization),
 		**context,
 	}
 
@@ -539,23 +519,30 @@ def add_module_customizations(doc, content: list, widgets: dict) -> None:
 		content.append({"id": name, "type": "widget", "generated": 1, "data": {"widget": name, "col": 4}})
 
 
-def editor_context(doc, customization) -> dict:
-	"""What the editor shows about where a save goes: the file or the site copy."""
+def editor_context(doc) -> dict:
+	"""Where a save goes: the app's file in developer mode, else the site's layout."""
 	from frappe.desk.doctype.workspace.workspace import get_workspace_app
 
 	if not doc.public:
 		return {"layouts": [], "save_target": "private"}
-
-	base = frappe.get_cached_doc("Workspace", doc.name)
-	if not base.standard:
+	if not doc.standard:
 		return {"layouts": [], "save_target": "site"}
-
-	app = get_workspace_app(base)
-	if frappe.conf.developer_mode and not is_layout_customized(customization):
-		scrubbed = frappe.scrub(base.name)
-		path = os.path.join(frappe.get_module_path(base.module), "workspace", scrubbed, f"{scrubbed}.json")
+	if frappe.conf.developer_mode:
+		scrubbed = frappe.scrub(doc.name)
+		path = os.path.join(frappe.get_module_path(doc.module), "workspace", scrubbed, f"{scrubbed}.json")
+		app = get_workspace_app(doc)
 		return {"layouts": [], "save_target": os.path.relpath(path, frappe.get_app_source_path(app))}
-	return {"layouts": [], "save_target": "site copy"}
+	return {"layouts": [], "save_target": "site"}
+
+
+def own_layout_name(workspace: str) -> str | None:
+	return frappe.db.get_value("Workspace Layout", {"workspace": workspace, "user": frappe.session.user})
+
+
+def drawable_ids(workspace, content: list) -> set:
+	"""The blocks of `content` the session user is drawn."""
+	widgets = readable_widgets(workspace, content)
+	return {block["id"] for block in content if is_drawable(block, widgets)}
 
 
 def readable_widgets(workspace, content: list) -> dict:
@@ -587,11 +574,6 @@ def readable_widgets(workspace, content: list) -> dict:
 			widgets[key][block_name] = {field: item.get(field) for field in fields}
 	widgets["widget"] = build_widgets(content)
 	return widgets
-
-
-def is_layout_customized(customization) -> bool:
-	"""Whether the layout drawn is the site's copy rather than the app's."""
-	return bool(customization and customization.content)
 
 
 def _find_widget(items: list, block_type: str, block_name: str | None):
@@ -660,14 +642,6 @@ def _overlay_customization_properties(pages: list) -> bool:
 		if not customization:
 			continue
 		page["is_customized"] = True
-		# the frontend renders the editor.js layout from this `content`; show the site's
-		# saved snapshot verbatim (get_desktop_page applies the same on the doc).
-		if customization.content:
-			page["content"] = customization.content
-			# the layout is a snapshot, so this workspace has stopped receiving the app's
-			# layout changes. The desk warns before the save that causes it, and this is
-			# what tells it the warning has already been earned.
-			page["is_layout_customized"] = 1
 		if customization.visibility == "Hidden":
 			# Hidden for regular users; like the soft `is_hidden` flag, a Workspace Manager
 			# still sees it (the workspace shows an in-page "hidden" banner) so it stays
@@ -852,127 +826,6 @@ def get_custom_report_list(module):
 		}
 		for r in reports
 	]
-
-
-def save_new_widget(doc, page, blocks, new_widgets):
-	widgets = _dict()
-	if new_widgets:
-		widgets = _dict(frappe.parse_json(new_widgets))
-
-		if widgets.chart:
-			doc.charts.extend(new_widget(widgets.chart, "Workspace Chart", "charts"))
-		if widgets.shortcut:
-			doc.shortcuts.extend(new_widget(widgets.shortcut, "Workspace Shortcut", "shortcuts"))
-		if widgets.quick_list:
-			doc.quick_lists.extend(new_widget(widgets.quick_list, "Workspace Quick List", "quick_lists"))
-		if widgets.custom_block:
-			doc.custom_blocks.extend(
-				new_widget(widgets.custom_block, "Workspace Custom Block", "custom_blocks")
-			)
-		if widgets.number_card:
-			doc.number_cards.extend(new_widget(widgets.number_card, "Workspace Number Card", "number_cards"))
-		if widgets.card:
-			doc.build_links_table_from_card(widgets.card)
-
-	# remove duplicate and unwanted widgets
-	clean_up(doc, blocks)
-
-	try:
-		doc.save(ignore_permissions=True)
-	except (ValidationError, TypeError) as e:
-		# Create a json string to log
-		json_config = widgets and dumps(widgets, sort_keys=True, indent=4)
-
-		# Error log body
-		log = f"""
-		page: {page}
-		config: {json_config}
-		exception: {e}
-		"""
-		doc.log_error("Could not save customization", log)
-		raise
-
-	return True
-
-
-def clean_up(original_page, blocks):
-	page_widgets = {}
-
-	for wid in ["shortcut", "card", "chart", "quick_list", "number_card", "custom_block"]:
-		# get list of widget's name from blocks
-		page_widgets[wid] = [x["data"][wid + "_name"] for x in loads(blocks) if x["type"] == wid]
-
-	# shortcut, chart, quick_list, number_card & custom_block cleanup
-	for wid in ["shortcut", "chart", "quick_list", "number_card", "custom_block"]:
-		updated_widgets = []
-		original_page.get(wid + "s").reverse()
-
-		for w in original_page.get(wid + "s"):
-			if w.label in page_widgets[wid] and w.label not in [x.label for x in updated_widgets]:
-				updated_widgets.append(w)
-		original_page.set(wid + "s", updated_widgets)
-
-	# card cleanup
-	for i, v in enumerate(original_page.links):
-		if v.type == "Card Break" and v.label not in page_widgets["card"]:
-			del original_page.links[i : i + v.link_count + 1]
-
-
-def new_widget(config, doctype, parentfield):
-	if not config:
-		return []
-	prepare_widget_list = []
-	for idx, widget in enumerate(config):
-		# Some cleanup
-		widget.pop("name", None)
-
-		# New Doc
-		doc = frappe.new_doc(doctype)
-		doc.update(widget)
-
-		# Manually Set IDX
-		doc.idx = idx + 1
-
-		# Set Parent Field
-		doc.parentfield = parentfield
-
-		prepare_widget_list.append(doc)
-	return prepare_widget_list
-
-
-def prepare_widget(config, doctype, parentfield):
-	"""Create widget child table entries with parent details.
-
-	Args:
-	        config (dict): Dictionary containing widget config
-	        doctype (string): Doctype name of the child table
-	        parentfield (string): Parent field for the child table
-
-	Return:
-	        TYPE: List of Document objects
-	"""
-	if not config:
-		return []
-	order = config.get("order")
-	widgets = config.get("widgets")
-	prepare_widget_list = []
-	for idx, name in enumerate(order):
-		wid_config = widgets[name].copy()
-		# Some cleanup
-		wid_config.pop("name", None)
-
-		# New Doc
-		doc = frappe.new_doc(doctype)
-		doc.update(wid_config)
-
-		# Manually Set IDX
-		doc.idx = idx + 1
-
-		# Set Parent Field
-		doc.parentfield = parentfield
-
-		prepare_widget_list.append(doc)
-	return prepare_widget_list
 
 
 # (doctype, field naming the user, field naming the document doctype, its name field, action, filters)

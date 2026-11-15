@@ -140,22 +140,12 @@ class TestGetWorkspace(IntegrationTestCase):
 
 	def test_nobody_else_reaches_a_readers_own_layout(self):
 		self.save_own_layout()
-		name = frappe.db.get_value("Custom Workspace", {"workspace": "GW Test", "user": DESK_USER})
+		name = frappe.db.get_value("Workspace Layout", {"workspace": "GW Test", "user": DESK_USER})
 
 		frappe.set_user(MANAGER)
 		for ptype in ("read", "write", "delete"):
-			self.assertFalse(frappe.has_permission("Custom Workspace", ptype, doc=name), ptype)
-		self.assertNotIn(name, frappe.get_list("Custom Workspace", pluck="name", limit=0))
-
-	def test_reset_brings_back_the_shared_layout(self):
-		from frappe.desk.doctype.custom_workspace.custom_workspace import reset_my_workspace_layout
-
-		self.save_own_layout()
-		reset_my_workspace_layout("GW Test")
-
-		shown = get_workspace("GW Test")
-		self.assertFalse(shown["own_layout"])
-		self.assertIn("header", [block["type"] for block in shown["content"]])
+			self.assertFalse(frappe.has_permission("Workspace Layout", ptype, doc=name), ptype)
+		self.assertNotIn(name, frappe.get_list("Workspace Layout", pluck="name", limit=0))
 
 	def test_an_own_layout_has_a_size_limit(self):
 		from frappe.desk.doctype.workspace.workspace import save_page
@@ -192,20 +182,6 @@ class TestGetWorkspace(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.delete_doc("Workspace", "GW Test")
 		self.assertFalse(frappe.db.exists("Custom Workspace", {"workspace": "GW Test"}))
-
-	def test_layout_is_customized_only_with_site_content(self):
-		standard = make_workspace("GW Standard", standard=1)
-		frappe.get_doc({"doctype": "Custom Workspace", "workspace": standard.name, "icon": "star"}).insert()
-
-		frappe.set_user(DESK_USER)
-		self.assertFalse(get_workspace(standard.name)["is_layout_customized"])
-
-		frappe.set_user("Administrator")
-		frappe.db.set_value("Custom Workspace", standard.name, "content", dumps([block("header", text="Hi")]))
-		frappe.get_doc("Custom Workspace", standard.name).clear_cache()
-
-		frappe.set_user(DESK_USER)
-		self.assertTrue(get_workspace(standard.name)["is_layout_customized"])
 
 	def test_a_save_keeps_blocks_the_editor_could_not_see(self):
 		from frappe.desk.doctype.workspace.workspace import save_page
@@ -307,13 +283,6 @@ class TestSavingLayouts(IntegrationTestCase):
 		widget = {"label": "Site", "type": "URL", "url": "https://example.com"}
 		save_page("GW Url", 1, {"shortcut": [widget]}, dumps([block("shortcut", "Site")]))
 
-	def test_a_block_that_draws_for_nobody_is_not_put_back(self):
-		text = block("header", text="Kept")
-		dead = block("number_card", "Gone")
-		make_workspace("GW Dead", content=[text, dead])
-		save_page("GW Dead", 1, {}, dumps([text]))
-		self.assertEqual(self.stored("GW Dead"), [text["id"]])
-
 	def test_an_unreadable_block_is_put_back(self):
 		make_chart("GW Secret", "Error Log")
 		text = block("header", text="Kept")
@@ -333,42 +302,6 @@ class TestSavingLayouts(IntegrationTestCase):
 			"GW Onboarding", content=[{"id": "o", "type": "onboarding", "data": {"onboarding_name": "x"}}]
 		)
 		self.assertFalse(get_workspace("GW Onboarding")["no_access"])
-
-	def test_a_report_link_keeps_its_doctype_in_a_site_copy(self):
-		report = frappe.db.get_value(
-			"Report", {"report_type": "Report Builder"}, ["name", "ref_doctype"], as_dict=True
-		)
-		if not report:
-			self.skipTest("no Report Builder report on this site")
-		card = block("card", "Reports")
-		make_workspace(
-			"GW Reports",
-			content=[card],
-			links=[
-				{"type": "Card Break", "label": "Reports", "link_count": 1},
-				{"type": "Link", "label": "R", "link_type": "Report", "link_to": report.name},
-			],
-		)
-		frappe.db.set_value("Workspace", "GW Reports", "standard", 1)
-		frappe.clear_document_cache("Workspace", "GW Reports")
-		self.addCleanup(frappe.delete_doc_if_exists, "Custom Workspace", "GW Reports")
-		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			save_page("GW Reports", 1, {}, dumps([card]))
-		links = get_workspace("GW Reports")["widgets"]["cards"]["Reports"]["links"]
-		self.assertEqual(links[0]["report_ref_doctype"], report.ref_doctype)
-
-	def test_developer_mode_keeps_a_site_copy_out_of_the_app_file(self):
-		text = block("header", text="App")
-		make_workspace("GW Dev", content=[text])
-		frappe.db.set_value("Workspace", "GW Dev", "standard", 1)
-		frappe.clear_document_cache("Workspace", "GW Dev")
-		self.addCleanup(frappe.delete_doc_if_exists, "Custom Workspace", "GW Dev")
-		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			save_page("GW Dev", 1, {}, dumps([block("header", text="Site")]))
-		with patch.dict(frappe.conf, {"developer_mode": 1}):
-			save_page("GW Dev", 1, {}, dumps([block("header", text="Site again")]))
-		self.assertEqual(self.stored("GW Dev"), [text["id"]])
-		self.assertEqual(get_workspace("GW Dev")["content"][0]["data"]["text"], "Site again")
 
 
 class TestRecentActivity(IntegrationTestCase):

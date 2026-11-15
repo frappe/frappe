@@ -1,14 +1,16 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from json import dumps, loads
 from unittest.mock import patch
 
 import frappe
 from frappe.desk.desktop import get_workspace
+from frappe.desk.doctype.workspace.workspace import save_page
 from frappe.desk.doctype.workspace_layout.workspace_layout import remove_layouts_without_files
 from frappe.desk.layouts import block_id, item_id
-from frappe.desk.test_desktop import make_user, make_workspace
-from frappe.desk.test_widgets import make_card, make_link, make_shortcut
+from frappe.desk.test_desktop import block, make_chart, make_named, make_user, make_workspace
+from frappe.desk.test_widgets import make_card, make_custom_block, make_link, make_shortcut
 from frappe.tests import IntegrationTestCase
 from frappe.utils.logging import get_log_db
 
@@ -131,6 +133,103 @@ class TestLayouts(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("Workspace Layout", app.name))
 		self.assertTrue(frappe.db.exists("Workspace Layout", site.name))
+
+
+class TestSavingLayouts(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 0}))
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		make_user(US, ["Desk User"])
+		make_user(INDIA, ["Desk User"])
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		self.todos, self.notes, self.extra = (make_shortcut(label) for label in ("ToDos", "Notes", "Extra"))
+		frappe.db.delete("Workspace Layout", {"workspace": "Layout Page"})
+		blocks = [widget_block(self.todos), widget_block(self.notes), widget_block(self.extra)]
+		make_workspace("Layout Page", content=blocks, standard=1)
+
+	def test_a_site_edit_keeps_its_move_and_hide_and_gets_the_apps_new_block(self):
+		frappe.set_user(MANAGER)
+		save_page("Layout Page", 1, {}, dumps([drawn(self.extra), drawn(self.notes)]))
+		self.assertEqual(shown(US), ["Extra", "Notes"])
+
+		frappe.set_user("Administrator")
+		gst = make_shortcut("GST", link_to="Note")
+		app = frappe.get_doc("Workspace", "Layout Page")
+		app.content = dumps([*loads(app.content), widget_block(gst)])
+		app.save()
+
+		self.assertEqual(shown(US), ["Extra", "Notes", "GST"])
+		self.assertEqual(
+			loads(app.content)[0]["data"]["widget"], self.todos.name, "the app's own page is untouched"
+		)
+
+	def test_a_users_edit_reaches_nobody_else(self):
+		frappe.set_user(US)
+		save_page("Layout Page", 1, {}, dumps([drawn(self.notes)]))
+
+		self.assertEqual(shown(US), ["Notes"])
+		self.assertEqual(shown(INDIA), ["ToDos", "Notes", "Extra"])
+		layout = frappe.get_doc("Workspace Layout", {"workspace": "Layout Page", "user": US})
+		self.assertFalse(frappe.has_permission("Workspace Layout", "read", layout, user=INDIA))
+
+	def test_editing_an_apps_widget_on_a_site_saves_a_site_copy_in_its_place(self):
+		frappe.set_user("Administrator")
+		app_widget = make_shortcut("App ToDos", module="Desk")
+		make_workspace(
+			"Layout Page", content=[widget_block(app_widget), widget_block(self.notes)], standard=1
+		)
+
+		frappe.set_user(MANAGER)
+		edit = {
+			app_widget.name: {"label": "Our ToDos", "config": {**app_widget.get_config(), "color": "Red"}}
+		}
+		save_page("Layout Page", 1, {}, dumps([drawn(app_widget), drawn(self.notes)]), widget_edits=edit)
+
+		self.assertEqual(shown(US), ["Our ToDos", "Notes"])
+		self.assertEqual(frappe.db.get_value("Widget", app_widget.name, "label"), "App ToDos")
+
+	def test_a_new_block_of_each_type_saves_a_widget_of_that_type(self):
+		frappe.set_user("Administrator")
+		make_workspace("Layout New", content=[])
+		make_chart("WL Chart", "ToDo")
+		make_named("Number Card", "WL Card", label="WL Card", document_type="ToDo", function="Count")
+		step = make_named(
+			"Onboarding Step", "WL Step", title="WL Step", action="Go to Page", path="/desk/todo"
+		)
+		make_named(
+			"Module Onboarding",
+			"WL Onboarding",
+			title="WL Onboarding",
+			module="Desk",
+			success_message="Done",
+			documentation_url="https://example.com",
+			allow_roles=[{"role": "Desk User"}],
+			steps=[{"step": step.name}],
+		)
+		rows = {
+			"shortcut": [{"label": "S", "type": "DocType", "link_to": "ToDo"}],
+			"card": [
+				{"label": "C", "links": dumps([{"label": "ToDo", "link_type": "DocType", "link_to": "ToDo"}])}
+			],
+			"number_card": [{"label": "N", "number_card_name": "WL Card"}],
+			"chart": [{"label": "Ch", "chart_name": "WL Chart"}],
+			"quick_list": [{"label": "Q", "document_type": "ToDo"}],
+			"custom_block": [{"label": "B", "custom_block_name": make_custom_block("WL Block")}],
+		}
+		blocks = [block(block_type, rows[block_type][0]["label"]) for block_type in rows]
+		blocks.append(block("onboarding", "WL Onboarding"))
+
+		save_page("Layout New", 0, rows, dumps(blocks))
+
+		content = loads(frappe.db.get_value("Workspace", "Layout New", "content"))
+		types = [frappe.db.get_value("Widget", b["data"]["widget"], "type") for b in content]
+		expected = ["Shortcut", "Card", "Number Card", "Chart", "Quick List", "Custom Block", "Onboarding"]
+		self.assertEqual(types, expected)
+
+
+def drawn(widget) -> dict:
+	return {**widget_block(widget), "id": id_of(widget)}
 
 
 def shown(user: str) -> list[str]:

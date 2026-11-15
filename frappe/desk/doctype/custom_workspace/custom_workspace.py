@@ -1,37 +1,9 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from json import dumps, loads
-
 import frappe
 from frappe import _
 from frappe.model.document import Document
-
-# Block `type` -> Workspace child-table parentfield. Every widget block is matched to
-# its child row by the row's `label`, which equals the block's `data["<type>_name"]`
-# (the same join `clean_up()` in desk/desktop.py uses).
-WIDGET_PARENTFIELD = {
-	"card": "links",
-	"shortcut": "shortcuts",
-	"chart": "charts",
-	"quick_list": "quick_lists",
-	"number_card": "number_cards",
-	"custom_block": "custom_blocks",
-}
-
-# what `build_links_table_from_card` reads from a stored card's links
-CARD_LINK_KEYS = (
-	"label",
-	"link_type",
-	"link_to",
-	"onboard",
-	"only_for",
-	"dependencies",
-	"is_query_report",
-)
-
-# about thirty times the largest layout an app ships, so a person's own copies stay bounded
-USER_LAYOUT_MAX_LENGTH = 100_000
 
 # Cache key for the set of workspaces that have a customization, so the hot render
 # path can skip a DB hit for the (vast) majority of uncustomized workspaces.
@@ -49,7 +21,6 @@ class CustomWorkspace(Document):
 		from frappe.types import DF
 
 		added_roles: DF.Table[HasRole]
-		content: DF.LongText | None
 		icon: DF.Data | None
 		indicator_color: DF.Literal[
 			"",
@@ -70,40 +41,17 @@ class CustomWorkspace(Document):
 		removed_roles: DF.Table[HasRole]
 		renderer: DF.Literal["Inherit", "Frappe UI"]
 		sequence_id: DF.Float
-		user: DF.Link | None
 		visibility: DF.Literal["Inherit", "Visible", "Hidden"]
-		widgets: DF.LongText | None
 		workspace: DF.Link
 	# end: auto-generated types
 
-	def before_validate(self):
-		# The same trip through the XSS sanitizer the base document takes, for the same reason:
-		# this row carries a workspace's blocks too.
-		from frappe.desk.doctype.workspace.workspace import sanitize_content
-
-		self.content = sanitize_content(self.content)
-		self.widgets = sanitize_content(self.widgets)
-
 	def autoname(self):
-		# the site's row is named after its workspace, which is how every reader finds it
-		self.name = frappe.generate_hash(length=10) if self.user else self.workspace
+		# named after its workspace, which is how every reader finds it
+		self.name = self.workspace
 
 	def validate(self):
-		if self.user:
-			self.validate_user_layout()
-			return
 		if not frappe.db.get_value("Workspace", self.workspace, "standard"):
 			frappe.throw(_("Only standard (app-shipped) workspaces can be customized."))
-
-	def validate_user_layout(self):
-		if not frappe.db.get_value("Workspace", self.workspace, "public"):
-			frappe.throw(_("A private workspace is already yours to edit directly."))
-		if frappe.db.exists(
-			"Custom Workspace", {"workspace": self.workspace, "user": self.user, "name": ("!=", self.name)}
-		):
-			frappe.throw(_("{0} already has a layout of {1}.").format(self.user, self.workspace))
-		if len(self.content or "") + len(self.widgets or "") > USER_LAYOUT_MAX_LENGTH:
-			frappe.throw(_("This layout is too large to save. Remove some blocks and try again."))
 
 	def on_update(self):
 		self.clear_cache()
@@ -113,8 +61,6 @@ class CustomWorkspace(Document):
 
 	def clear_cache(self):
 		super().clear_cache()
-		if self.user:
-			return
 		# the customization changes a *public* workspace, so bust the shared bootinfo
 		# cache the same way Workspace.clear_cache does for public pages.
 		frappe.cache.delete_key("bootinfo")
@@ -125,7 +71,7 @@ def get_customized_workspace_names() -> set[str]:
 	"""Cached set of workspace names that have a customization."""
 	names = frappe.cache.get_value(CUSTOMIZED_NAMES_CACHE_KEY)
 	if names is None:
-		names = frappe.get_all("Custom Workspace", filters={"user": ("is", "not set")}, pluck="workspace")
+		names = frappe.get_all("Custom Workspace", pluck="workspace")
 		frappe.cache.set_value(CUSTOMIZED_NAMES_CACHE_KEY, names)
 	return set(names)
 
@@ -140,50 +86,6 @@ def get_customization(workspace: str) -> "CustomWorkspace | None":
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		return None
-
-
-def get_user_layout(workspace: str) -> "CustomWorkspace | None":
-	"""The session user's own layout of a shared workspace, or None."""
-	name = frappe.db.get_value("Custom Workspace", {"workspace": workspace, "user": frappe.session.user})
-	return frappe.get_doc("Custom Workspace", name) if name else None
-
-
-def save_user_layout(shown, content: list, new_widgets: dict) -> None:
-	"""Persist the session user's own layout of the shared workspace `shown`, as they were shown it.
-
-	The first save copies in the widgets of the layout they were looking at, so the copy keeps every
-	widget it started with. A later save only adds the widgets new in that session.
-	"""
-	row = get_user_layout(shown.name) or frappe.get_doc(
-		{"doctype": "Custom Workspace", "workspace": shown.name, "user": frappe.session.user}
-	)
-	widgets = loads(row.widgets or "{}") if row.content else snapshot_widgets(shown)
-	row.content = dumps(content)
-	row.widgets = dumps(_prune_widgets(merge_widgets(widgets, new_widgets), content))
-	row.save(ignore_permissions=True)
-
-
-@frappe.whitelist(methods=["POST"])
-def reset_my_workspace_layout(workspace: str) -> None:
-	"""Go back to the shared layout of `workspace`, dropping the session user's own."""
-	if row := get_user_layout(workspace):
-		frappe.delete_doc("Custom Workspace", row.name, ignore_permissions=True)
-
-
-def has_permission(doc, ptype="read", user=None, debug=False):
-	"""One person's own layout is theirs alone, whatever roles the reader holds."""
-	user = user or frappe.session.user
-	if not doc.user or user == "Administrator":
-		return True
-	return doc.user == user
-
-
-def get_permission_query_conditions(user=None):
-	"""Keep other people's own layouts out of list reads."""
-	user = user or frappe.session.user
-	if user == "Administrator":
-		return ""
-	return f"(ifnull(`tabCustom Workspace`.`user`, '') = '' or `tabCustom Workspace`.`user` = {frappe.db.escape(user)})"
 
 
 def effective_roles(base_roles: list[str], customization: "CustomWorkspace") -> list[str]:
@@ -205,12 +107,11 @@ def apply_customization(doc, customization: "CustomWorkspace") -> None:
 	"""Merge a customization onto a *fresh* (non-cached) Workspace doc, in place.
 
 	The standard record stays the live base and is never written. Roles and visibility
-	layer on the live base (app role changes flow through); content is shown from the
-	site's saved snapshot.
+	layer on the live base, so the app's role changes flow through. The site's block edits are
+	a Workspace Layout.
 	"""
 	_apply_roles(doc, customization)
 	_apply_properties(doc, customization)
-	_apply_content(doc, customization)
 
 
 def _apply_roles(doc, customization) -> None:
@@ -232,101 +133,6 @@ def _apply_properties(doc, customization) -> None:
 		doc.indicator_color = customization.indicator_color
 	if customization.override_sequence:
 		doc.sequence_id = customization.sequence_id
-
-
-def _apply_content(doc, customization) -> None:
-	"""Show the site's saved layouts verbatim.
-
-	Each layout is a snapshot, not a delta: its blocks and its whole widget set. Customizing one
-	freezes it against the app's later changes to that layout, and leaves every other layout
-	tracking the app. Roles / visibility still layer on the live base.
-	"""
-	if customization.content:
-		doc.content = customization.content
-		replace_widgets(doc, loads(customization.widgets or "{}"))
-
-
-def replace_widgets(doc, widgets: dict) -> None:
-	"""Make a layout's widget rows exactly the stored set (a role layout's `widgets` is whole)."""
-	from frappe.desk.desktop import new_widget
-
-	for widget_type, parentfield in WIDGET_PARENTFIELD.items():
-		if widget_type == "card":
-			continue
-		doctype = doc.meta.get_field(parentfield).options
-		doc.set(parentfield, new_widget(widgets.get(widget_type), doctype, parentfield))
-	doc.set("links", [])
-	doc.build_links_table_from_card(widgets.get("card") or [])
-
-
-def upsert_content_customization(workspace: str, edited_content: list, new_widgets: dict) -> None:
-	"""Persist a layout edit to a standard workspace as a site snapshot (never touches the base).
-
-	The first edit copies the workspace's whole widget set in, so the snapshot keeps every widget
-	the app had. A later save only adds the widgets new in that session.
-	"""
-	customization = _get_or_new(workspace)
-	base = frappe.get_cached_doc("Workspace", workspace)
-	widgets = loads(customization.widgets or "{}") if customization.content else snapshot_widgets(base)
-	customization.content = dumps(edited_content)
-	customization.widgets = dumps(_prune_widgets(merge_widgets(widgets, new_widgets), edited_content))
-	customization.save(ignore_permissions=True)
-
-
-def merge_widgets(widgets: dict, new_widgets: dict | None) -> dict:
-	"""The stored set plus a save's new widgets; a new one wins over a stored one of its label."""
-	merged = {widget_type: list(items) for widget_type, items in widgets.items()}
-	for widget_type, items in (new_widgets or {}).items():
-		merged.setdefault(widget_type, []).extend(items or [])
-	return merged
-
-
-def snapshot_widgets(doc) -> dict:
-	"""A Workspace's widget tables in the stored widgets shape."""
-	widgets = {}
-	for widget_type, parentfield in WIDGET_PARENTFIELD.items():
-		if widget_type == "card":
-			continue
-		rows = [
-			row.as_dict(no_default_fields=True, no_child_table_fields=True) for row in doc.get(parentfield)
-		]
-		if rows:
-			widgets[widget_type] = rows
-
-	cards = [
-		{
-			"label": card.label,
-			"icon": card.icon,
-			"description": card.description,
-			"hidden": card.hidden,
-			"links": dumps([{key: link.get(key) for key in CARD_LINK_KEYS} for link in card.links]),
-		}
-		for card in doc.get_link_groups()
-		if card.links
-	]
-	if cards:
-		widgets["card"] = cards
-	return widgets
-
-
-def _prune_widgets(widgets: dict, content: list) -> dict:
-	"""Drop stored widget defs no longer referenced by the layout; dedupe by label."""
-	referenced = {}
-	for block in content:
-		block_type = block.get("type")
-		if block_type in WIDGET_PARENTFIELD:
-			name = (block.get("data") or {}).get(f"{block_type}_name")
-			referenced.setdefault(block_type, set()).add(name)
-
-	pruned = {}
-	for widget_type, items in widgets.items():
-		kept = {}
-		for item in items:
-			if item.get("label") in referenced.get(widget_type, set()):
-				kept[item.get("label")] = item
-		if kept:
-			pruned[widget_type] = list(kept.values())
-	return pruned
 
 
 def upsert_property_customization(

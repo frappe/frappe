@@ -10,6 +10,9 @@ from frappe.model.document import Document
 from frappe.modules import get_module_path, scrub
 from frappe.modules.export_file import strip_default_fields
 
+# about thirty times the largest layout an app ships, so a person's own layouts stay bounded
+USER_LAYOUT_MAX_LENGTH = 100_000
+
 
 class WorkspaceLayout(Document):
 	# begin: auto-generated types
@@ -39,6 +42,11 @@ class WorkspaceLayout(Document):
 		if self.user and (self.module or self.condition):
 			frappe.throw(_("A person's own layout always applies to them and belongs to no app."))
 		self.validate_condition()
+		if (
+			self.user
+			and len(frappe.as_json(frappe.parse_json(self.changes or "{}"))) > USER_LAYOUT_MAX_LENGTH
+		):
+			frappe.throw(_("This layout is too large to save. Remove some blocks and try again."))
 
 	def validate_condition(self):
 		if not self.condition:
@@ -85,3 +93,17 @@ def remove_layouts_without_files(app: str):
 		layout = frappe.get_doc("Workspace Layout", name)
 		if not os.path.exists(layout.file_path()):
 			frappe.delete_doc("Workspace Layout", name, ignore_permissions=True)
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""One person's own layout is theirs alone, whatever roles the reader holds."""
+	user = user or frappe.session.user
+	return not doc.user or doc.user == user or user == "Administrator"
+
+
+def get_permission_query_conditions(user=None):
+	"""Keep other people's own layouts out of list reads."""
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return ""
+	return f"(ifnull(`tabWorkspace Layout`.`user`, '') = '' or `tabWorkspace Layout`.`user` = {frappe.db.escape(user)})"

@@ -171,7 +171,7 @@ permission_query_conditions = {
 	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_permission_query_conditions",
 	"Dock": "frappe.desk.doctype.dock.dock.get_permission_query_conditions",
-	"Custom Workspace": "frappe.desk.doctype.custom_workspace.custom_workspace.get_permission_query_conditions",
+	"Workspace Layout": "frappe.desk.doctype.workspace_layout.workspace_layout.get_permission_query_conditions",
 	"DocType": "frappe.app_state.get_module_permission_query_conditions",
 	"Page": "frappe.app_state.get_module_permission_query_conditions",
 	"Workspace": "frappe.desk.doctype.workspace.workspace.get_permission_query_conditions",
@@ -194,7 +194,7 @@ permission_query_conditions = {
 
 has_permission = {
 	"Workspace": "frappe.desk.doctype.workspace.workspace.has_permission",
-	"Custom Workspace": "frappe.desk.doctype.custom_workspace.custom_workspace.has_permission",
+	"Workspace Layout": "frappe.desk.doctype.workspace_layout.workspace_layout.has_permission",
 	"Report": "frappe.core.doctype.report.report.has_permission",
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
@@ -524,6 +524,7 @@ override_whitelisted_methods = {
 
 ignore_links_on_delete = [
 	"Attachment Queue",
+	"Workspace Layout",
 	"Communication",
 	"ToDo",
 	"DocShare",

@@ -9,7 +9,6 @@
  "engine": "InnoDB",
  "field_order": [
   "workspace",
-  "user",
   "visibility_section",
   "visibility",
   "renderer",
@@ -21,10 +20,7 @@
   "indicator_color",
   "appearance_column_break",
   "override_sequence",
-  "sequence_id",
-  "content_section",
-  "content",
-  "widgets"
+  "sequence_id"
  ],
  "fields": [
   {
@@ -34,15 +30,6 @@
    "label": "Workspace",
    "options": "Workspace",
    "reqd": 1
-  },
-  {
-   "description": "Set on one person's own layout; empty on the site's row.",
-   "fieldname": "user",
-   "fieldtype": "Link",
-   "label": "User",
-   "options": "User",
-   "search_index": 1,
-   "set_only_once": 1
   },
   {
    "fieldname": "visibility_section",
@@ -112,24 +99,6 @@
    "label": "Sidebar Position"
   },
   {
-   "collapsible": 1,
-   "fieldname": "content_section",
-   "fieldtype": "Section Break",
-   "label": "Content"
-  },
-  {
-   "description": "The site's editor.js block layout for this workspace, shown verbatim. Once set, the app's later changes to this workspace's layout stop reaching the site; roles, icon and visibility keep updating. Managed by the workspace editor.",
-   "fieldname": "content",
-   "fieldtype": "Long Text",
-   "label": "Content"
-  },
-  {
-   "description": "Item definitions (shortcuts / charts / cards ...) backing blocks the site added, so they can be rendered. Managed by the workspace editor.",
-   "fieldname": "widgets",
-   "fieldtype": "Long Text",
-   "label": "Added Widgets"
-  },
-  {
    "default": "Inherit",
    "description": "Override how the standard workspace is drawn. \"Inherit\" keeps the app-shipped value.",
    "fieldname": "renderer",
@@ -140,7 +109,7 @@
  ],
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-15 19:27:16.929888",
+ "modified": "2026-11-15 19:40:24.167951",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Custom Workspace",

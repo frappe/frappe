@@ -10,7 +10,7 @@ from any layout wins over every move and resize.
 
     add:    [{"after": id | None, "in": id?, "block": {...}}]
     move:   [{"id": id, "after": id | None, "in": id?}]
-    resize: {id: cols}
+    resize: {id: cols}, or {id: {col, row}} for a block with a height
     hide:   [id]
 
 `after: None` is the top. A missing or hidden anchor puts the block at the end. `in` names a
@@ -88,6 +88,16 @@ def matched_layouts(doc, until: str | None = None) -> list[dict]:
 	return matched
 
 
+def layouts_under(doc, layout: dict) -> list[dict]:
+	"""The layouts weaker than `layout` that apply to the session user, weakest first."""
+	owner = owner_app(doc)
+	return [
+		match
+		for match in matched_layouts(doc)
+		if match["name"] != layout.get("name") and strength(match, owner) < strength(layout, owner)
+	]
+
+
 def workspace_layouts(workspace: str) -> list[dict]:
 	shared = frappe.cache.hget(
 		LAYOUTS_KEY, workspace, lambda: load_layouts({"workspace": workspace, "user": ""})
@@ -122,10 +132,12 @@ def strength(layout: dict, owner: str | None) -> tuple:
 	return (OTHER_APP, app, layout["layout_name"] or "")
 
 
-def clear_caches(workspace: str | None = None, user: str | None = None):
+def clear_caches(workspace: str | None = None, user: str | None = None, all_users: bool = False):
 	if workspace:
 		frappe.cache.hdel(LAYOUTS_KEY, workspace)
-	if user:
+	if all_users:
+		frappe.cache.delete_value(USER_LAYOUTS_KEY)
+	elif user:
 		frappe.cache.hdel(USER_LAYOUTS_KEY, user)
 	frappe.cache.delete_value([PAGES_KEY, CONDITIONS_KEY])
 
@@ -188,9 +200,9 @@ def merge(content: list, changes_list: list[dict]) -> list:
 			add(blocks, entry, hidden)
 		for entry in changes.get("move") or []:
 			move(blocks, entry, hidden)
-		for block_id_, cols in (changes.get("resize") or {}).items():
+		for block_id_, size in (changes.get("resize") or {}).items():
 			if block := find(blocks, block_id_):
-				block["data"] = {**block["data"], "col": cols}
+				block["data"] = {**block["data"], **(size if isinstance(size, dict) else {"col": size})}
 
 	return drop_hidden(blocks, hidden)
 
@@ -274,3 +286,86 @@ def drop_hidden(blocks: list, hidden: set) -> list:
 			block["data"] = {**block["data"], "items": items}
 		kept.append(block)
 	return kept
+
+
+# Saving
+
+
+def diff(base: list, page: list, visible: set) -> dict:
+	"""The changes that turn `base` into `page`, the page an editor drew.
+
+	A block of `base` the editor could not see (not in `visible`) is left where it is, never hidden.
+	"""
+	base_by_id = {block["id"]: block for block in base}
+	page_ids = [block["id"] for block in page]
+	changes = {"add": [], "move": [], "resize": {}, "hide": []}
+	changes["hide"] = [b["id"] for b in base if b["id"] not in page_ids and b["id"] in visible]
+
+	for index, block in enumerate(page):
+		after = page_ids[index - 1] if index else None
+		old = base_by_id.get(block["id"])
+		if old is None:
+			changes["add"].append({"after": after, "block": block})
+		elif text_changed(old, block):
+			changes["hide"].append(block["id"])
+			changes["add"].append({"after": after, "block": {**block, "id": frappe.generate_hash(length=10)}})
+		elif size_of(old) != size_of(block):
+			changes["resize"][block["id"]] = size_of(block)
+
+	changes["move"] = moves(base, page, changes)
+	return {key: value for key, value in changes.items() if value}
+
+
+def moves(base: list, page: list, changes: dict) -> list:
+	"""The fewest moves that put the blocks both share in the page's order, else every block."""
+	base_ids = [block["id"] for block in base]
+	page_ids = [block["id"] for block in page]
+	shared = [block_id_ for block_id_ in page_ids if block_id_ in base_ids]
+	kept = set(longest_common_order([i for i in base_ids if i in shared], shared))
+	few = [move_entry(page_ids, i) for i in shared if i not in kept]
+	if order_matches(base, {**changes, "move": few}, page_ids):
+		return few
+	return [move_entry(page_ids, i) for i in page_ids]
+
+
+def move_entry(page_ids: list, block_id_: str) -> dict:
+	index = page_ids.index(block_id_)
+	return {"id": block_id_, "after": page_ids[index - 1] if index else None}
+
+
+def order_matches(base: list, changes: dict, page_ids: list) -> bool:
+	merged = [block["id"] for block in merge(base, [changes])]
+	return [i for i in merged if i in page_ids] == page_ids
+
+
+def longest_common_order(first: list, second: list) -> list:
+	lengths = [[0] * (len(second) + 1) for _ in range(len(first) + 1)]
+	for i, a in enumerate(first):
+		for j, b in enumerate(second):
+			lengths[i + 1][j + 1] = lengths[i][j] + 1 if a == b else max(lengths[i][j + 1], lengths[i + 1][j])
+	common, i, j = [], len(first), len(second)
+	while i and j:
+		if first[i - 1] == second[j - 1]:
+			common.append(first[i - 1])
+			i, j = i - 1, j - 1
+		elif lengths[i - 1][j] >= lengths[i][j - 1]:
+			i -= 1
+		else:
+			j -= 1
+	return common[::-1]
+
+
+def size_of(block: dict) -> int | dict:
+	data = block.get("data") or {}
+	return {"col": data.get("col"), "row": data["row"]} if data.get("row") else data.get("col")
+
+
+def text_changed(old: dict, new: dict) -> bool:
+	"""A heading or paragraph whose words changed. A widget's own content lives on the Widget."""
+	if new.get("type") == "widget" or new.get("type") in LABELLED_BLOCKS:
+		return False
+	return old.get("type") != new.get("type") or words_of(old) != words_of(new)
+
+
+def words_of(block: dict) -> dict:
+	return {key: value for key, value in (block.get("data") or {}).items() if key not in ("col", "row")}

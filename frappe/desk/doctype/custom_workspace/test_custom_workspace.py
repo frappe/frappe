@@ -20,7 +20,6 @@ BASE_CONTENT = [
 ]
 
 ADDED_SHORTCUT_BLOCK = {"id": "x", "type": "shortcut", "data": {"shortcut_name": "Audit", "col": 4}}
-ADDED_SHORTCUT_ITEM = {"type": "DocType", "link_to": "Activity Log", "label": "Audit"}
 
 
 def make_base_doc():
@@ -45,8 +44,6 @@ def make_customization(**values):
 		if key in ("added_roles", "removed_roles"):
 			for role in value:
 				doc.append(key, {"role": role})
-		elif key in ("content", "widgets"):
-			doc.set(key, dumps(value))
 		else:
 			doc.set(key, value)
 	return doc
@@ -54,21 +51,6 @@ def make_customization(**values):
 
 class TestCustomWorkspaceUnit(IntegrationTestCase):
 	"""Pure merge logic on in-memory docs (no DB / link validation)."""
-
-	def test_content_snapshot_is_shown_verbatim(self):
-		doc = make_base_doc()
-		snapshot = [BASE_CONTENT[0]]  # the site dropped "My Notes" and kept only "My ToDos"
-		apply_customization(doc, make_customization(content=snapshot))
-		self.assertEqual(loads(doc.content), snapshot)
-
-	def test_site_widgets_are_the_whole_set(self):
-		doc = make_base_doc()
-		snapshot = [*BASE_CONTENT, ADDED_SHORTCUT_BLOCK]
-		apply_customization(
-			doc,
-			make_customization(content=snapshot, widgets={"shortcut": [ADDED_SHORTCUT_ITEM]}),
-		)
-		self.assertEqual([s.label for s in doc.shortcuts], ["Audit"])
 
 	def test_content_untouched_when_only_visibility_customized(self):
 		doc = make_base_doc()
@@ -97,19 +79,6 @@ class TestCustomWorkspaceUnit(IntegrationTestCase):
 		self.assertEqual(loads(doc.content), [*BASE_CONTENT, ADDED_SHORTCUT_BLOCK])
 		self.assertEqual(doc.icon, "star")
 
-	def test_customizing_the_layout_freezes_it_but_not_the_roles(self):
-		# the whole split, in one place: the app has since added a block *and* a role. The
-		# site's snapshot keeps the block out (content is a snapshot) while the role still
-		# arrives (roles are a diff on the live base).
-		doc = make_base_doc()
-		doc.content = dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK])
-		doc.append("roles", {"role": "Stock Auditor"})
-
-		apply_customization(doc, make_customization(content=[BASE_CONTENT[0]], added_roles=["Boss"]))
-
-		self.assertEqual(loads(doc.content), [BASE_CONTENT[0]])
-		self.assertIn("Stock Auditor", [r.role for r in doc.roles])
-
 	def test_effective_renderer(self):
 		for app in ("Legacy", "Frappe UI"):
 			for site, expected in (("Inherit", app), ("Frappe UI", "Frappe UI")):
@@ -121,14 +90,10 @@ class TestCustomWorkspaceUnit(IntegrationTestCase):
 					apply_customization(doc, customization)
 					self.assertEqual(doc.renderer, expected)
 
-	def test_the_site_row_keeps_its_workspace_name_and_a_user_row_never_takes_it(self):
+	def test_the_site_row_takes_its_workspace_name(self):
 		site = frappe.get_doc({"doctype": "Custom Workspace", "workspace": "Home"})
 		site.autoname()
 		self.assertEqual(site.name, "Home")
-
-		own = frappe.get_doc({"doctype": "Custom Workspace", "workspace": "Home", "user": "a@example.com"})
-		own.autoname()
-		self.assertNotEqual(own.name, "Home")
 
 
 class TestCustomWorkspaceIntegration(IntegrationTestCase):
@@ -150,72 +115,6 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		frappe.delete_doc_if_exists("Custom Workspace", self.WORKSPACE)
 		frappe.db.delete("Workspace", {"name": self.WORKSPACE})
 
-	def test_save_page_stores_snapshot_and_leaves_base_untouched(self):
-		from frappe.desk.doctype.workspace.workspace import save_page
-
-		edited = [BASE_CONTENT[0]]  # drop "My Notes"
-		# force the site (non-developer) path: a standard workspace edit goes to the delta
-		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			save_page(self.WORKSPACE, public=1, new_widgets={}, blocks=dumps(edited))
-
-		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
-		self.assertEqual(loads(customization.content), edited)
-		# The app-owned record still has both blocks, because it was never edited in place.
-		base_content = loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content"))
-		self.assertEqual(len(base_content), 2)
-
-	def test_get_workspaces_renders_snapshot_content(self):
-		frappe.db.set_value("Workspace", self.WORKSPACE, "renderer", "Legacy")
-		frappe.get_doc(
-			{
-				"doctype": "Custom Workspace",
-				"workspace": self.WORKSPACE,
-				"content": dumps([BASE_CONTENT[0]]),
-			}
-		).insert()
-
-		from frappe.desk.desktop import get_workspaces
-
-		page = next(p for p in get_workspaces()["pages"] if p["name"] == self.WORKSPACE)
-		self.assertEqual(loads(page["content"]), [BASE_CONTENT[0]])
-
-	def test_get_desktop_page_includes_added_widget(self):
-		frappe.get_doc(
-			{
-				"doctype": "Custom Workspace",
-				"workspace": self.WORKSPACE,
-				"content": dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK]),
-				"widgets": dumps({"shortcut": [ADDED_SHORTCUT_ITEM]}),
-			}
-		).insert()
-
-		from frappe.desk.desktop import get_desktop_page
-
-		result = get_desktop_page({"name": self.WORKSPACE, "title": self.WORKSPACE, "public": 1})
-		self.assertIn("Audit", [s.label for s in result["shortcuts"]["items"]])
-
-	def test_added_widget_persists_across_a_second_save(self):
-		from frappe.desk.doctype.workspace.workspace import save_page
-
-		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			# session 1: add "Audit"
-			save_page(
-				self.WORKSPACE,
-				public=1,
-				new_widgets={"shortcut": [ADDED_SHORTCUT_ITEM]},
-				blocks=dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK]),
-			)
-			# session 2: an unrelated edit reports no new widgets, but "Audit" must survive
-			save_page(
-				self.WORKSPACE,
-				public=1,
-				new_widgets={},
-				blocks=dumps([BASE_CONTENT[0], ADDED_SHORTCUT_BLOCK]),
-			)
-		# the first save copied the app's widgets in, and the snapshot keeps the ones still used
-		widgets = loads(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "widgets"))
-		self.assertEqual([w["label"] for w in widgets["shortcut"]], ["My ToDos", "Audit"])
-
 	def test_reset_removes_customization(self):
 		frappe.get_doc(
 			{"doctype": "Custom Workspace", "workspace": self.WORKSPACE, "visibility": "Hidden"}
@@ -231,8 +130,6 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		frappe.db.set_value("Workspace", self.WORKSPACE, "renderer", "Legacy")
 		upsert_property_customization(self.WORKSPACE, renderer="Frappe UI")
 		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
-		self.assertFalse(customization.content)
-		self.assertFalse(customization.widgets)
 		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")
 
 		upsert_property_customization(self.WORKSPACE, visibility="Hidden")
@@ -240,37 +137,6 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
 		self.assertEqual(customization.visibility, "Inherit")
 		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")
-
-	def test_a_legacy_save_keeps_every_app_widget(self):
-		from frappe.desk.desktop import get_desktop_page
-		from frappe.desk.doctype.workspace.workspace import save_page
-
-		with patch.dict(frappe.conf, {"developer_mode": 0}):
-			save_page(
-				self.WORKSPACE,
-				public=1,
-				new_widgets={"shortcut": [ADDED_SHORTCUT_ITEM]},
-				blocks=dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK]),
-			)
-		result = get_desktop_page({"name": self.WORKSPACE})
-		labels = [s.label for s in result["shortcuts"]["items"]]
-		self.assertEqual(labels, ["My ToDos", "My Notes", "Audit"])
-
-	def test_patch_makes_v16_added_widgets_whole(self):
-		from frappe.patches.v17_0.make_custom_workspace_widgets_whole import execute
-
-		frappe.get_doc(
-			{
-				"doctype": "Custom Workspace",
-				"workspace": self.WORKSPACE,
-				"content": dumps([BASE_CONTENT[0], ADDED_SHORTCUT_BLOCK]),
-				"widgets": dumps({"shortcut": [ADDED_SHORTCUT_ITEM]}),
-			}
-		).insert()
-		execute()
-
-		widgets = loads(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "widgets"))
-		self.assertEqual([w["label"] for w in widgets["shortcut"]], ["My ToDos", "Audit"])
 
 	def test_switching_renderer_freezes_nothing(self):
 		from frappe.desk.doctype.workspace.workspace import set_workspace_renderer
@@ -280,7 +146,6 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 			set_workspace_renderer(self.WORKSPACE, "Frappe UI")
 			customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
 			self.assertEqual(customization.renderer, "Frappe UI")
-			self.assertFalse(customization.content)
 
 			with self.assertRaises(frappe.ValidationError):
 				set_workspace_renderer(self.WORKSPACE, "Legacy")
@@ -294,27 +159,6 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		self.assertEqual(
 			loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content")), with_ids(BASE_CONTENT)
 		)
-
-	def test_layout_customization_marks_the_page_as_frozen(self):
-		# The desk warns before the save that freezes a layout, so the payload has to say whether
-		# this workspace already has a snapshot. An appearance-only delta has frozen nothing and
-		# must not be reported as if it had.
-		from frappe.desk.desktop import _overlay_customization_properties
-
-		frappe.get_doc({"doctype": "Custom Workspace", "workspace": self.WORKSPACE, "icon": "star"}).insert()
-
-		page = frappe._dict(name=self.WORKSPACE)
-		_overlay_customization_properties([page])
-		self.assertTrue(page.is_customized)
-		self.assertFalse(page.get("is_layout_customized"))
-
-		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
-		customization.content = dumps([BASE_CONTENT[0]])
-		customization.save()
-
-		page = frappe._dict(name=self.WORKSPACE)
-		_overlay_customization_properties([page])
-		self.assertTrue(page.is_layout_customized)
 
 	def test_customization_requires_standard_workspace(self):
 		private = frappe.new_doc("Workspace")

@@ -157,8 +157,7 @@ async function save() {
 			public: props.workspace.public ? 1 : 0,
 			new_widgets,
 			blocks: saved,
-			variant: variant.value || DEFAULT_LAYOUT,
-			copied_from: copied_from.value,
+			...(props.workspace.layout && { layout: props.workspace.layout }),
 		});
 		frappe.show_alert({ message: __("Saved"), indicator: "green" });
 		emit("done");
