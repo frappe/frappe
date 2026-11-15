@@ -2,6 +2,7 @@ import threading
 from unittest.mock import patch
 
 import frappe
+from frappe import web_crawler
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.web_crawler import KeywordPriority, WebCrawler
@@ -19,7 +20,7 @@ class TestCrawl(IntegrationTestCase):
 		self.site = FakeSite(self)
 
 	def crawl(self, url="https://example.com", **options) -> list:
-		return list(WebCrawler(url, index_files=False, **options).crawl())
+		return list(WebCrawler(url, sitemap="skip", **options).crawl())
 
 	def test_follows_links_breadth_first_within_depth_and_page_limits(self):
 		self.site.page("https://example.com/", links("/a", "/b", "https://other.com/x", "/logo.png"))
@@ -29,7 +30,7 @@ class TestCrawl(IntegrationTestCase):
 
 		urls = [page.url for page in self.crawl(max_depth=1)]
 		self.assertEqual(urls, ["https://example.com", "https://example.com/a", "https://example.com/b"])
-		self.assertEqual(len(self.crawl(max_pages=2)), 2)
+		self.assertEqual(len(self.crawl(limit=2)), 2)
 
 	def test_start_page_comes_before_sitemap_seeds(self):
 		self.site.page("https://example.com/", "<p>Home</p>")
@@ -54,18 +55,18 @@ class TestCrawl(IntegrationTestCase):
 		listed = urlset(*(f"https://example.com/{path}" for path in ("listed", "moved", "other")))
 		self.site.add("https://example.com/sitemap.xml", listed, XML)
 
-		pages = list(WebCrawler("https://example.com", follow_links=False).crawl())
+		pages = list(WebCrawler("https://example.com", sitemap="only").crawl())
 		self.assertEqual(
 			[page.url for page in pages], ["https://example.com/listed", "https://example.com/other"]
 		)
-		pages = list(WebCrawler("https://example.com", follow_links=False, max_pages=1).crawl())
+		pages = list(WebCrawler("https://example.com", sitemap="only", limit=1).crawl())
 		self.assertEqual([page.url for page in pages], ["https://example.com/listed"])
 
-	def test_without_index_files_or_links_only_the_start_page_is_read(self):
+	def test_without_sitemap_at_depth_zero_only_the_start_page_is_read(self):
 		self.site.page("https://example.com/", links("/a"))
 		self.site.add("https://example.com/sitemap.xml", urlset("https://example.com/listed"), XML)
 
-		pages = self.crawl(follow_links=False)
+		pages = self.crawl(max_depth=0)
 		self.assertEqual([page.url for page in pages], ["https://example.com"])
 
 	def test_robots_txt_that_forbids_the_start_page_blocks_it(self):
@@ -80,13 +81,23 @@ class TestCrawl(IntegrationTestCase):
 				)
 				self.assertNotIn("https://example.com/", self.site.requested)
 
+	def test_list_pages_and_crawl_read_the_site(self):
+		self.site.page("https://example.com/", links("/a"))
+		self.site.page("https://example.com/listed", "<p>Listed</p>")
+		self.site.add("https://example.com/sitemap.xml", urlset("https://example.com/listed"), XML)
+
+		self.assertEqual(web_crawler.list_pages("https://example.com"), ["https://example.com/listed"])
+		pages = web_crawler.crawl("https://example.com", sitemap="only")
+		self.assertEqual([page.url for page in pages], ["https://example.com/listed"])
+		self.assertRaises(frappe.ValidationError, WebCrawler, "https://example.com", sitemap="all")
+
 	def test_redirect_to_a_page_already_read_costs_no_budget(self):
 		self.site.page("https://example.com/", links("/old", "/new", "/other"))
 		self.site.redirect("https://example.com/old", "https://example.com/")
 		self.site.page("https://example.com/new", "<p>New</p>")
 		self.site.page("https://example.com/other", "<p>Other</p>")
 
-		urls = [page.url for page in self.crawl(max_pages=3)]
+		urls = [page.url for page in self.crawl(limit=3)]
 		self.assertEqual(
 			urls, ["https://example.com", "https://example.com/new", "https://example.com/other"]
 		)
@@ -95,7 +106,7 @@ class TestCrawl(IntegrationTestCase):
 		self.site.page("https://example.com/", links(*(f"/old-{number}" for number in range(20))))
 		for number in range(20):
 			self.site.redirect(f"https://example.com/old-{number}", "https://example.com/")
-		self.assertEqual(len(self.crawl(max_pages=3)), 1)
+		self.assertEqual(len(self.crawl(limit=3)), 1)
 		redirects_read = [url for url in self.site.requested if "/old-" in url]
 		self.assertEqual(len(redirects_read), 2 * 3 - 1)
 
@@ -177,9 +188,9 @@ class TestCrawl(IntegrationTestCase):
 	def test_settings_tuning_is_used_when_the_crawl_sets_none(self):
 		self.site.page("https://example.com/", links("/blog", "/about", "/private/x"))
 		add_setting_row(self, "link_priorities", {"keyword": "about", "weight": 1})
-		with self.change_settings("Web Crawl Settings", {"skip_patterns": "/private/"}):
+		with self.change_settings("Web Crawl Settings", {"exclude_paths": "/private/"}):
 			default = [page.url for page in self.crawl()]
-			tuned = self.crawl(priority=KeywordPriority({"blog": 1}), skip_patterns=("/about",))
+			tuned = self.crawl(priority=KeywordPriority({"blog": 1}), exclude_paths=("/about",))
 		self.assertEqual(default[1:], ["https://example.com/about", "https://example.com/blog"])
 		self.assertEqual(
 			[page.url for page in tuned[1:]], ["https://example.com/blog", "https://example.com/private/x"]
@@ -188,7 +199,7 @@ class TestCrawl(IntegrationTestCase):
 	def test_rate_limit_stops_the_crawl(self):
 		self.site.page("https://example.com/", links("/a", "/b"))
 		self.site.add("https://example.com/a", status=429, **{"Retry-After": "1"})
-		crawler = WebCrawler("https://example.com", index_files=False)
+		crawler = WebCrawler("https://example.com", sitemap="skip")
 
 		pages = list(crawler.crawl())
 		self.assertEqual([page.status for page in pages], [200, 429])
@@ -201,7 +212,7 @@ class TestCrawl(IntegrationTestCase):
 		self.site.add("https://example.com/a", status=429)
 		self.site.page("https://example.com/b", links("/d"))
 		self.site.page("https://example.com/c", "<p>C</p>")
-		crawler = WebCrawler("https://example.com", index_files=False)
+		crawler = WebCrawler("https://example.com", sitemap="skip")
 
 		urls = [page.url for page in crawler.crawl()]
 		self.assertEqual(
@@ -235,7 +246,7 @@ class TestCrawl(IntegrationTestCase):
 	def test_crawl_stops_at_the_time_limit(self):
 		self.site.page("https://example.com/", links("/a", "/b"))
 		self.site.page("https://example.com/a", "<p>A</p>")
-		crawler = WebCrawler("https://example.com", index_files=False)
+		crawler = WebCrawler("https://example.com", sitemap="skip")
 		pages = crawler.crawl()
 
 		self.assertEqual(next(pages).url, "https://example.com")

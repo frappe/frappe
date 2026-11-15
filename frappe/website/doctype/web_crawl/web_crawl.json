@@ -10,13 +10,12 @@
   "status",
   "stopped_reason",
   "pages_section",
-  "index_files",
-  "follow_links",
+  "sitemap",
   "column_break_pages",
-  "max_pages",
+  "limit",
   "max_depth",
   "tuning_section",
-  "skip_patterns",
+  "exclude_paths",
   "column_break_tuning",
   "link_priorities",
   "results_section",
@@ -75,19 +74,12 @@
    "label": "Pages to read"
   },
   {
-   "default": "1",
-   "description": "Read the page lists the site publishes: llms.txt first, then sitemap.xml.",
-   "fieldname": "index_files",
-   "fieldtype": "Check",
-   "label": "Index files",
-   "set_only_once": 1
-  },
-  {
-   "default": "1",
-   "description": "Follow links from the start page, and from the pages the index files list.",
-   "fieldname": "follow_links",
-   "fieldtype": "Check",
-   "label": "Follow links",
+   "default": "Include",
+   "description": "Include: follow links, starting from the pages llms.txt and sitemap.xml list. Skip: follow links only. Only: read just the pages llms.txt and sitemap.xml list.",
+   "fieldname": "sitemap",
+   "fieldtype": "Select",
+   "label": "Sitemap",
+   "options": "Include\nSkip\nOnly",
    "set_only_once": 1
   },
   {
@@ -96,14 +88,14 @@
   },
   {
    "description": "Maximum number of pages to read.",
-   "fieldname": "max_pages",
+   "fieldname": "limit",
    "fieldtype": "Int",
-   "label": "Maximum pages",
+   "label": "Page limit",
    "non_negative": 1,
    "set_only_once": 1
   },
   {
-   "depends_on": "follow_links",
+   "depends_on": "eval:doc.sitemap!=='Only'",
    "description": "Maximum number of links followed away from the start page.",
    "fieldname": "max_depth",
    "fieldtype": "Int",
@@ -119,9 +111,9 @@
   },
   {
    "description": "URLs that contain any of these are skipped. Use * for any text, as in /blog/*/draft. Enter one per line. If empty, the patterns in Web Crawl Settings are used.",
-   "fieldname": "skip_patterns",
+   "fieldname": "exclude_paths",
    "fieldtype": "Small Text",
-   "label": "Skip patterns",
+   "label": "Exclude paths",
    "max_height": "8rem",
    "placeholder": "/blog/\n\\?page=",
    "set_only_once": 1
@@ -131,7 +123,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "follow_links",
+   "depends_on": "eval:doc.sitemap!=='Only'",
    "description": "Links whose URL or anchor text contains a keyword are read first. If empty, the priorities in Web Crawl Settings are used.",
    "fieldname": "link_priorities",
    "fieldtype": "Table",
@@ -226,7 +218,7 @@
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-13 20:00:00.000000",
+ "modified": "2026-11-15 22:41:54.746411",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Crawl",

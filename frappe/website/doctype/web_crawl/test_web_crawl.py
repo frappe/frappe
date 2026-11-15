@@ -5,13 +5,14 @@ from functools import partial
 from unittest.mock import patch
 
 import frappe
+from frappe import web_crawler
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, now_datetime
 from frappe.utils.task_queue import enqueue_task
 from frappe.web_crawler import CrawledPage
 from frappe.web_crawler.tests.fake_site import FakeSite, add_setting_row
-from frappe.website.doctype.web_crawl.web_crawl import WebCrawl, enqueue_crawl
+from frappe.website.doctype.web_crawl.web_crawl import WebCrawl, start_crawl
 
 OWNER = "web-crawl-owner@example.com"
 STRANGER = "web-crawl-stranger@example.com"
@@ -47,8 +48,8 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 	def start_crawl(self, user=OWNER, **caller) -> WebCrawl:
 		with self.set_user(user):
-			return enqueue_crawl(
-				"https://example.com", on_page=f"{__name__}.record_page", index_files=0, **caller
+			return start_crawl(
+				"https://example.com", on_page=f"{__name__}.record_page", sitemap="skip", **caller
 			)
 
 	def test_run_stores_pages_and_summary_and_survives_a_failing_on_page(self):
@@ -97,9 +98,9 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 	def test_enqueue_starts_a_new_crawl_for_other_options(self):
 		first = self.start_crawl()
 		with self.set_user(OWNER):
-			other = enqueue_crawl("https://example.com", on_page=f"{__name__}.record_page")
+			other = start_crawl("https://example.com", on_page=f"{__name__}.record_page")
 		self.assertNotEqual(other.name, first.name)
-		self.assertEqual(other.index_files, 1)
+		self.assertEqual(other.sitemap, "Include")
 		tuned = self.start_crawl(link_priorities=[{"keyword": "Broken", "weight": 5}])
 		self.assertNotEqual(tuned.name, first.name)
 		self.assertEqual(
@@ -108,8 +109,8 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 	def test_enqueued_link_priorities_are_stored_and_used(self):
 		with self.set_user(OWNER):
-			web_crawl = enqueue_crawl(
-				"https://example.com", index_files=0, link_priorities=[{"keyword": "Broken", "weight": 5}]
+			web_crawl = start_crawl(
+				"https://example.com", sitemap="skip", link_priorities=[{"keyword": "Broken", "weight": 5}]
 			)
 			web_crawl.run()
 		self.assertEqual(web_crawl.keyword_weights(), {"Broken": 5})
@@ -131,22 +132,32 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 
 	def test_a_crawl_without_tuning_copies_the_settings_tuning(self):
 		add_setting_row(self, "link_priorities", {"keyword": "Docs", "weight": 2})
-		with self.change_settings("Web Crawl Settings", {"skip_patterns": "/private/"}):
+		with self.change_settings("Web Crawl Settings", {"exclude_paths": "/private/"}):
 			default = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com"}).insert()
 			tuned = frappe.get_doc(
 				{
 					"doctype": "Web Crawl",
 					"url": "https://example.com",
-					"skip_patterns": "/blog/",
+					"exclude_paths": "/blog/",
 					"link_priorities": [{"keyword": "api", "weight": 1}],
 				}
 			).insert()
-		self.assertEqual((default.keyword_weights(), default.skip_patterns), ({"Docs": 2}, "/private/"))
-		self.assertEqual((tuned.keyword_weights(), tuned.skip_patterns), ({"api": 1}, "/blog/"))
+		self.assertEqual((default.keyword_weights(), default.exclude_paths), ({"Docs": 2}, "/private/"))
+		self.assertEqual((tuned.keyword_weights(), tuned.exclude_paths), ({"api": 1}, "/blog/"))
 
-	def test_a_new_crawl_reads_index_files_and_follows_links(self):
+	def test_start_crawl_takes_the_sitemap_mode_and_paths_to_exclude(self):
+		with self.set_user(OWNER):
+			web_crawl = web_crawler.start_crawl(
+				"https://example.com", sitemap="only", limit=5, exclude_paths=["/blog/", "/news/"]
+			)
+		self.assertEqual(
+			(web_crawl.sitemap, web_crawl.limit, web_crawl.exclude_paths), ("Only", 5, "/blog/\n/news/")
+		)
+		self.assertTrue(web_crawl.background_task)
+
+	def test_a_new_crawl_includes_the_sitemap(self):
 		web_crawl = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com"}).insert()
-		self.assertEqual((web_crawl.index_files, web_crawl.follow_links), (1, 1))
+		self.assertEqual(web_crawl.sitemap, "Include")
 
 	def test_a_rerun_crawl_marks_what_changed_since_the_last_one(self):
 		first = self.start_crawl()
@@ -184,12 +195,12 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 			blank = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com"}).insert()
 			shallow = frappe.get_doc({"doctype": "Web Crawl", "url": "https://example.com", "max_depth": 0})
 			shallow.insert()
-		self.assertEqual((blank.max_pages, blank.max_depth), (20, 3))
+		self.assertEqual((blank.limit, blank.max_depth), (20, 3))
 		self.assertEqual(shallow.max_depth, 0)
 
 	def test_limits_above_the_settings_are_refused(self):
 		with self.change_settings("Web Crawl Settings", {"max_pages": 20, "max_depth": 2}):
-			for fieldname, value in (("max_pages", 21), ("max_depth", 3)):
+			for fieldname, value in (("limit", 21), ("max_depth", 3)):
 				with self.subTest(fieldname=fieldname):
 					web_crawl = frappe.get_doc(
 						{"doctype": "Web Crawl", "url": "https://example.com", fieldname: value}
@@ -200,7 +211,7 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 		long_url = "https://example.com/?q=" + "a" * 200
 		self.site.page(long_url, "<p>Long</p>")
 		with self.set_user(OWNER):
-			web_crawl = enqueue_crawl(long_url, index_files=0)
+			web_crawl = start_crawl(long_url, sitemap="skip")
 		self.assertEqual(
 			len(frappe.db.get_value("Background Task", web_crawl.background_task, "task_name")), 140
 		)
@@ -215,10 +226,10 @@ class IntegrationTestWebCrawl(IntegrationTestCase):
 	def test_enqueue_starts_a_new_crawl_for_other_callbacks(self):
 		first = self.start_crawl()
 		with self.set_user(OWNER):
-			other = enqueue_crawl(
+			other = start_crawl(
 				"https://example.com",
 				on_page=f"{__name__}.record_page",
-				index_files=0,
+				sitemap="skip",
 				on_success=f"{__name__}.record_page",
 			)
 		self.assertNotEqual(other.name, first.name)

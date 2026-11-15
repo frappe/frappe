@@ -38,6 +38,7 @@ class WebCrawlSettings(Document):
 		allowed_domains: DF.Table[WebCrawlDomain]
 		blocked_domains: DF.Table[WebCrawlDomain]
 		concurrent_requests: DF.Int
+		exclude_paths: DF.SmallText | None
 		link_priorities: DF.Table[WebCrawlLinkPriority]
 		max_crawl_time: DF.Int
 		max_depth: DF.Int
@@ -49,7 +50,6 @@ class WebCrawlSettings(Document):
 		request_delay: DF.Float
 		respect_robots_txt: DF.Check
 		sitemap_timeout: DF.Int
-		skip_patterns: DF.SmallText | None
 		user_agent: DF.Data
 	# end: auto-generated types
 

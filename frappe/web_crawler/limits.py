@@ -16,7 +16,7 @@ ESTIMATED_PAGE_SECONDS = 1
 @dataclass(frozen=True)
 class CrawlLimits:
 	"""What one crawl may do, read from Web Crawl Settings. Arguments can only lower the ceilings.
-	`link_priorities` and `skip_patterns` are the tuning for crawls that set none."""
+	`link_priorities` and `exclude_paths` are the tuning for crawls that set none."""
 
 	max_pages: int
 	max_depth: int
@@ -33,7 +33,7 @@ class CrawlLimits:
 	allowed_domains: frozenset[str]
 	blocked_domains: frozenset[str]
 	link_priorities: dict[str, float]
-	skip_patterns: tuple[str, ...]
+	exclude_paths: tuple[str, ...]
 
 	@classmethod
 	def from_settings(
@@ -60,7 +60,7 @@ class CrawlLimits:
 			allowed_domains=domain_set(settings.allowed_domains),
 			blocked_domains=domain_set(settings.blocked_domains),
 			link_priorities={row.keyword: row.weight for row in settings.link_priorities},
-			skip_patterns=tuple((settings.skip_patterns or "").split()),
+			exclude_paths=tuple((settings.exclude_paths or "").split()),
 		)
 
 	def is_blocked(self, url: str) -> bool:

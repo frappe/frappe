@@ -70,7 +70,7 @@ class TestScope(UnitTestCase):
 		self.assertFalse(rules.skips("https://example.com/guide"))
 		self.assertFalse(rules.skips("https://example.com/blog/draft"))
 
-	def test_skip_patterns_are_not_regular_expressions(self):
+	def test_exclude_paths_are_not_regular_expressions(self):
 		rules = SkipRules(("(a+)+$",))
 		self.assertFalse(rules.skips("https://example.com/" + "a" * 40 + "!"))
 		self.assertTrue(rules.skips("https://example.com/(a+)+$"))
@@ -98,7 +98,7 @@ class TestDiscovery(IntegrationTestCase):
 		self.site = FakeSite(self)
 
 	def find(self, url: str, **options) -> list[str]:
-		return WebCrawler(url, **options).find_pages()
+		return WebCrawler(url, **options).list_pages()
 
 	def test_sitemap_under_the_path_wins_over_the_root(self):
 		self.site.add("https://example.com/docs/sitemap.xml", urlset("https://example.com/docs/a"), XML)
@@ -188,7 +188,7 @@ class TestDiscovery(IntegrationTestCase):
 			self.find("https://example.com"),
 			["https://example.com/b", "https://example.com/a", "https://www.example.com/c"],
 		)
-		self.assertEqual(self.find("https://example.com", index_files=False), [])
+		self.assertEqual(self.find("https://example.com", sitemap="skip"), [])
 
 	def test_robots_txt_disallow_is_honoured_unless_switched_off(self):
 		self.site.add("https://example.com/robots.txt", "User-agent: *\nDisallow: /private", "text/plain")
@@ -216,7 +216,7 @@ class TestDiscovery(IntegrationTestCase):
 		)
 		crawler = WebCrawler(
 			"https://example.com",
-			max_pages=1,
+			limit=1,
 			skip_urls=lambda urls: [url for url in urls if url.endswith("/old")],
 		)
-		self.assertEqual(crawler.find_pages(), ["https://example.com/new"])
+		self.assertEqual(crawler.list_pages(), ["https://example.com/new"])

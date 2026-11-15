@@ -12,11 +12,10 @@ ACTIVE_STATUSES = ("Queued", "Running")
 # The fields that make two crawls the same crawl.
 CRAWL_FIELDS = (
 	"url",
-	"index_files",
-	"follow_links",
-	"max_pages",
+	"sitemap",
+	"limit",
 	"max_depth",
-	"skip_patterns",
+	"exclude_paths",
 	"on_page_method",
 	"skip_urls_method",
 	"reference_doctype",
@@ -50,18 +49,17 @@ class WebCrawl(Document):
 		)
 
 		background_task: DF.Link | None
+		exclude_paths: DF.SmallText | None
 		finished_at: DF.Datetime | None
-		follow_links: DF.Check
-		index_files: DF.Check
+		limit: DF.Int
 		link_priorities: DF.Table[WebCrawlLinkPriority]
 		max_depth: DF.Int
-		max_pages: DF.Int
 		on_page_method: DF.Data | None
 		pages_crawled: DF.Int
 		pages_failed: DF.Int
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
-		skip_patterns: DF.SmallText | None
+		sitemap: DF.Literal["Include", "Skip", "Only"]
 		skip_urls_method: DF.Data | None
 		started_at: DF.Datetime | None
 		status: DF.Literal["Queued", "Running", "Completed", "Failed", "Cancelled"]
@@ -94,12 +92,12 @@ class WebCrawl(Document):
 
 	def validate_limits(self, limits: CrawlLimits):
 		"""Only an admin can raise the limits, in Web Crawl Settings."""
-		for fieldname in ("max_pages", "max_depth"):
-			if (self.get(fieldname) or 0) > getattr(limits, fieldname):
+		for fieldname, ceiling in (("limit", limits.max_pages), ("max_depth", limits.max_depth)):
+			if (self.get(fieldname) or 0) > ceiling:
 				frappe.throw(
 					_("{0} can be at most {1}. To read more, raise it in {2}.").format(
 						_(self.meta.get_label(fieldname)),
-						getattr(limits, fieldname),
+						ceiling,
 						get_link_to_form("Web Crawl Settings"),
 					),
 					title=_("Limit too high"),
@@ -107,8 +105,8 @@ class WebCrawl(Document):
 
 	def apply_settings(self, crawler: WebCrawler):
 		"""Fills what the crawl leaves blank from Web Crawl Settings, so the crawl shows what it uses."""
-		self.max_pages, self.max_depth = crawler.limits.max_pages, crawler.limits.max_depth
-		self.skip_patterns = "\n".join(crawler.skip_patterns) or None
+		self.limit, self.max_depth = crawler.limits.max_pages, crawler.limits.max_depth
+		self.exclude_paths = "\n".join(crawler.exclude_paths) or None
 		if not self.link_priorities:
 			for keyword, weight in crawler.limits.link_priorities.items():
 				self.append("link_priorities", {"keyword": keyword, "weight": weight})
@@ -117,12 +115,11 @@ class WebCrawl(Document):
 		"""Blank limits mean the Web Crawl Settings ones; a max depth of 0 reads the start page only."""
 		return WebCrawler(
 			self.url,
-			index_files=bool(self.index_files),
-			follow_links=bool(self.follow_links),
+			sitemap=(self.sitemap or "Include").lower(),
 			priority=KeywordPriority(self.keyword_weights()) if self.link_priorities else None,
-			max_pages=self.max_pages,
+			limit=self.limit,
 			max_depth=self.max_depth,
-			skip_patterns=tuple((self.skip_patterns or "").split()),
+			exclude_paths=tuple((self.exclude_paths or "").split()),
 			skip_urls=skip_urls,
 			previous_hashes=previous_hashes,
 		)
@@ -153,7 +150,7 @@ class WebCrawl(Document):
 	def find_running(self, on_success: str | None = None, on_failure: str | None = None) -> "WebCrawl | None":
 		"""The user's crawl with the same fields and callbacks that is still running.
 		A crawl older than its job timeout is not running, whatever its status says.
-		Locking reads, so they also see a crawl committed while `enqueue_crawl` waited for its lock."""
+		Locking reads, so they also see a crawl committed while `start_crawl` waited for its lock."""
 		filters = {
 			**{fieldname: self.get(fieldname) for fieldname in CRAWL_FIELDS},
 			"owner": frappe.session.user,
@@ -321,9 +318,11 @@ class WebCrawl(Document):
 		frappe.db.delete("Web Crawl", {"name": ("in", old_crawls)})
 
 
-def enqueue_crawl(
+def start_crawl(
 	url: str,
 	*,
+	sitemap: str = "include",
+	exclude_paths: list[str] | tuple[str, ...] = (),
 	on_page: str | None = None,
 	skip_urls: str | None = None,
 	on_success: str | None = None,
@@ -331,14 +330,25 @@ def enqueue_crawl(
 	**fields,
 ) -> WebCrawl:
 	"""Crawls `url` in a background job and returns its Web Crawl, or the user's running one with
-	the same fields. `on_page(page, web_crawl)` and `skip_urls(urls)` are dotted paths, called in the job.
-	`fields` are other Web Crawl fields, such as `follow_links`, `max_pages` or `reference_name`.
+	the same fields. `sitemap` is "include", "skip" or "only", as for `WebCrawler`.
+	`on_page(page, web_crawl)` and `skip_urls(urls)` are dotted paths, called in the job;
+	`on_success(web_crawl, result)` and `on_failure` run when it ends.
+	`fields` are other Web Crawl fields, such as `limit`, `max_depth` or `reference_name`.
 	Locks the user's row until the caller's transaction ends."""
 	web_crawl = frappe.new_doc("Web Crawl")
-	web_crawl.update({"url": url, "on_page_method": on_page, "skip_urls_method": skip_urls, **fields})
+	web_crawl.update(
+		{
+			"url": url,
+			"sitemap": sitemap.capitalize(),
+			"exclude_paths": "\n".join(exclude_paths) or None,
+			"on_page_method": on_page,
+			"skip_urls_method": skip_urls,
+			**fields,
+		}
+	)
 	web_crawl.flags.update(crawler=web_crawl.crawler(), on_success=on_success, on_failure=on_failure)
 	web_crawl.apply_settings(web_crawl.flags.crawler)
-	# Waits for the user's other enqueue_crawl calls to commit, so identical calls start one crawl.
+	# Waits for the user's other start_crawl calls to commit, so identical calls start one crawl.
 	frappe.db.get_value("User", frappe.session.user, "name", for_update=True)
 	if running := web_crawl.find_running(on_success, on_failure):
 		return running

@@ -15,7 +15,7 @@ NEUTRAL_SETTINGS = {
 	"allowed_domains": [],
 	"blocked_domains": [],
 	"link_priorities": [],
-	"skip_patterns": None,
+	"exclude_paths": None,
 }
 
 

@@ -14,15 +14,18 @@ from frappe.web_crawler.page import CrawledPage, PageParser
 from frappe.web_crawler.scope import Robots, Scope, SkipRules, normalize_url
 from frappe.web_crawler.sources import LlmsTxt, Sitemap, is_sitemap_url
 
+SITEMAP_MODES = ("include", "skip", "only")
+
 
 class WebCrawler:
 	"""Reads the pages of one site, within the limits in Web Crawl Settings.
 
-	`index_files` lists pages from the site's llms.txt, then its sitemap.
-	`follow_links` follows links breadth first from the start URL, with the listed pages as seeds.
+	`sitemap` is "include" (follow links breadth first from the start URL, with the pages llms.txt
+	and sitemap.xml list as seeds), "skip" (follow links only) or "only" (the listed pages only).
+	`limit` caps the pages read, `max_depth` the links followed away from the start page.
 	`previous_hashes` maps URLs to `content_hash` values of an earlier crawl, for each page's `change_status`.
 	`priority(url, anchor_text)` orders pages at the same depth (higher first).
-	Without `priority` or `skip_patterns`, the tuning in Web Crawl Settings is used.
+	Without `priority` or `exclude_paths`, the tuning in Web Crawl Settings is used.
 	`skip_urls(urls)` returns the URLs to drop before they are fetched.
 	The crawl stops with `stopped_reason` "time_limit" once the settings' maximum crawl time has passed.
 	Pages are read in batches of the settings' concurrent requests, with the request delay between batches.
@@ -33,22 +36,23 @@ class WebCrawler:
 		self,
 		url: str,
 		*,
-		index_files: bool = True,
-		follow_links: bool = True,
-		max_pages: int | None = None,
+		sitemap: str = "include",
+		limit: int | None = None,
 		max_depth: int | None = None,
-		skip_patterns: tuple[str, ...] = (),
+		exclude_paths: tuple[str, ...] = (),
 		priority: Callable[[str, str], float] | None = None,
 		skip_urls: Callable[[list[str]], list[str]] | None = None,
 		user_agent: str | None = None,
 		previous_hashes: dict[str, str] | None = None,
 	):
-		self.limits = CrawlLimits.from_settings(max_pages, max_depth, user_agent)
+		self.limits = CrawlLimits.from_settings(limit, max_depth, user_agent)
 		self.url = self.validate_url(url)
-		self.index_files = index_files
-		self.follow_links = follow_links
-		self.skip_patterns = tuple(skip_patterns) or self.limits.skip_patterns
-		self.skip_rules = SkipRules(self.skip_patterns)
+		if sitemap not in SITEMAP_MODES:
+			frappe.throw(_("Sitemap must be include, skip or only, not {0}.").format(sitemap))
+		self.index_files = sitemap != "skip"
+		self.follow_links = sitemap != "only"
+		self.exclude_paths = tuple(exclude_paths) or self.limits.exclude_paths
+		self.skip_rules = SkipRules(self.exclude_paths)
 		self.previous_hashes = {normalize_url(url): value for url, value in (previous_hashes or {}).items()}
 		self.priority = priority or self.settings_priority()
 		self.skip_urls = skip_urls
@@ -83,8 +87,8 @@ class WebCrawler:
 			)
 		return url
 
-	def find_pages(self) -> list[str]:
-		"""Page URLs from the index files, filtered and capped at max_pages."""
+	def list_pages(self) -> list[str]:
+		"""Page URLs from llms.txt and sitemap.xml, filtered and capped at the page limit."""
 		return self.index_urls()[: self.limits.max_pages]
 
 	def index_urls(self) -> list[str]:
