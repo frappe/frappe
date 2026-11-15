@@ -4,6 +4,13 @@
 	background-color: var(--fg-color);
 	border-top: 1px solid $border-color;
 	margin-top: auto;
+	// body is a fixed-height flex column, so a tall page would squeeze the footer under its content
+	flex-shrink: 0;
+
+	// the closing bar sits flush on the bottom edge
+	&:has(.footer-powered) {
+		padding-bottom: 0;
+	}
 }
 
 .footer-logo {
@@ -102,6 +109,174 @@
 			box-shadow: none;
 			border-radius: var(--radius);
 			font-size: $font-size-sm;
+		}
+	}
+}
+
+// Layout: logo with the copyright and address under it on the left, link groups on the
+// right, "Powered by" centred on the last line. The wrappers and their Bootstrap rows
+// dissolve so the pieces can sit on one grid without changing the templates apps override.
+.web-footer > .container {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	row-gap: 1rem;
+
+	.footer-logo-extension,
+	.footer-logo-extension > .row,
+	.footer-info,
+	.footer-info > .row {
+		display: contents;
+	}
+
+	.footer-logo-extension > .row > *,
+	.footer-info > .row > * {
+		flex: none;
+		max-width: none;
+		padding: 0;
+
+		&:empty {
+			display: none;
+		}
+	}
+
+	.footer-links:not(:has(.footer-link)),
+	.footer-logo-extension > .row > :not(:has(*)) {
+		display: none;
+	}
+
+	// on a phone the address follows the logo, as it does beside the links on wider screens
+	.footer-grouped-links {
+		order: 1;
+	}
+
+	.footer-grouped-links {
+		margin-bottom: 0;
+
+		// equal columns keep a second row of groups lined up under the first
+		> .row {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, 9rem);
+			gap: 2rem 1.5rem;
+			margin: 0;
+		}
+	}
+
+	.footer-group {
+		max-width: none;
+		margin-top: 0;
+		padding: 0;
+	}
+
+	// one column per group, however long, so every column of links sits under a title
+	.footer-group-links {
+		display: block;
+		max-height: none;
+	}
+
+	.footer-info .footer-col-left {
+		line-height: 1.65;
+		overflow-wrap: break-word;
+	}
+
+	// closing bar: as tall as the navbar, under a divider that runs the full page width.
+	// Small print on the left, ungrouped links on the right.
+	.footer-info > .row > .footer-powered {
+		grid-column: 1 / -1;
+		order: 10;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.375rem 2rem;
+		// plus the divider, as the navbar counts its own
+		min-height: calc(var(--navbar-height) + 1px);
+		margin-top: 2rem;
+		// the most that keeps one line on the navbar height; it gives two lines room to breathe
+		padding-block: 0.875rem;
+		border-top: 1px solid $border-color;
+		border-image: linear-gradient($border-color, $border-color) 1 / 1px 0 0 / 0 100vw;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		text-align: start;
+
+		&:not(:has(.footer-link)) {
+			justify-content: center;
+		}
+	}
+
+	.footer-links > .row {
+		gap: 0 1.25rem;
+		margin: 0;
+
+		> * {
+			display: contents;
+		}
+	}
+
+	.footer-links .footer-link {
+		margin: 0;
+		font-size: inherit;
+		line-height: 1.5;
+	}
+
+	.footer-copyright::after {
+		content: "·";
+		// the template leaves a space after the span, so the trailing side needs less
+		margin-inline: 0.5rem 0.25rem;
+	}
+
+	@include media-breakpoint-down(xs) {
+		.footer-info > .row > .footer-powered {
+			flex-direction: column;
+			gap: 0.5rem;
+			padding-block: 1rem;
+			text-align: center;
+		}
+
+		.footer-links > .row {
+			justify-content: center;
+		}
+
+		.footer-copyright {
+			display: block;
+
+			&::after {
+				content: none;
+			}
+		}
+	}
+
+	// the columns' own gutters are gone, and the container has none at this width
+	@include media-breakpoint-only(md) {
+		padding-inline: 1.5rem;
+	}
+
+	@include media-breakpoint-up(md) {
+		grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+		// the links span both rows; the second row takes their extra height so the address stays under the logo
+		grid-template-rows: auto 1fr;
+		column-gap: 3rem;
+
+		.footer-logo-extension > .row > .text-left,
+		.footer-info .footer-col-left {
+			grid-column: 1;
+		}
+
+		.footer-info .footer-col-left {
+			grid-row: 2;
+		}
+
+		.footer-grouped-links {
+			grid-column: 2;
+			grid-row: 1 / span 2;
+
+			> .row {
+				justify-content: end;
+			}
+		}
+
+		.footer-logo-extension > .row > .text-right {
+			grid-column: 1 / -1;
 		}
 	}
 }
