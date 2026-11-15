@@ -99,8 +99,10 @@ class PrintDesignerMigration {
 		if (row.converted && row.usage?.length) {
 			add(__("Use Copy"), () => this.use_copy(row));
 		} else if (row.converted) {
-			if (row.editor_format === row.name) add(__("Delete"), () => this.delete_design(row));
+			if (row.editor_format === row.name)
+				add(__("Delete Design"), () => this.delete_design(row));
 		} else {
+			if (row.standard !== "Yes") add(__("Delete"), () => this.delete_format(row));
 			add(__("Convert"), () => (row.sample ? this.preview(row) : this.convert(row)));
 		}
 		return $row;
@@ -152,7 +154,10 @@ class PrintDesignerMigration {
 			const name = dialog.get_value("document");
 			if (!name) return;
 			const [original, converted] = dialog.fields_dict.panes.$wrapper.find("iframe");
-			original.src = pdf(`${METHOD}.preview_print_designer`, { print_format: row.name, name });
+			original.src = pdf(`${METHOD}.preview_print_designer`, {
+				print_format: row.name,
+				name,
+			});
 			converted.src = pdf(`${METHOD}.preview_conversion`, { print_format: row.name, name });
 		};
 		dialog.show();
@@ -182,6 +187,12 @@ class PrintDesignerMigration {
 				});
 				this.refresh();
 			});
+	}
+
+	delete_format(row) {
+		frappe.model.with_doctype("Print Format", () =>
+			frappe.model.delete_doc("Print Format", row.name, () => this.refresh())
+		);
 	}
 
 	delete_design(row) {
