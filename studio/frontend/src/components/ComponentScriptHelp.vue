@@ -12,8 +12,8 @@
 				. Each one is optional.
 			</li>
 			<li>
-				The props are the component's inputs. Blocks read them as
-				<code v-pre class="rounded-4 bg-surface-gray-2 px-1 text-xs">{{ inputs.title }}</code>
+				Blocks read the props as
+				<code v-pre class="rounded-4 bg-surface-gray-2 px-1 text-xs">{{ props.title }}</code>
 				.
 			</li>
 			<li>

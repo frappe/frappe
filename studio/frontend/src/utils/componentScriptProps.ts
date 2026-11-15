@@ -23,24 +23,24 @@ export function getPropsReadOnlyReason(source: string): string {
 
 /**
  * Add, change or remove one prop, and return the new script.
- * `previous` is the prop to replace, and `input` is its new definition. Pass only `input` to
+ * `previous` is the prop to replace, and `prop` is its new definition. Pass only `prop` to
  * add a prop, and only `previous` to remove one.
  */
 export function setScriptProp(
 	source: string,
 	previous: StudioComponentInput | null,
-	input: StudioComponentInput | null,
+	prop: StudioComponentInput | null,
 ): string {
 	source = source.trim() ? source : NO_SCRIPT
 	const props = findScriptProps(source)
 	if (props.readOnlyReason) throw new Error(props.readOnlyReason)
 
 	const entry = previous && props.entries.get(previous.input_name)
-	if (input && input.input_name !== previous?.input_name && props.entries.has(input.input_name)) {
-		throw new Error(`A prop named "${input.input_name}" already exists.`)
+	if (prop && prop.input_name !== previous?.input_name && props.entries.has(prop.input_name)) {
+		throw new Error(`A prop named "${prop.input_name}" already exists.`)
 	}
-	const kept = entry && input && isSameDefault(previous, input) ? getDefaultSource(source, entry) : undefined
-	const text = input ? getPropSource(input, kept) : ""
+	const kept = entry && prop && isSameDefault(previous, prop) ? getDefaultSource(source, entry) : undefined
+	const text = prop ? getPropSource(prop, kept) : ""
 
 	let script: string
 	if (entry) script = text ? replaceRange(source, entry.from, entry.to, text) : removeEntry(source, entry)
@@ -61,49 +61,49 @@ const PROP_TYPES: Record<string, string | null> = {
 }
 
 /** One entry of the `props` object, such as `size: { type: String, default: "md" }`. */
-function getPropSource(input: StudioComponentInput, defaultSource?: string): string {
-	const type = PROP_TYPES[input.type] ?? null
+function getPropSource(prop: StudioComponentInput, defaultSource?: string): string {
+	const type = PROP_TYPES[prop.type] ?? null
 	const parts = type ? [`type: ${type}`] : []
-	if (input.required) parts.push("required: true")
-	defaultSource ??= getDefaultLiteral(input)
+	if (prop.required) parts.push("required: true")
+	defaultSource ??= getDefaultLiteral(prop)
 	if (defaultSource) parts.push(`default: ${defaultSource}`)
 
 	const meta = []
 	// String, Number and Boolean already name their control
-	if (!["text", "number", "checkbox", "code"].includes(input.type)) meta.push(`control: "${input.type}"`)
-	if (input.type === "select") meta.push(`options: ${JSON.stringify(getOptions(input))}`)
-	if (input.description) meta.push(`description: ${JSON.stringify(input.description)}`)
+	if (!["text", "number", "checkbox", "code"].includes(prop.type)) meta.push(`control: "${prop.type}"`)
+	if (prop.type === "select") meta.push(`options: ${JSON.stringify(getOptions(prop))}`)
+	if (prop.description) meta.push(`description: ${JSON.stringify(prop.description)}`)
 	if (meta.length) parts.push(`meta: { ${meta.join(", ")} }`)
 
-	const name = /^[A-Za-z_$][\w$]*$/.test(input.input_name) ? input.input_name : JSON.stringify(input.input_name)
+	const name = /^[A-Za-z_$][\w$]*$/.test(prop.input_name) ? prop.input_name : JSON.stringify(prop.input_name)
 	if (parts.length === 1 && type) return `${name}: ${type}`
 	return `${name}: ${parts.length ? `{ ${parts.join(", ")} }` : "null"}`
 }
 
-function getDefaultLiteral(input: StudioComponentInput): string | undefined {
-	const value = input.default
+function getDefaultLiteral(prop: StudioComponentInput): string | undefined {
+	const value = prop.default
 	if (value === undefined || value === null || value === "") return undefined
-	if (input.type === "number") {
+	if (prop.type === "number") {
 		if (!Number.isFinite(Number(value))) throw new Error("The default value must be a number.")
 		return String(Number(value))
 	}
 	// Vue gives a Boolean prop without a default the value false
-	if (input.type === "checkbox") return ["true", "1"].includes(String(value)) ? "true" : undefined
-	if (input.type === "select" && !getOptions(input).includes(String(value))) {
+	if (prop.type === "checkbox") return ["true", "1"].includes(String(value)) ? "true" : undefined
+	if (prop.type === "select" && !getOptions(prop).includes(String(value))) {
 		throw new Error("The default value must be one of the options.")
 	}
 	// Vue calls a factory for each instance, so two instances do not share one object
-	if (input.type === "code") return `() => (${value})`
+	if (prop.type === "code") return `() => (${value})`
 	return JSON.stringify(value)
 }
 
-function getOptions(input: StudioComponentInput): string[] {
-	return (input.options || "").split("\n").filter((option) => option.trim())
+function getOptions(prop: StudioComponentInput): string[] {
+	return (prop.options || "").split("\n").filter((option) => option.trim())
 }
 
 // The script gives a default as text, and a number or checkbox control gives a number or a boolean.
-function isSameDefault(previous: StudioComponentInput, input: StudioComponentInput): boolean {
-	return String(previous.default ?? "") === String(input.default ?? "") && previous.type === input.type
+function isSameDefault(previous: StudioComponentInput, prop: StudioComponentInput): boolean {
+	return String(previous.default ?? "") === String(prop.default ?? "") && previous.type === prop.type
 }
 
 /** The text of an entry's `default`, so a value that the form cannot show, such as a factory, stays. */

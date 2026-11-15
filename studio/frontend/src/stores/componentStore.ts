@@ -11,7 +11,7 @@ import {
 } from "@/data/studioComponentScripts"
 import {
 	createComponentHost,
-	getInputsFromProps,
+	getEditorProps,
 	validateComponentScript,
 	type ComponentScript,
 } from "@/utils/componentScript"
@@ -210,9 +210,9 @@ const useComponentStore = defineStore("componentStore", () => {
 	}
 
 	/** The props of a scripted component, or the inputs saved on a component without a script. */
-	function getComponentInputs(componentName: string): StudioComponentInput[] {
+	function getComponentProps(componentName: string): StudioComponentInput[] {
 		const script = getComponentScript(componentName)
-		if (script) return getInputsFromProps(script.props)
+		if (script) return getEditorProps(script.props)
 		return componentDocMap.get(componentName)?.inputs || []
 	}
 
@@ -257,7 +257,7 @@ const useComponentStore = defineStore("componentStore", () => {
 		getComponentHost,
 		getComponentScript,
 		hasComponentScript,
-		getComponentInputs,
+		getComponentProps,
 		getComponentEmits,
 		loadComponent,
 		setComponents,
