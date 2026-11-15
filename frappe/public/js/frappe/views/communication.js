@@ -488,12 +488,12 @@ frappe.views.CommunicationComposer = class {
 		});
 	}
 
-	/** The DocType the composer's templates are scoped to: the form's, or the document's when there is no form. */
 	get_template_doctype() {
 		return this.frm?.doctype || this.doc?.doctype;
 	}
 
 	make_template_dropdown() {
+		const template_names = this.frm ? null : this.get_email_template_names();
 		const $dropdown = frappe.ui.dropdown({
 			button: {
 				label: __("Use template"),
@@ -503,7 +503,7 @@ frappe.views.CommunicationComposer = class {
 			align: "end",
 			empty_text: __("No templates"),
 			options: () =>
-				this.get_email_template_names().then((names) =>
+				(template_names || this.get_email_template_names()).then((names) =>
 					names.map((name) => ({
 						label: name,
 						onclick: () => this.apply_email_template(name),
@@ -511,13 +511,10 @@ frappe.views.CommunicationComposer = class {
 				),
 		});
 
-		if (this.frm) return $dropdown;
-
-		// nothing to pick from, so no button
-		$dropdown.addClass("hidden");
-		this.get_email_template_names()
-			.then((names) => $dropdown.toggleClass("hidden", !names.length))
-			.catch(() => $dropdown.removeClass("hidden"));
+		if (template_names) {
+			$dropdown.addClass("hidden");
+			template_names.then((names) => $dropdown.toggleClass("hidden", !names.length));
+		}
 		return $dropdown;
 	}
 
