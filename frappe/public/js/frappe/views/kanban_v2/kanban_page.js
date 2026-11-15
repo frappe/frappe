@@ -445,8 +445,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	/**
-	 * Puts the link's field filters on top of the board's saved ones. They live in this.filters only,
-	 * so they show in the Filter button and clear like any filter, but the Kanban Board isn't changed.
+	 * Adds the link's field filters next to the board's saved ones, which the server applies anyway.
+	 * They live in this.filters only, so they show in the Filter button and clear like any filter,
+	 * but the Kanban Board isn't changed.
 	 */
 	add_route_filters(entries) {
 		this._has_route_filters = false;
@@ -472,9 +473,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 				);
 			}
 		}
-		if (!added.length) return;
-		const fields = new Set(added.map((filter) => filter[1]));
-		this.filters = [...this.filters.filter((filter) => !fields.has(filter[1])), ...added];
+		const saved = new Set(this.filters.map((filter) => JSON.stringify(filter)));
+		const route_filters = added.filter((filter) => !saved.has(JSON.stringify(filter)));
+		if (!route_filters.length) return;
+		this.filters = [...this.filters, ...route_filters];
 		this._has_route_filters = true;
 	}
 
