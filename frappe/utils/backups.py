@@ -82,6 +82,7 @@ class BackupGenerator:
 		verbose=False,
 		old_backup_metadata=False,
 		rollback_callback=None,
+		for_mariadb=False,
 	):
 		global _verbose
 		self.compress_files = compress_files or compress
@@ -103,6 +104,7 @@ class BackupGenerator:
 		self.partial = False
 		self.old_backup_metadata = old_backup_metadata
 		self.rollback_callback = rollback_callback
+		self.for_mariadb = for_mariadb
 
 		site = frappe.local.site or frappe.generate_hash(length=8)
 		self.site_slug = site.replace(".", "_")
@@ -186,7 +188,7 @@ class BackupGenerator:
 		"""
 		# Check if file exists and is less than a day old
 		# If not Take Dump
-		if not force:
+		if not force and not self.for_mariadb:
 			(
 				last_db,
 				last_file,
@@ -397,21 +399,8 @@ class BackupGenerator:
 		with open(site_config_backup_path, "w") as n, open(site_config_path) as c:
 			n.write(c.read())
 
-	def take_dump(self):
-		if self.db_type == "sqlite":
-			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
-			backup_sqlite_database(db_path, self.backup_path_db)
-			return
-
-		import shlex
-
+	def get_dump_header(self) -> str:
 		from frappe.utils.change_log import get_app_branch
-
-		gzip_exc: str = which("gzip")
-		if not gzip_exc:
-			frappe.throw(
-				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
-			)
 
 		if self.old_backup_metadata:
 			database_header_content = [
@@ -444,10 +433,44 @@ class BackupGenerator:
 				]
 			)
 
-		generated_header = "\n".join(f"-- {x}" for x in database_header_content) + "\n"
+		return "\n".join(f"-- {x}" for x in database_header_content) + "\n"
+
+	def take_mariadb_dump(self, db_path: Path):
+		from frappe.database.sqlite.mariadb_dump import write_mariadb_dump
+
+		write_mariadb_dump(
+			db_path,
+			self.backup_path_db,
+			self.get_dump_header(),
+			include_tables=self.backup_includes if self.partial else None,
+			exclude_tables=self.backup_excludes if self.partial else None,
+			verbose=self.verbose,
+		)
+
+	def take_dump(self):
+		if self.db_type == "sqlite":
+			db_path = Path(frappe.get_site_path()) / "db" / f"{self.db_name}.db"
+			if self.for_mariadb:
+				self.take_mariadb_dump(db_path)
+			else:
+				backup_sqlite_database(db_path, self.backup_path_db)
+			return
+
+		if self.for_mariadb and self.db_type != "mariadb":
+			frappe.throw(_("A MariaDB-compatible backup can only be taken of a SQLite or MariaDB site."))
+		if self.for_mariadb:
+			print("Site already uses MariaDB; ignoring --for-mariadb.")
+
+		import shlex
+
+		gzip_exc: str = which("gzip")
+		if not gzip_exc:
+			frappe.throw(
+				_("gzip not found in PATH! This is required to take a backup."), exc=frappe.ExecutableNotFound
+			)
 
 		with gzip.open(self.backup_path_db, "wt") as f:
-			f.write(generated_header)
+			f.write(self.get_dump_header())
 
 		cmd = []
 		extra = []
@@ -596,6 +619,7 @@ def scheduled_backup(
 	verbose=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
+	for_mariadb=False,
 ):
 	"""this function is called from scheduler
 	deletes backups older than 7 days
@@ -616,6 +640,7 @@ def scheduled_backup(
 		verbose=verbose,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
+		for_mariadb=for_mariadb,
 	)
 
 
@@ -635,6 +660,7 @@ def new_backup(
 	verbose=False,
 	old_backup_metadata=False,
 	rollback_callback=None,
+	for_mariadb=False,
 ):
 	delete_temp_backups()
 	odb = BackupGenerator(
@@ -657,6 +683,7 @@ def new_backup(
 		compress_files=compress,
 		old_backup_metadata=old_backup_metadata,
 		rollback_callback=rollback_callback,
+		for_mariadb=for_mariadb,
 	)
 	odb.get_backup(older_than, ignore_files, force=force)
 	return odb
