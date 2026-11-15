@@ -170,16 +170,13 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		this.setup_keyboard_navigation();
 	}
 
-	is_typing(e) {
-		return (
-			$(e.target).is("input, select, textarea, [contenteditable=true]") ||
-			$(".modal:visible").length > 0
-		);
+	is_dialog_open() {
+		return $(".modal:visible").length > 0;
 	}
 
 	// keys already taken by what has focus (a focused row) stay theirs
 	is_key_taken(e) {
-		return e.isDefaultPrevented() || this.is_typing(e);
+		return e.isDefaultPrevented() || this.is_dialog_open();
 	}
 
 	// j, k, up and down come from SplitPane
@@ -199,9 +196,8 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 			],
 			[
 				"escape",
-				(e) => {
-					// the desk's Escape handler has already blurred the input, so ask the event
-					if (this.is_typing(e) || !this.selected_name) return false;
+				() => {
+					if (this.is_dialog_open() || !this.selected_name) return false;
 					this.select(null);
 				},
 				__("Close selected record"),
