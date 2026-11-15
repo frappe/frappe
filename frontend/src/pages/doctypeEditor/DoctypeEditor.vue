@@ -24,10 +24,10 @@
 			/>
 		</template>
 		<div
-			v-if="!state"
+			v-if="!state || child.tables.loading.value"
 			class="flex flex-1 items-center justify-center text-base text-ink-gray-5"
 		>
-			{{ __("Loading {0}…", [name]) }}
+			{{ __("Loading {0}…", [child.tables.loading.value ?? name]) }}
 		</div>
 		<template v-else-if="state">
 			<div

@@ -1,13 +1,18 @@
 // The parent editor's page side of its child tables: `&table=<Table fieldname>` opens the child's
 // editor in place, the crumbs lead back, and the child registry is provided to the panel.
 import { computed, provide, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute, useRouter, type LocationQuery } from "vue-router";
 import { toast } from "frappe-ui";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { ChildTables, CHILD_TABLES } from "./childTables";
 import type { DesignCanvas } from "./designCanvas";
 import type { ForkWarning } from "./forkWarning";
 import type { PendingEdits } from "./pendingEdits";
+
+function queryWithout(query: LocationQuery) {
+	const { table: _open, ...rest } = query;
+	return rest;
+}
 
 export function useChildTables(edits: PendingEdits, parent: () => DesignCanvas | null, forks: ForkWarning) {
 	const route = useRoute();
@@ -21,7 +26,11 @@ export function useChildTables(edits: PendingEdits, parent: () => DesignCanvas |
 	watch(
 		[() => route.query.table, parent],
 		([table]) => {
-			tables.show(typeof table === "string" ? table : null).catch((error) => toast.error(errorMessage(error)));
+			tables.show(typeof table === "string" ? table : null).catch((error) => {
+				toast.error(errorMessage(error));
+				// The address stays `table=…` while the parent shows: leave it, or "Edit …" returns early.
+				if (route.query.table === table) void router.replace({ query: queryWithout(route.query) });
+			});
 		},
 		{ immediate: true },
 	);
@@ -29,7 +38,7 @@ export function useChildTables(edits: PendingEdits, parent: () => DesignCanvas |
 	/** Opens the child of the parent's Table field `table`, or the parent for `null`; only `table` changes in the address. */
 	function open(table: string | null) {
 		if ((route.query.table ?? null) === table) return;
-		const { table: _open, ...query } = route.query;
+		const query = queryWithout(route.query);
 		void router.push({ query: table ? { ...query, table } : query });
 	}
 

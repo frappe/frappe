@@ -40,7 +40,7 @@ import PanelRow from "./PanelRow.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; field: RawMetaField }>();
 
-const childFields = useChildFields(() => props.field.options);
+const { fields: childFields } = useChildFields(() => props.field.options);
 const columns = computed(() => {
 	const fields = childFields.value;
 	if (!fields) return "";

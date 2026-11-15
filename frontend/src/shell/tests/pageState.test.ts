@@ -77,8 +77,15 @@ describe("failedState", () => {
 	it("is no permission on a 403 and not found on a 404, with no retry", () => {
 		const refused = new ApiError({ type: "PermissionError", message: "No" }, 403);
 		const missing = new ApiError({ type: "DoesNotExistError", message: "Gone" }, 404);
-		expect(failedState(refused, retry)).toEqual({ name: "noPermission" });
+		expect(failedState(refused, retry)).toEqual({ name: "noPermission", message: "No" });
 		expect(failedState(missing, retry)).toEqual({ name: "notFound" });
+	});
+
+	it("carries the server's reason on a 403 and none for the wrapper's own error", () => {
+		const reason = new ApiError({ type: "PermissionError", message: "Design mode needs developer mode" }, 403);
+		const wrapper = new ApiError({ type: "HTTPError", message: "GET /x failed with status 403" }, 403);
+		expect(failedState(reason, retry).message).toBe("Design mode needs developer mode");
+		expect(failedState(wrapper, retry).message).toBeUndefined();
 	});
 
 	it("is failed with the server's message as text", () => {

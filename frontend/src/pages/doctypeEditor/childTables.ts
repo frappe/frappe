@@ -27,6 +27,8 @@ export const CHILD_TABLES: InjectionKey<ChildTables> = Symbol("ChildTables");
 export class ChildTables {
 	/** The child editor the page shows; `null` shows the parent's. */
 	readonly open = shallowRef<ChildSession | null>(null);
+	/** The child DocType whose editor is loading for the address; `null` when none is. */
+	readonly loading = shallowRef<string | null>(null);
 	/** The DocType whose Table field opened the child editor shown now. */
 	readonly parentDoctype = computed(() => (this.open.value ? (this.parent()?.state.doctype ?? null) : null));
 	private sessions = shallowRef(new Map<string, ChildSession>());
@@ -43,9 +45,18 @@ export class ChildTables {
 	async show(table: string | null) {
 		const wanted = this.shows.begin();
 		const doctype = table ? this.childOf(table) : null;
-		if (!table || !doctype) return void (this.open.value = null);
-		const session = this.cached(doctype) ?? (await this.load(doctype));
-		if (wanted()) this.open.value = { ...session, table };
+		if (!table || !doctype) {
+			this.loading.value = null;
+			return void (this.open.value = null);
+		}
+		const cached = this.cached(doctype);
+		this.loading.value = cached ? null : doctype;
+		try {
+			const session = cached ?? (await this.load(doctype));
+			if (wanted()) this.open.value = { ...session, table };
+		} finally {
+			if (wanted()) this.loading.value = null;
+		}
 	}
 
 	/** The parent's Table field that holds `doctype`, for an undo that reopens its editor. */
@@ -109,6 +120,7 @@ export class ChildTables {
 		this.shows.cancel();
 		this.sessions.value = new Map();
 		this.open.value = null;
+		this.loading.value = null;
 	}
 
 	/** The child tables the parent's staged edits make. */

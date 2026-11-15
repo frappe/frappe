@@ -28,10 +28,12 @@ export interface PageStateValue {
 	retry?: () => unknown;
 }
 
-/** The state a failed read shows: offline, no permission, not found, or failed with the server's message. */
+/** The state a failed read shows: offline, no permission, not found, or failed; a refusal and a failure carry the server's message. */
 export function failedState(failure: unknown, retry: () => unknown): PageStateValue {
 	if (isOffline(failure)) return { name: "offline", retry };
-	if (isApiError(failure) && failure.status === 403) return { name: "noPermission" };
+	if (isApiError(failure) && failure.status === 403) {
+		return { name: "noPermission", message: serverMessage(failure) };
+	}
 	if (isApiError(failure) && failure.status === 404) return { name: "notFound" };
 	return { name: "failed", message: serverMessage(failure), retry };
 }

@@ -93,11 +93,16 @@
 		<ul v-if="errors.length" class="text-p-sm text-ink-red-5" data-setting-errors>
 			<li v-for="error in errors" :key="error">{{ error }}</li>
 		</ul>
+		<div v-if="!locked && rolesError" class="flex items-center gap-2" data-roles-failed>
+			<ErrorMessage :message="asErrorHtml(__('Could not load the roles.'))" />
+			<Button :label="__('Try again')" :loading="rolesLoading" @click="loadRoles" />
+		</div>
 		<Combobox
-			v-if="!locked"
+			v-else-if="!locked"
 			:key="rules.length"
 			class="w-[200px]"
 			variant="subtle"
+			:loading="rolesLoading"
 			:model-value="''"
 			:options="roleOptions"
 			:placeholder="__('Add a role')"
@@ -121,9 +126,10 @@
 <script setup lang="ts">
 import { computed, inject, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
-import { Badge, Button, Combobox } from "frappe-ui";
+import { Badge, Button, Combobox, ErrorMessage } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import { __ } from "@/i18n";
+import { asErrorHtml } from "./asErrorHtml";
 import PermissionRule from "./PermissionRule.vue";
 import { RIGHT_LABELS, columns, moreRights } from "./permissionColumns";
 import type { PermissionRow } from "./settingsModel";
@@ -142,6 +148,8 @@ const rules = computed(() => view.settings.permissions);
 const shown = computed(() => columns(view.kind));
 const more = computed(() => moreRights(view.kind));
 const roles = ref<string[]>([]);
+const rolesLoading = ref(true);
+const rolesError = ref(false);
 const errors = computed(() => view.errors(props.row));
 
 // A role takes one level-0 rule; rules above level 0 come from the Editor's field levels.
@@ -156,13 +164,23 @@ const roleOptions = computed(() => {
 
 const ruleKey = (rule: PermissionRow) => `${rule.role}\n${rule.permlevel}\n${rule.if_owner}`;
 
-onMounted(async () => {
-	const { data } = await listDocuments<{ name: string }>("Role", {
-		fields: ["name"],
-		filters: { disabled: 0 },
-		order_by: "name asc",
-		limit: 500,
-	});
-	roles.value = data.map((role) => role.name);
-});
+async function loadRoles() {
+	rolesLoading.value = true;
+	rolesError.value = false;
+	try {
+		const { data } = await listDocuments<{ name: string }>("Role", {
+			fields: ["name"],
+			filters: { disabled: 0 },
+			order_by: "name asc",
+			limit: 500,
+		});
+		roles.value = data.map((role) => role.name);
+	} catch {
+		rolesError.value = true;
+	} finally {
+		rolesLoading.value = false;
+	}
+}
+
+onMounted(loadRoles);
 </script>

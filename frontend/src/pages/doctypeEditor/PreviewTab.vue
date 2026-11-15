@@ -32,7 +32,18 @@
 				__("Changes here are not saved.")
 			}}</span>
 		</div>
+		<div v-if="failure" class="flex flex-col items-start gap-2 px-5 py-4" data-preview-failure>
+			<ErrorMessage :message="asErrorHtml(failure.message)" />
+			<Button :label="__('Try again')" @click="failure.retry" />
+		</div>
+		<FormSkeleton
+			v-else-if="details.loading.value"
+			class="px-5 py-4"
+			:columns="2"
+			:fields="6"
+		/>
 		<FormLayout
+			v-else
 			:key="record ?? EMPTY"
 			v-model:doc="doc"
 			v-model:tab="tab"
@@ -49,11 +60,14 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { Combobox } from "frappe-ui";
+import { Button, Combobox, ErrorMessage } from "frappe-ui";
 import { getDocument } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import { FORM_CLASSES } from "@/pages/record/formClasses";
+import FormSkeleton from "@/pages/record/skeletons/FormSkeleton.vue";
+import { errorMessage } from "@/recordPage/errorMessage";
+import { asErrorHtml } from "./asErrorHtml";
 import { useFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
 import { refuseWrites } from "./previewRefusals";
 
@@ -71,6 +85,7 @@ refuseWrites();
 const doc = ref<Record<string, any>>({});
 const tab = ref("");
 const loading = ref(false);
+const recordError = ref<unknown>(null);
 const details = useFormLayout({
 	doctype: () => props.doctype,
 	type: "Details",
@@ -89,19 +104,37 @@ const options = computed(() => [
 	...props.latest.map((name) => ({ label: name, value: name })),
 ]);
 
+// A failed read keeps the picked record: the page says why, and Try again reads it once more.
+const failure = computed(() => {
+	if (details.error.value) {
+		const reason = errorMessage(details.error.value);
+		return { message: __("Could not load the layout. {0}", [reason]), retry: details.reload };
+	}
+	if (!recordError.value || !props.record) return null;
+	const name = props.record;
+	const reason = errorMessage(recordError.value);
+	return { message: __("Could not load {0}. {1}", [name, reason]), retry: () => load(name) };
+});
+
+async function load(name: string) {
+	loading.value = true;
+	recordError.value = null;
+	try {
+		const { data } = await getDocument(props.doctype, name);
+		if (props.record === name) doc.value = structuredClone(data);
+	} catch (error) {
+		if (props.record === name) recordError.value = error;
+	} finally {
+		loading.value = false;
+	}
+}
+
 watch(
 	() => props.record,
-	async (name) => {
+	(name) => {
+		recordError.value = null;
 		if (!name) return void (doc.value = {});
-		loading.value = true;
-		try {
-			const { data } = await getDocument(props.doctype, name);
-			if (props.record === name) doc.value = structuredClone(data);
-		} catch {
-			if (props.record === name) emit("pick", null);
-		} finally {
-			loading.value = false;
-		}
+		return load(name);
 	},
 	{ immediate: true }
 );
