@@ -235,7 +235,8 @@ class BackupGenerator:
 		self.todays_date = now_datetime().strftime("%Y%m%d_%H%M%S")
 
 		for_conf = f"{self.todays_date}-{self.site_slug}-site_config_backup{enc}.json"
-		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{enc}.sql.gz"
+		export = "-mariadb" if self.for_mariadb and self.db_type == "sqlite" else ""
+		for_db = f"{self.todays_date}-{self.site_slug}{partial}-database{export}{enc}.sql.gz"
 		for_public_files = f"{self.todays_date}-{self.site_slug}-files{enc}.{ext}"
 		for_private_files = f"{self.todays_date}-{self.site_slug}-private-files{enc}.{ext}"
 		backup_path = self.backup_path or get_backup_path()
