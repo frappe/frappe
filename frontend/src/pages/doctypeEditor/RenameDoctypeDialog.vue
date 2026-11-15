@@ -23,10 +23,18 @@
 				<span>{{ linkLine }}</span>
 			</li>
 		</ul>
-		<p v-if="error" class="text-p-sm text-ink-red-6" role="alert" data-danger-error>{{ error }}</p>
+		<p v-if="error" class="text-p-sm text-ink-red-6" role="alert" data-danger-error>
+			{{ error }}
+		</p>
 		<div class="flex justify-end gap-2">
 			<Button :label="__('Cancel')" :disabled="working" @click="close(null)" />
-			<Button type="submit" variant="solid" :label="__('Rename')" :disabled="!changed" :loading="working" />
+			<Button
+				type="submit"
+				variant="solid"
+				:label="__('Rename')"
+				:disabled="!changed"
+				:loading="working"
+			/>
 		</div>
 	</form>
 </template>

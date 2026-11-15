@@ -21,7 +21,9 @@
 		<p class="min-h-[39px] text-p-sm text-ink-gray-6" data-kind-notes>
 			{{ notes.join(" ") }}
 		</p>
-		<p v-if="error" class="text-p-sm text-ink-red-6" role="alert" data-danger-error>{{ error }}</p>
+		<p v-if="error" class="text-p-sm text-ink-red-6" role="alert" data-danger-error>
+			{{ error }}
+		</p>
 		<div class="flex justify-end gap-2">
 			<Button :label="__('Cancel')" :disabled="working" @click="close(null)" />
 			<Button

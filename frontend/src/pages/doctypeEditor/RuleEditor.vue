@@ -54,7 +54,11 @@
 					data-rule-code
 					@update:model-value="draft.setCode(String($event ?? ''))"
 				/>
-				<p v-if="draft.problem.value" class="mt-2 text-p-sm text-ink-red-6" data-rule-problem>
+				<p
+					v-if="draft.problem.value"
+					class="mt-2 text-p-sm text-ink-red-6"
+					data-rule-problem
+				>
 					{{ draft.problem.value }}
 				</p>
 				<p class="mt-2 flex items-start gap-1.5 text-p-sm text-ink-gray-5">
@@ -119,7 +123,11 @@ defineEmits<{ done: [] }>();
 const FILTERS_EXAMPLE = '[["Customer", "disabled", "=", 0]]';
 
 const modes = computed(() => [
-	{ label: __("Rules"), value: "rules", disabled: !props.draft.readable.value || !!props.draft.problem.value },
+	{
+		label: __("Rules"),
+		value: "rules",
+		disabled: !props.draft.readable.value || !!props.draft.problem.value,
+	},
 	{ label: __("Code"), value: "code", disabled: !!props.draft.problem.value },
 ]);
 const labels = computed(() => ({
