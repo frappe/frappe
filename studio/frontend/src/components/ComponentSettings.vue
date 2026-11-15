@@ -1,32 +1,21 @@
 <template>
-	<div class="flex select-none flex-col pb-16">
-		<div class="flex flex-col gap-3">
-			<FormControl
-				type="checkbox"
-				label="Global Component"
-				v-model="componentEditorStore.isGlobal"
-				:title="'All apps can use a global component. Uncheck it to keep the component in this app.'"
-			/>
-			<SectionContainer title="Script">
-				<template #actions>
-					<Button
-						size="sm"
-						variant="ghost"
-						:icon="isScripted ? 'lucide-pencil' : 'lucide-plus'"
-						:title="isScripted ? 'Edit script' : 'Add script'"
-						@click="store.navigateToComponentScript(componentId)"
-					/>
-				</template>
-				<ErrorMessage v-if="scriptError" :message="scriptError" />
-				<p v-else class="text-sm text-ink-gray-5">
-					{{
-						isScripted
-							? "The script declares this component's props and events."
-							: "Add a script to give this component state, logic and events."
-					}}
-				</p>
-			</SectionContainer>
+	<div class="flex select-none flex-col gap-5 pb-16">
+		<div class="flex items-start justify-between gap-2">
+			<div class="flex min-w-0 items-center gap-2.5">
+				<span :class="isGlobal ? 'lucide-globe' : 'lucide-box'" class="h-4 w-4 shrink-0 text-ink-purple-5" />
+				<div class="min-w-0">
+					<p class="truncate text-base-medium text-ink-gray-9">{{ componentDoc?.component_name }}</p>
+					<p class="truncate font-mono text-xs text-ink-gray-5">{{ componentId }}</p>
+				</div>
+			</div>
+			<Dropdown :options="componentMenu">
+				<Button variant="ghost" icon="lucide-ellipsis" title="Component actions" />
+			</Dropdown>
+		</div>
 
+		<ErrorMessage v-if="scriptError" :message="scriptError" />
+
+		<div class="flex flex-col gap-2">
 			<SectionContainer title="Props">
 				<template #actions>
 					<Combobox
@@ -36,10 +25,15 @@
 						class="!w-auto"
 					>
 						<template #trigger>
-							<Button size="sm" variant="ghost" icon="lucide-plus" />
+							<Button size="sm" variant="ghost" icon="lucide-plus" title="Add prop" />
 						</template>
 					</Combobox>
 				</template>
+
+				<p v-if="propsReadOnlyReason" class="text-sm text-ink-gray-5">
+					{{ propsReadOnlyReason }}
+					<button class="underline" @click="store.navigateToComponentScript(componentId)">Open script</button>
+				</p>
 
 				<div class="flex flex-col gap-1" v-if="shownInputs.length > 0">
 					<Popover
@@ -52,23 +46,32 @@
 							}
 						"
 						trigger="manual"
-						side="bottom"
-						align="center"
+						side="left"
+						align="start"
+						:offset="16"
 					>
 						<template #trigger>
 							<div
-								class="group flex flex-1 justify-between rounded-4 border border-outline-gray-2 px-2 py-1"
+								class="group flex h-8 w-full shrink-0 items-center justify-between gap-2 rounded-4 border border-outline-gray-2 px-2"
 								:class="propsReadOnlyReason ? '' : 'cursor-pointer hover:bg-surface-gray-1'"
 								@click="!propsReadOnlyReason && editInput(input, index)"
 							>
-								<div class="flex items-center gap-2">
-									<span :class="getFieldTypeIcon(input.type)" class="h-4 w-4 text-ink-gray-4" />
-									<span class="text-sm text-ink-gray-7">{{ input.input_name }}</span>
+								<div class="flex min-w-0 items-center gap-2">
+									<span :class="getFieldTypeIcon(input.type)" class="h-4 w-4 shrink-0 text-ink-gray-4" />
+									<span class="truncate text-sm text-ink-gray-7">{{ input.input_name }}</span>
+									<span v-if="input.required" class="text-sm text-ink-red-4" title="Required">*</span>
 								</div>
+								<span
+									class="truncate text-xs text-ink-gray-5"
+									:class="propsReadOnlyReason ? '' : 'group-hover:hidden'"
+								>
+									{{ input.default }}
+								</span>
 								<button
 									v-if="!propsReadOnlyReason"
-									class="flex cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 opacity-0 transition-opacity hover:text-ink-gray-8 group-hover:opacity-100"
-									@click.stop="componentEditorStore.saveComponentProp(componentId, input, null)"
+									class="hidden cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 hover:text-ink-gray-8 group-hover:flex"
+									title="Remove prop"
+									@click.stop="removeInput(input)"
 								>
 									<span class="lucide-x h-4 w-4" />
 								</button>
@@ -159,24 +162,63 @@
 					</Popover>
 				</div>
 
-				<EmptyState v-else message="No props added" />
-				<p v-if="propsReadOnlyReason" class="text-sm text-ink-gray-5">{{ propsReadOnlyReason }}</p>
+				<EmptyState v-else-if="!propsReadOnlyReason" message="No props. Add one to let a page pass a value." />
+
+				<template v-if="componentInputs.length">
+					<button
+						class="flex items-center gap-1 self-start text-sm text-ink-gray-6 hover:text-ink-gray-8"
+						@click="showPreviewValues = !showPreviewValues"
+					>
+						<span
+							:class="showPreviewValues ? 'lucide-chevron-down' : 'lucide-chevron-right'"
+							class="h-3.5 w-3.5"
+						/>
+						Preview values
+					</button>
+					<template v-if="showPreviewValues">
+						<p class="text-sm text-ink-gray-5">Values for this preview only. They are not saved.</p>
+						<PropsEditor
+							v-if="componentEditorStore.studioComponentBlock"
+							:block="componentEditorStore.studioComponentBlock"
+							:isTestingComponent="true"
+						/>
+					</template>
+				</template>
 			</SectionContainer>
 
-			<SectionContainer title="Test Props">
-				<PropsEditor
-					v-if="componentEditorStore.studioComponentBlock"
-					:block="componentEditorStore.studioComponentBlock"
-					:isTestingComponent="true"
-				/>
+			<SectionContainer v-if="emits.length" title="Events">
+				<div class="flex flex-col gap-1">
+					<div
+						v-for="event in emits"
+						:key="event"
+						class="flex h-8 items-center gap-2 rounded-4 border border-outline-gray-2 px-2"
+					>
+						<span class="lucide-zap h-4 w-4 text-ink-gray-4" />
+						<span class="text-sm text-ink-gray-7">{{ event }}</span>
+					</div>
+				</div>
 			</SectionContainer>
+
+		</div>
+
+		<div class="flex flex-col gap-1">
+			<div class="flex items-center justify-between">
+				<h3 class="text-base-medium text-ink-gray-9">Global component</h3>
+				<Switch
+					aria-label="Global component"
+					:modelValue="isGlobal"
+					:disabled="changingScope"
+					@update:modelValue="setGlobal"
+				/>
+			</div>
+			<p class="text-sm text-ink-gray-5">All apps can use it.</p>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { ref, markRaw, computed, watch } from "vue"
-import { Combobox, ErrorMessage, Popover, FormControl, Button } from "frappe-ui"
+import { Combobox, Dropdown, ErrorMessage, Popover, FormControl, Button, Switch, dialog } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { ComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
@@ -187,7 +229,7 @@ import useComponentEditorStore from "@/stores/componentEditorStore"
 import useComponentStore from "@/stores/componentStore"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
-import { isCtrlOrCmd } from "@/utils/helpers"
+import { confirm, isCtrlOrCmd } from "@/utils/helpers"
 import { getPropsReadOnlyReason } from "@/utils/componentScriptProps"
 
 const store = useStudioStore()
@@ -197,20 +239,57 @@ const componentInputs = computed(() => componentEditorStore.componentInputs)
 
 const canvasStore = useCanvasStore()
 const componentId = computed(() => canvasStore.fragmentData.fragmentId ?? "")
+const componentDoc = computed(() => componentStore.getComponentDoc(componentId.value))
+const isGlobal = computed(() => !componentDoc.value?.studio_app)
 const script = computed(() => componentStore.getComponentScript(componentId.value))
-const isScripted = computed(() => componentStore.hasComponentScript(componentId.value))
 const scriptError = computed(() => componentStore.componentScriptErrors.get(componentId.value))
+const emits = computed(() => componentStore.getComponentEmits(componentId.value))
 // A scripted component declares its inputs as props, so they follow the script.
 watch(script, () => componentId.value && componentEditorStore.setComponentInputs(componentId.value))
+
+const componentMenu = [
+	{ label: "Rename", icon: "lucide-pencil", onClick: renameComponent },
+	{ label: "Delete", icon: "lucide-trash", theme: "red", onClick: deleteComponent },
+]
+
+function renameComponent() {
+	dialog.prompt({
+		title: "Rename Component",
+		confirmLabel: "Rename",
+		fields: [
+			{
+				name: "componentName",
+				label: "Component Name",
+				required: true,
+				defaultValue: componentDoc.value.component_name,
+			},
+		],
+		onConfirm: ({ values }: { values: Record<string, any> }) =>
+			componentEditorStore.renameComponent(componentId.value, values.componentName),
+	})
+}
+
+async function deleteComponent() {
+	if (await componentEditorStore.deleteComponent(componentDoc.value)) canvasStore.resetFragments()
+}
+
+const showPreviewValues = ref(false)
+
+const changingScope = ref(false)
+async function setGlobal(value: boolean) {
+	changingScope.value = true
+	await componentEditorStore.setGlobal(componentId.value, value)
+	changingScope.value = false
+}
+
 // The form writes each prop into the script. A script that builds its props in another way
 // is changed by hand.
 const propsReadOnlyReason = computed(() => {
-	const componentDoc = componentStore.getComponentDoc(componentId.value)
 	// an older component: its input rows still work, and a script with props replaces them
-	if (!componentDoc?.script?.trim() && componentDoc?.inputs?.length) {
+	if (!componentDoc.value?.script?.trim() && componentDoc.value?.inputs?.length) {
 		return "This component declares its inputs in an older format. Declare them as props in a script to change them."
 	}
-	return getPropsReadOnlyReason(componentDoc?.script || "")
+	return getPropsReadOnlyReason(componentDoc.value?.script || "")
 })
 // a new prop is in the list while its form is open, and in the script after it is saved
 const draftInput = ref<ComponentInput | null>(null)
@@ -260,6 +339,12 @@ const saveInput = async () => {
 	const { inputControl, inputType, showPopover, ...input } = editingInput.value
 	const previous = componentInputs.value[editingIndex.value] ?? null
 	if (await componentEditorStore.saveComponentProp(componentId.value, previous, input)) cancelEdit()
+}
+
+async function removeInput(input: ComponentInput) {
+	if (await confirm(`Remove the prop '${input.input_name}' from the component's script?`)) {
+		componentEditorStore.saveComponentProp(componentId.value, input, null)
+	}
 }
 
 const cancelEdit = () => {

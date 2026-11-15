@@ -30,7 +30,23 @@
 		</div>
 
 		<button
-			v-if="activePage"
+			v-if="openComponent"
+			:disabled="loading"
+			class="flex w-full items-center gap-2 rounded-4 border border-outline-gray-2 px-2 py-1.5 text-left hover:bg-surface-gray-2"
+			:title="`${openComponent.hasScript ? 'Open' : 'Add'} the script of ${openComponent.name}`"
+			@click="openComponentScript(openComponent.id)"
+		>
+			<span class="lucide-box size-3.5 shrink-0 text-ink-purple-5" />
+			<span class="flex min-w-0 flex-1 flex-row">
+				<span class="block text-sm text-ink-gray-5">Editing&nbsp;</span>
+				<span class="block truncate text-sm text-ink-gray-8">{{ openComponent.name }}</span>
+			</span>
+			<span class="shrink-0 text-xs text-ink-gray-5">
+				{{ openComponent.hasScript ? "Open script" : "Add script" }}
+			</span>
+		</button>
+		<button
+			v-else-if="activePage"
 			:disabled="loading"
 			class="flex w-full items-center gap-2 rounded-4 border border-outline-gray-2 px-2 py-1.5 text-left hover:bg-surface-gray-2"
 			:title="
@@ -199,6 +215,7 @@ import PageScriptHelp from "@/components/PageScriptHelp.vue"
 import ComponentScriptHelp from "@/components/ComponentScriptHelp.vue"
 import useStudioStore from "@/stores/studioStore"
 import useComponentStore from "@/stores/componentStore"
+import useCanvasStore from "@/stores/canvasStore"
 import { usePageScope } from "@/stores/codeStore"
 import {
 	listStudioFiles,
@@ -220,6 +237,7 @@ import type { ContextMenuOption } from "@/types"
 
 const store = useStudioStore()
 const componentStore = useComponentStore()
+const canvasStore = useCanvasStore()
 const pageScope = usePageScope()
 const app = computed(() => store.activeApp)
 
@@ -292,6 +310,13 @@ function openActivePageScript() {
 }
 
 // -- Component script --
+// the component that is open in the component editor
+const openComponent = computed(() => {
+	const { fragmentId, fragmentName } = canvasStore.fragmentData
+	if (canvasStore.editingMode !== "component" || !fragmentId) return null
+	return { id: fragmentId, name: fragmentName, hasScript: componentStore.hasComponentScript(fragmentId) }
+})
+
 // A repository app exports a component under its scrubbed id. A database app shows the script of
 // every component at studio_components/<component id>.js, also when the tree does not list it.
 function openComponentScript(componentId: string) {

@@ -17,8 +17,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)
 	const studioComponentBlock = ref<Block | null>(null)
 	const componentInputs = ref<ComponentInput[]>([])
-	// whether the component being edited is available in all apps
-	const isGlobal = ref(false)
+	// the pages and components that use the component being edited
+	const componentUsers = ref<string[]>([])
 	const componentStore = useComponentStore()
 
 	async function createComponent(componentName: string, block?: Block | null, isGlobal = false) {
@@ -68,15 +68,10 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		const payload = { block: getBlockObjectCopy(block) }
 
 		try {
-			// the component's docname changes when it moves between the app and global
-			const moved = await moveComponent(componentStore.getComponentDoc(componentId))
-			const data = await studioComponents.setValue.submit({ ...payload, name: moved.name })
+			const { name } = componentStore.getComponentDoc(componentId)
+			const data = await studioComponents.setValue.submit({ ...payload, name })
 			// before a message from the server, which shows next and must stay on top
-			toast.success("Component saved", {
-				description: moved.is_global_kept
-					? "Another app uses the global component, so it was kept."
-					: undefined,
-			})
+			toast.success("Component saved")
 			await componentStore.cacheComponent(data)
 			studioComponents.reload()
 			resetStudioComponent()
@@ -85,15 +80,49 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		}
 	}
 
-	/** Apply the "Global Component" choice: make the component global, or a component of the open app. */
-	async function moveComponent(componentDoc: StudioComponent) {
-		if (isGlobal.value === !componentDoc.studio_app) return { name: componentDoc.name }
-		const { message } = await studioComponents.runDocMethod.submit({
-			name: componentDoc.name,
-			method: "set_app",
-			studio_app: isGlobal.value ? null : useStudioStore().activeApp?.name,
-		})
-		return message as { name: string; is_global_kept?: boolean }
+	/** Make the component global, or a component of the open app. Its docname changes, and its id stays. */
+	async function setGlobal(componentId: string, isGlobal: boolean) {
+		const componentDoc = componentStore.getComponentDoc(componentId)
+		try {
+			const { message } = await studioComponents.runDocMethod.submit({
+				name: componentDoc.name,
+				method: "set_app",
+				studio_app: isGlobal ? null : useStudioStore().activeApp?.name,
+			})
+			toast.success(
+				isGlobal
+					? `${componentDoc.component_name} is now a global component`
+					: `${componentDoc.component_name} is now a component of this app`,
+				{
+					description: message?.is_global_kept
+						? "Another app uses the global component, so it was kept."
+						: undefined,
+				},
+			)
+			await componentStore.reloadComponent(componentId)
+			studioComponents.reload()
+		} catch (error: any) {
+			toast.error("Failed to change the component", { description: error?.messages?.join(", ") })
+		}
+	}
+
+	async function renameComponent(componentId: string, componentName: string) {
+		const { name } = componentStore.getComponentDoc(componentId)
+		try {
+			const data = await studioComponents.setValue.submit({ name, component_name: componentName })
+			await componentStore.cacheComponent(data)
+			studioComponents.reload()
+			useCanvasStore().fragmentData.fragmentName = componentName
+		} catch (error: any) {
+			toast.error("Failed to rename the component", { description: error?.messages?.join(", ") })
+		}
+	}
+
+	async function loadComponentUsers(componentId: string) {
+		componentUsers.value = []
+		const { name } = componentStore.getComponentDoc(componentId)
+		const { message } = await studioComponents.runDocMethod.submit({ name, method: "get_users" })
+		componentUsers.value = message || []
 	}
 
 	async function editComponent(componentId: string) {
@@ -103,7 +132,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		studioComponentBlock.value = getComponentBlock(componentId, true)
 
 		setComponentInputs(componentId)
-		isGlobal.value = !componentDoc.studio_app
+		loadComponentUsers(componentId)
 
 		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
@@ -117,27 +146,26 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		)
 	}
 
-	async function deleteComponent(component: StudioComponent) {
+	/** Whether the component was deleted. */
+	async function deleteComponent(component: Pick<StudioComponent, "name" | "component_id" | "component_name">) {
 		if (isComponentUsed(component.component_id)) {
 			toast.error("Component is used in this page. You cannot delete it.")
-		} else {
-			const confirmed = await confirm(
-				`Are you sure you want to delete the component '${component.component_name}'?`,
-			)
-			if (confirmed) {
-				studioComponents.delete
-					.submit(component.name)
-					.then(() => {
-						toast.success(`Component '${component.component_name}' deleted`)
-						studioComponents.reload()
-						componentStore.removeCachedComponent(component.component_id)
-					})
-					.catch((error: any) => {
-						toast.error(`Failed to delete component '${component.component_name}'`, {
-							description: error?.messages?.join(", "),
-						})
-					})
-			}
+			return false
+		}
+		if (!(await confirm(`Are you sure you want to delete the component '${component.component_name}'?`))) {
+			return false
+		}
+		try {
+			await studioComponents.delete.submit(component.name)
+			toast.success(`Component '${component.component_name}' deleted`)
+			studioComponents.reload()
+			componentStore.removeCachedComponent(component.component_id)
+			return true
+		} catch (error: any) {
+			toast.error(`Failed to delete component '${component.component_name}'`, {
+				description: error?.messages?.join(", "),
+			})
+			return false
 		}
 	}
 
@@ -155,8 +183,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			}
 			return false
 		}
-		const canvasStore = useCanvasStore()
-		for (const block of canvasStore.activeCanvas?.getRootBlock()?.children || []) {
+		// the page, also while a component is open on the fragment canvas
+		for (const block of useStudioStore().pageBlocks[0]?.children || []) {
 			if (checkComponent(block)) {
 				return true
 			}
@@ -195,6 +223,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			const data = await studioComponents.setValue.submit({ name: componentDoc.name, script })
 			await componentStore.cacheComponent(data)
 			setComponentInputs(componentId)
+			toast.success(input ? "Prop saved" : "Prop removed")
 			return true
 		} catch (error: any) {
 			toast.error("Failed to save the prop", { description: error?.messages?.join(", ") || error?.message })
@@ -210,7 +239,9 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		promptNewComponent,
 		editComponent,
 		deleteComponent,
-		isGlobal,
+		setGlobal,
+		renameComponent,
+		componentUsers,
 		setComponentInputs,
 		saveComponentProp,
 	}
