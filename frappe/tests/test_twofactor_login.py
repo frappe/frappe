@@ -65,6 +65,15 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.TOTP(self.secret).now()})
 		self.assert_logged_in(response)
 
+	def test_pending_login_runs_no_cmd(self):
+		frappe.client_cache.delete_value("installed_app_modules")
+		response = self.post_login(
+			{"usr": self.user, "pwd": self.password, "cmd": "frappe.auth.get_logged_user"}
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertIn("verification", response.json)
+		self.assertNotIn("message", response.json)
+
 	def test_email_login(self):
 		with self.change_settings("System Settings", {"two_factor_method": "Email"}, commit=True):
 			tmp_id = self.start_login()

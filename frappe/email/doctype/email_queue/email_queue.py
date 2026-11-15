@@ -501,7 +501,15 @@ class SendMailContext:
 
 			elif attachment.get("print_format_attachment") == 1:
 				attachment.pop("print_format_attachment", None)
-				print_format_file = frappe.attach_print(**attachment)
+				if attachment.pop("print_as_owner", None) and not frappe.request:
+					session_user = frappe.session.user
+					frappe.set_user(self.queue_doc.owner)  # nosemgrep: frappe-setuser
+					try:
+						print_format_file = frappe.attach_print(**attachment)
+					finally:
+						frappe.set_user(session_user)  # nosemgrep: frappe-setuser
+				else:
+					print_format_file = frappe.attach_print(**attachment)
 				self._store_file(print_format_file["fname"], print_format_file["fcontent"])
 				attachments.append(print_format_file)
 

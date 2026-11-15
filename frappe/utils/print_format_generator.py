@@ -13,7 +13,7 @@ import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint, cstr
+from frappe.utils.data import cint, cstr, flt
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -28,7 +28,12 @@ def render_jinja_template(
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
 	# The caller must hold the "print" permission on the document before reaching this line.
 	try:
-		context = {**global_variables_context(global_variables, doc), "doc": doc, "get_qr_code": get_qr_code}
+		context = {
+			**global_variables_context(global_variables, doc),
+			"doc": doc,
+			"get_qr_code": get_qr_code,
+			"get_barcode": get_barcode,
+		}
 		return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 			template, context
 		)
@@ -59,6 +64,7 @@ def global_variables_context(template: str | None, doc) -> dict:
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def download_pdf(
 	doctype: str,
 	name: str | int,
@@ -67,6 +73,8 @@ def download_pdf(
 	settings: str | dict | None = None,
 	style: str | None = None,
 ):
+	from frappe.core.doctype.access_log.access_log import make_access_log
+	from frappe.utils.print_utils import _run_print_pdf_hooks
 	from frappe.www.printview import resolve_print_format, validate_print
 
 	doc = frappe.get_doc(doctype, name)
@@ -77,13 +85,21 @@ def download_pdf(
 		# legacy pipeline, which reads the format's template
 		from frappe.utils.print_format import download_pdf as download_jinja_pdf
 
-		return download_jinja_pdf(doctype, name, format=print_format.name, letterhead=letterhead)
+		return download_jinja_pdf(doctype, cstr(name), format=print_format.name, letterhead=letterhead)
+	_run_print_pdf_hooks(doctype, name, print_format.name)
 	generator = PrintFormatGenerator(
 		print_format, doc, letterhead, style=style, settings=frappe.parse_json(settings)
 	)
 	pdf = generator.render_pdf()
+	make_access_log(
+		doctype=doc.doctype,
+		document=doc.name,
+		file_type="PDF",
+		method="Print",
+		page=f"Print Format: {print_format.name}",
+	)
 
-	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
+	frappe.local.response.filename = "{name}.pdf".format(name=cstr(name).replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = pdf
 	frappe.local.response.type = "pdf"
 
@@ -170,6 +186,9 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 
 	from frappe.utils.typst_emitter import _CONTROL_CHARS
 
+	if isinstance(value, str) and value.startswith("<svg"):
+		svg = _CONTROL_CHARS.sub("", value)
+		return "data:image/svg+xml;base64," + base64.b64encode(svg.encode()).decode()
 	if barcode_format == "QR":
 		return get_qr_code(value)
 	if not isinstance(value, str) or len(value) > 2000:
@@ -398,6 +417,9 @@ def page_number_html(position: str) -> str:
 	)
 
 
+MIN_PAGE_MM, MAX_PAGE_MM = 10, 5000
+
+
 def layout_page_settings(layout: dict | list | None) -> dict:
 	"""The paper size and orientation a builder layout saves, as Print Settings keys."""
 	page = layout.get("page") if isinstance(layout, dict) else None
@@ -405,7 +427,11 @@ def layout_page_settings(layout: dict | list | None) -> dict:
 		return {}
 	settings = {}
 	sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
-	if page.get("size") in sizes and page.get("size") != "Custom":
+	if page.get("size") == "Custom":
+		width, height = (flt(page.get(key)) for key in ("width", "height"))
+		if all(MIN_PAGE_MM <= value <= MAX_PAGE_MM for value in (width, height)):
+			settings.update(pdf_page_size="Custom", pdf_page_width=width, pdf_page_height=height)
+	elif page.get("size") in sizes:
 		settings["pdf_page_size"] = page["size"]
 	if page.get("orientation") in ("Portrait", "Landscape"):
 		settings["page_orientation"] = page["orientation"]
@@ -477,6 +503,7 @@ class PrintFormatGenerator:
 		self.settings_override = settings or {}
 		self._header_absorbs_top_margin = False
 		self._logged_conditions = set()
+		self._linked_docs = {}
 		self.letterhead = None
 		self.apply_classic_margin_defaults()
 
@@ -761,7 +788,7 @@ class PrintFormatGenerator:
 			ensure_typst_fonts,
 			letterhead_blockers,
 			typst_blockers,
-			typst_font_paths,
+			typst_fonts,
 		)
 
 		blockers = typst_blockers(self.print_format, self.layout)
@@ -805,7 +832,7 @@ class PrintFormatGenerator:
 				measure_path = write("measure.typ", emitter.measure_source())
 				for label in list(heights):
 					found = json.loads(
-						typst.query(measure_path, f"<{label}>", root=tmp, font_paths=typst_font_paths())
+						typst.query(measure_path, f"<{label}>", root=tmp, font_paths=typst_fonts())
 					)
 					if found:
 						heights[label] = float(found[0].get("value") or 0)
@@ -819,7 +846,7 @@ class PrintFormatGenerator:
 			write_assets(assets)
 			# root pins file access to the tempdir — matters once formats can
 			# carry raw Typst markup (Typst blocks)
-			pdf = typst.compile(path, root=tmp, font_paths=typst_font_paths())
+			pdf = typst.compile(path, root=tmp, font_paths=typst_fonts())
 		if password:
 			pdf = encrypt_pdf(pdf, password)
 		return pdf
@@ -1262,6 +1289,7 @@ class PrintFormatGenerator:
 			**global_variables_context(layout.get("global_variables"), self.doc),
 			"doc": self.doc,
 			"get_qr_code": get_qr_code,
+			"get_barcode": get_barcode,
 		}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
@@ -1310,7 +1338,7 @@ class PrintFormatGenerator:
 		else:
 			value = cstr(self.doc.get(df.get("fieldname")))
 		if value.startswith("<svg"):
-			df["_barcode_data_uri"] = "data:image/svg+xml;base64," + base64.b64encode(value.encode()).decode()
+			df["_barcode_data_uri"] = get_barcode(value)
 			return
 		if not value:
 			return
@@ -1356,17 +1384,23 @@ class PrintFormatGenerator:
 		if not self.has_field_access(self.doc, self.doc.meta, link_fieldname):
 			return None
 		name = self.doc.get(link_fieldname)
-		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
+		if not name:
+			return None
+		if (link_df.options, name) not in self._linked_docs:
+			linked_doc = frappe.get_lazy_doc(link_df.options, name)
+			self._linked_docs[link_df.options, name] = (
+				linked_doc if frappe.has_permission(link_df.options, "read", doc=linked_doc) else None
+			)
+		linked_doc = self._linked_docs[link_df.options, name]
+		if not linked_doc:
 			return None
 		target_meta = frappe.get_meta(link_df.options)
 		target_df = target_meta.get_field(target_fieldname)
 		if not target_df:
 			return None
-		if target_df.permlevel:
-			target_doc = frappe.get_doc(link_df.options, name)
-			if not target_doc.has_permlevel_access_to(target_fieldname, target_df):
-				return None
-		value = frappe.db.get_value(link_df.options, name, target_fieldname)
+		if target_df.permlevel and not linked_doc.has_permlevel_access_to(target_fieldname, target_df):
+			return None
+		value = linked_doc.get(target_fieldname)
 		if value is None:
 			return None
 		return value, target_df
@@ -1391,7 +1425,7 @@ class PrintFormatGenerator:
 			if not link_df or link_df.fieldtype != "Link" or not link_df.options:
 				return match.group(0)
 			target_df = frappe.get_meta(link_df.options).get_field(target_fieldname)
-			if not target_df:
+			if not target_df or target_df.fieldtype == "Table":
 				return match.group(0)
 			resolved = self.resolve_linked_path(path)
 			if not resolved:
@@ -1400,7 +1434,7 @@ class PrintFormatGenerator:
 			fieldtype = target_df.fieldtype
 		else:
 			field = self.doc.meta.get_field(path)
-			if not field and path != "name":
+			if (not field and path != "name") or (field and field.fieldtype == "Table"):
 				return match.group(0)
 			if field and not self.has_field_access(self.doc, self.doc.meta, path):
 				return ""

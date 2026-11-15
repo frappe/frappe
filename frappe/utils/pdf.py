@@ -232,7 +232,7 @@ def pdf_contains_js(file_content: bytes):
 			for key, value in obj.items():
 				if key == "/Parent":
 					continue
-				if key in ("/JS", "/JavaScript"):
+				if key == "/JS":
 					return True
 				if has_javascript(value, seen):
 					return True

@@ -63,9 +63,9 @@ export default class Column {
 
 	refresh() {
 		if (!this.df) return;
-		const hide = this.df.hidden || this.df.hidden_due_to_dependency;
-		this.wrapper.toggleClass("hide-control", !!hide);
+		const hide = !!(this.df.hidden || this.df.hidden_due_to_dependency);
+		if (hide === this.wrapper.hasClass("hide-control")) return;
+		this.wrapper.toggleClass("hide-control", hide);
 		this.resize_all_columns();
-		this.section.refresh();
 	}
 }

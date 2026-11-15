@@ -275,6 +275,7 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 
 	def setUp(self):
 		sync_builtin_tools()
+		self.enterContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.agent_doc = frappe.get_doc(
 			_agent(self.model_doc.name, tools=[{"tool": "frappe/read_records"}, {"tool": "frappe/execute"}])
@@ -289,6 +290,36 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		config = self.agent_doc.session_tool_config()
 		self.assertIn("read_screen", [tool["function"]["name"] for tool in config["client_tools"]])
 		self.assertEqual(config["confirm_tools"], ["execute"])
+
+	def test_fetching_a_page_asks_first(self):
+		for name in ("web_fetch", "web_search"):
+			self.agent_doc.append("tools", {"tool": f"frappe/{name}"})
+		self.agent_doc.save()
+		config = self.agent_doc.session_tool_config()
+		self.assertEqual(config["tools"], ["web_fetch", "web_search"])
+		self.assertEqual(config["confirm_tools"], ["execute", "web_fetch"])
+
+	def test_execute_and_script_tools_are_left_out_while_server_scripts_are_off(self):
+		script = frappe.get_doc(
+			{
+				"doctype": "Flow Tool",
+				"title": "Get Weather",
+				"slug": "get_weather",
+				"type": "Script",
+				"description": "Returns weather for a city.",
+				"code": "def main(city: str):\n\treturn city\n",
+			}
+		).insert()
+		self.agent_doc.append("tools", {"tool": script.name})
+		self.agent_doc.save()
+
+		def names():
+			config = self.agent_doc.session_tool_config()
+			return [tool["function"]["name"] for tool in config["client_tools"]], config["confirm_tools"]
+
+		self.assertEqual(names()[0], ["read_records", "execute", "get_weather"])
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False):
+			self.assertEqual(names(), (["read_records"], []))
 
 	def test_each_enabled_tool_travels_as_its_kind(self):
 		frappe.get_doc(
@@ -376,6 +407,7 @@ class TestFlowAgentSubAgents(IntegrationTestCase):
 
 	def setUp(self):
 		sync_builtin_tools()
+		self.enterContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
 		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.child = frappe.get_doc(

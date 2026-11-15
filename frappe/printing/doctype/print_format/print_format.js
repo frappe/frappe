@@ -80,23 +80,7 @@ frappe.ui.form.on("Print Format", {
 			return;
 		}
 		frm.add_custom_button(__("Convert to Editor Format"), () =>
-			frappe
-				.call({
-					method: "frappe.printing.doctype.print_format.print_designer_converter.create_editor_format",
-					args: { print_format: frm.doc.name },
-					freeze: true,
-				})
-				.then(({ message }) =>
-					frappe.set_route("print-format-builder", message.name).then(() => {
-						if (!message.notes.length) return;
-						frappe.msgprint({
-							title: __("Converted with changes"),
-							message: message.notes
-								.map((note) => frappe.utils.escape_html(note))
-								.join("<br>"),
-						});
-					})
-				)
+			frappe.set_route("print-designer-migration", frm.doc.name)
 		);
 	},
 	custom_format: function (frm) {

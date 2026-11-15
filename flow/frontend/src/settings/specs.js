@@ -10,6 +10,9 @@ const system = (doc) => !!doc.is_system_generated;
 // the site may add skills and knowledge to the built-in assistant
 const systemButAssistant = (doc) => system(doc) && doc.name !== "frappe/Flow";
 const saved = (doc) => !!doc.name;
+// the tools among `names` that can't run while server scripts are off, as boot lists them
+const scriptsOff = (names, boot) =>
+	names.filter((name) => boot.unavailable_tools?.includes(name));
 // the harness's /providers list, then two ways to reach any other endpoint
 const PROVIDERS = [
 	{ label: "OpenAI", value: "openai" },
@@ -200,6 +203,14 @@ export const SPECS = {
 				link: "Flow Tool",
 				child: "tool",
 				locked: system,
+				note: (doc, boot) => {
+					const off = scriptsOff(doc.tools ?? [], boot);
+					return off.length
+						? `Server scripts are off on this bench, so these can't run: ${off
+								.map((name) => name.replace("frappe/", ""))
+								.join(", ")}.`
+						: "";
+				},
 			},
 			{
 				name: "sub_agents",
@@ -300,6 +311,10 @@ export const SPECS = {
 		titleField: "title",
 		listFields: ["name", "title", "type"],
 		subtitle: (doc) => `${doc.name} · ${doc.type}`,
+		notice: (doc, boot) =>
+			scriptsOff([doc.name], boot).length
+				? "Server scripts are off on this bench, so this tool can't run."
+				: "",
 		fields: [
 			{ name: "title", label: "Title", type: "text", required: true },
 			{

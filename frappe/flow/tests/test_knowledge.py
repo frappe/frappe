@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 
 import json
+import os
+import tempfile
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -17,6 +19,7 @@ from frappe.flow.knowledge.extract import (
 	_extract_pdf,
 	_extract_pdf_page,
 	_extract_xlsx,
+	_render_page_png,
 	_render_rich_text,
 	_validate_public_url,
 	extract,
@@ -24,6 +27,7 @@ from frappe.flow.knowledge.extract import (
 from frappe.flow.knowledge.ingest import ingest_source, reconcile_source, sync_due_sources
 from frappe.flow.knowledge.retriever import retrieve, retrieve_attachments
 from frappe.tests import IntegrationTestCase
+from frappe.utils import add_to_date, get_files_path
 
 DIM = 4
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
@@ -65,6 +69,27 @@ class TestKnowledgeStore(IntegrationTestCase):
 	def _seed(self):
 		store.ensure_table_for_dimension(DIM)
 		store.add(_rows())
+
+	def test_the_store_is_outside_the_files_folder(self):
+		# any user can add a File row for a file there and download it
+		with patch.dict(frappe.flags, {"in_test": False}):
+			path = os.path.realpath(store.db_path())
+		files = os.path.realpath(get_files_path(is_private=1))
+		self.assertNotEqual(os.path.commonpath([files, path]), files)
+
+	def test_the_move_keeps_the_old_store_over_a_new_empty_one(self):
+		from frappe.patches.v17_0 import move_flow_lancedb_out_of_files as move
+
+		with tempfile.TemporaryDirectory() as site:
+			old = os.path.join(site, "private", "files", "lancedb")
+			new = os.path.join(site, "private", "lancedb")
+			os.makedirs(old)
+			os.makedirs(new)
+			open(os.path.join(old, "chunks"), "w").close()
+			with patch("frappe.get_site_path", side_effect=lambda *parts: os.path.join(site, *parts)):
+				move.execute()
+			self.assertEqual(os.listdir(new), ["chunks"])
+			self.assertFalse(os.path.exists(old))
 
 	def test_the_table_is_created_once_for_one_dimension(self):
 		self.assertEqual(store.search([1.0, 0.0, 0.0, 0.0]), [])
@@ -467,6 +492,37 @@ class TestExtract(IntegrationTestCase):
 		pdf = scan((600, 200), (30, 80), "Scanned Document", format="PDF", resolution=100)
 		self.assertIn("Scanned", _extract_pdf(pdf))
 
+	def test_a_pdf_cannot_ask_for_a_huge_render_or_ocr_every_page(self):
+		import io
+
+		import pdfplumber
+		from PIL import Image
+		from pypdf import PdfWriter
+
+		writer = PdfWriter()
+		writer.add_blank_page(width=14400, height=7200)  # 200 inches wide: 40000 px at 200 DPI
+		buffer = io.BytesIO()
+		writer.write(buffer)
+		with pdfplumber.open(buffer) as pdf:
+			size = Image.open(io.BytesIO(_render_page_png(pdf.pages[0]))).size
+		self.assertEqual(size, (4000, 2000))
+
+		scans = [Image.new("RGB", (100, 100), "white") for _ in range(3)]
+		buffer = io.BytesIO()
+		scans[0].save(buffer, format="PDF", save_all=True, append_images=scans[1:])
+		with (
+			patch("frappe.flow.knowledge.extract._render_page_png", return_value=b"page"),
+			patch("frappe.flow.knowledge.extract._ocr_image", return_value="text") as ocr,
+		):
+			self.assertTrue(
+				_extract_pdf(buffer.getvalue(), max_ocr_pages=2).endswith(
+					"after page 2 were not read: their text is missing.]"
+				)
+			)
+			self.assertEqual(ocr.call_count, 2)
+			self.assertEqual(_extract_pdf(buffer.getvalue(), max_ocr_pages=3), "text\n\ntext\n\ntext")
+			self.assertEqual(ocr.call_count, 5)
+
 	def test_only_public_http_urls_are_fetched(self):
 		for url, error in (
 			("ftp://example.com/x", "http"),
@@ -670,6 +726,55 @@ class TestDoctypeSync(IntegrationTestCase):
 			ingest_source(source_name, rebuild=rebuild)
 		return mock
 
+	def test_a_source_syncs_under_its_own_lock(self):
+		from frappe.utils.file_lock import LockTimeoutError
+		from frappe.utils.synchronization import filelock
+
+		source = self._source()
+
+		def sync(doc, settings):
+			# a second job can't take the lock
+			with (
+				self.assertRaises(LockTimeoutError),
+				filelock(f"flow_knowledge_source_{doc.name}", timeout=0),
+			):
+				pass
+
+		with (
+			patch("frappe.flow.knowledge.ingest._sync_doctype", side_effect=sync) as synced,
+			patch("frappe.log_error"),
+		):
+			self._sync(source.name)
+		synced.assert_called_once()
+		with filelock(f"flow_knowledge_source_{source.name}", timeout=0):
+			pass  # released
+
+	def test_a_failed_rebuild_leaves_both_stores_alike(self):
+		todos = {self._todo("SYNCTEST one").name, self._todo("SYNCTEST two").name}
+		source = self._source()
+		self._sync(source.name)
+		calls, rollback = [], frappe.db.rollback
+
+		def flaky(input, **kwargs):
+			calls.append(input)
+			if len(calls) == 2:
+				raise Exception("rate limited")
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		with (
+			patch("frappe.flow.knowledge.ingest.BATCH", 1),
+			patch("litellm.embedding", side_effect=flaky),
+			# a failure rolls back to the last commit
+			patch.object(frappe.db, "commit", side_effect=lambda: frappe.db.savepoint("ingest")),
+			patch.object(frappe.db, "rollback", side_effect=lambda: rollback(save_point="ingest")),
+			self.assertRaises(Exception),
+		):
+			ingest_source(source.name, rebuild=True)
+		self._assert_lance_mirrors_chunks(source.name)
+		self._sync(source.name)
+		self.assertEqual(self._references(source.name), todos)
+		self._assert_lance_mirrors_chunks(source.name)
+
 	def _chunks(self, source_name, reference_name=None):
 		filters = {"source": source_name}
 		if reference_name:
@@ -792,6 +897,77 @@ class TestDoctypeSync(IntegrationTestCase):
 		self._sync(source.name, rebuild=True)
 		self.assertIn("Status: Closed", " ".join(self._content(source.name, todo.name)))
 
+	def test_a_row_edited_mid_sweep_does_not_make_the_next_page_skip_one(self):
+		from frappe.flow.knowledge.ingest import _upsert_page
+
+		todos = [self._todo(f"SYNCTEST row {i}") for i in range(4)]
+		source = self._source()
+		self._sync(source.name)
+		for i, todo in enumerate(todos):  # all changed since that sweep, in this order
+			todo.db_set("modified", add_to_date(None, minutes=i + 1), update_modified=False)
+
+		def edit_the_first_row(*args, **kwargs):
+			_upsert_page(*args, **kwargs)
+			todos[0].db_set("modified", add_to_date(None, minutes=10), update_modified=False)
+
+		with (
+			patch("frappe.flow.knowledge.ingest.BATCH", 2),
+			patch("frappe.flow.knowledge.ingest._upsert_page", side_effect=edit_the_first_row),
+		):
+			self._sync(source.name)
+		self.assertEqual(self._references(source.name), {todo.name for todo in todos})
+
+	def test_a_retried_first_sync_drops_rows_that_left_the_filter(self):
+		first, second = sorted((self._todo("SYNCTEST one"), self._todo("SYNCTEST two")), key=lambda t: t.name)
+		source = self._source()
+		calls, rollback = [], frappe.db.rollback
+
+		def flaky(input, **kwargs):
+			calls.append(input)
+			if len(calls) == 2:
+				raise Exception("rate limited")
+			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
+
+		with (
+			patch("frappe.flow.knowledge.ingest.BATCH", 1),
+			patch("litellm.embedding", side_effect=flaky),
+			# a failure rolls back to the last commit
+			patch.object(frappe.db, "commit", side_effect=lambda: frappe.db.savepoint("ingest")),
+			patch.object(frappe.db, "rollback", side_effect=lambda: rollback(save_point="ingest")),
+			self.assertRaises(Exception),
+		):
+			ingest_source(source.name)
+		self.assertEqual(self._references(source.name), {first.name})
+
+		first.db_set("description", "no longer a sync row")
+		self._sync(source.name)
+		self.assertEqual(self._references(source.name), {second.name})
+		self._assert_lance_mirrors_chunks(source.name)
+
+	def test_moving_a_source_moves_its_chunks(self):
+		self._todo("SYNCTEST alpha")
+		source = self._source()
+		self._sync(source.name)
+		other = frappe.get_doc({"doctype": "Flow Knowledge Base", "title": "Other Sync KB"}).insert()
+
+		source.knowledge_base = other.name
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as enqueue:
+			source.save()
+		# moved at once, with nothing to re-chunk that could fail
+		enqueue.assert_not_called()
+
+		query = [0.1, 0.2, 0.3, 0.4]
+		self.assertEqual(store.search(query, kbs=[self.kb.name]), [])
+		self.assertTrue(store.search(query, kbs=[other.name]))
+		chunks = frappe.get_all("Flow Knowledge Chunk", {"source": source.name}, pluck="knowledge_base")
+		self.assertEqual(set(chunks), {other.name})
+
+		with self.subTest("not while processing"):
+			source.db_set("status", "Processing", update_modified=False)
+			source.knowledge_base = self.kb.name
+			with self.assertRaisesRegex(frappe.ValidationError, "still processing"):
+				source.save()
+
 	def test_sync_due_sources_enqueues_only_auto_sync_doctypes(self):
 		auto = self._source()
 		auto.db_set("auto_sync", 1, update_modified=False)
@@ -815,6 +991,16 @@ class TestDoctypeSync(IntegrationTestCase):
 		self.assertIn(auto.name, enqueued)
 		self.assertNotIn(manual.name, enqueued)
 		self.assertNotIn(text.name, enqueued)
+
+	def test_a_restored_site_rebuilds_every_source(self):
+		self._todo("SYNCTEST alpha")
+		source = self._source()
+		self._sync(source.name)
+		store.drop_table()  # a restore brings back the chunk rows, not the store
+
+		with patch("frappe.flow.knowledge.ingest.enqueue_ingestion") as mock:
+			sync_due_sources()
+		mock.assert_called_once_with(source.name, rebuild=True)
 
 
 class TestRetriever(IntegrationTestCase):

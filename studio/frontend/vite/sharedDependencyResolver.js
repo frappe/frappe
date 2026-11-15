@@ -1,15 +1,26 @@
 import path from "path"
 
-// reka-ui is a peerDependency of @framework/ui (like vue/vue-router/frappe-ui): a
-// provide/inject singleton the host provides, not installed in the app's own
-// node_modules. So @framework/ui source must resolve it to Studio's single copy —
+// reka-ui and @vueuse/core are peerDependencies of @framework/ui (like vue/vue-router/
+// frappe-ui): singletons the host provides, not installed in the app's own node_modules.
+// So @framework/ui source must resolve them to Studio's single copy —
 // unlike the app's real deps (dompurify/vuedraggable/leaflet) which are installed
 // under apps/frappe/ui and resolve by realpath.
 // The whole @tiptap scope is here for the same reason: frappe-ui's TextEditor takes
 // `extensions` built from @tiptap/core, @tiptap/pm, @tiptap/vue-3, @tiptap/extension-*
 // etc., and an app has no copies of its own to build them with — nor should it, since
 // an extension made from a second copy never registers against the editor's schema.
-const STUDIO_SHARED_DEPS = ["vue", "vue-router", "pinia", "frappe-ui", "reka-ui", "@tiptap"]
+// Include every module offered by browserRuntime/importableModules.ts, and the peer dependencies
+// above. A database app's temporary build folder has no node_modules, so its imports must
+// resolve to Studio's dependencies.
+const STUDIO_SHARED_DEPS = [
+	"vue",
+	"vue-router",
+	"pinia",
+	"@vueuse/core",
+	"frappe-ui",
+	"reka-ui",
+	"@tiptap",
+]
 /**
  * Vite plugin to redirect shared dependency imports from files outside the Studio
  * project (custom Vue components and @framework/ui source) to Studio's own
@@ -40,4 +51,5 @@ function sharedDependencyResolver(STUDIO_ROOT) {
 	}
 }
 
+export { STUDIO_SHARED_DEPS }
 export default sharedDependencyResolver

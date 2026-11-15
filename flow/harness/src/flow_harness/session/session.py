@@ -57,6 +57,7 @@ from flow_harness.events import (
 from flow_harness.model import Model, ModelRequest, ProviderError, get_model
 from flow_harness.model.auth import resolve_model_auth
 from flow_harness.model.cancellation import ModelCancelled
+from flow_harness.model.catalog import provider_label
 from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.reasoning import reasoning_params
 from flow_harness.session import suggest_replies, titling
@@ -874,8 +875,14 @@ class Session:
 def _run_error(error: Exception) -> RunError:
 	provider_error = error if isinstance(error, ProviderError) else None
 	kind: ProviderErrorKind | None = provider_error.kind if provider_error else None
+	# a provider's failure in its own words, under the provider's name and HTTP status
+	if provider_error:
+		status = f" ({provider_error.status_code})" if provider_error.status_code is not None else ""
+		message = f"{provider_label(provider_error.provider)}{status}: {provider_error.detail}"
+	else:
+		message = f"{type(error).__name__}: {error}"
 	return RunError(
-		message=f"{type(error).__name__}: {error}",
+		message=message,
 		kind=kind,
 		retryable=provider_error.retryable if provider_error else None,
 		status_code=provider_error.status_code if provider_error else None,

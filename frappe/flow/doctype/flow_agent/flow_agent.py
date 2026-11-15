@@ -88,8 +88,13 @@ class FlowAgent(Document):
 		block_insert(self)
 
 	def before_rename(self, old: str, new: str, _merge: bool = False) -> None:
+		from frappe.flow.lib.session import block_rename_in_chats
+
 		block_rename(self, old)
 		block_slash_in_name(self, new)
+		block_rename_in_chats(
+			old, frappe.get_all("Flow Agent Sub Agent", filters={"agent": old}, pluck="parent")
+		)
 
 	def after_rename(self, old: str, new: str, _merge: bool = False) -> None:
 		from frappe.flow.memory import store
@@ -187,7 +192,8 @@ class FlowAgent(Document):
 
 	def client_tools(self, session: str | None = None) -> list[Tool]:
 		"""This agent's enabled tools, bound to `session` where needed. Attachment search is left
-		out until an embedding model is set, since nothing is indexed without one."""
+		out until an embedding model is set, since nothing is indexed without one, and execute
+		and Script tools while server scripts are off."""
 		from frappe.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
 			embeddings_configured,
 		)
@@ -195,6 +201,7 @@ class FlowAgent(Document):
 		from frappe.flow.tools.builtins import (
 			ATTACHMENT_READ_SLUG,
 			ATTACHMENT_SEARCH_SLUG,
+			EXECUTE_SLUG,
 			KNOWLEDGE_SEARCH_SLUG,
 			SERVER_TOOL_SLUGS,
 			SKILL_TOOL_SLUG,
@@ -205,11 +212,15 @@ class FlowAgent(Document):
 			bind_update_memory,
 			builtin_name,
 		)
+		from frappe.utils.safe_exec import is_safe_exec_enabled
 
 		daemon_builtins = {builtin_name(slug) for slug in SERVER_TOOL_SLUGS}
+		scripts_off = not is_safe_exec_enabled()
 		resolved: list[Tool] = []
 		for tool_doc in self._enabled_tool_docs():
 			if tool_doc.name in daemon_builtins or tool_doc.type == "Server":
+				continue
+			if scripts_off and (tool_doc.type == "Script" or tool_doc.name == builtin_name(EXECUTE_SLUG)):
 				continue
 			if tool_doc.name == builtin_name(KNOWLEDGE_SEARCH_SLUG):
 				resolved.append(bind_search_knowledge([kb.knowledge_base for kb in self.knowledge_bases]))
@@ -267,16 +278,20 @@ class FlowAgent(Document):
 	def session_tool_config(self, session: str | None = None) -> dict[str, Any]:
 		"""Complete tool configuration for one daemon session."""
 		from frappe.flow.daemon import lifecycle
-		from frappe.flow.tools.builtins import SOURCE_TOOL_SLUGS
+		from frappe.flow.tools.builtins import BUILTIN_TOOLS, SOURCE_TOOL_SLUGS
 
 		server_tools = self.server_tools()
+		client_config = self.client_tool_config(session)
+		# the flow server runs its own tools, so it is told which of them ask first
+		asking = {tool.name for tool in BUILTIN_TOOLS if tool.requires_confirmation is True}
+		client_config["confirm_tools"] += [name for name in server_tools if name in asking]
 		return {
 			"system_prompt": self.render_instructions()
 			+ self.skill_index()
 			+ lifecycle.app_source_prompt([name for name in server_tools if name in SOURCE_TOOL_SLUGS]),
 			"tools": server_tools,
 			"extension_tools": self.extension_tools(),
-			**self.client_tool_config(session),
+			**client_config,
 		}
 
 	def render_instructions(self) -> str:

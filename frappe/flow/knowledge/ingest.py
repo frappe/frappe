@@ -18,7 +18,7 @@ from __future__ import annotations
 import hashlib
 
 import frappe
-from frappe.utils import cint, now_datetime
+from frappe.utils import cint, make_filter_tuple, now_datetime
 
 CHUNK_DOCTYPE = "Flow Knowledge Chunk"
 BATCH = 500
@@ -36,6 +36,13 @@ def enqueue_ingestion(source: str, rebuild: bool = False) -> None:
 
 def sync_due_sources() -> None:
 	"""Daily scheduler: enqueue an incremental sweep for every auto-sync DocType source."""
+	from frappe.flow.knowledge import store
+
+	# backups leave out the vector store, so a restored site has chunks but no table
+	if not store.table_exists() and frappe.db.exists(CHUNK_DOCTYPE, {}):
+		for source in frappe.get_all("Flow Knowledge Source", pluck="name"):
+			enqueue_ingestion(source, rebuild=True)
+		return
 	sources = frappe.get_all(
 		"Flow Knowledge Source",
 		filters={"source_type": "DocType", "auto_sync": 1},
@@ -60,6 +67,15 @@ def ingest_source(source: str, rebuild: bool = False) -> None:
 	rebuild forces a full re-chunk of a DocType source (purge + reset watermark) so
 	new chunk settings apply to rows whose content is otherwise unchanged. Single-doc
 	sources rebuild on every run regardless."""
+	from frappe.utils.background_jobs import get_queues_timeout
+	from frappe.utils.synchronization import filelock
+
+	# one job per source at a time, else chunks get duplicated
+	with filelock(f"flow_knowledge_source_{source}", timeout=get_queues_timeout()["long"]):
+		_ingest_source(source, rebuild)
+
+
+def _ingest_source(source: str, rebuild: bool) -> None:
 	doc = frappe.get_doc("Flow Knowledge Source", source)
 	doc.db_set("status", "Processing", update_modified=False)
 	frappe.db.commit()  # the status shows while the job runs; nosemgrep: frappe-manual-commit
@@ -70,6 +86,7 @@ def ingest_source(source: str, rebuild: bool = False) -> None:
 			if rebuild:
 				purge_source(doc.name)
 				doc.db_set("last_synced_at", None, update_modified=False)
+				frappe.db.commit()  # the vector store has no rollback; nosemgrep: frappe-manual-commit
 			_sync_doctype(doc, settings)
 		else:
 			_rebuild_single(doc, settings)
@@ -111,6 +128,7 @@ def _rebuild_single(doc, settings) -> None:
 
 	vectors = embed_texts(pieces)  # before the purge: a failed call keeps the old chunks searchable
 	purge_source(doc.name)
+	frappe.db.commit()  # the vector store has no rollback; nosemgrep: frappe-manual-commit
 	if not pieces:
 		return
 
@@ -155,27 +173,40 @@ def _sync_doctype(doc, settings) -> None:
 	watermark = doc.last_synced_at
 	sweep_start = now_datetime()
 	first_run = not watermark
+	# a failed first run, retried, finds the chunks it committed
+	retried_first_run = first_run and bool(frappe.db.exists(CHUNK_DOCTYPE, {"source": doc.name}))
 
-	delta = {} if first_run else {"modified": [">", watermark]}
+	filters = [make_filter_tuple(ref, key, value) for key, value in user_filters.items()]
+	if not first_run:
+		filters.append([ref, "modified", ">", watermark])
 	matched_refs: set[str] = set()
-	start = 0
+	last = None
 	while True:
+		# page by name: a row edited mid-sweep can't shift the pages after a commit
+		after = [[ref, "name", ">", last]] if last is not None else []
 		page = frappe.get_all(
 			ref,
-			filters={**user_filters, **delta},
+			filters=filters + after,
 			fields=["name", *fields],
-			order_by="modified asc, name asc",
-			limit_start=start,
+			order_by="name asc",
 			limit_page_length=BATCH,
 		)
 		if not page:
 			break
-		_upsert_page(doc, settings, meta, fields, page, matched_refs, track_exits=not first_run)
-		start += BATCH
+		_upsert_page(
+			doc, settings, meta, fields, page, matched_refs, track_exits=not first_run or retried_first_run
+		)
+		frappe.db.commit()  # the vector store has no rollback; nosemgrep: frappe-manual-commit
+		last = page[-1]["name"]
 		if len(page) < BATCH:
 			break
 
-	if not first_run:
+	if retried_first_run:
+		# drop rows that left the filter since that attempt
+		matched = {str(name) for name in matched_refs}
+		indexed = frappe.get_all(CHUNK_DOCTYPE, {"source": doc.name}, pluck="reference_name", distinct=True)
+		_purge_refs(doc.name, [name for name in indexed if name not in matched])
+	elif not first_run:
 		_remove_stale(doc, ref, watermark, matched_refs)
 
 	doc.db_set("last_synced_at", sweep_start, update_modified=False)

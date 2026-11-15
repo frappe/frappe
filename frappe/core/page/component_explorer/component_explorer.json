@@ -5,7 +5,7 @@
  "doctype": "Page",
  "icon": "",
  "idx": 0,
- "modified": "2026-07-10 21:37:06.673856",
+ "modified": "2026-11-14 01:38:31.344771",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "component-explorer",
@@ -20,5 +20,5 @@
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "Component Explorer"
+ "title": "Components"
 }

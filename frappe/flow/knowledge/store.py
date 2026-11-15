@@ -31,7 +31,8 @@ MAX_SEARCH_LIMIT = 100
 def db_path() -> str:
 	if frappe.flags.in_test:
 		return _test_db_path()
-	return frappe.get_site_path("private", "files", "lancedb")
+	# outside private/files, so no File row can expose it
+	return frappe.get_site_path("private", "lancedb")
 
 
 _test_db: str | None = None
@@ -132,6 +133,12 @@ def rename_kb(old: str, new: str) -> None:
 	"""Move a renamed knowledge base's chunks to its new name."""
 	if table_exists():
 		_open_table().update(where=f"kb = {_quote(old)}", values={"kb": new})
+
+
+def move_source(source: str, kb: str) -> None:
+	"""Move a source's chunks to another knowledge base."""
+	if table_exists():
+		_open_table().update(where=f"source = {_quote(source)}", values={"kb": kb})
 
 
 def search(

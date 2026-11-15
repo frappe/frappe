@@ -75,7 +75,7 @@ def subagent(
 	_server_only_tool()
 
 
-@tool
+@tool(requires_confirmation=True)
 def web_fetch(url: str, *, ctx: ToolContext) -> str:
 	"""Fetch a public web page and read it as markdown. Pages drawn by JavaScript come back nearly empty."""
 	_server_only_tool()
@@ -544,8 +544,11 @@ def bind_load_skill(agent: str | None) -> Tool:
 load_skill = bind_load_skill(None)
 
 
+EXECUTE_SLUG = "execute"
+
+
 @tool(
-	requires_confirmation=lambda args: not args.get("read_only"),
+	requires_confirmation=lambda args: args.get("read_only") is not True,
 	confirm_prompt=lambda args: args.get("description") or _("Run Python code"),
 )
 def execute(code: str, description: str, read_only: bool = False, *, ctx: ToolContext) -> Any:
@@ -573,7 +576,8 @@ def execute(code: str, description: str, read_only: bool = False, *, ctx: ToolCo
 	  frappe.get_doc (returns a dict), frappe.get_meta, frappe.db.get_value/get_single_value/count/exists.
 	- Writes: create, update, delete, run_action, call_api — the same permission-checked tools you call directly.
 	- Also: read_records, describe, find_doctypes, frappe.call (whitelisted methods), frappe.enqueue,
-	  frappe.sendmail, frappe.get_print, frappe.utils.* (dates, numbers, strings).
+	  frappe.sendmail (no sender: mail goes out from the site's own account), frappe.get_print,
+	  frappe.utils.* (dates, numbers, strings).
 
 	Sandbox limits — code using these FAILS:
 	- No `import`. `frappe` and `frappe.utils` are already in scope; nothing else can be imported.
@@ -780,10 +784,14 @@ def update(doctype: str, names: list[str], values: dict[str, Any], *, ctx: ToolC
 		try:
 			if not frappe.has_permission(doctype, "write", name):
 				raise frappe.PermissionError(_("No permission to update {0} {1}.").format(doctype, name))
-			doc = frappe.get_doc(doctype, name)
-			doc.update(values or {})
+			if frappe.get_meta(doctype).istable:
+				doc, row = _parent_and_row(doctype, name)
+				row.update(values or {})
+			else:
+				doc = frappe.get_doc(doctype, name)
+				doc.update(values or {})
 			doc.save()
-			updated.append(doc.name)
+			updated.append(name)
 		except Exception as e:
 			_undo_batch(name, e, ctx)
 	return {"doctype": doctype, "updated": updated}
@@ -810,11 +818,26 @@ def delete(doctype: str, names: list[str], *, ctx: ToolContext) -> dict[str, Any
 		try:
 			if not frappe.has_permission(doctype, "delete", name):
 				raise frappe.PermissionError(_("No permission to delete {0} {1}.").format(doctype, name))
-			frappe.delete_doc(doctype, name, ignore_missing=False)
+			if frappe.get_meta(doctype).istable:
+				parent, row = _parent_and_row(doctype, name)
+				parent.remove(row)
+				parent.save()
+			else:
+				frappe.delete_doc(doctype, name, ignore_missing=False)
 			deleted.append(name)
 		except Exception as e:
 			_undo_batch(name, e, ctx)
 	return {"doctype": doctype, "deleted": deleted}
+
+
+def _parent_and_row(doctype: str, name: str) -> tuple[Document, Document]:
+	"""A child row and its parent: changes go through the parent, so its checks run."""
+	parent = frappe.db.get_value(doctype, name, ["name", "parenttype", "parent", "parentfield"], as_dict=True)
+	if not parent:
+		raise frappe.DoesNotExistError(doctype=doctype)
+	doc = frappe.get_doc(parent.parenttype, parent.parent)
+	# the name as stored: an autoincrement row's is an int, not the "5" it was asked by
+	return doc, doc.getone(parent.parentfield, {"name": parent.name})
 
 
 def _call_api_prompt(call: dict[str, Any]) -> str:

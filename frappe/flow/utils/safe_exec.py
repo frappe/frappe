@@ -11,6 +11,7 @@ permissions. Functions that bypass permissions — raw SQL, the query builder,
 
 from __future__ import annotations
 
+import inspect
 import json
 import mimetypes
 from typing import TYPE_CHECKING, Any, NoReturn
@@ -22,6 +23,8 @@ import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.core.utils import html2text
+from frappe.email import sendmail
+from frappe.utils.background_jobs import enqueue
 from frappe.utils.inplacevar import protected_inplacevar
 from frappe.utils.print_utils import _print_format_doc_or_none
 from frappe.utils.safe_exec import (
@@ -56,6 +59,15 @@ def safe_exec(
 	script_filename: str | None = None,
 	tool_context: ToolContext | None = None,
 ):
+	from frappe.utils.safe_exec import ServerScriptNotEnabled, is_safe_exec_enabled
+
+	if not is_safe_exec_enabled():
+		frappe.throw(
+			_("Server Scripts are disabled on this bench, so code cannot run here."),
+			ServerScriptNotEnabled,
+			title=_("Server Scripts Disabled"),
+		)
+
 	exec_globals = get_flow_safe_globals(tool_context=tool_context)
 	if _globals:
 		exec_globals.update(_globals)
@@ -73,17 +85,27 @@ def safe_exec(
 
 
 def _gated_get_doc(*args: Any, **kwargs: Any) -> dict:
+	if len(args) == 2:
+		args, kwargs = args[:1], {**kwargs, "name": args[1]}
+	# anything but a name is filters: search them only among readable records
+	name = kwargs.get("name")
+	if args and name is not None and not isinstance(name, str | int):
+		kwargs["name"] = _readable_name(args[0], name)
 	doc = frappe.get_doc(*args, **kwargs)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
 	return doc.as_dict()
 
 
-def _gated_get_last_doc(*args: Any, **kwargs: Any) -> dict:
-	doc = frappe.get_last_doc(*args, **kwargs)
-	doc.check_permission("read")
-	doc.apply_fieldlevel_read_permissions()
-	return doc.as_dict()
+def _gated_get_last_doc(doctype: str, filters=None, order_by: str = "creation desc", **kwargs: Any) -> dict:
+	return _gated_get_doc(doctype, _readable_name(doctype, filters, order_by), **kwargs)
+
+
+def _readable_name(doctype: str, filters, order_by: str = "creation desc") -> str:
+	names = frappe.get_list(doctype, filters=filters, order_by=order_by, limit=1, pluck="name")
+	if not names:
+		raise frappe.DoesNotExistError(doctype=doctype)
+	return names[0]
 
 
 def _gated_get_meta(doctype: str, cached: bool = True) -> dict | None:
@@ -104,8 +126,41 @@ def _gated_attach_print(doctype: str, name: str, *args: Any, **kwargs: Any):
 	return frappe.attach_print(doctype, name, *args, **kwargs)
 
 
-def _gated_sendmail(*args: Any, attachments: list | None = None, **kwargs: Any):
-	return frappe.sendmail(*args, attachments=[_readable_attachment(a) for a in attachments or []], **kwargs)
+# job options: the queues are shared by every site on the bench
+_ENQUEUE_OPTIONS = frozenset(inspect.signature(enqueue).parameters) - {"method", "kwargs"}
+
+
+def _gated_enqueue(function: str, **kwargs: Any):
+	if options := sorted(_ENQUEUE_OPTIONS & set(kwargs)):
+		frappe.throw(
+			_("frappe.enqueue takes only the function and its arguments here, not {0}.").format(
+				", ".join(options)
+			)
+		)
+	return safe_enqueue(function, **kwargs)
+
+
+_SENDMAIL = inspect.signature(sendmail)
+
+
+def _gated_sendmail(*args: Any, **kwargs: Any):
+	"""frappe.sendmail without a sender, for the records and files the user may use."""
+	mail = _SENDMAIL.bind(*args, **kwargs).arguments
+	if mail.pop("sender", None):
+		frappe.throw(
+			_("frappe.sendmail takes no sender here: mail goes out from the site's own account."),
+			title=_("Invalid Sender"),
+		)
+	# the record picks the account that sends, and the mail is filed under the communication
+	doctype = mail.get("doctype") or mail.get("reference_doctype")
+	name = mail.get("name") or mail.get("reference_name")
+	if doctype and not frappe.has_permission(doctype, "email", name or None):
+		raise frappe.PermissionError(_("No permission to email {0} {1}").format(doctype, name or ""))
+	communication = mail.get("communication")
+	if communication and not frappe.has_permission("Communication", "read", communication):
+		raise frappe.PermissionError(_("No permission to read Communication {0}").format(communication))
+	mail["attachments"] = [_readable_attachment(a) for a in mail.get("attachments") or []]
+	return frappe.sendmail(**mail)
 
 
 def _readable_attachment(attachment: dict) -> dict:
@@ -148,10 +203,13 @@ def _permissioned_get_value(doctype, filters=None, fieldname="name", *, as_dict=
 	if isinstance(filters, str):
 		filters = {"name": filters}
 	fieldnames = fieldname if isinstance(fieldname, (list, tuple)) else [fieldname]
-	rows = _permissioned_get_list(doctype, filters=filters, fields=list(fieldnames), limit=1)
-	if not rows:
+	if frappe.get_meta(doctype).issingle:
+		# a Single has no table for get_list
+		row = frappe._dict({f: _permissioned_get_single_value(doctype, f) for f in fieldnames})
+	elif rows := _permissioned_get_list(doctype, filters=filters, fields=list(fieldnames), limit=1):
+		row = rows[0]
+	else:
 		return None
-	row = rows[0]
 	if as_dict:
 		return row
 	if isinstance(fieldname, (list, tuple)):
@@ -273,7 +331,7 @@ def get_flow_safe_globals(*, tool_context: ToolContext | None = None) -> Namespa
 			call=(lambda function, **kwargs: _call_read_function(tool_context, function, **kwargs))
 			if read_only
 			else call_whitelisted_function,
-			enqueue=(lambda *a, **k: _stop("frappe.enqueue", tool_context)) if read_only else safe_enqueue,
+			enqueue=(lambda *a, **k: _stop("frappe.enqueue", tool_context)) if read_only else _gated_enqueue,
 			is_job_queued=is_job_queued,
 			user=user,
 			session=frappe._dict(user=user),

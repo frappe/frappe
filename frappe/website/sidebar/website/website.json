@@ -47,7 +47,7 @@
    "indent": 0,
    "is_default_module": 0,
    "keep_closed": 0,
-   "label": "Settings",
+   "label": "Website Settings",
    "link_to": "Website Settings",
    "link_type": "DocType",
    "open_in_new_tab": 1,
@@ -72,7 +72,7 @@
   }
  ],
  "merged_from": "[\"Website\"]",
- "modified": "2026-11-09 12:00:00.000000",
+ "modified": "2026-11-15 11:00:00.000000",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website",
