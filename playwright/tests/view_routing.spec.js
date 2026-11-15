@@ -132,6 +132,17 @@ test.describe("View", () => {
 		await expect_list_view(page, "Report");
 	});
 
+	test("Force Route to a Split default view the DocType did not opt in to", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		await setup_default_view(api, { view: "Split", force_reroute: true });
+		await page.goto("/desk/event");
+		await desk.ready();
+		await expect_list_view(page, "List");
+	});
+
 	test("Force Route to default view from app/{doctype}/view", async ({ page, desk, api }) => {
 		await setup_default_view(api, { view: "Report", force_reroute: true });
 		await page.goto("/desk/event/view");

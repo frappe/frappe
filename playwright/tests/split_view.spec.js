@@ -66,6 +66,20 @@ test.describe("Split View", () => {
 		).not.toHaveCount(0);
 	});
 
+	test("a link to the same split view with other filters shows their rows", async ({ page }) => {
+		const names = await open_split_view(page);
+		await page.locator(ROWS).first().click();
+		await expect(page).toHaveURL(new RegExp(`/view/split/${names[0]}`));
+		const two = todos.find((todo) => todo.description.endsWith(" two")).name;
+
+		await page.evaluate((stamp) => {
+			frappe.route_options = { description: JSON.stringify(["like", `%${stamp} two%`]) };
+			frappe.set_route("List", "ToDo", "Split");
+		}, stamp);
+		await expect(page.locator(ROWS)).toHaveCount(1);
+		await expect(page.locator(ROWS).first()).toHaveAttribute("data-id", two);
+	});
+
 	test("moves the selection with j and k, and Escape clears it", async ({ page }) => {
 		const names = await open_split_view(page);
 		await page.locator(ROWS).first().click();
