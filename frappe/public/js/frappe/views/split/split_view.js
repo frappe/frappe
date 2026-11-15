@@ -32,6 +32,11 @@
 frappe.provide("frappe.views");
 
 frappe.views.SplitView = class SplitView extends frappe.views.ListView {
+	/** The page name leaves out the open record, the route's last part, so one page serves them all. */
+	static get_page_name(route) {
+		return route.slice(0, 3).join("/");
+	}
+
 	get view_name() {
 		return "Split";
 	}
@@ -43,8 +48,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 	setup_defaults() {
 		return super.setup_defaults().then(() => {
 			this.view = "Split";
-			// one page serves every record it opens, so the record is left out of its name
-			this.page_name = this.get_list_route().join("/");
+			this.page_name = SplitView.get_page_name(frappe.get_route());
 			this.split_settings = this.settings.split_view || {};
 			this.selected_name = null;
 			this.has_pushed_detail = false;
@@ -79,10 +83,6 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		return [...keys].some((key) => cstr(current[key]) !== cstr(incoming[key]));
 	}
 
-	get_list_route() {
-		return frappe.get_route().slice(0, 3);
-	}
-
 	get_route_name() {
 		const route = frappe.get_route();
 		return route.length > 3 ? route.slice(3).join("/") : null;
@@ -90,11 +90,11 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 
 	is_same_list_as_last_route() {
 		const last_route = frappe.route_history.slice(-2)[0];
-		return last_route?.slice(0, 3).join("/") === this.page_name;
+		return Boolean(last_route) && SplitView.get_page_name(last_route) === this.page_name;
 	}
 
 	is_current_route() {
-		return this.get_list_route().join("/") === this.page_name;
+		return SplitView.get_page_name(frappe.get_route()) === this.page_name;
 	}
 
 	async set_fields() {

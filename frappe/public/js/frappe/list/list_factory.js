@@ -67,9 +67,8 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 	}
 
 	before_show() {
-		// a split view is one page whatever record it has open, which is the route's last part
 		if (this.route[2] === "Split") {
-			this.page_name = this.route.slice(0, 3).join("/");
+			this.page_name = frappe.views.SplitView.get_page_name(this.route);
 		}
 		if (this.re_route_to_view()) {
 			return false;
