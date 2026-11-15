@@ -13,7 +13,7 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 frappe.ui.form.on("Print Format", {
 	after_delete: function (frm) {
 		const [page, name] = frappe.get_prev_route();
-		if (page !== "print-format-builder" || name !== frm.docname) return;
+		if (page && (page !== "print-format-builder" || name !== frm.docname)) return;
 		frappe.route_flags.replace_route = true;
 		frappe.set_route("List", "Print Format");
 	},
