@@ -168,7 +168,10 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			page: this.page,
 		});
 		// each board route has its own page, so leaving it means leaving the board
-		$(this.wrapper).on("hide", () => this.teardown_board(true));
+		$(this.wrapper).on("hide", () => {
+			this.teardown_board(true);
+			frappe.app?.sidebar?.unfold_after_leaving_page();
+		});
 	}
 
 	render_selection_bar() {
@@ -358,6 +361,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	async load_from_route(route_options = null) {
 		// the hide handler undoes the layout, so re-apply it each time the page shows
 		this.apply_page_shell();
+		// the board wants the width: the sidebar folds to its rail while it shows, without
+		// saving that as the viewer's choice; leaving restores it (see the hide handler)
+		frappe.app?.sidebar?.fold_for_page();
 
 		const board_name = this.get_board_name_from_route();
 		if (!board_name) {
