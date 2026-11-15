@@ -110,11 +110,9 @@ def preview_print_designer(print_format: str, name: str) -> None:
 	logged = last_error()
 	download_pdf(doc.doc_type, name, print_format)
 	if last_error() != logged:
-		message = _("Print Designer can't render this format.")
-		frappe.local.response.update(
-			type="download",
-			display_content_as="inline",
-			content_type="text/html",
-			filename="preview.html",
-			filecontent=f'<p style="font-family: sans-serif; color: #7c7c7c; text-align: center">{message}</p>',
+		frappe.respond_as_web_page(
+			_("No Preview"),
+			_("Print Designer can't render this format."),
+			indicator_color="gray",
+			primary_action=None,
 		)
