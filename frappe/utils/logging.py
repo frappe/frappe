@@ -64,7 +64,7 @@ class LogDatabase(SQLiteDatabase):
 
 		return conn
 
-	def begin(self, *, read_only=False):
+	def begin(self, *, read_only=False, defer_writer_lock=False):
 		"""No-op: this connection never opens an explicit transaction.
 
 		`SQLiteDatabase.commit` calls `begin` to re-open one straight after committing, which
