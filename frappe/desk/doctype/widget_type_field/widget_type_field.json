@@ -15,6 +15,7 @@
   "reqd",
   "default",
   "in_standard_filter",
+  "depends_on",
   "description"
  ],
  "fields": [
@@ -69,6 +70,12 @@
    "label": "Reader Can Change"
   },
   {
+   "fieldname": "depends_on",
+   "fieldtype": "Code",
+   "label": "Display Depends On (JS)",
+   "options": "JS"
+  },
+  {
    "fieldname": "description",
    "fieldtype": "Small Text",
    "label": "Description"
@@ -78,7 +85,7 @@
  "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-15 08:20:01.077612",
+ "modified": "2026-11-15 23:14:06.529062",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Widget Type Field",

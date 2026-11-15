@@ -115,6 +115,7 @@ def field_spec(row) -> dict:
 		"reqd": row.reqd,
 		"default": row.default,
 		"in_standard_filter": row.in_standard_filter,
+		"depends_on": row.depends_on,
 	}
 
 

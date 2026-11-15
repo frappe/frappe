@@ -50,7 +50,20 @@ class Widget(Document):
 		widget_class = get_type_class(self.type)
 		if not widget_class:
 			frappe.throw(_("Widget Type {0} does not exist.").format(frappe.bold(self.type)))
+		self.validate_required_props()
 		widget_class(self).validate()
+
+	def validate_required_props(self):
+		config = self.get_config()
+		if missing := [
+			_(field.label) for field in self.get_fields() if field.reqd and not config.get(field.fieldname)
+		]:
+			frappe.throw(
+				_("{0} is not set up yet. Set {1}, or remove it.").format(
+					frappe.bold(self.label), ", ".join(missing)
+				),
+				title=_("Unfinished Block"),
+			)
 
 	def on_update(self):
 		clear_pages_cache()

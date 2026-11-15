@@ -15,7 +15,14 @@ from frappe.desk.doctype.workspace.workspace import delete_layout, new_page, res
 from frappe.desk.doctype.workspace_layout.workspace_layout import remove_layouts_without_files
 from frappe.desk.layouts import block_id, item_id
 from frappe.desk.test_desktop import block, make_chart, make_named, make_user, make_workspace
-from frappe.desk.test_widgets import insert_as_app, make_card, make_custom_block, make_link, make_shortcut
+from frappe.desk.test_widgets import (
+	insert_as_app,
+	make_card,
+	make_custom_block,
+	make_link,
+	make_shortcut,
+	make_widget,
+)
 from frappe.patches.v17_0.make_custom_workspace_copies_layouts import execute
 from frappe.tests import IntegrationTestCase
 from frappe.utils.logging import get_log_db
@@ -237,6 +244,41 @@ class TestSavingLayouts(IntegrationTestCase):
 		types = [frappe.db.get_value("Widget", b["data"]["widget"], "type") for b in content]
 		expected = ["Shortcut", "Card", "Number Card", "Chart", "Quick List", "Custom Block", "Onboarding"]
 		self.assertEqual(types, expected)
+
+	def test_a_new_block_and_its_new_links_save_as_widgets(self):
+		frappe.set_user(MANAGER)
+		link = {"type": "Link", "label": "Tasks", "config": {"link_type": "DocType", "link_to": "ToDo"}}
+		card = {"type": "Card", "label": "Drafted", "config": {"widgets": [{"draft": link}]}}
+		page = [drawn(self.todos), {"type": "widget", "data": {"col": 4, "draft": card}}]
+		save_page("Layout Page", 1, {}, dumps(page))
+
+		self.assertEqual(shown(US), ["ToDos", "Drafted"])
+		self.assertEqual(card_links(US, "Drafted"), ["Tasks"])
+
+		unfinished = {"type": "widget", "data": {"draft": {"type": "Chart", "label": "Empty"}}}
+		self.assertRaises(frappe.ValidationError, save_page, "Layout Page", 1, {}, dumps([unfinished]))
+
+	def test_a_site_edit_of_an_apps_card_changes_its_items_and_keeps_the_apps_later_ones(self):
+		frappe.set_user("Administrator")
+		todo, note = (
+			make_widget("Link", d, "Desk", link_type="DocType", link_to=d) for d in ("ToDo", "Note")
+		)
+		card = make_widget("Card", "App Card", "Desk", widgets=[{"widget": todo.name}, {"widget": note.name}])
+		make_workspace("Layout Page", content=[widget_block(card)], standard=1)
+
+		frappe.set_user(MANAGER)
+		event = {"type": "Link", "label": "Event", "config": {"link_type": "DocType", "link_to": "Event"}}
+		edit = {card.name: {"config": {"widgets": [{"widget": note.name}, {"draft": event}]}}}
+		save_page("Layout Page", 1, {}, dumps([drawn(card)]), widget_edits=edit)
+		self.assertEqual(card_links(US, "App Card"), ["Note", "Event"])
+
+		frappe.set_user("Administrator")
+		file = make_widget("Link", "File", "Desk", link_type="DocType", link_to="File")
+		card.config = frappe.as_json({"widgets": [*card.get_config()["widgets"], {"widget": file.name}]})
+		with patch.dict(frappe.flags, {"in_import": True}):
+			card.save()
+		self.assertEqual(card_links(US, "App Card"), ["Note", "Event", "File"])
+		self.assertEqual(frappe.db.count("Widget", {"type": "Card", "label": "App Card"}), 1, "no copy")
 
 	def test_an_old_renderer_page_saves_its_own_content_and_rows(self):
 		frappe.set_user("Administrator")
@@ -645,6 +687,15 @@ def labels(user: str) -> list[str]:
 		widgets[b["id"]]["label"] if b["type"] == "widget" else b["data"][f"{b['type']}_name"]
 		for b in page["content"]
 	]
+
+
+def card_links(user: str, label: str) -> list[str]:
+	current = frappe.session.user
+	frappe.set_user(user)
+	widgets = get_workspace("Layout Page")["widgets"]["widget"]
+	frappe.set_user(current)
+	card = next(widget for widget in widgets.values() if widget["label"] == label)
+	return [item["label"] for item in card["data"]["items"]]
 
 
 def drawn(widget) -> dict:

@@ -15,6 +15,7 @@ class WidgetTypeField(Document):
 		from frappe.types import DF
 
 		default: DF.SmallText | None
+		depends_on: DF.Code | None
 		description: DF.SmallText | None
 		fieldname: DF.Data
 		fieldtype: DF.Literal[

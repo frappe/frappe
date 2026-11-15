@@ -1048,7 +1048,9 @@ def save_page(
 	"""Save the page an editor drew as changes to where it goes: `layout`, the site's or the user's
 	own layout, or the default. Blocks it adds or edits become Widgets.
 
-	`widget_edits` is `{widget name: {label, config}}` for the Widgets the editor changed.
+	`widget_edits` is `{widget name: {label, config}}` for the Widgets the editor changed. A block
+	the editor added holds `draft: {type, label, config}` in place of its widget, and a container's
+	new item is `{draft: {...}}` in place of `{widget}`.
 	`layout_settings` (`layout_name`, `condition`, `module`) names and conditions the layout, and
 	without `layout` makes a new one. `page_settings` (`title`, `icon`, `module`, `hide_custom`)
 	changes the workspace itself. `view_as` names the user the editor drew the page for.
@@ -1071,11 +1073,12 @@ def save_page(
 	target = save_target(workspace.doc, layout, frappe.parse_json(layout_settings))
 	if widget_edits and not can_edit:
 		frappe.throw(_("Only an editor of this workspace may change its widgets."), frappe.PermissionError)
-	page = apply_widget_edits(page, frappe.parse_json(widget_edits) or {})
+	module = widget_module(workspace.doc, target)
+	page = apply_widget_edits(page, frappe.parse_json(widget_edits) or {}, module)
+	page = [saved_draft(block, module) for block in page]
 	viewer = view_as if can_edit else None
 	base = base_page(workspace.doc, target, viewer)
 	base_ids = {block["id"] for block in base}
-	module = widget_module(workspace.doc, target)
 	page = with_ids(
 		as_widget_blocks(page, new_widgets, module, lambda block: block.get("id") not in base_ids)
 	)
@@ -1144,34 +1147,84 @@ def used_card_rows(rows: list, used: set) -> list:
 	return kept
 
 
-def apply_widget_edits(page: list, edits: dict) -> list:
-	"""`page` with each edited Widget saved, and its block naming the copy when the edit made one."""
-	saved = {name: save_widget_edit(name, edit) for name, edit in edits.items()}
-	return [
-		with_widget(block, saved[block["data"]["widget"]]) if names_widget(block, saved) else block
-		for block in page
-	]
+def apply_widget_edits(page: list, edits: dict, module: str | None) -> list:
+	"""`page` with each edited Widget saved, and its block naming what the edit left it."""
+	saved = {name: save_widget_edit(name, edit, module) for name, edit in edits.items()}
+	return [with_edit(block, saved) for block in page]
 
 
-def save_widget_edit(name: str, edit: dict) -> str:
-	"""Save an edit to a Widget. An app's Widget edited on a site is copied as a site Widget, so
-	migrate keeps the original."""
+def save_widget_edit(name: str, edit: dict, module: str | None) -> dict:
+	"""Save an edit to a Widget where the save goes. Another owner's Widget is copied, so its own
+	files and updates are left alone; another owner's container keeps its Widget and gets its
+	items from the layout instead."""
+	from frappe.desk.widgets import app_of, get_types
+
 	widget = frappe.get_doc("Widget", name)
-	if widget.module and not frappe.conf.developer_mode:
+	config = with_saved_items(edit.get("config") or widget.get_config(), module)
+	if "widgets" in config:
+		config["widgets"] = with_unseen_items(widget, config["widgets"])
+	if app_of(widget.module) != app_of(module):
+		if get_types()[widget.type]["child_type"]:
+			return {"widget": name, "items": config["widgets"]}
 		widget = frappe.copy_doc(widget)
-		widget.module = None
+		widget.module = module
 	widget.label = edit.get("label") or widget.label
-	widget.config = frappe.as_json(edit.get("config") or widget.get_config())
+	widget.config = frappe.as_json(config)
 	widget.save()
-	return widget.name
+	return {"widget": widget.name}
 
 
-def names_widget(block: dict, names: dict) -> bool:
-	return block.get("type") == "widget" and block["data"]["widget"] in names
+def with_edit(block: dict, saved: dict) -> dict:
+	name = (block.get("data") or {}).get("widget") if block.get("type") == "widget" else None
+	if name not in saved:
+		return block
+	from frappe.desk.layouts import block_id, item_id
+
+	data = {key: value for key, value in block["data"].items() if key != "items"}
+	data["widget"] = saved[name]["widget"]
+	if "items" in saved[name]:
+		container_id = block_id(block)
+		data["items"] = [{"id": item_id(container_id, i["widget"]), **i} for i in saved[name]["items"]]
+	return {**block, "id": None, "data": data}
 
 
-def with_widget(block: dict, widget: str) -> dict:
-	return {**block, "id": None, "data": {**block["data"], "widget": widget}}
+def saved_draft(block: dict, module: str | None) -> dict:
+	"""A block the editor added, naming the Widget made from its draft."""
+	draft = (block.get("data") or {}).get("draft")
+	if not draft:
+		return block
+	data = {key: value for key, value in block["data"].items() if key != "draft"}
+	return {**block, "id": None, "data": {**data, "widget": insert_widget(draft, module)}}
+
+
+def insert_widget(draft: dict, module: str | None) -> str:
+	config = with_saved_items(draft.get("config") or {}, module)
+	widget = {"doctype": "Widget", "type": draft["type"], "module": module, "config": frappe.as_json(config)}
+	return frappe.get_doc({**widget, "label": draft.get("label") or draft["type"]}).insert().name
+
+
+def with_saved_items(config: dict, module: str | None) -> dict:
+	"""`config` with each new item of a container made a Widget."""
+	if "widgets" not in config:
+		return config
+	items = [
+		item if item.get("widget") else {"widget": insert_widget(item["draft"], module)}
+		for item in config["widgets"] or []
+	]
+	return {**config, "widgets": items}
+
+
+def with_unseen_items(widget, items: list) -> list:
+	"""`items` and the ones the editor could not see, which it cannot have meant to drop."""
+	from frappe.desk.widgets import build_widget
+
+	names = {item["widget"] for item in items}
+	unseen = [
+		item
+		for item in widget.get_config().get("widgets") or []
+		if item["widget"] not in names and build_widget(item["widget"]) is None
+	]
+	return items + unseen
 
 
 def save_target(doc, layout: str | None, settings: dict | None = None):

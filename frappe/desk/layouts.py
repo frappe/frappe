@@ -315,19 +315,54 @@ def diff(base: list, page: list, visible: set) -> dict:
 	changes = {"add": [], "move": [], "resize": {}, "hide": []}
 	changes["hide"] = [b["id"] for b in base if b["id"] not in page_ids and b["id"] in visible]
 
+	containers = []
 	for index, block in enumerate(page):
 		after = page_ids[index - 1] if index else None
 		old = base_by_id.get(block["id"])
 		if old is None:
 			changes["add"].append({"after": after, "block": block})
-		elif text_changed(old, block):
+			continue
+		if text_changed(old, block):
 			changes["hide"].append(block["id"])
 			changes["add"].append({"after": after, "block": {**block, "id": frappe.generate_hash(length=10)}})
 		elif size_of(old) != size_of(block):
 			changes["resize"][block["id"]] = size_of(block)
+		if "items" in block["data"]:
+			containers.append((old, block))
 
 	changes["move"] = moves(base, page, changes)
+	for old, block in containers:
+		item_changes(old, block, changes)
 	return {key: value for key, value in changes.items() if value}
+
+
+def item_changes(old: dict, block: dict, changes: dict):
+	"""The `in` changes that give a container the items the editor left in it."""
+	container = {**old, "data": dict(old["data"])}
+	before = [item["id"] for item in open_container(container) or []]
+	after = [item["id"] for item in block["data"]["items"]]
+	inside = {"add": [], "move": [], "hide": [i for i in before if i not in after]}
+	for index, item in enumerate(block["data"]["items"]):
+		if item["id"] not in before:
+			widget = {"type": "widget", "data": {"widget": item["widget"]}}
+			inside["add"].append(
+				{"in": block["id"], "after": after[index - 1] if index else None, "block": widget}
+			)
+	kept = set(longest_common_order([i for i in before if i in after], [i for i in after if i in before]))
+	inside["move"] = item_moves(block["id"], after, [i for i in after if i in before and i not in kept])
+	if items_after(container, inside) != after:
+		inside["move"] = item_moves(block["id"], after, after)
+	for key in ("add", "move", "hide"):
+		changes[key].extend(inside[key])
+
+
+def item_moves(container_id: str, order: list, item_ids: list) -> list:
+	return [{**move_entry(order, item_id), "in": container_id} for item_id in item_ids]
+
+
+def items_after(container: dict, changes: dict) -> list:
+	merged = merge([container], [changes])
+	return [item["id"] for item in merged[0]["data"].get("items") or []] if merged else []
 
 
 def moves(base: list, page: list, changes: dict) -> list:
