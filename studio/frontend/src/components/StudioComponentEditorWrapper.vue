@@ -1,5 +1,5 @@
 <template>
-	<component :is="host" v-if="host" v-bind="testInputValues">
+	<component :is="host" v-if="host" v-bind="previewValues">
 		<StudioComponent :block="studioComponent" :breakpoint="props.breakpoint" />
 	</component>
 </template>
@@ -24,11 +24,11 @@ const canvasStore = useCanvasStore()
 const componentId = computed(() => canvasStore.fragmentData.fragmentId ?? "")
 const host = computed(() => componentStore.getComponentHost(componentId.value))
 
-const testInputValues = computed(() => {
+const previewValues = computed(() => {
 	const values = componentBlock.value?.getPropsAndAttributes() || {}
 	// Vue applies the defaults of a script's props
 	if (componentStore.getComponentScript(componentId.value)) return values
-	componentEditorStore.componentInputs.forEach((input) => {
+	componentEditorStore.declaredProps.forEach((input) => {
 		if (!(input.input_name in values) && input.default !== undefined) {
 			values[input.input_name] = input.default
 		}

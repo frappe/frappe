@@ -176,11 +176,11 @@ const propConfigs = computed<ComponentProps>(() => {
 
 	if (props.isTestingComponent) {
 		const componentEditorStore = useComponentEditorStore()
-		return getStudioComponentProps(componentEditorStore.componentInputs)
+		return getStudioComponentProps(componentEditorStore.declaredProps)
 	}
 	if (props.block.isStudioComponent) {
 		const componentStore = useComponentStore()
-		return getStudioComponentProps(componentStore.getComponentInputs(props.block.componentName))
+		return getStudioComponentProps(componentStore.getComponentProps(props.block.componentName))
 	}
 	if (componentInstance.value) {
 		return getComponentProps(props.block.componentName, componentInstance.value)
@@ -238,11 +238,11 @@ const filteredComponentProps = computed(() => {
 const hasFilteredProps = computed(() => !isObjectEmpty(filteredComponentProps.value))
 defineExpose({ hasFilteredProps })
 
-function getStudioComponentProps(componentInputs: ComponentInput[]): ComponentProps {
-	if (isObjectEmpty(componentInputs)) return {}
+function getStudioComponentProps(declaredProps: ComponentInput[]): ComponentProps {
+	if (isObjectEmpty(declaredProps)) return {}
 
 	const _props: ComponentProps = {}
-	componentInputs.forEach((input) => {
+	declaredProps.forEach((input) => {
 		_props[input.input_name] = {
 			type: input.type,
 			default: input.default || undefined,

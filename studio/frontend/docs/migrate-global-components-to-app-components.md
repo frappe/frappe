@@ -85,7 +85,8 @@ file is its source. Convert each one in the same change:
 4. Remove the `inputs` key from the component JSON.
 
 Blocks in the component still read a value as `{{ inputs.columns }}`, and
-pages still set it in `componentProps`. Do not change them.
+pages still set it in `componentProps`. Do not change them. In new blocks, use
+`{{ props.columns }}`: `inputs` is the older name of `props`.
 
 ## Remove the old global component
 

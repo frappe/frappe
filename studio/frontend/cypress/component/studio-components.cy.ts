@@ -242,12 +242,12 @@ describe("studio component props", () => {
 			)
 		})
 		cy.then(() => {
-			const inputs = store.getComponentInputs(PROPS_ID)
+			const inputs = store.getComponentProps(PROPS_ID)
 			expect(inputs.map((input) => [input.input_name, input.type, input.default])).to.deep.equal([
 				["size", "select", "md"],
 			])
 			return useComponentEditorStore().saveComponentProp(PROPS_ID, inputs[0], null)
 		})
-		cy.then(() => expect(store.getComponentInputs(PROPS_ID)).to.deep.equal([]))
+		cy.then(() => expect(store.getComponentProps(PROPS_ID)).to.deep.equal([]))
 	})
 })

@@ -1,5 +1,5 @@
 <template>
-	<component :is="host" v-if="host && block" v-bind="inputValues">
+	<component :is="host" v-if="host && block" v-bind="propValues">
 		<StudioComponent :block="block" :breakpoint="props.breakpoint" />
 	</component>
 </template>
@@ -9,7 +9,7 @@ import { computed } from "vue"
 import StudioComponent from "@/components/StudioComponent.vue"
 import Block from "@/utils/block"
 import useComponentStore from "@/stores/componentStore"
-import { useComponentInputValues } from "@/utils/useComponentInputValues"
+import { useComponentPropValues } from "@/utils/useComponentPropValues"
 
 const props = defineProps<{
 	studioComponent: Block
@@ -19,7 +19,7 @@ const props = defineProps<{
 const componentStore = useComponentStore()
 
 const host = computed(() => componentStore.getComponentHost(props.studioComponent.componentName))
-const inputValues = useComponentInputValues(
+const propValues = useComponentPropValues(
 	() => props.studioComponent,
 	() => props.evaluationContext,
 )

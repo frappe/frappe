@@ -8,7 +8,7 @@ import { setComponentScriptImporters, unregisterStudioComponentScripts } from "@
 import { registerGlobalComponents } from "@/globals"
 import useComponentStore from "@/stores/componentStore"
 import getBlockTemplate from "@/utils/blockTemplate"
-import { getInputsFromProps, validateComponentScript, type ComponentScript } from "@/utils/componentScript"
+import { getEditorProps, validateComponentScript, type ComponentScript } from "@/utils/componentScript"
 import { getPropsReadOnlyReason, setScriptProp } from "@/utils/componentScriptProps"
 import { getBlockInstance } from "@/utils/serializer"
 
@@ -53,7 +53,7 @@ function counterDoc(id: string) {
 			{
 				componentName: "Button",
 				componentId: `${id}-echo`,
-				componentProps: { label: "{{ inputs.title }} says {{ note }}" },
+				componentProps: { label: "{{ props.title }} says {{ note }}" },
 			},
 		],
 	}
@@ -170,7 +170,7 @@ describe("component scripts", () => {
 		cy.then(() => {
 			const store = useComponentStore()
 			expect(store.componentScriptErrors.get(COMPONENT_ID)).to.include('cannot use "data"')
-			expect(store.getComponentInputs(COMPONENT_ID)).to.deep.equal(doc.inputs)
+			expect(store.getComponentProps(COMPONENT_ID)).to.deep.equal(doc.inputs)
 		})
 	})
 
@@ -181,8 +181,8 @@ describe("component scripts", () => {
 		expect(validateComponentScript(counterScript)).to.equal(counterScript)
 	})
 
-	it("describes props as inputs for the editor", () => {
-		const inputs = getInputsFromProps({
+	it("describes props for the form in the editor", () => {
+		const inputs = getEditorProps({
 			title: { type: String, required: true },
 			step: { type: Number, default: 1 },
 			open: Boolean,
@@ -198,7 +198,7 @@ describe("component scripts", () => {
 		])
 		expect(inputs[0].required).to.equal(1)
 		expect(inputs[4].options).to.equal("sm\nmd")
-		expect(getInputsFromProps(["title"])).to.deep.equal([{ input_name: "title", type: "text" }])
+		expect(getEditorProps(["title"])).to.deep.equal([{ input_name: "title", type: "text" }])
 	})
 
 	it("writes a prop from the form into the script, and leaves the rest of the script as written", () => {

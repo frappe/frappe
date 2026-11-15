@@ -77,23 +77,23 @@ const dynamicValueOptions = computed(() => {
 
 	if (canvasStore.editingMode === "component") {
 		// Component context
-		const componentInputs = useComponentEditorStore().componentInputs
-		if (!isObjectEmpty(componentInputs)) {
+		const declaredProps = useComponentEditorStore().declaredProps
+		if (!isObjectEmpty(declaredProps)) {
 			const componentContext: VariableOption[] = []
-			componentInputs.map?.((input: ComponentInput) => {
+			declaredProps.map?.((prop: ComponentInput) => {
 				componentContext.push({
-					value: `inputs.${input.input_name}`,
-					label: `inputs.${input.input_name}`,
-					type: input.type,
+					value: `props.${prop.input_name}`,
+					label: `props.${prop.input_name}`,
+					type: prop.type,
 				})
 			})
 			groups.push({
-				group: "Component Inputs",
+				group: "Component Props",
 				options: componentContext,
 			})
 		}
 		const scriptBindings = Object.entries(props.block?.componentContext || {})
-			.filter(([name]) => name !== "inputs")
+			.filter(([name]) => name !== "props" && name !== "inputs")
 			.map(([name, value]) => {
 				const isFunction = typeof value === "function"
 				return { value: isFunction ? `${name}()` : name, label: name, type: isFunction ? "function" : "ref" }

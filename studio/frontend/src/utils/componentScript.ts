@@ -82,15 +82,15 @@ export function createComponentHost(
 					fail(error)
 				}
 
-				// Expressions read values, as a Vue template does.
+				// Expressions read values, as a Vue template does. `inputs` is the older name of `props`.
 				provide(
 					"componentContext",
-					computed(() => ({ inputs: props, ...unwrapRefs(bindings.value) })),
+					computed(() => ({ props, inputs: props, ...unwrapRefs(bindings.value) })),
 				)
 				// Event scripts and two-way bindings need the refs to write to them.
 				provide(
 					"componentScriptContext",
-					computed(() => ({ inputs: props, ...bindings.value })),
+					computed(() => ({ props, inputs: props, ...bindings.value })),
 				)
 
 				return () => (ready.value ? context.slots.default?.() : null)
@@ -109,23 +109,23 @@ function getPropsFromInputs(inputs: StudioComponentInput[] = []): Record<string,
 }
 
 /** The editor's description of each prop: the control that edits it, its default and its help text. */
-export function getInputsFromProps(props: ComponentScript["props"] = {}): StudioComponentInput[] {
+export function getEditorProps(props: ComponentScript["props"] = {}): StudioComponentInput[] {
 	if (Array.isArray(props)) return props.map((name) => ({ input_name: name, type: "text" }))
 	return Object.entries(props).map(([name, prop]) => {
 		const options = prop && typeof prop === "object" && !Array.isArray(prop) ? prop : { type: prop }
 		const meta = options.meta || {}
 		return {
 			input_name: name,
-			type: meta.control || getInputType(options.type),
+			type: meta.control || getPropControl(options.type),
 			description: meta.description,
 			options: meta.options?.join("\n"),
 			required: options.required ? 1 : 0,
-			default: getInputDefault(options.default),
+			default: getPropDefaultText(options.default),
 		}
 	})
 }
 
-function getInputType(propType: unknown): string {
+function getPropControl(propType: unknown): string {
 	const type = Array.isArray(propType) ? propType[0] : propType
 	if (type === String) return "text"
 	if (type === Number) return "number"
@@ -134,7 +134,7 @@ function getInputType(propType: unknown): string {
 }
 
 // An input row stores its default as text. Object defaults come from a factory, which only Vue calls.
-function getInputDefault(value: unknown): string | undefined {
+function getPropDefaultText(value: unknown): string | undefined {
 	if (typeof value === "string") return value
 	if (typeof value === "number" || typeof value === "boolean") return String(value)
 }

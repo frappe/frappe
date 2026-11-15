@@ -21,7 +21,7 @@
 					<Combobox
 						v-if="!propsReadOnlyReason"
 						:options="fieldTypeOptions"
-						@update:modelValue="(value: string) => showAddInputPopover(value)"
+						@update:modelValue="(value: string) => showAddPropPopover(value)"
 						class="!w-auto"
 					>
 						<template #trigger>
@@ -35,10 +35,10 @@
 					<button class="underline" @click="store.navigateToComponentScript(componentId)">Open script</button>
 				</p>
 
-				<div class="flex flex-col gap-1" v-if="shownInputs.length > 0">
+				<div class="flex flex-col gap-1" v-if="shownProps.length > 0">
 					<Popover
-						v-for="(input, index) in shownInputs"
-						:key="input.input_name"
+						v-for="(prop, index) in shownProps"
+						:key="prop.input_name"
 						:open="showEditPopover && editingIndex === index"
 						@update:open="
 							(open: boolean) => {
@@ -54,24 +54,24 @@
 							<div
 								class="group flex h-8 w-full shrink-0 items-center justify-between gap-2 rounded-4 border border-outline-gray-2 px-2"
 								:class="propsReadOnlyReason ? '' : 'cursor-pointer hover:bg-surface-gray-1'"
-								@click="!propsReadOnlyReason && editInput(input, index)"
+								@click="!propsReadOnlyReason && editProp(prop, index)"
 							>
 								<div class="flex min-w-0 items-center gap-2">
-									<span :class="getFieldTypeIcon(input.type)" class="h-4 w-4 shrink-0 text-ink-gray-4" />
-									<span class="truncate text-sm text-ink-gray-7">{{ input.input_name }}</span>
-									<span v-if="input.required" class="text-sm text-ink-red-4" title="Required">*</span>
+									<span :class="getFieldTypeIcon(prop.type)" class="h-4 w-4 shrink-0 text-ink-gray-4" />
+									<span class="truncate text-sm text-ink-gray-7">{{ prop.input_name }}</span>
+									<span v-if="prop.required" class="text-sm text-ink-red-4" title="Required">*</span>
 								</div>
 								<span
 									class="truncate text-xs text-ink-gray-5"
 									:class="propsReadOnlyReason ? '' : 'group-hover:hidden'"
 								>
-									{{ input.default }}
+									{{ prop.default }}
 								</span>
 								<button
 									v-if="!propsReadOnlyReason"
 									class="hidden cursor-pointer items-center rounded-1 p-1 text-ink-gray-6 hover:text-ink-gray-8 group-hover:flex"
 									title="Remove prop"
-									@click.stop="removeInput(input)"
+									@click.stop="removeProp(prop)"
 								>
 									<span class="lucide-x h-4 w-4" />
 								</button>
@@ -80,13 +80,13 @@
 						<template #default>
 							<div
 								class="w-64 space-y-4 p-4"
-								v-if="editingInput && editingIndex === index"
-								@keydown="handleInputKeydown"
+								v-if="editingProp && editingIndex === index"
+								@keydown="handlePropKeydown"
 							>
 								<FormControl
 									type="text"
 									label="Name"
-									v-model="editingInput.input_name"
+									v-model="editingProp.input_name"
 									placeholder="e.g. title"
 									autocomplete="off"
 									:required="true"
@@ -95,12 +95,12 @@
 									type="combobox"
 									label="Type"
 									:options="fieldTypeOptions"
-									:modelValue="editingInput ? editingInput.type : null"
+									:modelValue="editingProp ? editingProp.type : null"
 									@update:modelValue="
 										(val: string) => {
-											if (editingInput) {
-												editingInput.type = val
-												setInputControl()
+											if (editingProp) {
+												editingProp.type = val
+												setDefaultControl()
 											}
 										}
 									"
@@ -108,7 +108,7 @@
 								>
 									<template #prefix>
 										<span
-											:class="editingInput ? getFieldTypeIcon(editingInput.type) : 'lucide-circle-help'"
+											:class="editingProp ? getFieldTypeIcon(editingProp.type) : 'lucide-circle-help'"
 											class="mr-1 h-3 w-3 text-ink-gray-4"
 										/>
 									</template>
@@ -117,37 +117,37 @@
 									</template>
 								</FormControl>
 								<FormControl
-									v-if="editingInput.type === 'select'"
+									v-if="editingProp.type === 'select'"
 									type="textarea"
 									label="Options"
-									v-model="editingInput.options"
+									v-model="editingProp.options"
 									:required="true"
 									placeholder="Enter list of options, each on a new line"
 								/>
 
 								<!-- Default value -->
 								<component
-									:is="editingInput.inputControl"
-									:type="editingInput.inputType"
-									:options="editingInput.type === 'select' ? defaultOptions : undefined"
+									:is="editingProp.inputControl"
+									:type="editingProp.inputType"
+									:options="editingProp.type === 'select' ? defaultOptions : undefined"
 									label="Default Value"
-									v-model="editingInput.default"
+									v-model="editingProp.default"
 								/>
 								<FormControl
 									type="textarea"
 									label="Description"
-									v-model="editingInput.description"
+									v-model="editingProp.description"
 									placeholder="Enter description (optional)"
 								/>
 								<FormControl
 									type="checkbox"
 									label="Is Required"
 									size="sm"
-									v-model="editingInput.required"
+									v-model="editingProp.required"
 									class="[&>label]:text-sm [&>label]:text-ink-gray-5"
 								/>
 								<div class="flex gap-2">
-									<Button variant="solid" @click="saveInput">Save</Button>
+									<Button variant="solid" @click="saveProp">Save</Button>
 									<Button variant="outline" @click="cancelEdit">Cancel</Button>
 								</div>
 								<div class="text-xs text-ink-gray-4">
@@ -164,7 +164,7 @@
 
 				<EmptyState v-else-if="!propsReadOnlyReason" message="No props. Add one to let a page pass a value." />
 
-				<template v-if="componentInputs.length">
+				<template v-if="declaredProps.length">
 					<button
 						class="flex items-center gap-1 self-start text-sm text-ink-gray-6 hover:text-ink-gray-8"
 						@click="showPreviewValues = !showPreviewValues"
@@ -235,7 +235,7 @@ import { getPropsReadOnlyReason } from "@/utils/componentScriptProps"
 const store = useStudioStore()
 const componentStore = useComponentStore()
 const componentEditorStore = useComponentEditorStore()
-const componentInputs = computed(() => componentEditorStore.componentInputs)
+const declaredProps = computed(() => componentEditorStore.declaredProps)
 
 const canvasStore = useCanvasStore()
 const componentId = computed(() => canvasStore.fragmentData.fragmentId ?? "")
@@ -282,23 +282,23 @@ async function setGlobal(value: boolean) {
 // The form writes each prop into the script. A script that builds its props in another way
 // is changed by hand.
 const propsReadOnlyReason = computed(() => {
-	// an older component: its input rows still work, and a script with props replaces them
+	// an older component: its prop rows still work, and a script with props replaces them
 	if (!componentDoc.value?.script?.trim() && componentDoc.value?.inputs?.length) {
 		return "This component declares its inputs in an older format. Declare them as props in a script to change them."
 	}
 	return getPropsReadOnlyReason(componentDoc.value?.script || "")
 })
 // a new prop is in the list while its form is open, and in the script after it is saved
-const draftInput = ref<ComponentInput | null>(null)
-const shownInputs = computed(() =>
-	draftInput.value ? [...componentInputs.value, draftInput.value] : componentInputs.value,
+const draftProp = ref<ComponentInput | null>(null)
+const shownProps = computed(() =>
+	draftProp.value ? [...declaredProps.value, draftProp.value] : declaredProps.value,
 )
 const defaultOptions = computed(() => {
-	const options = (editingInput.value?.options || "").split("\n").filter((option) => option.trim())
+	const options = (editingProp.value?.options || "").split("\n").filter((option) => option.trim())
 	return [{ label: "No default", value: "" }, ...options.map((option) => ({ label: option, value: option }))]
 })
 const showEditPopover = ref(false)
-const editingInput = ref<ComponentInput | null>(null)
+const editingProp = ref<ComponentInput | null>(null)
 const editingIndex = ref<number>(-1)
 
 const fieldTypeOptions = [
@@ -324,40 +324,40 @@ const getFieldTypeIcon = (type: string) => {
 	return iconMap[type] || "lucide-type"
 }
 
-const editInput = (input: ComponentInput, index: number) => {
-	editingInput.value = { ...input }
+const editProp = (prop: ComponentInput, index: number) => {
+	editingProp.value = { ...prop }
 	editingIndex.value = index
-	setInputControl()
+	setDefaultControl()
 	showEditPopover.value = true
 }
 
-const saveInput = async () => {
-	if (!editingInput.value) return
-	const { inputControl, inputType, showPopover, ...input } = editingInput.value
-	const previous = componentInputs.value[editingIndex.value] ?? null
-	if (await componentEditorStore.saveComponentProp(componentId.value, previous, input)) cancelEdit()
+const saveProp = async () => {
+	if (!editingProp.value) return
+	const { inputControl, inputType, showPopover, ...prop } = editingProp.value
+	const previous = declaredProps.value[editingIndex.value] ?? null
+	if (await componentEditorStore.saveComponentProp(componentId.value, previous, prop)) cancelEdit()
 }
 
-async function removeInput(input: ComponentInput) {
-	if (await confirm(`Remove the prop '${input.input_name}' from the component's script?`)) {
-		componentEditorStore.saveComponentProp(componentId.value, input, null)
+async function removeProp(prop: ComponentInput) {
+	if (await confirm(`Remove the prop '${prop.input_name}' from the component's script?`)) {
+		componentEditorStore.saveComponentProp(componentId.value, prop, null)
 	}
 }
 
 const cancelEdit = () => {
 	showEditPopover.value = false
-	editingInput.value = null
+	editingProp.value = null
 	editingIndex.value = -1
-	draftInput.value = null
+	draftProp.value = null
 }
 
-const showAddInputPopover = (fieldType: string) => {
-	const names = componentInputs.value.map((input) => input.input_name)
+const showAddPropPopover = (fieldType: string) => {
+	const names = declaredProps.value.map((prop) => prop.input_name)
 	let name = fieldType
 	for (let count = 2; names.includes(name); count++) name = `${fieldType}${count}`
-	draftInput.value = { input_name: name, type: fieldType, description: "", default: "" }
+	draftProp.value = { input_name: name, type: fieldType, description: "", default: "" }
 	setTimeout(() => {
-		editInput(draftInput.value!, componentInputs.value.length)
+		editProp(draftProp.value!, declaredProps.value.length)
 	}, 10) // Small delay to ensure DOM is updated
 }
 
@@ -368,27 +368,27 @@ const DEFAULT_CONTROLS: Record<string, string> = {
 	select: "select",
 }
 
-const setInputControl = () => {
-	const input = editingInput.value
-	if (!input) return
+const setDefaultControl = () => {
+	const prop = editingProp.value
+	if (!prop) return
 	// a checkbox holds true or false, and each other control holds text
-	if (input.type === "checkbox") input.default = ["true", "1"].includes(String(input.default))
-	else if (typeof input.default === "boolean") input.default = ""
+	if (prop.type === "checkbox") prop.default = ["true", "1"].includes(String(prop.default))
+	else if (typeof prop.default === "boolean") prop.default = ""
 
-	if (input.type === "code") {
-		input.inputControl = markRaw(Code)
-	} else if (input.type === "color") {
-		input.inputControl = markRaw(ColorInput)
+	if (prop.type === "code") {
+		prop.inputControl = markRaw(Code)
+	} else if (prop.type === "color") {
+		prop.inputControl = markRaw(ColorInput)
 	} else {
-		input.inputControl = "FormControl"
-		input.inputType = DEFAULT_CONTROLS[input.type] ?? "text"
+		prop.inputControl = "FormControl"
+		prop.inputType = DEFAULT_CONTROLS[prop.type] ?? "text"
 	}
 }
 
-const handleInputKeydown = (e: KeyboardEvent) => {
+const handlePropKeydown = (e: KeyboardEvent) => {
 	if (isCtrlOrCmd(e) && e.key === "s") {
 		e.preventDefault()
-		saveInput()
+		saveProp()
 	}
 }
 </script>

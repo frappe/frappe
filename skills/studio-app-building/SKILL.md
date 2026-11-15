@@ -354,7 +354,7 @@ export default {
   `meta` key sets the editor control (`control`: `text`, `number`, `checkbox`,
   `textarea`, `select`, `code`, or `color`), its `options`, and a
   `description`.
-- Blocks in the component read props as `{{ inputs.title }}` and returned
+- Blocks in the component read props as `{{ props.title }}` and returned
   values by name, as `{{ heading }}`. The page-code rules for returned values,
   hooks, and `await` apply.
 - A page sets props in the component block's `componentProps` and handles the

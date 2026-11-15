@@ -8,7 +8,7 @@ import { usePageScope } from "@/stores/codeStore"
  * A component without a script takes the defaults of its inputs here. A scripted component
  * declares defaults on its props, and Vue applies them.
  */
-export function useComponentInputValues(getBlock: () => Block, getEvaluationContext: () => object) {
+export function useComponentPropValues(getBlock: () => Block, getEvaluationContext: () => object) {
 	const componentStore = useComponentStore()
 	const pageScope = usePageScope()
 
@@ -17,9 +17,9 @@ export function useComponentInputValues(getBlock: () => Block, getEvaluationCont
 		const context = getEvaluationContext()
 		const values: Record<string, any> = block.getPropsAndAttributes()
 		if (!componentStore.getComponentScript(block.componentName)) {
-			for (const input of componentStore.getComponentInputs(block.componentName)) {
-				if (!(input.input_name in values) && input.default !== undefined) {
-					values[input.input_name] = input.default
+			for (const prop of componentStore.getComponentProps(block.componentName)) {
+				if (!(prop.input_name in values) && prop.default !== undefined) {
+					values[prop.input_name] = prop.default
 				}
 			}
 		}

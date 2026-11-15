@@ -20,8 +20,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const componentUsers = ref<string[]>([])
 	const componentStore = useComponentStore()
 	/** The props that the script of the open component declares, or its saved inputs. */
-	const componentInputs = computed<ComponentInput[]>(() =>
-		componentStore.getComponentInputs(useCanvasStore().fragmentData.fragmentId ?? ""),
+	const declaredProps = computed<ComponentInput[]>(() =>
+		componentStore.getComponentProps(useCanvasStore().fragmentData.fragmentId ?? ""),
 	)
 
 	async function createComponent(componentName: string, block?: Block | null, isGlobal = false) {
@@ -173,19 +173,19 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 
 	/**
 	 * Add, change or remove one prop in the component's script, and save the script.
-	 * Pass only `input` to add a prop, and only `previous` to remove one.
+	 * Pass only `prop` to add a prop, and only `previous` to remove one.
 	 */
 	async function saveComponentProp(
 		componentId: string,
 		previous: StudioComponentInput | null,
-		input: StudioComponentInput | null,
+		prop: StudioComponentInput | null,
 	) {
 		const componentDoc = componentStore.getComponentDoc(componentId)
 		try {
-			const script = setScriptProp(componentDoc.script || "", previous, input)
+			const script = setScriptProp(componentDoc.script || "", previous, prop)
 			const data = await studioComponents.setValue.submit({ name: componentDoc.name, script })
 			await componentStore.cacheComponent(data)
-			toast.success(input ? "Prop saved" : "Prop removed")
+			toast.success(prop ? "Prop saved" : "Prop removed")
 			return true
 		} catch (error: any) {
 			toast.error("Failed to save the prop", { description: error?.messages?.join(", ") || error?.message })
@@ -196,7 +196,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	return {
 		selectedComponent,
 		studioComponentBlock,
-		componentInputs,
+		declaredProps,
 		createComponent,
 		promptNewComponent,
 		editComponent,
