@@ -1,4 +1,11 @@
 import gzip
+<<<<<<< HEAD
+=======
+import io
+import os
+import re
+import shutil
+>>>>>>> 012b769 (test(backup): cover MariaDB export naming, table filters, partial marker and sql_mode)
 import sqlite3
 import unittest
 from pathlib import Path
@@ -20,6 +27,7 @@ from frappe.utils.backups import (
 	backup_sqlite_database,
 	fetch_latest_backups,
 	get_remote_blob_filters,
+	new_backup,
 )
 
 
@@ -246,6 +254,19 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 			with gzip.open(dump_path, "rt") as dump:
 				return dump.read()
 
+	def test_export_keeps_explicit_filters_and_stays_out_of_native_lookup(self):
+		backup = new_backup(ignore_files=True, ignore_conf=True, include_doctypes="ToDo", for_mariadb=True)
+		self.addCleanup(os.remove, backup.backup_path_conf)
+		self.addCleanup(os.remove, backup.backup_path_db)
+
+		self.assertTrue(backup.backup_path_db.endswith("-partial-database-mariadb.sql.gz"))
+		self.assertNotEqual(fetch_latest_backups()["database"], backup.backup_path_db)
+		with gzip.open(backup.backup_path_db, "rt") as dump:
+			content = dump.read()
+		self.assertIn("-- Partial Backup of Frappe Site", content)
+		tables = set(re.findall(r"^create table `([^`]+)`", content, re.M | re.I))
+		self.assertEqual(tables, {"tabToDo"})
+
 	def test_dump_uses_mariadb_schema_and_literals(self):
 		dump = self.write_dump(
 			{
@@ -263,6 +284,8 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 		self.assertIn("INSERT INTO `tabToDo` (`name`, `idx`, `description`, `date`) VALUES", dump)
 		self.assertIn("('todo-1',0,'it\\'s a\\nline \\\\ here','2026-01-01')", dump)
 		self.assertNotIn('"tabToDo"', dump)
+		self.assertIn("SET SESSION sql_mode='STRICT_TRANS_TABLES,", dump)
+		self.assertNotIn("NO_BACKSLASH_ESCAPES", dump)
 
 	def test_refuses_keys_that_collide_in_mariadb_collation(self):
 		with self.assertRaises(MariaDBDumpError) as error:
