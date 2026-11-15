@@ -1423,8 +1423,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	_delete() {
-		frappe.model.delete_doc(this.doctype, this.docname, function () {
-			window.history.back();
+		frappe.model.delete_doc(this.doctype, this.docname, () => this._after_delete());
+	}
+
+	_after_delete() {
+		const url = window.location.href;
+		this.script_manager.trigger("after_delete").then(() => {
+			if (window.location.href === url) window.history.back();
 		});
 	}
 
@@ -1469,7 +1474,7 @@ frappe.ui.form.Form = class FrappeForm {
 				// the server deleted the root along with its links
 				frappe.utils.play_sound("delete");
 				frappe.model.delete_from_locals(me.doctype, me.docname);
-				window.history.back();
+				me._after_delete();
 			},
 		});
 	}
