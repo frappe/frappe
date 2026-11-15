@@ -1555,6 +1555,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	field_row(card, df) {
+		const value = this.field_value(card, df);
+		if (!value && this.settings.hide_empty_fields) return null;
 		const label = this.field_label(df);
 		const icon = (this.card_field_icons || {})[df.fieldname];
 		const row = document.createElement("div");
@@ -1569,8 +1571,6 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			row.appendChild(text);
 		}
 
-		const value = this.field_value(card, df);
-		if (!value && this.settings.hide_empty_fields) return null;
 		if (value) {
 			row.appendChild(value);
 		} else {
