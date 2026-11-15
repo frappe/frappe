@@ -1,8 +1,10 @@
+import socket
 import threading
 import time
 from concurrent.futures import Future
 from dataclasses import dataclass
 from email.message import Message
+from functools import cache
 from urllib.parse import urljoin
 
 import requests
@@ -68,8 +70,12 @@ class Fetcher:
 		retry = CappedRetry(
 			total=MAX_RETRIES, backoff_factor=0.5, status_forcelist=RETRY_STATUSES, raise_on_status=False
 		)
-		for adapter in session.adapters.values():
+		for adapter in set(session.adapters.values()):
 			adapter.max_retries = retry
+			pools = adapter.poolmanager.pool_classes_by_scheme
+			adapter.poolmanager.pool_classes_by_scheme = {
+				scheme: abortable_pool(pool) for scheme, pool in pools.items()
+			}
 		session.hooks["response"].append(self.refuse_blocked_redirect)
 		return session
 
@@ -91,7 +97,7 @@ class Fetcher:
 		if allowed <= 0:
 			raise FetchError(TIME_LIMIT)
 		try:
-			return call_with_deadline(self.download, allowed, url, max_bytes, timeout)
+			return AbortableCall().run(self.download, allowed, url, max_bytes, timeout)
 		except TimeoutError:
 			past_deadline = self.deadline and time.monotonic() >= self.deadline
 			raise FetchError(TIME_LIMIT if past_deadline else "timed_out") from None
@@ -137,20 +143,91 @@ def known_charset(charset: str | None) -> str | None:
 		return None
 
 
-def call_with_deadline(function, seconds: float, *args):
-	"""`function(*args)`, or TimeoutError after `seconds`. A socket timeout only bounds each read,
-	so a server that trickles bytes would otherwise hold the crawl for as long as it likes."""
-	# ponytail: the late thread is abandoned, not killed; it ends with its request or the job process.
-	future = Future()
+class AbortableCall:
+	"""`function(*args)` in a thread, or TimeoutError after `seconds`. A socket timeout only bounds
+	each read, so on timeout the sockets the call uses are shut down, which ends its thread."""
 
-	def run():
+	active = threading.local()
+
+	def __init__(self):
+		self.lock = threading.Lock()
+		self.aborted = False
+		self.connections = set()
+
+	@classmethod
+	def current(cls) -> "AbortableCall":
+		return cls.active.call
+
+	def run(self, function, seconds: float, *args):
+		future = Future()
+
+		def target():
+			self.active.call = self
+			try:
+				future.set_result(function(*args))
+			except BaseException as e:
+				future.set_exception(e)
+
+		threading.Thread(target=target, daemon=True).start()
 		try:
-			future.set_result(function(*args))
-		except BaseException as e:
-			future.set_exception(e)
+			return future.result(timeout=seconds)
+		except TimeoutError:
+			self.abort()
+			raise
 
-	threading.Thread(target=run, daemon=True).start()
-	return future.result(timeout=seconds)
+	def track(self, connection):
+		with self.lock:
+			if self.aborted:
+				connection.close()
+			self.check()
+			self.connections.add(connection)
+
+	def release(self, connection):
+		with self.lock:
+			self.connections.discard(connection)
+
+	def check(self):
+		if self.aborted:
+			raise FetchError("timed_out")
+
+	def abort(self):
+		with self.lock:
+			self.aborted = True
+			for connection in self.connections:
+				if connection.sock:
+					shut_down(connection.sock)
+
+
+def shut_down(sock: socket.socket):
+	"""Wakes a thread blocked reading `sock`. The plain socket's method, so TLS state is left to its thread."""
+	try:
+		socket.socket.shutdown(sock, socket.SHUT_RDWR)
+	except OSError:
+		pass
+
+
+@cache
+def abortable_pool(base: type) -> type:
+	"""`base` connection pool, with its connections tracked by the AbortableCall that uses them."""
+
+	class Connection(base.ConnectionCls):
+		def connect(self):
+			super().connect()
+			AbortableCall.current().check()
+
+	class Pool(base):
+		ConnectionCls = Connection
+
+		def _get_conn(self, timeout=None):
+			connection = super()._get_conn(timeout)
+			AbortableCall.current().track(connection)
+			return connection
+
+		def _put_conn(self, connection):
+			AbortableCall.current().release(connection)
+			super()._put_conn(connection)
+
+	return Pool
 
 
 def read_capped(response: requests.Response, deadline: float, max_bytes: int) -> bytes:

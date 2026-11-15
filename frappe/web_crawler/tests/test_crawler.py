@@ -68,6 +68,18 @@ class TestCrawl(IntegrationTestCase):
 		pages = self.crawl(follow_links=False)
 		self.assertEqual([page.url for page in pages], ["https://example.com"])
 
+	def test_robots_txt_that_forbids_the_start_page_blocks_it(self):
+		self.site.page("https://example.com/", links("/a"))
+		for robots in ({"body": "User-agent: *\nDisallow: /", "content_type": "text/plain"}, {"status": 503}):
+			with self.subTest(robots=robots):
+				self.site.add("https://example.com/robots.txt", **robots)
+				self.site.requested.clear()
+				pages = self.crawl()
+				self.assertEqual(
+					[(page.url, page.error) for page in pages], [("https://example.com", "blocked")]
+				)
+				self.assertNotIn("https://example.com/", self.site.requested)
+
 	def test_redirect_to_a_page_already_read_costs_no_budget(self):
 		self.site.page("https://example.com/", links("/old", "/new", "/other"))
 		self.site.redirect("https://example.com/old", "https://example.com/")

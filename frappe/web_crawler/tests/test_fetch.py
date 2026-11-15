@@ -235,9 +235,12 @@ class TestSlowServer(IntegrationTestCase):
 		started = time.monotonic()
 		self.assertEqual(fetch_page(self.url.replace("/drip", "/trickle")).error, "timed_out")
 		self.assertLess(time.monotonic() - started, 3)
+		self.assertTrue(DripHandler.closed.wait(2), "the timed-out request is still running")
 
 
 class DripHandler(http.server.BaseHTTPRequestHandler):
+	closed = threading.Event()
+
 	def do_GET(self):
 		if self.path == "/trickle":
 			return self.trickle(b"HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n" + b"X: y\r\n" * 50)
@@ -253,13 +256,14 @@ class DripHandler(http.server.BaseHTTPRequestHandler):
 			pass
 
 	def trickle(self, data: bytes):
+		DripHandler.closed.clear()
 		try:
 			for byte in data:
 				self.wfile.write(bytes([byte]))
 				self.wfile.flush()
 				time.sleep(0.1)
-		except BrokenPipeError:
-			pass
+		except (BrokenPipeError, ConnectionResetError):
+			DripHandler.closed.set()
 
 	def log_message(self, *args):
 		pass

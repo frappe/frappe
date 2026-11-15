@@ -178,6 +178,8 @@ class WebCrawler:
 			return list(pool.map(self.read_page, urls))
 
 	def read_page(self, url: str) -> CrawledPage:
+		if not self.robots.allows(url):
+			return CrawledPage(url, url, error="blocked")
 		page = self.fetch(url)
 		if page.error != TIME_LIMIT and not self.scope.contains(page.final_url):
 			return CrawledPage(url, page.final_url, page.status, "off_scope")
