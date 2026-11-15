@@ -7,6 +7,10 @@
 		:style="{ scrollPaddingBottom: composerHeight + 24 + 'px' }"
 		@scroll="onScroll"
 		@mousedown="onMouseDown"
+		@wheel.passive="markReader"
+		@touchmove.passive="markReader"
+		@keydown="onReaderKey"
+		@pointerdown="onScrollbar"
 	>
 		<!-- pad by the floating composer's height so "center" means the visible
 		     area above it, not the full page -->
@@ -63,6 +67,7 @@
 				/>
 				<ToolGroup
 					v-else-if="item.kind === 'group'"
+					:id="item.key"
 					:class="tightGap(i)"
 					:steps="item.steps"
 					:sealed="i < turnEnd - 1 || !conversation.running"
@@ -196,9 +201,20 @@ const conversation = computed(() => props.conversation ?? flow.state.conversatio
 // the session's own: a sub-agent's thread offers none
 const replies = computed(() => (props.suggestions && !props.conversation ? suggestedReplies(conversation.value) : null))
 const expandedTurnKeys = ref(new Set())
-// rows (tool calls, thoughts) the user has open, by id
+// rows (tool calls, thoughts, a folded run of calls) the user has open, by id
 const openPanels = reactive(new Set())
 provide("openPanels", openPanels)
+// opening a row is reading it: the reply's growth no longer scrolls it away; the ↓ button or
+// scrolling to the bottom follows again
+watch(
+	() => openPanels.size,
+	(size, before) => {
+		if (size > before) {
+			stick.value = false
+			readerAt = 0 // the row's nudge into view is ours, however lately the reader scrolled
+		}
+	},
+)
 const items = computed(() => buildItems(conversation.value, expandedTurnKeys.value, openPanels))
 // a turn that ends with one of its rows open stays unfolded once the row is closed: only its fold folds it
 watch(
@@ -318,9 +334,24 @@ function onScroll() {
 	// any upward scroll unsticks; scrolling down re-sticks only once the view
 	// actually reaches the bottom — re-pinning from ~80px away yanks the page
 	// out of the user's hands mid-scroll
-	if (distance < 4) stick.value = true
-	else if (goingUp) stick.value = false
+	if (distance < 4) {
+		if (readerScrolled()) stick.value = true
+	} else if (goingUp) stick.value = false
 	updateActivePrompt()
+}
+
+// the reader's own scrolling (wheel, swipe, keys, the scrollbar) can follow again; our scrolls
+// (a row nudged into view, a jump) never do — reaching the bottom by one would snap an open row away.
+// The window outlasts a swipe's glide and a slow drag of the scrollbar
+let readerAt = 0
+const markReader = () => (readerAt = Date.now())
+const readerScrolled = () => Date.now() - readerAt < 3000
+const SCROLL_KEYS = new Set(["ArrowDown", "ArrowUp", "PageDown", "PageUp", "End", "Home", " "])
+function onReaderKey(event) {
+	if (SCROLL_KEYS.has(event.key)) markReader()
+}
+function onScrollbar(event) {
+	if (event.target === scroller.value) markReader()
 }
 
 // a clicked button, link or summary takes no focus, so a closing dialog can't scroll the list back to it
@@ -415,6 +446,7 @@ function scrollToPrompt(key) {
 	const target = scroller.value?.querySelector(`[data-prompt-key="${CSS.escape(key)}"]`)
 	if (!target) return
 	stick.value = false // don't let the autoscroller cancel the jump mid-stream
+	readerAt = 0
 	target.scrollIntoView({ behavior: "smooth", block: "start" })
 }
 

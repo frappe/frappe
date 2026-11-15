@@ -69,6 +69,7 @@ const SYNCED_PREFS = [
 	"folderOrder",
 	"chatFontSize",
 	"chatFontWeight",
+	"separateToolCalls",
 ]
 const COLOR_SCHEMES = ["system", "light", "dark"]
 
@@ -137,6 +138,7 @@ export function createFlowStore(client, options = {}) {
 		explorerWidth: 220,
 		chatFontSize: CHAT_FONT_SIZE.default,
 		chatFontWeight: CHAT_FONT_WEIGHT.default,
+		separateToolCalls: false, // true lists every tool call on its own row; else a run of them folds into one line
 	}
 	// only what differs from these is saved, so a setting left alone follows a new default
 	const prefs = { ...copy(defaults), ...readJSON(keys.prefs, {}) }
@@ -1666,6 +1668,11 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 	}
 
+	function setSeparateToolCalls(on) {
+		state.prefs.separateToolCalls = !!on
+		savePrefs()
+	}
+
 	function setSettingsOpen(open, tab = null) {
 		if (tab) state.settingsTab = tab
 		state.settingsOpen = open
@@ -1870,6 +1877,7 @@ export function createFlowStore(client, options = {}) {
 		setWebSearch,
 		setChatFontSize,
 		setChatFontWeight,
+		setSeparateToolCalls,
 		setSettingsOpen,
 		setTranscriptOpen,
 		activePreset,
