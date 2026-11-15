@@ -72,6 +72,7 @@
 			<a
 				v-else-if="df.fieldtype == 'Attach' && preview_doc[df.fieldname]"
 				:href="preview_doc[df.fieldname]"
+				:style="value_text_style(df)"
 				@click.prevent
 				>{{ String(preview_doc[df.fieldname]).split("/").pop() }}</a
 			>
