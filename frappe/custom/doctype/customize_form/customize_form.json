@@ -19,6 +19,7 @@
   "column_break_5",
   "istable",
   "is_calendar_and_gantt",
+  "allow_split_view",
   "editable_grid",
   "quick_entry",
   "track_changes",
@@ -422,6 +423,13 @@
    "fieldname": "is_calendar_and_gantt",
    "fieldtype": "Check",
    "label": "Is Calendar and Gantt"
+  },
+  {
+   "default": "0",
+   "description": "Show this DocType's records as a list with a detail panel beside it.",
+   "fieldname": "allow_split_view",
+   "fieldtype": "Check",
+   "label": "Allow Split View"
   },
   {
    "fieldname": "form_builder",

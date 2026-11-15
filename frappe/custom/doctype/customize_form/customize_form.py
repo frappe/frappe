@@ -50,6 +50,7 @@ class CustomizeForm(Document):
 		allow_bulk_edit: DF.Check
 		allow_copy: DF.Check
 		allow_import: DF.Check
+		allow_split_view: DF.Check
 		autoname: DF.Data | None
 		default_email_template: DF.Link | None
 		default_print_format: DF.Link | None
@@ -773,6 +774,7 @@ doctype_properties = {
 	"autoname": "Data",
 	"show_title_field_in_link": "Check",
 	"is_calendar_and_gantt": "Check",
+	"allow_split_view": "Check",
 	"default_view": "Select",
 	"force_re_route_to_default_view": "Check",
 	"translated_doctype": "Check",

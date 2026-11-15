@@ -112,6 +112,7 @@ class DocType(Document):
 		allow_guest_to_view: DF.Check
 		allow_import: DF.Check
 		allow_rename: DF.Check
+		allow_split_view: DF.Check
 		autoname: DF.Data | None
 		beta: DF.Check
 		color: DF.Data | None

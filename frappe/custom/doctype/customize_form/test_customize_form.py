@@ -87,6 +87,29 @@ class TestCustomizeForm(IntegrationTestCase):
 			None,
 		)
 
+	def test_save_customization_allow_split_view(self):
+		d = self.get_customize_form("Event")
+		d.allow_split_view = 1
+		d.run_method("save_customization")
+		self.assertEqual(
+			frappe.db.get_value(
+				"Property Setter", {"doc_type": "Event", "property": "allow_split_view"}, "value"
+			),
+			"1",
+		)
+		self.assertEqual(frappe.get_meta("Event").allow_split_view, 1)
+		self.assertEqual(self.get_customize_form("Event").allow_split_view, 1)
+
+		d.allow_split_view = 0
+		d.run_method("save_customization")
+		self.assertEqual(
+			frappe.db.get_value(
+				"Property Setter", {"doc_type": "Event", "property": "allow_split_view"}, "value"
+			),
+			None,
+		)
+		self.assertEqual(frappe.get_meta("Event").allow_split_view, 0)
+
 	def test_save_customization_field_property(self):
 		d = self.get_customize_form("Event")
 		self.assertEqual(
