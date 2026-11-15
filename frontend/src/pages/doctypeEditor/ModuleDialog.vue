@@ -1,5 +1,5 @@
 <!-- The Danger zone's Move and Make standard: the module, and what happens to the files. A standard
-     DocType, or one made standard, goes in an app's module. It closes with the module. -->
+     DocType, or one made standard, goes in an app's module. It closes with the module once the server has moved it; a failure stays in the dialog. -->
 <template>
 	<div class="flex flex-col gap-4" :data-module-dialog="standard ? 'standard' : 'move'">
 		<div class="flex flex-col gap-1.5">
@@ -19,13 +19,23 @@
 				{{ picked ? consequence : unpicked }}
 			</p>
 		</div>
+		<p
+			class="min-h-5 text-p-sm text-ink-red-6"
+			role="alert"
+			:data-danger-error="error ? '' : null"
+		>
+			{{ error }}
+		</p>
 		<div class="flex justify-end gap-2">
-			<Button :label="__('Cancel')" @click="close(null)" />
+			<Button :label="__('Cancel')" :disabled="working" @click="close(null)" />
 			<Button
 				variant="solid"
 				:label="standard ? __('Make standard') : __('Move')"
 				:disabled="!picked"
-				@click="close(picked)"
+				:loading="working"
+				data-danger-confirm
+				:aria-busy="working"
+				@click="send(picked)"
 			/>
 		</div>
 	</div>
@@ -37,6 +47,7 @@ import { Button, Combobox, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import { __ } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
+import { useDangerSubmit } from "./dangerSubmit";
 
 const props = defineProps<{
 	doctype: string;
@@ -45,8 +56,10 @@ const props = defineProps<{
 	custom: boolean;
 	/** Make standard: its files go in the module's app, for good. */
 	standard: boolean;
+	submit: (module: string) => Promise<string>;
 	close: (module: string | null) => void;
 }>();
+const { working, error, send } = useDangerSubmit(props.submit, props.close);
 
 const picked = ref<string | null>(null);
 const modules = ref<{ label: string; value: string; description?: string }[]>([]);

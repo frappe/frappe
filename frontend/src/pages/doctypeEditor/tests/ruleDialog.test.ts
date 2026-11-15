@@ -102,7 +102,7 @@ describe("the rule dialog", () => {
 		expect(row("depends_on").textContent).toContain("Always");
 	});
 
-	it("stages the edit and returns focus to the row when Escape closes the dialog", async () => {
+	it("drops the edit and returns focus to the row when Escape closes the dialog", async () => {
 		const editor = mount({ depends_on: "eval:doc.status=='Open'" });
 		const builder = await openRow("depends_on");
 		builder.querySelector<HTMLButtonElement>("[data-rule-clear]")!.click();
@@ -111,7 +111,8 @@ describe("the rule dialog", () => {
 			new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
 		);
 		await vi.waitFor(() => expect(document.querySelector("[data-rule-editor]")).toBeNull());
-		expect(editor.edits.staged.value).toHaveLength(1);
+		expect(editor.edits.staged.value).toEqual([]);
+		expect(row("depends_on").textContent).not.toContain("Always");
 		await vi.waitFor(() => expect(document.activeElement).toBe(row("depends_on")));
 	});
 

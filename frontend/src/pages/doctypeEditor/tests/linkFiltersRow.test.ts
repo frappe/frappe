@@ -76,6 +76,25 @@ describe("a Link field's Filters row", () => {
 		expect(document.querySelector("[data-rule-clear]")!.textContent).toBe("Clear filters");
 	});
 
+	it("disables Done and shows the problem while the code names a field twice", async () => {
+		getMeta.mockResolvedValue({ data: CUSTOMER });
+		const row = await mount("");
+		row.click();
+		await vi.waitFor(() => expect(document.querySelector("[data-rule-editor]")).not.toBeNull());
+		document.querySelector<HTMLButtonElement>("[data-rule-mode] button:last-child")!.click();
+		await nextTick();
+		const code = document.querySelector<HTMLTextAreaElement>("[data-rule-code]")!;
+		code.value = JSON.stringify([
+			["Customer", "disabled", "=", 0],
+			["Customer", "disabled", "=", 1],
+		]);
+		code.dispatchEvent(new Event("input", { bubbles: true }));
+		await nextTick();
+		expect(document.querySelector("[data-rule-problem]")!.textContent).toContain("has two filters");
+		expect(document.querySelector<HTMLButtonElement>("[data-rule-done]")!.disabled).toBe(true);
+		expect(document.querySelector<HTMLButtonElement>("[data-rule-clear]")!.disabled).toBe(false);
+	});
+
 	it("says All <doctypes> with no filters", async () => {
 		getMeta.mockResolvedValue({ data: CUSTOMER });
 		expect((await mount("")).textContent).toContain("All customers");

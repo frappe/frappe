@@ -54,6 +54,14 @@
 					data-rule-code
 					@update:model-value="draft.setCode(String($event ?? ''))"
 				/>
+				<p
+					v-if="draft.problem.value"
+					class="mt-2 text-p-sm text-ink-red-6"
+					role="alert"
+					data-rule-problem
+				>
+					{{ draft.problem.value }}
+				</p>
 				<p class="mt-2 flex items-start gap-1.5 text-p-sm text-ink-gray-5">
 					<span class="lucide-info mt-px size-3.5 shrink-0" aria-hidden="true" />
 					<span>{{ codeNote }}</span>
@@ -78,11 +86,17 @@
 				class="ml-auto"
 				variant="ghost"
 				:label="filters ? __('Clear filters') : __('Clear condition')"
-				:disabled="!draft.value.value"
+				:disabled="!draft.clearable.value"
 				data-rule-clear
 				@click="draft.clear()"
 			/>
-			<Button variant="solid" :label="__('Done')" data-rule-done @click="$emit('done')" />
+			<Button
+				variant="solid"
+				:label="__('Done')"
+				:disabled="!!draft.problem.value"
+				data-rule-done
+				@click="$emit('done')"
+			/>
 		</div>
 	</div>
 </template>
@@ -110,8 +124,12 @@ defineEmits<{ done: [] }>();
 const FILTERS_EXAMPLE = '[["Customer", "disabled", "=", 0]]';
 
 const modes = computed(() => [
-	{ label: __("Rules"), value: "rules", disabled: !props.draft.readable.value },
-	{ label: __("Code"), value: "code" },
+	{
+		label: __("Rules"),
+		value: "rules",
+		disabled: !props.draft.readable.value || !!props.draft.problem.value,
+	},
+	{ label: __("Code"), value: "code", disabled: !!props.draft.problem.value },
 ]);
 const labels = computed(() => ({
 	addCondition: props.filters ? __("Add filter") : __("Add condition"),

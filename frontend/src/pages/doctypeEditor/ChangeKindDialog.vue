@@ -1,5 +1,5 @@
 <!-- The Danger zone's Change kind: the five kinds, the current one picked, a refused one disabled with
-     the reason, and what the pick changes under the list. It closes with the new kind. -->
+     the reason, and what the pick changes under the list. It closes with the new kind once the server has changed it; a failure stays in the dialog. -->
 <template>
 	<div class="flex flex-col gap-4" data-change-kind-dialog>
 		<RadioGroup
@@ -21,13 +21,23 @@
 		<p class="min-h-[39px] text-p-sm text-ink-gray-6" data-kind-notes>
 			{{ notes.join(" ") }}
 		</p>
+		<p
+			class="min-h-5 text-p-sm text-ink-red-6"
+			role="alert"
+			:data-danger-error="error ? '' : null"
+		>
+			{{ error }}
+		</p>
 		<div class="flex justify-end gap-2">
-			<Button :label="__('Cancel')" @click="close(null)" />
+			<Button :label="__('Cancel')" :disabled="working" @click="close(null)" />
 			<Button
 				variant="solid"
 				:label="__('Change kind')"
 				:disabled="picked === kind"
-				@click="close(picked)"
+				:loading="working"
+				data-danger-confirm
+				:aria-busy="working"
+				@click="send(picked)"
 			/>
 		</div>
 	</div>
@@ -37,6 +47,7 @@
 import { computed, ref } from "vue";
 import { Button, Radio, RadioGroup } from "frappe-ui";
 import { __ } from "@/i18n";
+import { useDangerSubmit } from "./dangerSubmit";
 import { kindNotes, kindRefusal } from "./dangerActs";
 import { KINDS, type DoctypeKind } from "./settingsRows";
 
@@ -45,10 +56,12 @@ const props = defineProps<{
 	kind: DoctypeKind;
 	/** The records the reader sees; `null` when unknown. */
 	records: number | null;
+	submit: (kind: DoctypeKind) => Promise<DoctypeKind>;
 	close: (kind: DoctypeKind | null) => void;
 }>();
 
 const picked = ref<DoctypeKind>(props.kind);
+const { working, error, send } = useDangerSubmit(props.submit, props.close);
 const notes = computed(() => kindNotes(props.doctype, props.kind, picked.value));
 
 function refusal(kind: DoctypeKind) {

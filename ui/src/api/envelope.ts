@@ -1,3 +1,5 @@
+import { translate as __ } from "../utils/translate";
+
 /** One entry of the `errors` list a v2 response carries when a request failed. */
 export interface ErrorEntry {
   type: string;
@@ -90,10 +92,7 @@ export function readEnvelope<T>(
   }
   const where = source ?? "The request";
   if (status >= 400) {
-    throw new ApiError(
-      { type: "HTTPError", message: `${where} failed with status ${status}` },
-      status
-    );
+    throw new ApiError({ type: "HTTPError", message: httpFailure(where, status) }, status);
   }
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     throw new ApiError(
@@ -111,4 +110,23 @@ export function readEnvelope<T>(
     return { ...body, data: null } as Envelope<T>;
   }
   return body as Envelope<T>;
+}
+
+/** A sentence a reader can act on. The raw line, with the status, goes to the console. */
+export function httpFailure(where: string, status: number): string {
+  console.error(`${where} failed with status ${status}`);
+  const [method, path = ""] = where.split(" ");
+  const [, route, name] = path.split("?")[0].split("/");
+  const what = route === "document" && name ? safeDecode(name) : __("the data");
+  if (method === "GET") return __("Could not load {0}. Try again.", [what]);
+  if (method === "DELETE") return __("Could not delete {0}. Try again.", [what]);
+  return __("Could not save {0}. Try again.", [what]);
+}
+
+function safeDecode(text: string): string {
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
 }

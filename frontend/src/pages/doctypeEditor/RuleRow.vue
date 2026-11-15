@@ -1,5 +1,5 @@
 <!-- One rule as one line in words, its sentence in a Tooltip. The dialog it opens edits a draft and
-     stages it once, as it closes, so a session is one undo step. -->
+     stages it once, on Done, so a session is one undo step; the X and Escape drop it. -->
 <template>
 	<PanelRow :label="label" :box="false">
 		<Tooltip :disabled="!sentence || open">
@@ -36,7 +36,7 @@
 			:open="open"
 			:title="[label, subject].filter(Boolean).join(' · ')"
 			size="2xl"
-			@update:open="!$event && close()"
+			@update:open="!$event && cancel()"
 			@after-leave="button?.focus()"
 		>
 			<component
@@ -46,7 +46,7 @@
 				:fields="fields"
 				:referable="referable"
 				:filters="filters"
-				@done="close"
+				@done="done"
 			/>
 		</Dialog>
 	</PanelRow>
@@ -108,13 +108,17 @@ async function toggle() {
 	open.value = true;
 }
 
-function close() {
-	if (!open.value) return;
-	open.value = false;
+function done() {
+	if (!open.value || draft.value?.problem.value) return;
 	if (draft.value?.changed()) props.commit(draft.value.value.value);
+	open.value = false;
 }
 
-onBeforeUnmount(close);
+function cancel() {
+	open.value = false;
+}
+
+onBeforeUnmount(cancel);
 
 /** Calls `cancel` on a click outside the row or on Escape; returns the stop. */
 function onDismiss(cancel: () => void) {

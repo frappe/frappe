@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ApiError, isApiError, readEnvelope, TIMESTAMP_MISMATCH } from "../envelope";
 
 describe("readEnvelope", () => {
@@ -90,10 +90,27 @@ describe("readEnvelope", () => {
   it("names the request in the errors it makes itself", () => {
     const source = "GET /document/ToDo/T-1";
     expect(() => readEnvelope({}, 200, { source })).toThrow(`${source} answered 200 with no data`);
-    expect(() => readEnvelope(null, 502, { source })).toThrow(`${source} failed with status 502`);
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => readEnvelope(null, 502, { source })).toThrow("Could not load ToDo. Try again.");
+    expect(logged).toHaveBeenCalledWith(`${source} failed with status 502`);
+    logged.mockRestore();
     expect(() => readEnvelope("x", 200, { source })).toThrow(
       `${source} did not answer with a JSON object`
     );
+  });
+});
+
+describe("a failed status with no errors list", () => {
+  it.each([
+    ["GET /document/Module%20Def", "Could not load Module Def. Try again."],
+    ["DELETE /document/ToDo/T-1", "Could not delete ToDo. Try again."],
+    ["PUT /document/ToDo/T-1", "Could not save ToDo. Try again."],
+    ["POST /method/frappe.ping", "Could not save the data. Try again."],
+  ])("says %s as a sentence, and keeps the status in the console", (source, sentence) => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => readEnvelope(null, 500, { source })).toThrow(sentence);
+    expect(logged).toHaveBeenCalledWith(`${source} failed with status 500`);
+    logged.mockRestore();
   });
 });
 

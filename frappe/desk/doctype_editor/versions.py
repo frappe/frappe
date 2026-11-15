@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.desk.doctype.form_layout.app_layout import read_app_layouts
 from frappe.desk.doctype.form_layout.form_layout import FORM_LAYOUT_TYPES
+from frappe.utils import pretty_date
 
 
 def base_version(doctype: str) -> dict:
@@ -54,7 +55,7 @@ def changed_error(by: str, at) -> dict:
 	return {
 		"target": {"kind": "banner"},
 		"code": "stale",
-		"message": _("Changed by {0} at {1} since you opened it.").format(by, at),
+		"message": _("Changed by {0} {1}.").format(by, pretty_date(at)),
 		"modified_by": by,
 		"modified": str(at),
 	}

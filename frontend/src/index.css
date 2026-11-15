@@ -12,6 +12,12 @@
 	}
 }
 
+/* vue-sonner's own sheet gives the toaster a `ui-sans-serif, system-ui` stack, which draws as monospace
+   where no such face is installed. A toast takes the app's font. */
+:root [data-sonner-toaster] {
+	font-family: inherit;
+}
+
 /* Toasts sit at the content area's bottom-right corner: the navigation, on the right, sits beside them. */
 :root [data-sonner-toaster][data-x-position="right"] {
 	right: calc(var(--offset-right) + var(--shell-nav-inset-right, 0px));
@@ -26,4 +32,18 @@
 	:root [data-sonner-toaster][data-y-position="bottom"] {
 		bottom: calc(var(--mobile-offset-bottom, 16px) + var(--shell-nav-inset-bottom, 0px));
 	}
+}
+
+/* A danger dialog's confirm button shows its spinner over the label, so the button keeps its width while it
+   works: the spinner beside the label would widen it and push Cancel. */
+[data-danger-confirm][aria-busy="true"] {
+	position: relative;
+}
+[data-danger-confirm][aria-busy="true"] > svg {
+	position: absolute;
+	inset: 0;
+	margin: auto;
+}
+[data-danger-confirm][aria-busy="true"] > span {
+	visibility: hidden;
 }

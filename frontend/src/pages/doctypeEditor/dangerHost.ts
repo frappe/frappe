@@ -30,24 +30,24 @@ export function dangerHost(page: DangerPage): DangerHost {
 		deleted: page.deleted,
 		showing: page.showing,
 		settle: () => settle(page),
-		askKind: ({ doctype, definition, record_count }) =>
+		askKind: ({ doctype, definition, record_count }, submit) =>
 			shellDialog().open(
 				ChangeKindDialog,
-				{ doctype, kind: kindOf(definition), records: record_count },
+				{ doctype, kind: kindOf(definition), records: record_count, submit },
 				{ title: __("Change {0}'s kind", [doctype]) }
 			),
-		askName: ({ doctype, record_count }) =>
-			shellDialog().open(RenameDoctypeDialog, { doctype, records: record_count ?? null }, { title: __("Rename {0}", [doctype]) }),
-		askModule: ({ doctype, module, custom }, standard) =>
+		askName: ({ doctype, record_count }, submit) =>
+			shellDialog().open(RenameDoctypeDialog, { doctype, records: record_count ?? null, submit }, { title: __("Rename {0}", [doctype]) }),
+		askModule: ({ doctype, module, custom }, standard, submit) =>
 			shellDialog().open(
 				ModuleDialog,
-				{ doctype, module, custom: Boolean(custom), standard },
+				{ doctype, module, custom: Boolean(custom), standard, submit },
 				{ title: standard ? __("Make {0} standard", [doctype]) : __("Move {0}", [doctype]) }
 			),
-		askDelete: ({ doctype, record_count }) =>
+		askDelete: ({ doctype, record_count }, submit) =>
 			shellDialog().open(
 				DeleteDoctypeDialog,
-				{ doctype, records: record_count },
+				{ doctype, records: record_count, submit },
 				{ title: __("Delete {0}?", [doctype]) }
 			),
 	};

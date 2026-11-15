@@ -64,6 +64,21 @@ describe("the rule dialog's draft", () => {
 		expect([draft.value.value, draft.mode.value, draft.tree.value.conditions]).toEqual(["", "rules", []]);
 	});
 
+	it("can clear a draft that has a problem and no staged rule", () => {
+		const filters = new LinkFilters(
+			"Customer",
+			[{ label: "Credit Days", value: "credit_days", fieldname: "credit_days", fieldtype: "Int" }],
+			words,
+		);
+		const draft = new RuleDraft("", filters);
+		expect(draft.clearable.value).toBe(false);
+		draft.switchTo("code");
+		draft.setCode('[["Customer","credit_days",">",30],["Customer","credit_days","<",60]]');
+		expect([draft.value.value, !!draft.problem.value, draft.clearable.value]).toEqual(["", true, true]);
+		draft.clear();
+		expect([draft.problem.value, draft.clearable.value]).toEqual(["", false]);
+	});
+
 	it("does not stage link filters that name a field twice, and says why", () => {
 		const filters = new LinkFilters(
 			"Customer",
@@ -83,6 +98,38 @@ describe("the rule dialog's draft", () => {
 
 		draft.setTree({ conjunction: "and", conditions: [first] });
 		expect(draft.problem.value).toBe("");
+	});
+
+	it("does not stage code or switch mode while link filters have a problem", () => {
+		const filters = new LinkFilters(
+			"Customer",
+			[{ label: "Credit Days", value: "credit_days", fieldname: "credit_days", fieldtype: "Int" }],
+			words,
+		);
+		const raw = JSON.stringify([["Customer", "credit_days", ">", 30]]);
+		const draft = new RuleDraft(raw, filters);
+		draft.switchTo("code");
+		draft.setCode('[["Customer","credit_days",">",30],["Customer","credit_days","<",60]]');
+		expect(draft.problem.value).toContain("Credit Days has two filters");
+		expect(draft.value.value).toBe(raw);
+		draft.switchTo("rules");
+		expect(draft.mode.value).toBe("code");
+
+		draft.setCode('[["Customer","credit_days",">",40]]');
+		expect(draft.problem.value).toBe("");
+		expect(draft.value.value).toBe('[["Customer","credit_days",">",40]]');
+		draft.switchTo("rules");
+		expect(draft.mode.value).toBe("rules");
+
+		draft.setTree({
+			conjunction: "and",
+			conditions: [
+				{ fieldname: "credit_days", operator: ">", value: "1" },
+				{ fieldname: "credit_days", operator: "<", value: "9" },
+			],
+		});
+		draft.switchTo("code");
+		expect(draft.mode.value).toBe("rules");
 	});
 
 	it("edits link filters the same way, the code as indented JSON", () => {

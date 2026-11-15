@@ -144,7 +144,9 @@ const metaLine = computed(() => {
 	if (isChild.value)
 		return [module, __("Child table"), __("This form is the row's dialog.")].join(" · ");
 	if (pending) return [module, __(draftKind(props.canvas))].join(" · ");
-	const parts = [module, app_title ? __("From {0}", [app_title]) : __("Custom")];
+	// Compared before translating: a language that renames "Custom" must still show it once.
+	const origin = app_title ? __("From {0}", [app_title]) : __("Custom");
+	const parts = !app_title && module === "Custom" ? [module] : [module, origin];
 	if (record_count != null)
 		parts.push(
 			__n("{0} record", "{0} records", record_count, [record_count.toLocaleString()])

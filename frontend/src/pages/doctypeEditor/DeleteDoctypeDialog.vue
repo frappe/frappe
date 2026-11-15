@@ -1,5 +1,5 @@
 <!-- The Danger zone's Delete: what goes, and the DocType's name typed to confirm. It closes with
-     `true` to delete. -->
+     `true` once the server has deleted it; a failure stays in the dialog. -->
 <template>
 	<form class="flex flex-col gap-4" data-delete-doctype-dialog @submit.prevent="remove">
 		<p class="text-p-base text-ink-gray-7">
@@ -12,14 +12,24 @@
 			:label="__('Type {0} to confirm', [doctype])"
 			:placeholder="doctype"
 		/>
+		<p
+			class="min-h-5 text-p-sm text-ink-red-6"
+			role="alert"
+			:data-danger-error="error ? '' : null"
+		>
+			{{ error }}
+		</p>
 		<div class="flex justify-end gap-2">
-			<Button :label="__('Cancel')" @click="close(null)" />
+			<Button :label="__('Cancel')" :disabled="working" @click="close(null)" />
 			<Button
 				type="submit"
 				variant="solid"
 				theme="red"
 				:label="__('Delete {0}', [doctype])"
 				:disabled="!confirmed"
+				:loading="working"
+				data-danger-confirm
+				:aria-busy="working"
 			/>
 		</div>
 	</form>
@@ -29,13 +39,16 @@
 import { computed, onMounted, ref } from "vue";
 import { Button, TextInput, type TextInputExposed } from "frappe-ui";
 import { __, __n } from "@/i18n";
+import { useDangerSubmit } from "./dangerSubmit";
 
 const props = defineProps<{
 	doctype: string;
 	/** The records the reader sees; `null` when unknown. */
 	records: number | null;
+	submit: () => Promise<true>;
 	close: (deleted: true | null) => void;
 }>();
+const { working, error, send } = useDangerSubmit(props.submit, props.close);
 
 const typed = ref("");
 const input = ref<TextInputExposed | null>(null);
@@ -59,6 +72,6 @@ const whatGoes = computed(() => {
 });
 
 function remove() {
-	if (confirmed.value) props.close(true);
+	if (confirmed.value) send(undefined);
 }
 </script>
