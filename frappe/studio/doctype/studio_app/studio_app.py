@@ -30,6 +30,7 @@ from frappe.studio.utils import (
 	IMPORT_RE,
 	get_app_file_path,
 	get_export_folder,
+	get_export_folder_name,
 	validate_installed_app,
 	walk_blocks,
 )
@@ -205,6 +206,11 @@ class StudioApp(WebsiteGenerator):
 			return
 		self.name = self.app_name or self.scrub(self.app_title)
 		validate_app_name(self.name)
+
+	@property
+	def folder_name(self) -> str:
+		"""The editor reads the folder from here, so only the server knows how a name becomes a folder."""
+		return get_export_folder_name(self.name) if self.name else ""
 
 	@property
 	def is_published(self):

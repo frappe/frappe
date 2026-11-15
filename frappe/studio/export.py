@@ -21,6 +21,9 @@ def write_document_file(doc, folder=None, exclude_fields=None, filename=None):
 	remove_empty_values(doc_export)
 	for field in exclude_fields or []:
 		doc_export.pop(field, None)
+	# a virtual field is computed, so a file does not store it
+	for field in doc.meta.get("fields", {"is_virtual": 1}):
+		doc_export.pop(field.fieldname, None)
 
 	fname = filename or scrub(doc_export.name)
 	path = os.path.join(folder, f"{fname}.json")

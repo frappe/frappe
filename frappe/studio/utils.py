@@ -80,8 +80,12 @@ def get_studio_folder(frappe_app: str) -> str:
 
 
 def get_export_folder(frappe_app: str, app_name: str) -> str:
+	return os.path.join(get_studio_folder(frappe_app), get_export_folder_name(app_name))
+
+
+def get_export_folder_name(app_name: str) -> str:
 	"""`my-app` exports to `studio/my_app` — app source folders carry scrubbed names, like a doctype's."""
-	return os.path.join(get_studio_folder(frappe_app), frappe.scrub(app_name))
+	return frappe.scrub(app_name)
 
 
 def get_app_file_path(app_folder: str) -> str:
