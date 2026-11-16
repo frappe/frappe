@@ -309,6 +309,7 @@ def _download_multi_pdf(
 		result = frappe.parse_json(name)
 		total_docs = len(result)
 		filename = f"{doctype}_"
+		pdf_writer.add_metadata({"/Title": doctype})
 
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
@@ -345,6 +346,7 @@ def _download_multi_pdf(
 	else:
 		total_docs = sum([len(doctype[dt]) for dt in doctype])
 		count = 0
+		pdf_writer.add_metadata({"/Title": name})
 		for doctype_name in doctype:
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
