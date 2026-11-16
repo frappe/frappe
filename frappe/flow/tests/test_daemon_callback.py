@@ -401,7 +401,11 @@ class TestToolCallback(IntegrationTestCase):
 		calls = [
 			("list_acts", {}, {}),
 			("run_act", {"name": "header.save"}, {"name": "header.save", "args": None}),
-			("run_act", {"name": "shell.open", "args": "/apps/todo"}, {"name": "shell.open", "args": "/apps/todo"}),
+			(
+				"run_act",
+				{"name": "shell.open", "args": "/apps/todo"},
+				{"name": "shell.open", "args": "/apps/todo"},
+			),
 			("run_act", {"call": 3}, {"call": 3}),
 			("run_act", {"call": 0}, {"call": 0}),
 		]
