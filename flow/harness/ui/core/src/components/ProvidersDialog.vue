@@ -109,7 +109,7 @@
 				</label>
 				<label class="block">
 					<span class="mb-1.5 block text-sm-medium text-ink-gray-7">
-						{{ __("API key") }} <span class="font-normal text-ink-gray-4">{{ __("(optional)") }}</span>
+						{{ KEY_LABEL[0] }}<span class="font-normal text-ink-gray-4">{{ KEY_LABEL[1] }}</span>{{ KEY_LABEL[2] }}
 					</span>
 					<input
 						v-model="customApiKey"
@@ -275,6 +275,8 @@ const callbackUrl = ref("")
 const authorizeUrl = ref("")
 let pollTimer = null
 
+// one label; {0} and {1} mark the part set lighter
+const KEY_LABEL = __("API key {0}(optional){1}").split(/\{[01]\}/)
 // split where the example id goes
 const ID_HELP = __("One per line (or comma separated). Each id needs a prefix, e.g. {0}.").split("{0}")
 const FIELD =
