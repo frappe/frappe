@@ -7,7 +7,7 @@
 		<!-- the first run: the popular ones as rows of one list, its last row opening the rest and a
 		     server of one's own in the same list -->
 		<div v-if="!picked && !list" class="flex flex-col gap-3">
-			<p class="text-base-medium text-ink-gray-8">Choose a provider</p>
+			<p class="text-base-medium text-ink-gray-8">{{ __("Choose a provider") }}</p>
 			<ul class="-mx-2 flex flex-col gap-1">
 				<li v-for="choice in shown" :key="choice.id">
 					<button
@@ -20,10 +20,10 @@
 						<ProviderIcon v-else :provider-id="choice.id" :size="18" bare class="flex-none" />
 						<span class="min-w-0 flex-1 truncate text-base text-ink-gray-8">
 							{{ choice.title }}
-							<span class="text-ink-gray-5">{{ busy === choice.id ? "Connecting…" : choice.by }}</span>
+							<span class="text-ink-gray-5">{{ busy === choice.id ? __("Connecting…") : choice.by }}</span>
 						</span>
 						<span v-if="busy === choice.id" class="lucide-loader-circle size-4 flex-none animate-spin text-ink-gray-5" aria-hidden="true" />
-						<span v-else-if="choice.done" class="lucide-check size-4 flex-none text-ink-green-6" aria-label="Connected" />
+						<span v-else-if="choice.done" class="lucide-check size-4 flex-none text-ink-green-6" :aria-label="__('Connected')" />
 						<span v-else-if="choice.id !== 'more'" class="lucide-chevron-right size-4 flex-none text-ink-gray-4" aria-hidden="true" />
 					</button>
 				</li>
@@ -51,18 +51,18 @@
 							aria-hidden="true"
 						/>
 						<ProviderIcon v-else :provider-id="choice.id" :size="24" bare />
-						<span v-if="choice.done" class="lucide-check size-4 flex-none text-ink-green-6" aria-label="Connected" />
+						<span v-if="choice.done" class="lucide-check size-4 flex-none text-ink-green-6" :aria-label="__('Connected')" />
 					</span>
 					<span class="w-full truncate text-sm text-ink-gray-8">
 						{{ choice.title }}
-						<span class="text-ink-gray-5">{{ busy === choice.id ? "Connecting…" : choice.by }}</span>
+						<span class="text-ink-gray-5">{{ busy === choice.id ? __("Connecting…") : choice.by }}</span>
 					</span>
 				</button>
 				<button type="button" :class="TILE" :disabled="Boolean(busy)" @click="emit('manual')">
 					<span class="flex h-6 items-center">
 						<span class="lucide-server size-5 text-ink-gray-7" aria-hidden="true" />
 					</span>
-					<span class="w-full truncate text-sm text-ink-gray-8">Custom provider</span>
+					<span class="w-full truncate text-sm text-ink-gray-8">{{ __("Custom provider") }}</span>
 				</button>
 			</div>
 			<ErrorMessage :message="hint" />
@@ -74,35 +74,35 @@
 			<div v-if="!list" class="flex items-center gap-2.5">
 				<span v-if="picked.server" class="lucide-server size-[18px] text-ink-gray-6" aria-hidden="true" />
 				<ProviderIcon v-else :provider-id="picked.id" :size="18" bare />
-				<p class="text-base-medium text-ink-gray-8">{{ picked.server ? picked.name : `Connect ${picked.name}` }}</p>
+				<p class="text-base-medium text-ink-gray-8">{{ picked.server ? picked.name : __("Connect {0}", [picked.name]) }}</p>
 			</div>
 			<!-- a server of one's own: its address, and a key only if it asks for one -->
 			<template v-if="picked.server">
 				<p class="text-p-base text-ink-gray-5">
-					Any server that speaks the OpenAI API, such as vLLM, LM Studio or a LiteLLM proxy.
+					{{ __("Any server that speaks the OpenAI API, such as vLLM, LM Studio or a LiteLLM proxy.") }}
 				</p>
 				<FormControl
 					v-model="url"
 					type="url"
-					label="Server URL"
+					:label="__('Server URL')"
 					placeholder="https://models.example.com/v1"
 					autocomplete="off"
 					autofocus
 					:disabled="Boolean(busy)"
 				/>
 			</template>
+			<!-- one sentence around its link, set tight so the spaces are the sentence's own -->
 			<p v-else class="text-p-base text-ink-gray-5">
-				Create a key in the
-				<a :href="picked.keys" target="_blank" rel="noopener" :class="LINK">
-					{{ picked.console }}<span class="lucide-arrow-up-right ml-0.5 inline-block size-3" aria-hidden="true" />
-				</a>
-				and paste it here.
+				{{ KEY_HELP[0]
+				}}<a :href="picked.keys" target="_blank" rel="noopener" :class="LINK">
+					{{ picked.console }}<span class="lucide-arrow-up-right ml-0.5 inline-block size-3" aria-hidden="true" /></a
+				>{{ KEY_HELP[1] }}
 			</p>
 			<FormControl
 				v-model="key"
 				type="password"
-				:label="picked.server ? 'API key (if it needs one)' : 'API key'"
-				placeholder="Paste the key"
+				:label="picked.server ? __('API key (if it needs one)') : __('API key')"
+				:placeholder="__('Paste the key')"
 				autocomplete="off"
 				:autofocus="!picked.server"
 				:disabled="Boolean(busy)"
@@ -117,11 +117,11 @@
 				<Button
 					type="submit"
 					variant="solid"
-					label="Connect"
+					:label="__('Connect')"
 					:loading="Boolean(busy)"
 					:disabled="!(picked.server ? url.trim() : key.trim())"
 				/>
-				<Button v-if="showBack" variant="ghost" label="Back" :disabled="Boolean(busy)" @click="back" />
+				<Button v-if="showBack" variant="ghost" :label="__('Back')" :disabled="Boolean(busy)" @click="back" />
 			</div>
 		</form>
 	</div>
@@ -131,6 +131,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { Button, ErrorMessage, FormControl } from "frappe-ui";
 import ProviderIcon from "@flow/ui-core/components/ProviderIcon.vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../../api/frappe.js";
 import { OTHERS, PRODUCTS, detectService, serviceFor } from "./services.js";
@@ -169,13 +170,13 @@ watch(key, (value) => {
 });
 
 const OLLAMA = { id: "ollama", name: "Ollama" };
-const SERVER = { id: "custom_openai", name: "Custom provider", server: true };
+const SERVER = { id: "custom_openai", name: __("Custom provider"), server: true };
 // Ollama is saved under LiteLLM's name for its chat endpoint
 const taken = computed(() => new Set(props.connected.map((id) => (id === "ollama_chat" ? "ollama" : id))));
 const choice = (service) => ({
 	id: service.id,
 	title: service.name,
-	by: service.maker === service.name ? "" : `by ${service.maker}`,
+	by: service.maker === service.name ? "" : __("by {0}", [service.maker]),
 	done: taken.value.has(service.id),
 	run: () => (taken.value.has(service.id) ? emit("use", service) : pick(service)),
 });
@@ -185,7 +186,7 @@ const ollamaChoice = computed(() =>
 				{
 					id: "ollama",
 					title: "Ollama",
-					by: "on this server",
+					by: __("on this server"),
 					done: taken.value.has("ollama"),
 					run: () => (taken.value.has("ollama") ? emit("use", OLLAMA) : check(OLLAMA, null)),
 				},
@@ -199,9 +200,9 @@ const shown = computed(() => {
 	const popular = [...ollamaChoice.value, ...PRODUCTS.map(choice)];
 	const rest = [
 		...OTHERS.map(choice),
-		{ id: "server", icon: "lucide-server", title: "Custom provider", by: "", run: () => pick(SERVER) },
+		{ id: "server", icon: "lucide-server", title: __("Custom provider"), by: "", run: () => pick(SERVER) },
 	];
-	const more = { id: "more", icon: "lucide-ellipsis", title: "More providers", by: "", run: () => (expanded.value = true) };
+	const more = { id: "more", icon: "lucide-ellipsis", title: __("More providers"), by: "", run: () => (expanded.value = true) };
 	return [...popular, ...(expanded.value ? rest : [more])];
 });
 
@@ -249,7 +250,7 @@ async function check(service, apiKey, baseUrl) {
 }
 
 function refusal(service, { reason, message }) {
-	if (reason === "wrong_key") return { message, href: service.keys, link: "Create a new key" };
+	if (reason === "wrong_key") return { message, href: service.keys, link: __("Create a new key") };
 	return { message };
 }
 
@@ -266,6 +267,8 @@ defineExpose({ back });
 // settings' tiles: a soft fill, no border
 const TILE =
 	"flex min-w-0 flex-col items-start gap-3 rounded-6 bg-surface-gray-2 p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 enabled:hover:bg-surface-gray-3 disabled:cursor-default";
+// split where the console's link goes
+const KEY_HELP = __("Create a key in the {0} and paste it here.").split("{0}");
 const LINK =
 	"inline-flex items-center text-ink-gray-7 underline decoration-outline-gray-3 underline-offset-4 hover:decoration-outline-gray-6";
 </script>

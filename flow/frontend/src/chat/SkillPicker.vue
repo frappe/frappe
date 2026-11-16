@@ -1,7 +1,7 @@
 <template>
 	<!-- the skills a new chat's agent can load, beside the composer's + menu -->
 	<PalettePanel
-		title="Skills"
+		:title="__('Skills')"
 		dropdown
 		align="left"
 		:beside="beside"
@@ -13,7 +13,7 @@
 			<input
 				ref="field"
 				v-model="search"
-				placeholder="Search skills…"
+				:placeholder="__('Search skills…')"
 				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 			/>
 		</div>
@@ -31,7 +31,7 @@
 				</span>
 			</button>
 			<div v-if="!options.length" class="flow-palette-empty">
-				{{ skills.length ? "No matching skills" : "No skills" }}
+				{{ skills.length ? __("No matching skills") : __("No skills") }}
 			</div>
 			<!-- with none, or none found: the way to a new one -->
 			<button
@@ -41,7 +41,7 @@
 				@click="create"
 			>
 				<span class="lucide-plus size-4 flex-none" aria-hidden="true" />
-				Add a skill
+				{{ __("Add a skill") }}
 			</button>
 		</div>
 	</PalettePanel>
@@ -51,6 +51,7 @@
 import { computed, inject, onMounted, ref } from "vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 // The skills a new chat's agent can load, beside the composer's + menu; a pick puts it in the
 // draft. Shown without any too, for someone who may add one.

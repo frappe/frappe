@@ -1,9 +1,9 @@
 <template>
-	<PageHeader :icon="info.icon" :title="name ?? `New ${spec.singular}`">
+	<PageHeader :icon="info.icon" :title="name ?? __('New {0}', [spec.singular])">
 		<template #actions>
-			<span v-if="doc && !canWrite" class="text-sm text-ink-gray-5">View only</span>
+			<span v-if="doc && !canWrite" class="text-sm text-ink-gray-5">{{ __("View only") }}</span>
 			<span v-if="canWrite && dirty" class="text-sm text-ink-gray-5 max-sm:hidden"
-				>Unsaved changes</span
+				>{{ __("Unsaved changes") }}</span
 			>
 			<Button
 				v-for="action in actions"
@@ -11,18 +11,18 @@
 				:label="action.label"
 				:loading="running === action.label"
 				:disabled="dirty"
-				:title="dirty ? 'Save first' : ''"
+				:title="dirty ? __('Save first') : ''"
 				@click="runAction(action)"
 			/>
 			<Dropdown v-if="canDelete" align="end" :options="menu">
 				<template #trigger>
-					<Button variant="ghost" icon="lucide-ellipsis" title="More" />
+					<Button variant="ghost" icon="lucide-ellipsis" :title="__('More')" />
 				</template>
 			</Dropdown>
 			<Button
 				v-if="canWrite && doc"
 				variant="solid"
-				:label="isNew ? 'Create' : 'Save'"
+				:label="isNew ? __('Create') : __('Save')"
 				:loading="saving"
 				:disabled="!dirty"
 				@click="save"
@@ -40,7 +40,7 @@
 				v-if="doc.is_system_generated && canWrite"
 				class="mb-5 rounded-5 bg-surface-gray-2 px-3 py-2 text-sm leading-5 text-ink-gray-7"
 			>
-				Comes with an app, so greyed-out fields can't be changed.
+				{{ __("Comes with an app, so greyed-out fields can't be changed.") }}
 			</p>
 			<div class="flex flex-col gap-5">
 				<div v-for="field in fields" :key="field.name" class="min-w-0">
@@ -71,7 +71,7 @@
 								shown(field) ? 'text-ink-gray-8' : 'text-ink-gray-4',
 								field.type === 'code' && 'font-mono text-sm',
 							]"
-							>{{ shown(field) || "None" }}</span
+							>{{ shown(field) || __("None") }}</span
 						>
 					</div>
 				</div>
@@ -88,6 +88,7 @@ import { useRouter } from "vue-router";
 import { Button, dialog, toast } from "frappe-ui";
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import FieldControl from "../settings/FieldControl.vue";
 import { useRecord } from "../settings/records.js";
@@ -140,24 +141,24 @@ const fields = computed(() =>
 // a field's value as read: numbers with separators, an unset number its placeholder ("No limit")
 function shown(field) {
 	const value = doc.value[field.name];
-	if (field.type === "check") return value ? "Yes" : "No";
+	if (field.type === "check") return value ? __("Yes") : __("No");
 	if (field.type === "int") return value ? value.toLocaleString() : field.placeholder ?? "0";
 	return value == null ? "" : String(value);
 }
 
 const menu = computed(() => [
-	{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: remove },
+	{ label: __("Delete"), icon: "lucide-trash-2", theme: "red", onClick: remove },
 ]);
 
 function discard() {
 	return new Promise((resolve) => {
 		dialog.confirm({
-			title: "Discard changes?",
+			title: __("Discard changes?"),
 			size: "lg",
-			message: `Your changes to this ${props.spec.singular} are not saved.`,
+			message: __("Your changes to this {0} are not saved.", [props.spec.singular]),
 			actions: [
-				{ label: "Keep editing", variant: "outline", onClick: () => resolve(false) },
-				{ label: "Discard", variant: "solid", theme: "red", onClick: () => resolve(true) },
+				{ label: __("Keep editing"), variant: "outline", onClick: () => resolve(false) },
+				{ label: __("Discard"), variant: "solid", theme: "red", onClick: () => resolve(true) },
 			],
 			onCancel: () => resolve(false),
 		});

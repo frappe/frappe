@@ -7,17 +7,17 @@
 		@keydown.ctrl.s.prevent="save"
 	>
 		<div class="flex items-center gap-2">
-			<Button v-if="!headerBack" variant="ghost" icon="lucide-arrow-left" class="-my-1 -ml-1.5" title="Back to skills" @click="back" />
-			<h2 class="text-md-semibold text-ink-gray-9">{{ editing.isNew ? "New skill" : editing.name }}</h2>
+			<Button v-if="!headerBack" variant="ghost" icon="lucide-arrow-left" class="-my-1 -ml-1.5" :title="__('Back to skills')" @click="back" />
+			<h2 class="text-md-semibold text-ink-gray-9">{{ editing.isNew ? __("New skill") : editing.name }}</h2>
 			<Badge v-if="!editing.isNew" :label="SCOPE_LABELS[editing.scope]" variant="subtle" theme="gray" />
 		</div>
 		<template v-if="editing.isNew">
-			<TextInput v-model="editing.name" class="mt-6" label="Name" placeholder="review-changes" autofocus />
+			<TextInput v-model="editing.name" class="mt-6" :label="__('Name')" placeholder="review-changes" autofocus />
 			<p class="mt-1.5 text-xs" :class="editing.name && !validName ? 'text-ink-red-6' : 'text-ink-gray-5'">
-				Lowercase letters, digits, and single hyphens.
+				{{ __("Lowercase letters, digits, and single hyphens.") }}
 			</p>
-			<Select align="start" v-model="editing.scope" class="mt-6 w-56" label="Where" :options="scopeOptions" />
-			<p class="mt-1.5 text-xs text-ink-gray-5">Saved as {{ shortPath(editing) }}</p>
+			<Select align="start" v-model="editing.scope" class="mt-6 w-56" :label="__('Where')" :options="scopeOptions" />
+			<p class="mt-1.5 text-xs text-ink-gray-5">{{ __("Saved as {0}", [shortPath(editing)]) }}</p>
 		</template>
 		<p v-else class="mt-2 text-sm leading-5 text-ink-gray-6" :title="editing.path">{{ shortPath(editing) }}</p>
 
@@ -32,9 +32,9 @@
 		</p>
 
 		<div class="mt-4 flex items-center justify-end gap-3">
-			<span v-if="dirty" class="text-sm text-ink-gray-5">Unsaved changes</span>
-			<Button v-if="!editing.isNew" label="Delete" variant="ghost" theme="red" :disabled="saving" @click="confirmDelete" />
-			<Button variant="solid" label="Save" :disabled="!canSave" @click="save" />
+			<span v-if="dirty" class="text-sm text-ink-gray-5">{{ __("Unsaved changes") }}</span>
+			<Button v-if="!editing.isNew" :label="__('Delete')" variant="ghost" theme="red" :disabled="saving" @click="confirmDelete" />
+			<Button variant="solid" :label="__('Save')" :disabled="!canSave" @click="save" />
 		</div>
 	</div>
 
@@ -42,14 +42,14 @@
 	<div v-else class="min-h-0 flex-1 overflow-y-auto px-4 pb-10 pt-3 sm:px-8 md:pt-8">
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 class="text-md-semibold text-ink-gray-9">Skills</h2>
-				<p class="mt-1 text-sm leading-5 text-ink-gray-6">Reusable instructions the agent can load.</p>
+				<h2 class="text-md-semibold text-ink-gray-9">{{ __("Skills") }}</h2>
+				<p class="mt-1 text-sm leading-5 text-ink-gray-6">{{ __("Reusable instructions the agent can load.") }}</p>
 			</div>
-			<Button v-if="!disabled && !layout.narrow" variant="solid" label="New skill" :disabled="!roots.global" @click="startNew" />
+			<Button v-if="!disabled && !layout.narrow" variant="solid" :label="__('New skill')" :disabled="!roots.global" @click="startNew" />
 		</div>
 
 		<div v-if="disabled" class="mt-6 rounded-5 border border-outline-gray-2 bg-surface-gray-1 px-4 py-3 text-sm text-ink-gray-7">
-			Skill management is turned off by this daemon's policy.
+			{{ __("Skill management is turned off by this daemon's policy.") }}
 		</div>
 
 		<template v-else>
@@ -91,10 +91,10 @@
 				</div>
 				<p v-else-if="!loading" class="mt-3 text-sm text-ink-gray-5">{{ scope.empty }}</p>
 				<LoadingState v-else class="mt-3 text-sm text-ink-gray-5" />
-				<p v-if="scope.cut" class="mt-2 text-sm text-ink-gray-5">Not every skill is shown: this folder has too many entries.</p>
+				<p v-if="scope.cut" class="mt-2 text-sm text-ink-gray-5">{{ __("Not every skill is shown: this folder has too many entries.") }}</p>
 			</section>
 			<!-- a narrow frame has no room beside the heading: the button ends the page -->
-			<Button v-if="layout.narrow" class="mt-8" variant="solid" label="New skill" :disabled="!roots.global" @click="startNew" />
+			<Button v-if="layout.narrow" class="mt-8" variant="solid" :label="__('New skill')" :disabled="!roots.global" @click="startNew" />
 		</template>
 	</div>
 </template>
@@ -110,10 +110,11 @@ import LoadingState from "./LoadingState.vue"
 
 import { layout } from "../layout.js"
 import { useSettingsBack } from "../settingsBack.js"
+import { __ } from "../translate.js"
 
 const flow = inject("flow")
 
-const SCOPE_LABELS = { global: "Global", project: "Project" }
+const SCOPE_LABELS = { global: __("Global"), project: __("Project") }
 const NAME_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const rows = ref([])
@@ -147,26 +148,26 @@ const projectName = computed(() => (projectCwd.value ? folderName(projectCwd.val
 const scopes = computed(() => [
 	{
 		id: "global",
-		title: "Global",
+		title: __("Global"),
 		hint: "~/.agents/skills",
 		root: roots.value.global,
 		rows: rows.value.filter((r) => r.scope === "global"),
 		cut: truncated.value.includes("global"),
-		empty: "No global skills yet.",
+		empty: __("No global skills yet."),
 	},
 	{
 		id: "project",
-		title: "Project",
+		title: __("Project"),
 		hint: "",
 		root: roots.value.project,
 		rows: rows.value.filter((r) => r.scope === "project"),
 		cut: truncated.value.includes("project"),
-		empty: projectCwd.value ? `No skills in ${projectName.value} yet.` : "Start a chat in a folder to see its skills.",
+		empty: projectCwd.value ? __("No skills in {0} yet.", [projectName.value]) : __("Start a chat in a folder to see its skills."),
 	},
 ])
 const scopeOptions = computed(() => [
-	{ value: "global", label: "Global" },
-	...(projectCwd.value ? [{ value: "project", label: `Project · ${projectName.value}` }] : []),
+	{ value: "global", label: __("Global") },
+	...(projectCwd.value ? [{ value: "project", label: __("Project · {0}", [projectName.value]) }] : []),
 ])
 const validName = computed(() => {
 	const name = editing.value?.name ?? ""
@@ -246,14 +247,17 @@ async function save() {
 	try {
 		// the daemon's write replaces whatever is there
 		if (draft.isNew && (await skillExists(draft))) {
-			draft.error = `A ${draft.scope} skill named “${draft.name}” already exists.`
+			draft.error =
+				draft.scope === "global"
+					? __("A global skill named “{0}” already exists.", [draft.name])
+					: __("A project skill named “{0}” already exists.", [draft.name])
 			return
 		}
 		await flow.client.writeSkill(draft.path, draft.content, projectCwd.value)
 		draft.saved = draft.content
 		draft.error = null
 		draft.isNew = false
-		flow.notify("Skill saved")
+		flow.notify(__("Skill saved"))
 		load()
 		// the open session can invoke this now, so refresh its command list
 		flow.loadSkills?.({ force: true })
@@ -284,12 +288,12 @@ function back() {
 		return
 	}
 	dialog.confirm({
-		title: "Discard changes?",
+		title: __("Discard changes?"),
 		size: "lg",
-		message: "Your edits to this skill have not been saved.",
+		message: __("Your edits to this skill have not been saved."),
 		actions: [
-			{ label: "Keep editing", variant: "outline" },
-			{ label: "Discard", variant: "solid", theme: "red", onClick: () => (editing.value = null) },
+			{ label: __("Keep editing"), variant: "outline" },
+			{ label: __("Discard"), variant: "solid", theme: "red", onClick: () => (editing.value = null) },
 		],
 	})
 }
@@ -297,20 +301,20 @@ function back() {
 function confirmDelete() {
 	const { path, name } = editing.value
 	dialog.confirm({
-		title: "Delete skill?",
+		title: __("Delete skill?"),
 		size: "lg",
-		message: `“${name}” will be removed from disk.`,
+		message: __("“{0}” will be removed from disk.", [name]),
 		actions: [
-			{ label: "Cancel", variant: "outline" },
+			{ label: __("Cancel"), variant: "outline" },
 			{
-				label: "Delete",
+				label: __("Delete"),
 				variant: "solid",
 				theme: "red",
 				onClick: async () => {
 					try {
 						await flow.client.deleteSkill(path, projectCwd.value)
 						editing.value = null
-						flow.notify("Skill deleted")
+						flow.notify(__("Skill deleted"))
 						load()
 						flow.loadSkills?.({ force: true })
 					} catch (error) {

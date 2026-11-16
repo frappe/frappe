@@ -23,7 +23,7 @@
 			<slot name="empty" :mark="mark">
 				<!-- the mark over a quiet heading, each a step smaller on a phone -->
 				<BrandMark line :size="32" v-bind="mark" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
-				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-[22px]">What would you like to build?</h2>
+				<h2 class="text-balance text-2xl text-ink-gray-8 sm:text-[22px]">{{ __("What would you like to build?") }}</h2>
 			</slot>
 			<!-- the box's place under the mark until the first message -->
 			<div v-if="docked" ref="dock" class="mt-5 w-full shrink-0" :style="{ height: composerHeight + 'px' }" />
@@ -81,7 +81,7 @@
 				>
 					<CopyButton
 						:text="item.text"
-						title="Copy response"
+						:title="__('Copy response')"
 					/>
 					<!-- a host's own per-turn actions (Flow's feedback thumbs) -->
 					<component
@@ -99,7 +99,7 @@
 					class="flex items-center gap-2.5 text-base text-ink-gray-5"
 				>
 					<span class="lucide-archive size-3.5 flex-none" aria-hidden="true" />
-					<span>Context compacted ({{ item.entry.reason }})</span>
+					<span>{{ __("Context compacted ({0})", [item.entry.reason]) }}</span>
 				</div>
 				<!-- an action turned down at its card: a line of the turn, not a divider, as it can run long -->
 				<div v-else-if="item.kind === 'declined'" class="flex items-start gap-2.5 text-base text-ink-gray-5">
@@ -155,7 +155,7 @@
 		v-if="!stick && !empty"
 		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-6 hover:text-ink-gray-9"
 		:style="{ bottom: composerHeight + 12 + 'px' }"
-		title="Scroll to bottom"
+		:title="__('Scroll to bottom')"
 		@click="toBottom"
 	>
 		<span class="lucide-arrow-down size-4" aria-hidden="true" />
@@ -170,7 +170,8 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
 
 import { layout } from "../layout.js"
-import { buildItems, formatTime, panelIds, suggestedReplies, userAttachments, userText } from "../transcript.js"
+import { buildItems, formatTime, liveLabelText, panelIds, suggestedReplies, userAttachments, userText } from "../transcript.js"
+import { __ } from "../translate.js"
 import AddToChat from "./AddToChat.vue"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
@@ -297,8 +298,8 @@ const lastIsLiveThinking = computed(
 // steered one, the turn above keeps its own status
 const liveLabel = computed(() =>
 	conversation.value.running && conversation.value.steering?.length
-		? "Working"
-		: conversation.value.liveLabel || (conversation.value.sending?.length ? "Working" : ""),
+		? __("Working")
+		: liveLabelText(conversation.value.liveLabel) || (conversation.value.sending?.length ? __("Working") : ""),
 )
 // under a thought, a row per call lands closer than a folded run's line does
 const statusGap = computed(() => {
@@ -422,7 +423,7 @@ const prompts = computed(() =>
 	items.value
 		.filter((item) => item.kind === "user")
 		.map((item) => {
-			const text = userText(item.entry) || userAttachments(item.entry)[0]?.name || "Prompt"
+			const text = userText(item.entry) || userAttachments(item.entry)[0]?.name || __("Prompt")
 			return { key: item.key, text: text.length > 400 ? text.slice(0, 400) + "…" : text }
 		}),
 )

@@ -8,11 +8,11 @@
 		>
 			<ThoughtIcon class="h-3.5 w-3.5 flex-none self-center text-ink-gray-5" />
 			<span class="min-w-0 truncate text-base text-ink-gray-6 group-hover:text-ink-gray-8">
-				<span :class="live ? 'flow-shimmer' : ''">{{ live ? "Thinking" : "Thought" }}</span>
+				<span :class="live ? 'flow-shimmer' : ''">{{ live ? __("Thinking") : __("Thought") }}</span>
 				<!-- no preview of the thought itself: only why one can't be opened -->
 				<template v-if="block.redacted">
 					<span class="text-ink-gray-4"> · </span>
-					<span>Thinking is encrypted for this model.</span>
+					<span>{{ __("Thinking is encrypted for this model.") }}</span>
 				</template>
 			</span>
 			<span
@@ -36,6 +36,7 @@
 import { computed, nextTick, ref, watch } from "vue"
 
 import { usePanelOpen } from "../panels.js"
+import { __ } from "../translate.js"
 import MarkdownContent from "./MarkdownContent.vue"
 import ThoughtIcon from "./ThoughtIcon.vue"
 

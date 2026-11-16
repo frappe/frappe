@@ -5,7 +5,7 @@
 		<button class="group flex w-full cursor-pointer items-baseline gap-2.5 py-2 text-left md:py-2.5" @click="open = !open">
 			<ThoughtIcon class="h-3.5 w-3.5 flex-none self-center text-ink-gray-5" />
 			<span class="text-base text-ink-gray-6 group-hover:text-ink-gray-8" :class="live ? 'flow-shimmer' : ''">{{
-				live ? "Thinking" : "Thought"
+				live ? __("Thinking") : __("Thought")
 			}}</span>
 			<span
 				class="lucide-chevron-down size-3.5 flex-none self-center text-ink-gray-5 transition-[opacity,transform]"
@@ -17,7 +17,7 @@
 			v-if="open"
 			class="mt-2 border-l-2 border-outline-gray-2 pl-3 text-base leading-relaxed text-ink-gray-6"
 		>
-			<span v-if="block.redacted" class="italic">Thinking is encrypted for this model.</span>
+			<span v-if="block.redacted" class="italic">{{ __("Thinking is encrypted for this model.") }}</span>
 			<MarkdownContent v-else :text="block.thinking" />
 		</div>
 	</div>
@@ -26,6 +26,7 @@
 <script setup>
 
 import { usePanelOpen } from "../panels.js"
+import { __ } from "../translate.js"
 import MarkdownContent from "./MarkdownContent.vue"
 import ThoughtIcon from "./ThoughtIcon.vue"
 

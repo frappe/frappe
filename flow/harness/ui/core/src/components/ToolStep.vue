@@ -125,6 +125,7 @@ import { computed, inject, ref, watch } from "vue"
 import { usePanelOpen } from "../panels.js"
 import {
 	compactDisplayText,
+	liveLabelText,
 	pageName,
 	stepDecision,
 	stepIcon,
@@ -133,6 +134,7 @@ import {
 	stepSubject,
 	subagentId,
 } from "../transcript.js"
+import { __ } from "../translate.js"
 import CopyButton from "./CopyButton.vue"
 
 const props = defineProps({
@@ -187,17 +189,17 @@ const decision = computed(() => stepDecision(props.step.result))
 const decisionTitle = computed(
 	() =>
 		({
-			denied: "Denied by user",
-			cancelled: "Cancelled by user",
-			redirect: "User asked for changes",
+			denied: __("Denied by user"),
+			cancelled: __("Cancelled by user"),
+			redirect: __("User asked for changes"),
 		})[decision.value?.status] ?? "",
 )
 
 const stat = computed(() => {
-	if (props.step.aborted && !props.step.result) return "aborted"
+	if (props.step.aborted && !props.step.result) return __("aborted")
 	// a running sub-agent's row carries what the child is doing right now
 	const child = props.step.subagent
-	if (child?.running && !props.step.result) return child.liveLabel ?? "Working"
+	if (child?.running && !props.step.result) return liveLabelText(child.liveLabel) ?? __("Working")
 	// a host describes its own tool, like icon and label — but what the user decided
 	// about the call outranks anything the tool says about itself
 	if (decision.value) return stepStat(props.step)
@@ -213,7 +215,7 @@ const rowStat = computed(() => {
 		(props.step.aborted && !props.step.result) ||
 		(details.value.exit_code ?? 0) !== 0
 	// an error has no count of its own, so a failed call says so
-	const text = notable ? stat.value || (failed.value ? "failed" : "") : ""
+	const text = notable ? stat.value || (failed.value ? __("failed") : "") : ""
 	// a status reads as a word ("Failed"); a sub-agent's agent keeps its name as written
 	return text && props.step.call.name !== "subagent" ? text[0].toUpperCase() + text.slice(1) : text
 })
@@ -274,19 +276,20 @@ const duration = computed(() =>
 	details.value.duration_seconds != null ? `${details.value.duration_seconds.toFixed(2)}s` : "",
 )
 const exitChip = computed(() =>
-	details.value.exit_code != null ? `exit ${details.value.exit_code}` : "",
+	details.value.exit_code != null ? __("exit {0}", [details.value.exit_code]) : "",
 )
 const panelNote = computed(() => {
 	if (diffLines.value) {
 		const n = details.value.edits
-		return n != null ? `${n} edit${n === 1 ? "" : "s"}` : "diff"
+		if (n == null) return __("diff")
+		return n === 1 ? __("1 edit") : __("{0} edits", [n])
 	}
 	const parts = []
-	if (details.value.total_lines != null) parts.push(`${details.value.total_lines} lines`)
-	if (details.value.matches != null) parts.push(`${details.value.matches} matches`)
-	if (details.value.truncation?.truncated) parts.push("truncated")
-	if (details.value.full_output_path) parts.push(`full output: ${details.value.full_output_path}`)
-	return parts.join(" · ") || "output"
+	if (details.value.total_lines != null) parts.push(__("{0} lines", [details.value.total_lines]))
+	if (details.value.matches != null) parts.push(__("{0} matches", [details.value.matches]))
+	if (details.value.truncation?.truncated) parts.push(__("truncated"))
+	if (details.value.full_output_path) parts.push(__("full output: {0}", [details.value.full_output_path]))
+	return parts.join(" · ") || __("output")
 })
 
 function lineClass(line) {
