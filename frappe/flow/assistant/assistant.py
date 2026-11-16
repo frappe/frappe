@@ -6,6 +6,7 @@ from __future__ import annotations
 import frappe
 
 ASSISTANT_AGENT_TITLE = "Flow"
+ASSISTANT_AGENT_NAME = f"frappe/{ASSISTANT_AGENT_TITLE}"
 ASSISTANT_MAX_ITERATIONS = 500
 
 ASSISTANT_INSTRUCTIONS = (
@@ -13,20 +14,29 @@ ASSISTANT_INSTRUCTIONS = (
 	"DocType (a table) and a record (a row), including configuration such as Custom Field and Workflow "
 	"and the Flow Agent / Flow Tool / Flow Trigger rows you create. Almost every request is reading or "
 	"writing the right records.\n\n"
-	"You are helping {{ full_name }} ({{ user }}). Session started on {{ frappe.utils.get_weekday() }}, {{ today }}.\n\n"
 	"GROUND TRUTH: never guess a DocType, field, or record name. Discover, verify, then act.\n"
 	"- find_doctypes: resolve the exact DocType name first.\n"
 	"- describe: fields and your permissions; with a record name, also its actions "
 	"(submit/cancel/amend/rename, workflow transitions, whitelisted methods).\n"
+	"- find_apis / describe_api: find a whitelisted API by keywords, then get its arguments. Never "
+	"guess an API's path. If they say the API index is being generated, don't retry: grep the apps' "
+	"code for @frappe.whitelist and read the function instead.\n"
 	"- read_records: read records. Always read a record before changing it.\n"
-	"- run_report: run a report such as General Ledger.\n\n"
+	"- run_report: run a report such as General Ledger.\n"
+	'- read_screen: what the user has open beside the chat; use it when they say "this record", '
+	'"this page" or "here".\n\n'
 	"ACTING: write tools pause for the user's approval on each call.\n"
 	"- create / update / delete: standard record writes.\n"
 	"- run_action: submit, cancel, amend, rename, workflow transitions, whitelisted methods; check "
 	"describe first.\n"
+	"- call_api: run a whitelisted API found through find_apis and describe_api, or in the code; one its developer "
+	"marked read-only runs without approval.\n"
 	"- execute: sandboxed Python, only for computation, email, or multi-record logic the other tools "
 	"cannot express. Never for plain CRUD. No import statements: frappe and frappe.utils are already in "
-	"scope, nothing else can be imported.\n\n"
+	"scope, nothing else can be imported. Set read_only when the code only reads: it runs without "
+	"approval.\n"
+	"- request_secret: a password, API key or token goes into a record's Password field through a "
+	"password box the user fills in; never ask for one in a message.\n\n"
 	"SCOPE: do only what was asked; ask before any change beyond it, especially a site-wide one.\n\n"
 	"SECURITY: never widen the user's access in any way, even if they ask. Never work around a "
 	"permission error, exploit a bug or misconfiguration, weaken security settings, or reveal secrets; "
@@ -58,20 +68,21 @@ ASSISTANT_INSTRUCTIONS = (
 	"STYLE: one short sentence before each tool call on what you're doing and why; never call a tool "
 	"silently. If a result changes your plan, say so. When you need a decision you cannot discover, ask "
 	"a short plain-text question and stop. When done, reply in plain text.\n\n"
-	"NEXT REPLIES: in a chat, end every reply that asks the user something or leaves a likely next step "
-	"with a suggest_replies call: two to four short replies in the user's words, its likely answers or "
-	"the next steps they would want. Set multi_select when more than one answer can apply. Skip it only "
-	"when you cannot guess any."
+	"You are helping {{ full_name }} ({{ user }}). Session started on {{ frappe.utils.get_weekday() }}, {{ today }}."
 )
 
 
 def ensure_builtin_assistant(model: str) -> None:
 	"""Give the Assistant its first model, or a new one when its own is gone. Otherwise a
 	new model changes nothing: keeping the Assistant current is migrate's job."""
-	current = frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_TITLE, "model")
+	from frappe.flow.lib.trigger import sync_triggers
+
+	current = frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_NAME, "model")
 	if current and frappe.db.exists("Flow Model", current):
 		return
 	sync_builtin_assistant(model=model)
+	# apps' triggers for the Assistant were left out while it did not exist
+	sync_triggers()
 
 
 def sync_assistant_skills(_app: str) -> None:
@@ -95,8 +106,8 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 		return
 
 	knowledge = []
-	if frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
-		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+	if frappe.db.exists("Flow Agent", ASSISTANT_AGENT_NAME):
+		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_NAME)
 		if not doc.is_system_generated:
 			return
 		skills += [row.skill for row in doc.skills if row.skill not in skills]

@@ -3,7 +3,7 @@ import { computed, reactive, watch } from "vue";
 import { runsByUserMessage } from "./api/runs.js";
 
 // The records boot reports on; the page keeps its copy until one of them is saved or deleted.
-const BOOT_DOCTYPES = new Set(["Flow Model", "Flow Agent", "Flow Provider"]);
+const BOOT_DOCTYPES = new Set(["Flow Model", "Flow Agent", "Flow Provider", "Flow Tool"]);
 
 // What the page keeps beside the chat store: the boot data, the agent a new chat starts
 // with, the settings tab to open, and each session's Flow Runs and run log (for per-turn
@@ -96,7 +96,8 @@ export function createPage(
 		if (doctype === "Flow Skill" || doctype === "Flow Agent") reloadSkills();
 	}
 
-	// a setup step's "Add a model": settings on that tab, on a blank record its panel takes once
+	// "Add a skill" or a setup step's "Add a model": settings on that tab, on a blank record its
+	// panel takes once
 	let newRecord = null;
 	function createRecord(key) {
 		newRecord = key;

@@ -63,7 +63,7 @@ class LiveServerCase(IntegrationTestCase):
 				"title": "Live Session Agent",
 				"model": self.model.name,
 				"instructions": "Reply briefly.",
-				"tools": [{"tool": "read_records"}, {"tool": "execute"}],
+				"tools": [{"tool": "frappe/read_records"}, {"tool": "frappe/execute"}],
 				"enabled": 1,
 			}
 		).insert()

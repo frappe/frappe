@@ -6,6 +6,7 @@
 		:label="field.label"
 		:description="field.description"
 		:required="field.reqd"
+		:error="error"
 		:disabled="field.readOnly"
 		@update:modelValue="onUpdate"
 	/>

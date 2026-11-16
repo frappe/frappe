@@ -59,7 +59,7 @@ function render(panel, doctype, included, options) {
 		title: __("Global Search"),
 		description: __(
 			"Configure fields to show when searching for {0} globally. Open global search via {1}.",
-			[doctype, frappe.ui.keys.get_shortcut_label("Ctrl+G")]
+			[__(doctype), frappe.ui.keys.get_shortcut_label("Ctrl+G")]
 		),
 		actions,
 		render: (p) => draw(p, doctype, state),
@@ -71,8 +71,8 @@ function draw(panel, doctype, state) {
 
 	$body.append(
 		make_switch(
-			__("Include {0} in global search", [doctype]),
-			__("{0} documents become searchable for everyone in this site", [doctype]),
+			__("Include {0} in global search", [__(doctype)]),
+			__("{0} documents become searchable for everyone in this site", [__(doctype)]),
 			state.included,
 			(checked, input) => {
 				set_included(doctype, checked)

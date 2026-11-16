@@ -3,10 +3,11 @@ import { dialog, toast } from "frappe-ui";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 
 import { call } from "../api/frappe.js";
+import { inPanel } from "../panel.js";
 import { newDoc } from "./specs.js";
 
-// What a list of records and a record's form do, for settings and for the pages beside the
-// chats, each in its own layout.
+// What a list of records and a record's form do, for settings and for the setup forms in the
+// launcher's panel, each in its own layout.
 
 const PAGE_LENGTH = 200;
 
@@ -68,7 +69,7 @@ export function useRecordList(spec, { query, filters = () => ({}) }) {
 		load();
 	}
 
-	return { rows, loaded, loading, error, hasMore, hasEnabled, load, drop, debouncedQuery };
+	return { rows, loaded, loading, error, hasMore, hasEnabled, load, drop };
 }
 
 // One document of `props.spec`'s doctype: loaded by `props.name` (or the single), or a blank new
@@ -96,8 +97,11 @@ export function useRecord(props, emit) {
 	const visibleFields = computed(() =>
 		props.spec.fields.filter((field) => !field.when || field.when(doc.value))
 	);
+	// none until the record is in: a rule may read it
 	const actions = computed(() =>
-		(props.spec.actions ?? []).filter((action) => !action.when || action.when(doc.value))
+		(doc.value ? props.spec.actions ?? [] : []).filter(
+			(action) => !action.when || action.when(doc.value)
+		)
 	);
 	const multilinks = computed(() =>
 		props.spec.fields.filter((field) => field.type === "multilink")
@@ -138,7 +142,7 @@ export function useRecord(props, emit) {
 	// pressed in the form's own dialog, or outside any for a form in none
 	function onKey(event) {
 		// in the launcher's panel, Cmd+S is the page's around it
-		if (window.top !== window) return;
+		if (inPanel) return;
 		if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
 			event.preventDefault();
 			const dialogOf = (el) => el?.closest?.("[role=dialog]") ?? null;
@@ -260,6 +264,7 @@ export function useRecord(props, emit) {
 
 	return {
 		doc,
+		original,
 		form,
 		error,
 		saving,

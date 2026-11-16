@@ -166,7 +166,7 @@ async def test_fenced_session_can_read_the_docs_its_prompt_names(tmp_path):
 	docs = _docs_dir("docs")
 	assert docs is not None
 	store = SessionStore(str(tmp_path / "data"), allowed_roots=[str(project)])
-	session = store.create(SessionConfig(cwd=str(project), auto_approve=True))
+	session = store.create(SessionConfig(cwd=str(project), approval_mode="auto_approve"))
 	model = _ReadsDocsModel(os.path.join(docs, "extensions.md"))
 
 	handle = await session.run("how do I write an extension?", model=model)

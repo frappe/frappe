@@ -25,7 +25,7 @@ const EXIT_MS = 100; // keep in sync with es-popover-out in popover.css
 
 // panels other components open from inside this one (a combobox or dropdown
 // menu, a datepicker) mount in <body>, so a press or focus in them is inside
-const LAYERS = ".es-menu, .es-popover, .datepicker";
+const LAYERS = ".es-menu, .es-popover, .air-datepicker";
 // what opened a layer: the trigger that points at it (its own search box does too)
 const opener_of = (layer) =>
 	layer.id &&

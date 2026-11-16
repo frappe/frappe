@@ -1,6 +1,6 @@
 import DOMPurify from "dompurify"
 import hljs from "highlight.js/lib/common"
-import { marked, Renderer } from "marked"
+import { marked, Parser, Renderer } from "marked"
 
 marked.setOptions({ gfm: true, breaks: false })
 
@@ -58,13 +58,21 @@ export function renderMarkdown(text) {
 //   {type: "html", html}          sanitized rendered markdown
 //   {type: "code", code, lang}    fenced or indented code block
 //   {type: "table", html}         table without its scroll wrapper
+//   {type: "list", ordered, start, items}  a list holding code; each item is segments
+//   {type: "quote", segments}     a quote holding code
 export function renderMarkdownSegments(text) {
-	const tokens = marked.lexer(text ?? "")
+	return segmentTokens(marked.lexer(text ?? ""), true)
+}
+
+const hasCode = (token) => token.type === "code" || (token.items ?? token.tokens ?? []).some(hasCode)
+
+// `top` is false inside a tight list item, whose text marked leaves unwrapped
+function segmentTokens(tokens, top) {
 	const segments = []
 	let pending = []
 	const flush = () => {
 		if (!pending.length) return
-		const html = sanitize(marked.parser(pending))
+		const html = sanitize(new Parser({ ...marked.defaults }).parse(pending, top))
 		pending = []
 		// blank-line tokens between code blocks render as whitespace-only chunks
 		if (html.trim()) segments.push({ type: "html", html })
@@ -76,6 +84,13 @@ export function renderMarkdownSegments(text) {
 		} else if (token.type === "table") {
 			flush()
 			segments.push({ type: "table", html: sanitize(marked.parser([{ ...token, segment: true }])) })
+		} else if (token.type === "list" && hasCode(token)) {
+			flush()
+			const items = token.items.map((item) => segmentTokens(item.tokens, item.loose))
+			segments.push({ type: "list", ordered: token.ordered, start: token.start === "" ? 1 : token.start, items })
+		} else if (token.type === "blockquote" && hasCode(token)) {
+			flush()
+			segments.push({ type: "quote", segments: segmentTokens(token.tokens, true) })
 		} else {
 			pending.push(token)
 		}

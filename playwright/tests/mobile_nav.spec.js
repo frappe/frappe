@@ -12,13 +12,11 @@ async function open_on_phone(page, desk, path) {
 	await page.waitForFunction(() => document.body.classList.contains("has-mobile-nav"));
 }
 
-// replaces whatever filters the list saved last time, so each test starts from the seed
-async function show_seeded_todos(page) {
-	await page.evaluate(async (tag) => {
-		await cur_list.filter_area.clear(false);
-		await cur_list.filter_area.add([["ToDo", "description", "like", `${tag}%`]]);
-	}, TODO_TAG);
-}
+// filters in the URL replace the ones the list saved last time before its first load, so no
+// filter change is still on its way when a test scrolls
+const SEEDED_TODOS = `/desk/todo?description=${encodeURIComponent(
+	JSON.stringify(["like", `${TODO_TAG}%`])
+)}`;
 
 test.describe("Phone tab bar", () => {
 	// one seeded list for every test, rather than reseeding after each failure
@@ -61,8 +59,7 @@ test.describe("Phone tab bar", () => {
 	});
 
 	test("a list loads the next page as it scrolls", async ({ page, desk }) => {
-		await open_on_phone(page, desk, "/desk/todo");
-		await show_seeded_todos(page);
+		await open_on_phone(page, desk, SEEDED_TODOS);
 		await expect.poll(() => page.evaluate(() => cur_list.data.length)).toBe(20);
 		await expect(page.locator(".frappe-list .list-paging-area")).toBeHidden();
 
@@ -91,8 +88,7 @@ test.describe("Phone tab bar", () => {
 				request.url().endsWith("/frappe.desk.reportview.get") &&
 				request.postDataJSON()?.start > 0
 		);
-		await open_on_phone(page, desk, "/desk/todo");
-		await show_seeded_todos(page);
+		await open_on_phone(page, desk, SEEDED_TODOS);
 		await expect.poll(() => page.evaluate(() => cur_list.data.length)).toBe(20);
 
 		await page.evaluate(() => cur_list.loading_more || cur_list.load_more_on_scroll());

@@ -58,6 +58,8 @@ class Workflow(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		if self.is_active and not (self.states and self.transitions):
+			frappe.throw(_("Workflow must have atleast one state and transition"))
 		self.validate_fields_in_conditions()
 		self.validate_shared_state_field()
 		self.set_active()

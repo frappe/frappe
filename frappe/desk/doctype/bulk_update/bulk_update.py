@@ -67,16 +67,23 @@ def submit_cancel_or_update_docs(
 	if len(docnames) < 20:
 		return _bulk_action(doctype, docnames, action, data, task_id)
 	elif len(docnames) <= 500:
-		frappe.msgprint(_("Bulk operation is enqueued in background."), alert=True)
-		frappe.enqueue(
-			_bulk_action,
+		if action == "submit":
+			task_name = _("Bulk Submission")
+		elif action == "cancel":
+			task_name = _("Bulk Cancellation")
+		else:
+			task_name = _("Bulk Update")
+
+		frappe.enqueue_task(
+			method="frappe.desk.doctype.bulk_update.bulk_update._bulk_action",
 			doctype=doctype,
 			docnames=docnames,
 			action=action,
 			data=data,
-			task_id=task_id,
+			task_name=task_name,
 			queue="short",
 			timeout=1000,
+			enqueue_after_commit=True,
 		)
 	else:
 		frappe.throw(_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents"))
@@ -89,6 +96,7 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 	child_table_updates = data.get("child_table_updates") if data else None
 	failed = []
 	num_documents = len(docnames)
+	task = frappe.get_current_task()
 
 	for idx, docname in enumerate(docnames, 1):
 		doc = frappe.get_doc(doctype, docname)
@@ -97,13 +105,13 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 			if action == "submit" and doc.docstatus.is_draft():
 				if doc.meta.queue_in_background and not is_scheduler_inactive():
 					queue_submission(doc, action)
-					message = _("Queuing {0} for Submission").format(doctype)
+					message = _("Queuing {0} for Submission").format(docname)
 				else:
 					doc.submit()
-					message = _("Submitting {0}").format(doctype)
+					message = _("Submitting {0}").format(docname)
 			elif action == "cancel" and doc.docstatus.is_submitted():
 				doc.cancel()
-				message = _("Cancelling {0}").format(doctype)
+				message = _("Cancelling {0}").format(docname)
 			elif action == "update" and not doc.docstatus.is_cancelled():
 				# Handle child table updates
 				if child_table_updates:
@@ -128,16 +136,15 @@ def _bulk_action(doctype, docnames, action, data, task_id=None):
 					doc.update(data)
 
 				doc.save()
-				message = _("Updating {0}").format(doctype)
+				message = _("Updating {0}").format(docname)
 			else:
 				failed.append(docname)
 			frappe.db.commit()
-			frappe.publish_progress(
-				percent=idx / num_documents * 100,
-				title=message,
-				description=docname,
-				task_id=task_id,
-			)
+			if task:
+				task.publish_progress(
+					percent=idx / num_documents * 100,
+					stage=message,
+				)
 
 		except Exception:
 			frappe.log_error("Bulk action failed")

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe import _
 from frappe.core.doctype.report.report import is_prepared_report_enabled
 from frappe.model.document import Document
 from frappe.permissions import ALL_USER_ROLE
@@ -54,8 +55,17 @@ class RolePermissionforPageandReport(Document):
 		doc = frappe.get_doc(doctype, docname)
 		return doc.roles
 
+	def validate_target(self):
+		if self.set_role_for not in ("Page", "Report") or not self.get(self.set_role_for.lower()):
+			frappe.throw(_("Mandatory field: {0}").format(self.set_role_for or _("Set Role For")))
+		if self.set_role_for == "Page":
+			self.report = None
+		else:
+			self.page = None
+
 	@frappe.whitelist()
 	def reset_roles(self):
+		self.validate_target()
 		roles = self.get_standard_roles()
 		self.set("roles", roles)
 		self.update_custom_roles()
@@ -63,6 +73,7 @@ class RolePermissionforPageandReport(Document):
 
 	@frappe.whitelist()
 	def update_report_page_data(self):
+		self.validate_target()
 		self.update_custom_roles()
 		self.update_disable_prepared_report()
 

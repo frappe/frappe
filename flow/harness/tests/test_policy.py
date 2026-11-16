@@ -22,6 +22,14 @@ def setup(flow):
     flow.register_tool(hello)
 """
 
+BASH_EXTENSION = """
+from flow_harness.tools.builtins.bash import bash
+
+
+def setup(flow):
+    flow.register_tool(bash)
+"""
+
 
 def _store(tmp_path, **store_kw) -> SessionStore:
 	store_kw.setdefault("credential_store", CredentialStore(str(tmp_path / "credentials.json")))
@@ -125,14 +133,23 @@ def test_tool_allowlist_caps_builtin_extension_and_stored_session_tools(tmp_path
 		else:
 			assert r.json()["config"]["tools"] == expected, tools
 
+	# an extension's tools pass the cap: the operator put its file on the path
 	extension = _write_extension(tmp_path / "ext", "hello", HELLO_EXTENSION)
-	open_store = _store(tmp_path / "open", extension_paths=[str(extension)])
-	assert "hello" in open_store.create(SessionConfig(cwd=str(tmp_path))).server_tools
 	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read"])
-	# left unsent, the list is clamped rather than refused, like the built-in default
-	assert set(capped.create(SessionConfig(cwd=str(tmp_path))).server_tools) == {"read"}
-	with pytest.raises(PolicyError, match="hello"):
-		capped.create(SessionConfig(cwd=str(tmp_path), extension_tools=["hello"]))
+	assert set(capped.create(SessionConfig(cwd=str(tmp_path))).server_tools) == {"read", "hello"}
+	capped.create(SessionConfig(cwd=str(tmp_path), extension_tools=["hello"]))
+	with pytest.raises(PolicyError, match="bash"):
+		capped.create(SessionConfig(cwd=str(tmp_path), tools=["read", "bash"]))
+	listed = TestClient(create_app(capped)).get("/tools").json()["tools"]
+	assert {row["name"] for row in listed} == {"read", "hello"}
+	# so an operator allows a built-in by registering it from an extension
+	bash = _write_extension(tmp_path / "ext", "bash", BASH_EXTENSION)
+	capped = _store(
+		tmp_path / "allowed", extension_paths=[str(extension), str(bash)], tool_allowlist=["read"]
+	)
+	session = capped.create(SessionConfig(cwd=str(tmp_path), tools=["read", "bash"]))
+	assert set(session.server_tools) == {"read", "bash", "hello"}
+	assert session.config.tools == ["read", "bash"]
 
 	# a session stored before the cap loads filtered
 	sid = _store(tmp_path / "stored").create(SessionConfig(cwd=str(tmp_path))).id

@@ -549,6 +549,15 @@ def make_xlsx(
 	def get_format(style_ids: tuple[int, ...]) -> Format:
 		return wb.add_format(resolve_style_ids(style_ids))
 
+	# time / duration values need an explicit number format, otherwise Excel shows raw day fractions
+	excel_time_format = XLSXStyleBuilder.get_time_format()
+
+	@functools.cache
+	def get_time_cell_format(style_ids: tuple[int, ...], num_format: str) -> Format:
+		style = dict(resolve_style_ids(style_ids))
+		style.setdefault("num_format", num_format)
+		return wb.add_format(style)
+
 	# set column widths
 	for i, column_width in enumerate(column_widths):
 		if column_width:
@@ -604,6 +613,14 @@ def make_xlsx(
 				is_formula_like = value.startswith(FORMULA_TRIGGER_CHARS)
 
 			cell_format = get_cell_format((row_idx, col_idx)) if has_cell_formats else None
+
+			if isinstance(value, datetime.time | datetime.timedelta):
+				cell_format = get_time_cell_format(
+					col_style_ids.get(col_idx, ())
+					+ row_style_ids.get(row_idx, ())
+					+ cell_style_ids.get((row_idx, col_idx), ()),
+					"[h]:mm:ss" if isinstance(value, datetime.timedelta) else excel_time_format,
+				)
 
 			if is_formula_like:
 				# force literal text so the cell isn't parsed as a formula

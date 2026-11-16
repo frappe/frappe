@@ -471,30 +471,27 @@ class RunScript(AutomationAction):
 
 		scope = render_context(doc, context)
 		scope["result"] = frappe._dict()
-		script, filename = self._source(params, context)
-		# Running the author's code is the action; validate() gates the step on
-		# server_script_enabled and a System Manager author, and safe_exec re-checks the flag.
-		# nosemgrep
-		safe_exec(
-			script,
-			_locals=scope,
-			# The drainer owns the transaction: a step that commits would strand the rows it
-			# leaves behind mid-run.
-			restrict_commit_rollback=True,
-			script_filename=filename,
-		)
+		# The drainer owns the transaction: a step that commits would strand the rows it
+		# leaves behind mid-run.
+		if name := params.get("server_script"):
+			# Read at run time, not from the step: the script is edited where it lives.
+			frappe.get_cached_doc("Server Script", name).run_script(
+				_locals=scope, restrict_commit_rollback=True
+			)
+		else:
+			rule = context.get("rule") if context else None
+			# Running the author's code is the action; validate() gates the step on
+			# server_script_enabled and a System Manager author, and safe_exec re-checks the flag.
+			# nosemgrep
+			safe_exec(
+				params.get("script") or "",
+				_locals=scope,
+				restrict_commit_rollback=True,
+				script_filename=f"automation_{rule.name}" if rule else "automation",
+			)
 		result = dict(scope.get("result") or {})
 		result.setdefault("detail", _("Ran script"))
 		return result
-
-	def _source(self, params, context) -> tuple[str, str]:
-		"""The code to run, and the name a traceback should point at."""
-		name = params.get("server_script")
-		if name:
-			# Read at run time, not from the step: the script is edited where it lives.
-			return frappe.get_cached_doc("Server Script", name).script or "", name
-		rule = context.get("rule") if context else None
-		return params.get("script") or "", f"automation_{rule.name}" if rule else "automation"
 
 
 def _check_url_shape(url: str):

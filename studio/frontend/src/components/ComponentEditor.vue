@@ -354,6 +354,16 @@ onMounted(() => {
 	tracker.value = trackTarget(props.target, editor.value, canvasProps)
 })
 
+// a block's root element can be replaced while its instance lives on
+watch(
+	() => props.target,
+	(target) => {
+		if (!target || !editor.value) return
+		tracker.value?.cleanup()
+		tracker.value = trackTarget(target, editor.value, canvasProps)
+	},
+)
+
 defineExpose({
 	element: editor,
 })

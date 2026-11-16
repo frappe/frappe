@@ -54,6 +54,14 @@ def rename_agent(old: str, new: str) -> None:
 		db.open_table(TABLE_NAME).update(where=f"agent = {_quote(old)}", values={"agent": new})
 
 
+def make_personal(names: list[str], user: str) -> None:
+	"""Move shared memories to `user`'s own, keeping their vectors."""
+	db = _connect()
+	if names and TABLE_NAME in db.list_tables().tables:
+		ids = ", ".join(_quote(name) for name in names)
+		db.open_table(TABLE_NAME).update(where=f"id IN ({ids})", values={"scope": "User", "user": user})
+
+
 def search(query: str, *, agent: str, user: str) -> list[str]:
 	"""Names of the memories relevant to `query`, best first, within `agent` and `user`'s scope."""
 	table = ensure_table()

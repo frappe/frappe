@@ -1,5 +1,5 @@
 """The agent loop: ask the model, run the tools it asks for, repeat — until it stops
-calling tools or calls only tools that end the run, a cap trips, or a gated tool pauses the run.
+calling tools, a cap trips, or a gated tool pauses the run.
 
 `run` and `resume` only yield events and raise errors. The session saves them as they
 arrive, so the transcript the loop reads for the next model call is always current.
@@ -15,7 +15,10 @@ A tool call can be intercepted three ways, and they do different jobs:
   - the confirm gate: the durable pause. A gated call is not run — the loop finishes
     the turn, yields `ApprovalRequired` + `RunEnded(reason="paused")`, and returns.
     The pause is in the log, so `resume` can arrive later, from any client, even
-    after a restart.
+    after a restart. In approval mode `auto`, the reviewer (`agent/auto_review.py`) gets the
+    gated call first: allowed, it runs and its result records the verdict; else it
+    pauses as usual, with the reason in its prompt. A `subagent` call is reviewed too,
+    though it is not gated, so a task is judged before the child takes it as its own.
 
 Order per call: bad arguments, before hook, extension hooks, confirm gate, then run it,
 before the next call is looked at. Consecutive calls of tools marked `concurrent` are the
@@ -28,12 +31,16 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+import logging
+import os
+import re
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
+from flow_harness.agent.auto_review import REVIEW_FAILED, Verdict, review_call
 from flow_harness.agent.client_tools import call_client
 from flow_harness.agent.compaction import (
 	KEEP_RECENT_TOKENS,
@@ -73,10 +80,14 @@ from flow_harness.session.config import SessionConfig
 from flow_harness.session.transcript import PendingApproval
 from flow_harness.tools import SubagentOutcome, Tool, ToolContext
 from flow_harness.tools.builtins.common import DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, truncate
+from flow_harness.tools.builtins.subagent import subagent
 from flow_harness.tools.tool import display_template_variables
 
 if TYPE_CHECKING:
 	from flow_harness.extensions import ExtensionRuntime
+
+_logger = logging.getLogger(__name__)
+MAX_SAVED_BYTES = 5 * 1024 * 1024
 
 
 @dataclass
@@ -95,6 +106,15 @@ BeforeHook = Callable[[ToolCall, ToolContext], Any]
 AfterHook = Callable[[ToolCall, ToolResult], Any]
 # what a steering drain hands the loop: the next queued message, or None when drained
 NextSteering = Callable[[], UserMessage | None]
+
+
+@dataclass(frozen=True)
+class _CallToRun:
+	"""A call past every check, about to run."""
+
+	call: ToolCall
+	rewritten: bool  # a hook changed the arguments
+	verdict: Verdict | None = None  # the reviewer let it through
 
 
 @dataclass
@@ -148,6 +168,8 @@ class LoopInputs:
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
+	# where a result too big to show whole is saved for read and grep
+	results_dir: str | None = None
 	run_subagent: (
 		Callable[[LoopInputs, str, str, str | None, str | None], Awaitable[SubagentOutcome]] | None
 	) = None
@@ -156,7 +178,6 @@ class LoopInputs:
 	budget: TokenBudget | None = None
 
 
-_DENIED = json.dumps({"status": "denied", "message": "User denied this tool call."})
 _ABORTED = json.dumps(
 	{"status": "aborted", "message": "Tool not executed. The run was aborted before this call ran."}
 )
@@ -202,19 +223,19 @@ async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator
 
 
 async def resume(
-	approval: PendingApproval, answers: dict[str, str], inputs: LoopInputs
+	approval: PendingApproval, answers: dict[str, str], inputs: LoopInputs, *, stop_on_deny: bool = False
 ) -> AsyncIterator[AnyEvent]:
-	"""Continue a paused run by settling its approval batch, then take turns unless that
-	turn ends the run.
+	"""Continue a paused run by settling its approval batch, then take turns.
 
 	The session validates ``answers`` against the pending batch before calling this.
 	Each answer maps a tool_call_id to a decision: "Approve" runs the tool, "Deny"
-	halts the run, any other text redirects the model.
+	skips it and the model replies to the user, or halts the run with ``stop_on_deny``,
+	any other text redirects the model.
 	"""
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
 	tools = inputs.server_tools or {}
 	ctx = _tool_context(inputs)
-	denied = redirected = False
+	denied = False
 	for pending in approval.calls:
 		_raise_if_aborted(inputs.abort)
 		call = ToolCall(id=pending.id, name=pending.name, arguments=pending.args)
@@ -226,29 +247,33 @@ async def resume(
 			if verdict.block:
 				result = _result(call, _blocked(verdict.reason), is_error=True)
 			else:
-				result = await _finished_call(call, tools, ctx, inputs)
-		elif answer == "Deny":
-			result = _result(call, _DENIED, is_error=True)
-			denied = True
+				result = await _run_call(_CallToRun(call, pending.rewritten), tools, ctx, inputs)
 		else:
-			result = _result(call, _redirect(answer))
-			redirected = True
+			# the reviewer trusts the answer in details, never content a tool could fake
+			details: dict[str, object] = {"user_answer": answer}
+			if pending.rewritten:
+				details["effective_arguments"] = dict(call.args)
+			if answer == "Deny":
+				result = _result(call, _denied(pending.prompt), is_error=True, details=details)
+				denied = True
+			else:
+				result = _result(call, _redirect(answer), details=details)
 		_raise_if_aborted(inputs.abort)
 		yield result
 
-	if denied:  # a rejected action stops the run rather than continuing
+	if denied and stop_on_deny:
 		yield RunEnded(reason="denied")
 		return
-	if not redirected and _turn_ends_run(inputs.messages, tools):
-		steered = False
-		for message in _drain(inputs.next_steering):
-			steered = True
-			yield message
-		if not steered:
-			yield RunEnded(reason="done")
-			return
 	async for event in _loop(inputs):
 		yield event
+
+
+def tool_schemas(tools: dict[str, Tool], config: SessionConfig) -> list[dict]:
+	"""The tools offered to the model; a client tool's display template stays out."""
+	schemas = [tool.to_schema() for tool in tools.values()]
+	for client_tool in config.client_tools:
+		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
+	return schemas
 
 
 async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
@@ -259,12 +284,11 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	if config.auto_compact:
 		await model.load_model_limits(abort)
 	tools = inputs.server_tools or {}
-	schemas = [tool.to_schema() for tool in tools.values()]
+	schemas = tool_schemas(tools, config)
 	tool_display_templates = {
 		tool.name: tool.display_template for tool in tools.values() if tool.display_template is not None
 	}
-	for client_tool in config.client_tools:  # its display template is for the UI, not the model
-		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
+	for client_tool in config.client_tools:
 		if template := client_tool.get("display_template"):
 			try:
 				display_template_variables(template)
@@ -274,6 +298,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	ctx = _tool_context(inputs)
 
 	budget = inputs.budget or TokenBudget(config.token_budget)
+	reviewer = _Reviewer(inputs)
 	context = _ContextTracker(
 		usage_tokens=inputs.context_tokens,
 		usage_message_count=inputs.context_message_count,
@@ -321,23 +346,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			yield RunEnded(reason="aborted")
 			return
 
-		ends_run = not assistant.tool_calls
-		if assistant.tool_calls and assistant.stop_reason == "length":
-			# truncated arguments can still parse, so no call in this turn is safe to run
-			for call in assistant.tool_calls:
-				yield _result(call, _TRUNCATED, is_error=True)
-		elif assistant.tool_calls:
-			gated: list[PendingCall] = []
-			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
-				yield event
-			if gated:  # free tools already ran; now wait for the human
-				_raise_if_aborted(abort)
-				yield ApprovalRequired(calls=gated)
-				yield RunEnded(reason="paused")
-				return
-			ends_run = _turn_ends_run(inputs.messages, tools)
-
-		if ends_run:
+		if not assistant.tool_calls:
 			steered = False
 			for message in _drain(inputs.next_steering):
 				steered = True
@@ -346,6 +355,22 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 				continue
 			yield RunEnded(reason="length" if assistant.stop_reason == "length" else "done")
 			return
+
+		if assistant.stop_reason == "length":
+			# truncated arguments can still parse, so no call in this turn is safe to run
+			for call in assistant.tool_calls:
+				yield _result(call, _TRUNCATED, is_error=True)
+		else:
+			gated: list[PendingCall] = []
+			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated, reviewer):
+				if isinstance(event, Usage):  # a review's spend counts against the run
+					budget.add(event)
+				yield event
+			if gated:  # free tools already ran; now wait for the human
+				_raise_if_aborted(abort)
+				yield ApprovalRequired(calls=gated)
+				yield RunEnded(reason="paused")
+				return
 
 		if budget.exhausted:
 			yield RunEnded(reason="budget")
@@ -515,26 +540,27 @@ async def _settle_calls(
 	ctx: ToolContext,
 	inputs: LoopInputs,
 	gated: list[PendingCall],
+	reviewer: _Reviewer,
 ) -> AsyncIterator[AnyEvent]:
 	"""Settle one turn's tool calls in order: hooks, the gate, then the run. Consecutive
 	`concurrent` tools are held and run together; a gated call lands in `gated` for the
 	approval pause instead of running."""
-	batch: list[tuple[ToolCall, bool]] = []
+	batch: list[_CallToRun] = []
 	for call in calls:
 		_raise_if_aborted(inputs.abort)
 		if batch and not _concurrent(call, tools):  # a plain call waits for the held batch to finish
 			async for result in _run_batch(batch, tools, ctx, inputs):
 				yield result
 			batch = []
-		runnable: list[tuple[ToolCall, bool]] = []
-		async for event in _settle_call(call, tools, ctx, inputs, gated, runnable):
+		runnable: list[_CallToRun] = []
+		async for event in _settle_call(call, tools, ctx, inputs, gated, runnable, reviewer):
 			yield event
 		if not runnable:
 			continue
 		if _concurrent(call, tools):
 			batch.append(runnable[0])
 		else:
-			yield await _run_call(*runnable[0], tools, ctx, inputs)
+			yield await _run_call(runnable[0], tools, ctx, inputs)
 	if batch:
 		async for result in _run_batch(batch, tools, ctx, inputs):
 			yield result
@@ -546,10 +572,10 @@ def _concurrent(call: ToolCall, tools: dict[str, Tool]) -> bool:
 
 
 async def _run_batch(
-	batch: list[tuple[ToolCall, bool]], tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
+	batch: list[_CallToRun], tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
 ) -> AsyncIterator[ToolResult]:
 	"""Run a batch together, yielding each result as it lands; leaving early cancels the rest."""
-	tasks = [asyncio.create_task(_run_call(call, rewritten, tools, ctx, inputs)) for call, rewritten in batch]
+	tasks = [asyncio.create_task(_run_call(runnable, tools, ctx, inputs)) for runnable in batch]
 	try:
 		for finished in asyncio.as_completed(tasks):
 			yield await finished
@@ -560,13 +586,16 @@ async def _run_batch(
 
 
 async def _run_call(
-	call: ToolCall, rewritten: bool, tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
+	runnable: _CallToRun, tools: dict[str, Tool], ctx: ToolContext, inputs: LoopInputs
 ) -> ToolResult:
+	call = runnable.call
 	result = await _finished_call(call, tools, ctx, inputs)
-	if rewritten:  # the durable ToolCall keeps the model's arguments; record what ran
+	if runnable.rewritten:  # the durable ToolCall keeps the model's arguments; record what ran
 		result = result.model_copy(
 			update={"details": {**result.details, "effective_arguments": dict(call.args)}}
 		)
+	if runnable.verdict is not None:  # kept in the transcript for audit; the chat shows nothing
+		result = result.model_copy(update={"details": {**result.details, "review": {"decision": "allow"}}})
 	return result
 
 
@@ -576,11 +605,12 @@ async def _settle_call(
 	ctx: ToolContext,
 	inputs: LoopInputs,
 	gated: list[PendingCall],
-	runnable: list[tuple[ToolCall, bool]],
+	runnable: list[_CallToRun],
+	reviewer: _Reviewer,
 ) -> AsyncIterator[AnyEvent]:
 	"""Take one tool call up to its run: bad-args feedback, before-hook, extension hooks,
-	confirm gate. A call that may run lands in `runnable` with its rewritten flag; a
-	confirm-gated one in `gated`."""
+	confirm gate, and in auto mode the reviewer, which also judges every delegation. A call
+	that may run lands in `runnable`; one waiting for the user in `gated`."""
 	if call.error:  # model emitted malformed args — feed the error back so it can retry
 		yield _result(call, call.error, is_error=True)
 		return
@@ -604,13 +634,31 @@ async def _settle_call(
 	if verdict.arguments is not None:
 		call = call.model_copy(update={"arguments": dict(verdict.arguments)})
 		rewritten = True
+	reviewer.call_args_by_id[call.id] = call.args
 
-	if _needs_confirmation(inputs, call.name, tools):
-		prompt = await _confirmation_prompt(call, tools, inputs)
+	# A delegation is reviewed in auto mode though it is not gated: its task text is judged
+	# against the user's words here, and the child then takes that task as its instruction.
+	delegating = _approval_mode(inputs) == "auto" and call.name == subagent.name and call.name in tools
+	if delegating or _needs_confirmation(inputs, call.name, tools):
+		prompt, needs_user = await _confirmation_prompt(call, tools, inputs)
 		_raise_if_aborted(inputs.abort)
-		gated.append(PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt))
+		if prompt is None:
+			runnable.append(_CallToRun(call, rewritten))
+			return
+		if _approval_mode(inputs) == "auto" and not needs_user:
+			verdict, usage = await reviewer.review(call, tools)
+			_raise_if_aborted(inputs.abort)
+			if usage is not None:
+				yield usage
+			if verdict.allowed:
+				runnable.append(_CallToRun(call, rewritten, verdict))
+				return
+			prompt = f"{prompt}\n\nNot auto-approved: {verdict.reason}"
+		gated.append(
+			PendingCall(id=call.id, name=call.name, args=call.args, prompt=prompt, rewritten=rewritten)
+		)
 		return
-	runnable.append((call, rewritten))
+	runnable.append(_CallToRun(call, rewritten))
 
 
 async def _hook_verdict(call: ToolCall, ctx: ToolContext, inputs: LoopInputs) -> PreToolUseDecision:
@@ -642,7 +690,14 @@ async def _finished_call(
 		_raise_if_aborted(inputs.abort)
 		if rewritten is not None:
 			result = result.model_copy(update={"content": rewritten})
-	return _capped(result, changed=result.content != dispatched)
+	changed = result.content != dispatched
+	saved = None
+	if inputs.results_dir and "read" in (inputs.server_tools or {}) and _over_cap(result, changed=changed):
+		try:
+			saved = await asyncio.to_thread(_save_result, inputs.results_dir, call.id, result.content)
+		except OSError:
+			_logger.warning("Could not save the whole result of call %s", call.id, exc_info=True)
+	return _capped(result, changed=changed, saved=saved)
 
 
 async def _dispatch(
@@ -668,22 +723,58 @@ async def _dispatch(
 		return _result(call, f"[tool error: {error}]", is_error=True)
 
 
-def _capped(result: ToolResult, *, changed: bool = False) -> ToolResult:
+def _over_cap(result: ToolResult, *, changed: bool) -> bool:
+	"""Too big to show whole, and not already cut by its tool unless a hook changed it."""
+	if "truncation" in result.details and not changed:
+		return False
+	content = result.content
+	return content.count("\n") >= DEFAULT_MAX_LINES or len(content.encode()) > DEFAULT_MAX_BYTES
+
+
+def _save_result(directory: str, call_id: str, content: str) -> tuple[str, bool]:
+	"""Write a result, up to MAX_SAVED_BYTES, where read and grep can reach it; return its path
+	and whether it is whole. JSON goes one value per line, since a tool's JSON arrives as a
+	single line that read cannot page through."""
+	os.makedirs(directory, mode=0o700, exist_ok=True)
+	# providers may reuse a call id across turns, or send none
+	name = re.sub(r"[^A-Za-z0-9_-]", "_", call_id)
+	path = os.path.join(directory, f"{name}-{uuid.uuid4().hex[:8]}.txt")
+	if len(content) <= MAX_SAVED_BYTES:
+		try:
+			content = json.dumps(json.loads(content), indent=1, ensure_ascii=False)
+		except ValueError:
+			pass
+	data = content.encode()
+	whole = len(data) <= MAX_SAVED_BYTES
+	if not whole:
+		data = data[:MAX_SAVED_BYTES].rsplit(b"\n", 1)[0]
+	with open(path, "wb") as file:
+		file.write(data)
+	return path, whole
+
+
+def _capped(
+	result: ToolResult, *, changed: bool = False, saved: tuple[str, bool] | None = None
+) -> ToolResult:
 	"""Cut an oversized result to its start and end, unless its tool already cut it and
 	no hook changed it."""
-	if "truncation" in result.details and not changed:
+	if not _over_cap(result, changed=changed):
 		return result
 	_, truncation = truncate(result.content, keep="head")
-	if not truncation["truncated"]:
-		return result
 	lines, size = DEFAULT_MAX_LINES // 5, DEFAULT_MAX_BYTES // 5  # the end gets a fifth of the budget
 	head, head_cut = truncate(result.content, keep="head", max_lines=lines * 4, max_bytes=size * 4)
 	tail, tail_cut = truncate(result.content, keep="tail", max_lines=lines, max_bytes=size)
 	note = (
 		f"[Cut the middle: showing the first {_size(len(head.encode()))} and the last "
 		f"{_size(len(tail.encode()))} of {_size(truncation['total_bytes'])}. "
-		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
-		"Don't repeat a call that changed data.]"
+		+ (
+			f"{'The whole result' if saved[1] else f'The first {_size(MAX_SAVED_BYTES)} of the result'} "
+			f"is saved in {saved[0]}: read it in parts with read's offset and limit, "
+			"or find lines in it with grep. "
+			if saved
+			else "To see more, call again asking for less: fewer fields, filters, a limit or a count. "
+		)
+		+ "Don't repeat a call that changed data.]"
 	)
 	shown = head_cut["output_lines"] + tail_cut["output_lines"]
 	truncation["output_lines"] = min(shown, truncation["total_lines"])  # both ends may hold part of one line
@@ -699,13 +790,19 @@ def _size(n: int) -> str:
 	return f"{n / 1024**2:.1f} MB" if n >= 1024**2 else f"{max(1, round(n / 1024))} KB"
 
 
-async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs) -> str:
+async def _confirmation_prompt(
+	call: ToolCall, tools: dict[str, Tool], inputs: LoopInputs
+) -> tuple[str | None, bool]:
 	"""Build the human-facing approval prompt. Server tools may define their own via
-	`Tool.confirm_prompt`; client tools can supply one over the callback; else generic."""
+	`Tool.confirm_prompt`; client tools can supply one over the callback, or answer
+	`{"requires_confirmation": false}` for a call that needs no approval (None); else generic.
+	The second value is the client's `needs_user`: the card itself takes the user's input, so
+	no reviewer may answer it for them."""
 	tool = tools.get(call.name)
 	if tool is not None and tool.confirm_prompt is not None:
 		try:
-			return tool.confirm_prompt(call.args)
+			if prompt := tool.confirm_prompt(call.args):  # only a client may say no card is needed
+				return prompt, False
 		except Exception:
 			pass
 	if inputs.config.callback_url and call.name not in tools:
@@ -713,23 +810,94 @@ async def _confirmation_prompt(call: ToolCall, tools: dict[str, Tool], inputs: L
 			response = await await_with_cancellation(
 				call_client(inputs.config, inputs.session_id, call, mode="confirm"), inputs.abort
 			)
+			if response.get("requires_confirmation") is False:
+				return None, False
 			if response.get("prompt"):
-				return response["prompt"]
+				return response["prompt"], bool(response.get("needs_user"))
 		except ModelCancelled:
 			raise
 		except Exception:
 			pass
-	return f"Approve `{call.name}`?\n\n" + json.dumps(call.args, indent=2, default=str)
+	return f"Approve `{call.name}`?\n\n" + json.dumps(call.args, indent=2, default=str), False
 
 
 def _needs_confirmation(inputs: LoopInputs, name: str, tools: dict[str, Tool]) -> bool:
 	"""Approval mode is the session's live setting; the confirm list is the run's own."""
-	if (inputs.approval_config or inputs.config).auto_approve:
+	if _approval_mode(inputs) == "auto_approve":
 		return False
 	if name in inputs.config.confirm_tools:
 		return True
 	tool = tools.get(name)
 	return bool(tool and tool.requires_confirmation)
+
+
+def _approval_mode(inputs: LoopInputs) -> str:
+	return (inputs.approval_config or inputs.config).approval_mode
+
+
+class _Reviewer:
+	"""The run's auto-reviewer: its model is built on the first gated call, then kept."""
+
+	def __init__(self, inputs: LoopInputs) -> None:
+		self._inputs = inputs
+		self._model: Model | None = None
+		self._tool_definitions: dict[str, dict] | None = None
+		self.call_args_by_id: dict[str, dict] = {}  # what each call will run with, after any hook rewrite
+
+	async def review(self, call: ToolCall, tools: dict[str, Tool]) -> tuple[Verdict, Usage | None]:
+		inputs = self._inputs
+		try:
+			if self._model is None:
+				self._model = await _review_model(inputs)
+			if self._tool_definitions is None:
+				self._tool_definitions = {
+					s["function"]["name"]: s for s in tool_schemas(tools, inputs.config)
+				}
+			return await await_with_cancellation(
+				review_call(
+					self._model,
+					inputs.messages,
+					call.id,
+					call.name,
+					call.args,
+					self._tool_definitions,
+					inputs.config.review_instructions,
+					self.call_args_by_id,
+				),
+				inputs.abort,
+			)
+		except ModelCancelled:
+			raise
+		except Exception:  # fail closed: the user decides
+			_logger.warning("Auto-review of call %s failed", call.id, exc_info=True)
+			return Verdict(False, REVIEW_FAILED), None
+
+
+async def _review_model(inputs: LoopInputs) -> Model:
+	"""The small model with its own credentials, else the session's; reasoning off."""
+	small = inputs.config.small_model
+	name = small.model if small else inputs.model_name
+	auth = await await_with_cancellation(
+		resolve_model_auth(
+			name,
+			inputs.credential_store,
+			provider_id=None if small else inputs.credential_id,
+			api_key=small.api_key if small else inputs.config.api_key,
+			api_base=small.api_base if small else inputs.config.api_base,
+		),
+		inputs.abort,
+	)
+	return get_model(
+		name,
+		api_key=auth.api_key,
+		api_base=auth.base_url,
+		headers=auth.headers,
+		params={
+			**(small.model_params if small else inputs.config.model_params),
+			**(reasoning_params(name, "off") or {}),
+		},
+		refresh_auth=auth.refresh,
+	)
 
 
 async def _authenticated_model(inputs: LoopInputs) -> Model:
@@ -764,17 +932,8 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		store_image=inputs.store_image,
 		# the runner needs this run's inputs; a tool only names the call, task, agent and child
 		run_subagent=partial(inputs.run_subagent, inputs) if inputs.run_subagent is not None else None,
+		web_search=inputs.config.web_search,
 	)
-
-
-def _turn_ends_run(messages: list[TranscriptMessage], tools: dict[str, Tool]) -> bool:
-	"""Whether the newest turn called only tools that end the run, none of them failing."""
-	for message in reversed(messages):
-		if isinstance(message, ToolResult) and message.is_error:
-			return False
-		if isinstance(message, AssistantMessage):
-			return all(call.name in tools and tools[call.name].ends_run for call in message.tool_calls)
-	return False
 
 
 def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:
@@ -786,6 +945,23 @@ def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:
 
 def _blocked(reason: str | None) -> str:
 	return json.dumps({"status": "blocked", "message": reason or "Blocked by an extension."})
+
+
+def _denied(prompt: str) -> str:
+	"""The decision envelope of a denied call. `action` is the first line of its approval
+	prompt, the words the user said no to."""
+	return json.dumps(
+		{
+			"status": "denied",
+			"message": "User denied this tool call. It was not executed.",
+			"action": prompt.split("\n", 1)[0].strip(),
+			"instruction": (
+				"Do not retry it or try another way. In one short reply, say in the user's words "
+				"what was not done, without naming tools, functions or code, and ask whether "
+				"they want to change anything."
+			),
+		}
+	)
 
 
 def _redirect(feedback: str) -> str:

@@ -245,6 +245,8 @@ export function formatField(
       // Frappe's Int formatter returns a plain integer, NO grouping — don't route
       // through `formatNumber` (which would group it, e.g. `1,234,567`).
       return String(cint(value));
+    case "Long Int":
+      return String(parseLongInt(value));
     case "Currency":
       return formatCurrency(value, {
         numberFormat,
@@ -261,6 +263,17 @@ export function formatField(
   }
 }
 
+/** Parse a Long Int; past `Number.MAX_SAFE_INTEGER` a string keeps its digits, a number is already rounded. */
+export function parseLongInt(
+  value: unknown,
+  numberFormat = DEFAULT_NUMBER_FORMAT
+): number | string {
+  const digits = integerDigits(value, numberFormat);
+  if (digits == null) return Math.trunc(flt(value, { numberFormat }));
+  const n = Number(digits);
+  return Number.isSafeInteger(n) ? n : digits;
+}
+
 /** Look up a currency's symbol via `Intl`. Returns `null` for an invalid code. */
 export function getCurrencySymbol(currencyCode: string): string | null {
   try {
@@ -275,6 +288,14 @@ export function getCurrencySymbol(currencyCode: string): string | null {
   } catch {
     return null;
   }
+}
+
+/** The integer part of a typed or stored string, sign kept and leading zeros dropped; `null` when it is not a plain number. */
+function integerDigits(value: unknown, numberFormat: string): string | null {
+  if (typeof value !== "string") return null;
+  const plain = stripNumberGroups(value.trim(), numberFormat);
+  const match = /^(-?)\+?0*(\d+)(\.\d*)?$/.exec(plain);
+  return match ? match[1] + match[2] : null;
 }
 
 function roundNumber(

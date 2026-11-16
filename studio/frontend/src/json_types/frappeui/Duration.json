@@ -86,6 +86,20 @@
             }
           ]
         },
+        "largestUnit": {
+          "type": "string",
+          "enum": [
+            "day",
+            "hour"
+          ]
+        },
+        "smallestUnit": {
+          "type": "string",
+          "enum": [
+            "minute",
+            "second"
+          ]
+        },
         "size": {
           "type": "string",
           "enum": [

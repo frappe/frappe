@@ -80,14 +80,16 @@ class TestFlowAccess(IntegrationTestCase):
 			"list_sessions": {},
 			"run": {"session": session.name, "message": "hi"},
 			"resume": {"session": session.name, "answers": "{}"},
+			"screen_result": {"session": session.name, "token": "t", "error": "x"},
 			"abort": {"session": session.name},
 			"cancel_pending": {"session": session.name},
 			"rewind": {"session": session.name, "target_seq": 0},
 			"compact": {"session": session.name},
 			"entries": {"session": session.name},
+			"system_prompt": {"session": session.name},
 			"set_model": {"session": session.name, "model": "m"},
 			"set_title": {"session": session.name, "title": "t"},
-			"set_auto_approve": {"session": session.name, "auto_approve": 1},
+			"set_approval_mode": {"session": session.name, "mode": "Ask"},
 			"delete_session": {"session": session.name},
 			"list_shares": {"session": session.name},
 			"share_session": {"session": session.name, "user": "Administrator"},
@@ -99,12 +101,26 @@ class TestFlowAccess(IntegrationTestCase):
 			"attach_file": {"file": "x"},
 			"cleanup_attachments": {"session": session.name},
 			"skills": {"session": session.name},
+			"save_secret": {"session": session.name, "call_id": "c1", "password": "x"},
 		}
 		self.assertEqual(set(calls), set(api.__all__))
 		frappe.set_user(outsider)
 		for name, kwargs in calls.items():
 			with self.subTest(name), self.assertRaises(frappe.PermissionError):
 				getattr(api, name)(**kwargs)
+
+	def test_the_desk_shows_flow_only_to_those_who_can_use_it(self):
+		from frappe.boot import get_module_sidebars
+
+		cases = {
+			_user("flow-desk-none@example.com", "Desk User"): False,
+			_user("flow-desk-member@example.com", FLOW_USER_ROLE): True,
+			_user("flow-desk-manager@example.com", "System Manager"): True,
+		}
+		for user, sees_flow in cases.items():
+			with self.subTest(user), self.set_user(user):
+				frappe.local.request_cache.clear()
+				self.assertEqual("Flow" in get_module_sidebars(), sees_flow)
 
 	def test_sessions_runs_and_personal_memories_stay_private_to_their_owner(self):
 		self.addCleanup(memory_store.drop_table)

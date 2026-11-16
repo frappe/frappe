@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import datetime
 import re
 import string
 from collections.abc import KeysView, ValuesView
@@ -9,7 +10,7 @@ from functools import cached_property, wraps
 import frappe
 from frappe.query_builder.builder import MariaDB, Postgres, SQLite
 from frappe.query_builder.functions import Function
-from frappe.utils import CallbackManager
+from frappe.utils import CallbackManager, get_datetime
 
 Query = str | MariaDB | Postgres | SQLite
 QueryValues = tuple | list | dict | None
@@ -75,6 +76,16 @@ def convert_to_value(o: FilterValue):
 	elif isinstance(o, (KeysView, ValuesView)):
 		return tuple(convert_to_value(item) for item in o)
 	return o
+
+
+def convert_datetime(value: str) -> datetime.datetime | None:
+	"""Convert a DATETIME value read from MariaDB. Same result as `get_datetime`, but faster."""
+	if value.startswith(("0001-01-01", "0000-00-00")):
+		return None
+	try:
+		return datetime.datetime.fromisoformat(value)
+	except ValueError:
+		return get_datetime(value)
 
 
 def is_non_text_field(doctype: str, fieldname: str, df=None) -> bool:

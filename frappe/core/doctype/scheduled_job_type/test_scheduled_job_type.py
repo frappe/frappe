@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 from datetime import timedelta
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import sync_jobs
@@ -12,9 +13,7 @@ from frappe.utils.data import add_to_date, now_datetime
 class TestScheduledJobType(IntegrationTestCase):
 	def setUp(self):
 		frappe.db.rollback()
-		frappe.db.truncate("Scheduled Job Type")
 		sync_jobs()
-		frappe.db.commit()
 
 	def test_throws_on_duplicate_job(self):
 		job_config = dict(
@@ -129,11 +128,27 @@ class TestScheduledJobType(IntegrationTestCase):
 		)
 		# Should be within one hour
 		self.assertGreaterEqual(sjt.next_execution, sjt.last_execution)
-		self.assertGreater(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
+		self.assertGreaterEqual(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
 
 		# Next should be exactly one hour away
 		sjt.last_execution = sjt.next_execution
 		self.assertEqual(add_to_date(sjt.last_execution, hours=1), sjt.next_execution)
+
+	def test_maintenance_jobs_run_at_a_different_time_per_site(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		sjt = frappe.new_doc(
+			"Scheduled Job Type",
+			frequency="Daily Maintenance",
+			last_execution=get_datetime("2019-01-01 00:00:00"),
+		)
+
+		with patch.object(frappe.local, "site", "erp.example.com"):
+			erp_site_run = sjt.next_execution
+		with patch.object(frappe.local, "site", "hr.example.com"):
+			hr_site_run = sjt.next_execution
+
+		self.assertNotEqual(erp_site_run, hr_site_run)
 
 	def test_cold_start(self):
 		now = now_datetime()

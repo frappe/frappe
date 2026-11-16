@@ -19,7 +19,7 @@
 import { ref } from "vue";
 import { Button } from "frappe-ui";
 import LucideChartLine from "~icons/lucide/chart-line";
-import { toneClass } from "./tone.js";
+import { toneClass } from "./tone-class.js";
 
 defineProps({ title: { type: String, default: "fixture island" } });
 

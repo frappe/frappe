@@ -138,6 +138,23 @@ def verify_against_placeholder(pwd):
 	verify_password(pwd, _placeholder_hash())
 
 
+def has_password(user: str) -> bool:
+	"""Whether a password is stored for the user. Passwords are hashed rows, which
+	`get_decrypted_password` does not read."""
+	return bool(
+		frappe.qb.from_(Auth)
+		.select(Auth.name)
+		.where(
+			(Auth.doctype == "User")
+			& (Auth.name == user)
+			& (Auth.fieldname == "password")
+			& (Auth.encrypted == 0)
+		)
+		.limit(1)
+		.run()
+	)
+
+
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
@@ -240,6 +257,15 @@ def delete_all_passwords_for(doctype, name):
 	except Exception as e:
 		if not frappe.db.is_missing_column(e):
 			raise
+
+
+def delete_child_row_passwords(child_doctype: str, filters: dict):
+	"""Delete stored passwords of the `child_doctype` rows matching `filters`, before the rows are deleted."""
+	if not frappe.get_meta(child_doctype).get("fields", {"fieldtype": "Password"}):
+		return
+
+	if names := frappe.get_all(child_doctype, filters=filters, pluck="name"):
+		frappe.db.delete("__Auth", {"doctype": child_doctype, "name": ("in", names)})
 
 
 def rename_password(doctype, old_name, new_name):

@@ -1,8 +1,19 @@
 <template>
 	<!-- brand marks are drawn for light backgrounds; in dark mode they sit on a
-	     small white tile so monochrome logos stay legible -->
+	     small white tile so monochrome logos stay legible. `bare` drops the tile: the mark
+	     at full size, a black one turned white in dark mode -->
+	<img
+		v-if="source && bare"
+		:src="source"
+		:width="size"
+		:height="size"
+		alt=""
+		aria-hidden="true"
+		class="block flex-none object-contain"
+		:class="MONOCHROME.has(id) ? 'dark:invert' : ''"
+	/>
 	<span
-		v-if="source"
+		v-else-if="source"
 		class="inline-flex flex-none items-center justify-center rounded-5 dark:bg-white"
 		:style="{ width: `${size}px`, height: `${size}px` }"
 	>
@@ -15,11 +26,11 @@
 			class="block object-contain"
 		/>
 	</span>
-	<FeatherIcon
+	<span
 		v-else
-		name="server"
+		class="lucide-server flex-none text-ink-gray-6"
 		:style="{ width: `${size}px`, height: `${size}px` }"
-		class="flex-none text-ink-gray-6"
+		aria-hidden="true"
 	/>
 </template>
 
@@ -37,7 +48,6 @@ import openai from "@lobehub/icons-static-svg/icons/openai.svg"
 import opencode from "@lobehub/icons-static-svg/icons/opencode.svg"
 import openrouter from "@lobehub/icons-static-svg/icons/openrouter-color.svg"
 import xai from "@lobehub/icons-static-svg/icons/xai.svg"
-import FeatherIcon from "./FeatherIcon.vue"
 
 const props = defineProps({
 	providerId: { type: String, required: true },
@@ -45,6 +55,7 @@ const props = defineProps({
 	// custom endpoints have no brand id of their own; the server suggests one
 	// from their model prefixes (e.g. "ollama")
 	icon: { type: String, default: null },
+	bare: { type: Boolean, default: false },
 })
 
 const icons = {
@@ -61,5 +72,8 @@ const icons = {
 	"opencode-go": opencode,
 	ollama,
 }
-const source = computed(() => icons[props.providerId] || icons[props.icon] || null)
+// the marks drawn in black, which dark mode turns white
+const MONOCHROME = new Set(["anthropic", "openai", "xai", "groq", "codex", "opencode-go", "ollama"])
+const id = computed(() => (icons[props.providerId] ? props.providerId : props.icon))
+const source = computed(() => icons[id.value] || null)
 </script>

@@ -3,7 +3,7 @@
 
 	<!-- the saved connection is being tried: no form until it fails -->
 	<div v-else-if="starting" class="flex h-full items-center justify-center bg-surface-base">
-		<LoadingState class="text-sm text-ink-gray-5" />
+		<LoadingState class="text-base text-ink-gray-5" />
 	</div>
 
 	<div v-else class="flex h-full items-center justify-center bg-surface-base">
@@ -12,32 +12,32 @@
 			@submit.prevent="connect"
 		>
 			<div>
-				<div class="text-lg font-medium text-ink-gray-9">Connect to flow</div>
-				<div class="mt-1 text-sm text-ink-gray-5">Point this UI at a running Flow daemon.</div>
+				<div class="text-xl font-medium text-ink-gray-9">Connect to flow</div>
+				<div class="mt-1 text-base text-ink-gray-5">Point this UI at a running Flow daemon.</div>
 			</div>
 			<label class="flex flex-col gap-1">
-				<span class="text-xs font-medium text-ink-gray-7">Daemon URL</span>
+				<span class="text-sm font-medium text-ink-gray-7">Daemon URL</span>
 				<input
 					v-model="baseUrl"
 					placeholder="same origin (dev proxy)"
-					class="h-8 rounded-5 border border-outline-gray-2 bg-surface-base px-2.5 text-sm text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
+					class="h-8 rounded-5 border border-outline-gray-2 bg-surface-base px-2.5 text-base text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
 				/>
 			</label>
 			<label class="flex flex-col gap-1">
-				<span class="text-xs font-medium text-ink-gray-7">Auth token</span>
+				<span class="text-sm font-medium text-ink-gray-7">Auth token</span>
 				<input
 					v-model="token"
 					type="password"
 					placeholder="Leave empty unless the daemon requires one"
-					class="h-8 rounded-5 border border-outline-gray-2 bg-surface-base px-2.5 text-sm text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
+					class="h-8 rounded-5 border border-outline-gray-2 bg-surface-base px-2.5 text-base text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
 				/>
 			</label>
-			<div v-if="error" class="rounded-5 bg-surface-red-1 px-2.5 py-1.5 text-xs text-ink-red-6">
+			<div v-if="error" class="rounded-5 bg-surface-red-1 px-2.5 py-1.5 text-sm text-ink-red-6">
 				{{ error }}
 			</div>
 			<button
 				type="submit"
-				class="h-8 rounded-5 bg-surface-gray-10 text-sm font-medium text-ink-base hover:opacity-90"
+				class="h-8 rounded-5 bg-surface-gray-10 text-base font-medium text-ink-base hover:opacity-90"
 				:disabled="checking"
 			>
 				{{ checking ? "Connecting…" : "Connect" }}

@@ -1,6 +1,7 @@
 import { test, expect } from "../support";
 import web_form_source_doctype from "../fixtures/web_form_source_doctype";
 import web_form_empty_source_doctype from "../fixtures/web_form_empty_source_doctype";
+import web_form_tabbed_source_doctype from "../fixtures/web_form_tabbed_source_doctype";
 import {
 	CANVAS,
 	PAGE,
@@ -73,8 +74,8 @@ const warning_icon = (desk, fieldname) =>
 const tooltip = (desk, fieldname) => () =>
 	warning_icon(desk, fieldname).getAttribute("data-original-title");
 
-async function open_picker_on(desk, fields = []) {
-	await seed_source_web_form(desk.api, fields);
+async function open_picker_on(desk, fields = [], doc_type) {
+	await seed_source_web_form(desk.api, fields, doc_type);
 	await open_get_fields(desk, SOURCE_ROUTE);
 	await expect(picker(desk)).toBeVisible();
 }
@@ -126,6 +127,7 @@ test.describe("Web Form Get Fields", () => {
 	test.beforeAll(async ({ admin }) => {
 		await admin.insert_doc("DocType", web_form_source_doctype, true);
 		await admin.insert_doc("DocType", web_form_empty_source_doctype, true);
+		await admin.insert_doc("DocType", web_form_tabbed_source_doctype, true);
 	});
 
 	test("Offers every field a Web Form can render", async ({ desk }) => {
@@ -350,6 +352,43 @@ test.describe("Web Form Get Fields", () => {
 			expect(fields.map((d) => d.fieldname)).toContain("alpha_note");
 		});
 	});
+
+	// ToDo sections, in order: status to allocated_to, description, then reference_type to role
+	for (const [kept, added, expected, doc_type = "ToDo"] of [
+		[["status", "description"], "allocated_to", ["status", "allocated_to", "", "description"]],
+		[["status", "assigned_by"], "role", ["status", "", "role", "assigned_by"]],
+		// a tie goes to the previous field, and a Column Break does not make one
+		[["reference_type", "assigned_by"], "role", ["reference_type", "role", "", "assigned_by"]],
+		// a Tab Break outweighs a Section Break
+		[
+			["first_note", "last_note"],
+			"middle_note",
+			["first_note", "", "middle_note", "last_note"],
+			web_form_tabbed_source_doctype.name,
+		],
+	]) {
+		test(`Places ${added} by section between ${kept.join(" and ")}`, async ({
+			page,
+			desk,
+		}) => {
+			await open_picker_on(
+				desk,
+				[
+					{ fieldname: kept[0], fieldtype: "Data", label: kept[0] },
+					{ fieldtype: "Page Break" },
+					{ fieldname: kept[1], fieldtype: "Data", label: kept[1] },
+				],
+				doc_type
+			);
+
+			await check_only(desk, [...kept, added]);
+			await desk.click_modal_primary_button("Update");
+
+			await expect_web_form_fields(page, (fields) => {
+				expect(fields.map((d) => (is_input_row(d) ? d.fieldname : ""))).toEqual(expected);
+			});
+		});
+	}
 
 	test("Removes the unticked rows and marks the form unsaved", async ({ page, desk }) => {
 		await open_picker_on(desk, [

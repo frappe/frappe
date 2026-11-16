@@ -695,6 +695,8 @@ use_json_request_body = True
 # 	"{app_name}.auth.validate"
 # ]
 
+# on_social_login = "{app_name}.auth.on_social_login"
+
 # Automatically update python controller files with type annotations for this app.
 export_python_type_annotations = True
 
@@ -888,7 +890,7 @@ patches_template = """[pre_model_sync]
 # (Custom Field, Property Setter, etc) are synced"""
 
 
-precommit_template = """exclude: 'node_modules|.git'
+precommit_template = """exclude: 'node_modules'
 default_stages: [pre-commit]
 fail_fast: false
 

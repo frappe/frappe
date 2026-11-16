@@ -7,9 +7,19 @@ export const EFFORTS = ["default", "off", "minimal", "low", "medium", "high", "x
 // display names for the wire-level effort ids
 // the two approval modes as the composer and the general settings present them
 export const APPROVAL_MODES = [
+	{ id: "auto", label: "Auto", desc: "A helper model handles approvals." },
 	{ id: "ask", label: "Ask for approval", desc: "Asks before edits and commands." },
-	{ id: "auto", label: "Auto-approve", desc: "Runs everything without asking." },
+	{ id: "auto_approve", label: "Auto-approve", desc: "Runs everything without asking." },
 ]
+
+// the mode on the wire: "ask" pauses at every gate, "auto" has a helper model answer them, "auto_approve" skips them
+export function approvalConfig(mode) {
+	return { approval_mode: mode }
+}
+
+export function approvalMode(config) {
+	return config?.approval_mode ?? "ask"
+}
 
 export const EFFORT_LABELS = {
 	default: "Default",
@@ -135,18 +145,17 @@ export function waitingApprovals(conversation) {
 	return asked.sort((a, b) => a.seq - b.seq)
 }
 
-// the tool a reply ends on to offer the user's next messages: chips, never a row
+// the tool older chats offered their next messages with: never a row
 const SUGGEST_REPLIES = "suggest_replies"
 
-// The next messages the latest reply offers, from its suggest_replies result, until the user
-// says something: { key, replies, multiSelect }, else null
+// The next messages offered after the latest run, until the user says something:
+// { key, replies, multiSelect }, else null
 export function suggestedReplies(conversation) {
 	if (conversation.running || conversation.pendingApproval || conversation.sending?.length) return null
 	const entries = conversation.entries ?? []
 	for (let i = entries.length - 1; i >= 0 && entries[i].type !== "user_message"; i--) {
-		const { type, name, is_error, details, tool_call_id } = entries[i]
-		if (type === "tool_result" && name === SUGGEST_REPLIES && !is_error && details?.replies)
-			return { key: tool_call_id, replies: details.replies, multiSelect: !!details.multi_select }
+		const { type, seq, replies, multi_select } = entries[i]
+		if (type === "replies_suggested") return { key: `r:${seq}`, replies, multiSelect: !!multi_select }
 	}
 	return null
 }
@@ -183,6 +192,9 @@ function foldEvent(s, e) {
 				const calls = s.pendingApproval.calls.filter((c) => c.id !== e.tool_call_id)
 				s.pendingApproval = calls.length ? { ...s.pendingApproval, calls } : null
 			}
+			s.entries.push(e)
+			break
+		case "replies_suggested":
 			s.entries.push(e)
 			break
 		case "compaction":
@@ -310,7 +322,7 @@ function recordRequest(s, e) {
 
 const END_NOTICES = {
 	aborted: "Interrupted by user",
-	denied: "Tool call denied by user",
+	denied: "You declined this action",
 	max_turns: "Stopped — turn limit reached",
 	budget: "Stopped — token budget reached",
 	length: "Stopped — model hit its length limit",
@@ -323,6 +335,8 @@ const STEP_LABELS = {
 	bash: "Running command",
 	edit: "Editing file",
 	write: "Writing file",
+	web_fetch: "Reading page",
+	web_search: "Searching the web",
 }
 
 export function stepLabel(name) {
@@ -331,17 +345,18 @@ export function stepLabel(name) {
 
 // Leading row icons for the built-in tools; extension tools get the generic wrench.
 const STEP_ICONS = {
-	subagent: "bot",
-	read: "file-text",
-	grep: "search",
-	bash: "terminal",
-	edit: "edit-3",
-	write: "file-plus",
-	websearch: "globe",
+	subagent: "lucide-bot",
+	read: "lucide-file-text",
+	grep: "lucide-search",
+	bash: "lucide-terminal",
+	edit: "lucide-pen-line",
+	write: "lucide-file-plus",
+	web_fetch: "lucide-globe",
+	web_search: "lucide-globe",
 }
 
 export function stepIcon(name) {
-	return STEP_ICONS[name] ?? "tool"
+	return STEP_ICONS[name] ?? "lucide-wrench"
 }
 
 export function humanizeToolName(name) {
@@ -364,6 +379,16 @@ export function fileName(path) {
 		.pop()
 }
 
+// a web page by its host and path: no scheme, query or trailing slash
+export function pageName(url) {
+	try {
+		const { host, pathname } = new URL(url)
+		return host + pathname.replace(/\/$/, "")
+	} catch {
+		return String(url ?? "")
+	}
+}
+
 export function displayText(display) {
 	return display.map((segment) => segment.text).join("")
 }
@@ -375,6 +400,10 @@ export function stepLiveLabel(call) {
 		if (["read", "write", "edit"].includes(name))
 			return call.display
 				.map((segment) => (segment.arg === "path" ? fileName(segment.text) : segment.text))
+				.join("")
+		if (name === "web_fetch")
+			return call.display
+				.map((segment) => (segment.arg === "url" ? pageName(segment.text) : segment.text))
 				.join("")
 		return displayText(call.display)
 	}
@@ -431,6 +460,8 @@ export function stepDecision(result) {
 	if (!content || !content.startsWith("{")) return null
 	try {
 		const parsed = JSON.parse(content)
+		// only the loop writes details: a tool's output shaped like a denial is not one
+		if (parsed.status === "denied" && result.details?.user_answer !== "Deny") return null
 		return ["denied", "cancelled", "redirect"].includes(parsed.status) ? parsed : null
 	} catch {
 		return null
@@ -452,6 +483,7 @@ export function stepStat(step) {
 		return d.agent === "general" ? "" : d.agent
 	}
 	if (d.matches !== undefined) return `${d.matches} matches`
+	if (d.results !== undefined) return `${d.results.length} result${d.results.length === 1 ? "" : "s"}`
 	if (d.lines_added !== undefined || d.lines_removed !== undefined)
 		return `+${d.lines_added ?? 0} -${d.lines_removed ?? 0}`
 	if (d.edits !== undefined) return `${d.edits} edits`
@@ -485,10 +517,13 @@ export function formatDuration(durationMs) {
 	const roundedSeconds = Math.round(durationMs / 1_000)
 	if (roundedSeconds < 60) return `${roundedSeconds}s`
 	const minutes = Math.floor(roundedSeconds / 60)
-	const seconds = roundedSeconds % 60
-	if (seconds === 0) return `${minutes}m`
-	return `${minutes}m ${seconds}s`
+	if (minutes < 60) return pair(minutes, "m", roundedSeconds % 60, "s")
+	const hours = Math.floor(minutes / 60)
+	if (hours < 24) return pair(hours, "h", minutes % 60, "m")
+	return pair(Math.floor(hours / 24), "d", hours % 24, "h")
 }
+
+const pair = (big, bigUnit, small, smallUnit) => (small ? `${big}${bigUnit} ${small}${smallUnit}` : `${big}${bigUnit}`)
 
 function deriveTurns(entries, steeredSeqs = []) {
 	const turns = new Map()
@@ -524,8 +559,8 @@ function deriveTurns(entries, steeredSeqs = []) {
 
 		if (!current) continue
 		turnByEntry.set(entry, current.key)
-		// a compaction joins the turn before it, but a later /compact is no time it worked
-		if (Number.isFinite(entry.ts) && entry.type !== "compaction") {
+		// a compaction or the replies offered after it join the turn before them, but are no time it worked
+		if (Number.isFinite(entry.ts) && !["compaction", "replies_suggested"].includes(entry.type)) {
 			current.endedAt = current.endedAt == null ? entry.ts : Math.max(current.endedAt, entry.ts)
 		}
 		if (entry.type === "run_ended" && entry.reason === "aborted") current.interrupted = true
@@ -538,7 +573,8 @@ function deriveTurns(entries, steeredSeqs = []) {
 
 // Files touched by a turn's settled edit/write calls, keyed by turn, aggregated
 // per path in first-touch order. Denied/failed calls don't count; a write
-// reports its full line count as additions.
+// reports its full line count as additions. `since` is the seq of the file's
+// first change in the turn, so its diff shows only this turn's edits on.
 function deriveFileChanges(entries, turnByEntry) {
 	const callTurns = new Map()
 	const filesByTurn = new Map()
@@ -553,7 +589,7 @@ function deriveFileChanges(entries, turnByEntry) {
 			if (!path || entry.is_error || stepDecision(entry)) continue
 			const turnKey = callTurns.get(entry.tool_call_id)
 			const files = filesByTurn.get(turnKey) ?? new Map()
-			const file = files.get(path) ?? { path, added: 0, removed: 0 }
+			const file = files.get(path) ?? { path, added: 0, removed: 0, since: entry.seq }
 			file.added += entry.details.lines_added ?? entry.details.lines ?? 0
 			file.removed += entry.details.lines_removed ?? 0
 			files.set(path, file)
@@ -573,10 +609,10 @@ function foldLabel(turn) {
 }
 
 // Folds durable entries and the streaming preview into renderable items:
-//   {kind: "user", entry}
+//   {kind: "user", entry, turnKey?, steered?}
 //   {kind: "text", block, entry?, provisional?}
 //   {kind: "thinking", block, entry?, live?}
-//   {kind: "group", steps: [{call, result, aborted} | {thought, id, live?}]}
+//   {kind: "group", steps: [{call, result, aborted, streaming} | {thought, id, live?}]}
 //   {kind: "turn-fold", turnKey, label, expanded}
 //   {kind: "turn-files", turnKey, files: [{path, added, removed}]}
 //   {kind: "compaction", entry}
@@ -626,6 +662,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		// that thought ended: it settles to "Thought" and the status line takes over.
 		const lastLiveIdx = provisional ? blocks.length - 1 : -1
 		for (const [blockIdx, block] of blocks.entries()) {
+			// a provider that omits its thinking (Anthropic) still sends the block: nothing to show
+			if (block.type === "thinking" && !block.thinking && !block.redacted) continue
 			// only a thought with text takes an ordinal: the preview never streams a text-less block
 			const key =
 				block.type === "thinking"
@@ -652,7 +690,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 				}
 			} else if (block.type === "tool_call") {
 				if (provisional && block.arguments == null) continue
-				if (block.name === SUGGEST_REPLIES) continue // shown as chips, not a row
+				if (block.name === SUGGEST_REPLIES) continue
 				if (pendingIds.has(block.id) || stepsById.has(block.id)) continue
 				const group = currentGroup(block.id)
 				for (const thought of bufferedThoughts) group.steps.push({ thought: thought.block, id: thought.key })
@@ -661,6 +699,8 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 					call: block,
 					result: null,
 					aborted: !provisional && entry.stop_reason === "aborted",
+					// a streamed call's arguments are its short strings so far, each cut at 512 characters
+					streaming: provisional,
 					// a subagent call's child, once its first event has landed
 					subagent: block.name === "subagent" ? conversation.subagents?.[subagentId(block)] ?? null : null,
 				}
@@ -671,15 +711,31 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 	}
 
 	for (const entry of conversation.entries) {
+		// a message that joins the turn before it was steered into that turn's run
+		const steered = entry.type === "user_message" && turnByEntry.get(entry) === currentTurnKey
 		currentTurnKey = turnByEntry.get(entry) ?? currentTurnKey
 		if (entry.type === "user_message") {
 			flushThoughts()
-			items.push({ kind: "user", key: `u:${entry.seq}`, entry })
+			const key = `u:${entry.seq}`
+			items.push(steered ? { kind: "user", key, turnKey: currentTurnKey, steered, entry } : { kind: "user", key, entry })
 		} else if (entry.type === "assistant_message") {
 			appendAssistantBlocks(entry.content ?? [], { entry })
 		} else if (entry.type === "tool_result") {
 			const step = stepsById.get(entry.tool_call_id)
 			if (step) step.result = entry
+			// a denial stays in sight when the work folds, in the words of the card; a tool with no words
+			// of its own has the server's generic question, so it is named instead
+			const decision = step ? stepDecision(entry) : null
+			if (decision?.status === "denied" && decision.action) {
+				const name = step.call.name
+				flushThoughts()
+				items.push({
+					kind: "declined",
+					key: `d:${entry.seq}`,
+					turnKey: currentTurnKey,
+					text: decision.action === `Approve \`${name}\`?` ? `Denied ${name}` : `Declined: ${decision.action}`,
+				})
+			}
 		} else if (entry.type === "compaction") {
 			flushThoughts()
 			items.push({ kind: "compaction", key: `c:${entry.seq}`, turnKey: currentTurnKey, entry })
@@ -776,7 +832,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		const foldable =
 			item.kind === "compaction" ||
 			(!inResponse.has(item.key) &&
-				(["group", "thinking"].includes(item.kind) || (item.kind === "text" && !item.provisional)))
+				(["group", "thinking"].includes(item.kind) || (item.kind === "text" && !item.provisional) || item.steered))
 		if (!foldable) continue
 		const foldableItems = foldableByTurn.get(item.turnKey) ?? []
 		foldableItems.push(item)
@@ -820,7 +876,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 // report to the row that made the call — a response, or a compaction — never to
 // messages or tool results. A sub-agent call's row sums what its child spent.
 //   {key, kind: "system"|"user"|"assistant"|"tool"|"compaction"|"error",
-//    body?, entry?, input?, output?, usage?}
+//    body?, ts?, entry?, input?, output?, usage?}
 export function buildTranscriptRows(conversation) {
 	const rows = []
 	const steps = new Map() // tool call id -> its row, filled when the result lands
@@ -837,7 +893,7 @@ export function buildTranscriptRows(conversation) {
 	for (const [index, entry] of entries.entries()) {
 		let caller = null // the row whose model call a usage report in this gap belongs to
 		if (entry.type === "user_message") {
-			rows.push({ key: `u:${entry.seq}`, kind: "user", entry: withoutFlowFields(entry) })
+			rows.push({ key: `u:${entry.seq}`, kind: "user", ts: entry.ts, entry: withoutFlowFields(entry) })
 		} else if (entry.type === "assistant_message") {
 			caller = { key: `a:${entry.seq}`, kind: "assistant", entry: withoutFlowFields(entry) }
 			rows.push(caller)
@@ -865,7 +921,8 @@ export function buildTranscriptRows(conversation) {
 		const until = entries[index + 1]?.seq ?? Infinity
 		while (cursor < requests.length && requests[cursor].seq < until) {
 			const usage = requests[cursor++]
-			if (caller && !caller.usage && (caller.kind === "compaction") === !!usage.standalone)
+			// a title or replies call belongs to no row
+			if (caller && !caller.usage && !usage.purpose && (caller.kind === "compaction") === !!usage.standalone)
 				caller.usage = withoutFlowFields(usage)
 		}
 	}
@@ -1062,6 +1119,12 @@ export function formatTime(ts) {
 	const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
 	if (d.toDateString() === new Date().toDateString()) return time
 	return `${d.toLocaleDateString([], { month: "short", day: "numeric" })}, ${time}`
+}
+
+// a cost under a tenth of a cent would round to $0.000
+export function formatCost(cost) {
+	if (cost < 0.001) return "<$0.001"
+	return `$${cost.toFixed(cost < 1 ? 3 : 2)}`
 }
 
 export function formatTokens(n) {

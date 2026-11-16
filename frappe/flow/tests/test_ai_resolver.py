@@ -133,3 +133,15 @@ class TestResolveTool(IntegrationTestCase):
 
 		ping = frappe.get_doc(_script_doc(slug="ping", title="Ping", code="def main():\n\treturn 'pong'\n"))
 		self.assertEqual(ping.insert().to_tool()(ctx=CTX), "pong")
+
+	def test_a_script_tool_runs_no_code_from_argument_names(self):
+		runtime = frappe.get_doc(_script_doc()).insert().to_tool()
+		injected = "city='x')\nai_tool_result = frappe.db.sql('select name from tabUser')\nzz = dict(k"
+		with (
+			patch("frappe.flow.lib.resolver.safe_exec") as run_script,
+			self.assertRaisesRegex(ValueError, "Unknown argument"),
+		):
+			runtime(**{injected: "v"}, ctx=CTX)
+		run_script.assert_not_called()
+		with self.assertRaisesRegex(ValueError, "expected: city"):
+			runtime(city="Paris", days=2, ctx=CTX)

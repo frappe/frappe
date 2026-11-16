@@ -3,6 +3,7 @@ the session's log, named agents, parallel children under the cap, and how a chil
 reaches the model."""
 
 import asyncio
+import json
 import shutil
 from dataclasses import replace
 
@@ -67,7 +68,7 @@ class ScriptedModel(MockModel):
 def _session(tmp_path, **cfg):
 	events: list[dict] = []
 	store = SessionStore(str(tmp_path / "data"), event_sink=lambda _sid, ev: events.append(ev))
-	session = store.create(SessionConfig(cwd=str(tmp_path), **cfg))
+	session = store.create(SessionConfig(cwd=str(tmp_path), **{"approval_mode": "ask", **cfg}))
 	return session, events
 
 
@@ -227,6 +228,7 @@ async def test_a_named_agent_runs_with_its_own_prompt_tools_and_settings(tmp_pat
 	session = store.create(
 		SessionConfig(
 			cwd=str(tmp_path),
+			approval_mode="ask",
 			tools=["read", "subagent"],
 			extension_tools=[],
 			client_tools=[_schema("check_mail")],
@@ -509,7 +511,7 @@ async def test_abort_ends_every_child_running_paused_or_waiting_for_a_slot(tmp_p
 
 async def test_a_child_that_stops_short_is_an_error_result_and_the_session_carries_on(tmp_path):
 	quick = SubagentConfig(name="Quick", max_turns=1)
-	session, events = _session(tmp_path, auto_approve=True, subagents=[quick])
+	session, events = _session(tmp_path, approval_mode="auto_approve", subagents=[quick])
 	error = ProviderError(kind="auth", retryable=False, status_code=401, provider="mock", detail="bad key")
 	model = ScriptedModel(
 		{
@@ -580,10 +582,10 @@ async def test_a_child_approval_pauses_only_the_child_and_takes_one_answer(tmp_p
 
 
 async def test_an_approval_mode_change_reaches_a_running_childs_next_gate(tmp_path):
-	for initial_auto_approve in (True, False):
-		cwd = tmp_path / str(initial_auto_approve)
+	for initial_mode in ("auto_approve", "ask"):
+		cwd = tmp_path / initial_mode
 		cwd.mkdir()
-		session, events = _session(cwd, auto_approve=initial_auto_approve)
+		session, events = _session(cwd, approval_mode=initial_mode)
 		model = ScriptedModel(
 			{
 				"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
@@ -594,17 +596,76 @@ async def test_an_approval_mode_change_reaches_a_running_childs_next_gate(tmp_pa
 
 		handle = await session.run("go", model=model)
 		await model.started["risky"].wait()  # the child is running, its tool call still to come
-		session.config.auto_approve = not initial_auto_approve  # PATCH /config mutates this object
+		session.config.approval_mode = (
+			"ask" if initial_mode == "auto_approve" else "auto_approve"
+		)  # PATCH /config mutates this object
 		gate.set()
 
-		if initial_auto_approve:
+		if initial_mode == "auto_approve":
 			await _until(lambda: _of(events, "approval_required", subagent="c1"))
 			approval = _of(events, "approval_required", subagent="c1")[0]
 			await session.resume({"c2": "Approve"}, approval_seq=approval["seq"])
 		assert handle.task is not None
 		await asyncio.wait_for(handle.task, timeout=5)
-		assert bool(_of(events, "approval_required", subagent="c1")) is initial_auto_approve
-		assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]", initial_auto_approve
+		assert bool(_of(events, "approval_required", subagent="c1")) is (initial_mode == "auto_approve")
+		assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]", initial_mode
+
+
+async def test_a_delegation_is_reviewed_and_a_child_is_reviewed_against_its_task(tmp_path, monkeypatch):
+	def verdict(decision, reason=""):
+		return AssistantMessage(content=json.dumps({"decision": decision, "reason": reason}))
+
+	# the reviewer's last message is the call itself
+	spawn = 'Agent called subagent: {"task": "run true", "description": "a task"}'
+	call = 'Agent called bash: {"command": "true"}'
+	reviewer = ScriptedModel(
+		{spawn: [verdict("allow")], call: [verdict("deny", "No command was asked for."), verdict("allow")]}
+	)
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda name, **kwargs: reviewer)
+	session, events = _session(tmp_path, approval_mode="auto", small_model={"model": "mock"})
+	model = ScriptedModel(
+		{
+			"go": [AssistantMessage(content=[_spawn("c1", "run true")]), AssistantMessage(content="done")],
+			"run true": [
+				AssistantMessage(content=[_bash("c2")]),
+				AssistantMessage(content=[_bash("c3")]),
+				AssistantMessage(content="ran it"),
+			],
+		}
+	)
+
+	handle = await session.run("go", model=model)
+	await _until(lambda: _of(events, "approval_required", subagent="c1"))
+
+	# the delegation is judged against the user's words; the child's calls against its task
+	first, second = ([m.text for m in r.messages] for r in reviewer.requests[:2])
+	assert "User: go" in first and first[-1] == spawn
+	assert "User: run true" in second and "User: go" not in second and second[-1] == call
+	# a denial is the usual card, for the child alone, saying why
+	[approval] = _of(events, "approval_required", subagent="c1")
+	[held] = approval["calls"]
+	assert held["id"] == "c2" and held["prompt"].endswith("\n\nNot auto-approved: No command was asked for.")
+	assert not _of(events, "approval_required")
+	await session.resume({"c2": "Approve"}, approval_seq=approval["seq"])
+	assert handle.task is not None
+	await asyncio.wait_for(handle.task, timeout=5)
+	approved, ran = _of(events, "tool_result", subagent="c1")
+	assert approved["tool_call_id"] == "c2" and "review" not in approved["details"]
+	assert ran["tool_call_id"] == "c3" and ran["details"]["review"] == {"decision": "allow"}
+	assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]"
+
+
+async def test_a_delegation_to_a_missing_subagent_tool_is_not_reviewed(tmp_path, monkeypatch):
+	reviewer = ScriptedModel({})
+	monkeypatch.setattr("flow_harness.agent.loop.get_model", lambda name, **kwargs: reviewer)
+	session, events = _session(tmp_path, approval_mode="auto", tools=["read"], small_model={"model": "mock"})
+	model = MockModel(
+		replies=[AssistantMessage(content=[_spawn("c1", "run true")]), AssistantMessage(content="done")]
+	)
+
+	await _run(session, "go", model)
+	assert not reviewer.requests and not _of(events, "approval_required")
+	assert _of(events, "tool_result")[0]["content"] == "[unknown tool: subagent]"
 
 
 async def test_a_denied_or_cancelled_child_is_an_error_result(tmp_path):
@@ -656,7 +717,7 @@ async def test_the_agent_facade_answers_a_child_batch_and_streams_the_whole_run(
 			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="ran it")],
 		}
 	)
-	agent = Agent(model=model, data_dir=str(tmp_path / "data"), cwd=str(tmp_path))
+	agent = Agent(model=model, data_dir=str(tmp_path / "data"), cwd=str(tmp_path), approval_mode="ask")
 	seen = []
 
 	async def stream():

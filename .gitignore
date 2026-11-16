@@ -10,10 +10,9 @@ frappe/public/dist
 # studio editor build, exported studio app builds and the build's temp renderers
 frappe/public/studio
 frappe/public/app_builds
-.temp-app-renderers
-# flow page build
+# the flow page's old Vite build, left on benches that built it
 frappe/public/flow
-frappe/www/flow/index.html
+.temp-app-renderers
 # build/
 frappe/docs/current
 .vscode

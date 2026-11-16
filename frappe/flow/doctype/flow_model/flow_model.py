@@ -28,6 +28,7 @@ class FlowModel(Document):
 		api_key: DF.Password | None
 		base_url: DF.Data | None
 		context_window: DF.Int
+		embedding: DF.Check
 		enabled: DF.Check
 		extra_params: DF.JSON | None
 		model_id: DF.Data
@@ -46,7 +47,8 @@ class FlowModel(Document):
 		self._resolve_context_window()
 
 	def after_insert(self):
-		if not self.enabled:
+		# the Assistant chats: an embedding model is no model for it
+		if not self.enabled or self.embedding:
 			return
 		from frappe.flow.assistant import ensure_builtin_assistant
 
@@ -114,6 +116,10 @@ class FlowModel(Document):
 		self.context_window = _detect_context_window(self.model_id) or self.context_window or 0
 
 	def _validate_provider_known(self):
+		from frappe.flow.lib.model import SITE_PROVIDER
+
+		if self.provider == SITE_PROVIDER:
+			return  # not LiteLLM's: the flow server routes it, and Grove knows its models
 		try:
 			import litellm
 		except ImportError:
@@ -135,15 +141,15 @@ class FlowModel(Document):
 				title=_("Missing Dependency"),
 			)
 
-		from frappe.flow.lib.model import resolve_provider_credentials
+		from frappe.flow.lib.model import litellm_route, resolve_provider_credentials
 
-		provider_creds = resolve_provider_credentials(self.model_id)
+		provider_creds = resolve_provider_credentials(self.model_id, self.provider)
 		api_key = self.get_password("api_key", raise_exception=False) or provider_creds.get("api_key") or None
-		base_url = self.base_url or provider_creds.get("base_url")
+		model, base_url = litellm_route(self.model_id, self.base_url or provider_creds.get("base_url"))
 
 		kwargs = {
 			**self.model_params(),
-			"model": self.model_id,
+			"model": model,
 			"api_key": api_key,
 			"messages": [{"role": "user", "content": "ping"}],
 			"max_tokens": 1,
@@ -200,7 +206,10 @@ def _live_models(provider: str) -> list[str]:
 	doc = frappe.get_doc("Flow Provider", provider)
 	api_key = doc.get_password("api_key", raise_exception=False) or ""
 	base = (doc.base_url or "").rstrip("/")
-	url = (base if base.endswith("/models") else f"{base}/models") if base else MODEL_ENDPOINTS[provider]
+	if provider == "ollama_chat":
+		url = f"{base}/v1/models"  # its OpenAI-style list
+	else:
+		url = (base if base.endswith("/models") else f"{base}/models") if base else MODEL_ENDPOINTS[provider]
 	params = {}
 	if provider == "anthropic":
 		headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
@@ -210,6 +219,8 @@ def _live_models(provider: str) -> list[str]:
 		params = {"pageSize": 1000}
 	else:
 		headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+	if provider == "openrouter":
+		params = {"output_modalities": "text,embeddings"}  # its list is chat models alone by default
 	response = requests.get(url, headers=headers, params=params, timeout=10)
 	response.raise_for_status()
 	data = response.json()

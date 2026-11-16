@@ -13,7 +13,7 @@ export const SIDES = ["top", "right", "bottom", "left"];
 export const ALIGNS = ["start", "center", "end"];
 
 // breathing room kept between a panel and the edge of the viewport
-const VIEWPORT_PAD = 8;
+export const VIEWPORT_PAD = 8;
 
 /**
  * Decide where a panel goes, relative to the anchor rect (a trigger button,

@@ -1,6 +1,8 @@
+import type { InputLabelingProps as AtomLabelingProps } from "frappe-ui";
 import { InputLabelingProps } from "../types";
 
-export interface LinkProps extends InputLabelingProps {
+export interface LinkProps extends Omit<InputLabelingProps, "error"> {
+  error?: AtomLabelingProps["error"];
   doctype: string;
   filters?: Record<string, unknown>;
   creatable?: boolean;
@@ -10,6 +12,8 @@ export interface LinkProps extends InputLabelingProps {
   placeholder?: string;
   /** What the current value displays as until the search returns it. */
   title?: string;
+  /** Label options by ID, not title; disables client-side filtering. */
+  idLabels?: boolean;
 }
 
 export interface LinkSlots {

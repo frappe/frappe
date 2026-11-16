@@ -216,7 +216,7 @@ class FakeDaemon:
 
 	def tool_result(self, sid, token, result):
 		self.calls.append(("tool_result", sid, token, result))
-		return {"delivered": True}
+		return {"delivered": self.waiting}
 
 	def set_model(self, sid, model, **credentials):
 		self.calls.append(("set_model", sid, model, credentials))

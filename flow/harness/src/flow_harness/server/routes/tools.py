@@ -24,14 +24,13 @@ def create_tools_router(
 	@router.get("/tools")
 	async def list_tools(request: Request):
 		store = resolve_store(request)
-		allowed = store.tool_allowlist
 		runtime = store.extension_runtime
 		extension_tools = runtime.tools if policy.extensions else {}
 		# a built-in stays listed even when an extension overrides its name
 		rows = [_row(tool) for tool in BUILTIN_TOOLS.values()]
 		rows += [_row(tool, bundled=True) for tool in BUNDLED_TOOLS.values()]
 		rows += [_row(tool, extension=runtime.tool_sources[name]) for name, tool in extension_tools.items()]
-		return {"tools": [row for row in rows if allowed is None or row["name"] in allowed]}
+		return {"tools": [row for row in rows if store.allows_tool(row["name"])]}
 
 	return router
 

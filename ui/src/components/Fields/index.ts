@@ -13,5 +13,14 @@ export type {
   FieldMeta,
   FieldComponentProps,
   FieldComponentEmits,
+  FieldAddress,
+  FieldError,
 } from "./types";
-export { DocKey, LinkTitlesKey, ParentDocKey, UpdateKey } from "./types";
+export {
+  DocKey,
+  FieldErrorsKey,
+  LinkTitlesKey,
+  ParentDocKey,
+  UpdateKey,
+  fieldErrorKey,
+} from "./types";

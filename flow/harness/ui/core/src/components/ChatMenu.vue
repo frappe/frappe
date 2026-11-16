@@ -1,28 +1,42 @@
 <template>
 	<!-- open and update:open, when given, pass through to the Dropdown -->
-	<Dropdown align="end" :options="[...actions, ...own]">
+	<Dropdown :align="align" :options="options">
 		<template #trigger><slot /></template>
 	</Dropdown>
 </template>
 
 <script setup>
-import { inject } from "vue"
+import { computed, inject } from "vue"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 
 import { dialog } from "frappe-ui/src/utils/dialog"
 
+import { afterMenu } from "../menu.js"
+
 // A chat's menu, for its sidebar row and the header: the host's own items, then Rename and Delete
+// once there is a chat to rename. Rename edits the name in place where the row listens for it
 const props = defineProps({
-	sessionId: { type: String, required: true },
+	sessionId: { type: String, default: null },
 	title: { type: String, required: true },
 	actions: { type: Array, default: () => [] },
+	align: { type: String, default: "end" },
+	onRename: { type: Function, default: null },
 })
 const flow = inject("flow")
 
-const own = [
-	{ label: "Rename", icon: "lucide-pen", onClick: promptRename },
-	{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: confirmDelete },
-]
+const own = computed(() =>
+	props.sessionId
+		? [
+				{ label: "Rename", icon: "lucide-pen", onClick: props.onRename ?? promptRename },
+				{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: confirmDelete },
+			]
+		: [],
+)
+
+// each item runs once the menu has handed the focus back, so a dialog or field it opens keeps it
+const options = computed(() =>
+	[...props.actions, ...own.value].map((item) => ({ ...item, onClick: afterMenu((...args) => item.onClick?.(...args)) })),
+)
 
 // each dialog keeps the chat it was opened for, even if another one opens meanwhile
 function promptRename() {

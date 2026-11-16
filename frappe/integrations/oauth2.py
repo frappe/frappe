@@ -296,13 +296,15 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
 	try:
-		bearer_token = None
-		if token_type_hint == "access_token":
-			bearer_token = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
-		elif token_type_hint == "refresh_token":
-			bearer_token = frappe.get_doc(
-				"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(token)}
-			)
+		bearer_token = token and frappe.db.get_value(
+			"OAuth Bearer Token",
+			{token_type_hint: get_oauth_token_hash(token)},
+			("client", "status", "expiration_time", "scopes", "user"),
+			as_dict=True,
+		)
+		if not bearer_token:
+			frappe.local.response = frappe._dict({"active": False})
+			return
 
 		client = frappe.get_cached_doc("OAuth Client", bearer_token.client)
 

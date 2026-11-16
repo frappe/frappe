@@ -29,6 +29,19 @@ class ToolContext:
 	session_id: str
 	agent: str
 	user: str
+	result_token: str | None = None
+	# the call runs unapproved in a read-only transaction: what reaches outside it is stopped
+	read_only: bool = False
+	# a failed write undone, or a call stopped, in this call, so code that catches it still fails
+	failure: Exception | None = None
+
+
+@dataclass
+class Pending:
+	"""A tool's answer that comes later: the flow server waits `timeout` seconds for a result
+	posted under the context's `result_token`."""
+
+	timeout: int
 
 
 @dataclass
@@ -37,9 +50,10 @@ class Tool:
 	description: str
 	parameters: dict[str, Any]
 	func: Callable[..., Any]
-	requires_confirmation: bool = False
+	requires_confirmation: bool | Callable[[dict[str, Any]], bool] = False
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None
 	background: bool | Callable[[dict[str, Any]], bool] = False
+	needs_user: bool = False  # the card takes the user's input, so no reviewer may answer it for them
 	display_template: str | None = None
 
 	def __post_init__(self) -> None:
@@ -78,9 +92,10 @@ def tool(
 	*,
 	name: str | None = None,
 	description: str | None = None,
-	requires_confirmation: bool = False,
+	requires_confirmation: bool | Callable[[dict[str, Any]], bool] = False,
 	confirm_prompt: Callable[[dict[str, Any]], str] | None = None,
 	background: bool | Callable[[dict[str, Any]], bool] = False,
+	needs_user: bool = False,
 	display_template: str | None = None,
 ) -> Tool | Callable[[Callable[..., Any]], Tool]:
 	def wrap(f: Callable[..., Any]) -> Tool:
@@ -94,6 +109,7 @@ def tool(
 			requires_confirmation=requires_confirmation,
 			confirm_prompt=confirm_prompt,
 			background=background,
+			needs_user=needs_user,
 			display_template=display_template,
 		)
 

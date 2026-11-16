@@ -13,7 +13,6 @@
 	"dependencies": {
 		"@lobehub/icons-static-svg": "^1.94.0",
 		"dompurify": "^3.2.3",
-		"feather-icons": "^4.29.2",
 		"highlight.js": "^11.11.1",
 		"marked": "^15.0.4",
 		"monaco-editor": "^0.52.2"

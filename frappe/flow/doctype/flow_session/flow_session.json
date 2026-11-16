@@ -9,7 +9,7 @@
   "agent",
   "model",
   "source",
-  "auto_approve",
+  "approval_mode",
   "general_access",
   "last_synced_seq",
   "section_break_transcript",
@@ -55,11 +55,12 @@
    "read_only": 1
   },
   {
-   "default": "0",
-   "description": "Run confirmation-gated tools without pausing. Always enabled for Trigger sessions.",
-   "fieldname": "auto_approve",
-   "fieldtype": "Check",
-   "label": "Auto Approve Tool Calls",
+   "default": "Auto",
+   "description": "Ask stops at every confirmation-gated tool call. Auto lets the helper model approve the calls the user asked for and asks about the rest. Auto-approve runs everything; always so for Trigger sessions.",
+   "fieldname": "approval_mode",
+   "fieldtype": "Select",
+   "label": "Approval Mode",
+   "options": "Ask\nAuto\nAuto-approve",
    "read_only": 1
   },
   {
@@ -117,7 +118,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-10-16 20:41:00",
+ "modified": "2026-11-02 10:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session",

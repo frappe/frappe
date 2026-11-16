@@ -18,6 +18,7 @@
   "execution_details_section",
   "method",
   "queue",
+  "timeout",
   "column_break_rnhf",
   "started_at",
   "ended_at",
@@ -214,12 +215,18 @@
    "fieldname": "is_mapreduce",
    "fieldtype": "Check",
    "label": "Is MapReduce"
+  },
+  {
+   "depends_on": "eval: doc.timeout",
+   "fieldname": "timeout",
+   "fieldtype": "Int",
+   "label": "Timeout"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-21 11:07:44.535904",
+ "modified": "2026-10-26 11:51:34.247622",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Background Task",

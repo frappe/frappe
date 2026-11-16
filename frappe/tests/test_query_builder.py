@@ -928,6 +928,18 @@ class TestParameterization(IntegrationTestCase):
 		self.assertEqual(params["param4"], "true_value")
 		self.assertEqual(params["param5"], "Overdue")
 
+	def test_a_term_in_select_and_group_by_keeps_one_parameter(self):
+		ToDo = frappe.qb.DocType("ToDo")
+		status = Coalesce(ToDo.status, "")
+		query = frappe.qb.from_(ToDo).select(status).groupby(status)
+
+		sql, params = query.walk()
+
+		self.assertEqual(params, {"param1": ""})
+		self.assertEqual(sql.count("%(param1)s"), 2)
+		# Postgres matches the GROUP BY expression only when both share the parameter.
+		query.run()
+
 	def test_named_parameter_wrapper(self):
 		from frappe.query_builder.terms import NamedParameterWrapper
 

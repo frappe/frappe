@@ -8,6 +8,7 @@
  "field_order": [
   "title",
   "enabled",
+  "embedding",
   "section_break_config",
   "provider",
   "model_id",
@@ -32,6 +33,13 @@
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled"
+  },
+  {
+   "default": "0",
+   "description": "Turns text into vectors for Knowledge's search. Not offered in chats.",
+   "fieldname": "embedding",
+   "fieldtype": "Check",
+   "label": "Embedding model"
   },
   {
    "fieldname": "section_break_config",
@@ -93,7 +101,7 @@
   }
  ],
  "links": [],
- "modified": "2026-10-21 16:00:00.000000",
+ "modified": "2026-11-05 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Model",

@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.flow.daemon import lifecycle
-from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools
+from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools, unavailable_tools
 from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
 
@@ -56,14 +56,16 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 
 	def test_an_invalid_tool_is_refused(self):
 		cases = [
-			(_module(slug=bad), "Slug")
-			for bad in ("bad-slug", "1starts_with_digit", "bad slug", "has.dot", "HasCaps")
+			(_module(slug=bad), "Function Name")
+			for bad in ("bad-slug", "1starts_with_digit", "bad slug", "has.dot", "HasCaps", "crm/get_weather")
 		]
 		cases += [
 			(_module(import_path=None), "Import Path"),
 			(_module(import_path="not a path"), "Import Path"),
 			(_module(code="def main():\n\treturn 1"), "inline code"),
 			(_script(code=None), "Code"),
+			(_script(slug="read_records"), "reserved"),
+			(_script(slug="crm__get_weather"), "reserved"),
 			(_script(import_path="frappe.x.y"), "Import Path"),
 			(_script(code="def main(:\n\tpass"), "syntax"),
 			(_script(code="def other():\n\treturn 1\n"), "main"),
@@ -75,6 +77,62 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 		for doc, error in cases:
 			with self.subTest(doc=doc), self.assertRaisesRegex(frappe.ValidationError, error):
 				frappe.get_doc(doc).insert()
+
+	def test_a_script_tool_saves_with_a_warning_while_server_scripts_are_off(self):
+		for enabled in (False, True):
+			with (
+				self.subTest(enabled=enabled),
+				patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=enabled),
+				patch("frappe.msgprint") as msgprint,
+			):
+				frappe.get_doc(_script(slug=f"script_weather_{int(enabled)}")).insert()
+				self.assertEqual(msgprint.called, not enabled)
+
+	def test_execute_and_script_tools_are_unavailable_while_server_scripts_are_off(self):
+		sync_builtin_tools()
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True):
+			script = frappe.get_doc(_script()).insert()
+			self.assertEqual(unavailable_tools(), [])
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False):
+			unavailable = unavailable_tools()
+		self.assertIn("frappe/execute", unavailable)
+		self.assertIn(script.name, unavailable)
+		self.assertNotIn("frappe/create", unavailable)
+
+	def test_a_user_who_cannot_read_tools_learns_only_of_those_on_their_agents(self):
+		sync_builtin_tools()
+		with patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True):
+			frappe.get_doc(_script()).insert()
+		model = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Tool Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+		).insert()
+		frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Tool Agent",
+				"model": model.name,
+				"instructions": "Be terse.",
+				"tools": [{"tool": "frappe/execute"}, {"tool": "frappe/create"}],
+				"enabled": 1,
+			}
+		).insert()
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "flow-tool-reader@example.com",
+				"first_name": "Reader",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Flow User"}],
+			}
+		).insert(ignore_permissions=True)
+
+		with (
+			patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=False),
+			self.set_user(user.name),
+		):
+			self.assertFalse(frappe.has_permission("Flow Tool", "read"))
+			# the Script tool is on none of their agents
+			self.assertEqual(unavailable_tools(), ["frappe/execute"])
 
 
 class TestFlowToolSystemGenerated(IntegrationTestCase):
@@ -90,7 +148,7 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 			("delete", lambda: frappe.delete_doc("Flow Tool", tool.name)),
 			(
 				"a builtin, even by the app",
-				lambda: frappe.delete_doc("Flow Tool", "read", ignore_permissions=True),
+				lambda: frappe.delete_doc("Flow Tool", "frappe/read", ignore_permissions=True),
 			),
 		):
 			with (
@@ -158,6 +216,27 @@ class TestFlowToolSessionWarning(IntegrationTestCase):
 			self.tool.save()
 		self.assertIn("Existing sessions", msgprint.call_args.args[0])
 
+	def test_what_chats_call_cannot_be_renamed(self):
+		parent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Tool Warning Parent",
+				"model": self.agent.model,
+				"instructions": "x",
+				"sub_agents": [{"agent": self.agent.name}],
+				"enabled": 1,
+			}
+		).insert()
+		frappe.rename_doc("Flow Tool", self.tool.name, "get_weather_now")  # no chats yet
+
+		frappe.get_doc({"doctype": "Flow Session", "agent": parent.name}).insert()
+		for doctype, name, new in (
+			("Flow Tool", "get_weather_now", "get_weather"),
+			("Flow Agent", self.agent.name, "Renamed Agent"),
+		):
+			with self.subTest(doctype), self.assertRaisesRegex(frappe.ValidationError, "would break"):
+				frappe.rename_doc(doctype, name, new)
+
 
 def _listed(name: str, description: str, extension: str = "helpdesk") -> dict:
 	return {"name": name, "description": description, "extension": extension}
@@ -209,11 +288,17 @@ class TestSyncServerTools(IntegrationTestCase):
 		self.assertEqual(frappe.get_all("Flow Agent Tool", {"parent": agent.name}), [])
 
 	def test_an_extension_tool_that_cannot_have_a_server_row_is_skipped(self):
-		with self.subTest("named like an app tool"), patch("frappe.log_error") as log_error:
-			self.sync(_listed("read", "An override.", "override"))
-			self.assertEqual(frappe.db.get_value("Flow Tool", "read", "type"), "Imported")
-			log_error.assert_called_once()
-		with self.subTest("a name that is not a slug"), patch("frappe.log_error") as log_error:
-			self.sync(_listed("readTicket", "Fetch a ticket."))
-			self.assertFalse(frappe.db.exists("Flow Tool", "readTicket"))
-			log_error.assert_called_once()
+		frappe.get_doc(_script(slug="count_open")).insert()
+		for name, label in (("count_open", "named like the site's own tool"), ("read", "named like Flow's")):
+			with self.subTest(label), patch("frappe.log_error") as log_error:
+				self.sync(_listed(name, "An override.", "override"))
+				self.assertNotEqual(frappe.db.get_value("Flow Tool", name, "type"), "Server")
+				log_error.assert_called_once()
+		for name, label in (
+			("readTicket", "a name that is not a slug"),
+			("crm__ticket", "named like app tools"),
+		):
+			with self.subTest(label), patch("frappe.log_error") as log_error:
+				self.sync(_listed(name, "Fetch a ticket."))
+				self.assertFalse(frappe.db.exists("Flow Tool", name))
+				log_error.assert_called_once()

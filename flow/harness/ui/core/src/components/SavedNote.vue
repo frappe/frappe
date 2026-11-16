@@ -1,17 +1,16 @@
 <template>
 	<span
-		class="flex items-center gap-1 text-xs text-ink-gray-5 transition-opacity"
+		class="flex items-center gap-1 text-sm text-ink-gray-5 transition-opacity"
 		:class="shown ? 'opacity-100 duration-150' : 'opacity-0 duration-500'"
 		aria-hidden="true"
 	>
-		<FeatherIcon name="check" class="h-3.5 w-3.5" />
+		<span class="lucide-check size-3.5" aria-hidden="true" />
 		Saved
 	</span>
 </template>
 
 <script setup>
 import { onBeforeUnmount, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 // "Saved" beside a setting that applies as it changes, as there's no Save button: it shows
 // whenever `value` changes and fades a moment after the last change

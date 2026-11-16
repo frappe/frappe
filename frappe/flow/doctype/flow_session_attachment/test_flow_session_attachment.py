@@ -9,9 +9,15 @@ from PIL import Image
 import frappe
 from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import (
 	MAX_ATTACHMENTS,
+	PASTE_LIMIT,
+	READ_CHAR_LIMIT,
 	TRUNCATED,
+	_size_text,
 	build_turn,
+	hold_sent_files,
 	load_attachment,
+	read_attachment,
+	release_sent_files,
 	stage_attachment,
 	staged_attachment,
 )
@@ -19,7 +25,23 @@ from frappe.tests import IntegrationTestCase
 
 MODULE = "frappe.flow.doctype.flow_session_attachment.flow_session_attachment"
 VISION = "flow_harness.model.catalog.model_supports_images"
-LARGE_NOTE = "[Attached file: {0} (large; relevant excerpts follow)]"
+
+
+def block(file_doc, body: str) -> str:
+	return (
+		f'<file name="{file_doc.file_name.replace("&", "&amp;")}" file="{file_doc.name}" '
+		f'url="{file_doc.file_url.replace("&", "&amp;")}" size="{_size_text(file_doc.file_size)}">'
+		f"\n{body}\n</file>"
+	)
+
+
+def prose_preview(text: str, more: bool = False) -> str:
+	lines = text.count("\n") + 1
+	note = " Read more with read_attachment." if more else ""
+	return (
+		f"Saved as a File, not shown in full: {len(text):,} characters, {lines:,} lines.\n"
+		f"{text[:1000]}\n[Preview: the first {min(1000, len(text)):,} characters.{note}]"
+	)
 
 
 def _file(file_name="note.txt", content="attachment body", **kwargs):
@@ -188,7 +210,7 @@ class TestBuildTurn(IntegrationTestCase):
 	def test_text_is_inlined_once_with_the_servers_file_marker(self):
 		file_doc = _file(file_name="q&a.txt", content="the body")
 		turn = build_turn(self.session, "summarize", [file_doc.name, file_doc.name])
-		self.assertEqual(turn.message, 'summarize\n<file name="q&amp;a.txt">\nthe body\n</file>')
+		self.assertEqual(turn.message, f"summarize\n{block(file_doc, 'the body')}")
 		self.assertEqual(turn.images, [])
 		self.assertEqual(
 			turn.attachment_rows,
@@ -206,23 +228,91 @@ class TestBuildTurn(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.ValidationError, "at most"):
 			build_turn(self.session, "hi", [f"f{i}" for i in range(MAX_ATTACHMENTS + 1)])
 
-	def test_inline_text_is_truncated_to_the_turns_budget(self):
+	def test_without_read_attachment_text_over_the_budget_is_truncated_smallest_files_first(self):
 		self.shrink_window(10)  # 20 characters of file text
 		with self.subTest("one file"):
 			file_doc = _file(file_name="big.txt", content="A" * 30)
 			turn = build_turn(self.session, "hi", [file_doc.name])
-			self.assertEqual(turn.message, f'hi\n<file name="big.txt">\n{"A" * 20}\n{TRUNCATED}\n</file>')
+			self.assertEqual(turn.message, f"hi\n{block(file_doc, 'A' * 20 + chr(10) + TRUNCATED)}")
 			self.assertEqual(
 				(turn.attachment_rows[0]["mode"], turn.attachment_rows[0]["extracted_text"]),
 				("Inline", "A" * 30),
 			)
 		with self.subTest("files share the budget"):
-			first = _file(file_name="first.txt", content="A" * 15)
-			second = _file(file_name="second.txt", content="B" * 15)
-			turn = build_turn(self.session, "hi", [first.name, second.name])
-			self.assertIn(f'<file name="first.txt">\n{"A" * 15}\n</file>', turn.message)
-			self.assertIn(f'<file name="second.txt">\n{"B" * 5}\n{TRUNCATED}\n</file>', turn.message)
-			self.assertEqual([row["extracted_text"] for row in turn.attachment_rows], ["A" * 15, "B" * 15])
+			larger = _file(file_name="larger.txt", content="A" * 16)
+			smaller = _file(file_name="smaller.txt", content="B" * 15)
+			turn = build_turn(self.session, "hi", [larger.name, smaller.name])
+			self.assertEqual(
+				turn.message,
+				f"hi\n{block(larger, 'A' * 5 + chr(10) + TRUNCATED)}\n{block(smaller, 'B' * 15)}",
+			)
+			self.assertEqual([row["extracted_text"] for row in turn.attachment_rows], ["A" * 16, "B" * 15])
+
+	def test_an_agent_that_reads_attachments_pastes_prose_up_to_the_limit_and_previews_tables(self):
+		self.give_read_attachment()
+		note = _file(file_name="note.txt", content="N" * (PASTE_LIMIT - 100))
+		long = _file(file_name="long.txt", content="L" * (PASTE_LIMIT + 1))
+		rows = "\n".join(f"{i},site{i}.example.com" for i in range(1, 400))
+		table = _file(file_name="events.csv", content=f'name,site\n{rows}\n9,"two\nlines"\n')
+		turn = build_turn(self.session, "import this", [note.name, long.name, table.name])
+		preview = "\n".join(
+			[
+				"Saved as a File, not shown in full. To import it, pass its url to Data Import's import_file.",
+				"Table: 400 rows, columns: name, site",
+				"name,site",
+				*rows.split("\n")[:5],
+				"[Preview: the header and the first 5 rows. Read more with read_attachment.]",
+			]
+		)
+		self.assertEqual(
+			turn.message,
+			f"import this\n{block(note, 'N' * (PASTE_LIMIT - 100))}"
+			f"\n{block(long, prose_preview('L' * (PASTE_LIMIT + 1), more=True))}"
+			f"\n{block(table, preview)}",
+		)
+		self.assertEqual([row["mode"] for row in turn.attachment_rows], ["Inline"] * 3)
+
+		# a table small enough to read whole is pasted
+		text = "name\n" + "\n".join(["x"] * 100)
+		small = _file(file_name="small.csv", content=text)
+		turn = build_turn(self.session, "import this", [small.name])
+		self.assertEqual(turn.message, f"import this\n{block(small, text)}")
+
+	def test_an_xlsx_is_previewed_as_data_import_reads_it(self):
+		from frappe.utils.xlsxutils import make_xlsx
+
+		self.give_read_attachment()
+		content = make_xlsx([["item", "qty"], ["Pen", 2], [None, None], ["Ink", None]], "Sheet").getvalue()
+		file_doc = _file(file_name="stock.xlsx", content=content)
+		with patch(f"{MODULE}.PASTE_LIMIT", 0):
+			turn = build_turn(self.session, "import", [file_doc.name])
+		self.assertIn(
+			"active sheet, which Data Import reads): 2 rows, columns: item, qty\nitem,qty\nPen,2\nInk,\n",
+			turn.message,
+		)
+		# pasted, it keeps its columns too
+		turn = build_turn(self.session, "import", [file_doc.name])
+		self.assertEqual(
+			turn.message, f"import\n{block(file_doc, 'item,qty' + chr(10) + 'Pen,2' + chr(10) + 'Ink,')}"
+		)
+
+	def test_a_table_data_import_cannot_take_or_cannot_parse_says_so(self):
+		self.give_read_attachment()
+		with patch(f"{MODULE}.PASTE_LIMIT", 0):
+			tsv = _file(file_name="stock.tsv", content="item\tqty\nPen\t2\n")
+			self.assertNotIn("Data Import", build_turn(self.session, "hi", [tsv.name]).message)
+			broken = _file(file_name="broken.csv", content="a,b\n" + "x" * 140000 + "\n")
+			with patch("frappe.msgprint"):
+				message = build_turn(self.session, "hi", [broken.name]).message
+			self.assertIn("Saved as a File, not shown in full: 140,004 characters", message)
+
+	def give_read_attachment(self):
+		from frappe.flow.tools.builtins import sync_builtin_tools
+
+		sync_builtin_tools()
+		agent = frappe.get_doc("Flow Agent", self.session.agent)
+		agent.append("tools", {"tool": "frappe/read_attachment"})
+		agent.save()
 
 	def test_only_the_largest_files_are_indexed_once_and_excerpted_on_their_turn(self):
 		self.shrink_window(10)
@@ -233,8 +323,8 @@ class TestBuildTurn(IntegrationTestCase):
 		self.assertEqual([row["mode"] for row in turn.attachment_rows], ["Retrieval", "Inline"])
 		self.assertEqual(
 			turn.message,
-			f"what does it say\n{LARGE_NOTE.format('large.txt')}\n"
-			f'<file name="small.txt">\n{"B" * 8}\n</file>\n'
+			f"what does it say\n{block(large, prose_preview(('word ' * 100).strip()))}\n"
+			f"{block(small, 'B' * 8)}\n"
 			"Relevant excerpts from the attached files:\n<excerpts>\nEXCERPT\n</excerpts>",
 		)
 		self.assertEqual(turn.attachment_rows[0]["extracted_text"], ("word " * 100).strip())
@@ -286,7 +376,7 @@ class TestBuildTurn(IntegrationTestCase):
 		with patch(VISION, return_value=False):
 			with patch(f"{MODULE}.extract_file", return_value="OCR TEXT"):
 				turn = build_turn(self.session, "read it", [file_doc.name])
-			self.assertEqual(turn.message, 'read it\n<file name="pic.png">\nOCR TEXT\n</file>')
+			self.assertEqual(turn.message, f"read it\n{block(file_doc, 'OCR TEXT')}")
 			self.assertEqual(turn.images, [])
 			self.assertEqual(
 				(turn.attachment_rows[0]["mode"], turn.attachment_rows[0]["extracted_text"]),
@@ -339,3 +429,93 @@ class TestBuildTurn(IntegrationTestCase):
 		frappe.set_user(_ensure_user("turn-other@example.com"))
 		with self.subTest("another user's file"), self.assertRaises(frappe.PermissionError):
 			build_turn(self.session, "hi", [private.name])
+
+
+class TestReadAttachment(IntegrationTestCase):
+	"""What `read_attachment` returns, and which Files it reads."""
+
+	def setUp(self):
+		self.user = _ensure_user("attach-reader@example.com")
+		frappe.set_user(self.user)
+		model = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Read Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
+		).insert(ignore_permissions=True)
+		agent = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Read Agent",
+				"model": model.name,
+				"instructions": "x",
+				"enabled": 1,
+			}
+		).insert(ignore_permissions=True)
+		self.session = frappe.get_doc({"doctype": "Flow Session", "agent": agent.name}).insert(
+			ignore_permissions=True
+		)
+
+	def tearDown(self):
+		release_sent_files(self.session.name)
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def attached(self, file_name="notes.txt", content="one\ntwo\nthree", session=None):
+		return _file(
+			file_name=file_name,
+			content=content,
+			attached_to_doctype="Flow Session",
+			attached_to_name=session or self.session.name,
+		)
+
+	def test_lines_are_read_in_ranges_and_capped_in_characters(self):
+		file_doc = self.attached()
+		read = lambda *args: read_attachment(self.session.name, file_doc.name, *args)  # noqa: E731
+		self.assertEqual(read(), "one\ntwo\nthree\n[Lines 1-3 of 3.]")
+		self.assertEqual(read(2, 1), "two\n[Lines 2-2 of 3. Continue at offset 3.]")
+		self.assertEqual(read_attachment(self.session.name, "notes.txt", 3), "three\n[Lines 3-3 of 3.]")
+
+		self.assertEqual(read(9), "[Past the end: 3 lines.]")
+
+		long = self.attached("long.json", "x" * (READ_CHAR_LIMIT + 50) + "\nend")
+		result = read_attachment(self.session.name, long.name)
+		self.assertEqual(result, "x" * READ_CHAR_LIMIT + "\n[Lines 1-1 of 3. Continue at offset 2.]")
+		self.assertEqual(
+			read_attachment(self.session.name, long.name, 2), "x" * 50 + "\nend\n[Lines 2-3 of 3.]"
+		)
+
+		table = self.attached("events.csv", 'name,note\n1,"two\nlines"\n2,b\n')
+		self.assertEqual(
+			read_attachment(self.session.name, table.name, 2, 1),
+			'1,"two\nlines"\n[Lines 2-2 of 3. Continue at offset 3.]',
+		)
+
+	def test_without_a_file_it_lists_the_sessions_files(self):
+		file_doc = self.attached()
+		self.attached(session=frappe.generate_hash(length=10))
+		self.assertEqual(
+			read_attachment(self.session.name, None),
+			[{"file": file_doc.name, "file_name": "notes.txt", "url": file_doc.file_url}],
+		)
+
+	def test_only_files_of_this_session_the_user_may_read(self):
+		elsewhere = _file(attached_to_doctype="ToDo", attached_to_name="x")
+		other_session = self.attached(session=frappe.generate_hash(length=10))
+		loose = _file()
+		for file_doc in (elsewhere, other_session, loose):
+			with self.subTest(file_doc.attached_to_doctype), self.assertRaises(frappe.PermissionError):
+				read_attachment(self.session.name, file_doc.name)
+
+		frappe.set_user("Administrator")
+		private = self.attached(content="admin only")
+		frappe.set_user(self.user)
+		with self.assertRaises(frappe.PermissionError):
+			read_attachment(self.session.name, private.name)
+
+	def test_a_file_being_sent_is_readable_before_its_claim_commits(self):
+		loose = _file(content="first turn")
+		hold_sent_files(self.session.name, [loose.name])
+		self.assertEqual(read_attachment(self.session.name, loose.name), "first turn\n[Lines 1-1 of 1.]")
+		self.assertEqual([row["file"] for row in read_attachment(self.session.name, None)], [loose.name])
+		self.assertEqual(read_attachment(self.session.name, "note.txt"), "first turn\n[Lines 1-1 of 1.]")
+		release_sent_files(self.session.name)
+		with self.assertRaises(frappe.PermissionError):
+			read_attachment(self.session.name, loose.name)

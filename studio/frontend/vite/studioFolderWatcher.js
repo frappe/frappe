@@ -123,9 +123,9 @@ function studioFolderWatcher(appsDir) {
 	}
 }
 
-// A page exports to `studio/<studio_app>/studio_page/<stem>/<stem>.ts`; the docname lives in the
+// A page exports to `studio/<studio_app>/studio_page/<stem>/<stem>.ts` (or .js); the docname lives in the
 // sibling `<stem>.json`. Returns the page docname for a page-script module id, else null.
-const PAGE_SCRIPT_RE = /\/studio\/[^/]+\/studio_page\/([^/]+)\/([^/]+)\.ts$/
+const PAGE_SCRIPT_RE = /\/studio\/[^/]+\/studio_page\/([^/]+)\/([^/]+)\.(?:ts|js)$/
 
 function pageScriptName(id) {
 	let file = normalize(id).split("?")[0]
@@ -133,7 +133,7 @@ function pageScriptName(id) {
 	const match = file.match(PAGE_SCRIPT_RE)
 	if (!match || match[1] !== match[2]) return null
 	try {
-		const json = JSON.parse(fs.readFileSync(file.replace(/\.ts$/, ".json"), "utf8"))
+		const json = JSON.parse(fs.readFileSync(file.replace(/\.(?:ts|js)$/, ".json"), "utf8"))
 		return json.page_name || null
 	} catch {
 		return null
@@ -141,7 +141,7 @@ function pageScriptName(id) {
 }
 
 function isRouterFile(id) {
-	const ROUTER_FILE_RE = /\/studio\/[^/]+\/router\.ts$/
+	const ROUTER_FILE_RE = /\/studio\/[^/]+\/router\.(?:ts|js)$/
 	return ROUTER_FILE_RE.test(normalize(id).split("?")[0])
 }
 

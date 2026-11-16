@@ -341,8 +341,10 @@ test.describe("List filter", () => {
 			await value.click();
 
 			await expect(title(page)).toHaveText("Choose date and time");
-			await expect(page.locator(".datepickers-container .datepicker.active")).toHaveCount(0);
-			await page.locator(".filter-calendar .datepicker--button").click();
+			await expect(
+				page.locator(".air-datepicker-global-container .air-datepicker.-active-")
+			).toHaveCount(0);
+			await page.locator(".filter-calendar .air-datepicker-button").click();
 			await footer_button(page, "Done").click();
 
 			await expect(title(page)).toHaveText("Edit filter");

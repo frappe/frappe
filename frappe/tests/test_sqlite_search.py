@@ -11,7 +11,9 @@ from frappe.search.sqlite_search import (
 	_build_lock_name,
 	build_index,
 	build_index_if_not_exists,
+	delete_doc_index,
 	index_docs_in_queue,
+	update_doc_index,
 )
 from frappe.tests import IntegrationTestCase
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime
@@ -48,6 +50,12 @@ class TestSQLiteSearch(SQLiteSearch):
 			return {}
 		# Simulate user-specific filtering
 		return {"owner": frappe.session.user}
+
+
+class UnindexedSearch(TestSQLiteSearch):
+	"""Another app's search whose index is never built."""
+
+	INDEX_NAME = "test_unindexed_search.db"
 
 
 class BuildWindowSearch(TestSQLiteSearch):
@@ -548,6 +556,29 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 
 		finally:
 			new_note.delete()
+
+	def test_a_search_without_an_index_does_not_block_the_others(self):
+		self.search.build_index()
+		note = self.test_notes[0]
+		doc_id = f"Note:{note.name}"
+
+		with patch(
+			"frappe.search.sqlite_search.get_search_classes",
+			return_value=[UnindexedSearch, TestSQLiteSearch],
+		):
+			update_doc_index(note)
+			self.assertEqual(self.count_rows("search_index_queue", doc_id), 1)
+
+			delete_doc_index(note)
+			self.assertEqual(self.count_rows("search_index_queue", doc_id), 0)
+			self.assertEqual(self.count_rows("search_fts", doc_id), 0)
+
+	def count_rows(self, table, doc_id):
+		conn = sqlite3.connect(self.search.db_path)
+		try:
+			return conn.execute(f"SELECT COUNT(*) FROM {table} WHERE doc_id = ?", (doc_id,)).fetchone()[0]
+		finally:
+			conn.close()
 
 	def test_document_indexing_operations(self):
 		"""Test individual document indexing and removal operations."""

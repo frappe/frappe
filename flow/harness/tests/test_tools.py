@@ -1,5 +1,6 @@
 import asyncio
 import os
+import signal
 
 import pytest
 
@@ -157,6 +158,36 @@ async def test_bash_task_cancellation_kills_child_process_group(tmp_path):
 		await asyncio.sleep(0.01)
 	else:
 		pytest.fail("Bash child process survived cancellation")
+
+
+async def test_bash_returns_when_the_shell_exits_and_leaves_background_jobs_running(tmp_path):
+	pid_file = tmp_path / "job.pid"
+	# `&&` puts the whole list in a background subshell that inherits the command's output
+	command = f"cd . && sleep 30 & echo $! > {pid_file}; echo started"
+	res = await bash(command=command, ctx=_ctx(tmp_path, timeout=2))
+	job = int(pid_file.read_text())
+	try:
+		assert not res.is_error, res.content
+		assert "started" in res.content and res.details["exit_code"] == 0
+		os.kill(job, 0)  # still running
+	finally:
+		os.killpg(os.getpgid(job), signal.SIGKILL)
+
+
+async def test_bash_runs_commands_in_bash_without_the_callers_stdin(tmp_path):
+	read_end, write_end = os.pipe()  # a stdin that stays open and never sends, like a sandbox's
+	saved = os.dup(0)
+	os.dup2(read_end, 0)
+	try:
+		res = await bash(
+			command='[[ -n "$BASH_VERSION" ]] && cat && echo done', ctx=_ctx(tmp_path, timeout=2)
+		)
+	finally:
+		os.dup2(saved, 0)
+		for fd in (saved, read_end, write_end):
+			os.close(fd)
+	assert not res.is_error, res.content
+	assert "done" in res.content
 
 
 async def test_bash_truncation_spills_to_temp_file(tmp_path):

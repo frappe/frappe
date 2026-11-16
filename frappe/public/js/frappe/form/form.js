@@ -366,8 +366,7 @@ frappe.ui.form.Form = class FrappeForm {
 						field.validate &&
 						field.validate(value);
 
-					me.layout.refresh_dependency();
-					me.layout.refresh_sections();
+					me.layout.schedule_refresh_dependency();
 					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				}
 			}
@@ -486,11 +485,6 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.show_not_permitted(__(this.doctype) + " " + __(cstr(this.docname)));
 				return;
 			}
-
-			// update grids with new permissions
-			this.grids.forEach((table) => {
-				table.grid.refresh();
-			});
 
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
@@ -686,7 +680,7 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this._resolve_layout(),
 				() => this.refresh_header(switched),
 				() => $(document).trigger("form-refresh", [this]),
-				() => this.refresh_fields(),
+				() => this.render_fields(),
 				() => this.script_manager.trigger("refresh"),
 				() => this.apply_layout_defaults(),
 				() => {
@@ -697,6 +691,7 @@ frappe.ui.form.Form = class FrappeForm {
 				},
 				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
+				() => this.show_upload_first_review(),
 				() => this.dashboard.after_refresh(),
 				() => (this.cscript.is_onload = false),
 				() => this.configure_breadcrumb_width(),
@@ -868,7 +863,55 @@ frappe.ui.form.Form = class FrappeForm {
 		}
 	}
 
+	show_upload_first_review() {
+		// The entry being reviewed rides in the route until the document's first save.
+		if (!this.meta.enable_upload_first_workflow || this.doc.docstatus !== 0) return;
+
+		// same as the layout param: route_options on a fresh route, the URL after that
+		const from_route_options = frappe.route_options?.attachment_queue;
+		const entry_name =
+			from_route_options ||
+			new URLSearchParams(window.location.search).get("attachment_queue");
+		if (from_route_options) delete frappe.route_options.attachment_queue;
+
+		if (!entry_name) return;
+		// already reviewing this document, including a pane the reader closed
+		if (this.upload_first_review?.docname === this.docname) return;
+		if (this._upload_first_review_docname === this.docname) return;
+		// One Form is shared by every document of its DocType, so this.docname moves on
+		// as the user does: the entry below belongs to the document asked about here.
+		const docname = (this._upload_first_review_docname = this.docname);
+
+		return frappe.db
+			.get_list("Attachment Queue", {
+				fields: ["name", "document_type", "source_file"],
+				filters: { name: entry_name, created_document: ["is", "not set"] },
+				limit: 1,
+			})
+			.then(([entry]) => {
+				if (!entry) return;
+
+				// the review ships as its own on-demand bundle
+				frappe.require("upload_first_review.bundle.js", () => {
+					// the form may have moved to another document while this loaded
+					if (this.docname !== docname) return;
+
+					frappe.ui.form.upload_first_review.open(this, entry);
+				});
+			});
+	}
+
 	refresh_fields() {
+		if (this.layout === undefined || this.refresh_fields_frame) {
+			return;
+		}
+
+		this.refresh_fields_frame = requestAnimationFrame(() => this.render_fields());
+	}
+
+	render_fields() {
+		cancelAnimationFrame(this.refresh_fields_frame);
+		this.refresh_fields_frame = null;
 		if (this.layout === undefined) {
 			return;
 		}
@@ -987,6 +1030,10 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 
 				me.script_manager.trigger("after_save");
+
+				if (me.upload_first_review) {
+					frappe.ui.form.upload_first_review.file(me);
+				}
 
 				if (frappe.route_hooks.after_save) {
 					let route_callback = frappe.route_hooks.after_save;
@@ -1813,8 +1860,7 @@ frappe.ui.form.Form = class FrappeForm {
 	refresh_field(fname) {
 		if (this.fields_dict[fname] && this.fields_dict[fname].refresh) {
 			this.fields_dict[fname].refresh();
-			this.layout.refresh_dependency();
-			this.layout.refresh_sections();
+			this.layout.schedule_refresh_dependency();
 		}
 	}
 
@@ -2057,8 +2103,11 @@ frappe.ui.form.Form = class FrappeForm {
 			var fieldname = fnames[i];
 			var field = frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
 			if (field) {
+				const before = { ...field };
 				fn(field);
-				this.refresh_field(fieldname);
+				if (Object.keys(field).some((key) => field[key] !== before[key])) {
+					this.refresh_field(fieldname);
+				}
 			}
 		}
 	}

@@ -13,7 +13,7 @@ flow attach --session <id>
 
 `flow` starts a private, authenticated Unix-socket daemon and shuts it down when the TUI exits. `flow attach` starts nothing; its daemon and sessions continue after the TUI closes. The private-daemon mode is POSIX-only.
 
-New TUI sessions use the current directory, the saved model preference (or `FLOW_MODEL`), the TUI prompt suffix, and `auto_approve: true`.
+New TUI sessions use the current directory, the saved model preference (or `FLOW_MODEL`), the TUI prompt suffix, and `approval_mode: "auto_approve"`.
 
 ## Conversation behavior
 

@@ -1,20 +1,46 @@
 import { reactive, ref, watch } from "vue"
 
-// Under Tailwind's md the frame is narrow: a phone, or a Desk panel's iframe. It shows one pane at
+// Under Tailwind's md the frame is narrow: a phone, or a panel beside a Desk page. It shows one pane at
 // a time, so the sidebar slides over the chat and settings open as pages. A narrow frame worked by
 // a finger is a phone, which drops hover-only buttons and takes swipes and bigger rows.
 const wide = globalThis.matchMedia?.("(min-width: 768px)")
 const finger = globalThis.matchMedia?.("(pointer: coarse)")
 
-export const layout = reactive({ narrow: false, phone: false })
+// `zoom`: the harness scales its whole UI by its font size (FlowChat sets it); a pointer's or a
+// box's screen pixels are CSS pixels times this
+export const layout = reactive({ narrow: false, narrowWindow: false, phone: false, zoom: 1 })
 
+let box = null // the element whose width decides, for a chat in a panel beside a page
 function measure() {
-	layout.narrow = !!wide && !wide.matches
+	// settings and dialogs cover the window, so they go by its width even in a panel
+	layout.narrowWindow = !!wide && !wide.matches
+	layout.narrow = box ? box.width < 768 : layout.narrowWindow
 	layout.phone = layout.narrow && !!finger?.matches
 }
 measure()
 wide?.addEventListener("change", measure)
 finger?.addEventListener("change", measure)
+
+// lays out by `el`'s width instead of the window's, as a chat mounted in a page's panel needs;
+// returns the undo
+export function measureLayoutBy(el) {
+	const observer = new ResizeObserver(([entry]) => {
+		box = { width: entry.contentRect.width }
+		measure()
+	})
+	observer.observe(el)
+	return () => {
+		observer.disconnect()
+		box = null
+		measure()
+	}
+}
+
+// iPhone Safari zooms into a field under 16px unless the page caps its scale; it still pinch-zooms.
+// Only iOS knows -webkit-touch-callout: elsewhere the cap would stop pinch zoom
+if (globalThis.CSS?.supports?.("-webkit-touch-callout", "none")) {
+	document.querySelector('meta[name="viewport"]').content += ", maximum-scale=1"
+}
 
 // a side panel slides only as `open()` changes, not on load or as the frame crosses the narrow width
 export function useSlide(open) {
@@ -33,10 +59,16 @@ export function useSlide(open) {
 export const CHAT_FONT_SIZE = { min: 12, max: 22, default: 15 }
 // the chat's text weight; markdown headings are 600, so the choices stop under it
 export const CHAT_FONT_WEIGHT = {
-	default: 450,
+	default: 420,
 	options: [
-		{ label: "Light", value: 300 },
-		{ label: "Regular", value: 450 },
+		{ label: "Light", value: 360 },
+		{ label: "Regular", value: 420 },
 		{ label: "Medium", value: 500 },
 	],
+}
+// a weight saved before the choices changed takes the nearest of them
+export function chatFontWeight(weight) {
+	if (typeof weight !== "number") return CHAT_FONT_WEIGHT.default
+	const off = (option) => Math.abs(option.value - weight)
+	return CHAT_FONT_WEIGHT.options.reduce((best, option) => (off(option) < off(best) ? option : best)).value
 }

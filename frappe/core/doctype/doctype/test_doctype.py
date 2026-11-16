@@ -796,6 +796,54 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(frappe.ValidationError, doctype.insert)
 
+	def test_vue_component_options_must_name_an_island_on_this_site(self):
+		def new_vue_component_doctype(island):
+			return new_doctype(
+				fields=[
+					{
+						"label": "Summary",
+						"fieldname": "summary",
+						"fieldtype": "Vue Component",
+						"options": island,
+					}
+				]
+			)
+
+		with patch("frappe.utils.island.get_ui_islands", return_value=["frappe.summary"]):
+			self.assertRaises(frappe.ValidationError, new_vue_component_doctype("frappe.missing").insert)
+			self.assertRaises(frappe.ValidationError, new_vue_component_doctype("").insert)
+			new_vue_component_doctype("frappe.summary").insert()
+
+	def test_a_normal_user_saves_and_loads_a_doc_with_a_vue_component_field(self):
+		role = "Vue Component Tester"
+		if not frappe.db.exists("Role", role):
+			frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert()
+		email = "vue-component-user@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(doctype="User", email=email, first_name="Vue", send_welcome_email=0).insert()
+		frappe.get_doc("User", email).add_roles(role)
+
+		with patch("frappe.utils.island.get_ui_islands", return_value=["frappe.summary"]):
+			doctype = new_doctype(
+				fields=[
+					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+					{"fieldname": "summary", "fieldtype": "Vue Component", "options": "frappe.summary"},
+				],
+				permissions=[{"role": role, "read": 1, "write": 1, "create": 1}],
+			).insert()
+
+		with self.set_user(email):
+			doc = frappe.get_doc(
+				doctype=doctype.name, title="Invoice at a glance", summary="not stored"
+			).insert()
+			getdoc(doctype.name, doc.name)
+			loaded = frappe.response.docs[0]
+
+		self.assertEqual(loaded.title, "Invoice at a glance")
+		self.assertIsNone(loaded.get("summary"))
+		self.assertFalse(frappe.db.has_column(doctype.name, "summary"))
+		self.assertEqual(frappe.get_meta(doctype.name).get_field("summary").options, "frappe.summary")
+
 	def test_missing_link_filters_field_is_allowed(self):
 		doctype = new_doctype()
 		doctype.fields[0].__dict__.pop("link_filters", None)

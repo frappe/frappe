@@ -4,7 +4,11 @@ Frappe is a web framework: Python backend, JavaScript desk UI, MariaDB or Postgr
 
 Maintainers review every pull request against [code_review.md](code_review.md). Follow this file while you work, and check your diff against that one before you open the pull request.
 
-The Studio editor under `studio/frontend/` is a separate Vue app with its own conventions; read [studio/frontend/AGENTS.md](studio/frontend/AGENTS.md) before changing it or the `frappe/studio` package.
+Studio has its own code conventions: the editor, a Vue app at `studio/frontend/`, and its Python package at `frappe/studio/`. Read [studio/AGENTS.md](studio/AGENTS.md) before changing either.
+
+Building or editing a Studio app or page — block trees, data bindings, page scripts, exported apps: read [skills/studio-app-building/SKILL.md](skills/studio-app-building/SKILL.md).
+
+Creating or changing a print format: read [skills/print-formats/SKILL.md](skills/print-formats/SKILL.md).
 
 ## Before you write code
 

@@ -93,6 +93,13 @@ bench build-studio-app <app-name>   # build an app for production
 bench --site <site-name> watch-studio # long running watcher to sync app/page/component JSON edited in files to DB
 ```
 
+### Migration Guides
+
+Upgrading a site that already has Studio apps:
+
+- [A database app's page scripts become modules](docs/migrate-custom-db-apps-to-modules.md)
+- [An exported app's pages and components move to frappe-ui v1](docs/migrate-exported-studio-apps-to-frappe-ui-v1.md)
+
 ### Using with AI Agents
 
 Install the Studio app building skill in your coding agent (Claude Code, Codex, Cursor and similar tools):

@@ -163,7 +163,14 @@ html.es-bottom-sheet-open.es-bottom-sheet-gutter {
     transform: scaleX(-1);
 }
 
+/* a long title (say, a record's description) stops at two lines */
 .es-bottom-sheet__title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
     font-size: var(--text-lg);
     font-weight: var(--font-weight-semibold);
     line-height: 1.3;
@@ -357,6 +364,64 @@ html.es-bottom-sheet-open.es-bottom-sheet-gutter {
    then push the icon away from its label */
 .es-bottom-sheet__footer .es-button > .icon {
     margin: 0;
+}
+
+/* ---- popover: a sheet with an anchor, on a screen wider than a phone ---- */
+/* the tap outside still lands here, so it closes the popover without reaching the page */
+.es-bottom-sheet-root[data-presentation="popover"] .es-bottom-sheet__scrim {
+    background: transparent;
+    animation: none;
+}
+
+.es-bottom-sheet-root[data-presentation="popover"] .es-bottom-sheet {
+    /* frappe.ui.BottomSheet sets top and left beside the anchor */
+    right: auto;
+    bottom: auto;
+    margin: 0;
+    width: calc(var(--spacing) * 90);
+    max-width: calc(100vw - var(--spacing) * 4);
+    border: 1px solid var(--outline-elevation-2);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--elevation-xl);
+    animation: es-popover-in 150ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.es-bottom-sheet-root[data-presentation="popover"][data-state="closed"] .es-bottom-sheet {
+    animation: es-popover-out 100ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* it slides in from the anchor's side, as .es-popover does */
+.es-bottom-sheet-root[data-presentation="popover"] .es-bottom-sheet[data-side="top"] {
+    --slide-from: translateY(8px);
+}
+
+.es-bottom-sheet-root[data-presentation="popover"] .es-bottom-sheet[data-side="bottom"] {
+    --slide-from: translateY(-8px);
+}
+
+.es-bottom-sheet-root[data-presentation="popover"] .es-bottom-sheet[data-side="left"] {
+    --slide-from: translateX(8px);
+}
+
+.es-bottom-sheet-root[data-presentation="popover"] .es-bottom-sheet[data-side="right"] {
+    --slide-from: translateX(-8px);
+}
+
+/* nothing to drag; the grip stays for its space above the content */
+.es-bottom-sheet-root[data-presentation="popover"] .es-bottom-sheet__grip {
+    cursor: auto;
+}
+
+.es-bottom-sheet-root[data-presentation="popover"] .es-bottom-sheet__handle {
+    visibility: hidden;
+}
+
+/* no home bar under a popover */
+.es-bottom-sheet-root[data-presentation="popover"] .es-bottom-sheet__footer,
+.es-bottom-sheet-root[data-presentation="popover"]
+    .es-bottom-sheet:has(> .es-bottom-sheet__footer[hidden])
+    .es-bottom-sheet__body {
+    padding-bottom: calc(var(--spacing) * 4);
 }
 
 /* ---- motion ---- */

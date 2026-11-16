@@ -1,5 +1,5 @@
 <template>
-	<PalettePanel title="Thinking" :back="!dropdown" :dropdown="dropdown" :query="query" @close="emit('close')" @back="emit('back')">
+	<PalettePanel title="Thinking" :back="!dropdown" :dropdown="dropdown" :beside="beside" :align="align" :width="width" :query="query" @close="emit('close')" @back="emit('back')">
 		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<button
 				v-for="level in levels"
@@ -12,7 +12,11 @@
 				<span class="flex-none">{{ level.label }}</span>
 				<span class="flow-palette-hint min-w-0 flex-1 truncate">{{ level.desc }}</span>
 				<!-- the hint follows the label, so the tick takes the right edge -->
-				<FeatherIcon v-if="level.id === currentEffort" name="check" class="h-4 w-4 flex-none" />
+				<span
+					v-if="level.id === currentEffort"
+					class="lucide-check size-4 flex-none"
+					aria-hidden="true"
+				/>
 			</button>
 			<div v-if="!levels.length" class="flow-palette-empty">
 				No matching levels
@@ -23,7 +27,6 @@
 
 <script setup>
 import { computed, inject } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { EFFORTS, EFFORT_LABELS } from "../transcript.js"
 import PalettePanel from "./PalettePanel.vue"
@@ -31,6 +34,10 @@ import PalettePanel from "./PalettePanel.vue"
 const props = defineProps({
 	query: { type: String, default: "" }, // the composer's text after its "/"
 	dropdown: { type: Boolean, default: false }, // hung from the model button, not over the composer
+	// opened beside the model button's menu: this far from the button's `align` edge, `width` wide
+	beside: { type: Number, default: 0 },
+	align: { type: String, default: "right" },
+	width: { type: Number, default: 304 },
 })
 const emit = defineEmits(["close", "back"])
 const flow = inject("flow")

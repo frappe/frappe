@@ -136,8 +136,7 @@ def install_dependencies(app, components, files, *, overwrite_conflicts=False):
 	conflicts = create_missing_components(
 		parse_dict_list(components, "components"), overwrite_conflicts=overwrite_conflicts
 	)
-	if can_export(app):
-		app.write_files(parse_dict_list(files, "files"))
+	app.write_files(parse_dict_list(files, "files"))
 	return conflicts
 
 

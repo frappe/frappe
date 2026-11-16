@@ -15,7 +15,7 @@ for (const name of [
 ])
 	globalThis[name] = dom.window[name];
 const { createApp, nextTick, reactive } = await import("vue");
-const { loadComponent, toast, transport } = await import("./helpers/components.js");
+const { dialog, loadComponent, toast, transport } = await import("./helpers/components.js");
 const DocPanel = await loadComponent("settings/DocPanel.vue");
 const DocForm = await loadComponent("settings/DocForm.vue");
 const FieldControl = await loadComponent("settings/FieldControl.vue");
@@ -24,7 +24,7 @@ const { SPECS, newDoc } = await import("../src/settings/specs.js");
 const changes = [];
 const renames = [];
 const newRecords = new Set(); // the tabs asked to open on a blank record, each taken once
-function mount(t, component, props, { can = () => true } = {}) {
+function mount(t, component, props, { can = () => true, boot = {} } = {}) {
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(component, props);
@@ -33,7 +33,7 @@ function mount(t, component, props, { can = () => true } = {}) {
 		changed: (doctype) => changes.push(doctype),
 		renamed: (...args) => renames.push(args),
 		takeNewRecord: (key) => newRecords.delete(key),
-		state: { boot: {} },
+		state: { boot },
 	});
 	app.mount(el);
 	t.after(() => {
@@ -98,6 +98,28 @@ test("settings load and search beyond the first 200 records, keeping the rows sh
 	el.querySelector("li button").click();
 	await nextTick();
 	assert.equal(el.querySelector("[data-stub=DocForm]").getAttribute("name"), "tool-400");
+});
+
+test("while server scripts are off, a tool that can't run says so in the list, and an agent names the ones it has", async (t) => {
+	const boot = { unavailable_tools: ["frappe/execute", "weather"] };
+	assert.match(SPECS.tools.notice({ name: "weather" }, boot), /can't run/);
+	assert.equal(SPECS.tools.notice({ name: "frappe/create" }, boot), "");
+	assert.equal(SPECS.tools.notice({ name: "weather" }, {}), "");
+	const tools = SPECS.agents.fields.find((field) => field.name === "tools");
+	const agent = { tools: ["frappe/create", "frappe/execute", "weather"] };
+	assert.match(tools.note(agent, boot), /can't run: execute, weather\.$/);
+	assert.equal(tools.note({ tools: ["frappe/create"] }, boot), "");
+
+	transport.answers["frappe.client.get_list"] = () => [
+		{ name: "frappe/create", title: "Create", type: "Imported", enabled: 1 },
+		{ name: "frappe/execute", title: "Execute", type: "Imported", enabled: 1 },
+	];
+	const el = mount(t, DocPanel, { spec: SPECS.tools }, { boot });
+	await until(() => el.querySelectorAll("li").length === 2);
+	assert.deepEqual(
+		[...el.querySelectorAll("[data-stub=Badge]")].map((badge) => badge.getAttribute("label")),
+		["Enabled", "Unavailable"]
+	);
 });
 
 test("an older settings search cannot overwrite a newer result", async (t) => {
@@ -440,4 +462,144 @@ test("a settings list and an opened record show the spinner until they load", as
 	record({ name: "source-1", title: "Old" });
 	await until(() => form.querySelector("input"));
 	assert.equal(form.querySelector("[data-stub=Spinner]"), null);
+});
+
+test("the Models tab lists each provider's models, switches one on without asking it, adds one more from the provider's list once it answers, and turns a provider off", async (t) => {
+	const ModelsPanel = await loadComponent("settings/ModelsPanel.vue");
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	const sonnet = { name: "Claude Sonnet 5.5", title: "Claude Sonnet 5.5", model_id: "anthropic/claude-sonnet-5-5", enabled: 1 };
+	const opus = {
+		name: "Claude Opus 5.5",
+		title: "Claude Opus 5.5",
+		model_id: "anthropic/claude-opus-5-5",
+		enabled: 0,
+	};
+	let enabled = 1;
+	transport.answers["frappe.flow.api.setup.services"] = () => ({
+		services: [{ name: "anthropic", label: "Anthropic", enabled, models: [{ ...sonnet }, { ...opus }] }],
+		other: [],
+	});
+	const el = mount(t, ModelsPanel);
+	await until(() => el.textContent.includes("Claude Opus 5.5"));
+	assert.ok(el.textContent.includes("Anthropic2 models"));
+	const button = (label) => [...el.querySelectorAll("button")].find((b) => b.textContent.trim() === label);
+
+	// switched on, it's saved on and nothing else is asked
+	let switched = null;
+	transport.answers["frappe.client.set_value"] = (args) => void (switched = args);
+	el.querySelector("[aria-label='Claude Opus 5.5 on']").click();
+	await until(() => switched);
+	assert.deepEqual(switched, { doctype: "Flow Model", name: "Claude Opus 5.5", fieldname: "enabled", value: 1 });
+
+	// the provider's own list, without the models it has; the picked one is added and checked
+	transport.answers["frappe.flow.doctype.flow_model.flow_model.get_provider_models"] = [
+		"anthropic/claude-sonnet-5-5",
+		"anthropic/claude-haiku-5-5",
+	];
+	const added = [];
+	transport.answers["frappe.flow.api.setup.add_model"] = ({ model_id }) => {
+		if (model_id === "anthropic/claude-nope")
+			return { check: { ok: false, reason: "not_offered", message: "Anthropic has no model called claude-nope." } };
+		added.push(model_id);
+		const title = model_id === "anthropic/claude-haiku-5-5" ? "Claude Haiku 5.5" : "Claude Next";
+		return { name: title, title, model_id, enabled: 1, check: { ok: true } };
+	};
+	button("Add model").click();
+	await until(() => el.querySelectorAll("[role=option]").length);
+	const options = () => [...el.querySelectorAll("[role=option]")].map((o) => o.textContent);
+	assert.deepEqual(options(), ["claude-haiku-5-5"]);
+	// one the list leaves out is taken as typed, with or without its provider's prefix
+	const search = el.querySelector("[data-stub=Combobox] input");
+	for (const typed of ["claude-next", "anthropic/claude-next"]) {
+		search.value = typed;
+		search.dispatchEvent(new Event("input"));
+		await nextTick();
+		assert.deepEqual(options(), [`Use “${typed}”`]);
+	}
+	// picked, the typed one is added as the provider's
+	[...el.querySelectorAll("[role=option]")].find((o) => o.textContent.startsWith("Use")).click();
+	await until(() => el.textContent.includes("Claude Next"));
+	assert.deepEqual(added, ["anthropic/claude-next"]);
+	// one that doesn't answer isn't added: why shows under the provider until Add model opens again
+	search.value = "claude-nope";
+	search.dispatchEvent(new Event("input"));
+	await nextTick();
+	[...el.querySelectorAll("[role=option]")].find((o) => o.textContent.startsWith("Use")).click();
+	await until(() => el.textContent.includes("Anthropic has no model called claude-nope."));
+	assert.ok(!el.textContent.includes("claude-nope details"), "no row for it");
+	button("Add model").click();
+	await nextTick();
+	button("Add model").click();
+	await until(() => el.querySelector("[data-stub=Combobox] input"));
+	assert.ok(!el.textContent.includes("no model called"));
+	const search2 = el.querySelector("[data-stub=Combobox] input");
+	// a part of a listed one is searched, and still offered last as typed; a whole one only once
+	search2.value = "haiku";
+	search2.dispatchEvent(new Event("input"));
+	await nextTick();
+	assert.deepEqual(options(), ["claude-haiku-5-5", "Use “haiku”"]);
+	search2.value = "claude-haiku-5-5";
+	search2.dispatchEvent(new Event("input"));
+	await nextTick();
+	assert.deepEqual(options(), ["claude-haiku-5-5"]);
+	changes.length = 0;
+	el.querySelector("[role=option]").click();
+	await until(() => el.textContent.includes("Claude Haiku 5.5"));
+	assert.ok(changes.includes("Flow Model"));
+
+	// turned off from its menu, the provider reloads as off
+	let turnedOff = null;
+	transport.answers["frappe.client.set_value"] = (args) => {
+		turnedOff = args;
+		enabled = 0;
+	};
+	el.querySelector("[aria-label='Anthropic settings']").click();
+	await nextTick();
+	[...el.querySelectorAll("[role=menuitem]")].find((b) => b.textContent === "Turn off").click();
+	await until(() => turnedOff);
+	assert.deepEqual(turnedOff, { doctype: "Flow Provider", name: "anthropic", fieldname: "enabled", value: 0 });
+	await until(() => !button("Add model"));
+});
+
+test("a server of one's own is deleted from its menu with its models; a listed provider can't be", async (t) => {
+	const ModelsPanel = await loadComponent("settings/ModelsPanel.vue");
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	let gone = false;
+	transport.answers["frappe.flow.api.setup.services"] = () => ({
+		services: [
+			{ name: "anthropic", label: "Anthropic", enabled: 1, models: [] },
+			...(gone
+				? []
+				: [{ name: "gateway", label: "gateway.example.com", enabled: 0, models: [{ name: "Mine", title: "Mine", model_id: "gateway/mine", enabled: 1 }] }]),
+		],
+		other: [],
+	});
+	const removed = [];
+	transport.answers["frappe.flow.api.setup.remove_provider"] = ({ provider }) => void removed.push(provider);
+	const el = mount(t, ModelsPanel);
+	await until(() => el.textContent.includes("gateway.example.com"));
+	const items = async (label) => {
+		el.querySelector(`[aria-label='${label} settings']`).click();
+		await nextTick();
+		return [...el.querySelectorAll("[role=menuitem]")];
+	};
+	assert.ok(!(await items("Anthropic")).some((b) => b.textContent === "Delete"));
+	(await items("gateway.example.com")).find((b) => b.textContent === "Delete").click();
+	const asked = dialog.asked.at(-1);
+	assert.equal(asked.message, "“gateway.example.com” and its 1 model will be permanently removed.");
+	gone = true;
+	await asked.onConfirm({ close() {} });
+	assert.deepEqual(removed, ["gateway"]);
+	await until(() => !el.textContent.includes("gateway.example.com"));
+});
+
+test("a key names its provider only by a prefix no other provider's keys share", async () => {
+	const { detectService } = await import("../src/chat/setup/services.js");
+	assert.equal(detectService("sk-ant-api03-abc")?.id, "anthropic");
+	assert.equal(detectService("sk-proj-abc")?.id, "openai");
+	assert.equal(detectService(" AIzaSyabc")?.id, "gemini");
+	// DeepSeek's keys are a bare sk-: the provider picked keeps them
+	assert.equal(detectService("sk-0123456789abcdef"), null);
 });

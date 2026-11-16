@@ -2,9 +2,10 @@
 	<!-- A full-height code editor docked beside the left panel, shared by the file explorer and the
 	     page script so both edit code the same way. -->
 	<Teleport to="#studio-code-editor-outlet">
+		<!-- z-[25]: above the canvas chrome (pills at z-20, selection ring at z-19), below the toolbar -->
 		<div
 			v-if="visible"
-			class="absolute bottom-0 top-[var(--toolbar-height)] z-20 flex flex-col border-r border-outline-gray-2 bg-surface-base"
+			class="absolute bottom-0 top-[var(--toolbar-height)] z-[25] flex flex-col border-r border-outline-gray-2 bg-surface-base"
 			:style="{ left: `${panelLeft}px`, width: `${editorWidth}px` }"
 		>
 			<PanelResizer

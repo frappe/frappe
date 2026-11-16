@@ -425,6 +425,15 @@ frappe.ui.form.Layout = class Layout {
 		return frappe.model.numeric_fieldtypes.includes(fieldtype);
 	}
 
+	schedule_refresh_dependency() {
+		if (this.dependency_frame) return;
+		this.dependency_frame = requestAnimationFrame(() => {
+			this.dependency_frame = null;
+			this.refresh_dependency();
+			this.refresh_sections();
+		});
+	}
+
 	refresh_sections() {
 		// hide invisible sections
 		this.wrapper.find(".form-section:not(.hide-control)").each(function () {

@@ -145,8 +145,8 @@ def _add_extension_options(parser: argparse.ArgumentParser) -> None:
 
 
 def _extension_tools(args) -> None:
-	"""What `flow serve -e PATH...` would load, for a client that builds its allowlist and
-	tool picker before the daemon starts: one row per tool, load problems on stderr."""
+	"""What `flow serve -e PATH...` would load, for a client that builds its tool picker
+	before the daemon starts: one row per tool, load problems on stderr."""
 	import contextlib
 	import json
 	from pathlib import Path

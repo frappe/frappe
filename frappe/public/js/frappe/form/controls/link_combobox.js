@@ -84,8 +84,6 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			// no chevron in Search mode, so the value gets more space
 			chevron: this.display_mode() === "Select",
 			filterable: false, // search_link does the filtering
-			// × button follows the "Allow Clearing Link Fields" setting
-			clear_button: this.is_clear_button_enabled(),
 			options: (query, { start }) => this.fetch_options(query, start),
 			filters: () => this.get_filter_chips(),
 			actions: [

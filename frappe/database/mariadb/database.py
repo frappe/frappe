@@ -7,7 +7,8 @@ from pymysql.converters import conversions, escape_string
 import frappe
 from frappe.database.database import Database
 from frappe.database.mariadb.schema import MariaDBTable
-from frappe.utils import UnicodeWithAttrs, cstr, get_datetime, get_table_name, get_timezone_utc_offset
+from frappe.database.utils import convert_datetime
+from frappe.utils import UnicodeWithAttrs, cstr, get_table_name, get_timezone_utc_offset
 
 
 class MariaDBExceptionUtil:
@@ -175,7 +176,7 @@ class MariaDBDatabase(MariaDBConnectionUtil, MariaDBExceptionUtil, Database):
 	REGEX_CHARACTER = "regexp"
 	CONVERSION_MAP = conversions | {
 		FIELD_TYPE.NEWDECIMAL: float,
-		FIELD_TYPE.DATETIME: get_datetime,
+		FIELD_TYPE.DATETIME: convert_datetime,
 		UnicodeWithAttrs: escape_string,
 	}
 	default_port = "3306"
