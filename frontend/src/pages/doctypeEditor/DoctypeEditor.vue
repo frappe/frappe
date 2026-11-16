@@ -141,6 +141,7 @@ import {
 	type PendingEditsPayload,
 } from "./pendingEdits";
 import PreviewTab from "./PreviewTab.vue";
+import { ModeCache } from "./modeCache";
 import { confirmModeSwitch, guardRouteUpdate } from "./modeSwitch";
 import ModeSwitchDialog from "./ModeSwitchDialog.vue";
 import RowDialogPreview from "./RowDialogPreview.vue";
@@ -191,10 +192,12 @@ watch(shown, () =>
 	)
 );
 const layoutCanvas = computed(() => (openChild.value?.state.pending ? null : shown.value));
+const modeLoads = new ModeCache(loadEditor);
 const save = new EditorSave({
 	edits,
 	canvas: () => canvas.value,
 	reload,
+	wrote: () => modeLoads.drop(name.value),
 	created,
 	children: child.tables,
 	showChild: child.showChild,
@@ -282,7 +285,7 @@ async function load() {
 	reset();
 	if (name.value === "new") return void startAsking(current);
 	try {
-		const loaded = await loadEditor(name.value, mode);
+		const loaded = await modeLoads.get(name.value, mode);
 		if (!current()) return;
 		open(loaded);
 		loadLatest(loaded, current).catch(() => (latest.value = []));
@@ -347,7 +350,7 @@ async function created(doctype: string): Promise<DesignCanvas | null> {
 /** Loads for the editor open now; null once the page moved on to another DocType or mode, or was left. */
 async function loadFor(current: Current, doctype: string, mode: EditorMode) {
 	try {
-		const loaded = await loadEditor(doctype, mode);
+		const loaded = await modeLoads.refresh(doctype, mode);
 		return current() ? loaded : null;
 	} catch (error) {
 		if (current()) throw error;
