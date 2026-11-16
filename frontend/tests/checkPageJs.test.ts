@@ -64,4 +64,8 @@ describe("jsSizeProblems", () => {
       expect.stringMatching(/^home: 105.1 KB .* above its baseline of 100 KB\. .* to 105\.1\.$/),
     ]);
   });
+
+  it("never fails a page that has no baseline, however large", () => {
+    expect(jsSizeProblems({ home: 100, editor: 9999 }, budgets)).toEqual([]);
+  });
 });
