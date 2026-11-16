@@ -221,7 +221,7 @@ class TestCompleteAppSetup(IntegrationTestCase):
 				self.assertEqual(setup_wizard.complete_app_setup(), {"status": "ok"})
 
 
-# An app that wants setup finished at login, like Frappe Learning.
+# An app that wants setup finished at login.
 OPTED_IN = {"setup_wizard_auto_complete": [True]}
 
 
@@ -232,7 +232,7 @@ class TestPrefilledSetup(IntegrationTestCase):
 		self.addCleanup(patcher.stop)
 
 	def args(self, apps=None):
-		apps = apps or {"frappe": {}, "lms": OPTED_IN}
+		apps = apps or {"frappe": {}, "suite": OPTED_IN}
 		with (
 			patch.object(frappe, "get_active_apps", return_value=list(apps)),
 			patch.object(frappe, "get_hooks", side_effect=fake_hooks(apps)),
@@ -278,7 +278,7 @@ class TestPrefilledSetup(IntegrationTestCase):
 		self.assertIsNone(
 			self.args(
 				{
-					"lms": OPTED_IN,
+					"suite": OPTED_IN,
 					"erpnext": {
 						"setup_wizard_stages": ["erpnext.setup.setup_wizard.setup_wizard.get_setup_stages"]
 					},
@@ -290,7 +290,7 @@ class TestPrefilledSetup(IntegrationTestCase):
 		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
 	)
 	def test_an_app_with_its_own_setup_page_keeps_it(self):
-		self.assertIsNone(self.args({"lms": OPTED_IN, "suite": {"setup_wizard_url": ["/suite/setup"]}}))
+		self.assertIsNone(self.args({"suite": {**OPTED_IN, "setup_wizard_url": ["/suite/setup"]}}))
 
 	@IntegrationTestCase.change_settings(
 		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
