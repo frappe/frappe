@@ -548,7 +548,6 @@ def _create_printed_pdf_folder():
 			"file_name": folder_name,
 			"is_folder": 1,
 			"folder": parent_folder,
-			"is_private": 1,
 		}
 	).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
