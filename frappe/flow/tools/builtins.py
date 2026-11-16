@@ -309,20 +309,15 @@ def run_report(
 		raise ValueError(f"{report_name} is a Report Builder report; read its DocType with read_records.")
 	specs = _report_filter_specs(report_name)
 	defaults = {f["fieldname"]: f["default"] for f in specs if f["default"] not in (None, "")}
+	# saved filters apply only when none are passed, and then replace the defaults too, as in Desk
+	given = (not filters and report.custom_filters) or {**defaults, **(filters or {})}
 	# a failing query report breaks the transaction
 	if report.report_type == "Query Report":
-		given = {**defaults, **(filters or report.custom_filters or {})}
 		if missing := set(re.findall(r"%\((\w+)\)s", report.query or "")) - set(given):
 			raise ValueError(f"Missing filters: {', '.join(sorted(missing))}")
 	limit = max(int(limit), 1)  # no cap: the flow server cuts a result too big to show
 	try:
-		# saved filters apply only when none are passed
-		data = run(
-			report_name,
-			filters={**defaults, **(filters or {})},
-			ignore_prepared_report=True,
-			are_default_filters=not filters,
-		)
+		data = run(report_name, filters=given, ignore_prepared_report=True, are_default_filters=not filters)
 	except Exception as e:
 		cause = e
 		if isinstance(e, frappe.InReadOnlyMode):  # frappe's failure log hid the report's error
