@@ -201,4 +201,31 @@ describe("which run a confirm belongs to", () => {
 		await answer(true);
 		slow.open("end");
 	});
+
+	it("hands a confirm back to the older act when the newer run that claimed it ends", async () => {
+		const first = gate();
+		const second = gate();
+		register({
+			older: async () => {
+				await confirmThen(true);
+				await first.done;
+				return confirmThen("older");
+			},
+			newer: async () => (await second.done, "newer"),
+			plain: () => 4,
+		});
+		const { error: older } = (await run("test.older")) as any;
+		await answer(true);
+		const newer = run("test.newer");
+		first.open();
+		const claimed = (await newer) as any;
+		expect(claimed.error).toMatchObject({ code: "waiting_for_user", dialog: { title: "Submit?" } });
+
+		second.open();
+		await wait(claimed.error.call);
+
+		expect(await run("test.plain")).toMatchObject({ ok: false, error: { code: "waiting_for_user", call: older.call } });
+		await answer(true);
+		expect(await wait(older.call)).toMatchObject({ ok: true, data: "older" });
+	});
 });

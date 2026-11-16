@@ -66,17 +66,25 @@ function park(call: Call) {
 	parked.set(call.id, call);
 	// The act may open a later confirm (a `beforeSubmit` after the built-in one); it holds the other runs too.
 	// A run in flight claims a new confirm first, as it was started last.
-	const stop = watchListed(() => {
-		if (racing.length) return;
-		const later = readDialogs().find((held) => held.id > call.dialog!.id && isConfirm(held) && !owned(held));
-		if (later) call.dialog = later;
-	});
+	const stop = watchListed(() => adopt(call));
 	void call.ended.then(() => {
 		stop();
 		call.done = true;
+		adoptAll();
 		const finished = [...parked.values()].filter((held) => held.done);
 		for (const old of finished.slice(0, Math.max(0, finished.length - KEPT))) parked.delete(old.id);
 	});
+}
+
+/** A run that ends frees the confirm it claimed, and ends the wait for new ones: the older parked acts look again. */
+function adoptAll() {
+	for (const call of parked.values()) adopt(call);
+}
+
+function adopt(call: Call) {
+	if (racing.length || call.done) return;
+	const later = readDialogs().find((held) => held.id > call.dialog!.id && isConfirm(held) && !owned(held));
+	if (later) call.dialog = later;
 }
 
 /** A parked call whose own confirm is still open: every other run waits behind it. */
