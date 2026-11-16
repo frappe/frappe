@@ -276,7 +276,14 @@ class TestPrefilledSetup(IntegrationTestCase):
 	)
 	def test_an_app_with_wizard_stages_keeps_the_wizard(self):
 		self.assertIsNone(
-			self.args({"lms": OPTED_IN, "erpnext": {"setup_wizard_stages": ["erpnext.setup.stages"]}})
+			self.args(
+				{
+					"lms": OPTED_IN,
+					"erpnext": {
+						"setup_wizard_stages": ["erpnext.setup.setup_wizard.setup_wizard.get_setup_stages"]
+					},
+				}
+			)
 		)
 
 	@IntegrationTestCase.change_settings(

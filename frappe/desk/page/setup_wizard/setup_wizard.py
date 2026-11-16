@@ -132,9 +132,6 @@ def get_prefilled_setup_args() -> dict | None:
 
 	if frappe.is_setup_complete() or frappe.conf.skip_setup_wizard:
 		return None
-	# An app that finishes setup from its own page, or shows something of its own while the
-	# wizard is pending, keeps that unless an installed app opts in. Hooks come back as a
-	# list, so a declared `False` must not count.
 	if not any(frappe.get_hooks("setup_wizard_auto_complete")):
 		return None
 	if frappe.db.get_default(PREFILLED_SETUP_FAILED):
