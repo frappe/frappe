@@ -65,7 +65,9 @@ function owned(dialog: ActDialog) {
 function park(call: Call) {
 	parked.set(call.id, call);
 	// The act may open a later confirm (a `beforeSubmit` after the built-in one); it holds the other runs too.
+	// A run in flight claims a new confirm first, as it was started last.
 	const stop = watchListed(() => {
+		if (racing.length) return;
 		const later = readDialogs().find((held) => held.id > call.dialog!.id && isConfirm(held) && !owned(held));
 		if (later) call.dialog = later;
 	});

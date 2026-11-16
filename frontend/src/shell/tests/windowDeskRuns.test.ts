@@ -187,4 +187,18 @@ describe("which run a confirm belongs to", () => {
 		await answer(true);
 		expect(await wait(error.call)).toMatchObject({ ok: true, data: "both" });
 	});
+
+	it("gives a newer run's confirm to that run, not to an older parked act that still runs", async () => {
+		const slow = gate();
+		register({ first: async () => (await confirmThen(true), slow.done), second: () => confirmThen("two") });
+		const { error: older } = (await run("test.first")) as any;
+		await answer(true);
+
+		const { error: newer } = (await run("test.second")) as any;
+
+		expect(newer).toMatchObject({ code: "waiting_for_user", dialog: { title: "Submit?" } });
+		expect(newer.call).not.toBe(older.call);
+		await answer(true);
+		slow.open("end");
+	});
 });
