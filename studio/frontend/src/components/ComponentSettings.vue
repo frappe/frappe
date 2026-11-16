@@ -209,7 +209,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue"
-import { Combobox, Dropdown, ErrorMessage, Popover, FormControl, Button, Switch, dialog } from "frappe-ui"
+import { Combobox, Dropdown, ErrorMessage, Popover, FormControl, Button, Switch, dialog, toast } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
 import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
@@ -221,7 +221,7 @@ import useComponentStore from "@/stores/componentStore"
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { confirm, isCtrlOrCmd } from "@/utils/helpers"
-import { getPropsReadOnlyReason } from "@/utils/componentScriptProps"
+import { getPropReadOnlyReason, getPropsReadOnlyReason } from "@/utils/componentScriptProps"
 import { getTypeControls } from "@/utils/componentScript"
 
 const store = useStudioStore()
@@ -336,6 +336,8 @@ const getFieldTypeIcon = (type: string) => {
 }
 
 const editProp = (prop: StudioComponentInput, index: number) => {
+	const readOnlyReason = getPropReadOnlyReason(componentDoc.value?.script || "", prop.input_name)
+	if (readOnlyReason) return toast.warning(readOnlyReason)
 	editingProp.value = { ...prop }
 	editingIndex.value = index
 	setDefaultControl()

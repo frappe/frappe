@@ -231,7 +231,14 @@ describe("studio component props", () => {
 	it("saves a prop from the form in the component's script", () => {
 		setActivePinia(pinia)
 		const store = useComponentStore()
-		const size = { input_name: "size", type: "select", options: "sm\nmd", default: "md" }
+		const size = {
+			input_name: "size",
+			prop_type: "String",
+			type: "select",
+			control: "select",
+			options: "sm\nmd",
+			default: "md",
+		}
 		store.removeCachedComponent(PROPS_ID)
 		cy.then(() => store.loadComponent(PROPS_ID))
 		cy.then(() => useComponentEditorStore().saveComponentProp(PROPS_ID, null, size)).should("equal", true)

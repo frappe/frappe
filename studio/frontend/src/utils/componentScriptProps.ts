@@ -2,10 +2,10 @@ import { typescriptLanguage } from "@codemirror/lang-javascript"
 import type { SyntaxNode, Tree } from "@lezer/common"
 
 import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
-import { getTypeControls } from "@/utils/componentScript"
 
 // The props of a component are in its script. The editor's form reads and writes the `props`
-// object of the script's default export as text, so the rest of the script stays as written.
+// object of the script's default export as text. A save changes only the keys of a prop whose
+// field the user changed, so all other code stays as written.
 
 interface ScriptProps {
 	/** Why the form cannot change the props. Empty when it can. */
@@ -16,10 +16,33 @@ interface ScriptProps {
 }
 
 const NO_SCRIPT = "export default {}\n"
+// the keys of a prop that the form writes, in the order of a new prop
+const PROP_KEYS = ["type", "required", "default", "meta"] as const
+type PropParts = Record<(typeof PROP_KEYS)[number], string | null>
+
+const VUE_TYPE = "(?:String|Number|Boolean|Array|Object|Date|Function|Symbol|Error)"
+// `String`, `[String, Number]`, `null`, each also with a TypeScript cast
+const PLAIN_TYPE = new RegExp(
+	`^(?:null|undefined|${VUE_TYPE}|\\[\\s*${VUE_TYPE}(?:\\s*,\\s*${VUE_TYPE})*\\s*,?\\s*\\])(?:\\s+as\\s[\\s\\S]+)?$`,
+)
 
 /** Whether the form can change the props of this script. If not, the reason to show. */
 export function getPropsReadOnlyReason(source: string): string {
 	return findScriptProps(source || NO_SCRIPT).readOnlyReason
+}
+
+/**
+ * Whether the form can change this prop. It cannot change one that is a variable or a call,
+ * or an object with a spread or a computed key, because those can set a key that the form removes.
+ */
+export function getPropReadOnlyReason(source: string, name: string): string {
+	const entry = findScriptProps(source || NO_SCRIPT).entries.get(name)
+	const value = getPropertyValue(entry)
+	const isKnown =
+		value?.name === "ObjectExpression"
+			? value.getChildren("Property").length === getProperties(source, value).size
+			: value && PLAIN_TYPE.test(getText(source, value))
+	return !entry || isKnown ? "" : `"${name}" uses advanced prop options. Change it in the script.`
 }
 
 /**
@@ -40,62 +63,76 @@ export function setScriptProp(
 	if (prop && prop.input_name !== previous?.input_name && props.entries.has(prop.input_name)) {
 		throw new Error(`A prop named "${prop.input_name}" already exists.`)
 	}
-	const kept = entry && prop && isSameDefault(previous, prop) ? getDefaultSource(source, entry) : undefined
-	// an unchanged type stays as written, such as `[String, Number]` or `Array as PropType<Row[]>`
-	const keptType = entry && prop && previous.prop_type === prop.prop_type ? getTypeSource(source, entry) : undefined
-	const text = prop ? getPropSource(prop, kept, keptType) : ""
 
-	let script: string
-	if (entry) script = text ? replaceRange(source, entry.from, entry.to, text) : removeEntry(source, entry)
-	else if (text) script = addEntry(source, props, text)
-	else return source
+	let script = source
+	if (prop && entry) {
+		const text = `${getKeySource(prop.input_name)}: ${getChangedValue(source, entry, previous, prop)}`
+		script = replaceRange(source, entry.from, entry.to, text)
+	} else if (prop) {
+		script = addProp(source, props, `${getKeySource(prop.input_name)}: ${getValueSource(getPropParts(prop))}`)
+	} else if (entry) {
+		script = removeProperty(source, entry)
+	}
 	if (hasSyntaxError(parse(script))) throw new Error("The default value is not valid JavaScript.")
 	return script
 }
 
-const PROP_TYPES: Record<string, string | null> = {
-	text: "String",
-	textarea: "String",
-	select: "String",
-	color: "String",
-	number: "Number",
-	checkbox: "Boolean",
-	code: null,
+/** The value of a changed prop: its text in the script, with only the changed keys set again. */
+function getChangedValue(
+	source: string,
+	entry: SyntaxNode,
+	previous: StudioComponentInput,
+	prop: StudioComponentInput,
+): string {
+	const readOnlyReason = getPropReadOnlyReason(source, previous.input_name)
+	if (readOnlyReason) throw new Error(readOnlyReason)
+	const before = getPropParts(previous, false)
+	const after = getPropParts(prop)
+	const value = getPropertyValue(entry)!
+	let text = getText(source, value)
+	if (value.name !== "ObjectExpression") {
+		// `title: String` is only a type
+		const type = /^(null|undefined)$/.test(text) ? null : text
+		return getValueSource({ ...after, type: before.type === after.type ? type : after.type })
+	}
+	for (const key of PROP_KEYS) {
+		if (before[key] !== after[key]) text = setKey(text, key, after[key])
+	}
+	return text
 }
 
-/** One entry of the `props` object, such as `size: { type: String, default: "md" }`. */
-function getPropSource(prop: StudioComponentInput, defaultSource?: string, typeSource?: string): string {
-	const propType = prop.prop_type ?? PROP_TYPES[prop.type] ?? "Any"
-	const type = typeSource ?? (propType === "Any" ? null : propType)
-	const parts = type ? [`type: ${type}`] : []
-	if (prop.required) parts.push("required: true")
-	defaultSource ??= getDefaultLiteral(prop)
-	if (defaultSource) parts.push(`default: ${defaultSource}`)
-
+/** The parts of a prop as the form gives them. Null for a key that the prop does not need. */
+function getPropParts(prop: StudioComponentInput, isChecked = true): PropParts {
+	const propType = prop.prop_type || "Any"
 	const meta = []
-	// The control that the user selected in the form. Without one, a control is named only when it
-	// is not the first control of the type.
-	const control = prop.control ?? (prop.type === getTypeControls(propType)[0] ? "" : prop.type)
-	if (control) meta.push(`control: "${control}"`)
+	if (prop.control) meta.push(`control: "${prop.control}"`)
 	if (prop.type === "select") meta.push(`options: ${JSON.stringify(getOptions(prop))}`)
 	if (prop.description) meta.push(`description: ${JSON.stringify(prop.description)}`)
-	if (meta.length) parts.push(`meta: { ${meta.join(", ")} }`)
-
-	const name = /^[A-Za-z_$][\w$]*$/.test(prop.input_name) ? prop.input_name : JSON.stringify(prop.input_name)
-	if (parts.length === 1 && type) return `${name}: ${type}`
-	return `${name}: ${parts.length ? `{ ${parts.join(", ")} }` : "null"}`
+	return {
+		type: propType === "Any" ? null : propType,
+		required: prop.required ? "true" : null,
+		default: getDefaultLiteral(prop, isChecked) ?? null,
+		meta: meta.length ? `{ ${meta.join(", ")} }` : null,
+	}
 }
 
-function getDefaultLiteral(prop: StudioComponentInput): string | undefined {
+/** The value of a prop: `String`, `{ type: String, default: "md" }`, or `null` for no parts. */
+function getValueSource(parts: PropParts): string {
+	const keys = PROP_KEYS.filter((key) => parts[key] !== null)
+	if (keys.length === 1 && parts.type) return parts.type
+	return keys.length ? `{ ${keys.map((key) => `${key}: ${parts[key]}`).join(", ")} }` : "null"
+}
+
+function getDefaultLiteral(prop: StudioComponentInput, isChecked: boolean): string | undefined {
 	const value = prop.default
 	if (value === undefined || value === null || value === "") return undefined
 	if (prop.type === "number") {
-		if (!Number.isFinite(Number(value))) throw new Error("The default value must be a number.")
+		if (isChecked && !Number.isFinite(Number(value))) throw new Error("The default value must be a number.")
 		return String(Number(value))
 	}
 	// Vue gives a Boolean prop without a default the value false
 	if (prop.type === "checkbox") return ["true", "1"].includes(String(value)) ? "true" : undefined
-	if (prop.type === "select" && !getOptions(prop).includes(String(value))) {
+	if (isChecked && prop.type === "select" && !getOptions(prop).includes(String(value))) {
 		throw new Error("The default value must be one of the options.")
 	}
 	// Vue calls a factory for each instance, so two instances do not share one object
@@ -107,25 +144,21 @@ function getOptions(prop: StudioComponentInput): string[] {
 	return (prop.options || "").split("\n").filter((option) => option.trim())
 }
 
-// The script gives a default as text, and a number or checkbox control gives a number or a boolean.
-function isSameDefault(previous: StudioComponentInput, prop: StudioComponentInput): boolean {
-	return String(previous.default ?? "") === String(prop.default ?? "") && previous.type === prop.type
+function getKeySource(name: string): string {
+	return /^[A-Za-z_$][\w$]*$/.test(name) ? name : JSON.stringify(name)
 }
 
-/** The text of an entry's `default`, so a value that the form cannot show, such as a factory, stays. */
-function getDefaultSource(source: string, entry: SyntaxNode): string | undefined {
-	const value = getPropertyValue(entry)
-	if (value?.name !== "ObjectExpression") return undefined
-	const defaultValue = getPropertyValue(getProperties(source, value).get("default"))
-	return defaultValue ? source.slice(defaultValue.from, defaultValue.to) : undefined
-}
-
-/** The text of an entry's type: the value of `type`, or the whole value of `title: String`. */
-function getTypeSource(source: string, entry: SyntaxNode): string | undefined {
-	let value = getPropertyValue(entry)
-	if (value?.name === "ObjectExpression") value = getPropertyValue(getProperties(source, value).get("type"))
-	const text = value ? source.slice(value.from, value.to) : "null"
-	return text === "null" ? undefined : text
+/** Set, add or remove one key of an object literal, given as text. A null value removes the key. */
+function setKey(objectText: string, key: string, value: string | null): string {
+	const source = `(${objectText})`
+	const object = findObject(parse(source))!
+	const property = getProperties(source, object).get(key)
+	const text = `${key}: ${value}`
+	let result = source
+	if (property && value !== null) result = replaceRange(source, property.from, property.to, text)
+	else if (property) result = removeProperty(source, property)
+	else if (value !== null) result = addProperty(source, object, text)
+	return result.slice(1, -1)
 }
 
 function findScriptProps(source: string): ScriptProps {
@@ -155,15 +188,19 @@ function getProperties(source: string, object: SyntaxNode): Map<string, SyntaxNo
 	const properties = new Map<string, SyntaxNode>()
 	for (const property of object.getChildren("Property")) {
 		const key = property.firstChild
-		if (key?.name === "PropertyDefinition") properties.set(source.slice(key.from, key.to), property)
+		if (key?.name === "PropertyDefinition") properties.set(getText(source, key), property)
 		else if (key?.name === "String") properties.set(source.slice(key.from + 1, key.to - 1), property)
 	}
 	return properties
 }
 
 /** The value of `name: value`. A shorthand or a method has none. */
-function getPropertyValue(property: SyntaxNode | undefined): SyntaxNode | null {
+function getPropertyValue(property: SyntaxNode | undefined | null): SyntaxNode | null {
 	return property?.getChild(":")?.nextSibling ?? null
+}
+
+function getText(source: string, node: SyntaxNode): string {
+	return source.slice(node.from, node.to)
 }
 
 function parse(source: string): Tree {
@@ -176,31 +213,49 @@ function hasSyntaxError(tree: Tree): boolean {
 	return hasError
 }
 
-function addEntry(source: string, props: ScriptProps, text: string): string {
+function findObject(tree: Tree): SyntaxNode | null {
+	let object: SyntaxNode | null = null
+	tree.iterate({ enter: (node) => void (object ||= node.name === "ObjectExpression" ? node.node : null) })
+	return object
+}
+
+function addProp(source: string, props: ScriptProps, text: string): string {
 	if (!props.propsObject) {
 		// after the `{` of the default export
 		const at = props.exportObject!.from + 1
 		const rest = source.slice(at, props.exportObject!.to - 1).trim()
 		return replaceRange(source, at, at, `\n\tprops: {\n\t\t${text},\n\t},${rest ? "" : "\n"}`)
 	}
-	const entries = props.propsObject.getChildren("Property")
-	const last = entries.at(-1)
-	if (!last) return replaceRange(source, props.propsObject.from, props.propsObject.to, `{\n\t\t${text},\n\t}`)
+	const { from, to } = props.propsObject
+	if (!props.propsObject.getChild("Property")) return replaceRange(source, from, to, `{\n\t\t${text},\n\t}`)
+	return addProperty(source, props.propsObject, text)
+}
+
+/** Add `key: value` after the last property of an object literal that has one. `{}` gets `{ key: value }`. */
+function addProperty(source: string, object: SyntaxNode, text: string): string {
+	const last = object.getChildren("Property").at(-1)
+	if (!last) return replaceRange(source, object.from, object.to, `{ ${text} }`)
 
 	const indent = getIndent(source, last.from)
-	// one entry on each line, or all on one line, as the script already has them
+	// one property on each line, or all on one line, as the object already has them
 	const separator = indent === null ? " " : `\n${indent}`
 	const hasComma = last.nextSibling?.name === ","
 	const at = hasComma ? last.nextSibling!.to : last.to
 	return replaceRange(source, at, at, `${hasComma ? "" : ","}${separator}${text}${indent === null ? "" : ","}`)
 }
 
-function removeEntry(source: string, entry: SyntaxNode): string {
-	const to = entry.nextSibling?.name === "," ? entry.nextSibling.to : entry.to
-	const indent = getIndent(source, entry.from)
-	// an entry on its own line goes with the line
-	if (indent !== null && source[to] === "\n") return replaceRange(source, entry.from - indent.length, to + 1, "")
-	return replaceRange(source, entry.from, source[to] === " " ? to + 1 : to, "")
+function removeProperty(source: string, property: SyntaxNode): string {
+	const hasComma = property.nextSibling?.name === ","
+	const to = hasComma ? property.nextSibling!.to : property.to
+	const indent = getIndent(source, property.from)
+	// a property on its own line goes with the line
+	if (indent !== null && source[to] === "\n") {
+		return replaceRange(source, property.from - indent.length, to + 1, "")
+	}
+	// the last one of a line goes with the comma before it
+	const previous = property.prevSibling
+	const from = !hasComma && previous?.name === "," ? previous.from : property.from
+	return replaceRange(source, from, hasComma && source[to] === " " ? to + 1 : to, "")
 }
 
 /** The whitespace before `position` on its line. Null when other text comes first. */
