@@ -8,6 +8,7 @@ import {
 	type NarrowedDialogHost,
 } from "@/narrowedDialog";
 import { createPageDialogs } from "./dialogs/pageDialogs";
+import { trackListed } from "./dialogs/readableDialogs";
 import type { PageDialogOpenOptions } from "./dialogs/types";
 
 /** The shell's open dialogs: nothing closes them but the reader, so there is one stack for the tab's life. */
@@ -24,17 +25,17 @@ export interface ShellDialog {
 
 /** `shell.dialog`, for the shell's life: nothing closes its dialogs but the reader. */
 export function shellDialog(): ShellDialog {
-	const host = (verb: string): NarrowedDialogHost => ({
+	const host = (verb: "confirm" | "danger", options: DialogConfirmOptions): NarrowedDialogHost => ({
 		hold: async (work) => work(),
 		warn: (reason) => {
 			if (import.meta.env.DEV) console.warn(`[shell] shell.dialog.${verb} called ${reason}`);
 		},
 		failed: (exception) => console.error(`[shell] shell.dialog.${verb} onCancel threw`, exception),
-		track: () => () => {},
+		track: trackListed(verb, options, () => () => {}),
 	});
 	return {
 		open: shellDialogs.api.open,
-		confirm: (options) => openNarrowedDialog("confirm", options ?? {}, host("confirm")),
-		danger: (options) => openNarrowedDialog("danger", options ?? {}, host("danger")),
+		confirm: (options) => openNarrowedDialog("confirm", options ?? {}, host("confirm", options ?? {})),
+		danger: (options) => openNarrowedDialog("danger", options ?? {}, host("danger", options ?? {})),
 	};
 }

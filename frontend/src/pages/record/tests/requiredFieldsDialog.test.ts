@@ -42,6 +42,7 @@ vi.mock("@framework/ui/FormLayout", async (importOriginal) => ({
 }));
 
 import { fieldsToLayout } from "@framework/ui/FormLayout";
+import { ListedDialogKey, type ReadableDialog } from "@/shell/dialogs/readableDialogs";
 import RequiredFieldsDialog from "../dialogs/RequiredFieldsDialog.vue";
 
 const layout = fieldsToLayout([{ fieldname: "batch", fieldtype: "Data", label: "Batch", reqd: true }]);
@@ -49,7 +50,7 @@ const layout = fieldsToLayout([{ fieldname: "batch", fieldtype: "Data", label: "
 const blank = { render: () => null };
 const EDITOR = { name: "doctype-editor", params: { name: "Deal" }, query: { layout: "details", row: "FL-7" } };
 
-function render(close = vi.fn(), submitting = false, editRoute?: typeof EDITOR) {
+function render(close = vi.fn(), submitting = false, editRoute?: typeof EDITOR, listed?: ReadableDialog) {
   const root = document.createElement("div");
   document.body.appendChild(root);
   const router = createRouter({
@@ -59,6 +60,7 @@ function render(close = vi.fn(), submitting = false, editRoute?: typeof EDITOR) 
   const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
   const app = createApp(RequiredFieldsDialog, { layout, doc: { name: "D-1" }, doctype: "Deal", close, submitting, editRoute });
   app.use(router);
+  if (listed) app.provide(ListedDialogKey, listed);
   app.mount(root);
   return { root, close, push };
 }
@@ -126,5 +128,23 @@ describe("the required-fields dialog", () => {
     button(root, "Cancel").dispatchEvent(new MouseEvent("click"));
 
     expect(close).toHaveBeenCalledWith();
+  });
+
+  it("hands its host a handle: fill the missing field, then submit", async () => {
+    const listed: ReadableDialog = { id: 1, kind: "dialog", title: "", message: "", buttons: [] };
+    const { close } = render(vi.fn(), false, undefined, listed);
+
+    expect(listed.handle!.fieldnames()).toEqual(["batch"]);
+    expect(listed).toMatchObject({
+      message: "These fields are required but are not on this form.",
+      buttons: ["Continue", "Cancel"],
+    });
+    expect(() => listed.handle!.setValues({ nope: 1 })).toThrow("no field nope");
+    await expect(listed.handle!.submit()).rejects.toThrow("did not submit");
+    expect(close).not.toHaveBeenCalled();
+    listed.handle!.setValues({ batch: "B2" });
+    await listed.handle!.submit();
+
+    expect(close).toHaveBeenCalledWith(expect.objectContaining({ batch: "B2" }));
   });
 });

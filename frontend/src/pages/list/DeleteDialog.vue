@@ -13,6 +13,7 @@
 <script setup lang="ts">
 import { Dialog, toast } from "frappe-ui";
 import { computed, ref, watch } from "vue";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { __, __n } from "@/i18n";
 import type { DeleteOutcome } from "@/list/useListView";
 
@@ -85,4 +86,11 @@ function report(outcome: DeleteOutcome) {
 	}
 	failure.value = outcome.failed.map(({ name, error }) => `${name}: ${error}`).join("\n");
 }
+
+useReadableDialog(open, () => ({
+	kind: "danger",
+	title: title.value,
+	message: __("This cannot be undone."),
+	buttons: actions.value.map((action) => action.label),
+}));
 </script>

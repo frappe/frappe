@@ -14,12 +14,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { provide, ref, watch } from "vue";
 import { Dialog } from "frappe-ui";
 import type { DialogSize } from "frappe-ui";
 import type { PageDialogEntry } from "@/shell/dialogs/pageDialogs";
+import { ListedDialogKey } from "./readableDialogs";
 
 const props = defineProps<{ entry: PageDialogEntry }>();
+
+provide(ListedDialogKey, props.entry.listed);
 
 const isOpen = ref(true);
 const dismissible = props.entry.options.dismissible !== false;

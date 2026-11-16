@@ -314,6 +314,10 @@ list and opens the dialog over it. An entry may name a **body**, a component tha
 form with the same record, Save and frame, and that can switch to the form.
 _Avoid_: "modal record", "quick view".
 
+**Readable dialog**: <a id="readable-dialog"></a>
+An open dialog the tab lists, so a caller that cannot see the screen can read it: its kind, title, message and button labels. A form dialog also lets the caller fill its fields, submit and close it, through the `dialog` act surface; a `confirm` or `danger` stays the person's to answer.
+_Avoid_: modal list, dialog state.
+
 **Required-fields dialog**: <a id="required-fields-dialog"></a>
 The dialog a save opens for each mandatory field that the layout does not show: `reqd` or
 `mandatory_depends_on` is true, the value is empty and the person can write it. It lists them

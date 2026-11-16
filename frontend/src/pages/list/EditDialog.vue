@@ -66,6 +66,7 @@ import { FormLayout, fieldsToLayout, mapField, type RawMetaField } from "@framew
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
 import { Button, Dialog, Select } from "frappe-ui";
 import { computed, provide, ref, watch } from "vue";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { __, __n } from "@/i18n";
 import { clears, editableFields, updateFrom, type EditableField } from "@/list/bulkEdit";
 import type { BulkUpdate } from "@framework/ui/api";
@@ -209,6 +210,11 @@ async function confirm() {
 		saving.value = false;
 	}
 }
+
+useReadableDialog(open, () => ({
+	title: title.value,
+	buttons: actions.value.map((action) => action.label),
+}));
 </script>
 
 <style scoped>

@@ -14,6 +14,7 @@
 import { bulkStatusDocuments } from "@framework/ui/api";
 import { Dialog } from "frappe-ui";
 import { computed, ref, watch } from "vue";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { __ } from "@/i18n";
 import { runBulk } from "@/shell/bulkOutcome";
 import type { BulkStatusAction } from "./bulkStatus";
@@ -91,4 +92,11 @@ async function confirm() {
 		running.value = false;
 	}
 }
+
+useReadableDialog(open, () => ({
+	kind: "confirm",
+	title: title.value,
+	message: hint.value,
+	buttons: actions.value.map((action) => action.label),
+}));
 </script>

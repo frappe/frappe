@@ -17,6 +17,7 @@ import { openCreate, type CreatedDoc, type CreateOptions } from "./create";
 import { shellDialog, type ShellDialog } from "./dialog";
 import { useRealtime, type ShellRealtime } from "./realtime";
 import type { StandingWindowHandle } from "./standingWindows";
+import { dialogEntries } from "./dialogActs";
 import { navSide } from "./navigationSide";
 import { loadDocument } from "./tabKeepAlive";
 import { resetWindowHandles, windowHandleOf } from "./windowHandles";
@@ -109,6 +110,7 @@ export function useShellActs(host: ShellActsHost) {
 					item,
 					hidden: false,
 				})),
+			dialog: dialogEntries,
 		},
 		context: () => shell,
 		passes: (right) => typeof right !== "string" && doctypeRight.passes(right),

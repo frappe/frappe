@@ -47,6 +47,7 @@
 <script setup lang="ts">
 import { Button, Checkbox, Dialog } from "frappe-ui";
 import { computed, ref, watch } from "vue";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { __ } from "@/i18n";
 import { runBulk } from "@/shell/bulkOutcome";
 import AssigneePicker from "@/pages/record/panel/AssigneePicker.vue";
@@ -156,4 +157,10 @@ async function confirm() {
 		running.value = false;
 	}
 }
+
+useReadableDialog(open, () => ({
+	title: title.value,
+	message: description.value,
+	buttons: actions.value.map((action) => action.label),
+}));
 </script>

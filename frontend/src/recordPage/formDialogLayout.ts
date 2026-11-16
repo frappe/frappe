@@ -1,5 +1,8 @@
 // Turns `page.dialog.form()` options into a `FormLayoutSchema`. Pure: the `doctype`
 // mode's fetch is the dialog's.
+import type { Ref } from "vue";
+import { __ } from "@/i18n";
+import type { DialogHandle } from "@/shell/dialogs/readableDialogs";
 import { mapField, fieldsToLayout } from "@framework/ui/FormLayout";
 import type {
   FieldNode,
@@ -111,6 +114,35 @@ export function formData(
   for (const field of flatFields(layout))
     data[field.fieldname] = doc[field.fieldname];
   return data;
+}
+
+// Static flags only: a `depends_on` or `read_only_depends_on` condition is not resolved here.
+const DISPLAY_ONLY = ["HTML", "Button", "Heading"];
+
+/** What a caller may do to a form dialog whose draft is `doc`: read it, fill it, submit it, close it. */
+export function formDialogHandle(
+  layout: () => FormLayoutSchema,
+  doc: Ref<Record<string, any>>,
+  actions: { submit: () => Promise<boolean> | boolean; close: () => void },
+): DialogHandle {
+  const fieldnames = () =>
+    flatFields(layout())
+      .filter((field) => !field.hidden && !field.readOnly && !DISPLAY_ONLY.includes(field.fieldtype))
+      .map((field) => field.fieldname);
+  return {
+    close: actions.close,
+    submit: async () => {
+      if ((await actions.submit()) === false)
+        throw new Error(__("The dialog did not submit: its fields show why"));
+    },
+    fieldnames,
+    values: () => formData(layout(), doc.value),
+    setValues: (values) => {
+      const unknown = Object.keys(values).filter((name) => !fieldnames().includes(name));
+      if (unknown.length) throw new Error(__("The dialog has no field {0}", [unknown.join(", ")]));
+      doc.value = { ...doc.value, ...values };
+    },
+  };
 }
 
 function toSection(section: PageDialogSection): Section {

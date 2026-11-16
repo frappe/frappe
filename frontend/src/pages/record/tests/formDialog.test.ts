@@ -103,6 +103,7 @@ function makeEntry(form: PageDialogFormOptions) {
       if (!entry.settled.length) entry.settled.push(result);
     },
     dismiss: vi.fn(),
+    listed: { id: 1, kind: "form", title: "", message: "", buttons: [] },
     holding: 0,
     hold: async (work) => {
       entry.holding += 1;
@@ -312,6 +313,70 @@ describe("the form host", () => {
 
     expect(onCancel).not.toHaveBeenCalled();
     expect(entry.settled).toEqual([{ note: "x" }]);
+  });
+});
+
+describe("the form host's handle", () => {
+  it("fills a field by name, submits like the button, and refuses an unknown name", async () => {
+    const onSubmit = vi.fn();
+    const entry = makeEntry({ fields: FIELDS, onSubmit });
+    render(entry);
+    await settle();
+    const handle = entry.listed.handle!;
+
+    expect(handle.fieldnames()).toEqual(["note"]);
+    expect(() => handle.setValues({ nope: "x" })).toThrow("no field nope");
+    handle.setValues({ note: "typed by a caller" });
+    expect(handle.values()).toEqual({ note: "typed by a caller" });
+    await handle.submit();
+    await settle();
+
+    expect(onSubmit).toHaveBeenCalledWith({ note: "typed by a caller" });
+    expect(entry.settled).toEqual([{ note: "typed by a caller" }]);
+  });
+
+  it("lists only the fields a person could fill, and refuses the rest", async () => {
+    const entry = makeEntry({
+      fields: [
+        ...FIELDS,
+        { fieldname: "locked", fieldtype: "Data", label: "Locked", read_only: 1 },
+        { fieldname: "secret", fieldtype: "Data", label: "Secret", hidden: 1 },
+      ],
+    });
+    render(entry);
+    await settle();
+
+    expect(entry.listed.handle!.fieldnames()).toEqual(["note"]);
+    expect(() => entry.listed.handle!.setValues({ locked: "x" })).toThrow("no field locked");
+  });
+
+  it("throws when a submit does not go through, and for a dialog that submits by its own buttons", async () => {
+    const failing = makeEntry({
+      fields: [{ fieldname: "note", fieldtype: "Data", label: "Note", reqd: 1 }],
+    });
+    render(failing);
+    await settle();
+    await expect(failing.listed.handle!.submit()).rejects.toThrow("did not submit");
+    expect(failing.settled).toEqual([]);
+
+    const custom = makeEntry({
+      fields: FIELDS,
+      actions: [{ label: "Create", onClick: vi.fn() }],
+    });
+    render(custom);
+    await settle();
+    await expect(custom.listed.handle!.submit()).rejects.toThrow("its own buttons");
+  });
+
+  it("closes the dialog with nothing", async () => {
+    const entry = makeEntry({ fields: FIELDS });
+    render(entry);
+    await settle();
+
+    entry.listed.handle!.close();
+    await settle();
+
+    expect(entry.settled).toEqual([null]);
   });
 });
 
