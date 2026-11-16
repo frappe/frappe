@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 from contextlib import contextmanager
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 import frappe
 from frappe.mcp import protocol
@@ -108,6 +108,34 @@ class TestSettings(McpTestCase):
 				}
 			)
 			self.assertEqual(response.json["error"]["code"], protocol.METHOD_NOT_FOUND)
+
+	def test_delete_setting_blocks_deletes_from_other_tools(self):
+		def delete_through_call_method():
+			todo = frappe.get_doc(doctype="ToDo", description="MCP delete").insert()
+			todo.db_set("owner", self.user)
+			self.addCleanup(frappe.db.commit)  # nosemgrep
+			self.addCleanup(frappe.delete_doc_if_exists, "ToDo", todo.name)
+			response = self.request(
+				{
+					"jsonrpc": "2.0",
+					"id": 1,
+					"method": "tools/call",
+					"params": {
+						"name": "call_method",
+						"arguments": {
+							"method": "frappe.client.delete",
+							"args": {"doctype": "ToDo", "name": todo.name},
+						},
+					},
+				}
+			)
+			return response.json["result"]["isError"], frappe.db.exists("ToDo", todo.name)
+
+		with self.settings(enable_mcp=1, disable_mcp_delete=1):
+			self.assertEqual(delete_through_call_method(), (True, ANY))
+		with self.settings(enable_mcp=1, disable_mcp_delete=0):
+			self.assertEqual(delete_through_call_method(), (False, None))
+		self.assertFalse(frappe.flags.mcp_delete_disabled)
 
 	def test_normal_user_cannot_change_settings(self):
 		doc = frappe.get_doc("System Settings")
