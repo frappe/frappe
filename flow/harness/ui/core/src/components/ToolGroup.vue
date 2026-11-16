@@ -30,11 +30,11 @@
 				<ThoughtStep v-if="step.thought" :id="step.id" :block="step.thought" :live="!sealed && !!step.live" />
 				<ToolStep v-else :step="step" :live="!sealed && isLive(step)" />
 			</template>
-		</div>
-		<!-- results landed but the run continues (model deciding the next step):
-		     no row carries the live signal, so a trailing status line does -->
-		<div v-if="tailLabel && !folded" class="py-2 text-base-medium md:py-2.5">
-			<span class="flow-shimmer">{{ tailLabel }}</span>
+			<!-- results landed but the run continues (model deciding the next step): no row carries
+			     the live signal, so a trailing status line does, where the next row will land -->
+			<div v-if="tailLabel && !folded" class="py-1.5 text-base">
+				<span class="flow-shimmer">{{ tailLabel }}</span>
+			</div>
 		</div>
 	</div>
 </template>
