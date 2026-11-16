@@ -102,14 +102,13 @@ it.each([
 );
 
 describe("the header's controls", () => {
-  it("has a search button with the shortcut hint, and an icon on each tab", async () => {
+  it("has a search button with the shortcut hint, and no tab strip (it sits below the header line)", async () => {
     const root = mountHeader("Design", vi.fn());
     await nextTick();
     expect(root.querySelector("[data-editor-finder]")!.textContent).toContain(
       "Search fields, settings, properties",
     );
-    for (const icon of ["layout-list", "settings", "eye"])
-      expect(root.querySelector(`.lucide-${icon}`)).not.toBeNull();
+    expect(root.querySelector("[role='tablist']")).toBeNull();
   });
 
   it("hides Undo and Redo on Preview, keeping their place", async () => {

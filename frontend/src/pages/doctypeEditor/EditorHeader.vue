@@ -64,40 +64,16 @@
 				@click="emit('act', 'editor.save')"
 			/>
 		</div>
-		<Tabs
-			v-model="tab"
-			class="[&_[role='tablist']]:gap-5 [&_[role='tablist']]:border-b-0 [&_[role='tablist']]:py-2"
-		>
-			<TabList variant="underline">
-				<TabTrigger
-					v-for="one in EDITOR_TABS"
-					:key="one.value"
-					:value="one.value"
-					:label="__(one.label)"
-					:icon-left="one.icon"
-				/>
-			</TabList>
-		</Tabs>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-	Badge,
-	Button,
-	Dropdown,
-	TabButtons,
-	TabList,
-	Tabs,
-	TabTrigger,
-	Tooltip,
-} from "frappe-ui";
+import { Badge, Button, Dropdown, TabButtons, Tooltip } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import { canRoute, routeFor } from "@/router/routeFor";
 import type { DesignCanvas } from "./designCanvas";
-import { EDITOR_TABS } from "./editorActs";
 import EditorFinder from "./EditorFinder.vue";
 import type { FinderHost } from "./editorFinder";
 import LayoutCrumbs, { type Crumb } from "./LayoutCrumbs.vue";
