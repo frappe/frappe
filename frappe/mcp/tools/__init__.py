@@ -137,8 +137,18 @@ def call(params: dict) -> dict:
 	except ValidationError as error:
 		return error_result(validation_message(error))
 
-	with form_dict(arguments.model_dump()):
+	with form_dict(arguments.model_dump()), delete_setting():
 		return success_result(tool.handler(**frappe.form_dict))
+
+
+@contextmanager
+def delete_setting() -> Iterator[None]:
+	"""Refuse deletes from any tool, such as `call_method` with `frappe.client.delete`, when turned off."""
+	frappe.flags.mcp_delete_disabled = bool(frappe.get_system_settings("disable_mcp_delete"))
+	try:
+		yield
+	finally:
+		frappe.flags.mcp_delete_disabled = False
 
 
 @contextmanager
