@@ -34,6 +34,7 @@ from frappe.www.printview import validate_print_permission
 
 MULTI_PDF_ASYNC_RATE_LIMIT = 10
 MULTI_PDF_ASYNC_RATE_WINDOW = 60
+PRINTED_PDF_FOLDER = "Home/Attachments/Printed PDFs"
 
 
 def get_max_bulk_print_docs() -> int:
@@ -468,7 +469,7 @@ def attach_pdf(
 	style: str | None = None,
 	settings: str | None = None,
 ) -> dict:
-	"""Attach the printed PDF to the document as a private file, replacing the one printed earlier with the same format."""
+	"""Attach the printed PDF to the document as a private file, replacing the one this method attached earlier for the same format."""
 	from frappe.core.doctype.file.utils import get_safe_file_name
 
 	doc = frappe.get_doc(doctype, name)
@@ -491,8 +492,24 @@ def attach_pdf(
 
 	format_name = format or doc.meta.default_print_format or "Standard"
 	file_name = get_safe_file_name(f"{doc.name} - {format_name}.pdf")
-	kept_previous = _remove_previous_pdf(doc, file_name)
+	previous = frappe.get_all(
+		"File",
+		filters={
+			"attached_to_doctype": doc.doctype,
+			"attached_to_name": doc.name,
+			"folder": PRINTED_PDF_FOLDER,
+			"file_name": file_name,
+		},
+		order_by="creation desc",
+		limit=1,
+		pluck="name",
+	)
+	kept_previous = bool(previous) and _attachments_are_protected(doc)
 
+	if previous and not kept_previous:
+		frappe.delete_doc("File", previous[0])
+
+	_create_printed_pdf_folder()
 	file = frappe.get_doc(
 		{
 			"doctype": "File",
@@ -500,47 +517,36 @@ def attach_pdf(
 			"content": pdf_file,
 			"attached_to_doctype": doc.doctype,
 			"attached_to_name": doc.name,
+			"folder": PRINTED_PDF_FOLDER,
 			"is_private": 1,
 		}
 	).insert()
+	if file.file_name != file_name:
+		file.db_set("file_name", file_name)
 
 	return {"file_name": file.file_name, "file_url": file.file_url, "kept_previous": kept_previous}
 
 
-def _remove_previous_pdf(doc: Document, file_name: str) -> bool:
-	"""Delete the PDF attached earlier as `file_name`. Return True when attachment protection keeps it."""
-	stem = file_name.removesuffix(".pdf")
-	previous = [
-		file.name
-		for file in frappe.get_all(
-			"File",
-			filters={
-				"attached_to_doctype": doc.doctype,
-				"attached_to_name": doc.name,
-				"attached_to_field": ("is", "not set"),
-				"is_private": 1,
-			},
-			fields=["name", "file_name"],
-		)
-		if file.file_name == file_name
-		or (
-			file.file_name.startswith(stem)
-			and file.file_name.endswith(".pdf")
-			and len(file.file_name) == len(file_name) + 6
-		)
-	]
-	if not previous:
-		return False
-
-	if doc.meta.protect_attached_files and (
+def _attachments_are_protected(doc: Document) -> bool:
+	return bool(doc.meta.protect_attached_files) and (
 		doc.docstatus == 1
 		or (doc.docstatus == 2 and not frappe.has_permission(doc.doctype, "delete", doc=doc))
-	):
-		return True
+	)
 
-	for file in previous:
-		frappe.delete_doc("File", file)
-	return False
+
+def _create_printed_pdf_folder():
+	if frappe.db.exists("File", PRINTED_PDF_FOLDER):
+		return
+	parent_folder, folder_name = PRINTED_PDF_FOLDER.rsplit("/", 1)
+	frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": folder_name,
+			"is_folder": 1,
+			"folder": parent_folder,
+			"is_private": 1,
+		}
+	).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
 
 @frappe.whitelist()
