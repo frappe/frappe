@@ -23,6 +23,7 @@ def execute():
 		.run(as_dict=True)
 	)
 
+	updated = 0
 	for row in rows:
 		# already peppered rows are not plain hashes, so running this skips them
 		if not passlibctx.identify(row.password):
@@ -31,3 +32,7 @@ def execute():
 		frappe.qb.update(Auth).set(Auth.password, cstr(fernet.encrypt(encode(row.password)))).where(
 			(Auth.doctype == row.doctype) & (Auth.name == row.name) & (Auth.fieldname == row.fieldname)
 		).run()
+
+		updated += 1
+		if updated % 10_000 == 0:
+			frappe.db.commit()
