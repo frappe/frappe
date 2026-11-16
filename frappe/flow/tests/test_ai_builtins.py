@@ -595,23 +595,25 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 			reference_report=query.name,
 			json=json.dumps({"filters": {"description": "query report probe"}}),
 		)
+		self.enterContext(self.set_user("test@example.com"))
+		ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
 
 		# saved filters replace the defaults, as in Desk
 		with (
 			patch("frappe.desk.query_report.run") as ran,
 			self.assertRaisesRegex(ValueError, "^Missing filters: owner$"),
 		):
-			run_report(report_name=custom.name, ctx=CTX)
+			run_report(report_name=custom.name, ctx=ctx)
 		ran.assert_not_called()
 
 		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
-			run_report(report_name=custom.name, filters={"description": "x"}, ctx=CTX)
+			run_report(report_name=custom.name, filters={"description": "x"}, ctx=ctx)
 		self.assertEqual(ran.call_args.kwargs["filters"], {"owner": "Administrator", "description": "x"})
 
 		# a validated report gets its defaults from the server, saved filters or not
 		query.db_set("validate_filters", 1)
 		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
-			run_report(report_name=custom.name, ctx=CTX)
+			run_report(report_name=custom.name, ctx=ctx)
 		ran.assert_called_once()
 
 	def test_only_a_prepared_report_runs_in_the_background(self):
