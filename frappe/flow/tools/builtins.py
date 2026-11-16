@@ -1122,14 +1122,14 @@ def list_acts(*, ctx: ToolContext) -> Pending:
 	return _ask_page(ctx, LIST_ACTS_SLUG, {})
 
 
-def _run_act_asks(args: dict[str, Any]) -> bool:
-	return not args.get("call")
+def _run_act_asks(call_args: dict[str, Any]) -> bool:
+	return not call_args.get("call")
 
 
-def _run_act_prompt(args: dict[str, Any]) -> str:
-	value = args.get("args")
+def _run_act_prompt(call_args: dict[str, Any]) -> str:
+	value = call_args.get("args")
 	shown = "" if value in (None, {}) else _summarize_values({"value": value})
-	return _("Run '{0}' in the page beside the chat {1}").format(args.get("name"), shown).strip()
+	return _("Run '{0}' in the page beside the chat {1}").format(call_args.get("name"), shown).strip()
 
 
 @tool(requires_confirmation=_run_act_asks, confirm_prompt=_run_act_prompt)
