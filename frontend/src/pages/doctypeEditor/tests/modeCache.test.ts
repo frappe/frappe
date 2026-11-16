@@ -47,4 +47,13 @@ describe("the editor's mode cache", () => {
     await modes.get("ToDo", "Design");
     expect(load).toHaveBeenCalledTimes(3);
   });
+
+  it("does not keep a load that began before a save", async () => {
+    const { load, modes } = cache();
+    const slow = modes.get("ToDo", "Customize");
+    await modes.refresh("ToDo", "Design");
+    await slow;
+    await modes.get("ToDo", "Customize");
+    expect(load).toHaveBeenCalledTimes(3);
+  });
 });

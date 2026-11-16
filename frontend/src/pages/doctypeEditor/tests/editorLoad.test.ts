@@ -188,8 +188,12 @@ it("loads each mode once: a switch back reuses it with no request", async () => 
   await answer("Design");
   await router.push("/doctype/ToDo?mode=customize");
   await answer("Customize");
-  for (const mode of ["design", "customize", "design"]) {
-    await router.push(`/doctype/ToDo?mode=${mode}`);
+  for (const path of [
+    "/doctype/ToDo?mode=design",
+    "/doctype/ToDo?mode=customize",
+    "/doctype/ToDo?mode=design",
+  ]) {
+    await router.push(path);
     await settle();
   }
   expect(loads.map((load) => load.mode)).toEqual(["Design", "Customize"]);
