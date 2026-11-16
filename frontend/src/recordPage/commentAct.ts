@@ -13,7 +13,8 @@ export function postCommentItem(post: PostComment): ActItem<RecordPageApi> {
       const html = commentHtml(value.content);
       if (!html) throw new Error("content has no text");
       const comment = await post(html);
-      if (!comment) throw new Error("The comment was not posted");
+      // The server wrote it but named nothing: a retry would post twice.
+      if (!comment) throw new Error("The server gave no comment name; read the timeline before posting again");
       return { comment };
     },
   };

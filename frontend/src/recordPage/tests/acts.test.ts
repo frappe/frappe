@@ -366,13 +366,13 @@ describe("record.post_comment", () => {
     expect(postComment).not.toHaveBeenCalled();
   });
 
-  it("fails when the post fails or the server adds no comment", async () => {
+  it("fails when the post fails or the server names no comment", async () => {
     const postComment = vi.fn().mockRejectedValueOnce(new Error("No permission")).mockResolvedValueOnce("");
     const { controller, page } = makePage({ postComment });
     await controller.refresh();
 
     await expect(page.run("record.post_comment", { content: "Hi" })).rejects.toThrow("No permission");
-    await expect(page.run("record.post_comment", { content: "Hi" })).rejects.toThrow("The comment was not posted");
+    await expect(page.run("record.post_comment", { content: "Hi" })).rejects.toThrow("The server gave no comment name");
   });
 });
 
