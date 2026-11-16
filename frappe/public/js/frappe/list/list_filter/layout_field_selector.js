@@ -1,5 +1,7 @@
 frappe.provide("frappe.ui");
 
+const LAYOUT_STD_FIELDNAMES = ["name", "owner", "creation", "modified", "modified_by"];
+
 /** Drag-and-drop column picker (shared by layout create/edit). */
 export default class LayoutFieldSelector {
 	constructor({ parent, doctype, list_view, fields = null, preserved_widths = [] }) {
@@ -79,7 +81,17 @@ export default class LayoutFieldSelector {
 			});
 		});
 
+		if (this.shows_name_column()) {
+			fields.push({ label: __("ID"), fieldname: "name" });
+		}
+
 		return fields;
+	}
+
+	shows_name_column() {
+		return (
+			this.subject_field.fieldname !== "name" && !this.list_view.settings?.hide_name_column
+		);
 	}
 
 	set_subject_field(meta) {
@@ -334,6 +346,7 @@ export default class LayoutFieldSelector {
 				{ doctype: this.doctype }
 			)
 			.then((fields) => {
+				if (this.shows_name_column()) fields.push("name");
 				const field = dialog.get_field("fields");
 				field.df.options = this.get_doctype_field_options(fields);
 				dialog.refresh();
@@ -349,9 +362,11 @@ export default class LayoutFieldSelector {
 			if (!this.is_selectable_layout_field(field)) return;
 			candidates.push(field);
 		});
-		if (this.subject_field.fieldname !== "name") {
-			candidates.push(frappe.model.get_std_field("name"));
-		}
+		frappe.model.std_fields.forEach((field) => {
+			if (!LAYOUT_STD_FIELDNAMES.includes(field.fieldname)) return;
+			if (field.fieldname === this.subject_field.fieldname) return;
+			candidates.push(field);
+		});
 
 		const label_counts = {};
 		candidates.forEach((field) => {
