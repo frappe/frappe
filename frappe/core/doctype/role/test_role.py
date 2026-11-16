@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.core.doctype.role.role import get_info_based_on_role
+from frappe.permissions import reset_perms
 from frappe.tests import IntegrationTestCase
 
 
@@ -71,3 +72,24 @@ class TestUser(IntegrationTestCase):
 			self.assertIn("test@example.com", [p.parent for p in parents])
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_replicate_role_keeps_access_of_other_roles(self):
+		reset_perms("Help Article")
+		self.addCleanup(frappe.clear_cache)
+
+		contributor = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "kb-contributor@example.com",
+				"first_name": "KB Contributor",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Knowledge Base Contributor"}],
+			}
+		).insert()
+
+		editor_role = frappe.get_doc("Role", "Knowledge Base Editor")
+		copied_role = editor_role.replicate_role("Knowledge Base Editor", "_Test Knowledge Base Editor Copy")
+
+		self.assertTrue(frappe.db.exists("Custom DocPerm", {"parent": "Help Article", "role": copied_role}))
+		with self.set_user(contributor.name):
+			self.assertTrue(frappe.has_permission("Help Article", "read"))
