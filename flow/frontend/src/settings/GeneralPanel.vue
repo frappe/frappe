@@ -25,13 +25,20 @@
 					@update:model-value="setColorScheme"
 				/>
 			</SettingsRow>
+			<SettingsRow title="Show each step separately" description="When off, steps are grouped into one line.">
+				<Switch
+					:model-value="flow.state.prefs.separateToolCalls"
+					aria-label="Show each step separately"
+					@update:model-value="flow.setSeparateToolCalls"
+				/>
+			</SettingsRow>
 		</div>
 	</component>
 </template>
 
 <script setup>
 import { computed, inject } from "vue";
-import { Avatar, Select, useColorScheme } from "frappe-ui";
+import { Avatar, Select, Switch, useColorScheme } from "frappe-ui";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
 import SettingsRow from "@flow/ui-core/components/SettingsRow.vue";
 
@@ -44,6 +51,7 @@ const THEMES = [
 	{ label: "Light", value: "light" },
 	{ label: "Dark", value: "dark" },
 ];
+const flow = inject("flow");
 const page = inject("flowPage");
 const user = computed(() => page.state.boot.user ?? { name: "", full_name: "" });
 const siteSettings = computed(() => page.can("Flow Settings", "read"));

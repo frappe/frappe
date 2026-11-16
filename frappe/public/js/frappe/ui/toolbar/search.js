@@ -872,11 +872,20 @@ frappe.search.SearchDialog = class {
 			$name_inner.append($(avatar_html));
 		}
 		$name_inner.append($name_link);
+		const show_doc_name = result.value !== result.label;
+		if (show_doc_name) {
+			$name_inner.append(
+				$('<span class="text-muted">').html(
+					utils.highlight_global_search_terms(result.value, keywords)
+				)
+			);
+		}
 
 		let $subject = $(
 			'<div class="list-row-col ellipsis list-subject level global-search-grid-col">'
 		);
-		$subject.attr("title", result.label);
+		const subject_title = show_doc_name ? `${result.label}\n${result.value}` : result.label;
+		$subject.attr("title", subject_title);
 		$subject.append($('<span class="level-item">').append($name_inner));
 
 		const field_value_parts = (raw) => {
@@ -888,7 +897,7 @@ frappe.search.SearchDialog = class {
 		let $level_left = $('<div class="level-left global-search-level-left-multi">').append(
 			$subject
 		);
-		const row_title_bits = [result.label];
+		const row_title_bits = [subject_title];
 		const previewLim = GLOBAL_SEARCH_FIELD_INLINE_PREVIEW_LIMIT;
 		for (let i = 0; i < columns.length; i++) {
 			const parts = field_value_parts(fields[columns[i]]);

@@ -6,7 +6,7 @@
 	'right-end': 'row-col-right-end',
 } -%}
 
-{% macro render_field(df, doc) %}
+{% macro render_field(df, doc, in_zone=false) %}
 {%- if not df.get('_hidden') -%}
 {%- set value = df.get('_value') if df.get('_value') is not none else doc.get(df.fieldname) -%}
 {% include ['templates/print_format/macros/' + df.renderer + '.html', 'templates/print_format/macros/Data.html'] ignore missing %}
@@ -55,7 +55,7 @@ data-fieldtype="{{ df.fieldtype }}"
 <div class="section-columns row {{ justify_classes.get(section.justify, '') }}" style="gap:{{ col_gap }}">
 {%- for column in section.columns %}
 <div class="column col"{% if column.width %} style="flex: {{ column.width|float }} 1 0%"{% endif %}>
-{%- for df in column.fields %}{{ render_field(df, doc) }}{%- endfor %}
+{%- for df in column.fields %}{{ render_field(df, doc, in_zone=true) }}{%- endfor %}
 </div>
 {%- endfor %}
 </div>

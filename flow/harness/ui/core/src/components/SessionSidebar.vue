@@ -26,9 +26,14 @@
 	>
 		<div class="flex h-12 flex-none items-center gap-2.5 pl-4 pr-2">
 			<!-- the app's own menu hangs from its name, as in Frappe's other apps: settings and the
-			     way back out live here, not at the foot of the list. The mark and title sit in the
-			     rows' icon and label columns -->
-			<Dropdown :options="appMenu" align="start">
+			     way back out live here, not at the foot of the list. A host with Settings at the foot
+			     (the harness) has the name alone. The mark and title sit in the rows' icon and label
+			     columns -->
+			<div v-if="settingsFooter" class="-ml-1.5 flex h-8 min-w-0 items-center gap-2 pl-1.5 pr-2">
+				<BrandMark line :size="16" class="!text-ink-gray-8" />
+				<span class="text-base-semibold text-ink-gray-9">Flow</span>
+			</div>
+			<Dropdown v-else :options="appMenu" align="start">
 				<template #trigger>
 					<button
 						class="-ml-1.5 flex h-8 min-w-0 items-center gap-2 rounded-5 pl-1.5 pr-2 hover:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
@@ -259,11 +264,11 @@
 				</template>
 			</div>
 			<LoadingState
-				v-if="filtered.length === 0 && flow.state.sessionsLoading"
+				v-if="flow.state.sessions.length === 0 && flow.state.sessionsLoading"
 				class="justify-center px-2.5 py-8 text-sm text-ink-gray-5"
 			/>
-			<div v-else-if="filtered.length === 0" class="px-2.5 py-8 text-center text-sm text-ink-gray-5">
-				{{ emptyMessage }}
+			<div v-else-if="flow.state.sessions.length === 0" class="px-2.5 py-8 text-center text-sm text-ink-gray-5">
+				No chats yet — start one.
 			</div>
 			<button
 				v-if="flow.state.sessionsMore"
@@ -290,8 +295,8 @@
 				<span class="truncate text-base text-ink-gray-8">Settings</span>
 			</SidebarItem>
 		</footer>
-		<!-- its query is the sidebar's, so a search past the loaded page reloads the chats it matches -->
-		<ChatSearch v-model:open="searchOpen" v-model:query="query" @new="startNewChat()" @pick="openChat" />
+		<!-- it matches the chats itself: the list here stays as it is while a search is typed -->
+		<ChatSearch v-model:open="searchOpen" @new="startNewChat()" @pick="openChat" />
 	</aside>
 </template>
 
@@ -306,7 +311,6 @@ import KeyboardShortcut from "frappe-ui/src/components/KeyboardShortcut/Keyboard
 import { useKeyboardShortcut } from "frappe-ui"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
-import { useDebouncedValue } from "../debounce.js"
 import { layout, useSlide } from "../layout.js"
 import { afterMenu } from "../menu.js"
 import BrandMark from "./BrandMark.vue"
@@ -365,12 +369,7 @@ function appOption(app) {
 	return { label: app.title, slots: app.logo ? { prefix: logo } : {}, onClick: () => window.location.assign(app.route) }
 }
 
-const query = ref("")
-const debouncedQuery = useDebouncedValue(query, 150)
-watch(debouncedQuery, (q) => flow.searchSessions(q))
-
 const searchOpen = ref(false)
-watch(searchOpen, (open) => open || (query.value = ""))
 
 // an essential's keys show on its row's hover, never always on
 const HINT = "ml-auto mr-2 opacity-0 transition-opacity group-hover/sidebar-item:opacity-100"
@@ -486,7 +485,8 @@ function crawlTitle(event) {
 	crawlTimer = setTimeout(() => {
 		const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
 		const range = title.firstElementChild.offsetWidth - (title.clientWidth - 3 * rem)
-		if (range < 8) return // a few pixels of travel reads as jitter
+		// a title ending before the fade turns clear reads whole: only one running under the ••• crawls
+		if (range <= 1.5 * rem) return
 		title.style.setProperty("--crawl", `${-range}px`)
 		title.style.setProperty("--crawl-time", `${range / CRAWL_PX_PER_S}s`)
 		title.dataset.crawl = ""
@@ -499,7 +499,6 @@ function restTitle(event) {
 onBeforeUnmount(() => clearTimeout(crawlTimer))
 
 const CHATS_SHOWN = 5
-const searching = computed(() => !!debouncedQuery.value.trim())
 const showingAll = ref([]) // workspaces listing all their chats, by folder
 const hasWorkspaces = computed(() => !!flow.state.folders || flow.state.sessions.some((session) => session.cwd?.trim()))
 const grouped = computed(() => hasWorkspaces.value && flow.state.prefs.sidebarGroup !== "list")
@@ -507,7 +506,7 @@ const manual = computed(() => flow.state.prefs.sidebarOrder === "manual")
 // rows drag only where the filters menu shows, so the order can be set back, and over the
 // whole list, since a drop saves every chat's place
 const canReorder = computed(
-	() => hasWorkspaces.value && !searching.value && !flow.state.sessionsMore && !flow.state.sessionQuery,
+	() => hasWorkspaces.value && !flow.state.sessionsMore && !flow.state.sessionQuery,
 )
 
 // the filters menu, its current choices ticked
@@ -544,8 +543,8 @@ function arrange(items, order = [], keyOf = (item) => item) {
 }
 
 // chats by workspace, each workspace by its latest chat, after the daemon's with no chats
-// yet, newest first, unless `empty` is off; chats in none are loose
-function byWorkspace(chats, empty = true) {
+// yet, newest first; chats in none are loose
+function byWorkspace(chats) {
 	const kept = flow.state.folders && new Set(flow.state.folders.map((folder) => folder.path))
 	const workspaces = new Map()
 	const loose = []
@@ -555,7 +554,7 @@ function byWorkspace(chats, empty = true) {
 		else if (workspaces.has(cwd)) workspaces.get(cwd).chats.push(session)
 		else workspaces.set(cwd, { cwd, chats: [session] })
 	}
-	const unused = kept && empty ? [...kept].filter((cwd) => !workspaces.has(cwd)).reverse() : []
+	const unused = kept ? [...kept].filter((cwd) => !workspaces.has(cwd)).reverse() : []
 	return { folders: [...unused.map((cwd) => ({ cwd, chats: [] })), ...workspaces.values()], loose }
 }
 
@@ -584,22 +583,23 @@ watch(
 	{ immediate: true },
 )
 
-// a workspace per folder, most recent or in manual order, empty ones hidden while searching;
+// a workspace per folder, most recent or in manual order;
 // chats in none come last, ungrouped, and in one list nothing groups
 const groups = computed(() => {
-	const chats = manual.value ? arrange(filtered.value, flow.state.prefs.chatOrder, (s) => s.session_id) : filtered.value
+	const { sessions } = flow.state
+	const chats = manual.value ? arrange(sessions, flow.state.prefs.chatOrder, (s) => s.session_id) : sessions
 	if (!grouped.value) return [{ cwd: null, open: true, chats }]
-	const { folders, loose } = byWorkspace(chats, !searching.value)
+	const { folders, loose } = byWorkspace(chats)
 	const ordered = manual.value ? arrange(folders, flow.state.prefs.folderOrder, (folder) => folder.cwd) : folders
 	const groups = ordered.map(({ cwd, chats }) => {
-		const all = searching.value || showingAll.value.includes(cwd)
+		const all = showingAll.value.includes(cwd)
 		const shown = all ? chats : chats.filter((s, i) => i < CHATS_SHOWN || s.session_id === flow.state.sessionId)
 		const hidden = chats.length - shown.length
-		const collapsible = !searching.value && all && chats.length > CHATS_SHOWN
+		const collapsible = all && chats.length > CHATS_SHOWN
 		return {
 			cwd,
 			name: flow.folderName(cwd),
-			open: searching.value || flow.state.prefs.openFolders.includes(cwd),
+			open: flow.state.prefs.openFolders.includes(cwd),
 			chats: shown,
 			toggle: hidden ? `Show ${hidden} more` : collapsible ? "Show less" : null,
 		}
@@ -613,7 +613,6 @@ function toggleWorkspace(cwd) {
 		pressed = false
 		return
 	}
-	if (searching.value) return // a search holds every workspace with a match open
 	flow.setFolderOpen(cwd, !flow.state.prefs.openFolders.includes(cwd))
 }
 
@@ -748,7 +747,7 @@ async function newWorkspace() {
 	startNewChat(workspace?.path ?? cwd)
 }
 
-const DEFAULT_WIDTH = 288
+const DEFAULT_WIDTH = 256
 const clampWidth = (w) => Math.min(420, Math.max(224, w))
 const width = ref(clampWidth(flow.state.prefs.sidebarWidth ?? DEFAULT_WIDTH))
 
@@ -802,15 +801,6 @@ onBeforeUnmount(() => {
 	window.removeEventListener("touchend", swipeEnd)
 })
 
-const filtered = computed(() => {
-	const q = debouncedQuery.value.trim().toLowerCase()
-	return flow.state.sessions.filter((session) => !q || flow.sessionTitle(session).toLowerCase().includes(q))
-})
-
-const emptyMessage = computed(() => {
-	if (query.value) return "No matches."
-	return "No chats yet — start one."
-})
 </script>
 
 <style scoped>

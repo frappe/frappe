@@ -74,9 +74,14 @@ runs:
         frappe-src/studio/frontend/yarn.lock
         frappe-src/flow/yarn.lock
 
+  - id: os-release
+    shell: bash -e {0}
+    run: echo "version=$(lsb_release -rs)" >> "$GITHUB_OUTPUT"
+
   - uses: astral-sh/setup-uv@v6
     with:
       enable-cache: true
+      cache-suffix: ubuntu-${{ steps.os-release.outputs.version }}
       cache-dependency-glob: |
         **/pyproject.toml
         **/requirements*.txt

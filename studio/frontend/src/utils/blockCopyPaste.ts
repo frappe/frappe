@@ -4,7 +4,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { usePageScope } from "@/stores/codeStore"
 import useComponentStore from "@/stores/componentStore"
 import { studioPages } from "@/data/studioPages"
-import { hasPageScript as hasCompiledPageScript } from "@/data/studioPageScripts"
+import { hasBuiltPageScript } from "@/data/studioPageScripts"
 import {
 	showPasteConflictDialog,
 	type PasteConflictChoice,
@@ -188,7 +188,7 @@ function getClipboardSource(): ClipboardSource {
 		origin: window.location.origin,
 		app: store.activeApp!.name,
 		page: page.name,
-		hasPageScript: Boolean(page.script?.trim()) || hasCompiledPageScript(page.name),
+		hasPageScript: Boolean(page.script?.trim()) || hasBuiltPageScript(page.name),
 	}
 }
 

@@ -55,6 +55,12 @@
 	color: inherit;
 }
 
+.print-format-doc .field .value.value--colored a,
+.print-format-doc .field .value.value--colored pre,
+.print-format-doc .field .value.value--colored code {
+	color: inherit;
+}
+
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
 .print-format-doc .field.left-right,
 .print-format-doc .field.field-inline {
@@ -445,6 +451,10 @@
 	color: var(--gray-600);
 }
 
+.print-format-doc .child-table .cell-line-label {
+	font-weight: 600;
+}
+
 .print-format-doc .child-table .cell-line * {
 	margin: 0;
 }
@@ -526,6 +536,11 @@ body.print-format-doc .letter-head,
 .print-format-doc .letter-head img {
 	max-width: 100%;
 	height: auto;
+}
+
+.print-format-doc .print-barcode img,
+.print-format-doc .custom-html img {
+	max-width: 100%;
 }
 
 .print-format-doc .field[data-fieldtype="Rating"] .rating-star {

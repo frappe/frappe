@@ -34,7 +34,7 @@ When Flow reaches a gated call, it saves `approval_required` and ends the run wi
 
 | Tool | Arguments | Default confirmation | Behavior |
 | --- | --- | --- | --- |
-| `bash` | `command`, `timeout?` | Yes | Runs in `cwd`, combines output, records exit code, and kills its process group on timeout or abort. |
+| `bash` | `command`, `timeout?`, `description?` | Yes | Runs in `cwd`, combines output, records exit code, and kills its process group on timeout or abort. `description` is what the command does in plain words, shown to the user on the command's row in place of the command. |
 | `read` | `path`, `offset?`, `limit?` | No | Reads text with 1-indexed paging. |
 | `write` | `path`, `content` | Yes | Creates parent directories and overwrites the file. |
 | `edit` | `path`, `edits` | Yes | Applies non-overlapping exact replacements. Every old value must appear exactly once. |

@@ -33,6 +33,124 @@ class TestDB(IntegrationTestCase):
 	def test_sqlite_busy_timeout_allows_short_writer_contention(self):
 		self.assertEqual(frappe.db.sql("PRAGMA busy_timeout")[0][0], 15_000)
 
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_restore_discards_wal_of_replaced_database(self):
+		import tempfile
+		from pathlib import Path
+
+		from frappe.database.sqlite.setup_db import copy_db
+
+		with tempfile.TemporaryDirectory() as directory:
+			site = Path(directory)
+			(site / "db").mkdir()
+			source = site / "backup.db"
+			with sqlite3.connect(source) as connection:
+				connection.execute("create table restored (value text)")
+				connection.execute("insert into restored values ('from backup')")
+			destination = site / "db" / "restore_test.db"
+			destination.write_bytes(b"old database")
+			for suffix in ("-wal", "-shm"):
+				Path(f"{destination}{suffix}").write_bytes(b"stale")
+
+			with (
+				patch.object(frappe, "get_site_path", return_value=directory),
+				patch.dict(frappe.local.conf, {"db_name": "restore_test"}),
+			):
+				copy_db(source)
+
+			self.assertFalse(Path(f"{destination}-wal").exists())
+			self.assertFalse(Path(f"{destination}-shm").exists())
+			with sqlite3.connect(destination) as connection:
+				self.assertEqual(
+					connection.execute("select value from restored").fetchall(), [("from backup",)]
+				)
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_write_request_takes_writer_lock_at_begin(self):
+		previous_request = getattr(frappe.local, "request", None)
+		self.addCleanup(setattr, frappe.local, "request", previous_request)
+		set_request(method="POST", path="/api/method/ping")
+
+		db = get_db(cur_db_name=frappe.conf.db_name)
+		db.connect()
+		self.addCleanup(db.close)
+		other = sqlite3.connect(db.get_db_path(), timeout=0)
+		self.addCleanup(other.close)
+
+		with self.assertRaisesRegex(sqlite3.OperationalError, "database is locked"):
+			other.execute("BEGIN IMMEDIATE")
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_read_request_does_not_take_writer_lock(self):
+		previous_request = getattr(frappe.local, "request", None)
+		self.addCleanup(setattr, frappe.local, "request", previous_request)
+		set_request(method="GET", path="/api/method/ping")
+
+		db = get_db(cur_db_name=frappe.conf.db_name)
+		db.connect()
+		self.addCleanup(db.close)
+		other = sqlite3.connect(db.get_db_path(), timeout=0)
+		self.addCleanup(other.close)
+
+		other.execute("BEGIN IMMEDIATE")
+		other.rollback()
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_write_request_callbacks_run_before_writer_lock_is_retaken(self):
+		previous_request = getattr(frappe.local, "request", None)
+		self.addCleanup(setattr, frappe.local, "request", previous_request)
+		set_request(method="POST", path="/api/method/ping")
+
+		db = get_db(cur_db_name=frappe.conf.db_name)
+		db.connect()
+		self.addCleanup(db.close)
+		other = sqlite3.connect(db.get_db_path(), timeout=0)
+		self.addCleanup(other.close)
+
+		def take_and_release_writer_lock():
+			other.execute("BEGIN IMMEDIATE")
+			other.rollback()
+
+		for end_transaction, callbacks in ((db.commit, db.after_commit), (db.rollback, db.after_rollback)):
+			ran = []
+			callbacks.add(take_and_release_writer_lock)
+			callbacks.add(lambda: ran.append(1))
+			end_transaction()
+			self.assertEqual(ran, [1])
+			with self.assertRaisesRegex(sqlite3.OperationalError, "database is locked"):
+				other.execute("BEGIN IMMEDIATE")
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_add_index_keeps_single_quoted_column_index(self):
+		self.addCleanup(frappe.db.sql_ddl, "DROP INDEX IF EXISTS `todo_quoted_reference_name_index`")
+		self.addCleanup(
+			frappe.db.delete,
+			"Property Setter",
+			{"doc_type": "ToDo", "field_name": "reference_name", "property": "search_index"},
+		)
+		frappe.db.add_index("ToDo", ["`reference_name`"], "todo_quoted_reference_name_index")
+		self.assertEqual(
+			frappe.db.get_value(
+				"Property Setter",
+				{"doc_type": "ToDo", "field_name": "reference_name", "property": "search_index"},
+				"value",
+			),
+			"1",
+		)
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_add_index_accepts_quoted_columns(self):
+		frappe.db.add_index("ToDo", ["`status`", "allocated_to"], "todo_quoted_status_index")
+		self.assertTrue(frappe.db.has_index("tabToDo", "todo_quoted_status_index"))
+		frappe.db.sql_ddl("DROP INDEX IF EXISTS `todo_quoted_status_index`")
+
+	@run_only_if(db_type_is.SQLITE)
+	def test_sqlite_binds_uuid_values(self):
+		from uuid import uuid4
+
+		value = uuid4()
+		self.assertEqual(frappe.db.sql("select %s", (value,))[0][0], str(value))
+
 	@run_only_if(db_type_is.MARIADB)
 	def test_get_column_type(self):
 		desc_data = frappe.db.sql("desc `tabUser`", as_dict=1)
@@ -509,8 +627,10 @@ class TestDB(IntegrationTestCase):
 			with self.subTest(query=query):
 				frappe.db.sql(query)
 
+		frappe.db.savepoint("bound_comment")
 		with self.assertRaises(frappe.db.ProgrammingError):
 			frappe.db.sql("select 1 -- %s", ("\n; select 2 --",))
+		frappe.db.rollback(save_point="bound_comment")
 
 		self.assertEqual(frappe.db.sql("select %s", ("a; b",)), (("a; b",),))
 
@@ -830,6 +950,10 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(
 			"select * from \"tabtree b\" where lft > '13' and rgt <= '16' and name = '1' and parent = 4134qrsdc and isgroup = 1.00045",
 			modify_query(query),
+		)
+		self.assertEqual(
+			"""select 'a=1', E'b\\' =1', "c=1", $$d=1$$ where e= '1'""",
+			modify_query("""select 'a=1', E'b\\' =1', "c=1", $$d=1$$ where e=1"""),
 		)
 
 		query = 'select locate(".io", "frappe.io"), locate("3", cast(3 as varchar)), locate("3", 3::varchar)'

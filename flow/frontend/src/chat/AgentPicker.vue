@@ -1,5 +1,5 @@
 <template>
-	<!-- a new chat's agent, beside the composer's + menu -->
+	<!-- a new chat's agent, from its button beside the composer's + -->
 	<PalettePanel
 		title="Agent"
 		dropdown
@@ -45,8 +45,8 @@ import { layout } from "@flow/ui-core/layout.js";
 
 import { useAgent } from "./agent.js";
 
-// A new chat's agent, picked from its own list beside the composer's + menu.
-defineProps({ beside: { type: Number, default: 0 } }); // this far from the + button's left
+// A new chat's agent, picked from its own list under its button beside the composer's +.
+defineProps({ beside: { type: Number, default: 0 } }); // this far from its anchor's left
 const emit = defineEmits(["close"]);
 const page = inject("flowPage");
 const { current } = useAgent();

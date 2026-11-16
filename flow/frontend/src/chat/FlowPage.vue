@@ -53,7 +53,7 @@
 				>
 					<template #empty="{ mark }">
 						<SetupState v-if="needsSetup" />
-						<!-- the mark over a quiet heading, each a step smaller in a narrow frame -->
+						<!-- the mark over a quiet heading, the mark a step smaller in a narrow frame -->
 						<template v-else>
 							<BrandMark
 								line
@@ -61,10 +61,21 @@
 								v-bind="mark"
 								class="min-h-0 shrink max-md:!h-7 max-md:!w-7"
 							/>
-							<h2 class="text-balance text-4xl text-ink-gray-8 max-md:text-[22px]">
+							<h2 class="text-balance text-[22px] text-ink-gray-8">
 								What would you like to do?
 							</h2>
 						</template>
+					</template>
+					<template #error="{ error }">
+						{{ error.message }}
+						<button
+							v-if="error.settings_tab === 'models' && page.can('Flow Model', 'write')"
+							type="button"
+							class="underline"
+							@click="openSettings(error.settings_tab)"
+						>
+							Connect a provider
+						</button>
 					</template>
 				</MessageList>
 				<Composer
@@ -76,16 +87,20 @@
 					:placeholder="placeholder"
 					:modes="MODES"
 					:plus-lists="plusLists"
+					new-chat-mode-right
 				>
 					<template #below="{ starting }">
 						<p v-if="starting && !inPanel" class="mt-2 px-3 text-center text-sm text-ink-gray-5">
 							Flow is in beta and can make mistakes
 						</p>
 					</template>
-					<!-- the + menu's lists: a new chat's agent (a started chat keeps its own), and skills -->
+					<!-- a new chat's agent and skills, as buttons beside the + -->
+					<template #tools="{ starting, tall, insert }">
+						<ChatPickers v-if="starting" :insert="insert" :tall="tall" />
+					</template>
+					<!-- a started chat's + menu: skills (it keeps its agent) -->
 					<template #plus-list="{ id, beside, close, insert }">
-						<AgentPicker v-if="id === 'agent'" :beside="beside" @close="close" />
-						<SkillPicker v-else-if="id === 'skills'" :beside="beside" @close="close" @pick="insert" />
+						<SkillPicker v-if="id === 'skills'" :beside="beside" @close="close" @pick="insert" />
 					</template>
 					<template #palette="{ view, query, close, back }">
 						<AgentPalette
@@ -103,7 +118,7 @@
 					{{ readOnlyNote }}
 				</p>
 			</main>
-			<WorkspacePanel v-if="!pageKind">
+			<WorkspacePanel v-if="!pageKind" :beside-navbar="panelHost">
 				<template #empty>
 					<p class="text-sm text-ink-gray-4">A sub-agent's thread opens here.</p>
 				</template>
@@ -148,7 +163,7 @@ import { FORMS } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
 import { SPECS } from "../settings/specs.js";
 import AgentPalette from "./AgentPalette.vue";
-import AgentPicker from "./AgentPicker.vue";
+import ChatPickers from "./ChatPickers.vue";
 import FeedbackBar from "./FeedbackBar.vue";
 import SetupState from "./SetupState.vue";
 import ShareChat from "./ShareChat.vue";
@@ -293,7 +308,7 @@ const placeholder = computed(() => {
 });
 // the header names a chat's agent where the harness names its folder
 const { current: agent, title: agentTitle } = useAgent(store, page);
-const agentCrumb = computed(() => (agent.value ? { icon: "lucide-bot", label: agentTitle.value } : null));
+const agentCrumb = computed(() => (agent.value ? { label: agentTitle.value } : null));
 // someone else's chat is view-only: its tools would run as its owner
 const readOnly = computed(() => Boolean(page.state.readOnly[store.state.sessionId]));
 // only its owner shares a chat, once it has loaded and said who that is
@@ -319,6 +334,11 @@ const readOnlyNote = computed(() => {
 const needsSetup = computed(
 	() => !page.state.boot.models?.length || !page.state.boot.agents?.length
 );
+// an error's link: settings on its tab
+function openSettings(tab) {
+	page.state.settingsTab = tab;
+	store.setSettingsOpen(true);
+}
 
 // the launcher listens for the header's ×; a new tab takes the chat over from the panel
 const host = inject("flowHost", null);
@@ -348,14 +368,13 @@ watch(
 const route = useRoute();
 const router = useRouter();
 // a setup form's record in the chat's place, for whoever may read its records
-// the composer's + menu after Attach: a new chat's agent, and skills where there are some or one
-// can be added
-const plusLists = computed(() => [
-	{ id: "agent", label: "Agent", icon: "lucide-bot", newChatOnly: true },
-	...((store.state.skills ?? []).length || page.can("Flow Skill", "create")
-		? [{ id: "skills", label: "Skills", icon: "lucide-book-open" }]
-		: []),
-]);
+// a started chat's + menu after Attach: skills where there are some or one can be added. A new chat
+// has its own buttons for its agent and skills (ChatPickers)
+const plusLists = computed(() =>
+	(store.state.skills ?? []).length || page.can("Flow Skill", "create")
+		? [{ id: "skills", label: "Skills", icon: "lucide-book-open", startedOnly: true }]
+		: []
+);
 const forms = computed(() => FORMS.filter((item) => page.can(SPECS[item.key].doctype, "read")));
 const pageKind = computed(() => {
 	const { kind } = route.params;

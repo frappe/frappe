@@ -10,51 +10,78 @@ import { humanize, parseResult } from "./tools/result.js";
 import SecretView from "./tools/SecretView.vue";
 import SnippetView from "./tools/SnippetView.vue";
 
-// How Flow's tools read in the transcript and approval cards: a present-tense label, an
-// icon, the one-line subject of the call, the count it ended on, and the view that draws
-// its records. `view` renders the result in the expanded row, and the arguments on the
-// approval card of a tool that asks first. A tool without one is a lookup the agent did
-// to orient itself: one row, no dropdown.
+// How Flow's tools read in the transcript and approval cards: a present-tense label, a
+// past-tense `done` for a finished run, an icon, the one-line subject of the call, the count
+// it ended on, and the view that draws its records. `view` renders the result in the
+// expanded row, and the arguments on the approval card of a tool that asks first. A tool
+// without one is a lookup the agent did to orient itself: one row, no dropdown.
 const TOOLS = {
 	find_doctypes: {
 		icon: "lucide-search",
 		label: "Finding DocTypes",
-		stat: (result) => countOf(result.doctypes.length, result.total, "match", "matches"),
+		done: "Found DocTypes",
 	},
 	describe: {
 		icon: "lucide-layers",
-		label: "Reading DocType Meta",
-		stat: (result) => count(result.fields?.length ?? 0, "field"),
+		label: "Reading DocType meta",
+		done: "Read DocType meta",
+	},
+	find_apis: {
+		icon: "lucide-search-code",
+		label: "Finding APIs",
+		done: "Found APIs",
+	},
+	describe_api: {
+		icon: "lucide-square-function",
+		label: "Reading an API",
+		done: "Read APIs",
+		// a document's own method by its title; a function by its path, as code
+		subject: (args) =>
+			args.doctype ? `${args.doctype}: ${functionTitle(args.method ?? "")}` : args.method ?? "",
+	},
+	call_api: {
+		icon: "lucide-play",
+		label: "Calling API",
+		done: "Called APIs",
+		view: JsonView,
+		argsView: FunctionCard,
+		asks: true,
+		subject: (args) => args.method ?? "",
 	},
 	read_records: {
 		icon: "lucide-database",
-		label: "Reading Records",
+		label: "Reading records",
+		done: "Read records",
 		view: ReadView,
 		stat: (result) => countOf(result.records.length, result.total, "record"),
 	},
 	run_report: {
 		icon: "lucide-chart-column",
-		label: "Running Report",
+		label: "Running report",
+		done: "Ran reports",
 		view: ReportView,
 		stat: (result) => countOf(result.rows.length, result.row_count, "row"),
 	},
 	create: {
 		icon: "lucide-file-plus",
-		label: "Creating Records",
+		label: "Creating records",
+		done: "Created records",
 		view: CreateView,
 		asks: true,
 		stat: (result) => outcome(result.created, "created"),
 	},
 	update: {
 		icon: "lucide-pen-line",
-		label: "Updating Records",
+		label: "Updating records",
+		done: "Updated records",
 		view: NamesView,
 		asks: true,
 		stat: (result) => outcome(result.updated, "updated"),
 	},
 	delete: {
 		icon: "lucide-trash-2",
-		label: "Deleting Records",
+		label: "Deleting records",
+		done: "Deleted records",
 		view: NamesView,
 		asks: true,
 		stat: (result) => outcome(result.deleted, "deleted"),
@@ -62,8 +89,8 @@ const TOOLS = {
 	run_action: {
 		icon: "lucide-play",
 		label: (args) =>
-			ACTIONS[args.action] ??
-			(isFunction(args) ? "Running a Function" : "Running Document Actions"),
+			ACTIONS[args.action] ?? (isFunction(args) ? "Calling API" : actionName(args.action)),
+		done: (args) => (isFunction(args) ? "Called APIs" : "Ran document actions"),
 		view: NamesView,
 		argsView: (args) => (isFunction(args) ? FunctionCard : NamesView),
 		asks: true,
@@ -73,13 +100,13 @@ const TOOLS = {
 				: result.results
 				? outcome(result.results, "done")
 				: "",
-		// a function's dotted path is code: its result names it in words
-		subject: (args, result) =>
-			isFunction(args) ? parseResult(result)?.title ?? functionTitle(args.action) : null,
+		// a function by its dotted path, as the model called it
+		subject: (args) => (isFunction(args) ? args.action : null),
 	},
 	execute: {
 		icon: "lucide-code",
-		label: "Running Code",
+		label: "Running code",
+		done: "Ran code",
 		view: CodeView,
 		argsView: CodeCard,
 		asks: true,
@@ -87,36 +114,41 @@ const TOOLS = {
 	// its card is a password box that answers the card itself
 	request_secret: {
 		icon: "lucide-key-round",
-		label: "Saving a Password",
+		label: "Saving a password",
+		done: "Saved a password",
 		argsView: SecretView,
 		asks: true,
 		ownAnswers: true,
 	},
 	search_knowledge: {
 		icon: "lucide-book-open",
-		label: "Searching Knowledge",
+		label: "Searching knowledge",
+		done: "Searched knowledge",
 		view: SnippetView,
 		stat: (result) => count(result.length, "hit"),
 	},
 	search_attachments: {
 		icon: "lucide-paperclip",
-		label: "Searching Attachments",
+		label: "Searching attachments",
+		done: "Searched attachments",
 		view: SnippetView,
 		stat: (result) => count(result.length, "hit"),
 	},
 	update_memory: {
 		icon: "lucide-bookmark",
-		label: "Saving Memory",
-		stat: (result) => result.action ?? "",
+		label: "Saving memory",
+		done: "Saved memory",
 	},
-	load_skill: { icon: "lucide-book", label: "Loading Skill" },
+	load_skill: { icon: "lucide-book", label: "Loading skill", done: "Loaded skills" },
 	read_screen: {
 		icon: "lucide-monitor",
-		label: "Reading Screen",
-		stat: (result) => result.title ?? "",
+		label: "Reading screen",
+		done: "Read the screen",
+		// the page it read, by its title
+		subject: (args, result) => parseResult(result)?.title,
 	},
 	// the flow server's own tool: its row opens the child's thread in the workspace panel
-	subagent: { icon: "lucide-bot", label: "Sub-agent" },
+	subagent: { icon: "lucide-bot", label: "Sub-agent", done: "Ran sub-agents" },
 };
 
 const ACTIONS = {
@@ -154,13 +186,27 @@ export function presentTool(name, args = {}, result = null) {
 	return {
 		icon: tool.icon,
 		label: typeof tool.label === "function" ? tool.label(args) : tool.label,
+		done: typeof tool.done === "function" ? tool.done(args) : tool.done,
 		subject: tool.subject?.(args, result) ?? subject(args),
+		codeSubject: isCodeSubject(name, args),
 		stat: stat ?? "",
 		expandable: tool.view ? undefined : false,
 		argsComponent: tool.asks ? argsView(tool, args) : undefined,
 		ownAnswers: tool.ownAnswers,
 		resultComponent: plain ? JsonView : tool.view,
 	};
+}
+
+// a workflow step or a document's own method by its name: "Make payment"
+function actionName(action = "") {
+	const words = action.replace(/_/g, " ");
+	return words ? words[0].toUpperCase() + words.slice(1) : "Running document actions";
+}
+
+// a function's dotted path reads as code
+function isCodeSubject(name, args) {
+	if (name === "run_action") return isFunction(args);
+	return name === "call_api" || (name === "describe_api" && !args.doctype);
 }
 
 // null for a result saved before its tool's return changed

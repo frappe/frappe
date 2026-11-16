@@ -53,6 +53,7 @@ class PrintFormat(Document):
 		absolute_value: DF.Check
 		align_labels_right: DF.Check
 		classic_format_data: DF.Code | None
+		converted_from: DF.Data | None
 		css: DF.Code | None
 		custom_format: DF.Check
 		default_print_language: DF.Link | None
@@ -172,6 +173,9 @@ class PrintFormat(Document):
 
 		if self.custom_format and not self.html and not self.raw_printing:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("HTML"))), frappe.MandatoryError)
+
+		if self.print_format_for == "DocType" and not self.doc_type:
+			frappe.throw(_("{0} is required").format(frappe.bold(_("DocType"))), frappe.MandatoryError)
 
 		if self.print_format_for == "Report" and not self.report:
 			frappe.throw(_("{0} is required").format(frappe.bold(_("Report"))), frappe.MandatoryError)
@@ -366,6 +370,9 @@ class PrintFormat(Document):
 			"value",
 			new,
 		)
+		frappe.db.set_value(
+			"Print Format", {"converted_from": old}, "converted_from", new, update_modified=False
+		)
 
 	def export_doc(self):
 		from frappe.modules.utils import export_module_json
@@ -507,7 +514,10 @@ def _check_draft(doc, payload):
 def apply_draft(name: str, modified: str | datetime, data: str | dict | None = None):
 	"""Copy the draft onto the fields that print, then clear it."""
 	doc = _writable_format(name, modified)
-	for field, value in _draft_payload(data if data is not None else doc.draft_data).items():
+	payload = _draft_payload(data if data is not None else doc.draft_data)
+	for row in payload.get("roles") or []:
+		row.pop("name", None)
+	for field, value in payload.items():
 		doc.set(field, value)
 	doc.draft_data = None
 	doc.save()
@@ -676,8 +686,3 @@ def check_print_format_roles(print_format: "PrintFormat") -> None:
 			frappe.PermissionError,
 			title=_("Not Permitted"),
 		)
-
-
-def check_print_format_roles_by_name(print_format: str | None) -> None:
-	if print_format and print_format != "Standard" and frappe.db.exists("Print Format", print_format):
-		check_print_format_roles(frappe.get_cached_doc("Print Format", print_format))

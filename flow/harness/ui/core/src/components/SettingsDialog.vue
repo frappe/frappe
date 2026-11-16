@@ -70,7 +70,7 @@
 		@update:open="flow.setSettingsOpen($event)"
 	>
 		<!-- dark: the nav is the lighter side and the panel the darker, as in Flow's own sidebar and Raven -->
-		<SettingsSidebar class="pt-3 dark:!bg-surface-gray-1">
+		<SettingsSidebar class="pt-3 dark:!bg-transparent">
 			<SettingsNavGroup v-for="(group, i) in groups" :key="i">
 				<template v-if="group.label" #label>
 					<span class="mb-1 block text-xs-medium text-ink-gray-7">{{ group.label }}</span>
@@ -90,7 +90,7 @@
 
 		<!-- min-w-0 on the pane and each panel: long unbreakable content (paths)
 		     must not widen them past the dialog -->
-		<SettingsContent class="min-w-0 bg-surface-base">
+		<SettingsContent class="min-w-0">
 			<SettingsPanel v-for="item in tabs" :key="item.id" :value="item.id" class="min-w-0">
 				<slot :name="item.id" />
 			</SettingsPanel>

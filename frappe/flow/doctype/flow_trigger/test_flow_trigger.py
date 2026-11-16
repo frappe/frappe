@@ -103,9 +103,35 @@ class TestFlowTriggerValidation(IntegrationTestCase):
 			({"doc_event": None}, "Doc Event"),
 			(scheduled, "Cron"),
 			({**scheduled, "cron_expression": "this is not cron"}, "cron"),
-			({"condition": "doc.status =="}, "condition"),
-			({"condition": "status = doc.status"}, "result"),  # a script must set result
+			({"condition": "doc.status =="}, "single Python expression"),
+			({"condition": "status = doc.status"}, "single Python expression"),
 			({"prompt_template": "{{ broken"}, "template"),
 		):
 			with self.subTest(overrides), self.assertRaisesRegex(frappe.ValidationError, error):
 				frappe.get_doc(_trigger(self.agent.name, **overrides)).insert()
+
+	def test_a_flow_user_manages_their_own_triggers_which_run_as_them(self):
+		admins = frappe.get_doc(_trigger(self.agent.name, title="Admin Trigger")).insert()
+		member = _user("trigger-flow-user@example.com", FLOW_USER_ROLE)
+		other = _user("trigger-other@example.com", FLOW_USER_ROLE)
+		locked = frappe.get_doc(
+			_agent(self.model.name, title="Locked Agent", roles=[{"role": "System Manager"}])
+		)
+		locked.insert()
+
+		frappe.set_user(member)
+		try:
+			mine = frappe.get_doc(_trigger(self.agent.name, title="My Trigger")).insert()
+			self.assertEqual(mine.run_as, member)
+			self.assertTrue(frappe.has_permission("Flow Trigger", "write", mine))
+			self.assertFalse(frappe.has_permission("Flow Trigger", "read", admins))
+
+			for overrides, error in (
+				({"run_as": other}, "only run a trigger as yourself"),
+				({"agent": locked.name}, "cannot use agent"),
+				({"target_doctype": "Error Log"}, "cannot read Error Log"),
+			):
+				with self.subTest(overrides), self.assertRaisesRegex(frappe.ValidationError, error):
+					frappe.get_doc(_trigger(self.agent.name, title="Bad Trigger", **overrides)).insert()
+		finally:
+			frappe.set_user("Administrator")

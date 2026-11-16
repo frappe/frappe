@@ -59,6 +59,9 @@ class FlowSession(Document):
 	# end: auto-generated types
 
 	def before_insert(self):
+		# REST inserts skip new_session's check
+		if not self.flags.ignore_permissions:
+			frappe.has_permission("Flow Agent", "read", self.agent, throw=True)
 		# the flow server keeps the model a chat starts on, so the chat names it, not the agent
 		self.model = self.model or frappe.db.get_value("Flow Agent", self.agent, "model")
 
@@ -78,7 +81,7 @@ class FlowSession(Document):
 			_delete_server_session(self.name)
 		except DaemonError as exc:
 			frappe.throw(str(exc), title=_("Flow Server"))
-		frappe.db.delete("Flow Run", {"session": self.name})
+		_delete_runs([self.name])
 		_purge_attachment_chunks(self.name)
 
 	def validate_share(self, docshare):
@@ -118,13 +121,15 @@ class FlowSession(Document):
 		cutoff = frappe.utils.add_days(frappe.utils.now(), -days)
 		sessions = frappe.get_all("Flow Session", filters={"modified": ["<", cutoff]}, pluck="name")
 		for batch in frappe.utils.create_batch(sessions, 100):
+			# lock the chats before their rows, the order a sync takes
+			frappe.db.get_values("Flow Session", {"name": ["in", batch]}, "name", for_update=True)
 			try:
 				for name in batch:
 					_delete_server_session(name)
 			except DaemonError:
 				frappe.log_error(title="Flow Session purge stopped: the flow server refused")
 				return
-			frappe.db.delete("Flow Run", {"session": ["in", batch]})
+			_delete_runs(batch)
 			frappe.db.delete("Flow Session Message", {"parent": ["in", batch]})
 			_delete_attachment_files(batch)
 			frappe.db.delete("Flow Session Attachment", {"parent": ["in", batch]})
@@ -477,6 +482,18 @@ def _delete_server_session(name: str) -> None:
 				raise
 
 
+def _delete_runs(sessions: list[str]) -> None:
+	runs = frappe.get_all("Flow Run", filters={"session": ["in", sessions]}, pluck="name")
+	# memories outlive the run that saved them. Found first, then cleared by name:
+	# source_run has no index, so an update by it would lock every memory
+	memories = runs and frappe.get_all("Flow Agent Memory", {"source_run": ["in", runs]}, pluck="name")
+	if memories:
+		frappe.db.set_value(
+			"Flow Agent Memory", {"name": ["in", memories]}, "source_run", None, update_modified=False
+		)
+	frappe.db.delete("Flow Run", {"session": ["in", sessions]})
+
+
 def _claim_attachment_file(session: str, file: str) -> None:
 	"""Keep an accepted upload with its session so Frappe treats it as durable."""
 	if frappe.db.get_value("File", file, "attached_to_doctype"):
@@ -497,13 +514,13 @@ def _delete_attachment_files(sessions: list[str]) -> None:
 	"""Delete the uploaded File docs attached to these sessions. Per-doc (not bulk SQL)
 	so File.on_trash runs to remove the on-disk content, and best-effort so one failure
 	never aborts the purge."""
-	files = frappe.get_all("Flow Session Attachment", filters={"parent": ["in", sessions]}, pluck="file")
-	for file in {name for name in files if name}:
-		attached = frappe.db.get_value(
-			"File", file, ["attached_to_doctype", "attached_to_name"], as_dict=True
-		)
-		if attached and attached.attached_to_doctype not in (None, "", "Flow Session"):
-			continue
+	# only files attached to these chats: the rows can name any file
+	files = frappe.get_all(
+		"File",
+		filters={"attached_to_doctype": "Flow Session", "attached_to_name": ["in", sessions]},
+		pluck="name",
+	)
+	for file in files:
 		if frappe.db.exists("Flow Session Attachment", {"file": file, "parent": ["not in", sessions]}):
 			continue
 		try:

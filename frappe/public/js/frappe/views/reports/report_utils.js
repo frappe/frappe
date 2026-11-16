@@ -136,6 +136,7 @@ frappe.report_utils = {
 					const report_script_name = frappe.query_reports[r.custom_report_name]
 						? r.custom_report_name
 						: report_name;
+					frappe.query_reports[report_name] = frappe.query_reports[report_script_name];
 					if (frappe.query_reports[report_script_name] && r.validate_filters) {
 						frappe.report_utils.merge_server_filters(
 							frappe.query_reports[report_script_name],

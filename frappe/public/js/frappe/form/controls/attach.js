@@ -88,6 +88,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 			options.doctype = this.frm.doctype;
 			options.docname = this.frm.docname;
 			options.fieldname = this.df.fieldname;
+			options.field_doctype = this.doctype;
 			options.keep_grid_form_open = true;
 			options.make_attachments_public = this.df.make_attachment_public
 				? 1
@@ -112,13 +113,15 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				filename = file_url_parts[1];
 				dataurl = file_url_parts[2] + ":" + file_url_parts[3];
 			}
+			let href = dataurl || this.value;
+			if (frappe.utils.has_unsafe_url_scheme(href)) href = null;
 			if (this.$input && this.$value) {
 				this.$input.toggle(false);
 				this.$value
 					.toggle(true)
 					.find(".attached-file-link")
 					.text(filename || this.value)
-					.attr("href", dataurl || this.value);
+					.attr("href", href);
 			} else {
 				this.$wrapper.html(`
 					<div class="attached-file flex justify-between align-center">
@@ -130,7 +133,7 @@ frappe.ui.form.ControlAttach = class ControlAttach extends frappe.ui.form.Contro
 				this.$wrapper
 					.find("a")
 					.text(filename || this.value)
-					.attr("href", dataurl || this.value);
+					.attr("href", href);
 			}
 		} else {
 			this.$input?.toggle(true);

@@ -3,7 +3,7 @@
 Lets apps, pages and components generated on disk (by the CLI or an AI agent) show up without a
 `bench migrate`. Run explicitly with `bench --site <site> watch-studio`.
 
-Only `.json` is watched: an exported page's script lives in a sibling `.ts` that the runtime loads
+Only `.json` is watched: an exported page's script lives in a sibling `.ts` or `.js` that the runtime loads
 straight off disk, and the vite dev server already hot-reloads those.
 """
 

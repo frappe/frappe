@@ -430,6 +430,7 @@ function get_link_display_value(doctype, link_title, value) {
 }
 function format_attachment_url(url) {
 	let escaped = frappe.utils.escape_html(url);
+	if (frappe.utils.has_unsafe_url_scheme(url)) return escaped;
 	return url ? `<a href="${escaped}" target="_blank">${escaped}</a>` : "";
 }
 

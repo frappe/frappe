@@ -159,6 +159,96 @@ test.describe("List View", () => {
 		await api.remove_doc("Web Page", "impressum");
 	});
 
+	test("keeps the selection after a bulk edit", async ({ page, desk, api }) => {
+		const suffix = Date.now().toString(36);
+		const selected = [];
+		for (const route of [`bulk-edit-a-${suffix}`, `bulk-edit-b-${suffix}`]) {
+			const doc = await api.insert_doc("Web Page", {
+				title: route,
+				route,
+				content_type: "Rich Text",
+			});
+			selected.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("Web Page");
+			await desk.clear_filters();
+			for (const name of selected) {
+				await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+			}
+
+			await desk.click_action_button("Edit");
+			await page.waitForFunction(() => cur_dialog?.display);
+			await page.evaluate(async () => {
+				await cur_dialog.set_value("field", "Text Align (Web Page)");
+				await cur_dialog.set_value("value", "Center");
+			});
+			await desk.click_modal_primary_button("Update 2 records");
+			await expect(page.locator(".modal:visible")).toHaveCount(0);
+
+			await expect
+				.poll(() => page.evaluate(() => Array.from(cur_list.checked_docnames).sort()))
+				.toEqual(selected.sort());
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(2);
+		} finally {
+			for (const name of selected) {
+				await api.remove_doc("Web Page", name);
+			}
+		}
+	});
+
+	test("clears the selection when a bulk action is queued", async ({ page, desk, api }) => {
+		// More than 5 docs makes bulk_apply enqueue instead of running inline.
+		const selected = [];
+		for (let i = 0; i < 6; i++) {
+			const doc = await api.insert_doc("ToDo", { description: `queued bulk ${i}` });
+			selected.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			for (const name of selected) {
+				await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+			}
+
+			await desk.click_action_button("Apply Assignment Rule");
+
+			await expect.poll(() => page.evaluate(() => cur_list.checked_docnames.size)).toBe(0);
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(0);
+		} finally {
+			for (const name of selected) {
+				await api.remove_doc("ToDo", name);
+			}
+		}
+	});
+
+	test("clears a partial selection from the header checkbox", async ({ page, desk, api }) => {
+		const todos = [];
+		for (let i = 0; i < 2; i++) {
+			const doc = await api.insert_doc("ToDo", { description: `partial selection ${i}` });
+			todos.push(doc.name);
+		}
+
+		try {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+
+			await page.locator(`.list-row-checkbox[data-name="${todos[0]}"]`).click();
+			const header_check = page.locator(".checkbox-actions .list-check-all");
+			await expect.poll(() => header_check.evaluate((el) => el.indeterminate)).toBe(true);
+
+			await header_check.click();
+			await expect.poll(() => page.evaluate(() => cur_list.checked_docnames.size)).toBe(0);
+			await expect(page.locator(".list-row-checkbox:checked")).toHaveCount(0);
+		} finally {
+			for (const name of todos) {
+				await api.remove_doc("ToDo", name);
+			}
+		}
+	});
+
 	test("keeps selected rows checked after a list rerender", async ({ page, desk }) => {
 		await desk.go_to_list("ToDo");
 		await desk.clear_filters();
@@ -325,5 +415,58 @@ test.describe("List View", () => {
 				)
 				.toEqual(["List", 1]);
 		});
+	});
+});
+
+test.describe("List View bulk submit", () => {
+	const doctype = "Bulk Submit Row";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: doctype,
+				custom: 1,
+				is_submittable: 1,
+				module: "Custom",
+				fields: [{ fieldname: "title", fieldtype: "Data", label: "Title" }],
+				permissions: [
+					{
+						role: "System Manager",
+						read: 1,
+						write: 1,
+						create: 1,
+						delete: 1,
+						submit: 1,
+						cancel: 1,
+					},
+				],
+			},
+			true
+		);
+	});
+
+	test("refreshes the list when a repeated submit fails", async ({ page, desk, api }) => {
+		const selected = [];
+		for (const title of ["first", "second"]) {
+			const doc = await api.insert_doc(doctype, { title });
+			selected.push(doc.name);
+		}
+
+		await desk.go_to_list(doctype);
+		await desk.clear_filters();
+		for (const name of selected) {
+			await page.locator(`.list-row-checkbox[data-name="${name}"]`).click();
+		}
+
+		for (let run = 0; run < 2; run++) {
+			await desk.click_action_button("Submit");
+			await desk.click_modal_primary_button("Yes");
+			await expect.poll(() => page.evaluate(() => cur_list.disable_list_update)).toBe(false);
+		}
+		await expect(page.locator(".modal:visible")).toContainText("Cannot submit");
+		await expect
+			.poll(() => page.evaluate(() => cur_list.checked_docnames.size))
+			.toBe(selected.length);
 	});
 });

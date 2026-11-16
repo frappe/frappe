@@ -210,6 +210,20 @@ class TestSubmitFeedback(IntegrationTestCase):
 				self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), rating)
 				self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": agent}))
 
+	def test_a_thumbs_down_is_saved_when_its_memory_fails(self):
+		for failure in (
+			patch("frappe.flow.memory.memory.MAX_ACTIVE_MEMORIES", 0),
+			patch("frappe.flow.memory.store.sync", side_effect=RuntimeError("embedding down")),
+		):
+			run = self._run()
+			with self.subTest(failure.attribute), failure, patch("frappe.log_error"):
+				self.assertEqual(submit_feedback(run, "Down", comment="Wrong total."), {"rating": "Down"})
+				self.assertEqual(
+					frappe.db.get_value("Flow Run", run, ["feedback_rating", "feedback_comment"]),
+					("Down", "Wrong total."),
+				)
+				self.assertFalse(frappe.db.exists("Flow Agent Memory", {"source_run": run}))
+
 	def test_refuses_invalid_feedback(self):
 		for status, rating, comment, error in (
 			("Completed", "Sideways", None, "Rating"),
@@ -241,6 +255,15 @@ class TestSubmitFeedback(IntegrationTestCase):
 			frappe.set_user(user)
 			with self.subTest(user), self.assertRaises(frappe.PermissionError):
 				submit_feedback(name, rating, comment=comment)
+
+	def test_a_viewer_of_a_shared_chat_does_not_see_its_feedback(self):
+		run = self._run(feedback_rating="Down", feedback_comment="My manager is slow.")
+		session = frappe.db.get_value("Flow Run", run, "session")
+		self.assertEqual(api.session(session)["runs"][0]["feedback_comment"], "My manager is slow.")
+		viewer = _ensure_user("feedback-chat-viewer@example.com")
+		frappe.share.add("Flow Session", session, viewer)
+		frappe.set_user(viewer)
+		self.assertEqual(api.session(session)["runs"][0].keys(), {"name", "daemon_run_id", "status", "error"})
 
 
 class ApiCase(IntegrationTestCase):
@@ -438,6 +461,21 @@ class TestSessionEndpoints(ApiCase):
 		with self.assertRaises(frappe.PermissionError):
 			api.screen_result(sid, "t4", screen={})
 
+	def test_a_users_chat_preferences_are_kept_and_come_with_boot(self):
+		other = _ensure_user("prefs-other-user@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(_ensure_user("prefs-user@example.com"))
+		self.assertEqual(api.boot()["prefs"], {})
+		api.set_prefs({"mode": "ask", "separateToolCalls": True})
+		# None follows the page's default
+		self.assertEqual(api.set_prefs({"mode": None}), {"mode": None, "separateToolCalls": True})
+		self.assertEqual(api.boot()["prefs"], {"mode": None, "separateToolCalls": True})
+		for bad in ({"mode": "everything"}, {"separateToolCalls": 1}, {"theme": None}):
+			self.assertRaises(frappe.ValidationError, api.set_prefs, bad)
+		# each user's own
+		frappe.set_user(other)
+		self.assertEqual(api.boot()["prefs"], {})
+
 	def test_boot_names_an_apps_agent_after_its_app_only_when_another_app_shares_its_name(self):
 		for name in ("crm/Support", "helpdesk/Support", "crm/Sales Coach"):
 			app = name.split("/")[0]
@@ -568,6 +606,16 @@ class TestSessionEndpoints(ApiCase):
 		frappe.db.delete("File", {"name": gone.name})
 		api.sync_session(name)
 		self.assertEqual([row.file for row in frappe.get_doc("Flow Session", name).attachments], [notes.name])
+
+	def test_another_users_file_is_refused_even_when_readable(self):
+		theirs = self.upload("theirs.txt", "their body")
+		frappe.db.set_value("File", theirs.name, "owner", OTHER)
+		name = self.create()
+		# attached to the chat, it could be deleted with it
+		for attach in (lambda: api.attach_file(theirs.name), lambda: api.run(name, "read", [theirs.name])):
+			with self.assertRaisesRegex(frappe.PermissionError, "files you uploaded"):
+				attach()
+		self.assertFalse(frappe.db.get_value("File", theirs.name, "attached_to_doctype"))
 
 	def test_blank_or_malformed_input_is_refused(self):
 		name = self.create()
@@ -969,6 +1017,25 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual(self.daemon.calls[-1], ("entries", name, 2, "active"))
 		self.daemon.running = True
 		self.assertEqual(api.abort(name), {"status": "aborting"})
+
+	def test_methods_that_change_something_refuse_get(self):
+		# GET skips the CSRF check
+		for method in (
+			api.create_session,
+			api.run,
+			api.resume,
+			api.abort,
+			api.cancel_pending,
+			api.set_model,
+			api.set_title,
+			api.set_approval_mode,
+			api.delete_session,
+			api.submit_feedback,
+			api.attach_file,
+			api.cleanup_attachments,
+		):
+			with self.subTest(method.__name__):
+				self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[method], ("POST",))
 
 	def test_set_model_sends_the_models_credentials_and_reasoning_effort(self):
 		name = self.create()

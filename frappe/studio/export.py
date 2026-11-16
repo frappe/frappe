@@ -38,7 +38,7 @@ def write_code_file(doc, folder, code_field, extension, filename=None):
 	so the source is readable and diffable on disk instead of buried in JSON.
 
 	`filename` overrides the stem (without extension) so the code file can match its sibling
-	JSON's name (e.g. a page's <scrub(page_title)>.ts beside <scrub(page_title)>.json)."""
+	JSON's name (e.g. a page's <scrub(page_title)>.js beside <scrub(page_title)>.json)."""
 	fname = filename or scrub(doc.name)
 	path = os.path.join(folder, f"{fname}.{extension}")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):

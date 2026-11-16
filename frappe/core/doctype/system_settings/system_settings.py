@@ -6,7 +6,7 @@ import frappe.defaults
 from frappe import _
 from frappe.model import no_value_fields
 from frappe.model.document import Document
-from frappe.utils import cint, today
+from frappe.utils import cint, today, validate_time_zone
 
 
 class SystemSettings(Document):
@@ -132,6 +132,9 @@ class SystemSettings(Document):
 		elif not enable_password_policy:
 			self.minimum_password_score = ""
 
+		if self.time_zone and self.has_value_changed("time_zone"):
+			validate_time_zone(self.time_zone)
+
 		if self.session_expiry:
 			parts = self.session_expiry.split(":")
 			if len(parts) != 2 or not (cint(parts[0]) or cint(parts[1])):
@@ -147,9 +150,10 @@ class SystemSettings(Document):
 							)
 						)
 				toggle_two_factor_auth(True, roles=["All"])
-			else:
-				self.bypass_2fa_for_retricted_ip_users = 0
-				self.bypass_restrict_ip_check_if_2fa_enabled = 0
+
+		if not self.enable_two_factor_auth:
+			self.bypass_2fa_for_retricted_ip_users = 0
+			self.bypass_restrict_ip_check_if_2fa_enabled = 0
 
 		frappe.flags.update_last_reset_password_date = False
 		if self.force_user_to_reset_password and not cint(

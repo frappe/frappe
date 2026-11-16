@@ -49,3 +49,30 @@ describe("copy and paste block styles", () => {
 		expect(targetRoot.baseStyles.background).to.equal("black")
 	})
 })
+
+describe("slot content", () => {
+	beforeEach(() => {
+		Block.setComponents(COMPONENTS)
+		setActivePinia(pinia)
+	})
+
+	// Studio's own writers store { slotName, slotContent }. JSON written by hand often skips
+	// the wrapper, and dropping it would lose the whole slot without an error.
+	it("keeps slot content written as a bare array", () => {
+		const block = getBlockInstance({
+			componentId: "repeater-1",
+			componentName: "Repeater",
+			componentSlots: {
+				default: [{ componentId: "row-1", componentName: "container", originalElement: "div" }],
+			} as any,
+		})
+
+		const slot = block.componentSlots.default
+		expect(slot.slotName).to.equal("default")
+		expect(slot.slotId).to.equal("repeater-1:default")
+		expect(slot.parentBlockId).to.equal("repeater-1")
+		expect(slot.slotContent).to.have.length(1)
+		expect(slot.slotContent[0]).to.be.instanceOf(Block)
+		expect(slot.slotContent[0].componentId).to.equal("row-1")
+	})
+})

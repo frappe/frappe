@@ -136,6 +136,18 @@ class TestSafeExec(IntegrationTestCase):
 		):
 			self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
 
+	def test_sql_explain_analyze_blocked(self):
+		for query in (
+			"explain analyze update tabToDo set description=null",
+			"EXPLAIN ANALYSE delete from tabToDo",
+			"explain (analyze) update tabToDo set description=null",
+			"explain (costs off, analyze true) update tabToDo set description=null",
+			"explain/**/analyze update tabToDo set description=null",
+		):
+			self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
+		self.assertTrue(safe_exec_utils.check_safe_sql_query("explain select name from tabToDo", throw=False))
+
 	def test_query_builder(self):
 		_locals = dict(out=None)
 		safe_exec(
@@ -157,6 +169,19 @@ class TestSafeExec(IntegrationTestCase):
 
 		# Allowed read query
 		frappe.render_template(""" {{ frappe.qb.from_("User").select("*").run() }} """)
+
+	def test_auth_table_not_readable(self):
+		with self.set_user("Guest"):
+			for template in (
+				"""{{ frappe.db.sql("select password from __Auth") }}""",
+				"""{{ frappe.qb.from_("__Auth").select("password").run() }}""",
+				"""{{ frappe.db.exists("__Auth", {"name": "Administrator"}) }}""",
+			):
+				self.assertRaises(frappe.PermissionError, render_template, template)
+
+			self.assertEqual(render_template("""{{ frappe.db.exists("User", "Guest") }}"""), "Guest")
+
+		self.assertRaises(frappe.PermissionError, safe_exec, """frappe.db.sql("select * from `__Auth`")""")
 
 	def test_call(self):
 		# call non whitelisted method

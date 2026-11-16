@@ -122,3 +122,12 @@ export const DYNAMIC_EXPRESSION_CONTENT_REGEX = /\{\{([\s\S]*?)\}\}/g
 // This pattern safely captures the contents of a JSON-style double-quoted string,
 // preserving escaped sequences (e.g. \" or \\n) in the captured group.
 export const QUOTED_STRING_CONTENT_REGEX = /"((?:[^"\\]|\\.)*)"/g
+
+// New page scripts use the same setup module in both source stores.
+export const PAGE_SCRIPT_BOILERPLATE = `export default function setup(context) {
+	// Reactive state, computed values, watchers and functions for this page.
+	// Read this page's data sources and variables from context, e.g. context.todos
+
+	return {}
+}
+`

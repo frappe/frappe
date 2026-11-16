@@ -98,6 +98,102 @@ test.describe("Query Report", () => {
 		await expect(msgprint).toContainText("Field");
 	});
 
+	test("saves resized column widths", async ({ page, desk }) => {
+		await page.goto("/desk/query-report/Test ToDo Report");
+		await expect(page.locator(".datatable")).toBeAttached();
+
+		const column = await page.evaluate(() => {
+			const report = frappe.query_report;
+			return report.datatable.datamanager
+				.getColumns(true)
+				.find((col) => col.id === report.columns[0].id);
+		});
+		const auto_column = await page.evaluate((resized_id) => {
+			return frappe.query_report.columns.find(
+				(col) => col.id !== resized_id && col.width === null
+			)?.id;
+		}, column.id);
+		expect(auto_column).toBeTruthy();
+		const handle = page.locator(
+			`.dt-cell__content--header-${column.colIndex} .dt-cell__resize-handle`
+		);
+		const box = await handle.boundingBox();
+		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+		await page.mouse.down();
+		await page.mouse.move(box.x + box.width / 2 + 80, box.y + box.height / 2);
+		await page.mouse.up();
+
+		const resized_width = await page.evaluate((id) => {
+			return frappe.query_report.datatable.datamanager
+				.getColumns(true)
+				.find((col) => col.id === id).width;
+		}, column.id);
+		expect(resized_width).toBeGreaterThan(column.width);
+		await page.evaluate(() =>
+			frappe.views.QueryReport.prototype.refresh.call(frappe.query_report)
+		);
+		await expect
+			.poll(() =>
+				page.evaluate((id) => {
+					return frappe.query_report.datatable.datamanager
+						.getColumns(true)
+						.find((col) => col.id === id)?.width;
+				}, column.id)
+			)
+			.toBe(resized_width);
+		await save_report(page, desk, " Width");
+		await page.goto("/desk/query-report/Test ToDo Report Width");
+		await expect(page.locator(".datatable")).toBeAttached();
+		await expect
+			.poll(() =>
+				page.evaluate((id) => {
+					return frappe.query_report.datatable.datamanager
+						.getColumns(true)
+						.find((col) => col.id === id)?.width;
+				}, column.id)
+			)
+			.toBe(parseInt(resized_width));
+		expect(
+			await page.evaluate((id) => {
+				return frappe.query_report.columns.find((col) => col.id === id).width;
+			}, auto_column)
+		).toBeNull();
+	});
+
+	test("restores the filters of a prepared report run", async ({ page, api, admin }) => {
+		await admin.insert_doc(
+			"Report",
+			{
+				report_name: "Test Prepared ToDo Report",
+				ref_doctype: "ToDo",
+				report_type: "Query Report",
+				is_standard: "No",
+				prepared_report: 1,
+				validate_filters: 1,
+				query: "select name, status from tabToDo",
+				filters: [{ fieldname: "status", label: "Status", fieldtype: "MultiSelectList" }],
+			},
+			true
+		);
+		await page.goto("/desk/query-report/Test Prepared ToDo Report");
+		const { message } = await api.call(
+			"frappe.core.doctype.prepared_report.prepared_report.make_prepared_report",
+			{ report_name: "Test Prepared ToDo Report", filters: { status: ["Open"] } }
+		);
+		await expect
+			.poll(async () => (await api.get_doc("Prepared Report", message.name)).data.status, {
+				timeout: 30000,
+			})
+			.toBe("Completed");
+
+		await page.goto(
+			`/desk/query-report/Test Prepared ToDo Report?prepared_report_name=${message.name}`
+		);
+		await expect
+			.poll(() => page.evaluate(() => frappe.query_report.get_filter_value("status")))
+			.toEqual(["Open"]);
+	});
+
 	const save_report_and_open = async (page, desk, report, update_name) => {
 		await save_report(page, desk, update_name);
 

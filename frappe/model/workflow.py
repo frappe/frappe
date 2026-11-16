@@ -460,20 +460,17 @@ def _bulk_workflow_action(docnames, doctype, action):
 
 def print_workflow_log(messages, title, doctype, indicator):
 	if messages.keys():
-		msg = f"<h4>{title}</h4>"
+		msg = f"<p>{frappe.bold(title)}</p><ul>"
 
 		for doc in messages.keys():
-			if len(messages[doc]):
-				html = f"<details><summary>{frappe.utils.get_link_to_form(doctype, doc)}</summary>"
-				for log in messages[doc]:
-					if log.get("message"):
-						html += "<div class='small text-muted' style='padding:2.5px'>{}</div>".format(
-							log.get("message")
-						)
-				html += "</details>"
-			else:
-				html = f"<div>{doc}</div>"
+			html = f"<li>{frappe.utils.get_link_to_form(doctype, doc)}"
+			for log in messages[doc]:
+				if log.get("message"):
+					html += "<div>{}</div>".format(log.get("message"))
+			html += "</li>"
 			msg += html
+
+		msg += "</ul>"
 
 		frappe.msgprint(
 			msg, title=_("Workflow Status"), indicator=indicator, is_minimizable=True, realtime=True

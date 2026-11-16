@@ -15,6 +15,7 @@ const real = new Set([
 	"RecordForm.vue",
 	"PageHeader.vue",
 	"AgentPicker.vue",
+	"ChatPickers.vue",
 	"AgentPalette.vue",
 	"SkillPicker.vue",
 	"SessionSidebar.vue",
@@ -97,6 +98,8 @@ const fakes = {
 		export const Switch = { props: ["modelValue"], emits: ["update:modelValue"], render() { return h("button", { "data-stub": "Switch", "aria-label": this.$attrs["aria-label"], onClick: () => this.$emit("update:modelValue", !this.modelValue) }) } }
 		export const ErrorMessage = { props: ["message"], render() { return h("p", this.message) } }
 		export const Avatar = stub("Avatar")
+		// a tooltip as its trigger alone
+		export const Tooltip = { inheritAttrs: false, render() { return this.$slots.default?.() } }
 		// a picker and a menu: the trigger, and the choices once it is clicked (a picker's once loaded)
 		export const Combobox = {
 			props: ["options", "loading"],

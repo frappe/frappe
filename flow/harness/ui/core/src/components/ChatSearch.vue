@@ -6,7 +6,7 @@
 		:filterable="false"
 		title="Search chats"
 		@update:open="emit('update:open', $event)"
-		@update:query="emit('update:query', $event)"
+		@update:query="query = $event"
 		@select="choose"
 	>
 		<!-- the card's own colour, not frappe-ui's transparent: Chrome repaints an unfocused window's
@@ -16,13 +16,13 @@
 		<CommandPaletteList>
 			<!-- held off the field's rule as far as the rows sit from the sides; a group brings its own -->
 			<div v-if="!query.trim()" class="pt-2.5">
-				<CommandPaletteItem value="new">
+				<CommandPaletteItem value="new" :class="ROW">
 					<template #prefix><span class="lucide-square-pen mr-2.5 size-4 flex-none text-ink-gray-6" aria-hidden="true" /></template>
 					New chat
 				</CommandPaletteItem>
 			</div>
 			<CommandPaletteGroup :label="query.trim() ? 'Chats' : 'Recent'">
-				<CommandPaletteItem v-for="s in chats" :key="s.session_id" :value="s.session_id">
+				<CommandPaletteItem v-for="s in chats" :key="s.session_id" :value="s.session_id" :class="ROW">
 					<template #prefix><span class="lucide-message-circle mr-2.5 size-4 flex-none text-ink-gray-6" aria-hidden="true" /></template>
 					{{ flow.sessionTitle(s) }}
 				</CommandPaletteItem>
@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { computed, inject } from "vue"
+import { computed, inject, ref, watch } from "vue"
 import {
 	CommandPalette,
 	CommandPaletteEmpty,
@@ -43,18 +43,32 @@ import {
 	CommandPaletteList,
 } from "frappe-ui/experimental"
 
-const props = defineProps({
-	open: { type: Boolean, default: false },
-	query: { type: String, default: "" },
-})
-const emit = defineEmits(["update:open", "update:query", "new", "pick"])
-const flow = inject("flow")
+import { useDebouncedValue } from "../debounce.js"
 
-// matched as the query is typed, so the palette's first row is ready for Enter; past a page of chats
-// the sidebar's search reloads them from the server
+const props = defineProps({ open: { type: Boolean, default: false } })
+const emit = defineEmits(["update:open", "new", "pick"])
+const flow = inject("flow")
+// a row in the chat's regular weight, as the sidebar lists the same titles; frappe-ui's is medium
+const ROW = "!text-base !leading-tighter"
+
+const query = ref("")
+watch(() => props.open, (open) => open || (query.value = ""))
+
+// past a page of chats the host matches the rest; only the newest query's answer lands
+const found = ref([])
+const debounced = useDebouncedValue(query, 150)
+watch(debounced, async (q) => {
+	const rows = q.trim() ? await flow.findSessions(q.trim()) : []
+	if (q === debounced.value) found.value = rows
+})
+
+// matched as the query is typed, so the palette's first row is ready for Enter
 const chats = computed(() => {
-	const q = props.query.trim().toLowerCase()
-	return flow.state.sessions.filter((s) => !q || flow.sessionTitle(s).toLowerCase().includes(q)).slice(0, 20)
+	const q = query.value.trim().toLowerCase()
+	const loaded = new Set(flow.state.sessions.map((s) => s.session_id))
+	return [...flow.state.sessions, ...found.value.filter((s) => !loaded.has(s.session_id))]
+		.filter((s) => !q || flow.sessionTitle(s).toLowerCase().includes(q))
+		.slice(0, 20)
 })
 
 function choose(value) {

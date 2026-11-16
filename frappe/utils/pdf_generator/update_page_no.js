@@ -23,6 +23,11 @@ const update_page_no = (clone, i, no_of_pages, print_designer) => {
 		replaceText(clone, "date", dateObj.toLocaleDateString());
 		replaceText(clone, "isodate", dateObj.toISOString());
 		replaceText(clone, "time", dateObj.toLocaleTimeString());
+		if (i != no_of_pages) {
+			for (const element of clone.querySelectorAll(".visible-last-page")) {
+				element.style.visibility = "hidden";
+			}
+		}
 	}
 };
 

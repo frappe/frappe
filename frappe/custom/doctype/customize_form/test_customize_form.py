@@ -478,3 +478,41 @@ class TestCustomizeForm(IntegrationTestCase):
 		)
 
 		self.assertEqual(field_order_property, [df.fieldname for df in frappe.get_meta("ToDo").fields])
+
+	def test_field_order_saved_only_when_fields_are_moved(self):
+		field_order_filters = {"doc_type": "Event", "property": "field_order"}
+
+		try:
+			d = self.get_customize_form("Event")
+			d.getone("fields", {"fieldname": "subject"}).label = "Test Subject"
+			d.append("fields", {"label": "Test HTML Field", "fieldtype": "HTML", "is_custom_field": 1})
+			d.run_method("save_customization")
+			self.assertFalse(frappe.db.exists("Property Setter", field_order_filters))
+
+			d = self.get_customize_form("Event")
+			custom_field = d.getone("fields", {"fieldname": self.field.fieldname})
+			d.fields.remove(custom_field)
+			d.fields.insert(2, custom_field)
+			d.run_method("save_customization")
+			self.assertTrue(frappe.db.exists("Property Setter", field_order_filters))
+		finally:
+			frappe.delete_doc_if_exists("Custom Field", "Event-custom_test_html_field")
+
+	def test_field_order_kept_for_custom_section_break(self):
+		section_break = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "Event",
+				"fieldname": "custom_test_section_break",
+				"label": "Test Section Break",
+				"fieldtype": "Section Break",
+				"insert_after": "event_type",
+			}
+		).insert()
+
+		try:
+			field_order = [df.fieldname for df in frappe.get_meta("Event").fields]
+			self.get_customize_form("Event").run_method("save_customization")
+			self.assertEqual([df.fieldname for df in frappe.get_meta("Event").fields], field_order)
+		finally:
+			frappe.delete_doc("Custom Field", section_break.name)

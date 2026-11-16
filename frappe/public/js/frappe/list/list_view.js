@@ -105,29 +105,21 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						count === 1
 							? __("1 uploaded file is waiting for review.")
 							: __("{0} uploaded files are waiting for review.", [count]),
-					footer: () => [
-						frappe.ui.button({
-							label: __("View All"),
-							variant: "outline",
-							onclick: () => {
-								// The dialog ships as its own on-demand bundle (kept out
-								// of desk.bundle.js), so load it before opening.
-								frappe.require("attachment_queue_review.bundle.js", () => {
-									frappe.ui.attachment_queue.show_pending(this.doctype);
-								});
-							},
-						}),
-						frappe.ui.button({
-							icon: "x",
-							variant: "ghost",
-							tooltip: __("Dismiss"),
-							// Only the notice goes away; no queue entry is touched.
-							onclick: () => {
-								this._attachment_notice_dismissed = true;
-								$notice.remove();
-							},
-						}),
-					],
+					primary_action: {
+						label: __("View All"),
+						onclick: () => {
+							// The dialog ships as its own on-demand bundle (kept out
+							// of desk.bundle.js), so load it before opening.
+							frappe.require("attachment_queue_review.bundle.js", () => {
+								frappe.ui.attachment_queue.show_pending(this.doctype);
+							});
+						},
+					},
+					dismissible: true,
+					// Only the notice goes away; no queue entry is touched.
+					on_dismiss: () => {
+						this._attachment_notice_dismissed = true;
+					},
 				});
 
 				this.page.main.prepend($notice);
@@ -663,19 +655,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			);
 	}
 
-	update_checkbox(target) {
+	update_checkbox() {
 		if (!this.$checkbox_actions) return;
 
-		let $check_all_checkbox = this.$checkbox_actions.find(".list-check-all");
+		this.$checkbox_actions.find(".list-check-all").prop({
+			checked: this.data.length > 0 && this.checked_docnames.size === this.data.length,
+			indeterminate: this.is_partly_checked(),
+		});
+	}
 
-		if ($check_all_checkbox.prop("checked") && target && !target.prop("checked")) {
-			$check_all_checkbox.prop("checked", false);
-		}
-
-		$check_all_checkbox.prop(
-			"checked",
-			this.data.length > 0 && this.checked_docnames.size === this.data.length
-		);
+	is_partly_checked() {
+		return this.checked_docnames.size > 0 && this.checked_docnames.size < this.data.length;
 	}
 
 	setup_freeze_area() {
@@ -1404,6 +1394,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.checked_docnames.delete(name);
 			}
 		}
+		if (!this.checked_docnames.size) this.on_row_checked();
 	}
 
 	/** Read checkbox docname; tolerates raw names with bare % (not URI-encoded). */
@@ -1575,7 +1566,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				<div class="level-left checkbox-actions">
 					<div class="level list-subject">
 						<span class="level-item select-like">
-							<input class="list-header-checkbox list-check-all" type="checkbox" title="${__("Select All")}">
+							<input class="list-header-checkbox list-check-all" type="checkbox" title="${__("Unselect All")}">
 						</span>
 						<span class="level-item list-header-meta"></span>
 					</div>
@@ -1932,7 +1923,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					style = `background-color: var(${color[0]}); color: var(${color[1]})`;
 				}
 
-				return `<div class="tag-pill ellipsis" title="${tag}" style="${style}">${tag}</div>`;
+				return `<div class="tag-pill ellipsis" title="${frappe.utils.escape_html(
+					tag
+				)}" style="${style}">${tag}</div>`;
 			}
 		};
 		user_tags = (user_tags || "").split(",");
@@ -2546,11 +2539,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				$check.prop("checked", $target.prop("checked"));
 				$check.trigger("change");
 			} else if ($target.is(".checkbox-actions .list-check-all")) {
-				const $check = this.$result.find(".list-header-subject .list-check-all");
-				$check.prop("checked", $target.prop("checked"));
+				const checked = !this.is_partly_checked() && $target.prop("checked");
+				$target.prop("checked", checked);
 
-				this.set_select_all_checked($target.prop("checked"));
-				this.$result.find(".list-row-checkbox").prop("checked", $target.prop("checked"));
+				const $check = this.$result.find(".list-header-subject .list-check-all");
+				$check.prop("checked", checked);
+
+				this.set_select_all_checked(checked);
+				this.$result.find(".list-row-checkbox").prop("checked", checked);
 			} else if ($target.is(".list-row-checkbox")) {
 				this.sync_checked_docname($target);
 			} else if ($target.attr("data-parent")) {
@@ -2590,8 +2586,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			this.$checkbox_cursor = $target;
-
-			this.update_checkbox($target);
 		});
 	}
 
@@ -2896,24 +2890,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
+		const permissions = __("Permissions");
+		const customize = __("Customize");
+		const list_view = __("List View");
 
-		if (frappe.user_roles.includes("System Manager")) {
-			items.push({
-				label: __("User Permissions", null, "Button in list view menu"),
-				action: () =>
-					frappe.set_route("list", "user-permission", {
-						allow: doctype,
-					}),
-				standard: true,
-			});
-		}
+		items.push({
+			label: __("Customize Quick Filters", null, "Customize qucik filters of List View"),
+			action: () => {
+				this.make_group_by_fields_modal();
+			},
+			standard: true,
+			class: "hidden-xs",
+			group: list_view,
+		});
 
-		if (frappe.user_roles.includes("System Manager")) {
-			items.push({
-				label: __("Role Permissions Manager", null, "Button in list view menu"),
-				action: () => frappe.set_route("permission-manager", doctype),
-				standard: true,
-			});
+		if (frappe.user.has_role("System Manager")) {
+			if (this.get_view_settings) {
+				items.push(this.get_view_settings());
+			}
 		}
 
 		if (
@@ -2921,6 +2915,19 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			frappe.model.can_create("Property Setter") &&
 			!frappe.model.core_doctypes_list.includes(doctype)
 		) {
+			items.push({
+				label: __("Settings - {0}", [__(doctype)]),
+				action: () => {
+					// The DocType Settings feature ships as its own on-demand bundle
+					// (kept out of desk.bundle.js), so load it before opening.
+					frappe.require("doctype_settings.bundle.js", () => {
+						frappe.doctype_settings.open(doctype);
+					});
+				},
+				standard: true,
+				group: customize,
+			});
+
 			items.push({
 				label: __("Customize", null, "Button in list view menu"),
 				action: () => {
@@ -2935,18 +2942,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				},
 				standard: true,
 				shortcut: "Ctrl+Y",
-			});
-
-			items.push({
-				label: __("Settings"),
-				action: () => {
-					// The DocType Settings feature ships as its own on-demand bundle
-					// (kept out of desk.bundle.js), so load it before opening.
-					frappe.require("doctype_settings.bundle.js", () => {
-						frappe.doctype_settings.open(doctype);
-					});
-				},
-				standard: true,
+				group: customize,
 			});
 		}
 
@@ -2956,22 +2952,29 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				label: __("Edit DocType", null, "Button in list view menu"),
 				action: () => frappe.set_route("form", "doctype", doctype),
 				standard: true,
+				group: customize,
 			});
 		}
 
-		items.push({
-			label: __("Customize Quick Filters", null, "Customize qucik filters of List View"),
-			action: () => {
-				this.make_group_by_fields_modal();
-			},
-			standard: true,
-			class: "hidden-xs",
-		});
+		if (frappe.user_roles.includes("System Manager")) {
+			items.push({
+				label: __("User Permissions", null, "Button in list view menu"),
+				action: () =>
+					frappe.set_route("list", "user-permission", {
+						allow: doctype,
+					}),
+				standard: true,
+				group: permissions,
+			});
+		}
 
-		if (frappe.user.has_role("System Manager")) {
-			if (this.get_view_settings) {
-				items.push(this.get_view_settings());
-			}
+		if (frappe.user_roles.includes("System Manager")) {
+			items.push({
+				label: __("Role Permissions Manager", null, "Button in list view menu"),
+				action: () => frappe.set_route("permission-manager", doctype),
+				standard: true,
+				group: permissions,
+			});
 		}
 
 		return items;
@@ -3055,6 +3058,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			label: __("List Settings", null, "Button in list view menu"),
 			action: () => this.show_list_settings(),
 			standard: true,
+			group: __("List View"),
 		};
 	}
 
@@ -3168,7 +3172,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					this.disable_list_update = true;
 					bulk_operations.assign(this.get_checked_items(true), () => {
 						this.disable_list_update = false;
-						this.clear_checked_items();
 						this.refresh();
 					});
 				},
@@ -3185,7 +3188,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						this.disable_list_update = true;
 						bulk_operations.clear_assignment(this.get_checked_items(true), () => {
 							this.disable_list_update = false;
-							this.clear_checked_items();
 							this.refresh();
 						});
 					});
@@ -3200,11 +3202,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				icon: "user-cog",
 				action: () => {
 					this.disable_list_update = true;
-					bulk_operations.apply_assignment_rule(this.get_checked_items(true), () => {
-						this.disable_list_update = false;
-						this.clear_checked_items();
-						this.refresh();
-					});
+					bulk_operations.apply_assignment_rule(
+						this.get_checked_items(true),
+						(queued) => {
+							this.disable_list_update = false;
+							if (queued) this.clear_checked_items();
+							this.refresh();
+						}
+					);
 				},
 				standard: true,
 			};
@@ -3218,7 +3223,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					this.disable_list_update = true;
 					bulk_operations.add_tags(this.get_checked_items(true), () => {
 						this.disable_list_update = false;
-						this.clear_checked_items();
 						this.refresh();
 					});
 				},
@@ -3292,9 +3296,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							),
 							() => {
 								this.disable_list_update = true;
-								bulk_operations.submit_or_cancel(docnames, "cancel", () => {
+								bulk_operations.submit_or_cancel(docnames, "cancel", (queued) => {
 									this.disable_list_update = false;
-									this.clear_checked_items();
+									if (queued) this.clear_checked_items();
 									this.refresh();
 								});
 							},
@@ -3323,9 +3327,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 							),
 							() => {
 								this.disable_list_update = true;
-								bulk_operations.submit_or_cancel(docnames, "submit", () => {
+								bulk_operations.submit_or_cancel(docnames, "submit", (queued) => {
 									this.disable_list_update = false;
-									this.clear_checked_items();
+									if (queued) this.clear_checked_items();
 									this.refresh();
 								});
 							}
@@ -3378,11 +3382,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					});
 
 					this.disable_list_update = true;
-					bulk_operations.edit(this.get_checked_items(true), field_mappings, () => {
-						this.disable_list_update = false;
-						this.clear_checked_items();
-						this.refresh();
-					});
+					bulk_operations.edit(
+						this.get_checked_items(true),
+						field_mappings,
+						(queued) => {
+							this.disable_list_update = false;
+							if (queued) this.clear_checked_items();
+							this.refresh();
+						}
+					);
 				},
 				standard: true,
 			};
@@ -3538,10 +3546,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			actions_menu_items.push(bulk_edit());
 		}
 
-		if (
-			frappe.model.can_export(doctype) &&
-			!frappe.boot.user.can_export_owner_only?.includes(doctype)
-		) {
+		if (frappe.model.can_export(doctype)) {
 			actions_menu_items.push(bulk_export());
 		}
 

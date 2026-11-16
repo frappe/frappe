@@ -37,8 +37,24 @@ class UserType(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_mandatory_for_custom_type()
 		self.set_modules()
 		self.add_select_perm_doctypes()
+
+	def validate_mandatory_for_custom_type(self):
+		if self.is_standard:
+			return
+
+		required = ["role"]
+		if self.apply_user_permission_on:
+			required.append("user_id_field")
+
+		for fieldname in required:
+			if not self.get(fieldname):
+				frappe.throw(
+					_("{0} is required").format(frappe.bold(_(self.meta.get_label(fieldname)))),
+					frappe.MandatoryError,
+				)
 
 	def clear_cache(self):
 		super().clear_cache()

@@ -267,7 +267,7 @@ function download_pdf(method, formData, filename) {
 		frappe.dom?.unfreeze();
 
 		if (this.status !== 200) {
-			const timed_out = [408, 502, 503, 504].includes(this.status);
+			const timed_out = [408, 413, 502, 503, 504].includes(this.status);
 
 			show_pdf_error(
 				timed_out ? pdf_size_message() : __("Check the Error Log for details."),

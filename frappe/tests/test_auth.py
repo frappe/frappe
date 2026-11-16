@@ -46,6 +46,14 @@ def add_user(email, password, username=None, mobile_no=None):
 	frappe.db.commit()
 
 
+def init_request_user(site, sites_path):
+	frappe.init(site, sites_path=sites_path, force=True, is_request=True)
+	try:
+		return frappe.session.user
+	finally:
+		frappe.destroy()
+
+
 class TestAuth(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
@@ -77,6 +85,12 @@ class TestAuth(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", k, v)
 		frappe.clear_cache()
 		frappe.db.commit()
+
+	def test_request_init_on_cold_module_map_keeps_guest(self):
+		frappe.client_cache.delete_value("installed_app_modules")
+		with ThreadPoolExecutor(max_workers=1) as executor:
+			user = executor.submit(init_request_user, frappe.local.site, frappe.local.sites_path).result()
+		self.assertEqual(user, "Guest")
 
 	def test_validate_ip_address_without_a_request(self):
 		with (
@@ -153,6 +167,18 @@ class TestAuth(IntegrationTestCase):
 		with patch("frappe.utils.password.verify_password", return_value=(False, False)) as verify:
 			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
 		verify.assert_called_once()
+
+	def test_email_login_ignores_case_and_spaces(self):
+		user = User.find_by_credentials(f" {self.test_user_email.upper()} ", self.test_user_password)
+		self.assertEqual(user.name, self.test_user_email)
+		self.assertTrue(user.is_authenticated)
+
+	def test_administrator_logs_in_by_name_not_email(self):
+		user = User.find_by_credentials("administrator", "", validate_password=False)
+		self.assertEqual(user.name, "Administrator")
+
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		self.assertIsNone(User.find_by_credentials(admin_email, "", validate_password=False))
 
 	def test_user_without_a_password_checks_a_password_hash(self):
 		email = "no_password_auth@example.com"
@@ -625,8 +651,10 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 
 	def test_failed_key_lookup_is_rejected_without_a_log_entry(self):
 		self._request_with(self.api_key, "x")
+		frappe.db.savepoint("failed_key_lookup")
 		with self.assertRaises(frappe.AuthenticationError):
 			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="ToDo")
+		frappe.db.rollback(save_point="failed_key_lookup")
 
 		self.assertEqual(self._entries(), [])
 

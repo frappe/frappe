@@ -165,10 +165,11 @@ def get_datetime(
 	if datetime_str is None:
 		return now_datetime()
 
-	elif isinstance(datetime_str, datetime.datetime | datetime.timedelta):
+	# PERF: isinstance with a tuple is much faster than with a union type (`X | Y`)
+	elif isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
 
-	elif isinstance(datetime_str, list | tuple):
+	elif isinstance(datetime_str, (list, tuple)):
 		return datetime.datetime(datetime_str)
 
 	elif isinstance(datetime_str, datetime.date):
@@ -397,6 +398,13 @@ def get_timezone_utc_offset(timezone: str) -> str:
 	sign = "+" if offset_seconds >= 0 else "-"
 	hours, minutes = divmod(abs(offset_seconds) // 60, 60)
 	return f"{sign}{hours:02d}:{minutes:02d}"
+
+
+def validate_time_zone(time_zone: str) -> None:
+	from zoneinfo import available_timezones
+
+	if time_zone not in available_timezones():
+		frappe.throw(frappe._("{0} is not a valid Time Zone").format(frappe.bold(time_zone)))
 
 
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:

@@ -124,7 +124,29 @@ class Event(Document):
 		self.set_participants_email()
 
 	def on_update(self):
+		self.delete_removed_participant_communications()
 		self.sync_communication()
+
+	def delete_removed_participant_communications(self):
+		before = self.get_doc_before_save()
+		if not before:
+			return
+
+		current = {(p.reference_doctype, p.reference_docname) for p in self.event_participants}
+		for participant in before.event_participants:
+			if (participant.reference_doctype, participant.reference_docname) in current:
+				continue
+			for communication in frappe.get_all(
+				"Communication",
+				filters=[
+					["Communication", "reference_doctype", "=", self.doctype],
+					["Communication", "reference_name", "=", self.name],
+					["Communication Link", "link_doctype", "=", participant.reference_doctype],
+					["Communication Link", "link_name", "=", participant.reference_docname],
+				],
+				pluck="name",
+			):
+				frappe.delete_doc("Communication", communication, force=True, ignore_permissions=True)
 
 	def on_trash(self):
 		communications = frappe.get_all(
@@ -259,27 +281,6 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 			return
 
 	frappe.throw(_("Attendee not found in this event."))
-
-
-@frappe.whitelist()
-def delete_communication(event: str | dict[str, Any], reference_doctype: str, reference_docname: str | int):
-	event = frappe.parse_json(event)
-
-	deleted_participant = frappe.get_doc(reference_doctype, reference_docname)
-
-	comms = frappe.get_list(
-		"Communication",
-		filters=[
-			["Communication", "reference_doctype", "=", event.get("doctype")],
-			["Communication", "reference_name", "=", event.get("name")],
-			["Communication Link", "link_doctype", "=", deleted_participant.reference_doctype],
-			["Communication Link", "link_name", "=", deleted_participant.reference_docname],
-		],
-		pluck="name",
-	)
-
-	for comm in comms:
-		frappe.delete_doc("Communication", comm)
 
 
 def get_permission_query_conditions(user):

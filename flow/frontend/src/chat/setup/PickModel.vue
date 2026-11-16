@@ -3,7 +3,7 @@
 	<div class="flex w-full max-w-[360px] flex-col gap-3 text-left">
 		<div class="flex items-center gap-2.5">
 			<ProviderIcon :provider-id="provider === 'ollama_chat' ? 'ollama' : provider" :size="18" bare />
-			<p class="text-base-medium text-ink-gray-8">Pick a {{ name }} model</p>
+			<p class="text-base-medium text-ink-gray-8">{{ name ? `Pick a ${name} model` : "Pick a model" }}</p>
 		</div>
 		<Combobox
 			:options="options"
@@ -19,7 +19,7 @@
 			<span class="lucide-loader-circle size-3.5 animate-spin" aria-hidden="true" />
 			Checking {{ adding }}…
 		</p>
-		<ErrorMessage v-else :message="error" />
+		<ErrorMessage v-else class="break-words" :message="error" />
 		<Button class="-ml-2 self-start" variant="ghost" label="Use another provider" :disabled="Boolean(adding)" @click="emit('switch')" />
 	</div>
 </template>

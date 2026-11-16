@@ -130,7 +130,12 @@ const chips = computed(() => [
 		.map((item) => ({ key: item.id, icon: item.kind === "image" ? "lucide-image" : "lucide-file-text", label: item.name, title: item.name })),
 ])
 
-const previews = ref({}) // attachment id → object URL of the stored image
+// attachment id → object URL: a picture just sent is its own file from the start, kept by the store;
+// the rest load the stored copy, which this bubble owns
+const sent = Object.fromEntries(
+	attachments.value.flatMap((item) => (flow.sentPreview?.(item.id) ? [[item.id, flow.sentPreview(item.id)]] : [])),
+)
+const previews = ref({ ...sent })
 const viewer = ref(null)
 let disposed = false
 
@@ -138,7 +143,7 @@ onMounted(() => {
 	const sid = flow.state.sessionId
 	if (!sid) return
 	for (const item of attachments.value) {
-		if (item.kind !== "image" || !item.id) continue
+		if (item.kind !== "image" || !item.id || previews.value[item.id]) continue
 		flow.attachmentPreview(sid, item.id).then((url) => {
 			if (!url) return
 			if (disposed) URL.revokeObjectURL(url)
@@ -148,7 +153,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
 	disposed = true
-	for (const url of Object.values(previews.value)) URL.revokeObjectURL(url)
+	for (const [id, url] of Object.entries(previews.value)) if (url !== sent[id]) URL.revokeObjectURL(url)
 })
 
 // show the toggle only when the 12-line clamp actually truncated, measured again when the

@@ -115,6 +115,7 @@ calendars = ["Event"]
 on_session_creation = [
 	"frappe.core.doctype.activity_log.feed.login_feed",
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
+	"frappe.desk.page.setup_wizard.setup_wizard.complete_prefilled_setup",
 ]
 
 on_login = "frappe.desk.doctype.note.note._get_unseen_notes"
@@ -241,6 +242,10 @@ require_type_annotated_api_methods = True
 
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
 
+additional_timeline_content = {
+	"User": ["frappe.core.doctype.permission_log.permission_log.get_timeline_content"],
+}
+
 doc_events = {
 	"*": {
 		"after_insert": "frappe.flow.triggers.dispatch",
@@ -322,6 +327,7 @@ scheduler_events = {
 		# 10 minutes
 		"0/10 * * * *": [
 			"frappe.email.doctype.email_account.email_account.pull",
+			"frappe.storage.cache.sweep_cache",
 		],
 		# Hourly but offset by 30 minutes
 		"30 * * * *": [],
@@ -706,6 +712,11 @@ add_to_apps_screen = [
 		"has_permission": "frappe.permissions.check_app_permission",
 		# Sort order on the apps (desktop) screen; lower shows first. Framework is pinned last.
 		"sequence_id": 1000,
+		# Fanned out behind Framework's icon on the apps screen; each opens its own route.
+		"module_icons": [
+			{"title": "Studio", "logo": "/assets/frappe/studio/studio-logo.svg", "route": "/studio"},
+			{"title": "Flow", "logo": "/assets/frappe/images/flow.png", "route": "/flow"},
+		],
 	}
 ]
 

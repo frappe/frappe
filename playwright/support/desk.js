@@ -142,10 +142,9 @@ export class Desk {
 		}
 		await input.click();
 		// the picker rewrites the input from its own selection once its show transition ends
-		await expect(this.page.locator(".datepickers-container .datepicker.active")).toHaveCSS(
-			"opacity",
-			"1"
-		);
+		await expect(
+			this.page.locator(".air-datepicker-global-container .air-datepicker.-active-")
+		).toHaveCSS("opacity", "1");
 		if (fieldtype === "Time") {
 			await input.clear();
 		}

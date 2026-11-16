@@ -101,7 +101,10 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		this.$iframe = this.$preview.find("iframe");
 		this.preview_bar = new frappe.ui.PrintPreviewBar({
 			parent: this.$preview,
-			get_metrics: (doc) => this.get_page_metrics(doc),
+			get_sheet: (doc) => ({
+				sheet: doc.querySelector(".print-format"),
+				breaks: ".page-break:not(:last-child)",
+			}),
 		});
 
 		this.page.set_primary_action(__("Print"), () => this.print(), "printer");
@@ -375,20 +378,6 @@ frappe.views.ReportPrintView = class ReportPrintView {
 				this.print();
 			}
 		});
-	}
-
-	get_page_metrics(doc) {
-		const sheet = doc.querySelector(".print-format");
-		if (!sheet) return null;
-		return {
-			top: sheet.offsetTop,
-			width: sheet.offsetWidth,
-			starts: frappe.ui.PrintPreviewBar.measure_pages({
-				page: sheet,
-				page_height: parseFloat(getComputedStyle(sheet).minHeight),
-				breaks: ".page-break:not(:last-child)",
-			}),
-		};
 	}
 
 	print() {
