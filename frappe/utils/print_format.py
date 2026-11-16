@@ -187,6 +187,16 @@ def publish_failure(task_id: str, error: Exception):
 	)
 
 
+def get_document_print_language(doctype: str, name: str, print_format: str | None = None) -> str | None:
+	"""The print page's precedence: the document's own language, then the format's default."""
+	doc_language = None
+	if frappe.get_meta(doctype).has_field("language"):
+		doc_language = frappe.db.get_value(doctype, name, "language")
+	return doc_language or (
+		print_format and frappe.db.get_value("Print Format", print_format, "default_print_language")
+	)
+
+
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -233,25 +243,15 @@ def _download_multi_pdf(
 
 	from pypdf import PdfWriter
 
-	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
-
 	pdf_writer = PdfWriter()
 	failed = []
 
 	options = frappe.parse_json(options)
 
-	def document_language(print_doctype, print_name):
-		"""The print page's precedence: the document's own language, then the
-		format's default, then the language the print was requested in."""
-		doc_language = None
-		if frappe.get_meta(print_doctype).has_field("language"):
-			doc_language = frappe.db.get_value(print_doctype, print_name, "language")
-		return doc_language or format_language or language
-
 	def print_into_writer(print_doctype, print_name):
 		"""Route one document into the shared writer — builder formats through the
 		generator (which dispatches Typst), everything else through get_print."""
-		with print_language(document_language(print_doctype, print_name)):
+		with print_language(get_document_print_language(print_doctype, print_name, format) or language):
 			from frappe.printing.doctype.print_format.classic_converter import (
 				get_default_print_format,
 				uses_beta_renderer,
@@ -475,8 +475,9 @@ def attach_pdf(
 	doc = frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 	doc.check_permission("write")
+	format_name = format or doc.meta.default_print_format or "Standard"
 
-	with print_language(language):
+	with print_language(language or get_document_print_language(doctype, name, format_name)):
 		pdf_file = frappe.get_print(
 			doctype,
 			name,
@@ -490,7 +491,6 @@ def attach_pdf(
 			settings=settings,
 		)
 
-	format_name = format or doc.meta.default_print_format or "Standard"
 	file_name = get_safe_file_name(f"{doc.name} - {format_name}.pdf")
 	previous = frappe.get_all(
 		"File",
