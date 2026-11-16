@@ -2,7 +2,7 @@
 // pending edits and the undo stack, so it asks about pending edits first, then its dialog.
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
-import type { ActItem } from "@/acts/dispatcher";
+import type { ActAsk, ActItem } from "@/acts/dispatcher";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { __, __n } from "@/i18n";
 import type { EditorActsHost } from "./editorActs";
@@ -39,20 +39,21 @@ export interface DangerHost {
 	showing: (doctype: string) => boolean;
 }
 
-const ITEMS: { name: DangerAct; label: string; icon: string; run: (host: EditorActsHost, value?: any) => Promise<void> }[] = [
-	{ name: "change_kind", label: "Change kind…", icon: "lucide-shapes", run: changeKind },
-	{ name: "rename_doctype", label: "Rename DocType…", icon: "lucide-pencil", run: rename },
-	{ name: "move_doctype", label: "Move to another module…", icon: "lucide-folder-input", run: (host, value) => move(host, value, false) },
-	{ name: "make_standard", label: "Make it standard…", icon: "lucide-package", run: (host, value) => move(host, value, true) },
-	{ name: "delete_doctype", label: "Delete DocType…", icon: "lucide-trash-2", run: remove },
+const ITEMS: { name: DangerAct; label: string; icon: string; asks: ActAsk[]; run: (host: EditorActsHost, value?: any) => Promise<void> }[] = [
+	{ name: "change_kind", label: "Change kind…", icon: "lucide-shapes", asks: ["confirm", "dialog"], run: changeKind },
+	{ name: "rename_doctype", label: "Rename DocType…", icon: "lucide-pencil", asks: ["confirm", "dialog"], run: rename },
+	{ name: "move_doctype", label: "Move to another module…", icon: "lucide-folder-input", asks: ["confirm", "dialog"], run: (host, value) => move(host, value, false) },
+	{ name: "make_standard", label: "Make it standard…", icon: "lucide-package", asks: ["confirm", "dialog"], run: (host, value) => move(host, value, true) },
+	{ name: "delete_doctype", label: "Delete DocType…", icon: "lucide-trash-2", asks: ["confirm", "danger"], run: remove },
 ];
 
 /** The `danger` surface: shown where its Settings row is. A value, as `{ kind }`, skips the dialog. */
 export function dangerItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
-	return ITEMS.map(({ name, label, icon, run }) => ({
+	return ITEMS.map(({ name, label, icon, asks, run }) => ({
 		name,
 		label: __(label),
 		icon,
+		asks,
 		when: () => offered(host, name),
 		run: (_context, value) => run(host, value),
 	}));

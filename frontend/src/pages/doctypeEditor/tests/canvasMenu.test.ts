@@ -1,5 +1,6 @@
 // The section menu's move labels are translated when the menu opens, not when the module loads.
-import { expect, it, vi } from "vitest";
+import { expect, it, vi, beforeAll } from "vitest";
+import { loadText, TEXT_SURFACES } from "@/acts/actText";
 
 const lang = vi.hoisted(() => ({ prefix: "" }));
 vi.mock("@/i18n", () => ({ __: (text: string) => lang.prefix + text }));
@@ -7,6 +8,9 @@ vi.mock("@/i18n", () => ({ __: (text: string) => lang.prefix + text }));
 import { closeContextMenu, openContextMenu } from "../canvasContextMenu";
 import { canvasMenu } from "../canvasMenu";
 import { mountEditor, taskNote } from "./editorFixture";
+
+// A value waits for its surface's text to load once; load it first so a click acts at once.
+beforeAll(() => Promise.all(TEXT_SURFACES.map(loadText)));
 
 it("reads each move label when the menu is built", () => {
 	const { canvas, stop } = mountEditor(taskNote());

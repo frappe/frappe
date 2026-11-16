@@ -60,6 +60,7 @@ export function useBulkStatus({ doctype, meta, selection, scope, cap, locked, re
 			name: `workflow-${transition.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-")}`,
 			label: __(transition),
 			group: "workflow" as const,
+			asks: ["dialog" as const],
 			run: () => ask({ route: "bulk_workflow", label: __(transition), transition }),
 		})),
 		...(submittable.value
@@ -70,6 +71,7 @@ export function useBulkStatus({ doctype, meta, selection, scope, cap, locked, re
 						icon: "lucide-badge-check",
 						group: "danger" as const,
 						right: "submit",
+						asks: ["dialog" as const],
 						run: () => ask({ route: "bulk_submit", label: __("Submit") }),
 					},
 					{
@@ -78,6 +80,7 @@ export function useBulkStatus({ doctype, meta, selection, scope, cap, locked, re
 						icon: "lucide-ban",
 						group: "danger" as const,
 						right: "cancel",
+						asks: ["dialog" as const],
 						run: () => ask({ route: "bulk_cancel", label: __("Cancel") }),
 					},
 			  ]

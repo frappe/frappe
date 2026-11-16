@@ -26,7 +26,7 @@ export function quickActionBuiltins(
   actions.push({ name: "comment", label: "Comment", icon: "lucide-message-square", run: openComment });
   // The Files tab's own `+` entry, so it goes when that entry goes: no write right, or the tab hidden.
   if (attach)
-    actions.push({ name: "attach", label: "Attach", icon: "lucide-paperclip", run: attach.run, right: attach.right });
+    actions.push({ name: "attach", label: "Attach", icon: "lucide-paperclip", asks: ["dialog"], run: attach.run, right: attach.right });
   if (perms.print) actions.push({ name: "print", label: "Print", icon: "lucide-printer", run: print });
   actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: copyLink });
   if (follow) actions.push({ name: "follow", ...followWording(follow), run: follow.toggle });
@@ -101,7 +101,7 @@ export function headerMenuBuiltins(
   if (options.editLayout) items.push(editLayoutItem(options.editLayout));
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single && !options.submitted)
-    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", run: remove });
+    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: remove });
   return items;
 }
 

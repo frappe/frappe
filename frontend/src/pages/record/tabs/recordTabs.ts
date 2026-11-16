@@ -54,6 +54,7 @@ function attachAFile(requestUpload: () => void): TabCreateAction {
     name: "attach_file",
     label: __("Attach a file"),
     icon: "lucide-paperclip",
+    asks: ["dialog"],
     run: () => requestUpload(),
     // The quick action Attach is this act's palette row.
     palette: false,

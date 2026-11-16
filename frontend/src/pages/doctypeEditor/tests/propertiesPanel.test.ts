@@ -1,6 +1,7 @@
 // The properties panel's own controls: the field-type list, a field's Tab, Title field and Fetched
 // rows, a container's Columns and Order rows, and the counts in a container's subtitle.
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, beforeAll } from "vitest";
+import { loadText, TEXT_SURFACES } from "@/acts/actText";
 import { createApp, h, nextTick, type App, type Component } from "vue";
 import { fetchedLine } from "../fetchFrom";
 import ContainerPanel from "../ContainerPanel.vue";
@@ -9,6 +10,9 @@ import FieldPanel from "../FieldPanel.vue";
 import NewFieldTypes from "../NewFieldTypes.vue";
 import type { EditorState } from "../editorSource";
 import { mountEditor, taskNote } from "./editorFixture";
+
+// A value waits for its surface's text to load once; load it first so a click acts at once.
+beforeAll(() => Promise.all(TEXT_SURFACES.map(loadText)));
 
 let app: App | undefined;
 let stop: (() => void) | undefined;

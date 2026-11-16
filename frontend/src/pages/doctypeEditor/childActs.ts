@@ -9,6 +9,7 @@ export function childFieldItems(host: EditorActsHost): ActItem<EditorActsHost>[]
 	return [
 		{
 			name: "add_child_table",
+			asks: ["confirm"],
 			label: __("New child table"),
 			palette: false,
 			when: editing,
@@ -24,6 +25,7 @@ export function childFieldItems(host: EditorActsHost): ActItem<EditorActsHost>[]
 		},
 		{
 			name: "reorder_field",
+			asks: ["confirm"],
 			label: __("Move field"),
 			palette: false,
 			when: editing,

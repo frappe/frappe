@@ -1,6 +1,7 @@
 // The canvas and the panel of each layout type: the side panel's frame, the Create dialog's frame,
 // and the panel's group of fields off the layout.
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi, beforeAll } from "vitest";
+import { loadText, TEXT_SURFACES } from "@/acts/actText";
 import { createApp, defineComponent, h, nextTick, ref, type App, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { getTranslations } from "@framework/ui/api";
@@ -11,6 +12,9 @@ import EditorPanel from "../EditorPanel.vue";
 import type { LayoutRef } from "../workingLayouts";
 import { mountEditor } from "./editorFixture";
 import { leadNote } from "./layoutsFixture";
+
+// A value waits for its surface's text to load once; load it first so a click acts at once.
+beforeAll(() => Promise.all(TEXT_SURFACES.map(loadText)));
 
 vi.mock("@framework/ui/api", async (original) => ({
 	...(await original<object>()),

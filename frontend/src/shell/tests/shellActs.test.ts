@@ -313,7 +313,7 @@ describe("each shell act, run by name", () => {
 
 		await acts.run("shell.theme", "dark");
 		expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-		await expect(acts.run("shell.theme", "sepia")).rejects.toThrow("Theme is light, dark or system");
+		await expect(acts.run("shell.theme", "sepia")).rejects.toThrow('value must be one of "light", "dark", "system"');
 		await acts.run("shell.theme", "light");
 		expect(document.documentElement.getAttribute("data-theme")).toBe("light");
 	});
@@ -328,7 +328,7 @@ describe("each shell act, run by name", () => {
 			{ doctype: "ToDo", values: {} },
 			{ doctype: "Note", values: { title: "Hello" } },
 		]);
-		await expect(acts.run("shell.create")).rejects.toThrow("Create needs a doctype");
+		await expect(acts.run("shell.create")).rejects.toThrow("value must be a string or an object");
 	});
 
 	it("an act the shell does not hold is denied as missing", async () => {

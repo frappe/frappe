@@ -48,6 +48,7 @@ export function docstatusItems(
     return [
       {
         name: "submit",
+        asks: ["confirm"],
         label: __("Submit"),
         display: "button",
         right: "submit",
@@ -59,6 +60,7 @@ export function docstatusItems(
     return [
       {
         name: "cancel",
+        asks: ["danger"],
         label: __("Cancel"),
         icon: "lucide-ban",
         group: "danger",

@@ -26,6 +26,7 @@ export function layoutItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "add",
+			asks: ["confirm"],
 			label: __("Add a layout"),
 			palette: false,
 			when: editing,
@@ -36,6 +37,7 @@ export function layoutItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "rename",
+			asks: ["confirm"],
 			label: __("Rename layout"),
 			palette: false,
 			when: editing,
@@ -44,6 +46,7 @@ export function layoutItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "set_condition",
+			asks: ["confirm"],
 			label: __("Edit layout condition"),
 			palette: false,
 			when: editing,
@@ -52,6 +55,7 @@ export function layoutItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "delete",
+			asks: ["confirm"],
 			label: __("Delete layout"),
 			palette: false,
 			when: editing,
@@ -59,6 +63,7 @@ export function layoutItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "reset_to_app",
+			asks: ["confirm"],
 			label: __("Reset to app layout"),
 			palette: false,
 			when: () => editing() && host.canvas()?.state.mode === "Customize",

@@ -1,5 +1,6 @@
 // `page.openSettings`: the shell's `open_settings` act, held in a replay and quiet once the page has gone.
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi, beforeAll } from "vitest";
+import { loadText, TEXT_SURFACES } from "@/acts/actText";
 import { ref } from "vue";
 
 vi.mock("frappe-ui", () => ({
@@ -13,6 +14,9 @@ vi.mock("@framework/ui/api", () => ({
 import { acts } from "@/acts/dispatcher";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
+
+// A value waits for its surface's text to load once; load it first so a click acts at once.
+beforeAll(() => Promise.all(TEXT_SURFACES.map(loadText)));
 
 function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
   return {

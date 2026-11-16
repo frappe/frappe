@@ -14,6 +14,7 @@ export interface AssignState {
 export function assignItem(state: AssignState): HeaderItem {
   return {
     name: "assign",
+    asks: ["picker"],
     label: __("Assign to…"),
     icon: "lucide-user-plus",
     group: "assign_band",

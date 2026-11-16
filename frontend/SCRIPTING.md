@@ -559,7 +559,7 @@ page.columns.update('status', {
 })
 ```
 
-An act item takes five more keys, on `page.header`, `page.quickActions` and a tab's `create`:
+An act item takes nine more keys, on `page.header`, `page.quickActions` and a tab's `create`:
 
 | Key | What it does |
 | --- | --- |
@@ -568,6 +568,10 @@ An act item takes five more keys, on `page.header`, `page.quickActions` and a ta
 | `palette` | `false` keeps the act out of the palette. A script and a key still run it. |
 | `argument` | `{ label, options(page, query) }`: the one value the act asks for. `options` returns rows `{ value, label, description? }`, or a promise of them, and the chosen `value` reaches `run(page, value)`. The palette lists the rows under `label` (`'Users'`) and ranks them by the typed text, and asks `options` again after each pause in the typing. |
 | `when` | `(page) => boolean`, or `(shell) => boolean` on a shell act. While it returns `false` no surface draws the act (palette, header, menus, keys) and a run is refused as hidden. It runs on every read, so keep it sync and cheap: read state your app already holds, loaded at idle, never the server. A `when` that throws hides the act and logs the error. |
+| `description` | What the act does, what it returns, what it asks the person, and when not to use it, for an agent that lists the desk's acts. |
+| `input` | The value `run` takes, as JSON Schema limited to `type`, `properties`, `required`, `additionalProperties`, `enum`, `minLength`, `items` and `description`. The dispatcher checks every caller's value against it before `run` and refuses a value that does not fit. A value is required unless `type` includes `'null'`. Left out, the act takes any value; with a `description` and no `input` it takes none. |
+| `output` | The schema of what `run` returns. Left out, the act returns nothing. |
+| `asks` | The dialogs the act may wait on, a list of `'confirm'`, `'danger'`, `'dialog'` and `'picker'`. |
 
 ```js
 page.header.add({

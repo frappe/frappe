@@ -9,6 +9,7 @@ import { stripTags } from "./saveResponse";
 export function renameItem(): HeaderItem {
   return {
     name: "rename",
+    asks: ["dialog", "danger"],
     label: __("Rename…"),
     icon: "lucide-pencil",
     group: "assign_band",

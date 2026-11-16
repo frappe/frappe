@@ -100,7 +100,7 @@ describe("shell.open", () => {
 	});
 
 	it("rejects a value with no doctype, and a doctype with no address", async () => {
-		await expect(acts.run("shell.open", {})).rejects.toThrow("Open needs a doctype");
+		await expect(acts.run("shell.open", {})).rejects.toThrow("value.doctype is required");
 		await expect(shell.open("Nope")).rejects.toThrow("no address for doctype 'Nope'");
 	});
 

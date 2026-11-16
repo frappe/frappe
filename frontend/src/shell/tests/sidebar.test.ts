@@ -1,6 +1,7 @@
 // The panel a linked rail item opens. Mounted through `AppShell`: which sidebar is open is
 // a fact about the address, so handing the panel its own rows would test a list renderer.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { loadText, TEXT_SURFACES } from "@/acts/actText";
 import { createApp, nextTick } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
@@ -11,6 +12,9 @@ import { registerShell } from "@/router/routeFor";
 import { resetNavigationReports } from "@/navigation/registry";
 import { loadSprite, resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
+
+// A value waits for its surface's text to load once; load it first so a click acts at once.
+beforeAll(() => Promise.all(TEXT_SURFACES.map(loadText)));
 
 // `Module Contents` is the one kind that reads the list it is in, so it is the one that can
 // tell the panel's context from the rail's.

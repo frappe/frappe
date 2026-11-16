@@ -125,7 +125,7 @@ function hasList(host: EditorActsHost): boolean {
   );
 }
 
-function settingsItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
+export function settingsItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
   return SETTINGS_ACTS.map(([name, label]) => ({
     name,
     label: __(label),
@@ -190,6 +190,7 @@ function navigationItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
     },
     {
       name: "open_tab",
+      asks: ["picker"],
       label: __("Open tab"),
       argument: {
         label: __("Tab"),
@@ -210,6 +211,7 @@ function navigationItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
     },
     {
       name: "preview_record",
+      asks: ["picker"],
       label: __("Preview a record"),
       argument: {
         label: __("Record"),
