@@ -905,8 +905,8 @@ def create_webform_with_child_table_dropdown():
 def create_business_module_doctypes():
 	"""Two doctypes for the business module UI test.
 
-	"Test Module Fields" has a plain field, a field tagged "Stock", and two child
-	tables whose "tagged_col" column is tagged "Stock".
+	"Test Module Fields" has a plain field, a field tagged "Stock", two child
+	tables whose "tagged_col" column is tagged "Stock", and a tab tagged "Stock".
 	"""
 	create_child_doctype(
 		"Test Module Child",
@@ -927,10 +927,16 @@ def create_business_module_doctypes():
 				"fieldtype": "Table",
 				"options": "Test Module Child",
 			},
+			{"label": "Tagged Tab", "fieldname": "tagged_tab", "fieldtype": "Tab Break"},
+			{"label": "In Tagged Tab", "fieldname": "in_tagged_tab", "fieldtype": "Data"},
 		],
 	)
 	# No app registers modules on a test site, so set the tag directly.
-	for parent, fieldname in (("Test Module Fields", "tagged"), ("Test Module Child", "tagged_col")):
+	for parent, fieldname in (
+		("Test Module Fields", "tagged"),
+		("Test Module Fields", "tagged_tab"),
+		("Test Module Child", "tagged_col"),
+	):
 		frappe.db.set_value(
 			"DocField", {"parent": parent, "fieldname": fieldname}, "show_for_module", "Stock"
 		)

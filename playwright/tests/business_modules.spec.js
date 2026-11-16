@@ -11,6 +11,8 @@ test.describe("Business Modules", () => {
 		page.locator(
 			`.frappe-control[data-fieldname="${table}"] .grid-heading-row .grid-static-col[data-fieldname="${fieldname}"]`
 		);
+	const tab = (page, fieldname) =>
+		page.locator(`.form-tabs .nav-link[data-fieldname="${fieldname}"]`);
 	const hide_module_fields = (page, modules) =>
 		page.evaluate((modules) => cur_frm.hide_module_fields(modules), modules);
 
@@ -22,15 +24,18 @@ test.describe("Business Modules", () => {
 		await expect(field(page, "plain")).toBeVisible();
 		await expect(field(page, "tagged")).toBeVisible();
 		await expect(column(page, "tagged_col")).toBeVisible();
+		await expect(tab(page, "tagged_tab")).toBeVisible();
 
 		await hide_module_fields(page, ["Stock"]);
 		await expect(field(page, "plain")).toBeVisible();
 		await expect(field(page, "tagged")).toBeHidden();
 		await expect(column(page, "tagged_col")).toHaveCount(0);
+		await expect(tab(page, "tagged_tab")).toBeHidden();
 
 		await hide_module_fields(page, []);
 		await expect(field(page, "tagged")).toBeVisible();
 		await expect(column(page, "tagged_col")).toBeVisible();
+		await expect(tab(page, "tagged_tab")).toBeVisible();
 	});
 
 	test("hides the column in every table of the same child doctype", async ({ page, desk }) => {
@@ -51,6 +56,7 @@ test.describe("Business Modules", () => {
 
 		await page.evaluate(() => cur_frm.refresh());
 		await expect(field(page, "tagged")).toBeHidden();
+		await expect(tab(page, "tagged_tab")).toBeHidden();
 		await expect(field(page, "plain")).toBeVisible();
 	});
 

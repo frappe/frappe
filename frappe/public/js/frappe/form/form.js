@@ -2202,6 +2202,15 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 		}
 
+		// tabs are kept in layout.tabs, not in fields_dict
+		let tabs_changed = false;
+		for (const tab of this.layout.tabs) {
+			if (tab.df.show_for_module && this.set_hidden_by_module(tab.df, is_off(tab.df))) {
+				tabs_changed = true;
+			}
+		}
+		if (tabs_changed) this.layout.refresh_tabs();
+
 		// child table fields; tables of the same child doctype share their docfields
 		const grids = frappe.meta
 			.get_table_fields(this.doctype)
