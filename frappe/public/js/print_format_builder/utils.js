@@ -581,6 +581,7 @@ const SAFE_HTML_ATTRS = new Set([
 	"scope",
 	"span",
 	"src",
+	"style",
 	"title",
 	"width",
 	"align",
@@ -588,6 +589,15 @@ const SAFE_HTML_ATTRS = new Set([
 	"border",
 	"cellpadding",
 	"cellspacing",
+]);
+
+const SAFE_STYLE_PROPERTIES = new Set([
+	"background-color",
+	"color",
+	"direction",
+	"font-family",
+	"font-size",
+	"text-align",
 ]);
 
 const UNSAFE_HTML_TAGS = "iframe, frame, frameset, object, embed, applet, form, base, meta, link";
@@ -651,6 +661,12 @@ export function sanitize_html(html) {
 						child.removeAttribute(attr.name);
 				} else if (name === "href") {
 					if (!/^https?:/i.test(attr.value.trim())) child.removeAttribute(attr.name);
+				} else if (name === "style") {
+					for (const property of [...child.style]) {
+						if (!SAFE_STYLE_PROPERTIES.has(property))
+							child.style.removeProperty(property);
+					}
+					if (!child.style.length) child.removeAttribute(attr.name);
 				}
 			}
 			clean(child);
