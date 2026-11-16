@@ -47,7 +47,7 @@ jobs:
                 if (e.event === "committed") at = e.committer?.date;
                 else if (e.event === "commented" && is_person(e.user)) at = e.created_at;
                 else if (e.event === "reviewed" && is_person(e.user)) at = e.submitted_at;
-                else if (["labeled", "unlabeled", "reopened"].includes(e.event) && is_person(e.actor))
+                else if (["labeled", "unlabeled", "reopened", "head_ref_force_pushed"].includes(e.event) && is_person(e.actor))
                   at = e.created_at;
                 if (e.event === "labeled" && e.label?.name === LABEL)
                   labeled_at = Math.max(labeled_at, new Date(e.created_at).getTime());
