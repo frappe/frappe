@@ -55,6 +55,12 @@
 	color: inherit;
 }
 
+.print-format-doc .field .value.value--colored a,
+.print-format-doc .field .value.value--colored pre,
+.print-format-doc .field .value.value--colored code {
+	color: inherit;
+}
+
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
 .print-format-doc .field.left-right,
 .print-format-doc .field.field-inline {
@@ -443,6 +449,10 @@
 .print-format-doc .child-table .cell-line--muted-sm {
 	font-size: 0.85em;
 	color: var(--gray-600);
+}
+
+.print-format-doc .child-table .cell-line-label {
+	font-weight: 600;
 }
 
 .print-format-doc .child-table .cell-line * {

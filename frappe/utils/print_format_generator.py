@@ -13,7 +13,7 @@ import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint, cstr
+from frappe.utils.data import cint, cstr, flt
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -417,6 +417,9 @@ def page_number_html(position: str) -> str:
 	)
 
 
+MIN_PAGE_MM, MAX_PAGE_MM = 10, 5000
+
+
 def layout_page_settings(layout: dict | list | None) -> dict:
 	"""The paper size and orientation a builder layout saves, as Print Settings keys."""
 	page = layout.get("page") if isinstance(layout, dict) else None
@@ -424,7 +427,11 @@ def layout_page_settings(layout: dict | list | None) -> dict:
 		return {}
 	settings = {}
 	sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
-	if page.get("size") in sizes and page.get("size") != "Custom":
+	if page.get("size") == "Custom":
+		width, height = (flt(page.get(key)) for key in ("width", "height"))
+		if all(MIN_PAGE_MM <= value <= MAX_PAGE_MM for value in (width, height)):
+			settings.update(pdf_page_size="Custom", pdf_page_width=width, pdf_page_height=height)
+	elif page.get("size") in sizes:
 		settings["pdf_page_size"] = page["size"]
 	if page.get("orientation") in ("Portrait", "Landscape"):
 		settings["page_orientation"] = page["orientation"]
@@ -477,7 +484,6 @@ class PrintFormatGenerator:
 	_TOP_POSITIONS: ClassVar[set[str]] = {"top_left", "top_center", "top_right"}
 	_BOTTOM_POSITIONS: ClassVar[set[str]] = {"bottom_left", "bottom_center", "bottom_right"}
 	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {
-		"HTML Editor": "HTML",
 		"Markdown Editor": "Markdown",
 		"JSON": "Code",
 	}
@@ -1327,7 +1333,13 @@ class PrintFormatGenerator:
 			return
 		if df.get("custom"):
 			source = df.get("barcode_field")
-			value = cstr(self.doc.get(source) if source else df.get("barcode_value"))
+			value = (
+				cstr(self.doc.get(source))
+				if source
+				else STATIC_TEXT_FIELD.sub(
+					lambda match: self.static_text_value(match, raw=True), cstr(df.get("barcode_value"))
+				)
+			)
 		else:
 			value = cstr(self.doc.get(df.get("fieldname")))
 		if value.startswith("<svg"):
@@ -1406,7 +1418,7 @@ class PrintFormatGenerator:
 		lines = [STATIC_TEXT_FIELD.sub(self.static_text_value, _(line)) for line in text.split("\n")]
 		df["_text"] = "\n".join(lines)
 
-	def static_text_value(self, match) -> str:
+	def static_text_value(self, match: re.Match, raw: bool = False) -> str:
 		from html import unescape
 
 		from frappe.utils import strip_html
@@ -1423,6 +1435,8 @@ class PrintFormatGenerator:
 			resolved = self.resolve_linked_path(path)
 			if not resolved:
 				return ""
+			if raw:
+				return cstr(resolved[0])
 			value = frappe.format_value(resolved[0], df=resolved[1], doc=self.doc)
 			fieldtype = target_df.fieldtype
 		else:
@@ -1431,6 +1445,8 @@ class PrintFormatGenerator:
 				return match.group(0)
 			if field and not self.has_field_access(self.doc, self.doc.meta, path):
 				return ""
+			if raw:
+				return cstr(self.doc.get(path))
 			value = self.doc.get_formatted(path) if field else self.doc.name
 			fieldtype = field.fieldtype if field else "Data"
 		value = re.sub(r"<br\s*/?>|</(?:p|div|li)>", " ", cstr(value), flags=re.IGNORECASE)

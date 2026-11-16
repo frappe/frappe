@@ -90,6 +90,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"set_model": {"session": session.name, "model": "m"},
 			"set_title": {"session": session.name, "title": "t"},
 			"set_approval_mode": {"session": session.name, "mode": "Ask"},
+			"set_prefs": {"prefs": {}},
 			"delete_session": {"session": session.name},
 			"list_shares": {"session": session.name},
 			"share_session": {"session": session.name, "user": "Administrator"},

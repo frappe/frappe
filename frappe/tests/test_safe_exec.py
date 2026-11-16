@@ -136,6 +136,18 @@ class TestSafeExec(IntegrationTestCase):
 		):
 			self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
 
+	def test_sql_explain_analyze_blocked(self):
+		for query in (
+			"explain analyze update tabToDo set description=null",
+			"EXPLAIN ANALYSE delete from tabToDo",
+			"explain (analyze) update tabToDo set description=null",
+			"explain (costs off, analyze true) update tabToDo set description=null",
+			"explain/**/analyze update tabToDo set description=null",
+		):
+			self.assertFalse(safe_exec_utils.check_safe_sql_query(query, throw=False), query)
+
+		self.assertTrue(safe_exec_utils.check_safe_sql_query("explain select name from tabToDo", throw=False))
+
 	def test_query_builder(self):
 		_locals = dict(out=None)
 		safe_exec(

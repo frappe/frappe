@@ -161,7 +161,11 @@ class FlowLauncher {
 	make_island() {
 		const desk = Boolean(window.frappe?.set_route);
 		this.island = mountIsland(ISLAND, this.chat, {
-			resolve: () => ({ js: SCRIPT.dataset.island, css: SCRIPT.dataset.islandCss }),
+			resolve: async () => {
+				// a panel left open starts with the page: the chat's text waits for Desk's translations
+				await window.frappe?._translations_loaded;
+				return { js: SCRIPT.dataset.island, css: SCRIPT.dataset.islandCss };
+			},
 			host: {
 				locale: window.frappe?.boot?.lang || document.documentElement.lang || "en",
 				user: window.frappe?.session?.user || null,

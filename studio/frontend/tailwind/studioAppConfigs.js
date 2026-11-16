@@ -3,18 +3,18 @@ import path from "node:path"
 import loadTailwindConfig from "tailwindcss/loadConfig.js"
 import { findStudioAppFolders } from "../vite/studioApps.js"
 
-const CONFIG_FILE = "tailwind.config.js"
+const CONFIG_FILES = ["tailwind.config.ts", "tailwind.config.js"]
 const SUPPORTED_KEYS = ["content", "safelist"]
 
 /**
- * A studio app can ship `<frappe_app>/studio/<studio_app>/tailwind.config.js` (beside its tsconfig.json)
+ * A studio app can ship `<frappe_app>/studio/<studio_app>/tailwind.config.ts` or `.js` (beside its tsconfig.json)
  * to add `content` globs and `safelist` entries, e.g. for components shared with its desk UI that
  * live outside the studio app folder.
  */
 export function mergeStudioAppConfigs(baseConfig, appFolders) {
 	const appConfigs = appFolders
-		.map((folder) => path.join(folder, CONFIG_FILE))
-		.filter((configPath) => fs.existsSync(configPath))
+		.map((folder) => CONFIG_FILES.map((file) => path.join(folder, file)).find((file) => fs.existsSync(file)))
+		.filter(Boolean)
 		.map(loadStudioAppConfig)
 	return {
 		...baseConfig,

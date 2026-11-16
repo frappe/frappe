@@ -1,4 +1,5 @@
 import { defineConfig } from "cypress"
+import { moduleFixtureServer } from "./cypress/support/moduleBuilds.mjs"
 
 export default defineConfig({
 	allowCypressEnv: false,
@@ -15,6 +16,7 @@ export default defineConfig({
 				configFile: "vite.config.js",
 				// a separate dep cache, so running specs never re-optimizes the one a live `yarn dev` is serving
 				cacheDir: "node_modules/.vite-cypress",
+				plugins: [moduleFixtureServer()],
 				// frappe-ui is excluded from the pre-bundle, so the start-up scan misses the deps of its
 				// lazily loaded editor; found mid-run, they re-optimize deps and fail the spec loading then
 				optimizeDeps: {

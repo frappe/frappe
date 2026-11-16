@@ -32,7 +32,7 @@ async function open_settings(page, tab = "Settings") {
 
 async function submit_web_form(page) {
 	const accepted = page.waitForResponse((res) =>
-		res.request().postData()?.includes("web_form.accept")
+		res.url().includes("/api/method/frappe.website.doctype.web_form.web_form.accept")
 	);
 	await page.locator(".web-form-actions button", { hasText: "Save" }).first().click();
 	await accepted;

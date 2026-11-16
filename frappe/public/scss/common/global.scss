@@ -8,6 +8,17 @@ body {
 	font-variation-settings: "opsz" 24;
 }
 
+// A form control starts from the browser's own font, which drops the body's variation settings
+// and tracking. frappe-ui gets both back from Tailwind's preflight.
+button,
+input,
+optgroup,
+select,
+textarea {
+	font-variation-settings: inherit;
+	letter-spacing: inherit;
+}
+
 /* checkbox */
 .checkbox {
 	label {
