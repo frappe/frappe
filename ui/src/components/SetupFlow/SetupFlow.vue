@@ -1,6 +1,6 @@
 <template>
 	<div
-		class="grid min-h-screen bg-surface-white"
+		class="grid min-h-screen bg-surface-base"
 		:class="$slots.preview ? 'lg:grid-cols-2' : ''"
 	>
 		<section class="flex min-h-screen flex-col px-4 py-5 sm:px-8">

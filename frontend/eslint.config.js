@@ -120,4 +120,12 @@ export default [
 		files: ["ui/src/components/EmailAccounts/useEmailAccounts.ts"],
 		rules: { "no-restricted-imports": "off" },
 	},
+	{
+		// develop's SetupFlow still fetches through v1; the desk does not use it until it is ported
+		files: [
+			"ui/src/components/SetupFlow/PasswordStep.vue",
+			"ui/src/components/SetupFlow/TelemetryConsent.vue",
+		],
+		rules: { "no-restricted-imports": "off" },
+	},
 ];
