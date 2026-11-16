@@ -499,6 +499,7 @@ def attach_pdf(
 			"attached_to_name": doc.name,
 			"folder": PRINTED_PDF_FOLDER,
 			"file_name": file_name,
+			"is_private": 1,
 		},
 		order_by="creation desc",
 		limit=1,
