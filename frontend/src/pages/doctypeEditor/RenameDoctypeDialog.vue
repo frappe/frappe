@@ -23,6 +23,11 @@
 				<span>{{ linkLine }}</span>
 			</li>
 		</ul>
+		<ConfirmNote
+			kind="confirm"
+			:message="__('Rename {0}.', [doctype])"
+			:buttons="[__('Cancel'), __('Rename')]"
+		/>
 		<p
 			class="min-h-5 text-p-sm text-ink-red-6"
 			role="alert"
@@ -50,18 +55,21 @@ import { computed, onMounted, ref } from "vue";
 import { Button, TextInput, type TextInputExposed } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { __, __n } from "@/i18n";
+import ConfirmNote from "./ConfirmNote.vue";
 import { useDangerSubmit } from "./dangerSubmit";
 
 const EFFECTS = "frappe.desk.doctype_editor.danger.rename_effects";
 const props = defineProps<{
 	doctype: string;
 	records: number | null;
+	/** The name an agent asked for; the dialog still waits for a person. */
+	initial?: string;
 	submit: (name: string) => Promise<string>;
 	close: (name: string | null) => void;
 }>();
 const { working, error, send } = useDangerSubmit(props.submit, props.close);
 
-const name = ref(props.doctype);
+const name = ref(props.initial ?? props.doctype);
 const input = ref<TextInputExposed | null>(null);
 // The dialog loads after it opens, too late for its own autofocus.
 onMounted(() => {

@@ -49,11 +49,16 @@ export interface ActFields<Context = any> {
 	asks?: ActAsk[];
 }
 
+/** Who runs the act: `window.desk`'s calls are an agent's, every other caller counts as a person. */
+export interface ActCall {
+	agent: boolean;
+}
+
 export interface ActItem<Context = any> extends ActFields<Context> {
 	name: string;
 	label?: string;
 	icon?: string;
-	run?: (context: Context, value?: any) => unknown;
+	run?: (context: Context, value?: any, call?: ActCall) => unknown;
 }
 
 /** One item as its surface draws it after the replay. */
@@ -261,8 +266,8 @@ export class ActDispatcher {
 	}
 
 	/** An outside caller's run: it never rejects, and every end, a refusal too, says what to do next. */
-	call(name: string, value?: unknown): Promise<ActResult> {
-		const run = this.execute(name, value, false);
+	call(name: string, value?: unknown, by?: ActCall): Promise<ActResult> {
+		const run = this.execute(name, value, false, by);
 		// A refusal that lands before the chunk does must not count as unhandled; `callResult` reads it.
 		run.catch(() => {});
 		// The act starts at once, on the page that was asked; only the result's wording loads on the first call. A failed load must not reject it.
@@ -275,10 +280,10 @@ export class ActDispatcher {
 		);
 	}
 
-	private async execute(name: string, value: unknown, quiet: boolean): Promise<unknown> {
+	private async execute(name: string, value: unknown, quiet: boolean, by?: ActCall): Promise<unknown> {
 		const checked = this.check(name, value, true);
 		const { scope, item } = checked instanceof Promise ? await checked : checked;
-		const held = scope.hold(() => item.run!(scope.context(), value));
+		const held = scope.hold(() => item.run!(scope.context(), value, by));
 		return quiet ? held.catch(ignoreDeclined) : held;
 	}
 
@@ -386,6 +391,9 @@ function ignoreDeclined(error: unknown) {
 }
 
 let readDialogs: () => ActDialog[] = () => [];
+
+/** `note()` is the line a confirm shows while an agent's call is in flight, "" for a person's; `window.desk` sets it. */
+export const agentAsk = { note: () => "" };
 
 /** The tab's dialog list registers its reader here: the acts layer sits below the shell's. */
 export function readDialogsWith(reader: () => ActDialog[]) {

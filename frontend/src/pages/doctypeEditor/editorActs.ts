@@ -128,6 +128,7 @@ function hasList(host: EditorActsHost): boolean {
 export function settingsItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
   return SETTINGS_ACTS.map(([name, label]) => ({
     name,
+    asks: ["confirm" as const],
     label: __(label),
     palette: false,
     when: () => Boolean(host.canvas()),

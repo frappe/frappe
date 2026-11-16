@@ -35,6 +35,11 @@
 			</ul>
 		</div>
 		<p v-else>{{ __("After you save, {0} goes back to: {1}.", [label, summary.fallback]) }}</p>
+		<ConfirmNote
+			kind="danger"
+			:message="__('Reset {0} to the app.', [label])"
+			:buttons="[__('Cancel'), confirmLabel]"
+		/>
 		<div class="flex justify-end gap-2">
 			<Button variant="outline" :label="__('Cancel')" @click="close(null)" />
 			<Button variant="solid" :label="confirmLabel" @click="close(true)" />
@@ -45,6 +50,7 @@
 <script setup lang="ts">
 import { Button, Icon } from "frappe-ui";
 import { __ } from "@/i18n";
+import ConfirmNote from "./ConfirmNote.vue";
 import type { ResetSummary } from "./layoutMenu";
 
 defineProps<{

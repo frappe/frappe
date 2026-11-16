@@ -1,9 +1,10 @@
 // The `layouts` acts: open another layout, and add, rename, condition, delete or reset one. The
 // layout menu asks for each act's value in a dialog, then runs it with that value.
-import type { ActItem } from "@/acts/dispatcher";
+import { ActDeclined, type ActCall, type ActItem } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { FormLayoutType } from "@/recordPage/formLayoutSource/types";
 import type { EditorActsHost } from "./editorActs";
+import { confirmReset } from "./layoutDialogs";
 import type { LayoutRef } from "./workingLayouts";
 
 export interface AddedLayout {
@@ -67,7 +68,11 @@ export function layoutItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Reset to app layout"),
 			palette: false,
 			when: () => editing() && host.canvas()?.state.mode === "Customize",
-			run: (_context, keys: { type: FormLayoutType }) => canvas().stage({ act: "layouts.reset_to_app", ...keys }),
+			// A person's script skips the dialog, as the menu opens it first; an agent's call opens it here.
+			run: async (_context, keys: { type: FormLayoutType }, call?: ActCall) => {
+				if (call?.agent && !(await confirmReset(canvas(), keys.type))) throw new ActDeclined("layouts.reset_to_app");
+				return canvas().stage({ act: "layouts.reset_to_app", ...keys });
+			},
 		},
 	];
 }

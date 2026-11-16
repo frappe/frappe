@@ -57,9 +57,9 @@ export function readDialogs(): ReadableDialogSnapshot[] {
 
 readDialogsWith(readDialogs);
 
-/** Runs `on` as soon as the list changes; the returned function stops it. */
+/** Runs `on` as soon as the list or a dialog on it changes (a dialog may turn into a confirm after it opens); the returned function stops it. */
 export function watchListed(on: () => void): () => void {
-	return watch(listed, on, { flush: "sync" });
+	return watch(listed, on, { flush: "sync", deep: 2 });
 }
 
 /** The dialog in front that a caller may fill. */

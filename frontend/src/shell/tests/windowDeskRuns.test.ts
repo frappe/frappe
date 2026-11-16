@@ -14,7 +14,7 @@ import { run, wait } from "../windowDesk/runs";
 
 let release: (() => void) | undefined;
 
-function register(items: Record<string, () => unknown>) {
+function register(items: Record<string, (context?: unknown, value?: unknown, call?: unknown) => unknown>) {
 	const surfaces = { test: () => Object.entries(items).map(([name, run]) => ({ item: { name, run }, hidden: false })) };
 	release = acts.register({
 		surfaces,
@@ -48,6 +48,43 @@ describe("window.desk.acts.run", () => {
 		register({ plain: () => 4 });
 
 		expect(await run("test.plain")).toMatchObject({ ok: true, data: 4 });
+	});
+
+	it("marks the act's call as an agent's, and a confirm it opens says so", async () => {
+		const seen: unknown[] = [];
+		register({ submit: (_context, _value, call) => (seen.push(call), confirmThen(true)) });
+
+		await run("test.submit");
+
+		expect(seen).toEqual([{ agent: true }]);
+		const options = vi.mocked(frappeDialog.confirm).mock.lastCall![0] as { message: string };
+		expect(options.message).toBe("An agent asked for this. Sure?");
+		await answer(true);
+	});
+
+	it("leaves a person's confirm as it is, before and after an agent's run", async () => {
+		register({ submit: () => confirmThen(true) });
+
+		const person = acts.run("test.submit");
+		await vi.waitFor(() => expect(frappeDialog.confirm).toHaveBeenCalledTimes(1));
+		expect((vi.mocked(frappeDialog.confirm).mock.lastCall![0] as { message: string }).message).toBe("Sure?");
+		await answer(true);
+		await person;
+	});
+
+	it("does not label a person's confirm that opens while the agent's own confirm waits", async () => {
+		register({ submit: () => confirmThen(true) });
+
+		const first = await run("test.submit");
+		expect(first.ok).toBe(false);
+		const agents = vi.mocked(frappeDialog.confirm).mock.lastCall![0] as { message: string; onConfirm?: () => unknown };
+		expect(agents.message).toBe("An agent asked for this. Sure?");
+
+		void shellDialog().confirm({ title: "Delete?", message: "Sure?" });
+		const person = vi.mocked(frappeDialog.confirm).mock.lastCall![0] as { message: string; onCancel?: () => unknown };
+		expect(person.message).toBe("Sure?");
+		person.onCancel?.();
+		await agents.onConfirm?.();
 	});
 
 	it("returns waiting_for_user with the dialog and a call id while a confirm is open", async () => {

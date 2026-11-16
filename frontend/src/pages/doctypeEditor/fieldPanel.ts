@@ -166,7 +166,7 @@ export async function takeOff(canvas: DesignCanvas, fieldname: string) {
 
 /** The panel trash and the canvas bin: off this layout, hidden in Customize, or deleted after its confirm. */
 export async function removeField(canvas: DesignCanvas, field: RawMetaField) {
-	const { fieldname, label } = field;
+	const { fieldname } = field;
 	if (takesOff(canvas)) return takeOff(canvas, fieldname);
 	if (canvas.customize?.hidesOnRemove(fieldname)) {
 		return void acts.perform("fields.set_field_property", {
@@ -175,16 +175,19 @@ export async function removeField(canvas: DesignCanvas, field: RawMetaField) {
 			value: field.hidden ? 0 : 1,
 		});
 	}
+	if (await confirmRemove(canvas, field)) void acts.perform("fields.delete_field", { fieldname });
+}
+
+/** Asks before a field leaves the DocType; true when the question is not needed or the person says yes. */
+export async function confirmRemove(canvas: DesignCanvas, field: RawMetaField): Promise<boolean> {
 	const question = removeQuestion(canvas, field);
-	if (question) {
-		const confirmed = await shellDialog().danger({
-			title: __("Remove {0}?", [label || fieldname]),
-			message: question,
-			confirmLabel: __("Remove"),
-		});
-		if (!confirmed) return;
-	}
-	void acts.perform("fields.delete_field", { fieldname });
+	if (!question) return true;
+	const confirmed = await shellDialog().danger({
+		title: __("Remove {0}?", [field.label || field.fieldname]),
+		message: question,
+		confirmLabel: __("Remove"),
+	});
+	return Boolean(confirmed);
 }
 
 /** The confirm a remove asks; none for a field added since the save, which has no column. */

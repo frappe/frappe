@@ -639,7 +639,11 @@ tell the person, then call `wait(call)`. While it is open, any other `run` retur
 `waiting_for_user` too. Escape or Cancel makes the waited call `declined`. A `wait` that times
 out returns `waiting_for_user` again, and an unknown call id is `missing`. A form dialog does not
 end the run: `run` stays pending, so read `dialogs()` meanwhile. `interrupted` is for the caller to
-report when its tab is gone. The state of a list is `doctype`, `filters`, `sort` and `selected`;
+report when its tab is gone. An agent's value never skips a confirm: for a call from `window.desk`, an act that
+asks first (`danger.change_kind`, `danger.rename_doctype`, `danger.move_doctype`, `danger.make_standard`,
+`fields.delete_field`, `layouts.reset_to_app`) uses the value to fill the dialog, opens it, and waits
+for the person, as above. A script's `page.run` with the same value still skips it. A confirm or danger dialog an agent's call
+opens ends with "An agent asked for this.". The state of a list is `doctype`, `filters`, `sort` and `selected`;
 a record or new page adds `doctype`, `name` (not on a new record), `docstatus`, `unsaved`, `errors` and, with
 `fields: true`, the fields its layout shows (a text value is cut at 200 characters). A record route
 whose page has not loaded gives `loading: true`; read again.

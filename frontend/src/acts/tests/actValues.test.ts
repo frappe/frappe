@@ -51,7 +51,7 @@ describe("an act with an inline input", () => {
 
     await dispatcher.run("page.go", { n: 1 });
 
-    expect(run).toHaveBeenCalledWith({}, { n: 1 });
+    expect(run).toHaveBeenCalledWith({}, { n: 1 }, undefined);
   });
 
   it("refuses no value unless the input allows null", async () => {
@@ -102,7 +102,7 @@ describe("an act that declares nothing", () => {
 
     await dispatcher.run("page.go", { whatever: 1 });
 
-    expect(run).toHaveBeenCalledWith({}, { whatever: 1 });
+    expect(run).toHaveBeenCalledWith({}, { whatever: 1 }, undefined);
   });
 });
 
