@@ -11,6 +11,7 @@ import frappe
 from frappe.api import discovery
 from frappe.mcp.tools import Tool, ToolArguments
 from frappe.model import NO_VALUE_FIELDS
+from frappe.utils.synchronization import filelock
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
@@ -75,13 +76,19 @@ def document_methods(doctype: str) -> list[dict]:
 
 
 def with_discovery_cache(handler: Callable, *args):
-	"""Build an expired discovery cache in the request, so agents don't fail on a cold cache."""
+	"""Build an expired discovery cache in the request, once for all concurrent callers."""
 	try:
 		return handler(*args)
 	except discovery.DiscoveryCacheUnavailable:
 		frappe.clear_messages()
-		discovery.build_cache()
-		return handler(*args)
+
+	with filelock("mcp_discovery_cache"):
+		try:
+			return handler(*args)
+		except discovery.DiscoveryCacheUnavailable:
+			frappe.clear_messages()
+			discovery.build_cache()
+	return handler(*args)
 
 
 def doctype_schema(doctype: str) -> dict:
