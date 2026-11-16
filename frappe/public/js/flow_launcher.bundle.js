@@ -128,11 +128,12 @@ class FlowLauncher {
 		else this.open();
 	}
 
-	// opens the panel on a chat's route, such as /s/<session>, for an app that started the chat
-	open_at(path) {
-		if (path) {
-			this.state.path = path;
-			this.island?.update({ path });
+	// opens the panel on a chat, for an app that started it
+	open_at(session) {
+		if (session) {
+			this.asked = session;
+			this.state.path = `/s/${session}`;
+			this.island?.update({ path: this.state.path, asked: session });
 		}
 		if (!this.state.open) return this.open();
 		this.save();
@@ -166,6 +167,7 @@ class FlowLauncher {
 			props: {
 				panel: desk ? "desk" : "app",
 				path: this.state.path,
+				asked: this.asked,
 				onClose: () => this.minimize(),
 				onNavigate: (path) => {
 					this.state.path = path;
@@ -440,6 +442,6 @@ if (window.top === window) {
 	const launcher = new FlowLauncher();
 	window.flow = {
 		toggle: () => launcher.toggle(),
-		open: ({ session } = {}) => launcher.open_at(session && `/s/${session}`),
+		open: ({ session } = {}) => launcher.open_at(session),
 	};
 }
