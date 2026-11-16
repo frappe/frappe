@@ -269,7 +269,7 @@ const activeTab = computed(() => store.studioLayout.leftPanelComponentTab)
 
 function createComponent() {
 	componentEditorStore.promptNewComponent({
-		onCreated: (component) => componentEditorStore.editComponent(component.component_id),
+		onCreated: (component) => componentEditorStore.editComponent(component.component_id, true),
 	})
 }
 
@@ -278,7 +278,7 @@ function getComponentMenu(component: StudioComponent) {
 		{
 			label: "Edit",
 			icon: "lucide-edit",
-			onClick: () => componentEditorStore.editComponent(component.component_id),
+			onClick: () => componentEditorStore.editComponent(component.component_id, true),
 		},
 		{
 			label: "Delete",
@@ -335,12 +335,7 @@ useEventListener(componentContainer, "click", (e) => {
 	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
 	if (component) {
 		if (component.dataset.isStudioComponent) {
-			const componentName = component.dataset.componentName as string
-			componentEditorStore.selectedComponent = componentName
-			// if in edit mode, open the component in editor
-			if (canvasStore.fragmentData.fragmentId) {
-				componentEditorStore.editComponent(componentName)
-			}
+			componentEditorStore.selectedComponent = component.dataset.componentName as string
 		} else {
 			componentEditorStore.selectedComponent = null
 		}
@@ -369,7 +364,7 @@ useEventListener(componentContainer, "dragend", () => {
 useEventListener(componentContainer, "dblclick", (e) => {
 	const component = (e.target as HTMLElement)?.closest(".user-component") as HTMLElement
 	if (component && component.dataset.isStudioComponent) {
-		componentEditorStore.editComponent(component.dataset.componentName as string)
+		componentEditorStore.editComponent(component.dataset.componentName as string, true)
 	}
 })
 </script>

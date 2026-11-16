@@ -128,7 +128,16 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		componentUsages.value = message || []
 	}
 
-	async function editComponent(componentId: string) {
+	/** Open a component on top of what is open, for a component inside it. `isReplacing` closes
+	 * what is open first, for a component that the user picks from a list. */
+	async function editComponent(componentId: string, isReplacing = false) {
+		const canvasStore = useCanvasStore()
+		if (isReplacing) {
+			if (canvasStore.fragmentData.fragmentId === componentId) return
+			await canvasStore.exitAllFragments()
+			// the user kept the unsaved changes of what is open
+			if (canvasStore.fragmentStack.length) return
+		}
 		const componentBlock = await componentStore.getComponent(componentId)
 		const componentDoc = componentStore.getComponentDoc(componentId)
 		const block = componentBlock || getBlockInstance(getBlockTemplate("empty-component"))
@@ -136,7 +145,6 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 
 		loadComponentUsages(componentId)
 
-		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
 			block,
 			(editedBlock) => saveComponent(editedBlock, componentId),
