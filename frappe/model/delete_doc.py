@@ -305,6 +305,9 @@ def update_flags(doc, flags=None, ignore_permissions=False):
 
 
 def check_permission_and_not_submitted(doc):
+	if not doc.flags.ignore_permissions and frappe.flags.mcp_delete_disabled:
+		frappe.throw(_("AI agents are not allowed to delete documents on this site."), frappe.PermissionError)
+
 	# permission
 	if not doc.flags.ignore_permissions and frappe.session.user != "Administrator":
 		if doc.doctype == "DocType" and not doc.custom:
