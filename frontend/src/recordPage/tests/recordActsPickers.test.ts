@@ -3,10 +3,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createApp, h, nextTick, reactive } from "vue";
 import type { App } from "vue";
-import DateField from "../../../../ui/src/components/Fields/DateField.vue";
-import DatetimeField from "../../../../ui/src/components/Fields/DatetimeField.vue";
-import TimeField from "../../../../ui/src/components/Fields/TimeField.vue";
-import { resetFormatDefaults, setFormatDefaults } from "../../../../ui/src/components/FormLayout/formatDefaults";
+import { getFieldComponent, resetFormatDefaults, setFormatDefaults } from "@framework/ui/FormLayout";
 import { setValuesEntry } from "../recordActs";
 
 let app: App | undefined;
@@ -18,7 +15,6 @@ afterEach(() => {
   resetFormatDefaults();
 });
 
-const FIELDS = { due: DateField, starts: DatetimeField, at: TimeField } as const;
 const TYPES = { due: "Date", starts: "Datetime", at: "Time" } as const;
 
 function mountForm() {
@@ -27,8 +23,8 @@ function mountForm() {
   document.body.appendChild(host);
   app = createApp({
     render: () =>
-      Object.entries(FIELDS).map(([fieldname, component]) =>
-        h(component, {
+      Object.keys(TYPES).map((fieldname) =>
+        h(getFieldComponent(TYPES[fieldname as keyof typeof TYPES]), {
           field: { fieldname, fieldtype: TYPES[fieldname as keyof typeof TYPES] },
           modelValue: doc[fieldname],
           onChange: (value: unknown) => (doc[fieldname] = value),
@@ -51,7 +47,7 @@ describe("record.set_values on the date pickers", () => {
     const form = mountForm();
     (host!.querySelector("input") as HTMLInputElement).focus();
 
-    await setValuesEntry(form).item.run(null as any, { values: { due: "2026-11-03", starts: "2026-11-04 09:15:00", at: "10:30:00" } });
+    await setValuesEntry(form).item.run!(null as any, { values: { due: "2026-11-03", starts: "2026-11-04 09:15:00", at: "10:30:00" } });
     for (let turn = 0; turn < 3; turn++) await nextTick();
 
     const shown = [...host!.querySelectorAll("input")].map((input) => input.value);
