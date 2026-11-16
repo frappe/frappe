@@ -37,7 +37,8 @@ class RecordForm implements ValueForm, RowHost {
   async commit(fieldname: string, row?: RowAddress) {
     const { commits } = this.host;
     const value = this.record(row)?.[fieldname];
-    if (commits.pending(fieldname, value, row)) await commits.commit(fieldname, value, row);
+    // `pending` answers false for an echo of the last commit; the page's wrapper answers nothing otherwise.
+    if (commits.pending(fieldname, value, row) !== false) await commits.commit(fieldname, value, row);
     await commits.flush();
   }
 

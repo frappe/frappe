@@ -1,5 +1,6 @@
 // The `record` surface: acts that fill the form in front the way typing does, and never save.
 import { ActInvalid, type ActEntry } from "@/acts/dispatcher";
+import { NO_VALUE } from "@framework/ui/FormLayout/noValueFields";
 
 type Row = Record<string, any>;
 type Values = Record<string, unknown>;
@@ -33,13 +34,13 @@ export function setValuesEntry(form: ValueForm): ActEntry {
 
 async function setValues(form: ValueForm, values: Values) {
   for (const fieldname of Object.keys(values)) refuse(SET_VALUES, cannotSet(fieldname, form.field(fieldname)));
-  const doc = form.doc();
-  const before = { ...doc };
+  const before = { ...form.doc() };
   for (const [fieldname, value] of Object.entries(values)) {
-    doc[fieldname] = coerce(form.field(fieldname)!.fieldtype, value);
+    // The doc is read again for each value: a handler may have replaced it.
+    form.doc()[fieldname] = coerce(form.field(fieldname)!.fieldtype, value);
     await form.commit(fieldname);
   }
-  return { values: changed(before, doc), errors: form.errors() };
+  return { values: changed(before, form.doc()), errors: form.errors() };
 }
 
 /** Why the field cannot be set, in words that say what to do; undefined when it can. */
@@ -47,8 +48,9 @@ export function cannotSet(fieldname: string, field: FormField | null): string | 
   if (!field) return `${fieldname} is not a field of this form`;
   if (field.fieldtype === "Table" || field.fieldtype === "Table MultiSelect")
     return `${fieldname} is a table; use record.add_child_row and record.set_child_values`;
+  if (NO_VALUE.has(field.fieldtype)) return `${fieldname} holds no value`;
   if (field.hidden) return `${fieldname} is hidden now`;
-  if (field.read_only) return `${fieldname} is read-only`;
+  if (field.read_only || field.fieldtype === "Read Only") return `${fieldname} is read-only`;
 }
 
 /** The value as the field holds it: a Check holds 0 or 1, and a caller may send a boolean. */

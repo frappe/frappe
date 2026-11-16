@@ -32,6 +32,8 @@ const META = {
     { fieldname: "notes", fieldtype: "Data", depends_on: "eval:doc.status == 'Won'" },
     { fieldname: "approved", fieldtype: "Check" },
     { fieldname: "total", fieldtype: "Currency", read_only: 1 as const },
+    { fieldname: "go", fieldtype: "Button", label: "Go" },
+    { fieldname: "stamp", fieldtype: "Read Only" },
     { fieldname: "products", fieldtype: "Table", options: "Deal Product" },
   ],
 };
@@ -127,6 +129,8 @@ describe("record.set_values", () => {
     expect(await invalid(set({ notes: "x" }))).toBe("record.set_values: notes is hidden now");
     expect(await invalid(set({ total: 5 }))).toBe("record.set_values: total is read-only");
     expect(await invalid(set({ products: [] }))).toContain("products is a table");
+    expect(await invalid(set({ go: 1 }))).toBe("record.set_values: go holds no value");
+    expect(await invalid(set({ stamp: "x" }))).toBe("record.set_values: stamp is read-only");
     expect(host.doc.value.status).toBe("Open");
   });
 
@@ -235,5 +239,38 @@ describe("child row acts", () => {
     const result = await page.run("record.set_child_values", { table: "products", idx: 1, values: { qty: 9 } });
 
     expect(result).toEqual({ values: { qty: 9 }, errors: { "products.1.qty": "Too many" } });
+  });
+
+  it("refuses a cell a script made read-only or hidden", async () => {
+    await register({
+      onRefresh: (page) => {
+        page.fields.update("products.qty", { read_only: true });
+        page.fields.update("products.item", { hidden: true });
+      },
+    });
+    const { controller, page } = makePage({ products: [{ name: "r1", item: "A", qty: 1 }] });
+    await controller.refresh();
+    const set = (values: Record<string, unknown>) =>
+      page.run("record.set_child_values", { table: "products", idx: 1, values });
+
+    expect(await invalid(set({ qty: 5 }))).toBe("record.set_child_values: qty is read-only");
+    expect(await invalid(set({ item: "B" }))).toBe("record.set_child_values: item is hidden now");
+  });
+
+  it("refuses a table whose columns are not loaded", async () => {
+    const { controller, page } = makePage({}, { childFields: () => undefined });
+    await controller.refresh();
+
+    expect(await invalid(page.run("record.add_child_row", { table: "products" }))).toBe(
+      "record.add_child_row: the columns of products are not loaded yet",
+    );
+  });
+
+  it("refuses when an onAdd handler removes the new row", async () => {
+    await register({ products: { onAdd: (page) => void page.doc.products.pop() } });
+    const { controller, page } = makePage();
+    await controller.refresh();
+
+    expect(await invalid(page.run("record.add_child_row", { table: "products" }))).toContain("removed the new row");
   });
 });

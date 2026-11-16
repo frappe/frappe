@@ -56,6 +56,7 @@ class ChildRowActs {
     found.rows.push(row);
     const live = found.rows[found.rows.length - 1];
     await this.host.rowChanged(this.address(table, live), "add");
+    refuse(act, found.rows.includes(live) ? undefined : `an onAdd handler removed the new row of ${table}`);
     await this.fill(found, live, values);
     return { idx: found.rows.indexOf(live) + 1, values: visible(live), errors: this.host.errors() };
   }
@@ -94,8 +95,9 @@ class ChildRowActs {
     refuse(act, field!.hidden ? `${name} is hidden now` : field!.read_only ? `${name} is read-only` : undefined);
     const doc = this.host.doc();
     if (!Array.isArray(doc[name])) doc[name] = [];
-    const columns = this.host.childFields(String(field!.options)) ?? [];
-    return { name, columns, rows: doc[name], field: field! };
+    const columns = this.host.childFields(String(field!.options));
+    refuse(act, columns ? undefined : `the columns of ${name} are not loaded yet`);
+    return { name, columns: columns!, rows: doc[name], field: field! };
   }
 
   private row(act: string, { name, rows }: Table, idx: number): Row {
@@ -108,9 +110,11 @@ class ChildRowActs {
     if (!column || NO_VALUE.has(column.fieldtype) || holdsChildRows(column.fieldtype))
       return `${fieldname} is not a column of ${name} that can be set`;
     const doc = this.host.doc();
-    if (column.hidden || !evaluateDependsOn(column.depends_on, row, doc)) return `${fieldname} is hidden now`;
+    // A script's override of the column (`page.fields.update("<table>.<column>", …)`) counts as the grid counts it.
+    const override = this.host.field(`${name}.${fieldname}`);
+    if (column.hidden || override?.hidden || !evaluateDependsOn(column.depends_on, row, doc)) return `${fieldname} is hidden now`;
     const locked = column.read_only_depends_on && evaluateDependsOn(column.read_only_depends_on, row, doc);
-    if (column.read_only || column.fieldtype === "Read Only" || locked) return `${fieldname} is read-only`;
+    if (column.read_only || override?.read_only || column.fieldtype === "Read Only" || locked) return `${fieldname} is read-only`;
   }
 
   private address(parentfield: string, row: Row): RowAddress {

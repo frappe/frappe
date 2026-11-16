@@ -348,7 +348,7 @@ before the call returns. None of them is in the palette.
 await page.run('record.add_child_row', { table: 'items', values: { item_code: 'WIDGET', qty: 3 } })
 ```
 
-A Create dialog in front registers its own `record.set_values` for its form; it has no child tables.
+A Create dialog in front registers its own `record.set_values` for its form. It has no child tables, no handlers and no Link check: it fills the shown fields and marks the form edited.
 
 ```js
 page.header.add({ name: 'dark', label: 'Dark theme', run: (page) => page.run('shell.theme', 'dark') })
