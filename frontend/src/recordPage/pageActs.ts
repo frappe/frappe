@@ -2,6 +2,7 @@
 // entries that have `run`, read as drawn after the replay.
 import { acts, passesRight, passesWhen, type ActEntry, type ActScope } from "@/acts/dispatcher";
 import { containerDisplay, hidingDenied, surviving } from "@/pageEngine/headerRenderings";
+import { postCommentItem, type PostComment } from "./commentAct";
 import type { ResolvedItem, Surface } from "@/pageEngine/surface";
 import type { HeaderItem, QuickAction, RecordPageApi, TabItem } from "./types";
 import type { PagePermissions } from "./pagePermissions";
@@ -12,11 +13,12 @@ export interface PageActsHost {
   quickActions: Surface<QuickAction>;
   tabs: Surface<TabItem>;
   permissions: Pick<PagePermissions, "passes" | "settled">;
+  postComment?: PostComment;
   hold: ActScope["hold"];
   failed: ActScope["failed"];
 }
 
-/** Registers the page's three act surfaces; the returned function takes them off again. */
+/** Registers the page's act surfaces: header, quickActions, tabs and `record`; the returned function takes them off again. */
 export function registerPageActs(host: PageActsHost): () => void {
   return acts.register({
     surfaces: {
@@ -27,6 +29,7 @@ export function registerPageActs(host: PageActsHost): () => void {
         ),
       quickActions: () => host.quickActions.resolve(),
       tabs: () => createEntries(host.tabs.resolve()),
+      record: () => (host.postComment ? [{ item: postCommentItem(host.postComment), hidden: false }] : []),
     },
     context: () => host.page,
     passes: host.permissions.passes,

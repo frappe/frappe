@@ -1,6 +1,6 @@
 // The comment writer's send: a pending row at once, the server's key on it after, the draft back on a failure.
 import { addPendingActivity, type UserInfo } from "@framework/ui/ActivityTimeline";
-import { addComment, type Comment } from "@framework/ui/api";
+import { addComment, type Comment, type SessionUser } from "@framework/ui/api";
 import { errorMessage } from "@/recordPage";
 import {
 	clearComposerDraft,
@@ -32,18 +32,47 @@ export async function postComment(
 	const placement = composerState.window;
 	clearComposerDraft(doctype, docname, COMMENT_WRITER);
 	closeComposer();
-	const pending = addPendingActivity(doctype, docname, pendingRow(author, draft));
-	let key: string;
+	let name: string;
 	try {
-		key = await send(doctype, docname, draft, pending);
+		name = await submit(context, author, draft);
 	} catch (error) {
-		pending.drop();
 		restore(context, draft, placement);
 		context.toast.error(errorMessage(error));
 		return;
 	}
-	// `onPost` is the record page's, so it fires only if that page is up when the answer comes.
-	if (key) await composerRecordFor(doctype, docname)?.firePost?.(key);
+	await firePost(context, name);
+}
+
+/** The send alone, for a caller with no writer: the draft in the store stays. A failure throws; the comment's name resolves. */
+export async function sendComment(context: WriterContext, author: UserInfo, draft: CommentDraft) {
+	const name = await submit(context, author, draft);
+	await firePost(context, name);
+	return name;
+}
+
+// `onPost` is the record page's, so it fires only if that page is up when the answer comes.
+async function firePost({ doctype, docname }: WriterContext, name: string) {
+	if (name) await composerRecordFor(doctype, docname)?.firePost?.(`comment:${name}`);
+}
+
+async function submit(context: WriterContext, author: UserInfo, draft: CommentDraft) {
+	const { doctype, docname } = context;
+	const pending = addPendingActivity(doctype, docname, pendingRow(author, draft));
+	try {
+		return await send(doctype, docname, draft, pending);
+	} catch (error) {
+		pending.drop();
+		throw error;
+	}
+}
+
+export function commentAuthor(user: SessionUser): UserInfo {
+	return {
+		name: user.name,
+		email: user.email,
+		fullname: user.full_name,
+		image: user.user_image ?? undefined,
+	};
 }
 
 async function send(
@@ -58,9 +87,8 @@ async function send(
 	});
 	// The comment was written: the feed retires the row when the echo's text matches it.
 	if (!data.added) return "";
-	const key = `comment:${data.added}`;
-	pending.resolve(key, creationOf(data.comments, data.added));
-	return key;
+	pending.resolve(`comment:${data.added}`, creationOf(data.comments, data.added));
+	return data.added;
 }
 
 // No timestamp: the feed sorts a row without one last, as the newest.

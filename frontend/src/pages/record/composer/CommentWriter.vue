@@ -28,7 +28,7 @@ import type { CommentPayload } from "@framework/ui/Composer";
 import type { WriterContext } from "@/shell/composer";
 import { __ } from "@/i18n";
 import AttachmentSeed from "./AttachmentSeed";
-import { postComment } from "./commentPost";
+import { commentAuthor, postComment } from "./commentPost";
 import { useCommentDraft } from "./useCommentDraft";
 
 const CommentComposer = defineAsyncComponent(() =>
@@ -50,13 +50,7 @@ watch(composer, (editor) => editor?.focus());
 function send(payload: CommentPayload) {
 	if (sent.value) return;
 	sent.value = true;
-	const author = {
-		name: props.user.name,
-		email: props.user.email,
-		fullname: props.user.full_name,
-		image: props.user.user_image ?? undefined,
-	};
-	void postComment(props.context, author, {
+	void postComment(props.context, commentAuthor(props.user), {
 		content: payload.body,
 		attachments: [...payload.attachments],
 	});

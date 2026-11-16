@@ -26,6 +26,7 @@ import type { FrameSurface } from "@/pageEngine/frame";
 import type { BodySurface } from "@/pageEngine/body";
 import type { HeaderSurface } from "@/pageEngine/headerRenderings";
 import { ROW_EVENTS } from "./flattenHandlers";
+import type { PostComment } from "./commentAct";
 import { registerPageActs } from "./pageActs";
 import { createPagePermissions } from "./pagePermissions";
 import { lockFields, readOnly, type ReadOnlyAdvice } from "./readOnly";
@@ -196,6 +197,8 @@ export interface RecordPageHost {
   activeWriter?: ComposerHost["activeWriter"];
   windowState?: ComposerHost["windowState"];
   setWindow?: ComposerHost["setWindow"];
+  /** Posts a comment's HTML on this record as the writer's Send does; absent, the page has no `record.post_comment`. */
+  postComment?: PostComment;
   /** True when the host puts back the reader's view on this visit; `onOpen`'s view acts then do nothing. */
   restoresView?: () => boolean;
   /** An act the reader asked for threw; absent, the engine shows the error in a toast. */
@@ -447,6 +450,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     quickActions,
     tabs,
     permissions,
+    postComment: host.postComment,
     hold,
     failed: reportOnce((error) => (host.actFailed ? host.actFailed(error) : void toast.error(errorMessage(error)))),
   });

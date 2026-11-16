@@ -24,7 +24,7 @@ import {
 	registerComposerRecord,
 	saveComposerDraft,
 } from "@/shell/composer";
-import { postComment } from "../commentPost";
+import { postComment, sendComment } from "../commentPost";
 
 const AUTHOR = {
 	name: "ann@example.com",
@@ -255,5 +255,40 @@ describe("postComment", () => {
 		await sent;
 		openComposer("Note", context.docname, "comment");
 		expect(composerKept()).toMatchObject({ title: "Quarterly plan", perms: { write: 1 } });
+	});
+});
+
+describe("sendComment", () => {
+	it("posts with a pending row and onPost, and leaves the writer and its draft alone", async () => {
+		const context = fakeContext();
+		opened(context);
+		addComment.mockResolvedValue({ data: { comments: [], added: "C-7" } });
+
+		expect(await sendComment(context, AUTHOR, { content: "<p>Hi</p>", attachments: [] })).toBe("C-7");
+
+		expect(addComment).toHaveBeenCalledWith("Note", context.docname, "<p>Hi</p>", { attachments: [] });
+		expect(pending.resolve).toHaveBeenCalledWith("comment:C-7", undefined);
+		expect(context.firePost).toHaveBeenCalledWith("comment:C-7");
+		expect(activeWriter("Note", context.docname)).toBe("comment");
+		expect(composerDraft("Note", context.docname, "comment")).toEqual(DRAFT);
+	});
+
+	it("drops the row and throws on a failure, with no toast and no writer reopened", async () => {
+		const context = fakeContext();
+		addComment.mockRejectedValue(new Error("No permission"));
+
+		await expect(sendComment(context, AUTHOR, DRAFT)).rejects.toThrow("No permission");
+
+		expect(pending.drop).toHaveBeenCalledOnce();
+		expect(context.toast.error).not.toHaveBeenCalled();
+		expect(context.firePost).not.toHaveBeenCalled();
+		expect(activeWriter("Note", context.docname)).toBe("");
+	});
+
+	it("resolves an empty name when the server added nothing, and fires no onPost", async () => {
+		const context = fakeContext();
+		addComment.mockResolvedValue({ data: { comments: [], added: "" } });
+		expect(await sendComment(context, AUTHOR, DRAFT)).toBe("");
+		expect(context.firePost).not.toHaveBeenCalled();
 	});
 });

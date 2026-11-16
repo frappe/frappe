@@ -313,6 +313,12 @@ whose `act` is the name and whose `reason` is `'missing'` (no item has that name
 reader lacks its right). A click, and later the palette and a key, show a failure in a
 toast instead, and the record reloads unless a `beforeSave` vetoed a save.
 
+The record page also has the `record` surface, with no palette rows. `record.post_comment`
+takes `{ content }`, plain text: it is escaped, each line is a paragraph, and the comment is
+posted as the writer's Send posts it (the pending row shows and `onPost` fires, no
+mentions or attachments). It returns `{ comment }`, the comment's name, and leaves the
+composer's draft as it is. A record dialog and a new record have no such act.
+
 `page.run` also runs the shell's acts, which outlive the page and are named `shell.<item>`.
 Each menu entry in the rail and the avatar menu is one of them: `shell.all_apps`,
 `shell.customize_sidebar`, `shell.copy_link` and `shell.toggle_sidebar` (while a sidebar

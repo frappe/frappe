@@ -329,6 +329,53 @@ describe("the acts available now", () => {
   });
 });
 
+describe("record.post_comment", () => {
+  it("posts the escaped text, a paragraph a line, and returns the comment's name", async () => {
+    const postComment = vi.fn(async () => "C-1");
+    const { controller, page } = makePage({ postComment });
+    await controller.refresh();
+
+    const result = await page.run("record.post_comment", { content: "Fine & <b>done</b>\r\n\n  \nNext" });
+
+    expect(postComment).toHaveBeenCalledWith("<p>Fine &amp; &lt;b&gt;done&lt;/b&gt;</p><p>Next</p>");
+    expect(result).toEqual({ comment: "C-1" });
+  });
+
+  it("is off the palette, and missing on a page whose host posts no comments", async () => {
+    const withHost = makePage({ postComment: async () => "C-1" });
+    await withHost.controller.refresh();
+    expect(acts.available().find((act) => act.name === "record.post_comment")?.palette).toBe(false);
+    withHost.controller.leave();
+
+    const bare = makePage();
+    await bare.controller.refresh();
+    expect(await denial(bare.page.run("record.post_comment", { content: "Hi" }))).toEqual({
+      act: "record.post_comment",
+      reason: "missing",
+    });
+  });
+
+  it("refuses an empty comment, and one that no text is left of, without posting", async () => {
+    const postComment = vi.fn(async () => "C-1");
+    const { controller, page } = makePage({ postComment });
+    await controller.refresh();
+
+    await expect(page.run("record.post_comment", { content: "" })).rejects.toThrow("content must not be empty");
+    await expect(page.run("record.post_comment", { content: " \n " })).rejects.toThrow("content has no text");
+    await expect(page.run("record.post_comment", { text: "Hi" })).rejects.toThrow("content is required");
+    expect(postComment).not.toHaveBeenCalled();
+  });
+
+  it("fails when the post fails or the server names no comment", async () => {
+    const postComment = vi.fn().mockRejectedValueOnce(new Error("No permission")).mockResolvedValueOnce("");
+    const { controller, page } = makePage({ postComment });
+    await controller.refresh();
+
+    await expect(page.run("record.post_comment", { content: "Hi" })).rejects.toThrow("No permission");
+    await expect(page.run("record.post_comment", { content: "Hi" })).rejects.toThrow("The server gave no comment name");
+  });
+});
+
 describe("an act the reader asks for", () => {
   it("hands a failure to the host, and toasts a denial without running", async () => {
     const actFailed = vi.fn();
