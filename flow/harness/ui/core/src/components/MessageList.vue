@@ -135,13 +135,9 @@
 			<!-- Before the first streamed block (or during retry/compaction), no
 			     transcript item owns the live status, so render one fallback line.
 			     Its padding keeps it on the same rhythm as the rows that replace it; after
-			     a thinking block the thread gap collapses too, so the status sits
-			     exactly where the upcoming tool row will render. -->
-			<div
-				v-if="showStandaloneStatus"
-				class="py-2 text-base-medium md:py-2.5"
-				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
-			>
+			     a thinking block the thread gap collapses too, and after text it tightens as
+			     a row's does, so the status sits exactly where the upcoming row will render. -->
+			<div v-if="showStandaloneStatus" class="pb-2 text-base md:pb-2.5" :class="statusGap">
 				<span class="flow-shimmer">{{ liveLabel }}</span>
 			</div>
 
@@ -304,6 +300,12 @@ const liveLabel = computed(() =>
 		? "Working"
 		: conversation.value.liveLabel || (conversation.value.sending?.length ? "Working" : ""),
 )
+// under a thought, a row per call lands closer than a folded run's line does
+const statusGap = computed(() => {
+	const kind = lastItem.value?.kind
+	if (kind === "thinking" && flow.state.prefs.separateToolCalls) return "-mt-5 pt-1 md:pt-0.5"
+	return ["pt-2 md:pt-2.5", kind === "thinking" ? "-mt-5" : kind === "text" ? "-mt-1.5" : ""]
+})
 const showStandaloneStatus = computed(
 	() => !!liveLabel.value && !lastIsOpenGroup.value && !lastIsLiveThinking.value,
 )
