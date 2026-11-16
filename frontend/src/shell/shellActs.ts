@@ -325,11 +325,9 @@ function arrive(router: Router, target: string) {
 			stop();
 			if (!failure) return resolve({ path: to.fullPath });
 			reject(
-				new Error(
-					isNavigationFailure(failure, NavigationFailureType.aborted)
-						? __("The page did not change: the person kept their unsaved changes")
-						: __("The page did not change: another navigation interrupted it")
-				)
+				isNavigationFailure(failure, NavigationFailureType.aborted)
+					? new ActDeclined("shell.back")
+					: new Error(__("The page did not change: another navigation interrupted it"))
 			);
 		});
 		// A guard that throws or a route that fails to load reports here, never to `afterEach`.

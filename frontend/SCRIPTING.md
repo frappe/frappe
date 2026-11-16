@@ -334,8 +334,8 @@ which asks first. `shell.create` takes a doctype, or `{ doctype, values }`. `she
 one of its saved views; the palette does not list it. A Single has no list, so it opens the
 document, and `view` is ignored with a name. It resolves `{ opened, path }`: the tab's path after
 the push, and whether the navigation happened. `shell.back` goes to the page before this one in the tab and
-answers `{ path }`; it fails with no earlier page, or when the reader keeps unsaved changes at the discard
-confirm. The palette does not list it. `page.create()`, `page.open()` and
+answers `{ path }`; it fails with no earlier page, and ends declined when the reader keeps unsaved changes at the
+discard confirm. The palette does not list it. `page.create()`, `page.open()` and
 `page.openSettings()` run `shell.create`, `shell.open` and `shell.open_settings`.
 
 The `record` surface fills the form in front, as typing does, and never saves: each value commits

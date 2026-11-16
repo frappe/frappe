@@ -364,11 +364,12 @@ describe("each shell act, run by name", () => {
 		await expect(acts.run("shell.back")).rejects.toThrow("guard broke");
 	});
 
-	it("back fails and stays put when a leave guard keeps the page", async () => {
+	it("back ends declined and stays put when a leave guard keeps the page", async () => {
 		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
 		await router.push("/purchase-invoice");
 		router.beforeEach((to) => to.path !== "/sales-invoice");
-		await expect(acts.run("shell.back")).rejects.toThrow(/did not change/);
+		expect(await acts.run("shell.back")).toBeUndefined();
+		expect(await acts.call("shell.back")).toMatchObject({ ok: false, error: { code: "declined" } });
 		expect(router.currentRoute.value.path).toBe("/purchase-invoice");
 	});
 
