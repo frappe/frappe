@@ -24,12 +24,13 @@ class TestFlowPage(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_the_page_boots_a_user_and_sends_a_guest_to_login_and_back(self):
-		boot = index.get_context(frappe._dict()).boot
+		context = index.get_context(frappe._dict())
+		boot = context.boot
+		self.assertIsInstance(context.messages, dict)
 		self.assertTrue(boot["csrf_token"])
 		self.assertEqual(boot["site_name"], frappe.local.site)
 		self.assertIn("socketio_port", boot)
 		self.assertEqual(boot["lang"], frappe.local.lang)
-		self.assertTrue(boot["translations_version"])
 		self.assertEqual(boot["flow_boot"]["user"]["name"], "Administrator")
 		self.assertIn("agents", boot["flow_boot"])
 
