@@ -3,6 +3,7 @@
 import datetime
 import threading
 import time
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import Mock, patch
 
@@ -31,7 +32,7 @@ from frappe.tests.utils.test_capabilities import TestService, requires_test_serv
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.logging import get_log_db, log_table
-from frappe.utils.password import check_password
+from frappe.utils.password import Auth, check_password, passlibctx
 from frappe.www.login import _generate_temporary_login_link
 
 
@@ -271,6 +272,62 @@ class TestAuth(IntegrationTestCase):
 
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
+
+	def test_disable_admin_pass_login(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import set_request
+		from frappe.utils.logging import get_log_db
+
+		before = frappe.get_system_settings("disable_admin_pass_login")
+		self.set_system_settings("disable_admin_pass_login", 1)
+		self.addCleanup(self.set_system_settings, "disable_admin_pass_login", before)
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = "Administrator"
+		frappe.form_dict.pwd = "wrong-on-purpose"
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.68"
+		frappe.local.cookie_manager = CookieManager()
+		self.addCleanup(frappe.form_dict.clear)
+
+		logs_before = get_log_db().count("Activity Log", {"user": "Administrator"})
+		with self.assertRaises(frappe.PasswordLoginDisabledError):
+			LoginManager()
+		# same answer for a wrong password, so nothing leaks about the real one
+		self.assertEqual(frappe.local.response.message, "Password login is disabled for Administrator")
+		# the attempt still lands in the audit log
+		self.assertEqual(get_log_db().count("Activity Log", {"user": "Administrator"}), logs_before + 1)
+
+		# the right password, stored as a pre-normalization hash, gets the same answer and no rehash
+		correct = unicodedata.normalize("NFD", "Café_43A1W")
+		legacy_hash = self.store_admin_hash(passlibctx.hash(correct))
+		frappe.form_dict.pwd = correct
+		frappe.local.response = frappe._dict()
+		with self.assertRaises(frappe.PasswordLoginDisabledError):
+			LoginManager()
+		self.assertEqual(frappe.local.response.message, "Password login is disabled for Administrator")
+		self.assertEqual(self.admin_hash(), legacy_hash)
+
+	def admin_hash(self):
+		row = (Auth.doctype == "User") & (Auth.name == "Administrator") & (Auth.fieldname == "password")
+		return (frappe.qb.from_(Auth).select(Auth.password).where(row).run(pluck=True) or [None])[0]
+
+	def store_admin_hash(self, new_hash):
+		"""Replaces Administrator's stored hash, put back after the test."""
+		row = (Auth.doctype == "User") & (Auth.name == "Administrator") & (Auth.fieldname == "password")
+		original = self.admin_hash()
+
+		def restore():
+			frappe.qb.from_(Auth).delete().where(row).run()
+			if original:
+				frappe.qb.into(Auth).insert("User", "Administrator", "password", original, 0).run()
+			frappe.db.commit()
+
+		self.addCleanup(restore)
+		frappe.qb.from_(Auth).delete().where(row).run()
+		frappe.qb.into(Auth).insert("User", "Administrator", "password", new_hash, 0).run()
+		frappe.db.commit()
+		return new_hash
 
 	def test_forced_password_reset_does_not_leak_reset_key(self):
 		from frappe.auth import LoginManager

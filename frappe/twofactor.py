@@ -12,7 +12,7 @@ from frappe import _
 from frappe.permissions import ALL_USER_ROLE
 from frappe.utils import cint
 from frappe.utils.background_jobs import enqueue
-from frappe.utils.password import decrypt, encrypt
+from frappe.utils.password import decrypt, encrypt, is_password_login_disabled
 
 PARENT_FOR_DEFAULTS = "__2fa"
 
@@ -367,6 +367,10 @@ def disable():
 
 @frappe.whitelist()
 def reset_otp_secret(user: str):
+	if not (user_name := frappe.db.exists("User", user)):
+		frappe.throw(_("User {0} does not exist").format(user), frappe.DoesNotExistError)
+	user = user_name
+
 	if frappe.session.user != user:
 		frappe.only_for("System Manager", message=True)
 
@@ -376,6 +380,18 @@ def reset_otp_secret(user: str):
 		frappe.throw(
 			_("You have to enable Two Factor Auth from System Settings."),
 			title=_("Enable Two Factor Auth"),
+		)
+
+	# reset OTP secret only if password login is enabled or if ldap is enabled for the user
+	if is_password_login_disabled(user) and (
+		user == "Administrator" or not frappe.db.get_single_value("LDAP Settings", "enabled")
+	):
+		frappe.throw(
+			_(
+				"OTP secret cannot be reset because neither password login nor LDAP login is available for this user."
+			),
+			title=_("LDAP/Password Login Disabled"),
+			exc=frappe.PasswordLoginDisabledError,
 		)
 
 	otp_issuer = settings.otp_issuer_name or "Frappe Framework"

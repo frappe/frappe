@@ -1,12 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import unicodedata
+from unittest.mock import patch
 
 from cryptography.fernet import Fernet
 
 import frappe
 from frappe.auth import LoginManager
 from frappe.tests import IntegrationTestCase
+from frappe.tests.classes.context_managers import change_settings
 from frappe.utils.password import (
 	MAX_PASSWORD_SIZE,
 	Auth,
@@ -14,6 +16,7 @@ from frappe.utils.password import (
 	decrypt,
 	encrypt,
 	passlibctx,
+	set_admin_password_login_setting,
 	update_password,
 )
 
@@ -158,6 +161,61 @@ class TestPassword(IntegrationTestCase):
 		doc.password = ""
 		doc.save()
 		self.assertEqual(doc.get_password(raise_exception=False), None)
+
+	def test_no_administrator_password_while_disabled(self):
+		before = frappe.get_system_settings("disable_admin_pass_login")
+		set_admin_password_login_setting(1)
+		self.addCleanup(set_admin_password_login_setting, before)
+
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		self.assertRaises(
+			frappe.PasswordLoginDisabledError, update_password, "Administrator", "new-admin-pwd"
+		)
+		# other users are not affected
+		update_password("test@example.com", "new-test-pwd")
+		self.assertEqual(check_password("test@example.com", "new-test-pwd"), "test@example.com")
+
+	def test_bench_add_user_skips_password_while_login_disabled(self):
+		from frappe.commands.site import add_new_user
+
+		email = frappe.generate_hash() + "@example.com"
+		self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+
+		with (
+			change_settings("System Settings", disable_user_pass_login=1, login_with_email_link=1),
+			patch("frappe.utils.password.click.secho") as secho,
+		):
+			add_new_user(email, password="Eastern_43A1W", role=())
+
+		# user made, password skipped, warning shown
+		self.assertTrue(frappe.db.exists("User", email))
+		self.assertFalse(get_password_list(dict(doctype="User", name=email)))
+		secho.assert_called_once()
+
+	def test_new_site_admin_password(self):
+		from frappe.core.doctype.system_settings.system_settings import clear_system_settings_cache
+		from frappe.utils.install import setup_admin_password
+
+		self.addCleanup(clear_system_settings_cache)
+		self.addCleanup(frappe.db.rollback)
+		admin_row = (Auth.doctype == "User") & (Auth.name == "Administrator") & (Auth.fieldname == "password")
+
+		# no password given: nothing stored, password login stays disabled
+		set_admin_password_login_setting(1)
+		frappe.qb.from_(Auth).delete().where(admin_row).run()
+		with patch.dict(frappe.conf, {"admin_password": None}):
+			setup_admin_password()
+		self.assertEqual(frappe.get_system_settings("disable_admin_pass_login"), 1)
+		self.assertFalse(frappe.qb.from_(Auth).select(Auth.password).where(admin_row).run())
+
+		# password given: stored, and password login turned back on
+		with patch.dict(frappe.conf, {"admin_password": "Eastern_43A1W"}):
+			setup_admin_password()
+		self.assertEqual(frappe.get_system_settings("disable_admin_pass_login"), 0)
+		self.assertEqual(frappe.db.get_default("disable_admin_pass_login"), "0")
+		self.assertEqual(check_password("Administrator", "Eastern_43A1W"), "Administrator")
 
 	def test_custom_encryption_key(self):
 		text = "Frappe Framework"
