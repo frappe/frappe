@@ -59,8 +59,20 @@ export default {
 		input: rows,
 	},
 	assign: {
-		description: `Open the bulk dialog where the person picks users to assign to the selected records. ${selected}`,
-		input: rows,
+		description: `Assign the selected records to users at once, with no dialog: send the users' ids. Send no value to open the bulk dialog where the person picks the users. ${selected}`,
+		input: {
+			type: ["array", "null"],
+			items: { type: "string", minLength: 1 },
+			description: "The ids of the users to assign, such as \"jane@example.com\". Leave out to open the dialog.",
+		},
+		output: {
+			type: ["object", "null"],
+			properties: {
+				assigned: { type: "array", items: { type: "string" }, description: "The records now assigned." },
+				failed: { type: "array", description: "The records the server refused, each with its name and error." },
+				background: { type: "boolean", description: "True when the server took the run to the background, so no record is listed yet." },
+			},
+		},
 	},
 	clear_assignment: {
 		description: `Remove every assignment from the selected records after the person confirms. ${selected}`,

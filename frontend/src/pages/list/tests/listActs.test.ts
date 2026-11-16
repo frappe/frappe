@@ -68,6 +68,17 @@ vi.mock("../bulkBarParts", async (importOriginal) => {
     },
   };
 });
+vi.mock("../BulkCollabDialog.vue", async () => {
+  const { defineComponent, h } = await import("vue");
+  return {
+    __esModule: true,
+    default: defineComponent({
+      props: { request: { type: Object, required: true } },
+      setup: (props) => () =>
+        h("div", { "data-collab-dialog": props.request.kind }),
+    }),
+  };
+});
 vi.mock("../DeleteDialog.vue", async () => {
   const { defineComponent, h } = await import("vue");
   return {
@@ -423,6 +434,19 @@ describe("the list surface", () => {
     await acts.run("list.delete");
     await vi.waitFor(() =>
       expect(root.querySelector("[data-delete-dialog]")).not.toBeNull(),
+    );
+  });
+
+  it("opens the assign dialog from the bar's Assign button, which carries no users", async () => {
+    const root = await mount();
+    fake.state.selection.value = ["CONT-0001"];
+    await settle();
+    const assign = [...root.querySelectorAll("[data-stub-bulk-bar] button")].find(
+      (button) => button.textContent === "Assign to…",
+    ) as HTMLButtonElement;
+    assign.click();
+    await vi.waitFor(() =>
+      expect(root.querySelector("[data-collab-dialog='assign']")).not.toBeNull(),
     );
   });
 

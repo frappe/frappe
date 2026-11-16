@@ -4,6 +4,7 @@ import type { BulkSelection } from "@framework/ui/api";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { __ } from "@/i18n";
 import type { ListPageAction } from "@/listPage/types";
+import { assignUsers } from "./assignUsers";
 
 export type CollabKind =
 	| "assign"
@@ -101,7 +102,12 @@ const NEVER_FOLLOWED = new Set([
 ]);
 
 /** `user` is the session user: the server does not let Administrator follow. */
-export function useBulkCollaboration(doctype: string, target: () => BulkTarget, user: string): BulkCollaboration {
+export function useBulkCollaboration(
+	doctype: string,
+	target: () => BulkTarget,
+	user: string,
+	after: { reload: () => void; select: (names: string[]) => void }
+): BulkCollaboration {
 	const { meta } = useDoctypeMeta(doctype);
 	const tracks = computed(() => {
 		const tracked = meta.value as { track_changes?: number; track_seen?: number; issingle?: number } | null;
@@ -113,7 +119,15 @@ export function useBulkCollaboration(doctype: string, target: () => BulkTarget, 
 	const request = ref<CollabRequest | null>(null);
 
 	const kinds = Object.keys(SPECS) as CollabKind[];
-	const runs = new Map(kinds.map((kind) => [kind, () => void (request.value = { kind, ...target() })]));
+	const ask = (kind: CollabKind) => void (request.value = { kind, ...target() });
+	// Assign takes users from an agent and sends at once; with none, it asks like the rest.
+	const runs = new Map<CollabKind, NonNullable<ListPageAction["run"]>>(
+		kinds.map((kind) => [
+			kind,
+			(_page, users?: unknown) =>
+				kind === "assign" && users ? assignUsers(users as string[], doctype, target(), after) : ask(kind),
+		])
+	);
 
 	function items(): ListPageAction[] {
 		return kinds.map((kind) => {
@@ -126,6 +140,7 @@ export function useBulkCollaboration(doctype: string, target: () => BulkTarget, 
 				asks: ["dialog" as const],
 				right,
 				button,
+				values: kind === "assign" || undefined,
 				when: needs ? () => tracks.value[needs] : undefined,
 				run: runs.get(kind),
 			};

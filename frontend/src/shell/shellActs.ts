@@ -1,7 +1,7 @@
 // The shell surface, `shell`: the acts that outlive a page. The rail's app menu, the avatar menu
 // and the sidebar's edge draw from it, so each entry is declared once.
 import { onScopeDispose } from "vue";
-import type { Router } from "vue-router";
+import { isNavigationFailure, NavigationFailureType, type Router } from "vue-router";
 import { toast, useColorScheme, type ColorScheme } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import type { FieldMeta } from "@framework/ui/fields/types";
@@ -202,6 +202,7 @@ export function shellItems(
 		...personItems(host, setColorScheme),
 		createItem(),
 		openItem(),
+		backItem(),
 	];
 }
 
@@ -288,6 +289,53 @@ function openItem(): ActItem<Shell> {
 			await shell.router.push(routeFor(doctype, name, { view }));
 		},
 	};
+}
+
+function backItem(): ActItem<Shell> {
+	return {
+		name: "back",
+		asks: ["confirm"],
+		palette: false,
+		run: ({ router }) => goBack(router),
+	};
+}
+
+let leaving: Promise<{ path: string }> | null = null;
+
+/** Goes to the page before this one in the tab; settles when the router has, so a discard confirm is waited on. */
+function goBack(router: Router): Promise<{ path: string }> {
+	if (router.options.history.state.back == null) throw new Error(__("No earlier page in this tab"));
+	// `state.back` changes only when the pop lands: a second call before then would go back twice.
+	leaving ??= arrive(router, router.options.history.state.back as string).finally(() => (leaving = null));
+	return leaving;
+}
+
+function arrive(router: Router, target: string) {
+	return new Promise<{ path: string }>((resolve, reject) => {
+		const stop = () => {
+			offAfter();
+			offError();
+		};
+		const offAfter = router.afterEach((to, _from, failure) => {
+			// A navigation that is not the pop (a hash change that lands first) says nothing about it.
+			if (to.fullPath !== target && to.redirectedFrom?.fullPath !== target) return;
+			stop();
+			if (!failure) return resolve({ path: to.fullPath });
+			reject(
+				new Error(
+					isNavigationFailure(failure, NavigationFailureType.aborted)
+						? __("The page did not change: the person kept their unsaved changes")
+						: __("The page did not change: another navigation interrupted it")
+				)
+			);
+		});
+		// A guard that throws or a route that fails to load reports here, never to `afterEach`.
+		const offError = router.onError((error) => {
+			stop();
+			reject(error);
+		});
+		router.back();
+	});
 }
 
 function personItems(
