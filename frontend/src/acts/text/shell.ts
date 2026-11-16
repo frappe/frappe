@@ -36,6 +36,14 @@ export default {
 		description: "Set the color scheme of this browser: light, dark or follow the system.",
 		input: { type: "string", enum: ["light", "dark", "system"], description: "The color scheme." },
 	},
+	back: {
+		description:
+			"Go back to the page before this one in the tab, as the browser's Back button does. Returns the path it arrived at. On a record with unsaved changes the person is asked to discard them first; if they keep editing, the act fails and the page stays. Fails when the tab has no earlier page.",
+		output: {
+			type: "object",
+			properties: { path: { type: "string", description: "The path of the page now shown." } },
+		},
+	},
 	desk_v1: {
 		description: "Leave desk v2 for the classic desk at /app. Unsaved changes on a record are lost without a question.",
 	},

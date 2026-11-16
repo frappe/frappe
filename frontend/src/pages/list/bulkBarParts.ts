@@ -75,6 +75,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
       approx: options.scope.approx.value,
     }),
     boot.session.user.name,
+    { reload: options.reload, select: (names) => (selection.value = names) },
   );
   const favourite = useBulkFavourite({
     doctype: options.doctype,
@@ -157,7 +158,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
           label: item.label && scopedLabel(item.name, item.label),
           argument: undefined,
           palette: disabled(item) ? (false as const) : item.palette,
-          run: (page: ListPageApi) => item.run!(page, [...selection.value]),
+          run: (page: ListPageApi, value?: unknown) => item.run!(page, item.values ? value : [...selection.value]),
         },
         hidden,
       }));

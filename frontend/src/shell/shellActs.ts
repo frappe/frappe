@@ -202,6 +202,7 @@ export function shellItems(
 		...personItems(host, setColorScheme),
 		createItem(),
 		openItem(),
+		backItem(),
 	];
 }
 
@@ -288,6 +289,29 @@ function openItem(): ActItem<Shell> {
 			await shell.router.push(routeFor(doctype, name, { view }));
 		},
 	};
+}
+
+function backItem(): ActItem<Shell> {
+	return {
+		name: "back",
+		asks: ["confirm"],
+		palette: false,
+		run: ({ router }) => goBack(router),
+	};
+}
+
+/** Goes to the page before this one in the tab; settles when the router has, so a discard confirm is waited on. */
+async function goBack(router: Router): Promise<{ path: string }> {
+	if (router.options.history.state.back == null) throw new Error(__("No earlier page in this tab"));
+	const arrived = new Promise<{ path: string }>((resolve, reject) => {
+		const stop = router.afterEach((to, _from, failure) => {
+			stop();
+			if (failure) reject(new Error(__("The page did not change: the person kept their unsaved changes")));
+			else resolve({ path: to.fullPath });
+		});
+	});
+	router.back();
+	return arrived;
 }
 
 function personItems(

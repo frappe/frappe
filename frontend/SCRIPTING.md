@@ -327,7 +327,9 @@ shows), `shell.open_settings` with `{ prefix, pane, block }`, `shell.my_settings
 which asks first. `shell.create` takes a doctype, or `{ doctype, values }`. `shell.open` takes
 `{ doctype, name, view }` and opens that record, the doctype's list, or (with `view` and no name)
 one of its saved views; the palette does not list it. A Single has no list, so it opens the
-document, and `view` is ignored with a name. `page.create()`, `page.open()` and
+document, and `view` is ignored with a name. `shell.back` goes to the page before this one in the tab and
+answers `{ path }`; it fails with no earlier page, or when the reader keeps unsaved changes at the discard
+confirm. The palette does not list it. `page.create()`, `page.open()` and
 `page.openSettings()` run `shell.create`, `shell.open` and `shell.open_settings`.
 
 ```js

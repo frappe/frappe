@@ -2,7 +2,7 @@
 // and the dialogs a shell act opens through `shell.dialog`.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type App } from "vue";
-import { createMemoryHistory, createRouter, type Router } from "vue-router";
+import { createMemoryHistory, createRouter, createWebHistory, type Router, type RouterHistory } from "vue-router";
 
 import { acts, ActDenied } from "@/acts/dispatcher";
 import { Addresses } from "@/addresses";
@@ -87,9 +87,14 @@ async function settle() {
 	}
 }
 
-async function shell(boot: Boot = inApp, path = "/sales-invoice"): Promise<{ host: HTMLElement; router: Router }> {
+// Memory history keeps no `state.back`, which `shell.back` reads: its tests pass a web history.
+async function shell(
+	boot: Boot = inApp,
+	path = "/sales-invoice",
+	history: RouterHistory = createMemoryHistory()
+): Promise<{ host: HTMLElement; router: Router }> {
 	const router = createRouter({
-		history: createMemoryHistory(),
+		history,
 		routes: [
 			{ path: "/", name: "home", component: stub },
 			{ path: "/:doctype", name: "list", component: stub },
@@ -153,6 +158,7 @@ describe("the acts the shell holds", () => {
 			"shell.log_out",
 			"shell.create",
 			"shell.open",
+			"shell.back",
 		]);
 	});
 
@@ -167,6 +173,7 @@ describe("the acts the shell holds", () => {
 			"shell.log_out",
 			"shell.create",
 			"shell.open",
+			"shell.back",
 		]);
 	});
 
@@ -329,6 +336,27 @@ describe("each shell act, run by name", () => {
 			{ doctype: "Note", values: { title: "Hello" } },
 		]);
 		await expect(acts.run("shell.create")).rejects.toThrow("value must be a string or an object");
+	});
+
+	it("back goes to the page before this one and answers its path", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		expect(await acts.run("shell.back")).toEqual({ path: "/sales-invoice" });
+		expect(router.currentRoute.value.path).toBe("/sales-invoice");
+	});
+
+	it("back fails when the tab has no earlier page", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await expect(acts.run("shell.back")).rejects.toThrow("No earlier page in this tab");
+		expect(router.currentRoute.value.path).toBe("/sales-invoice");
+	});
+
+	it("back fails and stays put when a leave guard keeps the page", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		router.beforeEach((to) => to.path !== "/sales-invoice");
+		await expect(acts.run("shell.back")).rejects.toThrow(/did not change/);
+		expect(router.currentRoute.value.path).toBe("/purchase-invoice");
 	});
 
 	it("an act the shell does not hold is denied as missing", async () => {

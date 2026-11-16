@@ -6,6 +6,8 @@ import { callsFor, scopeText } from "../collabCalls";
 const meta = ref<Record<string, unknown> | null>({ track_changes: 1, track_seen: 1 });
 vi.mock("@framework/ui/useDoctypeMeta", () => ({ useDoctypeMeta: () => ({ meta }) }));
 
+const after = { reload: vi.fn(), select: vi.fn() };
+
 const target = (): BulkTarget => ({
 	selection: { names: ["A", "B"] },
 	count: 2,
@@ -53,7 +55,7 @@ describe("callsFor", () => {
 });
 
 describe("useBulkCollaboration", () => {
-	const items = () => useBulkCollaboration("Note", target, "jane@example.com").items();
+	const items = () => useBulkCollaboration("Note", target, "jane@example.com", after).items();
 	const shown = (name: string) => {
 		const item = items().find((one) => one.name === name)!;
 		return item.when ? item.when({} as never) : true;
@@ -74,7 +76,7 @@ describe("useBulkCollaboration", () => {
 
 	it("hides follow where the server never follows: ToDo, a log type, Administrator", () => {
 		const followShown = (doctype: string, user: string) => {
-			const item = useBulkCollaboration(doctype, target, user)
+			const item = useBulkCollaboration(doctype, target, user, after)
 				.items()
 				.find((one) => one.name === "follow")!;
 			return item.when!({} as never);
@@ -89,7 +91,7 @@ describe("useBulkCollaboration", () => {
 	});
 
 	it("asks each item's right and opens the dialog with the target frozen at the click", () => {
-		const collab = useBulkCollaboration("Note", target, "jane@example.com");
+		const collab = useBulkCollaboration("Note", target, "jane@example.com", after);
 		const rights = Object.fromEntries(collab.items().map((item) => [item.name, item.right]));
 		expect(rights).toMatchObject({ assign: "write", add_tags: "write", share: "share", follow: "read" });
 		collab.items().find((item) => item.name === "share")!.run!({} as never);
