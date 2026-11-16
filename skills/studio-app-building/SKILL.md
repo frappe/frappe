@@ -185,8 +185,16 @@ design. When you add a page, update navigation on the pages that link to it.
 	{
 		"componentId": "root",
 		"componentName": "div",
+		"blockName": "body",
 		"originalElement": "body",
-		"baseStyles": {"display": "flex", "flexDirection": "column"},
+		"baseStyles": {
+			"display": "flex",
+			"flexDirection": "row",
+			"flexShrink": 0,
+			"width": "inherit",
+			"overflowX": "hidden",
+			"height": "100%"
+		},
 		"children": [
 			{
 				"componentId": "div-x1y2z3",
@@ -222,9 +230,14 @@ design. When you add a page, update navigation on the pages that link to it.
 ]
 ```
 
-- Set `originalElement` to `"body"` on the root and `"div"` on containers.
-  Without this field, the block and its children render blank. Do not set
-  `originalElement` on component blocks.
+- Copy the root block from the `body` template in
+  `studio/frontend/src/utils/blockTemplate/index.ts`. It has `blockName` and
+  `originalElement` set to `"body"`, and the width and height that make it
+  fill the page. Add the page's own styles to it, such as
+  `flexDirection: "column"` for a page that stacks a header and a body.
+- Set `originalElement` to `"div"` on containers. Without this field, the
+  block and its children render blank. Do not set `originalElement` on
+  component blocks.
 - Each `componentId` must be unique in the page. Studio generates
   `<componentName>-<random string>`.
 - `tabletStyles` works like `mobileStyles`. Both hold only the properties that
