@@ -199,13 +199,14 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				reqd: true,
 				get_data: function (txt) {
 					return frappe.db
-						.get_link_options("User", txt, { user_type: "System User", enabled: 1 })
-						.then((users) =>
-							users.map((u) => ({
-								...u,
-								image: frappe.user_info(u.value).image || "",
-							}))
-						);
+						.get_link_options(
+							"User",
+							txt,
+							{ user_type: "System User", enabled: 1 },
+							0,
+							true
+						)
+						.then((users) => users.map((u) => ({ ...u, image: u.image || "" })));
 				},
 			},
 			{
