@@ -76,6 +76,8 @@ export interface ActScope<Context = any> {
 	/** Whether the act `name`, which it does not hold yet, may still load; reads only reactive state, starts nothing. */
 	loads?: (name: string) => boolean;
 	hold: <T>(work: () => T | Promise<T>) => Promise<T>;
+	/** What the page knows that its context does not show, for `window.desk.state`; loads on the first read. */
+	facts?: (fields: boolean) => Promise<Record<string, unknown>>;
 	/** An act the reader asked for threw; the scope shows it and recovers. */
 	failed: (error: unknown) => void | Promise<void>;
 }
@@ -148,6 +150,8 @@ export interface ActError {
 	/** Plain English: what happened and what to do next. */
 	message: string;
 	dialog?: ActDialog;
+	/** On `waiting_for_user`: the id `window.desk.acts.wait` takes. */
+	call?: number;
 }
 
 /** What an outside caller gets from `call`; `route` and `dialogs` are the tab's when the act ended. */
@@ -185,6 +189,11 @@ export class ActDispatcher {
 
 	private scopeOf(surface: string): ActScope | undefined {
 		return this.stacks.get(surface)?.at(-1);
+	}
+
+	/** What the scope holding `surface` reports of its page, or nothing. */
+	factsOf(surface: string, fields: boolean) {
+		return this.scopeOf(surface)?.facts?.(fields);
 	}
 
 	/** What the scope holding `surface` hands its acts, or undefined while no scope holds it. */

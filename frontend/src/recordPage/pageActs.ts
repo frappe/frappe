@@ -41,6 +41,7 @@ export function registerPageActs(host: PageActsHost): () => void {
     settled: host.permissions.settled,
     hold: host.hold,
     failed: host.failed,
+    facts: (fields) => import("./recordFacts").then((m) => m.recordFacts(host, fields)),
   });
 }
 

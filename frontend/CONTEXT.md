@@ -471,6 +471,13 @@ to commit; *held* says when the act lands, it is not a second concept.
 _Avoid_: command (it stays only in the feature's name, the command palette, and frappe-ui's
 component), action (already overloaded; see **Words that collide**).
 
+**Desk facade**: <a id="desk-facade"></a>
+`window.desk`, the object an agent that cannot see the screen uses to list the desk's acts,
+run one, wait for a person's answer to its confirm, and read the page and open dialogs. A
+`run` that opens a confirm returns `waiting_for_user` with the dialog and a call id; the person
+answers, never the agent, and `wait` gives the final result.
+_Avoid_: agent API, bridge.
+
 **Row**: <a id="row"></a>
 One line in the palette, showing an act, a place or a record. Not a child table's row; see
 **Words that collide**.

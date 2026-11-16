@@ -4,6 +4,7 @@ import { computed, defineComponent, h, watch, type PropType } from "vue";
 import { useKeyboardShortcut, type KeyboardShortcutCombo } from "frappe-ui";
 import { acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
 import { overlayOf } from "./overlay";
+import { installDesk } from "./windowDesk/install";
 
 /** Opens the palette at an act's argument step; without it, a key on an act with an argument is not bound. */
 export type OpenArgument = (act: AvailableAct) => void;
@@ -15,6 +16,8 @@ export const ActKeys = defineComponent({
 		openArgument: { type: Function as PropType<OpenArgument>, default: undefined },
 	},
 	setup(props) {
+		// Agents drive the same acts as the keys do; this chunk loads after the first paint, so `window.desk` costs no page JS.
+		installDesk();
 		const bindings = computed(() => {
 			const bound = (item: ActItem) => Boolean(item.key && (!item.argument || props.openArgument));
 			return actsByCombo(acts.available(bound));
