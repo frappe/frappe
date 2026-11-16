@@ -9,6 +9,7 @@ import type { ListPermissions } from "@/listPage/listPermissions";
 import type { ListPageApi } from "@/listPage/types";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import type { DefaultScope } from "./defaultView";
+import type { ListSchema } from "./listStateRuns";
 import type { HeaderItem } from "@/pageEngine/types";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { headerEntries } from "@/recordPage/pageActs";
@@ -22,6 +23,8 @@ export interface ListActsHost {
   create: () => unknown;
   customizeQuickFilter: () => void;
   customizing: () => boolean;
+  /** Whether this reader may see the field. */
+  readable: (fieldname: string) => boolean;
   /** The DocType editor's entries this reader may open; each opens the editor in its mode. */
   editorEntries: () => EditorEntry[];
   openEditor: (entry: EditorEntry) => unknown;
@@ -62,6 +65,8 @@ export function useListActs(host: ListActsHost, type = "List"): PageActs {
   const release = acts.register({
     surfaces,
     ...listScope(list, permissions),
+    missing: (name) => list.renderer().missing?.(name.slice(name.indexOf(".") + 1)),
+    facts: async () => (await import("./listStateRuns")).listFacts(list, listSchema(host)),
     hold: list.engine.hold,
     failed: (error) => void toast.error(errorMessage(error)),
   });
@@ -160,10 +165,31 @@ export function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] 
       },
       hidden: host.customizing(),
     },
+    ...stateEntries(host),
     ...host.editorEntries().map((entry) => ({
       item: { name: entry.name, label: __(entry.label), icon: entry.icon, run: () => host.openEditor(entry) },
       hidden: false,
     })),
+  ];
+}
+
+function listSchema({ list, readable }: ListActsHost): ListSchema {
+  return { meta: () => list.page.meta, readable };
+}
+
+/** The acts that set what the list shows and which rows are selected; their runs load on first use. */
+function stateEntries(host: ListActsHost): ActEntry[] {
+  const { list } = host;
+  const runs = () => import("./listStateRuns");
+  const schema = () => listSchema(host);
+  const entry = (name: string, label: string, run: (module: Awaited<ReturnType<typeof runs>>, value: any) => unknown): ActEntry => ({
+    item: { name, label, palette: false, run: async (_context: unknown, value: unknown) => run(await runs(), value) },
+    hidden: false,
+  });
+  return [
+    entry("set_filters", __("Set Filters"), (runs, { filters }) => runs.setFilters(list, schema(), { filters })),
+    entry("set_sort", __("Set Sort"), (runs, { sort }) => runs.setSort(list, schema(), { sort })),
+    entry("select", __("Select Rows"), (runs, { names }) => runs.select(list, names)),
   ];
 }
 

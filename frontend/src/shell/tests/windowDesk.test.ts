@@ -77,19 +77,16 @@ describe("window.desk", () => {
 	it("reads a list page's doctype, filters, sort and selection", async () => {
 		const router = { currentRoute: { value: { name: "list" } } };
 		register({ shell: () => [] }, { context: () => ({ router }) });
-		register(
-			{ list: () => [] },
-			{ context: () => ({ doctype: "ToDo", filters: [["status", "=", "Open"]], sort: [{ fieldname: "modified", order: "desc" }], selection: ["a", "b"] }) }
-		);
-
-		expect(await window.desk!.state()).toMatchObject({
-			page: "list",
+		const facts = {
 			doctype: "ToDo",
 			filters: [["status", "=", "Open"]],
-			sort: [{ fieldname: "modified", order: "desc" }],
+			sort: [{ fieldname: "modified", direction: "desc" }],
 			selected: ["a", "b"],
-			dialogs: [],
-		});
+			rows: [{ name: "a", title: "A" }],
+		};
+		register({ list: () => [] }, { facts: async () => facts });
+
+		expect(await window.desk!.state()).toMatchObject({ page: "list", ...facts, dialogs: [] });
 	});
 
 	it("reads a record page's facts, and caps the fields it adds", async () => {

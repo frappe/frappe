@@ -143,7 +143,7 @@ describe("the list page", () => {
     expect(list.page.rows).toEqual([]);
 
     const rows = [{ name: "R-1" }, { name: "R-2" }];
-    list.attach({ rows: () => rows, selection: () => ["R-2"], selected: () => ({ names: ["R-2"] }), reload: () => {} });
+    list.attach({ rows: () => rows, selection: () => ["R-2"], selected: () => ({ names: ["R-2"] }), reload: () => {}, select: () => {}, settled: async () => {}, total: () => 0 });
     expect(list.page.rows).toEqual(rows);
     expect(list.page.selection).toEqual(["R-2"]);
     expect(Object.isFrozen(list.page.rows)).toBe(true);
@@ -154,7 +154,7 @@ describe("the list page", () => {
     callSelected.mockResolvedValue(true);
     const reload = vi.fn();
     const list = makePage();
-    list.attach({ rows: () => [], selection: () => ["R-2"], selected: () => ({ names: ["R-2"] }), reload });
+    list.attach({ rows: () => [], selection: () => ["R-2"], selected: () => ({ names: ["R-2"] }), reload, select: () => {}, settled: async () => {}, total: () => 0 });
 
     expect(await list.page.callSelected("my_app.api.act", { a: 1 })).toBe(true);
 
@@ -169,7 +169,7 @@ describe("the list page", () => {
   it("reloads through the renderer, and not once the reader has left", () => {
     const reload = vi.fn();
     const list = makePage();
-    list.attach({ rows: () => [], selection: () => [], selected: () => ({ names: [] }), reload });
+    list.attach({ rows: () => [], selection: () => [], selected: () => ({ names: [] }), reload, select: () => {}, settled: async () => {}, total: () => 0 });
 
     list.page.reload();
     expect(reload).toHaveBeenCalledTimes(1);
@@ -203,7 +203,7 @@ describe("the list page", () => {
     expect(seen).toEqual([false]);
 
     list.lists.columns.provideBuiltins(() => [{ name: "title" }]);
-    list.attach({ rows: () => [], selection: () => [], selected: () => ({ names: [] }), reload: () => {} });
+    list.attach({ rows: () => [], selection: () => [], selected: () => ({ names: [] }), reload: () => {}, select: () => {}, settled: async () => {}, total: () => 0 });
     await settle();
     expect(seen).toEqual([false, true]);
   });

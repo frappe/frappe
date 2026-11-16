@@ -25,6 +25,10 @@ export interface BulkBarOptions {
   rows: Ref<ListRow[]>;
   rowActions: Ref<ListRowAction[]>;
   reload: () => void;
+  /** Resolves when the rows shown are those of the filters and sort now set. */
+  settled: () => Promise<void>;
+  /** How many records the filters match. */
+  total: () => number;
   askDelete: () => void;
   /** What Copy to Clipboard writes: its columns, a cell's text, and the fields a hidden selected row is read with. */
   copy: {
@@ -68,6 +72,8 @@ export interface BulkBar {
   locked: boolean;
 }
 
+const BULK_ACTIONS_OFF = "If this is a bulk action, it is off for this person: tell them to turn on \"Allow bulk actions\" in My Settings.";
+
 const NO_LAYOUT: BulkLayout = { transitions: [], buttons: [], menu: [] };
 
 export function useBulkBar(options: BulkBarOptions): BulkBar {
@@ -102,6 +108,16 @@ export function useBulkBar(options: BulkBarOptions): BulkBar {
       selection: () => selection.value,
       selected: () => options.scope.selected(),
       reload: options.reload,
+      select: async (names) => {
+        // Naming rows ends "Select all N": the next bulk act takes these rows, not every match.
+        options.scope.all.value = false;
+        selection.value = names;
+        // The bulk acts exist once their chunk has loaded, so a caller can run one next.
+        if (names.length && boot.bulk_actions) await load();
+      },
+      settled: options.settled,
+      total: options.total,
+      missing: () => (boot.bulk_actions ? undefined : BULK_ACTIONS_OFF),
     },
   );
 

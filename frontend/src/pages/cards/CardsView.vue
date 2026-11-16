@@ -143,6 +143,7 @@ const {
 	show,
 	countExact,
 	reload,
+	settled,
 	readFields,
 	cardLink,
 	titleClassOf,
@@ -179,6 +180,8 @@ const bulk = useBulkBar({
 	rows,
 	rowActions,
 	reload,
+	settled,
+	total: () => totalCount.value,
 	askDelete: () => ask(""),
 	copy: {
 		columns: copyColumns,

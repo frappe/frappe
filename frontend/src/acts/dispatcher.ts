@@ -76,6 +76,8 @@ export interface ActScope<Context = any> {
 	/** Whether the act `name`, which it does not hold yet, may still load; reads only reactive state, starts nothing. */
 	loads?: (name: string) => boolean;
 	hold: <T>(work: () => T | Promise<T>) => Promise<T>;
+	/** Why the act `name`, which it does not hold, is absent, when the page knows and the caller can fix it. */
+	missing?: (name: string) => string | undefined;
 	/** What the page knows that its context does not show, for `window.desk.state`; loads on the first read. */
 	facts?: (fields: boolean) => Promise<Record<string, unknown>>;
 	/** An act the reader asked for threw; the scope shows it and recovers. */
@@ -104,7 +106,7 @@ const DENIALS: Record<ActDeniedReason, string> = {
 
 /** Why the dispatcher ran nothing: the act is absent, hidden, or its right fails. */
 export class ActDenied extends Error {
-	constructor(readonly act: string, readonly reason: ActDeniedReason) {
+	constructor(readonly act: string, readonly reason: ActDeniedReason, readonly detail?: string) {
 		super(`${act}: ${DENIALS[reason]}`);
 		this.name = "ActDenied";
 	}
@@ -339,7 +341,7 @@ export class ActDispatcher {
 	}
 
 	private allowed(name: string, found: Found | null): Checked {
-		if (!found) throw new ActDenied(name, "missing");
+		if (!found) throw new ActDenied(name, "missing", this.scopeOf(surfaceOf(name))?.missing?.(name));
 		const { scope, entry } = found;
 		if (entry.hidden) throw new ActDenied(name, "hidden");
 		if (!passesWhen(scope, entry.item)) throw new ActDenied(name, "hidden");

@@ -639,8 +639,14 @@ tell the person, then call `wait(call)`. While it is open, any other `run` retur
 `waiting_for_user` too. Escape or Cancel makes the waited call `declined`. A `wait` that times
 out returns `waiting_for_user` again, and an unknown call id is `missing`. A form dialog does not
 end the run: `run` stays pending, so read `dialogs()` meanwhile. `interrupted` is for the caller to
-report when its tab is gone. The state of a list is `doctype`, `filters`, `sort` and `selected`;
-a record or new page adds `doctype`, `name` (not on a new record), `docstatus`, `unsaved`, `errors` and, with
+report when its tab is gone. The state of a list is `doctype`, `filters` (REST v2 `[fieldname, operator, value]` triples), `sort`
+(`[{ fieldname, direction }]`), `selected` and `rows` (`{ name, title }` for the loaded rows, up to 20).
+Three list acts change it: `list.set_filters({ filters })` replaces the filters (an empty list clears
+them), `list.set_sort({ sort })` replaces the sort, and both answer `{ total, rows }` once the rows have
+loaded; `list.select({ names })` replaces the selection with loaded rows and answers `{ selected }`.
+An unknown field or operator, or a name that is not a loaded row, is `invalid`. A bulk act of a person
+whose "Allow bulk actions" is off is `missing`, and its message says to turn it on in My Settings.
+A record or new page adds `doctype`, `name` (not on a new record), `docstatus`, `unsaved`, `errors` and, with
 `fields: true`, the fields its layout shows (a text value is cut at 200 characters). A record route
 whose page has not loaded gives `loading: true`; read again.
 

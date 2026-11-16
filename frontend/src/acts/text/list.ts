@@ -12,7 +12,76 @@ const rows = {
 	description: "Ignored: the act always uses the current selection. The bulk bar sends the selected row names; leave it out.",
 };
 
+const loadedRows = {
+	type: "object",
+	properties: {
+		total: { type: "number", description: "How many records the filters match, not only the rows loaded." },
+		rows: {
+			type: "array",
+			description: "The rows loaded, up to 20, in the list's order.",
+			items: {
+				type: "object",
+				properties: {
+					name: { type: "string", description: "The record's name, which list.select takes." },
+					title: { type: "string", description: "The record's title, or its name when it has none." },
+				},
+			},
+		},
+	},
+};
+
 export default {
+	set_filters: {
+		description:
+			"Replace the list's filters and reload the rows. Each filter is [fieldname, operator, value]: operators = != like not like in not in is is not > < >= <= between timespan; in, not in and between take a list; like matches text anywhere in the value. An empty list clears the filters. Returns the rows now loaded.",
+		input: {
+			type: "object",
+			properties: {
+				filters: {
+					type: "array",
+					description: "For example [[\"status\", \"=\", \"Paid\"], [\"grand_total\", \">\", 1000]].",
+					items: { type: "array" },
+				},
+			},
+			required: ["filters"],
+			additionalProperties: false,
+		},
+		output: loadedRows,
+	},
+	set_sort: {
+		description: "Replace the list's sort and reload the rows. The first entry sorts first. An empty list clears the sort. Returns the rows now loaded.",
+		input: {
+			type: "object",
+			properties: {
+				sort: {
+					type: "array",
+					description: "For example [{\"fieldname\": \"grand_total\", \"direction\": \"desc\"}].",
+					items: {
+						type: "object",
+						properties: { fieldname: { type: "string", minLength: 1 }, direction: { type: "string", enum: ["asc", "desc"] } },
+						required: ["fieldname", "direction"],
+						additionalProperties: false,
+					},
+				},
+			},
+			required: ["sort"],
+			additionalProperties: false,
+		},
+		output: loadedRows,
+	},
+	select: {
+		description: "Replace the selection with these rows. Every name must be a row loaded now (read state().rows); set the filters first to load others. The bulk acts then act on them.",
+		input: {
+			type: "object",
+			properties: { names: { type: "array", description: "The names of the rows to select.", items: { type: "string", minLength: 1 } } },
+			required: ["names"],
+			additionalProperties: false,
+		},
+		output: {
+			type: "object",
+			properties: { selected: { type: "array", items: { type: "string" }, description: "The names now selected." } },
+		},
+	},
 	create: {
 		description: "Open the Create dialog for a new record of this list's DocType.",
 	},
