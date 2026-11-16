@@ -125,9 +125,13 @@ frappe.report_utils = {
 		}
 
 		return frappe
-			.xcall("frappe.desk.query_report.get_script", {
-				report_name: report_name,
-			})
+			.xcall(
+				"frappe.desk.query_report.get_script",
+				{
+					report_name: report_name,
+				},
+				"GET"
+			)
 			.then((r) => {
 				if (!frappe.query_reports[r.custom_report_name || report_name]) {
 					frappe.dom.eval(r.script);

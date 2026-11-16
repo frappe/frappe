@@ -18,7 +18,11 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 		if (cached?.version && cached.version === window._version_number) {
 			this.country_codes = cached.country_codes;
 		} else {
-			const data = await frappe.xcall("frappe.geo.country_info.get_country_timezone_info");
+			const data = await frappe.xcall(
+				"frappe.geo.country_info.get_country_timezone_info",
+				undefined,
+				"GET"
+			);
 			this.country_codes = data?.country_info;
 			localforage.setItem(key, {
 				version: window._version_number,

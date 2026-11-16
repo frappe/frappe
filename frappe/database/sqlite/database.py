@@ -187,6 +187,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 				uri=True,
 				detect_types=sqlite3.PARSE_DECLTYPES,
 				timeout=DEFAULT_BUSY_TIMEOUT_SECONDS,
+				check_same_thread=False,
 			)
 		return sqlite3.connect(
 			db_path,
@@ -634,7 +635,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		makes them wait up to the busy timeout instead of failing at their first write.
 		"""
 		request = getattr(frappe.local, "request", None)
-		return request is not None and request.method not in ("GET", "HEAD", "OPTIONS")
+		return request is not None and request.method not in ("GET", "HEAD", "OPTIONS", "QUERY")
 
 	def begin(self, *, read_only=False, defer_writer_lock=False):
 		if read_only or frappe.flags.read_only or self.in_read_only_transaction:

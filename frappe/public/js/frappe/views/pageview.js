@@ -47,6 +47,7 @@ frappe.views.pageview = {
 			return frappe.call({
 				method: "frappe.desk.desk_page.getpage",
 				args: { name: name },
+				type: "GET",
 				callback: function (r) {
 					if (!r.docs._dynamic_page) {
 						try {

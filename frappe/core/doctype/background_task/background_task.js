@@ -63,6 +63,7 @@ frappe.ui.form.on("Background Task", {
 		frappe.call({
 			method: "frappe.core.doctype.background_task.background_task.get_cached_task_status",
 			args: { task_id: frm.doc.task_id },
+			type: "GET",
 			callback: (r) => {
 				if (!r.message) return;
 				let cached = r.message;

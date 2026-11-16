@@ -60,6 +60,7 @@ frappe.ui.form.on("Auto Email Report", {
 				args: {
 					report_name: frm.doc.report,
 				},
+				type: "GET",
 				callback: function (r) {
 					frappe.dom.eval(r.message.script);
 					if (r.message.validate_filters) {
