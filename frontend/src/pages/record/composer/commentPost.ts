@@ -66,7 +66,6 @@ async function submit(context: WriterContext, author: UserInfo, draft: CommentDr
 	}
 }
 
-/** The comment writer's author, from the session's user. */
 export function commentAuthor(user: SessionUser): UserInfo {
 	return {
 		name: user.name,
