@@ -16,8 +16,8 @@ import useComponentStore from "@/stores/componentStore"
 const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)
 	const studioComponentBlock = ref<Block | null>(null)
-	// the pages and components that use the component being edited
-	const componentUsers = ref<string[]>([])
+	// The pages and components that use the component being edited. One that the user cannot read is null.
+	const componentUsages = ref<(string | null)[]>([])
 	const componentStore = useComponentStore()
 	/** The props that the script of the open component declares, or its saved inputs. */
 	const declaredProps = computed<ComponentInput[]>(() =>
@@ -121,11 +121,11 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		}
 	}
 
-	async function loadComponentUsers(componentId: string) {
-		componentUsers.value = []
+	async function loadComponentUsages(componentId: string) {
+		componentUsages.value = []
 		const { name } = componentStore.getComponentDoc(componentId)
-		const { message } = await studioComponents.runDocMethod.submit({ name, method: "get_users" })
-		componentUsers.value = message || []
+		const { message } = await studioComponents.runDocMethod.submit({ name, method: "get_usages" })
+		componentUsages.value = message || []
 	}
 
 	async function editComponent(componentId: string) {
@@ -134,7 +134,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		const block = componentBlock || getBlockInstance(getBlockTemplate("empty-component"))
 		studioComponentBlock.value = getComponentBlock(componentId, true)
 
-		loadComponentUsers(componentId)
+		loadComponentUsages(componentId)
 
 		const canvasStore = useCanvasStore()
 		canvasStore.editOnCanvas(
@@ -203,7 +203,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		deleteComponent,
 		setGlobal,
 		renameComponent,
-		componentUsers,
+		componentUsages,
 		saveComponentProp,
 	}
 })
