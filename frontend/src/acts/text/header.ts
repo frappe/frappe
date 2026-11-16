@@ -12,7 +12,7 @@ export default {
 	},
 	save: {
 		description:
-			"Save the record open on this page; a new record is inserted. When a required field is empty the person sees the Required fields dialog and the act waits for it. When someone else saved the record first the person is asked what to do. Data is true when the record saved, false when it did not.",
+			"Save the record open on this page; a new record is inserted. When a required field is empty the person sees the Required fields dialog and the act waits for it. When someone else saved the record first the person is asked what to do. Data is true when the record saved.",
 		output: { type: "boolean" },
 	},
 	amend: {

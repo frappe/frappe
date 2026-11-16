@@ -1,4 +1,4 @@
-// `header.rename`, the `⋯` menu's "Rename…", and the `page.rename` it runs.
+// `header.rename`, the `⋯` menu's "Rename…", and the `page.rename` it runs. The dialog's run sits in `renameRun`, loaded on the first run.
 import { toast } from "frappe-ui";
 import { renameDocument } from "@framework/ui/api";
 import { __ } from "@/i18n";
@@ -14,7 +14,7 @@ export function renameItem(): HeaderItem {
     icon: "lucide-pencil",
     group: "assign_band",
     right: "write",
-    run: openRename,
+    run: async (page) => (await import("./renameRun")).openRename(page),
   };
 }
 
@@ -39,37 +39,4 @@ export async function renameRecord(
   if (refused) toast.error(__("Renamed to {0}; this page still shows the old name", [renamed]));
   else toast.success(__("Renamed"));
   return renamed;
-}
-
-async function openRename(page: RecordPageApi) {
-  const values = await page.dialog.form({
-    title: __("Rename {0}", [page.docname]),
-    fields: [
-      { fieldname: "new_name", fieldtype: "Data", label: newNameLabel(page.meta), reqd: 1 },
-      { fieldname: "merge", fieldtype: "Check", label: __("Merge with existing") },
-    ],
-    defaults: { new_name: page.docname },
-    submitLabel: __("Rename"),
-  });
-  if (!values) return;
-  const name = String(values.new_name ?? "").trim();
-  if (!name || name === page.docname) return;
-  if (values.merge && !(await confirmMerge(page, name))) return;
-  await page.rename(name, { merge: Boolean(values.merge) });
-}
-
-function newNameLabel(meta: Record<string, any> | null): string {
-  const autoname = String(meta?.autoname ?? "");
-  if (!autoname.startsWith("field:")) return __("New Name");
-  const fieldname = autoname.slice("field:".length);
-  const field = meta?.fields?.find((candidate: any) => candidate.fieldname === fieldname);
-  return field?.label ? __("New {0}", [__(field.label)]) : __("New Name");
-}
-
-function confirmMerge(page: RecordPageApi, name: string) {
-  return page.dialog.danger({
-    title: __("Merge into {0}?", [name]),
-    message: __("{0} will be merged into {1}. This cannot be undone.", [page.docname, name]),
-    confirmLabel: __("Merge"),
-  });
 }

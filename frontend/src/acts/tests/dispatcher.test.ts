@@ -5,9 +5,72 @@ import { ref } from "vue";
 vi.mock("frappe-ui", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@framework/ui/api", () => ({ getTranslations: vi.fn() }));
 
-import { ActDenied, ActDispatcher, passesRight, passesWhen, type ActScope } from "../dispatcher";
+import { ActDeclined, ActDenied, ActDispatcher, passesRight, passesWhen, type ActScope } from "../dispatcher";
 
 describe("the dispatcher", () => {
+  describe("call", () => {
+    function held(item: Record<string, unknown>) {
+      const dispatcher = new ActDispatcher();
+      dispatcher.register({ ...scope("x"), surfaces: { header: () => [{ item: { name: "go", ...item } as any, hidden: false }] } });
+      return dispatcher;
+    }
+
+    it("resolves ok with the data, the route and the open dialogs", async () => {
+      const result = await held({ run: () => 5 }).call("header.go");
+
+      expect(result).toMatchObject({ ok: true, data: 5, route: expect.any(String), dialogs: [] });
+    });
+
+    it("starts the act in the same tick, before the result's wording loads", async () => {
+      const run = vi.fn(() => 1);
+      const pending = held({ run }).call("header.go");
+
+      expect(run).toHaveBeenCalledTimes(1);
+      await pending;
+    });
+
+    it("turns no data into null", async () => {
+      expect(await held({ run: () => undefined }).call("header.go")).toMatchObject({ ok: true, data: null });
+    });
+
+    it("never rejects: a missing act is `missing`, and says what to do next", async () => {
+      const result = await held({ run: () => 1 }).call("header.nope");
+
+      expect(result).toMatchObject({ ok: false, error: { code: "missing" } });
+      expect((result as any).error.message).toContain("List the acts that can run now");
+    });
+
+    it("maps a refused value to `invalid`", async () => {
+      const result = await held({ input: { type: "string" }, run: () => 1 }).call("header.go", 3);
+
+      expect(result).toMatchObject({ ok: false, error: { code: "invalid" } });
+    });
+
+    it("maps ActDeclined to `declined` and anything else to `failed`", async () => {
+      const declined = await held({ run: () => Promise.reject(new ActDeclined("header.save")) }).call("header.go");
+      const failed = await held({ run: () => Promise.reject(new Error("Server said no.")) }).call("header.go");
+
+      expect(declined).toMatchObject({ ok: false, error: { code: "declined", message: expect.stringMatching(/^header\.go: the person declined/) } });
+      expect(failed).toMatchObject({ ok: false, error: { code: "failed" } });
+      expect((failed as any).error.message).toMatch(/^Server said no\. Read the page state/);
+    });
+
+    it("leaves `run` as a script knows it: a decline resolves nothing, another error rejects", async () => {
+      await expect(held({ run: () => Promise.reject(new ActDeclined("header.go")) }).run("header.go")).resolves.toBeUndefined();
+      await expect(held({ run: () => Promise.reject(new Error("boom")) }).run("header.go")).rejects.toThrow("boom");
+    });
+
+    it("lets `perform` drop a decline without telling the scope", async () => {
+      const dispatcher = new ActDispatcher();
+      const failed = vi.fn();
+      dispatcher.register({ ...scope("x"), failed, surfaces: { header: () => [{ item: { name: "go", run: () => Promise.reject(new ActDeclined("header.go")) }, hidden: false }] } });
+
+      await dispatcher.perform("header.go");
+
+      expect(failed).not.toHaveBeenCalled();
+    });
+  });
+
   it("keeps a newer scope's surface when an older scope lets go", async () => {
     const dispatcher = new ActDispatcher();
     const older = scope("older");

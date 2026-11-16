@@ -79,5 +79,12 @@ export default {
 			required: ["doctype"],
 			additionalProperties: false,
 		},
+		output: {
+			type: "object",
+			properties: {
+				opened: { type: "boolean" },
+				path: { type: "string" },
+			},
+		},
 	},
 } satisfies Record<string, ActText>;

@@ -1,6 +1,5 @@
 // The actions every record gets from the framework, gated by its rights: quick actions on
 // the panel, the `⋯` menu's rows in the header. Each is an ordinary item a script hides or reorders by name.
-import { deleteDocument } from "@framework/ui/api";
 import type { RouteLocationRaw } from "vue-router";
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import type { TabCreateAction } from "@/recordPage/types";
@@ -101,7 +100,7 @@ export function headerMenuBuiltins(
   if (options.editLayout) items.push(editLayoutItem(options.editLayout));
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single && !options.submitted)
-    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: remove });
+    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: async (page: RecordPageApi) => (await import("./deleteRun")).remove(page) });
   return items;
 }
 
@@ -118,13 +117,14 @@ function openEmail(page: RecordPageApi) {
   page.composer.open("email");
 }
 
-// Desk v1's print view; the new shell has no print page of its own yet.
+// Desk v1's print view; the new shell has no print page of its own yet. It opens in the click's own tick, so a popup blocker allows it.
 function print(page: RecordPageApi) {
   const query = new URLSearchParams({ doctype: page.doctype, name: page.docname });
   window.open(`/printview?${query}`, "_blank");
 }
 
 // No clipboard outside a secure context; a throw here would reload the record over an unsaved draft.
+// The write stays in the click's own tick: a browser grants it only just after the click.
 async function copyLink(page: RecordPageApi) {
   await copy(page, window.location.href, "Link copied");
 }
@@ -141,18 +141,4 @@ async function copy(page: RecordPageApi, text: string, confirmation: string) {
   if (!navigator.clipboard) return page.toast.error("Copying needs a secure connection");
   await navigator.clipboard.writeText(text);
   page.toast.success(confirmation);
-}
-
-// The list route resolves before the call: a throw after a successful delete would reload
-// the record that no longer exists.
-async function remove(page: RecordPageApi) {
-  const confirmed = await page.dialog.danger({
-    title: "Delete this record?",
-    message: `${page.docname} will be deleted.`,
-  });
-  if (!confirmed) return;
-  const list = routeFor(page.doctype);
-  await deleteDocument(page.doctype, page.docname);
-  page.toast.success("Deleted");
-  await page.router.push(list);
 }

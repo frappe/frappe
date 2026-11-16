@@ -384,6 +384,8 @@ export interface RecordPageApi extends PageApi {
   rows(parentfield: string): PageRow[];
   /** Saves the draft and shows a failure itself; resolves `true` when saved or already clean, `false` when a veto, the server or the reader refused it. */
   save(): Promise<boolean>;
+  /** Why the last `save()` resolved `false`: the error it showed, or `null` when it was saved or the page was left. */
+  readonly saveRefusal: unknown;
   /** Saves a dirty draft, renames the record and opens it at its new name; `null` when refused or not on a saved record. */
   rename(name: string, options?: { merge?: boolean }): Promise<string | null>;
   reload(): Promise<void>;

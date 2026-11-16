@@ -232,6 +232,7 @@ import {
 	changedFields,
 	confirmRecordConflict,
 	codeErrorsError,
+	saveOrThrow,
 	conflictError,
 	shownInDialog,
 	stripTags,
@@ -547,7 +548,7 @@ function toggleOnSidecar(
 // Only a key, the palette or a script reaches Save on a clean doc, so it answers with the button's tooltip text.
 function saveFromHeader(page: RecordPageApi) {
 	if (!dirty.value) toast.info(__("No changes to save"));
-	return page.save();
+	return saveOrThrow(page);
 }
 
 function toggleFavourite(page: RecordPageApi) {

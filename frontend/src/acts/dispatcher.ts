@@ -116,6 +116,46 @@ export class ActInvalid extends Error {
 	}
 }
 
+/** The person said no to a confirm the act waited on; nothing ran. */
+export class ActDeclined extends Error {
+	constructor(readonly act: string) {
+		super(`${act}: the person declined`);
+		this.name = "ActDeclined";
+	}
+}
+
+/** An open dialog as `readDialogs` lists it. */
+export interface ActDialog {
+	id: number;
+	kind: "confirm" | "danger" | "form" | "dialog";
+	title: string;
+	message: string;
+	buttons: string[];
+	fieldnames?: string[];
+	values?: Record<string, any>;
+}
+
+export type ActErrorCode =
+	| ActDeniedReason
+	| "invalid"
+	| "failed"
+	| "declined"
+	| "waiting_for_user"
+	| "interrupted";
+
+export interface ActError {
+	code: ActErrorCode;
+	/** Plain English: what happened and what to do next. */
+	message: string;
+	dialog?: ActDialog;
+}
+
+/** What an outside caller gets from `call`; `route` and `dialogs` are the tab's when the act ended. */
+export type ActResult = { route: string; dialogs: ActDialog[] } & (
+	| { ok: true; data: unknown }
+	| { ok: false; error: ActError }
+);
+
 interface Checked {
 	scope: ActScope;
 	item: ActItem;
@@ -206,11 +246,31 @@ export class ActDispatcher {
 		return right ? found!.scope.settled(right) : undefined;
 	}
 
-	/** Runs the act inside its scope's hold; rejects with `ActDenied`, `ActInvalid`, or what the act threw. */
-	async run(name: string, value?: unknown): Promise<unknown> {
+	/** Runs the act inside its scope's hold; rejects with `ActDenied`, `ActInvalid`, or what the act threw. A script's `run` resolves nothing when the person declines. */
+	run(name: string, value?: unknown): Promise<unknown> {
+		return this.execute(name, value, true);
+	}
+
+	/** An outside caller's run: it never rejects, and every end, a refusal too, says what to do next. */
+	call(name: string, value?: unknown): Promise<ActResult> {
+		const run = this.execute(name, value, false);
+		// A refusal that lands before the chunk does must not count as unhandled; `callResult` reads it.
+		run.catch(() => {});
+		// The act starts at once, on the page that was asked; only the result's wording loads on the first call. A failed load must not reject it.
+		return import("./callResult").then(
+			({ callResult }) => callResult(run, name, readDialogs),
+			() => run.then(
+				(data): ActResult => ({ ok: true, data: data ?? null, route: "", dialogs: [] }),
+				(thrown): ActResult => ({ ok: false, error: { code: "failed", message: String(thrown) }, route: "", dialogs: [] })
+			)
+		);
+	}
+
+	private async execute(name: string, value: unknown, quiet: boolean): Promise<unknown> {
 		const checked = this.check(name, value, true);
 		const { scope, item } = checked instanceof Promise ? await checked : checked;
-		return scope.hold(() => item.run!(scope.context(), value));
+		const held = scope.hold(() => item.run!(scope.context(), value));
+		return quiet ? held.catch(ignoreDeclined) : held;
 	}
 
 	/** Runs an act the reader asked for, by a click, the palette or a key; it never rejects. */
@@ -227,7 +287,7 @@ export class ActDispatcher {
 		try {
 			await scope.hold(() => item.run!(scope.context(), value));
 		} catch (error) {
-			await scope.failed(error);
+			if (!(error instanceof ActDeclined)) await scope.failed(error);
 		}
 	}
 
@@ -311,6 +371,17 @@ export function passesWhen(scope: Pick<ActScope, "context">, { when }: ActFields
 
 /** The desk's one dispatcher. */
 export const acts = new ActDispatcher();
+
+function ignoreDeclined(error: unknown) {
+	if (!(error instanceof ActDeclined)) throw error;
+}
+
+let readDialogs: () => ActDialog[] = () => [];
+
+/** The tab's dialog list registers its reader here: the acts layer sits below the shell's. */
+export function readDialogsWith(reader: () => ActDialog[]) {
+	readDialogs = reader;
+}
 
 function nameIn(name: string) {
 	return name.slice(surfaceOf(name).length + 1);

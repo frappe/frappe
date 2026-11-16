@@ -5,7 +5,7 @@ import { isNavigationFailure, NavigationFailureType, type Router } from "vue-rou
 import { toast, useColorScheme, type ColorScheme } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import type { FieldMeta } from "@framework/ui/fields/types";
-import { acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
+import { ActDeclined, acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
 import { doctypeRight } from "@/acts/doctypeRight";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
@@ -286,7 +286,10 @@ function openItem(): ActItem<Shell> {
 		asks: ["confirm"],
 		palette: false,
 		run: async (shell, { doctype, name, view }: OpenValue) => {
-			await shell.router.push(routeFor(doctype, name, { view }));
+			const failure = await shell.router.push(routeFor(doctype, name, { view }));
+			if (isNavigationFailure(failure, NavigationFailureType.aborted)) throw new ActDeclined("shell.open");
+			const opened = !failure || isNavigationFailure(failure, NavigationFailureType.duplicated);
+			return { opened, path: shell.router.currentRoute.value.fullPath };
 		},
 	};
 }
@@ -322,11 +325,9 @@ function arrive(router: Router, target: string) {
 			stop();
 			if (!failure) return resolve({ path: to.fullPath });
 			reject(
-				new Error(
-					isNavigationFailure(failure, NavigationFailureType.aborted)
-						? __("The page did not change: the person kept their unsaved changes")
-						: __("The page did not change: another navigation interrupted it")
-				)
+				isNavigationFailure(failure, NavigationFailureType.aborted)
+					? new ActDeclined("shell.back")
+					: new Error(__("The page did not change: another navigation interrupted it"))
 			);
 		});
 		// A guard that throws or a route that fails to load reports here, never to `afterEach`.

@@ -13,6 +13,7 @@ vi.mock("@framework/ui/api", () => ({
 vi.mock("@/i18n", () => ({ __: (text: string) => text }));
 
 import { toast } from "frappe-ui";
+import { ActDeclined } from "@/acts/dispatcher";
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
 import { fieldsToLayout } from "@framework/ui/FormLayout";
 import { registerRecordPage, resetRegistry } from "../registry";
@@ -132,7 +133,7 @@ describe("Submit", () => {
       afterSubmit: () => void declined.order.push("afterSubmit"),
     });
 
-    await declined.controller.submit();
+    await expect(declined.controller.submit()).rejects.toBeInstanceOf(ActDeclined);
 
     expect(declined.order).toEqual([]);
   });
@@ -245,8 +246,10 @@ describe("Submit with a mandatory field the layout does not show", () => {
   it("a cancelled dialog sends nothing and fires no beforeSubmit or afterSubmit", async () => {
     const { controller, order } = makeDraft(null);
 
-    await expect(controller.submit()).rejects.toMatchObject({ name: SAVE_CANCELLED });
+    const error = await controller.submit().catch((thrown) => thrown);
 
+    expect(error).toBeInstanceOf(ActDeclined);
+    expect(error.name).toBe(SAVE_CANCELLED);
     expect(order).toEqual(["confirm submit", "beforeSave", "dialog save and submit"]);
   });
 
@@ -254,7 +257,7 @@ describe("Submit with a mandatory field the layout does not show", () => {
     const askRequired = vi.fn(async () => ({ batch: "B1" }));
     const declined = makePage({ confirmDocstatus: async () => false, offLayout: () => hidden, askRequired });
 
-    await declined.controller.submit();
+    await expect(declined.controller.submit()).rejects.toBeInstanceOf(ActDeclined);
 
     expect(askRequired).not.toHaveBeenCalled();
     expect(declined.order).toEqual([]);

@@ -310,7 +310,11 @@ there only while the `if` holds, and where two scripts add the same name, the la
 `run` is the one that runs. It rejects with what `run` threw, or with an `ActDenied` error,
 whose `act` is the name and whose `reason` is `'missing'` (no item has that name and a
 `run`), `'hidden'` (the item, or the container it sits in, is hidden) or `'right'` (the
-reader lacks its right). A click, and later the palette and a key, show a failure in a
+reader lacks its right). An act that asks for a confirm (`header.submit`, `header.cancel`,
+`header.delete`, the Merge confirm of `header.rename`, and `shell.open` when it asks to discard
+changes) throws `ActDeclined` when the person says no; `page.run` resolves nothing then, as it
+always has, while a caller outside the bundle gets `{ ok: false, error: { code: 'declined' } }`
+from the dispatcher's `call`. A click, and later the palette and a key, show a failure in a
 toast instead, and the record reloads unless a `beforeSave` vetoed a save.
 
 The record page also has the `record` surface, with no palette rows. `record.post_comment`
@@ -328,9 +332,10 @@ shows), `shell.open_settings` with `{ prefix, pane, block }`, `shell.my_settings
 which asks first. `shell.create` takes a doctype, or `{ doctype, values }`. `shell.open` takes
 `{ doctype, name, view }` and opens that record, the doctype's list, or (with `view` and no name)
 one of its saved views; the palette does not list it. A Single has no list, so it opens the
-document, and `view` is ignored with a name. `shell.back` goes to the page before this one in the tab and
-answers `{ path }`; it fails with no earlier page, or when the reader keeps unsaved changes at the discard
-confirm. The palette does not list it. `page.create()`, `page.open()` and
+document, and `view` is ignored with a name. It resolves `{ opened, path }`: the tab's path after
+the push, and whether the navigation happened. `shell.back` goes to the page before this one in the tab and
+answers `{ path }`; it fails with no earlier page, and ends declined when the reader keeps unsaved changes at the
+discard confirm. The palette does not list it. `page.create()`, `page.open()` and
 `page.openSettings()` run `shell.create`, `shell.open` and `shell.open_settings`.
 
 The `record` surface fills the form in front, as typing does, and never saves: each value commits
@@ -1531,7 +1536,9 @@ order is fixed:
 `page.save()` never rejects. It shows a failure itself, with one toast, and resolves `false`: a
 veto, a missing mandatory field, a server refusal, a conflict the reader met in a dialog, or the
 reader cancelling the required-fields dialog. It resolves `true` when the record was saved, and
-on a clean document. Do not show the failure again; branch on the result:
+on a clean document. Do not show the failure again; branch on the result. After a `false`,
+`page.saveRefusal` holds the error it showed (`null` when the page was left), so a header act can
+throw the reason to its caller:
 
 ```js
 if (!(await page.save())) return
