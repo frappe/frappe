@@ -9,7 +9,7 @@ import { getBlockObjectCopy, getBlockInstance, getComponentBlock } from "@/utils
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "frappe-ui"
-import type { StudioComponent, StudioComponentInput, ComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponent, StudioComponentInput } from "@/types/Studio/StudioComponent"
 import { setScriptProp } from "@/utils/componentScriptProps"
 import useComponentStore from "@/stores/componentStore"
 
@@ -20,7 +20,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const componentUsages = ref<(string | null)[]>([])
 	const componentStore = useComponentStore()
 	/** The props that the script of the open component declares, or its saved inputs. */
-	const declaredProps = computed<ComponentInput[]>(() =>
+	const declaredProps = computed<StudioComponentInput[]>(() =>
 		componentStore.getComponentProps(useCanvasStore().fragmentData.fragmentId ?? ""),
 	)
 

@@ -26,18 +26,3 @@ export interface StudioComponentInput {
 	required?: number
 	options?: string // For select type
 }
-
-// for UI
-export interface ComponentInput {
-	input_name: string
-	type: string
-	prop_type?: string
-	control?: string
-	description?: string
-	default?: string | number | boolean
-	options?: string // For select type
-	required?: number
-	showPopover?: boolean
-	inputControl?: any
-	inputType?: string
-}
