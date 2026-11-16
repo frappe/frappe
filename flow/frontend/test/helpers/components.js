@@ -247,7 +247,7 @@ const fakes = {
 			const router = createRouter({ history: options.history ?? createMemoryHistory(), routes: options.routes })
 			options.configure?.({ config: { globalProperties: { $router: router } } })
 			mounts.push({ el, options, router })
-			return { shadow_root: { host: el } }
+			return { shadow_root: { host: el }, update() {} }
 		}
 	`),
 	"./index.css": moduleURL(""),
