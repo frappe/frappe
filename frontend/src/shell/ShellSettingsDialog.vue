@@ -87,6 +87,7 @@ import {
 } from "frappe-ui";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import Icon from "@/icons/Icon.vue";
 import { useHashDialog } from "./useHashDialog";
 import { FRAMEWORK, SettingsAddressBook } from "./settingsAddress";
@@ -183,4 +184,6 @@ const tab = computed({
 	get: () => (shown.value ? `${shown.value.prefix}/${shown.value.pane.key}` : ""),
 	set: (value) => value && hash.write(...String(value).split("/")),
 });
+
+useReadableDialog(open, () => ({ title: __("Settings") }));
 </script>

@@ -73,6 +73,7 @@
 import { Button, Dialog, Icon, ItemListRow, TabButtons, toast } from "frappe-ui";
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { __ } from "@/i18n";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { SETTLE_POLL_MS, bulkPanel, settleQueued, type BulkReport } from "./bulkOutcome";
 
 type Tab = "failed" | "queued" | "done";
@@ -131,4 +132,6 @@ async function retryFailed() {
 		retrying.value = false;
 	}
 }
+
+useReadableDialog(open, () => ({ title: title.value }));
 </script>

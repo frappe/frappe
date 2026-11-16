@@ -101,6 +101,7 @@ import { reportSaveFailure } from "@/pages/record/recordSave";
 import { useUnloadGuard } from "@/unloadGuard";
 import { loadRecord, saveRecord } from "@/pages/record/recordSource";
 import { conflictError, stripTags } from "@/pages/record/saveResponse";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { openArgumentStep } from "@/shell/palette";
 import { urlFor } from "@/router/routeFor";
 import type { Boot } from "@/boot";
@@ -371,4 +372,9 @@ onUnmounted(() => {
 	unmounted = true;
 	controller.value?.leave();
 });
+
+useReadableDialog(
+	() => shown.value && isOpen.value,
+	() => ({ title: title.value, buttons: showSave.value ? [__("Save")] : [] })
+);
 </script>

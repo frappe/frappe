@@ -62,6 +62,7 @@ import { onBeforeUnmount, ref, shallowRef } from "vue";
 import { Dialog, Tooltip } from "frappe-ui";
 import type { ConditionField } from "@framework/ui/ConditionBuilder";
 import PanelRow from "./PanelRow.vue";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { RuleDraft, type RuleCodec } from "./ruleDraft";
 import type { RuleSummary } from "./ruleWords";
 
@@ -131,4 +132,9 @@ function onDismiss(cancel: () => void) {
 		document.removeEventListener("keydown", onKey, true);
 	};
 }
+
+useReadableDialog(
+	() => open.value && !!draft.value,
+	() => ({ title: [props.label, props.subject].filter(Boolean).join(" · ") })
+);
 </script>

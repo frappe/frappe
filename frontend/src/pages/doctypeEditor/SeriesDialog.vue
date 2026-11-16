@@ -99,6 +99,7 @@
 import { computed, inject, nextTick, reactive, ref } from "vue";
 import { Button, Dialog, Radio, RadioGroup, TextInput, Tooltip } from "frappe-ui";
 import { __ } from "@/i18n";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import NamePreview from "./NamePreview.vue";
 import { nextName } from "./namingPattern";
 import { useSeriesCounters } from "./seriesCounters";
@@ -164,4 +165,9 @@ function done() {
 	emit("done", [first, ...list.value.filter((one) => one !== first)], first);
 	open.value = false;
 }
+
+useReadableDialog(open, () => ({
+	title: __("Naming Series"),
+	buttons: [__("Cancel"), __("Done")],
+}));
 </script>

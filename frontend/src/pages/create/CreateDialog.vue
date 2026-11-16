@@ -4,7 +4,7 @@
 	<Dialog
 		v-if="shown"
 		v-model:open="isOpen"
-		:title="__('New {0}', [__(doctype)])"
+		:title="title"
 		:dismissible="!saving"
 		:show-close-button="!saving"
 		:size="size"
@@ -68,11 +68,12 @@ import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { __ } from "@/i18n";
 import { FieldErrors, missingRequired, useFormLayout } from "@/recordPage";
 import { errorMessage } from "@/recordPage/errorMessage";
-import { formData, initialDoc } from "@/recordPage/formDialogLayout";
+import { formData, formDialogHandle, initialDoc } from "@/recordPage/formDialogLayout";
 import { landOnFirstMarked } from "@/pages/record/landOnField";
 import { useEditLayoutRoute } from "@/pages/editLayout";
 import { routeForNew } from "@/router/routeFor";
 import type { CreateRequest } from "@/shell/create";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { loadDocument } from "@/shell/tabKeepAlive";
 import {
 	fetchNewDocument,
@@ -187,15 +188,15 @@ useEventListener(
 	}
 );
 
-async function save() {
-	if (saving.value || layoutFailed.value || props.request.settled()) return;
+async function save(): Promise<boolean> {
+	if (saving.value || layoutFailed.value || props.request.settled()) return false;
 	errors.clearAll();
 	error.value = "";
 	const missing = missingRequired(layout.value, doc.value);
 	for (const { address, message } of missing) errors.mark(address, message);
 	if (missing.length) {
 		landOnFirstMarked(errors, landing, doc.value);
-		return;
+		return false;
 	}
 	saving.value = true;
 	try {
@@ -205,14 +206,34 @@ async function save() {
 		);
 		saved = data;
 		isOpen.value = false;
+		return true;
 	} catch (exception) {
 		if (isApiError(exception)) errors.markRefused(exception.fieldErrors, doc.value);
 		error.value = errorMessage(exception);
 		landOnFirstMarked(errors, landing, doc.value);
+		return false;
 	} finally {
 		saving.value = false;
 	}
 }
+
+const title = __("New {0}", [__(doctype)]);
+useReadableDialog(
+	() => shown.value && isOpen.value,
+	() => ({
+		kind: "form",
+		title,
+		buttons: [
+			...(inDialog ? [] : [__("Edit full form")]),
+			...(editLayout.value ? [__("Edit layout")] : []),
+			__("Save"),
+		],
+	}),
+	formDialogHandle(() => layout.value, doc, {
+		submit: save,
+		close: () => void (saving.value || (isOpen.value = false)),
+	})
+);
 
 const landing = {
 	root: () => body.value,

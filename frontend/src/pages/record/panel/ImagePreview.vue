@@ -7,7 +7,10 @@
 
 <script setup lang="ts">
 import { Dialog } from "frappe-ui";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 
-defineProps<{ url: string; title: string }>();
+const props = defineProps<{ url: string; title: string }>();
 const open = defineModel<boolean>("open", { required: true });
+
+useReadableDialog(open, () => ({ title: props.title }));
 </script>
