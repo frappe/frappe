@@ -562,7 +562,9 @@ class MariaDBDumpWriter:
 				definition += f" DEFAULT {default}"
 			definitions.append(f"{quote_identifier(name)} {definition}")
 		if primary_key:
-			definitions.append(f"PRIMARY KEY ({', '.join(map(quote_identifier, primary_key))})")
+			definitions.append(
+				f"PRIMARY KEY ({', '.join(quote_identifier(column) for column in primary_key)})"
+			)
 		self.warnings.append(f"Table {table} has no DocType; its schema was translated from SQLite.")
 		return (
 			f"CREATE TABLE {quote_identifier(table)} (\n\t"
@@ -626,11 +628,9 @@ class MariaDBDumpWriter:
 		for key in shape.distinct_keys:
 			if set(key) <= set(columns):
 				self.check_key(connection, table, key)
-		prefix = (
-			f"INSERT INTO {quote_identifier(table)} ({', '.join(map(quote_identifier, columns))}) VALUES\n"
-		)
+		prefix = f"INSERT INTO {quote_identifier(table)} ({', '.join(quote_identifier(column) for column in columns)}) VALUES\n"
 		cursor = connection.execute(
-			f"SELECT {', '.join(map(quote_sqlite_identifier, columns))} FROM {quote_sqlite_identifier(table)}"
+			f"SELECT {', '.join(quote_sqlite_identifier(column) for column in columns)} FROM {quote_sqlite_identifier(table)}"
 		)
 		batch, batch_bytes = [], 0
 		while rows := cursor.fetchmany(1000):
@@ -657,7 +657,7 @@ class MariaDBDumpWriter:
 
 		The grouping runs in SQLite, which spills to temporary files, so memory stays bounded for large tables.
 		"""
-		columns = ", ".join(map(quote_sqlite_identifier, key))
+		columns = ", ".join(quote_sqlite_identifier(column) for column in key)
 		collated = ", ".join(f"mariadb_collation_key({quote_sqlite_identifier(column)})" for column in key)
 		not_null = " AND ".join(f"{quote_sqlite_identifier(column)} IS NOT NULL" for column in key)
 		collisions = connection.execute(
