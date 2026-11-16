@@ -58,7 +58,7 @@ test.describe("Split View", () => {
 
 	test("opens the clicked record beside the list and puts it in the URL", async ({ page }) => {
 		const names = await open_split_view(page);
-		await expect(page.locator(".split-view-empty")).toContainText("Select a ToDo");
+		await expect(page.locator(".split-view-empty")).toContainText("No ToDo selected");
 
 		await page.locator(ROWS).first().click();
 		await expect(page).toHaveURL(new RegExp(`/view/split/${names[0]}\\?description=`));

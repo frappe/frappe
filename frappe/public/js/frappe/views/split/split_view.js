@@ -514,7 +514,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		frappe.ui
 			.empty_state({
 				icon: "columns-2",
-				title: __("Select a {0}", [__(this.doctype)]),
+				title: __("No {0} selected", [__(this.doctype)]),
 				description: this.get_empty_description(),
 				css_class: "split-view-empty",
 			})
