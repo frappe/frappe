@@ -1,6 +1,6 @@
 <!-- The Editor / Settings / Preview strip below the page header, drawn like the record page's tab strip. -->
 <template>
-	<Tabs v-model="tab" class="shrink-0" :class="TAB_STRIP_CLASSES" data-editor-tabs>
+	<Tabs v-model="tab" class="shrink-0" :class="TAB_STRIP_CLASSES">
 		<TabList variant="underline">
 			<TabTrigger
 				v-for="one in EDITOR_TABS"

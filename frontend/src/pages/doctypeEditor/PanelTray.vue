@@ -1,7 +1,7 @@
 <!-- The panel with nothing selected: the fields this layout leaves off, then the field types to add. On Details
      the group shows only while a field is off the layout; a click places at the end of the section in view. -->
 <template>
-	<p class="flex min-h-[42px] items-center px-4 py-2 text-p-sm text-ink-gray-6">
+	<p class="flex min-h-[44px] items-center px-4 py-2 text-p-sm text-ink-gray-6">
 		{{ __("Select a field or a section heading to edit it here.") }}
 	</p>
 	<GridColumnsGroup
