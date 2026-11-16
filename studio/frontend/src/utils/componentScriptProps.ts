@@ -1,5 +1,5 @@
 import { typescriptLanguage } from "@codemirror/lang-javascript"
-import type { SyntaxNode } from "@lezer/common"
+import type { SyntaxNode, Tree } from "@lezer/common"
 
 import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
 import { getTypeControls } from "@/utils/componentScript"
@@ -49,7 +49,7 @@ export function setScriptProp(
 	if (entry) script = text ? replaceRange(source, entry.from, entry.to, text) : removeEntry(source, entry)
 	else if (text) script = addEntry(source, props, text)
 	else return source
-	if (hasSyntaxError(script)) throw new Error("The default value is not valid JavaScript.")
+	if (hasSyntaxError(parse(script))) throw new Error("The default value is not valid JavaScript.")
 	return script
 }
 
@@ -130,9 +130,9 @@ function getTypeSource(source: string, entry: SyntaxNode): string | undefined {
 
 function findScriptProps(source: string): ScriptProps {
 	const none = (readOnlyReason: string): ScriptProps => ({ readOnlyReason, entries: new Map() })
-	if (hasSyntaxError(source)) return none("Fix the syntax error in the script first.")
+	const tree = parse(source)
+	if (hasSyntaxError(tree)) return none("Fix the syntax error in the script first.")
 
-	const tree = typescriptLanguage.parser.parse(source)
 	const exportObject = tree.topNode
 		.getChildren("ExportDeclaration")
 		.find((node) => node.getChild("default"))
@@ -166,9 +166,13 @@ function getPropertyValue(property: SyntaxNode | undefined): SyntaxNode | null {
 	return property?.getChild(":")?.nextSibling ?? null
 }
 
-function hasSyntaxError(source: string): boolean {
+function parse(source: string): Tree {
+	return typescriptLanguage.parser.parse(source)
+}
+
+function hasSyntaxError(tree: Tree): boolean {
 	let hasError = false
-	typescriptLanguage.parser.parse(source).iterate({ enter: (node) => void (hasError ||= node.type.isError) })
+	tree.iterate({ enter: (node) => void (hasError ||= node.type.isError) })
 	return hasError
 }
 
