@@ -203,7 +203,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	async get_data() {
-		this.data = await frappe.xcall(this.settings.method, this.settings.args);
+		this.data = await frappe.xcall(this.settings.method, this.settings.args, "GET");
 		return this.settings.get_number(this.data);
 	}
 

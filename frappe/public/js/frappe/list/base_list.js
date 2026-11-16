@@ -78,8 +78,12 @@ frappe.views.BaseList = class BaseList {
 
 	get_list_view_settings() {
 		return frappe
-			.call("frappe.desk.listview.get_list_settings", {
+			.call({
+			    method: "frappe.desk.listview.get_list_settings",
+			    type: "GET",
+			    args: {
 				doctype: this.doctype,
+			    }
 			})
 			.then((doc) => (this.list_view_settings = doc.message || {}));
 	}
@@ -532,6 +536,7 @@ frappe.views.BaseList = class BaseList {
 		const args = this.get_args();
 		return {
 			method: this.method,
+			type: "GET",
 			args: args,
 			freeze: this.freeze_on_refresh || false,
 			freeze_message: this.freeze_message || __("Loading") + "...",

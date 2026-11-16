@@ -187,6 +187,7 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 				uri=True,
 				detect_types=sqlite3.PARSE_DECLTYPES,
 				timeout=DEFAULT_BUSY_TIMEOUT_SECONDS,
+				check_same_thread=False,
 			)
 		return sqlite3.connect(
 			db_path,

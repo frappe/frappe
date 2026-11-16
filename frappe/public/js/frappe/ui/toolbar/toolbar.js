@@ -281,6 +281,7 @@ frappe.ui.toolbar.view_website = function () {
 frappe.ui.toolbar.fetch_session_defaults = function () {
 	frappe.call({
 		method: "frappe.core.doctype.session_default_settings.session_default_settings.get_session_default_values",
+		type: "GET",
 		callback: function (data) {
 			frappe.boot.session_defaults = JSON.parse(data.message);
 		},
