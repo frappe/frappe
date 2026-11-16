@@ -2,6 +2,7 @@ import { typescriptLanguage } from "@codemirror/lang-javascript"
 import type { SyntaxNode } from "@lezer/common"
 
 import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
+import { getTypeControls } from "@/utils/componentScript"
 
 // The props of a component are in its script. The editor's form reads and writes the `props`
 // object of the script's default export as text, so the rest of the script stays as written.
@@ -40,7 +41,9 @@ export function setScriptProp(
 		throw new Error(`A prop named "${prop.input_name}" already exists.`)
 	}
 	const kept = entry && prop && isSameDefault(previous, prop) ? getDefaultSource(source, entry) : undefined
-	const text = prop ? getPropSource(prop, kept) : ""
+	// an unchanged type stays as written, such as `[String, Number]` or `Array as PropType<Row[]>`
+	const keptType = entry && prop && previous.prop_type === prop.prop_type ? getTypeSource(source, entry) : undefined
+	const text = prop ? getPropSource(prop, kept, keptType) : ""
 
 	let script: string
 	if (entry) script = text ? replaceRange(source, entry.from, entry.to, text) : removeEntry(source, entry)
@@ -61,16 +64,19 @@ const PROP_TYPES: Record<string, string | null> = {
 }
 
 /** One entry of the `props` object, such as `size: { type: String, default: "md" }`. */
-function getPropSource(prop: StudioComponentInput, defaultSource?: string): string {
-	const type = PROP_TYPES[prop.type] ?? null
+function getPropSource(prop: StudioComponentInput, defaultSource?: string, typeSource?: string): string {
+	const propType = prop.prop_type ?? PROP_TYPES[prop.type] ?? "Any"
+	const type = typeSource ?? (propType === "Any" ? null : propType)
 	const parts = type ? [`type: ${type}`] : []
 	if (prop.required) parts.push("required: true")
 	defaultSource ??= getDefaultLiteral(prop)
 	if (defaultSource) parts.push(`default: ${defaultSource}`)
 
 	const meta = []
-	// String, Number and Boolean already name their control
-	if (!["text", "number", "checkbox", "code"].includes(prop.type)) meta.push(`control: "${prop.type}"`)
+	// The control that the user selected in the form. Without one, a control is named only when it
+	// is not the first control of the type.
+	const control = prop.control ?? (prop.type === getTypeControls(propType)[0] ? "" : prop.type)
+	if (control) meta.push(`control: "${control}"`)
 	if (prop.type === "select") meta.push(`options: ${JSON.stringify(getOptions(prop))}`)
 	if (prop.description) meta.push(`description: ${JSON.stringify(prop.description)}`)
 	if (meta.length) parts.push(`meta: { ${meta.join(", ")} }`)
@@ -112,6 +118,14 @@ function getDefaultSource(source: string, entry: SyntaxNode): string | undefined
 	if (value?.name !== "ObjectExpression") return undefined
 	const defaultValue = getPropertyValue(getProperties(source, value).get("default"))
 	return defaultValue ? source.slice(defaultValue.from, defaultValue.to) : undefined
+}
+
+/** The text of an entry's type: the value of `type`, or the whole value of `title: String`. */
+function getTypeSource(source: string, entry: SyntaxNode): string | undefined {
+	let value = getPropertyValue(entry)
+	if (value?.name === "ObjectExpression") value = getPropertyValue(getProperties(source, value).get("type"))
+	const text = value ? source.slice(value.from, value.to) : "null"
+	return text === "null" ? undefined : text
 }
 
 function findScriptProps(source: string): ScriptProps {

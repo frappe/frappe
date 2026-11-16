@@ -114,9 +114,12 @@ export function getEditorProps(props: ComponentScript["props"] = {}): StudioComp
 	return Object.entries(props).map(([name, prop]) => {
 		const options = prop && typeof prop === "object" && !Array.isArray(prop) ? prop : { type: prop }
 		const meta = options.meta || {}
+		const propType = getTypeName(options.type)
 		return {
 			input_name: name,
-			type: meta.control || getPropControl(options.type),
+			type: meta.control || getTypeControls(propType)[0],
+			prop_type: propType,
+			control: meta.control,
 			description: meta.description,
 			options: meta.options?.join("\n"),
 			required: options.required ? 1 : 0,
@@ -125,12 +128,21 @@ export function getEditorProps(props: ComponentScript["props"] = {}): StudioComp
 	})
 }
 
-function getPropControl(propType: unknown): string {
-	const type = Array.isArray(propType) ? propType[0] : propType
-	if (type === String) return "text"
-	if (type === Number) return "number"
-	if (type === Boolean) return "checkbox"
-	return "code"
+const TYPE_CONTROLS: Record<string, string[]> = {
+	String: ["text", "textarea", "select", "color"],
+	Number: ["number"],
+	Boolean: ["checkbox"],
+}
+
+/** The controls that can edit a value of this type. The first one is the type's own control. */
+export function getTypeControls(propType = "Any"): string[] {
+	return TYPE_CONTROLS[propType.split(" | ")[0]] ?? ["code"]
+}
+
+// `String` is "String", and `[String, Number]` is "String | Number"
+function getTypeName(type: unknown): string {
+	const types = Array.isArray(type) ? type : [type]
+	return types.map((one) => (typeof one === "function" ? one.name : "Any")).join(" | ")
 }
 
 // An input row stores its default as text. Object defaults come from a factory, which only Vue calls.

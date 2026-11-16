@@ -193,12 +193,12 @@ describe("component scripts", () => {
 			rows: { type: Array, default: () => [] },
 			size: { type: String, default: "md", meta: { control: "select", options: ["sm", "md"] } },
 		})
-		expect(inputs.map((input) => [input.input_name, input.type, input.default])).to.deep.equal([
-			["title", "text", undefined],
-			["step", "number", "1"],
-			["open", "checkbox", undefined],
-			["rows", "code", undefined],
-			["size", "select", "md"],
+		expect(inputs.map((input) => [input.input_name, input.prop_type, input.type, input.default])).to.deep.equal([
+			["title", "String", "text", undefined],
+			["step", "Number", "number", "1"],
+			["open", "Boolean", "checkbox", undefined],
+			["rows", "Array", "code", undefined],
+			["size", "String", "select", "md"],
 		])
 		expect(inputs[0].required).to.equal(1)
 		expect(inputs[4].options).to.equal("sm\nmd")
@@ -236,7 +236,7 @@ describe("component scripts", () => {
 		expect(edited).to.equal(
 			written.replace(
 				"rows: { type: Array, default: () => [] }",
-				'rows: { default: () => [], meta: { description: "The rows to show" } }',
+				'rows: { type: Array, default: () => [], meta: { description: "The rows to show" } }',
 			),
 		)
 		expect(setScriptProp(written, null, { input_name: "step", type: "number", default: "2" })).to.include(
@@ -259,6 +259,23 @@ describe("component scripts", () => {
 		expect(add({ ...checkbox, default: true })).to.include("open: { type: Boolean, default: true }")
 		expect(add({ ...checkbox, default: false })).to.include("open: Boolean")
 		expect(() => add({ ...size, default: "lg" })).to.throw("one of the options")
+
+		// the form gives the Vue type, and the control only when the user selected one
+		expect(add({ input_name: "rows", type: "code", prop_type: "Array", control: "", default: "[]" })).to.include(
+			"rows: { type: Array, default: () => ([]) }",
+		)
+		expect(add({ input_name: "note", type: "textarea", prop_type: "String", control: "textarea" })).to.include(
+			'note: { type: String, meta: { control: "textarea" } }',
+		)
+		expect(add({ input_name: "name", type: "text", prop_type: "String", control: "text" })).to.include(
+			'name: { type: String, meta: { control: "text" } }',
+		)
+		expect(add({ input_name: "name", type: "text", prop_type: "String", control: "" })).to.include("name: String")
+		const mixed = "export default {\n\tprops: {\n\t\tid: { type: [String, Number], validator: () => true },\n\t},\n}\n"
+		const id = getEditorProps({ id: { type: [String, Number] } })[0]
+		expect([id.prop_type, id.type]).to.deep.equal(["String | Number", "text"])
+		expect(setScriptProp(mixed, id, { ...id, required: 1 })).to.include("id: { type: [String, Number], required: true },")
+		expect(setScriptProp(mixed, id, { ...id, prop_type: "Object", type: "code" })).to.include("id: Object,")
 
 		// an unchanged default stays as the script has it
 		const typed = "export default {\n\tprops: {\n\t\topen: { type: Boolean, default: false },\n\t},\n}\n"
