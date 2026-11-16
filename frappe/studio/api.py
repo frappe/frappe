@@ -122,6 +122,11 @@ def get_sort_fields(doctype: str):
 
 
 @frappe.whitelist()
+def can_use_flow() -> bool:
+	return bool(frappe.has_permission("Flow Session", "read"))
+
+
+@frappe.whitelist()
 def check_app_permission() -> bool:
 	if frappe.session.user == "Administrator":
 		return True
