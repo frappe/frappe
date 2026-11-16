@@ -281,6 +281,11 @@ frappe.ui.form.qz_fail = function (e) {
 };
 
 frappe.ui.form.attach_pdf = function (doctype, name, args = {}) {
+	const format = args.format || frappe.get_meta(doctype)?.default_print_format;
+	const print_format = locals[":Print Format"]?.[format] || {};
+	if (print_format.custom_format || print_format.raw_printing) {
+		args = { ...args, pdf_generator: print_format.pdf_generator || "chrome" };
+	}
 	return frappe
 		.xcall(
 			"frappe.utils.print_format.attach_pdf",

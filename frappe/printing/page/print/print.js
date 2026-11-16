@@ -1052,7 +1052,6 @@ frappe.ui.form.PrintView = class {
 			settings: Object.keys(settings).length ? JSON.stringify(settings) : undefined,
 			language: this.lang_code,
 			style: this.get_print_style() || undefined,
-			pdf_generator: this.get_print_format().pdf_generator || undefined,
 		});
 	}
 
