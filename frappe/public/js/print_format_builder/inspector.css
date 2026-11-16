@@ -351,6 +351,27 @@ body.pfb-dragging * {
 
 .print-format-doc .ql-editor {
 	color: inherit;
+	line-height: inherit;
+	text-align: inherit;
+}
+
+.print-format-doc .ql-editor a[href]:not(.btn) {
+	text-decoration: none;
+}
+
+.print-format-doc .ql-snow .ql-editor code {
+	background-color: transparent;
+	padding: 0;
+}
+
+.print-format-doc .ql-editor ol {
+	padding-left: revert;
+}
+
+.print-format-doc .ql-editor li {
+	list-style-type: inherit;
+	padding-left: 0;
+	margin: 0;
 }
 
 .pfb-static-text-input {
