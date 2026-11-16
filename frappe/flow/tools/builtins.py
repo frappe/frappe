@@ -393,9 +393,14 @@ def _report_filter_specs(report_name: str) -> list[dict[str, Any]]:
 		for f in script["filters"]
 	]
 	if not script["validate_filters"]:
-		# a JS filter runs to the next fieldname
+		# a JS filter runs from its opening brace to the next filter's
 		parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
-		specs += [_js_filter(name, rest) for name, rest in zip(parts[1::2], parts[2::2], strict=True)]
+		cuts = [chunk.rpartition("{") for chunk in parts[0::2]]
+		cuts[-1] = (parts[-1], "", "")  # the last filter has no next one
+		specs += [
+			_js_filter(name, f"{before[2]}\n{after[0]}")
+			for name, before, after in zip(parts[1::2], cuts[:-1], cuts[1:], strict=True)
+		]
 	first = {}
 	for spec in specs:
 		first.setdefault(spec["fieldname"], spec)

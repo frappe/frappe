@@ -107,6 +107,7 @@ REPORT_JS_CHOICES = """frappe.query_reports["Flow Report Probe"] = {
 			{ label: __("By Voucher"), value: "Group by Voucher" },
 			{ label: __("By Account"), value: "Group by Account" },
 		] },
+		{ default: "Monthly", fieldname: "periodicity", fieldtype: "Select", options: "Monthly\\nYearly" },
 	],
 };"""
 
@@ -479,19 +480,21 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 	data = [columns, []]
 """,
 		)
-		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+		self.enterContext(self.set_user("test@example.com"))
+		ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=ctx)
 		self.assertEqual(result["row_count"], 25)
 
 		# a filter given beats its default, and an empty run lists each filter's choices and default
 		given = {"company": "Acme", "based_on": "Sales Invoice"}
-		result = run_report(report_name=self.report.name, filters=given, ctx=CTX)
+		result = run_report(report_name=self.report.name, filters=given, ctx=ctx)
 		self.assertEqual(
 			(result["row_count"], result["available_filters"]),
 			(
 				0,
 				"(* = required) warehouse*, company* (link to Company), "
 				"based_on (Sales Order | Sales Invoice; default Sales Order), days (30 | 60 | 90; default 30), "
-				"group_by (Group by Voucher | Group by Account)",
+				"group_by (Group by Voucher | Group by Account), periodicity (Monthly | Yearly; default Monthly)",
 			),
 		)
 
