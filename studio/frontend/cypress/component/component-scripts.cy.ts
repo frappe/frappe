@@ -91,6 +91,8 @@ describe("component scripts", () => {
 		const scope = reactive({ firstTitle: "First" })
 		const shown = ref(true)
 		const changes = { first: cy.stub(), second: cy.stub() }
+		// `click` is not in the script's emits, so it is a DOM event of the component's root block
+		const rootClicks = { first: cy.stub(), second: cy.stub() }
 		const blocks = {
 			first: counterBlock("first", { title: "{{ firstTitle }}" }),
 			second: counterBlock("second", { title: "Second", step: 5 }),
@@ -105,7 +107,7 @@ describe("component scripts", () => {
 							key: name,
 							studioComponent: blocks[name],
 							evaluationContext: scope,
-							listeners: { change: changes[name] },
+							listeners: { change: changes[name], click: rootClicks[name] },
 						}),
 					),
 			}),
@@ -119,6 +121,8 @@ describe("component scripts", () => {
 		cy.then(() => {
 			expect(changes.first).to.have.been.calledOnceWith(1)
 			expect(changes.second).to.have.been.calledOnceWith(5)
+			expect(rootClicks.first).to.have.been.calledOnce
+			expect(rootClicks.second).to.have.been.calledOnce
 		})
 
 		// a new prop value reaches the mounted instance, which keeps its state

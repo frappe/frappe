@@ -75,6 +75,9 @@ import MissingComponent from "@/components/MissingComponent.vue"
 
 const props = defineProps<{
 	block: Block
+	// The listeners that the user of a Studio Component set on it, for the component's root block.
+	// They run in the user's scope, not in the scope of the component.
+	listeners?: Record<string, Function | Function[]>
 }>()
 
 const componentName = computed(() => {
@@ -227,6 +230,10 @@ const mergedListeners = computed(() => {
 	for (const [name, listener] of Object.entries(componentEvents.value)) {
 		const handlers = Array.isArray(listener) ? listener : [listener]
 		handlers.forEach((handler) => addListener(merged, name, handler))
+	}
+	for (const [name, listener] of Object.entries(props.listeners || {})) {
+		const handlers = Array.isArray(listener) ? listener : [listener]
+		handlers.forEach((handler) => addListener(merged, name, handler as Listener))
 	}
 	return merged
 })
