@@ -1,5 +1,6 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+import json
 from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
@@ -10,20 +11,13 @@ from frappe.auth import CookieManager, LoginManager
 from frappe.integrations.doctype.social_login_key.social_login_key import BaseUrlNotSetError
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
-<<<<<<< HEAD
-from frappe.utils.oauth import consume_oauth_state, create_oauth_state, login_via_oauth2
-=======
 from frappe.utils.oauth import (
 	OAUTH_LOGIN_BINDING_COOKIE,
 	consume_oauth_state,
 	create_oauth_state,
-	enforce_office_365_tenant,
-	get_info_via_oauth,
 	get_oauth2_authorize_url,
-	get_verified_office_365_claims,
 	login_via_oauth2,
 )
->>>>>>> 70b8159 (fix(oauth): bind social-login state to the initiating browser)
 
 TEST_GITHUB_USER = "githublogin@example.com"
 
