@@ -805,11 +805,7 @@ def get_installed_apps_info():
 			"version": version_details.get("branch_version") or version_details.get("version"),
 			"branch": version_details.get("branch"),
 		}
-<<<<<<< HEAD
-		for app, version_details in get_versions().items()
-=======
-		for app, version_details in get_app_versions(include_disabled=True).items()
->>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
+		for app, version_details in get_app_versions().items()
 	)
 	return out
 

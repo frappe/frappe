@@ -13,14 +13,8 @@ import frappe.exceptions
 from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
-<<<<<<< HEAD
-=======
-	bulk_add_roles,
-	bulk_remove_roles,
-	change_password,
 	get_all_roles,
 	get_perm_info,
->>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
 	handle_password_test_fail,
 	reset_password,
 	sign_up,

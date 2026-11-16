@@ -102,20 +102,13 @@ def update_last_known_versions():
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
 def get_versions():
-	"""Get versions of all installed apps.
-=======
-def get_versions(include_disabled: bool = False):
 	frappe.permissions.validate_desk_user()
-	return get_app_versions(include_disabled)
+	return get_app_versions()
 
 
-def get_app_versions(include_disabled: bool = False):
-	"""Get versions of apps active on this site.
-
-	:param include_disabled: Also return apps that are installed but disabled.
->>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
+def get_app_versions():
+	"""Get versions of all installed apps.
 
 	Example:
 

@@ -30,12 +30,7 @@ from frappe.integrations.frappe_providers.frappecloud_billing import current_sit
 from frappe.model.document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
-<<<<<<< HEAD
-from frappe.utils.change_log import get_versions
-=======
 from frappe.utils.change_log import get_app_versions
-from frappe.website.doctype.web_form_request.web_form_request import get_request_forms_by_doctype
->>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
