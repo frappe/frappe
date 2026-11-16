@@ -56,7 +56,8 @@ def get_likeable_doc(reference_doctype, reference_name):
 			if ref_doc.get("published"):
 				return ref_doc
 	except frappe.DoesNotExistError:
-		pass
+		# drop the "not found" message so it matches the other cases
+		frappe.clear_last_message()
 
 	frappe.throw(_("Not permitted"), frappe.PermissionError)
 
