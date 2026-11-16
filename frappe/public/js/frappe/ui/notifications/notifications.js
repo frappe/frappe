@@ -15,7 +15,6 @@ frappe.ui.Notifications = class Notifications {
 		this.body = this.dropdown_list.find(".notification-list-body");
 		this.panel_events = this.dropdown_list.find(".panel-events");
 		this.panel_notifications = this.dropdown_list.find(".panel-notifications");
-		this.panel_changelog_feed = this.dropdown_list.find(".panel-changelog-feed");
 
 		this.user = frappe.session.user;
 
@@ -57,12 +56,6 @@ frappe.ui.Notifications = class Notifications {
 				id: "todays_events",
 				view: EventsView,
 				el: this.panel_events,
-			},
-			{
-				label: __("What's New"),
-				id: "changelog_feed",
-				view: ChangelogFeedView,
-				el: this.panel_changelog_feed,
 			},
 		];
 
@@ -461,6 +454,7 @@ class EventsView extends BaseNotificationsView {
 		this.container.html(html);
 	}
 }
+<<<<<<< HEAD
 
 class ChangelogFeedView extends BaseNotificationsView {
 	make() {
@@ -511,3 +505,5 @@ class ChangelogFeedView extends BaseNotificationsView {
 		this.container.html(html);
 	}
 }
+=======
+>>>>>>> 6abcfe9 (refactor!: Remove what's new)
