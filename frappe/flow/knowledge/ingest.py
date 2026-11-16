@@ -1,9 +1,9 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-"""Ingestion pipeline: turn a knowledge source into MariaDB chunks + LanceDB rows.
+"""Ingestion pipeline: turn a knowledge source into MariaDB chunks + vector store rows.
 
-MariaDB (Flow Knowledge Chunk) is the source of truth; the LanceDB store is a
+MariaDB (Flow Knowledge Chunk) is the source of truth; the vector store is a
 derived index keyed by chunk name.
 
 - Text / File / URL are single documents: each run rebuilds them from scratch.

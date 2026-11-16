@@ -14,16 +14,22 @@ from __future__ import annotations
 
 from typing import Any
 
-import pyarrow as pa
-
-from frappe.flow.knowledge.store import _connect, _ensure_fts_index, _quote, _vector_dim
+from frappe.flow.knowledge.store import (
+	_connect,
+	_create_table,
+	_drop_table,
+	_placeholders,
+	_search,
+	_shape,
+	_vector_bytes,
+)
 
 TABLE_NAME = "chat_attachment_chunks"
 MAX_SEARCH_LIMIT = 50
 
 
-def ensure_table(dimension: int):
-	"""Open the chunks table for the given vector width, creating it if missing.
+def ensure_table(dimension: int) -> None:
+	"""Create the chunks table for the given vector width if it is missing.
 
 	On a width mismatch (the embedding model changed) the table is dropped and
 	recreated — chat chunks are ephemeral and rebuildable, so they are not worth
@@ -32,22 +38,12 @@ def ensure_table(dimension: int):
 	if not isinstance(dimension, int) or dimension < 1:
 		raise ValueError(f"Invalid embedding dimension: {dimension!r}")
 
-	db = _connect()
-	if TABLE_NAME in db.list_tables().tables:
-		table = db.open_table(TABLE_NAME)
-		if _vector_dim(table) == dimension:
-			return table
-		db.drop_table(TABLE_NAME)
-
-	schema = pa.schema(
-		[
-			pa.field("session", pa.string()),
-			pa.field("attachment", pa.string()),
-			pa.field("content", pa.string()),
-			pa.field("vector", pa.list_(pa.float32(), dimension)),
-		]
-	)
-	return db.create_table(TABLE_NAME, schema=schema, exist_ok=True)
+	with _connect(write=True) as db:
+		if _shape(db, TABLE_NAME) == str(dimension):
+			return
+		_drop_table(db, TABLE_NAME)
+		_create_table(db, TABLE_NAME, "id integer primary key, session text, attachment text", dimension)
+		db.execute(f"create index {TABLE_NAME}_session on {TABLE_NAME}(session)")
 
 
 def add(session: str, attachment: str, chunks: list[str], vectors: list[list[float]]) -> None:
@@ -56,18 +52,14 @@ def add(session: str, attachment: str, chunks: list[str], vectors: list[list[flo
 		raise ValueError(f"chunks/vectors length mismatch: {len(chunks)} != {len(vectors)}")
 	if not chunks:
 		return
-	rows = [
-		{
-			"session": session,
-			"attachment": attachment,
-			"content": content,
-			"vector": [float(v) for v in vector],
-		}
-		for content, vector in zip(chunks, vectors, strict=True)
-	]
-	table = _open_table()
-	table.add(rows)
-	_ensure_fts_index(table)
+	with _connect(write=True) as db:
+		db.executemany(
+			f"insert into {TABLE_NAME}(session, attachment, content, vector) values (?, ?, ?, ?)",
+			[
+				(session, attachment, content, _vector_bytes(vector))
+				for content, vector in zip(chunks, vectors, strict=True)
+			],
+		)
 
 
 def search(
@@ -81,28 +73,14 @@ def search(
 	"""
 	if not session:
 		raise ValueError("search requires a session scope")
-	if not _table_exists():
-		return []
-
-	table = _open_table()
-	if table.count_rows() == 0:
-		return []
-
 	limit = max(1, min(int(limit), MAX_SEARCH_LIMIT))
-	vector = [float(v) for v in vector]
-	if text:
-		_ensure_fts_index(table)
-		query = table.search(query_type="hybrid", vector_column_name="vector").vector(vector).text(text)
-	else:
-		query = table.search(vector, vector_column_name="vector")
-	query = query.distance_type("cosine").where(f"session = {_quote(session)}", prefilter=True).limit(limit)
+
+	with _connect() as db:
+		if _shape(db, TABLE_NAME) is None:
+			return []
+		hits = _search(db, TABLE_NAME, "attachment, content", "session = ?", [session], vector, text, limit)
 	return [
-		{
-			"attachment": row["attachment"],
-			"content": row["content"],
-			"score": row["_relevance_score"] if text else 1.0 - row["_distance"],
-		}
-		for row in query.to_list()
+		{"attachment": attachment, "content": content, "score": score} for attachment, content, score in hits
 	]
 
 
@@ -113,29 +91,25 @@ def delete(*, session: str | list[str] | None = None, attachment: str | None = N
 		raise ValueError("delete() requires session and/or attachment")
 	if isinstance(session, list) and not session:
 		return
-	if not _table_exists():
-		return
 
-	conditions = []
+	conditions, values = [], []
 	if session is not None:
-		if isinstance(session, str):
-			conditions.append(f"session = {_quote(session)}")
-		else:
-			conditions.append(f"session IN ({', '.join(_quote(s) for s in session)})")
+		sessions = [session] if isinstance(session, str) else session
+		conditions.append(f"session in ({_placeholders(sessions)})")
+		values.extend(sessions)
 	if attachment is not None:
-		conditions.append(f"attachment = {_quote(attachment)}")
-	_open_table().delete(" AND ".join(conditions))
+		conditions.append("attachment = ?")
+		values.append(attachment)
+	with _connect(write=True) as db:
+		if _shape(db, TABLE_NAME) is not None:
+			db.execute(f"delete from {TABLE_NAME} where {' and '.join(conditions)}", values)
 
 
 def drop_table() -> None:
-	db = _connect()
-	if TABLE_NAME in db.list_tables().tables:
-		db.drop_table(TABLE_NAME)
+	with _connect(write=True) as db:
+		_drop_table(db, TABLE_NAME)
 
 
 def _table_exists() -> bool:
-	return TABLE_NAME in _connect().list_tables().tables
-
-
-def _open_table():
-	return _connect().open_table(TABLE_NAME)
+	with _connect() as db:
+		return _shape(db, TABLE_NAME) is not None
