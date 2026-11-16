@@ -274,7 +274,6 @@ frappe.patches.v16_0.notify_apps_to_convert_sidebar_fixtures
 frappe.patches.v16_0.keep_existing_sites_on_desktop_icons
 frappe.patches.v16_0.rename_lucide_workspace_icons
 frappe.patches.v16_0.backfill_print_settings_bulk_export_limits
-<<<<<<< HEAD
 frappe.patches.v16_0.set_weasyprint_generator_for_beta_formats
 frappe.patches.v16_0.wrap_string_zones_in_beta_layouts
 frappe.patches.v16_0.set_print_format_for_doctype
@@ -311,9 +310,4 @@ frappe.patches.v17_0.flow_server_session_approval_mode
 frappe.patches.v17_0.mark_flow_embedding_model
 frappe.patches.v17_0.move_flow_lancedb_out_of_files
 frappe.patches.v17_0.drop_flow_lancedb
-=======
 frappe.patches.v16_0.hash_session_ids
-
-
-[post_fixture_sync]
->>>>>>> 31e780f (fix: store hashed session ids (#43201))
