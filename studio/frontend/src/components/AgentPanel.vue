@@ -94,16 +94,32 @@ function openFlow() {
 function copyPrompt() {
 	const site = window.location.origin
 	const app = store.activeApp
-	copyToClipboard(
-		[
-			`Work with me on the Studio app \`${app?.name}\` on \`${site}\`.`,
-			"",
-			"- Install the `studio-app-building` skill from `frappe/frappe` with `npx skills` and read its SKILL.md.",
-			"- Talk to the site with frappectl. Install it with `uv tool install frappectl` and read `frappectl guide`.",
-			`- If frappectl is not logged in to this site, stop and ask me to run \`frappectl auth login ${site} --writable\`. ` +
-				"Never create or change users, passwords or API keys yourself.",
-			`- After each change, give me the preview link under \`${site}/dev/${app?.route}\` so I can check the page.`,
-		].join("\n"),
-	)
+	const skill =
+		"- Install the `studio-app-building` skill from `frappe/frappe` with `npx skills` and read its SKILL.md."
+	const login =
+		`If frappectl is not logged in to this site, stop and ask me to run \`frappectl auth login ${site} --writable\`. ` +
+		"Never create or change users, passwords or API keys yourself."
+	const preview = `- After each change, give me the preview link under \`${site}/dev/${app?.route}\` so I can check the page.`
+
+	const lines = app?.is_standard
+		? [
+				`Work with me on the Studio app \`${app.name}\` on \`${site}\`. ` +
+					`It is a standard app: its files are in the \`studio\` folder of the Frappe app \`${app.frappe_app}\` on this bench.`,
+				"",
+				skill,
+				`- Edit the app's files. Keep \`bench --site ${window.site_name} watch-studio\` running so the site imports your changes.`,
+				"- To read the site's data model, use frappectl. Install it with `uv tool install frappectl` and read `frappectl guide`. " +
+					login,
+				preview,
+			]
+		: [
+				`Work with me on the Studio app \`${app?.name}\` on \`${site}\`.`,
+				"",
+				skill,
+				"- Talk to the site with frappectl. Install it with `uv tool install frappectl` and read `frappectl guide`.",
+				`- ${login}`,
+				preview,
+			]
+	copyToClipboard(lines.join("\n"))
 }
 </script>
