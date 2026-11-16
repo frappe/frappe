@@ -26,6 +26,7 @@
 import { listDocuments, type BulkPrintBody } from "@framework/ui/api";
 import { Dialog, Select, toast } from "frappe-ui";
 import { computed, onMounted, ref, watch } from "vue";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { __, __n } from "@/i18n";
 import { DEFAULT, NO_LETTERHEAD, PAGE_SIZES, printBody, printableFormats } from "./printOptions";
 import { startBulkPrint } from "./printRun";
@@ -116,4 +117,9 @@ async function print() {
 function named(name: string) {
 	return { label: name, value: name };
 }
+
+useReadableDialog(open, () => ({
+	title: title.value,
+	buttons: actions.value.map((action) => action.label),
+}));
 </script>

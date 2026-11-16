@@ -43,7 +43,8 @@ import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { FieldErrorsKey, RecordLinkKey } from "@framework/ui/fields/types";
 import { __ } from "@/i18n";
 import { FieldErrors, missingRequired } from "@/recordPage";
-import { formData } from "@/recordPage/formDialogLayout";
+import { formData, formDialogHandle } from "@/recordPage/formDialogLayout";
+import { useDialogHandle } from "@/shell/dialogs/readableDialogs";
 import { landOnFirstMarked } from "../landOnField";
 
 const props = defineProps<{
@@ -68,18 +69,26 @@ const values = ref<Record<string, any>>({ ...props.doc });
 const tab = ref("");
 const body = useTemplateRef<HTMLElement>("body");
 
+useDialogHandle(
+	formDialogHandle(() => props.layout, values, { submit, close: () => props.close() })
+);
+
 const router = useRouter();
 function openEditor(route: RouteLocationRaw) {
 	props.close();
 	void router.push(route);
 }
 
-function submit() {
+function submit(): boolean {
 	errors.clearAll();
 	const missing = missingRequired(props.layout, values.value);
 	for (const { address, message } of missing) errors.mark(address, message);
-	if (missing.length) return landOnFirstMarked(errors, landing, values.value);
+	if (missing.length) {
+		landOnFirstMarked(errors, landing, values.value);
+		return false;
+	}
 	props.close(formData(props.layout, values.value));
+	return true;
 }
 
 const landing = {

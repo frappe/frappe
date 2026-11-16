@@ -12,6 +12,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Dialog, toast } from "frappe-ui";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { __ } from "@/i18n";
 import { logout } from "./session";
 
@@ -30,4 +31,11 @@ async function confirm() {
 		toast.error(__("Could not log out"));
 	}
 }
+
+useReadableDialog(open, () => ({
+	kind: "confirm",
+	title: __("Log out?"),
+	message: __("You will need to sign in again."),
+	buttons: actions.value.map((action) => action.label),
+}));
 </script>

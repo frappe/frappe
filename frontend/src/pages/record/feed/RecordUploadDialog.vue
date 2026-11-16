@@ -13,6 +13,8 @@
 <script setup lang="ts">
 import { inject, ref, watch } from "vue";
 import { FileUploadDialog } from "@framework/ui/FileUpload";
+import { __ } from "@/i18n";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import type { RecordPageApi } from "@/recordPage";
 import { RecordFeedsKey } from "./recordFeeds";
 
@@ -29,6 +31,8 @@ const busy = ref(false);
 watch(dialogOpen, (opened) => {
 	if (!opened && !busy.value) dialogMounted.value = false;
 });
+
+useReadableDialog(dialogOpen, () => ({ title: __("Upload") }));
 
 watch(feeds.uploadRequested, takeUploadRequest, { immediate: true });
 

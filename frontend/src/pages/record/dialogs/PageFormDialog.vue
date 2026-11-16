@@ -69,6 +69,7 @@ import type { PageDialogEntry } from "@/shell/dialogs/pageDialogs";
 import { errorMessage } from "@/recordPage/errorMessage";
 import {
 	applyRequired,
+	formDialogHandle,
 	formData,
 	initialDoc,
 	layoutFromFields,
@@ -138,6 +139,16 @@ function baseLayout(): FormLayoutSchema {
 	);
 }
 
+props.entry.listed.handle = formDialogHandle(() => layout.value, doc, {
+	submit() {
+		if (layoutLoading.value) throw new Error("The dialog is still loading");
+		if (options.actions?.length)
+			throw new Error("This dialog submits through its own buttons");
+		return submit();
+	},
+	close: cancel,
+});
+
 // `doctype` mode resolves its fields a fetch later than the dialog opens; edits already made are kept.
 watch(
 	layout,
@@ -197,17 +208,19 @@ const landing = {
 	showTab: (identity: string) => void (formTab.value = identity),
 };
 
-async function submit() {
-	if (busy.value || !validate()) return;
+async function submit(): Promise<boolean> {
+	if (busy.value || !validate()) return false;
 	submitting.value = true;
 	error.value = "";
 	try {
 		const data = formData(layout.value, doc.value);
 		await props.entry.hold(() => options.onSubmit?.(data));
 		close(data);
+		return true;
 	} catch (exception) {
 		// The dialog stays open with the error inline, so a failed server call can be retried.
 		report("onSubmit", exception);
+		return false;
 	} finally {
 		submitting.value = false;
 	}

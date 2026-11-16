@@ -2,6 +2,7 @@
 // narrowed as `shell.dialog` narrows them; `open` and `form` render on this stack, which a host component mounts.
 import { shallowRef, type Component, type Ref } from "vue";
 import { openNarrowedDialog } from "@/narrowedDialog";
+import { listDialog, trackListed, type ReadableDialog } from "./readableDialogs";
 import type {
   PageDialog,
   PageDialogConfirmOptions,
@@ -26,6 +27,8 @@ export interface PageDialogEntry {
    * mid-transition cannot turn a submitted dialog into a cancelled one.
    */
   settle: (result?: any) => void;
+  /** Its place on the tab's readable list; a form dialog's component sets its `handle`. */
+  listed: ReadableDialog;
   /** Takes the dialog off the stack — the host calls it after the leave transition. */
   dismiss: () => void;
   /** Runs one of the author's callbacks so its ops paint once, when it finishes. */
@@ -52,6 +55,11 @@ export interface PageDialogs {
 }
 
 let nextId = 0;
+
+function formButtons(form: PageDialogFormOptions): string[] {
+  if (form.actions) return form.actions.map((action) => action.label);
+  return [form.submitLabel || "Submit", ...(form.cancelLabel ? [form.cancelLabel] : [])];
+}
 
 export function createPageDialogs(host: PageDialogHost): PageDialogs {
   const entries = shallowRef<PageDialogEntry[]>([]);
@@ -109,6 +117,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
         if (settled) return;
         settled = true;
         untrack();
+        listing.release();
         resolve(result ?? null);
       };
       const dismiss = () => {
@@ -119,12 +128,20 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
         settle(null);
         dismiss();
       });
+      const built = build();
+      const listing = listDialog({
+        kind: built.kind === "form" ? "form" : "dialog",
+        title: built.form?.title ?? built.options?.title ?? "",
+        message: "",
+        buttons: built.form ? formButtons(built.form) : [],
+      });
       const entry: PageDialogEntry = {
         id,
         source,
         props: {},
         options: {},
-        ...build(),
+        ...built,
+        listed: listing.dialog,
         settle,
         dismiss,
         hold: host.hold,
@@ -148,7 +165,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
           `[page] ${source} page.dialog.${verb} onCancel threw`,
           exception,
         ),
-      track,
+      track: trackListed(verb, args, track),
     });
   }
 
