@@ -449,6 +449,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     header,
     quickActions,
     tabs,
+    form: { commits, errors: fieldErrors, childFields: host.childFields },
     permissions,
     postComment: host.postComment,
     hold,

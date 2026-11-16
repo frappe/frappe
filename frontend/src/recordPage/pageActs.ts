@@ -6,12 +6,14 @@ import { postCommentItem, type PostComment } from "./commentAct";
 import type { ResolvedItem, Surface } from "@/pageEngine/surface";
 import type { HeaderItem, QuickAction, RecordPageApi, TabItem } from "./types";
 import type { PagePermissions } from "./pagePermissions";
+import { recordEntries, type RecordFormHost } from "./recordForm";
 
 export interface PageActsHost {
   page: RecordPageApi;
   header: Surface<HeaderItem>;
   quickActions: Surface<QuickAction>;
   tabs: Surface<TabItem>;
+  form: Omit<RecordFormHost, "page">;
   permissions: Pick<PagePermissions, "passes" | "settled">;
   postComment?: PostComment;
   hold: ActScope["hold"];
@@ -29,7 +31,10 @@ export function registerPageActs(host: PageActsHost): () => void {
         ),
       quickActions: () => host.quickActions.resolve(),
       tabs: () => createEntries(host.tabs.resolve()),
-      record: () => (host.postComment ? [{ item: postCommentItem(host.postComment), hidden: false }] : []),
+      record: () => [
+        ...recordEntries({ page: host.page, ...host.form }),
+        ...(host.postComment ? [{ item: postCommentItem(host.postComment), hidden: false }] : []),
+      ],
     },
     context: () => host.page,
     passes: host.permissions.passes,

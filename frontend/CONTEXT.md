@@ -480,6 +480,14 @@ A list or record this user opened lately, on any device, read from `Route Histor
 tab's own visits on top. Nothing is kept in the browser. The palette shows the last few on the
 empty query, and the index shows its own.
 
+**Record surface**: <a id="record-surface"></a>
+The act surface that fills the form in front without saving: `record.set_values`, `record.add_child_row`,
+`record.set_child_values` and `record.remove_child_row`, none in the palette. A value commits through the
+channel typing uses, so the link check, `fetch_from` and the page's handlers run. A child row is
+`{table, idx}`, the 1-based number the grid shows; there are no row names or keys. Every
+`createRecordPage` registers it, and a Create dialog in front registers its own `record.set_values`.
+_Avoid_: setter, form API.
+
 **Shell surface**: <a id="shell-surface"></a>
 The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an
 app's global acts from its `acts.js`, named `shell.<app>.<item>`. Same item shape as a page surface, with no

@@ -60,13 +60,15 @@ import { opensInDialog } from "@/contributions/registry";
 import { useEventListener } from "@vueuse/core";
 import { Button, Dialog, ErrorMessage, toast } from "frappe-ui";
 import { createDocument, isApiError } from "@framework/ui/api";
-import { FormLayout } from "@framework/ui/FormLayout";
+import { FormLayout, layoutFields } from "@framework/ui/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
 import { FieldErrorsKey, RecordLinkKey } from "@framework/ui/fields/types";
 import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { __ } from "@/i18n";
 import { FieldErrors, missingRequired, useFormLayout } from "@/recordPage";
+import { setValuesEntry, type ValueForm } from "@/recordPage/recordActs";
+import { shownFields } from "@/recordPage/requiredFields";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { formData, formDialogHandle, initialDoc } from "@/recordPage/formDialogLayout";
 import { landOnFirstMarked } from "@/pages/record/landOnField";
@@ -96,9 +98,10 @@ const { doctype, values } = props.request;
 
 const router = useRouter();
 // The page's act surfaces stay off behind the dialog, as a record dialog's own take them over.
+// Its `record` surface fills this form: it has no handlers, and so no rows, to run.
 onUnmounted(
 	acts.register({
-		surfaces: { header: () => [], quickActions: () => [], tabs: () => [] },
+		surfaces: { header: () => [], quickActions: () => [], tabs: () => [], record: () => [setValuesEntry(valueForm)] },
 		context: () => undefined,
 		passes: () => false,
 		settled: () => undefined,
@@ -151,6 +154,20 @@ fetchNewDocument(doctype).then(
 	(data) => (newDoc.value = data),
 	(exception) => (error.value = errorMessage(exception))
 );
+
+const valueForm: ValueForm = {
+	doc: () => doc.value,
+	field: (fieldname) => {
+		const field = layoutFields(layout.value).find((one) => one.fieldname === fieldname);
+		const shown = shownFields(layout.value, doc.value).find((one) => one.fieldname === fieldname);
+		return field && { fieldtype: field.fieldtype, hidden: !shown, read_only: shown?.readOnly };
+	},
+	commit: async (fieldname) => {
+		typed.value = true;
+		errors.clear(fieldname);
+	},
+	errors: () => Object.fromEntries(Object.entries(errors.current()).map(([key, message]) => [key, [message].flat().join("; ")])),
+};
 
 const editLayoutRoute = useEditLayoutRoute(meta);
 const editLayout = computed(() => editLayoutRoute("quick-entry", quickEntry.editorRow.value));

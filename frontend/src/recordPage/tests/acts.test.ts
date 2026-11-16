@@ -206,7 +206,7 @@ describe("page.run", () => {
     const { controller, page } = makePage();
     await controller.refresh();
 
-    expect(acts.available().map((act) => act.name)).toEqual(["header.save"]);
+    expect(acts.listed().map((act) => act.name)).toEqual(["header.save"]);
     expect(await denial(page.run("header.archive"))).toMatchObject({ reason: "hidden" });
     expect(await denial(page.run("header.off"))).toMatchObject({ reason: "hidden" });
   });
