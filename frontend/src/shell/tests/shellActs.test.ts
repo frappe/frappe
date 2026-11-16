@@ -372,6 +372,23 @@ describe("each shell act, run by name", () => {
 		expect(router.currentRoute.value.path).toBe("/purchase-invoice");
 	});
 
+	it("back fails when another route push interrupts it, and a second call during it goes back once", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		await router.push("/item");
+		router.beforeEach(async () => void (await new Promise((resolve) => setTimeout(resolve, 20))));
+		const first = acts.run("shell.back");
+		const second = acts.run("shell.back");
+		const interrupted = Promise.all([
+			expect(first).rejects.toThrow(/another navigation interrupted/),
+			expect(second).rejects.toThrow(/another navigation interrupted/),
+		]);
+		const pushed = router.push("/customer");
+		await interrupted;
+		await pushed;
+		expect(router.currentRoute.value.path).toBe("/customer");
+	});
+
 	it("an act the shell does not hold is denied as missing", async () => {
 		await shell();
 		const denied = await acts.run("shell.nope").catch((error) => error);
