@@ -33,6 +33,7 @@ GROVE_DOWN_CACHE = "flow_grove_down"
 GROVE_MODEL = "openai/gpt-6-luna"  # as Grove lists it, under its vendor
 # where a key is checked when the models list doesn't need one
 KEY_URLS = {"openrouter": "https://openrouter.ai/api/v1/key"}
+CONNECT_DOCTYPES = ("Flow Provider", "Flow Model")
 
 
 @frappe.whitelist()
@@ -207,8 +208,13 @@ def sync_site_provider() -> None:
 	).insert(ignore_permissions=True)
 
 
+def can_connect() -> bool:
+	"""Whether the user may connect an AI service, as Flow's first run does."""
+	return all(frappe.has_permission(doctype, "create") for doctype in CONNECT_DOCTYPES)
+
+
 def _check_can_connect() -> None:
-	for doctype in ("Flow Provider", "Flow Model"):
+	for doctype in CONNECT_DOCTYPES:
 		frappe.has_permission(doctype, "create", throw=True)
 
 
@@ -316,7 +322,7 @@ def _save_model(provider: str, model: str, embedding: bool = False) -> str:
 	model_id = f"{provider}/{model}"
 	if name := frappe.db.get_value("Flow Model", {"model_id": model_id}):
 		frappe.has_permission("Flow Model", "write", doc=name, throw=True)
-		frappe.db.set_value("Flow Model", name, {"enabled": 1, "embedding": embedding})
+		frappe.get_doc("Flow Model", name).db_set({"enabled": 1, "embedding": embedding})
 		return name
 	title = _title(model)
 	if frappe.db.exists("Flow Model", title):

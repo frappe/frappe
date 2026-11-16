@@ -13,6 +13,7 @@ import frappe
 import frappe.defaults
 from frappe import _
 from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.lib.model import is_enabled as flow_is_enabled
 from frappe.flow.lib.session import new_session, sync_with_retry
 from frappe.query_builder.functions import Locate, Lower
 from frappe.utils import cint, escape_html, get_fullname, get_url
@@ -99,6 +100,12 @@ def boot() -> dict[str, Any]:
 			for doctype in SETTINGS_DOCTYPES
 		},
 	}
+
+
+@frappe.whitelist(methods=["GET"])
+def is_enabled() -> bool:
+	"""Whether Flow can chat on this site, for clients without Desk's boot."""
+	return flow_is_enabled()
 
 
 @frappe.whitelist(methods=["POST"])

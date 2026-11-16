@@ -627,7 +627,7 @@ frappe.ui.Sidebar = class Sidebar {
 			suffix: { keyboard_shortcut: "ctrl+i" },
 			// the panel that frappe/flow/launcher.py adds to the page for those who may use Flow
 			onClick: () => window.flow?.toggle(),
-			condition: () => frappe.model.can_read("Flow Session"),
+			condition: () => frappe.flow.can_offer(),
 		});
 		this.standard_items.push({
 			label: __("Background Tasks"),
