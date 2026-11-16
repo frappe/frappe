@@ -24,8 +24,6 @@ import "./frappe/views/calendar/calendar.js";
 import "./frappe/views/dashboard/dashboard_view.js";
 import "./frappe/views/image/image_view.js";
 import "./frappe/views/map/map_view.js";
-import "./frappe/views/split/split_view.js";
-import "./frappe/views/split/split_preview.js";
 import "./frappe/views/kanban/kanban_view.js";
 import "./frappe/views/inbox/inbox_view.js";
 import "./frappe/views/file/file_view.js";

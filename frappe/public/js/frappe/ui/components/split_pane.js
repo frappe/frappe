@@ -24,7 +24,8 @@ const sidebar_holders = new Set();
  * 1024px, each scrolling on its own, filling the screen under what sits above the pane. The next
  * page loads by itself as the list's end scrolls near. Below 1024px the columns stack and the page
  * scrolls; the owner decides what shows there. The owner keeps the selection and the routing.
- * Styles are in desk/split_view.scss.
+ * Styles are in desk/split_view.scss. Not in the desk bundle: load it first with
+ * `await frappe.require("split_view.bundle.js")`.
  *
  * @example
  * const pane = new frappe.ui.SplitPane({

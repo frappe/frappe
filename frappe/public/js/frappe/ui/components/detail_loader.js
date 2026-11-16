@@ -23,7 +23,8 @@ const CACHE_SIZE = 50;
  * flash: a load under 250ms shows no skeleton, a slower one shows it for at least 300ms. The last
  * 50 records stay in memory and show at once when picked again, then load again quietly and draw
  * again only when they changed. The rows beside the shown one load early. Only the latest `show`
- * draws; a late answer for a record left behind only fills the memory.
+ * draws; a late answer for a record left behind only fills the memory. Not in the desk bundle:
+ * load it first with `await frappe.require("split_view.bundle.js")`.
  *
  * @example
  * const loader = new frappe.ui.DetailLoader({
