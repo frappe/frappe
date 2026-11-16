@@ -187,8 +187,8 @@ export default class GridRow {
 		);
 	}
 	refresh() {
-		if (this.frm && this.doc) {
-			this.doc = locals[this.doc.doctype][this.doc.name];
+		if (this.frm && this.doc && this.doc.name) {
+			this.doc = locals[this.doc.doctype][this.doc.name] || this.doc;
 		}
 
 		if (this.grid.template && !this.grid.meta.editable_grid) {
