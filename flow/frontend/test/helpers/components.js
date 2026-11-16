@@ -164,7 +164,7 @@ const fakes = {
 				])
 			}
 		}
-		export const toast = { shown: [], success(message) { this.shown.push(message) }, error() {} }
+		export const toast = { shown: [], errors: [], success(message) { this.shown.push(message) }, error(message) { this.errors.push(message) } }
 		export const dialog = {
 			asked: [],
 			danger(options) { this.asked.push(options) },

@@ -48,10 +48,11 @@ test("a new path moves an open panel to that route, and the same path leaves it 
 	});
 	const { router } = last();
 	await router.isReady();
-	panelIsland.update({ path: "/s/S4" });
-	await router.isReady();
+	panelIsland.update({ path: "/s/S4", asked: "S4" });
 	await new Promise((resolve) => setTimeout(resolve));
 	assert.equal(router.currentRoute.value.fullPath, "/s/S4");
+	// the chat an app asked for, which the page may say it could not open
+	assert.equal(panel.askedSession, "S4");
 	assert.deepEqual(routes.slice(-1), ["/s/S4"]);
 	const count = routes.length;
 	panelIsland.update({ path: "/s/S4" });
