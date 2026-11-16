@@ -60,7 +60,6 @@ describe("the date pickers", () => {
     expect(committed).toEqual([]);
   });
 
-  // An act sets the doc, not the input: the closed text must follow, focused or not.
   it.each([
     ["Date", DateField, "2026-11-03", "03-11-2026"],
     ["Datetime", DatetimeField, "2026-11-03 09:15:30", "03-11-2026 09:15"],
