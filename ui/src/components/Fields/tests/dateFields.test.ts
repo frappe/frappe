@@ -82,7 +82,7 @@ describe("the date pickers", () => {
 
   it("keep the same input when the user types a date", async () => {
     const { input, modelValue } = render(DateField, "Date", null);
-    input.dispatchEvent(new Event("focus"));
+    input.focus();
     input.value = "2026-11-03";
     input.dispatchEvent(new Event("input"));
     input.dispatchEvent(new Event("blur"));
