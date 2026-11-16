@@ -58,6 +58,15 @@ class TestFlowEnabled(IntegrationTestCase):
 		model.db_set("enabled", 0)
 		self.assertFalse(self._is_enabled())
 
+	def test_a_model_with_its_own_key_needs_no_provider(self):
+		self._model(api_key="sk-own")
+		self.assertTrue(self._is_enabled())
+
+	def test_another_providers_row_does_not_enable_a_model(self):
+		self._provider("anthropic")
+		self._model()
+		self.assertFalse(self._is_enabled())
+
 	def test_an_embedding_model_alone_does_not_enable_flow(self):
 		self._provider()
 		self._model(embedding=1)
