@@ -182,6 +182,8 @@ test.describe("Split View", () => {
 
 	test("draws a DocType's own detail with render_detail", async ({ page }) => {
 		await page.goto("/desk/todo/view/list");
+		// todo_list.js replaces the ToDo settings when the list loads, so set them after it
+		await page.waitForFunction(() => window.cur_list?.doctype === "ToDo");
 		await page.evaluate((stamp) => {
 			window.destroyed_details = [];
 			(frappe.listview_settings.ToDo ||= {}).split_view = {
