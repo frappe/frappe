@@ -32,7 +32,7 @@ from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.logging import get_log_db, log_table
 from frappe.utils.password import check_password
-from frappe.www.login import _generate_temporary_login_link
+from frappe.www.login import _generate_temporary_login_link, send_login_link
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -428,6 +428,16 @@ class TestAuth(IntegrationTestCase):
 				break
 		else:
 			self.fail("Rate limting not working")
+
+	def test_login_link_is_sent_from_a_job(self):
+		frappe.db.set_single_value("System Settings", "login_with_email_link", 1)
+
+		for email in (self.test_user_email, "no-such-user@example.com"):
+			with patch("frappe.enqueue") as enqueue, patch("frappe.sendmail") as sendmail:
+				send_login_link(email)
+
+			enqueue.assert_called_once()
+			sendmail.assert_not_called()
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_correct_cookie_expiry_set(self):
