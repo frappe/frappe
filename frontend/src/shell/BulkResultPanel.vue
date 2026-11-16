@@ -133,5 +133,16 @@ async function retryFailed() {
 	}
 }
 
-useReadableDialog(open, () => ({ title: title.value }));
+useReadableDialog(open, () => ({ title: title.value, buttons: buttons() }));
+
+function buttons() {
+	const { report: current } = props;
+	const failed = failedNames.value.length > 0;
+	return [
+		current.fileUrl && __("Open PDF"),
+		failed && current.select && __("Select failed"),
+		failed && current.retry && __("Retry failed"),
+		!failed && __("Done"),
+	].filter((label): label is string => !!label);
+}
 </script>

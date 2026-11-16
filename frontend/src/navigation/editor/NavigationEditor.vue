@@ -888,6 +888,17 @@ function sidebarLabel(key: string): string {
 
 useReadableDialog(
 	() => !!props.target,
-	() => ({ title: __("Customize navigation") })
+	() => ({
+		title: __("Customize navigation"),
+		buttons: [
+			changed.value
+				? __("Discard changes")
+				: draft.value && hasSaved.value
+				? __("Reset to default")
+				: "",
+			__("Cancel"),
+			__("Save"),
+		].filter(Boolean),
+	})
 );
 </script>

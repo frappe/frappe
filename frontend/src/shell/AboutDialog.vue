@@ -213,6 +213,9 @@ async function copy(text: string) {
 
 useReadableDialog(
 	() => props.open,
-	() => ({ title: __("About") })
+	() => ({
+		title: __("About"),
+		buttons: [...LINKS.map(({ label }) => label), __("Copy all versions")],
+	})
 );
 </script>
