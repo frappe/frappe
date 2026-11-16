@@ -14,14 +14,12 @@ ASSET_EXTENSIONS = frozenset(
 	)
 )  # fmt: skip
 WEB_SCHEMES = ("http", "https")
-ROBOTS_MAX_BYTES = 512 * 1024
 INDEX_FILE = re.compile(r"/index\.(?:html?|php)$")
 TRACKING_PARAMETERS = re.compile(r"^(?:utm_.*|fbclid|gclid|msclkid|mc_cid|mc_eid)$")
 
 
 def normalize_url(url: str) -> str:
-	"""The key that tells two spellings of a page apart. http and https, `www.`, a trailing slash,
-	index.html, the fragment, tracking parameters and the order of parameters make no difference."""
+	"""One key for every spelling of a page: scheme, `www.`, slash, index.html, fragment, tracking params."""
 	parts = urlsplit(url.strip())
 	scheme = "https" if parts.scheme.lower() in WEB_SCHEMES else parts.scheme.lower()
 	host = canonical_host(parts.netloc.rsplit("@", 1)[-1]).removeprefix("www.")
@@ -93,19 +91,20 @@ def contains_in_order(url: str, parts: tuple[str, ...]) -> bool:
 
 
 class Robots:
-	"""The site's robots.txt, as RFC 9309 reads it: a missing file (4xx) allows everything,
-	an unreachable one (5xx, 429 or no answer) allows nothing."""
+	"""robots.txt per RFC 9309: missing (4xx) allows all, unreachable (5xx, 429) allows none."""
 
 	def __init__(self, fetcher: Fetcher, start_url: str):
 		self.user_agent = fetcher.limits.user_agent
 		self.respected = fetcher.limits.respect_robots_txt
 		self.parser = RobotFileParser()
+		self.too_large = False
 		self.parser.parse(self.read(fetcher, f"{site_root(start_url)}/robots.txt").splitlines())
 
 	def read(self, fetcher: Fetcher, url: str) -> str:
 		try:
-			return fetcher.get(url, ROBOTS_MAX_BYTES, fetcher.limits.page_timeout).text
+			return fetcher.get(url, fetcher.limits.max_robots_size, fetcher.limits.page_timeout).text
 		except FetchError as e:
+			self.too_large = self.respected and e.code == "too_large"
 			self.parser.disallow_all = not (e.status and 400 <= e.status < 500 and e.status != 429)
 			return ""
 

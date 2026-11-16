@@ -17,9 +17,14 @@
   "downloads_section",
   "page_timeout",
   "max_page_size",
+  "max_robots_size",
+  "max_retries",
   "column_break_downloads",
   "sitemap_timeout",
   "max_sitemap_size",
+  "max_sitemap_pages",
+  "max_child_sitemaps",
+  "max_markdown_size",
   "tuning_section",
   "exclude_paths",
   "column_break_tuning",
@@ -130,6 +135,23 @@
    "reqd": 1
   },
   {
+   "default": "512",
+   "description": "A larger robots.txt is not read, and the site is not crawled.",
+   "fieldname": "max_robots_size",
+   "fieldtype": "Int",
+   "label": "Maximum robots.txt size (KB)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "2",
+   "description": "Times a page is tried again when the site is busy or has an error (429 or 5xx).",
+   "fieldname": "max_retries",
+   "fieldtype": "Int",
+   "label": "Retries",
+   "non_negative": 1
+  },
+  {
    "fieldname": "column_break_downloads",
    "fieldtype": "Column Break"
   },
@@ -148,6 +170,32 @@
    "fieldname": "max_sitemap_size",
    "fieldtype": "Int",
    "label": "Maximum sitemap size (MB)",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "2000",
+   "description": "Pages beyond this in one sitemap or llms.txt are ignored.",
+   "fieldname": "max_sitemap_pages",
+   "fieldtype": "Int",
+   "label": "Maximum pages per sitemap",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "default": "5",
+   "description": "Sitemap indexes and llms.txt files can point to more such files. Only this many are read.",
+   "fieldname": "max_child_sitemaps",
+   "fieldtype": "Int",
+   "label": "Maximum child sitemaps",
+   "non_negative": 1
+  },
+  {
+   "default": "50",
+   "description": "Markdown pages larger than this are skipped, as converting them is slow.",
+   "fieldname": "max_markdown_size",
+   "fieldtype": "Int",
+   "label": "Maximum Markdown size (KB)",
    "non_negative": 1,
    "reqd": 1
   },

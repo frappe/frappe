@@ -12,6 +12,7 @@ from frappe.core.doctype.file.utils import get_content_hash
 from frappe.utils.data import md_to_html, to_markdown
 from frappe.utils.html_utils import acceptable_attributes, acceptable_elements, mathml_elements
 from frappe.web_crawler.fetch import Download
+from frappe.web_crawler.limits import CrawlLimits
 from frappe.web_crawler.urls import absolute_url
 
 NOISE = "nav, footer, aside, script, style, noscript, template, svg"
@@ -19,10 +20,9 @@ DISALLOWED_TAGS = ("form", "input", "button", "select", "textarea", "meta", "lin
 MARKDOWN_TYPES = ("text/markdown", "text/x-markdown")
 FRONT_MATTER = re.compile(r"\A\s*---[ \t]*\n(.*?)\n---[ \t]*(?:\n|\Z)", re.S)
 HEADING = re.compile(r"^# (.+)$", re.M)
-# markdown2 slows down quadratically on long Markdown and on long runs of one punctuation mark.
-MAX_MARKDOWN_SIZE = 50 * 1024
+# markdown2 slows down quadratically on long runs of one punctuation mark.
 REPEATED_PUNCTUATION = re.compile(r"([^\w\s]|_)\1{9,}")
-BLOCK_TAGS = (
+NEW_LINE_TAGS = (
 	"address", "article", "aside", "blockquote", "br", "dd", "div", "dl", "dt", "figcaption", "figure",
 	"footer", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hr", "li", "main", "nav", "ol", "p", "pre",
 	"section", "table", "td", "th", "tr", "ul",
@@ -89,8 +89,9 @@ class CrawledPage:
 class PageParser:
 	"""Turns a download into a Crawled Page: main content, text, title, meta tags and links."""
 
-	def __init__(self, download: Download):
+	def __init__(self, download: Download, limits: CrawlLimits):
 		self.download = download
+		self.limits = limits
 
 	def parse(self) -> CrawledPage:
 		"""Never raises: markup nested too deep for a parser fails this page only."""
@@ -126,7 +127,7 @@ class PageParser:
 		)
 
 	def from_markdown(self) -> CrawledPage:
-		if len(self.download.content) > MAX_MARKDOWN_SIZE:
+		if len(self.download.content) > self.limits.max_markdown_size:
 			return self.failed("too_large")
 		front_matter, markdown = split_front_matter(self.download.text)
 		heading = HEADING.search(markdown)
@@ -204,14 +205,13 @@ class PageParser:
 
 
 def plain_text(element: Tag) -> str:
-	"""The visible text, a line per block element, keeping the spacing of preformatted text.
-	One walk with a stack, so deeply nested markup costs neither quadratic time nor recursion."""
+	"""The visible text, a line per block. Iterative, so deep nesting can't recurse or go quadratic."""
 	parts, stack = [], [(element, False)]
 	while stack:
 		node, in_pre = stack.pop()
 		if isinstance(node, Tag):
 			in_pre = in_pre or node.name == "pre"
-			edge = [(LINE_BREAK, in_pre)] if node.name in BLOCK_TAGS else []
+			edge = [(LINE_BREAK, in_pre)] if node.name in NEW_LINE_TAGS else []
 			stack += edge + [(child, in_pre) for child in reversed(node.contents)] + edge
 		elif node is LINE_BREAK:
 			parts.append(LINE_BREAK)
@@ -237,9 +237,7 @@ def prune_deep(element: Tag) -> Tag:
 
 
 def split_front_matter(text: str) -> tuple[dict[str, str], str]:
-	"""The scalar values of a Markdown page's YAML front matter as text, and the page without it.
-	Lists and mappings are dropped: turning a list of aliases into text can expand a few hundred bytes
-	into gigabytes."""
+	"""Scalar front matter values, and the page without it. Lists are dropped: aliases can blow up."""
 	match = FRONT_MATTER.match(text)
 	if not match:
 		return {}, text

@@ -81,6 +81,16 @@ class TestCrawl(IntegrationTestCase):
 				)
 				self.assertNotIn("https://example.com/", self.site.requested)
 
+	def test_robots_txt_over_the_size_limit_stops_the_crawl(self):
+		self.site.page("https://example.com/", links("/a"))
+		self.site.add("https://example.com/robots.txt", "#" * 2048, "text/plain")
+		with change_settings("Web Crawl Settings", {"max_robots_size": 1}):
+			crawler = WebCrawler("https://example.com")
+			self.assertEqual(list(crawler.crawl()), [])
+			self.assertEqual(crawler.stopped_reason, "robots_too_large")
+		with change_settings("Web Crawl Settings", {"max_robots_size": 1, "respect_robots_txt": 0}):
+			self.assertEqual(self.crawl()[0].error, None)
+
 	def test_list_pages_and_crawl_read_the_site(self):
 		self.site.page("https://example.com/", links("/a"))
 		self.site.page("https://example.com/listed", "<p>Listed</p>")
@@ -263,11 +273,13 @@ class TestCrawl(IntegrationTestCase):
 
 
 class TestCrawlLimits(IntegrationTestCase):
-	def test_arguments_only_lower_the_settings(self):
+	def test_arguments_can_lower_the_settings_but_not_raise_them(self):
 		with self.change_settings("Web Crawl Settings", {"max_pages": 20, "max_depth": 2}):
-			self.assertEqual(CrawlLimits.from_settings(5, 9).max_pages, 5)
-			self.assertEqual(CrawlLimits.from_settings(50, 9).max_pages, 20)
-			self.assertEqual(CrawlLimits.from_settings(None, 9).max_depth, 2)
+			self.assertEqual(CrawlLimits.from_settings(5, 1).max_pages, 5)
+			self.assertEqual(CrawlLimits.from_settings(None, None).max_depth, 2)
+			self.assertRaises(frappe.ValidationError, CrawlLimits.from_settings, 21)
+			self.assertRaises(frappe.ValidationError, CrawlLimits.from_settings, None, 3)
+			self.assertRaises(frappe.ValidationError, web_crawler.crawl, "https://example.com", limit=21)
 
 	def test_job_outlives_the_crawl_time(self):
 		with self.change_settings("Web Crawl Settings", {"max_crawl_time": 10}):

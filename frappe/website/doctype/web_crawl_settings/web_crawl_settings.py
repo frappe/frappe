@@ -19,6 +19,9 @@ MUST_BE_POSITIVE = (
 	"max_page_size",
 	"sitemap_timeout",
 	"max_sitemap_size",
+	"max_markdown_size",
+	"max_robots_size",
+	"max_sitemap_pages",
 )
 
 
@@ -40,11 +43,16 @@ class WebCrawlSettings(Document):
 		concurrent_requests: DF.Int
 		exclude_paths: DF.SmallText | None
 		link_priorities: DF.Table[WebCrawlLinkPriority]
+		max_child_sitemaps: DF.Int
 		max_crawl_time: DF.Int
 		max_depth: DF.Int
+		max_markdown_size: DF.Int
 		max_page_size: DF.Int
 		max_pages: DF.Int
 		max_redirects: DF.Int
+		max_retries: DF.Int
+		max_robots_size: DF.Int
+		max_sitemap_pages: DF.Int
 		max_sitemap_size: DF.Int
 		page_timeout: DF.Int
 		request_delay: DF.Float

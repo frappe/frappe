@@ -3,7 +3,7 @@ from collections import defaultdict
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_to_date, get_link_to_form, now_datetime
+from frappe.utils import add_to_date, now_datetime
 from frappe.web_crawler import CrawledPage, KeywordPriority, WebCrawler
 from frappe.web_crawler.limits import CrawlLimits
 from frappe.website.doctype.web_crawl_settings.web_crawl_settings import warn_if_crawl_may_stop_early
@@ -21,7 +21,11 @@ CRAWL_FIELDS = (
 	"reference_doctype",
 	"reference_name",
 )
-STOPPED_REASONS = {"time_limit": "Time limit", "rate_limited": "Rate limited"}
+STOPPED_REASONS = {
+	"time_limit": "Time limit",
+	"rate_limited": "Rate limited",
+	"robots_too_large": "robots.txt too large",
+}
 ERRORS = {
 	"blocked": "Blocked",
 	"empty": "Empty",
@@ -76,7 +80,6 @@ class WebCrawl(Document):
 	def validate_new(self):
 		self.validate_methods()
 		crawler = self.flags.crawler or self.crawler()
-		self.validate_limits(crawler.limits)
 		self.apply_settings(crawler)
 		if not self.flags.ignore_permissions:
 			warn_if_crawl_may_stop_early(crawler.limits)
@@ -89,19 +92,6 @@ class WebCrawl(Document):
 				frappe.PermissionError,
 				title=_("Not permitted"),
 			)
-
-	def validate_limits(self, limits: CrawlLimits):
-		"""Only an admin can raise the limits, in Web Crawl Settings."""
-		for fieldname, ceiling in (("limit", limits.max_pages), ("max_depth", limits.max_depth)):
-			if (self.get(fieldname) or 0) > ceiling:
-				frappe.throw(
-					_("{0} can be at most {1}. To read more, raise it in {2}.").format(
-						_(self.meta.get_label(fieldname)),
-						ceiling,
-						get_link_to_form("Web Crawl Settings"),
-					),
-					title=_("Limit too high"),
-				)
 
 	def apply_settings(self, crawler: WebCrawler):
 		"""Fills what the crawl leaves blank from Web Crawl Settings, so the crawl shows what it uses."""
@@ -148,9 +138,7 @@ class WebCrawl(Document):
 		return {row.keyword: row.weight for row in self.link_priorities}
 
 	def find_running(self, on_success: str | None = None, on_failure: str | None = None) -> "WebCrawl | None":
-		"""The user's crawl with the same fields and callbacks that is still running.
-		A crawl older than its job timeout is not running, whatever its status says.
-		Locking reads, so they also see a crawl committed while `start_crawl` waited for its lock."""
+		"""The user's still-running crawl with the same fields and callbacks."""
 		filters = {
 			**{fieldname: self.get(fieldname) for fieldname in CRAWL_FIELDS},
 			"owner": frappe.session.user,
@@ -205,8 +193,7 @@ class WebCrawl(Document):
 		self.db_set("background_task", task.name)
 
 	def run(self) -> dict:
-		"""The background job: reads every page, stores it, and calls `on_page_method` in a savepoint.
-		A retried job starts over, so the pages of the earlier run are deleted."""
+		"""The background job: stores every page and calls `on_page_method`. A retry starts over."""
 		self.reset_results()
 		errors = {}
 		try:
@@ -217,14 +204,15 @@ class WebCrawl(Document):
 				self.publish_progress(crawler.limits.max_pages)
 		except Exception:
 			frappe.db.rollback()
-			self.db_set({"status": "Failed", "finished_at": now_datetime()}, commit=True)
+			self.db_set({"status": "Failed", "finished_at": now_datetime()}, commit=True, notify=True)
 			raise
 		self.db_set(
 			{
 				"status": "Completed",
 				"finished_at": now_datetime(),
 				"stopped_reason": STOPPED_REASONS.get(crawler.stopped_reason),
-			}
+			},
+			notify=True,
 		)
 		return self.summary(errors, crawler.stopped_reason)
 
@@ -240,6 +228,7 @@ class WebCrawl(Document):
 				"pages_failed": 0,
 			},
 			commit=True,
+			notify=True,
 		)
 
 	def save_page(self, page: CrawledPage, on_page, errors: dict):
@@ -284,6 +273,10 @@ class WebCrawl(Document):
 	def publish_progress(self, max_pages: int):
 		from frappe.utils.task_queue import get_current_task
 
+		# Counts leave `modified` alone, so open forms only hear of them from this event.
+		frappe.publish_realtime(
+			"web_crawl_progress", {"web_crawl": self.name}, doctype=self.doctype, docname=self.name
+		)
 		if task := get_current_task():
 			task.publish_progress(min(self.pages_crawled / max(max_pages, 1) * 100, 99))
 
@@ -329,12 +322,7 @@ def start_crawl(
 	on_failure: str | None = None,
 	**fields,
 ) -> WebCrawl:
-	"""Crawls `url` in a background job and returns its Web Crawl, or the user's running one with
-	the same fields. `sitemap` is "include", "skip" or "only", as for `WebCrawler`.
-	`on_page(page, web_crawl)` and `skip_urls(urls)` are dotted paths, called in the job;
-	`on_success(web_crawl, result)` and `on_failure` run when it ends.
-	`fields` are other Web Crawl fields, such as `limit`, `max_depth` or `reference_name`.
-	Locks the user's row until the caller's transaction ends."""
+	"""Crawls `url` in a background job, or returns the user's identical running crawl."""
 	web_crawl = frappe.new_doc("Web Crawl")
 	web_crawl.update(
 		{

@@ -18,19 +18,7 @@ SITEMAP_MODES = ("include", "skip", "only")
 
 
 class WebCrawler:
-	"""Reads the pages of one site, within the limits in Web Crawl Settings.
-
-	`sitemap` is "include" (follow links breadth first from the start URL, with the pages llms.txt
-	and sitemap.xml list as seeds), "skip" (follow links only) or "only" (the listed pages only).
-	`limit` caps the pages read, `max_depth` the links followed away from the start page.
-	`previous_hashes` maps URLs to `content_hash` values of an earlier crawl, for each page's `change_status`.
-	`priority(url, anchor_text)` orders pages at the same depth (higher first).
-	Without `priority` or `exclude_paths`, the tuning in Web Crawl Settings is used.
-	`skip_urls(urls)` returns the URLs to drop before they are fetched.
-	The crawl stops with `stopped_reason` "time_limit" once the settings' maximum crawl time has passed.
-	Pages are read in batches of the settings' concurrent requests, with the request delay between batches.
-	A site whose robots.txt sets a Crawl-delay is read one page at a time.
-	"""
+	"""Reads one site within Web Crawl Settings. `sitemap`: "include", "skip" (links only) or "only"."""
 
 	def __init__(
 		self,
@@ -101,6 +89,9 @@ class WebCrawler:
 
 	def crawl(self) -> Iterator[CrawledPage]:
 		"""Yields each page as it is read. A failed page is yielded with `error` set; it never raises."""
+		if self.robots.too_large:
+			self.stopped_reason = "robots_too_large"
+			return
 		for page in self.read_pages(self.frontier()):
 			page.compare(self.previous_hashes.get(normalize_url(page.final_url or page.url)))
 			yield page
@@ -114,8 +105,7 @@ class WebCrawler:
 		return Robots(self.fetcher, self.url)
 
 	def frontier(self) -> "CrawlFrontier":
-		"""The start page and its links when following links, and the index files' pages.
-		With neither, the start page alone."""
+		"""The start page, plus its links and the index files' pages when enabled."""
 		frontier = CrawlFrontier(self.priority)
 		if self.follow_links or not self.index_files:
 			frontier.add([self.url], 0)
@@ -166,7 +156,7 @@ class WebCrawler:
 			download = self.fetcher.get(url, self.limits.max_page_size, self.limits.page_timeout)
 		except FetchError as e:
 			return CrawledPage(url, e.final_url or url, e.status, e.code)
-		return PageParser(download).parse()
+		return PageParser(download, self.limits).parse()
 
 	def batch_size(self) -> int:
 		return 1 if self.robots.crawl_delay() else self.limits.concurrent_requests
@@ -197,8 +187,7 @@ class WebCrawler:
 
 
 class KeywordPriority:
-	"""A `priority` that reads links first when their URL or anchor text has a keyword.
-	A link scores the sum of the weights of its keywords. Unlike other callables, it can be enqueued."""
+	"""Reads links with weighted keywords in the URL or anchor first. Picklable, so it can be enqueued."""
 
 	def __init__(self, weights: dict[str, float]):
 		self.weights = {keyword.lower(): weight for keyword, weight in weights.items()}

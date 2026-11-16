@@ -6,9 +6,6 @@ from frappe.web_crawler.fetch import Download, Fetcher, FetchError
 from frappe.web_crawler.scope import Robots, Scope, bare_host, site_root
 from frappe.web_crawler.urls import absolute_url
 
-# Most pages a source may list, and most child sitemaps or indexes it may follow.
-MAX_CANDIDATES = 2000
-MAX_CHILDREN = 5
 LOC = re.compile(r"<loc>([^<]*)</loc>")
 LLMS_LINK = re.compile(r"^[ \t]*[-*] \[([^\]\n]+)\]\(([^)\s]+)\)", re.M)
 # Mintlify lists big sites as /_llms/<section>.txt.
@@ -40,12 +37,12 @@ class Source:
 		return None if download.content_type == "text/html" else download
 
 	def in_scope(self, urls) -> list[str]:
-		return list(dict.fromkeys(url for url in urls if self.scope.contains(url)))[:MAX_CANDIDATES]
+		urls = dict.fromkeys(url for url in urls if self.scope.contains(url))
+		return list(urls)[: self.fetcher.limits.max_sitemap_pages]
 
 
 class Sitemap(Source):
-	"""sitemap.xml: under the start path, at the site root, then the ones robots.txt names.
-	A sitemap index is followed one level deep."""
+	"""sitemap.xml under the start path, the site root, and robots.txt; indexes one level deep."""
 
 	def __init__(self, fetcher: Fetcher, start_url: str, scope: Scope, robots: Robots):
 		super().__init__(fetcher, start_url, scope)
@@ -74,15 +71,15 @@ class Sitemap(Source):
 
 	def child_locs(self, children: list[str]) -> list[str]:
 		locs = []
-		for child in [url for url in children if bare_host(url) == self.scope.host][:MAX_CHILDREN]:
+		children = [url for url in children if bare_host(url) == self.scope.host]
+		for child in children[: self.fetcher.limits.max_child_sitemaps]:
 			kind, child_locs = parse_sitemap(self.read(child))
 			locs += child_locs if kind == "urlset" else []
 		return locs
 
 
 def parse_sitemap(download: Download | None) -> tuple[str | None, list[str]]:
-	"""A sitemap's kind (`urlset` or `sitemapindex`) and its locations. A DOCTYPE is refused, as it can
-	declare entities."""
+	"""A sitemap's kind and locations. A DOCTYPE is refused, as it can declare entities."""
 	if not download or "<!DOCTYPE" in download.text:
 		return None, []
 	text = download.text.replace("<![CDATA[", "").replace("]]>", "")
@@ -93,12 +90,11 @@ def parse_sitemap(download: Download | None) -> tuple[str | None, list[str]]:
 
 
 class LlmsTxt(Source):
-	"""llms.txt under the start path: its page links in order, following child indexes on the same
-	site one level."""
+	"""llms.txt under the start path: its page links in order, child indexes one level deep."""
 
 	def find(self) -> list[str]:
 		pages, children = self.parse(f"{self.start_url}/llms.txt")
-		for child in children[:MAX_CHILDREN]:
+		for child in children[: self.fetcher.limits.max_child_sitemaps]:
 			pages += self.parse(child)[0]
 		return self.in_scope(pages)
 

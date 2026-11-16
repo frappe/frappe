@@ -12,7 +12,7 @@ from requests.utils import requote_uri
 from urllib3.exceptions import HTTPError, ReadTimeoutError
 from urllib3.util.retry import Retry
 
-from frappe.web_crawler.limits import MAX_RETRIES, MAX_WAIT_SECONDS, CrawlLimits
+from frappe.web_crawler.limits import MAX_WAIT_SECONDS, CrawlLimits
 
 CHUNK_SIZE = 8 * 1024
 RETRY_STATUSES = (429, 500, 502, 503, 504)
@@ -53,8 +53,7 @@ class Download:
 
 
 class Fetcher:
-	"""GETs URLs through frappe's SSRF-guarded session, within the crawl's size and time limits.
-	Once `deadline` (a `time.monotonic()` value) has passed, every request fails with TIME_LIMIT."""
+	"""GETs URLs through the SSRF-guarded session within the crawl's size and time limits."""
 
 	def __init__(self, limits: CrawlLimits, deadline: float | None = None):
 		self.limits = limits
@@ -68,7 +67,10 @@ class Fetcher:
 		session.max_redirects = self.limits.max_redirects
 		session.headers["User-Agent"] = self.limits.user_agent
 		retry = CappedRetry(
-			total=MAX_RETRIES, backoff_factor=0.5, status_forcelist=RETRY_STATUSES, raise_on_status=False
+			total=self.limits.max_retries,
+			backoff_factor=0.5,
+			status_forcelist=RETRY_STATUSES,
+			raise_on_status=False,
 		)
 		for adapter in set(session.adapters.values()):
 			adapter.max_retries = retry
@@ -91,7 +93,7 @@ class Fetcher:
 		"""The body of `url`, within `timeout` seconds per attempt and the crawl's deadline. Raises FetchError."""
 		if self.limits.is_blocked(url):
 			raise FetchError("blocked")
-		allowed = (MAX_RETRIES + 1) * (timeout + MAX_WAIT_SECONDS)
+		allowed = self.limits.request_seconds(timeout)
 		if self.deadline:
 			allowed = min(allowed, self.deadline - time.monotonic())
 		if allowed <= 0:
@@ -144,8 +146,7 @@ def known_charset(charset: str | None) -> str | None:
 
 
 class AbortableCall:
-	"""`function(*args)` in a thread, or TimeoutError after `seconds`. A socket timeout only bounds
-	each read, so on timeout the sockets the call uses are shut down, which ends its thread."""
+	"""`function(*args)` in a thread; on timeout, shuts its sockets so the thread ends."""
 
 	active = threading.local()
 

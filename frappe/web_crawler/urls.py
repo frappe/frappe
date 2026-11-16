@@ -8,8 +8,7 @@ MAX_URL_LENGTH = 2048
 
 
 def absolute_url(base: str, href: str) -> str | None:
-	"""`href` resolved against `base` and spelled as requests sends it, so a check reads the host that
-	is requested. None for a malformed URL or one longer than MAX_URL_LENGTH."""
+	"""`href` resolved against `base` as requests sends it. None when malformed or too long."""
 	request = PreparedRequest()
 	try:
 		request.prepare_url(urljoin(base, href.strip()), None)
@@ -19,8 +18,7 @@ def absolute_url(base: str, href: str) -> str | None:
 
 
 def canonical_host(host: str) -> str:
-	"""The host as a resolver reads it, so `bücher.de` is `xn--bcher-kva.de`, `127.1` is `127.0.0.1`
-	and `0:0::1` is `::1`."""
+	"""The host as a resolver reads it, e.g. `127.1` is `127.0.0.1`."""
 	host = host.strip(".").lower()
 	try:
 		return socket.inet_ntoa(socket.inet_aton(host))

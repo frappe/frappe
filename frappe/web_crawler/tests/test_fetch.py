@@ -228,8 +228,8 @@ class TestSlowServer(IntegrationTestCase):
 		self.assertLess(time.monotonic() - started, 3)
 
 	def test_headers_sent_a_byte_at_a_time_stop_at_the_deadline(self):
-		self.enterContext(patch("frappe.web_crawler.fetch.MAX_RETRIES", 0))
-		self.enterContext(patch("frappe.web_crawler.fetch.MAX_WAIT_SECONDS", 0))
+		self.enterContext(self.change_settings("Web Crawl Settings", {"max_retries": 0}))
+		self.enterContext(patch("frappe.web_crawler.limits.MAX_WAIT_SECONDS", 0))
 		started = time.monotonic()
 		self.assertEqual(scrape(self.url.replace("/drip", "/trickle")).error, "timed_out")
 		self.assertLess(time.monotonic() - started, 3)

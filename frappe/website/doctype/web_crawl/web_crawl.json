@@ -18,19 +18,21 @@
   "exclude_paths",
   "column_break_tuning",
   "link_priorities",
-  "results_section",
-  "pages_crawled",
-  "pages_failed",
-  "column_break_results",
-  "started_at",
-  "finished_at",
-  "background_task",
   "caller_section",
   "reference_doctype",
   "reference_name",
   "column_break_caller",
   "on_page_method",
-  "skip_urls_method"
+  "skip_urls_method",
+  "results_section",
+  "results_html",
+  "results_counts_section",
+  "pages_crawled",
+  "pages_failed",
+  "column_break_results",
+  "started_at",
+  "finished_at",
+  "background_task"
  ],
  "fields": [
   {
@@ -65,7 +67,7 @@
    "fieldname": "stopped_reason",
    "fieldtype": "Select",
    "label": "Stopped reason",
-   "options": "\nTime limit\nRate limited",
+   "options": "\nTime limit\nRate limited\nrobots.txt too large",
    "read_only": 1
   },
   {
@@ -132,48 +134,6 @@
    "set_only_once": 1
   },
   {
-   "depends_on": "eval:!doc.__islocal",
-   "fieldname": "results_section",
-   "fieldtype": "Section Break",
-   "label": "Results"
-  },
-  {
-   "fieldname": "pages_crawled",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Pages crawled",
-   "read_only": 1
-  },
-  {
-   "fieldname": "pages_failed",
-   "fieldtype": "Int",
-   "label": "Pages failed",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_results",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "started_at",
-   "fieldtype": "Datetime",
-   "label": "Started at",
-   "read_only": 1
-  },
-  {
-   "fieldname": "finished_at",
-   "fieldtype": "Datetime",
-   "label": "Finished at",
-   "read_only": 1
-  },
-  {
-   "fieldname": "background_task",
-   "fieldtype": "Link",
-   "label": "Background task",
-   "options": "Background Task",
-   "read_only": 1
-  },
-  {
    "collapsible": 1,
    "fieldname": "caller_section",
    "fieldtype": "Section Break",
@@ -213,12 +173,65 @@
    "label": "Skip URLs method",
    "read_only": 1,
    "set_only_once": 1
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "hide_border": 1,
+   "label": "Results"
+  },
+  {
+   "fieldname": "results_html",
+   "fieldtype": "HTML",
+   "label": "Pages"
+  },
+  {
+   "depends_on": "eval:!doc.__islocal",
+   "fieldname": "results_counts_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "pages_crawled",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Pages crawled",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pages_failed",
+   "fieldtype": "Int",
+   "label": "Pages failed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_results",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "started_at",
+   "fieldtype": "Datetime",
+   "label": "Started at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "finished_at",
+   "fieldtype": "Datetime",
+   "label": "Finished at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "background_task",
+   "fieldtype": "Link",
+   "label": "Background task",
+   "options": "Background Task",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-11-15 22:41:54.746411",
+ "modified": "2026-11-16 14:31:54.804026",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Web Crawl",
