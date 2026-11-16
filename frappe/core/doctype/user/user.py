@@ -23,7 +23,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
-from frappe.sessions import clear_sessions
+from frappe.sessions import clear_sessions, hash_sid
 from frappe.twofactor import should_run_2fa
 from frappe.utils import (
 	cint,
@@ -171,22 +171,24 @@ class User(Document):
 			.where(sessions.user == self.name)
 		).run(as_dict=True)
 
-		def mask(sid: str):
-			return sid[:4] + "*" * 10
+		def mask(sid_hash: str):
+			return sid_hash[:4] + "*" * 10
+
+		# `sessions.sid` is the stored hash, so compare against the hash of the current sid
+		current_sid_hash = hash_sid(frappe.session.sid)
 
 		session_docs = []
 		for session in sessions_data:
 			data = frappe.parse_json(session.sessiondata)
-			sid_hash = sha256_hash(session.sid)
 			session_docs.append(
 				{
-					"name": sid_hash,
-					"id": mask(sid_hash),
+					"name": session.sid,
+					"id": mask(session.sid),
 					"owner": session.user,
 					"modified_by": session.user,
 					"ip_address": data.session_ip,
 					"last_updated": data.last_updated,
-					"is_current": session.sid == frappe.session.sid,
+					"is_current": session.sid == current_sid_hash,
 					"session_created": data.creation,
 					"user_agent": data.user_agent,
 				}
@@ -1303,13 +1305,12 @@ def needs_password_setup(user: str | None = None) -> bool:
 def set_first_password(new_password: str) -> None:
 	"""A signed-in user who never had a password (a new Frappe Cloud site owner) sets one, from an
 	app's setup flow, without a reset link. Anyone else changes theirs the usual way."""
-	from frappe.utils.password import validate_password_size
-
 	if frappe.request and frappe.get_request_header("Authorization"):
 		frappe.throw(_("Set your first password from a signed-in browser."), frappe.PermissionError)
 	if not new_password or not new_password.strip():
 		frappe.throw(_("Enter a password."), title=_("Invalid Password"))
-	validate_password_size(new_password, _("New Password"))
+	if len(new_password) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("{0} size exceeded the maximum allowed size.").format(_("New Password")))
 	if not needs_password_setup():
 		frappe.throw(_("You already have a password. Change it from your settings."), frappe.PermissionError)
 	user = frappe.get_doc("User", frappe.session.user)
@@ -1691,12 +1692,13 @@ def clear_session(sid_hash: str):
 	from frappe.sessions import delete_session
 
 	sessions = frappe.qb.DocType("Sessions")
-	sessions_data = (
-		frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == frappe.session.user)
+	owned = (
+		frappe.qb.from_(sessions)
+		.select(sessions.sid)
+		.where(sessions.user == frappe.session.user)
+		.where(sessions.sid == sid_hash)
 	).run(pluck=True)
 
-	for session in sessions_data:
-		if sha256_hash(session) == sid_hash:
-			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
-			frappe.toast(_("Successfully signed out"))
-			return
+	if owned:
+		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
+		frappe.toast(_("Successfully signed out"))
