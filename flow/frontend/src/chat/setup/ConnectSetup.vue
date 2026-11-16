@@ -91,12 +91,12 @@
 					:disabled="Boolean(busy)"
 				/>
 			</template>
+			<!-- one sentence around its link, set tight so the spaces are the sentence's own -->
 			<p v-else class="text-p-base text-ink-gray-5">
-				{{ __("Create a key in the") }}
-				<a :href="picked.keys" target="_blank" rel="noopener" :class="LINK">
-					{{ picked.console }}<span class="lucide-arrow-up-right ml-0.5 inline-block size-3" aria-hidden="true" />
-				</a>
-				{{ __("and paste it here.") }}
+				{{ KEY_HELP[0]
+				}}<a :href="picked.keys" target="_blank" rel="noopener" :class="LINK">
+					{{ picked.console }}<span class="lucide-arrow-up-right ml-0.5 inline-block size-3" aria-hidden="true" /></a
+				>{{ KEY_HELP[1] }}
 			</p>
 			<FormControl
 				v-model="key"
@@ -267,6 +267,8 @@ defineExpose({ back });
 // settings' tiles: a soft fill, no border
 const TILE =
 	"flex min-w-0 flex-col items-start gap-3 rounded-6 bg-surface-gray-2 p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3 enabled:hover:bg-surface-gray-3 disabled:cursor-default";
+// split where the console's link goes
+const KEY_HELP = __("Create a key in the {0} and paste it here.").split("{0}");
 const LINK =
 	"inline-flex items-center text-ink-gray-7 underline decoration-outline-gray-3 underline-offset-4 hover:decoration-outline-gray-6";
 </script>

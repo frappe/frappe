@@ -104,8 +104,7 @@
 						placeholder="ollama/llama3.2&#10;ollama/qwen2.5"
 					/>
 					<span class="mt-1 block text-xs leading-4 text-ink-gray-5">
-						{{ __("One per line (or comma separated). Each id needs a prefix, e.g.") }}
-						<code class="text-ink-gray-6">ollama/llama3.2</code>.
+						{{ ID_HELP[0] }}<code class="text-ink-gray-6">ollama/llama3.2</code>{{ ID_HELP[1] }}
 					</span>
 				</label>
 				<label class="block">
@@ -276,6 +275,8 @@ const callbackUrl = ref("")
 const authorizeUrl = ref("")
 let pollTimer = null
 
+// split where the example id goes
+const ID_HELP = __("One per line (or comma separated). Each id needs a prefix, e.g. {0}.").split("{0}")
 const FIELD =
 	"h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
 
