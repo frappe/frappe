@@ -1,4 +1,5 @@
 // Fails when a desk page's gzip JS moves more than the tolerance away from its baseline.
+// A page with no baseline in speed-budgets.json (the editor) is printed and never fails.
 import { mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -76,6 +77,7 @@ function chunkFiles(manifest, key, files = new Set()) {
 export function jsSizeProblems(sizes, budgets) {
   const tolerance = budgets.jsToleranceKb;
   return Object.entries(sizes)
+    .filter(([page]) => budgets[page]?.baseline?.jsKb !== undefined)
     .filter(([page, kb]) => kb > budgets[page].baseline.jsKb + tolerance)
     .map(
       ([page, kb]) =>
@@ -92,8 +94,8 @@ function printSizes(sizes, budgets) {
         page,
         {
           "gzip KB": kb,
-          baseline: budgets[page].baseline.jsKb,
-          budget: budgets[page].budget?.jsKb ?? "none",
+          baseline: budgets[page]?.baseline?.jsKb ?? "none",
+          budget: budgets[page]?.budget?.jsKb ?? "none",
         },
       ])
     )
