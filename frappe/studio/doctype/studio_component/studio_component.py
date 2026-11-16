@@ -78,6 +78,20 @@ class StudioComponent(Document):
 		self.component_id = get_component_id(self.name)
 		if not self.studio_app:
 			self.validate_no_app_dependencies()
+		self.validate_legacy_inputs()
+
+	def validate_legacy_inputs(self):
+		"""The props of a component are in its script. The input rows of an older component can
+		stay or go, and the files of an app can still bring them."""
+		if self.flags.is_moved or any(frappe.flags.get(flag) for flag in SYNC_FLAGS):
+			return
+		before = self.get_doc_before_save()
+		saved_rows = [get_input_values(row) for row in before.inputs] if before else []
+		if any(get_input_values(row) not in saved_rows for row in self.inputs):
+			frappe.throw(
+				_("You cannot add or edit input rows. Define props in the component's script instead."),
+				title=_("Input rows are deprecated"),
+			)
 
 	def validate_no_app_dependencies(self):
 		"""A global component renders in every app, and outside an app. So it cannot use the
@@ -117,6 +131,7 @@ class StudioComponent(Document):
 		folders = self.get_export_folders()
 		moved = frappe.copy_doc(self)
 		moved.studio_app = studio_app
+		moved.flags.is_moved = True
 		moved.insert()
 		is_global_kept = bool(studio_app) and bool(self.get_usages())
 		if not is_global_kept:
@@ -336,6 +351,11 @@ def mark_components_standard(names: list[str]):
 	frappe.db.set_value(
 		"Studio Component", {"name": ["in", names], "is_standard": 0}, "is_standard", 1, update_modified=False
 	)
+
+
+def get_input_values(row) -> list[str]:
+	fields = ("input_name", "type", "description", "options", "required", "default")
+	return [frappe.utils.cstr(row.get(field) or "") for field in fields]
 
 
 def get_component_name(component_id: str, studio_app: str | None = None) -> str:

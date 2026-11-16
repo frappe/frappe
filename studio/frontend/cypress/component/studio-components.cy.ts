@@ -107,11 +107,8 @@ describe("studio components for guests", () => {
 			component_id: COMPONENT_ID,
 			component_name: "Cypress Header",
 			block: JSON.stringify(headerBlock),
-			// two inputs, so values would get a second evaluation pass if evaluation ran per input
-			inputs: [
-				{ input_name: "title", type: "string" },
-				{ input_name: "subtitle", type: "string", default: "'sub'" },
-			],
+			// two props, so values would get a second evaluation pass if evaluation ran per prop
+			script: `export default {\n\tprops: { title: String, subtitle: { type: String, default: "'sub'" } },\n}\n`,
 		})
 		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Guest" })
 		cy.insert_doc("Studio Page", {
