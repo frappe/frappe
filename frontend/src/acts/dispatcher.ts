@@ -258,9 +258,12 @@ export class ActDispatcher {
 			return { ok: true, data, ...tabState() };
 		} catch (error) {
 			const state = tabState();
-			// The error wording loads only when an outside caller meets a refusal.
-			const { errorOf } = await import("./actError");
-			return { ok: false, error: errorOf(error, name), ...state };
+			// The error wording loads only when an outside caller meets a refusal; a failed load must not reject `call`.
+			const shaped = await import("./actError").then(
+				({ errorOf }) => errorOf(error, name),
+				(): ActError => ({ code: "failed", message: String(error) })
+			);
+			return { ok: false, error: shaped, ...state };
 		}
 	}
 
