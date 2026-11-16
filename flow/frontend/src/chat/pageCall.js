@@ -4,8 +4,11 @@
 const DESK_VERSION = 1;
 const DESK_WAIT = 3000; // ms: window.desk appears a moment after the page boots
 const ACT_WAIT = 45000; // ms to wait on a confirm; the call itself waits 60 s on the server
-// a tab with nothing to drive answers late, so a tab that can drive is heard first
-const LATE_DELAY = 1500;
+// a tab with nothing to drive answers late, so a tab that can drive is heard first: a panel has
+// waited for window.desk already, a tab of its own waits out the panels' wait
+const LATE_DELAY = 500;
+const STANDALONE_DELAY = DESK_WAIT + 500;
+const STATE_WAIT = 2000; // ms read_screen gives desk.state()
 
 const NO_PAGE = "Flow is open in a tab of its own, with no page beside it.";
 const NO_DESK = "The page beside the chat is not a desk v2 page, so it has no acts to list or run.";
@@ -13,7 +16,7 @@ const NO_DESK = "The page beside the chat is not a desk v2 page, so it has no ac
 // `claim()` resolves true for the first tab that asks; `reply(answer)` posts `{screen}` or `{error}`.
 export async function answerPageCall(
 	message,
-	{ page, inPanel, claim, reply, deskWait = DESK_WAIT, lateDelay = LATE_DELAY }
+	{ page, inPanel, claim, reply, deskWait = DESK_WAIT, lateDelay = inPanel ? LATE_DELAY : STANDALONE_DELAY }
 ) {
 	const desk = inPanel ? await waitForDesk(page, deskWait) : null;
 	if (!desk) await delay(lateDelay);
@@ -28,11 +31,11 @@ export async function answerPageCall(
 }
 
 // what the page shows, for `read_screen`; nothing on a page with no window.desk
-export async function readDeskState(page) {
+export async function readDeskState(page, wait = STATE_WAIT) {
 	const desk = usable(page.desk);
 	if (!desk) return undefined;
 	try {
-		return await desk.state();
+		return await Promise.race([desk.state(), delay(wait).then(() => undefined)]);
 	} catch {
 		return undefined;
 	}

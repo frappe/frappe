@@ -120,4 +120,6 @@ test("read_screen's desk state is the page's state, or nothing without a desk", 
 	assert.equal(await readDeskState({ desk: { version: 2, state: async () => ({}) } }), undefined);
 	const failing = stubDesk({ state: () => Promise.reject(new Error("x")) });
 	assert.equal(await readDeskState({ desk: failing }), undefined);
+	const hung = stubDesk({ state: () => new Promise(() => {}) });
+	assert.equal(await readDeskState({ desk: hung }, 10), undefined);
 });

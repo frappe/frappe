@@ -390,12 +390,20 @@ class TestToolCallback(IntegrationTestCase):
 			self.assertTrue(self.call("read_screen")["is_error"])
 		publish.assert_not_called()
 
+	def test_run_act_asks_before_running_an_act_and_not_before_waiting_for_a_call(self):
+		from frappe.flow.tools.builtins import _run_act_asks
+
+		self.assertTrue(_run_act_asks({"name": "header.submit"}))
+		self.assertFalse(_run_act_asks({"call": 3}))
+		self.assertFalse(_run_act_asks({"call": 0}))  # the first call of a page is 0
+
 	def test_the_act_tools_send_one_page_call_and_wait_longer_than_a_screen_read(self):
 		calls = [
 			("list_acts", {}, {}),
 			("run_act", {"name": "header.save"}, {"name": "header.save", "args": None}),
 			("run_act", {"name": "shell.open", "args": "/apps/todo"}, {"name": "shell.open", "args": "/apps/todo"}),
 			("run_act", {"call": 3}, {"call": 3}),
+			("run_act", {"call": 0}, {"call": 0}),
 		]
 		for tool, args, sent in calls:
 			with self.subTest(tool, args=args), patch("frappe.publish_realtime") as publish:

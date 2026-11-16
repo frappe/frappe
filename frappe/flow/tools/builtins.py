@@ -1123,7 +1123,8 @@ def list_acts(*, ctx: ToolContext) -> Pending:
 
 
 def _run_act_asks(call_args: dict[str, Any]) -> bool:
-	return not call_args.get("call")
+	# call 0 is a call too
+	return call_args.get("call") is None
 
 
 def _run_act_prompt(call_args: dict[str, Any]) -> str:
