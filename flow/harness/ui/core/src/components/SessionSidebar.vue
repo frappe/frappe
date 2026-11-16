@@ -357,7 +357,7 @@ const appMenu = computed(() => [
 ])
 // a heading, not an action: the keys pass over it, and its text keeps its ink
 function accountOption(user) {
-	const avatar = () => h(Avatar, { label: user.full_name, image: user.user_image, size: "xs" })
+	const avatar = () => h(Avatar, { label: user.full_name, image: user.user_image, size: "xl" })
 	const label = () =>
 		h("div", { class: "min-w-0" }, [
 			h("div", { class: "truncate leading-tighter text-ink-gray-8" }, user.full_name),
