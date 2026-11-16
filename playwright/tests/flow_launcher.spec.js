@@ -32,7 +32,8 @@ test.describe("Flow launcher", () => {
 		// the page narrows beside it, and takes its room back once it's put away
 		const margin = () =>
 			page.evaluate(() => getComputedStyle(document.documentElement).marginRight);
-		const width = await panel(page).evaluate((el) => el.getBoundingClientRect().width);
+		// its laid-out width: the box on screen is a fraction off while the panel slides in
+		const width = await panel(page).evaluate((el) => el.offsetWidth);
 		await expect.poll(margin).toBe(`${width}px`);
 
 		// from the chat, then from the page around it
@@ -69,7 +70,7 @@ test.describe("Flow launcher", () => {
 		await desk.ready();
 		await toggle(page).click();
 		const island = await chat(page);
-		expect(await panel(page).evaluate((el) => el.getBoundingClientRect().width)).toBe(900);
+		expect(await panel(page).evaluate((el) => el.offsetWidth)).toBe(900);
 
 		await expect(island.getByRole("button", { name: "Hide sidebar" })).toBeHidden();
 		await expect(island.getByRole("button", { name: "Manage" })).toHaveCount(0);
