@@ -9,6 +9,8 @@ export interface CommitChannelHost {
 }
 
 export interface RecordCommitChannel extends CommitChannel {
+  /** Resolves when the handlers of the structural edit have run. */
+  rowChanged: (row: RowAddress, change: RowChange) => Promise<void> | void;
   /** False for an echo of the value last committed, which is no edit. */
   pending: (fieldname: string, value: any, row?: RowAddress) => boolean;
   /** Fires the handler of an edit whose commit never arrived, and waits for the handlers already running. */
@@ -71,7 +73,7 @@ export function createCommitChannel(
       // A structural edit is itself a commit, and a removed row's pending edit has nowhere to land.
       pending = null;
       // A removed row has no address left to hand on; its handle would throw on every access.
-      track(host.dispatch(rowEvent(row, change), change === "add" ? row : undefined, true));
+      return track(host.dispatch(rowEvent(row, change), change === "add" ? row : undefined, true));
     },
     trigger: (fieldname) => void track(host.dispatch(fieldname, undefined, false)),
     flush: async () => {

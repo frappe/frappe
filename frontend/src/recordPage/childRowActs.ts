@@ -22,6 +22,8 @@ export interface RowHost {
   /** Fires `onAdd` or `onRemove` and waits for the handlers. */
   rowChanged: (row: RowAddress, change: "add" | "remove") => Promise<void>;
   errors: () => Record<string, string>;
+  /** Whether the grid hides or locks the cell, when the form's layout holds the table. */
+  cell?: (table: string, row: Row, fieldname: string) => { hidden: boolean; readOnly: boolean } | undefined;
 }
 
 interface Table {
@@ -56,9 +58,8 @@ class ChildRowActs {
     found.rows.push(row);
     const live = found.rows[found.rows.length - 1];
     await this.host.rowChanged(this.address(table, live), "add");
-    refuse(act, found.rows.includes(live) ? undefined : `an onAdd handler removed the new row of ${table}`);
-    await this.fill(found, live, values);
-    return { idx: found.rows.indexOf(live) + 1, values: visible(live), errors: this.host.errors() };
+    const added = await this.fill(act, found, live, values);
+    return { idx: this.rowsOf(found).indexOf(added) + 1, values: visible(added), errors: this.host.errors() };
   }
 
   async set({ table, idx, values }: { table: string; idx: number; values: Values }) {
@@ -67,8 +68,8 @@ class ChildRowActs {
     const row = this.row(act, found, idx);
     for (const fieldname of Object.keys(values)) refuse(act, this.cannotSet(found, row, fieldname));
     const before = { ...row };
-    await this.fill(found, row, values);
-    return { values: changed(before, row), errors: this.host.errors() };
+    const after = await this.fill(act, found, row, values);
+    return { values: changed(before, after), errors: this.host.errors() };
   }
 
   async remove({ table, idx }: { table: string; idx: number }) {
@@ -82,11 +83,26 @@ class ChildRowActs {
     return { rows: found.rows.length };
   }
 
-  private async fill(found: Table, row: Row, values: Values) {
+  /** Sets each value on the row, found again by its key after every handler; refuses once one removed it. */
+  private async fill(act: string, found: Table, row: Row, values: Values): Promise<Row> {
+    const key = rowKey(identify(row));
+    const live = () => {
+      const current = this.rowsOf(found).find((one) => rowKey(one) === key);
+      refuse(act, current ? undefined : `a handler removed the row of ${found.name}`);
+      return current!;
+    };
+    let current = live();
     for (const [fieldname, value] of Object.entries(values)) {
-      row[fieldname] = coerce(found.columns.find((column) => column.fieldname === fieldname)!.fieldtype, value);
-      await this.host.commit(fieldname, this.address(found.name, row));
+      current[fieldname] = coerce(found.columns.find((column) => column.fieldname === fieldname)!.fieldtype, value);
+      await this.host.commit(fieldname, this.address(found.name, current));
+      current = live();
     }
+    return current;
+  }
+
+  private rowsOf({ name }: Table): Row[] {
+    const rows = this.host.doc()[name];
+    return Array.isArray(rows) ? rows : [];
   }
 
   private table(act: string, name: string): Table {
@@ -109,6 +125,8 @@ class ChildRowActs {
     const column = columns.find((one) => one.fieldname === fieldname);
     if (!column || NO_VALUE.has(column.fieldtype) || holdsChildRows(column.fieldtype))
       return `${fieldname} is not a column of ${name} that can be set`;
+    const cell = this.host.cell?.(name, row, fieldname);
+    if (cell) return cell.hidden ? `${fieldname} is hidden now` : cell.readOnly ? `${fieldname} is read-only` : undefined;
     const doc = this.host.doc();
     // A script's override of the column (`page.fields.update("<table>.<column>", …)`) counts as the grid counts it.
     const override = this.host.field(`${name}.${fieldname}`);

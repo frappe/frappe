@@ -46,6 +46,7 @@ async function setValues(form: ValueForm, values: Values) {
 /** Why the field cannot be set, in words that say what to do; undefined when it can. */
 export function cannotSet(fieldname: string, field: FormField | null): string | undefined {
   if (!field) return `${fieldname} is not a field of this form`;
+  if (fieldname.includes(".")) return `${fieldname} is a column of a table; use record.add_child_row or record.set_child_values`;
   if (field.fieldtype === "Table" || field.fieldtype === "Table MultiSelect")
     return `${fieldname} is a table; use record.add_child_row and record.set_child_values`;
   if (NO_VALUE.has(field.fieldtype)) return `${fieldname} holds no value`;

@@ -14,6 +14,7 @@ vi.mock("@framework/ui/api", () => ({
 
 import { ActInvalid, acts } from "@/acts/dispatcher";
 import { withRegisteringSource } from "@/pageEngine/context";
+import { mapField } from "@framework/ui/FormLayout";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers } from "../types";
@@ -271,6 +272,74 @@ describe("child row acts", () => {
     const { controller, page } = makePage();
     await controller.refresh();
 
-    expect(await invalid(page.run("record.add_child_row", { table: "products" }))).toContain("removed the new row");
+    expect(await invalid(page.run("record.add_child_row", { table: "products" }))).toContain("removed the row");
+  });
+
+  it("refuses a column name written as table.column, and points to the child acts", async () => {
+    const { controller, page } = makePage();
+    await controller.refresh();
+
+    expect(await invalid(page.run("record.set_values", { values: { "products.qty": 3 } }))).toContain(
+      "use record.add_child_row or record.set_child_values",
+    );
+  });
+
+  it("stops filling a row a handler removed, and reports nothing for the rest", async () => {
+    await register({ products: { item: (page) => void page.doc.products.pop() } });
+    const { controller, page, host } = makePage({ products: [{ name: "r1", item: "A", qty: 1 }] });
+    await controller.refresh();
+
+    const error = await invalid(page.run("record.set_child_values", { table: "products", idx: 1, values: { item: "B", qty: 5 } }));
+
+    expect(error).toContain("a handler removed the row of products");
+    expect(host.doc.value.products).toEqual([]);
+  });
+
+  it("does not wait for the handler that called it", async () => {
+    await register({ status: (page) => page.run("record.set_values", { values: { approved: 1 } }) });
+    const { controller, page, host } = makePage();
+    await controller.refresh();
+
+    const done = await Promise.race([
+      page.run("record.set_values", { values: { status: "Won" } }).then(() => "done"),
+      new Promise((resolve) => setTimeout(() => resolve("hung"), 2000)),
+    ]);
+
+    expect(done).toBe("done");
+    expect(host.doc.value.approved).toBe(1);
+  });
+});
+
+describe("record acts on the form's layout", () => {
+  const column = (fields: any[]) => ({ sections: [{ columns: [{ fields }] }] });
+  const layout = () => {
+    const field = (name: string) => mapField(META.fields.find((one) => one.fieldname === name)!, {});
+    const table = {
+      ...field("products"),
+      childFields: [
+        mapField(CHILD_FIELDS[0], {}),
+        { ...mapField(CHILD_FIELDS[1], {}), override: { readOnly: true } },
+      ],
+    };
+    return [
+      { name: "main", ...column([field("status"), table]) },
+      { name: "more", hidden: true, ...column([field("approved")]) },
+    ] as any;
+  };
+
+  it("refuses a field in a hidden tab", async () => {
+    const { controller, page } = makePage({}, { formLayout: layout });
+    await controller.refresh();
+
+    expect(await invalid(page.run("record.set_values", { values: { approved: 1 } }))).toBe("record.set_values: approved is hidden now");
+  });
+
+  it("takes a cell's lock from the grid's own resolution", async () => {
+    const { controller, page } = makePage({ products: [{ name: "r1", item: "A", qty: 1 }] }, { formLayout: layout });
+    await controller.refresh();
+    const set = (values: Record<string, unknown>) => page.run("record.set_child_values", { table: "products", idx: 1, values });
+
+    expect(await invalid(set({ qty: 4 }))).toBe("record.set_child_values: qty is read-only");
+    expect(await set({ item: "B" })).toEqual({ values: { item: "B" }, errors: {} });
   });
 });

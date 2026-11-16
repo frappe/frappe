@@ -108,7 +108,7 @@ export class FieldErrors implements Staging {
       rowChanged: (row, change) => {
         this.clear(row.parentfield);
         if (change === "remove") this.clearRow(row);
-        channel.rowChanged(row, change);
+        return channel.rowChanged(row, change);
       },
     };
   }
