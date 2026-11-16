@@ -234,6 +234,9 @@
 		gap: 2px;
 
 		.form-print {
+			display: flex;
+			gap: 2px;
+
 			button:hover {
 				background: var(--btn-default-hover-bg);
 			}
