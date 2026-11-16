@@ -15,8 +15,15 @@ from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_datetime, get_site_url, now
+<<<<<<< HEAD
 from frappe.utils.data import add_to_date
 from frappe.www.login import _generate_temporary_login_link
+=======
+from frappe.utils.data import add_to_date, sha256_hash
+from frappe.utils.logging import get_log_db, log_table
+from frappe.utils.password import check_password
+from frappe.www.login import _generate_temporary_login_link, send_login_link
+>>>>>>> 0e53d17 (fix: send the login link email from a background job)
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -162,6 +169,20 @@ class TestAuth(FrappeTestCase):
 		else:
 			self.fail("Rate limting not working")
 
+<<<<<<< HEAD
+=======
+	def test_login_link_is_sent_from_a_job(self):
+		frappe.db.set_single_value("System Settings", "login_with_email_link", 1)
+
+		for email in (self.test_user_email, "no-such-user@example.com"):
+			with patch("frappe.enqueue") as enqueue, patch("frappe.sendmail") as sendmail:
+				send_login_link(email)
+
+			enqueue.assert_called_once()
+			sendmail.assert_not_called()
+
+	@requires_test_service(TestService.WEB_SERVER)
+>>>>>>> 0e53d17 (fix: send the login link email from a background job)
 	def test_correct_cookie_expiry_set(self):
 		import pytz
 
