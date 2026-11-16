@@ -659,3 +659,41 @@ body.print-format-doc .letter-head,
 .print-format-doc .field .label.label--no-colon::after {
 	content: none;
 }
+
+.print-format-doc li[data-list] {
+	counter-set: list-1 list-2 list-3;
+}
+.print-format-doc li[data-list="bullet"] {
+	list-style-type: disc;
+	counter-increment: list-item 0;
+}
+.print-format-doc li[data-list].ql-indent-1 {
+	margin-left: 1.5em;
+	counter-set: list-2 list-3;
+}
+.print-format-doc li[data-list].ql-indent-2 {
+	margin-left: 3em;
+	counter-set: list-3;
+}
+.print-format-doc li[data-list].ql-indent-3 {
+	margin-left: 4.5em;
+	counter-set: none;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-1 {
+	counter-increment: list-item 0 list-1;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-1::marker {
+	content: counter(list-1, lower-alpha) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-2 {
+	counter-increment: list-item 0 list-2;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-2::marker {
+	content: counter(list-2, lower-roman) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-3 {
+	counter-increment: list-item 0 list-3;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-3::marker {
+	content: counter(list-3, decimal) ". ";
+}
