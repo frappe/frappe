@@ -29,3 +29,5 @@ export * from "./components/SignupBanner";
 export * from "./components/TrialBanner";
 export * from "./components/SetupFlow";
 export * from "./telemetry";
+export { getSocketInstance, subscribeToDoc } from "./socket";
+export type { RealtimeSocket } from "./socket";
