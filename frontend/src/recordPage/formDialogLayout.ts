@@ -3,7 +3,7 @@
 import type { Ref } from "vue";
 import { __ } from "@/i18n";
 import type { DialogHandle } from "@/shell/dialogs/readableDialogs";
-import { mapField, fieldsToLayout } from "@framework/ui/FormLayout";
+import { mapField, fieldsToLayout, NO_VALUE, resolveLayout } from "@framework/ui/FormLayout";
 import type {
   FieldNode,
   FormLayoutSchema,
@@ -116,8 +116,15 @@ export function formData(
   return data;
 }
 
-// Static flags only: a `depends_on` or `read_only_depends_on` condition is not resolved here.
-const DISPLAY_ONLY = ["HTML", "Button", "Heading"];
+/** The fields a caller may fill: drawn, editable and able to hold a value, with `depends_on` resolved against `doc`. */
+function fillableFields(layout: FormLayoutSchema, doc: Record<string, any>): string[] {
+  return resolveLayout(layout, doc)
+    .filter((tab) => !tab.hidden)
+    .flatMap((tab) => tab.sections.filter((section) => !section.hidden))
+    .flatMap((section) => section.columns.flatMap((column) => column.fields))
+    .filter((field) => !field.hidden && !field.readOnly && !NO_VALUE.has(field.fieldtype))
+    .map((field) => field.fieldname);
+}
 
 /** What a caller may do to a form dialog whose draft is `doc`: read it, fill it, submit it, close it. */
 export function formDialogHandle(
@@ -125,10 +132,7 @@ export function formDialogHandle(
   doc: Ref<Record<string, any>>,
   actions: { submit: () => Promise<boolean> | boolean; close: () => void },
 ): DialogHandle {
-  const fieldnames = () =>
-    flatFields(layout())
-      .filter((field) => !field.hidden && !field.readOnly && !DISPLAY_ONLY.includes(field.fieldtype))
-      .map((field) => field.fieldname);
+  const fieldnames = () => fillableFields(layout(), doc.value);
   return {
     close: actions.close,
     submit: async () => {

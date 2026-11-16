@@ -30,7 +30,7 @@
 				<Button
 					variant="solid"
 					:label="__('Create')"
-					:disabled="!name.trim() || (multiselect && !link)"
+					:disabled="!canCreate"
 					:loading="checking"
 					@click="create"
 				/>
@@ -46,6 +46,7 @@ import { listDocuments } from "@framework/ui/api";
 import type { Addresses } from "@/addresses";
 import { __ } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { newChildName } from "./childSource";
 
 const props = defineProps<{
@@ -76,9 +77,13 @@ const nameError = computed(() => {
 		: undefined;
 });
 
-async function create() {
+const canCreate = computed(
+	() => Boolean(name.value.trim()) && (!props.multiselect || Boolean(link.value))
+);
+
+async function create(): Promise<boolean> {
 	const wanted = name.value.trim();
-	if (props.staged.includes(wanted)) return;
+	if (checking.value || !canCreate.value || props.staged.includes(wanted)) return false;
 	checking.value = true;
 	try {
 		const { data } = await listDocuments("DocType", {
@@ -88,10 +93,38 @@ async function create() {
 		});
 		taken.value = data.length ? wanted : "";
 	} catch (error) {
-		return void toast.error(errorMessage(error));
+		toast.error(errorMessage(error));
+		return false;
 	} finally {
 		checking.value = false;
 	}
-	if (!taken.value) emit("create", wanted, link.value ?? undefined);
+	if (taken.value) return false;
+	emit("create", wanted, link.value ?? undefined);
+	return true;
 }
+
+const fieldnames = () => (props.multiselect ? ["name", "link"] : ["name"]);
+useReadableDialog(
+	isOpen,
+	() => ({ kind: "form", title: __("New child table"), buttons: [__("Cancel"), __("Create")] }),
+	{
+		fieldnames,
+		values: () =>
+			Object.fromEntries(
+				fieldnames().map((field) => [field, field === "name" ? name.value : link.value])
+			),
+		setValues: (values) => {
+			const unknown = Object.keys(values).filter((field) => !fieldnames().includes(field));
+			if (unknown.length)
+				throw new Error(__("The dialog has no field {0}", [unknown.join(", ")]));
+			if ("name" in values) name.value = String(values.name ?? "");
+			if ("link" in values) link.value = values.link ?? null;
+		},
+		submit: async () => {
+			if (!(await create()))
+				throw new Error(__("The dialog did not submit: its fields show why"));
+		},
+		close: () => emit("cancel"),
+	}
+);
 </script>

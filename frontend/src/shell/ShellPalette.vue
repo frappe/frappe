@@ -125,6 +125,7 @@ import {
 import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { DEFAULT_ACT_ICON, paletteOpen, type PaletteRow as Row } from "./palette";
 import { usePaletteArgument } from "./paletteArgument";
 import { PaletteSearch, type PaletteContext } from "./paletteGroups";
@@ -239,4 +240,6 @@ function onKeydown(event: KeyboardEvent, active: Row | undefined) {
 		step.value.leave();
 	}
 }
+
+useReadableDialog(paletteOpen, () => ({ title: __("Search and run") }));
 </script>

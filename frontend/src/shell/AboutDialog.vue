@@ -143,6 +143,7 @@ import { computed, inject, ref, watch } from "vue";
 import { Button, Dialog, ItemListRow, Skeleton, toast } from "frappe-ui";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import {
 	allVersionsBlock,
 	appLine,
@@ -209,4 +210,15 @@ async function copy(text: string) {
 	}
 	toast.success(__("Copied"));
 }
+
+useReadableDialog(
+	() => props.open,
+	() => ({
+		title: __("About"),
+		buttons:
+			versions.value && failure.value === null
+				? [...LINKS.map(({ label }) => label), __("Copy all versions")]
+				: [],
+	})
+);
 </script>

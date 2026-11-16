@@ -1,6 +1,6 @@
 // The tab's one list of open dialogs, for a caller that cannot see the screen. `page.dialog` and
 // `shell.dialog` feed it; a self-hosted component dialog feeds it through `useReadableDialog`.
-import { inject, onScopeDispose, shallowReactive, shallowRef, watch, type Ref } from "vue";
+import { inject, onScopeDispose, shallowReactive, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue";
 import type { DialogConfirmOptions } from "@/narrowedDialog";
 import { __ } from "@/i18n";
 
@@ -86,17 +86,24 @@ export function trackListed(
 	};
 }
 
-/** Lists the component dialog that owns `open` while it is open; `describe` is re-read as it changes. */
-export function useReadableDialog(open: Ref<boolean>, describe: () => Partial<ReadableDialogSpec>) {
+/** Lists the component dialog that `open` reports while it is open; `describe` is re-read as it changes. */
+export function useReadableDialog(
+	open: MaybeRefOrGetter<boolean>,
+	describe: () => Partial<ReadableDialogSpec>,
+	handle?: DialogHandle
+) {
 	let listing: ReturnType<typeof listDialog> | undefined;
 	const stop = watch(
-		() => (open.value ? describe() : null),
+		() => (toValue(open) ? describe() : null),
 		(spec) => {
 			if (!spec) {
 				listing?.release();
 				listing = undefined;
 			} else if (listing) Object.assign(listing.dialog, spec);
-			else listing = listDialog({ kind: "dialog", title: "", message: "", buttons: [], ...spec });
+			else {
+				listing = listDialog({ kind: "dialog", title: "", message: "", buttons: [], ...spec });
+				listing.dialog.handle = handle;
+			}
 		},
 		{ immediate: true }
 	);

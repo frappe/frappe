@@ -27,6 +27,7 @@ import { ref } from "vue";
 import { Dialog, LoadingText, toast } from "frappe-ui";
 import { RichTextView } from "@framework/ui/RichText";
 import { __ } from "@/i18n";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { readWhatsNew, type WhatsNewEntry } from "./notices";
 
 const emit = defineEmits<{ failed: [] }>();
@@ -42,4 +43,6 @@ readWhatsNew().then(
 		emit("failed");
 	}
 );
+
+useReadableDialog(open, () => ({ title: __("What's new") }));
 </script>

@@ -211,6 +211,7 @@ import {
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation } from "@/boot";
 import { __ } from "@/i18n";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import Icon from "@/icons/Icon.vue";
 import { iconOf as kindIcon } from "../registry";
 import {
@@ -884,4 +885,20 @@ function sidebarLabel(key: string): string {
 	const opener = draft.value && openerOf(draft.value, key);
 	return opener ? titleOf(opener) : key;
 }
+
+useReadableDialog(
+	() => !!props.target,
+	() => ({
+		title: __("Customize navigation"),
+		buttons: [
+			changed.value
+				? __("Discard changes")
+				: draft.value && hasSaved.value
+				? __("Reset to default")
+				: "",
+			__("Cancel"),
+			__("Save"),
+		].filter(Boolean),
+	})
+);
 </script>

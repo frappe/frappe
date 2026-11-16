@@ -350,6 +350,24 @@ describe("the form host's handle", () => {
     expect(() => entry.listed.handle!.setValues({ locked: "x" })).toThrow("no field locked");
   });
 
+  it("skips a field its depends_on hides or its read_only_depends_on locks, as the doc stands", async () => {
+    const entry = makeEntry({
+      fields: [
+        { fieldname: "kind", fieldtype: "Data", label: "Kind" },
+        { fieldname: "shown", fieldtype: "Data", label: "Shown", depends_on: "eval:doc.kind == 'a'" },
+        { fieldname: "locked", fieldtype: "Data", label: "Locked", read_only_depends_on: "eval:doc.kind == 'a'" },
+      ],
+    });
+    render(entry);
+    await settle();
+    const handle = entry.listed.handle!;
+
+    expect(handle.fieldnames()).toEqual(["kind", "locked"]);
+    handle.setValues({ kind: "a" });
+    expect(handle.fieldnames()).toEqual(["kind", "shown"]);
+    expect(() => handle.setValues({ locked: "x" })).toThrow("no field locked");
+  });
+
   it("throws when a submit does not go through, and for a dialog that submits by its own buttons", async () => {
     const failing = makeEntry({
       fields: [{ fieldname: "note", fieldtype: "Data", label: "Note", reqd: 1 }],

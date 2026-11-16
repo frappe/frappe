@@ -73,6 +73,7 @@
 import { Button, Dialog, Icon, ItemListRow, TabButtons, toast } from "frappe-ui";
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { __ } from "@/i18n";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
 import { SETTLE_POLL_MS, bulkPanel, settleQueued, type BulkReport } from "./bulkOutcome";
 
 type Tab = "failed" | "queued" | "done";
@@ -130,5 +131,18 @@ async function retryFailed() {
 	} finally {
 		retrying.value = false;
 	}
+}
+
+useReadableDialog(open, () => ({ title: title.value, buttons: buttons() }));
+
+function buttons() {
+	const { report: current } = props;
+	const failed = failedNames.value.length > 0;
+	return [
+		current.fileUrl && __("Open PDF"),
+		failed && current.select && __("Select failed"),
+		failed && current.retry && __("Retry failed"),
+		!failed && __("Done"),
+	].filter((label): label is string => !!label);
 }
 </script>
