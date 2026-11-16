@@ -27,7 +27,7 @@ Json = dict | list | str | int | float | bool | None
 
 
 @frappe.whitelist(methods=["POST"])
-@rate_limit(key="relay", limit=CALLS_PER_MINUTE, seconds=60, ip_based=False, user_based=True)
+@rate_limit(limit=CALLS_PER_MINUTE, seconds=60, ip_based=False, user_based=True)
 def tabs() -> list[dict]:
 	"""The tabs of this user that listen: `{tab, route, title, focused_at}`, the last focused first."""
 	user = _relay_user()
@@ -35,7 +35,7 @@ def tabs() -> list[dict]:
 
 
 @frappe.whitelist(methods=["POST"])
-@rate_limit(key="relay", limit=CALLS_PER_MINUTE, seconds=60, ip_based=False, user_based=True)
+@rate_limit(limit=CALLS_PER_MINUTE, seconds=60, ip_based=False, user_based=True)
 def call(
 	op: str,
 	tab: str | None = None,
@@ -54,7 +54,7 @@ def call(
 	if op == "wait":
 		if not call_id:
 			frappe.throw(_("wait needs the call_id of the call to wait for."), frappe.ValidationError)
-		return _await(user, call_id, None)
+		return _await(call_id, None)
 
 	found = _find_tab(user, tab)
 	if not found:
@@ -73,11 +73,11 @@ def call(
 		},
 		user=user,
 	)
-	return _await(user, call_id, found)
+	return _await(call_id, found)
 
 
 @frappe.whitelist(methods=["POST"])
-@rate_limit(key="relay_reply", limit=REPLIES_PER_MINUTE, seconds=60, ip_based=False, user_based=True)
+@rate_limit(limit=REPLIES_PER_MINUTE, seconds=60, ip_based=False, user_based=True)
 def reply(call_id: str, result: dict, tab: str | None = None, final: bool | int = True) -> None:
 	"""Called only by a tab. The key holds the session user, so a tab answers only its own user's calls."""
 	_relay_user()
@@ -122,14 +122,14 @@ def _hello(user: str, want: str | None = None) -> list[dict]:
 		answer = popped["result"]
 		if isinstance(answer, dict) and isinstance(answer.get("tab"), str):  # an old tab may answer badly
 			answers[answer["tab"]] = answer
-		if want and answer["tab"] == want:
-			break
+			if want and answer["tab"] == want:
+				break
 
 	frappe.cache.delete_key(_key(call_id))
 	return sorted(answers.values(), key=lambda item: item.get("focused_at") or 0, reverse=True)
 
 
-def _await(user: str, call_id: str, found: dict | None) -> dict:
+def _await(call_id: str, found: dict | None) -> dict:
 	"""The call's first answer, or `waiting_for_user` when the tab has not ended it in about 25 s."""
 	_check_id(call_id)
 	deadline = time.monotonic() + CALL_WAIT

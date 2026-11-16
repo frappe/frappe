@@ -27,23 +27,28 @@ export async function startRelay(socket: RealtimeSocket) {
 	});
 }
 
-// A confirm that waits on the person, by `window.desk` call number: the relay call that owns it.
-const parkedBy = new Map<number, string>();
-
 async function answer(call: RelayEvent, tab: string) {
+	const open = call.op === "run" ? await openDialogs() : [];
 	const result = await perform(call);
-	const parked = !result.ok && result.error.code === "waiting_for_user" ? result.error.call : undefined;
-	if (parked === undefined) return post(call, tab, result);
+	if (result.ok || result.error.code !== "waiting_for_user" || result.error.call === undefined) return post(call, tab, result);
 
-	// `window.desk` hands a second `run` the open confirm's result and starts nothing: say so, do not borrow its end.
-	if (parkedBy.has(parked)) return post(call, tab, failed("An earlier call waits on a dialog. Answer it first; this call did not run."));
-	parkedBy.set(parked, call.call_id);
+	// `window.desk` hands a run the result of a confirm that was already open and starts nothing: do not borrow its end.
+	const dialog = result.error.dialog;
+	if (dialog && open.includes(dialog.id)) return post(call, tab, failed("A dialog was already open. Answer it first; this call did not run."));
 	await post(call, tab, result, false);
 	// The confirm waits on the person; the next call must not wait behind it.
+	const parked = result.error.call;
 	void window.desk!.acts.wait(parked)
 		.catch((error) => failed(String(error)))
-		.then((ended) => post(call, tab, ended))
-		.finally(() => parkedBy.delete(parked));
+		.then((ended) => post(call, tab, ended));
+}
+
+async function openDialogs(): Promise<number[]> {
+	try {
+		return (await window.desk!.dialogs()).map((dialog: { id: number }) => dialog.id);
+	} catch {
+		return [];
+	}
 }
 
 async function perform(call: RelayEvent): Promise<ActResult> {

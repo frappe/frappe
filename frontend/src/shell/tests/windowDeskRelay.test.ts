@@ -84,12 +84,17 @@ describe("the relay in the tab", () => {
 		expect(replies()[1].result.data).toBe("submitted");
 	});
 
-	it("does not hand a second run the first confirm's end", async () => {
+	it("does not hand a run the end of a confirm that was already open", async () => {
 		let answer!: (value: unknown) => void;
-		const waiting = { ok: false, error: { code: "waiting_for_user", message: "", call: 9 }, route: "/", dialogs: [] };
+		const dialog = { id: 4, kind: "confirm", title: "Submit?", message: "", buttons: ["Yes", "No"] };
+		const waiting = { ok: false, error: { code: "waiting_for_user", message: "", call: 9, dialog }, route: "/", dialogs: [dialog] };
+		let open: unknown[] = [];
 		const wait = vi.fn(() => new Promise((resolve) => (answer = resolve)));
 		// `window.desk` gives a second run the open confirm's result and starts nothing.
-		const relay = await started({ acts: { run: async () => waiting, wait } });
+		const relay = await started({
+			acts: { run: vi.fn(async () => ((open = [dialog]), waiting)), wait },
+			dialogs: async () => open,
+		});
 		relay.emit({ call_id: "c1", op: "run", tab: "tab1", act: "record.submit" });
 		relay.emit({ call_id: "c2", op: "run", tab: "tab1", act: "list.refresh" });
 		await settle();

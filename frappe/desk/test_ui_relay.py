@@ -154,12 +154,13 @@ class TestUIRelay(IntegrationTestCase):
 		fake = FakeTabs({"a": {"focused_at": 1}})
 
 		def publish(event, message, user=None, **kwargs):
-			fake.publish(event, message, user)
 			if message["op"] == "tabs":
-				ui_relay.reply(message["call_id"], {"route": "/"})  # no tab name
+				ui_relay.reply(message["call_id"], {"route": "/"})  # no tab name, read first
+			fake.publish(event, message, user)
 
 		with patch("frappe.publish_realtime", side_effect=publish):
 			self.assertEqual([item["tab"] for item in ui_relay.tabs()], ["a"])
+			self.assertEqual(ui_relay.call("state", tab="a")["tab"], "a")
 
 	def test_the_setting_is_in_the_shell_boot(self):
 		from frappe.shell.boot import core_boot
