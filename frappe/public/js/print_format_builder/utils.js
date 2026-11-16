@@ -646,6 +646,12 @@ const SAFE_STYLE_PROPERTIES = new Set([
 	"text-align",
 ]);
 
+const SAFE_STYLE_VALUES = new Map([
+	["display", "block"],
+	["margin-left", "auto"],
+	["margin-right", "auto"],
+]);
+
 const UNSAFE_HTML_TAGS = "iframe, frame, frameset, object, embed, applet, form, base, meta, link";
 const URL_ATTRS = ["href", "src", "action", "formaction", "xlink:href", "data"];
 
@@ -709,7 +715,11 @@ export function sanitize_html(html) {
 					if (!/^https?:/i.test(attr.value.trim())) child.removeAttribute(attr.name);
 				} else if (name === "style") {
 					for (const property of [...child.style]) {
-						if (!SAFE_STYLE_PROPERTIES.has(property))
+						if (
+							!SAFE_STYLE_PROPERTIES.has(property) &&
+							SAFE_STYLE_VALUES.get(property) !==
+								child.style.getPropertyValue(property)
+						)
 							child.style.removeProperty(property);
 					}
 					if (!child.style.length) child.removeAttribute(attr.name);
