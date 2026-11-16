@@ -350,12 +350,18 @@ class TestStudioComponent(IntegrationTestCase):
 		from frappe.studio.doctype.studio_component.patches import move_inputs_to_script_props
 
 		def make_component(label, inputs, **fields):
-			return frappe.get_doc(
+			component = frappe.get_doc(
 				doctype="Studio Component",
 				component_name=f"{label} {frappe.generate_hash(length=10)}",
 				inputs=inputs,
 				**fields,
-			).insert()
+			)
+			# a save cannot add an input row, so only the files of an app bring the rows
+			self.assertRaisesRegex(
+				frappe.ValidationError, "You cannot add or edit input rows", component.insert
+			)
+			with patch.dict(frappe.flags, in_import=True):
+				return component.insert()
 
 		plain = make_component(
 			"Plain",
@@ -393,3 +399,12 @@ class TestStudioComponent(IntegrationTestCase):
 			kept.reload()
 			self.assertFalse(kept.script)
 			self.assertEqual(len(kept.inputs), 1)
+
+		# an older component can keep its rows or lose them, and cannot change them
+		bound.component_name = "Bound again"
+		bound.save()
+		bound.inputs[0].default = "Title"
+		self.assertRaisesRegex(frappe.ValidationError, "You cannot add or edit input rows", bound.save)
+		bound.reload()
+		bound.inputs = []
+		bound.save()

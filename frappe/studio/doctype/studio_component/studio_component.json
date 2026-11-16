@@ -36,10 +36,12 @@
    "label": "Interface"
   },
   {
+   "description": "Legacy input rows are kept for compatibility. Define new props in the component script.",
    "fieldname": "inputs",
    "fieldtype": "Table",
    "label": "Inputs",
-   "options": "Studio Component Input"
+   "options": "Studio Component Input",
+   "read_only": 1
   },
   {
    "fieldname": "block",
@@ -63,6 +65,7 @@
    "read_only": 1
   },
   {
+   "description": "Export a Vue component definition with props, emits, and setup().",
    "fieldname": "script",
    "fieldtype": "Code",
    "label": "Script",
@@ -81,7 +84,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-15 01:54:41.154833",
+ "modified": "2026-11-16 12:34:26.006237",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
