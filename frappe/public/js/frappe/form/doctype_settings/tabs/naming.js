@@ -57,7 +57,7 @@ function make_series_section($body, doctype) {
 			title: __("Naming Series"),
 			description: __(
 				"Configure naming series options for {0}. You can choose a series when creating a document.",
-				[doctype]
+				[__(doctype)]
 			),
 			add_label: __("Add Series"),
 			on_add: (refresh) => series_dialog(doctype, null, refresh),
@@ -263,7 +263,7 @@ function make_rules_section($body, doctype, panel) {
 			title: __("Naming Rules"),
 			description: __(
 				"Configure conditional naming rules for {0}. Rules are applied in priority order.",
-				[doctype]
+				[__(doctype)]
 			),
 			add_label: __("New"),
 			on_add: () => {

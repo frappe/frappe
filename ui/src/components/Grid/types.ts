@@ -8,6 +8,8 @@ export interface GridColumn {
   fieldname: string;
   label?: string;
   reqd?: boolean;
+  /** Rendered as the cell's `data-fieldtype`, a handle for tests and CSS. */
+  fieldtype?: string;
   /**
    * Horizontal alignment for this column's cells *and* its header label, so the
    * two always agree. Defaults to left. Consumers set `"right"` for numeric
@@ -17,7 +19,8 @@ export interface GridColumn {
   align?: "left" | "right" | "center";
   /**
    * Initial track width in px, e.g. set from layout/meta. Omit for a flexible
-   * column that shares leftover space (`1fr`). Drag-resizing the column's right
+   * column that shares leftover space (`1fr`) down to 128px, past which the grid
+   * scrolls sideways. Drag-resizing the column's right
    * edge overrides this at runtime.
    */
   width?: number;
@@ -34,17 +37,30 @@ export interface GridProps {
   columns: GridColumn[];
   /** Disable structural actions (add/delete/reorder/select) and render read-only. */
   disabled?: boolean;
+  /** Hide every way to add a row. Existing rows stay editable. */
+  cannotAddRows?: boolean;
+  /** Hide every way to delete a row. Rows can still be added and edited. */
+  cannotDeleteRows?: boolean;
   /** Optional heading shown above the grid. */
   label?: string;
   /** Helper text rendered below the grid. Hidden while an error is shown. */
   description?: string;
-  /** Validation error below the grid: a string, or an `Error` with `messages[]`. */
-  error?: string | GridError;
+  /** Validation error below the grid: one message, several, or an `Error` with `messages[]`. */
+  error?: string | string[] | GridError;
   /** Renders a `*` next to the label. */
   required?: boolean;
+  /** A cell's error, drawn as a red ring with the message in a tooltip. */
+  cellError?: (row: Record<string, any>, column: GridColumn) => string | string[] | undefined;
   /** Seeds a newly added row. The grid sees only the columns, so whoever knows
    *  the whole child form supplies its docfield defaults. */
   newRow?: () => Record<string, any>;
+  /** The value a pasted cell commits, or `null` to leave the cell alone.
+   *  Without it a pasted cell commits its text. */
+  parsePaste?: (
+    row: Record<string, any>,
+    column: GridColumn,
+    text: string
+  ) => { value: unknown } | null;
 }
 
 export type GridEmits = {
@@ -59,15 +75,15 @@ export type GridEmits = {
    * rows array moved: this names the row and the column, so a consumer can
    * dispatch a per-row event without diffing to work out what moved.
    */
-  commit: [payload: { row: Record<string, any>; column: GridColumn }];
+  commit: [payload: { row: Record<string, any>; column: GridColumn; pasted?: boolean }];
   /** A row was added, carrying the row so a consumer can address it. */
   add: [payload: { row: Record<string, any> }];
   /** Rows were deleted, carrying them as they last were. */
   remove: [payload: { rows: Record<string, any>[] }];
   /**
-   * The user clicked a row's edit action (last column). Carries the row and its
-   * index. `Grid` stays oblivious to *how* a row is edited — the consumer (e.g.
-   * `TableField`) opens a dialog and renders the row however it likes.
+   * The user picked Edit in a row's menu (the ⋯ button or a right-click). Carries
+   * the row and its index. `Grid` stays oblivious to *how* a row is edited — the
+   * consumer (e.g. `TableField`) opens a dialog and renders the row however it likes.
    */
   edit: [payload: { row: Record<string, any>; index: number }];
 };

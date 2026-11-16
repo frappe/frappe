@@ -18,3 +18,16 @@ export function toLinkOption(row: {
     description: description || undefined,
   };
 }
+
+/** A `search_link` row labelled by its ID, with the title beneath. */
+export function toIdOption(row: {
+  value: string;
+  label?: string;
+  description?: string;
+}): LinkOption {
+  const parts = [row.label, ...(row.description?.split(", ") ?? [])];
+  const description = [...new Set(parts)]
+    .filter((part) => part && part !== row.value)
+    .join(", ");
+  return { label: row.value, value: row.value, description: description || undefined };
+}

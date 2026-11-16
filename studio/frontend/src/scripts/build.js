@@ -19,6 +19,7 @@ import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
 import frameworkui from "@framework/ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
+import databaseAppImports from "../../vite/databaseAppImports.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
 import { mergeStudioAppConfigs } from "../../tailwind/studioAppConfigs.js"
@@ -80,6 +81,7 @@ const { values: argv } = parseArgs({
 		icons: { type: "string" },
 		"app-folder": { type: "string" },
 		"tailwind-content": { type: "string", multiple: true },
+		"database-app": { type: "boolean" },
 	},
 	strict: false,
 })
@@ -100,6 +102,7 @@ await generateAppBuild(
 	argv["router-file"],
 	argv["app-folder"],
 	argv["tailwind-content"],
+	argv["database-app"],
 )
 
 export async function generateAppBuild(
@@ -113,8 +116,10 @@ export async function generateAppBuild(
 	routerFile,
 	appFolder,
 	tailwindContent = [],
+	databaseApp = false,
 ) {
 	if (!appName) return
+	if (databaseApp && !appFolder) throw new Error("--database-app requires --app-folder")
 
 	const componentList = components ? components.split(",") : []
 	const customComponents = customComponentsJson ? JSON.parse(customComponentsJson) : {}
@@ -124,7 +129,16 @@ export async function generateAppBuild(
 	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
 	const iconList = icons ? icons.split(",") : []
-	await buildWithVite(appName, tempRendererPath, outDir, base, iconList, appFolder, tailwindContent)
+	await buildWithVite(
+		appName,
+		tempRendererPath,
+		outDir,
+		base,
+		iconList,
+		appFolder,
+		tailwindContent,
+		databaseApp,
+	)
 	deleteRendererFile(tempRendererPath)
 }
 
@@ -226,7 +240,7 @@ ${pageScripts
 })`
 		: ""
 
-	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
+	// An app without a router file falls back to Studio's own routing.
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
 	const routerConfig = routerFile ? "routerConfig" : ""
 
@@ -308,6 +322,7 @@ async function buildWithVite(
 	icons = [],
 	appFolder,
 	tailwindContent = [],
+	databaseApp = false,
 ) {
 	outDir = outDir || path.resolve(__dirname, `../../../../frappe/public/app_builds/${appName}`)
 	basePath = basePath || `/assets/frappe/app_builds/${appName}/`
@@ -324,13 +339,23 @@ async function buildWithVite(
 				buildConfig: false,
 				jinjaBootData: false,
 			}),
+			// Before studioRootAlias, so it sees @app/ specifiers as written.
+			databaseApp && databaseAppImports(appFolder),
 			studioRootAlias(),
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
 			// resolves @framework/ui's own deps from studio's node_modules
 			frameworkui(),
 		],
 		resolve: {
-			alias: [...frameworkUIAlias(APPS_DIR), { find: "@", replacement: path.resolve(__dirname, "../") }],
+			alias: [
+				...frameworkUIAlias(APPS_DIR),
+				// Built apps use compiled source and do not need the browser compiler or registry.
+				{
+					find: /^@\/browserRuntime\/appRuntime$/,
+					replacement: path.resolve(__dirname, "../browserRuntime/noBrowserRuntime.ts"),
+				},
+				{ find: "@", replacement: path.resolve(__dirname, "../") },
+			],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: [

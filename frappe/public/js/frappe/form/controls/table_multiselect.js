@@ -44,7 +44,7 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 			const rows = current_rows.filter((_, row_index) => row_index !== index);
 
 			if (!this.frm) {
-				this.set_model_value(rows).then(() => this.awesomplete.evaluate());
+				this.set_value(rows).then(() => this.awesomplete.evaluate());
 				return;
 			}
 
@@ -87,7 +87,8 @@ frappe.ui.form.ControlTableMultiSelect = class ControlTableMultiSelect extends (
 			// if backspace key pressed on empty input, delete last value
 			if (e.keyCode == frappe.ui.keyCode.BACKSPACE && e.target.value === "") {
 				const rows = this._get_rows().slice(0, -1);
-				this.set_model_value(rows).then(() => this.awesomplete.evaluate());
+				const set = this.frm ? this.set_model_value(rows) : this.set_value(rows);
+				set.then(() => this.awesomplete.evaluate());
 			}
 		});
 	}

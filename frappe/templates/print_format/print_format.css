@@ -153,6 +153,11 @@ body::before {
 .print-format-doc .field.field-inline .value {
 	color: {{ print_format.value_color }};
 }
+.print-format-doc .field .value a,
+.print-format-doc .field .value pre,
+.print-format-doc .field .value code {
+	color: inherit;
+}
 {%- endif %}
 
 .print-format-doc [document-status] {

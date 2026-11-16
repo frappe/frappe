@@ -37,7 +37,7 @@ class ParallelTestRunner:
 		dry_run=False,
 		lightmode=False,
 		failfast=False,
-		selected_tests=None,
+		retries=0,
 	):
 		self.app = app
 		self.site = site
@@ -46,8 +46,7 @@ class ParallelTestRunner:
 		self.dry_run = dry_run
 		self.lightmode = lightmode
 		self.failfast = failfast
-		# App-relative test file paths, e.g. `frappe/tests/test_api.py`. None runs all of them.
-		self.selected_tests = selected_tests
+		self.retries = retries
 		self.test_file_list = []
 		self.total_test_weight = 0
 		self.test_result = None
@@ -56,6 +55,7 @@ class ParallelTestRunner:
 	def setup_and_run(self):
 		self.setup_test_site()
 		self.run_tests()
+		self.retry_failed()
 		self.print_result()
 
 	def setup_test_site(self):
@@ -98,6 +98,32 @@ class ParallelTestRunner:
 
 		for test_file_info in self.test_file_list:
 			self.run_tests_for_file(test_file_info)
+
+	def retry_failed(self):
+		"""Run the failed tests again in this process, without a new setup, and keep the result of their last run."""
+		for _ in range(self.retries):
+			failed = [test for test, _ in self.test_result.failures + self.test_result.errors]
+			if not failed or not all(hasattr(test, "_testMethodName") for test in failed):
+				return
+			names = [test.id() for test in failed]
+			first_error = {
+				test.id(): (trace.strip().splitlines() or [""])[-1]
+				for test, trace in self.test_result.failures + self.test_result.errors
+			}
+			self.test_result.printErrors()
+			click.echo(self.test_result)
+			click.secho(f"\nRunning {len(names)} failed test(s) again", fg="yellow")
+			frappe.db.rollback()
+			self.test_result = TestResult(
+				stream=sys.stderr, descriptions=True, verbosity=2, failfast=self.failfast
+			)
+			self.test_result.startTestRun()
+			unittest.TestLoader().loadTestsFromNames(names)(self.test_result)
+			self.test_result.stopTestRun()
+			still = {test.id() for test, _ in self.test_result.failures + self.test_result.errors}
+			if flaky := [name for name in names if name not in still]:
+				click.secho(f"Flaky, passed when run again: {', '.join(flaky)}", fg="yellow")
+				report_flaky({name: first_error[name] for name in flaky})
 
 	def run_tests_for_file(self, file_info):
 		if not file_info:
@@ -158,13 +184,6 @@ class ParallelTestRunner:
 	def get_test_file_list(self):
 		# Load balance based on total # of tests ~ each runner should get roughly same # of tests.
 		test_list = get_all_tests(self.app)
-		if self.selected_tests is not None:
-			app_root = os.path.dirname(frappe.get_app_path(self.app))
-			test_list = [
-				test
-				for test in test_list
-				if os.path.relpath(os.path.join(*test), app_root) in self.selected_tests
-			]
 
 		test_counts = [self.get_test_weight(test) for test in test_list]
 		test_chunks = split_by_weight(test_list, test_counts, chunk_count=self.total_builds)
@@ -182,6 +201,21 @@ class ParallelTestRunner:
 			test_count = f.read().count("def test_") * test_weight
 
 		return test_count
+
+
+def report_flaky(first_error):
+	"""Show tests that passed only when run again as warnings on the run and in its summary, when on GitHub Actions."""
+	if not os.environ.get("GITHUB_ACTIONS"):
+		return
+	for name, error in first_error.items():
+		print(f"::warning title=Flaky test::{name} failed, then passed when run again: {error}")
+	if summary := os.environ.get("GITHUB_STEP_SUMMARY"):
+		rows = "".join(f"| `{name}` | {error.replace('|', '\\|')} |\n" for name, error in first_error.items())
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+		with open(summary, "a") as f:
+			f.write(
+				f"### ⚠️ Flaky tests: passed only when run again\n\n| Test | First run |\n|---|---|\n{rows}\n"
+			)
 
 
 def split_by_weight(work, weights, chunk_count):

@@ -86,7 +86,7 @@ def log_error(
 	)
 
 	try:
-		if frappe.flags.read_only or defer_insert:
+		if frappe.flags.read_only or defer_insert or frappe.db.in_read_only_transaction:
 			error_log.deferred_insert()
 		else:
 			error_log.insert(ignore_permissions=True)

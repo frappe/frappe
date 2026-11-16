@@ -59,8 +59,14 @@ class TestDisabledAppPermissionConditions(IntegrationTestCase):
 
 	def new_print_format(self, module: str | None) -> str:
 		print_format = frappe.get_doc(
-			doctype="Print Format", name=frappe.generate_hash(length=10), module=module, standard="No"
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type="ToDo",
+			module=module,
+			standard="No",
 		).insert()
+		if not module:
+			frappe.db.set_value("Print Format", print_format.name, "module", None)
 		return print_format.name
 
 

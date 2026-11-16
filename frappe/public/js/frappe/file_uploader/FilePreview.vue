@@ -42,6 +42,9 @@
 						/>{{ __("Private") }}</label
 					>
 				</div>
+				<div v-if="show_private_checkbox && private_hint" class="private-hint">
+					{{ private_hint }}
+				</div>
 			</div>
 			<div class="file-actions">
 				<ProgressRing
@@ -73,8 +76,12 @@
 			</div>
 		</div>
 		<div style="width: 100%">
-			<div v-if="file.error_message" class="alert alert-danger mb-0 mt-2" role="alert">
-				{{ file.error_message }}
+			<div
+				v-if="file.error_message"
+				class="alert alert-danger mb-0 mt-2 whitespace-pre-wrap"
+				role="alert"
+			>
+				{{ frappe.utils.html2text(file.error_message) }}
 			</div>
 			<div
 				v-if="!file.private && !file.error_message && !uploaded && !file.failed"
@@ -106,6 +113,9 @@ const props = defineProps({
 	},
 	show_private_checkbox: {
 		default: true,
+	},
+	private_hint: {
+		default: null,
 	},
 	allow_toggle_optimize: {
 		default: true,
@@ -279,5 +289,11 @@ onMounted(() => {
 
 .config-area {
 	gap: 0.5rem;
+}
+
+.private-hint {
+	font-size: var(--text-sm);
+	color: var(--text-light);
+	padding-top: 0.25rem;
 }
 </style>

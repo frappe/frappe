@@ -109,6 +109,16 @@ test.describe("Kanban v2 Board", () => {
 		).toHaveCount(0);
 	});
 
+	test("leaves the doctype room when the board closes", async ({ page }) => {
+		await visit_kanban_v2(page);
+		const room_users = () =>
+			page.evaluate(() => frappe.realtime.subscribed_doctypes.get("ToDo") || 0);
+		const on_board = await room_users();
+
+		await page.evaluate(() => frappe.set_route("List", "User"));
+		await expect.poll(room_users).toBe(on_board - 1);
+	});
+
 	test("falls back to the classic Kanban board when the setting is disabled", async ({
 		page,
 		admin,

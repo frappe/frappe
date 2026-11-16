@@ -3,8 +3,9 @@
 
 import functools
 import json
-import re
-from typing import NotRequired, TypedDict
+import math
+from collections.abc import Callable
+from typing import Any, NotRequired, TypedDict
 
 import frappe
 
@@ -56,6 +57,7 @@ class LinkSearchResults(TypedDict):
 	value: str
 	description: str
 	label: NotRequired[str]
+	image: NotRequired[str]
 
 
 # this is called by the Link Field
@@ -72,19 +74,65 @@ def search_link(
 	ignore_user_permissions: bool = False,
 	*,
 	link_fieldname: str | None = None,
+	start: int = 0,
+	include_image: bool = False,
+	keep_order: bool = False,
 ) -> list[LinkSearchResults]:
+	"""Rows for a Link field's dropdown, one page from `start`."""
 	results = search_widget(
 		doctype,
 		txt.strip(),
 		query,
 		searchfield=searchfield,
+		start=cint(start),
 		page_length=page_length,
 		filters=filters,
 		reference_doctype=reference_doctype,
 		ignore_user_permissions=ignore_user_permissions,
 		link_fieldname=link_fieldname,
+		keep_order=sbool(keep_order),
 	)
-	return build_for_autosuggest(results, doctype=doctype)
+	rows = build_for_autosuggest(results, doctype=doctype)
+	if sbool(include_image):
+		add_images(rows, doctype)
+	return rows
+
+
+def get_image_field(doctype: str) -> str | None:
+	"""The DocType's image_field, if it is a real column this user may read."""
+	# select-only access covers the search fields, not the image
+	if not frappe.has_permission(doctype, "read"):
+		return None
+	meta = frappe.get_meta(doctype)
+	if not meta.image_field:
+		return None
+	df = meta.get_field(meta.image_field)
+	if not df or getattr(df, "is_virtual", False):
+		return None
+	# don't return an image field the user can't read
+	if df.permlevel and df.permlevel not in meta.get_permlevel_access("read"):
+		return None
+	return meta.image_field
+
+
+def add_images(rows: list[LinkSearchResults], doctype: str) -> None:
+	"""Set `image` on each row via a by-name lookup, so custom queries work too."""
+	image_field = get_image_field(doctype)
+	if not image_field or not rows:
+		return
+	# a Link field may list records outside the user's permissions; their images stay hidden
+	images = dict(
+		frappe.get_list(
+			doctype,
+			filters={"name": ["in", [r["value"] for r in rows]]},
+			fields=["name", image_field],
+			as_list=True,
+		)
+	)
+	for row in rows:
+		image = images.get(row["value"])
+		if image:
+			row["image"] = image
 
 
 def make_dict_from_filter_list(filters: list) -> dict:
@@ -118,6 +166,8 @@ def search_widget(
 	for_link_validation: bool = False,
 	# this param has been added temporarily for compatibility - may be removed later
 	query_filters_as_dict: bool = False,
+	# skip the relevance re-sort so paged results keep one order
+	keep_order: bool = False,
 ):
 	if ignore_user_permissions:
 		if reference_doctype and link_fieldname:
@@ -200,12 +250,10 @@ def search_widget(
 		finally:
 			frappe.flags.ignore_user_permissions_for_doctype = None
 
-		if not for_link_validation:
-			if meta.translated_doctype:
-				values = filter_translated(values, txt, as_dict)
-				if txt:
-					values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-				values = values[start : start + page_length]
+		if meta.translated_doctype and not for_link_validation:
+			# like other custom queries, keep the query's order
+			values = filter_translated(values, txt, lambda row: [row.name if as_dict else row[0]])
+			values = values[start : start + page_length]
 
 		return values
 
@@ -223,9 +271,7 @@ def search_widget(
 	if for_link_validation:
 		filters.append([doctype, "name", "=", txt])
 
-	or_filters = []
-
-	# build from doctype
+	match_fields = []
 	if txt:
 		field_types = {
 			"Autocomplete",
@@ -249,8 +295,10 @@ def search_widget(
 
 		for f in search_fields:
 			fmeta = meta.get_field(f.strip())
-			if not meta.translated_doctype and (f == "name" or (fmeta and fmeta.fieldtype in field_types)):
-				or_filters.append([doctype, f.strip(), "like", f"%{txt}%"])
+			if f == "name" or (fmeta and fmeta.fieldtype in field_types):
+				match_fields.append(f.strip())
+
+	or_filters = [] if meta.translated_doctype else [[doctype, f, "like", f"%{txt}%"] for f in match_fields]
 
 	if not include_disabled:
 		if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
@@ -270,7 +318,8 @@ def search_widget(
 
 	order_by_based_on_meta = get_order_by(doctype, meta)
 	# `idx` is number of times a document is referred, check link_count.py
-	order_by = f"idx desc, {order_by_based_on_meta}"
+	# sort by `name` last so pages don't repeat or skip rows
+	order_by = f"idx desc, {order_by_based_on_meta}, `tab{doctype}`.`name` asc"
 
 	# With an empty `txt`, LOCATE always returns 1, so `_relevance` is the same constant for
 	# every row. The sort key then changes no ordering, but is still evaluated per row and
@@ -306,22 +355,24 @@ def search_widget(
 		ignore_permissions=doctype == "DocType",
 		ignore_user_permissions=ignore_user_permissions,
 		reference_doctype=reference_doctype,
-		as_list=not as_dict,
+		as_list=not (as_dict or meta.translated_doctype),
 		strict=False,
 	)
 
-	if not for_link_validation:
-		if meta.translated_doctype:
-			values = filter_translated(values, txt, as_dict)
+	if meta.translated_doctype and not for_link_validation:
+		values = filter_translated(values, txt, lambda row: [row.get(field) for field in match_fields])
+		values = sorted(values, key=lambda row: get_translated_relevance(row.name, txt))
+		values = values[start : start + page_length]
 
+	if meta.translated_doctype and not as_dict:
+		values = [tuple(row.values()) for row in values]
+
+	if not for_link_validation:
 		# Sorting the values array so that relevant results always come first
 		# This will first bring elements on top in which query is a prefix of element
 		# Then it will bring the rest of the elements and sort them in lexicographical order
-		if txt:
+		if txt and not keep_order:
 			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
-
-		if meta.translated_doctype:
-			values = values[start : start + page_length]
 
 		# remove _relevance from results
 		if add_relevance:
@@ -514,16 +565,44 @@ def relevance_sorter(key, query, as_dict):
 	return (cstr(value).casefold().startswith(query.casefold()) is not True, value)
 
 
-def filter_translated(values, txt: str, as_dict: bool) -> list:
-	"""Return only those results where txt matches any translated field value."""
+def filter_translated(values: list, txt: str, get_values: Callable[[Any], list]) -> list:
+	"""Return rows where a translated value from `get_values(row)` contains txt as `LIKE %txt%` would match it."""
+	if not txt:
+		return values
+
 	return [
-		result
-		for result in values
-		if any(
-			re.search(f"{re.escape(txt)}.*", _(cstr(value)) or "", re.IGNORECASE)
-			for value in (result.values() if as_dict else result)
-		)
+		row for row in values if any(like_contains(_(cstr(value)) or "", txt) for value in get_values(row))
 	]
+
+
+def like_contains(value: str, txt: str) -> bool:
+	"""Whether value contains txt as SQL `LIKE '%txt%'` matches it, ignoring case.
+
+	`%` matches any run of characters and `_` any one character. Each part between `%`s is
+	matched at its first position, which is enough for this pattern, so there is no backtracking."""
+	value, position = value.casefold(), 0
+	for part in txt.casefold().split("%"):
+		position = find_like_part(value, part, position)
+		if position < 0:
+			return False
+		position += len(part)
+	return True
+
+
+def find_like_part(value: str, part: str, start: int) -> int:
+	"""Index of part's first match in value from start, `_` matching any character; -1 if none."""
+	if "_" not in part:
+		return value.find(part, start)
+	for index in range(start, len(value) - len(part) + 1):
+		if all(char in ("_", value[index + offset]) for offset, char in enumerate(part)):
+			return index
+	return -1
+
+
+def get_translated_relevance(name: str, txt: str) -> float:
+	"""Position of txt in the translated name, like the SQL `_relevance` (no match ranks last)."""
+	position = _(cstr(name)).casefold().find(txt.replace("%", "").casefold())
+	return math.inf if position < 0 else position
 
 
 MAX_MENTIONS_PAGE_LENGTH = 20

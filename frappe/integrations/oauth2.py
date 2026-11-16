@@ -1,5 +1,7 @@
 import datetime
 import json
+import mimetypes
+from pathlib import Path
 from typing import Literal, cast
 from urllib.parse import quote, urlencode
 
@@ -296,13 +298,15 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
 	try:
-		bearer_token = None
-		if token_type_hint == "access_token":
-			bearer_token = frappe.get_doc("OAuth Bearer Token", {"access_token": get_oauth_token_hash(token)})
-		elif token_type_hint == "refresh_token":
-			bearer_token = frappe.get_doc(
-				"OAuth Bearer Token", {"refresh_token": get_oauth_token_hash(token)}
-			)
+		bearer_token = token and frappe.db.get_value(
+			"OAuth Bearer Token",
+			{token_type_hint: get_oauth_token_hash(token)},
+			("client", "status", "expiration_time", "scopes", "user"),
+			as_dict=True,
+		)
+		if not bearer_token:
+			frappe.local.response = frappe._dict({"active": False})
+			return
 
 		client = frappe.get_cached_doc("OAuth Client", bearer_token.client)
 
@@ -346,6 +350,17 @@ def handle_wellknown(path: str):
 	if path.startswith("/.well-known/oauth-protected-resource") and is_oauth_metadata_enabled("resource"):
 		return get_protected_resource_metadata()
 
+	return get_app_wellknown_file(path)
+
+
+def get_app_wellknown_file(path: str):
+	"""Serve a file an app ships in `www/.well-known/`, e.g. a domain verification token."""
+	name = path.removeprefix("/.well-known/")
+	for app in frappe.get_installed_apps():
+		folder = Path(frappe.get_app_path(app, "www", ".well-known")).resolve()
+		file = (folder / name).resolve()
+		if file.is_relative_to(folder) and file.is_file():
+			return Response(file.read_bytes(), content_type=mimetypes.guess_type(file)[0] or "text/plain")
 	raise NotFound
 
 

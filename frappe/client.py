@@ -216,7 +216,7 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 
 	doc.save()
 
-	return doc.as_dict()
+	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -226,7 +226,7 @@ def insert(doc: str | dict[str, Any] | None = None):
 	:param doc: JSON or dict object to be inserted"""
 	doc = frappe.parse_json(doc)
 
-	return insert_doc(doc).as_dict()
+	return insert_doc(doc).copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -252,7 +252,7 @@ def save(doc: str | dict[str, Any]):
 	doc = frappe.get_doc(doc)
 	doc.save()
 
-	return doc.as_dict()
+	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -276,7 +276,7 @@ def submit(doc: str | dict[str, Any]):
 	doc = frappe.get_doc(doc)
 	doc.submit()
 
-	return doc.as_dict()
+	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -288,7 +288,7 @@ def cancel(doctype: str, name: str | int):
 	wrapper = frappe.get_doc(doctype, name)
 	wrapper.cancel()
 
-	return wrapper.as_dict()
+	return wrapper.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 @frappe.whitelist(methods=["DELETE", "POST"])
@@ -337,8 +337,17 @@ def get_doc_permissions(doctype: str, docname: str | int):
 	:param doctype: DocType of the document to be evaluated
 	:param docname: `name` of the document to be evaluated
 	"""
-	doc = frappe.get_lazy_doc(doctype, docname)
-	return {"permissions": frappe.permissions.get_doc_permissions(doc)}
+	try:
+		doc = frappe.get_lazy_doc(doctype, docname)
+	except frappe.DoesNotExistError:
+		return {"permissions": {}}
+
+	permissions = frappe.permissions.get_doc_permissions(doc)
+	if not permissions.get("read"):
+		# same answer for missing and unreadable documents
+		return {"permissions": {}}
+
+	return {"permissions": permissions}
 
 
 @frappe.whitelist()

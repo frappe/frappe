@@ -266,7 +266,8 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 
 			if not linked_doc:
 				try:
-					linked_doc = frappe.get_doc(df.options, target_doc.get(df.fieldname))
+					# Lazy: fetch_from fields rarely need the child tables
+					linked_doc = frappe.get_lazy_doc(df.options, target_doc.get(df.fieldname))
 				except Exception:
 					return
 

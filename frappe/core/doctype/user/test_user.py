@@ -17,9 +17,13 @@ from frappe.core.doctype.user.user import (
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
+	get_all_roles,
+	get_perm_info,
 	handle_password_test_fail,
+	needs_password_setup,
 	reset_password,
 	rewrite_owner_fields,
+	set_first_password,
 	sign_up,
 	test_password_strength,
 	update_password,
@@ -49,6 +53,25 @@ class TestUser(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
 		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
 		frappe.set_user("Administrator")
+
+	def test_role_listing_requires_role_read(self):
+		desk_user = frappe.get_doc(
+			doctype="User",
+			email="roles_desk_user@example.com",
+			first_name="Desk",
+			roles=[{"role": "_Test Role"}],
+			send_welcome_email=0,
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "User", desk_user.name, force=True)
+
+		# a desk user without read on Role
+		frappe.set_user(desk_user.name)
+		self.assertRaises(frappe.PermissionError, get_all_roles)
+		self.assertRaises(frappe.PermissionError, get_perm_info, "System Manager")
+
+		frappe.set_user("test@example.com")
+		self.assertIn("System Manager", get_all_roles())
+		self.assertTrue(get_perm_info("System Manager"))
 
 	@staticmethod
 	def reset_password(user) -> str:
@@ -124,6 +147,51 @@ class TestUser(IntegrationTestCase):
 
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
+
+	def test_frappe_social_login_userid_is_immutable(self):
+		user_id = frappe.generate_hash() + "@example.com"
+		user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		original_userid = user.get_social_login_userid("frappe")
+		self.assertTrue(original_userid)
+		row_name = user.social_logins[0].name
+
+		# the owner can be granted write on their own record, e.g. through sharing
+		frappe.share.add("User", user.name, user.name, write=1)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(user.name)
+
+		# a write cannot change the OIDC `sub`, even though `userid` is only read_only in the form
+		user = frappe.get_doc("User", user.name)
+		user.social_logins[0].userid = "Administrator"
+		user.save()
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "userid"), original_userid)
+
+		# nor can it be replaced by dropping the row and appending a crafted one
+		user.social_logins = []
+		user.set_social_login_userid("frappe", "Administrator")
+		user.save()
+		self.assertEqual(
+			frappe.db.get_value("User Social Login", {"parent": user.name, "provider": "frappe"}, "userid"),
+			original_userid,
+		)
+
+		# nor through a direct save of the child row, which skips the parent controller
+		row_name = frappe.db.get_value(
+			"User Social Login", {"parent": user.name, "provider": "frappe"}, "name"
+		)
+		child = frappe.get_doc("User Social Login", row_name)
+		child.userid = "Administrator"
+		self.assertRaises(frappe.ValidationError, child.save)
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "userid"), original_userid)
+
+		# nor by relabeling the frappe row as another provider to smuggle a userid back in
+		child = frappe.get_doc("User Social Login", row_name)
+		child.provider = "custom"
+		child.userid = "Administrator"
+		self.assertRaises(frappe.ValidationError, child.save)
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "provider"), "frappe")
 
 	def insert_user_as_manager(self, first_name, username=None):
 		if frappe.session.user == "Administrator":
@@ -798,6 +866,24 @@ class TestUser(IntegrationTestCase):
 			"The reset password link has been expired",
 		)
 
+	def test_update_password_needs_a_reset_key_or_old_password(self):
+		for user in ("Guest", "testpassword@example.com"):
+			frappe.set_user(user)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Either a password reset key or old password is required",
+				update_password,
+				"Western_43A1W",
+			)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Either a password reset key or old password is required",
+				update_password,
+				"Western_43A1W",
+				key="",
+				old_password="",
+			)
+
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
 		from frappe.auth import CookieManager, LoginManager
@@ -1004,3 +1090,126 @@ def test_user(
 def delete_contact(user):
 	frappe.db.delete("Contact", {"email_id": user})
 	frappe.db.delete("Contact Email", {"email_id": user})
+
+
+class TestNeedsPasswordSetup(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# With login links on, a user without a password can already get back in.
+		cls.enterClassContext(cls.change_settings("System Settings", login_with_email_link=0))
+
+	def setUp(self):
+		self.user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "site-owner@example.com",
+				"first_name": "Site Owner",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_if_duplicate=True)
+		frappe.db.delete("__Auth", {"doctype": "User", "name": self.user.name})
+		self.addCleanup(frappe.delete_doc, "User", self.user.name, force=True)
+
+	def test_user_without_a_password_needs_one(self):
+		self.assertTrue(needs_password_setup(self.user.name))
+
+	def test_user_with_a_password_does_not(self):
+		from frappe.utils.password import update_password as set_password
+
+		set_password(self.user.name, "Eastern_43A1W")
+		self.assertFalse(needs_password_setup(self.user.name))
+
+	def test_a_token_request_cannot_set_the_first_password(self):
+		from frappe.utils import set_request
+
+		had_request = hasattr(frappe.local, "request")
+		set_request(path="/api/method/ping", headers={"Authorization": "token key:secret"})
+		frappe.local.request_ip = "127.0.0.1"
+		frappe.set_user(self.user.name)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				set_first_password("Eastern_43A1W")
+		finally:
+			frappe.set_user("Administrator")
+			if not had_request:
+				del frappe.local.request
+		self.assertTrue(needs_password_setup(self.user.name))
+
+	def test_sets_a_first_password_from_the_app(self):
+		from frappe.utils.password import check_password
+
+		frappe.set_user(self.user.name)
+		try:
+			set_first_password("Eastern_43A1W")
+		finally:
+			frappe.set_user("Administrator")
+		self.assertEqual(check_password(self.user.name, "Eastern_43A1W"), self.user.name)
+		self.assertFalse(needs_password_setup(self.user.name))
+
+	def test_an_empty_first_password_is_refused(self):
+		frappe.set_user(self.user.name)
+		try:
+			for empty in ("", "   "):
+				with self.assertRaises(frappe.ValidationError):
+					set_first_password(empty)
+		finally:
+			frappe.set_user("Administrator")
+		self.assertTrue(needs_password_setup(self.user.name))
+
+	def test_a_first_password_spends_any_reset_link(self):
+		self.user.reload()
+		self.user._reset_password()
+		self.assertTrue(frappe.db.get_value("User", self.user.name, "reset_password_key"))
+
+		frappe.set_user(self.user.name)
+		try:
+			set_first_password("Eastern_43A1W")
+		finally:
+			frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.get_value("User", self.user.name, "reset_password_key"))
+		self.assertEqual(
+			str(frappe.db.get_value("User", self.user.name, "last_password_reset_date")), today()
+		)
+
+	def test_a_user_with_a_password_cannot_use_the_first_password_route(self):
+		from frappe.utils.password import update_password as set_password
+
+		set_password(self.user.name, "Eastern_43A1W")
+		frappe.set_user(self.user.name)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				set_first_password("Another_43A1W")
+		finally:
+			frappe.set_user("Administrator")
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", enable_password_policy=1, minimum_password_score=2
+	)
+	def test_a_weak_first_password_is_refused(self):
+		frappe.set_user(self.user.name)
+		try:
+			with self.assertRaises(frappe.ValidationError):
+				set_first_password("aaaa")
+		finally:
+			frappe.set_user("Administrator")
+		self.assertTrue(needs_password_setup(self.user.name))
+
+	def test_standard_users_never_do(self):
+		self.assertFalse(needs_password_setup("Administrator"))
+		self.assertFalse(needs_password_setup("Guest"))
+
+	@IntegrationTestCase.change_settings("System Settings", login_with_email_link=1)
+	def test_not_when_email_login_links_are_on(self):
+		self.assertFalse(needs_password_setup(self.user.name))
+
+	def test_not_on_frappe_cloud_v2(self):
+		with patch.dict(
+			frappe.conf, {"pilot_endpoint": "https://pilot.example.com", "pilot_auth_token": "t"}
+		):
+			self.assertFalse(needs_password_setup(self.user.name))
+
+	def test_not_for_social_login_users(self):
+		self.user.append("social_logins", {"provider": "google", "userid": "1234"})
+		self.user.save()
+		self.assertFalse(needs_password_setup(self.user.name))

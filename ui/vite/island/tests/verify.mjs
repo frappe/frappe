@@ -40,6 +40,8 @@ const FRAMEWORK_ROOT = path.resolve(HERE, "../../../..");
 const ENTRIES = {
   island_fixture_panel: "src/islands/panel.js",
   island_fixture_badge: "src/islands/badge.js",
+  island_fixture_dot: "src/islands/dot.js",
+  island_fixture_blank: "src/islands/blank.js",
 };
 
 const failures = [];
@@ -140,6 +142,24 @@ async function run() {
     closures > onDisk * 1.5,
     "each entry loads far more than it alone contributes",
     `${kb(closures)} loaded from ${kb(onDisk)} on disk`
+  );
+
+  // The browser can then fetch every chunk at once instead of one level at a
+  // time.
+  const unhoisted = [panel, badge].flatMap((entry) => {
+    const direct = new Set(
+      relativeImports(entry.text).map((s) =>
+        path.resolve(path.dirname(entry.file), s)
+      )
+    );
+    return [...closure(entry)].filter(
+      (file) => file !== entry.file && !direct.has(file)
+    );
+  });
+  check(
+    unhoisted.length === 0,
+    "each entry imports every chunk it loads directly",
+    unhoisted.map((file) => path.basename(file)).join(", ")
   );
 
   console.log("\nCSS output");
@@ -339,6 +359,12 @@ function weighJs(dir) {
 /** The bytes the browser loads to run one entry: the entry and its chunks. */
 function closureSize(entry) {
   let raw = 0;
+  for (const file of closure(entry)) raw += fs.statSync(file).size;
+  return raw;
+}
+
+/** The files the browser loads to run one entry, the entry included. */
+function closure(entry) {
   const seen = new Set();
   const queue = [entry.file];
 
@@ -348,13 +374,12 @@ function closureSize(entry) {
     seen.add(file);
 
     const source = fs.readFileSync(file, "utf-8");
-    raw += Buffer.byteLength(source);
     queue.push(
       ...relativeImports(source).map((s) => path.resolve(path.dirname(file), s))
     );
   }
 
-  return raw;
+  return seen;
 }
 
 /** Chunks both entries import, by specifier. */

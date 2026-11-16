@@ -7,6 +7,7 @@ import {
   formatNumber,
   getCurrencySymbol,
   getNumberFormatInfo,
+  parseLongInt,
 } from "../formatNumber";
 
 describe("getNumberFormatInfo", () => {
@@ -184,6 +185,17 @@ describe("formatField", () => {
     ).toBe("1234567");
   });
 
+  it("formats Long Int as a plain integer and keeps every digit past 2^53", () => {
+    expect(formatField(1234567, { fieldtype: "Long Int" })).toBe("1234567");
+    expect(formatField(1234.7, { fieldtype: "Long Int" })).toBe("1234");
+    expect(formatField("9007199254740993", { fieldtype: "Long Int" })).toBe(
+      "9007199254740993"
+    );
+    expect(formatField("-9223372036854775808", { fieldtype: "Long Int" })).toBe(
+      "-9223372036854775808"
+    );
+  });
+
   it("formats Float with derived/explicit precision", () => {
     expect(formatField(1234.5, { fieldtype: "Float" })).toBe("1,234.50");
     expect(formatField(1234.567, { fieldtype: "Float", precision: 3 })).toBe(
@@ -228,5 +240,27 @@ describe("formatField", () => {
 describe("DEFAULT_NUMBER_FORMAT", () => {
   it("is Frappe’s default", () => {
     expect(DEFAULT_NUMBER_FORMAT).toBe("#,###.##");
+  });
+});
+
+describe("parseLongInt", () => {
+  it("returns a number while the value is a safe integer", () => {
+    expect(parseLongInt("1,234")).toBe(1234);
+    expect(parseLongInt("-0012")).toBe(-12);
+    expect(parseLongInt("12.9")).toBe(12);
+    expect(parseLongInt("")).toBe(0);
+    expect(parseLongInt(42)).toBe(42);
+  });
+
+  it("returns the digit string past Number.MAX_SAFE_INTEGER", () => {
+    expect(parseLongInt("9007199254740993")).toBe("9007199254740993");
+    expect(parseLongInt("+9007199254740993")).toBe("9007199254740993");
+    expect(parseLongInt("9,223,372,036,854,775,807")).toBe(
+      "9223372036854775807"
+    );
+  });
+
+  it("reads the site's group separator", () => {
+    expect(parseLongInt("1.234.567", "#.###,##")).toBe(1234567);
   });
 });

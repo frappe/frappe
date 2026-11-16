@@ -5,7 +5,7 @@ frappe.doctype_settings.register("roles", function (panel, doctype) {
 	const reload = () => draw(panel, doctype);
 	panel.set_view({
 		title: __("Roles"),
-		description: __("Control who can access {0}, by role.", [doctype]),
+		description: __("Control who can access {0}, by role.", [__(doctype)]),
 		actions: [
 			{
 				label: __("Add role"),
@@ -200,7 +200,7 @@ function customized_banner(panel, doctype, reload) {
 	const reset = () =>
 		frappe.confirm(
 			__("Reset {0} permissions to their default? This removes all customizations.", [
-				doctype,
+				__(doctype),
 			]),
 			() =>
 				perm_call("reset", { doctype }).then(() => {
@@ -211,14 +211,9 @@ function customized_banner(panel, doctype, reload) {
 
 	return frappe.ui
 		.alert({
-			title: __("Permissions for this doctype have been customized."),
+			title: __("Permissions for this document have been customized."),
 			theme: "yellow",
-			footer: frappe.ui.button({
-				label: __("Reset to default"),
-				size: "sm",
-				variant: "outline",
-				onclick: reset,
-			}),
+			primary_action: { label: __("Reset to default"), onclick: reset },
 		})
 		.addClass("dts-perm-banner");
 }

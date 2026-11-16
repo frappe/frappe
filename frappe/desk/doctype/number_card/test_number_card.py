@@ -1,7 +1,10 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 import frappe
-from frappe.desk.doctype.number_card.number_card import get_cards_for_user
+from frappe.core.doctype.user.test_user import test_user
+from frappe.desk.doctype.number_card.number_card import create_number_card, get_cards_for_user
 from frappe.tests import IntegrationTestCase
 
 
@@ -135,3 +138,38 @@ class TestNumberCard(IntegrationTestCase):
 
 		self.assertEqual([row[0] for row in blocked_results], [])
 		self.assertEqual([row[0] for row in allowed_results], [allowed_card_name])
+
+	def test_create_number_card_is_private_without_create_permission(self):
+		args = {
+			"label": "Test Private Card",
+			"type": "Document Type",
+			"document_type": "ToDo",
+			"function": "Count",
+			"is_public": 1,
+			"is_standard": 1,
+		}
+
+		with (
+			test_user(roles=["Desk User"]) as user,
+			self.set_user(user.name),
+			patch.dict(frappe.conf, {"developer_mode": 0}),
+		):
+			card = create_number_card(args)
+		self.addCleanup(frappe.delete_doc, "Number Card", card.name, force=True)
+		self.assertEqual((card.is_public, card.is_standard), (0, 0))
+
+		args.update(label="Test Public Card", is_standard=0)
+		card = create_number_card(args)
+		self.addCleanup(frappe.delete_doc, "Number Card", card.name, force=True)
+		self.assertEqual(card.is_public, 1)
+
+	def test_create_number_card_requires_desk_user(self):
+		args = {
+			"label": "Test Web Card",
+			"type": "Document Type",
+			"document_type": "ToDo",
+			"function": "Count",
+		}
+
+		with test_user(roles=[], user_type="Website User") as user, self.set_user(user.name):
+			self.assertRaises(frappe.PermissionError, create_number_card, args)

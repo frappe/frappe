@@ -14,7 +14,7 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 
 	frappe.doctype_settings.render_list(panel, {
 		title: __("Workflow"),
-		description: __("Setup a multi-step workflow for {0}.", [doctype]),
+		description: __("Setup a multi-step workflow for {0}.", [__(doctype)]),
 		show_header: true,
 		primary_action: { label: __("New"), icon: "plus", onclick: create },
 		load: () =>
@@ -63,7 +63,7 @@ frappe.doctype_settings.register("workflow", function (panel, doctype) {
 			icon: frappe.doctype_settings.tab_icon("workflow"),
 			title: __("No Workflows found"),
 			description: __("Create a workflow to control the states {0} moves through.", [
-				doctype,
+				__(doctype),
 			]),
 			action: { label: __("New Workflow"), onclick: create },
 		},

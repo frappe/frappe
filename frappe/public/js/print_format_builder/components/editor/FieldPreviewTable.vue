@@ -14,7 +14,7 @@
 					:data-fieldname="col.fieldname"
 					:style="(col.width ? `width: ${col.width}%; ` : '') + cell_style(df)"
 				>
-					{{ col.label || col.fieldname }}
+					{{ col.label || (col.fieldtype === "Blank" ? "" : col.fieldname) }}
 					<span
 						v-if="ci < df.table_columns.length - 1"
 						class="col-resize-handle"
@@ -61,7 +61,7 @@
 							}"
 						>
 							<div
-								v-for="(mf, mi) in text_merges(col)"
+								v-for="(mf, mi) in row_merges(col, row, i)"
 								:key="mi"
 								class="cell-line"
 								:class="`cell-line--${mf.style || 'primary'}`"
@@ -126,7 +126,7 @@ const {
 	format_cell,
 	has_merge,
 	image_merge,
-	text_merges,
+	row_merges,
 	merged_line,
 	cell_image,
 	thumb_box,

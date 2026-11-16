@@ -8,7 +8,7 @@ from email.utils import formataddr
 
 import frappe
 from frappe import _
-from frappe.desk.query_report import build_xlsx_data
+from frappe.desk.query_report import build_xlsx_data, get_reference_report
 from frappe.email.email_body import get_formatted_html
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
@@ -31,6 +31,7 @@ from frappe.utils import (
 )
 from frappe.utils.csvutils import to_csv
 from frappe.utils.pdf import get_pdf
+from frappe.utils.print_utils import resolve_pdf_generator
 from frappe.utils.xlsxutils import make_xlsx
 
 
@@ -124,6 +125,11 @@ class AutoEmailReport(Document):
 	def validate_mandatory_fields(self):
 		# Check if all Mandatory Report Filters are filled by the User
 		filters = frappe.parse_json(self.filters) if self.filters else {}
+		report = get_reference_report(frappe.get_doc("Report", self.report))
+		if report.validate_filters:
+			report.get_validated_filters(filters, self.user)
+			return
+
 		filter_meta = frappe.parse_json(self.filter_meta) if self.filter_meta else {}
 		throw_list = [
 			meta["label"]
@@ -206,7 +212,7 @@ class AutoEmailReport(Document):
 			if len(columns) > 8:
 				options["orientation"] = "landscape"
 			html = get_formatted_html(subject=self.name, message=self.get_html_table(columns, data))
-			return get_pdf(html, options)
+			return get_pdf(html, options, pdf_generator=resolve_pdf_generator())
 
 		else:
 			frappe.throw(_("Invalid Output Format"))

@@ -1,7 +1,8 @@
 # Copyright (c) 2025, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -22,4 +23,10 @@ class WorkflowTransitionTasks(Document):
 		tasks: DF.Table[WorkflowTransitionTask]
 	# end: auto-generated types
 
-	pass
+	def validate(self):
+		for task in self.tasks:
+			if task.task in ("Server Script", "Webhook") and not task.link:
+				frappe.throw(
+					_("Row #{0}: {1} is required").format(task.idx, frappe.bold(_(task.task))),
+					frappe.MandatoryError,
+				)

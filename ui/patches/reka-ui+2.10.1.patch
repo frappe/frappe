@@ -1,3 +1,45 @@
+diff --git a/node_modules/reka-ui/dist/Combobox/ComboboxInput.cjs b/node_modules/reka-ui/dist/Combobox/ComboboxInput.cjs
+--- a/node_modules/reka-ui/dist/Combobox/ComboboxInput.cjs
++++ b/node_modules/reka-ui/dist/Combobox/ComboboxInput.cjs
+@@ -79,12 +79,14 @@
+ 			if (!rootContext.open.value) return;
+ 			const nextFocus = ev.relatedTarget;
+ 			if (!nextFocus) return;
++			// the tree the combobox lives in: its shadow root inside an island, the document elsewhere
++			const root = rootContext.parentElement.value?.getRootNode?.() ?? document;
+ 			const isInsideRoot = rootContext.parentElement.value?.contains(nextFocus);
+-			const isInsideContent = document.getElementById(rootContext.contentId)?.contains(nextFocus);
++			const isInsideContent = root.getElementById?.(rootContext.contentId)?.contains(nextFocus);
+ 			if (!isInsideRoot && !isInsideContent) requestAnimationFrame(() => {
+ 				if (!rootContext.open.value) return;
+-				const active = document.activeElement;
+-				const isStillOutside = !rootContext.parentElement.value?.contains(active) && !document.getElementById(rootContext.contentId)?.contains(active);
++				const active = root.activeElement ?? document.activeElement;
++				const isStillOutside = !rootContext.parentElement.value?.contains(active) && !root.getElementById?.(rootContext.contentId)?.contains(active);
+ 				if (isStillOutside) rootContext.onOpenChange(false);
+ 			});
+ 		}
+diff --git a/node_modules/reka-ui/dist/Combobox/ComboboxInput.js b/node_modules/reka-ui/dist/Combobox/ComboboxInput.js
+--- a/node_modules/reka-ui/dist/Combobox/ComboboxInput.js
++++ b/node_modules/reka-ui/dist/Combobox/ComboboxInput.js
+@@ -78,12 +78,14 @@
+ 			if (!rootContext.open.value) return;
+ 			const nextFocus = ev.relatedTarget;
+ 			if (!nextFocus) return;
++			// the tree the combobox lives in: its shadow root inside an island, the document elsewhere
++			const root = rootContext.parentElement.value?.getRootNode?.() ?? document;
+ 			const isInsideRoot = rootContext.parentElement.value?.contains(nextFocus);
+-			const isInsideContent = document.getElementById(rootContext.contentId)?.contains(nextFocus);
++			const isInsideContent = root.getElementById?.(rootContext.contentId)?.contains(nextFocus);
+ 			if (!isInsideRoot && !isInsideContent) requestAnimationFrame(() => {
+ 				if (!rootContext.open.value) return;
+-				const active = document.activeElement;
+-				const isStillOutside = !rootContext.parentElement.value?.contains(active) && !document.getElementById(rootContext.contentId)?.contains(active);
++				const active = root.activeElement ?? document.activeElement;
++				const isStillOutside = !rootContext.parentElement.value?.contains(active) && !root.getElementById?.(rootContext.contentId)?.contains(active);
+ 				if (isStillOutside) rootContext.onOpenChange(false);
+ 			});
+ 		}
 diff --git a/node_modules/reka-ui/dist/DismissableLayer/utils.cjs b/node_modules/reka-ui/dist/DismissableLayer/utils.cjs
 index 20b3e5b..d6fcf4f 100644
 --- a/node_modules/reka-ui/dist/DismissableLayer/utils.cjs

@@ -13,7 +13,7 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 
 	frappe.doctype_settings.render_list(panel, {
 		title: __("Email Templates"),
-		description: __("Reuse email templates when emailing {0}.", [doctype]),
+		description: __("Reuse email templates when emailing {0}.", [__(doctype)]),
 		primary_action: { label: __("New"), icon: "plus", onclick: create },
 		load: () =>
 			Promise.all([
@@ -70,7 +70,7 @@ frappe.doctype_settings.register("email-template", function (panel, doctype) {
 		empty_state: {
 			icon: frappe.doctype_settings.tab_icon("email-template"),
 			title: __("No Email Templates found"),
-			description: __("Create a template to reuse when emailing {0}.", [doctype]),
+			description: __("Create a template to reuse when emailing {0}.", [__(doctype)]),
 			action: { label: __("New Template"), onclick: create },
 		},
 	});

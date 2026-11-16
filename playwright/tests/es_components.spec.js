@@ -4,8 +4,15 @@ const escape_regex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const containing = (text) => new RegExp(escape_regex(text));
 const with_class = (name) => new RegExp(`(^|\\s)${escape_regex(name)}(\\s|$)`);
 
+// a group's title shows only the part before " (", the rest moves into its code
 const explorer_group = (page, title) =>
-	page.locator(".explorer-group", { hasText: containing(title) }).first();
+	page
+		.locator(".explorer-group", {
+			has: page.locator(".explorer-group__title", {
+				hasText: new RegExp(`^${escape_regex(title.split(" (")[0])}`),
+			}),
+		})
+		.first();
 const menu_item = (page, label) =>
 	page.locator(".es-menu__item", { hasText: containing(label) }).first();
 
@@ -20,7 +27,51 @@ async function show(page, component) {
 test.describe("Espresso components", () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto("/desk/component-explorer");
-		await expect(page.locator(".explorer-groups[data-component]")).toBeAttached();
+		await expect(page.locator(".explorer-grid")).toBeAttached();
+	});
+
+	test.describe("Grid", () => {
+		test("search narrows the cards, and a card opens its component", async ({ page }) => {
+			const cards = page.locator(".explorer-card:visible");
+			await page.locator(".explorer-search").fill("combo");
+			await expect(cards).toHaveCount(2);
+			await expect(page.locator(".explorer-count")).toHaveText(/^2 of \d+ components$/);
+
+			await page.locator(".explorer-search").fill("nothing like this");
+			await expect(cards).toHaveCount(0);
+			await expect(page.locator(".explorer-empty")).toContainText("No components match");
+			await page.getByRole("button", { name: "Clear search" }).click();
+			await expect(page.locator(".explorer-search")).toHaveValue("");
+			await expect(cards).toHaveCount(await page.locator(".explorer-card").count());
+			await expect(page.locator(".explorer-count")).toHaveText(/^\d+ components$/);
+
+			await page.locator(".explorer-search").fill("button");
+			await page.locator('.explorer-card[data-name="Button"]').click();
+			await expect(page).toHaveURL(/\/component-explorer\/button$/);
+			await expect(page.locator('.explorer-groups[data-component="Button"]')).toBeAttached();
+		});
+
+		test("a component still loading when the page is left keeps off the next page's title", async ({
+			page,
+		}) => {
+			let release;
+			const held = new Promise((resolve) => (release = resolve));
+			await page.route(/desk_charts\.bundle/, async (route) => {
+				await held;
+				await route.continue();
+			});
+			await page.goto("/desk/component-explorer/stat-card", {
+				waitUntil: "domcontentloaded",
+			});
+			await page.waitForFunction(() => frappe.pages["component-explorer"]?.render_component);
+			await page.evaluate(() => frappe.set_route("List", "ToDo"));
+			await expect(page).toHaveTitle(/To ?Do/);
+
+			release();
+			await page.waitForFunction(() => frappe.ui.stat_card);
+			await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 100)));
+			await expect(page).toHaveTitle(/To ?Do/);
+		});
 	});
 
 	test.describe("Dropdown", () => {
@@ -71,6 +122,25 @@ test.describe("Espresso components", () => {
 			await page.locator(":focus").dispatchEvent("keydown", { key: "Escape" });
 			await expect(page.locator(".es-menu[data-state='open']")).toHaveCount(0);
 			await expect(trigger).toBeFocused();
+		});
+
+		test("a row's highlight clears when the pointer leaves it", async ({ page }) => {
+			const trigger = explorer_group(page, "Basic actions")
+				.locator('[aria-haspopup="menu"]')
+				.first();
+			await trigger.click();
+			const row = page.locator(".es-menu[data-state='open'] .es-menu__item").first();
+
+			await row.hover();
+			await expect(row).toHaveAttribute("data-highlighted", "");
+			const box = await page.locator(".es-menu[data-state='open']").boundingBox();
+			await page.mouse.move(box.x + box.width + 40, box.y + box.height + 40);
+			await expect(page.locator(".es-menu__item[data-highlighted]")).toHaveCount(0);
+
+			const panel = page.locator(".es-menu[data-state='open']");
+			await expect(panel).toBeFocused();
+			await panel.press("ArrowDown");
+			await expect(row).toHaveAttribute("data-highlighted", "");
 		});
 
 		test("renders a disabled option as a real disabled button, never a live row", async ({
@@ -209,7 +279,9 @@ test.describe("Espresso components", () => {
 		test("opens at the pointer, marks the target data-state=open, and Escape closes + clears it", async ({
 			page,
 		}) => {
-			const surface = explorer_group(page, "Basic").locator(".explorer-preview > *").first();
+			const surface = explorer_group(page, "Basic")
+				.locator(".explorer-example__item > *")
+				.first();
 
 			await surface.click({ button: "right" });
 			await expect(page.locator(".es-menu[data-state='open']")).toBeFocused();
@@ -302,9 +374,9 @@ test.describe("Espresso components", () => {
 		});
 	});
 
-	test.describe("BottomSheet", () => {
+	test.describe("Bottom Sheet", () => {
 		test.beforeEach(async ({ page }) => {
-			await show(page, "BottomSheet");
+			await show(page, "Bottom Sheet");
 		});
 
 		test("opens as a dialog with focus inside, and Escape closes it back to the trigger", async ({
@@ -377,7 +449,7 @@ test.describe("Espresso components", () => {
 			await activity.click();
 			await expect(activity).toHaveAttribute("aria-selected", "true");
 			await expect(tabs.locator(".es-tabs__panel[data-state='active']")).toContainText(
-				"Rendered lazily"
+				"Edits and comments appear here"
 			);
 		});
 	});

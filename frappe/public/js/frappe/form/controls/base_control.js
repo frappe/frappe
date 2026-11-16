@@ -125,9 +125,14 @@ frappe.ui.form.Control = class BaseControl {
 			!this.only_input &&
 			is_null(value) &&
 			frappe.defaults.is_enabled("hide_empty_read_only_fields") &&
-			!["Attachment Gallery", "HTML", "Image", "Button", "Geolocation"].includes(
-				this.df.fieldtype
-			)
+			![
+				"Attachment Gallery",
+				"HTML",
+				"Image",
+				"Button",
+				"Geolocation",
+				"Vue Component",
+			].includes(this.df.fieldtype)
 		) {
 			if (explain) console.log("By Hide Read-only, null fields: None");
 			status = "None";
@@ -142,9 +147,9 @@ frappe.ui.form.Control = class BaseControl {
 			this.refresh_input &&
 			this.refresh_input();
 
-		var value = this.get_value();
-
-		this.show_translatable_button(value);
+		if (this.df.translatable) {
+			this.show_translatable_button(this.get_value());
+		}
 	}
 	show_translatable_button(value) {
 		// Disable translation non-string fields or special string fields

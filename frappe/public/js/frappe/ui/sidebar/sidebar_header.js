@@ -47,7 +47,13 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// The rules between the three blocks are the sections' own: `frappe.ui.Dropdown` draws one
 	// between neighbouring groups and drops a group whose rows are all hidden, rule included, so
 	// nothing here has to count what is left before placing a divider.
+	//
+	// While the sidebar is being edited the header names the layer instead of its chevron, and its
+	// menu is that editor's.
 	menu_items() {
+		const editing = this.sidebar.editor?.header_menu_items();
+		if (editing) return editing;
+
 		return [
 			{ group: "", options: this.switcher_items() },
 			{
@@ -60,25 +66,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 						// Re-run on every open, so it tracks the sidebar you are looking at
 						// rather than the one the menu was built in, which is why the header
 						// keeps one menu instead of one per module.
-						condition: () => !!this.sidebar.current_module,
-						// The editor is not in the desk bundle, so load it on click and then
-						// open this module's sidebar in it.
+						// Not on a phone, which has no room beside the drawer for the editor.
+						condition: () => !!this.sidebar.current_module && !frappe.is_mobile(),
 						onclick: () =>
-							frappe
-								.require("arrangement_editor.bundle.js")
-								.then(() => new frappe.ui.SidebarManager())
-								.catch((e) => {
-									console.error(
-										"SidebarHeader: failed to load arrangement_editor.bundle.js",
-										e
-									);
-									frappe.ui.toast({
-										message: __(
-											"Could not open the sidebar editor. Please refresh the page."
-										),
-										type: "error",
-									});
-								}),
+							frappe.ui.open_arrangement_editor(
+								"SidebarManager",
+								undefined,
+								__("Could not open the sidebar editor. Please refresh the page.")
+							),
 					},
 				],
 			},
@@ -199,27 +194,25 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 			submenu: [
 				{
 					group: "",
-					options: (frappe.boot.app_data || [])
-						.filter((app) => app.on_apps_screen)
-						.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100))
-						.map((app) => ({
-							name: `app-${app.app_name}`,
-							label: __(app.app_title || app.app_name),
-							// An app's mark is its own logo, which no icon name stands in for.
-							image: Array.isArray(app.app_logo_url)
-								? app.app_logo_url[0]
-								: app.app_logo_url,
-							onclick: () => {
-								const route = sidebar.app_landing_route(app) || "/desk";
-								if (route.startsWith("http")) {
-									window.open(route, "_blank");
-								} else if (sidebar.is_desk_route(route)) {
-									frappe.set_route(route);
-								} else {
-									window.location.href = route;
-								}
-							},
-						})),
+					options: frappe.utils.get_apps_screen_apps().map((app) => ({
+						name: `app-${app.app_name}`,
+						label: __(app.app_title || app.app_name),
+						// An app's mark is its own logo, which no icon name stands in for.
+						image: Array.isArray(app.app_logo_url)
+							? app.app_logo_url[0]
+							: app.app_logo_url,
+						letter: (app.app_title || app.app_name).charAt(0),
+						onclick: () => {
+							const route = sidebar.app_landing_route(app) || "/desk";
+							if (route.startsWith("http")) {
+								window.open(route, "_blank");
+							} else if (sidebar.is_desk_route(route)) {
+								frappe.set_route(route);
+							} else {
+								window.location.href = route;
+							}
+						},
+					})),
 				},
 				{
 					group: "",
@@ -250,6 +243,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// and one menu with a trigger on each offered the same rows twice, one directly above the
 	// other. The rail covers the panel now rather than standing beside it, so only ever one of the
 	// two is in front of you.
+	// Where an editor names the layer it is editing, after the title.
+	layer_slot() {
+		let $slot = this.wrapper.find(".header-layer");
+		if (!$slot.length)
+			$slot = $(`<span class="header-layer"></span>`).insertBefore(this.$drop_icon);
+		return $slot;
+	}
+
 	setup_menu() {
 		if (this.menu) return;
 		this.menu = this.attach_menu(this.wrapper);

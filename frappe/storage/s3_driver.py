@@ -20,15 +20,35 @@ MISSING_KEY_CODES = ("404", "NoSuchKey", "NotFound")
 
 
 def get_site_prefix(config: dict) -> str:
-	"""The site's folder in the bucket: ``storage_driver_config.prefix``, else a hash of the database name.
-
-	The hash keeps the database name out of the presigned URLs users see."""
+	"""Legacy prefix retained for deleting objects written before site-name keys."""
 	prefix = (config.get("prefix") or "").strip("/")
 	if not prefix:
 		return hashlib.sha256(frappe.conf.db_name.encode()).hexdigest()[:12]
 	if not SITE_PREFIX_PATTERN.fullmatch(prefix):
 		frappe.throw(_("The S3 storage prefix may only contain letters, digits, '-', '_' and '.'"))
 	return prefix
+
+
+def client_config():
+	"""botocore client config, with checksums sent and checked only where S3 requires them.
+
+	Since botocore 1.36, every upload carries a CRC32 checksum by default. Some
+	S3-compatible stores keep a multipart upload's checksum as a checksum of the
+	part checksums but return it as if it covered the whole object, so a full read
+	fails checksum validation although the bytes are intact. Some also copy every
+	byte of such an object on CopyObject instead of copying its metadata.
+	"when_required" is botocore's behaviour before 1.36."""
+	from botocore.config import Config
+
+	try:
+		return Config(
+			signature_version="s3v4",
+			request_checksum_calculation="when_required",
+			response_checksum_validation="when_required",
+		)
+	except TypeError:
+		# botocore before 1.36 rejects these options, and already behaves this way
+		return Config(signature_version="s3v4")
 
 
 class S3Driver(StorageDriver):
@@ -38,6 +58,7 @@ class S3Driver(StorageDriver):
 	another site's backup can read that site's objects but never deletes them."""
 
 	name = "s3"
+	cache_locally = True
 
 	def __init__(self):
 		config = frappe.conf.storage_driver_config or {}
@@ -51,7 +72,6 @@ class S3Driver(StorageDriver):
 
 		try:
 			import boto3
-			from botocore.config import Config
 			from botocore.exceptions import ClientError
 		except ImportError:
 			frappe.throw(
@@ -72,11 +92,18 @@ class S3Driver(StorageDriver):
 			if value := config.get(conf_key):
 				client_kwargs[boto_arg] = value
 
-		self.client = boto3.client("s3", config=Config(signature_version="s3v4"), **client_kwargs)
-		self.key_prefix = f"{get_site_prefix(config)}/"
+		self.client = boto3.client("s3", config=client_config(), **client_kwargs)
+		self.key_prefix = f"sites/{frappe.local.site}/storage/"
+		self.legacy_key_prefix = f"{get_site_prefix(config)}/"
 
 	def object_key(self, key: str, is_private: bool = False) -> str:
-		return f"{'private' if is_private else 'public'}/{key}"
+		namespace = "private" if is_private else "public"
+		parts = key.split("/", 3)
+		if len(parts) == 4 and parts[0] == "sites":
+			if parts[2] == "storage":
+				return f"sites/{parts[1]}/storage/{namespace}/{parts[3]}"
+			return f"sites/{parts[1]}/{namespace}/{parts[2]}/{parts[3]}"
+		return f"{namespace}/{key}"
 
 	def write(self, key: str, stream: IO[bytes], *, is_private: bool = False) -> None:
 		self.client.upload_fileobj(stream, self.bucket, self.object_key(key, is_private))
@@ -97,12 +124,20 @@ class S3Driver(StorageDriver):
 			raise
 
 	def delete(self, key: str, *, is_private: bool = False) -> None:
-		if not key.startswith(self.key_prefix):
+		object_key = self.object_key(key, is_private)
+		namespace = "private" if is_private else "public"
+		if not object_key.startswith(
+			(
+				f"{self.key_prefix}{namespace}/",
+				f"sites/{frappe.local.site}/{namespace}/",
+				f"{namespace}/{self.legacy_key_prefix}",
+			)
+		):
 			# another site's object, such as one a restored backup points at
 			frappe.logger("storage").info(f"storage: kept {key}, it is outside this site's prefix")
 			return
 		# delete_object is idempotent; a missing key is not an error
-		self.client.delete_object(Bucket=self.bucket, Key=self.object_key(key, is_private))
+		self.client.delete_object(Bucket=self.bucket, Key=object_key)
 
 	def exists(self, key: str, *, is_private: bool = False) -> bool:
 		try:

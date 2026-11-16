@@ -12,7 +12,7 @@
 frappe.doctype_settings.register("general", function (panel, doctype) {
 	panel.set_view({
 		title: __("General"),
-		description: __("Settings from across the system that apply to {0}.", [doctype]),
+		description: __("Settings from across the system that apply to {0}.", [__(doctype)]),
 		render: (p) => load(p, doctype),
 	});
 });
@@ -42,7 +42,7 @@ function render(panel, doctype, groups) {
 		frappe.doctype_settings.empty_state($body, {
 			icon: "sliders-horizontal",
 			title: __("No related settings"),
-			description: __("No settings from other areas are linked to {0}.", [doctype]),
+			description: __("No settings from other areas are linked to {0}.", [__(doctype)]),
 		});
 		return;
 	}
@@ -86,7 +86,7 @@ function render_field($body, group, field) {
 	$('<div class="text-base-medium text-ink-gray-8"></div>').text(field.label).appendTo($text);
 	if (field.description) {
 		$('<div class="dts-setting-description text-p-sm text-ink-gray-5"></div>')
-			.text(field.description)
+			.html(field.description)
 			.appendTo($text);
 	}
 

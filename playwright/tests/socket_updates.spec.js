@@ -31,6 +31,43 @@ test.describe("Realtime updates", () => {
 		await expect(page.getByText(updated).first()).toBeVisible();
 	});
 
+	test("Keeps a doctype room while another view uses it", async ({ page, api }) => {
+		await doctype_room_joined(page, api, "ToDo");
+		await page.evaluate(() => {
+			frappe.realtime.doctype_subscribe("ToDo");
+			frappe.realtime.doctype_unsubscribe("ToDo");
+		});
+		await doctype_room_joined(page, api, "ToDo");
+	});
+
+	test("List view leaves its doctype room only once", async ({ page, api }) => {
+		await doctype_room_joined(page, api, "ToDo");
+		await page.evaluate(() => {
+			frappe.realtime.doctype_subscribe("ToDo");
+			cur_list.disable_realtime_updates();
+			cur_list.disable_realtime_updates();
+		});
+		await doctype_room_joined(page, api, "ToDo");
+	});
+
+	test("Restores rooms after reconnect", async ({ page, api }) => {
+		const doc = await api.insert_doc("ToDo", { description: "reconnect" });
+		await page.goto(`/desk/todo/${doc.name}`);
+		await realtime_connected(page);
+		await page.evaluate(() => frappe.realtime.doctype_subscribe("ToDo"));
+		await doc_room_joined(page, api, "ToDo", doc.name);
+
+		await page.evaluate(
+			() =>
+				new Promise((resolve) => {
+					frappe.realtime.socket.io.once("reconnect", resolve);
+					frappe.realtime.socket.io.engine.close();
+				})
+		);
+		await doctype_room_joined(page, api, "ToDo");
+		await doc_room_joined(page, api, "ToDo", doc.name);
+	});
+
 	test("Receives msgprint from server", async ({ page, api }) => {
 		const msg = "msgprint sent via realtime";
 		await api.call("frappe.tests.ui_test_helpers.publish_realtime", {
@@ -51,6 +88,38 @@ test.describe("Realtime updates", () => {
 
 		await api.call("frappe.tests.ui_test_helpers.publish_realtime", { event });
 		await expect.poll(() => page.evaluate(() => window.realtime_event_received)).toBe(true);
+	});
+
+	test("Runs the progress handler of a subscribed task", async ({ page, api }) => {
+		await page.evaluate(() => {
+			window.task_progress = null;
+			frappe.realtime.subscribe("playwright_task", {
+				progress: (data) => (window.task_progress = data.percent),
+			});
+		});
+
+		await api.call("frappe.tests.ui_test_helpers.publish_realtime", {
+			task_id: "playwright_task",
+			message: { percent: 50 },
+		});
+		await expect.poll(() => page.evaluate(() => window.task_progress)).toBe(50);
+	});
+
+	test("Ignores progress of a task subscribed without handlers", async ({ page, api }) => {
+		const errors = [];
+		page.on("pageerror", (error) => errors.push(error.message));
+		await page.evaluate(() => {
+			window.task_progress = null;
+			frappe.realtime.task_subscribe("playwright_task");
+			frappe.realtime.on("task_progress", (data) => (window.task_progress = data.percent));
+		});
+
+		await api.call("frappe.tests.ui_test_helpers.publish_realtime", {
+			task_id: "playwright_task",
+			message: { percent: 50 },
+		});
+		await expect.poll(() => page.evaluate(() => window.task_progress)).toBe(50);
+		expect(errors).toEqual([]);
 	});
 
 	test("Progress bar", async ({ page, api }) => {

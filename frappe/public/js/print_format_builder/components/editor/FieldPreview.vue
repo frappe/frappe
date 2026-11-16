@@ -47,14 +47,11 @@
 	</template>
 	<FieldPreviewTable v-else-if="df.fieldtype == 'Table'" :df="df" />
 	<FieldPreviewRepeater v-else-if="df.fieldtype == 'Repeater'" :df="df" />
-	<div
+	<FieldPreviewText
 		v-else-if="df.fieldtype == 'Static Text'"
-		class="value"
-		:class="{ 'text-muted': !df.text }"
+		:df="df"
 		:style="static_text_style"
-	>
-		{{ df.text || __("Empty text") }}
-	</div>
+	/>
 	<FieldPreviewLinked v-else-if="df.fieldtype == 'Linked Field'" :df="df" />
 	<template v-else>
 		<div
@@ -65,7 +62,11 @@
 		>
 			{{ df.label }}
 		</div>
-		<div class="value" :class="{ 'text-muted': !preview_value }" :style="value_text_style(df)">
+		<div
+			class="value"
+			:class="{ 'text-muted': !preview_value, 'value--colored': df.value_color }"
+			:style="value_text_style(df)"
+		>
 			<img
 				v-if="df.fieldtype == 'Attach Image' && preview_doc[df.fieldname]"
 				:style="{ maxWidth: '100%', width: df.width || '100%' }"
@@ -75,6 +76,7 @@
 			<a
 				v-else-if="df.fieldtype == 'Attach' && preview_doc[df.fieldname]"
 				:href="preview_doc[df.fieldname]"
+				:style="value_text_style(df)"
 				@click.prevent
 				>{{ String(preview_doc[df.fieldname]).split("/").pop() }}</a
 			>
@@ -113,6 +115,7 @@
 import { computed, inject, ref, watch } from "vue";
 import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
 import FieldPreviewLinked from "./FieldPreviewLinked.vue";
+import FieldPreviewText from "./FieldPreviewText.vue";
 import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
 import FieldPreviewTable from "./FieldPreviewTable.vue";
 import { render_jinja_html, strip_unsafe_html } from "../../utils";
@@ -139,7 +142,7 @@ let html_seq = 0;
 let template_seq = 0;
 
 watch(
-	[preview_doc, () => props.df.html],
+	[preview_doc, () => props.df.html, () => store.layout.value?.global_variables],
 	async ([doc]) => {
 		const html = props.df.html;
 		const seq = ++html_seq;
@@ -151,7 +154,8 @@ watch(
 		const rendered = await render_jinja_html(
 			html,
 			store.meta.value?.name,
-			store.preview_doc_name.value
+			store.preview_doc_name.value,
+			store.layout.value?.global_variables
 		);
 		if (seq !== html_seq) return;
 		rendered_html.value = rendered;

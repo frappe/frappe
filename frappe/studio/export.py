@@ -7,8 +7,10 @@ from frappe import _
 from frappe.modules import scrub
 from frappe.modules.export_file import strip_default_fields
 from frappe.studio.sync_json import cache_synced_file_hash
+from frappe.studio.utils import validate_installed_app
 
 PRESERVED_EMPTY_PROPERTIES = frozenset({"componentProps", "componentSlots"})
+SYNC_FLAGS = ("in_import", "in_migrate", "in_install", "in_uninstall", "in_patch")
 
 
 def write_document_file(doc, folder=None, exclude_fields=None):
@@ -36,7 +38,7 @@ def write_code_file(doc, folder, code_field, extension, filename=None):
 	so the source is readable and diffable on disk instead of buried in JSON.
 
 	`filename` overrides the stem (without extension) so the code file can match its sibling
-	JSON's name (e.g. a page's <scrub(page_title)>.ts beside <scrub(page_title)>.json)."""
+	JSON's name (e.g. a page's <scrub(page_title)>.js beside <scrub(page_title)>.json)."""
 	fname = filename or scrub(doc.name)
 	path = os.path.join(folder, f"{fname}.{extension}")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
@@ -80,14 +82,21 @@ def validate_standard_app_change(doc):
 	# clearing is_standard changes a standard doc too
 	if not (doc.is_standard or (previous and previous.is_standard)):
 		return
-	sync_flags = ("in_import", "in_migrate", "in_install", "in_uninstall", "in_patch")
-	if any(frappe.flags.get(flag) for flag in sync_flags):
+	if any(frappe.flags.get(flag) for flag in SYNC_FLAGS):
 		return
 	frappe.throw(
 		_("Standard apps can only be edited in developer mode."),
 		frappe.PermissionError,
 		title=_("Not Allowed"),
 	)
+
+
+def validate_frappe_app(doc):
+	"""Synced docs are exempt: they carry the app being installed, which get_installed_apps
+	does not list until the install finishes."""
+	if not doc.frappe_app or any(frappe.flags.get(flag) for flag in SYNC_FLAGS):
+		return
+	validate_installed_app(doc.frappe_app)
 
 
 def parse_json(field):

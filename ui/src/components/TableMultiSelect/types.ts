@@ -1,6 +1,9 @@
+import type { InputLabelingProps as AtomLabelingProps } from "frappe-ui";
+
 interface InputLabelingProps {
   label?: string;
   description?: string;
+  error?: AtomLabelingProps["error"];
   required?: boolean;
 }
 

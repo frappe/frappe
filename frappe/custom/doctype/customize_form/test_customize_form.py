@@ -264,6 +264,52 @@ class TestCustomizeForm(IntegrationTestCase):
 
 		self.assertEqual(length, new_document_length)
 
+	def test_shorten_field_length(self):
+		# 180 characters (360 bytes) fit the new length but not the fieldtype's default (140)
+		self.insert_event_with_calendar_event_id("é" * 180)
+
+		d = self.get_customize_form("Event")
+		d.getone("fields", {"fieldname": "google_calendar_event_id"}).length = 200
+		d.run_method("save_customization")
+
+		self.assertEqual(self.get_calendar_event_id_length_setter(), "200")
+
+	def test_shorten_field_length_below_stored_data(self):
+		self.insert_event_with_calendar_event_id("x" * 180)
+
+		d = self.get_customize_form("Event")
+		d.getone("fields", {"fieldname": "google_calendar_event_id"}).length = 100
+
+		with self.assertRaisesRegex(frappe.ValidationError, "too long"):
+			d.run_method("save_customization")
+		self.assertIsNone(self.get_calendar_event_id_length_setter())
+
+	def get_calendar_event_id_length_setter(self):
+		return frappe.db.get_value(
+			"Property Setter",
+			{"doc_type": "Event", "property": "length", "field_name": "google_calendar_event_id"},
+			"value",
+		)
+
+	def insert_event_with_calendar_event_id(self, calendar_event_id):
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "Customize Form length test",
+				"starts_on": frappe.utils.now_datetime(),
+				"event_type": "Private",
+				"google_calendar_event_id": calendar_event_id,
+			}
+		).insert()
+		self.addCleanup(self.reset_event_columns)
+		self.addCleanup(event.delete)
+
+	def reset_event_columns(self):
+		frappe.db.delete("Property Setter", dict(doc_type="Event"))
+		frappe.clear_cache(doctype="Event")
+		frappe.db.updatedb("Event")
+		frappe.db.commit()  # nosemgrep
+
 	def test_custom_link(self):
 		try:
 			# create a dummy doctype linked to Event
@@ -432,3 +478,41 @@ class TestCustomizeForm(IntegrationTestCase):
 		)
 
 		self.assertEqual(field_order_property, [df.fieldname for df in frappe.get_meta("ToDo").fields])
+
+	def test_field_order_saved_only_when_fields_are_moved(self):
+		field_order_filters = {"doc_type": "Event", "property": "field_order"}
+
+		try:
+			d = self.get_customize_form("Event")
+			d.getone("fields", {"fieldname": "subject"}).label = "Test Subject"
+			d.append("fields", {"label": "Test HTML Field", "fieldtype": "HTML", "is_custom_field": 1})
+			d.run_method("save_customization")
+			self.assertFalse(frappe.db.exists("Property Setter", field_order_filters))
+
+			d = self.get_customize_form("Event")
+			custom_field = d.getone("fields", {"fieldname": self.field.fieldname})
+			d.fields.remove(custom_field)
+			d.fields.insert(2, custom_field)
+			d.run_method("save_customization")
+			self.assertTrue(frappe.db.exists("Property Setter", field_order_filters))
+		finally:
+			frappe.delete_doc_if_exists("Custom Field", "Event-custom_test_html_field")
+
+	def test_field_order_kept_for_custom_section_break(self):
+		section_break = frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"dt": "Event",
+				"fieldname": "custom_test_section_break",
+				"label": "Test Section Break",
+				"fieldtype": "Section Break",
+				"insert_after": "event_type",
+			}
+		).insert()
+
+		try:
+			field_order = [df.fieldname for df in frappe.get_meta("Event").fields]
+			self.get_customize_form("Event").run_method("save_customization")
+			self.assertEqual([df.fieldname for df in frappe.get_meta("Event").fields], field_order)
+		finally:
+			frappe.delete_doc("Custom Field", section_break.name)

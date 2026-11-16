@@ -16,7 +16,7 @@ import frappe.database
 import frappe.utils
 import frappe.utils.user
 from frappe import _
-from frappe.apps import get_default_path
+from frappe.apps import get_default_app, get_default_path
 from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
 from frappe.translate import get_language
@@ -27,14 +27,15 @@ from frappe.twofactor import (
 	should_run_2fa,
 )
 from frappe.utils import cint, date_diff, datetime, today
-from frappe.utils.password import check_password, get_decrypted_password
-from frappe.website.utils import get_home_page
+from frappe.utils.password import check_password, get_decrypted_password, validate_password_size
+from frappe.website.utils import get_home_page, get_role_home_page, get_role_home_page_via_hooks
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
 assert SAFE_HTTP_METHODS.isdisjoint(UNSAFE_HTTP_METHODS), "a HTTP method cannot be both safe and unsafe"
-MAX_PASSWORD_SIZE = 512
+
 API_AUTH_FAILURE_LOG_INTERVAL = 5 * 60  # seconds
+AGENT_NAME_LENGTH = 140
 
 
 class HTTPRequest:
@@ -67,6 +68,11 @@ class HTTPRequest:
 		return self._domain
 
 	def set_request_ip(self):
+		# bench start serves requests directly, so use the address of the connection itself
+		if frappe._dev_server and frappe.request and frappe.request.remote_addr:
+			frappe.local.request_ip = frappe.request.remote_addr
+			return
+
 		if frappe.get_request_header("X-Forwarded-For"):
 			frappe.local.request_ip = (frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]).strip()
 
@@ -136,6 +142,7 @@ class LoginManager:
 
 		if frappe.local.request.path == "/api/method/login":
 			if self.login() is False:
+				frappe.set_user("Guest")  # nosemgrep: frappe-setuser
 				return
 			self.resume = False
 		else:
@@ -212,7 +219,14 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes", deduplicate=True)
 			if not resume:
 				frappe.local.response["message"] = "Logged In"
-				frappe.local.response["home_page"] = get_home_page() or "/desk"
+				home_page = None
+				if get_default_app() and not (
+					get_role_home_page()
+					or get_role_home_page_via_hooks()
+					or frappe.get_user().load_user_default_workspace()
+				):
+					home_page = get_default_path()
+				frappe.local.response["home_page"] = home_page or get_home_page() or "/desk"
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
@@ -278,8 +292,7 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_("Incomplete login details"), user=user)
 
-		if len(pwd) > MAX_PASSWORD_SIZE:
-			self.fail(_("Password size exceeded the maximum allowed size"), user=user)
+		validate_password_size(pwd)
 
 		_raw_user_name = user
 		user = User.find_by_credentials(user, pwd)
@@ -384,9 +397,9 @@ class LoginManager:
 	def logout(self, arg="", user=None):
 		if not user:
 			user = frappe.session.user
-		self.run_trigger("on_logout")
 
 		if user == frappe.session.user:
+			self.run_trigger("on_logout")
 			delete_session(frappe.session.sid, user=user, reason="User Manually Logged Out")
 			self.clear_cookies()
 			if frappe.request:
@@ -490,7 +503,11 @@ def validate_ip_address(user):
 	if request is not None and request.path.startswith("/api/method/frappe.realtime."):
 		return True
 
-	user_info = frappe.get_cached_doc("User", user)
+	try:
+		user_info = frappe.get_cached_doc("User", user)
+	except frappe.DoesNotExistError:
+		return
+
 	ip_list = user_info.get_restricted_ip_list()
 
 	if not ip_list:
@@ -638,6 +655,7 @@ def validate_auth():
 	# and bearer tokens bypass the user's IP restrictions entirely.
 	if frappe.session.user != user_before_auth and frappe.session.user not in ("", "Guest"):
 		validate_ip_address(frappe.session.user)
+		set_agent_from_header()
 
 
 def _is_oauth_client_auth(authorization_header) -> bool:
@@ -695,7 +713,7 @@ def validate_oauth(authorization_header):
 		token_hash = get_oauth_token_hash(token)
 		token_filters = {"access_token": token_hash}
 		token_details = frappe.db.get_value(
-			"OAuth Bearer Token", token_filters, ("scopes", "user"), as_dict=True
+			"OAuth Bearer Token", token_filters, ("scopes", "user", "client"), as_dict=True
 		)
 		if not token_details:
 			return
@@ -708,6 +726,7 @@ def validate_oauth(authorization_header):
 			if not frappe.get_cached_value("User", user, "enabled"):
 				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
 			frappe.set_user(user)
+			frappe.session.data.oauth_client = token_details.client
 			frappe.local.form_dict = form_dict
 	except AttributeError:
 		pass
@@ -783,6 +802,40 @@ def reject_api_key_auth(reason: str, user: str | None = None) -> NoReturn:
 		)
 
 	raise frappe.AuthenticationError
+
+
+def set_agent(
+	name: str, via: str, reference_doctype: str | None = None, reference_name: str | None = None
+) -> None:
+	"""Record the LLM agent that acts for the current user, for attribution in Version.
+
+	Call it after `frappe.set_user`, which clears it. It does nothing in a cookie session,
+	because that session is saved and the agent would stay in it for later requests.
+	"""
+	session_obj = getattr(frappe.local, "session_obj", None)
+	if session_obj and session_obj.sid != "Guest":
+		return
+
+	agent = frappe._dict(name=name[:AGENT_NAME_LENGTH], via=via)
+	if reference_doctype and reference_name:
+		agent.update(reference_doctype=reference_doctype, reference_name=reference_name)
+	frappe.session.data.agent = agent
+
+
+def set_agent_from_header() -> None:
+	"""Read the agent that a token or OAuth client names in the `X-Frappe-Agent` header."""
+	header = (frappe.get_request_header("X-Frappe-Agent") or "").strip()
+	if not header:
+		return
+	client_name = get_oauth_client_name()
+	name = f"{client_name} ({header})" if client_name and client_name != header else header
+	set_agent(name, "API")
+
+
+def get_oauth_client_name() -> str | None:
+	"""The registered name of the OAuth client that made the current request."""
+	if client := frappe.session.data.get("oauth_client"):
+		return frappe.get_cached_value("OAuth Client", client, "app_name")
 
 
 def validate_auth_via_hooks():

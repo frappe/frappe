@@ -148,10 +148,13 @@ class ScheduledJobType(Document):
 		# A dynamic fallback like current time might miss the scheduler interval and job will never start.
 		last_execution = get_datetime(self.last_execution or self.creation)
 
+		# an hourly run that starts after the hour would otherwise skip the next slot
+		if self.frequency == "Hourly Maintenance":
+			last_execution -= timedelta(minutes=maintenance_offset)
 		next_execution = parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
 		if self.frequency in ("Hourly Maintenance", "Daily Maintenance"):
 			next_execution += timedelta(minutes=maintenance_offset)
-		return parse_cron(self.cron_format).get_next(datetime, start_time=last_execution)
+		return next_execution
 
 	def execute(self):
 		if self.is_app_disabled:

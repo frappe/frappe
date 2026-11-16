@@ -12,6 +12,7 @@
 			:description="field.description"
 			:placeholder="field.readOnly ? '—' : field.placeholder || 'Set location'"
 			:required="field.reqd"
+			:error="error"
 			readonly
 			class="group"
 			:class="canOpen ? '[&_input]:cursor-pointer' : null"

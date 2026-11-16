@@ -11,10 +11,10 @@ from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
 	QueryBuilder,
 	_SetOperation,
 )
-from pypika.terms import PseudoColumn
+from pypika.terms import PseudoColumn, Term
 
 import frappe
-from frappe.query_builder.terms import NamedParameterWrapper, PostgresAwareCriterion
+from frappe.query_builder.terms import EscapedValueWrapper, NamedParameterWrapper, PostgresAwareCriterion
 
 # Frappe's public query-builder helpers are installed on Base below. This is the
 # existing framework extension mechanism rather than an app overriding Frappe.
@@ -182,7 +182,7 @@ def execute_query(query, *args, _db=None, **kwargs):
 	dt = query.__dict__.get("_doctype")
 	parent_dt = query.__dict__.get("_parent_doctype")
 	fields = query.__dict__.get("_fields_list", [])
-	child_queries = query._child_queries
+	child_queries = query.__dict__.get("_child_queries")
 	name_field_injected = query.__dict__.get("_name_field_injected", False)
 	query, params = prepare_query(query)
 	if db.db_type == "sqlite":
@@ -190,7 +190,7 @@ def execute_query(query, *args, _db=None, **kwargs):
 		kwargs["_skip_sqlite_transpilation"] = True
 	result = db.sql(query, params, *args, **kwargs)  # nosemgrep
 
-	if child_queries and isinstance(child_queries, list) and result:
+	if child_queries and result:
 		execute_child_queries(child_queries, result)
 		if dt:
 			mask_child_query_fields(child_queries, result)
@@ -249,6 +249,18 @@ def execute_child_queries(queries, result):
 					if "parentfield" not in child_query.fields:
 						del d["parentfield"]
 					row[child_query.fieldname].append(d)
+
+
+def render_criterion(criterion: Term) -> str:
+	"""Render a criterion to namespaced SQL with its values escaped and inlined.
+
+	Uses `frappe.db.escape` instead of pypika's quote-doubling, which a backslash
+	breaks out of on MariaDB.
+	"""
+	quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
+	return criterion.get_sql(
+		with_namespace=True, quote_char=quote_char, param_wrapper=EscapedValueWrapper(), subquery=True
+	)
 
 
 def prepare_query(query):

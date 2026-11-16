@@ -12,6 +12,8 @@
 @import "frappe/public/css/espresso/components/badge-legacy-colors.css";
 
 @import "frappe/public/css/espresso/components/button.css";
+/* Joins two .es-button halves — must load after button.css. */
+@import "frappe/public/css/espresso/components/segmented_button.css";
 
 @import "frappe/public/css/espresso/components/spinner.css";
 
@@ -36,6 +38,9 @@
 @import "frappe/public/css/espresso/components/popover.css";
 /* Modifier on .es-popover — must load after it. */
 @import "frappe/public/css/espresso/components/hover_card.css";
+
+/* Panel is an .es-menu — must load after menu.css. */
+@import "frappe/public/css/espresso/components/combobox.css";
 
 @import "frappe/public/css/espresso/components/tabs.css";
 

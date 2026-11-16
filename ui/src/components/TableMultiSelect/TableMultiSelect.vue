@@ -6,6 +6,7 @@
 		:description="description"
 		:placeholder="placeholder"
 		:required="required"
+		:error="error"
 		:disabled="disabled"
 		:loading="search.loading && !search.data"
 		@update:open="onOpen"

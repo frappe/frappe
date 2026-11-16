@@ -38,7 +38,6 @@ frappe.ui.form.on("Form Tour", {
 				__("Referance Doctype and Dashboard Name both can't be used at the same time.")
 			);
 		}
-		frm.doc.ui_tour && (frm.doc.page_route = JSON.stringify(await get_path(frm)));
 	},
 	disable_form: function (frm) {
 		frm.set_read_only();
@@ -167,10 +166,6 @@ async function check_if_single(doctype) {
 	const { message } = await frappe.db.get_value("DocType", doctype, "issingle");
 	return message.issingle || 0;
 }
-async function check_if_private_workspace(name) {
-	const { message } = await frappe.db.get_value("Workspace", name, "public");
-	return !message.public || 0;
-}
 
 async function get_first_document(doctype) {
 	let docname;
@@ -180,76 +175,4 @@ async function get_first_document(doctype) {
 	});
 
 	return docname || "new";
-}
-
-async function get_path(frm) {
-	let route = [frm.doc.view_name];
-	switch (route[0]) {
-		case "Workspaces":
-			frm.doc.list_name = "";
-			frm.doc.new_document_form = 0;
-			frm.doc.report_name = "";
-			frm.doc.page_name = "";
-			frm.doc.dashboard_name = "";
-			frm.doc.reference_doctype = "";
-			if (!frm.doc.workspace_name) {
-				route.push("*");
-				return route;
-			}
-			if (await check_if_private_workspace(frm.doc.workspace_name)) {
-				route.push("private");
-			}
-			route.push(frm.doc.workspace_name);
-			return route;
-		case "List":
-			frm.doc.workspace_name = "";
-			frm.doc.new_document_form = 0;
-			frm.doc.list_name != "Report" && (frm.doc.report_name = "");
-			frm.doc.list_name != "Dashboard" && (frm.doc.dashboard_name = "");
-			frm.doc.page_name = "";
-			if (frm.doc.list_name == "File") return ["List", "File"];
-			if (!frm.doc.reference_doctype) {
-				if (frm.doc.list_name == "Dashboard")
-					return ["dashboard-view", frm.doc.dashboard_name || "*"];
-				route.push("*");
-			} else {
-				route.push(frm.doc.reference_doctype);
-			}
-			route.push(frm.doc.list_name);
-			return route;
-		case "Form":
-			frm.doc.workspace_name = "";
-			frm.doc.list_name = "";
-			frm.doc.report_name = "";
-			frm.doc.page_name = "";
-			frm.doc.dashboard_name = "";
-			if (!frm.doc.reference_doctype) {
-				route.push("*");
-				frm.doc.new_document_form && route.push("new-*");
-				return route;
-			}
-			route.push(frm.doc.reference_doctype);
-			if (await check_if_single(frm.doc.reference_doctype)) {
-				route.push(frm.doc.reference_doctype);
-			} else if (frm.doc.new_document_form) {
-				route.push("new-" + frappe.router.slug(frm.doc.reference_doctype));
-			}
-			return route;
-		case "Tree":
-			frm.doc.workspace_name = "";
-			frm.doc.list_name = "";
-			frm.doc.new_document_form = 0;
-			frm.doc.report_name = "";
-			frm.doc.page_name = "";
-			frm.doc.dashboard_name = "";
-			return route;
-		case "Page":
-			frm.doc.workspace_name = "";
-			frm.doc.list_name = "";
-			frm.doc.new_document_form = 0;
-			frm.doc.report_name = "";
-			frm.doc.dashboard_name = "";
-			frm.doc.reference_doctype = "";
-			return [frm.doc.page_name];
-	}
 }

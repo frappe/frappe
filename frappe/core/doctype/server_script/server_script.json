@@ -20,6 +20,8 @@
   "disabled",
   "section_break_8",
   "script",
+  "variables_section",
+  "variables",
   "rate_limiting_section",
   "enable_rate_limit",
   "rate_limit_count",
@@ -152,6 +154,17 @@
    "fieldtype": "Select",
    "label": "Queue",
    "options": "\ndefault\nshort\nlong"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "variables_section",
+   "fieldtype": "Section Break",
+   "label": "Environment Variables"
+  },
+  {
+   "fieldname": "variables",
+   "fieldtype": "Table",
+   "options": "Server Script Variable"
   }
  ],
  "index_web_pages_for_search": 1,
@@ -161,7 +174,7 @@
    "link_fieldname": "server_script"
   }
  ],
- "modified": "2026-08-04 18:13:18.243389",
+ "modified": "2026-10-23 17:25:18.812613",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Server Script",

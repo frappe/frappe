@@ -1,3 +1,5 @@
+const flow_handlers = require("./flow_handlers");
+
 const WEBSITE_ROOM = "website";
 const SITE_ROOM = "all";
 
@@ -114,6 +116,8 @@ function frappe_handlers(socket) {
 	socket.on("disconnect", () => {
 		notify_disconnected_documents(socket);
 	});
+
+	flow_handlers(socket);
 }
 
 function notify_disconnected_documents(socket) {

@@ -1,5 +1,8 @@
 <template>
 	<div class="studio isolate h-screen flex-col overflow-hidden bg-surface-gray-2">
+		<!-- Give page scripts a Vue instance. Keep the host outside the canvas so script edits
+		     remount the script without losing canvas state. -->
+		<PageScriptHost :key="pageScope.pageScriptVersion" />
 		<ComponentContextMenu ref="componentContextMenu"></ComponentContextMenu>
 		<StudioToolbar class="relative z-30" />
 		<div class="flex flex-col">
@@ -191,9 +194,11 @@ import OverlayList from "@/components/OverlayList.vue"
 import Code from "@/components/Code.vue"
 import PasteConflictDialog from "@/components/PasteConflictDialog.vue"
 import StudioCommandPalette from "@/components/CommandPalette/StudioCommandPalette.vue"
+import PageScriptHost from "@/components/PageScriptHost.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import { usePageScope } from "@/stores/codeStore"
 import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
@@ -205,6 +210,7 @@ const route = useRoute()
 const router = useRouter()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const pageScope = usePageScope()
 
 const getCompletions = useStudioCompletions()
 const getDynamicValueCompletions = useDynamicValueCompletions()

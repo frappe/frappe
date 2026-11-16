@@ -44,7 +44,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 		title: __("Print Format"),
 		description: __(
 			"Configure print formats for {0}. You can choose a format when printing or emailing a document.",
-			[doctype]
+			[__(doctype)]
 		),
 		actions: [{ label: __("New"), icon: "plus", click: create }],
 		render: () => load(),
@@ -110,7 +110,9 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 			frappe.doctype_settings.empty_state(panel.body, {
 				icon: frappe.doctype_settings.tab_icon("print-format"),
 				title: __("No Print Formats found"),
-				description: __("Create a print format to customize how {0} prints.", [doctype]),
+				description: __("Create a print format to customize how {0} prints.", [
+					__(doctype),
+				]),
 				action: { label: __("New Print Format"), onclick: create },
 			});
 			return;
@@ -285,7 +287,7 @@ frappe.doctype_settings.register("print-format", function (panel, doctype) {
 			frappe.msgprint({
 				title: __("No document to preview"),
 				message: __("Create a {0} document first to preview this print format.", [
-					doctype,
+					__(doctype),
 				]),
 				indicator: "orange",
 			});
