@@ -9,7 +9,7 @@ const selected = "It acts on the rows now selected, so select rows first.";
 const rows = {
 	type: ["array", "null"],
 	items: { type: "string" },
-	description: "The names of the rows, which the bulk bar sends; leave it out to act on the selected rows.",
+	description: "Ignored: the act always uses the current selection. The bulk bar sends the selected row names; leave it out.",
 };
 
 export default {

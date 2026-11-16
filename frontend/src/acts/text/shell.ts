@@ -47,6 +47,7 @@ export default {
 			"Open the Create dialog for a new record of a DocType, with optional starting values. The person fills the rest and saves. Data is the created record, or null when the person closed the dialog.",
 		input: {
 			type: ["string", "object"],
+			minLength: 1,
 			description: "A DocType name, or an object with the DocType and starting values.",
 			properties: {
 				doctype: { type: "string", minLength: 1, description: "The DocType's name, such as \"ToDo\"." },

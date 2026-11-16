@@ -254,7 +254,7 @@ export class ActDispatcher {
 		const surface = surfaceOf(name);
 		if (item.input === undefined && !loadedText(surface)) {
 			const loading = loadText(surface);
-			return wait ? loading.then(() => this.check(name, value, wait)) : checked;
+			return wait ? loading.then(() => this.valid(name, this.allowed(name, this.sameScope(name, checked)), value, wait)) : checked;
 		}
 		const text = loadedText(surface)?.[nameIn(name)];
 		const schema = item.input ?? text?.input;
@@ -264,7 +264,7 @@ export class ActDispatcher {
 	}
 
 	// A page that replaced the asking one while the right settled holds a different act of the same name.
-	private sameScope(name: string, asked: Found | null) {
+	private sameScope(name: string, asked: Pick<Found, "scope"> | null) {
 		const found = this.lookup(name);
 		return found && found.scope === asked?.scope ? found : null;
 	}

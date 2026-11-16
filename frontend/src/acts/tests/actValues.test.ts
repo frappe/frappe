@@ -25,7 +25,7 @@ beforeEach(async () => {
 });
 
 function register(surface: string, ...items: ActItem[]) {
-  dispatcher.register({
+  return dispatcher.register({
     surfaces: { [surface]: () => items.map((item) => ({ item, hidden: false })) },
     context: () => ({}),
     passes: () => true,
@@ -182,6 +182,28 @@ describe("a sidecar that fails to load", () => {
     await dispatcher.perform("shell.go", { n: 1 });
 
     expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("could not be checked"));
+    expect(run).not.toHaveBeenCalled();
+  });
+});
+
+describe("shell.create", () => {
+  it("refuses an empty DocType name", async () => {
+    await actText.loadText("shell");
+    register("shell", { name: "create", run });
+
+    await expect(dispatcher.run("shell.create", "")).rejects.toThrow("value must not be empty");
+    expect(run).not.toHaveBeenCalled();
+  });
+});
+
+describe("a page replaced while the sidecar loads", () => {
+  it("refuses the call instead of running the new page's act", async () => {
+    const release = register("shell", { name: "go", run });
+    const pending = dispatcher.run("shell.go", { n: 1 });
+    release();
+    register("shell", { name: "go", run });
+
+    await expect(pending).rejects.toThrow("shell.go");
     expect(run).not.toHaveBeenCalled();
   });
 });
