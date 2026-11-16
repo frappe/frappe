@@ -175,6 +175,12 @@ class TestPrefilledSetup(IntegrationTestCase):
 	def test_keeps_the_wizard_unless_an_app_opts_in(self):
 		self.assertIsNone(self.args({"frappe": {}, "raven": {"setup_wizard_success": ["raven.setup"]}}))
 
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_a_hook_set_to_false_does_not_opt_in(self):
+		self.assertIsNone(self.args({"frappe": {}, "suite": {"setup_wizard_auto_complete": [False]}}))
+
 	@IntegrationTestCase.change_settings("System Settings", country=None)
 	def test_a_site_without_a_saved_region_keeps_the_wizard(self):
 		self.assertIsNone(self.args())
