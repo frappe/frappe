@@ -41,6 +41,9 @@ test.describe("Split View", () => {
 
 	const selected_row = (page) => page.locator(`${ROWS}[data-selected]`);
 	const detail_title = (page) => page.locator(".split-view-preview-title");
+	// the skeleton draws placeholder labels in the same list
+	const detail_fields = (page) =>
+		page.locator(".split-view-preview-body .split-view-fields dt:not(:has(.es-skeleton))");
 	const view_menu = async (page) => {
 		await page.locator(".custom-btn-group.view-switcher button").click();
 		return page.locator(".es-menu[data-state='open']");
@@ -61,9 +64,7 @@ test.describe("Split View", () => {
 		await expect(page).toHaveURL(new RegExp(`/view/split/${names[0]}\\?description=`));
 		await expect(selected_row(page)).toHaveAttribute("data-id", names[0]);
 		await expect(detail_title(page)).toContainText(stamp);
-		await expect(
-			page.locator(".split-view-preview-body .split-view-fields dt")
-		).not.toHaveCount(0);
+		await expect(detail_fields(page)).not.toHaveCount(0);
 	});
 
 	test("a link to the same split view with other filters shows their rows", async ({ page }) => {
@@ -109,7 +110,7 @@ test.describe("Split View", () => {
 	}) => {
 		const names = await open_split_view(page);
 		const skeleton = page.locator(".split-view-preview-body .es-skeleton");
-		const fields = page.locator(".split-view-preview-body .split-view-fields dt");
+		const fields = detail_fields(page);
 		let delay = 1500;
 		await page.route("**/api/method/frappe.desk.doc_preview.get_preview*", async (route) => {
 			await new Promise((resolve) => setTimeout(resolve, delay));
