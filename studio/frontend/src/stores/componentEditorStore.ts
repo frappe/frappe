@@ -80,6 +80,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 			resetStudioComponent()
 		} catch (error: any) {
 			toast.error("Failed to save component", { description: error?.messages?.join(", ") })
+			// the editor keeps the component open and its changes unsaved
+			throw error
 		}
 	}
 
