@@ -286,7 +286,7 @@ frappe.ui.Modal = class Modal {
 	}
 
 	trap_focus() {
-		if (this.stop_guard || !this.is_shown) return;
+		if (this.stop_guard || !this.is_shown || this.opts.backdrop === false) return;
 		this.stop_guard = guard_focus(this.element, this.background);
 	}
 
