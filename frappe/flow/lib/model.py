@@ -12,6 +12,29 @@ from frappe import _
 
 # Grove, Frappe Cloud's AI gateway, keyed by site config: the provider of its models
 SITE_PROVIDER = "grove"
+ENABLED_CACHE_KEY = "flow_enabled"
+
+
+def is_enabled() -> bool:
+	"""Whether Flow can chat on this site: an enabled provider and an enabled chat model, or a
+	Grove key in site config that Flow's first open turns into them. The same for every user;
+	callers check the user's access to Flow themselves."""
+	state = frappe.cache.get_value(ENABLED_CACHE_KEY, generator=_enabled_state)
+	return state["ready"] or (not state["has_grove"] and bool(_first_key(frappe.conf)))
+
+
+def _enabled_state() -> dict[str, bool]:
+	return {
+		"ready": bool(
+			frappe.db.exists("Flow Provider", {"enabled": 1})
+			and frappe.db.exists("Flow Model", {"enabled": 1, "embedding": 0})
+		),
+		"has_grove": bool(frappe.db.exists("Flow Provider", SITE_PROVIDER)),
+	}
+
+
+def clear_enabled_cache() -> None:
+	frappe.cache.delete_value(ENABLED_CACHE_KEY)
 
 
 def model_config(model: str, *, check_permission: bool = True) -> dict[str, Any]:

@@ -158,6 +158,7 @@ def get():
 	"""get session boot info"""
 	from frappe.boot import get_bootinfo
 	from frappe.desk.doctype.note.note import get_unseen_notes
+	from frappe.flow.lib.model import is_enabled as is_flow_enabled
 	from frappe.utils.change_log import get_change_log
 	from frappe.utils.legacy_gravatar_cleanup import (
 		should_show_gravatar_deletion_prompt,
@@ -194,6 +195,7 @@ def get():
 		bootinfo["metadata_version"] = reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
+	bootinfo.flow_enabled = is_flow_enabled()
 	bootinfo.notification_unread_count = frappe.db.count(
 		"Notification Log", {"read": 0, "for_user": frappe.session.user}
 	)

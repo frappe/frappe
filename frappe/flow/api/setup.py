@@ -316,7 +316,7 @@ def _save_model(provider: str, model: str, embedding: bool = False) -> str:
 	model_id = f"{provider}/{model}"
 	if name := frappe.db.get_value("Flow Model", {"model_id": model_id}):
 		frappe.has_permission("Flow Model", "write", doc=name, throw=True)
-		frappe.db.set_value("Flow Model", name, {"enabled": 1, "embedding": embedding})
+		frappe.get_doc("Flow Model", name).db_set({"enabled": 1, "embedding": embedding})
 		return name
 	title = _title(model)
 	if frappe.db.exists("Flow Model", title):
