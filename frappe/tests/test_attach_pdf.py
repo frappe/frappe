@@ -14,7 +14,7 @@ class TestAttachPdf(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		self.note = frappe.get_doc(
-			doctype="Note", title=frappe.generate_hash(length=8), content="<p>First draft</p>"
+			doctype="Note", title=frappe.generate_hash(length=8), public=1, content="<p>First draft</p>"
 		).insert()
 
 	def get_attached_pdfs(self):
