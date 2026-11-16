@@ -17,12 +17,15 @@ def get_context(context):
 		frappe.local.flags.redirect_location = f"/login?{urlencode({'redirect-to': frappe.request.path})}"
 		raise frappe.Redirect
 	from frappe.flow.launcher import ISLAND
+	from frappe.translate import get_messages_for_boot
 	from frappe.utils import get_assets_json
 
 	assets = get_assets_json()
 	context.island_js = assets.get(f"{ISLAND}.island.js")
 	context.island_css = assets.get(f"{ISLAND}.island.css")
 	context.boot = get_boot()
+	# sent with the page, as this branch's Desk sends them in its boot
+	context.messages = get_messages_for_boot()
 	return context
 
 
@@ -30,10 +33,14 @@ def get_boot() -> dict:
 	from frappe.flow.api import boot
 
 	csrf_token = frappe.sessions.get_csrf_token()
-	frappe.db.commit()  # the token is written to the session on first use, as /app does; nosemgrep: frappe-manual-commit
+	flow_boot = boot()
+	# the token is written to the session on first use, as /app does, and a site's Grove key
+	# adds its provider on first open
+	frappe.db.commit()  # nosemgrep: frappe-manual-commit
 	return {
 		"csrf_token": csrf_token,
 		"site_name": frappe.local.site,
 		"socketio_port": frappe.conf.socketio_port,
-		"flow_boot": boot(),
+		"lang": frappe.local.lang,
+		"flow_boot": flow_boot,
 	}

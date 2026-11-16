@@ -1,7 +1,7 @@
 <template>
 	<div class="overflow-hidden rounded-6 border border-outline-gray-1">
 		<div class="flex h-9 items-center border-b border-outline-gray-1 bg-surface-gray-1 px-3 text-sm-medium text-ink-gray-5">
-			{{ files.length }} {{ files.length === 1 ? "file" : "files" }} changed
+			{{ files.length === 1 ? __("1 file changed") : __("{0} files changed", [files.length]) }}
 		</div>
 		<div class="divide-y divide-outline-gray-1">
 			<button
@@ -23,7 +23,7 @@
 				class="w-full py-2 text-center text-sm text-ink-gray-5 transition-colors hover:bg-surface-gray-1 hover:text-ink-gray-8"
 				@click="expanded = !expanded"
 			>
-				{{ expanded ? "Show less" : `Show all ${files.length} files` }}
+				{{ expanded ? __("Show less") : __("Show all {0} files", [files.length]) }}
 			</button>
 		</div>
 	</div>
@@ -33,6 +33,7 @@
 import { computed, inject, ref } from "vue"
 
 import { compactDisplayText, fileName } from "../transcript.js"
+import { __ } from "../translate.js"
 
 const props = defineProps({
 	files: { type: Array, required: true }, // [{path, added, removed, since}]

@@ -6,7 +6,7 @@
 			ref="trigger"
 			class="flex max-w-full items-center gap-1.5 rounded-5 px-2 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
 			:class="[tall ? 'h-8' : 'h-7', pane && 'bg-surface-gray-2']"
-			:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
+			:title="__('{0} · thinking {1}', [currentModel ?? modelLabel, effortLabel])"
 			:aria-expanded="!!pane"
 			@click="pane ? close() : open()"
 		>
@@ -20,7 +20,7 @@
 		     it on hover (in its place in a narrow frame, the Desk panel's or a phone's) -->
 		<PalettePanel
 			v-if="pane && !(sub && layout.narrow)"
-			title="Model and thinking"
+			:title="__('Model and thinking')"
 			dropdown
 			:width="ROOT_WIDTH"
 			:passive="!!sub"
@@ -66,6 +66,7 @@ import { computed, inject, nextTick, ref, watch } from "vue"
 
 import { layout } from "../layout.js"
 import { EFFORT_LABELS, modelTitle } from "../transcript.js"
+import { __ } from "../translate.js"
 import ModelPalette from "./ModelPalette.vue"
 import PalettePanel from "./PalettePanel.vue"
 import ThinkingPalette from "./ThinkingPalette.vue"
@@ -101,13 +102,13 @@ const currentEffort = computed(
 )
 const modelLabel = computed(() => {
 	const model = currentModel.value
-	if (!model) return flow.state.loading ? "" : "Choose Model"
+	if (!model) return flow.state.loading ? "" : __("Choose Model")
 	return modelTitle(model, flow.state.models)
 })
-const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? "Default")
+const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? __("Default"))
 const entries = [
-	{ pane: "models", label: "Model", icon: "lucide-cpu" },
-	{ pane: "thinking", label: "Thinking", icon: "lucide-zap" },
+	{ pane: "models", label: __("Model"), icon: "lucide-cpu" },
+	{ pane: "thinking", label: __("Thinking"), icon: "lucide-zap" },
 ]
 
 function open() {

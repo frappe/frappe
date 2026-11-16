@@ -8,13 +8,13 @@
 				v-if="subagent != null"
 				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs-medium text-ink-gray-6"
 			>
-				Sub-agent{{ subagent ? `: ${subagent}` : "" }}
+				{{ subagent ? __("Sub-agent: {0}", [subagent]) : __("Sub-agent") }}
 			</span>
 			<span
 				v-if="total > 1"
 				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs-medium text-ink-gray-6"
 			>
-				{{ position }} of {{ total }}
+				{{ __("{0} of {1}", [position, total]) }}
 			</span>
 		</div>
 
@@ -40,9 +40,9 @@
 
 		<!-- a host view that answers the card itself brings its own buttons -->
 		<div v-if="!asking && !presentation.ownAnswers" class="flex items-center justify-end gap-2 px-3.5 py-2.5">
-			<Button ref="askButton" variant="ghost" label="Ask for changes" @click="asking = true" />
-			<Button variant="subtle" label="Deny" @click="answer('Deny')" />
-			<Button variant="solid" label="Approve" @click="answer('Approve')" />
+			<Button ref="askButton" variant="ghost" :label="__('Ask for changes')" @click="asking = true" />
+			<Button variant="subtle" :label="__('Deny')" @click="answer('Deny')" />
+			<Button variant="solid" :label="__('Approve')" @click="answer('Approve')" />
 		</div>
 		<div v-else-if="asking" class="px-3.5 py-2.5">
 			<!-- function ref: the field mounts only while asking, so mount-time focus
@@ -52,14 +52,14 @@
 				v-model="askText"
 				variant="outline"
 				:rows="2"
-				placeholder="Describe what you want instead…"
+				:placeholder="__('Describe what you want instead…')"
 				class="resize-none"
 				@keydown="onAskKey"
 			/>
 			<div class="mt-2 flex items-center gap-2">
-				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-4">⏎ send · esc cancel</span>
-				<Button variant="ghost" label="Cancel" @click="cancelAsk" />
-				<Button variant="solid" label="Send" :disabled="!askText.trim()" @click="sendAsk" />
+				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-4">{{ __("⏎ send · esc cancel") }}</span>
+				<Button variant="ghost" :label="__('Cancel')" @click="cancelAsk" />
+				<Button variant="solid" :label="__('Send')" :disabled="!askText.trim()" @click="sendAsk" />
 			</div>
 		</div>
 	</div>
@@ -71,6 +71,7 @@ import { Button } from "frappe-ui/src/components/Button"
 import { Textarea } from "frappe-ui/src/components/Textarea"
 
 import { layout } from "../layout.js"
+import { __ } from "../translate.js"
 
 // One gated call, answered here. The composer shows the batch one call at a time,
 // and the call's place in it tells the user how many questions follow.
@@ -116,17 +117,18 @@ const title = computed(() => {
 	const a = args.value
 	const custom = presentation.value.title
 	if (custom != null) return custom
+	const path = a.path ?? __("file")
 	switch (props.call.name) {
 		case "bash":
-			return a.description || "Run this command?"
+			return a.description || __("Run this command?")
 		case "edit": {
 			const n = a.edits?.length ?? 1
-			return `Apply ${n} edit${n === 1 ? "" : "s"} to ${a.path ?? "file"}?`
+			return n === 1 ? __("Apply 1 edit to {0}?", [path]) : __("Apply {0} edits to {1}?", [n, path])
 		}
 		case "write":
-			return `Write ${a.path ?? "file"}?`
+			return __("Write {0}?", [path])
 		default:
-			return props.call.prompt?.split("\n")[0] ?? `Approve ${props.call.name}?`
+			return props.call.prompt?.split("\n")[0] ?? __("Approve {0}?", [props.call.name])
 	}
 })
 

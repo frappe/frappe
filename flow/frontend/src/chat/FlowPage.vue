@@ -43,8 +43,8 @@
 					@open-sidebar="store.setSidebarOpen(true)"
 				>
 					<template v-if="inPanel" #end>
-						<Button variant="ghost" icon="lucide-external-link" title="Open in new tab" @click="openInTab" />
-						<Button variant="ghost" icon="lucide-x" title="Close" @click="closePanel" />
+						<Button variant="ghost" icon="lucide-external-link" :title="__('Open in new tab')" @click="openInTab" />
+						<Button variant="ghost" icon="lucide-x" :title="__('Close')" @click="closePanel" />
 					</template>
 				</ChatHeader>
 				<MessageList
@@ -62,9 +62,20 @@
 								class="min-h-0 shrink max-md:!h-7 max-md:!w-7"
 							/>
 							<h2 class="text-balance text-[22px] text-ink-gray-8">
-								What would you like to do?
+								{{ __("What would you like to do?") }}
 							</h2>
 						</template>
+					</template>
+					<template #error="{ error }">
+						{{ error.message }}
+						<button
+							v-if="error.settings_tab === 'models' && page.can('Flow Model', 'write')"
+							type="button"
+							class="underline"
+							@click="openSettings(error.settings_tab)"
+						>
+							{{ __("Connect a provider") }}
+						</button>
 					</template>
 				</MessageList>
 				<Composer
@@ -80,7 +91,7 @@
 				>
 					<template #below="{ starting }">
 						<p v-if="starting && !inPanel" class="mt-2 px-3 text-center text-sm text-ink-gray-5">
-							Flow is in beta and can make mistakes
+							{{ __("Flow is in beta and can make mistakes") }}
 						</p>
 					</template>
 					<!-- a new chat's agent and skills, as buttons beside the + -->
@@ -107,9 +118,9 @@
 					{{ readOnlyNote }}
 				</p>
 			</main>
-			<WorkspacePanel v-if="!pageKind">
+			<WorkspacePanel v-if="!pageKind" :beside-navbar="panelHost">
 				<template #empty>
-					<p class="text-sm text-ink-gray-4">A sub-agent's thread opens here.</p>
+					<p class="text-sm text-ink-gray-4">{{ __("A sub-agent's thread opens here.") }}</p>
 				</template>
 			</WorkspacePanel>
 		</div>
@@ -141,6 +152,7 @@ import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
 import { provideFileDrop } from "@flow/ui-core/fileDrop.js";
 import { layout, measureLayoutBy } from "@flow/ui-core/layout.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { FrappeClient } from "../api/client.js";
 import * as transport from "../api/frappe.js";
@@ -164,7 +176,7 @@ import { presentTool } from "./toolMeta.js";
 // the composer commands Flow serves, its own agent picker first; the rest need the
 // daemon's file system or providers
 const COMMANDS = [
-	{ name: "agents", label: "Agent", icon: "lucide-bot", hint: "Choose the agent", view: "agents" },
+	{ name: "agents", label: __("Agent"), icon: "lucide-bot", hint: __("Choose the agent"), view: "agents" },
 	"model",
 	"thinking",
 	"transcript",
@@ -176,9 +188,9 @@ const COMMANDS = [
 ];
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [
-	{ id: "auto", label: "Auto", desc: "A helper model handles approvals." },
-	{ id: "ask", label: "Ask for approval", desc: "Asks before changing anything." },
-	{ id: "auto_approve", label: "Auto-approve", desc: "Runs everything without asking." },
+	{ id: "auto", label: __("Auto"), desc: __("A helper model handles approvals.") },
+	{ id: "ask", label: __("Ask for approval"), desc: __("Asks before changing anything.") },
+	{ id: "auto_approve", label: __("Auto-approve"), desc: __("Runs everything without asking.") },
 ];
 
 const props = defineProps({ boot: { type: Object, required: true } });
@@ -287,17 +299,17 @@ async function logout() {
 }
 // the way back to the rest of the site, in the floating sidebar's menu; the sidebar's own menu
 // lists Desk under Apps
-const APP_MENU = [{ label: "Go to Desk", icon: "lucide-external-link", onClick: () => (window.location.href = "/app") }];
+const APP_MENU = [{ label: __("Go to Desk"), icon: "lucide-external-link", onClick: () => (window.location.href = "/app") }];
 provide("appMenu", APP_MENU);
 // the composer asks in the name of the agent that answers
 const placeholder = computed(() => {
 	const name = store.state.session?.agent ?? page.state.agent;
 	const title = page.state.boot.agents.find((agent) => agent.name === name)?.title ?? "Flow";
-	return `Ask ${title}…`;
+	return __("Ask {0}…", [title]);
 });
 // the header names a chat's agent where the harness names its folder
 const { current: agent, title: agentTitle } = useAgent(store, page);
-const agentCrumb = computed(() => (agent.value ? { icon: "lucide-bot", label: agentTitle.value } : null));
+const agentCrumb = computed(() => (agent.value ? { label: agentTitle.value } : null));
 // someone else's chat is view-only: its tools would run as its owner
 const readOnly = computed(() => Boolean(page.state.readOnly[store.state.sessionId]));
 // only its owner shares a chat, once it has loaded and said who that is
@@ -309,20 +321,25 @@ const canShare = computed(() => {
 const share = ref(null);
 const chatActions = computed(() =>
 	canShare.value
-		? [{ label: "Share", icon: "lucide-share-2", onClick: () => share.value.show() }]
+		? [{ label: __("Share"), icon: "lucide-share-2", onClick: () => share.value.show() }]
 		: []
 );
 // a viewer learns whose chat it is
 const readOnlyNote = computed(() => {
 	const owner = page.state.owner[store.state.sessionId]?.full_name;
 	return owner
-		? `Only ${owner} can send messages in this chat.`
-		: "Only the owner of this chat can send messages.";
+		? __("Only {0} can send messages in this chat.", [owner])
+		: __("Only the owner of this chat can send messages.");
 });
 // no model or no agent: the empty state says so, and there is no composer yet
 const needsSetup = computed(
 	() => !page.state.boot.models?.length || !page.state.boot.agents?.length
 );
+// an error's link: settings on its tab
+function openSettings(tab) {
+	page.state.settingsTab = tab;
+	store.setSettingsOpen(true);
+}
 
 // the launcher listens for the header's ×; a new tab takes the chat over from the panel
 const host = inject("flowHost", null);
@@ -356,7 +373,7 @@ const router = useRouter();
 // has its own buttons for its agent and skills (ChatPickers)
 const plusLists = computed(() =>
 	(store.state.skills ?? []).length || page.can("Flow Skill", "create")
-		? [{ id: "skills", label: "Skills", icon: "lucide-book-open", startedOnly: true }]
+		? [{ id: "skills", label: __("Skills"), icon: "lucide-book-open", startedOnly: true }]
 		: []
 );
 const forms = computed(() => FORMS.filter((item) => page.can(SPECS[item.key].doctype, "read")));
@@ -409,7 +426,7 @@ watch(
 	() => {
 		if (!pageKind.value) return store.state.session?.title;
 		const { record } = route.params;
-		return record === "new" ? `New ${SPECS[pageKind.value].singular}` : record;
+		return record === "new" ? __("New {0}", [SPECS[pageKind.value].singular]) : record;
 	},
 	(title) => {
 		if (!inPanel) document.title = title ? `${title} · Flow` : "Flow";

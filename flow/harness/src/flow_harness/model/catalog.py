@@ -57,6 +57,12 @@ def get_provider(provider_id: str) -> ProviderSpec | None:
 	return _PROVIDERS_BY_ID.get(provider_id)
 
 
+def provider_label(provider_id: str) -> str:
+	"""A provider as people name it: its display name, else its id."""
+	provider = get_provider(provider_id)
+	return provider.display_name if provider else provider_id
+
+
 def provider_for_model(model: str) -> ProviderSpec | None:
 	return _PROVIDERS_BY_MODEL_PREFIX.get(model.split("/", 1)[0])
 

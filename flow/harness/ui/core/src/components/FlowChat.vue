@@ -18,7 +18,7 @@
 				<template #actions>
 					<Dropdown class="flex-none" :options="addTabOptions">
 						<template #trigger>
-							<Button variant="ghost" icon="lucide-plus" title="New tab" />
+							<Button variant="ghost" icon="lucide-plus" :title="__('New tab')" />
 						</template>
 					</Dropdown>
 				</template>
@@ -32,7 +32,7 @@
 							class="lucide-folder size-4 flex-none text-ink-gray-5"
 							aria-hidden="true"
 						/>
-						Files
+						{{ __("Files") }}
 					</button>
 					<button
 						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-base text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
@@ -42,7 +42,7 @@
 							class="lucide-columns-2 size-4 flex-none text-ink-gray-5"
 							aria-hidden="true"
 						/>
-						Diffs
+						{{ __("Diffs") }}
 					</button>
 				</template>
 			</WorkspacePanel>
@@ -87,6 +87,7 @@ import { installViewport } from "../viewport.js"
 import { provideComposerHeight } from "../composerHeight.js"
 import { provideFileDrop } from "../fileDrop.js"
 import { CHAT_FONT_SIZE, layout } from "../layout.js"
+import { __ } from "../translate.js"
 import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
 import EditorView from "./EditorView.vue"
@@ -102,12 +103,12 @@ import WorkspacePanel from "./WorkspacePanel.vue"
 
 const SETTINGS = [
 	{
-		label: "Settings",
+		label: __("Settings"),
 		tabs: [
-			{ id: "general", label: "General", icon: "lucide-settings" },
-			{ id: "appearance", label: "Appearance", icon: "lucide-palette" },
-			{ id: "presets", label: "Agent presets", icon: "lucide-layers" },
-			{ id: "skills", label: "Skills", icon: "lucide-book-open" },
+			{ id: "general", label: __("General"), icon: "lucide-settings" },
+			{ id: "appearance", label: __("Appearance"), icon: "lucide-palette" },
+			{ id: "presets", label: __("Agent presets"), icon: "lucide-layers" },
+			{ id: "skills", label: __("Skills"), icon: "lucide-book-open" },
 		],
 	},
 ]
@@ -121,8 +122,8 @@ useColorScheme() // restores the saved theme and applies data-theme
 
 // "+" menu: one entry per view the daemon's file system serves (browser, terminal later)
 const addTabOptions = [
-	{ label: "Files", icon: "lucide-folder", onClick: () => props.store.showFilesView() },
-	{ label: "Diffs", icon: "lucide-file-diff", onClick: () => props.store.showDiffView() },
+	{ label: __("Files"), icon: "lucide-folder", onClick: () => props.store.showFilesView() },
+	{ label: __("Diffs"), icon: "lucide-file-diff", onClick: () => props.store.showDiffView() },
 ]
 
 const sidebarOpen = computed(() => props.store.state.sidebarOpen)

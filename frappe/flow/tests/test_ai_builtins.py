@@ -188,7 +188,8 @@ class TestFindApis(IntegrationTestCase):
 		self.assertEqual(call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"], "get")
 		with self.assertRaisesRegex(frappe.ValidationError, "whitelisted API's path"):
 			call_api(method="submit", ctx=self.ctx)
-		with self.assertRaisesRegex(ValueError, "not whitelisted"):
+		# a failure names the function by its path, as the model called it
+		with self.assertRaisesRegex(ValueError, f"^{MODULE}.read_only_not_whitelisted: .*not whitelisted"):
 			call_api(method=f"{MODULE}.read_only_not_whitelisted", ctx=self.ctx)
 
 		with self.patch_hooks(

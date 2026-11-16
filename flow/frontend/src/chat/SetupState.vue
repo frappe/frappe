@@ -18,7 +18,7 @@
 			<PickModel v-if="provider && !switching" :provider="provider" @added="added" @switch="switching = true" />
 			<ConnectSetup v-else :connected="connectedIds" @connected="connected" @use="use" />
 		</template>
-		<Button v-else-if="hasModels && canEnable" variant="solid" label="Enable an agent" @click="open('agents')" />
+		<Button v-else-if="hasModels && canEnable" variant="solid" :label="__('Enable an agent')" @click="open('agents')" />
 	</div>
 </template>
 
@@ -26,6 +26,7 @@
 import { computed, inject, ref } from "vue";
 import { Button, toast } from "frappe-ui";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import ConnectSetup from "./setup/ConnectSetup.vue";
 import PickModel from "./setup/PickModel.vue";
@@ -51,17 +52,19 @@ const switching = ref(false); // connecting another provider in place of the one
 // the greeting a colleague would give, by the hour and the first name
 const greeting = computed(() => {
 	const hour = new Date().getHours();
-	const hello = hour < 5 ? "Hello" : `Good ${hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening"}`;
 	const name = page.state.boot.user?.full_name?.split(" ")[0];
-	return name ? `${hello}, ${name}` : hello;
+	if (hour < 5) return name ? __("Hello, {0}", [name]) : __("Hello");
+	if (hour < 12) return name ? __("Good morning, {0}", [name]) : __("Good morning");
+	if (hour < 17) return name ? __("Good afternoon, {0}", [name]) : __("Good afternoon");
+	return name ? __("Good evening, {0}", [name]) : __("Good evening");
 });
 const subline = computed(() => {
-	if (canConnect.value && provider.value && !switching.value) return "Pick the model chats start with.";
-	if (canConnect.value) return "Connect a provider to get started.";
-	if (!hasModels.value) return "An admin needs to connect a provider first.";
+	if (canConnect.value && provider.value && !switching.value) return __("Pick the model chats start with.");
+	if (canConnect.value) return __("Connect a provider to get started.");
+	if (!hasModels.value) return __("An admin needs to connect a provider first.");
 	return canEnable.value
-		? "Every model is set, but no agent is enabled."
-		: "Ask an administrator to enable an agent.";
+		? __("Every model is set, but no agent is enabled.")
+		: __("Ask an administrator to enable an agent.");
 });
 
 // connected: boot names the provider, and its models are picked from
@@ -69,7 +72,7 @@ function connected({ service }) {
 	use(service);
 	connectedHere.value.push(connectedNow.value);
 	page.changed("Flow Provider");
-	toast.success(`${service.name} is connected for everyone`);
+	toast.success(__("{0} is connected for everyone", [service.name]));
 }
 
 // Ollama is saved under LiteLLM's name for its chat endpoint

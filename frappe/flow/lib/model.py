@@ -10,6 +10,9 @@ from typing import Any
 import frappe
 from frappe import _
 
+# Grove, Frappe Cloud's AI gateway, keyed by site config: the provider of its models
+SITE_PROVIDER = "grove"
+
 
 def model_config(model: str, *, check_permission: bool = True) -> dict[str, Any]:
 	"""The daemon's model, api_key, api_base and model_params for a Flow Model the user may use."""
@@ -22,7 +25,7 @@ def model_config(model: str, *, check_permission: bool = True) -> dict[str, Any]
 	doc = frappe.get_doc("Flow Model", model)
 	if not doc.enabled:
 		frappe.throw(_("Flow Model {0} is disabled.").format(model), title=_("Disabled Model"))
-	provider = resolve_provider_credentials(doc.model_id)
+	provider = resolve_provider_credentials(doc.model_id, doc.provider)
 	config = {
 		"model": doc.model_id,
 		"api_key": doc.get_password("api_key", raise_exception=False) or provider.get("api_key"),
@@ -33,8 +36,16 @@ def model_config(model: str, *, check_permission: bool = True) -> dict[str, Any]
 	return config
 
 
-def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
-	"""Look up central Flow Provider credentials for a model's provider."""
+def resolve_provider_credentials(model_id: str, provider: str | None = None) -> dict[str, Any]:
+	"""Look up central Flow Provider credentials for a model's provider. A Grove model's come
+	from site config."""
+	if provider == SITE_PROVIDER:
+		if not frappe.db.get_value("Flow Provider", SITE_PROVIDER, "enabled"):
+			frappe.throw(
+				_("Grove is turned off. Turn it on, or pick another model, in Settings → Models."),
+				title=_("Grove Turned Off"),
+			)
+		return site_credentials()
 	try:
 		import litellm
 
@@ -53,3 +64,37 @@ def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
 		"api_key": doc.get_password("api_key", raise_exception=False) or None,
 		"base_url": doc.base_url or None,
 	}
+
+
+def site_key() -> dict[str, str] | None:
+	"""The first `ai_keys` entry Frappe Cloud writes into site config: {gateway_url, api_key}.
+	Site config is cached for up to a minute, so a key not in it yet is read from the file."""
+	return _first_key(frappe.conf) or _first_key(frappe.get_site_config())
+
+
+def _first_key(conf: dict) -> dict[str, str] | None:
+	entry = (conf.get("ai_keys") or [None])[0]
+	if isinstance(entry, dict) and entry.get("gateway_url") and entry.get("api_key"):
+		return entry
+	return None
+
+
+def site_credentials() -> dict[str, Any]:
+	"""The site key and its gateway; the flow server picks the gateway's API for each model."""
+	key = site_key()
+	if not key:
+		frappe.throw(
+			_("This site no longer has a Grove key. Connect another provider in Settings → Models."),
+			title=_("No Grove Key"),
+		)
+	return {"api_key": key["api_key"], "base_url": key["gateway_url"]}
+
+
+def litellm_route(model_id: str, api_base: str | None) -> tuple[str, str | None]:
+	"""The model and base for calling LiteLLM here, outside the flow server: a Grove model's are
+	behind its gateway's API, picked as the flow server picks it."""
+	if not model_id.startswith(f"{SITE_PROVIDER}/"):
+		return model_id, api_base
+	from flow_harness.model.providers.grove import grove_route
+
+	return grove_route(model_id, api_base)
