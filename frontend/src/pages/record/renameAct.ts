@@ -1,6 +1,7 @@
 // `header.rename`, the `⋯` menu's "Rename…", and the `page.rename` it runs.
 import { toast } from "frappe-ui";
 import { renameDocument } from "@framework/ui/api";
+import { ActDeclined } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import { errorMessage, type HeaderItem, type RecordPageApi } from "@/recordPage";
 import { routeFor } from "@/router/routeFor";
@@ -54,7 +55,7 @@ async function openRename(page: RecordPageApi) {
   if (!values) return;
   const name = String(values.new_name ?? "").trim();
   if (!name || name === page.docname) return;
-  if (values.merge && !(await confirmMerge(page, name))) return;
+  if (values.merge && !(await confirmMerge(page, name))) throw new ActDeclined("header.rename");
   await page.rename(name, { merge: Boolean(values.merge) });
 }
 

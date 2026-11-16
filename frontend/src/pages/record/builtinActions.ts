@@ -2,6 +2,7 @@
 // the panel, the `⋯` menu's rows in the header. Each is an ordinary item a script hides or reorders by name.
 import { deleteDocument } from "@framework/ui/api";
 import type { RouteLocationRaw } from "vue-router";
+import { ActDeclined } from "@/acts/dispatcher";
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import type { TabCreateAction } from "@/recordPage/types";
 import { COPY_OF } from "@/newRecordValues";
@@ -150,7 +151,7 @@ async function remove(page: RecordPageApi) {
     title: "Delete this record?",
     message: `${page.docname} will be deleted.`,
   });
-  if (!confirmed) return;
+  if (!confirmed) throw new ActDeclined("header.delete");
   const list = routeFor(page.doctype);
   await deleteDocument(page.doctype, page.docname);
   page.toast.success("Deleted");

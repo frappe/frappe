@@ -166,6 +166,21 @@ describe("a refused save", () => {
       qty: "Qty is too big",
     });
     expect(landed).toEqual(["qty"]);
+    expect(controller.page.saveRefusal).toEqual(new Error("Refused"));
+  });
+
+  it("clears the refusal on the next save", async () => {
+    const { host } = makeHost();
+    let fail = true;
+    const controller = createRecordPage({
+      ...host,
+      save: async () => void (fail && (() => { throw new Error("Refused"); })()),
+    });
+
+    expect(await controller.page.save()).toBe(false);
+    fail = false;
+    expect(await controller.page.save()).toBe(true);
+    expect(controller.page.saveRefusal).toBeNull();
   });
 
   it("marks a new row by its position when the server named it before refusing", async () => {

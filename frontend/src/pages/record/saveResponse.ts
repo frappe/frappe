@@ -2,6 +2,7 @@
 // and the fields the reader would lose.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
+import type { RecordPageApi } from "@/recordPage";
 import type { DocstatusAct } from "./docstatusActs";
 import type { Confirm } from "./discardChanges";
 import { sameContent } from "./refetchMerge";
@@ -96,6 +97,12 @@ async function askConflict(confirm: Confirm, message: string, confirmLabel?: str
     cancelLabel: __("Keep editing"),
   });
   return !!confirmed;
+}
+
+/** `page.save()` for an act: the save's refusal is thrown, so the caller reads why. The page has shown it already. */
+export async function saveOrThrow(page: Pick<RecordPageApi, "save" | "saveRefusal">): Promise<true> {
+  if (await page.save()) return true;
+  throw page.saveRefusal ?? new Error("The page was left before the record saved.");
 }
 
 export function conflictError(): Error {

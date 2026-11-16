@@ -11,7 +11,7 @@ import type { PageDialogEntry } from "@/shell/dialogs/pageDialogs";
 import { reportOnce } from "./reportOnce";
 import { errorMessage } from "./errorMessage";
 import type { HeldAct, TakeResult } from "@/pageEngine/heldActs";
-import { acts, passesRight, passesWhen, type ActFields } from "@/acts/dispatcher";
+import { ActDeclined, acts, passesRight, passesWhen, type ActFields } from "@/acts/dispatcher";
 import { DROPPED_FIELDTYPES, type Decorator } from "@framework/ui/FormLayout";
 import type { FormLayoutSchema, RawMetaField } from "@framework/ui/FormLayout/types";
 import { holdsChildRows } from "@framework/ui/fields";
@@ -437,6 +437,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       },
       rows: rows.rows,
       save: () => save(),
+      get saveRefusal() {
+        return refusal;
+      },
       rename: (name: string, options?: { merge?: boolean }) =>
         engine.hasLeft() || !host.rename ? Promise.resolve(null) : host.rename(name, Boolean(options?.merge)),
       reload: () => (engine.hasLeft() ? Promise.resolve() : host.reload()),
@@ -459,17 +462,20 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
   const saving = shallowRef<Promise<void> | null>(null);
 
+  // Why the last `save()` resolved `false`; a header act throws it so the caller reads the reason.
+  let refusal: unknown = null;
   const reportSave = reportOnce((error) =>
     host.saveFailed ? host.saveFailed(error) : void toast.error(errorMessage(error)),
   );
 
   /** The one save path: a clean saved doc resolves `true` at once, a `beforeSave` throw sends nothing, and it paints once. A failure is shown here and resolves `false`. */
   function save(): Promise<boolean> {
+    refusal = null;
     if (engine.hasLeft()) return Promise.resolve(false);
     if (!page.isNew && !host.isDirty()) return Promise.resolve(true);
     return saveNow().then(
       () => true,
-      (error) => (reportSave(error), false),
+      (error) => ((refusal = error), reportSave(error), false),
     );
   }
 
@@ -487,7 +493,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     if (engine.hasLeft() || !call) return Promise.resolve();
     moving.value ??= hold(async () => {
       const lower = act.toLowerCase() as "submit" | "cancel";
-      if (!(await host.confirmDocstatus?.(lower)) || engine.hasLeft()) return;
+      if (!(await host.confirmDocstatus?.(lower))) {
+        if (engine.hasLeft()) return;
+        throw new ActDeclined(`header.${lower}`);
+      }
+      if (engine.hasLeft()) return;
       const wasDirty = host.isDirty();
       // "Save and submit" is the consent: a clean draft saves only to give the dialog's values.
       if (act === "Submit" && offLayoutToAsk()) await saveNow(true);

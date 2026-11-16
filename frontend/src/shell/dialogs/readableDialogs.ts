@@ -2,6 +2,7 @@
 // `shell.dialog` feed it; a self-hosted component dialog feeds it through `useReadableDialog`.
 import { inject, onScopeDispose, shallowReactive, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue";
 import type { DialogConfirmOptions } from "@/narrowedDialog";
+import { readDialogsWith } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 
 export type ReadableDialogKind = "confirm" | "danger" | "form" | "dialog";
@@ -53,6 +54,8 @@ export function readDialogs(): ReadableDialogSnapshot[] {
 		...(handle && { fieldnames: handle.fieldnames(), values: handle.values() }),
 	}));
 }
+
+readDialogsWith(readDialogs);
 
 /** The dialog in front that a caller may fill. */
 export function frontHandle(): DialogHandle | undefined {

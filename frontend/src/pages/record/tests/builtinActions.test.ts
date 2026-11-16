@@ -12,6 +12,7 @@ const { deleteDocument, searchDocuments } = vi.hoisted(() => ({
 }));
 vi.mock("@framework/ui/api", () => ({ deleteDocument, searchDocuments }));
 
+import { ActDeclined } from "@/acts/dispatcher";
 import { headerMenuBuiltins, quickActionBuiltins, type FavouriteState, type FollowState } from "../builtinActions";
 import { FILES_TAB, recordTabBuiltins } from "../tabs/recordTabs";
 import { assignOptions, type AssignState } from "../assignAct";
@@ -219,9 +220,9 @@ describe("quickActionBuiltins", () => {
     expect(page.router.push).toHaveBeenCalledWith({ name: "list", doctype: "CRM Deal" });
   });
 
-  it("does nothing when the dialog is dismissed", async () => {
+  it("throws ActDeclined and deletes nothing when the dialog is dismissed", async () => {
     const page = fakePage(null);
-    await menuRow({ delete: 1 }, "delete").run!(page);
+    await expect(menuRow({ delete: 1 }, "delete").run!(page)).rejects.toBeInstanceOf(ActDeclined);
     expect(deleteDocument).not.toHaveBeenCalled();
     expect(page.router.push).not.toHaveBeenCalled();
   });
@@ -302,16 +303,14 @@ describe("Assign to…", () => {
     ]);
   });
 
-  it("assigns the picked user, and says so when run with none", () => {
+  it("assigns the picked user", () => {
     const state = assignState();
     const row = assignRow({ write: 1 }, state)!;
     const page = fakePage(true);
 
     row.run!(page, "john@example.com");
-    row.run!(page);
 
     expect(state.assign).toHaveBeenCalledExactlyOnceWith(page, "john@example.com");
-    expect(page.toast.error).toHaveBeenCalledExactlyOnceWith("Pick a user to assign");
   });
 });
 
@@ -383,7 +382,7 @@ describe("Rename…", () => {
 
   it("merges only after the danger confirm", async () => {
     const declined = renamePage({ new_name: "CRM-DEAL-2", merge: 1 }, null);
-    await renameRow()!.run!(declined);
+    await expect(renameRow()!.run!(declined)).rejects.toBeInstanceOf(ActDeclined);
     expect(declined.dialog.danger).toHaveBeenCalledWith({
       title: "Merge into CRM-DEAL-2?",
       message: "CRM-DEAL-1 will be merged into CRM-DEAL-2. This cannot be undone.",

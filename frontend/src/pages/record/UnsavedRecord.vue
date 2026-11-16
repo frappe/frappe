@@ -124,7 +124,7 @@ import { saveRecord } from "./recordSource";
 import { projectRecordHeader } from "./recordHeaderProjection";
 import { reportSaveFailure } from "./recordSave";
 import { useUnloadGuard } from "@/unloadGuard";
-import { shownInDialog, stripTags } from "./saveResponse";
+import { saveOrThrow, shownInDialog, stripTags } from "./saveResponse";
 
 const props = defineProps<{
 	doctype: string;
@@ -374,7 +374,7 @@ function actFailed(exception: unknown) {
 
 /** After the insert, Save with no changes only opens the saved record again. */
 function save(page: RecordPageApi) {
-	return insertedName && !dirty.value ? openSaved() : page.save();
+	return insertedName && !dirty.value ? openSaved() : saveOrThrow(page);
 }
 
 async function confirmLeave() {

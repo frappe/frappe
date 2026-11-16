@@ -13,6 +13,7 @@ vi.mock("@framework/ui/api", () => ({
 vi.mock("@/i18n", () => ({ __: (text: string) => text }));
 
 import { toast } from "frappe-ui";
+import { ActDeclined } from "@/acts/dispatcher";
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
 import { fieldsToLayout } from "@framework/ui/FormLayout";
 import { registerRecordPage, resetRegistry } from "../registry";
@@ -132,7 +133,7 @@ describe("Submit", () => {
       afterSubmit: () => void declined.order.push("afterSubmit"),
     });
 
-    await declined.controller.submit();
+    await expect(declined.controller.submit()).rejects.toBeInstanceOf(ActDeclined);
 
     expect(declined.order).toEqual([]);
   });
@@ -254,7 +255,7 @@ describe("Submit with a mandatory field the layout does not show", () => {
     const askRequired = vi.fn(async () => ({ batch: "B1" }));
     const declined = makePage({ confirmDocstatus: async () => false, offLayout: () => hidden, askRequired });
 
-    await declined.controller.submit();
+    await expect(declined.controller.submit()).rejects.toBeInstanceOf(ActDeclined);
 
     expect(askRequired).not.toHaveBeenCalled();
     expect(declined.order).toEqual([]);

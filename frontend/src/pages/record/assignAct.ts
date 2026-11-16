@@ -23,7 +23,7 @@ export function assignItem(state: AssignState): HeaderItem {
       label: __("Users"),
       options: (_page: RecordPageApi, query: string) => assignOptions(state.assignees, query),
     },
-    run: (page, user?: string) => (user ? state.assign(page, user) : page.toast.error(__("Pick a user to assign"))),
+    run: (page, user: string) => state.assign(page, user),
   };
 }
 
