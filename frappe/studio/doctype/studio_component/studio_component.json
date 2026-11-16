@@ -65,7 +65,7 @@
    "read_only": 1
   },
   {
-   "description": "Export a Vue component definition with props, emits, and setup().",
+   "description": "The script of the component. Its default export declares the props, the emits and the setup function, as in a Vue component.",
    "fieldname": "script",
    "fieldtype": "Code",
    "label": "Script",
@@ -84,7 +84,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-11-16 12:34:26.006237",
+ "modified": "2026-11-16 13:00:16.514778",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",
