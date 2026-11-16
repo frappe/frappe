@@ -95,6 +95,22 @@ REPORT_JS = """frappe.query_reports["Flow Report Probe"] = {
 };"""
 
 
+# Desk's own defaults: literals apply, an expression (the user's company) can't be read
+REPORT_JS_CHOICES = """frappe.query_reports["Flow Report Probe"] = {
+	filters: [
+		{ fieldname: "company", label: __("Company"), fieldtype: "Link", options: "Company", reqd: 1,
+			default: frappe.defaults.get_user_default("Company") },
+		{ fieldname: "based_on", label: __("Based On"), fieldtype: "Select",
+			options: "Sales Order\\nSales Invoice", default: "Sales Order" },
+		{ fieldname: "days", label: __("Days"), fieldtype: "Select", options: [30, 60, 90], default: 30 },
+		{ fieldname: "group_by", label: __("Group By"), fieldtype: "Select", options: [
+			{ label: __("By Voucher"), value: "Group by Voucher" },
+			{ label: __("By Account"), value: "Group by Account" },
+		] },
+	],
+};"""
+
+
 class TestFindDoctypes(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -425,12 +441,17 @@ class TestRunReport(IntegrationTestCase):
 		self.assertEqual(list(result), ["columns", "row_count", "total_row", "rows"])
 		self.assertEqual((len(rows), rows[-1]), (25, {"item": "Item 25", "qty": 25}))
 
+		# no cap on the rows asked for
+		self.report.db_set("report_script", REPORT_SCRIPT.replace("range(1, 26)", "range(1, 251)"))
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=1000, ctx=CTX)
+		self.assertEqual((len(result["rows"]), result["row_count"]), (250, 250))
+
 	def test_a_failed_run_gives_the_reports_own_error_and_its_filters(self):
 		# frappe's failure log survives the rollback
 		with patch("frappe.log_error"), self.assertRaises(ValueError) as caught:
 			run_report(report_name=self.report.name, ctx=CTX)
 		self.assertIn("Company is mandatory", str(caught.exception))
-		self.assertIn("(* = required) warehouse*, company*, item", str(caught.exception))
+		self.assertIn("(* = required) warehouse*, company* (link to Company), item", str(caught.exception))
 
 		def fail(*args, **kwargs):
 			try:
@@ -448,8 +469,53 @@ class TestRunReport(IntegrationTestCase):
 		self.assertIn("Company is mandatory", str(caught.exception))
 		self.assertTrue(str(caught.exception).endswith("The report's filters (* = required) warehouse*"))
 
+	def test_a_filter_left_out_takes_the_reports_default_and_the_list_names_its_choices(self):
+		self.report.db_set("javascript", REPORT_JS_CHOICES)
+		self.report.db_set(
+			"report_script",
+			REPORT_SCRIPT
+			+ """
+if (filters.based_on, filters.days) != ("Sales Order", 30):
+	data = [columns, []]
+""",
+		)
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+		self.assertEqual(result["row_count"], 25)
+
+		# a filter given beats its default, and an empty run lists each filter's choices and default
+		given = {"company": "Acme", "based_on": "Sales Invoice"}
+		result = run_report(report_name=self.report.name, filters=given, ctx=CTX)
+		self.assertEqual(
+			(result["row_count"], result["available_filters"]),
+			(
+				0,
+				"(* = required) warehouse*, company* (link to Company), "
+				"based_on (Sales Order | Sales Invoice; default Sales Order), days (30 | 60 | 90; default 30), "
+				"group_by (Group by Voucher | Group by Account)",
+			),
+		)
+
+	def test_a_validated_reports_list_defaults_apply_once(self):
+		self.report.validate_filters = 1
+		self.report.append(
+			"filters", {"fieldname": "company", "label": "Company", "fieldtype": "Data", "default": "Acme"}
+		)
+		self.report.append(
+			"filters",
+			{
+				"fieldname": "period",
+				"label": "Period",
+				"fieldtype": "DateRange",
+				"default": "2026-01-01,2026-01-31",
+			},
+		)
+		self.report.save()
+
+		result = run_report(report_name=self.report.name, filters={"warehouse": "Main"}, ctx=CTX)
+		self.assertEqual(result["row_count"], 25)
+
 	def test_an_empty_run_lists_the_filters(self):
-		filters = "(* = required) warehouse*, company*, item"
+		filters = "(* = required) warehouse*, company* (link to Company), item"
 		result = run_report(report_name=self.report.name, filters={"company": "Other"}, ctx=CTX)
 		self.assertEqual((result["row_count"], result["available_filters"]), (0, filters))
 

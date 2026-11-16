@@ -297,34 +297,38 @@ def run_report(
 
 	Find names with read_records("Report", {"name": ["like", "%ledger%"]}, ["name", "ref_doctype"]),
 	or by the DocType a report covers, {"ref_doctype": "Sales Invoice"}.
-	`filters` is a dict like {"company": "Acme", "from_date": "2026-01-01"}; a failed or empty run
-	lists the filters it can find (may be incomplete). Returns the columns, the full row count, the report's total row if
-	it has one, and up to `limit` rows (capped at 200). To work over more rows, run the report inside execute with
-	frappe.call("frappe.desk.query_report.run", report_name=..., filters=..., ignore_prepared_report=True) and return
-	only what you need, such as totals or the top rows.
+	`filters` is a dict like {"company": "Acme", "from_date": "2026-01-01"}; a filter left out takes the
+	report's own default, as in Desk. A failed or empty run lists the filters it can find, with their
+	choices and defaults (may be incomplete). Returns the columns, the full row count, the report's total row if
+	it has one, and up to `limit` rows; raise `limit` to the row count when you need them all.
 	"""
 	from frappe.desk.query_report import get_report_doc, run
 
 	report = get_report_doc(report_name)  # raises if missing, forbidden or disabled
 	if report.report_type == "Report Builder":
 		raise ValueError(f"{report_name} is a Report Builder report; read its DocType with read_records.")
+	specs = _report_filter_specs(report_name)
+	defaults = {f["fieldname"]: f["default"] for f in specs if f["default"] not in (None, "")}
 	# a failing query report breaks the transaction
 	if report.report_type == "Query Report":
-		given = filters or report.custom_filters or {}
+		given = {**defaults, **(filters or report.custom_filters or {})}
 		if missing := set(re.findall(r"%\((\w+)\)s", report.query or "")) - set(given):
 			raise ValueError(f"Missing filters: {', '.join(sorted(missing))}")
-	limit = min(max(int(limit), 1), MAX_READ_LIMIT)
+	limit = max(int(limit), 1)  # no cap: the flow server cuts a result too big to show
 	try:
 		# saved filters apply only when none are passed
 		data = run(
-			report_name, filters=filters or {}, ignore_prepared_report=True, are_default_filters=not filters
+			report_name,
+			filters={**defaults, **(filters or {})},
+			ignore_prepared_report=True,
+			are_default_filters=not filters,
 		)
 	except Exception as e:
 		cause = e
 		if isinstance(e, frappe.InReadOnlyMode):  # frappe's failure log hid the report's error
 			while cause.__context__:
 				cause = cause.__context__
-		raise ValueError(f"{_error_text(cause)}\nThe report's filters {_report_filters(report_name)}") from e
+		raise ValueError(f"{_error_text(cause)}\nThe report's filters {_describe_filters(specs)}") from e
 
 	fieldnames = [c["fieldname"] for c in data["columns"]]
 	columns = [
@@ -339,7 +343,7 @@ def run_report(
 		result["total_row"] = _report_row(total_row, fieldnames, columns)
 	result["rows"] = [_report_row(row, fieldnames, columns) for row in rows[: min(limit, row_count)]]
 	if not row_count:
-		result["available_filters"] = _report_filters(report_name)
+		result["available_filters"] = _describe_filters(specs)
 	return result
 
 
@@ -349,21 +353,96 @@ def _report_row(row: Any, fieldnames: list[str], columns: list[dict]) -> dict[st
 	return {c["fieldname"]: cells.get(c["fieldname"]) for c in columns}
 
 
-def _report_filters(report_name: str) -> str:
-	"""Filter fieldnames from the report's Report Filter rows and its JS."""
+def _describe_filters(specs: list[dict[str, Any]]) -> str:
+	"""The filters for the model: "based_on (Sales Order | Sales Invoice; default Sales Order)"."""
+	if not specs:
+		return "none found (may be incomplete)"
+	described = []
+	for f in specs:
+		details = []
+		if f["fieldtype"] == "Link" and f["options"]:
+			details.append(f"link to {f['options']}")
+		elif isinstance(f["options"], list) and f["options"]:
+			details.append(" | ".join(str(choice) for choice in f["options"]))
+		if f["default"] not in (None, ""):
+			details.append(f"default {f['default']}")
+		name = f["fieldname"] + ("*" if f["reqd"] else "")
+		described.append(f"{name} ({'; '.join(details)})" if details else name)
+	# legend first; long errors get cut
+	return "(* = required) " + ", ".join(described)
+
+
+def _report_filter_specs(report_name: str) -> list[dict[str, Any]]:
+	"""Filters from the report's Report Filter rows and its JS, the first of a name winning: each
+	one's type, link or choices, default and whether Desk requires it."""
+	from frappe.core.doctype.report.report import get_filter_default
 	from frappe.desk.query_report import get_script
 
 	script = get_script(report_name)
-	names = [f.fieldname + ("*" if f.mandatory else "") for f in script["filters"]]
+	specs = [
+		{
+			"fieldname": f.fieldname,
+			"fieldtype": f.fieldtype,
+			"options": _choices(f.options) if f.fieldtype == "Select" else f.options,
+			# a validated report's rows come with their defaults worked out
+			"default": f.default
+			if script["validate_filters"]
+			else get_filter_default(f, frappe.session.user),
+			"reqd": f.mandatory,
+		}
+		for f in script["filters"]
+	]
 	if not script["validate_filters"]:
 		# a JS filter runs to the next fieldname
 		parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
-		names += [
-			name + ("*" if re.search(r"""reqd["']?\s*:\s*(1|true)""", rest) else "")
-			for name, rest in zip(parts[1::2], parts[2::2], strict=True)
-		]
-	# legend first; long errors get cut
-	return "(* = required) " + ", ".join(dict.fromkeys(names)) if names else "none found (may be incomplete)"
+		specs += [_js_filter(name, rest) for name, rest in zip(parts[1::2], parts[2::2], strict=True)]
+	first = {}
+	for spec in specs:
+		first.setdefault(spec["fieldname"], spec)
+	return list(first.values())
+
+
+def _js_filter(fieldname: str, js: str) -> dict[str, Any]:
+	"""One filter of a report's JS, read by pattern: only literal options and defaults, never an expression."""
+
+	def value(key: str, pattern: str) -> re.Match | None:
+		return re.search(rf"""\b{key}["']?\s*:\s*(?:{pattern})""", js, re.S)
+
+	string = r"""(["'`])(.*?)(?<!\\)\1"""
+	number = r"""(-?\d+(?:\.\d+)?)(?=\s*[,}\n])"""
+	fieldtype = value("fieldtype", r"""["']([\w ]+)["']""")
+	options = value("options", rf"""{string}|\[([^\]]*)\]""")
+	default = value("default", rf"""{string}|{number}""")
+
+	choices = None
+	if options and options.group(3) is not None:  # an array: of choices, or of {label, value} objects
+		items = options.group(3)
+		if "{" in items:
+			choices = re.findall(r"""\bvalue["']?\s*:\s*["'`]([^"'`]*)["'`]""", items) or None
+		else:
+			choices = [c.strip().strip("\"'`") for c in items.split(",") if c.strip()]
+	elif options:
+		choices = options.group(2)
+	if fieldtype and fieldtype.group(1) == "Select" and isinstance(choices, str):
+		choices = _choices(choices.replace("\\n", "\n"))
+
+	literal = None
+	if default and default.group(3) is not None:
+		literal = float(default.group(3)) if "." in default.group(3) else int(default.group(3))
+	elif default:
+		literal = default.group(2)
+	return {
+		"fieldname": fieldname,
+		"fieldtype": fieldtype.group(1) if fieldtype else None,
+		"options": choices,
+		"default": literal,
+		"reqd": bool(re.search(r"""reqd["']?\s*:\s*(1|true)""", js)),
+	}
+
+
+def _choices(options: str | None) -> list[str]:
+	"""A Select's choices, one a line."""
+	return [line.strip() for line in (options or "").split("\n") if line.strip()]
 
 
 KNOWLEDGE_SEARCH_SLUG = "search_knowledge"
