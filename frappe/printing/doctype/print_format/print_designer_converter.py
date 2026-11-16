@@ -60,6 +60,16 @@ def is_print_designer_format(doc) -> bool:
 	)
 
 
+def get_print_designer_format(print_format: str):
+	doc = frappe.get_doc("Print Format", print_format)
+	if not is_print_designer_format(doc):
+		frappe.throw(
+			_("{0} is not a Print Designer format.").format(frappe.bold(print_format)),
+			title=_("Not a Print Designer Format"),
+		)
+	return doc
+
+
 def convert_print_designer_format(doc) -> tuple[dict, list[str]]:
 	"""Return a print format editor layout for a Print Designer format, and notes on
 	what could not be carried over exactly."""
@@ -86,9 +96,7 @@ def convert(print_format: str) -> dict:
 	Print Designer fields stay on the record, like classic_format_data. A standard format
 	belongs to its app, so it gets an editor copy that takes its place everywhere."""
 	frappe.only_for("System Manager")
-	doc = frappe.get_doc("Print Format", print_format)
-	if not is_print_designer_format(doc):
-		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
+	doc = get_print_designer_format(print_format)
 	values, notes = converted_values(doc)
 	if doc.standard == "Yes":
 		copy = editor_copy(doc)

@@ -8,7 +8,7 @@ from frappe.printing.doctype.print_format.print_designer_converter import (
 	converted_values,
 	editor_copy,
 	editor_copy_name,
-	is_print_designer_format,
+	get_print_designer_format,
 	print_format_usage,
 )
 from frappe.printing.doctype.print_format.print_format import printable_sample
@@ -85,9 +85,34 @@ def preview_conversion(print_format: str, name: str | None = None) -> None:
 	from frappe.utils.print_format_generator import download_builder_preview_pdf
 
 	frappe.only_for("System Manager")
-	doc = frappe.get_doc("Print Format", print_format)
-	if not is_print_designer_format(doc):
-		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
+	doc = get_print_designer_format(print_format)
 	converted = doc.as_dict()
 	converted.update(converted_values(doc)[0], name=None)
 	download_builder_preview_pdf(converted, doc.doc_type, name)
+
+
+@frappe.whitelist()
+def preview_print_designer(print_format: str, name: str) -> None:
+	from frappe.utils.print_format import download_pdf
+
+	frappe.only_for("System Manager")
+	doc = get_print_designer_format(print_format)
+
+	def last_error():
+		return frappe.get_all(
+			"Error Log",
+			filters={"reference_doctype": "Print Format", "reference_name": print_format},
+			pluck="name",
+			order_by="creation desc",
+			limit=1,
+		)
+
+	logged = last_error()
+	download_pdf(doc.doc_type, name, print_format)
+	if last_error() != logged:
+		frappe.respond_as_web_page(
+			_("No Preview"),
+			_("Print Designer can't render this format."),
+			indicator_color="gray",
+			primary_action=None,
+		)
