@@ -2,7 +2,7 @@
      Sortable's fallback drag hides the pointer from the page's lists, so the bin tracks the pointer itself. -->
 <template>
 	<div
-		class="pointer-events-none sticky bottom-6 !z-[100001] flex h-0 justify-center"
+		class="pointer-events-none sticky bottom-6 mt-auto !z-[100001] flex h-0 justify-center"
 		aria-hidden="true"
 	>
 		<div

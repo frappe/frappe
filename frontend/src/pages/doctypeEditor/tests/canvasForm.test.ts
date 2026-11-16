@@ -26,6 +26,7 @@ function mount(
     state: { definition: { istable: props.istable ? 1 : 0 } },
     tabs: ref(tabs),
     openTab: ref(tabs[0]),
+    held: ref(null),
   };
   app = createApp({
     render: () =>

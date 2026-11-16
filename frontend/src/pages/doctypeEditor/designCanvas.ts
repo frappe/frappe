@@ -101,6 +101,8 @@ export class DesignCanvas {
 		active: false,
 		overBin: false,
 	});
+	/** While a field or section is held: the tab it came from, every tab opened since, and whether a drop has landed it. */
+	readonly held = shallowRef<{ tab: string; seen: string[]; landed: boolean } | null>(null);
 	readonly selectedField = computed<RawMetaField | null>(() => {
 		const selected = this.selection.value;
 		if (selected?.kind !== "field") return null;

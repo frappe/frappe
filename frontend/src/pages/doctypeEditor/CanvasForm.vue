@@ -4,15 +4,20 @@
 <template>
 	<CanvasTabs v-if="canvas.tabs.value.length > 1" class="mb-6" :canvas="canvas" />
 	<Draggable
-		:model-value="tab?.sections ?? []"
+		v-for="drawn in drawnTabs"
+		:class="{ 'canvas-tab-held': drawn !== tab }"
+		:key="drawn.name"
+		:model-value="drawn.sections"
 		:item-key="(section: LayoutTreeSection) => section.name"
 		group="canvas-sections"
 		handle=".section-grip"
 		class="flex flex-col gap-10"
 		ghost-class="opacity-40"
 		v-bind="DRAG_OPTIONS"
-		:disabled="!canvas.editable"
-		@change="tab && dropSection($event, tab.name!)"
+		:disabled="!canvas.editable || drawn !== tab"
+		@start="holdOnTab(canvas)"
+		@end="releaseFromTab(canvas)"
+		@change="dropSection(canvas, $event, drawn.name!)"
 	>
 		<template #item="{ element: section }">
 			<CanvasSection :canvas="canvas" :section="section" />
@@ -42,14 +47,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { Button } from "frappe-ui";
 import Draggable from "vuedraggable";
 import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import CanvasSection from "./CanvasSection.vue";
 import CanvasTabs from "./CanvasTabs.vue";
-import { DRAG_OPTIONS, dropSection } from "./canvasDrops";
+import { DRAG_OPTIONS, dropSection, holdOnTab, releaseFromTab } from "./canvasDrops";
 import type { DesignCanvas } from "./designCanvas";
 import type { LayoutTreeSection } from "./layoutTree";
 
@@ -60,4 +65,20 @@ const props = withDefaults(defineProps<{ canvas: DesignCanvas; tabbed?: boolean 
 /** The Side panel and a child table's row dialog have no tabs. */
 const takesTabs = computed(() => props.tabbed && !props.canvas.state.definition.istable);
 const tab = computed(() => props.canvas.openTab.value);
+// Sortable drops its whole drag when a list unmounts: while a field or section is held, every tab it
+// passed over stays drawn (collapsed unless open) until the drop.
+const drawnTabs = computed(() =>
+	props.canvas.tabs.value.filter(
+		(candidate) =>
+			candidate === tab.value || props.canvas.held.value?.seen.includes(candidate.name!)
+	)
+);
+watch(
+	() => tab.value?.name,
+	(name) => {
+		const { held } = props.canvas;
+		if (name && held.value && !held.value.seen.includes(name))
+			held.value = { ...held.value, seen: [...held.value.seen, name] };
+	}
+);
 </script>

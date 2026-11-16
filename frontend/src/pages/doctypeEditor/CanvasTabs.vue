@@ -1,5 +1,4 @@
-<!-- The canvas's tab strip, drawn from two tabs up. Tabs drag to reorder; a field dropped on a tab's
-     name goes to the end of that tab's first section. A double-click renames a tab in place. -->
+<!-- The canvas's tab strip, drawn from two tabs up. Tabs drag to reorder; a double-click renames one in place. -->
 <template>
 	<div class="flex items-end gap-1" :class="{ 'border-b': tabs.length > 1 }" data-canvas-tabs>
 		<Draggable
@@ -82,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { Button, Tooltip } from "frappe-ui";
 import Draggable from "vuedraggable";
 import { tabStripLabel } from "@framework/ui/FormLayout";
@@ -93,12 +92,25 @@ import { DRAG_OPTIONS, dropField, dropTab, TAB_DRAG_OPTIONS } from "./canvasDrop
 import { selectOn } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";
+import { openTabsOnDwell } from "./tabDwell";
 
 const props = defineProps<{ canvas: DesignCanvas }>();
 
 const tabs = computed(() => props.canvas.tabs.value);
 const renaming = ref<string | null>(null);
 const renameInput = ref<HTMLInputElement | null>(null);
+
+// Only a drag in flight needs the pointer.
+let stopDwell: (() => void) | undefined;
+watch(
+	() => Boolean(props.canvas.held.value),
+	(held) => {
+		stopDwell?.();
+		stopDwell = held ? openTabsOnDwell(props.canvas) : undefined;
+	},
+	{ immediate: true }
+);
+onBeforeUnmount(() => stopDwell?.());
 
 /** An unlabelled first tab reads "Details", as on the record page. */
 function tabLabel(tab: LayoutTreeTab, index: number) {
