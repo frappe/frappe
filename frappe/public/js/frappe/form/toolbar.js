@@ -508,19 +508,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				true
 			);
 			menu_item.parent().addClass("hidden-xl");
-
-			if (this.frm.perm[0].write && !this.frm.is_new()) {
-				this.page.add_menu_item(__("Attach PDF"), () => this.attach_pdf(), true);
-			}
 		}
-	}
-
-	attach_pdf() {
-		if (this.frm.is_dirty()) {
-			frappe.msgprint(__("Save the document before attaching its PDF."));
-			return;
-		}
-		frappe.ui.form.attach_pdf(this.frm.doctype, this.frm.docname);
 	}
 
 	add_open_sidebar() {

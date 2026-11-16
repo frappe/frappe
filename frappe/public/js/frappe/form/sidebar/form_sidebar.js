@@ -88,18 +88,26 @@ frappe.ui.form.Sidebar = class {
 
 	setup_print() {
 		if (frappe.model.can_print_doc(this.frm)) {
-			let print_icon = this.page.add_action_icon(
-				"printer",
-				() => {
-					this.frm.print_doc();
-				},
-				"",
-				__("Print")
-			);
-			print_icon.css("background-color", "transparent");
-			print_icon.addClass("p-0");
-			this.sidebar.find(".form-print").append(print_icon);
+			this.add_print_icon("printer", () => this.frm.print_doc(), __("Print"));
+			if (this.frm.get_perm(0, "write")) {
+				this.add_print_icon("paperclip", () => this.attach_pdf(), __("Attach PDF"));
+			}
 		}
+	}
+
+	add_print_icon(icon, action, label) {
+		let print_icon = this.page.add_action_icon(icon, action, "", label);
+		print_icon.css("background-color", "transparent");
+		print_icon.addClass("p-0");
+		this.sidebar.find(".form-print").append(print_icon);
+	}
+
+	attach_pdf() {
+		if (this.frm.is_dirty()) {
+			frappe.msgprint(__("Save the document before attaching its PDF."));
+			return;
+		}
+		frappe.ui.form.attach_pdf(this.frm.doctype, this.frm.docname);
 	}
 
 	make_like() {
