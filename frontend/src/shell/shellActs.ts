@@ -306,17 +306,19 @@ let leaving: Promise<{ path: string }> | null = null;
 function goBack(router: Router): Promise<{ path: string }> {
 	if (router.options.history.state.back == null) throw new Error(__("No earlier page in this tab"));
 	// `state.back` changes only when the pop lands: a second call before then would go back twice.
-	leaving ??= arrive(router).finally(() => (leaving = null));
+	leaving ??= arrive(router, router.options.history.state.back as string).finally(() => (leaving = null));
 	return leaving;
 }
 
-function arrive(router: Router) {
+function arrive(router: Router, target: string) {
 	return new Promise<{ path: string }>((resolve, reject) => {
 		const stop = () => {
 			offAfter();
 			offError();
 		};
 		const offAfter = router.afterEach((to, _from, failure) => {
+			// A navigation that is not the pop (a hash change that lands first) says nothing about it.
+			if (to.fullPath !== target && to.redirectedFrom?.fullPath !== target) return;
 			stop();
 			if (!failure) return resolve({ path: to.fullPath });
 			reject(

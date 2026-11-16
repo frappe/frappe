@@ -389,6 +389,24 @@ describe("each shell act, run by name", () => {
 		expect(router.currentRoute.value.path).toBe("/customer");
 	});
 
+	it("back does not report a hash change that lands before it", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		let waiting!: () => void;
+		const guarded = new Promise<void>((resolve) => (waiting = resolve));
+		router.beforeEach(async (to) => {
+			if (to.path !== "/sales-invoice") return;
+			waiting();
+			await new Promise((resolve) => setTimeout(resolve, 20));
+		});
+		const back = acts.run("shell.back");
+		const rejected = expect(back).rejects.toThrow(/another navigation interrupted/);
+		await guarded;
+		await router.push({ hash: "#settings" });
+		await rejected;
+		expect(router.currentRoute.value.path).toBe("/purchase-invoice");
+	});
+
 	it("an act the shell does not hold is denied as missing", async () => {
 		await shell();
 		const denied = await acts.run("shell.nope").catch((error) => error);

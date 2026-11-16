@@ -26,33 +26,33 @@ beforeEach(() => {
 describe("assignUsers", () => {
 	it("assigns every user to the selection with no dialog and answers the records done", async () => {
 		fake.bulk.mockResolvedValue({ data: { total: 2, done: ["A", "B"], failed: [] } });
-		const result = await assignUsers(["a@x", "b@x"], "ToDo", target(), after);
+		const result = await assignUsers(["ann@example.com", "bob@example.com"], "ToDo", target(), after);
 		expect(fake.bulk).toHaveBeenCalledTimes(2);
-		expect(fake.bulk).toHaveBeenNthCalledWith(1, "ToDo", "assignments", "POST", { names: ["A", "B"] }, { user: "a@x" });
-		expect(fake.bulk).toHaveBeenNthCalledWith(2, "ToDo", "assignments", "POST", { names: ["A", "B"] }, { user: "b@x" });
+		expect(fake.bulk).toHaveBeenNthCalledWith(1, "ToDo", "assignments", "POST", { names: ["A", "B"] }, { user: "ann@example.com" });
+		expect(fake.bulk).toHaveBeenNthCalledWith(2, "ToDo", "assignments", "POST", { names: ["A", "B"] }, { user: "bob@example.com" });
 		expect(result).toEqual({ assigned: ["A", "B"], failed: [], background: false });
 		expect(fake.runBulk).toHaveBeenCalledWith(expect.objectContaining({ doctype: "ToDo", finished: after.reload, select: after.select }));
 	});
 
 	it("lists the records the server refused and leaves them out of assigned", async () => {
 		fake.bulk.mockResolvedValue({ data: { total: 2, done: ["A", "B"], failed: [{ name: "B", error: "no" }] } });
-		const result = await assignUsers(["a@x"], "ToDo", target(), after);
+		const result = await assignUsers(["ann@example.com"], "ToDo", target(), after);
 		expect(result).toEqual({ assigned: ["A"], failed: [{ name: "B", error: "no" }], background: false });
 	});
 
 	it("sends a user named twice once", async () => {
 		fake.bulk.mockResolvedValue({ data: { total: 2, done: ["A", "B"], failed: [] } });
-		await assignUsers(["a@x", "a@x"], "ToDo", target(), after);
+		await assignUsers(["ann@example.com", "ann@example.com"], "ToDo", target(), after);
 		expect(fake.bulk).toHaveBeenCalledTimes(1);
 	});
 
 	it("says a background run is not done yet", async () => {
 		fake.bulk.mockResolvedValue({ data: { task_id: "T1", job_id: "J1" } });
-		expect(await assignUsers(["a@x"], "ToDo", target(), after)).toEqual({ assigned: [], failed: [], background: true });
+		expect(await assignUsers(["ann@example.com"], "ToDo", target(), after)).toEqual({ assigned: [], failed: [], background: true });
 	});
 
 	it("refuses with no rows selected or no users, and sends nothing", async () => {
-		await expect(assignUsers(["a@x"], "ToDo", target(0), after)).rejects.toThrow(ActInvalid);
+		await expect(assignUsers(["ann@example.com"], "ToDo", target(0), after)).rejects.toThrow(ActInvalid);
 		await expect(assignUsers([], "ToDo", target(), after)).rejects.toThrow(/list of user ids/);
 		expect(fake.bulk).not.toHaveBeenCalled();
 	});
@@ -67,7 +67,7 @@ describe("the assign item", () => {
 		const collab = useBulkCollaboration("ToDo", target, "jane@example.com", after);
 		const item = assign(collab);
 		expect(item.values).toBe(true);
-		expect(await item.run!({} as never, ["a@x"])).toMatchObject({ assigned: ["A", "B"] });
+		expect(await item.run!({} as never, ["ann@example.com"])).toMatchObject({ assigned: ["A", "B"] });
 		expect(collab.request.value).toBeNull();
 		await item.run!({} as never);
 		expect(collab.request.value).toMatchObject({ kind: "assign", count: 2 });
