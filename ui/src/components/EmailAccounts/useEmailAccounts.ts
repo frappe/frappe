@@ -42,6 +42,8 @@ const FIELDS = [
   "use_ssl_for_outgoing",
   "frappe_mail_site",
   "api_key",
+  "password",
+  "api_secret",
 ];
 
 /**

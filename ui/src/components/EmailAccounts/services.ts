@@ -139,10 +139,10 @@ export function emptyForm(account?: Partial<EmailAccountDoc>): AccountForm {
   return {
     email_account_name: account?.email_account_name ?? "",
     email_id: account?.email_id ?? "",
-    password: "",
+    password: account?.password ?? "",
     frappe_mail_site: account?.frappe_mail_site ?? "",
     api_key: account?.api_key ?? "",
-    api_secret: "",
+    api_secret: account?.api_secret ?? "",
     domain: account?.domain ?? "",
     email_server: account?.email_server ?? "",
     incoming_port: account ? String(account.incoming_port || "") : "993",
@@ -304,9 +304,9 @@ export function validate(
     return {
       field: "password",
       message:
-        service.service === "GMail"
-          ? __("App password is required")
-          : __("Password is required"),
+        service.kind === "custom"
+          ? __("Password is required")
+          : __("App password is required"),
     };
 }
 

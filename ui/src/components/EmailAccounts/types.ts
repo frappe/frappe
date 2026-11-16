@@ -29,6 +29,9 @@ export interface EmailAccountDoc {
   use_ssl_for_outgoing?: 0 | 1;
   frappe_mail_site?: string;
   api_key?: string;
+  /** The saved secret masked as asterisks, one per character. */
+  password?: string;
+  api_secret?: string;
 }
 
 export interface EmailAccount extends EmailAccountDoc {
