@@ -66,6 +66,7 @@ import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { FieldErrors, missingRequired, useFormLayout } from "@/recordPage";
 import type { PageDialogEntry } from "@/shell/dialogs/pageDialogs";
+import { __ } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
 import {
 	applyRequired,
@@ -141,9 +142,9 @@ function baseLayout(): FormLayoutSchema {
 
 props.entry.listed.handle = formDialogHandle(() => layout.value, doc, {
 	submit() {
-		if (layoutLoading.value) throw new Error("The dialog is still loading");
+		if (layoutLoading.value) throw new Error(__("The dialog is still loading"));
 		if (options.actions?.length)
-			throw new Error("This dialog submits through its own buttons");
+			throw new Error(__("This dialog submits through its own buttons"));
 		return submit();
 	},
 	close: cancel,

@@ -110,7 +110,9 @@ export function useReadableDialog(open: Ref<boolean>, describe: () => Partial<Re
 export const ListedDialogKey = Symbol("listed-dialog");
 
 /** Gives the dialog this component renders in a host (`page.dialog.open`) a handle. */
-export function useDialogHandle(handle: DialogHandle) {
+export function useDialogHandle(handle: DialogHandle, describe?: () => Partial<ReadableDialogSpec>) {
 	const dialog = inject<ReadableDialog | null>(ListedDialogKey, null);
-	if (dialog) dialog.handle = handle;
+	if (!dialog) return;
+	dialog.handle = handle;
+	if (describe) watch(describe, (spec) => Object.assign(dialog, spec), { immediate: true });
 }

@@ -135,6 +135,10 @@ describe("the required-fields dialog", () => {
     const { close } = render(vi.fn(), false, undefined, listed);
 
     expect(listed.handle!.fieldnames()).toEqual(["batch"]);
+    expect(listed).toMatchObject({
+      message: "These fields are required but are not on this form.",
+      buttons: ["Continue", "Cancel"],
+    });
     expect(() => listed.handle!.setValues({ nope: 1 })).toThrow("no field nope");
     await expect(listed.handle!.submit()).rejects.toThrow("did not submit");
     expect(close).not.toHaveBeenCalled();

@@ -70,7 +70,11 @@ const tab = ref("");
 const body = useTemplateRef<HTMLElement>("body");
 
 useDialogHandle(
-	formDialogHandle(() => props.layout, values, { submit, close: () => props.close() })
+	formDialogHandle(() => props.layout, values, { submit, close: () => props.close() }),
+	() => ({
+		message: __("These fields are required but are not on this form."),
+		buttons: [props.submitting ? __("Save and submit") : __("Continue"), __("Cancel")],
+	})
 );
 
 const router = useRouter();

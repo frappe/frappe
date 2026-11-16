@@ -335,6 +335,21 @@ describe("the form host's handle", () => {
     expect(entry.settled).toEqual([{ note: "typed by a caller" }]);
   });
 
+  it("lists only the fields a person could fill, and refuses the rest", async () => {
+    const entry = makeEntry({
+      fields: [
+        ...FIELDS,
+        { fieldname: "locked", fieldtype: "Data", label: "Locked", read_only: 1 },
+        { fieldname: "secret", fieldtype: "Data", label: "Secret", hidden: 1 },
+      ],
+    });
+    render(entry);
+    await settle();
+
+    expect(entry.listed.handle!.fieldnames()).toEqual(["note"]);
+    expect(() => entry.listed.handle!.setValues({ locked: "x" })).toThrow("no field locked");
+  });
+
   it("throws when a submit does not go through, and for a dialog that submits by its own buttons", async () => {
     const failing = makeEntry({
       fields: [{ fieldname: "note", fieldtype: "Data", label: "Note", reqd: 1 }],
