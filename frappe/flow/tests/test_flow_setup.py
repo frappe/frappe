@@ -203,6 +203,21 @@ class TestSiteKeyProvider(IntegrationTestCase):
 		self._sync()
 		self.assertTrue(frappe.db.exists("Flow Provider", "grove"))
 
+	def test_another_grove_model_is_checked_with_the_site_key_at_the_gateway(self):
+		self._sync()
+		with patch.dict(frappe.conf, SITE_KEY), patch("litellm.completion") as completion:
+			added = setup.add_model("grove", "morph/glm-5.3-flash")
+
+		self.assertEqual(
+			{key: completion.call_args.kwargs[key] for key in ("model", "api_key", "api_base")},
+			{
+				"model": "openai/morph/glm-5.3-flash",
+				"api_key": SITE_KEY["ai_keys"][0]["api_key"],
+				"api_base": "https://ai.example.com/openai/v1",
+			},
+		)
+		self.assertEqual((added["model_id"], added["check"]), ("grove/morph/glm-5.3-flash", {"ok": True}))
+
 	def test_two_first_opens_at_once_add_grove_once(self):
 		self._sync()
 		# the other open checked before this one's rows were there
