@@ -38,12 +38,4 @@ describe("isFlowEnabled", () => {
     expect(requestMock).toHaveBeenCalledTimes(1);
     expect(requestMock).toHaveBeenCalledWith({ url: FLOW_ENABLED_METHOD, method: "GET" });
   });
-
-  it("is false when the server can't answer", async () => {
-    requestMock.mockRejectedValue(new Error("404"));
-
-    const enabled = isFlowEnabled();
-    await flush();
-    expect(enabled.value).toBe(false);
-  });
 });

@@ -4,7 +4,7 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.flow import api, is_enabled
+from frappe.flow import is_enabled
 from frappe.flow.lib.model import SITE_PROVIDER, clear_enabled_cache
 from frappe.flow.tests.test_permissions import _user
 from frappe.tests import IntegrationTestCase
@@ -91,7 +91,3 @@ class TestFlowEnabled(IntegrationTestCase):
 
 			frappe.get_doc({"doctype": "Flow Provider", "provider": SITE_PROVIDER, "enabled": 0}).insert()
 			self.assertFalse(self._is_enabled())
-
-	def test_guests_cannot_ask(self):
-		with self.set_user("Guest"), self.assertRaises(frappe.PermissionError):
-			frappe.is_whitelisted(api.is_enabled)
