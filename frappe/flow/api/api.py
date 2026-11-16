@@ -102,7 +102,7 @@ def boot() -> dict[str, Any]:
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["GET"])
 def is_enabled() -> bool:
 	"""Whether Flow can chat on this site, for clients without Desk's boot."""
 	return flow_is_enabled()

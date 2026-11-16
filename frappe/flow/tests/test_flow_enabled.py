@@ -58,6 +58,14 @@ class TestFlowEnabled(IntegrationTestCase):
 		model.db_set("enabled", 0)
 		self.assertFalse(self._is_enabled())
 
+	def test_deleting_the_last_chat_model_disables_flow(self):
+		self._provider()
+		model = self._model()
+		self.assertTrue(self._is_enabled())
+
+		frappe.delete_doc("Flow Model", model.name, force=True)
+		self.assertFalse(self._is_enabled())
+
 	def test_a_model_with_its_own_key_needs_no_provider(self):
 		self._model(api_key="sk-own")
 		self.assertTrue(self._is_enabled())
