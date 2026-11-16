@@ -357,6 +357,17 @@ export default {
 - Blocks in the component read props as `{{ props.title }}` and returned
   values by name, as `{{ heading }}`. The page-code rules for returned values,
   hooks, and `await` apply.
+- A component's blocks must read only its props, the values that `setup`
+  returns, and slot values such as `dataItem`. Do not read a page's variables,
+  data sources, or script values in a component. Pass each value in as a prop,
+  and tell the page about an action with an event in `emits`. Older components
+  read the page directly, and Studio still permits it. Do not write new ones
+  that way. `route`, `router`, `socket`, `toast`, and `call` are available in
+  every block.
+- For state that many pages share, such as the signed-in user or
+  notifications, import a composable in the component's script. Do not pass
+  the same props on each page. A global component cannot import app files, so
+  it takes all values as props.
 - A page sets props in the component block's `componentProps` and handles the
   events in `emits` in its `componentEvents`. An event that is not in `emits`
   is a DOM event of the component's root block.
