@@ -1,6 +1,7 @@
 // The command palette in the shell: Mod+K and the rail open it, its groups read the acts
 // available now, and a picked row runs through the dispatcher.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { loadText, TEXT_SURFACES } from "@/acts/actText";
 import { createApp, effectScope, nextTick } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 import { getMeta } from "@framework/ui/api";
@@ -24,6 +25,9 @@ import { closeCreates, createRequests, registerCreateDialog } from "../create";
 import { DEFAULT_ACT_ICON, openArgumentStep, paletteOpen, registerPageRows, type PaletteRow } from "../palette";
 import { pinnedRows } from "../paletteGroups";
 import { recentVisits } from "../recentVisits";
+
+// A value waits for its surface's text to load once; load it first so a click acts at once.
+beforeAll(() => Promise.all(TEXT_SURFACES.map(loadText)));
 
 registerStandardPages(standardPages);
 

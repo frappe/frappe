@@ -103,6 +103,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
       group: "output",
       right: "print",
       uncapped: true,
+      asks: ["dialog"],
       run: askPrint,
     },
     {
@@ -112,6 +113,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
       group: "collaborate",
       button: true,
       right: "write",
+      asks: ["dialog"],
       run: askEdit,
     },
     ...favourite.items(),
@@ -130,6 +132,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
       group: "output",
       right: "export",
       uncapped: true,
+      asks: ["dialog"],
       run: askExport,
     },
     {
@@ -138,6 +141,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
       icon: "lucide-trash-2",
       group: "danger",
       right: "delete",
+      asks: ["danger"],
       run: askDelete,
     },
   ];

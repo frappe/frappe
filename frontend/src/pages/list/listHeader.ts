@@ -55,6 +55,7 @@ export function listHeaderItems(host: ListHeaderHost): HeaderItem[] {
 		props: { variant: "solid" },
 		right: "create",
 		palette: false,
+		asks: ["dialog"],
 		run: () => host.create(),
 	});
 	return items;

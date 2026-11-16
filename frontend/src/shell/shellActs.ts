@@ -191,14 +191,14 @@ export function openRecord(): ShellRecord | null {
 	return { doctype: page.doctype, name: page.docname, doc: page.doc, fields };
 }
 
-function shellItems(
+export function shellItems(
 	host: ShellActsHost,
 	setColorScheme: (scheme: ColorScheme) => void
 ): ActItem<Shell>[] {
 	return [
 		...(host.rail ? railItems(host.rail) : []),
 		openSettingsItem(host.boot),
-		{ name: "about", label: __("About"), icon: "lucide-info", run: () => host.openAbout() },
+		{ name: "about", asks: ["dialog"], label: __("About"), icon: "lucide-info", run: () => host.openAbout() },
 		...personItems(host, setColorScheme),
 		createItem(),
 		openItem(),
@@ -215,6 +215,7 @@ function railItems(rail: RailActsHost): ActItem<Shell>[] {
 		},
 		{
 			name: "customize_sidebar",
+			asks: ["dialog"],
 			label: __("Customize navigation"),
 			icon: "lucide-settings-2",
 			run: () => rail.customize(),
@@ -242,6 +243,7 @@ function railItems(rail: RailActsHost): ActItem<Shell>[] {
 function openSettingsItem(boot: Boot): ActItem<Shell> {
 	return {
 		name: "open_settings",
+		asks: ["picker"],
 		label: __("Settings"),
 		icon: "lucide-settings",
 		argument: {
@@ -262,6 +264,7 @@ function segmentsOf({ prefix, pane, block }: SettingsAddress = {}) {
 function createItem(): ActItem<Shell> {
 	return {
 		name: "create",
+		asks: ["picker", "dialog"],
 		label: __("Create"),
 		icon: "lucide-plus",
 		argument: {
@@ -270,8 +273,7 @@ function createItem(): ActItem<Shell> {
 		},
 		run: (shell, value: CreateValue) => {
 			const { doctype, values } =
-				typeof value === "string" ? { doctype: value, values: undefined } : value ?? {};
-			if (!doctype) throw new Error(__("Create needs a doctype"));
+				typeof value === "string" ? { doctype: value, values: undefined } : value;
 			return shell.create(doctype, { values });
 		},
 	};
@@ -280,9 +282,9 @@ function createItem(): ActItem<Shell> {
 function openItem(): ActItem<Shell> {
 	return {
 		name: "open",
+		asks: ["confirm"],
 		palette: false,
 		run: async (shell, { doctype, name, view }: OpenValue) => {
-			if (!doctype) throw new Error(__("Open needs a doctype"));
 			await shell.router.push(routeFor(doctype, name, { view }));
 		},
 	};
@@ -301,17 +303,14 @@ function personItems(
 		},
 		{
 			name: "theme",
+			asks: ["picker"],
 			label: __("Theme"),
 			icon: "lucide-sun-moon",
 			argument: {
 				label: __("Themes"),
 				options: () => colorSchemes(),
 			},
-			run: (_shell, scheme: ColorScheme) => {
-				if (!colorSchemes().some(({ value }) => value === scheme))
-					throw new Error(__("Theme is light, dark or system"));
-				setColorScheme(scheme);
-			},
+			run: (_shell, scheme: ColorScheme) => setColorScheme(scheme),
 		},
 		{
 			name: "desk_v1",
@@ -321,6 +320,7 @@ function personItems(
 		},
 		{
 			name: "log_out",
+			asks: ["confirm"],
 			label: __("Log out"),
 			icon: "lucide-log-out",
 			run: () => host.confirmLogout(),

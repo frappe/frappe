@@ -96,7 +96,7 @@ function surfaceActs(surface: string): ListActs {
 }
 
 /** A built-in act mirrors its header item: a script that hides or removes the item hides the act. */
-function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] {
+export function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] {
   const hiddenInHeader = (name: string) =>
     header.find((entry) => entry.item.name === name)?.hidden ?? true;
   return [
@@ -106,6 +106,7 @@ function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] {
         label: __("Create"),
         icon: "lucide-plus",
         right: "create",
+        asks: ["dialog"],
         run: () => host.create(),
       },
       hidden: hiddenInHeader("new"),
@@ -125,7 +126,7 @@ function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] {
         icon: "lucide-list",
         // The palette has no list of views to offer as options yet.
         palette: false,
-        run: (_context: unknown, value?: { key?: unknown }) => host.openView(viewKey(value)),
+        run: (_context: unknown, { key }: { key: string }) => host.openView(key),
       },
       hidden: false,
     },
@@ -135,8 +136,8 @@ function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] {
         label: __("Set Default View"),
         icon: "lucide-star",
         palette: false,
-        run: (_context: unknown, value?: { key?: unknown; scope?: unknown }) =>
-          host.setDefaultView(viewKey(value), defaultScope(value)),
+        run: (_context: unknown, { key, scope }: { key: string; scope: DefaultScope }) =>
+          host.setDefaultView(key, scope),
       },
       hidden: false,
     },
@@ -146,8 +147,7 @@ function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] {
         label: __("Clear Default View"),
         icon: "lucide-star-off",
         palette: false,
-        run: (_context: unknown, value?: { scope?: unknown }) =>
-          host.clearDefaultView(defaultScope(value)),
+        run: (_context: unknown, { scope }: { scope: DefaultScope }) => host.clearDefaultView(scope),
       },
       hidden: false,
     },
@@ -173,16 +173,4 @@ function controlEntries(list: ListPageController): ActEntry[] {
     .resolve()
     .filter(({ item }) => item.run)
     .map(({ item, hidden }) => ({ item, hidden }));
-}
-
-function viewKey(value?: { key?: unknown }): string {
-  if (typeof value?.key !== "string" || !value.key)
-    throw new Error(__("Name the view to open by its key."));
-  return value.key;
-}
-
-function defaultScope(value?: { scope?: unknown }): DefaultScope {
-  if (value?.scope !== "user" && value?.scope !== "site")
-    throw new Error(__("Name the default's layer: user or site."));
-  return value.scope;
 }

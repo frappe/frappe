@@ -216,6 +216,7 @@ function deleteCardEntry() {
 			icon: "lucide-trash-2",
 			right: "delete",
 			palette: false,
+			asks: ["danger"],
 			run: (_context: unknown, row: ListRow) => ask(row.name),
 		},
 		hidden: false,

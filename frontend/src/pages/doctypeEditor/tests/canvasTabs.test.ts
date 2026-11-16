@@ -1,11 +1,15 @@
 // The tab strip: an unlabelled first tab reads gray until it is selected, then takes normal ink.
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, beforeAll } from "vitest";
+import { loadText, TEXT_SURFACES } from "@/acts/actText";
 import { createApp, h, nextTick, type App } from "vue";
 // @ts-expect-error sortablejs ships no types here; it is the engine under vue-draggable-next
 import Sortable from "sortablejs";
 import CanvasTabs from "../CanvasTabs.vue";
 import { DRAG_OPTIONS, TAB_DRAG_OPTIONS } from "../canvasDrops";
 import { mountEditor, taskNote } from "./editorFixture";
+
+// A value waits for its surface's text to load once; load it first so a click acts at once.
+beforeAll(() => Promise.all(TEXT_SURFACES.map(loadText)));
 
 let app: App | undefined;
 let stop: (() => void) | undefined;

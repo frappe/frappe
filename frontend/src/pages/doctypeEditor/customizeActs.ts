@@ -47,6 +47,7 @@ export function modeItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 	return [
 		{
 			name: "set_mode",
+			asks: ["picker", "confirm"],
 			label: __("Switch mode"),
 			icon: "repeat",
 			argument: {
@@ -67,6 +68,7 @@ export function customizeItems(host: EditorActsHost): ActItem<EditorActsHost>[] 
 	return [
 		{
 			name: "reset_all",
+			asks: ["dialog"],
 			label: __("Reset all customizations"),
 			icon: "rotate-ccw",
 			when: customizing,
@@ -74,6 +76,7 @@ export function customizeItems(host: EditorActsHost): ActItem<EditorActsHost>[] 
 		},
 		{
 			name: "export",
+			asks: ["dialog"],
 			label: __("Export customizations"),
 			icon: "package",
 			when: () => customizing() && host.customize.developerMode,

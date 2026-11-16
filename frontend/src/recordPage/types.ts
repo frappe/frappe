@@ -59,7 +59,6 @@ export const QUICK_ACTION_KEYS: readonly string[] = [
   "name",
   "label",
   "icon",
-  "description",
   "run",
   ...ACT_KEYS,
 ];

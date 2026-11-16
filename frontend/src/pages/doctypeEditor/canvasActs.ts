@@ -29,12 +29,14 @@ export function canvasItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		name,
 		label,
 		palette: false as const,
+		asks: ["confirm" as const],
 		when,
 		run: (_context: EditorActsHost, keys: Keys) => stage(host, `canvas.${name}`, keys),
 	}));
 	return [
 		{
 			name: "add_tab",
+			asks: ["confirm"],
 			label: __("Add tab"),
 			icon: "plus",
 			when,
@@ -46,6 +48,7 @@ export function canvasItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "add_section",
+			asks: ["confirm"],
 			label: __("Add section"),
 			icon: "plus",
 			when,
@@ -79,6 +82,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 	return [
 		{
 			name: "add_field",
+			asks: ["confirm"],
 			label: __("Add field"),
 			icon: "plus",
 			key: "A",
@@ -92,6 +96,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "set_field_property",
+			asks: ["confirm"],
 			label: __("Set a field property"),
 			palette: false,
 			when,
@@ -99,6 +104,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "fetch_field",
+			asks: ["confirm"],
 			label: __("Fetch a field"),
 			palette: false,
 			when,
@@ -106,6 +112,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "reset_field_property",
+			asks: ["confirm"],
 			label: __("Reset a field property"),
 			palette: false,
 			when: () => editing(host) && Boolean(host.canvas()?.customize),
@@ -114,6 +121,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "rename_field",
+			asks: ["confirm"],
 			label: __("Rename field"),
 			palette: false,
 			when,
@@ -124,6 +132,7 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		},
 		{
 			name: "delete_field",
+			asks: ["confirm"],
 			label: __("Remove field"),
 			palette: false,
 			when,

@@ -3,6 +3,8 @@
 import { shallowReactive } from "vue";
 import { toast } from "frappe-ui";
 import { __ } from "@/i18n";
+import { loadedText, loadText } from "./actText";
+import { checkValue, type ActSchema } from "./schema/checkValue";
 
 /** A ptype on the page's doctype (`"write"`), or one on any doctype. */
 export type ActRight = string | { doctype: string; ptype: string };
@@ -24,6 +26,9 @@ export interface ActArgument<Context = any> {
 	options: (context: Context, query: string) => ActOption[] | Promise<ActOption[]>;
 }
 
+/** A dialog an act may open and wait on until the person answers. */
+export type ActAsk = "confirm" | "danger" | "dialog" | "picker";
+
 /** The optional fields an item that has `run` carries as an act. */
 export interface ActFields<Context = any> {
 	/** A default combo in `useKeyboardShortcut` syntax, such as `"Mod+Shift+D"`. */
@@ -34,6 +39,14 @@ export interface ActFields<Context = any> {
 	argument?: ActArgument<Context>;
 	/** Sync and cheap; false keeps the act off every surface. It reads the state the app already holds. */
 	when?: (context: Context) => boolean;
+	/** What the act does, what it returns, what it asks the person, and when not to use it. */
+	description?: string;
+	/** The value `run` takes, as `run` gets it; no value counts as `null`. A described act with no `input` takes no value. */
+	input?: ActSchema;
+	/** The `data` the act resolves with; absent means `null`. */
+	output?: ActSchema;
+	/** The dialogs the act may wait on. */
+	asks?: ActAsk[];
 }
 
 export interface ActItem<Context = any> extends ActFields<Context> {
@@ -95,6 +108,14 @@ export class ActDenied extends Error {
 	}
 }
 
+/** The value does not fit the act's `input`; `message` says what to send instead. */
+export class ActInvalid extends Error {
+	constructor(readonly act: string, message: string) {
+		super(`${act}: ${message}`);
+		this.name = "ActInvalid";
+	}
+}
+
 interface Checked {
 	scope: ActScope;
 	item: ActItem;
@@ -143,6 +164,21 @@ export class ActDispatcher {
 		return listed;
 	}
 
+	/** `available()` with each act's `description`, `input` and `output` from its surface's sidecar; loads the sidecars it needs. */
+	async described(only?: (item: ActItem) => boolean): Promise<AvailableAct[]> {
+		const listed = this.available(only);
+		await Promise.all([...new Set(listed.map((act) => surfaceOf(act.name)))].map(loadText));
+		return listed.map((act) => {
+			const text = loadedText(surfaceOf(act.name))?.[nameIn(act.name)];
+			return {
+				...act,
+				description: act.description ?? text?.description,
+				input: act.input ?? text?.input,
+				output: act.output ?? text?.output,
+			};
+		});
+	}
+
 	/** The acts the palette's first step lists: a label, and not `palette: false`. The navigation picker asks the same. */
 	listed(): AvailableAct[] {
 		return this.available().filter((act) => act.palette !== false && !!act.label);
@@ -170,9 +206,9 @@ export class ActDispatcher {
 		return right ? found!.scope.settled(right) : undefined;
 	}
 
-	/** Runs the act inside its scope's hold; rejects with `ActDenied`, or with what the act threw. */
+	/** Runs the act inside its scope's hold; rejects with `ActDenied`, `ActInvalid`, or what the act threw. */
 	async run(name: string, value?: unknown): Promise<unknown> {
-		const checked = this.check(name);
+		const checked = this.check(name, value, true);
 		const { scope, item } = checked instanceof Promise ? await checked : checked;
 		return scope.hold(() => item.run!(scope.context(), value));
 	}
@@ -181,10 +217,11 @@ export class ActDispatcher {
 	async perform(name: string, value?: unknown): Promise<void> {
 		let checked: Checked;
 		try {
-			const pending = this.check(name);
+			// A click starts its act in its own tick: it waits on a sidecar only to check a value it carries.
+			const pending = this.check(name, value, value !== undefined);
 			checked = pending instanceof Promise ? await pending : pending;
 		} catch (error) {
-			return void toast.error(deniedMessage(error as ActDenied));
+			return void toast.error(deniedMessage(error as Error));
 		}
 		const { scope, item } = checked;
 		try {
@@ -194,19 +231,40 @@ export class ActDispatcher {
 		}
 	}
 
-	// Synchronous unless a right must settle or the act still loads, so a click's act starts in the click's own tick.
-	private check(name: string): Checked | Promise<Checked> {
+	// Synchronous unless a right must settle, the act still loads or its sidecar must load, so a click's act starts in the click's own tick.
+	private check(name: string, value: unknown, wait: boolean): Checked | Promise<Checked> {
+		const permitted = this.permit(name);
+		if (permitted instanceof Promise) return permitted.then((checked) => this.valid(name, checked, value, wait));
+		return this.valid(name, permitted, value, wait);
+	}
+
+	private permit(name: string): Checked | Promise<Checked> {
 		const found = this.lookup(name);
 		const loading = found ? undefined : this.scopeOf(surfaceOf(name))?.loading?.(name);
-		if (loading) return loading.then(() => this.check(name));
+		if (loading) return loading.then(() => this.permit(name));
 		const right = found?.entry.item.right;
 		const settling = found && right ? found.scope.settled(right) : undefined;
 		if (settling) return settling.then(() => this.allowed(name, this.sameScope(name, found)));
 		return this.allowed(name, found);
 	}
 
+	// An act with no declaration, inline or in its sidecar, takes any value: a script's act may leave them out.
+	private valid(name: string, checked: Checked, value: unknown, wait: boolean): Checked | Promise<Checked> {
+		const { item } = checked;
+		const surface = surfaceOf(name);
+		if (item.input === undefined && !loadedText(surface)) {
+			const loading = loadText(surface);
+			return wait ? loading.then(() => this.valid(name, this.allowed(name, this.sameScope(name, checked)), value, wait)) : checked;
+		}
+		const text = loadedText(surface)?.[nameIn(name)];
+		const schema = item.input ?? text?.input;
+		if (schema) refuse(name, checkValue(schema, value ?? null));
+		else if ((item.description ?? text) && !item.argument) refuse(name, takesNothing(value));
+		return checked;
+	}
+
 	// A page that replaced the asking one while the right settled holds a different act of the same name.
-	private sameScope(name: string, asked: Found | null) {
+	private sameScope(name: string, asked: Pick<Found, "scope"> | null) {
 		const found = this.lookup(name);
 		return found && found.scope === asked?.scope ? found : null;
 	}
@@ -254,6 +312,18 @@ export function passesWhen(scope: Pick<ActScope, "context">, { when }: ActFields
 /** The desk's one dispatcher. */
 export const acts = new ActDispatcher();
 
+function nameIn(name: string) {
+	return name.slice(surfaceOf(name).length + 1);
+}
+
+function refuse(name: string, reason: string | undefined) {
+	if (reason) throw new ActInvalid(name, reason);
+}
+
+function takesNothing(value: unknown) {
+	return value === undefined || value === null ? undefined : "this act takes no value; send none";
+}
+
 function surfaceOf(name: string) {
 	const dot = name.indexOf(".");
 	return dot > 0 ? name.slice(0, dot) : "";
@@ -268,8 +338,8 @@ function isAvailable(scope: ActScope, { item, hidden }: ActEntry) {
 }
 
 function describe(name: string, item: ActItem, scope: ActScope): AvailableAct {
-	const { label, icon, key, right, palette, argument } = item;
-	const act: AvailableAct = { name, label, icon, key, right, palette };
+	const { label, icon, key, right, palette, argument, description, input, output, asks } = item;
+	const act: AvailableAct = { name, label, icon, key, right, palette, description, input, output, asks };
 	if (argument)
 		act.argument = {
 			label: argument.label,
@@ -278,8 +348,10 @@ function describe(name: string, item: ActItem, scope: ActScope): AvailableAct {
 	return act;
 }
 
-function deniedMessage(denied: ActDenied) {
-	return denied.reason === "right"
+function deniedMessage(error: Error) {
+	if (error instanceof ActInvalid) return error.message;
+	if (!(error instanceof ActDenied)) return __("This act could not be checked. Reload the page and try again.");
+	return (error as ActDenied).reason === "right"
 		? __("You do not have permission to do this")
 		: __("This is not available on this page now");
 }

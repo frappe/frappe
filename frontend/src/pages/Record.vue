@@ -468,6 +468,7 @@ function headerBuiltins(): HeaderItem[] {
 			icon: "lucide-save",
 			display: "button",
 			key: "Mod+S",
+			asks: ["dialog", "confirm"],
 			run: saveFromHeader,
 		},
 		...(amendOpen.value && amendment.value !== undefined ? [amendItem(amendment.value)] : []),

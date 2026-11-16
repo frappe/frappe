@@ -543,7 +543,7 @@ describe("the list surface", () => {
     await mount();
 
     await expect(acts.run("list.open_view", {})).rejects.toThrow(
-      "Name the view to open by its key.",
+      "value.key is required",
     );
     expect(router().currentRoute.value.fullPath).toBe("/contact");
   });
@@ -597,12 +597,12 @@ describe("the list surface", () => {
 
     await expect(
       acts.run("list.set_default_view", { scope: "user" }),
-    ).rejects.toThrow("Name the view to open by its key.");
+    ).rejects.toThrow("value.key is required");
     await expect(
       acts.run("list.set_default_view", { key: "list", scope: "team" }),
-    ).rejects.toThrow("Name the default's layer: user or site.");
+    ).rejects.toThrow('value.scope must be one of "user", "site"');
     await expect(acts.run("list.clear_default_view", {})).rejects.toThrow(
-      "Name the default's layer: user or site.",
+      "value.scope is required",
     );
     expect(defaultCalls).toEqual([]);
   });
