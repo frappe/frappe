@@ -175,7 +175,7 @@
 			<p class="oauth-permissions-label">{{ _("This lets {0}:").format(_(client_id)) }}</p>
 			{% if profile_details %}
 			<div class="oauth-scope-card">
-				<p class="oauth-scope-card-label text-sm">{{ _("See your profile's") }}</p>
+				<p class="oauth-scope-card-label text-sm">{{ _("See your profile details:") }}</p>
 				{% for detail in profile_details %}
 				{%- set icon, label = profile_scopes[detail] -%}
 				<div class="oauth-scope">
