@@ -1,0 +1,124 @@
+$list-counters: list-0 list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8 list-9;
+$list-styles: decimal lower-alpha lower-roman;
+
+.ql-editor {
+	counter-reset: $list-counters;
+}
+
+.ql-editor p,
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+	counter-set: $list-counters;
+}
+
+@supports not (counter-set: none) {
+	.ql-editor p,
+	.ql-editor h1,
+	.ql-editor h2,
+	.ql-editor h3,
+	.ql-editor h4,
+	.ql-editor h5,
+	.ql-editor h6 {
+		counter-reset: $list-counters;
+	}
+}
+
+.ql-editor li {
+	list-style-type: none;
+	padding-left: 1.5em;
+	position: relative;
+}
+
+.ql-editor li > .ql-ui:before {
+	display: inline-block;
+	margin-left: -1.5em;
+	margin-right: 0.3em;
+	text-align: right;
+	white-space: nowrap;
+	width: 1.2em;
+}
+
+.ql-editor li[data-list="checked"] > .ql-ui,
+.ql-editor li[data-list="unchecked"] > .ql-ui {
+	color: #777;
+}
+
+.ql-editor li[data-list="bullet"] > .ql-ui:before {
+	content: "\2022";
+}
+
+.ql-editor li[data-list="checked"] > .ql-ui:before {
+	content: "\2611";
+}
+
+.ql-editor li[data-list="unchecked"] > .ql-ui:before {
+	content: "\2610";
+}
+
+@for $level from 0 through 9 {
+	$item: if($level == 0, "", ".ql-indent-#{$level}");
+
+	@if $level < 9 {
+		$deeper: ();
+		@for $i from $level + 1 through 9 {
+			$deeper: append($deeper, list-#{$i});
+		}
+
+		.ql-editor li[data-list]#{$item} {
+			counter-set: $deeper;
+		}
+
+		@supports not (counter-set: none) {
+			.ql-editor li[data-list]#{$item} {
+				counter-reset: $deeper;
+			}
+		}
+	}
+
+	.ql-editor li[data-list="ordered"]#{$item} {
+		counter-increment: list-#{$level};
+	}
+
+	.ql-editor li[data-list="ordered"]#{$item} > .ql-ui:before {
+		content: counter(list-#{$level}, nth($list-styles, $level % 3 + 1)) ". ";
+	}
+}
+
+@for $level from 1 through 9 {
+	.ql-editor .ql-indent-#{$level}:not(.ql-direction-rtl) {
+		padding-left: $level * 3em;
+	}
+
+	.ql-editor li.ql-indent-#{$level}:not(.ql-direction-rtl) {
+		padding-left: $level * 3em + 1.5em;
+	}
+
+	.ql-editor .ql-indent-#{$level}.ql-direction-rtl.ql-align-right {
+		padding-right: $level * 3em;
+	}
+
+	.ql-editor li.ql-indent-#{$level}.ql-direction-rtl.ql-align-right {
+		padding-right: $level * 3em + 1.5em;
+	}
+}
+
+.ql-editor li.ql-direction-rtl {
+	padding-right: 1.5em;
+}
+
+.ql-editor li.ql-direction-rtl > .ql-ui:before {
+	margin-left: 0.3em;
+	margin-right: -1.5em;
+	text-align: left;
+}
+
+/*!rtl:begin:ignore:quill-content*/
+.ql-editor .ql-direction-rtl {
+	direction: rtl;
+	text-align: inherit;
+}
+/*!rtl:end:ignore:quill-content*/

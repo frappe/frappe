@@ -369,8 +369,6 @@ body.pfb-dragging * {
 }
 
 .print-format-doc .ql-editor li {
-	list-style-type: inherit;
-	padding-left: 0;
 	margin: 0;
 }
 
