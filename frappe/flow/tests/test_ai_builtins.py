@@ -553,6 +553,34 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 		self.assertEqual(result["rows"], [{"todo": todo.name, "description": "query report probe"}])
 		ran.assert_called_once()
 
+	def test_a_saved_report_run_as_saved_needs_every_query_filter_saved(self):
+		query = self.make_report(
+			"Flow Query Probe",
+			"Query Report",
+			query="select name from tabToDo where description = %(description)s and owner = %(owner)s",
+			filters=[
+				{"fieldname": "owner", "label": "Owner", "fieldtype": "Data", "default": "Administrator"}
+			],
+		)
+		custom = self.make_report(
+			"Flow Custom Probe",
+			"Custom Report",
+			reference_report=query.name,
+			json=json.dumps({"filters": {"description": "query report probe"}}),
+		)
+
+		# saved filters replace the defaults, as in Desk
+		with (
+			patch("frappe.desk.query_report.run") as ran,
+			self.assertRaisesRegex(ValueError, "^Missing filters: owner$"),
+		):
+			run_report(report_name=custom.name, ctx=CTX)
+		ran.assert_not_called()
+
+		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
+			run_report(report_name=custom.name, filters={"description": "x"}, ctx=CTX)
+		self.assertEqual(ran.call_args.kwargs["filters"], {"owner": "Administrator", "description": "x"})
+
 	def test_only_a_prepared_report_runs_in_the_background(self):
 		args = {"report_name": self.report.name}
 		self.assertFalse(run_report.background(args))
