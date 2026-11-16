@@ -241,6 +241,10 @@ watch(
 [data-doctype-editor] .canvas-tab-drop > .sortable-chosen.canvas-drop-line {
 	display: none;
 }
+/* The pointer drags across the canvas's text: no drag kind may select any of it. */
+body:has(.sortable-fallback) {
+	@apply select-none;
+}
 /* Sortable draws the dragged clone at 0.8 opacity over the bin's words: give it a surface, and hide it over the bin. */
 [data-doctype-editor] .sortable-fallback {
 	height: auto !important;

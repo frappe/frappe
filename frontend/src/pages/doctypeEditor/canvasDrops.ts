@@ -21,6 +21,7 @@ export function dropField(
 	const landed = change.added ?? change.moved;
 	// The bin covers the columns, so Sortable still reports a drop under it: that drop is the bin's.
 	if (!landed || canvas.drag.value.overBin) return;
+	land(canvas);
 	const index = "tab" in into ? {} : { index: landed.newIndex };
 	if (typeof landed.element !== "string") return void addFieldType(canvas, landed.element.type, { ...into, ...index });
 	const fieldname = landed.element;
@@ -28,8 +29,26 @@ export function dropField(
 	void acts.perform(act, { fieldname, ...into, ...index });
 }
 
+/** A held field or section starts: its tab stays drawn while the pointer waits on another tab's name. */
+export function holdOnTab(canvas: DesignCanvas) {
+	const tab = canvas.openTab.value?.name;
+	canvas.held.value = tab ? { tab, seen: [tab], landed: false } : null;
+}
+
+/** It ends: with no drop landed (released off a target), the tab it was lifted from opens again. */
+export function releaseFromTab(canvas: DesignCanvas) {
+	const held = canvas.held.value;
+	canvas.held.value = null;
+	if (held && !held.landed) canvas.openTabName.value = held.tab;
+}
+
+function land(canvas: DesignCanvas) {
+	if (canvas.held.value) canvas.held.value = { ...canvas.held.value, landed: true };
+}
+
 /** Starts a placed field's drag: the bin shows, and it knows which field the item is. */
 export function startDrag(canvas: DesignCanvas, item: HTMLElement) {
+	holdOnTab(canvas);
 	canvas.drag.value = { active: true, overBin: false, fieldname: item.dataset.canvasField };
 }
 
@@ -37,6 +56,7 @@ export function startDrag(canvas: DesignCanvas, item: HTMLElement) {
 export function dropOnBin(canvas: DesignCanvas) {
 	const { overBin, fieldname } = canvas.drag.value;
 	canvas.drag.value = { active: false, overBin: false };
+	releaseFromTab(canvas);
 	const field = fieldname ? canvas.field(fieldname) : undefined;
 	if (!overBin || !field) return;
 	// A hidden field stays hidden: the panel trash would show it again, the bin has no such verb.
@@ -44,9 +64,11 @@ export function dropOnBin(canvas: DesignCanvas) {
 	void removeField(canvas, field);
 }
 
-export function dropSection(change: DragChange<LayoutTreeSection>, tab: string) {
+export function dropSection(canvas: DesignCanvas, change: DragChange<LayoutTreeSection>, tab: string) {
 	const landed = change.added ?? change.moved;
-	if (landed) void acts.perform("canvas.move_section", { section: landed.element.name, tab, index: landed.newIndex });
+	if (!landed) return;
+	land(canvas);
+	void acts.perform("canvas.move_section", { section: landed.element.name, tab, index: landed.newIndex });
 }
 
 export function dropColumn(canvas: DesignCanvas, change: DragChange<LayoutTreeColumn>, toSection: string) {
