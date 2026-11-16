@@ -2,6 +2,11 @@
      the tab strip shows once the layout has two tabs, and until then "Add tab" sits beside "Add section"
      (not on the Side panel or a child table). -->
 <template>
+	<CanvasContextMenu
+		v-if="canvas.contextMenu.value"
+		:canvas="canvas"
+		:at="canvas.contextMenu.value"
+	/>
 	<CanvasTabs v-if="canvas.tabs.value.length > 1" class="mb-6" :canvas="canvas" />
 	<Draggable
 		v-for="drawn in drawnTabs"
@@ -54,6 +59,7 @@ import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import CanvasSection from "./CanvasSection.vue";
 import CanvasTabs from "./CanvasTabs.vue";
+import { CanvasContextMenu } from "./canvasContextMenu";
 import { DRAG_OPTIONS, dropSection, holdOnTab, releaseFromTab } from "./canvasDrops";
 import type { DesignCanvas } from "./designCanvas";
 import type { LayoutTreeSection } from "./layoutTree";

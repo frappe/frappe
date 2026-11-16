@@ -25,6 +25,7 @@ function mount(
     editable: props.editable ?? true,
     state: { definition: { istable: props.istable ? 1 : 0 } },
     tabs: ref(tabs),
+    contextMenu: ref(null),
     openTab: ref(tabs[0]),
     held: ref(null),
   };

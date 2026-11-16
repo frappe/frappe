@@ -7,6 +7,7 @@
 		:data-canvas-section="section.name"
 		:data-canvas-selected="selected || undefined"
 		@click.stop="select({ kind: 'section', section: name })"
+		@contextmenu="openContextMenu(canvas, $event, { kind: 'section', section: name })"
 	>
 		<div class="relative z-[1] mb-4 flex h-7 items-center gap-1">
 			<input
@@ -23,11 +24,16 @@
 			<RuleMark :canvas="canvas" kind="section" :node="section" />
 			<div
 				v-if="canvas.editable"
-				class="absolute right-0 top-0 flex items-center rounded-4 bg-surface-base opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100 group-has-[[data-canvas-column-ring]]/section:!pointer-events-none group-has-[[data-canvas-column-ring]]/section:!opacity-0"
-				:class="{ '!opacity-100': selected }"
+				class="absolute right-0 top-0 flex items-center rounded-4 bg-surface-base opacity-0 group-focus-within/section:opacity-100 group-hover/section:opacity-100"
+				:class="[
+					selected && '!opacity-100',
+					menuOpen
+						? '!opacity-100'
+						: 'group-has-[[data-canvas-column-ring]]/section:!pointer-events-none group-has-[[data-canvas-column-ring]]/section:!opacity-0',
+				]"
 				data-canvas-controls
 			>
-				<Dropdown :options="menu" side="bottom" align="end">
+				<Dropdown v-model:open="menuOpen" :options="menu" side="bottom" align="end">
 					<Button
 						variant="ghost"
 						size="sm"
@@ -71,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Button, Dropdown } from "frappe-ui";
 import Draggable from "vuedraggable";
 import { acts } from "@/acts/dispatcher";
@@ -80,6 +86,7 @@ import type { LayoutTreeColumn, LayoutTreeSection } from "./layoutTree";
 import AddFieldRow from "./AddFieldRow.vue";
 import CanvasColumn from "./CanvasColumn.vue";
 import { DRAG_OPTIONS, dropColumn } from "./canvasDrops";
+import { openContextMenu } from "./canvasContextMenu";
 import { canvasMenu, selectOn } from "./canvasMenu";
 import type { CanvasSelection, DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";
@@ -91,6 +98,9 @@ const selected = computed(() => {
 	const selection = props.canvas.selection.value;
 	return selection?.kind === "section" && selection.section === name.value;
 });
+// The controls stay while the "⋯" menu is open, though the pointer has left the section for it and
+// a column's ring would hide them.
+const menuOpen = ref(false);
 const menu = computed(() => canvasMenu(props.canvas, { kind: "section", section: name.value }));
 
 function select(selection: CanvasSelection) {
