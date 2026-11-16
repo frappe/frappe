@@ -205,7 +205,11 @@ class TestSiteKeyProvider(IntegrationTestCase):
 
 	def test_another_grove_model_is_checked_with_the_site_key_at_the_gateway(self):
 		self._sync()
-		with patch.dict(frappe.conf, SITE_KEY), patch("litellm.completion") as completion:
+		with (
+			self.set_user("test@example.com"),
+			patch.dict(frappe.conf, SITE_KEY),
+			patch("litellm.completion") as completion,
+		):
 			added = setup.add_model("grove", "morph/glm-5.3-flash")
 
 		self.assertEqual(
