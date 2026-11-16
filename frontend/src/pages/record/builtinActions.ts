@@ -1,8 +1,6 @@
 // The actions every record gets from the framework, gated by its rights: quick actions on
 // the panel, the `⋯` menu's rows in the header. Each is an ordinary item a script hides or reorders by name.
-import { deleteDocument } from "@framework/ui/api";
 import type { RouteLocationRaw } from "vue-router";
-import { ActDeclined } from "@/acts/dispatcher";
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import type { TabCreateAction } from "@/recordPage/types";
 import { COPY_OF } from "@/newRecordValues";
@@ -29,7 +27,7 @@ export function quickActionBuiltins(
   if (attach)
     actions.push({ name: "attach", label: "Attach", icon: "lucide-paperclip", asks: ["dialog"], run: attach.run, right: attach.right });
   if (perms.print) actions.push({ name: "print", label: "Print", icon: "lucide-printer", run: print });
-  actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: copyLink });
+  actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: lazy("copyLink") });
   if (follow) actions.push({ name: "follow", ...followWording(follow), run: follow.toggle });
   // Only while the record has no tag: a tagged record has the chips' own "+" instead.
   if (perms.write && !tagged) actions.push({ name: "tags", label: "Tags", icon: "lucide-tag", tagging: true });
@@ -93,8 +91,8 @@ export function headerMenuBuiltins(
   if (options.rename && !options.single) items.push(renameItem());
   items.push(...(options.fieldActions ?? []));
   items.push(
-    { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
-    { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId }
+    { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: lazy("copyLink") },
+    { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: lazy("copyId") }
   );
   if (options.duplicate)
     items.push({ name: "duplicate", label: "Duplicate", icon: "lucide-copy", group: "copies", run: duplicate });
@@ -102,7 +100,7 @@ export function headerMenuBuiltins(
   if (options.editLayout) items.push(editLayoutItem(options.editLayout));
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single && !options.submitted)
-    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: remove });
+    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: lazy("remove") });
   return items;
 }
 
@@ -119,41 +117,17 @@ function openEmail(page: RecordPageApi) {
   page.composer.open("email");
 }
 
-// Desk v1's print view; the new shell has no print page of its own yet.
+// Desk v1's print view; the new shell has no print page of its own yet. It opens in the click's own tick, so a popup blocker allows it.
 function print(page: RecordPageApi) {
   const query = new URLSearchParams({ doctype: page.doctype, name: page.docname });
   window.open(`/printview?${query}`, "_blank");
-}
-
-// No clipboard outside a secure context; a throw here would reload the record over an unsaved draft.
-async function copyLink(page: RecordPageApi) {
-  await copy(page, window.location.href, "Link copied");
-}
-
-async function copyId(page: RecordPageApi) {
-  await copy(page, page.docname, "ID copied");
 }
 
 function duplicate(page: RecordPageApi) {
   return page.router.push(routeForNew(page.doctype, { [COPY_OF]: page.docname }));
 }
 
-async function copy(page: RecordPageApi, text: string, confirmation: string) {
-  if (!navigator.clipboard) return page.toast.error("Copying needs a secure connection");
-  await navigator.clipboard.writeText(text);
-  page.toast.success(confirmation);
-}
-
-// The list route resolves before the call: a throw after a successful delete would reload
-// the record that no longer exists.
-async function remove(page: RecordPageApi) {
-  const confirmed = await page.dialog.danger({
-    title: "Delete this record?",
-    message: `${page.docname} will be deleted.`,
-  });
-  if (!confirmed) throw new ActDeclined("header.delete");
-  const list = routeFor(page.doctype);
-  await deleteDocument(page.doctype, page.docname);
-  page.toast.success("Deleted");
-  await page.router.push(list);
+// The runs sit in `builtinRuns`, loaded on the first run, so a record page's first paint does not carry them.
+function lazy(name: "copyLink" | "copyId" | "remove") {
+  return async (page: RecordPageApi) => (await import("./builtinRuns"))[name](page);
 }
