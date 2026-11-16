@@ -141,7 +141,7 @@ class TestEmailQueue(IntegrationTestCase):
 			priority=1,
 			recipients=[{"recipient": "test_concurrent@example.com"}],
 		).insert()
-		frappe.db.commit()
+		frappe.db.commit()  # frees the SQLite writer lock for the other connection; nosemgrep
 		self.addCleanup(frappe.db.commit)
 		self.addCleanup(frappe.delete_doc, "Email Queue", email_record.name, force=True)
 		self.addCleanup(frappe.db.delete, "DefaultValue", {"defkey": "email_queue_concurrent_write"})
