@@ -688,17 +688,19 @@ frappe.setup.utils = {
 					frappe.wizard.values.language =
 						frappe.wizard.values.language || r.message.language;
 
-					frappe.db.get_value(
-						"User",
-						{ name: ["not in", ["Administrator", "Guest"]] },
-						["full_name", "email"],
-						(r) => {
-							if (r) {
-								frappe.wizard.values.full_name = r.full_name;
-								frappe.wizard.values.email = r.email;
+					if (frappe.session.user === "Administrator") {
+						frappe.db.get_value(
+							"User",
+							{ name: ["not in", ["Administrator", "Guest"]] },
+							["full_name", "email"],
+							(r) => {
+								if (r) {
+									frappe.wizard.values.full_name = r.full_name;
+									frappe.wizard.values.email = r.email;
+								}
 							}
-						}
-					);
+						);
+					}
 				}
 				callback(slide);
 			});
