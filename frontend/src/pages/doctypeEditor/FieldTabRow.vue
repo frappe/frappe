@@ -26,10 +26,9 @@
 import { computed } from "vue";
 import { Dropdown } from "frappe-ui";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
-import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { DesignCanvas } from "./designCanvas";
-import { panelMark } from "./fieldPanel";
+import { moveToTab, panelMark } from "./fieldPanel";
 import PanelRow from "./PanelRow.vue";
 
 const props = defineProps<{ canvas: DesignCanvas; field: RawMetaField }>();
@@ -44,14 +43,7 @@ const mark = computed(() => panelMark(props.canvas, props.field.fieldname, "tab"
 const options = computed(() =>
 	props.canvas.tabs.value.map((tab) => ({
 		label: name(tab.label),
-		onClick: () => move(tab.name!),
+		onClick: () => moveToTab(props.canvas, props.field.fieldname, tab.name!),
 	}))
 );
-
-async function move(tab: string) {
-	if (tab === place.value?.tab) return;
-	await acts.perform("canvas.move_field", { fieldname: props.field.fieldname, tab });
-	if (props.canvas.place(props.field.fieldname)?.tab === tab)
-		props.canvas.openTabName.value = tab;
-}
 </script>

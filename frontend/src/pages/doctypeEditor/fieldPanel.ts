@@ -146,6 +146,13 @@ export function removeAction(canvas: DesignCanvas, field: RawMetaField): { label
 		: { label: __("Hide field"), icon: "lucide-eye-off" };
 }
 
+/** Moves a field to the end of another tab's first section and opens that tab. */
+export async function moveToTab(canvas: DesignCanvas, fieldname: string, tab: string) {
+	if (tab === canvas.place(fieldname)?.tab) return;
+	await acts.perform("canvas.move_field", { fieldname, tab });
+	if (canvas.place(fieldname)?.tab === tab) canvas.openTabName.value = tab;
+}
+
 /** Removing a field from the DocType is a Details act. */
 export function takesOff(canvas: DesignCanvas): boolean {
 	return canvas.openLayout.value.type !== "Details";

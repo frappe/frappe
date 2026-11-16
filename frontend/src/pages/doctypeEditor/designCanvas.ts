@@ -10,6 +10,7 @@ import {
 	type FlatEdit,
 	type WorkingState,
 } from "./editorModel";
+import type { ContextMenuAt } from "./canvasContextMenu";
 import { CustomizeView } from "./customizeView";
 import type { EditorState } from "./editorSource";
 import type { ForkWarning } from "./forkWarning";
@@ -96,6 +97,8 @@ export class DesignCanvas {
 	readonly fieldQuery = ref("");
 	/** The section whose "Add field" input is open. */
 	readonly adding = shallowRef<string | null>(null);
+	/** Where the right-click menu is open, and on what. */
+	readonly contextMenu = shallowRef<ContextMenuAt | null>(null);
 	/** The bin's state while a placed field is dragged: shown, the field, and the pointer over it. */
 	readonly drag = shallowRef<{ active: boolean; overBin: boolean; fieldname?: string }>({
 		active: false,

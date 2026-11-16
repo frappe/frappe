@@ -10,6 +10,7 @@
 		:data-canvas-field="fieldname"
 		:data-canvas-selected="selected || undefined"
 		@click.stop="selectOn(canvas, { kind: 'field', fieldname })"
+		@contextmenu="openContextMenu(canvas, $event, { kind: 'field', fieldname })"
 	>
 		<div
 			v-if="node && panelRows"
@@ -63,6 +64,7 @@ import { computed } from "vue";
 import { FormLayoutField, mapField } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import CanvasTable from "./CanvasTable.vue";
+import { openContextMenu } from "./canvasContextMenu";
 import { selectOn } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import { TABLE_TYPES } from "./fieldtypes";

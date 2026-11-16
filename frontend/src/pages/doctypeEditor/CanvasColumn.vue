@@ -10,6 +10,7 @@
 		@mouseover="hover($event)"
 		@mouseleave="hovered = false"
 		@click="selectBand($event)"
+		@contextmenu="openContextMenu(canvas, $event, item)"
 	>
 		<div
 			v-if="canvas.editable"
@@ -70,6 +71,7 @@ import { __ } from "@/i18n";
 import type { LayoutTreeColumn, LayoutTreeSection } from "./layoutTree";
 import CanvasField from "./CanvasField.vue";
 import { DRAG_OPTIONS, dropField, dropOnBin, startDrag } from "./canvasDrops";
+import { openContextMenu } from "./canvasContextMenu";
 import { selectOn } from "./canvasMenu";
 import type { DesignCanvas } from "./designCanvas";
 import RuleMark from "./RuleMark.vue";
