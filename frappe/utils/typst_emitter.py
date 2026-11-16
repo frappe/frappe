@@ -483,17 +483,48 @@ def _fr_widths(columns) -> list[str]:
 
 
 def _list_markers(value: str) -> str:
-	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them.
+	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them;
+	Quill's `data-list` and `ql-indent-N` pick the marker, its counter and indent.
 
 	Innermost lists are marked first so a nested list does not take its items
 	from the list around it."""
 
+	def number(n, level):
+		if level % 3 == 1:
+			letters = ""
+			while n:
+				n, rest = divmod(n - 1, 26)
+				letters = chr(97 + rest) + letters
+			return letters
+		if level % 3 == 2:
+			numerals = ""
+			for size, numeral in zip(
+				(1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1),
+				("m", "cm", "d", "cd", "c", "xc", "l", "xl", "x", "ix", "v", "iv", "i"),
+				strict=True,
+			):
+				count, n = divmod(n, size)
+				numerals += numeral * count
+			return numerals
+		return str(n)
+
 	def mark(match):
-		body = match.group(2)
-		if match.group(1).lower() == "ol":
-			items = re.split(r"<li[^>]*>", body, flags=re.I)[1:]
-			return "\n" + "".join(f"<x-li>{i}. {item}" for i, item in enumerate(items, 1))
-		return "\n" + re.sub(r"<li[^>]*>", "<x-li>\u2022 ", body, flags=re.I)
+		default = "ordered" if match.group(1).lower() == "ol" else "bullet"
+		counters = [0] * 9
+		items = []
+		for tag, item in re.findall(r"(<li\b[^>]*>)((?:(?!<li\b).)*)", match.group(2), flags=re.I | re.S):
+			kind = re.search(r'data-list="([^"]*)"', tag)
+			kind = kind.group(1) if kind else default
+			level = re.search(r"ql-indent-([1-8])", tag)
+			level = int(level.group(1)) if level else 0
+			counters[level + 1 :] = [0] * (8 - level)
+			if kind == "ordered":
+				counters[level] += 1
+				marker = number(counters[level], level) + "."
+			else:
+				marker = {"checked": "\u2611", "unchecked": "\u2610"}.get(kind, "\u2022")
+			items.append("<x-li>" + "\u2003\u2002" * level + f"{marker} {item}")
+		return "\n" + "".join(items)
 
 	pattern = re.compile(r"<(ol|ul)[^>]*>((?:(?!<[ou]l[^>]*>).)*?)</\1>", re.I | re.S)
 	while True:
