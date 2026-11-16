@@ -128,3 +128,36 @@ manage first, or keep the global record.
 4. Save one page in developer mode. The component files must stay in place,
    with the new `name` and `studio_app`.
 5. Build the app with `bench build --app <frappe_app>`.
+
+## After the migration: remove dependencies on the page
+
+Older components can read a page's variables, data sources, and functions
+directly. For example, a component that uses `{{ tasks.data }}` needs the page
+to provide `tasks`. It can fail in the component editor or on another page.
+
+New components must receive page data through props and request page actions
+through events. Existing components still work, so you can update them
+separately from this migration:
+
+1. **Pass page data through props.** For the `tasks` example, declare a
+   `tasks` prop in the component script. On each page, set the component
+   block's `componentProps.tasks` to `{{ tasks.data }}`. Inside the component,
+   change the binding to `{{ props.tasks }}`.
+2. **Use events for page actions.** If the component calls a page function
+   such as `save()`, declare `"save"` in the component script's `emits`.
+   Emit it from the component script with `emit("save")`, using the `emit`
+   argument from `setup(props, { emit })`. On each page, handle the event in
+   the component block's `componentEvents` and call the page's `save()` there.
+3. **Import shared state in app components.** For state used across pages,
+   such as the signed-in user, import a composable from the app's files in
+   the component script. The component can then get that state without a
+   page variable or a prop on every page.
+
+The component can still use values returned by its own `setup()`, slot values
+such as `dataItem`, and the built-in `route`, `router`, `socket`, `toast`, and
+`call` helpers.
+
+Update one component at a time. Check it in the component editor and on every
+page that uses it, including its actions, and check for console errors.
+See [Component code](../../../skills/studio-app-building/SKILL.md#component-code)
+for the script format.
