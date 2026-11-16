@@ -82,6 +82,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 		mock_session.get.side_effect = github_response_for_login
 
 		state = create_oauth_state(None)
+		simulate_oauth_browser_roundtrip()
 		with (
 			self.patch_hooks({"on_social_login": [f"{__name__}.grant_desk_access_on_social_login"]}),
 			patch.object(OAuth2Service, "get_auth_session", return_value=mock_session),
@@ -106,6 +107,7 @@ class TestSocialLoginKey(IntegrationTestCase):
 		mock_session.get.side_effect = github_response_for_login
 
 		state = create_oauth_state(None)
+		simulate_oauth_browser_roundtrip()
 		with (
 			self.patch_hooks({"on_social_login": [f"{__name__}.refuse_social_login"]}),
 			patch.object(OAuth2Service, "get_auth_session", return_value=mock_session),
