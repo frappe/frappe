@@ -617,6 +617,7 @@ const SAFE_HTML_ATTRS = new Set([
 	"cite",
 	"class",
 	"colspan",
+	"data-list",
 	"datetime",
 	"dir",
 	"height",
