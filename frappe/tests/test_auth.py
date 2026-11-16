@@ -431,10 +431,12 @@ class TestAuth(IntegrationTestCase):
 			self.fail("Rate limting not working")
 
 	def test_login_link_is_sent_from_a_job(self):
-		frappe.db.set_single_value("System Settings", "login_with_email_link", 1)
-
 		for email in (self.test_user_email, "no-such-user@example.com"):
-			with patch("frappe.enqueue") as enqueue, patch("frappe.sendmail") as sendmail:
+			with (
+				self.change_settings("System Settings", login_with_email_link=1),
+				patch("frappe.enqueue") as enqueue,
+				patch("frappe.sendmail") as sendmail,
+			):
 				inspect.unwrap(send_login_link)(email)
 
 			enqueue.assert_called_once()
