@@ -168,13 +168,24 @@ class TestDiscover(McpTestCase):
 		cold = discovery.DiscoveryCacheUnavailable("Index is being generated")
 		with (
 			self.manager(),
-			patch("frappe.api.discovery.search", side_effect=[cold, {"results": []}]) as search,
+			patch("frappe.api.discovery.search", side_effect=[cold, cold, {"results": []}]) as search,
 			patch("frappe.api.discovery.build_cache") as build_cache,
 		):
 			response = self.discover("search_methods", {"query": "ToDo"})
 		self.assertFalse(response.json["result"]["isError"])
 		build_cache.assert_called_once()
-		self.assertEqual(search.call_count, 2)
+		self.assertEqual(search.call_count, 3)
+
+	def test_a_request_that_waited_uses_the_index_another_built(self):
+		cold = discovery.DiscoveryCacheUnavailable("Index is being generated")
+		with (
+			self.manager(),
+			patch("frappe.api.discovery.search", side_effect=[cold, {"results": []}]),
+			patch("frappe.api.discovery.build_cache") as build_cache,
+		):
+			response = self.discover("search_methods", {"query": "ToDo"})
+		self.assertFalse(response.json["result"]["isError"])
+		build_cache.assert_not_called()
 
 	def test_manager_cannot_discover_nonwhitelisted_methods(self):
 		with self.manager(), self.method_cache():
