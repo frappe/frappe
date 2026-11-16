@@ -660,6 +660,14 @@ class TestHTMLUtils(IntegrationTestCase):
 
 		self.assertIsNone(sanitize_svg(None))
 
+	def test_md_to_html_with_html_tag_over_lines(self):
+		from frappe.utils import md_to_html
+
+		source = '<table border="1"\n\tstyle="width:100%">\n<tr><td>Snack</td></tr>\n</table>'
+		html = md_to_html(source)
+		self.assertIn("<td>Snack</td>", html)
+		self.assertIsNone(html.toc_html)
+
 
 class TestValidationUtils(IntegrationTestCase):
 	def test_valid_url(self):
