@@ -368,8 +368,8 @@ def _describe_filters(specs: list[dict[str, Any]]) -> str:
 
 
 def _report_filter_specs(report_name: str) -> list[dict[str, Any]]:
-	"""Filters from the report's Report Filter rows and its JS, the first of a name winning: each
-	one's type, link or choices, default and whether Desk requires it."""
+	"""Filters from the report's JS, or from its Report Filter rows when the JS has none, as Desk
+	picks them: each one's type, link or choices, default and whether Desk requires it."""
 	from frappe.desk.query_report import get_script
 
 	script = get_script(report_name)
@@ -387,10 +387,10 @@ def _report_filter_specs(report_name: str) -> list[dict[str, Any]]:
 	parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
 	cuts = [chunk.rpartition("{") for chunk in parts[0::2]]
 	cuts[-1] = (parts[-1], "", "")  # the last filter has no next one
-	specs += [
+	specs = [
 		_js_filter(name, f"{before[2]}\n{after[0]}")
 		for name, before, after in zip(parts[1::2], cuts[:-1], cuts[1:], strict=True)
-	]
+	] or specs
 	first = {}
 	for spec in specs:
 		first.setdefault(spec["fieldname"], spec)
