@@ -80,6 +80,14 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		challenge = base64.urlsafe_b64encode(hashlib.sha256(note["verifier"].encode()).digest()).rstrip(b"=")
 		self.assertEqual(data["code_challenge"], challenge.decode())
 
+	def test_new_mailbox_signs_in_with_the_address_entered(self) -> None:
+		email_oauth.initiate_mailbox_connect("GMail", "/helpdesk", email="one@email-oauth.example.com")
+
+		data = self.pilot.call_args.args[1]
+		self.assertEqual(data["login_hint"], "one@email-oauth.example.com")
+		note = frappe.cache.get_value(f"pkce_verifier:{data['state']}")
+		self.assertEqual(note["email"], "one@email-oauth.example.com")
+
 	def test_user_without_email_account_permission_is_refused(self) -> None:
 		user = frappe.get_doc(
 			{
@@ -211,24 +219,35 @@ class TestOneClickServices(IntegrationTestCase):
 		self.enterContext(self.set_user(create_user(USER).name))
 		self.enterContext(patch.dict(frappe.conf, V2))
 		self.pilot: MagicMock = self.enterContext(
-			patch.object(email_oauth.PilotClient, "post", return_value=["microsoft", "zoho"])
+			patch.object(email_oauth.PilotClient, "post", return_value={"microsoft": None, "zoho": None})
 		)
 		email_oauth.get_active_providers.clear_cache()
 		self.addCleanup(email_oauth.get_active_providers.clear_cache)
 
 	def test_lists_the_services_frappe_cloud_has_turned_on_and_this_site_knows(self) -> None:
-		self.assertEqual(email_oauth.get_one_click_services(), {"Outlook.com": "Outlook"})
+		self.assertEqual(
+			email_oauth.get_one_click_services(),
+			{"Outlook.com": {"label": "Outlook", "client_id": None}},
+		)
 		self.assertEqual(self.pilot.call_args.args[0], pilot_path("get_active_providers"))
 
 	def test_lists_every_provider_this_site_knows(self) -> None:
-		self.pilot.return_value = ["google", "microsoft", "yahoo", "yandex"]
+		self.pilot.return_value = {"google": "gid", "microsoft": None, "yahoo": None, "yandex": None}
+		self.assertEqual(
+			{s: v["label"] for s, v in email_oauth.get_one_click_services().items()},
+			{"Outlook.com": "Outlook", "GMail": "Gmail", "Yahoo Mail": "Yahoo", "Yandex.Mail": "Yandex"},
+		)
+		self.assertEqual(email_oauth.get_one_click_services()["GMail"]["client_id"], "gid")
+
+	def test_reads_the_provider_list_an_older_frappe_cloud_sends(self) -> None:
+		self.pilot.return_value = ["microsoft"]
 		self.assertEqual(
 			email_oauth.get_one_click_services(),
-			{"Outlook.com": "Outlook", "GMail": "Gmail", "Yahoo Mail": "Yahoo", "Yandex.Mail": "Yandex"},
+			{"Outlook.com": {"label": "Outlook", "client_id": None}},
 		)
 
 	def test_leaves_out_a_provider_frappe_cloud_has_turned_off(self) -> None:
-		self.pilot.return_value = []
+		self.pilot.return_value = {}
 		self.assertEqual(email_oauth.get_one_click_services(), {})
 
 	def test_asks_frappe_cloud_once_for_ten_minutes(self) -> None:
@@ -241,7 +260,7 @@ class TestOneClickServices(IntegrationTestCase):
 		self.assertEqual(email_oauth.get_one_click_services(), {})
 
 		self.pilot.side_effect = None
-		self.assertEqual(email_oauth.get_one_click_services(), {"Outlook.com": "Outlook"})
+		self.assertIn("Outlook.com", email_oauth.get_one_click_services())
 
 	def test_lists_nothing_off_frappe_cloud_or_without_create_permission(self) -> None:
 		with patch.dict(frappe.conf, {key: None for key in V2}):
@@ -595,6 +614,26 @@ class TestCallback(IntegrationTestCase):
 		self.assertEqual(
 			frappe.db.get_value("Email Account", account.name, "connected_app"), account.connected_app
 		)
+		self.assertEqual(frappe.db.count("Connected App"), apps)
+
+	def test_new_mailbox_signed_in_with_another_address_is_not_added(self) -> None:
+		email_oauth.callback(state=self.note(email="One@email-oauth.example.com"), code="c1")
+		self.assertTrue(
+			self.landed().endswith(
+				"?email_oauth=connected&email_oauth_mailbox=One%40email-oauth.example.com&email_oauth_provider=microsoft"
+			)
+		)
+
+		apps = frappe.db.count("Connected App")
+		self.pilot.return_value = token("two@email-oauth.example.com")
+		email_oauth.callback(state=self.note(email="three@email-oauth.example.com"), code="c2")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"?email_oauth=wrong_mailbox&email_oauth_mailbox=three%40email-oauth.example.com&email_oauth_provider=microsoft"
+			)
+		)
+		self.assertFalse(frappe.db.exists("Email Account", {"email_id": "two@email-oauth.example.com"}))
 		self.assertEqual(frappe.db.count("Connected App"), apps)
 
 	def test_cancelled_reconnect_names_the_mailbox(self) -> None:
