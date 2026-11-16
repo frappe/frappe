@@ -585,6 +585,8 @@ frappe.views.TreeView = class TreeView {
 				click: function (node) {
 					frappe.model.delete_doc(me.doctype, node.label, function () {
 						node.parent.remove();
+						me.tree.set_selected_node(node.parent_node);
+						me.tree.select_link(node.parent_node);
 					});
 				},
 				btnClass: "hidden-xs",
