@@ -116,7 +116,9 @@ $list-styles: decimal lower-alpha lower-roman;
 	text-align: left;
 }
 
+/*!rtl:begin:ignore:quill-content*/
 .ql-editor .ql-direction-rtl {
 	direction: rtl;
 	text-align: inherit;
 }
+/*!rtl:end:ignore:quill-content*/
