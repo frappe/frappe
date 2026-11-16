@@ -926,7 +926,7 @@ def get_append_to(
 	# Set Email Append To DocTypes set via Customize Form
 	email_append_to_list.extend(
 		dt.doc_type
-		for dt in frappe.get_list(
+		for dt in frappe.get_all(
 			"Property Setter",
 			filters={"property": "email_append_to", "value": 1},
 			fields=["doc_type"],
