@@ -266,7 +266,7 @@ class WebCrawl(Document):
 				"title": page.title or page.url,
 				"description": page.description,
 				"html": page.html,
-				"meta_tags": page.meta,
+				"meta_tags": frappe.as_json(page.meta) if page.meta else None,
 			}
 		).insert(ignore_permissions=True)
 

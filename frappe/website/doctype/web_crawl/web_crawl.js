@@ -61,7 +61,7 @@ frappe.ui.form.on("Web Crawl", {
 				)
 			);
 		}
-		if (is_manager && frm.doc.pages_crawled) {
+		if (is_manager && !is_running && frm.doc.pages_crawled) {
 			frm.add_custom_button(__("View Results"), () =>
 				frappe.set_route("List", "Web Crawl Result", { web_crawl: frm.doc.name })
 			);
@@ -69,15 +69,21 @@ frappe.ui.form.on("Web Crawl", {
 				frm.change_custom_button_type(__("View Results"), null, "primary");
 			}
 		}
-		frm.toggle_display("results_html", is_manager);
-		if (is_manager) render_results(frm);
+		if (is_manager && !is_running) render_results(frm);
+		else frm.toggle_display("results_html", false);
 	},
 });
 
 function render_results(frm) {
-	// One list per form, so the many refreshes of a load never stack lists.
-	frm.results_list ??= make_results_list(frm);
-	frm.results_list.then((list) => list.refresh());
+	// Reloads only for a new crawl or page count, and shows once loaded, so refreshes never flash it.
+	const key = `${frm.doc.name}:${frm.doc.pages_crawled}`;
+	if (frm.results_key !== key) {
+		frm.results_key = key;
+		frm.toggle_display("results_html", false);
+		frm.results_list ??= make_results_list(frm);
+		frm.results_loaded = frm.results_list.then((list) => list.refresh());
+	}
+	frm.results_loaded.then(() => frm.toggle_display("results_html", true));
 }
 
 function make_results_list(frm) {

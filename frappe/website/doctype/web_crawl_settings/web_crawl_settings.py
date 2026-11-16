@@ -10,20 +10,8 @@ from frappe.web_crawler.limits import CrawlLimits
 
 # More parallel requests from one IP risk bot protection blocking it, for every site on the server.
 SAFE_CONCURRENT_REQUESTS = 5
-
-MUST_BE_POSITIVE = (
-	"max_pages",
-	"concurrent_requests",
-	"max_crawl_time",
-	"page_timeout",
-	"max_page_size",
-	"sitemap_timeout",
-	"max_sitemap_size",
-	"max_markdown_size",
-	"max_robots_size",
-	"max_sitemap_pages",
-	"max_links",
-)
+# Headroom on the suggested crawl time, as the estimate is rough.
+CRAWL_TIME_BUFFER = 1.2
 
 
 class WebCrawlSettings(Document):
@@ -66,11 +54,7 @@ class WebCrawlSettings(Document):
 
 	_DOCTYPE_NAME = "Web Crawl Settings"
 
-	def validate(self):
-		for fieldname in MUST_BE_POSITIVE:
-			if self.get(fieldname) <= 0:
-				label = _(self.meta.get_label(fieldname))
-				frappe.throw(_("{0} must be greater than 0.").format(label), title=_("Invalid value"))
+	def on_update(self):
 		warn_if_crawl_may_stop_early(CrawlLimits.from_settings(settings=self))
 		self.warn_if_many_concurrent_requests()
 
@@ -89,10 +73,28 @@ class WebCrawlSettings(Document):
 def warn_if_crawl_may_stop_early(limits: CrawlLimits):
 	if (estimate := limits.estimated_crawl_time()) <= limits.max_crawl_time:
 		return
+	suggested = ceil(estimate / 60 * CRAWL_TIME_BUFFER)
+	can_raise = frappe.has_permission("Web Crawl Settings", "write")
 	frappe.msgprint(
 		_(
 			"A crawl of {0} pages likely takes about {1} minutes, longer than the maximum crawl time of {2} minutes. It will stop early unless Maximum crawl time is raised in Web Crawl Settings."
 		).format(limits.max_pages, ceil(estimate / 60), limits.max_crawl_time // 60),
 		title=_("Crawl may stop early"),
 		indicator="orange",
+		primary_action={
+			"label": _("Set to {0} minutes").format(suggested),
+			"server_action": "frappe.website.doctype.web_crawl_settings.web_crawl_settings.set_max_crawl_time",
+			"args": {"minutes": suggested},
+			"hide_on_success": True,
+		}
+		if can_raise
+		else None,
 	)
+
+
+@frappe.whitelist(methods=["POST"])
+def set_max_crawl_time(minutes: int):
+	settings = frappe.get_doc("Web Crawl Settings")
+	settings.check_permission("write")
+	settings.max_crawl_time = minutes
+	settings.save()

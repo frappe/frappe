@@ -111,9 +111,10 @@
   },
   {
    "fieldname": "meta_tags",
-   "fieldtype": "JSON",
+   "fieldtype": "Code",
    "label": "Meta tags",
-   "read_only": 1
+   "read_only": 1,
+   "options": "JSON"
   }
  ],
  "grid_page_length": 50,

@@ -34,7 +34,7 @@ class WebCrawlResult(Document):
 		]
 		final_url: DF.SmallText | None
 		html: DF.Code | None
-		meta_tags: DF.JSON | None
+		meta_tags: DF.Code | None
 		status_code: DF.Int
 		title: DF.SmallText | None
 		url: DF.SmallText | None

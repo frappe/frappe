@@ -51,7 +51,8 @@
    "in_list_view": 1,
    "label": "Maximum pages",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "default": "30",
@@ -60,7 +61,8 @@
    "fieldtype": "Int",
    "label": "Maximum crawl time (minutes)",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "fieldname": "column_break_limits",
@@ -93,7 +95,8 @@
    "fieldtype": "Int",
    "label": "Maximum links per page",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "fieldname": "speed_section",
@@ -107,7 +110,8 @@
    "fieldtype": "Int",
    "label": "Concurrent requests",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "fieldname": "column_break_speed",
@@ -142,7 +146,8 @@
    "in_list_view": 1,
    "label": "Page timeout (seconds)",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "default": "5",
@@ -151,7 +156,8 @@
    "fieldtype": "Int",
    "label": "Maximum page size (MB)",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "default": "512",
@@ -160,7 +166,8 @@
    "fieldtype": "Int",
    "label": "Maximum robots.txt size (KB)",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "default": "2",
@@ -181,7 +188,8 @@
    "fieldtype": "Int",
    "label": "Sitemap timeout (seconds)",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "default": "50",
@@ -190,7 +198,8 @@
    "fieldtype": "Int",
    "label": "Maximum sitemap size (MB)",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "default": "2000",
@@ -199,7 +208,8 @@
    "fieldtype": "Int",
    "label": "Maximum pages per sitemap",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "default": "5",
@@ -216,7 +226,8 @@
    "fieldtype": "Int",
    "label": "Maximum Markdown size (KB)",
    "non_negative": 1,
-   "reqd": 1
+   "reqd": 1,
+   "min_value": 1
   },
   {
    "fieldname": "tuning_section",

@@ -5,13 +5,18 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.web_crawler.limits import CrawlLimits
 from frappe.web_crawler.tests.fake_site import allow_domain, block_domain
-from frappe.website.doctype.web_crawl_settings.web_crawl_settings import warn_if_crawl_may_stop_early
+from frappe.website.doctype.web_crawl_settings.web_crawl_settings import (
+	set_max_crawl_time,
+	warn_if_crawl_may_stop_early,
+)
 
 
 class IntegrationTestWebCrawlSettings(IntegrationTestCase):
 	def test_limits_must_be_positive(self):
 		settings = frappe.get_doc("Web Crawl Settings")
 		settings.page_timeout = 0
+		self.assertRaises(frappe.ValidationError, settings.save)
+		settings.page_timeout, settings.concurrent_requests = 10, 0
 		self.assertRaises(frappe.ValidationError, settings.save)
 
 	def test_warns_about_many_concurrent_requests(self):
@@ -32,7 +37,11 @@ class IntegrationTestWebCrawlSettings(IntegrationTestCase):
 			warn_if_crawl_may_stop_early(CrawlLimits.from_settings(300))
 			self.assertEqual(frappe.get_message_log(), [])
 			warn_if_crawl_may_stop_early(CrawlLimits.from_settings())
-		self.assertIn("Crawl may stop early", str(frappe.get_message_log()))
+			warning = frappe.get_message_log()[-1]
+			self.assertEqual(warning["title"], "Crawl may stop early")
+			self.assertEqual(warning["primary_action"]["args"], {"minutes": 40})
+			set_max_crawl_time(40)
+			self.assertEqual(frappe.db.get_single_value("Web Crawl Settings", "max_crawl_time"), 40)
 
 	def test_blocked_domain_covers_its_subdomains(self):
 		block_domain(self, "Blocked.com")
