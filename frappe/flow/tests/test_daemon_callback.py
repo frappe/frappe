@@ -409,13 +409,13 @@ class TestToolCallback(IntegrationTestCase):
 			("run_act", {"call": 3}, {"call": 3}),
 			("run_act", {"call": 0}, {"call": 0}),
 		]
-		for tool, args, sent in calls:
-			with self.subTest(tool, args=args), patch("frappe.publish_realtime") as publish:
-				reply = self.call(tool, args, result_token="t3")
+		for tool_name, args, sent in calls:
+			with self.subTest(tool_name, args=args), patch("frappe.publish_realtime") as publish:
+				reply = self.call(tool_name, args, result_token="t3")
 			self.assertEqual(reply, {"pending": True, "timeout": PAGE_TIMEOUT})
 			publish.assert_called_once_with(
 				PAGE_EVENT,
-				{"session": self.session.name, "token": "t3", "op": tool, "args": sent},
+				{"session": self.session.name, "token": "t3", "op": tool_name, "args": sent},
 				user=OWNER,
 			)
 		self.assertGreater(PAGE_TIMEOUT, SCREEN_TIMEOUT)
