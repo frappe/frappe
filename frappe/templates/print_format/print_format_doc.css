@@ -667,6 +667,9 @@ body.print-format-doc .letter-head,
 	list-style-type: disc;
 	counter-increment: list-item 0;
 }
+.print-format-doc li[data-list="ordered"] {
+	list-style-type: decimal;
+}
 .print-format-doc li[data-list].ql-indent-1 {
 	margin-left: 1.5em;
 	counter-set: list-2 list-3;
