@@ -1240,7 +1240,7 @@ export default class Grid {
 	}
 
 	renumber_based_on_dom() {
-		// renumber based on dom
+		// renumber grid rows based on DOM order
 		let $rows = $(this.parent).find(".rows");
 
 		$rows.find(".grid-row").each((i, item) => {
