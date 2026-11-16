@@ -3,7 +3,7 @@
 import type { Ref } from "vue";
 import { __ } from "@/i18n";
 import type { DialogHandle } from "@/shell/dialogs/readableDialogs";
-import { mapField, fieldsToLayout, resolveLayout } from "@framework/ui/FormLayout";
+import { mapField, fieldsToLayout, NO_VALUE, resolveLayout } from "@framework/ui/FormLayout";
 import type {
   FieldNode,
   FormLayoutSchema,
@@ -116,15 +116,13 @@ export function formData(
   return data;
 }
 
-const DISPLAY_ONLY = ["HTML", "Button", "Heading"];
-
-/** The fields a caller may fill: drawn, editable and not display-only, with `depends_on` resolved against `doc`. */
+/** The fields a caller may fill: drawn, editable and able to hold a value, with `depends_on` resolved against `doc`. */
 function fillableFields(layout: FormLayoutSchema, doc: Record<string, any>): string[] {
   return resolveLayout(layout, doc)
     .filter((tab) => !tab.hidden)
     .flatMap((tab) => tab.sections.filter((section) => !section.hidden))
     .flatMap((section) => section.columns.flatMap((column) => column.fields))
-    .filter((field) => !field.hidden && !field.readOnly && !DISPLAY_ONLY.includes(field.fieldtype))
+    .filter((field) => !field.hidden && !field.readOnly && !NO_VALUE.has(field.fieldtype))
     .map((field) => field.fieldname);
 }
 

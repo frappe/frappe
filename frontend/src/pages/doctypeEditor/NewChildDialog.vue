@@ -83,7 +83,7 @@ const canCreate = computed(
 
 async function create(): Promise<boolean> {
 	const wanted = name.value.trim();
-	if (!canCreate.value || props.staged.includes(wanted)) return false;
+	if (checking.value || !canCreate.value || props.staged.includes(wanted)) return false;
 	checking.value = true;
 	try {
 		const { data } = await listDocuments("DocType", {
