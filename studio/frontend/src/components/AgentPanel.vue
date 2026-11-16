@@ -96,10 +96,7 @@ function copyPrompt() {
 	const app = store.activeApp
 	const skill =
 		"- Install the `studio-app-building` skill from `frappe/frappe` with `npx skills` and read its SKILL.md."
-	const login =
-		`If frappectl is not logged in to this site, stop and ask me to run \`frappectl auth login ${site} --writable\`. ` +
-		"Never create or change users, passwords or API keys yourself."
-	const preview = `- After each change, give me the preview link under \`${site}/dev/${app?.route}\` so I can check the page.`
+	const preview = `- When you finish a task, list the pages you changed with their preview links under \`${site}/dev/${app?.route}\`, so I can check them.`
 
 	const lines = app?.is_standard
 		? [
@@ -108,8 +105,6 @@ function copyPrompt() {
 				"",
 				skill,
 				`- Edit the app's files. Keep \`bench --site ${window.site_name} watch-studio\` running so the site imports your changes.`,
-				"- To read the site's data model, use frappectl. Install it with `uv tool install frappectl` and read `frappectl guide`. " +
-					login,
 				preview,
 			]
 		: [
@@ -117,7 +112,8 @@ function copyPrompt() {
 				"",
 				skill,
 				"- Talk to the site with frappectl. Install it with `uv tool install frappectl` and read `frappectl guide`.",
-				`- ${login}`,
+				`- If frappectl is not logged in to this site, stop and ask me to run \`frappectl auth login ${site} --writable\`. ` +
+					"Never create or change users, passwords or API keys yourself.",
 				preview,
 			]
 	copyToClipboard(lines.join("\n"))
