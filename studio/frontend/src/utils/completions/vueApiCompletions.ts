@@ -2,25 +2,14 @@ import type { Completion, CompletionContext, CompletionResult } from "@codemirro
 import type { EditorView } from "@codemirror/view"
 import type { EditorState } from "@codemirror/state"
 import { syntaxTree } from "@codemirror/language"
-import type { CompletionSource } from "@/types"
-import { vueReactivityApis } from "@/page/pageScope"
 
-// Single source of truth: the Vue APIs injected into interpreted scripts are also the ones we
-// suggest (and auto-import) in code files.
-const VUE_API_NAMES = Object.keys(vueReactivityApis)
-
-// Interpreted page script: the APIs are injected into its scope, so completion just inserts a call.
-export function vueApiSources(): CompletionSource[] {
-	return VUE_API_NAMES.map((name) => ({
-		item: undefined,
-		completion: {
-			label: name,
-			type: "function",
-			detail: "Vue API",
-			apply: insertCall(name),
-		},
-	}))
-}
+// These Vue exports appear in completions. Page scripts can still import other Vue exports.
+const VUE_API_NAMES = [
+	"ref", "reactive", "computed", "watch", "watchEffect",
+	"toRef", "toRefs", "unref", "isRef", "isReactive",
+	"shallowRef", "readonly", "markRaw", "nextTick",
+	"onMounted", "onBeforeMount", "onBeforeUnmount", "onUnmounted",
+]
 
 // Code files (.ts/.js/.vue): insert the call and add `import { name } from "vue"` if it's missing.
 export function vueImportCompletions(context: CompletionContext): CompletionResult | null {
@@ -37,16 +26,6 @@ export function vueImportCompletions(context: CompletionContext): CompletionResu
 			}),
 		),
 		validFor: /^\w*$/,
-	}
-}
-
-function insertCall(name: string) {
-	return (view: EditorView, _completion: Completion, from: number, to: number) => {
-		const insert = `${name}()`
-		view.dispatch({
-			changes: { from, to, insert },
-			selection: { anchor: from + insert.length - 1 }, // cursor inside the parentheses
-		})
 	}
 }
 

@@ -873,7 +873,7 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 	"""Check if SQL query is safe for running in restricted context.
 
 	Safe queries:
-	        1. Read only 'select' or 'explain' queries
+	        1. Read only 'select' or 'explain' (without analyze) queries
 	        2. That do not read __Auth (password hashes and encrypted secrets)
 	"""
 
@@ -882,6 +882,10 @@ def check_safe_sql_query(query: str, throw: bool = True) -> bool:
 
 	# match the keyword alone: comments and executable comments can separate it from INTO
 	if re.search(r"outfile|dumpfile", query) or not query.startswith(whitelisted_statements):
+		return _reject_sql_query(_("Read-Only queries are allowed"), throw)
+
+	# postgres runs the statement that EXPLAIN ANALYZE explains
+	if query.startswith("explain") and re.search(r"analy[sz]e", query):
 		return _reject_sql_query(_("Read-Only queries are allowed"), throw)
 
 	if "__auth" in query:

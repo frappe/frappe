@@ -109,6 +109,7 @@ async function open_picker_on_leftover_rows(desk, seed) {
 	await expect(desk.page.locator(CANVAS)).toBeAttached();
 
 	await desk.fill_field("doc_type", "ToDo", "Link");
+	await expect.poll(() => desk.page.evaluate(() => cur_frm.doc.doc_type)).toBe("ToDo");
 	await desk.click_custom_action_button("Get Fields");
 	await expect(picker(desk)).toBeVisible();
 }

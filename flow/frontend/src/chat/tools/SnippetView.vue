@@ -1,5 +1,5 @@
 <template>
-	<div v-if="!groups.length" class="px-3 py-2.5 text-sm text-ink-gray-5">No matches</div>
+	<div v-if="!groups.length" class="px-3 py-2.5 text-sm text-ink-gray-5">{{ __("No matches") }}</div>
 	<div v-else class="flex max-h-[260px] flex-col gap-3 overflow-auto px-3 py-2.5">
 		<div v-for="(group, i) in groups" :key="i">
 			<div class="mb-1 truncate text-xs-medium text-ink-gray-5">{{ group.title }}</div>
@@ -16,6 +16,7 @@
 
 <script setup>
 import { computed } from "vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { parseResult } from "./result.js";
 

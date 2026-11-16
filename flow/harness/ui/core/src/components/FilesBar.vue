@@ -14,7 +14,7 @@
 				v-if="mode === 'diff'"
 				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-sm-medium text-ink-gray-5"
 			>
-				{{ gitFiles.length }} {{ gitFiles.length === 1 ? "file" : "files" }} changed
+				{{ gitFiles.length === 1 ? __("1 file changed") : __("{0} files changed", [gitFiles.length]) }}
 			</div>
 			<div v-if="mode === 'files'" class="flex-none px-1.5 pt-1.5">
 				<div
@@ -24,14 +24,14 @@
 					<input
 						ref="searchInput"
 						v-model="fileQuery"
-						placeholder="Search files"
+						:placeholder="__('Search files')"
 						spellcheck="false"
 						class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 					/>
 					<button
 						v-if="fileQuery"
 						class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:text-ink-gray-8"
-						title="Clear"
+						:title="__('Clear')"
 						@click="fileQuery = ''"
 					>
 						<span class="lucide-x size-3" aria-hidden="true" />
@@ -68,17 +68,17 @@
 						<span class="flex-none font-mono text-xs text-ink-red-6">-{{ file.removed }}</span>
 					</div>
 					<div v-if="changes && !changes.root" class="px-1.5 py-2 text-xs text-ink-gray-4">
-						Not a git repository
+						{{ __("Not a git repository") }}
 					</div>
 					<div v-else-if="changes && !gitFiles.length" class="px-1.5 py-2 text-xs text-ink-gray-4">
-						No uncommitted changes
+						{{ __("No uncommitted changes") }}
 					</div>
 					<LoadingState v-else-if="changesPending" class="px-1.5 py-2 text-xs text-ink-gray-4" />
 				</template>
 				<!-- searching: a pruned tree of matches only, branches open until folded -->
 				<template v-else-if="searchActive">
 					<LoadingState v-if="searchMatches === null" class="px-1.5 py-2 text-xs text-ink-gray-4">
-						Searching…
+						{{ __("Searching…") }}
 					</LoadingState>
 					<template v-else>
 						<template v-for="row in searchRows" :key="row.path">
@@ -118,10 +118,10 @@
 							</div>
 						</template>
 						<div v-if="!searchRows.length" class="px-1.5 py-2 text-xs text-ink-gray-4">
-							No matches
+							{{ __("No matches") }}
 						</div>
 						<div v-else-if="searchTruncated" class="px-1.5 py-2 text-xs text-ink-gray-4">
-							More matches not shown — narrow the search
+							{{ __("More matches not shown — narrow the search") }}
 						</div>
 					</template>
 				</template>
@@ -129,7 +129,7 @@
 				<div v-if="mode === 'files' && rootDir" v-show="!searchActive">
 					<FileTree v-for="entry in rootEntries" :key="entry.name" :entry="entry" :dir="rootDir" />
 					<div v-if="!rootEntries.length" class="px-1.5 py-2 text-xs text-ink-gray-4">
-						Empty folder
+						{{ __("Empty folder") }}
 					</div>
 				</div>
 				<LoadingState
@@ -140,7 +140,7 @@
 		</div>
 		<div
 			class="absolute inset-y-0 left-0 z-10 w-1 cursor-col-resize hover:bg-[--outline-gray-2] active:bg-[--outline-gray-3]"
-			title="Drag to resize"
+			:title="__('Drag to resize')"
 			@pointerdown="startResize"
 		/>
 	</div>
@@ -153,6 +153,7 @@ import { useDebouncedValue } from "../debounce.js"
 import { layout } from "../layout.js"
 import { afterMenu } from "../menu.js"
 import { fileName } from "../transcript.js"
+import { __ } from "../translate.js"
 import FileTree from "./FileTree.vue"
 import LoadingState from "./LoadingState.vue"
 

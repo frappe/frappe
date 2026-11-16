@@ -24,16 +24,18 @@ const props = defineProps({
 	unit: { type: String, default: "" },
 	placeholder: { type: String, default: "" },
 	allowEmpty: { type: Boolean, default: false },
+	decimals: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue"]);
 
 function adjust(delta) {
 	const current = props.modelValue ?? props.base;
-	emit("update:modelValue", Math.max(props.min, current + delta));
+	const next = props.decimals ? Math.round((current + delta) * 10) / 10 : current + delta;
+	emit("update:modelValue", Math.max(props.min, next));
 }
 
 function on_input(v) {
-	const n = parseInt(v);
+	const n = props.decimals ? Math.round(parseFloat(v) * 10) / 10 : parseInt(v);
 	if (isNaN(n)) {
 		emit("update:modelValue", props.allowEmpty ? null : 0);
 		return;

@@ -26,7 +26,7 @@
 				</button>
 			</div>
 			<div v-if="recent.length" class="flex flex-col gap-px">
-				<p class="flex h-7 items-center px-2 text-sm-medium text-ink-gray-4">Chat</p>
+				<p class="flex h-7 items-center px-2 text-sm-medium text-ink-gray-4">{{ __("Chat") }}</p>
 				<button
 					v-for="s in recent"
 					:key="s.session_id"
@@ -47,6 +47,7 @@ import HoverCard from "frappe-ui/src/components/HoverCard/HoverCard.vue"
 import KeyboardShortcut from "frappe-ui/src/components/KeyboardShortcut/KeyboardShortcut.vue"
 
 import { layout } from "../layout.js"
+import { __ } from "../translate.js"
 import BrandMark from "./BrandMark.vue"
 
 // The sidebar while it's hidden: hovering its button floats the essentials and the latest chats
@@ -62,10 +63,10 @@ const RECENT = 8
 const recent = computed(() => flow.state.sessions.slice(0, RECENT))
 
 const items = computed(() => [
-	{ label: "New chat", icon: "lucide-plus", combo: "Mod+Shift+O", onClick: () => switchTo(() => flow.startNewChat()) },
+	{ label: __("New chat"), icon: "lucide-plus", combo: "Mod+Shift+O", onClick: () => switchTo(() => flow.startNewChat()) },
 	// the sidebar owns the search palette; it opens over the page with the sidebar left hidden
-	{ label: "Search", icon: "lucide-search", combo: "Mod+K", onClick: () => window.dispatchEvent(new CustomEvent("flow-search")) },
-	{ label: "Settings", icon: "lucide-settings", onClick: () => flow.setSettingsOpen(true) },
+	{ label: __("Search"), icon: "lucide-search", combo: "Mod+K", onClick: () => window.dispatchEvent(new CustomEvent("flow-search")) },
+	{ label: __("Settings"), icon: "lucide-settings", onClick: () => flow.setSettingsOpen(true) },
 	...props.menu,
 ])
 

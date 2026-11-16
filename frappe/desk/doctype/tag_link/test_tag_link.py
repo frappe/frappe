@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.desk.doctype.tag.tag import add_tag, remove_tag
+from frappe.desk.doctype.tag_link.tag_link import has_tags
 from frappe.desk.form.load import get_tags
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import queued_docinfo_updates
@@ -59,6 +60,16 @@ class TestTagLink(IntegrationTestCase):
 		)
 		for update in updates:
 			self.assertEqual(update["doc"]["reference_name"], todo.name)
+
+	def test_first_tag_invalidates_cached_absence(self):
+		frappe.db.delete("Tag Link", {"document_type": "ToDo"})
+		frappe.client_cache.delete_value("doctype_has_tags::ToDo")
+		self.assertFalse(has_tags("ToDo"))
+
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Tag cache"}).insert()
+		add_tag("Tag Cache", "ToDo", todo.name)
+
+		self.assertTrue(has_tags("ToDo"))
 
 
 def tag_rows(name: str) -> list[str]:

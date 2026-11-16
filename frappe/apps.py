@@ -186,7 +186,7 @@ def get_installed_apps(*, _ensure_on_bench: bool = False) -> list[str]:
 		return []
 
 	if not frappe.db:
-		frappe.connect()
+		frappe.connect(set_admin_as_user=False)
 
 	installed = orjson.loads(frappe.db.get_global("installed_apps") or "[]")
 
@@ -204,7 +204,7 @@ def get_disabled_apps() -> list[str]:
 		return []
 
 	if not frappe.db:
-		frappe.connect()
+		frappe.connect(set_admin_as_user=False)
 
 	return orjson.loads(frappe.db.get_global("disabled_apps") or "[]")
 

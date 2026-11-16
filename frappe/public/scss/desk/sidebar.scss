@@ -175,7 +175,7 @@
 			// `text-sm` in full, not just its size: the tracking and the weight used to come from
 			// whatever the page was set in, which is 14px's tracking worn by 13px text.
 			font-size: var(--text-sm);
-			line-height: 1.15;
+			line-height: normal;
 			font-weight: var(--font-weight-regular);
 			letter-spacing: 0.02em;
 			display: block;
@@ -194,7 +194,7 @@
 		// rows' own 13px.
 		.section-break .sidebar-item-label {
 			font-size: var(--text-base);
-			line-height: 1.15;
+			line-height: normal;
 			letter-spacing: 0.02em;
 		}
 
@@ -263,7 +263,7 @@
 
 		span {
 			font-size: var(--text-md);
-			line-height: 1.15;
+			line-height: normal;
 			font-weight: var(--font-weight-medium);
 			letter-spacing: 0.015em;
 			color: var(--ink-gray-8);

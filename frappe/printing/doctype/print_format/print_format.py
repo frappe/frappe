@@ -53,6 +53,7 @@ class PrintFormat(Document):
 		absolute_value: DF.Check
 		align_labels_right: DF.Check
 		classic_format_data: DF.Code | None
+		converted_from: DF.Data | None
 		css: DF.Code | None
 		custom_format: DF.Check
 		default_print_language: DF.Link | None
@@ -368,6 +369,9 @@ class PrintFormat(Document):
 			},
 			"value",
 			new,
+		)
+		frappe.db.set_value(
+			"Print Format", {"converted_from": old}, "converted_from", new, update_modified=False
 		)
 
 	def export_doc(self):

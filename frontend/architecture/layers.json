@@ -1158,6 +1158,32 @@
     "ui/src/components/EmailAccounts/useEmailAccounts.ts": [
       "useEmailAccounts",
       "useOneClick"
+    ],
+    "ui/src/components/SetupFlow/ChoiceStep.vue": [
+      "ChoiceStep"
+    ],
+    "ui/src/components/SetupFlow/ListStep.vue": [
+      "ListStep"
+    ],
+    "ui/src/components/SetupFlow/PasswordStep.vue": [
+      "PasswordStep",
+      "PasswordStepLabels"
+    ],
+    "ui/src/components/SetupFlow/SetupFlow.vue": [
+      "SetupFlow"
+    ],
+    "ui/src/components/SetupFlow/TelemetryConsent.vue": [
+      "TelemetryConsent"
+    ],
+    "ui/src/components/SetupFlow/types.ts": [
+      "ChoiceOption",
+      "ChoiceValue",
+      "ListOption",
+      "SetupFlowLabels",
+      "SetupFlowProps",
+      "SetupFlowResult",
+      "SetupStep",
+      "SetupStepSlotProps"
     ]
   },
   "flowEntries": [

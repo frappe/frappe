@@ -67,6 +67,13 @@ PAGE_NUMBER_POSITIONS = {
 	"Bottom Right": ("footer", "right"),
 }
 
+PAGE_NUMBER_TOKEN = re.compile(r"\{(page|page_count)\}")
+# the semicolon ends the expression, so text right after a token such as "(" stays text
+PAGE_NUMBER_COUNTERS = {
+	"page": '#context counter(page).display("1");',
+	"page_count": "#context counter(page).final().first();",
+}
+
 RIGHT_ALIGNED_FIELDTYPES = frozenset({"Currency", "Float", "Int", "Percent"})
 
 #: color keywords valid in both CSS and Typst — any other name is a blocker,
@@ -615,6 +622,7 @@ class TypstEmitter:
 		in_page_header = bool(repeat_header_footer and self.header_src)
 		in_page_footer = bool(repeat_header_footer and self.footer_src)
 		lines = [
+			f"#set document(title: {q(f'{self.doc.doctype}: {self.doc.name}')})",
 			self._page_setup(
 				header_zone=self.header_src if in_page_header else None,
 				footer_zone=self.footer_src if in_page_footer else None,
@@ -945,6 +953,7 @@ class TypstEmitter:
 
 	def _field_body(self, section, df) -> str:
 		fieldtype = df.get("fieldtype") or "Data"
+		in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
 		if fieldtype == "Typst":
 			return self._typst_block(df)
 		if fieldtype == "Divider":
@@ -953,7 +962,6 @@ class TypstEmitter:
 			height = frappe.utils.flt(df.get("height")) or 13
 			return f"#v({pt(height)}pt)"
 		if fieldtype == "Table":
-			in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
 			return self._table(df, keep_together=section.get("keep_together") or in_zone)
 		if fieldtype == "Barcode":
 			return self._barcode(df)
@@ -971,14 +979,18 @@ class TypstEmitter:
 		if fieldtype == "Repeater":
 			return self._repeater(df)
 		if fieldtype == "Static Text":
-			return self._static_text(df)
+			return self._static_text(df, in_zone)
 		return self._data_field(section, df)
 
-	def _static_text(self, df) -> str:
+	def _static_text(self, df: dict, in_zone: bool = False) -> str:
 		text = (df.get("_text") if "_text" in df else _(df.get("text") or "")).strip()
 		if not text:
 			return ""
-		out = self._text_props(df, typst_escape(text).replace("\n", " \\\n"))
+		parts = PAGE_NUMBER_TOKEN.split(text) if in_zone else [text]
+		markup = "".join(
+			PAGE_NUMBER_COUNTERS[part] if i % 2 else typst_escape(part) for i, part in enumerate(parts)
+		)
+		out = self._text_props(df, markup.replace("\n", " \\\n"))
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out
@@ -1371,14 +1383,26 @@ class TypstEmitter:
 				fieldname = mf.get("fieldname")
 				if not fieldname or mf.get("fieldtype") in MERGE_IMAGE_FIELDTYPES:
 					continue
-				value = _text_value(format_field_value(row, mf))
-				if not value:
+				raw = format_field_value(row, mf)
+				value = _text_value("" if raw is None else str(raw))
+				if not value.strip():
 					continue
+				label = ""
+				if mf.get("show_label"):
+					doctype = row.get("doctype")
+					label = (
+						_(frappe.get_meta(doctype).get_label(fieldname) or fieldname, context=doctype) + ":"
+					)
 				if first_text:
-					lines.append(f"#text(weight: 500, {q(value)})")
+					line = f"#text(weight: 500, {q(value)})"
+					if label:
+						line = f"#text(weight: 600, {q(label)}) {line}"
 					first_text = False
 				else:
-					lines.append(muted_text(value))
+					line = muted_text(value)
+					if label:
+						line = f'#text(size: 0.85em, weight: 600, fill: rgb("{MUTED}"), {q(label)}) {line}'
+				lines.append(line)
 			if not lines:
 				body = ""
 			elif len(lines) == 1:

@@ -1,3 +1,5 @@
+import { __ } from "@flow/ui-core/translate.js";
+
 // The daemon's user_message keeps the whole text a turn sent it: the typed message plus
 // the attachment, excerpt and memory blocks Flow appended. The bubble shows the message,
 // with the files as chips.
@@ -23,14 +25,28 @@ export function cleanUserText(text) {
 	return { text: value, files };
 }
 
+export const CREDIT_SPENT =
+	__("Your free AI credits are used up. Grove is coming soon. Until then, connect another provider.");
+export const CREDIT_EXPIRED =
+	__("Your free AI credits have expired. Grove is coming soon. Until then, connect another provider.");
+const SITE_KEY_ENDED = { 401: CREDIT_EXPIRED, 402: CREDIT_SPENT };
+
 // `fileId` names the staged File behind a chip, so a steered message the composer is
 // still showing as queued matches its durable row; `modelName` maps a provider model id
-// to the Flow Model the page speaks in.
+// to the Flow Model the page speaks in; `onSiteKey` says the chat's model is Grove's, whose
+// gateway answers 402 once the site's free credits are spent and 401 once its key is
+// revoked. `settings_tab` is where the page links an error to.
 export function presentEvent(
 	event,
-	{ fileId = (name, fallback) => fallback ?? `file:${name}`, modelName = (id) => id } = {}
+	{
+		fileId = (name, fallback) => fallback ?? `file:${name}`,
+		modelName = (id) => id,
+		onSiteKey = () => false,
+	} = {}
 ) {
 	if (event.type === "model_changed") return { ...event, model: modelName(event.model) };
+	if (event.type === "run_error" && SITE_KEY_ENDED[event.status_code] && onSiteKey())
+		return { ...event, message: SITE_KEY_ENDED[event.status_code], settings_tab: "models" };
 	if (event.type === "user_message")
 		return { ...event, content: presentUserContent(event.content, fileId) };
 	return event;

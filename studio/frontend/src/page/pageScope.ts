@@ -1,19 +1,18 @@
 import {
-	ref, computed, watch, watchEffect, reactive, toRef, toRefs, unref,
-	isRef, isReactive, shallowRef, readonly, markRaw, nextTick, effectScope,
-	type ComputedRef, type EffectScope, type WatchStopHandle, h,
+	ref, computed, watch, reactive, toRefs, unref, isRef, shallowRef,
+	type ComputedRef, type WatchStopHandle, h,
 } from "vue"
-import { watchDebounced } from "@vueuse/core"
 import { createDocumentResource, createListResource, createResource, call } from "frappe-ui"
 import { studioPageResources } from "@/data/studioResources"
 import { studioVariables } from "@/data/studioVariables"
-import { loadPageScriptModule } from "@/data/studioPageScripts"
+import { hasBuiltPageScript, loadBuiltPageScript } from "@/data/studioPageScripts"
+import { compilePageScript } from "@/browserRuntime/appRuntime"
 import * as globalUtils from "@/utils/globalUtils"
 import { useSocket } from "@/socket"
 import { getInitialVariableValue, getValueFromObject, setValueInObject } from "@/utils/helpers"
 import { isDynamicValue, normalizeDynamicValue } from "@/utils/code"
 import { DYNAMIC_EXPRESSION_CONTENT_REGEX } from "@/utils/constants"
-import { isFunctionExpression, toOptionalChaining, getTopLevelBindings } from "@/utils/parseCode"
+import { isFunctionExpression, toOptionalChaining } from "@/utils/parseCode"
 import type {
 	Filters,
 	Resource,
@@ -27,12 +26,6 @@ import type { Variable } from "@/types/Studio/StudioPageVariable"
 import type { ExpressionEvaluationContext } from "@/types"
 import type { Ref } from "vue"
 import type { Router, RouteLocationNormalized } from "vue-router"
-
-export const vueReactivityApis = {
-	ref, reactive, computed, watch, watchEffect, watchDebounced,
-	toRef, toRefs, unref, isRef, isReactive,
-	shallowRef, readonly, markRaw, nextTick,
-}
 
 // One page's data: resources, variables, page script and the contexts bindings evaluate against
 export function createPageScope(
@@ -53,7 +46,9 @@ export function createPageScope(
 	})
 	const pageScriptError = ref<string | null>(null)
 	const currentPageName = ref<string | null>(null)
-	let pageScriptScope: EffectScope | null = null
+	const pageSetup = shallowRef<Function | null>(null)
+	const pageScriptVersion = ref(0)
+	const pageScriptReady = ref(false)
 	let resourceWatchers: WatchStopHandle[] = []
 
 	// RESOURCES
@@ -333,7 +328,9 @@ export function createPageScope(
 
 	function teardownPage() {
 		stopResourceWatchers()
-		disposePageScriptScope()
+		// Changing the setup version unmounts the host and cleans up the script's effects.
+		setPageSetup(null)
+		pageScriptLoaded = false
 	}
 
 	// VARIABLES
@@ -377,97 +374,70 @@ export function createPageScope(
 	}
 
 	// PAGE SCRIPT
-	async function setPageScript(page: StudioPage, isStandardPage: boolean = false) {
-		disposePageScriptScope()
+	// Load a setup(context) module from the app build or compile page.script in the browser.
+	// PageScriptHost calls setup() later, during component setup, so Vue lifecycle hooks work.
+	async function loadPageScript(page: StudioPage) {
+		currentPageName.value = page.name
+		pageScriptLoaded = false
+		try {
+			setPageSetup((await loadPageSetupModule(page))?.default)
+		} catch (error) {
+			setPageSetup(null)
+			reportPageScriptError(error)
+		}
+		pageScriptLoaded = true
+	}
+
+	async function loadPageSetupModule(page: StudioPage): Promise<Record<string, any> | null> {
+		if (hasBuiltPageScript(page.name)) return loadBuiltPageScript(page.name)
+		if (!page.script?.trim()) return null
+		return compilePageScript(page)
+	}
+
+	// Changing the version remounts the host, cleaning up the previous script before running the new one.
+	function setPageSetup(setup: unknown) {
+		pageSetup.value = typeof setup === "function" ? (setup as Function) : null
 		pageScriptBindings.value = {}
 		pageScriptError.value = null
-		currentPageName.value = page.name
-
-		if (isStandardPage) {
-			pageScriptBindings.value = await loadCodePageScript(page.name)
-			return
-		}
-
-		// Non-exported app: interpret the page.script field (live, no imports).
-		const source = page.script || ""
-		if (!source.trim()) return
-		const bindingNames = getTopLevelBindings(source)
-		pageScriptBindings.value = compilePageScript(source, bindingNames)
+		reportedBindingErrors.clear()
+		pageScriptReady.value = false
+		pageScriptVersion.value++
 	}
 
-	function disposePageScriptScope() {
-		pageScriptScope?.stop()
-		pageScriptScope = null
-	}
+	// PageScriptHost calls this during component setup with live resources, variables and routing.
+	// Hooks and effects registered synchronously belong to that host. After an await, the page
+	// script no longer has an active component instance for automatic registration and cleanup.
+	function runPageSetup() {
+		const setup = pageSetup.value
+		const version = pageScriptVersion.value
+		if (!setup) return applyPageScriptBindings({}, version)
 
-	async function loadCodePageScript(pageName: string): Promise<Record<string, any>> {
-		const mod = await loadPageScriptModule(pageName)
-		return runPageScriptSetup(mod?.default)
-	}
-
-	// Run a compiled page setup() in a fresh effect scope and return its top-level bindings. Shared
-	// by initial load and HMR: on a hot update we already hold the new module, so we re-run its
-	// setup directly instead of re-importing.
-	async function runPageScriptSetup(setup: unknown): Promise<Record<string, any>> {
-		disposePageScriptScope()
-		if (typeof setup !== "function") return {}
 		try {
-			// setup(ctx) gets the live execution context (resources/variables/route/router) and may
-			// be async (e.g. awaiting a resource fetch). Effects (watch/computed) created BEFORE the
-			// first await are owned by the page scope; declare them before awaiting so they're
-			// disposed on navigation.
-			const bindings = runInPageScriptScope(() => (setup as Function)(scriptContext.value))
-			return (await bindings) || {}
+			const bindings = setup(scriptContext.value)
+			if (bindings instanceof Promise) {
+				bindings.then(
+					(resolved) => applyPageScriptBindings(resolved, version),
+					(error) => failPageScript(error, version),
+				)
+			} else {
+				applyPageScriptBindings(bindings, version)
+			}
 		} catch (error) {
-			reportPageScriptError(error)
-			return {}
+			failPageScript(error, version)
 		}
 	}
 
-	function runInPageScriptScope(run: () => any): any {
-		// Reactive effects (watch/watchEffect/computed) created synchronously during `run` are
-		// owned by this scope so they're disposed on the next navigation / recompile.
-		pageScriptScope = effectScope(true)
-		let result: any
-		pageScriptScope.run(() => {
-			try {
-				result = run()
-			} catch (error) {
-				reportPageScriptError(error)
-			}
-		})
-		return result
+	// Ignore async results from a script that has already been replaced.
+	function applyPageScriptBindings(bindings: unknown, version: number) {
+		if (version !== pageScriptVersion.value) return
+		pageScriptBindings.value = (bindings as Record<string, any>) || {}
+		pageScriptReady.value = true
 	}
 
-	function compilePageScript(source: string, bindingNames: string[]) {
-		// Run the page script source once, like a Vue `<script setup>`, and return every top-level
-		// binding (refs/reactive/computed/functions/classes). Free identifiers resolve through a
-		// proxy over the LIVE execution context, so the script sees the Vue reactivity APIs and
-		// variables/resources/modules — including ones registered a tick later. The source is
-		// always run (even with no named bindings) so watcher-only scripts still take effect.
-		const liveContext = new Proxy(
-			{},
-			{
-				has(_target, key) {
-					// let globals (console, Function, …) fall through to the outer scope
-					if (key === Symbol.unscopables) return false
-					return key in interpretedScriptContext.value
-				},
-				get(_target, key) {
-					return (interpretedScriptContext.value as Record<string | symbol, any>)[key]
-				},
-			},
-		)
-		return runInPageScriptScope(() => {
-			const factory = new Function(
-				"context",
-				`with (context) {
-					${source}
-					return { ${bindingNames.join(", ")} };
-				}`,
-			)
-			return factory(liveContext)
-		}) || {}
+	function failPageScript(error: unknown, version: number) {
+		if (version !== pageScriptVersion.value) return
+		reportPageScriptError(error)
+		pageScriptReady.value = true
 	}
 
 	function reportPageScriptError(error: unknown) {
@@ -475,13 +445,10 @@ export function createPageScope(
 		pageScriptError.value = error instanceof Error ? error.message : String(error)
 	}
 
-	// HMR: this page's script (or a composable/util it imports) was edited. Re-run its setup
-	// with the freshly hot-loaded module so new refs/computed and changed dependency code take
-	// effect without a reload.
-	async function applyPageScriptHotUpdate(pageName: string, setup: unknown) {
+	// Hot updates replace setup and remount its host without reloading the page.
+	function applyPageScriptHotUpdate(pageName: string, setup: unknown) {
 		if (currentPageName.value !== pageName) return
-		pageScriptError.value = null
-		pageScriptBindings.value = await runPageScriptSetup(setup)
+		setPageSetup(setup)
 	}
 
 	// SCRIPT CONTEXTS
@@ -509,14 +476,6 @@ export function createPageScope(
 			socket: useSocket(),
 			route: currentRoute,
 			router: routerObject.value,
-		}
-	})
-
-	// for non-standard pages: scriptContext + vueReactivityApis since it can't import them
-	const interpretedScriptContext = computed(() => {
-		return {
-			...vueReactivityApis,
-			...scriptContext.value,
 		}
 	})
 
@@ -626,6 +585,8 @@ export function createPageScope(
 		return value
 	}
 
+	let pageScriptLoaded = false
+	const reportedBindingErrors = new Set<string>()
 	function evaluateExpression(expression: string, localContext: ExpressionEvaluationContext) {
 		try {
 			const context = { ...evalContext.value, ...localContext }
@@ -635,17 +596,20 @@ export function createPageScope(
 			// Create a function that takes the context as an argument
 			const func = new Function('context', `
 				with (context || {}) {
-					try {
-						return ${safeExpression};
-					} catch (e) {
-						return undefined;
-					}
+					return ${safeExpression};
 				}
 			`)
 
 			return func(context)
 		} catch (error) {
-			console.error(`Error evaluating expression: ${expression}`, error)
+			// Bindings also run before the page script has loaded and returned its values, so a
+			// failure then is not a mistake. A binding runs on every render, so report each
+			// failure once.
+			const failure = `${expression}\n${error}`
+			if (pageScriptLoaded && pageScriptReady.value && !reportedBindingErrors.has(failure)) {
+				reportedBindingErrors.add(failure)
+				console.error(`Error evaluating expression: ${expression}`, error)
+			}
 			return undefined
 		}
 	}
@@ -768,12 +732,14 @@ export function createPageScope(
 		pageScriptBindings,
 		pageScriptTemplateBindings,
 		pageScriptError,
-		setPageScript,
+		pageScriptVersion,
+		pageScriptReady,
+		loadPageScript,
+		runPageSetup,
 		applyPageScriptHotUpdate,
 		// code execution
 		evalContext,
 		scriptContext,
-		interpretedScriptContext,
 		getDynamicValue,
 		evaluateDynamicValues,
 		executeUserScript,
