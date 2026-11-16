@@ -11,6 +11,7 @@ from frappe.studio.doctype.studio_app.test_studio_app import (
 	make_studio_page,
 )
 from frappe.studio.doctype.studio_page.studio_page import get_blocks
+from frappe.studio.tests.test_permissions import make_studio_user
 from frappe.tests import IntegrationTestCase
 
 COMPONENT_SCRIPT = 'export default {\n\tprops: { title: String },\n\temits: ["select"],\n}\n'
@@ -87,7 +88,7 @@ class TestStudioComponent(IntegrationTestCase):
 
 	def test_a_component_in_use_cannot_be_deleted(self):
 		app = make_studio_app(app_name="uses-" + frappe.generate_hash(length=10))
-		card = frappe.get_doc(doctype="Studio Component", component_name="Card", studio_app=app.name).insert()
+		card = frappe.get_doc(doctype="Studio Component", component_name="Card").insert()
 		use_card = {"componentName": card.component_id, "isStudioComponent": True, "children": []}
 		card_list = frappe.get_doc(
 			doctype="Studio Component", component_name="Card List", studio_app=app.name, block=use_card
@@ -100,6 +101,17 @@ class TestStudioComponent(IntegrationTestCase):
 			card.delete()
 		self.assertIn("Card List (component)", str(error.exception))
 		self.assertIn(f"{page.page_title} (page)", str(error.exception))
+
+		# a user who cannot read the page gets no title, and the delete is refused all the same
+		other_app = make_studio_app(app_name="other-" + frappe.generate_hash(length=10))
+		frappe.permissions.add_user_permission(
+			"Studio App", other_app.name, make_studio_user("limited@example.com")
+		)
+		with self.set_user("limited@example.com"):
+			self.assertEqual(card.get_usages(), [None, None])
+			with self.assertRaises(frappe.LinkExistsError) as error:
+				card.delete()
+			self.assertIn("is used in: 2 places that you cannot access.", str(error.exception))
 
 		page.draft_blocks = "[]"
 		page.save()

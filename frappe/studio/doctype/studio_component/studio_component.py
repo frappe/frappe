@@ -118,7 +118,7 @@ class StudioComponent(Document):
 		moved = frappe.copy_doc(self)
 		moved.studio_app = studio_app
 		moved.insert()
-		is_global_kept = bool(studio_app) and bool(self.get_users())
+		is_global_kept = bool(studio_app) and bool(self.get_usages())
 		if not is_global_kept:
 			# the moved component takes over the files and the blocks that use the id
 			self.flags.is_moved = True
@@ -128,29 +128,41 @@ class StudioComponent(Document):
 		return {"name": moved.name, "is_global_kept": is_global_kept}
 
 	@frappe.whitelist()
-	def get_users(self) -> list[str]:
-		"""Titles of the pages and components that have a block which still means this component."""
+	def get_usages(self) -> list[str | None]:
+		"""Titles of the pages and components that have a block which still means this component.
+		The title is None for one that the user cannot read."""
 		self.check_permission("read")
-		users = []
+		usages = []
 		for component in self.get_referencing_docs("Studio Component", self.component_id):
 			title, block = frappe.db.get_value("Studio Component", component, ["component_name", "block"])
 			if self.is_in_blocks(block):
-				users.append(_("{0} (component)").format(title))
+				can_read = frappe.has_permission("Studio Component", "read", doc=component)
+				usages.append(_("{0} (component)").format(title) if can_read else None)
 		for page in self.get_referencing_docs("Studio Page", self.component_id):
 			title, *trees = frappe.db.get_value("Studio Page", page, ["page_title", "blocks", "draft_blocks"])
 			if any(self.is_in_blocks(tree) for tree in trees):
-				users.append(_("{0} (page)").format(title))
-		return users
+				can_read = frappe.has_permission("Studio Page", "read", doc=page)
+				usages.append(_("{0} (page)").format(title) if can_read else None)
+		return usages
 
 	def is_in_blocks(self, tree: str | None) -> bool:
 		return bool(tree) and self.component_id in extract_component_names(tree)
 
 	def validate_not_used(self):
-		users = self.get_users()
-		if users:
+		usages = self.get_usages()
+		titles = [title for title in usages if title]
+		if hidden := len(usages) - len(titles):
+			if titles:
+				text = _("and {0} more that you cannot access")
+			elif hidden == 1:
+				text = _("{0} place that you cannot access")
+			else:
+				text = _("{0} places that you cannot access")
+			titles.append(text.format(hidden))
+		if usages:
 			frappe.throw(
 				_("{0} is used in: {1}. Remove it from there first.").format(
-					self.component_name, ", ".join(users)
+					self.component_name, ", ".join(titles)
 				),
 				title=_("Component not deleted"),
 				exc=frappe.LinkExistsError,

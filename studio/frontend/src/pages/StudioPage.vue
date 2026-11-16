@@ -61,12 +61,12 @@
 										class="h-1.5 w-1.5 rounded-full bg-surface-amber-6"
 									></span>
 									<Tooltip
-										v-if="canvasStore.editingMode === 'component' && componentUsers.length"
-										:text="componentUsers.join(', ')"
+										v-if="canvasStore.editingMode === 'component' && componentUsages.length"
+										:text="componentUsageTitles"
 									>
 										<span class="font-normal text-ink-gray-5">
-											· used in {{ componentUsers.length }}
-											{{ componentUsers.length === 1 ? "place" : "places" }}
+											· used in {{ componentUsages.length }}
+											{{ componentUsages.length === 1 ? "place" : "places" }}
 										</span>
 									</Tooltip>
 								</span>
@@ -256,7 +256,14 @@ watchEffect(() => {
 	}
 })
 
-const componentUsers = computed(() => useComponentEditorStore().componentUsers)
+const componentUsages = computed(() => useComponentEditorStore().componentUsages)
+const componentUsageTitles = computed(() => {
+	const titles = componentUsages.value.filter(Boolean)
+	const hidden = componentUsages.value.length - titles.length
+	const places = hidden === 1 ? "1 place" : `${hidden} places`
+	if (hidden) titles.push(titles.length ? `and ${hidden} more that you cannot access` : `${places} that you cannot access`)
+	return titles.join(", ")
+})
 
 const savingFragment = ref(false)
 
