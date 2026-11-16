@@ -967,6 +967,7 @@ def get_append_to(
 	page_len: int | None = None,
 	filters: list | dict | str | None = None,
 ):
+	frappe.has_permission("Email Account", "read", throw=True)
 	txt = txt if txt else ""
 
 	filters = {"istable": 0, "issingle": 0, "email_append_to": 1}
