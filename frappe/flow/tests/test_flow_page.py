@@ -7,8 +7,8 @@ from werkzeug.wrappers import Response
 
 import frappe
 from frappe.flow.launcher import add_to_page, get_app_roots
-from frappe.flow.lib.model import clear_enabled_cache
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
+from frappe.flow.tests.test_flow_enabled import delete_models_and_providers
 from frappe.flow.tests.test_permissions import _user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
@@ -91,9 +91,7 @@ class TestFlowPage(IntegrationTestCase):
 	def test_the_launcher_waits_for_flow_to_chat_unless_the_user_can_set_it_up(self):
 		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
 		self.enterContext(patch.dict(frappe.conf, {"ai_keys": None}))
-		frappe.db.delete("Flow Model")
-		frappe.db.delete("Flow Provider")
-		clear_enabled_cache()
+		delete_models_and_providers()
 		ensure_flow_role()
 		member = _user("flow-launcher-member@example.com", FLOW_USER_ROLE)
 		manager = _user("flow-launcher-manager@example.com", "System Manager")

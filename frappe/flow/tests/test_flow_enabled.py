@@ -13,11 +13,16 @@ USER = "flow-enabled@example.com"
 GROVE_KEY = [{"gateway_url": "https://grove.example.com", "api_key": "grove-key"}]
 
 
+def delete_models_and_providers():
+	for doctype in ("Flow Model", "Flow Provider"):
+		for name in frappe.get_all(doctype, pluck="name"):
+			frappe.delete_doc(doctype, name, force=True)
+	clear_enabled_cache()
+
+
 class TestFlowEnabled(IntegrationTestCase):
 	def setUp(self):
-		frappe.db.delete("Flow Model")
-		frappe.db.delete("Flow Provider")
-		clear_enabled_cache()
+		delete_models_and_providers()
 		_user(USER)
 		self.no_grove_key = patch.dict(frappe.conf, {"ai_keys": None})
 		self.no_grove_key.start()

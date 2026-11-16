@@ -1,4 +1,4 @@
-import { call } from "frappe-ui";
+import { frappeRequest } from "frappe-ui";
 import { readonly, shallowRef } from "vue";
 import type { Ref } from "vue";
 
@@ -26,7 +26,7 @@ function load(): Ref<boolean | null> {
   if (typeof booted === "boolean") return shallowRef(booted);
 
   const loaded = shallowRef<boolean | null>(null);
-  call(FLOW_ENABLED_METHOD).then(
+  frappeRequest({ url: FLOW_ENABLED_METHOD, method: "GET" }).then(
     (enabled: unknown) => (loaded.value = Boolean(enabled)),
     () => (loaded.value = false),
   );
