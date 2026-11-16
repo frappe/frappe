@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-01 09:32+0000\n"
-"PO-Revision-Date: 2026-11-09 04:13\n"
+"POT-Creation-Date: 2026-11-08 09:32+0000\n"
+"PO-Revision-Date: 2026-11-16 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Polish\n"
 "MIME-Version: 1.0\n"
@@ -164,7 +164,7 @@ msgstr "1 Raport"
 msgid "1 comment"
 msgstr "1 komentarz"
 
-#: frappe/tests/test_utils.py:886
+#: frappe/tests/test_utils.py:898
 msgid "1 day ago"
 msgstr "1 dzień temu"
 
@@ -173,17 +173,17 @@ msgid "1 hour"
 msgstr "1 godzina"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:54
-#: frappe/tests/test_utils.py:884
+#: frappe/tests/test_utils.py:896
 msgid "1 hour ago"
 msgstr "1 godzinę temu"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:50
-#: frappe/tests/test_utils.py:882
+#: frappe/tests/test_utils.py:894
 msgid "1 minute ago"
 msgstr "1 minutę temu"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:68
-#: frappe/tests/test_utils.py:890
+#: frappe/tests/test_utils.py:902
 msgid "1 month ago"
 msgstr "1 miesiąc temu"
 
@@ -207,37 +207,37 @@ msgctxt "User added row to child table"
 msgid "1 row to {0}"
 msgstr "1 wiersz do {0}"
 
-#: frappe/tests/test_utils.py:881
+#: frappe/tests/test_utils.py:893
 msgid "1 second ago"
 msgstr "Sekundę temu"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:64
-#: frappe/tests/test_utils.py:888
+#: frappe/tests/test_utils.py:900
 msgid "1 week ago"
 msgstr "1 tydzień temu"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:72
-#: frappe/tests/test_utils.py:892
+#: frappe/tests/test_utils.py:904
 msgid "1 year ago"
 msgstr "1 rok temu"
 
-#: frappe/tests/test_utils.py:885
+#: frappe/tests/test_utils.py:897
 msgid "2 hours ago"
 msgstr "2 godziny temu"
 
-#: frappe/tests/test_utils.py:891
+#: frappe/tests/test_utils.py:903
 msgid "2 months ago"
 msgstr "2 miesiące temu"
 
-#: frappe/tests/test_utils.py:889
+#: frappe/tests/test_utils.py:901
 msgid "2 weeks ago"
 msgstr "2 tygodnie temu"
 
-#: frappe/tests/test_utils.py:893
+#: frappe/tests/test_utils.py:905
 msgid "2 years ago"
 msgstr "2 lata temu"
 
-#: frappe/tests/test_utils.py:883
+#: frappe/tests/test_utils.py:895
 msgid "3 minutes ago"
 msgstr "3 minuty temu"
 
@@ -253,7 +253,7 @@ msgstr "4 godziny"
 msgid "5 Records"
 msgstr "5 rekordów"
 
-#: frappe/tests/test_utils.py:887
+#: frappe/tests/test_utils.py:899
 msgid "5 days ago"
 msgstr "5 dni temu"
 
@@ -961,7 +961,7 @@ msgid "API Keys"
 msgstr "Klucze API"
 
 #. Label of a Section Break field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:733
+#: frappe/core/doctype/system_settings/system_settings.json:726
 msgid "API Logging"
 msgstr "Rejestrowanie API"
 
@@ -1071,7 +1071,7 @@ msgstr "Dostęp za pomocą Tokenu"
 msgid "Access Token URL"
 msgstr "Uzyskaj dostęp do adresu URL tokenu"
 
-#: frappe/auth.py:489
+#: frappe/auth.py:494
 msgid "Access not allowed from this IP Address"
 msgstr "Dostęp niedozwolony z tego adresu IP"
 
@@ -1450,7 +1450,7 @@ msgid "Add Translate Data"
 msgstr "Dodaj tłumaczenie danych"
 
 #. Label of a Check field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:116
+#: frappe/email/doctype/email_queue/email_queue.json:117
 msgid "Add Unsubscribe Link"
 msgstr "Dodaj link do usuwania subskrypcji"
 
@@ -1703,11 +1703,11 @@ msgstr "Administracja"
 msgid "Administrator"
 msgstr "Administrator"
 
-#: frappe/core/doctype/user/user.py:1262
+#: frappe/core/doctype/user/user.py:1265
 msgid "Administrator Logged In"
 msgstr "Administrator Zalogowani"
 
-#: frappe/core/doctype/user/user.py:1256
+#: frappe/core/doctype/user/user.py:1259
 #, python-brace-format
 msgid "Administrator accessed {0} on {1} via IP Address {2}."
 msgstr "Administrator obejrzano {0} na {1} poprzez adres IP {2}."
@@ -1715,7 +1715,7 @@ msgstr "Administrator obejrzano {0} na {1} poprzez adres IP {2}."
 #. Label of a Section Break field in DocType 'DocType'
 #. Label of a Tab Break field in DocType 'System Settings'
 #: frappe/core/doctype/doctype/doctype.json:461
-#: frappe/core/doctype/system_settings/system_settings.json:647
+#: frappe/core/doctype/system_settings/system_settings.json:640
 msgid "Advanced"
 msgstr "Zaawansowany"
 
@@ -1940,7 +1940,7 @@ msgid "Allow Comments"
 msgstr "Pozwól na Komentarze"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:316
+#: frappe/core/doctype/system_settings/system_settings.json:315
 msgid "Allow Consecutive Login Attempts "
 msgstr "Zezwól na kolejne próby logowania "
 
@@ -1987,7 +1987,7 @@ msgid "Allow Guest to comment"
 msgstr "Zezwól gościowi na komentowanie"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:421
+#: frappe/core/doctype/system_settings/system_settings.json:420
 msgid "Allow Guests to Upload Files"
 msgstr "Zezwalaj gościom na przesyłanie plików"
 
@@ -2004,17 +2004,17 @@ msgid "Allow Incomplete Forms"
 msgstr "Pozwól Niekompletne wnioski"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:327
+#: frappe/core/doctype/system_settings/system_settings.json:326
 msgid "Allow Login After Fail"
 msgstr "Zezwalaj na logowanie po błędzie"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:262
+#: frappe/core/doctype/system_settings/system_settings.json:261
 msgid "Allow Login using Mobile Number"
 msgstr "Zezwalaj na logowanie przy użyciu numeru telefonu komórkowego"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:269
+#: frappe/core/doctype/system_settings/system_settings.json:268
 msgid "Allow Login using User Name"
 msgstr "Zezwalaj na logowanie przy użyciu nazwy użytkownika"
 
@@ -2027,11 +2027,6 @@ msgstr "Zezwalaj na moduły"
 #: frappe/website/doctype/web_form/web_form.json:130
 msgid "Allow Multiple Responses"
 msgstr "Zezwól na wiele odpowiedzi"
-
-#. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:508
-msgid "Allow Older Web View Links (Insecure)"
-msgstr "Zezwól na starsze linki do widoku WWW (niezabezpieczone)"
 
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json:143
@@ -2073,7 +2068,7 @@ msgid "Allow Self Approval"
 msgstr "Zezwalaj na samoobsługę"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:578
+#: frappe/core/doctype/system_settings/system_settings.json:571
 msgid "Allow Sending Usage Data for Improving Applications"
 msgstr "Zezwól na wysyłanie danych o użytkowaniu w celu ulepszania aplikacji"
 
@@ -2122,7 +2117,7 @@ msgid "Allow on Submit"
 msgstr "Zezwól na Wysłanie"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:255
+#: frappe/core/doctype/system_settings/system_settings.json:254
 msgid "Allow only one session per user"
 msgstr "Pozwól tylko na jedną sesję na użytkownika"
 
@@ -2157,7 +2152,7 @@ msgstr "Zezwól użytkownikowi na logowanie się tylko przed tymi godzinami (0-2
 
 #. Description of the 'Login with email link' (Check) field in DocType 'System
 #. Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:544
+#: frappe/core/doctype/system_settings/system_settings.json:537
 msgid "Allow users to log in without a password, using a login link sent to their email"
 msgstr "Zezwalaj użytkownikom na logowanie bez hasła, za pomocą linku logowania wysłanego na ich e-mail"
 
@@ -2167,12 +2162,12 @@ msgid "Allowed"
 msgstr "Dozwolone"
 
 #. Label of a Small Text field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:761
+#: frappe/core/doctype/system_settings/system_settings.json:754
 msgid "Allowed Doctypes for Guest Uploads"
 msgstr ""
 
 #. Label of a Small Text field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:617
+#: frappe/core/doctype/system_settings/system_settings.json:610
 msgid "Allowed File Extensions"
 msgstr "Dozwolone rozszerzenia plików"
 
@@ -2250,7 +2245,7 @@ msgstr "Zezwala użytkownikowi na wyświetlanie dokumentu."
 msgid "Allows users to enable the mask property for any field of the respective doctype."
 msgstr "Zezwala użytkownikom na włączenie właściwości maskowania dla dowolnego pola odpowiedniego DocType."
 
-#: frappe/core/doctype/user/user.py:1064
+#: frappe/core/doctype/user/user.py:1067
 msgid "Already Registered"
 msgstr "Już zarejestrowano"
 
@@ -2431,7 +2426,7 @@ msgstr "Oprócz System Manager, role z ustawić uprawnienia użytkownika w prawo
 #. Label of a Data field in DocType 'Desktop Icon'
 #. Label of a Select field in DocType 'Notification Log'
 #. Label of a Data field in DocType 'Website Theme Ignore App'
-#: frappe/core/doctype/system_settings/system_settings.json:696
+#: frappe/core/doctype/system_settings/system_settings.json:689
 #: frappe/core/doctype/user/user.json:742
 #: frappe/desk/doctype/desktop_icon/desktop_icon.json:61
 #: frappe/desk/doctype/notification_log/notification_log.json:95
@@ -2498,7 +2493,7 @@ msgstr "Nie znaleziono aplikacji dla modułu: {0}"
 msgid "App that produced this notification; used to scope app-specific panels. Derived from the reference document when not set explicitly."
 msgstr ""
 
-#: frappe/__init__.py:1753
+#: frappe/__init__.py:1756
 #, python-brace-format
 msgid "App {0} is not installed"
 msgstr "App {0} nie jest zainstalowany"
@@ -2550,7 +2545,7 @@ msgstr "Logo aplikacji"
 #. Label of a Data field in DocType 'Installed Application'
 #. Label of a Data field in DocType 'System Settings'
 #: frappe/core/doctype/installed_application/installed_application.json:27
-#: frappe/core/doctype/system_settings/system_settings.json:466
+#: frappe/core/doctype/system_settings/system_settings.json:465
 msgid "Application Name"
 msgstr "Nazwa aplikacji"
 
@@ -2593,7 +2588,7 @@ msgid "Apply Only Once"
 msgstr "Złóż wniosek tylko raz"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:237
+#: frappe/core/doctype/system_settings/system_settings.json:236
 msgid "Apply Strict User Permissions"
 msgstr "Zastosuj ścisłe uprawnienia użytkownika"
 
@@ -2945,6 +2940,11 @@ msgstr "Przydziały"
 msgid "At least one column is required to show in the grid."
 msgstr "W siatce musi być widoczna co najmniej jedna kolumna."
 
+#: frappe/__init__.py:782 frappe/core/doctype/communication/email.py:175
+#: frappe/email/__init__.py:189
+msgid "At least one recipient is required"
+msgstr ""
+
 #: frappe/website/doctype/web_form/web_form.js:69
 msgid "Atleast one field is required in Web Form Fields Table"
 msgstr "W tabeli pól formularza internetowego wymagane jest co najmniej jedno pole"
@@ -3089,7 +3089,7 @@ msgstr "Ustawienia załączników"
 
 #. Label of a Code field in DocType 'Email Queue'
 #. Label of a Table field in DocType 'Newsletter'
-#: frappe/email/doctype/email_queue/email_queue.json:137
+#: frappe/email/doctype/email_queue/email_queue.json:144
 #: frappe/email/doctype/newsletter/newsletter.json:205
 #: frappe/email/doctype/newsletter/templates/newsletter.html:47
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:65
@@ -3582,12 +3582,12 @@ msgstr "Drukowanie w tle (wymagane dla >25 dokumentów)"
 
 #. Label of a Section Break field in DocType 'System Settings'
 #. Label of a Table field in DocType 'System Health Report'
-#: frappe/core/doctype/system_settings/system_settings.json:217
+#: frappe/core/doctype/system_settings/system_settings.json:216
 #: frappe/desk/doctype/system_health_report/system_health_report.json:76
 msgid "Background Workers"
 msgstr "Pracownicy drugoplanowi"
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:175
+#: frappe/integrations/doctype/google_drive/google_drive.py:176
 msgid "Backing up Data."
 msgstr "Tworzenie kopii zapasowej danych."
 
@@ -3648,7 +3648,7 @@ msgstr "Twórz kopie zapasowe plików publicznych i prywatnych wraz z bazą dany
 
 #. Label of a Tab Break field in DocType 'System Settings'
 #. Label of a Section Break field in DocType 'System Health Report'
-#: frappe/core/doctype/system_settings/system_settings.json:642
+#: frappe/core/doctype/system_settings/system_settings.json:635
 #: frappe/desk/doctype/system_health_report/system_health_report.json:339
 msgid "Backups"
 msgstr "Kopie zapasowe"
@@ -3663,12 +3663,12 @@ msgid "Bad Cron Expression"
 msgstr "Nieprawidłowe wyrażenie Cron"
 
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:561
+#: frappe/core/doctype/system_settings/system_settings.json:554
 msgid "Banker's Rounding"
 msgstr "Zaokrąglanie bankowe"
 
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:561
+#: frappe/core/doctype/system_settings/system_settings.json:554
 msgid "Banker's Rounding (legacy)"
 msgstr "Zaokrąglanie bankowe (starsze)"
 
@@ -3811,7 +3811,7 @@ msgstr "Począwszy od"
 msgid "Beta"
 msgstr "Beta"
 
-#: frappe/core/doctype/user/user.py:1279 frappe/utils/password_strength.py:65
+#: frappe/core/doctype/user/user.py:1282 frappe/utils/password_strength.py:65
 msgid "Better add a few more letters or another word"
 msgstr "Najlepiej dodaj jeszcze kilka liter lub inne słowo"
 
@@ -4060,7 +4060,7 @@ msgid "Browser not supported"
 msgstr "Przeglądarka nie jest obsługiwana"
 
 #. Label of a Section Break field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:310
+#: frappe/core/doctype/system_settings/system_settings.json:309
 msgid "Brute Force Security"
 msgstr "Zabezpieczenie przed atakami Brute Force"
 
@@ -4215,12 +4215,12 @@ msgid "Bypass Restricted IP Address Check If Two Factor Auth Enabled"
 msgstr "Pomiń ograniczony adres IP Sprawdź, czy uwierzytelnianie dwuskładnikowe jest włączone"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:346
+#: frappe/core/doctype/system_settings/system_settings.json:345
 msgid "Bypass Two Factor Auth for users who login from restricted IP Address"
 msgstr "Pomiń uwierzytelnianie dwuskładnikowe dla użytkowników logujących się z ograniczonego adresu IP"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:354
+#: frappe/core/doctype/system_settings/system_settings.json:353
 msgid "Bypass restricted IP Address check If Two Factor Auth Enabled"
 msgstr "Pomiń sprawdzanie adresu IP z ograniczoną dostępnością, jeśli włączony jest tryb dwuczynnikowy"
 
@@ -4513,7 +4513,7 @@ msgstr "Nie można usunąć"
 msgid "Cannot Update After Submit"
 msgstr "Nie można zaktualizować po zatwierdzeniu"
 
-#: frappe/core/doctype/file/file.py:795 frappe/utils/file_manager.py:388
+#: frappe/core/doctype/file/file.py:802 frappe/utils/file_manager.py:388
 #, python-brace-format
 msgid "Cannot access file path {0}"
 msgstr "Nie można uzyskać dostępu do ścieżki pliku {0}"
@@ -4675,7 +4675,7 @@ msgstr "Nie można włączyć {0} dla niezatwierdzalnego typu dokumentu"
 msgid "Cannot find file {} on disk"
 msgstr "Nie można znaleźć pliku {} na dysku"
 
-#: frappe/core/doctype/file/file.py:740
+#: frappe/core/doctype/file/file.py:747
 msgid "Cannot get file contents of a Folder"
 msgstr "Nie można pobrać zawartości pliku z folderu"
 
@@ -5063,7 +5063,7 @@ msgstr "Wybierz ikonę"
 
 #. Description of the 'Two Factor Authentication method' (Select) field in
 #. DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:359
+#: frappe/core/doctype/system_settings/system_settings.json:358
 msgid "Choose authentication method to be used by all users"
 msgstr "Wybierz metodę uwierzytelniania, która będzie używana przez wszystkich użytkowników"
 
@@ -5589,7 +5589,7 @@ msgid "Comments cannot have links or email addresses"
 msgstr "Komentarze nie mogą zawierać linków ani adresów e-mail"
 
 #. Option for the 'Rounding Method' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:561
+#: frappe/core/doctype/system_settings/system_settings.json:554
 msgid "Commercial Rounding"
 msgstr "Zaokrąglenie handlowe"
 
@@ -5621,7 +5621,7 @@ msgstr "Popularne słowa są łatwe do odgadnięcia."
 #: frappe/core/doctype/communication/communication.json:408
 #: frappe/core/doctype/user/user.json:870
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json:25
-#: frappe/email/doctype/email_queue/email_queue.json:94
+#: frappe/email/doctype/email_queue/email_queue.json:95
 msgid "Communication"
 msgstr "Komunikacja"
 
@@ -5959,7 +5959,7 @@ msgid "Contact Details"
 msgstr "Szczegóły kontaktu"
 
 #. Name of a DocType
-#: frappe/contacts/doctype/contact_email/contact_email.json:32
+#: frappe/contacts/doctype/contact_email/contact_email.json:33
 msgid "Contact Email"
 msgstr "E-mail kontaktu"
 
@@ -6177,7 +6177,7 @@ msgstr "Nie udało się zapisać. Sprawdź wprowadzone dane"
 #: frappe/public/js/frappe/ui/group_by/group_by.js:19
 #: frappe/public/js/frappe/ui/group_by/group_by.js:328
 #: frappe/workflow/doctype/workflow/workflow.js:166
-#: ui/src/components/GroupBy/GroupByTable.vue:184
+#: ui/src/components/GroupBy/GroupByTable.vue:185
 msgid "Count"
 msgstr "Liczyć"
 
@@ -6209,7 +6209,7 @@ msgstr "Licznik"
 #: frappe/contacts/doctype/address/address.json:87
 #: frappe/contacts/doctype/address_template/address_template.json:20
 #: frappe/contacts/report/addresses_and_contacts/addresses_and_contacts.py:42
-#: frappe/core/doctype/system_settings/system_settings.json:129
+#: frappe/core/doctype/system_settings/system_settings.json:128
 #: frappe/geo/doctype/country/country.json:59
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json:98
 msgid "Country"
@@ -6482,7 +6482,7 @@ msgstr "Ctrl + Enter, aby dodać komentarz"
 #: frappe/core/doctype/docfield/docfield.json:108
 #: frappe/core/doctype/report_column/report_column.json:34
 #: frappe/core/doctype/report_filter/report_filter.json:40
-#: frappe/core/doctype/system_settings/system_settings.json:714
+#: frappe/core/doctype/system_settings/system_settings.json:707
 #: frappe/custom/doctype/custom_field/custom_field.json:133
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:93
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:295
@@ -6499,7 +6499,7 @@ msgid "Currency Name"
 msgstr "Nazwa waluty"
 
 #. Label of a Select field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:200
+#: frappe/core/doctype/system_settings/system_settings.json:199
 msgid "Currency Precision"
 msgstr "Precyzja walutowa"
 
@@ -6894,7 +6894,7 @@ msgstr "WERSJA ROBOCZA"
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json:89
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json:69
 #: frappe/core/doctype/server_script/server_script.json:104
-#: frappe/core/doctype/system_settings/system_settings.json:769
+#: frappe/core/doctype/system_settings/system_settings.json:762
 #: frappe/core/doctype/user/user.json:384
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:109
 #: frappe/desk/doctype/event/event.json:137
@@ -7144,7 +7144,7 @@ msgstr "Data"
 
 #. Label of a Select field in DocType 'System Settings'
 #. Label of a Data field in DocType 'Country'
-#: frappe/core/doctype/system_settings/system_settings.json:167
+#: frappe/core/doctype/system_settings/system_settings.json:166
 #: frappe/geo/doctype/country/country.json:31
 msgid "Date Format"
 msgstr "Format daty"
@@ -7160,7 +7160,7 @@ msgid "Date after which this security.txt should be considered stale. Expires ti
 msgstr "Data, po której ten plik security.txt powinien być uznany za nieaktualny. Znacznik czasu wygaśnięcia jest konwertowany na UTC."
 
 #. Label of a Section Break field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:162
+#: frappe/core/doctype/system_settings/system_settings.json:161
 msgid "Date and Number Format"
 msgstr "Format daty i numeru"
 
@@ -7279,7 +7279,7 @@ msgstr "Domyślne nazewnictwo poprawek"
 
 #. Label of a Select field in DocType 'System Settings'
 #. Label of a Select field in DocType 'User'
-#: frappe/core/doctype/system_settings/system_settings.json:702
+#: frappe/core/doctype/system_settings/system_settings.json:695
 #: frappe/core/doctype/user/user.json:748
 msgid "Default App"
 msgstr "Domyślna aplikacja"
@@ -7405,7 +7405,7 @@ msgid "Default Workspace"
 msgstr "Domyślna przestrzeń robocza"
 
 #. Description of the 'Currency' (Link) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:711
+#: frappe/core/doctype/system_settings/system_settings.json:704
 msgid "Default display currency"
 msgstr "Domyślna waluta wyświetlania"
 
@@ -7458,7 +7458,7 @@ msgstr "Określa działania państwa i następny krok i dozwolonych ról."
 
 #. Description of the 'Delete Background Exported Reports After (Hours)' (Int)
 #. field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:743
+#: frappe/core/doctype/system_settings/system_settings.json:736
 msgid "Defines how long exported reports sent via email are kept in the system. Older files will be automatically deleted."
 msgstr "Określa, jak długo wyeksportowane raporty wysłane e-mailem są przechowywane w systemie. Starsze pliki zostaną automatycznie usunięte."
 
@@ -7511,7 +7511,7 @@ msgid "Delete All"
 msgstr "Usuń wszystko"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:746
+#: frappe/core/doctype/system_settings/system_settings.json:739
 msgid "Delete Background Exported Reports After (Hours)"
 msgstr "Usuń wyeksportowane w tle raporty po (godzinach)"
 
@@ -7883,7 +7883,7 @@ msgid "Disable Automatic Recency Filters"
 msgstr "Wyłącz automatyczne filtry aktualności"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:520
+#: frappe/core/doctype/system_settings/system_settings.json:513
 msgid "Disable Change Log Notification"
 msgstr "Wyłącz powiadomienie o dzienniku zmian"
 
@@ -7903,7 +7903,7 @@ msgid "Disable Count"
 msgstr "Wyłącz liczbę"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:567
+#: frappe/core/doctype/system_settings/system_settings.json:560
 msgid "Disable Document Sharing"
 msgstr "Wyłącz udostępnianie dokumentów"
 
@@ -7936,17 +7936,17 @@ msgid "Disable Signup for your site"
 msgstr "Wyłącz rejestrację w swojej witrynie"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:404
+#: frappe/core/doctype/system_settings/system_settings.json:403
 msgid "Disable Standard Email Footer"
 msgstr "Wyłącz Standardowy Email stopka"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:488
+#: frappe/core/doctype/system_settings/system_settings.json:487
 msgid "Disable System Update Notification"
 msgstr "Wyłącz powiadomienie o aktualizacji systemu"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:540
+#: frappe/core/doctype/system_settings/system_settings.json:533
 msgid "Disable Username/Password Login"
 msgstr "Wyłącz logowanie za pomocą nazwy użytkownika/hasła"
 
@@ -8453,7 +8453,7 @@ msgid "Document Share Key"
 msgstr "Klucz udostępniania dokumentu"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:502
+#: frappe/core/doctype/system_settings/system_settings.json:501
 msgid "Document Share Key Expiry (in Days)"
 msgstr "Wygaśnięcie klucza udostępniania dokumentu (w dniach)"
 
@@ -8576,7 +8576,7 @@ msgid "Document Types and Permissions"
 msgstr "Typy dokumentów i uprawnienia"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:3183
+#: frappe/model/document.py:3185
 msgid "Document Unlocked"
 msgstr "Dokument odblokowany"
 
@@ -9219,8 +9219,8 @@ msgstr "Selektor elementu"
 #: frappe/core/doctype/docperm/docperm.json:200
 #: frappe/core/doctype/security_settings_contact/security_settings_contact.json:17
 #: frappe/core/doctype/success_action/success_action.js:59
-#: frappe/core/doctype/system_settings/system_settings.json:363
-#: frappe/core/doctype/system_settings/system_settings.json:627
+#: frappe/core/doctype/system_settings/system_settings.json:362
+#: frappe/core/doctype/system_settings/system_settings.json:620
 #: frappe/core/doctype/user/user.json:133
 #: frappe/core/doctype/user_document_type/user_document_type.json:110
 #: frappe/core/doctype/user_invitation/user_invitation.json:24
@@ -9258,7 +9258,7 @@ msgstr "E-mail"
 #: frappe/email/doctype/email_account/email_account.json:648
 #: frappe/email/doctype/email_domain/email_domain.json:142
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json:37
-#: frappe/email/doctype/email_queue/email_queue.json:150
+#: frappe/email/doctype/email_queue/email_queue.json:157
 #: frappe/email/doctype/unhandled_email/unhandled_email.json:19
 msgid "Email Account"
 msgstr "Konto e-mail"
@@ -9319,7 +9319,7 @@ msgid "Email Flag Queue"
 msgstr "Email Oznacz Queue"
 
 #. Label of a Small Text field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:394
+#: frappe/core/doctype/system_settings/system_settings.json:393
 msgid "Email Footer Address"
 msgstr "Stopka dla e-maila"
 
@@ -9374,7 +9374,7 @@ msgid "Email Inbox"
 msgstr "Skrzynka odbiorcza e-mail"
 
 #. Name of a DocType
-#: frappe/email/doctype/email_queue/email_queue.json:169
+#: frappe/email/doctype/email_queue/email_queue.json:176
 msgid "Email Queue"
 msgstr "Kolejka email"
 
@@ -9392,13 +9392,18 @@ msgstr "Opróżnianie kolejki e-mail zostało przerwane z powodu zbyt wielu bł�
 msgid "Email Queue records."
 msgstr "Zapisy email kolejce."
 
+#. Label of a Small Text field in DocType 'Email Queue'
+#: frappe/email/doctype/email_queue/email_queue.json:133
+msgid "Email Read Tracker URL"
+msgstr ""
+
 #. Label of a HTML field in DocType 'Email Template'
 #: frappe/email/doctype/email_template/email_template.json:41
 msgid "Email Reply Help"
 msgstr "Pomoc dotycząca odpowiedzi e-mail"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:533
+#: frappe/core/doctype/system_settings/system_settings.json:526
 msgid "Email Retry Limit"
 msgstr "Limit ponownych prób e-mail"
 
@@ -9496,7 +9501,7 @@ msgstr ""
 msgid "Email not sent to {0} (unsubscribed / disabled)"
 msgstr "E-mail nie wysłany do {0} (wypisany / wyłączony)"
 
-#: frappe/utils/oauth.py:212
+#: frappe/utils/oauth.py:215
 #, python-brace-format
 msgid "Email not verified with {0}"
 msgstr "E-mail nie został zweryfikowany za pomocą {0}"
@@ -9603,7 +9608,7 @@ msgid "Enable Incoming"
 msgstr "Włącz Incoming"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:447
+#: frappe/core/doctype/system_settings/system_settings.json:446
 msgid "Enable Onboarding"
 msgstr "Włącz onboarding"
 
@@ -9616,7 +9621,7 @@ msgid "Enable Outgoing"
 msgstr "Włącz wychodzących"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:297
+#: frappe/core/doctype/system_settings/system_settings.json:296
 msgid "Enable Password Policy"
 msgstr "Włącz zasady haseł"
 
@@ -9650,7 +9655,7 @@ msgid "Enable Report"
 msgstr "Włącz raport"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:225
+#: frappe/core/doctype/system_settings/system_settings.json:224
 msgid "Enable Scheduled Jobs"
 msgstr "Włącz zaplanowane zadania"
 
@@ -9664,7 +9669,7 @@ msgid "Enable Security"
 msgstr "Włącz zabezpieczenia"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:787
+#: frappe/core/doctype/system_settings/system_settings.json:780
 msgid "Enable Snapshot Reports"
 msgstr ""
 
@@ -9688,7 +9693,7 @@ msgid "Enable Tracking Page Views"
 msgstr "Włącz wyświetlenia stron śledzenia"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:338
+#: frappe/core/doctype/system_settings/system_settings.json:337
 #: frappe/twofactor.py:438
 msgid "Enable Two Factor Auth"
 msgstr "Włącz dwa czynniki"
@@ -9812,7 +9817,7 @@ msgid "Enabling this will submit documents in background"
 msgstr "Włączenie tej opcji spowoduje zatwierdzanie dokumentów w tle"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:478
+#: frappe/core/doctype/system_settings/system_settings.json:477
 msgid "Encrypt Backups"
 msgstr "Szyfruj kopie zapasowe"
 
@@ -10016,8 +10021,8 @@ msgstr "Równa się"
 #: frappe/core/doctype/user_invitation/user_invitation.py:123
 #: frappe/core/doctype/user_invitation/user_invitation.py:125
 #: frappe/desk/page/backups/backups.js:37
-#: frappe/email/doctype/email_queue/email_queue.json:63
-#: frappe/email/doctype/email_queue/email_queue.json:69
+#: frappe/email/doctype/email_queue/email_queue.json:64
+#: frappe/email/doctype/email_queue/email_queue.json:70
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:31
 #: frappe/integrations/doctype/integration_request/integration_request.json:58
 #: frappe/integrations/doctype/webhook_request_log/webhook_request_log.json:69
@@ -10088,7 +10093,7 @@ msgstr "Błąd w skrypcie nagłówka/stopki"
 msgid "Error in Notification"
 msgstr "Błąd w powiadomieniu"
 
-#: frappe/utils/pdf.py:74
+#: frappe/utils/pdf.py:77
 #, python-brace-format
 msgid "Error in print format on line {0}: {1}"
 msgstr "Błąd w formacie wydruku w wierszu {0}: {1}"
@@ -10225,7 +10230,7 @@ msgstr "Przykład: 00001"
 
 #. Description of the 'Session Expiry (idle timeout)' (Data) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:245
+#: frappe/core/doctype/system_settings/system_settings.json:244
 msgid "Example: Setting this to 24:00 will log out a user if they are not active for 24:00 hours."
 msgstr "Przykład: Ustawienie na 24:00 spowoduje wylogowanie użytkownika, jeśli nie będzie aktywny przez 24:00 godziny."
 
@@ -10354,7 +10359,7 @@ msgid "Expires On"
 msgstr "Wygasa dnia"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:370
+#: frappe/core/doctype/system_settings/system_settings.json:369
 msgid "Expiry time of QR Code Image Page"
 msgstr "Czas wygaśnięcia strony z obrazem QR Code"
 
@@ -10461,7 +10466,7 @@ msgid "Exported permissions will be force-synced on every migrate overriding any
 msgstr "Wyeksportowane uprawnienia będą wymuszanie synchronizowane przy każdej migracji, nadpisując wszelkie inne dostosowania."
 
 #. Label of a Data field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:132
+#: frappe/email/doctype/email_queue/email_queue.json:139
 msgid "Expose Recipients"
 msgstr "Expose Odbiorcy"
 
@@ -10561,7 +10566,7 @@ msgstr "Nie udało się obliczyć treści żądania: {}"
 msgid "Failed to connect to server"
 msgstr "Nie udało się połączyć z serwerem"
 
-#: frappe/auth.py:702
+#: frappe/auth.py:707
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "Nie udało się zdekodować tokena. Podaj prawidłowy token zakodowany w base64."
 
@@ -10612,7 +10617,7 @@ msgstr "Nie udało się pobrać metody {0} z {1}"
 msgid "Failed to import virtual doctype {}, is controller file present?"
 msgstr "Nie udało się zaimportować wirtualnego doctype {}, czy plik kontrolera jest obecny?"
 
-#: frappe/utils/image.py:75
+#: frappe/utils/image.py:81
 #, python-brace-format
 msgid "Failed to optimize image: {0}"
 msgstr "Nie udało się zoptymalizować obrazu: {0}"
@@ -10621,7 +10626,7 @@ msgstr "Nie udało się zoptymalizować obrazu: {0}"
 msgid "Failed to request login to Frappe Cloud"
 msgstr "Nie udało się poprosić o zalogowanie do Frappe Cloud"
 
-#: frappe/email/doctype/email_queue/email_queue.py:315
+#: frappe/email/doctype/email_queue/email_queue.py:316
 msgid "Failed to send email with subject:"
 msgstr "Nie udało się wysłać e-maila z tematem:"
 
@@ -10714,7 +10719,7 @@ msgstr "Pobierz załączone obrazy z dokumentu"
 msgid "Fetch on Save if Empty"
 msgstr "Pobierz przy zapisie, jeśli puste"
 
-#: frappe/desk/doctype/global_search_settings/global_search_settings.py:61
+#: frappe/desk/doctype/global_search_settings/global_search_settings.py:62
 msgid "Fetching default Global Search documents."
 msgstr "Pobieranie domyślnych dokumentów globalnego wyszukiwania."
 
@@ -11034,7 +11039,7 @@ msgstr "Adres URL pliku jest wymagany podczas kopiowania istniejącego załączn
 msgid "File backup is ready"
 msgstr "Kopie zapasowe plików są gotowe"
 
-#: frappe/core/doctype/file/file.py:798
+#: frappe/core/doctype/file/file.py:805
 #, python-brace-format
 msgid "File name cannot have {0}"
 msgstr "Nazwa pliku nie może mieć {0}"
@@ -11043,7 +11048,7 @@ msgstr "Nazwa pliku nie może mieć {0}"
 msgid "File not attached"
 msgstr "Plik nie dołączony"
 
-#: frappe/core/doctype/file/file.py:917 frappe/public/js/frappe/request.js:195
+#: frappe/core/doctype/file/file.py:925 frappe/public/js/frappe/request.js:195
 #: frappe/utils/file_manager.py:222
 #, python-brace-format
 msgid "File size exceeded the maximum allowed size of {0} MB"
@@ -11058,7 +11063,7 @@ msgstr "Plik jest zbyt duży"
 msgid "File type of {0} is not allowed"
 msgstr "Typ pliku {0} nie jest dozwolony"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:635
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:637
 msgid "File upload failed."
 msgstr "Przesyłanie pliku nie powiodło się."
 
@@ -11075,7 +11080,7 @@ msgstr ""
 #. Label of a Link in the Tools Workspace
 #. Label of a Tab Break field in DocType 'System Settings'
 #: frappe/automation/workspace/tools/tools.json:101
-#: frappe/core/doctype/system_settings/system_settings.json:632
+#: frappe/core/doctype/system_settings/system_settings.json:625
 msgid "Files"
 msgstr "Pliki"
 
@@ -11262,7 +11267,7 @@ msgid "First"
 msgstr "Pierwsza"
 
 #. Label of a Select field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:494
+#: frappe/core/doctype/system_settings/system_settings.json:493
 msgid "First Day of the Week"
 msgstr "Pierwszy dzień tygodnia"
 
@@ -11324,7 +11329,7 @@ msgid "Float"
 msgstr "Liczba zmiennoprzecinkowa"
 
 #. Label of a Select field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:193
+#: frappe/core/doctype/system_settings/system_settings.json:192
 msgid "Float Precision"
 msgstr "Precyzja zmiennoprzecinkowa"
 
@@ -11637,12 +11642,12 @@ msgid "Force Stop job"
 msgstr "Wymuś zatrzymanie zadania"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:286
+#: frappe/core/doctype/system_settings/system_settings.json:285
 msgid "Force User to Reset Password"
 msgstr "Wymuś użytkownikowi zresetowanie hasła"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:597
+#: frappe/core/doctype/system_settings/system_settings.json:590
 msgid "Force Web Capture Mode for Uploads"
 msgstr "Wymuś tryb przechwytywania webowego dla przesyłania"
 
@@ -11789,7 +11794,7 @@ msgstr "Dowolny"
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json:88
 #: frappe/automation/doctype/auto_repeat/auto_repeat_schedule.html:5
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json:68
-#: frappe/core/doctype/system_settings/system_settings.json:768
+#: frappe/core/doctype/system_settings/system_settings.json:761
 #: frappe/core/doctype/user/user.json:383
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:177
 #: frappe/integrations/doctype/google_drive/google_drive.json:54
@@ -11805,7 +11810,7 @@ msgstr "Częstotliwość"
 #. Option for the 'Day of Week' (Select) field in DocType 'Auto Email Report'
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json:15
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json:16
-#: frappe/core/doctype/system_settings/system_settings.json:495
+#: frappe/core/doctype/system_settings/system_settings.json:494
 #: frappe/desk/doctype/event/event.json:183
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:166
 msgid "Friday"
@@ -11909,7 +11914,7 @@ msgstr "Funkcja oparta na"
 msgid "Function {0} is not allowed in this query."
 msgstr "Funkcja {0} jest niedozwolona w tym zapytaniu."
 
-#: frappe/__init__.py:883
+#: frappe/__init__.py:886
 #, python-brace-format
 msgid "Function {0} is not whitelisted."
 msgstr "Funkcja {0} nie znajduje się na liście dozwolonych."
@@ -12295,22 +12300,22 @@ msgstr "Identyfikator kontaktów Google"
 msgid "Google Drive"
 msgstr ""
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:120
+#: frappe/integrations/doctype/google_drive/google_drive.py:121
 #, python-brace-format
 msgid "Google Drive - Could not create folder in Google Drive - Error Code {0}"
 msgstr "Dysk Google - nie można utworzyć folderu na Dysku Google - kod błędu {0}"
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:135
+#: frappe/integrations/doctype/google_drive/google_drive.py:136
 #, python-brace-format
 msgid "Google Drive - Could not find folder in Google Drive - Error Code {0}"
 msgstr "Dysk Google - nie można znaleźć folderu na Dysku Google - kod błędu {0}"
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:198
+#: frappe/integrations/doctype/google_drive/google_drive.py:199
 #, python-brace-format
 msgid "Google Drive - Could not locate - {0}"
 msgstr "Dysk Google - nie można zlokalizować - {0}"
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:209
+#: frappe/integrations/doctype/google_drive/google_drive.py:210
 msgid "Google Drive Backup Successful."
 msgstr "Pomyślnie utworzono kopię zapasową Dysku Google."
 
@@ -12487,12 +12492,12 @@ msgid "HEAD"
 msgstr ""
 
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:176
+#: frappe/core/doctype/system_settings/system_settings.json:175
 msgid "HH:mm"
 msgstr "GG: mm"
 
 #. Option for the 'Time Format' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:176
+#: frappe/core/doctype/system_settings/system_settings.json:175
 msgid "HH:mm:ss"
 msgstr "GG: mm: ss"
 
@@ -12928,7 +12933,7 @@ msgid "Hide details"
 msgstr "Ukryj szczegóły"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:410
+#: frappe/core/doctype/system_settings/system_settings.json:409
 msgid "Hide footer in auto email reports"
 msgstr "Ukryj stopkę w raportach z automatycznych wiadomości e-mail"
 
@@ -12985,27 +12990,25 @@ msgstr "Strona główna"
 msgid "Home Settings"
 msgstr "Ustawienia strony głównej"
 
-#: frappe/core/doctype/file/test_file.py:409
-#: frappe/core/doctype/file/test_file.py:411
-#: frappe/core/doctype/file/test_file.py:495
+#: frappe/core/doctype/file/test_file.py:410
+#: frappe/core/doctype/file/test_file.py:412
+#: frappe/core/doctype/file/test_file.py:496
 msgid "Home/Test Folder 1"
 msgstr "Strona główna / folderu Test 1"
 
-#: frappe/core/doctype/file/test_file.py:464
+#: frappe/core/doctype/file/test_file.py:465
 msgid "Home/Test Folder 1/Test Folder 3"
 msgstr "Strona główna / Test Folder 1 / folderu Test 3"
 
-#: frappe/core/doctype/file/test_file.py:420
+#: frappe/core/doctype/file/test_file.py:421
 msgid "Home/Test Folder 2"
 msgstr "Strona główna / Folder 2 test"
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
-#. Option for the 'Frequency' (Select) field in DocType 'System Settings'
 #. Option for the 'Frequency' (Select) field in DocType 'User'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json:69
 #: frappe/core/doctype/server_script/server_script.json:104
-#: frappe/core/doctype/system_settings/system_settings.json:769
 #: frappe/core/doctype/user/user.json:384
 msgid "Hourly"
 msgstr "Cogodzinny"
@@ -13024,7 +13027,7 @@ msgstr "Konserwacja godzinowa"
 
 #. Description of the 'Password Reset Link Generation Limit' (Int) field in
 #. DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:432
+#: frappe/core/doctype/system_settings/system_settings.json:431
 msgid "Hourly rate limit for generating password reset links"
 msgstr "Limit stawki godzinowej za generowanie linków do resetowania hasła"
 
@@ -13142,7 +13145,7 @@ msgstr "idx"
 
 #. Description of the 'Apply Strict User Permissions' (Check) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:234
+#: frappe/core/doctype/system_settings/system_settings.json:233
 msgid "If Apply Strict User Permission is checked and User Permission is defined for a DocType for a User, then all the documents where value of the link is blank, will not be shown to that User"
 msgstr "Jeśli zastosowano ścisłe uprawnienia użytkownika i zaznaczono uprawnienie użytkownika dla DocType dla użytkownika, wszystkie dokumenty, w których wartość linku jest pusta, nie zostanie wyświetlona temu użytkownikowi"
 
@@ -13205,7 +13208,7 @@ msgstr "Jeśli włączono, wszystkie odpowiedzi w formularzu internetowym zostan
 
 #. Description of the 'Bypass restricted IP Address check If Two Factor Auth
 #. Enabled' (Check) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:351
+#: frappe/core/doctype/system_settings/system_settings.json:350
 msgid "If enabled, all users can login from any IP Address using Two Factor Auth. This can also be set only for specific user(s) in User Page"
 msgstr "Jeśli włączono, wszyscy użytkownicy mogą logować się z dowolnego adresu IP za pomocą Uwierzytelniania dwuskładnikowego. Można to również ustawić tylko dla wybranych użytkowników na stronie Użytkownik."
 
@@ -13232,7 +13235,7 @@ msgstr "Jeśli jest włączona, powiadomienie pojawi się na liście powiadomie�
 
 #. Description of the 'Enable Password Policy' (Check) field in DocType 'System
 #. Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:294
+#: frappe/core/doctype/system_settings/system_settings.json:293
 msgid "If enabled, the password strength will be enforced based on the Minimum Password Score value. A value of 2 being medium strong and 4 being very strong."
 msgstr "Jeśli jest włączona, siła hasła zostanie wymuszona na podstawie minimalnej wartości hasła. Wartość 2 jest średnio silna, a 4 jest bardzo silna."
 
@@ -13243,7 +13246,7 @@ msgstr "Jeśli włączone, formularz internetowy może być używany tylko z <i>
 
 #. Description of the 'Bypass Two Factor Auth for users who login from
 #. restricted IP Address' (Check) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:343
+#: frappe/core/doctype/system_settings/system_settings.json:342
 msgid "If enabled, users who login from Restricted IP Address, won't be prompted for Two Factor Auth"
 msgstr "Jeśli ta opcja jest włączona, użytkownicy, którzy logują się z ograniczonego adresu IP, nie będą monitowani o dwu czynnika uwierzytelniania"
 
@@ -13287,7 +13290,7 @@ msgstr "Jeśli niestandardowy port (np. POP3: 995/110, IMAP: 993/143)"
 
 #. Description of the 'Currency Precision' (Select) field in DocType 'System
 #. Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:197
+#: frappe/core/doctype/system_settings/system_settings.json:196
 msgid "If not set, the currency precision will depend on number format"
 msgstr "Jeśli nie zostanie ustawiona, dokładność waluty zależy od formatu liczb"
 
@@ -13323,7 +13326,7 @@ msgstr "Jeśli instrukcje te nie były pomocne, proszę dodaj swoje sugestie dot
 msgid "If this email is registered with us, a download link will be sent to it."
 msgstr "Jeśli ten adres e-mail jest u nas zarejestrowany, zostanie na niego wysłany link do pobrania."
 
-#: frappe/core/doctype/user/user.py:1133
+#: frappe/core/doctype/user/user.py:1136
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
 msgstr "Jeśli ten e-mail jest u nas zarejestrowany, wysłaliśmy na niego instrukcje resetowania hasła. Sprawdź swoją skrzynkę odbiorczą."
 
@@ -13655,7 +13658,7 @@ msgstr "W"
 
 #. Description of the 'Force User to Reset Password' (Int) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:283
+#: frappe/core/doctype/system_settings/system_settings.json:282
 msgid "In Days"
 msgstr "W dniach"
 
@@ -13741,7 +13744,7 @@ msgstr "W punktach. Domyślnie jest 9."
 
 #. Description of the 'Allow Login After Fail' (Int) field in DocType 'System
 #. Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:324
+#: frappe/core/doctype/system_settings/system_settings.json:323
 msgid "In seconds"
 msgstr "W sekundy"
 
@@ -13800,7 +13803,7 @@ msgid "Include Theme from Apps"
 msgstr "Uwzględnij motyw z aplikacji"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:453
+#: frappe/core/doctype/system_settings/system_settings.json:452
 msgid "Include Web View Link in Email"
 msgstr "Wyślij łącze do widoku internetowego dokumentu w wiadomości e-mail"
 
@@ -13851,7 +13854,7 @@ msgstr "Nieprawidłowe konto poczty przychodzącej"
 msgid "Incomplete Virtual Doctype Implementation"
 msgstr "Niekompletna implementacja Virtual Doctype"
 
-#: frappe/auth.py:256
+#: frappe/auth.py:258
 msgid "Incomplete login details"
 msgstr "Niekompletne szczegóły logowania"
 
@@ -14321,8 +14324,8 @@ msgstr "Nieprawidłowe hasło"
 msgid "Invalid Phone Number"
 msgstr "Nieprawidłowy numer telefonu"
 
-#: frappe/auth.py:104 frappe/integrations/google_oauth.py:201
-#: frappe/utils/oauth.py:230 frappe/utils/oauth.py:242 frappe/www/login.py:128
+#: frappe/auth.py:106 frappe/integrations/google_oauth.py:201
+#: frappe/utils/oauth.py:233 frappe/utils/oauth.py:245 frappe/www/login.py:128
 msgid "Invalid Request"
 msgstr "Nieprawidłowe żądanie"
 
@@ -14391,7 +14394,7 @@ msgstr ""
 msgid "Invalid app"
 msgstr "Nieprawidłowa aplikacja"
 
-#: frappe/utils/response.py:285
+#: frappe/utils/response.py:288
 msgid "Invalid backup path"
 msgstr ""
 
@@ -14675,7 +14678,7 @@ msgid "Is Optional State"
 msgstr "Jest stanem opcjonalnym"
 
 #. Label of a Check field in DocType 'Contact Email'
-#: frappe/contacts/doctype/contact_email/contact_email.json:25
+#: frappe/contacts/doctype/contact_email/contact_email.json:26
 msgid "Is Primary"
 msgstr "Jest podstawowa"
 
@@ -15299,7 +15302,7 @@ msgstr "Krajobraz"
 #. Label of a field in the edit-profile Web Form
 #: frappe/core/doctype/language/language.json:57
 #: frappe/core/doctype/security_settings_language/security_settings_language.json:15
-#: frappe/core/doctype/system_settings/system_settings.json:136
+#: frappe/core/doctype/system_settings/system_settings.json:135
 #: frappe/core/doctype/translation/translation.json:25
 #: frappe/core/doctype/user/user.json:205
 #: frappe/core/web_form/edit_profile/edit_profile.json:147
@@ -15843,7 +15846,7 @@ msgid "Link Expired"
 msgstr "Link wygasł"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:676
+#: frappe/core/doctype/system_settings/system_settings.json:669
 msgid "Link Field Results Limit"
 msgstr "Limit Wyników Pola Linku"
 
@@ -16099,7 +16102,7 @@ msgid "Log"
 msgstr "Dziennik"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:739
+#: frappe/core/doctype/system_settings/system_settings.json:732
 msgid "Log API Requests"
 msgstr "Rejestruj żądania API"
 
@@ -16152,7 +16155,7 @@ msgstr "Wylogowano"
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #. Label of a Tab Break field in DocType 'System Settings'
 #: frappe/core/doctype/activity_log/activity_log.json:74
-#: frappe/core/doctype/system_settings/system_settings.json:622
+#: frappe/core/doctype/system_settings/system_settings.json:615
 #: frappe/public/js/frappe/web_form/webform_script.js:16
 #: frappe/templates/discussions/discussions_section.html:60
 #: frappe/templates/discussions/reply_section.html:44
@@ -16182,7 +16185,7 @@ msgid "Login Id is required"
 msgstr "Identyfikator logowania jest wymagany"
 
 #. Label of a Section Break field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:661
+#: frappe/core/doctype/system_settings/system_settings.json:654
 msgid "Login Methods"
 msgstr "Metody logowania"
 
@@ -16213,7 +16216,7 @@ msgstr "Zaloguj się i wyświetl w przeglądarce"
 msgid "Login link sent to your email"
 msgstr "Link do logowania został wysłany na adres e-mail"
 
-#: frappe/auth.py:339 frappe/auth.py:342
+#: frappe/auth.py:341 frappe/auth.py:344
 msgid "Login not allowed at this time"
 msgstr "Login nie jest dostępny w tym czasie"
 
@@ -16261,16 +16264,16 @@ msgid "Login with LDAP"
 msgstr "Logowanie z LDAP"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:547
+#: frappe/core/doctype/system_settings/system_settings.json:540
 msgid "Login with email link"
 msgstr "Zaloguj się za pomocą linku e-mail"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:554
+#: frappe/core/doctype/system_settings/system_settings.json:547
 msgid "Login with email link expiry (in minutes)"
 msgstr "Wygaśnięcie linku logowania e-mail (w minutach)"
 
-#: frappe/auth.py:137
+#: frappe/auth.py:139
 msgid "Login with username and password is not allowed."
 msgstr "Logowanie za pomocą nazwy użytkownika i hasła jest niedozwolone."
 
@@ -16278,6 +16281,11 @@ msgstr "Logowanie za pomocą nazwy użytkownika i hasła jest niedozwolone."
 #, python-brace-format
 msgid "Login with {0}"
 msgstr "Zaloguj się za pomocą {0}"
+
+#: frappe/utils/oauth.py:181
+#, python-brace-format
+msgid "Login with {0} is not enabled"
+msgstr ""
 
 #. Option for the 'Operation' (Select) field in DocType 'Activity Log'
 #: frappe/core/doctype/activity_log/activity_log.json:74
@@ -16290,7 +16298,7 @@ msgid "Logout All Sessions"
 msgstr "Wyloguj się ze wszystkich sesji"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:441
+#: frappe/core/doctype/system_settings/system_settings.json:440
 msgid "Logout All Sessions on Password Reset"
 msgstr "Wyloguj się ze wszystkich sesji po zresetowaniu hasła"
 
@@ -16413,7 +16421,7 @@ msgstr "Uczyń załączniki domyślnie publicznymi"
 
 #. Description of the 'Disable Username/Password Login' (Check) field in
 #. DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:537
+#: frappe/core/doctype/system_settings/system_settings.json:530
 msgid "Make sure to configure a Social Login Key before disabling to prevent lockout"
 msgstr "Przed wyłączeniem upewnij się, że skonfigurowano klucz logowania społecznościowego, aby zapobiec zablokowaniu dostępu"
 
@@ -16434,7 +16442,7 @@ msgstr "Powoduje, że strona jest publiczna"
 msgid "Male"
 msgstr "Mężczyzna"
 
-#: frappe/email/receive.py:510
+#: frappe/email/receive.py:511
 msgid "Malformed Address Header"
 msgstr ""
 
@@ -16622,7 +16630,7 @@ msgid "Max Attachments"
 msgstr "Max Załączników"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:606
+#: frappe/core/doctype/system_settings/system_settings.json:599
 msgid "Max File Size (MB)"
 msgstr "Maksymalny rozmiar pliku (MB)"
 
@@ -16637,7 +16645,7 @@ msgid "Max Length"
 msgstr "Maksymalna długość"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:722
+#: frappe/core/doctype/system_settings/system_settings.json:715
 msgid "Max Report Rows"
 msgstr "Maksymalna liczba wierszy raportu"
 
@@ -16647,7 +16655,7 @@ msgid "Max Value"
 msgstr "Maksymalna wartość"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:800
+#: frappe/core/doctype/system_settings/system_settings.json:793
 msgid "Max Zip Extract Size (MB)"
 msgstr "Maksymalny rozmiar rozpakowywania ZIP (MB)"
 
@@ -16657,12 +16665,12 @@ msgid "Max attachment size"
 msgstr "Maksymalny rozmiar załącznika"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:514
+#: frappe/core/doctype/system_settings/system_settings.json:507
 msgid "Max auto email report per user"
 msgstr "Maks. automatycznych raportów e-mail na użytkownika"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:753
+#: frappe/core/doctype/system_settings/system_settings.json:746
 msgid "Max signups allowed per hour"
 msgstr "Maksymalna liczba rejestracji dozwolonych na godzinę"
 
@@ -16707,7 +16715,7 @@ msgstr "Maksymalna liczba punktów dozwolona po pomnożeniu punktów przez warto
 
 #. Description of the 'Max Zip Extract Size (MB)' (Int) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:797
+#: frappe/core/doctype/system_settings/system_settings.json:790
 msgid "Maximum total size a ZIP archive is allowed to expand to when extracted."
 msgstr "Maksymalny łączny rozmiar, do którego archiwum ZIP może się rozpakować."
 
@@ -16805,7 +16813,7 @@ msgstr "Łączenie jest możliwe tylko pomiędzy Grupa-Grupa lub Liść-Liść"
 #: frappe/core/doctype/success_action/success_action.json:39
 #: frappe/desk/doctype/notification_log/notification_log.json:179
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:192
-#: frappe/email/doctype/email_queue/email_queue.json:53
+#: frappe/email/doctype/email_queue/email_queue.json:54
 #: frappe/email/doctype/newsletter/newsletter.json:87
 #: frappe/email/doctype/notification/notification.json:233
 #: frappe/public/js/frappe/ui/messages.js:177
@@ -16839,7 +16847,7 @@ msgstr "Przykłady wiadomości"
 #. Label of a Small Text field in DocType 'Communication'
 #. Label of a Small Text field in DocType 'Email Queue'
 #: frappe/core/doctype/communication/communication.json:324
-#: frappe/email/doctype/email_queue/email_queue.json:74
+#: frappe/email/doctype/email_queue/email_queue.json:75
 msgid "Message ID"
 msgstr "Identyfikator wiadomości"
 
@@ -16953,7 +16961,7 @@ msgstr "Tytuł meta dla SEO"
 msgid "Method"
 msgstr "Metoda"
 
-#: frappe/__init__.py:885
+#: frappe/__init__.py:888
 msgid "Method Not Allowed"
 msgstr "Metoda niedozwolona"
 
@@ -16999,7 +17007,7 @@ msgid "Minimum"
 msgstr ""
 
 #. Label of a Select field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:304
+#: frappe/core/doctype/system_settings/system_settings.json:303
 msgid "Minimum Password Score"
 msgstr "Minimalny Wynik Hasła"
 
@@ -17215,7 +17223,7 @@ msgstr "Moduły HTML"
 #. Option for the 'Day of Week' (Select) field in DocType 'Auto Email Report'
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json:15
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json:16
-#: frappe/core/doctype/system_settings/system_settings.json:495
+#: frappe/core/doctype/system_settings/system_settings.json:494
 #: frappe/desk/doctype/event/event.json:155
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:166
 msgid "Monday"
@@ -18026,7 +18034,7 @@ msgstr "Następny po kliknięciu"
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:223
 #: frappe/public/js/frappe/views/reports/query_report.js:47
 #: frappe/website/doctype/help_article/templates/help_article.html:26
-#: ui/src/components/GroupBy/GroupByTable.vue:260
+#: ui/src/components/GroupBy/GroupByTable.vue:264
 msgid "No"
 msgstr "Nie"
 
@@ -18348,7 +18356,7 @@ msgstr "Numer kolumn"
 msgid "No of Rows (Max 500)"
 msgstr "Nie rzędów (max 500)"
 
-#: frappe/__init__.py:1081 frappe/client.py:143 frappe/client.py:185
+#: frappe/__init__.py:1084 frappe/client.py:143 frappe/client.py:185
 #, python-brace-format
 msgid "No permission for {0}"
 msgstr "Brak zgody na {0}"
@@ -18390,7 +18398,7 @@ msgstr "Brak otagowanych rekordów."
 msgid "No records will be exported"
 msgstr "Żadne rekordy nie zostaną wyeksportowane"
 
-#: frappe/www/printview.py:447
+#: frappe/www/printview.py:443
 #, python-brace-format
 msgid "No template found at path: {0}"
 msgstr "Nie znaleziono przy drodze szablon: {0}"
@@ -18400,7 +18408,7 @@ msgstr "Nie znaleziono przy drodze szablon: {0}"
 msgid "No user has the role <strong>{0}</strong>"
 msgstr "Żaden użytkownik nie ma roli <strong>{0}</strong>"
 
-#: frappe/public/js/frappe/form/controls/multiselect_list.js:257
+#: frappe/public/js/frappe/form/controls/multiselect_list.js:258
 msgid "No values to show"
 msgstr "Brak wartości do pokazania"
 
@@ -18472,7 +18480,7 @@ msgstr "Znormalizowane kopie"
 msgid "Normalized Query"
 msgstr "Znormalizowane zapytanie"
 
-#: frappe/core/doctype/user/user.py:1059 frappe/utils/oauth.py:319
+#: frappe/core/doctype/user/user.py:1062 frappe/utils/oauth.py:322
 #: frappe/website/doctype/web_form/web_form.py:854
 #: frappe/website/doctype/web_form/web_form.py:871
 msgid "Not Allowed"
@@ -18490,7 +18498,7 @@ msgstr "Nie potomkowie"
 msgid "Not Equals"
 msgstr "Nie równa się"
 
-#: frappe/app.py:413 frappe/www/404.html:3
+#: frappe/app.py:411 frappe/www/404.html:3
 msgid "Not Found"
 msgstr "Nie znaleziono"
 
@@ -18511,7 +18519,7 @@ msgstr "Nie jak"
 msgid "Not Linked to any record"
 msgstr "Brak powiązania z jakimkolwiek rekordem"
 
-#: frappe/__init__.py:968 frappe/app.py:404 frappe/desk/calendar.py:28
+#: frappe/__init__.py:971 frappe/app.py:402 frappe/desk/calendar.py:28
 #: frappe/geo/utils.py:103
 #: frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:990
@@ -18548,14 +18556,14 @@ msgstr "Nie Widziany"
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
 #. Option for the 'Status' (Select) field in DocType 'Email Queue Recipient'
-#: frappe/email/doctype/email_queue/email_queue.json:63
+#: frappe/email/doctype/email_queue/email_queue.json:64
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:25
 #: frappe/email/doctype/newsletter/newsletter_list.js:9
 msgid "Not Sent"
 msgstr "Nie wysłane"
 
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:219
-#: ui/src/components/GroupBy/GroupByTable.vue:259
+#: ui/src/components/GroupBy/GroupByTable.vue:263
 msgid "Not Set"
 msgstr "Brak Ustawień"
 
@@ -18623,8 +18631,10 @@ msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "Nie w trybie dewelopera! Położony w site_config.json lub dokonać DOCTYPE \"custom\"."
 
 #: frappe/api/v1.py:122 frappe/api/v1.py:127
-#: frappe/core/doctype/system_settings/system_settings.py:249
-#: frappe/handler.py:114 frappe/public/js/frappe/request.js:155
+#: frappe/core/doctype/system_settings/system_settings.py:248
+#: frappe/handler.py:114
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:624
+#: frappe/public/js/frappe/request.js:155
 #: frappe/public/js/frappe/request.js:165
 #: frappe/public/js/frappe/request.js:170
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:67
@@ -18645,7 +18655,7 @@ msgstr "Brak uprawnień do sortowania lub grupowania według {0}"
 msgid "Not permitted to view {0}"
 msgstr "Niedozwolone do przeglądania {0}"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:622
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:623
 #, python-brace-format
 msgid "Not permitted. {0}."
 msgstr "Niedozwolone. {0}."
@@ -18694,7 +18704,7 @@ msgstr "Uwaga: Aby uzyskać najlepsze wyniki, obrazy muszą być tego samego roz
 
 #. Description of the 'Allow only one session per user' (Check) field in
 #. DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:252
+#: frappe/core/doctype/system_settings/system_settings.json:251
 msgid "Note: Multiple sessions will be allowed in case of mobile device"
 msgstr "Uwaga: Wielokrotne sesje będą dozwolone w przypadku urządzeń mobilnych"
 
@@ -18893,13 +18903,13 @@ msgstr "Karty liczbowe"
 
 #. Label of a Select field in DocType 'System Settings'
 #. Label of a Select field in DocType 'Currency'
-#: frappe/core/doctype/system_settings/system_settings.json:186
+#: frappe/core/doctype/system_settings/system_settings.json:185
 #: frappe/geo/doctype/currency/currency.json:71
 msgid "Number Format"
 msgstr "Format liczby"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:212
+#: frappe/core/doctype/system_settings/system_settings.json:211
 msgid "Number of Backups"
 msgstr "Liczba kopii zapasowych"
 
@@ -18928,7 +18938,7 @@ msgstr "Liczba zapytań"
 msgid "Number of attachment fields are more than {}, limit updated to {}."
 msgstr "Liczba pól załączników jest większa niż {}, limit zaktualizowany do {}."
 
-#: frappe/core/doctype/system_settings/system_settings.py:193
+#: frappe/core/doctype/system_settings/system_settings.py:192
 msgid "Number of backups must be greater than zero."
 msgstr "Liczba kopii zapasowych musi być większa od zera."
 
@@ -18946,7 +18956,7 @@ msgstr "Liczba kolumn dla pola w widoku listy lub siatki (Liczba kolumn powinna 
 
 #. Description of the 'Document Share Key Expiry (in Days)' (Int) field in
 #. DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:499
+#: frappe/core/doctype/system_settings/system_settings.json:498
 msgid "Number of days after which the document Web View link shared on email will be expired"
 msgstr "Liczba dni, po których link do widoku webowego dokumentu udostępniony e-mailem wygaśnie"
 
@@ -19027,21 +19037,21 @@ msgstr "LUB"
 
 #. Option for the 'Two Factor Authentication method' (Select) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:363
+#: frappe/core/doctype/system_settings/system_settings.json:362
 msgid "OTP App"
 msgstr "Aplikacja OTP"
 
 #. Label of a Data field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:377
+#: frappe/core/doctype/system_settings/system_settings.json:376
 msgid "OTP Issuer Name"
 msgstr "Nazwa Emitenta OTP"
 
 #. Label of a Small Text field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:384
+#: frappe/core/doctype/system_settings/system_settings.json:383
 msgid "OTP SMS Template"
 msgstr "Szablon SMS OTP"
 
-#: frappe/core/doctype/system_settings/system_settings.py:172
+#: frappe/core/doctype/system_settings/system_settings.py:171
 #, python-brace-format
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
 msgstr "Szablon SMS OTP musi zawierać symbol zastępczy <code>{0}</code> do wstawienia OTP."
@@ -19057,7 +19067,7 @@ msgstr "OTP Secret został zresetowany. Ponowna rejestracja będzie wymagana pod
 
 #. Description of the 'OTP SMS Template' (Small Text) field in DocType 'System
 #. Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:381
+#: frappe/core/doctype/system_settings/system_settings.json:380
 msgid "OTP placeholder should be defined as <code>{{ otp }}</code> "
 msgstr "Symbol zastępczy OTP powinien być zdefiniowany jako <code>{{ otp }}</code> "
 
@@ -19110,7 +19120,7 @@ msgstr "Stara i nowa nazwa pola są takie same."
 
 #. Description of the 'Number of Backups' (Int) field in DocType 'System
 #. Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:209
+#: frappe/core/doctype/system_settings/system_settings.json:208
 msgid "Older backups will be automatically deleted"
 msgstr "Starsze kopie zapasowe będą automatycznie usuwane"
 
@@ -19218,7 +19228,7 @@ msgstr "Jedna z podrzędnych stron o nazwie {0} już istnieje w sekcji {1}. Najp
 msgid "Only 200 inserts allowed in one request"
 msgstr "Tylko 200 wkładki dozwolone w jednym żądaniu"
 
-#: frappe/email/doctype/email_queue/email_queue.py:93
+#: frappe/email/doctype/email_queue/email_queue.py:94
 msgid "Only Administrator can delete Email Queue"
 msgstr "Tylko administrator może usuwać Wyślij kolejkę"
 
@@ -19695,7 +19705,7 @@ msgstr "Ustawienia PDF"
 msgid "PDF generation failed"
 msgstr "Nie udało się wygenerować pliku PDF"
 
-#: frappe/utils/pdf.py:126
+#: frappe/utils/pdf.py:129
 msgid "PDF generation failed because of broken image links"
 msgstr "Generowanie PDF powiodło się z powodu niedziałających linków graficznych"
 
@@ -19994,7 +20004,7 @@ msgid "Partial Success"
 msgstr "Częściowy sukces"
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:63
+#: frappe/email/doctype/email_queue/email_queue.json:64
 msgid "Partially Sent"
 msgstr "Częściowo wysłany"
 
@@ -20023,7 +20033,7 @@ msgstr "Nieaktywny"
 #. Label of a Password field in DocType 'Email Account'
 #. Option for the 'Fieldtype' (Select) field in DocType 'Web Form Field'
 #: frappe/core/doctype/docfield/docfield.json:108
-#: frappe/core/doctype/system_settings/system_settings.json:280
+#: frappe/core/doctype/system_settings/system_settings.json:279
 #: frappe/core/doctype/user/user.js:182 frappe/core/doctype/user/user.js:229
 #: frappe/core/doctype/user/user.js:249
 #: frappe/custom/doctype/custom_field/custom_field.json:133
@@ -20035,12 +20045,12 @@ msgstr "Nieaktywny"
 msgid "Password"
 msgstr "Hasło"
 
-#: frappe/core/doctype/user/user.py:409 frappe/core/doctype/user/user.py:1135
+#: frappe/core/doctype/user/user.py:409 frappe/core/doctype/user/user.py:1138
 msgid "Password Reset"
 msgstr "Resetowanie hasła"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:435
+#: frappe/core/doctype/system_settings/system_settings.json:434
 msgid "Password Reset Link Generation Limit"
 msgstr "Limit generowania linków do resetowania hasła"
 
@@ -20070,7 +20080,7 @@ msgstr "Brak hasła w Koncie e-mail"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Nie znaleziono hasła dla {0} {1} {2}"
 
-#: frappe/core/doctype/user/user.py:1296
+#: frappe/core/doctype/user/user.py:1299
 msgid "Password requirements not met"
 msgstr "Wymagania dotyczące hasła nie zostały spełnione"
 
@@ -20078,11 +20088,11 @@ msgstr "Wymagania dotyczące hasła nie zostały spełnione"
 msgid "Password set"
 msgstr "Hasło ustawione"
 
-#: frappe/auth.py:259
+#: frappe/auth.py:261
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Rozmiar hasła przekroczył maksymalny dozwolony rozmiar"
 
-#: frappe/core/doctype/user/user.py:908
+#: frappe/core/doctype/user/user.py:911
 msgid "Password size exceeded the maximum allowed size."
 msgstr "Rozmiar hasła przekroczył maksymalny dozwolony rozmiar."
 
@@ -20302,7 +20312,7 @@ msgstr "Typ uprawnienia"
 #: frappe/core/doctype/docfield/docfield.json:266
 #: frappe/core/doctype/docperm/docperm.json:77
 #: frappe/core/doctype/doctype/doctype.json:398
-#: frappe/core/doctype/system_settings/system_settings.json:230
+#: frappe/core/doctype/system_settings/system_settings.json:229
 #: frappe/core/doctype/user/user.js:157 frappe/core/doctype/user/user.js:166
 #: frappe/core/page/permission_manager/permission_manager.js:221
 #: frappe/core/workspace/users/users.json:48
@@ -20479,7 +20489,7 @@ msgstr "Dodaj temat do wiadomości e-mail"
 msgid "Please add a valid comment."
 msgstr "Dodaj prawidłowy komentarz."
 
-#: frappe/core/doctype/user/user.py:1106
+#: frappe/core/doctype/user/user.py:1109
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Proszę skontaktować się z administratorem, aby sprawdzić swój znak w górę"
 
@@ -20509,7 +20519,7 @@ msgstr "Sprawdź wartości filtrów ustawione dla tablicy wskaźników: {}"
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Sprawdź wartość „Pobierz z” ustawioną dla pola {0}"
 
-#: frappe/core/doctype/user/user.py:1104
+#: frappe/core/doctype/user/user.py:1107
 msgid "Please check your email for verification"
 msgstr "Proszę sprawdzić pocztę do weryfikacji"
 
@@ -20564,7 +20574,7 @@ msgstr "Proszę nie zmieniać pozycje szablonów."
 msgid "Please duplicate this to make changes"
 msgstr "Proszę powielić tego dokonać zmian"
 
-#: frappe/core/doctype/system_settings/system_settings.py:187
+#: frappe/core/doctype/system_settings/system_settings.py:186
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 msgstr "Proszę włączyć co najmniej jeden klucz logowania społecznościowego lub LDAP lub logowanie za pomocą linku e-mail przed wyłączeniem logowania opartego na nazwie użytkownika/haśle."
 
@@ -20587,7 +20597,7 @@ msgstr "Włącz pop-upy w przeglądarce"
 msgid "Please enable {} before continuing."
 msgstr "Proszę włączyć {} przed kontynuowaniem."
 
-#: frappe/utils/oauth.py:242
+#: frappe/utils/oauth.py:245
 msgid "Please ensure that your profile has an email address"
 msgstr "Proszę upewnić się, że Twój profil jest adres e-mail"
 
@@ -20718,7 +20728,7 @@ msgstr "Najpierw wybierz DOCTYPE"
 msgid "Please select Entity Type first"
 msgstr "Najpierw wybierz Typ jednostki"
 
-#: frappe/core/doctype/system_settings/system_settings.py:121
+#: frappe/core/doctype/system_settings/system_settings.py:120
 msgid "Please select Minimum Password Score"
 msgstr "Wybierz Minimalny Wynik Hasła"
 
@@ -20811,7 +20821,7 @@ msgstr "Najpierw ustaw następujące dokumenty w tym panelu jako standardowe."
 msgid "Please set the series to be used."
 msgstr "Ustaw serię, która ma być używana."
 
-#: frappe/core/doctype/system_settings/system_settings.py:136
+#: frappe/core/doctype/system_settings/system_settings.py:135
 msgid "Please setup SMS before setting it as an authentication method, via SMS Settings"
 msgstr "Proszę skonfigurować SMS przed skonfigurowaniem go jako metody uwierzytelniania przez SMS Settings"
 
@@ -21269,7 +21279,7 @@ msgstr "Kreator formatu wydruku (nowy)"
 msgid "Print Format Builder Beta"
 msgstr "Kreator formatu wydruku Beta"
 
-#: frappe/utils/pdf.py:78
+#: frappe/utils/pdf.py:81
 msgid "Print Format Error"
 msgstr "Błąd formatu wydruku"
 
@@ -21297,7 +21307,7 @@ msgstr "Typ formatu wydruku"
 msgid "Print Format not found"
 msgstr "Nie znaleziono formatu wydruku"
 
-#: frappe/www/printview.py:426
+#: frappe/www/printview.py:422
 #, python-brace-format
 msgid "Print Format {0} is disabled"
 msgstr "Format Druku {0} jest wyłączony"
@@ -21438,7 +21448,7 @@ msgstr "Drukowanie nieudane"
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json:47
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json:81
 #: frappe/desk/doctype/todo/todo.json:50 frappe/desk/report/todo/todo.py:37
-#: frappe/email/doctype/email_queue/email_queue.json:109
+#: frappe/email/doctype/email_queue/email_queue.json:110
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:208
 #: frappe/website/doctype/web_page/web_page.json:226
 msgid "Priority"
@@ -21482,7 +21492,7 @@ msgstr "Mimo wszystko kontynuuj"
 msgid "Processing"
 msgstr "Przetwarzanie"
 
-#: frappe/email/doctype/email_queue/email_queue.py:476
+#: frappe/email/doctype/email_queue/email_queue.py:477
 msgid "Processing..."
 msgstr "Przetwarzanie..."
 
@@ -21558,13 +21568,13 @@ msgstr "Chroniony plik"
 
 #. Description of the 'Allowed Doctypes for Guest Uploads' (Small Text) field
 #. in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:758
+#: frappe/core/doctype/system_settings/system_settings.json:751
 msgid "Provide a list of allowed Doctypes for file uploads. Each line should contain one allowed Doctype. If unset, uploads to all doctypes are allowed. Example: <br>User<br>Item<br>Quotation"
 msgstr ""
 
 #. Description of the 'Allowed File Extensions' (Small Text) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:614
+#: frappe/core/doctype/system_settings/system_settings.json:607
 msgid "Provide a list of allowed file extensions for file uploads. Each line should contain one allowed file type. If unset, all file extensions are allowed. Example: <br>CSV<br>JPG<br>PNG"
 msgstr "Podaj listę dozwolonych rozszerzeń plików dla przesyłania plików. Każda linia powinna zawierać jeden dozwolony typ pliku. Jeśli nie ustawiono, dozwolone są wszystkie rozszerzenia plików. Przykład: <br>CSV<br>JPG<br>PNG"
 
@@ -21863,7 +21873,7 @@ msgid "Queued By"
 msgstr "Kolejkowane przez"
 
 #: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:67
-#: frappe/integrations/doctype/google_drive/google_drive.py:158
+#: frappe/integrations/doctype/google_drive/google_drive.py:159
 msgid "Queued for backup. It may take a few minutes to an hour."
 msgstr "W kolejce do tworzenia kopii zapasowych. Może to potrwać kilka minut do godziny."
 
@@ -21962,7 +21972,7 @@ msgid "Rate Limits"
 msgstr "Limity częstotliwości"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:691
+#: frappe/core/doctype/system_settings/system_settings.json:684
 msgid "Rate limit for email link login"
 msgstr "Limit ceny dla logowania przez link e-mail"
 
@@ -22180,7 +22190,7 @@ msgstr "Ostatnie"
 
 #. Label of a Table field in DocType 'Email Queue'
 #. Label of a Data field in DocType 'Email Queue Recipient'
-#: frappe/email/doctype/email_queue/email_queue.json:42
+#: frappe/email/doctype/email_queue/email_queue.json:43
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:16
 msgid "Recipient"
 msgstr "Adresat"
@@ -22241,7 +22251,7 @@ msgid "Red"
 msgstr "Czerwony"
 
 #. Label of a Check field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:158
+#: frappe/email/doctype/email_queue/email_queue.json:165
 msgid "Redact Message After Send"
 msgstr "Ukryj wiadomość po wysłaniu"
 
@@ -22279,7 +22289,7 @@ msgstr "Adres przekierowania"
 
 #. Description of the 'Default App' (Select) field in DocType 'System Settings'
 #. Description of the 'Default App' (Select) field in DocType 'User'
-#: frappe/core/doctype/system_settings/system_settings.json:699
+#: frappe/core/doctype/system_settings/system_settings.json:692
 #: frappe/core/doctype/user/user.json:745
 msgid "Redirect to the selected app after login"
 msgstr "Przekieruj do wybranej aplikacji po zalogowaniu"
@@ -22344,7 +22354,7 @@ msgid "Reference Doc"
 msgstr ""
 
 #. Label of a Data field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:87
+#: frappe/email/doctype/email_queue/email_queue.json:88
 msgid "Reference DocName"
 msgstr "Referencyjna nazwa DocName"
 
@@ -22435,7 +22445,7 @@ msgstr "Nazwa dokumentu referencyjnego"
 #: frappe/desk/doctype/event_participants/event_participants.json:18
 #: frappe/desk/doctype/kanban_board/kanban_board.json:33
 #: frappe/desk/doctype/list_filter/list_filter.json:22
-#: frappe/email/doctype/email_queue/email_queue.json:80
+#: frappe/email/doctype/email_queue/email_queue.json:81
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json:27
 #: frappe/integrations/doctype/integration_request/integration_request.json:64
 #: frappe/social/doctype/energy_point_log/energy_point_log.json:54
@@ -22568,7 +22578,7 @@ msgstr "Odświeżam"
 msgid "Refreshing..."
 msgstr "Odświeżanie..."
 
-#: frappe/core/doctype/user/user.py:1066
+#: frappe/core/doctype/user/user.py:1069
 msgid "Registered but disabled"
 msgstr "Zarejestrowałem się, ale wyłączone"
 
@@ -22579,7 +22589,7 @@ msgstr "Zarejestrowałem się, ale wyłączone"
 msgid "Rejected"
 msgstr "Odrzucono"
 
-#: frappe/email/receive.py:511
+#: frappe/email/receive.py:512
 #, python-brace-format
 msgid "Rejected malformed encoded address header with synthesized '@': {0}"
 msgstr ""
@@ -22818,7 +22828,7 @@ msgstr "Powtórki {0}"
 
 #. Description of the 'Redact Message After Send' (Check) field in DocType
 #. 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:155
+#: frappe/email/doctype/email_queue/email_queue.json:162
 msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
 msgstr "Po wysłaniu wiadomości e-mail zastępuje treść wiadomości symbolem zastępczym, aby wrażliwe treści, takie jak linki do resetowania hasła, nie były przechowywane w kolejce."
 
@@ -23059,7 +23069,7 @@ msgid "Report:"
 msgstr "Raport:"
 
 #. Label of a Section Break field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:458
+#: frappe/core/doctype/system_settings/system_settings.json:457
 #: frappe/public/js/frappe/ui/toolbar/search_utils.js:547
 msgid "Reports"
 msgstr "Raporty"
@@ -23230,12 +23240,12 @@ msgid "Reset Password Key"
 msgstr "Zresetuj Klucz Hasła"
 
 #. Label of a Duration field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:526
+#: frappe/core/doctype/system_settings/system_settings.json:519
 msgid "Reset Password Link Expiry Duration"
 msgstr "Czas ważności linku do resetowania hasła"
 
 #. Label of a Link field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:589
+#: frappe/core/doctype/system_settings/system_settings.json:582
 msgid "Reset Password Template"
 msgstr "Szablon resetowania hasła"
 
@@ -23357,7 +23367,7 @@ msgstr "Wznów wysyłanie"
 #. Label of a Int field in DocType 'Email Queue'
 #: frappe/core/doctype/data_import/data_import.js:110
 #: frappe/desk/page/setup_wizard/setup_wizard.js:304
-#: frappe/email/doctype/email_queue/email_queue.json:144
+#: frappe/email/doctype/email_queue/email_queue.json:151
 msgid "Retry"
 msgstr "Spróbować ponownie"
 
@@ -23632,7 +23642,7 @@ msgid "Round Robin"
 msgstr ""
 
 #. Label of a Select field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:560
+#: frappe/core/doctype/system_settings/system_settings.json:553
 msgid "Rounding Method"
 msgstr "Metoda zaokrąglania"
 
@@ -23816,13 +23826,13 @@ msgid "Rules with higher priority number will be applied first."
 msgstr "Reguły o wyższym priorytecie zostaną zastosowane jako pierwsze."
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:428
+#: frappe/core/doctype/system_settings/system_settings.json:427
 msgid "Run Jobs only Daily if Inactive For (Days)"
 msgstr "Uruchamiaj zadania tylko codziennie, jeśli nieaktywne przez (dni)"
 
 #. Description of the 'Enable Scheduled Jobs' (Check) field in DocType 'System
 #. Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:221
+#: frappe/core/doctype/system_settings/system_settings.json:220
 msgid "Run scheduled jobs only if checked"
 msgstr "Uruchamiane tylko zaplanowane zadania, jeśli zaznaczone"
 
@@ -23856,7 +23866,7 @@ msgstr "Szczegóły łyżki S3"
 #. 'System Settings'
 #. Option for the 'Channel' (Select) field in DocType 'Notification'
 #: frappe/core/doctype/communication/communication.json:82
-#: frappe/core/doctype/system_settings/system_settings.json:363
+#: frappe/core/doctype/system_settings/system_settings.json:362
 #: frappe/email/doctype/notification/notification.json:70
 msgid "SMS"
 msgstr ""
@@ -23982,7 +23992,7 @@ msgstr "Próba"
 #. Option for the 'Day of Week' (Select) field in DocType 'Auto Email Report'
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json:15
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json:16
-#: frappe/core/doctype/system_settings/system_settings.json:495
+#: frappe/core/doctype/system_settings/system_settings.json:494
 #: frappe/desk/doctype/event/event.json:190
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:166
 msgid "Saturday"
@@ -24291,7 +24301,7 @@ msgid "Scripts"
 msgstr "Skrypty"
 
 #. Label of a Section Break field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:670
+#: frappe/core/doctype/system_settings/system_settings.json:663
 #: frappe/desk/page/leaderboard/leaderboard.js:212
 #: frappe/public/js/frappe/form/link_selector.js:45
 #: frappe/public/js/frappe/list/list_sidebar.html:59
@@ -24439,7 +24449,7 @@ msgstr "Tytuł sekcji"
 msgid "Section must have at least one column"
 msgstr "Sekcja musi mieć co najmniej jedną kolumnę"
 
-#: frappe/core/doctype/user/user.py:1462
+#: frappe/core/doctype/user/user.py:1466
 msgid "Security Alert: Your account is being impersonated"
 msgstr "Alert zabezpieczeń: Ktoś podszywa się pod Twoje konto"
 
@@ -24868,7 +24878,7 @@ msgstr "Wyślij e-mail potwierdzający"
 #. Label of a Datetime field in DocType 'Communication'
 #. Label of a Datetime field in DocType 'Email Queue'
 #: frappe/core/doctype/communication/communication.json:398
-#: frappe/email/doctype/email_queue/email_queue.json:101
+#: frappe/email/doctype/email_queue/email_queue.json:102
 msgid "Send After"
 msgstr "Wyślij Po"
 
@@ -25072,7 +25082,7 @@ msgstr "Wyślij wiadomość do maila wypisz"
 #: frappe/desk/doctype/event/event.json:281
 #: frappe/desk/doctype/todo/todo.json:141
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:210
-#: frappe/email/doctype/email_queue/email_queue.json:36
+#: frappe/email/doctype/email_queue/email_queue.json:37
 #: frappe/email/doctype/newsletter/newsletter.json:57
 #: frappe/email/doctype/notification/notification.json:169
 msgid "Sender"
@@ -25116,7 +25126,7 @@ msgstr ""
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
 #: frappe/core/doctype/communication/communication.json:129
-#: frappe/email/doctype/email_queue/email_queue.json:63
+#: frappe/email/doctype/email_queue/email_queue.json:64
 #: frappe/email/doctype/newsletter/newsletter.js:201
 msgid "Sending"
 msgstr "Wysyłanie"
@@ -25135,7 +25145,7 @@ msgstr "Wysyłanie..."
 #. Option for the 'Status' (Select) field in DocType 'Email Queue Recipient'
 #: frappe/core/doctype/communication/communication.json:129
 #: frappe/core/doctype/communication/communication.json:193
-#: frappe/email/doctype/email_queue/email_queue.json:63
+#: frappe/email/doctype/email_queue/email_queue.json:64
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:25
 #: frappe/email/doctype/newsletter/newsletter.js:196
 #: frappe/email/doctype/newsletter/newsletter_list.js:5
@@ -25231,7 +25241,7 @@ msgstr "Skrypty serwera są wyłączone. Włącz skrypty serwera w konfiguracji 
 msgid "Server Scripts feature is not available on this site."
 msgstr "Funkcja Skrypty serwera nie jest dostępna na tej witrynie."
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:640
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:642
 msgid "Server error during upload. The file might be corrupted."
 msgstr "Błąd serwera podczas przesyłania. Plik może być uszkodzony."
 
@@ -25272,16 +25282,16 @@ msgstr "Domyślne ustawienia sesji"
 msgid "Session Defaults Saved"
 msgstr "Zapisane ustawienia domyślne sesji"
 
-#: frappe/app.py:395
+#: frappe/app.py:393
 msgid "Session Expired"
 msgstr "Sesja wygasła"
 
 #. Label of a Data field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:248
+#: frappe/core/doctype/system_settings/system_settings.json:247
 msgid "Session Expiry (idle timeout)"
 msgstr "Wygaśnięcie sesji (limit czasu bezczynności)"
 
-#: frappe/core/doctype/system_settings/system_settings.py:128
+#: frappe/core/doctype/system_settings/system_settings.py:127
 #, python-brace-format
 msgid "Session Expiry must be in format {0}"
 msgstr "Długość sesji musi być w formacie {0}"
@@ -25507,7 +25517,7 @@ msgstr "Ustawienie"
 msgid "Setting this Address Template as default as there is no other default"
 msgstr "Ustawienie tego adresu jako domyślnego szablonu, ponieważ nie ma innej domyślnej"
 
-#: frappe/desk/doctype/global_search_settings/global_search_settings.py:86
+#: frappe/desk/doctype/global_search_settings/global_search_settings.py:87
 msgid "Setting up Global Search documents."
 msgstr "Konfigurowanie dokumentów globalnego wyszukiwania."
 
@@ -25584,7 +25594,7 @@ msgid "Setup Auto Email"
 msgstr "Automatyczna konfiguracja poczty"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:156
+#: frappe/core/doctype/system_settings/system_settings.json:155
 #: frappe/desk/page/setup_wizard/setup_wizard.js:218
 msgid "Setup Complete"
 msgstr "Konfiguracja zakończona"
@@ -25688,7 +25698,7 @@ msgid "Show \"Call to Action\" in Blog"
 msgstr "Pokaż \"Wezwanie do działania\" na blogu"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:728
+#: frappe/core/doctype/system_settings/system_settings.json:721
 msgid "Show Absolute Datetime in Timeline"
 msgstr "Pokaż bezwzględną datę i czas na osi czasu"
 
@@ -25755,7 +25765,7 @@ msgid "Show Form Tour"
 msgstr "Pokaż wycieczkę po formularzu"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:275
+#: frappe/core/doctype/system_settings/system_settings.json:274
 msgid "Show Full Error and Allow Reporting of Issues to the Developer"
 msgstr "Pokaż cały błąd i zezwalaj na raportowanie problemów dla programisty"
 
@@ -25923,7 +25933,7 @@ msgid "Show all blogs"
 msgstr "Pokaż wszystkie blogi"
 
 #. Label of a Small Text field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:48
+#: frappe/email/doctype/email_queue/email_queue.json:49
 msgid "Show as cc"
 msgstr "Pokaż jako cc"
 
@@ -26017,7 +26027,7 @@ msgstr "Pasek boczny i Komentarze"
 msgid "Sign Up and Confirmation"
 msgstr "Rejestracja i potwierdzenie"
 
-#: frappe/core/doctype/user/user.py:1059
+#: frappe/core/doctype/user/user.py:1062
 msgid "Sign Up is disabled"
 msgstr "Zapisz się jest wyłączony"
 
@@ -26107,7 +26117,7 @@ msgstr "Rozmiar"
 msgid "Size (MB)"
 msgstr "Rozmiar (MB)"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:628
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:630
 msgid "Size exceeds the maximum allowed file size."
 msgstr "Rozmiar przekracza maksymalny dozwolony rozmiar pliku."
 
@@ -26234,7 +26244,7 @@ msgid "Snapshot Report"
 msgstr ""
 
 #. Label of a Section Break field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:780
+#: frappe/core/doctype/system_settings/system_settings.json:773
 msgid "Snapshot Reports"
 msgstr ""
 
@@ -26703,7 +26713,7 @@ msgstr "Statystyki oparte na wynikach z ubiegłego tygodnia (od {0} do {1})"
 #: frappe/desk/doctype/event/event.json:230
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json:25
 #: frappe/desk/doctype/todo/todo.json:41
-#: frappe/email/doctype/email_queue/email_queue.json:62
+#: frappe/email/doctype/email_queue/email_queue.json:63
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:24
 #: frappe/email/doctype/newsletter/newsletter.json:224
 #: frappe/integrations/doctype/integration_request/integration_request.json:39
@@ -26761,7 +26771,7 @@ msgid "Storage Usage By Table"
 msgstr "Wykorzystanie przestrzeni dyskowej według tabeli"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:684
+#: frappe/core/doctype/system_settings/system_settings.json:677
 msgid "Store Attached PDF Document"
 msgstr "Zapisz załączony dokument PDF"
 
@@ -26785,7 +26795,7 @@ msgid "Straight rows of keys are easy to guess"
 msgstr "Równe rzędy klawiszy są łatwe do odgadnięcia"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:472
+#: frappe/core/doctype/system_settings/system_settings.json:471
 msgid "Strip EXIF tags from uploaded images"
 msgstr "Usuń znaczniki EXIF z przesłanych obrazów"
 
@@ -27166,7 +27176,7 @@ msgstr "Podsumowanie"
 #. Option for the 'Day of Week' (Select) field in DocType 'Auto Email Report'
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json:15
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json:16
-#: frappe/core/doctype/system_settings/system_settings.json:495
+#: frappe/core/doctype/system_settings/system_settings.json:494
 #: frappe/desk/doctype/event/event.json:197
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:166
 msgid "Sunday"
@@ -27222,12 +27232,12 @@ msgid "Sync Data"
 msgstr ""
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:794
+#: frappe/core/doctype/system_settings/system_settings.json:787
 msgid "Sync In Batches"
 msgstr "Synchronizuj partiami"
 
 #. Label of a Int field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:775
+#: frappe/core/doctype/system_settings/system_settings.json:768
 msgid "Sync Timeout (Seconds)"
 msgstr ""
 
@@ -27389,7 +27399,7 @@ msgstr "Dzienniki systemowe"
 #: frappe/core/doctype/sms_settings/sms_settings.json:85
 #: frappe/core/doctype/submission_queue/submission_queue.json:105
 #: frappe/core/doctype/success_action/success_action.json:75
-#: frappe/core/doctype/system_settings/system_settings.json:816
+#: frappe/core/doctype/system_settings/system_settings.json:809
 #: frappe/core/doctype/translation/translation.json:101
 #: frappe/core/doctype/user/user.json:900
 #: frappe/core/doctype/user_group/user_group.json:37
@@ -27432,7 +27442,7 @@ msgstr "Dzienniki systemowe"
 #: frappe/email/doctype/email_account/email_account.json:656
 #: frappe/email/doctype/email_domain/email_domain.json:157
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json:61
-#: frappe/email/doctype/email_queue/email_queue.json:179
+#: frappe/email/doctype/email_queue/email_queue.json:186
 #: frappe/email/doctype/email_rule/email_rule.json:41
 #: frappe/email/doctype/email_template/email_template.json:79
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json:60
@@ -27504,7 +27514,7 @@ msgstr "Strona systemowa"
 
 #. Name of a DocType
 #. Label of a shortcut in the Build Workspace
-#: frappe/core/doctype/system_settings/system_settings.json:810
+#: frappe/core/doctype/system_settings/system_settings.json:803
 #: frappe/core/workspace/build/build.json:349
 msgid "System Settings"
 msgstr "Ustawienia systemowe"
@@ -27671,7 +27681,7 @@ msgid "Team Members Subtitle"
 msgstr "Podtytuł członków zespołu"
 
 #. Label of a Section Break field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:572
+#: frappe/core/doctype/system_settings/system_settings.json:565
 msgid "Telemetry"
 msgstr "Telemetria"
 
@@ -27710,7 +27720,7 @@ msgstr "Ostrzeżenia szablonu"
 msgid "Templates"
 msgstr "Szablony"
 
-#: frappe/core/doctype/user/user.py:1072
+#: frappe/core/doctype/user/user.py:1075
 msgid "Temporarily Disabled"
 msgstr "Czasowo niedostępne"
 
@@ -27734,7 +27744,7 @@ msgstr "Test hiszpański"
 msgid "Test email sent to {0}"
 msgstr "Testowy e-mail wysłany na adres {0}"
 
-#: frappe/core/doctype/file/test_file.py:467
+#: frappe/core/doctype/file/test_file.py:468
 msgid "Test_Folder"
 msgstr "Folder_testowy"
 
@@ -27836,7 +27846,7 @@ msgstr "Identyfikator klienta uzyskany z Google Cloud Console w sekcji <a href=\
 msgid "The Condition '{0}' is invalid"
 msgstr "Warunek '{0}' jest nieprawidłowy"
 
-#: frappe/core/doctype/file/file.py:975
+#: frappe/core/doctype/file/file.py:983
 msgid "The File URL does not belong to this File record"
 msgstr ""
 
@@ -27863,7 +27873,7 @@ msgstr "System został zaktualizowany do nowszej wersji, prosimy odświeżyć st
 
 #. Description of the 'Application Name' (Data) field in DocType 'System
 #. Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:462
+#: frappe/core/doctype/system_settings/system_settings.json:461
 msgid "The application name will be used in the Login page."
 msgstr "Nazwa aplikacji będzie używana na stronie logowania."
 
@@ -28019,19 +28029,19 @@ msgstr "Numer projektu uzyskany z Google Cloud Console w sekcji <a href=\"https:
 msgid "The report you requested has been generated.<br><br>Click here to download:<br><a href='{0}'>{0}</a><br><br>This link will expire in {1} hours."
 msgstr "Raport, o który prosiłeś, został wygenerowany.<br><br>Kliknij tutaj, aby pobrać:<br><a href='{0}'>{0}</a><br><br>Ten link wygaśnie za {1} godzin."
 
-#: frappe/core/doctype/user/user.py:1030
+#: frappe/core/doctype/user/user.py:1033
 msgid "The reset password link has been expired"
 msgstr "Link do resetowania hasła wygasł"
 
-#: frappe/core/doctype/user/user.py:1032
+#: frappe/core/doctype/user/user.py:1035
 msgid "The reset password link has either been used before or is invalid"
 msgstr "Link do resetowania hasła został już użyty lub jest nieprawidłowy"
 
-#: frappe/app.py:414 frappe/public/js/frappe/request.js:145
+#: frappe/app.py:412 frappe/public/js/frappe/request.js:145
 msgid "The resource you are looking for is not available"
 msgstr "Zasób którego szukasz jest niedostępny"
 
-#: frappe/utils/response.py:362
+#: frappe/utils/response.py:365
 msgid "The system is being updated. Please refresh again after a few moments."
 msgstr "System jest aktualizowany. Proszę odświeżyć stronę ponownie za kilka chwil."
 
@@ -28163,7 +28173,7 @@ msgstr "Brak danych do wyeksportowania"
 msgid "There is nothing new to show you right now."
 msgstr "Obecnie nie ma nic nowego do pokazania."
 
-#: frappe/core/doctype/file/file.py:792 frappe/utils/file_manager.py:384
+#: frappe/core/doctype/file/file.py:799 frappe/utils/file_manager.py:384
 #, python-brace-format
 msgid "There is some problem with the file url: {0}"
 msgstr "Wystąpił problem z adresem URL pliku: {0}"
@@ -28279,7 +28289,7 @@ msgstr ""
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "Ta akcja jest nieodwracalna. Czy chcesz kontynuować?"
 
-#: frappe/__init__.py:964
+#: frappe/__init__.py:967
 #, python-brace-format
 msgid "This action is only allowed for {}"
 msgstr "Ta akcja jest dozwolona tylko dla {}"
@@ -28514,7 +28524,7 @@ msgstr "Ta wartość jest pobierana z pola {1} obiektu {0}"
 
 #. Description of the 'Max Report Rows' (Int) field in DocType 'System
 #. Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:719
+#: frappe/core/doctype/system_settings/system_settings.json:712
 msgid "This value specifies the max number of rows that can be rendered in report view. "
 msgstr "Ta wartość określa maksymalną liczbę wierszy, które mogą być wyświetlane w widoku raportu. "
 
@@ -28551,7 +28561,7 @@ msgstr "Spowoduje to zresetowanie tego przewodnika i wyświetlenie go wszystkim 
 msgid "This will terminate the job immediately and might be dangerous, are you sure? "
 msgstr "Spowoduje to natychmiastowe zakończenie zadania i może być niebezpieczne. Czy na pewno kontynuować? "
 
-#: frappe/core/doctype/user/user.py:1305
+#: frappe/core/doctype/user/user.py:1308
 msgid "Throttled"
 msgstr "Zablokowane"
 
@@ -28568,7 +28578,7 @@ msgstr "Miniatura URL"
 #. Option for the 'Day of Week' (Select) field in DocType 'Auto Email Report'
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json:15
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json:16
-#: frappe/core/doctype/system_settings/system_settings.json:495
+#: frappe/core/doctype/system_settings/system_settings.json:494
 #: frappe/desk/doctype/event/event.json:176
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:166
 msgid "Thursday"
@@ -28595,7 +28605,7 @@ msgid "Time"
 msgstr "Czas"
 
 #. Label of a Select field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:175
+#: frappe/core/doctype/system_settings/system_settings.json:174
 msgid "Time Format"
 msgstr "Format czasu"
 
@@ -28628,7 +28638,7 @@ msgstr "Okno czasowe (sekundy)"
 #. Label of a Autocomplete field in DocType 'User'
 #. Label of a field in the edit-profile Web Form
 #. Label of a Data field in DocType 'Web Page View'
-#: frappe/core/doctype/system_settings/system_settings.json:147
+#: frappe/core/doctype/system_settings/system_settings.json:146
 #: frappe/core/doctype/user/user.json:211
 #: frappe/core/web_form/edit_profile/edit_profile.json:160
 #: frappe/desk/page/setup_wizard/setup_wizard.js:414
@@ -28653,7 +28663,7 @@ msgstr "Czas w zapytaniach"
 
 #. Description of the 'Expiry time of QR Code Image Page' (Int) field in
 #. DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:367
+#: frappe/core/doctype/system_settings/system_settings.json:366
 msgid "Time in seconds to retain QR code image on server. Min:<strong>240</strong>"
 msgstr "Czas w sekundach, aby zachować kod QR na serwerze. Min: <strong>240</strong>"
 
@@ -29055,7 +29065,7 @@ msgstr "Zbyt wiele zadań w tle w kolejce ({0}). Spróbuj ponownie po pewnym cza
 msgid "Too many requests. Please try again later."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1074
+#: frappe/core/doctype/user/user.py:1077
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Zbyt wielu użytkowników podpisało się niedawno, więc rejestracja jest wyłączona. Proszę spróbować za godzinę"
 
@@ -29134,7 +29144,7 @@ msgstr "Temat"
 #: frappe/public/js/frappe/views/reports/print_grid.html:50
 #: frappe/public/js/frappe/views/reports/query_report.js:1294
 #: frappe/public/js/frappe/views/reports/report_view.js:1573
-#: ui/src/components/GroupBy/GroupByTable.vue:241
+#: ui/src/components/GroupBy/GroupByTable.vue:242
 msgid "Total"
 msgstr "Razem"
 
@@ -29424,7 +29434,7 @@ msgstr "Spróbuj użyć dłuższego wzór klawiatury z większą ilością zwoj�
 #. Option for the 'Day of Week' (Select) field in DocType 'Auto Email Report'
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json:15
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json:16
-#: frappe/core/doctype/system_settings/system_settings.json:495
+#: frappe/core/doctype/system_settings/system_settings.json:494
 #: frappe/desk/doctype/event/event.json:162
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:166
 msgid "Tuesday"
@@ -29433,12 +29443,12 @@ msgstr "Wtorek"
 #. Label of a Check field in DocType 'Role'
 #. Label of a Section Break field in DocType 'System Settings'
 #: frappe/core/doctype/role/role.json:47
-#: frappe/core/doctype/system_settings/system_settings.json:332
+#: frappe/core/doctype/system_settings/system_settings.json:331
 msgid "Two Factor Authentication"
 msgstr "Uwierzytelnianie dwóch czynników"
 
 #. Label of a Select field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:362
+#: frappe/core/doctype/system_settings/system_settings.json:361
 msgid "Two Factor Authentication method"
 msgstr "Metoda uwierzytelniania dwóch czynników"
 
@@ -29615,7 +29625,7 @@ msgstr "Nie można otworzyć załączony plik. Czy eksportować go jako plik CSV
 msgid "Unable to read file format for {0}"
 msgstr "Nie można odczytać pliku w formacie {0}"
 
-#: frappe/core/doctype/communication/email.py:186
+#: frappe/core/doctype/communication/email.py:188
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 msgstr "Nie można wysłać wiadomości e-mail z powodu brakującego konta e-mail. Proszę skonfigurować domyślne Konto e-mail w Ustawienia > Konto e-mail"
 
@@ -29690,7 +29700,7 @@ msgstr "Nieznana Kolumna: {0}"
 msgid "Unknown Rounding Method: {}"
 msgstr "Nieznana metoda zaokrąglania: {}"
 
-#: frappe/auth.py:316
+#: frappe/auth.py:318 frappe/auth.py:754
 msgid "Unknown User"
 msgstr "Nieznany użytkownik"
 
@@ -29739,12 +29749,12 @@ msgid "Unsubscribe"
 msgstr "Wyrejestrowanie"
 
 #. Label of a Data field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:127
+#: frappe/email/doctype/email_queue/email_queue.json:128
 msgid "Unsubscribe Method"
 msgstr "Metoda Wyrejestrowanie"
 
 #. Label of a Data field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:121
+#: frappe/email/doctype/email_queue/email_queue.json:122
 msgid "Unsubscribe Param"
 msgstr "Wyrejestrowanie Param"
 
@@ -29888,11 +29898,11 @@ msgid "Updated successfully"
 msgstr "Aktualizacja zakończona sukcesem"
 
 #. Label of a Tab Break field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:637
+#: frappe/core/doctype/system_settings/system_settings.json:630
 msgid "Updates"
 msgstr "Aktualizacje"
 
-#: frappe/utils/response.py:361
+#: frappe/utils/response.py:364
 msgid "Updating"
 msgstr "Aktualizuje"
 
@@ -29901,7 +29911,7 @@ msgctxt "Freeze message while updating a document"
 msgid "Updating"
 msgstr "Aktualizuje"
 
-#: frappe/email/doctype/email_queue/email_queue.py:475
+#: frappe/email/doctype/email_queue/email_queue.py:476
 msgid "Updating Email Queue Statuses. The emails will be picked up in the next scheduled run."
 msgstr "Aktualizowanie statusów kolejki e-mail. E-maile zostaną przetworzone w następnym zaplanowanym uruchomieniu."
 
@@ -29969,11 +29979,11 @@ msgstr "Przesłano do Dropbox"
 msgid "Uploaded To Google Drive"
 msgstr "Przesłano na Dysk Google"
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:201
+#: frappe/integrations/doctype/google_drive/google_drive.py:202
 msgid "Uploading backup to Google Drive."
 msgstr "Przesyłanie kopii zapasowej do Google Drive."
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:206
+#: frappe/integrations/doctype/google_drive/google_drive.py:207
 msgid "Uploading successful."
 msgstr "Przesyłanie zakończone pomyślnie."
 
@@ -30012,7 +30022,7 @@ msgid "Use IMAP"
 msgstr "Wykorzystanie IMAP"
 
 #. Label of a Check field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:708
+#: frappe/core/doctype/system_settings/system_settings.json:701
 msgid "Use Number Format from Currency"
 msgstr "Użyj formatu liczby z waluty"
 
@@ -30364,13 +30374,13 @@ msgstr "Moduł typu użytkownika"
 
 #. Description of the 'Allow Login using Mobile Number' (Check) field in
 #. DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:259
+#: frappe/core/doctype/system_settings/system_settings.json:258
 msgid "User can login using Email id or Mobile number"
 msgstr "Użytkownik może zalogować się przy użyciu adresu e-mail lub numeru telefonu komórkowego"
 
 #. Description of the 'Allow Login using User Name' (Check) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:266
+#: frappe/core/doctype/system_settings/system_settings.json:265
 msgid "User can login using Email id or User Name"
 msgstr "Użytkownik może zalogować się przy użyciu adresu e-mail lub nazwy użytkownika"
 
@@ -30446,17 +30456,17 @@ msgstr "Użytkownik {0} nie ma uprawnień do utworzenia Przestrzeni roboczej."
 msgid "User {0} has requested for data deletion"
 msgstr "Użytkownik {0} zażądał usunięcia danych"
 
-#: frappe/core/doctype/user/user.py:1457
+#: frappe/core/doctype/user/user.py:1461
 #, python-brace-format
 msgid "User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
 msgstr "Użytkownik {0} rozpoczął sesję podszywania się pod Ciebie. <br><br><b>Podany powód:</b> {1}"
 
-#: frappe/core/doctype/user/user.py:1439
+#: frappe/core/doctype/user/user.py:1443
 #, python-brace-format
 msgid "User {0} impersonated as {1}"
 msgstr "Użytkownik {0} podszył się pod {1}"
 
-#: frappe/utils/oauth.py:319
+#: frappe/utils/oauth.py:322
 #, python-brace-format
 msgid "User {0} is disabled"
 msgstr "Użytkownik {0} jest wyłączony"
@@ -31141,7 +31151,7 @@ msgstr "Adres URL webhooka"
 #. Name of a Workspace
 #: frappe/core/doctype/module_def/module_def.json:81
 #: frappe/core/doctype/security_settings_contact/security_settings_contact.json:17
-#: frappe/email/doctype/newsletter/newsletter.py:473
+#: frappe/email/doctype/newsletter/newsletter.py:478
 #: frappe/public/js/frappe/ui/toolbar/about.js:16
 #: frappe/website/workspace/website/website.json:13
 msgid "Website"
@@ -31288,7 +31298,7 @@ msgstr ""
 #. Option for the 'Day of Week' (Select) field in DocType 'Auto Email Report'
 #: frappe/automation/doctype/assignment_rule_day/assignment_rule_day.json:15
 #: frappe/automation/doctype/auto_repeat_day/auto_repeat_day.json:16
-#: frappe/core/doctype/system_settings/system_settings.json:495
+#: frappe/core/doctype/system_settings/system_settings.json:494
 #: frappe/desk/doctype/event/event.json:169
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:166
 msgid "Wednesday"
@@ -31306,6 +31316,7 @@ msgstr "Dni robocze"
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
+#. Option for the 'Frequency' (Select) field in DocType 'System Settings'
 #. Option for the 'Frequency' (Select) field in DocType 'User'
 #. Option for the 'Time Interval' (Select) field in DocType 'Dashboard Chart'
 #. Option for the 'Repeat On' (Select) field in DocType 'Event'
@@ -31322,6 +31333,7 @@ msgstr "Dni robocze"
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json:89
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json:69
 #: frappe/core/doctype/server_script/server_script.json:104
+#: frappe/core/doctype/system_settings/system_settings.json:762
 #: frappe/core/doctype/user/user.json:384
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:109
 #: frappe/desk/doctype/event/event.json:137
@@ -31360,7 +31372,7 @@ msgstr "Witamy"
 
 #. Label of a Link field in DocType 'System Settings'
 #. Label of a Link field in DocType 'Email Group'
-#: frappe/core/doctype/system_settings/system_settings.json:583
+#: frappe/core/doctype/system_settings/system_settings.json:576
 #: frappe/email/doctype/email_group/email_group.json:46
 msgid "Welcome Email Template"
 msgstr "Powitalny szablon wiadomości e-mail"
@@ -31397,19 +31409,19 @@ msgstr "Nowości"
 
 #. Description of the 'Allow Guests to Upload Files' (Check) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:418
+#: frappe/core/doctype/system_settings/system_settings.json:417
 msgid "When enabled this will allow guests to upload files to your application, You can enable this if you wish to collect files from user without having them to log in, for example in job applications web form."
 msgstr "Po włączeniu umożliwia gościom przesyłanie plików do Twojej aplikacji. Możesz włączyć tę opcję, jeśli chcesz zbierać pliki od użytkownika bez konieczności logowania, na przykład w formularzu internetowym z aplikacjami o pracę."
 
 #. Description of the 'Store Attached PDF Document' (Check) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:681
+#: frappe/core/doctype/system_settings/system_settings.json:674
 msgid "When sending document using email, store the PDF on Communication. Warning: This can increase your storage usage."
 msgstr "Podczas wysyłania dokumentu za pomocą e-maila PDF jest zapisywany w komunikacji. Ostrzeżenie: Może to zwiększyć wykorzystanie przestrzeni dyskowej."
 
 #. Description of the 'Force Web Capture Mode for Uploads' (Check) field in
 #. DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:594
+#: frappe/core/doctype/system_settings/system_settings.json:587
 msgid "When uploading files, force the use of the web-based image capture. If this is unchecked, the default behavior is to use the mobile native camera when use from a mobile is detected."
 msgstr "Podczas przesyłania plików wymuś użycie przechwytywania obrazu opartego na przeglądarce. Jeśli ta opcja nie jest zaznaczona, domyślnym zachowaniem jest użycie natywnej kamery telefonu komórkowego, gdy zostanie wykryte użycie z urządzenia mobilnego."
 
@@ -31465,7 +31477,7 @@ msgstr "Będą wyświetlane tylko wtedy, gdy są włączone Nagłówki sekcji"
 
 #. Description of the 'Run Jobs only Daily if Inactive For (Days)' (Int) field
 #. in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:425
+#: frappe/core/doctype/system_settings/system_settings.json:424
 msgid "Will run scheduled jobs only once a day for inactive sites. Set it to 0 to avoid automatically disabling the scheduler."
 msgstr "Zaplanowane zadania będą uruchamiane tylko raz dziennie dla nieaktywnych witryn. Ustaw wartość 0, aby uniknąć automatycznego wyłączania harmonogramu."
 
@@ -31732,7 +31744,7 @@ msgstr "Pole X"
 msgid "XLSX"
 msgstr ""
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:643
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:645
 msgid "XMLHttpRequest Error"
 msgstr "Błąd XMLHttpRequest"
 
@@ -31813,7 +31825,7 @@ msgstr "Żółty"
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:223
 #: frappe/public/js/frappe/views/reports/query_report.js:47
 #: frappe/website/doctype/help_article/templates/help_article.html:25
-#: ui/src/components/GroupBy/GroupByTable.vue:260
+#: ui/src/components/GroupBy/GroupByTable.vue:264
 msgid "Yes"
 msgstr "Tak"
 
@@ -31924,7 +31936,7 @@ msgstr "Nie masz uprawnień do dostępu do tej strony bez zalogowania się."
 msgid "You are not permitted to access this page."
 msgstr "Nie masz wystarczających uprawnień, aby uzyskać dostęp do tej strony."
 
-#: frappe/__init__.py:882
+#: frappe/__init__.py:885
 msgid "You are not permitted to access this resource. Login to access"
 msgstr "Nie masz uprawnień do dostępu do tego zasobu. Zaloguj się, aby uzyskać dostęp"
 
@@ -31985,7 +31997,7 @@ msgstr "Możesz kontynuować wprowadzenie po zapoznaniu się z tą stroną"
 msgid "You can disable this {0} instead of deleting it."
 msgstr "Możesz wyłączyć ten {0} zamiast go usuwać."
 
-#: frappe/core/doctype/file/file.py:919
+#: frappe/core/doctype/file/file.py:927
 msgid "You can increase the limit from System Settings."
 msgstr "Możesz zwiększyć limit w Ustawieniach systemowych."
 
@@ -32024,7 +32036,7 @@ msgstr "Możesz wybrać jedną z następujących,"
 
 #. Description of the 'Rate limit for email link login' (Int) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:688
+#: frappe/core/doctype/system_settings/system_settings.json:681
 msgid "You can set a high value here if multiple users will be logging in from the same network."
 msgstr "Można tu ustawić wysoką wartość, jeśli wielu użytkowników będzie logować się z tej samej sieci."
 
@@ -32125,7 +32137,7 @@ msgstr "Brak uprawnień do odczytu lub wyboru dla {}"
 msgid "You do not have enough permissions to access this resource. Please contact your manager to get access."
 msgstr "Nie masz wystarczających uprawnień, aby uzyskać dostęp do tego zasobu. Proszę skontaktować się z administratorem, aby uzyskać dostęp."
 
-#: frappe/app.py:405
+#: frappe/app.py:403
 msgid "You do not have enough permissions to complete the action"
 msgstr "Nie masz wystarczających uprawnień, aby zakończyć operację"
 
@@ -32176,7 +32188,7 @@ msgstr "Nie masz dostępu do sprawozdania: {0}"
 msgid "You don't have permission to access the {0} DocType."
 msgstr "Nie masz uprawnienia do dostępu do Doctype {0}."
 
-#: frappe/utils/response.py:295 frappe/utils/response.py:299
+#: frappe/utils/response.py:298 frappe/utils/response.py:302
 msgid "You don't have permission to access this file"
 msgstr "Nie masz dostępu do tego pliku"
 
@@ -32308,7 +32320,7 @@ msgstr "Musisz być Menedżerem obszaru roboczego, aby edytować ten dokument"
 msgid "You need to be in developer mode to edit a Standard Web Form"
 msgstr "Musisz być w trybie programisty aby edytować standardowy formularz internetowy"
 
-#: frappe/utils/response.py:277
+#: frappe/utils/response.py:280
 msgid "You need to be logged in and have System Manager Role to be able to access backups."
 msgstr "Musisz być zalogowany jako Administrator Systemu aby mieć dostęp do backup'ów."
 
@@ -32460,7 +32472,7 @@ msgstr "Twoje skróty"
 msgid "Your account has been deleted"
 msgstr "Twoje konto zostało usunięte"
 
-#: frappe/auth.py:512
+#: frappe/auth.py:517
 #, python-brace-format
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Twoje konto zostało zablokowane i wznowione po {0} sekundach"
@@ -32509,7 +32521,7 @@ msgstr "Twoje zaproszenie do dołączenia do {0} zostało anulowane przez admini
 msgid "Your invitation to join {0} has expired."
 msgstr "Twoje zaproszenie do dołączenia do {0} wygasło."
 
-#: frappe/utils/oauth.py:231
+#: frappe/utils/oauth.py:234
 msgid "Your login attempt is invalid or has expired. Please try again."
 msgstr "Próba logowania jest nieprawidłowa lub wygasła. Proszę spróbować ponownie."
 
@@ -32527,7 +32539,7 @@ msgstr "Twoje stare hasło jest nieprawidłowe."
 
 #. Description of the 'Email Footer Address' (Small Text) field in DocType
 #. 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:391
+#: frappe/core/doctype/system_settings/system_settings.json:390
 msgid "Your organization name and address for the email footer."
 msgstr "Twoje imię i nazwisko i adres organizacji w stopce e-mail."
 
@@ -32544,7 +32556,7 @@ msgstr "Twoje zapytanie zostało odebrane. Postaramy się odpowiedzieć powrotem
 msgid "Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
 msgstr "Twój raport jest generowany w tle. Po jego przygotowaniu otrzymasz wiadomość e-mail na adres {0} z odnośnikiem do pobrania."
 
-#: frappe/app.py:396
+#: frappe/app.py:394
 msgid "Your session has expired, please login again to continue."
 msgstr "Twoja sesja wygasła, zaloguj się ponownie, aby kontynuować."
 
@@ -32572,7 +32584,12 @@ msgstr ""
 msgid "Zero means send records updated at anytime"
 msgstr "Zero oznacza wysyłanie rekordów w każdej chwili"
 
-#: frappe/core/doctype/file/file.py:695 frappe/core/doctype/file/file.py:713
+#: frappe/core/doctype/file/file.py:692
+#, python-brace-format
+msgid "Zip file contains more than the maximum allowed {0} files"
+msgstr ""
+
+#: frappe/core/doctype/file/file.py:702 frappe/core/doctype/file/file.py:720
 #, python-brace-format
 msgid "Zip file extracts to more than the maximum allowed size of {0} MB"
 msgstr "Po rozpakowaniu pliku ZIP jego rozmiar przekracza maksymalny dozwolony rozmiar wynoszący {0} MB"
@@ -32868,17 +32885,17 @@ msgid "dashboard"
 msgstr "deska rozdzielcza"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:168
+#: frappe/core/doctype/system_settings/system_settings.json:167
 msgid "dd-mm-yyyy"
 msgstr "dd-mm-rrrr"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:168
+#: frappe/core/doctype/system_settings/system_settings.json:167
 msgid "dd.mm.yyyy"
 msgstr "dd.mm.rrrr"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:168
+#: frappe/core/doctype/system_settings/system_settings.json:167
 msgid "dd/mm/yyyy"
 msgstr "dd/mm/rrrr"
 
@@ -33321,12 +33338,12 @@ msgid "minus-sign"
 msgstr "znak minusa"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:168
+#: frappe/core/doctype/system_settings/system_settings.json:167
 msgid "mm-dd-yyyy"
 msgstr "mm-dd-rrrr"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:168
+#: frappe/core/doctype/system_settings/system_settings.json:167
 msgid "mm/dd/yyyy"
 msgstr "mm/dd/rrrr"
 
@@ -34028,7 +34045,7 @@ msgid "yesterday"
 msgstr "wczoraj"
 
 #. Option for the 'Date Format' (Select) field in DocType 'System Settings'
-#: frappe/core/doctype/system_settings/system_settings.json:168
+#: frappe/core/doctype/system_settings/system_settings.json:167
 msgid "yyyy-mm-dd"
 msgstr "rrrr-mm-dd"
 
@@ -34285,7 +34302,7 @@ msgctxt "Form timeline"
 msgid "{0} attached {1}"
 msgstr "{0} dołączył(a) {1}"
 
-#: frappe/core/doctype/system_settings/system_settings.py:162
+#: frappe/core/doctype/system_settings/system_settings.py:161
 #, python-brace-format
 msgid "{0} can not be more than {1}"
 msgstr "{0} nie może być większe niż {1}"
@@ -34492,7 +34509,7 @@ msgstr "{0} została dodana do grupy e-mail."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} opuścił rozmowy w {1} {2}"
 
-#: frappe/__init__.py:2443
+#: frappe/__init__.py:2446
 #, python-brace-format
 msgid "{0} has no versions tracked."
 msgstr "{0} nie ma śledzonych wersji."
@@ -34528,7 +34545,7 @@ msgstr ""
 msgid "{0} is a mandatory field"
 msgstr "{0} jest polem obowiązkowym"
 
-#: frappe/core/doctype/file/file.py:708
+#: frappe/core/doctype/file/file.py:715
 #, python-brace-format
 msgid "{0} is a not a valid zip file"
 msgstr "{0} nie jest prawidłowym plikiem zip"
@@ -34724,7 +34741,7 @@ msgstr "{0} jest w zakresie {1}"
 msgid "{0} items selected"
 msgstr "{0} wybrane pozycje"
 
-#: frappe/core/doctype/user/user.py:1448
+#: frappe/core/doctype/user/user.py:1452
 #, python-brace-format
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} właśnie podszył(a) się pod Ciebie. Podał(a) następujący powód: {1}"
@@ -34844,7 +34861,7 @@ msgstr "{0} nie znaleziono"
 
 #: frappe/core/doctype/report/report.py:458
 #: frappe/public/js/frappe/list/list_view.js:1022
-#: ui/src/components/GroupBy/GroupByTable.vue:185
+#: ui/src/components/GroupBy/GroupByTable.vue:186
 #, python-brace-format
 msgid "{0} of {1}"
 msgstr "{0} z {1}"
@@ -35024,7 +35041,7 @@ msgstr "{0} nie-podzielali ten dokument z {1}"
 msgid "{0} updated"
 msgstr "{0} zaktualizowano"
 
-#: frappe/public/js/frappe/form/controls/multiselect_list.js:193
+#: frappe/public/js/frappe/form/controls/multiselect_list.js:194
 #, python-brace-format
 msgid "{0} values selected"
 msgstr "Wybrano wartości {0}"
