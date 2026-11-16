@@ -608,6 +608,12 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 			run_report(report_name=custom.name, filters={"description": "x"}, ctx=CTX)
 		self.assertEqual(ran.call_args.kwargs["filters"], {"owner": "Administrator", "description": "x"})
 
+		# a validated report gets its defaults from the server, saved filters or not
+		query.db_set("validate_filters", 1)
+		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
+			run_report(report_name=custom.name, ctx=CTX)
+		ran.assert_called_once()
+
 	def test_only_a_prepared_report_runs_in_the_background(self):
 		args = {"report_name": self.report.name}
 		self.assertFalse(run_report.background(args))

@@ -309,8 +309,11 @@ def run_report(
 		raise ValueError(f"{report_name} is a Report Builder report; read its DocType with read_records.")
 	specs = _report_filter_specs(report_name)
 	defaults = {f["fieldname"]: f["default"] for f in specs if f["default"] not in (None, "")}
-	# saved filters apply only when none are passed, and then replace the defaults too, as in Desk
-	given = (not filters and report.custom_filters) or {**defaults, **(filters or {})}
+	# saved filters apply only when none are passed, and then replace the defaults too, as in Desk;
+	# a validated report gets its defaults from the server either way
+	given = filters or report.custom_filters or {}
+	if filters or not given or report.validate_filters:
+		given = {**defaults, **given}
 	# a failing query report breaks the transaction
 	if report.report_type == "Query Report":
 		if missing := set(re.findall(r"%\((\w+)\)s", report.query or "")) - set(given):
