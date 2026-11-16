@@ -1,10 +1,13 @@
 // `page.composer`'s host half for one record, and the page's built-in writers.
+import { currentSession } from "@framework/ui/useSession";
 import type { ComposerHost } from "@/recordPage";
+import type { PostComment } from "@/recordPage/commentAct";
 import type { WriterItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
 import {
 	activeWriter,
 	closeComposer,
+	composerRecordFor,
 	composerState,
 	openComposer,
 	preferredWindow,
@@ -12,14 +15,16 @@ import {
 } from "@/shell/composer";
 import { COMMENT_WRITER } from "./commentDraft";
 import { EMAIL_WRITER } from "./emailDraft";
+import { commentAuthor, sendComment } from "./commentPost";
 import { openEmail, type EmailSeedContext } from "./emailSeed";
 
 export function composerHost(
 	doctype: string,
 	docname: string,
 	email?: EmailSeedContext
-): ComposerHost {
+): ComposerHost & { postComment: PostComment } {
 	return {
+		postComment: (html) => agentComment(doctype, docname, html),
 		openWriter: (name, options) => {
 			if (name === EMAIL_WRITER)
 				openEmail(doctype, docname, email, options.draft, options.window);
@@ -49,4 +54,12 @@ export function composerBuiltins(perms: Record<string, any> = {}): WriterItem[] 
 	if (perms.email)
 		writers.push({ name: EMAIL_WRITER, label: __("Email"), icon: "lucide-mail" });
 	return writers;
+}
+
+/** The comment goes through the record's registered writer context, the page's `onPost` among it; the person's draft stays. */
+async function agentComment(doctype: string, docname: string, html: string) {
+	const context = composerRecordFor(doctype, docname);
+	const user = currentSession()?.user;
+	if (!context || !user) throw new Error("This record is not open in the tab");
+	return sendComment(context, commentAuthor(user), { content: html, attachments: [] });
 }

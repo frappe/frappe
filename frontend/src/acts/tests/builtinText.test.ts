@@ -13,6 +13,7 @@ import { shellItems } from "@/shell/shellActs";
 import { headerMenuBuiltins, quickActionBuiltins } from "@/pages/record/builtinActions";
 import { docstatusItems } from "@/pages/record/docstatusActs";
 import { amendItem } from "@/pages/record/amendAct";
+import { postCommentItem } from "@/recordPage/commentAct";
 import { recordTabBuiltins } from "@/pages/record/tabs/recordTabs";
 import { editorEntries } from "@/pages/doctypeEditor/entries/editorEntries";
 import { listEntries } from "@/pages/list/listActs";
@@ -110,6 +111,7 @@ function bulk(): ActItem[] {
 }
 
 const BUILT: Record<string, () => ActItem[]> = {
+  record: () => [postCommentItem(async () => "")],
   shell,
   header,
   quickActions,

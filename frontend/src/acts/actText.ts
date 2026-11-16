@@ -7,6 +7,7 @@ const SIDECARS: Record<string, () => Promise<{ default: Sidecar }>> = {
 	header: () => import("./text/header"),
 	quickActions: () => import("./text/quickActions"),
 	tabs: () => import("./text/tabs"),
+	record: () => import("./text/record"),
 	list: () => import("./text/list"),
 	cards: () => import("./text/cards"),
 	editor: () => import("./text/editor"),
