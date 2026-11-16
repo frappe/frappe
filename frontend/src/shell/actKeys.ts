@@ -15,6 +15,9 @@ export const ActKeys = defineComponent({
 		openArgument: { type: Function as PropType<OpenArgument>, default: undefined },
 	},
 	setup(props) {
+		// Agents drive the same acts as the keys do; this chunk loads after the first paint, so `window.desk` costs no page JS.
+		// A failed load leaves `window.desk` unset; the keys still work.
+		void import("./windowDesk/install").then((m) => m.installDesk(), () => {});
 		const bindings = computed(() => {
 			const bound = (item: ActItem) => Boolean(item.key && (!item.argument || props.openArgument));
 			return actsByCombo(acts.available(bound));

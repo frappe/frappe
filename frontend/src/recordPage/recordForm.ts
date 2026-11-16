@@ -26,7 +26,7 @@ export function recordEntries(host: RecordFormHost): ActEntry[] {
   return [setValuesEntry(form), ...childRowEntries(form)];
 }
 
-class RecordForm implements ValueForm, RowHost {
+export class RecordForm implements ValueForm, RowHost {
   constructor(private host: RecordFormHost) {}
 
   doc = () => this.host.page.doc;
@@ -65,7 +65,8 @@ class RecordForm implements ValueForm, RowHost {
     );
   }
 
-  private shown() {
+  /** The top-level fields the form shows now, in order. */
+  shown() {
     const layout = this.host.formLayout?.();
     return layout ? shownFields(layout, this.doc()) : [];
   }

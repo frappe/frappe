@@ -617,6 +617,33 @@ page.header.add({
 page.quickActions.add({ name: 'convert', label: 'Convert', run: (page) => page.run('header.convert_to_deal') })
 ```
 
+### `window.desk`: what an agent sees
+
+An agent that drives the tab through a script tool finds `window.desk`, frozen, with
+`version: 1`. Every member but `version` returns a Promise. It runs as the session user, so
+the dispatcher's `right`, `hidden` and `when` checks apply as they do for a click. It sends no
+request of its own (an act's `options` may read the server, as the palette does) and has no cache; the first call loads its chunk.
+
+| Member | What it gives |
+| --- | --- |
+| `acts.list()` | The acts present, shown and allowed now: `{ name, label, description, input, output?, asks, surface, key?, has_options }`. `input` is null when the act takes none, `asks` is `[]`, and `description` falls back to the label. |
+| `acts.options(name, query)` | The act's argument options as `{ ok, data: [{ value, label, description?, disabled? }], route, dialogs }`. |
+| `acts.run(name, value)` | `{ ok: true, data, route, dialogs }`, or `{ ok: false, error: { code, message }, route, dialogs }`. It never rejects. |
+| `acts.wait(call, { timeout })` | The final result of a call that returned `waiting_for_user`. |
+| `state({ fields })` | `{ route, page, ...facts, dialogs }`. `page` is `home`, `list`, `record`, `new`, `editor`, `page` or `not_found`. |
+| `dialogs()` | The open dialogs: `id`, `kind`, `title`, `message`, buttons. |
+
+A `confirm` or `danger` dialog that opens before an act ends makes `run` return
+`waiting_for_user`, with `error.dialog` and `error.call` (a number). Do not answer that dialog;
+tell the person, then call `wait(call)`. While it is open, any other `run` returns
+`waiting_for_user` too. Escape or Cancel makes the waited call `declined`. A `wait` that times
+out returns `waiting_for_user` again, and an unknown call id is `missing`. A form dialog does not
+end the run: `run` stays pending, so read `dialogs()` meanwhile. `interrupted` is for the caller to
+report when its tab is gone. The state of a list is `doctype`, `filters`, `sort` and `selected`;
+a record or new page adds `doctype`, `name` (not on a new record), `docstatus`, `unsaved`, `errors` and, with
+`fields: true`, the fields its layout shows (a text value is cut at 200 characters). A record route
+whose page has not loaded gives `loading: true`; read again.
+
 On a **return visit**, a record seen earlier in the same tab and reached again by Back,
 Forward or a link, the page paints from memory before the first frame, and `onRefresh`
 runs twice: once over the remembered record, then once more when the background reads
