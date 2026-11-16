@@ -100,6 +100,10 @@ frappe.ui.form.PrintView = class {
 				icon: "download",
 				btn_class: "btn-download-pdf",
 			});
+			this.page.add_button(__("Attach PDF"), () => this.attach_pdf(), {
+				icon: "paperclip",
+				btn_class: "btn-attach-pdf",
+			});
 			this.page.add_button(__("Email"), () => this.email_doc(), { icon: "mail" });
 			this.page.add_button(__("Form"), () => this.go_to_form_view(), {
 				icon: "file-spreadsheet",
@@ -110,6 +114,12 @@ frappe.ui.form.PrintView = class {
 				() => this.render_pdf(),
 				"btn-download-pdf",
 				__("Download PDF")
+			);
+			this.page.add_action_icon(
+				"paperclip",
+				() => this.attach_pdf(),
+				"btn-attach-pdf",
+				__("Attach PDF")
 			);
 			this.page.add_action_icon("mail", () => this.email_doc(), "", __("Email"));
 			this.page.add_action_icon("file-pen", () => this.go_to_form_view(), "", __("Form"));
@@ -701,6 +711,12 @@ frappe.ui.form.PrintView = class {
 		const is_raw_printing = this.is_raw_printing();
 		this.wrapper.find(".btn-print-preview").toggle(!is_raw_printing);
 		this.wrapper.find(".btn-download-pdf").toggle(!is_raw_printing);
+		this.wrapper
+			.find(".btn-attach-pdf")
+			.toggle(
+				!is_raw_printing &&
+					frappe.perm.has_perm(this.frm.doctype, 0, "write", this.frm.doc)
+			);
 	}
 
 	renders_via_generator(print_format) {
@@ -1025,6 +1041,19 @@ frappe.ui.form.PrintView = class {
 		if (!w) {
 			frappe.msgprint(__("Please enable pop-ups"));
 		}
+	}
+
+	attach_pdf() {
+		const settings = this.get_print_settings_param();
+		frappe.ui.form.attach_pdf(this.frm.doc.doctype, this.frm.doc.name, {
+			format: this.selected_format(),
+			no_letterhead: this.with_letterhead() ? 0 : 1,
+			letterhead: this.get_letterhead(),
+			settings: Object.keys(settings).length ? JSON.stringify(settings) : undefined,
+			language: this.lang_code,
+			style: this.get_print_style() || undefined,
+			pdf_generator: this.get_print_format().pdf_generator || undefined,
+		});
 	}
 
 	get_pdf_url() {
