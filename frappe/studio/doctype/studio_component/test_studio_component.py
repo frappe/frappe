@@ -81,10 +81,15 @@ class TestStudioComponent(IntegrationTestCase):
 			self.assertTrue(os.path.exists(path))
 			page.blocks = "[]"
 			page.save()
-			self.assertFalse(os.path.exists(script_path))
-			component.reload().delete()
-
 			self.assertFalse(os.path.exists(path))
+			self.assertFalse(os.path.exists(script_path))
+
+			# files that no page uses, such as files written by hand, go with the component
+			component.reload().export_to_folder(page.get_component_folder_path())
+			self.assertTrue(os.path.exists(script_path))
+			component.delete()
+			self.assertFalse(os.path.exists(path))
+			self.assertFalse(os.path.exists(script_path))
 
 	def test_a_component_in_use_cannot_be_deleted(self):
 		app = make_studio_app(app_name="uses-" + frappe.generate_hash(length=10))
