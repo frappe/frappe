@@ -127,6 +127,17 @@ class FlowLauncher {
 		else this.open();
 	}
 
+	// opens the panel on a chat's route, such as /s/<session>, for an app that started the chat
+	open_at(path) {
+		if (path) {
+			this.state.path = path;
+			this.island?.update({ path });
+		}
+		if (!this.state.open) return this.open();
+		this.save();
+		this.focus_chat();
+	}
+
 	// Cmd/Ctrl+I anywhere on the page and in the chat; the page's rich text keeps it for italics
 	toggle_by_key(event) {
 		const path = event.composedPath();
@@ -422,9 +433,12 @@ const STYLE = `
 }
 `;
 
-// not inside frames; window.flow.toggle() is for an app's
+// not inside frames; window.flow.toggle() and window.flow.open({ path }) are for an app's
 // code, as data-flow-toggle is for its markup
 if (window.top === window) {
 	const launcher = new FlowLauncher();
-	window.flow = { toggle: () => launcher.toggle() };
+	window.flow = {
+		toggle: () => launcher.toggle(),
+		open: ({ path } = {}) => launcher.open_at(path),
+	};
 }
