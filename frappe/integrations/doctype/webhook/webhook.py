@@ -118,6 +118,17 @@ class Webhook(Document):
 				validate_template(self.webhook_json)
 				self.webhook_data = []
 
+			if not any((h.key or "").lower() == "content-type" for h in self.webhook_headers):
+				self.append(
+					"webhook_headers",
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+						if self.request_structure == "JSON"
+						else "application/x-www-form-urlencoded",
+					},
+				)
+
 	def validate_repeating_fields(self):
 		"""Error when Same Field is entered multiple times in webhook_data"""
 		webhook_data = [entry.fieldname for entry in self.webhook_data]

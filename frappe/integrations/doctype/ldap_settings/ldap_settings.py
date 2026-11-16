@@ -70,6 +70,12 @@ class LDAPSettings(Document):
 	def validate(self):
 		self.default_user_type = self.default_user_type or "Website User"
 
+		if self.default_user_type == "System User" and not self.default_role:
+			frappe.throw(
+				_("{0} is required").format(frappe.bold(_(self.meta.get_label("default_role")))),
+				frappe.MandatoryError,
+			)
+
 		if not self.enabled:
 			return
 

@@ -161,6 +161,7 @@ class Browser:
 			"page_info_page",
 			"page_info_frompage",
 			"page_info_topage",
+			"visible-last-page",
 		]
 
 		# Loop through the classes to check
@@ -293,6 +294,14 @@ class Browser:
 			for style in print_format_css
 			if style.name in attrs
 			and (style.name not in PAGE_MARGIN_SIDES or re.fullmatch(f"0|{PAGE_LENGTH}", style.value.strip()))
+			and (
+				style.name not in ("page-width", "page-height")
+				or re.fullmatch(PAGE_LENGTH, style.value.strip())
+			)
+			and (
+				style.name != "header-spacing"
+				or re.fullmatch(rf"{PAGE_LENGTH}|[+-]?(\d*\.)?\d+", style.value.strip())
+			)
 		}
 		self.options.update(options)
 		self._set_page_size_from_print_format()

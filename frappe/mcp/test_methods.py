@@ -135,7 +135,10 @@ class TestCallMethod(McpTestCase):
 	def test_get_only_document_method_needs_read_permission(self):
 		# Desk User reads Email Template but cannot write it.
 		template = frappe.get_doc(
-			doctype="Email Template", name=f"MCP {frappe.generate_hash(length=10)}", subject="MCP"
+			doctype="Email Template",
+			name=f"MCP {frappe.generate_hash(length=10)}",
+			subject="MCP",
+			response="MCP",
 		).insert()
 		self.addCleanup(frappe.delete_doc_if_exists, "Email Template", template.name)
 		for method, expected in (("mcp_get", "GET"), ("mcp_post", None)):

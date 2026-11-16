@@ -1,58 +1,79 @@
-/* Espresso Alert — a static message banner with an optional icon,
- * description and dismiss button.
+/* Espresso Alert — a static message with an optional icon, description,
+ * actions and dismiss button. Two layouts, as in frappe-ui:
+ *
+ *   row (default)   one line: icon, title, then the action and dismiss inline
+ *   banner          stacked: icon and title, then the description and the
+ *                   actions underneath
  *
  * Markup:
  *   <div class="es-alert" role="alert" data-theme="blue">
- *     <svg>...</svg>                          (themed icon, optional)
- *     <div class="es-alert__content">
+ *     <svg>...</svg>                                    (themed icon, optional)
+ *     <span class="es-alert__title">...</span>
+ *     <div class="es-alert__actions">...</div>          (optional)
+ *     <button class="es-button es-alert__dismiss">...</button>   (optional)
+ *   </div>
+ *
+ *   <div class="es-alert" role="alert" data-layout="banner" data-theme="blue">
+ *     <div class="es-alert__head">
+ *       <svg>...</svg>
  *       <span class="es-alert__title">...</span>
- *       <p class="es-alert__description">...</p>   (optional)
  *     </div>
- *     <button class="es-alert__dismiss">...</button>  (optional)
+ *     <div class="es-alert__body">
+ *       <p class="es-alert__description">...</p>        (optional)
+ *       <div class="es-alert__actions">...</div>        (optional)
+ *     </div>
+ *     <button class="es-button es-alert__dismiss">...</button>   (optional)
  *   </div>
  *
  * Attributes (all optional):
- *   data-theme     yellow | blue | red | green   (no theme = plain gray, no icon)
+ *   data-layout    banner                        (default: row)
+ *   data-theme     yellow | blue | red | green   (no theme = gray, no icon)
  *   data-variant   subtle | outline              (default: subtle)
  *
- * "yellow" uses the amber tokens — the name comes from frappe-ui's Alert. */
+ * The theme colors only the icon and the row action's label. "yellow" uses
+ * the amber tokens — the name comes from frappe-ui's Alert. frappe-ui's colored
+ * ink scales sit one step below ours (its ink-blue-5 is our ink-blue-6), so
+ * the steps here are one above the ones in Alert.vue to get the same colors. */
 
 .es-alert {
+    --es-al-icon: var(--ink-gray-7);
+    --es-al-action: var(--ink-gray-7);
 
-    /* default (no theme): plain gray */
-    --es-al-bg: var(--surface-gray-2);
-    --es-al-icon: var(--ink-gray-6);
+    display: flex;
+    align-items: center;
+    min-height: calc(var(--spacing) * 10);
+    padding-block: calc(var(--spacing) * 1.5);
+    padding-inline: calc(var(--spacing) * 3.5) calc(var(--spacing) * 1.5);
+    border-radius: var(--radius-6);
+    background: var(--surface-gray-1);
+}
 
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: start;
-    gap: calc(var(--spacing) * 3);
-    padding-inline: calc(var(--spacing) * 4);
-    padding-block: calc(var(--spacing) * 3.5);
-    border-radius: var(--radius-md);
-    font-size: var(--text-base);
-    background: var(--es-al-bg);
+.es-alert[data-layout="banner"] {
+    display: block;
+    position: relative;
+    min-height: 0;
+    padding: calc(var(--spacing) * 3);
 }
 
 /* ---- themes ---- */
 .es-alert[data-theme="yellow"] {
-    --es-al-bg: var(--surface-amber-2);
     --es-al-icon: var(--ink-amber-6);
+    --es-al-action: var(--ink-amber-7);
 }
 
 .es-alert[data-theme="blue"] {
-    --es-al-bg: var(--surface-blue-2);
     --es-al-icon: var(--ink-blue-6);
+    --es-al-action: var(--ink-blue-7);
 }
 
 .es-alert[data-theme="red"] {
-    --es-al-bg: var(--surface-red-2);
     --es-al-icon: var(--ink-red-6);
+    --es-al-action: var(--ink-red-7);
 }
 
 .es-alert[data-theme="green"] {
-    --es-al-bg: var(--surface-green-2);
     --es-al-icon: var(--ink-green-6);
+    --es-al-action: var(--ink-green-7);
 }
 
 /* ---- outline variant: border instead of a filled background ---- */
@@ -61,63 +82,103 @@
     border: 1px solid var(--outline-gray-3);
 }
 
-/* ---- children ---- */
-.es-alert > svg {
+/* ---- icon and title ---- */
+.es-alert > svg,
+.es-alert__head > svg {
     width: calc(var(--spacing) * 4);
     height: calc(var(--spacing) * 4);
-    margin-top: 2px;
     color: var(--es-al-icon);
     flex-shrink: 0;
 }
 
-.es-alert__content {
-    display: grid;
-    gap: calc(var(--spacing) * 2);
-}
-
-/* no icon: let the content start in the first column */
-.es-alert__content:first-child {
-    grid-column: 1 / span 2;
+.es-alert > svg {
+    margin-inline-end: calc(var(--spacing) * 2);
 }
 
 .es-alert__title {
-    color: var(--ink-gray-9);
+    flex: 1;
+    min-width: 0;
+    color: var(--ink-gray-8);
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.35;
+    letter-spacing: 0.015em;
+}
+
+/* a row that ends with the title gets the same room on both sides */
+.es-alert > .es-alert__title:last-child {
+    margin-inline-end: calc(var(--spacing) * 2);
+}
+
+.es-alert__head {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing) * 1.5);
+}
+
+/* keep the title clear of the dismiss button in the corner */
+.es-alert:has(> .es-alert__dismiss) > .es-alert__head {
+    padding-inline-end: calc(var(--spacing) * 8);
+}
+
+/* ---- banner body: description, then the actions ---- */
+.es-alert__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: calc(var(--spacing) * 3);
+    margin-top: var(--spacing);
+}
+
+.es-alert__body:empty {
+    display: none;
 }
 
 .es-alert__description {
     margin: 0;
     color: var(--ink-gray-6);
-    font-size: var(--text-sm);
+    font-size: var(--text-p-base);
     line-height: 1.5;
+    letter-spacing: 0.02em;
 }
 
-.es-alert__dismiss {
-    border: 0;
-    padding: 0;
-    background: transparent;
-    cursor: pointer;
-    line-height: 0;
-    color: var(--ink-gray-6);
-}
-
-.es-alert__dismiss:focus-visible {
-    outline: var(--focus-outline-default);
-    border-radius: var(--radius-1);
-}
-
-.es-alert__dismiss > svg {
-    width: calc(var(--spacing) * 4);
-    height: calc(var(--spacing) * 4);
-}
-
-/* ---- footer (element form): sits under the content, e.g. action buttons ---- */
-.es-alert__footer {
-    grid-column: 2;
+/* ---- actions ---- */
+.es-alert__actions {
     display: flex;
-    gap: calc(var(--spacing) * 2);
+    align-items: center;
+    gap: var(--spacing);
+    flex-shrink: 0;
 }
 
-/* no icon: line the footer up with the content, which starts in column 1 */
-.es-alert > .es-alert__content:first-child ~ .es-alert__footer {
-    grid-column: 1 / span 2;
+.es-alert > .es-alert__actions {
+    margin-inline-start: calc(var(--spacing) * 1.5);
+}
+
+.es-alert .es-alert__action[data-variant="ghost"] {
+    --bt-fg: var(--es-al-action);
+}
+
+.es-alert[data-layout="banner"] .es-alert__action[data-variant="outline"] {
+    border-color: transparent;
+    box-shadow: var(--shadow-sm);
+}
+
+.es-alert[data-layout="banner"] .es-alert__action[data-variant="ghost"] {
+    --bt-fg: var(--ink-gray-7);
+}
+
+/* ---- dismiss ---- */
+.es-alert__dismiss {
+    margin-inline-start: calc(var(--spacing) * 1.5);
+}
+
+.es-alert__actions + .es-alert__dismiss {
+    margin-inline-start: var(--spacing);
+}
+
+.es-alert[data-layout="banner"] > .es-alert__dismiss {
+    position: absolute;
+    top: calc(var(--spacing) * 1.5);
+    inset-inline-end: calc(var(--spacing) * 1.5);
+    margin: 0;
 }

@@ -29,6 +29,12 @@ test("the session list pages past the last row shown and searches through the ho
 	await flow.refreshSessions()
 	assert.equal(flow.state.sessionsMore, true)
 
+	// a full page: the palette's search asks the host, and the list stays as it is
+	assert.deepEqual((await flow.findSessions("read")).map((s) => s.session_id), ["s9"])
+	assert.deepEqual(flow.state.sessions.map((s) => s.session_id), ["s0", "s1"])
+	assert.equal(flow.state.sessionQuery, "")
+	calls.length = 1
+
 	// a full page: the search goes to the host, and clearing it reloads the list
 	await flow.searchSessions("read")
 	assert.deepEqual(flow.state.sessions.map((s) => s.session_id), ["s9"])
@@ -48,6 +54,7 @@ test("the session list pages past the last row shown and searches through the ho
 
 	// every session loaded: typing filters locally, no request
 	await flow.searchSessions("read")
+	assert.deepEqual(await flow.findSessions("read"), [])
 	assert.deepEqual(calls, [
 		["", undefined],
 		["read", undefined],
@@ -1192,9 +1199,13 @@ test("saved state lives under the host's storage key and keeps only what differs
 		assert.equal(flow.state.prefs.chatFontSize, 12)
 		flow.setChatFontSize(15.01 + 1) // 16.009999999999998
 		flow.setChatFontWeight(500)
+		// a run of tool calls folds into one line unless every call is asked for
+		assert.equal(flow.state.prefs.separateToolCalls, false)
+		flow.setSeparateToolCalls(true)
 		const saved = JSON.parse(backing.get("flow.ui:site:user.prefs"))
 		assert.equal(saved.chatFontSize, 16.01)
 		assert.equal(saved.chatFontWeight, 500)
+		assert.equal(saved.separateToolCalls, true)
 		assert.equal(saved.sidebarOpen, false)
 		assert.deepEqual(saved.openFolders, ["/w/api"])
 		assert.deepEqual([saved.sidebarOrder, saved.chatOrder], ["manual", ["s2", "s1"]])
@@ -1234,6 +1245,7 @@ test("saved state lives under the host's storage key and keeps only what differs
 			[daemon.settings.chatFontSize, daemon.settings.chatOrder, daemon.settings.theme, daemon.settings.presets],
 			[16.01, ["s2", "s1"], "dark", []],
 		)
+		assert.equal(daemon.settings.separateToolCalls, true)
 		assert.equal("openFolders" in daemon.settings || "sidebarOpen" in daemon.settings, false)
 		// a change follows a moment later, alone
 		first.setChatFontSize(18)

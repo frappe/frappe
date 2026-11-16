@@ -99,6 +99,60 @@ def setup_complete(args: str | dict[str, Any]):
 		return {"status": "ok"}
 
 
+# Set after a failed attempt, so the next login gets the desk wizard instead of another attempt.
+PREFILLED_SETUP_FAILED = "prefilled_setup_failed"
+
+
+def complete_prefilled_setup(login_manager=None):
+	"""On login, finish setup with the region Frappe Cloud saved at sign-up, so the site owner
+	skips the desk wizard. A site set up any other way keeps the wizard."""
+	args = get_prefilled_setup_args()
+	if not args:
+		return
+	# A failed setup rolls back; the login's own rows must already be in.
+	frappe.db.commit(chain=True)
+	# A login through an email link is a GET, which the framework rolls back at the end
+	# unless told to keep it: the finished setup, or the note of its failure, must stay.
+	frappe.local.flags.commit = True
+	try:
+		complete_app_setup(**args)
+	except Exception:
+		# Whatever an app's setup hook raised, the login goes through; the wizard takes over.
+		frappe.log_error(title="Setup from the saved region failed")
+		frappe.db.set_default(PREFILLED_SETUP_FAILED, 1)
+		# The login still succeeded; keep the wizard's failure out of its response.
+		frappe.clear_messages()
+		frappe.response.pop("setup_wizard_failure_message", None)
+
+
+def get_prefilled_setup_args() -> dict | None:
+	from frappe.core.doctype.installed_applications.installed_applications import has_non_admin_user
+	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
+
+	if frappe.is_setup_complete() or frappe.conf.skip_setup_wizard:
+		return None
+	if frappe.db.get_default(PREFILLED_SETUP_FAILED):
+		return None
+	if "System Manager" not in frappe.get_roles():
+		return None
+	if frappe.get_hooks("setup_wizard_url") or site_requires_builtin_wizard():
+		return None
+
+	settings = frappe.get_single("System Settings")
+	prefilled = settings.country and settings.time_zone and settings.currency
+	# Frappe Cloud v2 creates the owner but saves no region.
+	if not has_non_admin_user() or not (prefilled or is_v2_site()):
+		return None
+
+	return {
+		"country": settings.country,
+		"currency": settings.currency,
+		"timezone": settings.time_zone,
+		"language": frappe.db.get_value("Language", settings.language, "language_name") or "English",
+		"enable_telemetry": settings.enable_telemetry,
+	}
+
+
 @frappe.whitelist(methods=["POST"])
 def complete_app_setup(
 	country: str | None = None,
@@ -259,7 +313,7 @@ def enable_setup_wizard_complete(app_name):
 
 def update_global_settings(args):  # nosemgrep
 	if args.language and args.language != "English":
-		set_default_language(get_language_code(args.lang))
+		set_default_language(get_language_code(args.language))
 	frappe.clear_cache()
 
 	update_system_settings(args)
@@ -350,7 +404,16 @@ def handle_setup_exception(args):  # nosemgrep
 
 
 def update_system_settings(args):  # nosemgrep
+	defaults = {
+		"float_precision": 3,
+		"rounding_method": "Banker's Rounding",
+		"enable_scheduler": 1 if not frappe.in_test else 0,
+		"backup_limit": 3,  # Default for downloadable backups
+	}
 	if not args.get("country"):
+		# A site set up without a region (Frappe Cloud v2 saves none) still gets the site
+		# defaults, written directly: saving the doc would insist on a time zone and formats.
+		frappe.db.set_single_value("System Settings", defaults)
 		return
 
 	number_format = get_country_info(args.get("country")).get("number_format", "#,###.##")
@@ -365,17 +428,14 @@ def update_system_settings(args):  # nosemgrep
 	system_settings = frappe.get_doc("System Settings", "System Settings")
 	system_settings.update(
 		{
+			**defaults,
 			"country": args.get("country"),
 			"language": get_language_code(args.get("language")) or "en",
 			"time_zone": args.get("timezone"),
 			"currency": args.get("currency"),
-			"float_precision": 3,
-			"rounding_method": "Banker's Rounding",
 			"date_format": frappe.db.get_value("Country", args.get("country"), "date_format"),
 			"time_format": frappe.db.get_value("Country", args.get("country"), "time_format"),
 			"number_format": number_format,
-			"enable_scheduler": 1 if not frappe.in_test else 0,
-			"backup_limit": 3,  # Default for downloadable backups
 		}
 	)
 	system_settings.save()

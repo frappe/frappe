@@ -1,4 +1,5 @@
 import { computed, inject } from "vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 // The agent in force: a session keeps the one it was created with; otherwise the one a
 // new chat starts with. The page, which provides the stores, passes them.
@@ -16,7 +17,7 @@ export function useAgent(flow = inject("flow"), page = inject("flowPage")) {
 		() =>
 			page.state.boot.agents.find((agent) => agent.name === current.value)?.title ??
 			current.value ??
-			(locked.value && flow.state.loading ? "" : "Choose an agent")
+			(locked.value && flow.state.loading ? "" : __("Choose an agent"))
 	);
 	return { locked, current, title };
 }

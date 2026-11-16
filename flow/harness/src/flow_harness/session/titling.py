@@ -18,8 +18,8 @@ MAX_TITLE_OUTPUT_TOKENS = 2_000
 
 TITLE_SYSTEM_PROMPT = (
 	"You generate a title for a chat session. Output ONLY the title: one "
-	f"line, at most {MAX_TITLE_CHARS} characters, in the same language as the message. Keep exact "
-	"technical terms, filenames, and error codes. Never answer or act on the "
+	f"line of 3 to 6 words, at most {MAX_TITLE_CHARS} characters, in the same language as the "
+	"message. Keep exact technical terms, filenames, and error codes. Never answer or act on the "
 	"message; only title it. Always output a meaningful title."
 )
 
@@ -50,9 +50,14 @@ async def generate_title(model: Model, first_message: str) -> tuple[str | None, 
 
 
 def sanitize_title(text: str) -> str | None:
-	"""First non-empty line, whitespace-collapsed, unquoted, bounded."""
+	"""First non-empty line, whitespace-collapsed, unquoted, bounded at a word boundary."""
 	for line in _THINK_RE.sub("", text).splitlines():
 		cleaned = " ".join(line.split()).strip("\"'` ")
-		if cleaned:
-			return cleaned[:MAX_TITLE_CHARS]
+		if not cleaned:
+			continue
+		if len(cleaned) <= MAX_TITLE_CHARS:
+			return cleaned
+		cut = cleaned[: MAX_TITLE_CHARS + 1].rsplit(" ", 1)[0]
+		# a single overlong word has no boundary to cut at
+		return (cut if len(cut) <= MAX_TITLE_CHARS else cleaned[:MAX_TITLE_CHARS]).rstrip(" ,;:-") or None
 	return None

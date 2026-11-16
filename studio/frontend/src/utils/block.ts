@@ -12,7 +12,6 @@ import LucideCode from "~icons/lucide/code"
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
 import { unusedOptionName, variantOptionNames } from "./variants"
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
-import { componentHasDefaultSlot, getComponentSlots } from "@/utils/components"
 import { mergeLegacyRawStyles } from "@/patches/mergeLegacyRawStyles"
 
 import type { StyleValue, FrappeUIComponent, FrappeUIComponents } from "@/types"
@@ -76,8 +75,6 @@ class Block implements BlockOptions {
 		}
 		if (options.isCustomVueComponent) {
 			this.isCustomVueComponent = options.isCustomVueComponent
-			// Warm the slot cache so canHaveChildren() knows this component's default slot
-			void getComponentSlots(this.componentName, true)
 		}
 
 		// get component props
@@ -127,6 +124,12 @@ class Block implements BlockOptions {
 
 	static setComponents(components: FrappeUIComponents) {
 		Block.components = components
+	}
+
+	private static hasDefaultSlot: (componentName: string) => boolean = () => false
+
+	static setDefaultSlotLookup(lookup: (componentName: string) => boolean) {
+		Block.hasDefaultSlot = lookup
 	}
 
 	static getComponents() {
@@ -250,19 +253,13 @@ class Block implements BlockOptions {
 	}
 
 	canHaveChildren() {
-		if (
+		return (
 			this.isRoot() ||
 			this.isContainer() ||
 			this.hasComponentSlots() ||
 			this.hasChildren() ||
-			this.hasDefaultSlot()
+			Block.hasDefaultSlot(this.componentName)
 		)
-			return true
-		return false
-	}
-
-	hasDefaultSlot() {
-		return componentHasDefaultSlot(this.componentName)
 	}
 
 	isRoot() {
@@ -758,9 +755,21 @@ class Block implements BlockOptions {
 	// component slots
 	initializeSlots() {
 		Object.entries(this.componentSlots).forEach(([slotName, slot]) => {
-			if (!slot.slotId) {
-				slot.slotId = this.generateSlotId(slotName)
+			if (Array.isArray(slot)) {
+				// Agents often write { slotName: [...] } instead of the expected { slotName, slotContent } format
+				console.warn(
+					`Slot "${slotName}" on ${this.componentName} is an array. ` +
+						"Studio stores a slot as { slotName, slotContent }.",
+				)
+				slot = {
+					slotName,
+					slotId: this.generateSlotId(slotName),
+					slotContent: slot,
+					parentBlockId: this.componentId,
+				}
+				this.componentSlots[slotName] = slot
 			}
+			slot.slotId ||= this.generateSlotId(slotName)
 			slot.parentBlockId = this.componentId
 
 			slot.slotContent = (Array.isArray(slot.slotContent) ? slot.slotContent : []).map((block) => {
@@ -842,16 +851,14 @@ class Block implements BlockOptions {
 	getCompletions(): CompletionSource[] {
 		const completions = this.getSlotScopeCompletions()
 		if (this.componentContext) {
-			completions.push(
-				{
-					item: this.componentContext.inputs || {},
-					completion: {
-						label: "inputs",
-						type: "data",
-						detail: "Component Context",
-					}
-				},
-			)
+			// `props`, and what the component's script returned. `inputs` is the older name of `props`.
+			for (const [name, item] of Object.entries(this.componentContext)) {
+				if (name === "inputs") continue
+				completions.push({
+					item: item || {},
+					completion: { label: name, type: "data", detail: "Component Context" },
+				})
+			}
 		}
 
 		return completions

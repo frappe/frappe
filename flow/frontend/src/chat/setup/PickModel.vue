@@ -3,24 +3,29 @@
 	<div class="flex w-full max-w-[360px] flex-col gap-3 text-left">
 		<div class="flex items-center gap-2.5">
 			<ProviderIcon :provider-id="provider === 'ollama_chat' ? 'ollama' : provider" :size="18" bare />
-			<p class="text-base-medium text-ink-gray-8">{{ name ? `Pick a ${name} model` : "Pick a model" }}</p>
+			<p class="text-base-medium text-ink-gray-8">{{ name ? __("Pick a {0} model", [name]) : __("Pick a model") }}</p>
 		</div>
 		<Combobox
 			:options="options"
 			:loading="!listed"
 			:disabled="Boolean(adding)"
 			:model-value="null"
-			placeholder="Search or type a model id"
+			:placeholder="__('Search or type a model id')"
 			@update:model-value="(id) => id && add(id)"
 		>
-			<template #item-typed="{ query }">Use “{{ query.trim() }}”</template>
+			<template #item-label="{ item }">
+				<div data-pick-model class="truncate" :title="item.label">{{ item.label }}</div>
+			</template>
+			<template #item-typed="{ query }">
+				<div data-pick-model class="truncate">{{ __("Use “{0}”", [query.trim()]) }}</div>
+			</template>
 		</Combobox>
 		<p v-if="adding" class="flex items-center gap-1.5 text-sm text-ink-gray-5">
 			<span class="lucide-loader-circle size-3.5 animate-spin" aria-hidden="true" />
-			Checking {{ adding }}…
+			{{ __("Checking {0}…", [adding]) }}
 		</p>
 		<ErrorMessage v-else class="break-words" :message="error" />
-		<Button class="-ml-2 self-start" variant="ghost" label="Use another provider" :disabled="Boolean(adding)" @click="emit('switch')" />
+		<Button class="-ml-2 self-start" variant="ghost" :label="__('Use another provider')" :disabled="Boolean(adding)" @click="emit('switch')" />
 	</div>
 </template>
 
@@ -28,6 +33,7 @@
 import { computed, onMounted, ref } from "vue";
 import { Button, Combobox, ErrorMessage } from "frappe-ui";
 import ProviderIcon from "@flow/ui-core/components/ProviderIcon.vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../../api/frappe.js";
 import { addableModels, serviceFor } from "./services.js";

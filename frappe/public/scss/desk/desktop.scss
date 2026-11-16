@@ -600,8 +600,9 @@ body {
 
 	&.shortcut-widget-box {
 		cursor: pointer;
-		padding: 10px 12px;
+		padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
 		border: 1px solid var(--border-color);
+		border-radius: var(--radius);
 
 		&:hover {
 			--icon-stroke: var(--invert-neutral);
@@ -615,7 +616,8 @@ body {
 
 		.widget-label .widget-title {
 			cursor: pointer;
-			font-size: var(--text-lg);
+			@include get_textstyle("base", "regular");
+			color: var(--ink-gray-8);
 		}
 
 		&:focus-visible {

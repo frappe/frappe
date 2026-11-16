@@ -46,9 +46,11 @@ body {
 	background: var(--surface-gray-1);
 }
 
-/* the sidebar's hover peek stands in for the sidebar, which casts no shadow: its edge alone */
+/* the sidebar's hover peek stands in for the sidebar, which casts no shadow: its edge alone,
+   in the header's border colour */
 [data-slot="content-body"]:has(> .flow-peek) {
 	--tw-shadow: 0 0 #0000;
+	--tw-ring-color: var(--outline-gray-1);
 }
 
 /* Long dropdown menus: the page itself never scrolls, so a menu taller than

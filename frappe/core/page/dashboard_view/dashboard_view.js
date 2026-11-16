@@ -213,7 +213,7 @@ class Dashboard {
 	set_breadcrumbs(docname) {
 		this.page.set_breadcrumbs([
 			{ label: __("Dashboard"), href: "/desk/dashboard" },
-			{ label: docname },
+			{ label: __(docname) },
 		]);
 	}
 

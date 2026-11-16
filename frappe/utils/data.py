@@ -400,6 +400,13 @@ def get_timezone_utc_offset(timezone: str) -> str:
 	return f"{sign}{hours:02d}:{minutes:02d}"
 
 
+def validate_time_zone(time_zone: str) -> None:
+	from zoneinfo import available_timezones
+
+	if time_zone not in available_timezones():
+		frappe.throw(frappe._("{0} is not a valid Time Zone").format(frappe.bold(time_zone)))
+
+
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
 	if utc_timestamp.tzinfo is None:
 		utc_timestamp = utc_timestamp.replace(tzinfo=ZoneInfo("UTC"))

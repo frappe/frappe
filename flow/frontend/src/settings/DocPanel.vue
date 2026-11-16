@@ -3,8 +3,8 @@
 		v-if="mode === 'form'"
 		:spec="spec"
 		:name="editing"
-		:title="editing ? `Edit ${spec.singular}` : `New ${spec.singular}`"
-		:back="`Back to ${spec.label.toLowerCase()}`"
+		:title="editing ? __('Edit {0}', [spec.singular]) : __('New {0}', [spec.singular])"
+		:back="__('Back to {0}', [spec.label.toLowerCase()])"
 		@saved="saved"
 		@deleted="changed"
 		@close="mode = 'list'"
@@ -17,7 +17,7 @@
 				v-model="query"
 				type="text"
 				variant="outline"
-				placeholder="Search"
+				:placeholder="__('Search')"
 				class="w-56 max-md:min-w-0 max-md:flex-1"
 			/>
 			<slot name="filters" />
@@ -25,7 +25,7 @@
 			<Button
 				v-if="canCreate"
 				variant="solid"
-				:label="`New ${spec.singular}`"
+				:label="__('New {0}', [spec.singular])"
 				@click="edit(null)"
 			/>
 		</div>
@@ -37,7 +37,7 @@
 			v-else-if="!rows.length && !error"
 			class="rounded-6 border border-dashed border-outline-gray-2 py-10 text-center text-sm text-ink-gray-5"
 		>
-			No {{ spec.label.toLowerCase() }} yet.
+			{{ __("No {0} yet.", [spec.label.toLowerCase()]) }}
 		</div>
 		<ul
 			v-else
@@ -59,9 +59,15 @@
 						>
 					</span>
 					<Badge
-						v-if="hasEnabled"
+						v-if="notice(row)"
+						theme="gray"
+						:label="__('Unavailable')"
+						:title="notice(row)"
+					/>
+					<Badge
+						v-else-if="hasEnabled"
 						:theme="row.enabled ? 'green' : 'gray'"
-						:label="row.enabled ? 'Enabled' : 'Disabled'"
+						:label="row.enabled ? __('Enabled') : __('Disabled')"
 					/>
 				</button>
 			</li>
@@ -71,7 +77,7 @@
 			v-if="hasMore || error"
 			class="mt-3"
 			variant="outline"
-			:label="error ? 'Retry' : 'Load more'"
+			:label="error ? __('Retry') : __('Load more')"
 			:loading="loading"
 			@click="load(true)"
 		/>
@@ -83,6 +89,7 @@ import { computed, inject, ref } from "vue";
 import { Badge, Button, ErrorMessage, FormControl } from "frappe-ui";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import DocForm from "./DocForm.vue";
 import { useRecordList } from "./records.js";
@@ -106,6 +113,11 @@ const { rows, loaded, loading, error, hasMore, hasEnabled, load, drop } = useRec
 	props.spec,
 	{ query, filters: () => props.filters }
 );
+
+// why a record can't be used, when its spec knows one
+function notice(row) {
+	return props.spec.notice?.(row, page.state.boot) ?? "";
+}
 
 function edit(name) {
 	editing.value = name;

@@ -2,12 +2,12 @@
 	<!-- a new chat's agent and skills, beside the composer's +; once it starts, the agent is kept and
 	     skills are in the + menu -->
 	<span class="relative flex-none">
-		<Tooltip :text="open === 'agent' ? '' : `Agent: ${agentTitle}`">
+		<Tooltip :text="open === 'agent' ? '' : __('Agent: {0}', [agentTitle])">
 			<button
 				ref="agentButton"
 				type="button"
 				:class="[BUTTON, tall ? 'h-8 w-8' : 'h-7 w-7', open === 'agent' && 'bg-surface-gray-2']"
-				:aria-label="`Agent: ${agentTitle}`"
+				:aria-label="__('Agent: {0}', [agentTitle])"
 				:aria-expanded="open === 'agent'"
 				@click="toggle('agent')"
 			>
@@ -17,12 +17,12 @@
 		<AgentPicker v-if="open === 'agent'" @close="close" />
 	</span>
 	<span v-if="hasSkills" class="relative flex-none">
-		<Tooltip :text="open === 'skills' ? '' : 'Skills'">
+		<Tooltip :text="open === 'skills' ? '' : __('Skills')">
 			<button
 				ref="skillsButton"
 				type="button"
 				:class="[BUTTON, tall ? 'h-8 w-8' : 'h-7 w-7', open === 'skills' && 'bg-surface-gray-2']"
-				aria-label="Skills"
+				:aria-label="__('Skills')"
 				:aria-expanded="open === 'skills'"
 				@click="toggle('skills')"
 			>
@@ -36,6 +36,7 @@
 <script setup>
 import { computed, inject, nextTick, ref } from "vue";
 import { Tooltip } from "frappe-ui";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { useAgent } from "./agent.js";
 import AgentPicker from "./AgentPicker.vue";
@@ -54,7 +55,7 @@ const open = ref(null); // "agent" | "skills"
 const agentButton = ref(null);
 const skillsButton = ref(null);
 const agentTitle = computed(
-	() => page.state.boot.agents.find((agent) => agent.name === current.value)?.title ?? "Agent"
+	() => page.state.boot.agents.find((agent) => agent.name === current.value)?.title ?? __("Agent")
 );
 // skills where there are some, or one can be added
 const hasSkills = computed(() => (flow.state.skills ?? []).length > 0 || page.can("Flow Skill", "create"));

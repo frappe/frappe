@@ -1,4 +1,5 @@
 import { FlowAPIError } from "@flow/ui-core/client.js";
+import { __ } from "@flow/ui-core/translate.js";
 import { call as frappeCall, upload } from "frappe-ui";
 
 // Every request the page makes goes through here, so a Frappe failure reaches the
@@ -25,7 +26,7 @@ export function deleteFile(name) {
 
 export function toApiError(error) {
 	if (error instanceof FlowAPIError) return error;
-	const message = error?.messages?.find(Boolean) ?? error?.message ?? "Request failed";
+	const message = error?.messages?.find(Boolean) ?? error?.message ?? __("Request failed");
 	return new FlowAPIError(error?.status ?? 0, stripTags(message), error);
 }
 

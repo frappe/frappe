@@ -23,7 +23,16 @@ from frappe.utils import add_user_info, cint, cstr, format_duration, get_link_to
 from frappe.utils.data import sbool
 from frappe.utils.html_utils import clean_html
 
-DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
+DISALLOWED_PARAMS = (
+	"cmd",
+	"data",
+	"ignore_permissions",
+	"ignore_user_permissions",
+	"view",
+	"user",
+	"csrf_token",
+	"join",
+)
 SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg", "min", "max")
 DEFAULT_AGGREGATE_FIELDNAME = "_aggregate_column"
 _FIELDNAME_RE = re.compile(r"^[a-zA-Z0-9_]+$")

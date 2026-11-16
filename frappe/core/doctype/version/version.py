@@ -38,7 +38,7 @@ class Version(Document):
 			return self.set_diff(old, new)
 
 	@staticmethod
-	def set_impersonator(data):
+	def set_session_context(data):
 		if not frappe.session:
 			return
 		if impersonator := frappe.session.data.get("impersonated_by"):
@@ -47,11 +47,14 @@ class Version(Document):
 		if audit_user := frappe.session.data.get("audit_user"):
 			data["audit_user"] = audit_user
 
+		if agent := frappe.session.data.get("agent"):
+			data["agent"] = agent
+
 	def set_diff(self, old: Document, new: Document) -> bool:
 		"""Set the data property with the diff of the docs if present"""
 		diff = get_diff(old, new, include_ignored_fields=False)
 		if diff:
-			self.set_impersonator(diff)
+			self.set_session_context(diff)
 			self.ref_doctype = new.doctype
 			self.docname = new.name
 			self.data = frappe.as_json(diff, indent=None, separators=(",", ":"))
@@ -61,15 +64,13 @@ class Version(Document):
 
 	def for_insert(self, doc: Document) -> bool:
 		updater_reference = doc.flags.updater_reference
-		if not updater_reference:
+		if not (updater_reference or has_agent()):
 			return False
 
-		data = {
-			"creation": doc.creation,
-			"updater_reference": updater_reference,
-			"created_by": doc.owner,
-		}
-		self.set_impersonator(data)
+		data = {"creation": doc.creation, "created_by": doc.owner}
+		if updater_reference:
+			data["updater_reference"] = updater_reference
+		self.set_session_context(data)
 		self.ref_doctype = doc.doctype
 		self.docname = doc.name
 		self.data = frappe.as_json(data, indent=None, separators=(",", ":"))
@@ -100,6 +101,10 @@ class Version(Document):
 
 		if html_diffs:
 			self.set_onload("html_diffs", html_diffs)
+
+
+def has_agent() -> bool:
+	return bool(frappe.session and frappe.session.data.get("agent"))
 
 
 def get_diff(old, new, for_child=False, compare_cancelled=False, include_ignored_fields=True):

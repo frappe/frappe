@@ -95,6 +95,23 @@ REPORT_JS = """frappe.query_reports["Flow Report Probe"] = {
 };"""
 
 
+# Desk's own defaults: literals apply, an expression (the user's company) can't be read
+REPORT_JS_CHOICES = """frappe.query_reports["Flow Report Probe"] = {
+	filters: [
+		{ fieldname: "company", label: __("Company"), fieldtype: "Link", options: "Company", reqd: 1,
+			default: frappe.defaults.get_user_default("Company") },
+		{ fieldname: "based_on", label: __("Based On"), fieldtype: "Select",
+			options: "Sales Order\\nSales Invoice", default: "Sales Order" },
+		{ fieldname: "days", label: __("Days"), fieldtype: "Select", options: [30, 60, 90], default: 30 },
+		{ fieldname: "group_by", label: __("Group By"), fieldtype: "Select", options: [
+			{ label: __("By Voucher"), value: "Group by Voucher" },
+			{ label: __("By Account"), value: "Group by Account" },
+		] },
+		{ default: "Monthly", fieldname: "periodicity", fieldtype: "Select", options: "Monthly\\nYearly" },
+	],
+};"""
+
+
 class TestFindDoctypes(IntegrationTestCase):
 	def tearDown(self):
 		frappe.set_user("Administrator")
@@ -188,7 +205,8 @@ class TestFindApis(IntegrationTestCase):
 		self.assertEqual(call_api(method=f"{MODULE}.get_only", ctx=self.ctx)["result"], "get")
 		with self.assertRaisesRegex(frappe.ValidationError, "whitelisted API's path"):
 			call_api(method="submit", ctx=self.ctx)
-		with self.assertRaisesRegex(ValueError, "not whitelisted"):
+		# a failure names the function by its path, as the model called it
+		with self.assertRaisesRegex(ValueError, f"^{MODULE}.read_only_not_whitelisted: .*not whitelisted"):
 			call_api(method=f"{MODULE}.read_only_not_whitelisted", ctx=self.ctx)
 
 		with self.patch_hooks(
@@ -424,12 +442,17 @@ class TestRunReport(IntegrationTestCase):
 		self.assertEqual(list(result), ["columns", "row_count", "total_row", "rows"])
 		self.assertEqual((len(rows), rows[-1]), (25, {"item": "Item 25", "qty": 25}))
 
+		# no cap on the rows asked for
+		self.report.db_set("report_script", REPORT_SCRIPT.replace("range(1, 26)", "range(1, 251)"))
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, limit=1000, ctx=CTX)
+		self.assertEqual((len(result["rows"]), result["row_count"]), (250, 250))
+
 	def test_a_failed_run_gives_the_reports_own_error_and_its_filters(self):
 		# frappe's failure log survives the rollback
 		with patch("frappe.log_error"), self.assertRaises(ValueError) as caught:
 			run_report(report_name=self.report.name, ctx=CTX)
 		self.assertIn("Company is mandatory", str(caught.exception))
-		self.assertIn("(* = required) warehouse*, company*, item", str(caught.exception))
+		self.assertIn("(* = required) company* (link to Company), item", str(caught.exception))
 
 		def fail(*args, **kwargs):
 			try:
@@ -447,14 +470,71 @@ class TestRunReport(IntegrationTestCase):
 		self.assertIn("Company is mandatory", str(caught.exception))
 		self.assertTrue(str(caught.exception).endswith("The report's filters (* = required) warehouse*"))
 
+	def test_a_filter_left_out_takes_the_reports_default_and_the_list_names_its_choices(self):
+		# the JS has filters, so Desk never reads this row
+		self.report.append(
+			"filters",
+			{"fieldname": "based_on", "label": "Based On", "fieldtype": "Data", "default": "Sales Invoice"},
+		)
+		self.report.save()
+		self.report.db_set("javascript", REPORT_JS_CHOICES)
+		self.report.db_set(
+			"report_script",
+			REPORT_SCRIPT
+			+ """
+if (filters.based_on, filters.days) != ("Sales Order", 30):
+	data = [columns, []]
+""",
+		)
+		self.enterContext(self.set_user("test@example.com"))
+		ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=ctx)
+		self.assertEqual(result["row_count"], 25)
+
+		# a filter given beats its default, and an empty run lists each filter's choices and default
+		given = {"company": "Acme", "based_on": "Sales Invoice"}
+		result = run_report(report_name=self.report.name, filters=given, ctx=ctx)
+		self.assertEqual(
+			(result["row_count"], result["available_filters"]),
+			(
+				0,
+				"(* = required) company* (link to Company), "
+				"based_on (Sales Order | Sales Invoice; default Sales Order), days (30 | 60 | 90; default 30), "
+				"group_by (Group by Voucher | Group by Account), periodicity (Monthly | Yearly; default Monthly)",
+			),
+		)
+
+	def test_a_validated_reports_list_defaults_apply_once(self):
+		self.report.validate_filters = 1
+		self.report.append(
+			"filters", {"fieldname": "company", "label": "Company", "fieldtype": "Data", "default": "Acme"}
+		)
+		self.report.append(
+			"filters",
+			{
+				"fieldname": "period",
+				"label": "Period",
+				"fieldtype": "DateRange",
+				"default": "2026-01-01,2026-01-31",
+			},
+		)
+		self.report.save()
+
+		result = run_report(report_name=self.report.name, filters={"warehouse": "Main"}, ctx=CTX)
+		self.assertEqual(result["row_count"], 25)
+
 	def test_an_empty_run_lists_the_filters(self):
-		filters = "(* = required) warehouse*, company*, item"
+		filters = "(* = required) company* (link to Company), item"
 		result = run_report(report_name=self.report.name, filters={"company": "Other"}, ctx=CTX)
 		self.assertEqual((result["row_count"], result["available_filters"]), (0, filters))
 
 		self.report.db_set("report_script", "pass")  # a report that returns nothing at all
 		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
 		self.assertEqual((result["rows"], result["available_filters"]), ([], filters))
+
+		self.report.db_set("javascript", "")  # no JS filters: the rows are the filters
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+		self.assertEqual(result["available_filters"], "(* = required) warehouse*")
 
 	def test_refuses_a_report_it_cannot_run(self):
 		builder = self.make_report("Flow Builder Probe", "Report Builder")
@@ -498,6 +578,42 @@ class TestRunReport(IntegrationTestCase):
 			[{"fieldname": "todo", "label": "ToDo"}, {"fieldname": "description", "label": "Description"}],
 		)
 		self.assertEqual(result["rows"], [{"todo": todo.name, "description": "query report probe"}])
+		ran.assert_called_once()
+
+	def test_a_saved_report_run_as_saved_needs_every_query_filter_saved(self):
+		query = self.make_report(
+			"Flow Query Probe",
+			"Query Report",
+			query="select name from tabToDo where description = %(description)s and owner = %(owner)s",
+			filters=[
+				{"fieldname": "owner", "label": "Owner", "fieldtype": "Data", "default": "Administrator"}
+			],
+		)
+		custom = self.make_report(
+			"Flow Custom Probe",
+			"Custom Report",
+			reference_report=query.name,
+			json=json.dumps({"filters": {"description": "query report probe"}}),
+		)
+		self.enterContext(self.set_user("test@example.com"))
+		ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+
+		# saved filters replace the defaults, as in Desk
+		with (
+			patch("frappe.desk.query_report.run") as ran,
+			self.assertRaisesRegex(ValueError, "^Missing filters: owner$"),
+		):
+			run_report(report_name=custom.name, ctx=ctx)
+		ran.assert_not_called()
+
+		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
+			run_report(report_name=custom.name, filters={"description": "x"}, ctx=ctx)
+		self.assertEqual(ran.call_args.kwargs["filters"], {"owner": "Administrator", "description": "x"})
+
+		# a validated report gets its defaults from the server, saved filters or not
+		query.db_set("validate_filters", 1)
+		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
+			run_report(report_name=custom.name, ctx=ctx)
 		ran.assert_called_once()
 
 	def test_only_a_prepared_report_runs_in_the_background(self):
@@ -590,6 +706,9 @@ class TestReadOnlyCalls(IntegrationTestCase):
 					self.assertTrue(needs_card({key: action}))
 		self.assertFalse(execute.requires_confirmation({"code": "", "read_only": True}))
 		self.assertTrue(execute.requires_confirmation({"code": ""}))
+		for raw in ("false", "0", "no", "true", 0, 1):
+			with self.subTest(read_only=raw):
+				self.assertTrue(execute.requires_confirmation({"code": "", "read_only": raw}))
 
 	def test_a_read_function_runs_once_and_the_database_refuses_its_writes(self):
 		result = self.run_function("read_only_whoami")
@@ -693,6 +812,37 @@ class TestWriteTools(IntegrationTestCase):
 
 		self.assertEqual(delete(doctype="ToDo", names=names, ctx=CTX)["deleted"], names)
 		self.assertFalse(frappe.db.exists("ToDo", {"name": ["in", names]}))
+
+	def test_a_child_row_changes_through_its_parent(self):
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": "Flow Child Row",
+				"email_ids": [{"email_id": "old@example.com", "is_primary": 1}],
+			}
+		).insert()
+		[row] = contact.email_ids
+		update(doctype="Contact Email", names=[row.name], values={"email_id": "new@example.com"}, ctx=CTX)
+		self.assertEqual(frappe.db.get_value("Contact", contact.name, "email_id"), "new@example.com")
+		self.assertEqual(delete(doctype="Contact Email", names=[row.name], ctx=CTX)["deleted"], [row.name])
+		self.assertFalse(frappe.db.exists("Contact Email", row.name))
+		self.assertFalse(frappe.db.get_value("Contact", contact.name, "email_id"))
+
+	def test_a_numbered_child_row_changes_through_its_parent(self):
+		# Web Form List Column rows are named 1, 2, 3...
+		form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "Flow Child Row Form",
+				"doc_type": "ToDo",
+				"list_columns": [{"fieldname": "description", "label": "Old"}],
+			}
+		).insert()
+		name = str(form.list_columns[0].name)
+		update(doctype="Web Form List Column", names=[name], values={"label": "New"}, ctx=CTX)
+		self.assertEqual(frappe.db.get_value("Web Form List Column", name, "label"), "New")
+		self.assertEqual(delete(doctype="Web Form List Column", names=[name], ctx=CTX)["deleted"], [name])
+		self.assertFalse(frappe.db.exists("Web Form List Column", name))
 
 	def test_one_failed_record_changes_none(self):
 		failing = frappe.get_doc({"doctype": "ToDo", "description": "ai write fails"}).insert()
