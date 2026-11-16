@@ -96,22 +96,35 @@ test.describe("Flow launcher", () => {
 	test("window.flow.open({ session }) opens the panel on that chat, and moves an open panel to another", async ({
 		page,
 	}) => {
-		// the chat asks the server for the chat it opens
-		const asked = (session) =>
-			page.waitForRequest(
-				(request) =>
-					request.url().endsWith("/frappe.flow.api.session") &&
-					request.postDataJSON()?.session === session
-			);
-		let request = asked("chat-one");
+		// the test's own chats, as the site would answer for them: nothing here runs a Flow server
+		const titles = { "chat-one": "First chat", "chat-two": "Second chat" };
+		const answer = (route, message) => route.fulfill({ json: { message } });
+		await page.route("**/api/method/frappe.flow.api.session", (route) => {
+			const name = route.request().postDataJSON().session;
+			if (!titles[name]) return route.continue();
+			return answer(route, { name, title: titles[name], approval_mode: "Auto", runs: [] });
+		});
+		await page.route("**/api/method/frappe.flow.api.entries", (route) =>
+			answer(route, { entries: [], latest_seq: 0, preview: [] })
+		);
+		await page.route("**/api/method/frappe.flow.api.skills", (route) =>
+			answer(route, { skills: [] })
+		);
+		const island = launcher(page).locator(".frappe-island");
+
 		await page.evaluate(() => window.flow.open({ session: "chat-one" }));
 		await expect(panel(page)).not.toHaveAttribute("inert");
-		await request;
+		await expect(island.getByText("First chat")).toBeVisible();
 
 		// not a toggle: an open panel stays open
-		request = asked("chat-two");
 		await page.evaluate(() => window.flow.open({ session: "chat-two" }));
-		await request;
+		await expect(island.getByText("Second chat")).toBeVisible();
 		await expect(panel(page)).not.toHaveAttribute("inert");
+	});
+
+	test("a chat an app asked for that cannot open says why", async ({ page }) => {
+		await page.evaluate(() => window.flow.open({ session: "no-such-chat" }));
+		await expect(panel(page)).not.toHaveAttribute("inert");
+		await expect(launcher(page).getByText(/no-such-chat/)).toBeVisible();
 	});
 });
