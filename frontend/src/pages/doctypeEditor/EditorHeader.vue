@@ -1,7 +1,7 @@
 <!-- The layout crumb stays last: its layout popover hangs on it. -->
 <template>
 	<div class="flex w-full flex-col">
-		<div class="flex h-12 items-center justify-between gap-2">
+		<div class="flex items-center justify-between gap-2">
 			<div class="flex min-w-0 flex-1 items-center gap-2">
 				<LayoutCrumbs
 					class="-ml-0.5"
