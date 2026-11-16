@@ -14,6 +14,11 @@ const card_names = (page, column) =>
 	column_cards(page, column).evaluateAll((cards) => cards.map((card) => card.dataset.name));
 const board_filters = (page) =>
 	page.evaluate(() => cur_list._kanban.get_effective_filters().map((f) => f.slice(1, 4)));
+// the List view's page stays in the DOM, with its own filter button
+const board_filter_count = (page) =>
+	page.locator(
+		'[data-page-route="List/ToDo/Kanban/ToDo Kanban"] .filter-selector .filter-label'
+	);
 const priority_box = (page) =>
 	page.locator('.kanban-v2-quick-filters select[data-fieldname="priority"]');
 const wait_for_board_data = (page) =>
@@ -150,11 +155,11 @@ test.describe("Kanban v2 Board", () => {
 			await expect(column_cards(page, "Open")).toHaveCount(1);
 			await expect(column_cards(page, "Open").first()).toHaveAttribute("data-name", high);
 			await expect(priority_box(page)).toHaveValue("High");
-			await expect(page.locator(".filter-selector .filter-label")).toHaveText("1");
+			await expect(board_filter_count(page)).toHaveText("1");
 
 			await reopen_board(page);
 			await expect(priority_box(page)).toHaveValue("");
-			await expect(page.locator(".filter-selector .filter-label")).toBeHidden();
+			await expect(board_filter_count(page)).toBeHidden();
 			expect(await board_filters(page)).toEqual([]);
 			await expect(column_cards(page, "Open")).toHaveCount(open_todos.length);
 		} finally {
