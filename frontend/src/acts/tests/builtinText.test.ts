@@ -25,6 +25,7 @@ import { childFieldItems } from "@/pages/doctypeEditor/childActs";
 import { customizeItems } from "@/pages/doctypeEditor/customizeActs";
 import { dangerItems } from "@/pages/doctypeEditor/dangerActs";
 import { layoutItems } from "@/pages/doctypeEditor/layoutActs";
+import { recordEntries } from "@/recordPage/recordForm";
 
 const noop = () => {};
 // The editor's builders read their host only when an act's `when` or `run` does.
@@ -111,7 +112,6 @@ function bulk(): ActItem[] {
 }
 
 const BUILT: Record<string, () => ActItem[]> = {
-  record: () => [postCommentItem(async () => "")],
   shell,
   header,
   quickActions,
@@ -126,6 +126,8 @@ const BUILT: Record<string, () => ActItem[]> = {
   customize: () => customizeItems(editorHost),
   danger: () => dangerItems(editorHost),
   layouts: () => layoutItems(editorHost),
+  // The entries read their host only when an act runs.
+  record: () => [postCommentItem(async () => ""), ...recordEntries({} as any).map((entry) => entry.item)],
 };
 
 describe("the built-in acts' text", () => {

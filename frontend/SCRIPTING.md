@@ -317,7 +317,8 @@ The record page also has the `record` surface, with no palette rows. `record.pos
 takes `{ content }`, plain text: it is escaped, each line is a paragraph, and the comment is
 posted as the writer's Send posts it (the pending row shows and `onPost` fires, no
 mentions or attachments). It returns `{ comment }`, the comment's name, and leaves the
-composer's draft as it is. A record dialog and a new record have no such act.
+composer's draft as it is. Only the record page has this act: a record dialog and a new record have the
+acts that fill the form, below.
 
 `page.run` also runs the shell's acts, which outlive the page and are named `shell.<item>`.
 Each menu entry in the rail and the avatar menu is one of them: `shell.all_apps`,
@@ -329,6 +330,26 @@ which asks first. `shell.create` takes a doctype, or `{ doctype, values }`. `she
 one of its saved views; the palette does not list it. A Single has no list, so it opens the
 document, and `view` is ignored with a name. `page.create()`, `page.open()` and
 `page.openSettings()` run `shell.create`, `shell.open` and `shell.open_settings`.
+
+The `record` surface fills the form in front, as typing does, and never saves: each value commits
+through the same channel, so a Link is checked, `fetch_from` fills and your field handlers run
+before the call returns. None of them is in the palette.
+
+- `record.set_values({ values })` sets top-level fields by fieldname, in the order given. An unknown,
+  hidden (`depends_on`), read-only or table field rejects the whole call with `ActInvalid`, and nothing is
+  written. It resolves `{ values, errors }`: every field that changed, fetched ones too, and the marks on
+  screen by fieldname (`table.<idx>.<fieldname>` for a row's cell). A Link that is not found is a mark, not a rejection.
+- A child row is `{ table, idx }`, `idx` the 1-based number the grid shows. `record.add_child_row({ table, values })`
+  adds a row at the end with the child's defaults, fires `onAdd`, then sets `values` as above, and resolves
+  `{ idx, values, errors }`. `record.set_child_values({ table, idx, values })` sets cells of one row.
+  `record.remove_child_row({ table, idx })` fires `onRemove` and resolves `{ rows }`, the count left. A row's
+  `idx` moves up when a row above goes.
+
+```js
+await page.run('record.add_child_row', { table: 'items', values: { item_code: 'WIDGET', qty: 3 } })
+```
+
+A Create dialog in front registers its own `record.set_values` for its form. It has no child tables, no handlers and no Link check: it fills the shown fields and marks the form edited.
 
 ```js
 page.header.add({ name: 'dark', label: 'Dark theme', run: (page) => page.run('shell.theme', 'dark') })

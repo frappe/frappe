@@ -742,3 +742,19 @@ describe("the page's acts behind the dialog", () => {
 		release();
 	});
 });
+
+describe("record.set_values", () => {
+	it("fills the form in front, and refuses a field the form does not have", async () => {
+		const { root } = await open("Lead");
+
+		const result = await acts.run("record.set_values", { values: { title: "Acme", status: "Closed" } });
+		await settle();
+
+		expect(result).toEqual({ values: { title: "Acme", status: "Closed" }, errors: {} });
+		expect(input(root, "title").value).toBe("Acme");
+		await expect(acts.run("record.set_values", { values: { company: "Acme" } })).rejects.toThrow(
+			"record.set_values: company is not a field of this form"
+		);
+		expect(inserts()).toEqual([]);
+	});
+});

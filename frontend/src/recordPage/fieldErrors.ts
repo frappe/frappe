@@ -49,6 +49,11 @@ export class FieldErrors implements Staging {
     if (!this.staged) this.draw(marks);
   }
 
+  /** The marks now, a hold's staged ones included, by `fieldErrorKey`. */
+  current(): Record<string, FieldError> {
+    return Object.fromEntries([...(this.staged ?? this.shown)].map(([key, mark]) => [key, mark.message]));
+  }
+
   /** An edit's clear: off the screen now, and out of any replay or hold in flight. */
   clear(address: FieldAddress) {
     const key = fieldErrorKey(address);
@@ -103,7 +108,7 @@ export class FieldErrors implements Staging {
       rowChanged: (row, change) => {
         this.clear(row.parentfield);
         if (change === "remove") this.clearRow(row);
-        channel.rowChanged(row, change);
+        return channel.rowChanged(row, change);
       },
     };
   }
