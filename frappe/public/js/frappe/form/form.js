@@ -1797,7 +1797,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
 	}
 
-	add_custom_button(label, fn, group, type) {
+	add_custom_button(label, fn, group, type = "default") {
 		// temp! old parameter used to be icon
 		if (group && group.indexOf("fa fa-") !== -1) group = null;
 
