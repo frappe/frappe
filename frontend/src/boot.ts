@@ -70,6 +70,8 @@ export type Boot = {
 	has_app_updates: boolean;
 	// The user's bulk-action switch and the site's cap on one bulk run.
 	bulk_actions: boolean;
+	// The person let agents drive their open tabs: the tab then listens for `ui_relay` calls.
+	agent_ui_relay: boolean;
 	bulk_operation_limit: number;
 	// Print Settings' cap on the records one bulk print takes.
 	max_bulk_print_docs: number;

@@ -139,6 +139,19 @@
    "save_mode": "auto"
   },
   {
+   "binding_type": "Record",
+   "document_type": "User",
+   "fields": [
+    "agent_ui_relay"
+   ],
+   "key": "agents",
+   "kind": "Generated",
+   "label": "Agents",
+   "name_resolver": "session_user",
+   "pane": "profile",
+   "save_mode": "auto"
+  },
+  {
    "component": "session-defaults",
    "description": "Values new records start with, until you log out.",
    "key": "session-defaults",
@@ -315,7 +328,7 @@
  "doctype": "Settings Dialog",
  "extends": "",
  "idx": 0,
- "modified": "2026-11-14 12:00:00.000000",
+ "modified": "2026-11-16 12:00:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",

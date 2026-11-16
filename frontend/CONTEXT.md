@@ -478,6 +478,12 @@ run one, wait for a person's answer to its confirm, and read the page and open d
 answers, never the agent, and `wait` gives the final result.
 _Avoid_: agent API, bridge.
 
+**UI relay**: <a id="ui-relay"></a>
+How a server call, such as `fr ui`, drives the person's open tab: it reaches the tab by the
+realtime room and runs through `window.desk`, so an agent's confirm rules hold. The person
+turns it on for themselves ("Let agents drive my open tabs"); off, the tab does not listen.
+_Avoid_: remote control, bridge.
+
 **Row**: <a id="row"></a>
 One line in the palette, showing an act, a place or a record. Not a child table's row; see
 **Words that collide**.
