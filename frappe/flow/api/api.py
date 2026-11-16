@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 FEEDBACK_COMMENT_LIMIT = 500
 TITLE_LIMIT = 140
 LIST_LIMIT = 100
+PAGE_CALL_CLAIM_SECONDS = 120  # a little over a page call's longest wait
 RUN_FIELDS = ["name", "daemon_run_id", "status", "error"]
 FEEDBACK_FIELDS = ["feedback_rating", "feedback_comment"]
 REASONING_EFFORTS = ("off", "minimal", "low", "medium", "high", "xhigh", "max")
@@ -222,6 +223,18 @@ def screen_result(
 		frappe.throw(_("A screen or an error is required."), title=_("Invalid Screen"))
 	with DaemonClient.for_site() as daemon:
 		return {"delivered": bool(daemon.tool_result(doc.name, token, result).get("delivered"))}
+
+
+@frappe.whitelist(methods=["POST"])
+def claim_page_call(session: str, token: str) -> dict[str, bool]:
+	"""Claim the page call waiting on `token` for this panel. Only the first of the user's open tabs
+	gets `claimed`, so an act runs once. A claim lasts as long as a call can wait."""
+	_load_session(session, "write")
+	if not isinstance(token, str) or not token.strip():
+		frappe.throw(_("Token is required."), title=_("Invalid Token"))
+	key = frappe.cache.make_key(f"flow_page_call:{session}:{token}")
+	# nosemgrep: frappe-cache-breaks-multitenancy
+	return {"claimed": bool(frappe.cache.set(name=key, value=1, ex=PAGE_CALL_CLAIM_SECONDS, nx=True))}
 
 
 @frappe.whitelist(methods=["POST"])

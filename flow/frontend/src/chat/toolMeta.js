@@ -149,6 +149,18 @@ const TOOLS = {
 		// the page it read, by its title
 		subject: (args, result) => parseResult(result)?.title,
 	},
+	list_acts: {
+		icon: "lucide-list-checks",
+		label: __("Listing what the page can do"),
+		done: __("Listed what the page can do"),
+	},
+	run_act: {
+		icon: "lucide-mouse-pointer-click",
+		label: __("Running on the page"),
+		done: __("Ran on the page"),
+		// the act it ran, by its name
+		subject: (args) => args?.name,
+	},
 	// the flow server's own tool: its row opens the child's thread in the workspace panel
 	subagent: { icon: "lucide-bot", label: __("Sub-agent"), done: __("Ran sub-agents") },
 };

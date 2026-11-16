@@ -32,6 +32,11 @@ SUBAGENT_TOOL_SLUG = "subagent"
 SCREEN_TOOL_SLUG = "read_screen"
 SCREEN_EVENT = "flow:read_screen"
 SCREEN_TIMEOUT = 20  # seconds the user's panel has to answer
+LIST_ACTS_SLUG = "list_acts"
+RUN_ACT_SLUG = "run_act"
+PAGE_TOOL_SLUGS = frozenset({SCREEN_TOOL_SLUG, LIST_ACTS_SLUG, RUN_ACT_SLUG})
+PAGE_EVENT = "flow:page_call"
+PAGE_TIMEOUT = 60  # seconds: an act may wait on a confirm that a person answers
 SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG, "web_fetch", "web_search"}
 
 
@@ -1096,6 +1101,57 @@ def read_screen(*, ctx: ToolContext) -> Pending:
 	return Pending(timeout=SCREEN_TIMEOUT)
 
 
+def _ask_page(ctx: ToolContext, op: str, args: dict[str, Any]) -> Pending:
+	"""Send one call to the panel beside the chat. Its answer comes back through `screen_result`."""
+	if not ctx.result_token:
+		frappe.throw(_("{0} can only answer a call that waits for a result.").format(op))
+	frappe.publish_realtime(
+		PAGE_EVENT,
+		{"session": ctx.session_id, "token": ctx.result_token, "op": op, "args": args},
+		user=ctx.user,
+	)
+	return Pending(timeout=PAGE_TIMEOUT)
+
+
+@tool
+def list_acts(*, ctx: ToolContext) -> Pending:
+	"""The acts the desk v2 page beside this chat can run now: each has a name, a description, `input`
+	(the JSON Schema of its argument, null when it takes none) and `asks` (the dialogs it opens). The
+	list changes with the page and the record, so read it again after the page changes. Use run_act to
+	run one. An error means the page beside the chat is not a desk v2 page."""
+	return _ask_page(ctx, LIST_ACTS_SLUG, {})
+
+
+def _run_act_asks(args: dict[str, Any]) -> bool:
+	return not args.get("call")
+
+
+def _run_act_prompt(args: dict[str, Any]) -> str:
+	value = args.get("args")
+	shown = "" if value in (None, {}) else _summarize_values({"value": value})
+	return _("Run '{0}' in the page beside the chat {1}").format(args.get("name"), shown).strip()
+
+
+@tool(requires_confirmation=_run_act_asks, confirm_prompt=_run_act_prompt)
+def run_act(
+	name: str | None = None,
+	args: Any = None,
+	call: int | None = None,
+	*,
+	ctx: ToolContext,
+) -> Pending:
+	"""Run one act of the desk v2 page beside this chat, as the user, and get `{ok, data, error, route,
+	dialogs}`. `name` is from list_acts; `args` is the value its `input` describes. Read the page with
+	read_screen first when unsure what it shows. A person answers every confirm in the page: when one
+	opens, you get error code `waiting_for_user` with `error.call`. Tell the user to answer it in the
+	page, then call run_act with only `call` to wait for the end (it returns `waiting_for_user` again
+	when the person has not answered yet). Never retry the act while it waits."""
+	if call is None and not name:
+		frappe.throw(_("Give the act's name, or the call to wait for."))
+	op_args = {"call": call} if call is not None else {"name": name, "args": args}
+	return _ask_page(ctx, RUN_ACT_SLUG, op_args)
+
+
 def _undo_batch(record: str, error: Exception, ctx: ToolContext) -> NoReturn:
 	"""Undo every write since the batch began, then fail naming the record that broke it."""
 	try:
@@ -1258,6 +1314,8 @@ BUILTIN_TOOLS: list[Tool] = [
 	call_api,
 	execute,
 	read_screen,
+	list_acts,
+	run_act,
 	request_secret,
 ]
 

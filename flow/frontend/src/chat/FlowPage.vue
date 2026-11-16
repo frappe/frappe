@@ -170,6 +170,7 @@ import SetupState from "./SetupState.vue";
 import ShareChat from "./ShareChat.vue";
 import SkillPicker from "./SkillPicker.vue";
 import { useAgent } from "./agent.js";
+import { answerPageCall, readDeskState } from "./pageCall.js";
 import { readScreen } from "./screen.js";
 import { presentTool } from "./toolMeta.js";
 
@@ -241,6 +242,8 @@ socket.on("flow:read_screen", async (message) => {
 	} else {
 		try {
 			answer.screen = readScreen(window, root.value?.getRootNode().host);
+			const desk = await readDeskState(window);
+			if (desk) answer.screen.desk = desk;
 		} catch (error) {
 			answer.error = `The page beside the chat could not be read: ${error?.message ?? error}`;
 		}
@@ -250,6 +253,20 @@ socket.on("flow:read_screen", async (message) => {
 	} catch {
 		// another panel on the chat answered first, or the call stopped waiting
 	}
+});
+// the agent's list_acts and run_act: the panel calls window.desk on the page beside it. Only the
+// first panel to claim a run_act runs it
+socket.on("flow:page_call", (message) => {
+	if (!message?.token || message.session !== store.state.sessionId) return;
+	const answer = { session: message.session, token: message.token };
+	answerPageCall(message, {
+		page: window,
+		inPanel,
+		claim: async () => (await transport.call("frappe.flow.api.claim_page_call", answer)).claimed,
+		reply: (result) =>
+			// another panel on the chat answered first, or the call stopped waiting
+			transport.call("frappe.flow.api.screen_result", { ...answer, ...result }).catch(() => {}),
+	}).catch(() => {});
 });
 // the page around the panel owns the theme, which the island follows
 if (!inPanel) useColorScheme();

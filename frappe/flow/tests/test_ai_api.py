@@ -461,6 +461,19 @@ class TestSessionEndpoints(ApiCase):
 		with self.assertRaises(frappe.PermissionError):
 			api.screen_result(sid, "t4", screen={})
 
+	def test_only_the_first_panel_claims_a_page_call(self):
+		sid = self.create()
+		self.assertEqual(api.claim_page_call(sid, "c1"), {"claimed": True})
+		self.assertEqual(api.claim_page_call(sid, "c1"), {"claimed": False})
+		self.assertEqual(api.claim_page_call(sid, "c2"), {"claimed": True})
+		with self.assertRaises(frappe.ValidationError):
+			api.claim_page_call(sid, " ")
+		viewer = _ensure_user("claim-viewer@example.com")
+		frappe.share.add("Flow Session", sid, viewer)
+		frappe.set_user(viewer)
+		with self.assertRaises(frappe.PermissionError):
+			api.claim_page_call(sid, "c3")
+
 	def test_a_users_chat_preferences_are_kept_and_come_with_boot(self):
 		other = _ensure_user("prefs-other-user@example.com")
 		self.addCleanup(frappe.set_user, "Administrator")

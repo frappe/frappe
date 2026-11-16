@@ -18,7 +18,13 @@ from frappe.flow.daemon.client import DaemonClient, DaemonError
 from frappe.flow.lib.tool import Pending, ToolContext, tool
 from frappe.flow.memory import store as memory_store
 from frappe.flow.tests.test_fake_daemon import FakeDaemon, turn
-from frappe.flow.tools.builtins import SCREEN_EVENT, SCREEN_TIMEOUT, sync_builtin_tools
+from frappe.flow.tools.builtins import (
+	PAGE_EVENT,
+	PAGE_TIMEOUT,
+	SCREEN_EVENT,
+	SCREEN_TIMEOUT,
+	sync_builtin_tools,
+)
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
@@ -101,6 +107,8 @@ class TestToolCallback(IntegrationTestCase):
 			"frappe/search_attachments",
 			"frappe/read_attachment",
 			"frappe/read_screen",
+			"frappe/list_acts",
+			"frappe/run_act",
 			"whoami",
 			"whoami_later",
 			"maybe_later",
@@ -380,6 +388,28 @@ class TestToolCallback(IntegrationTestCase):
 		)
 		with patch("frappe.publish_realtime") as publish:
 			self.assertTrue(self.call("read_screen")["is_error"])
+		publish.assert_not_called()
+
+	def test_the_act_tools_send_one_page_call_and_wait_longer_than_a_screen_read(self):
+		calls = [
+			("list_acts", {}, {}),
+			("run_act", {"name": "header.save"}, {"name": "header.save", "args": None}),
+			("run_act", {"name": "shell.open", "args": "/apps/todo"}, {"name": "shell.open", "args": "/apps/todo"}),
+			("run_act", {"call": 3}, {"call": 3}),
+		]
+		for tool, args, sent in calls:
+			with self.subTest(tool, args=args), patch("frappe.publish_realtime") as publish:
+				reply = self.call(tool, args, result_token="t3")
+			self.assertEqual(reply, {"pending": True, "timeout": PAGE_TIMEOUT})
+			publish.assert_called_once_with(
+				PAGE_EVENT,
+				{"session": self.session.name, "token": "t3", "op": tool, "args": sent},
+				user=OWNER,
+			)
+		self.assertGreater(PAGE_TIMEOUT, SCREEN_TIMEOUT)
+		with patch("frappe.publish_realtime") as publish:
+			self.assertTrue(self.call("list_acts")["is_error"])
+			self.assertTrue(self.call("run_act", {}, result_token="t4")["is_error"])
 		publish.assert_not_called()
 
 	def test_a_job_skips_the_tool_once_its_run_stopped_waiting_or_it_waited_too_long(self):

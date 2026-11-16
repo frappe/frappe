@@ -57,6 +57,8 @@ class ServerCase(IntegrationTestCase):
 					{"tool": "frappe/read_records"},
 					{"tool": "frappe/execute"},
 					{"tool": "frappe/read_screen"},
+					{"tool": "frappe/list_acts"},
+					{"tool": "frappe/run_act"},
 				],
 				"enabled": 1,
 			}
@@ -68,15 +70,16 @@ class ServerCase(IntegrationTestCase):
 
 
 class TestNewSession(ServerCase):
-	def test_a_trigger_session_has_no_page_to_read_and_nobody_to_tap_a_reply(self):
+	def test_a_trigger_session_has_no_page_to_read_or_drive_and_nobody_to_tap_a_reply(self):
 		def tools(session):
 			return [t["function"]["name"] for t in self.daemon.configs[session.name]["client_tools"]]
 
 		trigger = new_session(self.agent, source="Trigger")
 		manual = new_session(self.agent)
-		self.assertNotIn("read_screen", tools(trigger))
+		for page_tool in ("read_screen", "list_acts", "run_act"):
+			self.assertNotIn(page_tool, tools(trigger))
+			self.assertIn(page_tool, tools(manual))
 		self.assertFalse(self.daemon.configs[trigger.name]["suggest_replies"])
-		self.assertIn("read_screen", tools(manual))
 		self.assertTrue(self.daemon.configs[manual.name]["suggest_replies"])
 
 	def test_new_session_starts_its_server_twin(self):

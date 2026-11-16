@@ -153,7 +153,7 @@ class FlowSession(Document):
 		from frappe.flow.daemon import lifecycle
 		from frappe.flow.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
 		from frappe.flow.lib.model import model_config
-		from frappe.flow.tools.builtins import SCREEN_TOOL_SLUG
+		from frappe.flow.tools.builtins import PAGE_TOOL_SLUGS
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		if not agent.enabled:
@@ -184,7 +184,7 @@ class FlowSession(Document):
 		if self.source == "Trigger":  # nobody is there to tap a reply, and no page to read
 			config["suggest_replies"] = False
 			config["client_tools"] = [
-				t for t in config["client_tools"] if t["function"]["name"] != SCREEN_TOOL_SLUG
+				t for t in config["client_tools"] if t["function"]["name"] not in PAGE_TOOL_SLUGS
 			]
 		else:
 			config["suggest_replies"] = True
