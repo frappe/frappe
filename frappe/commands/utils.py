@@ -59,7 +59,7 @@ def build(
 	using_cached=False,
 ):
 	"Compile JS and CSS source files"
-	from frappe.bundler import bundle, download_frappe_assets
+	from frappe.bundler import build_framework_islands, bundle, download_frappe_assets
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
@@ -97,6 +97,7 @@ def build(
 			using_cached=using_cached,
 			esbuild_target=esbuild_target,
 		)
+		build_framework_islands(production=mode == "production")
 
 		if apps and isinstance(apps, str):
 			apps = apps.split(",")

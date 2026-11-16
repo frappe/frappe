@@ -39,6 +39,7 @@ class SystemSettings(Document):
 		country: DF.Link | None
 		currency: DF.Link | None
 		currency_precision: DF.Literal["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+		dashboards: DF.Literal["Insights", "Classic"]
 		date_format: DF.Literal[
 			"yyyy-mm-dd", "dd-mm-yyyy", "dd/mm/yyyy", "dd.mm.yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
 		]
@@ -55,6 +56,7 @@ class SystemSettings(Document):
 		dormant_days: DF.Int
 		email_footer_address: DF.SmallText | None
 		email_retry_limit: DF.Int
+		enable_combobox_link_field: DF.Check
 		enable_mcp: DF.Check
 		enable_onboarding: DF.Check
 		enable_password_policy: DF.Check
@@ -118,6 +120,7 @@ class SystemSettings(Document):
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
 		time_zone: DF.Literal[None]
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
+		use_classic_charts: DF.Check
 		use_number_format_from_currency: DF.Check
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types
