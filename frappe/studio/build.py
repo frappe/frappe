@@ -361,7 +361,7 @@ class StudioAppBuilder:
 				component = json.loads(component_text)
 				self._add_icons(component_text)
 
-				component_name = component.get("component_id")
+				component_name = component.get("component_id") or component.get("name")
 				block = component.get("block")
 
 				if component_name and block:
