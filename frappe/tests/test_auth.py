@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import inspect
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -32,7 +33,7 @@ from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.logging import get_log_db, log_table
 from frappe.utils.password import check_password
-from frappe.www.login import _generate_temporary_login_link, send_login_link
+from frappe.www.login import _generate_temporary_login_link, _send_login_link, send_login_link
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -434,10 +435,19 @@ class TestAuth(IntegrationTestCase):
 
 		for email in (self.test_user_email, "no-such-user@example.com"):
 			with patch("frappe.enqueue") as enqueue, patch("frappe.sendmail") as sendmail:
-				send_login_link(email)
+				inspect.unwrap(send_login_link)(email)
 
 			enqueue.assert_called_once()
+			self.assertEqual(enqueue.call_args.kwargs["lang"], frappe.local.lang)
 			sendmail.assert_not_called()
+
+	def test_login_link_job_uses_the_request_language(self):
+		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+		sent_in = []
+		with patch("frappe.sendmail", side_effect=lambda **kwargs: sent_in.append(frappe.local.lang)):
+			_send_login_link(self.test_user_email, "de")
+
+		self.assertEqual(sent_in, ["de"])
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_correct_cookie_expiry_set(self):
