@@ -69,3 +69,9 @@ body {
 [data-slot="content"]:has([data-add-model]) {
 	width: min(26rem, calc(100vw - 2rem));
 }
+
+/* the first run's model list is as wide as its box; the marker is on its rows, the only place
+   this Combobox lets one into the list */
+[data-slot="content"]:has([data-pick-model]) {
+	width: var(--reka-combobox-trigger-width);
+}
