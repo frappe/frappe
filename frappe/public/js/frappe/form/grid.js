@@ -1246,13 +1246,14 @@ export default class Grid {
 			let $item = $(item);
 			let index =
 				(this.grid_pagination.page_index - 1) * this.grid_pagination.page_length + i;
-			let d = this.grid_rows_by_docname[$item.attr("data-name")].doc;
+			let grid_row = $item.data("grid_row");
+			let d = grid_row.doc;
 			d.idx = index + 1;
 			$item.attr("data-idx", d.idx);
 
 			if (this.frm) this.frm.doc[this.df.fieldname][index] = d;
 			this.data[index] = d;
-			this.grid_rows[index] = this.grid_rows_by_docname[d.name];
+			this.grid_rows[index] = grid_row;
 		});
 	}
 
