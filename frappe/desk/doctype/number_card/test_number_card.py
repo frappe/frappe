@@ -61,6 +61,21 @@ class TestNumberCard(IntegrationTestCase):
 			frappe.get_list("Number Card", filters={"name": card.name}, pluck="name", user=user),
 		)
 
+	def test_card_list_with_report_name_ending_in_backslash(self):
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"report_name": "Test Backslash Report\\",
+				"ref_doctype": "ToDo",
+				"report_type": "Report Builder",
+				"is_standard": "No",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Report", report.name, force=True)
+
+		with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
+			self.assertIsInstance(frappe.get_list("Number Card", limit_page_length=1), list)
+
 	def test_link_search_hides_cards_from_blocked_modules(self):
 		user = "test2@example.com"
 		blocked_module = "Contacts"

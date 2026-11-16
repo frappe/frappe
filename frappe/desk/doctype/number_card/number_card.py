@@ -116,7 +116,7 @@ def get_permission_query_conditions(user=None):
 		| ((nc.type == "Document Type") & nc.document_type.isin(allowed_doctypes))
 	) & (nc.module.isin(allowed_modules) | nc.module.isnull() | (nc.module == ""))
 
-	return conditions.get_sql(quote_char="`")
+	return conditions
 
 
 def has_permission(doc, ptype, user):
