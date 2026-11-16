@@ -4,6 +4,7 @@
 
 <script setup>
 import { computed } from "vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import RecordTable from "./RecordTable.vue";
 import { cellText, columnsOf, parseResult } from "./result.js";
@@ -31,7 +32,7 @@ const columns = computed(() => {
 const footer = computed(() => {
 	const first = columns.value[0];
 	if (!total.value || !first || cellText(total.value[first])) return total.value;
-	return { ...total.value, [first]: "Total" };
+	return { ...total.value, [first]: __("Total") };
 });
 const rows = computed(() => records.value.map((cells) => ({ cells })));
 </script>

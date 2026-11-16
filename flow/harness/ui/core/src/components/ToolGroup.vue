@@ -19,7 +19,7 @@
 				<!-- a finished run says so when calls in it failed, without being opened -->
 				<span v-if="sealed && failures" class="flex-none">
 					<span class="whitespace-pre text-ink-gray-4"> · </span>
-					<span class="text-ink-red-5">{{ failures }} failed</span>
+					<span class="text-ink-red-5">{{ __("{0} failed", [failures]) }}</span>
 				</span>
 			</span>
 		</button>
@@ -43,7 +43,8 @@
 import { computed, inject, nextTick, ref } from "vue"
 
 import { usePanelOpen } from "../panels.js"
-import { compactDisplayText, displayText, stepDecision, stepDoneLabel, stepLiveLabel } from "../transcript.js"
+import { compactDisplayText, displayText, liveLabelText, stepDecision, stepDoneLabel, stepLiveLabel } from "../transcript.js"
+import { __ } from "../translate.js"
 import ThoughtStep from "./ThoughtStep.vue"
 import ToolStep from "./ToolStep.vue"
 
@@ -73,7 +74,7 @@ const tailLabel = computed(() => {
 	// a live trailing thought shimmers on its own row; every other wait (results
 	// landed, tool arguments still streaming, a retry) shows the status here
 	if (last.thought && last.live) return null
-	return props.liveLabel ?? "Working"
+	return liveLabelText(props.liveLabel) ?? __("Working")
 })
 
 // One line for the run unless the user asked for every row (prefs.separateToolCalls): always
@@ -84,8 +85,8 @@ const folded = computed(() => !flow?.state?.prefs?.separateToolCalls && (!props.
 const WAITS = new Set(["Retrying", "Compacting context"])
 const headline = computed(() => {
 	if (props.sealed) return doneLine()
-	if (!runningStep.value && WAITS.has(props.liveLabel)) return props.liveLabel
-	return latestCalls() ?? tailLabel.value ?? "Thinking"
+	if (!runningStep.value && WAITS.has(props.liveLabel)) return liveLabelText(props.liveLabel)
+	return latestCalls() ?? tailLabel.value ?? __("Thinking")
 })
 
 // calls that errored or the user refused

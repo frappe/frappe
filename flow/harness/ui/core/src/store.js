@@ -14,6 +14,7 @@ import {
 	subagentTitle,
 	waitingApprovals,
 } from "./transcript.js"
+import { __ } from "./translate.js"
 
 // mirrors MAX_ATTACHMENTS_PER_MESSAGE on the daemon; the client has no endpoint to
 // learn it from, so it is restated here and enforced before anything is staged
@@ -339,7 +340,7 @@ export function createFlowStore(client, options = {}) {
 		return (
 			info.title ??
 			state.titles[info.session_id] ??
-			`${(info.cwd ?? "").split("/").filter(Boolean).pop() ?? "session"} · ${info.session_id.slice(0, 8)}`
+			`${(info.cwd ?? "").split("/").filter(Boolean).pop() ?? __("session")} · ${info.session_id.slice(0, 8)}`
 		)
 	}
 
@@ -435,7 +436,7 @@ export function createFlowStore(client, options = {}) {
 		if (!data) return
 		foldersRequest++
 		state.folders = state.folders.map((folder) => (folder.path === path ? data.workspace : folder))
-		notify("Workspace renamed")
+		notify(__("Workspace renamed"))
 	}
 
 	// it leaves the sidebar, its folder and chats stay: the chats are in no workspace now, and a new
@@ -447,7 +448,7 @@ export function createFlowStore(client, options = {}) {
 		state.folders = state.folders.filter((folder) => folder.path !== path)
 		for (const session of state.sessions) if (session.workspace === path) session.workspace = null
 		if (!state.sessionId && state.prefs.cwd === path) setCwd(latestFolder())
-		notify("Workspace deleted")
+		notify(__("Workspace deleted"))
 	}
 
 	// Typing filters the loaded rows, which is exact only while every session is loaded;
@@ -543,7 +544,7 @@ export function createFlowStore(client, options = {}) {
 			view: ["files", "diff"].includes(saved.view) ? saved.view : null,
 			tabs: stored.map(({ kind, path, diff, since }) =>
 				kind === "subagent"
-					? { kind, path, name: "Sub-agent" } // named once the thread is loaded
+					? { kind, path, name: __("Sub-agent") } // named once the thread is loaded
 					: {
 							kind: "editor",
 							path,
@@ -873,7 +874,7 @@ export function createFlowStore(client, options = {}) {
 		const model = state.conversation.model ?? (state.loading ? null : state.prefs.lastModel)
 		if (!options.onlyListedModels || !model || !state.models.length) return null
 		if (state.models.some((item) => item.name === model)) return null
-		return `${modelTitle(model, state.models)} isn't available to you. Pick a different model.`
+		return __("{0} isn't available to you. Pick a different model.", [modelTitle(model, state.models)])
 	}
 
 	async function send(text, attachments = []) {
@@ -883,13 +884,13 @@ export function createFlowStore(client, options = {}) {
 		// MAX_ATTACHMENTS; only their sum rides the run, so check it before staging
 		// anything — otherwise both succeed and the run is rejected as oversized.
 		if (attachments.length > options.maxAttachments) {
-			notify(`A message can carry at most ${options.maxAttachments} attachments.`, "error")
+			notify(__("A message can carry at most {0} attachments.", [options.maxAttachments]), "error")
 			return false
 		}
 		// a paused run refuses every message until its approval is answered, so say that
 		// here instead of sending one and handing the text back with an error
 		if (state.conversation.pendingApproval) {
-			notify("Answer the approval before sending another message.", "error")
+			notify(__("Answer the approval before sending another message."), "error")
 			return false
 		}
 		// A run going, or about to start with a message still on its way, holds the next
@@ -932,7 +933,7 @@ export function createFlowStore(client, options = {}) {
 	async function sendQueued(item) {
 		if (!state.queued.includes(item)) return
 		if (state.conversation.pendingApproval) {
-			notify("Answer the approval before sending another message.", "error")
+			notify(__("Answer the approval before sending another message."), "error")
 			return
 		}
 		if (!state.conversation.running) return sendWaiting(item)
@@ -979,7 +980,7 @@ export function createFlowStore(client, options = {}) {
 			message,
 			attachments,
 			afterSeq,
-			label: message || `${attachments.length} attachment(s)`,
+			label: message || __("{0} attachment(s)", [attachments.length]),
 		}
 	}
 
@@ -1039,7 +1040,7 @@ export function createFlowStore(client, options = {}) {
 		const created = !sid
 		if (created) {
 			if (options.requireCwd && !state.prefs.cwd) {
-				notify("Choose a project folder before sending a message.", "error")
+				notify(__("Choose a project folder before sending a message."), "error")
 				return false
 			}
 			// only from the same blank chat: one opened since makes a chat of its own
@@ -1173,8 +1174,9 @@ export function createFlowStore(client, options = {}) {
 		await refreshTools() // a reload can add or drop extension tools
 		const names = info.extensions.map((extension) => extension.name)
 		const errors = info.diagnostics.filter((diagnostic) => diagnostic.severity === "error")
-		if (errors.length) notify(`Extension error: ${errors[0].message}`, "error")
-		else notify(names.length ? `Extensions reloaded: ${names.join(", ")}` : "Extensions reloaded: none loaded")
+		const loaded = names.join(", ")
+		if (errors.length) notify(__("Extension error: {0}", [errors[0].message]), "error")
+		else notify(names.length ? __("Extensions reloaded: {0}", [loaded]) : __("Extensions reloaded: none loaded"))
 	}
 
 	// Rewind to just before a user message: everything after it leaves the
@@ -1529,7 +1531,7 @@ export function createFlowStore(client, options = {}) {
 	function openSubagent(id) {
 		const ws = state.workspace
 		if (!ws.tabs.some((t) => t.path === id)) {
-			const name = subagentTabName(id) ?? "Sub-agent"
+			const name = subagentTabName(id) ?? __("Sub-agent")
 			ws.tabs.push({ kind: "subagent", path: id, name })
 		}
 		ws.active = id
@@ -1550,7 +1552,7 @@ export function createFlowStore(client, options = {}) {
 	// the tab reads like the step row; null once the call left the branch
 	function subagentTabName(id) {
 		const title = subagentTitle(state.conversation, id)
-		return title == null ? null : `Sub-agent: ${title}`
+		return title == null ? null : __("Sub-agent: {0}", [title])
 	}
 
 	async function saveFile(path, content) {
@@ -1765,7 +1767,7 @@ export function createFlowStore(client, options = {}) {
 		const listed = state.sessions.find((info) => info.session_id === sid)
 		if (listed) listed.title = data.config.title
 		if (state.sessionId === sid && state.session) state.session.title = data.config.title
-		notify("Chat renamed")
+		notify(__("Chat renamed"))
 	}
 
 	async function deleteSession(sid) {
@@ -1782,7 +1784,7 @@ export function createFlowStore(client, options = {}) {
 		}
 		if (state.sessionId === sid) startNewChat()
 		heldBySession.delete(sid)
-		notify("Chat deleted")
+		notify(__("Chat deleted"))
 	}
 
 	// Pick a cwd via the daemon's native folder dialog; null = cancelled or unavailable.
@@ -1792,7 +1794,7 @@ export function createFlowStore(client, options = {}) {
 			return data.path
 		} catch (error) {
 			if (error instanceof FlowAPIError && error.status === 501)
-				notify("No folder dialog on this host — use /cwd <path> instead.", "error")
+				notify(__("No folder dialog on this host — use /cwd <path> instead."), "error")
 			else notify(error.message, "error")
 			return null
 		}
