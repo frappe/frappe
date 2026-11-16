@@ -142,6 +142,10 @@ class TestCompleteAppSetup(IntegrationTestCase):
 				self.assertEqual(setup_wizard.complete_app_setup(), {"status": "ok"})
 
 
+# An app that wants setup finished at login, like Frappe Learning.
+OPTED_IN = {"setup_wizard_auto_complete": [True]}
+
+
 class TestPrefilledSetup(IntegrationTestCase):
 	def setUp(self):
 		patcher = patch.object(frappe, "is_setup_complete", return_value=False)
@@ -149,7 +153,7 @@ class TestPrefilledSetup(IntegrationTestCase):
 		self.addCleanup(patcher.stop)
 
 	def args(self, apps=None):
-		apps = apps or {"frappe": {}}
+		apps = apps or {"frappe": {}, "lms": OPTED_IN}
 		with (
 			patch.object(frappe, "get_installed_apps", return_value=list(apps)),
 			patch.object(frappe, "get_hooks", side_effect=fake_hooks(apps)),
@@ -164,6 +168,12 @@ class TestPrefilledSetup(IntegrationTestCase):
 		self.assertEqual(
 			(args["country"], args["timezone"], args["currency"]), ("India", "Asia/Kolkata", "INR")
 		)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
+	)
+	def test_keeps_the_wizard_unless_an_app_opts_in(self):
+		self.assertIsNone(self.args({"frappe": {}, "raven": {"setup_wizard_success": ["raven.setup"]}}))
 
 	@IntegrationTestCase.change_settings("System Settings", country=None)
 	def test_a_site_without_a_saved_region_keeps_the_wizard(self):
@@ -180,13 +190,15 @@ class TestPrefilledSetup(IntegrationTestCase):
 		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
 	)
 	def test_an_app_with_wizard_stages_keeps_the_wizard(self):
-		self.assertIsNone(self.args({"erpnext": {"setup_wizard_stages": ["erpnext.setup.stages"]}}))
+		self.assertIsNone(
+			self.args({"lms": OPTED_IN, "erpnext": {"setup_wizard_stages": ["erpnext.setup.stages"]}})
+		)
 
 	@IntegrationTestCase.change_settings(
 		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
 	)
 	def test_an_app_with_its_own_setup_page_keeps_it(self):
-		self.assertIsNone(self.args({"suite": {"setup_wizard_url": ["/suite/setup"]}}))
+		self.assertIsNone(self.args({"lms": OPTED_IN, "suite": {"setup_wizard_url": ["/suite/setup"]}}))
 
 	@IntegrationTestCase.change_settings(
 		"System Settings", country="India", time_zone="Asia/Kolkata", currency="INR"
