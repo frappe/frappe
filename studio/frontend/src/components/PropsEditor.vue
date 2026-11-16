@@ -143,7 +143,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import blockController from "@/utils/blockController"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import type { ComponentProp, ComponentProps } from "@/types"
-import { ComponentInput } from "@/types/Studio/StudioComponent"
+import { StudioComponentInput } from "@/types/Studio/StudioComponent"
 import DynamicValueSelector from "@/components/DynamicValueSelector.vue"
 import DeprecatedProps from "@/components/DeprecatedProps.vue"
 import useStudioStore from "@/stores/studioStore"
@@ -238,7 +238,7 @@ const filteredComponentProps = computed(() => {
 const hasFilteredProps = computed(() => !isObjectEmpty(filteredComponentProps.value))
 defineExpose({ hasFilteredProps })
 
-function getStudioComponentProps(declaredProps: ComponentInput[]): ComponentProps {
+function getStudioComponentProps(declaredProps: StudioComponentInput[]): ComponentProps {
 	if (isObjectEmpty(declaredProps)) return {}
 
 	const _props: ComponentProps = {}

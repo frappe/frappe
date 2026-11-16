@@ -118,8 +118,8 @@
 
 								<!-- Default value -->
 								<component
-									:is="editingProp.inputControl"
-									:type="editingProp.inputType"
+									:is="defaultControl.is"
+									:type="defaultControl.type"
 									:options="editingProp.type === 'select' ? defaultOptions : undefined"
 									label="Default Value"
 									v-model="editingProp.default"
@@ -208,10 +208,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, markRaw, computed } from "vue"
+import { ref, computed } from "vue"
 import { Combobox, Dropdown, ErrorMessage, Popover, FormControl, Button, Switch, dialog } from "frappe-ui"
 import EmptyState from "@/components/EmptyState.vue"
-import type { ComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
 import Code from "@/components/Code.vue"
 import ColorInput from "@/components/ColorInput.vue"
 import PropsEditor from "@/components/PropsEditor.vue"
@@ -281,7 +281,7 @@ const propsReadOnlyReason = computed(() => {
 	return getPropsReadOnlyReason(componentDoc.value?.script || "")
 })
 // a new prop is in the list while its form is open, and in the script after it is saved
-const draftProp = ref<ComponentInput | null>(null)
+const draftProp = ref<StudioComponentInput | null>(null)
 const shownProps = computed(() =>
 	draftProp.value ? [...declaredProps.value, draftProp.value] : declaredProps.value,
 )
@@ -290,7 +290,7 @@ const defaultOptions = computed(() => {
 	return [{ label: "No default", value: "" }, ...options.map((option) => ({ label: option, value: option }))]
 })
 const showEditPopover = ref(false)
-const editingProp = ref<ComponentInput | null>(null)
+const editingProp = ref<StudioComponentInput | null>(null)
 const editingIndex = ref<number>(-1)
 
 const PROP_TYPES = ["String", "Number", "Boolean", "Array", "Object", "Any"]
@@ -335,7 +335,7 @@ const getFieldTypeIcon = (type: string) => {
 	return iconMap[type] || "lucide-type"
 }
 
-const editProp = (prop: ComponentInput, index: number) => {
+const editProp = (prop: StudioComponentInput, index: number) => {
 	editingProp.value = { ...prop }
 	editingIndex.value = index
 	setDefaultControl()
@@ -344,12 +344,11 @@ const editProp = (prop: ComponentInput, index: number) => {
 
 const saveProp = async () => {
 	if (!editingProp.value) return
-	const { inputControl, inputType, showPopover, ...prop } = editingProp.value
 	const previous = declaredProps.value[editingIndex.value] ?? null
-	if (await componentEditorStore.saveComponentProp(componentId.value, previous, prop)) cancelEdit()
+	if (await componentEditorStore.saveComponentProp(componentId.value, previous, editingProp.value)) cancelEdit()
 }
 
-async function removeProp(prop: ComponentInput) {
+async function removeProp(prop: StudioComponentInput) {
 	if (await confirm(`Remove the prop '${prop.input_name}' from the component's script?`)) {
 		componentEditorStore.saveComponentProp(componentId.value, prop, null)
 	}
@@ -373,12 +372,20 @@ const showAddPropPopover = (propType: string) => {
 	}, 10) // Small delay to ensure DOM is updated
 }
 
-const DEFAULT_CONTROLS: Record<string, string> = {
+const FORM_CONTROL_TYPES: Record<string, string> = {
 	number: "number",
 	checkbox: "checkbox",
 	textarea: "textarea",
 	select: "select",
 }
+
+// the control that edits the default value in the form
+const defaultControl = computed(() => {
+	const control = editingProp.value?.type ?? "text"
+	if (control === "code") return { is: Code }
+	if (control === "color") return { is: ColorInput }
+	return { is: "FormControl", type: FORM_CONTROL_TYPES[control] ?? "text" }
+})
 
 const setDefaultControl = () => {
 	const prop = editingProp.value
@@ -387,15 +394,6 @@ const setDefaultControl = () => {
 	// a checkbox holds true or false, and each other control holds text
 	if (prop.type === "checkbox") prop.default = ["true", "1"].includes(String(prop.default))
 	else if (typeof prop.default === "boolean") prop.default = ""
-
-	if (prop.type === "code") {
-		prop.inputControl = markRaw(Code)
-	} else if (prop.type === "color") {
-		prop.inputControl = markRaw(ColorInput)
-	} else {
-		prop.inputControl = "FormControl"
-		prop.inputType = DEFAULT_CONTROLS[prop.type] ?? "text"
-	}
 }
 
 const handlePropKeydown = (e: KeyboardEvent) => {

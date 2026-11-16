@@ -43,7 +43,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import Block from "@/utils/block"
 import type { VariableOption } from "@/types/Studio/StudioPageVariable"
-import type { ComponentInput } from "@/types/Studio/StudioComponent"
+import type { StudioComponentInput } from "@/types/Studio/StudioComponent"
 import type { SlotScope } from "@/types"
 import { isObjectEmpty } from "@/utils/helpers"
 import { getBindingType } from "@/utils/parseCode"
@@ -80,7 +80,7 @@ const dynamicValueOptions = computed(() => {
 		const declaredProps = useComponentEditorStore().declaredProps
 		if (!isObjectEmpty(declaredProps)) {
 			const componentContext: VariableOption[] = []
-			declaredProps.map?.((prop: ComponentInput) => {
+			declaredProps.map?.((prop: StudioComponentInput) => {
 				componentContext.push({
 					value: `props.${prop.input_name}`,
 					label: `props.${prop.input_name}`,
