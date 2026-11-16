@@ -20,7 +20,7 @@
 				<template #actions>
 					<Combobox
 						v-if="!propsReadOnlyReason"
-						:options="fieldTypeOptions"
+						:options="PROP_TYPES"
 						@update:modelValue="(value: string) => showAddPropPopover(value)"
 						class="!w-auto"
 					>
@@ -94,28 +94,19 @@
 								<FormControl
 									type="combobox"
 									label="Type"
-									:options="fieldTypeOptions"
-									:modelValue="editingProp ? editingProp.type : null"
-									@update:modelValue="
-										(val: string) => {
-											if (editingProp) {
-												editingProp.type = val
-												setDefaultControl()
-											}
-										}
-									"
+									:options="typeOptions"
+									:modelValue="editingProp.prop_type"
+									@update:modelValue="(value: string) => setType(value)"
 									:required="true"
-								>
-									<template #prefix>
-										<span
-											:class="editingProp ? getFieldTypeIcon(editingProp.type) : 'lucide-circle-help'"
-											class="mr-1 h-3 w-3 text-ink-gray-4"
-										/>
-									</template>
-									<template #item-prefix="{ item }">
-										<span :class="getFieldTypeIcon(item.value)" class="h-3 w-3 text-ink-gray-4" />
-									</template>
-								</FormControl>
+								/>
+								<FormControl
+									v-if="controlOptions.length > 1"
+									type="combobox"
+									label="Control"
+									:options="controlOptions"
+									:modelValue="editingProp.control || null"
+									@update:modelValue="(value: string) => setControl(value)"
+								/>
 								<FormControl
 									v-if="editingProp.type === 'select'"
 									type="textarea"
@@ -231,6 +222,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 import { confirm, isCtrlOrCmd } from "@/utils/helpers"
 import { getPropsReadOnlyReason } from "@/utils/componentScriptProps"
+import { getTypeControls } from "@/utils/componentScript"
 
 const store = useStudioStore()
 const componentStore = useComponentStore()
@@ -301,15 +293,34 @@ const showEditPopover = ref(false)
 const editingProp = ref<ComponentInput | null>(null)
 const editingIndex = ref<number>(-1)
 
-const fieldTypeOptions = [
-	{ label: "Text", value: "text" },
-	{ label: "Number", value: "number" },
-	{ label: "Checkbox", value: "checkbox" },
-	{ label: "Textarea", value: "textarea" },
-	{ label: "Select", value: "select" },
-	{ label: "Code", value: "code" },
-	{ label: "Color", value: "color" },
-]
+const PROP_TYPES = ["String", "Number", "Boolean", "Array", "Object", "Any"]
+// also a type that the form cannot write, such as "String | Number", while the prop has it
+const typeOptions = computed(() => [...new Set([...PROP_TYPES, editingProp.value?.prop_type || "Any"])])
+
+const CONTROL_LABELS: Record<string, string> = {
+	text: "Text",
+	textarea: "Textarea",
+	select: "Select",
+	color: "Color",
+	number: "Number",
+	checkbox: "Checkbox",
+	code: "Code",
+}
+const controlOptions = computed(() =>
+	getTypeControls(editingProp.value?.prop_type).map((value) => ({ label: CONTROL_LABELS[value], value })),
+)
+
+function setType(propType: string) {
+	if (!editingProp.value) return
+	Object.assign(editingProp.value, { prop_type: propType, control: "", default: "" })
+	setDefaultControl()
+}
+
+function setControl(control: string) {
+	if (!editingProp.value) return
+	editingProp.value.control = control
+	setDefaultControl()
+}
 
 const getFieldTypeIcon = (type: string) => {
 	const iconMap: Record<string, string> = {
@@ -351,11 +362,12 @@ const cancelEdit = () => {
 	draftProp.value = null
 }
 
-const showAddPropPopover = (fieldType: string) => {
+const showAddPropPopover = (propType: string) => {
 	const names = declaredProps.value.map((prop) => prop.input_name)
-	let name = fieldType
-	for (let count = 2; names.includes(name); count++) name = `${fieldType}${count}`
-	draftProp.value = { input_name: name, type: fieldType, description: "", default: "" }
+	let name = "prop"
+	for (let count = 2; names.includes(name); count++) name = `prop${count}`
+	const type = getTypeControls(propType)[0]
+	draftProp.value = { input_name: name, type, prop_type: propType, control: "", description: "", default: "" }
 	setTimeout(() => {
 		editProp(draftProp.value!, declaredProps.value.length)
 	}, 10) // Small delay to ensure DOM is updated
@@ -371,6 +383,7 @@ const DEFAULT_CONTROLS: Record<string, string> = {
 const setDefaultControl = () => {
 	const prop = editingProp.value
 	if (!prop) return
+	prop.type = prop.control || getTypeControls(prop.prop_type)[0]
 	// a checkbox holds true or false, and each other control holds text
 	if (prop.type === "checkbox") prop.default = ["true", "1"].includes(String(prop.default))
 	else if (typeof prop.default === "boolean") prop.default = ""
