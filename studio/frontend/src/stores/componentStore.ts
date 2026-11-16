@@ -228,12 +228,6 @@ const useComponentStore = defineStore("componentStore", () => {
 		}
 		const blockOptions = getBlockObjectCopy(component)
 		const { baseStyles, mobileStyles, tabletStyles, visibilityCondition, classes } = studioComponent
-		// The component emits the events its script declares. Every other event is a DOM event of its root.
-		const emits = getComponentEmits(studioComponent.componentName)
-		const componentEvents = Object.fromEntries(
-			Object.entries(studioComponent.componentEvents || {}).filter(([name]) => !isEmittedEvent(name, emits)),
-		)
-
 		if (!isObjectEmpty(baseStyles)) blockOptions.baseStyles = { ...blockOptions.baseStyles, ...baseStyles }
 		if (!isObjectEmpty(mobileStyles))
 			blockOptions.mobileStyles = { ...blockOptions.mobileStyles, ...mobileStyles }
@@ -241,10 +235,6 @@ const useComponentStore = defineStore("componentStore", () => {
 			blockOptions.tabletStyles = { ...blockOptions.tabletStyles, ...tabletStyles }
 		if (visibilityCondition) blockOptions.visibilityCondition = visibilityCondition
 		if (classes?.length) blockOptions.classes = [...(blockOptions.classes || []), ...classes]
-
-		if (!isObjectEmpty(componentEvents)) {
-			blockOptions.componentEvents = {...(blockOptions.componentEvents || []), ...componentEvents}
-		}
 
 		return new Block(blockOptions)
 	}

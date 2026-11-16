@@ -1,6 +1,6 @@
 <template>
 	<component :is="host" v-if="host && block" v-bind="propValues" v-on="emittedListeners">
-		<AppComponent :block="block" />
+		<AppComponent :block="block" :listeners="rootListeners" />
 	</component>
 </template>
 
@@ -23,11 +23,14 @@ const propValues = useComponentPropValues(
 	() => props.studioComponent,
 	() => props.evaluationContext,
 )
-// The listeners of every other event go on the root block, see getNewStudioComponentInstance.
-const emittedListeners = computed(() => {
-	const emits = componentStore.getComponentEmits(props.studioComponent.componentName)
-	return Object.fromEntries(Object.entries(props.listeners).filter(([name]) => isEmittedEvent(name, emits)))
-})
+// The component emits the events that its script declares. Every other event is a DOM event of its root block.
+const emits = computed(() => componentStore.getComponentEmits(props.studioComponent.componentName))
+const emittedListeners = computed(() => filterListeners((name) => isEmittedEvent(name, emits.value)))
+const rootListeners = computed(() => filterListeners((name) => !isEmittedEvent(name, emits.value)))
+
+function filterListeners(isIncluded: (name: string) => boolean) {
+	return Object.fromEntries(Object.entries(props.listeners).filter(([name]) => isIncluded(name)))
+}
 
 const block = computed(() => componentStore.getNewStudioComponentInstance(props.studioComponent))
 </script>
