@@ -29,6 +29,8 @@
 				data-new-field-types
 				:filter="null"
 				fallback-class="canvas-drag-fallback"
+				@start="holdOnTab(canvas)"
+				@end="releaseFromTab(canvas)"
 				ghost-class="canvas-drop-line"
 			>
 				<template #item="{ element: { type: name } }">
@@ -58,7 +60,7 @@ import { computed } from "vue";
 import Draggable from "vuedraggable";
 import { Icon, ItemListRow, TextInput } from "frappe-ui";
 import { __ } from "@/i18n";
-import { DRAG_OPTIONS } from "./canvasDrops";
+import { DRAG_OPTIONS, holdOnTab, releaseFromTab } from "./canvasDrops";
 import type { DesignCanvas } from "./designCanvas";
 import { addFieldType, type NewType } from "./newField";
 import { FIELDTYPE_GROUPS, typeIcon } from "./fieldtypes";

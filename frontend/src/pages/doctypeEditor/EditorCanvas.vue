@@ -2,7 +2,9 @@
      Quick entry in their own frame. Only a read-only canvas, which has no panel, keeps the off-layout tray. -->
 <template>
 	<div
-		class="mx-auto w-full max-w-3xl px-[--page-gutter] pb-[40vh] pt-6"
+		ref="root"
+		class="mx-auto flex w-full max-w-3xl flex-col px-[--page-gutter] pb-[40vh] pt-6"
+		:style="frozenHeight ? { minHeight: `${frozenHeight}px` } : undefined"
 		data-editor-canvas
 		@click="acts.perform('canvas.select', null)"
 	>
@@ -127,6 +129,14 @@ const props = defineProps<{
 
 provideInertForm();
 
+// The bin sits after the open tab's content: a shorter tab must not lift it while a field is held.
+const root = ref<HTMLElement | null>(null);
+const frozenHeight = ref(0);
+watch(
+	() => props.canvas.drag.value.active,
+	(active) => (frozenHeight.value = active ? root.value?.offsetHeight ?? 0 : 0)
+);
+
 const type = computed(() => props.canvas.openLayout.value.type);
 const appChanged = computed(() =>
 	Boolean(props.canvas.customize && props.canvas.layout.value?.sourceChanged)
@@ -241,8 +251,10 @@ watch(
 [data-doctype-editor] .canvas-tab-drop > .sortable-chosen.canvas-drop-line {
 	display: none;
 }
-/* A tab the held field left stays mounted but takes no room; display:none would hide the ghost Sortable keeps inside it. */
+/* A tab the held field left takes no room, yet display:none would hide the ghost inside it; z-index lifts that ghost over the open tab. */
 [data-doctype-editor] .canvas-tab-held {
+	position: relative;
+	z-index: 2;
 	height: 0;
 	overflow: hidden;
 	visibility: hidden;
@@ -251,7 +263,7 @@ watch(
 	visibility: visible;
 }
 /* The pointer drags across the canvas's text: no drag kind may select any of it. */
-body:has(.sortable-fallback) {
+body:has(.sortable-fallback, .canvas-drag-fallback) {
 	@apply select-none;
 }
 /* Sortable draws the dragged clone at 0.8 opacity over the bin's words: give it a surface, and hide it over the bin. */

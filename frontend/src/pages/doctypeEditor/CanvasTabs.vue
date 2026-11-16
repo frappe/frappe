@@ -1,5 +1,4 @@
-<!-- The canvas's tab strip, drawn from two tabs up. Tabs drag to reorder; a field or section held on a
-     tab's name opens that tab after a dwell, and one dropped on the name goes to the end of its first section. A double-click renames a tab in place. -->
+<!-- The canvas's tab strip, drawn from two tabs up. Tabs drag to reorder; a double-click renames one in place. -->
 <template>
 	<div class="flex items-end gap-1" :class="{ 'border-b': tabs.length > 1 }" data-canvas-tabs>
 		<Draggable

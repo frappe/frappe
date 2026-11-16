@@ -14,7 +14,7 @@
 		class="flex flex-col gap-10"
 		ghost-class="opacity-40"
 		v-bind="DRAG_OPTIONS"
-		:disabled="!canvas.editable"
+		:disabled="!canvas.editable || drawn !== tab"
 		@start="holdOnTab(canvas)"
 		@end="releaseFromTab(canvas)"
 		@change="dropSection(canvas, $event, drawn.name!)"

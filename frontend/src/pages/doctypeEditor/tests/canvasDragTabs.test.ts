@@ -70,7 +70,7 @@ describe("the tab dwell", () => {
 describe("text selection", () => {
 	it("is off for the whole page while a drag's ghost is on it", () => {
 		const css = readFileSync(`${__dirname}/../EditorCanvas.vue`, "utf8");
-		expect(css).toMatch(/body:has\(\.sortable-fallback\)\s*\{\s*@apply select-none;/);
+		expect(css).toMatch(/body:has\(\.sortable-fallback, \.canvas-drag-fallback\)\s*\{\s*@apply select-none;/);
 	});
 });
 
@@ -81,6 +81,7 @@ describe("a tab the held field left", () => {
 		const css = readFileSync(`${__dirname}/../EditorCanvas.vue`, "utf8");
 		expect(form).not.toMatch(/v-show="drawn/);
 		expect(form).toContain("canvas-tab-held");
+		expect(form).toContain(':disabled="!canvas.editable || drawn !== tab"');
 		expect(css).toMatch(/\.canvas-tab-held \.sortable-fallback\s*\{\s*visibility: visible;/);
 	});
 });
