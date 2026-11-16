@@ -12,11 +12,11 @@ vi.mock("frappe-ui", () => ({
 }));
 
 import { dialogEntries } from "../dialogActs";
-import { createPageDialogs } from "../dialogs/pageDialogs";
+import { createPageDialogs, type PageDialogHost } from "../dialogs/pageDialogs";
 import { readDialogs, useReadableDialog } from "../dialogs/readableDialogs";
 import { shellDialog } from "../dialog";
 
-const host = { source: () => "test", isReplaying: () => false, hold: async <T>(work: () => T) => work() };
+const host: PageDialogHost = { source: () => "test", isReplaying: () => false, hold: async (work) => work() };
 
 
 describe("the readable dialog list", () => {
