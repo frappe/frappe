@@ -2,6 +2,7 @@ import socket
 import threading
 import time
 from concurrent.futures import Future
+from contextlib import suppress
 from dataclasses import dataclass
 from email.message import Message
 from functools import cache
@@ -12,7 +13,7 @@ from requests.utils import requote_uri
 from urllib3.exceptions import HTTPError, ReadTimeoutError
 from urllib3.util.retry import Retry
 
-from frappe.web_crawler.limits import MAX_WAIT_SECONDS, CrawlLimits
+from frappe.web_crawler.limits import CrawlLimits
 
 CHUNK_SIZE = 8 * 1024
 RETRY_STATUSES = (429, 500, 502, 503, 504)
@@ -31,11 +32,18 @@ class FetchError(Exception):
 
 
 class CappedRetry(Retry):
-	"""Retry that honours Retry-After, but never waits longer than MAX_WAIT_SECONDS."""
+	"""Retry that honours Retry-After, but never waits longer than `max_wait` seconds."""
+
+	def __init__(self, *args, max_wait: float = 0, **kwargs):
+		super().__init__(*args, **kwargs)
+		self.max_wait = max_wait
+
+	def new(self, **kwargs) -> "CappedRetry":
+		return super().new(max_wait=self.max_wait, **kwargs)
 
 	def get_retry_after(self, response):
 		retry_after = super().get_retry_after(response)
-		return None if retry_after is None else min(retry_after, MAX_WAIT_SECONDS)
+		return None if retry_after is None else min(retry_after, self.max_wait)
 
 
 @dataclass
@@ -71,6 +79,7 @@ class Fetcher:
 			backoff_factor=0.5,
 			status_forcelist=RETRY_STATUSES,
 			raise_on_status=False,
+			max_wait=self.limits.max_wait,
 		)
 		for adapter in set(session.adapters.values()):
 			adapter.max_retries = retry
@@ -195,16 +204,11 @@ class AbortableCall:
 		with self.lock:
 			self.aborted = True
 			for connection in self.connections:
-				if connection.sock:
-					shut_down(connection.sock)
-
-
-def shut_down(sock: socket.socket):
-	"""Wakes a thread blocked reading `sock`. The plain socket's method, so TLS state is left to its thread."""
-	try:
-		socket.socket.shutdown(sock, socket.SHUT_RDWR)
-	except OSError:
-		pass
+				if not connection.sock:
+					continue
+				# socket.socket's shutdown, as SSLSocket's would touch TLS state the reading thread owns.
+				with suppress(OSError):
+					socket.socket.shutdown(connection.sock, socket.SHUT_RDWR)
 
 
 @cache

@@ -9,7 +9,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.utils.safe_exec import BlockedRequest
 from frappe.web_crawler import scrape
 from frappe.web_crawler.fetch import CappedRetry
-from frappe.web_crawler.page import MAX_DEPTH, MAX_LINKS
+from frappe.web_crawler.page import MAX_NESTING
 from frappe.web_crawler.tests.fake_site import NEUTRAL_SETTINGS, FakeSite, allow_domain, block_domain
 
 ARTICLE = """
@@ -116,12 +116,13 @@ class TestFetchPage(IntegrationTestCase):
 		self.assertEqual(scrape("https://example.com/quotes.md").error, "failed")
 
 	def test_malformed_links_are_dropped_and_links_are_capped(self):
-		anchors = '<a href="http://[x">Bad</a>' + "".join(f'<a href="/p{n}">P</a>' for n in range(MAX_LINKS))
+		anchors = '<a href="http://[x">Bad</a>' + "".join(f'<a href="/p{n}">P</a>' for n in range(20))
 		self.site.page("https://example.com/many", f"<main><p>Many</p>{anchors}</main>")
-		page = scrape("https://example.com/many")
+		with self.change_settings("Web Crawl Settings", {"max_links": 10}):
+			page = scrape("https://example.com/many")
 
 		self.assertTrue(page.ok)
-		self.assertEqual(len(page.links), MAX_LINKS - 1)
+		self.assertEqual(len(page.links), 9)
 		self.assertNotIn("[x", page.html)
 		self.assertNotIn('href="/p', page.html)
 
@@ -129,7 +130,7 @@ class TestFetchPage(IntegrationTestCase):
 		attributes = (
 			'style="position:fixed" class="modal" id="frappe" name="boot" data-x="1" ping="/p" poster="/v"'
 		)
-		nested = "<div>" * (MAX_DEPTH + 50) + "Deep" + "</div>" * (MAX_DEPTH + 50)
+		nested = "<div>" * (MAX_NESTING + 50) + "Deep" + "</div>" * (MAX_NESTING + 50)
 		self.site.page("https://example.com/odd", f'<main><a href="/a" {attributes}>A</a>{nested}</main>')
 		page = scrape("https://example.com/odd")
 
@@ -206,7 +207,8 @@ class TestFetchPage(IntegrationTestCase):
 	def test_retry_after_wait_is_capped(self):
 		response = MagicMock()
 		response.headers = {"Retry-After": "3600"}
-		self.assertEqual(CappedRetry().get_retry_after(response), 30)
+		retry = CappedRetry(total=2, max_wait=30).increment()
+		self.assertEqual(retry.get_retry_after(response), 30)
 
 
 class TestSlowServer(IntegrationTestCase):
@@ -228,8 +230,7 @@ class TestSlowServer(IntegrationTestCase):
 		self.assertLess(time.monotonic() - started, 3)
 
 	def test_headers_sent_a_byte_at_a_time_stop_at_the_deadline(self):
-		self.enterContext(self.change_settings("Web Crawl Settings", {"max_retries": 0}))
-		self.enterContext(patch("frappe.web_crawler.limits.MAX_WAIT_SECONDS", 0))
+		self.enterContext(self.change_settings("Web Crawl Settings", {"max_retries": 0, "max_wait": 0}))
 		started = time.monotonic()
 		self.assertEqual(scrape(self.url.replace("/drip", "/trickle")).error, "timed_out")
 		self.assertLess(time.monotonic() - started, 3)

@@ -22,6 +22,7 @@ MUST_BE_POSITIVE = (
 	"max_markdown_size",
 	"max_robots_size",
 	"max_sitemap_pages",
+	"max_links",
 )
 
 
@@ -46,6 +47,7 @@ class WebCrawlSettings(Document):
 		max_child_sitemaps: DF.Int
 		max_crawl_time: DF.Int
 		max_depth: DF.Int
+		max_links: DF.Int
 		max_markdown_size: DF.Int
 		max_page_size: DF.Int
 		max_pages: DF.Int
@@ -54,6 +56,7 @@ class WebCrawlSettings(Document):
 		max_robots_size: DF.Int
 		max_sitemap_pages: DF.Int
 		max_sitemap_size: DF.Int
+		max_wait: DF.Int
 		page_timeout: DF.Int
 		request_delay: DF.Float
 		respect_robots_txt: DF.Check

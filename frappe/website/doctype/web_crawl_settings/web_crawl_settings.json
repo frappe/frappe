@@ -10,10 +10,12 @@
   "column_break_limits",
   "max_depth",
   "max_redirects",
+  "max_links",
   "speed_section",
   "concurrent_requests",
   "column_break_speed",
   "request_delay",
+  "max_wait",
   "downloads_section",
   "page_timeout",
   "max_page_size",
@@ -85,6 +87,15 @@
    "reqd": 1
   },
   {
+   "default": "1000",
+   "description": "Links beyond this on one page are not followed.",
+   "fieldname": "max_links",
+   "fieldtype": "Int",
+   "label": "Maximum links per page",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
    "fieldname": "speed_section",
    "fieldtype": "Section Break",
    "label": "Speed"
@@ -104,10 +115,18 @@
   },
   {
    "default": "1",
-   "description": "Time to wait before each batch of pages. If a site's robots.txt sets a longer Crawl-delay, that is used instead, up to 30 seconds.",
+   "description": "Time to wait before each batch of pages. If a site's robots.txt sets a longer Crawl-delay, that is used instead, up to Maximum wait.",
    "fieldname": "request_delay",
    "fieldtype": "Float",
    "label": "Delay between batches (seconds)",
+   "non_negative": 1
+  },
+  {
+   "default": "30",
+   "description": "Longest pause when a site asks for one, through a Crawl-delay in robots.txt or a Retry-After header. Longer requests would stall the crawl.",
+   "fieldname": "max_wait",
+   "fieldtype": "Int",
+   "label": "Maximum wait (seconds)",
    "non_negative": 1
   },
   {

@@ -9,8 +9,6 @@ from frappe.web_crawler.urls import absolute_url, canonical_host
 
 KILOBYTE = 1024
 MEGABYTE = 1024 * KILOBYTE
-# A site asking for a longer wait (Crawl-delay, Retry-After) would stall the job.
-MAX_WAIT_SECONDS = 30
 # A rough time to fetch and parse one page, for the crawl time estimate.
 ESTIMATED_PAGE_SECONDS = 1
 
@@ -30,8 +28,10 @@ class CrawlLimits:
 	max_sitemap_pages: int
 	max_child_sitemaps: int
 	max_redirects: int
+	max_links: int
 	max_retries: int
 	request_delay: float
+	max_wait: int
 	concurrent_requests: int
 	max_crawl_time: int
 	user_agent: str
@@ -62,8 +62,10 @@ class CrawlLimits:
 			max_sitemap_pages=settings.max_sitemap_pages,
 			max_child_sitemaps=settings.max_child_sitemaps,
 			max_redirects=settings.max_redirects,
+			max_links=settings.max_links,
 			max_retries=settings.max_retries,
 			request_delay=settings.request_delay,
+			max_wait=settings.max_wait,
 			concurrent_requests=settings.concurrent_requests,
 			max_crawl_time=settings.max_crawl_time * 60,
 			user_agent=user_agent or settings.user_agent,
@@ -85,7 +87,7 @@ class CrawlLimits:
 
 	def wait_seconds(self, crawl_delay: float | None) -> float:
 		"""The pause between two batches: the setting or the site's Crawl-delay, whichever is longer."""
-		return min(max(self.request_delay, crawl_delay or 0), MAX_WAIT_SECONDS)
+		return min(max(self.request_delay, crawl_delay or 0), self.max_wait)
 
 	def estimated_crawl_time(self) -> float:
 		"""Seconds a full crawl likely takes, before any site's Crawl-delay."""
@@ -94,12 +96,12 @@ class CrawlLimits:
 
 	def request_seconds(self, timeout: float) -> float:
 		"""The longest one request can take: every attempt times out, each after the longest wait."""
-		return (self.max_retries + 1) * (timeout + MAX_WAIT_SECONDS)
+		return (self.max_retries + 1) * (timeout + self.max_wait)
 
 	def job_timeout(self) -> int:
 		"""The crawl time, plus the worst case of the request still running when it ends."""
 		slowest_request = self.request_seconds(max(self.page_timeout, self.sitemap_timeout))
-		return self.max_crawl_time + slowest_request + MAX_WAIT_SECONDS + 60
+		return self.max_crawl_time + slowest_request + self.max_wait + 60
 
 
 def domain_set(rows) -> frozenset[str]:

@@ -31,9 +31,7 @@ LINE_BREAK, KEPT_SPACE = "\x00", "\x01"
 WHITESPACE = re.compile(r"\s+")
 TEXT_NODES = (NavigableString, CData)
 # nh3 slows down quadratically with nesting depth; real pages stay far below this.
-MAX_DEPTH = 100
-# Links read and made absolute per page, so a page of short relative links cannot grow without bound.
-MAX_LINKS = 1000
+MAX_NESTING = 100
 # Another site's markup: no styles, classes or ids that could restyle or clobber the page it is shown in.
 PAGE_CLEANER = nh3.Cleaner(
 	tags=(acceptable_elements | mathml_elements).difference(DISALLOWED_TAGS),
@@ -181,20 +179,22 @@ class PageParser:
 		}
 
 	def links(self, soup: BeautifulSoup) -> dict[str, str]:
-		"""Absolute link URLs and their anchor text, in page order, at most MAX_LINKS."""
+		"""Absolute link URLs and their anchor text, in page order, at most the settings' Maximum links per page."""
 		links = {}
-		for anchor in soup.find_all("a", href=True, limit=MAX_LINKS):
+		for anchor in soup.find_all("a", href=True, limit=self.limits.max_links):
 			if url := absolute_url(self.download.final_url, anchor["href"]):
 				links.setdefault(url, anchor.get_text(" ", strip=True))
 		return links
 
 	def absolute_links(self, main: Tag) -> str:
-		"""`main` with its first MAX_LINKS links made absolute, and the rest and malformed ones removed."""
+		"""`main` with its first `max_links` links made absolute, and the rest and malformed ones removed."""
 		for count, tag in enumerate(main.select("a[href], img[src]")):
 			attribute = "href" if tag.name == "a" else "src"
 			if tag[attribute].startswith("#"):
 				continue
-			if count < MAX_LINKS and (url := absolute_url(self.download.final_url, tag[attribute])):
+			if count < self.limits.max_links and (
+				url := absolute_url(self.download.final_url, tag[attribute])
+			):
 				tag[attribute] = url
 			else:
 				del tag[attribute]
@@ -223,11 +223,11 @@ def plain_text(element: Tag) -> str:
 
 
 def prune_deep(element: Tag) -> Tag:
-	"""`element` without the tags nested deeper than MAX_DEPTH. Call it after reading the text."""
+	"""`element` without the tags nested deeper than MAX_NESTING. Call it after reading the text."""
 	deep, stack = [], [(element, 0)]
 	while stack:
 		node, depth = stack.pop()
-		if depth == MAX_DEPTH:
+		if depth == MAX_NESTING:
 			deep += [child for child in node.contents if isinstance(child, Tag)]
 		else:
 			stack += [(child, depth + 1) for child in node.contents if isinstance(child, Tag)]

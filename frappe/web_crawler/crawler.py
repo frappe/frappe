@@ -158,12 +158,10 @@ class WebCrawler:
 			return CrawledPage(url, e.final_url or url, e.status, e.code)
 		return PageParser(download, self.limits).parse()
 
-	def batch_size(self) -> int:
-		return 1 if self.robots.crawl_delay() else self.limits.concurrent_requests
-
 	def next_batch_size(self, read: int, requests: int) -> int:
-		max_requests = 2 * self.limits.max_pages
-		return max(min(self.batch_size(), self.limits.max_pages - read, max_requests - requests), 0)
+		"""Pages to read at once: one under a Crawl-delay, never past the page or request budget."""
+		batch_size = 1 if self.robots.crawl_delay() else self.limits.concurrent_requests
+		return min(batch_size, self.limits.max_pages - read, 2 * self.limits.max_pages - requests)
 
 	def read_batch(self, urls: list[str]) -> list[CrawledPage]:
 		"""The pages of `urls`, fetched at the same time."""
