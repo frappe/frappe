@@ -2,17 +2,17 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("frappe-ui", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@framework/ui/api", () => ({ getTranslations: vi.fn() }));
-vi.mock("../actError", () => {
+vi.mock("../callResult", () => {
 	throw new Error("Failed to fetch dynamically imported module");
 });
 
 import { ActDispatcher, type ActScope } from "../dispatcher";
 
-describe("call when the error wording cannot load", () => {
-	it("still resolves a refusal, with the act's own message", async () => {
+describe("call when the result's wording cannot load", () => {
+	it("still resolves, saying the load failed", async () => {
 		const dispatcher = new ActDispatcher();
 		const scope = {
-			surfaces: { header: () => [{ item: { name: "go", run: () => Promise.reject(new Error("Server said no")) }, hidden: false }] },
+			surfaces: { header: () => [{ item: { name: "go", run: () => 1 }, hidden: false }] },
 			context: () => null,
 			passes: () => true,
 			settled: () => undefined,
@@ -23,7 +23,7 @@ describe("call when the error wording cannot load", () => {
 
 		expect(await dispatcher.call("header.go")).toMatchObject({
 			ok: false,
-			error: { code: "failed", message: expect.stringContaining("Server said no") },
+			error: { code: "failed", message: expect.stringContaining("Failed to fetch") },
 			route: expect.any(String),
 			dialogs: [],
 		});

@@ -68,7 +68,7 @@ export default {
 	},
 	open: {
 		description:
-			"Open a record, the list of a DocType, or a saved view of that list, in this tab. Leave out name to open the list. When the page has unsaved changes the person is asked to discard them, and the act waits; if the person says no, the call ends declined. Data is {opened, path}: whether the tab is on the page now, and its path.",
+			"Open a record, the list of a DocType, or a saved view of that list, in this tab. Leave out name to open the list. When the page has unsaved changes the person is asked to discard them, and the act waits.",
 		input: {
 			type: "object",
 			properties: {
@@ -82,8 +82,8 @@ export default {
 		output: {
 			type: "object",
 			properties: {
-				opened: { type: "boolean", description: "False when the navigation did not happen." },
-				path: { type: "string", description: "The tab's path after the call." },
+				opened: { type: "boolean" },
+				path: { type: "string" },
 			},
 		},
 	},

@@ -252,19 +252,13 @@ export class ActDispatcher {
 	}
 
 	/** An outside caller's run: it never rejects, and every end, a refusal too, says what to do next. */
-	async call(name: string, value?: unknown): Promise<ActResult> {
-		try {
-			const data = (await this.execute(name, value, false)) ?? null;
-			return { ok: true, data, ...tabState() };
-		} catch (error) {
-			const state = tabState();
-			// The error wording loads only when an outside caller meets a refusal; a failed load must not reject `call`.
-			const shaped = await import("./actError").then(
-				({ errorOf }) => errorOf(error, name),
-				(): ActError => ({ code: "failed", message: String(error) })
-			);
-			return { ok: false, error: shaped, ...state };
-		}
+	call(name: string, value?: unknown): Promise<ActResult> {
+		const run = () => this.execute(name, value, false);
+		// The result's wording loads on the first call; a failed load must not reject it.
+		return import("./callResult").then(
+			({ callResult }) => callResult(run, name, readDialogs),
+			(error): ActResult => ({ ok: false, error: { code: "failed", message: String(error) }, route: "", dialogs: [] })
+		);
 	}
 
 	private async execute(name: string, value: unknown, quiet: boolean): Promise<unknown> {
@@ -382,10 +376,6 @@ let readDialogs: () => ActDialog[] = () => [];
 /** The tab's dialog list registers its reader here: the acts layer sits below the shell's. */
 export function readDialogsWith(reader: () => ActDialog[]) {
 	readDialogs = reader;
-}
-
-function tabState() {
-	return { route: `${location.pathname}${location.search}${location.hash}`, dialogs: readDialogs() };
 }
 
 function nameIn(name: string) {

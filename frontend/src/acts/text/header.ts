@@ -12,7 +12,7 @@ export default {
 	},
 	save: {
 		description:
-			"Save the record open on this page; a new record is inserted. When a required field is empty the person sees the Required fields dialog and the act waits for it. When someone else saved the record first the person is asked what to do. Data is true when the record saved. When it did not, the error says why: a vetoed or refused save or a server error. When the person closes the Required fields dialog the act ends declined.",
+			"Save the record open on this page; a new record is inserted. When a required field is empty the person sees the Required fields dialog and the act waits for it. When someone else saved the record first the person is asked what to do. Data is true when the record saved.",
 		output: { type: "boolean" },
 	},
 	amend: {
@@ -29,7 +29,7 @@ export default {
 	},
 	rename: {
 		description:
-			"Open the Rename dialog for this record. The person types the new name, and may tick Merge with an existing record, which asks a second, danger confirm; saying no to it ends the call declined. The act waits for the person.",
+			"Open the Rename dialog for this record. The person types the new name, and may tick Merge with an existing record, which asks a second, danger confirm. The act waits for the person.",
 	},
 	copy_url: {
 		description: "Copy this record's URL to the clipboard and show a toast. Use it only when the person asks for the link.",
@@ -51,14 +51,14 @@ export default {
 	},
 	submit: {
 		description:
-			"Submit the record, which locks it. The person is asked to confirm first and the act waits for the answer. If the person says no, the call ends declined. Present only on a saved draft of a submittable DocType with no workflow.",
+			"Submit the record, which locks it. The person is asked to confirm first and the act waits for the answer. Present only on a saved draft of a submittable DocType with no workflow.",
 	},
 	cancel: {
 		description:
-			"Cancel a submitted record. The person is asked to confirm in a danger dialog and the act waits for the answer. If the person says no, the call ends declined. When linked records block it, the person sees which ones.",
+			"Cancel a submitted record. The person is asked to confirm in a danger dialog and the act waits for the answer. When linked records block it, the person sees which ones.",
 	},
 	delete: {
-		description: "Delete this record after the person confirms in a danger dialog. If the person says no, the call ends declined. Leaves the page for the list. Cannot be undone.",
+		description: "Delete this record after the person confirms in a danger dialog. Leaves the page for the list. Cannot be undone.",
 	},
 	new: {
 		description: "Open the Create dialog for a new record of this list's DocType.",
