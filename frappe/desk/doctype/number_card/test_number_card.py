@@ -73,8 +73,20 @@ class TestNumberCard(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		self.addCleanup(frappe.delete_doc, "Report", report.name, force=True)
 
+		card = frappe.get_doc(
+			{
+				"doctype": "Number Card",
+				"label": "Test Backslash Report Card",
+				"type": "Report",
+				"report_name": report.name,
+				"report_function": "Sum",
+				"report_field": "name",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Number Card", card.name, force=True)
+
 		with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
-			self.assertIsInstance(frappe.get_list("Number Card", limit_page_length=1), list)
+			self.assertIn(card.name, frappe.get_list("Number Card", pluck="name"))
 
 	def test_link_search_hides_cards_from_blocked_modules(self):
 		user = "test2@example.com"
