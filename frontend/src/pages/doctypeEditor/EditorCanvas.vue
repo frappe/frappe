@@ -3,8 +3,7 @@
 <template>
 	<div
 		ref="root"
-		class="mx-auto flex w-full max-w-3xl flex-col px-[--page-gutter] pb-[40vh] pt-6"
-		:style="frozenHeight ? { minHeight: `${frozenHeight}px` } : undefined"
+		class="canvas-root mx-auto flex w-full max-w-3xl flex-col px-[--page-gutter] pb-[40vh] pt-6"
 		data-editor-canvas
 		@click="acts.perform('canvas.select', null)"
 	>
@@ -131,10 +130,13 @@ provideInertForm();
 
 // The bin sits after the open tab's content: a shorter tab must not lift it while a field is held.
 const root = ref<HTMLElement | null>(null);
-const frozenHeight = ref(0);
 watch(
 	() => props.canvas.drag.value.active,
-	(active) => (frozenHeight.value = active ? root.value?.offsetHeight ?? 0 : 0)
+	(active) => {
+		if (active)
+			root.value?.style.setProperty("--frozen-height", `${root.value.offsetHeight}px`);
+		else root.value?.style.removeProperty("--frozen-height");
+	}
 );
 
 const type = computed(() => props.canvas.openLayout.value.type);
@@ -261,6 +263,9 @@ watch(
 }
 [data-doctype-editor] .canvas-tab-held .sortable-fallback {
 	visibility: visible;
+}
+.canvas-root {
+	min-height: var(--frozen-height, 0);
 }
 /* The pointer drags across the canvas's text: no drag kind may select any of it. */
 body:has(.sortable-fallback, .canvas-drag-fallback) {
