@@ -1,6 +1,5 @@
 // `window.desk`: the frozen facade an agent drives the tab through. It is a layer of wrappers; each member loads its code on first call.
 import type { ActResult } from "@/acts/dispatcher";
-import { run, wait } from "./runs";
 import type { ListedAct } from "./actList";
 import type { DeskState, StateOptions } from "./pageState";
 import { readDialogs } from "../dialogs/readableDialogs";
@@ -23,6 +22,7 @@ declare global {
 	}
 }
 
+const runs = () => import("./runs");
 const list = () => import("./actList");
 const state = () => import("./pageState");
 
@@ -34,8 +34,8 @@ export function installDesk() {
 		acts: Object.freeze({
 			list: () => list().then((m) => m.listActs()),
 			options: (name: string, query = "") => list().then((m) => m.optionsOf(name, query)),
-			run,
-			wait,
+			run: (name: string, value?: unknown) => runs().then((m) => m.run(name, value)),
+			wait: (call: number, options?: { timeout?: number }) => runs().then((m) => m.wait(call, options)),
 		}),
 		state: (options?: StateOptions) => state().then((m) => m.readState(options)),
 		dialogs: async () => readDialogs(),
