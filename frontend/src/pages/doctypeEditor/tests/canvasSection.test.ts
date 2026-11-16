@@ -5,7 +5,7 @@ vi.mock("vuedraggable", () => ({ default: { render: () => null } }));
 vi.mock("../CanvasColumn.vue", () => ({ default: { render: () => null } }));
 vi.mock("../AddFieldRow.vue", () => ({ default: { render: () => null } }));
 vi.mock("../RuleMark.vue", () => ({ default: { render: () => null } }));
-vi.mock("@/acts/dispatcher", () => ({ acts: { perform: vi.fn() } }));
+vi.mock("@/acts/dispatcher", () => ({ acts: { perform: vi.fn() }, readDialogsWith: vi.fn() }));
 vi.mock("../canvasMenu", () => ({ canvasMenu: () => [], selectOn: vi.fn() }));
 vi.mock("frappe-ui", () => ({
 	Button: { render: () => h("button") },

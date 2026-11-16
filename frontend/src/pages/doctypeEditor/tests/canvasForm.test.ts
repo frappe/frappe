@@ -6,7 +6,7 @@ vi.mock("../CanvasTabs.vue", () => ({
   default: { render: () => h("div", { "data-canvas-tabs": "" }) },
 }));
 vi.mock("vuedraggable", () => ({ default: { render: () => null } }));
-vi.mock("@/acts/dispatcher", () => ({ acts: { perform: vi.fn() } }));
+vi.mock("@/acts/dispatcher", () => ({ acts: { perform: vi.fn() }, readDialogsWith: vi.fn() }));
 
 import CanvasForm from "../CanvasForm.vue";
 

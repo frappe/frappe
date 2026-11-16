@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const fake = vi.hoisted(() => ({ listed: vi.fn(), find: vi.fn() }));
 
-vi.mock("@/acts/dispatcher", () => ({ acts: { listed: fake.listed, find: fake.find } }));
+vi.mock("@/acts/dispatcher", () => ({ acts: { listed: fake.listed, find: fake.find }, readDialogsWith: vi.fn() }));
 
 import { addTypes, addable, buildRow, missing, startValues } from "../addTypes";
 import { actRow, hasNoPageToOpen, keyOf, optionRefusal, pickableActs } from "../actPicker";
