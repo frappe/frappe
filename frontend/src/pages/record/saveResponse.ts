@@ -1,6 +1,7 @@
 // What the page makes of a failed save: the conflict it throws, the message it shows,
 // and the fields the reader would lose.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { ActDeclined } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { RecordPageApi } from "@/recordPage";
 import type { DocstatusAct } from "./docstatusActs";
@@ -99,10 +100,12 @@ async function askConflict(confirm: Confirm, message: string, confirmLabel?: str
   return !!confirmed;
 }
 
-/** `page.save()` for an act: the save's refusal is thrown, so the caller reads why. The page has shown it already. */
+/** `page.save()` for an act: the save's refusal is thrown, so the caller reads why; a closed Required fields dialog is a decline. */
 export async function saveOrThrow(page: Pick<RecordPageApi, "save" | "saveRefusal">): Promise<true> {
   if (await page.save()) return true;
-  throw page.saveRefusal ?? new Error("The page was left before the record saved.");
+  const refusal = page.saveRefusal;
+  if (refusal instanceof Error && refusal.name === SAVE_CANCELLED) throw new ActDeclined("header.save");
+  throw refusal ?? new Error("The page was left before the record saved.");
 }
 
 export function conflictError(): Error {

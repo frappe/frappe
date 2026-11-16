@@ -365,9 +365,15 @@ describe("Rename…", () => {
     const meta = { autoname: "field:organization_name", fields: [{ fieldname: "organization_name", label: "Organization Name" }] };
     const page = renamePage(null, true, meta);
 
-    await renameRow()!.run!(page);
+    await expect(renameRow()!.run!(page)).rejects.toBeInstanceOf(ActDeclined);
 
     expect(page.dialog.form.mock.calls[0][0].fields[0].label).toBe("New Organization Name");
+    expect(page.rename).not.toHaveBeenCalled();
+  });
+
+  it("ends declined when the reader closes the Rename form", async () => {
+    const page = renamePage(null);
+    await expect(renameRow()!.run!(page)).rejects.toBeInstanceOf(ActDeclined);
     expect(page.rename).not.toHaveBeenCalled();
   });
 

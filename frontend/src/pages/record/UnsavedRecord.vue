@@ -374,7 +374,7 @@ function actFailed(exception: unknown) {
 
 /** After the insert, Save with no changes only opens the saved record again. */
 function save(page: RecordPageApi) {
-	return insertedName && !dirty.value ? openSaved() : saveOrThrow(page);
+	return insertedName && !dirty.value ? openSaved().then(() => true) : saveOrThrow(page);
 }
 
 async function confirmLeave() {

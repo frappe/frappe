@@ -12,7 +12,7 @@ export default {
 	},
 	save: {
 		description:
-			"Save the record open on this page; a new record is inserted. When a required field is empty the person sees the Required fields dialog and the act waits for it. When someone else saved the record first the person is asked what to do. Data is true when the record saved. When it did not, the error says why: a vetoed or refused save, a server error, or the person closing the Required fields dialog.",
+			"Save the record open on this page; a new record is inserted. When a required field is empty the person sees the Required fields dialog and the act waits for it. When someone else saved the record first the person is asked what to do. Data is true when the record saved. When it did not, the error says why: a vetoed or refused save or a server error. When the person closes the Required fields dialog the act ends declined.",
 		output: { type: "boolean" },
 	},
 	amend: {

@@ -52,7 +52,7 @@ async function openRename(page: RecordPageApi) {
     defaults: { new_name: page.docname },
     submitLabel: __("Rename"),
   });
-  if (!values) return;
+  if (!values) throw new ActDeclined("header.rename");
   const name = String(values.new_name ?? "").trim();
   if (!name || name === page.docname) return;
   if (values.merge && !(await confirmMerge(page, name))) throw new ActDeclined("header.rename");
