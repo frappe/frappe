@@ -133,16 +133,14 @@ class StudioComponent(Document):
 		The title is None for one that the user cannot read."""
 		self.check_permission("read")
 		usages = []
-		for component in self.get_referencing_docs("Studio Component", self.component_id):
-			title, block = frappe.db.get_value("Studio Component", component, ["component_name", "block"])
-			if self.is_in_blocks(block):
-				can_read = frappe.has_permission("Studio Component", "read", doc=component)
-				usages.append(_("{0} (component)").format(title) if can_read else None)
-		for page in self.get_referencing_docs("Studio Page", self.component_id):
-			title, *trees = frappe.db.get_value("Studio Page", page, ["page_title", "blocks", "draft_blocks"])
-			if any(self.is_in_blocks(tree) for tree in trees):
-				can_read = frappe.has_permission("Studio Page", "read", doc=page)
-				usages.append(_("{0} (page)").format(title) if can_read else None)
+		for doctype, title_field, tree_fields, label in (
+			("Studio Component", "component_name", ["block"], _("{0} (component)")),
+			("Studio Page", "page_title", ["blocks", "draft_blocks"], _("{0} (page)")),
+		):
+			for doc in self.get_referencing_docs(doctype, self.component_id, [title_field, *tree_fields]):
+				if any(self.is_in_blocks(doc[field]) for field in tree_fields):
+					can_read = frappe.has_permission(doctype, "read", doc=doc.name)
+					usages.append(label.format(doc[title_field]) if can_read else None)
 		return usages
 
 	def is_in_blocks(self, tree: str | None) -> bool:
@@ -196,7 +194,7 @@ class StudioComponent(Document):
 	def rename_references(self, old_id: str, new_id: str):
 		"""Point every block that meant this component at its new id."""
 		for component in self.get_referencing_docs("Studio Component", old_id):
-			doc = frappe.get_doc("Studio Component", component)
+			doc = frappe.get_doc("Studio Component", component.name)
 			block = parse_json(doc.block)
 			if not rename_component_in_blocks(block, old_id, new_id):
 				continue
@@ -206,7 +204,7 @@ class StudioComponent(Document):
 				doc.export_to_folder(folder)
 
 		for page in self.get_referencing_docs("Studio Page", old_id):
-			doc = frappe.get_doc("Studio Page", page)
+			doc = frappe.get_doc("Studio Page", page.name)
 			trees = {field: parse_json(doc.get(field)) for field in ("blocks", "draft_blocks")}
 			if not any([rename_component_in_blocks(tree, old_id, new_id) for tree in trees.values()]):
 				continue
@@ -216,18 +214,19 @@ class StudioComponent(Document):
 			doc._skip_validate = True  # blocks only change
 			doc.save()
 
-	def get_referencing_docs(self, doctype: str, old_id: str) -> list[str]:
+	def get_referencing_docs(self, doctype: str, old_id: str, fields: list[str] | None = None) -> list[dict]:
 		"""Pages or components whose blocks can mean this component by `old_id`: those of its app,
 		or for a global component, those of every app that has no component of its own with that id."""
+		fields = ["name", "studio_app", *(fields or [])]
 		if self.studio_app:
-			return frappe.get_all(doctype, filters={"studio_app": self.studio_app}, pluck="name")
+			return frappe.get_all(doctype, filters={"studio_app": self.studio_app}, fields=fields)
 		apps_with_their_own = frappe.get_all(
 			"Studio Component",
 			filters={"component_id": old_id, "studio_app": ("is", "set")},
 			pluck="studio_app",
 		)
-		docs = frappe.get_all(doctype, fields=["name", "studio_app"])
-		return [doc.name for doc in docs if doc.studio_app not in apps_with_their_own]
+		docs = frappe.get_all(doctype, fields=fields)
+		return [doc for doc in docs if doc.studio_app not in apps_with_their_own]
 
 	def on_update(self):
 		if can_export(self) and self.has_value_changed("script"):
