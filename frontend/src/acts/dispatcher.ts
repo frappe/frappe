@@ -259,7 +259,10 @@ export class ActDispatcher {
 		// The act starts at once, on the page that was asked; only the result's wording loads on the first call. A failed load must not reject it.
 		return import("./callResult").then(
 			({ callResult }) => callResult(run, name, readDialogs),
-			(error): ActResult => ({ ok: false, error: { code: "failed", message: String(error) }, route: "", dialogs: [] })
+			() => run.then(
+				(data): ActResult => ({ ok: true, data: data ?? null, route: "", dialogs: [] }),
+				(thrown): ActResult => ({ ok: false, error: { code: "failed", message: String(thrown) }, route: "", dialogs: [] })
+			)
 		);
 	}
 

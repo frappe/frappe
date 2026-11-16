@@ -27,7 +27,7 @@ export function quickActionBuiltins(
   if (attach)
     actions.push({ name: "attach", label: "Attach", icon: "lucide-paperclip", asks: ["dialog"], run: attach.run, right: attach.right });
   if (perms.print) actions.push({ name: "print", label: "Print", icon: "lucide-printer", run: print });
-  actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: lazy("copyLink") });
+  actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: copyLink });
   if (follow) actions.push({ name: "follow", ...followWording(follow), run: follow.toggle });
   // Only while the record has no tag: a tagged record has the chips' own "+" instead.
   if (perms.write && !tagged) actions.push({ name: "tags", label: "Tags", icon: "lucide-tag", tagging: true });
@@ -91,8 +91,8 @@ export function headerMenuBuiltins(
   if (options.rename && !options.single) items.push(renameItem());
   items.push(...(options.fieldActions ?? []));
   items.push(
-    { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: lazy("copyLink") },
-    { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: lazy("copyId") }
+    { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
+    { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId }
   );
   if (options.duplicate)
     items.push({ name: "duplicate", label: "Duplicate", icon: "lucide-copy", group: "copies", run: duplicate });
@@ -100,7 +100,7 @@ export function headerMenuBuiltins(
   if (options.editLayout) items.push(editLayoutItem(options.editLayout));
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single && !options.submitted)
-    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: lazy("remove") });
+    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: async (page: RecordPageApi) => (await import("./deleteRun")).remove(page) });
   return items;
 }
 
@@ -123,11 +123,22 @@ function print(page: RecordPageApi) {
   window.open(`/printview?${query}`, "_blank");
 }
 
+// No clipboard outside a secure context; a throw here would reload the record over an unsaved draft.
+// The write stays in the click's own tick: a browser grants it only just after the click.
+async function copyLink(page: RecordPageApi) {
+  await copy(page, window.location.href, "Link copied");
+}
+
+async function copyId(page: RecordPageApi) {
+  await copy(page, page.docname, "ID copied");
+}
+
 function duplicate(page: RecordPageApi) {
   return page.router.push(routeForNew(page.doctype, { [COPY_OF]: page.docname }));
 }
 
-// The runs sit in `builtinRuns`, loaded on the first run, so a record page's first paint does not carry them.
-function lazy(name: "copyLink" | "copyId" | "remove") {
-  return async (page: RecordPageApi) => (await import("./builtinRuns"))[name](page);
+async function copy(page: RecordPageApi, text: string, confirmation: string) {
+  if (!navigator.clipboard) return page.toast.error("Copying needs a secure connection");
+  await navigator.clipboard.writeText(text);
+  page.toast.success(confirmation);
 }
