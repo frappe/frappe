@@ -33,7 +33,7 @@ const useComponentStore = defineStore("componentStore", () => {
 
 	onComponentScriptHotUpdate((componentId, module) => {
 		const componentDoc = componentDocMap.get(componentId)
-		if (componentDoc) setComponentScript(componentDoc, () => validateComponentScript(module.default))
+		if (componentDoc) loadComponentScript(componentDoc, async () => module)
 	})
 
 	// A block names a component by its id. The app decides which component that id means:
@@ -138,21 +138,36 @@ const useComponentStore = defineStore("componentStore", () => {
 
 	// SCRIPTS
 	// An app build and the Vite dev server load the script from its file. A database app
-	// compiles the `script` field in the browser.
-	async function loadComponentScript(componentDoc: StudioComponent) {
+	// compiles the `script` field in the browser. A hot update gives the module itself.
+	async function loadComponentScript(
+		componentDoc: StudioComponent,
+		loadModule: () => Promise<Record<string, any> | null> = () => loadScriptModule(componentDoc),
+	) {
 		const componentId = componentDoc.component_id
 		const load = (latestScriptLoads.get(componentId) ?? 0) + 1
 		latestScriptLoads.set(componentId, load)
-		let getScript: () => ComponentScript | null
+		let script: ComponentScript | null = null
+		let failure: { error: unknown } | null = null
 		try {
-			const module = await loadScriptModule(componentDoc)
-			getScript = () => (module ? validateComponentScript(module.default) : null)
+			const module = await loadModule()
+			script = module ? validateComponentScript(module.default) : null
 		} catch (error) {
-			getScript = () => {
-				throw error
-			}
+			failure = { error }
 		}
-		if (latestScriptLoads.get(componentId) === load) setComponentScript(componentDoc, getScript)
+		if (latestScriptLoads.get(componentId) !== load) return
+
+		if (failure) {
+			reportScriptError(componentId, failure.error)
+			// The component stays as it was. One that is new here renders with its saved inputs,
+			// so the page still renders.
+			if (componentHosts.has(componentId)) return
+		} else {
+			componentScriptErrors.delete(componentId)
+		}
+		const source = script ?? (componentDoc.inputs || []).map((input) => input.input_name).join()
+		if (componentHosts.get(componentId)?.source === source) return
+		const host = createComponentHost(componentDoc, script, (error) => reportScriptError(componentId, error))
+		componentHosts.set(componentId, { host, source })
 	}
 
 	async function loadScriptModule(componentDoc: StudioComponent): Promise<Record<string, any> | null> {
@@ -161,24 +176,6 @@ const useComponentStore = defineStore("componentStore", () => {
 		}
 		if (!componentDoc.script?.trim()) return null
 		return compileComponentScript(componentDoc)
-	}
-
-	// A script that fails leaves the component as it was, or with its saved inputs when it is
-	// new here, so the page still renders.
-	function setComponentScript(componentDoc: StudioComponent, getScript: () => ComponentScript | null) {
-		const componentId = componentDoc.component_id
-		let script: ComponentScript | null = null
-		try {
-			script = getScript()
-			componentScriptErrors.delete(componentId)
-		} catch (error) {
-			reportScriptError(componentId, error)
-			if (componentHosts.has(componentId)) return
-		}
-		const source = script ?? (componentDoc.inputs || []).map((input) => input.input_name).join()
-		if (componentHosts.get(componentId)?.source === source) return
-		const host = createComponentHost(componentDoc, script, (error) => reportScriptError(componentId, error))
-		componentHosts.set(componentId, { host, source })
 	}
 
 	function reportScriptError(componentId: string, error: unknown) {
