@@ -1305,13 +1305,12 @@ def needs_password_setup(user: str | None = None) -> bool:
 def set_first_password(new_password: str) -> None:
 	"""A signed-in user who never had a password (a new Frappe Cloud site owner) sets one, from an
 	app's setup flow, without a reset link. Anyone else changes theirs the usual way."""
-	from frappe.utils.password import validate_password_size
-
 	if frappe.request and frappe.get_request_header("Authorization"):
 		frappe.throw(_("Set your first password from a signed-in browser."), frappe.PermissionError)
 	if not new_password or not new_password.strip():
 		frappe.throw(_("Enter a password."), title=_("Invalid Password"))
-	validate_password_size(new_password, _("New Password"))
+	if len(new_password) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("{0} size exceeded the maximum allowed size.").format(_("New Password")))
 	if not needs_password_setup():
 		frappe.throw(_("You already have a password. Change it from your settings."), frappe.PermissionError)
 	user = frappe.get_doc("User", frappe.session.user)
