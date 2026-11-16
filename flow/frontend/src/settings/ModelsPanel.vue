@@ -77,9 +77,13 @@
 						placeholder="Search or type a model id"
 						:empty-text="`No other models from ${service.label}`"
 						align="end"
+						data-add-model
 						@update:open="(open) => open && opened(service.name)"
 						@update:model-value="(id) => id && add(service, id)"
 					>
+						<template #item-label="{ item }">
+							<div class="truncate" :title="item.label">{{ item.label }}</div>
+						</template>
 						<template #trigger>
 							<Button variant="ghost" icon-left="lucide-plus" label="Add model" :aria-label="`Add a model from ${service.label}`" />
 						</template>
