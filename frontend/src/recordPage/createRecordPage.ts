@@ -462,7 +462,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
   const saving = shallowRef<Promise<void> | null>(null);
 
-  // Why the last `save()` resolved `false`; a header act throws it so the caller reads the reason.
   let refusal: unknown = null;
   const reportSave = reportOnce((error) =>
     host.saveFailed ? host.saveFailed(error) : void toast.error(errorMessage(error)),
