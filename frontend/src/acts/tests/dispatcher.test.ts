@@ -39,10 +39,10 @@ describe("the dispatcher", () => {
     });
 
     it("maps ActDeclined to `declined` and anything else to `failed`", async () => {
-      const declined = await held({ run: () => Promise.reject(new ActDeclined("header.go")) }).call("header.go");
+      const declined = await held({ run: () => Promise.reject(new ActDeclined("header.save")) }).call("header.go");
       const failed = await held({ run: () => Promise.reject(new Error("Server said no.")) }).call("header.go");
 
-      expect(declined).toMatchObject({ ok: false, error: { code: "declined" } });
+      expect(declined).toMatchObject({ ok: false, error: { code: "declined", message: expect.stringMatching(/^header\.go: the person declined/) } });
       expect(failed).toMatchObject({ ok: false, error: { code: "failed" } });
       expect((failed as any).error.message).toMatch(/^Server said no\. Read the page state/);
     });

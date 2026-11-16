@@ -246,8 +246,10 @@ describe("Submit with a mandatory field the layout does not show", () => {
   it("a cancelled dialog sends nothing and fires no beforeSubmit or afterSubmit", async () => {
     const { controller, order } = makeDraft(null);
 
-    await expect(controller.submit()).rejects.toMatchObject({ name: SAVE_CANCELLED });
+    const error = await controller.submit().catch((thrown) => thrown);
 
+    expect(error).toBeInstanceOf(ActDeclined);
+    expect(error.name).toBe(SAVE_CANCELLED);
     expect(order).toEqual(["confirm submit", "beforeSave", "dialog save and submit"]);
   });
 

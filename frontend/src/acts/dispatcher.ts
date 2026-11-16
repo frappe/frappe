@@ -256,7 +256,7 @@ export class ActDispatcher {
 		try {
 			return tabState({ ok: true, data: (await this.execute(name, value, false)) ?? null });
 		} catch (error) {
-			return tabState({ ok: false, error: errorOf(error) });
+			return tabState({ ok: false, error: errorOf(error, name) });
 		}
 	}
 
@@ -387,11 +387,11 @@ const NEXT: Record<ActDeniedReason, string> = {
 	right: "The person's role does not allow it. Tell the person; do not try again.",
 };
 
-function errorOf(error: unknown): ActError {
+function errorOf(error: unknown, name: string): ActError {
 	if (error instanceof ActDenied) return { code: error.reason, message: `${error.message}. ${NEXT[error.reason]}` };
 	if (error instanceof ActInvalid) return { code: "invalid", message: `${error.message}. Send a value that fits the act's input and run it again.` };
 	if (error instanceof ActDeclined)
-		return { code: "declined", message: `${error.message}. Do not run it again unless the person asks for it.` };
+		return { code: "declined", message: `${name}: the person declined. Do not run it again unless the person asks for it.` };
 	const reason = error instanceof Error && error.message ? error.message : String(error);
 	return { code: "failed", message: `${reason.replace(/\.$/, "")}. Read the page state, fix the cause, then run the act again.` };
 }

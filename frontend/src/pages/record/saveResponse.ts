@@ -100,12 +100,10 @@ async function askConflict(confirm: Confirm, message: string, confirmLabel?: str
   return !!confirmed;
 }
 
-/** `page.save()` for an act: the save's refusal is thrown, so the caller reads why; a closed Required fields dialog is a decline. */
+/** `page.save()` for an act: the save's refusal is thrown, so the caller reads why. The page has shown it already. */
 export async function saveOrThrow(page: Pick<RecordPageApi, "save" | "saveRefusal">): Promise<true> {
   if (await page.save()) return true;
-  const refusal = page.saveRefusal;
-  if (refusal instanceof Error && refusal.name === SAVE_CANCELLED) throw new ActDeclined("header.save");
-  throw refusal ?? new Error("The page was left before the record saved.");
+  throw page.saveRefusal ?? new Error("The page was left before the record saved.");
 }
 
 export function conflictError(): Error {
@@ -120,8 +118,9 @@ export function codeErrorsError(message: string): Error {
   return error;
 }
 
+/** A declined act: a save or a Submit stopped by the closed dialog ends declined, not failed. */
 export function cancelledError(): Error {
-  const error = new Error("Required fields were not filled in.");
+  const error = new ActDeclined("header.save");
   error.name = SAVE_CANCELLED;
   return error;
 }
