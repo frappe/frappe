@@ -182,6 +182,7 @@ export default class GridRow {
 			"Update"
 		);
 	}
+<<<<<<< HEAD
 	sync_doc_from_locals() {
 		// re-point to the latest copy of this row in `locals`.
 		// unnamed (unsaved) rows aren't addressable by name there, so they keep
@@ -189,6 +190,11 @@ export default class GridRow {
 		// cross-linked to another unnamed row.
 		if (this.frm && this.doc?.name) {
 			this.doc = locals[this.doc.doctype]?.[this.doc.name] || this.doc;
+=======
+	refresh() {
+		if (this.frm && this.doc && this.doc.name) {
+			this.doc = locals[this.doc.doctype][this.doc.name] || this.doc;
+>>>>>>> 3da753d (fix: preserve unnamed grid rows on refresh)
 		}
 	}
 	refresh() {
