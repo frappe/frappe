@@ -127,6 +127,15 @@ describe("editor.save", () => {
 });
 
 describe("a refused save", () => {
+	it("tells the page it may have written, so what it loaded before is dropped", async () => {
+		const wrote = vi.fn();
+		mount(taskNote(), { wrote });
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });
+		answers({ saved: false, errors: [{ target: { kind: "banner" }, message: "No" }], written: ["Child"] });
+		await acts.run("editor.save");
+		expect(wrote).toHaveBeenCalledOnce();
+	});
+
 	it("shows field and section errors at their targets, and the rest in the banner", async () => {
 		const { canvas, save } = mount();
 		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });

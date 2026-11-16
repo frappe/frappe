@@ -192,10 +192,12 @@ watch(shown, () =>
 	)
 );
 const layoutCanvas = computed(() => (openChild.value?.state.pending ? null : shown.value));
+const modeLoads = new ModeCache(loadEditor);
 const save = new EditorSave({
 	edits,
 	canvas: () => canvas.value,
 	reload,
+	wrote: () => modeLoads.drop(name.value),
 	created,
 	children: child.tables,
 	showChild: child.showChild,
@@ -203,7 +205,6 @@ const save = new EditorSave({
 });
 // The latest load wins; it also ends with the page, so a Danger zone act still running skips its follow-up.
 const loads = new LatestWins();
-const modeLoads = new ModeCache(loadEditor);
 
 useEditorActs({
 	edits,

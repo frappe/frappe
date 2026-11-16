@@ -7,6 +7,8 @@ type Load = (doctype: string, mode?: EditorMode) => Promise<EditorState>;
 export class ModeCache {
 	private doctype = "";
 	private generation = 0;
+	/** The mode the server picked when none was asked for. */
+	private picked?: EditorMode;
 	private states = new Map<EditorMode, EditorState>();
 
 	constructor(private load: Load) {}
@@ -14,11 +16,14 @@ export class ModeCache {
 	/** A copy, so edits on the open canvas never reach the cached load. */
 	async get(doctype: string, mode?: EditorMode): Promise<EditorState> {
 		if (doctype !== this.doctype) this.drop(doctype);
-		const held = mode && this.states.get(mode);
+		const key = mode ?? this.picked;
+		const held = key && this.states.get(key);
 		if (held) return structuredClone(held);
 		const generation = this.generation;
 		const loaded = await this.load(doctype, mode);
-		if (generation === this.generation) this.states.set(loaded.mode, structuredClone(loaded));
+		if (generation !== this.generation) return loaded;
+		this.states.set(loaded.mode, structuredClone(loaded));
+		if (!mode) this.picked = loaded.mode;
 		return loaded;
 	}
 
@@ -31,6 +36,7 @@ export class ModeCache {
 	drop(doctype: string) {
 		this.doctype = doctype;
 		this.generation++;
+		this.picked = undefined;
 		this.states.clear();
 	}
 }

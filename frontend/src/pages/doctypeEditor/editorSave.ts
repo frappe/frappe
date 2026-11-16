@@ -55,6 +55,8 @@ export interface SaveHost {
 	created: (doctype: string) => Promise<DesignCanvas | null>;
 	/** The page's child tables, whose staged edits save with the parent's. */
 	children?: Pick<ChildTables, "saves" | "saved" | "loaded" | "canvasOf" | "clearErrors" | "rebaseAppLayouts" | "dropUndoneErrors" | "hasErrors">;
+	/** A save may have written, even one that fails part way: what the page loaded before is stale. */
+	wrote?: () => void;
 	/** Opens a child table's editor, to mark its refused edits there. */
 	showChild?: (doctype: string) => Promise<DesignCanvas | null>;
 	/** Opens a setting's section on the Settings tab and flashes its row. */
@@ -87,7 +89,7 @@ export class EditorSave {
 		canvas.errors.value = [];
 		this.host.children?.clearErrors();
 		await this.busy(async () => {
-			const { result, call } = await this.send(canvas);
+			const { result, call } = await this.send(canvas).finally(() => this.host.wrote?.());
 			if (call) await this.refused(canvas, result, call);
 			else await this.saved(canvas, result);
 		});

@@ -108,6 +108,7 @@ export function mountEditor(
     customize?: CustomizeHost;
     danger?: DangerHost;
     forks?: ForkWarning;
+    wrote?: () => void;
   } = {},
 ) {
   const tab = ref<EditorTab>("editor");
@@ -144,6 +145,7 @@ export function mountEditor(
     edits,
     canvas: () => canvas,
     reload: async () => open(next()),
+    wrote: options.wrote,
     created: async (doctype) => {
       created.push(doctype);
       return open({ ...next(), doctype, pending: undefined });

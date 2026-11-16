@@ -56,4 +56,12 @@ describe("the editor's mode cache", () => {
     await modes.get("ToDo", "Customize");
     expect(load).toHaveBeenCalledTimes(3);
   });
+
+  it("reuses the mode the server picked when none was asked for", async () => {
+    const { load, modes } = cache();
+    await modes.get("ToDo");
+    await modes.get("ToDo", "Customize");
+    await modes.get("ToDo");
+    expect(load).toHaveBeenCalledTimes(2);
+  });
 });
