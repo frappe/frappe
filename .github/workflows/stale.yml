@@ -16,6 +16,8 @@ jobs:
         with:
           script: |
             const DAY = 24 * 60 * 60 * 1000;
+            const DAYS_BEFORE_STALE = 15;
+            const DAYS_BEFORE_CLOSE = 1;
             const LABEL = "inactive";
             const EXEMPT = ["hotfix", "no-stale"];
             const MESSAGE =
@@ -58,10 +60,10 @@ jobs:
               if (labels.includes(LABEL)) {
                 if (last_activity > labeled_at) {
                   await github.rest.issues.removeLabel({ ...issue, name: LABEL });
-                } else if (Date.now() - labeled_at > DAY) {
+                } else if (Date.now() - labeled_at > DAYS_BEFORE_CLOSE * DAY) {
                   await github.rest.pulls.update({ ...context.repo, pull_number: pr.number, state: "closed" });
                 }
-              } else if (Date.now() - last_activity > 15 * DAY) {
+              } else if (Date.now() - last_activity > DAYS_BEFORE_STALE * DAY) {
                 await github.rest.issues.createComment({ ...issue, body: MESSAGE });
                 await github.rest.issues.addLabels({ ...issue, labels: [LABEL] });
               }
