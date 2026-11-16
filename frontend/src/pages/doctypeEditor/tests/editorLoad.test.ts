@@ -175,3 +175,23 @@ it("shows the error and goes to the list when the DocType to copy fails to load"
   expect(dom.querySelector("[data-save]")).toBeNull();
   expect(router.currentRoute.value.path).toBe("/DocType");
 });
+
+it("loads each mode once: a switch back reuses it with no request", async () => {
+  const router = await mount("/doctype/ToDo?mode=design");
+  const answer = async (mode: "Design" | "Customize") => {
+    await settle();
+    loads.at(-1)!.resolve(
+      taskNote({ doctype: "ToDo", mode, modes: ["Design", "Customize"] }),
+    );
+    await settle();
+  };
+  await answer("Design");
+  await router.push("/doctype/ToDo?mode=customize");
+  await answer("Customize");
+  for (const mode of ["design", "customize", "design"]) {
+    await router.push(`/doctype/ToDo?mode=${mode}`);
+    await settle();
+  }
+  expect(loads.map((load) => load.mode)).toEqual(["Design", "Customize"]);
+  expect(dom.querySelector("[data-save]")?.textContent).toBe("ToDo");
+});
