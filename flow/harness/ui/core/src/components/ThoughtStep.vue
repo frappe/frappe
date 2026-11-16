@@ -2,33 +2,29 @@
 	<div>
 		<component
 			:is="expandable ? 'button' : 'div'"
-			class="flex w-full items-baseline gap-2.5 py-2 text-left md:py-2.5"
+			class="flex w-full items-baseline gap-2.5 py-1.5 text-left"
 			:class="expandable ? 'group cursor-pointer' : ''"
 			@click="expandable && (open = !open)"
 		>
-			<!-- leading slot doubles as the disclosure control (see ToolStep) -->
-			<span class="relative h-3.5 w-3.5 flex-none self-center text-ink-gray-5">
-				<ThoughtIcon
-					class="h-3.5 w-3.5 transition-opacity"
-					:class="open ? 'opacity-0' : expandable ? 'group-hover:opacity-0' : ''"
-				/>
-				<span
-					v-if="expandable"
-					class="lucide-chevron-right absolute inset-0 size-3.5 transition-[opacity,transform]"
-					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
-					aria-hidden="true"
-				/>
+			<ThoughtIcon class="h-3.5 w-3.5 flex-none self-center text-ink-gray-5" />
+			<span class="min-w-0 truncate text-base text-ink-gray-6 group-hover:text-ink-gray-8">
+				<span :class="live ? 'flow-shimmer' : ''">{{ live ? __("Thinking") : __("Thought") }}</span>
+				<!-- no preview of the thought itself: only why one can't be opened -->
+				<template v-if="block.redacted">
+					<span class="text-ink-gray-4"> · </span>
+					<span>{{ __("Thinking is encrypted for this model.") }}</span>
+				</template>
 			</span>
-			<span class="flex-none text-base-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
-				live ? "Thinking" : "Thought"
-			}}</span>
-			<span class="min-w-0 flex-1 truncate text-base text-ink-gray-5 group-hover:text-ink-gray-7">{{ preview }}</span>
+			<span
+				v-if="expandable"
+				class="lucide-chevron-down size-3.5 flex-none self-center text-ink-gray-5 transition-[opacity,transform]"
+				:class="open ? 'rotate-180' : 'opacity-0 group-hover:opacity-100'"
+				aria-hidden="true"
+			/>
 		</component>
 
-		<div
-			v-if="open && expandable"
-			class="mb-1.5 rounded-[10px] border border-outline-gray-1 bg-surface-base px-3.5 py-3"
-		>
+		<!-- as the turn's first thought (ThinkingBlock): a rule at its side, not a box -->
+		<div v-if="open && expandable" class="my-1 border-l-2 border-outline-gray-2 pl-3">
 			<div ref="panelEl" class="max-h-[260px] overflow-y-auto" @scroll="onPanelScroll">
 				<MarkdownContent :text="block.thinking" class="text-base leading-relaxed text-ink-gray-6" />
 			</div>
@@ -40,6 +36,7 @@
 import { computed, nextTick, ref, watch } from "vue"
 
 import { usePanelOpen } from "../panels.js"
+import { __ } from "../translate.js"
 import MarkdownContent from "./MarkdownContent.vue"
 import ThoughtIcon from "./ThoughtIcon.vue"
 
@@ -78,17 +75,4 @@ watch(
 )
 
 const expandable = computed(() => !props.block.redacted && !!props.block.thinking)
-const preview = computed(() => {
-	if (props.block.redacted) return "Thinking is encrypted for this model."
-	const text = props.block.thinking ?? ""
-	const line = text.split("\n").find((l) => l.trim()) ?? ""
-	// markdown syntax is noise at one-line preview size; the panel renders it fully
-	return line
-		.replace(/^#{1,6}\s+/, "")
-		.replace(/\*\*([^*]+)\*\*/g, "$1")
-		.replace(/__([^_]+)__/g, "$1")
-		.replace(/\*([^*]+)\*/g, "$1")
-		.replace(/`([^`]+)`/g, "$1")
-		.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-})
 </script>

@@ -48,7 +48,14 @@ test.describe("Customize Form", () => {
 	test("saves a changed color on an existing document state", async ({ page, desk, api }) => {
 		await page.goto("/desk/customize-form");
 		await desk.ready();
-		await desk.fill_field("doc_type", "Note", "Link");
+		const doc_type = desk.get_field("doc_type", "Link");
+		await doc_type.focus();
+		await doc_type.pressSequentially("Note", { delay: 100 });
+		await expect(
+			page.locator('[data-fieldname="doc_type"] div[role="option"]').first()
+		).toContainText("Note");
+		await doc_type.press("Enter");
+		await expect.poll(() => page.evaluate(() => cur_frm.doc.doc_type)).toBe("Note");
 		await expect(page.locator(".form-builder-container")).toBeVisible();
 		await page.evaluate(() => {
 			cur_frm.clear_table("states");

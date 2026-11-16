@@ -1,4 +1,5 @@
 import { FlowAPIError } from "@flow/ui-core/client.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 const SUBSCRIBE_TIMEOUT = 15_000;
 
@@ -163,6 +164,6 @@ export class SessionStream {
 function refused() {
 	return new FlowAPIError(
 		403,
-		"Live updates are unavailable for this conversation. Reopen it to refresh."
+		__("Live updates are unavailable for this conversation. Reopen it to refresh.")
 	);
 }
