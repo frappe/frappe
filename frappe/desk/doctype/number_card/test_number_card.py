@@ -1,38 +1,30 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
+from unittest.mock import patch
+
 import frappe
 from frappe.core.doctype.user.test_user import test_user
-from frappe.desk.doctype.number_card.number_card import get_cards_for_user
+from frappe.desk.doctype.number_card.number_card import (
+	get_cards_for_user,
+	get_permission_query_conditions,
+)
 from frappe.tests.utils import FrappeTestCase
 
 
 class TestNumberCard(FrappeTestCase):
-	def test_card_list_with_report_name_ending_in_backslash(self):
-		report = frappe.get_doc(
-			{
-				"doctype": "Report",
-				"report_name": "Test Backslash Report\\",
-				"ref_doctype": "ToDo",
-				"report_type": "Report Builder",
-				"is_standard": "No",
-			}
-		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "Report", report.name, force=True)
+	def test_permission_condition_escapes_report_names(self):
+		report_name = "Test Backslash Report\\"
+		hook = "frappe.desk.doctype.number_card.number_card.get_allowed_report_names"
 
-		card = frappe.get_doc(
-			{
-				"doctype": "Number Card",
-				"label": "Test Backslash Report Card",
-				"type": "Report",
-				"report_name": report.name,
-				"report_function": "Sum",
-				"report_field": "name",
-			}
-		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "Number Card", card.name, force=True)
+		with (
+			test_user(roles=["Desk User"]) as user,
+			self.set_user(user.name),
+			patch(hook, return_value={report_name}),
+		):
+			condition = get_permission_query_conditions()
 
-		with test_user(roles=["Desk User"]) as user, self.set_user(user.name):
-			self.assertIn(card.name, frappe.get_list("Number Card", pluck="name"))
+		self.assertIn(frappe.db.escape(report_name, percent=False), condition)
+		frappe.db.sql(f"select name from `tabNumber Card` where {condition}")
 
 	def test_link_search_hides_cards_from_blocked_modules(self):
 		user = "test2@example.com"
