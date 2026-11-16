@@ -153,6 +153,9 @@ test("a chat still opening loads its own skills, so one that cannot open says wh
 	const opened = flow.openSession("s1")
 	await flow.loadSkills()
 	assert.deepEqual(asked, ["s1"])
+	// a skill that changed meanwhile is still fetched
+	await flow.loadSkills({ force: true })
+	assert.deepEqual(asked, ["s1", "s1"])
 	fail(new Error("gone"))
 	await opened
 	assert.equal(flow.state.sessionId, null)
