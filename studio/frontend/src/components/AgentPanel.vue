@@ -92,10 +92,18 @@ function openFlow() {
 }
 
 function copyPrompt() {
+	const site = window.location.origin
+	const app = store.activeApp
 	copyToClipboard(
-		"Install the `studio-app-building` skill from `frappe/frappe` with `npx skills`, read its SKILL.md, " +
-			`and connect to \`${window.location.origin}\` with frappectl. ` +
-			`Then work with me on the Studio app \`${store.activeApp?.name}\`.`,
+		[
+			`Work with me on the Studio app \`${app?.name}\` on \`${site}\`.`,
+			"",
+			"- Install the `studio-app-building` skill from `frappe/frappe` with `npx skills` and read its SKILL.md.",
+			"- Talk to the site with frappectl. Install it with `uv tool install frappectl` and read `frappectl guide`.",
+			`- If frappectl is not logged in to this site, stop and ask me to run \`frappectl auth login ${site} --writable\`. ` +
+				"Never create or change users, passwords or API keys yourself.",
+			`- After each change, give me the preview link under \`${site}/dev/${app?.route}\` so I can check the page.`,
+		].join("\n"),
 	)
 }
 </script>
