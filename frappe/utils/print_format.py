@@ -455,6 +455,94 @@ def download_pdf(
 	frappe.local.response.type = "pdf"
 
 
+@frappe.whitelist(methods=["POST"])
+@frappe.concurrent_limit()
+def attach_pdf(
+	doctype: str,
+	name: str,
+	format: str | None = None,
+	no_letterhead: bool | int = 0,
+	language: str | None = None,
+	letterhead: str | None = None,
+	pdf_generator: str | None = None,
+	style: str | None = None,
+	settings: str | None = None,
+) -> dict:
+	"""Attach the printed PDF to the document as a private file, replacing the one printed earlier with the same format."""
+	from frappe.core.doctype.file.utils import get_safe_file_name
+
+	doc = frappe.get_doc(doctype, name)
+	validate_print_permission(doc)
+	doc.check_permission("write")
+
+	with print_language(language):
+		pdf_file = frappe.get_print(
+			doctype,
+			name,
+			format,
+			doc=doc,
+			as_pdf=True,
+			letterhead=letterhead,
+			no_letterhead=no_letterhead,
+			pdf_generator=pdf_generator,
+			style=style,
+			settings=settings,
+		)
+
+	format_name = format or doc.meta.default_print_format or "Standard"
+	file_name = get_safe_file_name(f"{doc.name} - {format_name}.pdf")
+	kept_previous = _remove_previous_pdf(doc, file_name)
+
+	file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": file_name,
+			"content": pdf_file,
+			"attached_to_doctype": doc.doctype,
+			"attached_to_name": doc.name,
+			"is_private": 1,
+		}
+	).insert()
+
+	return {"file_name": file.file_name, "file_url": file.file_url, "kept_previous": kept_previous}
+
+
+def _remove_previous_pdf(doc: Document, file_name: str) -> bool:
+	"""Delete the PDF attached earlier as `file_name`. Return True when attachment protection keeps it."""
+	stem = file_name.removesuffix(".pdf")
+	previous = [
+		file.name
+		for file in frappe.get_all(
+			"File",
+			filters={
+				"attached_to_doctype": doc.doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": ("is", "not set"),
+				"is_private": 1,
+			},
+			fields=["name", "file_name"],
+		)
+		if file.file_name == file_name
+		or (
+			file.file_name.startswith(stem)
+			and file.file_name.endswith(".pdf")
+			and len(file.file_name) == len(file_name) + 6
+		)
+	]
+	if not previous:
+		return False
+
+	if doc.meta.protect_attached_files and (
+		doc.docstatus == 1
+		or (doc.docstatus == 2 and not frappe.has_permission(doc.doctype, "delete", doc=doc))
+	):
+		return True
+
+	for file in previous:
+		frappe.delete_doc("File", file)
+	return False
+
+
 @frappe.whitelist()
 @frappe.concurrent_limit()
 def report_to_pdf(html: str, orientation: str = "Landscape", print_format: str | None = None):
