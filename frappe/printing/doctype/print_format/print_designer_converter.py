@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.model.naming import append_number_if_name_exists
 from frappe.model.rename_doc import get_link_fields, update_link_field_values
+from frappe.printing.fieldtypes import BREAKABLE_FIELDTYPES
 from frappe.utils import cint, escape_html, flt
 
 PX_PER_MM = 96 / 25.4
@@ -822,6 +823,8 @@ class PrintDesignerConverter:
 		}
 		if df and df.options:
 			node["options"] = df.options
+		if node["fieldtype"] in BREAKABLE_FIELDTYPES:
+			node["allow_page_break"] = 1
 		node["show_label"] = "inline" if item.get("is_labelled") else "hide"
 		node.update(self.style_props({**self.styled(element), **(item.get("style") or {})}))
 		return node
