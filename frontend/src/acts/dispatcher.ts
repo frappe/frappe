@@ -253,11 +253,11 @@ export class ActDispatcher {
 
 	/** An outside caller's run: it never rejects, and every end, a refusal too, says what to do next. */
 	call(name: string, value?: unknown): Promise<ActResult> {
-		const run = () => this.execute(name, value, false);
-		// The result's wording loads on the first call; a failed load must not reject it.
+		const run = this.execute(name, value, false);
+		// The act starts at once, on the page that was asked; only the result's wording loads on the first call. A failed load must not reject it.
 		return import("./callResult").then(
 			({ callResult }) => callResult(run, name, readDialogs),
-			(error): ActResult => ({ ok: false, error: { code: "failed", message: String(error) }, route: "", dialogs: [] })
+			(error): ActResult => (run.catch(() => {}), { ok: false, error: { code: "failed", message: String(error) }, route: "", dialogs: [] })
 		);
 	}
 

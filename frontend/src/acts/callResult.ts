@@ -16,10 +16,10 @@ function errorOf(error: unknown, name: string): ActError {
 	return { code: "failed", message: `${reason.replace(/\.$/, "")}. Read the page state, fix the cause, then run the act again.` };
 }
 
-export async function callResult(run: () => Promise<unknown>, name: string, readDialogs: () => ActDialog[]): Promise<ActResult> {
+export async function callResult(run: Promise<unknown>, name: string, readDialogs: () => ActDialog[]): Promise<ActResult> {
 	const where = () => ({ route: `${location.pathname}${location.search}${location.hash}`, dialogs: readDialogs() });
 	try {
-		const data = (await run()) ?? null;
+		const data = (await run) ?? null;
 		return { ok: true, data, ...where() };
 	} catch (error) {
 		return { ok: false, error: errorOf(error, name), ...where() };

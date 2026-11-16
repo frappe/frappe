@@ -21,6 +21,14 @@ describe("the dispatcher", () => {
       expect(result).toMatchObject({ ok: true, data: 5, route: expect.any(String), dialogs: [] });
     });
 
+    it("starts the act in the same tick, before the result's wording loads", async () => {
+      const run = vi.fn(() => 1);
+      const pending = held({ run }).call("header.go");
+
+      expect(run).toHaveBeenCalledTimes(1);
+      await pending;
+    });
+
     it("turns no data into null", async () => {
       expect(await held({ run: () => undefined }).call("header.go")).toMatchObject({ ok: true, data: null });
     });
