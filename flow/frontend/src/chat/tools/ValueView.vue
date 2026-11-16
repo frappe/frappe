@@ -1,7 +1,7 @@
 <template>
 	<details v-if="structured" @toggle="open = $event.target.open">
 		<summary class="cursor-pointer text-ink-gray-6">
-			{{ Array.isArray(value) ? cellText(value) : "Details" }}
+			{{ Array.isArray(value) ? cellText(value) : __("Details") }}
 		</summary>
 		<pre
 			v-if="open"
@@ -14,6 +14,7 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { cellText } from "./result.js";
 

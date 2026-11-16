@@ -128,11 +128,17 @@ def services() -> dict[str, Any]:
 def add_model(provider: str, model_id: str, for_chat: bool = False) -> dict[str, Any]:
 	"""One of `provider`'s models, named as people know it, saved once it answers one message (one
 	saved already is switched on). One that doesn't is not saved, and its `check` says why."""
+	from frappe.flow.lib.model import SITE_PROVIDER, site_credentials
+
 	frappe.has_permission("Flow Model", "create", throw=True)
 	model = model_id.strip().removeprefix(f"{provider}/")
 	service = frappe.get_doc("Flow Provider", provider)
 	service.check_permission("read")
-	args = (f"{provider}/{model}", service.get_password("api_key", raise_exception=False), service.base_url)
+	api_key, base_url = service.get_password("api_key", raise_exception=False), service.base_url
+	if provider == SITE_PROVIDER:  # Grove's key and gateway are in site config
+		credentials = site_credentials()
+		api_key, base_url = credentials["api_key"], credentials["base_url"]
+	args = (f"{provider}/{model}", api_key, base_url)
 	# one that doesn't chat may embed, whatever its name or LiteLLM knows of it; the first run
 	# wants one to chat with
 	refused, embedding = _check(*args), False
@@ -254,8 +260,11 @@ def _check(
 	didn't."""
 	import litellm
 
+	from frappe.flow.lib.model import litellm_route
+
 	provider, _sep, model = model_id.partition("/")
-	kwargs: dict[str, Any] = {"model": model_id, "api_key": api_key, "timeout": 20}
+	route, base_url = litellm_route(model_id, base_url)  # a Grove model is behind its gateway's API
+	kwargs: dict[str, Any] = {"model": route, "api_key": api_key, "timeout": 20}
 	if base_url:
 		kwargs["api_base"] = base_url
 	try:

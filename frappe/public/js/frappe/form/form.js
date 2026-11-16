@@ -104,6 +104,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.debounced_reload_doc = frappe.utils.debounce(this.reload_doc.bind(this), 1000);
 
 		this.beforeUnloadListener = (event) => {
+			if (frappe.urllib.is_downloading) return;
 			event.preventDefault();
 			// A String is returned for compatability with older Browsers. Return Value has to be truthy to trigger "Leave Site" Dialog
 			return (event.returnValue =
@@ -1423,8 +1424,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	_delete() {
-		frappe.model.delete_doc(this.doctype, this.docname, function () {
-			window.history.back();
+		frappe.model.delete_doc(this.doctype, this.docname, () => this._after_delete());
+	}
+
+	_after_delete() {
+		const url = window.location.href;
+		this.script_manager.trigger("after_delete").then(() => {
+			if (window.location.href === url) window.history.back();
 		});
 	}
 
@@ -1469,7 +1475,7 @@ frappe.ui.form.Form = class FrappeForm {
 				// the server deleted the root along with its links
 				frappe.utils.play_sound("delete");
 				frappe.model.delete_from_locals(me.doctype, me.docname);
-				window.history.back();
+				me._after_delete();
 			},
 		});
 	}
@@ -1932,11 +1938,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
 	}
 
-	add_custom_button(label, fn, group) {
+	add_custom_button(label, fn, group, type = "default") {
 		// temp! old parameter used to be icon
 		if (group && group.indexOf("fa fa-") !== -1) group = null;
 
-		let btn = this.page.add_inner_button(label, fn, group);
+		let btn = this.page.add_inner_button(label, fn, group, type);
 		if (btn) {
 			this.custom_buttons[label] = btn;
 		}

@@ -3,6 +3,7 @@
  *
  * Fetch stored files together. Page scripts arrive with their page data and use the virtual
  * path studio_page/<stem>/<stem>.js, so relative imports resolve as they do in a repository.
+ * Component scripts arrive with their component and use studio_components/<component>.js.
  * Navigation reuses the loaded app's registry so shared module state survives between pages.
  * Reloading source replaces that registry and its evaluated modules.
  * appRuntime.ts loads this implementation on demand; app builds exclude it.
@@ -70,10 +71,20 @@ export async function compilePageScript(page: {
 	page_title?: string
 	script?: string | null
 }): Promise<Record<string, any> | null> {
-	const script = page.script || ""
-	if (!script.trim()) return null
 	const stem = scrub(page.page_title || "page")
-	const path = `studio_page/${stem}/${stem}.js`
+	return compileScript(`studio_page/${stem}/${stem}.js`, page.script)
+}
+
+/** Load a component script. Its default export is a component definition. */
+export async function compileComponentScript(component: {
+	component_id: string
+	script?: string | null
+}): Promise<Record<string, any> | null> {
+	return compileScript(`studio_components/${component.component_id}.js`, component.script)
+}
+
+async function compileScript(path: string, script?: string | null): Promise<Record<string, any> | null> {
+	if (!script?.trim()) return null
 	const registry = getRegistry()
 	await registry.addFile(path, script)
 	return registry.loadModule(path)

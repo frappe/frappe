@@ -67,6 +67,13 @@ PAGE_NUMBER_POSITIONS = {
 	"Bottom Right": ("footer", "right"),
 }
 
+PAGE_NUMBER_TOKEN = re.compile(r"\{(page|page_count)\}")
+# the semicolon ends the expression, so text right after a token such as "(" stays text
+PAGE_NUMBER_COUNTERS = {
+	"page": '#context counter(page).display("1");',
+	"page_count": "#context counter(page).final().first();",
+}
+
 RIGHT_ALIGNED_FIELDTYPES = frozenset({"Currency", "Float", "Int", "Percent"})
 
 #: color keywords valid in both CSS and Typst — any other name is a blocker,
@@ -476,17 +483,48 @@ def _fr_widths(columns) -> list[str]:
 
 
 def _list_markers(value: str) -> str:
-	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them.
+	"""Numbers `<ol>` items and bullets `<ul>` ones, the way the browser draws them;
+	Quill's `data-list` and `ql-indent-N` pick the marker, its counter and indent.
 
 	Innermost lists are marked first so a nested list does not take its items
 	from the list around it."""
 
+	def number(n, level):
+		if level % 3 == 1:
+			letters = ""
+			while n:
+				n, rest = divmod(n - 1, 26)
+				letters = chr(97 + rest) + letters
+			return letters
+		if level % 3 == 2:
+			numerals = ""
+			for size, numeral in zip(
+				(1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1),
+				("m", "cm", "d", "cd", "c", "xc", "l", "xl", "x", "ix", "v", "iv", "i"),
+				strict=True,
+			):
+				count, n = divmod(n, size)
+				numerals += numeral * count
+			return numerals
+		return str(n)
+
 	def mark(match):
-		body = match.group(2)
-		if match.group(1).lower() == "ol":
-			items = re.split(r"<li[^>]*>", body, flags=re.I)[1:]
-			return "\n" + "".join(f"<x-li>{i}. {item}" for i, item in enumerate(items, 1))
-		return "\n" + re.sub(r"<li[^>]*>", "<x-li>\u2022 ", body, flags=re.I)
+		default = "ordered" if match.group(1).lower() == "ol" else "bullet"
+		counters = [0] * 9
+		items = []
+		for tag, item in re.findall(r"(<li\b[^>]*>)((?:(?!<li\b).)*)", match.group(2), flags=re.I | re.S):
+			kind = re.search(r'data-list="([^"]*)"', tag)
+			kind = kind.group(1) if kind else default
+			level = re.search(r"ql-indent-([1-8])", tag)
+			level = int(level.group(1)) if level else 0
+			counters[level + 1 :] = [0] * (8 - level)
+			if kind == "ordered":
+				counters[level] += 1
+				marker = number(counters[level], level) + "."
+			else:
+				marker = {"checked": "\u2611", "unchecked": "\u2610"}.get(kind, "\u2022")
+			items.append("<x-li>" + "\u2003\u2002" * level + f"{marker} {item}")
+		return "\n" + "".join(items)
 
 	pattern = re.compile(r"<(ol|ul)[^>]*>((?:(?!<[ou]l[^>]*>).)*?)</\1>", re.I | re.S)
 	while True:
@@ -507,7 +545,7 @@ def _text_value(html_ish: str) -> str:
 	value = re.sub(r"</(p|div|tr|li|h[1-6])>[ \t]*\n?", "\n", value, flags=re.I)
 	value = re.sub(r"</t[dh]>(?=<t[dh])", " ", value, flags=re.I)
 	value = frappe.utils.strip_html(value)
-	return unescape_html(value).strip()
+	return re.sub(r"^[^\S\u2002\u2003]+", "", unescape_html(value).rstrip())
 
 
 class TypstEmitter:
@@ -615,6 +653,7 @@ class TypstEmitter:
 		in_page_header = bool(repeat_header_footer and self.header_src)
 		in_page_footer = bool(repeat_header_footer and self.footer_src)
 		lines = [
+			f"#set document(title: {q(f'{self.doc.doctype}: {self.doc.name}')})",
 			self._page_setup(
 				header_zone=self.header_src if in_page_header else None,
 				footer_zone=self.footer_src if in_page_footer else None,
@@ -945,6 +984,7 @@ class TypstEmitter:
 
 	def _field_body(self, section, df) -> str:
 		fieldtype = df.get("fieldtype") or "Data"
+		in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
 		if fieldtype == "Typst":
 			return self._typst_block(df)
 		if fieldtype == "Divider":
@@ -953,7 +993,6 @@ class TypstEmitter:
 			height = frappe.utils.flt(df.get("height")) or 13
 			return f"#v({pt(height)}pt)"
 		if fieldtype == "Table":
-			in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
 			return self._table(df, keep_together=section.get("keep_together") or in_zone)
 		if fieldtype == "Barcode":
 			return self._barcode(df)
@@ -971,14 +1010,18 @@ class TypstEmitter:
 		if fieldtype == "Repeater":
 			return self._repeater(df)
 		if fieldtype == "Static Text":
-			return self._static_text(df)
+			return self._static_text(df, in_zone)
 		return self._data_field(section, df)
 
-	def _static_text(self, df) -> str:
+	def _static_text(self, df: dict, in_zone: bool = False) -> str:
 		text = (df.get("_text") if "_text" in df else _(df.get("text") or "")).strip()
 		if not text:
 			return ""
-		out = self._text_props(df, typst_escape(text).replace("\n", " \\\n"))
+		parts = PAGE_NUMBER_TOKEN.split(text) if in_zone else [text]
+		markup = "".join(
+			PAGE_NUMBER_COUNTERS[part] if i % 2 else typst_escape(part) for i, part in enumerate(parts)
+		)
+		out = self._text_props(df, markup.replace("\n", " \\\n"))
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out

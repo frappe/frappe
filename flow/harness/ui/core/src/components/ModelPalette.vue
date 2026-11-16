@@ -1,6 +1,6 @@
 <template>
 	<PalettePanel
-		title="Models"
+		:title="__('Models')"
 		:back="!dropdown"
 		:dropdown="dropdown"
 		:beside="beside"
@@ -14,7 +14,7 @@
 		<template v-if="!dropdown" #actions>
 			<button
 				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-				title="Refresh models"
+				:title="__('Refresh models')"
 				@click="flow.refreshModels()"
 			>
 				<span
@@ -30,12 +30,12 @@
 			<input
 				ref="field"
 				v-model="typed"
-				placeholder="Search models…"
+				:placeholder="__('Search models…')"
 				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 			/>
 			<button
 				class="grid h-6 w-6 flex-none place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-				title="Refresh models"
+				:title="__('Refresh models')"
 				@click="flow.refreshModels()"
 			>
 				<span
@@ -71,21 +71,21 @@
 			</template>
 			<!-- a typed provider/model not in the list is usable as-is: discovery is a suggestion, not a gate -->
 			<button v-if="custom" data-palette-item class="flow-palette-row" @click="choose(custom)">
-				<span class="min-w-0 truncate">Use "{{ custom }}"</span>
+				<span class="min-w-0 truncate">{{ __('Use "{0}"', [custom]) }}</span>
 			</button>
 			<LoadingState
 				v-if="!groups.length && !custom && flow.state.modelsLoading"
 				class="justify-center px-3 py-8 text-base text-ink-gray-5"
 			/>
 			<div v-else-if="!groups.length && !custom && flow.state.models.length" class="flow-palette-empty">
-				No matching models
+				{{ __("No matching models") }}
 			</div>
 			<!-- none at all: a line saying so, and the way to connect a provider as a row -->
 			<template v-else-if="!groups.length && !custom">
-				<div class="flow-palette-empty">{{ providers ? "No models yet" : "No models available" }}</div>
+				<div class="flow-palette-empty">{{ providers ? __("No models yet") : __("No models available") }}</div>
 				<button v-if="providers" data-palette-item class="flow-palette-row" @click="emit('providers')">
 					<span class="lucide-key size-4 flex-none" aria-hidden="true" />
-					Connect a provider
+					{{ __("Connect a provider") }}
 				</button>
 			</template>
 		</div>
@@ -98,6 +98,7 @@ import { computed, inject, onMounted, ref } from "vue"
 import { useDebouncedValue } from "../debounce.js"
 import { layout } from "../layout.js"
 import { modelTitle } from "../transcript.js"
+import { __ } from "../translate.js"
 import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
 

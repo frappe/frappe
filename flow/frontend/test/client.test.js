@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { FrappeClient } from "../src/api/client.js";
-import { CREDIT_SPENT } from "../src/api/events.js";
+import { CREDIT_EXPIRED, CREDIT_SPENT } from "../src/api/events.js";
 
 function fakeTransport(answers = {}) {
 	const calls = [];
@@ -314,6 +314,16 @@ test("each call reaches its frappe.flow.api endpoint and answers with the server
 	);
 });
 
+test("a user's approval mode and step rows are kept on the site, the store's other settings are not", async () => {
+	const transport = fakeTransport();
+	const prefs = { mode: "ask", separateToolCalls: true };
+	const client = new FrappeClient({ boot: { models: [], prefs }, transport });
+	assert.deepEqual(client.settings(), { settings: prefs });
+	await client.updateSettings({ mode: null, chatFontSize: 16, presets: [] });
+	await client.updateSettings({ lastModel: "Sonnet" });
+	assert.deepEqual(transport.calls, [["frappe.flow.api.set_prefs", { prefs: { mode: null } }]]);
+});
+
 test("a sync that fails after a run ends is retried once, then dropped quietly", async () => {
 	const { fakeSocket } = await import("./helpers/socket.js");
 	const reported = [];
@@ -357,4 +367,18 @@ test("a 402 on a Grove model says the free credits are spent; another provider's
 	assert.equal(client.present({ ...spent, status_code: 429 }, "S1").message, spent.message);
 	client.sessionInfo({ ...session, model: "Sonnet" });
 	assert.equal(client.present(spent, "S1").message, spent.message);
+});
+
+test("a 401 on a Grove model says the free credits have expired; another provider's is its own", () => {
+	const models = [
+		{ name: "GPT-x", model_id: "grove/gpt-x", provider: "grove" },
+		...boot.models,
+	];
+	const client = new FrappeClient({ boot: { models }, transport: fakeTransport({}) });
+	const revoked = { type: "run_error", status_code: 401, message: "grove (401): key revoked or inactive" };
+	client.sessionInfo({ ...session, model: "GPT-x" });
+	assert.equal(client.present(revoked, "S1").message, CREDIT_EXPIRED);
+	assert.equal(client.present(revoked, "S1").settings_tab, "models");
+	client.sessionInfo({ ...session, model: "Sonnet" });
+	assert.equal(client.present(revoked, "S1").message, revoked.message);
 });

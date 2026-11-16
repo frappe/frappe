@@ -11,6 +11,7 @@ import { registerGlobalComponents } from "@/globals"
 import { registerCustomVueComponents } from "@/utils/customVueComponents"
 import { loadAppRuntime, loadAppRouterConfig } from "@/browserRuntime/appRuntime"
 import { registerStudioPageScripts } from "@/data/studioPageScripts"
+import { registerStudioComponentScripts } from "@/data/studioComponentScripts"
 import { initSocket } from "@/socket"
 
 // For rendering apps built by studio
@@ -49,6 +50,7 @@ async function prepareApp(): Promise<RouterConfig | undefined> {
 		await Promise.all([
 			registerCustomVueComponents(frappeApp, window.app_name),
 			registerStudioPageScripts(frappeApp),
+			registerStudioComponentScripts(frappeApp, window.app_name),
 		])
 	}
 	return undefined

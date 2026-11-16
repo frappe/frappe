@@ -373,6 +373,39 @@ class TestS3DriverWithRealBoto3(IntegrationTestCase):
 		policy = json.loads(base64.b64decode(target["fields"]["policy"]))
 		self.assertIn(["content-length-range", 2048, 2048], policy["conditions"])
 
+	def answer_requests(self, headers: dict, body: bytes = b"") -> list:
+		"""Answer the client's requests locally with this response; return the requests it sent."""
+		from botocore.awsrequest import AWSResponse
+		from urllib3 import HTTPResponse
+
+		sent = []
+
+		def respond(request, **kwargs):
+			sent.append(request)
+			raw = HTTPResponse(body=io.BytesIO(body), headers=headers, preload_content=False)
+			return AWSResponse(request.url, 200, headers, raw)
+
+		self.driver.client.meta.events.register("before-send.s3", respond)
+		return sent
+
+	def test_uploads_send_no_checksum(self):
+		# S3-compatible stores can mishandle the CRC32 botocore adds by default
+		sent = self.answer_requests({})
+		self.driver.write(f"{self.driver.key_prefix}abcdef0123/report.pdf", io.BytesIO(b"x" * 1024))
+		self.assertEqual([request.method for request in sent], ["PUT"])
+		checksum_headers = [
+			name
+			for name in sent[0].headers
+			if name.lower().startswith(("x-amz-checksum-", "x-amz-sdk-checksum-", "x-amz-trailer"))
+		]
+		self.assertEqual(checksum_headers, [])
+
+	def test_reads_ignore_a_checksum_the_store_returns(self):
+		# a multipart object's composite CRC32, returned as if it covered the whole object
+		body = b"x" * 1024
+		self.answer_requests({"x-amz-checksum-crc32": "AAAAAA==", "Content-Length": str(len(body))}, body)
+		self.assertEqual(self.driver.read(f"{self.driver.key_prefix}abcdef0123/report.pdf").read(), body)
+
 
 class TestS3ServesLikeLocal(IntegrationTestCase):
 	"""A file shows inline or downloads the same way from S3 as from Frappe.

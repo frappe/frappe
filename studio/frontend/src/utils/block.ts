@@ -851,16 +851,14 @@ class Block implements BlockOptions {
 	getCompletions(): CompletionSource[] {
 		const completions = this.getSlotScopeCompletions()
 		if (this.componentContext) {
-			completions.push(
-				{
-					item: this.componentContext.inputs || {},
-					completion: {
-						label: "inputs",
-						type: "data",
-						detail: "Component Context",
-					}
-				},
-			)
+			// `props`, and what the component's script returned. `inputs` is the older name of `props`.
+			for (const [name, item] of Object.entries(this.componentContext)) {
+				if (name === "inputs") continue
+				completions.push({
+					item: item || {},
+					completion: { label: name, type: "data", detail: "Component Context" },
+				})
+			}
 		}
 
 		return completions

@@ -451,7 +451,7 @@ frappe.ui.Page = class Page {
 
 	//--- Menu --//
 
-	add_menu_item(label, click, standard, shortcut, show_parent) {
+	add_menu_item(label, click, standard, shortcut, show_parent, group) {
 		return this.add_dropdown_item({
 			label,
 			click,
@@ -459,6 +459,7 @@ frappe.ui.Page = class Page {
 			parent: this.menu,
 			shortcut,
 			show_parent,
+			group,
 		});
 	}
 
@@ -541,6 +542,7 @@ frappe.ui.Page = class Page {
 	 * @param {object} parent - DOM object representing the parent of the drop down item lists
 	 * @param {string} shortcut - Keyboard shortcut associated with the element
 	 * @param {Boolean} show_parent - Whether to show the dropdown button if dropdown item is added
+	 * @param {string} group - Heading the item is listed under; items sharing one sit together
 	 */
 	add_dropdown_item({
 		label,
@@ -552,6 +554,7 @@ frappe.ui.Page = class Page {
 		icon = null,
 		icon_right = null,
 		theme = null,
+		group = null,
 	}) {
 		if (show_parent) {
 			parent.parent().removeClass("hide hidden-xl");
@@ -600,6 +603,7 @@ frappe.ui.Page = class Page {
 		if (icon) $li.data("menu_icon", icon);
 		if (icon_right) $li.data("menu_icon_right", icon_right);
 		if (theme) $li.data("menu_theme", theme);
+		if (group) $li.data("menu_group", group);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -626,7 +630,8 @@ frappe.ui.Page = class Page {
 	// Snapshot a hidden item store (this.menu / this.actions) into menu rows.
 	// Reading the live elements on every open is what keeps the legacy jQuery
 	// contract alive: .text(), .toggle(), .addClass("disabled") on a held item
-	// all show up the next time the menu opens. Divider <li>s split groups.
+	// all show up the next time the menu opens. Divider <li>s split groups, and
+	// an item added with a `group` joins the group of that heading.
 	build_dropdown_options($parent) {
 		// classes internal to the legacy markup; everything else (visible-xs,
 		// hidden-xl, caller classes) is carried onto the rendered row
@@ -642,12 +647,26 @@ frappe.ui.Page = class Page {
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];
+		const headed = new Map();
+		const segment_for = (heading) => {
+			if (heading) {
+				if (!headed.has(heading)) {
+					const segment = Object.assign([], { heading });
+					headed.set(heading, segment);
+					segments.push(segment);
+				}
+				return headed.get(heading);
+			}
+			if (segments[segments.length - 1].heading) segments.push([]);
+			return segments[segments.length - 1];
+		};
 		// one submenu row per inner-button group, keyed by group label
 		const nested_groups = new Map();
 
 		$parent.children("li").each((_, li) => {
 			if (li.classList.contains("dropdown-divider")) {
-				if (!responsive_hidden(li) && segments[segments.length - 1].length) {
+				const last = segments[segments.length - 1];
+				if (!responsive_hidden(li) && (last.length || last.heading)) {
 					segments.push([]);
 				}
 				return;
@@ -685,7 +704,7 @@ frappe.ui.Page = class Page {
 				if (!submenu) {
 					submenu = [];
 					nested_groups.set(nested.group, submenu);
-					segments[segments.length - 1].push({
+					segment_for($li.data("menu_group")).push({
 						label: nested.group,
 						css_class: css_class || undefined,
 						submenu,
@@ -699,7 +718,7 @@ frappe.ui.Page = class Page {
 				return;
 			}
 
-			segments[segments.length - 1].push({
+			segment_for($li.data("menu_group")).push({
 				label,
 				icon: $li.data("menu_icon") || undefined,
 				icon_right: $li.data("menu_icon_right") || undefined,
@@ -712,8 +731,12 @@ frappe.ui.Page = class Page {
 		});
 
 		const groups = segments.filter((segment) => segment.length);
-		if (groups.length <= 1) return groups[0] || [];
-		return groups.map((options) => ({ group: "", hide_label: true, options }));
+		if (groups.length <= 1 && !groups[0]?.heading) return groups[0] || [];
+		return groups.map((options) => ({
+			group: options.heading || "",
+			hide_label: !options.heading,
+			options: [...options],
+		}));
 	}
 
 	prepare_shortcut_obj(shortcut, click, label) {

@@ -93,7 +93,8 @@
    "label": "For Document",
    "options": "for_doctype",
    "read_only": 1,
-   "reqd": 1
+   "reqd": 1,
+   "search_index": 1
   },
   {
    "fieldname": "reference_type",
@@ -123,7 +124,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-25 17:23:31.599897",
+ "modified": "2026-10-29 23:45:24.962647",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permission Log",

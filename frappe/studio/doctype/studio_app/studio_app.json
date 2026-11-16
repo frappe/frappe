@@ -15,7 +15,8 @@
   "favicon",
   "export_section",
   "is_standard",
-  "frappe_app"
+  "frappe_app",
+  "folder_name"
  ],
  "fields": [
   {
@@ -70,6 +71,15 @@
    "fieldtype": "Select",
    "label": "Frappe App (for export)",
    "mandatory_depends_on": "is_standard"
+  },
+  {
+   "description": "The folder of the app in the studio folder of its Frappe app",
+   "fieldname": "folder_name",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "is_virtual": 1,
+   "label": "Folder Name",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
@@ -83,7 +93,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2026-11-07 13:45:26.621023",
+ "modified": "2026-11-15 11:48:08.507712",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

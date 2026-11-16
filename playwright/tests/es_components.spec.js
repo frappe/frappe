@@ -60,7 +60,9 @@ test.describe("Espresso components", () => {
 				await held;
 				await route.continue();
 			});
-			await page.goto("/desk/component-explorer/stat-card");
+			await page.goto("/desk/component-explorer/stat-card", {
+				waitUntil: "domcontentloaded",
+			});
 			await page.waitForFunction(() => frappe.pages["component-explorer"]?.render_component);
 			await page.evaluate(() => frappe.set_route("List", "ToDo"));
 			await expect(page).toHaveTitle(/To ?Do/);

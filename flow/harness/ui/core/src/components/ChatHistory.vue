@@ -1,18 +1,18 @@
 <template>
-	<!-- its list hangs under it, over the composer -->
+	<!-- its list hangs under it, over the composer; rows a menu's height, a chat's title each -->
 	<span class="relative z-20">
 		<Button
 			ref="trigger"
 			variant="ghost"
 			icon="lucide-history"
 			:class="open ? 'bg-surface-gray-2' : ''"
-			title="Recent chats"
+			:title="__('Recent chats')"
 			:aria-expanded="open"
 			@click="open ? close() : show()"
 		/>
 		<PalettePanel
 			v-if="open"
-			title="Recent chats"
+			:title="__('Recent chats')"
 			dropdown
 			below
 			:width="layout.narrow ? 264 : 360"
@@ -24,8 +24,8 @@
 				<input
 					ref="field"
 					v-model="search"
-					placeholder="Search chats…"
-					aria-label="Search chats"
+					:placeholder="__('Search chats…')"
+					:aria-label="__('Search chats')"
 					spellcheck="false"
 					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
@@ -36,7 +36,7 @@
 					:key="s.session_id"
 					data-palette-item
 					:aria-current="s.session_id === flow.state.sessionId ? 'true' : undefined"
-					class="flow-palette-row"
+					class="flow-palette-row !min-h-7"
 					@click="choose(s.session_id)"
 				>
 					<span class="min-w-0 truncate">{{ flow.sessionTitle(s) }}</span>
@@ -50,7 +50,7 @@
 					:disabled="flow.state.sessionsLoading"
 					@click="flow.loadMoreSessions()"
 				>
-					<span class="flow-palette-hint">{{ flow.state.sessionsLoading ? "Loading more…" : "Load more" }}</span>
+					<span class="flow-palette-hint">{{ flow.state.sessionsLoading ? __("Loading more…") : __("Load more") }}</span>
 				</button>
 			</div>
 		</PalettePanel>
@@ -63,6 +63,7 @@ import { Button } from "frappe-ui/src/components/Button"
 
 import { useDebouncedValue } from "../debounce.js"
 import { layout } from "../layout.js"
+import { __ } from "../translate.js"
 import PalettePanel from "./PalettePanel.vue"
 
 // The chats, under a clock in a header with no sidebar beside it: the sidebar's list and search
@@ -78,8 +79,8 @@ const rows = computed(() => {
 	return flow.state.sessions.filter((session) => !q || flow.sessionTitle(session).toLowerCase().includes(q))
 })
 const empty = computed(() => {
-	if (flow.state.sessionsLoading) return "Loading…"
-	return search.value ? "No matching chats" : "No chats yet"
+	if (flow.state.sessionsLoading) return __("Loading…")
+	return search.value ? __("No matching chats") : __("No chats yet")
 })
 
 function show() {

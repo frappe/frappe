@@ -24,9 +24,15 @@ const { SPECS, newDoc } = await import("../src/settings/specs.js");
 const changes = [];
 const renames = [];
 const newRecords = new Set(); // the tabs asked to open on a blank record, each taken once
-function mount(t, component, props, { can = () => true, boot = {} } = {}) {
-	const el = document.createElement("div");
-	document.body.append(el);
+// shadowDialog: mount in a dialog inside a shadow root, as in Flow's island
+function mount(t, component, props, { can = () => true, boot = {}, shadowDialog = false } = {}) {
+	const host = document.createElement("div");
+	document.body.append(host);
+	let el = host;
+	if (shadowDialog) {
+		el = host.attachShadow({ mode: "open" }).appendChild(document.createElement("div"));
+		el.setAttribute("role", "dialog");
+	}
 	const app = createApp(component, props);
 	app.provide("flowPage", {
 		can,
@@ -38,7 +44,7 @@ function mount(t, component, props, { can = () => true, boot = {} } = {}) {
 	app.mount(el);
 	t.after(() => {
 		app.unmount();
-		el.remove();
+		host.remove();
 	});
 	return el;
 }
@@ -321,6 +327,26 @@ async function saveSource(t, name, answers) {
 		["frappe.client.insert", "frappe.client.save"].includes(method)
 	)[1].doc;
 }
+
+test("Cmd+S saves a form in a dialog inside Flow's shadow root, where a window listener sees only the root's host", async (t) => {
+	transport.calls.length = 0;
+	Object.assign(transport.answers, {
+		"frappe.client.insert": ({ doc }) => ({ ...doc, name: "source-2" }),
+	});
+	const el = mount(t, DocForm, { spec: sourceSpec, name: null }, { shadowDialog: true });
+	await until(() => el.querySelector("input"));
+	type(el, "ToDo");
+	await nextTick();
+	el.querySelector("input").dispatchEvent(
+		new dom.window.KeyboardEvent("keydown", {
+			key: "s",
+			metaKey: true,
+			bubbles: true,
+			composed: true,
+		})
+	);
+	await until(() => transport.calls.some(([method]) => method === "frappe.client.insert"));
+});
 
 test("an untouched JSON field is saved as no value and a filled one as written; the toast says Created or Saved", async (t) => {
 	toast.shown.length = 0;

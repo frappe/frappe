@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.model.naming import append_number_if_name_exists
 from frappe.model.rename_doc import get_link_fields, update_link_field_values
+from frappe.printing.fieldtypes import BREAKABLE_FIELDTYPES
 from frappe.utils import cint, escape_html, flt
 
 PX_PER_MM = 96 / 25.4
@@ -16,6 +17,7 @@ TABLE_TEXT_SCALE = 0.9
 COLUMN_PADDING = 15
 SIDE_MARGIN = re.compile(r"margin-(left|right):\s*(-?\d+(?:\.\d+)?)%;\s*")
 JINJA = re.compile(r"{{|{%")
+DOC_FIELD = re.compile(r"{{\s*doc\.(\w+)\s*}}")
 CSS_PROPERTIES = {
 	"fontSize": "font-size",
 	"fontWeight": "font-weight",
@@ -49,7 +51,24 @@ PRINT_DESIGNER_FIELDS = (
 	"print_designer_preview_img",
 	"print_designer_template_app",
 )
-BARCODE_FORMATS = {"qrcode": "QR", "qr": "QR", "code128": "CODE128", "code39": "CODE39"}
+BARCODE_FORMATS = {
+	"qrcode": "QR",
+	"qr": "QR",
+	"code128": "CODE128",
+	"code39": "CODE39",
+	"ean": "EAN13",
+	"ean13": "EAN13",
+	"jan": "EAN13",
+	"ean8": "EAN8",
+	"ean14": "EAN14",
+	"gtin": "EAN14",
+	"upc": "UPCA",
+	"upca": "UPCA",
+	"isbn": "ISBN13",
+	"isbn13": "ISBN13",
+	"itf": "ITF",
+	"gs1_128": "GS1_128",
+}
 
 
 def is_print_designer_format(doc) -> bool:
@@ -57,6 +76,16 @@ def is_print_designer_format(doc) -> bool:
 		doc.get("print_designer")
 		and (doc.get("print_designer_print_format") or doc.get("print_designer_body"))
 	)
+
+
+def get_print_designer_format(print_format: str):
+	doc = frappe.get_doc("Print Format", print_format)
+	if not is_print_designer_format(doc):
+		frappe.throw(
+			_("{0} is not a Print Designer format.").format(frappe.bold(print_format)),
+			title=_("Not a Print Designer Format"),
+		)
+	return doc
 
 
 def convert_print_designer_format(doc) -> tuple[dict, list[str]]:
@@ -85,9 +114,7 @@ def convert(print_format: str) -> dict:
 	Print Designer fields stay on the record, like classic_format_data. A standard format
 	belongs to its app, so it gets an editor copy that takes its place everywhere."""
 	frappe.only_for("System Manager")
-	doc = frappe.get_doc("Print Format", print_format)
-	if not is_print_designer_format(doc):
-		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
+	doc = get_print_designer_format(print_format)
 	values, notes = converted_values(doc)
 	if doc.standard == "Yes":
 		copy = editor_copy(doc)
@@ -813,6 +840,8 @@ class PrintDesignerConverter:
 		}
 		if df and df.options:
 			node["options"] = df.options
+		if node["fieldtype"] in BREAKABLE_FIELDTYPES:
+			node["allow_page_break"] = 1
 		node["show_label"] = "inline" if item.get("is_labelled") else "hide"
 		node.update(self.style_props({**self.styled(element), **(item.get("style") or {})}))
 		return node
@@ -934,13 +963,16 @@ class PrintDesignerConverter:
 		barcode_format = (element.get("barcodeFormat") or "").lower()
 		kind = BARCODE_FORMATS.get(barcode_format, "CODE128")
 		size = f"{round(flt(element.get('width')) / PX_PER_MM, 1)}mm"
-		field = re.fullmatch(r"{{\s*doc\.(\w+)\s*}}", value)
+		field = DOC_FIELD.fullmatch(value)
 		known_field = bool(field and (field.group(1) == "name" or self.meta.get_field(field.group(1))))
-		if (
-			barcode_format
-			and barcode_format not in BARCODE_FORMATS
-			and (known_field or not JINJA.search(value))
-		):
+		static_value = DOC_FIELD.sub(r"{\1}", value)
+		fields = [
+			self.meta.get_field(fieldname) for fieldname in DOC_FIELD.findall(value) if fieldname != "name"
+		]
+		is_static_value = not JINJA.search(static_value) and all(
+			df and df.fieldtype != "Table" for df in fields
+		)
+		if barcode_format and barcode_format not in BARCODE_FORMATS and (known_field or is_static_value):
 			self.notes.append(
 				_("The {0} barcode type was changed to CODE128.").format(barcode_format.upper())
 			)
@@ -954,13 +986,13 @@ class PrintDesignerConverter:
 				"width": size,
 				"custom": 1,
 			}
-		if not JINJA.search(value):
+		if is_static_value:
 			return {
 				"label": "Barcode",
 				"fieldname": self.name("barcode"),
 				"fieldtype": "Barcode",
 				"barcode_format": kind,
-				"barcode_value": value,
+				"barcode_value": static_value,
 				"width": size,
 				"custom": 1,
 			}
@@ -1005,9 +1037,20 @@ class PrintDesignerConverter:
 					if node.get("barcode_field")
 					else repr(node["barcode_value"])
 				)
+				set_barcode_value = (
+					f"{{%- set barcode_value = '' if {value} is none else {value} | string -%}}"
+				)
+				if not node.get("barcode_field") and JINJA.search(element.get("value") or ""):
+					set_barcode_value = (
+						"{%- set barcode_value -%}"
+						+ DOC_FIELD.sub(
+							r"{{ '' if doc.get('\1') is none else doc.get('\1') }}", element["value"].strip()
+						)
+						+ "{%- endset -%}"
+					)
 				return (
-					f"{{%- set barcode_value = ({value} or '') | string -%}}"
-					f"{{%- set barcode = get_barcode(barcode_value, {node['barcode_format']!r}) if barcode_value -%}}"
+					set_barcode_value
+					+ f"{{%- set barcode = get_barcode(barcode_value, {node['barcode_format']!r}) if barcode_value -%}}"
 					f'{{%- if barcode -%}}<img src="{{{{ barcode }}}}" style="width: {node["width"]}; max-width: 100%;">{{%- endif -%}}'
 				)
 			if node["fieldtype"] != "Static Text":
