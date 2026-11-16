@@ -13,18 +13,19 @@
 				:max-dimension="400"
 			/>
 
-			<div class="sticky top-0 z-[12] w-full bg-surface-base">
+			<ComponentSettings v-if="showComponentSettings" class="p-3" />
+
+			<div v-show="!showComponentSettings" class="sticky top-0 z-[12] w-full bg-surface-base">
 				<div class="flex w-full border-outline-elevation-2 px-1 text-base">
 					<!-- prettier-ignore -->
 					<button
 						v-for="tab of tabs"
 						:key="tab"
-						class="mx-2 border-b py-3"
+						class="mx-2 flex-1 border-b px-2 py-3"
 						@click="(store.studioLayout.rightPanelActiveTab = tab as RightPanelOptions)"
 						:class="{
 							'border-outline-gray-8 text-ink-gray-9': activeTab === tab,
 							'border-transparent text-ink-gray-6': activeTab !== tab,
-							'flex-1 px-2': !showInterfaceTab,
 						}"
 					>
 						{{ tab }}
@@ -49,27 +50,23 @@
 
 			<ComponentProperties
 				v-show="
-					activeTab === 'Properties' ||
-					(activeTab === 'Styles' && combinePropsAndStylesTab && showPropertiesTab)
+					!showComponentSettings &&
+					(activeTab === 'Properties' ||
+						(activeTab === 'Styles' && combinePropsAndStylesTab && showPropertiesTab))
 				"
 				class="p-3"
 				:class="combinePropsAndStylesTab ? '!pb-0' : ''"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
 			<ComponentStyles
-				v-show="activeTab === 'Styles'"
+				v-show="!showComponentSettings && activeTab === 'Styles'"
 				class="p-3"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
 			/>
 			<ComponentEvents
-				v-show="activeTab === 'Events'"
+				v-show="!showComponentSettings && activeTab === 'Events'"
 				class="p-3"
 				:block="canvasStore.activeCanvas?.selectedBlocks[0]"
-			/>
-			<ComponentInterface
-				v-if="activeTab === 'Interface' && showInterfaceTab"
-				class="p-3"
-				@vue:unmounted="store.studioLayout.rightPanelActiveTab = 'Properties'"
 			/>
 		</div>
 	</div>
@@ -82,7 +79,7 @@ import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
 
 import Input from "@/components/Input.vue"
-import ComponentInterface from "@/components/ComponentInterface.vue"
+import ComponentSettings from "@/components/ComponentSettings.vue"
 import ComponentProperties from "@/components/ComponentProperties.vue"
 import ComponentEvents from "@/components/ComponentEvents.vue"
 import ComponentStyles from "@/components/ComponentStyles.vue"
@@ -93,23 +90,27 @@ import blockController from "@/utils/blockController"
 
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
-const activeTab = computed(() => store.studioLayout.rightPanelActiveTab)
-
-const showInterfaceTab = computed(() => canvasStore.editingMode === "component")
+// The settings of the component that is open, while none of its blocks is selected.
+const showComponentSettings = computed(
+	() => canvasStore.editingMode === "component" && !blockController.isAnyBlockSelected(),
+)
 const showPropertiesTab = computed(() => !(blockController.isRoot() || blockController.isContainer()))
 const combinePropsAndStylesTab = computed(() => blockController.isText())
 const tabs = computed(() => {
-	let _tabs = showInterfaceTab.value
-		? ["Interface", "Properties", "Styles", "Events"]
-		: ["Properties", "Styles", "Events"]
+	const _tabs = ["Properties", "Styles", "Events"]
 	if (combinePropsAndStylesTab.value || !showPropertiesTab.value) {
-		_tabs = _tabs.filter((tab) => tab !== "Properties")
+		return _tabs.filter((tab) => tab !== "Properties")
 	}
 	return _tabs
+})
+const activeTab = computed(() => {
+	const tab = store.studioLayout.rightPanelActiveTab
+	return tabs.value.includes(tab) ? tab : tabs.value[0]
 })
 
 const showSearchInput = computed(
 	() =>
+		!showComponentSettings.value &&
 		(activeTab.value === "Properties" || activeTab.value === "Styles") &&
 		blockController.isAnyBlockSelected(),
 )

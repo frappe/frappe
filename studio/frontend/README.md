@@ -99,6 +99,7 @@ Upgrading a site that already has Studio apps:
 
 - [A database app's page scripts become modules](docs/migrate-custom-db-apps-to-modules.md)
 - [An exported app's pages and components move to frappe-ui v1](docs/migrate-exported-studio-apps-to-frappe-ui-v1.md)
+- [An exported app's global components become app components](docs/migrate-global-components-to-app-components.md)
 
 ### Using with AI Agents
 

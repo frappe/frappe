@@ -38,7 +38,9 @@ def make_component(component_name: str, block: dict | None = None, inputs: list[
 	component.block = frappe.as_json(block or {"componentName": "div", "children": []}, indent=None)
 	for input_row in inputs or []:
 		component.append("inputs", input_row)
-	component.insert()
+	# only the files of an app can bring the input rows of an older component
+	with patch.dict(frappe.flags, in_import=bool(inputs)):
+		component.insert()
 	return component
 
 
@@ -274,7 +276,9 @@ class TestStudioPage(IntegrationTestCase):
 		app = make_studio_app(app_name="paste-" + frappe.generate_hash(length=10))
 		source = make_page_with_data(app.name)
 		target = make_studio_page(app.name, page_title="Target", route="/target")
-		component = make_component("Card", inputs=[{"input_name": "title", "type": "String"}])
+		component = make_component("Card")
+		component.script = "export default {\n\tprops: { title: String },\n}\n"
+		component.save()
 		blocks = [{"componentName": "div", "children": [component_ref(component)]}]
 		copy = source.get_copy(blocks)
 		frappe.delete_doc("Studio Component", component.name)
@@ -290,7 +294,7 @@ class TestStudioPage(IntegrationTestCase):
 		pasted = frappe.get_doc("Studio Component", component.name)
 		self.assertEqual(pasted.component_name, "Card")
 		self.assertEqual(pasted.block, component.block)
-		self.assertEqual([i.input_name for i in pasted.inputs], ["title"])
+		self.assertEqual(pasted.script, component.script)
 
 	def test_paste_data_source(self):
 		app = make_studio_app(app_name="resource-" + frappe.generate_hash(length=10))

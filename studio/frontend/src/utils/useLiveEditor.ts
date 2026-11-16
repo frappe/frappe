@@ -1,13 +1,16 @@
 import { inject, onMounted, onBeforeUnmount } from "vue"
+import { useDebounceFn } from "@vueuse/core"
 
 import { fetchApp } from "@/utils/helpers"
 import { invalidateComponentCache, getComponentSlots } from "@/utils/componentSlots"
 import useStudioStore from "@/stores/studioStore"
 import useComponentStore from "@/stores/componentStore"
+import { registerStudioComponentScripts } from "@/data/studioComponentScripts"
 
 // Keep the open editor in sync with changes made outside it. Three sources, two transports:
 //   - page/app/component JSON synced from disk -> backend socket (studio_doc_update)
 //   - custom .vue components hot-reloaded by Vite (dev only)
+//   - component script files added or removed, reported by Vite (dev only)
 // Call once at the editor root (App.vue). Sibling of useLivePreview, which does this for the render.
 export function useLiveEditor() {
 	const store = useStudioStore()
@@ -25,10 +28,10 @@ export function useLiveEditor() {
 
 		if (source !== "disk") return
 
-		// components are global (no app scope), so react regardless of which app is open. Re-fetching
-		// the definition re-renders its instances reactively — no page rebuild needed.
+		// A global component can change while any app is open. Re-fetching the definition
+		// re-renders its instances reactively — no page rebuild needed.
 		if (doctype === "Studio Component") {
-			await useComponentStore().reloadComponent(name)
+			await useComponentStore().reloadComponentDoc(name)
 			return
 		}
 
@@ -60,13 +63,25 @@ export function useLiveEditor() {
 		void getComponentSlots(component.component_name, true)
 	}
 
+	// 4. A file was added or removed in a studio folder. When it is a component script, the
+	// component must load from the new file, or stop loading from the removed one. An export
+	// writes many files, so wait for the last one.
+	const onStudioFilesChanged = useDebounceFn(async () => {
+		const app = store.activeApp
+		if (!app?.is_standard) return
+		await registerStudioComponentScripts(app.frappe_app!, app.name)
+		await useComponentStore().reloadComponentScripts()
+	}, 300)
+
 	onMounted(() => {
 		socket?.on("studio_doc_update", onDiskSync)
+		import.meta.hot?.on("studio:files-changed", onStudioFilesChanged)
 		import.meta.hot?.on("studio:custom-components-changed", onCustomComponentsChanged)
 		import.meta.hot?.on("studio:file-changed", onCustomComponentFileChanged)
 	})
 	onBeforeUnmount(() => {
 		socket?.off("studio_doc_update", onDiskSync)
+		import.meta.hot?.off("studio:files-changed", onStudioFilesChanged)
 		import.meta.hot?.off("studio:custom-components-changed", onCustomComponentsChanged)
 		import.meta.hot?.off("studio:file-changed", onCustomComponentFileChanged)
 	})

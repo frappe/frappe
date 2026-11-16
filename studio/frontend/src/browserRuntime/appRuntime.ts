@@ -40,6 +40,13 @@ export async function compilePageScript(page: {
 	return (await appRegistry()).compilePageScript(page)
 }
 
+export async function compileComponentScript(component: {
+	component_id: string
+	script?: string | null
+}): Promise<Record<string, any> | null> {
+	return (await appRegistry()).compileComponentScript(component)
+}
+
 /** Return a page script's syntax error, or null if the module parses. */
 export async function checkAppScript(
 	source: string,
