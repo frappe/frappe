@@ -104,7 +104,7 @@ describe("dropping on the bin", () => {
 	it("keeps a hidden field hidden where the bin hides", () => {
 		const canvas = drag(true);
 		const field = { fieldname: "subject", hidden: 1 };
-		const fake = { drag: canvas.drag, field: () => field, customize: { hidesOnRemove: () => true } };
+		const fake = { drag: canvas.drag, held: canvas.held, field: () => field, customize: { hidesOnRemove: () => true } };
 		dropOnBin(fake as any);
 		expect(removeField).not.toHaveBeenCalled();
 		fake.field = () => ({ fieldname: "subject", hidden: 0 }) as any;

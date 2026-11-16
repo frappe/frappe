@@ -5,7 +5,7 @@
 	<CanvasTabs v-if="canvas.tabs.value.length > 1" class="mb-6" :canvas="canvas" />
 	<Draggable
 		v-for="drawn in drawnTabs"
-		v-show="drawn === tab"
+		:class="{ 'canvas-tab-held': drawn !== tab }"
 		:key="drawn.name"
 		:model-value="drawn.sections"
 		:item-key="(section: LayoutTreeSection) => section.name"
@@ -66,7 +66,7 @@ const props = withDefaults(defineProps<{ canvas: DesignCanvas; tabbed?: boolean 
 const takesTabs = computed(() => props.tabbed && !props.canvas.state.definition.istable);
 const tab = computed(() => props.canvas.openTab.value);
 // Sortable drops its whole drag when a list unmounts: while a field or section is held, every tab it
-// passed over stays drawn (hidden unless open) until the drop.
+// passed over stays drawn (collapsed unless open) until the drop.
 const drawnTabs = computed(() =>
 	props.canvas.tabs.value.filter(
 		(candidate) =>

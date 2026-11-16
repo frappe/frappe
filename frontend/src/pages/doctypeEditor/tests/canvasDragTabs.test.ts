@@ -73,3 +73,14 @@ describe("text selection", () => {
 		expect(css).toMatch(/body:has\(\.sortable-fallback\)\s*\{\s*@apply select-none;/);
 	});
 });
+
+describe("a tab the held field left", () => {
+	// display:none would hide the ghost Sortable keeps inside the list, and happy-dom draws no layout.
+	it("collapses without display:none and keeps the ghost visible", () => {
+		const form = readFileSync(`${__dirname}/../CanvasForm.vue`, "utf8");
+		const css = readFileSync(`${__dirname}/../EditorCanvas.vue`, "utf8");
+		expect(form).not.toMatch(/v-show="drawn/);
+		expect(form).toContain("canvas-tab-held");
+		expect(css).toMatch(/\.canvas-tab-held \.sortable-fallback\s*\{\s*visibility: visible;/);
+	});
+});

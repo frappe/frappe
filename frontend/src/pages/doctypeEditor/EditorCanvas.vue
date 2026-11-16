@@ -241,6 +241,15 @@ watch(
 [data-doctype-editor] .canvas-tab-drop > .sortable-chosen.canvas-drop-line {
 	display: none;
 }
+/* A tab the held field left stays mounted but takes no room; display:none would hide the ghost Sortable keeps inside it. */
+[data-doctype-editor] .canvas-tab-held {
+	height: 0;
+	overflow: hidden;
+	visibility: hidden;
+}
+[data-doctype-editor] .canvas-tab-held .sortable-fallback {
+	visibility: visible;
+}
 /* The pointer drags across the canvas's text: no drag kind may select any of it. */
 body:has(.sortable-fallback) {
 	@apply select-none;
