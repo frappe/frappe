@@ -191,9 +191,9 @@ export class ActDispatcher {
 		return this.stacks.get(surface)?.at(-1);
 	}
 
-	/** What the scope holding `surface` reports of its page, or nothing. */
+	/** What the front scope holding `surface` that reports its page says of it, or nothing; a dialog's scope over the page does not hide it. */
 	factsOf(surface: string, fields: boolean) {
-		return this.scopeOf(surface)?.facts?.(fields);
+		return this.stacks.get(surface)?.findLast((scope) => scope.facts)?.facts?.(fields);
 	}
 
 	/** What the scope holding `surface` hands its acts, or undefined while no scope holds it. */

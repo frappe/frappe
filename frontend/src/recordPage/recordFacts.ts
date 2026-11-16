@@ -24,7 +24,7 @@ function fieldFact(field: Record<string, any>, doc: Record<string, any>) {
     type: field.fieldtype,
     value: valueFact(doc[field.fieldname]),
     required: !!field.reqd,
-    read_only: !!field.read_only,
+    read_only: !!field.readOnly,
   };
 }
 

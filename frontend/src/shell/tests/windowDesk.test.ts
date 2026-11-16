@@ -119,4 +119,13 @@ describe("window.desk", () => {
 			releases.splice(0).forEach((release) => release());
 		}
 	});
+
+	it("reads a record page's facts through a dialog's scope laid over it", async () => {
+		const router = { currentRoute: { value: { name: "record" } } };
+		register({ shell: () => [] }, { context: () => ({ router }) });
+		register({ record: () => [] }, { facts: async () => ({ doctype: "ToDo", name: "T1", docstatus: 0, unsaved: false }) });
+		register({ record: () => [] });
+
+		expect(await window.desk!.state()).toMatchObject({ page: "record", doctype: "ToDo", name: "T1" });
+	});
 });

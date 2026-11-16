@@ -170,4 +170,21 @@ describe("which run a confirm belongs to", () => {
 		slow.open("end");
 		expect(await wait(error.call)).toMatchObject({ ok: true, data: "end" });
 	});
+
+	it("keeps holding other runs while the parked act opens a later confirm", async () => {
+		register({
+			twice: async () => {
+				await confirmThen(true);
+				return confirmThen("both");
+			},
+			plain: () => 4,
+		});
+		const { error } = (await run("test.twice")) as any;
+		await answer(true);
+		await vi.waitFor(() => expect(vi.mocked(frappeDialog.confirm)).toHaveBeenCalledTimes(2));
+
+		expect(await run("test.plain")).toMatchObject({ ok: false, error: { code: "waiting_for_user", call: error.call } });
+		await answer(true);
+		expect(await wait(error.call)).toMatchObject({ ok: true, data: "both" });
+	});
 });

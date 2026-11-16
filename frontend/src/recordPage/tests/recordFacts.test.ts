@@ -17,6 +17,7 @@ const META = {
   fields: [
     { fieldname: "status", fieldtype: "Select", label: "Status", options: "Open\nWon", reqd: 1 as const },
     { fieldname: "approved", fieldtype: "Check", label: "Approved" },
+    { fieldname: "title", fieldtype: "Data", label: "Title", read_only: 1 as const },
     { fieldname: "products", fieldtype: "Table", options: "Deal Product" },
   ],
 };
@@ -27,7 +28,7 @@ function makePage(overrides: Partial<RecordPageHost> = {}) {
   const field = (name: string) => mapField(META.fields.find((one) => one.fieldname === name)!, {});
   const layout = () =>
     [
-      { name: "main", sections: [{ columns: [{ fields: [field("status"), field("products")] }] }] },
+      { name: "main", sections: [{ columns: [{ fields: [field("status"), field("title"), field("products")] }] }] },
       { name: "more", hidden: true, sections: [{ columns: [{ fields: [field("approved")] }] }] },
     ] as any;
   const host: RecordPageHost = {
@@ -85,6 +86,7 @@ describe("a record page's state facts", () => {
 
     expect(facts.fields).toEqual([
       { label: "Status", fieldname: "status", type: "Select", value: "Open", required: true, read_only: false },
+      { label: "Title", fieldname: "title", type: "Data", value: null, required: false, read_only: true },
       { label: "products", fieldname: "products", type: "Table", value: "2 rows", required: false, read_only: false },
     ]);
   });

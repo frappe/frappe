@@ -64,7 +64,13 @@ function owned(dialog: ActDialog) {
 
 function park(call: Call) {
 	parked.set(call.id, call);
+	// The act may open a later confirm (a `beforeSubmit` after the built-in one); it holds the other runs too.
+	const stop = watchListed(() => {
+		const later = readDialogs().find((held) => held.id > call.dialog!.id && isConfirm(held) && !owned(held));
+		if (later) call.dialog = later;
+	});
 	void call.ended.then(() => {
+		stop();
 		call.done = true;
 		const finished = [...parked.values()].filter((held) => held.done);
 		for (const old of finished.slice(0, Math.max(0, finished.length - KEPT))) parked.delete(old.id);
