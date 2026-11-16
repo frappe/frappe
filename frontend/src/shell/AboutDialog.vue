@@ -215,7 +215,10 @@ useReadableDialog(
 	() => props.open,
 	() => ({
 		title: __("About"),
-		buttons: [...LINKS.map(({ label }) => label), __("Copy all versions")],
+		buttons:
+			versions.value && failure.value === null
+				? [...LINKS.map(({ label }) => label), __("Copy all versions")]
+				: [],
 	})
 );
 </script>
