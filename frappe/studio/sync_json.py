@@ -140,7 +140,8 @@ def get_studio_relative_parts(path: str) -> list[str] | None:
 	"""Split `path` into parts relative to the `<app>/studio` folder holding it, e.g.
 	["notes", "studio_page", "inbox", "inbox.json"]. None if it isn't under one."""
 	path = os.path.realpath(path)
-	for folder in map(os.path.realpath, get_studio_folders()):
+	for folder in get_studio_folders():
+		folder = os.path.realpath(folder)
 		if path.startswith(folder + os.sep):
 			return path[len(folder) + 1 :].split(os.sep)
 	return None
