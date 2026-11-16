@@ -268,6 +268,11 @@ describe("component scripts", () => {
 			change("open: { type: Boolean, default: false }", { open: { type: Boolean, default: false } }, { required: 1 }),
 		).to.include("open: { type: Boolean, default: false, required: true }")
 
+		// a new type removes the default, also one that the form does not show
+		expect(
+			change(typed, { rows: { type: Array, default: () => [] } }, { prop_type: "String", type: "text" }),
+		).to.equal(script("rows: { type: String }"))
+
 		const title = { title: { type: String, required: true } }
 		expect(change("title: { type: String, required: true }", title, { required: 0 })).to.equal(
 			script("title: { type: String }"),

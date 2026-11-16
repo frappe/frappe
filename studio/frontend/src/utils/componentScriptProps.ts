@@ -95,8 +95,11 @@ function getChangedValue(
 		const type = /^(null|undefined)$/.test(text) ? null : text
 		return getValueSource({ ...after, type: before.type === after.type ? type : after.type })
 	}
+	// a default that the form does not show, such as a factory, does not fit a new type
+	const isTypeChanged = before.type !== after.type
 	for (const key of PROP_KEYS) {
-		if (before[key] !== after[key]) text = setKey(text, key, after[key])
+		const isChanged = before[key] !== after[key] || (key === "default" && isTypeChanged)
+		if (isChanged) text = setKey(text, key, after[key])
 	}
 	return text
 }
