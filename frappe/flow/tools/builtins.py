@@ -309,20 +309,18 @@ def run_report(
 		raise ValueError(f"{report_name} is a Report Builder report; read its DocType with read_records.")
 	specs = _report_filter_specs(report_name)
 	defaults = {f["fieldname"]: f["default"] for f in specs if f["default"] not in (None, "")}
+	# saved filters apply only when none are passed, and then replace the defaults too, as in Desk;
+	# a validated report gets its defaults from the server either way
+	given = filters or report.custom_filters or {}
+	if filters or not given or report.validate_filters:
+		given = {**defaults, **given}
 	# a failing query report breaks the transaction
 	if report.report_type == "Query Report":
-		given = {**defaults, **(filters or report.custom_filters or {})}
 		if missing := set(re.findall(r"%\((\w+)\)s", report.query or "")) - set(given):
 			raise ValueError(f"Missing filters: {', '.join(sorted(missing))}")
 	limit = max(int(limit), 1)  # no cap: the flow server cuts a result too big to show
 	try:
-		# saved filters apply only when none are passed
-		data = run(
-			report_name,
-			filters={**defaults, **(filters or {})},
-			ignore_prepared_report=True,
-			are_default_filters=not filters,
-		)
+		data = run(report_name, filters=given, ignore_prepared_report=True, are_default_filters=not filters)
 	except Exception as e:
 		cause = e
 		if isinstance(e, frappe.InReadOnlyMode):  # frappe's failure log hid the report's error
@@ -373,8 +371,8 @@ def _describe_filters(specs: list[dict[str, Any]]) -> str:
 
 
 def _report_filter_specs(report_name: str) -> list[dict[str, Any]]:
-	"""Filters from the report's Report Filter rows and its JS, the first of a name winning: each
-	one's type, link or choices, default and whether Desk requires it."""
+	"""Filters from the report's JS, or from its Report Filter rows when the JS has none, as Desk
+	picks them: each one's type, link or choices, default and whether Desk requires it."""
 	from frappe.core.doctype.report.report import get_filter_default
 	from frappe.desk.query_report import get_script
 
@@ -397,10 +395,10 @@ def _report_filter_specs(report_name: str) -> list[dict[str, Any]]:
 		parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
 		cuts = [chunk.rpartition("{") for chunk in parts[0::2]]
 		cuts[-1] = (parts[-1], "", "")  # the last filter has no next one
-		specs += [
+		specs = [
 			_js_filter(name, f"{before[2]}\n{after[0]}")
 			for name, before, after in zip(parts[1::2], cuts[:-1], cuts[1:], strict=True)
-		]
+		] or specs
 	first = {}
 	for spec in specs:
 		first.setdefault(spec["fieldname"], spec)

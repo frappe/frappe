@@ -452,7 +452,7 @@ class TestRunReport(IntegrationTestCase):
 		with patch("frappe.log_error"), self.assertRaises(ValueError) as caught:
 			run_report(report_name=self.report.name, ctx=CTX)
 		self.assertIn("Company is mandatory", str(caught.exception))
-		self.assertIn("(* = required) warehouse*, company* (link to Company), item", str(caught.exception))
+		self.assertIn("(* = required) company* (link to Company), item", str(caught.exception))
 
 		def fail(*args, **kwargs):
 			try:
@@ -471,6 +471,12 @@ class TestRunReport(IntegrationTestCase):
 		self.assertTrue(str(caught.exception).endswith("The report's filters (* = required) warehouse*"))
 
 	def test_a_filter_left_out_takes_the_reports_default_and_the_list_names_its_choices(self):
+		# the JS has filters, so Desk never reads this row
+		self.report.append(
+			"filters",
+			{"fieldname": "based_on", "label": "Based On", "fieldtype": "Data", "default": "Sales Invoice"},
+		)
+		self.report.save()
 		self.report.db_set("javascript", REPORT_JS_CHOICES)
 		self.report.db_set(
 			"report_script",
@@ -492,7 +498,7 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 			(result["row_count"], result["available_filters"]),
 			(
 				0,
-				"(* = required) warehouse*, company* (link to Company), "
+				"(* = required) company* (link to Company), "
 				"based_on (Sales Order | Sales Invoice; default Sales Order), days (30 | 60 | 90; default 30), "
 				"group_by (Group by Voucher | Group by Account), periodicity (Monthly | Yearly; default Monthly)",
 			),
@@ -518,13 +524,17 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 		self.assertEqual(result["row_count"], 25)
 
 	def test_an_empty_run_lists_the_filters(self):
-		filters = "(* = required) warehouse*, company* (link to Company), item"
+		filters = "(* = required) company* (link to Company), item"
 		result = run_report(report_name=self.report.name, filters={"company": "Other"}, ctx=CTX)
 		self.assertEqual((result["row_count"], result["available_filters"]), (0, filters))
 
 		self.report.db_set("report_script", "pass")  # a report that returns nothing at all
 		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
 		self.assertEqual((result["rows"], result["available_filters"]), ([], filters))
+
+		self.report.db_set("javascript", "")  # no JS filters: the rows are the filters
+		result = run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
+		self.assertEqual(result["available_filters"], "(* = required) warehouse*")
 
 	def test_refuses_a_report_it_cannot_run(self):
 		builder = self.make_report("Flow Builder Probe", "Report Builder")
@@ -568,6 +578,42 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 			[{"fieldname": "todo", "label": "ToDo"}, {"fieldname": "description", "label": "Description"}],
 		)
 		self.assertEqual(result["rows"], [{"todo": todo.name, "description": "query report probe"}])
+		ran.assert_called_once()
+
+	def test_a_saved_report_run_as_saved_needs_every_query_filter_saved(self):
+		query = self.make_report(
+			"Flow Query Probe",
+			"Query Report",
+			query="select name from tabToDo where description = %(description)s and owner = %(owner)s",
+			filters=[
+				{"fieldname": "owner", "label": "Owner", "fieldtype": "Data", "default": "Administrator"}
+			],
+		)
+		custom = self.make_report(
+			"Flow Custom Probe",
+			"Custom Report",
+			reference_report=query.name,
+			json=json.dumps({"filters": {"description": "query report probe"}}),
+		)
+		self.enterContext(self.set_user("test@example.com"))
+		ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+
+		# saved filters replace the defaults, as in Desk
+		with (
+			patch("frappe.desk.query_report.run") as ran,
+			self.assertRaisesRegex(ValueError, "^Missing filters: owner$"),
+		):
+			run_report(report_name=custom.name, ctx=ctx)
+		ran.assert_not_called()
+
+		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
+			run_report(report_name=custom.name, filters={"description": "x"}, ctx=ctx)
+		self.assertEqual(ran.call_args.kwargs["filters"], {"owner": "Administrator", "description": "x"})
+
+		# a validated report gets its defaults from the server, saved filters or not
+		query.db_set("validate_filters", 1)
+		with patch("frappe.desk.query_report.run", return_value={"columns": [], "result": []}) as ran:
+			run_report(report_name=custom.name, ctx=ctx)
 		ran.assert_called_once()
 
 	def test_only_a_prepared_report_runs_in_the_background(self):
