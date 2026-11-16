@@ -434,12 +434,12 @@ const STYLE = `
 }
 `;
 
-// not inside frames; window.flow.toggle() and window.flow.open({ path }) are for an app's
+// not inside frames; window.flow.toggle() and window.flow.open({ session }) are for an app's
 // code, as data-flow-toggle is for its markup
 if (window.top === window) {
 	const launcher = new FlowLauncher();
 	window.flow = {
 		toggle: () => launcher.toggle(),
-		open: ({ path } = {}) => launcher.open_at(path),
+		open: ({ session } = {}) => launcher.open_at(session && `/s/${session}`),
 	};
 }

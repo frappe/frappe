@@ -91,4 +91,26 @@ test.describe("Flow launcher", () => {
 		await page.locator("#app-flow-toggle").dispatchEvent("click");
 		await expect(panel(page)).toHaveAttribute("inert", "");
 	});
+
+	test("window.flow.open({ session }) opens the panel on that chat, and moves an open panel to another", async ({
+		page,
+	}) => {
+		// the chat asks the server for the chat it opens
+		const asked = (session) =>
+			page.waitForRequest(
+				(request) =>
+					request.url().endsWith("/frappe.flow.api.session") &&
+					request.postDataJSON()?.session === session
+			);
+		let request = asked("chat-one");
+		await page.evaluate(() => window.flow.open({ session: "chat-one" }));
+		await expect(panel(page)).not.toHaveAttribute("inert");
+		await request;
+
+		// not a toggle: an open panel stays open
+		request = asked("chat-two");
+		await page.evaluate(() => window.flow.open({ session: "chat-two" }));
+		await request;
+		await expect(panel(page)).not.toHaveAttribute("inert");
+	});
 });
