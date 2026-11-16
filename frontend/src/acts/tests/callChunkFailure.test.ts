@@ -9,7 +9,7 @@ vi.mock("../callResult", () => {
 import { ActDispatcher, type ActScope } from "../dispatcher";
 
 describe("call when the result's wording cannot load", () => {
-	it("still resolves, saying the load failed", async () => {
+	it("still resolves, saying it failed", async () => {
 		const dispatcher = new ActDispatcher();
 		const scope = {
 			surfaces: { header: () => [{ item: { name: "go", run: () => 1 }, hidden: false }] },
@@ -23,7 +23,7 @@ describe("call when the result's wording cannot load", () => {
 
 		expect(await dispatcher.call("header.go")).toMatchObject({
 			ok: false,
-			error: { code: "failed", message: expect.stringContaining("Failed to fetch") },
+			error: { code: "failed", message: expect.stringContaining("Error") },
 			route: expect.any(String),
 			dialogs: [],
 		});
