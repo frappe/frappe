@@ -469,7 +469,7 @@ def attach_pdf(
 	style: str | None = None,
 	settings: str | None = None,
 ) -> dict:
-	"""Attach the printed PDF to the document as a private file, replacing the one this method attached earlier for the same format."""
+	"""Attach the printed PDF to the document as a private file, rewriting the one this method attached earlier for the same format."""
 	from frappe.core.doctype.file.utils import get_safe_file_name
 
 	doc = frappe.get_doc(doctype, name)
@@ -507,22 +507,25 @@ def attach_pdf(
 	kept_previous = bool(previous) and _attachments_are_protected(doc)
 
 	if previous and not kept_previous:
-		frappe.delete_doc("File", previous[0])
-
-	_create_printed_pdf_folder()
-	file = frappe.get_doc(
-		{
-			"doctype": "File",
-			"file_name": file_name,
-			"content": pdf_file,
-			"attached_to_doctype": doc.doctype,
-			"attached_to_name": doc.name,
-			"folder": PRINTED_PDF_FOLDER,
-			"is_private": 1,
-		}
-	).insert()
-	if file.file_name != file_name:
-		file.db_set("file_name", file_name)
+		file = frappe.get_doc("File", previous[0])
+		file.save_file(content=pdf_file, overwrite=True)
+		file.file_name = file_name
+		file.save()
+	else:
+		_create_printed_pdf_folder()
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name,
+				"content": pdf_file,
+				"attached_to_doctype": doc.doctype,
+				"attached_to_name": doc.name,
+				"folder": PRINTED_PDF_FOLDER,
+				"is_private": 1,
+			}
+		).insert()
+		if file.file_name != file_name:
+			file.db_set("file_name", file_name)
 
 	return {"file_name": file.file_name, "file_url": file.file_url, "kept_previous": kept_previous}
 
