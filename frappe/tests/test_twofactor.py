@@ -123,7 +123,10 @@ class TestTwoFactor(FrappeTestCase):
 		sessions = frappe.qb.DocType("Sessions")
 		frappe.qb.into(sessions).columns(sessions.user, sessions.sid).insert(self.user, "otp-reset-sid").run()
 
-		with self.set_user("Administrator"):
+		with (
+			self.change_settings("System Settings", {"logout_on_password_reset": 1}),
+			self.set_user(self.user),
+		):
 			reset_otp_secret(self.user)
 
 		self.assertFalse(
