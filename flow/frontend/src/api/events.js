@@ -1,3 +1,5 @@
+import { __ } from "@flow/ui-core/translate.js";
+
 // The daemon's user_message keeps the whole text a turn sent it: the typed message plus
 // the attachment, excerpt and memory blocks Flow appended. The bubble shows the message,
 // with the files as chips.
@@ -24,9 +26,9 @@ export function cleanUserText(text) {
 }
 
 export const CREDIT_SPENT =
-	"Your free AI credits are used up. Grove is coming soon. Until then, connect another provider.";
+	__("Your free AI credits are used up. Grove is coming soon. Until then, connect another provider.");
 export const CREDIT_EXPIRED =
-	"Your free AI credits have expired. Grove is coming soon. Until then, connect another provider.";
+	__("Your free AI credits have expired. Grove is coming soon. Until then, connect another provider.");
 const SITE_KEY_ENDED = { 401: CREDIT_EXPIRED, 402: CREDIT_SPENT };
 
 // `fileId` names the staged File behind a chip, so a steered message the composer is

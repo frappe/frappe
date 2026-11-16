@@ -1,6 +1,7 @@
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { dialog, toast } from "frappe-ui";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
 import { inPanel } from "../panel.js";
@@ -179,7 +180,7 @@ export function useRecord(props, emit) {
 			if (to) page.renamed(props.spec.doctype, from, to);
 			page.changed(props.spec.doctype);
 			toast.success(
-				to ? "Renamed" : method === "frappe.client.insert" ? "Created" : "Saved"
+				to ? __("Renamed") : method === "frappe.client.insert" ? __("Created") : __("Saved")
 			);
 			emit("saved", saved);
 		} catch (err) {
@@ -219,12 +220,11 @@ export function useRecord(props, emit) {
 	}
 
 	function remove() {
+		const title = doc.value[props.spec.titleField] || doc.value.name;
 		dialog.danger({
-			title: `Delete this ${props.spec.singular}?`,
+			title: __("Delete this {0}?", [props.spec.singular]),
 			size: "lg",
-			message: `“${
-				doc.value[props.spec.titleField] || doc.value.name
-			}” will be permanently removed.`,
+			message: __("“{0}” will be permanently removed.", [title]),
 			onConfirm: async ({ close }) => {
 				try {
 					await call("frappe.client.delete", {
@@ -232,7 +232,7 @@ export function useRecord(props, emit) {
 						name: doc.value.name,
 					});
 					page.changed(props.spec.doctype);
-					toast.success("Deleted");
+					toast.success(__("Deleted"));
 					close();
 					emit("deleted");
 				} catch (err) {
@@ -255,7 +255,7 @@ export function useRecord(props, emit) {
 				args: action.args ?? {},
 			});
 			const message = result?.docs ? result.message : result;
-			toast.success(message?.message ?? action.success ?? "Done");
+			toast.success(message?.message ?? action.success ?? __("Done"));
 			await load();
 		} catch (err) {
 			error.value = err.message;

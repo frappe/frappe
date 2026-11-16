@@ -4,7 +4,7 @@
 		<button
 			v-if="open && layout.narrow"
 			class="fixed inset-0 z-20 bg-black/30 md:hidden"
-			aria-label="Close sidebar"
+			:aria-label="__('Close sidebar')"
 			@click="emit('close')"
 		/>
 	</Transition>
@@ -37,7 +37,7 @@
 				<template #trigger>
 					<button
 						class="-ml-1.5 flex h-8 min-w-0 items-center gap-2 rounded-5 pl-1.5 pr-2 hover:bg-surface-gray-3 data-[state=open]:bg-surface-gray-3"
-						title="Flow menu"
+						:title="__('Flow menu')"
 					>
 						<BrandMark line :size="16" class="!text-ink-gray-8" />
 						<span class="text-base-semibold text-ink-gray-9">Flow</span>
@@ -46,7 +46,7 @@
 				</template>
 			</Dropdown>
 			<span class="flex-1" />
-			<Button variant="ghost" icon="lucide-panel-left" title="Hide sidebar" @click="emit('close')" />
+			<Button variant="ghost" icon="lucide-panel-left" :title="__('Hide sidebar')" @click="emit('close')" />
 		</div>
 
 		<!-- 7px over, 9px under: the rows sit midway between the brand mark and the list's header -->
@@ -54,11 +54,11 @@
 			<!-- the essentials together at the top: start a chat, or find one, each with its keys on
 			     hover; search opens in a palette over the page -->
 			<SidebarItem icon="lucide-square-pen" @click="startNewChat()">
-				<span class="truncate text-sm">New chat</span>
+				<span class="truncate text-sm">{{ __("New chat") }}</span>
 				<KeyboardShortcut v-if="!layout.phone" combo="Mod+Shift+O" :class="HINT" />
 			</SidebarItem>
 			<SidebarItem icon="lucide-search" @click="searchOpen = true">
-				<span class="truncate text-sm">Search</span>
+				<span class="truncate text-sm">{{ __("Search") }}</span>
 				<KeyboardShortcut v-if="!layout.phone" combo="Mod+K" :class="HINT" />
 			</SidebarItem>
 			<!-- the host's own rows, like links to its pages -->
@@ -68,18 +68,18 @@
 		<!-- outside the scroller, so the heading stays in place down a long list -->
 		<div v-if="flow.state.sessions.length || flow.state.folders?.length" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
 			<h3 class="min-w-0 flex-1 truncate pl-2 text-sm-medium text-ink-gray-5">
-				{{ grouped ? "Workspaces" : "Chats" }}
+				{{ grouped ? __("Workspaces") : __("Chats") }}
 			</h3>
 			<Dropdown v-if="hasWorkspaces" align="end" :options="viewOptions">
 				<template #trigger>
-					<Button variant="ghost" icon="lucide-sliders-horizontal" title="Group and sort" />
+					<Button variant="ghost" icon="lucide-sliders-horizontal" :title="__('Group and sort')" />
 				</template>
 			</Dropdown>
 			<Button
 				v-if="hasWorkspaces"
 				variant="ghost"
 				icon="lucide-folder-plus"
-				title="New workspace"
+				:title="__('New workspace')"
 				@click="newWorkspace"
 			/>
 		</div>
@@ -153,7 +153,7 @@
 										variant="ghost"
 										size="xs"
 										icon="lucide-ellipsis"
-										title="Workspace options"
+										:title="__('Workspace options')"
 										class="row-action absolute right-8 top-1/2 -translate-y-1/2"
 										:class="menuFor !== group.cwd && 'flow-hover-reveal'"
 										@pointerdown.stop
@@ -165,7 +165,7 @@
 								variant="ghost"
 								size="xs"
 								icon="lucide-square-pen"
-								:title="`New chat in ${group.name}`"
+								:title="__('New chat in {0}', [group.name])"
 								class="row-action flow-hover-reveal absolute right-0.5 top-1/2 -translate-y-1/2"
 								@click="startNewChat(group.cwd)"
 								@pointerdown.stop
@@ -173,7 +173,7 @@
 						</template>
 					</SidebarItem>
 					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-sm-medium text-ink-gray-5">
-						Ungrouped
+						{{ __("Ungrouped") }}
 					</h3>
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
 					<Transition name="flow-fold">
@@ -230,7 +230,7 @@
 										<div v-if="renaming === s.session_id" class="absolute inset-0 z-20">
 											<TitleField
 												:value="flow.sessionTitle(s)"
-												label="Chat name"
+												:label="__('Chat name')"
 												@save="(name) => rename(s.session_id, name)"
 												@cancel="renaming = null"
 											/>
@@ -246,7 +246,7 @@
 												variant="ghost"
 												size="xs"
 												icon="lucide-ellipsis"
-												title="Chat options"
+												:title="__('Chat options')"
 												class="row-action chat-options absolute right-0.5 top-1/2 z-10 -translate-y-1/2 transition-opacity"
 												:class="menuFor === s.session_id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
 												@pointerdown.stop
@@ -268,7 +268,7 @@
 				class="justify-center px-2.5 py-8 text-sm text-ink-gray-5"
 			/>
 			<div v-else-if="flow.state.sessions.length === 0" class="px-2.5 py-8 text-center text-sm text-ink-gray-5">
-				No chats yet — start one.
+				{{ __("No chats yet — start one.") }}
 			</div>
 			<button
 				v-if="flow.state.sessionsMore"
@@ -278,21 +278,21 @@
 				:disabled="flow.state.sessionsLoading"
 				@click="flow.loadMoreSessions()"
 			>
-				{{ flow.state.sessionsLoading ? "Loading more…" : "Load more" }}
+				{{ flow.state.sessionsLoading ? __("Loading more…") : __("Load more") }}
 			</button>
 		</div>
 
 		<!-- in the 4px gap beside the raised chat panel, so its bar fills that gap -->
 		<div
 			class="absolute inset-y-0 -right-1 z-10 hidden w-1 cursor-col-resize hover:bg-[--outline-gray-2] active:bg-[--outline-gray-3] md:block"
-			title="Drag to resize · double-click to reset"
+			:title="__('Drag to resize · double-click to reset')"
 			@pointerdown="startResize"
 			@dblclick="resetWidth"
 		/>
 		<!-- a host without the app menu's Settings (the harness) keeps it at the foot -->
 		<footer v-if="settingsFooter" class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
 			<SidebarItem icon="lucide-settings" @click="flow.setSettingsOpen(true)">
-				<span class="truncate text-base text-ink-gray-8">Settings</span>
+				<span class="truncate text-base text-ink-gray-8">{{ __("Settings") }}</span>
 			</SidebarItem>
 		</footer>
 		<!-- it matches the chats itself: the list here stays as it is while a search is typed -->
@@ -313,6 +313,7 @@ import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { layout, useSlide } from "../layout.js"
 import { afterMenu } from "../menu.js"
+import { __ } from "../translate.js"
 import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import ChatSearch from "./ChatSearch.vue"
@@ -343,16 +344,16 @@ const appMenu = computed(() => [
 		group: "page",
 		hideLabel: true,
 		options: [
-			...(props.apps.length ? [{ label: "Apps", icon: "lucide-layout-grid", submenu: props.apps.map(appOption) }] : []),
+			...(props.apps.length ? [{ label: __("Apps"), icon: "lucide-layout-grid", submenu: props.apps.map(appOption) }] : []),
 			{
-				label: "Settings",
+				label: __("Settings"),
 				icon: "lucide-settings",
 				slots: layout.phone ? {} : { suffix: () => h(KeyboardShortcut, { combo: "Mod+,", showPlus: false, class: "mr-1.5" }) },
 				onClick: afterMenu(() => flow.setSettingsOpen(true)),
 			},
 		],
 	},
-	...(props.logout ? [{ group: "session", hideLabel: true, options: [{ label: "Log out", icon: "lucide-log-out", onClick: props.logout }] }] : []),
+	...(props.logout ? [{ group: "session", hideLabel: true, options: [{ label: __("Log out"), icon: "lucide-log-out", onClick: props.logout }] }] : []),
 ])
 // a heading, not an action: the keys pass over it, and its text keeps its ink
 function accountOption(user) {
@@ -378,10 +379,10 @@ const HINT = "ml-auto mr-2 opacity-0 transition-opacity group-hover/sidebar-item
 function search() {
 	searchOpen.value = true
 }
-useKeyboardShortcut({ combo: "Mod+K", description: "Search chats", allowInInput: true, handler: search })
+useKeyboardShortcut({ combo: "Mod+K", description: __("Search chats"), allowInInput: true, handler: search })
 onMounted(() => window.addEventListener("flow-search", search))
 onBeforeUnmount(() => window.removeEventListener("flow-search", search))
-useKeyboardShortcut({ combo: "Mod+Shift+O", description: "New chat", allowInInput: true, handler: () => startNewChat() })
+useKeyboardShortcut({ combo: "Mod+Shift+O", description: __("New chat"), allowInInput: true, handler: () => startNewChat() })
 
 // the row under the last session: scrolling it into view asks for the next page, and a
 // click asks again after a page that failed
@@ -434,21 +435,21 @@ function setMenu(key, open) {
 function workspaceOptions(group) {
 	const own = flow.state.folders
 		? [
-				{ label: "Rename", icon: "lucide-pen", onClick: () => promptRename(group) },
-				{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: () => confirmDelete(group) },
+				{ label: __("Rename"), icon: "lucide-pen", onClick: () => promptRename(group) },
+				{ label: __("Delete"), icon: "lucide-trash-2", theme: "red", onClick: () => confirmDelete(group) },
 			]
 		: []
 	if (!layout.phone) return own
-	return [{ label: "New chat", icon: "lucide-square-pen", onClick: () => startNewChat(group.cwd) }, ...own]
+	return [{ label: __("New chat"), icon: "lucide-square-pen", onClick: () => startNewChat(group.cwd) }, ...own]
 }
 
 // each dialog keeps the workspace it was opened for
 function promptRename({ cwd, name }) {
 	dialog.prompt({
-		title: "Rename workspace",
+		title: __("Rename workspace"),
 		size: "lg",
-		fields: [{ name: "name", label: "Name", defaultValue: name, required: true }],
-		confirmLabel: "Rename",
+		fields: [{ name: "name", label: __("Name"), defaultValue: name, required: true }],
+		confirmLabel: __("Rename"),
 		onConfirm: ({ values }) => {
 			void flow.renameFolder(cwd, values.name.trim())
 		},
@@ -457,13 +458,13 @@ function promptRename({ cwd, name }) {
 
 function confirmDelete({ cwd, name }) {
 	dialog.confirm({
-		title: "Delete workspace?",
+		title: __("Delete workspace?"),
 		size: "lg",
-		message: `“${name}” leaves the sidebar. Its folder and chats are kept, and the chats move to Ungrouped.`,
+		message: __("“{0}” leaves the sidebar. Its folder and chats are kept, and the chats move to Ungrouped.", [name]),
 		actions: [
-			{ label: "Cancel", variant: "outline" },
+			{ label: __("Cancel"), variant: "outline" },
 			{
-				label: "Delete",
+				label: __("Delete"),
 				variant: "solid",
 				theme: "red",
 				onClick: () => {
@@ -520,17 +521,17 @@ const viewOptions = computed(() => {
 	})
 	return [
 		{
-			group: "Group by",
+			group: __("Group by"),
 			options: [
-				option("Workspace", "lucide-folder", grouped.value, { sidebarGroup: "workspace" }),
-				option("In one list", "lucide-list", !grouped.value, { sidebarGroup: "list" }),
+				option(__("Workspace"), "lucide-folder", grouped.value, { sidebarGroup: "workspace" }),
+				option(__("In one list"), "lucide-list", !grouped.value, { sidebarGroup: "list" }),
 			],
 		},
 		{
-			group: "Order by",
+			group: __("Order by"),
 			options: [
-				option("Manual", "lucide-chevrons-up-down", manual.value, { sidebarOrder: "manual" }),
-				option("Last updated", "lucide-clock", !manual.value, { sidebarOrder: "updated" }),
+				option(__("Manual"), "lucide-chevrons-up-down", manual.value, { sidebarOrder: "manual" }),
+				option(__("Last updated"), "lucide-clock", !manual.value, { sidebarOrder: "updated" }),
 			],
 		},
 	]
@@ -601,7 +602,7 @@ const groups = computed(() => {
 			name: flow.folderName(cwd),
 			open: flow.state.prefs.openFolders.includes(cwd),
 			chats: shown,
-			toggle: hidden ? `Show ${hidden} more` : collapsible ? "Show less" : null,
+			toggle: hidden ? __("Show {0} more", [hidden]) : collapsible ? __("Show less") : null,
 		}
 	})
 	if (loose.length) groups.push({ cwd: null, open: true, chats: loose })

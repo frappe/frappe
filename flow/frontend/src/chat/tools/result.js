@@ -1,3 +1,5 @@
+import { __ } from "@flow/ui-core/translate.js";
+
 // A client tool's return reaches the browser as the JSON text the callback serialized it
 // to, so every view parses it back. Errors keep their plain message.
 export function parseResult(result) {
@@ -45,7 +47,7 @@ function blank(value) {
 
 export function cellText(value) {
 	if (value == null) return "";
-	if (Array.isArray(value)) return `${value.length} ${value.length === 1 ? "row" : "rows"}`;
+	if (Array.isArray(value)) return value.length === 1 ? __("1 row") : __("{0} rows", [value.length]);
 	if (typeof value === "object") return JSON.stringify(value);
 	return String(value);
 }

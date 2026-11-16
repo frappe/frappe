@@ -55,10 +55,10 @@
 						:loading="uploading"
 						:label="
 							uploading
-								? `Uploading ${progress}%`
+								? __('Uploading {0}%', [progress])
 								: doc[field.name]
-								? 'Replace file'
-								: 'Upload file'
+								? __('Replace file')
+								: __('Upload file')
 						"
 						:disabled="disabled"
 						@click="openFileSelector"
@@ -90,7 +90,7 @@
 		:error="linksError"
 		:model-value="doc[field.name] || null"
 		:disabled="disabled"
-		placeholder="Select…"
+		:placeholder="__('Select…')"
 		@update:model-value="(value) => (doc[field.name] = value ?? '')"
 	/>
 
@@ -108,7 +108,7 @@
 		:loading="linksLoading"
 		:error="linksError"
 		:model-value="doc[field.name] ?? []"
-		placeholder="Select…"
+		:placeholder="__('Select…')"
 		@update:model-value="(value) => (doc[field.name] = value ?? [])"
 	>
 		<template v-if="disabled" #footer />
@@ -138,7 +138,7 @@
 		:options="providerOptions"
 		:model-value="doc[field.name] || null"
 		:disabled="disabled"
-		placeholder="Select…"
+		:placeholder="__('Select…')"
 		side="bottom"
 		@update:model-value="(value) => (doc[field.name] = value ?? '')"
 	/>
@@ -197,6 +197,7 @@ import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { Button, FileUploader, FormControl, FormLabel, Switch } from "frappe-ui";
 
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
 import { searchLinks } from "./links.js";
@@ -325,7 +326,7 @@ const modelOptions = computed(() => {
 		{
 			type: "custom",
 			key: "typed",
-			label: "Use the typed id",
+			label: __("Use the typed id"),
 			condition: ({ query }) =>
 				!!query.trim() && !known.value.includes(prefix + query.trim()),
 			onClick: ({ query }) => pickModel(query.trim()),

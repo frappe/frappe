@@ -4,7 +4,7 @@
 		:open="open"
 		:query="query"
 		:filterable="false"
-		title="Search chats"
+		:title="__('Search chats')"
 		@update:open="emit('update:open', $event)"
 		@update:query="query = $event"
 		@select="choose"
@@ -12,23 +12,23 @@
 		<!-- the card's own colour, not frappe-ui's transparent: Chrome repaints an unfocused window's
 		     field alone, and a transparent one shows the page through it as a dark strip. Held 1px
 		     down so it doesn't cover the card's lit top edge. -->
-		<CommandPaletteInput placeholder="Search chats" class="mt-px !bg-surface-elevation-1 !pt-[11px]" />
+		<CommandPaletteInput :placeholder="__('Search chats')" class="mt-px !bg-surface-elevation-1 !pt-[11px]" />
 		<CommandPaletteList>
 			<!-- held off the field's rule as far as the rows sit from the sides; a group brings its own -->
 			<div v-if="!query.trim()" class="pt-2.5">
 				<CommandPaletteItem value="new" :class="ROW">
 					<template #prefix><span class="lucide-square-pen mr-2.5 size-4 flex-none text-ink-gray-6" aria-hidden="true" /></template>
-					New chat
+					{{ __("New chat") }}
 				</CommandPaletteItem>
 			</div>
-			<CommandPaletteGroup :label="query.trim() ? 'Chats' : 'Recent'">
+			<CommandPaletteGroup :label="query.trim() ? __('Chats') : __('Recent')">
 				<CommandPaletteItem v-for="s in chats" :key="s.session_id" :value="s.session_id" :class="ROW">
 					<template #prefix><span class="lucide-message-circle mr-2.5 size-4 flex-none text-ink-gray-6" aria-hidden="true" /></template>
 					{{ flow.sessionTitle(s) }}
 				</CommandPaletteItem>
 			</CommandPaletteGroup>
 		</CommandPaletteList>
-		<CommandPaletteEmpty>No chats match</CommandPaletteEmpty>
+		<CommandPaletteEmpty>{{ __("No chats match") }}</CommandPaletteEmpty>
 	</CommandPalette>
 </template>
 
@@ -44,6 +44,7 @@ import {
 } from "frappe-ui/experimental"
 
 import { useDebouncedValue } from "../debounce.js"
+import { __ } from "../translate.js"
 
 const props = defineProps({ open: { type: Boolean, default: false } })
 const emit = defineEmits(["update:open", "new", "pick"])

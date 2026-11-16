@@ -3,6 +3,8 @@
 // Flow's Frappe shell can swap it for a proxy-backed implementation with the
 // same surface.
 
+import { __ } from "./translate.js"
+
 const enc = encodeURIComponent
 
 export class FlowAPIError extends Error {
@@ -27,7 +29,7 @@ async function raise(response) {
 	// router's generic unknown-route 404, distinct from any endpoint's own
 	// detail) means the daemon process predates the served bundle
 	if (response.status === 405 || (response.status === 404 && detail === "Not Found")) {
-		detail = "The daemon is running older code than this UI — restart it and retry."
+		detail = __("The daemon is running older code than this UI — restart it and retry.")
 	}
 	throw new FlowAPIError(response.status, detail, data)
 }

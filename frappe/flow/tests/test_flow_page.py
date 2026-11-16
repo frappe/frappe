@@ -28,6 +28,8 @@ class TestFlowPage(IntegrationTestCase):
 		self.assertTrue(boot["csrf_token"])
 		self.assertEqual(boot["site_name"], frappe.local.site)
 		self.assertIn("socketio_port", boot)
+		self.assertEqual(boot["lang"], frappe.local.lang)
+		self.assertTrue(boot["translations_version"])
 		self.assertEqual(boot["flow_boot"]["user"]["name"], "Administrator")
 		self.assertIn("agents", boot["flow_boot"])
 

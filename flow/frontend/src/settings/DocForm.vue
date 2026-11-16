@@ -15,7 +15,7 @@
 				v-if="doc.is_system_generated"
 				class="rounded-6 border border-outline-gray-2 bg-surface-gray-1 px-3 py-2 text-sm text-ink-gray-7"
 			>
-				Comes with an app, so greyed-out fields can't be changed.
+				{{ __("Comes with an app, so greyed-out fields can't be changed.") }}
 			</div>
 			<div
 				v-if="notice"
@@ -29,7 +29,7 @@
 						<KeyButton
 							v-if="keyFor(field) && canWrite"
 							:key="doc[field.name]"
-							:label="`${doc[field.name]} API key`"
+							:label="__('{0} API key', [doc[field.name]])"
 							:saved="keySaved(field)"
 							:link="keyFor(field).links?.[doc[field.name]]"
 							@save="(key) => saveKey(field, key)"
@@ -64,23 +64,23 @@
 				:label="action.label"
 				:loading="running === action.label"
 				:disabled="dirty"
-				:title="dirty ? 'Save first' : ''"
+				:title="dirty ? __('Save first') : ''"
 				@click="runAction(action)"
 			/>
 			<span class="min-w-0 flex-1"><ErrorMessage :message="error" /></span>
-			<Button v-if="canDelete" variant="ghost" theme="red" label="Delete" @click="remove" />
+			<Button v-if="canDelete" variant="ghost" theme="red" :label="__('Delete')" @click="remove" />
 			<!-- a narrow frame's header leads back to the list instead -->
 			<Button
 				v-if="!spec.single"
 				variant="outline"
-				label="Cancel"
+				:label="__('Cancel')"
 				class="max-md:hidden"
 				@click="emit('close')"
 			/>
 			<Button
 				v-if="canWrite"
 				variant="solid"
-				:label="isNew ? 'Create' : 'Save'"
+				:label="isNew ? __('Create') : __('Save')"
 				:loading="saving"
 				:disabled="!dirty"
 				@click="save"
@@ -96,6 +96,7 @@ import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
 import KeyButton from "@flow/ui-core/components/KeyButton.vue";
 import SettingsRow from "@flow/ui-core/components/SettingsRow.vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import FieldControl from "./FieldControl.vue";
 import { useRecord } from "./records.js";
