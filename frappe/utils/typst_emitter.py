@@ -545,7 +545,7 @@ def _text_value(html_ish: str) -> str:
 	value = re.sub(r"</(p|div|tr|li|h[1-6])>[ \t]*\n?", "\n", value, flags=re.I)
 	value = re.sub(r"</t[dh]>(?=<t[dh])", " ", value, flags=re.I)
 	value = frappe.utils.strip_html(value)
-	return unescape_html(value).strip()
+	return re.sub(r"^[^\S\u2002\u2003]+", "", unescape_html(value).rstrip())
 
 
 class TypstEmitter:
