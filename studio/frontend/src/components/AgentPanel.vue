@@ -10,6 +10,7 @@
 				:tabindex="row.onClick ? 0 : undefined"
 				@click="row.onClick?.()"
 				@keydown.enter="row.onClick?.()"
+				@keydown.space.prevent="row.onClick?.()"
 			>
 				<span class="flex items-center gap-2">
 					<span
@@ -92,7 +93,7 @@ function openFlow() {
 }
 
 function copyPrompt() {
-	const site = window.location.origin
+	const site = import.meta.env.DEV ? window.site_url : window.location.origin
 	const app = store.activeApp
 	const skill =
 		"- Install the `studio-app-building` skill from `frappe/frappe` with `npx skills` and read its SKILL.md."
