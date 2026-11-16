@@ -50,7 +50,7 @@ SERVER_ONLY_CLASSES = {
 	"field--breakable",
 }
 CANVAS_ONLY_CLASSES = set()
-DOCUMENT_VALUE_TOKENS = {"data-list", "ql-indent-1", "ql-indent-2", "ql-indent-3"}
+DOCUMENT_VALUE_TOKENS = {"data-list", *(f"ql-indent-{n}" for n in range(1, 9))}
 
 
 @functools.cache

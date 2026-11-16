@@ -661,7 +661,7 @@ body.print-format-doc .letter-head,
 }
 
 .print-format-doc li[data-list] {
-	counter-set: list-1 list-2 list-3;
+	counter-set: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8;
 }
 .print-format-doc li[data-list="bullet"] {
 	list-style-type: disc;
@@ -672,14 +672,34 @@ body.print-format-doc .letter-head,
 }
 .print-format-doc li[data-list].ql-indent-1 {
 	margin-left: 1.5em;
-	counter-set: list-2 list-3;
+	counter-set: list-2 list-3 list-4 list-5 list-6 list-7 list-8;
 }
 .print-format-doc li[data-list].ql-indent-2 {
 	margin-left: 3em;
-	counter-set: list-3;
+	counter-set: list-3 list-4 list-5 list-6 list-7 list-8;
 }
 .print-format-doc li[data-list].ql-indent-3 {
 	margin-left: 4.5em;
+	counter-set: list-4 list-5 list-6 list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-4 {
+	margin-left: 6em;
+	counter-set: list-5 list-6 list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-5 {
+	margin-left: 7.5em;
+	counter-set: list-6 list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-6 {
+	margin-left: 9em;
+	counter-set: list-7 list-8;
+}
+.print-format-doc li[data-list].ql-indent-7 {
+	margin-left: 10.5em;
+	counter-set: list-8;
+}
+.print-format-doc li[data-list].ql-indent-8 {
+	margin-left: 12em;
 	counter-set: none;
 }
 .print-format-doc li[data-list="ordered"].ql-indent-1 {
@@ -699,4 +719,34 @@ body.print-format-doc .letter-head,
 }
 .print-format-doc li[data-list="ordered"].ql-indent-3::marker {
 	content: counter(list-3, decimal) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-4 {
+	counter-increment: list-item 0 list-4;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-4::marker {
+	content: counter(list-4, lower-alpha) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-5 {
+	counter-increment: list-item 0 list-5;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-5::marker {
+	content: counter(list-5, lower-roman) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-6 {
+	counter-increment: list-item 0 list-6;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-6::marker {
+	content: counter(list-6, decimal) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-7 {
+	counter-increment: list-item 0 list-7;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-7::marker {
+	content: counter(list-7, lower-alpha) ". ";
+}
+.print-format-doc li[data-list="ordered"].ql-indent-8 {
+	counter-increment: list-item 0 list-8;
+}
+.print-format-doc li[data-list="ordered"].ql-indent-8::marker {
+	content: counter(list-8, lower-roman) ". ";
 }
