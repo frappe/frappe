@@ -39,8 +39,8 @@ name one type.
 - The browser compiles and runs the source as written. A custom app rejects
   `.ts` and `.vue` files, `tsconfig.json`, Tailwind config files, and dotfiles.
   TypeScript syntax inside a `.js` file is a runtime syntax error.
-- Use Studio Components for reusable layouts. Export the app if you need your
-  own `.vue` files.
+- Use Studio Components for reusable parts of the UI. Export the app if you
+  need your own `.vue` files.
 - The app can import `vue`, `vue-router`, `pinia`, `frappe-ui`,
   `frappe-ui/list`, `frappe-ui/charts`, and its own files. There is no npm.
   Export the app if it needs another package. Export makes the app standard.
@@ -82,15 +82,6 @@ name one type.
   <frappe_app>/studio/<studio_app>/studio_components/<component_id>.json
   <frappe_app>/studio/<studio_app>/studio_components/<component_id>.js
   ```
-
-- A component belongs to one Studio App when its `studio_app` field is set. Its
-  `component_id` is then unique in that app only, and its `name` is
-  `<studio_app>/<component_id>`. A component without `studio_app` is global: all
-  apps can use it, and its `name` is its `component_id`. A block's `componentName` is
-  the `component_id`: the app's own component is used before a global one.
-- Set `studio_app` on each component that you write for an exported app. A
-  global component cannot import the app's files (`@app/` or a relative path)
-  and must not contain the app's `.vue` components.
 
 - Page scripts are optional. Use TypeScript (`.ts`) for new page scripts. Keep
   existing `.js` files in JavaScript. Do not create both extensions for one
@@ -315,11 +306,41 @@ Studio differs from Vue in these points:
 - Store shared code in the app's files and import it with `@app/...`. This
   includes stores, composables, and a standard app's `.vue` components.
 
+## Choose a component
+
+Choose the smallest tool that does the job:
+
+- **Built-in component**: use it when it already does the job. Do not write a
+  Vue component only to restyle a built-in component.
+- **Studio Component**: use it for a reusable part of the UI that you can
+  build from ordinary blocks, such as a card, a list row, or a form section.
+  Its script gives it props, state, logic, and events. See
+  [Component code](#component-code).
+- **Vue component**: use it only when built-in components and block
+  compositions cannot express the UI cleanly. This means a stateful widget (a
+  rating input, a drag-and-drop board, a canvas or SVG drawing), a third-party
+  library, or markup that needs dozens of blocks and heavy script glue. Only
+  a standard app can have one. See [Vue components](#vue-components).
+
+For a Studio Component:
+
+- Set `studio_app` on a component made for an app. Its `name` is then
+  `<studio_app>/<component_id>`. A component without `studio_app` is global,
+  and every app on the site can use it.
+- Use the `component_id` as the block's `componentName`, such as `task_card`.
+  Do not use the title in `component_name` or the document `name`. Studio
+  uses the app's own component before a global one with the same id.
+- A global component must work without an app's files or `.vue` components.
+  Studio rejects a global component script that imports `@app/` or a relative
+  path.
+
 ## Component code
 
-A Studio Component can have a script. A page script exports a function. A
-component script exports an object: a Vue component definition without a
-template. The component's blocks are the template.
+A component script exports a Vue component definition with `props`, `emits`,
+and `setup`. Its blocks are the template.
+
+Pass page data through props and request page actions through events. Keep
+component state and handlers in the component's own script.
 
 ```js
 import { ref, computed } from "vue"
@@ -348,29 +369,61 @@ export default {
 - `setup` gets Vue's arguments, `(props, { emit })`. It does not get the page
   `context`. Import what you need, such as `useRoute` from `vue-router`.
 - Declare what a component accepts as `props` in its script. There is no other
-  place: do not write `inputs` rows in the component JSON. A component that
-  only has `inputs` rows is an older one, and Studio still reads them. Write
-  `props` as a plain object, so the editor's form can change it. A prop's optional
-  `meta` key sets the editor control (`control`: `text`, `number`, `checkbox`,
+  place: do not write `inputs` rows in the component JSON. Write `props` as a
+  plain object, so the editor's form can change it. A prop's optional `meta`
+  key sets the editor control (`control`: `text`, `number`, `checkbox`,
   `textarea`, `select`, `code`, or `color`), its `options`, and a
   `description`.
-- Blocks in the component read props as `{{ props.title }}` and returned
-  values by name, as `{{ heading }}`. The page-code rules for returned values,
-  hooks, and `await` apply.
-- A component's blocks must read only its props, the values that `setup`
-  returns, and slot values such as `dataItem`. Do not read a page's variables,
-  data sources, or script values in a component. Pass each value in as a prop,
-  and tell the page about an action with an event in `emits`. Older components
-  read the page directly, and Studio still permits it. Do not write new ones
-  that way. `route`, `router`, `socket`, `toast`, and `call` are available in
-  every block.
-- For state that many pages share, such as the signed-in user or
-  notifications, import a composable in the component's script. Do not pass
-  the same props on each page. A global component cannot import app files, so
-  it takes all values as props.
-- A page sets props in the component block's `componentProps` and handles the
-  events in `emits` in its `componentEvents`. An event that is not in `emits`
-  is a DOM event of the component's root block.
+- **Use a Studio Component.** Set `isStudioComponent: true` on its block. The
+  page sets props in `componentProps` and handles the events in `emits` in
+  `componentEvents`:
+
+  ```json
+  {
+  	"componentId": "task_card-ab12cd",
+  	"componentName": "task_card",
+  	"isStudioComponent": true,
+  	"componentProps": {"title": "{{ dataItem.subject }}", "size": "sm"},
+  	"componentEvents": {
+  		"select": {"action": "Run Script", "event": "select", "script": "openTask(eventArgs[0])"}
+  	}
+  }
+  ```
+
+  An event that is not in `emits` is a DOM event of the component's root
+  block.
+
+### What a component can use
+
+A component's blocks can use:
+
+- The component's props, as `{{ props.title }}`, and the values that its
+  `setup` returns, by name, as `{{ heading }}`. The page-code rules for
+  returned values, hooks, and `await` apply.
+- Slot values, such as `dataItem` and `dataIndex` in a Repeater.
+- The built-in `route`, `router`, `socket`, `toast`, and `call` helpers.
+
+A component must not read a page's variables, data sources, or functions. For
+example, a component that uses `{{ tasks.data }}` needs the page to provide
+`tasks`. It can fail in the component editor or on another page.
+
+- **Pass page data through props.** Declare a `tasks` prop in the component
+  script. On each page, set the component block's `componentProps.tasks` to
+  `{{ tasks.data }}`. Inside the component, use `{{ props.tasks }}`.
+- **Use events for page actions.** If the component needs a page function such
+  as `save()`, declare `"save"` in `emits`. Return a function from `setup`
+  that calls `emit("save")`, as `select` does in the example, and call it from
+  the block's event. On each page, handle the event in the component block's
+  `componentEvents` and call the page's `save()` there.
+- **Import shared state in app components.** An app's component may import
+  shared app state, such as the signed-in user, through a composable from the
+  app's files. Pass page-specific data through props. A global component
+  cannot import app files. Pass app-specific data to it through props.
+
+Older components read the page directly, and some only have `inputs` rows in
+their JSON. Studio still runs them. Update an older component to these rules
+when you work on it: follow
+`studio/frontend/docs/migrate-global-components-to-app-components.md`.
 
 ## Tailwind CSS
 
@@ -405,17 +458,8 @@ export default {
 ## Vue components
 
 A standard app can use its own Vue components as blocks. A custom app cannot.
-Export the app first. Choose the smallest tool that does the job:
-
-- **Built-in component**: use it when it already does the job. Do not write a
-  Vue component only to restyle a built-in component.
-- **Studio Component** (`studio_components/*.json`): use it for a reusable
-  layout made of ordinary blocks. Add a script when it needs state, logic, or
-  events. See [Component code](#component-code).
-- **Vue component**: use it only when built-in components and block
-  compositions cannot express the UI cleanly. This means a stateful widget (a
-  rating input, a drag-and-drop board, a canvas or SVG drawing), a third-party
-  library, or markup that needs dozens of blocks and heavy script glue.
+Export the app first. To choose between a Vue component and the other kinds,
+see [Choose a component](#choose-a-component).
 
 To add a Vue component:
 
@@ -429,7 +473,8 @@ To add a Vue component:
 - Write a normal Vue single-file component. Use Tailwind classes and espresso
   tokens from [DESIGN.md](DESIGN.md). Use one root element where possible, or
   bind `$attrs` to the element that should receive block styles.
-- Set `isCustomVueComponent: true` on its block. Do not set `originalElement`.
+- **Use a Vue component.** Set `isCustomVueComponent: true` on its block. Do
+  not set `originalElement`.
   Props, `{{ }}` bindings, and `{"$type": "variable"}` v-model bindings work as
   they do for built-in components. Use `componentEvents` for emitted events
   and `componentSlots` for named slots:
