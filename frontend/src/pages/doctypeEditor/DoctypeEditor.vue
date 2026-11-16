@@ -40,39 +40,42 @@
 				:inert="save.saving.value"
 				data-doctype-editor
 			>
-				<ScrollArea class="flex min-h-0 min-w-0 flex-1" :viewport-class="pageGutter">
-					<EditorCanvas
-						v-if="tab === 'editor' && shown"
-						:canvas="shown"
-						:save="save"
-						:customize="customizeRoute"
-						:table="childTable"
-					/>
-					<SettingsTab
-						v-else-if="tab === 'settings' && shown"
-						:key="shown.state.doctype"
-						v-model:place="settingsPlace"
-						:canvas="shown"
-						:customize="customizeRoute"
-						:danger="dangerScope"
-					/>
-					<RowDialogPreview
-						v-else-if="openChild"
-						:canvas="openChild.canvas"
-						:table-label="child.tableLabel.value"
-					/>
-					<PreviewTab
-						v-else-if="!state.pending"
-						:doctype="state.doctype"
-						:record="previewName"
-						:latest="latest"
-						:title-field="String(state.definition.title_field ?? '')"
-						@pick="previewName = $event"
-					/>
-					<p v-else class="py-6 text-base text-ink-gray-5">
-						{{ __("Save the DocType to preview its records.") }}
-					</p>
-				</ScrollArea>
+				<div class="flex min-h-0 min-w-0 flex-1 flex-col">
+					<EditorTabs v-model="tab" />
+					<ScrollArea class="flex min-h-0 min-w-0 flex-1" :viewport-class="pageGutter">
+						<EditorCanvas
+							v-if="tab === 'editor' && shown"
+							:canvas="shown"
+							:save="save"
+							:customize="customizeRoute"
+							:table="childTable"
+						/>
+						<SettingsTab
+							v-else-if="tab === 'settings' && shown"
+							:key="shown.state.doctype"
+							v-model:place="settingsPlace"
+							:canvas="shown"
+							:customize="customizeRoute"
+							:danger="dangerScope"
+						/>
+						<RowDialogPreview
+							v-else-if="openChild"
+							:canvas="openChild.canvas"
+							:table-label="child.tableLabel.value"
+						/>
+						<PreviewTab
+							v-else-if="!state.pending"
+							:doctype="state.doctype"
+							:record="previewName"
+							:latest="latest"
+							:title-field="String(state.definition.title_field ?? '')"
+							@pick="previewName = $event"
+						/>
+						<p v-else class="py-6 text-base text-ink-gray-5">
+							{{ __("Save the DocType to preview its records.") }}
+						</p>
+					</ScrollArea>
+				</div>
 				<EditorPanel v-if="tab === 'editor' && shown?.editable" :canvas="shown" />
 			</div>
 		</template>
@@ -110,6 +113,7 @@ import EditorCanvas from "./EditorCanvas.vue";
 import EditorHeader from "./EditorHeader.vue";
 import type { FinderHost } from "./editorFinder";
 import EditorPanel from "./EditorPanel.vue";
+import EditorTabs from "./EditorTabs.vue";
 import { customizeHost } from "./customizeHost";
 import { dangerHost } from "./dangerHost";
 import { DesignCanvas } from "./designCanvas";
