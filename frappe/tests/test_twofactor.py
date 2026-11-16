@@ -19,6 +19,11 @@ from frappe.twofactor import (
 	get_otpsecret_for_,
 	get_verification_obj,
 	process_2fa_for_email,
+<<<<<<< HEAD
+=======
+	reset_otp_secret,
+	set_default,
+>>>>>>> fc687c2 (fix: log out other sessions when the OTP secret is reset)
 	should_run_2fa,
 	two_factor_is_enabled_for_,
 )
@@ -136,6 +141,17 @@ class TestTwoFactor(IntegrationTestCase):
 		"""OTP secret should be set for user."""
 		self.assertTrue(get_otpsecret_for_(self.user))
 		self.assertTrue(get_default(self.user + "_otpsecret"))
+
+	def test_reset_otp_secret_logs_out_sessions(self):
+		sessions = frappe.qb.DocType("Sessions")
+		frappe.qb.into(sessions).columns(sessions.user, sessions.sid).insert(self.user, "otp-reset-sid").run()
+
+		with self.set_user("Administrator"):
+			reset_otp_secret(self.user)
+
+		self.assertFalse(
+			frappe.qb.from_(sessions).select(sessions.sid).where(sessions.sid == "otp-reset-sid").run()
+		)
 
 	def test_confirm_otp_token(self):
 		"""Ensure otp is confirmed"""
