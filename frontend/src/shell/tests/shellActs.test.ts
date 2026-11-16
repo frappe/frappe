@@ -351,6 +351,19 @@ describe("each shell act, run by name", () => {
 		expect(router.currentRoute.value.path).toBe("/sales-invoice");
 	});
 
+	it("back waits for a slow leave guard, and fails when a guard throws", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		const off = router.beforeEach(async () => void (await new Promise((resolve) => setTimeout(resolve, 20))));
+		expect(await acts.run("shell.back")).toEqual({ path: "/sales-invoice" });
+		off();
+		await router.push("/purchase-invoice");
+		router.beforeEach(() => {
+			throw new Error("guard broke");
+		});
+		await expect(acts.run("shell.back")).rejects.toThrow("guard broke");
+	});
+
 	it("back fails and stays put when a leave guard keeps the page", async () => {
 		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
 		await router.push("/purchase-invoice");

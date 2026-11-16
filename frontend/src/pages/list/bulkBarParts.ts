@@ -147,7 +147,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
     },
   ];
 
-  // The palette runs an act with no value or an option, so the wrapper always hands `run` the selection, as the bar does.
+  // The palette runs an act with no value or an option, so the wrapper hands `run` the selection, as the bar does; only a `values` item gets the caller's value.
   function entries(): ActEntry[] {
     return bulkList
       .resolve()
@@ -204,7 +204,7 @@ export function bulkBarParts(options: BulkBarOptions, boot: Boot, listActs: List
               group: item.group,
               button: item.button,
               disabled: disabled(item),
-              onClick: () => listActs.perform(act, [...selection.value]),
+              onClick: () => listActs.perform(act, item.values ? undefined : [...selection.value]),
             },
           ];
         }),

@@ -1,7 +1,7 @@
 // The shell surface, `shell`: the acts that outlive a page. The rail's app menu, the avatar menu
 // and the sidebar's edge draw from it, so each entry is declared once.
 import { onScopeDispose } from "vue";
-import type { Router } from "vue-router";
+import { isNavigationFailure, NavigationFailureType, type Router } from "vue-router";
 import { toast, useColorScheme, type ColorScheme } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import type { FieldMeta } from "@framework/ui/fields/types";
@@ -300,18 +300,40 @@ function backItem(): ActItem<Shell> {
 	};
 }
 
+let leaving: Promise<{ path: string }> | null = null;
+
 /** Goes to the page before this one in the tab; settles when the router has, so a discard confirm is waited on. */
-async function goBack(router: Router): Promise<{ path: string }> {
+function goBack(router: Router): Promise<{ path: string }> {
 	if (router.options.history.state.back == null) throw new Error(__("No earlier page in this tab"));
-	const arrived = new Promise<{ path: string }>((resolve, reject) => {
-		const stop = router.afterEach((to, _from, failure) => {
+	// `state.back` changes only when the pop lands: a second call before then would go back twice.
+	leaving ??= arrive(router).finally(() => (leaving = null));
+	return leaving;
+}
+
+function arrive(router: Router) {
+	return new Promise<{ path: string }>((resolve, reject) => {
+		const stop = () => {
+			offAfter();
+			offError();
+		};
+		const offAfter = router.afterEach((to, _from, failure) => {
 			stop();
-			if (failure) reject(new Error(__("The page did not change: the person kept their unsaved changes")));
-			else resolve({ path: to.fullPath });
+			if (!failure) return resolve({ path: to.fullPath });
+			reject(
+				new Error(
+					isNavigationFailure(failure, NavigationFailureType.aborted)
+						? __("The page did not change: the person kept their unsaved changes")
+						: __("The page did not change: another navigation interrupted it")
+				)
+			);
 		});
+		// A guard that throws or a route that fails to load reports here, never to `afterEach`.
+		const offError = router.onError((error) => {
+			stop();
+			reject(error);
+		});
+		router.back();
 	});
-	router.back();
-	return arrived;
 }
 
 function personItems(

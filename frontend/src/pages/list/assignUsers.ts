@@ -23,10 +23,11 @@ export async function assignUsers(
 	target: BulkTarget,
 	after: AfterRun
 ): Promise<Assigned> {
-	if (!users.length) throw new ActInvalid("list.assign", "users must not be empty; send none to open the dialog");
+	if (!Array.isArray(users) || !users.length || users.some((user) => typeof user !== "string" || !user.trim()))
+		throw new ActInvalid("list.assign", "users must be a list of user ids; send none to open the dialog");
 	if (!target.count) throw new ActInvalid("list.assign", "no rows are selected; select rows first");
 	const { callsFor, sendCollab } = await import("./collabCalls");
-	const calls = callsFor("assign", { users });
+	const calls = callsFor("assign", { users: [...new Set(users)] });
 	let answer!: BulkResult | BulkQueued;
 	await runBulk({
 		label: __("Assign"),
