@@ -101,7 +101,12 @@ const router = useRouter();
 // Its `record` surface fills this form: it has no handlers, and so no rows, to run.
 onUnmounted(
 	acts.register({
-		surfaces: { header: () => [], quickActions: () => [], tabs: () => [], record: () => [setValuesEntry(valueForm)] },
+		surfaces: {
+			header: () => [],
+			quickActions: () => [],
+			tabs: () => [],
+			record: () => [setValuesEntry(valueForm)],
+		},
 		context: () => undefined,
 		passes: () => false,
 		settled: () => undefined,
@@ -159,14 +164,22 @@ const valueForm: ValueForm = {
 	doc: () => doc.value,
 	field: (fieldname) => {
 		const field = layoutFields(layout.value).find((one) => one.fieldname === fieldname);
-		const shown = shownFields(layout.value, doc.value).find((one) => one.fieldname === fieldname);
+		const shown = shownFields(layout.value, doc.value).find(
+			(one) => one.fieldname === fieldname
+		);
 		return field && { fieldtype: field.fieldtype, hidden: !shown, read_only: shown?.readOnly };
 	},
 	commit: async (fieldname) => {
 		typed.value = true;
 		errors.clear(fieldname);
 	},
-	errors: () => Object.fromEntries(Object.entries(errors.current()).map(([key, message]) => [key, [message].flat().join("; ")])),
+	errors: () =>
+		Object.fromEntries(
+			Object.entries(errors.current()).map(([key, message]) => [
+				key,
+				[message].flat().join("; "),
+			])
+		),
 };
 
 const editLayoutRoute = useEditLayoutRoute(meta);
