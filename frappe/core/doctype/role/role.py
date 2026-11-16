@@ -4,6 +4,7 @@
 import frappe
 from frappe.core.page.permission_manager.permission_manager import get_permissions
 from frappe.model.document import Document
+from frappe.permissions import setup_custom_perms
 from frappe.website.path_resolver import validate_path
 from frappe.website.router import clear_routing_cache
 
@@ -98,6 +99,7 @@ class Role(Document):
 
 		perms = get_permissions(role=cur_role)
 		for perm in perms:
+			setup_custom_perms(perm.parent)
 			perm.update(
 				{
 					"name": None,
