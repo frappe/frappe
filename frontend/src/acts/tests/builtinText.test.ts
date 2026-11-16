@@ -112,7 +112,6 @@ function bulk(): ActItem[] {
 }
 
 const BUILT: Record<string, () => ActItem[]> = {
-  record: () => [postCommentItem(async () => "")],
   shell,
   header,
   quickActions,
@@ -128,7 +127,7 @@ const BUILT: Record<string, () => ActItem[]> = {
   danger: () => dangerItems(editorHost),
   layouts: () => layoutItems(editorHost),
   // The entries read their host only when an act runs.
-  record: () => recordEntries({} as any).map((entry) => entry.item),
+  record: () => [postCommentItem(async () => ""), ...recordEntries({} as any).map((entry) => entry.item)],
 };
 
 describe("the built-in acts' text", () => {

@@ -17,7 +17,6 @@ const SIDECARS: Record<string, () => Promise<{ default: Sidecar }>> = {
 	customize: () => import("./text/customize"),
 	danger: () => import("./text/danger"),
 	layouts: () => import("./text/layouts"),
-	record: () => import("./text/record"),
 };
 
 const loaded = new Map<string, Sidecar>();

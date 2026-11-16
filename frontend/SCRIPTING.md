@@ -317,7 +317,8 @@ The record page also has the `record` surface, with no palette rows. `record.pos
 takes `{ content }`, plain text: it is escaped, each line is a paragraph, and the comment is
 posted as the writer's Send posts it (the pending row shows and `onPost` fires, no
 mentions or attachments). It returns `{ comment }`, the comment's name, and leaves the
-composer's draft as it is. A record dialog and a new record have no such act.
+composer's draft as it is. Only the record page has this act: a record dialog and a new record have the
+acts that fill the form, below.
 
 `page.run` also runs the shell's acts, which outlive the page and are named `shell.<item>`.
 Each menu entry in the rail and the avatar menu is one of them: `shell.all_apps`,
