@@ -283,9 +283,11 @@ export class ActDispatcher {
 	}
 
 	private async execute(name: string, value: unknown, quiet: boolean, by?: ActCall): Promise<unknown> {
+		// Read before the check can wait: the caller's mark is gone once it does.
+		const starter = by ? (by.agent ? "agent" : "person") : agentAsk.by ?? "person";
 		const checked = this.check(name, value, true);
 		const { scope, item } = checked instanceof Promise ? await checked : checked;
-		const held = scope.hold(() => startedBy(by ? (by.agent ? "agent" : "person") : agentAsk.by ?? "person", () => item.run!(scope.context(), value, by)));
+		const held = scope.hold(() => startedBy(starter, () => item.run!(scope.context(), value, by)));
 		return quiet ? held.catch(ignoreDeclined) : held;
 	}
 
@@ -394,11 +396,7 @@ function ignoreDeclined(error: unknown) {
 
 let readDialogs: () => ActDialog[] = () => [];
 
-/**
- * `note()` is the line a confirm shows while an agent's call is in flight, "" for a person's; `window.desk` sets it.
- * `by` is who started the act whose `run` is executing right now: a confirm that opens in that synchronous part is theirs.
- * An act that runs another inherits it.
- */
+/** `window.desk` sets `note`; `by` marks who started the act whose `run` is executing, an act it runs inherits it. */
 export const agentAsk = { note: () => "", by: null as "agent" | "person" | null };
 
 function startedBy<T>(by: "agent" | "person", work: () => T): T {

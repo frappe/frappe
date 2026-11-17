@@ -224,6 +224,31 @@ describe("which run a confirm belongs to", () => {
 		await person;
 	});
 
+	it("keeps the agent as the starter of a nested run that waits for its surface to load", async () => {
+		const loaded = gate();
+		let ready = false;
+		const surfaces = {
+			test: () => [{ item: { name: "outer", run: () => acts.run("late.submit") }, hidden: false }],
+			late: () => (ready ? [{ item: { name: "submit", run: () => confirmThen(true) }, hidden: false }] : []),
+		};
+		release = acts.register({
+			surfaces,
+			context: () => null,
+			passes: () => true,
+			settled: () => undefined,
+			loading: (name: string) => (name === "late.submit" && !ready ? loaded.done.then(() => void (ready = true)) : undefined),
+			hold: async (work: () => unknown) => work(),
+			failed: () => {},
+		} as unknown as ActScope);
+
+		const agent = run("test.outer");
+		loaded.open();
+		const result = (await agent) as any;
+
+		expect(result.error).toMatchObject({ code: "waiting_for_user", dialog: { title: "Submit?" } });
+		await answer(true);
+	});
+
 	it("gives a confirm to the newest run and leaves an older pending run pending", async () => {
 		const form = gate();
 		register({ form: () => form.done, submit: () => confirmThen(true) });
