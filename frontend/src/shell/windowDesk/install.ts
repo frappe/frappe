@@ -1,7 +1,5 @@
 // `window.desk`: the frozen facade an agent drives the tab through. It is a layer of wrappers; each member loads its code on first call.
 import type { AppContext } from "vue";
-import type { RealtimeSocket } from "@framework/ui/socket";
-import type { Boot } from "@/boot";
 import type { ActResult } from "@/acts/dispatcher";
 import type { ListedAct } from "./actList";
 import type { DeskState, StateOptions } from "./pageState";
@@ -28,12 +26,12 @@ declare global {
 const runs = () => import("./runs");
 const list = () => import("./actList");
 const state = () => import("./pageState");
-const startRelay = (socket: RealtimeSocket) => import("./relay").then((m) => m.startRelay(socket), () => {});
 
 /** Sets `window.desk` once; a second call changes nothing. With the person's opt-in, the tab also answers the UI relay. */
 export function installDesk(app?: AppContext) {
 	if (window.desk) return;
-	if ((app?.provides.boot as Boot | undefined)?.agent_ui_relay) void startRelay(app!.config.globalProperties.$socket);
+	// A separate chunk, loaded only for a person who turned the setting on.
+	if (app?.provides.boot.agent_ui_relay) import("./relay").then((m) => m.startRelay(app.config.globalProperties.$socket));
 	const desk: DeskApi = Object.freeze({
 		version: 1,
 		acts: Object.freeze({
