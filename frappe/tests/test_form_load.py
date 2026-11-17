@@ -57,6 +57,7 @@ class TestFormLoad(IntegrationTestCase):
 
 		# this will be ignored because user does not
 		# have write access on `published` field (or on permlevel 1 fields)
+		blog_doc = frappe.get_doc(blog_doc.as_dict())
 		blog_doc.published = 1
 		blog_doc.save()
 
@@ -78,6 +79,7 @@ class TestFormLoad(IntegrationTestCase):
 
 		# this will be ignored because user does not
 		# have write access on `published` field (or on permlevel 1 fields)
+		blog_doc = frappe.get_doc(blog_doc.as_dict())
 		blog_doc.published = 1
 		blog_doc.save()
 

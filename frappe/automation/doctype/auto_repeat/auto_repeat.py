@@ -690,8 +690,7 @@ def update_reference(docname: str, reference: str):
 def generate_message_preview(name: str):
 	frappe.has_permission("Auto Repeat", "write", throw=True)
 	auto_repeat = frappe.get_doc("Auto Repeat", str(name))
-	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
-	doc.check_permission()
+	doc = frappe.read_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	subject_preview = _("Please add a subject to your email")
 	msg_preview = auto_repeat.get_message_without_print(doc)
 	if not msg_preview:

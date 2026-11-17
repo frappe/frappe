@@ -87,7 +87,7 @@ def _add(
 			"allocated_to": assign_to,
 		}
 		if not ignore_permissions:
-			frappe.get_doc(args["doctype"], args["name"]).check_permission()
+			frappe.read_doc(args["doctype"], args["name"])
 
 		if validate_assignees:
 			frappe.share.validate_user_access(assign_to, _("Allocated To"))
@@ -242,7 +242,7 @@ def set_status(doctype, name, todo=None, assign_to=None, status="Cancelled", ign
 	"""remove from todo"""
 
 	if not ignore_permissions:
-		frappe.get_doc(doctype, name).check_permission()
+		frappe.read_doc(doctype, name)
 	try:
 		if not todo:
 			todo = frappe.db.get_value(

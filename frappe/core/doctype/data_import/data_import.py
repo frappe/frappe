@@ -252,8 +252,7 @@ class DataImport(Document):
 def get_preview_from_template(
 	data_import: str, import_file: str | None = None, google_sheets_url: str | None = None
 ):
-	di: DataImport = frappe.get_doc("Data Import", data_import)
-	di.check_permission("read")
+	di: DataImport = frappe.read_doc("Data Import", data_import)
 	return di.get_preview_from_template(import_file, google_sheets_url)
 
 
@@ -407,22 +406,19 @@ def get_export_count(
 
 @frappe.whitelist()
 def download_errored_template(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
-	data_import.check_permission("read")
+	data_import: DataImport = frappe.read_doc("Data Import", data_import_name)
 	data_import.export_errored_rows()
 
 
 @frappe.whitelist()
 def download_skipped_rows(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
-	data_import.check_permission("read")
+	data_import: DataImport = frappe.read_doc("Data Import", data_import_name)
 	data_import.export_skipped_rows()
 
 
 @frappe.whitelist()
 def download_import_log(data_import_name: str):
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
-	data_import.check_permission("read")
+	data_import: DataImport = frappe.read_doc("Data Import", data_import_name)
 	data_import.download_import_log()
 
 
@@ -430,8 +426,7 @@ def download_import_log(data_import_name: str):
 def get_import_status(data_import_name: str):
 	from frappe.core.doctype.data_import.importer import ACTION_INSERT, ACTION_UPDATE
 
-	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
-	data_import.check_permission("read")
+	data_import: DataImport = frappe.read_doc("Data Import", data_import_name)
 
 	import_status = {
 		"status": data_import.status,
@@ -475,8 +470,7 @@ def get_import_status(data_import_name: str):
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
 def get_import_log_count(data_import: str):
-	doc = frappe.get_doc("Data Import", data_import)
-	doc.check_permission("read")
+	frappe.read_doc("Data Import", data_import)
 
 	return frappe.db.count("Data Import Log", {"data_import": data_import})
 
@@ -484,8 +478,7 @@ def get_import_log_count(data_import: str):
 @frappe.whitelist()
 def get_import_logs(data_import: str, status: str | None = None):
 	"""Up to 1000 log rows; ``status`` is "all" (default), "success" or "failed"."""
-	doc = frappe.get_doc("Data Import", data_import)
-	doc.check_permission("read")
+	frappe.read_doc("Data Import", data_import)
 
 	filters: dict[str, Any] = {"data_import": data_import}
 	status_key = (status or "all").lower()
