@@ -47,7 +47,19 @@ export default {
 		description: "Open the DocType editor in Design mode for this record's DocType. Leaves this page. Developer mode only.",
 	},
 	edit_layout: {
-		description: "Open the DocType editor at the layout this record shows. Leaves this page.",
+		description: "Open the DocType editor at the layout this new record shows. Leaves this page. Present only on a new record.",
+	},
+	edit_layout_details: {
+		description: "Open the DocType editor at the Details layout this record shows. Leaves this page.",
+	},
+	edit_layout_side_panel: {
+		description: "Open the DocType editor at the side panel layout this record shows. Leaves this page.",
+	},
+	edit_layout_quick_entry: {
+		description: "Open the DocType editor at the DocType's Quick entry layout. Leaves this page.",
+	},
+	edit_layout_new_record: {
+		description: "Open the DocType editor at the DocType's New record layout, or at Details when New record has none of its own. Leaves this page.",
 	},
 	submit: {
 		description:

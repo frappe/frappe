@@ -96,8 +96,9 @@ export function headerMenuBuiltins(
   );
   if (options.duplicate)
     items.push({ name: "duplicate", label: "Duplicate", icon: "lucide-copy", group: "copies", run: duplicate });
-  for (const entry of options.editorEntries ?? []) items.push(editorItem(entry));
-  if (options.editLayout) items.push(...editLayoutMenu(options.editLayout));
+  const customize = [...(options.editorEntries ?? []).map(editorItem), ...(options.editLayout ? editLayoutMenu(options.editLayout) : [])];
+  // Declared, so the Edit layout dropdown nests in `⋯`; under an undeclared band it would be a header button.
+  if (customize.length) items.push({ name: "customize", label: "", display: "section" }, ...customize);
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single && !options.submitted)
     items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: async (page: RecordPageApi) => (await import("./deleteRun")).remove(page) });

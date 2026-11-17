@@ -495,8 +495,9 @@ function headerBuiltins(): HeaderItem[] {
 							"side-panel",
 							panelLayout.value?.editorRow.value
 						),
-						quickEntry: editLayoutRoute("quick-entry"),
-						newRecord: editLayoutRoute("new-record"),
+						// A Single has no create layouts; the editor would open Details instead.
+						quickEntry: single ? null : editLayoutRoute("quick-entry"),
+						newRecord: single ? null : editLayoutRoute("new-record"),
 					},
 				}
 			),

@@ -209,8 +209,8 @@ describe("a manager on a saved record", () => {
 });
 
 describe("a person without the right", () => {
-  it("gets neither entry, and the page reads exactly what a manager's does", async () => {
-    const { root } = await mount();
+  it("gets no Edit layout, and the page reads exactly what a manager's does", async () => {
+    await mount();
     const reads = [...fetched].sort();
     expect(acts.find("header.edit_layout_details")).toBeUndefined();
 
