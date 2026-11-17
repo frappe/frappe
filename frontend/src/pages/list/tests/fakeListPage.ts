@@ -51,6 +51,7 @@ export function useListPage(
     sort: ref([]),
     seeded: computed(() => seeded.value),
     modified: computed(() => false),
+    saveable: computed(() => true),
     update: vi.fn(),
     customized: () => false,
     reset: async () => {},
@@ -73,6 +74,9 @@ export function useListPage(
     saveForSite: async () => {},
     resetForSite: async () => {},
     createValues: computed(() => fake.createValues),
+    snapshot: () => ({}),
+    commit: vi.fn(),
+    discard: vi.fn(),
   };
 }
 

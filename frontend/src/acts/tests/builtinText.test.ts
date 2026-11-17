@@ -85,6 +85,9 @@ function list(): ActItem[] {
     editorEntries: () => editorEntries("ToDo", { roles: ["System Manager"], developerMode: true, meta: { name: "ToDo" } as any }),
     starsLoaded: () => true,
     favourited: () => false,
+    viewLayer: () => "own",
+    viewSaveable: () => true,
+    writeView: noop,
   };
   const keys = bulkKeyEntries({
     selection: ref([]),

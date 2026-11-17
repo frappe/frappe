@@ -18,6 +18,7 @@ import { isModular } from "./routeFor";
 import { landingOf } from "@/navigation/landing";
 import { flushPendingRecordDialog } from "@/shell/recordDialog";
 import { recordDialogAnswer } from "./recordDialogGuard";
+import { clearSkip, consumeSkip } from "./skipDefault";
 import NotFound from "@/shell/NotFound.vue";
 
 const RECORD_ROUTES = new Set(["record", "standard-record"]);
@@ -49,7 +50,10 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		],
 	});
 
-	router.afterEach((to, _from, failure) => flushPendingRecordDialog(to.fullPath, !!failure));
+	router.afterEach((to, _from, failure) => {
+		clearSkip();
+		flushPendingRecordDialog(to.fullPath, !!failure);
+	});
 
 	// Canonicalise the doctype segment to its slug, never away from it: the slug is the address.
 	router.beforeResolve((to, from) => {
@@ -88,8 +92,9 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 			if (dialog !== undefined) return dialog;
 
 			// Like a landing: a query states its own list, and the bare address never enters history.
+			// A query change on the list the person is already on is the page's own, never a new visit.
 			const view = boot.default_views?.[doctype];
-			if (view && to.name === "list" && !Object.keys(to.query).length)
+			if (view && to.name === "list" && !Object.keys(to.query).length && !consumeSkip(doctype) && from.path !== to.path)
 				return { path: `${to.path.replace(/\/$/, "")}/view/${view}`, hash: to.hash };
 			if (VIEW_ROUTES.has(String(to.name))) preloadRenderer(boot, String(to.params.key ?? "list"));
 			return true;

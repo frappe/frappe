@@ -8,6 +8,7 @@ import { registerContributions, registerStandardPages } from "@/contributions/re
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
+import { skipDefaultOnce } from "@/router/skipDefault";
 
 registerContributions(["frappe"]);
 registerStandardPages(standardPages);
@@ -118,6 +119,42 @@ describe.each([
 
 		await router.push("/");
 
+		expect(router.currentRoute.value.path).toBe(`${prefix}/sales-invoice/view/open-invoices`);
+	});
+
+	// The switcher's plain view skips the default for that one visit.
+	it("opens the plain list once when the switcher skipped the default, and the default again after", async () => {
+		const router = routerFor({ "Sales Invoice": "open-invoices" });
+
+		skipDefaultOnce("Sales Invoice");
+		await router.push(`${prefix}/sales-invoice`);
+		expect(router.currentRoute.value.name).toBe("list");
+		expect(router.currentRoute.value.fullPath).toBe(`${prefix}/sales-invoice`);
+
+		await router.push(`${prefix}/account`);
+		await router.push(`${prefix}/sales-invoice`);
+		expect(router.currentRoute.value.path).toBe(`${prefix}/sales-invoice/view/open-invoices`);
+	});
+
+	it("keeps the plain list when the page rewrites its own query, as a sort change does", async () => {
+		const router = routerFor({ "Sales Invoice": "open-invoices" });
+
+		skipDefaultOnce("Sales Invoice");
+		await router.push(`${prefix}/sales-invoice`);
+		await router.replace({ query: { _sort: "name,desc" } });
+		await router.replace({ query: {} });
+
+		expect(router.currentRoute.value.fullPath).toBe(`${prefix}/sales-invoice`);
+	});
+
+	it("does not carry the skip to another doctype's bare address, or past a visit", async () => {
+		const router = routerFor({ "Sales Invoice": "open-invoices", Account: "mine" });
+
+		skipDefaultOnce("Sales Invoice");
+		await router.push(`${prefix}/account`);
+		expect(router.currentRoute.value.path).toBe(`${prefix}/account/view/mine`);
+
+		await router.push(`${prefix}/sales-invoice`);
 		expect(router.currentRoute.value.path).toBe(`${prefix}/sales-invoice/view/open-invoices`);
 	});
 });

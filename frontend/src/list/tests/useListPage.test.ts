@@ -15,6 +15,8 @@ const fake = vi.hoisted(() => ({
 	bulkDelete: vi.fn(),
 	runMethod: vi.fn(),
 	columnItems: null as { name: string; fields?: string[] }[] | null,
+	// What a saved view's settings read answers.
+	saved: { settings: {}, saveable: true } as { settings: Record<string, unknown>; saveable: boolean },
 }));
 
 vi.mock("@framework/ui/api", async (original) => ({
@@ -96,6 +98,7 @@ async function mount(path: string) {
 		history: createWebHistory("/"),
 		routes: [
 			{ path: "/:doctype", name: "list", component: { render: () => null } },
+			{ path: "/:doctype/view/:key", name: "saved-view", component: { render: () => null } },
 			{ path: "/:doctype/:name", name: "record", component: { render: () => null } },
 		],
 	});
@@ -134,6 +137,7 @@ async function settle() {
 
 /** A settings call answers the tiers, a write patched in. */
 function answer(method: string, args: Record<string, any>) {
+	if (method.endsWith(".view_settings")) return Promise.resolve({ data: { ...fake.saved, key: args.key } });
 	if (method.endsWith(".save")) {
 		const row = (fake.tiers[args.scope as "site" | "user"] ?? {}) as Record<string, unknown>;
 		fake.tiers = { ...fake.tiers, [args.scope]: { ...row, ...args.settings } };
@@ -147,7 +151,7 @@ function answer(method: string, args: Record<string, any>) {
 }
 
 function writes() {
-	return fake.runMethod.mock.calls.filter(([method]) => method.startsWith(SETTINGS_API) && !method.endsWith(".get"));
+	return fake.runMethod.mock.calls.filter(([method]) => method.startsWith(SETTINGS_API) && !/\.(get|view_settings)$/.test(method));
 }
 
 /** A changed query waits out the typing debounce before it builds a list. */
@@ -178,6 +182,7 @@ beforeEach(() => {
 	opened = undefined;
 	fake.lists = [];
 	fake.tiers = { site: null, user: null };
+	fake.saved = { settings: {}, saveable: true };
 	fake.listDocuments.mockReset().mockImplementation(fakeList);
 	fake.runMethod.mockReset().mockImplementation(answer);
 	fake.countDocuments.mockReset().mockResolvedValue({ data: 1234 });
@@ -257,7 +262,7 @@ describe("Track Seen", () => {
 describe("the view", () => {
 	it("is the view opened, with the stored settings, the page's changes on top and the URL's filters and sort", async () => {
 		opened = { key: "board", label: "Board", type: "Kanban", layer: "own", applies: true };
-		fake.tiers = { site: null, user: { sort: [{ fieldname: "title", direction: "asc" }], lane: "status" } };
+		fake.saved = { settings: { sort: [{ fieldname: "title", direction: "asc" }], lane: "status" }, saveable: true };
 		await mount("/lead?status=Open&_sort=amount%20desc");
 		const { view } = page;
 
@@ -958,5 +963,128 @@ describe("filtersFit", () => {
 	it("is false when two conditions share a field, as the dict keeps one", () => {
 		expect(filtersFit([on("status", "equals", "Open"), on("priority", "equals", "High")])).toBe(true);
 		expect(filtersFit([on("amount", ">=", 5), on("amount", "<=", 9)])).toBe(false);
+	});
+});
+
+describe("a saved view", () => {
+	const SAVED_SORT = [{ fieldname: "title", direction: "asc" }];
+
+	async function openSaved(settings: Record<string, unknown> = {}, saveable = true) {
+		opened = { key: "mine", label: "Mine", type: "List", layer: "own", applies: true };
+		fake.saved = { settings: { sort: SAVED_SORT, filters: [["status", "=", "Open"]], ...settings }, saveable };
+		fake.tiers = { site: null, user: { sort: [{ fieldname: "amount", direction: "desc" }] } };
+		await mount("/lead/view/mine");
+	}
+
+	it("reads its own settings, not the plain view's, and starts unmodified", async () => {
+		await openSaved();
+		expect(page.view.sort.value).toEqual(SAVED_SORT);
+		expect(page.view.filters.value[0]).toMatchObject({ fieldname: "status", value: "Open" });
+		expect(page.view.modified.value).toBe(false);
+		expect(fake.runMethod).toHaveBeenCalledWith(
+			`${SETTINGS_API}.view_settings`,
+			{ doctype: "Lead", key: "mine" },
+			expect.objectContaining({ http: "GET" })
+		);
+	});
+
+	it("resets columns to the default as a change to save, not back to the view's own columns", async () => {
+		await openSaved({ columns: [{ fieldname: "title" }] });
+		expect(page.view.modified.value).toBe(false);
+
+		await page.view.reset("columns");
+		expect(page.view.settings.value.columns).toEqual([]);
+		expect(page.view.modified.value).toBe(true);
+		expect(writes()).toEqual([]);
+
+		page.discard();
+		expect(page.view.settings.value.columns).toEqual([{ fieldname: "title" }]);
+	});
+
+	it("resets a key the view never stored to nothing changed", async () => {
+		await openSaved();
+		await page.view.reset("columns");
+		expect(page.view.modified.value).toBe(false);
+	});
+
+	it("is modified by a page change against the view, and writes nothing to the plain view's row", async () => {
+		await openSaved();
+		page.view.sort.value = [{ fieldname: "amount", direction: "desc" }];
+		await settle();
+		expect(page.view.modified.value).toBe(true);
+		expect(writes()).toEqual([]);
+
+		page.view.update({ columns: [{ fieldname: "title" }] });
+		expect(page.view.settings.value).toMatchObject({ columns: [{ fieldname: "title" }] });
+		expect(writes()).toEqual([]);
+	});
+
+	it("snapshots the page as the view's settings, without the plain view's quick filter fields", async () => {
+		await openSaved({ columns: [{ fieldname: "title" }], quick_filter_fields: ["status"] });
+		page.view.sort.value = [{ fieldname: "amount", direction: "desc" }];
+		await settle();
+		expect(page.snapshot()).toEqual({
+			columns: [{ fieldname: "title" }],
+			filters: [["status", "=", "Open"]],
+			sort: [{ fieldname: "amount", direction: "desc" }],
+		});
+	});
+
+	it("discards every change: filters, sort, settings and the URL go back to the view's", async () => {
+		await openSaved();
+		page.view.sort.value = [{ fieldname: "amount", direction: "desc" }];
+		page.view.filters.value = [];
+		page.view.update({ columns: [{ fieldname: "title" }] });
+		await settle();
+		expect(router.currentRoute.value.query).not.toEqual({});
+
+		page.discard();
+		await settle();
+		expect(page.view.modified.value).toBe(false);
+		expect(page.view.sort.value).toEqual(SAVED_SORT);
+		expect(page.view.filters.value[0]).toMatchObject({ fieldname: "status", value: "Open" });
+		expect(page.view.settings.value.columns).toBeUndefined();
+		expect(router.currentRoute.value.query).toEqual({});
+	});
+
+	it("takes the settings a save wrote as its base: unmodified again, the URL clear", async () => {
+		await openSaved();
+		page.view.sort.value = [{ fieldname: "amount", direction: "desc" }];
+		await settle();
+		const written = page.snapshot();
+
+		page.commit(written);
+		await settle();
+		expect(page.view.modified.value).toBe(false);
+		expect(page.view.sort.value).toEqual([{ fieldname: "amount", direction: "desc" }]);
+		expect(router.currentRoute.value.query).toEqual({});
+	});
+
+	it("says whether the person can save it", async () => {
+		await openSaved({}, false);
+		expect(page.view.saveable.value).toBe(false);
+	});
+
+	it("is always saveable as the type's plain view", async () => {
+		await mount("/lead");
+		expect(page.view.saveable.value).toBe(true);
+	});
+
+	it("shows a failed read as the page's error, and a retry reads again", async () => {
+		opened = { key: "mine", label: "Mine", type: "List", layer: "own", applies: true };
+		let failing = true;
+		fake.runMethod.mockImplementation((method: string, args: Record<string, any>) =>
+			failing && method.endsWith(".view_settings") ? Promise.reject(new Error("offline")) : answer(method, args)
+		);
+		await mount("/lead/view/mine");
+		expect(page.metaError.value).toBeInstanceOf(Error);
+		expect(page.view.seeded.value).toBe(false);
+
+		failing = false;
+		fake.saved = { settings: { sort: SAVED_SORT }, saveable: true };
+		page.reloadMeta();
+		await settle();
+		expect(page.metaError.value).toBeNull();
+		expect(page.view.seeded.value).toBe(true);
 	});
 });

@@ -2,7 +2,7 @@
 // A renderer's acts join as `<type>.<act>`, so List's own land on `list` too.
 import { toast } from "frappe-ui";
 import { onScopeDispose, shallowRef } from "vue";
-import { acts, passesRight, passesWhen, type ActEntry, type AvailableAct } from "@/acts/dispatcher";
+import { acts, passesRight, passesWhen, type ActCall, type ActEntry, type AvailableAct } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { ListPageController, ListRendererState } from "@/listPage/createListPage";
 import type { ListPermissions } from "@/listPage/listPermissions";
@@ -13,6 +13,7 @@ import type { ListSchema } from "./listStateRuns";
 import type { HeaderItem } from "@/pageEngine/types";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { headerEntries } from "@/recordPage/pageActs";
+import type { ViewLayer } from "@/list/savedView";
 import { typeKey } from "@/list/view";
 import type { EditorEntry } from "@/pages/doctypeEditor/entries/editorEntries";
 
@@ -37,6 +38,11 @@ export interface ListActsHost {
   /** Points one layer's default at the view `key`, a view type's name for its plain view. */
   setDefaultView: (key: string, scope: DefaultScope) => unknown;
   clearDefaultView: (scope: DefaultScope) => unknown;
+  /** The open view's layer, null for a type's plain view, and whether this person can save it. */
+  viewLayer: () => ViewLayer | null;
+  viewSaveable: () => boolean;
+  /** Runs a saved-view write act by name; the runs load on first use. */
+  writeView: (name: string, value: unknown, agent?: boolean) => Promise<unknown>;
 }
 
 export interface ListActs {
@@ -166,6 +172,7 @@ export function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] 
       hidden: host.customizing(),
     },
     ...stateEntries(host),
+    ...viewWriteEntries(host),
     ...host.editorEntries().map((entry) => ({
       item: { name: entry.name, label: __(entry.label), icon: entry.icon, run: () => host.openEditor(entry) },
       hidden: false,
@@ -188,6 +195,31 @@ function stateEntries(host: ListActsHost): ActEntry[] {
       run: async (_context: unknown, value: unknown) => (await import("./listStateRuns")).RUNS[name](host.list, listSchema(host), value),
     },
     hidden: false,
+  }));
+}
+
+/** The acts that keep, rename, delete and share the doctype's saved views; their runs load on first use. */
+function viewWriteEntries(host: ListActsHost): ActEntry[] {
+  const plain = host.viewLayer() === null;
+  const hidden: Record<string, boolean> = { save_view: plain || !host.viewSaveable(), discard_changes: plain };
+  const labels = {
+    save_view: __("Save View"),
+    save_view_as: __("Save View As"),
+    discard_changes: __("Discard Changes"),
+    rename_view: __("Rename View"),
+    delete_view: __("Delete View"),
+    publish_view: __("Publish View"),
+  };
+  return Object.entries(labels).map(([name, label]) => ({
+    item: {
+      name,
+      label,
+      palette: false,
+      // An agent's delete asks first; a person's control asks before it runs the act.
+      ...(name === "delete_view" ? { asks: ["danger" as const] } : {}),
+      run: (_context: unknown, value: unknown, call?: ActCall) => host.writeView(name, value, call?.agent),
+    },
+    hidden: hidden[name] ?? false,
   }));
 }
 

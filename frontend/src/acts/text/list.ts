@@ -70,7 +70,7 @@ export default {
 		output: loadedRows,
 	},
 	set_columns: {
-		description: "Replace the columns the list shows, in this order. An empty list restores the default columns. A label you send is ignored: a column shows its field's own label. Returns the columns now shown.",
+		description: "Replace the columns the list shows, in this order. An empty list restores the default columns (on a saved view that is a change you keep with list.save_view, and list.discard_changes brings the view's own columns back). A label you send is ignored: a column shows its field's own label. Returns the columns now shown.",
 		input: {
 			type: "object",
 			properties: {
@@ -156,6 +156,69 @@ export default {
 	clear_default_view: {
 		description: "Remove the list's default view, so it opens with the standard one.",
 		input: { type: "object", properties: { scope }, required: ["scope"], additionalProperties: false },
+	},
+	save_view: {
+		description: "Write the filters, the sort and the columns now on the page to the saved view that is open, and clear the page's changes. Not available on a view type's plain view, which keeps its changes as you make them (use save_view_as), nor on a view everyone shares unless the person is a site administrator.",
+		output: { type: "object", properties: { key: { type: "string", description: "The saved view's key." } } },
+	},
+	save_view_as: {
+		description: "Keep what the page shows now as a new view of the person's own, then open it. Its key comes from the label and never changes after.",
+		input: {
+			type: "object",
+			properties: { label: { type: "string", minLength: 1, description: "The new view's name, as the switcher shows it." } },
+			required: ["label"],
+			additionalProperties: false,
+		},
+		output: {
+			type: "object",
+			properties: { key: { type: "string", description: "The new view's key." }, label: { type: "string" } },
+		},
+	},
+	discard_changes: {
+		description: "Drop the page's changes to the saved view that is open: the filters, the sort and the columns go back to what the view stores. Not available on a view type's plain view.",
+		output: { type: "object", properties: { key: { type: "string" } } },
+	},
+	rename_view: {
+		description: "Change a saved view's name. Its key, and so its address, stays. Only the person's own views, or a shared view as a site administrator; an app's view is renamed in its file.",
+		input: {
+			type: "object",
+			properties: { key: { type: "string", minLength: 1, description: "The view's key." }, label: { type: "string", minLength: 1, description: "The new name." } },
+			required: ["key", "label"],
+			additionalProperties: false,
+		},
+		output: {
+			type: "object",
+			properties: { key: { type: "string" }, label: { type: "string" } },
+		},
+	},
+	delete_view: {
+		description: "Delete a saved view, along with the person's star and default that point at it. A site's view that replaced an app's view at the same key goes, and the app's view shows again. Only the person's own views, or a shared view as a site administrator; an app's view is deleted by removing its file. Leaves the page when it is the open view. A call from `window.desk` asks the person to confirm first.",
+		input: {
+			type: "object",
+			properties: { key: { type: "string", minLength: 1, description: "The view's key." } },
+			required: ["key"],
+			additionalProperties: false,
+		},
+		output: {
+			type: "object",
+			properties: {
+				key: { type: "string" },
+				restored: { type: "boolean", description: "True when an app's view answers at the key again." },
+			},
+		},
+	},
+	publish_view: {
+		description: "Move the person's own view to the site, so everyone sees it under the same key. Site administrators only.",
+		input: {
+			type: "object",
+			properties: { key: { type: "string", minLength: 1, description: "The key of one of the person's own views." } },
+			required: ["key"],
+			additionalProperties: false,
+		},
+		output: {
+			type: "object",
+			properties: { key: { type: "string" }, layer: { type: "string", enum: ["site"] } },
+		},
 	},
 	customize_quick_filter: {
 		description: "Open the editor for the quick filters shown above the list.",

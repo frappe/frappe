@@ -11,7 +11,7 @@ vi.mock("@framework/ui/api", async (original) => ({
 
 import type { Session } from "@framework/ui/api";
 import { setSession } from "@framework/ui/useSession";
-import { resetSavedViews, useSavedView, type SavedView } from "../savedView";
+import { refreshSavedViews, resetSavedViews, useSavedView, type SavedView } from "../savedView";
 
 const NOTES: SavedView = { key: "notes", label: "Notes", type: "Cards", layer: "app", applies: true };
 
@@ -109,6 +109,33 @@ describe("useSavedView on a return visit", () => {
 		expect(second.view.value).toBeNull();
 		expect(second.failure.value).toBe(refusal);
 
+		expect(visit("FCRM Note", "notes").view.value).toBeNull();
+	});
+});
+
+describe("refreshSavedViews", () => {
+	it("looks each open view up again and keeps the view it has until the new answer lands", async () => {
+		const answer = holdLookups();
+		const open = visit("FCRM Note", "notes");
+		await answer(NOTES);
+
+		refreshSavedViews();
+		await nextTick();
+		expect(runMethod).toHaveBeenCalledTimes(2);
+		expect(open.view.value).toEqual(NOTES);
+
+		const published = { ...NOTES, layer: "site" as const };
+		await answer(published);
+		expect(open.view.value).toEqual(published);
+	});
+
+	it("forgets the remembered answers, so a later visit does not paint a stale layer", async () => {
+		const answer = holdLookups();
+		visit("FCRM Note", "notes");
+		await answer(NOTES);
+		scopes.pop()!.stop();
+
+		refreshSavedViews();
 		expect(visit("FCRM Note", "notes").view.value).toBeNull();
 	});
 });

@@ -128,12 +128,14 @@ import type { HeaderItem } from "@/pageEngine/types";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { isModular, routeFor, routeForModule } from "@/router/routeFor";
+import { skipDefaultOnce } from "@/router/skipDefault";
 import { editorEntries, editorRoute } from "@/pages/doctypeEditor/entries/editorEntries";
 import { openCreate } from "@/shell/create";
 import type { ListPage } from "@/list/useListPage";
 import { createListPage } from "@/listPage/createListPage";
 import { useListPermissions } from "@/listPage/listPermissions";
-import { isFavourite, useListSettings } from "@/list/useListSettings";
+import { refreshSavedViews } from "@/list/savedView";
+import { forgetFavouriteView, isFavourite, useListSettings } from "@/list/useListSettings";
 import BodyColumns from "@/pages/record/body/BodyColumns.vue";
 import FrameBands from "@/pages/record/FrameBands.vue";
 import RecordHeader from "@/pages/record/RecordHeader.vue";
@@ -222,6 +224,13 @@ useLiveClientScripts({
 	refresh: () => list.engine.refresh(),
 });
 
+// The plain List view is the bare address; the switcher's open skips the person's default for this visit only.
+function openView(key: string) {
+	if (key !== "list") return router.push(routeFor(doctype, null, { view: key }));
+	skipDefaultOnce(doctype);
+	return router.push(routeFor(doctype));
+}
+
 const listActs = useListActs(
 	{
 		list,
@@ -243,9 +252,24 @@ const listActs = useListActs(
 		starsLoaded,
 		favourited: () => favourited.value,
 		toggleFavourite: () => settings.toggleFavourite(starKey),
-		openView: (key) => router.push(routeFor(doctype, null, { view: key })),
+		openView,
 		setDefaultView: (key, scope) => setDefaultView(boot, doctype, key, scope),
 		clearDefaultView: (scope) => clearDefaultView(boot, doctype, scope),
+		viewLayer: () => view.layer,
+		viewSaveable: () => view.saveable.value,
+		writeView: async (name, value, agent) =>
+			(await import("./viewWriteRuns")).RUNS[name](
+				{
+					page: props.page,
+					boot,
+					router,
+					dialog: list.engine.page.dialog,
+					refreshViews: refreshSavedViews,
+					forgetStar: (key) => forgetFavouriteView(doctype, key),
+				},
+				value,
+				agent
+			),
 	},
 	view.type
 );

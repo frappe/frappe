@@ -21,6 +21,8 @@ export interface View {
 	filters: Ref<FilterCondition[]>;
 	/** With the URL query applied; written back to it. Never empty once seeded. */
 	sort: Ref<Sort[]>;
+	/** Whether this person can save the view as it is: their own, a plain view, or a shared view as a site administrator. */
+	saveable: ComputedRef<boolean>;
 	/** True once meta, the stored settings and the URL are read into the state above. */
 	seeded: ComputedRef<boolean>;
 	/** True while a filter or a sort in the query, or a settings change not yet stored, sits on the view. */
