@@ -2,14 +2,15 @@
 # License: MIT. See LICENSE
 
 import time
+from unittest.mock import patch
 
 from werkzeug.wrappers import Response
 
 import frappe
 import frappe.rate_limiter
-from frappe.rate_limiter import RateLimiter
+from frappe.rate_limiter import RateLimiter, rate_limit
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import cint
+from frappe.utils import cint, set_request
 
 
 class TestRateLimiter(FrappeTestCase):
@@ -117,3 +118,33 @@ class TestRateLimiter(FrappeTestCase):
 		time.sleep(1.1)
 		self.assertFalse(frappe.cache.exists(limiter.key, shared=True))
 		frappe.cache.delete(limiter.key)
+
+
+@rate_limit(limit=2, seconds=60)
+def _limited_a():
+	return "a"
+
+
+class TestRateLimitDecorator(FrappeTestCase):
+	def setUp(self):
+		request, request_ip, user = (
+			getattr(frappe.local, "request", None),
+			getattr(frappe.local, "request_ip", None),
+			getattr(frappe.session, "user", None),
+		)
+		self.addCleanup(setattr, frappe.local, "request", request)
+		self.addCleanup(setattr, frappe.local, "request_ip", request_ip)
+		self.addCleanup(frappe.set_user, user or "Administrator")
+		self.addCleanup(frappe.cache.delete_keys, "rl:")
+		self.addCleanup(frappe.form_dict.pop, "cmd", None)
+
+		set_request(method="GET", path="/api/method/ping")
+		frappe.local.request_ip = "127.0.0.1"
+
+	def test_counter_is_not_reset_by_concurrent_first_requests(self):
+		frappe.form_dict.cmd = None
+		# every request reads the counter as missing, as when they all start together
+		with patch.object(frappe.cache, "get", return_value=None):
+			_limited_a()
+			_limited_a()
+			self.assertRaises(frappe.RateLimitExceededError, _limited_a)
