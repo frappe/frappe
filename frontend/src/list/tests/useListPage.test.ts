@@ -474,6 +474,27 @@ describe("the tiers", () => {
 			expect(page.view.modified.value).toBe(false);
 		});
 
+		it("resets after a filter save still in flight when the filters go back to the shared ones", async () => {
+			fake.tiers = { app: { filters: [["status", "=", "Open"]] }, site: null, user: null };
+			await mount("/lead");
+			await settle();
+			let release = () => {};
+			fake.runMethod.mockImplementation((method: string, args: Record<string, any>) =>
+				method.endsWith(".save")
+					? new Promise((done) => (release = () => done(answer(method, args))))
+					: answer(method, args)
+			);
+			filterClosed();
+			await settle();
+			void useListSettings("Lead").flush();
+			page.filters.value = [{ fieldname: "status", operator: "equals", value: "Open" } as never];
+			await settle();
+			release();
+			await settle();
+			expect(writes().map(([method]) => method)).toEqual([`${SETTINGS_API}.save`, `${SETTINGS_API}.reset`]);
+			expect(fake.tiers.user ?? {}).not.toHaveProperty("filters");
+		});
+
 		it("does not write what the URL or a row set", async () => {
 			fake.tiers = { site: null, user: { filters: CLOSED } };
 			await mount("/lead?status=Open");

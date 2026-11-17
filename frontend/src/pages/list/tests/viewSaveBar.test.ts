@@ -48,7 +48,7 @@ describe("the save bar", () => {
 	it("shows for a saved view with changes: the label, then Discard, Save as new and Save", async () => {
 		const { root } = mount(setup("own"));
 		await nextTick();
-		expect(bar(root)?.textContent).toContain("Unsaved changes to");
+		expect(bar(root)?.textContent).toMatch(/Unsaved changes to Mine/);
 		expect(bar(root)?.textContent).toContain("Mine");
 		expect(buttons(root)).toEqual(["Discard", "Save as new", "Save"]);
 	});

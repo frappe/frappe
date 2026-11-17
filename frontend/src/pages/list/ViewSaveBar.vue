@@ -1,12 +1,9 @@
-<!--
-  The floating bar over the last rows while a saved view has changes: Discard, Save as new and Save.
-  It floats where the bulk bar does, in its look, and gives way to it while rows are selected.
--->
+<!-- The floating bar over the last rows while a saved view has changes. -->
 <template>
 	<div v-if="view.layer" class="relative h-0 shrink-0">
 		<!-- Always mounted: a live region that appears with its text is not announced. -->
 		<span class="sr-only" role="status">{{
-			open ? `${__("Unsaved changes to")} ${host.view().label}` : ""
+			open ? __("Unsaved changes to {0}", [host.view().label]) : ""
 		}}</span>
 		<div
 			v-if="open"
@@ -33,8 +30,9 @@
 						aria-hidden="true"
 					/>
 					<span class="truncate text-ink-gray-7" :title="host.view().label">
-						{{ __("Unsaved changes to") }}
-						<span class="font-medium text-ink-gray-9">{{ host.view().label }}</span>
+						{{ sentence[0]
+						}}<span class="font-medium text-ink-gray-9">{{ host.view().label }}</span
+						>{{ sentence[1] }}
 					</span>
 					<div
 						class="me-1 ms-3 h-4 shrink-0 border-s border-outline-gray-2"
@@ -101,6 +99,9 @@ const props = defineProps<{
 }>();
 
 const open = computed(() => props.host.view().modified && !props.yielding);
+// The whole sentence is translated; the view's name, set in medium weight, goes where the translation puts it.
+const NAME_MARK = "\u0000";
+const sentence = computed(() => __("Unsaved changes to {0}", [NAME_MARK]).split(NAME_MARK));
 const saving = ref(false);
 const asking = ref(false);
 const asked = ref(0);

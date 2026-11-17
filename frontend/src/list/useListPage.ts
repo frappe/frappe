@@ -230,6 +230,8 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 	}
 
 	// The plain view's filters stick for the person: their row holds them, or nothing when they match the shared ones.
+	// `wrote` covers a save still in flight, which `has` cannot see yet.
+	let wrote = false;
 	function persistFilters(value: FilterCondition[]) {
 		if (saved || !seeded.value) return;
 		const wire = wireOf(value);
@@ -237,8 +239,13 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 		if (applied.filters === json) return;
 		applied.filters = json;
 		acted.add("filters");
-		if (!sameFilters(value, baseFilters())) settings.save({ filters: wire });
-		else if (settings.has("user", "filters")) void settings.reset("filters");
+		if (!sameFilters(value, baseFilters())) {
+			wrote = true;
+			settings.save({ filters: wire });
+		} else if (wrote || settings.has("user", "filters")) {
+			wrote = false;
+			void settings.reset("filters");
+		}
 	}
 
 	const viewSettings = computed(() => ({ ...stored.value, ...changed.value }));
