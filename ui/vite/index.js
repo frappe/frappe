@@ -44,10 +44,30 @@ function resolveOwnDependencies() {
 		},
 		// Unenforced, so vite resolves first and this only sees what the walk up
 		// from this package's realpath missed. Bare specifiers only.
-		resolveId(source, importer) {
+		async resolveId(source, importer) {
 			if (!importer?.startsWith(packageRoot)) return null;
 			if (/^[./]/.test(source)) return null;
-			return this.resolve(source, hostImporter);
+			const resolved = await this.resolve(source, hostImporter);
+			if (resolved || !(source in OPTIONAL_PEERS)) return resolved;
+			return OPTIONAL_PREFIX + source;
+		},
+		load(id) {
+			if (id.startsWith(OPTIONAL_PREFIX))
+				return OPTIONAL_PEERS[id.slice(OPTIONAL_PREFIX.length)];
+			return null;
 		},
 	};
 }
+
+// A peer that only the desk's own pages need. An app built on develop never installed it, and
+// an unresolved import fails its whole build, so the app gets this stand-in; the code that
+// imports it handles the missing value.
+export const OPTIONAL_PREFIX = "\0framework-ui-optional:";
+// lang-vue has a value the code checks for. lang-javascript has none to offer: its stand-in
+// throws when evaluated, as frappe-ui's own language stubs do, and the editor's grammar loader
+// catches that and leaves the field as plain text.
+export const OPTIONAL_PEERS = {
+	"@codemirror/lang-vue": "export const vueLanguage = undefined;",
+	"@codemirror/lang-javascript":
+		"export const javascriptLanguage = undefined;\nthrow new Error(\"Cannot find module '@codemirror/lang-javascript'\");",
+};

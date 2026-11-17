@@ -141,6 +141,22 @@ describe("a Text Editor row", () => {
 		expect(commit.commit).not.toHaveBeenCalled();
 		expect(root.querySelector("[data-control]")).toBeNull();
 	});
+
+	it("cancels with Esc when the host's channel has no discard", async () => {
+		const { root, update, commit } = mount(notes, { notes: "<p>x</p>" });
+		delete (commit as { discard?: unknown }).discard;
+		row(root, "notes").click();
+		await nextTick();
+		const control = root.querySelector<HTMLTextAreaElement>("[data-control]")!;
+		control.value = "<p>y</p>";
+		control.dispatchEvent(new Event("input"));
+
+		control.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+		await nextTick();
+
+		expect(update).toHaveBeenLastCalledWith("notes", "<p>x</p>");
+		expect(root.querySelector("[data-control]")).toBeNull();
+	});
 });
 
 describe.each(["Text Editor", "Markdown Editor"])("a %s row with an error", (fieldtype) => {

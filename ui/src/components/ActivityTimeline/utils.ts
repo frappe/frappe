@@ -107,8 +107,25 @@ const COLOR_PROPS = new Set([
   "border-color",
 ]);
 
-/** Strip color-related inline styles + bgcolor/color attrs so iframe CSS controls colors. */
-export function stripEmailColors(doc: Document): void {
+/**
+ * Strip color-related inline styles + bgcolor/color attrs so iframe CSS controls colors.
+ * Edits a parsed document in place. The `(html: string) => string` form is deprecated, kept
+ * for apps built on develop; it parses into an inert `<template>`, never the live page.
+ */
+export function stripEmailColors(doc: Document): void;
+/** @deprecated Pass a parsed `Document`; this form returns the stripped markup. */
+export function stripEmailColors(html: string): string;
+export function stripEmailColors(input: Document | string): void | string {
+  // As on develop, an empty or missing string comes back as it came.
+  if (!input) return input as string;
+  if (typeof input !== "string") return stripColors(input);
+  const template = document.createElement("template");
+  template.innerHTML = input;
+  stripColors(template.content);
+  return template.innerHTML;
+}
+
+function stripColors(doc: ParentNode): void {
   doc.querySelectorAll("[style]").forEach((el) => {
     const filtered = (el.getAttribute("style") || "")
       .split(";")

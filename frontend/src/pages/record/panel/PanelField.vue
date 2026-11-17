@@ -290,7 +290,7 @@ function cancel() {
 	if (!editing.value) return;
 	keepFocus = true;
 	cancelled = true;
-	commit.discard(props.field.fieldname);
+	commit.discard?.(props.field.fieldname);
 	update(props.field.fieldname, opening);
 	editing.value = false;
 }
