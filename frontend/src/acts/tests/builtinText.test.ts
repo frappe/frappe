@@ -13,6 +13,7 @@ import { shellItems } from "@/shell/shellActs";
 import { headerMenuBuiltins, quickActionBuiltins } from "@/pages/record/builtinActions";
 import { docstatusItems } from "@/pages/record/docstatusActs";
 import { amendItem } from "@/pages/record/amendAct";
+import { editLayoutItem } from "@/pages/record/editLayoutItem";
 import { postCommentItem } from "@/recordPage/commentAct";
 import { recordTabBuiltins } from "@/pages/record/tabs/recordTabs";
 import { editorEntries } from "@/pages/doctypeEditor/entries/editorEntries";
@@ -55,7 +56,7 @@ function header(): ActItem[] {
       rename: true,
       duplicate: true,
       editorEntries: editorEntries("ToDo", rights),
-      editLayout: { path: "/layout" },
+      editLayout: { details: "/layout", sidePanel: "/layout", quickEntry: "/layout", newRecord: "/layout" },
     }
   );
   const meta: any = { is_submittable: 1 };
@@ -64,7 +65,8 @@ function header(): ActItem[] {
   );
   // `favourite` and `save` are drawn in pages/Record.vue; `new` and `favourite` in pages/list/listHeader.ts.
   const own = ["favourite", "save", "new"].map((name) => ({ name, run: noop }));
-  return [...menu, ...status, amendItem(null), ...own] as ActItem[];
+  // The new record page's single Edit layout row, in pages/record/UnsavedRecord.vue.
+  return [...menu, ...status, amendItem(null), editLayoutItem("/layout"), ...own] as ActItem[];
 }
 
 function quickActions(): ActItem[] {

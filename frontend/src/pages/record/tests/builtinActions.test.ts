@@ -13,6 +13,8 @@ const { deleteDocument, searchDocuments } = vi.hoisted(() => ({
 vi.mock("@framework/ui/api", () => ({ deleteDocument, searchDocuments }));
 
 import { ActDeclined } from "@/acts/dispatcher";
+import { projectHeader } from "@/pageEngine/headerRenderings";
+import { editorEntries } from "@/pages/doctypeEditor/entries/editorEntries";
 import { headerMenuBuiltins, quickActionBuiltins, type FavouriteState, type FollowState } from "../builtinActions";
 import { FILES_TAB, recordTabBuiltins } from "../tabs/recordTabs";
 import { assignOptions, type AssignState } from "../assignAct";
@@ -184,22 +186,61 @@ describe("quickActionBuiltins", () => {
     expect(rows[3]).toMatchObject({ label: "Duplicate", icon: "lucide-copy" });
   });
 
-  it("offers Edit layout in the editor's band before Delete only when handed its route, and opens it", () => {
+  it("offers Edit layout as a submenu of the four layouts in the editor's band, only when handed their routes", () => {
     expect(menu({ delete: 1 }).map((item) => item.name)).not.toContain("edit_layout");
-    const route = { name: "doctype-editor", query: { layout: "details", row: "FL-1" } };
-    const rows = headerMenuBuiltins({ delete: 1 }, off, { editLayout: route });
-    expect(rows.map((item) => [item.name, item.group])).toEqual([
-      ["favourite_row", "favourite_band"],
-      ["copy_url", "copies"],
-      ["copy_id", "copies"],
-      ["edit_layout", "customize"],
-      ["delete", "danger"],
+    const route = (layout: string) => ({ name: "doctype-editor", query: { layout } });
+    const editLayout = {
+      details: route("details"),
+      sidePanel: route("side-panel"),
+      quickEntry: route("quick-entry"),
+      newRecord: route("new-record"),
+    };
+    const rows = headerMenuBuiltins({ delete: 1 }, off, { editLayout });
+    expect(rows.slice(1).map((item) => [item.name, item.group, item.label])).toEqual([
+      ["copy_url", "copies", "Copy record URL"],
+      ["copy_id", "copies", "Copy record ID"],
+      ["customize", undefined, ""],
+      ["edit_layout", "customize", "Edit layout"],
+      ["edit_layout_details", "edit_layout", "Details"],
+      ["edit_layout_side_panel", "edit_layout", "Side panel"],
+      ["edit_layout_quick_entry", "edit_layout", "Quick entry"],
+      ["edit_layout_new_record", "edit_layout", "New record"],
+      ["delete", "danger", "Delete"],
     ]);
-    expect(rows[3]).toMatchObject({ label: "Edit layout", icon: "lucide-layout-template" });
-    expect(rows[3].display).toBeUndefined();
+    expect(rows[3]).toMatchObject({ display: "section" });
+    expect(rows[4]).toMatchObject({ display: "dropdown", icon: "lucide-layout-template" });
+    expect(rows[4].run).toBeUndefined();
+    expect(rows.slice(5, 9).every((row) => row.palette === false)).toBe(true);
     const page = fakePage(null);
-    rows[3].run!(page);
-    expect(page.router.push).toHaveBeenCalledWith(route);
+    rows[6].run!(page);
+    expect(page.router.push).toHaveBeenCalledWith(route("side-panel"));
+  });
+
+  it("leaves out a layout the editor cannot open, and the whole submenu when it opens none", () => {
+    const routes = { details: "/editor", sidePanel: null, quickEntry: null, newRecord: null };
+    const some = headerMenuBuiltins({}, off, { editLayout: routes });
+    expect(some.filter((item) => item.name.startsWith("edit_layout")).map((item) => item.name)).toEqual([
+      "edit_layout",
+      "edit_layout_details",
+    ]);
+    const none = headerMenuBuiltins({}, off, { editLayout: { ...routes, details: null } });
+    expect(none.map((item) => item.name)).not.toContain("edit_layout");
+    expect(none.map((item) => item.name)).not.toContain("customize");
+  });
+
+  it("projects Edit layout as a submenu in ⋯'s editor band, beside the editor entries, never as a header button", () => {
+    const route = (layout: string) => ({ name: "doctype-editor", query: { layout } });
+    const editLayout = { details: route("details"), sidePanel: route("side-panel"), quickEntry: null, newRecord: null };
+    const entries = editorEntries("ToDo", { roles: ["System Manager"], developerMode: false, meta: { name: "ToDo" } as any });
+    const save = { name: "save", label: "Save", display: "button" as const, run: () => {} };
+    const items = [save, ...headerMenuBuiltins({ delete: 1 }, off, { editorEntries: entries, editLayout })];
+    const projection = projectHeader(items.map((item) => ({ item, source: "builtin", hidden: false })), 3);
+
+    expect(projection.controls.map((control) => control.item.name)).toEqual(["save"]);
+    const band = projection.bands.find((one) => one.group === "customize")!;
+    expect(band.label).toBe("");
+    expect(band.items.map((node) => node.item.name)).toEqual(["customize_form", "edit_layout"]);
+    expect(band.items[1].members.map((node) => node.item.label)).toEqual(["Details", "Side panel"]);
   });
 
   it("duplicates by opening the new record page on a copy of this record", async () => {

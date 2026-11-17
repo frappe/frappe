@@ -1,4 +1,4 @@
-// A saved record's "Edit layout" row and "Edit panel" link: the layout the record shows, for a manager only, with no request of their own.
+// A saved record's "Edit layout" submenu: each layout, at the one the record shows, for a manager only, with no request of their own.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView, type Router } from "vue-router";
@@ -141,9 +141,6 @@ async function mount(): Promise<{ root: HTMLElement; router: Router }> {
   return { root, router };
 }
 
-const editPanel = (root: HTMLElement) =>
-  [...root.querySelectorAll("a")].find((one) => one.textContent?.trim() === "Edit panel");
-
 describe("a manager on a saved record", () => {
   beforeEach(() => (session.roles = ["System Manager"]));
 
@@ -151,7 +148,7 @@ describe("a manager on a saved record", () => {
     const { router } = await mount();
     const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
 
-    await acts.run("header.edit_layout");
+    await acts.run("header.edit_layout_details");
 
     const query = { mode: "customize", layout: "details", row: "FL-1" };
     expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Salutation" }, query });
@@ -163,36 +160,59 @@ describe("a manager on a saved record", () => {
     const { router } = await mount();
     const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
 
-    await acts.run("header.edit_layout");
+    await acts.run("header.edit_layout_details");
 
     const query = { mode: "customize", layout: "details", row: "FL-2" };
     expect(push).toHaveBeenCalledWith(expect.objectContaining({ query }));
   });
 
-  it("links the panel to the editor's side panel", async () => {
+  it("opens the editor's default side panel", async () => {
     vip = 0;
-    const { root, router } = await mount();
+    const { router } = await mount();
+    const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
+
+    await acts.run("header.edit_layout_side_panel");
 
     const query = { mode: "customize", layout: "side-panel" };
-    const editor = router.resolve({ name: "doctype-editor", params: { name: "Salutation" }, query });
-    expect(editPanel(root)?.getAttribute("href")).toBe(editor.href);
+    expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Salutation" }, query });
   });
 
-  it("links the panel to the conditional side panel layout the record shows", async () => {
-    const { root, router } = await mount();
+  it("opens the conditional side panel layout the record shows", async () => {
+    const { router } = await mount();
+    const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
+
+    await acts.run("header.edit_layout_side_panel");
 
     const query = { mode: "customize", layout: "side-panel", row: "FL-3" };
-    const editor = router.resolve({ name: "doctype-editor", params: { name: "Salutation" }, query });
-    expect(editPanel(root)?.getAttribute("href")).toBe(editor.href);
+    expect(push).toHaveBeenCalledWith({ name: "doctype-editor", params: { name: "Salutation" }, query });
+  });
+
+  it("opens Quick entry and New record at their default, New record marked for the editor's Details fallback", async () => {
+    const { router } = await mount();
+    const push = vi.spyOn(router, "push").mockResolvedValue(undefined);
+
+    await acts.run("header.edit_layout_quick_entry");
+    await acts.run("header.edit_layout_new_record");
+
+    const at = (query: object) => ({ name: "doctype-editor", params: { name: "Salutation" }, query });
+    expect(push).toHaveBeenNthCalledWith(1, at({ mode: "customize", layout: "quick-entry" }));
+    expect(push).toHaveBeenNthCalledWith(2, at({ mode: "customize", layout: "new-record", from: "new-record" }));
+  });
+
+  it("keeps the layouts out of the palette and draws no Edit panel link under the panel", async () => {
+    const { root } = await mount();
+
+    const listed = acts.listed().map((act) => act.name);
+    expect(listed.filter((name) => name.startsWith("header.edit_layout"))).toEqual([]);
+    expect(root.textContent).not.toContain("Edit panel");
   });
 });
 
 describe("a person without the right", () => {
-  it("gets neither entry, and the page reads exactly what a manager's does", async () => {
-    const { root } = await mount();
+  it("gets no Edit layout, and the page reads exactly what a manager's does", async () => {
+    await mount();
     const reads = [...fetched].sort();
-    expect(acts.find("header.edit_layout")).toBeUndefined();
-    expect(editPanel(root)).toBeUndefined();
+    expect(acts.find("header.edit_layout_details")).toBeUndefined();
 
     for (const app of apps.splice(0)) app.unmount();
     resetDoctypeMeta();
@@ -202,7 +222,7 @@ describe("a person without the right", () => {
     session.roles = ["System Manager"];
     await mount();
 
-    expect(acts.find("header.edit_layout")).toBeDefined();
+    expect(acts.find("header.edit_layout_details")).toBeDefined();
     expect([...fetched].sort()).toEqual(reads);
   });
 });
