@@ -28,6 +28,8 @@ export interface ListProps {
   cellClass?: (row: ListRowData, column: ListColumn) => string;
   /** Draws one more cell at the end of each row, filled by the `rowMenu` slot. */
   rowMenu?: boolean;
+  /** Set as `data-act` on each sortable header: the name of the host's act that a header click equals. */
+  sortAct?: string;
 }
 
 /** A drag-resize result: the column and the fixed width it now has. */

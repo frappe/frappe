@@ -35,7 +35,11 @@
 						:class="[pageGutter, { invisible: !list.engine.ready.value }]"
 						class="flex shrink-0 items-start justify-between gap-2 pt-3.5"
 					>
-						<div class="flex min-w-0 flex-1 flex-col">
+						<!-- These controls edit the state `list.set_filters` and `list.set_sort` set, so `data-act` names the act: the control itself runs it. -->
+						<div
+							class="flex min-w-0 flex-1 flex-col"
+							:data-act="customizing ? undefined : 'list.set_filters'"
+						>
 							<QuickFilter
 								v-if="shown.has('quick_filter')"
 								v-model:filters="filters"
@@ -46,13 +50,17 @@
 						</div>
 						<div v-if="!customizing" class="flex shrink-0 items-center gap-2">
 							<template v-for="item in rowControls" :key="item.name">
-								<Filter
+								<div
 									v-if="item.name === 'filter'"
-									v-model="filters"
-									:doctype="doctype"
-								/>
+									class="contents"
+									data-act="list.set_filters"
+								>
+									<Filter v-model="filters" :doctype="doctype" />
+								</div>
 								<template v-else-if="item.name === 'sort'">
-									<SortBy v-if="seeded" v-model="sort" :doctype="doctype" />
+									<div v-if="seeded" class="contents" data-act="list.set_sort">
+										<SortBy v-model="sort" :doctype="doctype" />
+									</div>
 									<!-- Sized to the default sort: a direction button joined to its field's label. -->
 									<Skeleton
 										v-else

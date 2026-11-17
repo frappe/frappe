@@ -28,6 +28,7 @@
 				:icon="hideLabel ? 'lucide-arrow-up-down' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-arrow-up-down' : undefined"
 				aria-label="Sort"
+				data-view
 			/>
 		</template>
 	</Combobox>
@@ -42,6 +43,7 @@
 					:label="'Sort'"
 					:icon="hideLabel ? 'lucide-arrow-up-down' : undefined"
 					:iconLeft="!hideLabel ? 'lucide-arrow-up-down' : undefined"
+					data-view
 				>
 					<template #suffix>
 						<div
@@ -62,6 +64,7 @@
 						:label="firstSortLabel"
 						class="relative shrink-0 rounded-l-none [&_svg]:text-ink-gray-5 focus-visible:z-10"
 						:iconRight="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
+						data-view
 					/>
 				</template>
 			</div>

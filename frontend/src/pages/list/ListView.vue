@@ -23,6 +23,7 @@
 		:loading="loading"
 		:rowLink="rowLink"
 		:rowMenu="rowActions.length > 0"
+		sortAct="list.set_sort"
 		:cellClass="(row, column) => seenClassOf(row, column.fieldname)"
 		gutter="var(--page-gutter)"
 		:bottomInset="selection.length ? BULK_CLEARANCE : undefined"
