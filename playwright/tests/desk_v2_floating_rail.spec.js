@@ -3,6 +3,7 @@
 import { test, expect, ADMIN_PASSWORD, TEST_USER } from "../support";
 import { Api } from "../support/api";
 import { site_url } from "../support/config";
+import { use_plain_rail } from "../support/plain_rail";
 
 const APP = "frappe";
 const SAVE = "frappe.shell.arrangement.save_navigation_layout";
@@ -71,6 +72,8 @@ test.describe("Desk v2 floating rail", () => {
 	test("carries the app menu and the avatar itself on a page with no sidebar", async ({
 		page,
 	}) => {
+		// Rows that open no sidebar: the shipped rail's sidebars may come to hold this page.
+		await use_plain_rail(api, [["plain1", "Plain", "/apps/desk/note"]]);
 		await page.goto("/apps/desk/todo");
 		const box = page.locator("[data-floating-rail]");
 		await expect(box).toHaveAttribute("data-open", "false");

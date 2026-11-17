@@ -23,6 +23,7 @@
 		]"
 		:aria-label="label"
 		:aria-expanded="open"
+		:data-act="act"
 		@click="emit('toggle')"
 	>
 		<span
@@ -37,7 +38,7 @@
 import { onUnmounted } from "vue";
 import { navSide } from "./navigationSide";
 
-const props = defineProps<{ open: boolean; label: string }>();
+const props = defineProps<{ open: boolean; label: string; act: string }>();
 const emit = defineEmits<{ toggle: [] }>();
 
 const onRight = () => navSide() === "right";

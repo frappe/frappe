@@ -2,6 +2,7 @@
 import { test, expect, ADMIN_PASSWORD, TEST_USER } from "../support";
 import { Api } from "../support/api";
 import { site_url } from "../support/config";
+import { reset_plain_rail, use_plain_rail } from "../support/plain_rail";
 
 test.describe("Desk v2 phone navigation", () => {
 	test.use({ viewport: { width: 390, height: 844 } });
@@ -22,6 +23,7 @@ test.describe("Desk v2 phone navigation", () => {
 	});
 
 	test.afterAll(async () => {
+		await reset_plain_rail(api);
 		await api.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
 		await request.dispose();
 	});
@@ -41,6 +43,11 @@ test.describe("Desk v2 phone navigation", () => {
 	});
 
 	test("Menu opens a sheet of tiles and a tile that navigates closes it", async ({ page }) => {
+		// Tiles that are plain links: the shipped rail's tiles open sidebars instead.
+		await use_plain_rail(api, [
+			["plain1", "Plain one", "/apps/desk/note"],
+			["plain2", "Plain two", "/apps/desk/note"],
+		]);
 		await page.goto("/apps/desk/todo");
 		await page.locator("[data-phone-nav]").getByText("Menu").click();
 

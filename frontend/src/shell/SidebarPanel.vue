@@ -61,6 +61,7 @@
 						variant="ghost"
 						icon="lucide-settings-2"
 						:label="__('Customize this sidebar')"
+						data-act="shell.customize_sidebar"
 						@click="emit('customize')"
 					/>
 				</div>
@@ -92,6 +93,7 @@
 				v-if="toggle && !chrome"
 				:open="!collapsed"
 				:label="toggle.label!"
+				:act="toggle.name"
 				@toggle="acts.perform(toggle.name)"
 			/>
 		</div>
