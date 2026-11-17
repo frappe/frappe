@@ -583,3 +583,21 @@ def check_path_safety(base_path: str, requested_path: str) -> bool:
 		)
 		return False
 	return True
+
+
+def get_files_index() -> dict[str, list[dict]]:
+	"""Every stored File, storage v1 and v2, split by privacy. Lists rows whose bytes are not on disk too."""
+	rows = frappe.get_all(
+		"File",
+		filters={"is_folder": 0},
+		or_filters=[["file_url", "like", "/files/%"], ["file_url", "like", "/private/files/%"]],
+		fields=["file_name", "file_url", "file_size", "is_private", "blob"],
+		order_by="name",
+	)
+	index = {"files_index": [], "private_files_index": []}
+	for row in rows:
+		item = {"name": row.file_name, "file_url": row.file_url, "size": cint(row.file_size)}
+		if row.blob:
+			item["file_blob"] = row.blob
+		index["private_files_index" if row.is_private else "files_index"].append(item)
+	return index
