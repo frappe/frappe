@@ -124,6 +124,7 @@ export default class Section {
 		}
 
 		this.body.toggleClass("hide", hide);
+		this.description_wrapper && this.description_wrapper.toggleClass("hide", hide);
 		this.head && this.head.toggleClass("collapsed", hide);
 
 		this.set_icon(hide);
