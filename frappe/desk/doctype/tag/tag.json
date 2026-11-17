@@ -18,6 +18,7 @@
    "label": "Description"
   },
   {
+   "depends_on": "eval:cint(frappe.boot.sysdefaults.enable_desk_v2) || !!frappe.boot.versions.helpdesk",
    "fieldname": "color",
    "fieldtype": "Select",
    "label": "Color",
@@ -26,7 +27,7 @@
  ],
  "icon": "tag",
  "links": [],
- "modified": "2026-11-10 12:00:00.000000",
+ "modified": "2026-11-17 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Tag",

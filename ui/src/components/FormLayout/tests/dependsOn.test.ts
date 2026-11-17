@@ -77,4 +77,14 @@ describe("evaluateDependsOn", () => {
     expect(evaluateDependsOn("eval:cint(doc.value) === 0", { value: "abc" })).toBe(true);
     expect(evaluateDependsOn("eval:cint(doc.value, 5) === 5", { value: "" })).toBe(true);
   });
+
+  it("shows a field that gates on desk v1's boot, which v2 does not have", () => {
+    // v1 runs these with `frappe` in scope. In v2 it is undefined, the eval throws, the field shows.
+    for (const expression of [
+      "eval:cint(frappe.boot.sysdefaults.enable_desk_v2)",
+      "eval:cint(frappe.boot.sysdefaults.enable_desk_v2) || !!frappe.boot.versions.helpdesk",
+    ]) {
+      expect(evaluateDependsOn(expression, {})).toBe(true);
+    }
+  });
 });

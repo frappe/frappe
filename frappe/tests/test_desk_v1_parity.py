@@ -13,6 +13,7 @@ from unittest.mock import patch
 from werkzeug.datastructures import Headers
 
 import frappe
+from frappe.automation.doctype.automation_flow.automation_flow import WAIT_UNITS
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.assign_to import add as add_assignment
 from frappe.desk.form.load import getdoc
@@ -440,3 +441,57 @@ def make_user(email: str, *roles: str):
 			ignore_permissions=True
 		)
 	frappe.get_doc("User", email).add_roles(*roles)
+
+
+class TestSharedTextParity(IntegrationTestCase):
+	"""Static text and form fields that every site reads, with the switch off or on."""
+
+	COLUMNS_TEXT = (
+		"Number of columns for a field in a List View or a Grid (Total Columns should be less than 11)"
+	)
+	CUSTOMIZE_COLUMNS_TEXT = (
+		"Number of columns for a field in a Grid (Total Columns in a grid should be less than 11)"
+	)
+	V2_ONLY = "eval:cint(frappe.boot.sysdefaults.enable_desk_v2)"
+
+	def test_columns_description_is_the_one_v1_reads(self):
+		for doctype, expected in (
+			("DocField", self.COLUMNS_TEXT),
+			("Custom Field", self.COLUMNS_TEXT),
+			("Customize Form Field", self.CUSTOMIZE_COLUMNS_TEXT),
+		):
+			with self.subTest(doctype=doctype):
+				self.assertEqual(frappe.get_meta(doctype).get_field("columns").description, expected)
+
+	def test_automation_flow_errors_read_as_on_develop(self):
+		from frappe.automation.doctype.automation_flow.test_automation_flow import make_automation, set_field
+
+		cases = (
+			([{"step_type": "Wait", "params": "{}"}], "Wait steps require a duration value and unit"),
+			(
+				[{"step_type": "Wait", "params": '{"value": 5, "unit": "weeks"}'}],
+				"Row 1: Wait unit must be one of " + ", ".join(WAIT_UNITS),
+			),
+			(
+				[{**set_field("priority", "Low"), "target": "nobody"}],
+				"Row 1: unknown target alias nobody",
+			),
+		)
+		for actions, expected in cases:
+			with self.subTest(expected=expected), self.assertRaises(frappe.ValidationError) as caught:
+				make_automation(actions=actions).insert()
+			self.assertEqual(str(caught.exception), expected)
+
+	def test_v2_only_form_fields_hide_in_v1_and_show_in_v2(self):
+		for doctype, fieldname in (
+			("User", "navigation_side"),
+			("User", "agent_settings_section"),
+		):
+			with self.subTest(fieldname=fieldname):
+				self.assertEqual(frappe.get_meta(doctype).get_field(fieldname).depends_on, self.V2_ONLY)
+
+	def test_tag_color_shows_in_v1_only_where_helpdesk_added_it_on_develop(self):
+		self.assertEqual(
+			frappe.get_meta("Tag").get_field("color").depends_on,
+			self.V2_ONLY + " || !!frappe.boot.versions.helpdesk",
+		)
