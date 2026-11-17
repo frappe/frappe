@@ -231,7 +231,7 @@ def get_assignments(doc) -> list[dict]:
 
 
 @frappe.whitelist()
-def bulk_apply(doctype: str, docnames: str | list[str]):
+def bulk_apply(doctype: str, docnames: str | list[str]) -> bool:
 	docnames = frappe.parse_json(docnames)
 	background = len(docnames) > 5
 
@@ -245,6 +245,8 @@ def bulk_apply(doctype: str, docnames: str | list[str]):
 			)
 		else:
 			apply(doctype=doctype, name=name)
+
+	return background
 
 
 def reopen_closed_assignment(doc):

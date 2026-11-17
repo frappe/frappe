@@ -28,6 +28,7 @@
                     <thead>
                         <tr>
                             <th>{{ _("Package") }}</th>
+                            <th>{{ _("Version") }}</th>
                             <th>{{ _("Type") }}</th>
                             <th>{{ _("License") }}</th>
                             <th>{{ _("Authors / Maintainers") }}</th>
@@ -39,6 +40,7 @@
                             <td class="package">
                                 {{ package.name | e }}
                             </td>
+                            <td class="version">{{ (package.version or "") | e }}</td>
                             <td class="type">{{ package.type }}</td>
                             <td class="license">
                                 {{ package.license or "Unknown" }}

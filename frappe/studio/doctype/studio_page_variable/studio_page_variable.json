@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-02-01 16:22:48.811318",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "variable_name",
+  "variable_type",
+  "initial_value"
+ ],
+ "fields": [
+  {
+   "fieldname": "variable_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Variable Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "variable_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Variable Type",
+   "options": "String\nNumber\nBoolean\nObject"
+  },
+  {
+   "fieldname": "initial_value",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Initial Value",
+   "max_height": "150px"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-03-24 19:28:58.162778",
+ "modified_by": "Administrator",
+ "module": "Studio",
+ "name": "Studio Page Variable",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}
