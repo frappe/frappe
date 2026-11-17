@@ -1,12 +1,14 @@
 // The runs of the saved-view acts on `list`: save, save as, discard, rename, delete and publish; loaded on first use.
 import { runMethod } from "@framework/ui/api";
 import type { Router } from "vue-router";
-import { ActInvalid } from "@/acts/dispatcher";
+import { ActDeclined, ActInvalid } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { refreshSavedViews, type SavedView } from "@/list/savedView";
+import { forgetFavouriteView } from "@/list/useListSettings";
 import type { ListPage } from "@/list/useListPage";
 import { routeFor } from "@/router/routeFor";
 import { skipDefaultOnce } from "@/router/skipDefault";
+import { clearDefaultView } from "./defaultView";
 
 const API = "frappe.desk.doctype.doctype_view.api";
 
@@ -15,9 +17,12 @@ export interface ViewWriteHost {
   page: ListPage;
   boot: Boot;
   router: Router;
+  /** Asks the person to confirm a delete; false when they decline. */
+  confirmDelete: (key: string) => Promise<boolean>;
 }
 
-type Run = (host: ViewWriteHost, value: any) => Promise<unknown>;
+/** `agent` is true for a `window.desk` call, which asks before it deletes. */
+type Run = (host: ViewWriteHost, value: any, agent?: boolean) => Promise<unknown>;
 
 /** Writes the page's filters, sort and columns to the open saved view, a shared one as a site administrator. */
 async function saveView({ page }: ViewWriteHost) {
@@ -61,10 +66,18 @@ async function renameView({ page }: ViewWriteHost, { key, label }: { key: string
 }
 
 /** Deletes the view; an app's view of the same key answers again when a site row over it goes. */
-async function deleteView({ page, boot, router }: ViewWriteHost, { key }: { key: string }) {
+async function deleteView(
+  { page, boot, router, confirmDelete }: ViewWriteHost,
+  { key }: { key: string },
+  agent = false
+) {
   const { doctype } = page.view;
+  // A person's script skips the question, as the control that deletes asks it first; an agent's call asks here.
+  if (agent && !(await confirmDelete(key))) throw new ActDeclined("list.delete_view");
   const { restored } = await write<{ key: string; restored: boolean }>("delete_view", { doctype, key });
-  if (!restored && boot.default_views?.[doctype] === key) delete boot.default_views[doctype];
+  if (!restored) forgetFavouriteView(doctype, key);
+  // The server dropped the person's default at the key; a site or app default may answer in its place.
+  if (!restored && boot.default_views?.[doctype] === key) await clearDefaultView(boot, doctype, "user");
   if (key === page.view.key && !restored) {
     // The open view is gone: the plain list opens, not the person's default in its place.
     skipDefaultOnce(doctype);

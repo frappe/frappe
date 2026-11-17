@@ -92,8 +92,10 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 			if (dialog !== undefined) return dialog;
 
 			// Like a landing: a query states its own list, and the bare address never enters history.
+			// A query change on the list the person is already on is the page's own, never a new visit.
+			const inVisit = from.name === "list" && from.path === to.path;
 			const view = boot.default_views?.[doctype];
-			if (view && to.name === "list" && !Object.keys(to.query).length && !consumeSkip(doctype))
+			if (view && to.name === "list" && !Object.keys(to.query).length && !consumeSkip(doctype) && !inVisit)
 				return { path: `${to.path.replace(/\/$/, "")}/view/${view}`, hash: to.hash };
 			if (VIEW_ROUTES.has(String(to.name))) preloadRenderer(boot, String(to.params.key ?? "list"));
 			return true;

@@ -70,7 +70,7 @@ export default {
 		output: loadedRows,
 	},
 	set_columns: {
-		description: "Replace the columns the list shows, in this order. An empty list restores the default columns. A label you send is ignored: a column shows its field's own label. Returns the columns now shown.",
+		description: "Replace the columns the list shows, in this order. An empty list restores the default columns (on a saved view that is a change you keep with list.save_view, and list.discard_changes brings the view's own columns back). A label you send is ignored: a column shows its field's own label. Returns the columns now shown.",
 		input: {
 			type: "object",
 			properties: {
@@ -192,7 +192,7 @@ export default {
 		},
 	},
 	delete_view: {
-		description: "Delete a saved view, along with the person's star and default that point at it. A site's view that replaced an app's view at the same key goes, and the app's view shows again. Only the person's own views, or a shared view as a site administrator; an app's view is deleted by removing its file. Leaves the page when it is the open view.",
+		description: "Delete a saved view, along with the person's star and default that point at it. A site's view that replaced an app's view at the same key goes, and the app's view shows again. Only the person's own views, or a shared view as a site administrator; an app's view is deleted by removing its file. Leaves the page when it is the open view. A call from `window.desk` asks the person to confirm first.",
 		input: {
 			type: "object",
 			properties: { key: { type: "string", minLength: 1, description: "The view's key." } },

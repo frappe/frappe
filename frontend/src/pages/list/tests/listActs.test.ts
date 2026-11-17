@@ -867,7 +867,9 @@ describe("a renderer's acts", () => {
     const writes: unknown[][] = [];
     await mountActs("List", { writeView: async (...call: unknown[]) => void writes.push(call) });
     await acts.run("list.rename_view", { key: "mine", label: "Mine" });
-    expect(writes).toEqual([["rename_view", { key: "mine", label: "Mine" }]]);
+    expect(writes).toEqual([["rename_view", { key: "mine", label: "Mine" }, undefined]]);
+    await acts.call("list.rename_view", { key: "mine", label: "Mine" }, { agent: true });
+    expect(writes[1]).toEqual(["rename_view", { key: "mine", label: "Mine" }, true]);
     expect(
       acts.available().find((act) => act.name === "list.rename_view")?.palette,
     ).toBe(false);

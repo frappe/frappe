@@ -230,6 +230,16 @@ function openView(key: string) {
 	return router.push(routeFor(doctype));
 }
 
+const confirmDelete = async (key: string) =>
+	Boolean(
+		await list.engine.page.dialog.danger({
+			title: __("Delete view?"),
+			message: __("{0} is deleted for good, with its star and default.", [key]),
+			confirmLabel: __("Delete"),
+			cancelLabel: __("Keep"),
+		})
+	);
+
 const listActs = useListActs(
 	{
 		list,
@@ -256,10 +266,11 @@ const listActs = useListActs(
 		clearDefaultView: (scope) => clearDefaultView(boot, doctype, scope),
 		viewLayer: () => view.layer,
 		viewSaveable: () => view.saveable.value,
-		writeView: async (name, value) =>
+		writeView: async (name, value, agent) =>
 			(await import("./viewWriteRuns")).RUNS[name](
-				{ page: props.page, boot, router },
-				value
+				{ page: props.page, boot, router, confirmDelete },
+				value,
+				agent
 			),
 	},
 	view.type

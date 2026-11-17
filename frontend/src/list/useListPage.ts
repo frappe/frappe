@@ -268,7 +268,9 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 		customized: (key) => !saved && settings.has("user", key as ListSettingsKey),
 		reset: async (key) => {
 			if (!saved) return afterSettingsWrite(settings.reset(key as ListSettingsKey));
-			delete changed.value[key];
+			// No tier sits under a saved view: its reset is the default, kept as a change until Save.
+			if (stored.value[key as ListSettingsKey] === undefined) delete changed.value[key];
+			else changed.value = { ...changed.value, [key]: [] };
 		},
 	};
 

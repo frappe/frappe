@@ -205,6 +205,12 @@ function write(entry: Entry, send: () => Promise<unknown>, onFailure?: () => voi
 	return entry.queue;
 }
 
+/** After the server dropped a deleted view's stars: the cached stars stop naming it. */
+export function forgetFavouriteView(doctype: string, view: string): void {
+	const entry = entries.get(doctype);
+	if (entry?.favourites.value) markFavourite(entry, view, false);
+}
+
 /** Whether `view`, or the list itself when null, is starred. */
 export function isFavourite(favourites: ListFavourites | null, view: string | null): boolean {
 	if (!favourites) return false;

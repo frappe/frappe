@@ -988,6 +988,25 @@ describe("a saved view", () => {
 		);
 	});
 
+	it("resets columns to the default as a change to save, not back to the view's own columns", async () => {
+		await openSaved({ columns: [{ fieldname: "title" }] });
+		expect(page.view.modified.value).toBe(false);
+
+		await page.view.reset("columns");
+		expect(page.view.settings.value.columns).toEqual([]);
+		expect(page.view.modified.value).toBe(true);
+		expect(writes()).toEqual([]);
+
+		page.discard();
+		expect(page.view.settings.value.columns).toEqual([{ fieldname: "title" }]);
+	});
+
+	it("resets a key the view never stored to nothing changed", async () => {
+		await openSaved();
+		await page.view.reset("columns");
+		expect(page.view.modified.value).toBe(false);
+	});
+
 	it("is modified by a page change against the view, and writes nothing to the plain view's row", async () => {
 		await openSaved();
 		page.view.sort.value = [{ fieldname: "amount", direction: "desc" }];

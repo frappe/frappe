@@ -1,4 +1,4 @@
-// Ruling 12 of #45851: opening a type's plain view from the switcher skips the default for that one visit.
+// Opening a type's plain view from the switcher skips the default for that one visit.
 // The flag lives for one navigation; a reload or Back to the bare address meets the default again.
 let skipped: string | null = null;
 

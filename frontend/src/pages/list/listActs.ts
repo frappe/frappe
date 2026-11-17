@@ -2,7 +2,7 @@
 // A renderer's acts join as `<type>.<act>`, so List's own land on `list` too.
 import { toast } from "frappe-ui";
 import { onScopeDispose, shallowRef } from "vue";
-import { acts, passesRight, passesWhen, type ActEntry, type AvailableAct } from "@/acts/dispatcher";
+import { acts, passesRight, passesWhen, type ActCall, type ActEntry, type AvailableAct } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import type { ListPageController, ListRendererState } from "@/listPage/createListPage";
 import type { ListPermissions } from "@/listPage/listPermissions";
@@ -42,7 +42,7 @@ export interface ListActsHost {
   viewLayer: () => ViewLayer | null;
   viewSaveable: () => boolean;
   /** Runs a saved-view write act by name; the runs load on first use. */
-  writeView: (name: string, value: unknown) => Promise<unknown>;
+  writeView: (name: string, value: unknown, agent?: boolean) => Promise<unknown>;
 }
 
 export interface ListActs {
@@ -211,7 +211,14 @@ function viewWriteEntries(host: ListActsHost): ActEntry[] {
     publish_view: __("Publish View"),
   };
   return Object.entries(labels).map(([name, label]) => ({
-    item: { name, label, palette: false, run: (_context: unknown, value: unknown) => host.writeView(name, value) },
+    item: {
+      name,
+      label,
+      palette: false,
+      // An agent's delete asks first; a person's control asks before it runs the act.
+      ...(name === "delete_view" ? { asks: ["danger" as const] } : {}),
+      run: (_context: unknown, value: unknown, call?: ActCall) => host.writeView(name, value, call?.agent),
+    },
     hidden: hidden[name] ?? false,
   }));
 }
