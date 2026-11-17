@@ -499,6 +499,17 @@ app_license = "{app_license}"
 # before_app_uninstall = "{app_name}.utils.before_app_uninstall"
 # after_app_uninstall = "{app_name}.utils.after_app_uninstall"
 
+# Build
+# ------------------
+# To hook into the build process
+
+# after_build = "{app_name}.build.after_build"
+
+# To hook into the build process of other apps
+# The list of apps being built is passed as an argument
+
+# after_app_build = "{app_name}.build.after_app_build"
+
 # Desk Notifications
 # ------------------
 # See frappe.core.notifications.get_notification_config
@@ -734,7 +745,10 @@ jobs:
             ${{{{ runner.os }}}}-yarn-
 
       - name: Install MariaDB Client
-        run: sudo apt-get install mariadb-client-10.6
+        run: |
+          sudo apt-get install mariadb-client
+          # MariaDB 10.6 server has no TLS, but newer clients require it by default
+          printf "[client]\\nskip-ssl\\n" > ~/.my.cnf
 
       - name: Setup
         run: |

@@ -628,7 +628,7 @@ class TestInboundMail(FrappeTestCase):
 
 	def test_reference_document_by_record_name_in_subject(self):
 		# Create email queue record
-		todo = self.new_todo()
+		todo = self.new_todo(sender="test_sender@example.com")
 
 		mail_content = self.get_test_mail(fname="incoming-subject-placeholder.raw").replace(
 			"{{ subject }}", f"RE: (#{todo.name})"

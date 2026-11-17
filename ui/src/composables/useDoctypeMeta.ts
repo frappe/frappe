@@ -4,10 +4,20 @@ import { createResource, frappeRequest } from "frappe-ui";
 import type { RawMetaField } from "../components/FormLayout/types";
 import { memoizedState } from "../utils/sharedState";
 
+/** A DocPerm row as `getdoctype` returns it; booleans arrive as `0 | 1`. */
+export interface DocPermRow {
+  role: string;
+  permlevel?: number;
+  read?: 0 | 1;
+  write?: 0 | 1;
+  [right: string]: unknown;
+}
+
 export interface DoctypeMeta {
   name: string;
   title_field?: string;
   fields?: RawMetaField[];
+  permissions?: DocPermRow[];
 }
 
 interface GetDoctypeResponse {

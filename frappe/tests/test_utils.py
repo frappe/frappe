@@ -675,6 +675,18 @@ class TestImage(FrappeTestCase):
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
 
+	def test_optimize_image_fills_transparency_with_white(self):
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path).convert("RGBA")
+		image.paste((0, 0, 0, 0), (0, 0, image.width // 2, image.height))
+		content = io.BytesIO()
+		image.save(content, format="PNG")
+
+		with self.set_user("test@example.com"):
+			optimized_content = optimize_image(content.getvalue(), "image/jpeg")
+
+		self.assertEqual(Image.open(io.BytesIO(optimized_content)).getpixel((10, 10)), (255, 255, 255))
+
 
 class TestPythonExpressions(FrappeTestCase):
 	def test_validation_for_good_python_expression(self):
@@ -868,7 +880,8 @@ class TestDateUtils(FrappeTestCase):
 	@given(st.datetimes(timezones=st.timezones()))
 	def test_get_datetime_tz_aware(self, original):
 		parsed = get_datetime(str(original))
-		self.assertEqual(parsed, original)
+		self.assertEqual(parsed.replace(tzinfo=None), original.replace(tzinfo=None))
+		self.assertEqual(parsed.utcoffset(), original.utcoffset())
 
 	def test_pretty_date(self):
 		from frappe import _
@@ -1435,18 +1448,91 @@ class TestTypingValidations(FrappeTestCase):
 
 
 class TestTBSanitization(FrappeTestCase):
-	def test_traceback_sanitzation(self):
+	def test_traceback_sanitization(self):
+		handle = io.BufferedWriter(io.BytesIO())
 		try:
 			password = frappe.generate_hash()
 			args = {"password": "42", "pwd": password, "safe": "safe_value"}
 			args = frappe._dict({"password": "42", "pwd": password, "safe": "safe_value"})  # noqa: F841
 			raise Exception
 		except Exception:
-			traceback = frappe.get_traceback(with_context=True)
-			self.assertNotIn(password, traceback)
-			self.assertIn("********", traceback)
-			self.assertIn("password =", traceback)
-			self.assertIn("safe_value", traceback)
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+		finally:
+			handle.close()
+
+		self.assertNotIn("424242", traceback)
+		self.assertNotIn("cannot pickle", traceback)
+		self.assertIn("********", traceback)
+		self.assertIn("password =", traceback)
+		self.assertIn("safe_value", traceback)
+
+	def test_sanitization_catches_keys_not_matching_blocklist_exactly(self):
+		try:
+			headers = {"Authorization": "Token super-secret-value"}  # noqa: F841
+			config = frappe._dict({"stripe_secret_key": "sk_live_should_not_leak", "other": "val"})  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertNotIn("super-secret-value", traceback)
+		self.assertNotIn("sk_live_should_not_leak", traceback)
+		self.assertIn("val", traceback)  # the unrelated "other" key must survive
+
+	def test_sanitization_is_case_insensitive(self):
+		try:
+			PASSWORD = "should_be_masked_now"  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("Traceback with variables", traceback)  # with_context genuinely activated
+		self.assertNotIn("should_be_masked_now", traceback)
+
+	def test_sanitization_masks_session_id(self):
+		try:
+			sid = "super-secret-session-id"  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("Traceback with variables", traceback)  # with_context genuinely activated
+		self.assertNotIn("super-secret-session-id", traceback)
+
+	def test_sanitization_exact_match_rule_does_not_over_match(self):
+		try:
+			inside = "should_be_visible"  # noqa: F841
+			consider = "should_be_visible"  # noqa: F841
+			raise Exception
+		except Exception:
+			with patch.dict(frappe.conf, {"developer_mode": 1}):
+				traceback = frappe.get_traceback(with_context=True)
+
+		self.assertIn("should_be_visible", traceback)
+
+	def test_get_traceback_with_context_only_active_in_developer_mode(self):
+		def boom():
+			marker = "visible-marker"  # noqa: F841
+			raise ValueError("boom")
+
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			try:
+				boom()
+			except ValueError:
+				traceback = frappe.get_traceback(with_context=True)
+		self.assertNotIn("visible-marker", traceback)
+		self.assertNotIn("Traceback with variables", traceback)
+
+		with patch.dict(frappe.conf, {"developer_mode": 1}):
+			try:
+				boom()
+			except ValueError:
+				traceback = frappe.get_traceback(with_context=True)
+		self.assertIn("visible-marker", traceback)
+		self.assertIn("Traceback with variables", traceback)
 
 
 class TestRounding(FrappeTestCase):

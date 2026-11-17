@@ -1,5 +1,5 @@
 import type { RawMetaField } from "../FormLayout/types";
-import type { FilterField } from "./types";
+import type { FilterField, FilterFieldDeclaration } from "./types";
 
 /** Fieldtypes a doctype can be filtered on. A port of the `allowed_fieldtypes`
  *  whitelist in CRM's `crm.api.doc.get_filterable_fields`. */
@@ -43,7 +43,6 @@ const STANDARD_FIELDS: ReadonlyArray<
   },
   { fieldname: "_user_tags", fieldtype: "Data", label: "Tags" },
   { fieldname: "_liked_by", fieldtype: "Data", label: "Like" },
-  { fieldname: "_comments", fieldtype: "Text", label: "Comments" },
   { fieldname: "_assign", fieldtype: "Text", label: "Assigned To" },
   { fieldname: "creation", fieldtype: "Datetime", label: "Created On" },
   { fieldname: "modified", fieldtype: "Datetime", label: "Last Updated On" },
@@ -80,4 +79,18 @@ export function getFilterableFields(
   return [...standardFields, ...fields]
     .filter((f) => FILTERABLE_FIELDTYPES.has(f.fieldtype))
     .map(toFilterField);
+}
+
+/** Narrow the Meta-derived fields to the host's `fields` prop, in its order. A
+ *  name missing from Meta is dropped; a declaration is offered as given. */
+export function pickFilterFields(
+  available: FilterField[],
+  fields?: (string | FilterFieldDeclaration)[]
+): FilterField[] {
+  if (!fields) return available;
+  return fields.flatMap((field) => {
+    if (typeof field !== "string") return [{ ...field, value: field.fieldname }];
+    const found = available.find((f) => f.fieldname === field);
+    return found ? [found] : [];
+  });
 }

@@ -98,10 +98,15 @@ def extract_email_id(email: str) -> str:
 	return cstr(parse_addr(email)[1])
 
 
-def validate_phone_number_with_country_code(phone_number: str, fieldname: str) -> None:
+def validate_phone_number_with_country_code(
+	phone_number: str, fieldname: str | None = None, label: str | None = None
+) -> None:
 	from phonenumbers import NumberParseException, is_valid_number, parse
 
 	from frappe import _
+
+	if not (fieldname or label):
+		raise TypeError("validate_phone_number_with_country_code() requires a fieldname or label")
 
 	if not phone_number:
 		return
@@ -119,7 +124,7 @@ def validate_phone_number_with_country_code(phone_number: str, fieldname: str) -
 	finally:
 		if not valid_number:
 			frappe.throw(
-				error_message.format(frappe.bold(phone_number), frappe.bold(fieldname)),
+				error_message.format(frappe.bold(phone_number), frappe.bold(label or fieldname)),
 				title=error_title,
 				exc=frappe.InvalidPhoneNumberError,
 			)
@@ -249,6 +254,11 @@ def validate_url(
 	return is_valid
 
 
+def has_unsafe_url_scheme(txt: str) -> bool:
+	"""Return True if `txt` has a scheme that runs code when the URL is opened."""
+	return urlparse(txt).scheme in ("javascript", "vbscript", "data")
+
+
 def validate_iban(iban: str, throw: bool = False) -> bool:
 	from frappe import _
 
@@ -332,6 +342,9 @@ def get_traceback(with_context=False) -> str:
 	if not any([exc_type, exc_value, exc_tb]):
 		return ""
 
+	if with_context and not frappe.conf.developer_mode:
+		with_context = False
+
 	if with_context:
 		trace_list = iter_exc_lines(fmt=_get_traceback_sanitizer())
 		tb = "\n".join(trace_list)
@@ -345,27 +358,36 @@ def get_traceback(with_context=False) -> str:
 
 @functools.lru_cache(maxsize=1)
 def _get_traceback_sanitizer():
+	import re
+
 	from traceback_with_variables import Format
 
 	blocklist = [
 		"password",
 		"passwd",
+		"pwd",
 		"secret",
 		"token",
 		"key",
-		"pwd",
-		"client_secret",
+		"authorization",
+		"cookie",
 	]
+
+	exact_blocklist = ["sid"]
 
 	placeholder = "********"
 
-	def dict_printer(v: dict) -> str:
-		from copy import deepcopy
+	name_pattern = re.compile("|".join(f"(?i:{re.escape(word)})" for word in blocklist))
+	exact_pattern = re.compile("|".join(f"(?i:^{re.escape(word)}$)" for word in exact_blocklist))
 
-		v = deepcopy(v)
-		for key in blocklist:
-			if key in v:
-				v[key] = placeholder
+	def is_sensitive_name(name) -> bool:
+		return isinstance(name, str) and bool(name_pattern.search(name) or exact_pattern.search(name))
+
+	def dict_printer(v: dict) -> str:
+		v = v.copy()
+		for k in list(v):
+			if is_sensitive_name(k):
+				v[k] = placeholder
 
 		return str(v)
 
@@ -375,7 +397,7 @@ def _get_traceback_sanitizer():
 	return Format(
 		custom_var_printers=[
 			# redact variables
-			*[(variable_name, lambda *a, **kw: placeholder) for variable_name in blocklist],
+			(lambda name, *a, **kw: is_sensitive_name(name), lambda *a, **kw: placeholder),
 			# redact dictionary keys
 			(["_secret", dict, lambda *a, **kw: False], dict_printer),
 			(["_secret", frappe._dict, lambda *a, **kw: False], dict_printer),

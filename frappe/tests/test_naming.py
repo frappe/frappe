@@ -57,6 +57,21 @@ class TestNaming(FrappeTestCase):
 		self.assertEqual(country.name, original_name)
 		self.assertEqual(country.name, country.country_name)
 
+	def test_field_autoname_keeps_fieldtype(self):
+		doctype = new_doctype(
+			autoname="field:number",
+			fields=[{"label": "Number", "fieldname": "number", "fieldtype": "Int", "set_only_once": 1}],
+		).insert()
+
+		doc = frappe.get_doc(doctype=doctype.name, number=3).insert()
+		self.assertEqual(doc.number, 3)
+
+		doc = frappe.get_doc(doctype.name, doc.name)
+		doc.some_fieldname = "changed"
+		doc.save()
+
+		doctype.delete()
+
 	def test_child_table_naming(self):
 		child_dt_with_naming = new_doctype(istable=1, autoname="field:some_fieldname").insert()
 		dt_with_child_autoname = new_doctype(

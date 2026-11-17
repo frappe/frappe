@@ -1,12 +1,12 @@
 {
 	"branches": ["version-15"],
 	"plugins": [
-		"@semantic-release/commit-analyzer", {
+		["@semantic-release/commit-analyzer", {
 			"preset": "angular",
 			"releaseRules": [
 				{"breaking": true, "release": false}
 			]
-		},
+		}],
 		"@semantic-release/release-notes-generator",
 		[
 			"@semantic-release/exec", {
@@ -19,6 +19,8 @@
 				"message": "chore(release): Bumped to Version ${nextRelease.version}\n\n${nextRelease.notes}"
 			}
 		],
-		"@semantic-release/github"
+		["@semantic-release/github", {
+			"successCommentCondition": false
+		}]
 	]
 }

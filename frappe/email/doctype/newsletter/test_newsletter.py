@@ -12,11 +12,12 @@ from frappe.email.doctype.newsletter.exceptions import (
 from frappe.email.doctype.newsletter.newsletter import (
 	Newsletter,
 	confirmed_unsubscribe,
+	newsletter_email_read,
 	send_scheduled_email,
 )
 from frappe.email.queue import flush
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import add_days, getdate
+from frappe.utils import add_days, getdate, set_request
 
 emails = [
 	"test_subscriber1@example.com",
@@ -250,3 +251,19 @@ class TestNewsletter(TestNewsletterMixin, FrappeTestCase):
 		newsletter.send_emails()
 		self.assertEqual(frappe.db.count("Email Queue"), 4)
 		self.assertTrue(newsletter.email_sent)
+
+	def test_unsigned_email_read_adds_no_view(self):
+		newsletter = self.get_newsletter()
+		set_request(
+			method="GET", query_string=f"recipient_email=test1@example.com&reference_name={newsletter.name}"
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("Guest")
+
+		newsletter_email_read("test1@example.com", "Newsletter", newsletter.name)
+
+		self.assertFalse(
+			frappe.db.exists(
+				"View Log", {"reference_doctype": "Newsletter", "reference_name": newsletter.name}
+			)
+		)

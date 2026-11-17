@@ -29,6 +29,17 @@ const AMOUNT: FilterField = {
 };
 
 describe("serializeFilters", () => {
+  it("leaves out a condition that has no value yet", () => {
+    expect(
+      serializeFilters([
+        { fieldname: "title", operator: "like", value: "" },
+        { fieldname: "status", operator: "in", value: [] },
+        { fieldname: "creation", operator: "between", value: null as never },
+        { fieldname: "owner", operator: "is", value: "set" },
+      ])
+    ).toEqual([["owner", "is", "set"]]);
+  });
+
   it("serializes a single equals condition to an = triple", () => {
     expect(
       serializeFilters([

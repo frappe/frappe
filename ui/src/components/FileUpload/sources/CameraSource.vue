@@ -2,7 +2,7 @@
 	<div class="flex flex-col items-center gap-3">
 		<div
 			v-if="error"
-			class="flex min-h-64 w-full items-center justify-center rounded-lg border border-dashed border-outline-gray-2 p-6 text-center text-p-sm text-ink-gray-6"
+			class="flex min-h-64 w-full items-center justify-center rounded-6 border border-dashed border-outline-gray-2 p-6 text-center text-p-sm text-ink-gray-6"
 		>
 			{{ error }}
 		</div>
@@ -10,11 +10,11 @@
 			<video
 				v-show="!snapshot"
 				ref="video"
-				class="max-h-80 w-full rounded-lg bg-surface-gray-10"
+				class="max-h-80 w-full rounded-6 bg-surface-gray-10"
 				autoplay
 				playsinline
 			/>
-			<canvas v-show="snapshot" ref="canvas" class="max-h-80 w-full rounded-lg" />
+			<canvas v-show="snapshot" ref="canvas" class="max-h-80 w-full rounded-6" />
 			<div class="flex w-full items-center justify-end gap-2">
 				<template v-if="!snapshot">
 					<Button

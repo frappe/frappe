@@ -203,8 +203,7 @@ class User(Document):
 		if self.default_app and self.default_app not in frappe.get_installed_apps():
 			self.default_app = ""
 
-		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
-			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+		self.set_frappe_social_login_userid()
 
 	def populate_role_profile_roles(self):
 		if self.role_profile_name:
@@ -234,6 +233,7 @@ class User(Document):
 		frappe.clear_cache(user=self.name)
 		now = frappe.flags.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
+		self.__new_password = None
 		frappe.enqueue(
 			"frappe.core.doctype.user.user.create_contact",
 			user=self,
@@ -251,6 +251,9 @@ class User(Document):
 			frappe.cache.delete_key("enabled_users")
 		elif self.has_value_changed("allowed_in_mentions") or self.has_value_changed("user_type"):
 			frappe.cache.delete_key("users_for_mentions")
+
+		if self.has_value_changed("user_type"):
+			clear_sessions(user=self.name, force=True)
 
 	def has_website_permission(self, ptype, user, verbose=False):
 		"""Returns true if current user is the session user"""
@@ -306,9 +309,6 @@ class User(Document):
 		else:
 			"""Set as System User if any of the given roles has desk_access"""
 			self.user_type = "System User" if self.has_desk_access() else "Website User"
-
-		if self.has_value_changed("user_type"):
-			clear_sessions(user=self.name, force=True)
 
 	def set_roles_and_modules_based_on_user_type(self):
 		user_type_doc = frappe.get_cached_doc("User Type", self.user_type)
@@ -643,7 +643,8 @@ class User(Document):
 
 	def validate_username(self):
 		if not self.username and self.is_new() and self.first_name:
-			self.username = frappe.scrub(self.first_name)
+			self.username = self.free_username(frappe.scrub(self.first_name))
+			self.flags.username_from_first_name = True
 
 		if not self.username:
 			return
@@ -657,6 +658,36 @@ class User(Document):
 				self.suggest_username()
 
 			self.username = ""
+
+	def free_username(self, base):
+		if not self.username_exists(base):
+			return base
+
+		prefix = f"{base}-"
+		pattern = prefix.replace("\\", "_") + "%"
+		taken = frappe.get_all("User", filters={"username": ("like", pattern)}, pluck="username")
+		numbers = (username.rpartition("-")[2] for username in taken)
+		return f"{prefix}{max((int(n) for n in numbers if n.isdecimal()), default=0) + 1}"
+
+	def db_insert(self, ignore_if_duplicate=False):
+		if not self.flags.username_from_first_name:
+			return super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
+
+		for attempt in range(5):
+			messages = len(frappe.message_log)
+			frappe.db.savepoint("user_username")
+			try:
+				super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
+			except frappe.UniqueValidationError as e:
+				if attempt == 4 or "username" not in str(e.args[-1]):
+					raise
+				frappe.db.rollback(save_point="user_username")
+				del frappe.message_log[messages:]
+				base, sep, number = self.username.rpartition("-")
+				self.username = f"{base}-{int(number) + 1}" if sep else f"{self.username}-1"
+			else:
+				frappe.db.release_savepoint("user_username")
+				return
 
 	def password_strength_test(self):
 		"""test password strength"""
@@ -719,6 +750,32 @@ class User(Document):
 			social_logins["username"] = username
 
 		self.append("social_logins", social_logins)
+
+	def set_frappe_social_login_userid(self):
+		"""The `frappe` provider userid is this site's OIDC `sub` claim, so it must stay
+		server-controlled: generated once and never changed by a later write."""
+		if self.name in STANDARD_USERS:
+			return
+
+		stored_userid = None
+		if not self.is_new():
+			stored_userid = frappe.db.get_value(
+				"User Social Login",
+				{"parent": self.name, "provider": "frappe"},
+				"userid",
+			)
+
+		frappe_logins = [d for d in self.social_logins if d.provider == "frappe"]
+
+		if stored_userid:
+			if frappe_logins:
+				frappe_logins[0].userid = stored_userid
+				for extra in frappe_logins[1:]:
+					self.social_logins.remove(extra)
+			else:
+				self.set_social_login_userid("frappe", stored_userid)
+		elif not frappe_logins:
+			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
 	def get_restricted_ip_list(self):
 		return get_restricted_ip_list(self)
@@ -813,7 +870,20 @@ def get_all_roles():
 @frappe.whitelist()
 def get_roles(arg: None = None):
 	"""get roles for a user"""
-	return frappe.get_roles(frappe.form_dict["uid"])
+	user = frappe.form_dict.get("uid") or frappe.session.user
+	if user != frappe.session.user:
+		frappe.has_permission("User", "read", user, throw=True)
+	return frappe.get_roles(user)
+
+
+@frappe.whitelist()
+def get_current_user_roles() -> list[str]:
+	"""Return the logged-in user's roles.
+
+	Desk reads these from `frappe.boot.user.roles`. Clients that do not load
+	bootinfo have no such payload, so they fetch them here.
+	"""
+	return frappe.get_roles()
 
 
 @frappe.whitelist()
@@ -1231,7 +1301,7 @@ def handle_password_test_fail(feedback: dict):
 
 
 def throttle_user_creation():
-	if frappe.flags.in_import:
+	if frappe.flags.in_import or frappe.flags.in_test:
 		return
 
 	if frappe.db.get_creation_count("User", 60) > frappe.local.conf.get("throttle_user_limit", 60):
@@ -1245,6 +1315,7 @@ def get_role_profile(role_profile: str):
 
 @frappe.whitelist()
 def get_module_profile(module_profile: str):
+	frappe.has_permission("Module Profile", "read", throw=True)
 	module_profile = frappe.get_doc("Module Profile", {"module_profile_name": module_profile})
 	return module_profile.get("block_modules")
 

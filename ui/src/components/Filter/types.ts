@@ -43,8 +43,18 @@ export interface FilterField {
   options?: string;
 }
 
+/** A field the host filters on itself, with no Meta field behind it. */
+export type FilterFieldDeclaration = Omit<FilterField, "value">;
+
 /** Props for `<Filter>`. The conditions are a separate `v-model` (`Filter[]`). */
 export interface FilterProps {
   /** Doctype whose Meta drives the filterable fields and per-fieldtype operators. */
   doctype: string;
+  /** The fields offered, in this order. A string names a Meta field. A
+   *  declaration adds a field the host resolves itself when it reads the wire
+   *  filters. Omit it to offer every filterable Meta field. */
+  fields?: (string | FilterFieldDeclaration)[];
+  /** Which edge of the button the popover lines up with. Defaults to `end`,
+   *  for a button in a right-hand toolbar. */
+  align?: "start" | "end";
 }

@@ -9,6 +9,7 @@ import shlex
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 import types
 import unittest
@@ -737,10 +738,120 @@ class TestBackups(BaseTestCommands):
 		self.assertEqual([], missing_in_backup(self.backup_map["excludes"]["excludes"], database))
 
 
+@contextmanager
+def fake_app_without_hooks(app):
+	real_get_hooks = frappe.get_hooks
+
+	def get_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
+		if app_name == app:
+			return [] if hook else frappe._dict()
+		return real_get_hooks(hook, default, app_name)
+
+	with patch.object(frappe, "get_hooks", get_hooks):
+		yield
+
+
+@contextmanager
+def drop_table_times_out(on_attempt):
+	real_sql = frappe.db.sql
+	attempts = 0
+
+	def sql(query, *args, **kwargs):
+		nonlocal attempts
+		if isinstance(query, str) and query.startswith("DROP TABLE"):
+			attempts += 1
+			if attempts == on_attempt:
+				raise frappe.QueryTimeoutError
+		return real_sql(query, *args, **kwargs)
+
+	with patch.object(frappe.db, "sql", sql):
+		yield
+
+
+@contextmanager
+def deleting_doctype_times_out(doctype):
+	real_delete_doc = frappe.delete_doc
+
+	def delete_doc(*args, **kwargs):
+		if args[:2] == ("DocType", doctype):
+			raise frappe.QueryTimeoutError
+		return real_delete_doc(*args, **kwargs)
+
+	with patch.object(frappe, "delete_doc", delete_doc):
+		yield
+
+
 class TestRemoveApp(FrappeTestCase):
+	def test_uninstall_that_failed_on_a_drop_can_be_finished(self):
+		self.assert_failed_uninstall_can_be_finished(drop_table_times_out(on_attempt=2))
+
+	def test_uninstall_that_failed_after_a_drop_can_be_finished(self):
+		self.assert_failed_uninstall_can_be_finished(deleting_doctype_times_out("Abc Test Uninstall One"))
+
+	def assert_failed_uninstall_can_be_finished(self, failure):
+		from frappe.installer import remove_from_installed_apps
+
+		app = "abc_test_uninstall_app"
+		module = "Abc Test Uninstall Module"
+		doctypes = ["Abc Test Uninstall One", "Abc Test Uninstall Two"]
+		self.addCleanup(self.delete_uninstall_leftovers, module, doctypes)
+		self.addCleanup(remove_from_installed_apps, app)
+		self.make_app_module(app, module, doctypes)
+		add_to_installed_apps(app)
+
+		with fake_app_without_hooks(app), self.set_user("test@example.com"):
+			with failure, self.assertRaises(frappe.QueryTimeoutError):
+				remove_app(app, yes=True, no_backup=True)
+			frappe.db.rollback()
+			frappe.flags.in_uninstall = False
+
+			self.assertIn(app, frappe.get_installed_apps())
+			self.assertEqual(frappe.get_all("Module Def", filters={"app_name": app}, pluck="name"), [module])
+
+			remove_app(app, yes=True, no_backup=True)
+
+		self.assertNotIn(app, frappe.get_installed_apps())
+		for doctype in doctypes:
+			self.assertFalse(frappe.db.exists("DocType", doctype))
+			self.assertFalse(frappe.db.table_exists(doctype, cached=False))
+		self.assertFalse(frappe.db.exists("Module Def", module))
+
+	def make_app_module(self, app, module, doctypes):
+		# In developer mode a new Module Def gets a folder inside its app, and this app doesn't exist
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			frappe.get_doc({"doctype": "Module Def", "module_name": module, "app_name": app}).insert()
+
+		for doctype in doctypes:
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": doctype,
+					"module": module,
+					"custom": 1,
+					"fields": [
+						{
+							"fieldname": "linked_module",
+							"fieldtype": "Link",
+							"options": "Module Def",
+							"label": "Linked Module",
+						}
+					],
+					"permissions": [{"role": "System Manager", "read": 1}],
+				}
+			).insert()
+
+	def delete_uninstall_leftovers(self, module, doctypes):
+		frappe.flags.in_uninstall = False
+		for doctype in doctypes:
+			frappe.db.sql_ddl(f"DROP TABLE IF EXISTS `tab{doctype}`")
+			frappe.delete_doc("DocType", doctype, force=True, ignore_missing=True)
+		frappe.delete_doc("Module Def", module, force=True, ignore_missing=True)
+		frappe.db.commit()  # nosemgrep
+
 	def test_delete_modules(self):
 		from frappe.installer import (
 			_delete_doctypes,
+			_delete_module_defs,
 			_delete_modules,
 			_get_module_linked_doctype_field_map,
 		)
@@ -778,6 +889,8 @@ class TestRemoveApp(FrappeTestCase):
 		self.assertEqual(len(doctypes_to_delete), 1)
 
 		_delete_doctypes(doctypes_to_delete, dry_run=False)
+		_delete_module_defs([test_module.module_name], dry_run=False)
+		frappe.db.commit()  # nosemgrep
 		self.assertFalse(frappe.db.exists("Module Def", test_module.module_name))
 		self.assertFalse(frappe.db.exists("DocType", module_def_linked_doctype.name))
 
@@ -786,6 +899,23 @@ class TestRemoveApp(FrappeTestCase):
 
 		# nothing to assert, if this fails rest of the test suite will crumble.
 		remove_app("frappe", dry_run=True, yes=True, no_backup=True)
+
+	def test_app_missing_from_bench_does_not_block_other_uninstalls(self):
+		from frappe.installer import remove_from_installed_apps
+
+		app = "abc_test_uninstall_app"
+		module = "Abc Test Uninstall Module"
+		doctypes = ["Abc Test Uninstall One", "Abc Test Uninstall Two"]
+		missing_app = "abc_test_missing_app"
+		self.addCleanup(self.delete_uninstall_leftovers, module, doctypes)
+		self.addCleanup(remove_from_installed_apps, missing_app)
+		self.make_app_module(app, module, doctypes)
+		add_to_installed_apps(missing_app)
+
+		with fake_app_without_hooks(app), self.set_user("test@example.com"):
+			remove_app(app, yes=True, no_backup=True, force=True)
+
+		self.assertFalse(frappe.db.exists("Module Def", module))
 
 
 class TestSiteMigration(BaseTestCommands):
@@ -867,6 +997,66 @@ class TestCommandUtils(FrappeTestCase):
 		app_groups = get_app_groups()
 		self.assertIn("frappe", app_groups)
 		self.assertIsInstance(app_groups["frappe"], click.Group)
+
+
+class TestRunUITests(FrappeTestCase):
+	def run_ui_tests(self, config_files, args):
+		from frappe.commands.utils import run_ui_tests
+
+		with tempfile.TemporaryDirectory() as app_path:
+			for name in config_files:
+				Path(app_path, name).touch()
+
+			with (
+				patch("frappe.get_app_source_path", return_value=app_path),
+				patch("frappe.commands.utils._run_playwright") as playwright,
+				patch("frappe.commands.utils._run_cypress") as cypress,
+			):
+				result = CliRunner().invoke(
+					run_ui_tests, args, obj=frappe._dict(sites=[frappe.local.site], profile=False)
+				)
+		return result, playwright, cypress
+
+	def test_runs_playwright_when_the_app_has_its_config(self):
+		result, playwright, cypress = self.run_ui_tests(
+			["playwright.config.js", "cypress.config.js"], ["frappe", "--headless", "--shard=1/2"]
+		)
+
+		self.assertEqual(result.exit_code, 0, result.output)
+		cypress.assert_not_called()
+		self.assertEqual(playwright.call_args.kwargs["runnerargs"], ("--shard=1/2",))
+
+	def test_runs_cypress_for_an_app_that_still_uses_it(self):
+		# what the v15 CI template sends, and downstream apps still copy
+		result, playwright, cypress = self.run_ui_tests(
+			["cypress.config.js"],
+			[
+				"erpnext",
+				"--headless",
+				"--parallel",
+				"--with-coverage",
+				"--ci-build-id",
+				"123-1",
+				"--group",
+				"ui-shard-1",
+			],
+		)
+
+		self.assertEqual(result.exit_code, 0, result.output)
+		self.assertIn("deprecated", result.output)
+		playwright.assert_not_called()
+		kwargs = cypress.call_args.kwargs
+		self.assertTrue(kwargs["parallel"])
+		self.assertTrue(kwargs["with_coverage"])
+		self.assertEqual(kwargs["ci_build_id"], "123-1")
+		self.assertEqual(kwargs["runnerargs"], ("--group", "ui-shard-1"))
+
+	def test_fails_for_an_app_without_ui_tests(self):
+		result, playwright, cypress = self.run_ui_tests([], ["frappe", "--headless"])
+
+		self.assertEqual(result.exit_code, 1)
+		playwright.assert_not_called()
+		cypress.assert_not_called()
 
 
 class TestDBCli(BaseTestCommands):

@@ -250,6 +250,7 @@ class EmailAccount(Document):
 
 	@frappe.whitelist()
 	def get_domain_values(self, domain: str):
+		frappe.has_permission("Email Domain", "read", domain, throw=True)
 		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
@@ -682,7 +683,9 @@ class EmailAccount(Document):
 				sender=self.email_id,
 				reply_to=communication.incoming_email_account,
 				subject=" ".join([_("Re:"), communication.subject]),
-				content=render_template(self.auto_reply_message or "", communication.as_dict())
+				content=render_template(
+					self.auto_reply_message or "", communication.as_dict(), restrict_globals=True
+				)
 				or frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				reference_doctype=communication.reference_doctype,
 				reference_name=communication.reference_name,
@@ -794,7 +797,7 @@ def notify_unreplied():
 		email_account = frappe.get_doc("Email Account", email_account.name)
 
 		if email_account.use_imap:
-			append_to = [folder.get("append_to") for folder in email_account.imap_folder]
+			append_to = [folder.append_to for folder in email_account.imap_folder if folder.append_to]
 		else:
 			append_to = email_account.append_to
 

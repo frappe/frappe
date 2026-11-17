@@ -2,11 +2,11 @@
 # License: MIT. See LICENSE
 import smtplib
 import textwrap
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 
 
 class TestEmailQueue(FrappeTestCase):
@@ -145,3 +145,24 @@ class TestEmailQueue(FrappeTestCase):
 
 		self.assertIn(link, mock_session.sendmail.call_args.kwargs["msg"].decode())
 		self.assertNotIn(link, frappe.db.get_value("Email Queue", email_record.name, "message"))
+
+	@change_settings("System Settings", store_attached_pdf_document=0)
+	def test_print_attachment_renders_once_for_every_recipient(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		email_record = frappe.sendmail(
+			recipients=["test_to@example.com"],
+			cc=["test_cc@example.com"],
+			bcc=["test_bcc@example.com"],
+			subject="Print attachment",
+			message="Test message",
+			attachments=[{"print_format_attachment": 1, "doctype": "User", "name": "test@example.com"}],
+		)
+
+		with patch(
+			"frappe.attach_print", return_value={"fname": "test.pdf", "fcontent": b"%PDF"}
+		) as attach_print:
+			email_record.send()
+
+		attach_print.assert_called_once()
+		self.assertIn(b'filename="test.pdf"', frappe.flags.sent_mail)

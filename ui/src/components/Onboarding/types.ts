@@ -40,7 +40,7 @@ export interface UseOnboarding {
     step: string,
     value?: boolean,
     skipped?: boolean,
-    callback?: OnboardingStepCallback | null,
+    callback?: OnboardingStepCallback | null
   ) => void;
   /** Mark one step completed without the user doing it. */
   skip: (step: string, callback?: OnboardingStepCallback | null) => void;
@@ -82,7 +82,7 @@ export interface IntermediateStep {
 export interface IntermediateStepModalProps {
   /** The step being shown. */
   currentStep?: IntermediateStep;
-  /** Passed straight to `Dialog`'s `options`; overrides the derived options. */
+  /** Overrides the `title`/`size`/`actions` derived from `currentStep`. */
   dialogOptions?: Record<string, any>;
 }
 

@@ -8,6 +8,8 @@ export interface LinkProps extends InputLabelingProps {
   editable?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  /** What the current value displays as until the search returns it. */
+  title?: string;
 }
 
 export interface LinkSlots {

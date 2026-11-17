@@ -31,12 +31,11 @@ from frappe.model import (
 	optional_fields,
 	table_fields,
 )
-from frappe.model.base_document import (
+from frappe.model.document import (
 	DOCTYPE_TABLE_FIELDS,
 	TABLE_DOCTYPES_FOR_DOCTYPE,
-	BaseDocument,
+	Document,
 )
-from frappe.model.document import Document
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
 from frappe.utils import cast, cint, cstr
@@ -52,7 +51,6 @@ DEFAULT_FIELD_LABELS = {
 	"owner": _lt("Created By"),
 	"_user_tags": _lt("Tags"),
 	"_liked_by": _lt("Liked By"),
-	"_comments": _lt("Comments"),
 	"_assign": _lt("Assigned To"),
 }
 
@@ -92,9 +90,9 @@ def load_doctype_from_file(doctype):
 	for d in txt.get("permissions", []):
 		d["doctype"] = "DocPerm"
 
-	txt["fields"] = [BaseDocument(d) for d in txt["fields"]]
+	txt["fields"] = [Document(d) for d in txt["fields"]]
 	if "permissions" in txt:
-		txt["permissions"] = [BaseDocument(d) for d in txt["permissions"]]
+		txt["permissions"] = [Document(d) for d in txt["permissions"]]
 
 	return txt
 
@@ -156,7 +154,7 @@ class Meta(Document):
 			out = frappe._dict()
 			for key, value in doc.__dict__.items():
 				if isinstance(value, list | tuple):
-					if not value or not isinstance(value[0], BaseDocument):
+					if not value or not isinstance(value[0], Document):
 						# non standard list object, skip
 						continue
 
@@ -226,7 +224,8 @@ class Meta(Document):
 		if not hasattr(self, "_valid_columns"):
 			table_exists = frappe.db.table_exists(self.name)
 			if self.name in self.special_doctypes and table_exists:
-				self._valid_columns = get_table_columns(self.name)
+				# `_comments` is a cache column, never a readable field
+				self._valid_columns = [c for c in get_table_columns(self.name) if c != "_comments"]
 			else:
 				self._valid_columns = self.default_fields + [
 					df.fieldname for df in self.get("fields") if df.fieldtype in data_fieldtypes

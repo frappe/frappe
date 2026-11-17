@@ -224,7 +224,7 @@ def get_script(report_name: str):
 		script += f"\n\n//# sourceURL={scrub(report.name)}__custom"
 
 	if not script:
-		script = "frappe.query_reports['{}']={{}}".format(report_name)
+		script = f"frappe.query_reports[{json.dumps(report_name)}]={{}}"
 
 	return {
 		"script": render_include(script),

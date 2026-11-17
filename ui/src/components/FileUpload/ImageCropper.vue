@@ -2,11 +2,11 @@
 	<div class="flex flex-col gap-3">
 		<div
 			v-if="loadError"
-			class="flex h-80 items-center justify-center rounded-lg border border-dashed border-outline-gray-2 p-6 text-center text-p-sm text-ink-gray-6"
+			class="flex h-80 items-center justify-center rounded-6 border border-dashed border-outline-gray-2 p-6 text-center text-p-sm text-ink-gray-6"
 		>
 			{{ loadError }}
 		</div>
-		<div v-show="!loadError" class="h-[60vh] overflow-hidden rounded-lg bg-surface-gray-10">
+		<div v-show="!loadError" class="h-[60vh] overflow-hidden rounded-6 bg-surface-gray-10">
 			<!-- cropperjs v2 replaces this <img> with a <cropper-canvas> tree. -->
 			<img ref="image" :src="objectUrl" alt="" class="block max-w-full" />
 		</div>
@@ -22,8 +22,20 @@
 					@click="setAspect(preset.label, preset.value)"
 				/>
 			</div>
-			<Button size="sm" variant="subtle" icon="lucide-rotate-ccw" @click="rotate(-90)" />
-			<Button size="sm" variant="subtle" icon="lucide-rotate-cw" @click="rotate(90)" />
+			<Button
+				size="sm"
+				variant="subtle"
+				icon="lucide-rotate-ccw"
+				aria-label="Rotate left"
+				@click="rotate(-90)"
+			/>
+			<Button
+				size="sm"
+				variant="subtle"
+				icon="lucide-rotate-cw"
+				aria-label="Rotate right"
+				@click="rotate(90)"
+			/>
 			<div class="ml-auto flex items-center gap-2">
 				<Button variant="subtle" label="Cancel" @click="emit('cancel')" />
 				<Button variant="solid" label="Apply" @click="apply" />

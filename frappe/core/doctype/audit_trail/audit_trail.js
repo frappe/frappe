@@ -16,6 +16,14 @@ frappe.ui.form.on("Audit Trail", {
 			};
 		});
 
+		frm.set_query("document", () => {
+			return {
+				filters: {
+					amended_from: ["!=", ""],
+				},
+			};
+		});
+
 		frm.page.set_primary_action("Compare", () => {
 			frm.call({
 				doc: frm.doc,

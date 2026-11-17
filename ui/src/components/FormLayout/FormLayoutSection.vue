@@ -32,7 +32,14 @@
 					class="section-body flex sm:flex-row flex-col gap-4"
 					:class="{ 'px-3 sm:px-5': hasTabs }"
 				>
+					<FormLayoutPart
+						v-if="section.part"
+						:part="section.part"
+						:class="{ 'mt-6': showHeader }"
+						class="w-full"
+					/>
 					<FormLayoutColumn
+						v-else
 						v-for="(column, index) in section.columns"
 						:key="column.name ?? index"
 						:class="{ 'mt-6': showHeader }"
@@ -48,6 +55,7 @@
 import { computed, inject, ref, watch } from "vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import FormLayoutColumn from "./FormLayoutColumn.vue";
+import FormLayoutPart from "./FormLayoutPart.vue";
 import { HasTabsKey } from "./types";
 import type { Section } from "./types";
 

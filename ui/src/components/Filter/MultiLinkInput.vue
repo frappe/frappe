@@ -24,6 +24,7 @@
 </template>
 
 <script setup lang="ts">
+import { toLinkOption } from "../Link/linkOption";
 import { computed, ref, watch } from "vue";
 import { MultiSelect, createResource, frappeRequest, debounce } from "frappe-ui";
 import type { FilterField } from "./types";
@@ -56,11 +57,7 @@ const resource = createResource({
 	method: "POST",
 	resourceFetcher: frappeRequest,
 	transform: (data: { value: string; label?: string; description?: string }[]): LinkOption[] =>
-		data.map((doc) => ({
-			label: doc.label || doc.value,
-			value: doc.value,
-			description: doc.description,
-		})),
+		data.map(toLinkOption),
 });
 
 watch(

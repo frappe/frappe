@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING, Any, Union
 import frappe
 from frappe import _
 from frappe.model.docstatus import DocStatus
+from frappe.model.document import Document
 from frappe.utils import cint
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
 	from frappe.workflow.doctype.workflow.workflow import Workflow
 
 
@@ -98,6 +98,11 @@ def is_transition_condition_satisfied(transition, doc) -> bool:
 @frappe.whitelist()
 def apply_workflow(doc: "Document | str | dict", action: str):
 	"""Allow workflow action on the current doc"""
+	return run_workflow_transition(doc, action).copy_with_fieldlevel_read_permissions()
+
+
+def run_workflow_transition(doc: "Document | str | dict", action: str) -> "Document":
+	"""Apply `action` to `doc` and return the document, without masking fields the user cannot read."""
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	doc.load_from_db()
 	workflow = get_workflow(doc.doctype)
@@ -126,21 +131,25 @@ def apply_workflow(doc: "Document | str | dict", action: str):
 	if next_state.update_field:
 		doc.set(next_state.update_field, next_state.update_value)
 
+	from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+	from frappe.utils.scheduler import is_scheduler_inactive
+
 	new_docstatus = DocStatus(next_state.doc_status or 0)
 	if doc.docstatus.is_draft() and new_docstatus.is_draft():
 		doc.save()
 	elif doc.docstatus.is_draft() and new_docstatus.is_submitted():
-		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
-		from frappe.utils.scheduler import is_scheduler_inactive
-
 		if doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, "Submit")
-			return
+			return doc
 
 		doc.submit()
 	elif doc.docstatus.is_submitted() and new_docstatus.is_submitted():
 		doc.save()
 	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
+		if doc.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(doc, "Cancel")
+			return doc
+
 		doc.cancel()
 	else:
 		frappe.throw(_("Illegal Document Status for {0}").format(next_state.state))
@@ -263,7 +272,7 @@ def _bulk_workflow_action(docnames, doctype, action):
 		message_dict = {}
 		try:
 			show_progress(docnames, _("Applying: {0}").format(action), idx, docname)
-			apply_workflow(frappe.get_doc(doctype, docname), action)
+			run_workflow_transition(frappe.get_doc(doctype, docname), action)
 			frappe.db.commit()
 		except Exception as e:
 			if not frappe.message_log:

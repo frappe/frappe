@@ -19,7 +19,7 @@
 			</div>
 		</div>
 
-		<div v-if="Object.keys(columnMappings).length" class="border rounded-md space-y-8">
+		<div v-if="Object.keys(columnMappings).length" class="border rounded-5 space-y-8">
 			<div class="grid grid-cols-2 text-ink-gray-5 border-b py-2 px-4">
 				<div>Fields in File</div>
 				<div>Fields in System</div>

@@ -13,9 +13,10 @@
 			<Switch v-model="empty" label="Empty" />
 			<Switch v-model="paginated" label="Pagination" />
 			<Switch v-model="withSlots" label="Slots" />
+			<Switch v-model="hideSubject" label="Hide subject" />
 		</div>
 
-		<div class="rounded-lg border border-outline-gray-2 p-4">
+		<div class="rounded-6 border border-outline-gray-2 p-4">
 			<ActivityTimeline
 				:activities="activities"
 				:loading="loading"
@@ -23,7 +24,7 @@
 			>
 				<!-- reuse the built-in email/comment rows, adding an #actions region -->
 				<template #item-email="{ activity }">
-					<EmailItem :email="activity">
+					<EmailItem :email="activity" :hide-subject="hideSubject">
 						<template v-if="withSlots" #actions>
 							<Button variant="ghost" @click="log('reply', activity.data.name)">
 								<template #icon
@@ -39,7 +40,7 @@
 						<template v-if="withSlots" #actions>
 							<Button
 								variant="ghost"
-								icon="trash-2"
+								icon="lucide-trash-2"
 								@click="log('delete', activity.data.name)"
 							/>
 						</template>
@@ -48,7 +49,7 @@
 
 				<!-- a consumer-defined type, rendered entirely through its slot -->
 				<template #item-feedback="{ activity }">
-					<div class="rounded-md bg-surface-gray-2 px-3 py-2 text-p-sm text-ink-gray-7">
+					<div class="rounded-5 bg-surface-gray-2 px-3 py-2 text-p-sm text-ink-gray-7">
 						Feedback — ★ {{ asFeedback(activity).rating }}/5 ·
 						{{ asFeedback(activity).message }}
 					</div>
@@ -73,6 +74,7 @@ const loading = ref(false);
 const empty = ref(false);
 const paginated = ref(false);
 const withSlots = ref(true);
+const hideSubject = ref(false);
 
 const person = (fullname: string, email?: string) => ({ fullname, email, image: "" });
 

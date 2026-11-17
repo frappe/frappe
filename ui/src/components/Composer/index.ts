@@ -13,11 +13,9 @@ export type {
   EmailComposerProps,
   EmailComposerSlots,
   EmailPayload,
-  HeaderField,
   MentionOption,
   Recipient,
   RecipientSearch,
-  Recipients,
   UploadedFile,
   UploadFunction,
 } from "./types";

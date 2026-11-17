@@ -80,6 +80,28 @@ class TestPdf(FrappeTestCase):
 		_, options = pdfgen.read_options_from_html(html)
 		self.assertTrue(options)
 
+	def test_print_styles_are_read_without_fetching_css_imports(self):
+		import threading
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+		requested = []
+
+		class StylesheetHandler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				requested.append(self.path)
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), StylesheetHandler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		pdfgen.read_options_from_html(
+			f'<style>@import url("http://127.0.0.1:{server.server_port}/print.css");</style><p>row</p>'
+		)
+		self.assertEqual(requested, [])
+
 	def test_pdf_encryption(self):
 		password = "qwe"
 		pdf = pdfgen.get_pdf(self.html, options={"password": password})

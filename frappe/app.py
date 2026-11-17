@@ -25,7 +25,7 @@ from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, validate_auth
 from frappe.middlewares import StaticDataMiddleware
 from frappe.permissions import handle_does_not_exist_error
-from frappe.utils import CallbackManager, cint, get_site_name
+from frappe.utils import CallbackManager, cint, get_request_host, get_site_name
 from frappe.utils.data import escape_html
 from frappe.utils.deprecations import deprecation_warning
 from frappe.utils.error import log_error_snapshot
@@ -217,7 +217,7 @@ def init_request(request):
 
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With") == "XMLHttpRequest"
 
-	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
+	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(get_request_host(request))
 	frappe.init(site=site, sites_path=_sites_path, force=True)
 
 	if not (frappe.local.conf and frappe.local.conf.db_name):
@@ -268,7 +268,7 @@ def log_request(request, response):
 	if hasattr(frappe.local, "conf") and frappe.local.conf.enable_frappe_logger:
 		frappe.logger("frappe.web", allow_site=frappe.local.site).info(
 			{
-				"site": get_site_name(request.host),
+				"site": frappe.local.site,
 				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
 				"pid": os.getpid(),
 				"user": getattr(frappe.local.session, "user", "NOTFOUND"),
@@ -367,8 +367,6 @@ def handle_exception(e):
 		frappe.get_request_header("Accept") and (frappe.local.is_ajax or "application/json" in accept_header)
 	) or (frappe.local.request.path.startswith("/api/") and not accept_header.startswith("text"))
 
-	allow_traceback = frappe.get_system_settings("allow_error_traceback") if frappe.db else False
-
 	if not frappe.session.user:
 		# If session creation fails then user won't be unset. This causes a lot of code that
 		# assumes presence of this to fail. Session creation fails => guest or expired login
@@ -423,7 +421,9 @@ def handle_exception(e):
 	else:
 		traceback = "<pre>" + escape_html(frappe.get_traceback()) + "</pre>"
 		# disable traceback in production if flag is set
-		if frappe.local.flags.disable_traceback or (not allow_traceback and not frappe.local.dev_server):
+		if frappe.local.flags.disable_traceback or (
+			not frappe.utils.response.is_traceback_allowed() and not frappe.local.dev_server
+		):
 			traceback = ""
 
 		frappe.respond_as_web_page(

@@ -12,6 +12,7 @@ export type {
 export {
   CommitKey,
   DocKey,
+  LinkTitlesKey,
   NO_COMMIT,
   ParentDocKey,
   UpdateKey,
@@ -106,6 +107,8 @@ export interface RawMetaField {
   /** Whether the field is surfaced as a default Quick Filter input (the
    *  `in_standard_filter` flag CRM's `get_quick_filters` reads). */
   in_standard_filter?: boolean | 0 | 1;
+  /** Computed in Python, with no database column to query. */
+  is_virtual?: boolean | 0 | 1;
   description?: string;
   hide_border?: boolean | 0 | 1;
   collapsible?: boolean | 0 | 1;
@@ -116,11 +119,26 @@ export interface RawMetaField {
   filters?: Record<string, unknown>;
 }
 
+/** A component a host places in the form; `label` frames it, none draws it bare. */
+export interface FormPart {
+  name: string;
+  label?: string;
+  component: Component;
+  props?: Record<string, any>;
+}
+
+/** A part drawn as a cell of a column, before or after one of its fields. */
+export interface ColumnPart extends FormPart {
+  before?: string;
+  after?: string;
+}
+
 export interface Column {
   name?: string;
   label?: string;
   hideLabel?: boolean;
   fields: FieldNode[];
+  parts?: ColumnPart[];
 }
 
 export interface Section {
@@ -134,6 +152,8 @@ export interface Section {
   /** Conditional visibility; `resolveLayout` bakes it into `hidden`. */
   dependsOn?: string;
   columns: Column[];
+  /** Drawn in place of the columns: a full-width part between two sections. */
+  part?: FormPart;
 }
 
 /**

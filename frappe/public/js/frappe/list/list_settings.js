@@ -33,9 +33,7 @@ export default class ListSettings {
 			fields: list_view_settings.fields,
 		});
 		me.dialog.set_values(me.settings);
-		me.dialog.set_primary_action(__("Save"), () => {
-			let values = me.dialog.get_values();
-
+		me.dialog.set_primary_action(__("Save"), (values) => {
 			frappe.show_alert({
 				message: __("Saving"),
 				indicator: "green",
@@ -244,8 +242,8 @@ export default class ListSettings {
 				},
 			],
 		});
-		d.set_primary_action(__("Save"), () => {
-			let values = d.get_values().fields;
+		d.set_primary_action(__("Save"), (dialog_values) => {
+			let values = dialog_values.fields;
 
 			me.set_removed_fields(
 				me.get_removed_listview_fields(

@@ -6,7 +6,7 @@ export interface InputLabelingProps {
 }
 
 /** Size scale for text-style inputs. */
-export type InputSize = "sm" | "md" | "lg" | "xl";
+export type InputSize = "sm" | "md" | "lg";
 
 /** Variant scale for text-style inputs that have a container surface. */
 export type InputVariant = "subtle" | "outline" | "ghost";

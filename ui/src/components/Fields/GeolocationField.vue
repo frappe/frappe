@@ -30,7 +30,7 @@
 					type="button"
 					aria-label="Clear"
 					data-slot="clear"
-					class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+					class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 					@click.stop="clearLocation"
 					@pointerdown.stop
 				>
@@ -49,11 +49,11 @@
 			     empty map (see loadError). -->
 			<div
 				v-if="loadError"
-				class="flex h-[500px] w-full items-center justify-center rounded border border-dashed border-outline-gray-2 p-6 text-center text-p-sm text-ink-gray-6"
+				class="flex h-[500px] w-full items-center justify-center rounded-4 border border-dashed border-outline-gray-2 p-6 text-center text-p-sm text-ink-gray-6"
 			>
 				{{ loadError }}
 			</div>
-			<div v-else :id="mapId" class="h-[500px] w-full rounded" />
+			<div v-else :id="mapId" class="h-[500px] w-full rounded-4" />
 			<template #actions>
 				<div class="flex items-center justify-end gap-2">
 					<Button
