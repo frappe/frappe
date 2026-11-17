@@ -5,6 +5,7 @@ import { DOCTYPE, NEW, OLD, doc, readList, readRecord, readSomeParts } from "./h
 const COLUMNS = {
   _assign: '["ann@example.com"]',
   _user_tags: "urgent",
+  _comments: '[{"comment": "hi"}]',
   _liked_by: '["ann@example.com"]',
   _seen: '["ann@example.com"]',
 };
@@ -34,6 +35,7 @@ describe("a record read", () => {
     expect(cachedDoc()).toMatchObject({
       _assign: '["bo@example.com"]',
       _user_tags: "billing",
+      _comments: COLUMNS._comments,
       _liked_by: COLUMNS._liked_by,
       _seen: COLUMNS._seen,
     });

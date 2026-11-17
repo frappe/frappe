@@ -253,6 +253,36 @@ describe("a record opened while the list stays mounted", () => {
 	});
 });
 
+describe("a record changed in its dialog while the list stays mounted", () => {
+	it("shows its assignees and tags from the cache write, with no new read", async () => {
+		cacheList(3, false);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		fake.listDocuments.mockClear();
+		const ticket = takeTicket();
+		feedPartWrite(ticket, "ToDo", "T-1", "assignments", [{ user: "a@example.com" }]);
+		feedPartWrite(ticket, "ToDo", "T-1", "tags", ["urgent", "api"]);
+		settleTicket(ticket);
+		await settle();
+		expect(rows.rows.value.map((row) => [row._assign, row._user_tags])).toEqual([
+			[undefined, undefined],
+			['["a@example.com"]', "urgent,api"],
+			[undefined, undefined],
+		]);
+		expect(fake.listDocuments).not.toHaveBeenCalled();
+	});
+
+	it("leaves a row alone when the cache write does not touch it", async () => {
+		cacheList(2, false);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		const untouched = rows.rows.value[0];
+		const ticket = takeTicket();
+		feedPartWrite(ticket, "ToDo", "T-1", "tags", ["urgent"]);
+		settleTicket(ticket);
+		await settle();
+		expect(rows.rows.value[0]).toBe(untouched);
+	});
+});
+
 describe("settled", () => {
 	it("waits for the rows of the query on show, and resolves when they land", async () => {
 		const rows = useListRows("ToDo", () => queryOf(20));

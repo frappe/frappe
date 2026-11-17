@@ -8,7 +8,7 @@ import {
 	type ListEnvelope,
 	type ListQuery,
 } from "@framework/ui/api";
-import { readCachedList, readCachedRows } from "@framework/ui/cache";
+import { LIST_ONLY_FIELDS, readCachedList, readCachedRows } from "@framework/ui/cache";
 import {
 	computed,
 	onScopeDispose,
@@ -143,13 +143,14 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		}
 	);
 
-	// Opening a record marks its cached row seen; a mounted list follows that write with no read.
+	// A cache write to a list-only column (`_seen`, `_assign`, `_user_tags`...) shows in a mounted list
+	// with no read.
 	watch(
 		() => {
 			const current = query();
 			return current && readCachedRows(doctype, listQuery(current));
 		},
-		(cached) => cached && followSeen(cached as ListRow[])
+		(cached) => cached && followListColumns(cached as ListRow[])
 	);
 
 	onScopeDispose(() => clearTimeout(timer));
@@ -186,17 +187,14 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		if (current) show(Math.max(target, current.limit));
 	}
 
-	function followSeen(cached: ListRow[]) {
-		const seen = new Map(cached.map((row) => [row.name, row._seen]));
-		const moved = (row: ListRow) => seen.has(row.name) && seen.get(row.name) !== row._seen;
-		if (!pages.value.some((page) => page.data?.some(moved))) return;
-		pages.value = pages.value.map((page) => {
-			if (!page.data?.some(moved)) return page;
-			const data = page.data.map((row) =>
-				moved(row) ? { ...row, _seen: seen.get(row.name) } : row
-			);
+	function followListColumns(cached: ListRow[]) {
+		const byName = new Map(cached.map((row) => [row.name, row]));
+		const taken = pages.value.map((page) => {
+			const data = page.data?.map((row) => takeColumns(row, byName.get(row.name)));
+			if (!data || data.every((row, i) => row === page.data![i])) return page;
 			return landedPage(data, page.hasNextPage, page.span);
 		});
+		if (taken.some((page, i) => page !== pages.value[i])) pages.value = taken;
 	}
 
 	/** False when the cache holds no list for the query; otherwise shows every name it lists. */
@@ -334,6 +332,15 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 /** The read's filters, sort and fields: the shared cache keys the list by them. */
 function listQuery(current: RowsQuery): ListQuery {
 	return { fields: current.fields, filters: current.filters, order_by: current.orderBy };
+}
+
+/** The row with each list-only column the cache holds under another value; the same row when none moved. */
+function takeColumns(row: ListRow, cached: ListRow | undefined): ListRow {
+	const moved = LIST_ONLY_FIELDS.filter(
+		(field) => cached && field in cached && cached[field] !== row[field]
+	);
+	if (!cached || !moved.length) return row;
+	return { ...row, ...Object.fromEntries(moved.map((field) => [field, cached[field]])) };
 }
 
 function landedPage(data: ListRow[], hasNextPage: boolean, span?: number): Page {
