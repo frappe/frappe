@@ -10,8 +10,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Literal, Union, get_args, get_origin, get_type_hints
 
-from pydantic import BaseModel, ConfigDict, validate_call
-
 _PRIMITIVE_SCHEMAS: dict[type, dict[str, str]] = {
 	str: {"type": "string"},
 	int: {"type": "integer"},
@@ -68,6 +66,8 @@ class Tool:
 			if unknown:
 				names = ", ".join(sorted(unknown))
 				raise ValueError(f"Tool {self.name}'s display template names unknown argument(s): {names}.")
+		from pydantic import ConfigDict, validate_call
+
 		self._validated = validate_call(config=ConfigDict(arbitrary_types_allowed=True))(self.func)
 
 	def __call__(self, **kwargs: Any) -> Any:
@@ -204,6 +204,8 @@ def _type_to_schema(t: Any) -> dict[str, Any]:
 		return {"anyOf": [_type_to_schema(a) for a in args]}
 
 	if isinstance(t, type):
+		from pydantic import BaseModel
+
 		if issubclass(t, BaseModel):
 			return _inline_pydantic_refs(t.model_json_schema())
 		if issubclass(t, Enum):
