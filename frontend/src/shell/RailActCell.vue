@@ -6,13 +6,20 @@
 		:class="PHONE_TILE"
 		:aria-label="cell.label"
 		:aria-busy="spinning"
+		:data-act="cell.act"
 		@click="run"
 	>
 		<LoadingIndicator v-if="spinning" class="size-4" />
 		<Icon v-else-if="cell.icon" :name="cell.icon" />
 		<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>
 	</button>
-	<SidebarRailItem v-else :label="cell.label" :aria-busy="spinning" @click="run">
+	<SidebarRailItem
+		v-else
+		:label="cell.label"
+		:aria-busy="spinning"
+		:data-act="cell.act"
+		@click="run"
+	>
 		<LoadingIndicator v-if="spinning" class="size-4" />
 		<Icon v-else-if="cell.icon" :name="cell.icon" />
 		<span v-else class="text-sm font-medium">{{ cell.label.charAt(0) }}</span>

@@ -9,6 +9,7 @@
 			v-if="tab"
 			type="button"
 			data-key="user-menu"
+			data-view
 			:aria-label="__('You')"
 			class="flex min-h-14 flex-col items-center justify-center gap-1 py-2 transition active:scale-95"
 		>
@@ -19,7 +20,7 @@
 			/>
 			<span class="text-xs-medium leading-tighter text-ink-gray-5">{{ __("You") }}</span>
 		</button>
-		<button v-else-if="wide" type="button" data-key="user-menu" :class="WIDE_ROW">
+		<button v-else-if="wide" type="button" data-key="user-menu" data-view :class="WIDE_ROW">
 			<Avatar
 				:image="boot.session.user.user_image"
 				:label="boot.session.user.full_name"
@@ -31,6 +32,7 @@
 			v-else
 			type="button"
 			data-key="user-menu"
+			data-view
 			:class="USER_CELL"
 			:aria-label="boot.session.user.full_name"
 		>
@@ -47,6 +49,7 @@
 import { computed, h, inject } from "vue";
 import { Avatar, Dropdown, useColorScheme, type DropdownOptions } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
+import { withAct, withView } from "@/acts/menuAct";
 import { __ } from "@/i18n";
 import type { Boot } from "@/boot";
 import { awaySide } from "./navigationSide";
@@ -82,13 +85,18 @@ const menu = computed<DropdownOptions>(() =>
 function themeRow() {
 	const theme = shellAct("theme");
 	if (!theme) return [];
-	const submenu = colorSchemes().map((scheme) => ({
-		label: scheme.label,
-		icon: scheme.icon,
-		selected: colorScheme.value === scheme.value,
-		onClick: () => void acts.perform(theme.name, scheme.value),
-	}));
-	return [{ label: theme.label!, icon: theme.icon, submenu }];
+	const submenu = colorSchemes().map((scheme) =>
+		withAct(
+			{
+				label: scheme.label,
+				icon: scheme.icon,
+				selected: colorScheme.value === scheme.value,
+				onClick: () => void acts.perform(theme.name, scheme.value),
+			},
+			theme.name
+		)
+	);
+	return [withView({ label: theme.label!, icon: theme.icon, submenu })];
 }
 
 // A disabled row cannot be selected; the inline cursor beats the wrapper's `cursor-not-allowed`.
@@ -103,6 +111,7 @@ function profileHeader() {
 					"div",
 					{
 						"data-key": "profile",
+						"data-view": "",
 						class: "flex items-center gap-2 px-2 py-1.5",
 						style: { cursor: "default" },
 					},

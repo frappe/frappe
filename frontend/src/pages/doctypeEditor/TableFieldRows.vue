@@ -9,7 +9,7 @@
 			type="button"
 			class="flex h-7 w-full min-w-0 items-center gap-1 rounded-4 px-2 text-left text-base text-ink-gray-8 hover:bg-surface-gray-2"
 			data-open-child
-			@click="acts.perform('fields.open_child', field.fieldname)"
+			v-act="['fields.open_child', field.fieldname]"
 		>
 			<span class="truncate">{{ __("Edit {0}", [field.options]) }}</span>
 			<span
@@ -30,7 +30,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
-import { acts } from "@/acts/dispatcher";
 import { __ } from "@/i18n";
 import { useChildFields } from "./childFields";
 import ChildTablePicker from "./ChildTablePicker.vue";

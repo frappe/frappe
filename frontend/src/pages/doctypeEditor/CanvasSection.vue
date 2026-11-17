@@ -39,6 +39,7 @@
 						size="sm"
 						icon="lucide-ellipsis"
 						:aria-label="__('Section actions')"
+						data-view
 					/>
 				</Dropdown>
 				<span

@@ -7,6 +7,7 @@ import { runMethod } from "@framework/ui/api";
 import type { FieldMeta } from "@framework/ui/fields/types";
 import { ActDeclined, acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
 import { doctypeRight } from "@/acts/doctypeRight";
+import { withAct } from "@/acts/menuAct";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { hrefFor } from "@/router/recordLink";
@@ -134,7 +135,7 @@ export function shellAct(name: string): AvailableAct | undefined {
 export function shellMenu(names: string[]): ShellMenuOption[] {
 	return names.flatMap((name) => {
 		const act = shellAct(name);
-		return act ? [{ label: act.label!, icon: act.icon, onClick: () => void acts.perform(act.name) }] : [];
+		return act ? [withAct({ label: act.label!, icon: act.icon, onClick: () => void acts.perform(act.name) }, act.name)] : [];
 	});
 }
 
@@ -142,6 +143,7 @@ interface ShellMenuOption {
 	label: string;
 	icon?: string;
 	onClick: () => void;
+	slots: object;
 }
 
 /** An app's act is `shell.<app>.<item>`; the shell's own are `shell.<item>`. */

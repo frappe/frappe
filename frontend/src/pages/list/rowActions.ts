@@ -7,6 +7,7 @@ import type { ListActs } from "./listActs";
 export interface RowMenuOption {
 	label: string;
 	icon?: string;
+	act: string;
 	onClick: () => void;
 }
 
@@ -29,7 +30,7 @@ export function rowMenuOptions(row: ListRow, actions: ListRowAction[], listActs:
 	return actions.flatMap((action) => {
 		const drawn = listActs.drawn(itemName(action));
 		if (!drawn || !applies(action, row, listActs.context())) return [];
-		return [{ label: drawn.label!, icon: drawn.icon, onClick: () => listActs.perform(drawn, row) }];
+		return [{ label: drawn.label!, icon: drawn.icon, act: drawn.name, onClick: () => listActs.perform(drawn, row) }];
 	});
 }
 

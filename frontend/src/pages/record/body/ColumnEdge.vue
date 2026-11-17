@@ -19,6 +19,7 @@
 			:class="[side === 'left' ? '-left-3' : '-right-3', open ? 'opacity-0' : 'opacity-100']"
 			:aria-label="`${open ? 'Collapse' : 'Expand'} ${name} column`"
 			:aria-expanded="open"
+			data-view
 			@click="emit('toggle')"
 		>
 			<span

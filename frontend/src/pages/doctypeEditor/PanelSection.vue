@@ -9,6 +9,7 @@
 			type="button"
 			class="flex items-center gap-1 py-1 text-base font-semibold text-ink-gray-8"
 			:aria-expanded="open"
+			data-view
 			@click.stop="open = !open"
 		>
 			{{ label }}

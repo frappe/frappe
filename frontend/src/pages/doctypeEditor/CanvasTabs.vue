@@ -72,6 +72,7 @@
 					size="sm"
 					icon="lucide-plus"
 					:aria-label="__('Add tab')"
+					data-act="canvas.add_tab"
 					data-canvas-add-tab
 					@click.stop="acts.perform('canvas.add_tab')"
 				/>

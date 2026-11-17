@@ -69,6 +69,7 @@
 									v-else-if="scriptAct(item.name)"
 									:icon-left="scriptAct(item.name)!.icon"
 									:label="scriptAct(item.name)!.label"
+									:data-act="scriptAct(item.name)!.name"
 									@click="listActs.perform(scriptAct(item.name)!)"
 								/>
 							</template>
@@ -79,7 +80,7 @@
 								align="end"
 							>
 								<div class="flex shrink-0">
-									<Button icon="lucide-ellipsis" label="More" />
+									<Button icon="lucide-ellipsis" label="More" data-view />
 								</div>
 							</Dropdown>
 						</div>
@@ -104,6 +105,7 @@
 
 <script setup lang="ts">
 import { Button, Dropdown, Skeleton, toast } from "frappe-ui";
+import { withAct } from "@/acts/menuAct";
 import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
@@ -301,10 +303,11 @@ const menuOptions = computed(() => {
 	const editor = ["customize_form", "edit_doctype"].map(listActs.drawn);
 	return [...quickFilter, ...editor]
 		.filter((each): each is NonNullable<typeof each> => Boolean(each))
-		.map((each) => ({
-			label: each.label,
-			icon: each.icon,
-			onClick: () => listActs.perform(each),
-		}));
+		.map((each) =>
+			withAct(
+				{ label: each.label, icon: each.icon, onClick: () => listActs.perform(each) },
+				each.name
+			)
+		);
 });
 </script>

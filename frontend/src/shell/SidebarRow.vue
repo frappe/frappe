@@ -66,6 +66,7 @@
 				type="button"
 				:class="ROW_TARGET"
 				:aria-busy="act.spinning.value"
+				:data-act="actRendering.act"
 				@click="act.run"
 			>
 				<span class="grid shrink-0 place-items-center">
@@ -78,7 +79,13 @@
 
 		<!-- Rows fetched on demand; they land at this row's own level. -->
 		<div v-else-if="expander" :data-key="item.key" :class="ROW">
-			<button type="button" :class="ROW_TARGET" :aria-expanded="expanded" @click="expand">
+			<button
+				type="button"
+				data-view
+				:class="ROW_TARGET"
+				:aria-expanded="expanded"
+				@click="expand"
+			>
 				<span class="grid shrink-0 place-items-center">
 					<Icon :name="iconOf(item)" />
 				</span>

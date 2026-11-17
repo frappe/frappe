@@ -19,7 +19,7 @@ function input(extra: Partial<ContextMenuInput> = {}): ContextMenuInput {
 	return {
 		row,
 		selection: [],
-		rowOptions: [{ label: "Archive", onClick: vi.fn() }],
+		rowOptions: [{ label: "Archive", act: "list.row_archive", onClick: vi.fn() }],
 		layout,
 		open: vi.fn(),
 		openInNewTab: vi.fn(),
