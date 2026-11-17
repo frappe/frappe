@@ -771,9 +771,10 @@ function render_oauth_app(panel, provider) {
 	load_setup().then((setup) => {
 		if (setup.one_click_services[PROVIDERS.find((p) => p.oauth === provider).service]) {
 			panel.set_view({
-				title: __("Sign in with Microsoft"),
+				title: __("Sign in with {0}", [provider]),
 				description: __(
-					"Frappe Cloud signs you in to Microsoft, so there is nothing to set up here. To connect an Outlook or Microsoft 365 mailbox, go to Accounts, click Add Account and choose Microsoft."
+					"Frappe Cloud signs you in to {0}, so there is nothing to set up here. To connect a mailbox, go to Accounts, click Add Account and choose {0}.",
+					[provider]
 				),
 			});
 			frappe.ui
