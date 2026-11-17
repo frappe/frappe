@@ -27,6 +27,7 @@ SHELL_ONLY_LATER = (
 	"frappe.core.doctype.doctype.doctype.write_doctype_files",
 	"frappe.model.document.Document.queue_submit",
 	"frappe.model.document.Document.queue_cancel",
+	"frappe.core.doctype.user_invitation.user_invitation.UserInvitation.resend_invite",
 )
 # Called by `@framework/ui` in other apps: they stay open with the switch off.
 FRAMEWORK_UI_OPEN = (

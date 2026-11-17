@@ -67,6 +67,7 @@ class UserInvitation(Document):
 		)
 		return True
 
+	@frappe.desk_v2_only
 	@frappe.whitelist(methods=["POST"])
 	def resend_invite(self):
 		# run_doc_method only checks read before it calls a doc method.
