@@ -639,7 +639,11 @@ tell the person, then call `wait(call)`. While it is open, any other `run` retur
 `waiting_for_user` too. Escape or Cancel makes the waited call `declined`. A `wait` that times
 out returns `waiting_for_user` again, and an unknown call id is `missing`. A form dialog does not
 end the run: `run` stays pending, so read `dialogs()` meanwhile. `interrupted` is for the caller to
-report when its tab is gone. The state of a list is `doctype`, `filters` (REST v2 `[fieldname, operator, value]` triples), `sort`
+report when its tab is gone. An agent's value never skips a confirm: for a call from `window.desk`, an act that
+asks first (`danger.change_kind`, `danger.rename_doctype`, `danger.move_doctype`, `danger.make_standard`,
+`fields.delete_field`, `layouts.reset_to_app`) uses the value to fill the dialog, opens it, and waits
+for the person, as above. A script's `page.run` with the same value still skips it. A confirm or danger dialog an agent's call
+opens ends with "An agent asked for this.". The state of a list is `doctype`, `filters` (REST v2 `[fieldname, operator, value]` triples), `sort`
 (`[{ fieldname, direction }]`), `selected` and `rows` (`{ name, title }` for the loaded rows, up to 20).
 Three list acts change it: `list.set_filters({ filters })` replaces the filters (an empty list clears
 them), `list.set_sort({ sort })` replaces the sort, and both answer `{ total, rows }` once the rows have
@@ -649,6 +653,28 @@ whose "Allow bulk actions" is off is `missing`, and its message says to turn it 
 A record or new page adds `doctype`, `name` (not on a new record), `docstatus`, `unsaved`, `errors` and, with
 `fields: true`, the fields its layout shows (a text value is cut at 200 characters). A record route
 whose page has not loaded gives `loading: true`; read again.
+
+### The UI relay: a server call reaches the open tab
+
+A caller that cannot run script in the tab, such as `fr ui`, calls three whitelisted methods
+over REST API v2 as the token's user. Each refuses with `PermissionError` unless that user turned on
+"Let agents drive my open tabs" in My Settings (off by default; the tab reads it once, so a reload applies a change).
+Only the person can turn it on, in their own browser session: a token or OAuth request that tries is refused.
+`call` and `tabs` allow 60 a minute per user.
+
+| Method | What it does |
+| --- | --- |
+| `frappe.desk.ui_relay.tabs()` | `[{ tab, route, title, focused_at }]` for the tabs that listen, the last focused first. It collects for 1 s. |
+| `frappe.desk.ui_relay.call(op, tab?, act?, args?, call_id?)` | Runs `op` in a tab and waits up to about 25 s. `op` is `acts` (`args: { surface? }`), `state` (`args: { fields? }`), `dialogs`, `run` (`act`, `args` is the act's value) or `wait` (`call_id`). No `tab` means the tab focused last. |
+| `frappe.desk.ui_relay.reply(call_id, result, tab?, final?)` | Called only by a tab. |
+
+`call` answers the tab's `window.desk` result with `tab` added: `{ ok, data | error, tab, route, dialogs }`;
+`acts`, `state` and `dialogs` come as `{ ok: true, data }`. Errors the relay adds are `tab_not_found` (no tab named or open answered
+in about 1 s; run `tabs`) and `waiting_for_user`. For `waiting_for_user`, `error.call` is a string, the relay's call id (not
+`window.desk`'s number): the person must answer the dialog in `error.dialog` (when the tab sent one), or the tab has not
+ended the call in 25 s. Call `op: "wait"` with that id to wait again; the final result stays 15 minutes
+and can be read more than once. A tab runs relay calls one at a time, in order. A rate limit and a setting that is off fail the
+HTTP request (429 and 403), not the envelope.
 
 On a **return visit**, a record seen earlier in the same tab and reached again by Back,
 Forward or a link, the page paints from memory before the first frame, and `onRefresh`

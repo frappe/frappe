@@ -90,7 +90,7 @@ describe("page.run", () => {
 
     await page.run("header.convert", "Deal");
 
-    expect(run).toHaveBeenCalledWith(page, "Deal");
+    expect(run).toHaveBeenCalledWith(page, "Deal", undefined);
     expect(controller.header.visible().find((item) => item.name === "done")?.label).toBe("Deal");
   });
 
@@ -264,7 +264,7 @@ describe("page.run", () => {
     const { controller, page } = makePage({ doc });
     await controller.refresh();
     await page.run("tabs.log_call");
-    expect(run).toHaveBeenCalledWith(page, undefined);
+    expect(run).toHaveBeenCalledWith(page, undefined, undefined);
 
     doc.value = { status: "Lost" };
     await controller.refresh();

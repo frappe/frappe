@@ -1,12 +1,14 @@
 // The canvas's acts, on the layout it has open. Drag, Alt+Arrow, the menus and the palette all run
 // these, so each change stages through one path; an act's value is the keys of the edit it stages.
-import type { ActItem } from "@/acts/dispatcher";
+import { ActDeclined, type ActCall, type ActItem } from "@/acts/dispatcher";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
 import type { CanvasSelection, DesignCanvas } from "./designCanvas";
 import { newFieldname, type FlatEdit } from "./editorModel";
 import { validFieldname } from "./fieldRules";
 import type { EditorActsHost } from "./editorActs";
 import { fetchedFieldname, type FetchSource } from "./fetchFrom";
+import { confirmRemove } from "./fieldPanel";
 
 type Keys = Record<string, unknown>;
 
@@ -136,8 +138,12 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			label: __("Remove field"),
 			palette: false,
 			when,
-			run: async (_context, keys: { fieldname: string }) => {
+			// A person's script skips the question, as the panel's trash asks it first; an agent's call asks it here.
+			run: async (_context, keys: { fieldname: string }, call?: ActCall) => {
 				const canvas = host.canvas()!;
+				const field = call?.agent && canvas.working.value.fields.find((one) => one.fieldname === keys.fieldname);
+				if (field && !(await confirmRemove(canvas, field as RawMetaField))) throw new ActDeclined("fields.delete_field");
+				if (host.canvas() !== canvas) throw new Error(__("The editor changed while the question was open."));
 				if (!(await canvas.stage({ ...keys, act: "fields.delete_field" }))) return;
 				const selected = canvas.selection.value;
 				if (selected?.kind === "field" && selected.fieldname === keys.fieldname) canvas.select(null);

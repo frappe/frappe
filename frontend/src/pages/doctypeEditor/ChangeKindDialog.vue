@@ -21,6 +21,11 @@
 		<p class="min-h-[39px] text-p-sm text-ink-gray-6" data-kind-notes>
 			{{ notes.join(" ") }}
 		</p>
+		<ConfirmNote
+			kind="confirm"
+			:message="__('Change the kind of {0}.', [doctype])"
+			:buttons="[__('Cancel'), __('Change kind')]"
+		/>
 		<p
 			class="min-h-5 text-p-sm text-ink-red-6"
 			role="alert"
@@ -33,7 +38,7 @@
 			<Button
 				variant="solid"
 				:label="__('Change kind')"
-				:disabled="picked === kind"
+				:disabled="picked === kind || Boolean(refusal(picked))"
 				:loading="working"
 				data-danger-confirm
 				:aria-busy="working"
@@ -47,6 +52,7 @@
 import { computed, ref } from "vue";
 import { Button, Radio, RadioGroup } from "frappe-ui";
 import { __ } from "@/i18n";
+import ConfirmNote from "./ConfirmNote.vue";
 import { useDangerSubmit } from "./dangerSubmit";
 import { kindNotes, kindRefusal } from "./dangerActs";
 import { KINDS, type DoctypeKind } from "./settingsRows";
@@ -54,13 +60,15 @@ import { KINDS, type DoctypeKind } from "./settingsRows";
 const props = defineProps<{
 	doctype: string;
 	kind: DoctypeKind;
+	/** The kind an agent asked for; the dialog still waits for a person. */
+	initial?: DoctypeKind;
 	/** The records the reader sees; `null` when unknown. */
 	records: number | null;
 	submit: (kind: DoctypeKind) => Promise<DoctypeKind>;
 	close: (kind: DoctypeKind | null) => void;
 }>();
 
-const picked = ref<DoctypeKind>(props.kind);
+const picked = ref<DoctypeKind>(props.initial ?? props.kind);
 const { working, error, send } = useDangerSubmit(props.submit, props.close);
 const notes = computed(() => kindNotes(props.doctype, props.kind, picked.value));
 

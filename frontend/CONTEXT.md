@@ -475,8 +475,15 @@ component), action (already overloaded; see **Words that collide**).
 `window.desk`, the object an agent that cannot see the screen uses to list the desk's acts,
 run one, wait for a person's answer to its confirm, and read the page and open dialogs. A
 `run` that opens a confirm returns `waiting_for_user` with the dialog and a call id; the person
-answers, never the agent, and `wait` gives the final result.
+answers, never the agent, and `wait` gives the final result. A value an agent passes fills a confirm's
+dialog and never skips it; the dialog says "An agent asked for this.".
 _Avoid_: agent API, bridge.
+
+**UI relay**: <a id="ui-relay"></a>
+How a server call, such as `fr ui`, drives the person's open tab: it reaches the tab by the
+realtime room and runs through `window.desk`, so an agent's confirm rules hold. The person
+turns it on for themselves ("Let agents drive my open tabs"); off, the tab does not listen.
+_Avoid_: remote control, bridge.
 
 **Row**: <a id="row"></a>
 One line in the palette, showing an act, a place or a record. Not a child table's row; see
