@@ -1,6 +1,4 @@
-/** @deprecated The `get_more_*` endpoints it calls are not served by desk v2. */
-// eslint-disable-next-line no-restricted-imports -- deprecated develop API; its v1 fetch is why it is kept as it was
-import { createResource } from "frappe-ui";
+import { runMethod } from "../../api";
 import { computed, reactive, ref, type Ref } from "vue";
 import type { Activity, CustomActivity, Pagination } from "./types";
 
@@ -49,69 +47,63 @@ export function isPagedRow(activity: Activity | CustomActivity): boolean {
   );
 }
 
-/**
- * History paging: fetch the next older page of each paged source and append it. The feed
- * re-sorts, so the rows land wherever their timestamps put them.
- */
+/** @deprecated Calls `get_more_*` endpoints that desk v2 does not serve; v2 pages by cursor. */
 export function createHistoryPagination(
   doctype: string,
   docname: string,
-  resource: ReturnType<typeof createResource>,
+  resource: { data?: unknown },
   sources: PagedSources
 ): Pagination {
+  const loading = ref(false);
+  const loadedRows = () => (resource.data as Activity[] | undefined) ?? [];
   const appendToFeed = (olderRows: Activity[]) => {
-    const loadedRows = (resource.data as Activity[] | undefined) ?? [];
-    resource.data = [...loadedRows, ...olderRows];
+    resource.data = [...loadedRows(), ...olderRows];
   };
 
-  const olderEmails = createResource({
-    url: "frappe.desk.form.activity.get_more_email_activities",
-    auto: false,
-    onSuccess: (response: {
+  const fetchOlderEmails = async () => {
+    // count-based offset: emails are only appended, so the loaded count is the next start
+    const start = loadedRows().filter((row) => row.type === "email").length;
+    const { data } = await runMethod<{
       activities: Activity[];
       has_more_emails?: boolean;
-    }) => {
-      appendToFeed(response.activities);
-      sources.hasMoreEmails.value = !!response.has_more_emails;
-    },
-  });
+    }>("frappe.desk.form.activity.get_more_email_activities", {
+      doctype,
+      name: docname,
+      start,
+    });
+    appendToFeed(data.activities);
+    sources.hasMoreEmails.value = !!data.has_more_emails;
+  };
 
-  const olderMilestones = createResource({
-    url: "frappe.desk.form.activity.get_more_milestone_activities",
-    auto: false,
-    onSuccess: (response: {
+  const fetchOlderMilestones = async () => {
+    const { data } = await runMethod<{
       activities: Activity[];
       has_more_milestones?: boolean;
       next_milestone_start?: number;
-    }) => {
-      appendToFeed(response.activities);
-      sources.hasMoreMilestones.value = !!response.has_more_milestones;
-      // backend-supplied: a milestone on a field the user cannot read is counted but not
-      // returned, so an offset counted from the rendered rows would skip the rows behind it
-      sources.milestoneStart.value =
-        response.next_milestone_start ?? sources.milestoneStart.value;
-    },
-  });
-
-  const isFetching = () => olderEmails.loading || olderMilestones.loading;
+    }>("frappe.desk.form.activity.get_more_milestone_activities", {
+      doctype,
+      name: docname,
+      start: sources.milestoneStart.value,
+    });
+    appendToFeed(data.activities);
+    sources.hasMoreMilestones.value = !!data.has_more_milestones;
+    // backend-supplied: a milestone on a field the user cannot read is counted but not
+    // returned, so an offset counted from the rendered rows would skip the rows behind it
+    sources.milestoneStart.value =
+      data.next_milestone_start ?? sources.milestoneStart.value;
+  };
 
   // One control, both sources: a row is older history whichever source it came from.
-  const fetchNextPage = () => {
-    if (isFetching()) return;
-    if (sources.hasMoreEmails.value) {
-      const loadedRows = (resource.data as Activity[] | undefined) ?? [];
-      // count-based offset: emails are only appended, so the loaded count is the next start
-      const loadedEmailCount = loadedRows.filter(
-        (row) => row.type === "email"
-      ).length;
-      olderEmails.submit({ doctype, name: docname, start: loadedEmailCount });
-    }
-    if (sources.hasMoreMilestones.value) {
-      olderMilestones.submit({
-        doctype,
-        name: docname,
-        start: sources.milestoneStart.value,
-      });
+  const fetchNextPage = async () => {
+    if (loading.value) return;
+    loading.value = true;
+    try {
+      await Promise.all([
+        sources.hasMoreEmails.value && fetchOlderEmails(),
+        sources.hasMoreMilestones.value && fetchOlderMilestones(),
+      ]);
+    } finally {
+      loading.value = false;
     }
   };
 
@@ -120,7 +112,7 @@ export function createHistoryPagination(
     hasNextPage: computed(
       () => sources.hasMoreEmails.value || sources.hasMoreMilestones.value
     ),
-    isFetchingNextPage: computed(() => isFetching()),
+    isFetchingNextPage: computed(() => loading.value),
     fetchNextPage,
     isPagedRow,
     // in-feed row above the oldest paged row; the copy lives here, not in the component
