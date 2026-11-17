@@ -5,6 +5,7 @@ from typing import Literal
 import frappe
 from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
+from frappe.studio import components
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
 from frappe.studio.doctype.studio_component.studio_component import find_component
 from frappe.studio.files import (
@@ -119,6 +120,13 @@ def get_sort_fields(doctype: str):
 		fields.append(field)
 
 	return fields
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_component_definition(component: str) -> dict:
+	"""Return the props of a built-in component, for an agent that builds a page."""
+	return components.get_component_definition(component)
 
 
 @frappe.whitelist()
