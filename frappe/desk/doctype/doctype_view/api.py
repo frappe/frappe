@@ -1,4 +1,5 @@
-# The calls a view's settings go through: read both scopes, patch keys, clear one key; find a saved view by key, and list them.
+# The calls a view's settings go through: read both scopes, patch keys, clear one key; find a saved view by key, list them,
+# read one's settings, and save, rename, delete and publish them.
 
 import frappe
 from frappe import _
@@ -13,6 +14,7 @@ from frappe.desk.doctype.view_type.view_type import (
 from .app_views import app_plain_settings
 from .doctype_view import PLAIN_VIEW, SITE_ROW, DuplicateViewError, is_site_administrator
 from .key_space import KeySpace
+from .saved_view import ViewWriter, can_save, layer_of, settings_of
 from .view_list import ViewList
 
 SCOPES = ("user", "site")
@@ -68,7 +70,7 @@ def find(doctype: str, key: str) -> dict:
 	if not view:
 		raise frappe.DoesNotExistError(_("This view doesn't exist."))
 
-	return _found(doctype, view.key, view.label, view.type, _layer(view))
+	return _found(doctype, view.key, view.label, view.type, layer_of(view))
 
 
 @frappe.desk_v2_only
@@ -82,15 +84,89 @@ def list_views(doctype: str | None = None, app: str | None = None) -> dict[str, 
 	return ViewList(app=app).of([doctype])
 
 
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["GET"])
+def view_settings(doctype: str, key: str) -> dict:
+	"""The settings of the view at `key`, from the layer the caller sees it at (a type's plain view: its layers merged), and whether they may save it."""
+	if not isinstance(key, str):
+		frappe.throw(_("A view key is one name."))
+	check_doctype(doctype)
+
+	if type := type_keys().get(key):
+		rows = _rows(doctype, type)
+		settings = {**(rows["app"] or {}), **(rows["site"] or {}), **(rows["user"] or {})}
+		return {
+			**_found(doctype, key, _(view_types()[type].label), type, None),
+			"settings": settings,
+			"saveable": True,
+		}
+
+	view = KeySpace(doctype).find(key)
+	if not view:
+		raise frappe.DoesNotExistError(_("This view doesn't exist."))
+
+	layer = layer_of(view)
+	view.reference_doctype = doctype
+	return {
+		**_found(doctype, view.key, view.label, view.type, layer),
+		"settings": settings_of(view) or {},
+		"saveable": can_save(layer),
+	}
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def save_view(doctype: str, key: str, settings: dict) -> dict:
+	"""Replace a saved view's settings. A site administrator's save of an app's view writes a site row at its key."""
+	check_doctype(doctype)
+
+	return _written(doctype, ViewWriter(doctype).save(key, settings))
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def save_view_as(doctype: str, label: str, settings: dict, type: str = "List") -> dict:
+	"""Make a new view of `type` in the caller's own layer; its key comes from the label, and the reply is the view."""
+	check_doctype(doctype)
+	refuse_where_it_does_not_apply(type, doctype)
+
+	return _written(doctype, ViewWriter(doctype).save_as(label, settings, type))
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def rename_view(doctype: str, key: str, label: str) -> dict:
+	"""Change a saved view's label. Its key, and so its address, stays."""
+	check_doctype(doctype)
+
+	return _written(doctype, ViewWriter(doctype).rename(key, label))
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def delete_view(doctype: str, key: str) -> dict:
+	"""Delete a saved view's row. `restored` is true when that brought back an app's view at the same key."""
+	check_doctype(doctype)
+
+	return {"key": key, "restored": ViewWriter(doctype).delete(key)}
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def publish_view(doctype: str, key: str) -> dict:
+	"""Move the caller's own view to the site layer under the same key; a System Manager's act."""
+	check_doctype(doctype)
+
+	return _written(doctype, ViewWriter(doctype).publish(key))
+
+
+def _written(doctype: str, view: frappe._dict) -> dict:
+	return _found(doctype, view.key, view.label, view.type, view.layer)
+
+
 def _found(doctype: str, key: str, label: str, type: str, layer: str | None) -> dict:
 	"""A view as the page opens it; `applies` is false when its type no longer fits the doctype."""
 	return {"key": key, "label": label, "type": type, "layer": layer, "applies": applies_to(type, doctype)}
-
-
-def _layer(view: frappe._dict) -> str:
-	if view.user is None:
-		return "app"
-	return "site" if view.user == SITE_ROW else "own"
 
 
 def _check(doctype: str, type: str, scope: str = "user"):

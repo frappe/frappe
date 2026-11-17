@@ -2,7 +2,7 @@
 // the site's and the person's stored rows, mirrored to the URL query, and written back on the person's acts.
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
-import type { FilterCondition, FilterField } from "@framework/ui/Filter";
+import { serializeFilters, type FilterCondition, type FilterField } from "@framework/ui/Filter";
 import type { Sort } from "@framework/ui/SortBy";
 import { holdFresh } from "@framework/ui/utils";
 import {
@@ -36,6 +36,7 @@ import {
 } from "./storedSettings";
 import { useListSettings } from "./useListSettings";
 import type { View } from "./view";
+import { useViewSettings } from "./viewSettings";
 
 export interface ListPage {
 	/** What the page hands its renderer, or a replacement page. */
@@ -51,6 +52,12 @@ export interface ListPage {
 	resetForSite: (key: ListSettingsKey) => Promise<void>;
 	/** What a new record from this list starts with. */
 	createValues: ComputedRef<Record<string, unknown>>;
+	/** The settings the view would be saved with as the page shows it now. */
+	snapshot: () => ListSettings;
+	/** The settings a save wrote: they become the view's base, and the page's changes are gone. */
+	commit: (settings: ListSettings) => void;
+	/** Drops the page's changes: the filters, the sort and the settings go back to the view's own. */
+	discard: () => void;
 }
 
 /** The view a list address opens when it names none: the plain List view. */
@@ -68,6 +75,9 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 	const { meta, error, refreshing, refreshed, reload: reloadMeta } = useDoctypeMeta(doctype);
 	const permissions = useDocPermissions(doctype);
 	const settings = useListSettings(doctype);
+	// A saved view is its own row's settings, read on opening; the page's changes are not written back.
+	const saved = opened.layer ? useViewSettings(doctype, opened.key) : null;
+	const stored = computed(() => (saved ? saved.stored.value : settings.stored.value));
 	const listMeta = computed(() => meta.value as ListMeta | null);
 	const fields = computed(() => listMeta.value?.fields ?? []);
 
@@ -83,7 +93,11 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 	const acted = new Set<ListSettingsKey>();
 
 	const ready = computed(
-		() => Boolean(listMeta.value) && settings.loaded.value && !permissions.loading.value
+		() =>
+			Boolean(listMeta.value) &&
+			settings.loaded.value &&
+			(!saved || saved.loaded.value) &&
+			!permissions.loading.value
 	);
 
 	const readable = (fieldname: string) => {
@@ -92,18 +106,18 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 	};
 
 	function resolvedSort(): Sort[] {
-		const stored = sortFrom(settings.stored.value.sort, fields.value, readable, listMeta.value ?? {});
-		return stored.length ? stored : defaultSort(listMeta.value!);
+		const own = sortFrom(stored.value.sort, fields.value, readable, listMeta.value ?? {});
+		return own.length ? own : defaultSort(listMeta.value!);
 	}
 
 	function resolvedFilters(): FilterCondition[] {
-		return filtersFrom(settings.stored.value.filters, doctype, fields.value, readable);
+		return filtersFrom(stored.value.filters, doctype, fields.value, readable);
 	}
 
 	function resolvedQuickFilterFields(): FilterField[] | undefined {
-		const stored = settings.stored.value.quick_filter_fields;
-		if (!stored) return undefined;
-		return quickFilterFieldsFrom(stored, doctype, fields.value, readable);
+		const chosen = settings.stored.value.quick_filter_fields;
+		if (!chosen) return undefined;
+		return quickFilterFieldsFrom(chosen, doctype, fields.value, readable);
 	}
 
 	function applyStored() {
@@ -169,7 +183,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 
 	// A replace, so the tweak is not a step Back has to undo. A landed write moves the resolved
 	// sort, so the URL is spelled again and a `_sort` that became the default goes.
-	watch([filters, sort, settings.stored], writeQuery, { deep: true });
+	watch([filters, sort, stored], writeQuery, { deep: true });
 
 	function writeQuery() {
 		if (!seeded.value || sameQuery(route.query, stateQuery())) return;
@@ -199,13 +213,15 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 
 	function persist<Key extends ListSettingsKey>(key: Key, value: ListSettings[Key]) {
 		const json = JSON.stringify(value);
+		// A saved view changes only on its Save; the quick filter fields belong to the type's plain view.
+		if (saved && key !== "quick_filter_fields") return;
 		if (!seeded.value || applied[key] === json) return;
 		applied[key] = json;
 		acted.add(key);
 		settings.save({ [key]: value });
 	}
 
-	const viewSettings = computed(() => ({ ...settings.stored.value, ...changed.value }));
+	const viewSettings = computed(() => ({ ...stored.value, ...changed.value }));
 
 	/** A renderer's change to its own keys: kept in page state and written to the person's row. */
 	function update(patch: Record<string, unknown>) {
@@ -221,7 +237,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 	const unstored = computed(() =>
 		Object.entries(changed.value).some(
 			([key, value]) =>
-				JSON.stringify(value) !== JSON.stringify(settings.stored.value[key as ListSettingsKey])
+				JSON.stringify(value) !== JSON.stringify(stored.value[key as ListSettingsKey])
 		)
 	);
 
@@ -248,18 +264,44 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 					unstored.value)
 		),
 		update,
-		customized: (key) => settings.has("user", key as ListSettingsKey),
-		reset: (key) => afterSettingsWrite(settings.reset(key as ListSettingsKey)),
+		saveable: computed(() => (saved ? saved.saveable.value : true)),
+		customized: (key) => !saved && settings.has("user", key as ListSettingsKey),
+		reset: async (key) => {
+			if (!saved) return afterSettingsWrite(settings.reset(key as ListSettingsKey));
+			delete changed.value[key];
+		},
 	};
+
+	function snapshot(): ListSettings {
+		const { quick_filter_fields: _quick, ...own } = viewSettings.value as ListSettings;
+		const sorted = sort.value.map(({ fieldname, direction }) => ({ fieldname, direction }));
+		return { ...own, filters: serializeFilters(completeFilters(filters.value)), sort: sorted };
+	}
+
+	function commit(written: ListSettings) {
+		if (saved) saved.stored.value = written;
+		discard();
+	}
+
+	function discard() {
+		changed.value = {};
+		filters.value = resolvedFilters();
+		sort.value = resolvedSort();
+		applied.sort = JSON.stringify(sort.value);
+		writeQuery();
+	}
 
 	return {
 		view,
 		quickFilterFields,
 		customizing,
-		metaError: error,
-		reloadMeta,
+		metaError: computed(() => error.value ?? saved?.failure.value ?? null),
+		reloadMeta: () => (saved?.failure.value ? void saved.retry() : reloadMeta()),
 		saveForSite: (value) => afterSettingsWrite(settings.saveForSite(value)),
 		resetForSite: (key) => afterSettingsWrite(settings.resetForSite(key)),
 		createValues: computed(() => createValues(filters.value, fields.value)),
+		snapshot,
+		commit,
+		discard,
 	};
 }

@@ -2,7 +2,7 @@
 // view, or a view type's plain view at its type's name.
 import { isApiError, runMethod } from "@framework/ui/api";
 import { currentSession } from "@framework/ui/useSession";
-import { onScopeDispose, shallowRef, watch, type ShallowRef } from "vue";
+import { onScopeDispose, ref, shallowRef, watch, type ShallowRef } from "vue";
 
 const FIND = "frappe.desk.doctype.doctype_view.api.find";
 
@@ -46,17 +46,31 @@ export function resetSavedViews(): void {
 	foundFor = undefined;
 }
 
+// Bumped when a write changed a view's label, layer or key, so each open page looks it up again.
+const revision = ref(0);
+
+/** After a write: the remembered answers are dropped and the open views look themselves up again. */
+export function refreshSavedViews(): void {
+	found.clear();
+	revision.value++;
+}
+
 /** Looks the view up again whenever the address names another one; an older answer is dropped. */
 export function useSavedView(doctype: () => string | null, key: () => string | null): SavedViewHandle {
 	const view = shallowRef<SavedView | null>(null);
 	const failure = shallowRef<unknown>(null);
 	let asking: AbortController | undefined;
 
+	let lookedUp = "";
+
 	async function load() {
 		asking?.abort();
 		failure.value = null;
 		const [doctypeName, viewKey] = [doctype(), key()];
-		view.value = doctypeName && viewKey ? remembered(doctypeName, viewKey) : null;
+		// The same address again, after a write: the page keeps the view it has until the new answer lands.
+		const address = `${doctypeName}\0${viewKey}`;
+		if (address !== lookedUp) view.value = doctypeName && viewKey ? remembered(doctypeName, viewKey) : null;
+		lookedUp = address;
 		if (!doctypeName || !viewKey) return;
 
 		const current = (asking = new AbortController());
@@ -78,7 +92,7 @@ export function useSavedView(doctype: () => string | null, key: () => string | n
 		}
 	}
 
-	watch(() => [doctype(), key()], load, { immediate: true });
+	watch(() => [doctype(), key(), revision.value], load, { immediate: true });
 	onScopeDispose(() => asking?.abort());
 
 	return { view, failure, retry: load };

@@ -323,6 +323,10 @@ describe("the list surface", () => {
       "list.set_filters",
       "list.set_sort",
       "list.select",
+      "list.save_view_as",
+      "list.rename_view",
+      "list.delete_view",
+      "list.publish_view",
       "list.assign",
       "list.clear_assignment",
       "list.apply_assignment_rule",
@@ -500,6 +504,10 @@ describe("the list surface", () => {
       "list.set_filters",
       "list.set_sort",
       "list.select",
+      "list.save_view_as",
+      "list.rename_view",
+      "list.delete_view",
+      "list.publish_view",
       "list.favourite_records",
       "list.copy",
       "list.download_vcards",
@@ -764,7 +772,7 @@ describe("a renderer's acts", () => {
     hidden: false,
   };
 
-  async function mountActs(type?: string) {
+  async function mountActs(type?: string, view: Record<string, unknown> = {}) {
     const host = {
       list: {
         page: {},
@@ -799,6 +807,9 @@ describe("a renderer's acts", () => {
       openView: () => {},
       setDefaultView: () => {},
       clearDefaultView: () => {},
+      viewLayer: () => (view.layer as never) ?? null,
+      viewSaveable: () => (view.saveable as boolean) ?? true,
+      writeView: (view.writeView as never) ?? (async () => ({})),
     };
     const app = createApp(
       defineComponent({
@@ -832,6 +843,34 @@ describe("a renderer's acts", () => {
     await mountActs("Kanban");
     expect(namesWith("move_card")).toEqual(["kanban.move_card"]);
     expect(listActNames()).toContain("list.create");
+  });
+
+  it("offer save_view and discard_changes on a saved view, and save_view only to a person who can save it", async () => {
+    await mountActs("List", { layer: "own", saveable: true });
+    expect(namesWith("save_view")).toEqual(["list.save_view"]);
+    expect(namesWith("discard_changes")).toEqual(["list.discard_changes"]);
+  });
+
+  it("hide save_view on a shared view the person cannot save, and both on a plain view", async () => {
+    await mountActs("List", { layer: "site", saveable: false });
+    expect(namesWith("save_view")).toEqual([]);
+    expect(namesWith("discard_changes")).toEqual(["list.discard_changes"]);
+    for (const app of apps.splice(0)) app.unmount();
+
+    await mountActs("List");
+    expect(namesWith("save_view")).toEqual([]);
+    expect(namesWith("discard_changes")).toEqual([]);
+    expect(namesWith("save_view_as")).toEqual(["list.save_view_as"]);
+  });
+
+  it("run a write act through the host by its name, hidden from the palette", async () => {
+    const writes: unknown[][] = [];
+    await mountActs("List", { writeView: async (...call: unknown[]) => void writes.push(call) });
+    await acts.run("list.rename_view", { key: "mine", label: "Mine" });
+    expect(writes).toEqual([["rename_view", { key: "mine", label: "Mine" }]]);
+    expect(
+      acts.available().find((act) => act.name === "list.rename_view")?.palette,
+    ).toBe(false);
   });
 
   it("land on list for the List type", async () => {
