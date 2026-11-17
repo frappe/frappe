@@ -944,6 +944,73 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		job_id = response.json["data"]["job_id"]
 
 
+class TestBulkRemoveAsNormalUserV2(FrappeAPITestCase):
+	"""`bulk_remove` as a user with the `bulk_actions` gate and no System Manager role."""
+
+	version = "v2"
+
+	def setUp(self) -> None:
+		super().setUp()
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
+		frappe.set_user("Administrator")
+		self.user = "api.bulkremove@example.com"
+		self.created_user = not frappe.db.exists("User", self.user)
+		if self.created_user:
+			frappe.get_doc(
+				doctype="User",
+				email=self.user,
+				first_name="API Bulk Remove",
+				roles=[{"role": "Desk User"}],
+				send_welcome_email=0,
+			).insert()
+		frappe.db.set_value("User", self.user, "bulk_actions", 1)
+		frappe.clear_document_cache("User", self.user)
+		keys = generate_keys(self.user)
+		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+
+		frappe.set_user(self.user)
+		self.own = frappe.get_doc(doctype="ToDo", description="Bulk remove own").insert()
+		frappe.set_user("Administrator")
+		self.others = frappe.get_doc(doctype="ToDo", description="Bulk remove other").insert()
+		# Requests use a separate connection and must see these fixtures.
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self) -> None:
+		try:
+			frappe.set_user("Administrator")
+			for doc in (self.own, self.others):
+				frappe.delete_doc_if_exists("ToDo", doc.name)
+			if self.created_user:
+				frappe.delete_doc("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def bulk_remove(self, names: list[str]):
+		return make_request(
+			get_test_client(use_cookies=False).post,
+			args=(self.resource("ToDo", "bulk_remove"),),
+			kwargs={"json": {"names": names}, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+
+	def test_a_permitted_delete_succeeds(self):
+		response = self.bulk_remove([self.own.name])
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["data"]["done"], [self.own.name])
+		self.assertFalse(frappe.db.exists("ToDo", self.own.name))
+
+	def test_a_forbidden_delete_fails_and_leaves_the_record(self):
+		response = self.bulk_remove([self.own.name, self.others.name])
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["done"], [self.own.name])
+		self.assertEqual([row["name"] for row in data["failed"]], [self.others.name])
+		self.assertTrue(frappe.db.exists("ToDo", self.others.name))
+
+
 class TestBulkRunnerRoutesV2(FrappeAPITestCase):
 	"""The desk v2 shell's bulk_remove and bulk_edit routes, which run through `run_bulk`."""
 
