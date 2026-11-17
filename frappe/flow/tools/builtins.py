@@ -1144,9 +1144,10 @@ def run_act(
 	"""Run one act of the desk v2 page beside this chat, as the user, and get `{ok, data, error, route,
 	dialogs}`. `name` is from list_acts; `args` is the value its `input` describes. Read the page with
 	read_screen first when unsure what it shows. A person answers every confirm in the page: when one
-	opens, you get error code `waiting_for_user` with `error.call`. Tell the user to answer it in the
-	page, then call run_act with only `call` to wait for the end (it returns `waiting_for_user` again
-	when the person has not answered yet). Never retry the act while it waits."""
+	opens, the call waits for the person to answer it in the page and returns the end of the act, so
+	you can report the outcome in the same turn. After 45 seconds it returns error code
+	`waiting_for_user` with `error.call`: the person has not answered. Tell them, and call run_act with
+	only `call` to keep waiting. Never retry the act while it waits."""
 	if call is None and not name:
 		frappe.throw(_("Give the act's name, or the call to wait for."))
 	op_args = {"call": call} if call is not None else {"name": name, "args": args}

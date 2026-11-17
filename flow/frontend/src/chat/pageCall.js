@@ -52,8 +52,16 @@ function missingDesk(page, inPanel) {
 async function callDesk(desk, op, args) {
 	if (op === "list_acts") return listed(await desk.acts.list());
 	if (op === "run_act" && args.call != null) return desk.acts.wait(args.call, { timeout: ACT_WAIT });
-	if (op === "run_act") return desk.acts.run(args.name, args.args ?? undefined);
+	if (op === "run_act") return waitForPerson(desk, await desk.acts.run(args.name, args.args ?? undefined));
 	throw new Error(`unknown call ${op}`);
+}
+
+// A confirm is the person's to answer. The call waits for them here, so the agent's turn goes on
+// with the outcome; after ACT_WAIT it is `waiting_for_user` again, and the agent may wait again.
+async function waitForPerson(desk, result) {
+	const call = result?.error?.code === "waiting_for_user" ? result.error.call : null;
+	if (typeof call !== "number") return result;
+	return desk.acts.wait(call, { timeout: ACT_WAIT });
 }
 
 // screen_result takes an object

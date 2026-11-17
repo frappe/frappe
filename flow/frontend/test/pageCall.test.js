@@ -57,6 +57,18 @@ test("run_act claims the call first, then runs the act with its value", async ()
 	assert.deepEqual(reply, [{ screen: { ok: true, data: null } }]);
 });
 
+test("a run_act that opens a confirm waits for the person and answers with the end of the act", async () => {
+	const desk = stubDesk();
+	const waiting = { ok: false, error: { code: "waiting_for_user", call: 0 }, dialogs: [{ id: 0 }] };
+	desk.acts.run = async () => waiting;
+	desk.acts.wait = async (call, options) => ({ ok: true, data: { call, options } });
+	const seen = await callPage({ op: "run_act", args: { name: "header.submit" } }, { desk });
+	assert.equal(seen.replies.length, 1);
+	assert.equal(seen.replies[0].screen.ok, true);
+	assert.equal(seen.replies[0].screen.data.call, 0); // call 0 is a call
+	assert.ok(seen.replies[0].screen.data.options.timeout > 0);
+});
+
 test("a run_act that another tab claimed first runs nothing and answers nothing", async () => {
 	let ran = false;
 	const desk = stubDesk();
@@ -70,13 +82,16 @@ test("a run_act that another tab claimed first runs nothing and answers nothing"
 	assert.deepEqual(seen.replies, []);
 });
 
-test("a waiting_for_user result goes back as it is, and a follow-up waits on its call", async () => {
+test("an unanswered confirm comes back as waiting_for_user, and a follow-up waits on its call", async () => {
 	const error = { code: "waiting_for_user", call: 7, message: "A person must confirm." };
 	const waiting = { ok: false, error };
 	const desk = stubDesk();
 	desk.acts.run = async () => waiting;
+	const answers = desk.acts.wait;
+	desk.acts.wait = async () => waiting;
 	const first = await callPage({ op: "run_act", args: { name: "header.submit" } }, { desk });
 	assert.deepEqual(first.replies, [{ screen: waiting }]);
+	desk.acts.wait = answers;
 	const second = await callPage({ op: "run_act", args: { call: 7 } }, { desk });
 	assert.equal(second.replies[0].screen.data.call, 7);
 	assert.ok(second.replies[0].screen.data.options.timeout < 60000, "ends before the server stops waiting");
