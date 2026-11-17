@@ -122,13 +122,11 @@ class DaemonClient:
 		api_key: str | None = None,
 		api_base: str | None = None,
 		model_params: dict | None = None,
-		reasoning_effort: str | None = None,
 	) -> dict:
 		body = {
 			"model": model,
 			"api_key": api_key,
 			"api_base": api_base,
-			"reasoning_effort": reasoning_effort,
 		}
 		if model_params:
 			body["model_params"] = model_params

@@ -346,11 +346,11 @@ class FlowSession(Document):
 			frappe.throw(_("This chat's model was deleted. Pick another model."), title=_("Model Deleted"))
 		model_config(self.model or agent.model)
 
-	def set_model(self, model: str, reasoning_effort: str | None = None) -> None:
-		self._send_model(model, reasoning_effort)
+	def set_model(self, model: str) -> None:
+		self._send_model(model)
 		self.db_set("model", model)
 
-	def _send_model(self, model: str, reasoning_effort: str | None = None) -> None:
+	def _send_model(self, model: str) -> None:
 		from frappe.flow.lib.model import model_config
 
 		config = model_config(model)
@@ -361,7 +361,6 @@ class FlowSession(Document):
 				api_key=config["api_key"],
 				api_base=config["api_base"],
 				model_params=config.get("model_params"),
-				reasoning_effort=reasoning_effort,
 			)
 
 	def set_title(self, title: str) -> None:

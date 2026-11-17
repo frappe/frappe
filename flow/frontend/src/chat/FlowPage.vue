@@ -174,11 +174,10 @@ import { readScreen } from "./screen.js";
 import { presentTool } from "./toolMeta.js";
 
 // the composer commands Flow serves, its own agent picker first; the rest need the
-// daemon's file system or providers
+// daemon's file system or providers, and a thinking level is set in a model's Extra Params
 const COMMANDS = [
 	{ name: "agents", label: __("Agent"), icon: "lucide-bot", hint: __("Choose the agent"), view: "agents" },
 	"model",
-	"thinking",
 	"transcript",
 	"new",
 	"rewind",
