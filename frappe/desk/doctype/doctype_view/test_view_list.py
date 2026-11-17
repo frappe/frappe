@@ -62,7 +62,18 @@ class TestViewList(AppViewCase):
 		)
 		plain = [view for view in views if view["layer"] is None]
 		self.assertEqual([view["key"] for view in views[: len(plain)]], [view["key"] for view in plain])
-		self.assertIn({"key": "list", "label": "List", "type": "List", "layer": None, "default": True}, plain)
+		self.assertIn(
+			{
+				"key": "list",
+				"label": "List",
+				"type": "List",
+				"layer": None,
+				"default": True,
+				"default_for": [],
+				"overrides_app": False,
+			},
+			plain,
+		)
 		self.assertIn("cards", [view["key"] for view in plain])
 
 	def test_views_sharing_a_label_are_listed_by_key(self):
@@ -99,6 +110,51 @@ class TestViewList(AppViewCase):
 			self.assertEqual(default_of(list_views("ToDo")["ToDo"]), [site.key])
 			default_view_api.save("ToDo", own.key, "user")
 			self.assertEqual(default_of(list_views("ToDo")["ToDo"]), [own.key])
+
+	def test_each_view_names_the_pointers_that_default_to_it(self):
+		site = todo_view(SITE_ROW, "Site one")
+		own = todo_view(self.person, "Mine")
+		default_view_api.save("ToDo", "cards", "site")
+
+		with set_user(self.person):
+			default_view_api.save("ToDo", site.key, "user")
+			views = {view["key"]: view for view in list_views("ToDo")["ToDo"]}
+
+		self.assertEqual(views[site.key]["default_for"], ["user"])
+		self.assertEqual(views["cards"]["default_for"], ["site"])
+		self.assertEqual(views[own.key]["default_for"], [])
+		self.assertEqual(views["list"]["default_for"], [])
+
+	def test_one_view_can_be_both_the_persons_default_and_the_sites(self):
+		site = todo_view(SITE_ROW, "Site one")
+		default_view_api.save("ToDo", site.key, "site")
+
+		with set_user(self.person):
+			default_view_api.save("ToDo", site.key, "user")
+			views = {view["key"]: view for view in list_views("ToDo")["ToDo"]}
+
+		self.assertEqual(views[site.key]["default_for"], ["user", "site"])
+
+	def test_a_pointer_whose_view_is_gone_is_not_named(self):
+		own = todo_view(self.person, "Gone soon")
+		with set_user(self.person):
+			default_view_api.save("ToDo", own.key, "user")
+			frappe.delete_doc("Doctype View", own.name, ignore_permissions=True, force=True)
+
+			views = list_views("ToDo")["ToDo"]
+
+		self.assertEqual([view["key"] for view in views if view["default_for"]], [])
+
+	def test_a_site_row_at_an_app_key_says_it_overrides_the_app_view(self):
+		self.folders.own_view("probe-open", label="Open probe")
+		self.folders.own_view("probe-kept", label="Kept probe")
+		site_row("probe-open", label="Site's")
+
+		views = {view["key"]: view for view in list_views("ToDo")["ToDo"]}
+
+		self.assertTrue(views["probe-open"]["overrides_app"])
+		self.assertFalse(views["probe-kept"]["overrides_app"])
+		self.assertFalse(views["list"]["overrides_app"])
 
 	def test_an_apps_default_is_marked_in_its_prefix_only(self):
 		self.folders.custom_view("acme", "probe-acme", label="Acme's", default=True)

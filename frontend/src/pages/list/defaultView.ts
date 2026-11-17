@@ -1,10 +1,11 @@
 // Sets or clears one layer's default view of a doctype, and keeps the answer in boot for the router.
 import { runMethod } from "@framework/ui/api";
 import type { Boot } from "@/boot";
+import type { DefaultScope } from "@/list/listedViews";
 
 const API = "frappe.desk.doctype.default_view.api";
 
-export type DefaultScope = "user" | "site";
+export type { DefaultScope };
 
 /** Points `scope`'s default at the view `key`, a view type's name for its plain view. */
 export async function setDefaultView(boot: Boot, doctype: string, key: string, scope: DefaultScope) {

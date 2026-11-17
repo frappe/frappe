@@ -171,11 +171,18 @@ describe("the list page header", () => {
 		expect(createButton(root)).toBeUndefined();
 	});
 
-	it("draws the saved view's name after the doctype, which then links to the list", async () => {
+	it("draws the saved view's name as the switcher after the doctype, which then links to the list", async () => {
 		const root = await mount("My Contacts");
 		const links = [...root.querySelectorAll<HTMLAnchorElement>("header [data-crumbs] a")];
 		expect(links.map((link) => link.getAttribute("href"))).toContain("/contact");
-		expect(root.querySelector("header [data-crumbs]")?.textContent).toMatch(/Contact.*My Contacts/);
+		expect(root.querySelector("header [data-view-switcher]")?.textContent?.trim()).toBe("My Contacts");
+	});
+
+	it("draws the plain list's switcher too, and its doctype crumb links nowhere", async () => {
+		const root = await mount();
+		expect(root.querySelector("header [data-view-switcher]")?.textContent?.trim()).toBe("List");
+		const links = [...root.querySelectorAll<HTMLAnchorElement>("header [data-crumbs] a")];
+		expect(links.map((link) => link.getAttribute("href"))).not.toContain("/contact");
 	});
 
 	it("draws the ⋯ menu once a script adds an entry to it", async () => {

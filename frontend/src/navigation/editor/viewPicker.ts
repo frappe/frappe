@@ -9,6 +9,12 @@ export type ListedView = {
 	label: string;
 	type: string;
 	layer: "own" | "site" | "app" | null;
+	/** True for the view a bare address opens for this person. */
+	default?: boolean;
+	/** Which pointers name the view, so a default is removed at the layer that holds it. */
+	default_for?: ("user" | "site")[];
+	/** True for a site row at an app view's key: deleting it brings the app's view back. */
+	overrides_app?: boolean;
 };
 
 export type ViewType = { name: string; label: string; icon: string | null };
