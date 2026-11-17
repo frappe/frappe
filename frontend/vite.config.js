@@ -63,6 +63,25 @@ export default defineConfig(({ command }) => ({
 		// these are the safe answer for a bare `yarn build`.
 		emptyOutDir: false,
 		sourcemap: true,
+		rolldownOptions: {
+			output: {
+				// Pins the modules a lazy chunk (the Filter popover's inputs) shares with the pages, so
+				// importing them there does not split them into extra chunks every page then loads.
+				codeSplitting: {
+					includeDependenciesRecursively: false,
+					groups: [
+						{
+							name: "pickers",
+							test: /[\\/]frappe-ui[\\/]src[\\/]components[\\/](DatePicker[\\/](?!DateRange)|TimePicker[\\/]|shared[\\/]picker[\\/])/,
+						},
+						{
+							name: "fieldInputs",
+							test: /[\\/]ui[\\/]src[\\/]components[\\/]Fields[\\/](choices|inputFrame|pickerExternalValue|DateField|DatetimeField|DurationField|LinkValue|useLinkCreate|useRecordLink|useLinkMark|LinkField|parseText|NumberField|RatingField|SelectField)\b|[\\/]ui[\\/]src[\\/]utils[\\/]naming\.ts/,
+						},
+					],
+				},
+			},
+		},
 	},
 	server: {
 		// Every app's source is outside this root.

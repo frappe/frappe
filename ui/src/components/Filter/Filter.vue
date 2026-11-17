@@ -27,7 +27,13 @@
 		@update:selectedOption="addFilter"
 	>
 		<template #trigger>
-			<Button label="Filter" iconLeft="lucide-list-filter" data-view />
+			<Button
+				label="Filter"
+				iconLeft="lucide-list-filter"
+				data-view
+				@pointerenter="preloadControls"
+				@focus="preloadControls"
+			/>
 		</template>
 	</Combobox>
 
@@ -40,6 +46,8 @@
 					class="relative rounded-r-none focus-visible:z-10"
 					iconLeft="lucide-list-filter"
 					data-view
+					@pointerenter="preloadControls"
+					@focus="preloadControls"
 				>
 					<template #suffix>
 						<div
@@ -158,7 +166,7 @@ import type { Filter, FilterField, FilterOperator, FilterProps, FilterValue } fr
 // without duplicating them; it returns an id, and VALUE_CONTROLS maps that id to
 // the component (see valueControl.ts for why the two are separate files).
 import { valueControl } from "./valueControl";
-import { VALUE_CONTROLS } from "./valueControlComponents";
+import { VALUE_CONTROLS, preloadControls } from "./valueControlComponents";
 import { CreateRecordKey, FieldActionsKey, RecordLinkKey } from "../Fields/types";
 
 const props = defineProps<FilterProps>();
