@@ -93,6 +93,8 @@ def make(
 		)
 
 	if doctype and name:
+		if doctype == "User" and not frappe.permissions.is_system_user():
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 	else:
 		frappe.has_permission("Communication", ptype="create", throw=True)
