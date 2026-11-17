@@ -81,9 +81,10 @@ def make(
 			category=DeprecationWarning,
 		)
 
+	if is_direct_request() and not frappe.permissions.is_system_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	if doctype and name:
-		if doctype == "User" and not frappe.permissions.is_system_user():
-			frappe.throw(_("Not permitted"), frappe.PermissionError)
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 	else:
 		frappe.has_permission("Communication", ptype="create", throw=True)
@@ -310,3 +311,74 @@ def update_communication_as_read(name):
 		name,
 		{"read_by_recipient": 1, "delivery_status": "Read", "read_by_recipient_on": get_datetime()},
 	)
+<<<<<<< HEAD
+=======
+
+
+@frappe.whitelist()
+def undo_email_send(communication_name: str):
+	communication = frappe.get_doc("Communication", communication_name)
+
+	if communication.owner != frappe.session.user:
+		frappe.throw(_("You are not authorized to undo this email"))
+
+	if communication.sent_or_received != "Sent" or communication.communication_medium != "Email":
+		frappe.throw(_("Failed to delete communication"))
+
+	time_elapsed_in_seconds = time_diff_in_seconds(now_datetime(), communication.creation)
+	if time_elapsed_in_seconds > 10:
+		frappe.msgprint(
+			_("Email undo window is over. Cannot undo email."), alert=True, indicator="red", raise_exception=1
+		)
+
+	email_queue_records = frappe.get_all(
+		"Email Queue", filters={"communication": communication_name}, fields=["name", "status"]
+	)
+
+	for queue in email_queue_records:
+		if queue.status != "Not Sent":
+			frappe.msgprint(
+				_("It is too late to undo this email. It is already being sent."),
+				alert=True,
+				indicator="red",
+				raise_exception=1,
+			)
+
+	for queue in email_queue_records:
+		frappe.delete_doc("Email Queue", queue.name, ignore_permissions=True)
+
+	communication_data = {
+		"subject": communication.subject,
+		"content": communication.content,
+		"recipients": communication.recipients,
+		"cc": communication.cc,
+		"bcc": communication.bcc,
+		"doc": {"doctype": communication.reference_doctype, "name": communication.reference_name},
+		"sender": communication.sender,
+		"send_read_receipt": communication.read_receipt,
+	}
+
+	linked_files = frappe.get_all(
+		"File",
+		filters={"attached_to_doctype": "Communication", "attached_to_name": communication_name},
+		pluck="name",
+	)
+
+	if linked_files:
+		for file_name in linked_files:
+			frappe.db.set_value("File", file_name, {"attached_to_doctype": None, "attached_to_name": None})
+
+	communication_data["attachments"] = linked_files
+
+	communication.delete(ignore_permissions=True)
+
+	return communication_data
+
+
+def is_direct_request() -> bool:
+	"""Whether `make` is the method this request called, not a server-side caller of it."""
+	if not frappe.request:
+		return False
+	method = f"{make.__module__}.{make.__name__}"
+	return method in {frappe.request.path.removesuffix("/").rpartition("/")[2], frappe.form_dict.cmd}
+>>>>>>> 440bde3 (fix(email): restrict direct email.make calls to system users)
