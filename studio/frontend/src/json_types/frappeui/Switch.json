@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SwitchProps",
+  "definitions": {
+    "SwitchProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "xs",
+            "sm",
+            "md"
+          ]
+        },
+        "padded": {
+          "type": "boolean"
+        },
+        "controlPosition": {
+          "type": "string",
+          "enum": [
+            "start",
+            "end"
+          ]
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "icon": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

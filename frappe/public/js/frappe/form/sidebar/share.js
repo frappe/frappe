@@ -38,17 +38,25 @@ frappe.ui.form.Share = class Share {
 		}
 
 		this.shares.show();
-		let avatar_group = frappe.avatar_group(shared_users, 5, { align: "left", overlap: true });
-		avatar_group.on("click", () => {
-			this.frm.share_doc();
+		const avatars = shared_users.map((user) => {
+			const { fullname, image } = frappe.user_info(user);
+			return { label: fullname, image };
 		});
-
+		// first in the stack, and on top of the usual 5 so it never hides a user
 		if (has_everyone) {
-			avatar_group.prepend(
-				frappe.avatar_group(["Everyone"], 1, { align: "left", overlap: true })
-			);
+			avatars.unshift({
+				label: __("Everyone"),
+				title: __("Shared with everyone"),
+				theme: "blue",
+			});
 		}
-		this.shares.append(avatar_group);
+		const $group = frappe.ui.avatar_group({
+			avatars,
+			max: has_everyone ? 6 : 5,
+			css_class: "cursor-pointer",
+		});
+		$group.on("click", () => this.frm.share_doc());
+		this.shares.append($group);
 	}
 	show() {
 		var me = this;
