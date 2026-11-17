@@ -28,6 +28,22 @@ YWJjZGVmZ2hpamtsbW5vcF9hdHRhY2htZW50
 --ABC--
 """.strip()
 
+ENCODED_FILENAME_EMAIL = """
+From: Test <test@example.com>
+Message-ID: <encoded-filename@mail.example.com>
+Subject: Test
+To: Test <test@example.com>
+Content-Type: multipart/mixed; boundary="ABC"
+
+--ABC
+Content-Type: text/plain
+Content-Disposition: attachment; filename="{filename}"
+Content-Transfer-Encoding: base64
+
+YWJj
+--ABC--
+""".strip()
+
 
 class TestEmailAttachments(FrappeTestCase):
 	def test_email_attachment_percent_encoded(self):
@@ -84,3 +100,22 @@ class TestEmailAttachments(FrappeTestCase):
 		make_and_check_file(1, "1test%2542.txt", "1test_2542.txt")
 		make_and_check_file(2, "2test%42.txt", "2test_42.txt")
 		make_and_check_file(3, "3test*.txt", "3test*.txt")
+
+	def test_email_imported_without_unsafe_pdf_attachment(self):
+		from io import BytesIO
+
+		from pypdf import PdfWriter
+		from pypdf.generic import DictionaryObject, NameObject, TextStringObject
+
+		writer = PdfWriter()
+		writer.add_blank_page(width=72, height=72)
+		writer.pages[0][NameObject("/AA")] = DictionaryObject(
+			{NameObject("/O"): DictionaryObject({NameObject("/JS"): TextStringObject("app.alert('hello');")})}
+		)
+		unsafe_pdf = BytesIO()
+		writer.write(unsafe_pdf)
+		email_account = frappe._dict({"email_id": "receive@example.com"})
+		mail = InboundMail(ENCODED_FILENAME_EMAIL.format(filename="notes.txt"), email_account)
+		mail.attachments.append({"fname": "unsafe.pdf", "fcontent": unsafe_pdf.getvalue()})
+		communication = mail.process()
+		self.assertEqual([file.file_name for file in communication._attachments], ["notes.txt"])
