@@ -793,7 +793,7 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 def has_api_key_fields(doctype: str) -> bool:
 	try:
 		meta = frappe.get_meta(doctype)
-	except Exception:
+	except frappe.DoesNotExistError:
 		return False
 	has_table = not (meta.issingle or meta.is_virtual)
 	return has_table and meta.has_field("api_key") and meta.has_field("enabled")
