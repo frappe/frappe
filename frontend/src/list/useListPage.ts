@@ -282,7 +282,12 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 
 	function commit(written: ListSettings) {
 		if (saved) saved.stored.value = written;
-		discard();
+		// Edits made while the save was in flight are not in `written`: they stay as changes.
+		changed.value = Object.fromEntries(
+			Object.entries(changed.value).filter(([key, value]) => JSON.stringify(value) !== JSON.stringify(written[key as ListSettingsKey]))
+		);
+		applied.sort = JSON.stringify(sort.value);
+		writeQuery();
 	}
 
 	function discard() {

@@ -17,6 +17,7 @@ from frappe.desk.doctype.doctype_view.test_doctype_view import (
 	a_person,
 	make_view,
 )
+from frappe.patches.v17_0.delete_default_views_without_a_view import execute as delete_dangling
 from frappe.shell.boot import get_boot
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
@@ -92,15 +93,18 @@ class TestDefaultView(DefaultViewTestCase):
 				{site.name, own.name},
 			)
 
-	def test_deleting_a_person_s_own_view_deletes_their_pointer_to_it_and_no_other(self):
+	def test_deleting_a_view_deletes_the_pointers_to_it_and_no_other(self):
 		make_default(user=self.person, view=self.own_view).insert()
 		make_default(view=self.site_view).insert()
 
 		self.own_row.delete()
-		self.site_row.delete()
 
 		self.assertFalse(frappe.db.exists("Default View", {"user": self.person}))
 		self.assertTrue(frappe.db.exists("Default View", {"reference_doctype": DOCTYPE, "user": ""}))
+
+		self.site_row.delete()
+
+		self.assertFalse(frappe.db.exists("Default View", {"reference_doctype": DOCTYPE}))
 
 
 class TestResolver(DefaultViewTestCase):
@@ -129,7 +133,7 @@ class TestResolver(DefaultViewTestCase):
 
 	def test_a_dangling_site_default_falls_through_to_no_default(self):
 		make_default(view=self.site_view).insert()
-		self.site_row.delete()
+		frappe.db.delete("Doctype View", {"name": self.site_row.name})
 
 		self.assertIsNone(default_of(self.person))
 
@@ -289,3 +293,20 @@ class TestApi(DefaultViewTestCase):
 	def test_a_doctype_the_caller_cannot_read_is_refused(self):
 		with set_user(self.person):
 			self.assertRaises(frappe.PermissionError, save, PRIVATE_DOCTYPE, "list", "user")
+
+
+class TestDanglingPatch(DefaultViewTestCase):
+	def test_it_deletes_the_pointers_to_a_view_no_layer_has_and_no_other(self):
+		for user, view in ((self.person, self.own_view), (self.other, self.site_view), ("", "shipped")):
+			make_default(user=user, view=view).insert()
+		make_default(user=self.manager, type="List").insert()
+		# What deleting a site view left behind before the delete cleared its pointers.
+		frappe.db.delete("Doctype View", {"name": self.site_row.name})
+
+		with patch(f"{delete_dangling.__module__}.app_views", return_value={"shipped": object()}):
+			delete_dangling()
+
+		self.assertEqual(
+			set(frappe.get_all("Default View", {"reference_doctype": DOCTYPE}, pluck="user")),
+			{self.person, "", self.manager},
+		)

@@ -122,11 +122,9 @@ class DoctypeView(Document):
 				"Favourite",
 				{"reference_doctype": "DocType", "reference_name": self.reference_doctype, "view": self.key},
 			)
-		if self.key and self.user:
-			frappe.db.delete(
-				"Default View",
-				{"reference_doctype": self.reference_doctype, "user": self.user, "view": self.key},
-			)
+		if self.key:
+			# Every person's and the site's: a key is one view's across layers, and a key made again must not inherit a default.
+			frappe.db.delete("Default View", {"reference_doctype": self.reference_doctype, "view": self.key})
 
 	def claim_key(self) -> str:
 		"""A key no layer of the doctype uses, from the key given or else the label."""
