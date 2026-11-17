@@ -8,6 +8,13 @@
   Changing the title breaks code that uses the old route name.
 - Create a page for each new screen. For a custom 404 page, set its route to
   `/:pathMatch(.*)*`.
+- A route can have parameters, such as `/tickets/:name`. The page script
+  reads them from `route.params`.
+- In the editor, route parameters default to empty strings. Set test values
+  under **Page options → Route Variables** to preview a populated page.
+  Handle missing parameters before creating document resources:
+  `createDocumentResource` returns `undefined` without a name. Keep the page's
+  bindings valid and show an empty state when the parameter is missing.
 
 ## Boot data
 
