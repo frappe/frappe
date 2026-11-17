@@ -81,7 +81,7 @@ def make(
 			category=DeprecationWarning,
 		)
 
-	if frappe.flags.get("whitelisted_method") is make and not frappe.permissions.is_system_user():
+	if not frappe.permissions.is_system_user():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	if doctype and name:

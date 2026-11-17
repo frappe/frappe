@@ -894,8 +894,6 @@ def is_whitelisted(method):
 			if isinstance(value, str):
 				form_dict[key] = sanitize_html(value)
 
-	flags.whitelisted_method = method
-
 
 def read_only():
 	def innfn(fn):
