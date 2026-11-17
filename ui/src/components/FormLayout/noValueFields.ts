@@ -18,7 +18,6 @@ export const NO_VALUE = new Set([
   "Vue Component",
 ]);
 
-// One rule for "may a caller set this field", for a record, a child row and a form dialog.
 export interface SettableField {
   fieldtype: string;
   hidden?: unknown;

@@ -1,5 +1,3 @@
-// One rule says whether a caller may set a field: the same field gets the same answer on the
-// record, in a child row and in a form dialog.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
