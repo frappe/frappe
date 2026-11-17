@@ -135,11 +135,12 @@
   },
   {
    "default": "0",
-   "description": "Characters per chunk for this source. Leave 0 to inherit the global default from Flow Knowledge Settings.",
+   "description": "Characters per chunk for this source. Leave empty to use the default from Flow Knowledge Settings.",
    "fieldname": "chunk_size",
    "fieldtype": "Int",
    "label": "Chunk Size",
-   "non_negative": 1
+   "non_negative": 1,
+   "placeholder": "Default"
   },
   {
    "fieldname": "column_break_chunking",
@@ -147,11 +148,12 @@
   },
   {
    "default": "0",
-   "description": "Characters shared between consecutive chunks. Leave 0 to inherit the global default.",
+   "description": "Characters shared between consecutive chunks. Leave empty to use the default.",
    "fieldname": "chunk_overlap",
    "fieldtype": "Int",
    "label": "Chunk Overlap",
-   "non_negative": 1
+   "non_negative": 1,
+   "placeholder": "Default"
   },
   {
    "fieldname": "section_break_status",
@@ -200,7 +202,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-13 00:00:00.000000",
+ "modified": "2026-11-17 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Knowledge Source",

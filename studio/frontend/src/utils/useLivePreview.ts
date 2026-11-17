@@ -29,12 +29,13 @@ export function useLivePreview() {
 	// Reload source before remounting the page after a stored file changes.
 	const reloadAppFiles = useDebounceFn(async () => {
 		await reloadAppRuntime()
+		await useComponentStore().reloadComponentScripts()
 		await remountPage()
 	}, 300)
 
 	const onDocUpdate = (info: any) => {
 		if (info?.doctype === "Studio Component") {
-			useComponentStore().reloadComponent(info.name)
+			useComponentStore().reloadComponentDoc(info.name)
 		} else if (info?.doctype === "Studio Page" && info?.name === router.currentRoute.value.meta.pageName) {
 			reloadPage(info.name)
 		} else if (

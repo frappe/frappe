@@ -100,6 +100,10 @@ export function useStudioEvents(saveFragmentMode: () => void) {
 			handler: (e: KeyboardEvent) => {
 				// In the context menu, Escape only closes the menu.
 				if ((e.target as Element | null)?.closest?.('[role="menu"]')) return
+				// In a component, the first Escape shows the component's settings.
+				if (canvasStore.editingMode === "component" && blockController.isAnyBlockSelected()) {
+					return blockController.clearSelection()
+				}
 				// Exit after this keypress ends. If the discard dialog opens now, the same
 				// Escape closes it before the user can answer.
 				setTimeout(() => canvasStore.exitFragmentMode())

@@ -90,11 +90,13 @@ class TestClearOldLogs(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _session_with_run(self, *, age_days: int) -> tuple[str, str, str]:
+	def _session_with_run(self, *, age_days: int, source: str = "Trigger") -> tuple[str, str, str]:
 		f = frappe.get_doc({"doctype": "File", "file_name": "f.txt", "content": "x", "is_private": 1}).insert(
 			ignore_permissions=True
 		)
-		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent, "title": "chat"})
+		session = frappe.get_doc(
+			{"doctype": "Flow Session", "agent": self.agent, "title": "chat", "source": source}
+		)
 		session.append("messages", {"role": "user", "content": "hi"})
 		session.append("attachments", {"file": f.name, "file_name": "f.txt", "file_size": 1})
 		session.insert(ignore_permissions=True)
@@ -111,6 +113,16 @@ class TestClearOldLogs(IntegrationTestCase):
 		old = frappe.utils.add_days(frappe.utils.now(), -age_days)
 		frappe.db.set_value("Flow Session", session.name, "modified", old, update_modified=False)
 		return session.name, run.name, f.name
+
+	def test_a_persons_chats_are_kept(self):
+		chat, run, file = self._session_with_run(age_days=1000, source="Manual")
+
+		FlowSession.clear_old_logs(days=30)
+
+		self.assertTrue(frappe.db.exists("Flow Session", chat))
+		self.assertTrue(frappe.db.exists("Flow Run", run))
+		self.assertTrue(frappe.db.exists("File", file))
+		self.server_delete.assert_not_called()
 
 	def test_old_session_and_linked_run_and_messages_are_purged(self):
 		old_session, old_run, old_file = self._session_with_run(age_days=100)

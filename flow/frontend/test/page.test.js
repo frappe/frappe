@@ -586,6 +586,36 @@ test("an explicit conversation URL opens even outside the recent session list, s
 	assert.deepEqual(args("frappe.flow.api.sync_session"), { session: "older" });
 });
 
+test("in the panel a chat that cannot open gives way to a new one without a word, unless an app asked for it", async (t) => {
+	const { toast } = await import("./helpers/components.js");
+	const { setAskedSession } = await loadModule("panel.js");
+	const saved = { ...transport.answers };
+	setPanel("desk");
+	t.after(() => {
+		Object.assign(transport.answers, saved);
+		setPanel(null);
+		setAskedSession(null);
+	});
+	transport.answers["frappe.flow.api.session"] = ({ session }) => {
+		throw new Error(`Flow Session ${session} not found`);
+	};
+	toast.errors.length = 0;
+
+	// the chat the panel last showed, since deleted
+	await router.replace("/s/gone");
+	transport.calls.length = 0;
+	mountPage(t);
+	await until(() => called("frappe.flow.api.session") && router.currentRoute.value.path === "/");
+	assert.deepEqual(toast.errors, []);
+
+	// one an app asked for
+	setAskedSession("wrong");
+	await router.replace("/s/wrong");
+	await until(() => toast.errors.length);
+	assert.deepEqual(toast.errors, ["Flow Session wrong not found"]);
+	await until(() => router.currentRoute.value.path === "/");
+});
+
 test("the chat list offers the next page on demand and asks for it past the last row", async (t) => {
 	const page = Array.from({ length: 100 }, (_, i) => ({
 		name: `P${i}`,
