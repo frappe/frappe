@@ -216,6 +216,7 @@ class CommunicationEmailMixin:
 				"print_format": print_format,
 				"html": print_html,
 				"print_format_attachment": 1,
+				"print_as_owner": 1,
 				"doctype": self.reference_doctype,
 				"name": self.reference_name,
 				"lang": print_language or frappe.local.lang,

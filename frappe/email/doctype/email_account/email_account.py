@@ -363,6 +363,7 @@ class EmailAccount(Document):
 
 	@frappe.whitelist()
 	def get_domain_values(self, domain: str):
+		frappe.has_permission("Email Domain", "read", domain, throw=True)
 		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):

@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2025-08-26 09:45:40.642818",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "input_name",
+  "type",
+  "required",
+  "default",
+  "column_break_lmzs",
+  "description",
+  "options"
+ ],
+ "fields": [
+  {
+   "fieldname": "input_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Input Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_lmzs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Small Text",
+   "label": "Options"
+  },
+  {
+   "default": "0",
+   "fieldname": "required",
+   "fieldtype": "Check",
+   "label": "Required"
+  },
+  {
+   "fieldname": "default",
+   "fieldtype": "Code",
+   "in_list_view": 1,
+   "label": "Default Value",
+   "max_height": "100px"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2025-08-28 14:35:13.249113",
+ "modified_by": "Administrator",
+ "module": "Studio",
+ "name": "Studio Component Input",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

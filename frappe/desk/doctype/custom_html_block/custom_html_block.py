@@ -41,6 +41,8 @@ def get_custom_blocks_for_user(
 	page_len: int,
 	filters: dict | str | list | None = None,
 ):
+	frappe.has_permission("Custom HTML Block", "read", throw=True)
+
 	# return logged in users private blocks and all public blocks
 	customHTMLBlock = DocType("Custom HTML Block")
 
