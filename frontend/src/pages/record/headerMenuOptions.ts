@@ -23,7 +23,6 @@ export function bandRows(nodes: HeaderNode[], run: Run): any[] {
 function row(node: HeaderNode, run: Run) {
   const base = { ...node.props, label: node.item.label, icon: node.item.icon };
   // A submenu trigger can never also be an action, which is why a container's `run` warns.
-  // It opens and runs nothing, so it carries `data-view`, as a header dropdown button does.
   if (node.container === "dropdown") return withView({ ...base, submenu: menuContent(node.members, run) });
   // `run` wins over `href`, as the item type promises.
   if (!node.item.run && node.item.href) return { ...base, route: node.item.href };
