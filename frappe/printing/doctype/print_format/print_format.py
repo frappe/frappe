@@ -103,7 +103,6 @@ class PrintFormat(Document):
 	def before_save(self):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
-			self.standard = "No"
 
 		if (
 			self.print_format_builder_beta

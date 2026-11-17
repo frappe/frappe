@@ -216,7 +216,7 @@ class Browser:
 			return
 		if any(el.find(class_=["page", "topage"]) for el in soup.find_all(id=["header-html", "footer-html"])):
 			return
-		if not frappe.db.exists("Print Format", self.print_format):
+		if not frappe.db.exists("Print Format", self.print_format, cache=True):
 			return
 		print_format = frappe.get_cached_doc("Print Format", self.print_format)
 		position = (print_format.page_number or "").lower().replace(" ", "_")
@@ -270,6 +270,10 @@ class Browser:
 			for style in print_format_css
 			if style.name in attrs
 			and (style.name not in PAGE_MARGIN_SIDES or re.fullmatch(f"0|{PAGE_LENGTH}", style.value.strip()))
+			and (
+				style.name not in ("page-width", "page-height")
+				or re.fullmatch(PAGE_LENGTH, style.value.strip())
+			)
 		}
 		self.options.update(options)
 		self._set_page_size_from_print_format()
@@ -278,7 +282,7 @@ class Browser:
 	def _set_page_size_from_print_format(self):
 		if any(self.options.get(key) for key in ("page-size", "page-width", "page-height")):
 			return
-		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format, cache=True):
 			return
 		paper_size = frappe.get_cached_value("Print Format", self.print_format, "paper_size")
 		if receipt_width := RECEIPT_WIDTHS.get(paper_size):

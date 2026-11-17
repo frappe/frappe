@@ -363,6 +363,7 @@ class EmailAccount(Document):
 
 	@frappe.whitelist()
 	def get_domain_values(self, domain: str):
+		frappe.has_permission("Email Domain", "read", domain, throw=True)
 		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
@@ -944,7 +945,7 @@ def notify_unreplied():
 		email_account = frappe.get_doc("Email Account", email_account.name)
 
 		if email_account.use_imap:
-			append_to = [folder.get("append_to") for folder in email_account.imap_folder]
+			append_to = [folder.append_to for folder in email_account.imap_folder if folder.append_to]
 		else:
 			append_to = email_account.append_to
 

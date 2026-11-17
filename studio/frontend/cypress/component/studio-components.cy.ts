@@ -1,0 +1,257 @@
+import { pinia } from "../support/component"
+
+import { setActivePinia } from "pinia"
+import { createMemoryHistory, createRouter } from "vue-router"
+// @ts-ignore
+import { resourcesPlugin } from "frappe-ui"
+
+import "@/setupFrappeUIResource"
+import AppPage from "@/pages/AppPage.vue"
+import { registerGlobalComponents } from "@/globals"
+import { loadPage } from "@/page/pageLoader"
+import { loadAppRuntime } from "@/browserRuntime/appRuntime"
+import useComponentStore from "@/stores/componentStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
+import getBlockTemplate from "@/utils/blockTemplate"
+
+const APP_NAME = "cypress-guest"
+const COMPONENT_ID = "cypress_header"
+const COUNTER_ID = "cypress_stored_counter"
+const GET_COMPONENT = "**/api/method/frappe.studio.api.get_studio_component"
+
+const headerBlock = {
+	...getBlockTemplate("container"),
+	componentId: "header-root",
+	children: [
+		{
+			componentName: "Button",
+			componentId: "header-button",
+			componentProps: { label: "Hello from the header" },
+		},
+		{
+			componentName: "Button",
+			componentId: "header-subject",
+			componentProps: { label: "{{ inputs.title }}" },
+		},
+	],
+}
+const counterBlock = {
+	...getBlockTemplate("container"),
+	componentId: "counter-root",
+	children: [
+		{
+			componentName: "Button",
+			componentId: "counter-add",
+			componentProps: { label: "{{ label }}" },
+			componentEvents: { click: { event: "click", action: "Run Script", script: "add()" } },
+		},
+	],
+}
+const counterScript = `import { ref, computed } from "vue"
+
+export default {
+	props: { title: { type: String, default: "Count" } },
+	emits: ["change"],
+	setup(props, { emit }) {
+		const count = ref(0)
+		const label = computed(() => props.title + ": " + count.value)
+		function add() {
+			count.value++
+			emit("change", count.value)
+		}
+		return { label, add }
+	},
+}
+`
+const pageBlocks = [
+	{
+		...getBlockTemplate("body"),
+		children: [
+			{
+				componentName: COMPONENT_ID,
+				componentId: "header-1",
+				isStudioComponent: true,
+				componentProps: { title: "{{ subject }}" },
+			},
+			{
+				componentName: COUNTER_ID,
+				componentId: "counter-1",
+				isStudioComponent: true,
+				componentEvents: {
+					change: {
+						event: "change",
+						action: "Run Script",
+						script: "function handleEvent(count) { subject.value = 'Counted ' + count }",
+					},
+				},
+			},
+		],
+	},
+]
+
+describe("studio components for guests", () => {
+	let pageName: string
+
+	before(() => {
+		cy.login()
+		cy.remove_doc("Studio App", APP_NAME, true)
+		cy.remove_doc("Studio Component", COMPONENT_ID, true)
+		cy.remove_doc("Studio Component", COUNTER_ID, true)
+		cy.insert_doc("Studio Component", {
+			component_id: COUNTER_ID,
+			component_name: "Cypress Stored Counter",
+			block: JSON.stringify(counterBlock),
+			script: counterScript,
+		})
+		cy.insert_doc("Studio Component", {
+			component_id: COMPONENT_ID,
+			component_name: "Cypress Header",
+			block: JSON.stringify(headerBlock),
+			// two props, so values would get a second evaluation pass if evaluation ran per prop
+			script: `export default {\n\tprops: { title: String, subtitle: { type: String, default: "'sub'" } },\n}\n`,
+		})
+		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Guest" })
+		cy.insert_doc("Studio Page", {
+			studio_app: APP_NAME,
+			page_title: "Home",
+			route: "/",
+			blocks: JSON.stringify(pageBlocks),
+			variables: [
+				{
+					variable_name: "subject",
+					variable_type: "String",
+					initial_value: JSON.stringify("E2E {{ 7 * 7 }}"),
+				},
+			],
+			published: 1,
+			allow_guest: 1,
+		}).then((page) => (pageName = page.name))
+	})
+
+	after(() => {
+		cy.login()
+		cy.remove_doc("Studio App", APP_NAME, true)
+		cy.remove_doc("Studio Component", COMPONENT_ID, true)
+		cy.remove_doc("Studio Component", COUNTER_ID, true)
+	})
+
+	beforeEach(() => {
+		setActivePinia(pinia)
+		useComponentStore().removeCachedComponent(COMPONENT_ID)
+		useComponentStore().removeCachedComponent(COUNTER_ID)
+		cy.asGuest()
+		cy.intercept("POST", GET_COMPONENT).as("getComponent")
+	})
+
+	function mountAppPage() {
+		window.app_name = APP_NAME
+		const router = createRouter({
+			history: createMemoryHistory(),
+			routes: [{ path: "/", component: AppPage, meta: { pageName } }],
+		})
+		cy.then(() => router.push("/"))
+		cy.then(() => loadAppRuntime(APP_NAME))
+		cy.then(() => loadPage(router, router.currentRoute.value, { meta: {}, fullPath: "" } as any))
+		cy.mount(AppPage, {
+			global: { plugins: [pinia, resourcesPlugin, router, { install: registerGlobalComponents }] },
+		})
+	}
+
+	it("renders them on a published guest page although the guest cannot read them", () => {
+		cy.request({
+			url: `/api/method/frappe.client.get?doctype=Studio Component&name=${COMPONENT_ID}`,
+			failOnStatusCode: false,
+		})
+			.its("status")
+			.should("eq", 403)
+
+		mountAppPage()
+
+		cy.contains("button", "Hello from the header").should("be.visible")
+		cy.get("@getComponent.all").should("have.length", 0)
+	})
+
+	it("evaluates an input value once, so text that looks like an expression stays text", () => {
+		mountAppPage()
+
+		cy.contains("button", "E2E {{ 7 * 7 }}").should("be.visible")
+		cy.contains("button", "E2E 49").should("not.exist")
+	})
+
+	it("runs a stored component script, and the page handles the event it emits", () => {
+		mountAppPage()
+
+		cy.contains("button", "Count: 0").click()
+		cy.contains("button", "Count: 1")
+		cy.contains("button", "Counted 1")
+	})
+
+	it("keeps a component from the page payload when a fetch of it is refused later", () => {
+		cy.intercept("POST", GET_COMPONENT, (request) =>
+			request.continue((response) => {
+				response.setDelay(100)
+			}),
+		).as("getComponent")
+		const store = useComponentStore()
+		let header: Record<string, any>
+		cy.login().then(() => cy.get_doc("Studio Component", COMPONENT_ID).then((doc) => (header = doc.data)))
+		cy.asGuest()
+
+		cy.then(() => {
+			const fetching = store.loadComponent(COMPONENT_ID)
+			store.setComponents([header as any])
+			return fetching
+		})
+		cy.wait("@getComponent").its("response.statusCode").should("eq", 403)
+		cy.then(() => expect(store.componentMap.get(COMPONENT_ID)?.componentName).to.equal("container"))
+	})
+})
+
+describe("studio component props", () => {
+	const PROPS_ID = "cypress_form_props"
+
+	before(() => {
+		cy.login()
+		cy.remove_doc("Studio Component", PROPS_ID, true)
+		cy.insert_doc("Studio Component", {
+			component_id: PROPS_ID,
+			component_name: "Cypress Form Props",
+			block: JSON.stringify(getBlockTemplate("container")),
+		})
+	})
+
+	after(() => {
+		cy.login()
+		cy.remove_doc("Studio Component", PROPS_ID, true)
+	})
+
+	it("saves a prop from the form in the component's script", () => {
+		setActivePinia(pinia)
+		const store = useComponentStore()
+		const size = {
+			input_name: "size",
+			prop_type: "String",
+			type: "select",
+			control: "select",
+			options: "sm\nmd",
+			default: "md",
+		}
+		store.removeCachedComponent(PROPS_ID)
+		cy.then(() => store.loadComponent(PROPS_ID))
+		cy.then(() => useComponentEditorStore().saveComponentProp(PROPS_ID, null, size)).should("equal", true)
+
+		cy.get_doc("Studio Component", PROPS_ID).then((doc) => {
+			expect(doc.data.script).to.include(
+				'size: { type: String, default: "md", meta: { control: "select", options: ["sm","md"] } },',
+			)
+		})
+		cy.then(() => {
+			const inputs = store.getComponentProps(PROPS_ID)
+			expect(inputs.map((input) => [input.input_name, input.type, input.default])).to.deep.equal([
+				["size", "select", "md"],
+			])
+			return useComponentEditorStore().saveComponentProp(PROPS_ID, inputs[0], null)
+		})
+		cy.then(() => expect(store.getComponentProps(PROPS_ID)).to.deep.equal([]))
+	})
+})

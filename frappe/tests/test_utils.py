@@ -782,6 +782,18 @@ class TestImage(IntegrationTestCase):
 		self.assertLessEqual(height, 500)
 		self.assertLess(len(optimized_content), len(original_content))
 
+	def test_optimize_image_fills_transparency_with_white(self):
+		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
+		image = Image.open(image_file_path).convert("RGBA")
+		image.paste((0, 0, 0, 0), (0, 0, image.width // 2, image.height))
+		content = io.BytesIO()
+		image.save(content, format="PNG")
+
+		with self.set_user("test@example.com"):
+			optimized_content = optimize_image(content.getvalue(), "image/jpeg")
+
+		self.assertEqual(Image.open(io.BytesIO(optimized_content)).getpixel((10, 10)), (255, 255, 255))
+
 
 class TestPythonExpressions(IntegrationTestCase):
 	def test_validation_for_good_python_expression(self):
@@ -1161,6 +1173,22 @@ class TestXlsxUtils(IntegrationTestCase):
 		self.assertEqual(rows[1][1].value, 1500.5)
 		self.assertEqual(rows[2][1].data_type, "n")
 		self.assertEqual(rows[2][1].value, -5)
+
+	def test_time_values_get_number_format(self):
+		"""time / timedelta values must not be written as raw day fractions."""
+		from openpyxl import load_workbook
+
+		from frappe.utils.xlsxutils import XLSXStyleBuilder, make_xlsx
+
+		data = [
+			["in_time", "duration"],
+			[time(8, 0), timedelta(hours=9, minutes=30)],
+		]
+		wb = load_workbook(make_xlsx(data, "Test Sheet"))
+		ws = wb.active
+
+		self.assertEqual(ws["A2"].number_format, XLSXStyleBuilder.get_time_format())
+		self.assertEqual(ws["B2"].number_format, "[h]:mm:ss")
 
 
 class TestCsvUtils(IntegrationTestCase):

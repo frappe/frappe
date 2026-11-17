@@ -8,7 +8,7 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
-from unittest.mock import call, patch
+from unittest.mock import MagicMock, call, patch
 
 import frappe
 from frappe import _
@@ -20,7 +20,7 @@ from frappe.core.api.file import (
 	unzip_file,
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
-from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
+from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension, get_web_image
 from frappe.desk.form.utils import add_comment
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -750,6 +750,22 @@ class TestFile(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 		self.assertRaisesRegex(ValidationError, "not a zip file", test_file.unzip)
+
+	def test_file_unzip_limits_member_count(self):
+		buffer = io.BytesIO()
+		with zipfile.ZipFile(buffer, "w") as archive:
+			for i in range(3):
+				archive.writestr(f"member-{i}.txt", "x")
+		zip_file = frappe.get_doc(
+			doctype="File", file_name="members.zip", content=buffer.getvalue(), is_private=1
+		).insert()
+
+		file_count_before = frappe.db.count("File")
+		with patch.dict(frappe.conf, {"max_zip_extract_members": 2}):
+			self.assertRaisesRegex(ValidationError, "more than the maximum", zip_file.unzip)
+
+		self.assertEqual(frappe.db.count("File"), file_count_before)
+		self.assertEqual(len(zip_file.unzip()), 3)
 
 	@IntegrationTestCase.change_settings("System Settings", {"max_zip_extract_size": 0})
 	def test_file_unzip_respects_dedicated_extract_size_setting(self):
@@ -1489,6 +1505,38 @@ class TestFileUtils(IntegrationTestCase):
 			normal.db_set("file_url", original_file_url)
 			normal.delete()
 			shutil.rmtree(sibling_dir)
+
+	def test_get_web_image_follows_redirect_to_allowed_address(self):
+		from io import BytesIO
+
+		from PIL import Image as PILImage
+
+		buf = BytesIO()
+		PILImage.new("RGB", (2, 2)).save(buf, format="JPEG")
+		image_bytes = buf.getvalue()
+
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://8.8.4.4/final.jpg"})
+		final_response = MagicMock(is_redirect=False, content=image_bytes)
+		final_response.raise_for_status.return_value = None
+
+		with patch("requests.get", side_effect=[redirect_response, final_response]) as mock_get:
+			_, _, extn = get_web_image("http://8.8.8.8/initial.jpg")
+
+		self.assertEqual(mock_get.call_count, 2)
+		self.assertEqual(extn, "jpg")
+
+	def test_get_web_image_rejects_redirect_to_restricted_address(self):
+		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
+
+		with patch("requests.get", side_effect=[redirect_response]) as mock_get:
+			self.assertRaisesRegex(
+				ValidationError,
+				"internal address",
+				get_web_image,
+				"http://8.8.8.8/initial.jpg",
+			)
+
+		mock_get.assert_called_once()
 
 
 class TestFileOptimization(IntegrationTestCase):

@@ -134,4 +134,8 @@ function onMouseleave() {
 .popover {
 	padding: 10px;
 }
+.popover img {
+	max-width: 100%;
+	max-height: 200px;
+}
 </style>

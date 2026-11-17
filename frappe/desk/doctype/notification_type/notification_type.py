@@ -67,6 +67,7 @@ def get_notification_types():
 
 	Hosts use this to build type tabs / filters in the notification panel.
 	"""
+	frappe.only_for(["Desk User", "System Manager"])
 	return frappe.get_all(
 		"Notification Type",
 		filters={"enabled": 1},

@@ -9,6 +9,13 @@
 			:value="modelValue"
 			@input="$emit('update:modelValue', $event.target.value)"
 		></textarea>
+		<span v-if="modelValue?.includes('{')" class="pfb-insp-hint text-muted">
+			{{
+				__(
+					"Only CSS properties go here. Put rules with selectors in Print Settings, under Custom CSS."
+				)
+			}}
+		</span>
 	</div>
 </template>
 
