@@ -380,7 +380,7 @@ test.describe("Print Format Builder — create flow", () => {
 		await insert_contact_table_format(api, PF_NAME);
 
 		await open_builder(page, PF_NAME);
-		await expect(page.locator("[data-pfb-section]").first()).toBeVisible();
+		await expect(page.locator(".sections-container [data-pfb-section]").first()).toBeVisible();
 		await repeater_field(page).click();
 
 		const inspector = page.locator(".pfb-inspector");
@@ -398,7 +398,7 @@ test.describe("Print Format Builder — create flow", () => {
 		await insert_contact_table_format(api, PF_NAME);
 
 		await open_builder(page, PF_NAME);
-		await expect(page.locator("[data-pfb-section]").first()).toBeVisible();
+		await expect(page.locator(".sections-container [data-pfb-section]").first()).toBeVisible();
 		await repeater_field(page).click();
 
 		const template = page.locator(".pfb-inspector .pfb-col-row .pfb-tpl-text").first();
@@ -430,7 +430,7 @@ test.describe("Print Format Builder — create flow", () => {
 
 		await open_builder(page, PF_NAME);
 
-		await expect(page.locator("[data-pfb-section]").first()).toBeVisible();
+		await expect(page.locator(".sections-container [data-pfb-section]").first()).toBeVisible();
 		await section(page, "Details").locator(".field").first().click();
 
 		await expect(page.locator(".pfb-inspector")).toContainText("Due Date");
@@ -466,7 +466,7 @@ test.describe("Print Format Builder — create flow", () => {
 
 		await open_builder(page, PF_NAME);
 
-		await expect(page.locator("[data-pfb-section]").first()).toBeVisible();
+		await expect(page.locator(".sections-container [data-pfb-section]").first()).toBeVisible();
 		const field = section(page, "Details").locator(".field.left-right");
 		await field.click();
 
@@ -1035,6 +1035,24 @@ test.describe("Print Format Builder — draft and Save & Apply", () => {
 });
 
 test.describe("Print Format form — renderer notice", () => {
+	let default_generator;
+
+	test.beforeEach(async ({ api }) => {
+		const r = await api.call("frappe.client.get_value", {
+			doctype: "Print Settings",
+			filters: "Print Settings",
+			fieldname: "pdf_generator",
+		});
+		default_generator = r.message.pdf_generator;
+		await api.set_value("Print Settings", "Print Settings", { pdf_generator: "wkhtmltopdf" });
+	});
+
+	test.afterEach(async ({ api }) => {
+		await api.set_value("Print Settings", "Print Settings", {
+			pdf_generator: default_generator,
+		});
+	});
+
 	test("treats an empty renderer on a classic format as wkhtmltopdf", async ({ page, api }) => {
 		await api.insert_doc(
 			"Print Format",

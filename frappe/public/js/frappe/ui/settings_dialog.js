@@ -138,6 +138,8 @@ frappe.ui.SettingsDialogPanel = class SettingsDialogPanel {
  *   const d = new frappe.ui.SettingsDialog({
  *       title: __("Settings"),
  *       default_tab: "preferences",
+ *       // optional: what the settings belong to, shown above the tab rail
+ *       sidebar_header: { title: __("ToDo"), description: __("Document Settings"), icon: "file" },
  *       tabs: [
  *           {
  *               group: __("Configuration"),
@@ -207,6 +209,7 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		this.$panels = this.$layout.find(".settings-dialog-panels");
 
 		this.render_sidebar();
+		this.$wrapper.on("shown.bs.modal", () => this.scroll_to_active_tab());
 
 		const default_tab = this.default_tab || this.first_tab_id();
 		if (default_tab) this.activate(default_tab);
@@ -221,6 +224,7 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 
 	render_sidebar() {
 		this.$sidebar.empty();
+		this.render_sidebar_header();
 
 		this.tabs.forEach((group) => {
 			const $group = $('<div class="settings-dialog-tab-group"></div>').appendTo(
@@ -242,6 +246,38 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 				$nav.append(this.make_tab_item(item));
 			});
 		});
+	}
+
+	render_sidebar_header() {
+		const header = this.sidebar_header;
+		if (!header || !header.title) return;
+
+		const $header = $(`
+			<div class="settings-dialog-sidebar-header flex items-center gap-2 px-1 pt-1 pb-2">
+				<span class="flex items-center justify-center shrink-0 size-9 rounded bg-surface-gray-3 text-ink-gray-7">
+					${frappe.utils.icon(header.icon || "settings", "md")}
+				</span>
+				<span class="flex flex-col min-w-0">
+					<span class="settings-dialog-sidebar-title text-base-medium text-ink-gray-9 truncate"></span>
+					<span class="settings-dialog-sidebar-description text-xs text-ink-gray-5 truncate"></span>
+				</span>
+			</div>
+		`).appendTo(this.$sidebar);
+
+		$header
+			.find(".settings-dialog-sidebar-title")
+			.text(header.title)
+			.attr("title", header.title);
+		const $description = $header.find(".settings-dialog-sidebar-description");
+		if (header.description) $description.text(header.description);
+		else $description.remove();
+	}
+
+	set_sidebar_header(header) {
+		this.sidebar_header = header;
+		this.$sidebar.find(".settings-dialog-sidebar-header").remove();
+		this.render_sidebar_header();
+		this.$sidebar.find(".settings-dialog-sidebar-header").prependTo(this.$sidebar);
 	}
 
 	make_tab_item(item) {
@@ -283,6 +319,7 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		this.$sidebar.find(".settings-dialog-tab-item").each((i, el) => {
 			$(el).toggleClass("active", $(el).data("tab-id") === id);
 		});
+		this.scroll_to_active_tab();
 
 		// Lazy: build the panel controller on first activation, then just toggle so
 		// each panel keeps its own state across tab switches.
@@ -297,6 +334,13 @@ frappe.ui.SettingsDialog = class SettingsDialog extends frappe.ui.Dialog {
 		this._panels[id].$el.removeClass("hide");
 
 		item.on_activate && item.on_activate(this._panels[id]);
+	}
+
+	scroll_to_active_tab() {
+		this.$sidebar
+			.find(".settings-dialog-tab-item.active")
+			.get(0)
+			?.scrollIntoView({ block: "nearest", inline: "nearest" });
 	}
 
 	get_panel(id) {

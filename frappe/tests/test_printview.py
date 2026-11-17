@@ -9,6 +9,36 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 class PrintViewTest(IntegrationTestCase):
+	def test_print_filename_uses_docname_not_title_field(self):
+		from frappe.www.printview import get_context
+
+		doctype = new_doctype(
+			fields=[{"label": "Display Name", "fieldname": "display_name", "fieldtype": "Data"}],
+			title_field="display_name",
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name, display_name="A Human Readable Title").insert()
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(length=10),
+			doc_type=doctype.name,
+			custom_format=1,
+			html="<div>{{ doc.display_name }}</div>",
+		).insert()
+
+		params = frappe._dict(doctype=doctype.name, name=doc.name, format=print_format.name)
+		with self.set_user("test@example.com"), patch.object(frappe.local, "form_dict", params):
+			context = get_context({})
+
+		self.assertFalse(context["standalone"])
+		self.assertEqual(context["title"], "A Human Readable Title")
+		self.assertEqual(context["print_filename"], doc.name)
+		self.assertNotEqual(context["print_filename"], context["title"])
+
+		html = frappe.render_template("frappe/www/printview.html", context)
+		self.assertIn(f'<meta name="frappe-print-filename" content="{doc.name}">', html)
+		self.assertIn("window.addEventListener('beforeprint'", html)
+		self.assertIn("window.addEventListener('afterprint'", html)
+
 	def test_print_view_without_errors(self):
 		user = frappe.get_last_doc("User")
 
@@ -34,6 +64,28 @@ class PrintViewTest(IntegrationTestCase):
 
 		# cancelled doc can't be printed by default
 		self.assertRaises(frappe.PermissionError, frappe.attach_print, doc.doctype, doc.name)
+
+	def test_report_pdf_allows_domains_added_with_ssl_certificate(self):
+		from frappe.utils.print_format import report_to_pdf
+
+		domains = [
+			"plain.example.com",
+			{
+				"domain": "secure.example.com",
+				"ssl_certificate": "/etc/ssl/secure.crt",
+				"ssl_certificate_key": "/etc/ssl/secure.key",
+			},
+		]
+		with (
+			patch.dict(frappe.conf, {"domains": domains}),
+			patch("frappe.utils.print_format.get_pdf", return_value=b"pdf") as get_pdf,
+			patch.object(frappe.local, "response", frappe._dict()),
+		):
+			report_to_pdf("<p>Report</p>")
+
+		bypass_hosts = get_pdf.call_args.args[1]["bypass-proxy-for"]
+		self.assertIn("plain.example.com", bypass_hosts)
+		self.assertIn("secure.example.com", bypass_hosts)
 
 	def test_preview_from_form_values_sees_native_types(self):
 		doctype = new_doctype(
@@ -233,6 +285,26 @@ class PrintViewTest(IntegrationTestCase):
 		self.assertIn("543.21", html)
 		self.assertNotIn("-543.21", html)
 		self.assertNotIn(">-9<", html)
+
+	def test_print_format_template_cannot_run_write_queries(self):
+		title = frappe.generate_hash()
+		note = frappe.get_doc(doctype="Note", title=title).insert()
+		print_format = frappe.get_doc(
+			doctype="Print Format",
+			name=frappe.generate_hash(),
+			doc_type="Note",
+			custom_format=1,
+			print_format_type="Jinja",
+			html=(
+				'{% set note = frappe.qb.DocType("Note") %}'
+				'{{ frappe.qb.update(note).set(note.title, "changed").where(note.name == doc.name).run() }}'
+			),
+		).insert()
+
+		with self.assertRaises(frappe.PrintFormatError):
+			get_html_and_style(doc="Note", name=note.name, print_format=print_format.name, no_letterhead=1)
+
+		self.assertEqual(frappe.db.get_value("Note", note.name, "title"), title)
 
 	def test_before_print_runs_in_builder_renderer(self):
 		from frappe.utils.print_format_generator import PrintFormatGenerator

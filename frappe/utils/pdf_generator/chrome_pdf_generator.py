@@ -1,10 +1,11 @@
 import os
 import platform
+import signal
 import subprocess
 import time
 from pathlib import Path
-from typing import ClassVar
 
+import psutil
 import requests
 
 import frappe
@@ -17,8 +18,6 @@ from frappe.utils.print_utils import find_or_download_chromium_executable
 
 class ChromePDFGenerator:
 	_instance = None
-
-	_browsers: ClassVar[list] = []
 
 	def add_browser(self, browser):
 		self._browsers.append(browser)
@@ -45,6 +44,7 @@ class ChromePDFGenerator:
 			return
 		self._initialized = True  # Mark as initialized
 
+		self._browsers = []
 		self._chromium_process = None
 		self._chromium_path = None
 		self._devtools_url = None
@@ -76,7 +76,7 @@ class ChromePDFGenerator:
 		# TODO: Better Implement logic to support for persistent chrome proccess.
 		self.USE_PERSISTENT_CHROMIUM = site_config.get("use_persistent_chromium", False)
 		#  time to wait for chromium to start and provide dev tools url used in _set_devtools_url.
-		self.START_TIMEOUT = site_config.get("chromium_start_timeout", 3)
+		self.START_TIMEOUT = site_config.get("chromium_start_timeout", 10)
 		# Allow a single PDF request to opt into interactive Chromium debugging in developer mode only.
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 
@@ -104,6 +104,7 @@ class ChromePDFGenerator:
 		NOTE: dbus issue in docker
 		  https://source.chromium.org/chromium/chromium/src/+/main:content/app/content_main.cc;l=229-241?q=DBUS_SESSION_BUS_ADDRESS&ss=chromium
 		"""
+		self._reap_orphaned_chromium()
 		try:
 			if debug:
 				command_args = [
@@ -123,6 +124,8 @@ class ChromePDFGenerator:
 					# 0 will automatically select a random open port from the ephemeral port range.
 					"--remote-debugging-port=0",
 					"--disable-gpu",  # GPU is not available in production environment.
+					"--in-process-gpu",
+					"--enable-features=NetworkServiceInProcess2",
 					"--disable-field-trial-config",
 					"--disable-background-networking",
 					"--disable-background-timer-throttling",
@@ -193,11 +196,59 @@ class ChromePDFGenerator:
 			)
 		else:
 			self._chromium_process = subprocess.Popen(
-				command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+				command_args,
+				stdout=subprocess.PIPE,
+				stderr=subprocess.PIPE,
+				text=True,
+				start_new_session=True,
 			)
 		return self._chromium_process
 
-	def _set_devtools_url(self):
+	def _stop_chromium_process(self):
+		self._signal_chromium()
+		try:
+			self._chromium_process.wait(timeout=5)
+		except subprocess.TimeoutExpired:
+			self._signal_chromium(kill=True)
+			self._chromium_process.wait()
+		self._chromium_process.stderr.close()
+
+	def _signal_chromium(self, kill=False):
+		process = self._chromium_process
+		if platform.system().lower() == "windows":
+			process.kill() if kill else process.terminate()
+			return
+		try:
+			os.killpg(process.pid, signal.SIGKILL if kill else signal.SIGTERM)
+		except ProcessLookupError:
+			pass
+		except PermissionError:
+			process.kill() if kill else process.terminate()
+
+	def _reap_orphaned_chromium(self):
+		"""Kill chromium processes leaked by dead workers.
+
+		Cleanup normally happens in the caller's `finally`, but a worker killed
+		mid-render (dev auto-reload, SIGKILL, crash) never runs it and its
+		chromium survives forever. Such processes are reparented to init/launchd
+		(ppid 1), so kill anything running this bench's chromium binary whose
+		parent is gone before starting a new one.
+		"""
+		chromium_path = os.path.realpath(self._chromium_path)
+		for proc in psutil.process_iter(["exe", "ppid", "cmdline"]):
+			try:
+				if (
+					proc.info["ppid"] == 1
+					and proc.info["exe"] == chromium_path
+					and "--headless" in (proc.info["cmdline"] or [])
+				):
+					for child in proc.children(recursive=True):
+						child.kill()
+					proc.kill()
+			except (psutil.NoSuchProcess, psutil.AccessDenied):
+				continue
+
+	def _set_devtools_url(self, retry=True):
 		"""
 		Monitor Chromium's stderr for the DevTools WebSocket URL
 		----------------
@@ -211,11 +262,15 @@ class ChromePDFGenerator:
 		"""
 		stderr = self._chromium_process.stderr
 		start_time = time.time()
+		exited = False
 
 		while time.time() - start_time < self.START_TIMEOUT:
 			# Read a single line from stderr and check if it contains the DevTools URL.
 			# Not using select() because it is not supported on Windows for non-socket file descriptors.
 			line = stderr.readline()
+			if not line:
+				exited = True
+				break
 			# not sure if "DevTools listening on" is consistent in all chromium versions.
 			if "DevTools listening on" in line:
 				url_start = line.find("ws://")
@@ -224,8 +279,13 @@ class ChromePDFGenerator:
 					break
 
 		if not self._devtools_url:
-			self._chromium_process.terminate()
-			raise TimeoutError("Chromium took too long to start.")
+			alive = not exited and self._chromium_process.poll() is None
+			if not (retry and alive):
+				self._signal_chromium()
+				raise TimeoutError("Chromium took too long to start.")
+			self._stop_chromium_process()
+			self.start_chromium_process(debug=self.debug_mode)
+			self._set_devtools_url(retry=False)
 
 	def _close_browser(self):
 		"""
@@ -235,7 +295,7 @@ class ChromePDFGenerator:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return
 		if self._chromium_process:
-			self._chromium_process.terminate()
+			self._stop_chromium_process()
 		ChromePDFGenerator._instance = None
 		self._chromium_process = None
 		self._devtools_url = None

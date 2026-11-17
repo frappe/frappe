@@ -381,34 +381,44 @@ test.describe("Arrangement editor: a module's sidebar", () => {
 	});
 });
 
-test.describe("Arrangement editor: an app's dock", () => {
-	const READ = "frappe.desk.doctype.dock.dock.get_user_dock_layer";
-	const BASE = "frappe.desk.doctype.dock.dock.get_app_dock_layer";
-	const SAVE = "frappe.desk.doctype.dock.dock.save_user_dock";
+const DOCK_READ = "frappe.desk.doctype.dock.dock.get_user_dock_layer";
+const DOCK_BASE = "frappe.desk.doctype.dock.dock.get_app_dock_layer";
+const DOCK_SAVE = "frappe.desk.doctype.dock.dock.save_user_dock";
 
+// A dock entry names something the boot payload carries, so the app it arranges is built from
+// modules this site really has. Returns those modules.
+async function open_dock_manager(page, desk, layer_adds = []) {
+	await open_desk(page, desk);
+	await drop_curation_right(page);
+
+	const modules = await page.evaluate(() =>
+		Object.keys(frappe.boot.module_sidebars).slice(0, 2)
+	);
+	await stub_xcall(page, {
+		[DOCK_READ]: [
+			...modules.map((name) => ({ link_type: "Sidebar", link_to: name, hidden: 0 })),
+			...layer_adds,
+		],
+		[DOCK_BASE]: [],
+		[DOCK_SAVE]: await page.evaluate(() => frappe.boot.dock),
+	});
+	await page.evaluate((modules) => {
+		const app = {
+			app_name: "frappe",
+			app_title: "Frappe",
+			dock: modules.map((name) => ({ link_type: "Sidebar", link_to: name })),
+		};
+		frappe.app.sidebar.get_sidebar_app = () => app;
+		window.__editor = new frappe.ui.DockManager();
+	}, modules);
+	return modules;
+}
+
+test.describe("Arrangement editor: an app's dock", () => {
 	let modules;
 
 	test.beforeEach(async ({ page, desk }) => {
-		await open_desk(page, desk);
-		await drop_curation_right(page);
-
-		// A dock entry names something the boot payload carries, so the app it arranges is built
-		// from modules this site really has.
-		modules = await page.evaluate(() => Object.keys(frappe.boot.module_sidebars).slice(0, 2));
-		await stub_xcall(page, {
-			[READ]: modules.map((name) => ({ link_type: "Sidebar", link_to: name, hidden: 0 })),
-			[BASE]: [],
-			[SAVE]: await page.evaluate(() => frappe.boot.dock),
-		});
-		await page.evaluate((modules) => {
-			const app = {
-				app_name: "frappe",
-				app_title: "Frappe",
-				dock: modules.map((name) => ({ link_type: "Sidebar", link_to: name })),
-			};
-			frappe.app.sidebar.get_sidebar_app = () => app;
-			window.__editor = new frappe.ui.DockManager();
-		}, modules);
+		modules = await open_dock_manager(page, desk);
 	});
 
 	test("arranges the app's entries in the same list and preview the sidebar uses", async ({
@@ -437,7 +447,38 @@ test.describe("Arrangement editor: an app's dock", () => {
 		await expect(page.locator(".ws-preview")).toContainText("Nothing on the dock");
 
 		await save_editor(page);
-		await expect.poll(() => saved_args(page, SAVE)).not.toBeNull();
-		expect(JSON.parse((await saved_args(page, SAVE)).items)).toEqual([]);
+		await expect.poll(() => saved_args(page, DOCK_SAVE)).not.toBeNull();
+		expect(JSON.parse((await saved_args(page, DOCK_SAVE)).items)).toEqual([]);
+	});
+});
+
+test.describe("Arrangement editor: an app's dock, with an entry this layer added", () => {
+	const ADDED = {
+		link_type: "URL",
+		url: "https://example.com",
+		icon: "star",
+		title: "Example",
+		added: 1,
+		hidden: 0,
+	};
+
+	let modules;
+
+	test.beforeEach(async ({ page, desk }) => {
+		modules = await open_dock_manager(page, desk, [ADDED]);
+	});
+
+	test("lists the entry it added, beside the app's own", async ({ page }) => {
+		await expect(page.locator(".ws-arrangement .ws-item")).toHaveCount(modules.length + 1);
+		await expect(page.locator(".ws-arrangement")).toContainText("Example");
+	});
+
+	test("saves the entry it added back as an add", async ({ page }) => {
+		await expect(page.locator(".ws-arrangement .ws-item")).toHaveCount(modules.length + 1);
+		await save_editor(page);
+		await expect.poll(() => saved_args(page, DOCK_SAVE)).not.toBeNull();
+		expect(JSON.parse((await saved_args(page, DOCK_SAVE)).items)).toContainEqual(
+			expect.objectContaining({ url: "https://example.com", added: 1, hidden: 0 })
+		);
 	});
 });

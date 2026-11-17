@@ -25,6 +25,33 @@ class TestForm(IntegrationTestCase):
 		self.assertEqual(comment.comment_email, user)
 		self.assertEqual(comment.comment_by, frappe.utils.get_fullname(user))
 
+	def test_savedocs_cancel_keeps_stored_values(self):
+		from frappe.desk.form.save import savedocs
+
+		doc = self.make_submitted_doc()
+		savedocs(doc=frappe.as_json(doc.as_dict() | {"test": "changed"}), action="Cancel")
+
+		doc.reload()
+		self.assertEqual((doc.docstatus, doc.test), (2, "original"))
+
+	def test_cancel_ignores_non_workflow_field(self):
+		from frappe.desk.form.save import cancel
+
+		doc = self.make_submitted_doc()
+		cancel(doc.doctype, doc.name, workflow_state_fieldname="test", workflow_state="changed")
+
+		doc.reload()
+		self.assertEqual((doc.docstatus, doc.test), (2, "original"))
+
+	def make_submitted_doc(self):
+		from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
+
+		create_submittable_doctype("Test Cancel Scope")
+		self.addCleanup(frappe.response.docs.clear)
+		doc = frappe.get_doc(doctype="Test Cancel Scope", test="original").insert()
+		doc.submit()
+		return doc
+
 	def test_sort_field_fallback(self):
 		self.assertIsNone(_sort_field_fallback("Note", "name"))
 		self.assertIsNone(_sort_field_fallback("Note", "creation"))

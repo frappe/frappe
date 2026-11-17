@@ -378,10 +378,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		let doctype = $link.attr("data-doctype"),
 			names = $link.attr("data-names") || [];
 
-		const fieldname =
-			$link.find(".document-link-badge").attr("data-fieldname") ||
-			(this.data.non_standard_fieldnames && this.data.non_standard_fieldnames[doctype]) ||
-			this.data.fieldname;
+		const fieldname = this.get_document_link_fieldname($link);
 
 		if (names.length) {
 			frappe.route_options = { name: ["in", names] };
@@ -399,6 +396,15 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		}
 
 		frappe.set_route("List", doctype, "List");
+	}
+
+	get_document_link_fieldname($link) {
+		return (
+			$link.find(".document-link-badge").attr("data-fieldname") ||
+			(this.data.non_standard_fieldnames &&
+				this.data.non_standard_fieldnames[$link.attr("data-doctype")]) ||
+			this.data.fieldname
+		);
 	}
 
 	get_document_filter(doctype, fieldname) {
@@ -478,15 +484,18 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				d.doctype,
 				d.open_count,
 				d.count,
-				d.names
+				d.names,
+				d.fieldname
 			);
 		});
 	}
 
-	set_badge_count_for_external_link(doctype, open_count, count, names) {
-		let $link = $(this.transactions_area).find(
-			'.document-link[data-doctype="' + doctype + '"]'
-		);
+	set_badge_count_for_external_link(doctype, open_count, count, names, fieldname) {
+		let $link = $(this.transactions_area)
+			.find('.document-link[data-doctype="' + doctype + '"]')
+			.filter(
+				(i, link) => !fieldname || this.get_document_link_fieldname($(link)) === fieldname
+			);
 
 		this.set_badge_count_common(open_count, count, $link);
 		$link.attr("data-names", names ? names.join(",") : "");
@@ -536,7 +545,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	// heatmap
 	render_heatmap() {
-		this.heatmap = new frappe.Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
+		this.heatmap?.destroy();
+		this.heatmap = frappe.ui.chart(this.heatmap_area.body.find(".heatmap"), {
 			type: "heatmap",
 			start: new Date(moment().subtract(1, "year").toDate()),
 			count_label: "interactions",
@@ -631,10 +641,13 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 		this.show();
 
-		this.chart = new frappe.Chart(".form-graph", args);
-		if (!this.chart) {
-			this.hide();
-		}
+		this.chart?.destroy();
+		// The body, so collapsing the section hides the chart. frappe-charts empties its target, so
+		// a classic chart keeps drawing over the whole section as before.
+		const target = frappe.ui.chart.is_classic(args)
+			? this.chart_area.wrapper
+			: this.chart_area.body;
+		this.chart = frappe.ui.chart(target, args);
 	}
 
 	show() {

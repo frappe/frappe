@@ -19,15 +19,20 @@ from frappe.desk.doctype.desktop_settings.desktop_settings import get_desktop_pa
 from frappe.desk.doctype.form_tour.form_tour import get_onboarding_ui_tours
 from frappe.desk.doctype.route_history.route_history import frequently_visited_links
 from frappe.desk.form.load import get_meta_bundle
+from frappe.desk.page.setup_wizard.setup_wizard import get_setup_wizard_url
 from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.cloud_settings import (
 	get_boot_context as get_cloud_settings_boot_context,
 )
+from frappe.integrations.frappe_providers.cloud_settings import (
+	is_v2_site,
+)
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
-from frappe.model.base_document import get_controller
-from frappe.utils import add_user_info, get_system_timezone
+from frappe.model.document import get_controller
+from frappe.utils import add_user_info, cint, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
+from frappe.website.doctype.web_form_request.web_form_request import get_request_forms_by_doctype
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -48,6 +53,8 @@ def get_bootinfo():
 	bootinfo.sitename = frappe.local.site
 	bootinfo.sysdefaults = frappe.defaults.get_defaults()
 	bootinfo.sysdefaults["setup_complete"] = frappe.is_setup_complete()
+	if not bootinfo.sysdefaults["setup_complete"]:
+		bootinfo.setup_wizard_url = get_setup_wizard_url()
 
 	bootinfo.server_date = frappe.utils.nowdate()
 
@@ -84,9 +91,6 @@ def get_bootinfo():
 	bootinfo.home_folder = frappe.db.get_value("File", {"is_home_folder": 1})
 	bootinfo.navbar_settings = get_navbar_settings()
 	bootinfo.notification_settings = get_notification_settings()
-	bootinfo.notification_unread_count = frappe.db.count(
-		"Notification Log", {"read": 0, "for_user": frappe.session.user}
-	)
 	bootinfo.onboarding_tours = get_onboarding_ui_tours()
 	set_time_zone(bootinfo)
 
@@ -120,11 +124,17 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
+	# only needed when the combobox setting is on; the setting comes back as a string
+	bootinfo.link_settings = (
+		get_link_settings() if cint(frappe.get_system_settings("enable_combobox_link_field")) else {}
+	)
+	bootinfo.web_form_request_forms = get_request_forms_by_doctype()
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.is_fc_site = is_fc_site()
 	bootinfo.cloud_settings = get_cloud_settings_boot_context()
+	bootinfo.is_v2_site = is_v2_site()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)
@@ -166,7 +176,7 @@ def load_conf_settings(bootinfo):
 
 	bootinfo.max_file_size = get_max_file_size()
 	bootinfo.file_chunk_size = get_file_chunk_size()
-	for key in ("developer_mode", "socketio_port", "file_watcher_port"):
+	for key in ("developer_mode", "socketio_port", "socketio_backend", "file_watcher_port"):
 		if key in frappe.conf:
 			bootinfo[key] = frappe.conf.get(key)
 
@@ -225,6 +235,7 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 	"""
 	from frappe.desk.doctype.dock.dock import resolve_dock
 	from frappe.desk.doctype.sidebar.sidebar import build_canonical_shells
+	from frappe.studio.doctype.studio_app.studio_app import get_desktop_apps
 
 	desk_views = desk_views or DeskViews()
 
@@ -270,6 +281,7 @@ def load_desktop_data(bootinfo, desk_views: DeskViews | None = None):
 		bootinfo.desktop_icons = get_desktop_icons(bootinfo=bootinfo)
 
 	bootinfo.app_data = get_app_data()
+	bootinfo.studio_apps = get_desktop_apps()
 
 
 def get_app_data() -> list[dict]:
@@ -546,6 +558,56 @@ def get_link_title_doctypes():
 		["doc_type as name"],
 	)
 	return [d.name for d in dts + custom_dts if d]
+
+
+def get_link_settings() -> dict[str, dict]:
+	"""Non-default Link field settings per DocType; Property Setters override."""
+	from frappe.desk.search import get_image_field
+
+	flags: dict[str, dict] = {}
+
+	for d in frappe.get_all(
+		"DocType",
+		or_filters={"link_display_mode": "Select", "show_image_in_link": 1},
+		fields=["name", "link_display_mode", "show_image_in_link"],
+	):
+		flags[d.name] = {
+			"select": d.link_display_mode == "Select",
+			"image": bool(cint(d.show_image_in_link)),
+		}
+
+	for ps in frappe.get_all(
+		"Property Setter",
+		filters={
+			"doctype_or_field": "DocType",
+			"property": ["in", ["link_display_mode", "show_image_in_link"]],
+		},
+		fields=["doc_type", "property", "value"],
+	):
+		entry = flags.setdefault(ps.doc_type, {"select": False, "image": False})
+		if ps.property == "link_display_mode":
+			entry["select"] = ps.value == "Select"
+		else:
+			entry["image"] = bool(cint(ps.value))
+
+	# skip Property Setters of deleted DocTypes
+	names = [dt for dt, f in flags.items() if f["select"] or f["image"]]
+	existing = set(frappe.get_all("DocType", filters={"name": ["in", names]}, pluck="name"))
+
+	settings: dict[str, dict] = {}
+	for dt in names:
+		if dt not in existing:
+			continue
+		entry = {}
+		if flags[dt]["select"]:
+			entry["display_mode"] = "Select"
+		# image field name, so the client can load images without meta
+		if flags[dt]["image"] and (image_field := get_image_field(dt)):
+			entry["image_field"] = image_field
+		if entry:
+			settings[dt] = entry
+
+	return settings
 
 
 def set_time_zone(bootinfo):

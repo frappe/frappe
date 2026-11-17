@@ -56,3 +56,26 @@
 	// }
 	// }
 }
+
+.dashboard-view-prompt {
+	display: flex;
+	align-items: center;
+	gap: var(--margin-md);
+	margin: var(--margin-md);
+	padding: var(--padding-sm) var(--padding-md);
+	background-color: var(--surface-base);
+	border: 1px solid var(--outline-gray-1);
+	border-radius: var(--radius-lg);
+
+	.dashboard-view-prompt__text {
+		flex: 1;
+		min-width: 0;
+		color: var(--ink-gray-6);
+	}
+
+	.dashboard-view-prompt__actions {
+		display: flex;
+		flex-shrink: 0;
+		gap: var(--margin-xs);
+	}
+}

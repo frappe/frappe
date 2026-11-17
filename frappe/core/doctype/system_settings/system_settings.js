@@ -23,6 +23,7 @@ frappe.ui.form.on("System Settings", {
 		});
 
 		frm.trigger("set_rounding_method_options");
+		frm.trigger("set_ai_agent_help");
 	},
 	enable_password_policy: function (frm) {
 		if (frm.doc.enable_password_policy == 0) {
@@ -90,5 +91,45 @@ frappe.ui.form.on("System Settings", {
 
 			field.refresh();
 		}
+	},
+
+	set_ai_agent_help(frm) {
+		const base_url = frappe.utils.escape_html(frappe.urllib.get_base_url());
+
+		frm.set_df_property(
+			"enable_mcp",
+			"description",
+			[
+				__("Connect MCP clients to {0}.", [`<code>${base_url}/api/v2/mcp</code>`]),
+				__(
+					"Clients sign in with OAuth: they open this site's login and ask you to allow access. Configure this in {0}.",
+					[
+						frappe.utils.get_form_link(
+							"OAuth Settings",
+							"OAuth Settings",
+							true,
+							__("OAuth Settings")
+						),
+					]
+				),
+			].join("<br>")
+		);
+
+		frm.get_field("frappectl_help").html(`
+			<p>${__(
+				"frappectl is a command-line client for Frappe sites, built for people and AI agents."
+			)}</p>
+			<p>${__("Install it:")}</p>
+			<pre><code>uv tool install frappectl</code></pre>
+			<p>${__("Sign in to this site:")}</p>
+			<pre><code>frappectl auth login ${base_url}</code></pre>
+			<p>${__("Then use it:")}</p>
+			<pre><code>frappectl doc list ToDo
+frappectl guide
+frappectl assistant claude</code></pre>
+			<p>${__("For more information, see {0}.", [
+				'<a href="https://github.com/frappe/frappectl" target="_blank" rel="noopener noreferrer">github.com/frappe/frappectl</a>',
+			])}</p>
+		`);
 	},
 });

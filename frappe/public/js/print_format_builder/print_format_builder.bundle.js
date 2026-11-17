@@ -117,7 +117,7 @@ class PrintFormatBuilder {
 						this.print_format.bold(),
 					]) + (message ? `<br><br>${message}` : ""),
 				primary_action: {
-					label: __("Back to the builder"),
+					label: __("Back to the editor"),
 					action: () => {
 						frappe.hide_msgprint();
 						frappe.set_route("print-format-builder-beta", this.print_format);

@@ -133,7 +133,7 @@ frappe.setup.SetupWizard = class SetupWizard extends frappe.ui.Slides {
 			<div class="flex gap-3 mb-8 ${apps.length ? "" : "hidden"}">
 				${apps.map((app) => `<img class="setup-intro__logo" src="${app.logo}" alt="">`).join("")}
 			</div>
-			<div class="setup-intro__hello grid text-12xl text-ink-gray-9" aria-hidden="true"></div>
+			<div class="setup-intro__hello grid text-ink-gray-9" aria-hidden="true"></div>
 			<p class="setup-intro__tagline mt-2 mb-0 text-p-lg text-ink-gray-5"></p>
 		</div>`).appendTo(this.parent);
 		this.$intro.find(".setup-intro__tagline").text(tagline);
@@ -872,7 +872,36 @@ frappe.setup.utils = {
 
 // https://github.com/eggert/tz/blob/main/backward add more if required.
 const TZ_BACKWARD_COMPATBILITY_MAP = {
+	"Africa/Asmera": "Africa/Asmara",
+	"America/Buenos_Aires": "America/Argentina/Buenos_Aires",
+	"America/Catamarca": "America/Argentina/Catamarca",
+	"America/Coral_Harbour": "America/Atikokan",
+	"America/Cordoba": "America/Argentina/Cordoba",
+	"America/Godthab": "America/Nuuk",
+	"America/Indianapolis": "America/Indiana/Indianapolis",
+	"America/Jujuy": "America/Argentina/Jujuy",
+	"America/Louisville": "America/Kentucky/Louisville",
+	"America/Mendoza": "America/Argentina/Mendoza",
+	"America/Montreal": "America/Toronto",
+	"America/Nipigon": "America/Toronto",
+	"America/Pangnirtung": "America/Iqaluit",
+	"America/Rainy_River": "America/Winnipeg",
+	"America/Santa_Isabel": "America/Tijuana",
+	"America/Thunder_Bay": "America/Toronto",
+	"America/Yellowknife": "America/Edmonton",
 	"Asia/Calcutta": "Asia/Kolkata",
+	"Asia/Chongqing": "Asia/Shanghai",
+	"Asia/Choibalsan": "Asia/Ulaanbaatar",
+	"Asia/Harbin": "Asia/Shanghai",
+	"Asia/Kashgar": "Asia/Urumqi",
+	"Asia/Katmandu": "Asia/Kathmandu",
+	"Asia/Rangoon": "Asia/Yangon",
+	"Atlantic/Faeroe": "Atlantic/Faroe",
+	"Australia/Currie": "Australia/Hobart",
+	"Europe/Kiev": "Europe/Kyiv",
+	"Europe/Uzhgorod": "Europe/Kyiv",
+	"Europe/Zaporozhye": "Europe/Kyiv",
+	"Pacific/Enderbury": "Pacific/Kanton",
 };
 
 function guess_country(country_info) {

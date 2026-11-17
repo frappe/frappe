@@ -132,7 +132,7 @@ def has_permission(
 	meta = frappe.get_meta(doctype)
 
 	# docname == doctype for single doctypes
-	if not doc and meta.issingle:
+	if not doc and meta.issingle and not meta.is_virtual:
 		doc = meta.name
 
 	if doc:
@@ -502,6 +502,12 @@ def has_controller_permissions(doc, ptype, user=None, debug=False) -> bool:
 
 def get_doctypes_with_read(user: str | None = None):
 	return list({cstr(p.parent) for p in get_valid_perms(user=user) if p.parent and p.read})
+
+
+@frappe.request_cache
+def get_cached_doctypes_with_read(user: str) -> list[str]:
+	"""`get_doctypes_with_read`, computed once per request for `user`. Do not mutate the result."""
+	return get_doctypes_with_read(user)
 
 
 def get_valid_perms(doctype=None, user=None, roles=None):

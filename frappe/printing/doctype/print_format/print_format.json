@@ -18,6 +18,7 @@
   "custom_format",
   "disabled",
   "pdf_generator",
+  "paper_size",
   "section_break_6",
   "print_format_type",
   "raw_printing",
@@ -89,7 +90,6 @@
    "oldfieldname": "standard",
    "oldfieldtype": "Select",
    "options": "No\nYes",
-   "read_only_depends_on": "eval:doc.print_format_for === \"Report\";",
    "reqd": 1,
    "search_index": 1
   },
@@ -268,7 +268,7 @@
    "description": "Edit in the visual builder.",
    "fieldname": "print_format_builder_beta",
    "fieldtype": "Check",
-   "label": "Print Format Builder Beta"
+   "label": "Print Format Editor"
   },
   {
    "default": "15",
@@ -316,11 +316,18 @@
    "label": "Show Colon After Field Labels"
   },
   {
-   "default": "wkhtmltopdf",
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome\nTypst\nWeasyPrint"
+   "options": "\nwkhtmltopdf\nchrome\nPlutoPrint\nTypst\nWeasyPrint"
+  },
+  {
+   "depends_on": "eval:!doc.print_format_builder_beta && !doc.raw_printing && ['chrome', 'PlutoPrint'].includes(doc.pdf_generator || doc.__onload?.pdf_generator)",
+   "description": "Empty uses the size in Print Settings. A receipt size prints one page as tall as the content.",
+   "fieldname": "paper_size",
+   "fieldtype": "Select",
+   "label": "Paper Size",
+   "options": "\nA4\nA5\nA3\nLetter\nLegal\nReceipt 80 mm\nReceipt 58 mm"
   },
   {
    "default": "DocType",
@@ -352,7 +359,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-09-24 12:00:00.000000",
+ "modified": "2026-11-09 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

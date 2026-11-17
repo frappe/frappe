@@ -12,7 +12,7 @@ from frappe.automation_engine.events import (
 )
 from frappe.automation_engine.registry import clear_automation_cache
 from frappe.automation_engine.runner import execute_automation
-from frappe.automation_engine.tests.test_runner import make_automation
+from frappe.automation_engine.tests.test_automation_runner import make_automation
 from frappe.tests import IntegrationTestCase
 
 QUEUE = "Automation Trigger Queue"

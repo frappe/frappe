@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 from rq import Queue
+from rq.job import Job
 from werkzeug.local import Local
 
 import frappe
@@ -14,6 +15,7 @@ from frappe.utils.background_jobs import (
 	create_job_id,
 	execute_job,
 	generate_qname,
+	get_jobs,
 	get_redis_conn,
 )
 
@@ -53,6 +55,17 @@ class TestBackgroundJobs(IntegrationTestCase):
 
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
+
+	def test_get_jobs_skips_job_with_renamed_method(self):
+		job = frappe.enqueue(method=fail_function, queue="short")
+		stale_job = Job.fetch(job.id, connection=get_redis_conn())
+		with (
+			patch.dict(globals()),
+			patch("frappe.utils.background_jobs.get_running_jobs_in_queue", return_value=[stale_job]),
+		):
+			del globals()["fail_function"]
+			jobs = get_jobs(site=frappe.local.site, queue="short")
+		self.assertNotIn(fail_function, jobs[frappe.local.site])
 
 	def test_job_translation_resolves_user_language(self):
 		real_get_cached_value = frappe.get_cached_value

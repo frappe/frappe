@@ -5,7 +5,8 @@ frappe.ui.get_print_settings = function (
 	pick_columns,
 	is_query_report = false,
 	title = null,
-	default_print_format = null
+	default_print_format = null,
+	can_include_filters = is_query_report
 ) {
 	var print_settings = locals[":Print Settings"]["Print Settings"];
 
@@ -42,7 +43,7 @@ frappe.ui.get_print_settings = function (
 		},
 	];
 
-	// Print format and include-filters only apply to query/script reports.
+	// Print format only applies to query/script reports.
 	if (is_query_report) {
 		columns.splice(1, 0, {
 			fieldtype: "Link",
@@ -56,7 +57,6 @@ frappe.ui.get_print_settings = function (
 			get_query: () => ({
 				filters: {
 					print_format_for: "Report",
-					print_format_type: "JS",
 					report: frappe.query_report ? frappe.query_report.report_name : "",
 					disabled: 0,
 				},
@@ -64,7 +64,7 @@ frappe.ui.get_print_settings = function (
 		});
 	}
 
-	if (is_query_report) {
+	if (can_include_filters) {
 		columns.push({
 			label: __("Include filters"),
 			fieldtype: "Check",

@@ -109,8 +109,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		// here keeps a manually opened manager on the load error instead of a failed call.
 		if (!this.app) throw new Error("Manage Dock: no app in context");
 
-		this.load_entries();
-
 		const args = { app: this.app.app_name };
 		const [layer, base] = await Promise.all([
 			frappe.xcall(this.layer_config.read, args),
@@ -118,6 +116,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		]);
 
 		this.layer_rows = layer;
+		this.load_entries();
 		// What the app itself ships, unfiltered by anyone's reach: the pool the manager offers and
 		// what `unnamed_modules` counts against.
 		this.base_rows = base || [];
@@ -144,9 +143,11 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// not offered. Keyed by its destination, which is what a layer row names.
 	load_entries() {
 		this.entries = new Map();
-		((this.app && this.app.dock) || []).forEach((row) => {
+		const added = (this.layer_rows || []).filter((row) => row.added);
+		[...((this.app && this.app.dock) || []), ...added].forEach((row) => {
 			const entry = frappe.app.sidebar.dock_entry(row);
-			if (entry) this.entries.set(this.key(entry), entry);
+			if (entry && !this.entries.has(this.key(entry)))
+				this.entries.set(this.key(entry), entry);
 		});
 	}
 

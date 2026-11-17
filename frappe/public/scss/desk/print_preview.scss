@@ -404,3 +404,12 @@
 		background: var(--outline-gray-2);
 	}
 }
+
+.print-pdf-frame {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	width: 0;
+	height: 0;
+	border: 0;
+}

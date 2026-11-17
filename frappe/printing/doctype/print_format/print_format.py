@@ -32,7 +32,7 @@ BUILDER_DRAFT_FIELDS = (
 	"pdf_generator",
 )
 
-STORED_RENDERERS = ("Typst", "WeasyPrint")
+STORED_RENDERERS = ("PlutoPrint", "Typst", "WeasyPrint")
 
 
 class PrintFormat(Document):
@@ -67,7 +67,8 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
-		pdf_generator: DF.Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"]
+		paper_size: DF.Literal["", "A4", "A5", "A3", "Letter", "Legal", "Receipt 80 mm", "Receipt 58 mm"]
+		pdf_generator: DF.Literal["", "wkhtmltopdf", "chrome", "PlutoPrint", "Typst", "WeasyPrint"]
 		preview_image: DF.AttachImage | None
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
@@ -102,7 +103,6 @@ class PrintFormat(Document):
 	def before_save(self):
 		if self.print_format_for == "Report":
 			self.custom_format = 1
-			self.standard = "No"
 
 		if (
 			self.print_format_builder_beta
@@ -155,6 +155,7 @@ class PrintFormat(Document):
 		self.validate_weasyprint_choice()
 		self.validate_weasyprint_layout()
 		self.validate_typst_renderer()
+		self.validate_plutoprint_renderer()
 
 	def validate_no_classic_layout(self):
 		"""A builder format cannot carry a classic list layout; conversion is explicit."""
@@ -166,11 +167,12 @@ class PrintFormat(Document):
 
 	def extract_images(self):
 		from frappe.core.doctype.file.utils import extract_images_from_html
+		from frappe.printing.doctype.print_format.classic_converter import is_classic_layout
 
 		if self.print_format_builder_beta:
 			return
 
-		if self.format_data:
+		if is_classic_layout(self.format_data):
 			data = json.loads(self.format_data)
 			for df in data:
 				if df.get("fieldtype") and df["fieldtype"] in ("HTML", "Custom HTML") and df.get("options"):
@@ -218,6 +220,20 @@ class PrintFormat(Document):
 				", ".join(blockers)
 			),
 			title=_("WeasyPrint renderer unavailable"),
+		)
+
+	def validate_plutoprint_renderer(self):
+		from frappe.utils.pdf_generator.pluto import plutoprint_blockers
+
+		if self.pdf_generator != "PlutoPrint" or not (blockers := plutoprint_blockers(self)):
+			return
+		if self.is_new():
+			self.pdf_generator = "chrome"
+			frappe.msgprint(_("PDF Generator set to Chromium: {0}").format(", ".join(blockers)), alert=True)
+			return
+		frappe.throw(
+			_("This format cannot use the PlutoPrint renderer: {0}").format(", ".join(blockers)),
+			title=_("PlutoPrint renderer unavailable"),
 		)
 
 	def validate_typst_renderer(self):
@@ -586,7 +602,7 @@ VERSION_KEY = "print_format_version"
 
 
 def _record_version(doc, snapshot_type: str, fields: dict, label: str | None = None):
-	comment = _("saved version {0}").format(frappe.bold(label)) if label else _("applied the builder draft")
+	comment = _("saved version {0}").format(frappe.bold(label)) if label else _("applied the editor draft")
 	frappe.get_doc(
 		{
 			"doctype": "Version",

@@ -1,7 +1,8 @@
 import json
+from urllib.parse import quote
 
 import frappe
-from frappe import _, cint
+from frappe import _, cint, cstr
 from frappe.model.document import Document
 from frappe.utils.data import quoted
 from frappe.www.list import get_list_context, get_list_data_for_context
@@ -29,11 +30,13 @@ def get_context(context, **dict_params):
 def set_route(context):
 	"""Set link for the list item"""
 	if context.web_form_name:
-		context.route = f"{context.pathname}?name={quoted(context.doc.name)}"
+		context.route = f"{context.pathname}?name={quote(cstr(context.doc.name), safe='')}"
 	elif context.doc and getattr(context.doc, "route", None):
 		context.route = context.doc.route
 	else:
-		context.route = f"{context.pathname or quoted(context.doc.doctype)}/{quoted(context.doc.name)}"
+		context.route = (
+			f"{context.pathname or quoted(context.doc.doctype)}/{quote(cstr(context.doc.name), safe='')}"
+		)
 
 
 def get(

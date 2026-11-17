@@ -179,6 +179,12 @@ frappe.router = {
 
 		if (frappe.boot.setup_complete) {
 			!frappe.re_route["setup-wizard"] && (frappe.re_route["setup-wizard"] = "app");
+		} else if (
+			frappe.boot.setup_wizard_url &&
+			!frappe.boot.setup_wizard_url.startsWith("/app/")
+		) {
+			window.location.replace(frappe.boot.setup_wizard_url);
+			return;
 		} else if (!sub_path.startsWith("setup-wizard")) {
 			frappe.re_route["setup-wizard"] && delete frappe.re_route["setup-wizard"];
 			frappe.set_route(["setup-wizard"]);
@@ -193,6 +199,7 @@ frappe.router = {
 		this.current_route = await this.parse();
 		this.respell_private_workspace();
 		this.write_shell_into_url();
+		this.current_sub_path = this.get_sub_path(this.path_on_screen());
 
 		this.set_history(sub_path);
 		this.render();
@@ -494,7 +501,7 @@ frappe.router = {
 			if (re_route_val === this.current_sub_path) {
 				window.history.back();
 			} else {
-				frappe.set_route(re_route_val);
+				frappe.set_route(frappe.re_route[sub_path]);
 			}
 
 			return true;
@@ -558,9 +565,13 @@ frappe.router = {
 	// would be chosen again by `write_shell_into_url`, which knows only the shell on screen and the
 	// entity's own, so Employee would open in HR Setup. A route naming the shell on screen stays
 	// without it, which keeps a self-link a self-link.
+	//
+	// The sidebar on screen counts only off a system page: the desktop opens in no shell, and the
+	// sidebar still remembers whichever page came before it.
 	keep_shell_moved_into(path, shell) {
 		if (!shell || shell === this.current_shell) return path;
-		if (shell === frappe.app?.sidebar?.current_module) return path;
+		const on_system_page = this.page_info_for(this.current_route || [])?.system_page;
+		if (!on_system_page && shell === frappe.app?.sidebar?.current_module) return path;
 
 		return "/desk/" + this.shell_slug(shell) + path.slice("/desk".length);
 	},
@@ -906,6 +917,13 @@ frappe.router = {
 	write_shell_into_url() {
 		if (!this.current_route?.length) return;
 
+		// A system page opens in no shell, so one typed in front of it leaves the address bar.
+		// Asked before the sidebar is, which a cold load does not have yet.
+		if (this.page_info_for(this.current_route)?.system_page) {
+			if (this.current_shell) this.drop_shell_from_url();
+			return;
+		}
+
 		const shell = this.shell_for_route(this.current_route);
 		if (!shell || shell === this.current_shell) return;
 
@@ -949,6 +967,12 @@ frappe.router = {
 			"",
 			path + window.location.search + window.location.hash
 		);
+	},
+
+	// The Page a route opens, as the boot describes it, or null when it opens something else.
+	// `system_page` and `shared_page` on it are what the shell rules read.
+	page_info_for(route) {
+		return (route?.[0] && frappe.boot.page_info?.[route[0]]) || null;
 	},
 
 	// `current_shell` is cleared with the segment, since `path_on_screen` strips one whenever it

@@ -115,12 +115,13 @@ frappe.ui.form.ControlMultiSelectList = class ControlMultiSelectList extends (
 			if ($(e.target).is("input")) {
 				return;
 			}
-			if (e.key === "Backspace") {
+			if (e.key === "Backspace" && !this.$input.prop("disabled")) {
 				this.set_value([]);
 			}
 		});
 
 		this.$list_wrapper.on("show.bs.dropdown", () => {
+			if (this.$input.prop("disabled")) return false;
 			this.set_options().then(() => {
 				if (!this._selected_values || !this._selected_values.length) {
 					this._selected_values = this.process_options(this.values);

@@ -3,9 +3,6 @@
 import os
 from contextlib import contextmanager
 
-from filelock import FileLock as _StrongFileLock
-from filelock import Timeout
-
 import frappe
 from frappe import _
 from frappe.utils import get_bench_path, get_site_path
@@ -29,6 +26,9 @@ def filelock(lock_name: str, *, timeout=30, is_global=False):
 	        site - {bench_dir}/sites/sitename/{name}.lock
 
 	"""
+	# Lazy: filelock imports the asyncio stack.
+	from filelock import FileLock as _StrongFileLock
+	from filelock import Timeout
 
 	lock_filename = lock_name + ".lock"
 	if not is_global:

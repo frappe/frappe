@@ -45,6 +45,7 @@ $.extend(frappe.model, {
 		"Text",
 		"Text Editor",
 		"Time",
+		"Vue Component",
 	],
 
 	no_value_type: [
@@ -59,6 +60,7 @@ $.extend(frappe.model, {
 		"Image",
 		"Fold",
 		"Heading",
+		"Vue Component",
 	],
 
 	layout_fields: ["Section Break", "Column Break", "Tab Break", "Fold"],
@@ -665,7 +667,7 @@ $.extend(frappe.model, {
 		}
 		let meta = frappe.get_meta(doc.doctype);
 		if (meta.title_field) {
-			return this.get_title_from_title_field(doc, meta);
+			return this.get_title_from_title_field(doc, meta) || String(doc.name);
 		} else {
 			return String(doc.name);
 		}
@@ -777,10 +779,8 @@ $.extend(frappe.model, {
 			],
 		});
 
-		d.set_primary_action(__("Rename"), function () {
+		d.set_primary_action(__("Rename"), function (args) {
 			d.hide();
-			var args = d.get_values();
-			if (!args) return;
 			return frappe.call({
 				method: "frappe.rename_doc",
 				freeze: true,

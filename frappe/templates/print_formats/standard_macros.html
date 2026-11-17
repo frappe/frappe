@@ -5,7 +5,7 @@
 		<div>{{ frappe.render_template(df.options, {"doc": doc}) or "" }}</div>
 	{%- elif df.fieldtype in ("Text", "Code", "Long Text") -%}
 		{{ render_text_field(df, doc) }}
-	{%- elif df.fieldtype in ("Image", "Attach Image")
+	{%- elif df.fieldtype == "Image"
 		and (
 			(guess_mimetype(doc[df.fieldname])[0] or "").startswith("image/")
 			or doc[df.fieldname].startswith("http")

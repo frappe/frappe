@@ -1,11 +1,9 @@
 # Copyright (c) 2018, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-import cProfile
 import functools
 import inspect
 import io
 import json
-import pstats
 import re
 import time
 import typing
@@ -366,6 +364,8 @@ class Recorder:
 			_install_run_method_tracer()
 
 		if self.config.profile:
+			import cProfile
+
 			self.profiler = cProfile.Profile()
 			self.profiler.enable()
 
@@ -382,6 +382,8 @@ class Recorder:
 
 	def process_profiler(self):
 		if self.config.profile or self.profiler:
+			import pstats
+
 			self.profiler.disable()
 			profiler_output = io.StringIO()
 			pstats.Stats(self.profiler, stream=profiler_output).sort_stats("cumulative").print_stats(200)

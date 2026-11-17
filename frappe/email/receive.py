@@ -303,7 +303,8 @@ class EmailServer:
 			if self.retry_count < self.retry_limit:
 				self.connect()
 				self.retry_count += 1
-				self.get_messages(folder)
+				self.imap.select(folder, readonly=self.settings.email_sync_rule != "UNSEEN")
+				return self.retrieve_message(uid, msg_num, folder)
 
 		except Exception as e:
 			if self.has_login_limit_exceeded(e):
@@ -481,7 +482,7 @@ class Email:
 			return
 
 		if _reply_to and not frappe.db.get_value(
-			"Email Account", {"email_id": _reply_to, "enable_incoming": 1}, "email_id"
+			"Email Account", {"email_id": extract_email_id(_reply_to), "enable_incoming": 1}, "email_id"
 		):
 			self.from_email = extract_email_id(_reply_to)
 		else:
@@ -495,7 +496,6 @@ class Email:
 		if not email:
 			return
 
-		raw_email = email if isinstance(email, str) else email.decode("utf-8", "replace")
 		email = frappe.as_unicode(email)
 		try:
 			parts = decode_header(email)
@@ -507,19 +507,22 @@ class Email:
 		decoded = ""
 		for part, encoding in parts:
 			if encoding:
-				decoded += part.decode(encoding, "replace")
+				try:
+					decoded += part.decode(encoding, "replace")
+				except LookupError:
+					decoded += part.decode("utf-8", "replace")
 			else:
 				decoded += safe_decode(part)
 
 		# Reject malformed address headers where decoding synthesizes a bare addr-spec.
 		# Allow valid encoded display-name forms like "=?utf-8?...?= <user@example.com>".
-		if decoded and "@" in decoded and "@" not in raw_email:
+		if decoded and "@" in decoded and "@" not in email:
 			decoded_addr_spec = parse_addr(decoded)[1]
 			if decoded_addr_spec and decoded.strip() == decoded_addr_spec:
 				frappe.log_error(
 					title=_("Malformed Address Header"),
 					message=_("Rejected malformed encoded address header with synthesized '@': {0}").format(
-						repr(raw_email)
+						repr(email)
 					),
 				)
 				return None
@@ -546,7 +549,7 @@ class Email:
 			if part.get_filename():
 				self.get_attachment(part)
 
-		elif content_type == "text/html":
+		elif content_type == "text/html" and part.get_content_disposition() != "attachment":
 			self.html_content += self.get_payload(part)
 
 		elif content_type == "message/rfc822":
@@ -563,7 +566,7 @@ class Email:
 		message = list(part.walk())[1]
 		headers = []
 		for key in ("From", "To", "Subject", "Date"):
-			value = cstr(message.get(key))
+			value = self.decode_email(message.get(key))
 			if value:
 				headers.append(f"{_(key)}: {escape(value)}")
 
@@ -659,6 +662,12 @@ class Email:
 			except frappe.DuplicateEntryError:
 				# same file attached twice??
 				pass
+			except frappe.ValidationError:
+				frappe.log_error(
+					_("Unable to save email attachment {0}").format(attachment["fname"]),
+					reference_doctype=doc.doctype,
+					reference_name=doc.name,
+				)
 
 		return saved_attachments
 
@@ -890,6 +899,10 @@ class InboundMail(Email):
 		"""
 		name = self.get_reference_name_from_subject()
 		email_fields = self.get_email_fields(doctype)
+		sender_is_system_user = bool(self.from_email and is_system_user(self.from_email))
+
+		if email_fields.sender_field and not sender_is_system_user:
+			name = frappe.db.get_value(doctype, {"name": name, email_fields.sender_field: self.from_email})
 
 		record = self.get_doc(doctype, name, ignore_error=True) if name else None
 
@@ -905,7 +918,7 @@ class InboundMail(Email):
 			}
 
 			# Sender check is not needed incase mail is from system user.
-			if email_fields.sender_field and not (len(subject) > 10 and is_system_user(self.from_email)):
+			if email_fields.sender_field and not (len(subject) > 10 and sender_is_system_user):
 				filters[email_fields.sender_field] = self.from_email
 
 			name = frappe.db.get_value(self.email_account.append_to, filters=filters)
@@ -962,7 +975,7 @@ class InboundMail(Email):
 	def clean_subject(subject):
 		"""Remove Prefixes like 'fw', FWD', 're' etc from subject."""
 		# Match strings like "fw:", "re	:" etc.
-		regex = r"(^\s*(fw|fwd|wg)[^:]*:|\s*(re|aw)[^:]*:\s*)*"
+		regex = r"^(\s*(fw|fwd|wg)\b[^:]*:)?(\s*(re|aw)\b[^:]*:\s*)*"
 		return frappe.as_unicode(strip(re.sub(regex, "", subject, count=0, flags=re.IGNORECASE)))
 
 	@staticmethod

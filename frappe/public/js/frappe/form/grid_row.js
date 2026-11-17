@@ -120,12 +120,9 @@ export default class GridRow {
 						console.trace(e);
 					});
 			} else {
-				let data = null;
-				if (this.grid.df.get_data) {
-					data = this.grid.df.get_data();
-				} else {
-					data = this.grid.df.data;
-				}
+				// the grid reads df.data, often a copy of df.get_data(), so edit that copy
+				const data = this.grid.get_data();
+				this.grid.df.data = data;
 
 				const index = data.findIndex((d) => d.name === this.doc.name);
 
@@ -265,7 +262,7 @@ export default class GridRow {
 		} else if (this.show_search) {
 			this.row_check = $(`
 				<div class="row-check col search">
-					<input type="text" class="form-control input-xs text-center invisible">
+					<input type="checkbox" class="invisible" tabindex="-1">
 				</div>`).appendTo(this.row);
 
 			this.row_index = $(
@@ -481,8 +478,8 @@ export default class GridRow {
 			secondary_action: () => d.fields_dict.fields.select_all(),
 		});
 
-		d.set_primary_action(__("Add"), () => {
-			let selected_fields = d.get_values().fields;
+		d.set_primary_action(__("Add"), (values) => {
+			let selected_fields = values.fields;
 			const existing_settings = {};
 			this.selected_columns_for_grid.forEach((col) => {
 				existing_settings[col.fieldname] = col;
@@ -757,8 +754,12 @@ export default class GridRow {
 		this.columns_list[this.columns_list.length - 1]?.addClass("grid-data-last");
 
 		if (this.show_search) {
-			// last empty column
-			$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
+			Object.values(this.search_columns).at(-1)?.addClass("grid-data-last");
+
+			// last empty column, matching the header's column configure button
+			if (!(this.grid.df.in_place_edit && !this.frm)) {
+				$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
+			}
 		}
 
 		// Button has no stored value; static_area stays empty while field_area is hidden until the row

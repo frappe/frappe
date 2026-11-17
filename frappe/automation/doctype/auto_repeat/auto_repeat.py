@@ -421,15 +421,26 @@ class AutoRepeat(Document):
 		if not self.subject:
 			subject = _("New {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.subject:
-			subject = frappe.render_template(self.subject, {"doc": new_doc})
+			subject = frappe.render_template(self.subject, {"doc": new_doc}, restrict_globals=True)
 
-		print_format = self.print_format or "Standard"
+		print_format = self.print_format or frappe.get_meta(new_doc.doctype).default_print_format
 		error_string = None
+		session_user = frappe.session.user
+		frappe.set_user(self.owner)  # nosemgrep: frappe-setuser
 
 		try:
 			attachments = [
 				frappe.attach_print(
-					new_doc.doctype, new_doc.name, file_name=new_doc.name, print_format=print_format
+					new_doc.doctype,
+					new_doc.name,
+					file_name=new_doc.name,
+					print_format=print_format,
+					lang=new_doc.get("language")
+					or (
+						frappe.get_cached_value("Print Format", print_format, "default_print_language")
+						if print_format
+						else None
+					),
 				)
 			]
 
@@ -443,13 +454,15 @@ class AutoRepeat(Document):
 				"{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 			).format(frappe.bold(_("Note")), frappe.bold(_("Allow Print for Draft")))
 			attachments = None
+		finally:
+			frappe.set_user(session_user)  # nosemgrep: frappe-setuser
 
 		if error_string:
 			message = error_string
 		elif not self.message:
 			message = _("Please find attached {0}: {1}").format(new_doc.doctype, new_doc.name)
 		elif "{" in self.message:
-			message = frappe.render_template(self.message, {"doc": new_doc})
+			message = frappe.render_template(self.message, {"doc": new_doc}, restrict_globals=True)
 
 		make(
 			doctype=new_doc.doctype,
@@ -640,8 +653,8 @@ def generate_message_preview(name: str):
 	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	doc.check_permission()
 	subject_preview = _("Please add a subject to your email")
-	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc})
+	msg_preview = frappe.render_template(auto_repeat.message, {"doc": doc}, restrict_globals=True)
 	if auto_repeat.subject:
-		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc})
+		subject_preview = frappe.render_template(auto_repeat.subject, {"doc": doc}, restrict_globals=True)
 
 	return {"message": msg_preview, "subject": subject_preview}

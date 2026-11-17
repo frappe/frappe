@@ -5,10 +5,9 @@
 
 import json
 import re
+from collections import deque
 from functools import lru_cache
 from typing import Any
-
-from sql_metadata import Parser
 
 import frappe
 import frappe.permissions
@@ -16,7 +15,7 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, format_duration
@@ -53,7 +52,10 @@ def send_compressed_link_titles(args, data):
 	# field to its bare fieldname, so pair the requested fields back up with its key order.
 	if not isinstance(data, dict):
 		return
-	field_info = {info.get("fieldname"): info for info in get_field_info(args.fields, args.doctype)}
+	field_info = {
+		get_result_key(field, info): info
+		for field, info in zip(args.fields, get_field_info(args.fields, args.doctype), strict=True)
+	}
 	columns = [field_info.get(key) for key in data["keys"]]
 	send_link_titles(get_report_link_titles(columns, data["values"]))
 
@@ -271,6 +273,8 @@ def is_standard(fieldname):
 
 @lru_cache(maxsize=1024)
 def extract_fieldnames(field):
+	from sql_metadata import Parser
+
 	from frappe.database.schema import SPECIAL_CHAR_PATTERN
 
 	if not SPECIAL_CHAR_PATTERN.findall(field):
@@ -350,6 +354,13 @@ def get_parenttype_and_fieldname(field, data):
 	return parenttype, fieldname
 
 
+def get_result_key(field: str | dict, info: dict) -> str:
+	"""Return the key a requested field gets in the result: its alias, else its fieldname."""
+	if isinstance(field, str) and " as " in field:
+		return field.split(" as ", 1)[1].strip(" '`\"")
+	return info.get("fieldname")
+
+
 def compress(data, args=None):
 	"""separate keys and values"""
 	from frappe.desk.query_report import add_total_row
@@ -389,7 +400,7 @@ def save_report(name: str | int, doctype: str, report_settings: str):
 		if report.report_type != "Report Builder":
 			frappe.throw(_("Only reports of type Report Builder can be edited"))
 
-		if report.owner != frappe.session.user and not report.has_permission("write"):
+		if report.owner != frappe.session.user and not frappe.has_permission("Report", "write", doc=report):
 			frappe.throw(_("Insufficient Permissions for editing Report"), frappe.PermissionError)
 	else:
 		if not frappe.has_permission("Report", "create"):
@@ -429,7 +440,7 @@ def delete_report(name: str | int):
 	if report.report_type != "Report Builder":
 		frappe.throw(_("Only reports of type Report Builder can be deleted"))
 
-	if report.owner != frappe.session.user and not report.has_permission("delete"):
+	if report.owner != frappe.session.user and not frappe.has_permission("Report", "delete", doc=report):
 		frappe.throw(_("Insufficient Permissions for deleting Report"), frappe.PermissionError)
 
 	report.delete(ignore_permissions=True)
@@ -602,6 +613,11 @@ def _reorder_by_visible_names(ret, fields, doctype, visible_names):
 	`visible_names` are dropped. If the primary key column can't be located in
 	`fields`, `ret` is returned unchanged (server-order fallback).
 
+	A child-table column makes several rows share one primary key, so rows are
+	grouped per name and consumed in order: each occurrence of a name in
+	`visible_names` takes that name's next unused row, instead of collapsing the
+	group to a single row.
+
 	Only the primary doctype's `name` column is a valid match.
 	Using linked doctype's `name` as the reorder key
 	would silently rebuild the export against the wrong identifier."""
@@ -615,8 +631,17 @@ def _reorder_by_visible_names(ret, fields, doctype, visible_names):
 			break
 	if name_idx is None:
 		return ret
-	ret_by_name = {row[name_idx]: row for row in ret}
-	return [ret_by_name[n] for n in visible_names if n in ret_by_name]
+
+	rows_by_name = {}
+	for row in ret:
+		rows_by_name.setdefault(row[name_idx], deque()).append(row)
+
+	reordered = []
+	for name in visible_names:
+		group = rows_by_name.get(name)
+		if group:
+			reordered.append(group.popleft())
+	return reordered
 
 
 def append_totals_row(data):

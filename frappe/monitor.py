@@ -8,8 +8,6 @@ import re
 import traceback
 import uuid
 
-import rq
-
 import frappe
 from frappe.utils.data import cint
 from frappe.utils.synchronization import filelock
@@ -84,6 +82,8 @@ class Monitor:
 			self.data.uuid = request_id
 
 	def collect_job_meta(self, method, kwargs):
+		import rq
+
 		self.data.job = frappe._dict({"method": method, "scheduled": False, "wait": 0})
 		if "run_scheduled_job" in method:
 			self.data.job.method = kwargs["job_type"]

@@ -56,4 +56,28 @@ test.describe("Control Icon", () => {
 		await expect(page.locator(".icon-section .icon-wrapper").first()).toBeAttached();
 		await expect(page.locator(".icon-section .icon-wrapper.hidden")).toHaveCount(0);
 	});
+
+	test("closes the picker when tabbing to the next field", async ({ page, desk }) => {
+		await desk.dialog({
+			title: "Icon",
+			fields: [
+				{
+					label: "Icon",
+					fieldname: "icon",
+					fieldtype: "Icon",
+				},
+				{
+					label: "Title",
+					fieldname: "title",
+					fieldtype: "Data",
+				},
+			],
+		});
+		const picker = page.locator(".icon-picker");
+
+		await page.locator(".frappe-control[data-fieldname=icon]").getByRole("textbox").click();
+		await expect(picker).toBeVisible();
+		await page.keyboard.press("Tab");
+		await expect(picker).toBeHidden();
+	});
 });

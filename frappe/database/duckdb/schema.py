@@ -1,7 +1,5 @@
 from collections import OrderedDict
 
-import pyarrow as pa
-
 import frappe
 from frappe.database.schema import DbColumn, DBTable, get_definition
 from frappe.utils import cint, cstr, flt
@@ -210,6 +208,8 @@ class DuckDBTable(DBTable):
 		conn.sql(query)
 
 	def get_arrow_schema(self):
+		import pyarrow as pa
+
 		from frappe.database.duckdb.database import get_pyarrow_type_map
 
 		arrow_typemap = get_pyarrow_type_map()

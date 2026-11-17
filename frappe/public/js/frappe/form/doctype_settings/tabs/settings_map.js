@@ -86,7 +86,7 @@ function render_field($body, group, field) {
 	$('<div class="text-base-medium text-ink-gray-8"></div>').text(field.label).appendTo($text);
 	if (field.description) {
 		$('<div class="dts-setting-description text-p-sm text-ink-gray-5"></div>')
-			.text(field.description)
+			.html(field.description)
 			.appendTo($text);
 	}
 

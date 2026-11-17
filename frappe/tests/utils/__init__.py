@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from functools import wraps
 
 import frappe
@@ -7,6 +8,23 @@ import frappe
 logger = logging.Logger(__file__)
 
 from .generators import *
+
+
+def wait_for_job(job_id: str, wait_timeout: float = 10):
+	"""Wait for an enqueued job to stop running, so a test does not race the worker.
+
+	A worker holds a row lock on everything it touches, and frappe asks for those locks with
+	NOWAIT, so a test that writes the same rows fails instead of queueing. Returns quietly after
+	`wait_timeout` seconds if the job never runs, e.g. when no worker is up.
+	"""
+	from frappe.utils.background_jobs import is_job_enqueued
+
+	deadline = time.monotonic() + wait_timeout
+
+	while time.monotonic() < deadline:
+		if not is_job_enqueued(job_id):
+			return
+		time.sleep(0.2)
 
 
 def whitelist_for_tests(**whitelist_kwargs):
@@ -39,7 +57,7 @@ def whitelist_for_tests(**whitelist_kwargs):
 
 def check_orpahned_doctypes():
 	"""Check that all doctypes in DB actually exist after patch test"""
-	from frappe.model.base_document import get_controller
+	from frappe.model.document import get_controller
 
 	doctypes = frappe.get_all("DocType", {"custom": 0}, pluck="name")
 	orpahned_doctypes = []

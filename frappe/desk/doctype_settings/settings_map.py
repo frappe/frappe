@@ -85,7 +85,7 @@ def get_settings_map(doctype: str) -> list[dict]:
 		fields = []
 		for fieldname in fieldnames:
 			df = single_meta.get_field(fieldname)
-			if not df:
+			if not df or df.fieldtype in no_value_fields:
 				continue
 			permlevel = df.permlevel or 0
 			# Skip fields the user can't read at their permlevel.
@@ -94,10 +94,10 @@ def get_settings_map(doctype: str) -> list[dict]:
 			fields.append(
 				{
 					"fieldname": df.fieldname,
-					"label": df.label if df.label else df.fieldname,
+					"label": _(df.label, context=single) if df.label else df.fieldname,
 					"fieldtype": df.fieldtype,
 					"options": df.options,
-					"description": df.description,
+					"description": df.description and _(df.description, context=single),
 					"value": doc.get(df.fieldname),
 					"can_write": doc_write and permlevel in write_levels,
 					# Raw expressions (JavaScript) — evaluated client-side, so NOT translated.
@@ -122,7 +122,7 @@ def get_settings_map(doctype: str) -> list[dict]:
 		groups.append(
 			{
 				"settings": single,
-				"label": single,
+				"label": _(single),
 				"doc": doc_context,
 				"fields": fields,
 			}

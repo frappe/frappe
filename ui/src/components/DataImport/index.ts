@@ -1,13 +1,19 @@
-// Only the composite is public. The step screens (`UploadStep`, `MappingStep`,
-// `PreviewStep`, `TemplateModal`, `ImportSteps`, `DataImportList`) are internal
-// to it, as they were in `frappe-ui/frappe`.
-export { default as DataImport } from "./DataImport.vue";
+export { useDataImport } from "./useDataImport";
+export type { StopImportResponse, UseDataImport } from "./useDataImport";
+export { default as DataImportWizard } from "./DataImportWizard.vue";
 export type {
-  DataImport as DataImportRecord,
-  DataImportProps,
-  DataImportSocket,
+  DataImportActivity,
+  DataImportDoc,
+  DataImportLog,
+  DataImportLogFilter,
+  DataImportPreview,
+  DataImportProgress,
+  DataImportSkippedRow,
   DataImportStatus,
-  DataImports,
+  DataImportStatusSummary,
+  DataImportType,
+  DataImportValueMapping,
   DocField,
   DocType,
+  ImportProviderSchema,
 } from "./types";

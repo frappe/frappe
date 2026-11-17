@@ -1,7 +1,5 @@
 from typing import Any
 
-import requests
-
 import frappe
 from frappe import _
 
@@ -72,8 +70,19 @@ def get_headers():
 	}
 
 
+def post(method: str, json: dict | None = None):
+	"""POST to a whitelisted method on Frappe Cloud with this site's credentials."""
+	import requests
+
+	return requests.post(
+		f"{get_base_url()}/api/method/{method}", headers=get_headers(), json=json, timeout=(5, 10)
+	)
+
+
 @frappe.whitelist()
 def current_site_info():
+	import requests
+
 	from frappe.utils import cint
 
 	frappe.only_for("System Manager")
@@ -88,9 +97,7 @@ def current_site_info():
 
 	res = {}
 	try:
-		request = requests.post(
-			f"{get_base_url()}/api/method/press.saas.api.site.info", headers=get_headers(), timeout=(5, 10)
-		)
+		request = post("press.saas.api.site.info")
 	except requests.RequestException:
 		return None
 	if request.status_code == 200:
@@ -114,12 +121,7 @@ def current_site_info():
 def api(method: str, data: str | dict[str, Any] | None = None):
 	if data is None:
 		data = {}
-	request = requests.post(
-		f"{get_base_url()}/api/method/press.saas.api.{method}",
-		headers=get_headers(),
-		json=data,
-		timeout=(5, 10),
-	)
+	request = post(f"press.saas.api.{method}", json=data)
 	if request.status_code == 200:
 		return request.json().get("message")
 	else:
@@ -138,11 +140,9 @@ def is_fc_site() -> bool:
 # login to frappe cloud dashboard
 @frappe.whitelist()
 def send_verification_code():
-	request = requests.post(
-		f"{get_base_url()}/api/method/press.api.developer.saas.send_verification_code",
-		headers=get_headers(),
+	request = post(
+		"press.api.developer.saas.send_verification_code",
 		json={"domain": get_site_name()},
-		timeout=(5, 10),
 	)
 	if request.status_code == 200:
 		return request.json().get("message")
@@ -152,11 +152,9 @@ def send_verification_code():
 
 @frappe.whitelist()
 def verify_verification_code(verification_code: str, route: str):
-	request = requests.post(
-		f"{get_base_url()}/api/method/press.api.developer.saas.verify_verification_code",
-		headers=get_headers(),
+	request = post(
+		"press.api.developer.saas.verify_verification_code",
 		json={"domain": get_site_name(), "verification_code": verification_code, "route": route},
-		timeout=(5, 10),
 	)
 
 	if request.status_code == 200:

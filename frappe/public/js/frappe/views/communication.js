@@ -37,6 +37,8 @@ frappe.views.CommunicationComposer = class {
 			size: "large",
 			minimizable: true,
 			keep_open: true,
+			// on a phone a focused To field opens its suggestions and the keyboard over the mail
+			no_focus: frappe.is_mobile(),
 		});
 
 		$(this.dialog.$wrapper.find(".form-section").get(0)).addClass("to_section");
@@ -1379,6 +1381,7 @@ frappe.views.CommunicationComposer = class {
 					fieldtype: "Link",
 					options: "Letter Head",
 					default: fields.select_letter_head?.get_value(),
+					get_query: () => ({ filters: { letter_head_for: "DocType" } }),
 				},
 				{
 					label: __("Print Language"),

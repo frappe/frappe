@@ -142,14 +142,19 @@ frappe.dom = {
 	freeze: function (msg, css_class) {
 		// blur
 		if (!$("#freeze").length) {
+			// portal pages have no #body, and appendTo() fails silently there
+			const $container = $("#body").length ? $("#body") : $(document.body);
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
 				.on("click", function () {
-					if (cur_frm && cur_frm.cur_grid) {
-						cur_frm.cur_grid.toggle_view();
+					// resolve the open row from the DOM rather than cur_frm,
+					// which is null on portal pages
+					const open_grid_row = frappe.ui.form.get_open_grid_form?.();
+					if (open_grid_row) {
+						open_grid_row.toggle_view();
 						return false;
 					}
 				})
-				.appendTo("#body");
+				.appendTo($container);
 
 			freeze.html(
 				repl(

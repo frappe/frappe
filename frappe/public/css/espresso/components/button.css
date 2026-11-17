@@ -65,7 +65,9 @@
     border-radius: var(--radius);
     font-size: var(--text-base);
     font-weight: var(--font-weight-regular);
+    letter-spacing: 0.02em;
     line-height: 1;
+    vertical-align: middle;
     outline: none;
     transition: background-color 120ms, border-color 120ms, color 120ms;
 
@@ -134,6 +136,7 @@ a.es-button:focus {
     --es-bt-icon: calc(var(--spacing) * 4.5);
     padding-inline: calc(var(--spacing) * 2.5);
     font-weight: var(--font-weight-medium);
+    letter-spacing: 0.015em;
 }
 
 .es-button[data-size="lg"] {
@@ -142,6 +145,7 @@ a.es-button:focus {
     padding-inline: calc(var(--spacing) * 3);
     font-size: var(--text-xl);
     font-weight: var(--font-weight-medium);
+    letter-spacing: 0.015em;
     border-radius: var(--radius-md);
 }
 
@@ -281,8 +285,8 @@ a.es-button:focus {
 }
 
 .es-button.btn-danger {
-    --bt-bg: var(--surface-red-5);
-    --bt-fg: var(--ink-white);
-    --bt-hover-bg: var(--surface-red-6);
-    --bt-active-bg: var(--surface-red-7);
+    --bt-solid-bg: var(--surface-red-7);
+    --bt-solid-bg-hover: var(--surface-red-8);
+    --bt-solid-bg-active: var(--surface-red-9);
+    --bt-solid-fg: var(--ink-red-1);
 }

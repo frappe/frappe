@@ -1,16 +1,15 @@
+import sys
 from collections.abc import Callable
 from functools import lru_cache, wraps
 from inspect import _empty, isclass
 from types import EllipsisType
-from typing import ForwardRef, TypeVar, Union
-from unittest import mock
-
-from pydantic import ConfigDict, PydanticUserError
-from pydantic import TypeAdapter as PydanticTypeAdapter
-from pydantic import ValidationError as PydanticValidationError
+from typing import TYPE_CHECKING, ForwardRef, TypeVar, Union
 
 import frappe
 from frappe.exceptions import FrappeTypeError
+
+if TYPE_CHECKING:
+	from pydantic import ConfigDict
 
 SLACK_DICT = {
 	bool: (int, bool, float),
@@ -19,7 +18,14 @@ T = TypeVar("T")
 ForwardRefOrStr = ForwardRef | str
 
 
-FrappePydanticConfig = ConfigDict(arbitrary_types_allowed=True)
+# ConfigDict is a TypedDict, so at runtime it's just a plain dict and TypeAdapter accepts
+# this literal. Calling ConfigDict() would drag pydantic (~6MB) into `import frappe`.
+FrappePydanticConfig: "ConfigDict" = {"arbitrary_types_allowed": True}
+
+
+def is_mock(value) -> bool:
+	mock = sys.modules.get("unittest.mock")
+	return mock is not None and isinstance(value, mock.Mock)
 
 
 def validate_argument_types(func: Callable, apply_condition: Callable | None = None):
@@ -78,6 +84,9 @@ def raise_type_error(
 
 @lru_cache(maxsize=2048)
 def TypeAdapter(type_):
+	from pydantic import PydanticUserError
+	from pydantic import TypeAdapter as PydanticTypeAdapter
+
 	try:
 		return PydanticTypeAdapter(type_, config=FrappePydanticConfig)
 	except PydanticUserError as e:
@@ -103,6 +112,8 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		or (len(annotations) == 1 and "return" in annotations)
 	):
 		return args, kwargs
+
+	from pydantic import ValidationError as PydanticValidationError
 
 	new_args, new_kwargs = list(args), kwargs
 
@@ -134,7 +145,7 @@ def transform_parameter_types(func: Callable, args: tuple, kwargs: dict):
 		elif any(isinstance(x, ForwardRefOrStr) for x in getattr(current_arg_type, "__args__", [])):
 			continue
 		# ignore unittest.mock objects
-		elif isinstance(current_arg_value, mock.Mock):
+		elif is_mock(current_arg_value):
 			continue
 
 		# allow slack for Frappe types

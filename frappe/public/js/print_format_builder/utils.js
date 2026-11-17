@@ -94,7 +94,8 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
 	if (print_format?.custom_format) return [__("Custom HTML format")];
-	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
+	if (!print_format?.print_format_builder_beta)
+		return [__("Not made in the Print Format Editor")];
 	if ((print_format?.css || "").trim()) add(__("Custom CSS in the Style box"));
 	const colors = new Set();
 	for (const key of ["label_color", "value_color"]) {
@@ -109,6 +110,9 @@ export function typst_blockers_client(print_format, layout, letterhead) {
 		const footer_is_image = letterhead.footer_source === "Image" && letterhead.footer_image;
 		if ((letterhead.footer || "").trim() && !footer_is_image)
 			add(__("Letterhead footer with HTML content"));
+	}
+	if (/^(https?:)?\/\//.test(layout?.background?.image || "")) {
+		add(__("Background image loaded from a web address"));
 	}
 	for (const node of layout_nodes(layout)) {
 		if ((node.custom_style || "").trim()) {
@@ -154,7 +158,8 @@ export function legacy_blockers_client(print_format, layout, letterhead) {
 	const blockers = [];
 	const add = (reason) => !blockers.includes(reason) && blockers.push(reason);
 	if (print_format?.custom_format) return [__("Custom HTML format")];
-	if (!print_format?.print_format_builder_beta) return [__("Not a builder format")];
+	if (!print_format?.print_format_builder_beta)
+		return [__("Not made in the Print Format Editor")];
 	if ((letterhead?.custom_css || "").trim()) add(__("Letterhead with custom CSS"));
 	const styled_fields = [];
 	for (const node of layout_nodes(layout)) {
@@ -483,7 +488,9 @@ export function serialize_layout(layout) {
 export function parse_inline_style(css) {
 	const style = {};
 	if (!css || typeof css !== "string") return style;
-	for (const decl of css.split(";")) {
+	const el = document.createElement("div");
+	el.setAttribute("style", css);
+	for (const decl of split_declarations(el.style.cssText)) {
 		const idx = decl.indexOf(":");
 		if (idx === -1) continue;
 		const prop = decl.slice(0, idx).trim();
@@ -491,6 +498,32 @@ export function parse_inline_style(css) {
 		if (prop && value) style[prop] = value;
 	}
 	return style;
+}
+
+function split_declarations(text) {
+	const decls = [];
+	let quote = null;
+	let depth = 0;
+	let start = 0;
+	for (let i = 0; i < text.length; i++) {
+		const c = text[i];
+		if (c === "\\") {
+			i++;
+		} else if (quote) {
+			if (c === quote) quote = null;
+		} else if (c === '"' || c === "'") {
+			quote = c;
+		} else if (c === "(") {
+			depth++;
+		} else if (c === ")") {
+			depth--;
+		} else if (c === ";" && !depth) {
+			decls.push(text.slice(start, i));
+			start = i + 1;
+		}
+	}
+	decls.push(text.slice(start));
+	return decls;
 }
 
 // Deterministic pastel colour for a merged-cell initials thumbnail, keyed off
@@ -584,6 +617,7 @@ const SAFE_HTML_ATTRS = new Set([
 	"cite",
 	"class",
 	"colspan",
+	"data-list",
 	"datetime",
 	"dir",
 	"height",

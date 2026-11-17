@@ -36,12 +36,55 @@
 			/>
 		</InspectorSection>
 
+		<InspectorSection :label="__('Page')">
+			<InspectorRow :label="__('Paper size')">
+				<select
+					class="form-control form-control-sm pfb-insp-select"
+					:value="layout.page?.size || ''"
+					@change="set_page('size', $event.target.value)"
+				>
+					<option v-for="p in paper_sizes" :key="p.value" :value="p.value">
+						{{ p.label }}
+					</option>
+				</select>
+			</InspectorRow>
+			<InspectorRow :label="__('Orientation')">
+				<select
+					class="form-control form-control-sm pfb-insp-select"
+					:value="layout.page?.orientation || 'Portrait'"
+					@change="set_page('orientation', $event.target.value)"
+				>
+					<option value="Portrait">{{ __("Portrait") }}</option>
+					<option value="Landscape">{{ __("Landscape") }}</option>
+				</select>
+			</InspectorRow>
+		</InspectorSection>
+
 		<InspectorSection :label="__('Spacing (mm)')">
 			<SpacingRow
 				:label="__('Margins')"
 				:model-value="page_margins"
 				@update:model-value="set_margins"
 			/>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Page background')">
+			<ImageUploadControl
+				:model-value="layout.background?.image || ''"
+				@update:model-value="set_background_image"
+			/>
+			<SliderRow
+				v-if="layout.background?.image"
+				:label="__('Opacity')"
+				:min="0"
+				:max="100"
+				:model-value="layout.background.opacity ?? 100"
+				@update:model-value="(v) => (layout.background.opacity = v)"
+			>
+				<span class="pfb-insp-hint text-muted"
+					>{{ layout.background.opacity ?? 100 }}%</span
+				>
+			</SliderRow>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Document')">
@@ -65,6 +108,9 @@
 					>
 						<option value="chrome" :disabled="has_typst_block">
 							{{ __("Chromium") }}
+						</option>
+						<option value="PlutoPrint" :disabled="has_typst_block">
+							{{ __("PlutoPrint (light)") }}
 						</option>
 						<option value="Typst" :disabled="typst_blockers.length > 0">
 							{{ __("Typst (fast)") }}
@@ -119,9 +165,11 @@ import SpacingRow from "./inspector/SpacingRow.vue";
 import InspectorSection from "./inspector/InspectorSection.vue";
 import ColorInput from "./inspector/ColorInput.vue";
 import DeskControl from "./DeskControl.vue";
+import ImageUploadControl from "./inspector/ImageUploadControl.vue";
+import SliderRow from "./inspector/SliderRow.vue";
 
 let store = inject("$store");
-let { print_format, letterhead } = store;
+let { print_format, letterhead, layout } = store;
 let { typst_blockers, legacy_blockers, has_typst_block } = store;
 
 let google_fonts = ref([]);
@@ -136,7 +184,7 @@ const DEPRECATION_NOTICES = {
 };
 let renderer = computed(() => {
 	const value = print_format.value?.pdf_generator;
-	return ["Typst", "WeasyPrint"].includes(value) ? value : "chrome";
+	return ["PlutoPrint", "Typst", "WeasyPrint"].includes(value) ? value : "chrome";
 });
 let deprecation_notice = computed(() => DEPRECATION_NOTICES[renderer.value] || null);
 let hint_icon = ref(null);
@@ -150,7 +198,8 @@ let renderer_hint = computed(() => {
 		parts.push(bullet_list(__("Typst cannot render:"), typst_blockers.value));
 	if (renderer.value === "WeasyPrint" && legacy_blockers.value.length)
 		parts.push(bullet_list(__("WeasyPrint cannot render:"), legacy_blockers.value));
-	if (!parts.length && renderer.value === "Typst") parts.push(__("Experimental"));
+	if (!parts.length && ["Typst", "PlutoPrint"].includes(renderer.value))
+		parts.push(__("Experimental"));
 	return parts.join("\n\n");
 });
 let hint_tooltip = null;
@@ -167,9 +216,30 @@ watch(
 );
 onUnmounted(() => hint_tooltip?.destroy());
 
+const paper_sizes = [
+	{ label: __("Default"), value: "" },
+	...["A4", "A5", "A3", "Letter", "Legal", "Tabloid"].map((s) => ({ label: s, value: s })),
+];
+
+function set_page(key, value) {
+	const page = { ...layout.value.page, [key]: value };
+	if (!page.size) delete page.size;
+	if (page.orientation !== "Landscape") delete page.orientation;
+	if (Object.keys(page).length) layout.value.page = page;
+	else delete layout.value.page;
+}
+
+function set_background_image(image) {
+	if (!image) {
+		delete layout.value.background;
+		return;
+	}
+	layout.value.background = { opacity: 100, ...layout.value.background, image };
+}
+
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
-	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
+	print_format.value.pdf_generator = ["Typst", "PlutoPrint"].includes(value) ? value : "chrome";
 }
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },

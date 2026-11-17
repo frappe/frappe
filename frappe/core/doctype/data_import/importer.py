@@ -178,6 +178,7 @@ class Importer:
 
 		# dont import if there are non-ignorable warnings
 		from frappe.core.doctype.data_import.value_mapping import (
+			create_missing_link_records,
 			get_blocking_warnings,
 			get_skipped_row_numbers,
 		)
@@ -200,6 +201,8 @@ class Importer:
 					user=frappe.session.user,
 				)
 			return
+
+		create_missing_link_records(self.data_import)
 
 		# Read previous status before 'In Progress' overwrites it; retry purge needs it.
 		previous_status = self.data_import.status
@@ -608,18 +611,25 @@ class Importer:
 			self._resolve_tree_parent_link(doc)
 			updated_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
+		submit_after_import = (
+			updated_doc.meta.is_submittable
+			and self.data_import.submit_after_import
+			and updated_doc.docstatus.is_draft()
+		)
+		updated_doc.flags.updater_reference = {
+			"doctype": self.data_import.doctype,
+			"docname": self.data_import.name,
+			"label": _("via Data Import"),
+		}
+
 		if get_diff(existing_doc, updated_doc):
 			# update doc if there are changes
-			updated_doc.flags.updater_reference = {
-				"doctype": self.data_import.doctype,
-				"docname": self.data_import.name,
-				"label": _("via Data Import"),
-			}
 			updated_doc.save()
-			return updated_doc
-
-		if raise_if_no_changes:
+		elif raise_if_no_changes and not submit_after_import:
 			frappe.throw(_("No changes to update"))
+
+		if submit_after_import:
+			updated_doc.submit()
 		return updated_doc
 
 	def get_eta(self, current, total, processing_time):
@@ -667,10 +677,11 @@ class Importer:
 		if not self.data_import or not self.data_import.skipped_rows:
 			return
 
+		# Read from the file: row_data is only filled for rows the preview carried.
+		skipped = {cint(row.row_number) for row in self.data_import.skipped_rows}
 		header_row = [col.header_title for col in self.import_file.columns]
 		rows = [header_row]
-		for skipped in sorted(self.data_import.skipped_rows, key=lambda r: r.row_number):
-			rows.append(frappe.parse_json(skipped.row_data))
+		rows += [row.data for row in self.import_file.data if row.row_number in skipped]
 
 		build_csv_response(rows, _(self.doctype))
 
@@ -933,6 +944,9 @@ class ImportFile:
 			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
+			# Fix issues shows a warned row's cells, which may fall past the preview.
+			warned = {cint(w.get("row")) for w in out.warnings if w.get("row")}
+			out.warning_rows = [row for row in data[MAX_ROWS_IN_PREVIEW:] if row[0] in warned]
 
 		return out
 
@@ -1009,6 +1023,9 @@ class ImportFile:
 					child_doc = row.parse_doc(doctype, parent_doc, table_df)
 					if child_doc is None:
 						continue
+					if parent_doc is None:
+						# no column of the file is for the record itself, so it starts empty
+						parent_doc = row._parse_doc(self.doctype, [], [])
 					parent_doc[table_df.fieldname] = parent_doc.get(table_df.fieldname, [])
 					parent_doc[table_df.fieldname].append(child_doc)
 
@@ -1325,9 +1342,12 @@ def build_tree_preview(import_file: "ImportFile") -> frappe._dict | None:
 	tree_warnings = []
 	nodes_by_id = {node.id: node for node in nodes}
 	duplicate_messages = {}
+	parent_refs = {node.parent for node in nodes}
 
 	for node_id, row_numbers in id_to_rows.items():
-		if len(row_numbers) > 1:
+		if len(row_numbers) > 1 and (
+			node_id not in import_file.header.import_aliases or node_id in parent_refs
+		):
 			message = _("Duplicate ID {0} in rows {1}").format(
 				frappe.bold(escape_html(cstr(node_id))), format_row_numbers_for_warning(row_numbers)
 			)
@@ -1487,14 +1507,14 @@ def sort_tree_payloads(payloads: list, doctype: str, import_type: str | None) ->
 	while stack:
 		payload = stack.pop()
 		node_id = payload_id_by_payload[id(payload)]
-		if not node_id or node_id in seen:
+		if id(payload) in seen:
 			continue
-		seen.add(node_id)
+		seen.add(id(payload))
 		ordered.append(payload)
 		stack.extend(reversed(children_by_parent.get(node_id, [])))
 
-	for payload, node_id, _parent in payload_keys:
-		if not node_id or node_id not in seen:
+	for payload, _node_id, _parent in payload_keys:
+		if id(payload) not in seen:
 			ordered.append(payload)
 
 	return ordered
@@ -1511,21 +1531,25 @@ def _order_tree_preview_nodes(nodes: list) -> list:
 	for children in children_by_parent.values():
 		children.sort(key=lambda n: n.row_number)
 
+	# The tree nests children under their parent's id, so an id other rows point to is shown once.
+	def get_display_key(node):
+		return node.id if node.id in children_by_parent else node.row_number
+
 	ordered = []
 	seen = set()
 
 	stack = [(node, 0) for node in reversed(children_by_parent.get(None, []))]
 	while stack:
 		node, depth = stack.pop()
-		if node.id in seen:
+		if get_display_key(node) in seen:
 			continue
-		seen.add(node.id)
+		seen.add(get_display_key(node))
 		node.depth = depth
 		ordered.append(node)
 		stack.extend((child, depth + 1) for child in reversed(children_by_parent.get(node.id, [])))
 
 	for node in nodes:
-		if node.id not in seen:
+		if get_display_key(node) not in seen:
 			node.depth = 0
 			node.orphan = True
 			ordered.append(node)
@@ -2256,24 +2280,12 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 
 def get_df_for_column_header(doctype, header):
-	from frappe.core.doctype.data_import.import_provider import get_import_provider
-
-	if get_import_provider(doctype):
-		# A provider's fields can depend on the user (e.g. their permissions) and on other
-		# DocTypes, so they can't be shared or cleared with this DocType's cache.
-		return _get_provider_fields_dict(doctype, frappe.session.user).get(header)
-
-	def build_fields_dict_for_doctype():
-		return build_fields_dict_for_column_matching(doctype)
-
-	df_by_labels_and_fieldname = frappe.cache.hget(
-		"data_import_column_header_map", doctype, generator=build_fields_dict_for_doctype
-	)
-	return df_by_labels_and_fieldname.get(header)
+	return _get_fields_dict(doctype, frappe.session.user).get(header)
 
 
 @request_cache
-def _get_provider_fields_dict(doctype, user):
+def _get_fields_dict(doctype, user):
+	# A provider's fields can depend on the user (e.g. their permissions)
 	return build_fields_dict_for_column_matching(doctype)
 
 

@@ -1,4 +1,8 @@
+import ssl
 import time
+from unittest.mock import patch
+
+import redis
 
 import frappe
 from frappe.tests import IntegrationTestCase
@@ -11,6 +15,30 @@ class TestClientCache(IntegrationTestCase):
 	def setUp(self) -> None:
 		frappe.client_cache.delete_value(TEST_KEY)
 		return super().setUp()
+
+	def test_tls_connection_preserves_client_tracking(self):
+		with (
+			self.set_user("test@example.com"),
+			patch.dict(
+				frappe.conf,
+				{"redis_cache": "rediss://redis.example.com:6380/0?ssl_cert_reqs=required"},
+			),
+			patch.object(frappe.cache, "client_id", return_value=123),
+			patch.object(ClientCache, "run_invalidator_thread"),
+		):
+			cache = ClientCache()
+			self.addCleanup(cache.redis.connection_pool.disconnect)
+			connection = cache.redis.connection_pool.make_connection()
+			self.assertIsInstance(connection, redis.SSLConnection)
+			self.assertEqual(connection.cert_reqs, ssl.CERT_REQUIRED)
+			self.assertEqual(connection.host, "redis.example.com")
+			self.assertEqual(connection.port, 6380)
+			with (
+				patch.object(connection, "send_command") as send_command,
+				patch.object(connection, "read_response", return_value=b"OK"),
+			):
+				connection._enable_client_tracking(connection)
+				send_command.assert_called_once_with("CLIENT", "TRACKING", "ON", "redirect", 123, "NOLOOP")
 
 	def test_client_cache_is_used(self):
 		frappe.client_cache.set_value(TEST_KEY, 42)
@@ -91,6 +119,54 @@ class TestClientCache(IntegrationTestCase):
 		c.set_value(frappe.generate_hash(), 42)
 
 		self.assertEqual(len(c.cache), 2)
+
+	def test_client_cache_maxsize_bytes(self):
+		c = ClientCache(maxsize_bytes=50_000)
+		for _ in range(10):
+			c.set_value(frappe.generate_hash(), "z" * 10_000)
+
+		self.assertLessEqual(c._total_size, 50_000 + 10_100)
+		self.assertEqual(c._total_size, sum(e.size for e in c.cache.values()))
+
+	def test_client_cache_no_byte_limit_by_default(self):
+		c = ClientCache()
+		for _ in range(10):
+			c.set_value(frappe.generate_hash(), "z" * 10_000)
+
+		self.assertEqual(c.maxsize_bytes, 0)
+		self.assertEqual(len(c.cache), 10)
+
+	def test_client_cache_size_accounting(self):
+		c = ClientCache()
+		key = frappe.generate_hash()
+
+		c.set_value(key, "z" * 10_000)
+		self.assertEqual(c._total_size, sum(e.size for e in c.cache.values()))
+
+		# overwriting must not double count
+		c.set_value(key, "z" * 10_000)
+		self.assertEqual(c._total_size, sum(e.size for e in c.cache.values()))
+
+		c.delete_value(key)
+		self.assertEqual(c._total_size, sum(e.size for e in c.cache.values()))
+
+	@staticmethod
+	def _expire_entries(cache: ClientCache) -> None:
+		"""Put every entry past its ttl, without a wait on the clock."""
+		with cache.lock:
+			for key, entry in cache.cache.items():
+				cache.cache[key] = entry._replace(expiry=time.monotonic() - 1)
+
+	def test_client_cache_size_not_leaked_on_expiry(self):
+		"""An expired entry is replaced by a placeholder, its size must be released."""
+		c = ClientCache()
+		key = frappe.generate_hash()
+		c.set_value(key, "z" * 10_000)
+
+		for _ in range(3):
+			self._expire_entries(c)
+			c.get_value(key)
+			self.assertEqual(c._total_size, sum(e.size for e in c.cache.values()))
 
 	def test_shared_keyspace(self):
 		val = frappe.generate_hash()

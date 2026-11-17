@@ -72,8 +72,8 @@ def get_cached_user_pass():
 	user = pwd = None
 	tmp_id = frappe.form_dict.get("tmp_id")
 	if tmp_id:
-		user = frappe.safe_decode(frappe.cache.get(tmp_id + "_usr"))
-		pwd = frappe.safe_decode(frappe.cache.get(tmp_id + "_pwd"))
+		user = frappe.cache.get_value(tmp_id + "_usr", use_local_cache=False)
+		pwd = frappe.cache.get_value(tmp_id + "_pwd", use_local_cache=False)
 	return (user, pwd)
 
 
@@ -96,17 +96,14 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 	pwd = frappe.form_dict.get("pwd")
 	verification_method = get_verification_method()
 
-	pipeline = frappe.cache.pipeline()
-
 	# set increased expiry time for SMS and Email
 	if verification_method in ["SMS", "Email"]:
 		expiry_time = frappe.flags.token_expiry or 300
-		pipeline.set(tmp_id + "_token", token, expiry_time)
+		frappe.cache.set_value(tmp_id + "_token", token, expires_in_sec=expiry_time)
 	else:
 		expiry_time = frappe.flags.otp_expiry or 180
 	for k, v in {"_usr": user, "_pwd": pwd, "_otp_secret": otp_secret}.items():
-		pipeline.set(f"{tmp_id}{k}", v, expiry_time)
-	pipeline.execute()
+		frappe.cache.set_value(f"{tmp_id}{k}", v, expires_in_sec=expiry_time)
 
 
 def two_factor_is_enabled_for_(user):
@@ -155,17 +152,17 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 		return True
 	if not tmp_id:
 		tmp_id = frappe.form_dict.get("tmp_id")
-	hotp_token = frappe.cache.get(tmp_id + "_token")
-	otp_secret = frappe.cache.get(tmp_id + "_otp_secret")
+	hotp_token = frappe.cache.get_value(tmp_id + "_token", use_local_cache=False)
+	otp_secret = frappe.cache.get_value(tmp_id + "_otp_secret", use_local_cache=False)
 	if not otp_secret:
 		raise ExpiredLoginException(_("Login session expired, refresh page to retry"))
 
 	tracker = get_login_attempt_tracker(login_manager.user)
 
 	hotp = pyotp.HOTP(otp_secret)
-	if hotp_token:
+	if hotp_token is not None:
 		if hotp.verify(otp, int(hotp_token)):
-			frappe.cache.delete(tmp_id + "_token")
+			frappe.cache.delete_value(tmp_id + "_token")
 			tracker.add_success_attempt()
 			return True
 		else:
@@ -257,7 +254,7 @@ def get_email_subject_for_2fa(kwargs_dict):
 	subject_template = _("Login Verification Code from {}").format(
 		frappe.get_system_settings("otp_issuer_name")
 	)
-	return frappe.render_template(subject_template, kwargs_dict)
+	return frappe.render_template(subject_template, kwargs_dict, restrict_globals=True)
 
 
 def get_email_body_for_2fa(kwargs_dict):
@@ -273,7 +270,7 @@ def get_email_subject_for_qr_code(kwargs_dict):
 	subject_template = _("One Time Password (OTP) Registration Code from {}").format(
 		frappe.get_system_settings("otp_issuer_name")
 	)
-	return frappe.render_template(subject_template, kwargs_dict)
+	return frappe.render_template(subject_template, kwargs_dict, restrict_globals=True)
 
 
 def get_email_body_for_qr_code(kwargs_dict):
@@ -339,7 +336,7 @@ def get_rendered_otp_message(otp: str) -> str:
 	custom_template = frappe.get_system_settings("otp_sms_template")
 	template = custom_template or default_template
 
-	return frappe.render_template(template, {"otp": otp})
+	return frappe.render_template(template, {"otp": otp}, restrict_globals=True)
 
 
 def send_token_via_email(user, token, otp_secret, otp_issuer, subject=None, message=None):

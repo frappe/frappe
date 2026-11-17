@@ -4,13 +4,16 @@
 import datetime
 import json
 import os
+import re
 from datetime import timedelta
-from typing import Any
+from html import unescape
+from typing import TYPE_CHECKING, Any
 
 import frappe
 import frappe.desk.reportview
 from frappe import _
 from frappe.core.utils import ljust_list
+from frappe.database.duckdb.database import get_latest_complete_sync
 from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.desk.reportview import clean_params, parse_json
 from frappe.model.utils import render_include
@@ -19,7 +22,9 @@ from frappe.monitor import add_data_to_monitor
 from frappe.permissions import get_role_permissions, get_roles, has_permission
 from frappe.utils import cint, cstr, flt, format_datetime, format_duration, formatdate, get_html_format, sbool
 from frappe.utils.caching import request_cache
-from frappe.utils.xlsxutils import XLSXMetadata, XLSXStyleBuilder, handle_html, make_xlsx
+
+if TYPE_CHECKING:
+	from frappe.utils.xlsxutils import XLSXMetadata
 
 
 def get_report_doc(report_name):
@@ -59,12 +64,12 @@ def get_report_doc(report_name):
 	return doc
 
 
-@frappe.whitelist()
-def get_print_format_data(print_format: str):
+def get_permitted_report_print_format(print_format: str) -> frappe._dict:
+	"""Resolve an enabled Report print format, enforcing the report it belongs to."""
 	pf = frappe.db.get_value(
 		"Print Format",
 		{"name": print_format, "disabled": 0, "print_format_for": "Report"},
-		["report", "html", "css"],
+		["report", "html", "css", "print_format_type"],
 		as_dict=True,
 	)
 	if not pf:
@@ -73,7 +78,7 @@ def get_print_format_data(print_format: str):
 			frappe.DoesNotExistError,
 		)
 
-	# get_report_doc enforces the referenced Report's own permission model before we hand out its print format
+	# get_report_doc enforces the referenced Report's own permission model
 	report = get_report_doc(pf.report)
 
 	if not frappe.has_permission(report.ref_doctype, "print"):
@@ -82,7 +87,18 @@ def get_print_format_data(print_format: str):
 			frappe.PermissionError,
 		)
 
-	return {"html": pf.html, "css": pf.css}
+	return pf
+
+
+@frappe.whitelist()
+def get_print_format_data(print_format: str):
+	pf = get_permitted_report_print_format(print_format)
+
+	# a Jinja format is rendered server side, so its template never leaves the server
+	if pf.print_format_type == "Jinja":
+		return {"print_format_type": pf.print_format_type}
+
+	return {"html": pf.html, "css": pf.css, "print_format_type": pf.print_format_type}
 
 
 def get_report_result(report, filters):
@@ -168,18 +184,11 @@ def generate_report_result(
 	}
 
 	if report.snapshot_report and report.doctype_to_sync:
-		if latest_sync := frappe.db.get_all(
-			"DuckDB Sync",
-			filters={"doc_type": report.doctype_to_sync[0].doc_type, "docstatus": 1},
-			fields=["creation"],
-			pluck="creation",
-			order_by="creation desc",
-			limit=1,
-		):
+		if latest_sync := get_latest_complete_sync(report.doctype_to_sync[0].doc_type):
 			return_dict.update(
 				{
 					"snapshot_report": True,
-					"snapshot_at": latest_sync[0],
+					"snapshot_at": latest_sync.creation,
 				}
 			)
 
@@ -228,7 +237,7 @@ def get_script(report_name: str):
 		script += f"\n\n//# sourceURL={scrub(report.name)}__custom"
 
 	if not script:
-		script = "frappe.query_reports['{}']={{}}".format(report_name)
+		script = f"frappe.query_reports[{json.dumps(report_name)}]={{}}"
 
 	return {
 		"script": render_include(script),
@@ -340,14 +349,6 @@ def _run(
 
 
 def add_custom_column_data(custom_columns, result):
-	doctype_names_from_custom_field = []
-	for column in custom_columns:
-		if len(column["fieldname"].split("-")) > 1:
-			# length greater than 1, means that the column is a custom field with conflicting fieldname
-			doctype_name = frappe.unscrub(column["fieldname"].split("-")[1])
-			doctype_names_from_custom_field.append(doctype_name)
-		column["fieldname"] = column["fieldname"].split("-")[0]
-
 	pending_columns = custom_columns
 
 	while pending_columns:
@@ -372,8 +373,6 @@ def add_custom_column_data(custom_columns, result):
 				# possible if the row is empty
 				if not row_reference:
 					continue
-				if key[0] in doctype_names_from_custom_field:
-					column["fieldname"] = column.get("id")
 				row[column.get("fieldname")] = custom_column_data.get(key).get(row_reference)
 
 		if len(unresolved_columns) == len(pending_columns):
@@ -384,8 +383,33 @@ def add_custom_column_data(custom_columns, result):
 	return result
 
 
+def get_user_facing_error(traceback: str | None, keep_line_breaks: bool = False) -> str:
+	"""
+	Return the error message from a traceback, without the exception class.
+
+	With `keep_line_breaks`, each `<br>` becomes a newline instead of a space.
+	"""
+
+	if not traceback:
+		return ""
+
+	lines = traceback.strip().splitlines()
+	message = lines[-1]
+	# a traceback ends in "module.Exception: message", a single line is already the message
+	if len(lines) > 1:
+		message = message.partition(": ")[2]
+
+	if keep_line_breaks:
+		message = re.sub(r"<br\s*/?>", "\n", message, flags=re.IGNORECASE)
+
+	message = re.sub(r"<[^>]*>", " ", message)
+	message = "\n".join(" ".join(line.split()) for line in message.split("\n"))
+
+	return unescape(message.strip())
+
+
 def get_prepared_report_result(report, filters, dn="", user=None):
-	from frappe.core.doctype.prepared_report.prepared_report import get_completed_prepared_report
+	from frappe.core.doctype.prepared_report.prepared_report import get_last_processed_prepared_report
 
 	def get_report_data(doc, data):
 		# backwards compatibility - prepared report used to have a columns field,
@@ -404,11 +428,17 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 	report_data = {}
 	if not dn:
-		dn = get_completed_prepared_report(
+		dn = get_last_processed_prepared_report(
 			filters, user, report.get("custom_report") or report.get("report_name")
 		)
 
 	doc = frappe.get_doc("Prepared Report", dn) if dn else None
+	if doc and doc.status == "Error":
+		error = get_user_facing_error(doc.error_message, keep_line_breaks=True)
+		# the client not requires the full traceback
+		doc.error_message = None
+		return {"prepared_report": True, "doc": doc, "error": error}
+
 	if doc:
 		try:
 			if data := json.loads(doc.get_prepared_data().decode("utf-8")):
@@ -469,6 +499,7 @@ def run_export_query_job(user_email: str, form_params, csv_params):
 
 def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.desk.utils import get_csv_bytes, provide_binary_file
+	from frappe.utils.xlsxutils import handle_html, make_xlsx
 
 	report_name = form_params.report_name
 	file_format_type = form_params.file_format_type
@@ -640,6 +671,8 @@ def build_xlsx_data(
 			- column_widths: List of column widths for the Excel sheet
 			- styles: Dictionary of styles for Excel formatting (if applicable)
 	"""
+	from frappe.utils.xlsxutils import XLSXMetadata
+
 	metadata = None
 
 	EXCEL_TYPES = (
@@ -770,12 +803,14 @@ def build_xlsx_data(
 	return result, column_widths, get_xlsx_styles(metadata, data.report_name) if build_styles else None
 
 
-def get_xlsx_styles(metadata: XLSXMetadata, report_name: str | None = None) -> dict | None:
+def get_xlsx_styles(metadata: "XLSXMetadata", report_name: str | None = None) -> dict | None:
 	"""
 	Returns styles for XLSX export.
 
 	If report_name is provided, it tries to fetch styles defined in the report's module.
 	"""
+	from frappe.utils.xlsxutils import XLSXStyleBuilder
+
 	styles = None
 	if report_name:
 		report = frappe.get_doc("Report", report_name)
@@ -903,8 +938,9 @@ def get_data_for_custom_report(columns, result):
 			names = list(set(names))
 
 			if names:
+				# a fieldname clashing with a report column comes as `fieldname-doctype`
 				doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(
-					doctype, fieldname, names
+					doctype, fieldname.split("-")[0], names
 				)
 	return doc_field_value_map
 

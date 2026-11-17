@@ -136,8 +136,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
 
-	def set_execution_timeout(self, seconds: int):
-		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
+	def set_execution_timeout(self, seconds: float):
+		self.sql(f"PRAGMA busy_timeout = {round(seconds * 1000)}")
+
+	def get_execution_timeout(self) -> float:
+		return self.sql("PRAGMA busy_timeout")[0][0] / 1000
 
 	def setup_type_map(self):
 		self.db_type = "sqlite"
@@ -470,18 +473,18 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		self.commit()
 
 	def begin(self, *, read_only=False):
-		if read_only or frappe.flags.read_only:
+		if read_only or frappe.flags.read_only or self.in_read_only_transaction:
 			if self._conn:
 				self._conn.close()
 			self._conn = self.get_connection(read_only=True)
 			self._cursor = self._conn.cursor()
-			self.read_only = True
+			self._read_only_connection = True
 
-		elif hasattr(self, "read_only") and self.read_only:
+		elif getattr(self, "_read_only_connection", False):
 			self._conn.close()
 			self._conn = self.get_connection()
 			self._cursor = self._conn.cursor()
-			self.read_only = False
+			self._read_only_connection = False
 
 		try:
 			self.sql("BEGIN")
@@ -493,6 +496,9 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
 		if not self._conn:
 			self.connect()
+
+		if self.in_read_only_transaction:
+			return self.rollback()
 
 		if self._disable_transaction_control:
 			warnings.warn(message=TRANSACTION_DISABLED_MSG, stacklevel=2)

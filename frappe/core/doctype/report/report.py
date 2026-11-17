@@ -454,7 +454,7 @@ class Report(Document):
 
 	@frappe.whitelist()
 	def toggle_disable(self, disable: bool):
-		if not self.has_permission("write"):
+		if not frappe.has_permission(self.doctype, "write", doc=self):
 			frappe.throw(_("You are not allowed to edit the report."))
 
 		self.db_set("disabled", cint(disable))
@@ -465,7 +465,7 @@ class Report(Document):
 
 		try:
 			method = self.get_module_method("get_xlsx_styles")
-		except AttributeError:
+		except (AttributeError, ModuleNotFoundError):
 			# Ignore if hook(method) is not defined
 			return
 

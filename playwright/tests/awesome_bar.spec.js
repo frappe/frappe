@@ -42,7 +42,7 @@ test.describe("Awesome Bar", () => {
 		const { page } = shared;
 		await page.keyboard.press("Escape");
 		await expect(page.locator(".modal:visible")).toHaveCount(0);
-		await page.locator(".body-sidebar .navbar-modal-search-mobile").click();
+		await shared.desk.open_search();
 		await expect(page.locator("#navbar-search")).toBeFocused();
 		await page.locator("#navbar-search").press("ControlOrMeta+a");
 	});
@@ -106,7 +106,7 @@ test.describe("Awesome Bar", () => {
 		);
 		await desk.hide_dialog();
 
-		await page.locator(".body-sidebar .navbar-modal-search-mobile").click();
+		await shared.desk.open_search();
 		await page.evaluate(() => {
 			frappe.boot.sysdefaults.number_format = "#.###,##";
 		});
@@ -115,5 +115,40 @@ test.describe("Awesome Bar", () => {
 		await expect(desk.get_open_dialog().locator(".msgprint")).toContainText(
 			"1.500,2 + 1.500,2 = 3.000,4"
 		);
+	});
+});
+
+test.describe("Awesome Bar page results", () => {
+	const routes = (results) => results.map((r) => r.route.join("/"));
+
+	test("leaves system pages out of page results", async ({ page, desk }) => {
+		await page.goto("/desk/todo");
+		await desk.ready();
+
+		const found = await page.evaluate(() => ({
+			system: frappe.search.utils.get_pages("profile"),
+			regular: frappe.search.utils.get_pages("dashboard"),
+		}));
+		expect(routes(found.system)).not.toContain("profile");
+		expect(routes(found.regular)).toContain("dashboard-view");
+	});
+
+	test("leaves visited system pages out of recent results", async ({ page, desk }) => {
+		await page.goto("/desk/todo");
+		await desk.ready();
+		for (const route of ["profile", "dashboard-view"]) {
+			await page.evaluate((route) => frappe.set_route(route), route);
+			await page.waitForFunction(
+				(route) => frappe.route_history.some((r) => r[0] === route),
+				route
+			);
+		}
+
+		const found = await page.evaluate(() => ({
+			system: frappe.search.utils.get_recent_pages("profile"),
+			regular: frappe.search.utils.get_recent_pages("dashboard"),
+		}));
+		expect(routes(found.system)).not.toContain("profile");
+		expect(routes(found.regular)).toContain("dashboard-view");
 	});
 });

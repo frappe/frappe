@@ -10,6 +10,7 @@ import frappe
 import frappe.defaults
 import frappe.permissions
 import frappe.share
+import frappe.twofactor
 from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.apps import get_default_path
 from frappe.auth import MAX_PASSWORD_SIZE
@@ -22,7 +23,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
-from frappe.sessions import clear_sessions
+from frappe.sessions import clear_sessions, hash_sid
 from frappe.twofactor import should_run_2fa
 from frappe.utils import (
 	cint,
@@ -36,7 +37,7 @@ from frappe.utils import (
 )
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
-from frappe.utils.password import check_password, get_password_reset_limit
+from frappe.utils.password import check_password, get_password_reset_limit, has_password
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
@@ -170,22 +171,24 @@ class User(Document):
 			.where(sessions.user == self.name)
 		).run(as_dict=True)
 
-		def mask(sid: str):
-			return sid[:4] + "*" * 10
+		def mask(sid_hash: str):
+			return sid_hash[:4] + "*" * 10
+
+		# `sessions.sid` is the stored hash, so compare against the hash of the current sid
+		current_sid_hash = hash_sid(frappe.session.sid)
 
 		session_docs = []
 		for session in sessions_data:
 			data = frappe.parse_json(session.sessiondata)
-			sid_hash = sha256_hash(session.sid)
 			session_docs.append(
 				{
-					"name": sid_hash,
-					"id": mask(sid_hash),
+					"name": session.sid,
+					"id": mask(session.sid),
 					"owner": session.user,
 					"modified_by": session.user,
 					"ip_address": data.session_ip,
 					"last_updated": data.last_updated,
-					"is_current": session.sid == frappe.session.sid,
+					"is_current": session.sid == current_sid_hash,
 					"session_created": data.creation,
 					"user_agent": data.user_agent,
 				}
@@ -263,8 +266,7 @@ class User(Document):
 		if self.default_app and self.default_app not in frappe.get_installed_apps():
 			self.default_app = ""
 
-		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
-			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+		self.set_frappe_social_login_userid()
 
 	def disable_email_fields_if_user_disabled(self):
 		if not self.enabled:
@@ -334,6 +336,7 @@ class User(Document):
 		frappe.clear_cache(user=self.name)
 		now = frappe.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
+		self.__new_password = None
 		frappe.enqueue(
 			"frappe.core.doctype.user.user.create_contact",
 			user=self,
@@ -396,6 +399,26 @@ class User(Document):
 		"""Set New Password for user"""
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
+
+			if frappe.session.user != self.name:
+				from frappe.desk.doctype.notification_log.notification_log import (
+					enqueue_create_notification,
+				)
+				from frappe.utils import get_fullname
+
+				enqueue_create_notification(
+					[self.name],
+					{
+						"type": "Alert",
+						"document_type": "User",
+						"document_name": self.name,
+						"from_user": frappe.session.user,
+						"subject": _("Your password was changed by {0}").format(
+							get_fullname(frappe.session.user)
+						),
+					},
+				)
+
 			outgoing_email_exists = frappe.db.exists(
 				"Email Account", {"default_outgoing": 1, "awaiting_password": 0}
 			)
@@ -656,6 +679,10 @@ class User(Document):
 		# Delete user's List Filters
 		frappe.db.delete("List Filter", {"for_user": self.name})
 
+		frappe.defaults.clear_default(parent=self.name)
+		frappe.twofactor.clear_default(self.name + "_otplogin")
+		frappe.twofactor.clear_default(self.name + "_otpsecret")
+
 		# Delete the user's own navigation arrangements: their sidebar layers and their dock.
 		# Delete whole documents rather than rows, because they carry a child table and deleting
 		# the document is what clears the cached set of layers. The site layer, with `user` blank,
@@ -723,6 +750,11 @@ class User(Document):
 		# set email
 		frappe.db.set_value("User", new_name, "email", new_name)
 
+		if not merge:
+			frappe.db.set_value("DefaultValue", {"parent": old_name}, "parent", new_name)
+		frappe.twofactor.clear_default(old_name + "_otplogin")
+		frappe.twofactor.clear_default(old_name + "_otpsecret")
+
 		get_controller("Workspace").rename_private_workspaces(old_name, new_name)
 
 		clear_sessions(user=old_name, force=True)
@@ -776,7 +808,8 @@ class User(Document):
 
 	def validate_username(self):
 		if not self.username and self.is_new() and self.first_name:
-			self.username = frappe.scrub(self.first_name)
+			self.username = self.free_username(frappe.scrub(self.first_name))
+			self.flags.username_from_first_name = True
 
 		if not self.username:
 			return
@@ -790,6 +823,36 @@ class User(Document):
 				self.suggest_username()
 
 			self.username = ""
+
+	def free_username(self, base):
+		if not self.username_exists(base):
+			return base
+
+		prefix = f"{base}-"
+		pattern = prefix.replace("\\", "_") + "%"
+		taken = frappe.get_all("User", filters={"username": ("like", pattern)}, pluck="username")
+		numbers = (username.rpartition("-")[2] for username in taken)
+		return f"{prefix}{max((int(n) for n in numbers if n.isdecimal()), default=0) + 1}"
+
+	def db_insert(self, ignore_if_duplicate=False):
+		if not self.flags.username_from_first_name:
+			return super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
+
+		for attempt in range(5):
+			messages = len(frappe.message_log)
+			frappe.db.savepoint("user_username")
+			try:
+				super().db_insert(ignore_if_duplicate=ignore_if_duplicate)
+			except frappe.UniqueValidationError as e:
+				if attempt == 4 or "username" not in str(e.args[-1]):
+					raise
+				frappe.db.rollback(save_point="user_username")
+				del frappe.message_log[messages:]
+				base, sep, number = self.username.rpartition("-")
+				self.username = f"{base}-{int(number) + 1}" if sep else f"{self.username}-1"
+			else:
+				frappe.db.release_savepoint("user_username")
+				return
 
 	def password_strength_test(self):
 		"""test password strength"""
@@ -853,6 +916,32 @@ class User(Document):
 
 		self.append("social_logins", social_logins)
 
+	def set_frappe_social_login_userid(self):
+		"""The `frappe` provider userid is this site's OIDC `sub` claim, so it must stay
+		server-controlled: generated once and never changed by a later write."""
+		if self.name in STANDARD_USERS:
+			return
+
+		stored_userid = None
+		if not self.is_new():
+			stored_userid = frappe.db.get_value(
+				"User Social Login",
+				{"parent": self.name, "provider": "frappe"},
+				"userid",
+			)
+
+		frappe_logins = [d for d in self.social_logins if d.provider == "frappe"]
+
+		if stored_userid:
+			if frappe_logins:
+				frappe_logins[0].userid = stored_userid
+				for extra in frappe_logins[1:]:
+					self.social_logins.remove(extra)
+			else:
+				self.set_social_login_userid("frappe", stored_userid)
+		elif not frappe_logins:
+			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+
 	def get_restricted_ip_list(self):
 		return get_restricted_ip_list(self)
 
@@ -906,7 +995,8 @@ class User(Document):
 			indicator="orange",
 			primary_action={
 				"label": _("Add Roles"),
-				"client_action": "frappe.scroll_to_user_roles_field",
+				"client_action": "frappe.set_route",
+				"args": f"{self.get_url()}?scroll_to=roles_html",
 			},
 		)
 
@@ -1190,6 +1280,50 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 			return 2, _("Please ask your administrator to verify your sign-up")
 
 
+def needs_password_setup(user: str | None = None) -> bool:
+	"""Whether the user was given a session without ever having a password, like a Frappe Cloud
+	site owner, and so cannot get back in once it ends. False for users who sign in without one."""
+	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
+
+	user = user or frappe.session.user
+	if user in STANDARD_USERS or has_password(user):
+		return False
+	if is_v2_site() or frappe.get_system_settings("disable_user_pass_login"):
+		return False
+	if frappe.get_system_settings("login_with_email_link"):
+		return False
+	if frappe.db.get_single_value("LDAP Settings", "enabled"):
+		return False
+	return not frappe.db.exists(
+		"User Social Login",
+		{"parenttype": "User", "parent": user, "provider": ["!=", "frappe"], "userid": ["is", "set"]},
+	)
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=5, seconds=60)
+def set_first_password(new_password: str) -> None:
+	"""A signed-in user who never had a password (a new Frappe Cloud site owner) sets one, from an
+	app's setup flow, without a reset link. Anyone else changes theirs the usual way."""
+	if frappe.request and frappe.get_request_header("Authorization"):
+		frappe.throw(_("Set your first password from a signed-in browser."), frappe.PermissionError)
+	if not new_password or not new_password.strip():
+		frappe.throw(_("Enter a password."), title=_("Invalid Password"))
+	if len(new_password) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("{0} size exceeded the maximum allowed size.").format(_("New Password")))
+	if not needs_password_setup():
+		frappe.throw(_("You already have a password. Change it from your settings."), frappe.PermissionError)
+	user = frappe.get_doc("User", frappe.session.user)
+	feedback = test_password_strength(
+		new_password,
+		user_data=(user.first_name, user.middle_name, user.last_name, user.email, user.birth_date),
+	)
+	if feedback and not feedback.get("feedback", {}).get("password_policy_validation_passed", False):
+		handle_password_test_fail(feedback)
+	_update_password(user.name, new_password)
+	frappe.db.set_value("User", user.name, {"last_password_reset_date": today(), "reset_password_key": ""})
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 @rate_limit(limit=get_password_reset_limit, seconds=60 * 60)
 def reset_password(user: str) -> None:
@@ -1400,6 +1534,7 @@ def throttle_user_creation():
 
 @frappe.whitelist()
 def get_module_profile(module_profile: str):
+	frappe.has_permission("Module Profile", "read", throw=True)
 	module_profile = frappe.get_doc("Module Profile", {"module_profile_name": module_profile})
 	return module_profile.get("block_modules")
 
@@ -1514,7 +1649,7 @@ def get_enabled_users():
 
 @frappe.whitelist(methods=["POST"])
 def impersonate(user: str, reason: str):
-	frappe.has_permission("User", "impersonate", throw=True)
+	frappe.has_permission("User", "impersonate", doc=user, throw=True)
 
 	impersonator = frappe.session.user
 	frappe.get_doc(
@@ -1557,12 +1692,13 @@ def clear_session(sid_hash: str):
 	from frappe.sessions import delete_session
 
 	sessions = frappe.qb.DocType("Sessions")
-	sessions_data = (
-		frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == frappe.session.user)
+	owned = (
+		frappe.qb.from_(sessions)
+		.select(sessions.sid)
+		.where(sessions.user == frappe.session.user)
+		.where(sessions.sid == sid_hash)
 	).run(pluck=True)
 
-	for session in sessions_data:
-		if sha256_hash(session) == sid_hash:
-			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
-			frappe.toast(_("Successfully signed out"))
-			return
+	if owned:
+		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
+		frappe.toast(_("Successfully signed out"))

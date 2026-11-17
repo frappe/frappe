@@ -18,6 +18,7 @@ from frappe.utils import add_to_date, cast, cint, now_datetime, nowdate, validat
 from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
+from frappe.www.printview import validate_print_for_docstatus
 
 FORMATS = {"HTML": ".html", "Markdown": ".md", "Plain Text": ".txt"}
 FORBIDDEN_DOCUMENT_TYPES = frozenset(("Email Queue",))
@@ -120,7 +121,7 @@ class Notification(Document):
 				context.update({"alert": self, "comments": get_comments_for_context(doc)})
 				if self.is_standard:
 					self.load_standard_properties(context)
-				msg = frappe.render_template(self.message, context)
+				msg = frappe.render_template(self.message, context, restrict_globals=True)
 			if self.channel == "SMS":
 				return frappe.utils.strip_html_tags(msg)
 			return msg
@@ -141,7 +142,7 @@ class Notification(Document):
 			if not self.subject:
 				return _("No subject")
 			if "{" in self.subject:
-				return frappe.render_template(self.subject, context)
+				return frappe.render_template(self.subject, context, restrict_globals=True)
 			return self.subject
 		except Exception as e:
 			return _("Failed to render subject: {}").format(str(e))
@@ -475,7 +476,7 @@ def get_context(context):
 			if not (template and "{" in template):
 				return template
 			return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
-				template, context
+				template, context, restrict_globals=True
 			)
 
 		if template_content is None:
@@ -524,8 +525,8 @@ def get_context(context):
 		else:
 			subject = self.subject
 			if "{" in subject:
-				subject = frappe.render_template(self.subject, context)
-			message = frappe.render_template(self.message, context)
+				subject = frappe.render_template(self.subject, context, restrict_globals=True)
+			message = frappe.render_template(self.message, context, restrict_globals=True)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -583,7 +584,7 @@ def get_context(context):
 	def send_a_slack_msg(self, doc, context):
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
-			message=frappe.render_template(self.message, context),
+			message=frappe.render_template(self.message, context, restrict_globals=True),
 			reference_doctype=get_reference_doctype(doc),
 			reference_name=get_reference_name(doc),
 		)
@@ -591,7 +592,9 @@ def get_context(context):
 	def send_sms(self, doc, context):
 		send_via_sms_gateway(
 			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
-			msg=frappe.utils.strip_html_tags(frappe.render_template(self.message, context)),
+			msg=frappe.utils.strip_html_tags(
+				frappe.render_template(self.message, context, restrict_globals=True)
+			),
 		)
 
 	@staticmethod
@@ -723,29 +726,20 @@ def get_context(context):
 		"""check print settings and return dict with print info"""
 
 		print_settings = frappe.get_doc("Print Settings", "Print Settings")
-		if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or (
-			doc.docstatus == 2 and not print_settings.allow_print_for_cancelled
-		):
-			# ignoring attachment as draft and cancelled documents are not allowed to print
-			status = "Draft" if doc.docstatus == 0 else "Cancelled"
-			frappe.throw(
-				_(
-					"""Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"""
-				).format(status),
-				title=_("Error in Notification"),
-			)
-		else:
-			return {
-				"print_format_attachment": 1,
-				"doctype": doc.doctype,
-				"name": doc.name,
-				"print_format": self.print_format,
-				"print_letterhead": print_settings.with_letterhead,
-				"lang": doc.get("language")
-				or frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+		validate_print_for_docstatus(doc, print_settings.as_dict())
+		return {
+			"print_format_attachment": 1,
+			"doctype": doc.doctype,
+			"name": doc.name,
+			"print_format": self.print_format,
+			"print_letterhead": print_settings.with_letterhead,
+			"lang": doc.get("language")
+			or (
+				frappe.db.get_value("Print Format", self.print_format, "default_print_language")
 				if self.print_format
-				else "en",
-			}
+				else None
+			),
+		}
 
 	def get_template(self, md_as_html=False):
 		module = get_doc_module(self.module, self.doctype, self.name)
@@ -888,11 +882,10 @@ def evaluate_alert(doc: Document, alert, event=None):
 		)
 		frappe.throw(message, title=_("Error in Notification"))
 	except Exception as e:
-		title = str(e)
+		title = str(e) or type(e).__name__
 		message = frappe.get_traceback(with_context=True)
 		frappe.log_error(title=title, message=message)
-		msg = f"<details><summary>{title}</summary>{message}</details>"
-		frappe.throw(msg, title=_("Error in Notification"))
+		frappe.throw(title, title=_("Error in Notification"))
 
 
 def get_comments_for_context(doc):
@@ -951,7 +944,7 @@ def get_emails_from_template(template, context):
 	if not template:
 		return ()
 
-	emails = frappe.render_template(template, context) if "{" in template else template
+	emails = frappe.render_template(template, context, restrict_globals=True) if "{" in template else template
 	return filter(None, emails.replace(",", "\n").split("\n"))
 
 

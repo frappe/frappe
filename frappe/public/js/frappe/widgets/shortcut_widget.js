@@ -100,11 +100,13 @@ export default class ShortcutWidget extends Widget {
 	}
 
 	set_count(count) {
+		if (!count) return;
+
 		const get_label = () => {
 			if (this.format) {
 				return __(this.format).replace(/{}/g, count);
 			}
-			return count;
+			return String(count);
 		};
 
 		this.action_area.empty();
@@ -123,7 +125,7 @@ export default class ShortcutWidget extends Widget {
 			Cyan: "blue",
 		};
 
-		const color = this.color && count ? COLOR_MAP[this.color] || "gray" : "gray";
+		const color = COLOR_MAP[this.color] || "gray";
 		frappe.ui.badge({ label: __(label), theme: color }).appendTo(this.action_area);
 
 		$(frappe.utils.icon("arrow-up-right", "xs", "", "", "ml-2")).appendTo(this.action_area);
