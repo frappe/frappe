@@ -13,16 +13,23 @@ import type { ValueControlId } from "./valueControl";
 
 type LazyControl = keyof typeof import("./lazyControls");
 
-/** Loads one popover-only input from the lazy module; later calls reuse the chunk. */
+/**
+ * Loads one popover-only input from the lazy module; later calls reuse the chunk.
+ * An empty input stands in while it loads, so a rule that opens on a stored "in" or
+ * "between" value, or a tap before the hover preload ends, never shows a blank cell.
+ */
 function lazyControl(name: LazyControl): Component {
-  return defineAsyncComponent(() =>
-    import("./lazyControls").then((module) => module[name] as Component)
-  );
+  return defineAsyncComponent({
+    loader: () => import("./lazyControls").then((module) => module[name] as Component),
+    loadingComponent: TextInput,
+    delay: 0,
+  });
 }
 
 /** Fetches the lazy module, so a popover opens with its inputs drawn. */
 export function preloadControls(): void {
-  // A failed fetch retries when an input first renders; staleBuild asks for a reload.
+  // A failed fetch is not retried here: browsers cache a failed import, and staleBuild
+  // listens for `vite:preloadError` and asks for a reload.
   import("./lazyControls").catch(() => {});
 }
 
