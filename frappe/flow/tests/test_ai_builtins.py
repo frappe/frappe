@@ -638,15 +638,19 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 
 
 class TestSearchDocs(IntegrationTestCase):
-	def search(self, status: int, hits: list[dict] | None = None) -> list[dict] | str:
+	def setUp(self):
+		self.enterContext(self.set_user("test@example.com"))
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+
+	def search(self, status: int, hits: list[dict] | None = None) -> dict:
 		"""What search_docs returns when docs.frappe.io answers `status` with `hits`."""
 		response = Mock(status_code=status)
 		response.json.return_value = {"message": {"results": hits or []}}
 		with patch("requests.get", return_value=response) as self.get:
-			return search_docs(query="naming series", ctx=CTX)
+			return search_docs(query="naming series", ctx=self.ctx)
 
 	def test_results_are_plain_text_with_links(self):
-		results = self.search(
+		found = self.search(
 			200,
 			[
 				{
@@ -659,6 +663,8 @@ class TestSearchDocs(IntegrationTestCase):
 			],
 		)
 
+		self.assertEqual(list(found), ["results"])
+		results = found["results"]
 		self.assertEqual(len(results), 10)
 		self.assertEqual(results[0]["title"], "Naming Series")
 		self.assertEqual(results[0]["url"], "https://docs.frappe.io/erpnext/v14/naming-series")
@@ -672,10 +678,8 @@ class TestSearchDocs(IntegrationTestCase):
 		self.assertFalse(kwargs["allow_redirects"])
 
 	def test_no_match_asks_for_fewer_words(self):
-		self.assertEqual(
-			self.search(200),
-			"No docs page has every word of 'naming series'. Search again with fewer, plainer words.",
-		)
+		note = "No docs page has every word of 'naming series'. Search again with fewer, plainer words."
+		self.assertEqual(self.search(200), {"results": [], "note": note})
 
 	def test_a_redirect_or_a_failure_is_an_error(self):
 		for status in (302, 500):
