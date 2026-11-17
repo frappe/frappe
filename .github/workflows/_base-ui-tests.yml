@@ -39,7 +39,7 @@ jobs:
   ui-test:
     needs: gen-idx-integration
     name: Integration
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     if: ${{ inputs.fake-success == false }}
     timeout-minutes: 30
     env:
@@ -76,7 +76,7 @@ jobs:
       - name: Verify yarn.lock
         run: |
           cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
-          git diff --exit-code yarn.lock
+          git diff --exit-code yarn.lock studio/frontend/yarn.lock flow/yarn.lock
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4

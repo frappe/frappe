@@ -2597,7 +2597,7 @@ class Document(_DocumentBase):
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
-				elif fieldtype == "Read Only" and not isinstance(value, str):
+				elif fieldtype == "Read Only" and value is not None and not isinstance(value, str):
 					value = cstr(value)
 
 				elif (fieldtype in datetime_fields and value == "") or (
@@ -3734,9 +3734,11 @@ def _document_values_generator(
 		yield tuple(doc_values.get(col) for col in columns)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def unlock_document(doctype: str, name: str):
-	frappe.get_lazy_doc(doctype, name).unlock()
+	doc = frappe.get_lazy_doc(doctype, name)
+	doc.check_permission("write")
+	doc.unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
 
 

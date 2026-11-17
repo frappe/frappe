@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/TabsProps",
+  "definitions": {
+    "TabsProps": {
+      "type": "object",
+      "properties": {
+        "modelValue": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "vertical": {
+          "type": "boolean"
+        },
+        "dir": {
+          "type": "string",
+          "enum": [
+            "ltr",
+            "rtl"
+          ]
+        },
+        "tabs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "label": {
+                "type": "string"
+              },
+              "icon": {
+                "type": [
+                  "string"
+                ]
+              },
+              "iconLeft": {
+                "type": [
+                  "string"
+                ]
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "route": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              },
+              "condition": {
+                "type": "object"
+              },
+              "data": {
+                "type": "object",
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "underline",
+            "subtle",
+            "ghost",
+            "browser-tab"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md"
+          ]
+        },
+        "edge": {
+          "type": "string",
+          "enum": [
+            "start",
+            "end"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

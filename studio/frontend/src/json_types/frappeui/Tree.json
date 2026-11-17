@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/TreeProps",
+  "definitions": {
+    "TreeProps": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/alias-1375191242-160-601-1375191242-0-5060"
+                }
+              }
+            },
+            "additionalProperties": {}
+          }
+        },
+        "nodeKey": {
+          "type": "string"
+        },
+        "draggable": {
+          "type": "boolean"
+        },
+        "move": {
+          "type": "object"
+        },
+        "guides": {
+          "type": "string",
+          "enum": [
+            "connectors",
+            "lines",
+            "none"
+          ]
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "expanded": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "number"
+            ]
+          }
+        }
+      },
+      "required": [
+        "nodes"
+      ],
+      "additionalProperties": false
+    },
+    "alias-1375191242-160-601-1375191242-0-5060": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/alias-1375191242-160-601-1375191242-0-5060"
+          }
+        }
+      },
+      "additionalProperties": {}
+    }
+  }
+}
