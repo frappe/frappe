@@ -284,10 +284,10 @@ export class ActDispatcher {
 
 	private async execute(name: string, value: unknown, quiet: boolean, by?: ActCall): Promise<unknown> {
 		// Read before the check can wait: the caller's mark is gone once it does.
-		const starter = by ? (by.agent ? "agent" : "person") : agentAsk.by ?? "person";
+		const agent = by ? by.agent : !!agentAsk.agent;
 		const checked = this.check(name, value, true);
 		const { scope, item } = checked instanceof Promise ? await checked : checked;
-		const held = scope.hold(() => startedBy(starter, () => item.run!(scope.context(), value, by)));
+		const held = scope.hold(() => startedBy(agent, () => item.run!(scope.context(), value, by)));
 		return quiet ? held.catch(ignoreDeclined) : held;
 	}
 
@@ -303,7 +303,7 @@ export class ActDispatcher {
 		}
 		const { scope, item } = checked;
 		try {
-			await scope.hold(() => startedBy("person", () => item.run!(scope.context(), value)));
+			await scope.hold(() => startedBy(false, () => item.run!(scope.context(), value)));
 		} catch (error) {
 			if (!(error instanceof ActDeclined)) await scope.failed(error);
 		}
@@ -396,16 +396,16 @@ function ignoreDeclined(error: unknown) {
 
 let readDialogs: () => ActDialog[] = () => [];
 
-/** `window.desk` sets `note`; `by` marks who started the act whose `run` is executing, an act it runs inherits it. */
-export const agentAsk = { note: () => "", by: null as "agent" | "person" | null };
+/** `window.desk` sets `note`; `agent` marks who started the act whose `run` is executing, an act it runs inherits it. */
+export const agentAsk = { note: () => "", agent: null as boolean | null };
 
-function startedBy<T>(by: "agent" | "person", work: () => T): T {
-	const before = agentAsk.by;
-	agentAsk.by = by;
+function startedBy<T>(agent: boolean, work: () => T): T {
+	const before = agentAsk.agent;
+	agentAsk.agent = agent;
 	try {
 		return work();
 	} finally {
-		agentAsk.by = before;
+		agentAsk.agent = before;
 	}
 }
 

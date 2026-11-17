@@ -20,9 +20,9 @@ const parked = new Map<number, Call>();
 const racing: Call[] = [];
 
 // A confirm that opens while a run is in flight, or after a parked call's own confirm closed, is the agent's, and says so.
-// A confirm the act's own starter is known for (`agentAsk.by`) skips that guess.
+// A confirm the act's own starter is known for (`agentAsk.agent`) skips that guess.
 agentAsk.note = () => {
-	if (agentAsk.by) return agentAsk.by === "agent" ? __("An agent asked for this.") : "";
+	if (agentAsk.agent !== null) return agentAsk.agent ? __("An agent asked for this.") : "";
 	return racing.length || [...parked.values()].some((call) => !call.done && !openDialog(call)) ? __("An agent asked for this.") : "";
 };
 // Confirms a person's act opened: no run claims them.
@@ -72,7 +72,7 @@ function start(name: string, value: unknown) {
 function markPeople() {
 	const open = readDialogs();
 	for (const id of people) if (!open.some((held) => held.id === id)) people.delete(id);
-	if (agentAsk.by !== "person") return;
+	if (agentAsk.agent !== false) return;
 	// The list changes once per dialog, so the newest unowned confirm is the one this person's act just opened.
 	const newest = open.filter((held) => isConfirm(held) && !owned(held)).at(-1);
 	if (newest) people.add(newest.id);

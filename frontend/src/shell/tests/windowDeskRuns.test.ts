@@ -220,7 +220,7 @@ describe("which run a confirm belongs to", () => {
 		expect(result.error).toMatchObject({ code: "waiting_for_user", dialog: { title: "Submit?" } });
 		expect(vi.mocked(frappeDialog.confirm).mock.calls).toHaveLength(2);
 		await answer(true);
-		vi.mocked(frappeDialog.confirm).mock.calls[0][0].onConfirm?.();
+		(vi.mocked(frappeDialog.confirm).mock.calls[0][0] as { onConfirm?: () => unknown }).onConfirm?.();
 		await person;
 	});
 
