@@ -107,10 +107,7 @@ const COLOR_PROPS = new Set([
   "border-color",
 ]);
 
-/**
- * Strip color-related inline styles + bgcolor/color attrs so iframe CSS controls colors.
- * Edits a parsed document in place.
- */
+/** Strip color-related inline styles + bgcolor/color attrs so iframe CSS controls colors. */
 export function stripEmailColors(doc: Document): void;
 /** @deprecated Pass a parsed `Document`; this form returns the stripped markup. */
 export function stripEmailColors(html: string): string;
