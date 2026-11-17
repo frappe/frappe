@@ -1,14 +1,20 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
-<<<<<<< HEAD
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-from frappe.installer import is_required_by, parse_required_app_name
-from frappe.tests import UnitTestCase
+from frappe.installer import install_app, is_required_by, parse_required_app_name
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 # an app that is not on the bench, so no remote can name it
 FAKE_APP = "zzz_test_app"
+FAKE_PATCHES = [
+	"zzz_test_app.patches.v1_0.fake_patch_one",
+	"zzz_test_app.patches.v1_0.fake_patch_two",
+]
+
+install_hook_calls = []
 
 
 class TestRequiredAppName(UnitTestCase):
@@ -49,21 +55,6 @@ class TestIsRequiredBy(UnitTestCase):
 	def test_an_app_off_the_bench_is_matched_without_a_remote_lookup(self):
 		with self.requiring(FAKE_APP):
 			self.assertTrue(is_required_by(FAKE_APP, "frappe"))
-=======
-from contextlib import contextmanager
-from unittest.mock import patch
-
-import frappe
-from frappe.installer import install_app
-from frappe.tests import IntegrationTestCase
-
-FAKE_APP = "abc_test_install_app"
-FAKE_PATCHES = [
-	"abc_test_install_app.patches.v1_0.fake_patch_one",
-	"abc_test_install_app.patches.v1_0.fake_patch_two",
-]
-
-install_hook_calls = []
 
 
 class AfterInstallFailure(Exception):
@@ -140,4 +131,3 @@ class TestInstallAppOrdering(IntegrationTestCase):
 
 		self.assertEqual(install_hook_calls, ["after_install_failing"])
 		self.assertEqual(self.stamped_fake_patches(), set())
->>>>>>> bd600c7 (fix(install): Set patch as completed when after_install completes)
