@@ -471,6 +471,18 @@ to commit; *held* says when the act lands, it is not a second concept.
 _Avoid_: command (it stays only in the feature's name, the command palette, and frappe-ui's
 component), action (already overloaded; see **Words that collide**).
 
+**Act mark**: <a id="act-mark"></a>
+The attribute that says what a button or menu row is. `data-act` names the act it runs, in full
+(`header.delete`); `v-act` runs the act and sets it. Every visible button and menu row has `data-act` or
+`data-view`, and a CI check fails the page that has one with neither.
+_Avoid_: tag, annotation.
+
+**View-only control**: <a id="view-only-control"></a>
+A control that changes nothing but what you see of the page: it opens or closes a menu or popover,
+expands a section, or scrolls or focuses. It carries `data-view`. A control that changes data, or changes
+what the page shows (a filter, a sort, a page), is act-backed, or is a known gap until its act exists.
+_Avoid_: passive control, UI-only control.
+
 **Desk facade**: <a id="desk-facade"></a>
 `window.desk`, the object an agent that cannot see the screen uses to list the desk's acts,
 run one, wait for a person's answer to its confirm, and read the page and open dialogs. A

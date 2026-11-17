@@ -4,6 +4,7 @@
 		class="flex min-w-0 items-center overflow-hidden whitespace-nowrap leading-tighter"
 		:aria-label="__('Breadcrumbs')"
 		data-crumbs
+		data-view
 	>
 		<template v-for="(crumb, index) in crumbs" :key="index">
 			<component

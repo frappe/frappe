@@ -88,6 +88,7 @@
 								:aria-label="__('{0} options', [app.title])"
 								tabindex="-1"
 								data-tile-menu
+								data-view
 							>
 								<span class="lucide-ellipsis size-3.5" aria-hidden="true" />
 							</button>

@@ -43,6 +43,7 @@
 						:icon-left="index < labelled ? action.icon : undefined"
 						:label="action.label"
 						:variant="vertical ? 'ghost' : 'subtle'"
+						:data-act="`quickActions.${action.name}`"
 						@click="context.run(action)"
 					/>
 				</Tooltip>
@@ -57,6 +58,7 @@
 								icon="lucide-more-horizontal"
 								label="More quick actions"
 								variant="subtle"
+								data-view
 							/>
 						</Tooltip>
 					</div>
@@ -76,6 +78,7 @@
 <script setup lang="ts">
 import { computed, inject, ref, useTemplateRef, watch } from "vue";
 import { Button, Dropdown, Tooltip, TooltipProvider } from "frappe-ui";
+import { withAct } from "@/acts/menuAct";
 import type { QuickAction } from "@/recordPage";
 import { DEFAULT_ACT_ICON } from "@/shell/palette";
 import { PanelContextKey } from "./context";
@@ -103,12 +106,16 @@ const { labelled, visible } = useFittedActions(
 
 const picking = ref(false);
 
+// Tags opens a picker and has no act yet: its row stays a known gap.
 const overflow = computed(() =>
-	actions.value.slice(visible.value).map((action: QuickAction) => ({
-		label: action.label,
-		icon: action.icon || DEFAULT_ACT_ICON,
-		onClick: () => (action.tagging ? (picking.value = true) : context.run(action)),
-	}))
+	actions.value.slice(visible.value).map((action: QuickAction) => {
+		const row = {
+			label: action.label,
+			icon: action.icon || DEFAULT_ACT_ICON,
+			onClick: () => (action.tagging ? (picking.value = true) : context.run(action)),
+		};
+		return action.tagging ? row : withAct(row, `quickActions.${action.name}`);
+	})
 );
 
 const taggingOverflowed = computed(() =>

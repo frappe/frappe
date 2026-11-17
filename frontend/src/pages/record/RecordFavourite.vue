@@ -6,7 +6,11 @@
 		v-if="!FavouriteCard || !favourites.length"
 		:text="favouriteWording(favourited).label"
 	>
-		<FavouriteStar :favourited="favourited" @click="emit('toggle')" />
+		<FavouriteStar
+			:favourited="favourited"
+			data-act="header.favourite"
+			@click="emit('toggle')"
+		/>
 	</Tooltip>
 	<FavouriteCard
 		v-else

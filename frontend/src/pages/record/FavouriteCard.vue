@@ -2,7 +2,11 @@
 <template>
 	<HoverCard :hover-delay="0.2" :leave-delay="0.2" side="bottom" align="start">
 		<template #trigger>
-			<FavouriteStar :favourited="favourited" @click="emit('toggle')" />
+			<FavouriteStar
+				:favourited="favourited"
+				data-act="header.favourite"
+				@click="emit('toggle')"
+			/>
 		</template>
 
 		<template #default>

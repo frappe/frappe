@@ -10,6 +10,7 @@
 				:aria-label="placeholder"
 				:title="placeholder"
 				data-editor-finder
+				data-view
 			>
 				<span class="lucide-search size-4 shrink-0" aria-hidden="true" />
 				<span class="flex-1 truncate text-left max-[1343px]:hidden">{{

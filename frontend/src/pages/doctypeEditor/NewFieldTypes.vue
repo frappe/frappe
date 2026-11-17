@@ -39,6 +39,7 @@
 						type="button"
 						class="min-h-8 cursor-grab text-left hover:bg-surface-gray-2 active:cursor-grabbing"
 						:data-panel-new-type="name"
+						data-act="fields.add_field"
 						:title="__('Click to add, or drag onto the form')"
 						@click="add(name)"
 					>

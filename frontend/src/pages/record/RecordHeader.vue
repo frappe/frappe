@@ -13,6 +13,7 @@
 					v-if="'crumbs' in segment"
 					:items="segment.crumbs"
 					data-crumbs
+					data-view
 				/>
 
 				<RecordFavourite
@@ -37,7 +38,10 @@
 					align="start"
 				>
 					<div class="flex shrink-0">
-						<Button v-bind="bind(segment, { variant: 'ghost', iconRight: CHEVRON })" />
+						<Button
+							v-bind="bind(segment, { variant: 'ghost', iconRight: CHEVRON })"
+							data-view
+						/>
 					</div>
 				</Dropdown>
 
@@ -57,6 +61,7 @@
 							icon="lucide-more-horizontal"
 							variant="subtle"
 							label="More actions"
+							data-view
 						/>
 					</div>
 				</Dropdown>
@@ -86,6 +91,7 @@
 					<div class="flex shrink-0">
 						<Button
 							v-bind="bind(control, { variant: 'subtle', iconRight: CHEVRON })"
+							data-view
 						/>
 					</div>
 				</Dropdown>
@@ -188,6 +194,7 @@ type Bound = Extract<HeaderControl, { kind: "button" | "dropdown" }>;
 // are item keys, so nothing in `props` can carry them (the engine refused them there).
 function bind(control: Bound, defaults: Record<string, any>) {
 	const own: Record<string, any> = { label: control.item.label };
+	if (control.item.run) own["data-act"] = `header.${control.item.name}`;
 	if (control.item.icon) own.iconLeft = control.item.icon;
 	return { ...defaults, ...control.props, ...own };
 }

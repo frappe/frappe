@@ -1,4 +1,5 @@
 // The header's projected rows, spelled in frappe-ui's `Menu` vocabulary.
+import { withAct } from "@/acts/menuAct";
 import type { HeaderItem, HeaderNode } from "@/recordPage";
 
 type Run = (item: HeaderItem) => void;
@@ -27,5 +28,5 @@ function row(node: HeaderNode, run: Run) {
   if (!node.item.run && node.item.href) return { ...base, route: node.item.href };
   // A `route` in props is the link when the item has neither; the engine has dropped it otherwise.
   if (!node.item.run && node.props.route) return base;
-  return { ...base, onClick: () => run(node.item) };
+  return withAct({ ...base, onClick: () => run(node.item) }, `header.${node.item.name}`);
 }

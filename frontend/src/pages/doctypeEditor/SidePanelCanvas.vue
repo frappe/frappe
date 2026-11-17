@@ -35,6 +35,7 @@
 				size="sm"
 				icon-right="lucide-arrow-right"
 				:label="__('Add a field')"
+				data-view
 				@click.stop="addField"
 			/>
 		</div>

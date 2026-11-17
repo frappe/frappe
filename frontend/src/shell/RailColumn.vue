@@ -11,6 +11,7 @@
 					<button
 						type="button"
 						data-key="app-menu"
+						data-view
 						@pointerenter="loadApps"
 						@focus="loadApps"
 						:class="[TILE, boot.app_logo ? 'hover:opacity-90' : LETTER_TILE]"

@@ -11,6 +11,7 @@
 
 <script setup lang="ts">
 import { ContextMenu } from "frappe-ui";
+import { withAct } from "@/acts/menuAct";
 import { computed, nextTick, ref, watch } from "vue";
 import { useRouter, type RouteLocationRaw } from "vue-router";
 import type { ListRow } from "@/listPage/types";
@@ -40,7 +41,7 @@ const options = computed(() => {
 	return contextMenuOptions({
 		row,
 		selection: props.selection,
-		rowOptions: props.rowMenu(row),
+		rowOptions: props.rowMenu(row).map((option) => withAct(option, option.act)),
 		layout: props.bulk.layout.value,
 		open: () => router.push(props.rowLink(row)),
 		openInNewTab: () => void window.open(href, "_blank", "noopener"),

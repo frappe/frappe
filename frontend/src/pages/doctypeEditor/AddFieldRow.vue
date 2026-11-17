@@ -9,6 +9,7 @@
 					size="sm"
 					icon-left="lucide-plus"
 					:label="__('Add field')"
+					data-view
 					:class="{ '!bg-surface-gray-3': open }"
 				/>
 			</div>

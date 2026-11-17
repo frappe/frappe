@@ -12,7 +12,7 @@
 			theme="red"
 			:label="__(row.button!)"
 			:data-danger="row.key"
-			@click="acts.perform(`danger.${row.key}`)"
+			v-act="`danger.${row.key}`"
 		/>
 	</SettingsRow>
 </template>
@@ -20,7 +20,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { Button } from "frappe-ui";
-import { acts } from "@/acts/dispatcher";
+import { vAct } from "@/acts/vAct";
 import { __, __n } from "@/i18n";
 import SettingsRow from "./SettingsRow.vue";
 import { KINDS, type SettingRow } from "./settingsRows";

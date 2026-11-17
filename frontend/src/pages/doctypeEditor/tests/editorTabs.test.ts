@@ -1,7 +1,8 @@
-// The Editor / Settings / Preview strip: one tab per EDITOR_TABS entry with its icon, v-model switches.
-import { afterEach, describe, expect, it } from "vitest";
+// The Editor / Settings / Preview strip: one tab per EDITOR_TABS entry with its icon; a click performs editor.open_tab.
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref } from "vue";
 
+import { acts } from "@/acts/dispatcher";
 import EditorTabs from "../EditorTabs.vue";
 import type { EditorTab } from "../pendingEdits";
 
@@ -13,7 +14,9 @@ afterEach(() => {
 });
 
 describe("the editor tab strip", () => {
-  it("draws the three tabs with an icon each and switches the model on click", async () => {
+  const perform = vi.spyOn(acts, "perform").mockResolvedValue(undefined as never);
+
+  it("draws the three tabs with an icon each and performs editor.open_tab on click", async () => {
     const tab = ref<EditorTab>("editor");
     const root = document.createElement("div");
     document.body.appendChild(root);
@@ -21,7 +24,6 @@ describe("the editor tab strip", () => {
       render: () =>
         h(EditorTabs, {
           modelValue: tab.value,
-          "onUpdate:modelValue": (v: EditorTab) => (tab.value = v),
         }),
     });
     app.mount(root);
@@ -40,6 +42,7 @@ describe("the editor tab strip", () => {
     tabs[1].dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
     tabs[1].click();
     await nextTick();
-    expect(tab.value).toBe("settings");
+    expect(perform).toHaveBeenCalledWith("editor.open_tab", "settings");
+    expect(root.querySelector("[data-act]")?.getAttribute("data-act")).toBe("editor.open_tab");
   });
 });

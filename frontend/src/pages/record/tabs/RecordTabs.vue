@@ -5,6 +5,7 @@
 		<div
 			v-if="stripTabs.length"
 			ref="stripRoot"
+			data-view
 			class="shrink-0"
 			:class="TAB_STRIP_CLASSES"
 			@pointerdown="pointerPressed = true"

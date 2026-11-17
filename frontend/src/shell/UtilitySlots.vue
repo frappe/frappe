@@ -9,6 +9,7 @@
 		<button
 			type="button"
 			data-key="palette-trigger"
+			data-view
 			:class="CELL"
 			:aria-label="__('Search')"
 			aria-keyshortcuts="Control+K Meta+K"
@@ -21,6 +22,7 @@
 		v-else
 		type="button"
 		data-key="palette-trigger"
+		data-view
 		:class="ROW"
 		aria-keyshortcuts="Control+K Meta+K"
 		@click="openPalette"

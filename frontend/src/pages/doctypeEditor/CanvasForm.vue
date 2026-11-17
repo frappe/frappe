@@ -37,6 +37,7 @@
 			size="sm"
 			icon-left="lucide-plus"
 			:label="__('Add section')"
+			data-act="canvas.add_section"
 			@click.stop="acts.perform('canvas.add_section')"
 		/>
 		<Button
@@ -45,6 +46,7 @@
 			size="sm"
 			icon-left="lucide-panel-top"
 			:label="__('Add tab')"
+			data-act="canvas.add_tab"
 			data-canvas-add-tab
 			@click.stop="acts.perform('canvas.add_tab')"
 		/>

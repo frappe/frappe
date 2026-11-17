@@ -33,6 +33,7 @@
 							icon="lucide-corner-up-left"
 							:label="__('Undo')"
 							:disabled="!canUndo"
+							data-act="editor.undo"
 							@click="emit('act', 'editor.undo')"
 						/>
 					</Tooltip>
@@ -42,6 +43,7 @@
 							icon="lucide-corner-up-right"
 							:label="__('Redo')"
 							:disabled="!canRedo"
+							data-act="editor.redo"
 							@click="emit('act', 'editor.redo')"
 						/>
 					</Tooltip>
@@ -53,6 +55,7 @@
 					icon="lucide-ellipsis"
 					:label="__('More')"
 					data-editor-more
+					data-view
 				/>
 			</Dropdown>
 			<Button
@@ -61,6 +64,7 @@
 				:disabled="!canSave"
 				:loading="saving"
 				data-editor-save
+				data-act="editor.save"
 				@click="emit('act', 'editor.save')"
 			/>
 		</div>
@@ -71,6 +75,7 @@
 import { computed } from "vue";
 import { Badge, Button, Dropdown, TabButtons, Tooltip } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
+import { withAct } from "@/acts/menuAct";
 import { __ } from "@/i18n";
 import { canRoute, routeFor } from "@/router/routeFor";
 import type { DesignCanvas } from "./designCanvas";
@@ -140,19 +145,18 @@ const menu = computed(() => (props.mode === "Customize" ? customizeMenu() : desi
 function designMenu() {
 	const open = acts.find("editor.open_list")
 		? [
-				{
-					label: __("Open {0} list", [props.doctype]),
-					icon: "lucide-list",
-					onClick: () => emit("act", "editor.open_list"),
-				},
+				withAct(
+					{
+						label: __("Open {0} list", [props.doctype]),
+						icon: "lucide-list",
+						onClick: () => emit("act", "editor.open_list"),
+					},
+					"editor.open_list"
+				),
 		  ]
 		: [];
-	const danger = DESIGN_MENU.filter((one) => acts.find(one.act)).map(
-		({ act, label, ...one }) => ({
-			...one,
-			label: __(label),
-			onClick: () => emit("act", act),
-		})
+	const danger = DESIGN_MENU.filter((one) => acts.find(one.act)).map(({ act, label, ...one }) =>
+		withAct({ ...one, label: __(label), onClick: () => emit("act", act) }, act)
 	);
 	return [
 		{ group: "Open", hideLabel: true, options: open },
@@ -164,9 +168,17 @@ function customizeMenu() {
 	const reset = { label: __("Reset all customizations"), icon: "lucide-rotate-ccw" };
 	const exported = { label: __("Export to an app"), icon: "lucide-package" };
 	return [
-		{ ...reset, onClick: () => emit("act", "customize.reset_all") },
+		withAct(
+			{ ...reset, onClick: () => emit("act", "customize.reset_all") },
+			"customize.reset_all"
+		),
 		...(props.developerMode
-			? [{ ...exported, onClick: () => emit("act", "customize.export") }]
+			? [
+					withAct(
+						{ ...exported, onClick: () => emit("act", "customize.export") },
+						"customize.export"
+					),
+			  ]
 			: []),
 	];
 }
