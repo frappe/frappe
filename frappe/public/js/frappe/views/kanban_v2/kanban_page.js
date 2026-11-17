@@ -1617,7 +1617,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	column_label(column) {
-		return __(column.title || column.id, null, this.doctype);
+		return column.title || __(column.id, null, this.doctype);
 	}
 
 	/** `engine` is the board the card is on, as a card can sit in two swimlanes. */

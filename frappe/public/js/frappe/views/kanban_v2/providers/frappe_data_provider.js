@@ -82,7 +82,7 @@ export class FrappeDataProvider {
 
 			columns.push({
 				id,
-				title: id,
+				title: __(id, null, this.config.doctype),
 				color: col.indicator || "gray",
 				status: col.status || "Active",
 				total: bucket.total || 0,
