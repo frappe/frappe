@@ -15,7 +15,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 	prepare(web_form_doc, doc) {
 		Object.assign(this, web_form_doc);
-		this.fields = web_form_doc.web_form_fields;
+		this.fields = this.with_first_page_heading(web_form_doc.web_form_fields);
 		this.doc = doc;
 	}
 
@@ -72,18 +72,33 @@ export default class WebForm extends frappe.ui.FieldGroup {
 	}
 
 	set_page_breaks() {
-		this.page_breaks = $(".page-break");
+		let page_break_fields = this.fields.filter((df) => df.fieldtype === "Page Break");
+		let first = this.web_form_fields[0];
+		this.page_names = [first?.fieldtype === "Page Break" ? first.label : ""];
 
-		if (this.page_breaks.length) {
-			this.page_breaks.each((i, page_break) => {
-				if (!$(page_break).find("form").length) {
-					$(page_break).remove();
-				}
-			});
-		}
+		$(".page-break").each((i, page_break) => {
+			if (!$(page_break).find("form").length) {
+				$(page_break).remove();
+				return;
+			}
+			this.page_names.push(page_break_fields[i]?.label || "");
+		});
 
 		this.page_breaks = $(".page-break");
 		this.is_multi_step_form = !!this.page_breaks.length;
+		if (!this.is_multi_step_form) return;
+
+		// the stepper names each page, so its section skips the heading
+		let page_dfs = [...page_break_fields];
+		if (first?.fieldtype === "Page Break") page_dfs.push(this.fields[0]);
+		page_dfs.forEach((df) => this.fields_dict[df.fieldname]?.head?.addClass("hide"));
+	}
+
+	// a Page Break in row 1 names page 1 and opens no new page
+	with_first_page_heading(fields) {
+		let [first, ...rest] = fields;
+		if (first?.fieldtype !== "Page Break") return fields;
+		return [{ ...first, fieldtype: "Section Break" }, ...rest];
 	}
 
 	setup_previous_next_button() {
@@ -221,7 +236,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// submit attempted: allow mandatory fields to show the error highlight
 		this.primary_action_fulfilled = true;
 
-		let fields = $(`${this.get_page(this.current_section)} .form-control`);
+		// Table MultiSelect has data-fieldname on its inner input, not on .form-control
+		let page = this.get_page(this.current_section);
+		let fields = $(`${page} .form-control, ${page} .table-multiselect input`);
 		let errors = [];
 		let invalid_values = [];
 
@@ -282,47 +299,32 @@ export default class WebForm extends frappe.ui.FieldGroup {
 		// close any open child table row form before switching pages
 		frappe.ui.form?.close_grid_form && frappe.ui.form.close_grid_form();
 
-		this.render_progress_dots();
+		this.render_stepper();
 		this.toggle_previous_button();
 		this.hide_form_pages();
 		this.show_form_page();
 		this.toggle_buttons();
 	}
 
-	render_progress_dots() {
+	render_stepper() {
 		if (!this.is_multi_step_form) return;
-		$(".center-area.paging").empty();
 
-		if (this.in_view_mode) {
-			let paging_text = __("Page {0} of {1}", [
-				this.current_section + 1,
-				this.page_breaks.length + 1,
-			]);
-			$(".center-area.paging").append(`<div>${paging_text}</div>`);
+		if (!this.stepper) {
+			this.stepper = new frappe.ui.Stepper({
+				steps: this.get_page_labels().map((label) => ({ label })),
+				current: this.current_section,
+				label: __("Form pages"),
+				compact: true,
+				hint: (done, count) => __("{0} of {1}", [done, count]),
+			});
+			$(".web-form-stepper").append(this.stepper.$el);
 			return;
 		}
+		this.stepper.set_current(this.current_section);
+	}
 
-		this.$slide_progress = $(`<div class="slides-progress"></div>`).appendTo(
-			$(".center-area.paging")
-		);
-		this.$slide_progress.empty();
-
-		if (this.page_breaks.length < 1) return;
-
-		for (let i = 0; i <= this.page_breaks.length; i++) {
-			let $dot = $(`<div class="slide-step">
-				<div class="slide-step-indicator"></div>
-				<div class="slide-step-complete">${frappe.utils.icon("check", "xs")}</div>
-			</div>`).attr({ "data-step-id": i });
-
-			if (i < this.current_section) {
-				$dot.addClass("step-success");
-			}
-			if (i === this.current_section) {
-				$dot.addClass("active");
-			}
-			this.$slide_progress.append($dot);
-		}
+	get_page_labels() {
+		return this.page_names.map((name, i) => (name ? __(name) : __("Page {0}", [i + 1])));
 	}
 
 	toggle_buttons() {

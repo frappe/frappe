@@ -63,13 +63,14 @@ frappe.ui.Page = class Page {
 		// the two are independent, and `hide_sidebar` takes the panel away on a desktop and merely
 		// closes the drawer on a narrow screen (see Sidebar.page_allows_sidebar)
 		if (!Object.keys(opts).includes("hide_dock")) this.hide_dock = false;
+		// and the phone tab bar, the same way (see MobileNav.apply_page_visibility)
+		if (!Object.keys(opts).includes("hide_mobile_nav")) this.hide_mobile_nav = false;
 		frappe.ui.pages[frappe.get_route_str()] = this;
 	}
 
 	make() {
 		this.wrapper = $(this.parent);
 		this.add_main_section();
-		this.setup_main_sidebar_toggle();
 		this.setup_awesomebar();
 	}
 
@@ -166,6 +167,7 @@ frappe.ui.Page = class Page {
 		this.filters = this.wrapper.find(".filters");
 		this.page_head = this.wrapper.find(".page-head");
 		this.btn_primary = this.page_actions.find(".primary-action");
+		this.btn_primary_menu = this.page_actions.find(".primary-action-menu");
 		this.btn_secondary = this.page_actions.find(".secondary-action");
 
 		this.menu = this.page_actions.find(".menu-btn-group .dropdown-menu");
@@ -210,6 +212,8 @@ frappe.ui.Page = class Page {
 			trigger: this.actions_btn_group.find("button"),
 			align: "end",
 			options: () => this.build_dropdown_options(this.actions),
+			sheet_on_mobile: true,
+			sheet_title: () => this.actions_sheet_title?.() || __("Actions"),
 		});
 		// the menus body-portal, so one left open would float over the next
 		// page — the container fires "hide" on the page element on switch
@@ -282,14 +286,6 @@ frappe.ui.Page = class Page {
 			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
 
 		return button;
-	}
-
-	setup_main_sidebar_toggle() {
-		this.wrapper.find(".sidebar-toggle-btn.navbar-brand").on("click", (event) => {
-			frappe.app.sidebar.set_height();
-			frappe.app.sidebar.toggle_width();
-			frappe.app.sidebar.prevent_scroll();
-		});
 	}
 
 	clear_indicator() {
@@ -378,7 +374,25 @@ frappe.ui.Page = class Page {
 			working_label: working_label,
 			variant: "solid",
 		});
+		this.set_primary_action_options(label?.options);
 		return this.btn_primary;
+	}
+
+	// Other ways to do what the primary action does, in a menu on the chevron beside it.
+	// The header keeps its own buttons (callers hold btn_primary), dressed as an
+	// es-segmented-button, so only the menu is wired here.
+	set_primary_action_options(options) {
+		this.primary_action_dropdown?.destroy();
+		this.primary_action_dropdown = null;
+		this.btn_primary_menu.prop("hidden", !options?.length);
+		if (!options?.length) return;
+
+		this.primary_action_dropdown = new frappe.ui.Dropdown({
+			trigger: this.btn_primary_menu,
+			options,
+			align: "end",
+			sheet_on_mobile: true,
+		});
 	}
 
 	set_secondary_action(label, click, icon, working_label) {
@@ -399,6 +413,7 @@ frappe.ui.Page = class Page {
 
 	clear_primary_action() {
 		this.clear_action_of(this.btn_primary);
+		this.set_primary_action_options(null);
 	}
 
 	clear_secondary_action() {
@@ -442,7 +457,7 @@ frappe.ui.Page = class Page {
 
 	//--- Menu --//
 
-	add_menu_item(label, click, standard, shortcut, show_parent) {
+	add_menu_item(label, click, standard, shortcut, show_parent, group) {
 		return this.add_dropdown_item({
 			label,
 			click,
@@ -450,6 +465,7 @@ frappe.ui.Page = class Page {
 			parent: this.menu,
 			shortcut,
 			show_parent,
+			group,
 		});
 	}
 
@@ -494,21 +510,24 @@ frappe.ui.Page = class Page {
 		this.actions_btn_group.addClass("hide");
 	}
 
-	add_action_item(label, click, standard) {
+	add_action_item(label, click, standard, icon = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
+			icon,
 			parent: this.actions,
 		});
 	}
 
-	add_actions_menu_item(label, click, standard, shortcut) {
+	add_actions_menu_item(label, click, standard, shortcut, icon = null, theme = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
 			shortcut,
+			icon,
+			theme,
 			parent: this.actions,
 			show_parent: false,
 		});
@@ -529,6 +548,7 @@ frappe.ui.Page = class Page {
 	 * @param {object} parent - DOM object representing the parent of the drop down item lists
 	 * @param {string} shortcut - Keyboard shortcut associated with the element
 	 * @param {Boolean} show_parent - Whether to show the dropdown button if dropdown item is added
+	 * @param {string} group - Heading the item is listed under; items sharing one sit together
 	 */
 	add_dropdown_item({
 		label,
@@ -539,6 +559,8 @@ frappe.ui.Page = class Page {
 		show_parent = true,
 		icon = null,
 		icon_right = null,
+		theme = null,
+		group = null,
 	}) {
 		if (show_parent) {
 			parent.parent().removeClass("hide hidden-xl");
@@ -586,6 +608,8 @@ frappe.ui.Page = class Page {
 		$li.data("menu_click", click);
 		if (icon) $li.data("menu_icon", icon);
 		if (icon_right) $li.data("menu_icon_right", icon_right);
+		if (theme) $li.data("menu_theme", theme);
+		if (group) $li.data("menu_group", group);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -612,7 +636,8 @@ frappe.ui.Page = class Page {
 	// Snapshot a hidden item store (this.menu / this.actions) into menu rows.
 	// Reading the live elements on every open is what keeps the legacy jQuery
 	// contract alive: .text(), .toggle(), .addClass("disabled") on a held item
-	// all show up the next time the menu opens. Divider <li>s split groups.
+	// all show up the next time the menu opens. Divider <li>s split groups, and
+	// an item added with a `group` joins the group of that heading.
 	build_dropdown_options($parent) {
 		// classes internal to the legacy markup; everything else (visible-xs,
 		// hidden-xl, caller classes) is carried onto the rendered row
@@ -623,15 +648,31 @@ frappe.ui.Page = class Page {
 		const responsive_hidden = (el) =>
 			(el.classList.contains("visible-xs") &&
 				window.matchMedia("(min-width: 576px)").matches) ||
+			(el.classList.contains("hidden-xs") &&
+				window.matchMedia("(max-width: 767.98px)").matches) ||
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];
+		const headed = new Map();
+		const segment_for = (heading) => {
+			if (heading) {
+				if (!headed.has(heading)) {
+					const segment = Object.assign([], { heading });
+					headed.set(heading, segment);
+					segments.push(segment);
+				}
+				return headed.get(heading);
+			}
+			if (segments[segments.length - 1].heading) segments.push([]);
+			return segments[segments.length - 1];
+		};
 		// one submenu row per inner-button group, keyed by group label
 		const nested_groups = new Map();
 
 		$parent.children("li").each((_, li) => {
 			if (li.classList.contains("dropdown-divider")) {
-				if (!responsive_hidden(li) && segments[segments.length - 1].length) {
+				const last = segments[segments.length - 1];
+				if (!responsive_hidden(li) && (last.length || last.heading)) {
 					segments.push([]);
 				}
 				return;
@@ -669,7 +710,7 @@ frappe.ui.Page = class Page {
 				if (!submenu) {
 					submenu = [];
 					nested_groups.set(nested.group, submenu);
-					segments[segments.length - 1].push({
+					segment_for($li.data("menu_group")).push({
 						label: nested.group,
 						css_class: css_class || undefined,
 						submenu,
@@ -683,10 +724,11 @@ frappe.ui.Page = class Page {
 				return;
 			}
 
-			segments[segments.length - 1].push({
+			segment_for($li.data("menu_group")).push({
 				label,
 				icon: $li.data("menu_icon") || undefined,
 				icon_right: $li.data("menu_icon_right") || undefined,
+				theme: $li.data("menu_theme") || undefined,
 				shortcut: $li.data("menu_shortcut") || undefined,
 				disabled: a.classList.contains("disabled"),
 				css_class: css_class || undefined,
@@ -695,8 +737,12 @@ frappe.ui.Page = class Page {
 		});
 
 		const groups = segments.filter((segment) => segment.length);
-		if (groups.length <= 1) return groups[0] || [];
-		return groups.map((options) => ({ group: "", hide_label: true, options }));
+		if (groups.length <= 1 && !groups[0]?.heading) return groups[0] || [];
+		return groups.map((options) => ({
+			group: options.heading || "",
+			hide_label: !options.heading,
+			options: [...options],
+		}));
 	}
 
 	prepare_shortcut_obj(shortcut, click, label) {
@@ -1028,7 +1074,10 @@ frappe.ui.Page = class Page {
 			this.$breadcrumbs = $("<ol>").appendTo($nav);
 		}
 		// a page inside a dialog has a head of its own but no business drawing a trail in it
-		const items = this.show_breadcrumbs === false ? [] : this.get_breadcrumbs();
+		const items = this.show_breadcrumbs === false ? [] : this.get_breadcrumbs().slice();
+		// the title (last crumb) becomes a button when something sets an action for it
+		const title_action = items.length && frappe.ui.Page.title_action?.();
+		if (title_action) items.push({ ...items.pop(), onclick: title_action });
 		this.$breadcrumbs
 			.empty()
 			.append(frappe.ui.breadcrumbs({ items }).children("ol").children());

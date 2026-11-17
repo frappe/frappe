@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/SidebarProps",
+  "definitions": {
+    "SidebarProps": {
+      "type": "object",
+      "properties": {
+        "collapsible": {
+          "type": "boolean"
+        },
+        "width": {
+          "type": "string"
+        },
+        "collapsedWidth": {
+          "type": "string"
+        },
+        "ariaLabel": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

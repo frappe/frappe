@@ -516,7 +516,7 @@ class TestTypstGate(IntegrationTestCase):
 		self.addCleanup(pf_doc.delete, ignore_permissions=True)
 		row = frappe.get_doc({"doctype": "ToDo", "description": "Widget"}).insert(ignore_permissions=True)
 		self.addCleanup(row.delete, ignore_permissions=True)
-		row.item_image = "data:image/png;base64,iVBORw0KGgo="
+		row.item_image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
 		emitter = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", row.name)))
 
 		merged_col = {
@@ -538,7 +538,7 @@ class TestTypstGate(IntegrationTestCase):
 		self.assertIn(q("W"), fallback)
 
 		plain_col = {"fieldname": "item_image", "fieldtype": "Attach Image"}
-		row.item_image = "data:image/png;base64,iVBORw0KGgo="
+		row.item_image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
 		self.assertIn('fit: "contain"', emitter._table_cell(row, plain_col))
 		row.item_image = "/files/does-not-exist.png"
 		self.assertEqual(emitter._table_cell(row, plain_col), "")
@@ -552,7 +552,7 @@ class TestTypstGate(IntegrationTestCase):
 				"doctype": "File",
 				"file_name": f"_typst_lh_{frappe.generate_hash(length=6)}.png",
 				# 1x1 transparent png
-				"content": b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\xff\xff?\x00\x05\xfe\x02\xfe\xa75\x81\x84\x00\x00\x00\x00IEND\xaeB`\x82",
+				"content": b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc````\x00\x00\x00\x05\x00\x01\xa5\xf6E@\x00\x00\x00\x00IEND\xaeB`\x82",
 			}
 		).insert(ignore_permissions=True)
 		self.addCleanup(file.delete, ignore_permissions=True)
@@ -834,6 +834,29 @@ class TestTypstRender(IntegrationTestCase):
 		frappe.set_user("test@example.com")
 		pdf = PrintFormatGenerator(pf, todo).render_pdf()
 		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_doc_with_broken_signature_still_prints(self):
+		import base64
+		from io import BytesIO
+
+		from PIL import Image
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		png = BytesIO()
+		Image.new("RGB", (120, 40), "white").save(png, "PNG")
+		pf = self.make(
+			layout_with({"fieldname": "description", "fieldtype": "Signature", "label": "Signature"})
+		)
+		pf.pdf_generator = "Typst"
+		todo = self.make_todo()
+		todo.description = "data:image/png;base64," + base64.b64encode(png.getvalue()[:60]).decode()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = PrintFormatGenerator(pf, todo).render_pdf()
+		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 0)
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_language_typst_cannot_name_still_prints(self):

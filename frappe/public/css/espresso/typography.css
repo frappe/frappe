@@ -1,8 +1,10 @@
 /* Espresso typography — sizes, weights, and ready-to-use type-style classes,
- * plain CSS (source of truth). Installed from design-poc/shared/tokens/espresso-typography.css.
- * Dropped (Tailwind-only): the --<size>--line-height/--letter-spacing/--font-weight
- * companions and the @theme block. Classes are unlayered (Frappe CSS is unlayered).
- * Loaded via espresso/_typography.scss. */
+ * plain CSS. The values follow frappe-ui's type tokens (tailwind/tokens/typography.js): a size's
+ * line height, and the letter spacing each weight takes at that size. The `-black` classes are
+ * the desk's own; frappe-ui has no black weight. `text-md` is 15px here as in frappe-ui, written
+ * out because `--text-md` is the old 14px alias in legacy.css.
+ * The scale stops at 6xl (28px): the desk has no use for frappe-ui's larger display sizes.
+ * Classes are unlayered (Frappe CSS is unlayered). Loaded via espresso/_typography.scss. */
 
 :root {
   --font-weight-regular: 420;
@@ -22,378 +24,404 @@
   --text-4xl: 24px;
   --text-5xl: 26px;
   --text-6xl: 28px;
-  --text-7xl: 32px;
-  --text-8xl: 40px;
-  --text-9xl: 44px;
-  --text-10xl: 48px;
-  --text-11xl: 52px;
-  --text-12xl: 56px;
 
   /* ** Paragraphs ** */
+  --text-p-2xs: 11px;
   --text-p-xs: 12px;
   --text-p-sm: 13px;
   --text-p-base: 14px;
   --text-p-lg: 16px;
   --text-p-xl: 17px;
+  --text-p-2xl: 18px;
+  --text-p-3xl: 20px;
+  --text-p-4xl: 24px;
 }
 
 /* Type-style classes — every size x weight, all properties set literally. */
 
 .text-2xs {
   font-size: var(--text-2xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-regular);
   letter-spacing: 0.01em;
 }
 
 .text-2xs-medium {
   font-size: var(--text-2xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.01em;
 }
 
 .text-2xs-semibold {
   font-size: var(--text-2xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.01em;
 }
 
 .text-2xs-bold {
   font-size: var(--text-2xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.01em;
 }
 
 .text-2xs-black {
   font-size: var(--text-2xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.01em;
 }
 
 .text-xs {
   font-size: var(--text-xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-regular);
   letter-spacing: 0.02em;
 }
 
 .text-xs-medium {
   font-size: var(--text-xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.02em;
 }
 
 .text-xs-semibold {
   font-size: var(--text-xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.015em;
 }
 
 .text-xs-bold {
   font-size: var(--text-xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.015em;
 }
 
 .text-xs-black {
   font-size: var(--text-xs);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.015em;
 }
 
 .text-sm {
   font-size: var(--text-sm);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-regular);
   letter-spacing: 0.02em;
 }
 
 .text-sm-medium {
   font-size: var(--text-sm);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.02em;
 }
 
 .text-sm-semibold {
   font-size: var(--text-sm);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.015em;
 }
 
 .text-sm-bold {
   font-size: var(--text-sm);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.015em;
 }
 
 .text-sm-black {
   font-size: var(--text-sm);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.015em;
 }
 
 .text-base {
   font-size: var(--text-base);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-regular);
-  letter-spacing: 0.015em;
+  letter-spacing: 0.02em;
 }
 
 .text-base-medium {
   font-size: var(--text-base);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.015em;
 }
 
 .text-base-semibold {
   font-size: var(--text-base);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.015em;
 }
 
 .text-base-bold {
   font-size: var(--text-base);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.015em;
 }
 
 .text-base-black {
   font-size: var(--text-base);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-black);
+  letter-spacing: 0.015em;
+}
+
+.text-md {
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.02em;
+}
+
+.text-md-medium {
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.015em;
+}
+
+.text-md-semibold {
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.015em;
+}
+
+.text-md-bold {
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: var(--font-weight-bold);
   letter-spacing: 0.015em;
 }
 
 .text-lg {
   font-size: var(--text-lg);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-regular);
-  letter-spacing: 0.015em;
+  letter-spacing: 0.02em;
 }
 
 .text-lg-medium {
   font-size: var(--text-lg);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.015em;
 }
 
 .text-lg-semibold {
   font-size: var(--text-lg);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.015em;
 }
 
 .text-lg-bold {
   font-size: var(--text-lg);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.015em;
 }
 
 .text-lg-black {
   font-size: var(--text-lg);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.015em;
 }
 
 .text-xl {
   font-size: var(--text-xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-regular);
-  letter-spacing: 0.015em;
+  letter-spacing: 0.02em;
 }
 
 .text-xl-medium {
   font-size: var(--text-xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.015em;
 }
 
 .text-xl-semibold {
   font-size: var(--text-xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.015em;
 }
 
 .text-xl-bold {
   font-size: var(--text-xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.015em;
 }
 
 .text-xl-black {
   font-size: var(--text-xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.015em;
 }
 
 .text-2xl {
   font-size: var(--text-2xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-regular);
-  letter-spacing: 0.015em;
-}
-
-.text-2xl-medium {
-  font-size: var(--text-2xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.015em;
-}
-
-.text-2xl-semibold {
-  font-size: var(--text-2xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.015em;
-}
-
-.text-2xl-bold {
-  font-size: var(--text-2xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.015em;
-}
-
-.text-2xl-black {
-  font-size: var(--text-2xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.015em;
-}
-
-.text-3xl {
-  font-size: var(--text-3xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-regular);
   letter-spacing: 0.01em;
 }
 
+.text-2xl-medium {
+  font-size: var(--text-2xl);
+  line-height: 1.35;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.01em;
+}
+
+.text-2xl-semibold {
+  font-size: var(--text-2xl);
+  line-height: 1.35;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.01em;
+}
+
+.text-2xl-bold {
+  font-size: var(--text-2xl);
+  line-height: 1.35;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.01em;
+}
+
+.text-2xl-black {
+  font-size: var(--text-2xl);
+  line-height: 1.35;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.01em;
+}
+
+.text-3xl {
+  font-size: var(--text-3xl);
+  line-height: 1.35;
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.005em;
+}
+
 .text-3xl-medium {
   font-size: var(--text-3xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.01em;
 }
 
 .text-3xl-semibold {
   font-size: var(--text-3xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.01em;
 }
 
 .text-3xl-bold {
   font-size: var(--text-3xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.01em;
 }
 
 .text-3xl-black {
   font-size: var(--text-3xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.01em;
 }
 
 .text-4xl {
   font-size: var(--text-4xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-regular);
-  letter-spacing: 0.01em;
-}
-
-.text-4xl-medium {
-  font-size: var(--text-4xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.01em;
-}
-
-.text-4xl-semibold {
-  font-size: var(--text-4xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.01em;
-}
-
-.text-4xl-bold {
-  font-size: var(--text-4xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.01em;
-}
-
-.text-4xl-black {
-  font-size: var(--text-4xl);
-  line-height: 1.15;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.01em;
-}
-
-.text-5xl {
-  font-size: var(--text-5xl);
-  line-height: 1.15;
+  line-height: 1.35;
   font-weight: var(--font-weight-regular);
   letter-spacing: 0.005em;
 }
 
+.text-4xl-medium {
+  font-size: var(--text-4xl);
+  line-height: 1.35;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.005em;
+}
+
+.text-4xl-semibold {
+  font-size: var(--text-4xl);
+  line-height: 1.35;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.005em;
+}
+
+.text-4xl-bold {
+  font-size: var(--text-4xl);
+  line-height: 1.35;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.005em;
+}
+
+.text-4xl-black {
+  font-size: var(--text-4xl);
+  line-height: 1.35;
+  font-weight: var(--font-weight-black);
+  letter-spacing: 0.005em;
+}
+
+.text-5xl {
+  font-size: var(--text-5xl);
+  line-height: 1.6;
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.01em;
+}
+
 .text-5xl-medium {
   font-size: var(--text-5xl);
-  line-height: 1.15;
+  line-height: 1.6;
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.005em;
 }
 
 .text-5xl-semibold {
   font-size: var(--text-5xl);
-  line-height: 1.15;
+  line-height: 1.6;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.005em;
 }
 
 .text-5xl-bold {
   font-size: var(--text-5xl);
-  line-height: 1.15;
+  line-height: 1.6;
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.005em;
 }
 
 .text-5xl-black {
   font-size: var(--text-5xl);
-  line-height: 1.15;
+  line-height: 1.6;
   font-weight: var(--font-weight-black);
-  letter-spacing: 0.005em;
+  letter-spacing: 0.01em;
 }
 
 .text-6xl {
   font-size: var(--text-6xl);
   line-height: 1.6;
   font-weight: var(--font-weight-regular);
-  letter-spacing: 0.005em;
+  letter-spacing: 0.01em;
 }
 
 .text-6xl-medium {
@@ -407,14 +435,14 @@
   font-size: var(--text-6xl);
   line-height: 1.6;
   font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.005em;
+  letter-spacing: 0.01em;
 }
 
 .text-6xl-bold {
   font-size: var(--text-6xl);
   line-height: 1.6;
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0.005em;
+  letter-spacing: 0.015em;
 }
 
 .text-6xl-black {
@@ -424,214 +452,32 @@
   letter-spacing: 0.01em;
 }
 
-.text-7xl {
-  font-size: var(--text-7xl);
+.text-p-2xs {
+  font-size: var(--text-p-2xs);
   line-height: 1.6;
   font-weight: var(--font-weight-regular);
-  letter-spacing: 0.005em;
+  letter-spacing: 0.01em;
 }
 
-.text-7xl-medium {
-  font-size: var(--text-7xl);
+.text-p-2xs-medium {
+  font-size: var(--text-p-2xs);
   line-height: 1.6;
   font-weight: var(--font-weight-medium);
-  letter-spacing: 0.005em;
+  letter-spacing: 0.01em;
 }
 
-.text-7xl-semibold {
-  font-size: var(--text-7xl);
+.text-p-2xs-semibold {
+  font-size: var(--text-p-2xs);
   line-height: 1.6;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.01em;
 }
 
-.text-7xl-bold {
-  font-size: var(--text-7xl);
+.text-p-2xs-bold {
+  font-size: var(--text-p-2xs);
   line-height: 1.6;
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0.015em;
-}
-
-.text-7xl-black {
-  font-size: var(--text-7xl);
-  line-height: 1.6;
-  font-weight: var(--font-weight-black);
   letter-spacing: 0.01em;
-}
-
-.text-8xl {
-  font-size: var(--text-8xl);
-  line-height: 1.6;
-  font-weight: var(--font-weight-regular);
-  letter-spacing: 0.015em;
-}
-
-.text-8xl-medium {
-  font-size: var(--text-8xl);
-  line-height: 1.6;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.015em;
-}
-
-.text-8xl-semibold {
-  font-size: var(--text-8xl);
-  line-height: 1.6;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.015em;
-}
-
-.text-8xl-bold {
-  font-size: var(--text-8xl);
-  line-height: 1.6;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.015em;
-}
-
-.text-8xl-black {
-  font-size: var(--text-8xl);
-  line-height: 1.6;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.005em;
-}
-
-.text-9xl {
-  font-size: var(--text-9xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-regular);
-  letter-spacing: 0em;
-}
-
-.text-9xl-medium {
-  font-size: var(--text-9xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0em;
-}
-
-.text-9xl-semibold {
-  font-size: var(--text-9xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0em;
-}
-
-.text-9xl-bold {
-  font-size: var(--text-9xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0em;
-}
-
-.text-9xl-black {
-  font-size: var(--text-9xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0em;
-}
-
-.text-10xl {
-  font-size: var(--text-10xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-regular);
-  letter-spacing: 0em;
-}
-
-.text-10xl-medium {
-  font-size: var(--text-10xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0em;
-}
-
-.text-10xl-semibold {
-  font-size: var(--text-10xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0em;
-}
-
-.text-10xl-bold {
-  font-size: var(--text-10xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0em;
-}
-
-.text-10xl-black {
-  font-size: var(--text-10xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0em;
-}
-
-.text-11xl {
-  font-size: var(--text-11xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-regular);
-  letter-spacing: 0em;
-}
-
-.text-11xl-medium {
-  font-size: var(--text-11xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0em;
-}
-
-.text-11xl-semibold {
-  font-size: var(--text-11xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0em;
-}
-
-.text-11xl-bold {
-  font-size: var(--text-11xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.005em;
-}
-
-.text-11xl-black {
-  font-size: var(--text-11xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.005em;
-}
-
-.text-12xl {
-  font-size: var(--text-12xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-regular);
-  letter-spacing: 0em;
-}
-
-.text-12xl-medium {
-  font-size: var(--text-12xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0em;
-}
-
-.text-12xl-semibold {
-  font-size: var(--text-12xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0em;
-}
-
-.text-12xl-bold {
-  font-size: var(--text-12xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0em;
-}
-
-.text-12xl-black {
-  font-size: var(--text-12xl);
-  line-height: 1.4;
-  font-weight: var(--font-weight-black);
-  letter-spacing: 0.005em;
 }
 
 .text-p-xs {
@@ -673,7 +519,7 @@
   font-size: var(--text-p-sm);
   line-height: 1.5;
   font-weight: var(--font-weight-regular);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.015em;
 }
 
 .text-p-sm-medium {
@@ -708,7 +554,7 @@
   font-size: var(--text-p-base);
   line-height: 1.5;
   font-weight: var(--font-weight-regular);
-  letter-spacing: 0.015em;
+  letter-spacing: 0.02em;
 }
 
 .text-p-base-medium {
@@ -739,11 +585,39 @@
   letter-spacing: 0.015em;
 }
 
+.text-p-md {
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.02em;
+}
+
+.text-p-md-medium {
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.015em;
+}
+
+.text-p-md-semibold {
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.015em;
+}
+
+.text-p-md-bold {
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.015em;
+}
+
 .text-p-lg {
   font-size: var(--text-p-lg);
   line-height: 1.5;
   font-weight: var(--font-weight-regular);
-  letter-spacing: 0.015em;
+  letter-spacing: 0.02em;
 }
 
 .text-p-lg-medium {
@@ -778,7 +652,7 @@
   font-size: var(--text-p-xl);
   line-height: 1.5;
   font-weight: var(--font-weight-regular);
-  letter-spacing: 0.015em;
+  letter-spacing: 0.02em;
 }
 
 .text-p-xl-medium {
@@ -807,4 +681,88 @@
   line-height: 1.5;
   font-weight: var(--font-weight-black);
   letter-spacing: 0.015em;
+}
+
+.text-p-2xl {
+  font-size: var(--text-p-2xl);
+  line-height: 1.5;
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.01em;
+}
+
+.text-p-2xl-medium {
+  font-size: var(--text-p-2xl);
+  line-height: 1.5;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.01em;
+}
+
+.text-p-2xl-semibold {
+  font-size: var(--text-p-2xl);
+  line-height: 1.5;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.01em;
+}
+
+.text-p-2xl-bold {
+  font-size: var(--text-p-2xl);
+  line-height: 1.5;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.01em;
+}
+
+.text-p-3xl {
+  font-size: var(--text-p-3xl);
+  line-height: 1.48;
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.01em;
+}
+
+.text-p-3xl-medium {
+  font-size: var(--text-p-3xl);
+  line-height: 1.48;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.01em;
+}
+
+.text-p-3xl-semibold {
+  font-size: var(--text-p-3xl);
+  line-height: 1.48;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.01em;
+}
+
+.text-p-3xl-bold {
+  font-size: var(--text-p-3xl);
+  line-height: 1.48;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.01em;
+}
+
+.text-p-4xl {
+  font-size: var(--text-p-4xl);
+  line-height: 1.4;
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.005em;
+}
+
+.text-p-4xl-medium {
+  font-size: var(--text-p-4xl);
+  line-height: 1.4;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.005em;
+}
+
+.text-p-4xl-semibold {
+  font-size: var(--text-p-4xl);
+  line-height: 1.4;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.005em;
+}
+
+.text-p-4xl-bold {
+  font-size: var(--text-p-4xl);
+  line-height: 1.4;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.005em;
 }
