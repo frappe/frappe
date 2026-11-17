@@ -6,7 +6,7 @@ import pyotp
 
 import frappe
 from frappe.auth import HTTPRequest, get_login_attempt_tracker, validate_ip_address
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.twofactor import (
 	ExpiredLoginException,
 	authenticate_for_2factor,
@@ -15,12 +15,7 @@ from frappe.twofactor import (
 	get_default,
 	get_otpsecret_for_,
 	get_verification_obj,
-<<<<<<< HEAD
-=======
-	process_2fa_for_email,
 	reset_otp_secret,
-	set_default,
->>>>>>> fc687c2 (fix: log out other sessions when the OTP secret is reset)
 	should_run_2fa,
 	two_factor_is_enabled_for_,
 )
@@ -124,7 +119,7 @@ class TestTwoFactor(FrappeTestCase):
 		frappe.qb.into(sessions).columns(sessions.user, sessions.sid).insert(self.user, "otp-reset-sid").run()
 
 		with (
-			self.change_settings("System Settings", {"logout_on_password_reset": 1}),
+			change_settings("System Settings", {"logout_on_password_reset": 1}),
 			self.set_user(self.user),
 		):
 			reset_otp_secret(self.user)
