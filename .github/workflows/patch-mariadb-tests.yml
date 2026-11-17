@@ -36,7 +36,7 @@ jobs:
 
   test:
     name: Patch
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     timeout-minutes: 60
@@ -95,6 +95,11 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
+
+      - name: Install System Dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.6.3
+        with:
+          packages: libcups2-dev redis-server mariadb-client fontconfig libjpeg-turbo8 xfonts-75dpi xfonts-base
 
       - name: Install Dependencies
         run: |
