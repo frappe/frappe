@@ -1,9 +1,5 @@
-<!--
-  One app on the index: its logo and title, a link to where the app opens. An app's other doors
-  (`fan`) are cards tucked behind the logo, which spread on hover or selection; the caption names the
-  card under the pointer. A selection draws like a hover. The cards are links of their own, so they sit
-  beside the tile's anchor, not in it.
--->
+<!-- One app on the index. Its other doors (`fan`) are cards behind the logo that spread on hover or selection;
+  they are links of their own, so they sit beside the tile's anchor, not in it. -->
 <template>
 	<div
 		class="fan group relative h-full"
@@ -44,7 +40,7 @@
 		</a>
 		<div
 			v-if="app.fan.length"
-			class="pointer-events-none absolute left-1/2 top-2 size-14 -translate-x-1/2"
+			class="pointer-events-none absolute left-1/2 top-2 z-[1] size-14 -translate-x-1/2"
 			data-fan
 		>
 			<a
@@ -104,7 +100,7 @@ function pose(index: number) {
 
 <style scoped>
 .fan-card {
-	/* A resting card is only an edge behind the logo: a tap there (no hover to fan it first) opens the app. */
+	/* Resting cards are only an edge behind the logo; a tap there must open the app. */
 	pointer-events: none;
 	transform-origin: bottom center;
 	transform: translateX(calc(var(--side) * var(--step) * 16px))
@@ -123,6 +119,11 @@ function pose(index: number) {
 }
 .fan-card:hover,
 .fan-card-picked {
+	z-index: 3;
+}
+/* The cards' wrapper is a stacking context, so a lifted card needs the wrapper above the logo. */
+.fan:has(.fan-card:hover) [data-fan],
+.fan[data-picked] [data-fan] {
 	z-index: 3;
 }
 .fan-card:hover .fan-face,

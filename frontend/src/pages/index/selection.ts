@@ -1,10 +1,7 @@
 // The arrow-key selection on the index: one movement over every section's items, in page order.
 import { computed, ref, type ComputedRef, type Ref } from "vue";
 
-/**
- * One item the arrow keys can reach. `key` is unique on the page; Enter calls `run`, else opens `href`.
- * `doors` are the item's own other destinations: Tab steps through them, the arrows do not.
- */
+/** One item the arrow keys can reach; `doors` are its other destinations, which only Tab steps through. */
 export type Selectable = { key: string; href?: string; run?: () => unknown; doors?: Selectable[] };
 
 /** A run of items drawn in `columns` columns, in reading order. A list is one column. */

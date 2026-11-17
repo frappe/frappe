@@ -176,11 +176,7 @@ def setup_pending_apps() -> set[str]:
 
 
 def tile_target(app: str, screen: dict, prefix: str | None) -> dict | None:
-	"""Where a tile opens, and the other doors fanned behind it, or None when the user may open none.
-
-	A v2 app (one with a `prefix`) whose hook route is its own UI has two doors: the tile opens the
-	UI and a Desk card opens the prefix. Any other v2 app opens its prefix; any other app, the hook's route.
-	"""
+	"""Where a tile opens and the doors fanned behind it, or None when the user may open none."""
 	desk = bool(prefix) and has_app_permission(app)
 	# The hook's own check guards the app's own UI and, as in desk v1, its module icons.
 	allowed = may_link_out(app, screen)
