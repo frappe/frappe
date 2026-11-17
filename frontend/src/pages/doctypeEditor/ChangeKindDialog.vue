@@ -38,7 +38,7 @@
 			<Button
 				variant="solid"
 				:label="__('Change kind')"
-				:disabled="picked === kind"
+				:disabled="picked === kind || Boolean(refusal(picked))"
 				:loading="working"
 				data-danger-confirm
 				:aria-busy="working"

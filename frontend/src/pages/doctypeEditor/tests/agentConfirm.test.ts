@@ -46,6 +46,16 @@ describe("fields.delete_field", () => {
 		expect([canvas.field("status")?.fieldname, edits.steps.length]).toEqual(["status", 0]);
 	});
 
+	it("an agent's call fails, and removes nothing, when the editor changed during the question", async () => {
+		const { canvas, save } = mount(taskNote());
+		dialog.danger.mockImplementationOnce(async () => {
+			await save.reloadAndReapply();
+			return true;
+		});
+		expect(await acts.call("fields.delete_field", { fieldname: "status" }, { agent: true })).toMatchObject({ ok: false, error: { code: "failed" } });
+		expect(canvas.field("status")).toBeDefined();
+	});
+
 	it("an agent's call asks nothing for a field added since the save", async () => {
 		const { canvas } = mount(taskNote());
 		await acts.run("fields.add_field", { fieldname: "extra", fieldtype: "Data", label: "Extra" });
@@ -72,6 +82,16 @@ describe("layouts.reset_to_app", () => {
 		expect(await acts.call("layouts.reset_to_app", { type: "Details" }, { agent: true })).toMatchObject({ ok: true });
 		expect(dialog.open).toHaveBeenCalledTimes(1);
 		expect(staged(edits)).toEqual([{ act: "layouts.reset_to_app", type: "Details" }]);
+	});
+
+	it("an agent's call fails, and stages nothing, when the editor changed during the dialog", async () => {
+		const { edits, save } = mount(customize());
+		dialog.open.mockImplementationOnce(async () => {
+			await save.reloadAndReapply();
+			return true;
+		});
+		expect(await acts.call("layouts.reset_to_app", { type: "Details" }, { agent: true })).toMatchObject({ ok: false, error: { code: "failed" } });
+		expect(staged(edits)).toEqual([]);
 	});
 
 	it("an agent's call ends declined, and stages nothing, when the person cancels", async () => {

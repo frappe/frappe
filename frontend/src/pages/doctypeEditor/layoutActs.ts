@@ -70,8 +70,10 @@ export function layoutItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			when: () => editing() && host.canvas()?.state.mode === "Customize",
 			// A person's script skips the dialog, as the menu opens it first; an agent's call opens it here.
 			run: async (_context, keys: { type: FormLayoutType }, call?: ActCall) => {
-				if (call?.agent && !(await confirmReset(canvas(), keys.type))) throw new ActDeclined("layouts.reset_to_app");
-				return canvas().stage({ act: "layouts.reset_to_app", ...keys });
+				const target = canvas();
+				if (call?.agent && !(await confirmReset(target, keys.type))) throw new ActDeclined("layouts.reset_to_app");
+				if (canvas() !== target) throw new Error(__("The editor changed while the question was open."));
+				return target.stage({ act: "layouts.reset_to_app", ...keys });
 			},
 		},
 	];

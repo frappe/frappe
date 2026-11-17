@@ -5,6 +5,7 @@ vi.mock("@framework/ui/api", () => ({ getTranslations: vi.fn() }));
 
 import { agentAsk } from "@/acts/dispatcher";
 import { ListedDialogKey } from "@/shell/dialogs/readableDialogs";
+import ChangeKindDialog from "../ChangeKindDialog.vue";
 import ConfirmNote from "../ConfirmNote.vue";
 
 function mountNote(listed: object) {
@@ -37,5 +38,26 @@ describe("ConfirmNote", () => {
 		const person = mountNote({});
 		expect(person.host.textContent).toBe("");
 		person.stop();
+	});
+});
+
+describe("ChangeKindDialog", () => {
+	const confirmButton = (initial: "single" | "child") => {
+		const host = document.createElement("div");
+		const props = { doctype: "Task", kind: "regular", records: 0, initial, submit: vi.fn(), close: vi.fn() };
+		const app = createApp({ render: () => h(ChangeKindDialog, props) });
+		app.mount(host);
+		const button = host.querySelector<HTMLButtonElement>("[data-danger-confirm]")!;
+		return { disabled: button.disabled, stop: () => app.unmount() };
+	};
+
+	it("keeps Change kind off for a kind the person could not pick, even when an agent filled it", () => {
+		const refused = confirmButton("single");
+		expect(refused.disabled).toBe(true);
+		refused.stop();
+
+		const allowed = confirmButton("child");
+		expect(allowed.disabled).toBe(false);
+		allowed.stop();
 	});
 });

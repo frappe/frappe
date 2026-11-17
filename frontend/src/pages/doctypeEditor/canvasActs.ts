@@ -140,9 +140,10 @@ export function fieldItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 			when,
 			// A person's script skips the question, as the panel's trash asks it first; an agent's call asks it here.
 			run: async (_context, keys: { fieldname: string }, call?: ActCall) => {
-				const field = call?.agent && host.canvas()!.working.value.fields.find((one) => one.fieldname === keys.fieldname);
-				if (field && !(await confirmRemove(host.canvas()!, field as RawMetaField))) throw new ActDeclined("fields.delete_field");
-				const canvas = host.canvas()!; // the confirm may wait long: stage on the canvas open now
+				const canvas = host.canvas()!;
+				const field = call?.agent && canvas.working.value.fields.find((one) => one.fieldname === keys.fieldname);
+				if (field && !(await confirmRemove(canvas, field as RawMetaField))) throw new ActDeclined("fields.delete_field");
+				if (host.canvas() !== canvas) throw new Error(__("The editor changed while the question was open."));
 				if (!(await canvas.stage({ ...keys, act: "fields.delete_field" }))) return;
 				const selected = canvas.selection.value;
 				if (selected?.kind === "field" && selected.fieldname === keys.fieldname) canvas.select(null);
