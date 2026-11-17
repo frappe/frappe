@@ -1037,7 +1037,7 @@ class TestSessionEndpoints(ApiCase):
 			with self.subTest(method.__name__):
 				self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[method], ("POST",))
 
-	def test_set_model_sends_the_models_credentials_and_reasoning_effort(self):
+	def test_set_model_sends_the_models_credentials_and_no_thinking_level(self):
 		name = self.create()
 		other = frappe.get_doc(
 			_model_doc(
@@ -1048,10 +1048,7 @@ class TestSessionEndpoints(ApiCase):
 				extra_params='{"provider": {"zdr": true}}',
 			)
 		).insert()
-		self.assertEqual(
-			api.set_model(name, f" {other.name} ", reasoning_effort="high"),
-			{"model": other.name, "reasoning_effort": "high"},
-		)
+		self.assertEqual(api.set_model(name, f" {other.name} "), {"model": other.name})
 		self.assertEqual(
 			self.daemon.calls[-1],
 			(
@@ -1062,15 +1059,10 @@ class TestSessionEndpoints(ApiCase):
 					"api_key": "sk-other",
 					"api_base": "https://other.example.com",
 					"model_params": {"provider": {"zdr": True}},
-					"reasoning_effort": "high",
 				},
 			),
 		)
 		self.assertEqual(frappe.db.get_value("Flow Session", name, "model"), other.name)
-		self.assertEqual(api.set_model(name, other.name, reasoning_effort="")["reasoning_effort"], None)
-		self.assertIsNone(self.daemon.calls[-1][3]["reasoning_effort"])
-		with self.assertRaisesRegex(frappe.ValidationError, "Reasoning effort must be one of"):
-			api.set_model(name, other.name, reasoning_effort="extreme")
 
 		# a model saved on the record, as from Desk, reaches the server too; other saves don't
 		session = frappe.get_doc("Flow Session", name)
@@ -1083,7 +1075,7 @@ class TestSessionEndpoints(ApiCase):
 		other.db_set("enabled", 0)
 		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
 			api.set_model(name, other.name)
-		self.assertEqual(len([c for c in self.daemon.calls if c[0] == "set_model"]), 3)
+		self.assertEqual(len([c for c in self.daemon.calls if c[0] == "set_model"]), 2)
 
 	def test_title_and_approval_mode_persist_on_both_sides(self):
 		name = self.create()

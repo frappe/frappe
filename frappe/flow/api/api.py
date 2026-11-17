@@ -27,7 +27,6 @@ TITLE_LIMIT = 140
 LIST_LIMIT = 100
 RUN_FIELDS = ["name", "daemon_run_id", "status", "error"]
 FEEDBACK_FIELDS = ["feedback_rating", "feedback_comment"]
-REASONING_EFFORTS = ("off", "minimal", "low", "medium", "high", "xhigh", "max")
 # What the /flow page's settings manage; boot reports the caller's rights on each.
 SETTINGS_DOCTYPES = (
 	"Flow Provider",
@@ -307,21 +306,12 @@ def system_prompt(session: str) -> str | None:
 
 
 @frappe.whitelist(methods=["POST"])
-def set_model(session: str, model: str, reasoning_effort: str | None = None) -> dict[str, Any]:
-	"""Switch the session's model; `reasoning_effort` sets its thinking level, empty for the default."""
+def set_model(session: str, model: str) -> dict[str, str]:
+	"""Switch the session's model. No thinking level goes with it: a model's Extra Params set one."""
 	if not isinstance(model, str) or not model.strip():
 		frappe.throw(_("Model is required."), title=_("Invalid Model"))
-	effort = (reasoning_effort or "").strip() or None
-	if effort is not None and effort not in REASONING_EFFORTS:
-		frappe.throw(
-			_("Reasoning effort must be one of {0}.").format(", ".join(REASONING_EFFORTS)),
-			title=_("Invalid Reasoning Effort"),
-		)
-	_load_session(session, "write").set_model(model.strip(), reasoning_effort=effort)
-	return {
-		"model": model.strip(),
-		"reasoning_effort": effort,
-	}
+	_load_session(session, "write").set_model(model.strip())
+	return {"model": model.strip()}
 
 
 @frappe.whitelist(methods=["POST"])
