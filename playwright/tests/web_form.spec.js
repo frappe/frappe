@@ -32,7 +32,7 @@ async function open_settings(page, tab = "Settings") {
 
 async function submit_web_form(page) {
 	const accepted = page.waitForResponse((res) =>
-		res.request().postData()?.includes("web_form.accept")
+		res.url().includes("/api/method/frappe.website.doctype.web_form.web_form.accept")
 	);
 	await page.locator(".web-form-actions button", { hasText: "Save" }).first().click();
 	await accepted;
@@ -73,9 +73,14 @@ test.describe("Web Form", () => {
 		await desk.fill_field("doc_type", "Note", "Link");
 		await desk.fill_field("module", "Website", "Link");
 		await desk.click_custom_action_button("Get Fields");
+		await desk.get_open_dialog().locator('[data-action="select_all"]').click();
+		await desk.click_modal_primary_button("Update");
 		await expect(page.locator('[data-fieldname="web_form_fields"] .grid-row')).not.toHaveCount(
 			0
 		);
+
+		// Update lands on the Form tab, and route lives on Details
+		await page.getByRole("tab", { name: "Details", exact: true }).click();
 		const saved = page.waitForResponse(
 			(res) =>
 				res.request().method() === "POST" &&
@@ -202,12 +207,12 @@ test.describe("Web Form", () => {
 
 	test("Custom Breadcrumbs", async ({ page, desk }) => {
 		const breadcrumbs = '[{"label": _("Notes"), "route":"note"}]';
-		await open_settings(page, "Customization");
+		await open_settings(page);
 
 		await desk.fill_field("breadcrumbs", breadcrumbs, "Code");
 		await expect.poll(() => page.evaluate(() => cur_frm.doc.breadcrumbs)).toBe(breadcrumbs);
 		await page
-			.locator(".form-tabs .nav-item .nav-link", { hasText: "Customization" })
+			.locator(".form-tabs .nav-item .nav-link", { hasText: "Settings" })
 			.first()
 			.click();
 		await desk.save();

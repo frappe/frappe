@@ -199,8 +199,10 @@ class PlutoPage:
 		overflow = book.get_document_width() * POINTS_PER_PX * scale
 		if overflow > content_width + 1:
 			scale *= max(content_width / overflow, MAX_SHRINK)
+			del book
 			book = self._layout(width, height, margins, scale)
 		if book.get_page_count() > 1:
+			del book
 			book = self._layout(width, height, margins, scale, MULTI_PAGE_STYLE)
 
 		pdf = self._write(book, width, height, scale)

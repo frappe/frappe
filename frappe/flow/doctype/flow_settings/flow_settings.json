@@ -1,0 +1,63 @@
+{
+ "actions": [],
+ "creation": "2026-10-29 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "small_model",
+  "web_search_section",
+  "search_provider",
+  "search_api_key"
+ ],
+ "fields": [
+  {
+   "description": "Does quick side jobs, like chat titles. A cheaper model saves credits.",
+   "fieldname": "small_model",
+   "fieldtype": "Link",
+   "label": "Helper Model",
+   "options": "Flow Model"
+  },
+  {
+   "fieldname": "web_search_section",
+   "fieldtype": "Section Break",
+   "label": "Web Search"
+  },
+  {
+   "default": "DuckDuckGo",
+   "description": "The service agents use to search the web.",
+   "fieldname": "search_provider",
+   "fieldtype": "Select",
+   "label": "Search Provider",
+   "options": "DuckDuckGo\nBrave\nTavily\nExa"
+  },
+  {
+   "depends_on": "eval:doc.search_provider && doc.search_provider !== \"DuckDuckGo\"",
+   "fieldname": "search_api_key",
+   "fieldtype": "Password",
+   "label": "Search API Key",
+   "mandatory_depends_on": "eval:doc.search_provider && doc.search_provider !== \"DuckDuckGo\""
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-29 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
