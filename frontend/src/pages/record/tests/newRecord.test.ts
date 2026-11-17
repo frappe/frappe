@@ -168,7 +168,7 @@ async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> 
     server.updates.push(body);
     return [{ data: { ...body, modified: "2026-10-23 10:05:00" } }, 200];
   }
-  if (path.endsWith("/activity")) return [{ data: { activities: [], next: null } }, 200];
+  if (path.endsWith("/frappe.desk.form.activity.get_activity_timeline")) return [{ data: { activities: [], next: null } }, 200];
   if (path.startsWith("/api/v2/document/Note/"))
     return [
       {

@@ -121,7 +121,7 @@ async function answer(url: URL, method: string, body: any): Promise<[unknown, nu
     await server.holdSession?.opened;
     return [{ data: null }, 200];
   }
-  if (path.endsWith("/activity")) {
+  if (path.endsWith("/frappe.desk.form.activity.get_activity_timeline")) {
     await server.holdActivity?.opened;
     return [{ data: { activities: server.activity, next: null } }, 200];
   }
@@ -323,7 +323,7 @@ function recordReads() {
 }
 
 function activityReads() {
-  return server.requests.filter((request) => request.endsWith(`/${name}/activity`)).length;
+  return server.requests.filter((request) => request.endsWith("/frappe.desk.form.activity.get_activity_timeline")).length;
 }
 
 describe("page.app", () => {

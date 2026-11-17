@@ -76,7 +76,7 @@ function answer(url: URL, init?: RequestInit): string {
     if (url.searchParams.get("type") !== "Details") return JSON.stringify({ data: { layouts: [], fallback: [] } });
     return JSON.stringify({ data: { layouts: [{ name: 1, condition: null, layout: LAYOUT }], fallback: LAYOUT } });
   }
-  if (path.endsWith("/activity")) return JSON.stringify({ data: { activities: [], next: null } });
+  if (path.endsWith("/frappe.desk.form.activity.get_activity_timeline")) return JSON.stringify({ data: { activities: [], next: null } });
   if (init?.method === "PATCH") {
     sent.patch = String(init.body);
     return JSON.stringify({ data: { ...JSON.parse(sent.patch), modified: "2026-10-24 11:00:00.000000" } });

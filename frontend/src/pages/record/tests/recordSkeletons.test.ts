@@ -167,7 +167,7 @@ async function settleLayouts() {
 
 function answerActivity(row: object) {
   const answer = (url: string) =>
-    url.includes("/api/v2/document/Note/N-1/activity")
+    url.includes("/api/v2/method/frappe.desk.form.activity.get_activity_timeline?doctype=Note&name=N-1")
       ? { data: { activities: [row], next: null } }
       : { data: null };
   vi.stubGlobal(

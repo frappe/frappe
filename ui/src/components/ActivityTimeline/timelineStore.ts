@@ -1,6 +1,6 @@
 // One document's feed for one filter: the pages read so far, the cursor, and the live wiring.
 import { ref } from "vue";
-import { getDocumentPart } from "../../api";
+import { runMethod } from "../../api";
 import type { Activity, VisibleTypes } from "./types";
 import { compareActivities } from "./grouping";
 import {
@@ -17,6 +17,8 @@ interface ActivityPage {
   /** cursor for the older page; null once the list has ended */
   next: string | null;
 }
+
+const ACTIVITY_METHOD = "frappe.desk.form.activity.get_activity_timeline";
 
 export class TimelineStore implements LiveFeed {
   readonly doc: string;
@@ -165,16 +167,19 @@ export class TimelineStore implements LiveFeed {
   }
 
   // filtered server-side so the cursor walks only the rows this view shows
+  // The method path, not the part route: only it runs an app's override and allowlist.
   private async readPage(before?: string): Promise<ActivityPage> {
-    const params = { types: this.visibleTypes, before };
+    const args = {
+      doctype: this.doctype,
+      name: this.docname,
+      visible_types: this.visibleTypes,
+      before,
+    };
     this.pagesOut++;
     try {
-      const response = await getDocumentPart<ActivityPage>(
-        this.doctype,
-        this.docname,
-        "activity",
-        params
-      );
+      const response = await runMethod<ActivityPage>(ACTIVITY_METHOD, args, {
+        http: "GET",
+      });
       return response.data;
     } finally {
       this.pagesOut--;

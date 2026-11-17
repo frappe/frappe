@@ -77,7 +77,7 @@ async function answer(url: URL, init?: RequestInit): Promise<unknown> {
     if (url.searchParams.get("type") !== "Details") return { data: { layouts: [], fallback: [] } };
     return { data: { layouts: [{ name: 1, condition: null, layout: LAYOUT }], fallback: LAYOUT } };
   }
-  if (path.endsWith("/activity")) return { data: { activities: [], next: null } };
+  if (path.endsWith("/frappe.desk.form.activity.get_activity_timeline")) return { data: { activities: [], next: null } };
   if (init?.method === "PATCH") {
     await server.write.opened;
     server.doc = { ...JSON.parse(String(init.body)), modified: NEW };

@@ -113,7 +113,7 @@ async function answerData(url: URL, path: string): Promise<unknown> {
     const omitted = server.meta.fields.map((field) => field.fieldname).filter((name) => !server.details.includes(name));
     return { data: { layouts: [{ name: 1, condition: null, layout, omitted }], fallback: layout } };
   }
-  if (path.endsWith("/activity")) return { data: { activities: [], next: null } };
+  if (path.endsWith("/frappe.desk.form.activity.get_activity_timeline")) return { data: { activities: [], next: null } };
   if (path.startsWith("/api/v2/document/Note/")) {
     await server.holdRecord?.opened;
     return {

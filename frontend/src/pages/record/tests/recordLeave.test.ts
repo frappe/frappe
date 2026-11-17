@@ -39,7 +39,7 @@ function answer(path: string): unknown {
 	if (path === "/api/v2/doctype/Note/meta") return { data: META };
 	if (path.endsWith(".get_form_layouts")) return { data: { layouts: [], fallback: [] } };
 	if (path.endsWith(".get_client_scripts")) return { data: { scripts: [], can_write: false } };
-	if (path.endsWith("/activity")) return { data: { activities: [], next: null } };
+	if (path.endsWith("/frappe.desk.form.activity.get_activity_timeline")) return { data: { activities: [], next: null } };
 	if (path.startsWith("/api/v2/document/Note/"))
 		return { data: { doctype: "Note", name: "N-1", title: "First" }, permissions: { read: 1 } };
 	return { data: null };

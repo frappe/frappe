@@ -67,7 +67,7 @@ async function answer(url: URL): Promise<[number, unknown]> {
     if (url.searchParams.get("type") !== "Details") return [200, { data: { layouts: [], fallback: [] } }];
     return [200, { data: { layouts: [{ name: 1, condition: null, layout: LAYOUT }], fallback: LAYOUT } }];
   }
-  if (path.endsWith("/activity")) return [200, { data: { activities: [], next: null } }];
+  if (path.endsWith("/frappe.desk.form.activity.get_activity_timeline")) return [200, { data: { activities: [], next: null } }];
   const name = path.split("/").pop()!;
   if (path.startsWith("/api/v2/document/Salutation/")) return [200, record(name)];
   return [200, { data: null }];

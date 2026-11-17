@@ -61,7 +61,7 @@ async function answer(url: URL): Promise<[number, unknown]> {
     if (url.searchParams.get("type") !== "Details") return [200, { data: { layouts: [], fallback: [] } }];
     return [200, { data: { layouts: DETAILS, fallback: LAYOUT } }];
   }
-  if (path.endsWith("/activity")) return [200, { data: { activities: [], next: null } }];
+  if (path.endsWith("/frappe.desk.form.activity.get_activity_timeline")) return [200, { data: { activities: [], next: null } }];
   if (path === "/api/v2/document/Salutation/Mr") return [200, record()];
   return [200, { data: null }];
 }
