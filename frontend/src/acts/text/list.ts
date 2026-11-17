@@ -69,6 +69,53 @@ export default {
 		},
 		output: loadedRows,
 	},
+	set_columns: {
+		description: "Replace the columns the list shows, in this order. An empty list restores the default columns. A label you send is ignored: a column shows its field's own label. Returns the columns now shown.",
+		input: {
+			type: "object",
+			properties: {
+				columns: {
+					type: "array",
+					description: "For example [{\"fieldname\": \"status\"}, {\"fieldname\": \"modified\"}].",
+					items: {
+						type: "object",
+						properties: {
+							fieldname: { type: "string", minLength: 1 },
+							label: { type: "string", description: "Ignored: a column shows its field's label." },
+						},
+						required: ["fieldname"],
+						additionalProperties: false,
+					},
+				},
+			},
+			required: ["columns"],
+			additionalProperties: false,
+		},
+		output: {
+			type: "object",
+			properties: {
+				columns: {
+					type: "array",
+					description: "The columns now shown, in order.",
+					items: { type: "object", properties: { fieldname: { type: "string" }, label: { type: "string" } } },
+				},
+			},
+		},
+	},
+	set_page_size: {
+		description: "Show this many rows at a time and reload. Loaded rows beyond it drop off, as when the person picks the size. Returns the rows now loaded.",
+		input: {
+			type: "object",
+			properties: { size: { type: "integer", enum: [20, 100, 500, 2500] } },
+			required: ["size"],
+			additionalProperties: false,
+		},
+		output: loadedRows,
+	},
+	load_more: {
+		description: "Load the next page of rows below the ones shown. Not available when every matching row is loaded. Returns the total and the first 20 rows of the page just loaded.",
+		output: loadedRows,
+	},
 	select: {
 		description: "Replace the selection with these rows. Every name must be a row loaded now (read state().rows); set the filters first to load others. The bulk acts then act on them.",
 		input: {
