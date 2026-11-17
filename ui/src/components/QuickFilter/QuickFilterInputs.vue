@@ -78,6 +78,7 @@
 			class="shrink-0 whitespace-nowrap"
 			variant="subtle"
 			:label="expanded ? 'Show less' : `${hiddenCount} more`"
+			data-view
 			@click="expanded = !expanded"
 		>
 			<template #suffix>
