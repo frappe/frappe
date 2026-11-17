@@ -10,7 +10,6 @@ from frappe.desk.doctype.view_type.view_type import applies_to, type_keys, view_
 from .app_views import app_views
 from .doctype_view import PLAIN_VIEW, SITE_ROW
 
-# The kept view types that have no `View Type` record yet, with their icons.
 UNBUILT_TYPES = {"Kanban": "kanban", "Calendar": "calendar", "Tree": "list-tree", "Report": "table"}
 UNBUILT_KEYS = frozenset(name.lower() for name in UNBUILT_TYPES)
 

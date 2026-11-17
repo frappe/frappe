@@ -8,7 +8,6 @@ export type PageStateName =
 	| "nothingToOpen"
 	| "notFound"
 	| "viewNotFound"
-	| "unbuilt"
 	| "noPermission"
 	| "offline"
 	| "failed";
@@ -20,11 +19,12 @@ export interface PageStateValue {
 	message?: string;
 	/** What a no permission state refused; without it, the state says the person may not see this. */
 	act?: { name: "create"; doctype: string };
-	/** The list a saved view not found, or a view type not built yet, links back to. */
+	/** The list a saved view not found links back to. */
 	doctype?: string;
 	/** In place of the state's own wording. */
 	title?: string;
 	description?: string;
+	icon?: string;
 	/** Offered as Try again; a returned promise holds the button busy until it settles. */
 	retry?: () => unknown;
 }

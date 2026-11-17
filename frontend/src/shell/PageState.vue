@@ -7,7 +7,7 @@
 	>
 		<!-- Centred by auto margins: a tall message then scrolls, where `justify-center` would cut its top. -->
 		<div class="m-auto flex flex-col items-center gap-3 px-8 py-16 text-center">
-			<span class="size-7 text-ink-gray-4" :class="look.icon" aria-hidden="true" />
+			<span class="size-7 text-ink-gray-4" :class="icon || look.icon" aria-hidden="true" />
 			<div class="flex max-w-md flex-col items-center gap-1.5">
 				<p class="text-lg font-medium text-ink-gray-8">{{ title || look.title }}</p>
 				<p class="text-p-sm text-ink-gray-6">{{ description }}</p>
@@ -33,17 +33,12 @@
 				:route="routeFor(doctype)"
 			/>
 			<Button
-				v-else-if="name === 'unbuilt' && doctype"
-				class="mt-1"
-				:label="__('Open the List view')"
-				:route="routeFor(doctype)"
-			/>
-			<Button
 				v-else-if="name === 'nothingToOpen'"
 				class="mt-1"
 				:label="__('All apps')"
 				@click="allApps"
 			/>
+			<slot />
 		</div>
 	</div>
 </template>
@@ -60,7 +55,7 @@ import { loadDocument } from "./tabKeepAlive";
 
 const props = defineProps<PageStateValue>();
 
-const QUIET = new Set(["empty", "filtered", "nothingToOpen", "unbuilt"]);
+const QUIET = new Set(["empty", "filtered", "nothingToOpen"]);
 
 const looks = {
 	empty: {
@@ -90,11 +85,6 @@ const looks = {
 		icon: "lucide-search-x",
 		title: __("This view doesn't exist"),
 		description: __("It was deleted, or it is someone else's."),
-	},
-	unbuilt: {
-		icon: "lucide-construction",
-		title: __("This view is not built yet"),
-		description: __("Use the List view until it is ready."),
 	},
 	noPermission: {
 		icon: "lucide-lock",

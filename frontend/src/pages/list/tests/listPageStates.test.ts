@@ -40,7 +40,10 @@ vi.mock("@framework/ui/experimental/List", async () => {
 // The shell is not mounted here: a link back to a list resolves to home.
 vi.mock("@/router/routeFor", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@/router/routeFor")>()),
-	routeFor: () => ({ name: "home" }),
+	routeFor: (_doctype: string, _name: unknown, options?: { view?: string }) => ({
+		name: "home",
+		query: options?.view ? { view: options.view } : {},
+	}),
 }));
 vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));
 vi.mock("@/list/useListPage", async (importOriginal) => ({
@@ -193,11 +196,11 @@ describe("a view type that is not built yet", () => {
 	it("draws a placeholder in the table's place, under the controls, with a way back to the List view", async () => {
 		const list = await mount(ViewPage, "Contact", KANBAN);
 
-		expect(list.state()).toBe("unbuilt");
+		await vi.waitFor(() => expect(list.text()).toContain("Kanban view is not built yet"));
 		expect(list.has("[data-stub-filter]")).toBe(true);
 		expect(list.has("[data-stub-list]")).toBe(false);
-		expect(list.text()).toContain("Kanban view is not built yet");
 		expect(list.action()?.textContent?.trim()).toBe("Open the List view");
+		expect(list.action()?.getAttribute("href")).toContain("view=list");
 	});
 });
 

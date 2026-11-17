@@ -94,12 +94,7 @@
 					</div>
 
 					<div class="relative flex min-h-0 flex-1 flex-col pt-2">
-						<PageState
-							v-if="unbuilt"
-							name="unbuilt"
-							:doctype="doctype"
-							:title="__('{0} view is not built yet', [unbuilt.label])"
-						/>
+						<UnbuiltView v-if="unbuilt" :doctype="doctype" :label="unbuilt.label" />
 						<component
 							:is="rendererFor(view.type)"
 							v-else-if="list.engine.ready.value"
@@ -144,7 +139,6 @@ import FrameBands from "@/pages/record/FrameBands.vue";
 import RecordHeader from "@/pages/record/RecordHeader.vue";
 import { recordDialogWrite } from "@/shell/recordDialog";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
-import PageState from "@/shell/PageState.vue";
 import { failedState } from "@/shell/pageState";
 import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";
 import { useLiveClientScripts } from "@/pages/record/liveClientScripts";
@@ -164,6 +158,7 @@ const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 const { view, quickFilterFields, customizing, metaError, reloadMeta, createValues } = props.page;
 const { doctype, filters, sort, seeded } = view;
+const UnbuiltView = defineAsyncComponent(() => import("./UnbuiltView.vue"));
 const unbuilt = boot.unbuilt_view_types?.find((one) => one.name === view.type);
 
 const { meta } = useDoctypeMeta(doctype);
@@ -194,6 +189,7 @@ watch(recordDialogWrite, (write) => {
 // The plain List view is the doctype's own star; any other view is starred by its key.
 const starKey = view.key === "list" ? null : view.key;
 const settings = useListSettings(doctype);
+const starsLoaded = () => !unbuilt && settings.favourites.value !== null;
 const favourited = computed(() => isFavourite(settings.favourites.value, starKey));
 
 const permissions = useListPermissions(doctype);
@@ -244,7 +240,7 @@ const listActs = useListActs(
 				meta: meta.value,
 			}),
 		openEditor: (entry) => router.push(editorRoute(doctype, entry.mode)),
-		starsLoaded: () => settings.favourites.value !== null,
+		starsLoaded,
 		favourited: () => favourited.value,
 		toggleFavourite: () => settings.toggleFavourite(starKey),
 		openView: (key) => router.push(routeFor(doctype, null, { view: key })),
@@ -271,7 +267,7 @@ list.engine.header.provideBuiltins(() =>
 		doctype,
 		module: moduleCrumb,
 		view: viewCrumb,
-		starsLoaded: () => settings.favourites.value !== null,
+		starsLoaded,
 		favourited: () => favourited.value,
 		toggleFavourite: () => settings.toggleFavourite(starKey),
 		create,

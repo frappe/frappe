@@ -39,7 +39,6 @@ const route = useRoute();
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const key = computed(() => (route.params.key ? String(route.params.key) : null));
 
-// No `View Type` record, so no view to look up: the type's own address opens a placeholder.
 const unbuilt = computed(() =>
 	boot.unbuilt_view_types?.find((one) => typeKey(one.name) === key.value)
 );
@@ -50,10 +49,8 @@ const savedView = useSavedView(
 );
 
 const opened = computed((): SavedView | null => {
-	if (unbuilt.value) {
-		const { name, label } = unbuilt.value;
-		return { key: typeKey(name), label, type: name, layer: null, applies: true };
-	}
+	const one = unbuilt.value;
+	if (one) return { ...PLAIN_LIST, key: key.value!, label: one.label, type: one.name };
 	return key.value ? savedView.view.value : PLAIN_LIST;
 });
 

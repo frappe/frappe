@@ -363,7 +363,6 @@ def get_boot(path: str | None = None) -> dict:
 				{"name": record.name, "label": _(record.label), "icon": record.icon}
 				for record in view_types().values()
 			],
-			# Kept types with no record yet: `/<doctype>/view/<type>` opens a placeholder.
 			"unbuilt_view_types": unbuilt_view_types(),
 		}
 
