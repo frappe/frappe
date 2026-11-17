@@ -643,8 +643,14 @@ report when its tab is gone. An agent's value never skips a confirm: for a call 
 asks first (`danger.change_kind`, `danger.rename_doctype`, `danger.move_doctype`, `danger.make_standard`,
 `fields.delete_field`, `layouts.reset_to_app`) uses the value to fill the dialog, opens it, and waits
 for the person, as above. A script's `page.run` with the same value still skips it. A confirm or danger dialog an agent's call
-opens ends with "An agent asked for this.". The state of a list is `doctype`, `filters`, `sort` and `selected`;
-a record or new page adds `doctype`, `name` (not on a new record), `docstatus`, `unsaved`, `errors` and, with
+opens ends with "An agent asked for this.". The state of a list is `doctype`, `filters` (REST v2 `[fieldname, operator, value]` triples), `sort`
+(`[{ fieldname, direction }]`), `selected` and `rows` (`{ name, title }` for the loaded rows, up to 20).
+Three list acts change it: `list.set_filters({ filters })` replaces the filters (an empty list clears
+them), `list.set_sort({ sort })` replaces the sort, and both answer `{ total, rows }` once the rows have
+loaded; `list.select({ names })` replaces the selection with loaded rows and answers `{ selected }`.
+An unknown field or operator, or a name that is not a loaded row, is `invalid`. A bulk act of a person
+whose "Allow bulk actions" is off is `missing`, and its message says to turn it on in My Settings.
+A record or new page adds `doctype`, `name` (not on a new record), `docstatus`, `unsaved`, `errors` and, with
 `fields: true`, the fields its layout shows (a text value is cut at 200 characters). A record route
 whose page has not loaded gives `loading: true`; read again.
 

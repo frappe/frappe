@@ -8,7 +8,7 @@ const NEXT: Record<ActDeniedReason, string> = {
 };
 
 function errorOf(error: unknown, name: string): ActError {
-	if (error instanceof ActDenied) return { code: error.reason, message: `${error.message}. ${NEXT[error.reason]}` };
+	if (error instanceof ActDenied) return { code: error.reason, message: `${error.message}. ${error.detail ?? NEXT[error.reason]}` };
 	if (error instanceof ActInvalid) return { code: "invalid", message: `${error.message}. Send a value that fits the act's input and run it again.` };
 	if (error instanceof ActDeclined)
 		return { code: "declined", message: `${name}: the person declined. Do not run it again unless the person asks for it.` };

@@ -85,6 +85,19 @@ describe("serializeFilters", () => {
     ).toEqual([["is_active", "=", false]]);
   });
 
+  it("keeps Yes and No as text on a field that is not a Check", () => {
+    const answer: FilterField = { ...STATUS, fieldname: "is_active", value: "is_active", options: "Yes\nNo" };
+    expect(
+      serializeFilters([
+        { field: answer, fieldname: "is_active", operator: "equals", value: "Yes" },
+        { field: ACTIVE, fieldname: "is_active", operator: "equals", value: "No" },
+      ])
+    ).toEqual([
+      ["is_active", "=", "Yes"],
+      ["is_active", "=", false],
+    ]);
+  });
+
   it("serializes multiple conditions into one wire list", () => {
     expect(
       serializeFilters([

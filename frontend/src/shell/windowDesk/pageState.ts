@@ -20,6 +20,8 @@ export interface DeskState {
 	filters?: unknown[];
 	sort?: unknown[];
 	selected?: string[];
+	/** A list's loaded rows, up to 20. */
+	rows?: { name: string; title: string }[];
 	fields?: Record<string, unknown>[];
 	truncated?: true;
 	/** A record route whose page has not registered yet: read again. */
@@ -43,7 +45,7 @@ const KINDS: Record<string, PageKind> = {
 
 export async function readState({ fields = false }: StateOptions = {}): Promise<DeskState> {
 	const page = kindOf(routeName());
-	const facts = page === "list" ? listFacts() : page === "record" || page === "new" ? (await acts.factsOf("record", fields)) ?? { loading: true } : {};
+	const facts = page === "list" ? (await acts.factsOf("list", fields)) ?? {} : page === "record" || page === "new" ? (await acts.factsOf("record", fields)) ?? { loading: true } : {};
 	return capFields({ route: `${location.pathname}${location.search}${location.hash}`, page, ...facts, dialogs: readDialogs() });
 }
 
@@ -54,12 +56,6 @@ function routeName(): string {
 
 function kindOf(name: string): PageKind {
 	return KINDS[name] ?? "page";
-}
-
-function listFacts() {
-	const list = acts.contextOf("list") as { doctype: string; filters: unknown[]; sort: unknown[]; selection: string[] } | undefined;
-	if (!list) return {};
-	return { doctype: list.doctype, filters: [...list.filters], sort: [...list.sort], selected: [...list.selection] };
 }
 
 /** Drops the fields that do not fit the cap, last first. */

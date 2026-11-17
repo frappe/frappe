@@ -33,6 +33,15 @@ describe("the dispatcher", () => {
       expect(await held({ run: () => undefined }).call("header.go")).toMatchObject({ ok: true, data: null });
     });
 
+    it("tells a missing act's caller what the scope says fixes it, in place of the general advice", async () => {
+      const dispatcher = new ActDispatcher();
+      dispatcher.register({ ...scope("x"), missing: (name) => (name === "header.nope" ? "Turn it on." : undefined) });
+
+      const result = (await dispatcher.call("header.nope")) as any;
+      expect(result.error).toMatchObject({ code: "missing", message: "header.nope: no surface holds this act now. Turn it on." });
+      expect(((await dispatcher.call("header.other")) as any).error.message).toContain("List the acts that can run now");
+    });
+
     it("never rejects: a missing act is `missing`, and says what to do next", async () => {
       const result = await held({ run: () => 1 }).call("header.nope");
 

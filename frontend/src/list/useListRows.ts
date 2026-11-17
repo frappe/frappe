@@ -57,6 +57,8 @@ export interface ListRows {
 	show(size: number): void;
 	/** The `key` of the query the rows belong to, which trails the state while a change waits. */
 	loadedKey: ComputedRef<string | null>;
+	/** Resolves when the rows loaded are those of the query now set, or when their read failed. */
+	settled: () => Promise<void>;
 	/** The fields the rows are read with. */
 	readFields: () => string[];
 	next: () => void;
@@ -89,6 +91,10 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	let generation = 0;
 	// The generation whose background read is out; a Load More meanwhile only raises `shown`.
 	let refreshing = -1;
+	// True while cached rows are on show and the read that checks them is still out.
+	const checking = ref(false);
+	// Why the check read failed; the cached rows stay on show, but an act waiting on them must know.
+	const checkFailure = ref<Error | null>(null);
 	let timer = 0;
 
 	const loaded = computed(() => pages.value.flatMap((page) => page.data ?? []));
@@ -141,6 +147,15 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 
 	onScopeDispose(() => clearTimeout(timer));
 
+	/** Loads on the first act that waits, so the page does not carry it. */
+	async function settled(): Promise<void> {
+		const done = () =>
+			loadedKey.value === (query()?.key ?? null) &&
+			!checking.value &&
+			(firstPage.value?.data != null || Boolean(error.value));
+		return (await import("./settleRows")).settleRows(done, () => error.value ?? checkFailure.value);
+	}
+
 	/** Undefined while there is no query yet, so the first real one still counts as the first. */
 	function queryKey(): string | undefined {
 		const current = query();
@@ -153,6 +168,8 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		const current = query();
 		generation++;
 		loadedKey.value = current?.key ?? null;
+		checking.value = false;
+		checkFailure.value = null;
 		if (current && paintCached(current, target)) return void refresh(current);
 		pages.value = [];
 		shown.value = 0;
@@ -188,6 +205,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	/** Reads every shown row again and swaps rows and count in one step; a failure keeps them. */
 	async function refresh(current: RowsQuery) {
 		const mine = (refreshing = generation);
+		checking.value = true;
 		const limit = shown.value;
 		const sentAt = starsWritten();
 		const outcome = await listDocuments<ListRow>(
@@ -197,7 +215,9 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		).catch((failure: Error) => failure);
 		if (mine !== generation) return;
 		refreshing = -1;
+		checking.value = false;
 		if (isLostAccess(outcome)) return showError(outcome);
+		if (outcome instanceof Error) checkFailure.value = outcome;
 		if (!(outcome instanceof Error)) {
 			seedParts(outcome, sentAt);
 			pages.value = [landedPage(outcome.data, outcome.has_next_page)];
@@ -288,6 +308,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		hasNextPage,
 		shown: computed(() => shown.value),
 		loadedKey: computed(() => loadedKey.value),
+		settled,
 		readFields: () => query()?.fields ?? [],
 		show: (size) => {
 			if (!lastPage.value) return;

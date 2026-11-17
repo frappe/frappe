@@ -107,6 +107,7 @@ import { Button, Dropdown, Skeleton, toast } from "frappe-ui";
 import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
+import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { computed, defineAsyncComponent, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -179,6 +180,7 @@ const settings = useListSettings(doctype);
 const favourited = computed(() => isFavourite(settings.favourites.value, starKey));
 
 const permissions = useListPermissions(doctype);
+const fieldPermissions = useDocPermissions(doctype);
 const list = createListPage({
 	view,
 	router,
@@ -214,6 +216,10 @@ const listActs = useListActs(
 		create,
 		customizeQuickFilter: () => (customizing.value = true),
 		customizing: () => customizing.value,
+		readable: (fieldname) => {
+			const field = meta.value?.fields?.find((one) => one.fieldname === fieldname);
+			return !field || fieldPermissions.fieldAccess(field) !== "none";
+		},
 		editorEntries: () =>
 			editorEntries(doctype, {
 				roles: boot.session.roles ?? [],

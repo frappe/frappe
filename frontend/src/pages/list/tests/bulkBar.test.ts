@@ -254,13 +254,14 @@ describe("useBulkBar", () => {
 		const perform = vi.fn();
 		const askDelete = vi.fn();
 		const supplied: Array<() => Array<{ item: { name: string } }>> = [];
+		const states: Array<{ select: (names: string[]) => void | Promise<void>; missing: (item: string) => string | undefined }> = [];
 		let result!: ReturnType<typeof useBulkBar>;
 		const root = document.createElement("div");
 		const app = createApp(
 			defineComponent({
 				setup() {
 					result = useBulkBar({
-						host: { lists, acts: (supply: never) => (supplied.push(supply), { drawn, perform }) } as never,
+						host: { lists, acts: (supply: never, state: never) => (supplied.push(supply), states.push(state), { drawn, perform }) } as never,
 						doctype: "ToDo",
 						selection,
 						scope,
@@ -268,6 +269,8 @@ describe("useBulkBar", () => {
 						rows: ref([]),
 						rowActions: ref([]),
 						reload: () => {},
+						settled: async () => {},
+						total: () => 0,
 						askDelete,
 						cursor: ref(null),
 						table: () => null,
@@ -279,7 +282,7 @@ describe("useBulkBar", () => {
 		);
 		app.provide("boot", { session: { user: { name: "jane@example.com" } }, ...boot }).mount(root);
 		await result.load();
-		return { result, lists, selection, scope, perform, askDelete, supplied, app };
+		return { result, lists, selection, scope, perform, askDelete, supplied, states, app };
 	}
 
 	const open = { bulk_actions: true, bulk_operation_limit: 500 };
@@ -381,6 +384,31 @@ describe("useBulkBar", () => {
 		expect(locked.supplied[0]().map(({ item }) => item.name)).not.toContain("delete");
 		expect(locked.result.layout.value.menu).toEqual([]);
 		locked.app.unmount();
+	});
+
+	it("replaces the selection for an act, and says to turn bulk actions on when the switch is off", async () => {
+		const open_ = await bar(open);
+		await open_.states[0].select(["R1"]);
+		expect(open_.selection.value).toEqual(["R1"]);
+		expect(open_.states[0].missing("assign")).toBeUndefined();
+		open_.app.unmount();
+
+		const locked = await bar({ bulk_actions: false, bulk_operation_limit: 500 });
+		expect(locked.states[0].missing("assign")).toContain("Allow bulk actions");
+		locked.app.unmount();
+	});
+
+	it("ends Select all N when an act names the rows, so the next bulk act takes those rows", async () => {
+		const { selection, scope, states, app } = await bar(open);
+		selection.value = ["R0", "R1"];
+		scope.selectAll();
+		expect(scope.selected()).toHaveProperty("filters");
+
+		await states[0].select(["R0", "R1"]);
+
+		expect(scope.all.value).toBe(false);
+		expect(scope.selected()).toEqual({ names: ["R0", "R1"] });
+		app.unmount();
 	});
 
 	it("leaves an action that takes row names off while Select all is on", async () => {

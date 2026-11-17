@@ -88,6 +88,8 @@ async function bar({
           rows: ref([]),
           rowActions: ref([]),
           reload: () => {},
+          settled: async () => {},
+          total: () => 0,
           askDelete,
           cursor: ref(null),
           table: () => null,

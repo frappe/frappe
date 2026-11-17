@@ -105,7 +105,7 @@ export function parseFilters(
 /**
  * Serialize a list of Filters into the Frappe wire filter list. Each condition
  * becomes a `[fieldname, wireOperator, value]` triple (an `equals` uses `=`; a
- * Check `Yes`/`No` becomes a boolean). The list form — rather than CRM's
+ * Check `Yes`/`No` becomes a boolean, other fields keep the text). The list form — rather than CRM's
  * fieldname-keyed dict — lets the same field appear in more than one condition.
  * A condition with no value yet is left out, so picking a field narrows nothing
  * until the user gives it a value.
@@ -113,8 +113,10 @@ export function parseFilters(
 export function serializeFilters(conditions: Filter[]): WireFilters {
   return conditions.filter(hasValue).map((c) => {
     if (c.operator === "equals") {
+      // A field known not to be a Check keeps its text: a Select may have "Yes" and "No" options.
+      const check = !c.field || c.field.fieldtype === "Check";
       const value =
-        c.value === "Yes" ? true : c.value === "No" ? false : c.value;
+        check && c.value === "Yes" ? true : check && c.value === "No" ? false : c.value;
       return [c.fieldname, "=", value];
     }
     return [

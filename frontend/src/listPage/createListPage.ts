@@ -46,6 +46,14 @@ export interface ListRendererState {
   /** What a bulk request sends for the selection: the names, or the filter. */
   selected: () => BulkSelection;
   reload: () => void;
+  /** Replaces the selection; the page's own rows only. Settles once the selection's bulk acts are there. */
+  select: (names: string[]) => void | Promise<void>;
+  /** Resolves when the rows shown are those of the filters and sort now set. */
+  settled: () => Promise<void>;
+  /** How many records the filters match. */
+  total: () => number;
+  /** Why the act `item`, which the surface does not hold, is absent, when the caller can fix it. */
+  missing?: (item: string) => string | undefined;
 }
 
 export type ListPageLists = {
@@ -61,6 +69,8 @@ export interface ListPageController {
   lists: ListPageLists;
   /** The renderer hands in its rows; the page reads none until it does. */
   attach: (state: ListRendererState) => void;
+  /** What the renderer holds, for the page's list acts. */
+  renderer: () => ListRendererState;
   /** Paints at once when the scripts are in, else replays when they land. */
   paint: () => void;
   leave: () => void;
@@ -69,7 +79,15 @@ export interface ListPageController {
 /** The list page's body has one built-in column, the controls row and the rows; a script's go around it. */
 export const LIST_BODY_BUILTINS: readonly BodyItem[] = [{ name: "list", gutter: false }];
 
-const DETACHED: ListRendererState = { rows: () => [], selection: () => [], selected: () => ({ names: [] }), reload: () => {} };
+const DETACHED: ListRendererState = {
+  rows: () => [],
+  selection: () => [],
+  selected: () => ({ names: [] }),
+  reload: () => {},
+  select: () => {},
+  settled: () => Promise.reject(new Error("the list is not drawn yet")),
+  total: () => 0,
+};
 
 export function createListPage(host: ListPageHost): ListPageController {
   const { doctype } = host.view;
@@ -102,6 +120,7 @@ export function createListPage(host: ListPageHost): ListPageController {
     page,
     engine,
     lists,
+    renderer: () => renderer.value,
     attach: (state) => {
       renderer.value = state;
       // The renderer gives the built-in columns and bulk actions; replay so a script's `has` sees them.

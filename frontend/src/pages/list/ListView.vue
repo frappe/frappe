@@ -240,6 +240,7 @@ const {
 	rowLink,
 	reload,
 	deleteSelection,
+	settled,
 } = useListView(props.view, props.host.lists);
 
 props.host.onCreate(reload);
@@ -302,6 +303,8 @@ const bulk = useBulkBar({
 	rows,
 	rowActions,
 	reload,
+	settled,
+	total: () => totalCount.value,
 	cursor,
 	table: () => table.value,
 	copy: {
