@@ -8,6 +8,7 @@ import sqlite3
 import unicodedata
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
+from functools import cached_property
 from pathlib import Path
 
 from pymysql.converters import escape_string
@@ -54,10 +55,13 @@ CATALOG_DISPLAY_WIDTHS = {
 TEXT_INDEX_PREFIX = 140
 MAX_STATEMENT_BYTES = 1024 * 1024
 MAX_REPORTED_PROBLEMS = 25
+# the `gzip` command's default, as native backups use; Python's default of 9 takes over twice as long
+GZIP_LEVEL = 6
 RESTORE_SQL_MODE = (
 	"STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_AUTO_VALUE_ON_ZERO"
 )
 TABLE_OPTIONS = "ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+DATE_WITH_TIME = re.compile(r"\d{4}-\d\d-\d\d[ T].*")
 
 
 class MariaDBDumpError(frappe.ValidationError):
@@ -138,24 +142,24 @@ class Column:
 	name: str
 	definition: str
 
-	@property
+	@cached_property
 	def base_type(self) -> str:
 		return re.match(r"[a-z]+", self.definition.lower()).group(0)
 
-	@property
+	@cached_property
 	def is_numeric(self) -> bool:
 		return self.base_type in NUMERIC_TYPES
 
-	@property
+	@cached_property
 	def is_temporal(self) -> bool:
 		return self.base_type in TEMPORAL_TYPES
 
-	@property
+	@cached_property
 	def is_nullable(self) -> bool:
 		definition = self.definition.lower()
 		return "not null" not in definition and "primary key" not in definition
 
-	@property
+	@cached_property
 	def max_length(self) -> int | None:
 		if match := re.match(r"(?:var)?char\((\d+)\)", self.definition.lower()):
 			return int(match.group(1))
@@ -298,17 +302,28 @@ def parse_key_columns(part: str) -> tuple[str, ...]:
 	return tuple(re.sub(r"\(\d+\)$", "", column.strip()).strip("`") for column in split_top_level(columns))
 
 
-def find_closing_parenthesis(text: str, start: int) -> int:
-	depth = 0
-	quote = None
+def iterate_unquoted(text: str, start: int = 0):
+	"""Yield `(index, character)` for the characters of `text` that are outside quotes."""
+	quote, is_escaped = None, False
 	for index in range(start, len(text)):
 		character = text[index]
-		if quote:
-			if character == quote and text[index - 1] != "\\":
-				quote = None
-		elif character in "'\"`":
-			quote = character
-		elif character == "(":
+		if not quote:
+			if character in "'\"`":
+				quote = character
+			else:
+				yield index, character
+		elif is_escaped:
+			is_escaped = False
+		elif character == "\\" and quote != "`":
+			is_escaped = True
+		elif character == quote:
+			quote = None
+
+
+def find_closing_parenthesis(text: str, start: int) -> int:
+	depth = 0
+	for index, character in iterate_unquoted(text, start):
+		if character == "(":
 			depth += 1
 		elif character == ")":
 			depth -= 1
@@ -318,24 +333,17 @@ def find_closing_parenthesis(text: str, start: int) -> int:
 
 
 def split_top_level(text: str) -> list[str]:
-	parts, current, depth, quote = [], [], 0, None
-	for index, character in enumerate(text):
-		if quote:
-			if character == quote and text[index - 1] != "\\":
-				quote = None
-		elif character in "'\"`":
-			quote = character
-		elif character == "(":
+	parts, depth, part_start = [], 0, 0
+	for index, character in iterate_unquoted(text):
+		if character == "(":
 			depth += 1
 		elif character == ")":
 			depth -= 1
 		elif character == "," and depth == 0:
-			parts.append("".join(current))
-			current = []
-			continue
-		current.append(character)
-	if "".join(current).strip():
-		parts.append("".join(current))
+			parts.append(text[part_start:index])
+			part_start = index + 1
+	if text[part_start:].strip():
+		parts.append(text[part_start:])
 	return parts
 
 
@@ -376,8 +384,10 @@ def collation_key(value):
 	"""Approximate `utf8mb4_unicode_ci` equality: case, accents and trailing spaces are ignored."""
 	if not isinstance(value, str):
 		return value
-	decomposed = unicodedata.normalize("NFKD", value)
-	return "".join(c for c in decomposed if not unicodedata.combining(c)).casefold().rstrip(" ")
+	if not value.isascii():
+		decomposed = unicodedata.normalize("NFKD", value)
+		value = "".join(c for c in decomposed if not unicodedata.combining(c))
+	return value.casefold().rstrip(" ")
 
 
 def apply_alter_table(shape: TableShape, statement: str):
@@ -426,7 +436,10 @@ class MariaDBDumpWriter:
 		self.framework_tables = framework_table_statements()
 
 	def write(self, path, header: str):
-		with self.snapshot() as connection, gzip.open(path, "wt", encoding="utf-8") as dump:
+		with (
+			self.snapshot() as connection,
+			gzip.open(path, "wt", compresslevel=GZIP_LEVEL, encoding="utf-8") as dump,
+		):
 			dump.write(header)
 			dump.write(f"SET NAMES utf8mb4;\nSET SESSION sql_mode='{RESTORE_SQL_MODE}';\n")
 			dump.write("SET FOREIGN_KEY_CHECKS=0;\nSET AUTOCOMMIT=0;\n\n")
@@ -442,7 +455,8 @@ class MariaDBDumpWriter:
 
 	@contextlib.contextmanager
 	def snapshot(self):
-		connection = sqlite3.connect(f"file:{self.database_path}?mode=ro", uri=True, timeout=15)
+		database_uri = f"{self.database_path.resolve().as_uri()}?mode=ro"
+		connection = sqlite3.connect(database_uri, uri=True, timeout=15)
 		connection.text_factory = str
 		connection.create_function("mariadb_collation_key", 1, collation_key, deterministic=True)
 		connection.execute("PRAGMA temp_store = FILE")
@@ -559,7 +573,7 @@ class MariaDBDumpWriter:
 			if not_null or pk:
 				definition += " NOT NULL"
 			if default is not None and re.fullmatch(r"-?\d+(\.\d+)?|'(?:[^']|'')*'", str(default)):
-				definition += f" DEFAULT {default}"
+				definition += " DEFAULT " + str(default).replace("\\", "\\\\")
 			definitions.append(f"{quote_identifier(name)} {definition}")
 		if primary_key:
 			definitions.append(
@@ -635,14 +649,11 @@ class MariaDBDumpWriter:
 		batch, batch_bytes = [], 0
 		while rows := cursor.fetchmany(1000):
 			for row in rows:
-				values = (
-					"("
-					+ ",".join(
-						self.literal(table, row, value, column)
-						for value, column in zip(row, target_columns, strict=True)
-					)
-					+ ")"
-				)
+				literals = [
+					self.literal(table, row, value, column)
+					for value, column in zip(row, target_columns, strict=True)
+				]
+				values = "(" + ",".join(literals) + ")"
 				batch.append(values)
 				batch_bytes += len(values)
 				if batch_bytes >= MAX_STATEMENT_BYTES:
@@ -675,10 +686,10 @@ class MariaDBDumpWriter:
 
 	def literal(self, table: str, row, value, column: Column) -> str:
 		value = self.coerce(table, row, value, column)
+		if isinstance(value, str):
+			return "'" + escape_string(value) + "'"
 		if value is None:
 			return "NULL"
-		if isinstance(value, bool):
-			return "1" if value else "0"
 		if isinstance(value, int | Decimal):
 			return str(value)
 		if isinstance(value, float):
@@ -688,15 +699,13 @@ class MariaDBDumpWriter:
 				)
 				return "NULL"
 			return repr(value)
-		if isinstance(value, bytes):
-			return f"X'{value.hex()}'" if value else "''"
-		return "'" + escape_string(str(value)) + "'"
+		return f"X'{value.hex()}'" if value else "''"
 
 	def coerce(self, table: str, row, value, column: Column):
 		if isinstance(value, str):
 			if column.is_numeric:
 				return self.coerce_number(table, row, value, column)
-			if column.base_type == "date" and re.fullmatch(r"\d{4}-\d\d-\d\d[ T].*", value):
+			if column.base_type == "date" and DATE_WITH_TIME.fullmatch(value):
 				return value[:10]
 			if column.is_temporal and not value.strip():
 				return (
