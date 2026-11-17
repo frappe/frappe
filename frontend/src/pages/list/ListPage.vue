@@ -35,7 +35,6 @@
 						:class="[pageGutter, { invisible: !list.engine.ready.value }]"
 						class="flex shrink-0 items-start justify-between gap-2 pt-3.5"
 					>
-						<!-- These controls edit the state `list.set_filters` and `list.set_sort` set, so `data-act` names the act: the control itself runs it. -->
 						<div
 							class="flex min-w-0 flex-1 flex-col"
 							:data-act="customizing ? undefined : 'list.set_filters'"
