@@ -17,6 +17,7 @@ from frappe.api.bulk import (
 )
 from frappe.api.utils import FrappeValueError
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+from frappe.exceptions import DeskV2DisabledError
 from frappe.handler import is_valid_http_method, resolve_method
 from frappe.model.docstatus import DocStatus
 from frappe.model.workflow import (
@@ -27,6 +28,7 @@ from frappe.model.workflow import (
 	run_workflow_transition,
 )
 from frappe.utils import add_to_date, now_datetime
+from frappe.utils.data import is_desk_v2_enabled
 from frappe.utils.print_format import (
 	_enforce_multi_pdf_async_rate_limit,
 	append_to_pdf,
@@ -42,26 +44,23 @@ RESERVED_KEYS = ("doctype", "name", "flags")
 ROW_RESERVED_KEYS = (*RESERVED_KEYS, "parent", "parenttype", "parentfield", "idx")
 
 
-def bulk_delete_docs(doctype: str):
-	"""POST /document/<doctype>/bulk_delete
+def bulk_remove_docs(doctype: str):
+	"""POST /document/<doctype>/bulk_remove
 
 	Body: `names`, or `filters` and `or_filters` for every record the list shows.
 	Returns `{total, done, failed: [{name, error}]}`, or `202 {task_id, job_id}` above the threshold.
 	"""
+	check_desk_v2_enabled()
 	return run_bulk(DELETE, doctype)
 
 
-def bulk_delete():
-	"""POST /method/bulk_delete: the same across doctypes. Body: `docs`, a list of `{doctype, name}`."""
-	return run_bulk(DELETE, selection=selection_from_docs(frappe.form_dict.get("docs"), with_values=False))
-
-
-def bulk_update_docs(doctype: str):
-	"""POST /document/<doctype>/bulk_update
+def bulk_edit_docs(doctype: str):
+	"""POST /document/<doctype>/bulk_edit
 
 	Body: one `values` (and `child_values`: `{table_field: {field: value}}`, set on every row of the
 	table) for the selected records, or `docs`, a list of `{name, ...fields}` with its own values each.
 	"""
+	check_desk_v2_enabled()
 	form = frappe.form_dict
 
 	if "docs" in form:
@@ -84,9 +83,12 @@ def bulk_update_docs(doctype: str):
 	)
 
 
-def bulk_update():
-	"""POST /method/bulk_update: `docs` across doctypes, a list of `{doctype, name, ...fields}`."""
-	return run_bulk(UPDATE, selection=selection_from_docs(frappe.form_dict.get("docs")))
+def check_desk_v2_enabled():
+	"""`@frappe.desk_v2_only` guards whitelisted methods only; these are route endpoints."""
+	if not is_desk_v2_enabled():
+		frappe.throw(
+			_("Desk v2 is not enabled on this site."), DeskV2DisabledError, title=_("Desk v2 Disabled")
+		)
 
 
 def bulk_print_docs(doctype: str):

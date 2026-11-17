@@ -196,11 +196,11 @@ describe("create, delete and copy", () => {
     expect(lastCall()).toMatchObject({ url: "/api/v2/document/ToDo/T-1", method: "DELETE" });
   });
 
-  it("bulk deletes by posting the names to the bulk_delete route", async () => {
+  it("bulk deletes by posting the names to the bulk_remove route", async () => {
     respond({ data: { total: 1, done: ["T-1"], failed: [] } });
     expect((await bulkDeleteDocuments("ToDo", ["T-1"])).data).toMatchObject({ done: ["T-1"] });
     expect(lastCall()).toMatchObject({
-      url: "/api/v2/document/ToDo/bulk_delete",
+      url: "/api/v2/document/ToDo/bulk_remove",
       method: "POST",
       body: { names: ["T-1"] },
     });
@@ -210,7 +210,7 @@ describe("create, delete and copy", () => {
     respond({ data: { total: 2, done: ["T-1", "T-2"], failed: [] } });
     await bulkDeleteDocuments("ToDo", { filters: { status: ["=", "Open"] } });
     expect(lastCall()).toMatchObject({
-      url: "/api/v2/document/ToDo/bulk_delete",
+      url: "/api/v2/document/ToDo/bulk_remove",
       body: { filters: { status: ["=", "Open"] } },
     });
   });
@@ -219,7 +219,7 @@ describe("create, delete and copy", () => {
     respond({ data: { total: 2, done: ["T-1", "T-2"], failed: [] } });
     await bulkUpdateDocuments("ToDo", { names: ["T-1", "T-2"] }, { values: { status: "Closed" }, child_values: { items: { qty: 2 } } });
     expect(lastCall()).toMatchObject({
-      url: "/api/v2/document/ToDo/bulk_update",
+      url: "/api/v2/document/ToDo/bulk_edit",
       method: "POST",
       body: { names: ["T-1", "T-2"], values: { status: "Closed" }, child_values: { items: { qty: 2 } } },
     });

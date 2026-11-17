@@ -58,6 +58,7 @@ BACKGROUND = BulkAction("Touch", touch_one, background=True)
 
 class TestBulkRunner(IntegrationTestCase):
 	def setUp(self):
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
 		self.addCleanup(self.cleanup)
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.form_dict.clear()
@@ -290,6 +291,14 @@ class TestBulkRunner(IntegrationTestCase):
 		self.assertEqual(frappe.response.http_status_code, 202)
 		self.assertIn("task_id", response)
 
+	def test_shell_routes_refuse_while_desk_v2_is_off(self):
+		frappe.form_dict.names = self.names
+		with self.change_settings("System Settings", enable_desk_v2=0):
+			for handler in (bulk_actions.bulk_remove_docs, bulk_actions.bulk_edit_docs):
+				with self.assertRaises(frappe.PermissionError):
+					handler("ToDo")
+		self.assertTrue(all(frappe.db.exists("ToDo", name) for name in self.names))
+
 	# Doctype preconditions
 
 	def test_workflow_doctype_is_refused_without_allow_edit(self):
@@ -299,7 +308,7 @@ class TestBulkRunner(IntegrationTestCase):
 
 			frappe.form_dict.names = self.names
 			with self.assertRaises(frappe.ValidationError):
-				bulk_actions.bulk_delete_docs("ToDo")
+				bulk_actions.bulk_remove_docs("ToDo")
 
 		self.assertTrue(all(frappe.db.exists("ToDo", name) for name in self.names))
 
@@ -312,13 +321,13 @@ class TestBulkRunner(IntegrationTestCase):
 
 	def test_delete_route_removes_the_records(self):
 		frappe.form_dict.names = self.names
-		result = bulk_actions.bulk_delete_docs("ToDo")
+		result = bulk_actions.bulk_remove_docs("ToDo")
 		self.assertCountEqual(result["done"], self.names)
 		self.assertFalse(any(frappe.db.exists("ToDo", name) for name in self.names))
 
 	def test_update_route_sets_one_set_of_values_on_every_record(self):
 		frappe.form_dict.update(names=self.names, values={"priority": "High"})
-		result = bulk_actions.bulk_update_docs("ToDo")
+		result = bulk_actions.bulk_edit_docs("ToDo")
 		self.assertEqual(len(result["done"]), 4)
 		self.assertEqual(frappe.get_all("ToDo", {"name": ["in", self.names]}, pluck="priority"), ["High"] * 4)
 
@@ -327,14 +336,14 @@ class TestBulkRunner(IntegrationTestCase):
 			{"name": self.names[0], "priority": "Low"},
 			{"name": "nope", "priority": "Low"},
 		]
-		result = bulk_actions.bulk_update_docs("ToDo")
+		result = bulk_actions.bulk_edit_docs("ToDo")
 		self.assertEqual(result["done"], [self.names[0]])
 		self.assertEqual(result["failed"][0]["name"], "nope")
 
 	def test_delete_route_gives_a_missing_record_a_reason(self):
 		frappe.form_dict.names = [self.names[0], "ToDo-gone-47082"]
 		frappe.flags.error_message = "No permission for an earlier record"
-		result = bulk_actions.bulk_delete_docs("ToDo")
+		result = bulk_actions.bulk_remove_docs("ToDo")
 		self.assertEqual(result["done"], [self.names[0]])
 		self.assertEqual(result["failed"], [{"name": "ToDo-gone-47082", "error": "Not found"}])
 
@@ -344,7 +353,7 @@ class TestBulkRunner(IntegrationTestCase):
 
 	def test_update_route_rejects_an_unknown_child_table(self):
 		frappe.form_dict.update(names=self.names[:1], child_values={"description": {"x": 1}})
-		result = bulk_actions.bulk_update_docs("ToDo")
+		result = bulk_actions.bulk_edit_docs("ToDo")
 		self.assertIn("not a table field", result["failed"][0]["error"])
 
 	# bulk_call: an app's whitelisted record function
