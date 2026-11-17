@@ -1,6 +1,6 @@
 // The shell binds the `key` of each act available now through `useKeyboardShortcut`; a press runs
 // the act through the dispatcher, so its checks run as they do for a click.
-import { computed, defineComponent, h, watch, type PropType } from "vue";
+import { computed, defineComponent, getCurrentInstance, h, watch, type PropType } from "vue";
 import { useKeyboardShortcut, type KeyboardShortcutCombo } from "frappe-ui";
 import { acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
 import { overlayOf } from "./overlay";
@@ -17,7 +17,8 @@ export const ActKeys = defineComponent({
 	setup(props) {
 		// Agents drive the same acts as the keys do; this chunk loads after the first paint, so `window.desk` costs no page JS.
 		// A failed load leaves `window.desk` unset; the keys still work.
-		void import("./windowDesk/install").then((m) => m.installDesk(), () => {});
+		const app = getCurrentInstance()!.appContext;
+		void import("./windowDesk/install").then((m) => m.installDesk(app), () => {});
 		const bindings = computed(() => {
 			const bound = (item: ActItem) => Boolean(item.key && (!item.argument || props.openArgument));
 			return actsByCombo(acts.available(bound));

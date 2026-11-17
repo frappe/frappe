@@ -68,6 +68,8 @@
   "show_absolute_datetime_in_timeline",
   "report_settings_section",
   "report_split_view",
+  "agent_settings_section",
+  "agent_ui_relay",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -889,6 +891,19 @@
    "fieldname": "report_split_view",
    "fieldtype": "Check",
    "label": "Split view in reports"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "agent_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Agents"
+  },
+  {
+   "default": "0",
+   "description": "An agent you sign in for, such as frappectl, can read and drive the desk tabs you have open. Applies after a reload.",
+   "fieldname": "agent_ui_relay",
+   "fieldtype": "Check",
+   "label": "Let agents drive my open tabs"
   },
   {
    "fieldname": "sessions_tab",

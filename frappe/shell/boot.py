@@ -77,6 +77,8 @@ def core_boot() -> dict:
 		"has_app_updates": has_app_update_notifications(),
 		# The user's bulk-action switch and the site cap, so the list refuses before it calls.
 		"bulk_actions": bulk.has_gate(),
+		# The tab listens for `ui_relay` calls only when the person turned this on.
+		"agent_ui_relay": bool(frappe.get_cached_value("User", frappe.session.user, "agent_ui_relay")),
 		"bulk_operation_limit": bulk.get_limit(),
 		"max_bulk_print_docs": max_bulk_print_docs(),
 	}

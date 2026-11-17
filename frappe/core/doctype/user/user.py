@@ -86,6 +86,7 @@ class User(Document):
 		from frappe.types import DF
 
 		active_sessions: DF.Table[UserSessionDisplay]
+		agent_ui_relay: DF.Check
 		allowed_in_mentions: DF.Check
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
@@ -263,6 +264,7 @@ class User(Document):
 		self.clean_name()
 		self.set_full_name()
 		self.check_enable_disable()
+		self.validate_agent_ui_relay()
 		self.ensure_unique_roles()
 		self.ensure_unique_role_profiles()
 		self.sync_role_profile_name()
@@ -338,6 +340,22 @@ class User(Document):
 	def sync_role_profile_name(self):
 		"""Keep deprecated role_profile_name in sync for list view display."""
 		self.role_profile_name = self.role_profiles[0].role_profile if self.role_profiles else None
+
+	def validate_agent_ui_relay(self):
+		"""Only the person turns this on, in their own browser session; anyone with write access may turn it off.
+
+		A token or OAuth request is how an agent signs in, and the setting exists to hold it back.
+		"""
+		if not (self.agent_ui_relay and self.has_value_changed("agent_ui_relay")):
+			return
+		by_token = frappe.request and frappe.request.headers.get("Authorization")
+		if frappe.session.user != self.name or by_token or frappe.session.data.get("oauth_client"):
+			frappe.throw(
+				_("Only {0} can let agents drive their open tabs, from their own browser session.").format(
+					self.name
+				),
+				frappe.PermissionError,
+			)
 
 	def validate_allowed_modules(self):
 		if self.module_profile:
