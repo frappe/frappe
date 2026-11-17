@@ -5,7 +5,7 @@
 			<p v-if="loading" class="text-sm text-ink-gray-5">{{ __("Loading fields…") }}</p>
 			<div v-else class="flex flex-col gap-3">
 				<div v-for="(row, index) in rows" :key="row.id" class="flex items-start gap-2">
-					<div class="edit-picker w-48 shrink-0">
+					<div class="edit-picker w-48 shrink-0" data-act="dialog.set_values">
 						<Select
 							class="w-full"
 							:aria-label="__('Field')"
@@ -40,6 +40,7 @@
 						variant="ghost"
 						icon="lucide-x"
 						:aria-label="__('Remove field')"
+						data-view
 						:disabled="rows.length === 1"
 						@click="rows.splice(index, 1)"
 					/>
@@ -49,6 +50,7 @@
 						variant="subtle"
 						icon-left="lucide-plus"
 						:label="__('Add field')"
+						data-view
 						@click="add"
 					/>
 				</div>
@@ -66,7 +68,8 @@ import { FormLayout, fieldsToLayout, mapField, type RawMetaField } from "@framew
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
 import { Button, Dialog, Select } from "frappe-ui";
 import { computed, provide, ref, watch } from "vue";
-import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
+import { useReadableDialog, type DialogHandle } from "@/shell/dialogs/readableDialogs";
+import { coerceValue } from "@/recordPage/formDialogLayout";
 import { __, __n } from "@/i18n";
 import { clears, editableFields, updateFrom, type EditableField } from "@/list/bulkEdit";
 import type { BulkUpdate } from "@framework/ui/api";
@@ -211,10 +214,42 @@ async function confirm() {
 	}
 }
 
-useReadableDialog(open, () => ({
-	title: title.value,
-	buttons: actions.value.map((action) => action.label),
-}));
+// `dialog.set_values` names the fields to set (a key is a fieldname, or `table.fieldname` for a child field): it
+// adds a row for each and never removes one; `dialog.close` and a new Edit start over.
+const handle: DialogHandle = {
+	fieldnames: () => fields.value.map((one) => one.key),
+	values: () =>
+		Object.fromEntries(picked.value.map(({ field, value }) => [field.key, value ?? null])),
+	setValues(values) {
+		const unknown = Object.keys(values).filter((key) => !fieldOf(key));
+		if (unknown.length)
+			throw new Error(__("The dialog has no field {0}", [unknown.join(", ")]));
+		for (const [key, value] of Object.entries(values)) {
+			let row =
+				rows.value.find((one) => one.key === key) ?? rows.value.find((one) => !one.key);
+			if (!row) rows.value.push(newRow());
+			row ??= rows.value.at(-1)!;
+			if (row.key !== key) pick(row, key);
+			const { fieldname, fieldtype } = fieldOf(key)!.field;
+			row.doc = { ...row.doc, [fieldname]: coerceValue(fieldtype, value) };
+		}
+	},
+	async submit() {
+		if (!picked.value.length) throw new Error(__("Pick a field first"));
+		await confirm();
+		if (failure.value) throw new Error(failure.value);
+	},
+	close: () => (open.value = false),
+};
+
+useReadableDialog(
+	open,
+	() => ({
+		title: title.value,
+		buttons: actions.value.map((action) => action.label),
+	}),
+	handle
+);
 </script>
 
 <style scoped>

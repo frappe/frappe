@@ -35,6 +35,7 @@
 					v-if="editLayout"
 					variant="ghost"
 					:label="__('Edit layout')"
+					data-view
 					:disabled="saving"
 					@click="openEditor(editLayout)"
 				/>
@@ -42,6 +43,7 @@
 					class="ms-auto"
 					variant="solid"
 					:label="__('Save')"
+					data-act="dialog.submit"
 					:loading="saving"
 					:disabled="layoutFailed"
 					@click="save"

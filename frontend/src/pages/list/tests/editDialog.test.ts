@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, ref, type App } from "vue";
+import { frontHandle } from "@/shell/dialogs/readableDialogs";
 import EditDialog from "../EditDialog.vue";
 
 // Reka's select draws no <select> in jsdom: a native one stands in so a test can pick an option.
@@ -170,5 +171,48 @@ describe("EditDialog", () => {
 		await settle();
 		expect(text()).toContain("Edit is off for this workflow");
 		expect(shown.value).toBe(true);
+	});
+
+	it("marks its row controls for the act-control check", async () => {
+		await open(async () => {});
+		expect(document.body.querySelector("[data-act='dialog.set_values'] select")).not.toBeNull();
+		expect(document.body.querySelector("[data-view][aria-label='Remove field']")).not.toBeNull();
+		expect(document.body.querySelector("button[data-view]")).not.toBeNull();
+	});
+
+	describe("the dialog handle", () => {
+		it("lists the fields, adds a row for each one named and fills its value", async () => {
+			await open(async () => {});
+			const handle = frontHandle()!;
+			expect(handle.fieldnames()).toEqual(expect.arrayContaining(["description", "done"]));
+			handle.setValues({ description: "Later", done: true });
+			await settle();
+			expect(handle.values()).toEqual({ description: "Later", done: 1 });
+			handle.setValues({ priority: "High" });
+			await settle();
+			expect(Object.keys(handle.values())).toEqual(["description", "done", "priority"]);
+		});
+
+		it("refuses a field the dialog cannot set", async () => {
+			await open(async () => {});
+			expect(() => frontHandle()!.setValues({ locked: "x" })).toThrow("The dialog has no field locked");
+		});
+
+		it("submits the update and closes, or throws why the run was refused", async () => {
+			const run = vi.fn(async () => {});
+			const shown = await open(run);
+			await expect(frontHandle()!.submit()).rejects.toThrow("Pick a field first");
+			frontHandle()!.setValues({ description: "Later" });
+			await settle();
+			await frontHandle()!.submit();
+			expect(run).toHaveBeenCalledWith({ values: { description: "Later" } });
+			expect(shown.value).toBe(false);
+		});
+
+		it("closes on dialog.close", async () => {
+			const shown = await open(async () => {});
+			frontHandle()!.close();
+			expect(shown.value).toBe(false);
+		});
 	});
 });
