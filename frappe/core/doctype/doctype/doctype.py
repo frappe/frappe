@@ -390,16 +390,17 @@ class DocType(Document):
 							update_query += "WHERE ifnull(`target`.`{fieldname}`, '')=''"
 
 					else:
+						# `target.` keeps a column the source shares by name (`full_name`) unambiguous.
 						update_query = """
-							UPDATE `tab{doctype}`
+							UPDATE `tab{doctype}` as target
 							SET `{fieldname}` = source.`{source_fieldname}`
 							FROM `tab{link_doctype}` as source
-							WHERE `{link_fieldname}` = source.name
+							WHERE `target`.`{link_fieldname}` = `source`.`name`
 						"""
 						if df.not_nullable:
-							update_query += "AND `{fieldname}`=''"
+							update_query += "AND `target`.`{fieldname}`=''"
 						else:
-							update_query += "AND ifnull(`{fieldname}`, '')=''"
+							update_query += "AND ifnull(`target`.`{fieldname}`, '')=''"
 
 					self.flags.update_fields_to_fetch_queries.append(
 						update_query.format(

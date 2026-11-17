@@ -386,7 +386,12 @@ class TestNavigationInBoot(NavigationTestCase):
 	def test_boot_stays_under_the_ceiling_with_navigation_in_it(self):
 		from frappe.shell.boot import get_boot
 
-		self.assertLess(len(json.dumps(get_boot("/apps/desk"), default=str)), 40_000)
+		boot = get_boot("/apps/desk")
+		sizes = {key: len(json.dumps(value, default=str)) for key, value in boot.items()}
+		rail = len(boot["navigation"]["rail"])
+		self.assertLess(
+			len(json.dumps(boot, default=str)), 40_000, f"rail rows: {rail}; bytes by key: {sizes}"
+		)
 
 
 class TestBootBudget(NavigationTestCase):

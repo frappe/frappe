@@ -347,8 +347,6 @@ class TestSaveDesign(IntegrationTestCase):
 		self.assertEqual(error["target"], {"kind": "field", "fieldname": "title", "property": "fieldname"})
 
 	def test_a_fetched_field_takes_its_type_from_the_source(self):
-		if frappe.db.db_type == "sqlite":
-			self.skipTest("DocType.update_fields_to_fetch's update query is ambiguous on SQLite")
 		result = self.save(
 			[
 				{"act": "fields.add_field", "label": "Owner User", "fieldtype": "Link", "options": "User"},
