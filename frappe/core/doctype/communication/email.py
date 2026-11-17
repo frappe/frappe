@@ -81,6 +81,9 @@ def make(
 			category=DeprecationWarning,
 		)
 
+	if not frappe.permissions.is_system_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 	else:
