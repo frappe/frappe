@@ -417,7 +417,7 @@ class FlowSession(Document):
 		if info["title"] and info["title"] != self.title:
 			self.title = info["title"]
 		self.flags.ignore_validate = True
-		# a model or run deleted since must not stop the transcript being recorded
+		# a model deleted since must not stop the transcript being recorded
 		self.flags.ignore_links = True
 		self.save(ignore_permissions=True)
 

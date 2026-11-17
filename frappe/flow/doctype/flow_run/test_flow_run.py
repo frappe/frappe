@@ -55,19 +55,15 @@ class TestFlowRun(IntegrationTestCase):
 			with self.subTest(error), self.assertRaisesRegex(frappe.ValidationError, error):
 				doc.insert(ignore_permissions=True)
 
-	def test_a_deleted_run_leaves_its_chat_savable(self):
-		session = frappe.get_doc("Flow Session", _new_session(self.agent))
+	def test_a_run_is_not_deleted_on_its_own(self):
 		run = frappe.get_doc(
-			{"doctype": "Flow Run", "source": "Manual", "session": session.name, "status": "Running"}
+			{
+				"doctype": "Flow Run",
+				"source": "Manual",
+				"session": _new_session(self.agent),
+				"status": "Completed",
+			}
 		).insert(ignore_permissions=True)
-		session.append("messages", {"role": "user", "content": "hi", "run": run.name})
-		session.save(ignore_permissions=True)
-
-		with self.assertRaisesRegex(frappe.ValidationError, "in progress"):
+		with self.assertRaisesRegex(frappe.ValidationError, "belongs to its chat"):
 			frappe.delete_doc("Flow Run", run.name)
-
-		run.db_set("status", "Completed")
-		frappe.delete_doc("Flow Run", run.name)
-		session.reload()
-		self.assertIsNone(session.messages[0].run)
-		session.save(ignore_permissions=True)
+		self.assertTrue(frappe.db.exists("Flow Run", run.name))
