@@ -47,7 +47,7 @@ class TestLoad(FrappeTestCase):
 			frappe.set_user(desk_user)
 			for endpoint in endpoints:
 				endpoint()
-		self.assertEqual(frappe.response.docs[0]["name"], "Role")
+		self.assertEqual(frappe.response.docs[0].name, "Role")
 
 	def test_get_filtered_attachments(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "Attachment filter test"}).insert()
