@@ -188,7 +188,11 @@ frappe.views.InteractionComposer = class InteractionComposer {
 							' <a href="%(file_url)s" target="_blank" class="text-muted small">' +
 							'<i class="fa fa-share" style="vertical-align: middle; margin-left: 3px;"></i>' +
 							"</label></p>",
-						f
+						{
+							name: frappe.utils.escape_html(f.name),
+							file_name: frappe.utils.escape_html(f.file_name),
+							file_url: frappe.utils.escape_html(f.file_url),
+						}
 					)
 				).appendTo(attach);
 			});

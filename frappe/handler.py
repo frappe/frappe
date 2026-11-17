@@ -40,6 +40,9 @@ ALLOWED_MIMETYPES = (
 	"video/quicktime",
 	"video/mp4",
 	"text/csv",
+	"audio/mp4",
+	"audio/webm",
+	"audio/ogg",
 )
 
 
