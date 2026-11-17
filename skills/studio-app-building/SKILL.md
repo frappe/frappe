@@ -168,10 +168,6 @@ design. When you add a page, update navigation on the pages that link to it.
 Create or change one page in each tool call. A call that writes several pages
 is slow to produce, can time out, and loses all of the pages when one fails.
 
-In Flow's `execute` tool, `json.dumps`, `json.loads`, and `as_json` are
-globals. Use them to write `draft_blocks`. `frappe.as_json` is not available
-there, and `import` is blocked. Do not write your own JSON serializer.
-
 ## Build the page
 
 ### Data
