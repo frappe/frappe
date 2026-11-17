@@ -49,6 +49,17 @@ class NavigationTestCase(IntegrationTestCase):
 		super().setUp()
 		frappe.db.savepoint("navigation_test")
 		self.addCleanup(lambda: frappe.db.rollback(save_point="navigation_test"))
+		unship_app_navigation()
+
+
+def unship_app_navigation(app: str = APP):
+	"""Take the app's own v2 rail and sidebars off the site: these tests ship theirs under its name."""
+	for doctype, filters in (("Rail", {}), ("Sidebar", {"link_doctype": ("is", "set")})):
+		names = frappe.get_all(doctype, {"app": app, "standard": 1, **filters}, pluck="name")
+		if not names:
+			continue
+		frappe.db.delete("Navigation Item", {"parenttype": doctype, "parent": ("in", names)})
+		frappe.db.delete(doctype, {"name": ("in", names)})
 
 
 def item(key: str, **kwargs) -> dict:

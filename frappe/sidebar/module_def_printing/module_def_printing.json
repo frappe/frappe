@@ -1,0 +1,67 @@
+{
+ "app": "frappe",
+ "creation": "2026-11-17 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Sidebar",
+ "idx": 0,
+ "items": [],
+ "link_doctype": "Module Def",
+ "link_to": "Printing",
+ "modified": "2026-11-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "module_def_printing",
+ "navigation_items": [
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "print-format",
+   "label": "Print Format",
+   "link_doctype": "DocType",
+   "link_to": "Print Format",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "print-heading",
+   "label": "Print Heading",
+   "link_doctype": "DocType",
+   "link_to": "Print Heading",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "letter-head",
+   "label": "Letter Head",
+   "link_doctype": "DocType",
+   "link_to": "Letter Head",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "print-settings",
+   "label": "Print Settings",
+   "link_doctype": "DocType",
+   "link_to": "Print Settings",
+   "switches_app": 0
+  }
+ ],
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Printing",
+ "user": ""
+}
