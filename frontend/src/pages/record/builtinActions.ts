@@ -9,7 +9,7 @@ import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import { assignItem, type AssignState } from "./assignAct";
 import { renameItem } from "./renameAct";
 import { editorRoute, type EditorEntry } from "@/pages/doctypeEditor/entries/editorEntries";
-import { editLayoutItem } from "./editLayoutItem";
+import { editLayoutMenu, type LayoutRoutes } from "./editLayoutItem";
 
 export function quickActionBuiltins(
   perms: Record<string, any>,
@@ -66,8 +66,8 @@ export function headerMenuBuiltins(
     submitted?: boolean;
     fieldActions?: HeaderItem[];
     editorEntries?: EditorEntry[];
-    /** The editor's route at the layout the record shows; absent without the right. */
-    editLayout?: RouteLocationRaw | null;
+    /** The editor's route at each layout, the one the record shows where it has one; absent without the right. */
+    editLayout?: LayoutRoutes | null;
   } = {}
 ): HeaderItem[] {
   const items: HeaderItem[] = [
@@ -97,7 +97,7 @@ export function headerMenuBuiltins(
   if (options.duplicate)
     items.push({ name: "duplicate", label: "Duplicate", icon: "lucide-copy", group: "copies", run: duplicate });
   for (const entry of options.editorEntries ?? []) items.push(editorItem(entry));
-  if (options.editLayout) items.push(editLayoutItem(options.editLayout));
+  if (options.editLayout) items.push(...editLayoutMenu(options.editLayout));
   // Deleting a single wipes its settings row and the page reloads it with defaults.
   if (perms.delete && !options.single && !options.submitted)
     items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: async (page: RecordPageApi) => (await import("./deleteRun")).remove(page) });

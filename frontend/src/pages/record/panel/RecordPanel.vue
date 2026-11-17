@@ -16,7 +16,6 @@
 			:page="controller.page"
 			:isOpen="disclosure.isOpen"
 			:loading="layoutLoading"
-			:editRoute="editRoute"
 			@toggle="disclosure.toggle"
 			@expand="emit('expand', $event)"
 		/>
@@ -25,7 +24,6 @@
 
 <script setup lang="ts">
 import { provide, toRef } from "vue";
-import type { RouteLocationRaw } from "vue-router";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import type { QuickAction, RecordPageController } from "@/recordPage";
 import { PanelContextKey, type DocInfo } from "./context";
@@ -47,8 +45,6 @@ const props = defineProps<{
 	reloadDocinfo: () => Promise<void>;
 	whileOnRecord: () => () => boolean;
 	onDetails: (fieldname: string) => boolean;
-	/** The DocType editor's route at the Side Panel layout; absent without the right. */
-	editRoute?: RouteLocationRaw | null;
 }>();
 
 const emit = defineEmits<{ expand: [field: FieldNode] }>();

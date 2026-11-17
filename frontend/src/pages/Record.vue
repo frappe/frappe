@@ -89,7 +89,6 @@
 						:reloadDocinfo="reloadDocinfo"
 						:whileOnRecord="visitCheck"
 						:onDetails="(fieldname: string) => !!tabOf(form, fieldname)"
-						:editRoute="editLayoutRoute('side-panel', panelLayout?.editorRow.value)"
 						@expand="expand"
 					/>
 				</template>
@@ -490,7 +489,15 @@ function headerBuiltins(): HeaderItem[] {
 						developerMode: boot.developer_mode,
 						meta: meta.value,
 					}),
-					editLayout: editLayoutRoute("details", detailsLayout.value?.editorRow.value),
+					editLayout: {
+						details: editLayoutRoute("details", detailsLayout.value?.editorRow.value),
+						sidePanel: editLayoutRoute(
+							"side-panel",
+							panelLayout.value?.editorRow.value
+						),
+						quickEntry: editLayoutRoute("quick-entry"),
+						newRecord: editLayoutRoute("new-record"),
+					},
 				}
 			),
 			saved.value.name === docname.value
