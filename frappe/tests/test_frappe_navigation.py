@@ -21,6 +21,11 @@ class TestFrappeNavigation(IntegrationTestCase):
 		self.assertTrue(rail)
 		self.assertEqual({row["link_to"] for row in rail} - names, set())
 
+	def test_every_sidebar_belongs_to_an_existing_module(self):
+		for sidebar in shipped("sidebar"):
+			self.assertEqual(sidebar["link_doctype"], "Module Def", sidebar["name"])
+			self.assertTrue(frappe.db.exists("Module Def", sidebar["link_to"]), sidebar["name"])
+
 	def test_every_sidebar_row_names_a_doctype_that_exists(self):
 		for sidebar in shipped("sidebar"):
 			for row in sidebar["navigation_items"]:
