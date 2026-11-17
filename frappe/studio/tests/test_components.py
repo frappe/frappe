@@ -23,6 +23,8 @@ class TestComponents(IntegrationTestCase):
 	def test_unknown_component_is_rejected(self):
 		self.assertRaises(frappe.ValidationError, get_component_definition, "NoSuchComponent")
 		self.assertRaises(frappe.ValidationError, get_component_definition, "../package")
+		with self.assertRaisesRegex(frappe.ValidationError, "&lt;img&gt;"):
+			get_component_definition("<img>")
 
 	def test_skill_reference_names_every_built_in_component(self):
 		reference = read_source_file("skills", "studio-app-building", "BUILT_IN_COMPONENTS.md")

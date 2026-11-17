@@ -2,6 +2,7 @@ import os
 
 import frappe
 from frappe import _
+from frappe.utils import escape_html
 
 SCHEMA_FOLDER = ("studio", "frontend", "src", "json_types")
 
@@ -13,7 +14,7 @@ def get_component_definition(component: str) -> dict:
 		frappe.throw(
 			_(
 				"Studio has no prop definition for {0}. Component names are case sensitive. Some components that work only inside another one, such as SidebarItem, have no definition."
-			).format(frappe.bold(component)),
+			).format(frappe.bold(escape_html(component))),
 			title=_("No definition"),
 		)
 	return frappe.get_file_json(path)
