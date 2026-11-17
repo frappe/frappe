@@ -213,6 +213,8 @@ def _make(
 	comm.flags.skip_add_signature = not add_signature or (
 		raw_html and frappe.get_cached_value("Email Template", email_template, "use_html")
 	)
+	if cint(send_email) and not (recipients or cc or bcc):
+		frappe.throw(_("At least one recipient is required"))
 	comm.insert(ignore_permissions=True)
 
 	# if not committed, delayed task doesn't find the communication

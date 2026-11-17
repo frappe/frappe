@@ -1,16 +1,20 @@
+import json
 import typing
 from random import choice
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import requests
 
 import frappe
 from frappe.api import discovery
+from frappe.api.v2 import run_doc_method
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
 from frappe.installer import update_site_config
+from frappe.permissions import add_permission, update_permission_property
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
-from frappe.utils import get_test_client
+from frappe.utils import get_test_client, set_request
 
 authorization_token = None
 
@@ -223,6 +227,112 @@ class TestApiV2UpdatePermissions(FrappeAPITestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "Permitted API update")
 
 
+class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		self.user = "api.fieldlevel@example.com"
+		if not frappe.db.exists("User", self.user):
+			frappe.get_doc(
+				doctype="User",
+				email=self.user,
+				first_name="API Field Level",
+				roles=[{"role": "Desk User"}],
+				send_welcome_email=0,
+			).insert()
+		keys = generate_keys(self.user)
+		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		self.doctype = (
+			new_doctype(
+				fields=[
+					{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+					{
+						"fieldname": "secret",
+						"fieldtype": "Data",
+						"label": "Secret",
+						"permlevel": 1,
+						"default": "hidden",
+					},
+				],
+				is_submittable=1,
+				permissions=[
+					{"role": "Desk User", "read": 1, "write": 1, "create": 1, "submit": 1, "permlevel": 0}
+				],
+			)
+			.insert()
+			.name
+		)
+		self.name = frappe.get_doc(doctype=self.doctype).insert().name
+		self.webhooks = [
+			frappe.get_doc(
+				doctype="Webhook",
+				name=frappe.generate_hash(),
+				webhook_doctype=self.doctype,
+				webhook_docevent=event,
+				request_url="https://example.com/hook",
+				request_structure="JSON",
+				webhook_json='{"secret": "{{ doc.secret }}"}',
+			).insert()
+			for event in ("after_insert", "on_update", "on_submit")
+		]
+		frappe.db.commit()  # nosemgrep
+		frappe.client_cache.delete_value("webhooks")
+		self.sent = []
+		send = patch(
+			"frappe.integrations.doctype.webhook.webhook.requests.request",
+			side_effect=lambda **kwargs: self.sent.append(json.loads(kwargs["data"])) or MagicMock(),
+		)
+		send.start()
+		self.addCleanup(send.stop)
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			frappe.db.rollback()
+			for webhook in self.webhooks:
+				for log in frappe.get_all("Webhook Request Log", {"webhook": webhook.name}, pluck="name"):
+					frappe.delete_doc("Webhook Request Log", log, force=True)
+				frappe.delete_doc("Webhook", webhook.name, force=True)
+			frappe.client_cache.delete_value("webhooks")
+			frappe.delete_doc("DocType", self.doctype, force=True)
+			frappe.delete_doc_if_exists("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def request(self, method, *path, data=None, url=None):
+		response = make_request(
+			getattr(get_test_client(use_cookies=False), method),
+			args=(url or self.resource(self.doctype, *path),),
+			kwargs={"json": data or {}, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(self.sent)
+		for payload in self.sent:
+			self.assertEqual(payload, {"secret": "hidden"})
+		return response.json
+
+	def test_create_omits_fields_without_read_permission(self):
+		self.assertIsNone(self.request("post")["data"].get("secret"))
+
+	def test_copy_only_when_fields_are_hidden(self):
+		doc = frappe.get_doc(self.doctype, self.name)
+		frappe.set_user(self.user)
+		masked = doc.copy_with_fieldlevel_read_permissions()
+		self.assertIsNot(masked, doc)
+		self.assertIsNone(masked.get("secret"))
+		self.assertEqual(doc.secret, "hidden")
+
+		with patch.object(type(doc), "get_permlevel_access", return_value=[0, 1]):
+			self.assertIs(doc.copy_with_fieldlevel_read_permissions(), doc)
+
+		todo = frappe.get_doc(doctype="ToDo", description="x")
+		self.assertIs(todo.copy_with_fieldlevel_read_permissions(), todo)
+
+
 class TestMethodAPIV2(FrappeAPITestCase):
 	version = "v2"
 
@@ -302,6 +412,57 @@ class TestMethodAPIV2(FrappeAPITestCase):
 			},
 		)
 		self.assertEqual(response.status_code, 200)
+
+	def test_run_doc_method_on_unsaved_doc_needs_create_v2(self):
+		self.addCleanup(frappe.clear_cache, doctype="Email Group")
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Email Group Creator"}).insert()
+		add_permission("Email Group", role.name, ptype="create")
+		update_permission_property("Email Group", role.name, 0, "read", 1)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "email-group-creator@example.com",
+				"first_name": "Creator",
+				"send_welcome_email": 0,
+			}
+		)
+		user.append_roles(role.name)
+		user.insert()
+
+		group = {"doctype": "Email Group", "welcome_url": "https://example.com"}
+		saved = frappe.get_doc({**group, "title": "Saved Group"}).insert()
+
+		with self.set_user(user.name), patch.object(frappe.local, "request", None, create=True):
+			set_request(method="POST")
+			unsaved = {**group, "title": "Unsaved Group", "__islocal": 1}
+			self.assertEqual(run_doc_method("preview_welcome_url", unsaved), "https://example.com")
+
+			# a saved doc still needs write, even when the client marks it as local
+			with self.assertRaises(frappe.PermissionError):
+				run_doc_method("preview_welcome_url", {**saved.as_dict(), "__islocal": 1})
+
+	def test_run_doc_method_on_single_needs_write_v2(self):
+		self.addCleanup(frappe.clear_cache, doctype="Document Naming Settings")
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Naming Settings Creator"}).insert()
+		add_permission("Document Naming Settings", role.name, ptype="create")
+		update_permission_property("Document Naming Settings", role.name, 0, "read", 1)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "naming-settings-creator@example.com",
+				"first_name": "Creator",
+				"send_welcome_email": 0,
+			}
+		)
+		user.append_roles(role.name)
+		user.insert()
+
+		with self.set_user(user.name), patch.object(frappe.local, "request", None, create=True):
+			set_request(method="POST")
+			# a Single exists whatever name the client sends
+			settings = {"doctype": "Document Naming Settings", "name": "not-the-single", "__islocal": 1}
+			with self.assertRaises(frappe.PermissionError):
+				run_doc_method("update_series", settings)
 
 	def test_logs_v2(self):
 		method = "frappe.tests.test_api.test"
@@ -655,7 +816,7 @@ def generate_admin_keys():
 	from frappe.core.doctype.user.user import generate_keys
 
 	generate_keys("Administrator")
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 
 
 @whitelist_for_tests()

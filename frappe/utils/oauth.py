@@ -178,6 +178,9 @@ def login_via_oauth2_id_token(provider: str, code: str, state: str, decoder: Cal
 def get_info_via_oauth(provider: str, code: str, decoder: Callable | None = None, id_token: bool = False):
 	import jwt
 
+	if not frappe.db.get_value("Social Login Key", provider, "enable_social_login"):
+		frappe.throw(_("Login with {0} is not enabled").format(provider.title()), frappe.PermissionError)
+
 	flow = get_oauth2_flow(provider)
 	oauth2_providers = get_oauth2_providers()
 
@@ -255,6 +258,9 @@ def login_oauth_user(
 			success=False,
 			http_status_code=403,
 		)
+
+	for method in frappe.get_hooks("on_social_login"):
+		frappe.get_attr(method)(user=user, provider=provider, claims=data)
 
 	frappe.local.login_manager.login_as(user)
 

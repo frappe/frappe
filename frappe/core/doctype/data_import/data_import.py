@@ -10,7 +10,8 @@ from rq.timeouts import JobTimeoutException
 
 import frappe
 from frappe import _
-from frappe.core.doctype.data_import.exporter import Exporter
+from frappe.client import get_count
+from frappe.core.doctype.data_import.exporter import Exporter, get_export_filters
 from frappe.core.doctype.data_import.importer import UPSERT, Importer
 from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
@@ -395,6 +396,14 @@ def download_template(
 
 
 @frappe.whitelist()
+def get_export_count(
+	doctype: str,
+	filters: str | dict[str, Any] | list[list[Any]] | None = None,
+) -> int:
+	return get_count(doctype, get_export_filters(doctype, filters))
+
+
+@frappe.whitelist()
 def download_errored_template(data_import_name: str):
 	data_import: DataImport = frappe.get_doc("Data Import", data_import_name)
 	data_import.check_permission("read")
@@ -515,6 +524,7 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	else:
 		data_import.import_type = "Update Existing Records"
 
+	frappe.set_user_lang(frappe.session.user)
 	i = Importer(doctype=doctype, file_path=file_path, data_import=data_import, console=console)
 	data_import.set_payload_count(i)
 	i.import_data()

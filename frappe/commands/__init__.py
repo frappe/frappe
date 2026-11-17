@@ -105,6 +105,8 @@ def call_command(cmd, context):
 
 def get_commands():
 	# prevent circular imports
+	from ..flow.commands import commands as flow_commands
+	from ..studio.commands import commands as studio_commands
 	from .gettext import commands as gettext_commands
 	from .redis_utils import commands as redis_commands
 	from .scheduler import commands as scheduler_commands
@@ -122,6 +124,8 @@ def get_commands():
 		+ gettext_commands
 		+ utils_commands
 		+ redis_commands
+		+ studio_commands
+		+ flow_commands
 	)
 
 	for command in all_commands:

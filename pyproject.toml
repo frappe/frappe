@@ -6,31 +6,36 @@ authors = [
 description = "Metadata driven, full-stack low code web framework"
 requires-python = ">=3.14,<3.15"
 readme = "README.md"
+license = "MIT"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
     "Babel~=2.18.0",
     "Click~=8.4.1",
-    "filelock~=3.20.1",
+    "filelock~=4.2.4",
     "filetype~=1.2.0",
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
     "Pillow~=13.0.0",
+    "plutoprint~=0.22.0; (sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or sys_platform == 'win32'",
     "PyJWT~=2.15.0",
     "duckdb~=1.4.3",
     "pyarrow~=25.0.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.19.0",
+    "pypdf==6.21.4",
     "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
     "WeasyPrint==70.0",
+    # WeasyPrint allows fonttools[woff]>=4.59.2, which keeps brotli<1.2.1 (CVE-2026-111497)
+    "fonttools[woff]>=4.68.0",
     "typst~=0.15.0",
     "pydyf==0.12.1",
+    "packaging>=24.2",
     "Werkzeug==3.1.9",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
@@ -86,6 +91,16 @@ dependencies = [
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.2",
+    # studio
+    "litellm==1.103.2",
+    "json_repair~=0.59",
+    # flow
+    "frappe-flow==0.1.28",
+    "onnxruntime~=1.27",
+    "pdfplumber~=0.11",
+    "python-docx~=1.1",
+    "rapidocr~=3.0",
+    "sqlite-vec~=0.1.9",
     # integration dependencies
     "google-api-python-client~=2.188.0",
     "google-auth-oauthlib~=1.2.4",
@@ -149,7 +164,7 @@ test = [
 ]
 
 [build-system]
-requires = ["flit_core >=3.4,<4"]
+requires = ["flit_core >=3.12,<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.frappe.testing.function_type_validation]
@@ -168,6 +183,15 @@ watchdog = "~=6.0.0"
 hypothesis = "~=6.77.0"
 responses = "==0.23.1"
 freezegun = "~=1.5.5"
+spdx-tools = "~=0.8.5"
+
+# flow: for OpenCV, which rapidocr installs
+[deploy.dependencies.apt]
+packages = ["libgl1", "libglib2.0-0"]
+
+[tool.pilot.processes.flow_server]
+frappe_command = ["flow-server", "serve"]
+env = { FLOW_SERVER_MANAGER = "supervisor" }
 
 [tool.ruff]
 line-length = 110
@@ -229,7 +253,11 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { pypdf = false, sqlparse = false } # drop sqlparse after 2026-08-20
+exclude-newer-package = { pypdf = false, filelock = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10
+
+[tool.uv.sources]
+# Installs through uv (bench, Pilot) take the harness from this checkout, so it ships with frappe. pip installs and frappe's wheel still take the PyPI pin above.
+frappe-flow = { path = "flow/harness", editable = true }
 
 [tool.mypy]
 strict = false

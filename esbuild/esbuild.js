@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const glob = require("fast-glob");
+const { update_assets_json } = require("./assets_json");
 const esbuild = require("esbuild");
 const vue = require("esbuild-plugin-vue3");
 const yargs = require("yargs");
@@ -139,7 +140,13 @@ async function execute() {
 	for (const result of results) {
 		await write_assets_json(result.metafile);
 	}
-	RUN_BUILD_COMMAND && run_build_command_for_apps(APPS);
+	if (RUN_BUILD_COMMAND) {
+		run_build_command_for_apps(APPS);
+		if (APPS.includes("frappe")) {
+			run_frontend_build("studio", path.resolve(__dirname, "..", "studio", "frontend"));
+			run_frontend_build("flow", path.resolve(__dirname, "..", "flow"));
+		}
+	}
 	if (!WATCH_MODE) {
 		process.exit(0);
 	}
@@ -307,6 +314,11 @@ function build_style_files({ files, outdir, rtl_style = false }) {
 		postCssPlugin({
 			plugins: plugins,
 			sassOptions: sass_options,
+			// The plugin writes each entry to its temp dir at the entry's path relative to
+			// rootDir's parent. Its default, the cwd, is the app's real path. When the app is
+			// a symlink, that path climbs out of the temp dir, and the LTR and RTL builds
+			// write the same file.
+			rootDir: path.resolve(apps_path, "frappe"),
 		}),
 	];
 
@@ -456,12 +468,15 @@ async function write_assets_json(metafile) {
 		}
 	}
 
-	let { obj: assets_json, path: assets_json_path } = await get_assets_json_path_and_obj(rtl);
-	// update with new values
-	let new_assets_json = Object.assign({}, assets_json, out);
+	const { next: new_assets_json } = await update_assets_json(
+		get_assets_json_path(rtl),
+		(assets_json) => ({
+			...assets_json,
+			...out,
+		})
+	);
 	curr_assets_json = new_assets_json;
 
-	await fs.promises.writeFile(assets_json_path, JSON.stringify(new_assets_json, null, 4));
 	await update_assets_json_in_cache();
 	if (argv["save-metafiles"]) {
 		// use current timestamp in readable formate as a suffix for filename
@@ -495,9 +510,12 @@ async function update_assets_json_in_cache() {
 	});
 }
 
+function get_assets_json_path(is_rtl) {
+	return path.resolve(assets_path, is_rtl ? "assets-rtl.json" : "assets.json");
+}
+
 async function get_assets_json_path_and_obj(is_rtl) {
-	const file_name = is_rtl ? "assets-rtl.json" : "assets.json";
-	const assets_json_path = path.resolve(assets_path, file_name);
+	const assets_json_path = get_assets_json_path(is_rtl);
 	let assets_json;
 	try {
 		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");
@@ -541,6 +559,25 @@ function run_build_command_for_apps(apps) {
 	}
 
 	process.chdir(cwd);
+}
+
+// The studio editor (studio/frontend/) and the flow page (flow/) are vite apps inside this
+// repo, built like app frontends; their output is part of frappe's assets, so a failure fails
+// the build.
+function run_frontend_build(name, frontend_path) {
+	let { execSync } = require("child_process");
+
+	// every build, not only on a fresh checkout: an install made before an update lacks what the
+	// new lockfile adds. Yarn returns in under a second when the install is current
+	log("\nInstalling dependencies for", chalk.bold(name));
+	execSync("yarn install --frozen-lockfile", {
+		cwd: frontend_path,
+		encoding: "utf8",
+		stdio: "inherit",
+	});
+
+	log("\nRunning build command for", chalk.bold(name));
+	execSync("yarn build", { cwd: frontend_path, encoding: "utf8", stdio: "inherit" });
 }
 
 async function notify_redis({ error, success, changed_files }) {

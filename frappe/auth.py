@@ -474,7 +474,11 @@ def validate_ip_address(user):
 	):
 		return True
 
-	user_info = frappe.get_cached_doc("User", user)
+	try:
+		user_info = frappe.get_cached_doc("User", user)
+	except frappe.DoesNotExistError:
+		return
+
 	ip_list = user_info.get_restricted_ip_list()
 
 	if not ip_list:

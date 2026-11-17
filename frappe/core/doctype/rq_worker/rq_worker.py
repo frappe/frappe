@@ -83,7 +83,7 @@ def serialize_worker(worker: Worker) -> frappe._dict:
 	queue_types = ",".join(q.rsplit(":", 1)[1] for q in queue_names)
 
 	current_job = worker.get_current_job_id()
-	if current_job and not current_job.startswith(frappe.local.site):
+	if current_job and not current_job.startswith(f"{frappe.local.site}||"):
 		current_job = None
 
 	return frappe._dict(

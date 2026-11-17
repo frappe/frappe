@@ -358,19 +358,12 @@ class EmailAccount(Document):
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
 		for field in ("default_incoming", "default_outgoing"):
-			if not self.get(field):
-				continue
-
-			for email_account in frappe.get_all("Email Account", filters={field: 1}):
-				if email_account.name == self.name:
-					continue
-
-				email_account = frappe.get_doc("Email Account", email_account.name)
-				email_account.set(field, 0)
-				email_account.save()
+			if self.get(field):
+				frappe.db.set_value("Email Account", {field: 1, "name": ("!=", self.name)}, field, 0)
 
 	@frappe.whitelist()
 	def get_domain_values(self, domain: str):
+		frappe.has_permission("Email Domain", "read", domain, throw=True)
 		return frappe.db.get_value("Email Domain", domain, EMAIL_DOMAIN_FIELDS, as_dict=True)
 
 	def get_incoming_server(self, in_receive=False, email_sync_rule="UNSEEN"):
@@ -952,7 +945,7 @@ def notify_unreplied():
 		email_account = frappe.get_doc("Email Account", email_account.name)
 
 		if email_account.use_imap:
-			append_to = [folder.get("append_to") for folder in email_account.imap_folder]
+			append_to = [folder.append_to for folder in email_account.imap_folder if folder.append_to]
 		else:
 			append_to = email_account.append_to
 

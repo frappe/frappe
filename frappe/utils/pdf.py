@@ -72,8 +72,11 @@ def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
 
 
 def pdf_body_html(template, args, **kwargs):
+	from frappe.utils.jinja import safe_render_flags
+
 	try:
-		return template.render(args, filters={"len": len})
+		with safe_render_flags():
+			return template.render(args, filters={"len": len})
 	except Exception as e:
 		# Guess line number ?
 		frappe.throw(
@@ -202,6 +205,18 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 		return transformer.transform_pdf(output=output)
 	finally:
 		generator._close_browser()
+
+
+def get_plutoprint_pdf(print_format, html, options, output, pdf_generator=None):
+	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
+	from frappe.utils.pdf_generator.pluto import PlutoBrowser, plutoprint_can_render
+
+	if pdf_generator != "PlutoPrint":
+		return
+	options = options or {}
+	if options.get("page-ranges") or not plutoprint_can_render(html):
+		return get_chrome_pdf(print_format, html, options, output, pdf_generator="chrome")
+	return PDFTransformer(PlutoBrowser(print_format, html, options)).transform_pdf(output=output)
 
 
 def get_file_data_from_writer(writer_obj):
@@ -498,7 +513,7 @@ def pdf_contains_js(file_content: bytes):
 			for key, value in obj.items():
 				if key == "/Parent":
 					continue
-				if key in ("/JS", "/JavaScript"):
+				if key == "/JS":
 					return True
 				if has_javascript(value, seen):
 					return True

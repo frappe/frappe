@@ -681,6 +681,7 @@ frappe.ui.form.Form = class FrappeForm {
 				},
 				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
+				() => this.show_upload_first_review(),
 				() => this.dashboard.after_refresh(),
 				() => (this.cscript.is_onload = false),
 				() => this.configure_breadcrumb_width(),
@@ -740,6 +741,44 @@ frappe.ui.form.Form = class FrappeForm {
 
 			route_callback(this);
 		}
+	}
+
+	show_upload_first_review() {
+		// The entry being reviewed rides in the route until the document's first save.
+		if (!this.meta.enable_upload_first_workflow || this.doc.docstatus !== 0) return;
+
+		// same as the layout param: route_options on a fresh route, the URL after that
+		const from_route_options = frappe.route_options?.attachment_queue;
+		const entry_name =
+			from_route_options ||
+			new URLSearchParams(window.location.search).get("attachment_queue");
+		if (from_route_options) delete frappe.route_options.attachment_queue;
+
+		if (!entry_name) return;
+		// already reviewing this document, including a pane the reader closed
+		if (this.upload_first_review?.docname === this.docname) return;
+		if (this._upload_first_review_docname === this.docname) return;
+		// One Form is shared by every document of its DocType, so this.docname moves on
+		// as the user does: the entry below belongs to the document asked about here.
+		const docname = (this._upload_first_review_docname = this.docname);
+
+		return frappe.db
+			.get_list("Attachment Queue", {
+				fields: ["name", "document_type", "source_file"],
+				filters: { name: entry_name, created_document: ["is", "not set"] },
+				limit: 1,
+			})
+			.then(([entry]) => {
+				if (!entry) return;
+
+				// the review ships as its own on-demand bundle
+				frappe.require("upload_first_review.bundle.js", () => {
+					// the form may have moved to another document while this loaded
+					if (this.docname !== docname) return;
+
+					frappe.ui.form.upload_first_review.open(this, entry);
+				});
+			});
 	}
 
 	refresh_fields() {
@@ -860,6 +899,10 @@ frappe.ui.form.Form = class FrappeForm {
 				}
 
 				me.script_manager.trigger("after_save");
+
+				if (me.upload_first_review) {
+					frappe.ui.form.upload_first_review.file(me);
+				}
 
 				if (frappe.route_hooks.after_save) {
 					let route_callback = frappe.route_hooks.after_save;
@@ -987,6 +1030,10 @@ frappe.ui.form.Form = class FrappeForm {
 			})
 			.then((r) => {
 				if (!r.exc) {
+					if (r.message.truncated) {
+						return me._cancel_all_in_background(btn, on_error);
+					}
+
 					let doctypes_to_cancel = (r.message.docs || []).map((value) => {
 						return value.doctype;
 					});
@@ -999,30 +1046,59 @@ frappe.ui.form.Form = class FrappeForm {
 			});
 	}
 
+	_linked_docs_list_html(links) {
+		// never render an absurdly long list; the count carries the scale
+		const max_names_per_doctype = 10;
+		let links_text = "";
+		const doctypes = Array.from(new Set(links.map((link) => link.doctype)));
+
+		for (let doctype of doctypes) {
+			const of_doctype = links.filter((link) => link.doctype == doctype);
+			let docnames = of_doctype
+				.slice(0, max_names_per_doctype)
+				.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
+				.join(", ");
+			if (of_doctype.length > max_names_per_doctype) {
+				docnames += ", " + __("and {0} more", [of_doctype.length - max_names_per_doctype]);
+			}
+			links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
+		}
+		return `<ul>${links_text}</ul>`;
+	}
+
+	_cancel_all_in_background(btn, on_error) {
+		const me = this;
+		const d = frappe.warn(
+			__("Confirm"),
+			__(
+				"{0} {1} is linked with too many submitted documents to list. Cancel all of them in the background along with {1}? You will be notified when it completes.",
+				[__(me.doc.doctype).bold(), frappe.utils.escape_html(cstr(me.doc.name)).bold()]
+			),
+			() => me._cancel_with_linked_docs(null, btn, null, on_error),
+			__("Cancel All")
+		);
+		d.onhide = () => {
+			if (!d.primary_action_fulfilled) {
+				me.handle_save_fail(btn, on_error);
+			}
+		};
+	}
+
 	_cancel_all(r, btn, callback, on_error) {
 		const me = this;
 
 		// add confirmation message for cancelling all linked docs
-		let links_text = "";
 		let links = r.message.docs;
-		const doctypes = Array.from(new Set(links.map((link) => link.doctype)));
 
 		me.ignore_doctypes_on_cancel_all = me.ignore_doctypes_on_cancel_all || [];
 
-		for (let doctype of doctypes) {
-			if (!me.ignore_doctypes_on_cancel_all.includes(doctype)) {
-				let docnames = links
-					.filter((link) => link.doctype == doctype)
-					.map((link) => frappe.utils.get_form_link(link.doctype, link.name, true))
-					.join(", ");
-				links_text += `<li><strong>${__(doctype)}</strong>: ${docnames}</li>`;
-			}
-		}
-		links_text = `<ul>${links_text}</ul>`;
+		let links_text = me._linked_docs_list_html(
+			links.filter((link) => !me.ignore_doctypes_on_cancel_all.includes(link.doctype))
+		);
 
 		let confirm_message = __("{0} {1} is linked with the following submitted documents: {2}", [
 			__(me.doc.doctype).bold(),
-			me.doc.name,
+			frappe.utils.escape_html(cstr(me.doc.name)),
 			links_text,
 		]);
 
@@ -1037,38 +1113,68 @@ frappe.ui.form.Form = class FrappeForm {
 		let d = new frappe.ui.Dialog(
 			{
 				title: __("Cancel All Documents"),
-				fields: [
-					{
-						fieldtype: "HTML",
-						options: `<p class="frappe-confirm-message">${confirm_message}</p>`,
-					},
-				],
+				fields: [{ fieldtype: "HTML", fieldname: "message" }],
 			},
 			() => me.handle_save_fail(btn, on_error)
+		);
+		// set directly: HTML field options get template-rendered, and names are user input
+		d.fields_dict.message.$wrapper.html(
+			`<p class="frappe-confirm-message">${confirm_message}</p>`
 		);
 
 		// if user can cancel all linked docs, add action to the dialog
 		if (can_cancel) {
 			d.set_primary_action(__("Cancel All"), () => {
 				d.hide();
-				frappe.call({
-					method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
-					args: {
-						docs: links,
-						ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
-					},
-					freeze: true,
-					callback: (resp) => {
-						if (!resp.exc) {
-							me.reload_doc();
-							me._cancel(btn, callback, on_error, true);
-						}
-					},
-				});
+				me._cancel_with_linked_docs(links, btn, callback, on_error);
 			});
 		}
 
 		d.show();
+	}
+
+	_cancel_with_linked_docs(links, btn, callback, on_error) {
+		const me = this;
+		const args = {
+			ignore_doctypes_on_cancel_all: me.ignore_doctypes_on_cancel_all || [],
+			root_doctype: me.doc.doctype,
+			root_name: cstr(me.doc.name),
+		};
+		if (links) {
+			// without a list the server discovers the graph in a background job
+			args.docs = links;
+		}
+		frappe.validated = true;
+		me.script_manager.trigger("before_cancel").then(() => {
+			if (!frappe.validated) {
+				return me.handle_save_fail(btn, on_error);
+			}
+			frappe.call({
+				method: "frappe.desk.form.linked_with.cancel_all_linked_docs",
+				args: args,
+				freeze: true,
+				callback: (resp) => {
+					if (resp.exc) {
+						return me.handle_save_fail(btn, on_error);
+					}
+					if (resp.message && resp.message.queued) {
+						frappe.msgprint(
+							__(
+								"The linked documents will be cancelled in the background along with {0}. You will be notified when it completes.",
+								[frappe.utils.escape_html(cstr(me.doc.name)).bold()]
+							)
+						);
+						return;
+					}
+					// the server cancelled the root along with its links
+					me.reload_doc().then(() => {
+						frappe.utils.play_sound("cancel");
+						callback && callback();
+						me.script_manager.trigger("after_cancel");
+					});
+				},
+			});
+		});
 	}
 
 	_cancel(btn, callback, on_error, skip_confirm) {
@@ -1164,10 +1270,113 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	savetrash() {
+		const me = this;
 		this.validate_form_action("Delete");
-		frappe.model.delete_doc(this.doctype, this.docname, function () {
-			window.history.back();
+		frappe
+			.call({
+				method: "frappe.desk.form.linked_with.get_linked_docs_to_delete",
+				args: {
+					doctype: me.doctype,
+					name: cstr(me.docname),
+				},
+				freeze: true,
+			})
+			.then((r) => {
+				if (!r.exc && r.message.truncated) {
+					return me._delete_all_in_background();
+				}
+				if (!r.exc && (r.message.docs || []).length) {
+					return me._delete_all(r);
+				}
+				me._delete();
+			});
+	}
+
+	_delete() {
+		frappe.model.delete_doc(this.doctype, this.docname, () => this._after_delete());
+	}
+
+	_after_delete() {
+		const url = window.location.href;
+		this.script_manager.trigger("after_delete").then(() => {
+			if (window.location.href === url) window.history.back();
 		});
+	}
+
+	_delete_all_in_background() {
+		const me = this;
+		frappe.warn(
+			__("Confirm"),
+			__(
+				"{0} {1} is linked with too many documents to list. Delete all of them in the background along with {1}? You will be notified when it completes.",
+				[__(me.doctype).bold(), frappe.utils.escape_html(cstr(me.docname)).bold()]
+			),
+			() => me._delete_with_linked_docs(null),
+			__("Delete All")
+		);
+	}
+
+	_delete_with_linked_docs(links) {
+		const me = this;
+		const args = { root_doctype: me.doctype, root_name: cstr(me.docname) };
+		if (links) {
+			// without a list the server discovers the graph in a background job
+			args.docs = links;
+		}
+		frappe.call({
+			method: "frappe.desk.form.linked_with.delete_all_linked_docs",
+			args: args,
+			freeze: true,
+			freeze_message: __("Deleting documents..."),
+			callback: (resp) => {
+				if (resp.exc) {
+					return;
+				}
+				if (resp.message && resp.message.queued) {
+					frappe.msgprint(
+						__(
+							"The linked documents will be deleted in the background along with {0}. You will be notified when it completes.",
+							[frappe.utils.escape_html(cstr(me.docname)).bold()]
+						)
+					);
+					return;
+				}
+				// the server deleted the root along with its links
+				frappe.utils.play_sound("delete");
+				frappe.model.delete_from_locals(me.doctype, me.docname);
+				me._after_delete();
+			},
+		});
+	}
+
+	_delete_all(r) {
+		const me = this;
+		const links = r.message.docs;
+
+		let confirm_message = __("{0} {1} is linked with the following documents: {2}", [
+			__(me.doctype).bold(),
+			frappe.utils.escape_html(cstr(me.docname)),
+			me._linked_docs_list_html(links),
+		]);
+		confirm_message += __("Do you want to delete {0} along with all linked documents?", [
+			frappe.utils.escape_html(cstr(me.docname)).bold(),
+		]);
+
+		const d = new frappe.ui.Dialog({
+			title: __("Delete All Documents"),
+			fields: [{ fieldtype: "HTML", fieldname: "message" }],
+		});
+		// set directly: HTML field options get template-rendered, and names are user input
+		d.fields_dict.message.$wrapper.html(
+			`<p class="frappe-confirm-message">${confirm_message}</p>`
+		);
+
+		d.set_primary_action(__("Delete All"), () => {
+			d.hide();
+			me._delete_with_linked_docs(links);
+		});
+
+		d.show();
 	}
 
 	amend_doc() {

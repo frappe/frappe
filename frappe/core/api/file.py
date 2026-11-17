@@ -98,6 +98,10 @@ def get_max_extract_size() -> int:
 	)
 
 
+def get_max_extract_members() -> int:
+	return cint(frappe.conf.get("max_zip_extract_members")) or 1000
+
+
 def get_file_chunk_size() -> int:
 	return cint(frappe.conf.get("file_chunk_size")) or 25 * 1024 * 1024
 

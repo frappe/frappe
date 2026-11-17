@@ -1,7 +1,9 @@
 # Copyright (c) 2024, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import importlib.util
 import json
+import unittest
 
 import frappe
 from frappe.printing.layout import iter_layout_columns
@@ -406,12 +408,53 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
 			self.assertIn("_secret", fieldnames)
 
+	def test_permlevel_restricted_block_sources_are_dropped(self):
+		"""Repeater and Barcode blocks are dropped when the field they print from is restricted."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		layout = json.loads(pf.format_data)
+		layout["sections"][0]["columns"][0]["fields"] += [
+			{"fieldtype": "Repeater", "fieldname": "repeater", "source": "_secret"},
+			{"fieldtype": "Barcode", "fieldname": "barcode", "custom": 1, "barcode_field": "_secret"},
+		]
+		pf.format_data = json.dumps(layout)
+		get_field = todo.meta.get_field
+		restricted = frappe._dict(permlevel=1)
+
+		with patch.object(
+			todo.meta, "get_field", side_effect=lambda f: restricted if f == "_secret" else get_field(f)
+		):
+			fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
+		self.assertNotIn("repeater", fieldnames)
+		self.assertNotIn("barcode", fieldnames)
+
 	def _layout_fieldnames(self, generator):
 		return [
 			df.get("fieldname")
 			for column in iter_layout_columns(generator.layout)
 			for df in column.get("fields", [])
 		]
+
+	@unittest.skipIf(importlib.util.find_spec("plutoprint") is None, "plutoprint is not installed")
+	def test_plutoprint_choice_is_kept_unless_the_format_needs_chrome(self):
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		pf = self._make_print_format(pdf_generator="PlutoPrint")
+		self.assertEqual(pf.pdf_generator, "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(pf), "PlutoPrint")
+
+		jinja = frappe._dict(
+			custom_format=1, pdf_generator="PlutoPrint", html="<div onclick='go()'>{{ doc.name }}</div>"
+		)
+		self.assertEqual(resolve_pdf_generator(jinja), "chrome")
+		self.assertEqual(resolve_pdf_generator(None, "PlutoPrint"), "PlutoPrint")
 
 	def test_typst_pdf_skips_the_html_print_view(self):
 		from unittest.mock import patch

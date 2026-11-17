@@ -179,7 +179,7 @@ def create_doc(doctype: str):
 	if (name := data.get("name")) and isinstance(name, str | int):
 		doc.flags.name_set = True
 
-	return doc.insert().as_dict()
+	return doc.insert().copy_with_fieldlevel_read_permissions().as_dict()
 
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
@@ -258,7 +258,18 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 	if kwargs is None:
 		kwargs = {}
 
-	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
+	doc = frappe.get_doc(document)
+	ptype = PERMISSION_MAP[frappe.request.method]
+	# unsaved docs need create, not write; `__islocal` comes from the client, so check the DB too
+	# (a Single always exists, whatever name the client sends)
+	if (
+		ptype == "write"
+		and doc.is_new()
+		and not doc.meta.issingle
+		and not frappe.db.exists(doc.doctype, doc.name)
+	):
+		ptype = "create"
+	doc.check_permission(ptype)
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
 

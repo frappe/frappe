@@ -182,6 +182,24 @@ class TestPdf(IntegrationTestCase):
 			self.assertGreaterEqual(baselines[text], bottom, text)
 			self.assertLessEqual(baselines[text], top, text)
 
+	def test_bulk_pdf_bookmarks_each_document(self):
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		names = [
+			frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
+			for description in ("Call Northwind Traders", "Follow up with Litware")
+		]
+
+		_download_multi_pdf("ToDo", frappe.as_json(names))
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertEqual(
+			[(item.title, reader.get_destination_page_number(item)) for item in reader.outline],
+			[(names[0], 0), (names[1], 1)],
+		)
+
 	def test_bulk_pdf_by_doctype_skips_a_deleted_document(self):
 		from frappe.utils.print_format import _download_multi_pdf
 
@@ -196,6 +214,31 @@ class TestPdf(IntegrationTestCase):
 
 		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
 		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
+
+	def test_pdf_renders_while_another_render_has_a_tab_open(self):
+		from frappe.utils.pdf import get_host_url
+		from frappe.utils.pdf_generator.cdp_connection import CDPSocketClient
+		from frappe.utils.pdf_generator.chrome_pdf_generator import ChromePDFGenerator
+		from frappe.utils.pdf_generator.page import Page
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		generator = ChromePDFGenerator()
+		if not generator._devtools_url:
+			generator._set_devtools_url()
+		self.addCleanup(generator._close_browser)
+		generator.add_browser("other-render")
+		self.addCleanup(generator.remove_browser, "other-render")
+		session = CDPSocketClient(generator._devtools_url)
+		session.connect()
+		self.addCleanup(session.disconnect)
+		context, _error = session.send("Target.createBrowserContext", {"disposeOnDetach": True})
+		page = Page(session, context["browserContextId"], "body")
+		page.set_tab_url(get_host_url())
+		page.wait_for_navigate()
+
+		pdf = pdfgen.get_chrome_pdf(None, "<p>body text</p>", {}, None, pdf_generator="chrome")
+		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
 
 	def test_pages_merged_with_header_and_footer_are_compressed(self):
 		self.addCleanup(frappe.set_user, "Administrator")
@@ -340,6 +383,41 @@ class TestPdf(IntegrationTestCase):
 
 			pdfgen.get_pdf(self.html, smart_shrinking=True)
 			self.assertNotIn("disable-smart-shrinking", captured)
+
+	def test_on_print_pdf_hook_runs_for_builder_downloads(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import download_pdf
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": "_Test Builder Format",
+				"doc_type": "ToDo",
+				"standard": "No",
+				"print_format_builder_beta": 1,
+			}
+		).insert()
+		self.addCleanup(print_format.delete)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+		):
+			download_pdf("ToDo", todo.name, print_format=print_format.name)
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": print_format.name}])
 
 	def test_report_pdf_is_scaled_to_fit_the_page(self):
 		from unittest.mock import patch

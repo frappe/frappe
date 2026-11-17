@@ -11,7 +11,8 @@ EXECUTABLE_PATHS = {
 	"windows": ["chrome-win", "headless_shell.exe"],
 }
 
-GENERATOR_ENGINES = ("chrome", "Typst", "WeasyPrint")
+GENERATOR_ENGINES = ("chrome", "PlutoPrint", "Typst", "WeasyPrint")
+HTML_PDF_GENERATORS = ("chrome", "PlutoPrint")
 
 
 def _print_format_doc_or_none(print_format: str | None, doctype: str | None = None):
@@ -32,23 +33,30 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -> str:
 	"""Pick the PDF engine for a render.
 
-	A builder format keeps its Typst or WeasyPrint choice and otherwise pins itself to
-	Chrome. Everything else honours an explicit choice, then the format's own setting,
-	then the site default in Print Settings."""
+	A builder format keeps its PlutoPrint, Typst or WeasyPrint choice and otherwise pins
+	itself to Chrome. Everything else honours an explicit choice, then the format's own
+	setting, then the site default in Print Settings. PlutoPrint falls back to Chrome for
+	a format it cannot render."""
 	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+	from frappe.utils.pdf_generator.pluto import plutoprint_blockers
 
 	if print_format and uses_beta_renderer(print_format):
 		stored = print_format.get("pdf_generator")
 		if stored in ("Typst", "WeasyPrint"):
 			return stored
+		if stored == "PlutoPrint" and not plutoprint_blockers(print_format):
+			return stored
 		return "chrome"
-	if pdf_generator is not None:
-		return pdf_generator
-	return (
-		(print_format and print_format.get("pdf_generator"))
-		or frappe.db.get_single_value("Print Settings", "pdf_generator")
-		or "wkhtmltopdf"
-	)
+	generator = pdf_generator
+	if generator is None:
+		generator = (
+			(print_format and print_format.get("pdf_generator"))
+			or frappe.db.get_single_value("Print Settings", "pdf_generator")
+			or "wkhtmltopdf"
+		)
+	if generator == "PlutoPrint" and plutoprint_blockers(print_format):
+		return "chrome"
+	return generator
 
 
 def _run_print_pdf_hooks(doctype, name, print_format):
@@ -80,7 +88,7 @@ def get_print(
 	password=None,
 	pdf_options=None,
 	letterhead=None,
-	pdf_generator: Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"] | None = None,
+	pdf_generator: Literal["wkhtmltopdf", "chrome", "PlutoPrint", "Typst", "WeasyPrint"] | None = None,
 	settings=None,
 ):
 	"""Get Print Format for given document.
@@ -130,7 +138,7 @@ def get_print(
 		if password:
 			pdf_options["password"] = password
 
-		if as_pdf and generator in ("chrome", "Typst") and pf_doc and uses_beta_renderer(pf_doc):
+		if as_pdf and generator in (*HTML_PDF_GENERATORS, "Typst") and pf_doc and uses_beta_renderer(pf_doc):
 			from frappe.core.doctype.access_log.access_log import make_access_log
 			from frappe.model.document import Document
 			from frappe.www.printview import validate_print

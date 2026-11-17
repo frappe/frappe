@@ -64,12 +64,12 @@ def get_report_doc(report_name):
 	return doc
 
 
-@frappe.whitelist()
-def get_print_format_data(print_format: str):
+def get_permitted_report_print_format(print_format: str) -> frappe._dict:
+	"""Resolve an enabled Report print format, enforcing the report it belongs to."""
 	pf = frappe.db.get_value(
 		"Print Format",
 		{"name": print_format, "disabled": 0, "print_format_for": "Report"},
-		["report", "html", "css"],
+		["report", "html", "css", "print_format_type"],
 		as_dict=True,
 	)
 	if not pf:
@@ -78,7 +78,7 @@ def get_print_format_data(print_format: str):
 			frappe.DoesNotExistError,
 		)
 
-	# get_report_doc enforces the referenced Report's own permission model before we hand out its print format
+	# get_report_doc enforces the referenced Report's own permission model
 	report = get_report_doc(pf.report)
 
 	if not frappe.has_permission(report.ref_doctype, "print"):
@@ -87,7 +87,18 @@ def get_print_format_data(print_format: str):
 			frappe.PermissionError,
 		)
 
-	return {"html": pf.html, "css": pf.css}
+	return pf
+
+
+@frappe.whitelist()
+def get_print_format_data(print_format: str):
+	pf = get_permitted_report_print_format(print_format)
+
+	# a Jinja format is rendered server side, so its template never leaves the server
+	if pf.print_format_type == "Jinja":
+		return {"print_format_type": pf.print_format_type}
+
+	return {"html": pf.html, "css": pf.css, "print_format_type": pf.print_format_type}
 
 
 def get_report_result(report, filters):
@@ -372,8 +383,12 @@ def add_custom_column_data(custom_columns, result):
 	return result
 
 
-def get_user_facing_error(traceback: str | None) -> str:
-	"""Return the error message from a traceback, without the exception class."""
+def get_user_facing_error(traceback: str | None, keep_line_breaks: bool = False) -> str:
+	"""
+	Return the error message from a traceback, without the exception class.
+
+	With `keep_line_breaks`, each `<br>` becomes a newline instead of a space.
+	"""
 
 	if not traceback:
 		return ""
@@ -384,9 +399,13 @@ def get_user_facing_error(traceback: str | None) -> str:
 	if len(lines) > 1:
 		message = message.partition(": ")[2]
 
-	message = re.sub(r"<[^>]*>", " ", message)
+	if keep_line_breaks:
+		message = re.sub(r"<br\s*/?>", "\n", message, flags=re.IGNORECASE)
 
-	return unescape(" ".join(message.split()))
+	message = re.sub(r"<[^>]*>", " ", message)
+	message = "\n".join(" ".join(line.split()) for line in message.split("\n"))
+
+	return unescape(message.strip())
 
 
 def get_prepared_report_result(report, filters, dn="", user=None):
@@ -415,7 +434,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 	doc = frappe.get_doc("Prepared Report", dn) if dn else None
 	if doc and doc.status == "Error":
-		error = get_user_facing_error(doc.error_message)
+		error = get_user_facing_error(doc.error_message, keep_line_breaks=True)
 		# the client not requires the full traceback
 		doc.error_message = None
 		return {"prepared_report": True, "doc": doc, "error": error}

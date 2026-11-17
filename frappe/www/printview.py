@@ -207,7 +207,7 @@ def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple
 def get_print_filename(doc: "Document") -> str:
 	from frappe.core.doctype.file.utils import get_safe_file_name
 
-	return get_safe_file_name(doc.name)
+	return get_safe_file_name(cstr(doc.name))
 
 
 def get_rendered_template(
@@ -828,7 +828,7 @@ def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
 	if (
 		not print_format
 		or not print_format.css
-		or (print_format.pdf_generator or resolve_pdf_generator()) != "chrome"
+		or (print_format.pdf_generator or resolve_pdf_generator()) not in ("chrome", "PlutoPrint")
 	):
 		return " ".join(["15mm"] * 4)
 
