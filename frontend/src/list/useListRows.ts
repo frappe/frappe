@@ -96,6 +96,8 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	// Why the check read failed; the cached rows stay on show, but an act waiting on them must know.
 	const checkFailure = ref<Error | null>(null);
 	let timer = 0;
+	// True while a changed query waits out its debounce, before any read is out.
+	const debouncing = ref(false);
 
 	const loaded = computed(() => pages.value.flatMap((page) => page.data ?? []));
 	// The next page's offset: a cached page may lack a row whose record entry went.
@@ -117,9 +119,14 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		queryKey,
 		(key, previous) => {
 			clearTimeout(timer);
+			debouncing.value = false;
 			if (!key) return;
 			if (previous === undefined) return reload();
-			timer = window.setTimeout(() => reload(query()!.limit), QUERY_DEBOUNCE_MS);
+			debouncing.value = true;
+			timer = window.setTimeout(() => {
+				debouncing.value = false;
+				reload(query()!.limit);
+			}, QUERY_DEBOUNCE_MS);
 		},
 		{ immediate: true }
 	);
@@ -147,11 +154,12 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 
 	onScopeDispose(() => clearTimeout(timer));
 
-	/** Loads on the first act that waits, so the page does not carry it. A page still out, from Load More or a larger size, holds it. */
+	/** Loads on the first act that waits, so the page does not carry it. A page still out, or a changed query still in its debounce, holds it. */
 	async function settled(): Promise<void> {
 		const done = () =>
 			loadedKey.value === (query()?.key ?? null) &&
 			!checking.value &&
+			!debouncing.value &&
 			(firstPage.value?.data != null || Boolean(error.value)) &&
 			(!inFlight.value || Boolean(error.value));
 		return (await import("./settleRows")).settleRows(done, () => error.value ?? checkFailure.value);

@@ -89,6 +89,7 @@ describe("list.load_more", () => {
     const answer = await loadMore(view);
     expect(next).toHaveBeenCalledOnce();
     expect(answer.total).toBe(150);
+    expect(answer.rows).toEqual([]); // the two rows already loaded are not the new page
   });
 
   it("waits for a page already on its way before it asks for the next", async () => {

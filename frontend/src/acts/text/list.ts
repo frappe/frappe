@@ -113,7 +113,7 @@ export default {
 		output: loadedRows,
 	},
 	load_more: {
-		description: "Load the next page of rows below the ones shown. Not available when every matching row is loaded. Returns the rows now loaded.",
+		description: "Load the next page of rows below the ones shown. Not available when every matching row is loaded. Returns the total and the first 20 rows of the page just loaded.",
 		output: loadedRows,
 	},
 	select: {

@@ -81,13 +81,13 @@ function readRows(list: ListPageController, schema: ListSchema) {
   return loadedRows(list.page.rows, list.renderer().total(), schema.meta()?.title_field);
 }
 
-/** What the acts that load rows return: how many records match, and the first rows with their titles. */
-export function loadedRows(rows: readonly Record<string, unknown>[], total: number, titleField: string | undefined) {
-  return { total, rows: titledRows(rows, titleField) };
+/** What the acts that load rows return: how many records match, and the first rows from `from` with their titles. */
+export function loadedRows(rows: readonly Record<string, unknown>[], total: number, titleField: string | undefined, from = 0) {
+  return { total, rows: titledRows(rows, titleField, from) };
 }
 
-function titledRows(rows: readonly Record<string, unknown>[], titleField: string | undefined) {
-  return rows.slice(0, ROWS).map((row) => ({ name: String(row.name), title: titleOf(row, titleField) }));
+function titledRows(rows: readonly Record<string, unknown>[], titleField: string | undefined, from = 0) {
+  return rows.slice(from, from + ROWS).map((row) => ({ name: String(row.name), title: titleOf(row, titleField) }));
 }
 
 function rowsOf(list: ListPageController, schema: ListSchema) {

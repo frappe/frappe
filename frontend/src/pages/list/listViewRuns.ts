@@ -27,13 +27,14 @@ export async function setPageSize(view: ListView, { size }: { size: number }) {
 export async function loadMore(view: ListView) {
   await view.settled(); // next() does nothing while a page is on its way
   if (!view.hasNextPage.value) throw new ActInvalid("list.load_more", "every matching row is loaded already");
+  const before = view.rows.value.length;
   view.next();
   await view.settled();
-  return rowsRead(view);
+  return rowsRead(view, before); // the page just loaded: the rows before it are known already
 }
 
-function rowsRead(view: ListView) {
-  return loadedRows(view.rows.value, view.totalCount.value, view.meta.value?.title_field);
+function rowsRead(view: ListView, from = 0) {
+  return loadedRows(view.rows.value, view.totalCount.value, view.meta.value?.title_field, from);
 }
 
 /** The columns as the dialog's v-model holds them: kept widths, the field's own label. */
