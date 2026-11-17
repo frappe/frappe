@@ -656,7 +656,7 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 				validate_api_key_secret(self.api_key, "x", frappe_authorization_source=source)
 
 		# A Postgres transaction is aborted by a failed query, and this one would fail
-		self.assertEqual(frappe.db.sql("select 1"), ((1,),))
+		self.assertEqual(frappe.db.sql("select 1")[0][0], 1)
 		self.assertEqual(self._entries(), [])
 
 
