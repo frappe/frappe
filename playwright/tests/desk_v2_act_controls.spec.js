@@ -3,7 +3,7 @@
 // still to fix: it may only get shorter, so a gap that no longer fails must be deleted.
 import { test, expect, ADMIN_PASSWORD, TEST_USER } from "../support";
 import { Api } from "../support/api";
-import { judge, find_problems, read_gaps } from "../support/act_controls";
+import { added_gaps, judge, find_problems, read_gaps } from "../support/act_controls";
 import { site_url } from "../support/config";
 
 const SETTLE_MS = 1500;
@@ -48,6 +48,12 @@ test.describe("Desk v2 act-backed controls", () => {
 				enabled: 0,
 			});
 		await request?.dispose();
+	});
+
+	test("the gap list has no entry the base branch lacks", () => {
+		const added = added_gaps(read_gaps());
+		test.skip(added === null, "The base branch has no gap list to compare with");
+		expect(added, "act-gaps.json may only get shorter: fix the control instead.").toEqual([]);
 	});
 
 	for (const [kind, url, steps] of [
