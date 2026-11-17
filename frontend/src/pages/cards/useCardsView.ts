@@ -81,6 +81,7 @@ export function useCardsView(view: View, lists: Pick<ListPageLists, "rowActions"
 			"name",
 			fields.value.title,
 			...(fields.value.body ? [fields.value.body] : []),
+			...(fields.value.image ? [fields.value.image] : []),
 			"owner",
 			"modified",
 			...(listMeta.value.track_seen ? ["_seen"] : []),

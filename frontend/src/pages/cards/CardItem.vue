@@ -1,4 +1,4 @@
-<!-- One card: the title and the clipped body over a footer with the owner and the last change. -->
+<!-- One card: an optional image over the title and the clipped body, then a footer with the owner and the last change. -->
 <template>
 	<RouterLink
 		:to="link"
@@ -9,9 +9,21 @@
 				: 'border-outline-gray-2 hover:border-outline-gray-3'
 		"
 	>
+		<!-- Cropped to a fixed height, over the card's padding; a file that fails to load leaves no gap. -->
+		<img
+			v-if="imageUrl"
+			:src="imageUrl"
+			alt=""
+			loading="lazy"
+			class="-mx-3 -mt-3 h-24 max-w-none shrink-0 bg-surface-gray-2 object-cover"
+			@error="failedUrl = imageUrl"
+		/>
 		<div
 			class="truncate text-base"
-			:class="[titleClass || 'font-medium text-ink-gray-9', selecting && 'pe-8']"
+			:class="[
+				titleClass || 'font-medium text-ink-gray-9',
+				selecting && !imageUrl && 'pe-8',
+			]"
 		>
 			{{ title }}
 		</div>
@@ -44,14 +56,15 @@
 			:aria-label="__('Select {0}', [row.name])"
 			tabindex="0"
 			class="absolute top-2 flex size-7 items-center justify-center rounded-3 [&_input]:mt-0"
-			:class="
+			:class="[
+				imageUrl && 'bg-surface-base',
 				selecting
 					? 'end-2 opacity-100'
 					: [
-							menu.length ? 'end-9' : 'end-2',
+							menu.length ? (imageUrl ? 'end-10' : 'end-9') : 'end-2',
 							'opacity-0 focus:opacity-100 group-hover:opacity-100',
-					  ]
-			"
+					  ],
+			]"
 			@mousedown.shift.prevent
 			@click.stop.prevent="emit('toggle', $event.shiftKey)"
 			@keydown.enter.stop.prevent="emit('toggle', $event.shiftKey)"
@@ -66,7 +79,8 @@
 		</div>
 		<div
 			v-if="menu.length && !selecting"
-			class="absolute end-2 top-2 opacity-0 focus-within:opacity-100 group-hover:opacity-100 has-[[data-state=open]]:opacity-100"
+			class="absolute end-2 top-2 rounded-3 opacity-0 focus-within:opacity-100 group-hover:opacity-100 has-[[data-state=open]]:opacity-100"
+			:class="imageUrl && 'bg-surface-base'"
 			@click.prevent.stop
 		>
 			<RowMenu :options="menu" />
@@ -79,7 +93,7 @@ import { LinkMark } from "@framework/ui/fields";
 import type { FieldMeta } from "@framework/ui/fields/types";
 import { RichTextView } from "@framework/ui/RichText";
 import { Checkbox } from "frappe-ui";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import FieldCell from "@/pages/list/FieldCell.vue";
 import RowMenu from "@/pages/list/RowMenu.vue";
@@ -102,6 +116,8 @@ const props = defineProps<{
 	titleField: string;
 	bodyField: string | null;
 	bodyIsHtml: boolean;
+	/** An Attach Image field; its file shows at the top of the card. */
+	imageField?: string | null;
 	link: RouteLocationRaw;
 	/** The title's seen look on a Track Seen doctype; empty keeps the default. */
 	titleClass?: string;
@@ -119,6 +135,12 @@ const title = computed(() =>
 	recordTitle(props.meta, props.row, String(props.row.name), props.titleField)
 );
 const body = computed(() => (props.bodyField ? String(props.row[props.bodyField] ?? "") : ""));
+// The row is kept on a re-read, so a failed file is remembered by address, not for the card.
+const failedUrl = ref("");
+const imageUrl = computed(() => {
+	const url = props.imageField ? String(props.row[props.imageField] ?? "") : "";
+	return url && url !== failedUrl.value ? url : "";
+});
 const owner = computed(() => props.person?.name || String(props.row.owner ?? ""));
 const image = computed(() => props.person?.image ?? null);
 </script>
