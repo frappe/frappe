@@ -13,7 +13,6 @@ from frappe.tests.test_api import FrappeAPITestCase
 DESK_USER = "desk-v2-only-user@example.com"
 SHELL_ONLY = "frappe.email.inbox.get_outgoing_senders"
 FRAMEWORK_UI = "frappe.onboarding.update_onboarding_status"
-# Added after the first audit: only the v2 shell calls them (ticket #47721).
 SHELL_ONLY_LATER = (
 	"frappe.desk.ui_relay.tabs",
 	"frappe.desk.ui_relay.call",
