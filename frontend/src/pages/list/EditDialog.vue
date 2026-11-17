@@ -235,11 +235,12 @@ const handle: DialogHandle = {
 		}
 	},
 	async submit() {
+		if (saving.value) throw new Error(__("The update is running"));
 		if (!picked.value.length) throw new Error(__("Pick a field first"));
 		await confirm();
 		if (failure.value) throw new Error(failure.value);
 	},
-	close: () => (open.value = false),
+	close: () => void (saving.value || (open.value = false)),
 };
 
 useReadableDialog(

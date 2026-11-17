@@ -209,6 +209,22 @@ describe("EditDialog", () => {
 			expect(shown.value).toBe(false);
 		});
 
+		it("refuses a second submit and a close while the update runs", async () => {
+			let finish = () => {};
+			const run = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)));
+			const shown = await open(run);
+			frontHandle()!.setValues({ description: "Later" });
+			await settle();
+			const first = frontHandle()!.submit();
+			await settle();
+			await expect(frontHandle()!.submit()).rejects.toThrow("The update is running");
+			frontHandle()!.close();
+			expect(shown.value).toBe(true);
+			finish();
+			await first;
+			expect(run).toHaveBeenCalledTimes(1);
+		});
+
 		it("closes on dialog.close", async () => {
 			const shown = await open(async () => {});
 			frontHandle()!.close();
