@@ -26,7 +26,7 @@
  ],
  "fields": [
   {
-   "description": "Desk v1 names a sidebar after this, unique among them; on desk v2 it is only the label.",
+   "description": "The name shown for this sidebar. Filled automatically when left empty.",
    "fieldname": "title",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -34,7 +34,7 @@
    "reqd": 1
   },
   {
-   "description": "Optional. A module may own several sidebars; the one named after the module answers for it.",
+   "description": "The module this sidebar belongs to. Optional; one module may own several.",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -52,7 +52,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "Derived from the module when there is one; set by hand on a sidebar with no module.",
+   "description": "The app that ships this sidebar. Derived from the module when it has one.",
    "fieldname": "app",
    "fieldtype": "Autocomplete",
    "label": "App",
@@ -115,7 +115,7 @@
   },
   {
    "default": "0",
-   "description": "Owned by an app and exported to its module or app folder. Set via Mark as Standard, not by hand.",
+   "description": "Shipped by an app and exported to its folder. Set via Mark as Standard.",
    "fieldname": "standard",
    "fieldtype": "Check",
    "label": "Standard",
