@@ -9,6 +9,7 @@ frappe.ui.form.on("Client Script", {
 	},
 	refresh(frm) {
 		frm.events.hide_desk_v2_options(frm);
+		frm.previous_view = frm.doc.view;
 
 		if (frm.doc.dt && frm.doc.script) {
 			frm.add_custom_button(__("Go to {0}", [frm.doc.dt]), () => {
@@ -95,10 +96,19 @@ frappe.ui.form.on("Client Script", {
 	},
 
 	view(frm) {
+		const previous_view = frm.previous_view;
+		frm.previous_view = frm.doc.view;
+
 		const script = frm.doc.script || "";
 		const has_form_boilerplate = script.includes("frappe.ui.form.on");
 		const has_record_boilerplate = script.includes("export default");
-		if (frm.doc.view === "List" && (has_form_boilerplate || has_record_boilerplate)) {
+		// A Form script may contain `export default` without being a v2 handlers module.
+		const left_v2_view =
+			V2_VIEWS.includes(previous_view) || script.trim() === RECORD_BOILERPLATE.trim();
+		if (
+			frm.doc.view === "List" &&
+			(has_form_boilerplate || (has_record_boilerplate && left_v2_view))
+		) {
 			frm.set_value("script", "");
 		}
 		if (frm.doc.view === "Form" && !has_form_boilerplate) {
