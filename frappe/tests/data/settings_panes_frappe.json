@@ -141,6 +141,20 @@
    },
    {
     "app": "frappe",
+    "binding": {
+     "doctype": "User",
+     "resolver": "session_user",
+     "type": "Record"
+    },
+    "fields": [
+     "agent_ui_relay"
+    ],
+    "key": "agents",
+    "label": "Agents",
+    "save_mode": "auto"
+   },
+   {
+    "app": "frappe",
     "component": "session-defaults",
     "description": "Values new records start with, until you log out.",
     "key": "session-defaults",
