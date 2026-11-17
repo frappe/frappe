@@ -2,6 +2,8 @@ from typing import Any
 
 import frappe
 from frappe import _
+from frappe.rate_limiter import rate_limit
+from frappe.utils import validate_phone_number_with_country_code
 
 
 def get_base_url():
@@ -51,6 +53,7 @@ def mock_site_info() -> dict:
 		"plan": {"is_trial_plan": True},
 		"is_fc_user": True,
 		"setup_complete": cint(frappe.get_system_settings("setup_complete")),
+		"consulting_cta": bool(frappe.conf.get("mock_fc_consulting_cta")),
 	}
 
 
@@ -127,6 +130,52 @@ def api(method: str, data: str | dict[str, Any] | None = None):
 		return request.json().get("message")
 	else:
 		frappe.throw(_("Failed while calling API {0}", method))
+
+
+@frappe.whitelist(methods=["POST"])
+@rate_limit(limit=5, seconds=60 * 60, user_based=True)
+def consulting_request(
+	company: str,
+	mobile_no: str,
+	note: str | None = None,
+	current_business_tool: str | None = None,
+	no_of_employees: str | None = None,
+) -> None:
+	"""Hand a request for a consulting call to Frappe Cloud.
+
+	Frappe Cloud matches the request to this site from the request headers and owns what
+	happens to it next. Calling this again with the optional fields amends the same request.
+	"""
+	import requests
+
+	frappe.only_for("System Manager")
+
+	company = (company or "").strip()
+	if not company:
+		frappe.throw(_("Please enter your company name."), title=_("Company Required"))
+
+	if not mobile_no:
+		frappe.throw(_("Please enter your phone number."), title=_("Phone Required"))
+	validate_phone_number_with_country_code(mobile_no, label=_("Phone"))
+
+	if mock_billing_enabled():
+		return
+
+	payload = {
+		"company": company,
+		"mobile_no": mobile_no,
+		"note": note,
+		"current_business_tool": current_business_tool,
+		"no_of_employees": no_of_employees,
+	}
+
+	try:
+		request = post("press.saas.api.site.consulting_request", json=payload)
+	except requests.RequestException:
+		frappe.throw(_("Could not reach Frappe Cloud. Please try again in a few minutes."))
+
+	if request.status_code != 200:
+		frappe.throw(_("Frappe Cloud could not accept your request. Please try again later."))
 
 
 @frappe.whitelist()

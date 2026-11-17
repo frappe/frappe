@@ -16,8 +16,20 @@ $(document).ready(function () {
 
 		// the card template renders the message as-is, so the link can sit inside the sentence
 		const partners_link = `<a class="frappe-card-link" href="${getFrappePartnersUrl()}" target="_blank" rel="noopener noreferrer">partners</a>`;
+		let upgrade_message = `Please upgrade for uninterrupted services. Take help from our ${partners_link} to get started.`;
+		const consulting_cta = site_info.consulting_cta;
+		if (consulting_cta) {
+			// a real href keeps the link focusable and activatable with Enter
+			const talk_to_us_link = `<a class="frappe-card-link trial-talk-to-us" href="#">${__(
+				"Talk to us"
+			)}</a>`;
+			upgrade_message = __(
+				"Please upgrade for uninterrupted services. {0} to get started.",
+				[talk_to_us_link]
+			);
+		}
 		const banner_message = isFCUser
-			? `Please upgrade for uninterrupted services. Take help from our ${partners_link} to get started.`
+			? upgrade_message
 			: "Please contact your system administrator to upgrade your plan.";
 		let card_args = {
 			title: `Your trial ends in ${trial_end_string}`,
@@ -61,6 +73,9 @@ $(document).ready(function () {
 				if (site_info.trial_end_date && trial_end_date > new Date()) {
 					card_args.parent = $(".icons-container").first();
 					let banner_card = new frappe.ui.Card(card_args);
+					if (consulting_cta) {
+						bindTalkToUs(banner_card);
+					}
 				}
 				addManageBillingDropdown(data.desktop);
 
@@ -71,6 +86,15 @@ $(document).ready(function () {
 		});
 	}
 });
+
+function bindTalkToUs(banner_card) {
+	banner_card.card.find(".trial-talk-to-us").on("click", function (event) {
+		event.preventDefault();
+		frappe.require("talk_to_us.bundle.js", () => {
+			frappe.ui.talk_to_us.show();
+		});
+	});
+}
 
 function setErrorMessage(message) {
 	$("#fc-login-error").text(message);
