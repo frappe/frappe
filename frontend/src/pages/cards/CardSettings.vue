@@ -1,4 +1,4 @@
-<!-- The Cards type's control among the page's: which fields a card's title and body read. -->
+<!-- The Cards type's control among the page's: which fields a card's title, body and image read. -->
 <template>
 	<Popover side="bottom" align="end">
 		<template #trigger>
@@ -20,6 +20,14 @@
 					:options="bodyOptions"
 					@update:modelValue="update({ body_field: $event })"
 				/>
+				<FormControl
+					type="select"
+					:label="__('Image')"
+					:modelValue="image ?? ''"
+					:options="imageOptions"
+					:disabled="imageOptions.length === 1"
+					@update:modelValue="update({ image_field: $event })"
+				/>
 			</div>
 		</template>
 	</Popover>
@@ -31,12 +39,13 @@ import { Button, FormControl, Popover } from "frappe-ui";
 import { computed } from "vue";
 import { __ } from "@/i18n";
 import type { ListMeta } from "@/list/defaults";
-import { BODY_FIELDTYPES } from "./cardFields";
+import { BODY_FIELDTYPES, IMAGE_FIELDTYPE } from "./cardFields";
 
 const props = defineProps<{
 	meta: ListMeta | null;
 	title: string;
 	body: string | null;
+	image: string | null;
 	update: (patch: Record<string, unknown>) => void;
 }>();
 
@@ -55,5 +64,16 @@ const titleOptions = computed(() => [
 const bodyOptions = computed(() => [
 	{ label: __("None"), value: "" },
 	...shown.value.filter((field) => BODY_FIELDTYPES.has(field.fieldtype)).map(option),
+]);
+// A hidden image field (User's `user_image`) is still listed when it is the one in use.
+const imageOptions = computed(() => [
+	{ label: __("None"), value: "" },
+	...(props.meta?.fields ?? [])
+		.filter(
+			(field) =>
+				field.fieldtype === IMAGE_FIELDTYPE &&
+				(!field.hidden || field.fieldname === props.image)
+		)
+		.map(option),
 ]);
 </script>

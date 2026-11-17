@@ -5,6 +5,7 @@
 			:meta="meta"
 			:title="fields.title"
 			:body="fields.body"
+			:image="fields.image"
 			:update="view.update"
 		/>
 	</Teleport>
@@ -29,6 +30,7 @@
 				:titleField="fields.title"
 				:bodyField="fields.body"
 				:bodyIsHtml="fields.bodyIsHtml"
+				:imageField="fields.image"
 				:link="cardLink(row)"
 				:titleClass="titleClassOf(row)"
 				:menu="menuFor(row)"

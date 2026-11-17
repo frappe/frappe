@@ -1,8 +1,9 @@
-// What a card shows from a doctype and the view's settings: the title and body fields it reads.
+// What a card shows from a doctype and the view's settings: the title, body and image fields it reads.
 import type { ListMeta } from "@/list/defaults";
 import type { ViewSettings } from "@/list/view";
 
 export const BODY_FIELDTYPES = new Set(["Text Editor", "Text", "Small Text", "Long Text"]);
+export const IMAGE_FIELDTYPE = "Attach Image";
 
 export interface CardFields {
 	title: string;
@@ -10,6 +11,8 @@ export interface CardFields {
 	body: string | null;
 	/** True for a Text Editor body, which holds HTML; the others hold plain text. */
 	bodyIsHtml: boolean;
+	/** Null when no Attach Image field is set and the doctype names none. */
+	image: string | null;
 }
 
 /** The setting when it names a field the person can read, else the doctype's own pick. */
@@ -34,5 +37,19 @@ export function cardFields(
 	// An empty setting is the person's choice of no body, not an unset one.
 	const body = settings.body_field === "" ? null : has(settings.body_field) ? settings.body_field : (firstText?.fieldname ?? null);
 	const bodyIsHtml = fields.find((one) => one.fieldname === body)?.fieldtype === "Text Editor";
-	return { title, body, bodyIsHtml };
+	return { title, body, bodyIsHtml, image: imageField(meta, settings, has) };
+}
+
+/** The setting when it names an Attach Image field, else the doctype's own `image_field`. */
+function imageField(
+	meta: ListMeta,
+	settings: ViewSettings,
+	has: (fieldname: unknown) => fieldname is string
+): string | null {
+	// An empty setting is the person's choice of no image, not an unset one.
+	if (settings.image_field === "") return null;
+	const isImage = (fieldname: unknown): fieldname is string =>
+		has(fieldname) && meta.fields?.find((one) => one.fieldname === fieldname)?.fieldtype === IMAGE_FIELDTYPE;
+	if (isImage(settings.image_field)) return settings.image_field;
+	return isImage(meta.image_field) ? meta.image_field : null;
 }

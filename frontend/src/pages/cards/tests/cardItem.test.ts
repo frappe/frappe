@@ -103,4 +103,24 @@ describe("CardItem", () => {
 		expect(box.className).not.toContain("opacity-0");
 		expect(selecting.querySelector("[data-menu]")).toBeNull();
 	});
+
+	it("shows the image at the top, lazy, and none without one", async () => {
+		const row = { name: "NOTE-1", title: "Plan", cover: "/files/a.png", owner: "a@b.c" };
+		const root = await mount({ row, imageField: "cover", bodyField: null });
+		const img = root.querySelector("img")!;
+		expect(img.getAttribute("src")).toBe("/files/a.png");
+		expect(img.getAttribute("loading")).toBe("lazy");
+		expect(root.querySelector("a")!.firstElementChild).toBe(img);
+
+		expect((await mount({ row: { ...row, cover: null }, imageField: "cover" })).querySelector("img")).toBeNull();
+		expect((await mount({ row })).querySelector("img")).toBeNull();
+	});
+
+	it("drops an image that fails to load, so the card keeps today's look", async () => {
+		const row = { name: "NOTE-1", title: "Plan", cover: "/files/gone.png", owner: "a@b.c" };
+		const root = await mount({ row, imageField: "cover" });
+		root.querySelector("img")!.dispatchEvent(new Event("error"));
+		await nextTick();
+		expect(root.querySelector("img")).toBeNull();
+	});
 });
