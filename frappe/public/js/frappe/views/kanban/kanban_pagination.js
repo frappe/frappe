@@ -109,7 +109,6 @@ export const kanban_pagination = {
 				method: "frappe.desk.doctype.kanban_board.kanban_board.get_kanban_board_data",
 				args: this.get_kanban_api_args(),
 				freeze: false,
-				type: "GET",
 			})
 			.then(({ message }) => {
 				const data_map = new Map((this.data || []).map((doc) => [doc.name, doc]));
@@ -422,7 +421,6 @@ export const kanban_pagination = {
 		const { message } = await frappe.call({
 			method: "frappe.desk.doctype.kanban_board.kanban_board.get_kanban_board_data",
 			args: this.get_kanban_api_args(),
-			type: "GET",
 		});
 
 		Object.entries(message?.columns || {}).forEach(([column_title, column_data]) => {
@@ -462,7 +460,6 @@ export const kanban_pagination = {
 					kanban_start: fetch_offset,
 				}),
 				freeze: false,
-				type: "GET",
 			});
 			const { rows, evicted } = this.apply_kanban_column_result(column_title, message);
 			state.last_prefetch_offset = fetch_offset;
@@ -508,7 +505,6 @@ export const kanban_pagination = {
 					kanban_page_length: page_length,
 				}),
 				freeze: false,
-				type: "GET",
 			});
 
 			const rows = this.parse_kanban_cards(message?.cards);

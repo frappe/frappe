@@ -117,7 +117,8 @@ frappe.ui.form.TemplateManager = class TemplateManager {
 		}
 		return frappe.xcall(
 			"frappe.desk.doctype.document_template.document_template.get_templates",
-			args
+			args,
+			"GET"
 		);
 	}
 

@@ -18,7 +18,7 @@ frappe.ui.form.on("System Settings", {
 			},
 		});
 
-		frappe.xcall("frappe.apps.get_apps").then((r) => {
+		frappe.xcall("frappe.apps.get_apps", undefined, "GET").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
 			frm.set_df_property("default_app", "options", ["", ...apps]);
 		});

@@ -20,7 +20,6 @@ frappe.ui.form.on("Network Printer Settings", {
 					ip: frm.doc.server_ip,
 					port: frm.doc.port,
 				},
-				type: "GET",
 				callback: function (data) {
 					frm.set_df_property("printer_name", "options", [""].concat(data.message));
 				},

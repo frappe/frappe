@@ -337,7 +337,6 @@ frappe.ui.form.on("Email Account", {
 				args: {
 					domain: frm.doc.domain,
 				},
-				type: "GET",
 				callback: function (r) {
 					if (!r.exc) {
 						for (let field in r.message) {

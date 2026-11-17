@@ -514,9 +514,13 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				resolve();
 			} else {
 				frappe
-					.xcall("frappe.desk.query_report.get_script", {
-						report_name: this.report_name,
-					})
+					.xcall(
+						"frappe.desk.query_report.get_script",
+						{
+							report_name: this.report_name,
+						},
+						"GET"
+					)
 					.then((settings) => {
 						if (!frappe.query_reports[settings.custom_report_name || report_name]) {
 							frappe.dom.eval(settings.script);
@@ -1922,7 +1926,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				letterhead: with_letter_head ? print_settings.letter_head_name || null : null,
 				no_letterhead: with_letter_head ? 0 : 1,
 			},
-			type: "GET",
 		});
 		if (!r.message) return null;
 		const rendered = r.message;
@@ -1946,7 +1949,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					letterhead: print_settings.letter_head_name,
 					doc: doc_context,
 				},
-				type: "GET",
 			});
 			if (r.message) {
 				print_settings.letter_head = r.message;
@@ -2313,7 +2315,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 											.names
 									),
 								},
-								type: "GET",
 								callback: (r) => {
 									const custom_data = r.message;
 									this.add_custom_column(

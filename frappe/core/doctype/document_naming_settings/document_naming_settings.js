@@ -21,7 +21,6 @@ frappe.ui.form.on("Document Naming Settings", {
 		frappe.call({
 			method: "get_transactions_and_prefixes",
 			doc: frm.doc,
-			type: "GET",
 			callback: function (r) {
 				frm.fields_dict.transaction_type.set_data(r.message.transactions);
 				frm.fields_dict.prefix.set_data(r.message.prefixes);
@@ -34,7 +33,6 @@ frappe.ui.form.on("Document Naming Settings", {
 		frappe.call({
 			method: "get_options",
 			doc: frm.doc,
-			type: "GET",
 			callback: function (r) {
 				frm.set_value("naming_series_options", r.message);
 				if (r.message && r.message.split("\n")[0] == "")
@@ -47,7 +45,6 @@ frappe.ui.form.on("Document Naming Settings", {
 		frappe.call({
 			method: "get_current",
 			doc: frm.doc,
-			type: "GET",
 			callback: function (r) {
 				frm.refresh_field("current_value");
 			},
@@ -71,7 +68,6 @@ frappe.ui.form.on("Document Naming Settings", {
 		frappe.call({
 			method: "preview_series",
 			doc: frm.doc,
-			type: "GET",
 			callback: function (r) {
 				if (!r.exc) {
 					frm.set_value("series_preview", r.message);

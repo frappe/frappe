@@ -42,6 +42,7 @@ frappe.doctype_settings.open = function (doctype) {
 		frappe
 			.call({
 				method: "frappe.desk.doctype_settings.settings_map.has_settings_map",
+				type: "GET",
 				args: { doctype },
 			})
 			.then((r) => ready.then(() => build_dialog(doctype, !!(r && r.message))))

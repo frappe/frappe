@@ -301,14 +301,16 @@ frappe.ui.form.PrintView = class {
 			this.render_style_options();
 			this.preview();
 		});
-		frappe.xcall("frappe.printing.page.print.print.get_print_styles").then((names) => {
-			const rank = (name) =>
-				STANDARD_PRINT_STYLES.includes(name)
-					? STANDARD_PRINT_STYLES.indexOf(name)
-					: STANDARD_PRINT_STYLES.length;
-			this.print_styles = names.sort((a, b) => rank(a) - rank(b));
-			this.render_style_options();
-		});
+		frappe
+			.xcall("frappe.printing.page.print.print.get_print_styles", undefined, "GET")
+			.then((names) => {
+				const rank = (name) =>
+					STANDARD_PRINT_STYLES.includes(name)
+						? STANDARD_PRINT_STYLES.indexOf(name)
+						: STANDARD_PRINT_STYLES.length;
+				this.print_styles = names.sort((a, b) => rank(a) - rank(b));
+				this.render_style_options();
+			});
 	}
 
 	render_style_options() {

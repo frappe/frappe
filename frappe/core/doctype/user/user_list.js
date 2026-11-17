@@ -100,7 +100,7 @@ frappe.listview_settings["User"] = {
 		const default_app_field = frappe.meta.get_docfield("User", "default_app");
 		if (!default_app_field) return;
 
-		frappe.xcall("frappe.apps.get_apps").then((r) => {
+		frappe.xcall("frappe.apps.get_apps", undefined, "GET").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
 			default_app_field.options = ["", ...apps].join("\n");
 		});

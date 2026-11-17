@@ -78,7 +78,7 @@ frappe.listview_settings["Recorder"] = {
 	},
 
 	fetch_recorder_status(listview) {
-		return frappe.xcall("frappe.recorder.status").then((status) => {
+		return frappe.xcall("frappe.recorder.status", undefined, "GET").then((status) => {
 			listview.enabled = Boolean(status);
 		});
 	},

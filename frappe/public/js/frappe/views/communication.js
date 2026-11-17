@@ -756,7 +756,6 @@ frappe.views.CommunicationComposer = class {
 				doc: this.doc,
 				sender: this.dialog.get_value("sender") || "",
 			},
-			type: "GET",
 			callback: async (r) => {
 				if (!r || !r.message) return;
 				// An empty rich text editor still returns markup, don't carry it over.
@@ -803,7 +802,6 @@ frappe.views.CommunicationComposer = class {
 				frappe.call({
 					method: "frappe.email.get_contact_list",
 					args: args,
-					type: "GET",
 					callback: (r) => {
 						const added = new Set(
 							["recipients", "cc", "bcc"].flatMap((name) =>
@@ -967,7 +965,6 @@ frappe.views.CommunicationComposer = class {
 		frappe.call({
 			method: "frappe.email.get_recipient_avatars",
 			args: { emails: pending },
-			type: "GET",
 			callback: (r) => {
 				const { user_info = {}, contact_images = {} } = r.message || {};
 				frappe.update_user_info(user_info);

@@ -24,12 +24,16 @@ export function useSnippets({ insert_section, insert_field, doc_type }) {
 	// frappe.db.get_list never settles its promise on failure, so go through
 	// xcall — a permission error must reject, not hang the builder forever.
 	async function reload() {
-		const rows = await frappe.xcall("frappe.client.get_list", {
-			doctype: DOCTYPE,
-			fields: ["name", "snippet_type", "document_type", "content"],
-			limit_page_length: 0,
-			order_by: "name asc",
-		});
+		const rows = await frappe.xcall(
+			"frappe.client.get_list",
+			{
+				doctype: DOCTYPE,
+				fields: ["name", "snippet_type", "document_type", "content"],
+				limit_page_length: 0,
+				order_by: "name asc",
+			},
+			"GET"
+		);
 		all_snippets.value = (rows || []).map(parse).filter(Boolean);
 	}
 
