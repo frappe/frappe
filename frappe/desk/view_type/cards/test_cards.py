@@ -34,5 +34,6 @@ class TestCardsViewType(IntegrationTestCase):
 			validate_settings("Cards", "User", {"image_field": "no_such_field"})
 		with self.assertRaisesRegex(frappe.ValidationError, "not an Attach Image field of"):
 			validate_settings("Cards", "User", {"image_field": "full_name"})
-		with self.assertRaisesRegex(frappe.ValidationError, "not a field of"):
-			validate_settings("Cards", "User", {"image_field": ["user_image"]})
+		for value in (["user_image"], [], 0, False):
+			with self.assertRaisesRegex(frappe.ValidationError, "not a field of"):
+				validate_settings("Cards", "User", {"image_field": value})

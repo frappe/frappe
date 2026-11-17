@@ -1,4 +1,4 @@
-// Track Seen on the cards view: `_seen` joins the read, and the title class follows the row's seen state.
+// The cards view's row read: `_seen` joins it on a Track Seen doctype, the image field when the card has one; the title class follows the seen state.
 import { createListPageLists } from "@/listPage/createListPage";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, ref } from "vue";
@@ -6,13 +6,21 @@ import { useCardsView, type CardsView } from "../useCardsView";
 
 const fake = vi.hoisted(() => ({
 	track: 0 as 0 | 1,
+	imageField: undefined as string | undefined,
 	query: null as null | (() => { fields: string[]; include?: string[] } | null),
 }));
 
 vi.mock("@framework/ui/api", () => ({ listDocuments: vi.fn() }));
 vi.mock("@framework/ui/useDocPermissions", () => ({ useDocPermissions: () => ({ fieldAccess: () => "write" }) }));
 vi.mock("@framework/ui/useDoctypeMeta", () => ({
-	useDoctypeMeta: () => ({ meta: ref({ title_field: "title", track_seen: fake.track, fields: [] }) }),
+	useDoctypeMeta: () => ({
+		meta: ref({
+			title_field: "title",
+			track_seen: fake.track,
+			image_field: fake.imageField,
+			fields: [{ fieldname: "cover", fieldtype: "Attach Image" }],
+		}),
+	}),
 }));
 vi.mock("@framework/ui/useSession", () => ({ currentSession: () => ({ user: { name: "alice@example.com" } }) }));
 vi.mock("@/list/pageState", () => ({ useRememberedPageSize: () => ref(20) }));
@@ -44,6 +52,7 @@ function cardsView(): CardsView {
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
 	fake.track = 0;
+	fake.imageField = undefined;
 });
 
 describe("cards view on a Track Seen doctype", () => {
@@ -66,5 +75,13 @@ describe("cards view read", () => {
 	it("asks for the stars, so the bar's Favourite can flip to Unfavourite", () => {
 		cardsView();
 		expect(fake.query!()!.include).toContain("favourites");
+	});
+
+	it("reads the image field the doctype names, and none otherwise", () => {
+		cardsView();
+		expect(fake.query!()!.fields).not.toContain("cover");
+		fake.imageField = "cover";
+		cardsView();
+		expect(fake.query!()!.fields).toContain("cover");
 	});
 });

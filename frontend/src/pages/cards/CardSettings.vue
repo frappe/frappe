@@ -26,6 +26,7 @@
 					:modelValue="image ?? ''"
 					:options="imageOptions"
 					:disabled="imageOptions.length === 1"
+					:variant="imageOptions.length === 1 ? 'outline' : 'subtle'"
 					@update:modelValue="update({ image_field: $event })"
 				/>
 			</div>

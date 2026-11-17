@@ -20,7 +20,10 @@
 		/>
 		<div
 			class="truncate text-base"
-			:class="[titleClass || 'font-medium text-ink-gray-9', selecting && 'pe-8']"
+			:class="[
+				titleClass || 'font-medium text-ink-gray-9',
+				selecting && !imageUrl && 'pe-8',
+			]"
 		>
 			{{ title }}
 		</div>
@@ -58,7 +61,7 @@
 				selecting
 					? 'end-2 opacity-100'
 					: [
-							menu.length ? 'end-9' : 'end-2',
+							menu.length ? (imageUrl ? 'end-10' : 'end-9') : 'end-2',
 							'opacity-0 focus:opacity-100 group-hover:opacity-100',
 					  ],
 			]"

@@ -18,7 +18,7 @@ def validate_settings(doctype: str, settings: dict):
 			_throw_not_a_field(doctype, fieldname)
 
 	image = settings.get("image_field")
-	if not image:
+	if image is None or image == "":
 		return
 	if not (isinstance(image, str) and meta.has_field(image)):
 		_throw_not_a_field(doctype, image)
