@@ -651,11 +651,12 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 
 	def test_failed_key_lookup_is_rejected_without_a_log_entry(self):
 		self._request_with(self.api_key, "x")
-		frappe.db.savepoint("failed_key_lookup")
-		with self.assertRaises(frappe.AuthenticationError):
-			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="ToDo")
-		frappe.db.rollback(save_point="failed_key_lookup")
+		for source in ("ToDo", "No Such DocType"):
+			with self.assertRaises(frappe.AuthenticationError):
+				validate_api_key_secret(self.api_key, "x", frappe_authorization_source=source)
 
+		# A Postgres transaction is aborted by a failed query, and this one would fail
+		self.assertEqual(frappe.db.sql("select 1"), ((1,),))
 		self.assertEqual(self._entries(), [])
 
 

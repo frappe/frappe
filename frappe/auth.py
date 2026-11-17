@@ -764,6 +764,9 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		reject_api_key_auth("missing API key or secret")
 
 	doctype = frappe_authorization_source or "User"
+	# The source header is client-chosen; a failed query would abort the transaction on Postgres
+	if not has_api_key_fields(doctype):
+		raise frappe.AuthenticationError
 	try:
 		docname = frappe.db.get_value(
 			doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
@@ -785,6 +788,15 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		frappe.local.form_dict = form_dict
 	else:
 		reject_api_key_auth("invalid API secret", user=docname if doctype == "User" else None)
+
+
+def has_api_key_fields(doctype: str) -> bool:
+	try:
+		meta = frappe.get_meta(doctype)
+	except Exception:
+		return False
+	has_table = not (meta.issingle or meta.is_virtual)
+	return has_table and meta.has_field("api_key") and meta.has_field("enabled")
 
 
 def reject_api_key_auth(reason: str, user: str | None = None) -> NoReturn:
