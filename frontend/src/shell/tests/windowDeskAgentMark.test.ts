@@ -197,6 +197,21 @@ describe("Stop", { timeout: 40_000 }, () => {
 		expect(runMethod).not.toHaveBeenCalled();
 	});
 
+	it("names an agent that still has a call open when another one ends", async () => {
+		const waiting = { ok: false, error: { code: "waiting_for_user", message: "Ask", call: 3 }, route: "/", dialogs: [] };
+		const desk = {
+			acts: { run: async () => waiting, wait: () => new Promise(() => {}) },
+			dialogs: async () => [],
+			state: async () => ({}),
+		};
+		const relay = await started(desk);
+		relay.emit({ call_id: "c1", op: "run", tab: "tab1", act: "x", client: "agent-a" });
+		await shown();
+		relay.emit({ call_id: "c2", op: "state", tab: "tab1", client: "agent-b" });
+		await vi.waitFor(() => expect(replies().some((reply) => reply.call_id === "c2" && reply.final)).toBe(true));
+		expect(mark()!.textContent).toContain("agent-a");
+	});
+
 	it("a call whose act throws ends and lets the mark go idle", async () => {
 		const relay = await started({ acts: { run: async () => { throw new Error("boom"); } }, dialogs: async () => [] });
 		relay.emit({ call_id: "c1", op: "run", tab: "tab1", act: "x", client: "frappectl" });

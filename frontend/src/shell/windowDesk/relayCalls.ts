@@ -50,7 +50,10 @@ export class RelayCalls {
 	}
 
 	finish(call: RelayEvent) {
-		if (this.open.delete(call.call_id) && !this.open.size) this.mark.idle();
+		if (!this.open.delete(call.call_id)) return;
+		if (!this.open.size) return this.mark.idle();
+		// Name an agent that still has a call open, not the one that just ended.
+		this.mark.driving([...this.open.values()].at(-1)!.client ?? null);
 	}
 
 	private stop() {
