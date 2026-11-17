@@ -26,7 +26,7 @@
  ],
  "fields": [
   {
-   "description": "What this sidebar is called on screen. Left empty, it takes its module's name, or the name of what it is attached to when it has no module. The default is stored, not computed on read.",
+   "description": "The name shown for this sidebar. Taken from its module when left empty.",
    "fieldname": "title",
    "fieldtype": "Data",
    "in_list_view": 1,
@@ -34,7 +34,7 @@
    "reqd": 1
   },
   {
-   "description": "The module this sidebar belongs to. Neither required nor unique: one module may own several sidebars. May also be blank. A sidebar that an app ships with no module belongs to the app itself: it is exported to the app's own folder and says which app in `app`.",
+   "description": "The module this sidebar belongs to. Optional; one module may own several.",
    "fieldname": "module",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -52,7 +52,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "description": "The app this sidebar is placed in. Derived from the module when there is one -- a module sits in exactly one app. Author-set when there is not: an app-rooted sidebar has no module to derive it from, and this is then the only thing that says which app ships the file.",
+   "description": "The app that ships this sidebar. Derived from the module when it has one.",
    "fieldname": "app",
    "fieldtype": "Autocomplete",
    "label": "App",
@@ -115,7 +115,7 @@
   },
   {
    "default": "0",
-   "description": "Owned by an app: exported to its module's folder -- or to the app's own folder when it has no module -- and re-imported by migrate. Set via the Mark as Standard action, not by hand -- a standard sidebar with no exported file is an orphan and gets deleted on the next migrate. Everything else belongs to this site, however it got here.",
+   "description": "Shipped by an app and exported to its folder. Set via Mark as Standard.",
    "fieldname": "standard",
    "fieldtype": "Check",
    "label": "Standard",
