@@ -33,6 +33,12 @@
 				:route="routeFor(doctype)"
 			/>
 			<Button
+				v-else-if="name === 'unbuilt' && doctype"
+				class="mt-1"
+				:label="__('Open the List view')"
+				:route="routeFor(doctype)"
+			/>
+			<Button
 				v-else-if="name === 'nothingToOpen'"
 				class="mt-1"
 				:label="__('All apps')"
@@ -54,7 +60,7 @@ import { loadDocument } from "./tabKeepAlive";
 
 const props = defineProps<PageStateValue>();
 
-const QUIET = new Set(["empty", "filtered", "nothingToOpen"]);
+const QUIET = new Set(["empty", "filtered", "nothingToOpen", "unbuilt"]);
 
 const looks = {
 	empty: {
@@ -84,6 +90,11 @@ const looks = {
 		icon: "lucide-search-x",
 		title: __("This view doesn't exist"),
 		description: __("It was deleted, or it is someone else's."),
+	},
+	unbuilt: {
+		icon: "lucide-construction",
+		title: __("This view is not built yet"),
+		description: __("Use the List view until it is ready."),
 	},
 	noPermission: {
 		icon: "lucide-lock",

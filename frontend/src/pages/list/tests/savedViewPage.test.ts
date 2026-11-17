@@ -66,6 +66,7 @@ async function flush() {
 }
 
 const view_types = [{ name: "Kanban", label: "Kanban" }];
+const unbuilt_view_types = [{ name: "Calendar", label: "Calendar", icon: "calendar" }];
 
 async function mount(path: string) {
 	const router = createRouter({
@@ -80,7 +81,7 @@ async function mount(path: string) {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(defineComponent({ render: () => h(List) }));
-	app.use(router).provide("boot", { app: "desk", app_title: "Desk", view_types, bulk_actions: true, bulk_operation_limit: 500, session: { user: { name: "jane@example.com" } } }).provide("addresses", {
+	app.use(router).provide("boot", { app: "desk", app_title: "Desk", view_types, unbuilt_view_types, bulk_actions: true, bulk_operation_limit: 500, session: { user: { name: "jane@example.com" } } }).provide("addresses", {
 		moduleName: () => null,
 		doctypeOf: () => "ToDo",
 		slugOf: () => "todo",
@@ -121,6 +122,15 @@ describe("a saved view's address", () => {
 		expect(page.list()).toBeNull();
 		expect(page.text()).toContain("This view doesn't exist");
 		expect(page.action()?.getAttribute("href")).toBe(page.listHref);
+	});
+
+	it("opens the page with the type's own name, and looks nothing up, for a type that is not built yet", async () => {
+		const server = answer(200, {});
+		const page = await mount("/todo/view/calendar");
+
+		expect(server.asked).toEqual([]);
+		expect(page.type()).toBe("Calendar");
+		expect(page.list()?.dataset.list).toBe("Calendar");
 	});
 
 	it("asks nothing for the plain list", async () => {

@@ -101,6 +101,8 @@ export type Boot = {
 
 	// Absent on the index. Every `View Type` record, for the view switcher and the router.
 	view_types?: { name: string; label: string; icon: string | null }[];
+	// Absent on the index. The kept view types with no record yet: their address opens a placeholder.
+	unbuilt_view_types?: { name: string; label: string; icon: string }[];
 
 	// --- navigation ---
 	//

@@ -10,11 +10,12 @@ from frappe.desk.doctype.view_type.view_type import applies_to, type_keys, view_
 from .app_views import app_views
 from .doctype_view import PLAIN_VIEW, SITE_ROW
 
-# The candidates of "which view types survive" (#45854), held until that grilling rules; a dropped one is released.
-SURVIVOR_CANDIDATES = frozenset({"report", "calendar", "gantt", "tree", "image", "inbox", "map", "dashboard"})
+# The kept view types that have no `View Type` record yet, with their icons.
+UNBUILT_TYPES = {"Kanban": "kanban", "Calendar": "calendar", "Tree": "list-tree", "Report": "table"}
+UNBUILT_KEYS = frozenset(name.lower() for name in UNBUILT_TYPES)
 
-# Kanban's before it is a type; `/<doctype>/view/record` is the standard page of the record named "view".
-HELD_KEYS = frozenset({"kanban", "record"})
+# `/<doctype>/view/record` is the standard page of the record named "view".
+HELD_KEYS = frozenset({"record"})
 
 KEY_LENGTH_LIMIT = 60
 RANDOM_KEY_LENGTH = 8
@@ -59,7 +60,17 @@ class KeySpace:
 
 def reserved_keys() -> frozenset[str]:
 	"""Keys no saved view may take: `/<doctype>/view/<type>` is the plain view of each `View Type`."""
-	return frozenset(type_keys()) | SURVIVOR_CANDIDATES | HELD_KEYS
+	return frozenset(type_keys()) | UNBUILT_KEYS | HELD_KEYS
+
+
+def unbuilt_view_types() -> list[dict]:
+	"""The kept types still to build, in `view_types`' shape; a type drops out once its record exists."""
+	built = type_keys()
+	return [
+		{"name": name, "label": _(name), "icon": icon}
+		for name, icon in UNBUILT_TYPES.items()
+		if name.lower() not in built
+	]
 
 
 def find_views(

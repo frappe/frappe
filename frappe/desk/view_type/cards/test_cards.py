@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
-from frappe.desk.doctype.doctype_view.key_space import SURVIVOR_CANDIDATES, reserved_keys
+from frappe.desk.doctype.doctype_view.key_space import UNBUILT_KEYS, reserved_keys
 from frappe.desk.doctype.view_type.view_type import applies_to, type_keys, validate_settings
 from frappe.tests import IntegrationTestCase
 
@@ -10,7 +10,7 @@ from frappe.tests import IntegrationTestCase
 class TestCardsViewType(IntegrationTestCase):
 	def test_the_type_is_a_record_and_its_key_is_released(self):
 		self.assertEqual(type_keys()["cards"], "Cards")
-		self.assertNotIn("cards", SURVIVOR_CANDIDATES)
+		self.assertNotIn("cards", UNBUILT_KEYS)
 		self.assertIn("cards", reserved_keys())
 		self.assertTrue(applies_to("Cards", "ToDo"))
 
