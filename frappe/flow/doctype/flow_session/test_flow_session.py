@@ -172,7 +172,8 @@ class TestClearOldLogs(IntegrationTestCase):
 			frappe.delete_doc("Flow Session", session, ignore_permissions=True)
 		queries = [str(c.args[0]).lower() for c in sql.call_args_list]
 		[update] = [q for q in queries if q.startswith("update") and "tabflow agent memory" in q]
-		self.assertIn("where `name` in", update)
+		# Postgres quotes an identifier with `"`, MariaDB and SQLite with a backtick.
+		self.assertIn("where `name` in", update.replace('"', "`"))
 		self.assertIsNone(frappe.db.get_value("Flow Agent Memory", memory.name, "source_run"))
 
 	def test_purge_locks_the_chats_before_their_rows(self):

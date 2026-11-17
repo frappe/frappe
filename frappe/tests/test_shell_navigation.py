@@ -5,6 +5,7 @@
 
 import contextlib
 import json
+import os
 from unittest.mock import patch
 
 import frappe
@@ -60,6 +61,19 @@ def unship_app_navigation(app: str = APP):
 			continue
 		frappe.db.delete("Navigation Item", {"parenttype": doctype, "parent": ("in", names)})
 		frappe.db.delete(doctype, {"name": ("in", names)})
+
+
+def shipped_doctypes() -> set[str]:
+	"""The DocTypes an installed app ships as a JSON file, not what a test left in the database."""
+	names = set()
+	for name, module in frappe.get_all(
+		"DocType", fields=["name", "module"], filters={"custom": 0}, as_list=True
+	):
+		with contextlib.suppress(frappe.DoesNotExistError):
+			scrubbed = frappe.scrub(name)
+			if os.path.exists(frappe.get_module_path(module, "doctype", scrubbed, f"{scrubbed}.json")):
+				names.add(name)
+	return names
 
 
 def item(key: str, **kwargs) -> dict:
@@ -385,8 +399,16 @@ class TestNavigationInBoot(NavigationTestCase):
 
 	def test_boot_stays_under_the_ceiling_with_navigation_in_it(self):
 		from frappe.shell.boot import get_boot
+		from frappe.shell.doctypes import get_readable_doctypes
 
-		self.assertLess(len(json.dumps(get_boot("/apps/desk"), default=str)), 40_000)
+		# The derived rail holds a row per readable DocType, and the site keeps every DocType an
+		# earlier test in the shard left (about 100 on a CI shard), so count only what apps ship.
+		readable = get_readable_doctypes() & shipped_doctypes()
+		with patch("frappe.shell.doctypes.get_readable_doctypes", return_value=readable):
+			boot = get_boot("/apps/desk")
+
+		sizes = {key: len(json.dumps(value, default=str)) for key, value in boot.items()}
+		self.assertLess(len(json.dumps(boot, default=str)), 40_000, f"bytes by key: {sizes}")
 
 
 class TestBootBudget(NavigationTestCase):
