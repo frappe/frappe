@@ -79,6 +79,19 @@ function linked_entities(item) {
 // so its strings are translated when the sidebar renders.
 frappe.ui.sidebar_banners = frappe.ui.sidebar_banners || [];
 
+frappe.ui.open_user_settings = function (tab = "profile") {
+	return frappe
+		.require("user_settings_dialog.bundle.js")
+		.then(() => frappe.ui.show_user_settings(tab))
+		.catch((e) => {
+			console.error("Failed to load user_settings_dialog.bundle.js", e);
+			frappe.ui.toast({
+				message: __("Could not open My Settings. Please refresh the page."),
+				type: "error",
+			});
+		});
+};
+
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -415,26 +428,9 @@ frappe.ui.Sidebar = class Sidebar {
 					},
 					{
 						name: "settings",
-						label: __("Settings"),
+						label: __("My Settings"),
 						icon: "settings",
-						onclick: function () {
-							// Not in the desk bundle, so it is loaded on click.
-							frappe
-								.require("user_settings_dialog.bundle.js")
-								.then(() => frappe.ui.show_user_settings("profile"))
-								.catch((e) => {
-									console.error(
-										"Sidebar: failed to load user_settings_dialog.bundle.js",
-										e
-									);
-									frappe.ui.toast({
-										message: __(
-											"Could not open Settings. Please refresh the page."
-										),
-										type: "error",
-									});
-								});
-						},
+						onclick: () => frappe.ui.open_user_settings(),
 					},
 					{
 						name: "workspace-selector",
@@ -631,7 +627,7 @@ frappe.ui.Sidebar = class Sidebar {
 			suffix: { keyboard_shortcut: "ctrl+i" },
 			// the panel that frappe/flow/launcher.py adds to the page for those who may use Flow
 			onClick: () => window.flow?.toggle(),
-			condition: () => frappe.model.can_read("Flow Session"),
+			condition: () => frappe.flow.can_offer(),
 		});
 		this.standard_items.push({
 			label: __("Background Tasks"),
@@ -1059,10 +1055,15 @@ frappe.ui.Sidebar = class Sidebar {
 	open_dock_entry(entry) {
 		if (!entry) return;
 
+		const route = this.dock_entry_route(entry);
+		if (route && !this.is_desk_route(route)) {
+			window.open(route, "_blank", "noopener");
+			return;
+		}
+
 		// Select the shell first, so the sidebar is right when the route lands.
 		if (entry.module) this.select_shell(entry.module);
 
-		const route = this.dock_entry_route(entry);
 		if (route) frappe.set_route(route);
 	}
 

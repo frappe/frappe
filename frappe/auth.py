@@ -27,7 +27,12 @@ from frappe.twofactor import (
 	should_run_2fa,
 )
 from frappe.utils import cint, date_diff, datetime, today
-from frappe.utils.password import check_password, get_decrypted_password, validate_password_size
+from frappe.utils.password import (
+	MAX_PASSWORD_SIZE,
+	check_password,
+	get_decrypted_password,
+	validate_password_size,
+)
 from frappe.website.utils import get_home_page, get_role_home_page, get_role_home_page_via_hooks
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
@@ -142,6 +147,7 @@ class LoginManager:
 
 		if frappe.local.request.path == "/api/method/login":
 			if self.login() is False:
+				frappe.set_user("Guest")  # nosemgrep: frappe-setuser
 				return
 			self.resume = False
 		else:

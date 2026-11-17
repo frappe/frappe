@@ -79,8 +79,7 @@ def parse_file(
 
 	file_doc = None
 	if library_file_name:
-		file_doc = frappe.get_doc("File", library_file_name)
-		file_doc.check_permission("read")
+		file_doc = frappe.read_doc("File", library_file_name)
 		filename = filename or file_doc.file_name
 
 	extension = get_extension(filename)

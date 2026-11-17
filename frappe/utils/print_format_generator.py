@@ -13,7 +13,7 @@ import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint, cstr
+from frappe.utils.data import cint, cstr, flt
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -173,7 +173,17 @@ def get_qr_code(value: str) -> str | None:
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
-LINEAR_BARCODE_FORMATS = {"CODE128": ("code128", {}), "CODE39": ("code39", {"add_checksum": False})}
+LINEAR_BARCODE_FORMATS = {
+	"CODE128": ("code128", {}),
+	"CODE39": ("code39", {"add_checksum": False}),
+	"EAN13": ("ean13", {}),
+	"EAN8": ("ean8", {}),
+	"EAN14": ("ean14", {}),
+	"UPCA": ("upca", {}),
+	"ISBN13": ("isbn13", {}),
+	"ITF": ("itf", {}),
+	"GS1_128": ("gs1_128", {}),
+}
 
 
 @frappe.whitelist()
@@ -197,9 +207,19 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 		return None
 
 	name, options = LINEAR_BARCODE_FORMATS[barcode_format]
+	if barcode_format == "ISBN13":
+		value = value.replace("-", "")
+	# brackets around GS1 application identifiers are label text; python-barcode would encode them
+	elif barcode_format == "GS1_128" and "(" in value:
+		return None
 	try:
-		modules = "".join(barcode.get(name, value, options=options).build())
+		code = barcode.get(name, value, options=options)
+		modules = "".join(code.build())
 	except BarcodeError:
+		return None
+	fullcode = code.get_fullcode()
+	# python-barcode adds a missing check digit, replaces a wrong one, pads ITF and upper-cases CODE39
+	if not fullcode.upper().startswith(value.upper()):
 		return None
 
 	bars = "".join(
@@ -208,7 +228,7 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 	)
 	width, height = 3 * len(modules), 60 if frappe.utils.sbool(show_text) else 40
 	text = (
-		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(_CONTROL_CHARS.sub("", value))}</text>'
+		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(_CONTROL_CHARS.sub("", fullcode))}</text>'
 		if height == 60
 		else ""
 	)
@@ -244,8 +264,7 @@ def get_formatted_field_values(doctype: str, name: str) -> dict:
 	from frappe.model import table_fields
 	from frappe.www.printview import set_link_titles
 
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
+	doc = frappe.read_doc(doctype, name)
 	set_link_titles(doc)
 
 	def has_access(d, df):
@@ -417,6 +436,9 @@ def page_number_html(position: str) -> str:
 	)
 
 
+MIN_PAGE_MM, MAX_PAGE_MM = 10, 5000
+
+
 def layout_page_settings(layout: dict | list | None) -> dict:
 	"""The paper size and orientation a builder layout saves, as Print Settings keys."""
 	page = layout.get("page") if isinstance(layout, dict) else None
@@ -424,7 +446,11 @@ def layout_page_settings(layout: dict | list | None) -> dict:
 		return {}
 	settings = {}
 	sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
-	if page.get("size") in sizes and page.get("size") != "Custom":
+	if page.get("size") == "Custom":
+		width, height = (flt(page.get(key)) for key in ("width", "height"))
+		if all(MIN_PAGE_MM <= value <= MAX_PAGE_MM for value in (width, height)):
+			settings.update(pdf_page_size="Custom", pdf_page_width=width, pdf_page_height=height)
+	elif page.get("size") in sizes:
 		settings["pdf_page_size"] = page["size"]
 	if page.get("orientation") in ("Portrait", "Landscape"):
 		settings["page_orientation"] = page["orientation"]
@@ -455,8 +481,7 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
 		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
 	conditions = list(dict.fromkeys(c for c in conditions if c.strip() and len(c) <= 2000))[:MAX_CONDITIONS]
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
+	doc = frappe.read_doc(doctype, name)
 	eval_locals = condition_locals(doc, frappe.get_cached_doc("Print Settings"))
 	out = {}
 	for condition in conditions:
@@ -477,7 +502,6 @@ class PrintFormatGenerator:
 	_TOP_POSITIONS: ClassVar[set[str]] = {"top_left", "top_center", "top_right"}
 	_BOTTOM_POSITIONS: ClassVar[set[str]] = {"bottom_left", "bottom_center", "bottom_right"}
 	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {
-		"HTML Editor": "HTML",
 		"Markdown Editor": "Markdown",
 		"JSON": "Code",
 	}
@@ -1327,7 +1351,13 @@ class PrintFormatGenerator:
 			return
 		if df.get("custom"):
 			source = df.get("barcode_field")
-			value = cstr(self.doc.get(source) if source else df.get("barcode_value"))
+			value = (
+				cstr(self.doc.get(source))
+				if source
+				else STATIC_TEXT_FIELD.sub(
+					lambda match: self.static_text_value(match, raw=True), cstr(df.get("barcode_value"))
+				)
+			)
 		else:
 			value = cstr(self.doc.get(df.get("fieldname")))
 		if value.startswith("<svg"):
@@ -1406,7 +1436,7 @@ class PrintFormatGenerator:
 		lines = [STATIC_TEXT_FIELD.sub(self.static_text_value, _(line)) for line in text.split("\n")]
 		df["_text"] = "\n".join(lines)
 
-	def static_text_value(self, match) -> str:
+	def static_text_value(self, match: re.Match, raw: bool = False) -> str:
 		from html import unescape
 
 		from frappe.utils import strip_html
@@ -1423,6 +1453,8 @@ class PrintFormatGenerator:
 			resolved = self.resolve_linked_path(path)
 			if not resolved:
 				return ""
+			if raw:
+				return cstr(resolved[0])
 			value = frappe.format_value(resolved[0], df=resolved[1], doc=self.doc)
 			fieldtype = target_df.fieldtype
 		else:
@@ -1431,6 +1463,8 @@ class PrintFormatGenerator:
 				return match.group(0)
 			if field and not self.has_field_access(self.doc, self.doc.meta, path):
 				return ""
+			if raw:
+				return cstr(self.doc.get(path))
 			value = self.doc.get_formatted(path) if field else self.doc.name
 			fieldtype = field.fieldtype if field else "Data"
 		value = re.sub(r"<br\s*/?>|</(?:p|div|li)>", " ", cstr(value), flags=re.IGNORECASE)

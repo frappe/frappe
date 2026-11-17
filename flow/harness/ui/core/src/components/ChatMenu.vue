@@ -12,6 +12,7 @@ import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import { afterMenu } from "../menu.js"
+import { __ } from "../translate.js"
 
 // A chat's menu, for its sidebar row and the header: the host's own items, then Rename and Delete
 // once there is a chat to rename. Rename edits the name in place where the row listens for it
@@ -27,8 +28,8 @@ const flow = inject("flow")
 const own = computed(() =>
 	props.sessionId
 		? [
-				{ label: "Rename", icon: "lucide-pen", onClick: props.onRename ?? promptRename },
-				{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: confirmDelete },
+				{ label: __("Rename"), icon: "lucide-pen", onClick: props.onRename ?? promptRename },
+				{ label: __("Delete"), icon: "lucide-trash-2", theme: "red", onClick: confirmDelete },
 			]
 		: [],
 )
@@ -42,10 +43,10 @@ const options = computed(() =>
 function promptRename() {
 	const sid = props.sessionId
 	dialog.prompt({
-		title: "Rename chat",
+		title: __("Rename chat"),
 		size: "lg",
-		fields: [{ name: "title", label: "Name", defaultValue: props.title, required: true }],
-		confirmLabel: "Rename",
+		fields: [{ name: "title", label: __("Name"), defaultValue: props.title, required: true }],
+		confirmLabel: __("Rename"),
 		// fire-and-forget (outcome lands as a toast): returning the promise would
 		// flash the button's loading state for ~20ms and jolt the action row
 		onConfirm: ({ values }) => {
@@ -59,13 +60,13 @@ function promptRename() {
 function confirmDelete() {
 	const sid = props.sessionId
 	dialog.confirm({
-		title: "Delete chat?",
+		title: __("Delete chat?"),
 		size: "lg",
-		message: `“${props.title}” and its full history will be permanently removed.`,
+		message: __("“{0}” and its full history will be permanently removed.", [props.title]),
 		actions: [
-			{ label: "Cancel", variant: "outline" },
+			{ label: __("Cancel"), variant: "outline" },
 			{
-				label: "Delete",
+				label: __("Delete"),
 				variant: "solid",
 				theme: "red",
 				onClick: () => {

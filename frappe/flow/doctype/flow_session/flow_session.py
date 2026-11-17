@@ -117,9 +117,12 @@ class FlowSession(Document):
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		"""Delete sessions idle for `days` with their runs, transcript and server copies."""
+		"""Delete trigger sessions idle for `days` with their runs, transcript and server copies.
+		A person's chats are kept."""
 		cutoff = frappe.utils.add_days(frappe.utils.now(), -days)
-		sessions = frappe.get_all("Flow Session", filters={"modified": ["<", cutoff]}, pluck="name")
+		sessions = frappe.get_all(
+			"Flow Session", filters={"source": "Trigger", "modified": ["<", cutoff]}, pluck="name"
+		)
 		for batch in frappe.utils.create_batch(sessions, 100):
 			# lock the chats before their rows, the order a sync takes
 			frappe.db.get_values("Flow Session", {"name": ["in", batch]}, "name", for_update=True)

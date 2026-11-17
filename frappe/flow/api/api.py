@@ -10,8 +10,10 @@ import json
 from typing import TYPE_CHECKING, Any
 
 import frappe
+import frappe.defaults
 from frappe import _
 from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.lib.model import is_enabled as flow_is_enabled
 from frappe.flow.lib.session import new_session, sync_with_retry
 from frappe.query_builder.functions import Locate, Lower
 from frappe.utils import cint, escape_html, get_fullname, get_url
@@ -41,17 +43,26 @@ SETTINGS_DOCTYPES = (
 	"Flow Settings",
 )
 
+# Per-user chat preferences and their allowed values. None means the default.
+USER_PREFS = {
+	"mode": ("ask", "auto", "auto_approve"),
+	"separateToolCalls": (True, False),
+}
+USER_PREFS_KEY = "flow_prefs"
+
 
 @frappe.whitelist()
 def boot() -> dict[str, Any]:
 	"""What a client needs before its first call: agents (with their models) and models to pick
 	from, the default agent, whether a provider is set up, the file types it may attach, who is
-	signed in and what they may manage."""
+	signed in, what they may manage and the chat preferences they keep."""
 	frappe.has_permission("Flow Session", "read", throw=True)
+	from frappe.flow.api.setup import sync_site_provider
 	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
 	from frappe.flow.doctype.flow_tool.flow_tool import unavailable_tools
 	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
 
+	sync_site_provider()
 	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"])
 	# an app's agent shows without its app, unless another app's agent is named the same
 	short = [agent.name.rpartition("/")[2] for agent in agents]
@@ -75,6 +86,7 @@ def boot() -> dict[str, Any]:
 			"Flow Provider", filters={"enabled": 1}, pluck="name", order_by="creation asc"
 		),
 		"file_types": sorted(FILE_EXTENSIONS),
+		"prefs": _user_prefs(),
 		"unavailable_tools": unavailable_tools(),
 		"user": frappe.db.get_value(
 			"User", frappe.session.user, ["name", "full_name", "email", "user_image"], as_dict=True
@@ -88,6 +100,12 @@ def boot() -> dict[str, Any]:
 			for doctype in SETTINGS_DOCTYPES
 		},
 	}
+
+
+@frappe.whitelist(methods=["GET"])
+def is_enabled() -> bool:
+	"""Whether Flow can chat on this site, for clients without Desk's boot."""
+	return flow_is_enabled()
 
 
 @frappe.whitelist(methods=["POST"])
@@ -320,6 +338,26 @@ def set_approval_mode(session: str, mode: str) -> dict[str, str]:
 	"""Ask, Auto or Auto-approve; a Trigger session stays on Auto-approve."""
 	_load_session(session, "write").set_approval_mode(mode)
 	return {"approval_mode": mode}
+
+
+@frappe.whitelist(methods=["POST"])
+def set_prefs(prefs: dict[str, Any]) -> dict[str, Any]:
+	"""Keep the signed-in user's own chat preferences, so they follow the user to another browser."""
+	frappe.has_permission("Flow Session", "read", throw=True)
+	for key, value in prefs.items():
+		allowed = USER_PREFS.get(key)
+		if not allowed or (
+			value is not None and not any(value == a and type(value) is type(a) for a in allowed)
+		):
+			frappe.throw(_("Invalid preference: {0}").format(key), title=_("Invalid Preference"))
+	saved = {**_user_prefs(), **prefs}
+	frappe.defaults.set_user_default(USER_PREFS_KEY, json.dumps(saved))
+	return saved
+
+
+def _user_prefs() -> dict[str, Any]:
+	saved = frappe.parse_json(frappe.defaults.get_user_default(USER_PREFS_KEY) or "{}")
+	return {key: value for key, value in saved.items() if key in USER_PREFS}
 
 
 @frappe.whitelist(methods=["POST"])

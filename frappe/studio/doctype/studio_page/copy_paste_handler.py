@@ -4,8 +4,9 @@
 import frappe
 from frappe import _
 from frappe.model.naming import append_number_if_name_exists
-from frappe.studio.doctype.studio_component.studio_component import fetch_component_batch
+from frappe.studio.doctype.studio_component.studio_component import get_component_name
 from frappe.studio.export import can_export, parse_json
+from frappe.studio.utils import validate_file_name
 from frappe.utils import cint
 
 PAGE_RESOURCE_FIELDS = (
@@ -36,8 +37,7 @@ COMPONENT_INPUT_FIELDS = ("input_name", "type", "required", "default", "descript
 
 @frappe.whitelist(methods=["POST"])
 def duplicate_page(page_name: str, app_name: str | None):
-	page = frappe.get_doc("Studio Page", page_name)
-	page.check_permission("read")
+	page = frappe.read_doc("Studio Page", page_name)
 	blocks = parse_json(page.draft_blocks or page.blocks) or []
 	return paste_page(app_name or page.studio_app, {**page.get_copy(blocks), "blocks": blocks})
 
@@ -134,10 +134,9 @@ def get_writable_page(page_name: str, app_name: str):
 
 def install_dependencies(app, components, files, *, overwrite_conflicts=False):
 	conflicts = create_missing_components(
-		parse_dict_list(components, "components"), overwrite_conflicts=overwrite_conflicts
+		parse_dict_list(components, "components"), app.name, overwrite_conflicts=overwrite_conflicts
 	)
-	if can_export(app):
-		app.write_files(parse_dict_list(files, "files"))
+	app.write_files(parse_dict_list(files, "files"))
 	return conflicts
 
 
@@ -244,25 +243,25 @@ def pick(row, fields) -> dict:
 	return {field: row.get(field) for field in fields}
 
 
-def create_missing_components(components: list[dict], *, overwrite_conflicts=False):
+def create_missing_components(components: list[dict], studio_app: str, *, overwrite_conflicts=False):
+	"""Create the copied components that `studio_app` does not have. A component that belonged
+	to the source app becomes a component of `studio_app`. A global component stays global."""
 	for component in components:
 		validate_component_copy(component)
 	if not components:
 		return []
 
 	frappe.has_permission("Studio Component", ptype="read", throw=True)
-	existing_by_name = {
-		component.name: component
-		for component in fetch_component_batch({component["name"] for component in components})
-	}
 	conflicts = []
 	for component in components:
-		existing = existing_by_name.get(component["name"])
+		owner = studio_app if component.get("studio_app") else None
+		name = get_component_name(component["component_id"], owner)
 
-		if not existing:
-			new_component_from_copy(component).insert()
+		if not frappe.db.exists("Studio Component", name):
+			new_component_from_copy(component, owner).insert()
 			continue
 
+		existing = frappe.get_doc("Studio Component", name)
 		if component_signature(existing) == component_signature(component):
 			continue
 		conflicts.append(
@@ -273,7 +272,6 @@ def create_missing_components(components: list[dict], *, overwrite_conflicts=Fal
 			}
 		)
 		if overwrite_conflicts:
-			existing = frappe.get_doc("Studio Component", component["name"])
 			update_component_from_copy(existing, component).save()
 	return conflicts
 
@@ -282,6 +280,7 @@ def component_signature(component):
 	return {
 		"component_name": component.get("component_name"),
 		"block": frappe.parse_json(component.get("block")),
+		"script": component.get("script") or "",
 		"is_disabled": cint(component.get("is_disabled")),
 		"inputs": [
 			dependency_signature(row, COMPONENT_INPUT_FIELDS, int_fields={"required"})
@@ -294,8 +293,10 @@ def get_component_copy(component):
 	return {
 		"name": component.get("name"),
 		"component_id": component.get("component_id"),
+		"studio_app": component.get("studio_app"),
 		"component_name": component.get("component_name"),
 		"block": component.get("block"),
+		"script": component.get("script"),
 		"is_disabled": component.get("is_disabled"),
 		"inputs": [pick(row, COMPONENT_INPUT_FIELDS) for row in component.get("inputs") or []],
 	}
@@ -304,24 +305,25 @@ def get_component_copy(component):
 def validate_component_copy(component):
 	if not isinstance(component, dict):
 		frappe.throw(_("Invalid component in copied content."))
-	component_id = component.get("component_id")
-	if not isinstance(component_id, str) or component.get("name") != component_id:
-		frappe.throw(_("Invalid component ID in copied content."))
+	validate_file_name(component.get("component_id"), _("Invalid component ID in copied content."))
 	if not isinstance(component.get("component_name"), str) or not isinstance(
 		component.get("block"), str | dict
 	):
 		frappe.throw(_("Invalid component definition in copied content."))
+	if not isinstance(component.get("script") or "", str):
+		frappe.throw(_("Invalid component script in copied content."))
 	if not isinstance(component.get("inputs") or [], list) or not all(
 		isinstance(row, dict) for row in component.get("inputs") or []
 	):
 		frappe.throw(_("Invalid component inputs in copied content."))
 
 
-def new_component_from_copy(component):
+def new_component_from_copy(component, studio_app: str | None = None):
 	return update_component_from_copy(
 		frappe.get_doc(
 			doctype="Studio Component",
 			component_id=component["component_id"],
+			studio_app=studio_app,
 		),
 		component,
 	)
@@ -330,6 +332,7 @@ def new_component_from_copy(component):
 def update_component_from_copy(doc, component):
 	doc.component_name = component["component_name"]
 	doc.block = component["block"]
+	doc.script = component.get("script")
 	doc.is_disabled = component.get("is_disabled")
 	doc.set(
 		"inputs",

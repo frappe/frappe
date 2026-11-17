@@ -90,6 +90,7 @@ class TestFlowAccess(IntegrationTestCase):
 			"set_model": {"session": session.name, "model": "m"},
 			"set_title": {"session": session.name, "title": "t"},
 			"set_approval_mode": {"session": session.name, "mode": "Ask"},
+			"set_prefs": {"prefs": {}},
 			"delete_session": {"session": session.name},
 			"list_shares": {"session": session.name},
 			"share_session": {"session": session.name, "user": "Administrator"},
@@ -103,8 +104,10 @@ class TestFlowAccess(IntegrationTestCase):
 			"skills": {"session": session.name},
 			"save_secret": {"session": session.name, "call_id": "c1", "password": "x"},
 		}
-		self.assertEqual(set(calls), set(api.__all__))
+		# except is_enabled, which every user gets in boot too
+		self.assertEqual(set(calls), set(api.__all__) - {"is_enabled"})
 		frappe.set_user(outsider)
+		self.assertIsInstance(api.is_enabled(), bool)
 		for name, kwargs in calls.items():
 			with self.subTest(name), self.assertRaises(frappe.PermissionError):
 				getattr(api, name)(**kwargs)

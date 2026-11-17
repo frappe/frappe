@@ -1,10 +1,16 @@
 # Copyright (c) 2022, Frappe Technologies and contributors
 # For license information, please see license.txt
 
+import json
 from typing import Optional
 
 import frappe
+from frappe import _
+from frappe.desk.form.activity import is_field_visible
 from frappe.model.document import Document
+from frappe.utils import comma_and, cstr, escape_html, get_fullname, get_link_to_form
+
+TIMELINE_LOG_LIMIT = 20
 
 
 class PermissionLog(Document):
@@ -97,6 +103,73 @@ def insert_perm_log(
 			"changes": frappe.as_json({"from": previous, "to": current}, indent=0),
 		}
 	).db_insert()
+
+
+def get_timeline_content(doctype: str, docname: str) -> list[dict]:
+	"""Permission changes of a document for its form timeline (`additional_timeline_content` hook)."""
+	if not frappe.has_permission("Permission Log", "read"):
+		return []
+
+	logs = frappe.get_list(
+		"Permission Log",
+		filters={"for_doctype": doctype, "for_document": docname},
+		fields=["name", "owner", "creation", "changes"],
+		order_by="creation desc",
+		limit=TIMELINE_LOG_LIMIT,
+	)
+
+	meta = frappe.get_meta(doctype)
+	tracked_fields = frappe.get_doc({"doctype": doctype}).get_permission_log_options().get("fields") or ()
+	timeline_content = []
+	for log in logs:
+		if phrases := describe_log(log, meta, tracked_fields):
+			timeline_content.append(
+				{"icon": "lock", "creation": log.creation, "content": format_timeline_text(log, phrases)}
+			)
+
+	return timeline_content
+
+
+def describe_log(log, meta, tracked_fields) -> list[str]:
+	changes = json.loads(log.changes or "{}")
+	previous = changes.get("from") or {}
+	current = changes.get("to") or {}
+
+	phrases = []
+	for fieldname in dict.fromkeys([*current, *previous]):
+		if fieldname not in tracked_fields or is_field_visible(meta, None, fieldname):
+			continue
+		label = escape_html(meta.get_translated_label(fieldname))
+		phrases.extend(
+			describe_row_changes(label, previous.get(fieldname) or [], current.get(fieldname) or [])
+		)
+
+	return phrases
+
+
+def describe_row_changes(label: str, removed_rows: list[dict], added_rows: list[dict]) -> list[str]:
+	phrases = []
+	if added_rows:
+		phrases.append(_("added {0} to {1}").format(format_rows(added_rows), label))
+	if removed_rows:
+		phrases.append(_("removed {0} from {1}").format(format_rows(removed_rows), label))
+	return phrases
+
+
+def format_rows(rows: list[dict]) -> str:
+	return comma_and(
+		[format_value(", ".join(cstr(v) for v in row.values())) for row in rows], add_quotes=False
+	)
+
+
+def format_value(value) -> str:
+	return f"<b>{escape_html(cstr(value))}</b>"
+
+
+def format_timeline_text(log, phrases: list[str]) -> str:
+	user = get_link_to_form("User", log.owner, escape_html(get_fullname(log.owner)))
+	changes = get_link_to_form("Permission Log", log.name, comma_and(phrases, add_quotes=False))
+	return f"{user} {changes}"
 
 
 def get_changes(doc: Document, doc_before_save=None, fields=None):

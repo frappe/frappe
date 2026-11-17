@@ -104,6 +104,7 @@ frappe.ui.form.Form = class FrappeForm {
 		this.debounced_reload_doc = frappe.utils.debounce(this.reload_doc.bind(this), 1000);
 
 		this.beforeUnloadListener = (event) => {
+			if (frappe.urllib.is_downloading) return;
 			event.preventDefault();
 			// A String is returned for compatability with older Browsers. Return Value has to be truthy to trigger "Leave Site" Dialog
 			return (event.returnValue =
@@ -366,8 +367,7 @@ frappe.ui.form.Form = class FrappeForm {
 						field.validate &&
 						field.validate(value);
 
-					me.layout.refresh_dependency();
-					me.layout.refresh_sections();
+					me.layout.schedule_refresh_dependency();
 					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				}
 			}
@@ -486,11 +486,6 @@ frappe.ui.form.Form = class FrappeForm {
 				frappe.show_not_permitted(__(this.doctype) + " " + __(cstr(this.docname)));
 				return;
 			}
-
-			// update grids with new permissions
-			this.grids.forEach((table) => {
-				table.grid.refresh();
-			});
 
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
@@ -686,7 +681,7 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this._resolve_layout(),
 				() => this.refresh_header(switched),
 				() => $(document).trigger("form-refresh", [this]),
-				() => this.refresh_fields(),
+				() => this.render_fields(),
 				() => this.script_manager.trigger("refresh"),
 				() => this.apply_layout_defaults(),
 				() => {
@@ -908,6 +903,16 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	refresh_fields() {
+		if (this.layout === undefined || this.refresh_fields_frame) {
+			return;
+		}
+
+		this.refresh_fields_frame = requestAnimationFrame(() => this.render_fields());
+	}
+
+	render_fields() {
+		cancelAnimationFrame(this.refresh_fields_frame);
+		this.refresh_fields_frame = null;
 		if (this.layout === undefined) {
 			return;
 		}
@@ -1419,8 +1424,13 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	_delete() {
-		frappe.model.delete_doc(this.doctype, this.docname, function () {
-			window.history.back();
+		frappe.model.delete_doc(this.doctype, this.docname, () => this._after_delete());
+	}
+
+	_after_delete() {
+		const url = window.location.href;
+		this.script_manager.trigger("after_delete").then(() => {
+			if (window.location.href === url) window.history.back();
 		});
 	}
 
@@ -1465,7 +1475,7 @@ frappe.ui.form.Form = class FrappeForm {
 				// the server deleted the root along with its links
 				frappe.utils.play_sound("delete");
 				frappe.model.delete_from_locals(me.doctype, me.docname);
-				window.history.back();
+				me._after_delete();
 			},
 		});
 	}
@@ -1855,8 +1865,7 @@ frappe.ui.form.Form = class FrappeForm {
 	refresh_field(fname) {
 		if (this.fields_dict[fname] && this.fields_dict[fname].refresh) {
 			this.fields_dict[fname].refresh();
-			this.layout.refresh_dependency();
-			this.layout.refresh_sections();
+			this.layout.schedule_refresh_dependency();
 		}
 	}
 
@@ -1929,11 +1938,11 @@ frappe.ui.form.Form = class FrappeForm {
 		this.footnote_area = frappe.utils.set_footnote(this.footnote_area, this.body, txt);
 	}
 
-	add_custom_button(label, fn, group) {
+	add_custom_button(label, fn, group, type = "default") {
 		// temp! old parameter used to be icon
 		if (group && group.indexOf("fa fa-") !== -1) group = null;
 
-		let btn = this.page.add_inner_button(label, fn, group);
+		let btn = this.page.add_inner_button(label, fn, group, type);
 		if (btn) {
 			this.custom_buttons[label] = btn;
 		}
@@ -2099,8 +2108,11 @@ frappe.ui.form.Form = class FrappeForm {
 			var fieldname = fnames[i];
 			var field = frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
 			if (field) {
+				const before = { ...field };
 				fn(field);
-				this.refresh_field(fieldname);
+				if (Object.keys(field).some((key) => field[key] !== before[key])) {
+					this.refresh_field(fieldname);
+				}
 			}
 		}
 	}

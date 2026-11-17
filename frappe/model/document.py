@@ -437,6 +437,22 @@ def get_doc_from_dict(data: dict[str, Any], **kwargs) -> "Document":
 	raise ImportError(data["doctype"])
 
 
+def read_doc(doctype: str, name: str | int | dict | None = None, /) -> "Document":
+	"""Return a document as the current user is allowed to see it.
+
+	Raises `frappe.PermissionError` without read permission, then removes the fields the user can't
+	read and masks masked fields. Use it for documents sent to the user. The returned document can't
+	be saved; use `frappe.get_doc` for documents you change.
+
+	:param doctype: DocType of the document.
+	:param name: Name of the document, or filters to find it. Omit it for a Single DocType.
+	"""
+	doc = get_doc(doctype) if name is None else get_doc(doctype, name)
+	doc.check_permission("read")
+	doc.apply_fieldlevel_read_permissions()
+	return doc
+
+
 def _get_cached_link_value(doctype: str, name, field_tuple: tuple) -> dict | None:
 	"""Row an earlier link validation or `get_value(cache=True)` cached in this transaction."""
 	if not isinstance(name, str):
@@ -861,6 +877,7 @@ class Document(_DocumentBase):
 
 			self.init_from_dict(d)
 		self.flags.pop("ignore_children", None)
+		self.flags.pop("read_permissions_applied", None)
 
 		assert self.name, "document must have a name after loading from db"
 
@@ -1141,6 +1158,14 @@ class Document(_DocumentBase):
 
 		if self.get("__islocal") or not self.get("name"):
 			return self.insert()
+
+		if self.flags.read_permissions_applied:
+			frappe.throw(
+				_("{0} {1} has fields removed for reading and can't be saved.").format(
+					_(self.doctype), self.name
+				),
+				title=_("Not Allowed"),
+			)
 
 		self.check_if_locked()
 		self._set_defaults()
@@ -1564,6 +1589,7 @@ class Document(_DocumentBase):
 		if frappe.session.user == "Administrator":
 			return
 
+		self.flags.read_permissions_applied = True
 		all_fields = self.meta.fields.copy()
 		for table_field in self.meta.get_table_fields(include_computed=True):
 			all_fields += frappe.get_meta(table_field.options).fields or []
@@ -3125,7 +3151,7 @@ class Document(_DocumentBase):
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
-				elif fieldtype == "Read Only" and not isinstance(value, str):
+				elif fieldtype == "Read Only" and value is not None and not isinstance(value, str):
 					value = cstr(value)
 
 				elif (fieldtype in datetime_fields and value == "") or (
@@ -3433,6 +3459,9 @@ class Document(_DocumentBase):
 				self.show_unique_validation_message(e)
 			else:
 				raise
+
+		# link validation reads rows from this cache, so drop the stale ones
+		frappe.db.value_cache.pop(self.doctype, None)
 
 	def db_update_all(self):
 		"""Raw update parent + children

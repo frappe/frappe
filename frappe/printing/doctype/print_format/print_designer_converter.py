@@ -8,11 +8,16 @@ import re
 import frappe
 from frappe import _
 from frappe.model.naming import append_number_if_name_exists
+from frappe.model.rename_doc import get_link_fields, update_link_field_values
+from frappe.printing.fieldtypes import BREAKABLE_FIELDTYPES
 from frappe.utils import cint, escape_html, flt
 
 PX_PER_MM = 96 / 25.4
 TABLE_TEXT_SCALE = 0.9
+COLUMN_PADDING = 15
+SIDE_MARGIN = re.compile(r"margin-(left|right):\s*(-?\d+(?:\.\d+)?)%;\s*")
 JINJA = re.compile(r"{{|{%")
+DOC_FIELD = re.compile(r"{{\s*doc\.(\w+)\s*}}")
 CSS_PROPERTIES = {
 	"fontSize": "font-size",
 	"fontWeight": "font-weight",
@@ -36,7 +41,34 @@ CSS_PROPERTIES = {
 	"whiteSpace": "white-space",
 }
 PAGE_NUMBER_FIELDS = {"page": '<span class="page"></span>', "topage": '<span class="topage"></span>'}
-BARCODE_FORMATS = {"qrcode": "QR", "qr": "QR", "code128": "CODE128", "code39": "CODE39"}
+PRINT_DESIGNER_FIELDS = (
+	"print_designer_print_format",
+	"print_designer_body",
+	"print_designer_header",
+	"print_designer_footer",
+	"print_designer_after_table",
+	"print_designer_settings",
+	"print_designer_preview_img",
+	"print_designer_template_app",
+)
+BARCODE_FORMATS = {
+	"qrcode": "QR",
+	"qr": "QR",
+	"code128": "CODE128",
+	"code39": "CODE39",
+	"ean": "EAN13",
+	"ean13": "EAN13",
+	"jan": "EAN13",
+	"ean8": "EAN8",
+	"ean14": "EAN14",
+	"gtin": "EAN14",
+	"upc": "UPCA",
+	"upca": "UPCA",
+	"isbn": "ISBN13",
+	"isbn13": "ISBN13",
+	"itf": "ITF",
+	"gs1_128": "GS1_128",
+}
 
 
 def is_print_designer_format(doc) -> bool:
@@ -46,43 +78,159 @@ def is_print_designer_format(doc) -> bool:
 	)
 
 
+def get_print_designer_format(print_format: str):
+	doc = frappe.get_doc("Print Format", print_format)
+	if not is_print_designer_format(doc):
+		frappe.throw(
+			_("{0} is not a Print Designer format.").format(frappe.bold(print_format)),
+			title=_("Not a Print Designer Format"),
+		)
+	return doc
+
+
 def convert_print_designer_format(doc) -> tuple[dict, list[str]]:
 	"""Return a print format editor layout for a Print Designer format, and notes on
 	what could not be carried over exactly."""
 	return PrintDesignerConverter(doc).convert()
 
 
-@frappe.whitelist()
-def create_editor_format(print_format: str, name: str | None = None) -> dict:
-	"""Save a converted copy of a Print Designer format as a new editor format."""
+def converted_values(doc) -> tuple[dict, list[str]]:
+	"""The fields that make a Print Designer format an editor format, and notes on
+	what could not be carried over exactly."""
+	layout, notes = convert_print_designer_format(doc)
+	values = {
+		"print_designer": 0,
+		"print_format_builder_beta": 1,
+		"format_data": json.dumps(layout),
+		"font": converted_font(doc),
+		**converted_margins(doc),
+	}
+	return values, notes
+
+
+@frappe.whitelist(methods=["POST"])
+def convert(print_format: str) -> dict:
+	"""Turn a Print Designer format into an editor format under the same name. The
+	Print Designer fields stay on the record, like classic_format_data. A standard format
+	belongs to its app, so it gets an editor copy that takes its place everywhere."""
 	frappe.only_for("System Manager")
-	source = frappe.get_doc("Print Format", print_format)
-	if not is_print_designer_format(source):
-		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
-	layout, notes = convert_print_designer_format(source)
-	target = frappe.new_doc("Print Format")
-	target.__newname = append_number_if_name_exists(
-		"Print Format", name or _("{0} (Editor)").format(source.name), separator=" "
-	)
-	target.update(
-		{
-			"doc_type": source.doc_type,
-			"module": source.module,
-			"standard": "No",
-			"print_format_builder_beta": 1,
-			"format_data": json.dumps(layout),
-			"default_print_language": source.default_print_language,
-			"pdf_generator": "chrome",
-			"page_number": source.page_number,
-			"absolute_value": source.absolute_value,
-			"font": converted_font(source),
-			**converted_margins(source),
-		}
-	)
-	target.insert()
+	doc = get_print_designer_format(print_format)
+	values, notes = converted_values(doc)
+	if doc.standard == "Yes":
+		copy = editor_copy(doc)
+		if not copy:
+			copy = frappe.copy_doc(doc)
+			copy.update(
+				{"standard": "No", "disabled": 0, "module": None, "converted_from": doc.name, **values}
+			)
+			copy.insert(set_name=editor_copy_name(doc.name))
+		move_print_format_usage(doc.name, copy.name)
+		turn_off(doc)
+		target = copy
+	else:
+		frappe.db.set_value("Print Format", doc.name, values)
+		frappe.clear_cache(doctype=doc.doc_type)
+		target = doc
 	if notes:
 		target.add_comment("Comment", "<br>".join(escape_html(n) for n in notes))
 	return {"name": target.name, "notes": notes}
+
+
+def editor_copy_name(print_format: str) -> str:
+	return append_number_if_name_exists("Print Format", f"{print_format} (Editor)", separator=" ")
+
+
+@frappe.whitelist(methods=["POST"])
+def delete_print_designer_design(print_format: str) -> None:
+	"""Remove the Print Designer design that stays on a format after it was converted."""
+	frappe.only_for("System Manager")
+	doc = frappe.get_doc("Print Format", print_format)
+	if doc.get("print_designer") or not doc.print_format_builder_beta or doc.standard == "Yes":
+		frappe.throw(_("{0} is not a converted Print Designer format.").format(frappe.bold(print_format)))
+	meta = frappe.get_meta("Print Format")
+	frappe.db.set_value(
+		"Print Format", doc.name, dict.fromkeys(f for f in PRINT_DESIGNER_FIELDS if meta.has_field(f))
+	)
+
+
+@frappe.whitelist(methods=["POST"])
+def use_editor_copy(print_format: str) -> None:
+	"""Point the doctype defaults and every link to a standard format at its editor copy, and
+	turn the standard format off so only the copy is offered."""
+	frappe.only_for("System Manager")
+	doc = frappe.get_doc("Print Format", print_format)
+	copy = editor_copy(doc)
+	if not copy:
+		frappe.throw(_("{0} has no editor copy.").format(frappe.bold(print_format)))
+	move_print_format_usage(print_format, copy.name)
+	turn_off(doc)
+
+
+def turn_off(doc) -> None:
+	frappe.db.set_value("Print Format", doc.name, "disabled", 1)
+	frappe.clear_cache(doctype=doc.doc_type)
+
+
+def editor_copy(doc):
+	"""The editor copy made from a standard Print Designer format, if it still exists."""
+	name = frappe.db.get_value(
+		"Print Format",
+		{"converted_from": doc.name, "doc_type": doc.doc_type, "print_format_builder_beta": 1},
+		"name",
+		order_by="creation asc",
+	)
+	return frappe.get_doc("Print Format", name) if name else None
+
+
+def move_print_format_usage(old: str, new: str) -> None:
+	update_link_field_values(print_format_link_fields(), old, new, "Print Format")
+	doctypes = frappe.get_all(
+		"Property Setter", {"property": "default_print_format", "value": old}, pluck="doc_type"
+	)
+	frappe.db.set_value("Property Setter", {"property": "default_print_format", "value": old}, "value", new)
+	doctypes += frappe.get_all("DocType", {"default_print_format": old}, pluck="name")
+	frappe.db.set_value("DocType", {"default_print_format": old}, "default_print_format", new)
+	for doctype in set(doctypes):
+		frappe.clear_cache(doctype=doctype)
+
+
+def print_format_link_fields() -> list[dict]:
+	"""Link fields to Print Format, plus Select and Data fields that hold a print format name."""
+	fields = [f for f in get_link_fields("Print Format") if f["parent"] != "Customize Form"]
+	named = {
+		"fieldtype": ("in", ("Select", "Data")),
+		"fieldname": ("like", "%print_format"),
+		"is_virtual": 0,
+	}
+	skip = ("DocType", "Customize Form", "Print Format")
+	named_fields = frappe.get_all("DocField", filters=named, fields=["parent", "fieldname"]) + frappe.get_all(
+		"Custom Field", filters=named, fields=["dt as parent", "fieldname"]
+	)
+	for field in named_fields:
+		if field.parent in skip:
+			continue
+		doctype = frappe.db.get_value("DocType", field.parent, ["issingle", "is_virtual"], as_dict=True)
+		if doctype and not doctype.is_virtual:
+			fields.append(
+				{"parent": field.parent, "fieldname": field.fieldname, "issingle": doctype.issingle}
+			)
+	return fields
+
+
+def print_format_usage(print_format: str) -> list[str]:
+	"""Where a print format is picked: doctype defaults, and documents or settings that link to it."""
+	defaults = frappe.get_all(
+		"Property Setter", {"property": "default_print_format", "value": print_format}, pluck="doc_type"
+	) + frappe.get_all("DocType", {"default_print_format": print_format}, pluck="name")
+	usage = [_("Default for {0}").format(_(doctype)) for doctype in sorted(set(defaults))]
+	for field in print_format_link_fields():
+		if field["issingle"]:
+			count = int(frappe.db.get_single_value(field["parent"], field["fieldname"]) == print_format)
+		else:
+			count = frappe.db.count(field["parent"], {field["fieldname"]: print_format})
+		if count:
+			usage.append(_("{0}: {1}").format(_(field["parent"]), count))
+	return usage
 
 
 def converted_margins(doc) -> dict:
@@ -104,6 +252,17 @@ def converted_font(doc) -> str | None:
 	settings = load_json(doc.get("print_designer_settings")) or {}
 	text = ((settings.get("globalStyles") or {}).get("staticText") or {}).get("style") or {}
 	return text.get("fontFamily") or None
+
+
+def custom_page_size(width_mm: float, height_mm: float, sizes: list[str]) -> dict:
+	from frappe.utils.pdf_generator.browser import PageSize
+
+	short, long = sorted((width_mm, height_mm))
+	for name in sizes:
+		w, h = PageSize.page_sizes.get(name) or (0, 0)
+		if abs(w - short) < 1 and abs(h - long) < 1:
+			return {"size": name, **({"orientation": "Landscape"} if width_mm > height_mm else {})}
+	return {"size": "Custom", "width": round(width_mm, 1), "height": round(height_mm, 1)}
 
 
 def has_side_by_side_overlap(elements: list[dict]) -> bool:
@@ -158,7 +317,7 @@ class PrintDesignerConverter:
 
 		layout = {
 			"header": self.zone(header, flt(self.page.get("headerHeight"))),
-			"sections": self.sections(body),
+			"sections": self.sections(body, indent_with_margin=True),
 			"footer": self.zone(footer, flt(self.page.get("footerHeight"))),
 			"letter_head": "",
 		}
@@ -183,11 +342,12 @@ class PrintDesignerConverter:
 		page = {}
 		size = (self.settings.get("currentPageSize") or "").lower()
 		sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+		width, height = flt(self.page.get("width")), flt(self.page.get("height"))
 		if match := next((s for s in sizes if s.lower() == size and s != "Custom"), None):
 			page["size"] = match
-		elif size == "custom":
-			self.notes.append(_("The custom paper size was not kept; set the paper size in the editor."))
-		width, height = flt(self.page.get("width")), flt(self.page.get("height"))
+		elif size == "custom" and width and height:
+			page.update(custom_page_size(width / PX_PER_MM, height / PX_PER_MM, sizes))
+			return page
 		if width and height and width > height:
 			page["orientation"] = "Landscape"
 		return page or None
@@ -201,7 +361,7 @@ class PrintDesignerConverter:
 
 	def rule(self, element) -> tuple[str, str] | None:
 		"""The side and colour of the one border a drawn box shows, when it is a line."""
-		if element.get("type") != "rectangle" or element.get("layoutType"):
+		if element.get("type") != "rectangle" or (element.get("layoutType") and element.get("childrens")):
 			return None
 		style = {
 			**((self.global_styles.get("rectangle") or {}).get("style") or {}),
@@ -238,8 +398,10 @@ class PrintDesignerConverter:
 	def zone(self, elements, height=0) -> dict:
 		earlier_notes = len(self.notes)
 		sections = self.sections(elements)
+		gap = None
 		if len(sections) == 1:
 			columns = sections[0]["columns"]
+			gap = sections[0].get("gap")
 		elif all(len(s["columns"]) == 1 for s in sections):
 			fields = []
 			for section in sections:
@@ -267,12 +429,12 @@ class PrintDesignerConverter:
 						"height": round(height - bottom),
 					}
 				)
-		return {"columns": columns}
+		return {"columns": columns} if gap is None else {"columns": columns, "gap": gap}
 
-	def row_html(self, row: list[dict], total: float = 0) -> str:
+	def row_html(self, row: list[dict], total: float = 0, origin: float = 0) -> str:
 		total = total or self.content_width()
 		compiled = len(row) == 1 and row[0].get("layoutType") == "row"
-		children = row[0].get("childrens") or [] if compiled else row
+		children = self.printed(row[0].get("childrens") or []) if compiled else row
 		top = 0 if compiled else min(flt(e.get("startY")) for e in row)
 		height = (
 			flt(row[0].get("height"))
@@ -289,7 +451,7 @@ class PrintDesignerConverter:
 				left = min(flt(e.get("startX")) for e in stack)
 				right = max(flt(e.get("startX")) + flt(e.get("width")) for e in stack)
 				inner, cursor = "", top
-				for start, end, html, fixed in self.stack_pieces(stack, right - left):
+				for start, end, html, fixed in self.stack_pieces(stack, right - left, left):
 					style = f"margin-top: {round(max(start - cursor, 0))}px;"
 					if fixed and end > max(start, cursor):
 						style += f" min-height: {round(end - max(start, cursor))}px;"
@@ -315,13 +477,18 @@ class PrintDesignerConverter:
 					f'overflow-wrap: anywhere; padding-top: {round(max(offset, 0))}px;">{inner}</div>',
 				)
 			)
+		parts.sort(key=lambda p: p[0])
+		if parts and (indent := round(parts[0][0] - (0 if compiled else origin), 1)) > 0:
+			parts[0] = (parts[0][0], parts[0][1].replace('style="', f'style="margin-left: {indent}px; ', 1))
 		return (
 			f'<div style="display: flex; justify-content: space-between; min-height: {round(height)}px;">'
-			+ "".join(part for _left, part in sorted(parts, key=lambda p: p[0]))
+			+ "".join(part for _left, part in parts)
 			+ "</div>"
 		)
 
-	def stack_pieces(self, stack: list[dict], width: float) -> list[tuple[float, float, str, bool]]:
+	def stack_pieces(
+		self, stack: list[dict], width: float, origin: float = 0
+	) -> list[tuple[float, float, str, bool]]:
 		pieces = []
 		for band in self.overlapping_rows(
 			sorted(stack, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
@@ -329,7 +496,7 @@ class PrintDesignerConverter:
 			if len(self.stacks(band)) > 1:
 				start = min(flt(e.get("startY")) for e in band)
 				end = max(flt(e.get("startY")) + flt(e.get("height")) for e in band)
-				pieces.append((start, end, self.row_html(band, width), False))
+				pieces.append((start, end, self.row_html(band, width, origin), False))
 				continue
 			for element in sorted(band, key=lambda e: flt(e.get("startY"))):
 				start, height = flt(element.get("startY")), flt(element.get("height"))
@@ -350,15 +517,21 @@ class PrintDesignerConverter:
 				stacks.append([[element], left + flt(element.get("width"))])
 		return [stack for stack, _right in stacks]
 
-	def sections(self, elements) -> list[dict]:
+	def sections(self, elements, indent_with_margin=False) -> list[dict]:
 		elements = sorted(elements or [], key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))
 		sections, previous_bottom = [], 0
 		for row in self.overlapping_rows(elements):
 			top = min(flt(e.get("startY")) for e in row)
-			section = {"label": "", "columns": self.columns(row, top if sections else 0)}
+			columns = self.columns(row, top if sections else 0)
+			indent = 0
+			if indent_with_margin and len(columns) > 1 and not columns[0]["fields"]:
+				indent = round(columns.pop(0)["width"] / 100 * self.content_width())
+			section = {"label": "", "columns": columns}
+			tile_columns(section, self.content_width())
 			gap = top - previous_bottom
-			if sections and gap > 4:
-				section["margin"] = {"top": round(gap), "right": 0, "bottom": 0, "left": 0}
+			top_margin = round(gap) if sections and gap > 4 else 0
+			if top_margin or indent:
+				section["margin"] = {"top": top_margin, "right": 0, "bottom": 0, "left": indent}
 			if any(c["fields"] for c in section["columns"]):
 				sections.append(section)
 			previous_bottom = max(flt(e.get("startY")) + flt(e.get("height")) for e in row)
@@ -411,9 +584,9 @@ class PrintDesignerConverter:
 					{
 						"label": "",
 						"width": round(flt(c.get("width")) / total * 100, 1),
-						"fields": self.free_layout(c.get("childrens") or [], flt(c.get("width"))),
+						"fields": self.element_fields(c, flt(c.get("width"))),
 					}
-					for c in sorted(children, key=lambda c: flt(c.get("startX")))
+					for c in sorted(self.printed(children), key=lambda c: flt(c.get("startX")))
 				]
 			row = children
 			top = 0
@@ -461,6 +634,8 @@ class PrintDesignerConverter:
 				node["custom_style"] = (
 					node.get("custom_style") or ""
 				) + f" min-height: {round(flt(element.get('height')))}px;"
+			if node and element.get("type") == "text" and not element.get("isFixedSize"):
+				node["custom_style"] = (node.get("custom_style") or "") + " white-space: nowrap;"
 			return [node] if node else []
 		if ruled and (line := self.rule(element)):
 			inner = self.element_fields(element, width, ruled=False)
@@ -497,6 +672,17 @@ class PrintDesignerConverter:
 					produced[0]["custom_style"] = f"margin-left: {round(indent, 1)}%; " + (
 						produced[0].get("custom_style") or ""
 					)
+				spare = (
+					(offset + width - flt(band[0].get("startX")) - flt(band[0].get("width"))) / width * 100
+				)
+				if (
+					produced
+					and spare > 1
+					and (band[0].get("type") == "table" or produced[0].get("align") in ("right", "center"))
+				):
+					produced[0]["custom_style"] = f"margin-right: {round(spare, 1)}%; " + (
+						produced[0].get("custom_style") or ""
+					)
 			else:
 				parts, cursor = [], offset
 				ordered = sorted(band, key=lambda e: flt(e.get("startX")))
@@ -525,11 +711,30 @@ class PrintDesignerConverter:
 			bottom = max(flt(e.get("startY")) + flt(e.get("height")) for e in band)
 		return fields
 
+	def printed(self, elements: list[dict]) -> list[dict]:
+		"""Print Designer clips a column with no width, so nothing in it ever printed."""
+		hidden = [e for e in elements if e.get("layoutType") == "column" and flt(e.get("width")) < 1]
+		note = _("A column with no width was left out, as Print Designer did not print it.")
+		if any(e.get("childrens") for e in hidden) and note not in self.notes:
+			self.notes.append(note)
+		return [e for e in elements if e not in hidden]
+
 	def side_by_side(self, columns) -> dict:
 		parts, fixed = [], []
-		for column in sorted(columns, key=lambda c: flt(c.get("startX"))):
+		for column in sorted(self.printed(columns), key=lambda c: flt(c.get("startX"))):
 			children = column.get("childrens") or []
-			inner = "".join(self.element_html(e) for e in self.flatten(children))
+			inner, cursor = "", 0
+			for child in sorted(children, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))):
+				html = "".join(self.element_html(e) for e in self.flatten([child]))
+				gap, indent = (
+					round(max(flt(child.get("startY")) - cursor, 0)),
+					round(flt(child.get("startX"))),
+				)
+				style = (f"margin-top: {gap}px; " if gap else "") + (
+					f"margin-left: {indent}px;" if indent else ""
+				)
+				inner += f'<div style="{style.strip()}">{html}</div>' if style else html
+				cursor = max(cursor, flt(child.get("startY")) + flt(child.get("height")))
 			parts.append(
 				f'<div style="flex: {round(flt(column.get("width")))} 1 0; min-width: 0; overflow-wrap: anywhere;">{inner}</div>'
 			)
@@ -543,7 +748,9 @@ class PrintDesignerConverter:
 
 	def flatten(self, elements) -> list[dict]:
 		flat = []
-		for element in sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))):
+		for element in sorted(
+			self.printed(elements), key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))
+		):
 			if element.get("type") == "rectangle":
 				inner = self.flatten(element.get("childrens") or [])
 				if line := self.rule(element):
@@ -624,12 +831,17 @@ class PrintDesignerConverter:
 		if item.get("fieldname") != "name" and not df:
 			return None
 		node = {
-			"label": (item.get("label") or (df.label if df else _("Name"))).strip().rstrip(":").strip(),
+			"label": html.unescape(item.get("label") or (df.label if df else _("Name")))
+			.strip()
+			.rstrip(":")
+			.strip(),
 			"fieldname": item["fieldname"],
 			"fieldtype": df.fieldtype if df else "Data",
 		}
 		if df and df.options:
 			node["options"] = df.options
+		if node["fieldtype"] in BREAKABLE_FIELDTYPES:
+			node["allow_page_break"] = 1
 		node["show_label"] = "inline" if item.get("is_labelled") else "hide"
 		node.update(self.style_props({**self.styled(element), **(item.get("style") or {})}))
 		return node
@@ -651,7 +863,7 @@ class PrintDesignerConverter:
 				continue
 			first = fields[0]
 			col = {
-				"label": column.get("label") or first.get("label") or "",
+				"label": html.unescape(column.get("label") or first.get("label") or ""),
 				"fieldname": first["fieldname"],
 				"fieldtype": first.get("fieldtype") or "Data",
 				"width": round(flt(column.get("width")), 1),
@@ -689,7 +901,8 @@ class PrintDesignerConverter:
 			"table_bordered": bordered,
 			"table_radius": 0,
 		}
-		if not bordered and flt(element.get("height")):
+		height_type = element.get("heightType") or ("auto" if element.get("isDynamicHeight") else "fixed")
+		if not bordered and height_type != "auto" and flt(element.get("height")):
 			node["table_min_height"] = round(flt(element.get("height")))
 		if (padding := style.get("paddingTop")) is not None:
 			node["table_cell_padding"] = round(flt(re.sub(r"[^\d.]", "", str(padding)) or 0))
@@ -750,13 +963,16 @@ class PrintDesignerConverter:
 		barcode_format = (element.get("barcodeFormat") or "").lower()
 		kind = BARCODE_FORMATS.get(barcode_format, "CODE128")
 		size = f"{round(flt(element.get('width')) / PX_PER_MM, 1)}mm"
-		field = re.fullmatch(r"{{\s*doc\.(\w+)\s*}}", value)
+		field = DOC_FIELD.fullmatch(value)
 		known_field = bool(field and (field.group(1) == "name" or self.meta.get_field(field.group(1))))
-		if (
-			barcode_format
-			and barcode_format not in BARCODE_FORMATS
-			and (known_field or not JINJA.search(value))
-		):
+		static_value = DOC_FIELD.sub(r"{\1}", value)
+		fields = [
+			self.meta.get_field(fieldname) for fieldname in DOC_FIELD.findall(value) if fieldname != "name"
+		]
+		is_static_value = not JINJA.search(static_value) and all(
+			df and df.fieldtype != "Table" for df in fields
+		)
+		if barcode_format and barcode_format not in BARCODE_FORMATS and (known_field or is_static_value):
 			self.notes.append(
 				_("The {0} barcode type was changed to CODE128.").format(barcode_format.upper())
 			)
@@ -770,13 +986,13 @@ class PrintDesignerConverter:
 				"width": size,
 				"custom": 1,
 			}
-		if not JINJA.search(value):
+		if is_static_value:
 			return {
 				"label": "Barcode",
 				"fieldname": self.name("barcode"),
 				"fieldtype": "Barcode",
 				"barcode_format": kind,
-				"barcode_value": value,
+				"barcode_value": static_value,
 				"width": size,
 				"custom": 1,
 			}
@@ -797,6 +1013,8 @@ class PrintDesignerConverter:
 		if element.get("type") == "line":
 			return f'<div style="border-top: 1px solid {element["color"]};"></div>'
 		style = css(self.styled(element))
+		if element.get("type") == "text" and not element.get("isFixedSize"):
+			style = f"{style} white-space: nowrap;".strip()
 		if element.get("type") == "text" and element.get("isDynamic"):
 			inner = "".join(self.dynamic_part(item) for item in element.get("dynamicContent") or [])
 		elif element.get("type") == "text":
@@ -819,9 +1037,20 @@ class PrintDesignerConverter:
 					if node.get("barcode_field")
 					else repr(node["barcode_value"])
 				)
+				set_barcode_value = (
+					f"{{%- set barcode_value = '' if {value} is none else {value} | string -%}}"
+				)
+				if not node.get("barcode_field") and JINJA.search(element.get("value") or ""):
+					set_barcode_value = (
+						"{%- set barcode_value -%}"
+						+ DOC_FIELD.sub(
+							r"{{ '' if doc.get('\1') is none else doc.get('\1') }}", element["value"].strip()
+						)
+						+ "{%- endset -%}"
+					)
 				return (
-					f"{{%- set barcode_value = ({value} or '') | string -%}}"
-					f"{{%- set barcode = get_barcode(barcode_value, {node['barcode_format']!r}) if barcode_value -%}}"
+					set_barcode_value
+					+ f"{{%- set barcode = get_barcode(barcode_value, {node['barcode_format']!r}) if barcode_value -%}}"
 					f'{{%- if barcode -%}}<img src="{{{{ barcode }}}}" style="width: {node["width"]}; max-width: 100%;">{{%- endif -%}}'
 				)
 			if node["fieldtype"] != "Static Text":
@@ -868,7 +1097,7 @@ class PrintDesignerConverter:
 		if item.get("is_labelled") and item.get("label"):
 			base = (self.global_styles.get("dynamicText") or {}).get("labelStyle") or {}
 			label_style = css({**base, **(item.get("labelStyle") or {})})
-			value = f'<span style="{label_style}">{escape_html(item["label"])}</span> {value}'
+			value = f'<span style="{label_style}">{escape_html(html.unescape(item["label"]))}</span> {value}'
 		if style:
 			value = f'<span style="{style}">{value}</span>'
 		return value + ("<br>" if item.get("nextLine") else "")
@@ -882,6 +1111,29 @@ class PrintDesignerConverter:
 		if custom := css(rest):
 			props["custom_style"] = custom
 		return props
+
+
+def tile_columns(section, total):
+	columns = section["columns"]
+	if len(columns) < 2:
+		return
+	section["gap"] = 0
+	last = len(columns) - 1
+	for i, column in enumerate(columns):
+		pad_left = COLUMN_PADDING if i > 0 else 0
+		pad_right = COLUMN_PADDING if i < last else 0
+		outer = flt(column.get("width")) / 100 * total
+		column["width"] = round(max(outer - pad_left - pad_right, 1) / total * 100, 2)
+		for field in column["fields"]:
+			style = (field.get("custom_style") or "").strip()
+			margin = {"left": -pad_left, "right": -pad_right}
+			for side, value in SIDE_MARGIN.findall(style):
+				margin[side] += flt(value) / 100 * outer
+			style = SIDE_MARGIN.sub("", style).strip()
+			if style and not style.endswith(";"):
+				style += ";"
+			margins = f"margin-inline-start: {round(margin['left'], 1)}px; margin-inline-end: {round(margin['right'], 1)}px;"
+			field["custom_style"] = f"{style} {margins}".strip()
 
 
 def add_gap(node, gap):

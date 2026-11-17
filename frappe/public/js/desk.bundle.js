@@ -54,6 +54,7 @@ import "./frappe/event_emitter.js";
 import "./frappe/router.js";
 import "./frappe/router_history.js";
 import "./frappe/defaults.js";
+import "./frappe/flow.js";
 import "./frappe/roles_editor.js";
 import "./frappe/module_editor.js";
 import "./frappe/microtemplate.js";

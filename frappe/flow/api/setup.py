@@ -27,8 +27,13 @@ SERVER_PROVIDER = "custom_openai"
 NO_CREDIT = ("credit balance", "insufficient_quota", "billing", "payment required", "quota")
 # and when it has no model by that name
 NO_MODEL = ("not a valid model", "model_not_found", "does not exist", "invalid model", "unknown model")
+# set while Grove's gateway isn't answering, so each open of Flow doesn't wait on it
+GROVE_DOWN_CACHE = "flow_grove_down"
+# the one Grove model that works today, the one a site with a Grove key starts with
+GROVE_MODEL = "openai/gpt-6-luna"  # as Grove lists it, under its vendor
 # where a key is checked when the models list doesn't need one
 KEY_URLS = {"openrouter": "https://openrouter.ai/api/v1/key"}
+CONNECT_DOCTYPES = ("Flow Provider", "Flow Model")
 
 
 @frappe.whitelist()
@@ -124,11 +129,17 @@ def services() -> dict[str, Any]:
 def add_model(provider: str, model_id: str, for_chat: bool = False) -> dict[str, Any]:
 	"""One of `provider`'s models, named as people know it, saved once it answers one message (one
 	saved already is switched on). One that doesn't is not saved, and its `check` says why."""
+	from frappe.flow.lib.model import SITE_PROVIDER, site_credentials
+
 	frappe.has_permission("Flow Model", "create", throw=True)
 	model = model_id.strip().removeprefix(f"{provider}/")
 	service = frappe.get_doc("Flow Provider", provider)
 	service.check_permission("read")
-	args = (f"{provider}/{model}", service.get_password("api_key", raise_exception=False), service.base_url)
+	api_key, base_url = service.get_password("api_key", raise_exception=False), service.base_url
+	if provider == SITE_PROVIDER:  # Grove's key and gateway are in site config
+		credentials = site_credentials()
+		api_key, base_url = credentials["api_key"], credentials["base_url"]
+	args = (f"{provider}/{model}", api_key, base_url)
 	# one that doesn't chat may embed, whatever its name or LiteLLM knows of it; the first run
 	# wants one to chat with
 	refused, embedding = _check(*args), False
@@ -149,8 +160,61 @@ def remove_provider(provider: str) -> None:
 	frappe.delete_doc("Flow Provider", provider)
 
 
+def sync_site_provider() -> None:
+	"""On Flow's first open, a site whose config has a Grove key gets the Grove provider and its
+	model, so the Assistant chats without setup. The key stays in site config. A gateway that
+	doesn't answer, or a key without the model, adds nothing, so setup shows; an open five
+	minutes later asks again."""
+	from frappe.flow.lib.model import SITE_PROVIDER, site_key
+
+	if frappe.db.exists("Flow Provider", SITE_PROVIDER) or frappe.cache.get_value(GROVE_DOWN_CACHE):
+		return
+	key = site_key()
+	if not key:
+		return
+	try:
+		response = requests.get(
+			f"{key['gateway_url'].rstrip('/')}/openai/v1/models",
+			headers={"Authorization": f"Bearer {key['api_key']}"},
+			timeout=5,
+		)
+		response.raise_for_status()
+		listed = GROVE_MODEL in [row["id"] for row in response.json()["data"]]
+	except (requests.RequestException, ValueError, KeyError, TypeError):
+		frappe.logger("flow").warning("Grove did not list its models", exc_info=True)
+		listed = False
+	if not listed:
+		frappe.cache.set_value(GROVE_DOWN_CACHE, 1, expires_in_sec=5 * 60)
+		return
+	frappe.db.savepoint("site_provider")
+	try:
+		frappe.get_doc({"doctype": "Flow Provider", "provider": SITE_PROVIDER, "enabled": 1}).insert(
+			ignore_permissions=True
+		)
+	except frappe.DuplicateEntryError:
+		frappe.db.rollback(save_point="site_provider")
+		return  # another first open added it
+	title = _title(GROVE_MODEL)
+	if frappe.db.exists("Flow Model", title):
+		title = f"{title} ({_label(SITE_PROVIDER)})"
+	frappe.get_doc(
+		{
+			"doctype": "Flow Model",
+			"title": title,
+			"provider": SITE_PROVIDER,
+			"model_id": GROVE_MODEL,
+			"enabled": 1,
+		}
+	).insert(ignore_permissions=True)
+
+
+def can_connect() -> bool:
+	"""Whether the user may connect an AI service, as Flow's first run does."""
+	return all(frappe.has_permission(doctype, "create") for doctype in CONNECT_DOCTYPES)
+
+
 def _check_can_connect() -> None:
-	for doctype in ("Flow Provider", "Flow Model"):
+	for doctype in CONNECT_DOCTYPES:
 		frappe.has_permission(doctype, "create", throw=True)
 
 
@@ -202,8 +266,11 @@ def _check(
 	didn't."""
 	import litellm
 
+	from frappe.flow.lib.model import litellm_route
+
 	provider, _sep, model = model_id.partition("/")
-	kwargs: dict[str, Any] = {"model": model_id, "api_key": api_key, "timeout": 20}
+	route, base_url = litellm_route(model_id, base_url)  # a Grove model is behind its gateway's API
+	kwargs: dict[str, Any] = {"model": route, "api_key": api_key, "timeout": 20}
 	if base_url:
 		kwargs["api_base"] = base_url
 	try:
@@ -255,7 +322,7 @@ def _save_model(provider: str, model: str, embedding: bool = False) -> str:
 	model_id = f"{provider}/{model}"
 	if name := frappe.db.get_value("Flow Model", {"model_id": model_id}):
 		frappe.has_permission("Flow Model", "write", doc=name, throw=True)
-		frappe.db.set_value("Flow Model", name, {"enabled": 1, "embedding": embedding})
+		frappe.get_doc("Flow Model", name).db_set({"enabled": 1, "embedding": embedding})
 		return name
 	title = _title(model)
 	if frappe.db.exists("Flow Model", title):

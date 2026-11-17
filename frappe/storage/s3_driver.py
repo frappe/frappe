@@ -29,6 +29,28 @@ def get_site_prefix(config: dict) -> str:
 	return prefix
 
 
+def client_config():
+	"""botocore client config, with checksums sent and checked only where S3 requires them.
+
+	Since botocore 1.36, every upload carries a CRC32 checksum by default. Some
+	S3-compatible stores keep a multipart upload's checksum as a checksum of the
+	part checksums but return it as if it covered the whole object, so a full read
+	fails checksum validation although the bytes are intact. Some also copy every
+	byte of such an object on CopyObject instead of copying its metadata.
+	"when_required" is botocore's behaviour before 1.36."""
+	from botocore.config import Config
+
+	try:
+		return Config(
+			signature_version="s3v4",
+			request_checksum_calculation="when_required",
+			response_checksum_validation="when_required",
+		)
+	except TypeError:
+		# botocore before 1.36 rejects these options, and already behaves this way
+		return Config(signature_version="s3v4")
+
+
 class S3Driver(StorageDriver):
 	"""Store blobs in an S3 (or S3-compatible) bucket, configured by ``storage_driver_config``.
 
@@ -50,7 +72,6 @@ class S3Driver(StorageDriver):
 
 		try:
 			import boto3
-			from botocore.config import Config
 			from botocore.exceptions import ClientError
 		except ImportError:
 			frappe.throw(
@@ -71,7 +92,7 @@ class S3Driver(StorageDriver):
 			if value := config.get(conf_key):
 				client_kwargs[boto_arg] = value
 
-		self.client = boto3.client("s3", config=Config(signature_version="s3v4"), **client_kwargs)
+		self.client = boto3.client("s3", config=client_config(), **client_kwargs)
 		self.key_prefix = f"sites/{frappe.local.site}/storage/"
 		self.legacy_key_prefix = f"{get_site_prefix(config)}/"
 

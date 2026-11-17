@@ -55,10 +55,10 @@
 						:loading="uploading"
 						:label="
 							uploading
-								? `Uploading ${progress}%`
+								? __('Uploading {0}%', [progress])
 								: doc[field.name]
-								? 'Replace file'
-								: 'Upload file'
+								? __('Replace file')
+								: __('Upload file')
 						"
 						:disabled="disabled"
 						@click="openFileSelector"
@@ -90,7 +90,7 @@
 		:error="linksError"
 		:model-value="doc[field.name] || null"
 		:disabled="disabled"
-		placeholder="Select…"
+		:placeholder="__('Select…')"
 		@update:model-value="(value) => (doc[field.name] = value ?? '')"
 	/>
 
@@ -108,7 +108,7 @@
 		:loading="linksLoading"
 		:error="linksError"
 		:model-value="doc[field.name] ?? []"
-		placeholder="Select…"
+		:placeholder="__('Select…')"
 		@update:model-value="(value) => (doc[field.name] = value ?? [])"
 	>
 		<template v-if="disabled" #footer />
@@ -138,7 +138,7 @@
 		:options="providerOptions"
 		:model-value="doc[field.name] || null"
 		:disabled="disabled"
-		placeholder="Select…"
+		:placeholder="__('Select…')"
 		side="bottom"
 		@update:model-value="(value) => (doc[field.name] = value ?? '')"
 	/>
@@ -181,14 +181,13 @@
 		:type="inputType"
 		:variant="variant"
 		:label="field.label"
-		:description="field.description"
+		:description="zeroNote || field.description"
 		:required="field.required"
 		:placeholder="field.placeholder"
 		:model-value="inputValue"
 		:disabled="disabled"
-		@update:model-value="
-			(value) => (doc[field.name] = field.type === 'int' ? Number(value) || 0 : value)
-		"
+		@update:model-value="setInput"
+		@change="clearZero"
 	/>
 </template>
 
@@ -197,6 +196,7 @@ import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { Button, FileUploader, FormControl, FormLabel, Switch } from "frappe-ui";
 
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
 import { searchLinks } from "./links.js";
@@ -229,6 +229,22 @@ const inputValue = computed(() => {
 	if (props.field.type === "int" && props.field.placeholder && !value) return "";
 	return value ?? "";
 });
+// a typed 0 gets a note under the field, e.g. "Cannot be 0. Using the default."
+const zeroNote = ref("");
+function setInput(value) {
+	const { field, doc } = props;
+	if (field.type !== "int") return (doc[field.name] = value);
+	doc[field.name] = Number(value) || 0;
+	// the cleared input reports "" next, so only a real number takes the note away
+	if (Number(value)) zeroNote.value = "";
+	else if (String(value) !== "") zeroNote.value = field.zeroMessage ?? "";
+}
+// and goes back to the placeholder; the input keeps it when the value was 0 already
+function clearZero(event) {
+	if (props.field.type === "int" && props.field.placeholder && !Number(event.target.value)) {
+		event.target.value = "";
+	}
+}
 
 // a saved provider the list leaves out still shows as itself
 const providerOptions = computed(() => {
@@ -325,7 +341,7 @@ const modelOptions = computed(() => {
 		{
 			type: "custom",
 			key: "typed",
-			label: "Use the typed id",
+			label: __("Use the typed id"),
 			condition: ({ query }) =>
 				!!query.trim() && !known.value.includes(prefix + query.trim()),
 			onClick: ({ query }) => pickModel(query.trim()),

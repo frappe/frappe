@@ -13,7 +13,7 @@ PRESERVED_EMPTY_PROPERTIES = frozenset({"componentProps", "componentSlots"})
 SYNC_FLAGS = ("in_import", "in_migrate", "in_install", "in_uninstall", "in_patch")
 
 
-def write_document_file(doc, folder=None, exclude_fields=None):
+def write_document_file(doc, folder=None, exclude_fields=None, filename=None):
 	doc_export = doc.as_dict(no_nulls=True)
 	doc.run_method("before_export", doc_export)
 	doc_export = strip_default_fields(doc, doc_export)
@@ -21,8 +21,11 @@ def write_document_file(doc, folder=None, exclude_fields=None):
 	remove_empty_values(doc_export)
 	for field in exclude_fields or []:
 		doc_export.pop(field, None)
+	# a virtual field is computed, so a file does not store it
+	for field in doc.meta.get("fields", {"is_virtual": 1}):
+		doc_export.pop(field.fieldname, None)
 
-	fname = scrub(doc_export.name)
+	fname = filename or scrub(doc_export.name)
 	path = os.path.join(folder, f"{fname}.json")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
 		frappe.throw(_("Invalid export path: {0}").format(Path(path).as_posix()))
@@ -38,7 +41,7 @@ def write_code_file(doc, folder, code_field, extension, filename=None):
 	so the source is readable and diffable on disk instead of buried in JSON.
 
 	`filename` overrides the stem (without extension) so the code file can match its sibling
-	JSON's name (e.g. a page's <scrub(page_title)>.ts beside <scrub(page_title)>.json)."""
+	JSON's name (e.g. a page's <scrub(page_title)>.js beside <scrub(page_title)>.json)."""
 	fname = filename or scrub(doc.name)
 	path = os.path.join(folder, f"{fname}.{extension}")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):

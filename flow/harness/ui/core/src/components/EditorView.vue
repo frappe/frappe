@@ -9,17 +9,17 @@
 				variant="ghost"
 				size="sm"
 				class="flex-none"
-				title="Save (⌘S)"
+				:title="__('Save (⌘S)')"
 				@click="save"
 			>
-				Save
+				{{ __("Save") }}
 			</Button>
 			<Button
 				v-if="diffRender"
 				variant="outline"
 				size="sm"
 				class="flex-none"
-				:title="diffSplit ? 'Unified view' : 'Split view'"
+				:title="diffSplit ? __('Unified view') : __('Split view')"
 				@click="toggleDiffLayout"
 			>
 				<template #icon>
@@ -36,7 +36,7 @@
 				size="sm"
 				class="flex-none"
 				:class="wrapText ? '!bg-surface-gray-3' : ''"
-				:title="wrapText ? 'Disable word wrap' : 'Wrap text'"
+				:title="wrapText ? __('Disable word wrap') : __('Wrap text')"
 				:aria-pressed="wrapText"
 				icon="lucide-wrap-text"
 				@click="toggleWrap"
@@ -46,7 +46,7 @@
 				size="sm"
 				class="flex-none"
 				:class="explorerOpen ? '!bg-surface-gray-3' : ''"
-				:title="explorerOpen ? 'Hide files' : 'Show files'"
+				:title="explorerOpen ? __('Hide files') : __('Show files')"
 				:aria-pressed="explorerOpen"
 				@click="explorerOpen = !explorerOpen"
 			>
@@ -64,12 +64,12 @@
 					class="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center"
 				>
 					<span class="lucide-file-text size-6 text-ink-gray-3" aria-hidden="true" />
-					<span class="text-base text-ink-gray-5">No file open</span>
+					<span class="text-base text-ink-gray-5">{{ __("No file open") }}</span>
 					<span class="text-sm leading-5 text-ink-gray-4">
 						{{
 							workspace.view === "diff"
-								? "Select a changed file to review its diff"
-								: "Select a file to view or edit it"
+								? __("Select a changed file to review its diff")
+								: __("Select a file to view or edit it")
 						}}
 					</span>
 				</div>
@@ -80,7 +80,7 @@
 					<span class="text-sm text-ink-gray-5">{{ activeTab.error }}</span>
 					<Button
 						variant="outline"
-						label="Retry"
+						:label="__('Retry')"
 						@click="
 							activeTab.diff
 								? flow.openDiffFile(activeTab.path, activeTab.since ?? null)
@@ -108,6 +108,7 @@ import Breadcrumbs from "frappe-ui/src/components/Breadcrumbs/Breadcrumbs.vue"
 import Button from "frappe-ui/src/components/Button/Button.vue"
 
 import { compactDisplayText } from "../transcript.js"
+import { __ } from "../translate.js"
 import FilesBar from "./FilesBar.vue"
 import LoadingState from "./LoadingState.vue"
 
@@ -199,7 +200,7 @@ function wireAddToChat(ed) {
 	const node = document.createElement("button")
 	node.type = "button"
 	node.className = "flow-add-to-chat"
-	node.textContent = "Add to chat"
+	node.textContent = __("Add to chat")
 	node.addEventListener("mousedown", (e) => e.preventDefault()) // keep the selection
 	let position = null
 	const widget = {

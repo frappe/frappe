@@ -115,6 +115,7 @@ calendars = ["Event"]
 on_session_creation = [
 	"frappe.core.doctype.activity_log.feed.login_feed",
 	"frappe.core.doctype.user.user.notify_admin_access_to_system_manager",
+	"frappe.desk.page.setup_wizard.setup_wizard.complete_prefilled_setup",
 ]
 
 on_login = "frappe.desk.doctype.note.note._get_unseen_notes"
@@ -240,6 +241,10 @@ jinja = {
 require_type_annotated_api_methods = True
 
 standard_queries = {"User": "frappe.core.doctype.user.user.user_query"}
+
+additional_timeline_content = {
+	"User": ["frappe.core.doctype.permission_log.permission_log.get_timeline_content"],
+}
 
 doc_events = {
 	"*": {

@@ -6,6 +6,7 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 from frappe.studio.build import build_custom_apps
 from frappe.studio.doctype.studio_component.studio_component import mark_components_standard
+from frappe.studio.sync_json import get_exported_component_name, import_script_file
 from frappe.studio.utils import (
 	get_app_file_path,
 	get_exported_app_folders,
@@ -76,7 +77,7 @@ def get_exported_docnames() -> tuple[set[str], set[str]]:
 
 
 def sync_pages(app_folder):
-	# each page is a folder holding <stem>.json + <stem>.ts; the script lives in the .ts (the runtime
+	# each page is a folder holding <stem>.json + a script file; the script lives in that file (the runtime
 	# loads it directly), so the DB `script` field stays empty for exported pages
 	for page_path in get_page_file_paths(app_folder):
 		import_file_by_path(page_path)
@@ -92,7 +93,8 @@ def sync_components(app_folder):
 		if component.endswith(".json"):
 			component_path = os.path.join(studio_component_folder, component)
 			import_file_by_path(component_path)
-			names.append(read_json_file(component_path).get("name"))
+			import_script_file(component_path)
+			names.append(get_exported_component_name(component_path))
 	mark_components_standard(names)
 
 

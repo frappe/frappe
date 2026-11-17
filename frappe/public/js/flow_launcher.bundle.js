@@ -127,6 +127,18 @@ class FlowLauncher {
 		else this.open();
 	}
 
+	// opens the panel on a chat, for an app that started it
+	open_at(session) {
+		if (session) {
+			this.asked = session;
+			this.state.path = `/s/${session}`;
+			this.island?.update({ path: this.state.path, asked: session });
+		}
+		if (!this.state.open) return this.open();
+		this.save();
+		this.focus_chat();
+	}
+
 	// Cmd/Ctrl+I anywhere on the page and in the chat; the page's rich text keeps it for italics
 	toggle_by_key(event) {
 		const path = event.composedPath();
@@ -140,7 +152,11 @@ class FlowLauncher {
 	make_island() {
 		const desk = Boolean(window.frappe?.set_route);
 		this.island = mountIsland(ISLAND, this.chat, {
-			resolve: () => ({ js: SCRIPT.dataset.island, css: SCRIPT.dataset.islandCss }),
+			resolve: async () => {
+				// a panel left open starts with the page: the chat's text waits for Desk's translations
+				await window.frappe?._translations_loaded;
+				return { js: SCRIPT.dataset.island, css: SCRIPT.dataset.islandCss };
+			},
 			host: {
 				locale: window.frappe?.boot?.lang || document.documentElement.lang || "en",
 				user: window.frappe?.session?.user || null,
@@ -150,6 +166,7 @@ class FlowLauncher {
 			props: {
 				panel: desk ? "desk" : "app",
 				path: this.state.path,
+				asked: this.asked,
 				onClose: () => this.minimize(),
 				onNavigate: (path) => {
 					this.state.path = path;
@@ -418,9 +435,12 @@ const STYLE = `
 }
 `;
 
-// not inside frames; window.flow.toggle() is for an app's
+// not inside frames; window.flow.toggle() and window.flow.open({ session }) are for an app's
 // code, as data-flow-toggle is for its markup
 if (window.top === window) {
 	const launcher = new FlowLauncher();
-	window.flow = { toggle: () => launcher.toggle() };
+	window.flow = {
+		toggle: () => launcher.toggle(),
+		open: ({ session } = {}) => launcher.open_at(session),
+	};
 }

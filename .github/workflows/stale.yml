@@ -12,22 +12,62 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v11
+      - uses: actions/github-script@v8
         with:
-          days-before-pr-stale: 15
-          days-before-pr-close: 1
-          days-before-issue-stale: -1
-          days-before-issue-close: -1
-          stale-pr-label: 'inactive'
-          exempt-pr-labels: 'hotfix,no-stale'
-          exempt-all-pr-milestones: true
-          remove-pr-stale-when-updated: true
-          operations-per-run: 100
-          stale-pr-message: >
-            This pull request has been automatically marked as stale because it has not had
-            recent activity. It will be closed within 1 day if no further activity occurs, but it
-            only takes a comment to keep a contribution alive :) Also, even if it is closed,
-            you can always reopen the PR when you're ready. Thank you for contributing.
+          script: |
+            const DAY = 24 * 60 * 60 * 1000;
+            const DAYS_BEFORE_STALE = 12;
+            const DAYS_BEFORE_CLOSE = 1;
+            const LABEL = "inactive";
+            const EXEMPT = ["hotfix", "no-stale"];
+            const MESSAGE =
+              "This pull request has been automatically marked as stale because it has not had " +
+              "recent activity. It will be closed within 1 day if no further activity occurs, but it " +
+              "only takes a comment to keep a contribution alive :) Also, even if it is closed, " +
+              "you can always reopen the PR when you're ready. Thank you for contributing.";
+
+            const is_person = (user) => user && user.type !== "Bot" && !user.login.endsWith("[bot]");
+
+            const prs = await github.paginate(github.rest.pulls.list, {
+              ...context.repo,
+              state: "open",
+              per_page: 100,
+            });
+            for (const pr of prs) {
+              const labels = pr.labels.map((l) => l.name);
+              if (pr.milestone || labels.some((l) => EXEMPT.includes(l))) continue;
+
+              const timeline = await github.paginate(github.rest.issues.listEventsForTimeline, {
+                ...context.repo,
+                issue_number: pr.number,
+                per_page: 100,
+              });
+              let last_activity = new Date(pr.created_at).getTime();
+              let labeled_at = 0;
+              for (const e of timeline) {
+                let at = null;
+                if (e.event === "committed") at = e.committer?.date;
+                else if (e.event === "commented" && is_person(e.user)) at = e.created_at;
+                else if (e.event === "reviewed" && is_person(e.user)) at = e.submitted_at;
+                else if (["labeled", "unlabeled", "reopened", "head_ref_force_pushed"].includes(e.event) && is_person(e.actor))
+                  at = e.created_at;
+                if (e.event === "labeled" && e.label?.name === LABEL)
+                  labeled_at = Math.max(labeled_at, new Date(e.created_at).getTime());
+                if (at) last_activity = Math.max(last_activity, new Date(at).getTime());
+              }
+
+              const issue = { ...context.repo, issue_number: pr.number };
+              if (labels.includes(LABEL)) {
+                if (last_activity > labeled_at) {
+                  await github.rest.issues.removeLabel({ ...issue, name: LABEL });
+                } else if (Date.now() - labeled_at > DAYS_BEFORE_CLOSE * DAY) {
+                  await github.rest.pulls.update({ ...context.repo, pull_number: pr.number, state: "closed" });
+                }
+              } else if (Date.now() - last_activity > DAYS_BEFORE_STALE * DAY) {
+                await github.rest.issues.createComment({ ...issue, body: MESSAGE });
+                await github.rest.issues.addLabels({ ...issue, labels: [LABEL] });
+              }
+            }
       - uses: actions/github-script@v8
         with:
           script: |
