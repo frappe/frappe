@@ -108,7 +108,7 @@
    "fieldname": "users",
    "fieldtype": "Table MultiSelect",
    "label": "Users",
-   "mandatory_depends_on": "eval:in_list(['Round Robin', \"Load Balancing\"],  doc.rule)",
+   "mandatory_depends_on": "eval:!doc.disabled && in_list(['Round Robin', \"Load Balancing\"],  doc.rule)",
    "options": "Assignment Rule User"
   },
   {
@@ -178,7 +178,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-03 13:08:12.561504",
+ "modified": "2026-11-11 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Assignment Rule",

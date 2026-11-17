@@ -7,6 +7,7 @@ import zlib
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from threading import Event
 
+import litellm
 import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
@@ -24,10 +25,12 @@ from flow_harness.model.base import Model
 from flow_harness.model.catalog import model_supports_images
 from flow_harness.model.content import (
 	FILE_PLACEHOLDER,
+	NON_VISION_IMAGE_FILE,
 	NON_VISION_IMAGE_PLACEHOLDER,
 	attachment_summary,
 	resolve_tool_images,
 	resolve_user_content,
+	tool_result_text,
 )
 from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.litellm import _TOOL_IMAGE_PREFACE, LiteLLMModel, _openai_messages
@@ -57,6 +60,7 @@ def test_attachment_store_add_bytes_takes_only_safe_images(tmp_path, monkeypatch
 	metadata = json.loads((tmp_path / "attachments" / f"{png.id}.json").read_text())
 	assert (png.kind, png.mime_type, png.width, png.height) == ("image", "image/png", 8, 6)
 	assert store.read(png.id) == data
+	assert open(png.path, "rb").read() == data  # the copy a model that cannot see images opens
 	assert "data" not in metadata  # the bytes stay out of the metadata
 
 	assert store.add_bytes("wide.png", _png(2_500, 10)).width == 2_000
@@ -112,6 +116,8 @@ def test_attachment_store_add_file_inlines_what_it_can_and_points_at_the_rest(tm
 			assert not (tmp_path / "attachments" / f"{attachment.id}.bin").exists(), name
 		else:
 			assert store.read(attachment.id) == data, name
+		if kind == "image":  # the project file, for a model that cannot see images
+			assert attachment.path == f"/p/{name}", name
 
 	for name, data, tools, error in (
 		("empty.txt", b"", {"bash"}, "empty"),
@@ -155,16 +161,31 @@ def test_user_content_resolves_by_kind_and_image_capability():
 	assert text.startswith(note) and NON_VISION_IMAGE_PLACEHOLDER in text and "screen.png" in text
 	result = _tool_result("c1", "screen.png", [image])
 	assert resolve_tool_images(result, resolve_attachment=data.__getitem__, supports_images=False) == []
+	assert (
+		tool_result_text(result, supports_images=False)
+		== f"[Image: screen.png]\n{NON_VISION_IMAGE_PLACEHOLDER}"
+	)
+	assert tool_result_text(result) == "[Image: screen.png]"
 	assert attachment_summary(message) == f"{note}\n[Attached image: screen.png]"  # compaction keeps the path
 
+	stored = image.model_copy(update={"path": "/data/screen.png"})
+	text, _ = resolve_user_content(
+		UserMessage(content=[stored]), resolve_attachment=data.__getitem__, supports_images=False
+	)
+	assert text == f"[Attached image: screen.png]\n{NON_VISION_IMAGE_FILE.format(path='/data/screen.png')}"
 
-def test_image_capability_comes_from_the_catalog():
+
+def test_image_capability_comes_from_the_catalog(monkeypatch):
 	assert opencode_go_model("opencode-go/kimi-k3", api_key="token").supports_images
 	assert not opencode_go_model("opencode-go/deepseek-v4-pro", api_key="token").supports_images
 	assert model_supports_images("opencode-go/kimi-k2.6") is True
 	assert model_supports_images("codex/gpt-5.6-terra") is True
 	assert model_supports_images("custom/gpt-4o") is None
 	assert LiteLLMModel("custom/gpt-4o").supports_images is None  # a gateway model stays ungated
+	monkeypatch.setitem(litellm.model_cost, "acme/m", {"litellm_provider": "acme", "supports_vision": True})
+	assert model_supports_images("openrouter/acme/m") is None  # another provider's entry
+	monkeypatch.setitem(litellm.model_cost, "openrouter/acme/m", {"litellm_provider": "openrouter"})
+	assert model_supports_images("openrouter/acme/m") is False
 
 
 def test_attachment_http_upload_preview_claim_and_cleanup(tmp_path):

@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import inspect
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -32,7 +33,7 @@ from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.logging import get_log_db, log_table
 from frappe.utils.password import check_password
-from frappe.www.login import _generate_temporary_login_link
+from frappe.www.login import _generate_temporary_login_link, _send_login_link, send_login_link
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -44,6 +45,14 @@ def add_user(email, password, username=None, mobile_no=None):
 	user.simultaneous_sessions = 1
 	user.add_roles("System Manager")
 	frappe.db.commit()
+
+
+def init_request_user(site, sites_path):
+	frappe.init(site, sites_path=sites_path, force=True, is_request=True)
+	try:
+		return frappe.session.user
+	finally:
+		frappe.destroy()
 
 
 class TestAuth(IntegrationTestCase):
@@ -77,6 +86,12 @@ class TestAuth(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", k, v)
 		frappe.clear_cache()
 		frappe.db.commit()
+
+	def test_request_init_on_cold_module_map_keeps_guest(self):
+		frappe.client_cache.delete_value("installed_app_modules")
+		with ThreadPoolExecutor(max_workers=1) as executor:
+			user = executor.submit(init_request_user, frappe.local.site, frappe.local.sites_path).result()
+		self.assertEqual(user, "Guest")
 
 	def test_validate_ip_address_without_a_request(self):
 		with (
@@ -153,6 +168,18 @@ class TestAuth(IntegrationTestCase):
 		with patch("frappe.utils.password.verify_password", return_value=(False, False)) as verify:
 			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
 		verify.assert_called_once()
+
+	def test_email_login_ignores_case_and_spaces(self):
+		user = User.find_by_credentials(f" {self.test_user_email.upper()} ", self.test_user_password)
+		self.assertEqual(user.name, self.test_user_email)
+		self.assertTrue(user.is_authenticated)
+
+	def test_administrator_logs_in_by_name_not_email(self):
+		user = User.find_by_credentials("administrator", "", validate_password=False)
+		self.assertEqual(user.name, "Administrator")
+
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		self.assertIsNone(User.find_by_credentials(admin_email, "", validate_password=False))
 
 	def test_user_without_a_password_checks_a_password_hash(self):
 		email = "no_password_auth@example.com"
@@ -403,6 +430,27 @@ class TestAuth(IntegrationTestCase):
 		else:
 			self.fail("Rate limting not working")
 
+	def test_login_link_is_sent_from_a_job(self):
+		for email in (self.test_user_email, "no-such-user@example.com"):
+			with (
+				self.change_settings("System Settings", login_with_email_link=1),
+				patch("frappe.enqueue") as enqueue,
+				patch("frappe.sendmail") as sendmail,
+			):
+				inspect.unwrap(send_login_link)(email)
+
+			enqueue.assert_called_once()
+			self.assertEqual(enqueue.call_args.kwargs["lang"], frappe.local.lang)
+			sendmail.assert_not_called()
+
+	def test_login_link_job_uses_the_request_language(self):
+		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+		sent_in = []
+		with patch("frappe.sendmail", side_effect=lambda **kwargs: sent_in.append(frappe.local.lang)):
+			_send_login_link(self.test_user_email, "de")
+
+		self.assertEqual(sent_in, ["de"])
+
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_correct_cookie_expiry_set(self):
 		client = FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password)
@@ -525,6 +573,19 @@ class TestIPRestrictionForAPIAuth(IntegrationTestCase):
 		validate_auth()
 		self.assertEqual(frappe.session.user, self.user_email)
 
+	def test_auth_hook_user_without_user_record(self):
+		frappe.local.request = Request(EnvironBuilder().get_environ())
+		frappe.local.request_ip = "10.0.0.1"
+		frappe.set_user("Guest")
+
+		with patch(
+			"frappe.auth.validate_auth_via_hooks",
+			side_effect=lambda: frappe.set_user("no-such-user@example.com"),
+		):
+			validate_auth()
+
+		self.assertEqual(frappe.session.user, "no-such-user@example.com")
+
 
 class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 	"""Failed API key authentication is written to the Activity Log, a bounded number of times."""
@@ -612,8 +673,10 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 
 	def test_failed_key_lookup_is_rejected_without_a_log_entry(self):
 		self._request_with(self.api_key, "x")
+		frappe.db.savepoint("failed_key_lookup")
 		with self.assertRaises(frappe.AuthenticationError):
 			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="ToDo")
+		frappe.db.rollback(save_point="failed_key_lookup")
 
 		self.assertEqual(self._entries(), [])
 
@@ -651,7 +714,7 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 		self.assertFalse(tracker.is_user_allowed())
 
 		# Sleep for lock_interval of time, so that next request con unlock the user access.
-		time.sleep(lock_interval)
+		time.sleep(lock_interval + 1)
 
 		tracker.add_failure_attempt()
 		self.assertTrue(tracker.is_user_allowed())

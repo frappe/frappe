@@ -16,6 +16,8 @@ import type { ContextMenuOption, ContextMenuGroup, FrappeUIComponent } from "@/t
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { getBlockCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
 import { canPasteStylesTo, copyBlockStyles, pasteBlockStyles } from "@/utils/styleCopyPaste"
+import { getEditorVariantChoice, setEditorVariantChoice, variantOptionNames } from "@/utils/variants"
+import { confirmKeepVariantOption } from "@/utils/variantsEditor"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
 import components from "@/data/components"
@@ -171,6 +173,16 @@ const contextMenuOptions: ContextMenuOption[] = [
 		condition: () => canUnwrap(),
 	},
 	{
+		label: "Add Variant",
+		action: () => addVariantOf(block.value),
+		condition: () => Boolean(block.value.getParentBlock()) && block.value.componentName !== "Variants",
+	},
+	{
+		label: "Keep Shown Option",
+		action: () => keepShownOption(block.value),
+		condition: () => block.value.componentName === "Variants" && block.value.children.length > 1,
+	},
+	{
 		label: "Repeat Block",
 		action: () => {
 			const repeaterBlockObj = getComponentBlock("Repeater")
@@ -244,6 +256,36 @@ const contextMenuOptions: ContextMenuOption[] = [
 		},
 	},
 ]
+
+function addVariantOf(target: Block) {
+	const parentBlock = target.getParentBlock()
+	if (!parentBlock) return
+	const index = parentBlock.getChildIndex(target)
+	const slotName = target.parentSlotName
+	const duplicate = getBlockCopy(target)
+	const wrap = () => {
+		const variantsBlock = getBlockInstance({
+			componentName: "Variants",
+			componentProps: { name: "Variant" },
+		})
+		parentBlock.removeChild(target)
+		parentBlock.insertChild(variantsBlock, index, slotName)
+		target.variantOptionName = "Option 1"
+		duplicate.variantOptionName = "Option 2"
+		variantsBlock.insertChild(target, 0)
+		variantsBlock.insertChild(duplicate, 1)
+		setEditorVariantChoice(variantsBlock.componentId, 1)
+		variantsBlock.selectBlock()
+	}
+	const history = canvasStore.activeCanvas?.history
+	history ? history.batch(wrap) : wrap()
+}
+
+function keepShownOption(target: Block) {
+	const options = variantOptionNames(target)
+	const shownIndex = getEditorVariantChoice(target.componentId, options.length)
+	confirmKeepVariantOption(target, shownIndex)
+}
 
 function canUnwrap() {
 	const target = block.value

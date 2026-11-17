@@ -31,7 +31,6 @@
 				<span> {{ row_number or "" }} </span>
 			</td>
 
-			{% set format_doc = row_doc(first_row if row.is_total_row else row, doctype=title, name=row_number) %}
 			{% for col in columns %}
 				{% set value = row.get(col.fieldname) %}
 				<td {% if col.fieldtype in numeric_fieldtypes %} class="text-right" {% elif value is string and value.split(" ") | map("length") | max > 45 %} class="overflow-wrap-anywhere" {% endif %}>
@@ -44,7 +43,7 @@
 						{% elif col.fieldtype == "Link" %}
 							{{ link_titles.get(col.options ~ "::" ~ value, value) | e }}
 						{% else %}
-							{% set formatted = format_value(value, col, format_doc) %}
+							{% set formatted = format_value(value, col, row) %}
 							{{ frappe.sanitize_html(formatted) if formatted is string and "<" in formatted else formatted }}
 						{% endif %}
 					</span>

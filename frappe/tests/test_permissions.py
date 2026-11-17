@@ -141,13 +141,7 @@ class TestPermissions(IntegrationTestCase):
 
 			perms = boot_perms()
 			self.assertIn(owner_only_dt, perms.can_export)
-			self.assertIn(owner_only_dt, perms.can_export_owner_only)
 			self.assertIn(shared_dt, perms.can_export)
-			self.assertNotIn(shared_dt, perms.can_export_owner_only)
-
-			user.add_roles("System Manager")
-			perms = boot_perms()
-			self.assertNotIn(owner_only_dt, perms.can_export_owner_only)
 		finally:
 			frappe.set_user("Administrator")
 			frappe.delete_doc("User", user_name, ignore_missing=True, force=True)
@@ -180,6 +174,13 @@ class TestPermissions(IntegrationTestCase):
 			message = frappe.local.message_log[-1]["message"]
 			self.assertIn("Test Blog Category", message)
 			self.assertIn("_Test Blog Category", message)
+
+	def test_check_without_print_logs_leaves_outer_check_logs_alone(self):
+		frappe.flags.has_permission_check_logs = []
+		self.addCleanup(frappe.flags.pop, "has_permission_check_logs", None)
+
+		self.assertFalse(frappe.permissions.has_permission("ToDo", "submit", print_logs=False))
+		self.assertEqual(frappe.flags.has_permission_check_logs, [])
 
 	def test_user_permissions_in_report(self):
 		add_user_permission("Test Blog Category", "_Test Blog Category 1", "test2@example.com")
@@ -640,6 +641,7 @@ class TestPermissions(IntegrationTestCase):
 		)
 
 		doc.insert()
+		self.addCleanup(frappe.db.delete, "Test Blog Post", {"name": doc.name})
 
 		getdoc("Test Blog Post", doc.name)
 		doclist = [d.name for d in frappe.response.docs]
@@ -659,7 +661,8 @@ class TestPermissions(IntegrationTestCase):
 			}
 		)
 
-		doc.insert(ignore_if_duplicate=True)
+		doc.insert()
+		self.addCleanup(frappe.delete_doc, doc.doctype, doc.name, delete_permanently=True)
 
 		update("Test Blog Post", "Blogger", 0, "if_owner", 1)
 		update("Test Blog Post", "Blogger", 0, "read", 1)

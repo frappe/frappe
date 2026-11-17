@@ -157,7 +157,11 @@ export function getStore(print_format_name) {
 				: preview_doc.value?.letter_head
 				? Promise.resolve(preview_doc.value.letter_head)
 				: frappe.db
-						.get_value("Letter Head", { is_default: 1 }, "name")
+						.get_value(
+							"Letter Head",
+							{ is_default: 1, letter_head_for: "DocType" },
+							"name"
+						)
 						.then((r) => r?.message?.name || "");
 		return name_ready
 			.then((name) => {

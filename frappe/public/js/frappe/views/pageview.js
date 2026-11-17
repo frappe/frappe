@@ -1,6 +1,8 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+import { preload_island } from "../ui/island/loader.js";
+
 frappe.provide("frappe.views.pageview");
 frappe.provide("frappe.standard_pages");
 
@@ -8,6 +10,16 @@ frappe.provide("frappe.standard_pages");
 // bounded box off this class. The island scrolls its own body, which needs a
 // definite height to scroll in, and desk's page is document-scrolled.
 const ISLAND_PAGE_CLASS = "island-page";
+
+/**
+ * Starts loading a page's island while `getpage` is on its way. A page island is
+ * registered as `<app>.page.<page>`, so boot already names it. A page whose `island`
+ * names an app's own island loads once `getpage` returns, as before.
+ */
+function preload_page_island(name) {
+	const island = frappe.boot.ui_islands?.find((island) => island.endsWith(`.page.${name}`));
+	if (island) preload_island(island);
+}
 
 frappe.views.pageview = {
 	with_page: function (name, callback) {
@@ -31,6 +43,7 @@ frappe.views.pageview = {
 			callback();
 		} else if (name) {
 			// get fresh
+			preload_page_island(name);
 			return frappe.call({
 				method: "frappe.desk.desk_page.getpage",
 				args: { name: name },

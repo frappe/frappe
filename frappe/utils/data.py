@@ -165,10 +165,11 @@ def get_datetime(
 	if datetime_str is None:
 		return now_datetime()
 
-	elif isinstance(datetime_str, datetime.datetime | datetime.timedelta):
+	# PERF: isinstance with a tuple is much faster than with a union type (`X | Y`)
+	elif isinstance(datetime_str, (datetime.datetime, datetime.timedelta)):
 		return datetime_str
 
-	elif isinstance(datetime_str, list | tuple):
+	elif isinstance(datetime_str, (list, tuple)):
 		return datetime.datetime(datetime_str)
 
 	elif isinstance(datetime_str, datetime.date):
@@ -397,6 +398,13 @@ def get_timezone_utc_offset(timezone: str) -> str:
 	sign = "+" if offset_seconds >= 0 else "-"
 	hours, minutes = divmod(abs(offset_seconds) // 60, 60)
 	return f"{sign}{hours:02d}:{minutes:02d}"
+
+
+def validate_time_zone(time_zone: str) -> None:
+	from zoneinfo import available_timezones
+
+	if time_zone not in available_timezones():
+		frappe.throw(frappe._("{0} is not a valid Time Zone").format(frappe.bold(time_zone)))
 
 
 def convert_utc_to_timezone(utc_timestamp: datetime.datetime, time_zone: str) -> datetime.datetime:
@@ -1714,8 +1722,8 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 
 	try:
 		if url.startswith("/"):
-			base = os.path.abspath(frappe.get_site_path("public"))
-			path = os.path.abspath(os.path.join(base, url.lstrip("/")))
+			base = os.path.realpath(frappe.get_site_path("public"))
+			path = os.path.realpath(os.path.join(base, url.lstrip("/")))
 			if os.path.commonpath((base, path)) != base or not os.path.isfile(path):
 				return url
 			with open(path, "rb") as f:
@@ -2320,10 +2328,18 @@ operator_map = {
 
 def evaluate_filters(doc: "Mapping", filters: FilterSignature):
 	"""Return True if doc matches filters."""
+	from frappe.database.query import get_nested_set_hierarchy_result
+	from frappe.database.utils import NestedSetHierarchy
+
 	if not isinstance(filters, Filters):
 		filters = Filters(filters, doctype=doc.get("doctype"))
 	for d in filters:
 		f = get_filter(None, d)
+		if f.operator.lower() in NestedSetHierarchy:
+			hierarchy = f.operator.lower()
+			df = frappe.get_meta(f.doctype).get_field(f.fieldname)
+			f.value = get_nested_set_hierarchy_result(df.options if df else f.doctype, f.value, hierarchy)
+			f.operator = "not in" if hierarchy in ("not ancestors of", "not descendants of") else "in"
 		if not compare(doc.get(f.fieldname), f.operator, f.value, f.fieldtype):
 			return False
 

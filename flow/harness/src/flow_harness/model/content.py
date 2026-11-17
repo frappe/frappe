@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from flow_harness.events import AttachmentContent, ToolResult, UserMessage
 
 NON_VISION_IMAGE_PLACEHOLDER = "(image contents unavailable to the current model)"
+NON_VISION_IMAGE_FILE = "(image contents unavailable to the current model; open it with your tools at {path})"
 MISSING_ATTACHMENT_PLACEHOLDER = "(attachment unavailable: {name})"
 FILE_PLACEHOLDER = "(contents not included; open it with your tools at {path})"
 
@@ -51,7 +52,12 @@ def resolve_user_content(
 				continue
 			text = _append(text, f'<file name="{_xml_attr(attachment.name)}">\n{body}\n</file>')
 		elif supports_images is False:
-			text = _append(text, f"[Attached image: {attachment.name}]\n{NON_VISION_IMAGE_PLACEHOLDER}")
+			note = (
+				NON_VISION_IMAGE_FILE.format(path=attachment.path)
+				if attachment.path
+				else NON_VISION_IMAGE_PLACEHOLDER
+			)
+			text = _append(text, f"[Attached image: {attachment.name}]\n{note}")
 		else:
 			images.append(ResolvedImage(attachment.name, attachment.mime_type, data))
 	return text, images
@@ -73,6 +79,14 @@ def resolve_tool_images(
 		if data is not None:
 			images.append(ResolvedImage(attachment.name, attachment.mime_type, data))
 	return images
+
+
+def tool_result_text(message: ToolResult, *, supports_images: bool | None = None) -> str:
+	"""The tool's text, telling a model known not to accept images that it cannot see the
+	images the tool returned."""
+	if supports_images is False and message.attachments:
+		return _append(message.content, NON_VISION_IMAGE_PLACEHOLDER)
+	return message.content
 
 
 def attachment_summary(

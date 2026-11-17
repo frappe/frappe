@@ -29,7 +29,7 @@ frappe.ui.form.on("File", {
 		// preview different file types
 		frm.trigger("preview_file");
 
-		let is_optimizable_file_type = /\.(gif|jpg|jpeg|tiff|png|pdf)$/i.test(frm.doc.file_url);
+		let is_optimizable_file_type = /\.(gif|jpg|jpeg|tiff|png|pdf)$/i.test(frm.doc.file_name);
 		let is_optimizable =
 			!frm.doc.is_folder && is_optimizable_file_type && frm.doc.file_size > 0;
 

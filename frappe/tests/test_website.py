@@ -195,6 +195,12 @@ class TestWebsite(IntegrationTestCase):
 		response = get_response()
 		self.assertEqual(response.status_code, 404)
 
+	def test_not_found_raised_while_rendering(self):
+		with patch.object(StaticPage, "render", side_effect=frappe.PageDoesNotExistError):
+			set_request(method="GET", path="/_test/assets/image")
+			response = get_response()
+		self.assertEqual(response.status_code, 404)
+
 	def test_redirect(self):
 		import frappe.hooks
 
@@ -423,6 +429,11 @@ class TestWebsite(IntegrationTestCase):
 		self.assertIn("Safe Render Off", content)
 		self.assertIn("test.__test", content)
 		self.assertNotIn("Show Error", content)
+
+	def test_render_error_hides_traceback_from_guest(self):
+		with patch.object(frappe, "_dev_server", 0), self.assertRaises(Exception) as error:
+			frappe.render_template("{{ frappe.form_dict.missing_key.upper() }}")
+		self.assertNotIn("Traceback", str(error.exception))
 
 	def test_never_render(self):
 		from pathlib import Path

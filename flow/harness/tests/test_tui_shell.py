@@ -387,7 +387,7 @@ async def _live_server(tmp_path):
 
 async def test_integration_conversation_and_resume_over_live_server(tmp_path):
 	async with _live_server(tmp_path) as url:
-		config = SessionConfig(model="mock", cwd=str(tmp_path), auto_approve=True)
+		config = SessionConfig(model="mock", cwd=str(tmp_path), approval_mode="auto_approve")
 		async with FlowClient(url) as setup:
 			other_sid = await setup.create_session(config)
 			await setup.run(other_sid, "hello from the other side", wait=True)

@@ -41,6 +41,8 @@
   "value_color",
   "page_number",
   "show_label_colon",
+  "access_section",
+  "roles",
   "css_section",
   "css",
   "custom_html_help",
@@ -52,7 +54,8 @@
   "published_by",
   "classic_format_data",
   "print_format_builder",
-  "print_format_builder_beta"
+  "print_format_builder_beta",
+  "converted_from"
  ],
  "fields": [
   {
@@ -103,6 +106,21 @@
    "fieldtype": "Check",
    "label": "Custom Format",
    "read_only_depends_on": "eval:doc.print_format_for===\"Report\";"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "roles",
+   "depends_on": "eval:doc.print_format_for != \"Report\"",
+   "fieldname": "access_section",
+   "fieldtype": "Section Break",
+   "label": "Access"
+  },
+  {
+   "description": "If set, only users with one of these roles can print with this format.",
+   "fieldname": "roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles",
+   "options": "Has Role"
   },
   {
    "depends_on": "eval:doc.custom_format || doc.print_format_for == \"Report\"",
@@ -381,12 +399,20 @@
    "no_copy": 1,
    "options": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "converted_from",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Converted From",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-26 19:45:28.002865",
+ "modified": "2026-11-13 20:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

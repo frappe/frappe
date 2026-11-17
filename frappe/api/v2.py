@@ -21,6 +21,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, resolve_method, run_server_script, upload_file
 from frappe.mcp import handle as handle_mcp
+from frappe.model.utils import is_virtual_doctype
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -78,6 +79,17 @@ def logout():
 
 
 def read_doc(doctype: str, name: str):
+	"""
+	GET /api/v2/document/<doctype>/<name>?fields=[...]
+
+	Query Parameters (accessible via frappe.form_dict):
+		fields: JSON string of field names to return; a table field as
+		        {"<table field>": ["<child field>", ...]}, as for the list. Default: all.
+	"""
+	fields: list | None = frappe.parse_json(frappe.form_dict.get("fields", None))
+	if fields and not isinstance(fields, list):
+		raise FrappeValueError("'fields' must be a list")
+
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
@@ -88,7 +100,24 @@ def read_doc(doctype: str, name: str):
 		if df and df.fieldtype == "Link" and isinstance(_doc.get(key), int):
 			_doc[key] = cstr(_doc.get(key))
 
-	return _doc
+	return select_fields(_doc, fields) if fields else _doc
+
+
+def select_fields(doc: dict, fields: list) -> dict:
+	"""Pick `fields` from a document dict. Like the list, fields the dict does not have are left out."""
+	selected = dict(doc) if "*" in fields else {}
+	for field in fields:
+		if isinstance(field, dict):
+			for fieldname, child_fields in field.items():
+				if not isinstance(child_fields, list):
+					raise FrappeValueError(f"Fields for '{fieldname}' must be a list")
+				if isinstance(rows := doc.get(fieldname), list):
+					selected[fieldname] = [select_fields(row, child_fields) for row in rows]
+		elif not isinstance(field, str) or not (field == "*" or field.isidentifier()):
+			raise FrappeValueError(f"Invalid field for a document: {field}")
+		elif field in doc:
+			selected[field] = doc[field]
+	return selected
 
 
 def document_list(doctype: str) -> list[dict[str, Any]]:
@@ -116,6 +145,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	Controller Customization:
 		Doctype controllers can customize queries by implementing a static get_list(query) method
 		that receives a QueryBuilder object and returns a modified QueryBuilder.
+		Virtual DocTypes are listed through their own get_list, as frappe.get_list does.
 
 		Example:
 			class Project(Document):
@@ -149,6 +179,20 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	if group_by and not isinstance(group_by, str):
 		raise FrappeValueError("'group_by' must be a string")
 
+	if is_virtual_doctype(doctype):
+		data = frappe.get_list(
+			doctype,
+			fields=fields,
+			filters=filters,
+			order_by=order_by,
+			start=start,
+			limit=limit + 1,
+			group_by=group_by,
+			as_list=not as_dict,
+		)
+		frappe.response["has_next_page"] = len(data) > limit
+		return data[:limit]
+
 	query = frappe.qb.get_query(
 		table=doctype,
 		fields=fields,
@@ -178,7 +222,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 				query = return_value
 
 		except Exception as e:
-			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
+			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e) or type(e).__name__))
 
 	data = query.run(as_dict=as_dict, debug=debug, as_list=not as_dict)
 	frappe.response["has_next_page"] = len(data) > limit
@@ -202,7 +246,7 @@ def create_doc(doctype: str):
 	if (name := data.get("name")) and isinstance(name, str | int):
 		doc.flags.name_set = True
 
-	return doc.insert().as_dict()
+	return doc.insert().copy_with_fieldlevel_read_permissions().as_dict()
 
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
@@ -224,13 +268,12 @@ def update_doc(doctype: str, name: str):
 	data.pop("flags", None)
 	doc.update(data)
 	doc.save()
-	doc.apply_fieldlevel_read_permissions()
 
 	# check for child table doctype
 	if doc.get("parenttype"):
 		frappe.get_doc(doc.parenttype, doc.parent).save()
 
-	return doc.as_dict()
+	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
 def delete_doc(doctype: str, name: str):
@@ -242,6 +285,30 @@ def delete_doc(doctype: str, name: str):
 def get_meta(doctype: str):
 	frappe.only_for("All")
 	return frappe.get_meta(doctype)
+
+
+def replace_with_masked(result, doc, masked):
+	"""Swap the document and its child rows in a method's result for those of its masked copy."""
+	if masked is doc:
+		return result
+
+	masked_for = {id(doc): masked}
+	for fieldname in doc._non_computed_table_fieldnames:
+		masked_for.update(
+			(id(row), m)
+			for row, m in zip(doc.get(fieldname) or [], masked.get(fieldname) or [], strict=False)
+		)
+
+	def swap(value):
+		if id(value) in masked_for:
+			return masked_for[id(value)]
+		if type(value) in (list, tuple):
+			return type(value)(swap(v) for v in value)
+		if type(value) in (dict, frappe._dict):
+			return type(value)((k, swap(v)) for k, v in value.items())
+		return value
+
+	return swap(result)
 
 
 def execute_doc_method(doctype: str, name: str, method: str | None = None):
@@ -263,9 +330,9 @@ def execute_doc_method(doctype: str, name: str, method: str | None = None):
 	)
 	doc.check_permission(PERMISSION_MAP[frappe.request.method])
 	result = doc.run_method(method, **frappe.form_dict)
-	doc.apply_fieldlevel_read_permissions()
-	frappe.response.docs.append(doc.as_dict())
-	return result
+	masked = doc.copy_with_fieldlevel_read_permissions()
+	frappe.response.docs.append(masked.as_dict())
+	return replace_with_masked(result, doc, masked)
 
 
 def bulk_delete_docs(doctype: str):
@@ -461,10 +528,9 @@ def execute_bulk_update_docs(doctype: str, docs: list):
 
 			doc.update(item_copy)
 			doc.save()
-			doc.apply_fieldlevel_read_permissions()
 
 			updated.append(name)
-			frappe.response.docs.append(doc.as_dict())
+			frappe.response.docs.append(doc.copy_with_fieldlevel_read_permissions().as_dict())
 		except Exception as e:
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"name": name, "error": str(e)})
@@ -544,10 +610,9 @@ def execute_bulk_update(docs: list):
 
 			doc.update(item_copy)
 			doc.save()
-			doc.apply_fieldlevel_read_permissions()
 
 			updated.append({"doctype": doctype, "name": name})
-			frappe.response.docs.append(doc.as_dict())
+			frappe.response.docs.append(doc.copy_with_fieldlevel_read_permissions().as_dict())
 		except Exception as e:
 			frappe.db.rollback(save_point=savepoint)
 			failed.append({"doctype": doctype, "name": name, "error": str(e)})
@@ -604,9 +669,9 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 	new_kwargs = get_newargs(fn, kwargs)
 	response = doc.run_method(method, **new_kwargs)
-	doc.apply_fieldlevel_read_permissions()
-	frappe.response.docs.append(doc)  # send modified document and result both.
-	return response
+	masked = doc.copy_with_fieldlevel_read_permissions()
+	frappe.response.docs.append(masked)  # send modified document and result both.
+	return replace_with_masked(response, doc, masked)
 
 
 url_rules = [

@@ -64,8 +64,8 @@ function get_redis_subscriber(kind = "redis_queue", options = {}) {
 	// is solved for a more elegant implementation
 	if (connStr && connStr.startsWith("unix://")) {
 		client = redis.createClient({
-			socket: { path: connStr.replace("unix://", "") },
 			...options,
+			socket: { ...options.socket, path: connStr.replace("unix://", "") },
 		});
 	} else {
 		client = redis.createClient({ url: connStr, ...options });

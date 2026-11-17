@@ -88,7 +88,7 @@ def get_param_options(
 	return resolver(doctype, parsed_params, search_text) if resolver else []
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def run_manually(automation: str, docname: str | None = None) -> dict:
 	"""Queue a one-off run of `automation` against `docname` (Manual trigger / test button)."""
 	rule = frappe.get_doc("Automation Flow", automation)
@@ -208,7 +208,7 @@ OPTION_RESOLVERS = {
 TRIAL_SAVEPOINT = "automation_trial"
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def trial_run(
 	automation: str, docname: str | None = None, branch_overrides: dict | str | None = None
 ) -> dict:

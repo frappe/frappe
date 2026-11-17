@@ -3,7 +3,7 @@
 		<CodeBlock :code="code" lang="python" bare />
 		<template v-if="output">
 			<div class="border-y border-outline-gray-1 px-3 py-1.5 text-xs text-ink-gray-4">
-				Result
+				{{ __("Result") }}
 			</div>
 			<pre
 				class="m-0 max-h-[200px] overflow-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-sm leading-[1.65] text-ink-gray-6"
@@ -16,6 +16,7 @@
 <script setup>
 import { computed } from "vue";
 import CodeBlock from "@flow/ui-core/components/CodeBlock.vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { pretty } from "./result.js";
 

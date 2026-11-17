@@ -6,13 +6,17 @@ const toggle = (page) =>
 	page.locator('.dock-utilities [aria-label="Flow"]:visible, .sidebar-flow:visible').first();
 const panel = (page) => launcher(page).locator(".panel");
 
-// The chat in the panel, once /flow has loaded in it
+// The chat in the panel: the frappe.flow.chat island, once its header is up (a site with no
+// model shows setup in place of the message box). Locators pierce its shadow root
 async function chat(page) {
-	const frame = await (await launcher(page).locator("iframe").elementHandle()).contentFrame();
-	await expect.poll(() => frame.url()).toMatch(/^https?:\/\/[^/]+\/flow/);
-	await frame.waitForLoadState();
-	return frame;
+	const island = launcher(page).locator(".frappe-island");
+	await expect(island.getByRole("button", { name: "Close", exact: true })).toBeVisible();
+	return island;
 }
+// the island's own root, which keeps a mark for as long as the chat isn't mounted again
+const mark = (island) =>
+	island.locator(".frappe-island-root").evaluate((el) => (el.marked = true));
+const marked = (island) => island.locator(".frappe-island-root").evaluate((el) => el.marked);
 
 test.describe("Flow launcher", () => {
 	test.beforeEach(async ({ page, desk }) => {
@@ -23,12 +27,13 @@ test.describe("Flow launcher", () => {
 	test("opens Flow in a panel that Ctrl+I and × put away, its chat kept", async ({ page }) => {
 		await toggle(page).click();
 		await expect(panel(page)).not.toHaveAttribute("inert");
-		await (await chat(page)).evaluate(() => (window.marked = true));
+		await mark(await chat(page));
 
 		// the page narrows beside it, and takes its room back once it's put away
 		const margin = () =>
 			page.evaluate(() => getComputedStyle(document.documentElement).marginRight);
-		const width = await panel(page).evaluate((el) => el.getBoundingClientRect().width);
+		// its laid-out width: the box on screen is a fraction off while the panel slides in
+		const width = await panel(page).evaluate((el) => el.offsetWidth);
 		await expect.poll(margin).toBe(`${width}px`);
 
 		// from the chat, then from the page around it
@@ -38,13 +43,13 @@ test.describe("Flow launcher", () => {
 		await expect.poll(margin).toBe("0px");
 		await page.keyboard.press("Control+i");
 		await expect(panel(page)).not.toHaveAttribute("inert");
-		expect(await (await chat(page)).evaluate(() => window.marked)).toBe(true);
+		expect(await marked(await chat(page))).toBe(true);
 
 		// the header's × puts it away too, and the next open shows the same chat
 		await (await chat(page)).getByRole("button", { name: "Close", exact: true }).click();
 		await expect(panel(page)).toHaveAttribute("inert", "");
 		await toggle(page).click();
-		expect(await (await chat(page)).evaluate(() => window.marked)).toBe(true);
+		expect(await marked(await chat(page))).toBe(true);
 
 		// a new tab takes the chat over from the panel
 		const [tab] = await Promise.all([
@@ -64,11 +69,11 @@ test.describe("Flow launcher", () => {
 		await page.reload();
 		await desk.ready();
 		await toggle(page).click();
-		const frame = await chat(page);
-		expect(await panel(page).evaluate((el) => el.getBoundingClientRect().width)).toBe(900);
+		const island = await chat(page);
+		expect(await panel(page).evaluate((el) => el.offsetWidth)).toBe(900);
 
-		await expect(frame.getByRole("button", { name: "Hide sidebar" })).toBeHidden();
-		await expect(frame.getByRole("button", { name: "Manage" })).toHaveCount(0);
+		await expect(island.getByRole("button", { name: "Hide sidebar" })).toBeHidden();
+		await expect(island.getByRole("button", { name: "Manage" })).toHaveCount(0);
 	});
 
 	test("opens and closes from an app's own element marked data-flow-toggle", async ({
@@ -86,5 +91,40 @@ test.describe("Flow launcher", () => {
 		await expect(panel(page)).not.toHaveAttribute("inert");
 		await page.locator("#app-flow-toggle").dispatchEvent("click");
 		await expect(panel(page)).toHaveAttribute("inert", "");
+	});
+
+	test("window.flow.open({ session }) opens the panel on that chat, and moves an open panel to another", async ({
+		page,
+	}) => {
+		// the test's own chats, as the site would answer for them: nothing here runs a Flow server
+		const titles = { "chat-one": "First chat", "chat-two": "Second chat" };
+		const answer = (route, message) => route.fulfill({ json: { message } });
+		await page.route("**/api/method/frappe.flow.api.session", (route) => {
+			const name = route.request().postDataJSON().session;
+			if (!titles[name]) return route.continue();
+			return answer(route, { name, title: titles[name], approval_mode: "Auto", runs: [] });
+		});
+		await page.route("**/api/method/frappe.flow.api.entries", (route) =>
+			answer(route, { entries: [], latest_seq: 0, preview: [] })
+		);
+		await page.route("**/api/method/frappe.flow.api.skills", (route) =>
+			answer(route, { skills: [] })
+		);
+		const island = launcher(page).locator(".frappe-island");
+
+		await page.evaluate(() => window.flow.open({ session: "chat-one" }));
+		await expect(panel(page)).not.toHaveAttribute("inert");
+		await expect(island.getByText("First chat")).toBeVisible();
+
+		// not a toggle: an open panel stays open
+		await page.evaluate(() => window.flow.open({ session: "chat-two" }));
+		await expect(island.getByText("Second chat")).toBeVisible();
+		await expect(panel(page)).not.toHaveAttribute("inert");
+	});
+
+	test("a chat an app asked for that cannot open says why", async ({ page }) => {
+		await page.evaluate(() => window.flow.open({ session: "no-such-chat" }));
+		await expect(panel(page)).not.toHaveAttribute("inert");
+		await expect(launcher(page).getByText(/no-such-chat/)).toBeVisible();
 	});
 });

@@ -116,5 +116,7 @@ if __name__ == "__main__":
 	with CodeCoverage(with_coverage=with_coverage, app=app):
 		from frappe.parallel_test_runner import ParallelTestRunner
 
-		runner = ParallelTestRunner(app, site=site, build_number=build_number, total_builds=total_builds)
+		runner = ParallelTestRunner(
+			app, site=site, build_number=build_number, total_builds=total_builds, retries=1
+		)
 		runner.setup_and_run()

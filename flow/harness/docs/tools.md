@@ -20,15 +20,13 @@ async def rename(path: str, to: str, *, ctx: ToolContext) -> ToolResult:
 
 `concurrent=True` lets a tool run alongside the other concurrent tools the model calls in the same turn; every other tool runs on its own.
 
-`ends_run=True` ends the run after a turn that calls only such tools, none failing: no model turn follows.
-
 `display_template` controls the tool activity text shown by clients. It accepts simple Jinja-style argument placeholders such as `{{ path }}`. Flow waits until every referenced argument is complete, then streams the rendered text as segments so clients can style template text and argument values differently. Templates that reference arguments not present in the function signature are rejected. Display templates are UI metadata and are not sent to the model provider.
 
 `ToolContext` provides `cwd`, allowed read/write roots, an abort event, and a timeout. `ToolResult.content` goes to the model; `details` is for clients and logs only. Return `ToolResult(is_error=True, content="...")` for an expected failure.
 
 ## Confirmation
 
-Set `requires_confirmation=True` for a tool's default gate. A session also gates names in `confirm_tools`. `auto_approve: true` skips every confirmation gate.
+Set `requires_confirmation=True` for a tool's default gate. A session also gates names in `confirm_tools`. `approval_mode: "auto_approve"` skips every confirmation gate. `approval_mode: "auto"` keeps the gates but lets the small model answer them first: it sees the user's words (messages and approval answers), the agent's tool calls, and the call's full arguments with its tool's schema, allows what the user's own words cover, and anything else (an oversized call, or any failure) still pauses for the user, with the reviewer's reason in the prompt. A `subagent` call is reviewed too, even though it is not gated, so a brief is judged before the sub-agent takes it as its instruction.
 
 When Flow reaches a gated call, it saves `approval_required` and ends the run with reason `paused`. Resume by answering every pending call: `Approve` executes it, `Deny` returns a denial and ends the run, and any other text redirects the model. This state is durable across reconnects and restarts.
 
@@ -36,7 +34,7 @@ When Flow reaches a gated call, it saves `approval_required` and ends the run wi
 
 | Tool | Arguments | Default confirmation | Behavior |
 | --- | --- | --- | --- |
-| `bash` | `command`, `timeout?` | Yes | Runs in `cwd`, combines output, records exit code, and kills its process group on timeout or abort. |
+| `bash` | `command`, `timeout?`, `description?` | Yes | Runs in `cwd`, combines output, records exit code, and kills its process group on timeout or abort. `description` is what the command does in plain words, shown to the user on the command's row in place of the command. |
 | `read` | `path`, `offset?`, `limit?` | No | Reads text with 1-indexed paging. |
 | `write` | `path`, `content` | Yes | Creates parent directories and overwrites the file. |
 | `edit` | `path`, `edits` | Yes | Applies non-overlapping exact replacements. Every old value must appear exactly once. |
@@ -67,7 +65,6 @@ Shipped with the harness but off by default: the default `tools` list is `bash`,
 | Tool | Arguments | Default confirmation | Behavior |
 | --- | --- | --- | --- |
 | `grep` | `pattern`, `path?`, `include?` | No | Searches with ripgrep when available, otherwise `grep`. `include` limits the search to matching file names (`*.py`, `*.{js,vue}`), with at most one `{a,b}` group. Skips `node_modules` and binary files. Keeps the head of the output. |
-| `suggest_replies` | `replies`, `multi_select?` | No | Offers the user two to four next messages after a reply, in `details`. The web UI shows them as buttons under the reply: a tap sends one, or, with `multi_select`, ticks several to send together. A turn that only calls it ends the run. |
 
 ## Extensions
 
@@ -75,7 +72,7 @@ An extension adds tools and tool hooks to a running daemon: Python loaded from `
 
 ## Client-side tools and hooks
 
-A client can provide JSON schemas in `SessionConfig.client_tools` with a `callback_url`, optional `callback_token`, and `user_context`. Flow sends `execute` or `confirm` callbacks containing the session id, tool, arguments, and user context. The token is sent as `X-Harness-Token`, and `callback_headers` go on every callback too, for a host that routes requests by a header (a Frappe bench names the site). A callback may return its result directly or in `{"message": ...}`. `callback_timeout` is how many seconds Flow waits for a callback to answer (default 120). An `execute` callback also carries a `result_token`; a client that runs the tool in the background can answer `{"pending": true, "timeout": N}` at once, then post `{"token": ..., "content": ..., "is_error": ...}` to `POST /sessions/{sid}/tool_result` within N seconds. Aborting the run stops the wait, not the client's job; a job can ask `POST /sessions/{sid}/tool_waiting` before it starts and skip the tool when nothing waits. A client tool may carry a `display_template` beside its schema, e.g. `{"type": "function", "function": {...}, "display_template": "Reading {{ doctype }}"}`; it works as for server tools and is not sent to the model.
+A client can provide JSON schemas in `SessionConfig.client_tools` with a `callback_url`, optional `callback_token`, and `user_context`. Flow sends `execute` or `confirm` callbacks containing the session id, tool, arguments, and user context. The token is sent as `X-Harness-Token`, and `callback_headers` go on every callback too, for a host that routes requests by a header (a Frappe bench names the site). A callback may return its result directly or in `{"message": ...}`. `callback_timeout` is how many seconds Flow waits for a callback to answer (default 120). A `confirm` callback may answer `{"requires_confirmation": false}` for a call that needs no card, or a `prompt` with `"needs_user": true` when the card itself takes the user's input, so the auto-reviewer never answers it for them. An `execute` callback also carries a `result_token`; a client that runs the tool in the background can answer `{"pending": true, "timeout": N}` at once, then post `{"token": ..., "content": ..., "is_error": ...}` to `POST /sessions/{sid}/tool_result` within N seconds. Aborting the run stops the wait, not the client's job; a job can ask `POST /sessions/{sid}/tool_waiting` before it starts and skip the tool when nothing waits. A client tool may carry a `display_template` beside its schema, e.g. `{"type": "function", "function": {...}, "display_template": "Reading {{ doctype }}"}`; it works as for server tools and is not sent to the model.
 
 With `notify_run_ended`, Flow also posts `{"callback_type": "run_ended", "session_id": ..., "terminal_seq": ...}` to `callback_url` when a run ends, and retries until the client answers with a 2xx: after 1, 5, 15 and 30 seconds, then every minute. Until then a `<session_id>.run_end_pending` file sits beside the session's log, so a restarted daemon sends the report again, also for a run it stopped in the middle of. The log stays the source of truth, so a client can get the same report twice.
 

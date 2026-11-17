@@ -8,5 +8,3 @@ export const TONES = {
 	positive: "text-ink-green-7",
 	negative: "text-ink-red-7",
 };
-
-export const toneClass = (delta) => (delta < 0 ? TONES.negative : TONES.positive);

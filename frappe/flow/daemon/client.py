@@ -139,12 +139,12 @@ class DaemonClient:
 		sid: str,
 		*,
 		title: str | None = None,
-		auto_approve: bool | None = None,
+		approval_mode: str | None = None,
 		tools: list[str] | None = None,
 		client_tools: list[dict] | None = None,
 		confirm_tools: list[str] | None = None,
 	) -> dict:
-		body = {"title": title, "auto_approve": auto_approve}
+		body = {"title": title, "approval_mode": approval_mode}
 		if tools is not None:
 			body["tools"] = tools
 		if client_tools is not None:

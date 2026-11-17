@@ -44,8 +44,10 @@ export default class BulkOperations {
 			return;
 		}
 
+		const print_formats = frappe.meta.get_print_formats(this.doctype);
 		const dialog = new frappe.ui.Dialog({
 			title: __("Print Documents"),
+			sheet_on_mobile: true,
 			fields: [
 				{
 					fieldtype: "Select",
@@ -58,8 +60,8 @@ export default class BulkOperations {
 					fieldtype: "Select",
 					label: __("Print Format"),
 					fieldname: "print_sel",
-					options: frappe.meta.get_print_formats(this.doctype),
-					default: frappe.get_meta(this.doctype).default_print_format,
+					options: print_formats,
+					default: print_formats[0],
 				},
 				{
 					fieldtype: "Select",
@@ -94,9 +96,8 @@ export default class BulkOperations {
 
 		dialog.set_primary_action(__("Print"), (args) => {
 			if (!args) return;
-			const default_print_format = frappe.get_meta(this.doctype).default_print_format;
 			const with_letterhead = args.letter_sel == __("No Letterhead") ? 0 : 1;
-			const print_format = args.print_sel ? args.print_sel : default_print_format;
+			const print_format = args.print_sel || print_formats[0];
 			const json_string = JSON.stringify(valid_docs);
 			const letterhead = args.letter_sel;
 
@@ -181,7 +182,7 @@ export default class BulkOperations {
 			args: {
 				doctype: "Letter Head",
 				fields: ["name", "is_default"],
-				filters: { disabled: 0 },
+				filters: { disabled: 0, letter_head_for: "DocType" },
 				limit_page_length: 0,
 			},
 			async: false,
@@ -254,6 +255,7 @@ export default class BulkOperations {
 				callback: done,
 			});
 			assign_to.dialog.clear();
+			assign_to.dialog.sheet_on_mobile = true;
 			assign_to.dialog.show();
 		} else {
 			frappe.msgprint(__("Select records for assignment"));
@@ -288,7 +290,7 @@ export default class BulkOperations {
 					doctype: this.doctype,
 					docnames: docnames,
 				})
-				.then(() => done());
+				.then((r) => done(r.message));
 		}
 	}
 
@@ -303,6 +305,15 @@ export default class BulkOperations {
 				task_id: task_id,
 			})
 			.then((failed_docnames) => {
+				if (!failed_docnames || failed_docnames.length < docnames.length) {
+					frappe.utils.play_sound(action);
+				}
+				// nothing returned means the server enqueued the batch
+				const queued =
+					!failed_docnames ||
+					(action === "submit" && frappe.get_meta(this.doctype).queue_in_background);
+				if (done) done(queued);
+
 				if (failed_docnames?.length) {
 					const comma_separated_records = frappe.utils.comma_and(failed_docnames);
 					switch (action) {
@@ -315,10 +326,6 @@ export default class BulkOperations {
 						default:
 							frappe.throw(__("Cannot {0} {1}.", [action, comma_separated_records]));
 					}
-				}
-				if (failed_docnames?.length < docnames.length) {
-					frappe.utils.play_sound(action);
-					if (done) done();
 				}
 			});
 	}
@@ -341,6 +348,7 @@ export default class BulkOperations {
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Bulk Edit"),
+			sheet_on_mobile: true,
 			fields: [
 				{
 					fieldtype: "Autocomplete",
@@ -402,7 +410,7 @@ export default class BulkOperations {
 								])
 							);
 						}
-						done();
+						done(!r.message);
 						dialog.hide();
 						frappe.show_alert(__("Updated successfully"));
 					});
@@ -464,6 +472,7 @@ export default class BulkOperations {
 	add_tags(docnames, done) {
 		const dialog = new frappe.ui.Dialog({
 			title: __("Add Tags"),
+			sheet_on_mobile: true,
 			fields: [
 				{
 					fieldtype: "MultiSelectPills",

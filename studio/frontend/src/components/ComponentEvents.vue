@@ -465,7 +465,10 @@ const getEventMenu = (event: ComponentEvent) => {
 
 function getScriptDescription(eventName: string): string {
 	let docsLink = ""
-	if (props.block && componentEvents.value.includes(eventName)) {
+	const isEmitted = componentEvents.value.includes(eventName)
+	// only a built-in component has a page in the frappe-ui docs
+	const isAppComponent = props.block?.isStudioComponent || props.block?.isCustomVueComponent
+	if (props.block && isEmitted && !isAppComponent) {
 		const componentSlug = props.block.componentName.toLowerCase()
 		docsLink = `https://ui.frappe.io/docs/components/${componentSlug}#emit-events`
 	}
@@ -481,6 +484,11 @@ function getScriptDescription(eventName: string): string {
 			)} <br><br>Refer to the <a class="underline" href="${docsLink}" target="_blank">${[
 				props.block?.componentName,
 			]} documentation</a> to see what arguments are emitted for ${eventName} event
+		`
+	} else if (isEmitted) {
+		docs += `
+			<b>Example:</b> The component calls ${getCodeBlock(`emit("${eventName}", value)`)}:<br>
+			${getCodeBlock("function handleEvent(value) { myVar.value = value }")}
 		`
 	} else {
 		docs += `

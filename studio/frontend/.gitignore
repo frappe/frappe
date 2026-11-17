@@ -7,3 +7,6 @@ dist-ssr
 # dev, editor builds, and individual studio app builds; matches root and src copies
 components.d.ts
 auto-imports.d.ts
+# cypress writes these when a spec fails
+cypress/screenshots
+cypress/videos

@@ -2,10 +2,11 @@
 	"name": "flow",
 	"private": true,
 	"type": "module",
-	"description": "The /flow page: Frappe's shell around @flow/ui-core, built by Vite into frappe/public/flow",
+	"description": "Flow's chat, built as the frappe.flow.chat island for the launcher's panel and the /flow page",
 	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
+		"dev": "node build-islands.mjs --watch",
+		"build": "node build-islands.mjs --production",
+		"postinstall": "patch-package --patch-dir node_modules/@framework/ui/patches",
 		"test": "node --preserve-symlinks --test frontend/test/*.test.js"
 	},
 	"dependencies": {
@@ -13,15 +14,19 @@
 		"@codemirror/lang-python": "^6.2.1",
 		"@codemirror/lint": "^6.9.7",
 		"@flow/ui-core": "link:./harness/ui/core",
+		"@framework/ui": "link:../ui",
 		"@lobehub/icons-static-svg": "^1.94.0",
-		"@vitejs/plugin-vue": "^5.2.1",
+		"@vitejs/plugin-vue": "^6.0.0",
+		"@vueuse/core": "^11.3.0",
 		"autoprefixer": "^10.4.20",
 		"dompurify": "^3.2.3",
-		"frappe-ui": "1.0.0",
+		"frappe-ui": "1.0.2",
 		"highlight.js": "^11.11.1",
 		"marked": "^15.0.4",
+		"patch-package": "^8.0.0",
 		"socket.io-client": "^4.8.1",
-		"vite": "^5.4.11",
+		"typescript": "^5.9.3",
+		"vite": "8.0.13",
 		"vue": "^3.5.13",
 		"vue-router": "^4.4.5"
 	},
@@ -29,5 +34,8 @@
 		"jsdom": "^27",
 		"postcss": "^8.4.49",
 		"tailwindcss": "^3.4.17"
+	},
+	"resolutions": {
+		"reka-ui": "2.10.1"
 	}
 }

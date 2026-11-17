@@ -3,6 +3,8 @@
 // Flow's Frappe shell can swap it for a proxy-backed implementation with the
 // same surface.
 
+import { __ } from "./translate.js"
+
 const enc = encodeURIComponent
 
 export class FlowAPIError extends Error {
@@ -27,7 +29,7 @@ async function raise(response) {
 	// router's generic unknown-route 404, distinct from any endpoint's own
 	// detail) means the daemon process predates the served bundle
 	if (response.status === 405 || (response.status === 404 && detail === "Not Found")) {
-		detail = "The daemon is running older code than this UI — restart it and retry."
+		detail = __("The daemon is running older code than this UI — restart it and retry.")
 	}
 	throw new FlowAPIError(response.status, detail, data)
 }
@@ -134,16 +136,15 @@ export class DaemonClient {
 	gitChanges(cwd) {
 		return this.request("GET", "/fs/git/changes", { params: { cwd } })
 	}
-	gitBranch(cwd) {
-		return this.request("GET", "/fs/git/branch", { params: { cwd } })
-	}
 	gitFileDiff(cwd, path) {
 		return this.request("GET", "/fs/git/file/diff", { params: { cwd, path } })
 	}
 	// session-recorded original + current content: the diff fallback for files
-	// the session changed outside the project repository
-	fileDiff(sid, path) {
-		return this.request("GET", `/sessions/${enc(sid)}/file/diff`, { params: { path } })
+	// the session changed outside the project repository, and a turn's own diff
+	// (only the edits from seq `since` on)
+	fileDiff(sid, path, since = null) {
+		const params = since == null ? { path } : { path, since }
+		return this.request("GET", `/sessions/${enc(sid)}/file/diff`, { params })
 	}
 	createSession(config) {
 		return this.request("POST", "/sessions", { body: config })

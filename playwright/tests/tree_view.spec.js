@@ -61,6 +61,10 @@ test.describe("Tree View", () => {
 		await assert_buttons(true, true);
 
 		await click_toolbar_button("Expand All");
+		await expect(tree_link(page, "Second Parent Node")).toHaveAttribute(
+			"aria-expanded",
+			"true"
+		);
 		await expect(tree_link(page, "Child Node")).toBeVisible();
 		await assert_buttons(false, true);
 

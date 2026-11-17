@@ -90,6 +90,21 @@
           ],
           "additionalProperties": false
         },
+        "progress": {
+          "type": "object",
+          "properties": {
+            "value": {
+              "type": "number"
+            },
+            "color": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "additionalProperties": false
+        },
         "card": {
           "type": "boolean"
         },

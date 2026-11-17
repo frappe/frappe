@@ -186,6 +186,9 @@
             "format": {
               "type": "object"
             },
+            "integer": {
+              "type": "boolean"
+            },
             "echartOptions": {
               "type": "object"
             }
@@ -206,6 +209,9 @@
             },
             "format": {
               "type": "object"
+            },
+            "integer": {
+              "type": "boolean"
             },
             "echartOptions": {
               "type": "object"

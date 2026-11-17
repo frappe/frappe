@@ -21,6 +21,14 @@
 		margin-left: 0;
 		border-inline-start: 1px solid var(--outline-gray-2);
 	}
+
+	// phones hide the label, so with no count either it is a square like its neighbours
+	@include media-breakpoint-down(xs) {
+		.filter-button:has(> .filter-label.hidden) {
+			padding-inline: 0;
+			width: var(--es-bt-h);
+		}
+	}
 }
 
 .filter-popover {
@@ -315,18 +323,18 @@
 }
 
 // the calendar step: full width with touch-size days; the sheet is its surface
-.es-bottom-sheet .filter-calendar .datepicker {
+.es-bottom-sheet .filter-calendar .air-datepicker {
 	width: 100%;
 	border: 0;
 	box-shadow: none;
 
 	// the month row and the days sit on the same line as the sheet's other boxes
-	.datepicker--nav,
-	.datepicker--content {
+	.air-datepicker-nav,
+	.air-datepicker--content {
 		padding-inline: 0;
 	}
 
-	.datepicker--nav-title {
+	.air-datepicker-nav--title {
 		font-weight: var(--font-weight-medium);
 		color: var(--ink-gray-8);
 
@@ -335,12 +343,12 @@
 		}
 	}
 
-	.datepicker--day-name {
+	.air-datepicker-body--day-name {
 		font-size: var(--text-xs);
 		color: var(--ink-gray-6);
 	}
 
-	.datepicker--cell {
+	.air-datepicker-cell {
 		height: calc(var(--spacing) * 10);
 		border-radius: var(--radius-md);
 
@@ -363,12 +371,12 @@
 	}
 
 	// Today and Now look like something to tap
-	.datepicker--buttons {
+	.air-datepicker-buttons {
 		justify-content: center;
 		padding-block: calc(var(--spacing) * 2);
 	}
 
-	.datepicker--button {
+	.air-datepicker-button {
 		flex: none;
 		height: calc(var(--spacing) * 7);
 		padding-inline: calc(var(--spacing) * 2);
@@ -377,13 +385,13 @@
 	}
 
 	// the time over full-width sliders, with thumbs a finger can drag
-	.datepicker--time {
+	.air-datepicker-time {
 		flex-direction: column;
 		gap: calc(var(--spacing) * 2);
 		padding: calc(var(--spacing) * 3) 0;
 	}
 
-	.datepicker--time-current {
+	.air-datepicker-time--current {
 		flex: none;
 		margin: 0;
 
@@ -392,14 +400,14 @@
 		}
 	}
 
-	.datepicker--time-sliders {
+	.air-datepicker-time--sliders {
 		flex: none;
 		width: 100%;
 		max-width: none;
 		margin: 0;
 	}
 
-	.datepicker--time-row {
+	.air-datepicker-time--row {
 		height: calc(var(--spacing) * 10);
 		gap: calc(var(--spacing) * 3);
 		// the track is drawn on the slider, clear of the label

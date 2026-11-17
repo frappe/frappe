@@ -90,30 +90,29 @@ function set_default_max_attachment_size(frm) {
 	}
 }
 function add_helpful_links(frm) {
-	if (frm.doc.service === "GMail") {
-		frm.set_df_property(
-			"password",
-			"description",
-			__(
-				"Use a 16-letter App Password, not your Google password. {0}. Or set Method to OAuth to use Sign in with Google.",
-				[
-					"<a href='https://myaccount.google.com/apppasswords' target='_blank' rel='noopener noreferrer'>" +
-						__("Create an App Password") +
-						"</a>",
-				]
-			)
-		);
-	} else if (frm.doc.service === "Outlook.com") {
-		frm.set_df_property(
-			"password",
-			"description",
-			__(
-				"Microsoft has turned off password sign-in for most mailboxes. Set Method to OAuth to use Sign in with Microsoft."
-			)
-		);
-	} else {
-		frm.set_df_property("password", "description", "");
-	}
+	// For better UX
+	const gmail = frm.doc.service === "GMail";
+	frm.set_df_property(
+		"password",
+		"label",
+		frm.doc.service ? __("App password") : __("Password")
+	);
+	frm.set_df_property(
+		"password",
+		"description",
+		gmail
+			? __(
+					"A 16-character password you create in your Google Account, not your Gmail password. Needs 2-Step Verification."
+			  ) +
+					` <a href="https://support.google.com/accounts/answer/185833" target="_blank" rel="noopener">${__(
+						"How to create one"
+					)}</a>`
+			: frm.doc.service === "Outlook.com"
+			? __(
+					"Microsoft has turned off password sign-in for most mailboxes. Set Method to OAuth to use Sign in with Microsoft."
+			  )
+			: ""
+	);
 
 	if (frm.doc.service === "Frappe Mail") {
 		frm.set_df_property(
@@ -210,9 +209,9 @@ frappe.ui.form.on("Email Account", {
 
 	refresh: function (frm) {
 		frm.saved_email_id = frm.doc.email_id;
-		add_helpful_links(frm);
 		frm.events.enable_incoming(frm);
 		frm.events.show_oauth_authorization_message(frm);
+		add_helpful_links(frm);
 
 		if (frappe.route_flags.delete_user_from_locals && frappe.route_flags.linked_user) {
 			delete frappe.route_flags.delete_user_from_locals;

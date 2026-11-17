@@ -29,6 +29,7 @@ export interface BlockOptions {
 	mobileStyles?: BlockStyleMap
 	tabletStyles?: BlockStyleMap
 	blockName?: string // optional user-friendly name for the block
+	variantOptionName?: string // the option this block is, when it is a direct child of a Variants block
 	parentBlock?: Block | null
 	classes?: string[]
 	parentSlotName?: string // for top-level blocks inside a slot
@@ -170,7 +171,7 @@ export type Filter = {
 }
 
 export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code" | "AI Assistant"
-export type RightPanelOptions = "Properties" | "Styles" | "Events" | "Interface"
+export type RightPanelOptions = "Properties" | "Styles" | "Events"
 export type leftPanelComponentTabOptions = "Standard" | "Custom"
 export type SettingsTab = "app" | "pages" | "ai"
 

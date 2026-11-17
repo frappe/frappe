@@ -19,7 +19,10 @@ def setup():
 	from frappe.flow.daemon import lifecycle
 
 	_run_on_every_flow_site(_provision)
-	lifecycle.restart()
+	if lifecycle.supervised():
+		lifecycle.ensure_running()
+	else:
+		lifecycle.restart()
 	_run_on_every_flow_site(_sync_tools)
 	click.secho(lifecycle.status(), fg="green")
 
@@ -60,6 +63,10 @@ def restart():
 	"""Restart the daemon."""
 	from frappe.flow.daemon import lifecycle
 
+	if lifecycle.supervised():
+		raise click.ClickException(
+			"supervisor runs the flow server; restart it with supervisorctl or `pilot processes restart frappe`"
+		)
 	lifecycle.restart()
 	_run_on_every_flow_site(_sync_tools)
 	click.secho(lifecycle.status(), fg="green")

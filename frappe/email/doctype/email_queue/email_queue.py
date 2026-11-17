@@ -61,6 +61,7 @@ class EmailQueue(Document):
 		attachments: DF.Code | None
 		communication: DF.Link | None
 		email_account: DF.Link | None
+		email_read_tracker_url: DF.SmallText | None
 		error: DF.Code | None
 		expose_recipients: DF.Data | None
 		message: DF.Code | None
@@ -500,7 +501,15 @@ class SendMailContext:
 
 			elif attachment.get("print_format_attachment") == 1:
 				attachment.pop("print_format_attachment", None)
-				print_format_file = frappe.attach_print(**attachment)
+				if attachment.pop("print_as_owner", None) and not frappe.request:
+					session_user = frappe.session.user
+					frappe.set_user(self.queue_doc.owner)  # nosemgrep: frappe-setuser
+					try:
+						print_format_file = frappe.attach_print(**attachment)
+					finally:
+						frappe.set_user(session_user)  # nosemgrep: frappe-setuser
+				else:
+					print_format_file = frappe.attach_print(**attachment)
 				self._store_file(print_format_file["fname"], print_format_file["fcontent"])
 				attachments.append(print_format_file)
 
@@ -829,6 +838,11 @@ class QueueBuilder:
 					attachments.append(att)
 				elif att.get("print_format_attachment") == 1:
 					if not att.get("lang", None):
+						# a background job resolves its user's language only on the first translation
+						job = getattr(frappe.local, "job", None)
+						if job is not None and not job.lang_resolved:
+							frappe.set_user_lang(job.user)
+							job.lang_resolved = True
 						att["lang"] = frappe.local.lang
 					att["print_letterhead"] = self.print_letterhead
 					attachments.append(att)

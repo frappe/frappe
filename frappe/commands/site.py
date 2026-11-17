@@ -1184,6 +1184,7 @@ def _drop_site(
 			sys.exit(1)
 
 	click.secho("Dropping site database and user", fg="green")
+	frappe.db.close()
 
 	frappe.flags.root_login = db_root_username
 	frappe.flags.root_password = db_root_password

@@ -1,12 +1,14 @@
 import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { dialog, toast } from "frappe-ui";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
+import { inPanel } from "../panel.js";
 import { newDoc } from "./specs.js";
 
-// What a list of records and a record's form do, for settings and for the pages beside the
-// chats, each in its own layout.
+// What a list of records and a record's form do, for settings and for the setup forms in the
+// launcher's panel, each in its own layout.
 
 const PAGE_LENGTH = 200;
 
@@ -68,7 +70,7 @@ export function useRecordList(spec, { query, filters = () => ({}) }) {
 		load();
 	}
 
-	return { rows, loaded, loading, error, hasMore, hasEnabled, load, drop, debouncedQuery };
+	return { rows, loaded, loading, error, hasMore, hasEnabled, load, drop };
 }
 
 // One document of `props.spec`'s doctype: loaded by `props.name` (or the single), or a blank new
@@ -96,8 +98,11 @@ export function useRecord(props, emit) {
 	const visibleFields = computed(() =>
 		props.spec.fields.filter((field) => !field.when || field.when(doc.value))
 	);
+	// none until the record is in: a rule may read it
 	const actions = computed(() =>
-		(props.spec.actions ?? []).filter((action) => !action.when || action.when(doc.value))
+		(doc.value ? props.spec.actions ?? [] : []).filter(
+			(action) => !action.when || action.when(doc.value)
+		)
 	);
 	const multilinks = computed(() =>
 		props.spec.fields.filter((field) => field.type === "multilink")
@@ -138,11 +143,13 @@ export function useRecord(props, emit) {
 	// pressed in the form's own dialog, or outside any for a form in none
 	function onKey(event) {
 		// in the launcher's panel, Cmd+S is the page's around it
-		if (window.top !== window) return;
+		if (inPanel) return;
 		if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
 			event.preventDefault();
 			const dialogOf = (el) => el?.closest?.("[role=dialog]") ?? null;
-			if (canWrite.value && dialogOf(event.target) === dialogOf(form.value)) save();
+			// in the island's shadow root, event.target is only the root's host
+			const target = event.composedPath()[0];
+			if (canWrite.value && dialogOf(target) === dialogOf(form.value)) save();
 		}
 	}
 	onMounted(() => window.addEventListener("keydown", onKey));
@@ -173,7 +180,7 @@ export function useRecord(props, emit) {
 			if (to) page.renamed(props.spec.doctype, from, to);
 			page.changed(props.spec.doctype);
 			toast.success(
-				to ? "Renamed" : method === "frappe.client.insert" ? "Created" : "Saved"
+				to ? __("Renamed") : method === "frappe.client.insert" ? __("Created") : __("Saved")
 			);
 			emit("saved", saved);
 		} catch (err) {
@@ -213,12 +220,11 @@ export function useRecord(props, emit) {
 	}
 
 	function remove() {
+		const title = doc.value[props.spec.titleField] || doc.value.name;
 		dialog.danger({
-			title: `Delete this ${props.spec.singular}?`,
+			title: __("Delete this {0}?", [props.spec.singular]),
 			size: "lg",
-			message: `“${
-				doc.value[props.spec.titleField] || doc.value.name
-			}” will be permanently removed.`,
+			message: __("“{0}” will be permanently removed.", [title]),
 			onConfirm: async ({ close }) => {
 				try {
 					await call("frappe.client.delete", {
@@ -226,7 +232,7 @@ export function useRecord(props, emit) {
 						name: doc.value.name,
 					});
 					page.changed(props.spec.doctype);
-					toast.success("Deleted");
+					toast.success(__("Deleted"));
 					close();
 					emit("deleted");
 				} catch (err) {
@@ -249,7 +255,7 @@ export function useRecord(props, emit) {
 				args: action.args ?? {},
 			});
 			const message = result?.docs ? result.message : result;
-			toast.success(message?.message ?? action.success ?? "Done");
+			toast.success(message?.message ?? action.success ?? __("Done"));
 			await load();
 		} catch (err) {
 			error.value = err.message;
@@ -260,6 +266,7 @@ export function useRecord(props, emit) {
 
 	return {
 		doc,
+		original,
 		form,
 		error,
 		saving,

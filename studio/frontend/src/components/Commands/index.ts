@@ -235,6 +235,14 @@ commands.register({
 	},
 })
 
+// a restored selection should land the user on the restored block's panel, as clicking it does
+function refocusRightPanel() {
+	nextTick(() => {
+		const block = blockController.getSelectedBlocks()[0]
+		if (block) store.focusRightPanelFor(block)
+	})
+}
+
 commands.register({
 	name: "undo",
 	title: "Undo",
@@ -244,7 +252,10 @@ commands.register({
 	keys: { combo: "Mod+Z", description: "Undo" },
 	action: () => {
 		const history = canvasStore.activeCanvas?.history
-		if (history?.canUndo()) history.undo()
+		if (history?.canUndo()) {
+			history.undo()
+			refocusRightPanel()
+		}
 	},
 })
 
@@ -257,6 +268,9 @@ commands.register({
 	keys: { combo: "Mod+Shift+Z", description: "Redo" },
 	action: () => {
 		const history = canvasStore.activeCanvas?.history
-		if (history?.canRedo()) history.redo()
+		if (history?.canRedo()) {
+			history.redo()
+			refocusRightPanel()
+		}
 	},
 })

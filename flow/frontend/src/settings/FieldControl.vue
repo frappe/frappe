@@ -2,7 +2,7 @@
 	<FormControl
 		v-if="field.type === 'readonly'"
 		:type="readonlyText.includes('\n') || readonlyText.length > 80 ? 'textarea' : 'text'"
-		variant="outline"
+		:variant="variant"
 		:label="field.label"
 		:description="field.description"
 		:model-value="readonlyText"
@@ -55,10 +55,10 @@
 						:loading="uploading"
 						:label="
 							uploading
-								? `Uploading ${progress}%`
+								? __('Uploading {0}%', [progress])
 								: doc[field.name]
-								? 'Replace file'
-								: 'Upload file'
+								? __('Replace file')
+								: __('Upload file')
 						"
 						:disabled="disabled"
 						@click="openFileSelector"
@@ -79,7 +79,7 @@
 	<FormControl
 		v-else-if="field.type === 'link'"
 		type="combobox"
-		variant="outline"
+		:variant="variant"
 		:label="field.label"
 		:description="field.description"
 		:required="field.required"
@@ -90,7 +90,7 @@
 		:error="linksError"
 		:model-value="doc[field.name] || null"
 		:disabled="disabled"
-		placeholder="Select…"
+		:placeholder="__('Select…')"
 		@update:model-value="(value) => (doc[field.name] = value ?? '')"
 	/>
 
@@ -98,7 +98,7 @@
 	<FormControl
 		v-else-if="field.type === 'multilink'"
 		type="multiselect"
-		variant="outline"
+		:variant="variant"
 		:label="field.label"
 		:description="field.description"
 		:options="disabled ? picked : options"
@@ -108,7 +108,7 @@
 		:loading="linksLoading"
 		:error="linksError"
 		:model-value="doc[field.name] ?? []"
-		placeholder="Select…"
+		:placeholder="__('Select…')"
 		@update:model-value="(value) => (doc[field.name] = value ?? [])"
 	>
 		<template v-if="disabled" #footer />
@@ -117,7 +117,7 @@
 	<FormControl
 		v-else-if="field.type === 'select'"
 		type="select"
-		variant="outline"
+		:variant="variant"
 		:label="field.label"
 		:description="field.description"
 		:required="field.required"
@@ -131,14 +131,14 @@
 	<FormControl
 		v-else-if="field.type === 'provider'"
 		type="select"
-		variant="outline"
+		:variant="variant"
 		:label="field.label"
 		:description="field.description"
 		:required="field.required"
 		:options="providerOptions"
 		:model-value="doc[field.name] || null"
 		:disabled="disabled"
-		placeholder="Select…"
+		:placeholder="__('Select…')"
 		side="bottom"
 		@update:model-value="(value) => (doc[field.name] = value ?? '')"
 	/>
@@ -146,7 +146,7 @@
 	<FormControl
 		v-else-if="field.type === 'textarea'"
 		type="textarea"
-		variant="outline"
+		:variant="variant"
 		class="[&_textarea]:text-md [&_textarea]:leading-normal"
 		:label="field.label"
 		:description="field.description"
@@ -162,7 +162,7 @@
 	<FormControl
 		v-else-if="field.type === 'model_id' && (modelsLoading || known.length)"
 		type="combobox"
-		variant="outline"
+		:variant="variant"
 		:label="field.label"
 		:description="field.description"
 		:required="field.required"
@@ -179,7 +179,7 @@
 	<FormControl
 		v-else
 		:type="inputType"
-		variant="outline"
+		:variant="variant"
 		:label="field.label"
 		:description="field.description"
 		:required="field.required"
@@ -197,6 +197,7 @@ import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { Button, FileUploader, FormControl, FormLabel, Switch } from "frappe-ui";
 
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { call } from "../api/frappe.js";
 import { searchLinks } from "./links.js";
@@ -208,6 +209,7 @@ const props = defineProps({
 	field: { type: Object, required: true },
 	doc: { type: Object, required: true },
 	disabled: { type: Boolean, default: false },
+	variant: { type: String, default: "outline" },
 });
 const page = inject("flowPage");
 
@@ -324,7 +326,7 @@ const modelOptions = computed(() => {
 		{
 			type: "custom",
 			key: "typed",
-			label: "Use the typed id",
+			label: __("Use the typed id"),
 			condition: ({ query }) =>
 				!!query.trim() && !known.value.includes(prefix + query.trim()),
 			onClick: ({ query }) => pickModel(query.trim()),

@@ -44,6 +44,34 @@ test("the segmented renderer splits out top-level tables, unwrapped; a nested ta
 	assert.ok(nested[0].html.includes('class="flow-md-table"'))
 })
 
+test("a list or quote holding a code block is split into items, so the code renders as a code block", () => {
+	const steps = '1. Check:\n   - one\n2. Set it:\n   ```bash\n   bench set-config k "v"\n   ```\n   Then retry.\n3. Done.'
+	const [list] = renderMarkdownSegments(steps)
+	assert.equal(list.type, "list")
+	assert.equal(list.ordered, true)
+	assert.equal(list.start, 1)
+	assert.deepEqual(
+		list.items.map((item) => item.map((segment) => segment.type)),
+		[["html"], ["html", "code", "html"], ["html"]],
+	)
+	assert.deepEqual(list.items[1][1], { type: "code", code: 'bench set-config k "v"', lang: "bash" })
+	// a tight list's text stays unwrapped, as in the plain renderer
+	assert.equal(list.items[0][0].html.trim().startsWith("Check:"), true)
+	assert.equal(renderMarkdownSegments("3. a\n   ```\n   x\n   ```")[0].start, 3)
+
+	const [quote] = renderMarkdownSegments("> see\n>\n> ```js\n> x()\n> ```")
+	assert.equal(quote.type, "quote")
+	assert.deepEqual(
+		quote.segments.map((segment) => segment.type),
+		["html", "code"],
+	)
+	// a list without code stays one chunk of HTML
+	assert.deepEqual(
+		renderMarkdownSegments("1. a\n2. b").map((segment) => segment.type),
+		["html"],
+	)
+})
+
 test("model HTML can't restyle the page or load anything on render", () => {
 	const styled = renderMarkdown('<span style="position:fixed;inset:0">x</span> <div class="fixed inset-0 z-40">y</div>')
 	assert.ok(!styled.includes("style="))

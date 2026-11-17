@@ -324,6 +324,24 @@ class TestEmail(IntegrationTestCase):
 		frappe.get_doc("Email Queue", email_queue).send()
 		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
 
+	def test_read_tracker_in_queued_email(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		QueueBuilder(
+			recipients=["test1@example.com"],
+			sender="admin@example.com",
+			subject="Testing Email Queue",
+			message="This is mail is queued!",
+			email_read_tracker_url="/api/method/frappe.ping",
+		).process()
+
+		frappe.get_last_doc("Email Queue").send()
+
+		email_obj = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
+		html = next(part for part in email_obj.walk() if part.get_content_type() == "text/html")
+		self.assertIn("/api/method/frappe.ping?", html.get_payload(decode=True).decode())
+
 	def test_image_parsing(self):
 		import re
 

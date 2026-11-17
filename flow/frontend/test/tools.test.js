@@ -26,6 +26,8 @@ const ReadView = await loadComponent("chat/tools/ReadView.vue");
 const ReportView = await loadComponent("chat/tools/ReportView.vue");
 const NamesView = await loadComponent("chat/tools/NamesView.vue");
 const CodeView = await loadComponent("chat/tools/CodeView.vue");
+const CodeCard = await loadComponent("chat/tools/CodeCard.vue");
+const FunctionCard = await loadComponent("chat/tools/FunctionCard.vue");
 const SnippetView = await loadComponent("chat/tools/SnippetView.vue");
 const JsonView = await loadComponent("chat/tools/JsonView.vue");
 
@@ -74,6 +76,7 @@ test("read_records links each record to its Desk form, skipping fields nothing f
 	assert.deepEqual(texts(el, "th"), ["Name", "Status", "Customer"]);
 	assert.deepEqual(hrefs(el), ["/app/sales-invoice/INV-001", "/app/sales-invoice/INV-002"]);
 	assert.equal(presentTool("read_records", {}, result).stat, "2 records");
+	assert.equal(presentTool("read_records", {}, result).done, "Read records");
 	assert.equal(
 		presentTool("read_records", {}, json({ total: 134, records: rows })).stat,
 		"2 of 134 records"
@@ -189,6 +192,10 @@ test("run_action names its verb and shows what each record did, structured retur
 	const el = mount(t, NamesView, { arguments: rename, result });
 	assert.deepEqual(texts(el, "th"), ["Name", "Renamed To"]);
 	assert.deepEqual(texts(el, "tbody td").slice(-2), ["OLD", "NEW"]);
+	// the table says the new name, so the arguments' line would only repeat it
+	assert.ok(!el.textContent.includes("New Name"));
+	const asked = mount(t, NamesView, { arguments: rename });
+	assert.ok(asked.textContent.includes("New Name"));
 	assert.equal(presentTool("run_action", rename, result).label, "Renaming");
 	assert.equal(presentTool("run_action", rename, result).stat, "renamed");
 
@@ -199,6 +206,9 @@ test("run_action names its verb and shows what each record did, structured retur
 	});
 	assert.equal(presentTool("run_action", submit, submitted).label, "Submitting");
 	assert.equal(presentTool("run_action", submit, submitted).stat, "1 done");
+	// a workflow step or a document's own method reads by its name
+	assert.equal(presentTool("run_action", { ...submit, action: "Send for Review" }).label, "Send for Review");
+	assert.equal(presentTool("run_action", { ...submit, action: "make_payment" }).label, "Make payment");
 
 	const returning = (outcome) =>
 		mount(t, NamesView, {
@@ -208,7 +218,7 @@ test("run_action names its verb and shows what each record did, structured retur
 	// a returned record fills the row's columns; one under another name is what amend made
 	for (const [outcome, columns, cells] of [
 		[{ name: "INV-1", action: "Approve" }, ["Name", "Action"], ["INV-1", "Approve"]],
-		[{ name: "INV-1-1" }, ["Name", "Renamed To"], ["INV-1", "INV-1-1"]],
+		[{ name: "INV-1-1" }, ["Name", "Amended As"], ["INV-1", "INV-1-1"]],
 	]) {
 		const el = returning(outcome);
 		assert.deepEqual(texts(el, "th"), columns);
@@ -236,12 +246,65 @@ test("execute keeps the code and pretty-prints what it returned", (t) => {
 	);
 });
 
+test("execute's card keeps its code behind Show code", async (t) => {
+	assert.notEqual(presentTool("execute", {}).argsComponent, presentTool("execute", {}).resultComponent);
+	const el = mount(t, CodeCard, { arguments: { code: "result = 1", description: "Count" } });
+	assert.equal(el.querySelector("pre"), null);
+	el.querySelector("button").click();
+	await nextTick();
+	await nextTick();
+	assert.ok(el.querySelector("pre").textContent.includes("result = 1"), el.innerHTML);
+});
+
+test("a function call reads by its dotted path, as code; a document's own method by its title", () => {
+	const args = { doctype: "", names: [], action: "frappe.desk.form.assign_to.add" };
+	const path = args.action;
+	assert.equal(presentTool("run_action", args).subject, path);
+	assert.equal(presentTool("run_action", args).codeSubject, true);
+	assert.equal(presentTool("run_action", args).label, "Calling API");
+	assert.equal(presentTool("run_action", args).done, "Called APIs");
+	assert.equal(presentTool("call_api", { method: path }).label, "Calling API");
+	const denied = json({ status: "denied", action: "Assign To: Add" });
+	assert.equal(presentTool("run_action", args, denied).subject, path);
+	assert.equal(presentTool("run_action", args, { content: "Error: not permitted" }).subject, path);
+	const result = json({ action: args.action, title: "Assign To: Add", result: [] });
+	assert.equal(presentTool("run_action", args, result).subject, path);
+	assert.equal(presentTool("run_action", args, result).stat, "");
+	const submit = presentTool("run_action", { action: "submit", doctype: "Sales Invoice" });
+	assert.equal(submit.subject, "Sales Invoice");
+	assert.equal(submit.codeSubject, false);
+	assert.equal(presentTool("call_api", { method: path }).subject, path);
+	assert.equal(presentTool("call_api", { method: path }).codeSubject, true);
+	assert.equal(presentTool("describe_api", { method: path }).subject, path);
+	assert.equal(presentTool("describe_api", { method: path }).codeSubject, true);
+	const own = presentTool("describe_api", { method: "add_comment", doctype: "ToDo" });
+	assert.equal(own.subject, "ToDo: Add Comment");
+	assert.equal(own.codeSubject, false);
+});
+
+test("a function's card shows the server's lines in words, not a records table", (t) => {
+	const args = { doctype: "", names: [], action: "frappe.desk.form.assign_to.add" };
+	const fn = presentTool("run_action", args);
+	assert.notEqual(fn.argsComponent, fn.resultComponent);
+	const submit = presentTool("run_action", { action: "submit", doctype: "ToDo", names: ["a"] });
+	assert.equal(submit.argsComponent, submit.resultComponent);
+	const prompt = "Assign To: Add\nToDo: Call the courier about the delayed Pune shipment\nAssign To: Administrator";
+	const api = presentTool("call_api", { method: args.action });
+	assert.equal(api.argsComponent, fn.argsComponent);
+	assert.equal(api.resultComponent, JsonView);
+	const el = mount(t, FunctionCard, { arguments: args, call: { prompt } });
+	const rows = [...el.querySelectorAll("tr")].map((row) => [...row.children].map((cell) => cell.textContent));
+	assert.deepEqual(rows, [
+		["ToDo", "Call the courier about the delayed Pune shipment"],
+		["Assign To", "Administrator"],
+	]);
+});
+
 test("a result its view cannot read, saved before its tool's return changed or cut, shows as text without a count, except under execute's code", () => {
 	const saved = json([{ name: "A" }, { name: "B" }]);
 	const read = presentTool("read_records", {}, saved);
 	assert.equal(read.stat, "");
 	assert.equal(read.resultComponent, JsonView);
-	assert.equal(presentTool("find_doctypes", {}, saved).stat, "");
 	// a cut result is no longer JSON
 	const cut = {
 		content: '[{"name": "A"}, {"na\n\n[Cut to the first 50 KB of 2.0 MB.]',
@@ -266,30 +329,24 @@ test("search hits group under the source they came from", (t) => {
 	assert.equal(presentTool("search_knowledge", {}, json(hits)).stat, "3 hits");
 });
 
-test("lookups report a count and open nothing", () => {
+test("lookups open nothing; a screen read names its page", () => {
 	const cases = [
-		[
-			"find_doctypes",
-			json({ total: 2, doctypes: [{ name: "A" }, { name: "B" }] }),
-			"2 matches",
-		],
-		[
-			"find_doctypes",
-			json({ total: 52, doctypes: [{ name: "A" }, { name: "B" }] }),
-			"2 of 52 matches",
-		],
-		["describe", json({ fields: [1, 2, 3] }), "3 fields"],
-		["update_memory", json({ memory_id: "m1", action: "added" }), "added"],
-		["load_skill", { content: "do the thing" }, ""],
+		["find_doctypes", json({ total: 2, doctypes: [{ name: "A" }, { name: "B" }] })],
+		["describe", json({ fields: [1, 2, 3] })],
+		["find_apis", json([{ path: "a.b" }, { path: "a.c" }])],
+		["describe_api", json({ params: [{ name: "doctype" }] })],
+		["update_memory", json({ memory_id: "m1", action: "added" })],
+		["load_skill", { content: "do the thing" }],
 		// a sub-agent row keeps the core's own look
-		["subagent", null, ""],
+		["subagent", null],
 	];
-	for (const [name, result, stat] of cases) {
+	for (const [name, result] of cases) {
 		const presented = presentTool(name, {}, result);
-		assert.equal(presented.stat, stat, name);
 		assert.equal(presented.expandable, false, name);
 		assert.equal(presented.resultComponent, undefined, name);
 	}
+	assert.equal(presentTool("read_screen", {}, json({ title: "Sales Order" })).subject, "Sales Order");
+	assert.equal(presentTool("read_screen", {}).subject, "");
 });
 
 test("an approval card gets the view, a custom tool always shows its output, and the server's file tools keep the core's rows", (t) => {

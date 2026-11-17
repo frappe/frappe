@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.flow.lib.tool import Tool, ToolContext, build_schema
+from frappe.flow.tools.builtins import tool_call_name
 from frappe.utils.safe_exec import safe_exec
 
 if TYPE_CHECKING:
@@ -56,8 +57,10 @@ def _resolve_module(doc: FlowTool) -> Tool:
 			doc,
 			obj.parameters,
 			obj.func,
+			requires_confirmation=obj.requires_confirmation,
 			confirm_prompt=obj.confirm_prompt,
 			background=obj.background,
+			needs_user=obj.needs_user,
 			display_template=obj.display_template,
 		)
 	if callable(obj):
@@ -69,8 +72,11 @@ def _resolve_module(doc: FlowTool) -> Tool:
 
 
 def _resolve_script(doc: FlowTool, *, restrict_commit_rollback: bool = False) -> Tool:
-	runner = _make_script_runner(doc.code, doc.slug, restrict_commit_rollback=restrict_commit_rollback)
-	return _build_tool(doc, schema_from_code(doc.code), runner)
+	schema = schema_from_code(doc.code)
+	runner = _make_script_runner(
+		doc.code, doc.slug, set(schema["properties"]), restrict_commit_rollback=restrict_commit_rollback
+	)
+	return _build_tool(doc, schema, runner)
 
 
 def _build_tool(
@@ -78,26 +84,37 @@ def _build_tool(
 	parameters: dict[str, Any],
 	func: Any,
 	*,
+	requires_confirmation: Any = None,
 	confirm_prompt: Any = None,
 	background: Any = None,
+	needs_user: bool = False,
 	display_template: str | None = None,
 ) -> Tool:
 	return Tool(
-		name=doc.slug,
+		name=tool_call_name(doc.name),
 		description=doc.description,
 		parameters=parameters,
 		func=func,
-		requires_confirmation=bool(doc.requires_confirmation),
+		requires_confirmation=requires_confirmation
+		if callable(requires_confirmation) and doc.requires_confirmation
+		else bool(doc.requires_confirmation),
 		confirm_prompt=confirm_prompt,
 		background=background if callable(background) else bool(doc.background),
+		needs_user=needs_user,
 		display_template=display_template,
 	)
 
 
-def _make_script_runner(code: str, slug: str, *, restrict_commit_rollback: bool = False):
+def _make_script_runner(code: str, slug: str, params: set[str], *, restrict_commit_rollback: bool = False):
 	"""Build a callable that runs a Script tool's `main` in the server-script sandbox."""
 
 	def run(*, ctx: ToolContext, **kwargs: Any) -> Any:
+		# names go into the script's code, so allow only main's parameters
+		if unknown := sorted(set(kwargs) - params):
+			raise ValueError(
+				f"Unknown argument(s) {', '.join(repr(name) for name in unknown)}; "
+				f"expected: {', '.join(sorted(params)) or 'none'}."
+			)
 		injected: dict[str, Any] = {}
 		call_parts: list[str] = []
 		for i, (name, value) in enumerate(kwargs.items()):

@@ -27,22 +27,6 @@
    "child": 0,
    "collapsible": 1,
    "hidden": 0,
-   "icon": "message-circle",
-   "indent": 0,
-   "is_default_module": 0,
-   "keep_closed": 0,
-   "label": "Chat",
-   "link_type": "URL",
-   "open_in_new_tab": 1,
-   "show_arrow": 0,
-   "type": "Link",
-   "url": "/flow"
-  },
-  {
-   "added": 0,
-   "child": 0,
-   "collapsible": 1,
-   "hidden": 0,
    "icon": "bot",
    "indent": 1,
    "is_default_module": 0,
@@ -259,7 +243,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-10-22 12:00:00.000000",
+ "modified": "2026-10-27 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow",

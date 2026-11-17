@@ -135,6 +135,9 @@ def generate_report_result(
 	if filters and isinstance(filters, str):
 		filters = json.loads(filters)
 
+	if report.validate_filters:
+		filters = report.get_validated_filters(filters or {}, user)
+
 	res = get_report_result(report, filters) or []
 
 	columns, result, message, chart, report_summary, skip_total_row = ljust_list(res, 6)
@@ -244,11 +247,22 @@ def get_script(report_name: str):
 	if not script:
 		script = f"frappe.query_reports[{json.dumps(report_name)}]={{}}"
 
+	filters = report.filters
+	if report.validate_filters:
+		from frappe.core.doctype.report.report import get_filter_default
+
+		filters = [
+			frappe._dict(row.as_dict(), default=get_filter_default(row, frappe.session.user))
+			for row in filters
+		]
+
 	return {
 		"script": render_include(script),
 		"html_format": html_format,
+		"has_python_formatter": bool(report.get_formatter_from_module()),
 		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
-		"filters": report.filters,
+		"filters": filters,
+		"validate_filters": report.validate_filters,
 		"custom_report_name": report.name if report.get("is_custom_report") else None,
 	}
 
@@ -299,8 +313,9 @@ def _run(
 ) -> dict:
 	if not user:
 		user = frappe.session.user
-	validate_filters_permissions(report_name, filters, user, js_filters)
 	report = get_report_doc(report_name)
+	if not report.validate_filters:
+		validate_filters_permissions(report_name, filters, user, js_filters)
 	if not frappe.has_permission(report.ref_doctype, "report"):
 		frappe.msgprint(
 			_("Must have report permission to access this report."),
@@ -333,6 +348,14 @@ def _run(
 						frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
+			if report.validate_filters:
+				if dn:
+					filters_to_validate = frappe.parse_json(
+						frappe.db.get_value("Prepared Report", dn, "filters")
+					)
+				else:
+					filters_to_validate = filters
+				report.get_validated_filters(filters_to_validate or {}, user)
 			result = get_prepared_report_result(report, filters, dn, user)
 			result["attachments"] = get_attachments("Prepared Report", dn)
 		else:
@@ -389,8 +412,12 @@ def add_custom_column_data(custom_columns, result):
 	return result
 
 
-def get_user_facing_error(traceback: str | None) -> str:
-	"""Return the error message from a traceback, without the exception class."""
+def get_user_facing_error(traceback: str | None, keep_line_breaks: bool = False) -> str:
+	"""
+	Return the error message from a traceback, without the exception class.
+
+	With `keep_line_breaks`, each `<br>` becomes a newline instead of a space.
+	"""
 
 	if not traceback:
 		return ""
@@ -415,8 +442,13 @@ def get_user_facing_error(traceback: str | None) -> str:
 		message_lines = [lines[exception_at].partition(": ")[2], *lines[exception_at + 1 :]]
 		message = " ".join(line for line in message_lines if not re.match(r"LINE \d+: |\s*\^\s*$", line))
 
+	if keep_line_breaks:
+		message = re.sub(r"<br\s*/?>", "\n", message, flags=re.IGNORECASE)
+
 	message = re.sub(r"<[^>]*>", " ", message)
-	return unescape(" ".join(message.split()))
+	message = "\n".join(" ".join(line.split()) for line in message.split("\n"))
+
+	return unescape(message.strip())
 
 
 def get_prepared_report_result(report, filters, dn="", user=None):
@@ -445,7 +477,7 @@ def get_prepared_report_result(report, filters, dn="", user=None):
 
 	doc = frappe.get_doc("Prepared Report", dn) if dn else None
 	if doc and doc.status == "Error":
-		error = get_user_facing_error(doc.error_message)
+		error = get_user_facing_error(doc.error_message, keep_line_breaks=True)
 		# the client not requires the full traceback
 		doc.error_message = None
 		return {"prepared_report": True, "doc": doc, "error": error}

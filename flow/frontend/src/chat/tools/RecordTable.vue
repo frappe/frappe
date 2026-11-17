@@ -1,5 +1,5 @@
 <template>
-	<div v-if="!rows.length" class="px-3 py-2.5 text-sm text-ink-gray-5">No records</div>
+	<div v-if="!rows.length" class="px-3 py-2.5 text-sm text-ink-gray-5">{{ __("No records") }}</div>
 	<div v-else>
 		<div class="overflow-auto" :class="open.size ? '' : 'max-h-[260px]'">
 			<table class="w-full border-collapse text-left text-sm">
@@ -9,7 +9,7 @@
 							v-if="withStatus"
 							class="sticky top-0 whitespace-nowrap bg-surface-gray-1 px-3 py-1.5 font-medium text-ink-gray-5"
 						>
-							Name
+							{{ __("Name") }}
 						</th>
 						<th
 							v-for="column in columns"
@@ -73,7 +73,7 @@
 							class="border-t border-outline-gray-1"
 						>
 							<td :colspan="span" class="bg-surface-gray-1 px-3 py-2">
-								<div class="mb-1.5 text-xs font-medium text-ink-gray-5">
+								<div class="mb-1.5 text-xs-medium text-ink-gray-5">
 									{{ humanize(column) }}
 								</div>
 								<div
@@ -108,13 +108,14 @@
 			class="w-full border-t border-outline-gray-1 px-3 py-1.5 text-left text-xs text-ink-gray-6 hover:bg-surface-gray-1"
 			@click="visibleCount += PAGE_SIZE"
 		>
-			Show {{ Math.min(hidden, PAGE_SIZE) }} more ({{ hidden }} remaining)
+			{{ __("Show {0} more ({1} remaining)", [Math.min(hidden, PAGE_SIZE), hidden]) }}
 		</button>
 	</div>
 </template>
 
 <script setup>
 import { computed, nextTick, reactive, ref } from "vue";
+import { __ } from "@flow/ui-core/translate.js";
 
 import ValueView from "./ValueView.vue";
 import { cellText, columnsOf, deskUrl, humanize, isTable } from "./result.js";

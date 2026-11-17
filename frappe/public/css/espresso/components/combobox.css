@@ -40,7 +40,6 @@ input.es-combobox__value {
     box-shadow: none;
     background: transparent;
     color: inherit;
-    /* not the font shorthand: it would also bring body's "opsz" that other inputs reset */
     font-family: inherit;
     font-size: inherit;
     font-weight: inherit;
@@ -126,7 +125,6 @@ input.es-combobox__value:disabled {
 .es-combobox__input {
     padding-inline: 0;
     background: transparent;
-    /* not the font shorthand: it would also bring body's "opsz" that other inputs reset */
     font-family: inherit;
     font-weight: inherit;
     letter-spacing: inherit;

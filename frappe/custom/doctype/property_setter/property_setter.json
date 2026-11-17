@@ -92,10 +92,12 @@
    "label": "Default Value"
   },
   {
-   "description": "For DocType Link / DocType Action",
+   "depends_on": "eval:['DocType Link', 'DocType Action', 'DocType State'].includes(doc.doctype_or_field)",
+   "description": "For DocType Link / DocType Action / DocType State",
    "fieldname": "row_name",
    "fieldtype": "Data",
-   "label": "Row Name"
+   "label": "Row Name",
+   "mandatory_depends_on": "eval:['DocType Link', 'DocType Action', 'DocType State'].includes(doc.doctype_or_field)"
   },
   {
    "fieldname": "module",
@@ -127,7 +129,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-05 12:00:00.000000",
+ "modified": "2026-11-05 09:20:18.264619",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Property Setter",

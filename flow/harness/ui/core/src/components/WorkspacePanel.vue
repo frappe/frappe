@@ -3,7 +3,7 @@
 		<button
 			v-if="workspace.open && !workspace.maximized"
 			class="fixed inset-0 z-20 bg-black/30 md:hidden"
-			aria-label="Close panel"
+			:aria-label="__('Close panel')"
 			@click="flow.setWorkspaceOpen(false)"
 		/>
 	</Transition>
@@ -12,7 +12,11 @@
 		:class="[
 			workspace.maximized
 				? 'fixed inset-0 z-40'
-				: 'fixed inset-y-0 right-0 z-30 w-[var(--workspace-w)] max-w-full flex-none md:relative',
+				: [
+						'fixed inset-y-0 right-0 z-30 flex-none md:relative',
+						// a narrow frame (a phone, a panel beside a page) shows one pane: this one fills it
+						layout.narrow ? 'w-full' : 'w-[var(--workspace-w)] max-w-full',
+					],
 			sliding ? 'transition-[transform,margin-right] duration-200 ease-in-out' : '',
 			// mirror of the left sidebar: no transform while open (a transformed
 			// aside would clip monaco's fixed overflow widgets and dialogs)
@@ -26,7 +30,7 @@
 		<div
 			v-if="!workspace.maximized"
 			class="absolute inset-y-0 left-0 z-10 hidden w-1 cursor-col-resize hover:bg-[--outline-gray-2] active:bg-[--outline-gray-3] md:block"
-			title="Drag to resize · double-click to reset"
+			:title="__('Drag to resize · double-click to reset')"
 			@pointerdown="startResize"
 			@dblclick="resetWidth"
 		/>
@@ -34,10 +38,22 @@
 		<!-- panel-level tab strip: one tab per open item of any kind (a file, a sub-agent;
 		     browser/terminal later) — kind-specific chrome lives in the view below.
 		     The view picker (nothing open) renders without it. -->
+		<!-- beside a page's navbar, as tall as the chat's header so their borders meet it -->
 		<div
 			v-if="viewActive"
-			class="flex h-11 flex-none items-stretch border-b border-outline-gray-1 bg-surface-base"
+			class="flex flex-none items-stretch border-b border-outline-gray-1 bg-surface-base"
+			:class="besideNavbar ? ['box-content', besideNavbar === 'desk' ? 'h-12' : 'h-10.5'] : 'h-11'"
 		>
+			<!-- a narrow frame shows one pane: the way back to the chat -->
+			<Button
+				v-if="layout.narrow"
+				variant="ghost"
+				class="my-1 ml-1 flex-none self-center"
+				:title="__('Back to chat')"
+				@click="flow.setWorkspaceOpen(false)"
+			>
+				<template #icon><span class="lucide-arrow-left size-4" aria-hidden="true" /></template>
+			</Button>
 			<!-- flex-1 makes the strip's width definite (the whole row minus the window
 			     controls), so tabs hold their basis cap and shrink together only once
 			     they stop fitting — a shrink-to-fit strip would hug the labels instead -->
@@ -62,7 +78,7 @@
 					<button
 						class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 						:class="tab.path === workspace.active || tab.dirty ? '' : 'opacity-0 group-hover:opacity-100'"
-						:title="tab.dirty ? 'Unsaved changes — close file' : 'Close file'"
+						:title="tab.dirty ? __('Unsaved changes — close file') : __('Close file')"
 						@click.stop="requestClose(tab)"
 					>
 						<span v-if="tab.dirty" class="flow-dirty-dot h-2 w-2 rounded-full bg-ink-gray-6" />
@@ -83,7 +99,7 @@
 					<span class="flow-tab-label min-w-0 flex-1 text-left">{{ transientTab }}</span>
 					<button
 						class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:bg-surface-gray-3 hover:text-ink-gray-8"
-						title="Close"
+						:title="__('Close')"
 						@click="flow.closeFilesView()"
 					>
 						<span class="lucide-x size-3" aria-hidden="true" />
@@ -93,25 +109,32 @@
 				<slot name="actions" />
 			</div>
 			<!-- a narrow frame's panel already fills it -->
-			<button
+			<Button
 				v-if="!layout.narrow"
-				class="flow-icon-btn my-1 flex-none self-center"
-				:title="workspace.maximized ? 'Exit full screen' : 'Full screen'"
+				variant="ghost"
+				class="my-1 flex-none self-center"
+				:title="workspace.maximized ? __('Exit full screen') : __('Full screen')"
 				@click="flow.toggleWorkspaceMaximized()"
 			>
-				<span
-					class="size-3.5"
-					:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
-					aria-hidden="true"
-				/>
-			</button>
-			<button
-				class="flow-icon-btn my-1 mr-1 flex-none self-center"
-				title="Close panel"
+				<template #icon>
+					<span
+						class="size-4"
+						:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
+						aria-hidden="true"
+					/>
+				</template>
+			</Button>
+			<Button
+				v-if="!layout.narrow"
+				variant="ghost"
+				class="my-1 mr-1 flex-none self-center"
+				:title="__('Close panel')"
 				@click="flow.setWorkspaceOpen(false)"
 			>
-				<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
-			</button>
+				<template #icon>
+					<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
+				</template>
+			</Button>
 		</div>
 
 		<!-- kind-specific body: a sub-agent's thread, or the host's view of any other tab -->
@@ -125,21 +148,25 @@
 		     panel's window controls stay reachable) -->
 		<div v-if="!viewActive" class="relative flex flex-1 flex-col items-center justify-center gap-3 px-6">
 			<span class="absolute right-1 top-1 flex">
-				<button
+				<Button
 					v-if="!layout.narrow"
-					class="flow-icon-btn"
-					:title="workspace.maximized ? 'Exit full screen' : 'Full screen'"
+					variant="ghost"
+					:title="workspace.maximized ? __('Exit full screen') : __('Full screen')"
 					@click="flow.toggleWorkspaceMaximized()"
 				>
-					<span
-						class="size-3.5"
-						:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
-						aria-hidden="true"
-					/>
-				</button>
-				<button class="flow-icon-btn" title="Close panel" @click="flow.setWorkspaceOpen(false)">
-					<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
-				</button>
+					<template #icon>
+						<span
+							class="size-4"
+							:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
+							aria-hidden="true"
+						/>
+					</template>
+				</Button>
+				<Button variant="ghost" :title="__('Close panel')" @click="flow.setWorkspaceOpen(false)">
+					<template #icon>
+						<span class="lucide-panel-left size-4 -scale-x-100" aria-hidden="true" />
+					</template>
+				</Button>
 			</span>
 			<slot name="empty" />
 		</div>
@@ -148,10 +175,17 @@
 
 <script setup>
 import { computed, inject, ref } from "vue"
+import { Button } from "frappe-ui/src/components/Button"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import SubagentView from "./SubagentView.vue"
 import { layout, useSlide } from "../layout.js"
+import { __ } from "../translate.js"
+
+defineProps({
+	// "desk" or "app": the page's navbar the panel's strip lines up with, as ChatHeader's
+	besideNavbar: { type: String, default: null },
+})
 
 const flow = inject("flow")
 const workspace = computed(() => flow.state.workspace)
@@ -165,7 +199,7 @@ const showView = computed(() => viewActive.value && activeTab.value?.kind !== "s
 const keepView = computed(() => workspace.value.tabs.some((tab) => tab.kind !== "subagent"))
 // label of the stand-in tab shown while the view has no file open yet
 const transientTab = computed(() =>
-	activeTab.value ? null : ({ files: "Files", diff: "Diffs" }[workspace.value.view] ?? null),
+	activeTab.value ? null : ({ files: __("Files"), diff: __("Diffs") }[workspace.value.view] ?? null),
 )
 
 // the panel stays mounted while closed so it can slide like the left sidebar
@@ -174,12 +208,12 @@ const sliding = useSlide(() => workspace.value.open || workspace.value.maximized
 function requestClose(tab) {
 	if (!tab.dirty) return flow.closeFile(tab.path)
 	dialog.confirm({
-		title: "Discard changes?",
+		title: __("Discard changes?"),
 		size: "lg",
-		message: `“${tab.name}” has unsaved changes.`,
+		message: __("“{0}” has unsaved changes.", [tab.name]),
 		actions: [
-			{ label: "Cancel", variant: "outline" },
-			{ label: "Discard", variant: "solid", theme: "red", onClick: () => flow.closeFile(tab.path) },
+			{ label: __("Cancel"), variant: "outline" },
+			{ label: __("Discard"), variant: "solid", theme: "red", onClick: () => flow.closeFile(tab.path) },
 		],
 	})
 }
@@ -199,7 +233,7 @@ function startResize(event) {
 	handle.setPointerCapture(event.pointerId)
 	const startX = event.clientX
 	const startWidth = width.value
-	const move = (e) => (width.value = clampWidth(startWidth - (e.clientX - startX)))
+	const move = (e) => (width.value = clampWidth(startWidth - (e.clientX - startX) / layout.zoom))
 	const up = (e) => {
 		handle.releasePointerCapture(e.pointerId)
 		handle.removeEventListener("pointermove", move)

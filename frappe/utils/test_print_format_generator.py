@@ -180,6 +180,31 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIn("data:image/svg+xml;base64", html)
 		self.assertNotIn('data-barcode-value="HELLO-QR"', html)
 
+	def test_barcode_value_fills_field_placeholders_with_raw_values(self):
+		from frappe.utils.print_format_generator import get_barcode, get_html
+
+		barcode = {
+			"fieldtype": "Barcode",
+			"fieldname": "_barcode1",
+			"custom": 1,
+			"barcode_value": "{priority}/{date}",
+		}
+		print_format = self._make_print_format(
+			format_data=json.dumps({"sections": [{"columns": [{"fields": [barcode]}]}]})
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": "Send the Q3 price list to Contoso",
+				"priority": "High",
+				"date": "2026-02-11",
+			}
+		).insert()
+
+		self.assertIn(get_barcode("High/2026-02-11"), get_html("ToDo", todo.name, print_format.name))
+
 	def test_screen_preview_is_full_page_width(self):
 		"""On screen the preview sheet is the full page width (A4 = 210mm) with the
 		margins as padding, so it looks like a page — not the narrow content width."""
@@ -380,6 +405,47 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			with patch.object(todo, "has_permlevel_access_to", return_value=True):
 				fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
 			self.assertIn("_secret", fieldnames)
+
+	def test_permlevel_restricted_block_sources_are_dropped(self):
+		"""Repeater and Barcode blocks are dropped when the field they print from is restricted."""
+		from unittest.mock import patch
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		layout = json.loads(pf.format_data)
+		layout["sections"][0]["columns"][0]["fields"] += [
+			{"fieldtype": "Repeater", "fieldname": "repeater", "source": "_secret"},
+			{"fieldtype": "Barcode", "fieldname": "barcode", "custom": 1, "barcode_field": "_secret"},
+		]
+		pf.format_data = json.dumps(layout)
+		get_field = todo.meta.get_field
+		restricted = frappe._dict(permlevel=1)
+
+		with patch.object(
+			todo.meta, "get_field", side_effect=lambda f: restricted if f == "_secret" else get_field(f)
+		):
+			fieldnames = self._layout_fieldnames(PrintFormatGenerator(pf, todo))
+		self.assertNotIn("repeater", fieldnames)
+		self.assertNotIn("barcode", fieldnames)
+
+	def test_linked_fields_load_the_linked_document_once(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		todo = self._make_todo()
+		todo.allocated_to = "test@example.com"
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		generator = PrintFormatGenerator(pf, todo)
+
+		self.assertEqual(generator.resolve_linked_path("allocated_to.email")[0], "test@example.com")
+		with self.assertQueryCount(0):
+			self.assertEqual(generator.resolve_linked_path("allocated_to.enabled")[0], 1)
 
 	def _layout_fieldnames(self, generator):
 		return [
@@ -607,6 +673,19 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		}
 		html = generator._render_zone_section(section, todo)
 		self.assertIn(todo.description, html)
+
+	def test_zone_static_text_prints_page_numbers(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self._make_print_format()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = self._make_todo()
+		section = {
+			"columns": [{"fields": [{"fieldtype": "Static Text", "text": "Page {page} of {page_count}"}]}]
+		}
+		html = PrintFormatGenerator(pf.name, todo)._render_zone_section(section, todo)
+		self.assertIn('Page <span class="page"></span> of <span class="topage"></span>', html)
 
 	def test_letterhead_resolution_precedence(self):
 		"""Beta renders resolve a letter head like templates do, with the layout's own choice on top."""

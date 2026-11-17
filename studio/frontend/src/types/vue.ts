@@ -15,7 +15,6 @@ export type VueProp = {
 
 export interface CustomVueComponentMeta {
 	component_name: string
-	frappe_app: string
 	studio_app: string
 	file_path: string
 	studio_file_path: string

@@ -52,6 +52,7 @@ class KanbanBoard(Document):
 	def validate(self):
 		if self.is_standard == "Yes" or self._was_standard():
 			self.validate_standard()
+		self.validate_field_name()
 		self.validate_column_name()
 
 	def validate_standard(self):
@@ -175,6 +176,19 @@ class KanbanBoard(Document):
 				tablefield,
 				{"fieldname": fieldname, "label": df.label if df else fieldname},
 			)
+
+	def validate_field_name(self):
+		df = frappe.get_meta(self.reference_doctype).get_field(self.field_name)
+		if not df or df.fieldtype != "Select":
+			frappe.throw(
+				_("{0} is not a Select field in {1}").format(
+					frappe.bold(self.field_name), self.reference_doctype
+				)
+			)
+		if not self.columns:
+			for option in (df.options or "").split("\n"):
+				if option.strip():
+					self.append("columns", {"column_name": option.strip()})
 
 	def validate_column_name(self):
 		for column in self.columns:
@@ -399,10 +413,12 @@ def get_kanban_column_counts(
 			message=frappe.get_traceback(),
 		)
 		for column_name in column_names:
-			counts[column_name] = frappe.db.count(
+			counts[column_name] = frappe.get_list(
 				doctype,
 				filters=column_filter(doctype, field_name, column_name, filters),
-			)
+				fields=[{"COUNT": "*", "as": "_count"}],
+				order_by=None,
+			)[0]._count
 	return counts
 
 
@@ -530,7 +546,7 @@ def get_kanban_column_page():
 	cards = fetch_kanban_column_cards(
 		reportview_args, doctype, field_name, column_name, kanban_start, kanban_page_length
 	)
-	total = frappe.db.count(doctype, filters=col_filters)
+	total = get_kanban_column_counts(doctype, field_name, col_filters, [column_name])[column_name]
 
 	return {"total": total, "cards": cards}
 
@@ -700,7 +716,7 @@ def quick_kanban_board(
 	doc.field_name = field_name
 
 	if project:
-		doc.filters = f'[["Task","project","=","{project}"]]'
+		doc.filters = json.dumps([["Task", "project", "=", project]])
 
 	options = ""
 	for field in meta.fields:

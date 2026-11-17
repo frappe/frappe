@@ -1,7 +1,7 @@
 <template>
 	<Dialog v-model:open="open" :title="heading">
 		<div class="mb-5 flex flex-col items-start border-b border-outline-gray-1 pb-5">
-			<h4 class="mb-2 text-sm text-ink-gray-5">General access</h4>
+			<h4 class="mb-2 text-sm text-ink-gray-5">{{ __("General access") }}</h4>
 			<Select
 				:model-value="access"
 				:options="ACCESS"
@@ -9,13 +9,13 @@
 				@update:model-value="setAccess"
 			/>
 		</div>
-		<h4 class="mb-2 text-sm text-ink-gray-5">Members</h4>
+		<h4 class="mb-2 text-sm text-ink-gray-5">{{ __("Members") }}</h4>
 		<!-- a phone's field waits for a tap, rather than raise the keyboard over the dialog -->
 		<FormControl
 			v-model:query="query"
 			type="combobox"
 			variant="outline"
-			placeholder="Add people…"
+			:placeholder="__('Add people…')"
 			:autofocus="!layout.phone"
 			:options="options"
 			:filterable="false"
@@ -33,7 +33,7 @@
 			<li v-for="user in members" :key="user.name" class="flex items-center gap-2.5">
 				<Avatar :image="user.user_image" :label="nameOf(user)" size="xl" />
 				<div class="min-w-0 flex-1">
-					<p class="truncate text-base font-medium text-ink-gray-9">{{ nameOf(user) }}</p>
+					<p class="truncate text-base-medium text-ink-gray-9">{{ nameOf(user) }}</p>
 					<p
 						v-if="nameOf(user) !== user.name"
 						class="mt-1 truncate text-xs text-ink-gray-5"
@@ -42,16 +42,15 @@
 					</p>
 				</div>
 				<span v-if="user.name === me.name" class="flex-none text-base text-ink-gray-5">
-					Owner (you)
+					{{ __("Owner (you)") }}
 				</span>
-				<button
+				<Button
 					v-else
-					class="flow-icon-btn"
-					:title="`Remove ${nameOf(user)}'s access`"
+					variant="ghost"
+					icon="lucide-x"
+					:title="removeTitle(user)"
 					@click="remove(user.name)"
-				>
-					<span class="lucide-x size-3.5" aria-hidden="true" />
-				</button>
+				 />
 			</li>
 			<li v-if="loading"><LoadingState class="py-1 text-sm text-ink-gray-5" /></li>
 		</ul>
@@ -59,11 +58,11 @@
 			<CopyButton
 				:text="link"
 				icon="lucide-link"
-				title="Copy link"
-				class="flex h-7 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-8 hover:border-outline-gray-3 active:bg-surface-gray-4"
-				:class="inPanel ? 'text-base' : 'text-md'"
+				:title="__('Copy link')"
+				variant="outline"
+				size="sm"
 			>
-				<template #default="{ copied }">{{ copied ? "Copied" : "Copy link" }}</template>
+				<template #default="{ copied }">{{ copied ? __("Copied") : __("Copy link") }}</template>
 			</CopyButton>
 		</div>
 	</Dialog>
@@ -72,12 +71,12 @@
 <script setup>
 import { computed, inject, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Avatar, Dialog, FormControl, Select, toast } from "frappe-ui";
+import { Avatar, Button, Dialog, FormControl, Select, toast } from "frappe-ui";
 import CopyButton from "@flow/ui-core/components/CopyButton.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { layout } from "@flow/ui-core/layout.js";
-import { inPanel } from "../panel.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 // The Share dialog, which the chat's owner opens from its menu: whoever is added may
 // view the chat, never write to it, since its tools run as the owner.
@@ -97,12 +96,12 @@ const router = useRouter();
 const link = computed(() => new URL(router.resolve(`/s/${sid.value}`).href, location.origin).href);
 const heading = computed(() => {
 	const title = flow.state.session?.title;
-	return title ? `Sharing "${title}"` : "Share chat";
+	return title ? __('Sharing "{0}"', [title]) : __("Share chat");
 });
 // who else may view: the people added, or every Flow user
 const ACCESS = [
-	{ value: "Restricted", label: "Only people you add", icon: "lucide-lock" },
-	{ value: "Everyone", label: "Every Flow user", icon: "lucide-users" },
+	{ value: "Restricted", label: __("Only people you add"), icon: "lucide-lock" },
+	{ value: "Everyone", label: __("Every Flow user"), icon: "lucide-users" },
 ];
 const access = computed(() => page.state.generalAccess?.[sid.value] ?? "Restricted");
 // the owner first, then whoever may view
@@ -125,6 +124,10 @@ const options = computed(() =>
 
 function nameOf(user) {
 	return user.full_name || user.name;
+}
+
+function removeTitle(user) {
+	return __("Remove {0}'s access", [nameOf(user)]);
 }
 
 let chat = null; // the chat the dialog opened for
@@ -194,7 +197,7 @@ async function attempt(work) {
 	try {
 		return await work();
 	} catch (error) {
-		toast.error(error?.message ?? "Request failed");
+		toast.error(error?.message ?? __("Request failed"));
 		return null;
 	}
 }

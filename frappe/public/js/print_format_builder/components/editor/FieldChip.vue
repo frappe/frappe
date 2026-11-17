@@ -78,7 +78,7 @@
 				:key="tf.fieldname"
 				:title="tf.label || tf.fieldname"
 			>
-				{{ tf.label || tf.fieldname }}
+				{{ tf.label || (tf.fieldtype === "Blank" ? __("Blank column") : tf.fieldname) }}
 			</span>
 			<span
 				v-if="!df.table_columns || !df.table_columns.length"

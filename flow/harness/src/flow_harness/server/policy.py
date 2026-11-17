@@ -24,8 +24,9 @@ class ServerPolicy:
 
 	Attributes:
 		profile: Name of the preset this policy came from.
-		tool_allowlist: Cap on the tools any session may compose, builtin and
-			extension alike. None = uncapped.
+		tool_allowlist: Cap on the built-in tools any session may compose. A tool a
+			loaded extension registers passes, since its file is the operator's.
+			None = uncapped.
 		callback_hosts: host[:port] values a session callback_url may target.
 			None = any; an empty set refuses client callbacks.
 		require_auth: Refuse to serve without a bearer token, even on loopback or

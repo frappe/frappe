@@ -3,6 +3,8 @@ export { createFlowStore } from "./store.js"
 export {
 	APPROVAL_MODES,
 	EFFORTS,
+	approvalConfig,
+	approvalMode,
 	EFFORT_LABELS,
 	applyEvent,
 	buildItems,

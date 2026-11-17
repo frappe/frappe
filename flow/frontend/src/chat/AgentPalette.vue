@@ -1,6 +1,6 @@
 <template>
 	<PalettePanel
-		title="Agents"
+		:title="__('Agents')"
 		back
 		:query="query"
 		:busy="query !== debounced"
@@ -9,7 +9,7 @@
 	>
 		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<div v-if="locked" class="px-2 pb-1.5 pt-1 text-base text-ink-gray-5">
-				The agent is fixed once the conversation starts.
+				{{ __("The agent is fixed once the conversation starts.") }}
 			</div>
 			<button
 				v-for="agent in options"
@@ -29,7 +29,7 @@
 					aria-hidden="true"
 				/>
 			</button>
-			<div v-if="!options.length" class="flow-palette-empty">No agents found</div>
+			<div v-if="!options.length" class="flow-palette-empty">{{ __("No agents found") }}</div>
 		</div>
 	</PalettePanel>
 </template>
@@ -38,6 +38,7 @@
 import { computed, inject, toRef } from "vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+import { __ } from "@flow/ui-core/translate.js";
 
 import { useAgent } from "./agent.js";
 

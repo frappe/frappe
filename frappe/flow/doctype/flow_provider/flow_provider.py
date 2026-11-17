@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 import frappe
 from frappe import _
+from frappe.flow.lib.model import clear_enabled_cache
 from frappe.model.document import Document
 
 
@@ -20,7 +21,7 @@ class FlowProvider(Document):
 		api_key: DF.Password | None
 		base_url: DF.Data | None
 		enabled: DF.Check
-		provider: DF.Data
+		provider: DF.Autocomplete
 	# end: auto-generated types
 
 	def autoname(self):
@@ -34,6 +35,12 @@ class FlowProvider(Document):
 		self._validate_provider_known()
 		self._validate_base_url()
 
+	def on_change(self):
+		clear_enabled_cache()
+
+	def on_trash(self):
+		clear_enabled_cache()
+
 	def _normalize(self):
 		self.provider = (self.provider or "").strip().lower()
 		if isinstance(self.base_url, str):
@@ -42,6 +49,10 @@ class FlowProvider(Document):
 			self.api_key = self.api_key.strip()
 
 	def _validate_provider_known(self):
+		from frappe.flow.lib.model import SITE_PROVIDER
+
+		if self.provider == SITE_PROVIDER:
+			return
 		try:
 			import litellm
 		except ImportError:

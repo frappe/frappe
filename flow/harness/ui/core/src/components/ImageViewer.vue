@@ -1,17 +1,18 @@
 <template>
-	<Teleport to="body">
+	<!-- into the host's root where it has one, as frappe-ui's dialogs go: an island's styles live there -->
+	<Teleport :to="portalTarget ?? 'body'">
 		<div
 			class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
 			role="dialog"
 			aria-modal="true"
-			:aria-label="alt || 'Image'"
+			:aria-label="alt || __('Image')"
 			@click.self="emit('close')"
 		>
 			<img :src="src" :alt="alt" class="max-h-full max-w-full rounded-6 object-contain shadow-2xl" />
 			<button
 				ref="closeEl"
 				class="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-white/15 text-white hover:bg-white/25"
-				title="Close"
+				:title="__('Close')"
 				@click="emit('close')"
 			>
 				<span class="lucide-x size-4" aria-hidden="true" />
@@ -22,6 +23,11 @@
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from "vue"
+import { usePortalTarget } from "frappe-ui/src/composables/usePortalTarget"
+
+import { __ } from "../translate.js"
+
+const portalTarget = usePortalTarget()
 
 defineProps({
 	src: { type: String, required: true },
@@ -41,7 +47,9 @@ function onKey(event) {
 }
 
 onMounted(() => {
+	// the focused element, inside a shadow root where Flow runs in one
 	returnFocus = document.activeElement
+	while (returnFocus?.shadowRoot?.activeElement) returnFocus = returnFocus.shadowRoot.activeElement
 	window.addEventListener("keydown", onKey, true)
 	closeEl.value?.focus()
 })
