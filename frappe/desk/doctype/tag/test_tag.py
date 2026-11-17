@@ -166,23 +166,72 @@ class TestTag(IntegrationTestCase):
 
 
 class TestAdoptHelpdeskTagColor(IntegrationTestCase):
-	def test_patch_drops_the_custom_field_and_keeps_the_colors(self):
-		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
-
-		ensure_tag("helpdesk-tag", "Orange")
-		# as Helpdesk installs it; a normal insert would clash with the standard field
+	def insert_custom_field(self, **values):
+		# as an older Helpdesk or a site installs it; a normal insert would clash with the standard field
 		frappe.get_doc(
 			{
 				"doctype": "Custom Field",
 				"name": "Tag-color",
 				"dt": "Tag",
 				"fieldname": "color",
-				"fieldtype": "Select",
 				"label": "Color",
-				"options": frappe.get_meta("Tag").get_field("color").options,
 			}
+			| values
 		).db_insert()
+		frappe.clear_cache(doctype="Tag")
+		self.addCleanup(self.drop_custom_field)
+
+	def drop_custom_field(self):
+		frappe.db.delete("Custom Field", {"dt": "Tag", "fieldname": "color"})
+		frappe.clear_cache(doctype="Tag")
+
+	def test_patch_drops_helpdesks_custom_field_and_keeps_the_colors(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		ensure_tag("helpdesk-tag", "Orange")
+		self.insert_custom_field(
+			fieldtype="Select", options=frappe.get_meta("Tag").get_field("color").options
+		)
 		execute()
 		self.assertFalse(frappe.db.exists("Custom Field", {"dt": "Tag", "fieldname": "color"}))
 		self.assertEqual(frappe.db.get_value("Tag", "helpdesk-tag", "color"), "Orange")
 		self.assertFalse(frappe.get_meta("Tag").get_field("color").get("is_custom_field"))
+
+	def test_patch_keeps_a_color_type_field_and_its_hex_values(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		self.insert_custom_field(fieldtype="Color")
+		tag = frappe.get_doc({"doctype": "Tag", "name": "hex-tag", "color": "#ff0000"}).insert()
+		execute()
+		self.assertTrue(frappe.db.exists("Custom Field", {"dt": "Tag", "fieldname": "color"}))
+		self.assertEqual(frappe.db.get_value("Tag", tag.name, "color"), "#ff0000")
+		tag.reload()
+		tag.color = "#00ff00"
+		tag.save()
+		self.assertEqual(frappe.db.get_value("Tag", tag.name, "color"), "#00ff00")
+
+	def test_record_tags_still_save_with_a_color_type_field(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		self.insert_custom_field(fieldtype="Color")
+		execute()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "own colour field"}).insert()
+		add_tag("old", "ToDo", todo.name)
+		answer = update_record_tags("ToDo", todo.name, [{"tag": "fresh"}], ["old"])
+		self.assertEqual(answer["tags"], ["fresh"])
+
+	def test_patch_keeps_a_select_with_other_options(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		self.insert_custom_field(fieldtype="Select", options="\nGray\nBrand")
+		execute()
+		self.assertTrue(frappe.db.exists("Custom Field", {"dt": "Tag", "fieldname": "color"}))
+		self.assertEqual(frappe.get_meta("Tag").get_field("color").options, "\nGray\nBrand")
+
+	def test_patch_does_nothing_without_a_custom_field(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		ensure_tag("plain-tag", "Teal")
+		execute()
+		self.assertEqual(frappe.db.get_value("Tag", "plain-tag", "color"), "Teal")
+		self.assertEqual(frappe.get_meta("Tag").get_field("color").fieldtype, "Select")
