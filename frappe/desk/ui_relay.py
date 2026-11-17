@@ -27,6 +27,7 @@ MAX_REPLIES = 20  # per call id
 Json = dict | list | str | int | float | bool | None
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=CALLS_PER_MINUTE, seconds=60, ip_based=False, user_based=True)
 def tabs() -> list[dict]:
@@ -35,6 +36,7 @@ def tabs() -> list[dict]:
 	return _hello(user)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=CALLS_PER_MINUTE, seconds=60, ip_based=False, user_based=True)
 def call(
@@ -77,6 +79,7 @@ def call(
 	return _await(call_id, found)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=REPLIES_PER_MINUTE, seconds=60, ip_based=False, user_based=True)
 def reply(call_id: str, result: dict, tab: str | None = None, final: bool | int = True) -> None:

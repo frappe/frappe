@@ -2296,6 +2296,7 @@ def publish_export_result(
 	frappe.publish_realtime("doctype_export", message, user=user)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def write_doctype_files(doctype: str) -> dict | None:
 	"""Run the export of a standard DocType again. It writes `.py` files, so a dev server may restart.

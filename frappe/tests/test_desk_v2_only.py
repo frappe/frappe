@@ -13,6 +13,27 @@ from frappe.tests.test_api import FrappeAPITestCase
 DESK_USER = "desk-v2-only-user@example.com"
 SHELL_ONLY = "frappe.email.inbox.get_outgoing_senders"
 FRAMEWORK_UI = "frappe.onboarding.update_onboarding_status"
+# Added after the first audit: only the v2 shell calls them (ticket #47721).
+SHELL_ONLY_LATER = (
+	"frappe.desk.ui_relay.tabs",
+	"frappe.desk.ui_relay.call",
+	"frappe.desk.ui_relay.reply",
+	"frappe.core.doctype.deleted_document.deleted_document.restore_record",
+	"frappe.email.doctype.email_queue.email_queue.retry_record",
+	"frappe.email.inbox.mark_read_unread",
+	"frappe.core.doctype.user.user.add_roles_to_user",
+	"frappe.core.doctype.user.user.remove_roles_from_user",
+	"frappe.desk.doctype.tag.tag.set_tag_color",
+	"frappe.desk.doctype.tag.tag.update_record_tags",
+	"frappe.core.doctype.doctype.doctype.write_doctype_files",
+	"frappe.model.document.Document.queue_submit",
+	"frappe.model.document.Document.queue_cancel",
+)
+# Called by `@framework/ui` in other apps: they stay open with the switch off.
+FRAMEWORK_UI_OPEN = (
+	"frappe.onboarding.update_onboarding_status",
+	"frappe.core.api.user_invitation.get_invited_emails",
+)
 
 
 class TestDeskV2OnlyMethods(FrappeAPITestCase):
@@ -65,3 +86,33 @@ class TestDeskV2OnlyDecorator(IntegrationTestCase):
 			if fn.__module__.startswith("frappe.shell.") and fn not in frappe.desk_v2_methods
 		]
 		self.assertEqual(open_shell_methods, [])
+
+	def test_switch_off_refuses_later_shell_methods(self):
+		with self.change_settings("System Settings", enable_desk_v2=0):
+			for path in SHELL_ONLY_LATER:
+				with self.subTest(path):
+					fn = _resolve(path)
+					self.assertIn(fn, frappe.desk_v2_methods)
+					self.assertRaises(frappe.DeskV2DisabledError, frappe.is_whitelisted, fn)
+
+	def test_switch_off_keeps_framework_ui_methods_open(self):
+		with self.change_settings("System Settings", enable_desk_v2=0):
+			for path in FRAMEWORK_UI_OPEN:
+				with self.subTest(path):
+					fn = _resolve(path)
+					self.assertNotIn(fn, frappe.desk_v2_methods)
+					frappe.is_whitelisted(fn)
+
+
+def _resolve(path: str):
+	"""The function behind a dotted path to a module function or a class method."""
+	parts = path.split(".")
+	for n in range(len(parts) - 1, 0, -1):
+		try:
+			obj = importlib.import_module(".".join(parts[:n]))
+		except ImportError:
+			continue
+		for part in parts[n:]:
+			obj = getattr(obj, part)
+		return obj
+	raise ImportError(path)

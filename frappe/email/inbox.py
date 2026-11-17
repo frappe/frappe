@@ -122,6 +122,7 @@ def create_email_flag_queue(names: str | list, action: str):
 				mark_as_seen_unseen(doc, action)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def mark_read_unread(doctype: str, name: str, action: str) -> None:
 	"""The list page's Mark as Read / Unread, one Communication per call of the bulk runner."""

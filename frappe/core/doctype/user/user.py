@@ -1962,12 +1962,14 @@ def _unassign_roles(users: list, roles: list) -> None:
 		user_doc.remove_roles(*roles)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def add_roles_to_user(doctype: str, name: str, roles: str | list) -> None:
 	"""Add roles to one user. The User list's Add Roles runs it on each selected user through `bulk_call`."""
 	_get_user_to_change(doctype, name).add_roles(*_validate_roles(roles))
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def remove_roles_from_user(doctype: str, name: str, roles: str | list) -> None:
 	"""Remove roles from one user. The User list's Remove Roles runs it on each selected user."""

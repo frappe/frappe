@@ -555,6 +555,7 @@ def retry_sending(queues: str | list[str]):
 	).where(email_queue.name.isin(queues) & email_queue.status == "Error").run()
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def retry_record(doctype: str, name: str) -> None:
 	"""The list page's Retry Sending, one Email Queue per call of the bulk runner."""
