@@ -147,7 +147,7 @@ export function formDialogHandle(
     fieldnames: () => fillable().map((field) => field.fieldname),
     values: () => formData(layout(), doc.value),
     setValues: (values) => {
-      const fields = fillable().filter((field) => field.fieldname in values);
+      const fields = fillable().filter((field) => Object.hasOwn(values, field.fieldname));
       const unknown = Object.keys(values).filter((name) => !fields.some((field) => field.fieldname === name));
       if (unknown.length) throw new Error(__("The dialog has no field {0}", [unknown.join(", ")]));
       const held = fields.map(({ fieldname, fieldtype }) => [fieldname, coerceValue(fieldtype, values[fieldname])]);
