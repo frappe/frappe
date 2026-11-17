@@ -430,6 +430,22 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 			doc.db_set("enabled", 1)
 		self.assertEqual(self.calls("run"), [])
 
+	def test_a_chat_whose_model_was_deleted_asks_for_another(self):
+		picked = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Picked Model", "model_id": "openai/gpt-4o", "enabled": 1}
+		).insert()
+		self.session.db_set("model", picked.name)
+		frappe.delete_doc("Flow Model", picked.name)
+
+		self.session.sync()  # the transcript is still recorded
+		with self.assertRaisesRegex(frappe.ValidationError, "model was deleted"):
+			self.session.chat("hello")
+		self.assertEqual(self.calls("run"), [])
+
+		self.session.set_model(self.model.name)
+		self.session.chat("hello")
+		self.assertEqual(len(self.calls("run")), 1)
+
 	def test_a_server_refusal_is_a_validation_error(self):
 		for error, message in (
 			(DaemonError(400, "attachment 'x' not found"), "400.*not found"),

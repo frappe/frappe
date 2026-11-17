@@ -342,6 +342,8 @@ class FlowSession(Document):
 		frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
+		if self.model and not frappe.db.exists("Flow Model", self.model):
+			frappe.throw(_("This chat's model was deleted. Pick another model."), title=_("Model Deleted"))
 		model_config(self.model or agent.model)
 
 	def set_model(self, model: str, reasoning_effort: str | None = None) -> None:
@@ -415,6 +417,8 @@ class FlowSession(Document):
 		if info["title"] and info["title"] != self.title:
 			self.title = info["title"]
 		self.flags.ignore_validate = True
+		# a model or run deleted since must not stop the transcript being recorded
+		self.flags.ignore_links = True
 		self.save(ignore_permissions=True)
 
 	def _lock(self) -> None:

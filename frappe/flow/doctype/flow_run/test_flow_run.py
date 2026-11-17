@@ -54,3 +54,20 @@ class TestFlowRun(IntegrationTestCase):
 			doc = frappe.get_doc({"doctype": "Flow Run", "source": "Manual", "session": session, **fields})
 			with self.subTest(error), self.assertRaisesRegex(frappe.ValidationError, error):
 				doc.insert(ignore_permissions=True)
+
+	def test_a_deleted_run_leaves_its_chat_savable(self):
+		session = frappe.get_doc("Flow Session", _new_session(self.agent))
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "source": "Manual", "session": session.name, "status": "Running"}
+		).insert(ignore_permissions=True)
+		session.append("messages", {"role": "user", "content": "hi", "run": run.name})
+		session.save(ignore_permissions=True)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "in progress"):
+			frappe.delete_doc("Flow Run", run.name)
+
+		run.db_set("status", "Completed")
+		frappe.delete_doc("Flow Run", run.name)
+		session.reload()
+		self.assertIsNone(session.messages[0].run)
+		session.save(ignore_permissions=True)

@@ -46,6 +46,17 @@ class FlowRun(Document):
 		self._validate_json_fields()
 		self._validate_status_invariants()
 
+	def on_trash(self):
+		if self.status in ("Running", "Paused"):
+			frappe.throw(
+				_("This run is still in progress. Stop it before you delete it."), title=_("Run In Progress")
+			)
+		# the chat keeps its transcript; a row that named a missing run would stop the chat saving
+		for doctype in ("Flow Session Message", "Flow Session Attachment"):
+			frappe.db.set_value(
+				doctype, {"parent": self.session, "run": self.name}, "run", None, update_modified=False
+			)
+
 	def _validate_json_fields(self):
 		for fieldname in JSON_FIELDS:
 			value = self.get(fieldname)
