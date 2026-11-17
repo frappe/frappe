@@ -100,4 +100,14 @@ describe("the list page controls row", () => {
 		expect(root.querySelector("button[aria-label='More']")).not.toBeNull();
 		expect(root.querySelectorAll(".fui-skeleton")).toHaveLength(1);
 	});
+
+	it("names the act each filter and sort control equals, which the act-control check reads", async () => {
+		const root = await mount();
+		fake.state.seeded.value = true;
+		await nextTick();
+		const actOf = (stub: string) => root.querySelector(`[data-stub-${stub}]`)?.closest("[data-act]")?.getAttribute("data-act");
+		expect(actOf("quick-filter")).toBe("list.set_filters");
+		expect(actOf("filter")).toBe("list.set_filters");
+		expect(actOf("sort")).toBe("list.set_sort");
+	});
 });

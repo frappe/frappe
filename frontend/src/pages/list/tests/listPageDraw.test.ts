@@ -369,8 +369,8 @@ describe("the list page header acts", () => {
 		await mount();
 		expect(acts.find("list.favourite")).toBeTruthy();
 		void acts.run("list.create");
-		await settle();
-		expect(createRequests.value).toHaveLength(1);
+		// A run loads the act's wording chunk first; a dynamic import takes as long as it takes, so wait on the request, not on turns.
+		await vi.waitFor(() => expect(createRequests.value).toHaveLength(1));
 	});
 
 	it("takes the object form of right: a header item for another right of the doctype", async () => {

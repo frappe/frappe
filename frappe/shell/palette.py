@@ -36,10 +36,7 @@ def places() -> dict:
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	doctypes = place_doctypes()
-	apps = [
-		{key: tile[key] for key in ("app", "title", "route", "logo", "kind", "hidden")}
-		for tile in arrange(index_tiles())
-	]
+	apps = [desk_door(tile) for tile in arrange(index_tiles())]
 	owners = {doctype["app"] for doctype in doctypes}
 	return {
 		"doctypes": doctypes,
@@ -70,6 +67,13 @@ def search_doctype_records(doctype: str, txt: str) -> list[dict]:
 		return []
 
 	return exact_first(records_of(doctype, txt, RECORDS_IN_ALL), txt)
+
+
+def desk_door(tile: dict) -> dict:
+	"""An index tile as the palette and the app switcher draw it: they stay in the desk, so a tile with a Desk card opens that."""
+	door = next((card for card in tile["fan"] if card.get("desk")), None)
+	app = {key: tile[key] for key in ("app", "title", "route", "logo", "kind", "hidden")}
+	return {**app, "route": door["route"], "kind": "prefix"} if door else app
 
 
 def place_doctypes() -> list[dict]:

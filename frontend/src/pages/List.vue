@@ -23,7 +23,7 @@ import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { replacementFor } from "@/contributions/registry";
 import { __ } from "@/i18n";
-import { isMissing, useSavedView } from "@/list/savedView";
+import { isMissing, useSavedView, type SavedView } from "@/list/savedView";
 import { PLAIN_LIST } from "@/list/useListPage";
 import { typeKey } from "@/list/view";
 import NotFound from "@/shell/NotFound.vue";
@@ -39,12 +39,20 @@ const route = useRoute();
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const key = computed(() => (route.params.key ? String(route.params.key) : null));
 
-const savedView = useSavedView(
-	() => doctype.value,
-	() => key.value
+const unbuilt = computed(() =>
+	boot.unbuilt_view_types?.find((one) => typeKey(one.name) === key.value)
 );
 
-const opened = computed(() => (key.value ? savedView.view.value : PLAIN_LIST));
+const savedView = useSavedView(
+	() => doctype.value,
+	() => (unbuilt.value ? null : key.value)
+);
+
+const opened = computed((): SavedView | null => {
+	const one = unbuilt.value;
+	if (one) return { ...PLAIN_LIST, key: key.value!, label: one.label, type: one.name };
+	return key.value ? savedView.view.value : PLAIN_LIST;
+});
 
 const viewState = computed((): PageStateValue | null => {
 	const failure = savedView.failure.value;

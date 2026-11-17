@@ -19,10 +19,10 @@ vi.mock("@framework/ui/api", async (original) => ({
 type BootApp = NonNullable<Boot["apps"]>[number];
 
 const APPS: BootApp[] = [
-	{ app: "frappe", title: "Framework", logo: "/assets/frappe/logo.svg", kind: "prefix", route: "/apps/desk", hidden: false },
-	{ app: "erpnext", title: "ERPNext", logo: null, kind: "prefix", route: "/apps/erpnext", hidden: false },
-	{ app: "crm", title: "CRM", logo: "/assets/crm/logo.svg", kind: "prefix", route: "/apps/crm", hidden: false },
-	{ app: "gameplan", title: "Gameplan", logo: null, kind: "link", route: "/g", hidden: false },
+	{ app: "frappe", title: "Framework", logo: "/assets/frappe/logo.svg", kind: "prefix", route: "/apps/desk", hidden: false, fan: [] },
+	{ app: "erpnext", title: "ERPNext", logo: null, kind: "prefix", route: "/apps/erpnext", hidden: false, fan: [] },
+	{ app: "crm", title: "CRM", logo: "/assets/crm/logo.svg", kind: "prefix", route: "/apps/crm", hidden: false, fan: [] },
+	{ app: "gameplan", title: "Gameplan", logo: null, kind: "link", route: "/g", hidden: false, fan: [] },
 ];
 
 type BootFavourite = NonNullable<Boot["favourites"]>[number];
@@ -138,8 +138,8 @@ async function type(host: HTMLElement, text: string) {
 	await nextTick();
 }
 
-async function press(host: HTMLElement, key: string) {
-	const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
+async function press(host: HTMLElement, key: string, shiftKey = false) {
+	const event = new KeyboardEvent("keydown", { key, shiftKey, bubbles: true, cancelable: true });
 	box(host).dispatchEvent(event);
 	await nextTick();
 	return event;
@@ -153,6 +153,19 @@ function selected(host: HTMLElement) {
 	return [...host.querySelectorAll<HTMLElement>("[data-selected]")].map(
 		(item) => item.dataset.app ?? item.dataset.favourite ?? item.dataset.recent
 	);
+}
+
+async function flush() {
+	for (let tick = 0; tick < 5; tick++) await new Promise((resolve) => setTimeout(resolve));
+	await nextTick();
+}
+
+async function openTileMenu(host: HTMLElement, app: string) {
+	const tile = tiles(host).find((tile) => tile.dataset.app === app)!;
+	const trigger = tile.closest("li")!.querySelector<HTMLElement>("[data-tile-menu]")!;
+	trigger.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+	await flush();
+	return [...document.body.querySelectorAll<HTMLElement>("[role='menuitem']")];
 }
 
 function chips(host: HTMLElement) {
@@ -636,19 +649,6 @@ describe("the person's layer", () => {
 	// The page loads it lazily; loaded here, a click draws it within one flush.
 	beforeAll(() => import("../ArrangeApps.vue"));
 
-	async function flush() {
-		for (let tick = 0; tick < 5; tick++) await new Promise((resolve) => setTimeout(resolve));
-		await nextTick();
-	}
-
-	async function openTileMenu(host: HTMLElement, app: string) {
-		const tile = tiles(host).find((tile) => tile.dataset.app === app)!;
-		const trigger = tile.parentElement!.querySelector<HTMLElement>("[data-tile-menu]")!;
-		trigger.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
-		await flush();
-		return [...document.body.querySelectorAll<HTMLElement>("[role='menuitem']")];
-	}
-
 	function saved() {
 		return fake.runMethod.mock.calls.map(([method, args]) => [method, args]);
 	}
@@ -945,5 +945,92 @@ describe("the index's Get more apps tile", () => {
 		expect(host.querySelectorAll("li[data-app]")).toHaveLength(4);
 		expect(moreApps(host)).toBeNull();
 		expect(host.textContent).not.toContain("Get more apps");
+	});
+});
+
+describe("the index's fan", () => {
+	const DESK = { title: "Desk", logo: "/assets/frappe/logo.svg", route: "/apps/hd", desk: true };
+	const STUDIO = { title: "Studio", logo: null, route: "/studio" };
+	const FANNED: BootApp[] = [
+		{ ...APPS[0], fan: [STUDIO, { title: "Flow", logo: null, route: "/flow" }] },
+		{ app: "hd", title: "Helpdesk", logo: null, kind: "link", route: "/helpdesk", hidden: false, fan: [DESK] },
+		APPS[1],
+	];
+
+	function cards(host: HTMLElement, app: string) {
+		return [...host.querySelector(`a[data-app='${app}']`)!.closest(".fan")!.querySelectorAll<HTMLAnchorElement>("[data-fan-card]")];
+	}
+
+	function caption(host: HTMLElement, app: string) {
+		return host.querySelector(`a[data-app='${app}']`)!.querySelector("[data-tile-caption]")!.textContent!.trim();
+	}
+
+	it("draws each card as a link behind its tile, and the fan titles as the subtitle", async () => {
+		const host = await mount(FANNED);
+		expect(cards(host, "frappe").map((card) => card.getAttribute("href"))).toEqual(["/studio", "/flow"]);
+		expect(cards(host, "hd").map((card) => card.getAttribute("href"))).toEqual(["/apps/hd"]);
+		expect(host.querySelector("a[data-app='hd']")!.getAttribute("href")).toBe("/helpdesk");
+		const subtitle = (app: string) => host.querySelector(`a[data-app='${app}'] [data-tile-subtitle]`);
+		expect(subtitle("frappe")!.textContent!.trim()).toBe("Studio · Flow");
+		expect(subtitle("hd")!.textContent!.trim()).toBe("Desk");
+		expect(subtitle("erpnext")).toBeNull();
+		expect(host.querySelectorAll("[data-fan]")).toHaveLength(2);
+	});
+
+	it("names the card under the pointer in the caption", async () => {
+		const host = await mount(FANNED);
+		const [studio] = cards(host, "frappe");
+		studio.dispatchEvent(new MouseEvent("mouseenter"));
+		await nextTick();
+		expect(caption(host, "frappe")).toBe("Studio");
+		studio.dispatchEvent(new MouseEvent("mouseleave"));
+		await nextTick();
+		expect(caption(host, "frappe")).toBe("Framework");
+	});
+
+	it("steps through the doors with Tab, and lets Tab go on past the last", async () => {
+		const host = await mount(FANNED);
+		await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["frappe"]);
+
+		expect((await press(host, "Tab")).defaultPrevented).toBe(true);
+		const [studio, flow] = cards(host, "frappe");
+		expect(box(host).getAttribute("aria-activedescendant")).toBe(studio.id);
+		expect(studio.getAttribute("aria-selected")).toBe("true");
+		expect(caption(host, "frappe")).toBe("Studio");
+
+		await press(host, "Tab");
+		expect(box(host).getAttribute("aria-activedescendant")).toBe(flow.id);
+		expect((await press(host, "Tab")).defaultPrevented).toBe(false);
+
+		await press(host, "Tab", true);
+		await press(host, "Tab", true);
+		expect(selected(host)).toEqual(["frappe"]);
+		expect((await press(host, "Tab", true)).defaultPrevented).toBe(false);
+	});
+
+	it("opens the selected door on Enter, and moves on from its tile with the arrows", async () => {
+		const host = await mount(FANNED);
+		await press(host, "ArrowDown");
+		await press(host, "ArrowRight");
+		await press(host, "Tab");
+		await press(host, "Enter");
+		expect(assign).toHaveBeenCalledWith("/apps/hd");
+
+		await press(host, "ArrowRight");
+		expect(selected(host)).toEqual(["erpnext"]);
+	});
+
+	it("leaves Tab alone on a tile with no fan", async () => {
+		const host = await mount(FANNED);
+		for (const key of ["ArrowDown", "ArrowRight", "ArrowRight"]) await press(host, key);
+		expect(selected(host)).toEqual(["erpnext"]);
+		expect((await press(host, "Tab")).defaultPrevented).toBe(false);
+	});
+
+	it("lists the doors in the tile's menu, before Hide", async () => {
+		const host = await mount(FANNED);
+		const labels = (await openTileMenu(host, "frappe")).map((item) => item.textContent!.trim());
+		expect(labels).toEqual(["Open Studio", "Open Flow", "Hide"]);
 	});
 });

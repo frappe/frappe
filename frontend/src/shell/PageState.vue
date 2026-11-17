@@ -7,7 +7,7 @@
 	>
 		<!-- Centred by auto margins: a tall message then scrolls, where `justify-center` would cut its top. -->
 		<div class="m-auto flex flex-col items-center gap-3 px-8 py-16 text-center">
-			<span class="size-7 text-ink-gray-4" :class="look.icon" aria-hidden="true" />
+			<span class="size-7 text-ink-gray-4" :class="icon || look.icon" aria-hidden="true" />
 			<div class="flex max-w-md flex-col items-center gap-1.5">
 				<p class="text-lg font-medium text-ink-gray-8">{{ title || look.title }}</p>
 				<p class="text-p-sm text-ink-gray-6">{{ description }}</p>
@@ -38,6 +38,7 @@
 				:label="__('All apps')"
 				@click="allApps"
 			/>
+			<slot />
 		</div>
 	</div>
 </template>

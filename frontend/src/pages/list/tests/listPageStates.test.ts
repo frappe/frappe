@@ -37,6 +37,14 @@ vi.mock("@framework/ui/experimental/List", async () => {
 		ListFooter: stub("footer"),
 	};
 });
+// The shell is not mounted here: a link back to a list resolves to home.
+vi.mock("@/router/routeFor", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/router/routeFor")>()),
+	routeFor: (_doctype: string, _name: unknown, options?: { view?: string }) => ({
+		name: "home",
+		query: options?.view ? { view: options.view } : {},
+	}),
+}));
 vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));
 vi.mock("@/list/useListPage", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@/list/useListPage")>()),
@@ -47,6 +55,7 @@ vi.mock("@/list/useListView", async () => ({
 }));
 
 import List from "../../List.vue";
+import type { SavedView } from "@/list/savedView";
 import { PLAIN_LIST } from "@/list/useListPage";
 import ViewPage from "../ViewPage.vue";
 import { fake, installListRenderer, resetFake } from "./fakeListPage";
@@ -79,7 +88,10 @@ async function settle() {
 	}
 }
 
-async function mount(component: Component = ViewPage, doctype: string | null = "Contact") {
+const UNBUILT = [{ name: "Kanban", label: "Kanban", icon: "kanban" }];
+const KANBAN = { key: "kanban", label: "Kanban", type: "Kanban", layer: null, applies: true };
+
+async function mount(component: Component = ViewPage, doctype: string | null = "Contact", opened: SavedView = PLAIN_LIST) {
 	const router = createRouter({
 		history: createMemoryHistory(BASE),
 		routes: [
@@ -90,8 +102,8 @@ async function mount(component: Component = ViewPage, doctype: string | null = "
 	await router.push("/contact");
 	const root = document.createElement("div");
 	document.body.appendChild(root);
-	const app = createApp(defineComponent({ render: () => h(component, { doctype, opened: PLAIN_LIST }) }));
-	app.use(router).provide("boot", { app: "crm", app_title: "CRM", bulk_actions: true, bulk_operation_limit: 500, session: { user: { name: "jane@example.com" } } }).provide("addresses", {
+	const app = createApp(defineComponent({ render: () => h(component, { doctype, opened }) }));
+	app.use(router).provide("boot", { app: "crm", app_title: "CRM", unbuilt_view_types: UNBUILT, bulk_actions: true, bulk_operation_limit: 500, session: { user: { name: "jane@example.com" } } }).provide("addresses", {
 		moduleName: () => null,
 		doctypeOf: () => doctype,
 	});
@@ -177,6 +189,18 @@ describe("a rows read", () => {
 		const list = await mount();
 		await set("filters", [["status", "=", "Open"]]);
 		expect(list.state()).toBe("filtered");
+	});
+});
+
+describe("a view type that is not built yet", () => {
+	it("draws a placeholder in the table's place, under the controls, with a way back to the List view", async () => {
+		const list = await mount(ViewPage, "Contact", KANBAN);
+
+		await vi.waitFor(() => expect(list.text()).toContain("Kanban view is not built yet"));
+		expect(list.has("[data-stub-filter]")).toBe(true);
+		expect(list.has("[data-stub-list]")).toBe(false);
+		expect(list.action()?.textContent?.trim()).toBe("Open the List view");
+		expect(list.action()?.getAttribute("href")).toContain("view=list");
 	});
 });
 

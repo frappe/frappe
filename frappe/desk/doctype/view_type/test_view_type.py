@@ -14,7 +14,7 @@ from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.doctype_view import api as view_api
 from frappe.desk.doctype.doctype_view import app_views as app_views_module
 from frappe.desk.doctype.doctype_view.app_views import ViewIndex, app_views
-from frappe.desk.doctype.doctype_view.key_space import SURVIVOR_CANDIDATES, reserved_keys
+from frappe.desk.doctype.doctype_view.key_space import UNBUILT_KEYS, reserved_keys, unbuilt_view_types
 from frappe.desk.doctype.doctype_view.test_app_views import APPS, AppFolders
 from frappe.desk.doctype.doctype_view.view_list import ViewList
 from frappe.desk.doctype.view_type import view_type as view_type_module
@@ -108,6 +108,7 @@ class TestTheRecords(ViewTypeCase):
 
 		self.assertIn({"name": "List", "label": "List", "icon": "list"}, boot["view_types"])
 		self.assertIn({"name": PROBE, "label": "Probe", "icon": None}, boot["view_types"])
+		self.assertEqual(boot["unbuilt_view_types"], unbuilt_view_types())
 
 
 class TestTheRules(ViewTypeCase):
@@ -202,10 +203,23 @@ class TestTheRules(ViewTypeCase):
 
 
 class TestReservedKeys(ViewTypeCase):
-	def test_each_record_and_each_survivor_candidate_is_reserved(self):
-		self.assertLessEqual(
-			{"list", "probe-46028", "kanban", "record", *SURVIVOR_CANDIDATES}, reserved_keys()
+	def test_each_record_and_each_unbuilt_type_is_reserved(self):
+		self.assertLessEqual({"list", "probe-46028", "kanban", "record", *UNBUILT_KEYS}, reserved_keys())
+
+	def test_the_released_keys_are_free(self):
+		released = {"gantt", "image", "inbox", "map", "dashboard"}
+		self.assertFalse(released & reserved_keys())
+
+	def test_the_unbuilt_types_are_the_four_kept_ones_in_order(self):
+		self.assertEqual(
+			[(one["name"], one["icon"]) for one in unbuilt_view_types()],
+			[("Kanban", "kanban"), ("Calendar", "calendar"), ("Tree", "list-tree"), ("Report", "table")],
 		)
+
+	def test_a_type_with_a_record_leaves_the_unbuilt_list_and_stays_reserved(self):
+		make_type("Calendar", "Calendar")
+		self.assertEqual([one["name"] for one in unbuilt_view_types()], ["Kanban", "Tree", "Report"])
+		self.assertIn("calendar", reserved_keys())
 
 	def test_a_view_labelled_as_a_type_or_a_candidate_takes_a_suffix(self):
 		keys = [make_view(type="List", label=label).insert().key for label in ("Probe-46028", "Calendar")]

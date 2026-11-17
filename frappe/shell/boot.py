@@ -1,5 +1,7 @@
 # The v2 boot — a small payload of core plus the declaring app, not `frappe.sessions.get()`.
 
+import re
+
 import frappe
 from frappe import _
 from frappe.api import bulk
@@ -11,6 +13,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 )
 from frappe.custom.doctype.client_script.client_script import list_page_doctypes
 from frappe.desk.doctype.default_view.resolver import DefaultViews
+from frappe.desk.doctype.doctype_view.key_space import unbuilt_view_types
 from frappe.desk.doctype.favourite.favourite import readable_views
 from frappe.desk.doctype.view_type.view_type import view_types
 from frappe.integrations.frappe_providers.cloud_settings import is_cloud_settings_enabled
@@ -45,6 +48,8 @@ BUDGET_LOG_TITLE = "Boot key over budget"
 RECENT_LIMIT = 5
 
 CLOUD_SETTINGS_ROUTE = "/desk?cloud_settings=1"
+# A route into desk itself (v1 or the legacy `/app`), which no app owns.
+DESK_ROUTE = re.compile(r"/(desk|app)([/?#]|$)")
 
 
 def core_boot() -> dict:
@@ -172,15 +177,50 @@ def setup_pending_apps() -> set[str]:
 
 
 def tile_target(app: str, screen: dict, prefix: str | None) -> dict | None:
-	"""Where a tile opens: a v2 app's prefix when `prefix` is given, else the hook's route."""
-	if prefix:
-		return {"kind": "prefix", "route": shell_base(prefix)} if has_app_permission(app) else None
+	"""Where a tile opens and the doors fanned behind it, or None when the user may open none."""
+	desk = bool(prefix) and has_app_permission(app)
+	# The hook's own check guards the app's own UI and, as in desk v1, its module icons.
+	allowed = may_link_out(app, screen)
+	own = allowed and (not prefix or opens_own_ui(screen))
 
-	if may_link_out(app, screen):
-		# A hook with no route opens desk v1.
-		return {"kind": "link", "route": screen.get("route") or "/desk"}
+	if not (desk or own):
+		return None
 
-	return None
+	cards = module_cards(app, screen) if allowed else []
+
+	if desk and own:
+		return {"kind": "link", "route": screen["route"], "fan": [desk_card(prefix), *cards]}
+
+	if desk:
+		return {"kind": "prefix", "route": shell_base(prefix), "fan": cards}
+
+	# A hook with no route opens desk v1.
+	return {"kind": "link", "route": screen.get("route") or "/desk", "fan": cards}
+
+
+def opens_own_ui(screen: dict) -> bool:
+	"""Whether the hook's route is the app's own UI (`/crm`, `/g`) and not a page of desk, as `/desk/home` is."""
+	return bool(screen.get("route")) and not DESK_ROUTE.match(screen["route"])
+
+
+def desk_card(prefix: str) -> dict:
+	"""The fan card that opens an app's v2 prefix, drawn with Framework's logo."""
+	return {
+		"title": _("Desk"),
+		"logo": app_screen("frappe")["logo"],
+		"route": shell_base(prefix),
+		"desk": True,
+	}
+
+
+def module_cards(app: str, screen: dict) -> list[dict]:
+	"""The hook's `module_icons` this user may open, each by its own `has_permission` as in desk v1."""
+	return [
+		{"title": _(icon["title"]), "logo": icon.get("logo"), "route": icon["route"]}
+		for icon in screen.get("module_icons") or []
+		if icon.get("title") and icon.get("route")
+		if not icon.get("has_permission") or passes_apps_screen_check(app, icon["has_permission"])
+	]
 
 
 def may_link_out(app: str, screen: dict) -> bool:
@@ -323,6 +363,7 @@ def get_boot(path: str | None = None) -> dict:
 				{"name": record.name, "label": _(record.label), "icon": record.icon}
 				for record in view_types().values()
 			],
+			"unbuilt_view_types": unbuilt_view_types(),
 		}
 
 	# One exit, so the index payload is weighed on the same call site as a prefix's.

@@ -150,3 +150,19 @@ describe("ListFooter page size", () => {
     ).toBe("500");
   });
 });
+
+describe("ListFooter act marks", () => {
+  it("marks the page-size tabs and Load More with the host's acts, and nothing without them", async () => {
+    const marked = await mount(ListFooter, {
+      hasCounts: true,
+      rowCount: 20,
+      totalCount: 50,
+      acts: { pageSize: "list.set_page_size", loadMore: "list.load_more" },
+    });
+    expect(marked.root.querySelector('[data-act="list.set_page_size"] button')).not.toBeNull();
+    expect(loadMore(marked.root)!.dataset.act).toBe("list.load_more");
+
+    const plain = await mount(ListFooter, { hasCounts: true, rowCount: 20, totalCount: 50 });
+    expect(plain.root.querySelector("[data-act]")).toBeNull();
+  });
+});

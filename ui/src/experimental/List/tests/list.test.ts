@@ -295,6 +295,17 @@ describe("List sort", () => {
         ?.getAttribute("aria-sort")
     ).toBe("descending");
   });
+
+  it("puts the host's sortAct on each sortable header button, and nothing without it", async () => {
+    const sortable = { sort: [], "onUpdate:sort": () => {} };
+    const marked = await mount(List, { columns, rows, ...sortable, sortAct: "list.set_sort" });
+    const buttons = headerButtons(marked.root);
+    expect(buttons.length).toBeGreaterThan(0);
+    for (const button of buttons) expect(button.closest("[data-act]")?.getAttribute("data-act")).toBe("list.set_sort");
+
+    const plain = await mount(List, { columns, rows, ...sortable });
+    for (const button of headerButtons(plain.root)) expect(button.closest("[data-act]")).toBeNull();
+  });
 });
 
 describe("List states", () => {

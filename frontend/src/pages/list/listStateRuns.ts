@@ -78,12 +78,20 @@ export function listFacts(list: ListPageController, schema: ListSchema) {
 }
 
 function readRows(list: ListPageController, schema: ListSchema) {
-  return { total: list.renderer().total(), rows: rowsOf(list, schema) };
+  return loadedRows(list.page.rows, list.renderer().total(), schema.meta()?.title_field);
+}
+
+/** What the acts that load rows return: how many records match, and the first rows from `from` with their titles. */
+export function loadedRows(rows: readonly Record<string, unknown>[], total: number, titleField: string | undefined, from = 0) {
+  return { total, rows: titledRows(rows, titleField, from) };
+}
+
+function titledRows(rows: readonly Record<string, unknown>[], titleField: string | undefined, from = 0) {
+  return rows.slice(from, from + ROWS).map((row) => ({ name: String(row.name), title: titleOf(row, titleField) }));
 }
 
 function rowsOf(list: ListPageController, schema: ListSchema) {
-  const title = schema.meta()?.title_field;
-  return list.page.rows.slice(0, ROWS).map((row) => ({ name: row.name, title: titleOf(row, title) }));
+  return titledRows(list.page.rows, schema.meta()?.title_field);
 }
 
 function titleOf(row: Record<string, unknown>, field: string | undefined) {
@@ -170,7 +178,7 @@ function blank(operator: string, value: unknown): boolean {
 }
 
 /** A long field list would drown the error: the first few, then how many more. */
-function oneOf(names: string[]): string {
+export function oneOf(names: string[]): string {
   const SHOWN = 15;
   const more = names.length - SHOWN;
   return names.slice(0, SHOWN).join(", ") + (more > 0 ? `, and ${more} more` : "");

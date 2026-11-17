@@ -4,8 +4,10 @@ from contextlib import ExitStack
 
 import frappe
 from frappe.shell import SHELL_ROOT
-from frappe.shell.boot import get_boot, save_index_layer
+from frappe.shell.boot import get_boot, opens_own_ui, save_index_layer
 from frappe.shell.index_layer import SETTINGS_KEY
+from frappe.shell.palette import places
+from frappe.shell.titles import app_screen
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_shell import a_second_app, hooks_declaring
 from frappe.tests.test_shell_navigation import make_rail
@@ -73,7 +75,9 @@ class TestIndexTiles(IntegrationTestCase):
 		return {tile["app"]: tile for tile in get_boot(f"/{SHELL_ROOT}")["apps"]}
 
 	def test_a_v2_app_opens_its_prefix_and_any_other_app_links_out(self):
-		self.two_apps(**{V2_APP: screen(V2_APP, route="/probe"), LINK_APP: screen(LINK_APP, route="/link")})
+		self.two_apps(
+			**{V2_APP: screen(V2_APP, route="/desk/probe"), LINK_APP: screen(LINK_APP, route="/link")}
+		)
 
 		boot = get_boot(f"/{SHELL_ROOT}")
 		self.assertIsNone(boot["app"])
@@ -90,11 +94,114 @@ class TestIndexTiles(IntegrationTestCase):
 				"logo": f"/assets/{V2_APP}/logo.svg",
 				"kind": "prefix",
 				"route": f"/apps/{V2_PREFIX}",
+				"fan": [],
 				"hidden": False,
 			},
 		)
 		self.assertEqual(tiles[LINK_APP]["kind"], "link")
 		self.assertEqual(tiles[LINK_APP]["route"], "/link")
+
+	def test_a_v2_app_with_its_own_ui_opens_it_and_fans_out_a_desk_card(self):
+		self.two_apps(**{V2_APP: screen(V2_APP, route="/probe"), LINK_APP: screen(LINK_APP, route="/link")})
+
+		tile = self.tiles()[V2_APP]
+		self.assertEqual((tile["kind"], tile["route"]), ("link", "/probe"))
+		self.assertEqual(
+			tile["fan"],
+			[
+				{
+					"title": "Desk",
+					"logo": app_screen("frappe")["logo"],
+					"route": f"/apps/{V2_PREFIX}",
+					"desk": True,
+				}
+			],
+		)
+		# A link app has no desk to open.
+		self.assertEqual(self.tiles()[LINK_APP]["fan"], [])
+
+	def test_a_v2_app_whose_hook_route_is_a_desk_page_gets_no_desk_card(self):
+		for route in ("/desk", "/desk/home", "/app/todo", "/desk?x=1", None):
+			with self.subTest(route=route):
+				self.assertFalse(opens_own_ui({"route": route} if route else {}))
+
+		self.assertTrue(opens_own_ui({"route": "/desktop"}))
+
+	def test_the_user_who_may_open_one_door_gets_a_plain_tile_for_it(self):
+		self.two_apps(
+			**{
+				V2_APP: screen(
+					V2_APP, route="/probe", has_permission="frappe.permissions.check_app_permission"
+				),
+				LINK_APP: screen(LINK_APP, route="/link"),
+			}
+		)
+
+		# The hook's check guards the own UI only; Desk answers to `has_app_permission`.
+		tile = self.tiles(self.user)[V2_APP]
+		self.assertEqual((tile["kind"], tile["route"], tile["fan"]), ("prefix", f"/apps/{V2_PREFIX}", []))
+
+		self.enterContext(
+			hooks_declaring("app_permission", {V2_APP: "frappe.permissions.check_app_permission"})
+		)
+		self.assertIn(V2_APP, self.tiles())
+		self.assertNotIn(V2_APP, self.tiles(self.user))
+
+	def test_an_app_fans_out_the_module_icons_this_user_may_open(self):
+		studio = {"title": "Studio", "logo": "/studio.svg", "route": "/studio"}
+		hidden = {**studio, "title": "Hidden", "has_permission": "frappe.permissions.check_app_permission"}
+		self.two_apps(
+			**{
+				V2_APP: screen(V2_APP, route="/desk/probe", module_icons=[studio, hidden]),
+				LINK_APP: screen(LINK_APP, route="/link", module_icons=[studio, {**hidden, "route": "/h"}]),
+			}
+		)
+
+		for user, titles in (("Administrator", ["Studio", "Hidden"]), (self.user, ["Studio"])):
+			tiles = self.tiles(user)
+			self.assertEqual([card["title"] for card in tiles[V2_APP]["fan"]], titles)
+			self.assertEqual([card["title"] for card in tiles[LINK_APP]["fan"]], titles)
+
+		# Framework fans out its own hook's Studio and Flow.
+		self.assertEqual([card["title"] for card in self.tiles()["frappe"]["fan"]], ["Studio", "Flow"])
+
+	def test_a_raising_module_icon_check_drops_the_card_not_the_index(self):
+		icon = {"title": "Broken", "route": "/broken", "has_permission": "frappe.no_such.check"}
+		self.two_apps(**{V2_APP: screen(V2_APP, route="/desk/probe", module_icons=[icon])})
+
+		self.assertEqual(self.tiles()[V2_APP]["fan"], [])
+
+	def test_the_hooks_own_check_guards_its_module_icons_as_in_desk_v1(self):
+		studio = {"title": "Studio", "logo": "/studio.svg", "route": "/studio"}
+		self.two_apps(
+			**{
+				V2_APP: screen(
+					V2_APP,
+					route="/desk/probe",
+					module_icons=[studio],
+					has_permission="frappe.permissions.check_app_permission",
+				)
+			}
+		)
+
+		# The user keeps the Desk tile but the hook refuses them, so nothing fans out behind it.
+		self.assertEqual(self.tiles(self.user)[V2_APP]["fan"], [])
+		self.assertEqual([card["title"] for card in self.tiles()[V2_APP]["fan"]], ["Studio"])
+		self.assertEqual(self.tiles(self.user)["frappe"]["fan"], [])
+
+	def test_a_module_icon_without_a_title_or_route_is_skipped(self):
+		icon = {"title": "No route"}
+		self.two_apps(**{V2_APP: screen(V2_APP, route="/desk/probe", module_icons=[icon, {"route": "/x"}])})
+
+		self.assertEqual(self.tiles()[V2_APP]["fan"], [])
+
+	def test_the_palette_and_switcher_keep_opening_the_desk(self):
+		self.two_apps(**{V2_APP: screen(V2_APP, route="/probe"), LINK_APP: screen(LINK_APP, route="/link")})
+
+		apps = {app["app"]: app for app in places()["apps"]}
+		self.assertEqual((apps[V2_APP]["kind"], apps[V2_APP]["route"]), ("prefix", f"/apps/{V2_PREFIX}"))
+		self.assertEqual((apps[LINK_APP]["kind"], apps[LINK_APP]["route"]), ("link", "/link"))
+		self.assertNotIn("fan", apps[V2_APP])
 
 	def test_an_app_with_no_hook_gets_no_tile(self):
 		self.two_apps(**{LINK_APP: screen(LINK_APP, route="/link")})

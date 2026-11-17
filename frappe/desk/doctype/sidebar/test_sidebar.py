@@ -702,8 +702,11 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		"""
 		import os
 
+		# v1's sidebars only: desk v2's app-rooted sidebars carry an address and are named by it.
 		shipped = frappe.get_all(
-			"Sidebar", filters={"standard": 1, "app": "frappe"}, fields=["name", "module", "title"]
+			"Sidebar",
+			filters={"standard": 1, "app": "frappe", "link_doctype": ("is", "not set")},
+			fields=["name", "module", "title"],
 		)
 		self.assertEqual([row.name for row in shipped if row.name != row.module], [])
 		for row in shipped:

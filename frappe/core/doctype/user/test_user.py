@@ -708,10 +708,22 @@ class TestUser(IntegrationTestCase):
 			finally:
 				frappe.local.response = response
 
+	def test_wrong_current_password_stays_an_authentication_error_with_desk_v2_off(self):
+		tracker = self.start_password_session(desk_v2=0)
+		failed_before = tracker.login_failed_count
+
+		with self.assertRaises(frappe.AuthenticationError) as raised:
+			update_password("Strong_New_45948", old_password="not-the-password")
+
+		# develop's 401, which clears the sid cookie, and no lockout attempt
+		self.assertIs(type(raised.exception), frappe.AuthenticationError)
+		self.assertEqual(tracker.login_failed_count, failed_before)
+
 	def test_wrong_current_password_is_not_an_authentication_error(self):
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
 		set_request(path="/random")
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
@@ -739,11 +751,12 @@ class TestUser(IntegrationTestCase):
 			update_password("Strong_New_45948", old_password="not-the-password")
 		self.assertIs(type(raised.exception), frappe.AuthenticationError)
 
-	def start_password_session(self, user="testpassword@example.com"):
+	def start_password_session(self, user="testpassword@example.com", desk_v2=1):
 		from frappe.auth import CookieManager, LoginManager, get_login_attempt_tracker
 		from frappe.utils import set_request
 		from frappe.utils.password import update_password as set_password
 
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=desk_v2))
 		set_request(path="/random")
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()

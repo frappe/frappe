@@ -58,6 +58,7 @@
 					<ListHeaderCellSort
 						v-if="sortable && column.sortable !== false"
 						class="min-w-0"
+						:data-act="sortAct"
 						:direction="directionFor(sort, column.fieldname)"
 						:align="isRight(column) ? 'end' : 'start'"
 						@click="sort = nextSort(sort, column.fieldname)"

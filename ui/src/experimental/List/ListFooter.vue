@@ -5,11 +5,14 @@
 		class="flex shrink-0 items-center justify-between gap-2 border-t border-outline-gray-1 py-2"
 	>
 		<div class="flex items-center gap-2">
-			<TabButtons :modelValue="pageSize" :options="tabs" />
+			<div :data-act="acts?.pageSize">
+				<TabButtons :modelValue="pageSize" :options="tabs" />
+			</div>
 			<Button
 				v-if="hasNextPage ?? (hasCounts && rowCount < totalCount)"
 				variant="subtle"
 				label="Load More"
+				:data-act="acts?.loadMore"
 				@click="emit('load-more')"
 			/>
 		</div>
@@ -49,6 +52,8 @@ const props = withDefaults(
 		/** Whether Load More shows; unset, the counts decide. */
 		hasNextPage?: boolean;
 		pageSizeOptions?: number[];
+		/** The host's acts for the page-size tabs and Load More; each marks its control (`data-act`) for the host's act-control check. */
+		acts?: { pageSize?: string; loadMore?: string };
 	}>(),
 	{
 		rowCount: 0,

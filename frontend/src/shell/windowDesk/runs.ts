@@ -20,7 +20,13 @@ const parked = new Map<number, Call>();
 const racing: Call[] = [];
 
 // A confirm that opens while a run is in flight, or after a parked call's own confirm closed, is the agent's, and says so.
-agentAsk.note = () => (racing.length || [...parked.values()].some((call) => !call.done && !openDialog(call)) ? __("An agent asked for this.") : "");
+// A confirm the act's own starter is known for (`agentAsk.agent`) skips that guess.
+agentAsk.note = () => {
+	if (agentAsk.agent !== null) return agentAsk.agent ? __("An agent asked for this.") : "";
+	return racing.length || [...parked.values()].some((call) => !call.done && !openDialog(call)) ? __("An agent asked for this.") : "";
+};
+// Confirms a person's act opened: no run claims them.
+const people = new Set<number>();
 
 export async function run(name: string, value?: unknown): Promise<ActResult> {
 	const holding = holder();
@@ -54,12 +60,22 @@ function start(name: string, value: unknown) {
 	call.opened = new Promise<ActDialog>((resolve) => {
 		call.stop = watchListed(() => {
 			if (racing.at(-1) !== call) return;
-			const dialog = readDialogs().find((held) => held.id > above && isConfirm(held) && !owned(held));
+			markPeople();
+			const dialog = readDialogs().find((held) => held.id > above && isConfirm(held) && !owned(held) && !people.has(held.id));
 			if (dialog) resolve(dialog);
 		});
 	});
 	call.ended = acts.call(name, value, { agent: true });
 	return call;
+}
+
+function markPeople() {
+	const open = readDialogs();
+	for (const id of people) if (!open.some((held) => held.id === id)) people.delete(id);
+	if (agentAsk.agent !== false) return;
+	// The list changes once per dialog, so the newest unowned confirm is the one this person's act just opened.
+	const newest = open.filter((held) => isConfirm(held) && !owned(held)).at(-1);
+	if (newest) people.add(newest.id);
 }
 
 function owned(dialog: ActDialog) {
@@ -70,7 +86,7 @@ function park(call: Call) {
 	parked.set(call.id, call);
 	// The act may open a later confirm (a `beforeSubmit` after the built-in one); it holds the other runs too.
 	// A run in flight claims a new confirm first, as it was started last.
-	const stop = watchListed(() => adopt(call));
+	const stop = watchListed(() => (markPeople(), adopt(call)));
 	void call.ended.then(() => {
 		stop();
 		call.done = true;
@@ -87,7 +103,7 @@ function adoptAll() {
 
 function adopt(call: Call) {
 	if (racing.length || call.done) return;
-	const later = readDialogs().find((held) => held.id > call.dialog!.id && isConfirm(held) && !owned(held));
+	const later = readDialogs().find((held) => held.id > call.dialog!.id && isConfirm(held) && !owned(held) && !people.has(held.id));
 	if (later) call.dialog = later;
 }
 

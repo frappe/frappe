@@ -19,6 +19,7 @@ import { recordTabBuiltins } from "@/pages/record/tabs/recordTabs";
 import { editorEntries } from "@/pages/doctypeEditor/entries/editorEntries";
 import { listEntries } from "@/pages/list/listActs";
 import { bulkKeyEntries } from "@/pages/list/bulkKeys";
+import { listViewEntries } from "@/pages/list/listViewActs";
 import { bulkBarParts } from "@/pages/list/bulkBarParts";
 import { editorItems, settingsItems } from "@/pages/doctypeEditor/editorActs";
 import { canvasItems, fieldItems } from "@/pages/doctypeEditor/canvasActs";
@@ -95,7 +96,7 @@ function list(): ActItem[] {
     toggle: noop,
     extendTo: noop,
   });
-  return [...listEntries(host, []), ...keys].map((entry: ActEntry) => entry.item);
+  return [...listEntries(host, []), ...keys, ...listViewEntries({ hasNextPage: ref(true) } as any)].map((entry: ActEntry) => entry.item);
 }
 
 function bulk(): ActItem[] {

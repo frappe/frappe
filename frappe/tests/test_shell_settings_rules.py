@@ -18,7 +18,7 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 )
 from frappe.desk.settings_block import native_row
 from frappe.desk.settings_rules import SettingsRules, is_strict
-from frappe.shell.settings import check_shipped_records, merge_shipped
+from frappe.shell.settings import check_shipped_records, check_shipped_records_after_migrate, merge_shipped
 from frappe.shell.settings_snapshot import check_settings_snapshot
 from frappe.tests.test_shell_settings import active, unchecked
 
@@ -96,6 +96,27 @@ class TestSettingsRules(SettingsDialogTestCase):
 
 		with active(HOST, EXTENDER), self.assertRaisesRegex(frappe.ValidationError, "pane gone"):
 			check_shipped_records()
+
+	def test_after_migrate_skips_a_clash_with_desk_v2_off_and_throws_with_it_on(self):
+		with authoring():
+			ship(["general"], [bound("phone", saves_fields='["mobile_no"]')])
+			unchecked(
+				ship(
+					blocks=[bound("calls", saves_fields='["mobile_no"]')],
+					app=EXTENDER,
+					extends=HOST,
+					insert=False,
+				)
+			)
+
+		with active(HOST, EXTENDER):
+			with self.change_settings("System Settings", enable_desk_v2=0):
+				check_shipped_records_after_migrate()
+			with (
+				self.change_settings("System Settings", enable_desk_v2=1),
+				self.assertRaisesRegex(frappe.ValidationError, "mobile_no"),
+			):
+				check_shipped_records_after_migrate()
 
 	def test_after_migrate_finds_two_apps_owning_a_field(self):
 		with authoring():

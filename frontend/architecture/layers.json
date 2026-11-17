@@ -1210,6 +1210,10 @@
     {
       "flow": "Load a stored script",
       "entry": "frontend/src/recordPage/clientScripts.ts"
+    },
+    {
+      "flow": "Open the DocType editor",
+      "entry": "frontend/src/pages/doctypeEditor/DoctypeEditor.vue"
     }
   ]
 }

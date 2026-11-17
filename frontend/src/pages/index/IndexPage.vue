@@ -77,11 +77,19 @@
 						:id="selectableId(tileKey(app))"
 						:app="app"
 						:selected="selection.isSelected(tileKey(app))"
+						:selected-door="selection.selectedDoor(tileKey(app))"
+						:door-ids="doorKeys(app).map(selectableId)"
+						:menu-open="menuApp === app.app"
 					/>
 					<div
-						class="absolute right-2 top-0 opacity-0 transition group-hover/tile:opacity-100 has-[[data-state=open]]:opacity-100"
+						class="absolute right-0 top-0 opacity-0 transition group-hover/tile:opacity-100 has-[[data-state=open]]:opacity-100"
 					>
-						<Dropdown :options="tileMenu(app)" side="bottom" align="end">
+						<Dropdown
+							:options="tileMenu(app)"
+							side="bottom"
+							align="end"
+							@update:open="menuApp = $event ? app.app : null"
+						>
 							<button
 								type="button"
 								class="flex size-6 items-center justify-center rounded-full bg-surface-base text-ink-gray-7 shadow ring-1 ring-outline-gray-2 hover:bg-surface-gray-2 focus-visible:focus-ring"
@@ -152,7 +160,7 @@ import { saveLayer } from "./layer";
 import MoreAppsTile from "./MoreAppsTile.vue";
 import { recentKey } from "./recent";
 import { useIndexSearch } from "./indexSearchLoader";
-import { Selection, selectableId, type SelectionSection } from "./selection";
+import { Selection, doorKey, selectableId, type SelectionSection } from "./selection";
 
 const ArrangeApps = defineAsyncComponent(() => import("./ArrangeApps.vue"));
 const IndexNotices = defineAsyncComponent(() => import("./IndexNotices.vue"));
@@ -166,6 +174,8 @@ const MORE_APPS_KEY = "more-apps";
 
 const boot = inject<Boot>("boot")!;
 const apps = ref<IndexApp[]>(boot.apps ?? []);
+// The tile whose ⋯ menu is open: it stays drawn as hovered while the pointer is on the menu.
+const menuApp = ref<string | null>(null);
 const favourites = new Favourites(boot.favourites ?? [], !!boot.more_favourites);
 const recent = boot.recent ?? [];
 const notices = boot.notices ?? {};
@@ -212,7 +222,14 @@ if (apps.value.length) {
 const sections = computed<SelectionSection[]>(() => [
 	{
 		items: [
-			...matches.value.map((app) => ({ key: tileKey(app), href: app.route })),
+			...matches.value.map((app) => ({
+				key: tileKey(app),
+				href: app.route,
+				doors: app.fan.map((card, index) => ({
+					key: doorKey(tileKey(app), index),
+					href: card.route,
+				})),
+			})),
 			...(moreApps.value ? [{ key: MORE_APPS_KEY, href: moreApps.value }] : []),
 		],
 		columns: columnsFor(tileCount.value),
@@ -265,6 +282,8 @@ function onKeydown(event: KeyboardEvent) {
 		const target = selection.target();
 		if (target?.run) target.run();
 		else if (target?.href) loadDocument(target.href);
+	} else if (event.key === "Tab" && selection.stepDoor(event.shiftKey)) {
+		event.preventDefault();
 	} else if (event.key === "Escape") {
 		query.value = "";
 	}
@@ -291,9 +310,21 @@ function finishArranging(arranged: IndexApp[]) {
 }
 
 function tileMenu(app: IndexApp) {
-	return app.hidden
-		? [{ label: __("Show"), icon: "lucide-eye", onClick: () => setHidden(app, false) }]
-		: [{ label: __("Hide"), icon: "lucide-eye-off", onClick: () => setHidden(app, true) }];
+	const doors = app.fan.map((card) => ({
+		label: __("Open {0}", [card.title]),
+		icon: "lucide-arrow-up-right",
+		onClick: () => loadDocument(card.route),
+	}));
+	return [
+		...doors,
+		app.hidden
+			? { label: __("Show"), icon: "lucide-eye", onClick: () => setHidden(app, false) }
+			: { label: __("Hide"), icon: "lucide-eye-off", onClick: () => setHidden(app, true) },
+	];
+}
+
+function doorKeys(app: IndexApp) {
+	return app.fan.map((_card, index) => doorKey(tileKey(app), index));
 }
 
 async function setHidden(app: IndexApp, hidden: boolean) {

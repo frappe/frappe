@@ -37,7 +37,7 @@ from frappe.utils import (
 	validate_time_zone,
 )
 from frappe.utils.background_jobs import get_queue, get_queue_args, get_running_jobs_in_queue
-from frappe.utils.data import sha256_hash
+from frappe.utils.data import is_desk_v2_enabled, sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import (
 	check_password,
@@ -1150,7 +1150,7 @@ def get_perm_info(role: str):
 	return get_all_perms(role)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 def update_password(
 	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
 ):
@@ -1199,7 +1199,7 @@ def update_password(
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
-	link_redirect = sanitize_redirect(redirect_url) if key else None
+	link_redirect = sanitize_redirect(redirect_url) if key and is_desk_v2_enabled() else None
 
 	user_doc.validate_reset_password()
 
@@ -1294,8 +1294,6 @@ def ask_pass_update():
 
 
 def _get_user_for_update_password(key, old_password):
-	from frappe.auth import get_login_attempt_tracker
-
 	# verify old password
 	result = frappe._dict()
 	if key:
@@ -1324,17 +1322,26 @@ def _get_user_for_update_password(key, old_password):
 			result.message = _("The reset password link has either been used before or is invalid")
 	else:
 		user = frappe.session.user
-		tracker = None if user == "Guest" else get_login_attempt_tracker(user)
-		# a 417, not the 401 that makes handle_exception clear the caller's sid cookie
-		try:
+		if is_desk_v2_enabled():
+			_check_old_password_for_v2(user, old_password)
+		else:
 			frappe.local.login_manager.check_password(user, old_password)
-		except frappe.AuthenticationError:
-			if not tracker:
-				raise
-			tracker.add_failure_attempt()
-			frappe.throw(_("Incorrect password"), title=_("Invalid Password"))
 		result.user = user
 	return result
+
+
+def _check_old_password_for_v2(user: str, old_password: str | None) -> None:
+	"""A wrong password is a 417 that counts toward lockout; v1 keeps the 401 that clears the sid cookie."""
+	from frappe.auth import get_login_attempt_tracker
+
+	tracker = None if user == "Guest" else get_login_attempt_tracker(user)
+	try:
+		frappe.local.login_manager.check_password(user, old_password)
+	except frappe.AuthenticationError:
+		if not tracker:
+			raise
+		tracker.add_failure_attempt()
+		frappe.throw(_("Incorrect password"), title=_("Invalid Password"))
 
 
 def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
@@ -1962,12 +1969,14 @@ def _unassign_roles(users: list, roles: list) -> None:
 		user_doc.remove_roles(*roles)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def add_roles_to_user(doctype: str, name: str, roles: str | list) -> None:
 	"""Add roles to one user. The User list's Add Roles runs it on each selected user through `bulk_call`."""
 	_get_user_to_change(doctype, name).add_roles(*_validate_roles(roles))
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def remove_roles_from_user(doctype: str, name: str, roles: str | list) -> None:
 	"""Remove roles from one user. The User list's Remove Roles runs it on each selected user."""

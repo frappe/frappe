@@ -27,7 +27,7 @@
 		@update:selectedOption="addFilter"
 	>
 		<template #trigger>
-			<Button label="Filter" iconLeft="lucide-list-filter" />
+			<Button label="Filter" iconLeft="lucide-list-filter" data-view />
 		</template>
 	</Combobox>
 
@@ -39,6 +39,7 @@
 					label="Filter"
 					class="relative rounded-r-none focus-visible:z-10"
 					iconLeft="lucide-list-filter"
+					data-view
 				>
 					<template #suffix>
 						<div

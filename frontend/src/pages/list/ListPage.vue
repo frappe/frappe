@@ -35,7 +35,10 @@
 						:class="[pageGutter, { invisible: !list.engine.ready.value }]"
 						class="flex shrink-0 items-start justify-between gap-2 pt-3.5"
 					>
-						<div class="flex min-w-0 flex-1 flex-col">
+						<div
+							class="flex min-w-0 flex-1 flex-col"
+							:data-act="customizing ? undefined : 'list.set_filters'"
+						>
 							<QuickFilter
 								v-if="shown.has('quick_filter')"
 								v-model:filters="filters"
@@ -46,13 +49,17 @@
 						</div>
 						<div v-if="!customizing" class="flex shrink-0 items-center gap-2">
 							<template v-for="item in rowControls" :key="item.name">
-								<Filter
+								<div
 									v-if="item.name === 'filter'"
-									v-model="filters"
-									:doctype="doctype"
-								/>
+									class="contents"
+									data-act="list.set_filters"
+								>
+									<Filter v-model="filters" :doctype="doctype" />
+								</div>
 								<template v-else-if="item.name === 'sort'">
-									<SortBy v-if="seeded" v-model="sort" :doctype="doctype" />
+									<div v-if="seeded" class="contents" data-act="list.set_sort">
+										<SortBy v-model="sort" :doctype="doctype" />
+									</div>
 									<!-- Sized to the default sort: a direction button joined to its field's label. -->
 									<Skeleton
 										v-else
@@ -87,9 +94,10 @@
 					</div>
 
 					<div class="relative flex min-h-0 flex-1 flex-col pt-2">
+						<UnbuiltView v-if="unbuilt" :doctype="doctype" :label="unbuilt.label" />
 						<component
 							:is="rendererFor(view.type)"
-							v-if="list.engine.ready.value"
+							v-else-if="list.engine.ready.value"
 							:view="view"
 							:host="host"
 						/>
@@ -150,6 +158,8 @@ const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 const { view, quickFilterFields, customizing, metaError, reloadMeta, createValues } = props.page;
 const { doctype, filters, sort, seeded } = view;
+const UnbuiltView = defineAsyncComponent(() => import("./UnbuiltView.vue"));
+const unbuilt = boot.unbuilt_view_types?.find((one) => one.name === view.type);
 
 const { meta } = useDoctypeMeta(doctype);
 const created: (() => void)[] = [];
@@ -179,6 +189,7 @@ watch(recordDialogWrite, (write) => {
 // The plain List view is the doctype's own star; any other view is starred by its key.
 const starKey = view.key === "list" ? null : view.key;
 const settings = useListSettings(doctype);
+const starsLoaded = () => !unbuilt && settings.favourites.value !== null;
 const favourited = computed(() => isFavourite(settings.favourites.value, starKey));
 
 const permissions = useListPermissions(doctype);
@@ -229,7 +240,7 @@ const listActs = useListActs(
 				meta: meta.value,
 			}),
 		openEditor: (entry) => router.push(editorRoute(doctype, entry.mode)),
-		starsLoaded: () => settings.favourites.value !== null,
+		starsLoaded,
 		favourited: () => favourited.value,
 		toggleFavourite: () => settings.toggleFavourite(starKey),
 		openView: (key) => router.push(routeFor(doctype, null, { view: key })),
@@ -256,7 +267,7 @@ list.engine.header.provideBuiltins(() =>
 		doctype,
 		module: moduleCrumb,
 		view: viewCrumb,
-		starsLoaded: () => settings.favourites.value !== null,
+		starsLoaded,
 		favourited: () => favourited.value,
 		toggleFavourite: () => settings.toggleFavourite(starKey),
 		create,

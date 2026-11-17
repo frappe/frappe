@@ -17,9 +17,9 @@ vi.mock("@framework/ui/api", async (original) => ({
 type BootApp = NonNullable<Boot["apps"]>[number];
 
 const APPS: BootApp[] = [
-	{ app: "frappe", title: "Framework", logo: null, kind: "prefix", route: "/apps/desk", hidden: false },
-	{ app: "erpnext", title: "ERPNext", logo: null, kind: "prefix", route: "/apps/erpnext", hidden: false },
-	{ app: "crm", title: "CRM", logo: null, kind: "prefix", route: "/apps/crm", hidden: false },
+	{ app: "frappe", title: "Framework", logo: null, kind: "prefix", route: "/apps/desk", hidden: false, fan: [] },
+	{ app: "erpnext", title: "ERPNext", logo: null, kind: "prefix", route: "/apps/erpnext", hidden: false, fan: [] },
+	{ app: "crm", title: "CRM", logo: null, kind: "prefix", route: "/apps/crm", hidden: false, fan: [] },
 ];
 
 const ERPNEXT = "/apps/erpnext";

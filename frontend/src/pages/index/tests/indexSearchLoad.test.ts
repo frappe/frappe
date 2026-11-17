@@ -34,7 +34,7 @@ function mount() {
 	const host = document.createElement("div");
 	document.body.appendChild(host);
 	const app = createApp(IndexPage);
-	const apps = [{ app: "crm", title: "CRM", logo: null, kind: "prefix", route: "/apps/crm", hidden: false }];
+	const apps = [{ app: "crm", title: "CRM", logo: null, kind: "prefix", route: "/apps/crm", hidden: false, fan: [] }];
 	app.provide("boot", { app: null, apps, session: { user: {} }, prefixes: {} } as unknown as Boot);
 	app.provide("addresses", new Addresses({ doctypes: {}, modules: {}, singles: [] }));
 	app.use(createRouter({ history: createMemoryHistory(), routes: [{ path: "/", component: {} }] }));

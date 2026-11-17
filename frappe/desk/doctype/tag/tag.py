@@ -80,6 +80,7 @@ def remove_tag(tag: str, dt: str, dn: str):
 	DocTags(dt).remove(dn, tag)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def set_tag_color(tag: str, color: str):
 	"sets the colour of an existing Tag to one of the Select names"
@@ -89,6 +90,7 @@ def set_tag_color(tag: str, color: str):
 	tag_doc.save()
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def update_record_tags(dt: str, dn: str, added: str | list | None = None, removed: str | list | None = None):
 	"""Applies one picker session to a record: `added` is `[{"tag", "color"}]`, `removed` a list of
@@ -100,7 +102,7 @@ def update_record_tags(dt: str, dn: str, added: str | list | None = None, remove
 	added, removed = frappe.parse_json(added or []), frappe.parse_json(removed or [])
 	if not isinstance(added, list) or not isinstance(removed, list):
 		frappe.throw(_("added and removed must be lists"), frappe.ValidationError)
-	colors = frappe.get_meta("Tag").get_field("color").options.split("\n")
+	colors = (frappe.get_meta("Tag").get_field("color").options or "").split("\n")
 	for item in added:
 		name = item.get("tag") if isinstance(item, dict) else None
 		if not isinstance(name, str) or "," in name or not name.strip() or name != name.strip():
