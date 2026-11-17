@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { vAct } from "@/acts/vAct";
 import { __ } from "@/i18n";
 import { useChildFields } from "./childFields";
 import ChildTablePicker from "./ChildTablePicker.vue";

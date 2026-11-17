@@ -20,6 +20,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { Button } from "frappe-ui";
+import { vAct } from "@/acts/vAct";
 import { __, __n } from "@/i18n";
 import SettingsRow from "./SettingsRow.vue";
 import { KINDS, type SettingRow } from "./settingsRows";

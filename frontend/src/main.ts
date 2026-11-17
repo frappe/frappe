@@ -15,7 +15,6 @@ import templateNames from "../templateCompiler/names.json";
 import { fetchBoot, BootUnauthorized, type Boot } from "@/boot";
 import { fetchAddresses, type Addresses } from "@/addresses";
 import { useCreateRight } from "@/createRight";
-import { vAct } from "@/acts/vAct";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 import { recordLink } from "@/router/recordLink";
@@ -98,7 +97,6 @@ async function start() {
 	const app = createApp(AppShell);
 	installTranslate(app);
 	app.use(FrappeUI);
-	app.directive("act", vAct);
 	// Where `getSocketInstance` looks; the plugin no longer opens one.
 	app.config.globalProperties.$socket = createSocket(boot);
 	watchClientScripts(app.config.globalProperties.$socket);

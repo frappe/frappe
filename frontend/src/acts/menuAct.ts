@@ -22,5 +22,5 @@ function marked<T extends Row>(row: T, mark: Record<string, string>) {
 			item.description && h("div", { class: "truncate text-p-sm text-ink-gray-5" }, item.description),
 		]);
 	};
-	return { ...row, slots: { ...row.slots, label } };
+	return { ...row, slots: { label } };
 }
