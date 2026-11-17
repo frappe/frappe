@@ -81,6 +81,12 @@ def make(
 			category=DeprecationWarning,
 		)
 
+<<<<<<< HEAD
+=======
+	if not frappe.permissions.is_system_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+>>>>>>> e480057 (fix(email): restrict email.make to system users)
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 	else:

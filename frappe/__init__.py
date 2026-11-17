@@ -892,7 +892,11 @@ def is_whitelisted(method):
 		# escapes html characters like <> except for predefined tags like a, b, ul etc.
 		for key, value in form_dict.items():
 			if isinstance(value, str):
+<<<<<<< HEAD
 				form_dict[key] = sanitize_html(value)
+=======
+				form_dict[key] = sanitize_html_payload(value)
+>>>>>>> e480057 (fix(email): restrict email.make to system users)
 
 
 def read_only():
