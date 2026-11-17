@@ -134,7 +134,8 @@ import { openCreate } from "@/shell/create";
 import type { ListPage } from "@/list/useListPage";
 import { createListPage } from "@/listPage/createListPage";
 import { useListPermissions } from "@/listPage/listPermissions";
-import { isFavourite, useListSettings } from "@/list/useListSettings";
+import { refreshSavedViews } from "@/list/savedView";
+import { forgetFavouriteView, isFavourite, useListSettings } from "@/list/useListSettings";
 import BodyColumns from "@/pages/record/body/BodyColumns.vue";
 import FrameBands from "@/pages/record/FrameBands.vue";
 import RecordHeader from "@/pages/record/RecordHeader.vue";
@@ -230,16 +231,6 @@ function openView(key: string) {
 	return router.push(routeFor(doctype));
 }
 
-const confirmDelete = async (key: string) =>
-	Boolean(
-		await list.engine.page.dialog.danger({
-			title: __("Delete view?"),
-			message: __("{0} is deleted for good, with its star and default.", [key]),
-			confirmLabel: __("Delete"),
-			cancelLabel: __("Keep"),
-		})
-	);
-
 const listActs = useListActs(
 	{
 		list,
@@ -268,7 +259,15 @@ const listActs = useListActs(
 		viewSaveable: () => view.saveable.value,
 		writeView: async (name, value, agent) =>
 			(await import("./viewWriteRuns")).RUNS[name](
-				{ page: props.page, boot, router, confirmDelete },
+				{
+					page: props.page,
+					boot,
+					router,
+					dialog: list.engine.page.dialog,
+					refreshViews: refreshSavedViews,
+					forgetStar: (key) => forgetFavouriteView(doctype, key),
+					refreshDefault: () => clearDefaultView(boot, doctype, "user"),
+				},
 				value,
 				agent
 			),

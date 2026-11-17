@@ -13,6 +13,9 @@ import type { View } from "@/list/view";
 import { Addresses } from "@/addresses";
 import { registerShell } from "@/router/routeFor";
 import { consumeSkip, clearSkip } from "@/router/skipDefault";
+import { refreshSavedViews } from "@/list/savedView";
+import { forgetFavouriteView } from "@/list/useListSettings";
+import { clearDefaultView } from "../defaultView";
 import { RUNS, type ViewWriteHost } from "../viewWriteRuns";
 
 const API = "frappe.desk.doctype.doctype_view.api";
@@ -23,7 +26,7 @@ const shellBoot = { app: "frappe", shell_base: "/desk", prefixes: { frappe: { ap
 
 const push = vi.fn();
 const replace = vi.fn();
-const confirmDelete = vi.fn();
+const danger = vi.fn();
 
 function host(over: { layer?: View["layer"]; key?: string; saveable?: boolean; defaults?: Record<string, string> } = {}) {
 	const view = {
@@ -37,7 +40,16 @@ function host(over: { layer?: View["layer"]; key?: string; saveable?: boolean; d
 	const page = { view, snapshot: vi.fn(() => SETTINGS), commit: vi.fn(), discard: vi.fn() };
 	const boot = { default_views: over.defaults ?? {} } as unknown as Boot;
 	const router = { push, replace } as unknown as Router;
-	return { page, boot, router, run: host_run({ page: page as unknown as ListPage, boot, router, confirmDelete }) };
+	const context: ViewWriteHost = {
+		page: page as unknown as ListPage,
+		boot,
+		router,
+		dialog: { danger },
+		refreshViews: refreshSavedViews,
+		forgetStar: (key) => forgetFavouriteView("ToDo", key),
+		refreshDefault: () => clearDefaultView(boot, "ToDo", "user"),
+	};
+	return { page, boot, router, run: host_run(context) };
 }
 
 function host_run(context: ViewWriteHost) {
@@ -49,7 +61,7 @@ beforeEach(() => {
 	runMethod.mockReset().mockResolvedValue({ data: { key: "mine", label: "Mine", layer: "own" } });
 	push.mockReset().mockResolvedValue(undefined);
 	replace.mockReset().mockResolvedValue(undefined);
-	confirmDelete.mockReset().mockResolvedValue(true);
+	danger.mockReset().mockResolvedValue(true);
 	clearSkip();
 });
 
@@ -193,16 +205,16 @@ describe("delete_view", () => {
 
 	it("asks an agent before it deletes, and a person's script is not asked", async () => {
 		runMethod.mockResolvedValue({ data: { key: "other", restored: false } });
-		confirmDelete.mockResolvedValue(false);
+		danger.mockResolvedValue(null);
 		await expect(host().run("delete_view", { key: "other" }, true)).rejects.toMatchObject({ name: "ActDeclined" });
 		expect(runMethod).not.toHaveBeenCalled();
 
-		confirmDelete.mockResolvedValue(true);
+		danger.mockResolvedValue(true);
 		await host().run("delete_view", { key: "other" }, true);
 		expect(runMethod).toHaveBeenCalledTimes(1);
 
-		confirmDelete.mockClear();
+		danger.mockClear();
 		await host().run("delete_view", { key: "other" });
-		expect(confirmDelete).not.toHaveBeenCalled();
+		expect(danger).not.toHaveBeenCalled();
 	});
 });

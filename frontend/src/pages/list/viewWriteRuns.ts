@@ -2,13 +2,13 @@
 import { runMethod } from "@framework/ui/api";
 import type { Router } from "vue-router";
 import { ActDeclined, ActInvalid } from "@/acts/dispatcher";
+import type { PageDialog } from "@/shell/dialogs/types";
 import type { Boot } from "@/boot";
-import { refreshSavedViews, type SavedView } from "@/list/savedView";
-import { forgetFavouriteView } from "@/list/useListSettings";
+import { __ } from "@/i18n";
+import type { SavedView } from "@/list/savedView";
 import type { ListPage } from "@/list/useListPage";
 import { routeFor } from "@/router/routeFor";
 import { skipDefaultOnce } from "@/router/skipDefault";
-import { clearDefaultView } from "./defaultView";
 
 const API = "frappe.desk.doctype.doctype_view.api";
 
@@ -17,15 +17,19 @@ export interface ViewWriteHost {
   page: ListPage;
   boot: Boot;
   router: Router;
-  /** Asks the person to confirm a delete; false when they decline. */
-  confirmDelete: (key: string) => Promise<boolean>;
+  dialog: Pick<PageDialog, "danger">;
+  /** The page's own modules, which it hands in so this chunk shares none of them. */
+  refreshViews: () => void;
+  forgetStar: (key: string) => void;
+  /** Reads the default that resolves for the person now, and remembers it in boot. */
+  refreshDefault: () => Promise<void>;
 }
 
 /** `agent` is true for a `window.desk` call, which asks before it deletes. */
 type Run = (host: ViewWriteHost, value: any, agent?: boolean) => Promise<unknown>;
 
 /** Writes the page's filters, sort and columns to the open saved view, a shared one as a site administrator. */
-async function saveView({ page }: ViewWriteHost) {
+async function saveView({ page, refreshViews }: ViewWriteHost) {
   const { view } = page;
   if (!view.layer)
     throw new ActInvalid("list.save_view", "this is a view type's plain view, which keeps its changes as you make them. Use list.save_view_as to keep them as a named view");
@@ -34,12 +38,12 @@ async function saveView({ page }: ViewWriteHost) {
   const settings = page.snapshot();
   await write("save_view", { doctype: view.doctype, key: view.key, settings });
   page.commit(settings);
-  refreshSavedViews();
+  refreshViews();
   return { key: view.key };
 }
 
 /** A new view of the person's own from what the page shows, which they then open. */
-async function saveViewAs({ page, router }: ViewWriteHost, { label }: { label: string }) {
+async function saveViewAs({ page, router, refreshViews }: ViewWriteHost, { label }: { label: string }) {
   const { view } = page;
   const saved = await write<SavedView>("save_view_as", {
     doctype: view.doctype,
@@ -47,7 +51,7 @@ async function saveViewAs({ page, router }: ViewWriteHost, { label }: { label: s
     settings: page.snapshot(),
     type: view.type,
   });
-  refreshSavedViews();
+  refreshViews();
   await router.push(routeFor(view.doctype, null, { view: saved.key }));
   return { key: saved.key, label: saved.label };
 }
@@ -59,37 +63,47 @@ async function discardChanges({ page }: ViewWriteHost) {
   return { key: page.view.key };
 }
 
-async function renameView({ page }: ViewWriteHost, { key, label }: { key: string; label: string }) {
+async function renameView({ page, refreshViews }: ViewWriteHost, { key, label }: { key: string; label: string }) {
   const saved = await write<SavedView>("rename_view", { doctype: page.view.doctype, key, label });
-  refreshSavedViews();
+  refreshViews();
   return { key: saved.key, label: saved.label };
 }
 
 /** Deletes the view; an app's view of the same key answers again when a site row over it goes. */
 async function deleteView(
-  { page, boot, router, confirmDelete }: ViewWriteHost,
+  { page, boot, router, dialog, forgetStar, refreshDefault, refreshViews }: ViewWriteHost,
   { key }: { key: string },
   agent = false
 ) {
   const { doctype } = page.view;
   // A person's script skips the question, as the control that deletes asks it first; an agent's call asks here.
-  if (agent && !(await confirmDelete(key))) throw new ActDeclined("list.delete_view");
+  if (agent && !(await confirmDelete(dialog, key))) throw new ActDeclined("list.delete_view");
   const { restored } = await write<{ key: string; restored: boolean }>("delete_view", { doctype, key });
-  if (!restored) forgetFavouriteView(doctype, key);
+  if (!restored) forgetStar(key);
   // The server dropped the person's default at the key; a site or app default may answer in its place.
-  if (!restored && boot.default_views?.[doctype] === key) await clearDefaultView(boot, doctype, "user");
+  if (!restored && boot.default_views?.[doctype] === key) await refreshDefault();
   if (key === page.view.key && !restored) {
     // The open view is gone: the plain list opens, not the person's default in its place.
     skipDefaultOnce(doctype);
     await router.replace(routeFor(doctype));
   }
-  refreshSavedViews();
+  refreshViews();
   return { key, restored };
 }
 
-async function publishView({ page }: ViewWriteHost, { key }: { key: string }) {
+async function confirmDelete(dialog: ViewWriteHost["dialog"], key: string) {
+  const confirmed = await dialog.danger({
+    title: __("Delete view?"),
+    message: __("{0} is deleted for good, with its star and default.", [key]),
+    confirmLabel: __("Delete"),
+    cancelLabel: __("Keep"),
+  });
+  return Boolean(confirmed);
+}
+
+async function publishView({ page, refreshViews }: ViewWriteHost, { key }: { key: string }) {
   const saved = await write<SavedView>("publish_view", { doctype: page.view.doctype, key });
-  refreshSavedViews();
+  refreshViews();
   return { key: saved.key, layer: saved.layer };
 }
 
