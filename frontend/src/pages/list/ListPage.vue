@@ -257,7 +257,10 @@ const listActs = useListActs(
 		viewLayer: () => view.layer,
 		viewSaveable: () => view.saveable.value,
 		writeView: async (name, value) =>
-			(await import("./viewWriteRuns")).RUNS[name]({ page: props.page, boot, router }, value),
+			(await import("./viewWriteRuns")).RUNS[name](
+				{ page: props.page, boot, router },
+				value
+			),
 	},
 	view.type
 );
