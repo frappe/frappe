@@ -4,7 +4,7 @@ import type { Ref } from "vue";
 import { __ } from "@/i18n";
 import type { DialogHandle } from "@/shell/dialogs/readableDialogs";
 import { mapField, fieldsToLayout, resolveLayout } from "@framework/ui/FormLayout";
-import { coerceValue, whyNotSettable } from "@framework/ui/FormLayout/settableField";
+import { whyNotSettable } from "@framework/ui/FormLayout/noValueFields";
 import type {
   FieldNode,
   FormLayoutSchema,
@@ -118,13 +118,17 @@ export function formData(
 }
 
 /** The fields a caller may fill: drawn, editable and able to hold a value, with `depends_on` resolved against `doc`. */
-function fillableFields(layout: FormLayoutSchema, doc: Record<string, any>): string[] {
+function fillableFields(layout: FormLayoutSchema, doc: Record<string, any>): FieldNode[] {
   return resolveLayout(layout, doc)
     .filter((tab) => !tab.hidden)
     .flatMap((tab) => tab.sections.filter((section) => !section.hidden))
     .flatMap((section) => section.columns.flatMap((column) => column.fields))
-    .filter((field) => !whyNotSettable(field))
-    .map((field) => field.fieldname);
+    .filter((field) => !whyNotSettable(field));
+}
+
+/** The value as the field holds it: a Check holds 0 or 1, and a caller may send a boolean. */
+export function coerceValue(fieldtype: string, value: unknown) {
+  return fieldtype === "Check" && typeof value === "boolean" ? Number(value) : value;
 }
 
 /** What a caller may do to a form dialog whose draft is `doc`: read it, fill it, submit it, close it. */
@@ -133,20 +137,20 @@ export function formDialogHandle(
   doc: Ref<Record<string, any>>,
   actions: { submit: () => Promise<boolean> | boolean; close: () => void },
 ): DialogHandle {
-  const fieldnames = () => fillableFields(layout(), doc.value);
+  const fillable = () => fillableFields(layout(), doc.value);
   return {
     close: actions.close,
     submit: async () => {
       if ((await actions.submit()) === false)
         throw new Error(__("The dialog did not submit: its fields show why"));
     },
-    fieldnames,
+    fieldnames: () => fillable().map((field) => field.fieldname),
     values: () => formData(layout(), doc.value),
     setValues: (values) => {
-      const unknown = Object.keys(values).filter((name) => !fieldnames().includes(name));
+      const fields = fillable().filter((field) => field.fieldname in values);
+      const unknown = Object.keys(values).filter((name) => !fields.some((field) => field.fieldname === name));
       if (unknown.length) throw new Error(__("The dialog has no field {0}", [unknown.join(", ")]));
-      const types = new Map(flatFields(layout()).map((field) => [field.fieldname, field.fieldtype]));
-      const held = Object.entries(values).map(([name, value]) => [name, coerceValue(types.get(name)!, value)]);
+      const held = fields.map(({ fieldname, fieldtype }) => [fieldname, coerceValue(fieldtype, values[fieldname])]);
       doc.value = { ...doc.value, ...Object.fromEntries(held) };
     },
   };

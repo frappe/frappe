@@ -1,12 +1,20 @@
 // The `record.set_values` run and what the child-row runs share with it; loaded on the first run.
 import { ActInvalid } from "@/acts/dispatcher";
-import { coerceValue, whyNotSettable } from "@framework/ui/FormLayout/settableField";
+import { whyNotSettable } from "@framework/ui/FormLayout/noValueFields";
+import { coerceValue } from "./formDialogLayout";
 import type { FormField, ValueForm } from "./recordActs";
 
 type Row = Record<string, any>;
 type Values = Record<string, unknown>;
 
 const SET_VALUES = "record.set_values";
+
+export const SAY: Record<string, string> = {
+  table: "is a table",
+  "no value": "holds no value",
+  hidden: "is hidden now",
+  "read-only": "is read-only",
+};
 
 export async function setValues(form: ValueForm, values: Values) {
   for (const fieldname of Object.keys(values)) refuse(SET_VALUES, cannotSet(fieldname, form.field(fieldname)));
@@ -24,7 +32,7 @@ export function cannotSet(fieldname: string, field: FormField | null): string | 
   if (!field) return `${fieldname} is not a field of this form`;
   if (fieldname.includes(".")) return `${fieldname} is a column of a table; use record.add_child_row or record.set_child_values`;
   const why = whyNotSettable({ ...field, readOnly: field.read_only });
-  return why && `${fieldname} ${why}${why === "is a table" ? "; use record.add_child_row and record.set_child_values" : ""}`;
+  return why && `${fieldname} ${SAY[why]}${why === "table" ? "; use record.add_child_row and record.set_child_values" : ""}`;
 }
 
 /** The scalars that differ after, as the caller would read them back. */

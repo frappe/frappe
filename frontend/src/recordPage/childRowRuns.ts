@@ -2,10 +2,11 @@
 import { holdsChildRows, identify, rowKey } from "@framework/ui/fields";
 import type { RowAddress } from "@framework/ui/fields/types";
 import { evaluateDependsOn, mapField, newRowValues } from "@framework/ui/FormLayout";
-import { coerceValue, whyNotSettable } from "@framework/ui/FormLayout/settableField";
+import { whyNotSettable } from "@framework/ui/FormLayout/noValueFields";
+import { coerceValue } from "./formDialogLayout";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { RowHost } from "./childRowActs";
-import { changed, refuse } from "./recordRuns";
+import { changed, refuse, SAY } from "./recordRuns";
 import type { PageField } from "./types";
 
 type Row = Record<string, any>;
@@ -97,7 +98,7 @@ export class ChildRowActs {
     const column = columns.find((one) => one.fieldname === fieldname);
     if (!column) return `${fieldname} is not a column of ${name}`;
     const why = whyNotSettable({ fieldtype: column.fieldtype, ...this.state(name, row, column) });
-    return why && `${fieldname} ${why}`;
+    return why && `${fieldname} ${SAY[why]}`;
   }
 
   /** The cell's marks on screen, else the column as the grid counts it, with a script's override of it. */
