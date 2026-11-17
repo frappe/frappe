@@ -4,13 +4,9 @@ import json
 
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
-<<<<<<< HEAD
-from frappe.permissions import add_permission, reset_perms
-=======
 from frappe.core.doctype.user.test_user import test_user
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-from frappe.permissions import add_permission, add_user_permission, reset_perms
->>>>>>> 5c451c0 (fix(web_form): apply field-level read permissions to form responses)
+from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, set_request
 from frappe.website.doctype.web_form.web_form import (
