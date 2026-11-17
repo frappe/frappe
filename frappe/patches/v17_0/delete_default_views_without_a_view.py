@@ -17,5 +17,5 @@ def execute():
 		if (pointer.reference_doctype, pointer.view) not in saved
 		and pointer.view not in app_views(pointer.reference_doctype)
 	]
-	if dangling:
-		frappe.db.delete("Default View", {"name": ("in", dangling)})
+	for name in dangling:
+		frappe.delete_doc("Default View", name, ignore_permissions=True, delete_permanently=True)
