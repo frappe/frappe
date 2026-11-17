@@ -30,6 +30,19 @@ class DefaultViews:
 				resolved[doctype] = first
 		return resolved
 
+	def pointed_at(self, doctypes: list[str] | None = None) -> dict[str, dict[str, list[str]]]:
+		"""`{doctype: {segment: scopes}}`: the `user` and `site` pointers that name each view."""
+		layers = self.stored_layers(doctypes)
+		views = find_views(
+			[(doctype, row.view) for layer in layers for doctype, row in layer.items() if row.view], self.user
+		)
+		pointed: dict[str, dict[str, list[str]]] = {}
+		for scope, layer in zip(("user", "site"), layers, strict=True):
+			for doctype, pointer in layer.items():
+				if found := segment(doctype, pointer, views):
+					pointed.setdefault(doctype, {}).setdefault(found, []).append(scope)
+		return pointed
+
 	def stored_layers(self, doctypes: list[str] | None) -> list[dict[str, frappe._dict]]:
 		"""The person's pointers, then the site's, in one query on `Default View`."""
 		filters = {"user": ("in", (self.user, SITE_ROW))}

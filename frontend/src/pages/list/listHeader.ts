@@ -4,6 +4,8 @@ import type { ResolvedItem } from "@/pageEngine/surface";
 import type { HeaderItem } from "@/pageEngine/types";
 import { __ } from "@/i18n";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
+import type { SwitcherHost } from "./viewSwitcher/switcherHost";
+import ViewSwitcher from "./viewSwitcher/ViewSwitcher.vue";
 
 // Create and every control a script adds; the rest go in `⋯`.
 const HEADER_BUDGET = 3;
@@ -14,8 +16,10 @@ export interface ListHeaderHost {
 	doctype: string;
 	/** The doctype's module, once its meta is in. */
 	module: () => { label: string; href?: string } | null;
-	/** The saved view's name and the plain list's address; a plain list has no view crumb. */
-	view: () => { label: string; href: string } | null;
+	/** The view crumb's control, always drawn: the plain List has one too. */
+	switcher: SwitcherHost;
+	/** The doctype crumb's link to the list; null on the plain List, which is that address. */
+	listHref: () => string | null;
 	/** False until a list settings read says what is starred. */
 	starsLoaded: () => boolean;
 	favourited: () => boolean;
@@ -23,10 +27,9 @@ export interface ListHeaderHost {
 	create: () => unknown;
 }
 
-/** Module crumb, doctype crumb, the view and the star on the left; Create on the right, `⋯` empty. */
+/** Crumbs, switcher and star on the left; Create on the right. */
 export function listHeaderItems(host: ListHeaderHost): HeaderItem[] {
 	const module = host.module();
-	const view = host.view();
 	const items: HeaderItem[] = [];
 	if (module) items.push({ name: "module", zone: "left", display: "crumb", ...module });
 	items.push({
@@ -34,9 +37,15 @@ export function listHeaderItems(host: ListHeaderHost): HeaderItem[] {
 		label: host.doctype,
 		zone: "left",
 		display: "crumb",
-		href: view?.href,
+		href: host.listHref() ?? undefined,
 	});
-	if (view) items.push({ name: "view", label: view.label, zone: "left", display: "crumb" });
+	items.push({
+		name: "view",
+		label: host.switcher.view().label,
+		zone: "left",
+		component: ViewSwitcher,
+		props: { host: host.switcher },
+	});
 	if (host.starsLoaded()) {
 		items.push({
 			name: "favourite",

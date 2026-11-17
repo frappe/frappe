@@ -13,7 +13,7 @@ FALLBACK_DEFAULT = "list"
 
 
 class ViewList:
-	"""One person's views in one app, each as `{key, label, type, layer, default}`; never their settings."""
+	"""One person's views in one app, as `{key, label, type, layer, default, default_for, overrides_app}`; never their settings."""
 
 	def __init__(self, user: str | None = None, app: str | None = None):
 		self.user = user or frappe.session.user
@@ -27,10 +27,14 @@ class ViewList:
 		if doctypes is None:
 			doctypes = set(rows) | set(app_view_doctypes())
 		names = self.readable(doctypes)
-		defaults = DefaultViews(self.user, self.app).addresses(names)
+		defaults = DefaultViews(self.user, self.app)
+		resolved, pointed = defaults.addresses(names), defaults.pointed_at(names)
 
 		return {
-			doctype: self.views(doctype, rows.get(doctype, []), defaults.get(doctype)) for doctype in names
+			doctype: self.views(
+				doctype, rows.get(doctype, []), resolved.get(doctype), pointed.get(doctype, {})
+			)
+			for doctype in names
 		}
 
 	def stored_rows(self, doctypes: list[str] | None) -> list[frappe._dict]:
@@ -54,7 +58,9 @@ class ViewList:
 			doctype for doctype in existing if frappe.has_permission(doctype, "read", user=self.user)
 		)
 
-	def views(self, doctype: str, rows: list[frappe._dict], default: str | None) -> list[dict]:
+	def views(
+		self, doctype: str, rows: list[frappe._dict], default: str | None, pointed: dict[str, list[str]]
+	) -> list[dict]:
 		"""The doctype's views from its `rows` in lookup order, each key once at its first layer, the default marked."""
 		fitting = fitting_types(doctype)
 		listed = {}
@@ -63,7 +69,16 @@ class ViewList:
 				listed.setdefault(view["key"], view)
 
 		default = default or FALLBACK_DEFAULT
-		return [{**view, "default": key == default} for key, view in listed.items()]
+		overridden = set(app_views(doctype))
+		return [
+			{
+				**view,
+				"default": key == default,
+				"default_for": pointed.get(key, []),
+				"overrides_app": view["layer"] == "site" and key in overridden,
+			}
+			for key, view in listed.items()
+		]
 
 	def saved_views(self, doctype: str, rows: list[frappe._dict]) -> list[dict]:
 		"""The person's own, then the site's, then the apps', each layer by label."""

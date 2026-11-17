@@ -128,7 +128,6 @@ import type { HeaderItem } from "@/pageEngine/types";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { isModular, routeFor, routeForModule } from "@/router/routeFor";
-import { skipDefaultOnce } from "@/router/skipDefault";
 import { editorEntries, editorRoute } from "@/pages/doctypeEditor/entries/editorEntries";
 import { openCreate } from "@/shell/create";
 import type { ListPage } from "@/list/useListPage";
@@ -148,6 +147,9 @@ import { createdMessage } from "./createdMessage";
 import { clearDefaultView, setDefaultView } from "./defaultView";
 import { allowsHeaderItem, useListActs } from "./listActs";
 import { listHeaderItems, projectListHeader } from "./listHeader";
+import { openView } from "./openView";
+import type { SwitcherHost } from "./viewSwitcher/switcherHost";
+import { isSiteAdmin } from "./viewSwitcher/viewRules";
 import { rendererFor, type RendererHost } from "./renderer";
 
 // A script's `page.dialog.form` needs a host; the stack loads only when one is open.
@@ -224,13 +226,6 @@ useLiveClientScripts({
 	refresh: () => list.engine.refresh(),
 });
 
-// The plain List view is the bare address; the switcher's open skips the person's default for this visit only.
-function openView(key: string) {
-	if (key !== "list") return router.push(routeFor(doctype, null, { view: key }));
-	skipDefaultOnce(doctype);
-	return router.push(routeFor(doctype));
-}
-
 const listActs = useListActs(
 	{
 		list,
@@ -252,9 +247,16 @@ const listActs = useListActs(
 		starsLoaded,
 		favourited: () => favourited.value,
 		toggleFavourite: () => settings.toggleFavourite(starKey),
-		openView,
-		setDefaultView: (key, scope) => setDefaultView(boot, doctype, key, scope),
-		clearDefaultView: (scope) => clearDefaultView(boot, doctype, scope),
+		openView: (key) => openView(router, doctype, key),
+		// The views list names each default, so it reads again after a change.
+		setDefaultView: async (key, scope) => {
+			await setDefaultView(boot, doctype, key, scope);
+			refreshSavedViews();
+		},
+		clearDefaultView: async (scope) => {
+			await clearDefaultView(boot, doctype, scope);
+			refreshSavedViews();
+		},
 		viewLayer: () => view.layer,
 		viewSaveable: () => view.saveable.value,
 		writeView: async (name, value, agent) =>
@@ -274,6 +276,26 @@ const listActs = useListActs(
 	view.type
 );
 
+// The view crumb's control: the views, and the open view's acts, which the menu runs on this page.
+const switcher: SwitcherHost = {
+	doctype,
+	app: boot.app,
+	view: () => ({
+		key: view.key,
+		label: props.label || __("List"),
+		plainModified: !unbuilt && view.layer === null && view.modified.value,
+	}),
+	admin: isSiteAdmin(boot.session.roles ?? []),
+	types: boot.view_types ?? [],
+	unbuilt: boot.unbuilt_view_types ?? [],
+	drawn: (name) => Boolean(listActs.drawn(name)),
+	run: (name, value) => {
+		const act = listActs.drawn(name);
+		if (act) listActs.perform(act, value);
+	},
+	call: (name, value) => acts.run(`list.${name}`, value),
+};
+
 const controls = ref<HTMLElement | null>(null);
 // A function ref: a plain `ref` inside the `v-for` would collect an array.
 const setControls = (element: unknown) => void (controls.value = element as HTMLElement | null);
@@ -290,7 +312,8 @@ list.engine.header.provideBuiltins(() =>
 	listHeaderItems({
 		doctype,
 		module: moduleCrumb,
-		view: viewCrumb,
+		switcher,
+		listHref,
 		starsLoaded,
 		favourited: () => favourited.value,
 		toggleFavourite: () => settings.toggleFavourite(starKey),
@@ -305,9 +328,9 @@ function moduleCrumb() {
 	return { label, href: slug ? router.resolve(routeForModule(slug)).path : undefined };
 }
 
-function viewCrumb() {
-	if (!props.label) return null;
-	return { label: props.label, href: router.resolve(routeFor(doctype)).path };
+// The plain List is the bare address itself; every other view links back to it.
+function listHref() {
+	return view.key === "list" ? null : router.resolve(routeFor(doctype)).path;
 }
 
 const header = computed(() =>

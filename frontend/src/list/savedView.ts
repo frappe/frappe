@@ -2,7 +2,7 @@
 // view, or a view type's plain view at its type's name.
 import { isApiError, runMethod } from "@framework/ui/api";
 import { currentSession } from "@framework/ui/useSession";
-import { onScopeDispose, ref, shallowRef, watch, type ShallowRef } from "vue";
+import { onScopeDispose, readonly, ref, shallowRef, watch, type ShallowRef } from "vue";
 
 const FIND = "frappe.desk.doctype.doctype_view.api.find";
 
@@ -48,6 +48,9 @@ export function resetSavedViews(): void {
 
 // Bumped when a write changed a view's label, layer or key, so each open page looks it up again.
 const revision = ref(0);
+
+/** Counts the writes that changed a view; a list of views reads again when it moves. */
+export const savedViewsRevision = readonly(revision);
 
 /** After a write: the remembered answers are dropped and the open views look themselves up again. */
 export function refreshSavedViews(): void {

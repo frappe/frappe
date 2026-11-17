@@ -5,9 +5,9 @@
 -->
 <template>
 	<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
-		<!-- The zone grows so a component in it can; the crumbs still collapse under `min-w-0`. -->
+		<!-- Only the last component grows, so a segment after it stays next to it. -->
 		<nav class="flex min-w-0 flex-1 items-center gap-1 text-base">
-			<template v-for="segment in leftHand" :key="segmentKey(segment)">
+			<template v-for="(segment, at) in leftHand" :key="segmentKey(segment)">
 				<Breadcrumbs
 					class="-ml-0.5"
 					v-if="'crumbs' in segment"
@@ -25,7 +25,8 @@
 
 				<div
 					v-else-if="segment.kind === 'component'"
-					class="flex min-w-0 flex-1 items-center"
+					class="flex min-w-0 items-center"
+					:class="{ 'flex-1': at === leftHand.length - 1 }"
 					data-component
 				>
 					<component :is="segment.item.component" v-bind="{ ...segment.props, page }" />
