@@ -4,8 +4,15 @@ const escape_regex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const containing = (text) => new RegExp(escape_regex(text));
 const with_class = (name) => new RegExp(`(^|\\s)${escape_regex(name)}(\\s|$)`);
 
+// a group's title shows only the part before " (", the rest moves into its code
 const explorer_group = (page, title) =>
-	page.locator(".explorer-group", { hasText: containing(title) }).first();
+	page
+		.locator(".explorer-group", {
+			has: page.locator(".explorer-group__title", {
+				hasText: new RegExp(`^${escape_regex(title.split(" (")[0])}`),
+			}),
+		})
+		.first();
 const menu_item = (page, label) =>
 	page.locator(".es-menu__item", { hasText: containing(label) }).first();
 
@@ -20,7 +27,51 @@ async function show(page, component) {
 test.describe("Espresso components", () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto("/desk/component-explorer");
-		await expect(page.locator(".explorer-groups[data-component]")).toBeAttached();
+		await expect(page.locator(".explorer-grid")).toBeAttached();
+	});
+
+	test.describe("Grid", () => {
+		test("search narrows the cards, and a card opens its component", async ({ page }) => {
+			const cards = page.locator(".explorer-card:visible");
+			await page.locator(".explorer-search").fill("combo");
+			await expect(cards).toHaveCount(2);
+			await expect(page.locator(".explorer-count")).toHaveText(/^2 of \d+ components$/);
+
+			await page.locator(".explorer-search").fill("nothing like this");
+			await expect(cards).toHaveCount(0);
+			await expect(page.locator(".explorer-empty")).toContainText("No components match");
+			await page.getByRole("button", { name: "Clear search" }).click();
+			await expect(page.locator(".explorer-search")).toHaveValue("");
+			await expect(cards).toHaveCount(await page.locator(".explorer-card").count());
+			await expect(page.locator(".explorer-count")).toHaveText(/^\d+ components$/);
+
+			await page.locator(".explorer-search").fill("button");
+			await page.locator('.explorer-card[data-name="Button"]').click();
+			await expect(page).toHaveURL(/\/component-explorer\/button$/);
+			await expect(page.locator('.explorer-groups[data-component="Button"]')).toBeAttached();
+		});
+
+		test("a component still loading when the page is left keeps off the next page's title", async ({
+			page,
+		}) => {
+			let release;
+			const held = new Promise((resolve) => (release = resolve));
+			await page.route(/desk_charts\.bundle/, async (route) => {
+				await held;
+				await route.continue();
+			});
+			await page.goto("/desk/component-explorer/stat-card", {
+				waitUntil: "domcontentloaded",
+			});
+			await page.waitForFunction(() => frappe.pages["component-explorer"]?.render_component);
+			await page.evaluate(() => frappe.set_route("List", "ToDo"));
+			await expect(page).toHaveTitle(/To ?Do/);
+
+			release();
+			await page.waitForFunction(() => frappe.ui.stat_card);
+			await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 100)));
+			await expect(page).toHaveTitle(/To ?Do/);
+		});
 	});
 
 	test.describe("Dropdown", () => {
@@ -209,7 +260,9 @@ test.describe("Espresso components", () => {
 		test("opens at the pointer, marks the target data-state=open, and Escape closes + clears it", async ({
 			page,
 		}) => {
-			const surface = explorer_group(page, "Basic").locator(".explorer-preview > *").first();
+			const surface = explorer_group(page, "Basic")
+				.locator(".explorer-example__item > *")
+				.first();
 
 			await surface.click({ button: "right" });
 			await expect(page.locator(".es-menu[data-state='open']")).toBeFocused();
@@ -328,6 +381,48 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("Bottom Sheet", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Bottom Sheet");
+		});
+
+		test("opens as a dialog with focus inside, and Escape closes it back to the trigger", async ({
+			page,
+		}) => {
+			const trigger = explorer_group(page, "Picker (the current choice is checked")
+				.locator('[aria-haspopup="dialog"]')
+				.first();
+
+			await trigger.click();
+			await expect(page.locator(".es-bottom-sheet[role='dialog']")).toBeFocused();
+
+			await page.locator(".es-bottom-sheet").dispatchEvent("keydown", { key: "Escape" });
+			await expect(page.locator(".es-bottom-sheet-root[data-state='open']")).toHaveCount(0);
+			await expect(trigger).toBeFocused();
+		});
+
+		test("search narrows the rows, a pick pushes a step and Back returns", async ({
+			page,
+		}) => {
+			await explorer_group(page, "Steps inside one sheet")
+				.locator('[aria-haspopup="dialog"]')
+				.first()
+				.click();
+
+			await page.locator(".es-bottom-sheet__subheader input").fill("deliv");
+			const rows = page.locator(".es-bottom-sheet__option:visible");
+			await expect(rows).toHaveCount(1);
+			await expect(rows).toContainText("Delivery Date");
+			await rows.click();
+
+			await expect(page.locator(".es-bottom-sheet__title")).toHaveText("Condition");
+			await expect(page.locator(".es-bottom-sheet__subtitle")).toHaveText("Delivery Date");
+
+			await page.locator(".es-bottom-sheet__back").click();
+			await expect(page.locator(".es-bottom-sheet__title")).toHaveText("Choose field");
+		});
+	});
+
 	test.describe("Hover Card", () => {
 		test.beforeEach(async ({ page }) => {
 			await show(page, "Hover Card");
@@ -361,8 +456,69 @@ test.describe("Espresso components", () => {
 			await activity.click();
 			await expect(activity).toHaveAttribute("aria-selected", "true");
 			await expect(tabs.locator(".es-tabs__panel[data-state='active']")).toContainText(
-				"Rendered lazily"
+				"Edits and comments appear here"
 			);
+		});
+	});
+
+	test.describe("Optional Sections", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Optional Sections");
+		});
+
+		const add_button = (root, title) =>
+			root
+				.locator(".es-optional-sections__buttons .es-button", {
+					hasText: containing(title),
+				})
+				.first();
+		const section = (root, title) =>
+			root.locator(".es-optional-sections__section", { hasText: containing(title) }).first();
+
+		test("adding a section shows it and hides its button; Remove brings the button back", async ({
+			page,
+		}) => {
+			const root = explorer_group(page, "Basic (add")
+				.locator(".es-optional-sections")
+				.first();
+
+			await expect(section(root, "Salary and bank")).toBeHidden();
+			await add_button(root, "Salary and bank").click();
+			await expect(section(root, "Salary and bank")).toHaveAttribute("data-state", "added");
+			await expect(section(root, "Salary and bank")).toContainText("Salary fields go here.");
+			await expect(add_button(root, "Salary and bank")).toBeHidden();
+
+			await section(root, "Salary and bank").getByRole("button", { name: "Remove" }).click();
+			await expect(section(root, "Salary and bank")).toBeHidden();
+			await expect(add_button(root, "Salary and bank")).toBeVisible();
+			await expect(add_button(root, "Salary and bank")).toBeFocused();
+		});
+
+		test("hides the add row once every section is added", async ({ page }) => {
+			const root = explorer_group(page, "A section added from the start")
+				.locator(".es-optional-sections")
+				.first();
+
+			await expect(section(root, "Notes")).toBeVisible();
+			await expect(add_button(root, "Notes")).toBeHidden();
+			await add_button(root, "Attachments").click();
+			await expect(root.locator(".es-optional-sections__more")).toBeHidden();
+		});
+
+		test("focuses the first input of an added section and lets on_remove reset it", async ({
+			page,
+		}) => {
+			const root = explorer_group(page, "Fields in a section")
+				.locator(".es-optional-sections")
+				.first();
+			const email = root.locator("input[data-fieldname='email']");
+
+			await add_button(root, "Contact").click();
+			await expect(email).toBeFocused();
+			await email.fill("jane@example.com");
+			await section(root, "Contact").getByRole("button", { name: "Remove" }).click();
+			await add_button(root, "Contact").click();
+			await expect(email).toHaveValue("");
 		});
 	});
 
@@ -416,6 +572,86 @@ test.describe("Espresso components", () => {
 					.first()
 					.locator(".es-progress__segment[data-filled]")
 			).toHaveCount(3);
+		});
+	});
+
+	test.describe("Stat Card", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Stat Card");
+		});
+
+		const stat_card = (group, label) =>
+			group.locator(".es-stat-card", { hasText: containing(label) }).first();
+
+		test("tones the delta by positive_is_good, so a rise in a bad metric reads red", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Trend delta");
+			const net_sales = stat_card(group, "Net sales").locator(".es-stat-card__delta");
+
+			await expect(net_sales).toHaveAttribute("data-tone", "positive");
+			await expect(net_sales).toContainText("+12.4%");
+			await expect(
+				stat_card(group, "Overdue").locator(".es-stat-card__delta")
+			).toHaveAttribute("data-tone", "negative");
+			await expect(
+				stat_card(group, "Returns").locator(".es-stat-card__delta")
+			).toHaveAttribute("data-tone", "neutral");
+		});
+
+		test("preserves the direction of changes below display precision", async ({ page }) => {
+			const cases = [
+				[0.01, "+", "positive"],
+				[-0.01, "−", "negative"],
+			];
+			const deltas = await page.evaluate(
+				(values) =>
+					values.map((value) => {
+						const delta = frappe.ui
+							.stat_card({ label: "Small change", value: 1, delta: { value } })
+							.find(".es-stat-card__delta");
+						return { text: delta.text(), tone: delta.attr("data-tone") };
+					}),
+				cases.map(([value]) => value)
+			);
+
+			cases.forEach(([, sign, tone], i) => {
+				expect(deltas[i].text).toContain(`${sign}<0.1%`);
+				expect(deltas[i].tone).toBe(tone);
+			});
+		});
+
+		test("shows a dash and No data for a missing reading, but prints a zero", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "No reading");
+			const conversion_rate = stat_card(group, "Conversion rate");
+			const refunds = stat_card(group, "Refunds");
+
+			await expect(conversion_rate).toHaveAttribute("data-state", "empty");
+			await expect(conversion_rate).toContainText("—");
+			await expect(conversion_rate).toContainText("No data");
+			await expect(refunds).not.toHaveAttribute("data-state");
+			await expect(refunds.locator(".es-stat-card__value")).toHaveText("0");
+		});
+
+		test("holds the card's shape with skeletons while loading", async ({ page }) => {
+			const card = explorer_group(page, "Loading").locator(
+				".es-stat-card[data-state='loading']"
+			);
+
+			await expect(card).toHaveAttribute("aria-busy", "true");
+			await expect(card.locator(".es-stat-card__label")).toHaveText("Net sales");
+			await expect(card.locator(".es-skeleton")).toHaveCount(2);
+		});
+
+		test("makes a clickable card a keyboard button", async ({ page }) => {
+			const card = explorer_group(page, "Series dot").locator(".es-stat-card--clickable");
+
+			await expect(card).toHaveAttribute("role", "button");
+			await expect(card).toHaveAttribute("tabindex", "0");
+			await card.dispatchEvent("keydown", { key: "Enter" });
+			await expect(page.locator(".es-toast")).toContainText("Paid");
 		});
 	});
 });

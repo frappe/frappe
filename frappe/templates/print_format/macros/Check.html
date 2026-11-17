@@ -8,6 +8,6 @@
 	</svg>
 </div>
 {%- else -%}
-<div class="value">{{ _("Yes") if value else _("No") }}</div>
+<div class="value"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>{{ _("Yes") if value else _("No") }}</div>
 {%- endif -%}
 {%- endblock -%}

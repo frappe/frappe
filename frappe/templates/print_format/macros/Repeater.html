@@ -1,5 +1,6 @@
 {%- set _show_label = df.show_label if df.show_label else 'show' -%}
-{% if df.source and doc.get(df.source) %}
+{%- set _rows = df.get('_rows') if df.get('_rows') is not none else doc.get(df.source) -%}
+{% if _rows %}
 <div class="pfb-repeater"{% if df.custom_style %} style="{{ df.custom_style|e }}"{% endif %} {{ field_attributes(df) }}>
 	{% if df.label and _show_label != 'hide' %}<div class="label">{{ _(df.label)|e }}</div>{% endif %}
 	<table class="pfb-repeater-table">
@@ -8,7 +9,6 @@
 			<col{% if col.width %} style="width: {{ col.width|int }}%"{% endif %} />
 			{% endfor %}
 		</colgroup>
-		{%- set _rows = df.get('_rows') if df.get('_rows') is not none else doc.get(df.source) -%}
 		{% for row in _rows %}
 		<tr>
 			{% for col in (df.repeater_columns or []) %}
