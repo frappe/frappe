@@ -200,7 +200,7 @@ test.describe("Desk v2 navigation editor", () => {
 		await tab(page, "Rail").click();
 		await expect(row_named(page, "Mover")).toHaveCount(0);
 
-		// "Home base" cannot move into the sidebar it opens, and a shipped sidebar takes no own rows.
+		// "Home base" opens a sidebar, so it has no sidebar to move into.
 		await row_named(page, "Home base").click();
 		await expect(page.locator(`${EDITOR} [data-move-to]`)).toHaveCount(0);
 
@@ -228,6 +228,7 @@ test.describe("Desk v2 navigation editor", () => {
 		// The sidebar goes with its last row, and Home base is a plain row again.
 		await tab(page, "Sidebar").click();
 		await sidebar_picker(page).click();
+		await expect(page.getByRole("option").first()).toBeVisible();
 		await expect(page.getByRole("option", { name: "Home base", exact: true })).toHaveCount(0);
 		await page.keyboard.press("Escape");
 		await tab(page, "Rail").click();

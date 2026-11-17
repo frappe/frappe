@@ -22,6 +22,11 @@ test.describe("Desk v2 phone navigation", () => {
 		await api.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
 	});
 
+	// The plain rail is one test's own: later tests and a retry start from the shipped rail.
+	test.afterEach(async () => {
+		await reset_plain_rail(api);
+	});
+
 	test.afterAll(async () => {
 		await reset_plain_rail(api);
 		await api.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });

@@ -16,7 +16,10 @@ export async function use_plain_rail(api, links) {
 		url,
 		added: 1,
 	}));
-	const items = [...shipped.map((row) => ({ ...row, hidden: 1 })), ...own];
+	// A retry reads back the rows of the call before: drop them, they come again in `own`.
+	const again = new Set(own.map((row) => row.key));
+	const kept = shipped.filter((row) => !again.has(row.key));
+	const items = [...kept.map((row) => ({ ...row, hidden: 1 })), ...own];
 	await api.call(SAVE, { container: "Rail", address: APP, items, scope: "site" });
 }
 
