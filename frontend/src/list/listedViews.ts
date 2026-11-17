@@ -22,9 +22,29 @@ function recall(doctype: string): ListedView[] | null {
 	return remembered.get(doctype) ?? null;
 }
 
+// The crumb and the sidebar both read on mount: a read still fresh at the same write count is shared.
+const SHARED_READ_MS = 30_000;
+type Read = { scope: string; revision: number; at: number; found: Promise<ListedView[]> };
+const reads = new Map<string, Read>();
+
+function shared(doctype: string, app: string, asker?: string): Promise<ListedView[]> {
+	const scope = `${asker}\0${app}`;
+	const last = reads.get(doctype);
+	const revision = savedViewsRevision.value;
+	const now = Date.now();
+	if (last?.scope === scope && last.revision === revision && now - last.at < SHARED_READ_MS)
+		return last.found;
+	const read = { scope, revision, at: now, found: fetchViews(doctype, app) };
+	reads.set(doctype, read);
+	// A failed read is not shared: the next ask goes to the server.
+	read.found.catch(() => reads.get(doctype) === read && reads.delete(doctype));
+	return read.found;
+}
+
 /** Drops every remembered list. */
 export function resetListedViews(): void {
 	remembered.clear();
+	reads.clear();
 	rememberedFor = undefined;
 }
 
@@ -43,7 +63,7 @@ export function useListedViews(doctype: string, app: string): ListedViews {
 		const mine = ++asking;
 		const asker = currentSession()?.user.name;
 		try {
-			const found = await fetchViews(doctype, app);
+			const found = await shared(doctype, app, asker);
 			if (mine !== asking) return;
 			if (asker === rememberedFor) remembered.set(doctype, found);
 			views.value = found;

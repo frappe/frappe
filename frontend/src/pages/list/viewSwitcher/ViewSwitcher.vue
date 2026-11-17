@@ -46,6 +46,7 @@
 import { Dropdown } from "frappe-ui";
 import { computed, defineAsyncComponent, ref } from "vue";
 import { useListedViews } from "@/list/listedViews";
+import { viewsSidebarDoctype } from "@/navigation/viewsSidebar";
 import type { SwitcherHost } from "./switcherHost";
 import { viewMenu, type ViewRequest } from "./viewMenu";
 
@@ -63,6 +64,7 @@ const asked = ref(0);
 const options = computed(() =>
 	viewMenu({
 		views: views.value,
+		listsViews: viewsSidebarDoctype.value !== props.host.doctype,
 		current: props.host.view().key,
 		plainModified: props.host.view().plainModified,
 		unbuilt: props.host.unbuilt,

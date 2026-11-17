@@ -15,6 +15,7 @@ import templateNames from "../templateCompiler/names.json";
 import { fetchBoot, BootUnauthorized, type Boot } from "@/boot";
 import { fetchAddresses, type Addresses } from "@/addresses";
 import { useCreateRight } from "@/createRight";
+import { registerViewsSidebar } from "@/navigation/viewsSidebar";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 import { recordLink } from "@/router/recordLink";
@@ -69,6 +70,8 @@ async function start() {
 		defineAsyncComponent(() => import("@/pages/recordDialog/RecordDialog.vue"))
 	);
 	registerSettingsBlocks(() => import("@/pages/settings/SettingsBlocks.vue"));
+	// Only a DocType rail item draws it, so the cold-load chunk does not carry it.
+	registerViewsSidebar(defineAsyncComponent(() => import("@/pages/list/viewSwitcher/ViewsSidebar.vue")));
 	registerDeskAfterSave(boot.session);
 
 	// The address table is awaited: the route table cannot resolve a URL without it, and
