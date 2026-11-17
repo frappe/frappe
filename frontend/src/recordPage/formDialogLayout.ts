@@ -3,7 +3,8 @@
 import type { Ref } from "vue";
 import { __ } from "@/i18n";
 import type { DialogHandle } from "@/shell/dialogs/readableDialogs";
-import { mapField, fieldsToLayout, NO_VALUE, resolveLayout } from "@framework/ui/FormLayout";
+import { mapField, fieldsToLayout, resolveLayout } from "@framework/ui/FormLayout";
+import { coerceValue, whyNotSettable } from "@framework/ui/FormLayout/settableField";
 import type {
   FieldNode,
   FormLayoutSchema,
@@ -122,7 +123,7 @@ function fillableFields(layout: FormLayoutSchema, doc: Record<string, any>): str
     .filter((tab) => !tab.hidden)
     .flatMap((tab) => tab.sections.filter((section) => !section.hidden))
     .flatMap((section) => section.columns.flatMap((column) => column.fields))
-    .filter((field) => !field.hidden && !field.readOnly && !NO_VALUE.has(field.fieldtype))
+    .filter((field) => !whyNotSettable(field))
     .map((field) => field.fieldname);
 }
 
@@ -144,7 +145,9 @@ export function formDialogHandle(
     setValues: (values) => {
       const unknown = Object.keys(values).filter((name) => !fieldnames().includes(name));
       if (unknown.length) throw new Error(__("The dialog has no field {0}", [unknown.join(", ")]));
-      doc.value = { ...doc.value, ...values };
+      const types = new Map(flatFields(layout()).map((field) => [field.fieldname, field.fieldtype]));
+      const held = Object.entries(values).map(([name, value]) => [name, coerceValue(types.get(name)!, value)]);
+      doc.value = { ...doc.value, ...Object.fromEntries(held) };
     },
   };
 }

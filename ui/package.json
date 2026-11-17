@@ -17,6 +17,10 @@
       "import": "./src/components/FormLayout/noValueFields.ts",
       "types": "./src/components/FormLayout/noValueFields.ts"
     },
+    "./FormLayout/settableField": {
+      "import": "./src/components/FormLayout/settableField.ts",
+      "types": "./src/components/FormLayout/settableField.ts"
+    },
     "./FormLayout/types": {
       "import": "./src/components/FormLayout/types.ts",
       "types": "./src/components/FormLayout/types.ts"

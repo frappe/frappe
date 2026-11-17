@@ -2,10 +2,10 @@
 import { holdsChildRows, identify, rowKey } from "@framework/ui/fields";
 import type { RowAddress } from "@framework/ui/fields/types";
 import { evaluateDependsOn, mapField, newRowValues } from "@framework/ui/FormLayout";
-import { NO_VALUE } from "@framework/ui/FormLayout/noValueFields";
+import { coerceValue, whyNotSettable } from "@framework/ui/FormLayout/settableField";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { RowHost } from "./childRowActs";
-import { changed, coerce, refuse } from "./recordRuns";
+import { changed, refuse } from "./recordRuns";
 import type { PageField } from "./types";
 
 type Row = Record<string, any>;
@@ -65,7 +65,7 @@ export class ChildRowActs {
     };
     let current = live();
     for (const [fieldname, value] of Object.entries(values)) {
-      current[fieldname] = coerce(found.columns.find((column) => column.fieldname === fieldname)!.fieldtype, value);
+      current[fieldname] = coerceValue(found.columns.find((column) => column.fieldname === fieldname)!.fieldtype, value);
       await this.host.commit(fieldname, this.address(found.name, current));
       current = live();
     }
@@ -95,16 +95,22 @@ export class ChildRowActs {
 
   private cannotSet({ name, columns }: Table, row: Row, fieldname: string): string | undefined {
     const column = columns.find((one) => one.fieldname === fieldname);
-    if (!column || NO_VALUE.has(column.fieldtype) || holdsChildRows(column.fieldtype))
-      return `${fieldname} is not a column of ${name} that can be set`;
-    const cell = this.host.cell?.(name, row, fieldname);
-    if (cell) return cell.hidden ? `${fieldname} is hidden now` : cell.readOnly ? `${fieldname} is read-only` : undefined;
+    if (!column) return `${fieldname} is not a column of ${name}`;
+    const why = whyNotSettable({ fieldtype: column.fieldtype, ...this.state(name, row, column) });
+    return why && `${fieldname} ${why}`;
+  }
+
+  /** The cell's marks on screen, else the column as the grid counts it, with a script's override of it. */
+  private state(table: string, row: Row, column: RawMetaField) {
+    const cell = this.host.cell?.(table, row, column.fieldname);
+    if (cell) return cell;
     const doc = this.host.doc();
-    // A script's override of the column (`page.fields.update("<table>.<column>", …)`) counts as the grid counts it.
-    const override = this.host.field(`${name}.${fieldname}`);
-    if (column.hidden || override?.hidden || !evaluateDependsOn(column.depends_on, row, doc)) return `${fieldname} is hidden now`;
+    const override = this.host.field(`${table}.${column.fieldname}`);
     const locked = column.read_only_depends_on && evaluateDependsOn(column.read_only_depends_on, row, doc);
-    if (column.read_only || override?.read_only || column.fieldtype === "Read Only" || locked) return `${fieldname} is read-only`;
+    return {
+      hidden: column.hidden || override?.hidden || !evaluateDependsOn(column.depends_on, row, doc),
+      readOnly: column.read_only || override?.read_only || locked,
+    };
   }
 
   private address(parentfield: string, row: Row): RowAddress {
