@@ -1,8 +1,11 @@
 // The arrow-key selection on the index: one movement over every section's items, in page order.
 import { computed, ref, type ComputedRef, type Ref } from "vue";
 
-/** One item the arrow keys can reach. `key` is unique on the page; Enter calls `run`, else opens `href`. */
-export type Selectable = { key: string; href?: string; run?: () => unknown };
+/**
+ * One item the arrow keys can reach. `key` is unique on the page; Enter calls `run`, else opens `href`.
+ * `doors` are the item's own other destinations: Tab steps through them, the arrows do not.
+ */
+export type Selectable = { key: string; href?: string; run?: () => unknown; doors?: Selectable[] };
 
 /** A run of items drawn in `columns` columns, in reading order. A list is one column. */
 export type SelectionSection = { items: Selectable[]; columns: number };
@@ -10,6 +13,11 @@ export type SelectionSection = { items: Selectable[]; columns: number };
 type Place = { section: number; index: number };
 
 const ARROWS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
+
+/** The key of an item's `index`th door. */
+export function doorKey(key: string, index: number): string {
+	return `${key}:door:${index}`;
+}
 
 /** The element id an item draws with, so the filter box can point at the selected one. */
 export function selectableId(key: string): string {
@@ -29,6 +37,13 @@ export class Selection {
 		return this.selected.value === key;
 	}
 
+	/** The position of the selected door of the item `key`, when that is the selection. */
+	selectedDoor(key: string): number | null {
+		const doors = this.itemOf(key)?.doors ?? [];
+		const index = doors.findIndex((door) => door.key === this.selected.value);
+		return index === -1 ? null : index;
+	}
+
 	/** `selectableId`, for the results chunk: importing it there splits this module out of the page's chunk. */
 	idOf(key: string): string {
 		return selectableId(key);
@@ -39,10 +54,24 @@ export class Selection {
 		return this.selected.value ? selectableId(this.selected.value) : undefined;
 	}
 
-	/** The selected item, else the first: what Enter opens. */
+	/** The selected item or door, else the first item: what Enter opens. */
 	target(): Selectable | undefined {
 		const place = this.place();
-		return place ? this.itemAt(place) : this.sections.value[0]?.items[0];
+		if (!place) return this.sections.value[0]?.items[0];
+		const item = this.itemAt(place);
+		return item?.doors?.find((door) => door.key === this.selected.value) ?? item;
+	}
+
+	/** Moves from an item to its doors and back for Tab; false past either end, so the key goes on. */
+	stepDoor(backwards: boolean): boolean {
+		const place = this.place();
+		const item = place && this.itemAt(place);
+		if (!item?.doors?.length) return false;
+		const stops = [item, ...item.doors];
+		const next = stops.findIndex((stop) => stop.key === this.selected.value) + (backwards ? -1 : 1);
+		if (next < 0 || next >= stops.length) return false;
+		this.selected.value = stops[next].key;
+		return true;
 	}
 
 	selectFirst() {
@@ -104,11 +133,17 @@ export class Selection {
 		const sections = this.sections.value;
 		for (let section = 0; section < sections.length; section++) {
 			const index = sections[section].items.findIndex(
-				(item) => item.key === this.selected.value
+				(item) =>
+					item.key === this.selected.value ||
+					item.doors?.some((door) => door.key === this.selected.value)
 			);
 			if (index !== -1) return { section, index };
 		}
 		return null;
+	}
+
+	private itemOf(key: string): Selectable | undefined {
+		return this.sections.value.flatMap((section) => section.items).find((item) => item.key === key);
 	}
 
 	private itemAt(place: Place): Selectable | undefined {
