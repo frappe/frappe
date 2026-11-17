@@ -2149,7 +2149,7 @@ class Document(_DocumentBase):
 				elif df.fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
-				elif df.fieldtype == "Read Only" and not isinstance(value, str):
+				elif df.fieldtype == "Read Only" and value is not None and not isinstance(value, str):
 					value = cstr(value)
 
 				elif (df.fieldtype in datetime_fields and value == "") or (
@@ -2669,7 +2669,9 @@ class Document(_DocumentBase):
 		# data_field options defined in frappe.model.data_field_options
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			frappe.utils.validate_phone_number_with_country_code(phone, phone_field.fieldname)
+			frappe.utils.validate_phone_number_with_country_code(
+				phone, phone_field.fieldname, _(phone_field.label)
+			)
 
 		for data_field in self.meta.get_data_fields():
 			data = self.get(data_field.fieldname)
@@ -2696,6 +2698,10 @@ class Document(_DocumentBase):
 					continue
 
 				frappe.utils.validate_url(data, throw=True)
+				if frappe.utils.has_unsafe_url_scheme(data):
+					frappe.throw(
+						_("'{0}' is not a valid URL").format(frappe.bold(data)), title=_("Invalid URL")
+					)
 
 			if data_field_options == "IBAN" and data:
 				frappe.utils.validate_iban(data, throw=True)
