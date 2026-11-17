@@ -8,6 +8,7 @@ Group
     desk/profile/appearance
     desk/profile/notifications
     desk/profile/email
+    desk/profile/agents
     desk/profile/session-defaults
     desk/profile/password
   desk/system

@@ -45,6 +45,7 @@ PROFILE_BLOCKS = [
 	"appearance",
 	"notifications",
 	"email",
+	"agents",
 	"session-defaults",
 	"password",
 ]
