@@ -30,6 +30,17 @@ function tab(page, name) {
 	return page.locator(EDITOR).getByRole("radio", { name, exact: true });
 }
 
+/** The Sidebar tab lists every sidebar the rail opens, the shipped ones too: pick one by its row's label. */
+function sidebar_picker(page) {
+	return page.locator(`${EDITOR} button[role="combobox"]:not([data-layout-picker])`);
+}
+
+async function pick_sidebar(page, label) {
+	await tab(page, "Sidebar").click();
+	await sidebar_picker(page).click();
+	await page.getByRole("option", { name: label, exact: true }).click();
+}
+
 /** Add a Link row from the Add menu; the editor selects it. */
 async function add_link(page, url, label) {
 	await page.locator(`${EDITOR} [data-add]`).click();
@@ -171,9 +182,9 @@ test.describe("Desk v2 navigation editor", () => {
 		page,
 	}) => {
 		await open_editor(page);
-		await expect(tab(page, "Sidebar")).toHaveCount(0);
 
 		await add_link(page, "/apps/todo", "Home base");
+		await expect(page.locator(`${EDITOR} [data-remove-sidebar]`)).toHaveCount(0);
 		await page.locator(`${EDITOR} [data-give-sidebar]`).click();
 		await expect(tab(page, "Sidebar")).toBeVisible();
 		await expect(page.locator(`${EDITOR} [data-editor-list] li`)).toHaveCount(1);
@@ -189,12 +200,15 @@ test.describe("Desk v2 navigation editor", () => {
 		await tab(page, "Rail").click();
 		await expect(row_named(page, "Mover")).toHaveCount(0);
 
-		// "Home base" cannot move into the sidebar it opens, and it has no other to go to.
+		// "Home base" opens a sidebar, so it has no sidebar to move into.
 		await row_named(page, "Home base").click();
 		await expect(page.locator(`${EDITOR} [data-move-to]`)).toHaveCount(0);
 
 		await page.locator(`${EDITOR} [data-remove-sidebar]`).click();
-		await expect(tab(page, "Sidebar")).toHaveCount(0);
+		await expect(page.locator(`${EDITOR} [data-give-sidebar]`)).toBeVisible();
+		await expect(page.locator(`${EDITOR} [data-remove-sidebar]`)).toHaveCount(0);
+		await tab(page, "Rail").click();
+		await expect(row_named(page, "Home base")).toBeVisible();
 	});
 
 	test("saves an own sidebar, keeps it on reopening, and drops it with its last row", async ({
@@ -207,12 +221,17 @@ test.describe("Desk v2 navigation editor", () => {
 		await expect(page.locator(EDITOR)).toHaveCount(0);
 
 		await open_editor(page);
-		await tab(page, "Sidebar").click();
+		await pick_sidebar(page, "Home base");
 		await expect(page.locator(`${EDITOR} [data-editor-list] li`)).toHaveCount(1);
 		await page.locator(`${EDITOR} [data-editor-list] li`).first().click();
 		await page.locator(`${EDITOR} [data-delete]`).click();
 		// The sidebar goes with its last row, and Home base is a plain row again.
-		await expect(tab(page, "Sidebar")).toHaveCount(0);
+		await tab(page, "Sidebar").click();
+		await sidebar_picker(page).click();
+		await expect(page.getByRole("option").first()).toBeVisible();
+		await expect(page.getByRole("option", { name: "Home base", exact: true })).toHaveCount(0);
+		await page.keyboard.press("Escape");
+		await tab(page, "Rail").click();
 		await row_named(page, "Home base").click();
 		await expect(page.locator(`${EDITOR} [data-give-sidebar]`)).toBeVisible();
 		await expect(page.locator(`${EDITOR} [data-remove-sidebar]`)).toHaveCount(0);

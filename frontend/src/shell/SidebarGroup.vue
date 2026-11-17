@@ -4,6 +4,7 @@
 		<button
 			:id="headerId"
 			type="button"
+			data-view
 			:class="HEADER"
 			:aria-expanded="open"
 			@click="emit('toggle')"

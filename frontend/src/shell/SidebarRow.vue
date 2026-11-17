@@ -10,6 +10,7 @@
 		:collapsible="collapsible"
 		:collapsed="!open"
 		:data-key="item.key"
+		data-view
 		@update:collapsed="toggle"
 	>
 		<template v-if="open">
