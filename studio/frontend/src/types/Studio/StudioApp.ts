@@ -8,6 +8,8 @@ export interface StudioApp {
 	idx?: number
 	/**	App Name : Data	*/
 	app_name: string
+	/**	The app's folder in `<frappe_app>/studio`. The server computes it. */
+	folder_name: string
 	/**	App Title : Data */
 	app_title: string
 	/**	Route : Data */

@@ -6,15 +6,17 @@
 - Keep bindings simple and THIN. Use property access and at most one short
   ternary.
 - Real computation, like date calculations, pluralization, chained ternaries,
-  and immediately invoked function expressions (IIFEs), belongs in the page
-  script. Define a named helper and call it from the binding, such as
-  `{{ formatDueDate(dataItem.exp_end_date) }}`, with the `formatDueDate`
-  function declared in the page script. In `setup()`, return each
+  and immediately invoked function expressions (IIFEs), belongs in a script.
+  Use the page script for a block on a page, and the component's own script
+  for a block in a Studio Component. Define a named helper and call it from
+  the binding, such as `{{ formatDueDate(dataItem.exp_end_date) }}`, with the
+  `formatDueDate` function declared in that script. In `setup()`, return each
   script-defined value or helper used by bindings or events.
 - Inline IIFEs run again on every render of each Repeater row. They also make
   bindings difficult to read and debug.
 - Store two-way v-model bindings as `{"$type": "variable", "name": "…"}` in
-  prop values. These refer to page-script state. Do not use `{{ }}` for v-model.
+  prop values. These refer to state of the page script, or of the component's
+  own script for a block in a Studio Component. Do not use `{{ }}` for v-model.
   Expression bindings are read-only.
 - In Repeater children, `dataItem` is the current row. `dataIndex` is its
   zero-based index.
@@ -25,8 +27,9 @@
   write them with the short key `events`. A script can contain bare statements.
   Emitted values are available in `eventArgs`.
 - Write a short event script inline, such as `open.value = true`. For longer
-  logic, define a handler in the page script, return it from `setup()`, and
-  call it from the event script, such as `saveTask()`.
+  logic, define a handler in the page script, or in the component's own script
+  for a block in a Studio Component. Return it from `setup()`, and call it
+  from the event script, such as `saveTask()`.
 - Event scripts and handler props get the raw refs. Write `count.value`.
   `{{ }}` bindings unwrap a ref, so write `{{ count }}` there.
 - If the script defines `handleEvent`, the runtime calls
