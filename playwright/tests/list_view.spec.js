@@ -224,7 +224,7 @@ test.describe("List View bulk submit", () => {
 			await desk.click_modal_primary_button("Yes");
 			await expect.poll(() => page.evaluate(() => cur_list.disable_list_update)).toBe(false);
 		}
-		await expect(page.locator(".modal:visible")).toContainText("Cannot submit");
+		await expect(page.locator(".modal:visible", { hasText: "Cannot submit" })).toBeVisible();
 		await expect
 			.poll(() => page.evaluate(() => cur_list.get_checked_items(true).length))
 			.toBe(selected.length);
