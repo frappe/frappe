@@ -147,12 +147,13 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 
 	onScopeDispose(() => clearTimeout(timer));
 
-	/** Loads on the first act that waits, so the page does not carry it. */
+	/** Loads on the first act that waits, so the page does not carry it. A page still out, from Load More or a larger size, holds it. */
 	async function settled(): Promise<void> {
 		const done = () =>
 			loadedKey.value === (query()?.key ?? null) &&
 			!checking.value &&
-			(firstPage.value?.data != null || Boolean(error.value));
+			(firstPage.value?.data != null || Boolean(error.value)) &&
+			(!inFlight.value || Boolean(error.value));
 		return (await import("./settleRows")).settleRows(done, () => error.value ?? checkFailure.value);
 	}
 

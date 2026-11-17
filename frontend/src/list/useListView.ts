@@ -49,6 +49,10 @@ export interface ListView extends ListRows {
 	shownColumns: ComputedRef<ListColumn[]>;
 	/** The page's row actions, as its scripts left them. */
 	rowActions: ComputedRef<ListRowAction[]>;
+	/** The doctype's meta, null until it loads. */
+	meta: ComputedRef<ListMeta | null>;
+	/** Whether this reader may see the field. */
+	readable: (fieldname: string) => boolean;
 	/** The field a column shows, a standard one such as `creation` included. */
 	fieldOf: (fieldname: string) => RawMetaField | undefined;
 	/** What a column's cell shows before its text; see `cellMark`. */
@@ -279,6 +283,8 @@ export function useListView(view: View, lists: Pick<ListPageLists, "columns" | "
 		scope,
 		pageSize,
 		rowsKey,
+		meta: listMeta,
+		readable,
 		columnsCustomized: computed(() => view.customized("columns")),
 		resetColumns: () => view.reset("columns"),
 		resizeColumn: (fieldname, width) =>

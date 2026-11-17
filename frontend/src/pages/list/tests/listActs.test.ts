@@ -334,6 +334,8 @@ describe("the list surface", () => {
       "list.export",
       "list.delete",
       "list.download_vcards",
+      "list.set_columns",
+      "list.set_page_size",
       "list.open_bulk_menu",
       "list.clear_selection",
     ]);
@@ -501,6 +503,8 @@ describe("the list surface", () => {
       "list.favourite_records",
       "list.copy",
       "list.download_vcards",
+      "list.set_columns",
+      "list.set_page_size",
       "list.open_bulk_menu",
       "list.clear_selection",
     ]);

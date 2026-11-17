@@ -71,4 +71,6 @@ export interface ColumnSettingsProps {
   canReset?: boolean;
   /** Host-declared synthetic columns offered in union with Meta fields. */
   synthetic?: SyntheticColumn[];
+  /** The host's act that sets the columns; marks the "Columns" button (`data-act`) for the host's act-control check. */
+  act?: string;
 }

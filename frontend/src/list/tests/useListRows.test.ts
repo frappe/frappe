@@ -278,6 +278,21 @@ describe("settled", () => {
 		expect(rows.rows.value).toHaveLength(1);
 	});
 
+	it("waits for a later page a Load More asked for", async () => {
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await nextTick();
+		answers[0]({ data: Array.from({ length: 20 }, (_, i) => ({ name: `T-${i}` })), has_next_page: true, count: 50 });
+		await settle();
+		rows.next();
+		let done = false;
+		void rows.settled().then(() => (done = true));
+		await new Promise((resolve) => setTimeout(resolve, 20));
+		expect(done).toBe(false);
+		answers[1]({ data: Array.from({ length: 20 }, (_, i) => ({ name: `U-${i}` })), has_next_page: true });
+		await vi.waitFor(() => expect(done).toBe(true));
+		expect(rows.rows.value).toHaveLength(40);
+	});
+
 	it("rejects with the error when the rows cannot be read", async () => {
 		fake.listDocuments.mockRejectedValue(new Error("Network down"));
 		const rows = useListRows("ToDo", () => queryOf(20));

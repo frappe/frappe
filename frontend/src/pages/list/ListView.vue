@@ -8,6 +8,7 @@
 			v-model="columns"
 			:doctype="view.doctype"
 			:canReset="columnsCustomized"
+			act="list.set_columns"
 			@reset="resetColumns"
 		/>
 	</Teleport>
@@ -133,6 +134,7 @@
 		:totalUnknown="totalUnknown"
 		:hasCounts="hasCounts"
 		:hasNextPage="hasNextPage"
+		:acts="FOOTER_ACTS"
 		@load-more="next"
 		@page-size="show"
 		@count="countExact"
@@ -197,12 +199,15 @@ import type { RendererHost } from "./renderer";
 import StatusCell from "./StatusCell.vue";
 import RowMenu from "./RowMenu.vue";
 import { rowMenuOptions } from "./rowActions";
+import { listViewEntries } from "./listViewActs";
 import { useBulkBar } from "./useBulkBar";
 import { RowContextMenu, useRowContextMenu } from "./useRowContextMenu";
 
+const FOOTER_ACTS = { pageSize: "list.set_page_size", loadMore: "list.load_more" };
 const props = defineProps<{ view: View; host: RendererHost }>();
 const { filters, sort } = props.view;
 
+const listView = useListView(props.view, props.host.lists);
 const {
 	columns,
 	shownColumns,
@@ -242,7 +247,7 @@ const {
 	reload,
 	deleteSelection,
 	settled,
-} = useListView(props.view, props.host.lists);
+} = listView;
 
 props.host.onCreate(reload);
 
@@ -317,6 +322,7 @@ const bulk = useBulkBar({
 		text: markedText,
 		fields: rowFields,
 	},
+	extraEntries: () => listViewEntries(listView),
 	askDelete: () => {
 		deleteOpened.value = true;
 		confirmingDelete.value = true;

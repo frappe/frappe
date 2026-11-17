@@ -31,6 +31,7 @@
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
 				aria-label="Columns"
+				:data-act="act"
 			/>
 		</template>
 	</Combobox>
@@ -43,6 +44,7 @@
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
 				aria-label="Columns"
+				:data-act="act"
 				@click="confirmingReset = false"
 			/>
 		</template>
