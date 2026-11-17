@@ -131,7 +131,6 @@ def resend_invitation(
 def get_pending_invitations(app_name: str) -> list[dict]:
 	UserInvitation.validate_role(app_name)
 
-	# v1 keeps the database's default order; only v2 sorts oldest first
 	v2 = is_desk_v2_enabled()
 	pending_invitations = frappe.db.get_all(
 		"User Invitation",
@@ -198,7 +197,6 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	# set redirect_to
 	redirect_to = frappe.utils.get_url(invitation.get_redirect_to_path())
 	if should_update_password:
-		# update_password reads it back; only v2 sends an invitee to the invitation's path
 		if is_desk_v2_enabled():
 			user.db_set("redirect_url", f"/{invitation.get_redirect_to_path()}", update_modified=False)
 		redirect_to = f"{user._reset_password()}&redirect_to=/{invitation.get_redirect_to_path()}"

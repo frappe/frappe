@@ -1067,7 +1067,6 @@ class Document(_DocumentBase):
 			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
-			# v1 keeps a new record unseen (bold) and runs no extra UPDATE per insert
 			if is_desk_v2_enabled():
 				self.reset_seen(on_insert=True, ignore_if_duplicate=ignore_if_duplicate)
 
