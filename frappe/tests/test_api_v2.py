@@ -2423,6 +2423,21 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200, response.json)
 		self.assertEqual([row["name"] for row in response.json["data"]["comments"]], [self.admin_comment])
 
+	def test_comment_can_be_edited_to_a_video_alone_on_the_v2_route_only(self):
+		from frappe.desk.form.utils import update_comment
+
+		video = '<video src="/files/x.mp4"></video>'
+		response = self.add(self.part("comments"), {"content": "hello"})
+		name = next(
+			row["name"] for row in response.json["data"]["comments"] if row["owner"] == self.TEST_USER
+		)
+
+		response = self.edit(self.part("comments", name), {"content": video})
+		self.assertEqual(response.status_code, 200, response.json)
+		frappe.db.rollback()  # the route committed in the server's connection
+		with self.assertRaises(frappe.MandatoryError):
+			update_comment(name, video)
+
 	def test_comment_on_an_unreadable_record_is_refused(self):
 		response = self.add(self.part("comments", name=self.unreadable.name), {"content": "hello"})
 		self.assertEqual(response.status_code, 403, response.json)
@@ -2467,6 +2482,15 @@ class TestCollaborationWritesV2(FrappeAPITestCase):
 		frappe.db.rollback()
 		self.assertEqual(self.attached_to(plain), ("ToDo", todo.name))
 		self.assertEqual(self.attached_to(nested), ("ToDo", todo.name))
+
+	def test_v1_add_comment_refuses_a_video_alone_with_desk_v2_on_or_off(self):
+		from frappe.desk.form.utils import add_comment
+
+		todo = self.todo_with_cleanup()
+		for enabled in (0, 1):
+			with self.change_settings("System Settings", enable_desk_v2=enabled):
+				with self.assertRaises(frappe.MandatoryError, msg=f"enable_desk_v2={enabled}"):
+					add_comment("ToDo", todo.name, '<video src="/files/x.mp4"></video>', "a@example.com", "A")
 
 	def post_inline(self, todo, files: list[str], attachments: list[str] | None = None):
 		"""Post a comment showing `files` as inline images."""

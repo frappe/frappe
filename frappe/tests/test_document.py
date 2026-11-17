@@ -364,7 +364,19 @@ class TestDocument(IntegrationTestCase):
 		d.sender = "abcde" * 100 + "@user.com"
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
 
+	def test_insert_leaves_seen_alone_with_desk_v2_off(self):
+		with (
+			self.change_settings("System Settings", enable_desk_v2=0),
+			patch.object(Document, "reset_seen") as reset_seen,
+			self.set_user("test@example.com"),
+		):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen off 47720"}).insert()
+
+		self.assertFalse([call for call in reset_seen.call_args_list if call.kwargs.get("on_insert")])
+		self.assertFalse(frappe.db.get_value("ToDo", todo.name, "_seen"))
+
 	def test_insert_adds_creator_to_seen(self):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
 		with self.set_user("test@example.com"):
 			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen creator 46875"}).insert()
 
@@ -374,6 +386,7 @@ class TestDocument(IntegrationTestCase):
 		)
 
 	def test_insert_replaces_a_preset_seen_with_the_creator(self):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
 		preset = frappe.as_json(["a@example.com"])
 		with self.set_user("test@example.com"):
 			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen preset 46884", "_seen": preset})
@@ -402,6 +415,7 @@ class TestDocument(IntegrationTestCase):
 		self.assertEqual(seen, ["test@example.com"])
 
 	def test_duplicate_insert_keeps_seen_of_existing_row(self):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
 		values = {"doctype": "Event", "subject": "seen dup 46875", "starts_on": now_datetime()}
 		event = frappe.get_doc(values).insert()
 		frappe.db.set_value("Event", event.name, "_seen", frappe.as_json(["a@example.com"]))

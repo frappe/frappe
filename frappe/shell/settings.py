@@ -11,6 +11,7 @@ from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
 from frappe.desk.settings_block import Block
 from frappe.desk.settings_records import shipped_records
 from frappe.desk.settings_rules import Problem, SettingsRules, report
+from frappe.utils.data import is_desk_v2_enabled
 
 from .boot import report_oversized_keys
 from .doctypes import metadata_version
@@ -65,6 +66,12 @@ def _cached_merge() -> dict:
 	cached = {"version": version, "panes": resolved.panes, "sidebars": resolved.sidebars}
 	frappe.client_cache.set_value(PANES_CACHE_KEY, cached)
 	return cached
+
+
+def check_shipped_records_after_migrate():
+	"""The after_migrate hook: a v1 site has no Settings Dialog to check, and a clash must not stop its migrate."""
+	if is_desk_v2_enabled():
+		check_shipped_records()
 
 
 def check_shipped_records():
