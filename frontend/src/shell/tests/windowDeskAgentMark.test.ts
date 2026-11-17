@@ -1,5 +1,6 @@
 // The mark that shows an agent driving the tab, and Stop: pending calls end `interrupted`, later ones are refused.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createApp } from "vue";
 
 const runMethod = vi.fn(async (..._args: unknown[]) => ({ data: null }));
 vi.mock("@framework/ui/api", () => ({ runMethod: (...args: unknown[]) => runMethod(...args) }));
@@ -24,7 +25,9 @@ const shown = () => vi.waitFor(() => expect(mark()).not.toBeNull(), { timeout: 3
 async function started(desk: Record<string, unknown>) {
 	Object.defineProperty(window, "desk", { value: desk, configurable: true, writable: true });
 	const relay = socket();
-	await startRelay(relay as any);
+	const app = createApp({})._context;
+	app.config.globalProperties.$socket = relay;
+	await startRelay(app);
 	return relay;
 }
 

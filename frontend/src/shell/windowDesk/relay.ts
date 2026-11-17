@@ -14,9 +14,10 @@ const STOPPED = "The person pressed Stop. Agents cannot drive this tab until the
 let calls: RelayCalls;
 
 /** Listens on the tab's socket; the person turned the setting on, or this is not called. */
-export async function startRelay(socket: RealtimeSocket, context?: AppContext) {
+export async function startRelay(app: AppContext) {
+	const socket: RealtimeSocket = app.config.globalProperties.$socket;
 	const tab = await claimTabId();
-	calls = new RelayCalls(context, (open) => open.forEach((call) => send(call, tab, failed(STOPPED, "interrupted"), true)));
+	calls = new RelayCalls(app, (open) => open.forEach((call) => send(call, tab, failed(STOPPED, "interrupted"), true)));
 	const focus = trackFocus();
 	let queue: Promise<unknown> = Promise.resolve();
 	socket.on("ui_relay", (event) => {
