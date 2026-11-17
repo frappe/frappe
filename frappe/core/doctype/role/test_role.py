@@ -3,14 +3,10 @@
 
 import frappe
 from frappe.core.doctype.role.role import get_info_based_on_role
-<<<<<<< HEAD
+from frappe.permissions import reset_perms
 from frappe.tests.utils import FrappeTestCase
 
 test_records = frappe.get_test_records("Role")
-=======
-from frappe.permissions import reset_perms
-from frappe.tests import IntegrationTestCase
->>>>>>> a01bc96 (fix(role): keep other roles' access when replicating a role)
 
 
 class TestUser(FrappeTestCase):
@@ -56,30 +52,6 @@ class TestUser(FrappeTestCase):
 
 		for user in sys_managers:
 			self.assertIn(role, frappe.get_roles(user))
-<<<<<<< HEAD
-=======
-
-	def test_has_role_query_needs_parent_doctype(self):
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
-		frappe.set_user("test@example.com")
-		try:
-			self.assertRaises(
-				frappe.PermissionError,
-				frappe.get_list,
-				"Has Role",
-				filters={"role": "_Test Role 2", "parenttype": "User"},
-				fields=["parent"],
-			)
-
-			parents = frappe.get_list(
-				"Has Role",
-				filters={"role": "_Test Role 2", "parenttype": "User"},
-				fields=["parent"],
-				parent_doctype="User",
-			)
-			self.assertIn("test@example.com", [p.parent for p in parents])
-		finally:
-			frappe.set_user("Administrator")
 
 	def test_replicate_role_keeps_access_of_other_roles(self):
 		reset_perms("Help Article")
@@ -101,4 +73,3 @@ class TestUser(FrappeTestCase):
 		self.assertTrue(frappe.db.exists("Custom DocPerm", {"parent": "Help Article", "role": copied_role}))
 		with self.set_user(contributor.name):
 			self.assertTrue(frappe.has_permission("Help Article", "read"))
->>>>>>> a01bc96 (fix(role): keep other roles' access when replicating a role)
