@@ -2180,11 +2180,13 @@ class Document(_DocumentBase):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
 
+	@frappe.desk_v2_only
 	@frappe.whitelist()
 	def queue_submit(self):
 		"""Submit through the Submission Queue when the DocType has `queue_in_background`."""
 		return self._queue_or_run("submit")
 
+	@frappe.desk_v2_only
 	@frappe.whitelist()
 	def queue_cancel(self):
 		"""Cancel through the Submission Queue when the DocType has `queue_in_background`."""
