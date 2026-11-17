@@ -271,6 +271,17 @@ describe("a record changed in its dialog while the list stays mounted", () => {
 		expect(fake.listDocuments).not.toHaveBeenCalled();
 	});
 
+	it("keeps a column the cache wrote while the background read was out", async () => {
+		cacheList(2, false);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await settle();
+		const ticket = takeTicket();
+		feedPartWrite(ticket, "ToDo", "T-1", "tags", ["urgent"]);
+		settleTicket(ticket);
+		answers[0]({ data: [{ name: "T-0" }, { name: "T-1" }], has_next_page: false, count: 2 });
+		await vi.waitFor(() => expect(rows.rows.value.map((row) => row._user_tags)).toEqual([undefined, "urgent"]));
+	});
+
 	it("leaves a row alone when the cache write does not touch it", async () => {
 		cacheList(2, false);
 		const rows = useListRows("ToDo", () => queryOf(20));

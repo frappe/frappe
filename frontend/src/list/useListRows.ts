@@ -153,6 +153,13 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		(cached) => cached && followListColumns(cached as ListRow[])
 	);
 
+	/** A reply that lands after a cache write holds the older column; the cache kept the newer one. */
+	function followCache() {
+		const current = query();
+		const cached = current && readCachedRows(doctype, listQuery(current));
+		if (cached) followListColumns(cached as ListRow[]);
+	}
+
 	onScopeDispose(() => clearTimeout(timer));
 
 	/** Loads on the first act that waits, so the page does not carry it. A page still out, or a changed query still in its debounce, holds it. */
@@ -229,6 +236,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 			seedParts(outcome, sentAt);
 			pages.value = [landedPage(outcome.data, outcome.has_next_page)];
 			total.value = totalOf(outcome);
+			followCache();
 		}
 		if (shown.value > limit) show(shown.value);
 	}
@@ -279,6 +287,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 			page.hasNextPage = answer.has_next_page;
 			page.data = answer.data;
 			if (first) total.value = totalOf(answer);
+			followCache();
 		} catch (failure) {
 			if (mine !== generation) return;
 			page.error = failure as Error;
