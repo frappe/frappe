@@ -574,6 +574,7 @@ frappe.search.SearchDialog = class {
 						doctype: "Global Search Settings",
 						name: "Global Search Settings",
 					},
+					type: "GET",
 					callback: (res) => {
 						/** If the Global Search Settings are loaded successfully, cache the results. */
 						if (!res.exc && res.message && res.message.allowed_in_global_search) {

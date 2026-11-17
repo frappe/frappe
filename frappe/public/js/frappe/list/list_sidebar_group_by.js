@@ -121,17 +121,23 @@ frappe.views.ListGroupBy = class ListGroupBy {
 			field: field,
 		};
 
-		return frappe.call("frappe.desk.listview.get_group_by_count", args).then((r) => {
-			let field_counts = r.message || [];
-			field_counts = field_counts.filter((f) => f.count !== 0);
-			let current_user = field_counts.find((f) => f.name === frappe.session.user);
-			field_counts = field_counts.filter(
-				(f) => !["Guest", "Administrator", frappe.session.user].includes(f.name)
-			);
-			// Set frappe.session.user on top of the list
-			if (current_user) field_counts.unshift(current_user);
-			return field_counts;
-		});
+		return frappe
+			.call({
+				method: "frappe.desk.listview.get_group_by_count",
+				args: args,
+				type: "GET",
+			})
+			.then((r) => {
+				let field_counts = r.message || [];
+				field_counts = field_counts.filter((f) => f.count !== 0);
+				let current_user = field_counts.find((f) => f.name === frappe.session.user);
+				field_counts = field_counts.filter(
+					(f) => !["Guest", "Administrator", frappe.session.user].includes(f.name)
+				);
+				// Set frappe.session.user on top of the list
+				if (current_user) field_counts.unshift(current_user);
+				return field_counts;
+			});
 	}
 
 	render_dropdown_items(fields, fieldtype, $dropdown, applied_filter) {

@@ -236,6 +236,7 @@ export default class QuickListWidget extends Widget {
 					start: 0,
 					page_length: 4,
 				},
+				type: "GET",
 			};
 
 			frappe.call(args).then((r) => {

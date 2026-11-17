@@ -392,8 +392,12 @@ $.extend(frappe, {
 	show_language_picker() {
 		if (frappe.session.user === "Guest" && window.show_language_picker) {
 			frappe
-				.call("frappe.translate.get_all_languages", {
-					with_language_name: true,
+				.call({
+					method: "frappe.translate.get_all_languages",
+					args: {
+						with_language_name: true,
+					},
+					type: "GET",
 				})
 				.then((res) => {
 					let language_list = res.message;

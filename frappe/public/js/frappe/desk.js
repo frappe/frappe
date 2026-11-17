@@ -212,6 +212,7 @@ frappe.Application = class Application {
 			args: {
 				user: user,
 			},
+			type: "GET",
 			callback: function (email_account) {
 				email_account = email_account["message"];
 				if (email_account) {

@@ -35,6 +35,7 @@ frappe.tags.utils = {
 	fetch_tags() {
 		frappe.call({
 			method: "frappe.desk.doctype.tag.tag.get_tags_list_for_awesomebar",
+			type: "GET",
 			callback: function (r) {
 				if (r && r.message) {
 					frappe.tags.tags = $.extend([], r.message);
@@ -98,6 +99,7 @@ frappe.tags.utils = {
 				args: {
 					tag: tag,
 				},
+				type: "GET",
 				callback: function (r) {
 					if (r.message) {
 						resolve(get_results_sets(r.message));

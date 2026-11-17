@@ -84,6 +84,7 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 					dn: this.frm.docname,
 					filters: JSON.stringify(filters),
 				},
+				type: "GET",
 			});
 			if (!Array.isArray(response.message)) {
 				throw new Error("Invalid filtered attachments response");

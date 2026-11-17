@@ -186,6 +186,7 @@ export default class BulkOperations {
 				limit_page_length: 0,
 			},
 			async: false,
+			type: "GET",
 			callback(r) {
 				if (r.message) {
 					r.message.forEach((letterhead) => {

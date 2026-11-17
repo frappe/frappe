@@ -91,6 +91,7 @@ frappe.ui.TagEditor = class TagEditor {
 					doctype: me.frm.doctype,
 					txt: value.toLowerCase(),
 				},
+				type: "GET",
 				callback: function (r) {
 					me.awesomplete.list = r.message;
 				},
@@ -116,6 +117,7 @@ frappe.ui.TagEditor = class TagEditor {
 					doctype: me.frm.doctype,
 					txt: value.toLowerCase(),
 				},
+				type: "GET",
 				callback: function (r) {
 					// Updates input to suggestion value (if any) on <enter>
 					if (r.message.length) $input.val(r.message[0]);

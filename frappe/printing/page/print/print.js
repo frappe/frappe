@@ -1009,6 +1009,7 @@ frappe.ui.form.PrintView = class {
 	network_printer_setting_dialog(callback) {
 		frappe.call({
 			method: "frappe.printing.doctype.network_printer_settings.network_printer_settings.get_network_printer_settings",
+			type: "GET",
 			callback: function (r) {
 				if (r.message) {
 					let d = new frappe.ui.Dialog({

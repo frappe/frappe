@@ -16,6 +16,7 @@ frappe.ui.form.on("User", {
 		if (!frappe.all_timezones) {
 			frappe.call({
 				method: "frappe.core.doctype.user.user.get_timezones",
+				type: "GET",
 				callback: function (r) {
 					frappe.all_timezones = r.message.timezones;
 					update_tz_options();
@@ -43,6 +44,7 @@ frappe.ui.form.on("User", {
 				args: {
 					module_profile: frm.doc.module_profile,
 				},
+				type: "GET",
 				callback: function (data) {
 					frm.set_value("block_modules", []);
 					$.each(data.message || [], function (i, v) {
@@ -325,6 +327,7 @@ frappe.ui.form.on("User", {
 			args: {
 				email: frm.doc.email,
 			},
+			type: "GET",
 			callback: function (r) {
 				if (!Array.isArray(r.message) || !r.message.length) {
 					frappe.route_options = {

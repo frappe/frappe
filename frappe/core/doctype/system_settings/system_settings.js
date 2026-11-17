@@ -2,6 +2,7 @@ frappe.ui.form.on("System Settings", {
 	refresh: function (frm) {
 		frappe.call({
 			method: "frappe.core.doctype.system_settings.system_settings.load",
+			type: "GET",
 			callback: function (data) {
 				frappe.all_timezones = data.message.timezones;
 				frm.set_df_property("time_zone", "options", frappe.all_timezones);

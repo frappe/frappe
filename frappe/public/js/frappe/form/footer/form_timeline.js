@@ -264,6 +264,7 @@ class FormTimeline extends BaseTimeline {
 				start: start,
 				limit: 21,
 			},
+			type: "GET",
 		});
 		if (response.message) {
 			let email_communications = [];
