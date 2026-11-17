@@ -66,14 +66,16 @@ const bodyOptions = computed(() => [
 	{ label: __("None"), value: "" },
 	...shown.value.filter((field) => BODY_FIELDTYPES.has(field.fieldtype)).map(option),
 ]);
-// A hidden image field (User's `user_image`) is still listed when it is the one in use.
+// A hidden image field (User's `user_image`) stays listed when in use or the doctype's own, so None can be undone.
 const imageOptions = computed(() => [
 	{ label: __("None"), value: "" },
 	...(props.meta?.fields ?? [])
 		.filter(
 			(field) =>
 				field.fieldtype === IMAGE_FIELDTYPE &&
-				(!field.hidden || field.fieldname === props.image)
+				(!field.hidden ||
+					field.fieldname === props.image ||
+					field.fieldname === props.meta?.image_field)
 		)
 		.map(option),
 ]);

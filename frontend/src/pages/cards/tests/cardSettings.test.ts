@@ -18,10 +18,10 @@ afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
 });
 
-function imageSelect(fields: unknown[], image: string | null) {
+function imageSelect(fields: unknown[], image: string | null, imageField?: string) {
 	const root = document.createElement("div");
 	const app = createApp({
-		render: () => h(CardSettings as Component, { meta: { fields }, title: "name", body: null, image, update: () => {} }),
+		render: () => h(CardSettings as Component, { meta: { fields, image_field: imageField }, title: "name", body: null, image, update: () => {} }),
 	});
 	app.mount(root);
 	apps.push(app);
@@ -43,6 +43,10 @@ describe("CardSettings image picker", () => {
 
 	it("keeps a hidden image field that is in use", () => {
 		expect(imageSelect(fields, "secret").textContent).toBe(",cover,secret");
+	});
+
+	it("keeps the doctype's own hidden image field after None is chosen", () => {
+		expect(imageSelect(fields, "", "secret").textContent).toBe(",cover,secret");
 	});
 
 	it("is off when the doctype has no Attach Image field", () => {
