@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, urlparse
 
 import frappe
 import frappe.utils
+from frappe.apps import get_default_path
 from frappe.auth import CookieManager, LoginManager
 from frappe.core.api.user_invitation import (
 	_accept_invitation,
@@ -247,6 +248,23 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
 
+	def test_new_invitee_lands_on_the_default_path_with_desk_v2_off(self):
+		invitation, key = self.accept_as_new_invitee(desk_v2=0)
+		self.assertFalse(frappe.db.get_value("User", invitation.email, "redirect_url"))
+
+		landing = update_password("Eastern_43A1W", key=key)
+
+		self.assertEqual(urlparse(landing).path, get_default_path() or "/desk")
+
+	def test_new_invitee_with_2fa_keeps_no_redirect_with_desk_v2_off(self):
+		invitation, key = self.accept_as_new_invitee(desk_v2=0)
+
+		with patch("frappe.core.doctype.user.user.should_run_2fa", return_value=True):
+			landing = update_password("Eastern_43A1W", key=key)
+
+		self.assertEqual(landing, "/login")
+		self.assertFalse(frappe.cache.hget("redirect_after_login", invitation.email))
+
 	def test_new_invitee_lands_on_redirect_after_setting_password(self):
 		invitation, key = self.accept_as_new_invitee()
 
@@ -266,6 +284,23 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(landing, "/login")
 		redirect_after_login = frappe.cache.hget("redirect_after_login", invitation.email)
 		self.assertEqual(urlparse(redirect_after_login).path, "/abc")
+
+	def test_pending_invitations_are_oldest_first_only_with_desk_v2_on(self):
+		for email, created in zip(emails[1:4], ("2026-01-03", "2026-01-01", "2026-01-02"), strict=True):
+			self.insert_invitation_without_mail(email).db_set("creation", created)
+
+		with self.change_settings("System Settings", enable_desk_v2=1):
+			on = [row["email"] for row in get_pending_invitations("frappe")]
+		with self.change_settings("System Settings", enable_desk_v2=0):
+			off = [row["email"] for row in get_pending_invitations("frappe")]
+
+		self.assertEqual(on, [emails[2], emails[3], emails[1]])
+		# develop's query has no order_by, so it takes the DocType's default order
+		develop = frappe.db.get_all(
+			"User Invitation", filters={"status": "Pending", "app_name": "frappe"}, pluck="email"
+		)
+		self.assertEqual(off, develop)
+		self.assertNotEqual(off, on)
 
 	def test_get_pending_invitations_api(self):
 		invitation = self.get_dummy_invitation()
@@ -392,7 +427,8 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		with patch.object(UserInvitation, "send_invitation_mail"):
 			return self.get_dummy_invitation(email).insert()
 
-	def accept_as_new_invitee(self):
+	def accept_as_new_invitee(self, desk_v2=1):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=desk_v2))
 		invitation = self.get_dummy_invitation().insert()
 		self.addCleanup(frappe.delete_doc, "User", invitation.email)
 		self.addCleanup(IntegrationTestUserInvitation.delete_invitation, invitation.name)

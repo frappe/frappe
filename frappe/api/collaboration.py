@@ -20,7 +20,7 @@ from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.desk.doctype.tag.tag import add_tag, remove_tag
 from frappe.desk.form import assign_to
 from frappe.desk.form.document_follow import follow_document, unfollow_document
-from frappe.desk.form.utils import delete_comment, insert_comment, update_comment, validate_comment_content
+from frappe.desk.form.utils import delete_comment, edit_comment, insert_comment, validate_comment_content
 from frappe.model.document import Document
 from frappe.utils import cint
 
@@ -54,7 +54,7 @@ def update(doctype: str, name: str, part: str, key: str) -> dict:
 	doc = load(doctype, name, part)
 	if part != "comments":
 		raise frappe.ValidationError(_("PATCH is only valid for comments"))
-	update_comment(comment_of(doc, key).name, read_body(part)["content"])
+	edit_comment(comment_of(doc, key).name, read_body(part)["content"], allow_video=True)
 	return refreshed(doc, part)
 
 
@@ -174,7 +174,7 @@ def add_a_comment(doc: Document, body: dict) -> str:
 	content = body.get("content") or ""
 	# attachments alone make a comment
 	if not files:
-		validate_comment_content(content)
+		validate_comment_content(content, allow_video=True)
 	comment = insert_comment(doc.doctype, doc.name, content)
 	attach_files(files, "Comment", comment.name)
 	# after the attachments are linked, so they are no longer unattached and stay on the Comment

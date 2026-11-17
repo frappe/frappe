@@ -2,6 +2,8 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
+from frappe.database.utils import DefaultOrderBy
+from frappe.utils.data import is_desk_v2_enabled
 
 
 @frappe.whitelist(methods=["POST"])
@@ -129,11 +131,12 @@ def resend_invitation(
 def get_pending_invitations(app_name: str) -> list[dict]:
 	UserInvitation.validate_role(app_name)
 
+	v2 = is_desk_v2_enabled()
 	pending_invitations = frappe.db.get_all(
 		"User Invitation",
 		fields=["name", "email"],
 		filters={"status": "Pending", "app_name": app_name},
-		order_by="creation asc",
+		order_by="creation asc" if v2 else DefaultOrderBy,
 	)
 	if not pending_invitations:
 		return []
@@ -145,7 +148,7 @@ def get_pending_invitations(app_name: str) -> list[dict]:
 			"parenttype": "User Invitation",
 			"parent": ["in", [invitation.name for invitation in pending_invitations]],
 		},
-		order_by="idx asc",
+		order_by="idx asc" if v2 else DefaultOrderBy,
 	):
 		roles_by_invitation.setdefault(row.parent, []).append(row.role)
 	return [
@@ -194,7 +197,8 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	# set redirect_to
 	redirect_to = frappe.utils.get_url(invitation.get_redirect_to_path())
 	if should_update_password:
-		user.db_set("redirect_url", f"/{invitation.get_redirect_to_path()}", update_modified=False)
+		if is_desk_v2_enabled():
+			user.db_set("redirect_url", f"/{invitation.get_redirect_to_path()}", update_modified=False)
 		redirect_to = f"{user._reset_password()}&redirect_to=/{invitation.get_redirect_to_path()}"
 
 	# GET requests do not cause an implicit commit

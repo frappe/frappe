@@ -73,7 +73,14 @@ from frappe.utils import (
 	strip_html,
 	strip_html_tags,
 )
-from frappe.utils.data import escape_html, get_absolute_url, get_datetime, get_timedelta, getdate
+from frappe.utils.data import (
+	escape_html,
+	get_absolute_url,
+	get_datetime,
+	get_timedelta,
+	getdate,
+	is_desk_v2_enabled,
+)
 from frappe.utils.defaults import get_not_null_defaults
 from frappe.utils.html_utils import has_html_tags, unescape_html
 
@@ -1060,7 +1067,8 @@ class Document(_DocumentBase):
 			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
-			self.reset_seen(on_insert=True, ignore_if_duplicate=ignore_if_duplicate)
+			if is_desk_v2_enabled():
+				self.reset_seen(on_insert=True, ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
 		if not getattr(self.meta, "is_virtual", False):
@@ -2338,7 +2346,9 @@ class Document(_DocumentBase):
 
 	def reset_seen(self, on_insert=False, ignore_if_duplicate=False):
 		"""Set `_seen` to the current user alone. On insert `db_insert` does not write `_seen`, so this does."""
-		if not getattr(self.meta, "track_seen", False) or getattr(self.meta, "is_virtual", False):
+		if not getattr(self.meta, "track_seen", False) or (
+			on_insert and getattr(self.meta, "is_virtual", False)
+		):
 			return
 
 		if on_insert:
