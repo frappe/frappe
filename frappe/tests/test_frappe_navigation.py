@@ -32,7 +32,9 @@ class TestFrappeNavigation(IntegrationTestCase):
 		for sidebar in shipped("sidebar"):
 			for row in sidebar["navigation_items"]:
 				if row["item_type"] == "DocType":
-					self.assertTrue(frappe.db.exists("DocType", row["link_to"]), (sidebar["name"], row["key"]))
+					self.assertTrue(
+						frappe.db.exists("DocType", row["link_to"]), (sidebar["name"], row["key"])
+					)
 
 	def test_keys_are_unique_within_a_sidebar_and_parents_exist(self):
 		for sidebar in shipped("sidebar"):
@@ -43,7 +45,10 @@ class TestFrappeNavigation(IntegrationTestCase):
 
 	def test_a_system_manager_gets_the_shipped_rail_and_its_sidebars(self):
 		user = frappe.get_doc(
-			doctype="User", email="frappe-rail@example.com", first_name="Rail", roles=[{"role": "System Manager"}]
+			doctype="User",
+			email="frappe-rail@example.com",
+			first_name="Rail",
+			roles=[{"role": "System Manager"}],
 		).insert(ignore_if_duplicate=True)
 
 		with set_user(user.name):
