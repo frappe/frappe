@@ -167,7 +167,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 				tooltip:
 					variant === "switch"
 						? __("Keep classic dashboards. You can switch later in System Settings.")
-						: __("Don't show again"),
+						: __("Hide until Insights dashboards can be switched on"),
 				onclick: () => submit("keep_classic_dashboards").then(() => prompt.remove()),
 			})
 		);

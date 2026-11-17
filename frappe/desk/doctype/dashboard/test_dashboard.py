@@ -202,9 +202,10 @@ class TestInsightsDashboardsPrompt(IntegrationTestCase):
 		with (
 			patch.object(type(doc), "has_insights_version", return_value=True),
 			patch.object(doc.meta, "get_field", return_value=None),
+			patch("frappe.get_installed_apps", return_value=["frappe"]),
 		):
 			doc.run_method("onload")
-			self.assertTrue(doc.get_onload().get("show_insights_dashboards_prompt"))
+			self.assertEqual(doc.get_onload().get("show_insights_dashboards_prompt"), "install")
 
 			submit_insights_dashboards_prompt("keep_classic_dashboards")
 			doc = frappe.get_doc({"doctype": "Dashboard", "name": "Test Prompt"})
