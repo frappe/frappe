@@ -495,6 +495,8 @@ def is_whitelisted(method):
 			if isinstance(value, str):
 				form_dict[key] = sanitize_html(value)
 
+	flags.whitelisted_method = method
+
 
 def read_only():
 	"""Mark a function as one that never writes, so its reads may go to a replica
