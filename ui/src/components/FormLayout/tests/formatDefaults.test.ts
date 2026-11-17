@@ -43,6 +43,27 @@ describe('getFormatDefaults', () => {
     })
   })
 
+  // A host built on develop never calls setSession: boot's window.sysdefaults still applies.
+  it('falls back to window.sysdefaults with no session, and the session beats it', () => {
+    const w = window as unknown as { sysdefaults?: Record<string, unknown> }
+    w.sysdefaults = { date_format: 'mm/dd/yyyy', time_format: 'HH:mm', currency: 'USD', float_precision: '' }
+    try {
+      const d = getFormatDefaults()
+      expect(d.date_format).toBe('mm/dd/yyyy')
+      expect(d.time_format).toBe('HH:mm')
+      expect(d.currency).toBe('USD')
+      // a blank boot value does not clobber the lib fallback
+      expect(d.number_format).toBe(DEFAULT_NUMBER_FORMAT)
+
+      setSession(aSession({ date_format: 'yyyy-mm-dd' }))
+      const withSession = getFormatDefaults()
+      expect(withSession.date_format).toBe('yyyy-mm-dd')
+      expect(withSession.currency).toBeUndefined()
+    } finally {
+      delete w.sysdefaults
+    }
+  })
+
   it('lets an override beat the lib fallback', () => {
     setFormatDefaults({ number_format: '#.###,##', currency: 'EUR' })
     const d = getFormatDefaults()

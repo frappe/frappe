@@ -17,9 +17,12 @@ export interface Pagination {
   isFetchingNextPage: boolean;
   /** prepends the next older page */
   fetchNextPage: () => void | Promise<void>;
+  /** @deprecated Rows an inline `load_more` row pages. Defaults to emails. */
+  isPagedRow?: (activity: Activity | CustomActivity) => boolean;
   /** Load More affordance; omit for a default "Load more" button at the top. */
   loadMore?: {
-    position?: "top" | "bottom";
+    /** "inline" is deprecated: a `load_more` row above the oldest paged row. */
+    position?: "top" | "bottom" | "inline";
     /** Button copy; default "Load more" / "lucide-refresh-cw". */
     label?: string;
     /** lucide-* string or a component — same as `Button`'s icon. */

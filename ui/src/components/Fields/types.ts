@@ -248,8 +248,8 @@ export interface CommitChannel {
   /** A live edit whose commit has not arrived yet; `flush` fires it on save. */
   pending(fieldname: string, value: any, row?: RowAddress): void;
   commit(fieldname: string, value: any, row?: RowAddress): void;
-  /** Drops a field's live edit that was cancelled, so a save does not fire its handler. */
-  discard(fieldname: string, row?: RowAddress): void;
+  /** Drops a field's live edit that was cancelled. Optional: callers use `discard?.()`. */
+  discard?(fieldname: string, row?: RowAddress): void;
   rowChanged(row: RowAddress, change: RowChange): void;
 }
 

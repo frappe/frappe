@@ -9,6 +9,8 @@ export interface CommitChannelHost {
 }
 
 export interface RecordCommitChannel extends CommitChannel {
+  /** The engine always has it; `CommitChannel` leaves it optional for hosts built on develop. */
+  discard: (fieldname: string, row?: RowAddress) => void;
   /** Resolves when the handlers of the structural edit have run. */
   rowChanged: (row: RowAddress, change: RowChange) => Promise<void> | void;
   /** False for an echo of the value last committed, which is no edit. */

@@ -108,7 +108,19 @@ const COLOR_PROPS = new Set([
 ]);
 
 /** Strip color-related inline styles + bgcolor/color attrs so iframe CSS controls colors. */
-export function stripEmailColors(doc: Document): void {
+export function stripEmailColors(doc: Document): void;
+/** @deprecated Pass a parsed `Document`; this form returns the stripped markup. */
+export function stripEmailColors(html: string): string;
+export function stripEmailColors(input: Document | string): void | string {
+  if (!input) return input as string;
+  if (typeof input !== "string") return stripColors(input);
+  const template = document.createElement("template");
+  template.innerHTML = input;
+  stripColors(template.content);
+  return template.innerHTML;
+}
+
+function stripColors(doc: ParentNode): void {
   doc.querySelectorAll("[style]").forEach((el) => {
     const filtered = (el.getAttribute("style") || "")
       .split(";")

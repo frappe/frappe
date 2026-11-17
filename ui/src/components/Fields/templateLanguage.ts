@@ -46,6 +46,8 @@ export function templateLanguage(names: readonly string[] | null): LanguageSuppo
 
 function nestVue(ref: SyntaxNodeRef, read: Read) {
   if (!isTemplateValue(ref.node, read)) return null;
+  // undefined in an app whose build stands in for the peer: the string stays JavaScript
+  if (!vueLanguage) return null;
   const overlay = decodedRanges(ref.node, read);
   return overlay.length ? { parser: vueLanguage.parser, overlay } : null;
 }

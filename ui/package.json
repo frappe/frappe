@@ -216,6 +216,9 @@
     "@codemirror/lang-html": {
       "optional": true
     },
+    "@codemirror/lang-javascript": {
+      "optional": true
+    },
     "@codemirror/lang-json": {
       "optional": true
     },
@@ -229,6 +232,9 @@
       "optional": true
     },
     "@codemirror/lang-sql": {
+      "optional": true
+    },
+    "@codemirror/lang-vue": {
       "optional": true
     },
     "@codemirror/lang-xml": {

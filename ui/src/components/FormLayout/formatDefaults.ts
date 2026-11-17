@@ -42,9 +42,12 @@ function defined(o: FormatDefaults): FormatDefaults {
   return out as FormatDefaults;
 }
 
-/** Read the session's site defaults; `{}` with no session so the lib falls back cleanly. */
+/** The session's site defaults, else `window.sysdefaults`, else `{}`. */
 function readSessionDefaults(): FormatDefaults {
-  return (currentSession()?.defaults as FormatDefaults | undefined) ?? {};
+  const session = currentSession();
+  if (session) return (session.defaults as FormatDefaults | undefined) ?? {};
+  if (typeof window === "undefined") return {};
+  return (window as unknown as { sysdefaults?: FormatDefaults }).sysdefaults ?? {};
 }
 
 /** Resolve active defaults: lib fallback → session → app override. */

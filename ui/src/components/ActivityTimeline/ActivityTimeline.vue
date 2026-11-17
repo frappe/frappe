@@ -25,7 +25,7 @@
 				:tabindex="scrolls ? 0 : undefined"
 			>
 				<!-- older rows prepend here, at the oldest end -->
-				<TimelineSkeleton v-if="isFetching" :rows="2" />
+				<TimelineSkeleton v-if="isFetching && !isInline" :rows="2" />
 				<div
 					v-else-if="showLoadMoreButton && !loadMoreAtBottom"
 					class="mb-1 flex w-full justify-center"
@@ -43,12 +43,20 @@
 						<!-- gutter column: vertical connector line + icon/avatar -->
 						<div
 							class="relative flex justify-center after:absolute after:start-[calc(50%-0.5px)] after:z-0 after:border-s after:border-outline-elevation-2"
-							:class="[
-								i != displayActivities.length - 1 && 'after:h-full',
-								isOneLinerActivity(activity) ? 'after:top-6' : 'after:top-3',
-							]"
+							:class="
+								activity.type === 'load_more'
+									? 'after:-top-2 after:h-[calc(100%+1rem)]'
+									: [
+											i != displayActivities.length - 1 && 'after:h-full',
+											isOneLinerActivity(activity)
+												? 'after:top-6'
+												: 'after:top-3',
+									  ]
+							"
 						>
+							<!-- load_more has no gutter icon — the connector line passes straight through -->
 							<div
+								v-if="activity.type !== 'load_more'"
 								class="relative z-10 flex items-center justify-center self-start bg-surface-base"
 								:class="[
 									isAvatarActivity(activity) ? 'h-10' : 'h-6 w-6 rounded-full',
@@ -68,7 +76,14 @@
 							]"
 							:data-type="activity.type"
 						>
-							<slot :name="`item-${activity.type}`" :activity="activity">
+							<!-- deprecated `position: "inline"`: the Load More row inside the feed -->
+							<div
+								v-if="activity.type === 'load_more'"
+								class="flex w-full justify-center"
+							>
+								<LoadMore />
+							</div>
+							<slot v-else :name="`item-${activity.type}`" :activity="activity">
 								<!-- default slot: full per-row override, exposes the row as { item } -->
 								<slot :item="activity">
 									<EmailItem
@@ -144,15 +159,31 @@ const rootEl = ref<HTMLElement | null>(null);
 const slots = useSlots();
 
 const isFetching = computed(() => !!props.paginate?.isFetchingNextPage);
-const showLoadMoreButton = computed(() => !!props.paginate?.hasNextPage);
+// Deprecated, kept for hosts built on develop: "inline" injects a load_more row above the
+// oldest paged row (`paginate.isPagedRow`, emails by default). v2 uses top and bottom.
+const isInline = computed(() => props.paginate?.loadMore?.position === "inline");
+const showLoadMoreButton = computed(() => !!props.paginate?.hasNextPage && !isInline.value);
+const isPagedRow = computed(
+	() => props.paginate?.isPagedRow ?? ((a: Activity | CustomActivity) => a.type === "email")
+);
 
 // grouped here, over the final rendered feed — a visible row between two saves
 // splits the fold, so summaries never reorder against comments/calls
-const displayActivities = computed<Array<Activity | CustomActivity>>(() =>
-	groupActivities(props.activities as Activity[])
-);
+const displayActivities = computed<Array<Activity | CustomActivity>>(() => {
+	const list = groupActivities(props.activities as Activity[]);
+	if (!isInline.value || !props.paginate?.hasNextPage) return list;
+	const idx = list.findIndex(isPagedRow.value);
+	if (idx === -1) return list;
+	const loadMore: CustomActivity = {
+		type: "load_more",
+		key: "load-more",
+		timestamp: list[idx].timestamp,
+		data: null,
+	};
+	return [...list.slice(0, idx), loadMore, ...list.slice(idx)];
+});
 
-// rendered at the top or the bottom; the two differ only in wrapper
+// rendered at the top, the bottom or inline; they differ only in wrapper
 const LoadMore = () =>
 	slots.load_more
 		? slots.load_more({ loading: isFetching.value, loadMore })

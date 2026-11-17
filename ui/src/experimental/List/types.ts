@@ -37,3 +37,10 @@ export interface ColumnResize {
   fieldname: string;
   width: string;
 }
+
+/** @deprecated Kept for apps built on develop, with `ListBulkBar`. */
+export interface BulkAction {
+  label: string;
+  theme?: "gray" | "blue" | "green" | "red";
+  onClick: (selection: string[]) => void;
+}
