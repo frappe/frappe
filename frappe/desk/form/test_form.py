@@ -47,8 +47,11 @@ class TestForm(FrappeTestCase):
 		from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
 
 		create_submittable_doctype("Test Cancel Scope")
-		self.addCleanup(frappe.response.docs.clear)
-		doc = frappe.get_doc(doctype="Test Cancel Scope", test="original").insert()
+		# drop only the docs added by this test; clearing the whole list would also
+		# wipe docs left by earlier tests, which later tests rely on
+		docs = frappe.response.docs
+		self.addCleanup(lambda count=len(docs): docs.__delitem__(slice(count, None)))
+		doc =frappe.get_doc(doctype="Test Cancel Scope", test="original").insert()
 		doc.submit()
 		return doc
 
