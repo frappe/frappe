@@ -100,7 +100,7 @@ def update_record_tags(dt: str, dn: str, added: str | list | None = None, remove
 	added, removed = frappe.parse_json(added or []), frappe.parse_json(removed or [])
 	if not isinstance(added, list) or not isinstance(removed, list):
 		frappe.throw(_("added and removed must be lists"), frappe.ValidationError)
-	colors = frappe.get_meta("Tag").get_field("color").options.split("\n")
+	colors = (frappe.get_meta("Tag").get_field("color").options or "").split("\n")
 	for item in added:
 		name = item.get("tag") if isinstance(item, dict) else None
 		if not isinstance(name, str) or "," in name or not name.strip() or name != name.strip():

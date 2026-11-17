@@ -210,6 +210,16 @@ class TestAdoptHelpdeskTagColor(IntegrationTestCase):
 		tag.save()
 		self.assertEqual(frappe.db.get_value("Tag", tag.name, "color"), "#00ff00")
 
+	def test_record_tags_still_save_with_a_color_type_field(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		self.insert_custom_field(fieldtype="Color")
+		execute()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "own colour field"}).insert()
+		add_tag("old", "ToDo", todo.name)
+		answer = update_record_tags("ToDo", todo.name, [{"tag": "fresh"}], ["old"])
+		self.assertEqual(answer["tags"], ["fresh"])
+
 	def test_patch_keeps_a_select_with_other_options(self):
 		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
 
