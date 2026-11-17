@@ -4,15 +4,10 @@ import json
 
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
-<<<<<<< HEAD
-from frappe.permissions import add_permission, reset_perms
-from frappe.tests.utils import FrappeTestCase
-=======
 from frappe.core.doctype.user.test_user import test_user
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-from frappe.permissions import add_permission, add_user_permission, reset_perms
-from frappe.tests import IntegrationTestCase
->>>>>>> 5c451c0 (fix(web_form): apply field-level read permissions to form responses)
+from frappe.permissions import add_permission, reset_perms
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils import add_to_date, set_request
 from frappe.website.doctype.web_form.web_form import (
 	accept,
@@ -34,6 +29,30 @@ class TestWebForm(FrappeTestCase):
 		frappe.conf.disable_website_cache = False
 		frappe.local.request = None
 		frappe.set_user("Administrator")
+
+	def make_temp_web_form(self, **kwargs):
+		"""A throwaway Web Form on Event, so field tweaks don't leak into other tests."""
+		fields = kwargs.pop("web_form_fields", None) or [
+			{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+			{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
+		]
+		web_form = frappe.get_doc(
+			{
+				"doctype": "Web Form",
+				"title": "_Test Validation Web Form",
+				"route": "test-validation-web-form",
+				"doc_type": "Event",
+				"module": "Website",
+				"published": 1,
+				"login_required": 1,
+				"allow_multiple": 1,
+				"web_form_fields": fields,
+				**kwargs,
+			}
+		).insert(ignore_permissions=True)
+
+		self.addCleanup(frappe.delete_doc, "Web Form", web_form.name, force=True, ignore_permissions=True)
+		return web_form
 
 	def test_accept(self):
 		frappe.set_user("Administrator")
