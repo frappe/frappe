@@ -19,11 +19,7 @@ from frappe.twofactor import (
 	get_otpsecret_for_,
 	get_verification_obj,
 	process_2fa_for_email,
-<<<<<<< HEAD
-=======
 	reset_otp_secret,
-	set_default,
->>>>>>> fc687c2 (fix: log out other sessions when the OTP secret is reset)
 	should_run_2fa,
 	two_factor_is_enabled_for_,
 )
