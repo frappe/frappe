@@ -5,6 +5,9 @@ import type { NavigationItem } from "@/boot";
 /** The doctype whose views the shell sidebar lists now; the list's crumb menu then holds acts only. */
 export const viewsSidebarDoctype = ref<string | null>(null);
 
+/** The doctype whose sidebar body has its rows on screen; the crumb keeps its list of views until it does. */
+export const viewsSidebarDrawn = ref<string | null>(null);
+
 // The body is a page piece (it lists views and runs the list's acts): `main.ts` registers it, so the shell imports no page.
 export const viewsSidebarBody = shallowRef<Component | null>(null);
 

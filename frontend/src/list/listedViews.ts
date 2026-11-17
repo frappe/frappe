@@ -23,7 +23,7 @@ function recall(doctype: string): ListedView[] | null {
 }
 
 // The crumb and the sidebar both read on mount: a read still fresh at the same write count is shared.
-const SHARED_READ_MS = 30_000;
+const SHARED_READ_MS = 10_000;
 type Read = { scope: string; revision: number; at: number; found: Promise<ListedView[]> };
 const reads = new Map<string, Read>();
 

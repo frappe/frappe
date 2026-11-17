@@ -13,6 +13,7 @@
 					:label="view.label"
 					:title="view.label"
 					:route="addressOf(view.key)"
+					class="data-[state=inactive]:has-[[data-view-menu][data-state=open]]:bg-surface-gray-2"
 					:active="view.key === open"
 					@click="visit(view.key)"
 				>
@@ -51,13 +52,13 @@
 
 <script setup lang="ts">
 import { Badge, SidebarItem } from "frappe-ui";
-import { computed, defineAsyncComponent, inject, ref } from "vue";
+import { computed, defineAsyncComponent, inject, onBeforeUnmount, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import Icon from "@/icons/Icon.vue";
 import { useListedViews, type ListedView } from "@/list/listedViews";
-import { openViewKey } from "@/navigation/viewsSidebar";
+import { openViewKey, viewsSidebarDrawn } from "@/navigation/viewsSidebar";
 import { routeFor } from "@/router/routeFor";
 import { skipDefaultOnce } from "@/router/skipDefault";
 import ViewRowLane from "./ViewRowLane.vue";
@@ -84,6 +85,14 @@ const groups = computed(
 	() => views.value && viewLayers(views.value, boot.unbuilt_view_types ?? []),
 );
 const open = computed(() => openViewKey(route));
+
+// The crumb drops its list of views only once this body has rows to show instead.
+watch(groups, (now) => (viewsSidebarDrawn.value = now ? props.doctype : null), {
+	immediate: true,
+});
+onBeforeUnmount(() => {
+	if (viewsSidebarDrawn.value === props.doctype) viewsSidebarDrawn.value = null;
+});
 
 // The same acts as the crumb's menu, run on the list page the sidebar sits beside.
 const host: Omit<ViewMenuHost, "views" | "current"> = {
