@@ -388,9 +388,11 @@ class TestNavigationInBoot(NavigationTestCase):
 
 		boot = get_boot("/apps/desk")
 		sizes = {key: len(json.dumps(value, default=str)) for key, value in boot.items()}
-		rail = len(boot["navigation"]["rail"])
+		rail = [row["key"] for row in boot["navigation"]["rail"]]
 		self.assertLess(
-			len(json.dumps(boot, default=str)), 40_000, f"rail rows: {rail}; bytes by key: {sizes}"
+			len(json.dumps(boot, default=str)),
+			40_000,
+			f"rail rows: {len(rail)}; bytes by key: {sizes}; rail: {rail}",
 		)
 
 
