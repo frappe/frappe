@@ -76,7 +76,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 
 		show_legacy(doc);
 		if (doc.__onload?.show_insights_dashboards_prompt) {
-			show_insights_dashboards_prompt(claimed);
+			show_insights_dashboards_prompt(doc.__onload.show_insights_dashboards_prompt);
 		}
 	}
 
@@ -119,11 +119,12 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 
 	// Either answer is the site's: switching turns every Insights dashboard on, the
 	// dismiss keeps classic. The wording says so because the line sits on one dashboard.
-	function show_insights_dashboards_prompt(claimed) {
+	// `variant` is what the site's Insights calls for: "install", "update" or "switch".
+	function show_insights_dashboards_prompt(variant) {
 		const submit = (action) =>
 			frappe.xcall(
 				"frappe.desk.doctype.dashboard.dashboard.submit_insights_dashboards_prompt",
-				{ action }
+				{ action, prompt: variant }
 			);
 		const prompt = $(`<div class="dashboard-view-prompt">
 			<span class="dashboard-view-prompt__text">${__(
@@ -131,8 +132,13 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 			)}</span>
 			<span class="dashboard-view-prompt__actions"></span>
 		</div>`);
+		if (variant === "update") {
+			prompt
+				.find(".dashboard-view-prompt__text")
+				.append(` ${__("Update Insights to v3.50 or later to use them.")}`);
+		}
 		prompt.find(".dashboard-view-prompt__actions").append(
-			claimed
+			variant === "switch"
 				? frappe.ui.button({
 						label: __("Switch to Insights dashboards"),
 						onclick: () =>
@@ -148,17 +154,20 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 								dialog.set_title(__("Switch dashboards for everyone?"));
 							}),
 				  })
-				: frappe.ui.button({
+				: variant === "install"
+				? frappe.ui.button({
 						label: __("Install Insights"),
 						icon_right: "external-link",
 						onclick: () => window.open(INSIGHTS_INSTALLATION_URL, "_blank"),
-				  }),
+				  })
+				: "",
 			frappe.ui.button({
 				icon: "x",
 				variant: "ghost",
-				tooltip: claimed
-					? __("Keep classic dashboards. You can switch later in System Settings.")
-					: __("Don't show again"),
+				tooltip:
+					variant === "switch"
+						? __("Keep classic dashboards. You can switch later in System Settings.")
+						: __("Hide until Insights dashboards can be switched on"),
 				onclick: () => submit("keep_classic_dashboards").then(() => prompt.remove()),
 			})
 		);
