@@ -1,0 +1,55 @@
+{
+ "app": "frappe",
+ "creation": "2026-11-17 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Sidebar",
+ "idx": 0,
+ "items": [],
+ "link_doctype": "Module Def",
+ "link_to": "Website",
+ "modified": "2026-11-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "module_def_website",
+ "navigation_items": [
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "web-form",
+   "label": "Web Form",
+   "link_doctype": "DocType",
+   "link_to": "Web Form",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "website-settings",
+   "label": "Website Settings",
+   "link_doctype": "DocType",
+   "link_to": "Website Settings",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "portal-settings",
+   "label": "Portal Settings",
+   "link_doctype": "DocType",
+   "link_to": "Portal Settings",
+   "switches_app": 0
+  }
+ ],
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Website",
+ "user": ""
+}
