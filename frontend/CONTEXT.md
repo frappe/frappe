@@ -475,7 +475,8 @@ component), action (already overloaded; see **Words that collide**).
 `window.desk`, the object an agent that cannot see the screen uses to list the desk's acts,
 run one, wait for a person's answer to its confirm, and read the page and open dialogs. A
 `run` that opens a confirm returns `waiting_for_user` with the dialog and a call id; the person
-answers, never the agent, and `wait` gives the final result.
+answers, never the agent, and `wait` gives the final result. A value an agent passes fills a confirm's
+dialog and never skips it; the dialog says "An agent asked for this.".
 _Avoid_: agent API, bridge.
 
 **UI relay**: <a id="ui-relay"></a>

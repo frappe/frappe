@@ -1,6 +1,7 @@
 // `confirm` and `danger`: frappe-ui's own dialogs, narrowed to the options named here.
 // `shell.dialog` and `page.dialog` both open them through `openNarrowedDialog`.
 import { dialog as frappeDialog } from "frappe-ui";
+import { agentAsk } from "@/acts/dispatcher";
 
 /** What a `confirm`/`danger` callback receives: the desk's own object, not frappe-ui's. */
 export interface DialogControl {
@@ -78,6 +79,7 @@ export function openNarrowedDialog(
 	host: NarrowedDialogHost
 ): Promise<true | null> {
 	const options = pick(host, args, verb === "danger" ? DANGER_OPTIONS : CONFIRM_OPTIONS);
+	const note = agentAsk.note();
 	return new Promise((resolve) => {
 		let handle: { close: () => void } | null = null;
 		let settled = false;
@@ -94,6 +96,7 @@ export function openNarrowedDialog(
 		});
 		handle = frappeDialog[verb]({
 			...options,
+			...(note && { message: [note, options.message].filter(Boolean).join(" ") }),
 			actions: args.actions?.map((action) => ({
 				...pick(host, action, ACTION_OPTIONS, ` on action '${action.label}'`),
 				onClick: async (control: any) => {

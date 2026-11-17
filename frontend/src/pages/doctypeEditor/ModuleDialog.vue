@@ -19,6 +19,15 @@
 				{{ picked ? consequence : unpicked }}
 			</p>
 		</div>
+		<ConfirmNote
+			kind="confirm"
+			:message="
+				standard
+					? __('Make {0} standard.', [doctype])
+					: __('Move {0} to another module.', [doctype])
+			"
+			:buttons="[__('Cancel'), standard ? __('Make standard') : __('Move')]"
+		/>
 		<p
 			class="min-h-5 text-p-sm text-ink-red-6"
 			role="alert"
@@ -47,6 +56,7 @@ import { Button, Combobox, toast } from "frappe-ui";
 import { listDocuments } from "@framework/ui/api";
 import { __ } from "@/i18n";
 import { errorMessage } from "@/recordPage/errorMessage";
+import ConfirmNote from "./ConfirmNote.vue";
 import { useDangerSubmit } from "./dangerSubmit";
 
 const props = defineProps<{
@@ -56,12 +66,14 @@ const props = defineProps<{
 	custom: boolean;
 	/** Make standard: its files go in the module's app, for good. */
 	standard: boolean;
+	/** The module an agent asked for; the dialog still waits for a person. */
+	initial?: string;
 	submit: (module: string) => Promise<string>;
 	close: (module: string | null) => void;
 }>();
 const { working, error, send } = useDangerSubmit(props.submit, props.close);
 
-const picked = ref<string | null>(null);
+const picked = ref<string | null>(props.initial ?? null);
 const modules = ref<{ label: string; value: string; description?: string }[]>([]);
 // The files go in an app: only a custom DocType that stays custom may move to a site's own module.
 const appModules = props.standard || !props.custom;

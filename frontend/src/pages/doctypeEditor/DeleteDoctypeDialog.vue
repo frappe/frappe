@@ -19,6 +19,11 @@
 		>
 			{{ error }}
 		</p>
+		<ConfirmNote
+			kind="danger"
+			:message="__('Delete {0}.', [doctype])"
+			:buttons="[__('Cancel'), __('Delete {0}', [doctype])]"
+		/>
 		<div class="flex justify-end gap-2">
 			<Button :label="__('Cancel')" :disabled="working" @click="close(null)" />
 			<Button
@@ -39,6 +44,7 @@
 import { computed, onMounted, ref } from "vue";
 import { Button, TextInput, type TextInputExposed } from "frappe-ui";
 import { __, __n } from "@/i18n";
+import ConfirmNote from "./ConfirmNote.vue";
 import { useDangerSubmit } from "./dangerSubmit";
 
 const props = defineProps<{

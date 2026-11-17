@@ -285,7 +285,7 @@ describe("the list page header acts", () => {
 		expect(acts.find("header.sync")).toMatchObject({ key: "Mod+Shift+Y", palette: false });
 		expect(acts.find("header.sync")!.argument!.label).toBe("Where");
 		await acts.run("header.sync", "a");
-		expect(run).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Contact" }), "a");
+		expect(run).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Contact" }), "a", undefined);
 	});
 
 	it("has the built-in Create as header.new, and no act for a crumb", async () => {

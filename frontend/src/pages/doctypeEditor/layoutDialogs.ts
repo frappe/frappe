@@ -53,11 +53,15 @@ export async function runOpenLayoutAct(canvas: DesignCanvas, act: OpenLayoutAct)
 
 /** Asks first, listing the site layouts the reset removes. */
 export async function resetToApp(canvas: DesignCanvas, type: FormLayoutType) {
+	if (await confirmReset(canvas, type)) await acts.perform("layouts.reset_to_app", { type });
+}
+
+/** The reset's dialog; true when the person confirms. */
+export async function confirmReset(canvas: DesignCanvas, type: FormLayoutType): Promise<boolean> {
 	const working = canvas.working.value;
 	const { title, confirmLabel } = resetWording(working, type);
 	const props = { label: typeLabel(type), summary: resetSummary(working, type), confirmLabel };
-	const reset = await shellDialog().open(ResetLayoutDialog, props, { title });
-	if (reset) await acts.perform("layouts.reset_to_app", { type });
+	return Boolean(await shellDialog().open(ResetLayoutDialog, props, { title }));
 }
 
 /** Customize's warning before an edit gives `type` its first site layout; `true` on Continue. */

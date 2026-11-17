@@ -1,8 +1,8 @@
-// Design mode's Danger zone: acts on the whole saved DocType. Each writes at once, outside the
-// pending edits and the undo stack, so it asks about pending edits first, then its dialog.
+// Design mode's Danger zone: acts on the whole saved DocType. Each writes at once, outside the pending edits
+// and undo, so it asks about pending edits, then its dialog. An agent's value only fills that dialog in.
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
-import type { ActAsk, ActItem } from "@/acts/dispatcher";
+import { ActDeclined, type ActAsk, type ActCall, type ActItem } from "@/acts/dispatcher";
 import { errorMessage } from "@/recordPage/errorMessage";
 import { __, __n } from "@/i18n";
 import type { EditorActsHost } from "./editorActs";
@@ -23,11 +23,11 @@ export interface DangerHost {
 	scope: () => DangerScope | null;
 	/** Save first, Discard or Cancel when edits are pending; true to go on, with none left. */
 	settle: () => Promise<boolean>;
-	/** Sends the act's call through `submit`, stays open on an error; `null` when the reader cancels. */
-	askKind: (state: EditorState, submit: (kind: DoctypeKind) => Promise<DoctypeKind>) => Promise<DoctypeKind | null>;
-	askName: (state: EditorState, submit: (name: string) => Promise<string>) => Promise<string | null>;
+	/** Each `ask` sends the act's call through `submit`, stays open on an error and gives `null` when the reader cancels. `initial` fills the dialog for an agent. */
+	askKind: (state: EditorState, submit: (kind: DoctypeKind) => Promise<DoctypeKind>, initial?: DoctypeKind) => Promise<DoctypeKind | null>;
+	askName: (state: EditorState, submit: (name: string) => Promise<string>, initial?: string) => Promise<string | null>;
 	/** The module to move to, or with `standard`, the app module its files go in. */
-	askModule: (state: EditorState, standard: boolean, submit: (module: string) => Promise<string>) => Promise<string | null>;
+	askModule: (state: EditorState, standard: boolean, submit: (module: string) => Promise<string>, initial?: string) => Promise<string | null>;
 	askDelete: (state: EditorState, submit: () => Promise<true>) => Promise<true | null>;
 	/** Opens the editor at the DocType's new name. */
 	renamed: (name: string) => Promise<unknown>;
@@ -39,15 +39,15 @@ export interface DangerHost {
 	showing: (doctype: string) => boolean;
 }
 
-const ITEMS: { name: DangerAct; label: string; icon: string; asks: ActAsk[]; run: (host: EditorActsHost, value?: any) => Promise<void> }[] = [
+const ITEMS: { name: DangerAct; label: string; icon: string; asks: ActAsk[]; run: (host: EditorActsHost, value?: any, agent?: boolean) => Promise<boolean> }[] = [
 	{ name: "change_kind", label: "Change kind…", icon: "lucide-shapes", asks: ["confirm", "dialog"], run: changeKind },
 	{ name: "rename_doctype", label: "Rename DocType…", icon: "lucide-pencil", asks: ["confirm", "dialog"], run: rename },
-	{ name: "move_doctype", label: "Move to another module…", icon: "lucide-folder-input", asks: ["confirm", "dialog"], run: (host, value) => move(host, value, false) },
-	{ name: "make_standard", label: "Make it standard…", icon: "lucide-package", asks: ["confirm", "dialog"], run: (host, value) => move(host, value, true) },
+	{ name: "move_doctype", label: "Move to another module…", icon: "lucide-folder-input", asks: ["confirm", "dialog"], run: (host, value, agent) => move(host, value, false, agent) },
+	{ name: "make_standard", label: "Make it standard…", icon: "lucide-package", asks: ["confirm", "dialog"], run: (host, value, agent) => move(host, value, true, agent) },
 	{ name: "delete_doctype", label: "Delete DocType…", icon: "lucide-trash-2", asks: ["confirm", "danger"], run: remove },
 ];
 
-/** The `danger` surface: shown where its Settings row is. A value, as `{ kind }`, skips the dialog. */
+/** The `danger` surface: shown where its Settings row is. A person's value, as `{ kind }`, skips the dialog; an agent's fills it in. */
 export function dangerItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 	return ITEMS.map(({ name, label, icon, asks, run }) => ({
 		name,
@@ -55,7 +55,11 @@ export function dangerItems(host: EditorActsHost): ActItem<EditorActsHost>[] {
 		icon,
 		asks,
 		when: () => offered(host, name),
-		run: (_context, value) => run(host, value),
+		run: async (_context, value, call?: ActCall) => {
+			const agent = Boolean(call?.agent);
+			// A person who cancels ends the act quietly; an agent is told, as `declined`.
+			if (!(await run(host, value, agent)) && agent) throw new ActDeclined(`danger.${name}`);
+		},
 	}));
 }
 
@@ -72,74 +76,79 @@ async function settled(host: EditorActsHost): Promise<EditorState | null> {
 	return host.canvas()?.state ?? null;
 }
 
-async function changeKind(host: EditorActsHost, value?: { kind?: DoctypeKind }) {
+async function changeKind(host: EditorActsHost, value?: { kind?: DoctypeKind }, agent = false) {
 	const state = await settled(host);
-	if (!state) return;
-	await held(host, async () => {
+	if (!state) return false;
+	return held(host, async () => {
 		const call = async (kind: DoctypeKind) => {
 			await runMethod(DANGER_METHOD.change_kind, { doctype: state.doctype, kind }, { nullable: true });
 			return kind;
 		};
-		const kind = await answer(value?.kind, call, (submit) => host.danger.askKind(state, submit));
-		if (!kind) return;
+		const kind = await answer(value?.kind, agent, call, (submit) => host.danger.askKind(state, submit, value?.kind));
+		if (!kind) return false;
 		const label = KINDS.find((one) => one.value === kind)?.label ?? kind;
 		toast.success(__("{0} is a {1} DocType now.", [state.doctype, __(label)]));
 		if (host.danger.showing(state.doctype)) await host.danger.reload();
-	});
+		return true;
+	}, agent);
 }
 
-async function rename(host: EditorActsHost, value?: { name?: string }) {
+async function rename(host: EditorActsHost, value?: { name?: string }, agent = false) {
 	const state = await settled(host);
-	if (!state) return;
-	await held(host, async () => {
+	if (!state) return false;
+	return held(host, async () => {
 		const call = async (asked: string) => {
 			const { data } = await runMethod<string>(DANGER_METHOD.rename_doctype, { doctype: state.doctype, new_name: asked });
 			return data;
 		};
-		const name = await answer(value?.name, call, (submit) => host.danger.askName(state, submit));
-		if (!name) return;
+		const name = await answer(value?.name, agent, call, (submit) => host.danger.askName(state, submit, value?.name));
+		if (!name) return false;
 		toast.success(__("Renamed {0} to {1}.", [state.doctype, name]));
 		if (host.danger.showing(state.doctype)) await host.danger.renamed(name);
-	});
+		return true;
+	}, agent);
 }
 
-async function move(host: EditorActsHost, value: { module?: string } | undefined, standard: boolean) {
+async function move(host: EditorActsHost, value: { module?: string } | undefined, standard: boolean, agent = false) {
 	const state = await settled(host);
-	if (!state) return;
+	if (!state) return false;
 	const { doctype } = state;
-	await held(host, async () => {
+	return held(host, async () => {
 		const call = async (module: string) => {
 			await runMethod(standard ? DANGER_METHOD.make_standard : DANGER_METHOD.move_doctype, { doctype, module }, { nullable: true });
 			return module;
 		};
-		const module = await answer(value?.module, call, (submit) => host.danger.askModule(state, standard, submit));
-		if (!module) return;
+		const module = await answer(value?.module, agent, call, (submit) => host.danger.askModule(state, standard, submit, value?.module));
+		if (!module) return false;
 		toast.success(standard ? __("{0} is standard now, in {1}.", [doctype, module]) : __("Moved {0} to {1}.", [doctype, module]));
 		if (host.danger.showing(doctype)) await host.danger.reload();
-	});
+		return true;
+	}, agent);
 }
 
-async function remove(host: EditorActsHost) {
+async function remove(host: EditorActsHost, _value?: unknown, agent = false) {
 	const state = await settled(host);
-	if (!state) return;
-	await held(host, async () => {
+	if (!state) return false;
+	return held(host, async () => {
 		const call = async () => {
 			await runMethod(DANGER_METHOD.delete_doctype, { doctype: state.doctype }, { nullable: true });
 			return true as const;
 		};
-		if (!(await answer<unknown, true>(undefined, call, (submit) => host.danger.askDelete(state, () => submit(undefined))))) return;
+		if (!(await answer<unknown, true>(undefined, false, call, (submit) => host.danger.askDelete(state, () => submit(undefined))))) return false;
 		toast.success(__("Deleted {0}.", [state.doctype]));
 		if (host.danger.showing(state.doctype)) await host.danger.deleted();
-	});
+		return true;
+	}, agent);
 }
 
-/** What the act's call answers: at once for a given `value`, else through its dialog. */
+/** What the act's call answers: at once for a person's `value`, else through its dialog, which an agent's `value` only fills in. */
 async function answer<V, R>(
 	value: V | undefined,
+	agent: boolean,
 	call: (value: V) => Promise<R>,
 	ask: (submit: (value: V) => Promise<R>) => Promise<R | null>,
 ): Promise<R | null> {
-	if (value) return call(value);
+	if (value && !agent) return call(value);
 	let started = undefined as Promise<R> | undefined;
 	let running = false;
 	const result = await ask((picked) => {
@@ -160,11 +169,17 @@ async function answer<V, R>(
 }
 
 /** The edits stay locked from the act's dialog opening until it and the page's follow-up finish: the reload drops what is pending. */
-async function held(host: EditorActsHost, run: () => Promise<void>) {
-	if (host.edits.locked.value) return void toast.error(__("Another change to this DocType is still running. Try again when it ends."));
+async function held(host: EditorActsHost, run: () => Promise<boolean>, agent = false) {
+	if (host.edits.locked.value) {
+		const busy = __("Another change to this DocType is still running. Try again when it ends.");
+		// An agent's call fails, so it never reads a change that did not happen as done.
+		if (agent) throw new Error(busy);
+		toast.error(busy);
+		return true; // nobody declined
+	}
 	host.edits.locked.value = true;
 	try {
-		await run();
+		return await run();
 	} finally {
 		host.edits.locked.value = false;
 	}

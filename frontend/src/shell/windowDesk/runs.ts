@@ -1,5 +1,6 @@
 // An agent's runs through `window.desk.acts`: a run that opens a confirm or danger returns at once, and `wait` gives its end.
-import { acts, type ActDialog, type ActResult } from "@/acts/dispatcher";
+import { acts, agentAsk, type ActDialog, type ActResult } from "@/acts/dispatcher";
+import { __ } from "@/i18n";
 import { readDialogs, watchListed } from "../dialogs/readableDialogs";
 import { missingCall, waitingResult } from "./waiting";
 
@@ -17,6 +18,9 @@ let last = 0;
 const parked = new Map<number, Call>();
 // Runs that have not returned yet; a new confirm is the newest one's, as an agent acts one step at a time.
 const racing: Call[] = [];
+
+// A confirm that opens while a run is in flight, or after a parked call's own confirm closed, is the agent's, and says so.
+agentAsk.note = () => (racing.length || [...parked.values()].some((call) => !call.done && !openDialog(call)) ? __("An agent asked for this.") : "");
 
 export async function run(name: string, value?: unknown): Promise<ActResult> {
 	const holding = holder();
@@ -54,7 +58,7 @@ function start(name: string, value: unknown) {
 			if (dialog) resolve(dialog);
 		});
 	});
-	call.ended = acts.call(name, value);
+	call.ended = acts.call(name, value, { agent: true });
 	return call;
 }
 
