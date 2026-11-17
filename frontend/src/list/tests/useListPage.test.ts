@@ -1060,6 +1060,35 @@ describe("a saved view", () => {
 		expect(router.currentRoute.value.query).toEqual({});
 	});
 
+	it("keeps the edits made while its save was in flight as changes", async () => {
+		await openSaved();
+		page.view.update({ columns: [{ fieldname: "title" }] });
+		await settle();
+		const written = page.snapshot();
+
+		page.view.sort.value = [{ fieldname: "amount", direction: "desc" }];
+		page.view.update({ columns: [{ fieldname: "title" }, { fieldname: "amount" }] });
+		page.commit(written);
+		await settle();
+		expect(page.view.modified.value).toBe(true);
+		expect(page.view.sort.value).toEqual([{ fieldname: "amount", direction: "desc" }]);
+		expect(page.view.settings.value.columns).toEqual([{ fieldname: "title" }, { fieldname: "amount" }]);
+		expect(router.currentRoute.value.query).not.toEqual({});
+	});
+
+	it("keeps a reset made while its save was in flight", async () => {
+		await openSaved();
+		page.view.update({ columns: [{ fieldname: "title" }] });
+		await settle();
+		const written = page.snapshot();
+
+		await page.view.reset("columns");
+		page.commit(written);
+		await settle();
+		expect(page.view.modified.value).toBe(true);
+		expect(page.view.settings.value.columns).toEqual([]);
+	});
+
 	it("says whether the person can save it", async () => {
 		await openSaved({}, false);
 		expect(page.view.saveable.value).toBe(false);

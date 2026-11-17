@@ -281,8 +281,19 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 	}
 
 	function commit(written: ListSettings) {
+		// Edits made while the save was in flight are not in `written`: they stay as changes, a reset as `[]`.
+		const now = viewSettings.value as Record<string, unknown>;
+		const own = new Set([...Object.keys(written), ...Object.keys(changed.value)]);
+		const edits: Record<string, unknown> = {};
+		for (const key of own) {
+			if (["filters", "sort", "quick_filter_fields"].includes(key)) continue;
+			const value = key in now ? now[key] : [];
+			if (JSON.stringify(value) !== JSON.stringify((written as Record<string, unknown>)[key])) edits[key] = value;
+		}
 		if (saved) saved.stored.value = written;
-		discard();
+		changed.value = edits as typeof changed.value;
+		applied.sort = JSON.stringify(sort.value);
+		writeQuery();
 	}
 
 	function discard() {

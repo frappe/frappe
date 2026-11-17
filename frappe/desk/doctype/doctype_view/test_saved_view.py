@@ -4,6 +4,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.doctype_view.api import (
 	delete_view,
 	find,
@@ -34,6 +35,7 @@ class SavedViewCase(AppViewCase):
 		super().setUp()
 		frappe.db.delete("Doctype View", {"reference_doctype": DOCTYPE})
 		frappe.db.delete("Favourite", {"reference_name": DOCTYPE})
+		frappe.db.delete("Default View", {"reference_doctype": DOCTYPE})
 		for user in (PERSON, OTHER):
 			a_person(user)
 		a_person(MANAGER, role="System Manager")
@@ -41,6 +43,11 @@ class SavedViewCase(AppViewCase):
 
 	def row_at(self, key: str, user: str) -> str | None:
 		return frappe.db.get_value("Doctype View", {"reference_doctype": DOCTYPE, "key": key, "user": user})
+
+	def default_at(self, key: str, user: str):
+		frappe.get_doc(
+			{"doctype": "Default View", "reference_doctype": DOCTYPE, "user": user, "view": key}
+		).insert(ignore_permissions=True)
 
 
 class TestSaving(SavedViewCase):
@@ -217,6 +224,44 @@ class TestDeleting(SavedViewCase):
 			self.assertEqual(find(DOCTYPE, "probe-open")["layer"], "app")
 			self.assertEqual(view_settings(DOCTYPE, "probe-open")["settings"], OPEN)
 		self.assertTrue(frappe.db.exists("Favourite", {"reference_name": DOCTYPE, "view": "probe-open"}))
+
+	def test_deleting_a_site_view_clears_every_default_that_names_it(self):
+		site_row("site-probe", label="Site probe")
+		for user in (SITE_ROW, PERSON, OTHER):
+			self.default_at("site-probe", user)
+		self.default_at("probe-open", MANAGER)
+
+		with set_user(MANAGER):
+			self.assertEqual(delete_view(DOCTYPE, "site-probe")["default_view"], "probe-open")
+
+		self.assertFalse(
+			frappe.db.exists("Default View", {"reference_doctype": DOCTYPE, "view": "site-probe"})
+		)
+		self.assertTrue(
+			frappe.db.exists("Default View", {"reference_doctype": DOCTYPE, "view": "probe-open"})
+		)
+
+	def test_a_key_made_again_after_a_delete_inherits_no_default(self):
+		site_row("site-probe", label="Site probe")
+		self.default_at("site-probe", MANAGER)
+
+		with set_user(MANAGER):
+			delete_view(DOCTYPE, "site-probe")
+			self.assertEqual(save_view_as(DOCTYPE, "Site probe", OPEN)["key"], "site-probe")
+
+		self.assertIsNone(DefaultViews(MANAGER).addresses([DOCTYPE]).get(DOCTYPE))
+
+	def test_deleting_a_site_override_keeps_the_defaults_at_the_app_view_it_restores(self):
+		for user in (SITE_ROW, PERSON):
+			self.default_at("probe-open", user)
+
+		with set_user(MANAGER):
+			save_view(DOCTYPE, "probe-open", CLOSED)
+			self.assertTrue(delete_view(DOCTYPE, "probe-open")["restored"])
+
+		self.assertEqual(
+			frappe.db.count("Default View", {"reference_doctype": DOCTYPE, "view": "probe-open"}), 2
+		)
 
 	def test_an_app_view_cannot_be_deleted(self):
 		for user in (PERSON, MANAGER):
