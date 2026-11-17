@@ -32,12 +32,21 @@ It returns an error for these. Use the props that this file gives for them.
   Use `baseStyles` for flex, gap, padding, and size.
 - `Repeater`: repeats its children one time for each row of `data`.
   - Props: `data` (bind it to `{{ source.data }}`), `dataKey` (required: the
-    field that identifies a row, usually `"name"`), `emptyStateMessage`.
+    field with a stable, unique value for each row, usually `"name"`),
+    `emptyStateMessage`.
   - Make one row template as its child. Do not make one child for each
     record. In the template, `dataItem` is the row and `dataIndex` is its
-    index: `{{ dataItem.item_name }}`.
-  - It shows the empty message itself when `data` is empty. Do not add a
-    second empty state beside it.
+    zero-based index. Read a field with `{{ dataItem.item_name }}`.
+  - Descendant blocks inherit `dataItem` and `dataIndex` through nested
+    containers. Use them directly in props, styles, `visibilityCondition`,
+    and event scripts.
+  - For a reusable Studio Component in the template, pass row values as
+    props, such as `{"title": "{{ dataItem.item_name }}"}`. Its internal
+    blocks should read its props.
+  - In a nested `Repeater`, `dataItem` and `dataIndex` refer to the inner row.
+  - It shows its empty message when `data` is missing or empty, including
+    before a source loads. Handle loading separately, and avoid a duplicate
+    empty state.
   - Its own layout is a wrapping row with a gap. For a vertical list, set
     `flexDirection: "column"` and the gap in its `baseStyles`.
 - `Divider`: no props.
