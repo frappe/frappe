@@ -264,7 +264,10 @@ class Contact(Document):
 
 		for row in self.phone_nos:
 			tel = vcard.add("tel")
-			tel.value = row.phone
+			tel.value = row.get("phone")
+			if not tel.value:
+				continue
+
 			if row.is_primary_phone:
 				tel.type_param = "home"
 
@@ -345,7 +348,8 @@ def get_default_contact(doctype, name):
 
 @frappe.whitelist()
 def invite_user(contact: str):
-	contact = frappe.read_doc("Contact", contact)
+	contact = frappe.get_doc("Contact", contact)
+	contact.check_permission()
 
 	if not contact.email_id:
 		frappe.throw(_("Please set Email Address"))
