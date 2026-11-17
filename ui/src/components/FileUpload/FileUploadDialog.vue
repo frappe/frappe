@@ -211,6 +211,7 @@
 						v-for="option in menu"
 						:key="option.key"
 						type="button"
+						data-view
 						class="flex w-full items-center gap-2.5 rounded-5 px-2 py-1.5 text-left hover:bg-surface-gray-2"
 						@click="onMenu(option.key)"
 					>

@@ -51,6 +51,7 @@
 						class="shrink-0 text-left"
 						:active="items[active]?.key === item.key"
 						:data-finder-row="item.key"
+						data-view
 						@mousemove="active = items.indexOf(item)"
 						@click="pick(item)"
 					>
