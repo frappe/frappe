@@ -13,11 +13,7 @@ import type { ValueControlId } from "./valueControl";
 
 type LazyControl = keyof typeof import("./lazyControls");
 
-/**
- * Loads one popover-only input from the lazy module; later calls reuse the chunk.
- * An empty input stands in while it loads, so a rule that opens on a stored "in" or
- * "between" value, or a tap before the hover preload ends, never shows a blank cell.
- */
+/** Loads one popover-only input on first use; an empty input shows while it loads. */
 function lazyControl(name: LazyControl): Component {
   return defineAsyncComponent({
     loader: () => import("./lazyControls").then((module) => module[name] as Component),
