@@ -1633,6 +1633,33 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 			)
 		)
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_lock_wait_timeout_raised_by_sql_is_timedout(self):
+		conf = frappe.conf
+		other = get_db(
+			socket=conf.db_socket,
+			host=conf.db_host,
+			port=conf.db_port,
+			user=conf.db_user,
+			password=conf.db_password,
+			cur_db_name=conf.db_name,
+		)
+		other.connect()
+		self.addCleanup(other.close)
+		self.addCleanup(other.rollback)
+		other.sql("select name from `tabDocType` where name = 'ToDo' for update")
+
+		previous_timeout = frappe.db.sql("select @@session.innodb_lock_wait_timeout")[0][0]
+		self.addCleanup(frappe.db.sql, f"set session innodb_lock_wait_timeout = {int(previous_timeout)}")
+		frappe.db.sql("set session innodb_lock_wait_timeout = 1")
+
+		with self.assertRaises(frappe.QueryTimeoutError) as raised:
+			frappe.db.sql("update `tabDocType` set modified = modified where name = 'ToDo'")
+		frappe.db.rollback()
+
+		self.assertTrue(frappe.db.is_timedout(raised.exception))
+		self.assertFalse(frappe.db.is_deadlocked(raised.exception))
+
 	@run_only_if(db_type_is.POSTGRES)
 	def test_serialization_failure_is_treated_as_deadlock(self):
 		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
