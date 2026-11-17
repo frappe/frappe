@@ -163,6 +163,92 @@ describe("which run a confirm belongs to", () => {
 	}
 	const settled = (promise: Promise<unknown>) => Promise.race([promise.then(() => true), new Promise((r) => setTimeout(r, 20, false))]);
 
+	it("leaves a person's own confirm alone while an agent's call is in flight", async () => {
+		const slow = gate();
+		register({ slow: async () => (await slow.done, "slow"), submit: () => confirmThen(true) });
+		const agent = run("test.slow");
+
+		const person = acts.run("test.submit");
+		await vi.waitFor(() => expect(frappeDialog.confirm).toHaveBeenCalledTimes(1));
+
+		expect((vi.mocked(frappeDialog.confirm).mock.lastCall![0] as { message: string }).message).toBe("Sure?");
+		slow.open();
+		expect(await agent).toMatchObject({ ok: true, data: "slow" });
+		await answer(true);
+		await person;
+	});
+
+	it("does not hand a person's confirm to a parked agent act that still runs", async () => {
+		const slow = gate();
+		register({ first: async () => (await confirmThen(true), slow.done), submit: () => confirmThen(true) });
+		const { error } = (await run("test.first")) as any;
+		await answer(true);
+
+		const person = acts.run("test.submit");
+		await vi.waitFor(() => expect(frappeDialog.confirm).toHaveBeenCalledTimes(2));
+
+		expect((vi.mocked(frappeDialog.confirm).mock.lastCall![0] as { message: string }).message).toBe("Sure?");
+		slow.open("end");
+		await answer(true);
+		await person;
+		expect(await wait(error.call)).toMatchObject({ ok: true });
+	});
+
+	it("gives a confirm that an agent's act opens through a nested run to the agent", async () => {
+		register({ outer: () => acts.run("test.submit"), submit: () => confirmThen(true) });
+
+		const result = (await run("test.outer")) as any;
+
+		expect(result.error).toMatchObject({ code: "waiting_for_user", dialog: { title: "Submit?" } });
+		expect((vi.mocked(frappeDialog.confirm).mock.lastCall![0] as { message: string }).message).toBe("An agent asked for this. Sure?");
+		await answer(true);
+	});
+
+	it("still gives the agent's later confirm to its run after a person's confirm opened in between", async () => {
+		const later = gate();
+		register({
+			slow: async () => (await later.done, confirmThen("agent")),
+			submit: () => confirmThen(true),
+		});
+		const agent = run("test.slow");
+		const person = acts.run("test.submit");
+		await vi.waitFor(() => expect(frappeDialog.confirm).toHaveBeenCalledTimes(1));
+
+		later.open();
+		const result = (await agent) as any;
+
+		expect(result.error).toMatchObject({ code: "waiting_for_user", dialog: { title: "Submit?" } });
+		expect(vi.mocked(frappeDialog.confirm).mock.calls).toHaveLength(2);
+		await answer(true);
+		(vi.mocked(frappeDialog.confirm).mock.calls[0][0] as { onConfirm?: () => unknown }).onConfirm?.();
+		await person;
+	});
+
+	it("keeps the agent as the starter of a nested run that waits for its surface to load", async () => {
+		const loaded = gate();
+		let ready = false;
+		const surfaces = {
+			test: () => [{ item: { name: "outer", run: () => acts.run("late.submit") }, hidden: false }],
+			late: () => (ready ? [{ item: { name: "submit", run: () => confirmThen(true) }, hidden: false }] : []),
+		};
+		release = acts.register({
+			surfaces,
+			context: () => null,
+			passes: () => true,
+			settled: () => undefined,
+			loading: (name: string) => (name === "late.submit" && !ready ? loaded.done.then(() => void (ready = true)) : undefined),
+			hold: async (work: () => unknown) => work(),
+			failed: () => {},
+		} as unknown as ActScope);
+
+		const agent = run("test.outer");
+		loaded.open();
+		const result = (await agent) as any;
+
+		expect(result.error).toMatchObject({ code: "waiting_for_user", dialog: { title: "Submit?" } });
+		await answer(true);
+	});
+
 	it("gives a confirm to the newest run and leaves an older pending run pending", async () => {
 		const form = gate();
 		register({ form: () => form.done, submit: () => confirmThen(true) });

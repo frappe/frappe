@@ -283,9 +283,11 @@ export class ActDispatcher {
 	}
 
 	private async execute(name: string, value: unknown, quiet: boolean, by?: ActCall): Promise<unknown> {
+		// Read before the check can wait: the caller's mark is gone once it does.
+		const agent = by ? by.agent : !!agentAsk.agent;
 		const checked = this.check(name, value, true);
 		const { scope, item } = checked instanceof Promise ? await checked : checked;
-		const held = scope.hold(() => item.run!(scope.context(), value, by));
+		const held = scope.hold(() => startedBy(agent, () => item.run!(scope.context(), value, by)));
 		return quiet ? held.catch(ignoreDeclined) : held;
 	}
 
@@ -301,7 +303,7 @@ export class ActDispatcher {
 		}
 		const { scope, item } = checked;
 		try {
-			await scope.hold(() => item.run!(scope.context(), value));
+			await scope.hold(() => startedBy(false, () => item.run!(scope.context(), value)));
 		} catch (error) {
 			if (!(error instanceof ActDeclined)) await scope.failed(error);
 		}
@@ -394,8 +396,18 @@ function ignoreDeclined(error: unknown) {
 
 let readDialogs: () => ActDialog[] = () => [];
 
-/** `note()` is the line a confirm shows while an agent's call is in flight, "" for a person's; `window.desk` sets it. */
-export const agentAsk = { note: () => "" };
+/** `window.desk` sets `note`; `agent` marks who started the act whose `run` is executing, an act it runs inherits it. */
+export const agentAsk = { note: () => "", agent: null as boolean | null };
+
+function startedBy<T>(agent: boolean, work: () => T): T {
+	const before = agentAsk.agent;
+	agentAsk.agent = agent;
+	try {
+		return work();
+	} finally {
+		agentAsk.agent = before;
+	}
+}
 
 /** The tab's dialog list registers its reader here: the acts layer sits below the shell's. */
 export function readDialogsWith(reader: () => ActDialog[]) {
