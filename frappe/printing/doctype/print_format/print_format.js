@@ -21,6 +21,12 @@ frappe.ui.form.on("Print Format", "onload", function (frm) {
 });
 
 frappe.ui.form.on("Print Format", {
+	after_delete: function (frm) {
+		const [page, name] = frappe.get_prev_route();
+		if (page && (page !== "print-format-builder-beta" || name !== frm.docname)) return;
+		frappe.route_flags.replace_route = true;
+		frappe.set_route("List", "Print Format");
+	},
 	before_save: function (frm) {
 		frm._created_this_save = frm.is_new();
 	},

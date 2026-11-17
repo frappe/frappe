@@ -137,6 +137,18 @@
 				}
 			}
 		}
+
+		// shown on row hover only; visibility keeps the cell's width
+		@media (hover: hover) {
+			tbody tr .embedded-list-hover-reveal {
+				visibility: hidden;
+			}
+
+			tbody tr:hover .embedded-list-hover-reveal,
+			tbody tr:focus-within .embedded-list-hover-reveal {
+				visibility: visible;
+			}
+		}
 	}
 
 	.embedded-list-more {
