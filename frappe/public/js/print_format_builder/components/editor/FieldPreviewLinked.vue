@@ -3,13 +3,21 @@
 		v-if="df.label && df.show_label !== 'hide'"
 		class="label"
 		:class="{ 'label--no-colon': df.hide_colon }"
+		:style="df.label_color ? { color: df.label_color } : {}"
 	>
 		{{ df.label }}
 	</div>
 	<div v-if="is_image && value" class="value">
 		<img :style="{ maxWidth: '100%', width: df.width || '100%' }" :src="value" />
 	</div>
-	<div v-else class="value" :class="{ 'text-muted': !value }">{{ value || placeholder }}</div>
+	<div
+		v-else
+		class="value"
+		:class="{ 'text-muted': !value }"
+		:style="df.value_color ? { color: df.value_color } : {}"
+	>
+		{{ value || placeholder }}
+	</div>
 </template>
 
 <script setup>

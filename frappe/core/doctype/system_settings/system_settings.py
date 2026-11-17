@@ -8,6 +8,8 @@ from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.utils import cint, today
 
+MAX_SUBMISSION_QUEUE_TIMEOUT = 3600
+
 
 class SystemSettings(Document):
 	# begin: auto-generated types
@@ -37,6 +39,7 @@ class SystemSettings(Document):
 		country: DF.Link | None
 		currency: DF.Link | None
 		currency_precision: DF.Literal["", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+		dashboards: DF.Literal["Insights", "Classic"]
 		date_format: DF.Literal[
 			"yyyy-mm-dd", "dd-mm-yyyy", "dd/mm/yyyy", "dd.mm.yyyy", "mm/dd/yyyy", "mm-dd-yyyy"
 		]
@@ -53,6 +56,7 @@ class SystemSettings(Document):
 		dormant_days: DF.Int
 		email_footer_address: DF.SmallText | None
 		email_retry_limit: DF.Int
+		enable_combobox_link_field: DF.Check
 		enable_mcp: DF.Check
 		enable_onboarding: DF.Check
 		enable_password_policy: DF.Check
@@ -110,11 +114,13 @@ class SystemSettings(Document):
 		show_external_link_warning: DF.Literal["Never", "Ask", "Always"]
 		store_attached_pdf_document: DF.Check
 		strip_exif_metadata_from_uploaded_images: DF.Check
+		submission_queue_timeout: DF.Int
 		sync_in_batch: DF.Check
 		sync_timeout: DF.Int
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
 		time_zone: DF.Literal[None]
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
+		use_classic_charts: DF.Check
 		use_number_format_from_currency: DF.Check
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types
@@ -169,6 +175,7 @@ class SystemSettings(Document):
 				_("{0} can not be more than {1}").format(label, 50), alert=True, indicator="yellow"
 			)
 		self.validate_snapshot_reports()
+		self.validate_submission_queue_timeout()
 
 	def validate_otp_sms_template(self):
 		if not self.enable_two_factor_auth or self.two_factor_method != "SMS" or not self.otp_sms_template:
@@ -231,6 +238,14 @@ class SystemSettings(Document):
 			old_doc.frequency != self.frequency
 		):
 			snapshot_report_scheduler(self.enable_snapshot_reports, self.frequency)
+
+	def validate_submission_queue_timeout(self):
+		if cint(self.submission_queue_timeout) > MAX_SUBMISSION_QUEUE_TIMEOUT:
+			label = self.meta.get_translated_label("submission_queue_timeout")
+			frappe.throw(
+				_("{0} cannot be more than {1} seconds (1 hour)").format(label, MAX_SUBMISSION_QUEUE_TIMEOUT),
+				title=_("Invalid Submission Queue Timeout"),
+			)
 
 
 def update_last_reset_password_date():
