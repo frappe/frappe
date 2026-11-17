@@ -557,6 +557,7 @@ def update_user_info(docinfo, doc=None):
 @frappe.whitelist()
 def get_user_info_for_viewers(users: str | list[str]):
 	validate_desk_user()
+
 	user_info = {}
 	for user in frappe.parse_json(users):
 		frappe.utils.add_user_info(user, user_info)
