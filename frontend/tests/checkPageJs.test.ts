@@ -55,17 +55,17 @@ describe("jsSizeProblems", () => {
     list: { baseline: { jsKb: 200 } },
   };
 
-  it("passes a page up to the tolerance above its baseline, and any page below it", () => {
+  it("reports nothing for a page up to the tolerance above its baseline, or below it", () => {
     expect(jsSizeProblems({ home: 105, list: 150 }, budgets)).toEqual([]);
   });
 
-  it("fails a page more than the tolerance above its baseline and names the new value", () => {
+  it("reports a page more than the tolerance above its baseline with its value", () => {
     expect(jsSizeProblems({ home: 105.1, list: 200 }, budgets)).toEqual([
-      expect.stringMatching(/^home: 105.1 KB .* above its baseline of 100 KB\. .* to 105\.1\.$/),
+      expect.stringMatching(/^home: 105.1 KB .* above its baseline of 100 KB\.$/),
     ]);
   });
 
-  it("never fails a page that has no baseline, however large", () => {
+  it("never reports a page that has no baseline, however large", () => {
     expect(jsSizeProblems({ home: 100, editor: 9999 }, budgets)).toEqual([]);
   });
 });

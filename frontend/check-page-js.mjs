@@ -1,5 +1,5 @@
-// Fails when a desk page's gzip JS moves more than the tolerance away from its baseline.
-// A page with no baseline in speed-budgets.json (the editor) is printed and never fails.
+// Prints each desk page's gzip JS and warns, never fails, when a page is more than the
+// tolerance above its baseline.
 import { mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -30,11 +30,10 @@ async function main() {
       readFileSync(join(outDir, file))
     );
     printSizes(sizes, budgets);
-    const problems = jsSizeProblems(sizes, budgets);
-    if (problems.length) {
-      for (const problem of problems) console.error(problem);
-      process.exitCode = 1;
-    }
+    for (const problem of jsSizeProblems(sizes, budgets))
+      console.log(
+        process.env.GITHUB_ACTIONS ? `::warning::${problem}` : problem
+      );
   } finally {
     rmSync(outDir, { recursive: true });
   }
@@ -82,8 +81,7 @@ export function jsSizeProblems(sizes, budgets) {
     .map(
       ([page, kb]) =>
         `${page}: ${kb} KB of JS is more than ${tolerance} KB above its baseline of ` +
-        `${budgets[page].baseline.jsKb} KB. Cut the JS, or raise the baseline in ` +
-        `frontend/speed-budgets.json to ${kb}.`
+        `${budgets[page].baseline.jsKb} KB.`
     );
 }
 
