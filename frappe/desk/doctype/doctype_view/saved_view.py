@@ -122,6 +122,8 @@ class ViewWriter:
 
 	def override(self, view: frappe._dict, settings: dict) -> frappe._dict:
 		"""A site row at the app view's key: it replaces the app's view for everyone, under its label and type."""
+		# The file's own label: the row's label is the saver's translation of it.
+		label = app_views(self.doctype)[view.key].label
 		frappe.get_doc(
 			{
 				"doctype": "Doctype View",
@@ -129,7 +131,7 @@ class ViewWriter:
 				"type": view.type,
 				"user": SITE_ROW,
 				"key": view.key,
-				"label": view.label,
+				"label": label,
 				"settings": settings,
 			}
 		).insert(ignore_permissions=True)

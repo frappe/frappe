@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.desk.doctype.doctype_view.api import (
 	delete_view,
@@ -119,6 +121,14 @@ class TestSaving(SavedViewCase):
 		)
 		with set_user(PERSON):
 			self.assertEqual(view_settings(DOCTYPE, "probe-open")["layer"], "site")
+
+	def test_an_override_keeps_the_files_label_not_the_savers_translation(self):
+		translate = lambda text: f"fr {text}"  # noqa: E731
+		with set_user(MANAGER), patch("frappe.desk.doctype.doctype_view.key_space._", translate):
+			save_view(DOCTYPE, "probe-open", CLOSED)
+
+		label = frappe.db.get_value("Doctype View", self.row_at("probe-open", SITE_ROW), "label")
+		self.assertEqual(label, "Open probe")
 
 	def test_the_plain_view_and_a_missing_view_are_not_saved_here(self):
 		with set_user(MANAGER):
