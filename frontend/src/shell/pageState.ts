@@ -24,6 +24,7 @@ export interface PageStateValue {
 	/** In place of the state's own wording. */
 	title?: string;
 	description?: string;
+	icon?: string;
 	/** Offered as Try again; a returned promise holds the button busy until it settles. */
 	retry?: () => unknown;
 }

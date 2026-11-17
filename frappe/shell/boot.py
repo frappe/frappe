@@ -13,6 +13,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 )
 from frappe.custom.doctype.client_script.client_script import list_page_doctypes
 from frappe.desk.doctype.default_view.resolver import DefaultViews
+from frappe.desk.doctype.doctype_view.key_space import unbuilt_view_types
 from frappe.desk.doctype.favourite.favourite import readable_views
 from frappe.desk.doctype.view_type.view_type import view_types
 from frappe.integrations.frappe_providers.cloud_settings import is_cloud_settings_enabled
@@ -362,6 +363,7 @@ def get_boot(path: str | None = None) -> dict:
 				{"name": record.name, "label": _(record.label), "icon": record.icon}
 				for record in view_types().values()
 			],
+			"unbuilt_view_types": unbuilt_view_types(),
 		}
 
 	# One exit, so the index payload is weighed on the same call site as a prefix's.
