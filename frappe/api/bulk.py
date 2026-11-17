@@ -5,7 +5,7 @@ selection, the inline-or-background threshold, the Background Task, progress, co
 
 	DELETE = BulkAction("Delete", delete_one, check=refuse_without_allow_edit)
 
-	def bulk_delete_docs(doctype):
+	def bulk_remove_docs(doctype):
 		return run_bulk(DELETE, doctype)
 
 The result is `{total, done, failed: [{name, error}], queued?}`. `done` and `queued` hold names, or

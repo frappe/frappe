@@ -269,7 +269,7 @@ export function bulkDeleteDocuments(
   selection: string[] | BulkSelection,
   { signal }: CallOptions = {}
 ): Promise<Envelope<BulkResult | BulkQueued>> {
-  const path = `/document/${segment(doctype)}/bulk_delete`;
+  const path = `/document/${segment(doctype)}/bulk_remove`;
   const body = Array.isArray(selection) ? { names: selection } : selection;
   return fed<BulkResult | BulkQueued>("POST", path, { body, signal }, (ticket, { data }) => {
     if (isBulkQueued(data)) return;
@@ -347,7 +347,7 @@ export function bulkUpdateDocuments(
   update: BulkUpdate,
   { signal }: CallOptions = {}
 ): Promise<Envelope<BulkResult | BulkQueued>> {
-  const path = `/document/${segment(doctype)}/bulk_update`;
+  const path = `/document/${segment(doctype)}/bulk_edit`;
   return fed<BulkResult | BulkQueued>("POST", path, { body: { ...selection, ...update }, signal }, () => {});
 }
 

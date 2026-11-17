@@ -464,12 +464,18 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 
 	def test_bulk_update_docs_omits_fields_without_read_permission(self):
 		response = self.request("post", "bulk_update", data={"docs": [{"name": self.name, "title": "y"}]})
-		self.assertEqual(len(response["data"]["done"]), 1)
+		self.assertEqual(response["data"]["success_count"], 1)
 		self.assertIsNone(response["docs"][0].get("secret"))
 
 	def test_bulk_update_omits_fields_without_read_permission(self):
 		docs = [{"doctype": self.doctype, "name": self.name, "title": "y"}]
 		response = self.request("post", data={"docs": docs}, url=self.method("bulk_update"))
+		self.assertEqual(response["data"]["success_count"], 1)
+		self.assertIsNone(response["docs"][0].get("secret"))
+
+	def test_bulk_edit_omits_fields_without_read_permission(self):
+		with self.change_settings("System Settings", commit=True, enable_desk_v2=1):
+			response = self.request("post", "bulk_edit", data={"docs": [{"name": self.name, "title": "y"}]})
 		self.assertEqual(len(response["data"]["done"]), 1)
 		self.assertIsNone(response["docs"][0].get("secret"))
 
@@ -685,10 +691,10 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
 		self.assertEqual(data["total"], 2)
-		self.assertEqual(len(data["done"]), 2)
-		self.assertEqual(len(data["failed"]), 0)
-		self.assertIn(doc1.name, data["done"])
-		self.assertIn(doc2.name, data["done"])
+		self.assertEqual(data["success_count"], 2)
+		self.assertEqual(data["failure_count"], 0)
+		self.assertIn(doc1.name, data["deleted"])
+		self.assertIn(doc2.name, data["deleted"])
 
 		# Verify deletion
 		self.assertFalse(frappe.db.exists(self.DOCTYPE, doc1.name))
@@ -709,9 +715,9 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
 		self.assertEqual(data["total"], 2)
-		self.assertEqual(len(data["done"]), 1)
-		self.assertEqual(len(data["failed"]), 1)
-		self.assertIn(doc.name, data["done"])
+		self.assertEqual(data["success_count"], 1)
+		self.assertEqual(data["failure_count"], 1)
+		self.assertIn(doc.name, data["deleted"])
 		self.assertEqual(len(data["failed"]), 1)
 		self.assertEqual(data["failed"][0]["name"], non_existent)
 
@@ -736,8 +742,8 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
 		self.assertEqual(data["total"], 2)
-		self.assertEqual(len(data["done"]), 2)
-		self.assertEqual(len(data["failed"]), 0)
+		self.assertEqual(data["success_count"], 2)
+		self.assertEqual(data["failure_count"], 0)
 
 		# Verify deletion
 		self.assertFalse(frappe.db.exists("ToDo", todo.name))
@@ -759,7 +765,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		)
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
-		self.assertEqual(len(data["failed"]), 1)
+		self.assertEqual(data["failure_count"], 1)
 		self.assertIn("must be a dictionary", data["failed"][0]["error"])
 
 	def test_bulk_update_docs_single_doctype_v2(self):
@@ -784,10 +790,10 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 			self.assertEqual(response.status_code, 200)
 			data = response.json["data"]
 			self.assertEqual(data["total"], 2)
-			self.assertEqual(len(data["done"]), 2)
-			self.assertEqual(len(data["failed"]), 0)
-			self.assertIn(doc1.name, data["done"])
-			self.assertIn(doc2.name, data["done"])
+			self.assertEqual(data["success_count"], 2)
+			self.assertEqual(data["failure_count"], 0)
+			self.assertIn(doc1.name, data["updated"])
+			self.assertIn(doc2.name, data["updated"])
 
 			# Verify updates
 			updated_doc1 = frappe.get_doc(self.DOCTYPE, doc1.name)
@@ -823,8 +829,8 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 			self.assertEqual(response.status_code, 200)
 			data = response.json["data"]
 			self.assertEqual(data["total"], 2)
-			self.assertEqual(len(data["done"]), 2)
-			self.assertEqual(len(data["failed"]), 0)
+			self.assertEqual(data["success_count"], 2)
+			self.assertEqual(data["failure_count"], 0)
 
 			# Verify updates
 			updated_todo = frappe.get_doc("ToDo", todo.name)
@@ -859,9 +865,9 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 			self.assertEqual(response.status_code, 200)
 			data = response.json["data"]
 			self.assertEqual(data["total"], 2)
-			self.assertEqual(len(data["done"]), 1)
-			self.assertEqual(len(data["failed"]), 1)
-			self.assertIn(valid_doc, data["done"])
+			self.assertEqual(data["success_count"], 1)
+			self.assertEqual(data["failure_count"], 1)
+			self.assertIn(valid_doc, data["updated"])
 			self.assertEqual(len(data["failed"]), 1)
 			self.assertEqual(data["failed"][0]["name"], non_existent)
 
@@ -888,6 +894,278 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		)
 		self.assertEqual(response.status_code, 200)
 		data = response.json["data"]
+		self.assertEqual(data["failure_count"], 1)
+		self.assertIn("'name' must be a string or integer", data["failed"][0]["error"])
+
+	def test_bulk_enqueue_v2(self):
+		# Create 25 docs
+		docs = [
+			frappe.get_doc({"doctype": self.DOCTYPE, "description": f"To delete {i}"}).insert()
+			for i in range(25)
+		]
+		frappe.db.commit()  # nosemgrep
+
+		# Late-bound on purpose: cleanup sees the job_id assigned below.
+		job_id = None
+		self.addCleanup(lambda: self.cleanup_docs(docs, job_id))
+
+		# Bulk delete > 20 docs
+		names = [doc.name for doc in docs]
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_delete"),
+			{"names": names, "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 202)
+		self.assertIn("job_id", response.json["data"])
+		job_id = response.json["data"]["job_id"]
+
+	def test_bulk_update_enqueue_v2(self):
+		# Create 25 docs
+		docs = [
+			frappe.get_doc({"doctype": self.DOCTYPE, "description": f"To update {i}"}).insert()
+			for i in range(25)
+		]
+		frappe.db.commit()  # nosemgrep
+
+		# Late-bound on purpose: cleanup sees the job_id assigned below.
+		job_id = None
+		self.addCleanup(lambda: self.cleanup_docs(docs, job_id))
+
+		# Bulk update > 20 docs
+		updates = [{"name": doc.name, "description": "Updated"} for doc in docs]
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_update"),
+			{"docs": updates, "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 202)
+		self.assertIn("job_id", response.json["data"])
+		job_id = response.json["data"]["job_id"]
+
+
+class TestBulkRemoveAsNormalUserV2(FrappeAPITestCase):
+	"""`bulk_remove` as a user with the `bulk_actions` gate and no System Manager role."""
+
+	version = "v2"
+
+	def setUp(self) -> None:
+		super().setUp()
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
+		frappe.set_user("Administrator")
+		self.user = "api.bulkremove@example.com"
+		self.created_user = not frappe.db.exists("User", self.user)
+		if self.created_user:
+			frappe.get_doc(
+				doctype="User",
+				email=self.user,
+				first_name="API Bulk Remove",
+				roles=[{"role": "Desk User"}],
+				send_welcome_email=0,
+			).insert()
+		frappe.db.set_value("User", self.user, "bulk_actions", 1)
+		frappe.clear_document_cache("User", self.user)
+		keys = generate_keys(self.user)
+		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+
+		frappe.set_user(self.user)
+		self.own = frappe.get_doc(doctype="ToDo", description="Bulk remove own").insert()
+		frappe.set_user("Administrator")
+		self.others = frappe.get_doc(doctype="ToDo", description="Bulk remove other").insert()
+		# Requests use a separate connection and must see these fixtures.
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self) -> None:
+		try:
+			frappe.set_user("Administrator")
+			for doc in (self.own, self.others):
+				frappe.delete_doc_if_exists("ToDo", doc.name)
+			if self.created_user:
+				frappe.delete_doc("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def bulk_remove(self, names: list[str]):
+		return make_request(
+			get_test_client(use_cookies=False).post,
+			args=(self.resource("ToDo", "bulk_remove"),),
+			kwargs={"json": {"names": names}, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+
+	def test_a_permitted_delete_succeeds(self):
+		response = self.bulk_remove([self.own.name])
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["data"]["done"], [self.own.name])
+		self.assertFalse(frappe.db.exists("ToDo", self.own.name))
+
+	def test_a_forbidden_delete_fails_and_leaves_the_record(self):
+		response = self.bulk_remove([self.own.name, self.others.name])
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["done"], [self.own.name])
+		self.assertEqual([row["name"] for row in data["failed"]], [self.others.name])
+		self.assertTrue(frappe.db.exists("ToDo", self.others.name))
+
+
+class TestBulkRunnerRoutesV2(FrappeAPITestCase):
+	"""The desk v2 shell's bulk_remove and bulk_edit routes, which run through `run_bulk`."""
+
+	version = "v2"
+	DOCTYPE = "ToDo"
+
+	def setUp(self) -> None:
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
+		self.post(self.method("login"), {"sid": self.sid})
+		return super().setUp()
+
+	def cleanup_docs(self, docs: list, job_id: str | None = None):
+		"""Delete `docs`, waiting for `job_id` first: the job touches these same rows."""
+		if job_id:
+			wait_for_job(job_id)
+		for doc in docs:
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
+		frappe.db.commit()  # nosemgrep
+
+	def test_bulk_delete_docs_single_doctype_v2(self):
+		# Create docs to delete
+		doc1 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete 1"}).insert()
+		doc2 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete 2"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		# Bulk delete
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_remove"),
+			{"names": [doc1.name, doc2.name], "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["total"], 2)
+		self.assertEqual(len(data["done"]), 2)
+		self.assertEqual(len(data["failed"]), 0)
+		self.assertIn(doc1.name, data["done"])
+		self.assertIn(doc2.name, data["done"])
+
+		# Verify deletion
+		self.assertFalse(frappe.db.exists(self.DOCTYPE, doc1.name))
+		self.assertFalse(frappe.db.exists(self.DOCTYPE, doc2.name))
+
+	def test_bulk_delete_docs_partial_failure_v2(self):
+		# Create one valid doc
+		doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		# Try to delete valid and non-existent doc
+		non_existent = "non-existent-todo"
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_remove"),
+			{"names": [doc.name, non_existent], "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["total"], 2)
+		self.assertEqual(len(data["done"]), 1)
+		self.assertEqual(len(data["failed"]), 1)
+		self.assertIn(doc.name, data["done"])
+		self.assertEqual(len(data["failed"]), 1)
+		self.assertEqual(data["failed"][0]["name"], non_existent)
+
+	def test_bulk_update_docs_single_doctype_v2(self):
+		# Create fresh docs for this test
+		doc1 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Original 1"}).insert()
+		doc2 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Original 2"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		try:
+			# Bulk update
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_edit"),
+				{
+					"docs": [
+						{"name": doc1.name, "description": "Updated description 1", "priority": "High"},
+						{"name": doc2.name, "description": "Updated description 2", "priority": "Low"},
+					],
+					"sid": self.sid,
+				},
+			)
+
+			self.assertEqual(response.status_code, 200)
+			data = response.json["data"]
+			self.assertEqual(data["total"], 2)
+			self.assertEqual(len(data["done"]), 2)
+			self.assertEqual(len(data["failed"]), 0)
+			self.assertIn(doc1.name, data["done"])
+			self.assertIn(doc2.name, data["done"])
+
+			# Verify updates
+			updated_doc1 = frappe.get_doc(self.DOCTYPE, doc1.name)
+			updated_doc2 = frappe.get_doc(self.DOCTYPE, doc2.name)
+			self.assertEqual(updated_doc1.description, "Updated description 1")
+			self.assertEqual(updated_doc1.priority, "High")
+			self.assertEqual(updated_doc2.description, "Updated description 2")
+			self.assertEqual(updated_doc2.priority, "Low")
+		finally:
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc1.name)
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc2.name)
+			frappe.db.commit()  # nosemgrep
+
+	def test_bulk_update_partial_failure_v2(self):
+		# Create a fresh doc for this test
+		doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Original"}).insert()
+		frappe.db.commit()  # nosemgrep
+		valid_doc = doc.name
+		non_existent = "non-existent-todo"
+
+		try:
+			# Try to update valid and non-existent doc
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_edit"),
+				{
+					"docs": [
+						{"name": valid_doc, "description": "Updated"},
+						{"name": non_existent, "description": "Should fail"},
+					],
+					"sid": self.sid,
+				},
+			)
+
+			self.assertEqual(response.status_code, 200)
+			data = response.json["data"]
+			self.assertEqual(data["total"], 2)
+			self.assertEqual(len(data["done"]), 1)
+			self.assertEqual(len(data["failed"]), 1)
+			self.assertIn(valid_doc, data["done"])
+			self.assertEqual(len(data["failed"]), 1)
+			self.assertEqual(data["failed"][0]["name"], non_existent)
+
+			# Verify successful update
+			updated_doc = frappe.get_doc(self.DOCTYPE, valid_doc)
+			self.assertEqual(updated_doc.description, "Updated")
+		finally:
+			frappe.delete_doc_if_exists(self.DOCTYPE, valid_doc)
+			frappe.db.commit()  # nosemgrep
+
+	def test_bulk_update_invalid_format_v2(self):
+		# Test with invalid format (not a list)
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_edit"),
+			{"docs": {"name": "test", "description": "test"}, "sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 417)
+		self.assertIn("'docs' must be a list", response.json["errors"][0]["exception"])
+
+		# Test with missing name field
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_edit"),
+			{"docs": [{"description": "test"}], "sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
 		self.assertEqual(len(data["failed"]), 1)
 		self.assertIn("'name' must be a string or integer", data["failed"][0]["error"])
 
@@ -904,17 +1182,46 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		frappe.db.commit()  # nosemgrep
 
 		for url, body in (
-			(self.resource(self.DOCTYPE, "bulk_delete"), {"names": ["x"]}),
-			(self.resource(self.DOCTYPE, "bulk_update"), {"docs": [{"name": "x"}]}),
-			(self.method("bulk_delete"), {"docs": [{"doctype": self.DOCTYPE, "name": "x"}]}),
-			(self.method("bulk_update"), {"docs": [{"doctype": self.DOCTYPE, "name": "x"}]}),
+			(self.resource(self.DOCTYPE, "bulk_remove"), {"names": ["x"]}),
+			(self.resource(self.DOCTYPE, "bulk_edit"), {"docs": [{"name": "x"}]}),
 		):
 			self.assertEqual(self.post(url, {**body, "sid": self.sid}).status_code, 403, url)
+
+	def test_bulk_routes_refuse_while_desk_v2_is_off_v2(self):
+		with self.change_settings("System Settings", commit=True, enable_desk_v2=0):
+			for url, body in (
+				(self.resource(self.DOCTYPE, "bulk_remove"), {"names": ["x"]}),
+				(self.resource(self.DOCTYPE, "bulk_edit"), {"docs": [{"name": "x"}]}),
+			):
+				response = self.post(url, {**body, "sid": self.sid})
+				self.assertEqual(response.status_code, 403, url)
+				self.assertEqual(response.json["errors"][0]["type"], "DeskV2DisabledError")
+
+	def test_develop_bulk_routes_ignore_the_desk_v2_switch_v2(self):
+		"""The four develop routes answer the same, with the switch on or off."""
+		for enabled in (1, 0):
+			with self.change_settings("System Settings", commit=True, enable_desk_v2=enabled):
+				doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Switch walk"}).insert()
+				frappe.db.commit()  # nosemgrep
+				self.addCleanup(self.cleanup_docs, [doc])
+
+				update = self.post(
+					self.resource(self.DOCTYPE, "bulk_update"),
+					{"docs": [{"name": doc.name, "description": "Switch walk 2"}], "sid": self.sid},
+				)
+				self.assertEqual(update.status_code, 200, enabled)
+				self.assertEqual(update.json["data"]["success_count"], 1, enabled)
+
+				delete = self.post(
+					self.resource(self.DOCTYPE, "bulk_delete"), {"names": [doc.name], "sid": self.sid}
+				)
+				self.assertEqual(delete.status_code, 200, enabled)
+				self.assertEqual(delete.json["data"]["deleted"], [doc.name], enabled)
 
 	def test_bulk_routes_refuse_a_run_over_the_cap_v2(self):
 		with patch("frappe.api.bulk.get_limit", return_value=2):
 			response = self.post(
-				self.resource(self.DOCTYPE, "bulk_delete"), {"names": ["a", "b", "c"], "sid": self.sid}
+				self.resource(self.DOCTYPE, "bulk_remove"), {"names": ["a", "b", "c"], "sid": self.sid}
 			)
 		self.assertEqual(response.status_code, 417)
 
@@ -933,7 +1240,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		# Bulk delete > 20 docs
 		names = [doc.name for doc in docs]
 		response = self.post(
-			self.resource(self.DOCTYPE, "bulk_delete"),
+			self.resource(self.DOCTYPE, "bulk_remove"),
 			{"names": names, "sid": self.sid},
 		)
 
@@ -956,7 +1263,7 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		# Bulk update > 20 docs
 		updates = [{"name": doc.name, "description": "Updated"} for doc in docs]
 		response = self.post(
-			self.resource(self.DOCTYPE, "bulk_update"),
+			self.resource(self.DOCTYPE, "bulk_edit"),
 			{"docs": updates, "sid": self.sid},
 		)
 
