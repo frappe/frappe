@@ -183,22 +183,26 @@ describe("the eager read", () => {
 	function activityReads() {
 		return fetchMock.mock.calls
 			.map(([url]) => new URL(String(url), "http://x"))
-			.filter((url) => url.pathname.endsWith("/activity"));
+			.filter((url) => url.pathname.endsWith("/frappe.desk.form.activity.get_activity_timeline"));
 	}
 
 	it("starts the Activity read for `?tab=activity`", () => {
 		prefetchFeed("CRM Deal", "EAGER-1", { tab: "activity" });
 		const [read] = activityReads();
-		expect(read.pathname).toBe("/api/v2/document/CRM%20Deal/EAGER-1/activity");
-		expect(read.searchParams.get("types")).toBeNull();
+		expect(read.pathname).toBe("/api/v2/method/frappe.desk.form.activity.get_activity_timeline");
+		expect(read.searchParams.get("doctype")).toBe("CRM Deal");
+		expect(read.searchParams.get("name")).toBe("EAGER-1");
+		expect(read.searchParams.get("visible_types")).toBeNull();
 		expect(read.searchParams.get("limit")).toBeNull();
 	});
 
 	it("starts the Activity read for a pointer alone", () => {
 		prefetchFeed("CRM Deal", "EAGER-10", { activity: "comment:c1" });
 		const [read] = activityReads();
-		expect(read.pathname).toBe("/api/v2/document/CRM%20Deal/EAGER-10/activity");
-		expect(read.searchParams.get("types")).toBeNull();
+		expect(read.pathname).toBe("/api/v2/method/frappe.desk.form.activity.get_activity_timeline");
+		expect(read.searchParams.get("doctype")).toBe("CRM Deal");
+		expect(read.searchParams.get("name")).toBe("EAGER-10");
+		expect(read.searchParams.get("visible_types")).toBeNull();
 	});
 
 	it("ends only the read the address started", () => {
@@ -239,7 +243,7 @@ describe("the eager read", () => {
 
 	it("starts the email read for the Emails tab", () => {
 		prefetchFeed("CRM Deal", "EAGER-2", { tab: "emails" });
-		expect(JSON.parse(activityReads()[0].searchParams.get("types")!)).toEqual(["email"]);
+		expect(JSON.parse(activityReads()[0].searchParams.get("visible_types")!)).toEqual(["email"]);
 	});
 
 	it("reads nothing for another tab, unless a pointer names Activity", () => {

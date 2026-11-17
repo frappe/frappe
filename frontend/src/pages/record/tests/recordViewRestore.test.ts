@@ -137,7 +137,7 @@ const server = {
 async function answer(url: URL, method: string): Promise<[unknown, number]> {
   const path = decodeURIComponent(url.pathname);
   if (path === "/api/v2/doctype/Note/meta") return [{ data: server.meta }, 200];
-  if (path.endsWith("/activity")) {
+  if (path.endsWith("/frappe.desk.form.activity.get_activity_timeline")) {
     server.activityReads++;
     return [{ data: { activities: [], next: null } }, 200];
   }

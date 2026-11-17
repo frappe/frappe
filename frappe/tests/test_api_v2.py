@@ -3409,6 +3409,23 @@ class TestActivityAPIV2(FrappeAPITestCase):
 		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
+	def setUp(self):
+		super().setUp()
+		self.use_overrides({})
+
+	def use_overrides(self, overrides: dict):
+		"""Serve `override_whitelisted_methods` from `overrides`, whatever apps the site has installed."""
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "override_whitelisted_methods":
+				return overrides
+			return real_get_hooks(hook, *args, **kwargs)
+
+		patcher = patch.object(frappe, "get_hooks", side_effect=get_hooks)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
 	def activity(self, params: dict | None = None):
 		return self.get(
 			self.resource("ToDo", self.todo.name, "activity"), {"sid": self.sid, **(params or {})}
@@ -3447,6 +3464,20 @@ class TestActivityAPIV2(FrappeAPITestCase):
 		frappe.delete_doc_if_exists("File", file, force=True)
 		frappe.delete_doc_if_exists("Comment", comment, force=True)
 		frappe.db.commit()  # nosemgrep
+
+	def test_an_app_override_of_the_method_applies_on_both_routes(self):
+		self.assertIn("type", self.activity().json["data"]["activities"][0])
+		self.use_overrides({ACTIVITY_METHOD: [f"{__name__}.activity_without_type"]})
+		method_path = self.method(ACTIVITY_METHOD)
+		args = {"sid": self.sid, "doctype": "ToDo", "name": self.todo.name}
+		via_method = self.get(method_path, args)
+		via_part = self.activity()
+
+		for response in (via_method, via_part):
+			self.assertEqual(response.status_code, 200, response.json)
+			rows = response.json["data"]["activities"]
+			self.assertTrue(rows)
+			self.assertTrue(all("type" not in row for row in rows))
 
 	def test_types_limits_the_feed(self):
 		response = self.activity({"types": ["email"]})
@@ -3654,6 +3685,22 @@ class TestActivityAPIV2(FrappeAPITestCase):
 			return frappe.session.sid
 		finally:
 			frappe.local.request = original_request
+
+
+ACTIVITY_METHOD = "frappe.desk.form.activity.get_activity_timeline"
+
+
+@whitelist_for_tests()
+def activity_without_type(
+	doctype: str, name: str, visible_types: str | None = None, limit: int = 20, before: str | None = None
+):
+	"""A stand-in for an app override that strips a field from every row, as Helpdesk strips `cc`."""
+	from frappe.desk.form.activity import get_activity_timeline
+
+	page = get_activity_timeline(doctype, name, visible_types, limit, before)
+	for row in page["activities"]:
+		row.pop("type", None)
+	return page
 
 
 def row_keys(page: dict) -> list[str]:

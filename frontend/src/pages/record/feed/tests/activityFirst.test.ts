@@ -32,7 +32,7 @@ beforeEach(() => {
 	vi.stubGlobal("fetch", fetchMock);
 	fetchMock.mockReset();
 	fetchMock.mockImplementation(async (url) => {
-		if (!String(url).includes("/activity")) return respond(null);
+		if (!String(url).includes("/frappe.desk.form.activity.get_activity_timeline")) return respond(null);
 		return new Promise<Response>((resolve) => {
 			answer = (activities) => resolve(respond({ activities, next: null }));
 		});
@@ -50,7 +50,7 @@ function respond(data: unknown) {
 }
 
 function activityReads() {
-	return fetchMock.mock.calls.filter(([url]) => String(url).includes("/activity"));
+	return fetchMock.mock.calls.filter(([url]) => String(url).includes("/frappe.desk.form.activity.get_activity_timeline"));
 }
 
 async function settle() {

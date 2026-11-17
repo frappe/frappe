@@ -7,7 +7,7 @@ import type { Activity } from "../types";
 setFlagsFromString("--expose-gc");
 const collectGarbage = runInNewContext("gc") as () => void;
 
-const api = vi.hoisted(() => ({ getDocumentPart: vi.fn() }));
+const api = vi.hoisted(() => ({ runMethod: vi.fn() }));
 const socket = vi.hoisted(() => {
   const handlers: Record<string, Set<(payload: unknown) => void>> = {};
   const on = (event: string, handler: (payload: unknown) => void) =>
@@ -18,7 +18,7 @@ const socket = vi.hoisted(() => {
     handlers[event]?.forEach((handler) => handler(payload));
   return { instance: { on, off }, emit, ready: true };
 });
-vi.mock("../../../api", () => ({ getDocumentPart: api.getDocumentPart }));
+vi.mock("../../../api", () => ({ runMethod: api.runMethod }));
 vi.mock("../../../socket", () => ({
   getSocketInstance: () => (socket.ready ? socket.instance : undefined),
   subscribeToDoc: () => () => {},
@@ -55,7 +55,7 @@ type Page = { activities: Activity[]; next: string | null };
 
 /** Answers each read by its `before` cursor; the newest page sits under "newest". */
 function serve(pages: Record<string, Page | Promise<Page>>) {
-  api.getDocumentPart.mockImplementation(async (_dt, _name, _part, params) => {
+  api.runMethod.mockImplementation(async (_method, params) => {
     const page = pages[params.before ?? "newest"];
     if (!page) throw new Error(`no page for ${params.before}`);
     return { data: await page };
@@ -123,7 +123,7 @@ function mountTimeline(name: string, types?: Parameters<typeof useActivityTimeli
 
 beforeEach(() => {
   socket.ready = true;
-  api.getDocumentPart.mockReset();
+  api.runMethod.mockReset();
   serve({ newest: { activities: [], next: null } });
 });
 
@@ -142,10 +142,11 @@ describe("useActivityTimeline paging", () => {
       },
     });
     const timeline = useActivityTimeline("ToDo", name, ["comment", "email"]);
-    expect(api.getDocumentPart.mock.calls[0][3]).toStrictEqual({
-      types: ["comment", "email"],
-      before: undefined,
-    });
+    expect(api.runMethod).toHaveBeenCalledWith(
+      "frappe.desk.form.activity.get_activity_timeline",
+      { doctype: "ToDo", name, visible_types: ["comment", "email"], before: undefined },
+      { http: "GET" }
+    );
     await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
     expect(keys(timeline)).toEqual(["comment:1", "email:1"]);
     expect(timeline.paginate.hasNextPage).toBe(true);
@@ -168,9 +169,9 @@ describe("useActivityTimeline paging", () => {
     expect(timeline.paginate.isFetchingNextPage).toBe(true);
     await Promise.all([first, second]);
 
-    const olderReads = api.getDocumentPart.mock.calls.filter(([, , , p]) => p.before);
+    const olderReads = api.runMethod.mock.calls.filter(([, p]) => p.before);
     expect(olderReads).toHaveLength(1);
-    expect(olderReads[0][3]).toStrictEqual({ types: undefined, before: "c1" });
+    expect(olderReads[0][1]).toMatchObject({ visible_types: undefined, before: "c1" });
     expect(keys(timeline)).toEqual(["email:1", "comment:2"]);
     expect(timeline.paginate.isFetchingNextPage).toBe(false);
     expect(timeline.paginate.hasNextPage).toBe(false);
@@ -183,7 +184,7 @@ describe("useActivityTimeline paging", () => {
     await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
     expect(timeline.paginate.hasNextPage).toBe(false);
     await timeline.paginate.fetchNextPage();
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(1);
+    expect(api.runMethod).toHaveBeenCalledTimes(1);
   });
 
   it("offers no older page before the first page answers", async () => {
@@ -215,7 +216,7 @@ describe("useActivityTimeline paging", () => {
     expect(keys(timeline)).toEqual(["comment:1", "comment:2", "comment:4", "comment:5"]);
 
     await timeline.paginate.fetchNextPage();
-    expect(api.getDocumentPart.mock.lastCall?.[3]).toMatchObject({ before: "c1" });
+    expect(api.runMethod.mock.lastCall?.[1]).toMatchObject({ before: "c1" });
     expect(timeline.paginate.hasNextPage).toBe(false);
   });
 
@@ -231,7 +232,7 @@ describe("useActivityTimeline paging", () => {
     await timeline.paginate.fetchNextPage();
     expect(timeline.paginate.hasNextPage).toBe(false);
     await timeline.paginate.fetchNextPage();
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+    expect(api.runMethod).toHaveBeenCalledTimes(2);
   });
 
   it("drops the held rows and takes the new cursor when a reload does not reach them", async () => {
@@ -249,14 +250,14 @@ describe("useActivityTimeline paging", () => {
     expect(keys(timeline)).toEqual(["comment:5", "comment:6"]);
 
     await timeline.paginate.fetchNextPage();
-    expect(api.getDocumentPart.mock.lastCall?.[3]).toMatchObject({ before: "c5" });
+    expect(api.runMethod.mock.lastCall?.[1]).toMatchObject({ before: "c5" });
     expect(keys(timeline)).toEqual(["comment:3", "comment:4", "comment:5", "comment:6"]);
   });
 
   it("gives the emails view its own store and cursor", async () => {
     const name = freshDoc();
-    api.getDocumentPart.mockImplementation(async (_dt, _name, _part, params) => ({
-      data: params.types
+    api.runMethod.mockImplementation(async (_method, params) => ({
+      data: params.visible_types
         ? { activities: [row("email", "email:1", "2026-01-02")], next: "e1" }
         : { activities: [row("comment", "comment:1", "2026-01-01")], next: null },
     }));
@@ -264,10 +265,12 @@ describe("useActivityTimeline paging", () => {
     const emails = useActivityTimeline("ToDo", name, ["email"]);
     await vi.waitFor(() => expect(emails.loading.value || all.loading.value).toBe(false));
 
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
-    expect(api.getDocumentPart).toHaveBeenCalledWith("ToDo", name, "activity", {
-      types: ["email"],
-    });
+    expect(api.runMethod).toHaveBeenCalledTimes(2);
+    expect(api.runMethod).toHaveBeenCalledWith(
+      "frappe.desk.form.activity.get_activity_timeline",
+      { doctype: "ToDo", name, visible_types: ["email"], before: undefined },
+      { http: "GET" }
+    );
     expect(keys(all)).toEqual(["comment:1"]);
     expect(keys(emails)).toEqual(["email:1"]);
     expect(all.paginate.hasNextPage).toBe(false);
@@ -279,12 +282,12 @@ describe("useActivityTimeline paging", () => {
     const first = useActivityTimeline("ToDo", name);
     await vi.waitFor(() => expect(first.loading.value).toBe(false));
     useActivityTimeline("ToDo", name);
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(1);
+    expect(api.runMethod).toHaveBeenCalledTimes(1);
   });
 
   it("records a failed read instead of throwing", async () => {
     const name = freshDoc();
-    api.getDocumentPart.mockRejectedValue(new Error("no"));
+    api.runMethod.mockRejectedValue(new Error("no"));
     const timeline = useActivityTimeline("ToDo", name);
     await vi.waitFor(() => expect(timeline.loading.value).toBe(false));
     expect(timeline.error.value).toBeInstanceOf(Error);
@@ -322,7 +325,7 @@ describe("useActivityTimeline paging", () => {
     expect(keys(timeline)).toEqual(["comment:5", "comment:6", "comment:C9"]);
 
     await timeline.paginate.fetchNextPage();
-    expect(api.getDocumentPart.mock.lastCall?.[3]).toMatchObject({ before: "c5" });
+    expect(api.runMethod.mock.lastCall?.[1]).toMatchObject({ before: "c5" });
     expect(keys(timeline)).toEqual(["comment:3", "comment:4", "comment:5", "comment:6", "comment:C9"]);
   });
 
@@ -345,7 +348,7 @@ describe("useActivityTimeline paging", () => {
 
     serve({ c8: { activities: [c(7)], next: null } });
     await timeline.paginate.fetchNextPage();
-    expect(api.getDocumentPart.mock.lastCall?.[3]).toMatchObject({ before: "c8" });
+    expect(api.runMethod.mock.lastCall?.[1]).toMatchObject({ before: "c8" });
   });
 
   it("clears the error once an older page reads", async () => {
@@ -376,14 +379,14 @@ describe("the prefetched read", () => {
     vi.useFakeTimers();
     const first = mountTimeline(name);
     await vi.advanceTimersByTimeAsync(400);
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(1);
+    expect(api.runMethod).toHaveBeenCalledTimes(1);
     expect(keys(first.timeline)).toEqual(["comment:1"]);
 
     mounted.splice(0).forEach((app) => app.unmount());
     serve(newest("comment:2"));
     const again = mountTimeline(name);
     await vi.waitFor(() => expect(keys(again.timeline)).toEqual(["comment:2"]));
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+    expect(api.runMethod).toHaveBeenCalledTimes(2);
   });
 
   it("does not outlive the first paint: a mount after it catches up", async () => {
@@ -395,7 +398,7 @@ describe("the prefetched read", () => {
     serve(newest("comment:2"));
     const late = mountTimeline(name);
     await vi.waitFor(() => expect(keys(late.timeline)).toEqual(["comment:2"]));
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+    expect(api.runMethod).toHaveBeenCalledTimes(2);
   });
 
   it("re-reads an idle store from an earlier visit before resolving, keeping its older rows", async () => {
@@ -422,7 +425,7 @@ describe("the prefetched read", () => {
     await prefetch;
     const rows = ["comment:1", "comment:2", "comment:3", "comment:4"];
     expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(rows);
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(3);
+    expect(api.runMethod).toHaveBeenCalledTimes(3);
   });
 
   it("the re-read of an idle store is the first mount's page, not read again", async () => {
@@ -438,7 +441,7 @@ describe("the prefetched read", () => {
     const again = mountTimeline(name);
     await vi.advanceTimersByTimeAsync(400);
     expect(keys(again.timeline)).toEqual(["comment:2"]);
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+    expect(api.runMethod).toHaveBeenCalledTimes(2);
   });
 
   it("resolves at once for a store a mounted body keeps live", async () => {
@@ -448,7 +451,7 @@ describe("the prefetched read", () => {
     await vi.waitFor(() => expect(keys(visit.timeline)).toEqual(["comment:1"]));
 
     await prefetchActivityTimeline("ToDo", name);
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(1);
+    expect(api.runMethod).toHaveBeenCalledTimes(1);
   });
 
   it("clears the flag when a re-read fails, so a mount still catches up", async () => {
@@ -458,7 +461,7 @@ describe("the prefetched read", () => {
     await vi.waitFor(() => expect(keys(visit.timeline)).toEqual(["comment:1"]));
     mounted.splice(0).forEach((app) => app.unmount());
 
-    api.getDocumentPart.mockRejectedValueOnce(new Error("no"));
+    api.runMethod.mockRejectedValueOnce(new Error("no"));
     await prefetchActivityTimeline("ToDo", name);
 
     vi.useFakeTimers();
@@ -466,7 +469,7 @@ describe("the prefetched read", () => {
     const late = mountTimeline(name);
     await vi.advanceTimersByTimeAsync(400);
     expect(keys(late.timeline)).toEqual(["comment:2"]);
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(3);
+    expect(api.runMethod).toHaveBeenCalledTimes(3);
   });
 
   it("answers rows and a reload before any component mounts", async () => {
@@ -480,7 +483,7 @@ describe("the prefetched read", () => {
     serve(newest("comment:2"));
     await reloadActivityTimeline("ToDo", name);
     expect(activityTimelineRows("ToDo", name).map((a) => a.key)).toEqual(["comment:2"]);
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+    expect(api.runMethod).toHaveBeenCalledTimes(2);
   });
 
   it("holds a store only once its newest page is in, for these types alone", async () => {
@@ -527,7 +530,7 @@ describe("the prefetched read", () => {
     apply();
     expect(timeline.loading.value).toBe(false);
     expect(timeline.activities.value.map((one) => one.key)).toEqual(["comment:1"]);
-    expect(api.getDocumentPart).toHaveBeenCalledOnce();
+    expect(api.runMethod).toHaveBeenCalledOnce();
   });
 
   it("reads a store whose staged first read was left out only when a body mounts on it", async () => {
@@ -537,13 +540,13 @@ describe("the prefetched read", () => {
 
     endActivityPrefetch("ToDo", name);
     await staged;
-    expect(api.getDocumentPart).toHaveBeenCalledOnce();
+    expect(api.runMethod).toHaveBeenCalledOnce();
     expect(activityTimelineRows("ToDo", name)).toEqual([]);
 
     const { timeline } = mountTimeline(name);
     await vi.waitFor(() => expect(keys(timeline)).toEqual(["comment:1"]));
     expect(timeline.loading.value).toBe(false);
-    expect(api.getDocumentPart).toHaveBeenCalledTimes(2);
+    expect(api.runMethod).toHaveBeenCalledTimes(2);
   });
 
   it("keeps a mounted body loading when the prefetch mark ends before its own first read lands", async () => {
@@ -557,7 +560,7 @@ describe("the prefetched read", () => {
 
     answer({ activities: [c(1)], next: null });
     await vi.waitFor(() => expect(keys(timeline)).toEqual(["comment:1"]));
-    expect(api.getDocumentPart).toHaveBeenCalledOnce();
+    expect(api.runMethod).toHaveBeenCalledOnce();
   });
 
   it("drops a failed first read's error when a first read is staged over it", async () => {
@@ -600,7 +603,7 @@ describe("the prefetched read", () => {
     serve({ newest: { activities: [c(1)], next: null } });
     await prefetchActivityTimeline("ToDo", name);
     let fail!: (failure: Error) => void;
-    api.getDocumentPart.mockImplementationOnce(() => new Promise((_, reject) => (fail = reject)));
+    api.runMethod.mockImplementationOnce(() => new Promise((_, reject) => (fail = reject)));
     const staged = stageActivityTimelineRead("ToDo", name)!;
     const { timeline } = mountTimeline(name);
     await nextTick();
