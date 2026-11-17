@@ -26,7 +26,7 @@
  ],
  "fields": [
   {
-   "description": "The name shown for this sidebar. Taken from its module when left empty.",
+   "description": "The name shown for this sidebar. Filled automatically when left empty.",
    "fieldname": "title",
    "fieldtype": "Data",
    "in_list_view": 1,
