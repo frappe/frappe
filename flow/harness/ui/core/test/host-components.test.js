@@ -3130,6 +3130,29 @@ test("the model button names the chat's own model and thinking level, never the 
 	assert.ok(el.textContent.includes("High"))
 })
 
+test("the built-in commands keep the model button's thinking level; a host whose commands name no thinking gets no level, and the models alone from it", async (t) => {
+	const flow = composerFlow()
+	// a new chat, in a browser that picked a level before
+	Object.assign(flow.state, { sessionId: null, conversation: { sending: [] }, prefs: { mode: "ask", lastModel: "openai/gpt-6", lastEffort: "high" } })
+	const builtin = mount(t, Composer, { mentions: false }, flow).el.querySelector("button[title='openai/gpt-6 · thinking High']")
+	builtin.click()
+	await nextTick()
+	assert.deepEqual([...builtin.parentElement.querySelectorAll("[data-palette-item]")].map((row) => row.textContent.trim()), ["Model", "Thinking"])
+
+	const { el } = mount(t, Composer, { commands: ["model"], mentions: false }, flow)
+	const button = el.querySelector("button[title='openai/gpt-6']")
+	assert.equal(button.textContent.trim(), "GPT-6")
+	// no menu of a row each: the models open in its place
+	button.click()
+	await nextTick()
+	const picker = button.parentElement
+	assert.ok(picker.querySelector("[data-stub=ModelPalette]"))
+	assert.equal(picker.querySelector("[data-palette-item]"), null)
+	picker.querySelector("[data-stub=ModelPalette]").dispatchEvent(new window.Event("close"))
+	await nextTick()
+	assert.equal(picker.querySelector("[data-stub=ModelPalette]"), null)
+})
+
 function composerFlow(over = {}) {
 	return {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
