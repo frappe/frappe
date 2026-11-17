@@ -14,6 +14,28 @@ def _get_only_marker():
 
 
 class TestClient(FrappeTestCase):
+	def test_get_doc_permissions_does_not_reveal_unreadable_documents(self):
+		email = "doc-perm-probe@example.com"
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "Probe",
+				"user_type": "Website User",
+				"send_welcome_email": 0,
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		with self.set_user(user.name):
+			existing = frappe.client.get_doc_permissions("User", "Administrator")
+			missing = frappe.client.get_doc_permissions("User", "missing@example.com")
+		self.assertEqual(existing, missing)
+
+	def test_get_doc_permissions_for_readable_document(self):
+		permissions = frappe.client.get_doc_permissions("User", "Administrator")["permissions"]
+		self.assertTrue(permissions["read"])
+
 	def test_set_value(self):
 		todo = frappe.get_doc(dict(doctype="ToDo", description="test")).insert()
 		frappe.set_value("ToDo", todo.name, "description", "test 1")

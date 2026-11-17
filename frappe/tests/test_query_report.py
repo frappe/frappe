@@ -11,6 +11,7 @@ from frappe.desk.query_report import (
 	build_xlsx_data,
 	export_query,
 	format_fields,
+	get_script,
 	run,
 )
 from frappe.tests.utils import FrappeTestCase
@@ -96,6 +97,28 @@ class TestQueryReport(FrappeTestCase):
 		custom_report.delete()
 		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
 			run(report.name, filters)
+
+	def test_get_script_quotes_report_name(self):
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		user = create_user("test_report_script_reader@example.com", "Website Manager")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Today's ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"is_standard": "No",
+				"roles": [{"role": "Website Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		with self.set_user(user.name):
+			script = get_script(report.name)["script"]
+
+		self.assertEqual(script, f'frappe.query_reports["{report.name}"]={{}}')
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""

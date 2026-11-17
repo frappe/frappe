@@ -383,7 +383,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 			return
 
 	# Don't allow uninstalling if we have dependent apps installed
-	for app in frappe.get_installed_apps():
+	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		if app != app_name:
 			hooks = frappe.get_hooks(app_name=app)
 			if hooks.required_apps and any(app_name in required_app for required_app in hooks.required_apps):

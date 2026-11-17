@@ -168,7 +168,7 @@ def set_default(key, value, parent, parenttype="__default"):
 			return
 		frappe.db.delete("DefaultValue", {"defkey": key, "parent": parent})
 	if value is not None:
-		add_default(key, value, parent)
+		add_default(key, value, parent, parenttype)
 	else:
 		_clear_cache(parent)
 

@@ -143,3 +143,18 @@ class TestSubmissionQueue(FrappeTestCase):
 
 		existing.delete(ignore_permissions=True)
 		frappe.db.commit()
+
+	def test_latest_submission_requires_read_permission(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.core.doctype.submission_queue.submission_queue import get_latest_submissions
+
+		if not frappe.db.table_exists("Test Submission Queue", cached=False):
+			doc = new_doctype("Test Submission Queue", is_submittable=True, queue_in_background=True)
+			doc.insert()
+
+		d = frappe.get_doc(doctype="Test Submission Queue", some_fieldname="Random").insert()
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test1@example.com")
+		with self.assertRaises(frappe.PermissionError):
+			get_latest_submissions(d.doctype, d.name)

@@ -1,8 +1,10 @@
 import json
 import os
+import shlex
 import subprocess
 import sys
 import typing
+from functools import partial
 from shutil import which
 
 import click
@@ -871,6 +873,44 @@ def run_parallel_tests(
 			)
 
 
+PLAYWRIGHT_VERSION = "1.61.1"
+
+
+def _get_site_url(site: str) -> str:
+	# frappe.utils.get_site_url reads the config of the site frappe was initialised with
+	conf = frappe.get_site_config(site_path=os.path.join(frappe.local.sites_path, site))
+	return conf.host_name or f"http://{site}:{conf.webserver_port}"
+
+
+CYPRESS_PACKAGES = {
+	"cypress": "^13",
+	"@4tw/cypress-drag-drop": "^2",
+	"cypress-real-events": "",
+	"@testing-library/cypress": "^10",
+	"@testing-library/dom": "8.17.1",
+	"@cypress/code-coverage": "^3",
+}
+
+
+def _has_config(app_path: str, name: str) -> bool:
+	return any(
+		os.path.exists(os.path.join(app_path, f"{name}.config.{ext}"))
+		for ext in ("js", "ts", "mjs", "cjs", "mts", "cts")
+	)
+
+
+def _yarn_add(frappe_path: str, packages: str):
+	# save package.json, install, then restore to avoid modifications
+	package_json_path = os.path.join(frappe_path, "package.json")
+	with open(package_json_path) as f:
+		package_json_contents = f.read()
+
+	frappe.commands.popen(f"yarn add {packages} --no-lockfile", cwd=frappe_path, raise_err=True)
+
+	with open(package_json_path, "w") as f:
+		f.write(package_json_contents)
+
+
 @click.command(
 	"run-ui-tests",
 	context_settings=dict(
@@ -878,88 +918,161 @@ def run_parallel_tests(
 	),
 )
 @click.argument("app")
-@click.argument("cypressargs", nargs=-1, type=click.UNPROCESSED)
+@click.argument("runnerargs", nargs=-1, type=click.UNPROCESSED)
 @click.option("--headless", is_flag=True, help="Run UI Test in headless mode")
-@click.option("--parallel", is_flag=True, help="Run UI Test in parallel mode")
-@click.option("--with-coverage", is_flag=True, help="Generate coverage report")
-@click.option("--browser", default="chrome", help="Browser to run tests in")
-@click.option("--ci-build-id")
+@click.option("--browser", help="Browser to run tests in: chromium, firefox or webkit")
+@click.option(
+	"--parallel-site",
+	multiple=True,
+	help="Additional site to run tests on in parallel. Each site gets its own worker",
+)
+@click.option(
+	"--spec",
+	type=click.Path(dir_okay=False, file_okay=True),
+	help="Spec file to run",
+)
+@click.option("--parallel", is_flag=True, hidden=True)
+@click.option("--with-coverage", is_flag=True, hidden=True)
+@click.option("--ci-build-id", hidden=True)
 @pass_context
 def run_ui_tests(
 	context,
 	app,
 	headless=False,
-	parallel=True,
+	browser=None,
+	parallel_site=(),
+	runnerargs=None,
+	spec=None,
+	parallel=False,
 	with_coverage=False,
-	browser="chrome",
 	ci_build_id=None,
-	cypressargs=None,
 ):
-	"Run UI tests"
+	"Run UI tests with Playwright, or with Cypress for apps that still have a cypress config"
 	site = get_site(context)
 	frappe.init(site)
 	app_base_path = frappe.get_app_source_path(app)
-	site_url = frappe.utils.get_site_url(site)
-	admin_password = frappe.get_conf(site).admin_password
+	frappe_path = frappe.get_app_source_path("frappe")
 
-	# override baseUrl using env variable
-	site_env = f"CYPRESS_baseUrl={site_url}"
-	password_env = f"CYPRESS_adminPassword={admin_password}" if admin_password else ""
-	coverage_env = f"CYPRESS_coverage={str(with_coverage).lower()}"
+	if _has_config(app_base_path, "playwright"):
+		runner = _run_playwright
+	elif _has_config(app_base_path, "cypress"):
+		click.secho(
+			"Cypress support in run-ui-tests is deprecated and will be removed in v17, "
+			"move the tests to Playwright",
+			fg="yellow",
+		)
+		runner = partial(
+			_run_cypress, parallel=parallel, with_coverage=with_coverage, ci_build_id=ci_build_id
+		)
+	else:
+		click.secho(f"{app} has no playwright or cypress config", fg="red")
+		raise click.exceptions.Exit(1)
 
-	os.chdir(app_base_path)
+	if runner is _run_playwright and (parallel or with_coverage or ci_build_id):
+		click.secho(
+			"--parallel, --with-coverage and --ci-build-id only apply to Cypress and are ignored",
+			fg="yellow",
+		)
 
-	node_bin = subprocess.getoutput("(cd ../frappe && yarn bin)")
-	cypress_path = f"{node_bin}/cypress"
-	drag_drop_plugin_path = f"{node_bin}/../@4tw/cypress-drag-drop"
-	real_events_plugin_path = f"{node_bin}/../cypress-real-events"
-	testing_library_path = f"{node_bin}/../@testing-library"
-	coverage_plugin_path = f"{node_bin}/../@cypress/code-coverage"
+	try:
+		runner(
+			site=site,
+			app_base_path=app_base_path,
+			frappe_path=frappe_path,
+			headless=headless,
+			browser=browser,
+			spec=spec,
+			parallel_site=parallel_site,
+			runnerargs=runnerargs or [],
+		)
+	except subprocess.CalledProcessError as e:
+		click.secho("UI tests failed", fg="red")
+		raise click.exceptions.Exit(1) from e
 
-	# check if cypress in path...if not, install it.
-	if not (
-		os.path.exists(cypress_path)
-		and os.path.exists(drag_drop_plugin_path)
-		and os.path.exists(real_events_plugin_path)
-		and os.path.exists(testing_library_path)
-		and os.path.exists(coverage_plugin_path)
-	):
-		# install cypress & dependent plugins
+
+def _run_playwright(site, app_base_path, frappe_path, headless, browser, spec, parallel_site, runnerargs):
+	node_modules_path = os.path.join(frappe_path, "node_modules")
+	playwright_path = os.path.join(node_modules_path, ".bin", "playwright")
+
+	if not os.path.exists(playwright_path):
+		click.secho("Installing Playwright...", fg="yellow")
+		_yarn_add(frappe_path, f"@playwright/test@{PLAYWRIGHT_VERSION}")
+
+	with_deps = "--with-deps " if os.environ.get("CI") else ""
+	frappe.commands.popen(
+		f"{playwright_path} install {with_deps}{browser or 'chromium'}",
+		cwd=frappe_path,
+		raise_err=True,
+	)
+
+	command = [playwright_path, "test"]
+	if not headless:
+		command.append("--ui")
+	if browser:
+		command.append(f"--browser={browser}")
+	if spec:
+		command.append(spec)
+	command.extend(runnerargs)
+
+	env = {
+		"BASE_URL": frappe.utils.get_site_url(site),
+		# lets specs of other apps resolve @playwright/test from frappe's node_modules
+		"NODE_PATH": node_modules_path,
+	}
+	if parallel_site:
+		env["PARALLEL_BASE_URLS"] = ",".join(_get_site_url(s) for s in parallel_site)
+	if admin_password := frappe.get_conf(site).admin_password:
+		env["ADMIN_PASSWORD"] = admin_password
+
+	click.secho("Running Playwright...", fg="yellow")
+	frappe.commands.popen(shlex.join(command), cwd=app_base_path, env=env, raise_err=True)
+
+
+def _run_cypress(
+	site,
+	app_base_path,
+	frappe_path,
+	headless,
+	browser,
+	spec,
+	parallel_site,
+	runnerargs,
+	parallel=False,
+	with_coverage=False,
+	ci_build_id=None,
+):
+	node_modules_path = os.path.join(frappe_path, "node_modules")
+	cypress_path = os.path.join(node_modules_path, ".bin", "cypress")
+
+	installed = all(os.path.exists(os.path.join(node_modules_path, name)) for name in CYPRESS_PACKAGES)
+	if not (os.path.exists(cypress_path) and installed):
 		click.secho("Installing Cypress...", fg="yellow")
 		packages = " ".join(
-			[
-				"cypress@^13",
-				"@4tw/cypress-drag-drop@^2",
-				"cypress-real-events",
-				"@testing-library/cypress@^10",
-				"@testing-library/dom@8.17.1",
-				"@cypress/code-coverage@^3",
-			]
+			f"{name}@{version}" if version else name for name, version in CYPRESS_PACKAGES.items()
 		)
-		frappe.commands.popen(f"(cd ../frappe && yarn add {packages} --no-lockfile)")
+		_yarn_add(frappe_path, packages)
 
-	# run for headless mode
-	run_or_open = f"run --browser {browser}" if headless else "open"
-	formatted_command = f"{site_env} {password_env} {coverage_env} {cypress_path} {run_or_open}"
-
+	command = [cypress_path, "run", "--browser", browser or "chrome"] if headless else [cypress_path, "open"]
+	if headless and spec:
+		command.extend(["--spec", spec])
 	if os.environ.get("CYPRESS_RECORD_KEY"):
-		formatted_command += " --record"
-
+		command.append("--record")
 	if parallel:
-		formatted_command += " --parallel"
-
+		command.append("--parallel")
 	if ci_build_id:
-		formatted_command += f" --ci-build-id {ci_build_id}"
+		command.extend(["--ci-build-id", ci_build_id])
+	command.extend(runnerargs)
 
-	if cypressargs:
-		formatted_command += " " + " ".join(cypressargs)
+	env = {
+		"CYPRESS_baseUrl": frappe.utils.get_site_url(site),
+		"CYPRESS_coverage": str(with_coverage).lower(),
+		"NODE_PATH": node_modules_path,
+	}
+	if admin_password := frappe.get_conf(site).admin_password:
+		env["CYPRESS_adminPassword"] = admin_password
 
 	click.secho("Running Cypress...", fg="yellow")
-	try:
-		frappe.commands.popen(formatted_command, cwd=app_base_path, raise_err=True)
-	except subprocess.CalledProcessError as e:
-		click.secho("Cypress tests failed", fg="red")
-		raise click.exceptions.Exit(1) from e
+	frappe.commands.popen(shlex.join(command), cwd=app_base_path, env=env, raise_err=True)
 
 
 @click.command("serve")

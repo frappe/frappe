@@ -291,6 +291,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 						me.df?.ignore_user_permissions || meta_df?.ignore_user_permissions,
 					reference_doctype: reference_doctype,
 					page_length: cint(frappe.boot.sysdefaults?.link_field_results_limit) || 10,
+					link_fieldname: me.df.fieldname,
 				};
 
 				me.set_custom_query(args);
@@ -301,7 +302,7 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 					no_spinner: true,
 					args: args,
 					callback: function (r) {
-						if (!window.Cypress && !me.$input.is(":focus")) {
+						if (!window.Cypress && !navigator.webdriver && !me.$input.is(":focus")) {
 							return;
 						}
 						r.message = me.merge_duplicates(r.message);

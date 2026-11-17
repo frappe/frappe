@@ -341,10 +341,8 @@ frappe.views.TreeView = class TreeView {
 		d.set_values(args);
 
 		// create
-		d.set_primary_action(__("Create New"), function () {
+		d.set_primary_action(__("Create New"), function (v) {
 			var btn = this;
-			var v = d.get_values();
-			if (!v) return;
 
 			v.parent = node.label;
 			v.doctype = me.doctype;

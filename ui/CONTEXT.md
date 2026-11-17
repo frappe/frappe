@@ -7,8 +7,8 @@ into `@framework/ui`: the toolbar controls a user manipulates to shape a list
 ## Language
 
 **List View Controls**:
-The four toolbar pieces a user manipulates to shape a doctype list — **SortBy**,
-**Filter**, **Column Settings**, and **Quick Filter**. Each is an independent,
+The toolbar pieces a user manipulates to shape a doctype list — **SortBy**,
+**Filter**, **Column Settings**, **Quick Filter**, and **Group By**. Each is an independent,
 controlled component that owns one slice of view state.
 _Avoid_: "view controls" (CRM's name; it carries the CRM-specific Views concept).
 
@@ -31,6 +31,17 @@ A pre-chosen field surfaced inline in the toolbar for one-tap narrowing. A
 convenience projection over **Filter**s — a Quick Filter and its matching
 **Filter** describe the same underlying condition and stay in sync.
 _Avoid_: inline filter.
+
+**Group By**:
+The fields a list is grouped by, in order, plus its **Aggregate**s. Grouped, the list
+shows one summary row per distinct combination of those fields' values instead of its
+records — desk's report view group by. `null` means ungrouped.
+_Avoid_: group by view (CRM's name for a list whose records sit under group headings).
+
+**Aggregate**:
+A summary column of a grouped list: a function (`count`, `sum`, `avg`, `min`, `max`)
+and, for all but `count`, the field it runs on.
+_Avoid_: total, rollup.
 
 **Column**:
 One shown column in the list: a `fieldname`, a (user-overridable) `label`, and an
@@ -57,7 +68,7 @@ _Avoid_: connected component, smart component.
 
 **View Snapshot**:
 The serialized, persist-able capture of a List View's state — its **Filter**s,
-**Sort**s, **Column**s, and surfaced **Quick Filter** fields. The unit a host's
+**Sort**s, **Column**s, surfaced **Quick Filter** fields, and **Group By**. The unit a host's
 persistence layer is handed. It carries **no identity, ownership, or named-View
 concept** — whether this is a "standard", public, pinned, or named **View**, and
 who owns it, belongs entirely to the consuming app. The library tops out here and

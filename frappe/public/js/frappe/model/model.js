@@ -749,10 +749,8 @@ $.extend(frappe.model, {
 			],
 		});
 
-		d.set_primary_action(__("Rename"), function () {
+		d.set_primary_action(__("Rename"), function (args) {
 			d.hide();
-			var args = d.get_values();
-			if (!args) return;
 			return frappe.call({
 				method: "frappe.rename_doc",
 				freeze: true,

@@ -66,8 +66,11 @@ def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
 
 
 def pdf_body_html(template, args, **kwargs):
+	from frappe.utils.jinja import safe_render_flags
+
 	try:
-		return template.render(args, filters={"len": len})
+		with safe_render_flags():
+			return template.render(args, filters={"len": len})
 	except Exception as e:
 		# Guess line number ?
 		frappe.throw(
@@ -274,7 +277,7 @@ def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
 		stylesheet += cstr(style_tag.string)
 
 	# Use css parser to tokenize the classes and their styles
-	parsed_sheet = cssutils.parseString(stylesheet)
+	parsed_sheet = cssutils.CSSParser(fetcher=lambda url: (None, "")).parseString(stylesheet)
 
 	# Get all styles that are only for .print-format
 	valid_styles = []

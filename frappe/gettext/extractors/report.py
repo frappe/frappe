@@ -1,5 +1,7 @@
 import json
 
+from .utils import get_line_number
+
 
 def extract(fileobj, *args, **kwargs):
 	"""
@@ -7,7 +9,8 @@ def extract(fileobj, *args, **kwargs):
 	:param fileobj: the file-like object the messages should be extracted from
 	:rtype: `iterator`
 	"""
-	data = json.load(fileobj)
+	text = fileobj.read().decode()
+	data = json.loads(text)
 
 	if isinstance(data, list):
 		return
@@ -15,4 +18,5 @@ def extract(fileobj, *args, **kwargs):
 	if data.get("doctype") != "Report":
 		return
 
-	yield None, "_", data.get("report_name"), ["Name of a report"]
+	report_name = data.get("report_name")
+	yield get_line_number(text, "report_name", report_name), "_", report_name, ["Name of a report"]

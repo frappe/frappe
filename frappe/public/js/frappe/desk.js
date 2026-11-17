@@ -76,6 +76,7 @@ frappe.Application = class Application {
 		this.make_page_container();
 		if (
 			!window.Cypress &&
+			!navigator.webdriver &&
 			frappe.boot.onboarding_tours &&
 			frappe.boot.user.onboarding_status != null
 		) {
@@ -429,6 +430,7 @@ frappe.Application = class Application {
 			!Array.isArray(change_log) ||
 			!change_log.length ||
 			window.Cypress ||
+			navigator.webdriver ||
 			frappe.defaults.is_enabled("disable_change_log_notification")
 		) {
 			return;
