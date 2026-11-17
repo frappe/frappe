@@ -1,4 +1,3 @@
-import json
 import os
 
 import frappe
@@ -17,8 +16,7 @@ def get_component_definition(component: str) -> dict:
 			).format(frappe.bold(component)),
 			title=_("No definition"),
 		)
-	with open(path, encoding="utf-8") as schema_file:
-		return json.load(schema_file)
+	return frappe.get_file_json(path)
 
 
 def get_schema_files() -> dict[str, str]:
