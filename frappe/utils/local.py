@@ -65,7 +65,7 @@ class LocalProxy[T](WerkzeugLocalProxy):
 	def __getattr__(self, name: str) -> Any:
 		return getattr(self._get_current_object(), name)
 
-	def __setattr__(self, name: str, value: str) -> None:
+	def __setattr__(self, name: str, value: Any) -> None:
 		setattr(self._get_current_object(), name, value)
 
 	def __delattr__(self, name: str) -> None:
