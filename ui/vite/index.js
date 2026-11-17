@@ -59,13 +59,9 @@ function resolveOwnDependencies() {
 	};
 }
 
-// A peer that only the desk's own pages need. An app built on develop never installed it, and
-// an unresolved import fails its whole build, so the app gets this stand-in; the code that
-// imports it handles the missing value.
+// Peers only desk v2's code needs: a host that lacks one gets a stand-in, not a failed build.
 export const OPTIONAL_PREFIX = "\0framework-ui-optional:";
-// lang-vue has a value the code checks for. lang-javascript has none to offer: its stand-in
-// throws when evaluated, as frappe-ui's own language stubs do, and the editor's grammar loader
-// catches that and leaves the field as plain text.
+// lang-javascript's stand-in throws on load; the editor's grammar loader catches it.
 export const OPTIONAL_PEERS = {
 	"@codemirror/lang-vue": "export const vueLanguage = undefined;",
 	"@codemirror/lang-javascript":

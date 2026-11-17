@@ -109,14 +109,12 @@ const COLOR_PROPS = new Set([
 
 /**
  * Strip color-related inline styles + bgcolor/color attrs so iframe CSS controls colors.
- * Edits a parsed document in place. The `(html: string) => string` form is deprecated, kept
- * for apps built on develop; it parses into an inert `<template>`, never the live page.
+ * Edits a parsed document in place.
  */
 export function stripEmailColors(doc: Document): void;
 /** @deprecated Pass a parsed `Document`; this form returns the stripped markup. */
 export function stripEmailColors(html: string): string;
 export function stripEmailColors(input: Document | string): void | string {
-  // As on develop, an empty or missing string comes back as it came.
   if (!input) return input as string;
   if (typeof input !== "string") return stripColors(input);
   const template = document.createElement("template");

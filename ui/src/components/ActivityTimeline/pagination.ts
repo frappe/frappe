@@ -1,7 +1,4 @@
-/**
- * @deprecated Kept so an app built on develop still imports it. desk v2 pages through the
- * cursor in `useActivityTimeline`; the two `get_more_*` endpoints below are not served by v2.
- */
+/** @deprecated The `get_more_*` endpoints it calls are not served by desk v2. */
 // eslint-disable-next-line no-restricted-imports -- deprecated develop API; its v1 fetch is why it is kept as it was
 import { createResource } from "frappe-ui";
 import { computed, reactive, ref, type Ref } from "vue";

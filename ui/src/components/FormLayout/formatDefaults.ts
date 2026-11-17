@@ -42,10 +42,7 @@ function defined(o: FormatDefaults): FormatDefaults {
   return out as FormatDefaults;
 }
 
-/**
- * Read the session's site defaults. A host that never sets a session (an app built on develop)
- * still gets desk boot's `window.sysdefaults`; `{}` with neither so the lib falls back cleanly.
- */
+/** The session's site defaults, else `window.sysdefaults`, else `{}`. */
 function readSessionDefaults(): FormatDefaults {
   const session = currentSession();
   if (session) return (session.defaults as FormatDefaults | undefined) ?? {};
