@@ -125,6 +125,7 @@ def get_default_email_notification_types() -> list[str]:
 @frappe.whitelist()
 def get_emailable_notification_types() -> list[str]:
 	"""All enabled Notification Types, used to render the email-types checkbox grid."""
+	frappe.only_for(["Desk User", "System Manager"])
 	return frappe.get_all("Notification Type", filters={"enabled": 1}, pluck="name")
 
 

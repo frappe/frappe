@@ -1,0 +1,375 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ComboboxProps",
+  "definitions": {
+    "ComboboxProps": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "modelValue": {
+          "anyOf": [
+            {
+              "type": [
+                "string",
+                "number"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "option"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "number"
+                    ]
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "slot": {
+                    "type": "string"
+                  },
+                  "slots": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "label",
+                  "value"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "custom"
+                  },
+                  "key": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  },
+                  "icon": {
+                    "type": [
+                      "string"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "disabled": {
+                    "type": "boolean"
+                  },
+                  "slot": {
+                    "type": "string"
+                  },
+                  "slots": {
+                    "type": "object"
+                  },
+                  "onClick": {
+                    "type": "object"
+                  },
+                  "keepOpen": {
+                    "type": "boolean"
+                  },
+                  "condition": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "type",
+                  "key",
+                  "label",
+                  "onClick"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": [
+                      "string",
+                      "number"
+                    ]
+                  },
+                  "group": {
+                    "type": "string"
+                  },
+                  "hideLabel": {
+                    "type": "boolean"
+                  },
+                  "options": {
+                    "type": "array",
+                    "items": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "option"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "value": {
+                              "type": [
+                                "string",
+                                "number"
+                              ]
+                            },
+                            "icon": {
+                              "type": [
+                                "string"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "label",
+                            "value"
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "const": "custom"
+                            },
+                            "key": {
+                              "type": "string"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "icon": {
+                              "type": [
+                                "string"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "disabled": {
+                              "type": "boolean"
+                            },
+                            "slot": {
+                              "type": "string"
+                            },
+                            "slots": {
+                              "type": "object"
+                            },
+                            "onClick": {
+                              "type": "object"
+                            },
+                            "keepOpen": {
+                              "type": "boolean"
+                            },
+                            "condition": {
+                              "type": "object"
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "key",
+                            "label",
+                            "onClick"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "group",
+                  "options"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "input",
+            "button"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "subtle",
+            "outline",
+            "ghost"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "xs",
+            "sm",
+            "md",
+            "lg"
+          ]
+        },
+        "placeholder": {
+          "type": "string"
+        },
+        "disabled": {
+          "type": "boolean"
+        },
+        "open": {
+          "type": "boolean"
+        },
+        "query": {
+          "type": "string"
+        },
+        "openOnFocus": {
+          "type": "boolean"
+        },
+        "openOnClick": {
+          "type": "boolean"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ]
+        },
+        "offset": {
+          "type": "number"
+        },
+        "portalTo": {
+          "type": [
+            "string"
+          ]
+        },
+        "loading": {
+          "type": "boolean"
+        },
+        "emptyText": {
+          "type": "string"
+        },
+        "hideSearch": {
+          "type": "boolean"
+        },
+        "filterable": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -117,6 +117,8 @@ frappe.views.DashboardView = class DashboardView extends frappe.views.ListView {
 	}
 
 	render_dashboard() {
+		this.chart_group && this.chart_group.destroy();
+		this.number_card_group && this.number_card_group.destroy();
 		this.$dashboard_wrapper.empty();
 
 		frappe.dashboard_utils.get_dashboard_settings().then((settings) => {

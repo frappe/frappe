@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-11-03 18:36+0000\n"
-"PO-Revision-Date: 2026-11-09 04:13\n"
+"POT-Creation-Date: 2026-11-08 09:32+0000\n"
+"PO-Revision-Date: 2026-11-16 04:13\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Dutch\n"
 "MIME-Version: 1.0\n"
@@ -253,7 +253,7 @@ msgstr "1 Google Agenda-evenement gesynchroniseerd."
 msgid "1 Report"
 msgstr "1 rapport"
 
-#: frappe/tests/test_utils.py:977
+#: frappe/tests/test_utils.py:1022
 msgid "1 day ago"
 msgstr "1 dag geleden"
 
@@ -262,17 +262,17 @@ msgid "1 hour"
 msgstr "1 uur"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:54
-#: frappe/tests/test_utils.py:975
+#: frappe/tests/test_utils.py:1020
 msgid "1 hour ago"
 msgstr "1 uur geleden"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:50
-#: frappe/tests/test_utils.py:973
+#: frappe/tests/test_utils.py:1018
 msgid "1 minute ago"
 msgstr "1 minuut geleden"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:68
-#: frappe/tests/test_utils.py:981
+#: frappe/tests/test_utils.py:1026
 msgid "1 month ago"
 msgstr "1 maand geleden"
 
@@ -282,6 +282,10 @@ msgstr ""
 
 #: frappe/public/js/print_format_builder/components/editor/PrintFormat.vue:16
 msgid "1 of N"
+msgstr ""
+
+#: frappe/printing/doctype/print_settings/print_settings.js:29
+msgid "1 print format"
 msgstr ""
 
 #: frappe/public/js/frappe/data_import/data_exporter.js:241
@@ -306,7 +310,7 @@ msgctxt "User added row to child table"
 msgid "1 row to {0}"
 msgstr "1 rij naar {0}"
 
-#: frappe/tests/test_utils.py:972
+#: frappe/tests/test_utils.py:1017
 msgid "1 second ago"
 msgstr "1 seconde geleden"
 
@@ -315,32 +319,32 @@ msgid "1 warning found."
 msgstr ""
 
 #: frappe/public/js/frappe/utils/pretty_date.js:64
-#: frappe/tests/test_utils.py:979
+#: frappe/tests/test_utils.py:1024
 msgid "1 week ago"
 msgstr "1 week geleden"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:72
-#: frappe/tests/test_utils.py:983
+#: frappe/tests/test_utils.py:1028
 msgid "1 year ago"
 msgstr "1 jaar geleden"
 
-#: frappe/tests/test_utils.py:976
+#: frappe/tests/test_utils.py:1021
 msgid "2 hours ago"
 msgstr "2 uur geleden"
 
-#: frappe/tests/test_utils.py:982
+#: frappe/tests/test_utils.py:1027
 msgid "2 months ago"
 msgstr "2 maanden geleden"
 
-#: frappe/tests/test_utils.py:980
+#: frappe/tests/test_utils.py:1025
 msgid "2 weeks ago"
 msgstr "2 weken geleden"
 
-#: frappe/tests/test_utils.py:984
+#: frappe/tests/test_utils.py:1029
 msgid "2 years ago"
 msgstr "2 jaren geleden"
 
-#: frappe/tests/test_utils.py:974
+#: frappe/tests/test_utils.py:1019
 msgid "3 minutes ago"
 msgstr "3 minuten geleden"
 
@@ -356,7 +360,7 @@ msgstr "4 uren"
 msgid "5 Records"
 msgstr "5 records"
 
-#: frappe/tests/test_utils.py:978
+#: frappe/tests/test_utils.py:1023
 msgid "5 days ago"
 msgstr "5 dagen geleden"
 
@@ -916,12 +920,12 @@ msgstr ""
 msgid "A field with the name {0} already exists in {1}"
 msgstr "Er bestaat al een veld met de naam {0} in {1}"
 
-#: frappe/core/doctype/file/file.py:394
+#: frappe/core/doctype/file/file.py:396
 #, python-brace-format
 msgid "A file with same name {} already exists"
 msgstr "Er bestaat al een bestand met dezelfde naam {}"
 
-#: frappe/core/doctype/file/file.py:120 frappe/core/doctype/file/file.py:175
+#: frappe/core/doctype/file/file.py:122 frappe/core/doctype/file/file.py:177
 msgid "A folder cannot have a File URL"
 msgstr ""
 
@@ -1307,7 +1311,7 @@ msgstr "Toegangstoken-URL"
 msgid "Access added."
 msgstr ""
 
-#: frappe/auth.py:500
+#: frappe/auth.py:504
 msgid "Access not allowed from this IP Address"
 msgstr "Toegang niet toegestaan vanaf dit IP-adres"
 
@@ -1690,7 +1694,7 @@ msgstr "Reply-To-koptekst toevoegen"
 msgid "Add Report"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:985
+#: frappe/core/doctype/user/user.py:990
 msgid "Add Roles"
 msgstr "Rollen toevoegen"
 
@@ -1752,7 +1756,7 @@ msgid "Add Translate Data"
 msgstr "Vertaalgegevens toevoegen"
 
 #. Label of the add_unsubscribe_link (Check) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:117
+#: frappe/email/doctype/email_queue/email_queue.json:118
 msgid "Add Unsubscribe Link"
 msgstr "Voeg een link voor afmelden toe"
 
@@ -2146,7 +2150,7 @@ msgstr "Voegt een aangepast veld toe aan een documenttype."
 msgid "Administrator"
 msgstr "Beheerder"
 
-#: frappe/core/doctype/user/user.py:1429
+#: frappe/core/doctype/user/user.py:1434
 msgid "Administrator Logged In"
 msgstr "Administrator Gelogd In"
 
@@ -2537,7 +2541,7 @@ msgstr "Laat Print voor Draft"
 
 #. Label of the allow_read_on_all_link_options (Check) field in DocType 'Web
 #. Form Field'
-#: frappe/website/doctype/web_form_field/web_form_field.json:57
+#: frappe/website/doctype/web_form_field/web_form_field.json:59
 msgid "Allow Read On All Link Options"
 msgstr "Sta toe dat alle links gelezen worden"
 
@@ -2887,7 +2891,7 @@ msgstr "Hiermee kunnen gebruikers de maskeereigenschap inschakelen voor elk veld
 msgid "Almost done"
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1226
+#: frappe/core/doctype/user/user.py:1231
 msgid "Already Registered"
 msgstr "Reeds geregistreerd"
 
@@ -3149,7 +3153,7 @@ msgstr "App Naam"
 msgid "App Name (Client Name)"
 msgstr "App-naam (clientnaam)"
 
-#: frappe/integrations/frappe_providers/cloud_marketplace.py:108
+#: frappe/integrations/frappe_providers/cloud_marketplace.py:120
 msgid "App name is required."
 msgstr "App-naam is verplicht."
 
@@ -3319,6 +3323,12 @@ msgstr "Van toepassing op alle documenttypen"
 #: frappe/core/doctype/user_type/user_type.json:72
 msgid "Apply User Permission On"
 msgstr "Gebruikersrechten toepassen op"
+
+#. Label of the apply_user_permissions (Check) field in DocType 'Web Form
+#. Field'
+#: frappe/website/doctype/web_form_field/web_form_field.json:67
+msgid "Apply User Permissions"
+msgstr ""
 
 #. Label of the apply_document_permissions (Check) field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json:246
@@ -3722,6 +3732,7 @@ msgid "At least one field of Parent Document Type is mandatory"
 msgstr "Minimaal één veld van het bovenliggende documenttype is verplicht"
 
 #: frappe/automation_engine/actions/core.py:247
+#: frappe/core/doctype/communication/email.py:217 frappe/email/__init__.py:236
 msgid "At least one recipient is required"
 msgstr ""
 
@@ -3735,7 +3746,7 @@ msgstr ""
 #: frappe/public/js/form_builder/components/controls/AttachControl.vue:15
 #: frappe/public/js/frappe/form/controls/attach.js:5
 #: frappe/public/js/frappe/views/communication.js:1554
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Attach"
 msgstr "Toevoegen"
 
@@ -3756,7 +3767,7 @@ msgstr "Bestanden bijvoegen"
 #: frappe/core/doctype/docfield/docfield.json:116
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 msgid "Attach Image"
 msgstr "Afbeelding bijvoegen"
@@ -3821,7 +3832,7 @@ msgstr "Aan het veld bevestigd"
 msgid "Attached To Name"
 msgstr "Gekoppeld aan naam"
 
-#: frappe/core/doctype/file/file.py:204
+#: frappe/core/doctype/file/file.py:206
 msgid "Attached To Name must be a string or an integer"
 msgstr "Het veld 'Attached To Name' moet een tekenreeks of een geheel getal zijn."
 
@@ -3853,7 +3864,7 @@ msgstr ""
 msgid "Attachment Limit (MB)"
 msgstr "Bijlagelimiet (MB)"
 
-#: frappe/core/doctype/file/file.py:473
+#: frappe/core/doctype/file/file.py:475
 #: frappe/public/js/frappe/form/sidebar/attachments.js:40
 msgid "Attachment Limit Reached"
 msgstr "Limiet voor bijlagen bereikt"
@@ -3878,7 +3889,7 @@ msgid "Attachment Settings"
 msgstr "Bijlage-instellingen"
 
 #. Label of the attachments (Code) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:132
+#: frappe/email/doctype/email_queue/email_queue.json:139
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:122
 #: frappe/website/doctype/web_form/templates/web_form.html:125
 msgid "Attachments"
@@ -3955,7 +3966,7 @@ msgstr "authenticatie"
 msgid "Authentication Apps you can use are:"
 msgstr "Authenticatie-apps die u kunt gebruiken zijn:"
 
-#: frappe/email/doctype/email_account/email_account.py:442
+#: frappe/email/doctype/email_account/email_account.py:434
 #, python-brace-format
 msgid "Authentication failed while receiving emails from Email Account: {0}."
 msgstr "Verificatie mislukt tijdens het ontvangen van e-mails van e-mailaccount: {0}."
@@ -4190,11 +4201,11 @@ msgstr "Geautomatiseerd bericht"
 msgid "Automatic"
 msgstr "Automatisch"
 
-#: frappe/email/doctype/email_account/email_account.py:888
+#: frappe/email/doctype/email_account/email_account.py:880
 msgid "Automatic Linking can be activated only for one Email Account."
 msgstr "Automatisch koppelen kan slechts voor één e-mailaccount worden geactiveerd."
 
-#: frappe/email/doctype/email_account/email_account.py:882
+#: frappe/email/doctype/email_account/email_account.py:874
 msgid "Automatic Linking can be activated only if Incoming is enabled."
 msgstr "Automatisch koppelen kan alleen worden geactiveerd als Inkomend is ingeschakeld."
 
@@ -4621,7 +4632,7 @@ msgstr ""
 msgid "Barcode that is not a QR code"
 msgstr ""
 
-#: frappe/utils/print_format_generator.py:167
+#: frappe/utils/print_format_generator.py:169
 msgid "Barcode value must be text under 2000 characters"
 msgstr ""
 
@@ -4766,7 +4777,7 @@ msgstr "Beginnend met"
 msgid "Beta"
 msgstr "Beta"
 
-#: frappe/core/doctype/user/user.py:1450 frappe/utils/password_strength.py:73
+#: frappe/core/doctype/user/user.py:1455 frappe/utils/password_strength.py:73
 msgid "Better add a few more letters or another word"
 msgstr "Beter voeg een paar letters of een ander woord"
 
@@ -5464,12 +5475,12 @@ msgstr "Kan niet verwijderen"
 msgid "Cannot Update After Submit"
 msgstr "Updaten na verzenden is niet mogelijk"
 
-#: frappe/core/doctype/file/file.py:818 frappe/utils/file_manager.py:385
+#: frappe/core/doctype/file/file.py:829 frappe/utils/file_manager.py:385
 #, python-brace-format
 msgid "Cannot access file path {0}"
 msgstr "Kan geen toegang krijgen tot het bestandspad {0}"
 
-#: frappe/core/doctype/file/file.py:158
+#: frappe/core/doctype/file/file.py:160
 msgid "Cannot attach a folder to a document"
 msgstr "Kan geen map aan een document koppelen"
 
@@ -5541,7 +5552,7 @@ msgstr "Het is niet mogelijk om een privéwerkruimte voor andere gebruikers aan 
 msgid "Cannot delete Desktop Icon '{0}' as it is restricted"
 msgstr "Kan bureaubladicoon '{0}' niet verwijderen omdat het beperkt is"
 
-#: frappe/core/doctype/file/file.py:286
+#: frappe/core/doctype/file/file.py:288
 msgid "Cannot delete Home and Attachments folders"
 msgstr "Kan home en bijlagenmappen niet verwijderen"
 
@@ -5636,7 +5647,7 @@ msgstr "Kan {0} niet inschakelen voor een niet-in te dienen doctype"
 msgid "Cannot fetch image from {0}: {1}"
 msgstr "Kan afbeelding niet ophalen van {0}: {1}"
 
-#: frappe/core/doctype/file/file.py:389
+#: frappe/core/doctype/file/file.py:391
 #, python-brace-format
 msgid "Cannot find file {} on disk"
 msgstr "Kan bestand {} niet vinden op de schijf"
@@ -5646,7 +5657,7 @@ msgstr "Kan bestand {} niet vinden op de schijf"
 msgid "Cannot generate PDF for more than {0} documents at a time"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:756
+#: frappe/core/doctype/file/file.py:765
 msgid "Cannot get file contents of a Folder"
 msgstr "Kan de inhoud van een map niet ophalen."
 
@@ -5957,7 +5968,7 @@ msgstr "Chat"
 #: frappe/core/doctype/report_filter/report_filter.json:40
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 msgid "Check"
 msgstr "Rekening"
@@ -6114,7 +6125,7 @@ msgstr ""
 msgid "Chromium"
 msgstr ""
 
-#: frappe/utils/print_format_generator.py:628
+#: frappe/utils/print_format_generator.py:635
 msgid "Chromium renderer unavailable"
 msgstr ""
 
@@ -6232,7 +6243,7 @@ msgstr ""
 msgid "Click here"
 msgstr "Klik hier"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:550
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:551
 msgid "Click on a file to select it."
 msgstr "Klik op een bestand om het te selecteren."
 
@@ -6570,7 +6581,7 @@ msgstr ""
 #: frappe/website/doctype/color/color.json:16
 #: frappe/website/doctype/color/color.json:24
 #: frappe/website/doctype/social_link_settings/social_link_settings.json:24
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Color"
 msgstr "Kleur"
 
@@ -6616,7 +6627,7 @@ msgstr "Column <b>{0}</b> al bestaan."
 #: frappe/core/doctype/docfield/docfield.json:116
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 msgid "Column Break"
 msgstr "Kolomovergang"
@@ -6799,7 +6810,7 @@ msgstr "Veelvoorkomende woorden zijn makkelijk te raden."
 #: frappe/core/doctype/communication/communication.json:158
 #: frappe/core/doctype/communication/communication.json:379
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json:25
-#: frappe/email/doctype/email_queue/email_queue.json:95
+#: frappe/email/doctype/email_queue/email_queue.json:96
 #: frappe/email/sidebar/email/email.json:34
 #: frappe/public/js/frappe/form/doctype_settings/registry.js:222
 msgid "Communication"
@@ -8064,7 +8075,7 @@ msgstr "Ctrl + Enter om commentaar toe te voegen"
 #: frappe/desk/page/setup_wizard/setup_wizard.js:559
 #: frappe/geo/doctype/currency/currency.json:88
 #: frappe/geo/sidebar/geo/geo.json:34
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Currency"
 msgstr "Valuta"
 
@@ -8314,7 +8325,7 @@ msgstr "Aangepaste LDAP-directory geselecteerd. Zorg ervoor dat 'LDAP-groepslidk
 
 #. Label of the label (Data) field in DocType 'Web Form Field'
 #. Label of the label (Data) field in DocType 'Web Form List Column'
-#: frappe/website/doctype/web_form_field/web_form_field.json:50
+#: frappe/website/doctype/web_form_field/web_form_field.json:51
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json:26
 msgid "Custom Label"
 msgstr "Aangepast label"
@@ -8730,7 +8741,7 @@ msgstr "Dashboards"
 #: frappe/integrations/doctype/webhook/webhook.json:115
 #: frappe/integrations/doctype/webhook_request_log/webhook_request_log.json:49
 #: frappe/public/js/frappe/form/doctype_settings/registry.js:239
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 msgid "Data"
 msgstr "Gegevens"
@@ -8847,7 +8858,7 @@ msgstr "Databaseversie"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
 #: frappe/desk/report/todo/todo.py:38
 #: frappe/public/js/frappe/views/interaction.js:80
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Date"
 msgstr "Datum"
 
@@ -8927,7 +8938,7 @@ msgstr "Data zijn vaak gemakkelijk te raden."
 #: frappe/core/doctype/report_filter/report_filter.json:40
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Datetime"
 msgstr "Datum en tijd"
 
@@ -9045,7 +9056,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:243
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:250
 #: frappe/templates/form_grid/fields.html:30
-#: frappe/website/doctype/web_form_field/web_form_field.json:126
+#: frappe/website/doctype/web_form_field/web_form_field.json:136
 #: frappe/website/doctype/web_template_field/web_template_field.json:52
 msgid "Default"
 msgstr "Standaard"
@@ -9707,7 +9718,7 @@ msgstr ""
 #: frappe/public/js/frappe/widgets/widget_dialog.js:349
 #: frappe/website/doctype/utm_medium/utm_medium.json:16
 #: frappe/website/doctype/utm_source/utm_source.json:16
-#: frappe/website/doctype/web_form_field/web_form_field.json:117
+#: frappe/website/doctype/web_form_field/web_form_field.json:127
 #: frappe/website/doctype/web_page/web_page.json:286
 #: frappe/website/doctype/website_slideshow_item/website_slideshow_item.json:32
 #: frappe/www/attribution.html:20
@@ -10152,7 +10163,7 @@ msgid "Display"
 msgstr "Weergave"
 
 #. Label of the depends_on (Code) field in DocType 'Web Form Field'
-#: frappe/website/doctype/web_form_field/web_form_field.json:69
+#: frappe/website/doctype/web_form_field/web_form_field.json:79
 msgid "Display Depends On"
 msgstr "Weergave is afhankelijk van"
 
@@ -10958,7 +10969,7 @@ msgstr "Domeinnaam"
 msgid "Domain Settings"
 msgstr "Domeininstellingen"
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:483
+#: frappe/integrations/frappe_providers/cloud_settings.py:510
 msgid "Domain is required."
 msgstr "Domein is verplicht."
 
@@ -11327,7 +11338,7 @@ msgstr "{0} rijen dupliceren"
 #: frappe/core/doctype/report_column/report_column.json:34
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Duration"
 msgstr "Looptijd"
 
@@ -11769,13 +11780,13 @@ msgstr "E-mail"
 #: frappe/core/doctype/user_email/user_email.json:20
 #: frappe/email/doctype/email_account/email_account.json:775
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json:37
-#: frappe/email/doctype/email_queue/email_queue.json:145
+#: frappe/email/doctype/email_queue/email_queue.json:152
 #: frappe/email/doctype/unhandled_email/unhandled_email.json:19
 #: frappe/email/sidebar/email/email.json:18
 msgid "Email Account"
 msgstr "E-mail account"
 
-#: frappe/email/doctype/email_account/email_account.py:445
+#: frappe/email/doctype/email_account/email_account.py:437
 msgid "Email Account Disabled."
 msgstr "E-mailaccount uitgeschakeld."
 
@@ -11784,7 +11795,7 @@ msgstr "E-mailaccount uitgeschakeld."
 msgid "Email Account Name"
 msgstr "Naam van het e-mailaccount"
 
-#: frappe/core/doctype/user/user.py:889
+#: frappe/core/doctype/user/user.py:894
 msgid "Email Account added multiple times"
 msgstr "E-mail account meerdere keren toegevoegd"
 
@@ -11792,7 +11803,7 @@ msgstr "E-mail account meerdere keren toegevoegd"
 msgid "Email Account not setup. Please create a new Email Account from Settings > Email Account"
 msgstr "E-mailaccount niet ingesteld. Maak een nieuw e-mailaccount aan via Instellingen > E-mailaccount."
 
-#: frappe/email/doctype/email_account/email_account.py:683
+#: frappe/email/doctype/email_account/email_account.py:675
 #, python-brace-format
 msgid "Email Account {0} Disabled"
 msgstr "E-mail account {0} uitgeschakeld"
@@ -11883,7 +11894,7 @@ msgstr "E-mailinbox"
 
 #. Name of a DocType
 #. Label of a Sidebar Item
-#: frappe/email/doctype/email_queue/email_queue.json:178
+#: frappe/email/doctype/email_queue/email_queue.json:185
 #: frappe/email/sidebar/email/email.json:66
 msgid "Email Queue"
 msgstr "E-mail Queue"
@@ -11901,6 +11912,12 @@ msgstr "Het legen van de e-mailwachtrij is afgebroken vanwege te veel fouten."
 #: frappe/email/doctype/email_queue/email_queue.json:5
 msgid "Email Queue records."
 msgstr "E-mailwachtrijrecords."
+
+#. Label of the email_read_tracker_url (Small Text) field in DocType 'Email
+#. Queue'
+#: frappe/email/doctype/email_queue/email_queue.json:128
+msgid "Email Read Tracker URL"
+msgstr ""
 
 #. Label of the email_reply_help (HTML) field in DocType 'Email Template'
 #: frappe/email/doctype/email_template/email_template.json:49
@@ -12033,7 +12050,7 @@ msgstr ""
 msgid "Email not sent to {0} (unsubscribed / disabled)"
 msgstr "Geen e-mail verstuurd naar {0} (uitgeschreven / uitgeschakeld)"
 
-#: frappe/utils/oauth.py:213
+#: frappe/utils/oauth.py:216
 #, python-brace-format
 msgid "Email not verified with {0}"
 msgstr "E-mail niet geverifieerd met {0}"
@@ -12046,12 +12063,12 @@ msgstr "De e-mailwachtrij is momenteel opgeschort. Hervat het automatisch verzen
 msgid "Email sending undone"
 msgstr "E-mailverzending ongedaan gemaakt"
 
-#: frappe/email/doctype/email_queue/email_queue.py:216
+#: frappe/email/doctype/email_queue/email_queue.py:217
 #, python-brace-format
 msgid "Email size {0:.2f} MB exceeds the maximum allowed size of {1:.2f} MB"
 msgstr "E-mailgrootte {0:.2f} MB overschrijdt de maximaal toegestane grootte van {1:.2f} MB"
 
-#: frappe/core/doctype/communication/email.py:368
+#: frappe/core/doctype/communication/email.py:370
 msgid "Email undo window is over. Cannot undo email."
 msgstr "Het venster voor ongedaan maken van de e-mail is verlopen. Kan e-mail niet ongedaan maken."
 
@@ -12070,7 +12087,7 @@ msgstr "E-mails"
 msgid "Emails Pulled"
 msgstr "E-mails opgehaald"
 
-#: frappe/email/doctype/email_account/email_account.py:1057
+#: frappe/email/doctype/email_account/email_account.py:1049
 msgid "Emails are already being pulled from this account."
 msgstr "Er worden al e-mails van dit account opgehaald."
 
@@ -12405,7 +12422,7 @@ msgstr "Ingeschakeld"
 msgid "Enabled Scheduler"
 msgstr "Ingeschakelde planner"
 
-#: frappe/email/doctype/email_account/email_account.py:1134
+#: frappe/email/doctype/email_account/email_account.py:1126
 #, python-brace-format
 msgid "Enabled email inbox for user {0}"
 msgstr "Inbox voor e-mail ingeschakeld voor gebruiker {0}"
@@ -12643,8 +12660,8 @@ msgstr "Is gelijk aan"
 #: frappe/core/doctype/user_invitation/user_invitation.py:137
 #: frappe/core/page/component_explorer/component_explorer.js:1031
 #: frappe/desk/page/backups/backups.js:37
-#: frappe/email/doctype/email_queue/email_queue.json:64
-#: frappe/email/doctype/email_queue/email_queue.json:70
+#: frappe/email/doctype/email_queue/email_queue.json:65
+#: frappe/email/doctype/email_queue/email_queue.json:71
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:31
 #: frappe/integrations/doctype/integration_request/integration_request.json:59
 #: frappe/integrations/doctype/webhook_request_log/webhook_request_log.json:71
@@ -12716,11 +12733,11 @@ msgid "Error in Header/Footer Script"
 msgstr "Fout in kop-/voettekstscript"
 
 #: frappe/email/doctype/notification/notification.py:883
-#: frappe/email/doctype/notification/notification.py:889
+#: frappe/email/doctype/notification/notification.py:888
 msgid "Error in Notification"
 msgstr "Fout in melding"
 
-#: frappe/utils/pdf.py:80
+#: frappe/utils/pdf.py:83
 #, python-brace-format
 msgid "Error in print format on line {0}: {1}"
 msgstr "Fout in afdrukformaat op regel {0}: {1}"
@@ -12735,11 +12752,11 @@ msgstr "Fout in {0}.get_list: {1}"
 msgid "Error parsing nested filters: {0}. {1}"
 msgstr "Fout bij het verwerken van geneste filters: {0}. {1}"
 
-#: frappe/desk/search.py:307
+#: frappe/desk/search.py:306
 msgid "Error validating \"Ignore User Permissions\""
 msgstr ""
 
-#: frappe/email/doctype/email_account/email_account.py:777
+#: frappe/email/doctype/email_account/email_account.py:769
 #, python-brace-format
 msgid "Error while connecting to email account {0}"
 msgstr "Fout bij het verbinden met e-mailaccount {0}"
@@ -13015,7 +13032,7 @@ msgstr ""
 msgid "Expected 'and' or 'or' operator, found: {0}"
 msgstr "Verwachte operator 'and' of 'or', gevonden: {0}"
 
-#: frappe/utils/print_format_generator.py:259
+#: frappe/utils/print_format_generator.py:261
 msgid "Expected an unsaved Print Format document"
 msgstr ""
 
@@ -13206,7 +13223,7 @@ msgid "Exported to the module and shipped with its app"
 msgstr ""
 
 #. Label of the expose_recipients (Data) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:127
+#: frappe/email/doctype/email_queue/email_queue.json:134
 msgid "Expose Recipients"
 msgstr "Onthul ontvangers"
 
@@ -13357,7 +13374,7 @@ msgstr "Kan geen verbinding maken met de server"
 msgid "Failed to create user."
 msgstr ""
 
-#: frappe/auth.py:715
+#: frappe/auth.py:719
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "Kan token niet decoderen. Geef een geldig base64-gecodeerd token op."
 
@@ -13366,7 +13383,7 @@ msgstr "Kan token niet decoderen. Geef een geldig base64-gecodeerd token op."
 msgid "Failed to decrypt key {0}"
 msgstr "Het is niet gelukt om de sleutel {0} te decoderen."
 
-#: frappe/core/doctype/communication/email.py:363
+#: frappe/core/doctype/communication/email.py:365
 msgid "Failed to delete communication"
 msgstr "Communicatie verwijderen mislukt"
 
@@ -13439,7 +13456,7 @@ msgstr ""
 msgid "Failed to load the import wizard. Please hard-refresh and try again."
 msgstr ""
 
-#: frappe/utils/image.py:76
+#: frappe/utils/image.py:82
 #, python-brace-format
 msgid "Failed to optimize image: {0}"
 msgstr "Het optimaliseren van de afbeelding is mislukt: {0}"
@@ -13463,7 +13480,7 @@ msgstr "Bericht weergeven mislukt: {}"
 msgid "Failed to render subject: {}"
 msgstr "Onderwerp weergeven mislukt: {}"
 
-#: frappe/utils/print_format_generator.py:33
+#: frappe/utils/print_format_generator.py:35
 #, python-brace-format
 msgid "Failed to render template: {0}"
 msgstr ""
@@ -13484,7 +13501,7 @@ msgstr ""
 msgid "Failed to save permission."
 msgstr ""
 
-#: frappe/email/doctype/email_queue/email_queue.py:373
+#: frappe/email/doctype/email_queue/email_queue.py:374
 msgid "Failed to send email with subject:"
 msgstr "E-mail verzenden met onderwerp: mislukt"
 
@@ -13619,7 +13636,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:143
 #: frappe/public/js/print_format_builder/components/inspector/LinkedFieldRows.vue:11
 #: frappe/public/js/print_format_builder/components/inspector/field_properties.js:68
-#: frappe/website/doctype/web_form_field/web_form_field.json:37
+#: frappe/website/doctype/web_form_field/web_form_field.json:38
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json:19
 msgid "Field"
 msgstr "Veld"
@@ -13636,7 +13653,7 @@ msgstr "Het veld \"title\" is verplicht als \"Website Search Field\" is ingestel
 msgid "Field \"value\" is mandatory. Please specify value to be updated"
 msgstr "Field &quot;waarde&quot; is verplicht. Gelieve te specificeren waarde worden bijgewerkt"
 
-#: frappe/desk/search.py:360
+#: frappe/desk/search.py:359
 #, python-brace-format
 msgid "Field <code>{0}</code> not found in {1}"
 msgstr "Veld <code>{0}</code> niet gevonden in {1}"
@@ -13860,7 +13877,7 @@ msgstr "Velden"
 msgid "Fields Multicheck"
 msgstr "Velden Multicheck"
 
-#: frappe/core/doctype/file/file.py:569
+#: frappe/core/doctype/file/file.py:571
 msgid "Fields `file_name` or `file_url` must be set for File"
 msgstr "Voor het bestand moeten de velden `file_name` of `file_url` worden ingesteld."
 
@@ -13911,7 +13928,7 @@ msgstr ""
 #: frappe/core/doctype/report_column/report_column.json:33
 #: frappe/core/doctype/report_filter/report_filter.json:39
 #: frappe/desk/doctype/form_tour_step/form_tour_step.json:97
-#: frappe/website/doctype/web_form_field/web_form_field.json:43
+#: frappe/website/doctype/web_form_field/web_form_field.json:44
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json:32
 #: frappe/website/doctype/web_template_field/web_template_field.json:34
 msgid "Fieldtype"
@@ -13988,7 +14005,7 @@ msgstr "Bestandstype"
 msgid "File URL"
 msgstr "Bestands-URL"
 
-#: frappe/core/doctype/file/file.py:128
+#: frappe/core/doctype/file/file.py:130
 msgid "File URL is required when copying an existing attachment."
 msgstr "Bestands-URL is vereist bij het kopiëren van een bestaande bijlage."
 
@@ -13996,7 +14013,7 @@ msgstr "Bestands-URL is vereist bij het kopiëren van een bestaande bijlage."
 msgid "File backup is ready"
 msgstr "Bestandskopie is klaar"
 
-#: frappe/core/doctype/file/file.py:821
+#: frappe/core/doctype/file/file.py:832
 #, python-brace-format
 msgid "File name cannot have {0}"
 msgstr "Bestandsnaam mag geen {0} hebben"
@@ -14005,7 +14022,7 @@ msgstr "Bestandsnaam mag geen {0} hebben"
 msgid "File not attached"
 msgstr "Bestand niet bijgevoegd"
 
-#: frappe/core/doctype/file/file.py:942 frappe/public/js/frappe/request.js:192
+#: frappe/core/doctype/file/file.py:954 frappe/public/js/frappe/request.js:192
 #: frappe/utils/file_manager.py:221
 #, python-brace-format
 msgid "File size exceeded the maximum allowed size of {0} MB"
@@ -14015,7 +14032,7 @@ msgstr "Bestandsgrootte heeft de maximaal toegestane grootte van {0} MB overschr
 msgid "File too big"
 msgstr "Bestand te groot"
 
-#: frappe/core/doctype/file/file.py:526
+#: frappe/core/doctype/file/file.py:528
 #, python-brace-format
 msgid "File type of {0} is not allowed"
 msgstr "Het bestandstype {0} is niet toegestaan."
@@ -14024,11 +14041,11 @@ msgstr "Het bestandstype {0} is niet toegestaan."
 msgid "File upload"
 msgstr ""
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:666
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:671
 msgid "File upload failed."
 msgstr "Het uploaden van het bestand is mislukt."
 
-#: frappe/core/doctype/file/file.py:512 frappe/core/doctype/file/file.py:586
+#: frappe/core/doctype/file/file.py:514 frappe/core/doctype/file/file.py:588
 #, python-brace-format
 msgid "File {0} does not exist"
 msgstr "Bestand {0} bestaat niet"
@@ -14368,7 +14385,7 @@ msgstr "Vlag"
 #: frappe/core/doctype/report_filter/report_filter.json:40
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Float"
 msgstr "Vlot"
 
@@ -14420,7 +14437,7 @@ msgstr "Mapnaam"
 msgid "Folder name should not include '/' (slash)"
 msgstr "De mapnaam mag geen &#39;/&#39; (slash)"
 
-#: frappe/core/doctype/file/file.py:634
+#: frappe/core/doctype/file/file.py:636
 #, python-brace-format
 msgid "Folder {0} is not empty"
 msgstr "Folder {0} is niet leeg"
@@ -14896,7 +14913,7 @@ msgstr ""
 msgid "Frappe Mail"
 msgstr ""
 
-#: frappe/email/doctype/email_account/email_account.py:654
+#: frappe/email/doctype/email_account/email_account.py:646
 msgid "Frappe Mail OAuth Error"
 msgstr "Frappe Mail OAuth-fout"
 
@@ -15811,7 +15828,7 @@ msgstr "HH:mm:ss"
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:12
 #: frappe/public/js/print_format_builder/components/inspector/LetterHeadZoneInspector.vue:27
 #: frappe/public/js/print_format_builder/composables/useHtmlEditorDialog.js:33
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_page/web_page.js:96
 #: frappe/website/doctype/web_page/web_page.json:127
 msgid "HTML"
@@ -16123,7 +16140,7 @@ msgstr ""
 #: frappe/desk/doctype/sidebar_item/sidebar_item.json:198
 #: frappe/desk/doctype/workspace_link/workspace_link.json:52
 #: frappe/printing/page/print_format_builder/print_format_builder_field.html:3
-#: frappe/website/doctype/web_form_field/web_form_field.json:87
+#: frappe/website/doctype/web_form_field/web_form_field.json:97
 msgid "Hidden"
 msgstr "Verborgen"
 
@@ -16340,17 +16357,17 @@ msgstr "Startpagina"
 msgid "Home Settings"
 msgstr "Startpagina-instellingen"
 
-#: frappe/core/doctype/file/test_file.py:495
-#: frappe/core/doctype/file/test_file.py:497
-#: frappe/core/doctype/file/test_file.py:581
+#: frappe/core/doctype/file/test_file.py:496
+#: frappe/core/doctype/file/test_file.py:498
+#: frappe/core/doctype/file/test_file.py:582
 msgid "Home/Test Folder 1"
 msgstr "Home / Test Folder 1"
 
-#: frappe/core/doctype/file/test_file.py:550
+#: frappe/core/doctype/file/test_file.py:551
 msgid "Home/Test Folder 1/Test Folder 3"
 msgstr "Folder home / Test 1 / Test Folder 3"
 
-#: frappe/core/doctype/file/test_file.py:506
+#: frappe/core/doctype/file/test_file.py:507
 msgid "Home/Test Folder 2"
 msgstr "Home / Test Folder 2"
 
@@ -16372,11 +16389,9 @@ msgstr ""
 
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
-#. Option for the 'Frequency' (Select) field in DocType 'System Settings'
 #. Option for the 'Frequency' (Select) field in DocType 'User'
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json:77
 #: frappe/core/doctype/server_script/server_script.json:105
-#: frappe/core/doctype/system_settings/system_settings.json:829
 #: frappe/core/doctype/user/user.json:401
 msgid "Hourly"
 msgstr "Uurlijks"
@@ -16841,7 +16856,7 @@ msgstr "Als deze instructies niet nuttig waren, kunt u uw suggesties indienen vi
 msgid "If this email is registered with us, a download link will be sent to it."
 msgstr "Als dit e-mailadres bij ons geregistreerd staat, wordt er een downloadlink naar gestuurd."
 
-#: frappe/core/doctype/user/user.py:1295
+#: frappe/core/doctype/user/user.py:1300
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
 msgstr "Als dit e-mailadres bij ons geregistreerd is, hebben we instructies voor het resetten van het wachtwoord verstuurd. Controleer uw postvak IN."
 
@@ -17761,7 +17776,7 @@ msgstr "Onvoldoende bevestigingslimiet"
 #: frappe/core/doctype/report_filter/report_filter.json:40
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 msgid "Int"
 msgstr "Int"
@@ -17889,21 +17904,21 @@ msgstr "Ongeldige actie"
 msgid "Invalid CSV Format"
 msgstr "Ongeldige CSV-formaat"
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:311
+#: frappe/integrations/frappe_providers/cloud_settings.py:314
 msgid "Invalid Cloud Settings data."
 msgstr "Ongeldige gegevens voor cloud-instellingen."
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:302
-#: frappe/integrations/frappe_providers/cloud_settings.py:324
+#: frappe/integrations/frappe_providers/cloud_settings.py:305
+#: frappe/integrations/frappe_providers/cloud_settings.py:327
 msgid "Invalid Cloud Settings operation."
 msgstr "Ongeldige bewerking voor cloud-instellingen."
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:330
-#: frappe/integrations/frappe_providers/cloud_settings.py:332
+#: frappe/integrations/frappe_providers/cloud_settings.py:333
+#: frappe/integrations/frappe_providers/cloud_settings.py:335
 msgid "Invalid Cloud Settings query."
 msgstr "Ongeldige query voor cloud-instellingen."
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:334
+#: frappe/integrations/frappe_providers/cloud_settings.py:337
 msgid "Invalid Cloud Settings time window."
 msgstr "Ongeldig tijdvenster voor cloud-instellingen."
 
@@ -17956,8 +17971,8 @@ msgstr "Onjuiste e-mail."
 msgid "Invalid Fieldname"
 msgstr "Ongeldige veldnaam"
 
-#: frappe/core/doctype/file/file.py:239 frappe/core/doctype/file/file.py:246
-#: frappe/core/doctype/file/file.py:339 frappe/core/doctype/file/file.py:346
+#: frappe/core/doctype/file/file.py:241 frappe/core/doctype/file/file.py:248
+#: frappe/core/doctype/file/file.py:341 frappe/core/doctype/file/file.py:348
 msgid "Invalid File URL"
 msgstr "Ongeldige bestands-URL"
 
@@ -18047,7 +18062,7 @@ msgid "Invalid Phone Number"
 msgstr "Ongeldig telefoonnummer"
 
 #: frappe/auth.py:102 frappe/integrations/google_oauth.py:203
-#: frappe/utils/oauth.py:231 frappe/utils/oauth.py:243 frappe/www/login.py:123
+#: frappe/utils/oauth.py:234 frappe/utils/oauth.py:246 frappe/www/login.py:123
 msgid "Invalid Request"
 msgstr "Ongeldig Verzoek"
 
@@ -18069,7 +18084,7 @@ msgstr "Ongeldige tabelveldnaam"
 msgid "Invalid Transition"
 msgstr "Ongeldige overgang"
 
-#: frappe/utils/typst_emitter.py:952
+#: frappe/utils/typst_emitter.py:953
 msgid "Invalid Typst block"
 msgstr ""
 
@@ -18078,7 +18093,7 @@ msgstr ""
 msgid "Invalid Typst markup"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:357
+#: frappe/core/doctype/file/file.py:359
 #: frappe/public/js/frappe/widgets/widget_dialog.js:695
 #: frappe/utils/csvutils.py:261 frappe/utils/csvutils.py:282
 msgid "Invalid URL"
@@ -18097,7 +18112,7 @@ msgid "Invalid Values"
 msgstr "Ongeldige waarden"
 
 #: frappe/website/doctype/web_form/web_form.py:521
-#: frappe/website/doctype/web_form/web_form.py:1067
+#: frappe/website/doctype/web_form/web_form.py:1126
 #: frappe/website/doctype/web_form_request/web_form_request.py:133
 #: frappe/website/doctype/web_form_request/web_form_request.py:145
 msgid "Invalid Web Form Request"
@@ -18145,7 +18160,7 @@ msgstr "Ongeldig argumentformaat: {0}. Alleen tekenreeksen tussen aanhalingsteke
 msgid "Invalid argument type: {0}. Only strings, numbers, dicts, and None are allowed."
 msgstr "Ongeldig argumenttype: {0}. Alleen strings, getallen, dicts en None zijn toegestaan."
 
-#: frappe/utils/print_format_generator.py:414
+#: frappe/utils/print_format_generator.py:417
 msgid "Invalid arguments"
 msgstr ""
 
@@ -18221,7 +18236,7 @@ msgstr "Ongeldig veldformaat voor SELECTEREN: {0}. Veldnamen moeten eenvoudig, m
 msgid "Invalid field format in {0}: {1}. Use 'field', 'link_field.field', or 'child_table.field'."
 msgstr "Ongeldig veldformaat in {0}: {1}. Gebruik 'field', 'link_field.field' of 'child_table.field'."
 
-#: frappe/utils/data.py:2489
+#: frappe/utils/data.py:2493
 #, python-brace-format
 msgid "Invalid field name {0}"
 msgstr "Ongeldige veldnaam {0}"
@@ -18731,7 +18746,7 @@ msgstr ""
 msgid "It is risky to delete this file: {0}. Please contact your System Manager."
 msgstr "Het is riskant om dit bestand te verwijderen: {0}. Neem dan contact op met uw systeembeheerder."
 
-#: frappe/core/doctype/communication/email.py:378
+#: frappe/core/doctype/communication/email.py:380
 msgid "It is too late to undo this email. It is already being sent."
 msgstr "Het is te laat om deze e-mail ongedaan te maken. De e-mail wordt al verzonden."
 
@@ -18742,7 +18757,7 @@ msgstr ""
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:355
 msgctxt "Workspace Sidebar"
 msgid "Item"
-msgstr ""
+msgstr "Artikel"
 
 #. Label of the item_label (Data) field in DocType 'Navbar Item'
 #: frappe/core/doctype/navbar_item/navbar_item.json:23
@@ -19686,7 +19701,7 @@ msgid "Leave it empty to keep the one it inherits."
 msgstr ""
 
 #: frappe/core/doctype/communication/mixins.py:236
-#: frappe/email/doctype/email_account/email_account.py:827
+#: frappe/email/doctype/email_account/email_account.py:819
 msgid "Leave this conversation"
 msgstr "Laat dit gesprek"
 
@@ -20017,7 +20032,7 @@ msgstr "Lijn"
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:128
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:337
 #: frappe/public/js/print_format_builder/components/inspector/LinkedFieldRows.vue:3
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 #: frappe/workflow/doctype/workflow_transition_task/workflow_transition_task.json:35
 msgid "Link"
@@ -20592,6 +20607,11 @@ msgstr "Inloggen met gebruikersnaam en wachtwoord is niet toegestaan."
 msgid "Login with {0}"
 msgstr "Inloggen met {0}"
 
+#: frappe/utils/oauth.py:182
+#, python-brace-format
+msgid "Login with {0} is not enabled"
+msgstr ""
+
 #. Label of the logo_uri (Data) field in DocType 'OAuth Client'
 #: frappe/integrations/doctype/oauth_client/oauth_client.json:149
 msgid "Logo URI"
@@ -20776,7 +20796,7 @@ msgstr "Maakt de pagina openbaar"
 msgid "Male"
 msgstr "Mannelijk"
 
-#: frappe/email/receive.py:520
+#: frappe/email/receive.py:523
 msgid "Malformed Address Header"
 msgstr ""
 
@@ -20832,7 +20852,7 @@ msgstr ""
 #: frappe/core/doctype/docfield/docfield.json:136
 #: frappe/core/doctype/report_filter/report_filter.json:49
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:120
-#: frappe/website/doctype/web_form_field/web_form_field.json:64
+#: frappe/website/doctype/web_form_field/web_form_field.json:74
 #: frappe/website/doctype/web_template_field/web_template_field.json:42
 msgid "Mandatory"
 msgstr "Verplicht"
@@ -20843,7 +20863,7 @@ msgstr "Verplicht"
 #. Label of the mandatory_depends_on (Code) field in DocType 'Web Form Field'
 #: frappe/custom/doctype/custom_field/custom_field.json:400
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:427
-#: frappe/website/doctype/web_form_field/web_form_field.json:136
+#: frappe/website/doctype/web_form_field/web_form_field.json:146
 msgid "Mandatory Depends On"
 msgstr "Verplicht afhankelijk van"
 
@@ -20852,7 +20872,7 @@ msgstr "Verplicht afhankelijk van"
 msgid "Mandatory Depends On (JS)"
 msgstr "Verplicht afhankelijk van (JS)"
 
-#: frappe/website/doctype/web_form/web_form.py:672
+#: frappe/website/doctype/web_form/web_form.py:716
 msgid "Mandatory Information missing:"
 msgstr "Verplichte informatie ontbreekt:"
 
@@ -20939,6 +20959,11 @@ msgstr "Marge boven"
 #: frappe/public/js/print_format_builder/components/PrintSettingsPanel.vue:65
 msgid "Margins"
 msgstr "Marges"
+
+#: frappe/utils/pdf_generator/browser.py:406
+#, python-brace-format
+msgid "Margins leave no room for content on a {0}px wide page. Reduce them or use a larger page size."
+msgstr ""
 
 #. Label of the mariadb_variables_section (Section Break) field in DocType
 #. 'System Health Report'
@@ -21081,7 +21106,7 @@ msgid "Max Height"
 msgstr "Maximale hoogte"
 
 #. Label of the max_length (Int) field in DocType 'Web Form Field'
-#: frappe/website/doctype/web_form_field/web_form_field.json:102
+#: frappe/website/doctype/web_form_field/web_form_field.json:112
 msgid "Max Length"
 msgstr "Maximale lengte"
 
@@ -21091,7 +21116,7 @@ msgid "Max Report Rows"
 msgstr "Maximaal aantal rapportrijen"
 
 #. Label of the max_value (Int) field in DocType 'Web Form Field'
-#: frappe/website/doctype/web_form_field/web_form_field.json:108
+#: frappe/website/doctype/web_form_field/web_form_field.json:118
 msgid "Max Value"
 msgstr "Maximale waarde"
 
@@ -21128,7 +21153,7 @@ msgstr "Max. breedte voor het type Valuta is 100px in rij {0}"
 msgid "Maximum"
 msgstr "Maximum"
 
-#: frappe/core/doctype/file/file.py:467
+#: frappe/core/doctype/file/file.py:469
 #, python-brace-format
 msgid "Maximum Attachment Limit of {0} has been reached for {1} {2}."
 msgstr "De maximale bevestigingslimiet van {0} is bereikt voor {1} {2}."
@@ -21282,7 +21307,7 @@ msgstr "Samenvoegen is alleen mogelijk tussen de Groepen of tussen Blad Nodes."
 #: frappe/core/doctype/success_action/success_action.json:39
 #: frappe/desk/doctype/notification_log/notification_log.json:179
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:193
-#: frappe/email/doctype/email_queue/email_queue.json:54
+#: frappe/email/doctype/email_queue/email_queue.json:55
 #: frappe/email/doctype/notification/notification.js:215
 #: frappe/email/doctype/notification/notification.json:243
 #: frappe/public/js/frappe/form/doctype_settings/tabs/notification.js:128
@@ -21310,7 +21335,7 @@ msgstr "Voorbeelden van berichten"
 #. Label of the message_id (Small Text) field in DocType 'Communication'
 #. Label of the message_id (Small Text) field in DocType 'Email Queue'
 #: frappe/core/doctype/communication/communication.json:314
-#: frappe/email/doctype/email_queue/email_queue.json:75
+#: frappe/email/doctype/email_queue/email_queue.json:76
 msgid "Message ID"
 msgstr "Bericht-ID"
 
@@ -21332,7 +21357,7 @@ msgstr "Berichttype"
 msgid "Message clipped"
 msgstr "Bericht afgekapt"
 
-#: frappe/email/doctype/email_account/email_account.py:446
+#: frappe/email/doctype/email_account/email_account.py:438
 #, python-brace-format
 msgid "Message from server: {0}"
 msgstr "Bericht van server: {0}"
@@ -22060,7 +22085,7 @@ msgid "Mx"
 msgstr "Mx"
 
 #: frappe/templates/includes/web_sidebar.html:41
-#: frappe/website/doctype/web_form/web_form.py:639
+#: frappe/website/doctype/web_form/web_form.py:651
 #: frappe/website/doctype/website_settings/website_settings.py:180
 #: frappe/www/me.html:8 frappe/www/update_password.py:11
 msgid "My Account"
@@ -22580,7 +22605,7 @@ msgstr "Nieuw {0}: {1}"
 msgid "New {} releases for the following apps are available"
 msgstr "Nieuwe {} releases voor de volgende apps zijn beschikbaar"
 
-#: frappe/core/doctype/user/user.py:981
+#: frappe/core/doctype/user/user.py:986
 #, python-brace-format
 msgid "Newly created user {0} has no roles enabled."
 msgstr "De nieuw aangemaakte gebruiker {0} heeft geen rollen ingeschakeld."
@@ -22747,7 +22772,7 @@ msgstr ""
 #: frappe/public/js/print_format_builder/composables/useFieldFormat.js:14
 #: frappe/public/js/print_format_builder/composables/useFieldFormat.js:130
 #: frappe/templates/print_format/macros/Check.html:11
-#: frappe/utils/typst_emitter.py:966
+#: frappe/utils/typst_emitter.py:967
 #: frappe/website/doctype/help_article/templates/help_article.html:26
 #: ui/src/components/GroupBy/GroupByTable.vue:264
 msgid "No"
@@ -22860,7 +22885,7 @@ msgstr "Geen label"
 #: frappe/printing/page/print/print.js:1404
 #: frappe/public/js/frappe/list/bulk_operations.js:98
 #: frappe/public/js/frappe/list/bulk_operations.js:178
-#: frappe/utils/print_format_generator.py:467
+#: frappe/utils/print_format_generator.py:474
 #: frappe/utils/weasyprint_legacy.py:152
 msgid "No Letterhead"
 msgstr "Geen briefhoofd"
@@ -22910,7 +22935,7 @@ msgstr "geen resultaten"
 msgid "No Role Profiles include this role."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:982
+#: frappe/core/doctype/user/user.py:987
 msgid "No Roles Specified"
 msgstr "Geen rollen gespecificeerd"
 
@@ -23049,7 +23074,7 @@ msgstr "Geen standaard adressjabloon gevonden. Maak een nieuwe aan via Instellin
 msgid "No delay"
 msgstr ""
 
-#: frappe/utils/print_format_generator.py:310
+#: frappe/utils/print_format_generator.py:312
 msgid "No document available to preview"
 msgstr ""
 
@@ -23390,7 +23415,7 @@ msgstr ""
 msgid "No value to encode"
 msgstr ""
 
-#: frappe/public/js/frappe/form/controls/multiselect_list.js:301
+#: frappe/public/js/frappe/form/controls/multiselect_list.js:302
 #: frappe/public/js/frappe/utils/utils.js:1031
 msgid "No values to show"
 msgstr "Geen waarden om weer te geven"
@@ -23503,9 +23528,9 @@ msgstr "Genormaliseerde kopieën"
 msgid "Normalized Query"
 msgstr "Genormaliseerde query"
 
-#: frappe/core/doctype/user/user.py:1221 frappe/utils/oauth.py:323
-#: frappe/website/doctype/web_form/web_form.py:974
-#: frappe/website/doctype/web_form/web_form.py:991
+#: frappe/core/doctype/user/user.py:1226 frappe/utils/oauth.py:326
+#: frappe/website/doctype/web_form/web_form.py:1033
+#: frappe/website/doctype/web_form/web_form.py:1050
 msgid "Not Allowed"
 msgstr "Niet Toegestaan"
 
@@ -23556,7 +23581,8 @@ msgstr "Niet leeg toegestaan"
 
 #: frappe/__init__.py:572 frappe/app.py:405 frappe/desk/calendar.py:29
 #: frappe/public/js/frappe/web_form/webform_script.js:15
-#: frappe/website/doctype/web_form/web_form.py:1112
+#: frappe/website/doctype/web_form/web_form.py:699
+#: frappe/website/doctype/web_form/web_form.py:1171
 #: frappe/website/page_renderers/not_permitted_page.py:22
 #: frappe/www/login.py:199 frappe/www/qrcode.py:22 frappe/www/qrcode.py:25
 #: frappe/www/qrcode.py:37
@@ -23588,7 +23614,7 @@ msgstr "Niet Gezien"
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
 #. Option for the 'Status' (Select) field in DocType 'Email Queue Recipient'
-#: frappe/email/doctype/email_queue/email_queue.json:64
+#: frappe/email/doctype/email_queue/email_queue.json:65
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:25
 msgid "Not Sent"
 msgstr "Niet verzonden"
@@ -23678,14 +23704,15 @@ msgstr ""
 #: frappe/core/doctype/system_settings/system_settings.py:252
 #: frappe/integrations/doctype/connected_app/connected_app.py:263
 #: frappe/public/js/frappe/data_import/data_import_dialog.js:58
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:655
 #: frappe/public/js/frappe/request.js:151
 #: frappe/public/js/frappe/request.js:162
 #: frappe/public/js/frappe/request.js:167
 #: frappe/public/js/frappe/views/kanban/kanban_board.bundle.js:110
 #: frappe/utils/messages.py:174 frappe/utils/new_navigation_nudge.py:66
 #: frappe/website/doctype/web_form/web_form.py:157
-#: frappe/website/doctype/web_form/web_form.py:1060
-#: frappe/website/doctype/web_form/web_form.py:1132
+#: frappe/website/doctype/web_form/web_form.py:1119
+#: frappe/website/doctype/web_form/web_form.py:1191
 #: frappe/website/js/website.js:97
 msgid "Not permitted"
 msgstr "Niet toegestaan"
@@ -23696,7 +23723,7 @@ msgstr "Niet toegestaan"
 msgid "Not permitted to view {0}"
 msgstr "Het is niet toegestaan om {0} te bekijken"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:651
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:654
 #, python-brace-format
 msgid "Not permitted. {0}."
 msgstr "Niet toegestaan. {0}."
@@ -24382,7 +24409,7 @@ msgstr ""
 msgid "Only 200 inserts allowed in one request"
 msgstr "Slechts 200 inserts toegestaan in één verzoek"
 
-#: frappe/email/doctype/email_queue/email_queue.py:95
+#: frappe/email/doctype/email_queue/email_queue.py:96
 msgid "Only Administrator can delete Email Queue"
 msgstr "Alleen beheerder kan e-mail wachtrij verwijderen"
 
@@ -24403,6 +24430,10 @@ msgstr "Alleen de beheerder mag de recorder gebruiken"
 msgid "Only Allow Edit For"
 msgstr "Alleen bewerken toestaan voor"
 
+#: frappe/public/js/print_format_builder/components/inspector/StyleSection.vue:14
+msgid "Only CSS properties go here. Put rules with selectors in Print Settings, under Custom CSS."
+msgstr ""
+
 #: frappe/desk/query_report.py:561
 msgid "Only CSV and Excel formats are supported for export"
 msgstr ""
@@ -24420,7 +24451,7 @@ msgstr "Alleen de opties die zijn toegestaan voor het gegevensveld zijn:"
 msgid "Only Send Records Updated in Last X Hours"
 msgstr "Verzend alleen records die in de afgelopen X uur zijn bijgewerkt."
 
-#: frappe/core/doctype/file/file.py:225
+#: frappe/core/doctype/file/file.py:227
 msgid "Only System Managers can make this file public."
 msgstr "Alleen systeembeheerders kunnen dit bestand openbaar maken."
 
@@ -24515,6 +24546,12 @@ msgstr "Alleen rapporten van het type Report Builder kunnen worden verwijderd."
 #: frappe/desk/reportview.py:401
 msgid "Only reports of type Report Builder can be edited"
 msgstr "Alleen rapporten van het type Rapportbouwer kunnen worden bewerkt."
+
+#. Description of the 'Apply User Permissions' (Check) field in DocType 'Web
+#. Form Field'
+#: frappe/website/doctype/web_form_field/web_form_field.json:64
+msgid "Only show and accept records allowed by the user's User Permissions."
+msgstr ""
 
 #: frappe/desk/doctype/custom_workspace/custom_workspace.py:73
 msgid "Only standard (app-shipped) workspaces can be customized."
@@ -24765,7 +24802,7 @@ msgstr ""
 msgid "Operation"
 msgstr "Operatie"
 
-#: frappe/utils/data.py:2420
+#: frappe/utils/data.py:2424
 #, python-brace-format
 msgid "Operator must be one of {0}"
 msgstr "Operator moet een van {0} zijn"
@@ -24870,7 +24907,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/templates/contact_list.html:10
 #: frappe/public/js/frappe/ui/components/dropdown.js:57
 #: frappe/templates/form_grid/fields.html:43
-#: frappe/website/doctype/web_form_field/web_form_field.json:97
+#: frappe/website/doctype/web_form_field/web_form_field.json:107
 #: frappe/website/doctype/web_form_list_column/web_form_list_column.json:39
 #: frappe/website/doctype/web_template_field/web_template_field.json:47
 msgid "Options"
@@ -25122,7 +25159,7 @@ msgstr "PDF-paginabreedte (in mm)"
 msgid "PDF Settings"
 msgstr "PDF-instellingen"
 
-#: frappe/utils/pdf.py:134
+#: frappe/utils/pdf.py:137
 msgid "PDF generation failed because of broken image links"
 msgstr "PDF generatie mislukt vanwege gebroken image koppelingen"
 
@@ -25252,7 +25289,7 @@ msgstr "Bladzijde"
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:413
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:685
 #: frappe/public/js/print_format_builder/components/editor/PrintFormatSection.vue:138
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Page Break"
 msgstr "Pagina-einde"
 
@@ -25513,7 +25550,7 @@ msgid "Partially Failed"
 msgstr ""
 
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:64
+#: frappe/email/doctype/email_queue/email_queue.json:65
 msgid "Partially Sent"
 msgstr "Gedeeltelijk verzonden"
 
@@ -25555,12 +25592,12 @@ msgstr "Passief"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
 #: frappe/desk/page/setup_wizard/setup_wizard.js:635
 #: frappe/email/doctype/email_account/email_account.json:134
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/www/login.html:24
 msgid "Password"
 msgstr "Wachtwoord"
 
-#: frappe/core/doctype/user/user.py:545 frappe/core/doctype/user/user.py:1297
+#: frappe/core/doctype/user/user.py:545 frappe/core/doctype/user/user.py:1302
 msgid "Password Reset"
 msgstr "Wachtwoord opnieuw instellen"
 
@@ -25603,7 +25640,7 @@ msgstr "Wachtwoord ontbreekt in e-mailaccount"
 msgid "Password not found for {0} {1} {2}"
 msgstr "Wachtwoord niet gevonden voor {0} {1} {2}"
 
-#: frappe/core/doctype/user/user.py:1467
+#: frappe/core/doctype/user/user.py:1472
 msgid "Password requirements not met"
 msgstr "Niet voldaan aan de wachtwoordvereisten"
 
@@ -25611,7 +25648,7 @@ msgstr "Niet voldaan aan de wachtwoordvereisten"
 msgid "Password size exceeded the maximum allowed size"
 msgstr "De maximale toegestane wachtwoordgrootte is overschreden."
 
-#: frappe/core/doctype/user/user.py:1063
+#: frappe/core/doctype/user/user.py:1068
 msgid "Password size exceeded the maximum allowed size."
 msgstr "De wachtwoordgrootte overschreed de maximaal toegestane grootte."
 
@@ -26000,7 +26037,7 @@ msgstr "Verzoek om download van persoonlijke gegevens"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
 #: frappe/public/js/frappe/utils/address_and_contact.js:52
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json:108
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Phone"
 msgstr "Telefoon"
 
@@ -26060,7 +26097,7 @@ msgstr ""
 msgid "Pie"
 msgstr "Taart"
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:223
+#: frappe/integrations/frappe_providers/cloud_settings.py:222
 msgid "Pilot returned an invalid domain."
 msgstr "Pilot heeft een ongeldig domein geretourneerd."
 
@@ -26100,7 +26137,7 @@ msgstr ""
 #: frappe/core/doctype/docfield/docfield.json:629
 #: frappe/custom/doctype/custom_field/custom_field.json:493
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:523
-#: frappe/website/doctype/web_form_field/web_form_field.json:160
+#: frappe/website/doctype/web_form_field/web_form_field.json:170
 msgid "Placeholder"
 msgstr "Plaatsaanduiding"
 
@@ -26135,7 +26172,7 @@ msgstr "Plant"
 msgid "Play video"
 msgstr ""
 
-#: frappe/email/doctype/email_account/email_account.py:651
+#: frappe/email/doctype/email_account/email_account.py:643
 #, python-brace-format
 msgid "Please Authorize OAuth for Email Account {0}"
 msgstr "Autoriseer OAuth voor E-mail account {0}"
@@ -26177,7 +26214,7 @@ msgstr ""
 msgid "Please adjust filters to include some data"
 msgstr "Pas de filters aan om gegevens op te nemen"
 
-#: frappe/core/doctype/user/user.py:1268
+#: frappe/core/doctype/user/user.py:1273
 msgid "Please ask your administrator to verify your sign-up"
 msgstr "Vraag uw beheerder om uw sign-up te controleren"
 
@@ -26212,7 +26249,7 @@ msgstr "Controleer de filterwaarden die zijn ingesteld voor Dashboarddiagram: {}
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Controleer de waarde van &quot;Fetch From&quot; ingesteld voor veld {0}"
 
-#: frappe/core/doctype/user/user.py:1266
+#: frappe/core/doctype/user/user.py:1271
 msgid "Please check your email for verification"
 msgstr "Controleer uw e-mail voor verificatie"
 
@@ -26290,7 +26327,7 @@ msgstr "Schakel pop-ups in uw browser in"
 msgid "Please enable {} before continuing."
 msgstr "Schakel {} in voordat u verdergaat."
 
-#: frappe/utils/oauth.py:243
+#: frappe/utils/oauth.py:246
 msgid "Please ensure that your profile has an email address"
 msgstr "Zorg ervoor dat uw profiel heeft een e-mailadres"
 
@@ -26322,7 +26359,7 @@ msgstr "Voer de OpenID-configuratie-URL in."
 msgid "Please enter Redirect URL"
 msgstr "Voer de omleidings-URL in"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:562
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:563
 msgid "Please enter a valid URL"
 msgstr "Voer een geldige URL in"
 
@@ -26450,7 +26487,7 @@ msgstr "Selecteer eerst een Rapport"
 msgid "Please select a country code for field {1}."
 msgstr "Selecteer een landcode voor veld {1}."
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:540
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:541
 msgid "Please select a file first."
 msgstr "Selecteer eerst een bestand."
 
@@ -26543,7 +26580,7 @@ msgstr "Stel eerst een bericht in"
 msgid "Please setup default outgoing Email Account from Settings > Email Account"
 msgstr "Stel het standaard uitgaande e-mailaccount in via Instellingen > E-mailaccount."
 
-#: frappe/email/doctype/email_account/email_account.py:533
+#: frappe/email/doctype/email_account/email_account.py:525
 msgid "Please setup default outgoing Email Account from Tools > Email Account"
 msgstr "Stel het standaard uitgaande e-mailaccount in via Extra > E-mailaccount."
 
@@ -26738,7 +26775,7 @@ msgstr ""
 #: frappe/core/doctype/docfield/docfield.json:147
 #: frappe/custom/doctype/custom_field/custom_field.json:150
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:184
-#: frappe/website/doctype/web_form_field/web_form_field.json:154
+#: frappe/website/doctype/web_form_field/web_form_field.json:164
 msgid "Precision"
 msgstr "Precisie"
 
@@ -27054,7 +27091,7 @@ msgstr "Printformaat-editor"
 msgid "Print Format Editor"
 msgstr ""
 
-#: frappe/utils/pdf.py:84
+#: frappe/utils/pdf.py:87
 msgid "Print Format Error"
 msgstr "Fout in afdrukformaat"
 
@@ -27256,7 +27293,7 @@ msgstr "Afdrukken mislukt"
 #: frappe/automation/doctype/assignment_rule/assignment_rule.json:48
 #: frappe/core/doctype/document_naming_rule/document_naming_rule.json:85
 #: frappe/desk/doctype/todo/todo.json:52 frappe/desk/report/todo/todo.py:37
-#: frappe/email/doctype/email_queue/email_queue.json:110
+#: frappe/email/doctype/email_queue/email_queue.json:111
 #: frappe/public/js/frappe/form/doctype_settings/tabs/naming.js:299
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:220
 #: frappe/website/doctype/web_page/web_page.json:227
@@ -27372,7 +27409,7 @@ msgstr "Eigendom"
 #. Label of the property_depends_on_section (Section Break) field in DocType
 #. 'Web Form Field'
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:421
-#: frappe/website/doctype/web_form_field/web_form_field.json:131
+#: frappe/website/doctype/web_form_field/web_form_field.json:141
 msgid "Property Depends On"
 msgstr "Eigendom is afhankelijk van"
 
@@ -27405,7 +27442,7 @@ msgstr "Beveiligen"
 msgid "Protect Attached Files"
 msgstr "Bescherm bijgevoegde bestanden"
 
-#: frappe/core/doctype/file/file.py:663
+#: frappe/core/doctype/file/file.py:665
 msgid "Protected File"
 msgstr "Beveiligd bestand"
 
@@ -27850,7 +27887,7 @@ msgstr "Limiet voor het aantal aanvragen voor inloggen via e-maillink"
 #: frappe/core/doctype/docfield/docfield.json:116
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Rating"
 msgstr "Beoordeling"
 
@@ -27870,7 +27907,7 @@ msgid "Raw HTML can be used only with Email Templates having 'Use HTML' checked.
 msgstr ""
 
 #. Description of the 'Send As Raw HTML' (Check) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:156
+#: frappe/email/doctype/email_queue/email_queue.json:163
 msgid "Raw HTML emails are rendered as complete Jinja templates. Otherwise, emails are wrapped in the standard.html email template, which inserts brand_logo, header and footer."
 msgstr "Ruwe HTML-e-mails worden weergegeven als volledige Jinja-sjablonen. Anders worden e-mails verpakt in het standard.html e-mailsjabloon, dat brand_logo, koptekst en voettekst invoegt."
 
@@ -27913,7 +27950,7 @@ msgstr "Opnieuw uitvoeren in de console"
 msgid "Re-check filters and condition in the worker before executing."
 msgstr ""
 
-#: frappe/email/doctype/email_account/email_account.py:833
+#: frappe/email/doctype/email_account/email_account.py:825
 msgid "Re:"
 msgstr "Met betrekking tot:"
 
@@ -27958,7 +27995,7 @@ msgstr "Lezen"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:252
 #: frappe/public/js/form_builder/form_builder.bundle.js:83
-#: frappe/website/doctype/web_form_field/web_form_field.json:75
+#: frappe/website/doctype/web_form_field/web_form_field.json:85
 msgid "Read Only"
 msgstr "Alleen lezen"
 
@@ -27968,7 +28005,7 @@ msgstr "Alleen lezen"
 #. Label of the read_only_depends_on (Code) field in DocType 'Web Form Field'
 #: frappe/custom/doctype/custom_field/custom_field.json:406
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:437
-#: frappe/website/doctype/web_form_field/web_form_field.json:146
+#: frappe/website/doctype/web_form_field/web_form_field.json:156
 msgid "Read Only Depends On"
 msgstr "Alleen-lezen, afhankelijk van"
 
@@ -28093,7 +28130,7 @@ msgstr "De afgelopen jaren zijn makkelijk te raden."
 
 #. Label of the recipients (Table) field in DocType 'Email Queue'
 #. Label of the recipient (Data) field in DocType 'Email Queue Recipient'
-#: frappe/email/doctype/email_queue/email_queue.json:43
+#: frappe/email/doctype/email_queue/email_queue.json:44
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:16
 msgid "Recipient"
 msgstr "Ontvanger"
@@ -28186,7 +28223,7 @@ msgstr "Rood"
 
 #. Label of the redact_message_after_send (Check) field in DocType 'Email
 #. Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:167
+#: frappe/email/doctype/email_queue/email_queue.json:174
 msgid "Redact Message After Send"
 msgstr "Bericht onleesbaar maken na verzending"
 
@@ -28302,7 +28339,7 @@ msgid "Reference Doc"
 msgstr "Referentie Document"
 
 #. Label of the reference_name (Data) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:88
+#: frappe/email/doctype/email_queue/email_queue.json:89
 msgid "Reference DocName"
 msgstr "Referentiedocumentnaam"
 
@@ -28404,7 +28441,7 @@ msgstr "Naam van het referentiedocument"
 #: frappe/desk/doctype/event_participants/event_participants.json:18
 #: frappe/desk/doctype/kanban_board/kanban_board.json:48
 #: frappe/desk/doctype/list_filter/list_filter.json:32
-#: frappe/email/doctype/email_queue/email_queue.json:81
+#: frappe/email/doctype/email_queue/email_queue.json:82
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json:27
 #: frappe/integrations/doctype/integration_request/integration_request.json:65
 #: frappe/website/doctype/portal_menu_item/portal_menu_item.json:45
@@ -28537,7 +28574,7 @@ msgstr "Verfrissend"
 msgid "Refreshing..."
 msgstr "Verversen ..."
 
-#: frappe/core/doctype/user/user.py:1228
+#: frappe/core/doctype/user/user.py:1233
 msgid "Registered but disabled"
 msgstr "Geregistreerd maar uitgeschakeld"
 
@@ -28548,7 +28585,7 @@ msgstr "Geregistreerd maar uitgeschakeld"
 msgid "Rejected"
 msgstr "Afgewezen"
 
-#: frappe/email/receive.py:521
+#: frappe/email/receive.py:524
 #, python-brace-format
 msgid "Rejected malformed encoded address header with synthesized '@': {0}"
 msgstr ""
@@ -28929,7 +28966,7 @@ msgstr "Herhaalt {0}"
 
 #. Description of the 'Redact Message After Send' (Check) field in DocType
 #. 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:164
+#: frappe/email/doctype/email_queue/email_queue.json:171
 msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
 msgstr "Vervangt de hoofdtekst van het bericht door een plaatsaanduiding zodra de e-mail is verzonden, zodat gevoelige inhoud, zoals links voor het opnieuw instellen van wachtwoorden, niet in de wachtrij wordt bewaard."
 
@@ -29342,7 +29379,7 @@ msgstr "Verzoek tot verwijdering van account"
 msgid "Request read receipts for outgoing emails"
 msgstr ""
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:90
+#: frappe/integrations/frappe_providers/cloud_settings.py:89
 msgid "Request to your server failed."
 msgstr "Het verzoek aan uw server is mislukt."
 
@@ -29695,7 +29732,7 @@ msgid "Retention"
 msgstr ""
 
 #. Label of the retry (Int) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:139
+#: frappe/email/doctype/email_queue/email_queue.json:146
 #: frappe/public/js/data_import_wizard.bundle.js:1164
 #: frappe/public/js/frappe/form/doctype_settings/list_panel.js:285
 #: frappe/public/js/frappe/form/doctype_settings/registry.js:136
@@ -31116,7 +31153,7 @@ msgstr "Sectie"
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
 #: frappe/desk/doctype/sidebar_item/sidebar_item.json:46
 #: frappe/desk/doctype/workspace_sidebar_item/workspace_sidebar_item.json:40
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 msgid "Section Break"
 msgstr "Sectie-einde"
@@ -31153,7 +31190,7 @@ msgstr ""
 msgid "Sections hold the columns and fields of your document."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1627
+#: frappe/core/doctype/user/user.py:1632
 msgid "Security Alert: Your account is being impersonated"
 msgstr "Beveiligingswaarschuwing: Uw rekening wordt nagebootst"
 
@@ -31262,7 +31299,7 @@ msgstr "Gezien door de tafel"
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
 #: frappe/printing/page/print/print.js:1111
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 msgid "Select"
 msgstr "Kiezen"
@@ -31631,7 +31668,7 @@ msgstr "Bevestigingsmail verzenden"
 #. Label of the send_after (Datetime) field in DocType 'Communication'
 #. Label of the send_after (Datetime) field in DocType 'Email Queue'
 #: frappe/core/doctype/communication/communication.json:369
-#: frappe/email/doctype/email_queue/email_queue.json:102
+#: frappe/email/doctype/email_queue/email_queue.json:103
 msgid "Send After"
 msgstr "Verzenden na"
 
@@ -31641,7 +31678,7 @@ msgid "Send Alert On"
 msgstr "Melding verzenden"
 
 #. Label of the raw_html (Check) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:159
+#: frappe/email/doctype/email_queue/email_queue.json:166
 msgid "Send As Raw HTML"
 msgstr "Verzenden als onbewerkte HTML"
 
@@ -31827,7 +31864,7 @@ msgstr "Stuur een e-mail met de melding dat u zich wilt afmelden."
 #: frappe/desk/doctype/event/event.json:282
 #: frappe/desk/doctype/todo/todo.json:143
 #: frappe/email/doctype/auto_email_report/auto_email_report.json:211
-#: frappe/email/doctype/email_queue/email_queue.json:37
+#: frappe/email/doctype/email_queue/email_queue.json:38
 #: frappe/email/doctype/notification/notification.json:178
 msgid "Sender"
 msgstr "Afzender"
@@ -31868,7 +31905,7 @@ msgstr "Sendgrid"
 #. Option for the 'Delivery Status' (Select) field in DocType 'Communication'
 #. Option for the 'Status' (Select) field in DocType 'Email Queue'
 #: frappe/core/doctype/communication/communication.json:127
-#: frappe/email/doctype/email_queue/email_queue.json:64
+#: frappe/email/doctype/email_queue/email_queue.json:65
 msgid "Sending"
 msgstr "Verzenden"
 
@@ -31878,7 +31915,7 @@ msgstr "Verzenden"
 #. Option for the 'Status' (Select) field in DocType 'Email Queue Recipient'
 #: frappe/core/doctype/communication/communication.json:127
 #: frappe/core/doctype/communication/communication.json:183
-#: frappe/email/doctype/email_queue/email_queue.json:64
+#: frappe/email/doctype/email_queue/email_queue.json:65
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:25
 #: frappe/templates/includes/login/login.js:95
 #: frappe/templates/includes/login/login.js:351
@@ -32019,7 +32056,7 @@ msgstr "Serverscripts zijn uitgeschakeld. Schakel serverscripts in via de bench-
 msgid "Server Scripts feature is not available on this site."
 msgstr "De functie Serverscripts is niet beschikbaar op deze site."
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:682
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:678
 msgid "Server error during upload. The file might be corrupted."
 msgstr "Serverfout tijdens uploaden. Het bestand is mogelijk beschadigd."
 
@@ -32262,7 +32299,7 @@ msgstr "Stel hier dynamische filterwaarden in JavaScript in voor de verplichte v
 #. Description of the 'Precision' (Select) field in DocType 'Web Form Field'
 #: frappe/custom/doctype/custom_field/custom_field.json:147
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:181
-#: frappe/website/doctype/web_form_field/web_form_field.json:151
+#: frappe/website/doctype/web_form_field/web_form_field.json:161
 msgid "Set non-standard precision for a Float or Currency field"
 msgstr "Stel een niet-standaard precisie in voor een Float- of Currency-veld."
 
@@ -32882,8 +32919,14 @@ msgstr "Alle versies"
 msgid "Show all activity"
 msgstr "Toon alle activiteiten"
 
+#. Description of the 'Allow Read On All Link Options' (Check) field in DocType
+#. 'Web Form Field'
+#: frappe/website/doctype/web_form_field/web_form_field.json:56
+msgid "Show all records, not only the ones the user created."
+msgstr ""
+
 #. Label of the show_as_cc (Small Text) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:49
+#: frappe/email/doctype/email_queue/email_queue.json:50
 msgid "Show as cc"
 msgstr "Weergeven als ondertiteling"
 
@@ -32938,7 +32981,7 @@ msgid "Show in Resource Metadata"
 msgstr "Tonen in resource-metadata"
 
 #. Label of the show_in_filter (Check) field in DocType 'Web Form Field'
-#: frappe/website/doctype/web_form_field/web_form_field.json:81
+#: frappe/website/doctype/web_form_field/web_form_field.json:91
 msgid "Show in filter"
 msgstr "Weergeven in filter"
 
@@ -33218,7 +33261,7 @@ msgstr ""
 msgid "Sign Up and Confirmation"
 msgstr "Aanmelden en bevestigen"
 
-#: frappe/core/doctype/user/user.py:1221
+#: frappe/core/doctype/user/user.py:1226
 msgid "Sign Up is disabled"
 msgstr "Aanmelden is uitgeschakeld"
 
@@ -33255,7 +33298,7 @@ msgstr ""
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
 #: frappe/email/doctype/email_account/email_account.json:412
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Signature"
 msgstr "Handtekening"
 
@@ -33327,7 +33370,7 @@ msgstr "Grootte"
 msgid "Size (MB)"
 msgstr "Grootte (MB)"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:658
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:663
 msgid "Size exceeds the maximum allowed file size."
 msgstr "De bestandsgrootte overschrijdt de maximaal toegestane grootte."
 
@@ -33485,7 +33528,7 @@ msgstr ""
 #: frappe/core/doctype/docfield/docfield.json:116
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 msgid "Small Text"
 msgstr "Kleine tekst"
@@ -34214,7 +34257,7 @@ msgstr "Statistieken Tijdsinterval"
 #: frappe/desk/doctype/event/event.json:231
 #: frappe/desk/doctype/kanban_board_column/kanban_board_column.json:25
 #: frappe/desk/doctype/todo/todo.json:43
-#: frappe/email/doctype/email_queue/email_queue.json:63
+#: frappe/email/doctype/email_queue/email_queue.json:64
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:24
 #: frappe/integrations/doctype/integration_request/integration_request.json:40
 #: frappe/integrations/doctype/oauth_bearer_token/oauth_bearer_token.json:76
@@ -34741,7 +34784,7 @@ msgstr ""
 msgid "Successfully reset onboarding status for all users."
 msgstr "De onboardingstatus is voor alle gebruikers succesvol gereset."
 
-#: frappe/core/doctype/user/user.py:1646
+#: frappe/core/doctype/user/user.py:1651
 msgid "Successfully signed out"
 msgstr "Succesvol afgemeld"
 
@@ -34769,7 +34812,7 @@ msgstr "Suggesties voor optimalisatie"
 msgid "Suggested Indexes"
 msgstr "Voorgestelde indexen"
 
-#: frappe/core/doctype/user/user.py:873
+#: frappe/core/doctype/user/user.py:878
 #, python-brace-format
 msgid "Suggested Username: {0}"
 msgstr "Suggereerde Gebruikersnaam: {0}"
@@ -34870,6 +34913,11 @@ msgstr "Overschakelen naar Frappe CRM"
 msgid "Switch to Helpdesk"
 msgstr "Overschakelen naar Helpdesk"
 
+#: frappe/printing/doctype/print_settings/print_settings.js:48
+#, python-brace-format
+msgid "Switch {0} to {1}?"
+msgstr ""
+
 #: frappe/public/js/print_format_builder/stores/index.js:419
 #, python-brace-format
 msgid "Switched back to Chromium: {0}"
@@ -34969,7 +35017,7 @@ msgstr "synchroniseren"
 msgid "Syncing {0} of {1}"
 msgstr "Synchroniseren {0} van {1}"
 
-#: frappe/utils/data.py:2830
+#: frappe/utils/data.py:2834
 msgid "Syntax Error"
 msgstr "Syntaxfout"
 
@@ -35151,7 +35199,7 @@ msgstr "Systeemlogboeken"
 #: frappe/email/doctype/email_account/email_account.json:783
 #: frappe/email/doctype/email_domain/email_domain.json:174
 #: frappe/email/doctype/email_flag_queue/email_flag_queue.json:61
-#: frappe/email/doctype/email_queue/email_queue.json:188
+#: frappe/email/doctype/email_queue/email_queue.json:195
 #: frappe/email/doctype/email_rule/email_rule.json:41
 #: frappe/email/doctype/email_template/email_template.json:87
 #: frappe/email/doctype/email_unsubscribe/email_unsubscribe.json:60
@@ -35228,7 +35276,7 @@ msgstr "Systeeminstellingen"
 msgid "System Users"
 msgstr "Systeemgebruikers"
 
-#: frappe/public/js/print_format_builder/utils.js:764
+#: frappe/public/js/print_format_builder/utils.js:792
 msgid "System default"
 msgstr ""
 
@@ -35289,7 +35337,7 @@ msgstr "Tabbladlabel"
 #: frappe/public/js/frappe/form/controls/text_editor.js:333
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:141
 #: frappe/public/js/print_format_builder/components/inspector/TableFieldInspector.vue:3
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Table"
 msgstr "Tabel"
 
@@ -35325,7 +35373,7 @@ msgstr "Tabel HTML"
 msgid "Table MultiSelect"
 msgstr "Tabel MultiSelect"
 
-#: frappe/desk/search.py:377
+#: frappe/desk/search.py:376
 #, python-brace-format
 msgid "Table MultiSelect requires a table with at least one Link field, but none was found in {0}"
 msgstr "Tabel MultiSelect vereist een tabel met ten minste één Link-veld, maar er is geen gevonden in {0}"
@@ -35409,7 +35457,7 @@ msgstr ""
 msgid "Task"
 msgstr "Taak"
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:344
+#: frappe/integrations/frappe_providers/cloud_settings.py:347
 msgid "Task id is required."
 msgstr "Taak-ID is verplicht."
 
@@ -35489,7 +35537,7 @@ msgstr "Sjabloonwaarschuwingen"
 msgid "Templates"
 msgstr "Sjablonen"
 
-#: frappe/core/doctype/user/user.py:1234
+#: frappe/core/doctype/user/user.py:1239
 msgid "Temporarily Disabled"
 msgstr "Tijdelijk uitgeschakeld"
 
@@ -35518,7 +35566,7 @@ msgstr ""
 msgid "Test Spanish"
 msgstr "Test Spaans"
 
-#: frappe/core/doctype/file/test_file.py:553
+#: frappe/core/doctype/file/test_file.py:554
 msgid "Test_Folder"
 msgstr "Testmap"
 
@@ -35531,7 +35579,7 @@ msgstr "Testmap"
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
 #: frappe/public/js/print_format_builder/components/PrintFormatControls.vue:498
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 #: frappe/website/doctype/web_template_field/web_template_field.json:35
 msgid "Text"
 msgstr "Tekst"
@@ -35558,7 +35606,7 @@ msgstr "Tekstinhoud"
 #: frappe/core/doctype/docfield/docfield.json:116
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Text Editor"
 msgstr "Teksteditor"
 
@@ -35646,12 +35694,12 @@ msgstr "De voorwaarde &#39;{0}&#39; is ongeldig"
 msgid "The DocType these settings apply to."
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:1003
+#: frappe/core/doctype/file/file.py:1015
 msgid "The File URL does not belong to this File record"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:239 frappe/core/doctype/file/file.py:246
-#: frappe/core/doctype/file/file.py:339 frappe/core/doctype/file/file.py:345
+#: frappe/core/doctype/file/file.py:241 frappe/core/doctype/file/file.py:248
+#: frappe/core/doctype/file/file.py:341 frappe/core/doctype/file/file.py:347
 msgid "The File URL you've entered is incorrect"
 msgstr "De door u ingevoerde bestands-URL is onjuist."
 
@@ -35672,7 +35720,7 @@ msgstr ""
 msgid "The Push Relay Server URL key (`push_relay_server_url`) is missing in your site config"
 msgstr "De sleutel `push_relay_server_url` voor de URL van de push-relayserver ontbreekt in uw siteconfiguratie."
 
-#: frappe/utils/typst_emitter.py:951
+#: frappe/utils/typst_emitter.py:952
 #, python-brace-format
 msgid "The Typst block could not render its template: {0}"
 msgstr ""
@@ -35687,12 +35735,12 @@ msgstr ""
 msgid "The Typst block in {0} has a template error: {1}"
 msgstr ""
 
-#: frappe/utils/typst_emitter.py:653
+#: frappe/utils/typst_emitter.py:654
 #, python-brace-format
 msgid "The Typst renderer cannot embed this background image: {0}"
 msgstr ""
 
-#: frappe/utils/typst_emitter.py:1132
+#: frappe/utils/typst_emitter.py:1133
 #, python-brace-format
 msgid "The Typst renderer cannot embed this image: {0}"
 msgstr ""
@@ -35841,17 +35889,17 @@ msgstr "De e-mailknop is voor de gebruiker in het document ingeschakeld."
 msgid "The field cards are grouped into columns by, and the column list."
 msgstr ""
 
-#: frappe/desk/search.py:389
+#: frappe/desk/search.py:388
 #, python-brace-format
 msgid "The field {0} in {1} does not allow ignoring user permissions"
 msgstr "Het veld {0} in {1} staat het negeren van gebruikersmachtigingen niet toe"
 
-#: frappe/desk/search.py:402
+#: frappe/desk/search.py:401
 #, python-brace-format
 msgid "The field {0} in {1} links to {2} and not {3}"
 msgstr "Het veld {0} in {1} linkt naar {2} en niet naar {3}"
 
-#: frappe/core/doctype/file/file.py:209
+#: frappe/core/doctype/file/file.py:211
 msgid "The fieldname you've specified in Attached To Field is invalid"
 msgstr "De veldnaam die u hebt opgegeven in 'Aangekoppeld veld' is ongeldig."
 
@@ -36014,11 +36062,11 @@ msgstr "Het door u aangevraagde rapport is gegenereerd.<br><br>Klik hier om te d
 msgid "The request could not be completed. Check your connection and try again."
 msgstr "Het verzoek kon niet worden voltooid. Controleer de verbinding en probeer het opnieuw."
 
-#: frappe/core/doctype/user/user.py:1192
+#: frappe/core/doctype/user/user.py:1197
 msgid "The reset password link has been expired"
 msgstr "De link om het wachtwoord opnieuw in te stellen is verlopen."
 
-#: frappe/core/doctype/user/user.py:1194
+#: frappe/core/doctype/user/user.py:1199
 msgid "The reset password link has either been used before or is invalid"
 msgstr "De link voor het opnieuw instellen van het wachtwoord is al eerder gebruikt of is ongeldig."
 
@@ -36215,7 +36263,7 @@ msgstr ""
 msgid "There is nothing to export for {0}. Put some entries on its dock first."
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:815 frappe/utils/file_manager.py:381
+#: frappe/core/doctype/file/file.py:826 frappe/utils/file_manager.py:381
 #, python-brace-format
 msgid "There is some problem with the file url: {0}"
 msgstr "Er is een probleem met het bestand url: {0}"
@@ -36311,7 +36359,7 @@ msgstr "Dit Kanban Board is privé"
 msgid "This Month"
 msgstr "Deze maand"
 
-#: frappe/core/doctype/file/file.py:534
+#: frappe/core/doctype/file/file.py:536
 msgid "This PDF cannot be uploaded as it contains unsafe content."
 msgstr "Dit PDF-bestand kan niet worden geüpload omdat het onveilige inhoud bevat."
 
@@ -36388,6 +36436,10 @@ msgstr ""
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:238
 msgid "This chart will be available to all Users if this is set"
 msgstr "Deze grafiek is beschikbaar voor alle gebruikers als dit is ingesteld."
+
+#: frappe/utils/print_format_generator.py:427
+msgid "This condition could not be evaluated"
+msgstr ""
 
 #: frappe/custom/doctype/customize_form/customize_form.js:225
 msgid "This doctype has no orphan fields to trim"
@@ -36473,11 +36525,11 @@ msgstr "Dit veld verschijnt alleen als de hier gedefinieerde veldnaam een waarde
 "eval:doc.myfield=='Mijn waarde'\n"
 "eval:doc.age&gt;18"
 
-#: frappe/core/doctype/file/file.py:662
+#: frappe/core/doctype/file/file.py:664
 msgid "This file is attached to a protected document and cannot be deleted."
 msgstr "Dit bestand is gekoppeld aan een beveiligd document en kan niet worden verwijderd."
 
-#: frappe/public/js/frappe/file_uploader/FilePreview.vue:85
+#: frappe/public/js/frappe/file_uploader/FilePreview.vue:89
 msgid "This file is public and can be accessed by anyone, even without logging in. Mark it private to limit access."
 msgstr "Dit bestand is openbaar en kan door iedereen worden ingezien, zelfs zonder in te loggen. Markeer het als privé om de toegang te beperken."
 
@@ -36497,7 +36549,7 @@ msgstr "Dit formulier is gewijzigd nadat u het hebt geladen"
 msgid "This form is not editable due to a Workflow."
 msgstr "Dit formulier kan niet worden bewerkt vanwege een workflow."
 
-#: frappe/utils/print_format_generator.py:716
+#: frappe/utils/print_format_generator.py:723
 #, python-brace-format
 msgid "This format can no longer render through Typst: {0}"
 msgstr ""
@@ -36517,7 +36569,7 @@ msgstr ""
 msgid "This format is used if country specific format is not found"
 msgstr "Dit formaat wordt gebruikt als er geen landspecifiek formaat beschikbaar is."
 
-#: frappe/utils/print_format_generator.py:134
+#: frappe/utils/print_format_generator.py:136
 msgid "This format still has a classic layout. Convert it to the new builder first."
 msgstr "Dit formaat heeft nog een klassieke indeling. Zet het eerst om naar de nieuwe bouwer."
 
@@ -36525,7 +36577,7 @@ msgstr "Dit formaat heeft nog een klassieke indeling. Zet het eerst om naar de n
 msgid "This format uses a Typst block, so its PDF Renderer must be Typst."
 msgstr ""
 
-#: frappe/utils/print_format_generator.py:626
+#: frappe/utils/print_format_generator.py:633
 msgid "This format uses a Typst block, which only the Typst renderer can print. Set the PDF Renderer to Typst or remove the block."
 msgstr ""
 
@@ -36618,6 +36670,10 @@ msgstr ""
 
 #: frappe/email/doctype/email_account/email_account_list.js:229
 msgid "This mailbox is already connected."
+msgstr ""
+
+#: frappe/email/doctype/email_account/test_email_account.py:399
+msgid "This mailbox needs reconnecting"
 msgstr ""
 
 #: frappe/email/doctype/email_account/email_account.js:312
@@ -36785,7 +36841,7 @@ msgstr ""
 msgid "This workspace isn't in any module's sidebar yet, so there's no way to navigate to it. Pick the module it belongs to."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1476
+#: frappe/core/doctype/user/user.py:1481
 msgid "Throttled"
 msgstr "gesmoord"
 
@@ -36825,7 +36881,7 @@ msgstr "Donderdag"
 #: frappe/custom/doctype/custom_field/custom_field.json:141
 #: frappe/custom/doctype/customize_form_field/customize_form_field.json:99
 #: frappe/desk/doctype/event_notifications/event_notifications.json:39
-#: frappe/website/doctype/web_form_field/web_form_field.json:44
+#: frappe/website/doctype/web_form_field/web_form_field.json:45
 msgid "Time"
 msgstr "Tijd"
 
@@ -37324,7 +37380,7 @@ msgstr ""
 msgid "Too many requests. Please try again later."
 msgstr ""
 
-#: frappe/core/doctype/user/user.py:1236
+#: frappe/core/doctype/user/user.py:1241
 msgid "Too many users signed up recently, so the registration is disabled. Please try back in an hour"
 msgstr "Te veel gebruikers aangemeld voor kort, zodat de registratie is uitgeschakeld. Probeer het over een uur terug"
 
@@ -37895,8 +37951,8 @@ msgid "Typst cannot render:"
 msgstr ""
 
 #: frappe/printing/doctype/print_format/print_format.py:263
-#: frappe/utils/print_format_generator.py:717 frappe/utils/typst_emitter.py:656
-#: frappe/utils/typst_emitter.py:1133
+#: frappe/utils/print_format_generator.py:724 frappe/utils/typst_emitter.py:657
+#: frappe/utils/typst_emitter.py:1134
 msgid "Typst renderer unavailable"
 msgstr ""
 
@@ -37995,7 +38051,7 @@ msgstr ""
 msgid "URL must be http or https"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:356
+#: frappe/core/doctype/file/file.py:358
 msgid "URL must start with http:// or https://"
 msgstr "De URL moet beginnen met http:// of https://"
 
@@ -38098,7 +38154,7 @@ msgstr "Bijgevoegd bestand openen onmogelijk. Is het een .CSV bestand?"
 msgid "Unable to read file format for {0}"
 msgstr "Kan de bestandsindeling niet lezen voor {0}"
 
-#: frappe/core/doctype/communication/email.py:228
+#: frappe/core/doctype/communication/email.py:230
 msgid "Unable to send mail because of a missing email account. Please setup default Email Account from Settings > Email Account"
 msgstr "Het verzenden van e-mails is niet mogelijk vanwege een ontbrekend e-mailaccount. Stel een standaard e-mailaccount in via Instellingen > E-mailaccount."
 
@@ -38106,7 +38162,7 @@ msgstr "Het verzenden van e-mails is niet mogelijk vanwege een ontbrekend e-mail
 msgid "Unable to update event"
 msgstr "Event actualiseren onmogelijk"
 
-#: frappe/core/doctype/file/file.py:626
+#: frappe/core/doctype/file/file.py:628
 #, python-brace-format
 msgid "Unable to write file format for {0}"
 msgstr "Kan geen bestandsformaat schrijven voor {0}"
@@ -38331,12 +38387,12 @@ msgid "Unsubscribe"
 msgstr "Afmelden"
 
 #. Label of the unsubscribe_method (Data) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:122
+#: frappe/email/doctype/email_queue/email_queue.json:123
 msgid "Unsubscribe Method"
 msgstr "Uitschrijfmethode"
 
 #. Label of the unsubscribe_params (Code) field in DocType 'Email Queue'
-#: frappe/email/doctype/email_queue/email_queue.json:151
+#: frappe/email/doctype/email_queue/email_queue.json:158
 msgid "Unsubscribe Params"
 msgstr "Afmeldingsparameters"
 
@@ -38603,7 +38659,7 @@ msgstr "Updaten {0} van {1}, {2}"
 msgid "Upload"
 msgstr "Uploaden"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:672
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:748
 msgid "Upload Failed"
 msgstr "Upload Mislukt"
 
@@ -38701,7 +38757,7 @@ msgstr "Gebruik de getalnotatie van de valuta."
 msgid "Use POST"
 msgstr "Gebruik POST"
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:307
+#: frappe/integrations/frappe_providers/cloud_settings.py:310
 msgid "Use POST for a Cloud Settings action."
 msgstr "Gebruik POST voor een actie van Cloud-instellingen."
 
@@ -38777,6 +38833,11 @@ msgstr "Gebruik deze veldnaam om een titel te genereren"
 #: frappe/email/doctype/email_account/email_account.json:709
 msgid "Use this, for example, if all sent emails should also be send to an archive."
 msgstr "Gebruik dit bijvoorbeeld als alle verzonden e-mails ook naar een archief moeten worden gestuurd."
+
+#: frappe/printing/doctype/print_settings/print_settings.js:44
+#, python-brace-format
+msgid "Use {0}"
+msgstr ""
 
 #: frappe/public/js/print_format_builder/components/editor/FieldChip.vue:180
 #, python-brace-format
@@ -39139,7 +39200,7 @@ msgstr "Gebruiker {0} kan niet worden verwijderd"
 msgid "User {0} cannot be disabled"
 msgstr "Gebruiker {0} kan niet worden uitgeschakeld"
 
-#: frappe/core/doctype/user/user.py:718
+#: frappe/core/doctype/user/user.py:720
 #, python-brace-format
 msgid "User {0} cannot be renamed"
 msgstr "Gebruiker {0} kan niet worden hernoemd"
@@ -39165,17 +39226,17 @@ msgstr "Gebruiker {0} heeft geen toestemming om een werkruimte aan te maken."
 msgid "User {0} has requested for data deletion"
 msgstr "Gebruiker {0} heeft gevraagd om gegevens te verwijderen"
 
-#: frappe/core/doctype/user/user.py:1622
+#: frappe/core/doctype/user/user.py:1627
 #, python-brace-format
 msgid "User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
 msgstr "Gebruiker {0} is een nabootsingssessie als u gestart. <br><br><b>Opgegeven reden:</b> {1}"
 
-#: frappe/core/doctype/user/user.py:1604
+#: frappe/core/doctype/user/user.py:1609
 #, python-brace-format
 msgid "User {0} impersonated as {1}"
 msgstr "Gebruiker {0} deed zich voor als {1}"
 
-#: frappe/utils/oauth.py:323
+#: frappe/utils/oauth.py:326
 #, python-brace-format
 msgid "User {0} is disabled"
 msgstr "Gebruiker {0} is uitgeschakeld"
@@ -39204,7 +39265,7 @@ msgstr "Gebruikersinfo-URI"
 msgid "Username"
 msgstr "Gebruikersnaam"
 
-#: frappe/core/doctype/user/user.py:810
+#: frappe/core/doctype/user/user.py:815
 #, python-brace-format
 msgid "Username {0} already exists"
 msgstr "Gebruikersnaam {0} bestaat al"
@@ -39564,6 +39625,7 @@ msgstr "Video-URL"
 #. Label of the view_name (Select) field in DocType 'Form Tour'
 #: frappe/core/doctype/role/role.js:101
 #: frappe/desk/doctype/form_tour/form_tour.json:125
+#: frappe/printing/doctype/print_settings/print_settings.js:41
 msgid "View"
 msgstr "Uitzicht"
 
@@ -39951,7 +40013,7 @@ msgid "Web Form"
 msgstr "Webformulier"
 
 #. Name of a DocType
-#: frappe/website/doctype/web_form_field/web_form_field.json:168
+#: frappe/website/doctype/web_form_field/web_form_field.json:178
 msgid "Web Form Field"
 msgstr "Webformulier invulveld"
 
@@ -40285,6 +40347,7 @@ msgstr "Weekdagen"
 #. Option for the 'Frequency' (Select) field in DocType 'Auto Repeat'
 #. Option for the 'Frequency' (Select) field in DocType 'Scheduled Job Type'
 #. Option for the 'Event Frequency' (Select) field in DocType 'Server Script'
+#. Option for the 'Frequency' (Select) field in DocType 'System Settings'
 #. Option for the 'Frequency' (Select) field in DocType 'User'
 #. Option for the 'Time Interval' (Select) field in DocType 'Dashboard Chart'
 #. Option for the 'Repeat On' (Select) field in DocType 'Event'
@@ -40294,6 +40357,7 @@ msgstr "Weekdagen"
 #: frappe/automation/doctype/auto_repeat/auto_repeat.json:94
 #: frappe/core/doctype/scheduled_job_type/scheduled_job_type.json:77
 #: frappe/core/doctype/server_script/server_script.json:105
+#: frappe/core/doctype/system_settings/system_settings.json:829
 #: frappe/core/doctype/user/user.json:401
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:113
 #: frappe/desk/doctype/event/event.json:138
@@ -40675,7 +40739,7 @@ msgstr "Overgang werkstroomstatus niet toegestaan van {0} naar {1}"
 msgid "Workflow States Don't Exist"
 msgstr "Workflowstatussen bestaan niet"
 
-#: frappe/model/workflow.py:414
+#: frappe/model/workflow.py:411
 msgid "Workflow Status"
 msgstr "Werkstroomstatus"
 
@@ -40907,7 +40971,7 @@ msgstr "X-veld"
 msgid "XLSX"
 msgstr "XLSX"
 
-#: frappe/public/js/frappe/file_uploader/FileUploader.vue:685
+#: frappe/public/js/frappe/file_uploader/FileUploader.vue:681
 msgid "XMLHttpRequest Error"
 msgstr "XMLHttpRequest-fout"
 
@@ -41006,7 +41070,7 @@ msgstr "Geel"
 #: frappe/public/js/print_format_builder/composables/useFieldFormat.js:14
 #: frappe/public/js/print_format_builder/composables/useFieldFormat.js:130
 #: frappe/templates/print_format/macros/Check.html:11
-#: frappe/utils/typst_emitter.py:966
+#: frappe/utils/typst_emitter.py:967
 #: frappe/website/doctype/help_article/templates/help_article.html:25
 #: ui/src/components/GroupBy/GroupByTable.vue:264
 msgid "Yes"
@@ -41130,6 +41194,11 @@ msgstr "U hebt geen toestemming om dit rapport af te drukken"
 msgid "You are not allowed to see this onboarding step"
 msgstr ""
 
+#: frappe/website/doctype/web_form/web_form.py:697
+#, python-brace-format
+msgid "You are not allowed to select {0} {1}"
+msgstr ""
+
 #: frappe/public/js/frappe/views/communication.js:1717
 msgid "You are not allowed to send emails related to this document"
 msgstr "U bent niet bevoegd om e-mails met betrekking tot dit document te versturen"
@@ -41143,7 +41212,7 @@ msgstr ""
 msgid "You are not allowed to update global layouts"
 msgstr ""
 
-#: frappe/website/doctype/web_form/web_form.py:844
+#: frappe/website/doctype/web_form/web_form.py:903
 msgid "You are not allowed to update this Web Form Document"
 msgstr "U bent niet toegestaan om dit webformulier document bij te werken"
 
@@ -41155,7 +41224,7 @@ msgstr ""
 msgid "You are not allowed to update this onboarding step"
 msgstr ""
 
-#: frappe/core/doctype/communication/email.py:360
+#: frappe/core/doctype/communication/email.py:362
 msgid "You are not authorized to undo this email"
 msgstr "U bent niet geautoriseerd om deze e-mail ongedaan te maken"
 
@@ -41248,7 +41317,7 @@ msgstr ""
 msgid "You can disable this {0} instead of deleting it."
 msgstr "Je kunt dit {0} uitschakelen in plaats van het te verwijderen."
 
-#: frappe/core/doctype/file/file.py:944
+#: frappe/core/doctype/file/file.py:956
 msgid "You can increase the limit from System Settings."
 msgstr "Je kunt de limiet verhogen via de systeeminstellingen."
 
@@ -41375,7 +41444,7 @@ msgctxt "Form timeline"
 msgid "You created this document {0}"
 msgstr "U hebt dit document gemaakt {0}"
 
-#: frappe/integrations/frappe_providers/cloud_settings.py:151
+#: frappe/integrations/frappe_providers/cloud_settings.py:150
 msgid "You do not have access to Cloud Settings for this site."
 msgstr "U heeft geen toegang tot de cloud-instellingen voor deze site."
 
@@ -41402,7 +41471,7 @@ msgstr "U heeft geen toestemming om het veld van de onderliggende tabel te opene
 msgid "You do not have permission to access field: {0}"
 msgstr "U heeft geen toestemming om het veld te openen: {0}"
 
-#: frappe/core/doctype/file/file.py:276
+#: frappe/core/doctype/file/file.py:278
 msgid "You do not have permission to access this file"
 msgstr ""
 
@@ -41429,8 +41498,8 @@ msgstr "U hebt geen rechten om alle gekoppelde documenten te annuleren."
 msgid "You don't have access to Report: {0}"
 msgstr "U heeft geen toegang tot Rapport: {0}"
 
-#: frappe/website/doctype/web_form/web_form.py:1199
-#: frappe/website/doctype/web_form/web_form.py:1245
+#: frappe/website/doctype/web_form/web_form.py:1284
+#: frappe/website/doctype/web_form/web_form.py:1332
 #, python-brace-format
 msgid "You don't have permission to access the {0} DocType."
 msgstr "Je hebt geen toestemming om toegang te krijgen tot het {0} DocType."
@@ -41533,12 +41602,12 @@ msgstr "U heeft dit document als laatste bewerkt"
 msgid "You must add atleast one link."
 msgstr "Je moet minimaal één link toevoegen."
 
-#: frappe/website/doctype/web_form/web_form.py:1232
+#: frappe/website/doctype/web_form/web_form.py:1319
 msgid "You must be logged in to use this form."
 msgstr "Je moet ingelogd zijn om dit formulier te kunnen gebruiken."
 
-#: frappe/website/doctype/web_form/web_form.py:838
-#: frappe/website/doctype/web_form/web_form.py:1057
+#: frappe/website/doctype/web_form/web_form.py:897
+#: frappe/website/doctype/web_form/web_form.py:1116
 msgid "You must login to use this form"
 msgstr ""
 
@@ -41806,7 +41875,7 @@ msgstr "Uw snelkoppelingen"
 msgid "Your account has been deleted"
 msgstr "Je account is verwijderd."
 
-#: frappe/auth.py:523
+#: frappe/auth.py:527
 #, python-brace-format
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Uw account is vergrendeld en zal na {0} seconden worden hervat"
@@ -41871,7 +41940,7 @@ msgstr ""
 msgid "Your login ID is:"
 msgstr "Uw inlog-ID is:"
 
-#: frappe/utils/oauth.py:232
+#: frappe/utils/oauth.py:235
 msgid "Your login attempt is invalid or has expired. Please try again."
 msgstr "Uw inlogpoging is ongeldig of verlopen. Probeer het opnieuw."
 
@@ -41933,7 +42002,12 @@ msgstr "Nul"
 msgid "Zero means send records updated at anytime"
 msgstr "Nul betekent dat records op elk moment worden bijgewerkt."
 
-#: frappe/core/doctype/file/file.py:711 frappe/core/doctype/file/file.py:729
+#: frappe/core/doctype/file/file.py:710
+#, python-brace-format
+msgid "Zip file contains more than the maximum allowed {0} files"
+msgstr ""
+
+#: frappe/core/doctype/file/file.py:720 frappe/core/doctype/file/file.py:738
 #, python-brace-format
 msgid "Zip file extracts to more than the maximum allowed size of {0} MB"
 msgstr "Zip-bestand wordt uitgepakt tot groter dan de maximaal toegestane grootte van {0} MB"
@@ -42382,8 +42456,8 @@ msgid "just now"
 msgstr "net nu"
 
 #: frappe/desk/desktop.py:267 frappe/desk/query_report.py:406
-#: frappe/utils/typst_emitter.py:699 frappe/utils/typst_emitter.py:991
-#: frappe/utils/typst_emitter.py:1281
+#: frappe/utils/typst_emitter.py:700 frappe/utils/typst_emitter.py:992
+#: frappe/utils/typst_emitter.py:1282
 msgid "label"
 msgstr "label"
 
@@ -42470,7 +42544,7 @@ msgid "number card"
 msgstr ""
 
 #: frappe/public/js/frappe/form/grid_pagination.js:118
-#: frappe/utils/print_format_generator.py:375 frappe/utils/typst_emitter.py:628
+#: frappe/utils/print_format_generator.py:377 frappe/utils/typst_emitter.py:629
 msgid "of"
 msgstr "van"
 
@@ -43171,7 +43245,7 @@ msgstr "{0} al afgemeld"
 msgid "{0} already unsubscribed for {1} {2}"
 msgstr "{0} al afgemeld voor {1} {2}"
 
-#: frappe/utils/data.py:1912
+#: frappe/utils/data.py:1908
 #, python-brace-format
 msgid "{0} and {1}"
 msgstr "{0} en {1}"
@@ -43469,7 +43543,7 @@ msgstr "{0} is een afstammeling van {1}"
 msgid "{0} is a mandatory field"
 msgstr "{0} is een verplicht veld"
 
-#: frappe/core/doctype/file/file.py:724
+#: frappe/core/doctype/file/file.py:733
 #, python-brace-format
 msgid "{0} is a not a valid zip file"
 msgstr "{0} is geen geldig zipbestand"
@@ -43715,7 +43789,7 @@ msgstr "{0} is geen geldig ouderveld voor {1}"
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
 msgstr "{0} is geen geldige rapportindeling. Rapportindeling moet een van de volgende {1} zijn"
 
-#: frappe/core/doctype/file/file.py:688
+#: frappe/core/doctype/file/file.py:690
 #, python-brace-format
 msgid "{0} is not a zip file"
 msgstr "{0} is geen zipbestand"
@@ -43809,7 +43883,7 @@ msgstr "{0} wordt weergegeven vanuit een HTML-bestand en kan niet in de bouwer w
 msgid "{0} is rendered from an HTML file, so this format starts from the standard layout"
 msgstr ""
 
-#: frappe/email/doctype/email_account/email_account.py:400
+#: frappe/email/doctype/email_account/email_account.py:392
 #: frappe/model/naming.py:224
 #: frappe/printing/doctype/print_format/print_format.py:148
 #: frappe/printing/doctype/print_format/print_format.py:151
@@ -43855,7 +43929,7 @@ msgstr ""
 msgid "{0} items selected"
 msgstr "{0} items geselecteerd"
 
-#: frappe/core/doctype/user/user.py:1613
+#: frappe/core/doctype/user/user.py:1618
 #, python-brace-format
 msgid "{0} just impersonated as you. They gave this reason: {1}"
 msgstr "{0} heeft zich net voorgedaan als jou. Ze gaven deze reden: {1}"
@@ -44049,10 +44123,15 @@ msgctxt "Money in words"
 msgid "{0} only."
 msgstr "{0} exact."
 
-#: frappe/utils/data.py:1894
+#: frappe/utils/data.py:1890
 #, python-brace-format
 msgid "{0} or {1}"
 msgstr "{0} of {1}"
+
+#: frappe/printing/doctype/print_settings/print_settings.js:29
+#, python-brace-format
+msgid "{0} print formats"
+msgstr ""
 
 #: frappe/core/doctype/user_permission/user_permission_list.js:177
 #, python-brace-format
@@ -44223,6 +44302,16 @@ msgstr ""
 msgid "{0} sign-in isn't available right now. You can still set it up manually."
 msgstr ""
 
+#: frappe/printing/doctype/print_settings/print_settings.js:33
+#, python-brace-format
+msgid "{0} still use wkhtmltopdf."
+msgstr ""
+
+#: frappe/printing/doctype/print_settings/print_settings.js:32
+#, python-brace-format
+msgid "{0} still uses wkhtmltopdf."
+msgstr ""
+
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:51
 #, python-brace-format
 msgid "{0} submitted this document"
@@ -44239,6 +44328,11 @@ msgstr "{0} heeft dit document ingediend {1}"
 #, python-brace-format
 msgid "{0} subscribers added"
 msgstr "{0} abonnees toegevoegd"
+
+#: frappe/printing/doctype/print_settings/print_settings.js:57
+#, python-brace-format
+msgid "{0} switched"
+msgstr ""
 
 #: frappe/email/queue.py:69
 #, python-brace-format
@@ -44278,7 +44372,7 @@ msgstr "{0} ongelezen meldingen"
 msgid "{0} updated"
 msgstr "{0} bijgewerkt"
 
-#: frappe/public/js/frappe/form/controls/multiselect_list.js:237
+#: frappe/public/js/frappe/form/controls/multiselect_list.js:238
 #, python-brace-format
 msgid "{0} values selected"
 msgstr "{0} waarden geselecteerd"
@@ -44657,12 +44751,12 @@ msgstr "{{{0}}} is een ongeldig veldnaampatroon. Gebruik {{field_name}}."
 msgid "{} Complete"
 msgstr "{} Compleet"
 
-#: frappe/utils/data.py:2824
+#: frappe/utils/data.py:2828
 #, python-brace-format
 msgid "{} Invalid python code on line {}"
 msgstr "{} Ongeldige Python-code op regel {}"
 
-#: frappe/utils/data.py:2833
+#: frappe/utils/data.py:2837
 #, python-brace-format
 msgid "{} Possibly invalid python code. <br>{}"
 msgstr "{} Mogelijk ongeldige Python-code. <br>{}"

@@ -53,6 +53,19 @@ function strip_trailing_slash(path) {
 	return path.replace(/\/$/, "");
 }
 
+frappe.ui.open_user_settings = function (tab = "profile") {
+	return frappe
+		.require("user_settings_dialog.bundle.js")
+		.then(() => frappe.ui.show_user_settings(tab))
+		.catch((e) => {
+			console.error("Failed to load user_settings_dialog.bundle.js", e);
+			frappe.ui.toast({
+				message: __("Could not open My Settings. Please refresh the page."),
+				type: "error",
+			});
+		});
+};
+
 frappe.ui.Sidebar = class Sidebar {
 	constructor() {
 		if (!frappe.boot.setup_complete) {
@@ -414,100 +427,87 @@ frappe.ui.Sidebar = class Sidebar {
 
 	// The user menu, shared by the sidebar's user button and the dock's avatar.
 	create_user_menu({ parent, button, side = "top", align = "start" }) {
-		const me = this;
 		const $btn = button;
-		const $container = parent;
 
 		new frappe.ui.Dropdown({
-			trigger: $container,
+			trigger: parent,
 			side,
 			align,
-			options: [
-				{
-					group: "",
-					options: [
-						{
-							name: "my-space",
-							label: __("My Space"),
-							icon: "user",
-							href: "/desk/private",
-							condition: () => !!frappe.boot.desk_settings.show_my_space,
-						},
-						{
-							name: "settings",
-							label: __("Settings"),
-							icon: "settings",
-							onclick: function () {
-								// Not in the desk bundle, so it is loaded on click.
-								frappe
-									.require("user_settings_dialog.bundle.js")
-									.then(() => frappe.ui.show_user_settings("profile"))
-									.catch((e) => {
-										console.error(
-											"Sidebar: failed to load user_settings_dialog.bundle.js",
-											e
-										);
-										frappe.ui.toast({
-											message: __(
-												"Could not open Settings. Please refresh the page."
-											),
-											type: "error",
-										});
-									});
-							},
-						},
-						{
-							name: "workspace-selector",
-							label: __("Manage Dock"),
-							icon: "monitor",
-							// A module in no app has no dock to arrange.
-							condition: () => !!me.get_sidebar_app(),
-							onclick: function () {
-								// Not in the desk bundle, so it is loaded on click.
-								frappe
-									.require("arrangement_editor.bundle.js")
-									.then(() => new frappe.ui.DockManager())
-									.catch((e) => {
-										console.error(
-											"Sidebar: failed to load arrangement_editor.bundle.js",
-											e
-										);
-										frappe.ui.toast({
-											message: __(
-												"Could not open the dock manager. Please refresh the page."
-											),
-											type: "error",
-										});
-									});
-							},
-						},
-						{
-							name: "reload",
-							label: __("Reload"),
-							icon: "rotate-ccw",
-							onclick: function () {
-								frappe.ui.toolbar.clear_cache();
-							},
-						},
-					],
-				},
-				{
-					group: "",
-					options: [
-						{
-							name: "logout",
-							label: __("Logout"),
-							icon: "log-out",
-							onclick: function () {
-								frappe.app.logout();
-							},
-						},
-					],
-				},
-			],
+			options: this.user_menu_options(),
 			on_open: () => $btn.addClass("user-menu-active"),
 			on_close: () => $btn.removeClass("user-menu-active"),
 		});
+	}
+
+	// Also listed by the phone Profile page (desk/page/profile).
+	user_menu_options() {
+		const me = this;
+		return [
+			{
+				group: "",
+				options: [
+					{
+						name: "my-space",
+						label: __("My Space"),
+						icon: "user",
+						href: "/desk/private",
+						condition: () => !!frappe.boot.desk_settings.show_my_space,
+					},
+					{
+						name: "settings",
+						label: __("My Settings"),
+						icon: "settings",
+						onclick: () => frappe.ui.open_user_settings(),
+					},
+					{
+						name: "workspace-selector",
+						label: __("Manage Dock"),
+						icon: "monitor",
+						// A module in no app has no dock to arrange.
+						condition: () => !!me.get_sidebar_app(),
+						onclick: function () {
+							// Not in the desk bundle, so it is loaded on click.
+							frappe
+								.require("arrangement_editor.bundle.js")
+								.then(() => new frappe.ui.DockManager())
+								.catch((e) => {
+									console.error(
+										"Sidebar: failed to load arrangement_editor.bundle.js",
+										e
+									);
+									frappe.ui.toast({
+										message: __(
+											"Could not open the dock manager. Please refresh the page."
+										),
+										type: "error",
+									});
+								});
+						},
+					},
+					{
+						name: "reload",
+						label: __("Reload"),
+						icon: "rotate-ccw",
+						onclick: function () {
+							frappe.ui.toolbar.clear_cache();
+						},
+					},
+				],
+			},
+			{
+				group: "",
+				options: [
+					{
+						name: "logout",
+						label: __("Logout"),
+						icon: "log-out",
+						onclick: function () {
+							frappe.app.logout();
+						},
+					},
+				],
+			},
+		];
 	}
 
 	highlight_active_item() {
@@ -607,10 +607,9 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 	}
 
+	// The items list, not a lookup inside the wrapper: the phone's navigation sheet borrows it.
 	empty() {
-		if (this.wrapper.find(".sidebar-items")[0]) {
-			this.wrapper.find(".sidebar-items").html("");
-		}
+		this.$items_container.html("");
 		this.items = [];
 	}
 	make_sidebar() {
@@ -635,10 +634,10 @@ frappe.ui.Sidebar = class Sidebar {
 			let no_items_message = $(
 				"<div class='flex' style='padding: 30px'> No Sidebar Items </div>"
 			);
-			this.wrapper.find(".sidebar-items").append(no_items_message);
+			this.$items_container.append(no_items_message);
 		}
 	}
-	// Search, notifications and background tasks, as rows in a band under the header.
+	// Search, notifications, Flow and background tasks, as rows in a band under the header.
 	add_standard_items(items) {
 		if (this.standard_items_setup) return;
 		this.standard_items = [];
@@ -659,6 +658,17 @@ frappe.ui.Sidebar = class Sidebar {
 			class: "sidebar-notification hidden",
 			suffix: "<span class='notification-count hidden' aria-live='polite'></span>",
 			onClick: () => frappe.ui.sidebar_panels.toggle("notifications"),
+		});
+		this.standard_items.push({
+			label: __("Flow"),
+			icon: "flow",
+			standard: true,
+			type: "Button",
+			class: "sidebar-flow",
+			suffix: { keyboard_shortcut: "ctrl+i" },
+			// the panel that frappe/flow/launcher.py adds to the page for those who may use Flow
+			onClick: () => window.flow?.toggle(),
+			condition: () => frappe.model.can_read("Flow Session"),
 		});
 		this.$standard_items_band = this.wrapper.find(".standard-items-band");
 		this.standard_items.forEach((w) => {
@@ -690,7 +700,7 @@ frappe.ui.Sidebar = class Sidebar {
 
 	remove_item(item, index) {}
 
-	// Close the drawer on a click anywhere but the sidebar, the dock or the page's own toggle.
+	// Close the drawer on a click anywhere but the sidebar or the dock.
 	setup_click_away() {
 		$(document)
 			// Rebuilt on some navigations, so drop the old handler instead of stacking another.
@@ -700,7 +710,7 @@ frappe.ui.Sidebar = class Sidebar {
 				// Panels mount beside the sidebar but still belong to it.
 				if (
 					$(e.target).closest(
-						".body-sidebar, .dock, .sidebar-toggle-btn, .sidebar-panel, .sidebar-collapse-arrow"
+						".body-sidebar, .dock, .sidebar-panel, .sidebar-collapse-arrow"
 					).length
 				)
 					return;
@@ -867,6 +877,9 @@ frappe.ui.Sidebar = class Sidebar {
 	shell_can_show(shell, route, { listed_only = false } = {}) {
 		if (!shell || !frappe.boot.module_sidebars?.[shell]) return false;
 
+		// A shared page counts as listed in every shell.
+		if (frappe.router.page_info_for(route)?.shared_page) return true;
+
 		const entity = this.entity_from_route(route);
 		if (!entity) return false;
 
@@ -881,6 +894,9 @@ frappe.ui.Sidebar = class Sidebar {
 	// The shell a URL for this route should name: the URL's own if it can show the route, then the
 	// one on screen, then the server's map.
 	shell_for_route(route) {
+		// A system page opens in no shell, so the sidebar on screen is left as it is.
+		if (frappe.router.page_info_for(route)?.system_page) return null;
+
 		// A private page's shell is its owner's, whatever module it is filed under.
 		if (route[0] === "Workspaces" && route[1] === "private") {
 			const name = route[2];
@@ -905,11 +921,13 @@ frappe.ui.Sidebar = class Sidebar {
 
 		// A jump was not made from the shell on screen, so sharing an app is not enough to stay.
 		// Nor is a row in the Private shell, which is a shortcut and not where the entity belongs.
+		// A shared page belongs in every shell, Private included, so it stays there too.
 		const listed_only = frappe.router.is_jump;
-		const on_screen =
-			listed_only && this.current_module === frappe.ui.PRIVATE_SHELL
-				? null
-				: this.current_module;
+		const leaves_private =
+			listed_only &&
+			this.current_module === frappe.ui.PRIVATE_SHELL &&
+			!frappe.router.page_info_for(route)?.shared_page;
+		const on_screen = leaves_private ? null : this.current_module;
 		if (on_screen && this.shell_can_show(on_screen, route, { listed_only })) return on_screen;
 
 		return this.canonical_shell_for(route);
@@ -1120,7 +1138,9 @@ frappe.ui.Sidebar = class Sidebar {
 			canonical: this.canonical_shell_for(route),
 			resolved: this.shell_for_route(route),
 		};
-		info.reason = !info.resolved
+		info.reason = frappe.router.page_info_for(route)?.system_page
+			? "a system page opens in no shell"
+			: !info.resolved
 			? "the route names no entity, so nothing decides a shell"
 			: info.resolved === info.shell_in_url
 			? `the URL names "${info.shell_in_url}" and it can show this route`

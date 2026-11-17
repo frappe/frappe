@@ -4,9 +4,400 @@
 	background-color: var(--surface-gray-2);
 }
 
-/* Long snippets scroll inside the code column instead of stretching the
-   whole row (the preview panel next to it stays compact). */
-.explorer-group pre {
-	max-height: 260px;
-	overflow-y: auto;
+.explorer {
+	max-width: calc(var(--spacing) * 320);
+	margin-inline: auto;
+	padding: calc(var(--spacing) * 4);
+}
+
+@media (min-width: 768px) {
+	.explorer {
+		padding: calc(var(--spacing) * 6);
+	}
+}
+
+/* ---- grid ---- */
+
+.explorer-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: calc(var(--spacing) * 3);
+	margin-bottom: calc(var(--spacing) * 4);
+}
+
+.explorer-search {
+	flex: 1;
+	max-width: calc(var(--spacing) * 60);
+}
+
+.explorer-search::-webkit-search-cancel-button {
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.explorer-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: calc(var(--spacing) * 6);
+}
+
+@media (min-width: 768px) {
+	.explorer-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 1280px) {
+	.explorer-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+.explorer-card {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	overflow: hidden;
+	border: 1px solid var(--outline-gray-1);
+	border-radius: var(--radius-4);
+	background-color: var(--surface-gray-1);
+	color: inherit;
+	text-decoration: none;
+	cursor: pointer;
+	transition: border-color 150ms ease-out;
+}
+
+.explorer-card:hover {
+	border-color: var(--outline-gray-2);
+	color: inherit;
+	text-decoration: none;
+}
+
+.explorer-card__preview {
+	position: relative;
+	height: calc(var(--spacing) * 40);
+	overflow: hidden;
+	border-radius: 0 0 calc(var(--radius-4) - 1px) calc(var(--radius-4) - 1px);
+	background-color: var(--surface-base);
+	pointer-events: none;
+}
+
+.explorer-card__clip {
+	position: absolute;
+	inset: calc(var(--spacing) * 6);
+	overflow: hidden;
+}
+
+.explorer-card__clip.is-tall {
+	-webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent);
+	mask-image: linear-gradient(to bottom, #000 80%, transparent);
+}
+
+.explorer-card__stage {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	display: flex;
+	justify-content: center;
+	width: max-content;
+	min-width: calc(var(--spacing) * 30);
+	transform: translate(-50%, -50%) scale(var(--explorer-scale, 1));
+}
+
+.explorer-card__stage.is-stacked {
+	max-width: calc(var(--spacing) * 120);
+}
+
+/* fill components (alert, divider, progress...) span the tile at full size instead of scaling */
+.explorer-card__stage.is-fill {
+	width: 100%;
+	min-width: 0;
+}
+
+.explorer-card__stage.is-fill > * {
+	width: 100%;
+}
+
+.explorer-card__stack {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: calc(var(--spacing) * 3);
+}
+
+.is-tall > .explorer-card__stage {
+	top: 0;
+	transform: translate(-50%, 0) scale(var(--explorer-scale, 1));
+	transform-origin: top center;
+}
+
+.explorer-card__body {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: calc(var(--spacing) * 3);
+	min-width: 0;
+	padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 4);
+}
+
+.explorer-card__body > :last-child {
+	flex: none;
+}
+
+.explorer-card__name {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.explorer-empty {
+	display: none;
+}
+
+/* ---- one component ---- */
+
+.explorer-helper {
+	display: inline-block;
+	padding: calc(var(--spacing) * 0.5) calc(var(--spacing) * 2);
+	border-radius: var(--radius-3);
+	background-color: var(--surface-gray-2);
+}
+
+.explorer-groups {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 8);
+	margin-top: calc(var(--spacing) * 6);
+}
+
+.explorer-group {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 2);
+	min-width: 0;
+}
+
+.explorer-group__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: calc(var(--spacing) * 7);
+}
+
+.explorer-group__title {
+	margin: 0;
+}
+
+.explorer-canvas {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: calc(var(--spacing) * 6) calc(var(--spacing) * 4);
+	padding: calc(var(--spacing) * 8);
+	border: 1px solid var(--outline-gray-1);
+	border-radius: var(--radius-4);
+	background-color: var(--surface-base);
+}
+
+.explorer-canvas.is-stacked {
+	flex-direction: column;
+	flex-wrap: nowrap;
+}
+
+.explorer-example {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	min-width: 0;
+}
+
+.is-stacked > .explorer-example {
+	max-width: 100%;
+}
+
+.explorer-example__item {
+	min-width: 0;
+}
+
+.explorer-example__caption {
+	text-align: start;
+}
+
+.explorer-example__copy {
+	position: absolute;
+	top: calc(var(--spacing) * -6);
+	right: 0;
+	opacity: 0;
+	transition: opacity 150ms ease-out;
+}
+
+.explorer-example:hover > .explorer-example__copy,
+.explorer-example.is-active > .explorer-example__copy,
+.explorer-example__copy:focus-within {
+	opacity: 1;
+}
+
+.explorer-code {
+	max-height: calc(var(--spacing) * 65);
+	margin: 0;
+	padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+	overflow: auto;
+	border: 1px solid var(--outline-gray-1);
+	border-radius: var(--radius-4);
+}
+
+.explorer-pager {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-top: calc(var(--spacing) * 12);
+}
+
+.explorer-pager__link {
+	display: inline-flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1.5);
+	text-decoration: none;
+}
+
+.explorer-pager__link:hover {
+	color: var(--ink-gray-8);
+	text-decoration: none;
+}
+
+.explorer-back {
+	display: none;
+}
+
+@media (max-width: 767px) {
+	.explorer-back {
+		display: inline-flex;
+		margin-inline-end: calc(var(--spacing) * 1);
+	}
+
+	.explorer-card__preview {
+		height: calc(var(--spacing) * 30);
+	}
+
+	.explorer-canvas {
+		padding: calc(var(--spacing) * 4);
+	}
+
+	.explorer-canvas.is-stacked {
+		padding: calc(var(--spacing) * 2);
+	}
+}
+
+.explorer-view {
+	max-width: calc(var(--spacing) * 192);
+	margin-inline: auto;
+}
+
+/* examples whose root fills its parent (dividers, progress bars, lists) get the canvas's full width */
+.explorer-canvas.is-wide > .explorer-example {
+	width: 100%;
+	align-items: stretch;
+}
+
+.explorer-canvas.is-wide .explorer-example__item > * {
+	margin-inline: auto;
+}
+
+.explorer-divider-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: calc(var(--spacing) * 3);
+	height: calc(var(--spacing) * 10);
+}
+
+.explorer-canvas.has-captions {
+	display: grid;
+	grid-template-columns: calc(var(--spacing) * 28) max-content;
+	justify-content: center;
+	align-items: center;
+	gap: calc(var(--spacing) * 6) 0;
+}
+
+.explorer-canvas.has-captions.is-wide {
+	grid-template-columns: calc(var(--spacing) * 28) minmax(0, 1fr);
+	justify-content: stretch;
+}
+
+.explorer-canvas.has-captions > .explorer-example {
+	display: grid;
+	grid-column: 1 / -1;
+	grid-template-columns: subgrid;
+	align-items: center;
+	width: auto;
+	max-width: none;
+}
+
+.explorer-canvas.has-captions > .explorer-example > .explorer-example__caption {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.explorer-canvas.has-captions > .explorer-example > .explorer-example__item {
+	grid-column: 2;
+	grid-row: 1;
+	justify-self: start;
+}
+
+.explorer-canvas.has-captions.is-wide > .explorer-example > .explorer-example__item {
+	justify-self: stretch;
+}
+
+@media (max-width: 767px) {
+	.explorer-canvas.has-captions {
+		grid-template-columns: calc(var(--spacing) * 20) minmax(0, max-content);
+	}
+
+	.explorer-canvas.has-captions.is-wide {
+		grid-template-columns: calc(var(--spacing) * 20) minmax(0, 1fr);
+	}
+
+	.explorer-canvas.has-captions.labels-above {
+		grid-template-columns: minmax(0, max-content);
+		justify-content: start;
+	}
+
+	.explorer-canvas.has-captions.labels-above > .explorer-example > .explorer-example__caption {
+		grid-row: 1;
+		grid-column: 1;
+	}
+
+	.explorer-canvas.has-captions.labels-above > .explorer-example > .explorer-example__item {
+		grid-column: 1;
+		grid-row: 2;
+	}
+}
+
+.explorer-count {
+	white-space: nowrap;
+}
+
+/* an example that must fit the canvas (a truncating breadcrumb) */
+.explorer-example.is-fill {
+	width: 100%;
+	max-width: 100%;
+	align-items: stretch;
+}
+
+.explorer-example.is-fill > .explorer-example__item {
+	width: 100%;
+	min-width: 0;
+}
+
+.explorer-card:focus-visible {
+	outline: none;
+}
+
+/* a preview shows its content, not the min-height an empty state reserves around it */
+.explorer-card__stage [class*="min-h-"] {
+	min-height: 0;
 }
