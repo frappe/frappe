@@ -2,7 +2,9 @@ import json
 from pathlib import Path
 
 import frappe
+from frappe.shell.navigation import resolve_navigation
 from frappe.tests import IntegrationTestCase
+from frappe.tests.classes.context_managers import set_user
 
 APP_ROOT = Path(frappe.get_app_path("frappe"))
 
@@ -38,3 +40,17 @@ class TestFrappeNavigation(IntegrationTestCase):
 			self.assertEqual(len(keys), len(set(keys)), sidebar["name"])
 			parents = {row["parent_key"] for row in sidebar["navigation_items"] if row.get("parent_key")}
 			self.assertEqual(parents - set(keys), set(), sidebar["name"])
+
+	def test_a_system_manager_gets_the_shipped_rail_and_its_sidebars(self):
+		user = frappe.get_doc(
+			doctype="User", email="frappe-rail@example.com", first_name="Rail", roles=[{"role": "System Manager"}]
+		).insert(ignore_if_duplicate=True)
+
+		with set_user(user.name):
+			navigation = resolve_navigation("frappe")
+
+		rail = {row["label"] for row in navigation["rail"]}
+		self.assertTrue({"Build", "Users", "System"} <= rail)
+		self.assertNotIn("Studio", rail)
+		for row in navigation["rail"]:
+			self.assertTrue(navigation["sidebars"][row["link_to"]], row["label"])
