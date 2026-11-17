@@ -8,6 +8,7 @@ import frappe
 from frappe.desk.doctype.rail.rail import Rail
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
+from frappe.tests.test_shell_navigation import unship_app_navigation
 
 # Any app certainly installed on a site running these tests.
 APP = "frappe"
@@ -45,6 +46,10 @@ def item(**kwargs):
 
 
 class TestRail(IntegrationTestCase):
+	def setUp(self):
+		super().setUp()
+		unship_app_navigation(APP)
+
 	def test_the_shipped_types_are_present(self):
 		"""The framework's own kinds arrive by migrate, `View` among them."""
 		shipped = set(frappe.get_all("Navigation Item Type", pluck="name"))

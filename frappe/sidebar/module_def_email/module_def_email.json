@@ -1,0 +1,91 @@
+{
+ "app": "frappe",
+ "creation": "2026-11-17 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Sidebar",
+ "idx": 0,
+ "items": [],
+ "link_doctype": "Module Def",
+ "link_to": "Email",
+ "modified": "2026-11-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "module_def_email",
+ "navigation_items": [
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "email-account",
+   "label": "Email Account",
+   "link_doctype": "DocType",
+   "link_to": "Email Account",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "communication",
+   "label": "Communication",
+   "link_doctype": "DocType",
+   "link_to": "Communication",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "email-domain",
+   "label": "Email Domain",
+   "link_doctype": "DocType",
+   "link_to": "Email Domain",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "email-queue",
+   "label": "Email Queue",
+   "link_doctype": "DocType",
+   "link_to": "Email Queue",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "email-template",
+   "label": "Email Template",
+   "link_doctype": "DocType",
+   "link_to": "Email Template",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "unhandled-email",
+   "label": "Unhandled Email",
+   "link_doctype": "DocType",
+   "link_to": "Unhandled Email",
+   "switches_app": 0
+  }
+ ],
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Email",
+ "user": ""
+}

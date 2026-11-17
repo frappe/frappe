@@ -1,0 +1,103 @@
+{
+ "app": "frappe",
+ "creation": "2026-11-17 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Sidebar",
+ "idx": 0,
+ "items": [],
+ "link_doctype": "Module Def",
+ "link_to": "Automation",
+ "modified": "2026-11-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "module_def_automation",
+ "navigation_items": [
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "automation-flow",
+   "label": "Automation Flow",
+   "link_doctype": "DocType",
+   "link_to": "Automation Flow",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "automation-trigger-queue",
+   "label": "Automation Trigger Queue",
+   "link_doctype": "DocType",
+   "link_to": "Automation Trigger Queue",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "assignment-rule",
+   "label": "Assignment Rule",
+   "link_doctype": "DocType",
+   "link_to": "Assignment Rule",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "milestone",
+   "label": "Milestone",
+   "link_doctype": "DocType",
+   "link_to": "Milestone",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "auto-repeat",
+   "label": "Auto Repeat",
+   "link_doctype": "DocType",
+   "link_to": "Auto Repeat",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "auto-email-report",
+   "label": "Auto Email Report",
+   "link_doctype": "DocType",
+   "link_to": "Auto Email Report",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "reminder",
+   "label": "Reminder",
+   "link_doctype": "DocType",
+   "link_to": "Reminder",
+   "switches_app": 0
+  }
+ ],
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Automation",
+ "user": ""
+}
