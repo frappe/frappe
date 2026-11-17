@@ -24,6 +24,8 @@ export interface ListSettingsHandle {
 	loaded: ComputedRef<boolean>;
 	/** The app's file under the site row under the person's own, key by key. */
 	stored: ComputedRef<ListSettings>;
+	/** The app's file under the site row, without the person's own: what a plain view is before their changes. */
+	shared: ComputedRef<ListSettings>;
 	has: (scope: Scope, key: ListSettingsKey) => boolean;
 	/** Debounced; a later patch in the window joins the same write. */
 	save: (patch: ListSettings) => void;
@@ -80,6 +82,8 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 
 	async function reset(key: ListSettingsKey) {
 		if (entry.pending) delete entry.pending[key];
+		// An emptied patch would go out as a save of nothing.
+		if (entry.pending && !Object.keys(entry.pending).length) entry.pending = null;
 		entry.resets[key] = (entry.resets[key] ?? 0) + 1;
 		await flush();
 		await write(entry, () => send(`${API}.reset`, { ...address, scope: "user", key }));
@@ -101,6 +105,7 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 			const { app, site, user } = entry.tiers.value;
 			return { ...app, ...site, ...user };
 		}),
+		shared: computed(() => ({ ...entry.tiers.value.app, ...entry.tiers.value.site })),
 		has: (scope, key) => {
 			if (scope === "user" && entry.pending && key in entry.pending) return true;
 			const row = entry.tiers.value[scope];

@@ -211,6 +211,7 @@ function mount(): HTMLElement {
 		lists: { bulkActions: { provideBuiltins: () => {}, resolve: () => [], visible: () => [] } },
 		onCreate: vi.fn(),
 		acts: () => ({ drawn: () => null }),
+		switcher: { view: () => ({ key: "list", label: "List", type: "List", layer: null, modified: false, plainModified: false }) },
 	};
 	const view = { doctype: "CRM Lead", filters: ref([]), sort: ref([]) };
 	const app = createApp(

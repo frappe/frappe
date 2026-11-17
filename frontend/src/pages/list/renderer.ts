@@ -7,6 +7,7 @@ import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
 import type { ListPageLists, ListRendererState } from "@/listPage/createListPage";
 import type { ListActs } from "./listActs";
+import type { SwitcherHost } from "./viewSwitcher/switcherHost";
 import ListView from "./ListView.vue";
 
 export interface RendererHost {
@@ -16,6 +17,8 @@ export interface RendererHost {
 	lists: ListPageLists;
 	/** Puts the renderer's acts on the acts registry as `<type>.<act>`; `state` is what `page.rows`, `page.selection` and `page.reload` read. */
 	acts: (entries: () => ActEntry[], state: ListRendererState) => ListActs;
+	/** The open view and the acts on it: the save bar a renderer draws over its last rows reads and runs them. */
+	switcher: SwitcherHost;
 	/** Runs after the page's Create made a record. */
 	onCreate: (callback: () => void) => void;
 }

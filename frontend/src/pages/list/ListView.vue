@@ -27,7 +27,7 @@
 		sortAct="list.set_sort"
 		:cellClass="(row, column) => seenClassOf(row, column.fieldname)"
 		gutter="var(--page-gutter)"
-		:bottomInset="selection.length ? BULK_CLEARANCE : undefined"
+		:bottomInset="floating ? BULK_CLEARANCE : undefined"
 		@column-resize="resizeColumn($event.fieldname, $event.width)"
 		@column-reset="resetColumnWidth($event.fieldname)"
 		@row-contextmenu="menu.open($event.name, $event.event)"
@@ -112,6 +112,7 @@
 			<PageState :name="filters.length ? 'filtered' : 'empty'" />
 		</template>
 	</List>
+	<ViewSaveBar :view="view" :host="host.switcher" :yielding="selection.length > 0" />
 	<component
 		:is="bulk.parts.value.chunk.BulkIsland"
 		v-if="bulk.parts.value"
@@ -179,6 +180,7 @@ import { List, ListFooter } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { computed, provide, ref } from "vue";
 import { BULK_CLEARANCE } from "@/list/bulkClearance";
+import ViewSaveBar from "./ViewSaveBar.vue";
 import { useListView } from "@/list/useListView";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import type { View } from "@/list/view";
@@ -248,6 +250,8 @@ const {
 	deleteSelection,
 	settled,
 } = listView;
+// A bar floats over the last rows (the bulk bar, or a saved view's save bar): they scroll clear of it.
+const floating = computed(() => selection.value.length > 0 || props.host.switcher.view().modified);
 
 props.host.onCreate(reload);
 

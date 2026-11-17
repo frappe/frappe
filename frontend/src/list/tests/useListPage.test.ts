@@ -427,14 +427,71 @@ describe("the tiers", () => {
 		expect(page.columnsCustomized.value).toBe(true);
 	});
 
-	it("never writes a filter or a page size", async () => {
+	it("never writes a page size", async () => {
 		await mount("/lead");
 		await settle();
-		page.filters.value = [{ fieldname: "status", operator: "equals", value: "Open" } as never];
 		page.pageSize.value = 100;
 		await settleQuery();
 		await useListSettings("Lead").flush();
 		expect(writes()).toEqual([]);
+	});
+
+	describe("the plain view's filters stick for the person", () => {
+		const CLOSED = [["status", "=", "Closed"]];
+		const filterClosed = () =>
+			(page.filters.value = [{ fieldname: "status", operator: "equals", value: "Closed" } as never]);
+
+		it("writes them to the person's row, and the next visit opens with them", async () => {
+			await mount("/lead");
+			await settle();
+			filterClosed();
+			await settleQuery();
+			await useListSettings("Lead").flush();
+			expect(writes()).toEqual([
+				[`${SETTINGS_API}.save`, { doctype: "Lead", type: "List", scope: "user", settings: { filters: CLOSED } }],
+			]);
+			app?.unmount();
+			await mount("/lead");
+			expect(page.filters.value).toMatchObject([{ fieldname: "status", value: "Closed" }]);
+			expect(fake.lists.at(-1)!.query).toMatchObject({ filters: { status: ["=", "Closed"] } });
+		});
+
+		it("spells them in the URL, so Copy link carries them, and marks the plain view modified", async () => {
+			fake.tiers = { site: null, user: { filters: CLOSED } };
+			await mount("/lead");
+			await settle();
+			expect(router.currentRoute.value.query).toEqual({ status: "Closed" });
+			expect(page.view.modified.value).toBe(true);
+		});
+
+		it("clears the person's row when the filters go back to the shared ones", async () => {
+			fake.tiers = { app: { filters: [["status", "=", "Open"]] }, site: null, user: { filters: CLOSED } };
+			await mount("/lead");
+			await settle();
+			page.filters.value = [{ fieldname: "status", operator: "equals", value: "Open" } as never];
+			await settle();
+			expect(writes()).toEqual([[`${SETTINGS_API}.reset`, { doctype: "Lead", type: "List", scope: "user", key: "filters" }]]);
+			expect(page.view.modified.value).toBe(false);
+		});
+
+		it("does not write what the URL or a row set", async () => {
+			fake.tiers = { site: null, user: { filters: CLOSED } };
+			await mount("/lead?status=Open");
+			await settle();
+			await useListSettings("Lead").flush();
+			expect(writes()).toEqual([]);
+		});
+
+		it("is not a saved view's: its filters change only on Save", async () => {
+			opened = { key: "mine", label: "Mine", type: "List", layer: "own", applies: true };
+			await mount("/lead/view/mine");
+			await settle();
+			filterClosed();
+			await settle();
+			await useListSettings("Lead").flush();
+			expect(writes()).toEqual([]);
+			expect(page.view.modified.value).toBe(true);
+		});
 	});
 
 	it("drops _sort from the URL once the person's sort has landed as their default", async () => {
@@ -515,7 +572,7 @@ describe("the app's file", () => {
 	});
 
 	it("leaves the URL bare and the view unmodified while its filters are the file's", async () => {
-		fake.tiers = { app: { filters: OPEN }, site: null, user: null };
+		fake.tiers = { app: { filters: [["status", "=", "Open"]] }, site: null, user: null };
 		await mount("/lead");
 		await settle();
 		expect(router.currentRoute.value.query).toEqual({});
@@ -523,7 +580,7 @@ describe("the app's file", () => {
 	});
 
 	it("spells a change of the filters, and lets the person clear them", async () => {
-		fake.tiers = { app: { filters: OPEN }, site: null, user: null };
+		fake.tiers = { app: { filters: [["status", "=", "Open"]] }, site: null, user: null };
 		await mount("/lead");
 		page.filters.value = [{ fieldname: "status", operator: "equals", value: "Closed" } as never];
 		await settle();
@@ -537,7 +594,7 @@ describe("the app's file", () => {
 	});
 
 	it("keeps the filters cleared across a reload of the URL", async () => {
-		fake.tiers = { app: { filters: OPEN }, site: null, user: null };
+		fake.tiers = { app: { filters: [["status", "=", "Open"]] }, site: null, user: null };
 		await mount("/lead?_filters=none");
 		expect(page.filters.value).toEqual([]);
 		expect(fake.lists[0].query).not.toHaveProperty("filters.status");
@@ -551,7 +608,7 @@ describe("the app's file", () => {
 	});
 
 	it("gives way to the filters a URL names", async () => {
-		fake.tiers = { app: { filters: OPEN }, site: null, user: null };
+		fake.tiers = { app: { filters: [["status", "=", "Open"]] }, site: null, user: null };
 		await mount("/lead?status=Closed");
 		expect(page.filters.value).toMatchObject([{ fieldname: "status", value: "Closed" }]);
 	});

@@ -1,11 +1,19 @@
 // What the switcher needs of the page that holds it.
+import type { ListedView } from "@/list/listedViews";
 import type { ViewType } from "./viewMenu";
 
 export interface SwitcherHost {
 	doctype: string;
 	app: string;
-	/** The open view; `plainModified` is true for a plain view with changes. */
-	view: () => { key: string; label: string; plainModified: boolean };
+	/** The open view; `modified` is true for a saved view with changes, `plainModified` for a plain view with them. */
+	view: () => {
+		key: string;
+		label: string;
+		type: string;
+		layer: ListedView["layer"];
+		modified: boolean;
+		plainModified: boolean;
+	};
 	admin: boolean;
 	types: ViewType[];
 	unbuilt: ViewType[];
