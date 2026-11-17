@@ -120,8 +120,8 @@ def get_insights_dashboards_prompt() -> str:
 	return "install"
 
 
-def get_insights_dashboards_prompt_rank() -> int:
-	return INSIGHTS_DASHBOARDS_PROMPTS.index(get_insights_dashboards_prompt()) + 1
+def get_insights_dashboards_prompt_rank(prompt: str | None = None) -> int:
+	return INSIGHTS_DASHBOARDS_PROMPTS.index(prompt or get_insights_dashboards_prompt()) + 1
 
 
 def should_show_insights_dashboards_prompt() -> bool:
@@ -134,9 +134,14 @@ def should_show_insights_dashboards_prompt() -> bool:
 
 
 @frappe.whitelist(methods=["POST"])
-def submit_insights_dashboards_prompt(action: str) -> None:
-	"""Either answer is the site's, so no System Manager gets this prompt again. System Settings can still change the choice."""
+def submit_insights_dashboards_prompt(action: str, prompt: str | None = None) -> None:
+	"""Either answer is the site's, so no System Manager gets this prompt again. System Settings can still change the choice.
+
+	`prompt` is the variant on screen. Insights can change while it is open, and a dismissal must not answer a prompt nobody saw.
+	"""
 	frappe.only_for("System Manager")
+	if prompt and prompt not in INSIGHTS_DASHBOARDS_PROMPTS:
+		frappe.throw(_("Invalid prompt"))
 
 	if action == Action.OPEN_INSIGHTS_DASHBOARDS.value:
 		settings = frappe.get_single("System Settings")
@@ -144,8 +149,9 @@ def submit_insights_dashboards_prompt(action: str) -> None:
 		settings.save(ignore_permissions=True)
 		frappe.defaults.set_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT, len(INSIGHTS_DASHBOARDS_PROMPTS))
 	elif action == Action.KEEP_CLASSIC_DASHBOARDS.value:
+		dismissed = cint(frappe.defaults.get_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT))
 		frappe.defaults.set_global_default(
-			SKIP_INSIGHTS_DASHBOARDS_PROMPT, get_insights_dashboards_prompt_rank()
+			SKIP_INSIGHTS_DASHBOARDS_PROMPT, max(dismissed, get_insights_dashboards_prompt_rank(prompt))
 		)
 	else:
 		frappe.throw(_("Invalid action"))

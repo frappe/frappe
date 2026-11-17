@@ -178,6 +178,18 @@ class TestInsightsDashboardsPrompt(IntegrationTestCase):
 		with self.site_calls_for("switch"):
 			self.assertTrue(should_show_insights_dashboards_prompt())
 
+	def test_dismissing_a_prompt_left_open_answers_only_that_prompt(self):
+		# The page showed Update, and Insights was updated before the click.
+		with self.site_calls_for("switch"):
+			submit_insights_dashboards_prompt("keep_classic_dashboards", "update")
+			self.assertTrue(should_show_insights_dashboards_prompt())
+
+			submit_insights_dashboards_prompt("keep_classic_dashboards", "install")
+			self.assertTrue(should_show_insights_dashboards_prompt())
+			self.assertRaises(
+				frappe.ValidationError, submit_insights_dashboards_prompt, "keep_classic_dashboards", "other"
+			)
+
 	def test_keeping_classic_switches_nothing(self):
 		submit_insights_dashboards_prompt("keep_classic_dashboards")
 		self.assertFalse(should_show_insights_dashboards_prompt())

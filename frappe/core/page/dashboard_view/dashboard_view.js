@@ -124,7 +124,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		const submit = (action) =>
 			frappe.xcall(
 				"frappe.desk.doctype.dashboard.dashboard.submit_insights_dashboards_prompt",
-				{ action }
+				{ action, prompt: variant }
 			);
 		const prompt = $(`<div class="dashboard-view-prompt">
 			<span class="dashboard-view-prompt__text">${__(
