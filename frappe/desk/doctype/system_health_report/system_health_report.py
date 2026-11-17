@@ -368,7 +368,7 @@ class SystemHealthReport(Document):
 				{"enabled": 1},
 				order_by="last_active desc",
 				limit=10,
-				pluck="name",
+				pluck="email",
 			)
 		)
 

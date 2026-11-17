@@ -26,7 +26,7 @@ from frappe.twofactor import (
 	get_cached_user_pass,
 	should_run_2fa,
 )
-from frappe.utils import cint, date_diff, datetime, today
+from frappe.utils import cint, date_diff, datetime, get_email_address, today
 from frappe.utils.password import (
 	MAX_PASSWORD_SIZE,
 	check_password,
@@ -729,7 +729,9 @@ def validate_oauth(authorization_header):
 		if valid:
 			user = token_details.user
 			if not frappe.get_cached_value("User", user, "enabled"):
-				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
+				frappe.throw(
+					_("User {0} is disabled").format(get_email_address(user)), frappe.AuthenticationError
+				)
 			frappe.set_user(user)
 			frappe.session.data.oauth_client = token_details.client
 			frappe.local.form_dict = form_dict

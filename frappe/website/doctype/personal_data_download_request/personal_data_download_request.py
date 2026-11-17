@@ -84,7 +84,7 @@ class PersonalDataDownloadRequest(Document):
 			subject=_("Download Your Data"),
 			template="download_data",
 			args={
-				"user": self.user,
+				"user": get_email_address(self.user),
 				"user_name": self.user_name,
 				"link": file_link,
 				"host_name": host_name,
