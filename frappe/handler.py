@@ -40,6 +40,9 @@ ALLOWED_MIMETYPES = (
 	"video/quicktime",
 	"video/mp4",
 	"text/csv",
+	"audio/mp4",
+	"audio/webm",
+	"audio/ogg",
 )
 
 
@@ -162,6 +165,7 @@ def uploadfile():
 			if frappe.form_dict.get("method"):
 				method = frappe.get_attr(frappe.form_dict.method)
 				is_whitelisted(method)
+				is_valid_http_method(method)
 				ret = method()
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
