@@ -1,6 +1,4 @@
-// Fails when a visible button or menu item on a desk v2 page has neither `data-act` (an act the page can run)
-// nor `data-view`, or when a button has no accessible name. `frontend/act-gaps.json` lists the controls
-// still to fix: it may only get shorter, so a gap that no longer fails must be deleted.
+// Checks control marks, accessible names and the shrinking gap list (frontend/act-gaps.json).
 import { test, expect, ADMIN_PASSWORD, TEST_USER } from "../support";
 import { Api } from "../support/api";
 import { added_gaps, judge, find_problems, read_gaps } from "../support/act_controls";
