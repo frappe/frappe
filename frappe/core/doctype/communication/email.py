@@ -92,7 +92,7 @@ def make(
 			category=DeprecationWarning,
 		)
 
-	if is_direct_request() and not frappe.permissions.is_system_user():
+	if frappe.flags.get("whitelisted_method") is make and not frappe.permissions.is_system_user():
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	if doctype and name:
@@ -415,11 +415,3 @@ def undo_email_send(communication_name: str):
 	communication.delete(ignore_permissions=True)
 
 	return communication_data
-
-
-def is_direct_request() -> bool:
-	"""Whether `make` is the method this request called, not a server-side caller of it."""
-	if not frappe.request:
-		return False
-	method = f"{make.__module__}.{make.__name__}"
-	return method in {frappe.request.path.removesuffix("/").rpartition("/")[2], frappe.form_dict.cmd}
