@@ -4,6 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const runMethod = vi.fn(async (..._args: unknown[]) => ({ data: null }));
 vi.mock("@framework/ui/api", () => ({ runMethod: (...args: unknown[]) => runMethod(...args) }));
 
+// The mark has its own tests; here it would only make every first call wait for frappe-ui to transform.
+vi.mock("../windowDesk/AgentMark.vue", () => ({ default: { render: () => null } }));
+
 import { startRelay } from "../windowDesk/relay";
 import { claimTabId } from "../windowDesk/tabId";
 

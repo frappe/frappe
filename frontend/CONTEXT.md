@@ -482,7 +482,9 @@ _Avoid_: agent API, bridge.
 **UI relay**: <a id="ui-relay"></a>
 How a server call, such as `fr ui`, drives the person's open tab: it reaches the tab by the
 realtime room and runs through `window.desk`, so an agent's confirm rules hold. The person
-turns it on for themselves ("Let agents drive my open tabs"); off, the tab does not listen.
+turns it on for themselves ("Let agents drive my open tabs"); off, the tab does not listen. While a
+call runs and for 30 s after, the tab shows who is driving it, with a Stop that ends the calls and
+refuses the next until a reload.
 _Avoid_: remote control, bridge.
 
 **Row**: <a id="row"></a>
