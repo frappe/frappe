@@ -90,6 +90,7 @@
 								variant="ghost"
 								icon="lucide-x"
 								aria-label="Remove column"
+								:data-act="act"
 								@click="removeColumn(i)"
 							/>
 						</div>
@@ -110,6 +111,7 @@
 							<Button
 								variant="ghost"
 								label="Add Column"
+								data-view
 								iconLeft="lucide-plus"
 								:class="[
 									'!text-ink-gray-5',
@@ -127,6 +129,8 @@
 						:variant="confirmingReset ? 'subtle' : 'ghost'"
 						:theme="confirmingReset ? 'red' : 'gray'"
 						:label="confirmingReset ? 'Confirm Reset' : 'Reset'"
+						:data-act="confirmingReset ? act : undefined"
+						:data-view="confirmingReset ? undefined : ''"
 						@click="onResetClick"
 					/>
 				</div>

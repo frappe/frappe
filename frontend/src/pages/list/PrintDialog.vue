@@ -2,7 +2,7 @@
 <template>
 	<Dialog v-model="open" :title="title" size="sm" :actions="actions">
 		<template #default>
-			<div class="flex flex-col gap-4">
+			<div class="flex flex-col gap-4" data-view>
 				<Select
 					v-model="printFormat"
 					:label="__('Print Format')"
