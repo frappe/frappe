@@ -136,6 +136,7 @@ describe("the renderer of a view's type", () => {
       "controls",
       "lists",
       "onCreate",
+      "switcher",
     ]);
   });
 

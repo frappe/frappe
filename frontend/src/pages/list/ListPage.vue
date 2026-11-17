@@ -133,6 +133,7 @@ import { openCreate } from "@/shell/create";
 import type { ListPage } from "@/list/useListPage";
 import { createListPage } from "@/listPage/createListPage";
 import { useListPermissions } from "@/listPage/listPermissions";
+import { isViewModified, markModifiedView } from "@/list/modifiedView";
 import { refreshSavedViews } from "@/list/savedView";
 import { forgetFavouriteView, isFavourite, useListSettings } from "@/list/useListSettings";
 import BodyColumns from "@/pages/record/body/BodyColumns.vue";
@@ -277,12 +278,16 @@ const listActs = useListActs(
 );
 
 // The view crumb's control: the views, and the open view's acts, which the menu runs on this page.
+if (!unbuilt) markModifiedView(view);
 const switcher: SwitcherHost = {
 	doctype,
 	app: boot.app,
 	view: () => ({
 		key: view.key,
 		label: props.label || __("List"),
+		type: view.type,
+		layer: view.layer,
+		modified: !unbuilt && isViewModified(doctype, view.key),
 		plainModified: !unbuilt && view.layer === null && view.modified.value,
 	}),
 	admin: isSiteAdmin(boot.session.roles ?? []),
@@ -303,6 +308,7 @@ const host: RendererHost = {
 	controls,
 	lists: list.lists,
 	acts: listActs.renderer,
+	switcher,
 	onCreate: (callback) => created.push(callback),
 };
 

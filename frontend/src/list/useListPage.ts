@@ -114,6 +114,12 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 		return filtersFrom(stored.value.filters, doctype, fields.value, readable);
 	}
 
+	// What the URL is a layer on: a saved view's own filters, or the plain view's before the person's.
+	function baseFilters(): FilterCondition[] {
+		if (saved) return resolvedFilters();
+		return filtersFrom(settings.shared.value.filters, doctype, fields.value, readable);
+	}
+
 	function resolvedQuickFilterFields(): FilterField[] | undefined {
 		const chosen = settings.stored.value.quick_filter_fields;
 		if (!chosen) return undefined;
@@ -135,6 +141,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 	function readQuery(value: ListMeta) {
 		const address = addressFromQuery(route.query, doctype, value.fields ?? []);
 		filters.value = address.filters ?? resolvedFilters();
+		applied.filters = JSON.stringify(wireOf(filters.value));
 		readSort();
 	}
 
@@ -197,7 +204,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 			Object.entries(route.query).filter(([key]) => !owned.has(key))
 		);
 		const written = sameSort(sort.value, resolvedSort()) ? [] : sort.value;
-		const differs = !sameFilters(filters.value, resolvedFilters());
+		const differs = !sameFilters(filters.value, baseFilters());
 		const cleared = differs && !completeFilters(filters.value).length;
 		const spelled = differs ? filters.value : [];
 		return { ...kept, ...queryFromAddress({ filters: spelled, sort: written, cleared }) };
@@ -205,6 +212,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 
 	// The person's own acts write; a value the page set itself, from a row or the URL, does not.
 	watch(sort, (value) => persist("sort", value), { deep: true });
+	watch(filters, persistFilters, { deep: true });
 	watch(customizing, (now, before) => {
 		if (before && !now && quickFilterFields.value) {
 			persist("quick_filter_fields", toStoredQuickFilterFields(quickFilterFields.value));
@@ -219,6 +227,25 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 		applied[key] = json;
 		acted.add(key);
 		settings.save({ [key]: value });
+	}
+
+	// The plain view's filters stick for the person: their row holds them, or nothing when they match the shared ones.
+	// `wrote` covers a save still in flight, which `has` cannot see yet.
+	let wrote = false;
+	function persistFilters(value: FilterCondition[]) {
+		if (saved || !seeded.value) return;
+		const wire = wireOf(value);
+		const json = JSON.stringify(wire);
+		if (applied.filters === json) return;
+		applied.filters = json;
+		acted.add("filters");
+		if (!sameFilters(value, baseFilters())) {
+			wrote = true;
+			settings.save({ filters: wire });
+		} else if (wrote || settings.has("user", "filters")) {
+			wrote = false;
+			void settings.reset("filters");
+		}
 	}
 
 	const viewSettings = computed(() => ({ ...stored.value, ...changed.value }));
@@ -259,7 +286,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 		modified: computed(
 			() =>
 				seeded.value &&
-				(!sameFilters(filters.value, resolvedFilters()) ||
+				(!sameFilters(filters.value, baseFilters()) ||
 					!sameSort(sort.value, resolvedSort()) ||
 					unstored.value)
 		),
@@ -277,7 +304,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 	function snapshot(): ListSettings {
 		const { quick_filter_fields: _quick, ...own } = viewSettings.value as ListSettings;
 		const sorted = sort.value.map(({ fieldname, direction }) => ({ fieldname, direction }));
-		return { ...own, filters: serializeFilters(completeFilters(filters.value)), sort: sorted };
+		return { ...own, filters: wireOf(filters.value), sort: sorted };
 	}
 
 	function commit(written: ListSettings) {
@@ -298,7 +325,7 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 
 	function discard() {
 		changed.value = {};
-		filters.value = resolvedFilters();
+		filters.value = baseFilters();
 		sort.value = resolvedSort();
 		applied.sort = JSON.stringify(sort.value);
 		writeQuery();
@@ -317,4 +344,9 @@ export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): Li
 		commit,
 		discard,
 	};
+}
+
+/** The complete conditions as the wire triples a settings row holds. */
+function wireOf(filters: FilterCondition[]) {
+	return serializeFilters(completeFilters(filters));
 }

@@ -13,7 +13,7 @@
 	<div
 		v-else
 		class="min-h-0 flex-1 overflow-y-auto py-2"
-		:class="[pageGutter, selection.length && BULK_CLEARANCE_CLASS]"
+		:class="[pageGutter, floating && BULK_CLEARANCE_CLASS]"
 		@pointerover="bulk.prefetch"
 		@focusin="bulk.prefetch"
 	>
@@ -46,6 +46,7 @@
 			/>
 		</div>
 	</div>
+	<ViewSaveBar :view="view" :host="host.switcher" :yielding="selection.length > 0 && !error" />
 	<component
 		:is="bulk.parts.value.chunk.BulkIsland"
 		v-if="bulk.parts.value"
@@ -105,7 +106,7 @@
 import { ListFooter, useRowCursor, useRowSelection } from "@framework/ui/experimental/List";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { Skeleton } from "frappe-ui";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { __ } from "@/i18n";
 import { BULK_CLEARANCE_CLASS } from "@/list/bulkClearance";
 import type { ListRow } from "@/list/useListRows";
@@ -114,6 +115,7 @@ import DeleteDialog from "@/pages/list/DeleteDialog.vue";
 import type { RendererHost } from "@/pages/list/renderer";
 import { rowMenuOptions } from "@/pages/list/rowActions";
 import { useBulkBar } from "@/pages/list/useBulkBar";
+import ViewSaveBar from "@/pages/list/ViewSaveBar.vue";
 import { RowContextMenu, useRowContextMenu } from "@/pages/list/useRowContextMenu";
 import { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
@@ -171,6 +173,9 @@ const cursor = ref<string | null>(null);
 const { enter, leave, focus, blur } = useRowCursor(cursor, () =>
 	rows.value.map((row) => row.name)
 );
+
+// A bar floats over the last rows (the bulk bar, or a saved view's save bar): they scroll clear of it.
+const floating = computed(() => selection.value.length > 0 || props.host.switcher.view().modified);
 
 // The bulk delete is the surface's `delete`; a card's own menu runs `delete_card` on that card.
 const bulk = useBulkBar({

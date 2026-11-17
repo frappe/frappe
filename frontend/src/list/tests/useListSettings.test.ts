@@ -123,6 +123,14 @@ describe("writing", () => {
 		});
 	});
 
+	it("sends no empty save when a reset takes back the only waiting key", async () => {
+		const handle = useListSettings("Lead");
+		await settle();
+		handle.save({ filters: [["status", "=", "Open"]] });
+		await handle.reset("filters");
+		expect(fake.runMethod.mock.calls.map(([method]) => method.split(".").pop())).toEqual(["get", "reset"]);
+	});
+
 	it("keeps a patch whose write failed for the next flush", async () => {
 		const handle = useListSettings("Lead");
 		await settle();

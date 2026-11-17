@@ -15,6 +15,14 @@
 				host.view().label
 			}}</span>
 			<span
+				v-if="host.view().modified"
+				class="size-1.5 shrink-0 rounded-full bg-surface-gray-7"
+				role="img"
+				:aria-label="__('Unsaved changes')"
+				:title="__('Unsaved changes')"
+				data-view-modified
+			/>
+			<span
 				class="lucide-chevron-down size-4 shrink-0 text-ink-gray-5 group-hover:text-ink-gray-8"
 				aria-hidden="true"
 			/>
