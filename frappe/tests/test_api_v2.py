@@ -1310,6 +1310,10 @@ class TestQueueSubmitV2(FrappeAPITestCase):
 		frappe.delete_doc_if_exists("User", cls.writer)
 		frappe.db.commit()  # nosemgrep
 
+	def setUp(self) -> None:
+		super().setUp()
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
+
 	def new_record(self, status: int = 0):
 		doc = frappe.get_doc(doctype=self.doctype_name, some_fieldname="Queue me").insert()
 		if status:
@@ -1327,6 +1331,10 @@ class TestQueueSubmitV2(FrappeAPITestCase):
 			},
 			site=frappe.local.site,
 		)
+
+	def saved_docstatus(self, name):
+		frappe.db.rollback()
+		return frappe.db.get_value(self.doctype_name, name, "docstatus")
 
 	def saved_modified(self, name):
 		frappe.db.rollback()
@@ -1408,6 +1416,20 @@ class TestQueueSubmitV2(FrappeAPITestCase):
 		queue.assert_not_called()
 		self.assertEqual(submit.json["data"]["docstatus"], 1)
 		self.assertEqual(cancel.json["data"]["docstatus"], 2)
+
+	def test_queue_methods_refuse_while_desk_v2_is_off(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=True):
+			with self.change_settings("System Settings", commit=True, enable_desk_v2=0):
+				submit = self.call("queue_submit", draft.name)
+				cancel = self.call("queue_cancel", submitted.name)
+
+		queue.assert_not_called()
+		for response in (submit, cancel):
+			self.assertEqual(response.status_code, 403)
+			self.assertEqual(response.json["errors"][0]["type"], "DeskV2DisabledError")
+		self.assertEqual(self.saved_docstatus(draft.name), 0)
+		self.assertEqual(self.saved_docstatus(submitted.name), 1)
 
 	def test_queue_methods_need_the_submit_and_cancel_rights(self):
 		draft, submitted = self.new_record(), self.new_record(status=1)
@@ -3676,6 +3698,10 @@ class TestDocumentMethodRoutesV2(FrappeAPITestCase):
 		frappe.db.commit()  # nosemgrep
 		return invitation
 
+	def setUp(self) -> None:
+		super().setUp()
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
+
 	def doc_method(self, doc: Document, method: str) -> str:
 		return self.resource(doc.doctype, doc.name, "method", method)
 
@@ -3684,6 +3710,14 @@ class TestDocumentMethodRoutesV2(FrappeAPITestCase):
 			response = self.post(self.doc_method(self.invitation, "resend_invite"), {"sid": self.sid})
 		self.assertEqual(response.status_code, 200, response.json)
 		send.assert_called_once()
+
+	def test_resend_invite_refuses_while_desk_v2_is_off(self):
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			with self.change_settings("System Settings", commit=True, enable_desk_v2=0):
+				response = self.post(self.doc_method(self.invitation, "resend_invite"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "DeskV2DisabledError")
+		send.assert_not_called()
 
 	def test_resend_invite_refuses_a_get(self):
 		response = self.get(self.doc_method(self.invitation, "resend_invite"), {"sid": self.sid})
