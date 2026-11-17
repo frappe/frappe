@@ -20,7 +20,7 @@
 					<template #prefix><Icon :name="iconOf(view.type)" /></template>
 					<template #suffix>
 						<ViewRowLane
-							:modified="modified?.(view)"
+							:modified="isViewModified(doctype, view.key)"
 							:is-default="view.default"
 							:options="actsOf(view)"
 						/>
@@ -58,6 +58,7 @@ import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import Icon from "@/icons/Icon.vue";
 import { useListedViews, type ListedView } from "@/list/listedViews";
+import { isViewModified } from "@/list/modifiedView";
 import { openViewKey, viewsSidebarDrawn } from "@/navigation/viewsSidebar";
 import { routeFor } from "@/router/routeFor";
 import { skipDefaultOnce } from "@/router/skipDefault";
@@ -70,8 +71,6 @@ const ViewDialogs = defineAsyncComponent(() => import("./ViewDialogs.vue"));
 const props = defineProps<{
 	doctype: string;
 	title?: string;
-	/** Whether a view has unsaved changes: its row shows the modified dot. */
-	modified?: (view: ListedView) => boolean;
 }>();
 
 const boot = inject<Boot>("boot")!;

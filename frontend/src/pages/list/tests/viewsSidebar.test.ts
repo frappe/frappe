@@ -1,12 +1,14 @@
 // The DocType sidebar's body: the views by group, the open one marked, Soon rows for unbuilt types,
 // and the crumb told when the rows are really on screen.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick } from "vue";
+import { createApp, effectScope, h, nextTick, ref } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 import { loadText, TEXT_SURFACES } from "@/acts/actText";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { resetListedViews, type ListedView } from "@/list/listedViews";
+import { markModifiedView } from "@/list/modifiedView";
+import type { View } from "@/list/view";
 import { viewsSidebarDrawn } from "@/navigation/viewsSidebar";
 import { registerShell } from "@/router/routeFor";
 import ViewsSidebar from "../viewSwitcher/ViewsSidebar.vue";
@@ -39,7 +41,7 @@ beforeEach(() => {
 	viewsSidebarDrawn.value = null;
 });
 
-async function sidebar(path: string, modified?: (view: ListedView) => boolean): Promise<{ host: HTMLElement; router: Router; app: ReturnType<typeof createApp> }> {
+async function sidebar(path: string): Promise<{ host: HTMLElement; router: Router; app: ReturnType<typeof createApp> }> {
 	const boot = {
 		app: "frappe",
 		shell_base: "/apps/frappe",
@@ -61,7 +63,7 @@ async function sidebar(path: string, modified?: (view: ListedView) => boolean): 
 	registerShell({ boot, addresses, router });
 	await router.push(path);
 	const host = document.body.appendChild(document.createElement("div"));
-	const app = createApp({ render: () => h(ViewsSidebar, { doctype: "ToDo", title: "ToDo", modified }) });
+	const app = createApp({ render: () => h(ViewsSidebar, { doctype: "ToDo", title: "ToDo" }) });
 	app.provide("boot", boot);
 	app.provide("addresses", addresses);
 	app.config.globalProperties.__ = (text: string) => text;
@@ -103,13 +105,17 @@ describe("the views sidebar body", () => {
 		expect(host.querySelectorAll("[data-view-lane]")).toHaveLength(4);
 	});
 
-	it("shows the dot instead of the house when told a view is modified", async () => {
+	it("shows the dot where the open list says its view has changes, in place of the house", async () => {
 		fetchViews.mockResolvedValue(VIEWS);
-		const { host } = await sidebar("/todo", (view) => view.key === "list" || view.key === "mine");
+		const scope = effectScope();
+		scope.run(() => markModifiedView({ doctype: "ToDo", key: "mine", layer: "own", modified: ref(true) } as unknown as View));
+		const { host } = await sidebar("/todo/view/mine");
 		const dotted = [...host.querySelectorAll("[data-view-mark='modified']")].map((one) => one.closest("[data-key]")?.getAttribute("data-key"));
-		// "list" is the default too, but the dot takes the lane's mark from the house.
-		expect(dotted).toEqual(["list", "mine"]);
-		expect(host.querySelector("[data-view-mark='default']")).toBeNull();
+		expect(dotted).toEqual(["mine"]);
+		expect(host.querySelector("[data-view-mark='modified'][aria-label='Unsaved changes']")).not.toBeNull();
+		// The house stays on the default, which has no changes.
+		expect(host.querySelector("[data-view-mark='default']")!.closest("[data-key]")?.getAttribute("data-key")).toBe("list");
+		scope.stop();
 	});
 });
 
