@@ -1,5 +1,6 @@
 // The projected rows in frappe-ui's Menu vocabulary: what runs, what links, what nests.
 import { describe, expect, it, vi } from "vitest";
+import type { VNode } from "vue";
 import type { HeaderItem, HeaderNode } from "@/recordPage";
 import { bandRows, menuContent } from "../headerMenuOptions";
 
@@ -80,5 +81,16 @@ describe("a row's props", () => {
     );
     expect(row).toMatchObject({ label: "tools", disabled: true });
     expect(row.submenu).toHaveLength(1);
+  });
+
+  it("marks a submenu trigger with data-view and an action row with data-act", () => {
+    const [tools, wipe] = menuContent(
+      [node({ name: "tools", display: "dropdown" }, [node({ name: "audit" })]), node({ name: "wipe", run: () => {} })],
+      vi.fn(),
+    );
+    const label = (row: any) => row.slots.label({ item: row }) as VNode;
+    expect(label(tools).props).toHaveProperty("data-view", "");
+    expect(label(tools).props).not.toHaveProperty("data-act");
+    expect(label(wipe).props).toHaveProperty("data-act", "header.wipe");
   });
 });

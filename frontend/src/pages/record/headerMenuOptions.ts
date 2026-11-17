@@ -1,5 +1,5 @@
 // The header's projected rows, spelled in frappe-ui's `Menu` vocabulary.
-import { withAct } from "@/acts/menuAct";
+import { withAct, withView } from "@/acts/menuAct";
 import type { HeaderItem, HeaderNode } from "@/recordPage";
 
 type Run = (item: HeaderItem) => void;
@@ -23,7 +23,7 @@ export function bandRows(nodes: HeaderNode[], run: Run): any[] {
 function row(node: HeaderNode, run: Run) {
   const base = { ...node.props, label: node.item.label, icon: node.item.icon };
   // A submenu trigger can never also be an action, which is why a container's `run` warns.
-  if (node.container === "dropdown") return { ...base, submenu: menuContent(node.members, run) };
+  if (node.container === "dropdown") return withView({ ...base, submenu: menuContent(node.members, run) });
   // `run` wins over `href`, as the item type promises.
   if (!node.item.run && node.item.href) return { ...base, route: node.item.href };
   // A `route` in props is the link when the item has neither; the engine has dropped it otherwise.
