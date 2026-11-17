@@ -922,6 +922,27 @@ test("a loading chat shows the agent and model of its sidebar row, and names non
 	assert.ok(el.textContent.includes("Sonnet"));
 });
 
+test("the page offers no thinking levels: the model button opens the models alone, and no command sets one", async (t) => {
+	await router.replace("/");
+	const el = mountPage(t);
+	await until(() => el.querySelector("fieldset button[title='Sonnet']"));
+	const model = el.querySelector("fieldset button[title='Sonnet']");
+	model.click();
+	await nextTick();
+	assert.ok(model.parentElement.querySelector("[data-stub=ModelPalette]"));
+	assert.equal(model.parentElement.querySelector("[data-palette-item]"), null);
+	model.click();
+	await nextTick();
+
+	const textarea = el.querySelector("textarea");
+	textarea.value = "/";
+	textarea.dispatchEvent(new Event("input"));
+	await nextTick();
+	const commands = [...el.querySelectorAll("[data-palette-item]")].map((row) => row.textContent);
+	assert.ok(commands.some((command) => command.includes("Choose the model")));
+	assert.ok(!commands.some((command) => command.includes("Thinking")));
+});
+
 test("a first message sent while the chat list loads keeps the page on its new chat, as does an address asking for one", async (t) => {
 	await router.replace("/");
 	transport.calls.length = 0;
