@@ -438,12 +438,12 @@ class TestMoney(IntegrationTestCase):
 				(0, "NGN Zero only."),
 				("Fail", ""),
 			],
-			"MRO": [
-				(5000, "MRO Five Thousand only."),
-				(5000.0, "MRO Five Thousand only."),
-				(1.4, "MRO One and Two Khoums only."),
+			"MRU": [
+				(5000, "MRU Five Thousand only."),
+				(5000.0, "MRU Five Thousand only."),
+				(1.4, "MRU One and Two Khoums only."),
 				(0.2, "One Khoums only."),
-				(0, "MRO Zero only."),
+				(0, "MRU Zero only."),
 				("Fail", ""),
 			],
 			"USD": [
