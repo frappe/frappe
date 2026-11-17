@@ -3,6 +3,7 @@ name: Linters
 
 on:
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 permissions:
@@ -102,7 +103,7 @@ jobs:
   precommit:
     name: 'Pre-Commit'
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name != 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v7
