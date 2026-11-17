@@ -78,6 +78,18 @@ class TestUIRelay(IntegrationTestCase):
 			("record.save", {"x": 1}, "run"),
 		)
 
+	def test_the_call_names_the_oauth_client_by_its_app_name_not_its_id(self):
+		fake, publish = self.relay({"a": {"focused_at": 1}})
+		with publish, patch("frappe.desk.ui_relay.get_oauth_client_name", return_value="frappectl"):
+			ui_relay.call("state", tab="a")
+		self.assertEqual(fake.calls[0]["client"], "frappectl")
+
+	def test_a_call_without_an_oauth_client_names_none(self):
+		fake, publish = self.relay({"a": {"focused_at": 1}})
+		with publish:
+			ui_relay.call("state", tab="a")
+		self.assertIsNone(fake.calls[0]["client"])
+
 	def test_a_gone_tab_is_not_found(self):
 		fake, publish = self.relay({"a": {"focused_at": 1}})
 		with publish, patch.object(ui_relay, "TAB_WAIT", 0.2):

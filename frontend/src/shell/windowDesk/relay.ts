@@ -1,33 +1,46 @@
 // The tab's end of the UI relay: it answers each `ui_relay` event through `window.desk`, one call at a time.
 import { runMethod } from "@framework/ui/api";
 import type { RealtimeSocket } from "@framework/ui/socket";
+import type { AppContext } from "vue";
 import type { ActResult } from "@/acts/dispatcher";
 import type { DeskApi } from "./install";
+import { RelayCalls, type RelayEvent } from "./relayCalls";
 import { claimTabId } from "./tabId";
 
 const REPLY = "frappe.desk.ui_relay.reply";
 
-interface RelayEvent {
-	call_id: string;
-	op: "tabs" | "acts" | "state" | "dialogs" | "run";
-	tab?: string;
-	act?: string;
-	args?: any;
-}
+const STOPPED = "The person pressed Stop. Agents cannot drive this tab until they reload it.";
+
+let calls: RelayCalls;
 
 /** Listens on the tab's socket; the person turned the setting on, or this is not called. */
-export async function startRelay(socket: RealtimeSocket) {
+export async function startRelay(app: AppContext) {
+	const socket: RealtimeSocket = app.config.globalProperties.$socket;
 	const tab = await claimTabId();
+	calls = new RelayCalls(app, (open) => open.forEach((call) => send(call, tab, failed(STOPPED, "interrupted"), true)));
 	const focus = trackFocus();
 	let queue: Promise<unknown> = Promise.resolve();
 	socket.on("ui_relay", (event) => {
 		const call = event as RelayEvent;
-		if (call.op === "tabs") return void post(call, tab, { tab, route: route(), title: document.title, focused_at: focus() });
-		if (call.tab === tab) queue = queue.then(() => answer(call, tab)).catch((error) => post(call, tab, failed(String(error))));
+		if (call.op === "tabs") return void send(call, tab, { tab, route: route(), title: document.title, focused_at: focus() });
+		if (call.tab !== tab) return;
+		if (calls.stopped) {
+			calls.refused();
+			return void send(call, tab, failed(STOPPED, "interrupted"), true);
+		}
+		calls.start(call);
+		queue = queue.then(() => answer(call, tab)).catch((error) => post(call, tab, failed(String(error))));
 	});
 }
 
 async function answer(call: RelayEvent, tab: string) {
+	if (!calls.live(call)) return;
+	try {
+		await calls.ready();
+	} catch {
+		return post(call, tab, failed("This tab could not show that an agent is driving it, so the call did not run."));
+	}
+	if (!calls.live(call)) return;
 	const open = call.op === "run" ? await openDialogs() : [];
 	const result = await perform(call);
 	if (result.ok || result.error.code !== "waiting_for_user" || result.error.call === undefined) return post(call, tab, result);
@@ -36,6 +49,7 @@ async function answer(call: RelayEvent, tab: string) {
 	const dialog = result.error.dialog;
 	if (dialog && open.includes(dialog.id)) return post(call, tab, failed("A dialog was already open. Answer it first; this call did not run."));
 	await post(call, tab, result, false);
+	if (!calls.live(call)) return;
 	// The confirm waits on the person; the next call must not wait behind it.
 	const parked = result.error.call;
 	void window.desk!.acts.wait(parked)
@@ -72,11 +86,18 @@ async function ended(desk: DeskApi, data: unknown): Promise<ActResult> {
 	return { ok: true, data, route: route(), dialogs: await desk.dialogs() };
 }
 
-function failed(message: string, code: "failed" | "invalid" = "failed"): ActResult {
+function failed(message: string, code: "failed" | "invalid" | "interrupted" = "failed"): ActResult {
 	return { ok: false, error: { code, message }, route: route(), dialogs: [] };
 }
 
-function post(call: RelayEvent, tab: string, result: unknown, final = true) {
+/** An answer for a call the person stopped is dropped: Stop already ended it with `interrupted`. */
+async function post(call: RelayEvent, tab: string, result: unknown, final = true) {
+	if (!calls.live(call)) return;
+	if (final) calls.finish(call);
+	await send(call, tab, result, final);
+}
+
+function send(call: RelayEvent, tab: string, result: unknown, final = true) {
 	return runMethod(REPLY, { call_id: call.call_id, tab, result, final }).catch(() => {});
 }
 

@@ -31,7 +31,7 @@ const state = () => import("./pageState");
 export function installDesk(app?: AppContext) {
 	if (window.desk) return;
 	// A separate chunk, loaded only for a person who turned the setting on.
-	if (app?.provides.boot?.agent_ui_relay) import("./relay").then((m) => m.startRelay(app.config.globalProperties.$socket));
+	if (app?.provides.boot?.agent_ui_relay) import("./relay").then((m) => m.startRelay(app));
 	const desk: DeskApi = Object.freeze({
 		version: 1,
 		acts: Object.freeze({

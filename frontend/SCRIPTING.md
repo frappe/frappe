@@ -676,6 +676,12 @@ ended the call in 25 s. Call `op: "wait"` with that id to wait again; the final 
 and can be read more than once. A tab runs relay calls one at a time, in order. A rate limit and a setting that is off fail the
 HTTP request (429 and 403), not the envelope.
 
+While calls run, and for 30 s after the last, the tab shows a mark at the foot of the page: "{client} is driving this tab"
+(the OAuth client's registered name; "An agent" for a plain token) with a **Stop** button. Stop ends every open call with
+`interrupted` and refuses each later call with `interrupted` until the person reloads the tab; a stopped tab still lists in `tabs`. An agent that gets `interrupted` must not
+retry: the person said no. A call already running when Stop was pressed may still have taken effect, so read the state
+before assuming it did not.
+
 On a **return visit**, a record seen earlier in the same tab and reached again by Back,
 Forward or a link, the page paints from memory before the first frame, and `onRefresh`
 runs twice: once over the remembered record, then once more when the background reads

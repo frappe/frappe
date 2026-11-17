@@ -1,8 +1,12 @@
 // The tab's end of the UI relay: one call at a time through `window.desk`, a parked confirm answered later.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createApp } from "vue";
 
 const runMethod = vi.fn(async (..._args: unknown[]) => ({ data: null }));
 vi.mock("@framework/ui/api", () => ({ runMethod: (...args: unknown[]) => runMethod(...args) }));
+
+// The mark has its own tests; here it would only make every first call wait for frappe-ui to transform.
+vi.mock("../windowDesk/AgentMark.vue", () => ({ default: { render: () => null } }));
 
 import { startRelay } from "../windowDesk/relay";
 import { claimTabId } from "../windowDesk/tabId";
@@ -21,7 +25,9 @@ const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
 async function started(desk: Record<string, unknown>) {
 	Object.defineProperty(window, "desk", { value: desk, configurable: true, writable: true });
 	const relay = socket();
-	await startRelay(relay as any);
+	const app = createApp({})._context;
+	app.config.globalProperties.$socket = relay;
+	await startRelay(app);
 	return relay;
 }
 

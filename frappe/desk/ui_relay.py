@@ -8,6 +8,7 @@ from typing import Any
 
 import frappe
 from frappe import _
+from frappe.auth import get_oauth_client_name
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint
 
@@ -69,7 +70,7 @@ def call(
 			"tab": found["tab"],
 			"act": act,
 			"args": args,
-			"client": frappe.session.data.get("oauth_client"),
+			"client": get_oauth_client_name(),  # the registered name the person approved, not the client id
 		},
 		user=user,
 	)
