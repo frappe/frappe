@@ -258,12 +258,10 @@ describe("settled", () => {
 		const rows = useListRows("ToDo", () => queryOf(20));
 		let done = false;
 		void rows.settled().then(() => (done = true));
-		await settle();
+		await new Promise((resolve) => setTimeout(resolve, 20));
 		expect(done).toBe(false);
 		answers[0]({ data: [{ name: "T-1" }], has_next_page: false, count: 1 });
-		await settle();
-		await settle();
-		expect(done).toBe(true);
+		await vi.waitFor(() => expect(done).toBe(true));
 	});
 
 	it("waits for the read that checks cached rows, so the answer is not stale", async () => {
@@ -272,12 +270,11 @@ describe("settled", () => {
 		let done = false;
 		void rows.settled().then(() => (done = true));
 		await settle();
+		await new Promise((resolve) => setTimeout(resolve, 20));
 		expect(rows.rows.value).toHaveLength(20);
 		expect(done).toBe(false);
 		answers[0]({ data: [{ name: "T-9" }], has_next_page: false, count: 1 });
-		await settle();
-		await settle();
-		expect(done).toBe(true);
+		await vi.waitFor(() => expect(done).toBe(true));
 		expect(rows.rows.value).toHaveLength(1);
 	});
 
@@ -285,5 +282,13 @@ describe("settled", () => {
 		fake.listDocuments.mockRejectedValue(new Error("Network down"));
 		const rows = useListRows("ToDo", () => queryOf(20));
 		await expect(rows.settled()).rejects.toThrow("Network down");
+	});
+
+	it("rejects when the read that checks cached rows fails, though the cached rows stay on show", async () => {
+		cacheList(20, false);
+		fake.listDocuments.mockRejectedValue(new Error("Network down"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await expect(rows.settled()).rejects.toThrow("Network down");
+		expect(rows.rows.value).toHaveLength(20);
 	});
 });

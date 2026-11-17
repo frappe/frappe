@@ -58,6 +58,13 @@ export async function select(list: ListPageController, names: string[]) {
   return { selected: unique };
 }
 
+/** The run of each act, by act name; the list's entries call them with the act's input. */
+export const RUNS: Record<string, (list: ListPageController, schema: ListSchema, value: any) => Promise<unknown>> = {
+  set_filters: setFilters,
+  set_sort: setSort,
+  select: (list, _schema, { names }) => select(list, names),
+};
+
 /** The page facts `window.desk.state` adds for a list: filters as REST v2 triples, sort, selection and the first rows. */
 export function listFacts(list: ListPageController, schema: ListSchema) {
   const { page } = list;
@@ -102,7 +109,9 @@ function parseConditions(filters: unknown[], schema: ListSchema, doctype: string
     if (!wireOperator) throw invalid("list.set_filters", `${at}: ${String(operator)} is not an operator; use one of ${Object.keys(OPERATORS).join(", ")}`);
     const reason = valueFault(wireOperator, value);
     if (reason) throw invalid("list.set_filters", `${at}: ${reason}`);
-    return field.fieldtype === "Check" ? checkTriple(at, fieldname as string, wireOperator, value) : [fieldname as string, wireOperator, value];
+    if (field.fieldtype === "Check") return checkTriple(at, fieldname as string, wireOperator, value);
+    if (wireOperator === "is" || wireOperator === "is not") return emptiness(at, fieldname as string, wireOperator, value);
+    return [fieldname as string, wireOperator, value];
   });
   return parseFilters(filterable, wire).map(bareLike);
 }
@@ -115,9 +124,16 @@ function valueFault(operator: string, value: unknown): string | undefined {
     return undefined;
   }
   if (typeof value === "string" || typeof value === "number" || typeof value === "boolean")
-    // The list drops a condition with no text, so it would match every record, not none.
-    return value === "" ? `${operator} needs a value; to find empty fields use "is" with "not set"` : undefined;
+    // Such a condition would match every record, not none.
+    return blank(operator, value) ? `${operator} needs a value; to find empty fields use "is" with "not set"` : undefined;
   return `${operator} takes one text, number or boolean value`;
+}
+
+/** The server has `is` alone, with "set" or "not set"; `is not` is the other of the two. */
+function emptiness(at: string, fieldname: string, operator: string, value: unknown): [string, string, string] {
+  const text = typeof value === "string" ? value.toLowerCase() : "";
+  if (text !== "set" && text !== "not set") throw invalid("list.set_filters", `${at}: ${operator} takes "set" or "not set"`);
+  return [fieldname, "is", (text === "set") === (operator === "is") ? "set" : "not set"];
 }
 
 /** A Check holds a boolean, so only "=" and "!=" mean something; "!=" is the opposite boolean. */
@@ -145,6 +161,12 @@ function parseSort(sort: unknown[], schema: ListSchema): Sort[] {
 
 function invalid(act: string, reason: string) {
   return new ActInvalid(act, reason);
+}
+
+/** The list drops a condition with no text, and a Like with only `%` has none once the wire's `%` is stripped. */
+function blank(operator: string, value: unknown): boolean {
+  if (value === "") return true;
+  return (operator === "LIKE" || operator === "NOT LIKE") && typeof value === "string" && value.replaceAll("%", "").trim() === "";
 }
 
 /** A long field list would drown the error: the first few, then how many more. */

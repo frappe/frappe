@@ -64,6 +64,17 @@ describe("list.set_filters", () => {
     expect(page.filters.map(({ operator, value }) => [operator, value])).toEqual([["like", "ann"], ["not like", "bob"]]);
   });
 
+  it("reads `is` and `is not` as the server's `is` with set or not set", async () => {
+    const { list, page } = listPage();
+
+    await setFilters(list, schema, { filters: [["customer", "is", "set"], ["status", "is not", "set"]] });
+
+    expect(page.filters.map(({ fieldname, operator, value }) => [fieldname, operator, value])).toEqual([
+      ["customer", "is", "set"],
+      ["status", "is", "not set"],
+    ]);
+  });
+
   it("reads != on a Check as the opposite boolean", async () => {
     const { list, page } = listPage();
 
@@ -91,6 +102,8 @@ describe("list.set_filters", () => {
     ["a Check with a text operator", [["is_return", "like", "x"]], "is a checkbox; use = or !="],
     ["a Check with a value that is no boolean", [["is_return", "=", "maybe"]], "send true or false"],
     ["an empty value", [["status", "=", ""]], "needs a value"],
+    ["a Like with only the wildcard", [["customer", "like", "%%"]], "needs a value"],
+    ["is with a value that is no set or not set", [["customer", "is", "Ann"]], 'takes "set" or "not set"'],
     ["an empty list", [["status", "in", []]], "needs at least one value"],
     ["two conditions on one field", [["grand_total", ">", 1], ["grand_total", "<", 5]], "use between for a range"],
   ])("refuses %s as invalid and changes nothing", async (_name, filters, reason) => {

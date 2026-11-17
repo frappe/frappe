@@ -25,7 +25,6 @@ import { seedRowParts } from "./rowParts";
 export type ListRow = { name: string } & Record<string, unknown>;
 
 const QUERY_DEBOUNCE_MS = 300;
-const SETTLE_MS = 15000;
 
 export interface RowsQuery {
 	/** Names the filters and sort; the loaded rows carry it, so a memory is written under it. */
@@ -94,6 +93,8 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 	let refreshing = -1;
 	// True while cached rows are on show and the read that checks them is still out.
 	const checking = ref(false);
+	// Why the check read failed; the cached rows stay on show, but an act waiting on them must know.
+	const checkFailure = ref<Error | null>(null);
 	let timer = 0;
 
 	const loaded = computed(() => pages.value.flatMap((page) => page.data ?? []));
@@ -146,25 +147,13 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 
 	onScopeDispose(() => clearTimeout(timer));
 
-	function settled(): Promise<void> {
+	/** Loads on the first act that waits, so the page does not carry it. */
+	async function settled(): Promise<void> {
 		const done = () =>
 			loadedKey.value === (query()?.key ?? null) &&
 			!checking.value &&
 			(firstPage.value?.data != null || Boolean(error.value));
-		const finish = () => (error.value ? Promise.reject(error.value) : Promise.resolve());
-		if (done()) return finish();
-		return new Promise((resolve, reject) => {
-			const stop = watch(done, (ok) => {
-				if (!ok) return;
-				stop();
-				clearTimeout(limit);
-				finish().then(resolve, reject);
-			});
-			const limit = setTimeout(() => {
-				stop();
-				reject(new Error("the rows did not load in time"));
-			}, SETTLE_MS);
-		});
+		return (await import("./settleRows")).settleRows(done, () => error.value ?? checkFailure.value);
 	}
 
 	/** Undefined while there is no query yet, so the first real one still counts as the first. */
@@ -180,6 +169,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		generation++;
 		loadedKey.value = current?.key ?? null;
 		checking.value = false;
+		checkFailure.value = null;
 		if (current && paintCached(current, target)) return void refresh(current);
 		pages.value = [];
 		shown.value = 0;
@@ -227,6 +217,7 @@ export function useListRows(doctype: string, query: () => RowsQuery | null): Lis
 		refreshing = -1;
 		checking.value = false;
 		if (isLostAccess(outcome)) return showError(outcome);
+		if (outcome instanceof Error) checkFailure.value = outcome;
 		if (!(outcome instanceof Error)) {
 			seedParts(outcome, sentAt);
 			pages.value = [landedPage(outcome.data, outcome.has_next_page)];

@@ -72,7 +72,7 @@ export interface BulkBar {
   locked: boolean;
 }
 
-const BULK_ACTIONS_OFF = "If this is a bulk action, it is off for this person: tell them to turn on \"Allow bulk actions\" in My Settings.";
+const BULK_ACTIONS_OFF = "If this is a bulk action: tell the person to turn on \"Allow bulk actions\" in My Settings.";
 
 const NO_LAYOUT: BulkLayout = { transitions: [], buttons: [], menu: [] };
 

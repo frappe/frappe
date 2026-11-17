@@ -179,18 +179,16 @@ function listSchema({ list, readable }: ListActsHost): ListSchema {
 
 /** The acts that set what the list shows and which rows are selected; their runs load on first use. */
 function stateEntries(host: ListActsHost): ActEntry[] {
-  const { list } = host;
-  const runs = () => import("./listStateRuns");
-  const schema = () => listSchema(host);
-  const entry = (name: string, label: string, run: (module: Awaited<ReturnType<typeof runs>>, value: any) => unknown): ActEntry => ({
-    item: { name, label, palette: false, run: async (_context: unknown, value: unknown) => run(await runs(), value) },
+  const labels = { set_filters: __("Set Filters"), set_sort: __("Set Sort"), select: __("Select Rows") };
+  return Object.entries(labels).map(([name, label]) => ({
+    item: {
+      name,
+      label,
+      palette: false,
+      run: async (_context: unknown, value: unknown) => (await import("./listStateRuns")).RUNS[name](host.list, listSchema(host), value),
+    },
     hidden: false,
-  });
-  return [
-    entry("set_filters", __("Set Filters"), (runs, { filters }) => runs.setFilters(list, schema(), { filters })),
-    entry("set_sort", __("Set Sort"), (runs, { sort }) => runs.setSort(list, schema(), { sort })),
-    entry("select", __("Select Rows"), (runs, { names }) => runs.select(list, names)),
-  ];
+  }));
 }
 
 /** A script's `controls` item with `run` is an act; a built-in one draws itself. */
