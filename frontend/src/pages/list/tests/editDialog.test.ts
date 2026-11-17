@@ -185,25 +185,41 @@ describe("EditDialog", () => {
 			await open(async () => {});
 			const handle = frontHandle()!;
 			expect(handle.fieldnames()).toEqual(expect.arrayContaining(["description", "done"]));
-			handle.setValues({ description: "Later", done: true });
+			await handle.setValues({ description: "Later", done: true });
 			await settle();
 			expect(handle.values()).toEqual({ description: "Later", done: 1 });
-			handle.setValues({ priority: "High" });
+			await handle.setValues({ priority: "High" });
 			await settle();
 			expect(Object.keys(handle.values())).toEqual(["description", "done", "priority"]);
 		});
 
+		it("waits for the fields to load before it fills or submits", async () => {
+			const api = await import("@framework/ui/api");
+			let release = () => {};
+			const gate = new Promise<void>((resolve) => (release = resolve));
+			const meta = await vi.mocked(api.getMeta)("ToDo");
+			vi.mocked(api.getMeta).mockImplementationOnce(async () => {
+				await gate;
+				return meta;
+			});
+			await open(async () => {});
+			const filled = frontHandle()!.setValues({ description: "Later" });
+			release();
+			await filled;
+			await settle();
+			expect(frontHandle()!.values()).toEqual({ description: "Later" });
+		});
+
 		it("refuses a field the dialog cannot set", async () => {
 			await open(async () => {});
-			expect(() => frontHandle()!.setValues({ locked: "x" })).toThrow("The dialog has no field locked");
+			await expect(frontHandle()!.setValues({ locked: "x" })).rejects.toThrow("The dialog has no field locked");
 		});
 
 		it("submits the update and closes, or throws why the run was refused", async () => {
 			const run = vi.fn(async () => {});
 			const shown = await open(run);
 			await expect(frontHandle()!.submit()).rejects.toThrow("Pick a field first");
-			frontHandle()!.setValues({ description: "Later" });
-			await settle();
+			await frontHandle()!.setValues({ description: "Later" });
 			await frontHandle()!.submit();
 			expect(run).toHaveBeenCalledWith({ values: { description: "Later" } });
 			expect(shown.value).toBe(false);
@@ -213,8 +229,7 @@ describe("EditDialog", () => {
 			let finish = () => {};
 			const run = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)));
 			const shown = await open(run);
-			frontHandle()!.setValues({ description: "Later" });
-			await settle();
+			await frontHandle()!.setValues({ description: "Later" });
 			const first = frontHandle()!.submit();
 			await settle();
 			await expect(frontHandle()!.submit()).rejects.toThrow("The update is running");

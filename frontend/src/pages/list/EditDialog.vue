@@ -67,6 +67,7 @@ import { getMeta } from "@framework/ui/api";
 import { FormLayout, fieldsToLayout, mapField, type RawMetaField } from "@framework/ui/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
 import { Button, Dialog, Select } from "frappe-ui";
+import { until } from "@vueuse/core";
 import { computed, provide, ref, watch } from "vue";
 import { useReadableDialog, type DialogHandle } from "@/shell/dialogs/readableDialogs";
 import { coerceValue } from "@/recordPage/formDialogLayout";
@@ -214,13 +215,14 @@ async function confirm() {
 	}
 }
 
-// `dialog.set_values` names the fields to set (a key is a fieldname, or `table.fieldname` for a child field): it
+// A call waits for the fields to load. `dialog.set_values` names the fields to set (a key is a fieldname, or `table.fieldname` for a child field): it
 // adds a row for each and never removes one; `dialog.close` and a new Edit start over.
 const handle: DialogHandle = {
 	fieldnames: () => fields.value.map((one) => one.key),
 	values: () =>
 		Object.fromEntries(picked.value.map(({ field, value }) => [field.key, value ?? null])),
-	setValues(values) {
+	async setValues(values) {
+		await until(loading).toBe(false);
 		const unknown = Object.keys(values).filter((key) => !fieldOf(key));
 		if (unknown.length)
 			throw new Error(__("The dialog has no field {0}", [unknown.join(", ")]));
@@ -235,6 +237,7 @@ const handle: DialogHandle = {
 		}
 	},
 	async submit() {
+		await until(loading).toBe(false);
 		if (saving.value) throw new Error(__("The update is running"));
 		if (!picked.value.length) throw new Error(__("Pick a field first"));
 		await confirm();

@@ -13,7 +13,7 @@ export interface DialogHandle {
 	fieldnames: () => string[];
 	values: () => Record<string, any>;
 	/** Throws on a fieldname the dialog does not draw. */
-	setValues: (values: Record<string, any>) => void;
+	setValues: (values: Record<string, any>) => void | Promise<void>;
 	submit: () => unknown;
 	close: () => void;
 }
