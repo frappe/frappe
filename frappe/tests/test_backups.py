@@ -1,3 +1,4 @@
+import contextlib
 import gzip
 import io
 import os
@@ -240,11 +241,12 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 	def write_dump(self, rows_by_table: dict[str, tuple[str, list[tuple]]]) -> str:
 		with TemporaryDirectory() as directory:
 			database_path = Path(directory) / "site.db"
-			with sqlite3.connect(database_path) as database:
+			with contextlib.closing(sqlite3.connect(database_path)) as database:
 				for table, (columns, rows) in rows_by_table.items():
 					database.execute(f'CREATE TABLE "{table}" ({columns})')
 					placeholders = ", ".join("?" * len(rows[0]))
 					database.executemany(f'INSERT INTO "{table}" VALUES ({placeholders})', rows)
+				database.commit()
 			dump_path = Path(directory) / "dump.sql.gz"
 			MariaDBDumpWriter(database_path).write(dump_path, "-- begin frappe metadata\n")
 			with gzip.open(dump_path, "rt") as dump:
@@ -269,7 +271,8 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 				"tabToDo": (
 					"name varchar(140) primary key, idx int, description text, date date",
 					[("todo-1", "", "it's a\nline \\ here", "2026-01-01 10:30:00")],
-				)
+				),
+				"table_without_doctype": ("path text default 'c:\\'", [("d:",)]),
 			}
 		)
 
@@ -282,6 +285,7 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 		self.assertNotIn('"tabToDo"', dump)
 		self.assertIn("SET SESSION sql_mode='STRICT_TRANS_TABLES,", dump)
 		self.assertNotIn("NO_BACKSLASH_ESCAPES", dump)
+		self.assertIn("`path` longtext DEFAULT 'c:\\\\'", dump)
 
 	def test_refuses_keys_that_collide_in_mariadb_collation(self):
 		with self.assertRaises(MariaDBDumpError) as error:
@@ -289,12 +293,18 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 				{
 					"tabRole": (
 						"name varchar(140) primary key, role_name varchar(140)",
-						[("Gate Role", "Gate Role"), ("gate role", "gate role")],
+						[
+							("Gate Role", "Gate Role"),
+							("gate role", "gate role"),
+							("Résumé", "Résumé"),
+							("resume", "resume"),
+						],
 					)
 				}
 			)
 		self.assertIn("tabRole", str(error.exception))
 		self.assertIn("'gate role'", str(error.exception))
+		self.assertIn("'resume'", str(error.exception))
 
 	def test_refuses_non_finite_numbers(self):
 		with self.assertRaises(MariaDBDumpError) as error:
@@ -315,11 +325,12 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 
 	def test_parses_keys_from_create_table(self):
 		shape = parse_table_shape(
-			"CREATE TABLE `t` (`a` varchar(10) NOT NULL DEFAULT 'x,y', b int UNIQUE, "
-			"PRIMARY KEY (`a`), KEY `ab` (`a`, b), UNIQUE `bu` (b(10))) ENGINE=InnoDB"
+			"CREATE TABLE `t` (`a` varchar(10) NOT NULL DEFAULT 'x,y', `c` varchar(10) DEFAULT 'c:\\\\', "
+			"b int UNIQUE, PRIMARY KEY (`a`), KEY `ab` (`a`, b), UNIQUE `bu` (b(10))) ENGINE=InnoDB"
 		)
 		self.assertEqual(shape.primary_key, ("a",))
 		self.assertEqual(shape.columns["a"].default, "'x,y'")
+		self.assertEqual(shape.columns["c"].default, "'c:\\\\'")
 		self.assertFalse(shape.columns["a"].is_nullable)
 		self.assertEqual(
 			[(i.name, i.columns, i.unique) for i in shape.indexes],
