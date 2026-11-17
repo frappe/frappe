@@ -1,7 +1,7 @@
 name: Frontend
 
 on:
-  # desk-v2 runs it too, so two PRs that each stay inside the page-JS tolerance cannot add up unseen.
+  # desk-v2 runs it too, so its page-JS table shows what the merged PRs add up to.
   push:
     branches: [desk-v2]
   pull_request:
