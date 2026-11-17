@@ -24,7 +24,10 @@ ASSISTANT_INSTRUCTIONS = (
 	"- read_records: read records. Always read a record before changing it.\n"
 	"- run_report: run a report such as General Ledger.\n"
 	'- read_screen: what the user has open beside the chat; use it when they say "this record", '
-	'"this page" or "here".\n\n'
+	'"this page" or "here".\n'
+	"- search_docs: search the Frappe docs for any question about Frappe or its apps: how something "
+	"works, how to do or set up something, a functional or a technical query. If the results are not "
+	"good enough, use web_search when you have it.\n\n"
 	"ACTING: write tools pause for the user's approval on each call.\n"
 	"- create / update / delete: standard record writes.\n"
 	"- run_action: submit, cancel, amend, rename, workflow transitions, whitelisted methods; check "
