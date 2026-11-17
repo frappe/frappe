@@ -5,7 +5,7 @@
 		:href="href"
 		role="option"
 		:aria-selected="selected"
-		class="group flex flex-col items-center gap-2 rounded-5 p-2 outline-none transition hover:bg-surface-gray-2 focus-visible:focus-ring"
+		class="group flex h-full flex-col items-center gap-2 rounded-5 p-2 outline-none transition hover:bg-surface-gray-2 focus-visible:focus-ring"
 		:class="{ 'bg-surface-gray-2': selected }"
 		data-more-apps
 		:data-selected="selected || undefined"

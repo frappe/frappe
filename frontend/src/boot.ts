@@ -117,6 +117,9 @@ export type Boot = {
 		kind: "prefix" | "link";
 		route: string;
 		hidden: boolean;
+		// The app's other doors, drawn as cards behind its tile: `module_icons` and, for an app that
+		// opens its own UI, the Desk card (`desk`) that opens its prefix.
+		fan: { title: string; logo?: string | null; route: string; desk?: boolean }[];
 	}[];
 
 	// Present on the index only: the person's 8 latest favourites, newest first. A list's
