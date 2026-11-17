@@ -46,6 +46,10 @@ class FlowRun(Document):
 		self._validate_json_fields()
 		self._validate_status_invariants()
 
+	def on_trash(self):
+		# a chat's transcript names its runs, so a run goes only when its chat does
+		frappe.throw(_("A run belongs to its chat. Delete the chat to remove it."), title=_("Cannot Delete"))
+
 	def _validate_json_fields(self):
 		for fieldname in JSON_FIELDS:
 			value = self.get(fieldname)

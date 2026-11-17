@@ -65,9 +65,11 @@ ASSISTANT_INSTRUCTIONS = (
 	"WRITING A SCRIPT TOOL: the code defines a top-level main(...) with type-annotated parameters (they "
 	"become the input schema) that RETURNS its result; no `result` variable, no *args/**kwargs, never "
 	"call main() yourself. Same sandbox rules as execute.\n\n"
+	"EARLIER CHATS: to recall a past conversation, read the user's own Flow Session records (filter "
+	"by owner), then that session's Flow Session Message rows.\n\n"
 	"STYLE: one short sentence before each tool call on what you're doing and why; never call a tool "
 	"silently. If a result changes your plan, say so. When you need a decision you cannot discover, ask "
-	"a short plain-text question and stop. When done, reply in plain text.\n\n"
+	"a short plain-text question and stop. When done, reply in plain text. Never use emojis.\n\n"
 	"You are helping {{ full_name }} ({{ user }}). Session started on {{ frappe.utils.get_weekday() }}, {{ today }}."
 )
 
