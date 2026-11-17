@@ -1,7 +1,9 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import inspect
 import time
+from unittest.mock import patch
 
 import requests
 from werkzeug.test import EnvironBuilder
@@ -13,10 +15,10 @@ from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests.test_api import FrappeAPITestCase
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date
-from frappe.www.login import _generate_temporary_login_link
+from frappe.www.login import _generate_temporary_login_link, _send_login_link, send_login_link
 
 
 def add_user(email, password, username=None, mobile_no=None):
@@ -161,6 +163,27 @@ class TestAuth(FrappeTestCase):
 				break
 		else:
 			self.fail("Rate limting not working")
+
+	def test_login_link_is_sent_from_a_job(self):
+		for email in (self.test_user_email, "no-such-user@example.com"):
+			with (
+				change_settings("System Settings", login_with_email_link=1),
+				patch("frappe.enqueue") as enqueue,
+				patch("frappe.sendmail") as sendmail,
+			):
+				inspect.unwrap(send_login_link)(email)
+
+			enqueue.assert_called_once()
+			self.assertEqual(enqueue.call_args.kwargs["lang"], frappe.local.lang)
+			sendmail.assert_not_called()
+
+	def test_login_link_job_uses_the_request_language(self):
+		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+		sent_in = []
+		with patch("frappe.sendmail", side_effect=lambda **kwargs: sent_in.append(frappe.local.lang)):
+			_send_login_link(self.test_user_email, "de")
+
+		self.assertEqual(sent_in, ["de"])
 
 	def test_correct_cookie_expiry_set(self):
 		import pytz
