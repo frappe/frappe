@@ -172,11 +172,23 @@ class TestDeleting(SavedViewCase):
 				{"doctype": "Default View", "reference_doctype": DOCTYPE, "user": PERSON, "view": key}
 			).insert(ignore_permissions=True)
 
-			self.assertEqual(delete_view(DOCTYPE, key), {"key": key, "restored": False})
+			self.assertEqual(delete_view(DOCTYPE, key), {"key": key, "restored": False, "default_view": None})
 
 		self.assertIsNone(self.row_at(key, PERSON))
 		self.assertFalse(frappe.db.exists("Favourite", {"reference_name": DOCTYPE, "view": key}))
 		self.assertFalse(frappe.db.exists("Default View", {"reference_doctype": DOCTYPE, "view": key}))
+
+	def test_a_delete_answers_the_default_the_layers_left_resolve_to(self):
+		frappe.get_doc(
+			{"doctype": "Default View", "reference_doctype": DOCTYPE, "user": SITE_ROW, "view": "probe-open"}
+		).insert(ignore_permissions=True)
+		with set_user(PERSON):
+			key = save_view_as(DOCTYPE, "Mine", OPEN)["key"]
+			frappe.get_doc(
+				{"doctype": "Default View", "reference_doctype": DOCTYPE, "user": PERSON, "view": key}
+			).insert(ignore_permissions=True)
+
+			self.assertEqual(delete_view(DOCTYPE, key)["default_view"], "probe-open")
 
 	def test_a_person_cannot_delete_another_s_view_or_the_site_s(self):
 		with set_user(OTHER):
@@ -197,7 +209,10 @@ class TestDeleting(SavedViewCase):
 			save_view(DOCTYPE, "probe-open", CLOSED)
 			toggle_favourite("DocType", DOCTYPE, add=True, view="probe-open")
 
-			self.assertEqual(delete_view(DOCTYPE, "probe-open"), {"key": "probe-open", "restored": True})
+			self.assertEqual(
+				delete_view(DOCTYPE, "probe-open"),
+				{"key": "probe-open", "restored": True, "default_view": None},
+			)
 
 			self.assertEqual(find(DOCTYPE, "probe-open")["layer"], "app")
 			self.assertEqual(view_settings(DOCTYPE, "probe-open")["settings"], OPEN)

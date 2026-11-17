@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.default_view.resolver import DefaultViews
 from frappe.desk.doctype.favourite.favourite import list_favourites
 from frappe.desk.doctype.view_type.view_type import (
 	applies_to,
@@ -144,11 +145,17 @@ def rename_view(doctype: str, key: str, label: str) -> dict:
 
 @frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
-def delete_view(doctype: str, key: str) -> dict:
-	"""Delete a saved view's row. `restored` is true when that brought back an app's view at the same key."""
+def delete_view(doctype: str, key: str, app: str | None = None) -> dict:
+	"""Delete a saved view's row. `restored` is true when that brought back an app's view at the same key;
+	`default_view` is the caller's default in `app` once it is gone, from the layers left."""
 	check_doctype(doctype)
 
-	return {"key": key, "restored": ViewWriter(doctype).delete(key)}
+	restored = ViewWriter(doctype).delete(key)
+	return {
+		"key": key,
+		"restored": restored,
+		"default_view": DefaultViews(app=app).addresses([doctype]).get(doctype),
+	}
 
 
 @frappe.desk_v2_only

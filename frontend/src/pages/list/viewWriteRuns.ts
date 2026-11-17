@@ -21,8 +21,6 @@ export interface ViewWriteHost {
   /** The page's own modules, which it hands in so this chunk shares none of them. */
   refreshViews: () => void;
   forgetStar: (key: string) => void;
-  /** Reads the default that resolves for the person now, and remembers it in boot. */
-  refreshDefault: () => Promise<void>;
 }
 
 /** `agent` is true for a `window.desk` call, which asks before it deletes. */
@@ -71,17 +69,23 @@ async function renameView({ page, refreshViews }: ViewWriteHost, { key, label }:
 
 /** Deletes the view; an app's view of the same key answers again when a site row over it goes. */
 async function deleteView(
-  { page, boot, router, dialog, forgetStar, refreshDefault, refreshViews }: ViewWriteHost,
+  { page, boot, router, dialog, forgetStar, refreshViews }: ViewWriteHost,
   { key }: { key: string },
   agent = false
 ) {
   const { doctype } = page.view;
   // A person's script skips the question, as the control that deletes asks it first; an agent's call asks here.
   if (agent && !(await confirmDelete(dialog, key))) throw new ActDeclined("list.delete_view");
-  const { restored } = await write<{ key: string; restored: boolean }>("delete_view", { doctype, key });
+  const { restored, default_view } = await write<{ restored: boolean; default_view: string | null }>("delete_view", {
+    doctype,
+    key,
+    app: boot.app,
+  });
   if (!restored) forgetStar(key);
-  // The server dropped the person's default at the key; a site or app default may answer in its place.
-  if (!restored && boot.default_views?.[doctype] === key) await refreshDefault();
+  // The server dropped the person's default at the key; the reply is the default that answers now, whichever layer holds it.
+  const defaults = (boot.default_views ??= {});
+  if (default_view) defaults[doctype] = default_view;
+  else delete defaults[doctype];
   if (key === page.view.key && !restored) {
     // The open view is gone: the plain list opens, not the person's default in its place.
     skipDefaultOnce(doctype);

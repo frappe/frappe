@@ -15,7 +15,6 @@ import { registerShell } from "@/router/routeFor";
 import { consumeSkip, clearSkip } from "@/router/skipDefault";
 import { refreshSavedViews } from "@/list/savedView";
 import { forgetFavouriteView } from "@/list/useListSettings";
-import { clearDefaultView } from "../defaultView";
 import { RUNS, type ViewWriteHost } from "../viewWriteRuns";
 
 const API = "frappe.desk.doctype.doctype_view.api";
@@ -47,7 +46,6 @@ function host(over: { layer?: View["layer"]; key?: string; saveable?: boolean; d
 		dialog: { danger },
 		refreshViews: refreshSavedViews,
 		forgetStar: (key) => forgetFavouriteView("ToDo", key),
-		refreshDefault: () => clearDefaultView(boot, "ToDo", "user"),
 	};
 	return { page, boot, router, run: host_run(context) };
 }
@@ -143,9 +141,7 @@ describe("rename_view and publish_view", () => {
 
 describe("delete_view", () => {
 	it("leaves a deleted open view for the plain list, skipping the default for that visit", async () => {
-		runMethod.mockImplementation(async (method: string) => ({
-			data: method.endsWith(".clear") ? null : { key: "mine", restored: false },
-		}));
+		runMethod.mockResolvedValue({ data: { key: "mine", restored: false, default_view: null } });
 		const { boot, run } = host({ defaults: { ToDo: "mine" } });
 
 		expect(await run("delete_view", { key: "mine" })).toEqual({ key: "mine", restored: false });
@@ -155,7 +151,7 @@ describe("delete_view", () => {
 	});
 
 	it("stays on the page when another view was deleted, and keeps a default that points elsewhere", async () => {
-		runMethod.mockResolvedValue({ data: { key: "other", restored: false } });
+		runMethod.mockResolvedValue({ data: { key: "other", restored: false, default_view: "mine" } });
 		const { boot, run } = host({ defaults: { ToDo: "mine" } });
 
 		await run("delete_view", { key: "other" });
@@ -164,7 +160,7 @@ describe("delete_view", () => {
 	});
 
 	it("stays when a site row over an app's view went: the app's view answers at the key again", async () => {
-		runMethod.mockResolvedValue({ data: { key: "mine", restored: true } });
+		runMethod.mockResolvedValue({ data: { key: "mine", restored: true, default_view: "mine" } });
 		const { boot, run } = host({ layer: "site", defaults: { ToDo: "mine" } });
 
 		expect(await run("delete_view", { key: "mine" })).toEqual({ key: "mine", restored: true });
@@ -173,17 +169,11 @@ describe("delete_view", () => {
 	});
 
 	it("takes the default that answers next, from the server, when the person's own default is deleted", async () => {
-		runMethod.mockImplementation(async (method: string) => ({
-			data: method.endsWith(".clear") ? "site-open" : { key: "mine", restored: false },
-		}));
+		runMethod.mockResolvedValue({ data: { key: "mine", restored: false, default_view: "site-open" } });
 		const { boot, run } = host({ defaults: { ToDo: "mine" } });
 
 		await run("delete_view", { key: "mine" });
-		expect(runMethod).toHaveBeenCalledWith(
-			"frappe.desk.doctype.default_view.api.clear",
-			{ doctype: "ToDo", scope: "user", app: undefined },
-			{ nullable: true }
-		);
+		expect(runMethod).toHaveBeenCalledTimes(1);
 		expect((boot as { default_views: object }).default_views).toEqual({ ToDo: "site-open" });
 	});
 

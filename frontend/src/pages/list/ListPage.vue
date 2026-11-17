@@ -266,7 +266,6 @@ const listActs = useListActs(
 					dialog: list.engine.page.dialog,
 					refreshViews: refreshSavedViews,
 					forgetStar: (key) => forgetFavouriteView(doctype, key),
-					refreshDefault: () => clearDefaultView(boot, doctype, "user"),
 				},
 				value,
 				agent
