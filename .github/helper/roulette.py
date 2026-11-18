@@ -156,15 +156,15 @@ def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
 
 
 def base_failing(pr_number, repo, workflow):
-	"""Is this suite's latest full run failing on the branch the PR targets, or on develop for other branches?"""
+	"""Is this suite's latest full run failing on the desk-v2 branch the PR targets?"""
 	from develop_status import BRANCHES, failing_suites
 
 	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
-	return workflow in failing_suites(base if base in BRANCHES else "develop")
+	return base in BRANCHES and workflow in failing_suites(base)
 
 
 def skips_test_suites(pr_number, repo="frappe/frappe"):
-	"""Check if the PR targets develop, desk-v2 or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
+	"""Check if the PR targets develop, desk-v2 or a hotfix branch: develop runs the suites in its merge queue, desk-v2 every hour, hotfix on the release PR."""
 	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
 	return base in ("develop", "desk-v2") or base.endswith("-hotfix")
 

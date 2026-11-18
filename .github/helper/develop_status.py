@@ -1,14 +1,14 @@
 """
-Post a "Develop status" commit status on open develop pull requests, and a "Desk-v2 status" on
-desk-v2 ones: failing while the latest full server or UI run on that branch failed, unless the
-pull request has the fix label and those suites passed on it.
+Post a "Desk-v2 status" commit status on open desk-v2 pull requests: failing while the latest full
+server or UI run on desk-v2 failed, unless the pull request has the fix label and those suites
+passed on it. Develop needs none: its merge queue tests every change before it lands.
 
 Usage:
-    python develop_status.py refresh       # every open develop and desk-v2 pull request
+    python develop_status.py refresh       # every open desk-v2 pull request
     python develop_status.py pr <number>   # one pull request
     python develop_status.py wait <number> # one pull request, until its fix tests finish
     python develop_status.py commit <sha>  # the pull requests whose head is this commit
-    python develop_status.py start [all] [branch]  # start the suites the branch's new commits need, or both branches'
+    python develop_status.py start [all]   # start the suites desk-v2's new commits need, or both suites
 """
 
 import json
@@ -23,7 +23,7 @@ from roulette import FIX_DEVELOP_LABEL as FIX_LABEL
 from roulette import is_ci, is_desk_frontend, is_docs, is_frontend_code, is_server_side_code
 
 REPO = os.environ["GITHUB_REPOSITORY"]
-BRANCHES = ("develop", "desk-v2")
+BRANCHES = ("desk-v2",)
 SUITES = {"server-tests.yml": "Server Success", "ui-tests.yml": "UI Success"}
 TEST_JOBS = {"server-tests.yml": "Integration", "ui-tests.yml": "UI Test"}
 STATUS_JOB = "Update Develop Status"

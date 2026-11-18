@@ -1,42 +1,41 @@
 # How CI works on develop
 
-## Develop is tested every hour
+## Develop merges through a merge queue
 
-Every hour, if develop has new commits, the full suites run on develop: the server suite when server files changed, the UI suite when frontend files changed. The full suites also run every night.
+Pull requests into develop merge through GitHub's merge queue. Click **Merge when ready** on a pull request and GitHub tests it on top of the latest develop and the pull requests queued before it.
 
-Every open develop pull request has a **Develop status** check:
+- If the tests pass, the pull request merges on its own. You don't need to update your branch or wait.
+- If they fail, the pull request leaves the queue and nothing is merged. The pull request's timeline links the failed run. Fix it and click **Merge when ready** again.
 
-- Green, "develop is passing": you can merge.
-- Red, "develop is failing": something already merged broke develop. The check links to the failed job, which shows the error. Don't merge until develop is fixed.
-
-When develop goes green again, every pull request turns green on its own. You don't need to push or re-run anything.
-
-desk-v2 works the same way. Its pull requests get a **Desk-v2 status** check that follows desk-v2's own hourly runs, and `fixes-develop` on a desk-v2 pull request runs the suites failing on desk-v2. A failure on one branch never shows on the other branch's pull requests.
-
-## When develop is failing
-
-1. Open the failed run from the Develop status check and find the test that fails.
-2. Open a pull request with the fix, or a revert of the change that broke it.
-3. Add the `fixes-develop` label. The failing suite runs in full on your pull request, and its Develop status stays yellow while those tests run.
-4. When they pass, its Develop status turns green and you can merge. If they fail, it turns red and links the failed job. Once it merges, every pull request turns green right away. The full suites also run on develop once more to confirm, and if they fail, develop is red again.
-
-To re-test develop at any other time: open the **Actions** tab of the repo, click **Develop Tests** in the list on the left, then click the **Run workflow** button on the right.
-
-## Labels
-
-| Label                               | What it does                                                                                                                                                   |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fixes-develop`                     | Your pull request fixes a failing develop. It runs in full whichever suite is failing on develop (server, UI or both), and it can merge once those tests pass. |
-| `run-full-ci`                       | Runs the full server and UI suites on your pull request. Use it for risky changes.                                                                             |
-| `Run Server Tests` / `Run UI Tests` | Runs the full server or UI suite on your pull request.                                                                                                         |
-
-You can add a label any time. It restarts your tests within a minute, no push needed.
+The full suites also run on develop every night.
 
 ## Tests on your pull request
 
-Pull requests into develop and desk-v2 run only the linters. Develop and desk-v2 run the server and UI test suites every hour. To run them on your pull request, add one of the labels above.
+Pull requests into develop and desk-v2 run only the linters. To run the server and UI test suites on your pull request, add a label:
+
+| Label                               | What it does                                                                                                                                                     |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `run-full-ci`                       | Runs the full server and UI suites on your pull request. Use it for risky changes.                                                                               |
+| `Run Server Tests` / `Run UI Tests` | Runs the full server or UI suite on your pull request.                                                                                                           |
+| `fixes-develop`                     | desk-v2 only: your pull request fixes a failing desk-v2. It runs in full whichever suite is failing on desk-v2, and it can merge once those tests pass.          |
+
+You can add a label any time. It restarts your tests within a minute, no push needed.
+
+## desk-v2 is tested every hour
+
+desk-v2 has no merge queue. Every hour, if desk-v2 has new commits, the full suites run on desk-v2: the server suite when server files changed, the UI suite when frontend files changed.
+
+Every open desk-v2 pull request has a **Desk-v2 status** check:
+
+- Green, "desk-v2 is passing": you can merge.
+- Red, "desk-v2 is failing": something already merged broke desk-v2. The check links to the failed job, which shows the error. Open a pull request with the fix and add the `fixes-develop` label.
+
+When desk-v2 goes green again, every pull request turns green on its own.
+
+To re-test desk-v2 at any other time: open the **Actions** tab of the repo, click **Develop Tests** in the list on the left, then click the **Run workflow** button on the right.
 
 ## Settings
 
-- How often develop is tested: the `cron` at the top of `.github/workflows/develop-status.yml`.
+- Merge queue: the develop branch protection rule in the repository settings.
+- How often desk-v2 is tested: the `cron` at the top of `.github/workflows/develop-status.yml`.
 - Label names: the top of `.github/helper/roulette.py`, and the label checks in `.github/workflows/develop-status.yml`.
