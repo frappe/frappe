@@ -1106,7 +1106,7 @@ def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessi
 
 def get_user_id(user: str) -> str:
 	"""Return the ID of the user with this ID or email, or exit if there is none."""
-	if user_id := frappe.db.exists("User", user) or get_user_by_email(user):
+	if user_id := frappe.db.get_value("User", user) or get_user_by_email(user):
 		return user_id
 
 	click.echo(f"User {user} does not exist")
