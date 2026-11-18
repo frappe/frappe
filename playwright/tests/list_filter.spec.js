@@ -406,6 +406,14 @@ test.describe("List filter", () => {
 			expect(await first_state()).toBe("applied");
 			await expect.poll(() => applied(page)).toEqual([["status", "=", "Closed"]]);
 			await settled(page);
+			// the list keeps its filters for next time once it has saved them
+			await expect
+				.poll(() =>
+					page.evaluate(() =>
+						JSON.stringify(frappe.get_user_settings("ToDo", "List")?.filters || [])
+					)
+				)
+				.toContain("Closed");
 
 			// opened from inside the desk, with no link filters, it starts with its saved ones
 			await page.goto("/desk");
