@@ -60,10 +60,13 @@ def get_preview_from_url(
 	                capped at ``MAX_FULL_PAGE_HEIGHT`` pixels. Content inside an inner scroll
 	                container (e.g. a ``100vh`` app shell) is not expanded.
 	        wait_until: A synchronous JavaScript expression, polled until it is truthy
-	                before the capture. A syntax error in it raises at once.
+	                before the capture, instead of waiting for the network to go idle.
+	                It is checked at least once. A syntax error in it raises at once.
 	        timeout: Seconds to wait for the page load and ``wait_until`` when ``wait_until``
 	                is given; raises ``TimeoutError`` when it is still falsy after that.
 	"""
+	if wait_until and cint(timeout) <= 0:
+		raise ValueError("timeout must be a positive number of seconds")
 	return capture_screenshot(
 		format,
 		url=url,
@@ -129,9 +132,12 @@ def capture_screenshot(
 				page.wait_for_set_content()
 			else:
 				if headers:
-					page.set_extra_headers_for_page_origin(headers)
+					page.set_extra_headers_for_origin(url, headers)
 				deadline = time.monotonic() + timeout
-				page.navigate(url, timeout=timeout if wait_until else None)
+				if wait_until:
+					page.navigate(url, wait_for=["load"], timeout=timeout)
+				else:
+					page.navigate(url)
 				if wait_until:
 					wait_until_truthy(page, wait_until, deadline, timeout)
 				if wait_for:
@@ -156,7 +162,8 @@ def capture_screenshot(
 
 
 def wait_until_truthy(page, expression: str, deadline: float, timeout: int):
-	while (remaining := deadline - time.monotonic()) > 0:
+	while True:
+		remaining = max(deadline - time.monotonic(), 0.5)
 		try:
 			result, _error = page.send(
 				"Runtime.evaluate",
@@ -164,15 +171,16 @@ def wait_until_truthy(page, expression: str, deadline: float, timeout: int):
 				timeout=remaining,
 			)
 		except TimeoutError:
-			break
+			result = None
 		result = result or {}
 		if result.get("result", {}).get("value") is True:
 			return
 		exception = result.get("exceptionDetails", {}).get("exception", {})
 		if exception.get("className") == "SyntaxError":
 			raise SyntaxError(f"Invalid wait_until expression: {exception.get('description')}")
-		sleep(page, min(0.1, max(deadline - time.monotonic(), 0)))
-	raise TimeoutError(f"Page not ready after {timeout} seconds: {expression} is not truthy")
+		if time.monotonic() >= deadline:
+			raise TimeoutError(f"Page not ready after {timeout} seconds: {expression} is not truthy")
+		sleep(page, 0.1)
 
 
 def sleep(page, seconds: float):

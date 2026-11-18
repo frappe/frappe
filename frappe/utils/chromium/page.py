@@ -1,4 +1,5 @@
 import base64
+import json
 import re
 import time
 import urllib
@@ -118,9 +119,10 @@ def read_local_resource(url: str) -> tuple[str, str | None] | None:
 HEADER_NAME = re.compile(r"[!#$%&'*+\-.^_`|~0-9A-Za-z]+")
 
 
-def get_origin(url: str) -> tuple:
+def get_origin(url: str) -> str:
+	"""Origin of a URL that Chromium reports, which is already canonical (punycode, no default port)."""
 	parts = urllib.parse.urlsplit(url)
-	return (parts.scheme, parts.hostname, parts.port or {"http": 80, "https": 443}.get(parts.scheme))
+	return f"{parts.scheme}://{parts.netloc.rpartition('@')[2]}"
 
 
 class Page:
@@ -151,7 +153,9 @@ class Page:
 	def send(self, method, params=None, return_future=False, timeout=None):
 		if params is None:
 			params = {}
-		return self.session.send(method, params, self.session_id, return_future, timeout=timeout)
+		if timeout:
+			return self.session.send(method, params, self.session_id, return_future, timeout=timeout)
+		return self.session.send(method, params, self.session_id, return_future)
 
 	def get_frame_id_on_demand(self):
 		if self.frame_id:
@@ -285,23 +289,23 @@ class Page:
 		# Enable request interception for the specified URL pattern
 		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
 
-	def set_extra_headers_for_page_origin(self, headers):
-		"""Add `headers` to requests for the origin of the page's first document request, as Chromium
-		reports it; requests to other origins continue without them. Call before navigating."""
+	def set_extra_headers_for_origin(self, url, headers):
+		"""Add `headers` to requests for `url`'s origin, as Chromium parses it; requests to other
+		origins continue without them. A URL without an origin, such as `data:`, gets none."""
 		for name, value in headers.items():
 			if not HEADER_NAME.fullmatch(name) or any(c in str(value) for c in "\r\n\0"):
 				raise ValueError(f"Invalid HTTP header: {name}")
+		result, error = self.send("Runtime.evaluate", {"expression": f"new URL({json.dumps(url)}).origin"})
+		if error or "exceptionDetails" in result:
+			raise ValueError(f"Invalid URL: {url}")
+		page_origin = result["result"]["value"]
 		header_names = {name.lower() for name in headers}
-		page_origin = {}
 
 		def on_request_paused_event(future, response):
 			params = response.get("params") or {}
 			request = params.get("request") or {}
 			continue_params = {"requestId": params["requestId"]}
-			origin = get_origin(request.get("url", ""))
-			if not page_origin and params.get("resourceType") == "Document":
-				page_origin["origin"] = origin
-			if origin == page_origin.get("origin"):
+			if get_origin(request.get("url", "")) == page_origin:
 				request_headers = [
 					{"name": name, "value": value}
 					for name, value in (request.get("headers") or {}).items()
