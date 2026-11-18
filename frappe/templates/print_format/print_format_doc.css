@@ -663,6 +663,12 @@ body.print-format-doc .letter-head,
 .print-format-doc li[data-list] {
 	counter-set: list-1 list-2 list-3 list-4 list-5 list-6 list-7 list-8;
 }
+.print-format-doc .ql-editor li[data-list] {
+	padding-left: 0;
+}
+.print-format-doc .ql-editor .ql-ui {
+	display: none;
+}
 .print-format-doc li[data-list="bullet"] {
 	list-style-type: disc;
 	counter-increment: list-item 0;
