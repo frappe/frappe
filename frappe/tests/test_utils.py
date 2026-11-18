@@ -2587,3 +2587,18 @@ class TestMsgPrint(UnitTestCase):
 		self.assertEqual(str(raised.exception), "first<br>second")
 		printed.assert_called_once()
 		self.assertNotIn("<br>", printed.call_args.args[0])
+
+
+class TestAddUserInfo(IntegrationTestCase):
+	def test_add_user_info_by_id_or_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[]) as user:
+			email = f"new_{user.name}"
+			frappe.db.set_value("User", user.name, "email", email)
+
+			user_info = {}
+			frappe.utils.add_user_info([user.name, email, None], user_info)
+
+			self.assertEqual(user_info[user.name].name, user.name)
+			self.assertEqual(user_info[email].name, user.name)

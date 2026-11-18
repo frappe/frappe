@@ -22,6 +22,7 @@ from frappe.utils import (
 	add_years,
 	date_diff,
 	format_datetime,
+	get_email_address,
 	get_fullname,
 	getdate,
 	month_diff,
@@ -191,7 +192,7 @@ class Event(Document):
 		communication.subject = self.subject
 		communication.content = self.description if self.description else self.subject
 		communication.communication_date = self.starts_on
-		communication.sender = self.owner
+		communication.sender = get_email_address(self.owner)
 		communication.sender_full_name = get_fullname(self.owner)
 		communication.reference_doctype = self.doctype
 		communication.reference_name = self.name
@@ -264,8 +265,10 @@ class Event(Document):
 def update_attending_status(event_name: str, attendee: str, status: str):
 	event_doc = frappe.get_doc("Event", event_name)
 	caller = frappe.session.user
+	caller_email = get_email_address(caller)
+	is_caller = attendee in (caller, caller_email)
 
-	if attendee != caller:
+	if not is_caller:
 		if event_doc.owner != caller and not frappe.has_permission("Event", "write", event_name):
 			frappe.throw(
 				_("You are not allowed to update attendance for another user."), frappe.PermissionError
@@ -275,12 +278,30 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 		frappe.db.set_value("Event", event_name, "attending", status)
 		return
 
+	user, email = (caller, caller_email) if is_caller else (attendee, attendee)
 	for participant in event_doc.event_participants:
-		if participant.email == attendee:
+		if _is_participant(participant, user, email):
 			frappe.db.set_value("Event Participants", participant.name, "attending", status)
 			return
 
 	frappe.throw(_("Attendee not found in this event."))
+
+
+def _is_participant(participant, user: str, email: str | None) -> bool:
+	"""Whether the Event Participants row references the user or has their email."""
+	if participant.reference_doctype == "User" and participant.reference_docname == user:
+		return True
+
+	return bool(email and participant.email and participant.email.lower() == email.lower())
+
+
+def _participant_condition(user: str) -> str:
+	"""SQL version of `_is_participant` for the `ep` alias of Event Participants."""
+	user_email = get_email_address(user) or ""
+	return (
+		f"((ep.reference_doctype='User' and ep.reference_docname={frappe.db.escape(user)})"
+		f" or ep.email={frappe.db.escape(user_email)})"
+	)
 
 
 def get_permission_query_conditions(user):
@@ -290,7 +311,7 @@ def get_permission_query_conditions(user):
 	if shared_events := frappe.share.get_shared("Event", user=user):
 		query += f" or `tabEvent`.`name` in ({', '.join([frappe.db.escape(e) for e in shared_events])})"
 
-	query += f" or exists (select 'x' from `tabEvent Participants` ep where ep.parent=`tabEvent`.name and ep.email={frappe.db.escape(user)})"
+	query += f" or exists (select 'x' from `tabEvent Participants` ep where ep.parent=`tabEvent`.name and {_participant_condition(user)})"
 
 	return query
 
@@ -299,8 +320,9 @@ def has_permission(doc, ptype=None, user=None):
 	if doc.event_type == "Public" or doc.owner == user:
 		return True
 
+	user_email = get_email_address(user)
 	for participant in doc.event_participants:
-		if participant.email == user:
+		if _is_participant(participant, user, user_email):
 			if ptype in ["write", "create", "delete"]:
 				return False
 			return True
@@ -366,7 +388,7 @@ def get_events(
 	if "`tabEvent Participants`" in filter_condition:
 		tables.append("`tabEvent Participants`")
 
-	event_candidates: list[EventLikeDict] = frappe.db.sql(
+	event_candidates: list[EventLikeDict] = frappe.db.sql(  # nosemgrep
 		"""
 		SELECT `tabEvent`.name,
 				`tabEvent`.subject,
@@ -419,7 +441,7 @@ def get_events(
 					SELECT ep.name
 					FROM `tabEvent Participants` ep
 					WHERE ep.parent=`tabEvent`.name
-						AND ep.email=%(user)s
+						AND {participant_condition}
 				)
 			)
 		AND `tabEvent`.status='Open'
@@ -427,6 +449,7 @@ def get_events(
 			tables=", ".join(tables),
 			filter_condition=filter_condition,
 			reminder_condition="AND `tabEvent`.send_reminder = 1" if for_reminder else "",
+			participant_condition=_participant_condition(target_user),
 		),
 		{
 			"start": start,

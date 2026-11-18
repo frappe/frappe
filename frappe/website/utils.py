@@ -71,6 +71,8 @@ def get_comment_list(doctype, name):
 		or_filters=[["owner", "=", frappe.session.user], ["published", "=", 1]],
 	)
 
+	user_email = frappe.utils.get_email_address()
+
 	communications = frappe.get_all(
 		"Communication",
 		fields=[
@@ -87,9 +89,9 @@ def get_comment_list(doctype, name):
 			reference_name=name,
 		),
 		or_filters=[
-			["recipients", "like", f"%{frappe.session.user}%"],
-			["cc", "like", f"%{frappe.session.user}%"],
-			["bcc", "like", f"%{frappe.session.user}%"],
+			["recipients", "like", f"%{user_email}%"],
+			["cc", "like", f"%{user_email}%"],
+			["bcc", "like", f"%{user_email}%"],
 		],
 	)
 
