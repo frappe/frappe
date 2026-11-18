@@ -34,6 +34,7 @@ NUMERIC_TYPES = {
 	"float",
 	"double",
 }
+INTEGER_BITS = {"tinyint": 8, "smallint": 16, "mediumint": 24, "int": 32, "integer": 32, "bigint": 64}
 TEMPORAL_TYPES = {"date", "datetime", "time", "timestamp", "year"}
 UNINDEXABLE_TYPES = {
 	"tinytext",
@@ -163,6 +164,21 @@ class Column:
 	def max_length(self) -> int | None:
 		if match := re.match(r"(?:var)?char\((\d+)\)", self.definition.lower()):
 			return int(match.group(1))
+		return None
+
+	@cached_property
+	def numeric_range(self) -> tuple[int | Decimal, int | Decimal] | None:
+		"""The lowest and highest value MariaDB stores in this column under strict mode."""
+		definition = self.definition.lower()
+		if bits := INTEGER_BITS.get(self.base_type):
+			if re.match(r"[a-z]+(?:\(\d+\))?\s+unsigned\b", definition):
+				return 0, 2**bits - 1
+			return -(2 ** (bits - 1)), 2 ** (bits - 1) - 1
+		if self.base_type in ("decimal", "numeric"):
+			precision, scale = re.match(r"[a-z]+(?:\((\d+)(?:,\s*(\d+))?\))?", definition).groups()
+			scale = int(scale or 0)
+			highest = Decimal(10) ** (int(precision or 10) - scale) - Decimal(10) ** -scale
+			return -highest, highest
 		return None
 
 	@property
@@ -690,16 +706,18 @@ class MariaDBDumpWriter:
 			return "'" + escape_string(value) + "'"
 		if value is None:
 			return "NULL"
-		if isinstance(value, int | Decimal):
-			return str(value)
-		if isinstance(value, float):
-			if not math.isfinite(value):
-				self.add_problem(
-					_("{0}.{1}: {2} cannot be stored in MariaDB").format(table, column.name, value)
+		if isinstance(value, bytes):
+			return f"X'{value.hex()}'" if value else "''"
+		if isinstance(value, float) and not math.isfinite(value):
+			self.add_problem(_("{0}.{1}: {2} cannot be stored in MariaDB").format(table, column.name, value))
+			return "NULL"
+		if (bounds := column.numeric_range) and not bounds[0] <= value <= bounds[1]:
+			self.add_problem(
+				_("{0}.{1}: {2} is outside the range of {3} (row {4})").format(
+					table, column.name, value, column.catalog_type, row[0]
 				)
-				return "NULL"
-			return repr(value)
-		return f"X'{value.hex()}'" if value else "''"
+			)
+		return repr(value) if isinstance(value, float) else str(value)
 
 	def coerce(self, table: str, row, value, column: Column):
 		if isinstance(value, str):

@@ -306,10 +306,27 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 		self.assertIn("'gate role'", str(error.exception))
 		self.assertIn("'resume'", str(error.exception))
 
-	def test_refuses_non_finite_numbers(self):
+	def test_refuses_numbers_mariadb_cannot_store(self):
 		with self.assertRaises(MariaDBDumpError) as error:
-			self.write_dump({"tabToDo": ("name varchar(140) primary key, idx int", [("todo-1", "NaN")])})
+			self.write_dump(
+				{
+					"tabToDo": (
+						"name varchar(140) primary key, idx int",
+						[("todo-1", "NaN"), ("todo-2", 2147483648), ("todo-3", 2147483647)],
+					),
+					"table_without_doctype": ("amount real", [(1e13,), (999999999999.5,)]),
+				}
+			)
 		self.assertIn("tabToDo.idx: 'NaN' is not a number", str(error.exception))
+		self.assertIn(
+			"tabToDo.idx: 2147483648 is outside the range of int(11) (row todo-2)", str(error.exception)
+		)
+		self.assertIn(
+			"table_without_doctype.amount: 10000000000000.0 is outside the range of decimal(21,9)",
+			str(error.exception),
+		)
+		self.assertNotIn("2147483647", str(error.exception))
+		self.assertNotIn("999999999999.5", str(error.exception))
 
 	def test_sequence_continues_after_the_highest_name(self):
 		dump = self.write_dump(
