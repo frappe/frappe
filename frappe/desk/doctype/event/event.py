@@ -278,7 +278,7 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 		frappe.db.set_value("Event", event_name, "attending", status)
 		return
 
-	user, email = (caller, caller_email) if is_caller else (attendee, attendee)
+	user, email = (caller, caller_email) if is_caller else (attendee, get_email_address(attendee) or attendee)
 	for participant in event_doc.event_participants:
 		if _is_participant(participant, user, email):
 			frappe.db.set_value("Event Participants", participant.name, "attending", status)
@@ -297,11 +297,11 @@ def _is_participant(participant, user: str, email: str | None) -> bool:
 
 def _participant_condition(user: str) -> str:
 	"""SQL version of `_is_participant` for the `ep` alias of Event Participants."""
-	user_email = get_email_address(user) or ""
-	return (
-		f"((ep.reference_doctype='User' and ep.reference_docname={frappe.db.escape(user)})"
-		f" or ep.email={frappe.db.escape(user_email)})"
-	)
+	condition = f"(ep.reference_doctype='User' and ep.reference_docname={frappe.db.escape(user)})"
+	if user_email := get_email_address(user):
+		condition += f" or lower(ep.email)={frappe.db.escape(user_email.lower())}"
+
+	return f"({condition})"
 
 
 def get_permission_query_conditions(user):

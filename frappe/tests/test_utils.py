@@ -2602,3 +2602,18 @@ class TestAddUserInfo(IntegrationTestCase):
 
 			self.assertEqual(user_info[user.name].name, user.name)
 			self.assertEqual(user_info[email].name, user.name)
+
+	def test_add_user_info_prefers_the_id(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as other:
+			legacy = frappe.new_doc(
+				"User", email=f"legacy_{other.email}", first_name="Legacy", send_welcome_email=0
+			)
+			legacy.flags.skip_email_from_name = True
+			legacy.insert(set_name=other.email)
+			self.addCleanup(legacy.delete, force=True, ignore_permissions=True)
+
+			user_info = {}
+			frappe.utils.add_user_info(other.email, user_info)
+			self.assertEqual(user_info[other.email].name, legacy.name)

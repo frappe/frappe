@@ -1161,9 +1161,11 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 		fields=["full_name", "user_image", "name", "email", "time_zone"],
 	)
 
-	# callers pass user IDs or emails, so keep the info under the one they passed
-	for info in missing_info:
-		for key in {info.name, info.email} & missing_users:
+	# callers pass user IDs or emails; a key that is one user's ID and another's email is the ID
+	by_name = {info.name: info for info in missing_info}
+	by_email = {info.email: info for info in missing_info}
+	for key in missing_users:
+		if info := by_name.get(key) or by_email.get(key):
 			user_info.setdefault(key, frappe._dict()).update(
 				fullname=info.full_name or info.name,
 				image=info.user_image,
