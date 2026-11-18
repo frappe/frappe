@@ -13,7 +13,7 @@ from frappe.api.bulk import BulkAction, run_bulk
 from frappe.automation.doctype.assignment_rule.assignment_rule import apply as apply_assignment_rules
 from frappe.desk.form import assign_to
 from frappe.desk.form.document_follow import is_document_followed
-from frappe.utils import cint
+from frappe.utils import cint, get_user_display_id
 
 SHARE_RIGHTS = ("read", "write", "submit", "share")
 # the body key that names what to remove, where the per-document route takes it in its path
@@ -115,7 +115,7 @@ def follow_one(doctype: str, name: str, part: str, body: dict):
 	"""Follow, or fail the record: the framework call quietly does nothing for the Administrator."""
 	add_to_part(doctype, name, part, body)
 	if not is_document_followed(doctype, name, frappe.session.user):
-		frappe.throw(_("{0} cannot follow {1}.").format(frappe.session.user, name))
+		frappe.throw(_("{0} cannot follow {1}.").format(get_user_display_id(), name))
 
 
 def clear_assignments_one(doctype: str, name: str):
