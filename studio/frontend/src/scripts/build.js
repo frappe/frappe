@@ -77,6 +77,7 @@ const { values: argv } = parseArgs({
 		base: { type: "string" },
 		"custom-components": { type: "string" },
 		"page-scripts": { type: "string" },
+		"component-scripts": { type: "string" },
 		"router-file": { type: "string" },
 		icons: { type: "string" },
 		"app-folder": { type: "string" },
@@ -98,6 +99,7 @@ await generateAppBuild(
 	argv.base,
 	argv["custom-components"],
 	argv["page-scripts"],
+	argv["component-scripts"],
 	argv.icons,
 	argv["router-file"],
 	argv["app-folder"],
@@ -112,6 +114,7 @@ export async function generateAppBuild(
 	base,
 	customComponentsJson,
 	pageScriptsJson,
+	componentScriptsJson,
 	icons,
 	routerFile,
 	appFolder,
@@ -125,8 +128,10 @@ export async function generateAppBuild(
 	const customComponents = customComponentsJson ? JSON.parse(customComponentsJson) : {}
 	// pageScripts: [{ page_name, file_path }]
 	const pageScripts = pageScriptsJson ? JSON.parse(pageScriptsJson) : []
+	// componentScripts: { component_id: file_path }
+	const componentScripts = componentScriptsJson ? JSON.parse(componentScriptsJson) : {}
 	const componentSources = findComponentSources(componentList, customComponents)
-	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile)
+	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile, componentScripts)
 	const tempRendererPath = writeRendererFile(appName, rendererContent)
 	const iconList = icons ? icons.split(",") : []
 	await buildWithVite(
@@ -185,7 +190,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 	}
 }
 
-function getRendererContent(componentSources, pageScripts = [], routerFile = null) {
+function getRendererContent(componentSources, pageScripts = [], routerFile = null, componentScripts = {}) {
 	const {
 		frappeUIComponents,
 		frappeUIMolecules,
@@ -240,6 +245,22 @@ ${pageScripts
 })`
 		: ""
 
+	// A chunk per component script, keyed by component id. componentStore loads one when a page
+	// that uses the component loads.
+	const componentScriptEntries = Object.entries(componentScripts)
+	const componentScriptImport = componentScriptEntries.length
+		? `import { setComponentScriptImporters } from "@/data/studioComponentScripts"`
+		: ""
+	const componentScriptSetup = componentScriptEntries.length
+		? `setComponentScriptImporters({
+${componentScriptEntries
+	.map(
+		([componentId, filePath]) => `	${JSON.stringify(componentId)}: () => import(${JSON.stringify(filePath)}),`,
+	)
+	.join("\n")}
+})`
+		: ""
+
 	// An app without a router file falls back to Studio's own routing.
 	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
 	const routerConfig = routerFile ? "routerConfig" : ""
@@ -262,6 +283,7 @@ ${frameworkUIImports}
 ${studioImports}
 ${customImports}
 ${pageScriptImport}
+${componentScriptImport}
 
 const app = createApp(AppRenderer)
 const pinia = createPinia()
@@ -274,6 +296,7 @@ ${componentRegistrations}
 window.__APP_COMPONENTS__ = app._context.components
 
 ${pageScriptSetup}
+${componentScriptSetup}
 
 createAppRouter(${routerConfig})
 	.then((router) => app.use(router).mount("#app"))

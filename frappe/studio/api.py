@@ -5,7 +5,9 @@ from typing import Literal
 import frappe
 from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
+from frappe.studio import components
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
+from frappe.studio.doctype.studio_component.studio_component import find_component
 from frappe.studio.files import (
 	ALLOWED_DB_FILE_EXTENSIONS,
 	ALLOWED_STUDIO_FILE_EXTENSIONS,
@@ -13,6 +15,7 @@ from frappe.studio.files import (
 	delete_db_path,
 	file_hash,
 	get_db_files,
+	is_component_script_path,
 	is_db_app,
 	list_db_file_tree,
 	read_db_file,
@@ -22,7 +25,9 @@ from frappe.studio.files import (
 	validate_folder_removable,
 	write_db_file,
 )
+from frappe.studio.sync_json import COMPONENT_FOLDER, sync_component_script
 from frappe.studio.utils import (
+	find_component_scripts,
 	find_script_file,
 	get_export_folder,
 	get_exported_app_folders,
@@ -37,8 +42,7 @@ from frappe.utils import sbool, touch_file
 
 @frappe.whitelist()
 def get_app_boot(app_name: str) -> dict:
-	app = frappe.get_doc("Studio App", app_name)
-	app.check_permission("read")
+	app = frappe.read_doc("Studio App", app_name)
 	return app.get_boot()
 
 
@@ -115,6 +119,18 @@ def get_sort_fields(doctype: str):
 		fields.append(field)
 
 	return fields
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_component_definition(component: str) -> dict:
+	"""Return the props of a built-in component, for an agent that builds a page."""
+	return components.get_component_definition(component)
+
+
+@frappe.whitelist()
+def can_use_flow() -> bool:
+	return bool(frappe.has_permission("Flow Session", "read"))
 
 
 @frappe.whitelist()
@@ -231,6 +247,28 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 
 
 @frappe.whitelist()
+def get_studio_component(component_id: str, studio_app: str | None = None) -> dict:
+	"""The component that `component_id` means in the app: the app's own, or else the global one."""
+	name = find_component(component_id, studio_app)
+	if not name:
+		frappe.throw(_("Component {0} not found").format(component_id), frappe.DoesNotExistError)
+	doc = frappe.get_doc("Studio Component", name)
+	doc.check_permission("read")
+	return doc.as_dict()
+
+
+@frappe.whitelist()
+def get_studio_component_scripts(frappe_app: str, studio_app: str) -> list[dict]:
+	"""List the component scripts one studio app exports, keyed by the component's id."""
+	frappe.has_permission("Studio Page", ptype="read", throw=True)
+	validate_installed_app(frappe_app)
+	app_folder = get_export_folder(frappe_app, studio_app)
+	if app_folder not in get_exported_app_folders(get_studio_folder(frappe_app)):
+		return []
+	return find_component_scripts(os.path.join(app_folder, COMPONENT_FOLDER))
+
+
+@frappe.whitelist()
 def list_studio_files(frappe_app: str, studio_app: str) -> list[dict]:
 	"""Return the app's editable file tree."""
 	if is_db_app(studio_app):
@@ -297,6 +335,7 @@ def write_studio_file(
 	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 	with open(target, "w", encoding="utf-8") as f:
 		f.write(content)
+	_sync_component_script(file_path, target)
 	return {"path": file_path, "hash": file_hash(content)}
 
 
@@ -367,6 +406,8 @@ def rename_studio_file(frappe_app: str, studio_app: str, file_path: str, new_pat
 
 	os.makedirs(os.path.dirname(destination), exist_ok=True)
 	os.rename(source, destination)
+	_sync_component_script(file_path, source)
+	_sync_component_script(new_path, destination)
 	return {"path": new_path}
 
 
@@ -391,6 +432,7 @@ def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None
 	if not os.path.isfile(target):
 		frappe.throw(_("Not found: {0}").format(file_path))
 	os.remove(target)
+	_sync_component_script(file_path, target)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
@@ -408,6 +450,12 @@ def get_app_files(app_name: str) -> list[dict]:
 	if not is_db_app(app_name):
 		return []
 	return get_db_files(app_name)
+
+
+def _sync_component_script(file_path: str, target: str) -> None:
+	"""Keep a component's `script` field equal to its file, for the apps that read the field."""
+	if is_component_script_path(file_path.strip("/")):
+		sync_component_script(os.path.splitext(target)[0] + ".json")
 
 
 def _validate_studio_file_access(permission_type: str = "read", on_disk: bool = True) -> None:

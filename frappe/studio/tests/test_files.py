@@ -73,6 +73,33 @@ class TestFiles(IntegrationTestCase):
 		files.delete_db_path(app.name, path)
 		self.assertEqual(files.read_db_file(app.name, path), "")
 
+	def test_a_component_script_is_browsed_and_edited_as_a_file(self):
+		app = make_db_app()
+		component = frappe.get_doc(doctype="Studio Component", component_name="Card").insert()
+		path = f"studio_components/{component.name}.js"
+		blocks = [{"componentName": component.name, "isStudioComponent": True, "children": []}]
+		make_studio_page(app.name, page_title="Board", blocks=frappe.as_json(blocks))
+
+		self.assertEqual(files.read_db_file(app.name, path), "")
+		self.assertEqual([node["path"] for node in files.list_db_file_tree(app.name)], ["studio_page"])
+
+		files.write_db_file(app.name, path, "export default {}\n")
+		self.assertEqual(
+			frappe.db.get_value("Studio Component", component.name, "script"), "export default {}\n"
+		)
+		self.assertEqual(files.get_db_files(app.name), [])
+		tree = files.list_db_file_tree(app.name)
+		self.assertEqual([node["path"] for node in tree], ["studio_components", "studio_page"])
+		self.assertEqual(tree[0]["children"][0]["path"], path)
+
+		with self.assertRaises(frappe.ValidationError):
+			files.rename_db_path(app.name, path, "studio_components/renamed.js")
+		with self.assertRaises(frappe.ValidationError):
+			files.create_db_file(app.name, path)
+		files.delete_db_path(app.name, path)
+		self.assertEqual(files.read_db_file(app.name, path), "")
+		self.assertFalse(files.is_db_file_allowed(app.name, "studio_components/unowned.js"))
+
 	def test_path_rules(self):
 		app = make_db_app()
 		for traversal in ("../escape.js", "a//b.js", "./x.js"):

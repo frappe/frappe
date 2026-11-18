@@ -283,7 +283,10 @@ class Contact(Document):
 
 		for row in self.phone_nos:
 			tel = vcard.add("tel")
-			tel.value = row.phone
+			tel.value = row.get("phone")
+			if not tel.value:
+				continue
+
 			if row.is_primary_phone:
 				tel.type_param = "home"
 
@@ -296,8 +299,7 @@ class Contact(Document):
 @frappe.whitelist()
 def download_vcard(contact: str):
 	"""Download vCard for the contact"""
-	contact = frappe.get_doc("Contact", contact)
-	contact.check_permission()
+	contact = frappe.read_doc("Contact", contact)
 
 	vcard = contact.get_vcard()
 	make_access_log(doctype="Contact", document=contact.name, file_type="vcf")
@@ -318,8 +320,7 @@ def download_vcards(contacts: str):
 
 	vcards = []
 	for contact_id in contact_ids:
-		contact = frappe.get_doc("Contact", contact_id)
-		contact.check_permission()
+		contact = frappe.read_doc("Contact", contact_id)
 		vcard = contact.get_vcard()
 		vcards.append(vcard.serialize())
 
@@ -388,8 +389,7 @@ def invite_user(contact: str):
 
 @frappe.whitelist()
 def get_contact_details(contact: str):
-	contact = frappe.get_doc("Contact", contact)
-	contact.check_permission()
+	contact = frappe.read_doc("Contact", contact)
 
 	return {
 		"contact_person": contact.get("name"),

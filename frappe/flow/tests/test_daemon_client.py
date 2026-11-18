@@ -57,7 +57,7 @@ class TestDaemonClient(UnitTestCase):
 				lambda: self.client.set_model("s1", "openai/gpt-5", api_key="k", api_base="https://b"),
 				"POST",
 				"/sessions/s1/model",
-				{"model": "openai/gpt-5", "api_key": "k", "api_base": "https://b", "reasoning_effort": None},
+				{"model": "openai/gpt-5", "api_key": "k", "api_base": "https://b"},
 			),
 			(
 				lambda: self.client.set_model("s1", "openai/gpt-5", model_params={"route": "x"}),
@@ -67,7 +67,6 @@ class TestDaemonClient(UnitTestCase):
 					"model": "openai/gpt-5",
 					"api_key": None,
 					"api_base": None,
-					"reasoning_effort": None,
 					"model_params": {"route": "x"},
 				},
 			),

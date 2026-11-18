@@ -2704,7 +2704,8 @@ class SQLFunctionParser:
 		elif "`" in arg:
 			if parsed := self.engine._parse_backtick_field_notation(arg):
 				table_name, field_name = parsed
-				self.engine.check_select_field_permission(table_name, field_name)
+				parent_doctype = self.engine.parent_doctype if table_name == self.engine.doctype else None
+				self.engine.check_select_field_permission(table_name, field_name, parent_doctype)
 				return Table(f"tab{table_name}")[field_name]
 			else:
 				frappe.throw(
@@ -2754,4 +2755,6 @@ class SQLFunctionParser:
 
 	def _check_function_field_permission(self, field_name: str):
 		if self.engine.apply_permissions and self.engine.doctype:
-			self.engine.check_select_field_permission(self.engine.doctype, field_name)
+			self.engine.check_select_field_permission(
+				self.engine.doctype, field_name, self.engine.parent_doctype
+			)

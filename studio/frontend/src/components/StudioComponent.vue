@@ -213,6 +213,7 @@ const isUnregistered = (name: unknown) =>
 
 const slotScope = inject<ComputedRef<SlotScope> | null>("slotScope", null)
 const componentContext = inject<ComputedRef | null>("componentContext", null)
+const componentScriptContext = inject<ComputedRef | null>("componentScriptContext", null)
 const evaluationContext = computed(() => {
 	return {
 		...slotScope?.value,
@@ -245,7 +246,12 @@ const vModelListeners = computed(() => {
 		if (propValue?.$type === "variable") {
 			const eventName = `update:${propName}`
 			listeners[eventName] = (newValue: any) => {
-				pageScope.setValueInVariable(propValue.name, newValue, evaluationContext.value)
+				pageScope.setValueInVariable(
+					propValue.name,
+					newValue,
+					evaluationContext.value,
+					componentScriptContext?.value,
+				)
 			}
 		}
 	})

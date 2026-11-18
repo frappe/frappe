@@ -51,12 +51,14 @@
 							class="h-3 w-3"
 							:class="{
 								'text-ink-purple-5 opacity-80': element.isStudioComponent,
+								'text-ink-green-6 opacity-80': element.isCustomVueComponent,
 							}"
 						/>
 						<span
 							class="layer-label min-h-[1em] min-w-[2em] max-w-64 scroll-my-16 truncate"
 							:class="{
 								'text-ink-purple-5 opacity-80': element.isStudioComponent,
+								'text-ink-green-6 opacity-80': element.isCustomVueComponent,
 							}"
 							:contenteditable="element.editable"
 							:title="element.blockId"

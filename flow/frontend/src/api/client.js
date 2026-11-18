@@ -202,11 +202,11 @@ export class FrappeClient {
 		return this.transport.call("frappe.flow.api.compact", { session: sid });
 	}
 
-	async setModel(sid, { model, reasoning_effort = null }) {
+	// no thinking level: a model runs at its provider's default, or as its Extra Params say
+	async setModel(sid, { model }) {
 		const data = await this.transport.call("frappe.flow.api.set_model", {
 			session: sid,
 			model,
-			reasoning_effort,
 		});
 		this.configs.set(sid, { ...this.configs.get(sid), model: data.model });
 		return {

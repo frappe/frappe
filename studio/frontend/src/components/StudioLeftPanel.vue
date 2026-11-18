@@ -65,7 +65,7 @@
 					<CodePanel class="p-3" v-if="store.activePage" />
 				</div>
 
-				<AIChatPanel v-show="activeTab === 'AI Assistant'" />
+				<AgentPanel v-show="activeTab === 'AI Assistant'" />
 			</div>
 		</transition>
 	</div>
@@ -84,7 +84,7 @@ import DataPanel from "@/components/DataPanel.vue"
 import CodePanel from "@/components/CodePanel.vue"
 import IconButton from "@/components/IconButton.vue"
 import LucideChevronsLeft from "~icons/lucide/chevrons-left"
-import AIChatPanel from "@/components/AIChatPanel.vue"
+import AgentPanel from "@/components/AgentPanel.vue"
 
 import Block from "@/utils/block"
 import useStudioStore from "@/stores/studioStore"

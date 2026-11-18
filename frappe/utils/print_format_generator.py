@@ -173,7 +173,17 @@ def get_qr_code(value: str) -> str | None:
 	return "data:image/svg+xml;base64," + base64.b64encode(stream.getvalue()).decode()
 
 
-LINEAR_BARCODE_FORMATS = {"CODE128": ("code128", {}), "CODE39": ("code39", {"add_checksum": False})}
+LINEAR_BARCODE_FORMATS = {
+	"CODE128": ("code128", {}),
+	"CODE39": ("code39", {"add_checksum": False}),
+	"EAN13": ("ean13", {}),
+	"EAN8": ("ean8", {}),
+	"EAN14": ("ean14", {}),
+	"UPCA": ("upca", {}),
+	"ISBN13": ("isbn13", {}),
+	"ITF": ("itf", {}),
+	"GS1_128": ("gs1_128", {}),
+}
 
 
 @frappe.whitelist()
@@ -197,9 +207,19 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 		return None
 
 	name, options = LINEAR_BARCODE_FORMATS[barcode_format]
+	if barcode_format == "ISBN13":
+		value = value.replace("-", "")
+	# brackets around GS1 application identifiers are label text; python-barcode would encode them
+	elif barcode_format == "GS1_128" and "(" in value:
+		return None
 	try:
-		modules = "".join(barcode.get(name, value, options=options).build())
+		code = barcode.get(name, value, options=options)
+		modules = "".join(code.build())
 	except BarcodeError:
+		return None
+	fullcode = code.get_fullcode()
+	# python-barcode adds a missing check digit, replaces a wrong one, pads ITF and upper-cases CODE39
+	if not fullcode.upper().startswith(value.upper()):
 		return None
 
 	bars = "".join(
@@ -208,7 +228,7 @@ def get_barcode(value: str, barcode_format: str = "CODE128", show_text: bool = T
 	)
 	width, height = 3 * len(modules), 60 if frappe.utils.sbool(show_text) else 40
 	text = (
-		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(_CONTROL_CHARS.sub("", value))}</text>'
+		f'<text x="{width / 2}" y="56" text-anchor="middle" font-family="DejaVu Sans Mono, monospace" font-size="16">{escape(_CONTROL_CHARS.sub("", fullcode))}</text>'
 		if height == 60
 		else ""
 	)
@@ -244,8 +264,7 @@ def get_formatted_field_values(doctype: str, name: str) -> dict:
 	from frappe.model import table_fields
 	from frappe.www.printview import set_link_titles
 
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
+	doc = frappe.read_doc(doctype, name)
 	set_link_titles(doc)
 
 	def has_access(d, df):
@@ -462,8 +481,7 @@ def check_conditions(doctype: str, name: str, conditions: list[str] | str):
 	if not all(isinstance(v, str) for v in (doctype, name)) or not isinstance(conditions, list):
 		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
 	conditions = list(dict.fromkeys(c for c in conditions if c.strip() and len(c) <= 2000))[:MAX_CONDITIONS]
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
+	doc = frappe.read_doc(doctype, name)
 	eval_locals = condition_locals(doc, frappe.get_cached_doc("Print Settings"))
 	out = {}
 	for condition in conditions:
