@@ -23,7 +23,8 @@ frappe.desktop_utils = {};
 // dropped from it, because saving an edit writes the whole layout back: dropped, it would be gone
 // for good, even once the module it opens is unblocked.
 // The icons a save just created. A quick-entry icon arrives as its name, the rest as the icon.
-// A new workspace's icon takes the module the server put the workspace in, or it opens nothing.
+// A new workspace's icon takes the module the server put the workspace in, or it opens nothing,
+// and links to that workspace.
 frappe.desktop_utils.icons_created = function (new_icons, new_desktop_icons, workspace_modules) {
 	return (new_icons || [])
 		.map((icon) =>
@@ -37,6 +38,7 @@ frappe.desktop_utils.icons_created = function (new_icons, new_desktop_icons, wor
 			label,
 			icon_type,
 			module: workspace_modules?.[label],
+			link_to: workspace_modules?.[label] ? label : undefined,
 		}));
 };
 
@@ -48,6 +50,7 @@ frappe.desktop_utils.arrange_layout = function (layout, boot_icons) {
 		return {
 			...icon,
 			module: match?.module,
+			link_to: match ? match.link_to : icon.link_to,
 			not_permitted: !match && icon.icon_type !== "Folder",
 		};
 	});
