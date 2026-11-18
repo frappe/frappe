@@ -8,6 +8,7 @@ from unittest.mock import patch
 import frappe
 import frappe.utils
 import frappe.utils.scheduler
+from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.form import assign_to
 from frappe.tests import IntegrationTestCase
 
@@ -555,6 +556,46 @@ class TestNotification(IntegrationTestCase):
 			recipients, _, _ = n.get_list_of_recipients(todo, get_context(todo))
 			todo.delete()
 			self.assertEqual(recipients, [frappe.db.get_value("User", "Administrator", "email")])
+
+	def test_notification_to_user_fields(self):
+		notification = frappe.new_doc("Notification", document_type="User Group")
+		notification.append("recipients", {"receiver_by_document_field": "owner"})
+		notification.append("recipients", {"receiver_by_document_field": "user,user_group_members"})
+
+		with (
+			test_user(roles=[], generated_id=True) as owner,
+			test_user(roles=[], generated_id=True) as member,
+		):
+			group = frappe.get_doc(
+				doctype="User Group",
+				owner=owner.name,
+				user_group_members=[{"user": member.name}, {"user": "Administrator"}],
+			)
+			recipients, _, _ = notification.get_list_of_recipients(group, get_context(group))
+
+			self.assertCountEqual(
+				recipients,
+				[owner.email, member.email, frappe.db.get_value("User", "Administrator", "email")],
+			)
+
+	def test_notification_to_all_assignees(self):
+		notification = frappe.new_doc("Notification", document_type="ToDo", send_to_all_assignees=1)
+		todo = frappe.get_doc(doctype="ToDo", description="Assigned to two users").insert()
+
+		with test_user(roles=[], generated_id=True) as user:
+			for allocated_to in (user.name, "Administrator"):
+				frappe.get_doc(
+					doctype="ToDo",
+					description="Assignment",
+					allocated_to=allocated_to,
+					reference_type="ToDo",
+					reference_name=todo.name,
+				).insert()
+			recipients, _, _ = notification.get_list_of_recipients(todo, get_context(todo))
+
+			self.assertCountEqual(
+				recipients, [user.email, frappe.db.get_value("User", "Administrator", "email")]
+			)
 
 	def test_notification_value_change_casted_types(self):
 		"""Make sure value change event dont fire because of incorrect type comparisons."""

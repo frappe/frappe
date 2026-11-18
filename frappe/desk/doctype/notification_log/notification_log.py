@@ -133,7 +133,7 @@ def get_title_html(title):
 def enqueue_create_notification(users: list[str] | str, doc: dict, dedupe_on: list[str] | None = None):
 	"""Send notification to users.
 
-	users: list of user emails or string of users with comma separated emails
+	users: user IDs or emails, as a list or a comma-separated string
 	doc: contents of `Notification` doc
 	dedupe_on: optional list of field names; for each recipient, skip creation if a
 	        Notification Log already exists matching those field values (prevents
@@ -191,9 +191,12 @@ def _notification_exists(doc, user, dedupe_on) -> bool:
 	return bool(frappe.db.exists("Notification Log", filters))
 
 
-def _get_user_ids(user_emails):
-	user_names = frappe.db.get_values(
-		"User", {"enabled": 1, "email": ("in", user_emails)}, "name", pluck=True
+def _get_user_ids(users):
+	user_names = frappe.get_all(
+		"User",
+		filters={"enabled": 1},
+		or_filters={"name": ("in", users), "email": ("in", users)},
+		pluck="name",
 	)
 	return [user for user in user_names if is_notifications_enabled(user)]
 

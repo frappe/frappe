@@ -19,8 +19,10 @@ from frappe.automation_engine.actions.core import (
 	SendNotification,
 	SetFieldValue,
 )
+from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import enable_safe_exec
+from frappe.utils.logging import get_log_db
 
 
 def make_todo(**kwargs):
@@ -175,7 +177,7 @@ class TestActions(IntegrationTestCase):
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], [todo.owner])
+		self.assertEqual(captured["recipients"], [frappe.db.get_value("User", todo.owner, "email")])
 
 	def test_send_notification_resolves_the_assignees_token(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "notify-assignees", "public": 1}).insert()
@@ -192,7 +194,7 @@ class TestActions(IntegrationTestCase):
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], ["Administrator"])
+		self.assertEqual(captured["recipients"], [frappe.db.get_value("User", "Administrator", "email")])
 
 	def test_send_notification_dedupes_resolved_recipients(self):
 		todo = make_todo()
@@ -212,7 +214,9 @@ class TestActions(IntegrationTestCase):
 			)
 		finally:
 			frappe.sendmail = original
-		self.assertEqual(captured["recipients"], [todo.owner, "other@example.com"])
+		self.assertEqual(
+			captured["recipients"], [frappe.db.get_value("User", todo.owner, "email"), "other@example.com"]
+		)
 
 	def test_send_notification_skips_sending_when_a_token_resolves_to_nobody(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "notify-nobody", "public": 1}).insert()
@@ -275,6 +279,32 @@ class TestActions(IntegrationTestCase):
 			frappe.sendmail = original
 		self.assertEqual(captured["recipients"], ["a@example.com"])
 		self.assertEqual(captured["reference_name"], todo.name)
+
+	def test_send_notification_emails_users_and_addresses(self):
+		todo = make_todo()
+		with test_user(roles=[], generated_id=True) as user, patch("frappe.sendmail") as sendmail:
+			SendNotification().execute(
+				todo,
+				{
+					"channel": "Email",
+					"recipients": [user.name, "outside@example.com", "not_an_email"],
+					"subject": "s",
+					"message": "m",
+				},
+				{},
+			)
+
+		self.assertEqual(sendmail.call_args.kwargs["recipients"], [user.email, "outside@example.com"])
+		self.assertTrue(
+			get_log_db().exists(
+				"Error Log",
+				{
+					"reference_doctype": "ToDo",
+					"reference_name": todo.name,
+					"error": ("like", "%not_an_email%"),
+				},
+			)
+		)
 
 
 class FakeResponse:

@@ -1948,11 +1948,14 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertIn(frappe.local.site, get_sites())
 
 	def test_get_site_info(self):
-		info = get_site_info()
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=["System Manager"], generated_id=True) as user:
+			info = get_site_info()
 
 		installed_apps = [app["app_name"] for app in info["installed_apps"]]
 		self.assertIn("frappe", installed_apps)
-		self.assertGreaterEqual(len(info["users"]), 1)
+		self.assertIn(user.email, [u.email for u in info["users"]])
 
 	def test_get_url_to_form(self):
 		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
