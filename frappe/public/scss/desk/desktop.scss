@@ -926,6 +926,7 @@ body {
 	.skeleton-card {
 		background-color: var(--skeleton-bg);
 		box-shadow: none;
+		pointer-events: none;
 		border-radius: var(--radius-lg);
 	}
 
