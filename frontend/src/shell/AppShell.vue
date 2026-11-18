@@ -46,8 +46,7 @@
 				:sections="sections[panel.address]"
 				:collapsed="overlay ? !overlayOpen : !floating && sidebarCollapsed"
 				:chrome="floating"
-				:customizable="!floating && !panel.views"
-				:views="panel.views"
+				:customizable="!floating"
 				:overlay="overlay"
 				@customize="customize.write('sidebar', panel.address)"
 				@close="overlayOpen = false"
@@ -109,7 +108,6 @@
 					:current="current.rowKey"
 					:sections="sections[panel.address]"
 					:collapsed="false"
-					:views="panel.views"
 					chrome
 				/>
 			</template>
@@ -187,16 +185,7 @@
 
 <script setup lang="ts">
 import { useEventListener } from "@vueuse/core";
-import {
-	computed,
-	defineAsyncComponent,
-	inject,
-	nextTick,
-	onUnmounted,
-	ref,
-	watch,
-	watchEffect,
-} from "vue";
+import { computed, defineAsyncComponent, inject, nextTick, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { Button, DesktopShell, Dialogs, ToastProvider, toast } from "frappe-ui";
 import { keepInHistory } from "@framework/ui/utils";
@@ -212,7 +201,6 @@ import {
 	type NavigationContexts,
 } from "@/navigation/current";
 import { sidebarMemory } from "@/navigation/sidebarMemory";
-import { viewsSidebarDoctype, viewsSidebarFor } from "@/navigation/viewsSidebar";
 import { sectionMemory } from "@/navigation/sectionMemory";
 import type { OpenArgument } from "./actKeys";
 import ComposerWindow from "./ComposerWindow.vue";
@@ -418,39 +406,21 @@ function shareLink(): string {
 }
 
 // The panel, or nothing. An empty sidebar is absent from the payload; the count is the last fence.
-const panel = computed(() => sidebarPanel() ?? viewsPanel());
-
-function railOwner() {
-	return navigation.value.rail.find((item) => item.key === current.value.railKey);
-}
-
-function sidebarPanel() {
+const panel = computed(() => {
 	const address = current.value.sidebar;
 	const items = address ? navigation.value.sidebars[address] : undefined;
 	if (!address || !items?.length) return null;
+
+	const owner = navigation.value.rail.find((item) => item.key === current.value.railKey);
 
 	return {
 		address,
 		items,
 		context: contexts.value.sidebars[address],
 		// The authored label only: `labelOf`'s last resort is `link_to`, here the scrubbed address.
-		title: railOwner()?.label,
-		views: undefined,
+		title: owner?.label,
 	};
-}
-
-// A DocType rail item has no sidebar of its own: the panel lists its views, read when it opens.
-function viewsPanel() {
-	const views = viewsSidebarFor(railOwner(), (doctype) => addresses.isSingle(doctype));
-	if (!views) return null;
-	return {
-		address: `views:${views.doctype}`,
-		items: [] as NavigationItem[],
-		context: contexts.value.rail,
-		title: views.title,
-		views: views.doctype,
-	};
-}
+});
 
 // One dialog for both containers; the endpoints take the container as an argument.
 const customize = useHashDialog("customize");
@@ -528,15 +498,6 @@ const collapsedMemory = browserMemory(
 const sidebarCollapsed = ref(collapsedMemory.recall() ?? false);
 watch(sidebarCollapsed, collapsedMemory.remember);
 
-// The crumb's menu drops the views only while the panel stays on screen beside the page.
-watchEffect(() => {
-	const beside =
-		!sidebarOnly.value && !overlay.value && !floating.value && !drawer.value && !phone.value;
-	viewsSidebarDoctype.value =
-		beside && !sidebarCollapsed.value ? panel.value?.views ?? null : null;
-});
-onUnmounted(() => (viewsSidebarDoctype.value = null));
-
 const confirmingLogout = ref(false);
 
 const { appActsPending, shell } = useShellActs({
@@ -548,7 +509,7 @@ const { appActsPending, shell } = useShellActs({
 	rail: boot.app
 		? {
 				customize: () =>
-					panel.value && !panel.value.views
+					panel.value
 						? customize.write("sidebar", panel.value.address)
 						: customize.write("rail"),
 				shareLink,
