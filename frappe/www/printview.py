@@ -176,7 +176,7 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			return None
-		if can_print_with(doc):
+		if can_print_with(doc) or has_share_key(meta.name):
 			return doc
 		if name == requested and name != meta.default_print_format:
 			check_print_format_roles(doc)
@@ -570,6 +570,15 @@ def run_before_print(doc: "Document", print_settings: dict) -> None:
 	doc.flags.print_settings = print_settings
 	set_link_titles(doc)
 	doc.run_method("before_print", print_settings)
+
+
+def has_share_key(doctype: str) -> bool:
+	key, name = frappe.form_dict.key, frappe.form_dict.name
+	return (
+		isinstance(key, str)
+		and isinstance(name, str)
+		and validate_key(key, frappe._dict(doctype=doctype, name=name)) is not False
+	)
 
 
 def validate_key(key: str, doc: "Document") -> None:
