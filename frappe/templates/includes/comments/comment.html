@@ -2,7 +2,11 @@
 
 <div class="my-5 comment-row media">
 	<div class="comment-avatar">
-		{{  avatar(user_id=(frappe.utils.strip_html(comment.comment_email or comment.sender)), size='avatar-medium') }}
+		{{ avatar(
+			user_id=(comment.owner if comment.owner != "Guest" else None),
+			full_name=frappe.utils.strip_html(comment.comment_by),
+			size='avatar-medium'
+		) }}
 	</div>
 	<div class="comment-content">
 		<div class="mb-2 head">

@@ -163,7 +163,8 @@
 				return false;
 			}
 
-			if (args.comment_email !== 'Administrator' && !validate_email(args.comment_email)) {
+			// only guests type an email; for logged-in users the server uses the user's email
+			if (!frappe.is_user_logged_in() && !validate_email(args.comment_email)) {
 				frappe.msgprint('{{ _("Please enter a valid email address.") }}');
 				return false;
 			}
