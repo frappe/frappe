@@ -45,6 +45,7 @@ from frappe.utils import (
 	get_email_addresses,
 	get_url,
 	get_user_by_email,
+	get_user_display_id,
 	getdate,
 	now_datetime,
 	sha256_hash,
@@ -1088,6 +1089,13 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		admin_email = frappe.db.get_value("User", "Administrator", "email")
 		self.assertIsNone(get_user_by_email(admin_email))
 		self.assertEqual(get_user_by_email(admin_email, include_standard_users=True), "Administrator")
+
+	def test_get_user_display_id(self):
+		with test_user(roles=[], generated_id=True) as user:
+			self.assertEqual(get_user_display_id(user.name), user.email)
+
+		self.assertEqual(get_user_display_id("Administrator"), "Administrator")
+		self.assertEqual(get_user_display_id("_Test Missing User"), "_Test Missing User")
 
 	def test_get_system_managers(self):
 		from frappe.email import get_system_managers as get_system_manager_emails

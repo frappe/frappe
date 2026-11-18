@@ -15,6 +15,7 @@ from frappe.desk.doctype.notification_log.notification_log import (
 	get_title_html,
 )
 from frappe.desk.form.document_follow import _follow_document
+from frappe.utils import get_user_display_id
 from frappe.utils.data import strip_html
 
 
@@ -131,7 +132,7 @@ def _add(
 			if not frappe.has_permission(doc=doc, user=assign_to):
 				if frappe.get_system_settings("disable_document_sharing"):
 					msg = _("User {0} is not permitted to access this document.").format(
-						frappe.bold(assign_to)
+						frappe.bold(get_user_display_id(assign_to))
 					)
 					msg += "<br>" + _(
 						"As document sharing is disabled, please give them the required permissions before assigning."
@@ -338,4 +339,4 @@ def notify_assignment(assigned_by, allocated_to, doc_type, doc_name, action="CLO
 
 
 def format_message_for_assign_to(users):
-	return "<br><br>" + "<br>".join(users)
+	return "<br><br>" + "<br>".join(get_user_display_id(user) for user in users)
