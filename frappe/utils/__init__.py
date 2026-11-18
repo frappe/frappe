@@ -869,14 +869,13 @@ def get_site_info():
 	users = frappe.get_all(
 		"User",
 		filters={"user_type": "System User", "name": ("not in", frappe.STANDARD_USERS)},
-		fields=["name", "enabled", "last_login", "last_active", "language", "time_zone"],
+		fields=["name", "email", "enabled", "last_login", "last_active", "language", "time_zone"],
 	)
 	system_managers = get_system_managers(only_name=True)
 	for u in users:
 		# tag system managers
 		u.is_system_manager = 1 if u.name in system_managers else 0
 		u.full_name = get_fullname(u.name)
-		u.email = u.name
 		del u["name"]
 
 	system_settings = frappe.db.get_singles_dict("System Settings")
