@@ -30,7 +30,6 @@ from functools import cache
 from urllib.error import HTTPError
 
 FULL_CI_LABEL = "run-full-ci"
-FIX_DEVELOP_LABEL = "fixes-develop"
 BUNDLE_SIZE_FILES = (
 	".github/workflows/default-js-bundle-size.yml",
 	".github/helper/compare_default_js_bundle_size.py",
@@ -109,31 +108,19 @@ def has_skip_ci_label(pr_number, repo="frappe/frappe"):
 
 
 def has_run_server_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run Server Tests' or full CI label, or fixes failing server tests on develop."""
-	return any(has_label(pr_number, label, repo) for label in ("Run Server Tests", FULL_CI_LABEL)) or (
-		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and base_failing(pr_number, repo, "server-tests.yml")
-	)
+	"""Check if the PR has the 'Run Server Tests' or full CI label."""
+	return any(has_label(pr_number, label, repo) for label in ("Run Server Tests", FULL_CI_LABEL))
 
 
 def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run UI Tests' or full CI label, or fixes failing UI tests on develop."""
-	return any(has_label(pr_number, label, repo) for label in ("Run UI Tests", FULL_CI_LABEL)) or (
-		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and base_failing(pr_number, repo, "ui-tests.yml")
-	)
-
-
-def base_failing(pr_number, repo, workflow):
-	"""Is this suite's latest full run failing on the branch the PR targets, or on develop for other branches?"""
-	from develop_status import BRANCHES, failing_suites
-
-	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
-	return workflow in failing_suites(base if base in BRANCHES else "develop")
+	"""Check if the PR has the 'Run UI Tests' or full CI label."""
+	return any(has_label(pr_number, label, repo) for label in ("Run UI Tests", FULL_CI_LABEL))
 
 
 def skips_test_suites(pr_number, repo="frappe/frappe"):
-	"""Check if the PR targets develop, desk-v2 or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
+	"""Check if the PR targets develop or a hotfix branch: develop runs the suites in the merge queue, hotfix on the release PR."""
 	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
-	return base in ("develop", "desk-v2") or base.endswith("-hotfix")
+	return base == "develop" or base.endswith("-hotfix")
 
 
 def has_label(pr_number, label, repo="frappe/frappe"):
@@ -181,11 +168,6 @@ def is_frontend_code(file):
 	)
 
 
-def is_desk_frontend(file):
-	"""The desk-v2 frontend, and the pages, records and settings an app contributes to it."""
-	return file.startswith(("frontend/", "ui/")) or (file.startswith("frappe/") and "/frontend/" in file)
-
-
 def matches_postgres_filenames(files_list):
 	"""Check if any changed files suggest database involvement."""
 	db_keywords = ["database", "query", "schema", "postgres"]
@@ -208,11 +190,6 @@ def _selftest():
 		"Jinja must run server tests"
 	)
 	assert is_frontend_code("studio/frontend/index.html"), "app pages outside the frappe package are frontend"
-	assert is_desk_frontend("ui/src/index.ts"), "desk-v2's server tests read ui/"
-	assert is_desk_frontend("frappe/desk/navigation_item_type/page/frontend/item.js"), (
-		"test_shell.py reads contributions"
-	)
-	assert not is_desk_frontend("frappe/public/js/frappe/ui/dialog.js"), "desk v1 is not desk-v2's frontend"
 	print("roulette selftest OK")
 
 
@@ -260,7 +237,7 @@ if __name__ == "__main__":
 
 	if os.environ.get("SKIP_ON_PRS") and skips_test_suites(pr_number, repo) and not tests_requested:
 		print(
-			"Develop and hotfix PRs skip the test suites, they run on the branch instead; stopping build process."
+			"Develop and hotfix PRs skip the test suites, they run in the merge queue or on the release PR; stopping build process."
 		)
 		sys.exit(0)
 

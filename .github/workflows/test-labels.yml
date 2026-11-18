@@ -1,0 +1,34 @@
+name: Test Labels
+
+on:
+  pull_request_target:
+    branches: [develop, desk-v2, version-15-hotfix, version-16-hotfix]
+    types: [labeled]
+
+permissions:
+  actions: write
+  pull-requests: read
+
+jobs:
+  restart:
+    name: Restart Tests
+    if: ${{ contains(fromJSON('["run-full-ci", "Run Server Tests", "Run UI Tests"]'), github.event.label.name) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    concurrency:
+      group: test-labels-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - run: |
+          for workflow in server-tests.yml ui-tests.yml; do
+            run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --commit "$HEAD_SHA" --limit 1 --json databaseId --jq '.[0].databaseId')
+            [ -n "$run_id" ] || continue
+            gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+            for _ in $(seq 360); do [ "$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json status --jq .status)" = completed ] && break; sleep 10; done
+            [ "$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)" = "$HEAD_SHA" ] || exit 0
+            gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY"
+          done
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR: ${{ github.event.pull_request.number }}
