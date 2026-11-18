@@ -120,6 +120,8 @@ def get_print(
 
 	local = frappe.local
 	pf_doc = _print_format_doc_or_none(print_format, doctype if print_format else None)
+	if print_format:
+		print_format = pf_doc.name if pf_doc else "Standard"
 	generator = local.form_dict.get("pdf_generator")
 	if not generator or (uses_beta_renderer(pf_doc) and generator not in GENERATOR_ENGINES):
 		generator = resolve_pdf_generator(pf_doc, pdf_generator)
@@ -197,7 +199,7 @@ def get_print(
 					# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 					pdf = frappe.call(
 						hook,
-						print_format=print_format,
+						print_format=pf_doc.name if pf_doc else None,
 						html=html,
 						options=pdf_options,
 						output=output,
