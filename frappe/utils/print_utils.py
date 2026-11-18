@@ -7,7 +7,7 @@ from frappe.utils.data import cint, cstr
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
 
 
-def _print_format_doc_or_none(print_format: str | None, doctype: str | None = None, name: str | None = None):
+def _print_format_doc_or_none(print_format: str | None, doctype: str | None = None):
 	"""Return the Print Format doc, or None for an empty/"Standard"/deleted name.
 
 	With a doctype, an empty name means the doctype's default print format, the one
@@ -18,7 +18,6 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 	mid-send — they fall back to the Standard render.
 	"""
 	from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
-	from frappe.www.printview import has_share_key
 
 	default = frappe.get_meta(doctype).default_print_format if doctype else None
 	requested = print_format and print_format != default
@@ -30,7 +29,7 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		return None
-	if requested and not has_share_key(frappe._dict(doctype=doctype, name=name)):
+	if requested:
 		check_print_format_roles(doc)
 	return doc if can_print_with(doc) else None
 
@@ -110,7 +109,7 @@ def get_print(
 	from frappe.website.serve import get_response_without_exception_handling
 
 	local = frappe.local
-	pf_doc = _print_format_doc_or_none(print_format, doctype, name)
+	pf_doc = _print_format_doc_or_none(print_format, doctype)
 	generator = resolve_pdf_generator(pf_doc, local.form_dict.get("pdf_generator") or pdf_generator)
 
 	settings = settings or local.form_dict.get("settings")
