@@ -82,6 +82,7 @@ def install_fake_app(after_install: str):
 
 	real_get_hooks = frappe.get_hooks
 	real_get_all_apps = frappe.get_all_apps
+	real_get_installed_apps = frappe.get_installed_apps
 
 	def fake_get_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
 		if app_name == FAKE_APP:
@@ -93,9 +94,17 @@ def install_fake_app(after_install: str):
 			return FAKE_PATCHES
 		return real_get_patches_from_app(app, patch_type)
 
+	def installed_apps_on_bench(*, _ensure_on_bench=False):
+		apps = real_get_installed_apps()
+		if _ensure_on_bench:
+			on_bench = real_get_all_apps()
+			apps = [app for app in apps if app in on_bench]
+		return apps
+
 	with (
 		patch.object(frappe, "get_hooks", fake_get_hooks),
 		patch.object(frappe, "get_all_apps", lambda *a, **kw: [*real_get_all_apps(*a, **kw), FAKE_APP]),
+		patch.object(frappe, "get_installed_apps", installed_apps_on_bench),
 		patch.object(frappe, "setup_module_map"),
 		patch("frappe.model.sync.sync_for"),
 		patch("frappe.installer.add_module_defs"),
