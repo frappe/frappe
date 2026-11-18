@@ -119,7 +119,7 @@ def get_print(
 	from frappe.website.serve import get_response_without_exception_handling
 
 	local = frappe.local
-	pf_doc = _print_format_doc_or_none(print_format)
+	pf_doc = _print_format_doc_or_none(print_format, doctype if print_format else None)
 	generator = local.form_dict.get("pdf_generator")
 	if not generator or (uses_beta_renderer(pf_doc) and generator not in GENERATOR_ENGINES):
 		generator = resolve_pdf_generator(pf_doc, pdf_generator)

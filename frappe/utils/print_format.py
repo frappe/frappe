@@ -244,7 +244,7 @@ def _download_multi_pdf(
 			renders_through_generator,
 		)
 
-		pf_doc = _print_format_doc_or_none(format)
+		pf_doc = _print_format_doc_or_none(format, print_doctype if format else None)
 		if not renders_through_generator(pf_doc):
 			return frappe.get_print(
 				print_doctype,
