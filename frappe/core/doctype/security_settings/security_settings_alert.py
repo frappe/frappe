@@ -2,8 +2,8 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe.email import get_system_managers
 from frappe.utils import get_datetime, now_datetime
-from frappe.utils.user import get_users_with_role
 
 
 def check_security_txt_expiry():
@@ -21,7 +21,7 @@ def check_security_txt_expiry():
 
 
 def send_expiry_alert(site: str, expires, days_until_expiry: int):
-	recipients = get_users_with_role("System Manager")
+	recipients = get_system_managers()
 	if not recipients:
 		return
 	subject = get_email_subject(site, days_until_expiry)

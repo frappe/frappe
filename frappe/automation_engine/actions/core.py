@@ -14,7 +14,7 @@ from frappe.automation_engine.actions.base import (
 	render_context,
 	render_value,
 )
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, validate_email_address
 
 NUMERIC_FIELDTYPES = ("Int", "Float", "Currency", "Percent")
 HTTP_METHODS = ("GET", "POST", "PUT", "PATCH", "DELETE")
@@ -198,7 +198,7 @@ def resolve_recipients(recipients: list, doc) -> list:
 	resolved = []
 	for recipient in recipients:
 		if recipient == OWNER_TOKEN:
-			resolved.append(doc.owner if doc else None)
+			resolved.append(doc.owner if doc and doc.owner != "Guest" else None)
 		elif recipient == ASSIGNEES_TOKEN:
 			resolved.extend(_assignees(doc))
 		else:
@@ -210,6 +210,40 @@ def _assignees(doc) -> list:
 	if not doc:
 		return []
 	return frappe.parse_json(doc.get("_assign") or "[]") or []
+
+
+def _get_recipient_emails(
+	values: list[str], reference_doctype: str | None = None, reference_name: str | None = None
+) -> list[str]:
+	"""Return the email of each user ID and every other valid email, in order and deduplicated.
+
+	Anything else is dropped and logged.
+	"""
+	user_emails = dict(
+		frappe.get_all(
+			"User",
+			filters=[["name", "in", values], ["name", "!=", "Guest"]],
+			fields=["name", "email"],
+			as_list=True,
+		)
+	)
+	emails, invalid = [], []
+	for value in values:
+		email = user_emails[value] if value in user_emails else validate_email_address(value)
+		if email:
+			emails.append(email)
+		else:
+			invalid.append(value)
+
+	if invalid:
+		frappe.log_error(
+			title=_("Invalid email recipients"),
+			message=_("Not a user or an email address: {0}").format(", ".join(invalid)),
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
+		)
+
+	return list(dict.fromkeys(emails))
 
 
 class SendNotification(AutomationAction):
@@ -255,12 +289,17 @@ class SendNotification(AutomationAction):
 			return _("No recipients to notify")
 		if params.get("channel") == "System":
 			return self._notify_system(doc, recipients, subject, message)
+		reference_doctype = doc.doctype if doc else None
+		reference_name = doc.name if doc else None
+		recipients = _get_recipient_emails(recipients, reference_doctype, reference_name)
+		if not recipients:
+			return _("No recipients to notify")
 		frappe.sendmail(
 			recipients=recipients,
 			subject=subject,
 			message=message,
-			reference_doctype=doc.doctype if doc else None,
-			reference_name=doc.name if doc else None,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
 		)
 		return _("Emailed {0}").format(", ".join(recipients))
 
