@@ -32,6 +32,7 @@ from frappe.utils import (
 	format_datetime,
 	get_email_address,
 	get_formatted_email,
+	get_fullname,
 	get_system_timezone,
 	get_user_by_email,
 	now_datetime,
@@ -1778,13 +1779,13 @@ def get_enabled_users():
 def impersonate(user: str, reason: str):
 	frappe.has_permission("User", "impersonate", doc=user, throw=True)
 
-	impersonator = get_email_address(frappe.session.user)
+	impersonator = get_fullname(frappe.session.user)
 	frappe.get_doc(
 		{
 			"doctype": "Activity Log",
 			"user": user,
 			"status": "Success",
-			"subject": _("User {0} impersonated as {1}").format(impersonator, get_email_address(user)),
+			"subject": _("User {0} impersonated as {1}").format(impersonator, get_fullname(user)),
 			"operation": "Impersonate",
 		}
 	).insert(ignore_permissions=True, ignore_links=True)
@@ -1803,7 +1804,7 @@ def impersonate(user: str, reason: str):
 		user_email = frappe.db.get_value("User", user, "email")
 		email_message = _(
 			"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
-		).format(escape_html(impersonator), escape_html(reason))
+		).format(escape_html(get_email_address(frappe.session.user)), escape_html(reason))
 
 		frappe.sendmail(
 			recipients=[user_email],
