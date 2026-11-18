@@ -7,7 +7,13 @@ import { test, expect } from "../support";
 // leave out what the user cannot reach. A layout saved before icons carried a module used to open
 // nothing for any icon whose label is not a sidebar's name.
 const BOOT = [
-	{ name: "Invoicing", label: "Invoicing", icon_type: "Link", module: "Accounts" },
+	{
+		name: "Invoicing",
+		label: "Invoicing",
+		icon_type: "Link",
+		module: "Accounts",
+		link_to: "Invoicing",
+	},
 	{ name: "Ops Folder", label: "Operations", icon_type: "Folder" },
 ];
 
@@ -29,6 +35,7 @@ test.describe("Saved desktop layout", () => {
 			{ name: "Invoicing", label: "Invoicing", icon_type: "Link" },
 		]);
 		expect(icon.module).toBe("Accounts");
+		expect(icon.link_to).toBe("Invoicing");
 		expect(icon.not_permitted).toBe(false);
 	});
 
@@ -85,6 +92,7 @@ test.describe("Saved desktop layout", () => {
 			)
 		);
 		expect(created.module).toBe("Custom");
+		expect(created.link_to).toBe("Fresh Space");
 	});
 
 	test("always draws a folder", async ({ page }) => {
