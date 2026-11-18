@@ -41,7 +41,8 @@ function preview_letter_head(frm) {
 		args: { letterhead: frm.doc.name },
 		callback: ({ message }) => {
 			const { header = "", footer = "" } = message || {};
-			const print_css = frappe.assets.bundled_asset("print.bundle.css");
+			const is_rtl = frappe.utils.is_rtl();
+			const print_css = frappe.assets.bundled_asset("print.bundle.css", is_rtl);
 			const print_style = (frappe.boot.print_css || "").replace(/<\//g, "<\\/");
 			const dialog = new frappe.ui.Dialog({
 				title: __("Preview"),
@@ -50,7 +51,7 @@ function preview_letter_head(frm) {
 			});
 			const $iframe = $(`<iframe class="letter-head-preview" sandbox=""></iframe>`);
 			$iframe[0].srcdoc = `<!DOCTYPE html>
-<html>
+<html lang="${frappe.boot.lang}" dir="${is_rtl ? "rtl" : "ltr"}">
 	<head>
 		<link href="${frappe.urllib.get_base_url()}${print_css}" rel="stylesheet">
 		<style>${print_style}</style>
