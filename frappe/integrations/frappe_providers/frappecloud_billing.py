@@ -65,7 +65,7 @@ def get_headers():
 
 	return {
 		"X-Site-Token": frappe.conf.get("fc_communication_secret"),
-		"X-Site-User": frappe.session.user,
+		"X-Site-User": frappe.utils.get_email_address(),
 		"X-Site": get_site_name(),
 	}
 
