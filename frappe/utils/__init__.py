@@ -88,6 +88,16 @@ def get_email_address(user=None):
 	return frappe.get_cached_value("User", user, "email")
 
 
+def get_user_display_id(user: str | None = None) -> str:
+	"""Return how to refer to a user in text: their email, or the ID for Administrator, Guest
+	and users that no longer exist."""
+	user = user or frappe.session.user
+	if user in frappe.STANDARD_USERS:
+		return user
+
+	return get_email_address(user) or user
+
+
 def get_email_addresses(users: Iterable[str]) -> set[str]:
 	"""Return the emails of the given users.
 

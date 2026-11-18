@@ -26,7 +26,11 @@ frappe.ui.setup_site_banners = function () {
 	if (frappe.boot.user.impersonated_by) {
 		banners.push({
 			css_class: "bg-surface-red-1 text-ink-red-7",
-			message: __("You are impersonating {0}.", [frappe.boot.user.email]),
+			message: __("You are impersonating {0}.", [
+				["Administrator", "Guest"].includes(frappe.boot.user.name)
+					? frappe.boot.user.name
+					: frappe.boot.user.email,
+			]),
 		});
 	}
 
