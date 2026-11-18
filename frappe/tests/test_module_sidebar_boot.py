@@ -751,9 +751,13 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 				"content": "[]",
 			}
 		).insert(ignore_permissions=True)
-		# runs while the test may still be a stranger, whom the page's own permission refuses
 		self.addCleanup(
-			frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True, ignore_permissions=True
+			frappe.delete_doc,
+			"Workspace",
+			doc.name,
+			force=True,
+			ignore_missing=True,
+			ignore_permissions=True,
 		)
 		return doc
 
