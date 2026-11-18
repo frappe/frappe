@@ -126,6 +126,7 @@ permission_query_conditions = {
 	"File": "frappe.core.doctype.file.file.get_permission_query_conditions",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.get_permission_query_conditions",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.get_permission_query_conditions",
+	"Workspace": "frappe.desk.doctype.workspace.workspace.get_permission_query_conditions",
 }
 
 has_permission = {
@@ -148,6 +149,7 @@ has_permission = {
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.has_permission",
 	"User Invitation": "frappe.core.doctype.user_invitation.user_invitation.has_permission",
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
+	"Workspace": "frappe.desk.doctype.workspace.workspace.has_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
