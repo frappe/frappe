@@ -11,6 +11,7 @@ from decimal import Decimal, InvalidOperation
 from functools import cached_property
 from pathlib import Path
 
+import click
 from pymysql.converters import escape_string
 
 import frappe
@@ -465,7 +466,7 @@ class MariaDBDumpWriter:
 			dump.write("COMMIT;\nSET FOREIGN_KEY_CHECKS=1;\n")
 		for warning in self.warnings:
 			if self.verbose:
-				print(warning)
+				click.echo(warning)
 		if self.problems:
 			self.raise_problems()
 
