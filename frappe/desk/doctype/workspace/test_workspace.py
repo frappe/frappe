@@ -1,10 +1,160 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.doctype.sidebar.test_sidebar import sidebarless_module
 from frappe.tests import IntegrationTestCase
+
+
+class TestAPrivatePageIsItsOwners(IntegrationTestCase):
+	"""A private page is read and written by the user named in `for_user` and by a Workspace Manager.
+	The document API reaches a page without going through the desk's endpoints, so the document says
+	this itself."""
+
+	MODULE = "Users"
+	PAGE = "Test Private Page Of Its Owner"
+	PUBLIC_PAGE = "Test Public Page Nobody Owns"
+	OWNER = "test-private-page-owner@example.com"
+	OTHER = "test-private-page-other@example.com"
+	MANAGER = "test-private-page-manager@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		for email, roles in (
+			(self.OWNER, ["Desk User"]),
+			(self.OTHER, ["Desk User"]),
+			(self.MANAGER, ["Desk User", "Workspace Manager"]),
+		):
+			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "Page",
+					"send_welcome_email": 0,
+					"roles": [{"role": role} for role in roles],
+				}
+			).insert()
+			self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+
+		frappe.set_user(self.OWNER)
+		self.make_page(
+			self.PAGE,
+			public=0,
+			for_user=self.OWNER,
+			shortcuts=[{"type": "URL", "url": "https://example.com", "label": "Owner Shortcut"}],
+		)
+		frappe.set_user("Administrator")
+		self.make_page(self.PUBLIC_PAGE, public=1)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		for name in (self.PAGE, self.PUBLIC_PAGE):
+			frappe.delete_doc("Workspace", name, force=True, ignore_missing=True)
+
+	def make_page(self, title, **fields):
+		return frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"label": title,
+				"title": title,
+				"module": self.MODULE,
+				"content": "[]",
+				**fields,
+			}
+		).insert()
+
+	def open_page(self):
+		from frappe.desk.desktop import get_desktop_page
+
+		return get_desktop_page(json.dumps({"name": self.PAGE, "title": self.PAGE}))
+
+	def test_nobody_else_reads_it(self):
+		frappe.set_user(self.OTHER)
+		with self.assertRaises(frappe.PermissionError):
+			frappe.get_doc("Workspace", self.PAGE).check_permission("read")
+
+	def test_nobody_else_finds_it_in_a_list(self):
+		frappe.set_user(self.OTHER)
+		names = frappe.get_list("Workspace", pluck="name", filters={"module": self.MODULE})
+		self.assertNotIn(self.PAGE, names)
+		self.assertIn(self.PUBLIC_PAGE, names)
+
+		frappe.set_user(self.OWNER)
+		self.assertIn(self.PAGE, frappe.get_list("Workspace", pluck="name", filters={"module": self.MODULE}))
+
+	def test_nobody_else_reads_its_rows_through_the_parent(self):
+		from frappe.client import get_list
+
+		frappe.set_user(self.OTHER)
+		rows = get_list(
+			"Workspace Shortcut", fields=["label"], filters={"parent": self.PAGE}, parent="Workspace"
+		)
+		self.assertEqual(rows, [])
+
+	def test_nobody_else_opens_it_on_the_desk(self):
+		frappe.set_user(self.OTHER)
+		with self.assertRaises(frappe.PermissionError):
+			self.open_page()
+
+		frappe.set_user(self.OWNER)
+		self.assertEqual(
+			[shortcut["label"] for shortcut in self.open_page()["shortcuts"]["items"]], ["Owner Shortcut"]
+		)
+
+	def test_nobody_else_takes_it_by_naming_themselves_its_owner(self):
+		from frappe.client import set_value
+
+		frappe.set_user(self.OTHER)
+		with self.assertRaises(frappe.PermissionError):
+			set_value("Workspace", self.PAGE, "for_user", self.OTHER)
+
+		frappe.set_user("Administrator")
+		self.assertEqual(frappe.db.get_value("Workspace", self.PAGE, "for_user"), self.OWNER)
+
+	def test_nobody_else_deletes_it(self):
+		from frappe.client import delete
+
+		frappe.set_user(self.OTHER)
+		with self.assertRaises(frappe.PermissionError):
+			delete("Workspace", self.PAGE)
+
+		self.assertTrue(frappe.db.exists("Workspace", self.PAGE))
+
+	def test_a_workspace_manager_still_reads_and_moves_it(self):
+		from frappe.client import set_value
+
+		frappe.set_user(self.MANAGER)
+		self.assertIn(self.PAGE, frappe.get_list("Workspace", pluck="name", filters={"module": self.MODULE}))
+		set_value("Workspace", self.PAGE, "for_user", self.MANAGER)
+
+		self.assertEqual(frappe.db.get_value("Workspace", self.PAGE, "for_user"), self.MANAGER)
+
+	def test_a_page_with_no_owner_stays_open_to_everyone(self):
+		"""`get_workspaces` shows one to everybody, so it is a shared page in all but the column."""
+		frappe.set_user("Administrator")
+		self.make_page("Test Page With No Owner", public=0, for_user="")
+		self.addCleanup(frappe.delete_doc, "Workspace", "Test Page With No Owner", force=True)
+
+		frappe.set_user(self.OTHER)
+		frappe.get_doc("Workspace", "Test Page With No Owner").check_permission("read")
+
+	def test_a_desk_user_cannot_turn_a_public_page_into_their_own(self):
+		from frappe.client import set_value
+
+		frappe.set_user(self.OTHER)
+		# `disable_saving_as_public` is true in every test, and it is what lifts this rule for an
+		# install or a migration.
+		with (
+			patch("frappe.desk.doctype.workspace.workspace.disable_saving_as_public", return_value=False),
+			self.assertRaises(frappe.ValidationError),
+		):
+			set_value("Workspace", self.PUBLIC_PAGE, {"public": 0, "for_user": self.OTHER})
+
+		frappe.set_user("Administrator")
+		self.assertEqual(frappe.db.get_value("Workspace", self.PUBLIC_PAGE, "public"), 1)
 
 
 class TestWorkspace(IntegrationTestCase):
