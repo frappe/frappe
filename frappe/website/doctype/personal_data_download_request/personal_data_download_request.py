@@ -9,7 +9,7 @@ from frappe.model.document import Document
 from frappe.utils import get_email_address, get_user_by_email, get_user_display_id
 from frappe.utils.verified_command import get_signed_params
 from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import (
-	get_user_value,
+	get_user_values,
 )
 
 
@@ -106,13 +106,13 @@ class PersonalDataDownloadRequest(Document):
 def get_user_data(user):
 	"""Return user data not linked to `User` doctype."""
 	hooks = frappe.get_hooks("user_data_fields")
-	email = get_email_address(user)
+	values = get_user_values(user, get_email_address(user))
 	data = {}
 	for hook in hooks:
 		doctype = hook.get("doctype")
 		filter_by = hook.get("filter_by", "owner")
 		d = data.get(doctype, [])
-		d += frappe.get_all(doctype, {filter_by: get_user_value(doctype, filter_by, user, email)}, ["*"])
+		d += frappe.get_all(doctype, {filter_by: ("in", values)}, ["*"])
 		if d:
 			data.update({doctype: d})
 	return json.dumps(data, indent=2, default=str)

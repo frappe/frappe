@@ -31,10 +31,18 @@ class TestRequestPersonalData(IntegrationTestCase):
 	def test_user_data_of_user_with_generated_id(self):
 		with test_user(roles=[], generated_id=True) as user:
 			create_contact(user=user)
+			attachment = frappe.get_doc(
+				doctype="File",
+				file_name="_test_user_attachment.txt",
+				content="attached to the user",
+				attached_to_doctype="User",
+				attached_to_name=user.name,
+			).insert(ignore_permissions=True)
 			user_data = json.loads(get_user_data(user.name))
 
 			self.assertEqual([d["name"] for d in user_data["User"]], [user.name])
 			self.assertEqual([d["email_id"] for d in user_data["Contact"]], [user.email])
+			self.assertIn(attachment.name, [d["name"] for d in user_data["File"]])
 
 	def test_request_by_email_of_user_with_generated_id(self):
 		with test_user(roles=[], generated_id=True) as user:

@@ -207,7 +207,8 @@ class PersonalDataDeletionRequest(Document):
 				if column not in log_db.DEFAULT_COLUMNS and not meta.get_field(column):
 					continue
 
-				log_db.delete(doctype, {column: get_user_value(doctype, column, self.user, email)})
+				for value in get_user_values(self.user, email):
+					log_db.delete(doctype, {column: value})
 				swept = True
 
 			# Deleting nothing because no column exists is a broken `user_data_fields` entry,
@@ -236,10 +237,10 @@ class PersonalDataDeletionRequest(Document):
 			return f"{email_user}-{number}@{domain}"
 
 		filter_by = doctype.get("filter_by", "owner")
-		value = get_user_value(doctype["doctype"], filter_by, self.user, self.email)
+		values = get_user_values(self.user, self.email)
 
 		for i, name in enumerate(
-			frappe.get_all(doctype["doctype"], filters={filter_by: value}, pluck="name")
+			frappe.get_all(doctype["doctype"], filters={filter_by: ("in", values)}, pluck="name")
 		):
 			frappe.rename_doc(
 				doctype["doctype"], name, new_name(self.anon, i + 1), force=True, show_alert=False
@@ -251,7 +252,7 @@ class PersonalDataDeletionRequest(Document):
 
 		docs = frappe.get_all(
 			ref["doctype"],
-			filters={filter_by: get_user_value(ref["doctype"], filter_by, self.user, email)},
+			filters={filter_by: ("in", get_user_values(self.user, email))},
 			fields=["name", filter_by],
 		)
 
@@ -410,14 +411,14 @@ class PersonalDataDeletionRequest(Document):
 
 		filter_by = doctype.get("filter_by", "owner")
 		update_predicate = f"SET  {', '.join(match_fields)}"
-		where_predicate = "" if doctype.get("strict") else f"WHERE `{filter_by}` = %(value)s"
+		where_predicate = "" if doctype.get("strict") else f"WHERE `{filter_by}` IN %(values)s"
 
 		frappe.db.sql(
 			f"UPDATE `tab{doctype['doctype']}` {update_predicate} {where_predicate}",
 			{
 				"name": self.full_name,
 				"email": self.email,
-				"value": get_user_value(doctype["doctype"], filter_by, self.user, self.email),
+				"values": get_user_values(self.user, self.email),
 			},
 		)
 
@@ -494,16 +495,10 @@ def get_user_with_email(email: str) -> str:
 	frappe.throw(_("No user has the email {0}").format(email), frappe.DoesNotExistError)
 
 
-def get_user_value(doctype: str, fieldname: str, user: str, email: str) -> str:
-	"""Return `user` if `fieldname` of `doctype` references the user's account, else `email`."""
-	if fieldname in ("name", "owner", "modified_by"):
-		return user
-
-	df = frappe.get_meta(doctype).get_field(fieldname)
-	if df and (df.fieldtype == "Dynamic Link" or (df.fieldtype == "Link" and df.options == "User")):
-		return user
-
-	return email
+def get_user_values(user: str, email: str) -> tuple[str, ...]:
+	"""The user's ID and email: configured columns hold one or the other (`owner` the ID, `email_id`
+	the email, `attached_to_name` the ID of the User record), and neither can belong to another user."""
+	return tuple(dict.fromkeys((user, email)))
 
 
 def get_pattern(full_match):
