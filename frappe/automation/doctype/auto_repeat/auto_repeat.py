@@ -14,6 +14,7 @@ from frappe.contacts.doctype.contact.contact import (
 )
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.assign_to import add as assign_to
+from frappe.email import get_system_managers
 from frappe.model.document import Document
 from frappe.utils import (
 	add_days,
@@ -26,7 +27,6 @@ from frappe.utils import (
 )
 from frappe.utils.background_jobs import get_jobs
 from frappe.utils.jinja import validate_template
-from frappe.utils.user import get_system_managers
 
 month_map = {"Monthly": 1, "Quarterly": 3, "Half-yearly": 6, "Yearly": 12}
 day_map = {"Daily": 1, "Weekly": 7, "Fortnightly": 14}
@@ -534,9 +534,9 @@ class AutoRepeat(Document):
 		frappe.db.set_value("Auto Repeat", self.name, "disabled", 1)
 
 	def notify_error_to_user(self, error_log):
-		recipients = get_system_managers()
+		recipients = set(get_system_managers())
 		if self.owner != "Administrator":
-			recipients.extend(get_email_addresses([self.owner]))
+			recipients.update(get_email_addresses([self.owner]))
 		subject = _("Auto Repeat Document Creation Failed")
 
 		form_link = frappe.utils.get_link_to_form(self.reference_doctype, self.reference_document)

@@ -409,7 +409,12 @@ class TestAutoRepeat(IntegrationTestCase):
 			doc.notify_error_to_user(error_log)
 			recipients = sendmail.call_args.kwargs["recipients"]
 			self.assertIn(owner.email, recipients)
-			self.assertTrue(any(manager.email in recipient for recipient in recipients))
+			self.assertIn(manager.email, recipients)
+
+			doc.owner = manager.name
+			doc.notify_error_to_user(error_log)
+			recipients = sendmail.call_args.kwargs["recipients"]
+			self.assertEqual(sum(manager.email in recipient for recipient in recipients), 1)
 
 			doc.owner = "Administrator"
 			doc.notify_error_to_user(error_log)
