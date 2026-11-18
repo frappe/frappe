@@ -75,7 +75,9 @@ def get_context(context) -> PrintContext:
 
 	meta = frappe.get_meta(doc.doctype)
 
-	print_format, standalone = resolve_print_format(None, meta, doc)
+	print_format, standalone = resolve_print_format(
+		None, meta, frappe._dict(doctype=frappe.form_dict.doctype, name=frappe.form_dict.name)
+	)
 	legacy_weasyprint = uses_legacy_weasyprint(print_format)
 	if legacy_weasyprint:
 		standalone = False
@@ -198,9 +200,9 @@ def get_print_format_doc(
 	except frappe.DoesNotExistError:
 		# if old name, return standard!
 		return None
-	if can_print_with(print_format) or has_share_key(doc):
+	if can_print_with(print_format):
 		return print_format
-	if print_format_name == requested and requested != meta.default_print_format:
+	if print_format_name == requested and requested != meta.default_print_format and not has_share_key(doc):
 		check_print_format_roles(print_format)
 	return None
 
@@ -432,13 +434,14 @@ def get_html_and_style(
 ) -> dict[str, str | None]:
 	"""Return `html` and `style` of print format, used in PDF etc."""
 
-	if isinstance(doc, str) and isinstance(name, str):
+	stored = isinstance(doc, str) and isinstance(name, str)
+	if stored:
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
 		cast_client_values(document)
 
-	print_format, is_beta = resolve_print_format(print_format, document.meta, document)
+	print_format, is_beta = resolve_print_format(print_format, document.meta, document if stored else None)
 	set_link_titles(document)
 
 	if uses_legacy_weasyprint(print_format):
@@ -502,7 +505,7 @@ def get_rendered_raw_commands(
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
 		cast_client_values(document)
 
-	print_format = get_print_format_doc(print_format, meta=document.meta, doc=document)
+	print_format = get_print_format_doc(print_format, meta=document.meta)
 
 	if not print_format or (print_format and not print_format.raw_printing):
 		frappe.throw(
@@ -582,9 +585,9 @@ def run_before_print(doc: "Document", print_settings: dict) -> None:
 	doc.run_method("before_print", print_settings)
 
 
-def has_share_key(doc: "Document | None") -> bool:
+def has_share_key(doc: "Document | dict | None") -> bool:
 	key = frappe.form_dict.key
-	if not doc or not isinstance(key, str):
+	if not doc or not doc.get("name") or not isinstance(key, str):
 		return False
 	try:
 		return validate_key(key, doc) is not False

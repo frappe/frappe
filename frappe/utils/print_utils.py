@@ -15,11 +15,12 @@ GENERATOR_ENGINES = ("chrome", "PlutoPrint", "Typst", "WeasyPrint")
 HTML_PDF_GENERATORS = ("chrome", "PlutoPrint")
 
 
-def _print_format_doc_or_none(print_format: str | None, doctype: str | None = None):
+def _print_format_doc_or_none(print_format: str | None, doctype: str | None = None, name: str | None = None):
 	"""The Print Format doc, or None for an empty, "Standard" or deleted name so a
 	notification referencing a removed format still sends with the Standard render.
 	With a doctype, an empty name means the doctype's default print format."""
 	from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
+	from frappe.www.printview import has_share_key
 
 	default = frappe.get_meta(doctype).default_print_format if doctype else None
 	requested = print_format and print_format != default
@@ -31,7 +32,7 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		return None
-	if requested:
+	if requested and not has_share_key(frappe._dict(doctype=doctype, name=name)):
 		check_print_format_roles(doc)
 	return doc if can_print_with(doc) else None
 
@@ -119,7 +120,7 @@ def get_print(
 	from frappe.website.serve import get_response_without_exception_handling
 
 	local = frappe.local
-	pf_doc = _print_format_doc_or_none(print_format, doctype if print_format else None)
+	pf_doc = _print_format_doc_or_none(print_format, doctype if print_format else None, name)
 	if print_format:
 		print_format = pf_doc.name if pf_doc else "Standard"
 	generator = local.form_dict.get("pdf_generator")
