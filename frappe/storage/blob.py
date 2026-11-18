@@ -8,6 +8,7 @@ import tempfile
 from typing import IO, TYPE_CHECKING
 
 import filetype
+from pypika.terms import Function
 
 import frappe
 from frappe import _
@@ -101,9 +102,9 @@ def make_key(driver: "StorageDriver", blob_name: str, filename: str | None) -> s
 
 def other_site_key_criterion(blob: "Table") -> "Criterion":
 	"""Keys under another site's ``sites/<name>/`` prefix: a renamed site's former name, or a restored backup's source site."""
-	# "_" in a site name is a LIKE wildcard
-	own_prefix = frappe.local.site.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-	return blob.key.like("sites/%") & blob.key.not_like(f"sites/{own_prefix}/%")
+	own_prefix = f"sites/{frappe.local.site}/"
+	# a prefix compare, not LIKE: "_" in a site name is a wildcard, and SQLite has no default LIKE escape
+	return blob.key.like("sites/%") & (Function("SUBSTR", blob.key, 1, len(own_prefix)) != own_prefix)
 
 
 def key_basename(key: str) -> str:
