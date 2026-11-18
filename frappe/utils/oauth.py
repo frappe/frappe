@@ -247,7 +247,7 @@ def login_oauth_user(
 		return
 
 	try:
-		if update_oauth_user(user, data, provider) is False:
+		if not (user_id := update_oauth_user(user, data, provider)):
 			return
 
 	except SignupDisabledError:
@@ -259,10 +259,13 @@ def login_oauth_user(
 		)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 	frappe.local.login_manager.login_as(user)
 =======
 	user_id = frappe.utils.get_user_by_email(user)
 
+=======
+>>>>>>> a18d4b7 (refactor(oauth): return the user ID from `update_oauth_user`)
 	for method in frappe.get_hooks("on_social_login"):
 		frappe.get_attr(method)(user=user_id, provider=provider, claims=data)
 
@@ -359,6 +362,8 @@ def update_oauth_user(user: str, data: dict, provider: str):
 			user.add_roles(default_role)
 
 		user.save()
+
+	return user.name
 
 
 def get_first_name(data: dict) -> str:
