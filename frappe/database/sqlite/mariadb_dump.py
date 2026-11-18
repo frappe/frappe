@@ -7,7 +7,7 @@ import re
 import sqlite3
 import unicodedata
 from dataclasses import dataclass, field
-from decimal import Decimal, InvalidOperation
+from decimal import ROUND_HALF_UP, Context, Decimal, InvalidOperation
 from functools import cached_property
 from pathlib import Path
 
@@ -36,6 +36,7 @@ NUMERIC_TYPES = {
 	"double",
 }
 INTEGER_BITS = {"tinyint": 8, "smallint": 16, "mediumint": 24, "int": 32, "integer": 32, "bigint": 64}
+ROUNDING_CONTEXT = Context(prec=100)
 TEMPORAL_TYPES = {"date", "datetime", "time", "timestamp", "year"}
 UNINDEXABLE_TYPES = {
 	"tinytext",
@@ -176,11 +177,32 @@ class Column:
 				return 0, 2**bits - 1
 			return -(2 ** (bits - 1)), 2 ** (bits - 1) - 1
 		if self.base_type in ("decimal", "numeric"):
-			precision, scale = re.match(r"[a-z]+(?:\((\d+)(?:,\s*(\d+))?\))?", definition).groups()
-			scale = int(scale or 0)
-			highest = Decimal(10) ** (int(precision or 10) - scale) - Decimal(10) ** -scale
+			precision = re.match(r"[a-z]+(?:\((\d+))?", definition).group(1)
+			highest = Decimal(10) ** (int(precision or 10) - self.scale) - Decimal(10) ** -self.scale
 			return -highest, highest
 		return None
+
+	@cached_property
+	def scale(self) -> int:
+		"""Digits MariaDB keeps after the decimal point; integer types keep none."""
+		if match := re.match(r"(?:decimal|numeric)\(\d+,\s*(\d+)\)", self.definition.lower()):
+			return int(match.group(1))
+		return 0
+
+	def is_in_range(self, value: int | float | Decimal) -> bool:
+		"""Whether MariaDB stores `value` as the dump writes it, after rounding it to the column's scale."""
+		if not (bounds := self.numeric_range):
+			return True
+		lowest, highest = bounds
+		if isinstance(value, int):
+			return lowest <= value <= highest
+		number = Decimal(repr(value)) if isinstance(value, float) else value
+		if not lowest - 1 <= number <= highest + 1:
+			return False
+		rounded = number.quantize(
+			Decimal(10) ** -self.scale, rounding=ROUND_HALF_UP, context=ROUNDING_CONTEXT
+		)
+		return lowest <= rounded <= highest
 
 	@property
 	def catalog_type(self) -> str:
@@ -712,7 +734,7 @@ class MariaDBDumpWriter:
 		if isinstance(value, float) and not math.isfinite(value):
 			self.add_problem(_("{0}.{1}: {2} cannot be stored in MariaDB").format(table, column.name, value))
 			return "NULL"
-		if (bounds := column.numeric_range) and not bounds[0] <= value <= bounds[1]:
+		if not column.is_in_range(value):
 			self.add_problem(
 				_("{0}.{1}: {2} is outside the range of {3} (row {4})").format(
 					table, column.name, value, column.catalog_type, row[0]
