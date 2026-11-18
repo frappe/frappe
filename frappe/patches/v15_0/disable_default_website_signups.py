@@ -1,5 +1,3 @@
-import json
-
 import frappe
 from frappe import _
 from frappe.desk.doctype.notification_log.notification_log import make_notification_logs
@@ -11,26 +9,18 @@ def execute():
 	if cint(frappe.db.get_single_value("Website Settings", "disable_signup")):
 		return
 
-	if was_signup_setting_changed():
-		return
-
-	frappe.db.set_single_value("Website Settings", "disable_signup", 1)
-	notify_system_managers()
-
-
-def was_signup_setting_changed() -> bool:
-	versions = frappe.get_all(
+	if frappe.db.exists(
 		"Version",
-		filters={
+		{
 			"ref_doctype": "Website Settings",
 			"docname": "Website Settings",
 			"data": ("like", "%disable_signup%"),
 		},
-		pluck="data",
-	)
-	return any(
-		change[0] == "disable_signup" for data in versions for change in json.loads(data).get("changed", [])
-	)
+	):
+		return
+
+	frappe.db.set_single_value("Website Settings", "disable_signup", 1)
+	notify_system_managers()
 
 
 def notify_system_managers():
