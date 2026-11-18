@@ -255,7 +255,8 @@ class User(Document):
 
 		if self.email:
 			self.email = self.email.strip().lower()
-			self.validate_email_domain(self.email)
+			if self.has_value_changed("email"):
+				self.validate_email_domain(self.email)
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
@@ -782,9 +783,9 @@ class User(Document):
 		validate_email_address(email, True)
 
 	def validate_email_domain(self, email):
-		"""Users other than Administrator and Guest can't get a new email on the reserved `.invalid` domain."""
+		"""Users other than Administrator and Guest can't get an email on the reserved `.invalid` domain."""
 		# skipped in tests, which may use `.invalid` addresses
-		if frappe.in_test or self.name in STANDARD_USERS or not self.has_value_changed("email"):
+		if frappe.in_test or self.name in STANDARD_USERS:
 			return
 
 		if email.endswith(".invalid"):
