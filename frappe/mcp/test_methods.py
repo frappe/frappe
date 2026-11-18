@@ -62,7 +62,8 @@ class TestCallMethod(McpTestCase):
 	def test_image_answer_reaches_the_model(self):
 		for response_type, filename, content_type, mime_type in (
 			("download", "chart.png", None, "image/png"),
-			("binary", "chart", "image/webp", "image/webp"),
+			("binary", "chart", None, "image/png"),
+			("download", "chart.jpg", "image/jpeg", "image/png"),
 		):
 			with self.subTest(response_type=response_type):
 				response = self.invoke(
@@ -91,15 +92,25 @@ class TestCallMethod(McpTestCase):
 		self.assertEqual(result["structuredContent"]["document"]["name"], self.user)
 
 	def test_non_image_download_describes_the_file(self):
-		response = self.invoke(
-			method=f"{__name__}.file_method", args={"filename": "report.csv", "content": "a,b\n1,2\n"}
-		)
-		result = response.json["result"]
-		self.assertEqual([block["type"] for block in result["content"]], ["text"])
-		self.assertEqual(
-			result["structuredContent"],
-			{"result": None, "file": {"filename": "report.csv", "mimeType": "text/csv", "size": 8}},
-		)
+		for response_type, filename, content, mime_type in (
+			("download", "report.csv", "a,b\n1,2\n", "text/csv"),
+			("pdf", "invoice.pdf", "%PDF-1.4", "application/pdf"),
+			("download", "broken.png", "not an image", "image/png"),
+		):
+			with self.subTest(filename=filename):
+				response = self.invoke(
+					method=f"{__name__}.file_method",
+					args={"response_type": response_type, "filename": filename, "content": content},
+				)
+				result = response.json["result"]
+				self.assertEqual([block["type"] for block in result["content"]], ["text"])
+				self.assertEqual(
+					result["structuredContent"],
+					{
+						"result": None,
+						"file": {"filename": filename, "mimeType": mime_type, "size": len(content)},
+					},
+				)
 
 	def test_oversize_image_is_an_error(self):
 		response = self.invoke(method=f"{__name__}.file_method", args={"size": 4 * 1024 * 1024})
@@ -351,7 +362,7 @@ def file_method(
 ):
 	frappe.response.type = response_type
 	frappe.response.filename = filename
-	frappe.response.filecontent = bytes(size) if size else content or PNG_BYTES
+	frappe.response.filecontent = PNG_BYTES + bytes(size) if size else content or PNG_BYTES
 	if content_type:
 		frappe.response.content_type = content_type
 
