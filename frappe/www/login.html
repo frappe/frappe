@@ -56,7 +56,7 @@
 	{% endif %}
 	{% if social_login %}
 	<div class="social-logins text-center text-base">
-		<div class="social-login-buttons">
+		<div class="social-login-buttons flex flex-col gap-3">
 			{% for provider in provider_logins %}
 			<div class="login-button-wrapper">
 				<a href="{{ provider.auth_url }}"
