@@ -29,6 +29,7 @@ from frappe.utils import (
 	add_days,
 	cint,
 	cstr,
+	extract_email_id,
 	get_hook_method,
 	get_string_between,
 	get_url,
@@ -798,7 +799,7 @@ class QueueBuilder:
 		if self._unsubscribed_user_emails is not None:
 			return self._unsubscribed_user_emails
 
-		all_ids = list(set(self.recipients + self.cc + self.bcc))
+		all_ids = list({extract_email_id(email) for email in self.recipients + self.cc + self.bcc})
 
 		EmailUnsubscribe = DocType("Email Unsubscribe")
 
@@ -826,15 +827,17 @@ class QueueBuilder:
 
 	def final_recipients(self):
 		unsubscribed_emails = self.get_unsubscribed_user_emails()
-		return [mail_id for mail_id in self.recipients if mail_id not in unsubscribed_emails]
+		return [
+			mail_id for mail_id in self.recipients if extract_email_id(mail_id) not in unsubscribed_emails
+		]
 
 	def final_cc(self):
 		unsubscribed_emails = self.get_unsubscribed_user_emails()
-		return [mail_id for mail_id in self.cc if mail_id not in unsubscribed_emails]
+		return [mail_id for mail_id in self.cc if extract_email_id(mail_id) not in unsubscribed_emails]
 
 	def final_bcc(self):
 		unsubscribed_emails = self.get_unsubscribed_user_emails()
-		return [mail_id for mail_id in self.bcc if mail_id not in unsubscribed_emails]
+		return [mail_id for mail_id in self.bcc if extract_email_id(mail_id) not in unsubscribed_emails]
 
 	def get_attachments(self):
 		attachments = []

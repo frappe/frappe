@@ -9,6 +9,7 @@ from frappe.cache_manager import clear_doctype_map, get_doctype_map
 from frappe.desk.form import assign_to
 from frappe.model import log_types
 from frappe.model.document import Document
+from frappe.utils import get_user_by_email
 from frappe.utils.data import comma_and
 
 
@@ -179,8 +180,14 @@ class AssignmentRule(Document):
 
 	def get_user_based_on_field(self, doc):
 		val = doc.get(self.field)
+		if not val:
+			return
+
 		if frappe.db.exists("User", val):
 			return val
+
+		# the field can also be a Data field holding the user's email
+		return get_user_by_email(val)
 
 	def get_weighted_user(self):
 		"""
@@ -240,7 +247,7 @@ def get_assignments(doc) -> list[dict]:
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def bulk_apply(doctype: str, docnames: str | list[str]) -> bool:
 	if not frappe.get_cached_value("User", frappe.session.user, "bulk_actions"):
 		frappe.throw(_("You are not allowed to perform bulk actions"), frappe.PermissionError)

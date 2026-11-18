@@ -53,7 +53,7 @@ class ErrorLog(SQLiteLogDocument):
 		db.commit()
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def clear_error_logs():
 	"""Flush all Error Logs"""
 	frappe.only_for("System Manager")

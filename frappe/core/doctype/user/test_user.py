@@ -41,7 +41,17 @@ from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_days, add_to_date, get_url, getdate, now_datetime, sha256_hash, today
+from frappe.utils import (
+	add_days,
+	add_to_date,
+	get_email_addresses,
+	get_url,
+	get_user_by_email,
+	getdate,
+	now_datetime,
+	sha256_hash,
+	today,
+)
 from frappe.utils.data import orjson_dumps
 from frappe.utils.logging import get_log_db
 from frappe.utils.password import check_password
@@ -1229,10 +1239,45 @@ class TestImpersonation(FrappeAPITestCase):
 			self.assertEqual(resp.json["message"], user.name)
 
 
+class TestUserEmailHelpers(IntegrationTestCase):
+	def test_get_email_addresses(self):
+		with test_user(roles=[], generated_id=True) as user:
+			self.assertEqual(
+				get_email_addresses([user.name, "Guest", "guest", "_Test Missing User", None]), {user.email}
+			)
+
+	def test_get_user_by_email(self):
+		with test_user(roles=[], generated_id=True) as user:
+			self.assertEqual(get_user_by_email(f" {user.email.upper()} "), user.name)
+
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		self.assertIsNone(get_user_by_email(admin_email))
+		self.assertEqual(get_user_by_email(admin_email, include_standard_users=True), "Administrator")
+
+	def test_get_system_managers(self):
+		from frappe.email import get_system_managers as get_system_manager_emails
+		from frappe.utils.user import get_system_managers
+
+		with test_user(roles=["System Manager"], generated_id=True) as user:
+			self.assertIn(user.email, get_system_manager_emails())
+			self.assertTrue(any(user.email in manager for manager in get_system_managers()))
+
+
 @contextmanager
 def test_user(
-	*, first_name: str | None = None, email: str | None = None, roles: list[str], commit=False, **kwargs
+	*,
+	first_name: str | None = None,
+	email: str | None = None,
+	roles: list[str],
+	commit=False,
+	generated_id=False,
+	**kwargs,
 ):
+	"""Create a user for the duration of the test.
+
+	`generated_id` gives the user a random ID instead of their email. Saving a freshly loaded copy
+	of such a user fails: validation copies the ID into the email.
+	"""
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
@@ -1244,7 +1289,8 @@ def test_user(
 			**kwargs,
 		)
 		user.append_roles(*roles)
-		user.insert()
+		user.flags.skip_email_from_name = generated_id
+		user.insert(set_name=frappe.generate_hash(length=10) if generated_id else None)
 		yield user
 		commit and frappe.db.commit()
 	finally:
