@@ -141,7 +141,9 @@ def get_user_info(users, field="email"):
 	"""Fetch details about users for the specified field"""
 	info_list = []
 	for user in users:
-		user_info, enabled = frappe.db.get_value("User", user.get("user_name"), [field, "enabled"])
+		if not (row := frappe.db.get_value("User", user.get("user_name"), [field, "enabled"])):
+			continue
+		user_info, enabled = row
 		if enabled and user_info not in ["admin@example.com", "guest@example.com"]:
 			info_list.append(user_info)
 	return info_list
