@@ -4,12 +4,17 @@ import hashlib
 import io
 import json
 import os
+import sqlite3
 from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from pypika.queries import Table
+
 import frappe
 import frappe.storage
+from frappe.database.sqlite.query_parameters import convert_frappe_query_parameters
+from frappe.query_builder.utils import get_query_builder, prepare_query
 from frappe.storage import backfill, gc
 from frappe.storage.blob import other_site_key_criterion, put_blob
 from frappe.storage.gc import collect_garbage
@@ -257,6 +262,32 @@ class TestCollectGarbage(IntegrationTestCase):
 			matched = query.run(pluck=True)
 
 		self.assertEqual(matched, [lookalike.name])
+
+	def test_other_site_check_works_on_sqlite(self):
+		"""SQLite has no default LIKE escape, so the check must not depend on one."""
+		keys = {
+			"own": "sites/a_b.example/storage/x/a.txt",
+			"lookalike": "sites/aXb.example/storage/x/a.txt",
+			"other": "sites/other.example/storage/x/a.txt",
+			"legacy": "public/abc/x/a.txt",
+		}
+		blob = Table("blob_check")
+		with patch.object(frappe.local, "site", "a_b.example"):
+			query = (
+				get_query_builder("sqlite")
+				.from_(blob)
+				.select(blob.label)
+				.where(other_site_key_criterion(blob))
+				.orderby(blob.label)
+			)
+			sql, params = prepare_query(query)
+		connection = sqlite3.connect(":memory:")
+		connection.execute('create table blob_check (label text, "key" text)')
+		connection.executemany("insert into blob_check values (?, ?)", keys.items())
+
+		matched = [row[0] for row in connection.execute(*convert_frappe_query_parameters(sql, params))]
+
+		self.assertEqual(matched, ["lookalike", "other"])
 
 	def test_blobs_listed_in_a_backup_index_are_kept(self):
 		"""A blob that a backup's File index lists stays, so that backup can still be restored."""
