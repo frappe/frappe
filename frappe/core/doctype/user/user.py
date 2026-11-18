@@ -255,9 +255,8 @@ class User(Document):
 
 		if self.email:
 			self.email = self.email.strip().lower()
-
-		if self.name not in STANDARD_USERS and self.has_value_changed("email"):
-			self.validate_email_domain(self.email)
+			if self.name not in STANDARD_USERS and self.has_value_changed("email"):
+				self.validate_email_domain(self.email)
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
@@ -785,8 +784,11 @@ class User(Document):
 
 	def validate_email_domain(self, email):
 		# skipped in tests, which may use `.invalid` addresses
-		if not frappe.in_test and email and email.endswith(".invalid"):
-			throw(_("{0} is a reserved address and can't be a user's email.").format(frappe.bold(email)))
+		if not frappe.in_test and email.endswith(".invalid"):
+			throw(
+				_("{0} is not a valid email address.").format(frappe.bold(email)),
+				frappe.InvalidEmailAddressError,
+			)
 
 	def after_rename(self, old_name, new_name, merge=False):
 		if not frappe.flags.in_personal_data_deletion:
