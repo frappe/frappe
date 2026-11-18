@@ -1,3 +1,5 @@
+import click
+
 import frappe
 from frappe import STANDARD_USERS, _
 from frappe.query_builder.functions import Lower
@@ -39,13 +41,13 @@ def execute():
 
 	User = frappe.qb.DocType("User")
 	for name, email in standard_users_moved.items():
-		print(f"User {name}: email changed to {email!r}, another user's ID is its default email")
+		click.echo(f"User {name}: email changed to {email!r}, another user's ID is its default email")
 		frappe.qb.update(User).set(User.email, email).where(User.name == name).run()
 
 	if not changes:
 		return
 
 	for name, email in changes.items():
-		print(f"User {name}: email {email!r} changed to {name.lower()!r}")
+		click.echo(f"User {name}: email {email!r} changed to {name.lower()!r}")
 
 	frappe.qb.update(User).set(User.email, Lower(User.name)).where(User.name.isin(list(changes))).run()
