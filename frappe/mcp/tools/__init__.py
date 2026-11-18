@@ -81,6 +81,14 @@ class Tool:
 		return definition
 
 
+@dataclass(frozen=True)
+class ToolResult:
+	"""A tool's JSON value, with content blocks such as images that follow its text."""
+
+	value: dict
+	content: tuple[dict, ...] = ()
+
+
 def registry() -> tuple[Tool, ...]:
 	from frappe.mcp.tools.discover import (
 		GET_DOCTYPE_SCHEMA,
@@ -135,7 +143,10 @@ def call(params: dict) -> dict:
 		return error_result(validation_message(error))
 
 	with form_dict(arguments.model_dump()):
-		return success_result(tool.handler(**frappe.form_dict))
+		result = tool.handler(**frappe.form_dict)
+		if isinstance(result, ToolResult):
+			return success_result(result.value, result.content)
+		return success_result(result)
 
 
 @contextmanager
@@ -152,12 +163,12 @@ def form_dict(arguments: dict) -> Iterator[dict]:
 		frappe.local.response = original_response
 
 
-def success_result(value: Any) -> dict:
+def success_result(value: Any, content: tuple[dict, ...] = ()) -> dict:
 	structured = value if isinstance(value, dict) else {"result": value}
 	# Normalize dates and other Frappe values before the request commits.
 	text = json.dumps(structured, default=json_handler, allow_nan=False)
 	return {
-		"content": [{"type": "text", "text": text}],
+		"content": [{"type": "text", "text": text}, *content],
 		"structuredContent": json.loads(text),
 		"isError": False,
 	}
