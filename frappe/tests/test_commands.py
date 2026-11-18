@@ -322,12 +322,9 @@ class TestCommands(BaseTestCommands):
 
 		get_user_id = frappe.commands.site.get_user_id
 
-		with test_user(roles=[]) as user:
-			email = f"new_{user.name}"
-			frappe.db.set_value("User", user.name, "email", email)
-
+		with test_user(roles=[], generated_id=True) as user:
 			self.assertEqual(get_user_id(user.name), user.name)
-			self.assertEqual(get_user_id(f" {email.upper()} "), user.name)
+			self.assertEqual(get_user_id(f" {user.email.upper()} "), user.name)
 
 		self.assertEqual(get_user_id("Administrator"), "Administrator")
 
