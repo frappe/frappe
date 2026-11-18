@@ -83,7 +83,7 @@ const asked = ref(0);
 
 const types = boot.view_types ?? [];
 const groups = computed(
-	() => views.value && viewLayers(views.value, boot.unbuilt_view_types ?? []),
+	() => views.value && viewLayers(views.value, boot.unbuilt_view_types ?? [])
 );
 const open = computed(() => openViewKey(route));
 
