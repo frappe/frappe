@@ -258,7 +258,16 @@ def login_oauth_user(
 			http_status_code=403,
 		)
 
+<<<<<<< HEAD
 	frappe.local.login_manager.login_as(user)
+=======
+	user_id = frappe.utils.get_user_by_email(user)
+
+	for method in frappe.get_hooks("on_social_login"):
+		frappe.get_attr(method)(user=user_id, provider=provider, claims=data)
+
+	frappe.local.login_manager.login_as(user_id)
+>>>>>>> c6828ac (fix: find the user by email where an email is given)
 
 	# because of a GET request!
 	frappe.db.commit()
@@ -280,11 +289,11 @@ def login_oauth_user(
 def get_user_record(user: str, data: dict, provider: str) -> "User":
 	from frappe.integrations.doctype.social_login_key.social_login_key import provider_allows_signup
 
-	try:
-		return frappe.get_doc("User", user)
-	except frappe.DoesNotExistError:
-		if not provider_allows_signup(provider):
-			raise SignupDisabledError
+	if user_id := frappe.utils.get_user_by_email(user):
+		return frappe.get_doc("User", user_id)
+
+	if not provider_allows_signup(provider):
+		raise SignupDisabledError
 
 	user: User = frappe.new_doc("User")
 
