@@ -90,6 +90,35 @@ def get_files_list(pr_number, repo="frappe/frappe"):
 	return [change["filename"] for change in fetch_pr_data(pr_number, repo, "files")]
 
 
+def get_queue_files(repo, base, head):
+	"""Files a merge queue group changes, or None when GitHub cuts the list short."""
+	files = json.loads(req(f"https://api.github.com/repos/{repo}/compare/{base}...{head}").read())["files"]
+	return None if len(files) >= 300 else [change["filename"] for change in files]
+
+
+def queue_jobs(build_type, files):
+	"""The jobs a merge queue group needs. Python only skips the UI workflow, frontend only skips the
+	server suite, and the Studio and Flow jobs run for their own folders."""
+	if files is None or any(is_ci(f) for f in files):
+		return {"build", "studio", "flow"}
+	files = [f for f in files if not is_docs(f)]
+	if build_type == "server":
+		return {"build"} if any(not is_frontend_code(f) for f in files) else set()
+	jobs = set()
+	if any(not is_server_side_code(f) and not f.startswith(("flow/", "studio/")) for f in files):
+		jobs.add("build")
+	if any(f.startswith(("studio/", "frappe/studio/")) for f in files):
+		jobs.add("studio")
+	if any(f.startswith("flow/") for f in files):
+		jobs.add("flow")
+	return jobs
+
+
+def run_jobs(jobs=("build", "studio", "flow")):
+	for job in jobs:
+		os.system(f'echo "{job}=strawberry" >> $GITHUB_OUTPUT')
+
+
 def get_output(command, shell=True):
 	"""
 	Execute a shell command and return its output.
@@ -213,6 +242,16 @@ def _selftest():
 		"test_shell.py reads contributions"
 	)
 	assert not is_desk_frontend("frappe/public/js/frappe/ui/dialog.js"), "desk v1 is not desk-v2's frontend"
+	assert queue_jobs("ui", ["frappe/model/document.py"]) == set(), "python alone skips the UI workflow"
+	assert queue_jobs("server", ["frappe/public/js/frappe/form/form.js"]) == set(), (
+		"frontend alone skips the server suite"
+	)
+	assert queue_jobs("ui", ["flow/frontend/src/App.vue"]) == {"flow"}, "flow alone runs only its page tests"
+	assert queue_jobs("ui", ["frappe/studio/api.py"]) == {"studio"}, "studio's server code runs its tests"
+	assert queue_jobs("ui", ["frappe/core/doctype/user/user.json"]) == {"build"}, "doctype JSON runs UI tests"
+	assert queue_jobs("server", ["README.md"]) == set(), "docs alone run nothing"
+	assert queue_jobs("ui", None) == {"build", "studio", "flow"}, "a cut short file list runs everything"
+	assert queue_jobs("ui", [".github/workflows/ui-tests.yml"]) == {"build", "studio", "flow"}
 	print("roulette selftest OK")
 
 
@@ -226,9 +265,16 @@ if __name__ == "__main__":
 	pr_number = os.environ.get("PR_NUMBER")
 	repo = os.environ.get("REPO_NAME")
 
+	base_sha, head_sha = os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA")
+	if not pr_number and base_sha and head_sha:
+		jobs = queue_jobs(build_type, files_list or get_queue_files(repo, base_sha, head_sha))
+		print(f"Merge queue group runs: {', '.join(sorted(jobs)) or 'nothing'}")
+		run_jobs(jobs)
+		sys.exit(0)
+
 	# If it's a push build, run all builds
 	if not pr_number:
-		os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+		run_jobs()
 		sys.exit(0)
 
 	# Get list of changed files if not provided
@@ -290,5 +336,5 @@ if __name__ == "__main__":
 		sys.exit(0)
 
 	# If we reach here, run the build
-	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+	run_jobs()
 	os.system(f'echo "run_postgres={"true" if run_postgres else "false"}" >> $GITHUB_OUTPUT')
