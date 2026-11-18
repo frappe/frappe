@@ -6,10 +6,12 @@ import math
 import re
 import sqlite3
 import unicodedata
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Context, Decimal, InvalidOperation
 from functools import cached_property
 from pathlib import Path
+from typing import NoReturn, TextIO
 
 import click
 from pymysql.converters import escape_string
@@ -66,6 +68,7 @@ RESTORE_SQL_MODE = (
 )
 TABLE_OPTIONS = "ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
 DATE_WITH_TIME = re.compile(r"\d{4}-\d\d-\d\d[ T].*")
+SQLiteValue = int | float | str | bytes | None
 
 
 class MariaDBDumpError(frappe.ValidationError):
@@ -103,14 +106,14 @@ class DDLRecorder(MariaDBDatabase):
 	def sql_ddl(self, query, *args, **kwargs):
 		self.statements.append(str(query).strip())
 
-	def get_db_table_columns(self, table) -> list[str]:
+	def get_db_table_columns(self, table: str) -> list[str]:
 		return self.source.get_db_table_columns(table)
 
 	def get_table_columns_description(self, table_name):
 		shape = self.catalog.get(table_name)
 		return shape.describe_columns() if shape else []
 
-	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False):
+	def get_column_index(self, table_name: str, fieldname: str, unique: bool = False) -> frappe._dict | None:
 		shape = self.catalog.get(table_name)
 		index = shape.find_column_index(fieldname, unique) if shape else None
 		return frappe._dict(Key_name=index.name) if index else None
@@ -137,7 +140,7 @@ def recording_mariadb_ddl():
 		frappe.local.db = source
 
 
-def is_ddl(query) -> bool:
+def is_ddl(query: str) -> bool:
 	return str(query).lstrip().lower().startswith(("create", "alter", "drop"))
 
 
@@ -250,10 +253,12 @@ class TableShape:
 	def covers_index(self, columns: tuple[str, ...]) -> bool:
 		return columns == self.primary_key or any(index.columns == columns for index in self.indexes)
 
-	def add_index(self, name: str | None, columns: tuple[str, ...], unique=False, fulltext=False):
+	def add_index(
+		self, name: str | None, columns: tuple[str, ...], unique: bool = False, fulltext: bool = False
+	) -> None:
 		self.indexes.append(Index(name or columns[0], columns, unique, fulltext))
 
-	def drop_index(self, name: str):
+	def drop_index(self, name: str) -> None:
 		self.indexes = [index for index in self.indexes if index.name != name]
 
 	def find_column_index(self, column: str, unique: bool) -> Index | None:
@@ -299,7 +304,7 @@ def parse_table_shape(create_statement: str) -> TableShape:
 	return shape
 
 
-def add_definition(shape: TableShape, part: str):
+def add_definition(shape: TableShape, part: str) -> None:
 	lowered = part.lower()
 	if lowered.startswith("primary key"):
 		shape.primary_key = parse_key_columns(part)
@@ -346,7 +351,7 @@ def parse_key_columns(part: str) -> tuple[str, ...]:
 	return tuple(re.sub(r"\(\d+\)$", "", column.strip()).strip("`") for column in split_top_level(columns))
 
 
-def iterate_unquoted(text: str, start: int = 0):
+def iterate_unquoted(text: str, start: int = 0) -> Iterator[tuple[int, str]]:
 	"""Yield `(index, character)` for the characters of `text` that are outside quotes."""
 	quote, is_escaped = None, False
 	for index in range(start, len(text)):
@@ -443,11 +448,11 @@ def is_json(text: str) -> bool:
 	return True
 
 
-def reject_json_constant(constant: str):
+def reject_json_constant(constant: str) -> NoReturn:
 	raise ValueError(constant)
 
 
-def apply_alter_table(shape: TableShape, statement: str):
+def apply_alter_table(shape: TableShape, statement: str) -> None:
 	"""Record the columns and keys an `ALTER TABLE` adds, modifies or drops."""
 	clause_end = r"(.+?)(?=,\s*(?:add|modify|drop)\b|$)"
 	for name, definition in re.findall(
@@ -492,7 +497,7 @@ class MariaDBDumpWriter:
 		)
 		self.framework_tables = framework_table_statements()
 
-	def write(self, path, header: str):
+	def write(self, path: str | Path, header: str) -> None:
 		with (
 			self.snapshot() as connection,
 			gzip.open(path, "wt", compresslevel=GZIP_LEVEL, encoding="utf-8") as dump,
@@ -525,7 +530,7 @@ class MariaDBDumpWriter:
 			connection.rollback()
 			connection.close()
 
-	def get_tables(self, connection) -> list[str]:
+	def get_tables(self, connection: sqlite3.Connection) -> list[str]:
 		rows = connection.execute(
 			"SELECT name, sql FROM sqlite_master WHERE type = 'table' ORDER BY name"
 		).fetchall()
@@ -540,7 +545,7 @@ class MariaDBDumpWriter:
 			tables = [table for table in tables if table in self.include_tables]
 		return [table for table in tables if table not in self.exclude_tables]
 
-	def write_table(self, connection, dump, table: str):
+	def write_table(self, connection: sqlite3.Connection, dump: TextIO, table: str) -> None:
 		statements = self.get_create_statements(connection, table)
 		create_table = next(
 			statement for statement in statements if statement.lower().startswith("create table")
@@ -563,7 +568,7 @@ class MariaDBDumpWriter:
 			connection, dump, table, shape, [column for column, _type, _notnull in source_columns]
 		)
 
-	def get_create_statements(self, connection, table: str) -> list[str]:
+	def get_create_statements(self, connection: sqlite3.Connection, table: str) -> list[str]:
 		if table.startswith("tab") and table[3:] in self.doctypes:
 			return self.get_doctype_statements(table[3:])
 		if table in self.framework_tables:
@@ -618,7 +623,7 @@ class MariaDBDumpWriter:
 			finally:
 				frappe.flags.in_migrate = in_migrate
 
-	def translate_table(self, connection, table: str) -> str:
+	def translate_table(self, connection: sqlite3.Connection, table: str) -> str:
 		"""Fallback for tables no DocType or framework definition describes."""
 		columns = connection.execute(f"PRAGMA table_info({quote_sqlite_identifier(table)})").fetchall()
 		primary_key = [row[1] for row in sorted(columns, key=lambda row: row[5]) if row[5]]
@@ -643,7 +648,9 @@ class MariaDBDumpWriter:
 			+ f"\n) {TABLE_OPTIONS}"
 		)
 
-	def add_missing_columns(self, dump, table: str, shape: TableShape, source_columns) -> list[Column]:
+	def add_missing_columns(
+		self, dump: TextIO, table: str, shape: TableShape, source_columns: list[tuple[str, str, int]]
+	) -> list[Column]:
 		added = []
 		for name, declared_type, _notnull in source_columns:
 			if name in shape.columns:
@@ -655,7 +662,9 @@ class MariaDBDumpWriter:
 			added.append(column)
 		return added
 
-	def write_extra_indexes(self, connection, dump, table: str, shape: TableShape):
+	def write_extra_indexes(
+		self, connection: sqlite3.Connection, dump: TextIO, table: str, shape: TableShape
+	) -> None:
 		for _seq, index_name, unique, origin, partial in connection.execute(
 			f"PRAGMA index_list({quote_sqlite_identifier(table)})"
 		).fetchall():
@@ -692,7 +701,9 @@ class MariaDBDumpWriter:
 			)
 			shape.add_index(mariadb_index_name(table, index_name), columns, unique=bool(unique))
 
-	def write_rows(self, connection, dump, table: str, shape: TableShape, columns: list[str]):
+	def write_rows(
+		self, connection: sqlite3.Connection, dump: TextIO, table: str, shape: TableShape, columns: list[str]
+	) -> None:
 		if not columns:
 			return
 		target_columns = [shape.columns[column] for column in columns]
@@ -720,7 +731,7 @@ class MariaDBDumpWriter:
 			dump.write(prefix + ",\n".join(batch) + ";\n")
 		dump.write("\n")
 
-	def check_key(self, connection, table: str, key: tuple[str, ...]):
+	def check_key(self, connection: sqlite3.Connection, table: str, key: tuple[str, ...]) -> None:
 		"""Report values of `key` that differ in SQLite but are equal under MariaDB's collation.
 
 		The grouping runs in SQLite, which spills to temporary files, so memory stays bounded for large tables.
@@ -741,7 +752,7 @@ class MariaDBDumpWriter:
 				).format(table, "/".join(key), first, second)
 			)
 
-	def literal(self, table: str, row, value, column: Column) -> str:
+	def literal(self, table: str, row: tuple, value: SQLiteValue, column: Column) -> str:
 		value = self.coerce(table, row, value, column)
 		if isinstance(value, str):
 			return "'" + escape_string(value) + "'"
@@ -760,7 +771,7 @@ class MariaDBDumpWriter:
 			)
 		return repr(value) if isinstance(value, float) else str(value)
 
-	def coerce(self, table: str, row, value, column: Column):
+	def coerce(self, table: str, row: tuple, value: SQLiteValue, column: Column) -> SQLiteValue | Decimal:
 		if isinstance(value, str):
 			if column.is_numeric:
 				return self.coerce_number(table, row, value, column)
@@ -779,7 +790,7 @@ class MariaDBDumpWriter:
 			self.check_text(table, row, value, column)
 		return value
 
-	def check_text(self, table: str, row, value: str, column: Column):
+	def check_text(self, table: str, row: tuple, value: str, column: Column) -> None:
 		if (max_length := column.max_length) and len(value) > max_length:
 			self.add_problem(
 				_("{0}.{1}: value of {2} characters exceeds {3} (row {4})").format(
@@ -798,7 +809,7 @@ class MariaDBDumpWriter:
 				_("{0}.{1}: {2!r} is not valid JSON (row {3})").format(table, column.name, value[:60], row[0])
 			)
 
-	def coerce_number(self, table: str, row, value: str, column: Column):
+	def coerce_number(self, table: str, row: tuple, value: str, column: Column) -> Decimal | int | None:
 		text = value.strip()
 		if not text:
 			return None if column.is_nullable else 0
@@ -846,7 +857,7 @@ class MariaDBDumpWriter:
 				dump.write(f"SELECT SETVAL({quote_identifier(name)}, {int(current)}, 1);\n")
 		dump.write("\n")
 
-	def add_problem(self, message: str):
+	def add_problem(self, message: str) -> None:
 		self.problems.append(message)
 
 	def raise_problems(self):
@@ -866,14 +877,14 @@ class MariaDBDumpWriter:
 		)
 
 
-def get_sqlite_columns(connection, table: str) -> list[tuple[str, str, int]]:
+def get_sqlite_columns(connection: sqlite3.Connection, table: str) -> list[tuple[str, str, int]]:
 	return [
 		(row[1], row[2], row[3])
 		for row in connection.execute(f"PRAGMA table_info({quote_sqlite_identifier(table)})").fetchall()
 	]
 
 
-def highest_numeric_name(connection, table: str) -> int:
+def highest_numeric_name(connection: sqlite3.Connection, table: str) -> int:
 	row = connection.execute(
 		f"SELECT max(CAST(name AS INTEGER)) FROM {quote_sqlite_identifier(table)} WHERE name GLOB '[0-9]*'"
 	).fetchone()
