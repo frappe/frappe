@@ -2,6 +2,7 @@ name: Server
 
 on:
   pull_request:
+  merge_group:
   workflow_dispatch:
   schedule:
     # Run everday at midnight UTC / 5:30 IST
