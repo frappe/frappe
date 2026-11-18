@@ -2,7 +2,6 @@
  "actions": [],
  "creation": "2026-05-27 00:00:00",
  "doctype": "DocType",
- "editable_grid": 0,
  "engine": "InnoDB",
  "field_order": [
   "role",
@@ -33,7 +32,7 @@
   {
    "description": "When role is 'tool', the assistant tool_call.id this result answers.",
    "fieldname": "tool_call_id",
-   "fieldtype": "Data",
+   "fieldtype": "Long Text",
    "label": "Tool Call ID"
   },
   {
@@ -58,10 +57,10 @@
    "read_only": 1
   }
  ],
- "index_web_pages_for_search": 0,
  "istable": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-15 12:00:00.000000",
+ "modified": "2026-11-18 20:23:00.623410",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session Message",
@@ -70,6 +69,5 @@
  "row_format": "Dynamic",
  "sort_field": "idx",
  "sort_order": "ASC",
- "states": [],
- "track_changes": 0
+ "states": []
 }
