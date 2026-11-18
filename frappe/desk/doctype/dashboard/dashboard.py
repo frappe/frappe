@@ -15,6 +15,9 @@ from frappe.utils.modules import get_modules_from_all_apps_for_user
 
 # Temporary: goes with the Classic choice in System Settings.
 SKIP_INSIGHTS_DASHBOARDS_PROMPT = "skip_insights_dashboards_prompt"
+# What the prompt asks, in the order a site meets them. The site stores how far it dismissed, so a
+# later prompt is a new question. Sites that answered before there were variants stored 1.
+INSIGHTS_DASHBOARDS_PROMPTS = ("install", "update", "switch")
 
 
 class Action(Enum):
@@ -51,7 +54,7 @@ class Dashboard(Document):
 		if self.meta.get_field("insights_dashboard") and not self.get("insights_dashboard"):
 			return
 		if should_show_insights_dashboards_prompt():
-			self.set_onload("show_insights_dashboards_prompt", True)
+			self.set_onload("show_insights_dashboards_prompt", get_insights_dashboards_prompt())
 
 	def has_insights_version(self) -> bool:
 		"""Whether the app that ships this dashboard also ships an Insights board for it.
@@ -108,27 +111,50 @@ class Dashboard(Document):
 				frappe.throw(_("Invalid json added in the custom options: {0}").format(str(error)))
 
 
+def get_insights_dashboards_prompt() -> str:
+	"""Install Insights, update it to v3.50, which adds the `insights_dashboard` field, or switch."""
+	if frappe.get_meta("Dashboard").get_field("insights_dashboard"):
+		return "switch"
+	if "insights" in frappe.get_installed_apps():
+		return "update"
+	return "install"
+
+
+def get_insights_dashboards_prompt_rank(prompt: str | None = None) -> int:
+	return INSIGHTS_DASHBOARDS_PROMPTS.index(prompt or get_insights_dashboards_prompt()) + 1
+
+
 def should_show_insights_dashboards_prompt() -> bool:
 	"""Whether this user is still asked. The page draws the prompt only above the classic view."""
-	if cint(frappe.defaults.get_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT)):
+	dismissed = cint(frappe.defaults.get_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT))
+	if dismissed >= get_insights_dashboards_prompt_rank():
 		return False
 
 	return "System Manager" in frappe.get_roles()
 
 
 @frappe.whitelist(methods=["POST"])
-def submit_insights_dashboards_prompt(action: str) -> None:
-	"""Either answer is the site's, so no System Manager is asked again. System Settings can still change the choice."""
+def submit_insights_dashboards_prompt(action: str, prompt: str | None = None) -> None:
+	"""Either answer is the site's, so no System Manager gets this prompt again. System Settings can still change the choice.
+
+	`prompt` is the variant on screen. Insights can change while it is open, and a dismissal must not answer a prompt nobody saw.
+	"""
 	frappe.only_for("System Manager")
+	if prompt and prompt not in INSIGHTS_DASHBOARDS_PROMPTS:
+		frappe.throw(_("Invalid prompt"))
 
 	if action == Action.OPEN_INSIGHTS_DASHBOARDS.value:
 		settings = frappe.get_single("System Settings")
 		settings.dashboards = "Insights"
 		settings.save(ignore_permissions=True)
-	elif action != Action.KEEP_CLASSIC_DASHBOARDS.value:
+		frappe.defaults.set_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT, len(INSIGHTS_DASHBOARDS_PROMPTS))
+	elif action == Action.KEEP_CLASSIC_DASHBOARDS.value:
+		dismissed = cint(frappe.defaults.get_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT))
+		frappe.defaults.set_global_default(
+			SKIP_INSIGHTS_DASHBOARDS_PROMPT, max(dismissed, get_insights_dashboards_prompt_rank(prompt))
+		)
+	else:
 		frappe.throw(_("Invalid action"))
-
-	frappe.defaults.set_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT, 1)
 
 
 def get_permission_query_conditions(user):

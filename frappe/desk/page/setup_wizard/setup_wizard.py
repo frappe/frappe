@@ -98,7 +98,8 @@ PREFILLED_SETUP_FAILED = "prefilled_setup_failed"
 
 def complete_prefilled_setup(login_manager=None):
 	"""On login, finish setup with the region Frappe Cloud saved at sign-up, so the site owner
-	skips the desk wizard. A site set up any other way keeps the wizard."""
+	skips the desk wizard. Only when an installed app asks for it with `setup_wizard_auto_complete`;
+	a site set up any other way keeps the wizard."""
 	args = get_prefilled_setup_args()
 	if not args:
 		return
@@ -123,6 +124,8 @@ def get_prefilled_setup_args() -> dict | None:
 	from frappe.integrations.frappe_providers.cloud_settings import is_v2_site
 
 	if frappe.is_setup_complete() or frappe.conf.skip_setup_wizard:
+		return None
+	if not any(frappe.get_hooks("setup_wizard_auto_complete")):
 		return None
 	if frappe.db.get_default(PREFILLED_SETUP_FAILED):
 		return None

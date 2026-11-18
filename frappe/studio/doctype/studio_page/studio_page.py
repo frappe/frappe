@@ -9,6 +9,7 @@ from frappe.exceptions import TimestampMismatchError
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.studio.doctype.studio_component.studio_component import (
+	delete_component_files,
 	get_components_for_blocks,
 	mark_components_standard,
 )
@@ -198,7 +199,7 @@ class StudioPage(Document):
 			return bool(name) and re.search(rf"\b{re.escape(name)}\b", text)
 
 		return {
-			"components": get_components_for_blocks(blocks),
+			"components": get_components_for_blocks(blocks, self.studio_app),
 			"files": self.get_app_files(script, blocks),
 			"resources": [pick(r, PAGE_RESOURCE_FIELDS) for r in self.resources if used(r.resource_name)],
 			"variables": [pick(v, PAGE_VARIABLE_FIELDS) for v in self.variables if used(v.variable_name)],
@@ -388,7 +389,7 @@ class StudioPage(Document):
 		blocks = parse_json(self.blocks) or []
 		if not blocks:
 			return []
-		trees = [blocks, *(parse_json(component["block"]) for component in get_components_for_blocks(blocks))]
+		trees = [blocks, *(parse_json(component["block"]) for component in self.get_components(blocks))]
 		return [
 			(block.get("componentProps") or {}).get("name") or "Variant"
 			for tree in trees
@@ -442,13 +443,14 @@ class StudioPage(Document):
 		return os.path.join(*path)
 
 	def export_components(self):
-		components = get_components_for_blocks(get_blocks(self))
+		components = self.get_components(get_blocks(self))
 		if components:
 			frappe.create_folder(self.get_component_folder_path())
 			mark_components_standard([component.name for component in components])
 		for component in components:
-			doc = frappe.get_doc("Studio Component", component.name)
-			write_document_file(doc, folder=self.get_component_folder_path())
+			frappe.get_doc("Studio Component", component.name).export_to_folder(
+				self.get_component_folder_path()
+			)
 		self.delete_unused_component_files()
 
 	def delete_unused_component_files(self, deleting: bool = False):
@@ -461,10 +463,13 @@ class StudioPage(Document):
 			filters["name"] = ["!=", self.name]
 		pages = frappe.get_all("Studio Page", filters=filters, fields=["blocks", "draft_blocks"])
 		blocks = [block for page in pages for block in get_blocks(page)]
-		used = {frappe.scrub(component.name) for component in get_components_for_blocks(blocks)}
+		used = {frappe.scrub(component.component_id) for component in self.get_components(blocks)}
 		for file in os.listdir(folder):
 			if file.endswith(".json") and file.removesuffix(".json") not in used:
-				delete_file(folder, file)
+				delete_component_files(folder, file.removesuffix(".json"))
+
+	def get_components(self, blocks) -> list[dict]:
+		return get_components_for_blocks(blocks, self.studio_app)
 
 	def get_component_folder_path(self) -> str:
 		return os.path.join(get_export_folder(self.frappe_app, self.studio_app), "studio_components")
@@ -508,7 +513,7 @@ def keep_variant(app_name: str, page_name: str, block_id: str, option_name: str)
 def keep_component_variant(page: "StudioPage", block_id: str, option_name: str) -> bool:
 	"""The block can live inside a studio component the page uses. Keeping it edits the
 	component, so every instance on every page follows."""
-	for component in get_components_for_blocks(get_blocks(page)):
+	for component in page.get_components(get_blocks(page)):
 		block = parse_json(component["block"])
 		if not block or not replace_variants_block(block, block_id, option_name):
 			continue
@@ -603,7 +608,7 @@ def get_page(app_name: str, page_name: str, preview: bool = False) -> dict:
 		"is_standard": page.is_standard,
 		"script": page.script,
 		"blocks": blocks,
-		"components": get_components_for_blocks(blocks),
+		"components": get_components_for_blocks(blocks, page.studio_app),
 		"resources": [
 			{"resource_id": row.name, **{field: row.get(field) for field in PAGE_RESOURCE_FIELDS}}
 			for row in page.resources

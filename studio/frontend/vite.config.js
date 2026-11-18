@@ -64,7 +64,7 @@ export default defineConfig(({ command }) => {
 		plugins: [
 			vue(),
 			frappeui({
-				frappeProxy: true,
+				frappeProxy: { source: "^/(desk|app|login|api|assets|files|private|flow)" },
 				lucideIcons: true,
 				buildConfig: false,
 				jinjaBootData: false,

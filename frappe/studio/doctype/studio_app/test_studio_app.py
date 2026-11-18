@@ -79,6 +79,17 @@ class TestStudioApp(FrappeTestCase):
 		app.favicon = "/files/favicon-app.png"
 		self.assertIn('href="/files/favicon-app.png"', render_app_template(app))
 
+	def test_folder_name_is_part_of_the_app_data_and_not_of_its_file(self):
+		with exports_in_tempdir():
+			app = make_studio_app(
+				app_name="folder-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
+			)
+			make_studio_page(app.name)
+			folder = app.get_folder_path()
+			self.assertEqual(app.as_dict().folder_name, os.path.basename(folder))
+			exported = frappe.parse_json(frappe.read_file(os.path.join(folder, f"{app.folder_name}.json")))
+			self.assertNotIn("folder_name", exported)
+
 	def test_rename_keeps_exported_files(self):
 		with exports_in_tempdir():
 			app, page = make_exported_app_with_files("rename-me")

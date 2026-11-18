@@ -4,8 +4,10 @@ from unittest.mock import patch
 import frappe
 from frappe.studio.api import (
 	create_studio_file,
+	delete_studio_file,
 	get_app_files,
 	get_custom_vue_components,
+	get_studio_component_scripts,
 	get_studio_page_scripts,
 	list_studio_files,
 	read_studio_file,
@@ -13,6 +15,7 @@ from frappe.studio.api import (
 	write_studio_file,
 )
 from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
+from frappe.studio.doctype.studio_component.test_studio_component import export_scripted_component
 from frappe.studio.doctype.studio_page.test_studio_page import exports_in_tempdir
 from frappe.studio.utils import get_export_folder
 from frappe.tests import IntegrationTestCase
@@ -146,3 +149,20 @@ class TestApi(IntegrationTestCase):
 				app_name="built-" + frappe.generate_hash(length=8), is_standard=1, frappe_app="frappe"
 			)
 			self.assertEqual(get_app_files(app.name), [])
+
+	def test_a_component_script_file_updates_its_component(self):
+		with exports_in_tempdir():
+			component, page, script_path = export_scripted_component()
+			location = ("frappe", page.studio_app, f"studio_components/{component.name}.js")
+			self.assertEqual(
+				get_studio_component_scripts("frappe", page.studio_app),
+				[{"component_id": component.name, "file_path": script_path}],
+			)
+
+			write_studio_file(*location, "export default { props: { open: Boolean } }\n")
+			script = frappe.db.get_value("Studio Component", component.name, "script")
+			self.assertEqual(script, "export default { props: { open: Boolean } }\n")
+
+			delete_studio_file(*location)
+			self.assertIsNone(frappe.db.get_value("Studio Component", component.name, "script"))
+			self.assertEqual(get_studio_component_scripts("frappe", page.studio_app), [])

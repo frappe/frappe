@@ -258,6 +258,7 @@ frappe.patches.v16_0.set_reply_to_header
 frappe.patches.v16_0.sync_installed_apps_to_site_config
 frappe.patches.v16_0.backfill_notification_log_title_description
 frappe.patches.v16_0.backfill_notification_email_type_preferences
+frappe.patches.v15_0.disable_default_website_signups
 frappe.patches.v16_0.backfill_notification_log_app
 frappe.patches.v16_0.backfill_system_notification_rule_fields
 execute:frappe.db.set_single_value("Contact Us Settings", "send_acknowledgement_email", 1)
@@ -300,6 +301,7 @@ frappe.studio.doctype.studio_page.patches.migrate_blocks_to_frappe_ui_v1
 frappe.studio.doctype.studio_page.patches.migrate_charts_to_frappe_ui_charts
 frappe.studio.doctype.studio_page.patches.migrate_get_icon_calls
 frappe.studio.doctype.studio_page.patches.convert_page_scripts_to_modules
+frappe.studio.doctype.studio_component.patches.move_inputs_to_script_props
 frappe.patches.v17_0.remove_flow_suggest_replies_tool
 execute:frappe.db.get_single_value("Flow Settings", "search_provider") or frappe.db.set_single_value("Flow Settings", "search_provider", "DuckDuckGo")
 frappe.patches.v17_0.name_flow_app_rows_after_their_app
@@ -310,3 +312,5 @@ frappe.patches.v17_0.flow_server_session_approval_mode
 frappe.patches.v17_0.mark_flow_embedding_model
 frappe.patches.v17_0.move_flow_lancedb_out_of_files
 frappe.patches.v17_0.drop_flow_lancedb
+frappe.patches.v16_0.hash_session_ids
+frappe.patches.v16_0.encrypt_indexing_refresh_token

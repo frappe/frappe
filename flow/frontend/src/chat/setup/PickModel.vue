@@ -13,7 +13,12 @@
 			:placeholder="__('Search or type a model id')"
 			@update:model-value="(id) => id && add(id)"
 		>
-			<template #item-typed="{ query }">{{ __("Use “{0}”", [query.trim()]) }}</template>
+			<template #item-label="{ item }">
+				<div data-pick-model class="truncate" :title="item.label">{{ item.label }}</div>
+			</template>
+			<template #item-typed="{ query }">
+				<div data-pick-model class="truncate">{{ __("Use “{0}”", [query.trim()]) }}</div>
+			</template>
 		</Combobox>
 		<p v-if="adding" class="flex items-center gap-1.5 text-sm text-ink-gray-5">
 			<span class="lucide-loader-circle size-3.5 animate-spin" aria-hidden="true" />

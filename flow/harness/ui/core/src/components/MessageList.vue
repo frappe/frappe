@@ -283,8 +283,11 @@ function tightGap(i) {
 	const cur = items.value[i]?.kind
 	if (prev === "thinking" && cur === "thinking") return "-mt-5"
 	const meetsText = (isRow(prev) && cur === "text") || (prev === "text" && isRow(cur))
-	return meetsText || (prev === "turn-fold" && isRow(cur)) ? "-mt-1.5" : ""
+	if (meetsText) return textGap.value
+	return prev === "turn-fold" && isRow(cur) ? "-mt-1.5" : ""
 }
+// one folded line sits closer to the text than a list of rows does
+const textGap = computed(() => (flow.state.prefs?.separateToolCalls ? "-mt-1.5" : "-mt-3"))
 
 // Streamed thinking and tool groups render their own status. The fallback is
 // reserved for statuses that have no preview item yet.
@@ -305,7 +308,7 @@ const liveLabel = computed(() =>
 const statusGap = computed(() => {
 	const kind = lastItem.value?.kind
 	if (kind === "thinking" && flow.state.prefs.separateToolCalls) return "-mt-5 pt-1 md:pt-0.5"
-	return ["pt-2 md:pt-2.5", kind === "thinking" ? "-mt-5" : kind === "text" ? "-mt-1.5" : ""]
+	return ["pt-2 md:pt-2.5", kind === "thinking" ? "-mt-5" : kind === "text" ? textGap.value : ""]
 })
 const showStandaloneStatus = computed(
 	() => !!liveLabel.value && !lastIsOpenGroup.value && !lastIsLiveThinking.value,

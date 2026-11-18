@@ -23,7 +23,7 @@ from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
 from frappe.query_builder import DocType
 from frappe.rate_limiter import rate_limit
-from frappe.sessions import clear_sessions
+from frappe.sessions import clear_sessions, hash_sid
 from frappe.twofactor import should_run_2fa
 from frappe.utils import (
 	cint,
@@ -171,22 +171,24 @@ class User(Document):
 			.where(sessions.user == self.name)
 		).run(as_dict=True)
 
-		def mask(sid: str):
-			return sid[:4] + "*" * 10
+		def mask(sid_hash: str):
+			return sid_hash[:4] + "*" * 10
+
+		# `sessions.sid` is the stored hash, so compare against the hash of the current sid
+		current_sid_hash = hash_sid(frappe.session.sid)
 
 		session_docs = []
 		for session in sessions_data:
 			data = frappe.parse_json(session.sessiondata)
-			sid_hash = sha256_hash(session.sid)
 			session_docs.append(
 				{
-					"name": sid_hash,
-					"id": mask(sid_hash),
+					"name": session.sid,
+					"id": mask(session.sid),
 					"owner": session.user,
 					"modified_by": session.user,
 					"ip_address": data.session_ip,
 					"last_updated": data.last_updated,
-					"is_current": session.sid == frappe.session.sid,
+					"is_current": session.sid == current_sid_hash,
 					"session_created": data.creation,
 					"user_agent": data.user_agent,
 				}
@@ -1303,13 +1305,12 @@ def needs_password_setup(user: str | None = None) -> bool:
 def set_first_password(new_password: str) -> None:
 	"""A signed-in user who never had a password (a new Frappe Cloud site owner) sets one, from an
 	app's setup flow, without a reset link. Anyone else changes theirs the usual way."""
-	from frappe.utils.password import validate_password_size
-
 	if frappe.request and frappe.get_request_header("Authorization"):
 		frappe.throw(_("Set your first password from a signed-in browser."), frappe.PermissionError)
 	if not new_password or not new_password.strip():
 		frappe.throw(_("Enter a password."), title=_("Invalid Password"))
-	validate_password_size(new_password, _("New Password"))
+	if len(new_password) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("{0} size exceeded the maximum allowed size.").format(_("New Password")))
 	if not needs_password_setup():
 		frappe.throw(_("You already have a password. Change it from your settings."), frappe.PermissionError)
 	user = frappe.get_doc("User", frappe.session.user)
@@ -1691,12 +1692,107 @@ def clear_session(sid_hash: str):
 	from frappe.sessions import delete_session
 
 	sessions = frappe.qb.DocType("Sessions")
-	sessions_data = (
-		frappe.qb.from_(sessions).select(sessions.sid).where(sessions.user == frappe.session.user)
+	owned = (
+		frappe.qb.from_(sessions)
+		.select(sessions.sid)
+		.where(sessions.user == frappe.session.user)
+		.where(sessions.sid == sid_hash)
 	).run(pluck=True)
 
-	for session in sessions_data:
-		if sha256_hash(session) == sid_hash:
-			delete_session(sid=session, reason="Force Logged out by the user", user=frappe.session.user)
-			frappe.toast(_("Successfully signed out"))
-			return
+	if owned:
+		delete_session(sid_hash=owned[0], reason="Force Logged out by the user", user=frappe.session.user)
+		frappe.toast(_("Successfully signed out"))
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_add_roles(users: str | list, roles: str | list) -> None:
+	"""Bulk assign roles to multiple users without overwriting existing roles."""
+	frappe.has_permission("User", "write", throw=True)
+
+	users, roles = _validate_bulk_role_args(users, roles)
+
+	if not users or not roles:
+		return
+
+	if len(users) > 500:
+		frappe.throw(_("Bulk role assignment is limited to 500 users at a time."))
+
+	if len(users) > 20:
+		frappe.enqueue(
+			"frappe.core.doctype.user.user._assign_roles",
+			users=users,
+			roles=roles,
+			queue="long",
+			enqueue_after_commit=True,
+		)
+		frappe.msgprint(
+			_("Role assignment for {0} users has been queued in the background.").format(len(users)),
+			alert=True,
+		)
+	else:
+		_assign_roles(users, roles)
+		frappe.msgprint(
+			_("Roles successfully added to {0} users.").format(len(users)), alert=True, indicator="green"
+		)
+
+
+@frappe.whitelist(methods=["POST"])
+def bulk_remove_roles(users: str | list, roles: str | list) -> None:
+	"""Remove roles from multiple users, leaving their other roles intact."""
+	frappe.has_permission("User", "write", throw=True)
+
+	users, roles = _validate_bulk_role_args(users, roles)
+
+	if not users or not roles:
+		return
+
+	if len(users) > 500:
+		frappe.throw(_("Bulk role unassignment is limited to 500 users at a time."))
+
+	if len(users) > 20:
+		frappe.enqueue(
+			"frappe.core.doctype.user.user._unassign_roles",
+			users=users,
+			roles=roles,
+			queue="long",
+			enqueue_after_commit=True,
+		)
+		frappe.msgprint(
+			_("Role removal for {0} users has been queued in the background.").format(len(users)),
+			alert=True,
+		)
+	else:
+		_unassign_roles(users, roles)
+		frappe.msgprint(
+			_("Roles successfully removed from {0} users.").format(len(users)), alert=True, indicator="green"
+		)
+
+
+def _validate_bulk_role_args(users: str | list, roles: str | list) -> tuple[list, list]:
+	"""Parse and type-check arguments shared by the bulk role endpoints."""
+	if isinstance(users, str):
+		users = frappe.parse_json(users)
+	if isinstance(roles, str):
+		roles = frappe.parse_json(roles)
+
+	if not isinstance(users, list) or not all(isinstance(u, str) for u in users):
+		frappe.throw(_("Users must be a list of string identifiers."))
+
+	if not isinstance(roles, list) or not all(isinstance(r, str) for r in roles):
+		frappe.throw(_("Roles must be a list of string identifiers."))
+
+	return users, roles
+
+
+def _assign_roles(users: list, roles: list) -> None:
+	"""Internal method to handle the DB loop, either synchronously or via background job."""
+	for user_id in users:
+		user_doc = frappe.get_doc("User", user_id)
+		user_doc.add_roles(*roles)
+
+
+def _unassign_roles(users: list, roles: list) -> None:
+	"""Internal method to handle the DB loop, either synchronously or via background job."""
+	for user_id in users:
+		user_doc = frappe.get_doc("User", user_id)
+		user_doc.remove_roles(*roles)

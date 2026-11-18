@@ -10,6 +10,7 @@ import frappe
 from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.doctype.dashboard.dashboard import (
 	SKIP_INSIGHTS_DASHBOARDS_PROMPT,
+	get_insights_dashboards_prompt,
 	should_show_insights_dashboards_prompt,
 	submit_insights_dashboards_prompt,
 )
@@ -136,17 +137,71 @@ class TestInsightsDashboardsPrompt(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", "dashboards", "Insights")
 		self.assertTrue(should_show_insights_dashboards_prompt())
 
-	def test_keeping_classic_is_final_and_switches_nothing(self):
+	def site_calls_for(self, prompt: str):
+		return patch(
+			"frappe.desk.doctype.dashboard.dashboard.get_insights_dashboards_prompt", return_value=prompt
+		)
+
+	def test_the_prompt_follows_the_site_insights(self):
+		for field, apps, prompt in (
+			(None, ["frappe"], "install"),
+			(None, ["frappe", "insights"], "update"),
+			(frappe._dict(fieldname="insights_dashboard"), ["frappe", "insights"], "switch"),
+		):
+			with (
+				patch.object(frappe.get_meta("Dashboard"), "get_field", return_value=field),
+				patch("frappe.get_installed_apps", return_value=apps),
+			):
+				self.assertEqual(get_insights_dashboards_prompt(), prompt)
+
+	def test_dismissing_one_prompt_leaves_the_later_ones(self):
+		for dismissed, later in (("install", ("update", "switch")), ("update", ("switch",))):
+			frappe.defaults.clear_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT)
+			with self.site_calls_for(dismissed):
+				submit_insights_dashboards_prompt("keep_classic_dashboards")
+				self.assertFalse(should_show_insights_dashboards_prompt())
+			for prompt in later:
+				with self.site_calls_for(prompt):
+					self.assertTrue(should_show_insights_dashboards_prompt())
+
+	def test_dismissing_the_switch_leaves_no_prompt(self):
+		with self.site_calls_for("switch"):
+			submit_insights_dashboards_prompt("keep_classic_dashboards")
+		for prompt in ("install", "update", "switch"):
+			with self.site_calls_for(prompt):
+				self.assertFalse(should_show_insights_dashboards_prompt())
+
+	def test_a_dismissal_from_before_the_variants_still_asks_to_switch(self):
+		frappe.defaults.set_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT, 1)
+		with self.site_calls_for("install"):
+			self.assertFalse(should_show_insights_dashboards_prompt())
+		with self.site_calls_for("switch"):
+			self.assertTrue(should_show_insights_dashboards_prompt())
+
+	def test_dismissing_a_prompt_left_open_answers_only_that_prompt(self):
+		# The page showed Update, and Insights was updated before the click.
+		with self.site_calls_for("switch"):
+			submit_insights_dashboards_prompt("keep_classic_dashboards", "update")
+			self.assertTrue(should_show_insights_dashboards_prompt())
+
+			submit_insights_dashboards_prompt("keep_classic_dashboards", "install")
+			self.assertTrue(should_show_insights_dashboards_prompt())
+			self.assertRaises(
+				frappe.ValidationError, submit_insights_dashboards_prompt, "keep_classic_dashboards", "other"
+			)
+
+	def test_keeping_classic_switches_nothing(self):
 		submit_insights_dashboards_prompt("keep_classic_dashboards")
 		self.assertFalse(should_show_insights_dashboards_prompt())
 		self.assertEqual(frappe.db.get_single_value("System Settings", "dashboards"), "Classic")
 
 	def test_opening_insights_switches_the_site_and_is_final(self):
-		submit_insights_dashboards_prompt("open_insights_dashboards")
-		self.assertEqual(frappe.db.get_single_value("System Settings", "dashboards"), "Insights")
+		with self.site_calls_for("switch"):
+			submit_insights_dashboards_prompt("open_insights_dashboards")
+			self.assertEqual(frappe.db.get_single_value("System Settings", "dashboards"), "Insights")
 
-		frappe.db.set_single_value("System Settings", "dashboards", "Classic")
-		self.assertFalse(should_show_insights_dashboards_prompt())
+			frappe.db.set_single_value("System Settings", "dashboards", "Classic")
+			self.assertFalse(should_show_insights_dashboards_prompt())
 
 	def test_someone_else_cannot_answer_for_the_site(self):
 		with test_user(roles=["_Test Role"]) as user, self.set_user(user.name):
@@ -159,9 +214,10 @@ class TestInsightsDashboardsPrompt(IntegrationTestCase):
 		with (
 			patch.object(type(doc), "has_insights_version", return_value=True),
 			patch.object(doc.meta, "get_field", return_value=None),
+			patch("frappe.get_installed_apps", return_value=["frappe"]),
 		):
 			doc.run_method("onload")
-			self.assertTrue(doc.get_onload().get("show_insights_dashboards_prompt"))
+			self.assertEqual(doc.get_onload().get("show_insights_dashboards_prompt"), "install")
 
 			submit_insights_dashboards_prompt("keep_classic_dashboards")
 			doc = frappe.get_doc({"doctype": "Dashboard", "name": "Test Prompt"})

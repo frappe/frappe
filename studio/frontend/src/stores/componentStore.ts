@@ -1,8 +1,20 @@
 import { defineStore } from "pinia"
-import { markRaw, reactive } from "vue"
-import { createDocumentResource } from "frappe-ui"
+import { markRaw, reactive, shallowReactive, type Component } from "vue"
+import { call } from "frappe-ui"
 import Block from "@/utils/block"
-import type { StudioComponent } from "@/types/Studio/StudioComponent"
+import type { StudioComponent, StudioComponentInput } from "@/types/Studio/StudioComponent"
+import { compileComponentScript } from "@/browserRuntime/appRuntime"
+import {
+	hasBuiltComponentScript,
+	loadBuiltComponentScript,
+	onComponentScriptHotUpdate,
+} from "@/data/studioComponentScripts"
+import {
+	createComponentHost,
+	getEditorProps,
+	validateComponentScript,
+	type ComponentScript,
+} from "@/utils/componentScript"
 import { isObjectEmpty } from "@/utils/helpers"
 import { getBlockInstance, getBlockObjectCopy } from "@/utils/serializer"
 import getBlockTemplate from "@/utils/blockTemplate"
@@ -11,15 +23,42 @@ const useComponentStore = defineStore("componentStore", () => {
 	const componentMap = reactive<Map<string, Block>>(new Map())
 	const componentDocMap = reactive<Map<string, StudioComponent>>(new Map())
 	const fetchingComponent = reactive<Set<string>>(new Set())
+	// A new host remounts every instance of its component, so a host stays until its source changes.
+	// The source is the script, or the input names of a component without one.
+	const componentHosts = shallowReactive<Map<string, { host: Component; source: ComponentScript | string }>>(
+		new Map(),
+	)
+	const componentScriptErrors = reactive<Map<string, string>>(new Map())
+	const latestScriptLoads = new Map<string, number>()
 
-	async function fetchComponent(componentName: string) {
-		const componentDoc = await createDocumentResource({
-			doctype: "Studio Component",
-			name: componentName,
-			auto: true,
+	onComponentScriptHotUpdate((componentId, module) => {
+		const componentDoc = componentDocMap.get(componentId)
+		if (componentDoc) loadComponentScript(componentDoc, async () => module)
+	})
+
+	// A block names a component by its id. The app decides which component that id means:
+	// its own component, or else the global one.
+	let studioApp: string | undefined
+
+	function setStudioApp(appName: string) {
+		if (appName === studioApp) return
+		studioApp = appName
+		for (const componentId of [...componentDocMap.keys()]) removeCachedComponent(componentId)
+	}
+
+	function fetchComponent(componentId: string): Promise<StudioComponent> {
+		return call("frappe.studio.api.get_studio_component", {
+			component_id: componentId,
+			studio_app: studioApp ?? window.app_name,
 		})
-		await componentDoc.get.promise
-		return componentDoc.doc as StudioComponent
+	}
+
+	/** Reload a component that changed on the server, given its docname: `<app>/<id>`, or `<id>`. */
+	async function reloadComponentDoc(name: string) {
+		const separator = name.lastIndexOf("/")
+		const owner = separator === -1 ? null : name.slice(0, separator)
+		if (owner && owner !== (studioApp ?? window.app_name)) return
+		await reloadComponent(name.slice(separator + 1))
 	}
 
 	async function getComponent(componentName: string): Promise<Block | undefined> {
@@ -45,7 +84,7 @@ const useComponentStore = defineStore("componentStore", () => {
 
 			try {
 				const componentDoc = await fetchComponent(componentName);
-				cacheComponent(componentDoc)
+				await cacheComponent(componentDoc)
 			} catch {
 				// the page payload may have cached it while this fetch was failing
 				if (componentMap.has(componentName)) return
@@ -64,31 +103,119 @@ const useComponentStore = defineStore("componentStore", () => {
 		}
 	}
 
-	function setComponents(componentDocs: StudioComponent[]) {
+	/** Cache the components of a page. They are ready to mount when the promise resolves. */
+	async function setComponents(componentDocs: StudioComponent[]) {
 		// Prevent nested blocks from refetching components in this batch.
 		for (const componentDoc of componentDocs) fetchingComponent.add(componentDoc.component_id)
-		for (const componentDoc of componentDocs) cacheComponent(componentDoc)
+		const cached = componentDocs.map((componentDoc) => cacheComponent(componentDoc))
 		for (const componentDoc of componentDocs) fetchingComponent.delete(componentDoc.component_id)
+		await Promise.all(cached)
 	}
 
 	async function reloadComponent(componentName: string) {
 		try {
-			cacheComponent(await fetchComponent(componentName))
+			await cacheComponent(await fetchComponent(componentName))
 		} catch {
 			removeCachedComponent(componentName)
 		}
 	}
 
-	function cacheComponent(componentDoc: StudioComponent) {
+	/** Cache the block tree now. The component can mount when its script has loaded. */
+	function cacheComponent(componentDoc: StudioComponent): Promise<void> {
 		componentDocMap.set(componentDoc.component_id, componentDoc)
 		if (componentDoc.block) {
 			componentMap.set(componentDoc.component_id, markRaw(getBlockInstance(componentDoc.block)))
 		}
+		return loadComponentScript(componentDoc)
 	}
 
 	function removeCachedComponent(componentName: string) {
 		componentMap.delete(componentName)
 		componentDocMap.delete(componentName)
+		componentHosts.delete(componentName)
+		componentScriptErrors.delete(componentName)
+	}
+
+	// SCRIPTS
+	// An app build and the Vite dev server load the script from its file. A database app
+	// compiles the `script` field in the browser. A hot update gives the module itself.
+	async function loadComponentScript(
+		componentDoc: StudioComponent,
+		loadModule: () => Promise<Record<string, any> | null> = () => loadScriptModule(componentDoc),
+	) {
+		const componentId = componentDoc.component_id
+		const load = (latestScriptLoads.get(componentId) ?? 0) + 1
+		latestScriptLoads.set(componentId, load)
+		let script: ComponentScript | null = null
+		let failure: { error: unknown } | null = null
+		try {
+			const module = await loadModule()
+			script = module ? validateComponentScript(module.default) : null
+		} catch (error) {
+			failure = { error }
+		}
+		if (latestScriptLoads.get(componentId) !== load) return
+
+		if (failure) {
+			reportScriptError(componentId, failure.error)
+			// The component stays as it was. One that is new here renders with its saved inputs,
+			// so the page still renders.
+			if (componentHosts.has(componentId)) return
+		} else {
+			componentScriptErrors.delete(componentId)
+		}
+		const source = script ?? (componentDoc.inputs || []).map((input) => input.input_name).join()
+		if (componentHosts.get(componentId)?.source === source) return
+		const host = createComponentHost(componentDoc, script, (error) => reportScriptError(componentId, error))
+		componentHosts.set(componentId, { host, source })
+	}
+
+	async function loadScriptModule(componentDoc: StudioComponent): Promise<Record<string, any> | null> {
+		if (hasBuiltComponentScript(componentDoc.component_id)) {
+			return loadBuiltComponentScript(componentDoc.component_id)
+		}
+		if (!componentDoc.script?.trim()) return null
+		return compileComponentScript(componentDoc)
+	}
+
+	function reportScriptError(componentId: string, error: unknown) {
+		console.error(`Error in the script of component ${componentId}`, error)
+		componentScriptErrors.set(componentId, error instanceof Error ? error.message : String(error))
+	}
+
+	/** Load every cached component's script again, after the source the scripts load from changed. */
+	async function reloadComponentScripts() {
+		await Promise.all([...componentDocMap.values()].map((componentDoc) => loadComponentScript(componentDoc)))
+	}
+
+	function getComponentHost(componentName: string): Component | undefined {
+		return componentHosts.get(componentName)?.host
+	}
+
+	/** Whether the component has a script, also one that failed to load. */
+	function hasComponentScript(componentName: string): boolean {
+		return (
+			hasBuiltComponentScript(componentName) ||
+			Boolean(componentDocMap.get(componentName)?.script?.trim()) ||
+			Boolean(getComponentScript(componentName))
+		)
+	}
+
+	function getComponentScript(componentName: string): ComponentScript | null {
+		const source = componentHosts.get(componentName)?.source
+		return typeof source === "object" ? source : null
+	}
+
+	/** The props of a scripted component, or the inputs saved on a component without a script. */
+	function getComponentProps(componentName: string): StudioComponentInput[] {
+		const script = getComponentScript(componentName)
+		if (script) return getEditorProps(script.props)
+		return componentDocMap.get(componentName)?.inputs || []
+	}
+
+	function getComponentEmits(componentName: string): string[] {
+		const emits = getComponentScript(componentName)?.emits || []
+		return Array.isArray(emits) ? emits : Object.keys(emits)
 	}
 
 	function getNewStudioComponentInstance(studioComponent: Block) {
@@ -97,9 +224,7 @@ const useComponentStore = defineStore("componentStore", () => {
 			return
 		}
 		const blockOptions = getBlockObjectCopy(component)
-		const { baseStyles, mobileStyles, tabletStyles, visibilityCondition, classes, componentEvents } =
-			studioComponent
-
+		const { baseStyles, mobileStyles, tabletStyles, visibilityCondition, classes } = studioComponent
 		if (!isObjectEmpty(baseStyles)) blockOptions.baseStyles = { ...blockOptions.baseStyles, ...baseStyles }
 		if (!isObjectEmpty(mobileStyles))
 			blockOptions.mobileStyles = { ...blockOptions.mobileStyles, ...mobileStyles }
@@ -108,19 +233,24 @@ const useComponentStore = defineStore("componentStore", () => {
 		if (visibilityCondition) blockOptions.visibilityCondition = visibilityCondition
 		if (classes?.length) blockOptions.classes = [...(blockOptions.classes || []), ...classes]
 
-		if (!isObjectEmpty(componentEvents)) {
-			blockOptions.componentEvents = {...(blockOptions.componentEvents || []), ...componentEvents}
-		}
-
 		return new Block(blockOptions)
 	}
 
 	return {
 		componentMap,
 		componentDocMap,
+		componentScriptErrors,
+		reloadComponentScripts,
+		getComponentHost,
+		getComponentScript,
+		hasComponentScript,
+		getComponentProps,
+		getComponentEmits,
 		loadComponent,
 		setComponents,
 		reloadComponent,
+		reloadComponentDoc,
+		setStudioApp,
 		getComponent,
 		getComponentDoc,
 		getComponentName,
@@ -129,5 +259,10 @@ const useComponentStore = defineStore("componentStore", () => {
 		getNewStudioComponentInstance,
 	}
 })
+
+/** Whether a Studio Component emits this event itself: one its script declares, or a two-way binding. */
+export function isEmittedEvent(name: string, emits: string[]): boolean {
+	return emits.includes(name) || name.startsWith("update:")
+}
 
 export default useComponentStore

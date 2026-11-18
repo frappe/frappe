@@ -7,17 +7,23 @@ const ISLAND = { name: "someapp.dashboard", props: { dashboard: "sales" } };
 const cases = [
 	{
 		title: "without Insights, classic with the install prompt",
-		onload: { dashboards: "Insights", show_insights_dashboards_prompt: true },
+		onload: { dashboards: "Insights", show_insights_dashboards_prompt: "install" },
 		view: "classic",
 		prompt: "ERPNext and Frappe HR dashboards have new versions built with Insights.",
 		button: "Install Insights",
+	},
+	{
+		title: "Insights older than v3.50, classic with the update prompt and no button",
+		onload: { dashboards: "Classic", show_insights_dashboards_prompt: "update" },
+		view: "classic",
+		prompt: "Update Insights to v3.50 or later to use them.",
 	},
 	{
 		title: "Insights claims it on a Classic site, classic with the open prompt",
 		onload: {
 			island: ISLAND,
 			dashboards: "Classic",
-			show_insights_dashboards_prompt: true,
+			show_insights_dashboards_prompt: "switch",
 		},
 		view: "classic",
 		prompt: "ERPNext and Frappe HR dashboards have new versions built with Insights.",
@@ -25,7 +31,11 @@ const cases = [
 	},
 	{
 		title: "Insights claims it on an Insights site, the island",
-		onload: { island: ISLAND, dashboards: "Insights", show_insights_dashboards_prompt: true },
+		onload: {
+			island: ISLAND,
+			dashboards: "Insights",
+			show_insights_dashboards_prompt: "switch",
+		},
 		view: "island",
 	},
 	{
@@ -70,7 +80,13 @@ test.describe("Dashboard view rule", () => {
 			const banner = page.locator(".dashboard-view-prompt");
 			if (prompt) {
 				await expect(banner).toContainText(prompt);
-				await expect(banner.getByRole("button", { name: button })).toBeVisible();
+				if (button) {
+					await expect(banner.getByRole("button", { name: button })).toBeVisible();
+				} else {
+					await expect(
+						banner.getByRole("button", { name: /Install|Switch/ })
+					).toHaveCount(0);
+				}
 			} else {
 				await expect(banner).toHaveCount(0);
 			}

@@ -117,9 +117,12 @@ class FlowSession(Document):
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		"""Delete sessions idle for `days` with their runs, transcript and server copies."""
+		"""Delete trigger sessions idle for `days` with their runs, transcript and server copies.
+		A person's chats are kept."""
 		cutoff = frappe.utils.add_days(frappe.utils.now(), -days)
-		sessions = frappe.get_all("Flow Session", filters={"modified": ["<", cutoff]}, pluck="name")
+		sessions = frappe.get_all(
+			"Flow Session", filters={"source": "Trigger", "modified": ["<", cutoff]}, pluck="name"
+		)
 		for batch in frappe.utils.create_batch(sessions, 100):
 			# lock the chats before their rows, the order a sync takes
 			frappe.db.get_values("Flow Session", {"name": ["in", batch]}, "name", for_update=True)
@@ -339,13 +342,15 @@ class FlowSession(Document):
 		frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
+		if self.model and not frappe.db.exists("Flow Model", self.model):
+			frappe.throw(_("This chat's model was deleted. Pick another model."), title=_("Model Deleted"))
 		model_config(self.model or agent.model)
 
-	def set_model(self, model: str, reasoning_effort: str | None = None) -> None:
-		self._send_model(model, reasoning_effort)
+	def set_model(self, model: str) -> None:
+		self._send_model(model)
 		self.db_set("model", model)
 
-	def _send_model(self, model: str, reasoning_effort: str | None = None) -> None:
+	def _send_model(self, model: str) -> None:
 		from frappe.flow.lib.model import model_config
 
 		config = model_config(model)
@@ -356,7 +361,6 @@ class FlowSession(Document):
 				api_key=config["api_key"],
 				api_base=config["api_base"],
 				model_params=config.get("model_params"),
-				reasoning_effort=reasoning_effort,
 			)
 
 	def set_title(self, title: str) -> None:
@@ -412,6 +416,8 @@ class FlowSession(Document):
 		if info["title"] and info["title"] != self.title:
 			self.title = info["title"]
 		self.flags.ignore_validate = True
+		# a model deleted since must not stop the transcript being recorded
+		self.flags.ignore_links = True
 		self.save(ignore_permissions=True)
 
 	def _lock(self) -> None:

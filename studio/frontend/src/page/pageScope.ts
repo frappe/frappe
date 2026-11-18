@@ -353,24 +353,33 @@ export function createPageScope(
 		return getValueFromObject(context, variablePath)
 	}
 
-	function setValueInVariable(variablePath: string, value: any, localContext?: ExpressionEvaluationContext) {
+	// `componentBindings` is what the script of the enclosing Studio Component returned. The local
+	// context holds the same names as plain values, so a write must reach the ref.
+	function setValueInVariable(
+		variablePath: string,
+		value: any,
+		localContext?: ExpressionEvaluationContext,
+		componentBindings?: Record<string, any>,
+	) {
 		const pathParts = variablePath.split(".")
 		const rootKey = pathParts[0]
+		if (setValueInRef(componentBindings?.[rootKey], pathParts, value)) return
 		if (localContext && localContext[rootKey] !== undefined) {
 			setValueInObject(localContext, variablePath, value)
 			return
 		}
-
-		const binding = pageScriptBindings.value[rootKey]
-		if (isRef(binding)) {
-			if (pathParts.length === 1) {
-				binding.value = value
-			} else {
-				setValueInObject(binding.value as Record<string, any>, pathParts.slice(1).join("."), value)
-			}
-			return
-		}
+		if (setValueInRef(pageScriptBindings.value[rootKey], pathParts, value)) return
 		setValueInObject(variables.value, variablePath, value)
+	}
+
+	function setValueInRef(binding: unknown, pathParts: string[], value: any): boolean {
+		if (!isRef(binding)) return false
+		if (pathParts.length === 1) {
+			binding.value = value
+		} else {
+			setValueInObject(binding.value as Record<string, any>, pathParts.slice(1).join("."), value)
+		}
+		return true
 	}
 
 	// PAGE SCRIPT
