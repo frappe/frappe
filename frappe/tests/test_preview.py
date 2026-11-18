@@ -81,6 +81,40 @@ class TestPreview(IntegrationTestCase):
 		colors = Image.open(BytesIO(data)).convert("RGB").getcolors(maxcolors=1 << 20)
 		self.assertGreater(len(colors or []), 100)
 
+	def test_get_preview_from_url_full_page(self):
+		from frappe.utils.preview import get_preview_from_url
+
+		data_url = "data:text/html,<body style='margin:0'><div style='height:2000px'></div></body>"
+		data = get_preview_from_url(data_url, width=800, height=600, full_page=True)
+		self.assertEqual(Image.open(BytesIO(data)).size, (800, 2000))
+
+		data = get_preview_from_url(data_url, width=800, height=600)
+		self.assertEqual(Image.open(BytesIO(data)).size, (800, 600))
+
+	def test_get_preview_from_url_waits_until_ready(self):
+		from frappe.utils.preview import get_preview_from_url
+
+		data_url = (
+			"data:text/html,<body style='margin:0'><script>setTimeout(() => {"
+			"const div = document.createElement('div'); div.id = 'late';"
+			"div.style.height = '3000px'; document.body.appendChild(div);"
+			"}, 1500)</script></body>"
+		)
+		data = get_preview_from_url(
+			data_url, full_page=True, wait_until="document.getElementById('late')", timeout=10
+		)
+		self.assertEqual(Image.open(BytesIO(data)).size, (1280, 3000))
+
+	def test_get_preview_from_url_wait_until_times_out(self):
+		import time
+
+		from frappe.utils.preview import get_preview_from_url
+
+		start = time.monotonic()
+		with self.assertRaises(TimeoutError):
+			get_preview_from_url("data:text/html,<body></body>", wait_until="window.never", timeout=2)
+		self.assertLess(time.monotonic() - start, 10)
+
 
 class TestPreviewValidation(IntegrationTestCase):
 	"""Format validation raises before Chromium is touched, so it runs everywhere."""
