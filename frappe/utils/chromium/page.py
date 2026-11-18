@@ -1,4 +1,5 @@
 import base64
+import re
 import time
 import urllib
 
@@ -114,9 +115,13 @@ def read_local_resource(url: str) -> tuple[str, str | None] | None:
 	return None
 
 
+HEADER_NAME = re.compile(r"[!#$%&'*+\-.^_`|~0-9A-Za-z]+")
+
+
 def get_origin(url: str) -> tuple:
 	parts = urllib.parse.urlsplit(url)
-	return (parts.scheme, parts.hostname, parts.port or {"http": 80, "https": 443}.get(parts.scheme))
+	hostname = parts.hostname and parts.hostname.encode("idna").decode()
+	return (parts.scheme, hostname, parts.port or {"http": 80, "https": 443}.get(parts.scheme))
 
 
 class Page:
@@ -283,6 +288,9 @@ class Page:
 
 	def set_extra_headers_for_origin(self, url, headers):
 		"""Add `headers` to requests for `url`'s origin; requests to other origins continue without them."""
+		for name, value in headers.items():
+			if not HEADER_NAME.fullmatch(name) or any(c in str(value) for c in "\r\n\0"):
+				raise ValueError(f"Invalid HTTP header: {name}")
 		origin = get_origin(url)
 		header_names = {name.lower() for name in headers}
 
