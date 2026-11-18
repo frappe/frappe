@@ -102,7 +102,7 @@ def get_queue_files(repo, base, head):
 
 def queue_jobs(build_type, files):
 	"""The jobs a merge queue group needs. Python only skips the UI workflow, frontend only skips the
-	server suite, and the Studio and Flow jobs run for their own folders."""
+	server suite, and the Studio and Flow jobs run for their own folders and the `ui/` package they link."""
 	if files is None or any(is_ci(f) for f in files):
 		return {"build", "studio", "flow"}
 	files = [f for f in files if not is_docs(f)]
@@ -111,9 +111,9 @@ def queue_jobs(build_type, files):
 	jobs = set()
 	if any(not is_server_side_code(f) and not f.startswith(("flow/", "studio/")) for f in files):
 		jobs.add("build")
-	if any(f.startswith(("studio/", "frappe/studio/")) for f in files):
+	if any(f.startswith(("studio/", "frappe/studio/", "ui/")) for f in files):
 		jobs.add("studio")
-	if any(f.startswith("flow/") for f in files):
+	if any(f.startswith(("flow/", "ui/")) for f in files):
 		jobs.add("flow")
 	return jobs
 
@@ -253,6 +253,7 @@ def _selftest():
 	assert queue_jobs("ui", ["flow/frontend/src/App.vue"]) == {"flow"}, "flow alone runs only its page tests"
 	assert queue_jobs("ui", ["frappe/studio/api.py"]) == {"studio"}, "studio's server code runs its tests"
 	assert queue_jobs("ui", ["frappe/core/doctype/user/user.json"]) == {"build"}, "doctype JSON runs UI tests"
+	assert queue_jobs("ui", ["ui/src/index.ts"]) == {"build", "studio", "flow"}, "studio and flow link ui/"
 	assert queue_jobs("server", ["README.md"]) == set(), "docs alone run nothing"
 	assert queue_jobs("ui", None) == {"build", "studio", "flow"}, "a cut short file list runs everything"
 	assert queue_jobs("ui", [".github/workflows/ui-tests.yml"]) == {"build", "studio", "flow"}
