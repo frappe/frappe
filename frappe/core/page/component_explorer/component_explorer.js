@@ -26,7 +26,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 			)
 		);
 
-	// sample rows for the Item List examples
+	// sample rows for the List examples
 	const APPLICANTS = [
 		["jane", "Jane Cooper", "Referred by Alex Morgan", "2d ago"],
 		["wade", "Wade Warren", "wade@example.com", "6d ago"],
@@ -1783,8 +1783,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
-		"Item List": {
-			helper: "frappe.ui.item_list",
+		List: {
+			helper: "frappe.ui.list",
 			wide: true,
 			stacked: true,
 			groups: [
@@ -1792,7 +1792,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Rows (avatar, meta, badge and hover actions)"),
 					items: [
 						{
-							__code: 'frappe.ui.item_list({\n  items: [\n    { id: "jane", title: "Jane Cooper", subtitle: "Referred by Alex Morgan", meta: "2d ago",\n      avatar: { label: "Jane Cooper" }, href: "/desk/job-applicant/jane",\n      actions: [\n        { label: "Shortlist", onclick: (item, list) => list.update_item(item.id, { badge: { label: "Shortlisted", theme: "green" }, actions: [] }) },\n        { label: "Reject", variant: "ghost", theme: "red", onclick: (item, list) => list.remove_item(item.id) },\n      ] },\n    { id: "wade", title: "Wade Warren", subtitle: "wade@example.com", meta: "6d ago", avatar: { label: "Wade Warren" }, badge: { label: "On hold" }, href: "/desk/job-applicant/wade" },\n  ],\n  on_click: (item, list, event) => { event.preventDefault(); open_applicant(item.id); },\n})',
+							__code: 'frappe.ui.list({\n  items: [\n    { id: "jane", title: "Jane Cooper", subtitle: "Referred by Alex Morgan", meta: "2d ago",\n      avatar: { label: "Jane Cooper" }, href: "/desk/job-applicant/jane",\n      actions: [\n        { label: "Shortlist", onclick: (item, list) => list.update_item(item.id, { badge: { label: "Shortlisted", theme: "green" }, actions: [] }) },\n        { label: "Reject", variant: "ghost", theme: "red", onclick: (item, list) => list.remove_item(item.id) },\n      ] },\n    { id: "wade", title: "Wade Warren", subtitle: "wade@example.com", meta: "6d ago", avatar: { label: "Wade Warren" }, badge: { label: "On hold" }, href: "/desk/job-applicant/wade" },\n  ],\n  on_click: (item, list, event) => { event.preventDefault(); open_applicant(item.id); },\n})',
 							on_click: (item, list, event) => {
 								event.preventDefault();
 								frappe.ui.toast({ message: `Opened ${item.title}` });
@@ -1835,7 +1835,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Controls (always visible; a click on them never opens the row)"),
 					items: [
 						{
-							__code: 'frappe.ui.item_list({\n  items: applicants.map((applicant) => ({\n    ...applicant,\n    stage: "Applied",\n    controls: (item, list) =>\n      frappe.ui.dropdown({\n        button: { label: item.stage, size: "sm", icon_right: "chevron-down" },\n        options: stages.map((stage) => ({\n          label: stage,\n          onclick: () => list.update_item(item.id, { stage }),\n        })),\n      }),\n  })),\n  on_click: (item, list, event) => { event.preventDefault(); open_applicant(item.id); },\n})',
+							__code: 'frappe.ui.list({\n  items: applicants.map((applicant) => ({\n    ...applicant,\n    stage: "Applied",\n    controls: (item, list) =>\n      frappe.ui.dropdown({\n        button: { label: item.stage, size: "sm", icon_right: "chevron-down" },\n        options: stages.map((stage) => ({\n          label: stage,\n          onclick: () => list.update_item(item.id, { stage }),\n        })),\n      }),\n  })),\n  on_click: (item, list, event) => { event.preventDefault(); open_applicant(item.id); },\n})',
 							on_click: (item, list, event) => {
 								event.preventDefault();
 								frappe.ui.toast({ message: `Opened ${item.title}` });
@@ -1866,7 +1866,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Flat variant (inside a pane, no box)"),
 					items: [
 						{
-							__code: 'new frappe.ui.ItemList({\n  variant: "flat",\n  items: applicants,\n})',
+							__code: 'new frappe.ui.List({\n  variant: "flat",\n  items: applicants,\n})',
 							variant: "flat",
 							items: APPLICANTS,
 						},
@@ -1876,7 +1876,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Grouped rows (a heading and count per group)"),
 					items: [
 						{
-							__code: 'new frappe.ui.ItemList({\n  groups: [\n    { id: "due", label: "Feedback due", count: 2 },\n    { id: "cleared", label: "Cleared", count: 1 },\n  ],\n  items: [\n    { id: "jane", group: "due", title: "Jane Cooper", subtitle: "Panel on 12 Nov" },\n    ...\n  ],\n})',
+							__code: 'new frappe.ui.List({\n  groups: [\n    { id: "due", label: "Feedback due", count: 2 },\n    { id: "cleared", label: "Cleared", count: 1 },\n  ],\n  items: [\n    { id: "jane", group: "due", title: "Jane Cooper", subtitle: "Panel on 12 Nov" },\n    ...\n  ],\n})',
 							groups: [
 								{ id: "due", label: "Feedback due", count: 2 },
 								{ id: "cleared", label: "Cleared", count: 1 },
@@ -1900,7 +1900,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Selected row (the caller owns the state)"),
 					items: [
 						{
-							__code: 'const list = new frappe.ui.ItemList({\n  items: applicants,\n  selected: "wade",\n  on_click: (item, list, event) => {\n    event.preventDefault();\n    list.set_selected(item.id);\n  },\n});\nlist.get_selected();  // "wade"\nlist.set_selected(null);  // clear',
+							__code: 'const list = new frappe.ui.List({\n  items: applicants,\n  selected: "wade",\n  on_click: (item, list, event) => {\n    event.preventDefault();\n    list.set_selected(item.id);\n  },\n});\nlist.get_selected();  // "wade"\nlist.set_selected(null);  // clear',
 							selected: "wade",
 							on_click: (item, list, event) => {
 								event.preventDefault();
@@ -1914,7 +1914,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Folds after max"),
 					items: [
 						{
-							__code: 'frappe.ui.item_list({\n  items: openings,  // 7 rows\n  max: 3,\n  more_label: __("Show all {0}"),\n})',
+							__code: 'frappe.ui.list({\n  items: openings,  // 7 rows\n  max: 3,\n  more_label: __("Show all {0}"),\n})',
 							max: 3,
 							items: [
 								[

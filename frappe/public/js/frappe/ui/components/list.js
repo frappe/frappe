@@ -3,15 +3,15 @@ import { validated, safe_attrs, safe_href, icon_html } from "./utils.js";
 frappe.provide("frappe.ui");
 
 /**
- * @typedef {Object} ItemListAction
+ * @typedef {Object} ListAction
  * Button shown at the end of a row while it is hovered or focused. `onclick` gets the item
  * and the list; return a promise to keep the button busy until it settles.
  * @property {string} label Translated text. Rendered as text, never HTML.
  * @property {"subtle"|"ghost"|"outline"} [variant="subtle"]
  * @property {"gray"|"red"} [theme="gray"]
- * @property {(item:ItemListItem, list:ItemList)=>any} onclick
+ * @property {(item:ListItem, list:List)=>any} onclick
  *
- * @typedef {Object} ItemListItem
+ * @typedef {Object} ListItem
  * @property {string} id Unique across the whole list.
  * @property {string} [group] Id of the group the row sits under, when the list has `groups`.
  * @property {string} title Translated text. Rendered as text, never HTML.
@@ -21,23 +21,23 @@ frappe.provide("frappe.ui");
  * @property {string} [icon] Lucide icon name at the start of the row, used when there is no avatar.
  * @property {{label:string, theme?:"gray"|"blue"|"green"|"amber"|"red"|"violet"}} [badge] Status next to the meta.
  * @property {string} [href] Renders the row as a link, so cmd-click and middle-click work. Code-running schemes are refused.
- * @property {ItemListAction[]} [actions]
- * @property {(item:ItemListItem, list:ItemList)=>Node|JQuery|Array<Node|JQuery|null>} [controls] Always-visible controls (a status dropdown, a button) at the end of the row, after the badge and meta and before the hover actions. Called again whenever the row is re-rendered. Clicks inside never open the row or follow its link; the controls stay in the tab order.
+ * @property {ListAction[]} [actions]
+ * @property {(item:ListItem, list:List)=>Node|JQuery|Array<Node|JQuery|null>} [controls] Always-visible controls (a status dropdown, a button) at the end of the row, after the badge and meta and before the hover actions. Called again whenever the row is re-rendered. Clicks inside never open the row or follow its link; the controls stay in the tab order.
  *
- * @typedef {Object} ItemListGroup
+ * @typedef {Object} ListGroup
  * @property {string} id Matches the items' `group`.
  * @property {string} label Translated text. Rendered as text, never HTML.
  * @property {number} [count] Shown after the label, e.g. the group's total beyond the loaded rows.
  *
- * @typedef {Object} ItemListOpts
- * @property {ItemListItem[]} items
- * @property {ItemListGroup[]} [groups] Rows go under a heading per group, in this order; a group without rows is left out, and so are items outside every group.
+ * @typedef {Object} ListOpts
+ * @property {ListItem[]} items
+ * @property {ListGroup[]} [groups] Rows go under a heading per group, in this order; a group without rows is left out, and so are items outside every group.
  * @property {string} [selected] Id of the highlighted row. The list never selects on its own click; change it with `set_selected`.
  * @property {"boxed"|"flat"} [variant="boxed"] "flat" drops the border and padding, for lists that sit inside a pane or card.
  * @property {number} [max] Shows this many rows and a footer button that reveals the rest.
  * @property {string} [more_label="Show all {0}"] Footer button text. {0} is the number of rows.
  * @property {EmptyStateOpts} [empty] Shown instead of the box when there are no items.
- * @property {(item:ItemListItem, list:ItemList, event:Event)=>void} [on_click] Runs when a row is clicked or activated with Enter or Space. On link rows it is skipped for cmd/ctrl/shift/alt clicks, and the link still opens unless you call event.preventDefault() to handle the click yourself.
+ * @property {(item:ListItem, list:List, event:Event)=>void} [on_click] Runs when a row is clicked or activated with Enter or Space. On link rows it is skipped for cmd/ctrl/shift/alt clicks, and the link still opens unless you call event.preventDefault() to handle the click yourself.
  * @property {string} [css_class] Extra classes on the root.
  * @property {Object<string, string|true>} [attrs] Extra attributes on the root.
  */
@@ -52,10 +52,10 @@ const THEMES = ["gray", "red"];
  * With `groups`, the rows sit under a heading per group (a boxed list boxes each group).
  * One row can be marked selected (`aria-current` and `data-selected`) for master-detail
  * layouts: the caller owns the state through `selected`, `set_selected(id)` and `get_selected()`.
- * Styles are in espresso/components/item_list.css.
+ * Styles are in espresso/components/list.css.
  *
  * @example
- * const list = new frappe.ui.ItemList({
+ * const list = new frappe.ui.List({
  *   items: [
  *     { id: "john", title: "John Doe", subtitle: "Referred by Jane", meta: "6d ago",
  *       avatar: { label: "John Doe" }, href: "/desk/job-applicant/john",
@@ -66,19 +66,19 @@ const THEMES = ["gray", "red"];
  * });
  * wrapper.append(list.$el);
  */
-frappe.ui.ItemList = class ItemList {
-	/** @param {ItemListOpts} opts */
+frappe.ui.List = class List {
+	/** @param {ListOpts} opts */
 	constructor(opts = {}) {
 		this.opts = opts;
-		this.$el = $(`<div ${safe_attrs(opts.attrs, "ItemList").join(" ")}></div>`);
+		this.$el = $(`<div ${safe_attrs(opts.attrs, "List").join(" ")}></div>`);
 		this.el = this.$el[0];
-		this.el.className = ["es-item-list", opts.css_class].filter(Boolean).join(" ");
+		this.el.className = ["es-list", opts.css_class].filter(Boolean).join(" ");
 		if (opts.variant === "flat") this.el.dataset.variant = "flat";
 
 		this.is_expanded = false;
 		this.selected = opts.selected ?? null;
 		this.groups = opts.groups || null;
-		this.$el.data("es-item-list", this);
+		this.$el.data("es-list", this);
 		this.set_items(opts.items || []);
 	}
 
@@ -161,25 +161,23 @@ frappe.ui.ItemList = class ItemList {
 				.map((item) => this.make_row(item));
 			if (!rows.length) return [];
 			const head = document.createElement("div");
-			head.className = "es-item-list__group-head";
-			head.append(
-				this.make_part("span", "es-item-list__group-label text-p-sm-medium", label)
-			);
+			head.className = "es-list__group-head";
+			head.append(this.make_part("span", "es-list__group-label text-p-sm-medium", label));
 			if (count != null) {
-				head.append(this.make_part("span", "es-item-list__group-count text-p-sm", count));
+				head.append(this.make_part("span", "es-list__group-count text-p-sm", count));
 			}
 			const group = document.createElement("div");
-			group.className = "es-item-list__group";
+			group.className = "es-list__group";
 			group.append(...rows);
 			return [head, group];
 		});
 	}
 
 	make_row(item) {
-		const href = safe_href(item.href, "item_list");
+		const href = safe_href(item.href, "list");
 		const has_actions = Boolean(item.actions?.length);
 		const row = document.createElement(href ? "a" : "div");
-		row.className = "es-item-list__row";
+		row.className = "es-list__row";
 		row.dataset.id = item.id;
 		if (href) {
 			row.href = href;
@@ -197,7 +195,7 @@ frappe.ui.ItemList = class ItemList {
 		row.append(this.make_text(item));
 		// badge before meta, so the meta lines up in one column down the list
 		if (item.badge) row.insertAdjacentHTML("beforeend", this.make_badge_html(item.badge));
-		if (item.meta) row.append(this.make_part("span", "es-item-list__meta", item.meta));
+		if (item.meta) row.append(this.make_part("span", "es-list__meta", item.meta));
 		const controls = this.make_controls(item, Boolean(href));
 		if (controls) row.append(controls);
 		if (has_actions) row.append(this.make_actions(item, Boolean(href)));
@@ -218,7 +216,7 @@ frappe.ui.ItemList = class ItemList {
 	make_lead(item) {
 		if (!item.avatar && !item.icon) return null;
 		const lead = document.createElement("span");
-		lead.className = "es-item-list__lead";
+		lead.className = "es-list__lead";
 		if (item.avatar) {
 			lead.append(
 				frappe.ui.avatar({
@@ -229,17 +227,17 @@ frappe.ui.ItemList = class ItemList {
 				})[0]
 			);
 		} else {
-			lead.insertAdjacentHTML("beforeend", icon_html(item.icon, "", "ItemList"));
+			lead.insertAdjacentHTML("beforeend", icon_html(item.icon, "", "List"));
 		}
 		return lead;
 	}
 
 	make_text(item) {
 		const text = document.createElement("span");
-		text.className = "es-item-list__text";
-		text.append(this.make_part("span", "es-item-list__title", item.title));
+		text.className = "es-list__text";
+		text.append(this.make_part("span", "es-list__title", item.title));
 		if (item.subtitle) {
-			text.append(this.make_part("span", "es-item-list__subtitle", item.subtitle));
+			text.append(this.make_part("span", "es-list__subtitle", item.subtitle));
 		}
 		return text;
 	}
@@ -249,7 +247,7 @@ frappe.ui.ItemList = class ItemList {
 			label: badge.label,
 			theme: badge.theme,
 			size: "sm",
-			css_class: "es-item-list__badge",
+			css_class: "es-list__badge",
 		});
 	}
 
@@ -258,7 +256,7 @@ frappe.ui.ItemList = class ItemList {
 		const content = [item.controls(item, this)].flat().filter(Boolean);
 		if (!content.length) return null;
 		const controls = document.createElement("span");
-		controls.className = "es-item-list__controls";
+		controls.className = "es-list__controls";
 		for (const node of content) controls.append(...(node.jquery ? node.get() : [node]));
 		this.contain_clicks(controls, is_link);
 		return controls;
@@ -281,13 +279,13 @@ frappe.ui.ItemList = class ItemList {
 
 	make_actions(item, is_link) {
 		const actions = document.createElement("span");
-		actions.className = "es-item-list__actions";
+		actions.className = "es-list__actions";
 		this.contain_clicks(actions, is_link);
 		for (const action of item.actions) {
 			const $button = frappe.ui.button({
 				label: action.label,
-				variant: validated(action.variant, VARIANTS, "action variant", "ItemList"),
-				theme: validated(action.theme, THEMES, "action theme", "ItemList"),
+				variant: validated(action.variant, VARIANTS, "action variant", "List"),
+				theme: validated(action.theme, THEMES, "action theme", "List"),
 				size: "sm",
 				onclick: () => action.onclick?.(item, this),
 			});
@@ -299,7 +297,7 @@ frappe.ui.ItemList = class ItemList {
 	make_more(count) {
 		const button = document.createElement("button");
 		button.type = "button";
-		button.className = "es-item-list__more";
+		button.className = "es-list__more";
 		button.textContent = (this.opts.more_label || __("Show all {0}")).replace("{0}", count);
 		button.addEventListener("click", () => {
 			this.is_expanded = true;
@@ -328,10 +326,10 @@ frappe.ui.ItemList = class ItemList {
 };
 
 /**
- * Returns the element; the instance is on `.data("es-item-list")`.
- * @param {ItemListOpts} [opts]
+ * Returns the element; the instance is on `.data("es-list")`.
+ * @param {ListOpts} [opts]
  * @returns {JQuery}
  */
-frappe.ui.item_list = (opts) => new frappe.ui.ItemList(opts).$el;
+frappe.ui.list = (opts) => new frappe.ui.List(opts).$el;
 
-export default frappe.ui.item_list;
+export default frappe.ui.list;

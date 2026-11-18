@@ -739,24 +739,24 @@ test.describe("Espresso components", () => {
 		});
 	});
 
-	test.describe("Item List", () => {
+	test.describe("List", () => {
 		const applicants = (page) => explorer_group(page, "Rows");
 		const row = (group, title) =>
-			group.locator(".es-item-list__row", { hasText: containing(title) }).first();
+			group.locator(".es-list__row", { hasText: containing(title) }).first();
 		const use_list = (group, change) =>
-			group.locator(".es-item-list").evaluate((el, change) => {
-				const list = $(el).data("es-item-list");
+			group.locator(".es-list").evaluate((el, change) => {
+				const list = $(el).data("es-list");
 				return new Function("list", change)(list);
 			}, change);
 
 		test.beforeEach(async ({ page }) => {
-			await show(page, "Item List");
+			await show(page, "List");
 		});
 
 		test("rows with an href are links, so cmd-click and middle-click work", async ({
 			page,
 		}) => {
-			const rows = applicants(page).locator(".es-item-list__row");
+			const rows = applicants(page).locator(".es-list__row");
 
 			await expect(rows).toHaveCount(3);
 			await expect(rows.first()).toHaveJSProperty("tagName", "A");
@@ -767,10 +767,10 @@ test.describe("Espresso components", () => {
 			const group = applicants(page);
 
 			await use_list(group, 'list.update_item("wade", { title: "<b>Wade</b> Warren" })');
-			await expect(row(group, "Warren").locator(".es-item-list__title")).toHaveText(
+			await expect(row(group, "Warren").locator(".es-list__title")).toHaveText(
 				"<b>Wade</b> Warren"
 			);
-			await expect(group.locator(".es-item-list b")).toHaveCount(0);
+			await expect(group.locator(".es-list b")).toHaveCount(0);
 		});
 
 		test("update_item changes one row and keeps the others", async ({ page }) => {
@@ -780,20 +780,18 @@ test.describe("Espresso components", () => {
 				group,
 				'list.update_item("wade", { subtitle: "wade@acme.com", meta: "1h ago" })'
 			);
-			await expect(row(group, "Wade Warren").locator(".es-item-list__subtitle")).toHaveText(
+			await expect(row(group, "Wade Warren").locator(".es-list__subtitle")).toHaveText(
 				"wade@acme.com"
 			);
-			await expect(row(group, "Wade Warren").locator(".es-item-list__meta")).toHaveText(
-				"1h ago"
-			);
-			await expect(group.locator(".es-item-list__row")).toHaveCount(3);
+			await expect(row(group, "Wade Warren").locator(".es-list__meta")).toHaveText("1h ago");
+			await expect(group.locator(".es-list__row")).toHaveCount(3);
 		});
 
 		test("remove_item drops the row", async ({ page }) => {
 			const group = applicants(page);
 
 			await use_list(group, 'list.remove_item("wade")');
-			await expect(group.locator(".es-item-list__row")).toHaveCount(2);
+			await expect(group.locator(".es-list__row")).toHaveCount(2);
 			await expect(row(group, "Wade Warren")).toHaveCount(0);
 		});
 
@@ -801,8 +799,8 @@ test.describe("Espresso components", () => {
 			page,
 		}) => {
 			const group = explorer_group(page, "Folds after max");
-			const rows = group.locator(".es-item-list__row");
-			const more = group.locator(".es-item-list__more");
+			const rows = group.locator(".es-list__row");
+			const more = group.locator(".es-list__more");
 
 			await expect(rows).toHaveCount(3);
 			await expect(more).toHaveText("Show all 7");
@@ -816,18 +814,18 @@ test.describe("Espresso components", () => {
 		});
 
 		test("no items shows the empty state instead of the box", async ({ page }) => {
-			const list = explorer_group(page, "Empty (shows").locator(".es-item-list");
+			const list = explorer_group(page, "Empty (shows").locator(".es-list");
 
 			await expect(list).toHaveAttribute("data-empty", "");
 			await expect(list.getByText("No new applicants")).toBeVisible();
-			await expect(list.locator(".es-item-list__row")).toHaveCount(0);
+			await expect(list.locator(".es-list__row")).toHaveCount(0);
 		});
 
 		test("selected marks one row, follows set_selected and survives a re-render", async ({
 			page,
 		}) => {
 			const group = explorer_group(page, "Selected row");
-			const selected = group.locator(".es-item-list__row[data-selected]");
+			const selected = group.locator(".es-list__row[data-selected]");
 
 			await expect(selected).toHaveCount(1);
 			await expect(selected).toContainText("Wade Warren");
@@ -851,10 +849,10 @@ test.describe("Espresso components", () => {
 		});
 
 		test("flat variant drops the box", async ({ page }) => {
-			const flat = explorer_group(page, "Flat variant").locator(".es-item-list");
+			const flat = explorer_group(page, "Flat variant").locator(".es-list");
 			await expect(flat).toHaveAttribute("data-variant", "flat");
 			await expect(flat).toHaveCSS("border-top-width", "0px");
-			await expect(flat.locator(".es-item-list__row")).toHaveCount(3);
+			await expect(flat.locator(".es-list__row")).toHaveCount(3);
 		});
 
 		test("an action click does not open the row", async ({ page }) => {
@@ -867,14 +865,14 @@ test.describe("Espresso components", () => {
 			await expect(jane.locator(".es-badge")).toHaveText("Shortlisted");
 			await expect(opened).toHaveCount(0);
 
-			await jane.locator(".es-item-list__title").click();
+			await jane.locator(".es-list__title").click();
 			await expect(opened.first()).toContainText("Opened Jane Cooper");
 		});
 
 		test("a second click on a busy action does not open the row", async ({ page }) => {
 			const group = applicants(page);
 			const jane = row(group, "Jane Cooper");
-			const hold = jane.locator(".es-item-list__actions .es-button");
+			const hold = jane.locator(".es-list__actions .es-button");
 			const opened = page.locator(".es-toast", { hasText: containing("Opened") });
 
 			await use_list(
@@ -893,7 +891,7 @@ test.describe("Espresso components", () => {
 			const group = explorer_group(page, "Controls");
 
 			await page.mouse.move(0, 0);
-			await expect(group.locator(".es-item-list__controls")).toHaveCount(3);
+			await expect(group.locator(".es-list__controls")).toHaveCount(3);
 			await expect(
 				row(group, "Wade Warren").getByRole("button", { name: "Applied" })
 			).toBeVisible();
@@ -914,23 +912,23 @@ test.describe("Espresso components", () => {
 			await expect(opened).toHaveCount(0);
 			expect(page.url()).toBe(url);
 
-			await jane.locator(".es-item-list__title").click();
+			await jane.locator(".es-list__title").click();
 			await expect(opened.first()).toContainText("Opened Jane Cooper");
 		});
 
 		test("groups show a heading and count, with their rows under them", async ({ page }) => {
-			const list = explorer_group(page, "Grouped rows").locator(".es-item-list");
-			const heads = list.locator(".es-item-list__group-head");
+			const list = explorer_group(page, "Grouped rows").locator(".es-list");
+			const heads = list.locator(".es-list__group-head");
 			const rows_under = (head) =>
-				head.locator("xpath=following-sibling::*[1]").locator(".es-item-list__row");
+				head.locator("xpath=following-sibling::*[1]").locator(".es-list__row");
 
 			await expect(list).toHaveAttribute("data-grouped", "");
 			await expect(heads).toHaveCount(2);
-			await expect(heads.locator(".es-item-list__group-label")).toHaveText([
+			await expect(heads.locator(".es-list__group-label")).toHaveText([
 				"Feedback due",
 				"Cleared",
 			]);
-			await expect(heads.locator(".es-item-list__group-count")).toHaveText(["2", "1"]);
+			await expect(heads.locator(".es-list__group-count")).toHaveText(["2", "1"]);
 			await expect(rows_under(heads.nth(0))).toHaveText([/Jane Cooper/, /Wade Warren/]);
 			await expect(rows_under(heads.nth(1))).toHaveText([/Esther Howard/]);
 		});
