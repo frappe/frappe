@@ -1081,6 +1081,39 @@ class TestUserEmailHelpers(IntegrationTestCase):
 				get_email_addresses([user.name, "Guest", "guest", "_Test Missing User", None]), {user.email}
 			)
 
+	def test_users_cant_take_invalid_domain_emails(self):
+		toggle_test_mode(False)
+		self.addCleanup(toggle_test_mode, True)
+
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_doc(doctype="User", email="admin@frappe.invalid", first_name="Reserved").insert()
+
+		with test_user(roles=[], generated_id=True) as user:
+			frappe.db.set_value("User", user.name, "email", f"{user.name}@frappe.invalid")
+			user = frappe.get_doc("User", user.name)
+			user.flags.skip_email_from_name = True
+			user.first_name = "Renamed"
+			user.save()
+
+			user.email = f"{user.name}-new@frappe.invalid"
+			with self.assertRaises(frappe.ValidationError):
+				user.save()
+
+	def test_email_patch_moves_administrators_email_off_a_users_id(self):
+		from frappe.patches.v16_0.set_user_email_from_name import execute
+
+		frappe.db.savepoint("email_patch")
+		self.addCleanup(frappe.db.rollback, save_point="email_patch")
+
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		user = frappe.new_doc("User", email="_test_clash@example.com", first_name="Clash")
+		user.flags.skip_email_from_name = True
+		user.insert(set_name=admin_email)
+
+		execute()
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@frappe.invalid")
+		self.assertEqual(frappe.db.get_value("User", admin_email, "email"), admin_email)
+
 	def test_get_user_by_email(self):
 		with test_user(roles=[], generated_id=True) as user:
 			self.assertEqual(get_user_by_email(f" {user.email.upper()} "), user.name)
