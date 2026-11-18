@@ -139,6 +139,154 @@ class TestAuth(FrappeTestCase):
 		with self.assertRaises(Exception):
 			FrappeClient(self.HOST_NAME, self.test_user_email, self.test_user_password).get_list("ToDo")
 
+<<<<<<< HEAD
+=======
+	def test_forced_password_reset_does_not_leak_reset_key(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+
+		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		frappe.db.commit()
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.68"
+		self.addCleanup(frappe.form_dict.clear)
+
+		emails_before = frappe.db.count("Email Queue")
+
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
+		self.assertNotIn("redirect_to", frappe.local.response)
+		self.assertGreater(frappe.db.count("Email Queue"), emails_before)
+
+	def test_forced_password_reset_waits_for_2fa(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		system_settings = frappe.get_doc("System Settings")
+		system_settings.enable_two_factor_auth = 1
+		system_settings.two_factor_method = "OTP App"
+		system_settings.flags.ignore_mandatory = True
+		system_settings.save(ignore_permissions=True)
+		self.addCleanup(self.set_system_settings, "enable_two_factor_auth", 0)
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+
+		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		frappe.db.commit()
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.69"
+		self.addCleanup(frappe.form_dict.clear)
+
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		self.assertIn("tmp_id", frappe.local.response)
+		self.assertNotEqual(frappe.local.response.get("message"), "Password Reset")
+		self.assertNotIn("redirect_to", frappe.local.response)
+
+	def test_forced_password_reset_counts_from_account_creation(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+
+		frappe.db.set_value(
+			"User",
+			self.test_user_email,
+			{"last_password_reset_date": None, "creation": add_days(today(), -2)},
+		)
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.70"
+		self.addCleanup(frappe.form_dict.clear)
+
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
+
+	def test_login_lands_on_default_app(self):
+		from frappe.auth import LoginManager
+		from frappe.hooks import app_home
+		from frappe.utils import set_request
+
+		def home_page_after_login():
+			frappe.cache.hdel("home_page", self.test_user_email)
+			set_request(method="POST", path="/api/method/login")
+			frappe.form_dict.usr = self.test_user_email
+			frappe.form_dict.pwd = self.test_user_password
+			frappe.local.response = frappe._dict()
+			frappe.local.request_ip = "127.0.0.68"
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			return frappe.local.response.home_page
+
+		self.addCleanup(frappe.form_dict.clear)
+		self.addCleanup(self.set_system_settings, "default_app", "")
+		for doctype, field in (("Website Settings", "home_page"), ("Portal Settings", "default_portal_home")):
+			self.addCleanup(
+				frappe.db.set_single_value, doctype, field, frappe.db.get_single_value(doctype, field)
+			)
+		self.addCleanup(frappe.db.set_value, "Role", "System Manager", "home_page", None)
+		self.addCleanup(frappe.db.set_value, "User", self.test_user_email, "default_workspace", None)
+
+		# only frappe is installed in CI, and the apps screen leaves it out
+		with patch("frappe.apps.get_apps", return_value=[{"name": "test_app", "route": "/desk/test-app"}]):
+			self.assertEqual(home_page_after_login(), "desk")
+
+			self.set_system_settings("default_app", "frappe")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_single_value("Website Settings", "home_page", "about")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_single_value("Portal Settings", "default_portal_home", "/contact")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", "Users")
+			self.assertEqual(home_page_after_login(), "/desk/users")
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", None)
+			frappe.db.set_single_value("Portal Settings", "default_portal_home", None)
+			with self.patch_hooks({"role_home_page": {"System Manager": ["orders"]}}):
+				self.assertEqual(home_page_after_login(), "orders")
+
+			frappe.db.set_value("Role", "System Manager", "home_page", "todo")
+			self.assertEqual(home_page_after_login(), "todo")
+
+	def test_login_link_is_for_the_user_with_that_email(self):
+		from urllib.parse import parse_qs, urlparse
+
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as user:
+			link = _generate_temporary_login_link(user.email.upper(), 10)
+			key = parse_qs(urlparse(link).query)["key"][0]
+			self.assertEqual(frappe.cache.get_value(f"one_time_login_key:{key}"), user.name)
+
+		admin_email = frappe.db.get_value("User", "Administrator", "email")
+		self.assertRaises(frappe.DoesNotExistError, _generate_temporary_login_link, admin_email, 10)
+
+	@requires_test_service(TestService.WEB_SERVER)
+>>>>>>> a2ffabf (fix: refuse a standard user's email in an invite batch in any case, and test the email lookups)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
 

@@ -592,7 +592,27 @@ class TestUser(FrappeTestCase):
 
 			get_default_path()  # defaults will also trigger hooks logic
 
+<<<<<<< HEAD
 	@change_settings("System Settings", reset_password_link_expiry_duration=1)
+=======
+	def test_reset_password_finds_the_user_by_email(self):
+		from frappe.core.doctype.user.user import reset_password
+
+		frappe.local.request_ip = "127.0.0.71"
+		admin_key = frappe.db.get_value("User", "Administrator", "reset_password_key")
+
+		with test_user(roles=[], generated_id=True) as user, patch("frappe.sendmail"):
+			reset_password(user.name)
+			self.assertFalse(frappe.db.get_value("User", user.name, "reset_password_key"))
+
+			reset_password(f" {user.email.upper()} ")
+			self.assertTrue(frappe.db.get_value("User", user.name, "reset_password_key"))
+
+			reset_password(frappe.db.get_value("User", "Administrator", "email"))
+			self.assertEqual(frappe.db.get_value("User", "Administrator", "reset_password_key"), admin_key)
+
+	@IntegrationTestCase.change_settings("System Settings", reset_password_link_expiry_duration=1)
+>>>>>>> a2ffabf (fix: refuse a standard user's email in an invite batch in any case, and test the email lookups)
 	def test_reset_password_link_expiry(self):
 		new_password = "new_password"
 		frappe.set_user("testpassword@example.com")
