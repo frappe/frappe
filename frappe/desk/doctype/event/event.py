@@ -278,21 +278,25 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 		frappe.db.set_value("Event", event_name, "attending", status)
 		return
 
-	user, email = (caller, caller_email) if is_caller else (attendee, get_email_address(attendee) or attendee)
+	user = caller if is_caller else attendee
 	for participant in event_doc.event_participants:
-		if _is_participant(participant, user, email):
+		if _is_participant(participant, user):
 			frappe.db.set_value("Event Participants", participant.name, "attending", status)
 			return
 
 	frappe.throw(_("Attendee not found in this event."))
 
 
-def _is_participant(participant, user: str, email: str | None) -> bool:
-	"""Whether the Event Participants row references the user or has their email."""
+def _is_participant(participant, user: str) -> bool:
+	"""Whether the Event Participants row references the user or has their email.
+
+	`user` can also be an email that isn't a user's.
+	"""
 	if participant.reference_doctype == "User" and participant.reference_docname == user:
 		return True
 
-	return bool(email and participant.email and participant.email.lower() == email.lower())
+	email = get_email_address(user) or user
+	return bool(participant.email and participant.email.lower() == email.lower())
 
 
 def _participant_condition(user: str) -> str:
@@ -320,9 +324,8 @@ def has_permission(doc, ptype=None, user=None):
 	if doc.event_type == "Public" or doc.owner == user:
 		return True
 
-	user_email = get_email_address(user)
 	for participant in doc.event_participants:
-		if _is_participant(participant, user, user_email):
+		if _is_participant(participant, user):
 			if ptype in ["write", "create", "delete"]:
 				return False
 			return True
