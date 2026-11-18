@@ -100,12 +100,14 @@ class UserInvitation(Document):
 			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
 		):
 			frappe.throw(title=_("Error"), msg=_("Invitation already exists"))
-		user_id = frappe.utils.get_user_by_email(self.email, include_standard_users=True)
+		user = frappe.db.get_value("User", {"email": self.email}, ["name", "enabled"], as_dict=True)
+		if not user:
+			return
 
-		if user_id in frappe.STANDARD_USERS:
+		if user.name in frappe.STANDARD_USERS:
 			frappe.throw(title=_("Error"), msg=_("Standard users can't be invited"))
 
-		if user_id and not frappe.db.get_value("User", user_id, "enabled"):
+		if not user.enabled:
 			frappe.throw(title=_("Error"), msg=_("User is disabled"))
 
 	def send_invitation_mail(self):
