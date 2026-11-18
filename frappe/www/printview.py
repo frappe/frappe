@@ -184,17 +184,23 @@ def cast_client_values(document: "Document"):
 
 def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
 	"""Return print format document."""
-	if not print_format_name:
-		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
+	from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
+
+	requested = print_format_name or frappe.form_dict.format
+	print_format_name = requested or meta.default_print_format or "Standard"
 
 	if print_format_name == "Standard":
 		return None
-	else:
-		try:
-			return frappe.get_doc("Print Format", print_format_name)
-		except frappe.DoesNotExistError:
-			# if old name, return standard!
-			return None
+	try:
+		doc = frappe.get_doc("Print Format", print_format_name)
+	except frappe.DoesNotExistError:
+		# if old name, return standard!
+		return None
+	if can_print_with(doc):
+		return doc
+	if print_format_name == requested and requested != meta.default_print_format:
+		check_print_format_roles(doc)
+	return None
 
 
 def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat | None", bool]:

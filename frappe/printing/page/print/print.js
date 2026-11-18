@@ -123,10 +123,12 @@ frappe.ui.form.PrintView = class {
 			options: "Print Format",
 			label: __("Print Format"),
 			get_query: () => {
+				const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
 				return {
 					filters: {
 						doc_type: this.frm.doctype,
 						print_format_for: ["in", ["DocType", ""]],
+						...(restricted.length && { name: ["not in", restricted] }),
 					},
 				};
 			},
@@ -1254,7 +1256,9 @@ frappe.ui.form.PrintView = class {
 		)
 			return;
 
-		this.set_print_format_value(this.frm.meta.default_print_format || "");
+		const default_format = this.frm.meta.default_print_format || "";
+		const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
+		this.set_print_format_value(restricted.includes(default_format) ? "" : default_format);
 	}
 
 	set_print_format_value(value) {
