@@ -479,7 +479,7 @@ def get_preview_page_css(print_format: "PrintFormat" | None = None, overrides: d
 	from frappe.utils.pdf import get_print_format_styles
 	from frappe.utils.pdf_generator.browser import RECEIPT_WIDTHS
 	from frappe.utils.print_format_generator import page_size_mm
-	from frappe.utils.print_utils import convert_uom, parse_float_and_unit
+	from frappe.utils.print_utils import convert_uom, parse_float_and_unit, resolve_pdf_generator
 
 	overrides = overrides or {}
 	css = (print_format and print_format.css) or ""
@@ -489,10 +489,14 @@ def get_preview_page_css(print_format: "PrintFormat" | None = None, overrides: d
 		if style.name in ("page-size", "orientation")
 		or (style.name in ("page-width", "page-height") and re.fullmatch(PAGE_LENGTH, style.value.strip()))
 	}
-	paper_size = print_format and print_format.paper_size
+	html_pdf = print_format and (print_format.pdf_generator or resolve_pdf_generator()) in (
+		"chrome",
+		"PlutoPrint",
+	)
+	paper_size = html_pdf and print_format.paper_size
 	if any(page_options.get(key) for key in ("page-size", "page-width", "page-height")):
 		paper_size = None
-	elif not paper_size:
+	elif html_pdf and not paper_size:
 		page_options = get_page_rule_size(css) | page_options
 	if overrides.get("pdf_page_size") or overrides.get("page_orientation") == "Landscape":
 		page_width, page_height = get_page_size_mm(overrides)
