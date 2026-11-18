@@ -1,7 +1,6 @@
 <!--
   One panel row on frappe-ui's `SidebarItem` and `SidebarSection`. The section the address is in
-  opens itself and stays open: its heading keeps the chevron, and a click there does nothing. A
-  reader's toggle is remembered.
+  opens itself and stays open, chevron kept; a reader's toggle is remembered.
 -->
 <template>
 	<!-- A heading with no destination: a section. Children mount only while it is open. -->
@@ -148,8 +147,8 @@ import type { ItemContext } from "@/navigation/types";
 const ROW = "flex h-7 items-center rounded-4 text-ink-gray-6 transition hover:bg-surface-gray-2";
 const ROW_TARGET =
 	"flex h-full min-w-0 flex-1 items-center rounded-4 pl-2 text-left focus-visible:ring-0 focus-visible:focus-ring";
-// `SidebarSection` draws its heading in gray-5, 3.9:1 on the light sidebar. Gray-6 is what the rows use,
-// so the weight sets the heading apart. A held section's control does nothing: default cursor, its own button only.
+// `SidebarSection` draws headings in gray-5 (3.9:1 on light): gray-6 plus weight keeps them apart from rows.
+// A held section's button does nothing, so it gets the default cursor.
 const HEADING = "[&_h3]:font-medium [&_h3]:text-ink-gray-6 [&_h3_span]:text-ink-gray-6";
 const HELD = "[&>div:first-child_button]:cursor-default";
 const SKELETON_WIDTHS = ["w-1/2", "w-2/3", "w-2/5"];

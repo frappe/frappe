@@ -154,6 +154,7 @@ describe("the address opens the section it is standing in", () => {
 	it("keeps the chevron on the section that holds the row you are on", async () => {
 		const { host, router } = await shell("/crm-lead-status");
 		const held = control(host, "leads-configure");
+		const heldLabel = held?.textContent?.trim();
 
 		expect(held).not.toBeNull();
 		expect(held!.getAttribute("aria-expanded")).toBe("true");
@@ -164,7 +165,7 @@ describe("the address opens the section it is standing in", () => {
 		await flush();
 		const shut = control(host, "leads-configure");
 		expect(shut!.querySelector(".lucide-chevron-right")).not.toBeNull();
-		expect(shut!.textContent?.trim()).toBe(held!.textContent?.trim());
+		expect(shut!.textContent?.trim()).toBe(heldLabel);
 	});
 
 	it("does not shut over the row you are on, and records nothing", async () => {
