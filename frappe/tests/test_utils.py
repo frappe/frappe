@@ -2593,15 +2593,12 @@ class TestAddUserInfo(IntegrationTestCase):
 	def test_add_user_info_by_id_or_email(self):
 		from frappe.core.doctype.user.test_user import test_user
 
-		with test_user(roles=[]) as user:
-			email = f"new_{user.name}"
-			frappe.db.set_value("User", user.name, "email", email)
-
+		with test_user(roles=[], generated_id=True) as user:
 			user_info = {}
-			frappe.utils.add_user_info([user.name, email.upper(), None], user_info)
+			frappe.utils.add_user_info([user.name, user.email.upper(), None], user_info)
 
 			self.assertEqual(user_info[user.name].name, user.name)
-			self.assertEqual(user_info[email.upper()].name, user.name)
+			self.assertEqual(user_info[user.email.upper()].name, user.name)
 
 	def test_add_user_info_prefers_the_id(self):
 		from frappe.core.doctype.user.test_user import test_user
