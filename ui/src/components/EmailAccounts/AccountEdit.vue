@@ -72,6 +72,7 @@
 						v-model:form="form"
 						:service="service"
 						:oauth="account.auth_method === 'OAuth'"
+						:send-blocked="sendBlocked(account)"
 						:error="invalid"
 						editing
 					/>
@@ -95,6 +96,7 @@ import {
 	emptyForm,
 	errorText,
 	reconnectable as canReconnect,
+	sendBlocked,
 	serviceOf,
 	validate,
 } from "./services";

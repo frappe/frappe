@@ -238,3 +238,15 @@ it("asks before saving with receiving off on the default incoming account", asyn
   confirm.mock.calls[0][0].onConfirm({ close: vi.fn() });
   expect(update).toHaveBeenCalledWith(expect.objectContaining({ name: "Support" }), { enable_incoming: 0 }, undefined);
 });
+
+it("keeps Send off and locked on a personal Outlook.com mailbox that can only receive", () => {
+  mount({ status: "active", smtp_server: "smtp-mail.outlook.com", enable_outgoing: 0 });
+  const send = [...root.querySelectorAll<HTMLButtonElement>('[role="switch"]')].at(-1)!;
+  expect(send.disabled).toBe(true);
+  expect(send.getAttribute("aria-checked")).toBe("false");
+
+  app.unmount();
+  root.remove();
+  mount({ status: "active", smtp_server: "smtp.office365.com", enable_outgoing: 0 });
+  expect([...root.querySelectorAll<HTMLButtonElement>('[role="switch"]')].at(-1)!.disabled).toBe(false);
+});

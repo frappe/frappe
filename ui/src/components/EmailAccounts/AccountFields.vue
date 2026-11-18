@@ -139,14 +139,25 @@
 				:title="__('Send email')"
 				:description="__('Send outgoing email through this mailbox.')"
 			>
-				<Switch v-model="form.enable_outgoing" />
+				<Tooltip
+					:text="
+						__(
+							'Personal accounts can only receive email. Connect a work account to send.'
+						)
+					"
+					:disabled="!sendBlocked"
+				>
+					<span :tabindex="sendBlocked ? 0 : undefined">
+						<Switch v-model="form.enable_outgoing" :disabled="sendBlocked" />
+					</span>
+				</Tooltip>
 			</SettingsRow>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { FormControl, Password, SettingsRow, Switch } from "frappe-ui";
+import { FormControl, Password, SettingsRow, Switch, Tooltip } from "frappe-ui";
 import { ref, watch } from "vue";
 import { Link } from "../Link";
 import { translate as __ } from "../../utils/translate";
@@ -158,6 +169,8 @@ const props = defineProps<{
 	editing?: boolean;
 	/** Signed in with OAuth, so there are no credentials to edit. */
 	oauth?: boolean;
+	/** Microsoft refuses this mailbox's SMTP, so Send stays off. */
+	sendBlocked?: boolean;
 	/** A problem `validate()` found, shown on its field, which takes focus. */
 	error?: FieldError;
 }>();
