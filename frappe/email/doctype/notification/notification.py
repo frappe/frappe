@@ -973,7 +973,7 @@ def get_comments_for_context(doc):
 	return [
 		{
 			"comment": truncate(c.content),
-			"by": c.by or frappe.utils.get_email_address(c.owner),
+			"by": c.by or frappe.utils.get_email_address(c.owner) or c.owner,
 			"name": c.name,
 		}
 		for c in comments[-100:]

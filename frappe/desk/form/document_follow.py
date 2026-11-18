@@ -253,9 +253,9 @@ def get_comments(doctype, doc_name, frequency, user):
 	)
 	for comment in comments:
 		if comment.comment_type == "Like":
-			by = f""" By : <b>{get_email_address(comment.modified_by)}<b>"""
+			by = f""" By : <b>{get_email_address(comment.modified_by) or comment.modified_by}<b>"""
 		elif comment.comment_type == "Comment":
-			by = f"""Commented by : <b>{get_email_address(comment.modified_by)}<b>"""
+			by = f"""Commented by : <b>{get_email_address(comment.modified_by) or comment.modified_by}<b>"""
 		else:
 			by = ""
 
@@ -303,7 +303,7 @@ def get_row_changed(row_changed, time, doctype, doc_name, v, user):
 				"doctype": doctype,
 				"doc_name": doc_name,
 				"type": "row changed",
-				"by": get_email_address(v.modified_by),
+				"by": get_email_address(v.modified_by) or v.modified_by,
 			}
 		)
 	return items
@@ -317,7 +317,7 @@ def get_added_row(added, time, doctype, doc_name, v, user):
 			"doctype": doctype,
 			"doc_name": doc_name,
 			"type": "row added",
-			"by": get_email_address(v.modified_by),
+			"by": get_email_address(v.modified_by) or v.modified_by,
 		}
 		for d in added
 		if _can_read_table_field(doctype, d[0], user)
@@ -350,7 +350,7 @@ def get_field_changed(changed, time, doctype, doc_name, v, user):
 				"doctype": doctype,
 				"doc_name": doc_name,
 				"type": "field changed",
-				"by": get_email_address(v.modified_by),
+				"by": get_email_address(v.modified_by) or v.modified_by,
 			}
 		)
 	return items
