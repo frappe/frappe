@@ -113,8 +113,11 @@ def get_user_by_email(
 	"""Return the ID of the user with this email, or None.
 
 	Administrator and Guest are left out unless `include_standard_users` is True.
-	`filters` narrows the match further, e.g. `{"enabled": 1}`.
+	`filters` narrows the match further, e.g. `{"enabled": 1}`; it can't set `email` or `name`.
 	"""
+	if filters and {"email", "name"} & filters.keys():
+		raise ValueError("filters can't set email or name")
+
 	filters = {**(filters or {}), "email": email.strip().lower()}
 	if not include_standard_users:
 		filters["name"] = ("not in", frappe.STANDARD_USERS)
