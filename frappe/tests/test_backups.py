@@ -339,6 +339,34 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 		self.assertFalse(currency.is_in_range(9.995))
 		self.assertTrue(Column("qty", "int(11)").is_in_range(2147483647.4))
 
+	def test_refuses_text_and_json_mariadb_cannot_store(self):
+		with self.assertRaises(MariaDBDumpError) as error:
+			self.write_dump(
+				{
+					"tabComment": (
+						"name varchar(140) primary key, subject text",
+						[("ascii", "a" * 65536), ("emoji", "😀" * 16384), ("fits", "😀" * 16383)],
+					),
+					"tabBackground Task": (
+						"name varchar(140) primary key, arguments text",
+						[("valid", '{"a": 1}'), ("empty", ""), ("nan", '{"a": NaN}'), ("null", None)],
+					),
+				}
+			)
+		self.assertIn(
+			"tabComment.subject: value of 65536 bytes exceeds text (row ascii)", str(error.exception)
+		)
+		self.assertIn(
+			"tabComment.subject: value of 65536 bytes exceeds text (row emoji)", str(error.exception)
+		)
+		self.assertIn("tabBackground Task.arguments: '' is not valid JSON (row empty)", str(error.exception))
+		self.assertIn(
+			"""tabBackground Task.arguments: '{"a": NaN}' is not valid JSON (row nan)""", str(error.exception)
+		)
+		self.assertNotIn("(row fits)", str(error.exception))
+		self.assertNotIn("(row valid)", str(error.exception))
+		self.assertNotIn("(row null)", str(error.exception))
+
 	def test_sequence_continues_after_the_highest_name(self):
 		dump = self.write_dump(
 			{
