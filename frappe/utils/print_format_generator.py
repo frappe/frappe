@@ -50,7 +50,7 @@ def download_pdf(
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print(doc)
-	print_format, is_beta = resolve_print_format(print_format, doc.meta)
+	print_format, is_beta = resolve_print_format(print_format, doc.meta, doc)
 	if not is_beta:
 		from frappe.utils.print_format import download_pdf as download_jinja_pdf
 
