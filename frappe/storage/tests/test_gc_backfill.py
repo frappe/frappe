@@ -566,3 +566,44 @@ class TestBackfill(IntegrationTestCase):
 		self.assertIsNone(backfill.locate("/private/files/a/../../secrets.txt"))
 		self.assertEqual(backfill.locate("/files/logo.png"), (False, "logo.png"))
 		self.assertEqual(backfill.locate("/private/files/a/b.png"), (True, "a/b.png"))
+
+
+class TestFilesIndex(IntegrationTestCase):
+	def test_lists_stored_files_by_privacy_with_their_blobs(self):
+		from frappe.core.doctype.file.utils import get_files_index
+
+		tag = frappe.generate_hash(length=10)
+		public = insert_file_row(
+			file_name=f"public-{tag}.txt", file_url=f"/files/public-{tag}.txt", file_size=3
+		)
+		private = insert_file_row(
+			file_name=f"private-{tag}.txt",
+			file_url=f"/private/files/private-{tag}.txt",
+			file_size=5,
+			is_private=1,
+		)
+		insert_file_row(file_name=f"folder-{tag}", is_folder=1)
+		insert_file_row(file_name=f"link-{tag}.png", file_url=f"https://example.com/link-{tag}.png")
+		with fake(), storage_v2():
+			stored = frappe.get_doc(
+				doctype="File", file_name=f"blob-{tag}.txt", content=unique_bytes(), is_private=1
+			).insert()
+
+		index = get_files_index()
+
+		listed = {group: [item for item in items if tag in item["name"]] for group, items in index.items()}
+		self.assertEqual(
+			listed["files_index"], [{"name": public.file_name, "file_url": public.file_url, "size": 3}]
+		)
+		self.assertCountEqual(
+			listed["private_files_index"],
+			[
+				{"name": private.file_name, "file_url": private.file_url, "size": 5},
+				{
+					"name": stored.file_name,
+					"file_url": stored.file_url,
+					"size": stored.file_size,
+					"file_blob": stored.blob,
+				},
+			],
+		)
