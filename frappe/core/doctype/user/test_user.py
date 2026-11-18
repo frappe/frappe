@@ -1081,6 +1081,51 @@ class TestUserEmailHelpers(IntegrationTestCase):
 				get_email_addresses([user.name, "Guest", "guest", "_Test Missing User", None]), {user.email}
 			)
 
+	def test_users_cant_take_invalid_domain_emails(self):
+		toggle_test_mode(False)
+		self.addCleanup(toggle_test_mode, True)
+
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_doc(doctype="User", email="admin@frappe.invalid", first_name="Reserved").insert()
+
+		with test_user(roles=[], generated_id=True) as user:
+			frappe.db.set_value("User", user.name, "email", f"{user.name}@frappe.invalid")
+			user = frappe.get_doc("User", user.name)
+			user.flags.skip_email_from_name = True
+			user.first_name = "Renamed"
+			user.save()
+
+			user.email = f"{user.name}-new@frappe.invalid"
+			with self.assertRaises(frappe.ValidationError):
+				user.save()
+
+		with test_user(roles=[]) as user, self.assertRaises(frappe.ValidationError):
+			frappe.rename_doc("User", user.name, f"{user.name}.invalid")
+
+	def test_email_patch_moves_administrators_email_off_a_users_id(self):
+		from frappe.patches.v16_0.set_user_email_from_name import execute
+
+		frappe.db.savepoint("email_patch")
+		self.addCleanup(frappe.db.rollback, save_point="email_patch")
+
+		def add_user_named(name):
+			user = frappe.new_doc("User", email=f"_test_{frappe.generate_hash(length=6)}@example.com")
+			user.first_name = "Clash"
+			user.flags.skip_email_from_name = True
+			user.insert(set_name=name)
+
+		# a changed email is left alone: migrate stops
+		frappe.db.set_value("User", "Administrator", "email", "_test_owner@example.com")
+		add_user_named("_test_owner@example.com")
+		self.assertRaises(frappe.ValidationError, execute)
+		frappe.db.set_value("User", "Administrator", "email", "admin@example.com")
+		frappe.delete_doc("User", "_test_owner@example.com", force=True, ignore_permissions=True)
+
+		add_user_named("admin@example.com")
+		execute()
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@frappe.invalid")
+		self.assertEqual(frappe.db.get_value("User", "admin@example.com", "email"), "admin@example.com")
+
 	def test_get_user_by_email(self):
 		with test_user(roles=[], generated_id=True) as user:
 			self.assertEqual(get_user_by_email(f" {user.email.upper()} "), user.name)
