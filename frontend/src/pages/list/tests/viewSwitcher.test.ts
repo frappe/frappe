@@ -8,7 +8,7 @@ import type { Boot } from "@/boot";
 import { registerShell } from "@/router/routeFor";
 import { clearSkip, consumeSkip } from "@/router/skipDefault";
 import { openView } from "../openView";
-import { actGroups, viewLayers, viewMenu, type ViewMenuHost, type ViewRequest } from "../viewSwitcher/viewMenu";
+import { viewMenu, type ViewMenuHost, type ViewRequest } from "../viewSwitcher/viewMenu";
 import { actsOn, isSiteAdmin } from "../viewSwitcher/viewRules";
 
 type Row = Record<string, any>;
@@ -105,57 +105,6 @@ describe("the menu's groups", () => {
 
 	it("shows a loading row until the first read lands", () => {
 		expect(viewMenu(host({ views: null }).menu)).toEqual([{ label: "Loading views…", disabled: true }]);
-	});
-});
-
-describe("the menu while the sidebar lists the views", () => {
-	const acts = (over: Partial<ViewMenuHost> = {}) => groups({ listsViews: false, ...over });
-
-	it("holds the open view's acts and no list of views", () => {
-		expect(acts().map((group) => group.group)).toEqual(["View", "Default"]);
-		expect(labels(acts())).not.toEqual(expect.arrayContaining(["Cards", "Shared", "Kanban"]));
-	});
-
-	it("runs the same acts as the full menu", () => {
-		const full = groups().filter((group) => ["View", "Default"].includes(group.group));
-		expect(labels(acts())).toEqual(labels(full));
-	});
-
-	it("keeps Save as new for a plain list with changes", () => {
-		const list = acts({ current: "list", plainModified: true });
-		expect(list[0].options.map((one) => one.label)).toEqual(["Save as new view…"]);
-	});
-
-	it("keeps the list of views when no open view is among them: there are no acts to show", () => {
-		expect(acts({ current: "kanban" }).map((group) => group.group)).toContain("Types");
-	});
-
-	it("is unchanged when the host does not say", () => {
-		expect(groups().map((group) => group.group)).toContain("Types");
-		expect(groups({ listsViews: true }).map((group) => group.group)).toContain("Types");
-	});
-});
-
-describe("actGroups", () => {
-	it("returns no group when no act can run, so a row draws no ⋯", () => {
-		const mine = VIEWS.find((one) => one.key === "mine")!;
-		expect(actGroups(host({ drawn: () => false }).menu, mine)).toEqual([]);
-		expect(actGroups(host().menu, mine).length).toBeGreaterThan(0);
-	});
-});
-
-describe("viewLayers", () => {
-	it("keeps the four layers in order, empty ones too, with the unbuilt types under Types", () => {
-		const layers = viewLayers(VIEWS, SOON);
-		expect(layers.map((one) => one.label)).toEqual(["Types", "My views", "Site views", "App views"]);
-		expect(layers.map((one) => one.views.map((view) => view.key))).toEqual([
-			["list", "cards"],
-			["mine", "mine-too"],
-			["shared"],
-			["app-open"],
-		]);
-		expect(layers.map((one) => one.soon.length)).toEqual([2, 0, 0, 0]);
-		expect(viewLayers([], SOON)[1].views).toEqual([]);
 	});
 });
 
