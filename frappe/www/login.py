@@ -184,6 +184,7 @@ def _generate_temporary_login_link(email: str, expiry: int):
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	if not frappe.db.exists("User", email):
 		frappe.throw(_("User with email address {0} does not exist").format(email), frappe.DoesNotExistError)
 =======
@@ -192,6 +193,9 @@ def _generate_temporary_login_link(email: str, expiry: int):
 	if not user or not frappe.db.get_value("User", user, "enabled"):
 =======
 	user = get_user_by_email(email, filters={"enabled": 1})
+=======
+	user = get_user_by_email(email, enabled=True)
+>>>>>>> 49c53d5 (refactor: replace `filters` with `enabled` in `get_user_by_email`)
 	if not user:
 >>>>>>> 07d2453 (refactor: let `get_user_by_email` take extra filters and use it for the login link)
 		frappe.throw(_("No active user found with email address {0}").format(email), frappe.DoesNotExistError)

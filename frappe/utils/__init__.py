@@ -94,19 +94,19 @@ def get_email_addresses(users: Iterable[str]) -> set[str]:
 
 
 def get_user_by_email(
-	email: str, *, include_standard_users: bool = False, filters: dict | None = None
+	email: str, *, include_standard_users: bool = False, enabled: bool | None = None
 ) -> str | None:
 	"""Return the ID of the user with this email, or None.
 
 	Administrator and Guest are left out unless `include_standard_users` is True.
-	`filters` narrows the match further, e.g. `{"enabled": 1}`; it can't set `email` or `name`.
+	`enabled` limits the match to enabled (True) or disabled (False) users; None matches either.
 	"""
-	if filters and {"email", "name"} & filters.keys():
-		raise ValueError("filters can't set email or name")
-
-	filters = {**(filters or {}), "email": email.strip().lower()}
+	filters = {"email": email.strip().lower()}
 	if not include_standard_users:
 		filters["name"] = ("not in", frappe.STANDARD_USERS)
+
+	if enabled is not None:
+		filters["enabled"] = int(enabled)
 
 	return frappe.db.get_value("User", filters)
 >>>>>>> 07d2453 (refactor: let `get_user_by_email` take extra filters and use it for the login link)
