@@ -348,9 +348,12 @@ def run_setup_success(args):  # nosemgrep
 
 
 def login_as_first_user(args):  # nosemgrep
-	if args.get("email") and hasattr(frappe.local, "login_manager"):
-		if user_id := frappe.db.get_value("User", {"email": args.get("email")}):
-			frappe.local.login_manager.login_as(user_id)
+	email = args.get("email")
+	if not email or not hasattr(frappe.local, "login_manager"):
+		return
+
+	if user_id := frappe.db.get_value("User", {"email": email}):
+		frappe.local.login_manager.login_as(user_id)
 
 
 def get_stages_hooks(args):  # nosemgrep
