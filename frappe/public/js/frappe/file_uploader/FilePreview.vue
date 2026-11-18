@@ -73,8 +73,12 @@
 			</div>
 		</div>
 		<div style="width: 100%">
-			<div v-if="file.error_message" class="alert alert-danger mb-0 mt-2" role="alert">
-				{{ file.error_message }}
+			<div
+				v-if="file.error_message"
+				class="alert alert-danger mb-0 mt-2 whitespace-pre-wrap"
+				role="alert"
+			>
+				{{ frappe.utils.html2text(file.error_message) }}
 			</div>
 			<div
 				v-if="!file.private && !file.error_message && !uploaded && !file.failed"

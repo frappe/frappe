@@ -1,0 +1,15 @@
+.DS_Store
+*.pyc
+*.egg-info
+*.swp
+tags
+node_modules
+__pycache__
+.ruff_cache
+*.un~
+.idea/
+.vscode/
+.venv/
+dist/
+frontend/auto-imports.d.ts
+frontend/components.d.ts

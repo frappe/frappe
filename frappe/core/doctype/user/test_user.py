@@ -13,8 +13,12 @@ import frappe.exceptions
 from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
+	bulk_add_roles,
+	bulk_remove_roles,
 	handle_password_test_fail,
+	needs_password_setup,
 	reset_password,
+	set_first_password,
 	sign_up,
 	test_password_strength,
 	update_password,
@@ -27,7 +31,7 @@ from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import change_settings
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils import toggle_test_mode
-from frappe.utils import get_url
+from frappe.utils import get_url, today
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
@@ -759,6 +763,81 @@ class TestUser(IntegrationTestCase):
 			self.assertEqual(sendmail.call_args.kwargs["recipients"], [created.email])
 			frappe.set_user("Administrator")
 
+	def test_bulk_add_roles(self):
+		"""Roles are appended across the selection without disturbing existing ones."""
+		with (
+			test_user(roles=["_Test Role"]) as first,
+			test_user(roles=["Website Manager"]) as second,
+		):
+			bulk_add_roles([first.name, second.name], ["_Test Role 4", "_Test Role"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["_Test Role", "_Test Role 4"])
+			self.assertCountEqual(
+				[d.role for d in second.roles], ["Website Manager", "_Test Role 4", "_Test Role"]
+			)
+
+	def test_bulk_remove_roles(self):
+		"""Roles are stripped across the selection, leaving other roles intact."""
+		with (
+			test_user(roles=["_Test Role", "Website Manager"]) as first,
+			test_user(roles=["_Test Role"]) as second,
+		):
+			bulk_remove_roles([first.name, second.name], ["_Test Role", "_Test Role 4"])
+
+			first.reload()
+			second.reload()
+
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+			self.assertCountEqual([d.role for d in second.roles], [])
+
+			bulk_remove_roles([], ["Website Manager"])
+			bulk_remove_roles([first.name], [])
+
+			first.reload()
+			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+
+	def test_bulk_role_endpoints_enqueue_large_batches(self):
+		"""Over 20 users, each endpoint defers to its own background job."""
+		users = [f"bulk{i}@example.com" for i in range(21)]
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_add_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._assign_roles")
+
+		with patch.object(frappe, "enqueue") as mocked_enqueue:
+			bulk_remove_roles(users, ["Blogger"])
+
+		mocked_enqueue.assert_called_once()
+		self.assertEqual(mocked_enqueue.call_args.args[0], "frappe.core.doctype.user.user._unassign_roles")
+
+	def test_bulk_role_args_are_validated(self):
+		"""Parsed arguments must be lists of plain strings, within the batch cap."""
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([{"name": ["!=", ""]}], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles(["someone@example.com"], [{"role": ["!=", ""]}])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_add_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+		with self.assertRaises(frappe.ValidationError):
+			bulk_remove_roles([f"u{i}@example.com" for i in range(501)], ["Blogger"])
+
+	def test_bulk_role_endpoints_require_write_permission(self):
+		with test_user(roles=["_Test Role 4"]) as actor, test_user(roles=["_Test Role 4"]) as target:
+			with self.set_user(actor.name):
+				with self.assertRaises(frappe.PermissionError):
+					bulk_add_roles([target.name], ["Website Manager"])
+
+				with self.assertRaises(frappe.PermissionError):
+					bulk_remove_roles([target.name], ["_Test Role 4"])
+
 
 class TestImpersonation(FrappeAPITestCase):
 	def test_impersonation(self):
@@ -797,3 +876,126 @@ def test_user(
 def delete_contact(user):
 	frappe.db.delete("Contact", {"email_id": user})
 	frappe.db.delete("Contact Email", {"email_id": user})
+
+
+class TestNeedsPasswordSetup(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# With login links on, a user without a password can already get back in.
+		cls.enterClassContext(cls.change_settings("System Settings", login_with_email_link=0))
+
+	def setUp(self):
+		self.user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "site-owner@example.com",
+				"first_name": "Site Owner",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_if_duplicate=True)
+		frappe.db.delete("__Auth", {"doctype": "User", "name": self.user.name})
+		self.addCleanup(frappe.delete_doc, "User", self.user.name, force=True)
+
+	def test_user_without_a_password_needs_one(self):
+		self.assertTrue(needs_password_setup(self.user.name))
+
+	def test_user_with_a_password_does_not(self):
+		from frappe.utils.password import update_password as set_password
+
+		set_password(self.user.name, "Eastern_43A1W")
+		self.assertFalse(needs_password_setup(self.user.name))
+
+	def test_a_token_request_cannot_set_the_first_password(self):
+		from frappe.utils import set_request
+
+		had_request = hasattr(frappe.local, "request")
+		set_request(path="/api/method/ping", headers={"Authorization": "token key:secret"})
+		frappe.local.request_ip = "127.0.0.1"
+		frappe.set_user(self.user.name)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				set_first_password("Eastern_43A1W")
+		finally:
+			frappe.set_user("Administrator")
+			if not had_request:
+				del frappe.local.request
+		self.assertTrue(needs_password_setup(self.user.name))
+
+	def test_sets_a_first_password_from_the_app(self):
+		from frappe.utils.password import check_password
+
+		frappe.set_user(self.user.name)
+		try:
+			set_first_password("Eastern_43A1W")
+		finally:
+			frappe.set_user("Administrator")
+		self.assertEqual(check_password(self.user.name, "Eastern_43A1W"), self.user.name)
+		self.assertFalse(needs_password_setup(self.user.name))
+
+	def test_an_empty_first_password_is_refused(self):
+		frappe.set_user(self.user.name)
+		try:
+			for empty in ("", "   "):
+				with self.assertRaises(frappe.ValidationError):
+					set_first_password(empty)
+		finally:
+			frappe.set_user("Administrator")
+		self.assertTrue(needs_password_setup(self.user.name))
+
+	def test_a_first_password_spends_any_reset_link(self):
+		self.user.reload()
+		self.user._reset_password()
+		self.assertTrue(frappe.db.get_value("User", self.user.name, "reset_password_key"))
+
+		frappe.set_user(self.user.name)
+		try:
+			set_first_password("Eastern_43A1W")
+		finally:
+			frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.get_value("User", self.user.name, "reset_password_key"))
+		self.assertEqual(
+			str(frappe.db.get_value("User", self.user.name, "last_password_reset_date")), today()
+		)
+
+	def test_a_user_with_a_password_cannot_use_the_first_password_route(self):
+		from frappe.utils.password import update_password as set_password
+
+		set_password(self.user.name, "Eastern_43A1W")
+		frappe.set_user(self.user.name)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				set_first_password("Another_43A1W")
+		finally:
+			frappe.set_user("Administrator")
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", enable_password_policy=1, minimum_password_score=2
+	)
+	def test_a_weak_first_password_is_refused(self):
+		frappe.set_user(self.user.name)
+		try:
+			with self.assertRaises(frappe.ValidationError):
+				set_first_password("aaaa")
+		finally:
+			frappe.set_user("Administrator")
+		self.assertTrue(needs_password_setup(self.user.name))
+
+	def test_standard_users_never_do(self):
+		self.assertFalse(needs_password_setup("Administrator"))
+		self.assertFalse(needs_password_setup("Guest"))
+
+	@IntegrationTestCase.change_settings("System Settings", login_with_email_link=1)
+	def test_not_when_email_login_links_are_on(self):
+		self.assertFalse(needs_password_setup(self.user.name))
+
+	def test_not_on_frappe_cloud_v2(self):
+		with patch.dict(
+			frappe.conf, {"pilot_endpoint": "https://pilot.example.com", "pilot_auth_token": "t"}
+		):
+			self.assertFalse(needs_password_setup(self.user.name))
+
+	def test_not_for_social_login_users(self):
+		self.user.append("social_logins", {"provider": "google", "userid": "1234"})
+		self.user.save()
+		self.assertFalse(needs_password_setup(self.user.name))

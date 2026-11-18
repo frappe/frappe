@@ -1,18 +1,26 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-<<<<<<< HEAD
-from frappe.installer import is_required_by, parse_required_app_name
-from frappe.tests import UnitTestCase
-=======
-from frappe.installer import add_module_defs, install_app, remove_from_installed_apps
-from frappe.tests import IntegrationTestCase
->>>>>>> 9716459 (fix(intsallation): allow retrying failed app installations)
+from frappe.installer import (
+	add_module_defs,
+	install_app,
+	is_required_by,
+	parse_required_app_name,
+	remove_from_installed_apps,
+)
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 # an app that is not on the bench, so no remote can name it
 FAKE_APP = "zzz_test_app"
+FAKE_PATCHES = [
+	"zzz_test_app.patches.v1_0.fake_patch_one",
+	"zzz_test_app.patches.v1_0.fake_patch_two",
+]
+
+install_hook_calls = []
 
 
 class TestRequiredAppName(UnitTestCase):
@@ -50,11 +58,24 @@ class TestIsRequiredBy(UnitTestCase):
 		with self.requiring("frappe/erpnext"):
 			self.assertFalse(is_required_by("next", "hrms"))
 
-<<<<<<< HEAD
 	def test_an_app_off_the_bench_is_matched_without_a_remote_lookup(self):
 		with self.requiring(FAKE_APP):
 			self.assertTrue(is_required_by(FAKE_APP, "frappe"))
-=======
+
+
+class AfterInstallFailure(Exception):
+	pass
+
+
+def record_after_install():
+	install_hook_calls.append("after_install_ok")
+
+
+def fail_after_install():
+	install_hook_calls.append("after_install_failing")
+	raise AfterInstallFailure("after_install failed")
+
+
 @contextmanager
 def install_fake_app(after_install: str):
 	from frappe.modules.patch_handler import get_patches_from_app as real_get_patches_from_app
@@ -168,4 +189,3 @@ class TestAddModuleDefs(IntegrationTestCase):
 		self.assertCountEqual(
 			frappe.get_all("Module Def", {"app_name": "frappe", "custom": 0}, pluck="name"), modules
 		)
->>>>>>> 9716459 (fix(intsallation): allow retrying failed app installations)

@@ -37,6 +37,7 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 	constructor(doctype, after_insert, init_callback, doc, force, skip_insert) {
 		super({
 			auto_make: false,
+			sheet_on_mobile: true,
 		});
 		this.doctype = doctype;
 		this.after_insert = after_insert;

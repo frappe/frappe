@@ -72,8 +72,11 @@ def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
 
 
 def pdf_body_html(template, args, **kwargs):
+	from frappe.utils.jinja import safe_render_flags
+
 	try:
-		return template.render(args, filters={"len": len})
+		with safe_render_flags():
+			return template.render(args, filters={"len": len})
 	except Exception as e:
 		# Guess line number ?
 		frappe.throw(
@@ -510,7 +513,7 @@ def pdf_contains_js(file_content: bytes):
 			for key, value in obj.items():
 				if key == "/Parent":
 					continue
-				if key in ("/JS", "/JavaScript"):
+				if key == "/JS":
 					return True
 				if has_javascript(value, seen):
 					return True

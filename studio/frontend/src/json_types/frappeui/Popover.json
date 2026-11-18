@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/PopoverProps",
+  "definitions": {
+    "PopoverProps": {
+      "type": "object",
+      "properties": {
+        "open": {
+          "type": "boolean"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ]
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ]
+        },
+        "offset": {
+          "type": "number"
+        },
+        "portalTo": {
+          "type": [
+            "string"
+          ]
+        },
+        "collisionPadding": {
+          "type": "number"
+        },
+        "dismissible": {
+          "type": "boolean"
+        },
+        "autoFocus": {
+          "type": "boolean"
+        },
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "click",
+            "manual"
+          ]
+        },
+        "reference": {
+          "type": "string"
+        },
+        "matchTriggerWidth": {
+          "type": "boolean"
+        },
+        "bare": {
+          "type": "boolean"
+        },
+        "arrow": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

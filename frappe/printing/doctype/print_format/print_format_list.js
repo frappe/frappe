@@ -62,6 +62,15 @@ frappe.listview_settings["Print Format"] = {
 				depends_on: 'eval:doc.print_format_for !== "Report"',
 				description: __("The Print Format Editor is visual. HTML is hand-written."),
 			},
+			{
+				label: __("Templating"),
+				fieldname: "print_format_type",
+				fieldtype: "Select",
+				options: "JS\nJinja",
+				default: "JS",
+				depends_on: 'eval:doc.print_format_for === "Report"',
+				description: __("JS renders in the browser. Jinja renders on the server."),
+			},
 		];
 
 		if (dev) {
@@ -101,7 +110,7 @@ frappe.listview_settings["Print Format"] = {
 				}
 				if (use_html) {
 					doc.custom_format = 1;
-					if (for_report) doc.print_format_type = "JS";
+					if (for_report) doc.print_format_type = values.print_format_type || "JS";
 					doc.html = `<div class="print-format">\n\t<h3>${frappe.utils.escape_html(
 						values.print_format_name
 					)}</h3>\n</div>`;

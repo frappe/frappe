@@ -2,13 +2,27 @@
 # License: MIT. See LICENSE
 
 import json
+import os
+from enum import Enum
 
 import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.modules.export_file import export_to_files
 from frappe.query_builder import DocType
+from frappe.utils import cint
 from frappe.utils.modules import get_modules_from_all_apps_for_user
+
+# Temporary: goes with the Classic choice in System Settings.
+SKIP_INSIGHTS_DASHBOARDS_PROMPT = "skip_insights_dashboards_prompt"
+# What the prompt asks, in the order a site meets them. The site stores how far it dismissed, so a
+# later prompt is a new question. Sites that answered before there were variants stored 1.
+INSIGHTS_DASHBOARDS_PROMPTS = ("install", "update", "switch")
+
+
+class Action(Enum):
+	OPEN_INSIGHTS_DASHBOARDS = "open_insights_dashboards"
+	KEEP_CLASSIC_DASHBOARDS = "keep_classic_dashboards"
 
 
 class Dashboard(Document):
@@ -30,6 +44,29 @@ class Dashboard(Document):
 		is_standard: DF.Check
 		module: DF.Link | None
 	# end: auto-generated types
+
+	def onload(self):
+		if not self.has_insights_version():
+			return
+		self.set_onload("dashboards", frappe.db.get_single_value("System Settings", "dashboards"))
+		# Insights adds the `insights_dashboard` field. A dashboard it installs no board for has
+		# nothing to open, and asking to install Insights would be wrong.
+		if self.meta.get_field("insights_dashboard") and not self.get("insights_dashboard"):
+			return
+		if should_show_insights_dashboards_prompt():
+			self.set_onload("show_insights_dashboards_prompt", get_insights_dashboards_prompt())
+
+	def has_insights_version(self) -> bool:
+		"""Whether the app that ships this dashboard also ships an Insights board for it.
+
+		The app's file names the board in `insights_dashboard`. Only Insights stores that key, so on a
+		site without Insights the file is the one place that says so.
+		"""
+		# A custom module ships no app files, and resolving its path throws.
+		if not self.is_standard or not frappe.local.module_app.get(frappe.scrub(self.module or "")):
+			return False
+		path = frappe.get_module_path(self.module, f"{self.module}_dashboard", self.name, f"{self.name}.json")
+		return os.path.isfile(path) and bool(frappe.get_file_json(path).get("insights_dashboard"))
 
 	def clear_cache(self):
 		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for
@@ -72,6 +109,52 @@ class Dashboard(Document):
 				json.loads(self.chart_options)
 			except ValueError as error:
 				frappe.throw(_("Invalid json added in the custom options: {0}").format(str(error)))
+
+
+def get_insights_dashboards_prompt() -> str:
+	"""Install Insights, update it to v3.50, which adds the `insights_dashboard` field, or switch."""
+	if frappe.get_meta("Dashboard").get_field("insights_dashboard"):
+		return "switch"
+	if "insights" in frappe.get_installed_apps():
+		return "update"
+	return "install"
+
+
+def get_insights_dashboards_prompt_rank(prompt: str | None = None) -> int:
+	return INSIGHTS_DASHBOARDS_PROMPTS.index(prompt or get_insights_dashboards_prompt()) + 1
+
+
+def should_show_insights_dashboards_prompt() -> bool:
+	"""Whether this user is still asked. The page draws the prompt only above the classic view."""
+	dismissed = cint(frappe.defaults.get_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT))
+	if dismissed >= get_insights_dashboards_prompt_rank():
+		return False
+
+	return "System Manager" in frappe.get_roles()
+
+
+@frappe.whitelist(methods=["POST"])
+def submit_insights_dashboards_prompt(action: str, prompt: str | None = None) -> None:
+	"""Either answer is the site's, so no System Manager gets this prompt again. System Settings can still change the choice.
+
+	`prompt` is the variant on screen. Insights can change while it is open, and a dismissal must not answer a prompt nobody saw.
+	"""
+	frappe.only_for("System Manager")
+	if prompt and prompt not in INSIGHTS_DASHBOARDS_PROMPTS:
+		frappe.throw(_("Invalid prompt"))
+
+	if action == Action.OPEN_INSIGHTS_DASHBOARDS.value:
+		settings = frappe.get_single("System Settings")
+		settings.dashboards = "Insights"
+		settings.save(ignore_permissions=True)
+		frappe.defaults.set_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT, len(INSIGHTS_DASHBOARDS_PROMPTS))
+	elif action == Action.KEEP_CLASSIC_DASHBOARDS.value:
+		dismissed = cint(frappe.defaults.get_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT))
+		frappe.defaults.set_global_default(
+			SKIP_INSIGHTS_DASHBOARDS_PROMPT, max(dismissed, get_insights_dashboards_prompt_rank(prompt))
+		)
+	else:
+		frappe.throw(_("Invalid action"))
 
 
 def get_permission_query_conditions(user):
