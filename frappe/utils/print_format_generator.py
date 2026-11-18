@@ -125,7 +125,7 @@ def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
 		fd = frappe.form_dict
 		if not fd.get("doctype") or not fd.get("name"):
 			return
-		pf = _print_format_doc_or_none(print_format, fd.doctype)
+		pf = _print_format_doc_or_none(print_format, fd.doctype, fd.name)
 		if not pf or not pf.get("print_format_builder_beta"):
 			return
 		doc = fd.get("doc")
