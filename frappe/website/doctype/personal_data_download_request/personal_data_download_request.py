@@ -6,8 +6,11 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_email_address, get_user_display_id
+from frappe.utils import get_email_address, get_user_by_email, get_user_display_id
 from frappe.utils.verified_command import get_signed_params
+from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import (
+	get_user_value,
+)
 
 
 class PersonalDataDownloadRequest(Document):
@@ -32,14 +35,21 @@ class PersonalDataDownloadRequest(Document):
 		return d
 
 	def insert(self, *args, **kwargs):
-		if not frappe.db.exists("User", self.user):
+		requested = self.user
+		user = requested and (frappe.db.exists("User", requested) or get_user_by_email(requested))
+		if not user:
 			self.name = frappe.generate_hash(length=10)
 			self.set_user_and_timestamp()
 			self.user_name = ""
 			self.set("__islocal", False)
 			self.set("__unsaved", False)
 			return self
-		return super().insert(*args, **kwargs)
+
+		self.user = user
+		super().insert(*args, **kwargs)
+		# echo the request back so the response does not reveal the user's ID
+		self.user = requested
+		return self
 
 	def after_insert(self):
 		personal_data = get_user_data(self.user)
@@ -96,10 +106,13 @@ class PersonalDataDownloadRequest(Document):
 def get_user_data(user):
 	"""Return user data not linked to `User` doctype."""
 	hooks = frappe.get_hooks("user_data_fields")
+	email = get_email_address(user)
 	data = {}
 	for hook in hooks:
-		d = data.get(hook.get("doctype"), [])
-		d += frappe.get_all(hook.get("doctype"), {hook.get("filter_by", "owner"): user}, ["*"])
+		doctype = hook.get("doctype")
+		filter_by = hook.get("filter_by", "owner")
+		d = data.get(doctype, [])
+		d += frappe.get_all(doctype, {filter_by: get_user_value(doctype, filter_by, user, email)}, ["*"])
 		if d:
-			data.update({hook.get("doctype"): d})
+			data.update({doctype: d})
 	return json.dumps(data, indent=2, default=str)
