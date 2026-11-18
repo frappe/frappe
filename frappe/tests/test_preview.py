@@ -169,6 +169,12 @@ class TestPreview(IntegrationTestCase):
 		self.assertIn((own.server_port, "/page", "secret"), received)
 		self.assertIn((other.server_port, "/pixel", None), received)
 
+	def test_get_preview_from_url_invalid_header_raises(self):
+		from frappe.utils.preview import get_preview_from_url
+
+		with self.assertRaises(ValueError):
+			get_preview_from_url("http://127.0.0.1:9/", headers={"X-Key": "a\nb"})
+
 
 class TestPreviewValidation(IntegrationTestCase):
 	"""Format validation raises before Chromium is touched, so it runs everywhere."""
