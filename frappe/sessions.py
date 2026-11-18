@@ -21,7 +21,7 @@ from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.cache_manager import clear_user_cache, reset_metadata_version
 from frappe.database import savepoint
 from frappe.query_builder import Order
-from frappe.utils import cint, cstr, get_assets_json
+from frappe.utils import cint, cstr, get_assets_json, get_user_display_id
 from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.island import get_ui_islands
@@ -289,7 +289,9 @@ class Session:
 	def validate_user(self):
 		if not frappe.get_cached_value("User", self.user, "enabled"):
 			frappe.throw(
-				_("User {0} is disabled. Please contact your System Manager.").format(self.user),
+				_("User {0} is disabled. Please contact your System Manager.").format(
+					get_user_display_id(self.user)
+				),
 				frappe.ValidationError,
 			)
 

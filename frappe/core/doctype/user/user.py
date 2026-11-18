@@ -31,8 +31,10 @@ from frappe.utils import (
 	flt,
 	format_datetime,
 	get_formatted_email,
+	get_fullname,
 	get_system_timezone,
 	get_user_by_email,
+	get_user_display_id,
 	now_datetime,
 	today,
 	validate_time_zone,
@@ -629,6 +631,7 @@ class User(Document):
 		args = {
 			"first_name": self.first_name or self.last_name or "user",
 			"user": self.name,
+			"email": self.email,
 			"title": subject,
 			"login_url": get_url(),
 			"created_by": created_by,
@@ -1074,7 +1077,7 @@ class User(Document):
 			return
 
 		frappe.msgprint(
-			_("Newly created user {0} has no roles enabled.").format(frappe.bold(self.name)),
+			_("Newly created user {0} has no roles enabled.").format(frappe.bold(self.email)),
 			title=_("No Roles Specified"),
 			indicator="orange",
 			primary_action={
@@ -1794,13 +1797,13 @@ def get_enabled_users():
 def impersonate(user: str, reason: str):
 	frappe.has_permission("User", "impersonate", doc=user, throw=True)
 
-	impersonator = frappe.session.user
+	impersonator = get_fullname(frappe.session.user)
 	frappe.get_doc(
 		{
 			"doctype": "Activity Log",
 			"user": user,
 			"status": "Success",
-			"subject": _("User {0} impersonated as {1}").format(impersonator, user),
+			"subject": _("User {0} impersonated as {1}").format(impersonator, get_fullname(user)),
 			"operation": "Impersonate",
 		}
 	).insert(ignore_permissions=True, ignore_links=True)
@@ -1819,7 +1822,7 @@ def impersonate(user: str, reason: str):
 		user_email = frappe.db.get_value("User", user, "email")
 		email_message = _(
 			"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
-		).format(escape_html(impersonator), escape_html(reason))
+		).format(escape_html(get_user_display_id(frappe.session.user)), escape_html(reason))
 
 		frappe.sendmail(
 			recipients=[user_email],

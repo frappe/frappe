@@ -6,7 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import get_email_address
+from frappe.utils import get_email_address, get_user_display_id
 from frappe.utils.verified_command import get_signed_params
 
 
@@ -84,7 +84,7 @@ class PersonalDataDownloadRequest(Document):
 			subject=_("Download Your Data"),
 			template="download_data",
 			args={
-				"user": self.user,
+				"user": get_user_display_id(self.user),
 				"user_name": self.user_name,
 				"link": file_link,
 				"host_name": host_name,

@@ -46,3 +46,19 @@ class TestAssign(IntegrationTestCase):
 				add({**args, "assign_to": [hidden.name]})
 				add({**args, "assign_to": [actor.name]})
 				self.assertEqual(len(get(args)), 2)
+
+	def test_assign_messages_show_the_assignees_email(self):
+		with (
+			test_user(roles=["Desk User"]) as actor,
+			test_user(roles=["Desk User"], generated_id=True) as user,
+			self.set_user(actor.name),
+		):
+			todo = frappe.get_doc(doctype="ToDo", description="assign message").insert()
+			args = {"doctype": "ToDo", "name": todo.name, "assign_to": [user.name]}
+			add(args)
+			frappe.clear_messages()
+			add(args)
+
+			messages = " ".join(m.get("message", "") for m in frappe.get_message_log())
+			self.assertIn(user.email, messages)
+			self.assertNotIn(user.name, messages)

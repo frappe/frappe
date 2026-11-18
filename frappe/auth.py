@@ -729,7 +729,7 @@ def validate_oauth(authorization_header):
 		if valid:
 			user = token_details.user
 			if not frappe.get_cached_value("User", user, "enabled"):
-				frappe.throw(_("User {0} is disabled").format(user), frappe.AuthenticationError)
+				frappe.throw(_("User is disabled"), frappe.AuthenticationError)
 			frappe.set_user(user)
 			frappe.session.data.oauth_client = token_details.client
 			frappe.local.form_dict = form_dict
