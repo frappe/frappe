@@ -311,7 +311,11 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 
 	else:
 		docs = frappe.parse_json(docs)
-		doc = frappe.get_doc(docs, check_permission=True)
+		doc = frappe.get_doc(docs)
+		if doc.meta.issingle or bool(frappe.db.exists(doc.doctype, doc.get("name"))):
+			frappe.has_permission(doc.doctype, "read", doc.name, throw=True)
+		else:
+			doc.check_permission("read")
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 

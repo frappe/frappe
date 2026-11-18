@@ -1376,9 +1376,9 @@ class Document(_DocumentBase):
 		original_modified = get_datetime(self._original_modified) if self._original_modified else None
 		if previous_modified != original_modified:
 			frappe.msgprint(
-				_(f"Error: {self.name} ({self.doctype}) has been modified after you have opened it")
-				+ (f" ({previous.modified}, {self.modified}). ")
-				+ _("Please refresh to get the latest document."),
+				_(
+					"Error: {0} ({1}) has been modified after you have opened it. Please refresh to get the latest document."
+				).format(self.name, self.doctype),
 				raise_exception=frappe.TimestampMismatchError,
 			)
 
@@ -1635,7 +1635,7 @@ class Document(_DocumentBase):
 		if not self.docstatus.is_draft():
 			raise frappe.ValidationError(_("Only draft documents can be discarded"), self.docstatus)
 
-		self.check_permission("write")
+		frappe.has_permission(self.doctype, "write", self.name, throw=True)
 
 		self.run_method("before_discard")
 		self.db_set("docstatus", DocStatus.CANCELLED)
