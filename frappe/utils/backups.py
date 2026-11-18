@@ -536,7 +536,7 @@ class BackupGenerator:
 
 		return "\n".join(f"-- {x}" for x in database_header_content) + "\n"
 
-	def take_mariadb_dump(self, db_path: Path):
+	def take_mariadb_dump(self, db_path: Path) -> None:
 		from frappe.database.sqlite.mariadb_dump import MariaDBDumpWriter
 
 		writer = MariaDBDumpWriter(db_path, self.backup_includes, self.backup_excludes, self.verbose)
