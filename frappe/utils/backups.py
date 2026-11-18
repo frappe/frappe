@@ -560,7 +560,7 @@ class BackupGenerator:
 		if self.for_mariadb and self.db_type != "mariadb":
 			frappe.throw(_("A MariaDB-compatible backup can only be taken of a SQLite or MariaDB site."))
 		if self.for_mariadb:
-			print("Site already uses MariaDB; ignoring --for-mariadb.")
+			click.echo("Site already uses MariaDB; ignoring --for-mariadb.")
 
 		import shlex
 
