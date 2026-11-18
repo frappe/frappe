@@ -92,7 +92,11 @@ def get_files_list(pr_number, repo="frappe/frappe"):
 def get_queue_files(repo, base, head):
 	"""Files a merge queue group changes, or None when GitHub cuts the list short."""
 	files = json.loads(req(f"https://api.github.com/repos/{repo}/compare/{base}...{head}").read())["files"]
-	return None if len(files) >= 300 else [change["filename"] for change in files]
+	if len(files) >= 300:
+		return None
+	return [
+		name for change in files for name in (change["filename"], change.get("previous_filename")) if name
+	]
 
 
 def queue_jobs(build_type, files):

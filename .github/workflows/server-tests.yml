@@ -254,7 +254,7 @@ jobs:
   # TIP: Require this single check in branch protection, e.g. Server / Success
   success:
     name: Server Success
-    needs: [test, migrate]
+    needs: [checkrun, test, migrate]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -262,6 +262,7 @@ jobs:
         shell: python
         run: |
           stati = [
+            '${{ needs.checkrun.result }}',
             '${{ needs.test.result }}',
             '${{ needs.migrate.result }}',
           ]
