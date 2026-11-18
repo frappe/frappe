@@ -1421,7 +1421,7 @@ export function number(ctx) {
 	const shown = (v) => {
 		if (is_blank(v)) return "";
 		if (rating) return stars_of(df, Number(v));
-		return flt(Number(v) * scale, 6);
+		return Number(v);
 	};
 	const [from, to] = rule?.[0] === "Between" ? list_of(rule[1]).map(shown) : [];
 	const bounds = df.fieldtype === "Percent" ? [0, 100] : null;
@@ -1470,7 +1470,7 @@ export function number(ctx) {
 	const num = (v) => (is_blank(v) ? null : flt(Number(v)));
 	const stored = (v) => {
 		if (v == null) return "";
-		return rating ? rating_of(df, v) : flt(v / scale, 6);
+		return rating ? rating_of(df, v) : v;
 	};
 	function save() {
 		if (is_set_condition(condition)) return ctx.set(set_rule(condition));
