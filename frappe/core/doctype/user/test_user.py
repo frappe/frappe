@@ -1099,6 +1099,9 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			with self.assertRaises(frappe.ValidationError):
 				user.save()
 
+		with test_user(roles=[]) as user, self.assertRaises(frappe.ValidationError):
+			frappe.rename_doc("User", user.name, f"{user.name}.invalid")
+
 	def test_email_patch_moves_administrators_email_off_a_users_id(self):
 		from frappe.patches.v16_0.set_user_email_from_name import execute
 
