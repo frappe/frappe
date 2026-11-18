@@ -324,6 +324,21 @@ class TestEmail(IntegrationTestCase):
 		frappe.get_doc("Email Queue", email_queue).send()
 		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
 
+	def test_unsubscribe_recipient_with_display_name(self):
+		for address in ("test@example.com", "Old Name <test2@example.com>"):
+			frappe.get_doc(
+				{"doctype": "Email Unsubscribe", "email": address, "global_unsubscribe": 1}
+			).insert()
+
+		builder = QueueBuilder(
+			recipients=["Test User <test@example.com>", "test2@example.com", "test1@example.com"],
+			sender="admin@example.com",
+			subject="Testing Email Queue",
+			message="This is mail is queued!",
+		)
+
+		self.assertEqual(builder.final_recipients(), ["test1@example.com"])
+
 	def test_read_tracker_in_queued_email(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
