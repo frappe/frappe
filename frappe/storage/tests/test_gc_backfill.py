@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import frappe
 import frappe.storage
 from frappe.storage import backfill, gc
-from frappe.storage.blob import put_blob
+from frappe.storage.blob import other_site_key_criterion, put_blob
 from frappe.storage.gc import collect_garbage
 from frappe.storage.memory_driver import fake
 from frappe.storage.tests import storage_v2, unique_bytes
@@ -217,6 +217,46 @@ class TestCollectGarbage(IntegrationTestCase):
 		for blob in blobs:
 			self.assertFalse(frappe.db.exists("File Blob", blob.name))
 			self.assertFalse(store.exists(blob.key))
+
+	def rekey(self, store, blob, key):
+		"""Store the blob's bytes at ``key`` and point its row there."""
+		store.write(key, io.BytesIO(b"rekeyed"), is_private=bool(blob.is_private))
+		frappe.db.set_value("File Blob", blob.name, "key", key, update_modified=False)
+		blob.key = key
+
+	def test_blobs_under_another_sites_prefix_are_not_collected(self):
+		"""A key under another site's prefix belongs to a former name or a restored source site.
+
+		The driver refuses to delete those bytes, so collecting would only drop the row
+		that relocation and old backups still need."""
+		with fake() as store:
+			foreign, own, plain = self.old_blobs(3)
+			self.rekey(store, foreign, f"sites/other.example/storage/{foreign.name}/a.txt")
+			self.rekey(store, own, f"sites/{frappe.local.site}/storage/{own.name}/a.txt")
+
+			collect_garbage()
+
+			self.assert_kept(store, foreign)
+			self.assert_deleted(store, own, plain)
+
+	def test_other_site_check_escapes_like_wildcards(self):
+		"""An underscore in this site's name must not match another site's prefix."""
+		with fake() as store:
+			lookalike, own = self.put(), self.put()
+			self.rekey(store, lookalike, f"sites/aXb.example/storage/{lookalike.name}/a.txt")
+			self.rekey(store, own, f"sites/a_b.example/storage/{own.name}/a.txt")
+
+		blob = frappe.qb.DocType("File Blob")
+		with patch.object(frappe.local, "site", "a_b.example"):
+			query = (
+				frappe.qb.from_(blob)
+				.select(blob.name)
+				.where(blob.name.isin([lookalike.name, own.name]))
+				.where(other_site_key_criterion(blob))
+			)
+			matched = query.run(pluck=True)
+
+		self.assertEqual(matched, [lookalike.name])
 
 	def test_blobs_listed_in_a_backup_index_are_kept(self):
 		"""A blob that a backup's File index lists stays, so that backup can still be restored."""
