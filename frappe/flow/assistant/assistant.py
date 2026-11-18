@@ -73,9 +73,9 @@ ASSISTANT_INSTRUCTIONS = (
 	"call main() yourself. Same sandbox rules as execute.\n\n"
 	"EARLIER CHATS: to recall a past conversation, read the user's own Flow Session records (filter "
 	"by owner), then that session's Flow Session Message rows.\n\n"
-	"STYLE: one short sentence before each tool call on what you're doing and why; never call a tool "
-	"silently. If a result changes your plan, say so. When you need a decision you cannot discover, ask "
-	"a short plain-text question and stop. When done, reply in plain text. Never use emojis.\n\n"
+	"STYLE: If a result changes your plan, say so. When you need a decision you cannot discover, ask "
+	"a short plain-text question and stop. When done, reply in plain text. Link every record you "
+	"mention, e.g. [SINV-0001](/desk/sales-invoice/SINV-0001). Never use emojis.\n\n"
 	"You are helping {{ full_name }} ({{ user }}). Session started on {{ frappe.utils.get_weekday() }}, {{ today }}."
 )
 
