@@ -11,6 +11,7 @@ import { markModifiedView } from "@/list/modifiedView";
 import type { View } from "@/list/view";
 import { viewsSidebarDrawn } from "@/navigation/viewsSidebar";
 import { registerShell } from "@/router/routeFor";
+import { consumeSkip } from "@/router/skipDefault";
 import ViewsSidebar from "../viewSwitcher/ViewsSidebar.vue";
 
 beforeAll(() => Promise.all(TEXT_SURFACES.map(loadText)));
@@ -66,7 +67,7 @@ async function sidebar(path: string): Promise<{ host: HTMLElement; router: Route
 	const app = createApp({ render: () => h(ViewsSidebar, { doctype: "ToDo", title: "ToDo" }) });
 	app.provide("boot", boot);
 	app.provide("addresses", addresses);
-	app.config.globalProperties.__ = (text: string) => text;
+	app.config.globalProperties.__ = (text: string, args?: unknown[] | null) => text.replace(/\{(\d+)\}/g, (_, i) => String(args?.[Number(i)]));
 	app.use(router);
 	app.mount(host);
 	mounted.push(app);
@@ -116,6 +117,32 @@ describe("the views sidebar body", () => {
 		// The house stays on the default, which has no changes.
 		expect(host.querySelector("[data-view-mark='default']")!.closest("[data-key]")?.getAttribute("data-key")).toBe("list");
 		scope.stop();
+	});
+});
+
+describe("what the rows say to assistive tech and to the next visit", () => {
+	it("names a Soon row with its status, not the two words run together", async () => {
+		fetchViews.mockResolvedValue(VIEWS);
+		const { host } = await sidebar("/todo");
+		expect(host.querySelector('[data-key="kanban"] [aria-label]')!.getAttribute("aria-label")).toBe("Kanban, soon");
+	});
+
+	it("names each row's ⋯ after its view", async () => {
+		fetchViews.mockResolvedValue(VIEWS);
+		const { host } = await sidebar("/todo");
+		const names = [...host.querySelectorAll("button[data-view-menu]")].map((one) => one.getAttribute("aria-label"));
+		expect(names).toContain("Options for Mine");
+	});
+
+	it("arms the default-skip on a plain click of List, not on a modified one", async () => {
+		fetchViews.mockResolvedValue(VIEWS);
+		const { host } = await sidebar("/todo/view/mine");
+		const link = host.querySelector('[data-key="list"] a')! as HTMLElement;
+		link.addEventListener("click", (event) => event.preventDefault());
+		link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, ctrlKey: true }));
+		expect(consumeSkip("ToDo")).toBe(false);
+		link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+		expect(consumeSkip("ToDo")).toBe(true);
 	});
 });
 

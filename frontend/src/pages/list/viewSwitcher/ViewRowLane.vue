@@ -3,6 +3,7 @@
 	<div
 		class="group/lane relative mr-0.5 grid h-full w-7 shrink-0 place-items-center"
 		data-view-lane
+		@click.stop
 	>
 		<!-- A mark and ⋯ share one cell, so the swap moves nothing and the label never truncates again. -->
 		<span
@@ -27,7 +28,7 @@
 				variant="ghost"
 				size="xs"
 				icon="lucide-ellipsis"
-				:label="__('View options')"
+				:label="label ? __('Options for {0}', [label]) : __('View options')"
 				class="col-start-1 row-start-1 opacity-0 focus-visible:opacity-100 group-hover/sidebar-item:opacity-100 group-has-[:focus-visible]/sidebar-item:opacity-100 data-[state=open]:opacity-100 group-data-[state=active]/sidebar-item:hover:bg-surface-gray-4 group-data-[state=active]/sidebar-item:data-[state=open]:bg-surface-gray-4"
 				data-view
 				data-view-menu
@@ -44,6 +45,8 @@ const props = defineProps<{
 	/** The view has changes: a dot, over the house. */
 	modified?: boolean;
 	isDefault?: boolean;
+	/** The view's name, for ⋯'s accessible name. */
+	label?: string;
 	/** The view's acts; with none, no ⋯ is drawn and the mark stays on hover. */
 	options: DropdownOptions;
 }>();

@@ -1,5 +1,5 @@
 // The view row's suffix lane: one mark at a time (modified dot, else the default's house), ⋯ only with acts.
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h } from "vue";
 import ViewRowLane from "../viewSwitcher/ViewRowLane.vue";
 
@@ -14,7 +14,7 @@ const ACTS = [{ group: "View", options: [{ label: "Rename" }] }];
 function lane(props: Record<string, unknown>): HTMLElement {
 	const host = document.body.appendChild(document.createElement("div"));
 	const app = createApp({ render: () => h(ViewRowLane, { options: ACTS, ...props }) });
-	app.config.globalProperties.__ = (text: string) => text;
+	app.config.globalProperties.__ = (text: string, args?: unknown[] | null) => text.replace(/\{(\d+)\}/g, (_, i) => String(args?.[Number(i)]));
 	app.mount(host);
 	mounted.push(app);
 	return host.querySelector("[data-view-lane]") as HTMLElement;
@@ -58,5 +58,19 @@ describe("the view row's lane", () => {
 		expect(mark(el)).toEqual(["default"]);
 		expect(el.querySelector("[data-view-mark]")!.className).not.toContain("opacity-0");
 		expect(el.className).toContain("w-7");
+	});
+
+	it("names the ⋯ after its view, so a row's menu is told apart from the others", () => {
+		const el = lane({ label: "Urgent mine" });
+		expect(el.querySelector("button")!.getAttribute("aria-label")).toBe("Options for Urgent mine");
+	});
+
+	it("keeps a click on the lane from reaching the row, whose panel would close on it", () => {
+		const el = lane({});
+		const seen = vi.fn();
+		document.body.addEventListener("click", seen);
+		el.querySelector("button")!.click();
+		document.body.removeEventListener("click", seen);
+		expect(seen).not.toHaveBeenCalled();
 	});
 });

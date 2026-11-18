@@ -53,7 +53,8 @@ export type Group = { group: string; hideLabel?: boolean; options: Row[] };
 export function viewMenu(host: ViewMenuHost): DropdownOptions {
 	if (!host.views) return [{ label: __("Loading views…"), disabled: true }];
 	const open = host.views.find((view) => view.key === host.current);
-	const views = host.listsViews === false ? [] : viewGroups(host);
+	// With no open view there are no acts to show, so the list stays.
+	const views = host.listsViews === false && open ? [] : viewGroups(host);
 	return [...saveAsNew(host, open), ...views, ...(open ? actGroups(host, open) : [])]
 		.filter((group) => group.options.length) as DropdownOptions;
 }

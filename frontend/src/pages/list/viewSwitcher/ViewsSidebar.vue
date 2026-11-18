@@ -15,13 +15,14 @@
 					:route="addressOf(view.key)"
 					class="data-[state=inactive]:has-[[data-view-menu][data-state=open]]:bg-surface-gray-2"
 					:active="view.key === open"
-					@click="visit(view.key)"
+					@click="visit($event, view.key)"
 				>
 					<template #prefix><Icon :name="iconOf(view.type)" /></template>
 					<template #suffix>
 						<ViewRowLane
 							:modified="isViewModified(doctype, view.key)"
 							:is-default="view.default"
+							:label="view.label"
 							:options="actsOf(view)"
 						/>
 					</template>
@@ -30,6 +31,7 @@
 			<div v-for="type in group.soon" :key="type.name" :data-key="type.name.toLowerCase()">
 				<SidebarItem
 					:route="addressOf(type.name.toLowerCase())"
+					:aria-label="__('{0}, soon', [type.label])"
 					:active="type.name.toLowerCase() === open"
 				>
 					<template #prefix><Icon :name="type.icon || 'list'" /></template>
@@ -122,7 +124,10 @@ function addressOf(key: string) {
 	return key === "list" ? routeFor(props.doctype) : routeFor(props.doctype, null, { view: key });
 }
 
-function visit(key: string) {
-	if (key === "list") skipDefaultOnce(props.doctype);
+// A modified click opens a new tab and leaves this one, so it must not arm the skip.
+function visit(event: MouseEvent | undefined, key: string) {
+	const modified =
+		event && (event.metaKey || event.ctrlKey || event.shiftKey || event.button > 0);
+	if (key === "list" && !modified) skipDefaultOnce(props.doctype);
 }
 </script>

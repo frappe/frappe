@@ -126,6 +126,10 @@ describe("the menu while the sidebar lists the views", () => {
 		expect(list[0].options.map((one) => one.label)).toEqual(["Save as new view…"]);
 	});
 
+	it("keeps the list of views when no open view is among them: there are no acts to show", () => {
+		expect(acts({ current: "kanban" }).map((group) => group.group)).toContain("Types");
+	});
+
 	it("is unchanged when the host does not say", () => {
 		expect(groups().map((group) => group.group)).toContain("Types");
 		expect(groups({ listsViews: true }).map((group) => group.group)).toContain("Types");

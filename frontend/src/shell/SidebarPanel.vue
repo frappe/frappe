@@ -136,7 +136,7 @@ const props = defineProps<{
 	customizable?: boolean;
 	collapsed: boolean;
 	chrome?: boolean;
-	/** A doctype: the panel lists its views, read when it opens, and `items` is empty. */
+	/** A doctype: the panel lists its views, read when its body mounts, and `items` is empty. */
 	views?: string;
 	/** Drawn over the page from the seam, taking no width; a row tap or a click on the scrim emits `close`. */
 	overlay?: boolean;
