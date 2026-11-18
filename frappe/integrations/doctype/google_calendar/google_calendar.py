@@ -413,7 +413,7 @@ def update_participants_in_event(calendar_event: "Event", google_event: dict):
 		"User",
 		filters={
 			"email": ("in", [email.lower() for email in google_event_participants]),
-			"name": ("not in", frappe.STANDARD_USERS),
+			"name": ("!=", "Guest"),
 		},
 		pluck="name",
 	)
