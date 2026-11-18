@@ -10,7 +10,11 @@ from frappe.core.doctype.installed_applications.installed_applications import ge
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
+<<<<<<< HEAD
 from frappe.utils import cint, get_system_timezone, now, strip
+=======
+from frappe.utils import cint, get_user_by_email, now, strip
+>>>>>>> c6828ac (fix: find the user by email where an email is given)
 from frappe.utils.background_jobs import defer_enqueue_after_commit
 from frappe.utils.password import update_password
 from frappe.utils.synchronization import LockTimeoutError, filelock
@@ -339,9 +343,10 @@ def run_setup_success(args):  # nosemgrep
 		login_as_first_user(args)
 
 
-def login_as_first_user(args):
+def login_as_first_user(args):  # nosemgrep
 	if args.get("email") and hasattr(frappe.local, "login_manager"):
-		frappe.local.login_manager.login_as(args.get("email"))
+		if user_id := get_user_by_email(args.get("email")):
+			frappe.local.login_manager.login_as(user_id)
 
 
 def get_stages_hooks(args):  # nosemgrep
@@ -468,7 +473,8 @@ def create_or_update_user(args):  # nosemgrep
 	if " " in first_name:
 		first_name, last_name = first_name.split(" ", 1)
 
-	if user := frappe.db.get_value("User", email, ["first_name", "last_name"], as_dict=True):
+	if user_id := get_user_by_email(email):
+		user = frappe.db.get_value("User", user_id, ["name", "first_name", "last_name"], as_dict=True)
 		if user.first_name != first_name or user.last_name != last_name:
 			User = frappe.qb.DocType("User")
 			(
@@ -476,7 +482,7 @@ def create_or_update_user(args):  # nosemgrep
 				.set(User.first_name, first_name)
 				.set(User.last_name, last_name)
 				.set(User.full_name, args.get("full_name"))
-				.where(User.name == email)
+				.where(User.name == user.name)
 			).run()
 	else:
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True
@@ -497,7 +503,7 @@ def create_or_update_user(args):  # nosemgrep
 		frappe.flags.mute_emails = _mute_emails
 
 	if args.get("password"):
-		update_password(email, args.get("password"))
+		update_password(user.name, args.get("password"))
 
 
 def set_timezone(timezone=None):
