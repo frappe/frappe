@@ -198,7 +198,7 @@ def resolve_recipients(recipients: list, doc) -> list:
 	resolved = []
 	for recipient in recipients:
 		if recipient == OWNER_TOKEN:
-			resolved.append(doc.owner if doc else None)
+			resolved.append(doc.owner if doc and doc.owner != "Guest" else None)
 		elif recipient == ASSIGNEES_TOKEN:
 			resolved.extend(_assignees(doc))
 		else:

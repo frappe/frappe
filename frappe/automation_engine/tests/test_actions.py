@@ -233,6 +233,19 @@ class TestActions(IntegrationTestCase):
 			frappe.sendmail = original
 		self.assertEqual(calls, [])
 
+	def test_send_notification_skips_a_guest_owner(self):
+		todo = make_todo()
+		todo.owner = "Guest"
+		with patch("frappe.sendmail") as sendmail, patch("frappe.log_error") as log_error:
+			result = SendNotification().execute(
+				todo,
+				{"channel": "Email", "recipients": ["@owner"], "subject": "s", "message": "m"},
+				{},
+			)
+		self.assertEqual(result, "No recipients to notify")
+		sendmail.assert_not_called()
+		log_error.assert_not_called()
+
 	def test_assign_to_user_accepts_assignees_as_a_json_string(self):
 		note = frappe.get_doc({"doctype": "Note", "title": "assign-me-json", "public": 1}).insert()
 		AssignToUser().execute(note, {"assign_to": '["Administrator"]'}, {})
