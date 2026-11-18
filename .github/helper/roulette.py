@@ -30,6 +30,7 @@ from functools import cache
 from urllib.error import HTTPError
 
 FULL_CI_LABEL = "run-full-ci"
+FIX_DEVELOP_LABEL = "fixes-develop"
 BUNDLE_SIZE_FILES = (
 	".github/workflows/default-js-bundle-size.yml",
 	".github/helper/compare_default_js_bundle_size.py",
@@ -101,7 +102,7 @@ def get_queue_files(repo, base, head):
 
 def queue_jobs(build_type, files):
 	"""The jobs a merge queue group needs. Python only skips the UI workflow, frontend only skips the
-	server suite, and the Studio and Flow jobs run for their own folders."""
+	server suite, and the Studio and Flow jobs run for their own folders and the `ui/` package they link."""
 	if files is None or any(is_ci(f) for f in files):
 		return {"build", "studio", "flow"}
 	files = [f for f in files if not is_docs(f)]
@@ -110,9 +111,9 @@ def queue_jobs(build_type, files):
 	jobs = set()
 	if any(not is_server_side_code(f) and not f.startswith(("flow/", "studio/")) for f in files):
 		jobs.add("build")
-	if any(f.startswith(("studio/", "frappe/studio/")) for f in files):
+	if any(f.startswith(("studio/", "frappe/studio/", "ui/")) for f in files):
 		jobs.add("studio")
-	if any(f.startswith("flow/") for f in files):
+	if any(f.startswith(("flow/", "ui/")) for f in files):
 		jobs.add("flow")
 	return jobs
 
@@ -141,19 +142,31 @@ def has_skip_ci_label(pr_number, repo="frappe/frappe"):
 
 
 def has_run_server_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run Server Tests' or full CI label."""
-	return any(has_label(pr_number, label, repo) for label in ("Run Server Tests", FULL_CI_LABEL))
+	"""Check if the PR has the 'Run Server Tests' or full CI label, or fixes failing server tests on develop."""
+	return any(has_label(pr_number, label, repo) for label in ("Run Server Tests", FULL_CI_LABEL)) or (
+		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and base_failing(pr_number, repo, "server-tests.yml")
+	)
 
 
 def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run UI Tests' or full CI label."""
-	return any(has_label(pr_number, label, repo) for label in ("Run UI Tests", FULL_CI_LABEL))
+	"""Check if the PR has the 'Run UI Tests' or full CI label, or fixes failing UI tests on develop."""
+	return any(has_label(pr_number, label, repo) for label in ("Run UI Tests", FULL_CI_LABEL)) or (
+		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and base_failing(pr_number, repo, "ui-tests.yml")
+	)
+
+
+def base_failing(pr_number, repo, workflow):
+	"""Is this suite's latest full run failing on the branch the PR targets, or on develop for other branches?"""
+	from develop_status import BRANCHES, failing_suites
+
+	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
+	return workflow in failing_suites(base if base in BRANCHES else "develop")
 
 
 def skips_test_suites(pr_number, repo="frappe/frappe"):
-	"""Check if the PR targets develop or a hotfix branch: develop runs the suites in the merge queue, hotfix on the release PR."""
+	"""Check if the PR targets develop, desk-v2 or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
 	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
-	return base == "develop" or base.endswith("-hotfix")
+	return base in ("develop", "desk-v2") or base.endswith("-hotfix")
 
 
 def has_label(pr_number, label, repo="frappe/frappe"):
@@ -201,6 +214,11 @@ def is_frontend_code(file):
 	)
 
 
+def is_desk_frontend(file):
+	"""The desk-v2 frontend, and the pages, records and settings an app contributes to it."""
+	return file.startswith(("frontend/", "ui/")) or (file.startswith("frappe/") and "/frontend/" in file)
+
+
 def matches_postgres_filenames(files_list):
 	"""Check if any changed files suggest database involvement."""
 	db_keywords = ["database", "query", "schema", "postgres"]
@@ -223,6 +241,11 @@ def _selftest():
 		"Jinja must run server tests"
 	)
 	assert is_frontend_code("studio/frontend/index.html"), "app pages outside the frappe package are frontend"
+	assert is_desk_frontend("ui/src/index.ts"), "desk-v2's server tests read ui/"
+	assert is_desk_frontend("frappe/desk/navigation_item_type/page/frontend/item.js"), (
+		"test_shell.py reads contributions"
+	)
+	assert not is_desk_frontend("frappe/public/js/frappe/ui/dialog.js"), "desk v1 is not desk-v2's frontend"
 	assert queue_jobs("ui", ["frappe/model/document.py"]) == set(), "python alone skips the UI workflow"
 	assert queue_jobs("server", ["frappe/public/js/frappe/form/form.js"]) == set(), (
 		"frontend alone skips the server suite"
@@ -230,6 +253,7 @@ def _selftest():
 	assert queue_jobs("ui", ["flow/frontend/src/App.vue"]) == {"flow"}, "flow alone runs only its page tests"
 	assert queue_jobs("ui", ["frappe/studio/api.py"]) == {"studio"}, "studio's server code runs its tests"
 	assert queue_jobs("ui", ["frappe/core/doctype/user/user.json"]) == {"build"}, "doctype JSON runs UI tests"
+	assert queue_jobs("ui", ["ui/src/index.ts"]) == {"build", "studio", "flow"}, "studio and flow link ui/"
 	assert queue_jobs("server", ["README.md"]) == set(), "docs alone run nothing"
 	assert queue_jobs("ui", None) == {"build", "studio", "flow"}, "a cut short file list runs everything"
 	assert queue_jobs("ui", [".github/workflows/ui-tests.yml"]) == {"build", "studio", "flow"}
@@ -287,7 +311,7 @@ if __name__ == "__main__":
 
 	if os.environ.get("SKIP_ON_PRS") and skips_test_suites(pr_number, repo) and not tests_requested:
 		print(
-			"Develop and hotfix PRs skip the test suites, they run in the merge queue or on the release PR; stopping build process."
+			"Develop and hotfix PRs skip the test suites, they run on the branch instead; stopping build process."
 		)
 		sys.exit(0)
 

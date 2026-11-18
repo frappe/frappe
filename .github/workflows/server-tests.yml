@@ -20,7 +20,7 @@ permissions:
 jobs:
   checkrun:
     name: Plan Tests
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') || contains(github.event.pull_request.labels.*.name, 'Run Server Tests') || contains(github.event.pull_request.labels.*.name, 'run-full-ci') }}
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') || contains(github.event.pull_request.labels.*.name, 'Run Server Tests') || contains(github.event.pull_request.labels.*.name, 'run-full-ci') || contains(github.event.pull_request.labels.*.name, 'fixes-develop') }}
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.check-build.outputs.build }}
@@ -274,3 +274,25 @@ jobs:
           if all(r in dopass for r in stati):
             exit(0)
           exit(1)
+
+  develop-status:
+    name: Update Develop Status
+    needs: success
+    if: ${{ always() && github.event_name != 'pull_request' && contains(fromJSON('["refs/heads/develop", "refs/heads/desk-v2"]'), github.ref) }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: develop-status-all
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read
+      statuses: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/helper
+      - run: python .github/helper/develop_status.py refresh
+        env:
+          GH_TOKEN: ${{ github.token }}
