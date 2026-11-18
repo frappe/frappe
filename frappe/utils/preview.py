@@ -139,7 +139,7 @@ def capture_screenshot(
 					page.set_extra_headers_for_origin(url, headers)
 				deadline = time.monotonic() + timeout
 				if wait_until:
-					page.navigate(url, wait_for=["load"], timeout=timeout)
+					page.navigate(url, wait_for=["DOMContentLoaded"], timeout=timeout)
 				else:
 					page.navigate(url)
 				if wait_until:

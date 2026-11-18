@@ -187,13 +187,17 @@ class TestPreview(IntegrationTestCase):
 		self.assertIn((other.server_port, "/frame", None), received)
 
 	def test_get_preview_from_url_wait_until_does_not_wait_for_network_idle(self):
+		import time
+
 		received = []
 		server = self.start_server(received)
 
+		start = time.monotonic()
 		data = get_preview_from_url(
-			f"http://127.0.0.1:{server.server_port}/hold-page", wait_until="true", timeout=5
+			f"http://127.0.0.1:{server.server_port}/hold-page", wait_until="true", timeout=10
 		)
 		self.assertTrue(data)
+		self.assertLess(time.monotonic() - start, 5)
 
 	def start_server(self, received):
 		import threading
@@ -206,7 +210,9 @@ class TestPreview(IntegrationTestCase):
 				if self.path == "/hold":
 					time.sleep(30)
 					return
-				body = b"<script>fetch('/hold')</script>" if self.path == "/hold-page" else b""
+				body = (
+					b"<img src='/hold'><script>fetch('/hold')</script>" if self.path == "/hold-page" else b""
+				)
 				self.send_response(200)
 				self.send_header("Content-Type", "text/html")
 				self.send_header("Content-Length", str(len(body)))
