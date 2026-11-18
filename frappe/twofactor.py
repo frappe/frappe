@@ -94,6 +94,7 @@ def authenticate_for_2factor(user):
 
 def cache_2fa_data(user, token, otp_secret, tmp_id):
 	"""Cache and set expiry for data."""
+	usr = frappe.form_dict.get("usr")
 	pwd = frappe.form_dict.get("pwd")
 	verification_method = get_verification_method()
 
@@ -103,7 +104,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 		frappe.cache.set_value(tmp_id + "_token", token, expires_in_sec=expiry_time)
 	else:
 		expiry_time = frappe.flags.otp_expiry or 180
-	for k, v in {"_usr": user, "_pwd": pwd, "_otp_secret": otp_secret}.items():
+	for k, v in {"_usr": usr, "_pwd": pwd, "_otp_secret": otp_secret}.items():
 		frappe.cache.set_value(f"{tmp_id}{k}", v, expires_in_sec=expiry_time)
 
 

@@ -5,10 +5,12 @@ import pyotp
 
 import frappe
 from frappe.auth import get_login_attempt_tracker
+from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import make_request
 from frappe.twofactor import clear_default, get_otpsecret_for_, set_default
 from frappe.utils import get_test_client
+from frappe.utils.password import update_password
 
 
 class TestTwoFactorLogin(IntegrationTestCase):
@@ -78,6 +80,22 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		with self.change_settings("System Settings", {"two_factor_method": "Email"}, commit=True):
 			tmp_id = self.start_login()
 			response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
+			self.assert_logged_in(response)
+
+	def test_email_login_with_generated_user_id(self):
+		with (
+			self.change_settings("System Settings", {"two_factor_method": "Email"}, commit=True),
+			test_user(roles=[self.role], generated_id=True, commit=True) as user,
+		):
+			self.addCleanup(clear_default, user.name + "_otpsecret")
+			update_password(user.name, self.password)
+			secret = get_otpsecret_for_(user.name)
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+			response = self.post_login({"usr": user.email, "pwd": self.password})
+			tmp_id = response.json["tmp_id"]
+			token = frappe.cache.get_value(tmp_id + "_token", use_local_cache=False)
+			response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.HOTP(secret).at(token)})
 			self.assert_logged_in(response)
 
 	def test_email_login_with_zero_token(self):

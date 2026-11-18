@@ -32,6 +32,7 @@ from frappe.utils import (
 	format_datetime,
 	get_formatted_email,
 	get_system_timezone,
+	get_user_by_email,
 	now_datetime,
 	today,
 	validate_time_zone,
@@ -250,7 +251,7 @@ class User(Document):
 		if not frappe.in_test:
 			self.password_strength_test()
 
-		if self.name not in STANDARD_USERS:
+		if self.name not in STANDARD_USERS and not self.flags.skip_email_from_name:
 			self.email = self.name
 			self.validate_email_type(self.name)
 
@@ -1398,8 +1399,7 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	if is_signup_disabled():
 		allow = False
 
-	existing_user = frappe.db.get("User", {"email": email})
-	if existing_user:
+	if get_user_by_email(email, include_standard_users=True):
 		allow = False
 
 	if not allow:
