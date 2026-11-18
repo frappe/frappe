@@ -295,18 +295,33 @@ def connect_mailbox(
 		return "already_connected", email
 
 	connected_app = create_relay_app(note, email, token)
-	try:
-		save_email_account(note, email, connected_app, personal)
-	except Exception as e:
-		frappe.db.rollback()
+	result = try_save_email_account(note, email, connected_app, personal)
+	if (
+		result == "smtp_disabled_personal"
+		and not account_name
+		and frappe.db.exists("Email Account", {"default_outgoing": 1, "enable_outgoing": 1})
+	):
+		result = try_save_email_account(note, email, connected_app, personal, outgoing=False)
+		if not result:
+			return "connected_receive_only", email
+	if result:
 		delete_relay_app(connected_app)
-		frappe.log_error("Email OAuth connect failed")
-		result = matched_error(provider, "save", str(e)) or "failed"
-		if result == "smtp_disabled" and personal:
-			result = "smtp_disabled_personal"
 		return result, email
 
 	return ("reconnected" if account_name else "connected"), email
+
+
+def try_save_email_account(
+	note: dict, email: str, connected_app: str, personal: bool, outgoing: bool = True
+) -> str | None:
+	"""Save the mailbox; return the result code when the mail server refuses it."""
+	try:
+		save_email_account(note, email, connected_app, personal, outgoing)
+	except Exception as e:
+		frappe.db.rollback()
+		frappe.log_error("Email OAuth connect failed")
+		result = matched_error(note["provider"], "save", str(e)) or "failed"
+		return "smtp_disabled_personal" if result == "smtp_disabled" and personal else result
 
 
 def matched_error(provider: str, source: str, message: str | None) -> str | None:
@@ -335,7 +350,9 @@ def create_relay_app(note: dict, email: str, token: dict) -> str:
 	return app.name
 
 
-def save_email_account(note: dict, email: str, connected_app: str, personal: bool) -> None:
+def save_email_account(
+	note: dict, email: str, connected_app: str, personal: bool, outgoing: bool = True
+) -> None:
 	"""Add the mailbox, or point the one being reconnected at `connected_app`.
 	Saving logs in over IMAP and SMTP, and raises if either is refused."""
 	config = ONE_CLICK_PROVIDERS[note["provider"]]
@@ -365,7 +382,7 @@ def save_email_account(note: dict, email: str, connected_app: str, personal: boo
 				"email_account_name": email,
 				"email_id": email,
 				"enable_incoming": 1,
-				"enable_outgoing": 1,
+				"enable_outgoing": int(outgoing),
 				"email_sync_option": "ALL",
 				"initial_sync_count": 100,
 				"create_contact": 1,

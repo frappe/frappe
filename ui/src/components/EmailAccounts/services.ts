@@ -422,6 +422,18 @@ export function reconnectable(
   );
 }
 
+/** A personal Outlook.com mailbox signed in through Frappe Cloud with sending off; Microsoft blocks its SMTP. */
+export function sendBlocked(
+  account: Pick<EmailAccount, "authKind" | "service" | "smtp_server" | "enable_outgoing">,
+): boolean {
+  return (
+    account.authKind === "oauth" &&
+    account.service === "Outlook.com" &&
+    account.smtp_server === "smtp-mail.outlook.com" &&
+    !account.enable_outgoing
+  );
+}
+
 export function deskUrl(name: string): string {
   return `/desk/email-account/${encodeURIComponent(name)}`;
 }

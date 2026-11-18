@@ -9,6 +9,7 @@ import {
   oauthHelpLink,
   oauthMessage,
   reconnectable,
+  sendBlocked,
   serviceOf,
   services,
   validate,
@@ -273,6 +274,21 @@ describe("reconnectable", () => {
     expect(reconnectable({ ...outlook, authKind: "oauth" }, oneClick)).toBe(true);
     expect(reconnectable({ service: "GMail", authKind: "oauth" }, oneClick)).toBe(false);
     expect(reconnectable({ ...outlook, authKind: "password" }, oneClick)).toBe(false);
+  });
+});
+
+describe("sendBlocked", () => {
+  it("blocks sending only on a personal Outlook.com mailbox signed in through Frappe Cloud", () => {
+    const personal = {
+      authKind: "oauth" as const,
+      service: "Outlook.com",
+      smtp_server: "smtp-mail.outlook.com",
+      enable_outgoing: 0 as const,
+    };
+    expect(sendBlocked(personal)).toBe(true);
+    expect(sendBlocked({ ...personal, enable_outgoing: 1 })).toBe(false);
+    expect(sendBlocked({ ...personal, smtp_server: "smtp.office365.com" })).toBe(false);
+    expect(sendBlocked({ ...personal, authKind: "oauth-custom" })).toBe(false);
   });
 });
 
