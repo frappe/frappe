@@ -261,19 +261,32 @@ function range_text(from, to, timed = false) {
 	if (!from) return __("until {0}", [day_text(to, timed)]);
 	if (!to) return __("from {0}", [day_text(from, timed)]);
 	if (timed && [from, to].some(has_time)) {
-		return `${day_text(from, true)} – ${day_text(to, true)}`;
+		return span(day_text(from, true), day_text(to, true));
 	}
 	const [a, b] = [moment(from), moment(to)];
 	if (a.isSame(b, "day")) return day_text(from);
 	const year = b.year() === moment().year() ? "" : ` ${b.year()}`;
-	if (a.isSame(b, "month")) return `${a.date()} – ${short_day(b)}${year}`;
-	if (a.isSame(b, "year")) return `${short_day(a)} – ${short_day(b)}${year}`;
-	return `${short_day(a, true)} – ${short_day(b, true)}`;
+	if (a.isSame(b, "month")) {
+		const month = month_name(b);
+		return month_first()
+			? `${month} ${span(a.date(), b.date())}${year}`
+			: `${span(a.date(), b.date())} ${month}${year}`;
+	}
+	if (a.isSame(b, "year")) return `${span(short_day(a), short_day(b))}${year}`;
+	return span(short_day(a, true), short_day(b, true));
 }
 
+const span = (from, to) => __("{0} – {1}", [from, to], "a range of dates");
+const month_name = (day) => frappe.ui.form.get_datepicker_locale().monthsShort[day.month()];
+// "3 Mar", or "Mar 3" where the person's date format puts the month first
+const month_first = () => /^m/i.test(frappe.datetime.get_user_date_fmt());
+
 function short_day(day, with_year = false) {
-	const month = frappe.ui.form.get_datepicker_locale().monthsShort[day.month()];
-	return `${day.date()} ${month}${with_year ? ` ${day.year()}` : ""}`;
+	const date = month_first()
+		? `${month_name(day)} ${day.date()}`
+		: `${day.date()} ${month_name(day)}`;
+	if (!with_year) return date;
+	return month_first() ? `${date}, ${day.year()}` : `${date} ${day.year()}`;
 }
 
 function number_text(df, raw) {
@@ -337,7 +350,7 @@ function describe(df, rules) {
 	if (hook) {
 		return {
 			template: PLAIN(),
-			value: __("{0} {1}", [__(hook.label), value], "Filter chip: period name, period"),
+			value: `${__(hook.label)} ${value}`,
 		};
 	}
 	const kind = kind_of(df);
