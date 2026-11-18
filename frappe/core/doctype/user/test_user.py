@@ -1105,14 +1105,23 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		frappe.db.savepoint("email_patch")
 		self.addCleanup(frappe.db.rollback, save_point="email_patch")
 
-		admin_email = frappe.db.get_value("User", "Administrator", "email")
-		user = frappe.new_doc("User", email="_test_clash@example.com", first_name="Clash")
-		user.flags.skip_email_from_name = True
-		user.insert(set_name=admin_email)
+		def add_user_named(name):
+			user = frappe.new_doc("User", email=f"_test_{frappe.generate_hash(length=6)}@example.com")
+			user.first_name = "Clash"
+			user.flags.skip_email_from_name = True
+			user.insert(set_name=name)
 
+		# a changed email is left alone: migrate stops
+		frappe.db.set_value("User", "Administrator", "email", "_test_owner@example.com")
+		add_user_named("_test_owner@example.com")
+		self.assertRaises(frappe.ValidationError, execute)
+		frappe.db.set_value("User", "Administrator", "email", "admin@example.com")
+		frappe.delete_doc("User", "_test_owner@example.com", force=True, ignore_permissions=True)
+
+		add_user_named("admin@example.com")
 		execute()
 		self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@frappe.invalid")
-		self.assertEqual(frappe.db.get_value("User", admin_email, "email"), admin_email)
+		self.assertEqual(frappe.db.get_value("User", "admin@example.com", "email"), "admin@example.com")
 
 	def test_get_user_by_email(self):
 		with test_user(roles=[], generated_id=True) as user:
