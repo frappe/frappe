@@ -301,15 +301,14 @@ def create_or_update_user(args):  # nosemgrep
 		first_name, last_name = first_name.split(" ", 1)
 
 	if user_id := get_user_by_email(email):
-		user = frappe.db.get_value("User", user_id, ["name", "first_name", "last_name"], as_dict=True)
-		if user.first_name != first_name or user.last_name != last_name:
+		if frappe.db.get_value("User", user_id, ["first_name", "last_name"]) != (first_name, last_name):
 			User = frappe.qb.DocType("User")
 			(
 				frappe.qb.update(User)
 				.set(User.first_name, first_name)
 				.set(User.last_name, last_name)
 				.set(User.full_name, args.get("full_name"))
-				.where(User.name == user.name)
+				.where(User.name == user_id)
 			).run()
 	else:
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True
@@ -326,11 +325,12 @@ def create_or_update_user(args):  # nosemgrep
 		user.append_roles("System Manager")
 		user.flags.no_welcome_mail = True
 		user.insert()
+		user_id = user.name
 
 		frappe.flags.mute_emails = _mute_emails
 
 	if args.get("password"):
-		update_password(user.name, args.get("password"))
+		update_password(user_id, args.get("password"))
 
 
 def set_timezone(args):  # nosemgrep
