@@ -35,6 +35,7 @@ NUMERIC_TYPES = {
 	"float",
 	"double",
 }
+TEXT_MAX_BYTES = {"tinytext": 255, "text": 65535, "mediumtext": 16777215}
 INTEGER_BITS = {"tinyint": 8, "smallint": 16, "mediumint": 24, "int": 32, "integer": 32, "bigint": 64}
 ROUNDING_CONTEXT = Context(prec=100)
 TEMPORAL_TYPES = {"date", "datetime", "time", "timestamp", "year"}
@@ -167,6 +168,10 @@ class Column:
 		if match := re.match(r"(?:var)?char\((\d+)\)", self.definition.lower()):
 			return int(match.group(1))
 		return None
+
+	@cached_property
+	def max_bytes(self) -> int | None:
+		return TEXT_MAX_BYTES.get(self.base_type)
 
 	@cached_property
 	def numeric_range(self) -> tuple[int | Decimal, int | Decimal] | None:
@@ -427,6 +432,19 @@ def collation_key(value):
 		decomposed = unicodedata.normalize("NFKD", value)
 		value = "".join(c for c in decomposed if not unicodedata.combining(c))
 	return value.casefold().rstrip(" ")
+
+
+def is_json(text: str) -> bool:
+	"""Whether MariaDB's `JSON_VALID` accepts `text`; it rejects the `NaN` and `Infinity` Python allows."""
+	try:
+		json.loads(text, parse_constant=reject_json_constant)
+	except ValueError:
+		return False
+	return True
+
+
+def reject_json_constant(constant: str):
+	raise ValueError(constant)
 
 
 def apply_alter_table(shape: TableShape, statement: str):
@@ -758,13 +776,27 @@ class MariaDBDumpWriter:
 						)
 					)
 				)
-			if (max_length := column.max_length) and len(value) > max_length:
-				self.add_problem(
-					_("{0}.{1}: value of {2} characters exceeds {3} (row {4})").format(
-						table, column.name, len(value), column.definition, row[0]
-					)
-				)
+			self.check_text(table, row, value, column)
 		return value
+
+	def check_text(self, table: str, row, value: str, column: Column):
+		if (max_length := column.max_length) and len(value) > max_length:
+			self.add_problem(
+				_("{0}.{1}: value of {2} characters exceeds {3} (row {4})").format(
+					table, column.name, len(value), column.definition, row[0]
+				)
+			)
+		# a character takes at most 4 bytes, so only long values need encoding
+		if (max_bytes := column.max_bytes) and len(value) * 4 > max_bytes and len(value.encode()) > max_bytes:
+			self.add_problem(
+				_("{0}.{1}: value of {2} bytes exceeds {3} (row {4})").format(
+					table, column.name, len(value.encode()), column.base_type, row[0]
+				)
+			)
+		if column.base_type == "json" and not is_json(value):
+			self.add_problem(
+				_("{0}.{1}: {2!r} is not valid JSON (row {3})").format(table, column.name, value[:60], row[0])
+			)
 
 	def coerce_number(self, table: str, row, value: str, column: Column):
 		text = value.strip()
