@@ -115,6 +115,19 @@ class TestPreview(IntegrationTestCase):
 			get_preview_from_url("data:text/html,<body></body>", wait_until="window.never", timeout=2)
 		self.assertLess(time.monotonic() - start, 10)
 
+	def test_get_preview_from_url_wait_until_syntax_error(self):
+		from frappe.utils.preview import get_preview_from_url
+
+		with self.assertRaises(SyntaxError):
+			get_preview_from_url("data:text/html,<body></body>", wait_until="window.ready;", timeout=30)
+
+	def test_get_preview_from_url_full_page_height_cap(self):
+		from frappe.utils.preview import MAX_FULL_PAGE_HEIGHT, get_preview_from_url
+
+		data_url = "data:text/html,<body style='margin:0'><div style='height:20000px'></div></body>"
+		data = get_preview_from_url(data_url, format="webp", width=200, full_page=True)
+		self.assertEqual(Image.open(BytesIO(data)).size, (200, MAX_FULL_PAGE_HEIGHT))
+
 
 class TestPreviewValidation(IntegrationTestCase):
 	"""Format validation raises before Chromium is touched, so it runs everywhere."""
