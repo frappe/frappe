@@ -66,7 +66,6 @@ user_cache_keys = (
 	"home_page",
 	"linked_with",
 	"desktop_icons",
-	"portal_menu_items",
 	"user_perm_can_read",
 	"has_role:Page",
 	"has_role:Report",

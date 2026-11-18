@@ -159,7 +159,6 @@ class SiteMigration:
 		* Run post_fixture_sync patches
 		* Sync Frappe's internal language master
 		* Flush deferred inserts made during maintenance mode.
-		* Sync Portal Menu Items
 		* Sync Installed Applications Version History
 		* Execute `after_migrate` hooks
 		"""
@@ -201,9 +200,6 @@ class SiteMigration:
 
 		frappe.model.sync.remove_orphan_entities()
 		frappe.model.sync.delete_duplicate_icons()
-
-		print("Syncing portal menu...")
-		frappe.get_single("Portal Settings").sync_menu()
 
 		print("Updating installed applications...")
 		frappe.get_single("Installed Applications").update_versions()

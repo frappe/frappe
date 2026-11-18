@@ -99,7 +99,7 @@ def sync_for(app_name, force=0, reset_permissions=False):
 				os.path.join(FRAPPE_PATH, "custom", "doctype", custom_module, f"{custom_module}.json")
 			)
 
-		for website_module in ["web_form", "web_template", "web_form_field", "portal_menu_item"]:
+		for website_module in ["web_form", "web_template", "web_form_field"]:
 			files.append(
 				os.path.join(FRAPPE_PATH, "website", "doctype", website_module, f"{website_module}.json")
 			)

@@ -2,7 +2,6 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.serve import get_response
-from frappe.www.list import get_list_context
 
 
 class TestWebform(IntegrationTestCase):
