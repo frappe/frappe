@@ -280,7 +280,7 @@ def attach_print(
 					from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
 					from frappe.www.printview import validate_print_for_docstatus
 
-					doc_obj = doc or frappe.get_cached_doc(doctype, name)
+					doc_obj = doc or frappe.get_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
 					_run_print_pdf_hooks(doctype, name, print_format)
 					letterhead_name = letterhead if print_letterhead else None
