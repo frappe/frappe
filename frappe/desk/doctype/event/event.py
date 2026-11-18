@@ -274,7 +274,7 @@ def update_attending_status(event_name: str, attendee: str, status: str):
 				_("You are not allowed to update attendance for another user."), frappe.PermissionError
 			)
 
-	if event_doc.owner == caller:
+	if is_caller and event_doc.owner == caller:
 		frappe.db.set_value("Event", event_name, "attending", status)
 		return
 

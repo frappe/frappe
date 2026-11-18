@@ -115,6 +115,13 @@ class TestEvent(IntegrationTestCase):
 				frappe.db.get_value("Event Participants", {"parent": by_email.name}, "attending"), "Yes"
 			)
 
+			update_attending_status(by_email.name, user.name, "No")
+
+			self.assertEqual(
+				frappe.db.get_value("Event Participants", {"parent": by_email.name}, "attending"), "No"
+			)
+			self.assertFalse(frappe.db.get_value("Event", by_email.name, "attending"))
+
 	def test_get_events_for_different_timezone(self):
 		frappe.set_user("Administrator")
 		frappe.get_doc(
