@@ -100,7 +100,9 @@ class UserInvitation(Document):
 			"User Invitation", filters={"email": self.email, "status": "Pending", "app_name": self.app_name}
 		):
 			frappe.throw(title=_("Error"), msg=_("Invitation already exists"))
-		user = frappe.db.get_value("User", {"email": self.email}, ["name", "enabled"], as_dict=True)
+		user = frappe.db.get_value(
+			"User", {"email": self.email.strip().lower()}, ["name", "enabled"], as_dict=True
+		)
 		if not user:
 			return
 

@@ -212,6 +212,15 @@ class TestCompleteAppSetup(IntegrationTestCase):
 
 		commit.assert_not_called()
 
+	def test_setup_user_cannot_be_administrator(self):
+		admin = frappe.db.get_value("User", "Administrator", ["email", "first_name"], as_dict=True)
+		self.assertRaises(
+			frappe.UniqueValidationError,
+			setup_wizard.create_or_update_user,
+			{"email": admin.email.upper(), "full_name": "Taken Over", "password": "Some_pass_123"},
+		)
+		self.assertEqual(frappe.db.get_value("User", "Administrator", "first_name"), admin.first_name)
+
 	def test_needs_system_manager(self):
 		with set_user("Guest"):
 			self.assertRaises(frappe.PermissionError, setup_wizard.complete_app_setup)

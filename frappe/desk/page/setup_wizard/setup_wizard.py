@@ -12,6 +12,7 @@ from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 from frappe.utils import cint, get_system_timezone, now, strip
 =======
 from frappe.utils import cint, get_user_by_email, now, strip
@@ -19,6 +20,9 @@ from frappe.utils import cint, get_user_by_email, now, strip
 =======
 from frappe.utils import cint, now, strip
 >>>>>>> 1c4ece8 (refactor(setup_wizard): look the user up by email in place)
+=======
+from frappe.utils import cint, get_user_by_email, now, strip
+>>>>>>> b68a43b (fix(setup_wizard): never match a standard user, and lowercase email lookups)
 from frappe.utils.background_jobs import defer_enqueue_after_commit
 from frappe.utils.password import update_password
 from frappe.utils.synchronization import LockTimeoutError, filelock
@@ -352,7 +356,7 @@ def login_as_first_user(args):  # nosemgrep
 	if not email or not hasattr(frappe.local, "login_manager"):
 		return
 
-	if user_id := frappe.db.get_value("User", {"email": email}):
+	if user_id := get_user_by_email(email):
 		frappe.local.login_manager.login_as(user_id)
 
 
@@ -480,9 +484,10 @@ def create_or_update_user(args):  # nosemgrep
 	if " " in first_name:
 		first_name, last_name = first_name.split(" ", 1)
 
-	if user := frappe.db.get_value(
-		"User", {"email": email}, ["name", "first_name", "last_name"], as_dict=True
-	):
+	user = frappe.db.get_value(
+		"User", {"email": email.strip().lower()}, ["name", "first_name", "last_name"], as_dict=True
+	)
+	if user and user.name not in frappe.STANDARD_USERS:
 		if user.first_name != first_name or user.last_name != last_name:
 			User = frappe.qb.DocType("User")
 			(
