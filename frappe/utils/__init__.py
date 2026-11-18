@@ -83,7 +83,44 @@ def get_email_address(user=None):
 	if not user:
 		user = frappe.session.user
 
+<<<<<<< HEAD
 	return frappe.db.get_value("User", user, "email")
+=======
+	return frappe.get_cached_value("User", user, "email")
+
+
+def get_email_addresses(users: Iterable[str]) -> set[str]:
+	"""Return the emails of the given users.
+
+	Not aligned with `users`: Guest, users that don't exist and users without an email are left out.
+	"""
+	users = {user for user in users if user}
+	if not users:
+		return set()
+
+	return set(
+		frappe.get_all(
+			"User",
+			filters=[["name", "in", users], ["name", "!=", "Guest"], ["email", "is", "set"]],
+			pluck="email",
+		)
+	)
+
+
+def get_user_by_email(
+	email: str, *, include_standard_users: bool = False, filters: dict | None = None
+) -> str | None:
+	"""Return the ID of the user with this email, or None.
+
+	Administrator and Guest are left out unless `include_standard_users` is True.
+	`filters` narrows the match further, e.g. `{"enabled": 1}`.
+	"""
+	filters = {**(filters or {}), "email": email.strip().lower()}
+	if not include_standard_users:
+		filters["name"] = ("not in", frappe.STANDARD_USERS)
+
+	return frappe.db.get_value("User", filters)
+>>>>>>> 07d2453 (refactor: let `get_user_by_email` take extra filters and use it for the login link)
 
 
 def get_formatted_email(user, mail=None):
