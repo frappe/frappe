@@ -25,7 +25,6 @@ function recall(doctype: string): ListedView[] | null {
 const SHARED_READ_MS = 10_000;
 type Read = { scope: string; revision: number; at: number; found: Promise<ListedView[]> };
 const reads = new Map<string, Read>();
-// Counts reads that landed: a body that has nothing yet (its own read failed) asks again.
 const landed = ref(0);
 
 function shared(doctype: string, app: string, asker?: string): Promise<ListedView[]> {
