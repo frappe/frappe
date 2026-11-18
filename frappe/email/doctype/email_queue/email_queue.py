@@ -815,7 +815,7 @@ class QueueBuilder:
 		else:
 			unsubscribed = None
 
-		# `.invalid` is reserved and never delivers (e.g. Administrator's email after a clash)
+		# `.invalid` is reserved and never delivers
 		self._unsubscribed_user_emails = [
 			*(unsubscribed or []),
 			*(email for email in all_ids if email.lower().endswith(".invalid")),
