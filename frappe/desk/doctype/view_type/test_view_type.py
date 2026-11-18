@@ -75,6 +75,11 @@ class TestTheRecords(ViewTypeCase):
 		record = view_types()["List"]
 		self.assertEqual((record.label, record.icon, record.module), ("List", "list", "Desk"))
 
+	def test_list_comes_first_then_the_order_they_were_made(self):
+		names = list(view_types())
+		self.assertEqual(names[0], "List")
+		self.assertLess(names.index("Cards"), names.index(PROBE))
+
 	def test_a_record_is_a_view_type_at_once_and_its_delete_ends_it(self):
 		self.assertEqual(type_keys()["probe-46028"], PROBE)
 		self.assertEqual(make_view().insert().type, PROBE)
