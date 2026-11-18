@@ -11,7 +11,7 @@ from frappe.core.doctype.installed_applications.installed_applications import ge
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
-from frappe.utils import cint, get_user_by_email, now, strip
+from frappe.utils import cint, now, strip
 from frappe.utils.background_jobs import defer_enqueue_after_commit
 from frappe.utils.password import update_password
 from frappe.utils.synchronization import LockTimeoutError, filelock
@@ -348,7 +348,7 @@ def run_setup_success(args):  # nosemgrep
 
 def login_as_first_user(args):  # nosemgrep
 	if args.get("email") and hasattr(frappe.local, "login_manager"):
-		if user_id := get_user_by_email(args.get("email")):
+		if user_id := frappe.db.get_value("User", {"email": args.get("email")}):
 			frappe.local.login_manager.login_as(user_id)
 
 
@@ -456,15 +456,17 @@ def create_or_update_user(args):  # nosemgrep
 	if " " in first_name:
 		first_name, last_name = first_name.split(" ", 1)
 
-	if user_id := get_user_by_email(email):
-		if frappe.db.get_value("User", user_id, ["first_name", "last_name"]) != (first_name, last_name):
+	if user := frappe.db.get_value(
+		"User", {"email": email}, ["name", "first_name", "last_name"], as_dict=True
+	):
+		if user.first_name != first_name or user.last_name != last_name:
 			User = frappe.qb.DocType("User")
 			(
 				frappe.qb.update(User)
 				.set(User.first_name, first_name)
 				.set(User.last_name, last_name)
 				.set(User.full_name, args.get("full_name"))
-				.where(User.name == user_id)
+				.where(User.name == user.name)
 			).run()
 	else:
 		_mute_emails, frappe.flags.mute_emails = frappe.flags.mute_emails, True
@@ -481,12 +483,11 @@ def create_or_update_user(args):  # nosemgrep
 		user.append_roles("System Manager")
 		user.flags.no_welcome_mail = True
 		user.insert()
-		user_id = user.name
 
 		frappe.flags.mute_emails = _mute_emails
 
 	if args.get("password"):
-		update_password(user_id, args.get("password"))
+		update_password(user.name, args.get("password"))
 
 
 def set_timezone(timezone=None):
