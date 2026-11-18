@@ -19,7 +19,7 @@ def get_context(context):
 	settings = frappe.parse_json(frappe.form_dict.get("settings"))
 
 	doc = frappe.get_doc(doctype, docname)
-	pf, is_beta = resolve_print_format(frappe.form_dict.print_format, doc.meta, doc)
+	pf, is_beta = resolve_print_format(frappe.form_dict.print_format, doc.meta)
 
 	if uses_legacy_weasyprint(pf):
 		from frappe.utils.weasyprint import get_html

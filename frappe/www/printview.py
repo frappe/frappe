@@ -434,14 +434,13 @@ def get_html_and_style(
 ) -> dict[str, str | None]:
 	"""Return `html` and `style` of print format, used in PDF etc."""
 
-	stored = isinstance(doc, str) and isinstance(name, str)
-	if stored:
+	if isinstance(doc, str) and isinstance(name, str):
 		document = frappe.get_lazy_doc(doc, name, check_permission=True)
 	else:
 		document = frappe.get_doc(frappe.parse_json(doc), check_permission=True)
 		cast_client_values(document)
 
-	print_format, is_beta = resolve_print_format(print_format, document.meta, document if stored else None)
+	print_format, is_beta = resolve_print_format(print_format, document.meta)
 	set_link_titles(document)
 
 	if uses_legacy_weasyprint(print_format):
