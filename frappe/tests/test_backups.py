@@ -16,7 +16,12 @@ from tempfile import TemporaryDirectory
 from frappe.utils.backups import backup_sqlite_database
 =======
 import frappe
-from frappe.database.sqlite.mariadb_dump import MariaDBDumpError, MariaDBDumpWriter, parse_table_shape
+from frappe.database.sqlite.mariadb_dump import (
+	Column,
+	MariaDBDumpError,
+	MariaDBDumpWriter,
+	parse_table_shape,
+)
 from frappe.storage.blob import put_blob
 from frappe.storage.cache import get_cache_path
 from frappe.storage.memory_driver import fake
@@ -331,6 +336,12 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 		)
 		self.assertNotIn("2147483647", str(error.exception))
 		self.assertNotIn("999999999999.5", str(error.exception))
+
+		currency = Column("price", "decimal(3,2) NOT NULL DEFAULT 0")
+		self.assertTrue(currency.is_in_range(9.99))
+		self.assertTrue(currency.is_in_range(9.994))
+		self.assertFalse(currency.is_in_range(9.995))
+		self.assertTrue(Column("qty", "int(11)").is_in_range(2147483647.4))
 
 	def test_sequence_continues_after_the_highest_name(self):
 		dump = self.write_dump(
