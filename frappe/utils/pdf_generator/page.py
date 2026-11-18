@@ -59,6 +59,11 @@ def read_local_resource(url: str) -> tuple[str, str | None] | None:
 	return None
 
 
+def get_origin(url: str) -> tuple:
+	parts = urllib.parse.urlsplit(url)
+	return (parts.scheme, parts.hostname, parts.port or {"http": 80, "https": 443}.get(parts.scheme))
+
+
 class Page:
 	def __init__(self, session, browser_context_id, page_type):
 		self.session = session
@@ -209,6 +214,29 @@ class Page:
 
 		# Enable request interception for the specified URL pattern
 		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
+
+	def set_extra_headers_for_origin(self, url, headers):
+		"""Add `headers` to requests for `url`'s origin; requests to other origins continue without them."""
+		origin = get_origin(url)
+		header_names = {name.lower() for name in headers}
+
+		def on_request_paused_event(future, response):
+			params = response.get("params") or {}
+			request = params.get("request") or {}
+			continue_params = {"requestId": params["requestId"]}
+			if get_origin(request.get("url", "")) == origin:
+				request_headers = [
+					{"name": name, "value": value}
+					for name, value in (request.get("headers") or {}).items()
+					if name.lower() not in header_names
+				]
+				continue_params["headers"] = request_headers + [
+					{"name": name, "value": str(value)} for name, value in headers.items()
+				]
+			self.send("Fetch.continueRequest", continue_params, return_future=True)
+
+		self.session.start_listener("Fetch.requestPaused", on_request_paused_event, self.session_id)
+		self.send("Fetch.enable", {"patterns": [{"urlPattern": "*"}]})
 
 	def set_tab_url(self, url):
 		"""Navigate to a URL and fulfill the request with status code 200."""

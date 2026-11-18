@@ -8,6 +8,7 @@ in-process helpers (call them directly, e.g. from Builder); deliberately not
 whitelisted, since rendering arbitrary HTML/URLs server-side is an SSRF surface.
 """
 
+import asyncio
 import time
 
 import frappe
@@ -50,7 +51,8 @@ def get_preview_from_url(
 	Args:
 	        url: The page to load.
 	        wait_for: Milliseconds to sleep after the page is ready, before the capture.
-	        headers: Extra HTTP headers sent with every request of the page.
+	        headers: Extra HTTP headers sent with the page's requests to the URL's own origin,
+	                not to other origins it loads from.
 	        format: Image format — one of ``SUPPORTED_FORMATS`` (jpg, jpeg, webp).
 	        width: Viewport width in pixels (default 1280).
 	        height: Viewport height in pixels (default 720).
@@ -131,14 +133,13 @@ def capture_screenshot(
 				page.wait_for_set_content()
 			else:
 				if headers:
-					page.send("Network.enable")
-					page.send("Network.setExtraHTTPHeaders", {"headers": headers})
+					page.set_extra_headers_for_origin(url, headers)
 				deadline = time.monotonic() + timeout
 				page.navigate(url, timeout=timeout if wait_until else 60)
 				if wait_until:
 					wait_until_truthy(page, wait_until, deadline, timeout)
 				if wait_for:
-					time.sleep(wait_for / 1000)
+					sleep(page, wait_for / 1000)
 
 			clip = get_full_page_clip(page, width) if full_page else None
 			return page.capture_screenshot(image_format=image_format, clip=clip)
@@ -168,7 +169,12 @@ def wait_until_truthy(page, expression: str, deadline: float, timeout: int):
 			raise SyntaxError(f"Invalid wait_until expression: {exception.get('description')}")
 		if time.monotonic() >= deadline:
 			raise TimeoutError(f"Page not ready after {timeout} seconds: {expression} is not truthy")
-		time.sleep(0.1)
+		sleep(page, 0.1)
+
+
+def sleep(page, seconds: float):
+	"""Sleep while still answering the page's intercepted requests."""
+	page.session.loop.run_until_complete(asyncio.sleep(seconds))
 
 
 def get_full_page_clip(page, width: int) -> dict:
