@@ -586,7 +586,10 @@ def has_share_key(doc: "Document | None") -> bool:
 	key = frappe.form_dict.key
 	if not doc or not isinstance(key, str):
 		return False
-	return validate_key(key, doc) is not False
+	try:
+		return validate_key(key, doc) is not False
+	except frappe.exceptions.LinkExpired:
+		return False
 
 
 def validate_key(key: str, doc: "Document") -> None:
