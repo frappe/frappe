@@ -397,6 +397,29 @@ function show_email_oauth_result(code, mailbox, provider) {
 		});
 		return;
 	}
+	if (code === "connected_receive_only") {
+		frappe.db
+			.get_value("Email Account", { default_outgoing: 1, enable_outgoing: 1 }, "email_id")
+			.then(({ message }) => {
+				frappe.msgprint({
+					title: named
+						? __("Connected {0} for receiving only", [
+								frappe.utils.escape_html(mailbox),
+						  ])
+						: __("Connected for receiving only"),
+					message: message?.email_id
+						? __(
+								"Microsoft doesn't let personal Outlook.com mailboxes send email from other apps. Replies go out from {0}.",
+								[frappe.utils.escape_html(message.email_id)]
+						  )
+						: __(
+								"Microsoft doesn't let personal Outlook.com mailboxes send email from other apps. Replies go out from your default outgoing account."
+						  ),
+					indicator: "orange",
+				});
+			});
+		return;
+	}
 	const provider_error_messages = {
 		microsoft: {
 			admin_approval: __("Your Microsoft 365 admin must approve Frappe first."),

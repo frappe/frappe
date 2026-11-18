@@ -235,7 +235,10 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
 
   const started = Boolean(controller.signIn) && takeSignInStarted();
   if (controller.signIn) controller.signIn.started = started;
-  if (controller.signIn?.result === "connected") {
+  if (
+    controller.signIn?.result === "connected" ||
+    controller.signIn?.result === "connected_receive_only"
+  ) {
     const signIn = controller.signIn;
     const stop = watch(
       () => controller.accounts,

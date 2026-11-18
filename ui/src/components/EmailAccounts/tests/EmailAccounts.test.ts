@@ -104,7 +104,7 @@ it("reports unsaved edits, and clears them once the edit is saved", async () => 
   root.querySelector("form")!.dispatchEvent(new Event("submit"));
   await settle();
   expect(onDirty).toHaveBeenLastCalledWith(false);
-  expect(root.querySelector("h2")!.textContent).toBe("Email accounts");
+  expect(root.querySelector("h2")!.textContent).toBe("Email Accounts");
 });
 
 it("compares later edits with what a half-failed save stored", async () => {

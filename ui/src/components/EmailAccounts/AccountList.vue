@@ -2,8 +2,8 @@
 	<div class="flex h-full flex-col">
 		<div class="flex shrink-0 items-start justify-between gap-4">
 			<div class="flex min-w-0 flex-col gap-1">
-				<h2 :id="ids.heading" class="text-md-semibold text-ink-gray-8">
-					{{ __("Email accounts") }}
+				<h2 :id="ids.heading" class="text-lg-semibold text-ink-gray-8">
+					{{ __("Email Accounts") }}
 				</h2>
 				<p class="text-p-sm text-ink-gray-6">
 					{{ __("Connect mailboxes to send and receive email.") }}
@@ -22,9 +22,13 @@
 		<Banner
 			v-if="oauthResult"
 			class="mt-6 shrink-0"
-			:theme="oauthResult === 'cancelled' ? 'gray' : 'red'"
+			:theme="receiveOnly ? 'amber' : oauthResult === 'cancelled' ? 'gray' : 'red'"
 			:title="
-				oauthMailbox
+				receiveOnly
+					? oauthMailbox
+						? __('Connected {0} for receiving only', [oauthMailbox])
+						: __('Connected for receiving only')
+					: oauthMailbox
 					? __('Couldn\'t connect {0}', [oauthMailbox])
 					: __('Couldn\'t connect the mailbox')
 			"
@@ -32,7 +36,19 @@
 			@dismiss="dismissResult"
 		>
 			<template #description>
-				{{ oauthMessage(oauthResult, oauthProvider) }}
+				<template v-if="receiveOnly">
+					{{
+						defaultOutgoing
+							? __(
+									"Microsoft doesn't let personal Outlook.com mailboxes send email from other apps. Replies go out from {0}.",
+									[defaultOutgoing]
+							  )
+							: __(
+									"Microsoft doesn't let personal Outlook.com mailboxes send email from other apps. Replies go out from your default outgoing account."
+							  )
+					}}
+				</template>
+				<template v-else>{{ oauthMessage(oauthResult, oauthProvider) }}</template>
 				<a
 					v-if="helpLink"
 					:href="helpLink"
@@ -235,18 +251,31 @@
 										(on) => toggle(account, 'enable_incoming', on)
 									"
 								/>
-								<Switch
-									control-position="start"
-									:label="__('Send')"
-									:model-value="
-										saving.get(account.name)?.enable_outgoing ??
-										Boolean(account.enable_outgoing)
+								<Tooltip
+									:text="
+										__(
+											'Personal accounts can only receive email. Connect a work account to send.'
+										)
 									"
-									:disabled="saving.has(account.name)"
-									@update:model-value="
-										(on) => toggle(account, 'enable_outgoing', on)
-									"
-								/>
+									:disabled="!sendBlocked(account)"
+								>
+									<span :tabindex="sendBlocked(account) ? 0 : undefined">
+										<Switch
+											control-position="start"
+											:label="__('Send')"
+											:model-value="
+												saving.get(account.name)?.enable_outgoing ??
+												Boolean(account.enable_outgoing)
+											"
+											:disabled="
+												sendBlocked(account) || saving.has(account.name)
+											"
+											@update:model-value="
+												(on) => toggle(account, 'enable_outgoing', on)
+											"
+										/>
+									</span>
+								</Tooltip>
 								<Spinner
 									v-if="saving.has(account.name)"
 									class="ms-auto size-4 text-ink-gray-6"
@@ -273,7 +302,17 @@ const logoIcons = new Map<string, FunctionalComponent>();
 </script>
 
 <script setup lang="ts">
-import { Avatar, Badge, Button, ScrollArea, Select, Spinner, Switch, toast } from "frappe-ui";
+import {
+	Avatar,
+	Badge,
+	Button,
+	ScrollArea,
+	Select,
+	Spinner,
+	Switch,
+	Tooltip,
+	toast,
+} from "frappe-ui";
 import { computed, h, nextTick, onMounted, reactive, ref, useId } from "vue";
 import { translate as __ } from "../../utils/translate";
 import Banner from "./Banner.vue";
@@ -284,6 +323,7 @@ import {
 	oauthHelpLink,
 	oauthMessage,
 	reconnectable,
+	sendBlocked,
 	serviceOf,
 } from "./services";
 import type { EmailAccount, EmailAccountsController } from "./types";
@@ -303,6 +343,10 @@ const oneClick = useOneClick();
 const oauthResult = defineModel<string | null>("oauthResult");
 const helpLink = computed(
 	() => oauthResult.value && oauthHelpLink(oauthResult.value, props.oauthProvider)
+);
+const receiveOnly = computed(() => oauthResult.value === "connected_receive_only");
+const defaultOutgoing = computed(
+	() => props.controller.accounts.find((a) => a.default_outgoing)?.email_id
 );
 const adminSteps = computed(
 	() =>
