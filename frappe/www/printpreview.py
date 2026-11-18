@@ -17,7 +17,7 @@ def get_context(context):
 	settings = frappe.parse_json(frappe.form_dict.get("settings"))
 
 	doc = frappe.get_doc(doctype, docname)
-	pf, is_beta = resolve_print_format(frappe.form_dict.print_format, doc.meta)
+	pf, is_beta = resolve_print_format(frappe.form_dict.print_format, doc.meta, doc)
 
 	if is_beta:
 		from frappe.utils.print_format_generator import get_html

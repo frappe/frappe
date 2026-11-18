@@ -79,7 +79,7 @@ def download_pdf(
 
 	doc = frappe.get_doc(doctype, name)
 	validate_print(doc)
-	print_format, is_beta = resolve_print_format(print_format, doc.meta)
+	print_format, is_beta = resolve_print_format(print_format, doc.meta, doc)
 	if not is_beta:
 		# jinja formats have no layout for the generator — hand off to the
 		# legacy pipeline, which reads the format's template
