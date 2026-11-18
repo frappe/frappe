@@ -134,6 +134,8 @@ def read_view_types() -> dict[str, frappe._dict]:
 	rows = frappe.get_all(
 		"View Type", fields=["name", "label", "icon", "module"], order_by="creation asc, name asc"
 	)
+	# List first: every doctype has it and it is the fallback default, so menus open on it.
+	rows.sort(key=lambda row: row.name != "List")
 	# A row whose app left the bench has no files: no renderer and no rules to load.
 	return {row.name: row for row in rows if frappe.scrub(row.module) in frappe.local.module_app}
 
