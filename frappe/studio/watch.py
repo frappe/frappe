@@ -3,8 +3,9 @@
 Lets apps, pages and components generated on disk (by the CLI or an AI agent) show up without a
 `bench migrate`. Run explicitly with `bench --site <site> watch-studio`.
 
-Only `.json` is watched: an exported page's script lives in a sibling `.ts` or `.js` that the runtime loads
-straight off disk, and the vite dev server already hot-reloads those.
+Only `.json` and component scripts are watched: an exported page's script lives in a sibling `.ts` or
+`.js` that the runtime loads straight off disk, and the vite dev server already hot-reloads those. A
+component can also be used by a database app, which reads the script from the `script` field.
 """
 
 import os
@@ -14,7 +15,7 @@ import traceback
 from filelock import FileLock, Timeout
 
 import frappe
-from frappe.studio.sync_json import get_studio_folders, sync_file
+from frappe.studio.sync_json import get_component_path_from_script, get_studio_folders, sync_file
 from frappe.utils.synchronization import LOCKS_DIR
 
 try:
@@ -95,7 +96,7 @@ class StudioSyncHandler(FileSystemEventHandler):
 		self.queue(event.dest_path, event.is_directory)
 
 	def queue(self, path: str, is_directory: bool):
-		if is_directory or not path.endswith(".json"):
+		if is_directory or not (path.endswith(".json") or get_component_path_from_script(path)):
 			return
 
 		with self.lock:

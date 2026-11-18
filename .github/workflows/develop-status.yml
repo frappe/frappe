@@ -45,7 +45,8 @@ jobs:
     if: >-
       ${{ github.event.action != 'closed'
       && (github.event_name != 'workflow_run'
-      || (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.run_attempt > 1))
+      || (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.run_attempt > 1
+      && github.event.workflow_run.conclusion != 'cancelled'))
       && (!contains(fromJSON('["labeled", "unlabeled"]'), github.event.action)
       || contains(fromJSON('["fixes-develop", "run-full-ci", "Run Server Tests", "Run UI Tests"]'), github.event.label.name))
       && (github.event.action == 'labeled' || !github.event.pull_request

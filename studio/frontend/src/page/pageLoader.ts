@@ -39,7 +39,8 @@ export async function loadPage(router: Router, to: RouteLocationNormalized, from
 		await scope.loadPageScript(page)
 		if (navigation !== latestNavigation) return scope.teardownPage()
 		// before the block tree, so no block fetches its component (Guests can't read Studio Component)
-		useComponentStore().setComponents(page.components || [])
+		await useComponentStore().setComponents(page.components || [])
+		if (navigation !== latestNavigation) return scope.teardownPage()
 		const root = getBlockInstance(JSON.parse(page.blocks)[0])
 		loadedPages.set(to.fullPath, { page, scope, pageRoute, root })
 	} catch (error) {

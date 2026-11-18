@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.model.naming import append_number_if_name_exists
 from frappe.model.rename_doc import get_link_fields, update_link_field_values
+from frappe.printing.fieldtypes import BREAKABLE_FIELDTYPES
 from frappe.utils import cint, escape_html, flt
 
 PX_PER_MM = 96 / 25.4
@@ -50,7 +51,24 @@ PRINT_DESIGNER_FIELDS = (
 	"print_designer_preview_img",
 	"print_designer_template_app",
 )
-BARCODE_FORMATS = {"qrcode": "QR", "qr": "QR", "code128": "CODE128", "code39": "CODE39"}
+BARCODE_FORMATS = {
+	"qrcode": "QR",
+	"qr": "QR",
+	"code128": "CODE128",
+	"code39": "CODE39",
+	"ean": "EAN13",
+	"ean13": "EAN13",
+	"jan": "EAN13",
+	"ean8": "EAN8",
+	"ean14": "EAN14",
+	"gtin": "EAN14",
+	"upc": "UPCA",
+	"upca": "UPCA",
+	"isbn": "ISBN13",
+	"isbn13": "ISBN13",
+	"itf": "ITF",
+	"gs1_128": "GS1_128",
+}
 
 
 def is_print_designer_format(doc) -> bool:
@@ -822,6 +840,8 @@ class PrintDesignerConverter:
 		}
 		if df and df.options:
 			node["options"] = df.options
+		if node["fieldtype"] in BREAKABLE_FIELDTYPES:
+			node["allow_page_break"] = 1
 		node["show_label"] = "inline" if item.get("is_labelled") else "hide"
 		node.update(self.style_props({**self.styled(element), **(item.get("style") or {})}))
 		return node

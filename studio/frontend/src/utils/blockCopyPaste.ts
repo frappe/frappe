@@ -410,7 +410,7 @@ async function createMissingDependencies(
 	)
 	if (store.activePage?.name === pageName) store.syncPageModified(result)
 	if (components?.length && overwriteConflicts) {
-		await Promise.all(components.map(({ name }) => useComponentStore().reloadComponent(name)))
+		await Promise.all(components.map(({ component_id }) => useComponentStore().reloadComponent(component_id)))
 	}
 	if (files?.length) await store.setCustomComponents()
 	if (resources?.length || variables?.length) {

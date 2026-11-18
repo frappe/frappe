@@ -171,7 +171,7 @@ export type Filter = {
 }
 
 export type LeftPanelOptions = "Pages" | "Add Component" | "Layers" | "Data" | "Code" | "AI Assistant"
-export type RightPanelOptions = "Properties" | "Styles" | "Events" | "Interface"
+export type RightPanelOptions = "Properties" | "Styles" | "Events"
 export type leftPanelComponentTabOptions = "Standard" | "Custom"
 export type SettingsTab = "app" | "pages" | "ai"
 

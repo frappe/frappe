@@ -11,6 +11,7 @@ def get_context(context):
 	context.csrf_token = csrf_token
 	context.site_url = get_site_url()
 	context.site_name = frappe.local.site
+	context.socketio_port = cint(frappe.conf.socketio_port)
 	context.is_developer_mode = cint(frappe.conf.developer_mode)
 	context.assets = get_editor_assets("index.html")
 
@@ -23,6 +24,7 @@ def get_context_for_dev():
 		{
 			"site_url": get_site_url(),
 			"site_name": frappe.local.site,
+			"socketio_port": cint(frappe.conf.socketio_port),
 			"is_developer_mode": cint(frappe.conf.developer_mode),
 		}
 	)

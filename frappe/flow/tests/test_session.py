@@ -161,7 +161,7 @@ class TestLoadSession(ServerCase):
 					"set_model",
 					session.name,
 					"openai/gpt-4o",
-					{"api_key": None, "api_base": None, "model_params": None, "reasoning_effort": None},
+					{"api_key": None, "api_base": None, "model_params": None},
 				)
 			],
 		)

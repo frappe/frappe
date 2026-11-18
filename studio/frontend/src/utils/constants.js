@@ -124,6 +124,19 @@ export const DYNAMIC_EXPRESSION_CONTENT_REGEX = /\{\{([\s\S]*?)\}\}/g
 export const QUOTED_STRING_CONTENT_REGEX = /"((?:[^"\\]|\\.)*)"/g
 
 // New page scripts use the same setup module in both source stores.
+export const COMPONENT_SCRIPT_BOILERPLATE = `export default {
+	// The values this component takes, e.g. { title: String, count: { type: Number, default: 0 } }
+	props: {},
+	// The events this component sends, e.g. ["select"]
+	emits: [],
+	setup(props, { emit }) {
+		// Reactive state, computed values, watchers and functions for this component.
+
+		return {}
+	},
+}
+`
+
 export const PAGE_SCRIPT_BOILERPLATE = `export default function setup(context) {
 	// Reactive state, computed values, watchers and functions for this page.
 	// Read this page's data sources and variables from context, e.g. context.todos

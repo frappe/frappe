@@ -15,6 +15,10 @@ def camel_case_to_kebab_case(text, remove_spaces=False):
 	return text
 
 
+# an import of one of the app's own files: `@app/...`, or a relative path
+IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
+
+
 def walk_blocks(blocks):
 	"""Yield all blocks recursively, including children and slots."""
 	if isinstance(blocks, str):
@@ -76,8 +80,12 @@ def get_studio_folder(frappe_app: str) -> str:
 
 
 def get_export_folder(frappe_app: str, app_name: str) -> str:
+	return os.path.join(get_studio_folder(frappe_app), get_export_folder_name(app_name))
+
+
+def get_export_folder_name(app_name: str) -> str:
 	"""`my-app` exports to `studio/my_app` — app source folders carry scrubbed names, like a doctype's."""
-	return os.path.join(get_studio_folder(frappe_app), frappe.scrub(app_name))
+	return frappe.scrub(app_name)
 
 
 def get_app_file_path(app_folder: str) -> str:
@@ -114,6 +122,21 @@ def validate_one_script_file(folder: str, filename: str, moved_from: str | None 
 
 def find_script_file(folder: str, stem: str) -> str:
 	return os.path.join(folder, f"{stem}.{script_extension(folder, stem)}")
+
+
+def find_component_scripts(folder: str) -> list[dict]:
+	"""Each exported component that has a script file beside its JSON, as `{component_id, file_path}`."""
+	if not os.path.isdir(folder):
+		return []
+	scripts = []
+	for file in sorted(os.listdir(folder)):
+		file_path = find_script_file(folder, file.removesuffix(".json"))
+		if not file.endswith(".json") or not os.path.exists(file_path):
+			continue
+		component_id = frappe.parse_json(frappe.read_file(os.path.join(folder, file))).get("component_id")
+		if component_id:
+			scripts.append({"component_id": component_id, "file_path": file_path})
+	return scripts
 
 
 def get_exported_app_name(app_folder: str) -> str:

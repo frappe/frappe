@@ -127,9 +127,7 @@ def read_doc(doctype: str, name: str):
 	if fields and not isinstance(fields, list):
 		raise FrappeValueError("'fields' must be a list")
 
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
-	doc.apply_fieldlevel_read_permissions()
+	doc = frappe.read_doc(doctype, name)
 	add_document_parts(doc, parse_include(frappe.form_dict.get("include")))
 	_doc = doc.as_dict()
 
@@ -335,9 +333,7 @@ def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True, amend: bool =
 
 	With `amend`, the copy is the draft amendment of a cancelled document, as desk v1 builds it.
 	"""
-	doc = frappe.get_doc(doctype, name)
-	doc.check_permission("read")
-	doc.apply_fieldlevel_read_permissions()
+	doc = frappe.read_doc(doctype, name)
 
 	copy = frappe.copy_doc(doc, ignore_no_copy=ignore_no_copy)
 	if amend:
