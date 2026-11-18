@@ -45,6 +45,19 @@
 	}
 }
 
+// rows start where the title does: auto columns would stretch and push "Where" inward
+.es-filter-panel__advanced-body .filter-area,
+.layout-dialog-filters .filter-area {
+	.filter-edit-area {
+		grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1.25fr) auto;
+	}
+
+	.filter-box .filter-prefix {
+		padding-inline-start: 0;
+		text-align: start;
+	}
+}
+
 .filter-area {
 	// one grid for every row so the columns line up
 	.filter-edit-area {
@@ -461,4 +474,19 @@
 }
 .match-type-dropdown-menu {
 	min-width: 100px;
+}
+
+// filter picker boxes focus as a whole, with the same ring as .form-control:focus
+.es-filter-picker__condition:focus-within,
+.es-filter-picker__search:focus-within {
+	box-shadow: $input-focus-box-shadow;
+}
+
+.layout-dialog-back {
+	flex-shrink: 0;
+	margin-inline-end: var(--margin-xs);
+
+	[dir="rtl"] & svg {
+		transform: scaleX(-1);
+	}
 }

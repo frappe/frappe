@@ -243,7 +243,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					valid_fields.includes(f[1]) ||
 					(table_doctypes.includes(f[0]) && frappe.meta.has_field(f[0], f[1]))
 			)
-			.uniqBy((f) => `${f[0]}.${f[1]}`);
+			.uniqBy((f) => JSON.stringify(f.slice(0, 4)));
 	}
 
 	setup_page() {
@@ -2883,7 +2883,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const value = filter[3];
 
 			const query_key = doctype === this.doctype ? field : `${doctype}.${field}`;
-			const query_value = operator === "=" ? value : JSON.stringify([operator, value]);
+			// a value that looks like a list ("[A]") would be read back as one
+			const looks_like_list = /^\[.*\]$/s.test(value);
+			const query_value =
+				operator === "=" && !looks_like_list ? value : JSON.stringify([operator, value]);
 
 			search_params.append(query_key, query_value);
 		});

@@ -15,12 +15,10 @@ frappe.listview_settings["RQ Job"] = {
 		);
 
 		frappe.xcall("frappe.core.doctype.rq_job.rq_job.get_custom_queues").then((options) => {
-			const select_element = listview.filter_area.standard_filters_wrapper.find(
-				'select[data-fieldname="queue"]'
-			);
-			options.forEach((option) => {
-				select_element.append($("<option>", { value: option, text: option }));
-			});
+			const field = listview.page.fields_dict.queue;
+			if (!field || !options.length) return;
+			field.df.options = [field.df.options, ...options].join("\n");
+			field.set_options();
 		});
 
 		frappe.xcall("frappe.utils.scheduler.get_scheduler_status").then(({ status }) => {

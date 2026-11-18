@@ -73,6 +73,10 @@ export default class ManageLayoutsDialog {
 		`;
 	}
 
+	back() {
+		this.list_filter.open_manage_layouts_dialog();
+	}
+
 	bind_events() {
 		const $wrapper = this.dialog.get_field("layouts_html").$wrapper;
 
@@ -81,7 +85,7 @@ export default class ManageLayoutsDialog {
 			const layout = this.get_layout_from_row(e.currentTarget);
 			if (!layout || !this.list_filter.can_edit_layout(layout)) return;
 			this.dialog.hide();
-			this.list_filter.open_layout_dialog(layout);
+			this.list_filter.open_layout_dialog(layout, { on_back: () => this.back() });
 		});
 
 		$wrapper.on("click", ".layout-action-duplicate", (e) => {
@@ -89,7 +93,10 @@ export default class ManageLayoutsDialog {
 			const layout = this.get_layout_from_row(e.currentTarget);
 			if (!layout) return;
 			this.dialog.hide();
-			this.list_filter.open_layout_dialog(null, { duplicate_from: layout });
+			this.list_filter.open_layout_dialog(null, {
+				duplicate_from: layout,
+				on_back: () => this.back(),
+			});
 		});
 
 		$wrapper.on("click", ".layout-action-delete", (e) => {

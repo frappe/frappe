@@ -1,0 +1,849 @@
+/* Espresso FilterChips: the bar of chips, the pickers they open (an .es-popover with
+   .es-filter-picker-panel--<kind> for its width) and the FilterPanel. */
+
+.es-filter-chips {
+	--fade-to: to right;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	min-width: 0;
+}
+
+.es-popover.es-filter-picker-panel {
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	overflow: hidden;
+}
+
+/* a short screen (a phone on its side) caps the popover: the picker's list scrolls inside it */
+.es-popover.es-filter-picker-panel > .es-filter-picker {
+	flex: 1 1 auto;
+}
+
+.es-popover.es-filter-picker-panel .es-filter-picker__list,
+.es-popover.es-filter-picker-panel .es-filter-picker__body {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+/* the first row lines up with Filter and Sort: their section's 3px and their own margin */
+.page-form .standard-filter-section > .es-filter-chips {
+	margin-block: calc(3px + var(--margin-xs)) var(--margin-xs);
+}
+
+/* while held, the Filter group keeps its own width in place of the room left for a count and × */
+.page-form .filter-selector[data-held]:has(.filter-x-button.hidden) {
+	padding-inline-start: 0;
+}
+
+.page-form:has(.es-filter-chips) .sort-selector-group {
+	margin-inline-start: calc(var(--spacing) * 2 - var(--margin-xs));
+}
+
+/* on a short screen the chips keep to one line, leaving room for the list */
+@media (max-height: 500px) {
+	.es-filter-chips {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+	}
+
+	/* or the section grows as wide as the row, and the row never has anything to scroll */
+	.page-form .standard-filter-section:has(> .es-filter-chips) {
+		min-width: 0;
+	}
+
+	.es-filter-chips[data-more-start],
+	.es-filter-chips[data-more-end] {
+		--fade-start: 0px;
+		--fade-end: 0px;
+		-webkit-mask-image: linear-gradient(
+			var(--fade-to),
+			transparent,
+			#000 var(--fade-start),
+			#000 calc(100% - var(--fade-end)),
+			transparent
+		);
+		mask-image: linear-gradient(
+			var(--fade-to),
+			transparent,
+			#000 var(--fade-start),
+			#000 calc(100% - var(--fade-end)),
+			transparent
+		);
+	}
+
+	.es-filter-chips[data-more-start] {
+		--fade-start: calc(var(--spacing) * 9);
+	}
+
+	.es-filter-chips[data-more-end] {
+		--fade-end: calc(var(--spacing) * 9);
+	}
+
+	/* a chip brought into view stops clear of the fade */
+	.es-filter-chips > * {
+		scroll-margin-inline: calc(var(--spacing) * 9);
+	}
+}
+
+[dir="rtl"] .es-filter-chips {
+	--fade-to: to left;
+}
+
+.es-filter-picker-panel--values,
+.es-filter-picker-panel--number,
+.es-filter-picker-panel--text {
+	width: calc(var(--spacing) * 80);
+}
+
+.es-filter-picker-panel--date {
+	width: calc(var(--spacing) * 112);
+}
+
+.es-filter-picker-panel--check {
+	width: calc(var(--spacing) * 56);
+}
+
+.es-filter-picker {
+	--knob-size: calc(var(--spacing) * 4);
+
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	color: var(--ink-gray-8);
+	font-size: var(--text-base);
+}
+
+/* the hidden attribute wins over each part's own display */
+.es-filter-picker [hidden],
+.es-filter-panel [hidden] {
+	display: none;
+}
+
+.es-filter-picker--number,
+.es-filter-picker--text,
+.es-filter-picker--notice {
+	gap: calc(var(--spacing) * 3);
+	padding: calc(var(--spacing) * 3);
+}
+
+.es-filter-picker--check {
+	gap: calc(var(--spacing) * 0.5);
+	padding: calc(var(--spacing) * 3);
+}
+
+.es-filter-picker__tools {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	padding: calc(var(--spacing) * 3) calc(var(--spacing) * 3) 0;
+}
+
+/* inside the condition's box the input is its second half: the box draws fill, corners and focus */
+.es-filter-picker__condition > .es-filter-picker__search,
+.es-filter-picker__condition > .es-filter-picker__input {
+	height: auto;
+	border-inline-start: 1px solid var(--outline-gray-2);
+	border-radius: 0;
+	background: transparent;
+}
+
+.es-filter-picker__condition > .es-filter-picker__search:focus-within {
+	box-shadow: none;
+}
+
+.es-filter-picker__search {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	gap: calc(var(--spacing) * 1.5);
+	min-width: 0;
+	height: var(--input-height);
+	margin: 0;
+	padding-inline: calc(var(--spacing) * 2) calc(var(--spacing) * 0.5);
+	border-radius: var(--radius);
+	background: var(--control-bg);
+	color: var(--ink-gray-5);
+	cursor: text;
+}
+
+.es-filter-picker__search > svg,
+.es-filter-panel__search > svg {
+	flex-shrink: 0;
+}
+
+.es-filter-picker__search > .es-filter-picker__input {
+	padding: 0;
+	background: transparent;
+}
+
+.es-filter-picker__list {
+	display: flex;
+	flex-direction: column;
+	gap: calc(var(--spacing) * 0.5);
+	max-height: calc(var(--spacing) * 90);
+	margin-top: calc(var(--spacing) * 2);
+	/* a lit row lines up with the box above it */
+	padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3) calc(var(--spacing) * 3);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+/* overlay scrollbars give no hint that more rows follow: the edge fades, as the Combobox's does */
+.es-filter-picker__list[data-more-below],
+.es-filter-picker__periods[data-more-below],
+.es-filter-panel__list[data-more-below] {
+	-webkit-mask-image: linear-gradient(
+		to bottom,
+		#000 calc(100% - var(--spacing) * 9),
+		transparent
+	);
+	mask-image: linear-gradient(to bottom, #000 calc(100% - var(--spacing) * 9), transparent);
+}
+
+/* a row brought into view (the current field, a row lit by Down) stops above the fade */
+.es-filter-picker__list > .es-menu__item,
+.es-filter-picker__periods .es-menu__item,
+.es-filter-panel__list .es-menu__item {
+	scroll-margin-block-end: calc(var(--spacing) * 9);
+}
+
+/* "Not set" lines up with the names under it: the space an avatar takes */
+.es-filter-picker__list .es-menu__icon-space {
+	width: calc(var(--spacing) * 5);
+}
+
+.es-filter-picker__group {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: calc(var(--spacing) * 2);
+	min-height: calc(var(--spacing) * 7);
+	/* with the group label's own padding, its text lines up with the rows' */
+	padding-inline-start: calc(var(--spacing) * 0.5);
+}
+
+.es-filter-picker__group + .es-menu__item,
+.es-menu__item + .es-filter-picker__group {
+	margin-top: calc(var(--spacing) * 1);
+}
+
+.es-filter-picker__group > .es-button {
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+}
+
+.es-filter-picker__skeleton {
+	display: flex;
+	align-items: center;
+	height: calc(var(--spacing) * 7);
+	padding-inline: calc(var(--spacing) * 2);
+}
+
+.es-filter-picker__empty {
+	margin: 0;
+	padding: calc(var(--spacing) * 6) calc(var(--spacing) * 2);
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+	text-align: center;
+}
+
+.es-filter-picker__condition {
+	display: flex;
+	min-width: 0;
+	height: var(--input-height);
+	border-radius: var(--radius);
+	background: var(--control-bg);
+}
+
+.es-filter-picker__condition[data-only-condition] {
+	width: fit-content;
+}
+
+/* the conditions' words stack in one cell, the shown one on top: the button is as wide as the longest */
+.es-filter-picker__condition-label {
+	display: inline-grid;
+	justify-items: start;
+}
+
+.es-filter-picker__condition-label > * {
+	grid-area: 1 / 1;
+}
+
+.es-filter-picker__condition > .es-button:first-child {
+	flex-shrink: 0;
+	height: auto;
+	border-start-end-radius: 0;
+	border-end-end-radius: 0;
+	background: transparent;
+}
+
+.es-filter-picker__condition > .es-filter-picker__scan {
+	align-self: center;
+	flex-shrink: 0;
+	margin-inline-end: var(--spacing);
+}
+
+.es-filter-picker__input {
+	flex: 1;
+	min-width: 0;
+	height: var(--input-height);
+	margin: 0;
+	padding: var(--input-padding);
+	border: 0;
+	border-radius: var(--radius);
+	background: var(--control-bg);
+	color: var(--ink-gray-8);
+	font: inherit;
+	outline: none;
+}
+
+.es-filter-picker__input::placeholder,
+.es-filter-picker__segment::placeholder,
+.es-filter-panel__search > input::placeholder {
+	color: var(--ink-gray-4);
+}
+
+/* numbers type in with the keyboard; the browser's arrows only add noise */
+.es-filter-picker__input[type="number"] {
+	appearance: textfield;
+}
+
+.es-filter-picker__input[type="number"]::-webkit-inner-spin-button,
+.es-filter-picker__input[type="number"]::-webkit-outer-spin-button {
+	margin: 0;
+	appearance: none;
+}
+
+.es-filter-picker__head {
+	padding: calc(var(--spacing) * 3);
+	border-bottom: 1px solid var(--outline-elevation-2);
+}
+
+.es-filter-picker__error {
+	margin: calc(var(--spacing) * 1.5) 0 0;
+	color: var(--ink-red-7);
+	font-size: var(--text-sm);
+}
+
+.es-filter-picker__hint {
+	margin: calc(var(--spacing) * 2) 0 0;
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+}
+
+/* inside a picker its own gap already spaces it */
+.es-filter-picker > .es-filter-picker__hint {
+	margin: 0;
+}
+
+.es-filter-picker__periods {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	width: calc(var(--spacing) * 40);
+	max-height: calc(var(--spacing) * 80);
+	padding: calc(var(--spacing) * 1.5);
+	border-inline-end: 1px solid var(--outline-elevation-2);
+	overflow-y: auto;
+}
+
+.es-filter-picker__period-group + .es-filter-picker__period-group {
+	margin-top: calc(var(--spacing) * 1.5);
+	padding-top: calc(var(--spacing) * 1.5);
+	border-top: 1px solid var(--outline-elevation-2);
+}
+
+.es-filter-picker__periods .es-menu__item > svg {
+	margin-inline-start: auto;
+}
+
+.es-filter-picker__calendar {
+	display: flex;
+	flex: 1;
+	justify-content: center;
+	padding: calc(var(--spacing) * 3);
+}
+
+.es-filter-picker__calendar .air-datepicker {
+	border: 0;
+	box-shadow: none;
+	background: transparent;
+}
+
+.es-filter-picker__extra:empty {
+	display: none;
+}
+
+.es-filter-picker__ranges {
+	display: grid;
+	grid-auto-columns: 1fr;
+	grid-auto-flow: column;
+}
+
+.es-filter-picker__ranges > .es-pill {
+	min-width: max-content;
+	padding-inline: calc(var(--spacing) * 1);
+	font-variant-numeric: tabular-nums;
+}
+
+.es-filter-picker__slider {
+	--kept-gradient: var(--surface-gray-3) var(--kept-start), var(--ink-gray-9) var(--kept-start),
+		var(--ink-gray-9) var(--kept-end), var(--surface-gray-3) var(--kept-end);
+
+	appearance: none;
+	width: 100%;
+	height: var(--knob-size);
+	margin: 0;
+	background: linear-gradient(to right, var(--kept-gradient)) center / 100% var(--spacing)
+		no-repeat;
+	cursor: pointer;
+	outline: none;
+}
+
+[dir="rtl"] .es-filter-picker__slider {
+	background-image: linear-gradient(to left, var(--kept-gradient));
+}
+
+.es-filter-picker__slider::-webkit-slider-thumb {
+	appearance: none;
+	width: var(--knob-size);
+	height: var(--knob-size);
+	border: 2px solid var(--ink-gray-9);
+	border-radius: 50%;
+	background: var(--surface-base);
+}
+
+.es-filter-picker__slider::-moz-range-thumb {
+	box-sizing: border-box;
+	width: var(--knob-size);
+	height: var(--knob-size);
+	border: 2px solid var(--ink-gray-9);
+	border-radius: 50%;
+	background: var(--surface-base);
+}
+
+.es-filter-picker__slider:focus-visible::-webkit-slider-thumb {
+	box-shadow: var(--focus-default);
+}
+
+.es-filter-picker__slider:focus-visible::-moz-range-thumb {
+	box-shadow: var(--focus-default);
+}
+
+/* a mark sits under the knob's centre at its value: half a knob in from each end */
+.es-filter-picker__scale {
+	position: relative;
+	height: calc(var(--spacing) * 4);
+	margin-top: calc(var(--spacing) * 1.5);
+	color: var(--ink-gray-5);
+	font-size: var(--text-xs);
+	font-variant-numeric: tabular-nums;
+}
+
+.es-filter-picker__scale > span {
+	position: absolute;
+	inset-inline-start: calc(var(--knob-size) / 2 + (100% - var(--knob-size)) * var(--at));
+	translate: -50%;
+}
+
+[dir="rtl"] .es-filter-picker__scale > span {
+	translate: 50%;
+}
+
+.es-filter-picker__duration {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	min-width: 0;
+	padding-inline: calc(var(--spacing) * 2);
+	border-inline-start: 1px solid var(--outline-gray-2);
+	cursor: text;
+}
+
+.es-filter-picker__segment {
+	width: 1ch;
+	min-width: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--ink-gray-8);
+	font: inherit;
+	font-variant-numeric: tabular-nums;
+	text-align: end;
+	outline: none;
+}
+
+.es-filter-picker__unit {
+	margin-inline: calc(var(--spacing) * 0.5) calc(var(--spacing) * 2);
+	color: var(--ink-gray-5);
+}
+
+/* a chip's popover makes room for the five common times */
+.es-filter-picker-panel:has(.es-filter-picker__times) {
+	width: calc(var(--spacing) * 88);
+}
+
+.es-filter-picker__ruler {
+	position: relative;
+	height: calc(var(--spacing) * 14);
+	margin-inline: calc(var(--spacing) * 3);
+	cursor: pointer;
+	touch-action: none;
+	user-select: none;
+}
+
+.es-filter-picker__track,
+.es-filter-picker__kept {
+	position: absolute;
+	top: calc(var(--spacing) * 7);
+	height: var(--spacing);
+	border-radius: var(--radius-full);
+}
+
+.es-filter-picker__track {
+	inset-inline: 0;
+	background: var(--surface-gray-3);
+}
+
+.es-filter-picker__kept {
+	background: var(--ink-gray-9);
+	transition: inset-inline-start 200ms cubic-bezier(0.23, 1, 0.32, 1),
+		width 200ms cubic-bezier(0.23, 1, 0.32, 1), opacity 120ms;
+}
+
+.es-filter-picker__kept[data-empty] {
+	opacity: 0;
+}
+
+.es-filter-picker__knob {
+	position: absolute;
+	top: calc(var(--spacing) * 7 + 2px);
+	width: var(--knob-size);
+	height: var(--knob-size);
+	margin-top: calc(var(--knob-size) / -2);
+	margin-inline-start: calc(var(--knob-size) / -2);
+	border: 2px solid var(--ink-gray-9);
+	border-radius: 50%;
+	background: var(--surface-base);
+	cursor: grab;
+	outline: none;
+	transition: inset-inline-start 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.es-filter-picker__knob:focus-visible {
+	box-shadow: var(--focus-default);
+}
+
+.es-filter-picker__knob[data-not] {
+	border-style: dashed;
+}
+
+.es-filter-picker__ruler[data-dragging],
+.es-filter-picker__ruler[data-dragging] .es-filter-picker__knob {
+	cursor: grabbing;
+}
+
+.es-filter-picker__ruler[data-dragging] .es-filter-picker__kept,
+.es-filter-picker__ruler[data-dragging] .es-filter-picker__knob {
+	transition: none;
+}
+
+.es-filter-picker__knob-time {
+	position: absolute;
+	bottom: calc(100% + var(--spacing));
+	inset-inline-start: 50%;
+	translate: -50%;
+	padding: 1px calc(var(--spacing) * 1.5);
+	border-radius: var(--radius-sm);
+	background: var(--surface-gray-10);
+	color: var(--ink-base);
+	font-size: var(--text-xs);
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.es-filter-picker__mark {
+	position: absolute;
+	top: calc(var(--spacing) * 9);
+	translate: -50%;
+	padding: calc(var(--spacing) * 1) calc(var(--spacing) * 0.5) 0;
+	border: 0;
+	background: transparent;
+	color: var(--ink-gray-5);
+	font-size: var(--text-xs);
+	font-variant-numeric: tabular-nums;
+	cursor: pointer;
+}
+
+.es-filter-picker__mark::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	inset-inline-start: 50%;
+	width: 1px;
+	height: 3px;
+	background: var(--outline-gray-3);
+}
+
+.es-filter-picker__mark:hover {
+	color: var(--ink-gray-9);
+}
+
+.es-filter-picker__ruler[data-close] [data-key="from"] > .es-filter-picker__knob-time {
+	translate: calc(-100% + var(--knob-size) / 2);
+}
+
+.es-filter-picker__ruler[data-close] [data-key="to"] > .es-filter-picker__knob-time {
+	translate: calc(var(--knob-size) / -2);
+}
+
+[dir="rtl"] .es-filter-picker__knob-time,
+[dir="rtl"] .es-filter-picker__mark {
+	translate: 50%;
+}
+
+[dir="rtl"] .es-filter-picker__ruler[data-close] [data-key="from"] > .es-filter-picker__knob-time {
+	translate: calc(100% - var(--knob-size) / 2);
+}
+
+[dir="rtl"] .es-filter-picker__ruler[data-close] [data-key="to"] > .es-filter-picker__knob-time {
+	translate: calc(var(--knob-size) / 2);
+}
+
+.es-filter-stopwatch__hand {
+	transform-box: view-box;
+	transform-origin: 12px 14px;
+	transition: transform 600ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.es-filter-picker--notice > .es-button {
+	align-self: flex-start;
+}
+
+.es-popover.es-filter-panel-popover {
+	width: min(calc(var(--spacing) * 190), calc(100vw - var(--spacing) * 6));
+	padding: 0;
+	overflow: hidden;
+}
+
+/* the desk's filter rows: a Link field's suggestions hang out of the panel */
+.es-popover.es-filter-panel-popover:has(.es-filter-panel[data-view="advanced"]) {
+	overflow: visible;
+}
+
+.es-filter-panel {
+	--panel-height: min(calc(var(--spacing) * 130), calc(100vh - var(--spacing) * 35));
+
+	display: flex;
+	height: var(--panel-height);
+	color: var(--ink-gray-8);
+	font-size: var(--text-base);
+}
+
+.es-filter-panel[data-view="advanced"] {
+	height: auto;
+	min-height: var(--panel-height);
+}
+
+.es-filter-panel__fields {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	width: calc(var(--spacing) * 56);
+	border-inline-end: 1px solid var(--outline-elevation-2);
+}
+
+.es-filter-panel__search {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	height: calc(var(--spacing) * 10);
+	margin: 0;
+	padding-inline: calc(var(--spacing) * 3);
+	border-bottom: 1px solid var(--outline-elevation-2);
+	color: var(--ink-gray-5);
+	cursor: text;
+}
+
+.es-filter-panel__search > input {
+	flex: 1;
+	min-width: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: var(--ink-gray-8);
+	font: inherit;
+	outline: none;
+}
+
+.es-filter-panel__list {
+	flex: 1;
+	min-height: 0;
+	padding: calc(var(--spacing) * 1.5);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+.es-filter-panel__group + .es-filter-panel__group {
+	margin-top: calc(var(--spacing) * 2);
+}
+
+.es-filter-panel__group-label {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1.5);
+	min-height: calc(var(--spacing) * 7);
+	padding-inline: calc(var(--spacing) * 2);
+}
+
+.es-filter-panel__group-label > svg {
+	width: calc(var(--spacing) * 3.5);
+	height: calc(var(--spacing) * 3.5);
+}
+
+.es-filter-panel .es-menu__item[aria-current="true"] {
+	background: var(--surface-gray-3);
+}
+
+.es-filter-panel .es-menu__item.is-filtered .es-menu__label {
+	color: var(--ink-gray-9);
+	font-weight: var(--font-weight-medium);
+}
+
+/* a flex box, so the badge adds no line height and a row with a count stays 28px */
+.es-filter-panel__count {
+	display: flex;
+	flex-shrink: 0;
+	margin-inline-start: auto;
+}
+
+/* [data-variant] outranks the outline badge's fill */
+.es-filter-panel__count > .es-badge[data-variant] {
+	justify-content: center;
+	min-width: calc(var(--spacing) * 4);
+	height: calc(var(--spacing) * 4);
+	padding-inline: var(--spacing);
+	border-radius: var(--radius-2);
+	background: var(--surface-base);
+	color: var(--ink-gray-8);
+	font-weight: var(--font-weight-medium);
+	font-variant-numeric: tabular-nums;
+}
+
+.es-filter-panel__count:empty {
+	display: none;
+}
+
+.es-filter-panel__footer {
+	flex-shrink: 0;
+	padding: calc(var(--spacing) * 1.5);
+	border-top: 1px solid var(--outline-elevation-2);
+}
+
+.es-filter-panel__pane,
+.es-filter-panel__advanced-view {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.es-filter-panel__head {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: calc(var(--spacing) * 2.5);
+	height: calc(var(--spacing) * 10);
+	padding-inline: calc(var(--spacing) * 3) calc(var(--spacing) * 1.5);
+	border-bottom: 1px solid var(--outline-elevation-2);
+}
+
+.es-filter-panel__advanced-view > .es-filter-panel__head {
+	gap: calc(var(--spacing) * 1.5);
+	padding-inline-start: calc(var(--spacing) * 1.5);
+}
+
+.es-filter-panel__head > svg {
+	flex-shrink: 0;
+	color: var(--ink-gray-6);
+}
+
+.es-filter-panel__title {
+	margin: 0;
+	color: var(--ink-gray-9);
+	font-size: var(--text-base);
+	font-weight: var(--font-weight-medium);
+}
+
+.es-filter-panel__hint {
+	min-width: 0;
+	color: var(--ink-gray-5);
+	font-size: var(--text-sm);
+}
+
+.es-filter-panel__head > .es-button:last-child {
+	margin-inline-start: auto;
+}
+
+.es-filter-panel__picker {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	min-height: 0;
+	overflow-y: auto;
+}
+
+/* in the panel the value list fills the pane instead of stopping at a popover's height */
+.es-filter-panel__picker > .es-filter-picker--values {
+	flex: 1;
+}
+
+.es-filter-panel__picker .es-filter-picker__list {
+	flex: 1;
+	max-height: none;
+}
+
+.es-filter-panel__picker .es-filter-picker__periods {
+	max-height: none;
+}
+
+/* the desk centres a lone .icon with auto margins; in these rows it sits at the start */
+.es-filter-panel svg,
+.es-filter-picker svg {
+	margin: 0;
+}
+
+[dir="rtl"] .es-filter-panel__back svg,
+[dir="rtl"] .es-filter-picker__forward svg {
+	transform: scaleX(-1);
+}
+
+.es-filter-picker .es-menu__item,
+.es-filter-panel .es-menu__item,
+.es-filter-picker .es-combobox__check {
+	transition: background-color 120ms, border-color 120ms, color 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.es-filter-picker .es-menu__item,
+	.es-filter-panel .es-menu__item,
+	.es-filter-picker .es-combobox__check,
+	.es-filter-picker__kept,
+	.es-filter-picker__knob,
+	.es-filter-stopwatch__hand {
+		transition: none;
+	}
+}
+
+.es-filter-chips__gap {
+	display: inline-flex;
+	flex-shrink: 0;
+	height: calc(var(--spacing) * 7);
+	overflow: hidden;
+	pointer-events: none;
+}

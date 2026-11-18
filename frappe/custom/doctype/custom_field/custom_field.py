@@ -92,6 +92,7 @@ class CustomField(Document):
 		hide_border: DF.Check
 		hide_days: DF.Check
 		hide_seconds: DF.Check
+		icon: DF.Icon | None
 		ignore_user_permissions: DF.Check
 		ignore_versioning: DF.Check
 		ignore_xss_filter: DF.Check

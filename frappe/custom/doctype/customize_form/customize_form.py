@@ -788,6 +788,7 @@ docfield_properties = {
 	"fieldtype": "Select",
 	"options": "Text",
 	"sort_options": "Check",
+	"icon": "Data",
 	"fetch_from": "Small Text",
 	"fetch_if_empty": "Check",
 	"show_dashboard": "Check",

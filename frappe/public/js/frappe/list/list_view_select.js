@@ -381,7 +381,19 @@ frappe.views.ListViewSelect = class ListViewSelect {
 
 		let search_params = cur_list?.get_search_params();
 		if (search_params) {
-			frappe.route_options = Object.fromEntries(search_params);
+			// a range (>= and <=) keeps both, as a list of [condition, value]
+			const options = {};
+			const rule_of = (v) =>
+				v.startsWith("[") && v.endsWith("]") ? JSON.parse(v) : ["=", v];
+			for (const [key, value] of search_params) {
+				if (!(key in options)) {
+					options[key] = value;
+					continue;
+				}
+				const rules = Array.isArray(options[key]) ? options[key] : [rule_of(options[key])];
+				options[key] = [...rules, rule_of(value)];
+			}
+			frappe.route_options = options;
 		}
 		frappe.set_route(route);
 	}

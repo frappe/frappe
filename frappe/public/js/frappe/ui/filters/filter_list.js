@@ -79,7 +79,9 @@ frappe.ui.FilterGroup = class {
 		this.popover.trigger_el.removeEventListener("click", this.popover.ontriggerclick);
 		this.filter_button[0].addEventListener("click", (e) => {
 			e.preventDefault();
-			frappe.is_mobile() ? this.open_sheet() : this.popover.toggle();
+			if (frappe.is_mobile()) this.open_sheet();
+			else if (this.toolbar?.filter_chips) this.toolbar.toggle_filter_panel();
+			else this.popover.toggle();
 		});
 		this.intercept_row_pickers();
 
@@ -487,7 +489,11 @@ frappe.ui.FilterGroup = class {
 	set_clear_all_filters_event() {
 		if (!this.filter_x_button) return;
 
-		this.filter_x_button.on("click", () => this.clear_all());
+		this.filter_x_button.on("click", () => {
+			// the button hides once nothing is filtered: focus goes to the Filter button beside it
+			if (this.filter_x_button.is(":focus")) this.filter_button?.trigger("focus");
+			this.clear_all();
+		});
 	}
 
 	clear_all() {
@@ -666,7 +672,7 @@ frappe.ui.FilterGroup = class {
 		if (!this.filter_button) return;
 
 		const standard = this.toolbar?.get_standard_filters().length || 0;
-		const count = this.get_filters().length + standard;
+		const count = this.toolbar?.filter_count?.() ?? this.get_filters().length + standard;
 		const $label = this.filter_button.find(".filter-label");
 		$label.text(count).toggleClass("hidden", !count);
 		// a host's own button (a dashboard chart) has no count: it shows applied as develop did
@@ -679,7 +685,12 @@ frappe.ui.FilterGroup = class {
 		let title = __("Filter");
 		if (count)
 			title = count === 1 ? __("1 filter applied") : __("{0} filters applied", [count]);
-		this.filter_button.attr("title", title);
+		const tooltip =
+			this.filter_button.data("es-tooltip") ||
+			frappe.ui.tooltip(this.filter_button).data("es-tooltip");
+		tooltip.set_text(title);
+		// the label hides on narrow screens; the button keeps its name
+		this.filter_button.attr("aria-label", title);
 	}
 
 	set_filter_events() {
@@ -764,7 +775,7 @@ frappe.ui.FilterGroup = class {
 
 		let filter = this._push_new_filter(...args);
 
-		if (filter && filter.value) {
+		if (filter && filter.value !== "") {
 			return filter._filter_value_set; // internal promise
 		}
 	}

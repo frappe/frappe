@@ -8,6 +8,8 @@ frappe.provide("frappe.ui");
  * @property {Element|JQuery} [trigger] An existing element that opens the panel. Omit to have one made from `button`.
  * @property {Object} [button] Options for the generated frappe.ui.button trigger (ignored when `trigger` is passed).
  * @property {Element|JQuery|function|string} content The panel body. An element (or a function returning one, called fresh on every open) is the rich channel; a plain string renders as text, never HTML.
+ * @property {Element|JQuery} [anchor] What the panel lines up with, when not the trigger itself (the
+ *   group or box the trigger sits in). Defaults to the trigger.
  * @property {"top"|"right"|"bottom"|"left"} [side="bottom"] Which side of the trigger the panel opens on.
  * @property {"start"|"center"|"end"} [align="start"] How the panel lines up along that side.
  * @property {number} [offset=4] Gap between trigger and panel, in px.
@@ -69,6 +71,7 @@ frappe.ui.Popover = class Popover {
 		}
 		this.$trigger = opts.trigger ? $(opts.trigger) : frappe.ui.button(button_opts);
 		this.trigger_el = this.$trigger[0];
+		this.anchor_el = (opts.anchor && $(opts.anchor)[0]) || this.trigger_el;
 
 		if (!this.trigger_el) {
 			console.warn("frappe.ui.Popover: trigger element not found");
@@ -115,7 +118,7 @@ frappe.ui.Popover = class Popover {
 		// same drill as menus: into <body> first (place() needs the real
 		// size), position, then data-state starts the enter animation
 		document.body.appendChild(panel);
-		place(panel, this.trigger_el.getBoundingClientRect(), this.side, this.align, this.offset);
+		place(panel, this.anchor_el.getBoundingClientRect(), this.side, this.align, this.offset);
 		panel.setAttribute("data-state", "open");
 
 		this.trigger_el.setAttribute("aria-expanded", "true");
@@ -166,7 +169,7 @@ frappe.ui.Popover = class Popover {
 		this.onreposition = () => {
 			place(
 				panel,
-				this.trigger_el.getBoundingClientRect(),
+				this.anchor_el.getBoundingClientRect(),
 				this.side,
 				this.align,
 				this.offset
@@ -177,9 +180,10 @@ frappe.ui.Popover = class Popover {
 		document.addEventListener("pointerdown", this.onpointerdown, { capture: true });
 		document.addEventListener("focusin", this.onfocusin);
 		window.addEventListener("resize", this.onreposition);
-		// content that grows or shrinks while open (rows added) re-anchors too
+		// content resized while open, or an anchor that grows (and may wrap), re-anchors too
 		this.resize_observer = new ResizeObserver(this.onreposition);
 		this.resize_observer.observe(panel);
+		this.resize_observer.observe(this.anchor_el);
 		document.addEventListener("scroll", this.onreposition, { capture: true, passive: true });
 
 		this.opts.on_open && this.opts.on_open(this);
@@ -202,7 +206,10 @@ frappe.ui.Popover = class Popover {
 	// instead of the body-level panel's neighbours. Shift+Tab from the
 	// first control mirrors that.
 	handle_tab(e) {
-		const tabbables = [...this.panel.querySelectorAll(TABBABLE)];
+		// only what Tab can reach: no tabindex -1 rows (a Combobox's options), nothing hidden
+		const tabbables = [...this.panel.querySelectorAll(TABBABLE)].filter(
+			(el) => el.tabIndex >= 0 && el.getClientRects().length
+		);
 		const first = tabbables[0];
 		const last = tabbables[tabbables.length - 1];
 		const active = document.activeElement;
