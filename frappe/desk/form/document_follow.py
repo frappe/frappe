@@ -9,7 +9,7 @@ import frappe.utils
 from frappe import _
 from frappe.model import log_types
 from frappe.query_builder import DocType
-from frappe.utils import get_url_to_form, get_user_display_id
+from frappe.utils import get_email_address, get_url_to_form, get_user_display_id
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
