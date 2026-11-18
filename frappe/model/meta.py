@@ -868,12 +868,6 @@ class Meta(Document):
 			elif link.is_child_table:
 				data.internal_links[link.parent_doctype] = [link.table_fieldname, link.link_fieldname]
 
-	def get_row_template(self):
-		return self.get_web_template(suffix="_row")
-
-	def get_list_template(self):
-		return self.get_web_template(suffix="_list")
-
 	def get_web_template(self, suffix=""):
 		"""Return the relative path of the row template for this doctype."""
 		module_name = frappe.scrub(self.module)

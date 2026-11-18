@@ -1,5 +1,4 @@
 import frappe
-import frappe.www.list
 from frappe import _
 
 no_cache = 1

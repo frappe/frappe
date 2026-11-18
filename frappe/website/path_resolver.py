@@ -8,7 +8,6 @@ from werkzeug.routing import Map, Rule
 
 import frappe
 from frappe.website.page_renderers.document_page import DocumentPage
-from frappe.website.page_renderers.list_renderer import ListPage
 from frappe.website.page_renderers.not_found_page import NotFoundPage
 from frappe.website.page_renderers.print_page import PrintPage
 from frappe.website.page_renderers.redirect_page import RedirectPage
@@ -76,7 +75,6 @@ class PathResolver:
 			DocumentPage,
 			TemplatePage,
 			PrintPage,
-			ListPage,
 		]
 
 		for renderer in renderers:

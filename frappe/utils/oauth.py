@@ -527,9 +527,6 @@ def update_oauth_user(user: str, data: dict, provider: str):
 		user.flags.ignore_permissions = True
 		user.flags.no_welcome_mail = True
 
-		if default_role := frappe.db.get_single_value("Portal Settings", "default_role"):
-			user.add_roles(default_role)
-
 		user.save()
 
 	return user.name
