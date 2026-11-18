@@ -11,7 +11,7 @@ import frappe.defaults
 from frappe import _
 from frappe.permissions import ALL_USER_ROLE
 from frappe.sessions import clear_sessions
-from frappe.utils import cint
+from frappe.utils import cint, get_user_display_id
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.password import decrypt, encrypt
 
@@ -200,7 +200,7 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 def get_otp_app_setup_obj(user, otp_secret):
 	"""Return the QR code and secret to register the user's OTP App."""
 	otp_issuer = frappe.get_system_settings("otp_issuer_name")
-	totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
+	totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(get_user_display_id(user), issuer_name=otp_issuer)
 	return {
 		"method": "OTP App",
 		"qrcode": get_qr_svg_code(totp_uri).decode(),

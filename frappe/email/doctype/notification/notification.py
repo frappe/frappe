@@ -971,7 +971,12 @@ def get_comments_for_context(doc):
 	)
 	comments.sort(key=lambda c: c.creation)
 	return [
-		{"comment": truncate(c.content), "by": c.by or c.owner, "name": c.name} for c in comments[-100:]
+		{
+			"comment": truncate(c.content),
+			"by": c.by or frappe.utils.get_user_display_id(c.owner),
+			"name": c.name,
+		}
+		for c in comments[-100:]
 	] or None
 
 
