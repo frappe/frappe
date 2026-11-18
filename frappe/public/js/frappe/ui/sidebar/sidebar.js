@@ -492,6 +492,12 @@ frappe.ui.Sidebar = class Sidebar {
 							frappe.ui.toolbar.clear_cache();
 						},
 					},
+					{
+						name: "about",
+						label: __("About"),
+						icon: "info",
+						onclick: () => frappe.ui.toolbar.show_about(),
+					},
 				],
 			},
 			{
