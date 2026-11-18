@@ -13,6 +13,7 @@ from oauthlib.oauth2 import WebApplicationClient
 
 import frappe
 from frappe import _
+from frappe.email.doctype.email_account.email_account import EmailAccount
 from frappe.integrations.frappe_providers.cloud_settings import PilotClient, is_v2_site
 from frappe.integrations.utils import make_get_request
 from frappe.utils.caching import redis_cache
@@ -299,7 +300,10 @@ def connect_mailbox(
 	if (
 		result == "smtp_disabled_personal"
 		and not account_name
-		and frappe.db.exists("Email Account", {"default_outgoing": 1, "enable_outgoing": 1})
+		and (
+			frappe.db.exists("Email Account", {"default_outgoing": 1, "enable_outgoing": 1})
+			or EmailAccount.get_account_details_from_site_config()
+		)
 	):
 		result = try_save_email_account(note, email, connected_app, personal, outgoing=False)
 		if not result:

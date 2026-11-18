@@ -720,6 +720,7 @@ class TestCallback(IntegrationTestCase):
 		for name in defaults:
 			frappe.db.set_value("Email Account", name, "default_outgoing", 0)
 		frappe.db.commit()  # the callback rolls back a refused save; # nosemgrep
+		self.enterContext(patch.dict(frappe.conf, {"mail_server": None}))
 
 		def restore() -> None:
 			for name in defaults:
@@ -757,6 +758,19 @@ class TestCallback(IntegrationTestCase):
 		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
 		self.assertEqual((account.enable_incoming, account.enable_outgoing), (1, 0))
 		self.assertTrue(frappe.db.exists("Connected App", account.connected_app))
+
+	def test_personal_mailbox_is_added_for_receiving_only_beside_a_site_config_sender(self) -> None:
+		self.without_default_outgoing()
+		frappe.conf.mail_server = "smtp.example.com"
+
+		def refuse_smtp(account: EmailAccount) -> None:
+			if account.enable_outgoing:
+				raise frappe.ValidationError("5.7.139 SmtpClientAuthentication is disabled for the Mailbox")
+
+		with patch.object(EmailAccount, "validate", autospec=True, side_effect=refuse_smtp):
+			email_oauth.callback(state=self.note(), code="c")
+
+		self.assertIn("email_oauth=connected_receive_only", self.landed())
 
 	def test_failed_save_leaves_nothing_behind(self) -> None:
 		self.without_default_outgoing()
