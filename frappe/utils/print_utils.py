@@ -274,6 +274,7 @@ def attach_print(
 	frappe.local.flags.ignore_print_permissions = True
 
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
+	kwargs["print_format"] = pf_doc.name if pf_doc else "Standard"
 
 	try:
 		with print_language(lang):
