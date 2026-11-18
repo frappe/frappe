@@ -1195,8 +1195,8 @@ def test_user(
 ):
 	"""Create a user for the duration of the test.
 
-	`generated_id` gives the user a random ID instead of their email. Saving a freshly loaded copy
-	of such a user fails: validation copies the ID into the email.
+	The user's ID is their email, like users created before v17; `generated_id` gives them a
+	random ID, like new users get.
 	"""
 	try:
 		first_name = first_name or frappe.generate_hash()
@@ -1209,8 +1209,7 @@ def test_user(
 			**kwargs,
 		)
 		user.append_roles(*roles)
-		user.flags.skip_email_from_name = generated_id
-		user.insert(set_name=frappe.generate_hash(length=10) if generated_id else None)
+		user.insert(set_name=None if generated_id else email)
 		yield user
 		commit and frappe.db.commit()
 	finally:

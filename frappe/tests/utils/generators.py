@@ -326,7 +326,7 @@ def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
 	d.docstatus = 0
 
 	d.run_method("before_test_insert")
-	d.insert(ignore_if_duplicate=True)
+	d.insert(ignore_if_duplicate=True, set_name=record.get("name"))
 
 	if docstatus == 1:
 		d.submit()

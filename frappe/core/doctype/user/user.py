@@ -21,6 +21,7 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
+from frappe.model.naming import make_autoname
 from frappe.query_builder import Criterion, DocType, Table
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions, hash_sid
@@ -217,12 +218,10 @@ class User(Document):
 			self.name = self.name.strip().lower()
 
 	def autoname(self):
-		"""set name as Email Address"""
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
 		else:
-			self.email = self.email.strip().lower()
-			self.name = self.email
+			self.name = make_autoname("hash", self.doctype)
 
 	def onload(self):
 		from frappe.utils.modules import get_blockable_module_names
@@ -251,14 +250,12 @@ class User(Document):
 		if not frappe.in_test:
 			self.password_strength_test()
 
-		if self.name not in STANDARD_USERS and not self.flags.skip_email_from_name:
-			self.email = self.name
-			self.validate_email_type(self.name)
-
 		if self.email:
 			self.email = self.email.strip().lower()
-			if self.has_value_changed("email"):
+			if self.name not in STANDARD_USERS and self.has_value_changed("email"):
+				self.validate_email_type(self.email)
 				self.validate_email_domain(self.email)
+				self.validate_email_is_not_another_users_id()
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
@@ -784,6 +781,11 @@ class User(Document):
 		from frappe.utils import validate_email_address
 
 		validate_email_address(email, True)
+
+	def validate_email_is_not_another_users_id(self):
+		"""An email and a user ID mean one user: users created before v17 have their email as ID."""
+		if self.email != self.name and frappe.db.exists("User", self.email):
+			throw(_("{0} is already used by another user.").format(frappe.bold(self.email)))
 
 	def validate_email_domain(self, email):
 		"""Users other than Administrator and Guest can't get an email on the reserved `.invalid` domain."""

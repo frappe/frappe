@@ -365,6 +365,7 @@ def create_user(email, *roles):
 	user = frappe.new_doc("User")
 	user.email = email
 	user.first_name = email.split("@", 1)[0]
+	user.set_new_name(set_name=email)
 
 	if not roles:
 		roles = ("System Manager",)
