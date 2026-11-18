@@ -160,7 +160,6 @@ describe("the address opens the section it is standing in", () => {
 		expect(held!.getAttribute("aria-expanded")).toBe("true");
 		expect(held!.querySelector(".lucide-chevron-right")).not.toBeNull();
 
-		// The heading draws the same on the way out: same control, same label.
 		await router.push("/crm-lead");
 		await flush();
 		const shut = control(host, "leads-configure");

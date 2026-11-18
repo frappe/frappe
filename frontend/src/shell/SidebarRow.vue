@@ -201,7 +201,7 @@ const shippedOpen = computed(() => !item.value.keep_closed);
 // The one section the address is standing in opens itself, transiently and writing nothing.
 const holdsCurrent = computed(() => !!props.current && containsKey(props.node, props.current));
 
-// The chevron stays while the address is inside, so the heading does not change between states.
+// Kept while the address is inside: the heading must not change between states.
 const collapsible = computed(() => !!item.value.collapsible);
 
 /** Where this section rests when the address is not inside it. */
