@@ -400,8 +400,8 @@ class Page:
 		if image_format in ("jpeg", "webp"):  # quality is only valid for lossy formats
 			params["quality"] = quality
 		result, error = self.send("Page.captureScreenshot", params)
-		if error:
-			raise RuntimeError(f"Error capturing screenshot: {error}")
+		if error or not result.get("data"):
+			raise RuntimeError(f"Error capturing screenshot: {error or 'no image data'}")
 		return base64.b64decode(result["data"])
 
 	def generate_pdf(self, wait_for_pdf=True, raw=False):

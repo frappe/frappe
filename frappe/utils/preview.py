@@ -15,7 +15,7 @@ from frappe import _
 from frappe.utils.data import cint
 
 SUPPORTED_FORMATS = ("jpg", "jpeg", "webp")
-MAX_FULL_PAGE_HEIGHT = 16384
+MAX_FULL_PAGE_HEIGHT = 16383
 
 
 def get_preview_from_html(html: str, format: str = "jpg", width: int = 1280, height: int = 720) -> bytes:
@@ -54,11 +54,13 @@ def get_preview_from_url(
 	        format: Image format — one of ``SUPPORTED_FORMATS`` (jpg, jpeg, webp).
 	        width: Viewport width in pixels (default 1280).
 	        height: Viewport height in pixels (default 720).
-	        full_page: Capture the whole document, not only the viewport. The image is
-	                as tall as the content, capped at ``MAX_FULL_PAGE_HEIGHT`` pixels.
-	        wait_until: A JavaScript expression, polled until it is truthy before the capture.
-	        timeout: Seconds to wait for the page load and ``wait_until``; raises
-	                ``TimeoutError`` when ``wait_until`` is still falsy after it.
+	        full_page: Capture the document's full scroll height, not only the viewport,
+	                capped at ``MAX_FULL_PAGE_HEIGHT`` pixels. Content inside an inner scroll
+	                container (e.g. a ``100vh`` app shell) is not expanded.
+	        wait_until: A synchronous JavaScript expression, polled until it is truthy
+	                before the capture. A syntax error in it raises at once.
+	        timeout: Seconds to wait for the page load and ``wait_until`` when ``wait_until``
+	                is given; raises ``TimeoutError`` when it is still falsy after that.
 	"""
 	return capture_screenshot(
 		format,
@@ -158,9 +160,12 @@ def capture_screenshot(
 
 def wait_until_truthy(page, expression: str, deadline: float, timeout: int):
 	while True:
-		result = page.evaluate(f"Boolean({expression})")
-		if (result or {}).get("result", {}).get("value") is True:
+		result = page.evaluate(f"Boolean({expression})") or {}
+		if result.get("result", {}).get("value") is True:
 			return
+		exception = result.get("exceptionDetails", {}).get("exception", {})
+		if exception.get("className") == "SyntaxError":
+			raise SyntaxError(f"Invalid wait_until expression: {exception.get('description')}")
 		if time.monotonic() >= deadline:
 			raise TimeoutError(f"Page not ready after {timeout} seconds: {expression} is not truthy")
 		time.sleep(0.1)
