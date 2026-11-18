@@ -315,6 +315,26 @@ class TestCommands(BaseTestCommands):
 				self.assertEqual(result.exit_code, 0)
 				self.assertIn(f"//{site}:8123", result.output)
 
+	def test_get_user_id_finds_a_user_by_id_or_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		get_user_id = frappe.commands.site.get_user_id
+
+		with test_user(roles=[]) as user:
+			email = f"new_{user.name}"
+			frappe.db.set_value("User", user.name, "email", email)
+
+			self.assertEqual(get_user_id(user.name), user.name)
+			self.assertEqual(get_user_id(f" {email.upper()} "), user.name)
+
+		self.assertEqual(get_user_id("Administrator"), "Administrator")
+
+		admin_email = frappe.db.get_value("User", "Administrator", "email") or "admin@example.com"
+
+		for value in (admin_email, "not_a_user"):
+			with self.subTest(value=value), self.assertRaises(SystemExit):
+				get_user_id(value)
+
 	def make_browse_website_user(self):
 		email = "browse-website-user@example.com"
 		if not frappe.db.exists("User", email):

@@ -15,6 +15,8 @@ def invite_by_email(
 	email_list = frappe.utils.split_emails(emails)
 	if not email_list:
 		frappe.throw(title=_("Invalid input"), msg=_("No email addresses to invite"))
+	if frappe.db.exists("User", {"email": ["in", email_list], "name": ["in", frappe.STANDARD_USERS]}):
+		frappe.throw(title=_("Error"), msg=_("Standard users can't be invited"))
 
 	# get relevant data from the database
 	disabled_user_emails = frappe.db.get_all(
@@ -157,7 +159,7 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	# accept invitation
 	invitation.accept(ignore_permissions=True)
 
-	user = frappe.get_doc("User", invitation.email)
+	user = frappe.get_doc("User", invitation.user)
 	should_update_password = not user.last_password_reset_date and not bool(
 		frappe.get_system_settings("disable_user_pass_login")
 	)
@@ -171,7 +173,7 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	frappe.db.commit()  # nosemgrep
 
 	if not in_test and not should_update_password:
-		frappe.local.login_manager.login_as(invitation.email)
+		frappe.local.login_manager.login_as(invitation.user)
 
 	# set response
 	frappe.local.response["type"] = "redirect"
