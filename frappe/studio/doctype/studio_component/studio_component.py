@@ -411,9 +411,13 @@ def fetch_component_batch(component_ids: set[str], studio_app: str | None = None
 		"Studio Component",
 		filters={"name": ["in", [*names, *component_ids]]},
 		fields=["name", "component_name", "component_id", "studio_app", "block", "script", "is_disabled"],
-		order_by="studio_app desc",
 	)
-	components = list({component.component_id: component for component in reversed(found)}.values())
+	# picked here, not by `order_by`: Postgres sorts NULL first in a descending order, MariaDB last
+	by_id = {}
+	for component in found:
+		if component.studio_app or component.component_id not in by_id:
+			by_id[component.component_id] = component
+	components = list(by_id.values())
 	if not components:
 		return []
 
