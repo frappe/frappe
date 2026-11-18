@@ -162,7 +162,7 @@ const logout = menu.find((option) => option.name === "logout");
 const MORE = menu.filter(
 	(option) => !MENU_NOT_LISTED.includes(option.name) && (!option.condition || option.condition())
 );
-const MENU_ICONS = { "my-space": "lucide-lock" };
+const MENU_ICONS = { "my-space": "lucide-lock", about: "lucide-info" };
 
 function open(option) {
 	if (option.href) frappe.set_route(option.href);
