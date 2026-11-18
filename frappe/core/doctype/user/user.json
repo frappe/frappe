@@ -145,7 +145,6 @@
    "oldfieldname": "email",
    "oldfieldtype": "Data",
    "options": "Email",
-   "permlevel": 2,
    "reqd": 1,
    "unique": 1
   },
@@ -985,17 +984,6 @@
   {
    "role": "Desk User",
    "select": 1
-  },
-  {
-   "permlevel": 2,
-   "read": 1,
-   "role": "System Manager",
-   "write": 1
-  },
-  {
-   "permlevel": 2,
-   "read": 1,
-   "role": "Desk User"
   }
  ],
  "quick_entry": 1,

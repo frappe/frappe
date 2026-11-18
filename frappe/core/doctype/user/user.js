@@ -314,6 +314,8 @@ frappe.ui.form.on("User", {
 			frm.toggle_display(["sb1", "sb3", "modules_access"], doc.enabled);
 			frm.set_df_property("enabled", "read_only", 0);
 		}
+
+		frm.toggle_enable("email", frm.is_new() || frappe.user.has_role("System Manager"));
 	},
 	create_user_email: function (frm) {
 		frappe.call({

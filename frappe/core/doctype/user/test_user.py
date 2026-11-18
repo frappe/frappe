@@ -1148,6 +1148,34 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("User", "Administrator", "email"), "admin@frappe.invalid")
 		self.assertEqual(frappe.db.get_value("User", "admin@example.com", "email"), "admin@example.com")
 
+	def test_new_users_get_a_random_id(self):
+		with test_user(roles=[], generated_id=True, email="_test_random_id@example.com") as user:
+			self.assertNotIn("@", user.name)
+			self.assertEqual(user.email, "_test_random_id@example.com")
+
+			user.reload()
+			user.first_name = "Renamed"
+			user.save()
+			self.assertEqual(user.email, "_test_random_id@example.com")
+
+	def test_only_system_managers_change_emails(self):
+		with test_user(roles=["Desk User"], generated_id=True) as user, self.set_user(user.name):
+			user = frappe.get_doc("User", user.name)
+			user.email = "_test_changed_myself@example.com"
+			self.assertRaises(frappe.PermissionError, user.save)
+
+	def test_email_cant_be_another_users_id(self):
+		with (
+			test_user(roles=[], email="_test_old_id@example.com") as old,
+			test_user(roles=[], generated_id=True) as new,
+		):
+			old.email = "_test_new_address@example.com"
+			old.save()
+
+			new.reload()
+			new.email = old.name
+			self.assertRaises(frappe.ValidationError, new.save)
+
 	def test_users_are_found_by_email(self):
 		from frappe.core.doctype.user.user import user_query
 

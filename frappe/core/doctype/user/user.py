@@ -253,6 +253,7 @@ class User(Document):
 		if self.email:
 			self.email = self.email.strip().lower()
 			if self.name not in STANDARD_USERS and self.has_value_changed("email"):
+				self.validate_email_change_allowed()
 				self.validate_email_type(self.email)
 				self.validate_email_domain(self.email)
 				self.validate_email_is_not_another_users_id()
@@ -781,6 +782,12 @@ class User(Document):
 		from frappe.utils import validate_email_address
 
 		validate_email_address(email, True)
+
+	def validate_email_change_allowed(self):
+		if self.is_new() or self.flags.ignore_permissions or "System Manager" in frappe.get_roles():
+			return
+
+		throw(_("Only a System Manager can change a user's email."), frappe.PermissionError)
 
 	def validate_email_is_not_another_users_id(self):
 		"""An email and a user ID mean one user: users created before v17 have their email as ID."""
