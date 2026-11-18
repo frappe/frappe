@@ -94,13 +94,13 @@ frappe.ui.SplitPane = class SplitPane {
 			);
 			this.$list.prepend(this.$list_header);
 		}
-		this.item_list = new frappe.ui.ItemList({
+		this.list = new frappe.ui.List({
 			variant: "flat",
 			items: [],
 			empty: opts.empty,
 			on_click: (item, list, event) => opts.on_select?.(item.id, event),
 		});
-		this.$rows.append(this.item_list.$el);
+		this.$rows.append(this.list.$el);
 		this.$list_end = $(`<div class="split-view-list-end" aria-hidden="true"></div>`);
 	}
 
@@ -108,9 +108,9 @@ frappe.ui.SplitPane = class SplitPane {
 	set_items(items, groups) {
 		this.$placeholder?.remove();
 		this.$placeholder = null;
-		this.item_list.$el.show();
-		this.item_list.set_items(items, groups);
-		this.item_list.set_selected(this.selected);
+		this.list.$el.show();
+		this.list.set_items(items, groups);
+		this.list.set_selected(this.selected);
 		this.watch_list_end();
 	}
 
@@ -120,13 +120,13 @@ frappe.ui.SplitPane = class SplitPane {
 		this.$list_end.detach();
 		this.$placeholder?.remove();
 		this.$placeholder = $(element).prependTo(this.$rows);
-		this.item_list.$el.hide();
+		this.list.$el.hide();
 	}
 
 	/** Highlight a row; pass null to clear. Pass `scroll: true` to bring it into view. */
 	set_selected(id, { scroll = false } = {}) {
 		this.selected = id ?? null;
-		this.item_list.set_selected(this.selected, { scroll });
+		this.list.set_selected(this.selected, { scroll });
 	}
 
 	/** Moves the selection by `delta` rows, loading the next page first when it steps past the loaded rows. */
@@ -145,7 +145,7 @@ frappe.ui.SplitPane = class SplitPane {
 
 	/** Row ids in the order they show, groups included. */
 	get_row_ids() {
-		return [...this.item_list.rows.keys()];
+		return [...this.list.rows.keys()];
 	}
 
 	/** The ids of the rows below and above `id`, for frappe.ui.DetailLoader to load early. */

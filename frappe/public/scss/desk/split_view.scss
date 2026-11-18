@@ -41,7 +41,7 @@ $split-view-wide: 1024px;
 	min-height: 0;
 	padding: calc(var(--spacing) * 1.5);
 
-	.es-item-list__row {
+	.es-list__row {
 		scroll-margin-block: calc(var(--spacing) * 2);
 	}
 }
@@ -51,8 +51,8 @@ $split-view-wide: 1024px;
 	padding-block-start: 0;
 }
 
-// ItemList drops the meta on lists narrower than 480px; a short date fits beside the title here
-.frappe-list.has-split-view .es-item-list__meta {
+// List drops the meta on lists narrower than 480px; a short date fits beside the title here
+.frappe-list.has-split-view .es-list__meta {
 	display: block;
 }
 

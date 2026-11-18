@@ -2,7 +2,7 @@ import { test, expect } from "../support";
 import { TEST_USER } from "../support/config";
 
 const PROPERTY_SETTER = "ToDo-main-allow_split_view";
-const ROWS = ".split-view .es-item-list__row";
+const ROWS = ".split-view .es-list__row";
 
 const like_filter = (stamp) => encodeURIComponent(JSON.stringify(["like", `%${stamp}%`]));
 

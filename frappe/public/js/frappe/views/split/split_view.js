@@ -9,7 +9,7 @@
  *
  *   fields: ["job_title"]          extra fields to fetch for the rows
  *   get_item(doc, row_data) {}     returns { title, subtitle, meta, badge, avatar }, any of them,
- *                                  to replace that part of the row (see frappe.ui.ItemList);
+ *                                  to replace that part of the row (see frappe.ui.List);
  *                                  row_data is what get_row_data returned for the row, if anything
  *   get_row_data(docs) {}          for values the list query cannot fetch (counts, titles from
  *                                  other records); gets the loaded rows after each refresh and
@@ -127,7 +127,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 		this.$split = this.pane.$el.appendTo(this.$frappe_list);
 		this.$frappe_list.addClass("has-split-view");
 		this.$detail = this.pane.$detail;
-		this.item_list = this.pane.item_list;
+		this.list = this.pane.list;
 		this.detail_loader = new frappe.ui.DetailLoader({
 			fetch: (name, { silent }) =>
 				frappe.xcall(
@@ -139,19 +139,19 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 			get_neighbours: (name) => this.pane.get_neighbour_ids(name),
 		});
 		this.$no_result.hide();
-		this.$result.append(this.item_list.$el).appendTo(this.pane.$rows);
+		this.$result.append(this.list.$el).appendTo(this.pane.$rows);
 		this.render_detail();
 	}
 
 	on_select(name, event) {
-		// ItemList sends Enter on a row as a keydown
+		// List sends Enter on a row as a keydown
 		if (event?.type === "keydown" && name === this.selected_name) return this.open_form(name);
 		// Enter acts on the focused row, so focus follows a step
-		const focus_row = !event && $(document.activeElement).closest(".es-item-list__row").length;
+		const focus_row = !event && $(document.activeElement).closest(".es-list__row").length;
 		this.select(name);
 		if (focus_row) {
-			this.item_list.$el
-				.find(".es-item-list__row[data-selected]")
+			this.list.$el
+				.find(".es-list__row[data-selected]")
 				.get(0)
 				?.focus({ preventScroll: true });
 		}
@@ -302,7 +302,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 			for (const doc of docs) {
 				if (!(doc.name in row_data)) continue;
 				const current = this.data.find((d) => d.name === doc.name);
-				if (current) this.item_list.update_item(doc.name, this.get_item(current));
+				if (current) this.list.update_item(doc.name, this.get_item(current));
 			}
 		});
 	}
@@ -339,7 +339,7 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 
 	remove_list_items(names) {
 		for (const name of names) {
-			this.item_list.remove_item(name);
+			this.list.remove_item(name);
 			this.detail_loader.forget(name);
 		}
 		this.render_count();
@@ -377,12 +377,12 @@ frappe.views.SplitView = class SplitView extends frappe.views.ListView {
 			if (!doc) {
 				if (index === -1) return;
 				this.data.splice(index, 1);
-				this.item_list.remove_item(name);
+				this.list.remove_item(name);
 			} else if (index === -1) {
 				return;
 			} else {
 				this.data[index] = doc;
-				this.item_list.update_item(name, this.get_item(doc));
+				this.list.update_item(name, this.get_item(doc));
 				this.load_row_data([doc]);
 			}
 			this.render_count();
