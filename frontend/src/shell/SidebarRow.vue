@@ -1,6 +1,6 @@
 <!--
   One panel row on frappe-ui's `SidebarItem` and `SidebarSection`. The section the address is in
-  opens itself and offers no control; a reader's toggle is remembered.
+  opens itself and stays open, chevron kept; a reader's toggle is remembered.
 -->
 <template>
 	<!-- A heading with no destination: a section. Children mount only while it is open. -->
@@ -9,6 +9,7 @@
 		:label="label"
 		:collapsible="collapsible"
 		:collapsed="!open"
+		:class="[HEADING, holdsCurrent && HELD]"
 		:data-key="item.key"
 		data-view
 		@update:collapsed="toggle"
@@ -146,6 +147,10 @@ import type { ItemContext } from "@/navigation/types";
 const ROW = "flex h-7 items-center rounded-4 text-ink-gray-6 transition hover:bg-surface-gray-2";
 const ROW_TARGET =
 	"flex h-full min-w-0 flex-1 items-center rounded-4 pl-2 text-left focus-visible:ring-0 focus-visible:focus-ring";
+// `SidebarSection` draws headings in gray-5 (3.9:1 on light): gray-6 plus weight keeps them apart from rows.
+// A held section's button does nothing, so it gets the default cursor.
+const HEADING = "[&_h3]:font-medium [&_h3]:text-ink-gray-6 [&_h3_span]:text-ink-gray-6";
+const HELD = "[&>div:first-child_button]:cursor-default";
 const SKELETON_WIDTHS = ["w-1/2", "w-2/3", "w-2/5"];
 
 // `current` is passed down: one row wins across the rail and the open panel together.
@@ -190,14 +195,14 @@ const heading = computed(
 	() => (rendering.value && "group" in rendering.value) || props.node.children.length > 0
 );
 
-// `keep_closed` starts a section closed; `collapsible` lets a reader close it. Neither is "open".
+// `keep_closed` starts a section closed; `collapsible` shows the chevron. Neither is "open".
 const shippedOpen = computed(() => !item.value.keep_closed);
 
 // The one section the address is standing in opens itself, transiently and writing nothing.
 const holdsCurrent = computed(() => !!props.current && containsKey(props.node, props.current));
 
-// No control while the address is inside: the section may not shut over the row you are on.
-const collapsible = computed(() => !!item.value.collapsible && !holdsCurrent.value);
+// Kept while the address is inside: the heading must not change between states.
+const collapsible = computed(() => !!item.value.collapsible);
 
 /** Where this section rests when the address is not inside it. */
 function settled(): boolean {
@@ -211,8 +216,9 @@ watch([() => item.value.keep_closed, holdsCurrent], () => {
 	open.value = holdsCurrent.value || settled();
 });
 
-/** A click on the heading, the one thing here that writes. */
+/** A click on the heading, the one thing here that writes. The section may not shut over the row you are on. */
 function toggle() {
+	if (holdsCurrent.value) return;
 	open.value = !open.value;
 	props.sections?.remember(item.value.key, open.value);
 }

@@ -151,27 +151,29 @@ describe("the address opens the section it is standing in", () => {
 		expect(row(shut, "deal-statuses")).toBeNull();
 	});
 
-	it("offers no control to shut it over the row you are on", async () => {
-		const { host } = await shell("/crm-lead-status");
-
-		// A plain heading, not a button reporting a state a click would not change.
-		expect(control(host, "leads-configure")).toBeNull();
-		expect(row(host, "leads-configure")?.querySelector("h3")?.textContent?.trim()).toBe(
-			"Configure"
-		);
-
-		await click(row(host, "leads-configure")!.querySelector("h3"));
-		expect(row(host, "lead-statuses")).not.toBeNull();
-		expect(localStorage.getItem("frappe:desk:sections")).toBeNull();
-	});
-
-	it("gives the control back on the way out", async () => {
+	it("keeps the chevron on the section that holds the row you are on", async () => {
 		const { host, router } = await shell("/crm-lead-status");
+		const held = control(host, "leads-configure");
+		const heldLabel = held?.textContent?.trim();
+
+		expect(held).not.toBeNull();
+		expect(held!.getAttribute("aria-expanded")).toBe("true");
+		expect(held!.querySelector(".lucide-chevron-right")).not.toBeNull();
 
 		await router.push("/crm-lead");
 		await flush();
+		const shut = control(host, "leads-configure");
+		expect(shut!.querySelector(".lucide-chevron-right")).not.toBeNull();
+		expect(shut!.textContent?.trim()).toBe(heldLabel);
+	});
 
-		expect(control(host, "leads-configure")).not.toBeNull();
+	it("does not shut over the row you are on, and records nothing", async () => {
+		const { host } = await shell("/crm-lead-status");
+
+		await click(control(host, "leads-configure"));
+		expect(control(host, "leads-configure")?.getAttribute("aria-expanded")).toBe("true");
+		expect(row(host, "lead-statuses")).not.toBeNull();
+		expect(localStorage.getItem("frappe:desk:sections")).toBeNull();
 	});
 
 	it("shuts it again on the way out, and records nothing", async () => {
