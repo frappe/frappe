@@ -44,7 +44,7 @@ def insert_comment(reference_doctype: str, reference_name: str, content: str) ->
 			"comment_type": "Comment",
 			"reference_doctype": reference_doctype,
 			"reference_name": reference_name,
-			"comment_email": frappe.session.user,
+			"comment_email": frappe.utils.get_email_address(),
 			"comment_by": frappe.utils.get_fullname(),
 			"content": extract_images_from_html(reference_doc, content, is_private=True),
 		}

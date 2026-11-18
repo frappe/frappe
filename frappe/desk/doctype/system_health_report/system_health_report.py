@@ -24,6 +24,7 @@ from contextlib import contextmanager
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
 from frappe.model.document import Document
+from frappe.utils import get_user_display_id
 from frappe.utils.background_jobs import get_queue, get_queue_list, get_redis_conn
 from frappe.utils.caching import redis_cache
 from frappe.utils.data import add_to_date, cint
@@ -363,7 +364,8 @@ class SystemHealthReport(Document):
 		)
 		self.active_sessions = frappe.db.count("Sessions")
 		self.last_10_active_users = "\n".join(
-			frappe.get_all(
+			get_user_display_id(user)
+			for user in frappe.get_all(
 				"User",
 				{"enabled": 1},
 				order_by="last_active desc",

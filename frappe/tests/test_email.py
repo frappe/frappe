@@ -324,6 +324,16 @@ class TestEmail(IntegrationTestCase):
 		frappe.get_doc("Email Queue", email_queue).send()
 		self.assertTrue("Unsubscribe" in frappe.safe_decode(frappe.flags.sent_mail))
 
+	def test_invalid_domain_recipients_are_dropped(self):
+		email_queue = QueueBuilder(
+			recipients=["test1@example.com", "Admin <admin@frappe.invalid>"],
+			sender="admin@example.com",
+			subject="Testing Email Queue",
+			message="This is mail is queued!",
+		).process()
+
+		self.assertEqual([r.recipient for r in email_queue.recipients], ["test1@example.com"])
+
 	def test_unsubscribe_recipient_with_display_name(self):
 		for address in ("test@example.com", "Old Name <test2@example.com>"):
 			frappe.get_doc(

@@ -88,6 +88,16 @@ def get_email_address(user=None):
 	return frappe.get_cached_value("User", user, "email")
 
 
+def get_user_display_id(user: str | None = None) -> str:
+	"""Return how to refer to a user in text: their email, or the ID for Administrator, Guest
+	and users that no longer exist."""
+	user = user or frappe.session.user
+	if user in frappe.STANDARD_USERS:
+		return user
+
+	return get_email_address(user) or user
+
+
 def get_email_addresses(users: Iterable[str]) -> set[str]:
 	"""Return the emails of the given users.
 
@@ -106,14 +116,20 @@ def get_email_addresses(users: Iterable[str]) -> set[str]:
 	)
 
 
-def get_user_by_email(email: str, *, include_standard_users: bool = False) -> str | None:
+def get_user_by_email(
+	email: str, *, include_standard_users: bool = False, enabled: bool | None = None
+) -> str | None:
 	"""Return the ID of the user with this email, or None.
 
 	Administrator and Guest are left out unless `include_standard_users` is True.
+	`enabled` limits the match to enabled (True) or disabled (False) users; None matches either.
 	"""
 	filters = {"email": email.strip().lower()}
 	if not include_standard_users:
 		filters["name"] = ("not in", frappe.STANDARD_USERS)
+
+	if enabled is not None:
+		filters["enabled"] = int(enabled)
 
 	return frappe.db.get_value("User", filters)
 
@@ -1150,24 +1166,28 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 	if isinstance(user, str):
 		user = [user]
 
-	missing_users = [u for u in user if u not in user_info]
+	missing_users = {u for u in user if u and u not in user_info}
 	if not missing_users:
 		return
 
 	missing_info = frappe.get_all(
 		"User",
-		{"name": ("in", missing_users)},
-		["full_name", "user_image", "name", "email", "time_zone"],
+		or_filters={"name": ("in", missing_users), "email": ("in", {u.lower() for u in missing_users})},
+		fields=["full_name", "user_image", "name", "email", "time_zone"],
 	)
 
-	for info in missing_info:
-		user_info.setdefault(info.name, frappe._dict()).update(
-			fullname=info.full_name or info.name,
-			image=info.user_image,
-			name=info.name,
-			email=info.email,
-			time_zone=info.time_zone,
-		)
+	# callers pass user IDs or emails; a key that is one user's ID and another's email is the ID
+	by_name = {info.name: info for info in missing_info}
+	by_email = {info.email: info for info in missing_info}
+	for key in missing_users:
+		if info := by_name.get(key) or by_email.get(key.lower()):
+			user_info.setdefault(key, frappe._dict()).update(
+				fullname=info.full_name or info.name,
+				image=info.user_image,
+				name=info.name,
+				email=info.email,
+				time_zone=info.time_zone,
+			)
 
 
 def is_git_url(url: str) -> bool:

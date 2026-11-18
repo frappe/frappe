@@ -822,7 +822,11 @@ class QueueBuilder:
 		else:
 			unsubscribed = None
 
-		self._unsubscribed_user_emails = unsubscribed or []
+		# `.invalid` is reserved and never delivers
+		self._unsubscribed_user_emails = [
+			*(unsubscribed or []),
+			*(email for email in all_ids if email.lower().endswith(".invalid")),
+		]
 		return self._unsubscribed_user_emails
 
 	def final_recipients(self):
