@@ -48,8 +48,11 @@ class TestAssign(IntegrationTestCase):
 				self.assertEqual(len(get(args)), 2)
 
 	def test_assign_messages_show_the_assignees_email(self):
-		frappe.set_user("Administrator")
-		with test_user(roles=["Desk User"], generated_id=True) as user:
+		with (
+			test_user(roles=["Desk User"]) as actor,
+			test_user(roles=["Desk User"], generated_id=True) as user,
+			self.set_user(actor.name),
+		):
 			todo = frappe.get_doc(doctype="ToDo", description="assign message").insert()
 			args = {"doctype": "ToDo", "name": todo.name, "assign_to": [user.name]}
 			add(args)
