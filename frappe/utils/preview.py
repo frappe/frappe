@@ -15,6 +15,7 @@ from frappe import _
 from frappe.utils.data import cint
 
 SUPPORTED_FORMATS = ("jpg", "jpeg", "webp")
+MAX_FULL_PAGE_HEIGHT = 16384
 
 
 def get_preview_from_html(html: str, format: str = "jpg", width: int = 1280, height: int = 720) -> bytes:
@@ -34,10 +35,42 @@ def get_preview_from_html(html: str, format: str = "jpg", width: int = 1280, hei
 
 
 def get_preview_from_url(
-	url: str, wait_for: int = 0, headers: dict | None = None, format: str = "jpg"
+	url: str,
+	wait_for: int = 0,
+	headers: dict | None = None,
+	format: str = "jpg",
+	width: int = 1280,
+	height: int = 720,
+	full_page: bool = False,
+	wait_until: str | None = None,
+	timeout: int = 30,
 ) -> bytes:
-	"""Screenshot a rendered URL; returns viewport-sized image bytes."""
-	return capture_screenshot(format, url=url, wait_for=cint(wait_for), headers=headers)
+	"""Screenshot a rendered URL and return the image bytes.
+
+	Args:
+	        url: The page to load.
+	        wait_for: Milliseconds to sleep after the page is ready, before the capture.
+	        headers: Extra HTTP headers sent with every request of the page.
+	        format: Image format — one of ``SUPPORTED_FORMATS`` (jpg, jpeg, webp).
+	        width: Viewport width in pixels (default 1280).
+	        height: Viewport height in pixels (default 720).
+	        full_page: Capture the whole document, not only the viewport. The image is
+	                as tall as the content, capped at ``MAX_FULL_PAGE_HEIGHT`` pixels.
+	        wait_until: A JavaScript expression, polled until it is truthy before the capture.
+	        timeout: Seconds to wait for the page load and ``wait_until``; raises
+	                ``TimeoutError`` when ``wait_until`` is still falsy after it.
+	"""
+	return capture_screenshot(
+		format,
+		url=url,
+		wait_for=cint(wait_for),
+		headers=headers,
+		width=cint(width),
+		height=cint(height),
+		full_page=full_page,
+		wait_until=wait_until,
+		timeout=cint(timeout),
+	)
 
 
 def get_image_format(format: str) -> str:
@@ -47,7 +80,17 @@ def get_image_format(format: str) -> str:
 
 
 def capture_screenshot(
-	format, *, html=None, url=None, wait_for=0, headers=None, width=1280, height=720
+	format,
+	*,
+	html=None,
+	url=None,
+	wait_for=0,
+	headers=None,
+	width=1280,
+	height=720,
+	full_page=False,
+	wait_until=None,
+	timeout=30,
 ) -> bytes:
 	"""Drive Chromium over CDP, reusing the PDF generator's process + lifecycle:
 	register the browser so Chromium isn't torn down mid-use, and reset the
@@ -88,11 +131,15 @@ def capture_screenshot(
 				if headers:
 					page.send("Network.enable")
 					page.send("Network.setExtraHTTPHeaders", {"headers": headers})
-				page.navigate(url)
+				deadline = time.monotonic() + timeout
+				page.navigate(url, timeout=timeout if wait_until else 60)
+				if wait_until:
+					wait_until_truthy(page, wait_until, deadline, timeout)
 				if wait_for:
 					time.sleep(wait_for / 1000)
 
-			return page.capture_screenshot(image_format=image_format)
+			clip = get_full_page_clip(page, width) if full_page else None
+			return page.capture_screenshot(image_format=image_format, clip=clip)
 		finally:
 			# Remove the browser before the outer except resets the singleton.
 			safe_execute(page and page.close)
@@ -107,6 +154,30 @@ def capture_screenshot(
 		if proc is not None and proc.poll() is not None:
 			generator._close_browser()
 		raise
+
+
+def wait_until_truthy(page, expression: str, deadline: float, timeout: int):
+	while True:
+		result = page.evaluate(f"Boolean({expression})")
+		if (result or {}).get("result", {}).get("value") is True:
+			return
+		if time.monotonic() >= deadline:
+			raise TimeoutError(f"Page not ready after {timeout} seconds: {expression} is not truthy")
+		time.sleep(0.1)
+
+
+def get_full_page_clip(page, width: int) -> dict:
+	result, error = page.send("Page.getLayoutMetrics")
+	if error:
+		raise RuntimeError(f"Error getting layout metrics: {error}")
+	content_height = result["cssContentSize"]["height"]
+	return {
+		"x": 0,
+		"y": 0,
+		"width": width,
+		"height": min(content_height, MAX_FULL_PAGE_HEIGHT),
+		"scale": 1,
+	}
 
 
 def safe_execute(fn):

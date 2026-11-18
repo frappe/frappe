@@ -226,9 +226,11 @@ class Page:
 
 		self.wait_for_navigate = wait_for_navigate
 
-	def navigate(self, url, wait_for=None):
+	def navigate(self, url, wait_for=None, timeout=60):
 		"""Really load a URL and wait for render (vs set_tab_url's empty-body stub)."""
-		wait_start = self.wait_for_load(wait_for=wait_for or ["load", "DOMContentLoaded", "networkIdle"])
+		wait_start = self.wait_for_load(
+			wait_for=wait_for or ["load", "DOMContentLoaded", "networkIdle"], timeout=timeout
+		)
 		_result, error = self.send("Page.navigate", {"url": url})
 		if error:
 			raise RuntimeError(f"Error navigating to URL: {error}")
@@ -390,9 +392,11 @@ class Page:
 		)
 		return (result or {}).get("result", {}).get("value") or 0
 
-	def capture_screenshot(self, image_format="jpeg", quality=30):
-		"""Screenshot the current viewport; returns raw image bytes."""
-		params = {"format": image_format, "captureBeyondViewport": False}
+	def capture_screenshot(self, image_format="jpeg", quality=30, clip=None):
+		"""Screenshot the current viewport, or the `clip` rectangle beyond it; returns raw image bytes."""
+		params = {"format": image_format, "captureBeyondViewport": bool(clip)}
+		if clip:
+			params["clip"] = clip
 		if image_format in ("jpeg", "webp"):  # quality is only valid for lossy formats
 			params["quality"] = quality
 		result, error = self.send("Page.captureScreenshot", params)
