@@ -1955,7 +1955,7 @@ class TestMiscUtils(IntegrationTestCase):
 
 		installed_apps = [app["app_name"] for app in info["installed_apps"]]
 		self.assertIn("frappe", installed_apps)
-		self.assertIn(user.email, [u.email for u in info["users"]])
+		self.assertIn(user.email, [u["email"] for u in info["users"]])
 
 	def test_get_url_to_form(self):
 		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
