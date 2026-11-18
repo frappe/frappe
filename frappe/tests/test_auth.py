@@ -282,6 +282,9 @@ class TestAuth(FrappeTestCase):
 			key = parse_qs(urlparse(link).query)["key"][0]
 			self.assertEqual(frappe.cache.get_value(f"one_time_login_key:{key}"), user.name)
 
+			frappe.db.set_value("User", user.name, "enabled", 0)
+			self.assertRaises(frappe.DoesNotExistError, _generate_temporary_login_link, user.email, 10)
+
 		admin_email = frappe.db.get_value("User", "Administrator", "email")
 		self.assertRaises(frappe.DoesNotExistError, _generate_temporary_login_link, admin_email, 10)
 
