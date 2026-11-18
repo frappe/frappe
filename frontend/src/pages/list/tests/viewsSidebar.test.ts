@@ -18,6 +18,11 @@ beforeAll(() => Promise.all(TEXT_SURFACES.map(loadText)));
 
 const fetchViews = vi.hoisted(() => vi.fn());
 vi.mock("@/navigation/editor/viewPicker", () => ({ fetchViews }));
+// The list page registers the acts; here every one counts as drawn, so the rows get their ⋯.
+vi.mock("@/acts/dispatcher", async (original) => {
+	const real = await original<typeof import("@/acts/dispatcher")>();
+	return { ...real, acts: { find: () => ({}), perform: vi.fn(), run: vi.fn() } };
+});
 vi.mock("@framework/ui/useSession", () => ({ currentSession: () => ({ user: { name: "a@example.com" } }) }));
 
 const addresses = new Addresses({ doctypes: { ToDo: ["todo", "frappe"] }, modules: { frappe: "Frappe" } });

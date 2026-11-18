@@ -8,7 +8,7 @@ import type { Boot } from "@/boot";
 import { registerShell } from "@/router/routeFor";
 import { clearSkip, consumeSkip } from "@/router/skipDefault";
 import { openView } from "../openView";
-import { viewLayers, viewMenu, type ViewMenuHost, type ViewRequest } from "../viewSwitcher/viewMenu";
+import { actGroups, viewLayers, viewMenu, type ViewMenuHost, type ViewRequest } from "../viewSwitcher/viewMenu";
 import { actsOn, isSiteAdmin } from "../viewSwitcher/viewRules";
 
 type Row = Record<string, any>;
@@ -133,6 +133,14 @@ describe("the menu while the sidebar lists the views", () => {
 	it("is unchanged when the host does not say", () => {
 		expect(groups().map((group) => group.group)).toContain("Types");
 		expect(groups({ listsViews: true }).map((group) => group.group)).toContain("Types");
+	});
+});
+
+describe("actGroups", () => {
+	it("returns no group when no act can run, so a row draws no ⋯", () => {
+		const mine = VIEWS.find((one) => one.key === "mine")!;
+		expect(actGroups(host({ drawn: () => false }).menu, mine)).toEqual([]);
+		expect(actGroups(host().menu, mine).length).toBeGreaterThan(0);
 	});
 });
 

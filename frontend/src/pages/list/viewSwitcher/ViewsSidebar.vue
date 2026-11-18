@@ -87,7 +87,6 @@ const groups = computed(
 );
 const open = computed(() => openViewKey(route));
 
-// The crumb drops its list of views only once this body has rows to show instead.
 watch(groups, (now) => (viewsSidebarDrawn.value = now ? props.doctype : null), {
 	immediate: true,
 });
@@ -95,7 +94,6 @@ onBeforeUnmount(() => {
 	if (viewsSidebarDrawn.value === props.doctype) viewsSidebarDrawn.value = null;
 });
 
-// The same acts as the crumb's menu, run on the list page the sidebar sits beside.
 const host: Omit<ViewMenuHost, "views" | "current"> = {
 	unbuilt: [],
 	types,

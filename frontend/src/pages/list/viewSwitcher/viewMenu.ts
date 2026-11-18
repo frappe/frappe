@@ -138,7 +138,7 @@ export function actGroups(host: ViewMenuHost, view: ListedView): Group[] {
 			hideLabel: true,
 			options: pick(["set_mine", "clear_mine", "set_site", "clear_site"]),
 		},
-	];
+	].filter((group) => group.options.length);
 }
 
 function actRow(host: ViewMenuHost, view: ListedView, name: ViewAct): Row | null {

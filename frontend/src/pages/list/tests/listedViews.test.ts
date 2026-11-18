@@ -41,6 +41,19 @@ describe("useListedViews", () => {
 		expect(hook.views.value).toEqual([VIEW]);
 	});
 
+	it("fills a body whose own read failed once another body's read lands", async () => {
+		fetchViews.mockRejectedValueOnce(new Error("offline")).mockResolvedValue([VIEW]);
+		const sidebar = open();
+		await flush();
+		expect(sidebar.hook.views.value).toBeNull();
+		const crumb = open();
+		await crumb.hook.reload();
+		await flush();
+		expect(crumb.hook.views.value).toEqual([VIEW]);
+		expect(sidebar.hook.views.value).toEqual([VIEW]);
+		expect(fetchViews).toHaveBeenCalledTimes(2);
+	});
+
 	it("paints the remembered answer at once on a second open", async () => {
 		fetchViews.mockResolvedValue([VIEW]);
 		open();

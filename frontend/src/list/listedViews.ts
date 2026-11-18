@@ -1,6 +1,6 @@
 // The views of one doctype from `list_views`, read again after each write to a view (`refreshSavedViews`).
 import { currentSession } from "@framework/ui/useSession";
-import { onScopeDispose, shallowRef, watch, type ShallowRef } from "vue";
+import { onScopeDispose, ref, shallowRef, watch, type ShallowRef } from "vue";
 import { fetchViews, type ListedView } from "@/navigation/editor/viewPicker";
 import { savedViewsRevision } from "./savedView";
 
@@ -22,10 +22,11 @@ function recall(doctype: string): ListedView[] | null {
 	return remembered.get(doctype) ?? null;
 }
 
-// The crumb and the sidebar both read on mount: a read still fresh at the same write count is shared.
 const SHARED_READ_MS = 10_000;
 type Read = { scope: string; revision: number; at: number; found: Promise<ListedView[]> };
 const reads = new Map<string, Read>();
+// Counts reads that landed: a body that has nothing yet (its own read failed) asks again.
+const landed = ref(0);
 
 function shared(doctype: string, app: string, asker?: string): Promise<ListedView[]> {
 	const scope = `${asker}\0${app}`;
@@ -37,7 +38,10 @@ function shared(doctype: string, app: string, asker?: string): Promise<ListedVie
 	const read = { scope, revision, at: now, found: fetchViews(doctype, app) };
 	reads.set(doctype, read);
 	// A failed read is not shared: the next ask goes to the server.
-	read.found.catch(() => reads.get(doctype) === read && reads.delete(doctype));
+	read.found.then(
+		() => landed.value++,
+		() => reads.get(doctype) === read && reads.delete(doctype),
+	);
 	return read.found;
 }
 
@@ -73,6 +77,7 @@ export function useListedViews(doctype: string, app: string): ListedViews {
 	}
 
 	watch(savedViewsRevision, reload, { immediate: true });
+	watch(landed, () => views.value || reload());
 	onScopeDispose(() => void asking++);
 	return { views, reload };
 }
