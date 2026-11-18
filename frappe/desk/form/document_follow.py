@@ -9,7 +9,7 @@ import frappe.utils
 from frappe import _
 from frappe.model import log_types
 from frappe.query_builder import DocType
-from frappe.utils import get_url_to_form
+from frappe.utils import get_email_address, get_url_to_form
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -117,7 +117,7 @@ def send_email_alert(receiver, docinfo, timeline):
 	if receiver:
 		frappe.sendmail(
 			subject=_("Document Follow Notification"),
-			recipients=[receiver],
+			recipients=[get_email_address(receiver)],
 			template="document_follow",
 			args={
 				"docinfo": docinfo,

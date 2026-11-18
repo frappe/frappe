@@ -258,7 +258,7 @@ jobs:
   develop-status:
     name: Update Develop Status
     needs: success
-    if: ${{ always() && github.event_name != 'pull_request' && contains(fromJSON('["refs/heads/develop", "refs/heads/desk-v2"]'), github.ref) }}
+    if: ${{ always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/desk-v2' }}
     runs-on: ubuntu-latest
     concurrency:
       group: develop-status-all

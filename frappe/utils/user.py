@@ -444,7 +444,7 @@ def is_system_user(username: str | None = None) -> str | None:
 	return frappe.db.get_value(
 		"User",
 		{
-			"email": username or frappe.session.user,
+			"email": username or frappe.utils.get_email_address(),
 			"enabled": 1,
 			"user_type": "System User",
 		},
@@ -459,11 +459,13 @@ def get_users() -> list[dict]:
 
 	return [
 		{
-			"full_name": get_user_fullname(user),
-			"email": user,
-			"is_system_manager": user in system_managers,
+			"full_name": get_user_fullname(user.name),
+			"email": user.email,
+			"is_system_manager": user.name in system_managers,
 		}
-		for user in get_system_users()
+		for user in frappe.get_all(
+			"User", filters={"name": ("in", get_system_users())}, fields=["name", "email"]
+		)
 	]
 
 

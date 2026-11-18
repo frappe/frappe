@@ -12,6 +12,7 @@ from frappe.automation.doctype.auto_repeat.auto_repeat import (
 	update_reference,
 	week_map,
 )
+from frappe.core.doctype.user.test_user import test_user
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_model_utils import set_user
@@ -393,6 +394,33 @@ class TestAutoRepeat(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("ToDo", {"auto_repeat": doc.name, "name": ("!=", todo.name)}))
 		self.assertFalse(frappe.db.get_value("Auto Repeat", doc.name, "disabled"))
+
+	def test_failure_mail_goes_to_emails(self):
+		todo = frappe.get_doc(doctype="ToDo", description="test failure mail").insert()
+		doc = make_auto_repeat(reference_document=todo.name)
+		error_log = frappe.log_error("Auto Repeat failure mail")
+
+		with (
+			test_user(roles=[], generated_id=True) as owner,
+			test_user(roles=["System Manager"], generated_id=True) as manager,
+			patch("frappe.sendmail") as sendmail,
+		):
+			doc.owner = owner.name
+			doc.notify_error_to_user(error_log)
+			recipients = sendmail.call_args.kwargs["recipients"]
+			self.assertIn(owner.email, recipients)
+			self.assertIn(manager.email, recipients)
+
+			doc.owner = manager.name
+			doc.notify_error_to_user(error_log)
+			recipients = sendmail.call_args.kwargs["recipients"]
+			self.assertEqual(sum(manager.email in recipient for recipient in recipients), 1)
+
+			doc.owner = "Administrator"
+			doc.notify_error_to_user(error_log)
+			self.assertNotIn(
+				frappe.db.get_value("User", "Administrator", "email"), sendmail.call_args.kwargs["recipients"]
+			)
 
 	def test_notification_print_renders_as_owner(self):
 		self.addCleanup(frappe.set_user, "Administrator")
