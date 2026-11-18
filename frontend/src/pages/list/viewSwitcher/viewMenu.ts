@@ -22,6 +22,8 @@ export interface ViewType {
 export interface ViewMenuHost {
 	/** The doctype's views from `list_views`; null while the first read runs. */
 	views: ListedView[] | null;
+	/** False while the sidebar lists the views: the menu then holds only the open view's acts. */
+	listsViews?: boolean;
 	/** The open view's key. */
 	current: string;
 	/** View types not built yet; they list as "Soon". */
@@ -44,24 +46,46 @@ const LAYERS: { layer: ListedView["layer"]; label: () => string }[] = [
 	{ layer: "app", label: () => __("App views") },
 ];
 
-type Row = Record<string, any>;
-type Group = { group: string; hideLabel?: boolean; options: Row[] };
+export type Row = Record<string, any>;
+export type Group = { group: string; hideLabel?: boolean; options: Row[] };
 
-/** The menu: Save as new, the views by layer, then the open view's acts. */
+/** The menu: Save as new, the views by layer (unless the sidebar lists them), then the open view's acts. */
 export function viewMenu(host: ViewMenuHost): DropdownOptions {
 	if (!host.views) return [{ label: __("Loading views…"), disabled: true }];
 	const open = host.views.find((view) => view.key === host.current);
-	return [...saveAsNew(host, open), ...viewGroups(host), ...(open ? actGroups(host, open) : [])]
+	// With no open view there are no acts to show, so the list stays.
+	const views = host.listsViews === false && open ? [] : viewGroups(host);
+	return [...saveAsNew(host, open), ...views, ...(open ? actGroups(host, open) : [])]
 		.filter((group) => group.options.length) as DropdownOptions;
 }
 
+/** One layer of the doctype's views; Types also holds the view types not built yet. */
+export interface ViewLayerGroup {
+	layer: ListedView["layer"];
+	label: string;
+	views: ListedView[];
+	soon: ViewType[];
+}
+
+/** The views by layer, empty layers kept: the menu and the sidebar group them alike. */
+export function viewLayers(views: ListedView[], unbuilt: ViewType[]): ViewLayerGroup[] {
+	return LAYERS.map(({ layer, label }) => ({
+		layer,
+		label: label(),
+		views: views.filter((view) => view.layer === layer),
+		soon: layer === null ? unbuilt : [],
+	}));
+}
+
 function viewGroups(host: ViewMenuHost): Group[] {
-	const views = host.views!;
-	return LAYERS.map(({ layer, label }) => {
-		const rows = views.filter((view) => view.layer === layer).map((view) => viewRow(host, view));
-		if (layer === null) rows.push(...host.unbuilt.map((type) => soonRow(host, type)));
-		return { group: label(), hideLabel: layer === null, options: rows };
-	});
+	return viewLayers(host.views!, host.unbuilt).map((group) => ({
+		group: group.label,
+		hideLabel: group.layer === null,
+		options: [
+			...group.views.map((view) => viewRow(host, view)),
+			...group.soon.map((type) => soonRow(host, type)),
+		],
+	}));
 }
 
 function viewRow(host: ViewMenuHost, view: ListedView): Row {
@@ -99,7 +123,8 @@ function saveAsNew(host: ViewMenuHost, open?: ListedView): Group[] {
 	return [{ group: __("Changes"), hideLabel: true, options: [row] }];
 }
 
-function actGroups(host: ViewMenuHost, view: ListedView): Group[] {
+/** The acts the person may run on one view, as the menu's groups. */
+export function actGroups(host: ViewMenuHost, view: ListedView): Group[] {
 	const acts = actsOn(view, host.admin);
 	const pick = (names: ViewAct[]) =>
 		names
@@ -113,7 +138,7 @@ function actGroups(host: ViewMenuHost, view: ListedView): Group[] {
 			hideLabel: true,
 			options: pick(["set_mine", "clear_mine", "set_site", "clear_site"]),
 		},
-	];
+	].filter((group) => group.options.length);
 }
 
 function actRow(host: ViewMenuHost, view: ListedView, name: ViewAct): Row | null {

@@ -41,6 +41,19 @@ describe("useListedViews", () => {
 		expect(hook.views.value).toEqual([VIEW]);
 	});
 
+	it("fills a body whose own read failed once another body's read lands", async () => {
+		fetchViews.mockRejectedValueOnce(new Error("offline")).mockResolvedValue([VIEW]);
+		const sidebar = open();
+		await flush();
+		expect(sidebar.hook.views.value).toBeNull();
+		const crumb = open();
+		await crumb.hook.reload();
+		await flush();
+		expect(crumb.hook.views.value).toEqual([VIEW]);
+		expect(sidebar.hook.views.value).toEqual([VIEW]);
+		expect(fetchViews).toHaveBeenCalledTimes(2);
+	});
+
 	it("paints the remembered answer at once on a second open", async () => {
 		fetchViews.mockResolvedValue([VIEW]);
 		open();
@@ -65,6 +78,38 @@ describe("useListedViews", () => {
 		refreshSavedViews();
 		await flush();
 		expect(fetchViews).toHaveBeenCalledTimes(2);
+	});
+
+	it("shares one read between the crumb and the sidebar, in flight and after it landed", async () => {
+		fetchViews.mockResolvedValue([VIEW]);
+		const crumb = open();
+		const sidebar = open();
+		await flush();
+		open();
+		await flush();
+		expect(fetchViews).toHaveBeenCalledTimes(1);
+		expect(sidebar.hook.views.value).toEqual([VIEW]);
+		expect(crumb.hook.views.value).toEqual([VIEW]);
+	});
+
+	it("reads again once a write to a view has landed, even inside the share window", async () => {
+		fetchViews.mockResolvedValue([VIEW]);
+		open();
+		await flush();
+		refreshSavedViews();
+		open();
+		await flush();
+		expect(fetchViews.mock.calls.length).toBeGreaterThanOrEqual(2);
+	});
+
+	it("does not share a failed read", async () => {
+		fetchViews.mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce([VIEW]);
+		open();
+		await flush();
+		const next = open();
+		await flush();
+		expect(fetchViews).toHaveBeenCalledTimes(2);
+		expect(next.hook.views.value).toEqual([VIEW]);
 	});
 
 	it("drops an answer that lands after the scope ended", async () => {

@@ -137,17 +137,24 @@ describe("what opens the panel", () => {
 		expect(panel(host)?.textContent).toContain("Accounts");
 	});
 
-	it("shows no panel where the address is not inside a sidebar", async () => {
+	it("shows no panel where the address is neither inside a sidebar nor a DocType rail item", async () => {
+		const { host } = await shell([accounts], sidebars, "/crm-deal");
+		expect(panel(host)).toBeNull();
+	});
+
+	it("opens the views panel for a DocType rail item, with the DocType as its title", async () => {
 		const deal: NavigationItem = { key: "deal", item_type: "DocType", link_to: "CRM Deal" };
 		const { host } = await shell([deal, accounts], sidebars, "/crm-deal");
-		expect(panel(host)).toBeNull();
+		expect(panel(host)).not.toBeNull();
+		expect(panel(host)?.textContent).toContain("CRM Deal");
+		// It is not the module tree: no rows of the Accounts sidebar.
+		expect(panel(host)?.textContent).not.toContain("Sales Invoice");
 	});
 
 	it("swaps the panel away when navigation leaves it", async () => {
 		// No selection is stored, so leaving the sidebar's rows closes it. There is no last
 		// panel to fall back to.
-		const deal: NavigationItem = { key: "deal", item_type: "DocType", link_to: "CRM Deal" };
-		const { host, router } = await shell([accounts, deal], sidebars, "/sales-invoice");
+		const { host, router } = await shell([accounts], sidebars, "/sales-invoice");
 		expect(panel(host)).not.toBeNull();
 
 		await router.push("/crm-deal");

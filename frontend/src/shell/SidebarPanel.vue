@@ -68,7 +68,15 @@
 
 				<!-- `pt-0.5`: the first row's shadow is otherwise clipped on the viewport's top edge. -->
 				<ScrollArea ref="scroller" class="min-h-0 flex-1" viewportClass="px-2 pb-2 pt-0.5">
-					<nav class="flex flex-col gap-0.5" :aria-label="title">
+					<!-- Keyed per doctype: its views are one read, and a switch of doctype starts it again. -->
+					<component
+						:is="viewsSidebarBody"
+						v-if="views"
+						:key="views"
+						:doctype="views"
+						:title="title"
+					/>
+					<nav v-else class="flex flex-col gap-0.5" :aria-label="title">
 						<!-- Keyed per sidebar: a section reused across sidebars replays its open/close transition. -->
 						<SidebarRow
 							v-for="node in tree"
@@ -108,6 +116,7 @@ import type { NavigationItem } from "@/boot";
 import { __ } from "@/i18n";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";
+import { viewsSidebarBody } from "@/navigation/viewsSidebar";
 import type { ItemContext } from "@/navigation/types";
 import NavigationHeader from "./NavigationHeader.vue";
 import { shellAct } from "./shellActs";
@@ -127,6 +136,8 @@ const props = defineProps<{
 	customizable?: boolean;
 	collapsed: boolean;
 	chrome?: boolean;
+	/** A doctype: the panel lists its views, read when its body mounts, and `items` is empty. */
+	views?: string;
 	/** Drawn over the page from the seam, taking no width; a row tap or a click on the scrim emits `close`. */
 	overlay?: boolean;
 }>();
