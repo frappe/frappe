@@ -120,7 +120,7 @@ HEADER_NAME = re.compile(r"[!#$%&'*+\-.^_`|~0-9A-Za-z]+")
 
 
 def get_origin(url: str) -> str:
-	"""Origin of a URL that Chromium reports, which is already canonical (punycode, no default port)."""
+	"""Origin of a network request URL as Chromium reports it, which is already canonical (punycode, no default port)."""
 	parts = urllib.parse.urlsplit(url)
 	return f"{parts.scheme}://{parts.netloc.rpartition('@')[2]}"
 
