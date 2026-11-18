@@ -348,10 +348,8 @@ function describe(df, rules) {
 	}
 	const hook = frappe.boot.additional_filters_config?.[condition];
 	if (hook) {
-		return {
-			template: PLAIN(),
-			value: `${__(hook.label)} ${value}`,
-		};
+		const words = __("{0} in {2} {1}", null, "Filter chip: field, period name, period");
+		return { template: fill(words, ["{0}", "{1}", __(hook.label)]), value };
 	}
 	const kind = kind_of(df);
 	// a day can be left out only in Advanced: "not on 27 Sep, 00:00"
