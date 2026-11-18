@@ -8,6 +8,7 @@ from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from typing import Any
 
+import filetype
 from pydantic import Field
 
 import frappe
@@ -48,21 +49,26 @@ def call_document_method(doctype: str, name: str, method: str, args: dict[str, A
 
 def with_file(value: dict) -> dict | ToolResult:
 	"""Describe a file the method answered with, and show an image to the model."""
-	if frappe.response.get("type") not in ("download", "binary") or "filecontent" not in frappe.response:
+	if (
+		frappe.response.get("type") not in ("download", "binary", "pdf")
+		or "filecontent" not in frappe.response
+	):
 		return value
 
 	content = frappe.response.filecontent
 	if isinstance(content, str):
 		content = content.encode()
 	filename = frappe.response.get("filename")
+	# Models reject an image whose bytes do not match its declared type, so trust the bytes.
+	image = filetype.image_match(content)
 	mime_type = (
-		frappe.response.get("content_type")
+		(image and image.mime)
+		or frappe.response.get("content_type")
 		or mimetypes.guess_type(filename or "")[0]
 		or "application/octet-stream"
 	)
 	value["file"] = {"filename": filename, "mimeType": mime_type, "size": len(content)}
-	mime_type = mime_type.partition(";")[0].strip().lower()
-	if mime_type not in IMAGE_TYPES:
+	if mime_type not in IMAGE_TYPES or not image:
 		return value
 
 	data = base64.b64encode(content).decode()
