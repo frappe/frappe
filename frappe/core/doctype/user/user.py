@@ -256,7 +256,7 @@ class User(Document):
 		if self.email:
 			self.email = self.email.strip().lower()
 
-		if self.name not in STANDARD_USERS and (self.is_new() or self.has_value_changed("email")):
+		if self.name not in STANDARD_USERS and self.has_value_changed("email"):
 			self.validate_email_domain(self.email)
 
 		self.move_role_profile_name_to_role_profiles()
