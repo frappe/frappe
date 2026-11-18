@@ -1804,7 +1804,7 @@ def impersonate(user: str, reason: str):
 		user_email = frappe.db.get_value("User", user, "email")
 		email_message = _(
 			"User {0} has started an impersonation session as you. <br><br><b>Reason provided:</b> {1}"
-		).format(escape_html(get_user_display_id()), escape_html(reason))
+		).format(escape_html(get_user_display_id(frappe.session.user)), escape_html(reason))
 
 		frappe.sendmail(
 			recipients=[user_email],
