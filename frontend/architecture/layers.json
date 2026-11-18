@@ -1071,6 +1071,10 @@
       "telemetryPlugin",
       "useTelemetry"
     ],
+    "ui/src/utils/flow.ts": [
+      "isFlowEnabled",
+      "resetFlowEnabled"
+    ],
     "ui/src/utils/sanitize.ts": [
       "sanitizeHtml"
     ],

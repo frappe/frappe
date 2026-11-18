@@ -128,4 +128,9 @@ export default [
 		],
 		rules: { "no-restricted-imports": "off" },
 	},
+	{
+		// develop's Flow check still fetches through v1; the desk does not use it until it is ported
+		files: ["ui/src/utils/flow.ts"],
+		rules: { "no-restricted-imports": "off" },
+	},
 ];
