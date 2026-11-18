@@ -15,6 +15,9 @@ from frappe.storage.driver import get_driver
 from frappe.utils import cint, now
 
 if TYPE_CHECKING:
+	from pypika.queries import Table
+	from pypika.terms import Criterion
+
 	from frappe.core.doctype.file_blob.file_blob import FileBlob
 	from frappe.storage.driver import StorageDriver
 
@@ -94,6 +97,13 @@ def key_filename(filename: str | None) -> str:
 def make_key(driver: "StorageDriver", blob_name: str, filename: str | None) -> str:
 	"""Object key for a blob: ``[<site prefix>/]<blob>/<filename>``, also its local path under the files root."""
 	return f"{driver.key_prefix}{blob_name}/{key_filename(filename)}"
+
+
+def other_site_key_criterion(blob: "Table") -> "Criterion":
+	"""Keys under another site's ``sites/<name>/`` prefix: a renamed site's former name, or a restored backup's source site."""
+	# "_" in a site name is a LIKE wildcard
+	own_prefix = frappe.local.site.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+	return blob.key.like("sites/%") & blob.key.not_like(f"sites/{own_prefix}/%")
 
 
 def key_basename(key: str) -> str:

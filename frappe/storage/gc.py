@@ -11,6 +11,7 @@ from pypika.terms import Criterion, ExistsCriterion
 import frappe
 import frappe.storage
 from frappe.model.rename_doc import get_link_fields
+from frappe.storage.blob import other_site_key_criterion
 from frappe.storage.cache import delete_cached
 from frappe.storage.upload import expire_stale_upload_sessions
 from frappe.utils import add_to_date, get_datetime, now_datetime
@@ -120,13 +121,16 @@ def _warn_unindexed_reference_columns(columns: list[dict], logger) -> None:
 def get_orphan_blobs(
 	cutoff, limit: int, columns: list[dict], kept_blobs: Collection[str] = frozenset()
 ) -> list[dict]:
-	"""Blobs no discovered Link column references, untouched since ``cutoff``, except ``kept_blobs``."""
+	"""Blobs no discovered Link column references, untouched since ``cutoff``, except ``kept_blobs``.
+
+	Skips keys under another site's prefix: the driver refuses to delete those bytes."""
 	blob = frappe.qb.DocType("File Blob").as_("blob")
 	query = (
 		frappe.qb.from_(blob)
 		.select(blob.name, blob.key, blob.driver, blob.is_private)
 		.where(blob.modified < cutoff)
 		.where(orphan_criterion(blob, columns))
+		.where(other_site_key_criterion(blob).negate())
 		.limit(limit)
 	)
 	if kept_blobs:
