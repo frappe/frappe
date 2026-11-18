@@ -384,6 +384,11 @@ class TestWebsite(FrappeTestCase):
 		content = get_response_content("/_test/_test_safe_render_on")
 		self.assertIn(traceback, content)
 
+	def test_render_error_hides_traceback_from_guest(self):
+		with patch.object(frappe, "_dev_server", 0), self.assertRaises(Exception) as error:
+			frappe.render_template("{{ frappe.form_dict.missing_key.upper() }}")
+		self.assertNotIn("Traceback", str(error.exception))
+
 	def test_never_render(self):
 		from pathlib import Path
 		from random import choices

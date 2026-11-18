@@ -555,6 +555,11 @@ def update_user_info(docinfo, doc=None):
 
 @frappe.whitelist()
 def get_user_info_for_viewers(users: str | list[str]):
+	from frappe.utils.user import is_website_user
+
+	if is_website_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	user_info = {}
 	for user in frappe.parse_json(users):
 		frappe.utils.add_user_info(user, user_info)
