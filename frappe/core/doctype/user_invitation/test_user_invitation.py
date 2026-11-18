@@ -2,6 +2,8 @@
 # See license.txt
 
 import re
+from contextlib import contextmanager
+from unittest.mock import patch
 
 import frappe
 import frappe.utils
@@ -13,6 +15,7 @@ from frappe.core.api.user_invitation import (
 )
 from frappe.core.doctype.user_invitation.user_invitation import mark_expired_invitations
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 
 emails = [
 	"test_user_invite1@example.com",
@@ -204,7 +207,12 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertEqual(len(self.get_email_names(False)), 1)
 		key = invitation.send_invitation_mail()
 		self.assertEqual(len(self.get_email_names(False)), 2)
-		_accept_invitation(key, True)
+		# accepting commits
+		with (
+			self.change_settings("System Settings", {"disable_user_pass_login": 0}, commit=True),
+			self.set_user("Guest"),
+		):
+			_accept_invitation(key, True)
 		res = frappe.local.response
 		self.assertEqual(res.type, "redirect")
 		pattern = f"^{re.escape(frappe.utils.get_url(''))}/update-password\\?key=.+&redirect_to=/abc$"
@@ -222,15 +230,15 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 			app_name="frappe",
 		).insert()
 		self.assertEqual(len(frappe.get_all("User", filters={"email": invitation.email}, pluck="name")), 0)
-		original_disable_user_pass_login = frappe.get_system_settings("disable_user_pass_login")
-		frappe.db.set_single_value("System Settings", "disable_user_pass_login", 1)
 		self.assertEqual(len(self.get_email_names(False)), 1)
 		key = invitation.send_invitation_mail()
 		self.assertEqual(len(self.get_email_names(False)), 2)
-		_accept_invitation(key, True)
-		frappe.db.set_single_value(
-			"System Settings", "disable_user_pass_login", original_disable_user_pass_login
-		)
+		# accepting commits
+		with (
+			self.change_settings("System Settings", {"disable_user_pass_login": 1}, commit=True),
+			self.set_user("Guest"),
+		):
+			_accept_invitation(key, True)
 		res = frappe.local.response
 		self.assertEqual(res.type, "redirect")
 		pattern = f"^{re.escape(frappe.utils.get_url(''))}/abc$"
@@ -238,6 +246,66 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		user = frappe.get_doc("User", invitation.email)
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
+
+	def test_accept_invitation_api_refuses_another_logged_in_user(self):
+		invitation = self.get_dummy_invitation().insert()
+		key = invitation.send_invitation_mail()
+		with self.set_user(emails[0]):
+			_accept_invitation(key, True)
+		self.assertEqual(frappe.local.response.type, "page")
+		self.assertEqual(frappe.local.response.http_status_code, 417)
+		self.assertIn("You are logged in as", frappe.local.message)
+		invitation.reload()
+		self.assertEqual(invitation.status, "Pending")
+		self.assertEqual(invitation.key, frappe.utils.sha256_hash(key))
+
+	def test_accept_invitation_api_reports_a_dead_link_before_refusing(self):
+		invitation = self.get_dummy_invitation().insert()
+		key = invitation.send_invitation_mail()
+		invitation.expire()
+		with self.set_user(emails[0]):
+			self.assertRaisesRegex(
+				frappe.ValidationError, "Invitation is expired", _accept_invitation, key, True
+			)
+
+	def test_accept_invitation_api_does_not_log_in_the_logged_in_invitee(self):
+		user = self.invitee(roles=["Website Manager"], password_set=True)
+		key = self.invite(user.email)
+		with self.logged_in(user.name):
+			sid = frappe.session.sid
+			_accept_invitation(key, False)
+			self.assertEqual(frappe.session.sid, sid)
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 1)
+		self.assertIn("System Manager", frappe.get_roles(user.name))
+
+	def test_accept_invitation_api_logs_in_the_invitee_again_when_the_user_type_changes(self):
+		user = self.invitee(roles=[], password_set=False)
+		key = self.invite(user.email)
+		with (
+			self.change_settings("System Settings", {"disable_user_pass_login": 0}),
+			self.logged_in(user.name),
+		):
+			sid = frappe.session.sid
+			_accept_invitation(key, False)
+			self.assertEqual(frappe.session.user, user.name)
+			self.assertNotEqual(frappe.session.sid, sid)
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 1)
+			self.assertIn("/update-password?key=", frappe.local.response.location)
+		self.assertEqual(frappe.db.get_value("User", user.name, "user_type"), "System User")
+
+	# name lookups are case-sensitive on Postgres, so a mixed-case invitation fails to accept there
+	@run_only_if(db_type_is.MARIADB)
+	def test_accept_invitation_api_mixed_case_invitee(self):
+		user = frappe.new_doc("User", first_name="Invited", email=emails[4], send_welcome_email=0).insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name)
+		invitation = self.get_dummy_invitation()
+		invitation.email = emails[4].upper()
+		invitation.insert()
+		key = invitation.send_invitation_mail()
+		with self.set_user(user.name):
+			_accept_invitation(key, True)
+		self.assertEqual(frappe.local.response.type, "redirect")
+		self.assertEqual(frappe.db.get_value("User Invitation", invitation.name, "status"), "Accepted")
 
 	def test_get_pending_invitations_api(self):
 		invitation = self.get_dummy_invitation()
@@ -272,6 +340,41 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 
 		self.assertFalse(res["cancelled_now"])
 		self.assertEqual(len(self.get_email_names()), 2)
+
+	def invitee(self, roles, password_set):
+		user = frappe.new_doc("User", first_name="Invited", email=emails[4], send_welcome_email=0)
+		user.last_password_reset_date = frappe.utils.today() if password_set else None
+		user.append_roles(*roles)
+		user.insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name)
+		return user
+
+	def invite(self, email):
+		invitation = self.get_dummy_invitation()
+		invitation.email = email
+		invitation.insert()
+		return invitation.send_invitation_mail()
+
+	@contextmanager
+	def logged_in(self, user):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		names = ("request", "cookie_manager", "login_manager")
+		saved = {name: getattr(frappe.local, name, None) for name in names}
+		# starting and ending a session commits, leave it to the class rollback
+		with patch.object(frappe.db, "commit"), self.set_user("Guest"):
+			try:
+				set_request(path="/random")
+				frappe.local.cookie_manager = CookieManager()
+				frappe.local.login_manager = LoginManager()
+				frappe.local.login_manager.login_as(user)
+				yield
+			finally:
+				if frappe.session.user != "Guest":
+					frappe.local.login_manager.logout()
+				for name, value in saved.items():
+					setattr(frappe.local, name, value)
 
 	def get_dummy_invitation(self):
 		return frappe.get_doc(

@@ -153,6 +153,19 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	if not invitation_name:
 		frappe.throw(title=_("Error"), msg=_("Invalid or expired key"))
 	invitation = frappe.get_doc("User Invitation", invitation_name)
+	if invitation.status == "Pending" and frappe.session.user not in (
+		"Guest",
+		invitation.email.strip().lower(),
+	):
+		frappe.respond_as_web_page(
+			_("Already Logged In"),
+			_("You are logged in as {0}. Log out and try again.").format(frappe.session.user),
+			http_status_code=417,
+			primary_action=None,
+		)
+		return
+
+	previous_user_type = frappe.db.get_value("User", invitation.email, "user_type")
 
 	# accept invitation
 	invitation.accept(ignore_permissions=True)
@@ -170,8 +183,14 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	# GET requests do not cause an implicit commit
 	frappe.db.commit()  # nosemgrep
 
-	if not in_test and not should_update_password:
-		frappe.local.login_manager.login_as(invitation.email)
+	if frappe.session.user == "Guest":
+		should_log_in = not should_update_password
+	else:
+		# new roles can change the user type, which ends every session of the user, including the current one
+		should_log_in = user.user_type != previous_user_type
+
+	if should_log_in and not in_test:
+		frappe.local.login_manager.login_as(user.name)
 
 	# set response
 	frappe.local.response["type"] = "redirect"
