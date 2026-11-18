@@ -178,6 +178,14 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
 		self.assertEqual(response.json.get("exc_type"), "SecurityException")
 
+	def test_pending_login_needs_2fa(self):
+		tmp_id = self.start_login()
+		for role in ("All", self.role):
+			frappe.db.set_value("Role", role, "two_factor_auth", 0)
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
+		self.assertEqual(response.json.get("exc_type"), "ExpiredLoginException")
+
 	def test_tmp_id_expires_after_login(self):
 		set_default(self.user + "_otplogin", 1)
 		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit

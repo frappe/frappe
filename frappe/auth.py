@@ -179,6 +179,8 @@ class LoginManager:
 			authenticate_for_2factor(self.user)
 			if not confirm_otp_token(self):
 				return False
+		elif tmp_id:
+			raise ExpiredLoginException(_("Login session expired, refresh page to retry"))
 
 		if self.force_user_to_reset_password():
 			doc = frappe.get_doc("User", self.user)
