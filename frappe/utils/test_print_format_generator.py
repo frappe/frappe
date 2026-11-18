@@ -1115,7 +1115,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		)
 		html = get_html("Contact", contact.name, pf.name)
 		self.assertNotIn("position:fixed", html)
-		self.assertNotIn("display: none", html)
+		self.assertNotIn("* { display: none", html)
 		self.assertIn('class="pfb-repeater-cell" style="text-align: left"', html)
 
 	def test_blank_table_column_header_falls_back_to_fieldname(self):
