@@ -106,12 +106,15 @@ def get_email_addresses(users: Iterable[str]) -> set[str]:
 	)
 
 
-def get_user_by_email(email: str, *, include_standard_users: bool = False) -> str | None:
+def get_user_by_email(
+	email: str, *, include_standard_users: bool = False, filters: dict | None = None
+) -> str | None:
 	"""Return the ID of the user with this email, or None.
 
 	Administrator and Guest are left out unless `include_standard_users` is True.
+	`filters` narrows the match further, e.g. `{"enabled": 1}`.
 	"""
-	filters = {"email": email.strip().lower()}
+	filters = {**(filters or {}), "email": email.strip().lower()}
 	if not include_standard_users:
 		filters["name"] = ("not in", frappe.STANDARD_USERS)
 
