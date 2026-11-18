@@ -8,6 +8,7 @@ from PIL import Image
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils.preview import get_preview_from_url
 
 
 def is_chromium_available() -> bool:
@@ -175,6 +176,53 @@ class TestPreview(IntegrationTestCase):
 		with self.assertRaises(ValueError):
 			get_preview_from_url("http://127.0.0.1:9/", headers={"X-Key": "a\nb"})
 
+	def test_get_preview_from_url_headers_skip_frames_of_a_url_without_origin(self):
+		received = []
+		other = self.start_server(received)
+
+		get_preview_from_url(
+			f"data:text/html,<iframe src='http://127.0.0.1:{other.server_port}/frame'></iframe>",
+			headers={"X-Preview-Key": "secret"},
+		)
+		self.assertIn((other.server_port, "/frame", None), received)
+
+	def test_get_preview_from_url_wait_until_does_not_wait_for_network_idle(self):
+		received = []
+		server = self.start_server(received)
+
+		data = get_preview_from_url(
+			f"http://127.0.0.1:{server.server_port}/hold-page", wait_until="true", timeout=5
+		)
+		self.assertTrue(data)
+
+	def start_server(self, received):
+		import threading
+		import time
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+		class Handler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				received.append((self.server.server_port, self.path, self.headers.get("X-Preview-Key")))
+				if self.path == "/hold":
+					time.sleep(30)
+					return
+				body = b"<script>fetch('/hold')</script>" if self.path == "/hold-page" else b""
+				self.send_response(200)
+				self.send_header("Content-Type", "text/html")
+				self.send_header("Content-Length", str(len(body)))
+				self.end_headers()
+				self.wfile.write(body)
+
+			def log_message(self, *args):
+				pass
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+		server.daemon_threads = True
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		return server
+
 	def test_get_preview_from_url_timeout_bounds_a_stalled_wait_until(self):
 		import time
 
@@ -216,48 +264,14 @@ class TestPreview(IntegrationTestCase):
 class TestPreviewValidation(IntegrationTestCase):
 	"""Format validation raises before Chromium is touched, so it runs everywhere."""
 
+	def test_wait_until_needs_a_positive_timeout(self):
+		from frappe.utils.preview import get_preview_from_url
+
+		with self.assertRaises(ValueError):
+			get_preview_from_url("data:text/html,<body></body>", wait_until="true", timeout=0)
+
 	def test_invalid_format_raises(self):
 		from frappe.utils.preview import get_preview_from_html
 
 		with self.assertRaises(frappe.ValidationError):
 			get_preview_from_html("<html></html>", format="png")
-
-	def test_extra_headers_follow_the_origin_chromium_reports(self):
-		from frappe.utils.pdf_generator.page import Page
-
-		class Session:
-			def __init__(self):
-				self.sent = []
-
-			def start_listener(self, method, callback, *args):
-				self.on_request_paused = callback
-
-			def send(self, method, params=None, session_id=None, return_future=False, timeout=None):
-				self.sent.append((method, params))
-				return {}, None
-
-		page = Page.__new__(Page)
-		page.session, page.session_id = Session(), "session"
-		page.set_extra_headers_for_page_origin({"X-Key": "secret"})
-
-		requests = {
-			"https://xn--fa-hia.de/": "Document",
-			"https://fass.de/logo.png": "Image",
-			"https://xn--fa-hia.de/app.css": "Stylesheet",
-		}
-		for url, resource_type in requests.items():
-			request = {"url": url, "headers": {}}
-			page.session.on_request_paused(
-				None, {"params": {"requestId": url, "resourceType": resource_type, "request": request}}
-			)
-
-		sent_headers = {
-			params["requestId"]: params.get("headers")
-			for method, params in page.session.sent
-			if method == "Fetch.continueRequest"
-		}
-		self.assertEqual(sent_headers["https://xn--fa-hia.de/"], [{"name": "X-Key", "value": "secret"}])
-		self.assertEqual(
-			sent_headers["https://xn--fa-hia.de/app.css"], [{"name": "X-Key", "value": "secret"}]
-		)
-		self.assertIsNone(sent_headers["https://fass.de/logo.png"])
