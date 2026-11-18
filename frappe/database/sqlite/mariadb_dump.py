@@ -815,7 +815,9 @@ class MariaDBDumpWriter:
 
 	def write_sequences(self, connection, dump):
 		sequences = {}
-		if self.has_table(connection, SQLITE_SEQUENCE_TABLE):
+		if connection.execute(
+			"SELECT 1 FROM sqlite_master WHERE name = ?", (SQLITE_SEQUENCE_TABLE,)
+		).fetchone():
 			sequences = {
 				row[0]: row
 				for row in connection.execute(
@@ -843,14 +845,6 @@ class MariaDBDumpWriter:
 				dump.write(f"CREATE SEQUENCE IF NOT EXISTS {quote_identifier(name)}{options} NOCACHE;\n")
 				dump.write(f"SELECT SETVAL({quote_identifier(name)}, {int(current)}, 1);\n")
 		dump.write("\n")
-
-	@staticmethod
-	def has_table(connection, table: str) -> bool:
-		return bool(
-			connection.execute(
-				"SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?", (table,)
-			).fetchone()
-		)
 
 	def add_problem(self, message: str):
 		self.problems.append(message)
@@ -896,9 +890,3 @@ def mariadb_index_name(table: str, name: str) -> str:
 	if len(name) <= 64:
 		return name
 	return name[:55] + "_" + hashlib.sha1(name.encode()).hexdigest()[:8]
-
-
-def write_mariadb_dump(
-	database_path, path, header: str, include_tables=None, exclude_tables=None, verbose=False
-):
-	MariaDBDumpWriter(database_path, include_tables, exclude_tables, verbose).write(path, header)
