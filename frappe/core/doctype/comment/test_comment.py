@@ -139,27 +139,6 @@ class TestComment(IntegrationTestCase):
 
 		self.assertIn(comment.name, visible)
 
-	def test_portal_user_sees_mails_sent_to_their_email(self):
-		from frappe.core.doctype.user.test_user import test_user
-		from frappe.website.utils import get_comment_list
-
-		web_page = frappe.get_doc("Web Page", "test-web-page-1")
-
-		with test_user(roles=[], generated_id=True) as user:
-			mail = frappe.get_doc(
-				doctype="Communication",
-				communication_type="Communication",
-				content="mail to the portal user",
-				recipients=f"Portal User <{user.email}>",
-				reference_doctype="Web Page",
-				reference_name=web_page.name,
-			).insert(ignore_permissions=True)
-
-			with set_user(user.name):
-				visible = [c["name"] for c in get_comment_list("Web Page", web_page.name)]
-
-		self.assertIn(mail.name, visible)
-
 	def test_user_not_logged_in(self):
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
 

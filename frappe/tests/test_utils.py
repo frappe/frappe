@@ -2598,10 +2598,10 @@ class TestAddUserInfo(IntegrationTestCase):
 			frappe.db.set_value("User", user.name, "email", email)
 
 			user_info = {}
-			frappe.utils.add_user_info([user.name, email, None], user_info)
+			frappe.utils.add_user_info([user.name, email.upper(), None], user_info)
 
 			self.assertEqual(user_info[user.name].name, user.name)
-			self.assertEqual(user_info[email].name, user.name)
+			self.assertEqual(user_info[email.upper()].name, user.name)
 
 	def test_add_user_info_prefers_the_id(self):
 		from frappe.core.doctype.user.test_user import test_user

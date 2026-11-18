@@ -1157,7 +1157,7 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 
 	missing_info = frappe.get_all(
 		"User",
-		or_filters={"name": ("in", missing_users), "email": ("in", missing_users)},
+		or_filters={"name": ("in", missing_users), "email": ("in", {u.lower() for u in missing_users})},
 		fields=["full_name", "user_image", "name", "email", "time_zone"],
 	)
 
@@ -1165,7 +1165,7 @@ def add_user_info(user: str | list[str] | set[str], user_info: dict[str, _UserIn
 	by_name = {info.name: info for info in missing_info}
 	by_email = {info.email: info for info in missing_info}
 	for key in missing_users:
-		if info := by_name.get(key) or by_email.get(key):
+		if info := by_name.get(key) or by_email.get(key.lower()):
 			user_info.setdefault(key, frappe._dict()).update(
 				fullname=info.full_name or info.name,
 				image=info.user_image,
