@@ -2883,10 +2883,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			const value = filter[3];
 
 			const query_key = doctype === this.doctype ? field : `${doctype}.${field}`;
-			// a value that looks like a list ("[A]") would be read back as one
-			const looks_like_list = /^\[.*\]$/s.test(value);
-			const query_value =
-				operator === "=" && !looks_like_list ? value : JSON.stringify([operator, value]);
+			const query_value = operator === "=" ? value : JSON.stringify([operator, value]);
 
 			search_params.append(query_key, query_value);
 		});

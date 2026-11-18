@@ -383,8 +383,15 @@ frappe.views.ListViewSelect = class ListViewSelect {
 		if (search_params) {
 			// a range (>= and <=) keeps both, as a list of [condition, value]
 			const options = {};
-			const rule_of = (v) =>
-				v.startsWith("[") && v.endsWith("]") ? JSON.parse(v) : ["=", v];
+			const rule_of = (v) => {
+				try {
+					const rule = JSON.parse(v);
+					if (Array.isArray(rule)) return rule;
+				} catch {
+					// an equals value that only looks like a list: "[A]"
+				}
+				return ["=", v];
+			};
 			for (const [key, value] of search_params) {
 				if (!(key in options)) {
 					options[key] = value;
