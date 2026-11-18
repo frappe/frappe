@@ -245,7 +245,7 @@ class Communication(Document, CommunicationEmailMixin):
 		user_email_signature = (
 			frappe.db.get_value(
 				"User",
-				{"email": self.sender},
+				{"email": self.sender.lower()},
 				"email_signature",
 			)
 			if self.sender
@@ -394,7 +394,9 @@ class Communication(Document, CommunicationEmailMixin):
 				self.sender_full_name = sender_name
 
 				if not self.sender_full_name:
-					self.sender_full_name = frappe.db.get_value("User", {"email": self.sender}, "full_name")
+					self.sender_full_name = frappe.db.get_value(
+						"User", {"email": self.sender.lower()}, "full_name"
+					)
 
 				if not self.sender_full_name:
 					self.sender_full_name = frappe.db.get_value(
