@@ -87,7 +87,8 @@
    "fieldtype": "Link",
    "in_global_search": 1,
    "label": "User Id",
-   "options": "User"
+   "options": "User",
+   "search_index": 1
   },
   {
    "fieldname": "cb00",
@@ -271,7 +272,7 @@
  "image_field": "image",
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-07-31 16:01:30.937045",
+ "modified": "2026-11-17 11:13:11.868270",
  "modified_by": "Administrator",
  "module": "Contacts",
  "name": "Contact",
