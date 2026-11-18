@@ -506,7 +506,9 @@ def get_preview_page_css(print_format: "PrintFormat" | None = None, overrides: d
 			for length in (parse_float_and_unit(page_options[key]) for key in ("page-width", "page-height"))
 		)
 	elif page_options.get("page-size"):
-		page_width, page_height = page_size_mm({"pdf_page_size": page_options["page-size"]})
+		page_width, page_height = page_size_mm(
+			frappe.get_cached_doc("Print Settings").as_dict() | {"pdf_page_size": page_options["page-size"]}
+		)
 	else:
 		page_width, page_height = get_page_size_mm(overrides)
 	if cstr(page_options.get("orientation")).lower() == "landscape" and page_width < page_height:
