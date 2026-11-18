@@ -8,7 +8,6 @@ import frappe
 from frappe import _
 from frappe.core.doctype.user.user import rewrite_owner_fields
 from frappe.core.utils import find
-from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled
 from frappe.model.document import Document
 from frappe.utils import (
 	add_days,
@@ -117,7 +116,14 @@ class PersonalDataDeletionRequest(Document):
 		)
 
 	def notify_system_managers(self):
-		managers = [m for m in get_system_managers(only_name=True) if is_email_notifications_enabled(m)]
+		managers = set(get_system_managers(only_name=True))
+		managers -= set(
+			frappe.get_all(
+				"Notification Settings",
+				filters={"name": ("in", managers), "enable_email_notifications": 0},
+				pluck="name",
+			)
+		)
 
 		frappe.sendmail(
 			recipients=get_email_addresses(managers),
