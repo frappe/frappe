@@ -15,7 +15,10 @@ def invite_by_email(
 	email_list = frappe.utils.split_emails(emails)
 	if not email_list:
 		frappe.throw(title=_("Invalid input"), msg=_("No email addresses to invite"))
-	if frappe.db.exists("User", {"email": ["in", email_list], "name": ["in", frappe.STANDARD_USERS]}):
+	standard_user_emails = frappe.get_all(
+		"User", filters={"name": ["in", frappe.STANDARD_USERS]}, pluck="email"
+	)
+	if {email.lower() for email in email_list} & set(standard_user_emails):
 		frappe.throw(title=_("Error"), msg=_("Standard users can't be invited"))
 
 	# get relevant data from the database
