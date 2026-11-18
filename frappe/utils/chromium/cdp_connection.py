@@ -125,15 +125,16 @@ class CDPSocketClient:
 				title="Error during WebSocket disconnection:", message=f"{frappe.get_traceback()}"
 			)
 
-	def send(self, method, params=None, session_id=None, return_future=False):
+	def send(self, method, params=None, session_id=None, return_future=False, timeout=None):
 		if return_future:
 			return asyncio.ensure_future(
 				self._send(method, params, session_id, wait_future_fulfill=False), loop=self.loop
 			)
-		future = self.loop.run_until_complete(self._send(method, params, session_id))
+		future = self.loop.run_until_complete(self._send(method, params, session_id, timeout=timeout))
 		return self._destructure_response(future.result())
 
-	async def _send(self, method, params=None, session_id=None, wait_future_fulfill=True):
+	async def _send(self, method, params=None, session_id=None, wait_future_fulfill=True, timeout=None):
+		timeout = timeout or self.COMMAND_TIMEOUT
 		self.message_id += 1
 		message_id = self.message_id
 		message = {
@@ -171,14 +172,12 @@ class CDPSocketClient:
 		await self.connection.send(frappe.json.dumps(message))
 		if wait_future_fulfill:
 			try:
-				await asyncio.wait_for(future, self.COMMAND_TIMEOUT)
+				await asyncio.wait_for(future, timeout)
 			except TimeoutError:
 				self.pending_messages = {
 					key: value for key, value in self.pending_messages.items() if value is not future
 				}
-				raise TimeoutError(
-					f"Chromium did not respond to {method} within {self.COMMAND_TIMEOUT}s"
-				) from None
+				raise TimeoutError(f"Chromium did not respond to {method} within {timeout}s") from None
 		return future
 
 	def _destructure_response(self, response):

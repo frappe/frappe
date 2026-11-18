@@ -129,9 +129,9 @@ def capture_screenshot(
 				page.wait_for_set_content()
 			else:
 				if headers:
-					page.set_extra_headers_for_origin(url, headers)
+					page.set_extra_headers_for_page_origin(headers)
 				deadline = time.monotonic() + timeout
-				page.navigate(url, timeout=timeout if wait_until else 60)
+				page.navigate(url, timeout=timeout if wait_until else None)
 				if wait_until:
 					wait_until_truthy(page, wait_until, deadline, timeout)
 				if wait_for:
@@ -156,16 +156,23 @@ def capture_screenshot(
 
 
 def wait_until_truthy(page, expression: str, deadline: float, timeout: int):
-	while True:
-		result = page.evaluate(f"Boolean({expression})") or {}
+	while (remaining := deadline - time.monotonic()) > 0:
+		try:
+			result, _error = page.send(
+				"Runtime.evaluate",
+				{"expression": f"Boolean({expression})", "timeout": remaining * 1000},
+				timeout=remaining,
+			)
+		except TimeoutError:
+			break
+		result = result or {}
 		if result.get("result", {}).get("value") is True:
 			return
 		exception = result.get("exceptionDetails", {}).get("exception", {})
 		if exception.get("className") == "SyntaxError":
 			raise SyntaxError(f"Invalid wait_until expression: {exception.get('description')}")
-		if time.monotonic() >= deadline:
-			raise TimeoutError(f"Page not ready after {timeout} seconds: {expression} is not truthy")
-		sleep(page, 0.1)
+		sleep(page, min(0.1, max(deadline - time.monotonic(), 0)))
+	raise TimeoutError(f"Page not ready after {timeout} seconds: {expression} is not truthy")
 
 
 def sleep(page, seconds: float):

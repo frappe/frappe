@@ -120,8 +120,7 @@ HEADER_NAME = re.compile(r"[!#$%&'*+\-.^_`|~0-9A-Za-z]+")
 
 def get_origin(url: str) -> tuple:
 	parts = urllib.parse.urlsplit(url)
-	hostname = parts.hostname and parts.hostname.encode("idna").decode()
-	return (parts.scheme, hostname, parts.port or {"http": 80, "https": 443}.get(parts.scheme))
+	return (parts.scheme, parts.hostname, parts.port or {"http": 80, "https": 443}.get(parts.scheme))
 
 
 class Page:
@@ -149,10 +148,10 @@ class Page:
 		self.block_external_requests = False
 
 	# TODO: make send to return future and don't wait for it by default.
-	def send(self, method, params=None, return_future=False):
+	def send(self, method, params=None, return_future=False, timeout=None):
 		if params is None:
 			params = {}
-		return self.session.send(method, params, self.session_id, return_future)
+		return self.session.send(method, params, self.session_id, return_future, timeout=timeout)
 
 	def get_frame_id_on_demand(self):
 		if self.frame_id:
@@ -286,19 +285,23 @@ class Page:
 		# Enable request interception for the specified URL pattern
 		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
 
-	def set_extra_headers_for_origin(self, url, headers):
-		"""Add `headers` to requests for `url`'s origin; requests to other origins continue without them."""
+	def set_extra_headers_for_page_origin(self, headers):
+		"""Add `headers` to requests for the origin of the page's first document request, as Chromium
+		reports it; requests to other origins continue without them. Call before navigating."""
 		for name, value in headers.items():
 			if not HEADER_NAME.fullmatch(name) or any(c in str(value) for c in "\r\n\0"):
 				raise ValueError(f"Invalid HTTP header: {name}")
-		origin = get_origin(url)
 		header_names = {name.lower() for name in headers}
+		page_origin = {}
 
 		def on_request_paused_event(future, response):
 			params = response.get("params") or {}
 			request = params.get("request") or {}
 			continue_params = {"requestId": params["requestId"]}
-			if get_origin(request.get("url", "")) == origin:
+			origin = get_origin(request.get("url", ""))
+			if not page_origin and params.get("resourceType") == "Document":
+				page_origin["origin"] = origin
+			if origin == page_origin.get("origin"):
 				request_headers = [
 					{"name": name, "value": value}
 					for name, value in (request.get("headers") or {}).items()
@@ -328,15 +331,18 @@ class Page:
 
 		self.wait_for_navigate = wait_for_navigate
 
-	def navigate(self, url, wait_for=None, timeout=60):
-		"""Really load a URL and wait for render (vs set_tab_url's empty-body stub)."""
-		wait_start = self.wait_for_load(
-			wait_for=wait_for or ["load", "DOMContentLoaded", "networkIdle"], timeout=timeout
-		)
-		_result, error = self.send("Page.navigate", {"url": url})
+	def navigate(self, url, wait_for=None, timeout=None):
+		"""Really load a URL and wait for render (vs set_tab_url's empty-body stub).
+		With `timeout`, loading and rendering share that many seconds."""
+		deadline = time.monotonic() + (timeout or 0)
+		wait_start = self.wait_for_load(wait_for=wait_for or ["load", "DOMContentLoaded", "networkIdle"])
+		_result, error = self.send("Page.navigate", {"url": url}, timeout=timeout)
 		if error:
 			raise RuntimeError(f"Error navigating to URL: {error}")
-		wait_start()
+		if timeout:
+			wait_start(max(deadline - time.monotonic(), 0))
+		else:
+			wait_start()
 
 	def evaluate(self, expression, await_promise=False):
 		self.send("Runtime.enable")
@@ -392,8 +398,8 @@ class Page:
 			"Page.lifecycleEvent", on_lifecycle_event, self.session_id, self.target_id, self.frame_id
 		)
 
-		def start_wait():
-			self.session.wait_for_event(event, timeout)
+		def start_wait(wait_timeout=timeout):
+			self.session.wait_for_event(event, wait_timeout)
 			self.session.remove_listener("Page.lifecycleEvent", event)
 
 		return start_wait
