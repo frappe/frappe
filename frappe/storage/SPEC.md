@@ -470,6 +470,14 @@ deleting the bytes, then the row. Then it calls
   stale-file bug.
 - Also sweeps upload sessions untouched for 24 hours. Today aborted
   chunk uploads leave `.temp-*` files forever.
+- Keeps a blob that a backup File index lists, so a restored backup
+  still finds its bytes. Index files are
+  `sites/<site>/backups_metadata/*-files-index.json` in the S3 storage
+  bucket, with `file_blob` on each item of `files_index` and
+  `private_files_index`. Pilot writes one per backup with files, from
+  `frappe.core.doctype.file.utils.get_files_index`, and deletes it with
+  the backup. An index that cannot be read deletes no blob that run.
+  Backups in another bucket are not seen and keep nothing.
 
 ## Tests
 
