@@ -1992,21 +1992,18 @@ class TestTypingValidations(IntegrationTestCase):
 		def func(a, b=None, **kwargs):
 			pass
 
-		lax_types = frappe.whitelist(force_types=False)(func)
-		lax_types(1)  # should run without error
-
-		forced_types = frappe.whitelist(force_types=True)(func)
+		forced_types = frappe.whitelist()(func)
 		with self.assertRaises(frappe.FrappeTypeError):
 			forced_types(1)
 
-		@frappe.whitelist(force_types=True)
+		@frappe.whitelist()
 		def func(a: int, b=None, **kwargs):
 			pass
 
 		with self.assertRaises(frappe.FrappeTypeError):
 			func(1)
 
-		@frappe.whitelist(force_types=True)
+		@frappe.whitelist()
 		def func(a: int, b: int | None = None, **kwargs):
 			pass
 

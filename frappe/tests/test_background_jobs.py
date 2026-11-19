@@ -341,6 +341,5 @@ def patch_job_hooks(event: str, *args, **kwargs):
 	}
 	if event in test_hooks:
 		return test_hooks[event]
-	# anything else the job execution looks up (e.g. typing_validations'
-	# require_type_annotated_api_methods) must behave as usual
+	# anything else the job execution looks up must behave as usual
 	return _real_get_hooks(event, *args, **kwargs)
