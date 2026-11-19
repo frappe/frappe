@@ -529,7 +529,7 @@ class EmailAccount(Document):
 
 		:param match_by_email: Find account using emailID
 		:param match_by_doctype: Find account by matching `Append To` doctype
-		:param _raise_error: This is used by raise_error_on_no_output decorator to raise error.
+		:param _raise_error: Raise an error if no outgoing account is found.
 		"""
 		if match_by_email:
 			match_by_email = parse_addr(match_by_email)[1]
