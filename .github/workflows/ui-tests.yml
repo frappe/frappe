@@ -161,3 +161,9 @@ jobs:
           cd flow
           yarn install --frozen-lockfile
           yarn test
+
+      - name: Build the Page
+        run: |
+          mkdir -p "${RUNNER_TEMP}/bench/sites" "${RUNNER_TEMP}/bench/apps"
+          cd flow
+          FRAPPE_BENCH_ROOT="${RUNNER_TEMP}/bench" yarn build
