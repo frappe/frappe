@@ -2144,6 +2144,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			let totalRow = this.datatable.bodyRenderer.getTotalRow().reduce((row, cell) => {
 				row[cell.column.id] = cell.content;
 				row.is_total_row = true;
+				row._is_report_total = true;
 				return row;
 			}, {});
 			if (!totalRow?.currency && rows[0]?.currency) {

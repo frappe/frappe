@@ -1667,6 +1667,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 						total_data["name"] = __("Total");
 						total_data.is_total_row = true;
+						total_data._is_report_total = true;
 						rows_in_order.push(total_data);
 					}
 
