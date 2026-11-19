@@ -211,8 +211,7 @@ frappe.views.GalleryView = class GalleryView {
 		var me = this;
 
 		if (_items) {
-			// passed when more button clicked
-			this.items = this.items.concat(_items);
+			this.items = _items;
 			this.images_map = _images_map;
 		}
 
