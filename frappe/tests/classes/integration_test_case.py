@@ -102,12 +102,13 @@ class IntegrationTestCase(UnitTestCase):
 	@contextmanager
 	def secondary_connection(self) -> AbstractContextManager[None]:
 		"""Switch to secondary DB connection."""
+		# read before connect(), which rebinds frappe.local.db
+		current_conn = frappe.local.db
 		if self._secondary_connection is None:
 			frappe.connect()  # get second connection
 			self._secondary_connection = frappe.local.db
 
 		try:
-			current_conn = frappe.local.db
 			frappe.local.db = self._secondary_connection
 			yield
 		finally:
