@@ -40,8 +40,7 @@ def start(agent: str) -> dict[str, str]:
 	token = secrets.token_urlsafe(32)
 	with _as_guest():
 		# like a trigger's chat: nobody is there to approve a call
-		doc = new_session(agent, approval_mode="Auto-approve")
-		doc.db_set("guest_token", _hash_token(token), update_modified=False)
+		doc = new_session(agent, approval_mode="Auto-approve", guest_token=_hash_token(token))
 	return {"session": doc.name, "token": token}
 
 

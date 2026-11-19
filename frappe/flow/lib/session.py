@@ -52,8 +52,10 @@ def new_session(
 	title: str | None = None,
 	source: str = "Manual",
 	approval_mode: str | None = None,
+	guest_token: str | None = None,
 ) -> FlowSession:
-	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant."""
+	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant.
+	`guest_token` is the hash of the token that opens a guest chat."""
 	if agent is None:
 		agent_doc = frappe.get_doc("Flow Agent", _default_agent_name())
 	else:
@@ -68,6 +70,7 @@ def new_session(
 			"title": title,
 			"source": source,
 			"approval_mode": "Auto-approve" if source == "Trigger" else approval_mode or "Auto",
+			"guest_token": guest_token,
 		}
 	).insert(ignore_permissions=True)
 	with flow_server() as client:
