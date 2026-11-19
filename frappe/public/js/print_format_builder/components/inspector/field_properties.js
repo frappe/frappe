@@ -14,7 +14,7 @@ import ImageBlockRows from "./ImageBlockRows.vue";
 import BarcodeRows from "./BarcodeRows.vue";
 import LinkedFieldRows from "./LinkedFieldRows.vue";
 import { align_opts } from "./align_opts";
-import { has_align, is_breakable, is_text } from "../../fieldtypes";
+import { has_align, is_breakable, is_text, page_break_default } from "../../fieldtypes";
 import { date_format_opts, is_date_field } from "../../utils";
 
 const ft = (type) => (df) => df.fieldtype === type;
@@ -231,8 +231,9 @@ export const FIELD_SECTIONS = [
 				component: ToggleRow,
 				when: is_breakable,
 				props: () => ({ label: __("Split across pages") }),
-				get: (df) => !!df.allow_page_break,
-				set: (df, v, ctx) => ctx.set(df, "allow_page_break", v, false),
+				get: (df) => !!(df.allow_page_break ?? page_break_default(df)),
+				set: (df, v, ctx) =>
+					ctx.set(df, "allow_page_break", v ? 1 : 0, page_break_default(df)),
 				mixed: false,
 			},
 		],
