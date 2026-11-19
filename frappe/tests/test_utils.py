@@ -2610,7 +2610,6 @@ class TestAddUserInfo(IntegrationTestCase):
 			legacy = frappe.new_doc(
 				"User", email=f"legacy_{other.email}", first_name="Legacy", send_welcome_email=0
 			)
-			legacy.flags.skip_email_from_name = True
 			legacy.insert(set_name=other.email)
 			self.addCleanup(legacy.delete, force=True, ignore_permissions=True)
 

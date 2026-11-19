@@ -1113,7 +1113,6 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		with test_user(roles=[], generated_id=True) as user:
 			frappe.db.set_value("User", user.name, "email", f"{user.name}@frappe.invalid")
 			user = frappe.get_doc("User", user.name)
-			user.flags.skip_email_from_name = True
 			user.first_name = "Renamed"
 			user.save()
 
@@ -1133,7 +1132,6 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		def add_user_named(name):
 			user = frappe.new_doc("User", email=f"_test_{frappe.generate_hash(length=6)}@example.com")
 			user.first_name = "Clash"
-			user.flags.skip_email_from_name = True
 			user.insert(set_name=name)
 
 		# a changed email is left alone: migrate stops
@@ -1237,7 +1235,8 @@ def test_user(
 			**kwargs,
 		)
 		user.append_roles(*roles)
-		user.insert(set_name=None if generated_id else email)
+		user.flags.random_id = generated_id
+		user.insert()
 		yield user
 		commit and frappe.db.commit()
 	finally:

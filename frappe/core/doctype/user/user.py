@@ -21,7 +21,6 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.desk.notifications import clear_notifications
 from frappe.model.document import Document, get_controller
-from frappe.model.naming import make_autoname
 from frappe.query_builder import Criterion, DocType, Table
 from frappe.rate_limiter import rate_limit
 from frappe.sessions import clear_sessions, hash_sid
@@ -220,8 +219,9 @@ class User(Document):
 	def autoname(self):
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
-		else:
-			self.name = make_autoname("hash", self.doctype)
+		elif frappe.in_test and not self.flags.random_id:
+			# most tests address users by email, like users created before v17
+			self.name = self.email
 
 	def onload(self):
 		from frappe.utils.modules import get_blockable_module_names
