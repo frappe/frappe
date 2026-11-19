@@ -479,6 +479,26 @@ deleting the bytes, then the row. Then it calls
   the backup. An index that cannot be read deletes no blob that run.
   Backups in another bucket are not seen and keep nothing.
 
+### Backups
+
+`BackupGenerator.backup_files` (`frappe/utils/backups.py`) adds remote
+blobs to the files archives, so a backup with files holds their bytes.
+
+- After `tar` writes the local files, each Ready blob on a driver other
+  than `local` is streamed into the archive of its privacy, at
+  `<public|private>/files/<blob>/<filename>`: the local cache path.
+  Restore extracts it there, and `relocate_blobs` to `local` reuses it.
+- A `.tgz` cannot be appended to. With `--compress` and remote blobs,
+  `tar` writes `<backup>.tar.part`, the blobs are added, then `gzip`
+  writes the `.tgz`, so both sit on disk until it ends. A failed step
+  leaves no `.tar.part`. Without remote blobs, `tar | gzip` runs as before.
+- A blob whose object is missing is skipped with a warning. A short read
+  fails the backup.
+- A blob cached on disk is in the archive twice, with the same bytes.
+- Blobs that GC has not yet deleted are included.
+- A backup path that is a named pipe gets no blobs. Pilot streams its
+  backups through pipes, so those rely on the File index above.
+
 ## Tests
 
 ```python
