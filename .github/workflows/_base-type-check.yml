@@ -58,9 +58,11 @@ jobs:
               repo: context.repo.repo,
               basehead: `${base_sha}...${head_sha}`
             });
-            changedMypyFiles = (comparison.files ?? [])
-              .filter(file => mypyFiles.includes(file.filename))
-              .map(file => file.filename);
+            const files = comparison.files ?? [];
+            // GitHub cuts the list at 300 files
+            changedMypyFiles = files.length >= 300
+              ? mypyFiles
+              : files.filter(file => mypyFiles.includes(file.filename)).map(file => file.filename);
           } else {
             // If not a pull request, assume all mypy files are changed
             changedMypyFiles = mypyFiles;
