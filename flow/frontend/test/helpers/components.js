@@ -254,6 +254,7 @@ const fakes = {
 };
 // the app's root modules reach the site through the same fake
 fakes["./api/frappe.js"] = fakes["../api/frappe.js"];
+fakes["../../api/frappe.js"] = fakes["../api/frappe.js"];
 export const island = await import(fakes["@framework/ui/island"]);
 export const transport = await import(fakes["../api/frappe.js"]);
 export const { toast, dialog } = await import(fakes["frappe-ui"]);
