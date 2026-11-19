@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import { Button, ErrorMessage, FormControl, call } from "frappe-ui";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 /** English defaults; pass translated text to relabel. */
 export interface PasswordStepLabels {
@@ -51,7 +51,11 @@ export interface PasswordStepLabels {
 }
 
 const props = defineProps<{ labels?: Partial<PasswordStepLabels> }>();
-const emit = defineEmits<{ done: [] }>();
+const emit = defineEmits<{
+	done: [];
+	/** Fires as the password is typed, with its length only: the value never leaves the step. */
+	input: [length: number];
+}>();
 
 const defaults: PasswordStepLabels = {
 	label: "Password",
@@ -65,6 +69,7 @@ const defaults: PasswordStepLabels = {
 const text = computed(() => ({ ...defaults, ...props.labels }));
 
 const password = ref("");
+watch(password, (value) => emit("input", value.length));
 const shown = ref(false);
 const saving = ref(false);
 const error = ref("");

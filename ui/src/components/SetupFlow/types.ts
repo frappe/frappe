@@ -21,6 +21,14 @@ export interface SetupFlowProps {
   /** False hides the Back button in the header; the host renders its own from the
    * slot's `back` and `canGoBack`, say beside its step's actions. */
   backButton?: boolean;
+  /** Which side the `#preview` slot sits on from `lg` up. Below `lg` it is hidden. */
+  previewSide?: "start" | "end";
+}
+
+/** Passed to the `#preview` slot. */
+export interface SetupPreviewSlotProps {
+  step: SetupStep;
+  index: number;
 }
 
 /** What the setup ended with, for the host to save and act on. */
