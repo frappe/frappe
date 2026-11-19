@@ -272,7 +272,7 @@ class Database:
 		:param pluck: Get the plucked field only.
 		:param explain: Print `EXPLAIN` in error log.
 		:param as_iterator: Returns iterator over results instead of fetching all results at once.
-		        This should be used with unbuffered cursor as default cursors used by pymysql and postgres
+		        This should be used with unbuffered cursor as default cursors used by mysqlclient and postgres
 		        buffer the results internally. See `Database.unbuffered_cursor`.
 		Examples:
 
