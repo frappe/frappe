@@ -4,6 +4,7 @@
 // Relays flow server events (Redis channel `harness:<site>:<session>`) to subscribed
 // browsers from Frappe's socketio process, so no Python worker is held for a run.
 
+const { createHash } = require("crypto");
 const node_utils = require("../node_utils");
 
 const EVENT = "flow:event";
@@ -72,11 +73,12 @@ async function subscribe(socket, session, token) {
 }
 
 // Asked with the caller's own credentials on the site the socket authenticated against. Every
-// guest chat is Guest's, so the token its start gave opens it.
+// guest chat is Guest's, so the token its start gave opens it. The site is sent the token's
+// hash: the address of a GET may be logged.
 async function can_stream(socket, session, token) {
 	const response =
 		typeof token === "string" && token
-			? await socket.frappe_request(GUEST_CHECK, { session, token })
+			? await socket.frappe_request(GUEST_CHECK, { session, token_hash: sha256(token) })
 			: await socket.frappe_request("/api/method/frappe.realtime.has_permission", {
 					doctype: "Flow Session",
 					name: session,
@@ -197,6 +199,7 @@ function parse(message) {
 	}
 }
 
+const sha256 = (text) => createHash("sha256").update(text).digest("hex");
 const valid_name = (session) => typeof session === "string" && SESSION_NAME.test(session);
 // the site the socket authenticated against, where can_stream is answered
 const site_of = (socket) => socket.site_name;
