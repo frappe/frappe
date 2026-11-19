@@ -227,4 +227,38 @@ describe("useOnboarding", () => {
 
     expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(true);
   });
+
+  it("takes a new order when set up again, keeping each step's progress", async () => {
+    const { onboarding, onStatusLoaded } = await load();
+    onboarding.setUp(steps());
+    onStatusLoaded({});
+    onboarding.updateOnboardingStep("create_first_lead");
+
+    onboarding.setUp(steps().reverse());
+
+    const { useOnboarding } = await import("../onboarding");
+    const shown = useOnboarding("frappecrm")!.steps!;
+    expect(shown.map((s) => s.name)).toEqual([
+      "invite_team",
+      "create_first_lead",
+    ]);
+    expect(shown.find((s) => s.name === "create_first_lead")?.completed).toBe(
+      true,
+    );
+  });
+
+  it("keeps a step the new order leaves out at the end", async () => {
+    const { onboarding, onStatusLoaded } = await load();
+    onboarding.setUp(steps());
+    onStatusLoaded({});
+
+    onboarding.setUp(steps().slice(1));
+
+    const { useOnboarding } = await import("../onboarding");
+    const shown = useOnboarding("frappecrm")!.steps!;
+    expect(shown.map((s) => s.name)).toEqual([
+      "invite_team",
+      "create_first_lead",
+    ]);
+  });
 });
