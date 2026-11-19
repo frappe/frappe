@@ -1244,6 +1244,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				columns: columns,
 				data: data,
 				inlineFilters: true,
+				filterMode: "fuzzy",
 				language: frappe.boot.lang,
 				translations: frappe.utils.datatable.get_translations(),
 				treeView: this.tree_report,
