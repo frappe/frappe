@@ -65,9 +65,10 @@ def entries(session: str, token: str, since: int | str = 0) -> dict[str, Any]:
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
-def can_stream(session: str, token: str) -> bool:
-	"""Asked by the realtime relay: whether `token` opens this chat's live events."""
-	return _is_valid_token(session, token)
+def can_stream(session: str, token_hash: str) -> bool:
+	"""Asked by the realtime relay, with the token's SHA-256: a GET's address may be logged,
+	and the hash opens nothing else."""
+	return _is_valid_hash(session, token_hash)
 
 
 def _messages_an_hour() -> int:
@@ -82,8 +83,12 @@ def _load_session(session: str, token: str) -> FlowSession:
 
 
 def _is_valid_token(session: str, token: str) -> bool:
+	return _is_valid_hash(session, _hash_token(token))
+
+
+def _is_valid_hash(session: str, token_hash: str) -> bool:
 	saved = frappe.db.get_value("Flow Session", {"name": session, "owner": "Guest"}, "guest_token")
-	return bool(saved) and compare_digest(saved, _hash_token(token))
+	return bool(saved) and compare_digest(saved.encode(), token_hash.encode())
 
 
 def _hash_token(token: str) -> str:

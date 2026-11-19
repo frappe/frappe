@@ -5,6 +5,7 @@
 # browsers from Frappe's Python realtime server. The Node server loads realtime/flow_handlers.js.
 
 import asyncio
+import hashlib
 import json
 import logging
 import re
@@ -214,11 +215,13 @@ class Relay:
 
 async def can_stream(socket: Socket, session: str, token: object) -> bool:
 	"""Whether the site lets this socket read the chat. Every guest chat is Guest's, so the
-	token its start gave opens it."""
+	token its start gave opens it. The site is sent the token's hash: the address of a GET may
+	be logged."""
 	if not isinstance(token, str) or not token:
 		return await socket.has_permission("Flow Session", session)
 	try:
-		reply = await socket._session.get(GUEST_CHECK, {"session": session, "token": token})
+		token_hash = hashlib.sha256(token.encode()).hexdigest()
+		reply = await socket._session.get(GUEST_CHECK, {"session": session, "token_hash": token_hash})
 	except Exception:
 		return False
 	return reply.get("message") is True
