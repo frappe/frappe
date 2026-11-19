@@ -342,6 +342,18 @@ frappe.ui.Filter = class {
 		// the value can be set asynchronously; callers wait on this
 		this._filter_value_set = Promise.resolve();
 
+		// the box drops the whole list when one value is not an option
+		if (this.field.df.fieldtype === "MultiSelect" && Array.isArray(value)) {
+			const options = String(this.field.df.options || "").split("\n");
+			const unknown = value.find((v) => !options.includes(String(v)));
+			if (unknown !== undefined) {
+				frappe.msgprint({
+					message: __('"{0}" is not a valid {1}.', [unknown, __(this.field.df.label)]),
+					indicator: "red",
+				});
+			}
+		}
+
 		// an "in" list kept as text by older filters and links: "a,b" or '["a","b"]'
 		if (
 			RECORD_PICKERS.includes(this.field.df.fieldtype) &&
