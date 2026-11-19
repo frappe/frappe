@@ -6,7 +6,7 @@ import hashlib
 import frappe
 from frappe.flow.api import guest
 from frappe.flow.daemon.callback import tool_callback
-from frappe.flow.tests.test_ai_api import ApiCase, _agent_doc, _ensure_manager, _ensure_user
+from frappe.flow.tests.test_ai_api import ApiCase, _ensure_manager, _ensure_user
 
 GUEST_TOOL = "guest_whoami"
 OTHER = "guest-api-other@example.com"
@@ -127,18 +127,6 @@ class TestGuestApi(ApiCase):
 
 		frappe.set_user("Guest")
 		self.assertEqual(skills(), {"Guest Guide"})
-
-	def test_a_public_agent_cannot_have_the_memory_tool(self):
-		frappe.set_user("Administrator")
-		agent = frappe.get_doc(_agent_doc(self.model.name, title="Public Memory", public=1))
-		agent.append("tools", {"tool": "frappe/update_memory"})
-		with self.assertRaisesRegex(frappe.ValidationError, "cannot use the memory tool"):
-			agent.insert()
-
-		# a tool that asks for approval is allowed: a guest chat approves every call by itself
-		self.agent.reload()
-		self.agent.append("tools", {"tool": "frappe/delete"})
-		self.agent.save()
 
 
 def _hash(token: str) -> str:

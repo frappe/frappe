@@ -110,7 +110,6 @@ class FlowAgent(Document):
 		self._validate_token_budget()
 		self._validate_skills()
 		self._validate_sub_agents()
-		self._validate_public()
 		self.render_instructions()
 		self._ensure_knowledge_search_tool()
 		validate_immutable(
@@ -149,17 +148,6 @@ class FlowAgent(Document):
 	def _validate_sub_agents(self):
 		if any(row.agent == self.name for row in self.sub_agents):
 			frappe.throw(_("An agent cannot be its own sub-agent."), title=_("Invalid Sub-agent"))
-
-	def _validate_public(self):
-		"""Every guest is the one user Guest: what one had the agent remember, all would get."""
-		from frappe.flow.memory.memory import MEMORY_TOOL_SLUG
-		from frappe.flow.tools.builtins import builtin_name
-
-		if self.public and any(row.tool == builtin_name(MEMORY_TOOL_SLUG) for row in self.tools):
-			frappe.throw(
-				_("A public agent cannot use the memory tool: all guests would share one memory."),
-				title=_("Not for Guests"),
-			)
 
 	def _ensure_knowledge_search_tool(self):
 		"""A bound knowledge base is inert without the search tool. Keep them consistent
