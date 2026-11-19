@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request import (
 	process_data_deletion_request,
@@ -67,6 +68,23 @@ class TestPersonalDataDeletionRequest(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "modified_by"), self.delete_request.name)
 
 		self.assertEqual(self.delete_request.status, "Deleted")
+
+	def test_anonymized_data_of_user_with_generated_id(self):
+		with test_user(roles=[], generated_id=True) as user:
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "owned by a deleted user"}).insert()
+			frappe.db.set_value("ToDo", todo.name, "owner", user.name, update_modified=False)
+			delete_request = frappe.get_doc(
+				{"doctype": "Personal Data Deletion Request", "email": user.email}
+			).insert(ignore_permissions=True)
+
+			delete_request._anonymize_data()
+
+			self.assertEqual(
+				frappe.db.get_value("User", user.name, ["email", "first_name"]),
+				(delete_request.name, delete_request.anonymization_value_map["Data"]),
+			)
+			self.assertEqual(frappe.db.get_value("ToDo", todo.name, "owner"), user.name)
+			self.assertEqual(delete_request.status, "Deleted")
 
 	def test_unverified_record_removal(self):
 		date_time_obj = datetime.strptime(self.delete_request.creation, "%Y-%m-%d %H:%M:%S.%f") + timedelta(
