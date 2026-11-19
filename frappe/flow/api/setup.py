@@ -27,8 +27,6 @@ SERVER_PROVIDER = "custom_openai"
 NO_CREDIT = ("credit balance", "insufficient_quota", "billing", "payment required", "quota")
 # and when it has no model by that name
 NO_MODEL = ("not a valid model", "model_not_found", "does not exist", "invalid model", "unknown model")
-# set while Grove's gateway isn't answering, so each open of Flow doesn't wait on it
-GROVE_DOWN_CACHE = "flow_grove_down"
 # the one Grove model that works today, the one a site with a Grove key starts with
 GROVE_MODEL = "openai/gpt-6-luna"  # as Grove lists it, under its vendor
 # where a key is checked when the models list doesn't need one
@@ -98,6 +96,17 @@ def connect(provider: str, api_key: str | None = None, base_url: str | None = No
 	return {"ok": True}
 
 
+@frappe.whitelist(methods=["POST"])
+def use_site_key() -> dict[str, Any]:
+	"""Add Grove with the site's key, once its notice is accepted."""
+	from frappe.flow.lib.model import SITE_PROVIDER
+
+	_check_can_connect()
+	if add_site_provider():
+		return {"ok": True}
+	return _refused("unreachable", _("Couldn't reach {0} from this server.").format(_label(SITE_PROVIDER)))
+
+
 @frappe.whitelist()
 def services() -> dict[str, Any]:
 	"""The Models tab: each provider with its models, and the models that carry a key of their own.
@@ -160,18 +169,22 @@ def remove_provider(provider: str) -> None:
 	frappe.delete_doc("Flow Provider", provider)
 
 
-def sync_site_provider() -> None:
-	"""On Flow's first open, a site whose config has a Grove key gets the Grove provider and its
-	model, so the Assistant chats without setup. The key stays in site config. A gateway that
-	doesn't answer, or a key without the model, adds nothing, so setup shows; an open five
-	minutes later asks again."""
+def offers_site_key() -> bool:
+	"""Whether the first run offers the site's Grove key."""
 	from frappe.flow.lib.model import SITE_PROVIDER, site_key
 
-	if frappe.db.exists("Flow Provider", SITE_PROVIDER) or frappe.cache.get_value(GROVE_DOWN_CACHE):
-		return
+	return can_connect() and not frappe.db.exists("Flow Provider", SITE_PROVIDER) and bool(site_key())
+
+
+def add_site_provider() -> bool:
+	"""Add the Grove provider and its model. False when it can't."""
+	from frappe.flow.lib.model import SITE_PROVIDER, site_key
+
+	if frappe.db.exists("Flow Provider", SITE_PROVIDER):
+		return True
 	key = site_key()
 	if not key:
-		return
+		return False
 	try:
 		response = requests.get(
 			f"{key['gateway_url'].rstrip('/')}/openai/v1/models",
@@ -184,16 +197,13 @@ def sync_site_provider() -> None:
 		frappe.logger("flow").warning("Grove did not list its models", exc_info=True)
 		listed = False
 	if not listed:
-		frappe.cache.set_value(GROVE_DOWN_CACHE, 1, expires_in_sec=5 * 60)
-		return
+		return False
 	frappe.db.savepoint("site_provider")
 	try:
-		frappe.get_doc({"doctype": "Flow Provider", "provider": SITE_PROVIDER, "enabled": 1}).insert(
-			ignore_permissions=True
-		)
+		frappe.get_doc({"doctype": "Flow Provider", "provider": SITE_PROVIDER, "enabled": 1}).insert()
 	except frappe.DuplicateEntryError:
 		frappe.db.rollback(save_point="site_provider")
-		return  # another first open added it
+		return True  # another admin added it
 	title = _title(GROVE_MODEL)
 	if frappe.db.exists("Flow Model", title):
 		title = f"{title} ({_label(SITE_PROVIDER)})"
@@ -205,7 +215,8 @@ def sync_site_provider() -> None:
 			"model_id": GROVE_MODEL,
 			"enabled": 1,
 		}
-	).insert(ignore_permissions=True)
+	).insert()
+	return True
 
 
 def can_connect() -> bool:

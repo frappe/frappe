@@ -24,11 +24,8 @@ class TestFlowEnabled(IntegrationTestCase):
 	def setUp(self):
 		delete_models_and_providers()
 		_user(USER)
-		self.no_grove_key = patch.dict(frappe.conf, {"ai_keys": None})
-		self.no_grove_key.start()
 
 	def tearDown(self):
-		self.no_grove_key.stop()
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 		clear_enabled_cache()
@@ -85,9 +82,10 @@ class TestFlowEnabled(IntegrationTestCase):
 		self._model(embedding=1)
 		self.assertFalse(self._is_enabled())
 
-	def test_a_grove_key_enables_flow_until_grove_is_turned_off(self):
+	def test_a_grove_key_does_not_enable_flow_until_grove_is_added(self):
 		with patch.dict(frappe.conf, {"ai_keys": GROVE_KEY}):
-			self.assertTrue(self._is_enabled())
-
-			frappe.get_doc({"doctype": "Flow Provider", "provider": SITE_PROVIDER, "enabled": 0}).insert()
 			self.assertFalse(self._is_enabled())
+
+			self._provider(SITE_PROVIDER)
+			self._model(provider=SITE_PROVIDER, model_id="openai/gpt-6-luna")
+			self.assertTrue(self._is_enabled())
