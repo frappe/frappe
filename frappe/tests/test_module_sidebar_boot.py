@@ -748,7 +748,14 @@ class TestPrivateWorkspacesReachTheirOwner(IntegrationTestCase):
 				"content": "[]",
 			}
 		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		self.addCleanup(
+			frappe.delete_doc,
+			"Workspace",
+			doc.name,
+			force=True,
+			ignore_missing=True,
+			ignore_permissions=True,
+		)
 		return doc
 
 	def items_for(self, user):
