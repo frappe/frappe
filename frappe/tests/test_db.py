@@ -3208,6 +3208,51 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		self.assertFalse(MariaDBExceptionUtil.is_data_too_long(e))
 		self.assertFalse(MariaDBExceptionUtil.is_db_table_size_limit(e))
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_exception_utils_recognize_frappe_wrappers(self):
+		"""The wrappers Database.sql() raises must satisfy the driver error predicates too."""
+		import pymysql
+
+		from frappe.database.mariadb.database import MariaDBExceptionUtil
+
+		self.assertTrue(
+			MariaDBExceptionUtil.is_deadlocked(
+				frappe.QueryDeadlockError(pymysql.OperationalError(1213, "Deadlock or lock wait timeout"))
+			)
+		)
+		self.assertTrue(
+			MariaDBExceptionUtil.is_timedout(
+				frappe.QueryTimeoutError(pymysql.OperationalError(1205, "Lock wait timeout exceeded"))
+			)
+		)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_lock_wait_timeout_raised_by_sql_is_timedout(self):
+		conf = frappe.conf
+		other = get_db(
+			socket=conf.db_socket,
+			host=conf.db_host,
+			port=conf.db_port,
+			user=conf.db_user,
+			password=conf.db_password,
+			cur_db_name=conf.db_name,
+		)
+		other.connect()
+		self.addCleanup(other.close)
+		self.addCleanup(other.rollback)
+		other.sql("select name from `tabDocType` where name = 'ToDo' for update")
+
+		previous_timeout = frappe.db.sql("select @@session.innodb_lock_wait_timeout")[0][0]
+		self.addCleanup(frappe.db.sql, f"set session innodb_lock_wait_timeout = {int(previous_timeout)}")
+		frappe.db.sql("set session innodb_lock_wait_timeout = 1")
+
+		with self.assertRaises(frappe.QueryTimeoutError) as raised:
+			frappe.db.sql("update `tabDocType` set modified = modified where name = 'ToDo'")
+		frappe.db.rollback()
+
+		self.assertTrue(frappe.db.is_timedout(raised.exception))
+		self.assertFalse(frappe.db.is_deadlocked(raised.exception))
+
 	@run_only_if(db_type_is.POSTGRES)
 	def test_serialization_failure_is_treated_as_deadlock(self):
 		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
@@ -3221,6 +3266,9 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 			self.assertTrue(PostgresExceptionUtil.is_deadlocked(error()))
 
 		self.assertFalse(PostgresExceptionUtil.is_deadlocked(UniqueViolation()))
+
+		self.assertTrue(PostgresExceptionUtil.is_deadlocked(frappe.QueryDeadlockError(UniqueViolation())))
+		self.assertTrue(PostgresExceptionUtil.is_timedout(frappe.QueryTimeoutError(UniqueViolation())))
 
 
 class TestSQLiteExceptionUtil(UnitTestCase):
@@ -3264,6 +3312,16 @@ class TestSQLiteExceptionUtil(UnitTestCase):
 
 		self.assertTrue(SQLiteExceptionUtil.is_deadlocked(error))
 		self.assertFalse(SQLiteExceptionUtil.is_timedout(error))
+
+	def test_frappe_wrappers_are_recognized_as_deadlock_and_timeout(self):
+		from frappe.database.sqlite.database import SQLiteExceptionUtil
+
+		error = sqlite3.OperationalError("database is locked")
+
+		self.assertTrue(SQLiteExceptionUtil.is_deadlocked(frappe.QueryDeadlockError(error)))
+		self.assertTrue(SQLiteExceptionUtil.is_timedout(frappe.QueryTimeoutError(error)))
+		self.assertFalse(SQLiteExceptionUtil.is_deadlocked(error))
+		self.assertTrue(SQLiteExceptionUtil.is_timedout(error))
 
 	def test_plain_busy_is_a_timeout(self):
 		from frappe.database.sqlite.database import SQLiteExceptionUtil
