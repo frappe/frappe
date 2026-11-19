@@ -348,7 +348,10 @@ frappe.ui.Filter = class {
 			const unknown = value.find((v) => !options.includes(String(v)));
 			if (unknown !== undefined) {
 				frappe.msgprint({
-					message: __('"{0}" is not a valid {1}.', [unknown, __(this.field.df.label)]),
+					message: __('"{0}" is not a valid {1}.', [
+						frappe.utils.escape_html(unknown),
+						__(this.field.df.label),
+					]),
 					indicator: "red",
 				});
 			}
