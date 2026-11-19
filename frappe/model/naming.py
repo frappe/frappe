@@ -154,7 +154,6 @@ def set_new_name(doc):
 	"""
 
 	doc.run_method("before_naming")
-	doc.flags.name_from_hash = False
 
 	meta = frappe.get_meta(doc.doctype)
 	autoname = meta.autoname or ""
