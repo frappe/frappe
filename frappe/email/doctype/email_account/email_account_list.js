@@ -409,11 +409,11 @@ function show_email_oauth_result(code, mailbox, provider) {
 						: __("Connected for receiving only"),
 					message: message?.email_id
 						? __(
-								"Microsoft doesn't let personal Outlook.com mailboxes send email from other apps. Replies go out from {0}.",
+								"Microsoft doesn't let this mailbox send email from other apps. Replies go out from {0}.",
 								[frappe.utils.escape_html(message.email_id)]
 						  )
 						: __(
-								"Microsoft doesn't let personal Outlook.com mailboxes send email from other apps. Replies go out from your default outgoing account."
+								"Microsoft doesn't let this mailbox send email from other apps. Replies go out from your default outgoing account."
 						  ),
 					indicator: "orange",
 				});
@@ -431,7 +431,7 @@ function show_email_oauth_result(code, mailbox, provider) {
 					"How to turn it on"
 				)}</a>`,
 			smtp_disabled_personal: __(
-				"Microsoft doesn't let this Outlook.com mailbox send email from other apps. Please use a Microsoft 365 work mailbox."
+				"Microsoft doesn't let this mailbox send email from other apps. To send, connect a work or school Microsoft 365 account."
 			),
 			imap_disabled: __(
 				"IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin."

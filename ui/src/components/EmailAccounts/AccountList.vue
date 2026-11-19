@@ -40,11 +40,11 @@
 					{{
 						defaultOutgoing
 							? __(
-									"Microsoft doesn't let personal Outlook.com mailboxes send email from other apps. Replies go out from {0}.",
+									"Microsoft doesn't let this mailbox send email from other apps. Replies go out from {0}.",
 									[defaultOutgoing]
 							  )
 							: __(
-									"Microsoft doesn't let personal Outlook.com mailboxes send email from other apps. Replies go out from your default outgoing account."
+									"Microsoft doesn't let this mailbox send email from other apps. Replies go out from your default outgoing account."
 							  )
 					}}
 				</template>
@@ -251,31 +251,18 @@
 										(on) => toggle(account, 'enable_incoming', on)
 									"
 								/>
-								<Tooltip
-									:text="
-										__(
-											'Personal accounts can only receive email. Connect a work account to send.'
-										)
+								<Switch
+									control-position="start"
+									:label="__('Send')"
+									:model-value="
+										saving.get(account.name)?.enable_outgoing ??
+										Boolean(account.enable_outgoing)
 									"
-									:disabled="!sendBlocked(account)"
-								>
-									<span :tabindex="sendBlocked(account) ? 0 : undefined">
-										<Switch
-											control-position="start"
-											:label="__('Send')"
-											:model-value="
-												saving.get(account.name)?.enable_outgoing ??
-												Boolean(account.enable_outgoing)
-											"
-											:disabled="
-												sendBlocked(account) || saving.has(account.name)
-											"
-											@update:model-value="
-												(on) => toggle(account, 'enable_outgoing', on)
-											"
-										/>
-									</span>
-								</Tooltip>
+									:disabled="saving.has(account.name)"
+									@update:model-value="
+										(on) => toggle(account, 'enable_outgoing', on)
+									"
+								/>
 								<Spinner
 									v-if="saving.has(account.name)"
 									class="ms-auto size-4 text-ink-gray-6"
@@ -310,7 +297,6 @@ import {
 	Select,
 	Spinner,
 	Switch,
-	Tooltip,
 	toast,
 } from "frappe-ui";
 import { computed, h, nextTick, onMounted, reactive, ref, useId } from "vue";
@@ -323,7 +309,7 @@ import {
 	oauthHelpLink,
 	oauthMessage,
 	reconnectable,
-	sendBlocked,
+	saveErrorText,
 	serviceOf,
 } from "./services";
 import type { EmailAccount, EmailAccountsController } from "./types";
@@ -429,7 +415,7 @@ function toggle(account: EmailAccount, field: "enable_incoming" | "enable_outgoi
 			// turning a direction off also clears the account's default for it, on save
 			await props.controller.update(account, changes);
 		} catch (e) {
-			toast.error(errorText(e) || __("Couldn't update the email account"));
+			toast.error(saveErrorText(account, e) || __("Couldn't update the email account"));
 		} finally {
 			saving.delete(account.name);
 		}

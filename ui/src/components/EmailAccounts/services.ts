@@ -330,7 +330,7 @@ export function oauthMessage(result: string, provider?: string | null): string {
         "SMTP AUTH is turned off for this mailbox. Ask your Microsoft 365 admin to turn on Authenticated SMTP for it.",
       ),
       smtp_disabled_personal: __(
-        "Microsoft doesn't let this Outlook.com mailbox send email from other apps. Please use a Microsoft 365 work mailbox.",
+        "Microsoft doesn't let this mailbox send email from other apps. To send, connect a work or school Microsoft 365 account.",
       ),
       imap_disabled: __(
         "IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin.",
@@ -422,15 +422,16 @@ export function reconnectable(
   );
 }
 
-/** A personal Outlook.com mailbox signed in through Frappe Cloud with sending off; Microsoft blocks its SMTP. */
-export function sendBlocked(
-  account: Pick<EmailAccount, "authKind" | "service" | "smtp_server" | "enable_outgoing">,
-): boolean {
-  return (
-    account.authKind === "oauth" &&
-    account.service === "Outlook.com" &&
-    account.smtp_server === "smtp-mail.outlook.com" &&
-    !account.enable_outgoing
+/** Text for an error saving `account`; when Microsoft refused its SMTP login, says why in plain words. */
+export function saveErrorText(
+  account: Pick<EmailAccount, "service" | "smtp_server">,
+  e: unknown,
+): string {
+  const text = errorText(e);
+  if (account.service !== "Outlook.com" || !text.includes("SmtpClientAuthentication")) return text;
+  return oauthMessage(
+    account.smtp_server === "smtp-mail.outlook.com" ? "smtp_disabled_personal" : "smtp_disabled",
+    "microsoft",
   );
 }
 
