@@ -18,13 +18,15 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 		});
 	}
 
-	setup_view() {
-		this.setup_columns();
+	async setup_view() {
+		await this.setup_columns();
 		this.setup_check_events();
 		this.setup_like();
+		this.setup_filterable();
 	}
 
 	set_fields() {
+		this.link_field_title_fields = {};
 		this.fields = [
 			"name",
 			...this.get_fields_in_list_view().map((el) => el.fieldname),
@@ -73,20 +75,16 @@ frappe.views.ImageView = class ImageView extends frappe.views.ListView {
 	}
 
 	item_details_html(item) {
-		// TODO: Image view field in DocType
-		let info_fields = this.get_fields_in_list_view().map((el) => el.fieldname) || [];
 		const title_field = this.meta.title_field || "name";
-		info_fields = info_fields.filter((field) => field !== title_field);
 		let info_html = `<div><ul class="list-unstyled image-view-info">`;
-		let set = false;
-		info_fields.forEach((field, index) => {
-			if (item[field] && !set) {
-				let value = frappe.utils.escape_html(__(item[field]));
-				if (index == 0) info_html += `<li>${value}</li>`;
-				else info_html += `<li class="text-muted">${value}</li>`;
-				set = true;
-			}
-		});
+		this.columns
+			.filter((col) => ["Field", "Status"].includes(col.type))
+			.filter((col) => col.df?.fieldname !== title_field)
+			.forEach((col) => {
+				if (col.type === "Status" && !frappe.get_indicator(item, this.doctype)) return;
+				if (col.type === "Field" && !item[col.df.fieldname]) return;
+				info_html += `<li>${this.get_column_html(col, item)}</li>`;
+			});
 		info_html += `</ul></div>`;
 		return info_html;
 	}
