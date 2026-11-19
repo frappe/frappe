@@ -51,6 +51,16 @@ jobs:
             changedMypyFiles = changedFiles
               .filter(file => mypyFiles.includes(file.filename))
               .map(file => file.filename);
+          } else if (context.payload.merge_group) {
+            const { base_sha, head_sha } = context.payload.merge_group;
+            const { data: comparison } = await github.rest.repos.compareCommitsWithBasehead({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              basehead: `${base_sha}...${head_sha}`
+            });
+            changedMypyFiles = (comparison.files ?? [])
+              .filter(file => mypyFiles.includes(file.filename))
+              .map(file => file.filename);
           } else {
             // If not a pull request, assume all mypy files are changed
             changedMypyFiles = mypyFiles;
