@@ -36,8 +36,9 @@ async function accept() {
 		error.value = result.message;
 	} catch (failure) {
 		error.value = failure.message;
+	} finally {
+		busy.value = false;
 	}
-	busy.value = false;
 }
 
 const PROCESSORS_URL = "https://docs.frappe.io/legal/data-protection/data-processors#proposed-ai-processors";

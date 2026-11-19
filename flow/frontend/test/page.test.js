@@ -604,7 +604,7 @@ test("the site key's notice links the processors, adds the key's provider once a
 	accept.click();
 	await settle();
 	assert.deepEqual(events, ["rejected", "accepted"]);
-	assert.equal(accept.disabled, true, "until boot brings the model");
+	assert.equal(accept.disabled, false, "a failed boot refresh leaves it usable");
 });
 
 test("an explicit conversation URL opens even outside the recent session list, syncing a run that ended as it opened", async (t) => {
