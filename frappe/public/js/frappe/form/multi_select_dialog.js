@@ -151,6 +151,7 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 
 	show_child_results() {
 		this.child_search_filters = [];
+		this.child_search_id = (this.child_search_id || 0) + 1;
 		this.get_child_result().then((r) => {
 			this.child_results = r.message || [];
 			this.render_child_datatable();
@@ -248,7 +249,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			.map(([fieldname, value]) => [this.child_doctype, fieldname, "like", `%${value}%`]);
 		if (!this.child_search_filters.length) return;
 
+		const search_id = (this.child_search_id = (this.child_search_id || 0) + 1);
 		const r = await this.get_child_result();
+		if (search_id !== this.child_search_id) return;
 		this.child_results = this.child_results.slice(
 			0,
 			this.child_datatable.datamanager.rows.length
