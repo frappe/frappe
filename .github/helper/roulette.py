@@ -58,7 +58,7 @@ def get_queue_files(repo, base, head):
 def queue_runs(build_type, files):
 	if files is None or any(is_ci(f) for f in files):
 		return True
-	files = [f for f in files if not is_docs(f)]
+	files = [f for f in files if f.endswith(".csv") or not is_docs(f)]
 	if build_type == "server":
 		return any(not is_frontend_code(f) for f in files)
 	return any(not is_py(f) for f in files)
@@ -130,6 +130,9 @@ def _selftest():
 	assert queue_runs("server", ["frappe/core/doctype/user/user.json"]), "doctype JSON runs server tests"
 	assert queue_runs("server", ["frappe/templates/base.html"]), "Jinja runs server tests"
 	assert not queue_runs("server", ["README.md"]), "docs alone run nothing"
+	assert queue_runs("server", ["frappe/core/doctype/data_import/fixtures/sample_import_file.csv"]), (
+		"tests read CSV files"
+	)
 	assert queue_runs("ui", None), "a cut short file list runs everything"
 	assert queue_runs("ui", [".github/workflows/ui-tests.yml"])
 
