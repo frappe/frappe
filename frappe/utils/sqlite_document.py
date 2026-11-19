@@ -56,8 +56,8 @@ class SQLiteLogDocument(Document):
 			# Mirrors `Document.db_insert`. Log DocTypes are named by hash, and a collision
 			# has to be retried with a fresh name rather than surfacing -- `_handle_hash_conflict`
 			# clears `name` and calls back in here, giving up after five tries. Anything else is
-			# skipped with `ignore_if_duplicate` or re-raised as `DuplicateEntryError` so callers that retry on it keep working
-			# (`make_access_log` is decorated with exactly that retry).
+			# skipped with `ignore_if_duplicate` or re-raised as `DuplicateEntryError`, so callers
+			# that retry on it keep working (`make_access_log` is decorated with exactly that retry).
 			if not db.is_primary_key_violation(e):
 				raise
 
