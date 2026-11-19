@@ -253,14 +253,7 @@ class User(Document):
 		if not frappe.in_test:
 			self.password_strength_test()
 
-		if self.email:
-			self.email = self.email.strip().lower()
-			if self.has_value_changed("email"):
-				self.validate_email_change_allowed()
-				if self.name not in STANDARD_USERS:
-					self.validate_email_type(self.email)
-					self.validate_email_domain(self.email)
-					self.validate_email_is_not_another_users_id()
+		self.validate_email()
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
@@ -781,6 +774,22 @@ class User(Document):
 						"A pending rename involving {0} is still being applied. Please try again later."
 					).format(frappe.bold(name))
 				)
+
+	def validate_email(self):
+		if not self.email:
+			return
+
+		self.email = self.email.strip().lower()
+		if not self.has_value_changed("email"):
+			return
+
+		self.validate_email_change_allowed()
+		if self.name in STANDARD_USERS:
+			return
+
+		self.validate_email_type(self.email)
+		self.validate_email_domain(self.email)
+		self.validate_email_is_not_another_users_id()
 
 	def validate_email_type(self, email):
 		from frappe.utils import validate_email_address
