@@ -344,9 +344,11 @@ frappe.ui.Filter = class {
 
 		// the box drops the whole list when one value is not an option
 		if (this.field.df.fieldtype === "MultiSelect" && Array.isArray(value)) {
-			const options = String(this.field.df.options || "").split("\n");
+			const raw = this.field.df.options;
+			const list = typeof raw === "string" ? raw.split("\n") : raw || [];
+			const options = list.map((option) => String(option?.value ?? option));
 			const unknown = value.find((v) => !options.includes(String(v)));
-			if (unknown !== undefined) {
+			if (options.length && unknown !== undefined) {
 				frappe.msgprint({
 					message: __('"{0}" is not a valid {1}.', [
 						frappe.utils.escape_html(unknown),
