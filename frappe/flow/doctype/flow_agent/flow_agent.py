@@ -110,7 +110,6 @@ class FlowAgent(Document):
 		self._validate_token_budget()
 		self._validate_skills()
 		self._validate_sub_agents()
-		self._validate_public()
 		self.render_instructions()
 		self._ensure_knowledge_search_tool()
 		validate_immutable(
@@ -149,29 +148,6 @@ class FlowAgent(Document):
 	def _validate_sub_agents(self):
 		if any(row.agent == self.name for row in self.sub_agents):
 			frappe.throw(_("An agent cannot be its own sub-agent."), title=_("Invalid Sub-agent"))
-
-	def _validate_public(self):
-		"""A guest chat approves every call by itself, so a public agent and its sub-agents have
-		no tool that asks first."""
-		if self.public:
-			agents = [self, *(frappe.get_doc("Flow Agent", row.agent) for row in self.sub_agents)]
-		elif self._has_public_parent():
-			agents = [self]
-		else:
-			return
-		for agent in agents:
-			for tool in agent._enabled_tool_docs():
-				if tool.requires_confirmation:
-					frappe.throw(
-						_("A public agent cannot use the tool {0} (on {1}): it asks for approval.").format(
-							tool.name, agent.name
-						),
-						title=_("Not for Guests"),
-					)
-
-	def _has_public_parent(self) -> bool:
-		parents = frappe.get_all("Flow Agent Sub Agent", filters={"agent": self.name}, pluck="parent")
-		return bool(parents) and bool(frappe.db.exists("Flow Agent", {"name": ("in", parents), "public": 1}))
 
 	def _ensure_knowledge_search_tool(self):
 		"""A bound knowledge base is inert without the search tool. Keep them consistent
