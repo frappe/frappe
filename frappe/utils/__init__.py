@@ -89,8 +89,11 @@ def get_email_address(user=None):
 
 
 def get_user_display_id(user: str | None = None) -> str:
-	"""Return how to refer to a user in text: their email, or the ID for Administrator, Guest
-	and users that no longer exist."""
+	"""Return how to refer to a user in text shown to people: their email, or the ID for
+	Administrator, Guest and users that no longer exist.
+
+	Display only. For an address (mail sender or recipient, a stored address), use `get_email_address`.
+	"""
 	user = user or frappe.session.user
 	if user in frappe.STANDARD_USERS:
 		return user

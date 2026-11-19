@@ -258,7 +258,7 @@ class TestEmail(IntegrationTestCase):
 			with patch.object(QueueBuilder, "get_outgoing_email_account", return_value=email_account):
 				frappe.sendmail(
 					recipients=["test1@example.com"],
-					sender="admin@example.com",
+					sender="sender@example.com",
 					subject="Test Email Queue",
 					message="This mail is queued!",
 					now=True,
@@ -272,14 +272,14 @@ class TestEmail(IntegrationTestCase):
 
 		email_account.always_use_account_name_as_sender_name = 0
 		email_account.always_use_account_email_id_as_sender = 0
-		_patched_assertion(email_account, "admin@example.com")
+		_patched_assertion(email_account, "sender@example.com")
 
 		email_account.always_use_account_name_as_sender_name = 1
-		_patched_assertion(email_account, "_Test Email Account 1 <admin@example.com>")
+		_patched_assertion(email_account, "_Test Email Account 1 <sender@example.com>")
 
 		email_account.always_use_account_name_as_sender_name = 0
 		email_account.always_use_account_email_id_as_sender = 1
-		_patched_assertion(email_account, '"admin@example.com" <test@example.com>')
+		_patched_assertion(email_account, '"sender@example.com" <test@example.com>')
 
 		email_account.always_use_account_name_as_sender_name = 1
 		_patched_assertion(email_account, "_Test Email Account 1 <test@example.com>")
