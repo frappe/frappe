@@ -789,11 +789,11 @@ def _download_report_pdf(
 	else:
 		numbered_rows = list(enumerate(rows, start=1))
 
+	total_row_doc = None
 	if total_row:
 		fieldnames = [column.fieldname for column in report_columns]
-		numbered_rows.append(
-			(None, frappe._dict(zip(fieldnames, total_row, strict=False), is_total_row=True))
-		)
+		total_row_doc = frappe._dict(zip(fieldnames, total_row, strict=False), is_total_row=True)
+		numbered_rows.append((None, total_row_doc))
 
 	if print_format:
 		rendered = render_report_jinja(
@@ -816,7 +816,7 @@ def _download_report_pdf(
 
 		def format_value(value, column, row):
 			# frappe.format caches a field's currency per (doctype, name); totals use the first row's
-			doc = frappe._dict(first_row if row.is_total_row else row, doctype=report_name, name=id(row))
+			doc = frappe._dict(first_row if row is total_row_doc else row, doctype=report_name, name=id(row))
 			# reports put labels and placeholders in typed columns, e.g. "Opening" in a date column
 			try:
 				if column.fieldtype == "Datetime":
