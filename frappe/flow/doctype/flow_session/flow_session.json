@@ -12,6 +12,7 @@
   "approval_mode",
   "general_access",
   "last_synced_seq",
+  "guest_token",
   "section_break_transcript",
   "transcript_html",
   "messages",
@@ -82,6 +83,15 @@
    "read_only": 1
   },
   {
+   "description": "Hash of the key that opens a guest chat with a public agent.",
+   "fieldname": "guest_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Guest Token",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
    "collapsible": 1,
    "fieldname": "section_break_transcript",
    "fieldtype": "Section Break",
@@ -118,7 +128,7 @@
    "link_fieldname": "session"
   }
  ],
- "modified": "2026-11-02 10:00:00",
+ "modified": "2026-11-18 12:00:00",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Session",
