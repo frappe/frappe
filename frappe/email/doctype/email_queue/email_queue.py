@@ -736,7 +736,7 @@ class QueueBuilder:
 
 	@property
 	def sender(self):
-		if not self._sender or self._sender == "Administrator":
+		if not self._sender or self._sender in ("Administrator", "admin@example.com"):
 			email_account = self.get_outgoing_email_account()
 			return email_account.default_sender
 		return self._sender
