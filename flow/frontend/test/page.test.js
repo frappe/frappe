@@ -991,7 +991,7 @@ test("the page offers no thinking levels: the model button opens the models alon
 	assert.ok(!commands.some((command) => command.includes("Thinking")));
 });
 
-test("a first message sent while the chat list loads keeps the page on its new chat, as does an address asking for one", async (t) => {
+test("a first message sent while the chat list loads keeps the page on its new chat, as does an address with no chat", async (t) => {
 	await router.replace("/");
 	transport.calls.length = 0;
 	const saved = { ...transport.answers };
@@ -1029,8 +1029,8 @@ test("a first message sent while the chat list loads keeps the page on its new c
 		!transport.calls.some(([name, a]) => name === "frappe.flow.api.session" && a.session === "OLD")
 	);
 
-	// a reload at an address asking for a new chat stays on it, though the last chat is listed
-	await router.replace("/?new=1");
+	// a reload at an address with no chat stays on a new one, though the last chat is listed
+	await router.replace("/");
 	await nextTick();
 	localStorage.setItem(prefs, JSON.stringify({ lastSession: "OLD" }));
 	transport.calls.length = 0;
