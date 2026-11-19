@@ -44,7 +44,7 @@ def start(agent: str) -> dict[str, str]:
 	return {"session": doc.name, "token": token}
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["POST"], xss_safe=True)  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=lambda: _messages_an_hour(), seconds=HOUR)
 def send(session: str, token: str, message: str) -> dict[str, str]:
 	"""Send the guest's message and answer at once, without waiting for the reply."""
