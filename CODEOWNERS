@@ -9,3 +9,13 @@
 frappe/studio/     @ruchamahabal
 studio/            @ruchamahabal
 skills/studio-app-building/ @ruchamahabal
+
+# Flow: the AI assistant (python package, frontend and realtime handlers)
+frappe/flow/                       @ShrihariMahabal
+flow/                              @ShrihariMahabal
+frappe/www/flow/                   @ShrihariMahabal
+frappe/realtime/flow_handlers.py   @ShrihariMahabal
+realtime/flow_handlers.js          @ShrihariMahabal
+frappe/public/js/frappe/flow.js    @ShrihariMahabal
+frappe/public/js/flow_launcher.bundle.js @ShrihariMahabal
+ui/src/utils/flow.ts               @ShrihariMahabal
