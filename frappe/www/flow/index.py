@@ -34,8 +34,7 @@ def get_boot() -> dict:
 
 	csrf_token = frappe.sessions.get_csrf_token()
 	flow_boot = boot()
-	# the token is written to the session on first use, as /app does, and a site's Grove key
-	# adds its provider on first open
+	# the token is written to the session on first use, as /app does
 	frappe.db.commit()  # nosemgrep: frappe-manual-commit
 	return {
 		"csrf_token": csrf_token,
