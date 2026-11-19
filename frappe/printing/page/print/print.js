@@ -145,7 +145,14 @@ frappe.ui.form.PrintView = class {
 					},
 				};
 			},
-			change: () => this.refresh_print_format(),
+			change: () => {
+				frappe.model.user_settings.save(
+					this.frm.doctype,
+					"print_format",
+					this.selected_format()
+				);
+				this.refresh_print_format();
+			},
 		});
 		this.print_format_selector = this.print_format_field.$input;
 
@@ -1246,10 +1253,16 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_default_print_format() {
+		const remembered = frappe.model.user_settings[this.frm.doctype]?.print_format;
+		const usable = frappe.meta.get_print_formats(this.frm.doctype).includes(remembered);
 		const default_format =
-			this.frm._layout_print_format || this.frm.meta.default_print_format || "";
+			this.frm._layout_print_format ||
+			(usable ? remembered : this.frm.meta.default_print_format) ||
+			"";
 		const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
-		this.set_print_format_value(restricted.includes(default_format) ? "" : default_format);
+		this.set_print_format_value(
+			restricted.includes(default_format) || default_format === "Standard" ? "" : default_format
+		);
 	}
 
 	// apps like Print Designer replace setup_sidebar and only provide
