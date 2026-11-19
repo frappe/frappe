@@ -1050,3 +1050,56 @@ def get_gravatar(email: str) -> str:
 	from frappe.utils import get_identicon
 
 	return get_identicon(email)
+
+
+@deprecated(
+	"frappe.utils.error.get_default_args",
+	"2026-11-19",
+	"v17",
+	"Not used anymore.",
+)
+def get_default_args(func):
+	"""Get default arguments of a function from its signature."""
+	signature = inspect.signature(func)
+	return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
+
+
+@deprecated(
+	"frappe.utils.error.raise_error_on_no_output",
+	"2026-11-19",
+	"v17",
+	"Not used anymore.",
+)
+def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
+	"""Decorate any function to throw error incase of missing output.
+
+	:param error_message: error message to raise
+	:param error_type: type of error to raise
+	:param keep_quiet: control error raising with external factor.
+	:type error_message: str
+	:type error_type: Exception Class
+	:type keep_quiet: function
+	"""
+
+	def decorator_raise_error_on_no_output(func):
+		@functools.wraps(func)
+		def wrapper_raise_error_on_no_output(*args, **kwargs):
+			import frappe
+
+			response = func(*args, **kwargs)
+			if callable(keep_quiet) and keep_quiet():
+				return response
+
+			if "_raise_error" in kwargs:
+				raise_error = kwargs["_raise_error"]
+			else:
+				param = inspect.signature(func).parameters.get("_raise_error")
+				raise_error = param.default if param and param.default is not param.empty else None
+
+			if (not response) and raise_error:
+				frappe.throw(error_message, error_type or Exception)
+			return response
+
+		return wrapper_raise_error_on_no_output
+
+	return decorator_raise_error_on_no_output
