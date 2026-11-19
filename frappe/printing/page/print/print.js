@@ -1261,7 +1261,9 @@ frappe.ui.form.PrintView = class {
 			"";
 		const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
 		this.set_print_format_value(
-			restricted.includes(default_format) || default_format === "Standard" ? "" : default_format
+			restricted.includes(default_format) || default_format === "Standard"
+				? ""
+				: default_format
 		);
 	}
 
