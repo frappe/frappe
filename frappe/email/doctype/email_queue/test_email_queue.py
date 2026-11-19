@@ -44,11 +44,13 @@ class TestEmailQueue(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Email Queue", new_record.name))
 		self.assertTrue(frappe.db.exists("Email Queue Recipient", {"parent": new_record.name}))
 
-	def test_administrators_placeholder_email_sends_as_the_outgoing_account(self):
+	def test_undeliverable_sender_sends_as_the_outgoing_account(self):
 		from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 
-		builder = QueueBuilder(recipients=["test@example.com"], sender="admin@example.com", subject="Test")
-		self.assertEqual(builder.sender, builder.get_outgoing_email_account().default_sender)
+		for sender in ("admin@example.com", "Administrator <admin@example.com>", "admin@frappe.invalid"):
+			with self.subTest(sender=sender):
+				builder = QueueBuilder(recipients=["test@example.com"], sender=sender, subject="Test")
+				self.assertEqual(builder.sender, builder.get_outgoing_email_account().default_sender)
 
 	def test_failed_email_notification(self):
 		subject = frappe.generate_hash()
