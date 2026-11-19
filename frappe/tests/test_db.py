@@ -1527,7 +1527,7 @@ class TestDB(IntegrationTestCase):
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_session_time_zone_falls_back_to_utc_offset(self):
-		from frappe.database.mariadb.mysqlclient import MariaDBDatabase
+		from frappe.database.mariadb.database import MariaDBDatabase
 
 		with patch.object(
 			MariaDBDatabase, "sql", side_effect=[MariaDBDatabase.OperationalError, None]
@@ -3189,7 +3189,7 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		"""Exception utility methods should not raise IndexError when e.args is empty."""
 		import MySQLdb
 
-		from frappe.database.mariadb.mysqlclient import MariaDBExceptionUtil
+		from frappe.database.mariadb.database import MariaDBExceptionUtil
 
 		e = MySQLdb.Error()  # no args
 
@@ -3213,7 +3213,7 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		"""The wrappers Database.sql() raises must satisfy the driver error predicates too."""
 		import MySQLdb
 
-		from frappe.database.mariadb.mysqlclient import MariaDBExceptionUtil
+		from frappe.database.mariadb.database import MariaDBExceptionUtil
 
 		self.assertTrue(
 			MariaDBExceptionUtil.is_deadlocked(
