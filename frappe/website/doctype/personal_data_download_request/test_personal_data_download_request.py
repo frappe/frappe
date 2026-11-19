@@ -151,5 +151,5 @@ def create_user_if_not_exists(email, first_name=None):
 			"first_name": first_name or email.split("@", 1)[0],
 			"birth_date": frappe.utils.now_datetime(),
 		}
-	).insert(ignore_permissions=True)
+	).insert(ignore_permissions=True, set_name=email)
 	create_contact(user=user)
