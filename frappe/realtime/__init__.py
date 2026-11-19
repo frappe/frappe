@@ -122,7 +122,7 @@ def emit_via_redis(event, message, room):
 		)
 
 
-@frappe.whitelist(allow_guest=True)  # nosemgrep
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep
 def has_permission(doctype: str, name: str, ptype: str = "read") -> bool:
 	frappe.has_permission(doctype, doc=name, ptype=ptype, throw=True)
 	return True
@@ -147,7 +147,7 @@ def get_socketio_secret():
 	return secret.decode()
 
 
-@frappe.whitelist(allow_guest=True)  # nosemgrep
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep
 def get_user_info():
 	user_type = frappe.session.data.user_type
 	trusted_secret = get_socketio_secret()

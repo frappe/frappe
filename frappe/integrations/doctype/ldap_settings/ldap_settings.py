@@ -19,6 +19,7 @@ from ldap3.utils.hashed import hashed
 import frappe
 from frappe import _, safe_encode
 from frappe.model.document import Document
+from frappe.rate_limiter import rate_limit
 from frappe.twofactor import authenticate_for_2factor, confirm_otp_token, should_run_2fa
 from frappe.utils import get_user_by_email
 
@@ -412,7 +413,8 @@ class LDAPSettings(Document):
 		return data
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+@rate_limit(key="usr", limit=10, seconds=60)
 def login():
 	# LDAP LOGIN LOGIC
 	args = frappe.form_dict

@@ -578,7 +578,7 @@ def _in_request_or_test():
 	return getattr(local, "request", None) or in_test
 
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None):
+def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None, rate_limit=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
@@ -587,6 +587,8 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	:param methods: Allowed http method to access the method.
 	:param force_types: Method should have type annotations. If unset, defaults to hooks
 						specification.
+	:param rate_limit: Pass `rate_limit=None` on a guest method that is deliberately not rate limited.
+						To rate limit a method, put `@frappe.rate_limiter.rate_limit` below this decorator.
 
 	Use as:
 
@@ -594,6 +596,12 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	        def myfunc(param1, param2):
 	                pass
 	"""
+
+	if rate_limit is not None:
+		raise TypeError(
+			"Use the @rate_limit(...) decorator to rate limit a method; "
+			"rate_limit=None only marks a guest method as deliberately not rate limited."
+		)
 
 	if not methods:
 		methods = ("GET", "POST", "PUT", "DELETE", "QUERY")
@@ -1476,7 +1484,7 @@ def is_setup_complete():
 	return setup_complete
 
 
-@whitelist(allow_guest=True)
+@whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)
 def ping():
 	return "pong"
 

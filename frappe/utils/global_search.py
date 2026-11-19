@@ -9,6 +9,7 @@ import redis
 
 import frappe
 from frappe.model.document import get_controller
+from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.data import cstr
 from frappe.utils.html_utils import unescape_html
@@ -585,7 +586,8 @@ WEB_SEARCH_MAX_LIMIT = 100
 WEB_SEARCH_MAX_TEXT_LENGTH = 1000
 
 
-@frappe.whitelist(allow_guest=True)  # nosemgrep
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep
+@rate_limit(limit=30, seconds=60)
 def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1

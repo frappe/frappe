@@ -43,6 +43,12 @@ frappe.ui.form.on("Server Script", {
 		});
 	},
 
+	allow_guest(frm) {
+		if (frm.doc.allow_guest) {
+			frm.set_value("enable_rate_limit", 1);
+		}
+	},
+
 	setup_help(frm) {
 		const help_field = frm.get_field("help_html");
 		help_field.html(`

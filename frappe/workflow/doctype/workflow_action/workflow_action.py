@@ -129,7 +129,7 @@ def process_workflow_actions(doc, state):
 		)
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)
 def apply_action(
 	action: str,
 	doctype: str,

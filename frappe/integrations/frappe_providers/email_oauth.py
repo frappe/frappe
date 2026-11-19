@@ -198,7 +198,7 @@ def call_central_method(method: str, **data) -> dict:
 	return client.post(client.site_path(f"central/central.api.email_oauth.{method}"), data)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def callback(
 	state: str | None = None,
 	code: str | None = None,

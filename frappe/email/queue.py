@@ -93,7 +93,7 @@ def get_unsubcribed_url(reference_doctype, reference_name, email, unsubscribe_me
 	return get_url(unsubscribe_method + "?" + get_signed_params(params))
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)
 def unsubscribe(doctype: str, name: str, email: str):
 	# unsubsribe from comments and communications
 	if not frappe.in_test and not verify_request():

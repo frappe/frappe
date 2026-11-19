@@ -135,7 +135,7 @@ def get_messages_for_boot():
 	return get_all_translations(frappe.local.lang)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)
 @http_cache(max_age=31536000)
 def get_boot_translations(lang: str | None = None) -> dict[str, str]:
 	"""Return all translations for the current user's language."""
@@ -949,7 +949,7 @@ def update_translations_for_source(source: str | None = None, translation_dict: 
 	return translation_records
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)
 def get_all_languages(with_language_name: bool = False) -> list:
 	"""Return all enabled language codes ar, ch etc."""
 
