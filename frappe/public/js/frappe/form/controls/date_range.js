@@ -60,6 +60,12 @@ frappe.ui.form.ControlDateRange = class ControlDateRange extends frappe.ui.form.
 			return [from_date, to_date];
 		}
 	}
+	validate(value) {
+		if (Array.isArray(value) && !value.every((date) => frappe.datetime.validate(date))) {
+			return "";
+		}
+		return super.validate(value);
+	}
 	format_for_input(value1, value2) {
 		if (value1 && value2) {
 			value1 = frappe.datetime.str_to_user(value1, false, true);
