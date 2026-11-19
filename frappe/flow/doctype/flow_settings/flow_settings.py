@@ -18,6 +18,7 @@ class FlowSettings(Document):
 		search_api_key: DF.Password | None
 		search_provider: DF.Literal["DuckDuckGo", "Brave", "Tavily", "Exa"]
 		small_model: DF.Link | None
+		guest_messages_per_hour: DF.Int
 	# end: auto-generated types
 
 	def validate(self):

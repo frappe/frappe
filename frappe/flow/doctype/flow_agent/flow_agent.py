@@ -61,6 +61,7 @@ class FlowAgent(Document):
 		knowledge_bases: DF.TableMultiSelect[FlowAgentKnowledgeBase]
 		max_iterations: DF.Int
 		model: DF.Link
+		public: DF.Check
 		roles: DF.TableMultiSelect[HasRole]
 		skills: DF.TableMultiSelect[FlowAgentSkill]
 		sub_agents: DF.TableMultiSelect[FlowAgentSubAgent]
@@ -109,6 +110,7 @@ class FlowAgent(Document):
 		self._validate_token_budget()
 		self._validate_skills()
 		self._validate_sub_agents()
+		self._validate_public()
 		self.render_instructions()
 		self._ensure_knowledge_search_tool()
 		validate_immutable(
@@ -117,6 +119,7 @@ class FlowAgent(Document):
 				"description",
 				"instructions",
 				"max_iterations",
+				"public",
 				"tools",
 				# the site may add skills and knowledge to the assistant
 				*(() if self.name == ASSISTANT_AGENT_NAME else ("knowledge_bases", "skills")),
@@ -146,6 +149,29 @@ class FlowAgent(Document):
 	def _validate_sub_agents(self):
 		if any(row.agent == self.name for row in self.sub_agents):
 			frappe.throw(_("An agent cannot be its own sub-agent."), title=_("Invalid Sub-agent"))
+
+	def _validate_public(self):
+		"""A guest chat approves every call by itself, so a public agent and its sub-agents have
+		no tool that asks first."""
+		if self.public:
+			agents = [self, *(frappe.get_doc("Flow Agent", row.agent) for row in self.sub_agents)]
+		elif self._has_public_parent():
+			agents = [self]
+		else:
+			return
+		for agent in agents:
+			for tool in agent._enabled_tool_docs():
+				if tool.requires_confirmation:
+					frappe.throw(
+						_("A public agent cannot use the tool {0} (on {1}): it asks for approval.").format(
+							tool.name, agent.name
+						),
+						title=_("Not for Guests"),
+					)
+
+	def _has_public_parent(self) -> bool:
+		parents = frappe.get_all("Flow Agent Sub Agent", filters={"agent": self.name}, pluck="parent")
+		return bool(parents) and bool(frappe.db.exists("Flow Agent", {"name": ("in", parents), "public": 1}))
 
 	def _ensure_knowledge_search_tool(self):
 		"""A bound knowledge base is inert without the search tool. Keep them consistent
@@ -361,10 +387,12 @@ class FlowAgent(Document):
 		]
 
 	def _skills(self, fields: tuple[str, ...], **filters: Any) -> list[dict[str, Any]]:
+		bound = ["name", "in", [row.skill for row in self.skills]]
+		or_filters = [bound] if frappe.session.user == "Guest" else [["is_global", "=", 1], bound]
 		return frappe.get_all(
 			"Flow Skill",
 			filters={"enabled": 1, **filters},
-			or_filters=[["is_global", "=", 1], ["name", "in", [row.skill for row in self.skills]]],
+			or_filters=or_filters,
 			fields=["name", *fields],
 			order_by="name",
 		)
