@@ -61,7 +61,7 @@ class SQLiteLogDocument(Document):
 			if not db.is_primary_key_violation(e):
 				raise
 
-			if self.meta.autoname == "hash":
+			if self._has_hash_name():
 				return self._handle_hash_conflict()
 
 			raise frappe.DuplicateEntryError(self.doctype, self.name, e) from e

@@ -4,6 +4,7 @@
 import base64
 import os
 import time
+from unittest.mock import patch
 
 # imports - third party imports
 import requests
@@ -245,8 +246,8 @@ class TestAccessLog(IntegrationTestCase):
 		self.addCleanup(self._delete_log, first.name)
 
 		clash = frappe.get_doc({"doctype": "Access Log", "user": frappe.session.user})
-		clash.name = first.name
-		clash.db_insert()
+		with patch("frappe.model.naming.make_autoname", side_effect=[first.name, "_test_free"]):
+			clash.db_insert()
 		self.addCleanup(self._delete_log, clash.name)
 
 		self.assertNotEqual(clash.name, first.name)
