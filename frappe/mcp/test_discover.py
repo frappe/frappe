@@ -82,6 +82,14 @@ class TestDiscover(McpTestCase):
 		self.assertEqual(set(result["permissions"]), set(PERMISSION_TYPES))
 		self.assertTrue(result["permissions"]["read"])
 
+	def test_schema_has_desk_field_rules(self):
+		result = self.result("get_doctype_schema", {"doctype": "Note"})
+		fields = {field["fieldname"]: field for field in result["fields"]}
+		self.assertEqual(
+			fields["expire_notification_on"]["depends_on"], "eval:doc.notify_on_login && doc.public"
+		)
+		self.assertNotIn("depends_on", fields["title"])
+
 	def test_broad_schema_does_not_expose_records(self):
 		result = self.result("get_doctype_schema", {"doctype": "OAuth Bearer Token"})
 		self.assertFalse(result["permissions"]["read"])
