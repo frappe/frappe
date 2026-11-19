@@ -105,7 +105,7 @@ def queue_jobs(build_type, files):
 	server suite, and the Studio and Flow jobs run for their own folders and the `ui/` package they link."""
 	if files is None or any(is_ci(f) for f in files):
 		return {"build", "studio", "flow"}
-	files = [f for f in files if not is_docs(f)]
+	files = [f for f in files if f.endswith(".csv") or not is_docs(f)]
 	if build_type == "server":
 		return {"build"} if any(not is_frontend_code(f) for f in files) else set()
 	jobs = set()
@@ -255,6 +255,9 @@ def _selftest():
 	assert queue_jobs("ui", ["frappe/core/doctype/user/user.json"]) == {"build"}, "doctype JSON runs UI tests"
 	assert queue_jobs("ui", ["ui/src/index.ts"]) == {"build", "studio", "flow"}, "studio and flow link ui/"
 	assert queue_jobs("server", ["README.md"]) == set(), "docs alone run nothing"
+	assert queue_jobs("server", ["frappe/core/doctype/data_import/fixtures/sample_import_file.csv"]) == {
+		"build"
+	}, "tests read CSV files"
 	assert queue_jobs("ui", None) == {"build", "studio", "flow"}, "a cut short file list runs everything"
 	assert queue_jobs("ui", [".github/workflows/ui-tests.yml"]) == {"build", "studio", "flow"}
 	print("roulette selftest OK")
