@@ -2,6 +2,7 @@ name: UI
 
 on:
   pull_request:
+  merge_group:
   repository_dispatch:
     types: [frappe-framework-change]
   workflow_dispatch:
@@ -10,7 +11,7 @@ on:
     - cron: "0 0 * * *"
 
 concurrency:
-  group: ui-develop-${{ github.event_name }}-${{ github.event.number }}
+  group: ui-develop-${{ github.event_name }}-${{ github.event.number || github.ref_name }}
   cancel-in-progress: true
 
 permissions:
@@ -44,14 +45,14 @@ jobs:
     uses: ./.github/workflows/_base-ui-tests.yml
     with:
       parallel-runs: 3
-      enable-coverage: ${{ github.event_name != 'pull_request' }}
+      enable-coverage: ${{ !contains(fromJSON('["pull_request", "merge_group"]'), github.event_name) }}
       fake-success: ${{ needs.checkrun.outputs.build != 'strawberry' }}
     needs: checkrun
 
   coverage:
     name: Coverage Wrap Up
     needs: [test, checkrun]
-    if: ${{ github.event_name != 'pull_request' }}
+    if: ${{ !contains(fromJSON('["pull_request", "merge_group"]'), github.event_name) }}
     runs-on: ubuntu-latest
     steps:
       - name: Clone
