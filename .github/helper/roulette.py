@@ -45,6 +45,25 @@ def get_files_list(pr_number, repo="frappe/frappe"):
 	return [change["filename"] for change in fetch_pr_data(pr_number, repo, "files")]
 
 
+def get_queue_files(repo, base, head):
+	"""Files a merge queue group changes, or None when GitHub cuts the list short."""
+	files = json.loads(req(f"https://api.github.com/repos/{repo}/compare/{base}...{head}").read())["files"]
+	if len(files) >= 300:
+		return None
+	return [
+		name for change in files for name in (change["filename"], change.get("previous_filename")) if name
+	]
+
+
+def queue_runs(build_type, files):
+	if files is None or any(is_ci(f) for f in files):
+		return True
+	files = [f for f in files if not is_docs(f)]
+	if build_type == "server":
+		return any(not is_frontend_code(f) for f in files)
+	return any(not is_py(f) for f in files)
+
+
 def get_output(command, shell=True):
 	print(command)
 	command = shlex.split(command)
@@ -101,6 +120,15 @@ def is_docs(file):
 def _selftest():
 	assert is_docs("frappe/locale/main.pot"), "translation template alone must skip tests"
 	assert not is_docs("frappe/locale/de.po"), "translations change output, must run tests"
+	assert not queue_runs("ui", ["frappe/model/document.py"]), "python alone skips the UI suite"
+	assert not queue_runs("server", ["frappe/public/js/frappe/form/form.js"]), (
+		"frontend alone skips the server suite"
+	)
+	assert queue_runs("ui", ["frappe/core/doctype/user/user.json"]), "doctype JSON runs UI tests"
+	assert queue_runs("server", ["frappe/core/doctype/user/user.json"]), "doctype JSON runs server tests"
+	assert not queue_runs("server", ["README.md"]), "docs alone run nothing"
+	assert queue_runs("ui", None), "a cut short file list runs everything"
+	assert queue_runs("ui", [".github/workflows/ui-tests.yml"])
 
 	print("roulette selftest OK")
 
@@ -114,6 +142,14 @@ if __name__ == "__main__":
 	build_type = os.environ.get("TYPE")
 	pr_number = os.environ.get("PR_NUMBER")
 	repo = os.environ.get("REPO_NAME")
+
+	base_sha, head_sha = os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA")
+	if not pr_number and base_sha and head_sha:
+		if queue_runs(build_type, files_list or get_queue_files(repo, base_sha, head_sha)):
+			os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+		else:
+			print("The merge queue group does not touch this suite, stopping build process.")
+		sys.exit(0)
 
 	# this is a push build, run all builds
 	if not pr_number:
