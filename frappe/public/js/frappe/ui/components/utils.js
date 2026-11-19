@@ -118,7 +118,7 @@ export function field_popup_open(target) {
 		.closest?.(".awesomplete")
 		?.querySelector(":scope > ul, :scope > [role='listbox']");
 	if (list && !list.hidden && list.children.length) return true;
-	return !!document.querySelector(".air-datepicker.-active-");
+	return !!document.querySelector(".datepicker.active");
 }
 
 /** True for promises and other thenables (async options, submenus...). */

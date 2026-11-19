@@ -77,18 +77,6 @@ function layer_above_open_dialogs(root) {
 
 const z_of = (el) => parseInt(getComputedStyle(el).zIndex) || 0;
 
-<<<<<<< HEAD
-// a classic Link / Autocomplete suggestion list or the date picker, open on the field
-function field_popup_open(target) {
-	const list = target
-		.closest?.(".awesomplete")
-		?.querySelector(":scope > ul, :scope > [role='listbox']");
-	if (list && !list.hidden && list.children.length) return true;
-	return !!document.querySelector(".datepicker.active");
-}
-
-=======
->>>>>>> 8d294d6 (fix(filter): Escape closes a field's suggestion list before the filter panel)
 // a header or footer: one piece of the caller's content, or several side by side
 function slot_parts(content, sheet) {
 	if (typeof content === "function") content = content(sheet);
