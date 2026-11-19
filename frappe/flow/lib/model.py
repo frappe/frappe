@@ -17,10 +17,9 @@ ENABLED_CACHE_KEY = "flow_enabled"
 
 def is_enabled() -> bool:
 	"""Whether Flow can chat on this site: an enabled chat model with its own key or address, or
-	whose provider is enabled, or a Grove key in site config that Flow's first open turns into
-	them. The same for every user; callers check the user's access to Flow themselves."""
-	state = frappe.cache.get_value(ENABLED_CACHE_KEY, generator=_enabled_state)
-	return state["ready"] or (not state["has_grove"] and bool(_first_key(frappe.conf)))
+	whose provider is enabled. The same for every user; callers check the user's access to Flow
+	themselves."""
+	return frappe.cache.get_value(ENABLED_CACHE_KEY, generator=_enabled_state)["ready"]
 
 
 def _enabled_state() -> dict[str, bool]:
@@ -34,7 +33,6 @@ def _enabled_state() -> dict[str, bool]:
 		"ready": any(
 			model.api_key or model.base_url or _model_provider(model) in providers for model in models
 		),
-		"has_grove": bool(frappe.db.exists("Flow Provider", SITE_PROVIDER)),
 	}
 
 

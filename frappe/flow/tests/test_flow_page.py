@@ -90,7 +90,6 @@ class TestFlowPage(IntegrationTestCase):
 
 	def test_the_launcher_waits_for_flow_to_chat_unless_the_user_can_set_it_up(self):
 		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
-		self.enterContext(patch.dict(frappe.conf, {"ai_keys": None}))
 		delete_models_and_providers()
 		ensure_flow_role()
 		member = _user("flow-launcher-member@example.com", FLOW_USER_ROLE)
