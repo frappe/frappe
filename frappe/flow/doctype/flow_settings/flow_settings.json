@@ -45,8 +45,8 @@
    "label": "Guest Chats"
   },
   {
-   "default": "30",
-   "description": "How many messages one address may send to public agents in an hour.",
+   "default": "0",
+   "description": "How many messages one address may send to public agents in an hour. Leave empty to use the default of 30.",
    "fieldname": "guest_messages_per_hour",
    "fieldtype": "Int",
    "label": "Guest Messages per Hour",
