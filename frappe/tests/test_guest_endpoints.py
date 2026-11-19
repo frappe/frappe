@@ -89,11 +89,10 @@ class TestGuestEndpoints(UnitTestCase):
 		for path in sorted(app_path.rglob("*.py")):
 			if "node_modules" in path.parts:
 				continue
-			problems.extend(
-				find_guest_endpoint_problems(
-					path.read_text(encoding="utf-8"), str(path.relative_to(app_path.parent))
-				)
-			)
+			source = path.read_text(encoding="utf-8")
+			if "whitelist" not in source:
+				continue
+			problems.extend(find_guest_endpoint_problems(source, str(path.relative_to(app_path.parent))))
 
 		self.assertEqual(problems, [], "\n" + "\n".join(problems))
 
