@@ -289,16 +289,7 @@ const logoIcons = new Map<string, FunctionalComponent>();
 </script>
 
 <script setup lang="ts">
-import {
-	Avatar,
-	Badge,
-	Button,
-	ScrollArea,
-	Select,
-	Spinner,
-	Switch,
-	toast,
-} from "frappe-ui";
+import { Avatar, Badge, Button, ScrollArea, Select, Spinner, Switch, toast } from "frappe-ui";
 import { computed, h, nextTick, onMounted, reactive, ref, useId } from "vue";
 import { translate as __ } from "../../utils/translate";
 import Banner from "./Banner.vue";
