@@ -137,7 +137,13 @@ frappe.ui.Popover = class Popover {
 		this.onkeydown = (e) => {
 			if (e.key === "Escape") {
 				e.stopPropagation();
-				if (this.escape_for_field) return;
+				if (this.escape_for_field) {
+					// the date picker blurs its input on Escape; keep focus here for the next one
+					if (!this.panel.contains(document.activeElement)) {
+						this.panel.focus({ preventScroll: true });
+					}
+					return;
+				}
 				this.close("escape");
 			} else if (e.key === "Tab") {
 				this.handle_tab(e);
