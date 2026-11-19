@@ -1,0 +1,294 @@
+<!-- The canvas of the open layout. Details and New record draw at the record page's form width, Side panel and
+     Quick entry in their own frame. Only a read-only canvas, which has no panel, keeps the off-layout tray. -->
+<template>
+	<div
+		ref="root"
+		class="canvas-root mx-auto flex w-full max-w-3xl flex-col px-[--page-gutter] pb-[40vh] pt-6"
+		data-editor-canvas
+		@click="acts.perform('canvas.select', null)"
+	>
+		<SaveBanner :save="save" :doctype="canvas.state.doctype" />
+		<template v-if="formPage">
+			<h1 class="text-xl font-semibold text-ink-gray-9">{{ canvas.state.doctype }}</h1>
+			<DoctypeDescription :canvas="canvas" />
+			<p class="mt-1 text-p-sm text-ink-gray-5" data-editor-meta>
+				<Tooltip
+					:text="__('Your changes stay on this site and survive its updates')"
+					:disabled="!canvas.customize || !canvas.state.app_title"
+				>
+					<span>{{ metaLine }}</span>
+				</Tooltip>
+			</p>
+			<p
+				v-if="siteFields && !isChild"
+				class="mt-1 text-p-sm text-ink-gray-5"
+				data-editor-site-fields
+			>
+				{{
+					__n(
+						"{0} field added on this site, edit it in",
+						"{0} fields added on this site, edit them in",
+						siteFields,
+						[siteFields]
+					)
+				}}
+				<RouterLink
+					v-if="customize"
+					:to="customize"
+					class="text-ink-gray-7 underline-offset-2 hover:underline"
+					>{{ __("Customize")
+					}}<span
+						class="lucide-arrow-up-right ml-0.5 inline-block size-3 align-[-1px]"
+						aria-hidden="true"
+				/></RouterLink>
+				<template v-else>{{ __("Customize") }}</template>
+			</p>
+			<!-- The heading names the grid, so the control hides its own label. -->
+			<div v-if="isChild && table" class="mt-8" data-child-grid>
+				<p id="child-grid-heading" class="mb-1.5 text-sm text-ink-gray-6">
+					{{
+						__("{0} in {1}", [
+							table.field.label || table.field.fieldname,
+							table.parent,
+						])
+					}}
+				</p>
+				<div
+					role="group"
+					aria-labelledby="child-grid-heading"
+					class="[&_[data-slot=label]]:hidden"
+				>
+					<CanvasTable :field="table.field" />
+				</div>
+			</div>
+			<p
+				v-if="canvas.newRecordUsesDetails.value"
+				class="mt-1 text-p-sm text-ink-gray-5"
+				data-new-record-note
+			>
+				{{ __("New record uses the Details layout") }}
+			</p>
+		</template>
+
+		<AppLayoutNotice
+			v-if="appChanged"
+			v-model:viewing="viewingApp"
+			:class="formPage ? 'mt-6' : 'mb-6'"
+			:canvas="canvas"
+		>
+			<template #default="{ app }">
+				<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="app" />
+				<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="app" />
+				<CanvasForm v-else :canvas="app" />
+			</template>
+		</AppLayoutNotice>
+		<template v-if="!showsApp">
+			<SidePanelCanvas v-if="type === 'Side Panel'" :canvas="canvas" />
+			<QuickEntryCanvas v-else-if="type === 'Quick Entry'" :canvas="canvas" />
+			<div v-else class="mt-6"><CanvasForm :canvas="canvas" /></div>
+
+			<OffLayoutTray v-if="!canvas.editable" :canvas="canvas" />
+		</template>
+		<FieldBin v-if="canvas.editable" :canvas="canvas" />
+	</div>
+</template>
+
+<script setup lang="ts">
+import { computed, defineAsyncComponent, nextTick, ref, watch } from "vue";
+import { RouterLink, type RouteLocationRaw } from "vue-router";
+import { Tooltip, useKeyboardShortcut } from "frappe-ui";
+import { acts } from "@/acts/dispatcher";
+import { __, __n } from "@/i18n";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import CanvasForm from "./CanvasForm.vue";
+import CanvasTable from "./CanvasTable.vue";
+import { canvasMove, type Direction } from "./canvasMoves";
+import type { DesignCanvas } from "./designCanvas";
+import DoctypeDescription from "./DoctypeDescription.vue";
+import FieldBin from "./FieldBin.vue";
+import type { EditorSave } from "./editorSave";
+import { provideInertForm } from "./inertForm";
+import { takeOff, takesOff } from "./fieldPanel";
+import OffLayoutTray from "./OffLayoutTray.vue";
+import QuickEntryCanvas from "./QuickEntryCanvas.vue";
+import SaveBanner from "./SaveBanner.vue";
+import SidePanelCanvas from "./SidePanelCanvas.vue";
+import { KINDS, kindOf } from "./settingsRows";
+
+const AppLayoutNotice = defineAsyncComponent(() => import("./AppLayoutNotice.vue"));
+
+const props = defineProps<{
+	canvas: DesignCanvas;
+	save: EditorSave;
+	/** Customize mode of this DocType, when the person may open it. */
+	customize: RouteLocationRaw | null;
+	/** The parent's Table field this child's editor opened from; its grid shows under the meta line. */
+	table?: { field: RawMetaField; parent: string } | null;
+}>();
+
+provideInertForm();
+
+// The bin sits after the open tab's content: a shorter tab must not lift it while a field is held.
+const root = ref<HTMLElement | null>(null);
+watch(
+	() => props.canvas.drag.value.active,
+	(active) => {
+		if (active)
+			root.value?.style.setProperty("--frozen-height", `${root.value.offsetHeight}px`);
+		else root.value?.style.removeProperty("--frozen-height");
+	}
+);
+
+const type = computed(() => props.canvas.openLayout.value.type);
+const appChanged = computed(() =>
+	Boolean(props.canvas.customize && props.canvas.layout.value?.sourceChanged)
+);
+const viewingApp = ref(false);
+watch([() => props.canvas, () => props.canvas.openLayout.value, appChanged], () => {
+	viewingApp.value = false;
+});
+const showsApp = computed(() => appChanged.value && viewingApp.value);
+const editing = () => props.canvas.editable && !showsApp.value;
+const formPage = computed(() => type.value === "Details" || type.value === "New Record");
+const isChild = computed(() => Boolean(props.canvas.state.definition.istable && props.table));
+const metaLine = computed(() => {
+	const { module, app_title, record_count, pending } = props.canvas.state;
+	if (isChild.value)
+		return [module, __("Child table"), __("This form is the row's dialog.")].join(" · ");
+	if (pending) return [module, __(draftKind(props.canvas))].join(" · ");
+	// Compared before translating: a language that renames "Custom" must still show it once.
+	const origin = app_title ? __("From {0}", [app_title]) : __("Custom");
+	const parts = !app_title && module === "Custom" ? [module] : [module, origin];
+	if (record_count != null)
+		parts.push(
+			__n("{0} record", "{0} records", record_count, [record_count.toLocaleString()])
+		);
+	return parts.join(" · ");
+});
+function draftKind(canvas: DesignCanvas) {
+	const kind = kindOf(canvas.working.value.settings.properties);
+	return KINDS.find((one) => one.value === kind)!.label;
+}
+const siteFields = computed(() =>
+	props.canvas.state.mode === "Design" ? props.canvas.state.site_custom_fields ?? 0 : 0
+);
+
+const ARROWS: [string, Direction][] = [
+	["Alt+ArrowUp", "up"],
+	["Alt+ArrowDown", "down"],
+	["Alt+ArrowLeft", "left"],
+	["Alt+ArrowRight", "right"],
+];
+for (const [combo, direction] of ARROWS) {
+	useKeyboardShortcut({
+		combo: combo as never,
+		description: __("Move the selected item"),
+		group: __("Editor"),
+		enabled: () => editing() && Boolean(props.canvas.selection.value),
+		handler: () => move(direction),
+	});
+}
+useKeyboardShortcut({
+	combo: "Slash",
+	description: __("Add field"),
+	group: __("Editor"),
+	enabled: editing,
+	handler: () => void acts.perform("fields.add_field"),
+});
+
+useKeyboardShortcut({
+	combo: "Delete",
+	description: __("Take the selected field off this layout"),
+	group: __("Editor"),
+	enabled: () => Boolean(placedSelection()),
+	handler: () => void takeOff(props.canvas, placedSelection()!),
+});
+
+/** The selected field, when Delete takes it off the open layout. */
+function placedSelection(): string | null {
+	const { canvas } = props;
+	const selection = canvas.selection.value;
+	if (!editing() || !takesOff(canvas) || selection?.kind !== "field") return null;
+	return canvas.place(selection.fieldname) ? selection.fieldname : null;
+}
+
+function move(direction: Direction) {
+	const selection = props.canvas.selection.value;
+	const found = selection && canvasMove(props.canvas.tabs.value, selection, direction);
+	if (found) void acts.perform(found.act, found.value);
+}
+
+watch(
+	() => props.canvas.selection.value,
+	async (selection) => {
+		if (selection?.kind !== "field") return;
+		await nextTick();
+		document
+			.querySelector("[data-editor-canvas] [data-canvas-selected]")
+			?.scrollIntoView({ block: "nearest" });
+	}
+);
+</script>
+
+<style>
+/* Specific enough to win over the dragged item's own utilities, hover variants included. */
+[data-doctype-editor] .sortable-chosen.canvas-drop-line {
+	height: 2px;
+	min-height: 0;
+	margin: -9px 0;
+	padding: 0;
+	border: 0;
+	border-radius: 1px;
+	overflow: hidden;
+	box-shadow: none;
+	background-color: var(--outline-gray-4);
+	opacity: 1;
+}
+[data-doctype-editor] .sortable-chosen.canvas-drop-line > * {
+	display: none;
+}
+[data-doctype-editor] [data-canvas-empty] > .sortable-chosen.canvas-drop-line {
+	margin: 29px 0 0;
+}
+[data-doctype-editor] .canvas-tab-drop > .sortable-chosen.canvas-drop-line {
+	display: none;
+}
+/* A tab the held field left takes no room, yet display:none would hide the ghost inside it; z-index lifts that ghost over the open tab. */
+[data-doctype-editor] .canvas-tab-held {
+	position: relative;
+	z-index: 2;
+	height: 0;
+	overflow: hidden;
+	visibility: hidden;
+}
+[data-doctype-editor] .canvas-tab-held .sortable-fallback {
+	visibility: visible;
+}
+.canvas-root {
+	min-height: var(--frozen-height, 0);
+}
+/* The pointer drags across the canvas's text: no drag kind may select any of it. */
+body:has(.sortable-fallback, .canvas-drag-fallback) {
+	@apply select-none;
+}
+/* Sortable draws the dragged clone at 0.8 opacity over the bin's words: give it a surface, and hide it over the bin. */
+[data-doctype-editor] .sortable-fallback {
+	height: auto !important;
+	opacity: 1 !important;
+	background-color: var(--surface-base);
+	box-shadow: 0 0 0 1px var(--outline-gray-4), 0 4px 12px rgb(0 0 0 / 0.16);
+}
+[data-doctype-editor]:has([data-canvas-bin][data-over]) .sortable-fallback {
+	opacity: 0 !important;
+}
+/* The dragged tab's own padding sits its label high above the underline. */
+.canvas-tab-drop.sortable-fallback {
+	@apply rounded-4;
+}
+.canvas-tab-drop.sortable-fallback > button {
+	@apply rounded-4 border-b-transparent pb-1.5 pt-2;
+}
+.canvas-tab-drop:has(> .canvas-drop-line) {
+	background-color: var(--surface-gray-2);
+}
+</style>

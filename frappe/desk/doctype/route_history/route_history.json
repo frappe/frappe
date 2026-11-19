@@ -26,13 +26,14 @@
    "label": "User",
    "no_copy": 1,
    "options": "User",
-   "read_only": 1
+   "read_only": 1,
+   "search_index": 1
   }
  ],
  "in_create": 1,
  "is_virtual": 1,
  "links": [],
- "modified": "2026-10-06 17:00:00.000000",
+ "modified": "2026-10-26 22:10:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Route History",

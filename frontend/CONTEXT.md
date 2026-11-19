@@ -1,0 +1,762 @@
+# The desk layer (`frappe/frontend`)
+
+The domain of desk v2's UI: the **shell** that the framework hosts at `/apps`, the
+**URL space** beneath it, the **contributions** an app makes into it, and the **record
+page** those contributions customize.
+
+[`PHILOSOPHY.md`](./PHILOSOPHY.md) is the *rules*; this is the *vocabulary* those rules
+use. [`CLAUDE.md`](./CLAUDE.md) is the operational half.
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) says which layer each thing sits in. Its concept
+tables link to the entries here by their `<a id>`, so keep an id when you rename a term.
+
+**One glossary.** A term means the same thing everywhere in this package. Where a word is
+defined here, this file is canonical — a comment that disagrees is a bug in the comment.
+Terms are in rough dependency order: hosting first, then contribution, then the record
+page, then the settings dialog.
+
+## Language
+
+### Hosting and the URL space
+
+**Shell**:
+The single SPA the framework hosts, owning every URL beneath `/apps`. It owns everything
+that must look the same in every app — the rail, the error states — and an app contributes
+only *inside* a routed view. An app attaches to the shell only through its shell hook.
+_Avoid_: "the frontend" (ambiguous with the package), "shell story" (`ui/CONTEXT.md`'s
+unrelated Storybook term).
+
+**Prefix**: <a id="prefix"></a>
+The one bare path segment an app claims beneath `/apps` — `/apps/crm`, `/apps/desk`. An
+app declares it with the `app_prefix` hook, or declares nothing and gets its own name **with
+a leading `frappe_` stripped**: `frappe_whatsapp` serves `/apps/whatsapp`. Underscores are
+otherwise preserved, so `hr_management` stays `hr_management` rather than being guessed at.
+_Avoid_: route prefix, mount point, base path.
+
+**Claimed prefix**:
+A prefix some active app actually answers for. Unclaimed is not an error: `/apps/nonsense`
+is a *website* 404, not a shell 404, because the shell owns error states only **inside** a
+claimed prefix.
+
+**`shell_base`**:
+The router's base as boot carries it — the **composed** path (`/apps/crm`), never the bare
+segment. Composed on the server so the literal `/apps` never appears in JS.
+
+**Slug**: <a id="slug"></a>
+A doctype's address in a URL: `CRM Deal` → `crm-deal`. **The address, not the identity** —
+canonicalisation always moves *to* the slug, never away from it.
+_Avoid_: scrubbed name (`crm_deal`, the on-disk spelling used by contribution paths).
+
+**Boot**: <a id="boot"></a>
+A new, small per-prefix payload — deliberately *not* `frappe.sessions.get()`. Core boot
+(the keys every prefix gets) plus app boot (the declaring app's contribution, merged
+under core). `location.pathname` is its only input; the document carries nothing.
+
+**`boot.navigation`**:
+This prefix's rail and *every* sidebar in it, already resolved: the app's rows, the site's
+arrangement and this person's, merged server-side. The browser never restacks those layers.
+It rides boot so that no rail click costs a request; what an app *contains* is a different
+list and is fetched only when a `Module Contents` row expands (`contents.ts`).
+_Avoid_: navigation as a word for an app's contents — the rail is authored, the contents
+list is derived, and the two disagree on purpose.
+
+**`app_order`**:
+The site's ordered array of **active** apps, used to order contributions. Deliberately not
+`installed_apps` — that name is taken client-side for a permission-filtered list, and only
+*ordering* fails silently.
+
+**Generated route**:
+One of the routes every app gets with **no declaration at all** — home, list,
+standard-list, saved-view, record, standard-record, and module on a modular app. `doctype` is
+a param, so the same routes serve any number of doctypes.
+There is no per-doctype route and no opt-out.
+The list and record routes open the replacement page that applies in the current app
+(`boot.app`), else the standard page. A `pages.json` key takes a page name (every app), one
+`{ "page", "apps" }` entry, or a list of them; an entry with no `apps` applies in every app.
+The key is `record`, `list` or a view type's key (its lowercase name, such as `cards`): a saved
+view of that type opens that page. `standard-list` (`/view/list`) opens the standard page.
+_Avoid_: default route, implicit route.
+
+**Index**: <a id="index"></a>
+The page at `/apps`, which belongs to no app: one way into each app the user can open.
+Its tiles stack two layers: the app layer (the hook's `sequence_id`) and the person's user
+layer (their order and the apps they hid). A hidden app leaves the grid, and the filter still
+finds it. A site layer would sit between the two; it is not built.
+_Avoid_: apps screen (desk v1's page), home page.
+
+**Landing**: <a id="landing"></a>
+The row an app's or a module's bare address resolves to. `/apps/<prefix>` lands on the first
+item of the person's arranged rail that resolves to a route in the prefix; a modular app's
+`/apps/<prefix>/<module>` lands on the first row of that module's sidebar. The shell's router
+computes it from `boot.navigation` and redirects there, so the bare address never enters
+history. An address with no landing shows "Nothing in <App> you can open".
+_Avoid_: home page, module page; neither exists.
+
+**Contributed route**:
+A route synthesised from a `PageContribution`, named `page:<app>:<slug>`, and live only
+for the declaring app. Contributed matches beat generated ones — `/deals` must beat
+`/:doctype` — and they share one flat namespace.
+
+**Rail**: <a id="rail"></a>
+The shell-owned navigation strip: always present, except in the sidebar-only navigation layout;
+it floats in the floating-rail layout. The `Rail` doctype is behind it: one record per app per layer.
+Each layer's record also holds that level's **navigation layout**. Its contents are **declared rows**, not derived doctypes, and
+they are not limited to doctypes — a rail item may be a doctype, a module, a page, a record,
+a link or a section. Permission filters that declaration; it does not produce it. A rail item
+is *independent* or *linked*, and it is linked exactly when it opens a sidebar. An app that
+ships **no** `Rail` record still gets a rail, derived from its own doctypes and permission-
+filtered — which is every app until one converts, and it goes through the same layer merge
+as a declared one, so a person can arrange a derived rail too.
+_Avoid_: dock (that is desk v1's, and a live doctype of its own).
+
+**Navigation layout**: <a id="navigation-layout"></a>
+How one app's navigation draws. It has three values: **rail + sidebar** (`rail_and_sidebar`),
+**sidebar only** (`sidebar_only`) and **floating rail** (`floating_rail`). It is set per app and per
+level. The precedence is person → site → app → `rail_and_sidebar`.
+_Avoid_: layout (alone, a record-page word: App layout, Site layout, `?layout=`), dock, dock mode, dock-less.
+
+**Floating rail**: <a id="floating-rail"></a>
+The navigation layout in which the rail is parked off screen. It slides in from the window's edge
+on the navigation's side. Its pin writes the person's navigation layout.
+_Avoid_: dock (v1's `Dock` DocType is live), peek.
+
+**Utility slots**: <a id="utility-slots"></a>
+Search and notifications. They are fixed at the top, below the logo, in every navigation layout.
+_Avoid_: tray (v1's word).
+
+**Sidebar**: <a id="sidebar"></a>
+The panel a linked rail item opens, and the `Sidebar` doctype behind it. Named for where it is, like the rail — which is what lets
+one row type serve both honestly.
+_Avoid_: using it bare; see **Words that collide**.
+
+**Navigation side**: <a id="navigation-side"></a>
+Which edge the **Rail** and the **Sidebar** are drawn on: `start` (where a line of text starts, left in left-to-right) or `end`. A person's
+own value wins over the site's, and a blank value follows the site. Only `shell/navigationSide.ts` turns it into a physical left or right.
+_Avoid_: side (alone), side panel (a Form Layout type), dock side.
+
+**Navigation Item**: <a id="navigation-item"></a>
+One row of navigation, in a rail or a sidebar. Named for what it does, because a name from
+one surface would name only half of it. A row points at exactly one destination and carries
+**no query of its own**. Its address is an authored, frozen `key`, which every site and user
+edit is filed against.
+_Avoid_: sidebar item, dock item, rail item (the last is fine in prose about the rail, never
+as a type name).
+
+**Navigation Item Type**: <a id="navigation-item-type"></a>
+The kind a `Navigation Item` is, as a code-owned record an app ships. Adding a kind is a
+record plus a renderer beside it, and no framework change. The item axis is **type**, never
+*kind* — see below.
+
+**Manifest**: <a id="manifest"></a>
+The build's description of the one bench-wide bundle: `[{app, app_prefix, source_dir,
+deps}]`, plus a separate wider `source_dirs` list covering *every* app on the bench.
+An app is in the **bundle** only if it actually contributes source; every installed app
+still gets a prefix and is still served.
+
+**Singleton**: <a id="singleton"></a>
+A library that must exist exactly once in the bundle — `vue`, `vue-router`, `frappe-ui`,
+`@framework/ui`, `reka-ui`, `dompurify`. Two apps disagreeing on one **fails the build**,
+deliberately rather than letting a bundler silently pick a winner.
+
+### Contribution
+
+**Contribution**: <a id="contribution"></a>
+Something an app adds to the desk. The list is **closed**: if it is not in
+`contributions/types.ts`, an app cannot do it. Not contributable, on purpose: a route
+table, a doctype opt-out, shell chrome, a vite config, a boot key from JS.
+_Avoid_: customization (that is the *effect*; a contribution is the delivery), plugin,
+extension (see below).
+
+**Kind**: <a id="kind"></a>
+Which contribution a file is — and a kind **is a path**, not a declaration.
+Only ever this. A navigation item's axis is its **type**, and `Record` appears in both lists:
+
+| path | kind |
+| --- | --- |
+| `<module>/doctype/<scrubbed>/frontend/record.js` | record, owning app |
+| `<module>/doctype/<scrubbed>/frontend/list.js` | list, owning app |
+| `<module>/custom/<scrubbed>/record.js` | `custom` — a **foreign** doctype |
+| `<module>/custom/<scrubbed>/list.js` | `customList` — a **foreign** doctype's list |
+| `<module>/frontend/pages/<slug>.js` | a standalone page |
+| `<module>/doctype/<scrubbed>/frontend/pages.json` | replacement, owning app |
+| `<module>/doctype/<scrubbed>/frontend/pages/<name>.js` | replacement, owning app |
+| `<module>/custom/<scrubbed>/pages.json` | replacement, **foreign** doctype |
+| `<module>/custom/<scrubbed>/pages/<name>.js` | replacement, **foreign** doctype |
+| `<module>/frontend/settings/<name>.vue` | a settings block's component, loaded lazily |
+| `<module>/frontend/acts.js` | an app's global acts on the **shell surface**, imported at idle |
+| `<module>/frontend/shell.js` | an app's **shell hook**, run at idle |
+| `<module>/view_type/<scrubbed>/frontend/view.js` | a **view type**'s renderer, beside its record |
+
+`frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved
+handler files: warned about and ignored for now.
+
+**Shell hook**: <a id="shell-hook"></a>
+An app's `<module>/frontend/shell.js`, one per app, whose `setup(shell)` export the shell runs
+once per tab, at idle after the first paint, on every page of `/apps` (the index too), in
+`app_order`. It runs only for a user the app's `add_to_apps_screen` `has_permission` admits,
+or, with no such check, the app's prefix gate. `shell` holds `afterSave(doctype, handler)` and
+`window(component, options)`, which attaches the app's **standing window**.
+`setup` cannot change the route, block the first paint, write to the DOM, or replace or hide
+a shell part. A hook that throws, or a file with no `setup`, is logged and skipped. Desk's own
+after-save handlers are the shell's: frappe ships no `shell.js`.
+_Avoid_: plugin, boot hook. Not `acts.js`: acts are asked for by name; a hook attaches.
+
+**Standing window**: <a id="standing-window"></a>
+The floating window an app attaches through its shell hook, kept mounted across pages. Closing
+it hides the frame; its component stays mounted. One per app, docked in a row at the bottom
+right beside the composer, in `app_order`; open, minimised to a pill, or closed. The shell owns
+its frame and place; the app gives the content, the title and up to three actions. Its **handle**
+is the window's one state, there from the first `shell.windowOf(app)`, before the shell hook has
+attached the window: an act opens it with `open(props)`, and the props reach the component. While a window
+sets **keep-alive** (off until set, for a live call), the shell opens links that would load another
+document in a new tab (a toast with a link when the browser blocks it) and asks before a reload
+or tab close, except at logout. A window sets **attention** while something waits on the user; its
+pill then pulses a soft ring.
+_Avoid_: popup, call window (CRM's use of it), widget.
+
+**Owning app**:
+The app a contribution's doctype belongs to. Structural, needing no registry lookup: a
+file under `doctype/<x>/frontend/` is colocated in the owner's own tree so it **is** the
+owner's; a file under `custom/<x>/` is by construction somebody else's. Customizing a
+foreign doctype does not move it into your prefix.
+
+**Run order**: <a id="run-order"></a>
+Per doctype: the owning app first, then every other app in `app_order`. The rule is
+*baseline first, more-specific intent last* — derived, not declared.
+For a replacement page it breaks ties only: an entry that names the current app beats every
+entry that names none, whatever the run order.
+
+**Source**: <a id="source"></a>
+Who is speaking, for attribution and for removal. `host` is the app's own bundled code;
+otherwise an app name, or `client-script:<name>`, or `builtin` for what the host seeded. A
+source is the unit `unregisterSource` drops.
+_Avoid_: `source_dir` (an app's on-disk path — unrelated), "layout source" (the object a
+host feeds field overrides to — also unrelated). See **Words that collide**.
+
+### The record page
+
+**Record** (the page) vs **document** (the payload): <a id="record"></a>
+The page kind is a **Record** page; what it shows is a **document**, reached as `page.doc`
+(the draft you edit) and `page.saved` (the document as the server last showed it). Two
+deliberately separate words, neither may take the other's job — settled against renaming
+the page to Document or Form in frappe/frappe#42212.
+_Avoid_: Document or Form for the page; `page.record` (does not exist).
+
+**`page`**:
+The curated object every handler receives and imperatively mutates — a script's whole
+capability surface. Nothing reaches a script except through it.
+_Avoid_: form, frm, context.
+
+**Surface**: <a id="surface"></a>
+One customizable **region** of a page, whose verbs *record ops*; the rendered list
+is those ops replayed over the host's built-ins. On the record page seven are true surfaces —
+`quickActions`, `header`, `tabs`, `panelSections`, `frame`, `body`, `form` — sharing the
+verb set `add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`. Two overlays,
+`fields` and `form.tabs`, are counted as surfaces and stage with them but are **not**
+`Surface`s: they override properties rather than arrange items, and speak a strict subset
+with no `add`, `move` or `order`. `form.tabs` is the strip inside the form, a child of
+the `form` surface, so everything about the Details form sits under one object.
+Two more, `activity` and `files`, are `Surface`s ordered by time: they hold a script's own
+rows, read the server's through `items`, and speak `add`, `remove` and `has` only.
+_Avoid_: sections (`panelSections` and `Section` both already claim the word), a
+top-level name for the form's strip.
+
+**Built-in**: <a id="built-in"></a>
+An item the host seeded rather than a script adding it, attributed to the source
+`builtin` and folded in first. A script addresses one by name like any other item.
+
+**Panel**: <a id="panel"></a>
+The record's right-hand column, drawn from `page.panelSections` as **one list**: the
+built-ins (`identity`, `quick_actions`, `people`) and the Side Panel layout's
+sections are items on it alike. A `label` gives an item a header; a built-in has none. The
+panel resizes and collapses to a strip, and those two are the reader's, kept in the browser.
+_Avoid_: sidebar (taken, see below), side panel (the Form Layout *type* is `Side Panel`; the
+region is the panel).
+
+**Part**:
+A script-added component drawn inside the Details form through `page.form`, at its
+neighbour's grain: a cell in a field's column beside a field, a full-width block beside a
+section. `label` frames it like that neighbour, a field label or a section heading; without
+one it is bare. It receives `{ ...props, page }`. Script only: a Form Layout row's column
+stays a list of fieldnames, so a part has no record form.
+_Avoid_: custom field (a part holds no value and `page.fields` never sees it), widget,
+custom tab (a whole view belongs on the record strip, `page.tabs`).
+
+**Container**: <a id="container"></a>
+A tab, section or column of a form layout. It holds fields and other containers, and carries
+only its own presentation: label, description, condition, border, fold. A field's own
+properties (label, `reqd`, `depends_on` and the rest) live on the field, never on a container.
+_Avoid_: break (the meta field that encoded a container in desk v1), layout field property.
+
+**Unplaced field**: <a id="unplaced-field"></a>
+A data field that the Form Layout row in use does not place. On Details, New Record and the
+row dialog it renders only at its **anchor**, and only when it is new since the row's save
+(not in `omitted`); without a resolved anchor it is not drawn, and the editor shows it. On
+Quick Entry and in the row dialog, a mandatory one is added at the end. A field the Side Panel
+row in use places is placed. A break, a `hidden` field and a field the person cannot read are
+never unplaced. With no row, the fallback places every field. A mandatory unplaced field
+reaches the person through the **required-fields dialog**.
+_Avoid_: missing field, orphan field, More fields (the section is gone).
+
+**Omitted field**: <a id="omitted-field"></a>
+A field the row knew about at its save and did not place, listed in the row's `omitted`. The
+server writes the list from the meta on every Details and New Record save, and a patch fills
+it for older rows; the person never edits it. It holds every field the row does not place,
+mandatory ones too, except breaks and dropped field types. Omitting places nothing and changes
+no field property: `hidden` stays on the field.
+_Avoid_: missing field, orphan field, hidden field (a field property, not a placement).
+
+**Record dialog**: <a id="record-dialog"></a>
+A doctype's record shown in a dialog over the page the reader is on, instead of as the record
+page. An app opts a doctype in with `{"record": "dialog"}` in its `pages.json`. The form is the
+doctype's Quick Entry layout; a record script runs as on the page, and the header, tabs, feed,
+files and composer are not drawn. The address stays the record's own, so a direct load shows the
+list and opens the dialog over it. An entry may name a **body**, a component that replaces the
+form with the same record, Save and frame, and that can switch to the form.
+_Avoid_: "modal record", "quick view".
+
+**Readable dialog**: <a id="readable-dialog"></a>
+An open dialog the tab lists, so a caller that cannot see the screen can read it: its kind, title, message and button labels. A form dialog also lets the caller fill its fields, submit and close it, through the `dialog` act surface; a `confirm` or `danger` stays the person's to answer.
+_Avoid_: modal list, dialog state.
+
+**Required-fields dialog**: <a id="required-fields-dialog"></a>
+The dialog a save opens for each mandatory field that the layout does not show: `reqd` or
+`mandatory_depends_on` is true, the value is empty and the person can write it. It lists them
+in meta (`idx`) order with their normal controls (a `Table` as the table control). Its primary
+button sets the values and continues the save; Cancel leaves the record dirty. A System
+Manager with `Customize Form` write also sees a note to add the fields to the Details layout.
+_Avoid_: "More fields" section, mandatory section.
+
+**Row dialog**: <a id="row-dialog"></a>
+The dialog that edits one child-table row, built from the child DocType's Details layout. Its
+row is the `doc` a conditional row is chosen against, so two rows of one table can get two
+dialogs. With no row it draws every child field from the breaks; the grid's columns stay the
+`in_list_view` fields either way.
+_Avoid_: row form, grid form.
+
+**Anchor**: <a id="anchor"></a>
+A custom field's `insert_after`, resolved against the layout in use on Details and New
+Record. An unplaced custom field renders right after its anchor field, in the same column,
+or at the top of the container whose `name` its anchor is. Anchors chain in meta order, also
+through a hidden field or one the person cannot read. The
+anchor does not resolve when the row omits that field, does not place it, or places it only
+in the Side Panel; the field is then not drawn. A row that places or omits the
+field wins over its anchor.
+
+**App layout**: <a id="app-layout"></a>
+A layout an app ships as a file in its DocType's folder, such as
+`<doctype>/frontend/layouts/details.json`.
+_Avoid_: fork, override, copy.
+
+**Site layout**: <a id="site-layout"></a>
+A site's `Form Layout` row. A row with no condition replaces the app layout of its type
+whole; a row with a condition is chosen before the app layout when its condition matches.
+A row that names an app applies only there, and replaces the rows naming none.
+_Avoid_: fork, override, copy.
+
+**Fallback layout**: <a id="fallback-layout"></a>
+The layout that renders when there is neither a site layout nor an app layout: built from
+the DocType's Tab, Section and Column Breaks, or for Quick Entry from its mandatory and Quick
+Entry fields.
+_Avoid_: fork, override, copy.
+
+**Disclosure**: <a id="disclosure"></a>
+The reader's view state of a section: open or shut. It lives in the browser through the
+shell's section memory, keyed by user and per doctype, never on the server. A script's
+`open()`/`close()` is an **act** on the same terms as `activate`, held until the open replay
+or hold commits, and it is the page's, not the reader's: it is not remembered, and a click outranks it
+until the next replay.
+_Avoid_: collapsed (the panel as a whole collapses to a strip; a section is shut), expanded.
+
+**Overlay** (per-user):
+A per-user customization of what the page holds, as a record on the server that enters the
+merge. Not built; the word is reserved so it is not confused with disclosure, which is view
+state, or with the **field overlay** below, which is a script's render-time override.
+
+**Op**:
+One recorded verb — `{verb, source, …}`. Ops are **recorded, not applied**; nothing is
+rendered until the replay or hold they stage in commits.
+
+**Replay**:
+The host clearing **every** surface and re-running **every** source in run order,
+synchronously: an `onRefresh` that returns a promise runs the rest in a hold for its
+source. This is what makes conditional customization a plain `if` with no `else`. Ops
+stage while a replay or a **hold** is open, and whichever closes last publishes them in one
+flush. The first replay has a time limit while it waits for the page's scripts or
+permissions: when it runs out, the page paints without any source still running a handler
+in a hold; their ops land when the last of those commits. When the page's permissions are
+what is late, no replay is open yet, so the early paint shows the built-ins only. A return
+visit replays twice: from memory before the first frame, then once after the background
+reads, whose acts are dropped.
+_Avoid_: re-render, refresh (`page.refresh()`, the `onRefresh` event and the replay are
+three names for one operation — prefer "replay" for the mechanism).
+
+**Hold**:
+One paint for a handler's ops, published when it finishes. Every event but `onRefresh` runs
+inside a hold, and so does each host call into script code (`controller.hold`). `onOpen`'s
+synchronous part runs in a hold opened after the first replay commits. A hold starts
+from what is drawn, where a replay starts from built-ins; its acts wait for its commit.
+_Avoid_: batch, transaction.
+
+**Handler**: <a id="handler"></a>
+One named function in the object a script exports — an event (`onRefresh`, `onOpen`,
+`beforeSave`, `afterSave`, `beforeSubmit`, `afterSubmit`, `beforeCancel`, `afterCancel`, `onTabChange`, `onFormTabChange`) or a **fieldname**. The event vocabulary is
+closed; every other key is a fieldname, in one flat keyspace. A handler's arguments are
+determined by its key: a top-level key gets `(page)`, one nested under a child table gets
+`(page, row)`.
+
+**Table handlers block**: <a id="table-handlers-block"></a>
+`products: { onAdd, onRemove, qty }` — the table is named once, and every key under it is
+a child fieldname or one of the two lifecycle events. Flattened at registration to a
+**dotted key** (`products.qty`), unambiguous because a fieldname cannot contain a dot.
+
+**Client Script**: <a id="client-script"></a>
+A browser-authored customization stored as a `Client Script` row with `view = Record` (or `List Page`, for the list page),
+evaluated as a real ES module through a blob URL — so `export default {…}` is the same
+text as in a file script, and bare imports resolve through the page's import map.
+A script with a `template:` string runs as the server's compiled copy. The stored text
+stays the author's text. Desk v1 reads only the `Form` and `List` rows of the same table,
+so neither side sees the other's.
+_Avoid_: Page Script (the tier's old name), Form Script (CRM v1's).
+
+**Tier**: <a id="tier"></a>
+The Client Script tier is the **last** in run order, after the file scripts every app
+contributes, because it runs at page mount. A script that fails to load is skipped whole
+and the rest of the tier still runs; a tier that could not be fetched is distinct from an
+empty one.
+
+**Field overlay**: <a id="field-overlay"></a>
+A script's per-field property override, applied at **render time** and never written into
+the layout as authored, the `Form Layout` row, or doctype meta. Spelled in DocField
+snake_case (`read_only`), not `FieldMeta` camelCase. Cleared by an ordinary replay.
+Precedence: **permlevel is a hard floor a script cannot raise**; between the overlay and
+`depends_on`, the overlay wins.
+_Avoid_: field property (that is also what meta carries), `setFieldProperty` (v1's).
+
+**Row handle**: <a id="row-handle"></a>
+How a script addresses one child-table row: an object holding `(parentfield, key)` that
+**re-finds its row on every access**, so a reorder is survived for free. An *address*, not
+a write channel — fields are read and written bare, identically to writing through
+`page.doc`.
+_Avoid_: row proxy, `getRow` (both v1's, both position-capturing).
+
+**Commit**: <a id="commit"></a>
+The moment a field's control settles on a value — the firing point of a `<fieldname>`
+handler. Per fieldtype at the widget, but one uniform rule at the engine, which never
+branches on fieldtype. Not a keystroke and not a debounce, and **a programmatic write is
+not a commit**: a cascade is authored, never ambient.
+_Avoid_: change (the widget's spelling), input (per-keystroke, deliberately not offered).
+
+**Read-only view**: <a id="read-only-view"></a>
+Every object `page` hands back is read-only, enforced by a lazy recursive proxy that
+throws naming the path *and* the supported verb. `page.doc` and the row handle are the
+only writable things it hands out.
+_Avoid_: "frozen" (`Object.freeze` is shallow and names nothing in its error),
+"immutable" (the underlying object is not — the *view* refuses writes).
+
+**Tombstone**:
+A removed `page` member kept for one major as a function that throws, naming the removal
+and its replacement, then deleted. Deliberately **not** dev-gated, since a removal fires
+on production sites.
+_Avoid_: deprecation (implies a period of continued working).
+
+### Acts
+
+**Act**: <a id="act"></a>
+Something the desk does when asked by name, by the palette, a script, a key or an LLM. It
+is a surface item that has `run`: a header item, a quick action, a tab's `create` entry, a
+list page built-in, or a shell act. Its full name is `<surface>.<item>` (`header.delete`,
+`list.create`, `shell.toggle_sidebar`), and one dispatcher runs it whoever calls, after it
+checks that the act is present, not hidden, and allowed by its `right`. A **held** act is a script's act that waits for the replay or hold
+to commit; *held* says when the act lands, it is not a second concept.
+_Avoid_: command (it stays only in the feature's name, the command palette, and frappe-ui's
+component), action (already overloaded; see **Words that collide**).
+
+**Act mark**: <a id="act-mark"></a>
+The attribute that says what a button or menu row is. `data-act` names the act it runs, in full
+(`header.delete`); `v-act` runs the act and sets it. Every visible button and menu row has `data-act` or
+`data-view`, and a CI check fails the page that has one with neither.
+_Avoid_: tag, annotation.
+
+**View-only control**: <a id="view-only-control"></a>
+A control that changes nothing but what you see of the page: it opens or closes a menu or popover,
+expands a section, or scrolls or focuses. It carries `data-view`. A control that changes data, or changes
+what the page shows (a filter, a sort, a page), is act-backed, or is a known gap until its act exists.
+_Avoid_: passive control, UI-only control.
+
+**Desk facade**: <a id="desk-facade"></a>
+`window.desk`, the object an agent that cannot see the screen uses to list the desk's acts,
+run one, wait for a person's answer to its confirm, and read the page and open dialogs. A
+`run` that opens a confirm returns `waiting_for_user` with the dialog and a call id; the person
+answers, never the agent, and `wait` gives the final result. A value an agent passes fills a confirm's
+dialog and never skips it; the dialog says "An agent asked for this.".
+_Avoid_: agent API, bridge.
+
+**UI relay**: <a id="ui-relay"></a>
+How a server call, such as `fr ui`, drives the person's open tab: it reaches the tab by the
+realtime room and runs through `window.desk`, so an agent's confirm rules hold. The person
+turns it on for themselves ("Let agents drive my open tabs"); off, the tab does not listen. While a
+call runs and for 30 s after, the tab shows who is driving it, with a Stop that ends the calls and
+refuses the next until a reload.
+_Avoid_: remote control, bridge.
+
+**Row**: <a id="row"></a>
+One line in the palette, showing an act, a place or a record. Not a child table's row; see
+**Words that collide**.
+
+**Recent**: <a id="recent"></a>
+A list or record this user opened lately, on any device, read from `Route History` with this
+tab's own visits on top. Nothing is kept in the browser. The palette shows the last few on the
+empty query, and the index shows its own.
+
+**Record surface**: <a id="record-surface"></a>
+The act surface that fills the form in front without saving: `record.set_values`, `record.add_child_row`,
+`record.set_child_values` and `record.remove_child_row`, none in the palette. A value commits through the
+channel typing uses, so the link check, `fetch_from` and the page's handlers run. A child row is
+`{table, idx}`, the 1-based number the grid shows; there are no row names or keys. Every
+`createRecordPage` registers it, and a Create dialog in front registers its own `record.set_values`.
+_Avoid_: setter, form API.
+
+**Shell surface**: <a id="shell-surface"></a>
+The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an
+app's global acts from its `acts.js`, named `shell.<app>.<item>`. Same item shape as a page surface, with no
+verbs for scripts yet; `run` receives `(shell, value)`, and `shell.record()` is the saved record open on the page, if any.
+
+### The DocType editor
+
+**DocType editor**: <a id="doctype-editor"></a>
+The page at `/doctype/<name>` where a person changes a DocType: its fields, its layouts and its
+settings. It opens in Design or Customize mode, and has three tabs: Editor, Settings and Preview.
+_Avoid_: Form Builder, Customize Form (the old desk's tools).
+
+**Design mode**: <a id="design-mode"></a>
+The editor changing the DocType itself, its definition and its app layouts. A standard DocType
+opens in it only in developer mode, for a System Manager; a custom DocType, for a System Manager.
+Fields this site added are hidden in it and counted in a note.
+
+**Customize mode**: <a id="customize-mode"></a>
+The editor changing a DocType for this site only, through Custom Fields and Property Setters.
+It needs write on `Customize Form`. Without developer mode a standard DocType opens in it; in
+the URL it is `?mode=customize`.
+
+**Canvas**: <a id="canvas"></a>
+The Editor tab's drawing of a layout: its tabs, sections, columns and field labels. It is the
+editor's own drawing, not the record page's `FormLayout`; Preview shows that one.
+
+**Properties panel**: <a id="properties-panel"></a>
+The panel beside the canvas that shows and changes the selected field's properties.
+
+**Layout menu**: <a id="layout-menu"></a>
+The last breadcrumb of the editor (`Details ▾`), which picks the layout type and row the
+canvas shows. _Avoid_: layout switcher.
+
+**Pending edits**: <a id="pending-edits"></a>
+The editor's changes that are not saved yet: `{doctype, mode, base_version, edits}`, in the
+order they were made. One undo stack covers the Editor and Settings tabs.
+
+**Edit act**: <a id="edit-act"></a>
+An act that adds to the pending edits, so Undo takes it back and Save sends it.
+
+**Immediate act**: <a id="immediate-act"></a>
+An act that the editor runs at once and that stays outside the pending edits, for example
+opening a tab or picking the Preview record.
+
+### Views
+
+**View type**: <a id="view-type"></a>
+How a doctype's records are drawn: List, Kanban and so on. Each saved view has one type, and
+the type is read from the view, never from its address. A type is a code-owned `View Type`
+record (`name`, `label`, `icon`) that an app ships at `<module>/view_type/<scrubbed>/`, with its
+**renderer** in `frontend/view.js` beside it and optional server rules in `<scrubbed>.py`:
+`validate_settings(doctype, settings)` checks the type's own settings keys, and
+`applies_to(meta)` says which doctypes it fits. List goes through the same files. Each type's
+name, lower-cased, is the address of its plain view and a reserved view key.
+_Avoid_: view mode, layout (a record page word).
+
+**Saved view**: <a id="saved-view"></a>
+One labelled view of one doctype at one layer: a person's own, the site's, or an app's. It
+holds the type's settings (for List: columns, sort, filters, group by), and the URL query is a
+layer on top of it. A person's views are private until a site administrator publishes them. An
+app's views are its **view files**, one JSON file per view named by its key, beside the
+doctype or in the app's `custom/` folder. A site row at an app view's key replaces it.
+_Avoid_: saved filter, list setting, view setting.
+
+**Plain view**: <a id="plain-view"></a>
+The unlabelled view: the doctype's own settings for one type. It is the only view with a
+per-person layer over the site's.
+_Avoid_: standard view, default view.
+
+**Default view**: <a id="default-view"></a>
+A pointer to the view a doctype's own address opens. Each layer holds at most one per
+doctype: a person's wins over the site's, and the site's over the app's. With none, the
+plain List view opens. It may point at any saved view, or at the plain view of any type. A
+pointer that no longer resolves for the person is passed over. Not a fourth kind of view.
+
+**View key**: <a id="view-key"></a>
+A saved view's address within its doctype: `/<doctype>/view/<key>`. Set once when the view
+is made, from its label or the app's file name, and never changed, so a rename keeps every
+link, star and sidebar row. Unique per doctype across every layer. A view is identified by
+its doctype and its key.
+_Avoid_: view name, view slug (a **slug** is a doctype's address), view id.
+
+**List page**: <a id="list-page"></a>
+A doctype's list, built on the page engine as the record page is. Its `page` has the base
+members and four surfaces of its own: **controls** (the controls row: quick filter, filter,
+sort, columns and the `⋯` entry), **columns** (the table's columns; a column item also holds
+its cell keys), **bulkActions** (the actions on the selected rows) and **rowActions** (a row's
+menu). Its `page.rows` is the rows loaded now, not the record page's `page.rows(parentfield)`.
+A doctype's `list.js` is its handler file.
+_Avoid_: list context, list engine (the `list/` folder's renderer state).
+
+**Seen / Unseen record**: <a id="seen"></a>
+On a Track Seen doctype, a record is **seen** by a user when the user is in its `_seen` list,
+and **unseen** otherwise; an empty or missing `_seen` is unseen. Opening the record page or
+dialog marks it seen; an insert starts it seen by its creator alone, and each save resets it to
+the saver. The list and the cards view ask for `_seen` only on such a doctype and mark only the
+title cell: unseen in `text-ink-gray-9 font-medium`, seen in `text-ink-gray-7`.
+_Avoid_: read / unread (those are email's words), visited.
+
+### The settings dialog
+
+**Settings dialog**: <a id="settings-dialog"></a>
+The one dialog, owned by the shell, that every app adds settings to. A hash dialog: its
+address is in the hash, and Back closes it. The page under it does not change.
+_Avoid_: settings page, settings modal, overlay (the per-user record; see **Words that
+collide**).
+
+**Settings address**: <a id="settings-address"></a>
+`#settings/<prefix>/<pane>/<block>`, made of declared kebab-case keys, never labels. A short
+address opens the prefix's first pane in sidebar order, else its first home pane.
+
+**Pane**: <a id="pane"></a>
+One page of the settings dialog: a list of **blocks** under a label. With no
+**arrangement**, a pane is in its own app's group. A pane with no block the user may see is not
+shown.
+_Avoid_: section (the glossary's avoid list), panel (the record page's right-hand column),
+tab.
+
+**Group**: <a id="settings-group"></a>
+A sidebar heading with its ordered panes. The framework's top list is a group with no label;
+only the first group may have no label. The label is translated as a pane label is. A group
+with no pane the user may see is not shown.
+_Avoid_: section (the glossary's avoid list).
+
+**Arrangement**: <a id="arrangement"></a>
+The layout part of an app's `Settings Dialog` record: its `groups`, `hidden` panes, and for each
+pane a `blocks` order and `hidden` blocks. Only the app that owns a desk arranges its sidebar.
+A pane or block it names but does not place or hide goes to the end, and migrate prints a notice;
+the panes go in a last group labelled "More". A pane entry with no `blocks` keeps the default
+order and raises no notice. The server resolves it into one **sidebar** per prefix, which
+`settings-sidebar` prints and an app's `sidebar.txt` records.
+_Avoid_: layout, anchor (dropped: a pane's order is the desk app's list).
+
+**Home** and **placement**: <a id="settings-home"></a><a id="settings-placement"></a>
+A block's **home** is the one pane that defines it, with the address `prefix/pane/block`. Where
+else the arrangement shows it, that is a **placement**. A placement shows the whole block. Hiding
+is layout only: a hidden block still opens at its home for that visit.
+_Avoid_: mount, alias.
+
+**Block**: <a id="block"></a>
+One part of a pane, with one **binding**, or a component's named bindings, or none. A
+**generated** block draws a doctype's fields: the ones it lists, or else a Single's whole
+Details layout in one column; a **component** block is an app's
+`<module>/frontend/settings/<name>.vue`. Its key is unique in the merged pane, across apps.
+A block that lists `roles` shows only to a user with one of them. This is a display gate:
+DocPerm still decides every read and save.
+
+**Binding**: <a id="binding"></a>
+What a block reads and saves: a **Single**, a **Record** whose name a **name resolver**
+gives, or nothing. Its identity is the doctype plus the resolved name. Every block bound to
+one identity shares one **draft** and its **saved** copy, as the record page does.
+_Avoid_: source (it collides), dirty copy, buffer.
+
+**Name resolver**: <a id="name-resolver"></a>
+How a Record binding finds its record's name when the pane opens. A closed list:
+`session_user` only, for now.
+
+**Save mode**: <a id="save-mode"></a>
+A block's `save_mode`: `auto` (the default; a change saves when the control commits) or
+`button` (the pane's Save bar saves it).
+
+**Layer** (settings): <a id="settings-layer"></a>
+The app, site and user layers of the settings dialog, as in `Rail`. Only the app layer is
+built: apps contribute panes and blocks. The site and user layers are not built yet.
+_Avoid_: tier (that is the Client Script tier).
+
+**Settings Dialog**: <a id="settings-dialog-doctype"></a>
+The DocType behind the dialog: one app's layer, addressed like `Rail` by `app`, `extends`,
+`user` and `standard`. A record that `extends` a host adds blocks to the host's panes and
+no pane of its own. It ships as `<app>/settings_dialog/<name>/<name>.json`. A host's record may
+hold an **arrangement** in its JSON field `arrangement`.
+
+**Settings Pane** and **Settings Block**: <a id="settings-pane"></a><a id="settings-block"></a>
+The two row types of a `Settings Dialog`: `panes` (key, label, icon, description) and
+`blocks` (key, pane, `kind`, the binding or the component, `save_mode`, `roles`).
+They share no content field, so they are two tables.
+
+A block's `kind` is `Generated` (a Single or Record `binding_type`, with `fields`: the fields it
+shows) or `Component` (a `component` file, with `bindings`, `saves_fields`: the fields it saves
+and owns, and `search_entries` for search). Each kind leaves the other's columns blank. The file
+holds `fields`, `saves_fields`, `bindings`, `search_entries` and `roles` as native
+JSON; the columns are text, and import reads the old shape (no `kind`, a component's `fields`
+and `settings`) too. `get_panes` still sends a component's `saves_fields` as `fields` and its
+`search_entries` as `settings`.
+
+## Words that collide
+
+Recorded because the codebase genuinely overloads them. When writing a comment or a name,
+reach for the unambiguous alternative.
+
+- **`source`** — (a) who is speaking, for attribution; (b) `source_dir`, an app's on-disk
+  path; (c) "layout source", the object a host feeds field overrides to. Three unrelated
+  senses. Say *contributing source*, *source path*, or *layout source*.
+- **`surface`** — (a) the `Surface` class, one customizable region; (b) the six members
+  that stage together, two of which are not `Surface`s; (c) the loose sense in "the
+  contribution surface", "the shell's own surface". Only (a) is a type.
+- **`page`** — the curated `RecordPageApi`; a contributed standalone page; a Client Script;
+  `ShellPage`, the server renderer; and desk v1's `Page` doctype. Qualify it always.
+- **`sidebar`** — (a) the panel a linked rail item opens, and desk v1's `Sidebar` doctype
+  behind it; (b) `Sidebar`, one of the navigation item types, named for that destination;
+  (c) the portal's unrelated `Website Sidebar`; (d) the loose CSS sense, any panel down one
+  side. A blind `sidebar` sweep takes (c) with it.
+- **`record`** — the page kind; the contribution kind and filename; a docname field in the
+  error reporter; **and a verb** (`Surface.record`, private, "verbs record ops"). No
+  *exported* API may use it as a verb — say `push` or `append`.
+- **`tier`** — a customization tier (`client_script | extension | file_script`); the
+  per-doctype set of loaded Client Scripts; and "the declarative tier" for `page.dialog.form`.
+  Never for the settings dialog's or a saved view's app, site and user **layers**.
+- **`name`** — a `SurfaceItem`'s address; a route param meaning docname; a `ClientScriptRow`
+  name; and `PageFormTab.name`, which is explicitly *not* the address — that is `identity`.
+- **`actions`** — the contribution type's bag of `{name, label, run}`; dialog buttons; the
+  default group a header item lands in; and, loosely, quick actions. Say **act** for
+  something the desk runs by name.
+- **`row`** — a child table's row (`page.rows()`, the row handle); a palette **row**; a
+  rail or sidebar row. Say *child row* or *palette row* where both could be meant.
+- **`overlay`** — (a) the **field overlay**, a script's render-time override of a field;
+  (b) the per-user **overlay**, a server record that customizes what the page holds. Say
+  which; neither is disclosure.
+- **`view`** — a **saved view**; a **view type**; the reserved `?view=` query on a record;
+  a Client Script's `view` field (`List`, `Record` and others); and the **read-only view** of a
+  document. Say *saved view* or *view type* in prose about lists.
+- **`prefix`** and **`claim`** — a URL prefix an app claims, versus a dotted-path prefix in
+  the compatibility guard, versus a header item's recorded anchor claim.
+
+**Header**: both the surface, `page.header`, and the rendered row it projects to
+(`HeaderControl`, `HeaderBand`, `HeaderProjection`). One flat list of `HeaderItem`s in two
+**zones**, `left` and `right`; the crumbs, `Save` and every control are items on it.
+_Avoid_: headerActions (the surface's old name), toolbar.
+
+## Example dialogue
+
+— "My app's `record.js` for Contact isn't running. It's at
+`myapp/mymodule/custom/contact/record.js`."
+— "That path is right — it's a `custom` **kind**, so Contact stays in its own **prefix**
+and your handlers just join its **run order** after the **owning app**. Check the console:
+a contribution with no default export is dropped with a warn, never a throw."
+
+— "It runs, but my `page.fields.hide('phone')` does nothing on some records."
+— "**Field overlay** is a render-time overlay and **permlevel is a hard floor** — but hide
+should work regardless. More likely the **replay**: every source re-runs from scratch each
+time, so if a later source shows it, the last write wins."
+
+— "Can I read the value before the user's edit?"
+— "`page.saved` — the **document** as the server last showed it. `page.doc` is the draft."

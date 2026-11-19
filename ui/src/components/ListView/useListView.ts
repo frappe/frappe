@@ -59,7 +59,7 @@ export interface UseListView {
   /** The whole view's customizable state as one reactive, persistable object —
    *  the save half of the layout-persistence seam. The library owns no saving: a
    *  host persists by watching this (`watch(view.snapshot, save)`) and decides
-   *  *when* and *where* (ADR-0007). */
+   *  *when* and *where*. */
   snapshot: ComputedRef<ListViewSnapshot>;
   /** Seed the view from a (possibly partial) snapshot — the load half. Only the
    *  members present are applied, each over its own control's state, so a host can
@@ -68,13 +68,13 @@ export interface UseListView {
 }
 
 /** Host options threaded into the composed controls. Currently just the synthetic
- *  column declarations (ADR-0033), passed to `useColumns`. */
+ *  column declarations, passed to `useColumns`. */
 export interface UseListViewOptions extends UseColumnsOptions {}
 
 /**
- * The composite List View's state owner — the shared composable ADR-0001 deferred
- * until two controls needed to share state (Filter + QuickFilter are that moment,
- * ADR-0005; ColumnSettings + table-resize are the second, ADR-0006).
+ * The composite List View's state owner — the shared composable for controls that
+ * share state (Filter and QuickFilter share the filters, and ColumnSettings and the
+ * table resize share the columns).
  *
  * It owns no state itself: each concern lives in its own co-located composable
  * (`useFilters`, `useSort`, `useQuickFilter`, `useColumns`), and this composes them

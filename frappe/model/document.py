@@ -71,8 +71,16 @@ from frappe.utils import (
 	now,
 	sanitize_html,
 	strip_html,
+	strip_html_tags,
 )
-from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
+from frappe.utils.data import (
+	escape_html,
+	get_absolute_url,
+	get_datetime,
+	get_timedelta,
+	getdate,
+	is_desk_v2_enabled,
+)
 from frappe.utils.defaults import get_not_null_defaults
 from frappe.utils.html_utils import has_html_tags, unescape_html
 
@@ -1076,6 +1084,8 @@ class Document(_DocumentBase):
 			self.update_single(self.get_valid_dict(ignore_virtual=True))
 		else:
 			self.db_insert(ignore_if_duplicate=ignore_if_duplicate)
+			if is_desk_v2_enabled():
+				self.reset_seen(on_insert=True, ignore_if_duplicate=ignore_if_duplicate)
 
 		# children
 		if not getattr(self.meta, "is_virtual", False):
@@ -1417,6 +1427,7 @@ class Document(_DocumentBase):
 		self._validate_min_max_value()
 		self._fix_rating_value()
 		self._validate_code_fields()
+		self._validate_json_fields()
 		self._sync_autoname_field()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
@@ -1431,11 +1442,13 @@ class Document(_DocumentBase):
 			d._validate_min_max_value()
 			d._fix_rating_value()
 			d._validate_code_fields()
+			d._validate_json_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
 			d._save_passwords()
 			d._validate_length()
+		self._attach_text_editor_files()
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
@@ -1763,15 +1776,44 @@ class Document(_DocumentBase):
 		previous_modified = get_datetime(previous.modified) if previous.modified else None
 		original_modified = get_datetime(self._original_modified) if self._original_modified else None
 		if previous_modified != original_modified:
-			frappe.msgprint(
+			self._raise_timestamp_mismatch(
 				_(f"Error: {self.name} ({self.doctype}) has been modified after you have opened it")
 				+ (f" ({previous.modified}, {self.modified}). ")
-				+ _("Please refresh to get the latest document."),
-				raise_exception=frappe.TimestampMismatchError,
+				+ _("Please refresh to get the latest document.")
 			)
 
 		if not self.meta.issingle and self._action != "discard":
 			self.check_docstatus_transition(previous.docstatus)
+
+	def check_not_stale(self, modified: str | None):
+		"""Raise `TimestampMismatchError` when the saved row is not the version the caller read.
+
+		`modified` is what the caller read; none skips the check, as `submit()` in Python does.
+		"""
+		if not modified:
+			return
+		try:
+			read = get_datetime(modified) if isinstance(modified, str) else None
+		except (ValueError, OverflowError):
+			read = None
+		if read is None or read.tzinfo:
+			frappe.throw(
+				_("{0} is not a valid modified timestamp").format(frappe.bold(escape_html(str(modified))))
+			)
+		if read != get_datetime(self.modified):
+			self._raise_timestamp_mismatch(
+				_("Error: {0} ({1}) has been modified after you have opened it.").format(
+					self.name, self.doctype
+				)
+				+ " "
+				+ _("Please refresh to get the latest document.")
+			)
+
+	def _raise_timestamp_mismatch(self, message: str):
+		"""The v2 error entry names `stale_doc`, so a page can tell its own record from another."""
+		error = frappe.TimestampMismatchError()
+		error.stale_doc = {"doctype": self.doctype, "name": str(self.name)}  # autoincrement names are int
+		frappe.msgprint(message, raise_exception=error)
 
 	def check_docstatus_transition(self, from_docstatus):
 		"""Ensures valid `docstatus` transition.
@@ -1858,24 +1900,30 @@ class Document(_DocumentBase):
 		if self.flags.ignore_mandatory:
 			return
 
-		missing = self._get_missing_mandatory_fields()
-		for d in self.get_all_children():
-			missing.extend(d._get_missing_mandatory_fields())
+		missing = []
+		for doc in (self, *self.get_all_children()):
+			missing.extend((doc, *each) for each in doc._get_missing_mandatory_fields())
 
 		if not missing:
 			return
 
-		for idx, msg in missing:  # noqa: B007
+		for _doc, _fieldname, msg in missing:
 			msgprint(msg)
 
 		if frappe.flags.print_messages:
 			print(self.as_json().encode("utf-8"))
 
-		raise frappe.MandatoryError(
+		error = frappe.MandatoryError(
 			"[{doctype}, {name}]: {fields}".format(
-				fields=", ".join(each[0] for each in missing), doctype=self.doctype, name=self.name
+				fields=", ".join(each[1] for each in missing), doctype=self.doctype, name=self.name
 			)
 		)
+		error.field_errors = [
+			doc._field_error(fieldname, _("{0} is required").format(doc.meta.get_translated_label(fieldname)))
+			for doc, fieldname, _msg in missing
+			if doc.meta.has_field(fieldname)
+		]
+		raise error
 
 	def _prefetch_link_values(self):
 		"""Pre-fetch all link values including fetch_from fields for bulk validation.
@@ -2015,20 +2063,21 @@ class Document(_DocumentBase):
 		self._prefetch_link_values()
 		link_cache = getattr(self, "_link_value_cache", None)
 
-		invalid_links, cancelled_links = self.get_invalid_links(link_value_cache=link_cache)
-
-		for d in self.get_all_children():
-			result = d.get_invalid_links(is_submittable=self.meta.is_submittable, link_value_cache=link_cache)
-			invalid_links.extend(result[0])
-			cancelled_links.extend(result[1])
+		invalid_links, cancelled_links = [], []
+		for doc in (self, *self.get_all_children()):
+			invalid, cancelled = doc.get_invalid_links(
+				is_submittable=self.meta.is_submittable, link_value_cache=link_cache
+			)
+			invalid_links.extend((doc, *each) for each in invalid)
+			cancelled_links.extend((doc, *each) for each in cancelled)
 
 		if invalid_links:
-			msg = ", ".join(each[2] for each in invalid_links)
-			frappe.throw(_("Could not find {0}").format(msg), frappe.LinkValidationError)
+			_throw_link_errors(_("Could not find {0}"), invalid_links, frappe.LinkValidationError)
 
 		if cancelled_links:
-			msg = ", ".join(each[2] for each in cancelled_links)
-			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
+			_throw_link_errors(
+				_("Cannot link cancelled document: {0}"), cancelled_links, frappe.CancelledLinkError
+			)
 
 	def get_all_children(self, parenttype=None, *, include_computed=False) -> list["Document"]:
 		"""
@@ -2165,6 +2214,34 @@ class Document(_DocumentBase):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		return self._cancel()
 
+	@frappe.desk_v2_only
+	@frappe.whitelist()
+	def queue_submit(self):
+		"""Submit through the Submission Queue when the DocType has `queue_in_background`."""
+		return self._queue_or_run("submit")
+
+	@frappe.desk_v2_only
+	@frappe.whitelist()
+	def queue_cancel(self):
+		"""Cancel through the Submission Queue when the DocType has `queue_in_background`."""
+		return self._queue_or_run("cancel")
+
+	def _queue_or_run(self, action: Literal["submit", "cancel"]):
+		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+		from frappe.utils.scheduler import is_scheduler_inactive
+
+		self.check_permission(action)
+		from_docstatus = DocStatus.DRAFT if action == "submit" else DocStatus.SUBMITTED
+		if self.docstatus != from_docstatus:
+			frappe.throw(
+				_("Cannot {0} a document with docstatus {1}").format(action, self.docstatus),
+				frappe.DocstatusTransitionError,
+			)
+		if self.meta.queue_in_background and self.meta.is_submittable and not is_scheduler_inactive():
+			queue_submission(self, action.title())
+			return self
+		return getattr(self, action)()
+
 	@frappe.whitelist()
 	def discard(self):
 		"""Discard the draft document. Sets `docstatus` = 2 with db_set."""
@@ -2293,16 +2370,26 @@ class Document(_DocumentBase):
 	def clear_cache(self):
 		frappe.clear_document_cache(self.doctype, self.name)
 
-	def reset_seen(self):
-		"""Clear _seen property and set current user as seen"""
-		if (
-			getattr(self.meta, "track_seen", False)
-			and not getattr(self.meta, "issingle", False)
-			and not self.is_new()
+	def reset_seen(self, on_insert=False, ignore_if_duplicate=False):
+		"""Set `_seen` to the current user alone. On insert `db_insert` does not write `_seen`, so this does."""
+		if not getattr(self.meta, "track_seen", False) or (
+			on_insert and getattr(self.meta, "is_virtual", False)
 		):
-			frappe.db.set_value(
-				self.doctype, self.name, "_seen", json.dumps([frappe.session.user]), update_modified=False
-			)
+			return
+
+		if on_insert:
+			# a skipped duplicate insert must not rewrite the seen list of the row that exists
+			if ignore_if_duplicate:
+				stored_creation = frappe.db.get_value(self.doctype, self.name, "creation")
+				if get_datetime(stored_creation) != get_datetime(self.creation):
+					return
+		elif getattr(self.meta, "issingle", False) or self.is_new():
+			return
+
+		seen = json.dumps([frappe.session.user])
+		if on_insert:
+			self._seen = seen
+		frappe.db.set_value(self.doctype, self.name, "_seen", seen, update_modified=False)
 
 	def notify_update(self):
 		"""Publish realtime that the current document is modified"""
@@ -3148,6 +3235,9 @@ class Document(_DocumentBase):
 				elif fieldtype == "JSON" and isinstance(value, (dict, list)):
 					value = json.dumps(value, separators=(",", ":"))
 
+				elif fieldtype == "JSON" and isinstance(value, str) and not value.strip():
+					value = None
+
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
@@ -3767,11 +3857,12 @@ class Document(_DocumentBase):
 				label = self.meta.get_translated_label(df.fieldname)
 				comma_options = '", "'.join(_(each) for each in options)
 
-				frappe.throw(
-					_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(
-						prefix, label, value, comma_options
+				with self._naming_field(df.fieldname):
+					frappe.throw(
+						_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(
+							prefix, label, value, comma_options
+						)
 					)
-				)
 
 	def _validate_data_fields(self):
 		from frappe.utils import (
@@ -3787,7 +3878,8 @@ class Document(_DocumentBase):
 
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			validate_phone_number_with_country_code(phone, phone_field.fieldname, _(phone_field.label))
+			with self._naming_field(phone_field.fieldname):
+				validate_phone_number_with_country_code(phone, phone_field.fieldname, _(phone_field.label))
 
 		for attach_field in self.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]}):
 			file_url = self.get(attach_field.fieldname)
@@ -3808,28 +3900,29 @@ class Document(_DocumentBase):
 			if old_fieldtype and old_fieldtype != "Data":
 				continue
 
-			if data_field_options == "Email":
-				if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
-					continue
+			with self._naming_field(data_field.fieldname):
+				if data_field_options == "Email":
+					if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
+						continue
 
-				for email_address in split_emails(data):
-					validate_email_address(email_address, throw=True)
+					for email_address in split_emails(data):
+						validate_email_address(email_address, throw=True)
 
-			if data_field_options == "Name":
-				validate_name(data, throw=True)
+				if data_field_options == "Name":
+					validate_name(data, throw=True)
 
-			if data_field_options == "Phone":
-				validate_phone_number(data, throw=True)
+				if data_field_options == "Phone":
+					validate_phone_number(data, throw=True)
 
-			if data_field_options == "URL":
-				validate_url(data, throw=True)
-				if has_unsafe_url_scheme(data):
-					frappe.throw(
-						_("'{0}' is not a valid URL").format(frappe.bold(data)), title=_("Invalid URL")
-					)
+				if data_field_options == "URL":
+					validate_url(data, throw=True)
+					if has_unsafe_url_scheme(data):
+						frappe.throw(
+							_("'{0}' is not a valid URL").format(frappe.bold(data)), title=_("Invalid URL")
+						)
 
-			if data_field_options == "IBAN":
-				validate_iban(data, throw=True)
+				if data_field_options == "IBAN":
+					validate_iban(data, throw=True)
 
 	def _validate_length(self):
 		if frappe.flags.in_install:
@@ -3877,6 +3970,19 @@ class Document(_DocumentBase):
 			elif language == "PythonExpression":
 				frappe.utils.validate_python_code(code_string, fieldname=field.label)
 
+	def _validate_json_fields(self):
+		for df in self.meta.get_json_fields():
+			value = self.get(df.fieldname)
+			if not isinstance(value, str) or not value.strip() or is_database_json(value):
+				continue
+
+			prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
+			label = self.meta.get_translated_label(df.fieldname)
+			with self._naming_field(df.fieldname):
+				frappe.throw(
+					_("{0} {1} is not valid JSON").format(prefix, label).strip(), title=_("Invalid JSON")
+				)
+
 	def _sync_autoname_field(self):
 		"""Keep autoname field in sync with `name`"""
 		autoname = self.meta.autoname or ""
@@ -3895,13 +4001,34 @@ class Document(_DocumentBase):
 		else:
 			reference = f"{_(self.doctype)} {self.name}"
 
-		frappe.throw(
-			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
-				reference, frappe.bold(_(df.label, context=df.parent)), max_length, value
-			),
-			frappe.CharacterLengthExceededError,
-			title=_("Value too big"),
-		)
+		with self._naming_field(df.fieldname):
+			frappe.throw(
+				_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
+					reference, frappe.bold(_(df.label, context=df.parent)), max_length, value
+				),
+				frappe.CharacterLengthExceededError,
+				title=_("Value too big"),
+			)
+
+	@contextmanager
+	def _naming_field(self, fieldname: str) -> Generator[None]:
+		"""Give a `ValidationError` raised inside one `field_errors` entry for `fieldname`."""
+		try:
+			yield
+		except frappe.ValidationError as error:
+			error.field_errors = [self._field_error(fieldname, str(error))]
+			raise
+
+	def _field_error(self, fieldname: str, message: str) -> dict:
+		"""One `field_errors` entry of the v2 error response; `row` and `idx` address a child row."""
+		entry = {"fieldname": fieldname}
+		if self.get("parentfield"):
+			entry["parentfield"] = self.parentfield
+			if self.name:
+				entry["row"] = self.name
+			entry["idx"] = self.idx
+		entry["message"] = strip_html_tags(message).strip()
+		return entry
 
 	def _validate_update_after_submit(self):
 		# get the full doc with children
@@ -4178,6 +4305,22 @@ class Document(_DocumentBase):
 		if self.doctype != "DocType":
 			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
+
+	def _attach_text_editor_files(self):
+		from frappe.core.doctype.file.utils import attach_text_editor_files
+
+		# Off unless a desk v2 save asks: a desk v1 save must not adopt the user's Files.
+		if self.flags.attach_text_editor_files and self.doctype != "DocType":
+			attach_text_editor_files(self)
+
+
+def _throw_link_errors(message: str, links: list[tuple], exc: type[frappe.ValidationError]) -> None:
+	"""Throw one error for every bad link, each `(doc, fieldname, docname, msg)`, naming every field."""
+	error = exc()
+	error.field_errors = [
+		doc._field_error(fieldname, message.format(msg)) for doc, fieldname, _name, msg in links
+	]
+	frappe.throw(message.format(", ".join(msg for *_, msg in links)), error)
 
 
 def _filter(data, filters, limit=None):
@@ -4626,6 +4769,19 @@ def get_last_doc(
 def get_single(doctype):
 	"""Return a `frappe.model.document.Document` object of the given Single doctype."""
 	return get_doc(doctype, doctype)
+
+
+def is_database_json(text: str) -> bool:
+	"""Whether a JSON column accepts `text`: unlike `json.loads`, refuses NaN and Infinity."""
+	try:
+		json.loads(text, parse_constant=_refuse_constant)
+	except ValueError:
+		return False
+	return True
+
+
+def _refuse_constant(constant: str):
+	raise ValueError(constant)
 
 
 # backward compatibility: `BaseDocument` was merged into `Document`

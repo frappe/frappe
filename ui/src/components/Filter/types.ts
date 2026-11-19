@@ -41,6 +41,10 @@ export interface FilterField {
   fieldname: string;
   fieldtype: string;
   options?: string;
+  /** A Duration that folds days into hours. */
+  hide_days?: boolean | 0 | 1;
+  /** A Duration that rounds to the minute. */
+  hide_seconds?: boolean | 0 | 1;
 }
 
 /** A field the host filters on itself, with no Meta field behind it. */

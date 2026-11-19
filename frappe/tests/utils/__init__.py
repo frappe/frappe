@@ -101,3 +101,9 @@ from frappe.deprecation_dumpster import (
 from frappe.deprecation_dumpster import (
 	tests_utils_get_dependencies as get_dependencies,
 )
+
+
+def queued_docinfo_updates(key: str) -> list[dict]:
+	"""The `docinfo_update` messages waiting for commit, for one docinfo bucket."""
+	log = getattr(frappe.local, "_realtime_log", [])
+	return [message for event, message, _room in log if event == "docinfo_update" and message["key"] == key]

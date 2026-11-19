@@ -14,6 +14,7 @@ import frappe.exceptions
 from frappe.client import set_value
 from frappe.core.doctype.user.user import (
 	User,
+	add_roles_to_user,
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
@@ -21,6 +22,7 @@ from frappe.core.doctype.user.user import (
 	get_perm_info,
 	handle_password_test_fail,
 	needs_password_setup,
+	remove_roles_from_user,
 	reset_password,
 	rewrite_owner_fields,
 	set_first_password,
@@ -52,6 +54,8 @@ from frappe.utils import (
 	today,
 )
 from frappe.utils.data import orjson_dumps
+from frappe.utils.logging import get_log_db
+from frappe.utils.password import check_password
 from frappe.www.login import sanitize_redirect
 
 user_module = frappe.core.doctype.user.user
@@ -715,6 +719,141 @@ class TestUser(IntegrationTestCase):
 			finally:
 				frappe.local.response = response
 
+	def test_wrong_current_password_stays_an_authentication_error_with_desk_v2_off(self):
+		tracker = self.start_password_session(desk_v2=0)
+		failed_before = tracker.login_failed_count
+
+		with self.assertRaises(frappe.AuthenticationError) as raised:
+			update_password("Strong_New_45948", old_password="not-the-password")
+
+		# develop's 401, which clears the sid cookie, and no lockout attempt
+		self.assertIs(type(raised.exception), frappe.AuthenticationError)
+		self.assertEqual(tracker.login_failed_count, failed_before)
+
+	def test_wrong_current_password_is_not_an_authentication_error(self):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
+		set_request(path="/random")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.set_user("testpassword@example.com")
+		failed = {"user": "testpassword@example.com", "status": "Failed", "operation": "Login"}
+		failed_logs = get_log_db().count("Activity Log", failed)
+		response = frappe.local.response
+		frappe.local.response = frappe._dict()
+		self.addCleanup(setattr, frappe.local, "response", response)
+
+		with self.assertRaises(frappe.ValidationError) as raised:
+			update_password("Strong_New_45948", old_password="not-the-password")
+
+		# handle_exception clears the sid cookie only for exactly AuthenticationError
+		self.assertNotIsInstance(raised.exception, frappe.AuthenticationError)
+		self.assertEqual(str(raised.exception), "Incorrect password")
+		self.assertEqual(get_log_db().count("Activity Log", failed), failed_logs + 1)
+		self.assertEqual(
+			check_password("testpassword@example.com", "Eastern_43A1W"), "testpassword@example.com"
+		)
+
+		# a session that expired runs as Guest and still gets the bare 401 that says so
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.AuthenticationError) as raised:
+			update_password("Strong_New_45948", old_password="not-the-password")
+		self.assertIs(type(raised.exception), frappe.AuthenticationError)
+
+	def start_password_session(self, user="testpassword@example.com", desk_v2=1):
+		from frappe.auth import CookieManager, LoginManager, get_login_attempt_tracker
+		from frappe.utils import set_request
+		from frappe.utils.password import update_password as set_password
+
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=desk_v2))
+		set_request(path="/random")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.local.request_ip = "127.0.0.69"
+		frappe.set_user(user)
+		tracker = get_login_attempt_tracker(user, raise_locked_exception=False)
+		tracker.add_success_attempt()
+		self.addCleanup(tracker.add_success_attempt)
+		self.addCleanup(set_password, user, "Eastern_43A1W")
+		response = frappe.local.response
+		frappe.local.response = frappe._dict()
+		self.addCleanup(setattr, frappe.local, "response", response)
+		return tracker
+
+	def fail_current_password(self, times):
+		for _ in range(times):
+			with self.assertRaisesRegex(frappe.ValidationError, "Incorrect password"):
+				update_password("Strong_New_45948", old_password="not-the-password")
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", allow_consecutive_login_attempts=2, allow_login_after_fail=60
+	)
+	def test_wrong_current_passwords_lock_the_user_out(self):
+		from frappe.auth import get_login_attempt_tracker
+
+		tracker = self.start_password_session()
+
+		# the attempt that passes the limit still reads as a wrong password, as at login
+		self.fail_current_password(3)
+		self.assertFalse(tracker.is_user_allowed())
+		with self.assertRaisesRegex(frappe.SecurityException, "Too many failed login attempts"):
+			update_password("Strong_New_45948", old_password="Eastern_43A1W")
+
+		with self.assertRaises(frappe.SecurityException):
+			get_login_attempt_tracker("testpassword@example.com")
+		self.assertEqual(
+			check_password("testpassword@example.com", "Eastern_43A1W"), "testpassword@example.com"
+		)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", allow_consecutive_login_attempts=1, allow_login_after_fail=2
+	)
+	def test_current_password_lockout_ends_after_the_lock_interval(self):
+		tracker = self.start_password_session()
+		self.fail_current_password(2)
+		with self.assertRaises(frappe.SecurityException):
+			update_password("Strong_New_45948", old_password="Eastern_43A1W")
+
+		time.sleep(2.1)
+		self.assertEqual(update_password("Strong_New_45948", old_password="Eastern_43A1W"), "/desk")
+		self.assertEqual(tracker.login_failed_count, 0)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", allow_consecutive_login_attempts=3, allow_login_after_fail=60
+	)
+	def test_correct_current_password_resets_the_failure_count(self):
+		tracker = self.start_password_session()
+		self.fail_current_password(2)
+		self.assertEqual(tracker.login_failed_count, 2)
+
+		update_password("Strong_New_45948", old_password="Eastern_43A1W")
+		self.assertEqual(tracker.login_failed_count, 0)
+		self.fail_current_password(3)
+		self.assertTrue(tracker.is_user_allowed())
+
+	@IntegrationTestCase.change_settings("System Settings", allow_consecutive_login_attempts=0)
+	def test_current_password_is_not_limited_without_a_login_limit(self):
+		self.start_password_session()
+		self.fail_current_password(10)
+		self.assertEqual(update_password("Strong_New_45948", old_password="Eastern_43A1W"), "/desk")
+
+	@IntegrationTestCase.change_settings(
+		"System Settings",
+		allow_consecutive_login_attempts=1,
+		allow_login_after_fail=60,
+		password_reset_limit=6,
+	)
+	def test_reset_key_ignores_the_current_password_lockout(self):
+		tracker = self.start_password_session()
+		self.fail_current_password(2)
+		self.assertFalse(tracker.is_user_allowed())
+
+		key = self.reset_password(frappe.get_doc("User", "testpassword@example.com"))
+		self.assertEqual(update_password("Strong_New_45948", key=key), "/desk")
+		tracker.add_success_attempt()
+
 	@IntegrationTestCase.change_settings("System Settings", password_reset_limit=6)
 	def test_reset_password(self):
 		from frappe.auth import CookieManager, LoginManager
@@ -1038,6 +1177,32 @@ class TestUser(IntegrationTestCase):
 
 			first.reload()
 			self.assertCountEqual([d.role for d in first.roles], ["Website Manager"])
+
+	def test_add_and_remove_roles_from_one_user(self):
+		with test_user(roles=["_Test Role"]) as user:
+			add_roles_to_user("User", user.name, ["_Test Role 4"])
+			user.reload()
+			self.assertCountEqual([d.role for d in user.roles], ["_Test Role", "_Test Role 4"])
+
+			remove_roles_from_user("User", user.name, ["_Test Role"])
+			user.reload()
+			self.assertCountEqual([d.role for d in user.roles], ["_Test Role 4"])
+
+	def test_roles_of_one_user_are_validated_and_permission_checked(self):
+		with test_user(roles=["_Test Role"]) as user, test_user(roles=["Website Manager"]) as editor:
+			with self.assertRaises(frappe.ValidationError):
+				add_roles_to_user("ToDo", user.name, ["Blogger"])
+			with self.assertRaises(frappe.ValidationError):
+				add_roles_to_user("User", user.name, [{"role": ["!=", ""]}])
+
+			frappe.set_user(editor.name)
+			self.addCleanup(frappe.set_user, "Administrator")
+			with self.assertRaises(frappe.PermissionError):
+				add_roles_to_user("User", user.name, ["Blogger"])
+			frappe.set_user("Administrator")
+
+			user.reload()
+			self.assertCountEqual([d.role for d in user.roles], ["_Test Role"])
 
 	def test_bulk_role_endpoints_enqueue_large_batches(self):
 		"""Over 20 users, each endpoint defers to its own background job."""

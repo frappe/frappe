@@ -1,0 +1,345 @@
+{
+	"_": "Canvas edits applied to a layout tree. `layout_tree.py` (test_ts_parity.py) and `layoutTree.ts` (canvasParity.test.ts) both replay each case and must land on `expected`, or refuse with `refused`.",
+	"base": [
+		{
+			"name": "details",
+			"sections": [
+				{
+					"name": "main",
+					"columns": [
+						{ "name": "column_1", "fields": ["subject", "status"] },
+						{ "name": "column_2", "fields": ["due"] }
+					]
+				},
+				{ "name": "more", "label": "More", "columns": [{ "name": "column_1", "fields": ["notes"] }] }
+			]
+		},
+		{ "name": "extra", "label": "Extra", "sections": [] }
+	],
+	"cases": [
+		{
+			"case": "a new tab takes its label's slug, and a taken slug takes its position",
+			"edits": [
+				{ "act": "canvas.add_tab", "label": "Time & Cost" },
+				{ "act": "canvas.add_tab", "label": "Extra" },
+				{ "act": "canvas.add_tab" },
+				{ "act": "canvas.add_tab", "name": "first", "label": "First", "index": 0 }
+			],
+			"expected": [
+				{ "name": "first", "label": "First", "sections": [] },
+				{
+					"name": "details",
+					"sections": [
+						{
+							"name": "main",
+							"columns": [
+								{ "name": "column_1", "fields": ["subject", "status"] },
+								{ "name": "column_2", "fields": ["due"] }
+							]
+						},
+						{ "name": "more", "label": "More", "columns": [{ "name": "column_1", "fields": ["notes"] }] }
+					]
+				},
+				{ "name": "extra", "label": "Extra", "sections": [] },
+				{ "name": "time_cost", "label": "Time & Cost", "sections": [] },
+				{ "name": "extra_4", "label": "Extra", "sections": [] },
+				{ "name": "tab_5", "sections": [] }
+			]
+		},
+		{
+			"case": "a new section opens with one column; a new column is named by position",
+			"edits": [
+				{ "act": "canvas.add_section", "tab": "extra", "label": "Billing" },
+				{ "act": "canvas.add_section", "tab": "details", "index": 0 },
+				{ "act": "canvas.add_column", "section": "billing" },
+				{ "act": "canvas.add_column", "section": "main", "name": "side", "index": 0 }
+			],
+			"expected": [
+				{
+					"name": "details",
+					"sections": [
+						{ "name": "section_1", "columns": [{ "name": "column_1", "fields": [] }] },
+						{
+							"name": "main",
+							"columns": [
+								{ "name": "side", "fields": [] },
+								{ "name": "column_1", "fields": ["subject", "status"] },
+								{ "name": "column_2", "fields": ["due"] }
+							]
+						},
+						{ "name": "more", "label": "More", "columns": [{ "name": "column_1", "fields": ["notes"] }] }
+					]
+				},
+				{
+					"name": "extra",
+					"label": "Extra",
+					"sections": [
+						{
+							"name": "billing",
+							"label": "Billing",
+							"columns": [
+								{ "name": "column_1", "fields": [] },
+								{ "name": "column_2", "fields": [] }
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"case": "removing a tab, section or column hands its content to the one before it (the next, for the first tab)",
+			"edits": [
+				{ "act": "canvas.remove_column", "column": "column_2", "section": "main" },
+				{ "act": "canvas.remove_section", "section": "more" },
+				{ "act": "canvas.remove_tab", "tab": "details" }
+			],
+			"expected": [
+				{
+					"name": "extra",
+					"label": "Extra",
+					"sections": [
+						{
+							"name": "main",
+							"columns": [{ "name": "column_1", "fields": ["subject", "status", "due", "notes"] }]
+						}
+					]
+				}
+			]
+		},
+		{
+			"case": "a column moves to another section and renames when its name is taken there",
+			"edits": [
+				{ "act": "canvas.move_column", "column": "column_1", "section": "more", "to_section": "main", "index": 1 }
+			],
+			"expected": [
+				{
+					"name": "details",
+					"sections": [
+						{
+							"name": "main",
+							"columns": [
+								{ "name": "column_1", "fields": ["subject", "status"] },
+								{ "name": "column_2_2", "fields": ["notes"] },
+								{ "name": "column_2", "fields": ["due"] }
+							]
+						},
+						{ "name": "more", "label": "More", "columns": [] }
+					]
+				},
+				{ "name": "extra", "label": "Extra", "sections": [] }
+			]
+		},
+		{
+			"case": "tabs and sections reorder",
+			"edits": [
+				{ "act": "canvas.move_tab", "tab": "extra", "index": 0 },
+				{ "act": "canvas.move_section", "section": "more", "tab": "extra", "index": 0 }
+			],
+			"expected": [
+				{
+					"name": "extra",
+					"label": "Extra",
+					"sections": [{ "name": "more", "label": "More", "columns": [{ "name": "column_1", "fields": ["notes"] }] }]
+				},
+				{
+					"name": "details",
+					"sections": [
+						{
+							"name": "main",
+							"columns": [
+								{ "name": "column_1", "fields": ["subject", "status"] },
+								{ "name": "column_2", "fields": ["due"] }
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"case": "a container property is set, and cleared by an empty value",
+			"edits": [
+				{ "act": "canvas.set_container_property", "container": "more", "property": "collapsible", "value": true },
+				{ "act": "canvas.set_container_property", "container": "more", "property": "description", "value": "Rarely used" },
+				{ "act": "canvas.set_container_property", "container": "more", "property": "label", "value": "" },
+				{ "act": "canvas.set_container_property", "container": "extra", "property": "hideLabel", "value": 1 },
+				{ "act": "canvas.set_container_property", "container": "column_2", "section": "main", "property": "dependsOn", "value": "eval:doc.due" },
+				{ "act": "canvas.set_container_property", "container": "extra", "property": "hideLabel", "value": 0 }
+			],
+			"expected": [
+				{
+					"name": "details",
+					"sections": [
+						{
+							"name": "main",
+							"columns": [
+								{ "name": "column_1", "fields": ["subject", "status"] },
+								{ "name": "column_2", "fields": ["due"], "dependsOn": "eval:doc.due" }
+							]
+						},
+						{
+							"name": "more",
+							"collapsible": true,
+							"description": "Rarely used",
+							"columns": [{ "name": "column_1", "fields": ["notes"] }]
+						}
+					]
+				},
+				{ "name": "extra", "label": "Extra", "sections": [] }
+			]
+		},
+		{
+			"case": "a field is placed in a column at an index, moved, and unplaced",
+			"edits": [
+				{ "act": "canvas.place_field", "fieldname": "owner", "column": "column_2", "section": "main", "index": 0 },
+				{ "act": "canvas.move_field", "fieldname": "subject", "column": "column_1", "section": "more" },
+				{ "act": "canvas.place_field", "fieldname": "owner", "column": "column_1", "section": "main", "index": 1 },
+				{ "act": "canvas.unplace_field", "fieldname": "notes" }
+			],
+			"expected": [
+				{
+					"name": "details",
+					"sections": [
+						{
+							"name": "main",
+							"columns": [
+								{ "name": "column_1", "fields": ["status", "owner"] },
+								{ "name": "column_2", "fields": ["due"] }
+							]
+						},
+						{ "name": "more", "label": "More", "columns": [{ "name": "column_1", "fields": ["subject"] }] }
+					]
+				},
+				{ "name": "extra", "label": "Extra", "sections": [] }
+			]
+		},
+		{
+			"case": "a field placed in a tab with no section opens a section for it",
+			"edits": [{ "act": "canvas.place_field", "fieldname": "due", "tab": "extra" }],
+			"expected": [
+				{
+					"name": "details",
+					"sections": [
+						{
+							"name": "main",
+							"columns": [
+								{ "name": "column_1", "fields": ["subject", "status"] },
+								{ "name": "column_2", "fields": [] }
+							]
+						},
+						{ "name": "more", "label": "More", "columns": [{ "name": "column_1", "fields": ["notes"] }] }
+					]
+				},
+				{
+					"name": "extra",
+					"label": "Extra",
+					"sections": [{ "name": "section_3", "columns": [{ "name": "column_1", "fields": ["due"] }] }]
+				}
+			]
+		},
+		{
+			"case": "the last tab stays",
+			"edits": [
+				{ "act": "canvas.remove_tab", "tab": "extra" },
+				{ "act": "canvas.remove_tab", "tab": "details" }
+			],
+			"refused": "A layout keeps at least one tab."
+		},
+		{
+			"case": "a name no container has is refused",
+			"edits": [{ "act": "canvas.add_column", "section": "nowhere" }],
+			"refused": "This layout has no nowhere."
+		},
+		{
+			"case": "a column name two sections share needs its section",
+			"edits": [{ "act": "canvas.place_field", "fieldname": "due", "column": "column_1" }],
+			"refused": "Name the section of column column_1."
+		},
+		{
+			"case": "a property a container does not have is refused",
+			"edits": [{ "act": "canvas.set_container_property", "container": "main", "property": "color", "value": "red" }],
+			"refused": "color is not a container property."
+		}
+	],
+	"from_fields": [
+		{
+			"case": "fields before any break open a first tab, section and column",
+			"fields": [
+				{ "fieldname": "subject", "fieldtype": "Data" },
+				{ "fieldname": "details_tab", "fieldtype": "Tab Break", "label": "Details", "depends_on": "eval:doc.subject" },
+				{
+					"fieldname": "main",
+					"fieldtype": "Section Break",
+					"label": "Main",
+					"description": "Shown first",
+					"collapsible": 1,
+					"collapsible_depends_on": "eval:1",
+					"hide_border": 1
+				},
+				{ "fieldname": "status", "fieldtype": "Select" },
+				{ "fieldname": "side", "fieldtype": "Column Break", "label": "Side", "description": "Not a section" },
+				{ "fieldname": "due", "fieldtype": "Date" }
+			],
+			"expected": [
+				{
+					"name": "first_tab",
+					"sections": [
+						{ "name": "section_1", "columns": [{ "name": "column_1", "fields": ["subject"] }] }
+					]
+				},
+				{
+					"name": "details_tab",
+					"label": "Details",
+					"dependsOn": "eval:doc.subject",
+					"sections": [
+						{
+							"name": "main",
+							"label": "Main",
+							"description": "Shown first",
+							"collapsible": true,
+							"collapsibleDependsOn": "eval:1",
+							"hideBorder": true,
+							"columns": [
+								{ "name": "column_1", "fields": ["status"] },
+								{ "name": "side", "label": "Side", "fields": ["due"] }
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"case": "a synthesized name that a break already has is repaired",
+			"fields": [
+				{ "fieldname": "section_1", "fieldtype": "Section Break" },
+				{ "fieldname": "a", "fieldtype": "Data" },
+				{ "fieldname": "section_1_again", "fieldtype": "Section Break" },
+				{ "fieldname": "b", "fieldtype": "Data" },
+				{ "fieldname": "column_1", "fieldtype": "Column Break" },
+				{ "fieldname": "c", "fieldtype": "Data" }
+			],
+			"expected": [
+				{
+					"name": "first_tab",
+					"sections": [
+						{ "name": "section_1", "columns": [{ "name": "column_1", "fields": ["a"] }] },
+						{
+							"name": "section_1_again",
+							"columns": [
+								{ "name": "column_1", "fields": ["b"] },
+								{ "name": "column_1-2", "fields": ["c"] }
+							]
+						}
+					]
+				}
+			]
+		}
+	],
+	"slugs": [
+		["Time & Cost", "time_cost"],
+		["  Leading and trailing  ", "leading_and_trailing"],
+		["Already_snake", "already_snake"],
+		["Über uns 2", "ber_uns_2"],
+		["???", "tab_1"],
+		["", "tab_1"]
+	]
+}

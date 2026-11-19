@@ -1,0 +1,199 @@
+// The shell's boot payload: small, per prefix, separate from desk v1's `frappe.sessions.get()`.
+
+import { reactive } from "vue";
+import { isApiError, runMethod, type Session } from "@framework/ui/api";
+
+/**
+ * One resolved navigation item; the rail and a sidebar share this shape. A blank field
+ * is omitted, never sent as `null`.
+ */
+export type NavigationItem = {
+	key: string;
+	item_type: string;
+	parent_key?: string;
+	link_doctype?: string;
+	link_to?: string;
+	/** The key of the sidebar this rail row opens, beside its own target. */
+	opens_sidebar?: string;
+	/**
+	 * An absolute href off this prefix (a `Link` item, or a contributed item that switches
+	 * app). Following it is a full document load, so the row is an `<a>`, not a `RouterLink`.
+	 */
+	url?: string;
+	payload?: Record<string, unknown>;
+	label?: string;
+	icon?: string;
+	collapsible?: 1;
+	keep_closed?: 1;
+};
+
+/** How one app's navigation draws. The DocType's blank means the level below, so it never arrives blank. */
+export type NavigationLayout = "rail_and_sidebar" | "sidebar_only" | "floating_rail";
+
+export type Navigation = {
+	rail: NavigationItem[];
+	/**
+	 * Keyed by scrubbed address, the string a `Sidebar` rail item holds in `link_to`, never
+	 * by record name. An address that resolved to nothing is absent, not empty.
+	 */
+	sidebars: Record<string, NavigationItem[]>;
+	navigation_layout: NavigationLayout;
+	/** Sent only when true: the person's own rail + sidebar sits over an inherited floating rail. */
+	pinned?: true;
+	/** Sent only when true: the floating rail may be pinned, because unpinning it puts the layout back. */
+	can_pin?: true;
+};
+
+/** An app whose shell hook this person may run, with its `add_to_apps_screen` title. */
+export type ShellHook = { app: string; title: string };
+
+export type Boot = {
+	// --- framework core ---
+	frappe_version: string;
+	site_name: string;
+	socketio_port: number;
+	// `bench start` serves the realtime server on its own port; nginx puts it behind the origin.
+	dev_server: boolean;
+	developer_mode: boolean;
+	read_only_mode: boolean;
+	csrf_token: string;
+	setup_complete: boolean;
+	session: Session;
+	file_chunk_size: number;
+	max_file_size: number;
+	translations_version: string;
+	app_order: string[];
+	// The apps whose `shell.js` this person may run, in `app_order`.
+	shell_hooks: ShellHook[];
+	// A Frappe Cloud site, for a System Manager; and whether the person has app updates to be told of.
+	is_fc_site: boolean;
+	has_app_updates: boolean;
+	// The user's bulk-action switch and the site's cap on one bulk run.
+	bulk_actions: boolean;
+	// The person let agents drive their open tabs: the tab then listens for `ui_relay` calls.
+	agent_ui_relay: boolean;
+	bulk_operation_limit: number;
+	// Print Settings' cap on the records one bulk print takes.
+	max_bulk_print_docs: number;
+
+	// --- routing ---
+	//
+	// `shell_base` is the composed path (`/apps/crm`), so the literal `/apps` never appears
+	// in JS. It is `/apps` itself on the index, which belongs to no app.
+	shell_base: string;
+	app: string | null;
+	// The rail's app tile, present on an app's own prefix only.
+	app_title?: string;
+	app_logo?: string | null;
+
+	// Every active app, not just this one: a link into a foreign app needs that app's shape.
+	prefixes: Record<string, { app: string; modular: boolean }>;
+
+	// Invalidates the address table, which is fetched separately; see `addresses.ts`.
+	metadata_version: string;
+
+	// Absent on the index. What a bare doctype address opens: `/<doctype>/view/<segment>`, the
+	// segment a saved view's key or a view type's name, for each doctype with a default.
+	default_views?: Record<string, string>;
+
+	// Absent on the index. The doctypes with an enabled List Page Client Script; a list of any other fetches none.
+	list_script_doctypes?: string[];
+
+	// Absent on the index. Every `View Type` record, for the view switcher and the router.
+	view_types?: { name: string; label: string; icon: string | null }[];
+	// Absent on the index.
+	unbuilt_view_types?: { name: string; label: string; icon: string }[];
+
+	// --- navigation ---
+	//
+	// The rail and every sidebar in this prefix, resolved and merged server-side so a rail
+	// click costs no request. Absent on the index. What an app contains is `contents.ts`.
+	navigation?: Navigation;
+
+	// Present on the index only, in the person's order. A `link` tile leaves the shell: its route is
+	// the app's own UI or desk v1. A `hidden` tile is left out of the grid but still found by the filter.
+	apps?: {
+		app: string;
+		title: string;
+		logo?: string | null;
+		kind: "prefix" | "link";
+		route: string;
+		hidden: boolean;
+		// The app's other doors, drawn as cards behind its tile: `module_icons` and, for an app that
+		// opens its own UI, the Desk card (`desk`) that opens its prefix.
+		fan: { title: string; logo?: string | null; route: string; desk?: boolean }[];
+	}[];
+
+	// Present on the index only: the person's 8 latest favourites, newest first. A list's
+	// `doctype` is "DocType", as the Favourite row stores it, and a saved view adds its key.
+	favourites?: {
+		doctype: string;
+		name: string;
+		view?: string;
+		kind: "record" | "list" | "view";
+		title: string;
+		route: string;
+		app: string;
+		app_title: string;
+		app_logo?: string | null;
+	}[];
+
+	// Present on the index only: whether the person has favourites past the first 8.
+	more_favourites?: boolean;
+
+	// Present on the index only: the person's last list and record addresses, newest first.
+	recent?: {
+		route: string;
+		title: string;
+		/** The record's doctype, "List" for a list, "View" for a saved view, none for a single. */
+		kind: string | null;
+		/** On the site's clock, `session.timezone`. */
+		visited: string;
+		app: string;
+		app_title: string;
+		app_logo?: string | null;
+	}[];
+
+	// Present on the index only: where "Get more apps" links out, for a System Manager on a site
+	// that can install apps from Cloud Settings; none elsewhere.
+	more_apps?: string | null;
+
+	// Present on the index only: what this person may act on. A person without a manager role gets none.
+	notices?: {
+		/** The site's unfinished setup wizard, for a System Manager. */
+		setup?: { apps: string[]; route: string };
+		/** Each app updated since this person last opened what's new; the notes load on open. */
+		whats_new?: { title: string; version: string }[];
+	};
+
+	// --- the declaring app's contribution, merged under core ---
+	[appKey: string]: unknown;
+};
+
+export class BootUnauthorized extends Error {}
+
+export async function fetchBoot(): Promise<Boot> {
+	let boot: Boot;
+	try {
+		// The server needs the path to know which app's contribution to merge in.
+		const response = await runMethod<Boot>(
+			"frappe.shell.boot.get_boot",
+			{ path: location.pathname },
+			{ http: "GET" }
+		);
+		boot = response.data;
+	} catch (error) {
+		// 401 as well as 403: an expired session answers 401, and the user needs the way back
+		// to login, not a generic failure.
+		if (!isApiError(error)) throw error;
+		if (error.status === 401 || error.status === 403)
+			throw new BootUnauthorized("Not permitted");
+		throw new Error(`Boot failed with ${error.status}`, { cause: error });
+	}
+
+	// frappe-ui's request layer reads the token from this global; the shell has no Jinja to set it.
+	window.csrf_token = boot.csrf_token;
+	// Reactive, so the rail redraws when the after-save registry updates the person.
+	boot.session.user = reactive(boot.session.user);
+	return boot;
+}

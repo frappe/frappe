@@ -1,0 +1,506 @@
+# Copyright (c) 2026, Frappe Technologies and Contributors
+# License: MIT. See LICENSE
+
+from unittest.mock import patch
+
+import frappe
+from frappe.desk.doctype.default_view import api as default_view_api
+from frappe.desk.doctype.doctype_view import api
+from frappe.desk.doctype.doctype_view.api import find, get, reset, save
+from frappe.desk.doctype.doctype_view.doctype_view import DoctypeView, DuplicateViewError, ViewKeyBusyError
+from frappe.desk.doctype.doctype_view.key_space import KeySpace, find_views, open_views
+from frappe.desk.doctype.favourite.favourite import toggle_favourite
+from frappe.exceptions import FrappeTypeError
+from frappe.model.document import Document
+from frappe.patches.v17_0 import fill_view_key_slots
+from frappe.query_builder.utils import db_type_is
+from frappe.tests import IntegrationTestCase
+from frappe.tests.classes.context_managers import set_user
+from frappe.tests.test_query_builder import unimplemented_for
+
+# A doctype every Desk User reads, and one only a System Manager reads.
+DOCTYPE = "Note"
+PRIVATE_DOCTYPE = "System Settings"
+
+PERSON = "test_view_person@example.com"
+OTHER = "test_view_other@example.com"
+MANAGER = "test_view_manager@example.com"
+
+
+def a_person(email: str, role: str = "Desk User") -> str:
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			doctype="User",
+			email=email,
+			first_name="Viewer",
+			user_type="System User",
+			roles=[{"role": role}],
+		).insert(ignore_permissions=True)
+
+	return email
+
+
+def make_view(**kwargs):
+	return frappe.get_doc({"doctype": "Doctype View", "reference_doctype": DOCTYPE, "type": "List", **kwargs})
+
+
+class DoctypeViewTestCase(IntegrationTestCase):
+	def setUp(self):
+		super().setUp()
+		# The class rolls back once, so each test starts from no rows of its own.
+		frappe.db.delete("Doctype View", {"reference_doctype": DOCTYPE})
+		self.person = a_person(PERSON)
+		self.other = a_person(OTHER)
+		self.manager = a_person(MANAGER, role="System Manager")
+
+
+class TestDoctypeView(DoctypeViewTestCase):
+	def test_a_blank_user_and_label_are_stored_as_blank(self):
+		doc = make_view(settings={"sort": []}).insert()
+
+		self.assertEqual(frappe.db.get_value("Doctype View", doc.name, ["user", "label"]), ("", ""))
+
+	def test_a_second_row_at_one_address_is_refused_cleanly(self):
+		make_view(settings={}).insert()
+
+		self.assertRaisesRegex(
+			frappe.ValidationError, "already has a List view", make_view(settings={}).insert
+		)
+
+	def test_an_unknown_type_is_refused(self):
+		self.assertRaisesRegex(frappe.ValidationError, "not a view type", make_view(type="Kanban").insert)
+
+	def test_settings_are_one_object(self):
+		self.assertRaisesRegex(frappe.ValidationError, "one object", make_view(settings=["columns"]).insert)
+
+	def test_settings_are_capped(self):
+		self.assertRaisesRegex(
+			frappe.ValidationError, "larger than", make_view(settings={"note": "x" * 20_000}).insert
+		)
+
+	def test_settings_that_are_not_json_are_refused(self):
+		self.assertRaisesRegex(frappe.ValidationError, "one object", make_view(settings="not json").insert)
+
+	def test_the_document_gate_lets_a_person_read_the_site_row_and_write_only_their_own(self):
+		site = make_view(settings={}).insert()
+		own = make_view(user=self.person, settings={}).insert()
+		other = make_view(user=self.other, settings={}).insert()
+
+		self.assertTrue(frappe.has_permission("Doctype View", "read", site, user=self.person))
+		self.assertTrue(frappe.has_permission("Doctype View", "read", own, user=self.person))
+		self.assertFalse(frappe.has_permission("Doctype View", "read", other, user=self.person))
+		self.assertFalse(frappe.has_permission("Doctype View", "write", site, user=self.person))
+		self.assertTrue(frappe.has_permission("Doctype View", "read", other, user=self.manager))
+
+	def test_a_person_reads_the_site_row_and_their_own_and_nothing_else(self):
+		make_view(settings={}).insert()
+		make_view(user=self.person, settings={}).insert()
+		make_view(user=self.other, settings={}).insert()
+
+		with set_user(self.person):
+			seen = frappe.get_list("Doctype View", filters={"reference_doctype": DOCTYPE}, pluck="user")
+
+		self.assertEqual(sorted(seen), ["", self.person])
+
+
+class TestApi(DoctypeViewTestCase):
+	def test_nothing_stored_reads_as_two_absences(self):
+		with set_user(self.person):
+			self.assertEqual(
+				get(DOCTYPE),
+				{"app": None, "site": None, "user": None, "favourites": {"list": False, "views": []}},
+			)
+
+	def test_a_save_patches_keys_on_the_caller_s_own_row(self):
+		with set_user(self.person):
+			save(DOCTYPE, "List", "user", {"columns": [{"fieldname": "title"}]})
+			rows = save(DOCTYPE, "List", "user", {"sort": [{"fieldname": "title", "direction": "asc"}]})
+
+		self.assertEqual(
+			rows["user"],
+			{"columns": [{"fieldname": "title"}], "sort": [{"fieldname": "title", "direction": "asc"}]},
+		)
+		self.assertIsNone(rows["site"])
+		self.assertEqual(
+			frappe.db.get_value("Doctype View", {"reference_doctype": DOCTYPE}, "user"), self.person
+		)
+
+	def test_a_first_save_that_loses_the_race_lands_on_the_twin_s_row(self):
+		"""Two first saves can both see no row; the loser's insert hits the index and runs again."""
+		real = api._locked
+		reads = []
+
+		def racing(address):
+			reads.append(address)
+			return (None, {}) if len(reads) == 1 else real(address)
+
+		with set_user(self.person):
+			save(DOCTYPE, "List", "user", {"columns": []})
+			with patch.object(api, "_locked", side_effect=racing):
+				rows = save(DOCTYPE, "List", "user", {"sort": []})
+
+		self.assertEqual(len(reads), 2)
+		self.assertEqual(rows["user"], {"columns": [], "sort": []})
+
+	def test_a_reset_clears_one_key_and_drops_an_empty_row(self):
+		with set_user(self.person):
+			save(DOCTYPE, "List", "user", {"columns": [], "sort": []})
+			rows = reset(DOCTYPE, "List", "user", "columns")
+			self.assertEqual(rows["user"], {"sort": []})
+
+			rows = reset(DOCTYPE, "List", "user", "sort")
+
+		self.assertIsNone(rows["user"])
+		self.assertFalse(frappe.db.exists("Doctype View", {"reference_doctype": DOCTYPE}))
+
+	def test_the_site_scope_needs_a_system_manager(self):
+		with set_user(self.person):
+			self.assertRaises(frappe.PermissionError, save, DOCTYPE, "List", "site", {"sort": []})
+
+		with set_user(self.manager):
+			rows = save(DOCTYPE, "List", "site", {"sort": []})
+
+		self.assertEqual(rows["site"], {"sort": []})
+		self.assertEqual(frappe.db.get_value("Doctype View", {"reference_doctype": DOCTYPE}, "user"), "")
+
+	def test_everyone_reads_the_site_row_beside_their_own(self):
+		with set_user(self.manager):
+			save(DOCTYPE, "List", "site", {"sort": []})
+
+		with set_user(self.person):
+			save(DOCTYPE, "List", "user", {"columns": []})
+			self.assertEqual(
+				get(DOCTYPE),
+				{
+					"app": None,
+					"site": {"sort": []},
+					"user": {"columns": []},
+					"favourites": {"list": False, "views": []},
+				},
+			)
+
+		with set_user(self.other):
+			self.assertEqual(
+				get(DOCTYPE),
+				{"app": None, "site": {"sort": []}, "user": None, "favourites": {"list": False, "views": []}},
+			)
+
+	def test_a_doctype_the_caller_cannot_read_is_refused(self):
+		with set_user(self.person):
+			self.assertRaises(frappe.PermissionError, get, PRIVATE_DOCTYPE)
+
+	def test_the_read_says_which_of_the_list_and_its_views_the_caller_starred(self):
+		make_view(label="Open notes", settings={}).insert()
+		make_view(label="Closed notes", settings={}).insert()
+		with set_user(self.person):
+			toggle_favourite("DocType", DOCTYPE, add=True)
+			toggle_favourite("DocType", DOCTYPE, add=True, view="open-notes")
+			self.assertEqual(get(DOCTYPE)["favourites"], {"list": True, "views": ["open-notes"]})
+
+		with set_user(self.other):
+			toggle_favourite("DocType", DOCTYPE, add=True, view="closed-notes")
+			self.assertEqual(get(DOCTYPE)["favourites"], {"list": False, "views": ["closed-notes"]})
+
+	def test_a_starred_view_of_another_doctype_is_not_this_list_s(self):
+		make_view(reference_doctype="ToDo", label="Elsewhere", settings={}).insert()
+		with set_user(self.person):
+			toggle_favourite("DocType", "ToDo", add=True, view="elsewhere")
+			toggle_favourite("DocType", "ToDo", add=True)
+			self.assertEqual(get(DOCTYPE)["favourites"], {"list": False, "views": []})
+
+	def test_a_bad_argument_is_refused_before_anything_is_read(self):
+		with set_user(self.person):
+			self.assertRaises(frappe.ValidationError, get, "No Such Doctype")
+			self.assertRaises(frappe.ValidationError, get, DOCTYPE, "Kanban")
+			self.assertRaises(frappe.ValidationError, save, DOCTYPE, "List", "everyone", {})
+			self.assertRaises(FrappeTypeError, save, DOCTYPE, "List", "user", "not json")
+			self.assertRaises(FrappeTypeError, save, DOCTYPE, "List", "user", ["a list"])
+			self.assertRaises(FrappeTypeError, reset, DOCTYPE, "List", "user", ["a list"])
+
+
+class TestViewKey(DoctypeViewTestCase):
+	def test_a_saved_view_s_key_is_its_label_made_url_safe(self):
+		self.assertEqual(
+			make_view(label="Open Deals: Café & Co.", settings={}).insert().key, "open-deals-cafe-co"
+		)
+
+	def test_a_label_with_no_latin_letters_gets_a_short_random_key(self):
+		key = make_view(label="खुले सौदे", settings={}).insert().key
+
+		self.assertRegex(key, r"^[a-z0-9]{8}$")
+
+	def test_the_plain_view_has_no_key(self):
+		self.assertEqual(make_view(settings={}).insert().key, "")
+
+	def test_a_taken_key_gets_the_next_free_suffix(self):
+		keys = [make_view(label="Open", settings={}).insert().key for _ in range(2)]
+		keys.append(make_view(label="open!", user=self.person, settings={}).insert().key)
+
+		self.assertEqual(keys, ["open", "open-2", "open-3"])
+
+	def test_a_view_type_name_is_never_a_key(self):
+		keys = [make_view(label=label, settings={}).insert().key for label in ("List", "Kanban")]
+
+		self.assertEqual(keys, ["list-2", "kanban-2"])
+
+	def test_one_person_s_key_is_taken_for_every_other_person_and_the_site(self):
+		mine = make_view(label="Mine", user=self.person, settings={}).insert()
+		theirs = make_view(label="Mine", user=self.other, settings={}).insert()
+		site = make_view(label="Mine", settings={}).insert()
+
+		self.assertEqual([mine.key, theirs.key, site.key], ["mine", "mine-2", "mine-3"])
+
+	def test_a_new_label_keeps_the_key(self):
+		view = make_view(label="Open", settings={}).insert()
+		view.label = "Closed"
+		view.save()
+
+		self.assertEqual(frappe.db.get_value("Doctype View", view.name, "key"), "open")
+
+	def test_the_key_cannot_be_changed(self):
+		view = make_view(label="Open", settings={}).insert()
+		view.key = "elsewhere"
+
+		self.assertRaises(frappe.CannotChangeConstantError, view.save)
+
+	def test_two_views_may_share_a_label(self):
+		make_view(label="Open", user=self.person, settings={}).insert()
+		make_view(label="Open", user=self.person, settings={}).insert()
+
+		self.assertEqual(frappe.db.count("Doctype View", {"reference_doctype": DOCTYPE, "label": "Open"}), 2)
+
+	def test_a_saved_view_holds_its_key_in_the_key_slot_and_the_plain_view_holds_none(self):
+		saved = make_view(label="Open", settings={}).insert()
+		plain = make_view(settings={}).insert()
+
+		self.assertEqual(frappe.db.get_value("Doctype View", saved.name, "key_slot"), "open")
+		self.assertIsNone(frappe.db.get_value("Doctype View", plain.name, "key_slot"))
+
+	def test_a_label_cannot_turn_the_plain_view_into_a_saved_one_or_back(self):
+		plain = make_view(settings={}).insert()
+		saved = make_view(label="Open", settings={}).insert()
+
+		plain.label = "Now named"
+		self.assertRaisesRegex(frappe.ValidationError, "plain view cannot have one", plain.save)
+		saved.label = ""
+		self.assertRaisesRegex(frappe.ValidationError, "needs a label", saved.save)
+
+
+class TestLostKey(DoctypeViewTestCase):
+	"""The claim's read misses a key another view took; the key index refuses the insert and the claim moves on."""
+
+	def missing_every_key(self):
+		return patch.object(KeySpace, "taken", return_value=set())
+
+	def test_an_insert_that_loses_its_key_takes_the_next_suffix(self):
+		make_view(label="Open", settings={}).insert()
+		frappe.clear_messages()
+
+		with self.missing_every_key():
+			second = make_view(label="Open", user=self.person, settings={}).insert()
+
+		self.assertEqual((second.key, second.key_slot), ("open-2", "open-2"))
+		self.assertEqual(frappe.db.get_value("Doctype View", second.name, "key_slot"), "open-2")
+		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_an_insert_that_loses_every_attempt_is_refused(self):
+		for key in ("open", "open-2", "open-3", "open-4", "open-5"):
+			make_view(label=key, settings={}).insert()
+
+		with self.missing_every_key(), self.assertRaisesRegex(DuplicateViewError, "already has a List view"):
+			make_view(label="Open", user=self.person, settings={}).insert()
+
+	def test_a_plain_view_that_loses_its_address_is_refused_as_before(self):
+		make_view(settings={}).insert()
+
+		with (
+			patch.object(DoctypeView, "refuse_a_second_row_at_this_address"),
+			self.assertRaises(frappe.UniqueValidationError),
+		):
+			make_view(settings={}).insert()
+
+
+class TestFillKeySlots(DoctypeViewTestCase):
+	def setUp(self):
+		super().setUp()
+		frappe.db.delete("Favourite", {"reference_doctype": "DocType", "reference_name": DOCTYPE})
+		frappe.db.delete("Default View", {"reference_doctype": DOCTYPE})
+
+	def run_patch(self):
+		# Adding the index is DDL, which would commit the test's rows.
+		with patch.object(fill_view_key_slots, "add_key_index"):
+			fill_view_key_slots.execute()
+
+	def test_a_saved_view_s_slot_is_its_key_and_the_plain_view_s_stays_empty(self):
+		saved = make_view(label="Open", settings={}).insert()
+		plain = make_view(settings={}).insert()
+		frappe.db.set_value("Doctype View", saved.name, "key_slot", None)
+
+		self.run_patch()
+
+		self.assertEqual(
+			frappe.db.get_value("Doctype View", saved.name, ["key", "key_slot"]), ("open", "open")
+		)
+		self.assertIsNone(frappe.db.get_value("Doctype View", plain.name, "key_slot"))
+
+	def test_of_two_views_sharing_a_key_the_newer_moves_with_its_owner_s_star_and_default(self):
+		older = make_view(label="Open", settings={}).insert()
+		newer = make_view(label="Shut", user=self.person, settings={}).insert()
+		frappe.db.set_value("Doctype View", older.name, "key_slot", None)
+		frappe.db.set_value("Doctype View", newer.name, {"key": "open", "key_slot": None})
+		for user in (self.person, self.other):
+			with set_user(user):
+				toggle_favourite("DocType", DOCTYPE, add=True, view="open")
+		with set_user(self.person):
+			default_view_api.save(DOCTYPE, "open", "user")
+
+		self.run_patch()
+
+		self.assertEqual(
+			frappe.db.get_value("Doctype View", older.name, ["key", "key_slot"]), ("open", "open")
+		)
+		self.assertEqual(
+			frappe.db.get_value("Doctype View", newer.name, ["key", "key_slot"]), ("open-2", "open-2")
+		)
+		stars = frappe.get_all(
+			"Favourite", filters={"reference_name": DOCTYPE, "view": ("!=", "")}, fields=["user", "view"]
+		)
+		self.assertEqual(
+			sorted((star.user, star.view) for star in stars),
+			sorted([(self.person, "open-2"), (self.other, "open")]),
+		)
+		self.assertEqual(
+			frappe.db.get_value("Default View", {"reference_doctype": DOCTYPE, "user": self.person}, "view"),
+			"open-2",
+		)
+
+	def test_a_moved_site_view_takes_every_star_but_the_older_view_s_owner(self):
+		older = make_view(label="Open", user=self.person, settings={}).insert()
+		newer = make_view(label="Shut", settings={}).insert()
+		frappe.db.set_value("Doctype View", older.name, "key_slot", None)
+		frappe.db.set_value("Doctype View", newer.name, {"key": "open", "key_slot": None})
+		for user in (self.person, self.other):
+			with set_user(user):
+				toggle_favourite("DocType", DOCTYPE, add=True, view="open")
+
+		self.run_patch()
+
+		stars = frappe.get_all(
+			"Favourite", filters={"reference_name": DOCTYPE, "view": ("!=", "")}, fields=["user", "view"]
+		)
+		self.assertEqual(
+			sorted((star.user, star.view) for star in stars),
+			sorted([(self.person, "open"), (self.other, "open-2")]),
+		)
+
+
+@unimplemented_for(db_type_is.SQLITE)
+class TestKeyRace(IntegrationTestCase):
+	# Its own class: rows the other tests wrote in this transaction hold locks the second connection waits on.
+	# Not on SQLite: it refuses the second insert outright ("database is locked"), so the race cannot happen.
+	def test_two_inserts_at_one_key_in_their_own_transactions_get_two_keys(self):
+		frappe.db.get_all("Doctype View", limit=1)
+		mine = frappe.local.db
+		frappe.connect(set_admin_as_user=False)
+		theirs = frappe.local.db
+		try:
+			first = make_view(label="Race Probe", settings={}).insert()
+			theirs.commit()
+			frappe.local.db = mine
+			second = make_view(label="Race Probe", user="Administrator", settings={}).insert()
+			self.assertEqual([first.key, second.key], ["race-probe", "race-probe-2"])
+		finally:
+			mine.rollback()
+			frappe.local.db = theirs
+			frappe.db.delete("Doctype View", {"reference_doctype": DOCTYPE, "label": "Race Probe"})
+			theirs.commit()
+			theirs.close()
+			frappe.local.db = mine
+
+
+class TestKeyRaceErrors(DoctypeViewTestCase):
+	def test_a_deadlocked_save_is_refused_with_a_try_again_message(self):
+		frappe.clear_messages()
+		with patch.object(Document, "db_insert", side_effect=frappe.QueryDeadlockError):
+			with self.assertRaisesRegex(ViewKeyBusyError, "Try again") as raised:
+				make_view(label="Open", settings={}).insert()
+
+		self.assertEqual(raised.exception.http_status_code, 508)
+		self.assertIn("Try again", str(frappe.get_message_log()))
+
+
+class TestFind(DoctypeViewTestCase):
+	def test_a_person_finds_their_own_view_and_the_site_s(self):
+		make_view(label="Mine", user=self.person, settings={}).insert()
+		make_view(label="Shared", settings={}).insert()
+
+		with set_user(self.person):
+			self.assertEqual(
+				find(DOCTYPE, "mine"),
+				{"key": "mine", "label": "Mine", "type": "List", "layer": "own", "applies": True},
+			)
+			self.assertEqual(find(DOCTYPE, "shared")["layer"], "site")
+
+	def test_a_view_type_s_name_finds_its_plain_view(self):
+		with set_user(self.person):
+			self.assertEqual(
+				find(DOCTYPE, "list"),
+				{"key": "list", "label": "List", "type": "List", "layer": None, "applies": True},
+			)
+
+	def test_another_person_s_view_reads_as_missing_even_for_a_system_manager(self):
+		make_view(label="Theirs", user=self.other, settings={}).insert()
+
+		for user in (self.person, self.manager):
+			with set_user(user):
+				self.assertRaisesRegex(frappe.DoesNotExistError, "doesn't exist", find, DOCTYPE, "theirs")
+
+	def test_a_missing_key_the_plain_view_and_an_unreadable_doctype_are_refused(self):
+		make_view(settings={}).insert()
+
+		with set_user(self.person):
+			self.assertRaises(frappe.DoesNotExistError, find, DOCTYPE, "no-such-view")
+			self.assertRaises(frappe.DoesNotExistError, find, DOCTYPE, "")
+			self.assertRaises(frappe.PermissionError, find, PRIVATE_DOCTYPE, "anything")
+
+
+class TestFindViewsAndOpenViews(DoctypeViewTestCase):
+	def test_find_views_without_own_skips_a_person_s_rows(self):
+		make_view(label="Mine", user=self.person, settings={}).insert()
+		make_view(label="Shared", settings={}).insert()
+		targets = [(DOCTYPE, "mine"), (DOCTYPE, "shared")]
+
+		self.assertEqual(set(find_views(targets, user=self.person)), set(targets))
+		self.assertEqual(set(find_views(targets, user=self.person, own=False)), {(DOCTYPE, "shared")})
+
+	def test_find_views_reads_the_site_s_view_beside_an_app_view_and_asks_once(self):
+		make_view(label="Shared", settings={}).insert()
+
+		with self.assertQueryCount(1):
+			found = find_views([(DOCTYPE, "shared"), ("ToDo", "open"), (DOCTYPE, "gone")], user=self.person)
+
+		self.assertEqual(set(found), {(DOCTYPE, "shared"), ("ToDo", "open")})
+
+	def test_open_views_opens_plain_keys_saved_keys_and_app_views(self):
+		make_view(label="Mine", user=self.person, settings={}).insert()
+		targets = [
+			(DOCTYPE, "list"),
+			(DOCTYPE, "cards"),
+			(DOCTYPE, "mine"),
+			("ToDo", "open"),
+			(DOCTYPE, "gone"),
+		]
+
+		self.assertEqual(
+			open_views(targets, user=self.person), {target for target in targets if target[1] != "gone"}
+		)
+		self.assertNotIn((DOCTYPE, "mine"), open_views(targets, user=self.person, own=False))
+
+	def test_open_views_drops_a_type_that_does_not_apply(self):
+		make_view(label="Shared", settings={}).insert()
+		targets = [(DOCTYPE, "list"), (DOCTYPE, "shared")]
+
+		with patch("frappe.desk.doctype.doctype_view.key_space.applies_to", return_value=False):
+			self.assertEqual(open_views(targets, user=self.person), set())
+
+		self.assertEqual(open_views(targets, user=self.person), {(DOCTYPE, "list"), (DOCTYPE, "shared")})

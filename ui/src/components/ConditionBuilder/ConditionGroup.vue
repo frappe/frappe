@@ -15,7 +15,7 @@
 		:aria-describedby="describedBy || undefined"
 		:aria-invalid="invalid || undefined"
 		class="flex w-full min-w-0 flex-col gap-4"
-		:class="hasCard && 'rounded-6 border border-outline-gray-2 bg-surface-white p-3'"
+		:class="hasCard && 'rounded-6 border border-outline-gray-2 bg-surface-base p-3'"
 	>
 		<legend v-if="rootTag === 'fieldset'" :id="legendId" class="sr-only">
 			{{ groupName }}
@@ -65,10 +65,11 @@
 					<ConditionRule
 						:index="index"
 						:count="group.conditions.length"
+						:conjunction="conjunction"
 						:offset="firstLineOffset(condition)"
 					>
 						<div
-							class="flex min-h-7 items-center justify-center"
+							class="flex min-h-7 items-center justify-start"
 							:style="firstLineStyle(condition)"
 						>
 							<slot v-if="index === 0" name="condition-where" v-bind="whereProps()">

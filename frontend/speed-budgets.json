@@ -1,0 +1,10 @@
+{
+  "jsToleranceKb": 5,
+  "home": { "budget": { "jsKb": 300, "calls": 4 }, "baseline": { "jsKb": 287.8, "calls": 4 } },
+  "list": { "budget": { "jsKb": 320, "calls": 7 }, "baseline": { "jsKb": 374.9, "calls": 7 } },
+  "record": { "budget": { "jsKb": 460, "calls": 9 }, "baseline": { "jsKb": 470.9, "calls": 8 } },
+  "new": { "budget": { "jsKb": 460, "calls": 9 }, "baseline": { "jsKb": 432.9, "calls": 8 } },
+  "save": { "baseline": { "calls": 2 } },
+  "create": { "baseline": { "calls": 2 } },
+  "createAgain": { "baseline": { "calls": 1 } }
+}

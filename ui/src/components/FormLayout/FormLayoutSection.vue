@@ -10,7 +10,7 @@
 				class="section-header flex max-w-fit items-center gap-2 text-ink-gray-9"
 				:class="{ 'cursor-pointer': collapsible, 'px-3 sm:px-5': hasTabs }"
 			>
-				<span class="text-base-medium">{{ section.label }}</span>
+				<span class="text-base-medium">{{ __(section.label!, [], labelContext) }}</span>
 				<span
 					v-if="collapsible"
 					class="lucide-chevron-right size-4"
@@ -28,6 +28,13 @@
 				force-mount
 				@animationend.self="animating = false"
 			>
+				<p
+					v-if="section.description"
+					class="section-description text-p-sm text-ink-gray-5"
+					:class="{ 'mt-1': showHeader, 'px-3 sm:px-5': hasTabs }"
+				>
+					<FieldDescription :html="__(section.description, [], labelContext)" />
+				</p>
 				<div
 					class="section-body flex sm:flex-row flex-col gap-4"
 					:class="{ 'px-3 sm:px-5': hasTabs }"
@@ -35,14 +42,14 @@
 					<FormLayoutPart
 						v-if="section.part"
 						:part="section.part"
-						:class="{ 'mt-6': showHeader }"
+						:class="{ 'mt-6': hasHead }"
 						class="w-full"
 					/>
 					<FormLayoutColumn
 						v-else
-						v-for="(column, index) in section.columns"
+						v-for="(column, index) in shownColumns"
 						:key="column.name ?? index"
-						:class="{ 'mt-6': showHeader }"
+						:class="{ 'mt-6': hasHead }"
 						:column="column"
 					/>
 				</div>
@@ -56,19 +63,39 @@ import { computed, inject, ref, watch } from "vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import FormLayoutColumn from "./FormLayoutColumn.vue";
 import FormLayoutPart from "./FormLayoutPart.vue";
-import { HasTabsKey } from "./types";
+import FieldDescription from "../Fields/FieldDescription.vue";
+import { translate as __ } from "../../utils/translate";
+import { HasTabsKey, LabelContextKey } from "./types";
 import type { Section } from "./types";
 
-const props = defineProps<{ section: Section }>();
+// `undefined`, not Vue's `false` for a missing boolean: absent means the layout decides.
+const props = withDefaults(defineProps<{ section: Section; open?: boolean }>(), {
+	open: undefined,
+});
+
+const emit = defineEmits<{ "update:open": [open: boolean] }>();
 
 const hasTabs = inject(HasTabsKey);
+const labelContext = inject(LabelContextKey, undefined);
 
 const showHeader = computed(() => !props.section.hideLabel && !!props.section.label);
+
+const hasHead = computed(() => showHeader.value || !!props.section.description);
+
+const shownColumns = computed(() => props.section.columns.filter((column) => !column.hidden));
 
 // A section can only collapse when it has a header to toggle from.
 const collapsible = computed(() => showHeader.value && (props.section.collapsible ?? true));
 
-const opened = ref(props.section.opened ?? true);
+// The host's state when it holds one, else the section's own, starting where the layout says.
+const own = ref(props.section.opened ?? true);
+const opened = computed({
+	get: () => !collapsible.value || (props.open ?? own.value),
+	set: (open) => {
+		own.value = open;
+		emit("update:open", open);
+	},
+});
 
 // Gate animation until first toggle, so a section rendered collapsed rests at
 // height 0 without playing a collapse animation on first paint.

@@ -231,8 +231,11 @@ class TestSidebarBoot(IntegrationTestCase):
 		sidebars and titles every one after its module, so none of the keys changes.
 		"""
 		payload = get_module_sidebars()
+		# v1's sidebars only: desk v2's app-rooted sidebars carry an address and never reach this payload.
 		shipped = frappe.get_all(
-			"Sidebar", filters={"standard": 1, "app": "frappe"}, fields=["name", "module"]
+			"Sidebar",
+			filters={"standard": 1, "app": "frappe", "link_doctype": ("is", "not set")},
+			fields=["name", "module"],
 		)
 		self.assertTrue(shipped, "sanity: frappe's sidebars are imported")
 

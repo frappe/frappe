@@ -54,6 +54,7 @@ function render(rows: Record<string, any>[]) {
   app.provide(CommitKey, {
     pending: () => {},
     commit: (fieldname: string) => commits.push(fieldname),
+    discard: () => {},
     rowChanged: () => {},
   });
   app.mount(host);
@@ -88,6 +89,14 @@ describe("parsePastedText", () => {
     expect(parsePastedText("Date", "27/10/2026")).toBe("2026-10-27");
     expect(parsePastedText("Date", "2026-10-27")).toBe("2026-10-27");
     expect(parsePastedText("Date", "next week")).toBe("next week");
+  });
+
+  it("turns the date of a pasted date-time into yyyy-mm-dd and keeps its time", () => {
+    setFormatDefaults({ date_format: "dd/mm/yyyy" });
+    expect(parsePastedText("Datetime", "27/10/2026 14:35:20")).toBe("2026-10-27 14:35:20");
+    expect(parsePastedText("Datetime", " 27/10/2026  9:15 ")).toBe("2026-10-27 9:15");
+    expect(parsePastedText("Datetime", "2026-10-27 14:35:20")).toBe("2026-10-27 14:35:20");
+    expect(parsePastedText("Datetime", "27/10/2026")).toBe("2026-10-27");
   });
 
   it("turns a pasted star count into the fraction a Rating stores", () => {

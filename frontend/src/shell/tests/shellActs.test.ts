@@ -1,0 +1,570 @@
+// The shell surface: each shell act run by name, which acts the shell holds where, the log out it confirms,
+// and the dialogs a shell act opens through `shell.dialog`.
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { createApp, defineComponent, h, nextTick, type App } from "vue";
+import { createMemoryHistory, createRouter, createWebHistory, type Router, type RouterHistory } from "vue-router";
+
+import { acts, ActDenied } from "@/acts/dispatcher";
+import { Addresses } from "@/addresses";
+import type { Boot, NavigationItem } from "@/boot";
+import { actsFiles, registerContributions } from "@/contributions/registry";
+import { registerShell } from "@/router/routeFor";
+import { resetNavigationReports } from "@/navigation/registry";
+import { resetSprite } from "@/icons/sprite";
+import AppShell from "../AppShell.vue";
+import { navigationSide } from "../navigationSide";
+import { closeCreates, createRequests, registerCreateDialog } from "../create";
+import type { Shell } from "../shellActs";
+
+const fake = vi.hoisted(() => ({ logout: vi.fn(), runMethod: vi.fn() }));
+
+vi.mock("@framework/ui/api", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@framework/ui/api")>()),
+	logout: fake.logout,
+	runMethod: fake.runMethod,
+}));
+
+vi.mock("frappe-ui", async (importOriginal) => ({
+	...(await importOriginal<typeof import("frappe-ui")>()),
+	toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
+}));
+
+vi.mock("@/arrangement", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/arrangement")>()),
+	fetchArrangement: vi.fn().mockResolvedValue([]),
+}));
+
+const addresses = new Addresses({
+	doctypes: { "Sales Invoice": ["sales-invoice", "accounts"] },
+	modules: { accounts: "Accounts" },
+});
+
+const stub = { render: () => null };
+
+const accounts: NavigationItem = {
+	key: "accounts",
+	item_type: "Sidebar",
+	link_to: "module_def_accounts",
+	label: "Accounts",
+};
+const sidebars = {
+	module_def_accounts: [{ key: "invoice", item_type: "DocType", link_to: "Sales Invoice" }],
+};
+
+const session = {
+	user: { name: "jane@example.com", full_name: "Jane Doe", email: "jane@example.com" },
+};
+
+const inApp = {
+	app: "crm",
+	shell_base: "/apps/crm",
+	prefixes: { crm: { app: "crm", modular: false } },
+	navigation: { rail: [accounts], sidebars },
+	session,
+} as unknown as Boot;
+
+const onIndex = {
+	app: null,
+	shell_base: "/apps",
+	prefixes: { crm: { app: "crm", modular: false } },
+	session,
+	apps: [],
+} as unknown as Boot;
+
+const mounted: App[] = [];
+
+async function flush() {
+	await Promise.resolve();
+	await Promise.resolve();
+	await nextTick();
+}
+
+/** A hash write and a pop both land a task later. */
+async function settle() {
+	for (let turn = 0; turn < 3; turn++) {
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		await flush();
+	}
+}
+
+// Memory history keeps no `state.back`, which `shell.back` reads: its tests pass a web history.
+async function shell(
+	boot: Boot = inApp,
+	path = "/sales-invoice",
+	history: RouterHistory = createMemoryHistory()
+): Promise<{ host: HTMLElement; router: Router }> {
+	const router = createRouter({
+		history,
+		routes: [
+			{ path: "/", name: "home", component: stub },
+			{ path: "/:doctype", name: "list", component: stub },
+		],
+	});
+	registerShell({ boot, addresses, router });
+	const host = document.createElement("div");
+	document.body.appendChild(host);
+	const app = createApp(AppShell);
+	app.provide("boot", boot);
+	app.provide("addresses", addresses);
+	app.use(router);
+	await router.push(path);
+	await router.isReady();
+	app.mount(host);
+	mounted.push(app);
+	await flush();
+	return { host, router };
+}
+
+function shellActNames() {
+	return acts
+		.available()
+		.map((act) => act.name)
+		.filter((name) => name.startsWith("shell."));
+}
+
+beforeAll(async () => {
+	registerCreateDialog(stub);
+	await registerContributions(["frappe"]);
+});
+
+beforeEach(() => {
+	localStorage.clear();
+	window.history.replaceState(null, "", "/");
+	resetNavigationReports();
+	resetSprite();
+	vi.clearAllMocks();
+});
+
+afterEach(() => {
+	closeCreates();
+	mounted.splice(0).forEach((app) => app.unmount());
+	document.body.innerHTML = "";
+	vi.restoreAllMocks();
+});
+
+describe("the acts the shell holds", () => {
+	it("in an app: the rail's, the sidebar's toggle, settings, the person's and Create", async () => {
+		await shell();
+		expect(shellActNames()).toEqual([
+			"shell.all_apps",
+			"shell.customize_sidebar",
+			"shell.copy_link",
+			"shell.toggle_sidebar",
+			"shell.open_settings",
+			"shell.about",
+			"shell.my_settings",
+			"shell.theme",
+			"shell.desk_v1",
+			"shell.log_out",
+			"shell.create",
+			"shell.open",
+			"shell.back",
+		]);
+	});
+
+	it("on the index: none of the rail's, as no rail draws there", async () => {
+		await shell(onIndex, "/");
+		expect(shellActNames()).toEqual([
+			"shell.open_settings",
+			"shell.about",
+			"shell.my_settings",
+			"shell.theme",
+			"shell.desk_v1",
+			"shell.log_out",
+			"shell.create",
+			"shell.open",
+			"shell.back",
+		]);
+	});
+
+	it("no toggle while no sidebar shows", async () => {
+		await shell(inApp, "/");
+		expect(shellActNames()).not.toContain("shell.toggle_sidebar");
+		await expect(acts.run("shell.toggle_sidebar")).rejects.toMatchObject({ reason: "missing" });
+	});
+
+	it("asks Create for a doctype and Settings for a pane, from the palette's places", async () => {
+		await shell();
+		const find = (name: string) => acts.available().find((act) => act.name === name)!;
+
+		expect(find("shell.create").palette).toBeUndefined();
+		fake.runMethod.mockImplementation(async (method: string) => ({
+			data:
+				method === "frappe.shell.palette.places"
+					? {
+							doctypes: [
+								{ name: "Sales Invoice", app: "crm", route: `${inApp.shell_base}/sales-invoice`, can_create: true },
+								{ name: "Lead", app: "crm", route: `${inApp.shell_base}/lead`, can_create: false },
+							],
+							apps: [],
+							titles: { crm: "CRM" },
+							recent: [],
+					  }
+					: { panes: [{ app: "crm", key: "deals", label: "Deals", blocks: [] }], sidebars: {}, index: [], titles: { crm: "CRM" } },
+		}));
+
+		expect(await find("shell.create").argument!.options("")).toEqual([
+			{ value: "Sales Invoice", label: "Sales Invoice", description: "CRM" },
+		]);
+		expect(await find("shell.open_settings").argument!.options("")).toEqual([
+			{ value: { prefix: "crm", pane: "deals" }, label: "Deals", description: "CRM" },
+		]);
+	});
+
+	it("lets go of the surface when the shell unmounts", async () => {
+		await shell();
+		mounted.splice(0).forEach((app) => app.unmount());
+		expect(shellActNames()).toEqual([]);
+	});
+});
+
+describe("each shell act, run by name", () => {
+	it("all_apps and desk_v1 leave for their pages", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		await shell();
+
+		await acts.run("shell.all_apps");
+		expect(assign).toHaveBeenLastCalledWith("/apps");
+		await acts.run("shell.desk_v1");
+		expect(assign).toHaveBeenLastCalledWith("/app");
+	});
+
+	it("my_settings opens desk's Profile pane in place", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const { router } = await shell();
+		await acts.run("shell.my_settings");
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#settings/desk/profile");
+		expect(assign).not.toHaveBeenCalled();
+	});
+
+	it("customize_sidebar opens the editor on the sidebar the page shows", async () => {
+		const { router } = await shell();
+		await acts.run("shell.customize_sidebar");
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#customize/sidebar/module_def_accounts");
+	});
+
+	it("about opens the About dialog at #about, and the palette may list it", async () => {
+		fake.runMethod.mockResolvedValue({ data: {} });
+		const { router } = await shell();
+		const about = acts.find("shell.about")!;
+		expect(about).toMatchObject({ label: "About", icon: "lucide-info" });
+		expect(about.palette).not.toBe(false);
+
+		await acts.run("shell.about");
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#about");
+	});
+
+	it("open_settings writes the settings address it is given, or none", async () => {
+		const { router } = await shell();
+		await acts.run("shell.open_settings", { prefix: "desk", pane: "profile" });
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#settings/desk/profile");
+
+		router.go(-1);
+		await settle();
+		await acts.run("shell.open_settings");
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#settings");
+	});
+
+	it("copy_link copies the page's link and says so", async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined);
+		vi.stubGlobal("navigator", { clipboard: { writeText } });
+		const { toast } = await import("frappe-ui");
+		await shell();
+
+		await acts.run("shell.copy_link");
+		expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/sales-invoice`);
+		expect(toast.success).toHaveBeenCalledWith("Link copied");
+		vi.unstubAllGlobals();
+	});
+
+	it("toggle_sidebar collapses and expands the open sidebar, and its label follows", async () => {
+		const { host } = await shell();
+		const panel = () => host.querySelector("[data-slot='sidebar']")!.getAttribute("data-state");
+		const label = () => acts.available().find((act) => act.name === "shell.toggle_sidebar")?.label;
+		expect(label()).toBe("Collapse sidebar");
+
+		await acts.run("shell.toggle_sidebar");
+		await flush();
+		expect(panel()).toBe("collapsed");
+		expect(label()).toBe("Expand sidebar");
+		expect(host.querySelector("[aria-label='Expand sidebar']")).not.toBeNull();
+
+		await acts.run("shell.toggle_sidebar");
+		await flush();
+		expect(panel()).toBe("expanded");
+	});
+
+	it("toggle_sidebar draws the panel icon on the navigation's side", async () => {
+		await shell();
+		const icon = () => acts.available().find((act) => act.name === "shell.toggle_sidebar")?.icon;
+		expect(icon()).toBe("lucide-panel-left-close");
+
+		navigationSide.value = "end";
+		expect(icon()).toBe("lucide-panel-right-close");
+		navigationSide.value = "start";
+	});
+
+	it("theme takes a scheme from its argument's options, and refuses any other value", async () => {
+		await shell();
+		const theme = acts.available().find((act) => act.name === "shell.theme")!;
+		expect(await theme.argument!.options("")).toEqual([
+			{ value: "light", label: "Light", icon: "lucide-sun" },
+			{ value: "dark", label: "Dark", icon: "lucide-moon" },
+			{ value: "system", label: "System", icon: "lucide-monitor" },
+		]);
+
+		await acts.run("shell.theme", "dark");
+		expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+		await expect(acts.run("shell.theme", "sepia")).rejects.toThrow('value must be one of "light", "dark", "system"');
+		await acts.run("shell.theme", "light");
+		expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+	});
+
+	it("create opens Create for a doctype, with or without starting values", async () => {
+		await shell();
+		void acts.run("shell.create", "ToDo");
+		void acts.run("shell.create", { doctype: "Note", values: { title: "Hello" } });
+		await flush();
+
+		expect(createRequests.value.map(({ doctype, values }) => ({ doctype, values }))).toEqual([
+			{ doctype: "ToDo", values: {} },
+			{ doctype: "Note", values: { title: "Hello" } },
+		]);
+		await expect(acts.run("shell.create")).rejects.toThrow("value must be a string or an object");
+	});
+
+	it("back goes to the page before this one and answers its path", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		expect(await acts.run("shell.back")).toEqual({ path: "/sales-invoice" });
+		expect(router.currentRoute.value.path).toBe("/sales-invoice");
+	});
+
+	it("back fails when the tab has no earlier page", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await expect(acts.run("shell.back")).rejects.toThrow("No earlier page in this tab");
+		expect(router.currentRoute.value.path).toBe("/sales-invoice");
+	});
+
+	it("back waits for a slow leave guard, and fails when a guard throws", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		const off = router.beforeEach(async () => void (await new Promise((resolve) => setTimeout(resolve, 20))));
+		expect(await acts.run("shell.back")).toEqual({ path: "/sales-invoice" });
+		off();
+		await router.push("/purchase-invoice");
+		router.beforeEach(() => {
+			throw new Error("guard broke");
+		});
+		await expect(acts.run("shell.back")).rejects.toThrow("guard broke");
+	});
+
+	it("back ends declined and stays put when a leave guard keeps the page", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		router.beforeEach((to) => to.path !== "/sales-invoice");
+		expect(await acts.run("shell.back")).toBeUndefined();
+		expect(await acts.call("shell.back")).toMatchObject({ ok: false, error: { code: "declined" } });
+		expect(router.currentRoute.value.path).toBe("/purchase-invoice");
+	});
+
+	it("back fails when another route push interrupts it, and a second call during it goes back once", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		await router.push("/item");
+		router.beforeEach(async () => void (await new Promise((resolve) => setTimeout(resolve, 20))));
+		const first = acts.run("shell.back");
+		const second = acts.run("shell.back");
+		const interrupted = Promise.all([
+			expect(first).rejects.toThrow(/another navigation interrupted/),
+			expect(second).rejects.toThrow(/another navigation interrupted/),
+		]);
+		const pushed = router.push("/customer");
+		await interrupted;
+		await pushed;
+		expect(router.currentRoute.value.path).toBe("/customer");
+	});
+
+	it("back does not report a hash change that lands before it", async () => {
+		const { router } = await shell(inApp, "/sales-invoice", createWebHistory());
+		await router.push("/purchase-invoice");
+		let waiting!: () => void;
+		const guarded = new Promise<void>((resolve) => (waiting = resolve));
+		router.beforeEach(async (to) => {
+			if (to.path !== "/sales-invoice") return;
+			waiting();
+			await new Promise((resolve) => setTimeout(resolve, 20));
+		});
+		const back = acts.run("shell.back");
+		const rejected = expect(back).rejects.toThrow(/another navigation interrupted/);
+		await guarded;
+		await router.push({ hash: "#settings" });
+		await rejected;
+		expect(router.currentRoute.value.path).toBe("/purchase-invoice");
+	});
+
+	it("an act the shell does not hold is denied as missing", async () => {
+		await shell();
+		const denied = await acts.run("shell.nope").catch((error) => error);
+		expect(denied).toBeInstanceOf(ActDenied);
+		expect(denied).toMatchObject({ act: "shell.nope", reason: "missing" });
+	});
+});
+
+describe("log_out", () => {
+	function button(label: string) {
+		return Array.from(document.body.querySelector("[role='dialog']")!.querySelectorAll("button")).find(
+			(node) => node.textContent?.trim() === label
+		)!;
+	}
+
+	it("asks first, and Cancel keeps the session", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		fake.logout.mockResolvedValue({ data: null });
+		await shell();
+
+		await acts.run("shell.log_out");
+		await flush();
+		const dialog = document.body.querySelector<HTMLElement>("[role='dialog']")!;
+		expect(dialog.textContent).toContain("Log out?");
+		expect(dialog.textContent).toContain("You will need to sign in again.");
+
+		button("Cancel").click();
+		await flush();
+		expect(document.body.querySelector("[role='dialog']")).toBeNull();
+		expect(fake.logout).not.toHaveBeenCalled();
+		expect(assign).not.toHaveBeenCalled();
+	});
+
+	it("logs out on confirmation and goes to login with the way back, hash dropped", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		fake.logout.mockResolvedValue({ data: null });
+		await shell();
+		window.history.replaceState(null, "", "/crm-deal?sidebar=fcrm#customize/rail");
+
+		await acts.run("shell.log_out");
+		await flush();
+		button("Log out").click();
+		await flush();
+		await flush();
+
+		expect(fake.logout).toHaveBeenCalled();
+		expect(assign).toHaveBeenCalledWith("/login?redirect-to=%2Fcrm-deal%3Fsidebar%3Dfcrm");
+	});
+
+	it("keeps the dialog and toasts when the log out fails", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const { toast } = await import("frappe-ui");
+		fake.logout.mockRejectedValueOnce(new Error("offline"));
+		await shell();
+
+		await acts.run("shell.log_out");
+		await flush();
+		button("Log out").click();
+		await flush();
+		await flush();
+
+		expect(document.body.querySelector("[role='dialog']")).not.toBeNull();
+		expect(toast.error).toHaveBeenCalledWith("Could not log out");
+		expect(assign).not.toHaveBeenCalled();
+	});
+});
+
+describe("shell.dialog", () => {
+	// The shell reads the list of acts files as it mounts, so the probe ships before each test's shell.
+	let work: (shell: Shell) => unknown = () => {};
+	const probe = { app: "probe", load: async () => ({ default: [{ name: "act", run: (shell: Shell) => work(shell) }] }) };
+
+	beforeEach(() => void actsFiles.push(probe));
+	afterEach(() => void actsFiles.splice(actsFiles.indexOf(probe), 1));
+
+	/** Runs `run` as an app act's `run`, with the `shell` every shell act receives. */
+	async function asShellAct(run: (shell: Shell) => unknown) {
+		work = run;
+		const result = acts.run("shell.probe.act");
+		await settle();
+		return { result };
+	}
+
+	function button(label: string) {
+		return Array.from(document.body.querySelectorAll("[role='dialog'] button")).find(
+			(node) => node.textContent?.trim() === label
+		) as HTMLButtonElement;
+	}
+
+	it("has open, confirm and danger, no form", async () => {
+		await shell();
+		const { result } = await asShellAct((shell) => Object.keys(shell.dialog));
+		expect(await result).toEqual(["open", "confirm", "danger"]);
+	});
+
+	describe("open", () => {
+		const Body = defineComponent({
+			props: { name: String, close: Function },
+			setup: (props) => () =>
+				h("div", { "data-testid": "body" }, [
+					h("span", props.name),
+					h("button", { onClick: () => props.close!({ picked: props.name }) }, "Pick"),
+				]),
+		});
+
+		it("renders the component with its props and resolves what it closes with", async () => {
+			await shell();
+			const { result } = await asShellAct((shell) =>
+				shell.dialog.open(Body, { name: "Ada" }, { title: "Pick one" })
+			);
+			await vi.waitFor(() => expect(document.body.querySelector("[role='dialog']")).not.toBeNull());
+			const dialog = document.body.querySelector("[role='dialog']")!;
+			expect(dialog.textContent).toContain("Pick one");
+			expect(dialog.querySelector("[data-testid='body']")!.textContent).toContain("Ada");
+			button("Pick").click();
+			expect(await result).toEqual({ picked: "Ada" });
+			await vi.waitFor(() => expect(document.body.querySelector("[role='dialog']")).toBeNull());
+		});
+
+		it("resolves null when the reader dismisses it", async () => {
+			await shell();
+			const { result } = await asShellAct((shell) => shell.dialog.open(Body, { name: "Ada" }));
+			await vi.waitFor(() => expect(document.body.querySelector("[role='dialog']")).not.toBeNull());
+			document.body.querySelector<HTMLElement>("[role='dialog'] [aria-label='Close']")!.click();
+			await settle();
+			expect(await result).toBeNull();
+		});
+	});
+
+	it("toast.info shows frappe-ui's info toast", async () => {
+		const { toast } = await import("frappe-ui");
+		await shell();
+		await asShellAct((shell) => shell.toast.info("Invitation sent"));
+		expect(toast.info).toHaveBeenCalledWith("Invitation sent");
+	});
+
+	it("confirm gives the act true when confirmed, and null when dismissed", async () => {
+		await shell();
+		const confirmed = await asShellAct((shell) => shell.dialog.confirm({ title: "Send the reminder?" }));
+		expect(document.body.querySelector("[role='dialog']")!.textContent).toContain("Send the reminder?");
+		button("Confirm").click();
+		expect(await confirmed.result).toBe(true);
+
+		const dismissed = await asShellAct((shell) => shell.dialog.confirm({ title: "Send it again?" }));
+		button("Cancel").click();
+		expect(await dismissed.result).toBeNull();
+	});
+
+	it("danger warns on a theme or an icon, which frappe-ui forces, and asks with Delete", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		await shell();
+		const { result } = await asShellAct((shell) =>
+			shell.dialog.danger({ title: "Remove the call log?", theme: "blue", icon: "lucide-flag" } as any)
+		);
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("shell.dialog.danger called with 'theme'"));
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("shell.dialog.danger called with 'icon'"));
+		button("Delete").click();
+		expect(await result).toBe(true);
+	});
+});

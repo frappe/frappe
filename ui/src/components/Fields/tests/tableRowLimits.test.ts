@@ -60,3 +60,28 @@ describe("TableField row limits", () => {
     expect(labels().some((label) => label.startsWith("Delete"))).toBe(false);
   });
 });
+
+describe("TableField columns", () => {
+  it("drops a column a script hides, header and cells", () => {
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    app = createApp({
+      render: () =>
+        h(TableField, {
+          field: {
+            fieldname: "products",
+            fieldtype: "Table",
+            childFields: [
+              { fieldname: "qty", fieldtype: "Data", label: "Qty" },
+              { fieldname: "rate", fieldtype: "Data", label: "Rate", override: { hidden: true } },
+            ],
+          },
+          modelValue: [{ name: "a", qty: 1, rate: 2 }],
+        }),
+    });
+    app.provide(ResolveFieldKey, () => StubField);
+    app.mount(host);
+    expect(host.textContent).toContain("Qty");
+    expect(host.textContent).not.toContain("Rate");
+  });
+});

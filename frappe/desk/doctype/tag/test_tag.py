@@ -1,5 +1,14 @@
+from unittest.mock import patch
+
 import frappe
-from frappe.desk.doctype.tag.tag import DocTags, add_tag
+from frappe.desk.doctype.tag.tag import (
+	DocTags,
+	add_tag,
+	add_tags,
+	ensure_tag,
+	set_tag_color,
+	update_record_tags,
+)
 from frappe.desk.reportview import get_stats
 from frappe.tests import IntegrationTestCase
 
@@ -57,3 +66,172 @@ class TestTag(IntegrationTestCase):
 		frappe.db.set_value(doc.doctype, doc.name, "_user_tags", ",tag1,tag2,tag3", update_modified=False)
 		doc.reload()
 		self.assertEqual(doc.get_tags(), ["tag1", "tag2", "tag3"])
+
+	def test_ensure_tag_creates_with_the_color(self):
+		ensure_tag("coloured", "Red")
+		self.assertEqual(frappe.db.get_value("Tag", "coloured", "color"), "Red")
+
+	def test_ensure_tag_fills_a_tag_without_a_color(self):
+		ensure_tag("plain")
+		self.assertFalse(frappe.db.get_value("Tag", "plain", "color"))
+		ensure_tag("plain", "Blue")
+		self.assertEqual(frappe.db.get_value("Tag", "plain", "color"), "Blue")
+
+	def test_ensure_tag_never_overwrites_a_color(self):
+		ensure_tag("kept", "Green")
+		ensure_tag("kept", "Red")
+		self.assertEqual(frappe.db.get_value("Tag", "kept", "color"), "Green")
+
+	def test_ensure_tag_rejects_an_unknown_color(self):
+		with self.assertRaises(frappe.ValidationError):
+			ensure_tag("odd", "Chartreuse")
+		self.assertFalse(frappe.db.exists("Tag", "odd"))
+
+	def test_set_tag_color_recolours_an_existing_tag(self):
+		ensure_tag("repaint", "Red")
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+		set_tag_color("repaint", "Blue")
+		self.assertEqual(frappe.db.get_value("Tag", "repaint", "color"), "Blue")
+
+	def test_set_tag_color_rejects_an_unknown_color(self):
+		ensure_tag("stays", "Red")
+		with self.assertRaises(frappe.ValidationError):
+			set_tag_color("stays", "Chartreuse")
+		self.assertEqual(frappe.db.get_value("Tag", "stays", "color"), "Red")
+
+	def test_update_record_tags_applies_adds_and_removes_in_one_call(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "batch tags"}).insert()
+		add_tag("old", "ToDo", todo.name)
+		answer = update_record_tags(
+			"ToDo", todo.name, [{"tag": "fresh", "color": "Teal"}, {"tag": "plain"}], ["old"]
+		)
+		self.assertEqual(sorted(answer["tags"]), ["fresh", "plain"])
+		self.assertEqual(answer["tag_colors"]["fresh"], "Teal")
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "_user_tags"), "fresh,plain")
+
+	def test_update_record_tags_changes_nothing_when_one_add_fails(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "batch tags"}).insert()
+		add_tag("kept", "ToDo", todo.name)
+		with self.assertRaises(frappe.ValidationError):
+			update_record_tags(
+				"ToDo", todo.name, [{"tag": "fine"}, {"tag": "odd", "color": "Chartreuse"}], ["kept"]
+			)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "_user_tags"), "kept")
+		self.assertFalse(frappe.db.exists("Tag", "fine"))
+		self.assertFalse(frappe.db.exists("Tag", "odd"))
+
+	def test_update_record_tags_rejects_malformed_input_before_writing(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "bad tags"}).insert()
+		add_tag("kept", "ToDo", todo.name)
+		for added, removed in (
+			([{"tag": "a,b"}], []),
+			([{"tag": "  "}], []),
+			([{"tag": " padded"}], []),
+			([{"color": "Teal"}], []),
+			(["plain"], []),
+			([], '"kept"'),
+			([], [1]),
+		):
+			with self.assertRaises(frappe.ValidationError):
+				update_record_tags("ToDo", todo.name, added, removed)
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "_user_tags"), "kept")
+
+	def test_update_record_tags_rolls_back_a_failure_mid_way(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "batch tags"}).insert()
+		add_tag("kept", "ToDo", todo.name)
+		with patch.object(DocTags, "add", side_effect=[None, frappe.ValidationError("boom")]):
+			with self.assertRaises(frappe.ValidationError):
+				update_record_tags("ToDo", todo.name, [{"tag": "a"}, {"tag": "b"}], ["kept"])
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "_user_tags"), "kept")
+
+	def test_update_record_tags_needs_write_on_the_record(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "not yours"}).insert()
+		frappe.set_user("Guest")
+		self.addCleanup(frappe.set_user, "Administrator")
+		with self.assertRaises(frappe.PermissionError):
+			update_record_tags("ToDo", todo.name, [{"tag": "sneaky"}], [])
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Tag", "sneaky"))
+
+	def test_add_tag_and_add_tags_pass_the_color(self):
+		first = frappe.get_doc({"doctype": "ToDo", "description": "colour test"}).insert()
+		second = frappe.get_doc({"doctype": "ToDo", "description": "colour test"}).insert()
+		add_tag("single", "ToDo", first.name, "Teal")
+		add_tags(["bulk"], "ToDo", [first.name, second.name], "Violet")
+		self.assertEqual(frappe.db.get_value("Tag", "single", "color"), "Teal")
+		self.assertEqual(frappe.db.get_value("Tag", "bulk", "color"), "Violet")
+		second.reload()
+		self.assertEqual(second.get_tags(), ["bulk"])
+
+
+class TestAdoptHelpdeskTagColor(IntegrationTestCase):
+	def insert_custom_field(self, **values):
+		# as an older Helpdesk or a site installs it; a normal insert would clash with the standard field
+		frappe.get_doc(
+			{
+				"doctype": "Custom Field",
+				"name": "Tag-color",
+				"dt": "Tag",
+				"fieldname": "color",
+				"label": "Color",
+			}
+			| values
+		).db_insert()
+		frappe.clear_cache(doctype="Tag")
+		self.addCleanup(self.drop_custom_field)
+
+	def drop_custom_field(self):
+		frappe.db.delete("Custom Field", {"dt": "Tag", "fieldname": "color"})
+		frappe.clear_cache(doctype="Tag")
+
+	def test_patch_drops_helpdesks_custom_field_and_keeps_the_colors(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		ensure_tag("helpdesk-tag", "Orange")
+		self.insert_custom_field(
+			fieldtype="Select", options=frappe.get_meta("Tag").get_field("color").options
+		)
+		execute()
+		self.assertFalse(frappe.db.exists("Custom Field", {"dt": "Tag", "fieldname": "color"}))
+		self.assertEqual(frappe.db.get_value("Tag", "helpdesk-tag", "color"), "Orange")
+		self.assertFalse(frappe.get_meta("Tag").get_field("color").get("is_custom_field"))
+
+	def test_patch_keeps_a_color_type_field_and_its_hex_values(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		self.insert_custom_field(fieldtype="Color")
+		tag = frappe.get_doc({"doctype": "Tag", "name": "hex-tag", "color": "#ff0000"}).insert()
+		execute()
+		self.assertTrue(frappe.db.exists("Custom Field", {"dt": "Tag", "fieldname": "color"}))
+		self.assertEqual(frappe.db.get_value("Tag", tag.name, "color"), "#ff0000")
+		tag.reload()
+		tag.color = "#00ff00"
+		tag.save()
+		self.assertEqual(frappe.db.get_value("Tag", tag.name, "color"), "#00ff00")
+
+	def test_record_tags_still_save_with_a_color_type_field(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		self.insert_custom_field(fieldtype="Color")
+		execute()
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "own colour field"}).insert()
+		add_tag("old", "ToDo", todo.name)
+		answer = update_record_tags("ToDo", todo.name, [{"tag": "fresh"}], ["old"])
+		self.assertEqual(answer["tags"], ["fresh"])
+
+	def test_patch_keeps_a_select_with_other_options(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		self.insert_custom_field(fieldtype="Select", options="\nGray\nBrand")
+		execute()
+		self.assertTrue(frappe.db.exists("Custom Field", {"dt": "Tag", "fieldname": "color"}))
+		self.assertEqual(frappe.get_meta("Tag").get_field("color").options, "\nGray\nBrand")
+
+	def test_patch_does_nothing_without_a_custom_field(self):
+		from frappe.patches.v17_0.adopt_helpdesk_tag_color import execute
+
+		ensure_tag("plain-tag", "Teal")
+		execute()
+		self.assertEqual(frappe.db.get_value("Tag", "plain-tag", "color"), "Teal")
+		self.assertEqual(frappe.get_meta("Tag").get_field("color").fieldtype, "Select")

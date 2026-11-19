@@ -451,6 +451,22 @@ frappe.ui.Sidebar = class Sidebar {
 					},
 				],
 			},
+			// A full-document link: desk v2 is a separate document, not a v1 route.
+			...(cint(frappe.boot.sysdefaults.enable_desk_v2)
+				? [
+						{
+							group: "",
+							options: [
+								{
+									name: "desk-v2",
+									label: __("Desk v2"),
+									icon: "arrow-left-right",
+									href: "/apps",
+								},
+							],
+						},
+				  ]
+				: []),
 			{
 				group: "",
 				options: [

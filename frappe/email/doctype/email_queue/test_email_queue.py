@@ -44,6 +44,23 @@ class TestEmailQueue(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("Email Queue", new_record.name))
 		self.assertTrue(frappe.db.exists("Email Queue Recipient", {"parent": new_record.name}))
 
+	def test_retry_record_requeues_one_failed_email(self):
+		from frappe.email.doctype.email_queue.email_queue import retry_record
+
+		failed = frappe.get_doc(
+			{
+				"doctype": "Email Queue",
+				"sender": "Test <test@example.com>",
+				"message": "Test retry",
+				"status": "Error",
+				"recipients": [{"recipient": "test_retry@test.com"}],
+			}
+		).insert()
+
+		retry_record("Email Queue", failed.name)
+
+		self.assertEqual(frappe.db.get_value("Email Queue", failed.name, "status"), "Not Sent")
+
 	def test_failed_email_notification(self):
 		subject = frappe.generate_hash()
 		email_record = frappe.new_doc("Email Queue")

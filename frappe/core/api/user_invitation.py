@@ -2,6 +2,8 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
+from frappe.database.utils import DefaultOrderBy
+from frappe.utils.data import is_desk_v2_enabled
 
 
 @frappe.whitelist(methods=["POST"])
@@ -125,30 +127,60 @@ def resend_invitation(
 		# message is not specific enough for security
 		frappe.throw(title=_("Error"), msg=_("Invitation not found"))
 
-	if invitation.status != "Pending":
-		frappe.throw(title=_("Error"), msg=_("Only pending invitations can be resent"))
-
-	invitation.send_invitation_mail()
+	# Authorized by validate_role() on the app's user_invitation hook; those roles have no write.
+	invitation.flags.ignore_permissions = True
+	invitation.resend_invite()
 
 
 @frappe.whitelist(methods=["GET"])
-def get_pending_invitations(app_name: str):
+def get_pending_invitations(app_name: str) -> list[dict]:
 	UserInvitation.validate_role(app_name)
 
+	v2 = is_desk_v2_enabled()
 	pending_invitations = frappe.db.get_all(
-		"User Invitation", fields=["name", "email"], filters={"status": "Pending", "app_name": app_name}
+		"User Invitation",
+		fields=["name", "email"],
+		filters={"status": "Pending", "app_name": app_name},
+		order_by="creation asc" if v2 else DefaultOrderBy,
 	)
-	res = []
-	for pending_invitation in pending_invitations:
-		roles = frappe.db.get_all("User Role", fields=["role"], filters={"parent": pending_invitation.name})
-		res.append(
-			{
-				"name": pending_invitation.name,
-				"email": pending_invitation.email,
-				"roles": [r.role for r in roles],
-			}
-		)
-	return res
+	if not pending_invitations:
+		return []
+	roles_by_invitation: dict[str, list[str]] = {}
+	for row in frappe.db.get_all(
+		"User Role",
+		fields=["parent", "role"],
+		filters={
+			"parenttype": "User Invitation",
+			"parent": ["in", [invitation.name for invitation in pending_invitations]],
+		},
+		order_by="idx asc" if v2 else DefaultOrderBy,
+	):
+		roles_by_invitation.setdefault(row.parent, []).append(row.role)
+	return [
+		{
+			"name": invitation.name,
+			"email": invitation.email,
+			"roles": roles_by_invitation.get(invitation.name, []),
+		}
+		for invitation in pending_invitations
+	]
+
+
+@frappe.whitelist(methods=["GET"])
+def get_invited_emails(app_name: str, emails: list[str] | str) -> list[str]:
+	UserInvitation.validate_role(app_name)
+
+	emails = frappe.parse_json(emails)
+	if not isinstance(emails, list) or not all(isinstance(email, str) for email in emails):
+		frappe.throw(title=_("Invalid input"), msg=_("Emails must be a list of email addresses"))
+	if not emails:
+		return []
+	return frappe.db.get_all(
+		"User Invitation",
+		filters={"app_name": app_name, "status": ["in", ["Pending", "Accepted"]], "email": ["in", emails]},
+		pluck="email",
+		distinct=True,
+	)
 
 
 def _accept_invitation(key: str, in_test: bool) -> None:
@@ -170,6 +202,8 @@ def _accept_invitation(key: str, in_test: bool) -> None:
 	# set redirect_to
 	redirect_to = frappe.utils.get_url(invitation.get_redirect_to_path())
 	if should_update_password:
+		if is_desk_v2_enabled():
+			user.db_set("redirect_url", f"/{invitation.get_redirect_to_path()}", update_modified=False)
 		redirect_to = f"{user._reset_password()}&redirect_to=/{invitation.get_redirect_to_path()}"
 
 	# GET requests do not cause an implicit commit

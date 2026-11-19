@@ -72,8 +72,7 @@ The serialized, persist-able capture of a List View's state — its **Filter**s,
 persistence layer is handed. It carries **no identity, ownership, or named-View
 concept** — whether this is a "standard", public, pinned, or named **View**, and
 who owns it, belongs entirely to the consuming app. The library tops out here and
-never owns a saved **View** entity; the host wires _when_ and _where_ to save it
-([ADR-0007](docs/adr/0007-persistence-deferred-to-host-library-tops-out-at-view-snapshot.md)).
+never owns a saved **View** entity; the host wires _when_ and _where_ to save it.
 _Avoid_: view, saved view, view settings (all carry CRM's Views concept).
 
 **Composite List View**:
@@ -89,7 +88,7 @@ Distinct from each control's own isolated story.
 
 **List module**:
 The experimental module (`experimental/List/`, subpath `./experimental/List`) that holds
-the table (`List`), the footer (`ListFooter`) and the selection bar (`ListBulkBar`) a
+the table (`List`) and the footer (`ListFooter`) a
 doctype list page composes beside the controls. Experimental: its API can change with
 no deprecation window until the desk list page has settled it. The
 host lays them out, fetches the rows, and binds the same **Column**s and **Sort**s the

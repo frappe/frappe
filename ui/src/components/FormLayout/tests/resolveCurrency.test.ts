@@ -1,21 +1,54 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-
-// Stub frappe-ui so the module imports cleanly in vitest's node env (the
-// built-in reader is never reached here — `window` is undefined, so
-// `builtinGetDocValue` returns undefined without touching frappe-ui).
-vi.mock("frappe-ui", () => ({
-  createResource: vi.fn(),
-  getCachedResource: vi.fn(() => null),
-}));
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { computed, effectScope, type EffectScope } from "vue";
+import { updateDocument } from "../../../api";
+import {
+  clearDataCache,
+  feedFieldRead,
+  readCachedDocument,
+  readCachedList,
+  takeTicket,
+} from "../../../cache";
 import {
   resolveFieldCurrency,
   setDocValueReader,
   resetDocValueReader,
   getDocValueReader,
+  useDocValueReader,
 } from "../resolveCurrency";
 
-afterEach(() => resetDocValueReader());
+const OLD = "2026-09-01 10:00:00.000000";
+const NEW = "2026-09-03 10:00:00.000000";
+
+const fetchMock = vi.fn<typeof fetch>();
+
+function respond(body: unknown, status = 200): void {
+  fetchMock.mockImplementationOnce(async () => new Response(JSON.stringify(body), { status }));
+}
+
+/** The next request waits until the returned function answers it. */
+function respondLater(): (body: unknown, status?: number) => void {
+  let answer!: (response: Response) => void;
+  fetchMock.mockImplementationOnce(() => new Promise((resolve) => (answer = resolve)));
+  return (body, status = 200) => answer(new Response(JSON.stringify(body), { status }));
+}
+
+function acme(currency: string, modified = OLD): Record<string, string> {
+  return { name: "Acme", modified, default_currency: currency };
+}
+
+/** Lets a reply's promise hops run. */
+const flush = () => new Promise((resolve) => setTimeout(resolve));
+
+beforeEach(() => {
+  clearDataCache();
+  vi.stubGlobal("fetch", fetchMock);
+  fetchMock.mockReset();
+});
+
+afterEach(() => {
+  resetDocValueReader();
+  vi.unstubAllGlobals();
+});
 
 describe("resolveFieldCurrency", () => {
   // 1. No options → site default.
@@ -160,8 +193,8 @@ describe("resolveFieldCurrency", () => {
     ).toBe("CHF");
   });
 
-  it("falls back to the default when the reader yields nothing (built-in, headless)", () => {
-    // No override + no `window` → built-in reader returns undefined → fallback.
+  it("falls back to the default while the built-in reader has nothing yet", () => {
+    // No override → built-in reader, whose read has not landed → fallback.
     expect(
       resolveFieldCurrency("Company:company:default_currency", {
         doc: { company: "Acme" },
@@ -182,12 +215,157 @@ describe("resolveFieldCurrency", () => {
 });
 
 describe("doc-value reader seam", () => {
-  it("returns the override when set, else the built-in", () => {
+  it("returns the override when set, else a read of the cache", () => {
     const builtin = getDocValueReader();
     const stub = () => "USD";
     setDocValueReader(stub);
     expect(getDocValueReader()).toBe(stub);
     resetDocValueReader();
     expect(getDocValueReader()).toBe(builtin);
+  });
+});
+
+describe("the built-in reader", () => {
+  const scopes: EffectScope[] = [];
+
+  /** A component on screen: its reader, and a currency shown the way a field shows it. */
+  function visit() {
+    const scope = effectScope();
+    scopes.push(scope);
+    return scope.run(() => {
+      const read = useDocValueReader();
+      const shown = computed(() =>
+        resolveFieldCurrency("Company:company:default_currency", {
+          doc: { company: "Acme" },
+          defaultCurrency: "USD",
+          getDocValue: read,
+        })
+      );
+      return { read, shown, leave: () => scope.stop() };
+    })!;
+  }
+
+  afterEach(() => scopes.splice(0).forEach((scope) => scope.stop()));
+
+  it("reads the cache alone outside a component", () => {
+    const read = useDocValueReader();
+    expect(read("Company", "Acme", "default_currency")).toBeUndefined();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("lets the override answer for a component's reader", () => {
+    const { read } = visit();
+    setDocValueReader(() => "CHF");
+    expect(read("Company", "Acme", "default_currency")).toBe("CHF");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("reads the value into the cache and makes no list entry", async () => {
+    const answer = respondLater();
+    const { shown } = visit();
+    expect(shown.value).toBe("USD");
+
+    const query = new URL(String(fetchMock.mock.calls[0][0]), "http://x").searchParams;
+    expect(JSON.parse(query.get("fields")!)).toEqual(["default_currency", "name", "modified"]);
+    expect(JSON.parse(query.get("filters")!)).toEqual({ name: "Acme" });
+
+    answer({ data: [acme("EUR")], has_next_page: false });
+    await flush();
+    expect(shown.value).toBe("EUR");
+    expect(readCachedDocument("Company", "Acme")!.doc.default_currency).toBe("EUR");
+    const fields = ["default_currency", "name", "modified"];
+    expect(readCachedList("Company", { fields, filters: { name: "Acme" }, limit: 1 })).toBe(
+      undefined
+    );
+  });
+
+  it("sends one read while many readers on screen use a value", async () => {
+    const answer = respondLater();
+    const first = visit();
+    const second = visit();
+    for (let run = 0; run < 5; run++) {
+      first.read("Company", "Acme", "default_currency");
+      second.read("Company", "Acme", "default_currency");
+    }
+    answer({ data: [acme("EUR")], has_next_page: false });
+    await flush();
+    expect(second.shown.value).toBe("EUR");
+    first.leave();
+    visit().read("Company", "Acme", "default_currency");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a changed linked currency on the next visit, with no reload", async () => {
+    respond({ data: [acme("EUR")], has_next_page: false });
+    const first = visit();
+    first.shown.value;
+    await flush();
+    expect(first.shown.value).toBe("EUR");
+    first.leave();
+
+    const answer = respondLater();
+    const second = visit();
+    expect(second.shown.value).toBe("EUR");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    answer({ data: [acme("GBP", NEW)], has_next_page: false });
+    await flush();
+    expect(second.shown.value).toBe("GBP");
+  });
+
+  it("keeps a value on screen past the cache's limit of field reads", async () => {
+    respond({ data: [acme("EUR")], has_next_page: false });
+    const { shown } = visit();
+    shown.value;
+    await flush();
+    for (let index = 0; index < 210; index++) {
+      feedFieldRead(takeTicket(), "Company", { name: `C${index}`, modified: OLD });
+    }
+    expect(shown.value).toBe("EUR");
+  });
+
+  it("lets go of the old linked record when the link changes", async () => {
+    respond({ data: [acme("EUR")], has_next_page: false });
+    respond({ data: [{ name: "Beta", modified: OLD, default_currency: "INR" }] });
+    const { read } = visit();
+    read("Company", "Acme", "default_currency");
+    await flush();
+    expect(read("Company", "Beta", "default_currency")).toBeUndefined();
+    await flush();
+    for (let index = 0; index < 210; index++) {
+      feedFieldRead(takeTicket(), "Company", { name: `C${index}`, modified: OLD });
+    }
+    expect(readCachedDocument("Company", "Acme")).toBeUndefined();
+    expect(read("Company", "Beta", "default_currency")).toBe("INR");
+  });
+
+  it("shows a save of the linked record with no read of its own", async () => {
+    respond({ data: [acme("EUR")], has_next_page: false });
+    const { shown } = visit();
+    shown.value;
+    await flush();
+
+    respond({ data: acme("GBP", NEW) });
+    await updateDocument("Company", "Acme", { default_currency: "GBP", modified: OLD });
+    expect(shown.value).toBe("GBP");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry a failed read in the same visit, and retries on the next", async () => {
+    respond({ errors: [{ message: "Forbidden" }] }, 403);
+    const first = visit();
+    first.shown.value;
+    await flush();
+    first.read("Company", "Acme", "default_currency");
+    expect(first.shown.value).toBe("USD");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    first.leave();
+
+    respond({ data: [acme("EUR")], has_next_page: false });
+    const second = visit();
+    second.shown.value;
+    await flush();
+    expect(second.shown.value).toBe("EUR");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

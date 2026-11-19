@@ -20,8 +20,14 @@
 				:label="field.label"
 				:required="field.reqd"
 			/>
-			<div class="relative" :class="{ 'mt-1': field.label }">
+			<ReadValue
+				v-if="unset"
+				:placeholder="__('Not set')"
+				:class="{ 'mt-1': field.label }"
+			/>
+			<div v-else class="relative" :class="{ 'mt-1': field.label }">
 				<CodeEditor
+					ref="editor"
 					:modelValue="value"
 					:extensions="extensions"
 					:editable="!field.readOnly"
@@ -32,6 +38,7 @@
 					<CodeEditorContent
 						class="code-content"
 						:class="{
+							'code-fit': field.readOnly,
 							'code-collapsed': !expanded,
 							'code-fade': showExpand && !expanded,
 						}"
@@ -61,7 +68,9 @@
 				:id="descriptionId"
 				:description="field.description"
 				class="mt-1"
-			/>
+			>
+				<FieldDescription :html="field.description" />
+			</InputDescription>
 			<ErrorMessage :id="errorId" :message="error" class="mt-1" />
 			<!-- Narrow `stacked` layout: a live preview always sits below the editor
 			     (the wide `split` layout shows it as a side column instead). It's
@@ -92,7 +101,8 @@
 					v-show="previewOpen"
 					:modelValue="value"
 					:language="language"
-					class="mt-1 min-h-[4.5rem] rounded-5 border border-outline-gray-1 p-3"
+					class="mt-1 rounded-5 border border-outline-gray-1 p-3"
+					:class="{ 'min-h-[4.5rem]': !field.readOnly }"
 				/>
 			</div>
 		</div>
@@ -112,7 +122,8 @@
 			<CodePreview
 				:modelValue="value"
 				:language="language"
-				class="min-h-[4.5rem] rounded-5 border border-outline-gray-1 p-3"
+				class="rounded-5 border border-outline-gray-1 p-3"
+				:class="{ 'min-h-[4.5rem]': !field.readOnly }"
 			/>
 		</div>
 	</div>
@@ -125,13 +136,29 @@
 // `doc` (Frappe JSON/Code fields store strings) — the contract is unchanged.
 import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useId, watch } from "vue";
+import {
+	computed,
+	inject,
+	nextTick,
+	onBeforeUnmount,
+	onMounted,
+	ref,
+	shallowRef,
+	useId,
+	watch,
+} from "vue";
 import { Button, ErrorMessage } from "frappe-ui";
 import { CodeEditor, CodeEditorContent, CodeKit, loadLanguage } from "frappe-ui/code-editor";
+import type { CodeEditorExposed } from "frappe-ui/code-editor";
 import { InputDescription, InputLabel } from "frappe-ui/experimental";
 import CodePreview from "./CodePreview.vue";
+import ReadValue from "./ReadValue.vue";
+import { translate as __ } from "../../utils/translate";
+import { markCodeErrors } from "./codeErrorMarks";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
+import { CodeErrorsKey, ParentDocKey, TemplateNamesKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = withDefaults(
 	defineProps<
@@ -154,11 +181,12 @@ const emit = defineEmits<FieldComponentEmits>();
 // Value stays a string; LinkField-style get (the editor owns its own buffer, so
 // no setter — commits flow through `onInput`/`onCommit`).
 const value = computed<string>(() => props.modelValue ?? "");
+const unset = computed(() => Boolean(props.field.readOnly) && !value.value);
 
 const language = computed(() => fieldtypeToLanguage(props.field));
 
 // Configured outside `extensions`, so the array's members stay stable between renders.
-// Completion stays off: the field supplies no sources.
+// Completion stays off here: only the JavaScript grammar brings it, for templates.
 const kit = computed(() =>
 	CodeKit.configure({
 		// The kit ships line numbers off; the field drew them before rc.1.
@@ -167,6 +195,8 @@ const kit = computed(() =>
 		placeholder: props.field.placeholder || false,
 	})
 );
+
+const templateNames = inject(TemplateNamesKey, null);
 
 // The grammar loads after mount and lands through the reactive `extensions`; an answer for
 // a language the field has since left is dropped.
@@ -177,15 +207,21 @@ watch(
 		const wanted = key;
 		let loaded: Extension | null = null;
 		try {
-			loaded = await loadLanguage(key);
+			loaded = await loadGrammar(key);
 		} catch (error) {
-			// The message names the package to install.
+			// A grammar that fails to load leaves the field as plain text.
 			console.error(error);
 		}
 		if (language.value === wanted) languageExtension.value = loaded;
 	},
 	{ immediate: true }
 );
+
+async function loadGrammar(key: string): Promise<Extension | null> {
+	if (key !== "javascript") return loadLanguage(key);
+	const { templateLanguage } = await import("./templateLanguage");
+	return templateLanguage(templateNames);
+}
 
 // JSON fields lint as before: a parse error marks the line. The lint packages load only
 // for a JSON field; frappe-ui's vite plugin stubs an absent one with a throw.
@@ -212,6 +248,36 @@ watch(
 	{ immediate: true }
 );
 
+// A host's compile errors for this field, as lint marks. They name top-level fields only, so
+// a field inside a child row takes none.
+const editor = ref<CodeEditorExposed | null>(null);
+const hostErrors = inject(CodeErrorsKey, null);
+const inRow = inject(ParentDocKey, null) !== null;
+const codeErrors = computed(() =>
+	inRow ? [] : (hostErrors?.value ?? []).filter((e) => e.field === props.field.fieldname)
+);
+const markGutter = shallowRef<Extension[]>([]);
+
+async function showCodeErrors(errors: typeof codeErrors.value) {
+	if (!errors.length && !markGutter.value.length) return;
+	try {
+		const lint = await import("@codemirror/lint");
+		// `linter(null)` keeps the marks in the config; the editor's reconfigure drops them otherwise.
+		if (!markGutter.value.length) {
+			markGutter.value = [lint.lintGutter(), lint.linter(null)];
+			await nextTick();
+		}
+		const view = editor.value?.editor;
+		if (!view || errors !== codeErrors.value) return;
+		markCodeErrors(view, errors, lint);
+	} catch (error) {
+		console.error(error);
+	}
+}
+
+// The view exists only once the editor has mounted.
+onMounted(() => watch(codeErrors, showCodeErrors, { immediate: true }));
+
 const hasError = computed(() => Boolean(props.error?.length));
 
 const describedBy = computed(() => {
@@ -233,7 +299,7 @@ const contentAttributes = computed(() =>
 const extensions = computed<Extension[]>(() => {
 	const list: Extension[] = [kit.value, contentAttributes.value];
 	if (languageExtension.value) list.push(languageExtension.value);
-	list.push(...lintExtensions.value);
+	list.push(...lintExtensions.value, ...markGutter.value);
 	return list;
 });
 
@@ -262,7 +328,7 @@ let observer: ResizeObserver | null = null;
 
 const layout = computed<"editor" | "split" | "stacked">(() => {
 	// Nothing to preview → always the bare editor, even if `view` asks otherwise.
-	if (!hasPreview.value) return "editor";
+	if (!hasPreview.value || unset.value) return "editor";
 	if (props.view !== "auto") return props.view;
 	return isWide.value ? "split" : "stacked";
 });
@@ -306,23 +372,26 @@ onBeforeUnmount(detachObserver);
 
 // Live edits keep `doc` reactive while typing.
 function onInput(v: string) {
-	emit("update:modelValue", v);
+	emit("update:modelValue", props.field.fieldtype === "JSON" && v === "" ? null : v);
 }
 
 // Commit (blur). JSON is pretty-printed at the component edge; on parse failure
 // the raw text is kept. The rewritten value flows back into the editor via its
 // `modelValue` watch.
 function onCommit(v: string) {
-	let out = v;
-	if (props.field.fieldtype === "JSON") {
-		try {
-			out = JSON.stringify(JSON.parse(v), null, 2);
-		} catch {
-			out = v;
-		}
-	}
+	const out = props.field.fieldtype === "JSON" ? jsonCommit(v) : v;
 	emit("update:modelValue", out);
 	emit("change", out);
+}
+
+// The JSON column refuses `""`, so an empty field commits `null`.
+function jsonCommit(v: string): string | null {
+	if (!v.trim()) return null;
+	try {
+		return JSON.stringify(JSON.parse(v), null, 2);
+	} catch {
+		return v;
+	}
 }
 </script>
 
@@ -330,6 +399,10 @@ function onCommit(v: string) {
 /* `lh` resolves on CodeMirror's content element, whose border-box height includes the padding. */
 .code-content {
 	--code-min-height: calc(5lh + 2 * var(--code-padding-y, 6px));
+}
+
+.code-fit {
+	--code-min-height: 0;
 }
 
 /* The cap a collapsed editor is held to. `--code-max-height` is the part's own hook, so

@@ -11,6 +11,15 @@ Walk both before drafting or refactoring a component, and cite principles by ID
 (`FP1`, `P3`) in reviews. The notes below are operational specifics that support
 those rules — the design *rules* themselves live in PHILOSOPHY.md, not here.
 
+## Comments and field descriptions — read `../AGENTS.md`
+
+[`../AGENTS.md`](../AGENTS.md) carries the comment rule for all desk v2 work: a comment
+earns its place only where the code cannot speak for itself, two lines maximum, one
+summary line per docstring, no commented-out code, and a DocType field `description` is
+one line. It is not restated here, so the two cannot drift apart. Check your diff against
+it before closing a ticket.
+
+
 ## frappe-ui vs `@framework/ui` — which package is which
 
 The compose-atoms-don't-rebuild rule is [`FP1`](./PHILOSOPHY.md); this note is the
@@ -26,6 +35,28 @@ Example: `FileUpload/FileUploadDialog.vue` uses frappe-ui's `Tabs` for its sourc
 switcher rather than a hand-rolled tablist — `Tabs` provides the ARIA + keyboard
 nav, and reka-ui's `unmountOnHide` keeps inactive panels (e.g. CameraSource)
 lazy.
+
+## Server calls go through `@framework/ui/api`
+
+Every request goes through the wrapper in `src/api/`, which sends to `/api/v2` only and
+returns the response envelope (`data` plus the keys beside it). No file imports
+frappe-ui's fetch primitives (`call`, `createResource`, `createListResource`,
+`createDocumentResource`, `useCall`, `useList`, `useDoc`, `useNewDoc`, `useDoctype`),
+and no literal starts with `/api/method`, `/api/resource` or `/api/v1`. The lint in
+`../frontend/eslint.config.js` fails CI on either; run it with `yarn --cwd frontend lint`
+after the install in [`../frontend/CLAUDE.md`](../frontend/CLAUDE.md).
+
+What the wrapper does for every caller:
+
+- **Nothing is reshaped.** `const { data, has_next_page } = await listDocuments(...)`.
+- **A save sends `modified`.** `updateDocument` refuses a document without it, before any
+  request, so the server can refuse a save over a newer version (`TimestampMismatchError`).
+- **`filters`, `or_filters` and `include` pass through.** The wrapper JSON-encodes the two
+  filter lists, joins `include` with commas, and models no filter grammar.
+- **Every failure except an abort is an `ApiError`.** Its `type` is the server's error type,
+  or one the wrapper sets, such as `NetworkError`, `HTTPError` (a failed status with no
+  `errors` list) or `MissingData` (a 200 with no `data`). A caller whose method returns
+  nothing passes `nullable`, and then gets `data: null`.
 
 ## Formatting
 

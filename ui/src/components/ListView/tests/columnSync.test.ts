@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-// The column-resize ↔ ColumnSettings sync contract (ADR-0006): the table's
+// The column-resize ↔ ColumnSettings sync contract: the table's
 // drag-resize and the ColumnSettings popover bind the SAME `Column[]` (the SoT
 // `useListView` owns), so a width written by one surfaces through the other with
 // no event plumbing. Verified here on the pure helpers — the wire columns the

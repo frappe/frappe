@@ -267,8 +267,13 @@ Overlays render in the browser's top layer, above the host's chrome whatever sta
 
 ## Adding to the package
 
-1. Create the component/utility under `src/`.
+1. Create the component in its own folder under `src/components/`, with an `index.ts`
+   that exports its public names. Put its tests in `tests/` and its stories in
+   `stories/` in that folder. A utility goes under `src/`.
 2. Re-export it from [`src/index.ts`](src/index.ts) (`export { Foo } from './components/Foo'`).
+3. For a subpath import, add a key to the `exports` map in [`package.json`](package.json),
+   for example `"./Foo"` pointing at `./src/components/Foo/index.ts`. The desk imports
+   only the root and the named keys, so a name the desk needs must be in one of them.
 
 ## Notes & troubleshooting
 

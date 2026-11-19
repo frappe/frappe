@@ -1,4 +1,5 @@
-<!-- The floating bar for a selection: the count, the actions, and a clear button. -->
+<!-- The floating bar for a selection: the count, the actions, and a clear button.
+	@deprecated Kept for apps built on develop; desk v2 renders its bulk bar in the controls row. -->
 <template>
 	<Transition
 		enter-active-class="duration-200 ease-out"

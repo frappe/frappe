@@ -1,4 +1,5 @@
 import type { InputLabelingProps as AtomLabelingProps } from "frappe-ui";
+import type { LinkExposed } from "../Link/types";
 
 interface InputLabelingProps {
   label?: string;
@@ -10,23 +11,31 @@ interface InputLabelingProps {
 export interface TableMultiSelectProps extends InputLabelingProps {
   /** Doctype the links point at — the picker searches its records. */
   doctype: string;
-  /** Link search filters, forwarded to `search_link`. */
+  /** Link search filters, forwarded to the search. */
   filters?: Record<string, unknown>;
   placeholder?: string;
   disabled?: boolean;
-  /**
-   * Show a "Create '{query}'" action in the footer when the user has typed a
-   * query. The control does **not** create anything itself — it emits `create`
-   * and the host wires the behaviour (open quick-entry, insert, …), exactly like
-   * `Link`'s `creatable` + `@create`.
-   */
+  /** Drawn in a panel row: the trigger has no fill or border, since the row's box draws them. */
+  panel?: boolean;
+  /** Show a Create action in the footer; it emits `create` and closes, and the host creates. */
   creatable?: boolean;
+  /** What selected values display as until the search returns them. */
+  titles?: Record<string, string>;
 }
 
 export type TableMultiSelectEmits = {
   /** Fired when the footer "Create" action is clicked, with the typed query. */
   create: [query: string];
 };
+
+export interface TableMultiSelectSlots {
+  /** The footer Create action's label; receives the typed query. */
+  create?: (props: { query: string }) => any;
+  /** Replaces the description text. */
+  description?: () => any;
+}
+
+export type TableMultiSelectExposed = Pick<LinkExposed, "search" | "focus">;
 
 export type TableMultiSelectOption = {
   label: string;

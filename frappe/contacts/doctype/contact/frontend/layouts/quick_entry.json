@@ -1,0 +1,43 @@
+{
+ "layout": [
+  {
+   "name": "first_tab",
+   "sections": [
+    {
+     "columns": [
+      {
+       "fields": [
+        "first_name",
+        "last_name",
+        {
+         "fieldname": "email_id",
+         "fieldtype": "Data",
+         "label": "Email Address",
+         "options": "Email"
+        },
+        {
+         "fieldname": "phone",
+         "fieldtype": "Data",
+         "label": "Phone",
+         "options": "Phone"
+        },
+        {
+         "fieldname": "mobile_no",
+         "fieldtype": "Data",
+         "label": "Mobile No",
+         "options": "Phone"
+        },
+        "company_name",
+        "designation"
+       ],
+       "name": "column_1"
+      }
+     ],
+     "hideBorder": true,
+     "name": "contact"
+    }
+   ]
+  }
+ ],
+ "omitted": []
+}

@@ -40,7 +40,7 @@ from frappe.utils import (
 	validate_time_zone,
 )
 from frappe.utils.background_jobs import get_queue, get_queue_args, get_running_jobs_in_queue
-from frappe.utils.data import sha256_hash
+from frappe.utils.data import is_desk_v2_enabled, sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import (
 	check_password,
@@ -89,6 +89,7 @@ class User(Document):
 		from frappe.types import DF
 
 		active_sessions: DF.Table[UserSessionDisplay]
+		agent_ui_relay: DF.Check
 		allowed_in_mentions: DF.Check
 		api_key: DF.Data | None
 		api_secret: DF.Password | None
@@ -138,6 +139,7 @@ class User(Document):
 		mobile_no: DF.Data | None
 		module_profile: DF.Link | None
 		mute_sounds: DF.Check
+		navigation_side: DF.Literal["", "start", "end"]
 		new_password: DF.Password | None
 		notifications: DF.Check
 		onboarding_status: DF.SmallText | None
@@ -267,6 +269,7 @@ class User(Document):
 		self.clean_name()
 		self.set_full_name()
 		self.check_enable_disable()
+		self.validate_agent_ui_relay()
 		self.ensure_unique_roles()
 		self.ensure_unique_role_profiles()
 		self.sync_role_profile_name()
@@ -342,6 +345,22 @@ class User(Document):
 	def sync_role_profile_name(self):
 		"""Keep deprecated role_profile_name in sync for list view display."""
 		self.role_profile_name = self.role_profiles[0].role_profile if self.role_profiles else None
+
+	def validate_agent_ui_relay(self):
+		"""Only the person turns this on, in their own browser session; anyone with write access may turn it off.
+
+		A token or OAuth request is how an agent signs in, and the setting exists to hold it back.
+		"""
+		if not (self.agent_ui_relay and self.has_value_changed("agent_ui_relay")):
+			return
+		by_token = frappe.request and frappe.request.headers.get("Authorization")
+		if frappe.session.user != self.name or by_token or frappe.session.data.get("oauth_client"):
+			frappe.throw(
+				_("Only {0} can let agents drive their open tabs, from their own browser session.").format(
+					self.name
+				),
+				frappe.PermissionError,
+			)
 
 	def validate_allowed_modules(self):
 		if self.module_profile:
@@ -689,6 +708,9 @@ class User(Document):
 
 		# delete shares
 		frappe.db.delete("DocShare", {"user": self.name})
+
+		# delete favourites
+		frappe.db.delete("Favourite", {"user": self.name})
 		# unlink contact
 		table = DocType("Contact")
 		frappe.qb.update(table).where(table.user == self.name).set(table.user, None).run()
@@ -1147,7 +1169,7 @@ def get_perm_info(role: str):
 	return get_all_perms(role)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 def update_password(
 	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
 ):
@@ -1196,6 +1218,7 @@ def update_password(
 	_update_password(user, new_password, logout_all_sessions=cint(logout_all_sessions))
 
 	user_doc, redirect_url = reset_user_data(user)
+	link_redirect = sanitize_redirect(redirect_url) if key and is_desk_v2_enabled() else None
 
 	user_doc.validate_reset_password()
 
@@ -1203,6 +1226,8 @@ def update_password(
 	frappe.db.set_value("User", user, "reset_password_key", "")
 
 	if key and should_run_2fa(user):
+		if link_redirect:
+			frappe.cache.hset("redirect_after_login", user, link_redirect)
 		return "/login"
 
 	# get redirect url from cache
@@ -1214,7 +1239,7 @@ def update_password(
 	frappe.local.login_manager.login_as(user)
 
 	if user_doc.user_type == "System User":
-		return get_default_path() or "/desk"
+		return link_redirect or get_default_path() or "/desk"
 	else:
 		return redirect_url or get_default_path() or get_home_page()
 
@@ -1315,11 +1340,27 @@ def _get_user_for_update_password(key, old_password):
 		else:
 			result.message = _("The reset password link has either been used before or is invalid")
 	else:
-		# verify old password
-		frappe.local.login_manager.check_password(frappe.session.user, old_password)
 		user = frappe.session.user
+		if is_desk_v2_enabled():
+			_check_old_password_for_v2(user, old_password)
+		else:
+			frappe.local.login_manager.check_password(user, old_password)
 		result.user = user
 	return result
+
+
+def _check_old_password_for_v2(user: str, old_password: str | None) -> None:
+	"""A wrong password is a 417 that counts toward lockout; v1 keeps the 401 that clears the sid cookie."""
+	from frappe.auth import get_login_attempt_tracker
+
+	tracker = None if user == "Guest" else get_login_attempt_tracker(user)
+	try:
+		frappe.local.login_manager.check_password(user, old_password)
+	except frappe.AuthenticationError:
+		if not tracker:
+			raise
+		tracker.add_failure_attempt()
+		frappe.throw(_("Incorrect password"), title=_("Invalid Password"))
 
 
 def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
@@ -1918,16 +1959,21 @@ def _validate_bulk_role_args(users: str | list, roles: str | list) -> tuple[list
 	"""Parse and type-check arguments shared by the bulk role endpoints."""
 	if isinstance(users, str):
 		users = frappe.parse_json(users)
-	if isinstance(roles, str):
-		roles = frappe.parse_json(roles)
 
 	if not isinstance(users, list) or not all(isinstance(u, str) for u in users):
 		frappe.throw(_("Users must be a list of string identifiers."))
 
+	return users, _validate_roles(roles)
+
+
+def _validate_roles(roles: str | list) -> list:
+	if isinstance(roles, str):
+		roles = frappe.parse_json(roles)
+
 	if not isinstance(roles, list) or not all(isinstance(r, str) for r in roles):
 		frappe.throw(_("Roles must be a list of string identifiers."))
 
-	return users, roles
+	return roles
 
 
 def _assign_roles(users: list, roles: list) -> None:
@@ -1942,3 +1988,26 @@ def _unassign_roles(users: list, roles: list) -> None:
 	for user_id in users:
 		user_doc = frappe.get_doc("User", user_id)
 		user_doc.remove_roles(*roles)
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def add_roles_to_user(doctype: str, name: str, roles: str | list) -> None:
+	"""Add roles to one user. The User list's Add Roles runs it on each selected user through `bulk_call`."""
+	_get_user_to_change(doctype, name).add_roles(*_validate_roles(roles))
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def remove_roles_from_user(doctype: str, name: str, roles: str | list) -> None:
+	"""Remove roles from one user. The User list's Remove Roles runs it on each selected user."""
+	_get_user_to_change(doctype, name).remove_roles(*_validate_roles(roles))
+
+
+def _get_user_to_change(doctype: str, name: str) -> User:
+	if doctype != "User":
+		frappe.throw(_("Roles can only be changed on a User."))
+
+	user = frappe.get_doc("User", name)
+	user.check_permission("write")
+	return user

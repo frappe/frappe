@@ -1,0 +1,277 @@
+<!-- The bulk Edit: pick fields, give each a value, and set them on every selected record in one run. -->
+<template>
+	<Dialog v-model="open" :title="title" size="lg" :actions="actions">
+		<template #default>
+			<p v-if="loading" class="text-sm text-ink-gray-5">{{ __("Loading fields…") }}</p>
+			<div v-else class="flex flex-col gap-3">
+				<div v-for="(row, index) in rows" :key="row.id" class="flex items-start gap-2">
+					<div class="edit-picker w-48 shrink-0" data-act="dialog.set_values">
+						<Select
+							class="w-full"
+							:aria-label="__('Field')"
+							:modelValue="row.key"
+							:options="optionsFor(row.key)"
+							@update:modelValue="(key: string) => pick(row, key)"
+						/>
+					</div>
+					<div
+						class="edit-value flex min-h-7 min-w-0 flex-1 flex-col justify-center"
+						role="group"
+						:aria-label="fieldOf(row.key)?.label"
+					>
+						<FormLayout
+							v-if="row.key"
+							:key="row.key"
+							v-model:doc="row.doc"
+							:layout="layoutOf(row)"
+							:doctype="fieldOf(row.key)!.doctype"
+						/>
+						<p
+							v-if="row.key && clears(row.doc[fieldOf(row.key)!.field.fieldname])"
+							class="mt-1.5 text-p-sm text-ink-gray-6"
+						>
+							{{
+								__("You have not entered a value. The field will be set to empty.")
+							}}
+						</p>
+					</div>
+					<Button
+						class="shrink-0"
+						variant="ghost"
+						icon="lucide-x"
+						:aria-label="__('Remove field')"
+						data-view
+						:disabled="rows.length === 1"
+						@click="rows.splice(index, 1)"
+					/>
+				</div>
+				<div>
+					<Button
+						variant="subtle"
+						icon-left="lucide-plus"
+						:label="__('Add field')"
+						data-view
+						@click="add"
+					/>
+				</div>
+				<p v-if="failure" class="whitespace-pre-line text-sm text-ink-red-4">
+					{{ failure }}
+				</p>
+			</div>
+		</template>
+	</Dialog>
+</template>
+
+<script setup lang="ts">
+import { getMeta } from "@framework/ui/api";
+import { FormLayout, fieldsToLayout, mapField, type RawMetaField } from "@framework/ui/FormLayout";
+import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
+import { Button, Dialog, Select } from "frappe-ui";
+import { until } from "@vueuse/core";
+import { computed, provide, ref, watch } from "vue";
+import { useReadableDialog, type DialogHandle } from "@/shell/dialogs/readableDialogs";
+import { coerceValue } from "@/recordPage/formDialogLayout";
+import { __, __n } from "@/i18n";
+import { clears, editableFields, updateFrom, type EditableField } from "@/list/bulkEdit";
+import type { BulkUpdate } from "@framework/ui/api";
+
+const props = defineProps<{
+	doctype: string;
+	count: number;
+	/** The run takes every record the filters show. */
+	all?: boolean;
+	/** The count is a floor, shown with a "+". */
+	approx?: boolean;
+	/** Sends the update; the shell reports how it went. */
+	run: (update: BulkUpdate) => Promise<void>;
+}>();
+const open = defineModel<boolean>({ default: false });
+
+interface EditRow {
+	id: number;
+	key: string;
+	doc: Record<string, unknown>;
+}
+
+const fields = ref<EditableField[]>([]);
+const loading = ref(true);
+// The dialog has no record to commit to.
+provide(CommitKey, NO_COMMIT);
+const rows = ref<EditRow[]>([]);
+const saving = ref(false);
+const failure = ref("");
+const asked = ref({ count: 0, all: false, approx: false });
+let ids = 0;
+const newRow = (): EditRow => ({ id: ++ids, key: "", doc: {} });
+
+watch(
+	open,
+	(isOpen) => {
+		failure.value = "";
+		if (!isOpen) return;
+		if (!fields.value.length && !loading.value) {
+			loading.value = true;
+			load();
+		}
+		asked.value = { count: props.count, all: !!props.all, approx: !!props.approx };
+		rows.value = [newRow()];
+	},
+	{ immediate: true }
+);
+
+load();
+async function load() {
+	try {
+		const { data, children } = await getMeta<{ fields: RawMetaField[] }>(props.doctype, {
+			include: "children",
+		});
+		const byChild = Object.fromEntries(
+			Object.entries((children ?? {}) as Record<string, { fields: RawMetaField[] }>).map(
+				([name, meta]) => [name, meta.fields]
+			)
+		);
+		fields.value = editableFields(props.doctype, data.fields, byChild);
+	} catch (error) {
+		failure.value = error instanceof Error ? error.message : String(error);
+	} finally {
+		loading.value = false;
+	}
+}
+
+const fieldOf = (key: string) => fields.value.find((one) => one.key === key);
+const add = () => rows.value.push(newRow());
+
+const taken = computed(() => new Set(rows.value.map((row) => row.key)));
+const optionsFor = (current: string) =>
+	fields.value
+		.filter((one) => one.key === current || !taken.value.has(one.key))
+		.map((one) => ({ label: one.label, value: one.key }));
+
+function pick(row: EditRow, key: string) {
+	row.key = key;
+	const { fieldname, fieldtype } = fieldOf(key)!.field;
+	// An unticked Check shows 0; an empty doc would send null.
+	row.doc = fieldtype === "Check" ? { [fieldname]: 0 } : {};
+}
+
+function layoutOf(row: EditRow) {
+	const one = fieldOf(row.key)!;
+	// Conditions would run against the empty row doc and hide or lock the control.
+	const bare = {
+		...one.field,
+		label: "",
+		placeholder: one.field.placeholder || one.label,
+		description: undefined,
+		reqd: 0,
+		read_only: 0,
+		hidden: 0,
+		depends_on: undefined,
+		mandatory_depends_on: undefined,
+		read_only_depends_on: undefined,
+	};
+	return fieldsToLayout([mapField(bare, {})]);
+}
+
+const scope = computed(() => {
+	const { count, all, approx } = asked.value;
+	const shown = count.toLocaleString() + (approx ? "+" : "");
+	return all
+		? __("all {0} matching records", [shown])
+		: __n("{0} selected record", "{0} selected records", count, [shown]);
+});
+const title = computed(() => __("Edit {0}", [scope.value]));
+
+const picked = computed(() =>
+	rows.value.flatMap((row) => {
+		const field = fieldOf(row.key);
+		return field ? [{ field, value: row.doc[field.field.fieldname] }] : [];
+	})
+);
+
+const actions = computed(() =>
+	failure.value && !loading.value && !picked.value.length
+		? [{ label: __("Close"), onClick: () => (open.value = false) }]
+		: [
+				{
+					label: __("Update"),
+					variant: "solid",
+					loading: saving.value,
+					disabled: !picked.value.length,
+					onClick: confirm,
+				},
+		  ]
+);
+
+async function confirm() {
+	saving.value = true;
+	failure.value = "";
+	try {
+		await props.run(updateFrom(picked.value));
+		open.value = false;
+	} catch (error) {
+		failure.value = error instanceof Error ? error.message : String(error);
+	} finally {
+		saving.value = false;
+	}
+}
+
+// A call waits for the fields to load. `dialog.set_values` names the fields to set (a key is a fieldname, or `table.fieldname` for a child field): it
+// adds a row for each and never removes one; `dialog.close` and a new Edit start over.
+const handle: DialogHandle = {
+	fieldnames: () => fields.value.map((one) => one.key),
+	values: () =>
+		Object.fromEntries(picked.value.map(({ field, value }) => [field.key, value ?? null])),
+	async setValues(values) {
+		await until(loading).toBe(false);
+		const unknown = Object.keys(values).filter((key) => !fieldOf(key));
+		if (unknown.length)
+			throw new Error(__("The dialog has no field {0}", [unknown.join(", ")]));
+		for (const [key, value] of Object.entries(values)) {
+			let row =
+				rows.value.find((one) => one.key === key) ?? rows.value.find((one) => !one.key);
+			if (!row) rows.value.push(newRow());
+			row ??= rows.value.at(-1)!;
+			if (row.key !== key) pick(row, key);
+			const { fieldname, fieldtype } = fieldOf(key)!.field;
+			row.doc = { ...row.doc, [fieldname]: coerceValue(fieldtype, value) };
+		}
+	},
+	async submit() {
+		await until(loading).toBe(false);
+		if (saving.value) throw new Error(__("The update is running"));
+		if (!picked.value.length) throw new Error(__("Pick a field first"));
+		await confirm();
+		if (failure.value) throw new Error(failure.value);
+	},
+	close: () => void (saving.value || (open.value = false)),
+};
+
+useReadableDialog(
+	open,
+	() => ({
+		title: title.value,
+		buttons: actions.value.map((action) => action.label),
+	}),
+	handle
+);
+</script>
+
+<style scoped>
+/* frappe-ui's sizer holds the selected label's full width, so a long label would never ellipsize. */
+.edit-picker :deep(.select-trigger-sizer) {
+	display: none;
+}
+/* Without a label, frappe-ui draws the control inline and it would not fill the column. */
+.edit-value :deep(.field) {
+	display: flex;
+	flex-direction: column;
+}
+/* The checkbox's 1px nudge lines it up with a label it no longer has. */
+.edit-value :deep(input[type="checkbox"]) {
+	margin-top: 0;
+}
+/* Link and Date draw a darker chevron than Select: every row takes the picker's. */
+.edit-value :deep(.lucide-chevron-down) {
+	color: var(--ink-gray-4);
+}
+</style>

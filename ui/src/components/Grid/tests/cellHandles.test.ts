@@ -35,7 +35,7 @@ describe("Grid columns", () => {
   it("keeps a flexible column at least 128px wide", () => {
     const grid = render(manyColumns(3));
     const header = grid.querySelector<HTMLElement>(".grid-scroller > div")!;
-    expect(header.style.gridTemplateColumns).toContain("minmax(128px, 1fr)");
+    expect(header.style.gridTemplateColumns).toContain("minmax(128px, 128fr)");
     expect(header.style.gridTemplateColumns).not.toContain("minmax(0, 1fr)");
   });
 
@@ -48,8 +48,15 @@ describe("Grid columns", () => {
   it("counts a resized column at its own width", () => {
     const grid = render([{ fieldname: "a", width: 60 }, { fieldname: "b" }], [{ name: "r1" }]);
     const row = grid.querySelector<HTMLElement>(".grid-row")!;
-    expect(row.style.gridTemplateColumns).toContain("60px minmax(128px, 1fr)");
+    expect(row.style.gridTemplateColumns).toContain("60px minmax(128px, 128fr)");
     expect(row.style.minWidth).toBe(`calc(7.5rem + ${60 + 128}px)`);
+  });
+
+  it("shares the space in proportion to each column's floor", () => {
+    const grid = render([{ fieldname: "a", minWidth: 200 }, { fieldname: "b", minWidth: 60 }], [{ name: "r1" }]);
+    const row = grid.querySelector<HTMLElement>(".grid-row")!;
+    expect(row.style.gridTemplateColumns).toContain("minmax(200px, 200fr) minmax(60px, 60fr)");
+    expect(row.style.minWidth).toBe(`calc(7.5rem + ${200 + 60}px)`);
   });
 });
 

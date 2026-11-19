@@ -59,6 +59,34 @@ describe("ListFooter counts", () => {
     await flush();
     expect(loadMore(root)).toBeUndefined();
   });
+
+  it("a capped total is a button whose click asks for the exact count", async () => {
+    const clicks: number[] = [];
+    const { root } = await mount(ListFooter, {
+      hasCounts: true,
+      rowCount: 20,
+      totalCount: 1000,
+      totalCapped: true,
+      onCount: () => clicks.push(1),
+    });
+    const capped = Array.from(root.querySelectorAll("button")).find((button) =>
+      button.textContent?.includes("1000+")
+    );
+    capped!.click();
+    expect(clicks).toHaveLength(1);
+  });
+
+  it("an unknown total reads N of many", async () => {
+    const { root } = await mount(ListFooter, {
+      hasCounts: true,
+      rowCount: 20,
+      totalCount: 20,
+      totalCapped: true,
+      totalUnknown: true,
+    });
+    expect(root.textContent).toContain("20 of many");
+    expect(root.textContent).not.toContain("+");
+  });
 });
 
 describe("ListFooter page size", () => {
@@ -84,6 +112,23 @@ describe("ListFooter page size", () => {
     expect(chosen).toEqual([100]);
   });
 
+  it("a click on the chosen size emits it again", async () => {
+    const chosen: number[] = [];
+    const { root } = await mount(ListFooter, {
+      hasCounts: true,
+      pageSize: 20,
+      "onPage-size": (value: number) => chosen.push(value),
+    });
+
+    const tab = Array.from(
+      root.querySelectorAll<HTMLElement>("[role='radio']")
+    ).find((item) => item.textContent?.trim() === "20")!;
+    tab.click();
+    await flush();
+
+    expect(chosen).toEqual([20]);
+  });
+
   it("a restored page size emits nothing", async () => {
     const state = reactive({ pageSize: 20 });
     const chosen: number[] = [];
@@ -103,5 +148,21 @@ describe("ListFooter page size", () => {
         .querySelector("[role='radio'][aria-checked='true']")
         ?.textContent?.trim()
     ).toBe("500");
+  });
+});
+
+describe("ListFooter act marks", () => {
+  it("marks the page-size tabs and Load More with the host's acts, and nothing without them", async () => {
+    const marked = await mount(ListFooter, {
+      hasCounts: true,
+      rowCount: 20,
+      totalCount: 50,
+      acts: { pageSize: "list.set_page_size", loadMore: "list.load_more" },
+    });
+    expect(marked.root.querySelector('[data-act="list.set_page_size"] button')).not.toBeNull();
+    expect(loadMore(marked.root)!.dataset.act).toBe("list.load_more");
+
+    const plain = await mount(ListFooter, { hasCounts: true, rowCount: 20, totalCount: 50 });
+    expect(plain.root.querySelector("[data-act]")).toBeNull();
   });
 });

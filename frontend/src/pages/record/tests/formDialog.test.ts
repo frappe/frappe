@@ -1,0 +1,440 @@
+// The `form` host's own behaviours: the throw that holds the dialog open, custom
+// actions, and the dismissal paths that answer the opener.
+import { describe, expect, it, vi } from "vitest";
+import { createApp, defineComponent, h, inject, nextTick } from "vue";
+
+// The chrome is frappe-ui's; a passthrough here reads the form's behaviour, not reka-ui's transitions.
+vi.mock("frappe-ui", () => ({
+  Dialog: defineComponent({
+    props: { open: { type: Boolean, default: true } },
+    emits: ["update:open", "after-leave"],
+    setup(props, { slots }) {
+      return () =>
+        props.open
+          ? h("div", [h("div", slots.default?.()), h("div", slots.actions?.())])
+          : null;
+    },
+  }),
+  Button: defineComponent({
+    props: { label: String, loading: Boolean, disabled: Boolean },
+    setup(props, { attrs }) {
+      return () =>
+        h("button", { ...attrs, disabled: props.disabled }, props.label);
+    },
+  }),
+  ErrorMessage: defineComponent({
+    props: { message: String },
+    setup: (props) => () => h("p", { class: "error" }, props.message),
+  }),
+  Skeleton: defineComponent({
+    setup: () => () => h("div", { class: "fui-skeleton" }),
+  }),
+  createResource: () => ({
+    data: null,
+    loading: false,
+    fetch() {},
+    reload() {},
+  }),
+  frappeRequest: vi.fn(),
+  call: vi.fn(),
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+vi.mock("@framework/ui/api", () => ({
+  runMethod: vi.fn(async () => ({ data: null })),
+  getMeta: vi.fn(async () => ({ data: null })),
+}));
+
+vi.mock("@framework/ui/FormLayout", async (importOriginal) => {
+  const { FieldErrorsKey, RecordLinkKey } = await import("@framework/ui/fields/types");
+  return {
+    ...((await importOriginal()) as object),
+    // The real FormLayout is exercised in Chrome; here it owns the doc and shows the record
+    // link its fields get, and an input per field with the error it would draw.
+    FormLayout: defineComponent({
+      props: {
+        layout: { type: Array, required: true },
+        doc: { type: Object, required: true },
+      },
+      emits: ["update:doc"],
+      setup(props) {
+        const link = inject(RecordLinkKey, undefined);
+        const errors = inject(FieldErrorsKey, null);
+        const fields = () =>
+          (props.layout as any[]).flatMap((tab) =>
+            tab.sections.flatMap((section: any) =>
+              section.columns.flatMap((column: any) => column.fields),
+            ),
+          );
+        return () =>
+          h(
+            "form",
+            { "data-record-link": link === null ? "none" : "host" },
+            fields().map((field: any) =>
+              h("div", { class: "field", "data-fieldname": field.fieldname }, [
+                h("input", {
+                  name: field.fieldname,
+                  "data-error": errors?.value[field.fieldname],
+                }),
+              ]),
+            ),
+          );
+      },
+    }),
+  };
+});
+
+import { getMeta, runMethod } from "@framework/ui/api";
+import { RecordLinkKey } from "@framework/ui/fields/types";
+import PageFormDialog from "../dialogs/PageFormDialog.vue";
+import type { PageDialogEntry } from "@/shell/dialogs/pageDialogs";
+import type { PageDialogFormOptions } from "@/recordPage/types";
+
+function makeEntry(form: PageDialogFormOptions) {
+  const entry: PageDialogEntry & { settled: any[]; holding: number } = {
+    id: 1,
+    source: "page-script:deal-hello",
+    kind: "form",
+    props: {},
+    options: {},
+    form,
+    settled: [],
+    // Idempotent, like the real one: the dismissal after a close must not overwrite the answer.
+    settle: (result: any = null) => {
+      if (!entry.settled.length) entry.settled.push(result);
+    },
+    dismiss: vi.fn(),
+    listed: { id: 1, kind: "form", title: "", message: "", buttons: [] },
+    holding: 0,
+    hold: async (work) => {
+      entry.holding += 1;
+      try {
+        return await work();
+      } finally {
+        entry.holding -= 1;
+      }
+    },
+  };
+  return entry;
+}
+
+const FIELDS = [{ fieldname: "note", fieldtype: "Data", label: "Note" }];
+
+/** Mount the dialog into a throwaway root; no test-utils dependency to add. */
+function render(entry: PageDialogEntry) {
+  const root = document.createElement("div");
+  document.body.appendChild(root);
+  createApp(PageFormDialog, { entry })
+    .provide(RecordLinkKey, { href: () => "/record", open: () => {} })
+    .mount(root);
+  return root;
+}
+
+function button(root: HTMLElement, label: string) {
+  return [...root.querySelectorAll("button")].find(
+    (element) => element.textContent?.trim() === label,
+  );
+}
+
+/** Let a click's async handler and the re-render it causes both land. */
+async function settle() {
+  await nextTick();
+  await Promise.resolve();
+  await nextTick();
+}
+
+async function click(root: HTMLElement, label: string) {
+  button(root, label)!.dispatchEvent(new MouseEvent("click"));
+  await settle();
+}
+
+describe("the form host", () => {
+  it("gives its fields no record link: a dialog has no guard for its values", async () => {
+    const root = render(makeEntry({ fields: FIELDS }));
+    await settle();
+
+    expect(root.querySelector("form")?.getAttribute("data-record-link")).toBe("none");
+  });
+
+  it("holds the dialog open with the error inline when onSubmit throws", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const entry = makeEntry({
+      fields: FIELDS,
+      onSubmit: () => {
+        throw new Error("Not allowed on a won deal");
+      },
+    });
+    const root = render(entry);
+
+    await click(root, "Submit");
+
+    expect(root.querySelector(".error")!.textContent).toBe(
+      "Not allowed on a won deal",
+    );
+    expect(entry.settled).toEqual([]);
+    expect(button(root, "Submit")).toBeTruthy();
+    // The reader sees the message; the console names the script behind it.
+    expect(error).toHaveBeenCalledWith(
+      expect.stringContaining("page-script:deal-hello"),
+      expect.anything(),
+    );
+    error.mockRestore();
+  });
+
+  it("resolves with the field values on a clean submit, held", async () => {
+    let heldDuringSubmit = 0;
+    const onSubmit = vi.fn(() => {
+      heldDuringSubmit = entry.holding;
+    });
+    const entry = makeEntry({
+      fields: FIELDS,
+      defaults: { note: "hi" },
+      onSubmit,
+    });
+    const root = render(entry);
+
+    await click(root, "Submit");
+
+    expect(onSubmit).toHaveBeenCalledWith({ note: "hi" });
+    expect(heldDuringSubmit).toBe(1);
+    expect(entry.settled).toEqual([{ note: "hi" }]);
+  });
+
+  it("refuses a submit that leaves a mandatory field empty, and marks and focuses it", async () => {
+    const onSubmit = vi.fn();
+    const entry = makeEntry({
+      fields: [
+        { fieldname: "note", fieldtype: "Data", label: "Note", reqd: 1 },
+      ],
+      onSubmit,
+    });
+    const root = render(entry);
+
+    await click(root, "Submit");
+
+    const note = root.querySelector<HTMLInputElement>('input[name="note"]')!;
+    expect(note.getAttribute("data-error")).toBe("Note is required");
+    expect(root.querySelector(".error")).toBeNull();
+    expect(document.activeElement).toBe(note);
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(entry.settled).toEqual([]);
+  });
+
+  it("hands a custom action { data, close, validate } and lets it answer", async () => {
+    let seen: any = null;
+    const entry = makeEntry({
+      fields: FIELDS,
+      defaults: { note: "why" },
+      actions: [
+        {
+          label: "Reject",
+          onClick: (context) => {
+            seen = context;
+            context.close("rejected");
+          },
+        },
+      ],
+    });
+    const root = render(entry);
+
+    expect(button(root, "Submit")).toBeUndefined();
+    await click(root, "Reject");
+
+    expect(seen.data).toEqual({ note: "why" });
+    expect(typeof seen.validate).toBe("function");
+    expect(entry.settled).toEqual(["rejected"]);
+  });
+
+  it("runs a custom action's onClick inside the entry's hold", async () => {
+    let heldDuringAction = 0;
+    const entry = makeEntry({
+      fields: FIELDS,
+      actions: [{ label: "Reject", onClick: () => void (heldDuringAction = entry.holding) }],
+    });
+    const root = render(entry);
+
+    await click(root, "Reject");
+
+    expect(heldDuringAction).toBe(1);
+    expect(entry.holding).toBe(0);
+  });
+
+  it("validates and closes with the data for a custom action with no onClick", async () => {
+    const entry = makeEntry({
+      fields: FIELDS,
+      defaults: { note: "ok" },
+      actions: [{ label: "Save" }],
+    });
+    const root = render(entry);
+
+    await click(root, "Save");
+
+    expect(entry.settled).toEqual([{ note: "ok" }]);
+  });
+
+  it("runs onCancel and resolves null when the page goes away", async () => {
+    const onCancel = vi.fn();
+    const entry = makeEntry({ fields: FIELDS, onCancel });
+    render(entry);
+
+    // What `closeAll` does to a live dialog.
+    entry.onDismissed?.();
+    entry.settle(null);
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(entry.settled).toEqual([null]);
+  });
+
+  it("runs onCancel inside the entry's hold when the dialog is dismissed", async () => {
+    let heldDuringCancel = 0;
+    const entry = makeEntry({
+      fields: FIELDS,
+      onCancel: () => void (heldDuringCancel = entry.holding),
+    });
+    render(entry);
+
+    entry.onDismissed?.();
+    await settle();
+
+    expect(heldDuringCancel).toBe(1);
+    expect(entry.holding).toBe(0);
+  });
+
+  it("does not run onCancel after the reader already submitted", async () => {
+    const onCancel = vi.fn();
+    const entry = makeEntry({
+      fields: FIELDS,
+      defaults: { note: "x" },
+      onCancel,
+    });
+    const root = render(entry);
+
+    await click(root, "Submit");
+    entry.onDismissed?.();
+
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(entry.settled).toEqual([{ note: "x" }]);
+  });
+});
+
+describe("the form host's handle", () => {
+  it("fills a field by name, submits like the button, and refuses an unknown name", async () => {
+    const onSubmit = vi.fn();
+    const entry = makeEntry({ fields: FIELDS, onSubmit });
+    render(entry);
+    await settle();
+    const handle = entry.listed.handle!;
+
+    expect(handle.fieldnames()).toEqual(["note"]);
+    expect(() => handle.setValues({ nope: "x" })).toThrow("no field nope");
+    handle.setValues({ note: "typed by a caller" });
+    expect(handle.values()).toEqual({ note: "typed by a caller" });
+    await handle.submit();
+    await settle();
+
+    expect(onSubmit).toHaveBeenCalledWith({ note: "typed by a caller" });
+    expect(entry.settled).toEqual([{ note: "typed by a caller" }]);
+  });
+
+  it("lists only the fields a person could fill, and refuses the rest", async () => {
+    const entry = makeEntry({
+      fields: [
+        ...FIELDS,
+        { fieldname: "locked", fieldtype: "Data", label: "Locked", read_only: 1 },
+        { fieldname: "secret", fieldtype: "Data", label: "Secret", hidden: 1 },
+      ],
+    });
+    render(entry);
+    await settle();
+
+    expect(entry.listed.handle!.fieldnames()).toEqual(["note"]);
+    expect(() => entry.listed.handle!.setValues({ locked: "x" })).toThrow("no field locked");
+  });
+
+  it("skips a field its depends_on hides or its read_only_depends_on locks, as the doc stands", async () => {
+    const entry = makeEntry({
+      fields: [
+        { fieldname: "kind", fieldtype: "Data", label: "Kind" },
+        { fieldname: "shown", fieldtype: "Data", label: "Shown", depends_on: "eval:doc.kind == 'a'" },
+        { fieldname: "locked", fieldtype: "Data", label: "Locked", read_only_depends_on: "eval:doc.kind == 'a'" },
+      ],
+    });
+    render(entry);
+    await settle();
+    const handle = entry.listed.handle!;
+
+    expect(handle.fieldnames()).toEqual(["kind", "locked"]);
+    handle.setValues({ kind: "a" });
+    expect(handle.fieldnames()).toEqual(["kind", "shown"]);
+    expect(() => handle.setValues({ locked: "x" })).toThrow("no field locked");
+  });
+
+  it("throws when a submit does not go through, and for a dialog that submits by its own buttons", async () => {
+    const failing = makeEntry({
+      fields: [{ fieldname: "note", fieldtype: "Data", label: "Note", reqd: 1 }],
+    });
+    render(failing);
+    await settle();
+    await expect(failing.listed.handle!.submit()).rejects.toThrow("did not submit");
+    expect(failing.settled).toEqual([]);
+
+    const custom = makeEntry({
+      fields: FIELDS,
+      actions: [{ label: "Create", onClick: vi.fn() }],
+    });
+    render(custom);
+    await settle();
+    await expect(custom.listed.handle!.submit()).rejects.toThrow("its own buttons");
+  });
+
+  it("closes the dialog with nothing", async () => {
+    const entry = makeEntry({ fields: FIELDS });
+    render(entry);
+    await settle();
+
+    entry.listed.handle!.close();
+    await settle();
+
+    expect(entry.settled).toEqual([null]);
+  });
+});
+
+describe("a doctype form before its Quick Entry layout arrives", () => {
+  it("draws a one-column skeleton of four fields, gone once the layout lands", async () => {
+    let answerLayout!: () => void;
+    vi.mocked(runMethod).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          answerLayout = () =>
+            resolve({
+              data: {
+                layouts: [],
+                fallback: [{ sections: [{ columns: [{ fields: ["note"] }] }] }],
+              },
+            } as any);
+        }),
+    );
+    vi.mocked(getMeta).mockImplementationOnce(
+      async () => ({ data: { name: "Skeleton Note", fields: FIELDS } }) as any,
+    );
+    const root = render(makeEntry({ doctype: "Skeleton Note" }));
+    await settle();
+
+    const skeleton = root.querySelector("[data-form-skeleton]");
+    expect(skeleton).not.toBeNull();
+    expect(skeleton!.querySelectorAll(".grid > div")).toHaveLength(4);
+    expect(skeleton!.querySelector(".grid")!.className).not.toContain("grid-cols-2");
+    expect(root.querySelector("form")).toBeNull();
+
+    answerLayout();
+    await settle();
+
+    expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+    expect(root.querySelector("form")).not.toBeNull();
+  });
+
+  it("draws no skeleton for a form whose fields are given", () => {
+    const root = render(makeEntry({ fields: FIELDS }));
+
+    expect(root.querySelector("[data-form-skeleton]")).toBeNull();
+  });
+});

@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "jsx": "preserve",
+    "types": ["vite/client"],
+    "baseUrl": ".",
+    "paths": { "@/*": ["src/*"] },
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowJs": true,
+    "preserveSymlinks": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src/**/*.ts", "plugin/**/*.js", "plugin/**/*.ts"]
+}

@@ -1,0 +1,466 @@
+# The build manifest — Python's half of the one bench-wide bundle, assembled for vite.
+
+# Everything here runs with no site: `bench build` calls `frappe.init("")`, so apps come
+# from `get_all_apps()` and hooks from `get_hooks(app_name=)`.
+
+# The app list is `sites/apps.txt` as bench wrote it, never a scan of `apps/`: desk v1's esbuild scans
+# while its Python half reads the file, and the two halves disagree on a bench where it is stale.
+
+import glob
+import json
+import os
+import re
+
+from semantic_version import NpmSpec, Version
+
+import frappe
+from frappe.utils import get_bench_path
+
+from .registry import declared_prefix, is_modular
+
+#: Enforced by the build and documented nowhere else; a duplicate instance breaks provide/inject.
+SINGLETONS = ("vue", "vue-router", "frappe-ui", "@framework/ui", "reka-ui", "dompurify")
+
+MANIFEST_FILENAME = "manifest.json"
+PUBLISHED_FILENAME = "published.json"
+BASE_LOCKFILE = "yarn.lock.base"
+BUMP_MAP = 'the map "Keep frappe-ui current" (frappe/frappe#42719)'
+
+
+#: What a stored Client Script imports by bare name; the one exemption from the `<app>/<alias>` rule.
+FRAMEWORK_NAMES = ("vue", "vue-router", "frappe-ui", "@framework/ui")
+
+
+#: What an app's desk v2 declaration holds; every other key is refused before vite starts.
+DECLARATION_FILENAME = "desk.package.json"
+DECLARATION_KEYS = ("dependencies",)
+
+
+class SingletonConflict(Exception):
+	pass
+
+
+class DeclarationError(Exception):
+	pass
+
+
+class ImportMapConflict(Exception):
+	pass
+
+
+class ViewTypeFileError(Exception):
+	pass
+
+
+def page_glob(source_dir: str) -> str:
+	"""An app's pages, `<module>/frontend/pages/<slug>.js`; the file name is the address."""
+	return os.path.join(source_dir, "*", "frontend", "pages", "*.js")
+
+
+def shell_hook_glob(source_dir: str) -> str:
+	"""An app's shell hook, `<module>/frontend/shell.js`."""
+	return os.path.join(source_dir, "*", "frontend", "shell.js")
+
+
+def contribution_globs(source_dir: str) -> list[str]:
+	"""The contribution kinds, as paths; a file anywhere else is not a contribution."""
+	return [
+		os.path.join(source_dir, "*", "doctype", "*", "frontend", "record.js"),
+		os.path.join(source_dir, "*", "doctype", "*", "frontend", "list.js"),
+		os.path.join(source_dir, "*", "doctype", "*", "frontend", "pages.json"),
+		os.path.join(source_dir, "*", "doctype", "*", "frontend", "pages", "*.js"),
+		os.path.join(source_dir, "*", "custom", "*", "record.js"),
+		os.path.join(source_dir, "*", "custom", "*", "list.js"),
+		os.path.join(source_dir, "*", "custom", "*", "pages.json"),
+		os.path.join(source_dir, "*", "custom", "*", "pages", "*.js"),
+		page_glob(source_dir),
+		# Beside the `Navigation Item Type` JSON, where the plugin reads the kind's real name.
+		os.path.join(source_dir, "*", "navigation_item_type", "*", "frontend", "item.js"),
+		os.path.join(source_dir, "*", "view_type", "*", "frontend", "view.js"),
+		os.path.join(source_dir, "*", "frontend", "settings", "*.vue"),
+		os.path.join(source_dir, "*", "frontend", "acts.js"),
+		shell_hook_glob(source_dir),
+	]
+
+
+def contributes(source_dir: str) -> bool:
+	return any(glob.glob(pattern) for pattern in contribution_globs(source_dir))
+
+
+def adds_to_shell(apps: list[str], frontend: str) -> bool:
+	"""Whether a build of only `apps` can change the shell: they shape it now, or shaped the last build."""
+	last = read_package(os.path.join(frontend, PUBLISHED_FILENAME)).get("shaping_apps")
+	if last is None:
+		return True
+	return bool(set(apps) & {*shaping_apps(apps), *last})
+
+
+def record_published(frontend: str, shaping: list[str]):
+	"""Note which apps the published shell was built from; written only once a build is swapped in."""
+	# Bench-internal path, composed from `frontend_dir()`; never request-derived.
+	with open(os.path.join(frontend, PUBLISHED_FILENAME), "w") as f:  # nosemgrep
+		json.dump({"shaping_apps": shaping}, f)
+
+
+def shaping_apps(apps: list[str], manifest: list[dict] | None = None) -> list[str]:
+	"""The apps whose files the shell is built from."""
+	in_manifest = {entry["app"] for entry in (assemble(apps) if manifest is None else manifest)}
+	# The plugin reads presets and doctype names from every app, contributor or not.
+	customised = {doctype for app in frappe.get_all_apps() for doctype in customised_doctypes(app)}
+	return [
+		app
+		for app in apps
+		if app in in_manifest
+		or os.path.exists(os.path.join(frappe.get_app_path(app), "frontend", "tailwind.preset.js"))
+		or owned_doctypes(app) & customised
+	]
+
+
+def customised_doctypes(app: str) -> set[str]:
+	"""The doctype folders an app's `custom/` contributions name."""
+	source_dir = frappe.get_app_path(app)
+	return {
+		os.path.relpath(path, source_dir).split(os.sep)[2]
+		for pattern in contribution_globs(source_dir)
+		if f"{os.sep}custom{os.sep}" in pattern
+		for path in glob.glob(pattern)
+	}
+
+
+def owned_doctypes(app: str) -> set[str]:
+	return {
+		os.path.basename(path)
+		for path in glob.glob(os.path.join(frappe.get_app_path(app), "*", "doctype", "*"))
+	}
+
+
+def read_package(path: str) -> dict:
+	if not os.path.exists(path):
+		return {}
+	# Bench-internal path, composed from `get_app_path`; never request-derived.
+	with open(path) as f:  # nosemgrep
+		return json.load(f)
+
+
+def declaration_path(app: str, source_dir: str) -> str:
+	# frappe's own declaration is `frontend/package.base.json`; `frappe/package.json` is desk v1's
+	# esbuild stack, a different bundle with different pins. An app's repo root file serves its own.
+	if app == "frappe":
+		return os.path.join(frontend_dir(), "package.base.json")
+	return os.path.join(source_dir, DECLARATION_FILENAME)
+
+
+def read_declaration(app: str, source_dir: str) -> dict:
+	"""The app's desk v2 declaration: `dependencies` only; no file means no packages."""
+	path = declaration_path(app, source_dir)
+	declared = read_package(path)
+	if app == "frappe":
+		return declared
+
+	if refused := sorted(set(declared) - set(DECLARATION_KEYS)):
+		named = ", ".join(f"`{key}`" for key in refused)
+		raise DeclarationError(
+			f"{app} declares {named} in {bench_relative(path)}. "
+			f"{DECLARATION_FILENAME} holds `dependencies` and nothing else; "
+			"the repo root package.json serves the app's other bundles and is not read."
+		)
+	return declared
+
+
+def app_deps(app: str) -> dict[str, str]:
+	"""The app's own declared dependencies, dev included."""
+	package = read_declaration(app, frappe.get_app_path(app))
+	return {**package.get("dependencies", {}), **package.get("devDependencies", {})}
+
+
+def app_runtime_deps(app: str) -> dict[str, str]:
+	"""Only what contributed source can import: `dependencies`, never `devDependencies`."""
+	return read_declaration(app, frappe.get_app_path(app)).get("dependencies", {})
+
+
+def app_import_map(app: str) -> dict[str, str]:
+	"""The names the app publishes to the document's import map, as `hooks.py` declares them."""
+	# A dict hook comes back with each value wrapped in a list; one app's hooks hold one value each.
+	declared = frappe.get_hooks("import_map", {}, app_name=app)
+	return {name: value[-1] if isinstance(value, list) else value for name, value in declared.items()}
+
+
+def frontend_dir() -> str:
+	return os.path.join(frappe.get_app_source_path("frappe"), "frontend")
+
+
+def assemble(apps: list[str] | None = None) -> list[dict]:
+	"""The manifest in `sites/apps.txt` order: frappe, plus every app that contributes source."""
+	manifest = []
+
+	for app in apps if apps is not None else frappe.get_all_apps():
+		try:
+			source_dir = frappe.get_app_path(app)
+		except Exception as e:
+			# Fail naming the app: a silently skipped app is a prefix that silently stops resolving.
+			raise RuntimeError(f"Could not locate source for app '{app}': {e}") from e
+
+		import_map = app_import_map(app)
+		# A published file is bundled, so publishing alone puts an app in the bundle.
+		if app != "frappe" and not contributes(source_dir) and not import_map:
+			continue
+
+		manifest.append(
+			{
+				"app": app,
+				"app_prefix": declared_prefix(app),
+				"modular": is_modular(app),
+				"source_dir": source_dir,
+				"deps": app_deps(app),
+				"runtime_deps": app_runtime_deps(app),
+				"import_map": import_map,
+			}
+		)
+
+	return manifest
+
+
+def is_file_value(value: str) -> bool:
+	"""A `.` or `/` prefix means a file rooted at the app's source dir; anything else is a package."""
+	return value.startswith((".", "/"))
+
+
+def package_name(specifier: str) -> str:
+	"""`@scope/pkg/deep` declares `@scope/pkg`; `pkg/deep` declares `pkg`. The vite plugin's rule."""
+	segments = specifier.split("/")
+	return "/".join(segments[:2]) if specifier.startswith("@") else segments[0]
+
+
+def bench_relative(path: str) -> str:
+	bench = get_bench_path()
+	return os.path.relpath(path, bench) if path.startswith(bench + os.sep) else path
+
+
+def import_map_problems(entry: dict) -> list[str]:
+	"""Every way one app's `import_map` breaks its promise, each naming the app, the key and the value."""
+	app, source_dir = entry["app"], entry["source_dir"]
+	problems = []
+
+	for name, value in entry.get("import_map", {}).items():
+		if name in FRAMEWORK_NAMES and app != "frappe":
+			problems.append(f"{app} publishes `{name}`, which is a framework name")
+			continue
+		if not name.startswith(f"{app}/") and not (app == "frappe" and name in FRAMEWORK_NAMES):
+			problems.append(f"{app} publishes `{name}`: a published name must start with `{app}/`")
+			continue
+
+		if not is_file_value(value):
+			if package_name(value) not in entry["runtime_deps"]:
+				problems.append(
+					f"{app} publishes `{name}` from `{value}`, which "
+					f"{bench_relative(declaration_path(app, source_dir))} does not declare under dependencies"
+				)
+			continue
+
+		# `/lib/x.js` is rooted at the source dir, not the filesystem; `..` or a symlink may still climb out.
+		root = os.path.realpath(source_dir)
+		target = os.path.realpath(os.path.join(root, value.lstrip("/")))
+		if not target.startswith(root + os.sep):
+			problems.append(
+				f"{app} publishes `{name}` from `{value}`, which resolves outside {bench_relative(source_dir)}"
+			)
+		elif not os.path.isfile(target):
+			problems.append(f"{app} publishes `{name}` from `{value}`, which is not a file")
+
+	return problems
+
+
+def enforce_import_map(manifest: list[dict]):
+	"""Fail the build when an app publishes a name it may not, or a value that does not resolve."""
+	# Before vite starts: a bad value would otherwise surface as a resolution failure deep in the build.
+	problems = [problem for entry in manifest for problem in import_map_problems(entry)]
+	if problems:
+		raise ImportMapConflict("\n" + "\n".join(f"  {problem}" for problem in problems))
+
+
+def view_type_problems(app: str, source_dir: str) -> list[str]:
+	"""Each of the app's view type folders that lacks its record or its renderer."""
+	problems = []
+	for folder in sorted(glob.glob(os.path.join(source_dir, "*", "view_type", "*"))):
+		scrubbed = os.path.basename(folder)
+		if scrubbed.startswith(("_", ".")) or not os.path.isdir(folder):
+			continue
+		record = os.path.isfile(os.path.join(folder, f"{scrubbed}.json"))
+		renderer = os.path.isfile(os.path.join(folder, "frontend", "view.js"))
+		if record and not renderer:
+			problems.append(f"{app} ships the view type {bench_relative(folder)} with no frontend/view.js")
+		elif renderer and not record:
+			problems.append(f"{app} ships {bench_relative(folder)}/frontend/view.js with no {scrubbed}.json")
+	return problems
+
+
+def enforce_view_types(apps: list[str]):
+	"""Fail the build when a view type ships without its record or its renderer: one alone draws nothing."""
+	problems = [problem for app in apps for problem in view_type_problems(app, frappe.get_app_path(app))]
+	if problems:
+		raise ViewTypeFileError("\n" + "\n".join(f"  {problem}" for problem in problems))
+
+
+def enforce_singletons(manifest: list[dict], frontend: str | None = None):
+	"""Fail the build when an app's range for a shared library excludes the version the framework ships."""
+	# Before vite starts, and not `resolve.dedupe`, which silently picks a winner.
+	shipped = shipped_versions(frontend or frontend_dir())
+	refusals = []
+	for entry in manifest:
+		if entry["app"] == "frappe":
+			continue
+		for package in SINGLETONS:
+			declared = entry["deps"].get(package)
+			if declared and (
+				refusal := singleton_refusal(entry["app"], package, declared, shipped.get(package))
+			):
+				refusals.append(refusal)
+
+	if refusals:
+		raise SingletonConflict(
+			"The desk shell builds one module graph, which admits one version of each "
+			"shared library. The framework pins these in frappe/frontend/package.base.json, "
+			"and an app's range must include that pin:\n\n"
+			+ "\n".join(f"  {refusal}" for refusal in refusals)
+			+ f"\n\nAn app cannot move a pin. The framework takes a newer release on {BUMP_MAP}. "
+			"Until then, write against the version the framework ships, or wait."
+		)
+
+
+def singleton_refusal(app: str, package: str, declared: str, shipped: str | None) -> str | None:
+	if package == "@framework/ui":
+		if declared == "*":
+			return None
+		return f"{package}: ships with the framework and has no version to pin; {app} needs {declared}"
+	if shipped is None:
+		return f"{package}: the base lockfile has no entry; {app} needs {declared}"
+	# npm reads `*` as "no prerelease"; an app that says "*" means any version the framework ships.
+	if declared == "*":
+		return None
+	not_a_range = (
+		f"{package}: `{declared}` is not a semver range; {app} needs a range that includes {shipped}"
+	)
+	if not isinstance(declared, str) or not declared:
+		return not_a_range
+	try:
+		satisfied = Version(shipped) in NpmSpec(declared)
+	except ValueError:
+		return not_a_range
+	if satisfied:
+		return None
+	return f"{package}: the framework ships {shipped}; {app} needs {declared}"
+
+
+def shipped_versions(frontend: str) -> dict[str, str]:
+	"""Each singleton's resolved version in the base lockfile, from the block for the base file's own range."""
+	path = os.path.join(frontend, BASE_LOCKFILE)
+	if not os.path.exists(path):
+		raise SingletonConflict(
+			f"{bench_relative(path)} is missing; run frontend/base-lock.sh and commit it."
+		)
+	# Bench-internal paths; never request-derived.
+	with open(path) as f:  # nosemgrep
+		lockfile = f.read()
+	pinned = read_package(os.path.join(frontend, "package.base.json")).get("dependencies", {})
+
+	versions = {}
+	for package in SINGLETONS:
+		if package not in pinned:
+			continue
+		for block in re.finditer(
+			rf'^(?P<header>"?{re.escape(package)}@[^\n]*):\n  version "(?P<version>[^"]+)"\n  resolved ',
+			lockfile,
+			re.MULTILINE,
+		):
+			specs = [spec.strip('"') for spec in block["header"].split(", ")]
+			if f"{package}@{pinned[package]}" in specs:
+				versions[package] = block["version"]
+	return versions
+
+
+def added_packages(entry: dict, base_dependencies: dict) -> dict[str, str]:
+	"""What one app's declaration adds to the tree; a singleton or a base package adds nothing."""
+	return {
+		package: declared
+		for package, declared in entry["runtime_deps"].items()
+		if package not in SINGLETONS and package not in base_dependencies
+	}
+
+
+def compose_package_json(manifest: list[dict], frontend: str) -> bool:
+	"""The one tree yarn installs: the framework's pins plus every app's own deps, generated."""
+	# `package.base.json` always wins, so an app cannot move a singleton by naming it.
+	base = read_package(os.path.join(frontend, "package.base.json"))
+	dependencies = dict(base.get("dependencies", {}))
+
+	for entry in manifest:
+		if entry["app"] == "frappe":
+			continue
+		dependencies.update(added_packages(entry, dependencies))
+
+	composed = {
+		**base,
+		"comment": "GENERATED by frappe/shell/manifest.py from package.base.json. Do not edit.",
+		"dependencies": dependencies,
+	}
+
+	path = os.path.join(frontend, "package.json")
+	# A rewritten file with identical contents must not trigger a reinstall.
+	changed = read_package(path).get("dependencies") != dependencies
+
+	# Bench-internal path, composed from `frontend_dir()`; never request-derived.
+	with open(path, "w") as f:  # nosemgrep
+		json.dump(composed, f, indent=2)
+
+	return changed
+
+
+def installed_size(package_dir: str) -> int:
+	total = 0
+	for root, _dirs, files in os.walk(package_dir):
+		total += sum(os.lstat(os.path.join(root, name)).st_size for name in files)
+	return total
+
+
+def cost_report(manifest: list[dict], frontend: str, apps: list[str]) -> list[str]:
+	"""The apps the manifest read, then one line per app: the packages its declaration added and their size."""
+	dependencies = dict(read_package(os.path.join(frontend, "package.base.json")).get("dependencies", {}))
+	lines = [f"apps: {', '.join(apps)}"]
+	for entry in manifest:
+		if entry["app"] == "frappe":
+			continue
+		added = added_packages(entry, dependencies)
+		dependencies.update(added)
+		if not added:
+			lines.append(f"{entry['app']}: no packages added")
+			continue
+		sized = ", ".join(
+			f"{package} {installed_size(os.path.join(frontend, 'node_modules', package)) / 1000:.1f} kB"
+			for package in added
+		)
+		lines.append(f"{entry['app']}: {sized}")
+	return lines
+
+
+def write(frontend: str | None = None) -> tuple[list[dict], list[str], bool]:
+	"""Assemble, enforce, write the manifest; returns it, the apps read, and whether the deps changed."""
+	frontend = frontend or frontend_dir()
+	apps = frappe.get_all_apps()
+	manifest = assemble(apps)
+	enforce_singletons(manifest, frontend)
+	enforce_import_map(manifest)
+	enforce_view_types(apps)
+
+	# `source_dirs` is every app, not just contributors: a `custom/` folder may name a doctype
+	# owned by an app that contributes nothing. Bench-internal path; never request-derived.
+	with open(os.path.join(frontend, MANIFEST_FILENAME), "w") as f:  # nosemgrep
+		json.dump(
+			{
+				"apps": manifest,
+				"source_dirs": [frappe.get_app_path(app) for app in apps],
+			},
+			f,
+			indent="\t",
+		)
+
+	return manifest, apps, compose_package_json(manifest, frontend)

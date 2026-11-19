@@ -3,17 +3,19 @@
 		ref="inputRef"
 		type="text"
 		:modelValue="display"
-		:label="field.label"
-		:description="field.description"
+		v-bind="frame"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
 		@focus="onFocus"
 		@blur="focused = false"
 		@update:modelValue="onInput"
 		@change="onChange"
-	/>
+	>
+		<template v-if="!panel && field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
+	</TextInput>
 </template>
 
 <script setup lang="ts">
@@ -21,13 +23,14 @@ import { computed, inject, nextTick, ref } from "vue";
 import { TextInput } from "frappe-ui";
 import { DocKey, ParentDocKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
-import { formatField } from "../FormLayout/formatNumber";
 import { parseNumberText } from "./parseText";
-import { resolveFieldCurrency } from "../FormLayout/resolveCurrency";
-import { getFormatDefaults } from "../FormLayout/formatDefaults";
+import { useFieldDisplay } from "../FormLayout/useFieldDisplay";
+import FieldDescription from "./FieldDescription.vue";
+import { useInputFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = useInputFrame(props);
 
 // Format-on-blur / raw-on-focus (mirrors Frappe's FormattedInput): override only the
 // displayed string; commit rides TextInput's native `@change`. `type="text"` because
@@ -36,15 +39,14 @@ const focused = ref(false);
 const draft = ref("");
 const inputRef = ref<{ el?: HTMLInputElement } | null>(null);
 
-// Lets a Currency field resolve its code from a sibling field on the doc. Optional.
+// The doc, row and parent doc let a Currency field resolve its code from a sibling field.
+// `ParentDocKey` is set only for a child-table row, so the dialog matches the grid.
 const doc = inject(DocKey, null);
-
-// Parent doc, present only for a child-table row, so a row's Currency `options` can
-// resolve a parent field (keeps dialog in sync with the grid). Null at the top level.
 const parentDoc = inject(ParentDocKey, null);
+const displayField = useFieldDisplay();
 
-// A numeric field has no empty state — Frappe shows `0`. Coerce here, not in the pure
-// `formatField` util whose `'' for empty` contract other callers rely on.
+// A numeric field has no empty state — Frappe shows `0`. Coerce here, not in the shared
+// formatter whose `'' for empty` contract the panel relies on.
 const display = computed(() =>
 	focused.value ? draft.value : formatted(numericValue(props.modelValue))
 );
@@ -54,39 +56,12 @@ function numericValue(value: any): any {
 	return value == null || value === "" ? 0 : value;
 }
 
-/** Currency code for a Currency field, resolved like desk's `get_field_currency` (see `resolveFieldCurrency`); falls back to the site default. */
-function resolveCurrency(): string | undefined {
-	return resolveFieldCurrency(props.field.options, {
+/** The value as the panel and a read-only field show it, with the site's precision and the resolved currency. */
+function formatted(value: any): string {
+	return displayField(props.field, value, {
 		doc: doc?.value,
 		row: props.row,
 		parentDoc: parentDoc?.value,
-		defaultCurrency: getFormatDefaults().currency,
-	});
-}
-
-/** Decimal places: per-field `precision` wins, else the matching site default, else `undefined` (util derives it). */
-function resolvePrecision(fieldtype: string | undefined): number | undefined {
-	// Int has no precision — it renders as a plain integer (see formatField).
-	if (fieldtype === "Int" || fieldtype === "Long Int") return undefined;
-	if (props.field.precision != null) return props.field.precision;
-	const d = getFormatDefaults();
-	const sys = fieldtype === "Currency" ? d.currency_precision : d.float_precision;
-	if (sys == null || sys === "") return undefined;
-	const n = Number(sys);
-	return Number.isNaN(n) ? undefined : n;
-}
-
-function formatted(value: any): string {
-	const { fieldtype } = props.field;
-	const defaults = getFormatDefaults();
-	// Resolve currency here (Vue-coupled) and hand a plain code to the pure formatter.
-	const currency = fieldtype === "Currency" ? resolveCurrency() : undefined;
-	return formatField(value, {
-		fieldtype,
-		precision: resolvePrecision(fieldtype),
-		currency,
-		numberFormat: defaults.number_format,
-		roundingMethod: defaults.rounding_method,
 	});
 }
 

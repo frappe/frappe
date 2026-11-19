@@ -53,11 +53,11 @@ const fakeTransport: UploadTransport = (file, _args, ctx) =>
 // mapping on unmount — so it doesn't leak into other stories (a global register
 // here would also change the DoctypeLayout story). Called synchronously in setup
 // so it's in place before the child fields render.
-//   - Link: a behaviour-wired field (create/redirect/edit).
+//   - Link: a behaviour-wired field (create/edit).
 //   - Currency: a *fully custom* field — shows the registry override still wins.
 registerFieldType("Link", DemoLinkField, { global: false });
 registerFieldType("Currency", DemoCurrencyField, { global: false });
-// Table MultiSelect: override the lib's select-only field with one that turns on
+// Table MultiSelect: override the lib's field with one that turns on
 // `creatable` + wires `@create` — the app-owned create pattern (like DemoLinkField).
 registerFieldType("Table MultiSelect", DemoTableMultiSelectField, {
 	global: false,

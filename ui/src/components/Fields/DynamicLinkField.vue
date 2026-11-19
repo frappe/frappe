@@ -1,31 +1,64 @@
 <template>
+	<LinkValue
+		v-if="field.readOnly"
+		:text="title ?? value"
+		:href="record.href.value"
+		:label="field.label"
+		:description="field.description"
+		:required="field.reqd"
+		:error="error"
+		@open="record.open"
+	/>
 	<Link
+		v-else
+		ref="link"
 		v-model="value"
+		v-model:open="open"
 		:doctype="doctype"
 		:filters="field.filters"
+		:title="title"
 		:label="field.label"
 		:description="field.description"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
 		:error="error"
-		:disabled="field.readOnly || !doctype"
-	/>
+		:panel="panel"
+		:disabled="!doctype"
+		:href="record.href.value"
+		:creatable="linkCreate.creatable.value"
+		@create="linkCreate.create"
+		@redirect="record.open"
+	>
+		<template v-if="!panel && field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
+		<template #item-create="{ query }">
+			<span class="truncate">{{ linkCreate.label(query) }}</span>
+		</template>
+	</Link>
 </template>
 
 <script setup lang="ts">
 // Dynamic Link: the target doctype is named by a sibling field (`field.options`),
 // resolved via `pickSiblingValue` (row → doc → parent). Disabled until it has a value.
-import { computed, inject } from "vue";
+import { computed, inject, ref } from "vue";
 import { Link } from "../Link";
-import { DocKey, ParentDocKey } from "./types";
+import type { LinkExposed } from "../Link";
+import { DocKey, LinkTitlesKey, ParentDocKey } from "./types";
 import { pickSiblingValue } from "../FormLayout/pickSiblingValue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import { useLinkCreate } from "./useLinkCreate";
+import { useRecordLink } from "./useRecordLink";
+import LinkValue from "./LinkValue.vue";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
 
 const doc = inject(DocKey, null);
 const parentDoc = inject(ParentDocKey, null);
+const titles = inject(LinkTitlesKey, null);
+const link = ref<LinkExposed | null>(null);
 
 const doctype = computed<string>(() => {
 	const sibling = props.field.options;
@@ -38,6 +71,9 @@ const doctype = computed<string>(() => {
 	return typeof dt === "string" ? dt : "";
 });
 
+// A Dynamic Link with no doctype is disabled, so a pointer open leaves it shut.
+const open = ref(!!props.openPicker && !!doctype.value);
+
 const value = computed<string | null>({
 	get: () => props.modelValue ?? null,
 	set: (v) => {
@@ -45,4 +81,21 @@ const value = computed<string | null>({
 		emit("change", v);
 	},
 });
+
+const linkCreate = useLinkCreate({
+	doctype,
+	filters: () => props.field.filters,
+	disabled: () => Boolean(props.field.readOnly),
+	open,
+	link,
+	select: (name) => (value.value = name),
+});
+
+const record = useRecordLink(doctype, value);
+
+const title = computed(
+	() =>
+		(value.value ? titles?.value[`${doctype.value}::${value.value}`] : undefined) ??
+		linkCreate.title(value.value)
+);
 </script>

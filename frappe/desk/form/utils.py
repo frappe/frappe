@@ -31,6 +31,11 @@ def add_comment(
 ) -> "Comment":
 	"""Allow logged user with permission to read document to add a comment"""
 	validate_comment_content(content)
+	return insert_comment(reference_doctype, reference_name, content)
+
+
+def insert_comment(reference_doctype: str, reference_name: str, content: str) -> "Comment":
+	"""Add the session user's comment after a read check on the document. `content` is not checked."""
 	reference_doc = frappe.get_lazy_doc(reference_doctype, reference_name, check_permission=True)
 
 	comment = frappe.new_doc("Comment")
@@ -52,20 +57,27 @@ def add_comment(
 	return comment
 
 
-def validate_comment_content(content: str) -> None:
-	if not (strip_html(content or "").strip() or "<img" in (content or "")):
+def validate_comment_content(content: str, allow_video: bool = False) -> None:
+	"""`allow_video` is for the v2 comments route; v1's `add_comment` still refuses a video alone."""
+	content = content or ""
+	if not (strip_html(content).strip() or "<img" in content or (allow_video and "<video" in content)):
 		frappe.throw(_("Comment cannot be empty"), frappe.MandatoryError)
 
 
 @frappe.whitelist()
 def update_comment(name: str | int, content: str):
 	"""allow only owner to update comment"""
+	edit_comment(name, content)
+
+
+def edit_comment(name: str | int, content: str, allow_video: bool = False):
+	"""`update_comment` for a caller that may let a video stand alone; the v2 route does, v1's endpoint does not."""
 	doc = frappe.get_doc("Comment", name)
 
 	if frappe.session.user not in ["Administrator", doc.owner]:
 		frappe.throw(_("Comment can only be edited by the owner"), frappe.PermissionError)
 
-	validate_comment_content(content)
+	validate_comment_content(content, allow_video)
 
 	if doc.reference_doctype and doc.reference_name:
 		reference_doc = frappe.get_lazy_doc(doc.reference_doctype, doc.reference_name, check_permission=True)
@@ -75,6 +87,16 @@ def update_comment(name: str | int, content: str):
 		doc.content = content
 
 	doc.save(ignore_permissions=True)
+
+
+def delete_comment(name: str | int):
+	"""Allow the owner, the Administrator or a System Manager to delete a comment."""
+	doc = frappe.get_doc("Comment", name)
+
+	if frappe.session.user not in ["Administrator", doc.owner] and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Comment can only be deleted by the owner"), frappe.PermissionError)
+
+	frappe.delete_doc("Comment", doc.name, ignore_permissions=True)
 
 
 @frappe.whitelist()

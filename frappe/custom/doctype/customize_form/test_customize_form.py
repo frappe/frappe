@@ -284,6 +284,70 @@ class TestCustomizeForm(IntegrationTestCase):
 			d.run_method("save_customization")
 		self.assertIsNone(self.get_calendar_event_id_length_setter())
 
+	def test_property_change_refusals(self):
+		cases = (
+			("send_reminder", "fieldtype", "Data", "Fieldtype cannot be changed", True),
+			("subject", "allow_on_submit", 1, "Allow on Submit", False),
+			("subject", "reqd", 0, "disable Mandatory", False),
+			("event_participants", "in_list_view", 1, "'In List View' not allowed", False),
+			("google_calendar_id", "read_only", 0, "unset 'Read Only'", False),
+			("starts_on", "options", "x", "set 'Options'", False),
+			("send_reminder", "translatable", 1, "set 'Translatable'", False),
+			("location", "is_virtual", 1, "as virtual", False),
+		)
+		for fieldname, prop, value, message, blocks_save in cases:
+			with self.subTest(prop=prop):
+				refusal = self.check_event_property_change(fieldname, prop, value)
+				self.assertEqual((refusal.fieldname, refusal.property), (fieldname, prop))
+				self.assertIn(message, refusal.message)
+				self.assertEqual(refusal.blocks_save, blocks_save)
+
+	def test_shorter_length_refusal(self):
+		self.insert_event_with_calendar_event_id("x" * 180)
+
+		refusal = self.check_event_property_change("google_calendar_event_id", "length", 100)
+
+		self.assertEqual((refusal.fieldname, refusal.property), ("google_calendar_event_id", "length"))
+		self.assertIn("too long", refusal.message)
+		self.assertTrue(refusal.blocks_save)
+
+	def test_allowed_property_change_has_no_refusal(self):
+		self.assertIsNone(self.check_event_property_change("repeat_this_event", "reqd", 1))
+
+	def test_save_customization_reports_and_skips_refusals(self):
+		d = self.get_customize_form("Event")
+		d.getone("fields", {"fieldname": "subject"}).reqd = 0
+		d.getone("fields", {"fieldname": "starts_on"}).options = "x"
+		d.getone("fields", {"fieldname": "repeat_this_event"}).reqd = 1
+		frappe.clear_messages()
+		self.addCleanup(self.reset_event_columns)
+
+		d.run_method("save_customization")
+
+		messages = [m.get("message") for m in frappe.get_message_log()]
+		self.assertIn("Row 2: Not allowed to disable Mandatory for standard fields", messages)
+		self.assertIn("You can't set 'Options' for field Starts on", messages)
+		setters = frappe.get_all(
+			"Property Setter",
+			filters={"doc_type": "Event", "property": ("in", ("reqd", "options"))},
+			pluck="field_name",
+		)
+		self.assertEqual(setters, ["repeat_this_event"])
+
+	def test_save_customization_throws_on_fieldtype_refusal(self):
+		d = self.get_customize_form("Event")
+		d.getone("fields", {"fieldname": "send_reminder"}).fieldtype = "Data"
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Fieldtype cannot be changed"):
+			d.run_method("save_customization")
+
+	def check_event_property_change(self, fieldname, prop, value):
+		d = self.get_customize_form("Event")
+		df = d.getone("fields", {"fieldname": fieldname})
+		df.set(prop, value)
+		meta = frappe.get_meta("Event")
+		return d.check_property_change(prop, meta.get("fields", {"fieldname": fieldname}), df, meta)
+
 	def get_calendar_event_id_length_setter(self):
 		return frappe.db.get_value(
 			"Property Setter",

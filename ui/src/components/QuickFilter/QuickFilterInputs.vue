@@ -1,7 +1,7 @@
 <!--
   QuickFilterInputs — the normal-mode face of the QuickFilter strip: one inline
   value input per surfaced field, projecting over the SAME `Filter[]` the Filter
-  control binds (ADR-0005). It owns no data resource; setting a quick input upserts
+  control binds. It owns no data resource; setting a quick input upserts
   a condition in the shared list and reading reflects whichever condition that
   input owns, so Filter ↔ QuickFilter stay in sync with no cross-control events.
 
@@ -13,7 +13,7 @@
   field) own BOTH `like` (default) and `equals`, surfaced as a `≈`/`=` toggle glued
   to the front of the input — substring-search by default, click to flip to an exact
   match. Link fields are an exact pick (`equals`, no toggle). The value inputs are
-  the shared `Fields` components (ADR-0004); the `name` field swaps its text box for
+  the shared `Fields` components; the `name` field swaps its text box for
   a Link picker when flipped to `equals`.
 -->
 <template>
@@ -26,13 +26,15 @@
 		     input from growing on hover (e.g. a Link's clear button) — the label
 		     truncates instead. -->
 		<div v-for="field in visibleFields" :key="field.fieldname" class="w-40 shrink-0">
-			<!-- Check → a labelled checkbox (checked ⇔ equals "Yes"). -->
-			<Checkbox
-				v-if="field.fieldtype === 'Check'"
-				:label="field.label"
-				:modelValue="quickValue(filters, field) as boolean"
-				@update:modelValue="(v: boolean) => setValue(field, v)"
-			/>
+			<!-- Check → a labelled checkbox (checked ⇔ equals "Yes"). The checkbox's root is inline,
+			     so an input-height flex box centres it; its input's 1px top margin would drop the box. -->
+			<div v-if="field.fieldtype === 'Check'" class="flex h-7 items-center [&_input]:mt-0">
+				<Checkbox
+					:label="field.label"
+					:modelValue="quickValue(filters, field) as boolean"
+					@update:modelValue="(v: boolean) => setValue(field, v)"
+				/>
+			</div>
 			<!-- The fieldtype's value control. Free-text fields (and name) carry a
 			     ≈/= operator toggle over the input's start; clicking it flips
 			     like ↔ equals in place (and, for name, swaps text box ↔ Link pick).
@@ -76,6 +78,7 @@
 			class="shrink-0 whitespace-nowrap"
 			variant="subtle"
 			:label="expanded ? 'Show less' : `${hiddenCount} more`"
+			data-view
 			@click="expanded = !expanded"
 		>
 			<template #suffix>
@@ -90,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue";
 import { Button, Checkbox, TextInput, Tooltip, debounce } from "frappe-ui";
 import {
 	applyQuick,
@@ -102,7 +105,7 @@ import {
 	quickValue,
 } from "./quickFilters";
 import type { Filter, FilterField, FilterOperator, FilterValue } from "../Filter/types";
-// Shared, fieldtype-aware value inputs (ADR-0004), same subset the Filter control
+// Shared, fieldtype-aware value inputs, same subset the Filter control
 // mounts. No form-context injections are provided, so deep-injection inputs fall
 // back to site defaults — fine for a bare filter input.
 import SelectField from "../Fields/SelectField.vue";
@@ -111,6 +114,7 @@ import NumberField from "../Fields/NumberField.vue";
 import DateField from "../Fields/DateField.vue";
 import DatetimeField from "../Fields/DatetimeField.vue";
 import DurationField from "../Fields/DurationField.vue";
+import { CreateRecordKey, FieldActionsKey, RecordLinkKey } from "../Fields/types";
 import type { FieldMeta } from "../Fields/types";
 
 const props = defineProps<{
@@ -121,6 +125,11 @@ const props = defineProps<{
 // The shared Filter[] — the SoT `useListView` hands both controls. This component
 // only reads and re-emits it; it never owns a data resource.
 const filters = defineModel<Filter[]>("filters", { default: () => [] });
+
+// A filter's value input picks a record; it never creates or opens one.
+provide(CreateRecordKey, null);
+provide(RecordLinkKey, null);
+provide(FieldActionsKey, null);
 
 // --- Overflow collapse -------------------------------------------------------
 // Each value input is a fixed `w-40` box (160px) on an 8px gap, so how many fit on
@@ -331,7 +340,10 @@ function valueControl(field: FilterField): ValueControl {
 	}
 	if (fieldtype === "Date") return { is: DateField, props: { field: bareField(field) } };
 	if (fieldtype === "Datetime") return { is: DatetimeField, props: { field: bareField(field) } };
-	if (fieldtype === "Duration") return { is: DurationField, props: { field: bareField(field) } };
+	if (fieldtype === "Duration") {
+		const units = { hideDays: !!field.hide_days, hideSeconds: !!field.hide_seconds };
+		return { is: DurationField, props: { field: bareField(field, units) } };
+	}
 	return textControl(field);
 }
 

@@ -1,21 +1,12 @@
 /**
- * Site-default resolver for `FormLayout`'s built-in field components. The single
- * seam that assumes a Frappe runtime: reads framework defaults from desk boot's
- * `window.sysdefaults` (`frappe/boot.py: frappe.defaults.get_defaults()`).
- *
- * Precedence (lowest to highest): lib fallback → `window.sysdefaults` →
- * `setFormatDefaults` override. Per-field meta beats all of these, resolved by
- * the field component itself. Framework data defaults only.
+ * Site-default resolver for `FormLayout`'s field components: lib fallback → the session's
+ * `defaults` → `setFormatDefaults` override. Per-field meta beats all three.
  */
 import { shallowRef } from "vue";
+import { currentSession } from "../../composables/useSession";
 import { DEFAULT_NUMBER_FORMAT, DEFAULT_ROUNDING_METHOD } from "./formatNumber";
 
-/**
- * Framework formatting defaults, keyed in snake_case to mirror Frappe's
- * `sysdefaults` / `DocField` names so `window.sysdefaults` is a pass-through.
- * Date/time keys are unused today (Date/Time fields delegate to frappe-ui
- * pickers) but carried so adding them later stays additive.
- */
+/** snake_case to mirror Frappe's own names, so the session's `defaults` passes straight through. */
 export interface FormatDefaults {
   number_format?: string;
   /** ISO currency code, or null/absent when the site has none. */
@@ -27,22 +18,21 @@ export interface FormatDefaults {
   time_format?: string;
 }
 
-/** Lib fallbacks — what formatting resolves to with no Frappe boot and no override. */
-const LIB_FALLBACK: FormatDefaults = {
+/** Lib fallbacks — what formatting resolves to with no session and no override. */
+const LIB_FALLBACK = {
   number_format: DEFAULT_NUMBER_FORMAT,
   rounding_method: DEFAULT_ROUNDING_METHOD,
-};
+  date_format: "dd-mm-yyyy",
+  time_format: "HH:mm:ss",
+} satisfies FormatDefaults;
 
 /**
- * App/test override, layered over the Frappe boot read. Reactive (`shallowRef`)
- * so a `setFormatDefaults()` after fields render re-triggers computeds that read
- * `getFormatDefaults()` — otherwise rendered fields keep stale defaults. (The
- * `window.sysdefaults` boot read is static; new System Settings need a reload,
- * same as desk/CRM.)
+ * App/test override, layered over the session read. Reactive so a `setFormatDefaults()`
+ * after fields render re-triggers the computeds that read `getFormatDefaults()`.
  */
 const override = shallowRef<FormatDefaults>({});
 
-/** Drop `undefined` / `null` / `''` so a blank boot value can't clobber a fallback. */
+/** Drop `undefined` / `null` / `''` so a blank session value can't clobber a fallback. */
 function defined(o: FormatDefaults): FormatDefaults {
   const out: Record<string, unknown> = {};
   for (const k in o) {
@@ -52,35 +42,56 @@ function defined(o: FormatDefaults): FormatDefaults {
   return out as FormatDefaults;
 }
 
-/** Read boot-delivered defaults; `{}` with no `window` or no `sysdefaults` so
- *  the lib falls back cleanly. */
-function readFrappeBoot(): FormatDefaults {
+/** The session's site defaults, else `window.sysdefaults`, else `{}`. */
+function readSessionDefaults(): FormatDefaults {
+  const session = currentSession();
+  if (session) return (session.defaults as FormatDefaults | undefined) ?? {};
   if (typeof window === "undefined") return {};
-  return (
-    (window as unknown as { sysdefaults?: FormatDefaults }).sysdefaults ?? {}
-  );
+  return (window as unknown as { sysdefaults?: FormatDefaults }).sysdefaults ?? {};
 }
 
-/** Resolve active defaults: lib fallback → Frappe boot → app override. */
-export function getFormatDefaults(): FormatDefaults {
+/** Resolve active defaults: lib fallback → session → app override. */
+export function getFormatDefaults(): FormatDefaults & typeof LIB_FALLBACK {
   // Reading `override.value` registers the reactive dep so callers re-run on override change.
   return {
     ...LIB_FALLBACK,
-    ...defined(readFrappeBoot()),
+    ...defined(readSessionDefaults()),
     ...defined(override.value),
   };
 }
 
 /**
  * Override the framework defaults (merged over prior overrides). Unspecified keys
- * keep falling through to boot/fallback.
+ * keep falling through to the session/fallback.
  */
 export function setFormatDefaults(partial: FormatDefaults): void {
   // Fresh object so the shallowRef triggers (mutating in place wouldn't).
   override.value = { ...override.value, ...partial };
 }
 
-/** Clear all overrides (test isolation — restores the boot/fallback path). */
+/** Clear all overrides (test isolation — restores the session/fallback path). */
 export function resetFormatDefaults(): void {
   override.value = {};
+}
+
+/** dayjs display formats for the user's `date_format` and `time_format`, shared by the pickers and `displayValue`. */
+export function dateTimeFormats(): { date: string; time: string; datetime: string } {
+  const d = getFormatDefaults();
+  // Frappe's `dd-mm-yyyy` is dayjs's `DD-MM-YYYY`; a `time_format` is already dayjs.
+  const date = d.date_format.toUpperCase();
+  return { date, time: d.time_format, datetime: `${date} ${d.time_format}` };
+}
+
+/** Decimal places for a numeric field: its own `precision`, else the site's, else `undefined`. */
+export function resolvePrecision(field: {
+  fieldtype?: string;
+  precision?: number | null;
+}): number | undefined {
+  if (field.fieldtype === "Int" || field.fieldtype === "Long Int") return undefined;
+  if (field.precision != null) return field.precision;
+  const d = getFormatDefaults();
+  const site = field.fieldtype === "Currency" ? d.currency_precision : d.float_precision;
+  if (site == null || site === "") return undefined;
+  const n = Number(site);
+  return Number.isNaN(n) ? undefined : n;
 }

@@ -1,0 +1,12 @@
+{
+  "components": [
+    "RouterLink",
+    "RouterView",
+    "KeepAlive",
+    "Suspense",
+    "Teleport",
+    "Transition",
+    "TransitionGroup"
+  ],
+  "values": ["__", "__n"]
+}

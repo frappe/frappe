@@ -1,6 +1,6 @@
 <!--
   QuickFilter — a controlled, meta-driven list-view control that projects over the
-  SAME `Filter[]` list the Filter control binds (ADR-0005). It owns no data
+  SAME `Filter[]` list the Filter control binds. It owns no data
   resource; its two faces are split into focused children and this component just
   derives the shared field state and dispatches between them:
 
@@ -21,22 +21,32 @@
 -->
 <template>
 	<QuickFilterCustomize
-		v-if="customizing"
+		v-if="customizing && QuickFilterCustomize"
 		:fields="surfaced"
 		:addable-fields="addableFields"
 		@update:fields="onUpdateFields"
 		@done="onDone"
 	/>
+	<!-- Input-sized bars in the strip's own row, so the inputs land where the bars were. -->
+	<div
+		v-else-if="fieldsPending"
+		role="status"
+		class="flex flex-wrap items-center gap-2"
+		data-quick-filter-skeleton
+	>
+		<span class="sr-only">Loading</span>
+		<Skeleton v-for="bar in 3" :key="bar" class="h-7 w-40 shrink-0 rounded-4" />
+	</div>
 	<QuickFilterInputs v-else :fields="surfaced" v-model:filters="filters" />
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, shallowRef, watch, type Component } from "vue";
+import { Skeleton } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "../Filter/getFilterableFields";
 import { getQuickFilterFields } from "./getQuickFilterFields";
 import QuickFilterInputs from "./QuickFilterInputs.vue";
-import QuickFilterCustomize from "./QuickFilterCustomize.vue";
 import type { Filter, FilterField } from "../Filter/types";
 import type { QuickFilterProps } from "./types";
 
@@ -54,7 +64,29 @@ const filters = defineModel<Filter[]>("filters", { default: () => [] });
 const fields = defineModel<FilterField[] | undefined>("fields", { default: undefined });
 const customizing = defineModel<boolean>("customizing", { default: false });
 
-const { meta } = useDoctypeMeta(props.doctype);
+const { meta, loading } = useDoctypeMeta(props.doctype);
+
+// The customize face (and vuedraggable) loads when customizing starts; the inputs
+// stay until it is in.
+const QuickFilterCustomize = shallowRef<Component>();
+watch(
+	customizing,
+	async (on) => {
+		if (!on || QuickFilterCustomize.value) return;
+		try {
+			QuickFilterCustomize.value = (await import("./QuickFilterCustomize.vue")).default;
+		} catch (error) {
+			// The host hides its toolbar while customizing, so a failed load must leave the mode.
+			customizing.value = false;
+			throw error;
+		}
+	},
+	{ immediate: true }
+);
+
+// Unknown only while no host set is bound and the first meta read is in flight; a failed read
+// falls back to the Name default.
+const fieldsPending = computed(() => fields.value === undefined && !meta.value && loading.value);
 
 // Default surfaced fields from Meta until the host/user customizes (`fields`
 // bound). Mutating in customize mode promotes the default into the model.

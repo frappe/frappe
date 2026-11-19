@@ -1,0 +1,199 @@
+// The Form Layout tabs surface: the strip inside the record's Details form, whose
+// tabs a script overrides but cannot add. Modelled on `FieldsSurface`.
+import { shallowReactive } from "vue";
+import {
+  applyTabOverride,
+  resolveTabConditionals,
+  identifyTabs,
+  tabStripLabel,
+} from "@framework/ui/FormLayout";
+import { runningSource } from "@/pageEngine/context";
+import { StagedOverlay } from "@/pageEngine/staging";
+import type { FormLayoutSchema, Tab, TabOverride } from "@framework/ui/FormLayout/types";
+import { readOnly, type ReadOnlyAdvice } from "./readOnly";
+import type { PageFormTab, PageFormTabPatch, PageFormTabs } from "./types";
+
+const SNAPSHOT_IS_READ_ONLY: ReadOnlyAdvice = {
+  path: "page.form.tabs.get()",
+  instead:
+    "page.form.tabs.hide(identity) / .show(identity) / .update(identity, { label })",
+};
+
+export interface FormTabsSurfaceHost {
+  /** The record's Details layout before this surface's ops, hidden tabs included. */
+  tabs: () => FormLayoutSchema | undefined;
+  /** The draft document conditional expressions resolve against. */
+  doc: () => Record<string, any>;
+}
+
+type Op =
+  | { verb: "hide" | "show"; source: string; identity: string }
+  | { verb: "update"; source: string; identity: string; patch: TabOverride }
+  | { verb: "clear"; source: string };
+
+export class FormTabsSurface extends StagedOverlay<Op> implements PageFormTabs {
+  /** Installed by `createRecordPage`, which reads it from the host's strip. */
+  declare readonly active: string;
+  /** Installed there too: a miss on one strip wants to name the other. */
+  declare activate: (identity: string) => void;
+
+  // Shallow for the reason `FieldsSurface` gives.
+  constructor(private host: FormTabsSurfaceHost) {
+    super(shallowReactive([]));
+  }
+
+  hide(identity: string) {
+    this.record({ verb: "hide", source: runningSource(), identity });
+    this.warnIfAbsent(identity, "hide");
+  }
+
+  show(identity: string) {
+    this.record({ verb: "show", source: runningSource(), identity });
+    this.warnIfAbsent(identity, "show");
+  }
+
+  update(identity: string, patch: PageFormTabPatch) {
+    // Named before the keys are read, so a mistyped identity is heard first.
+    this.warnIfAbsent(identity, "update");
+    this.record({
+      verb: "update",
+      source: runningSource(),
+      identity,
+      patch: translate(identity, patch),
+    });
+  }
+
+  /** Every tab the layout carries at the call; a later `show` brings one back. */
+  clear() {
+    this.record({ verb: "clear", source: runningSource() });
+  }
+
+  has(identity: string) {
+    return !!this.raw(identity);
+  }
+
+  get(identity: string): PageFormTab | null {
+    // Every tab, not just the one asked for: the strip's label fallback depends
+    // on how many tabs are visible beside it.
+    const strip = this.resolved();
+    const tab = strip.find((one) => one.identity === identity);
+    if (!tab) {
+      this.warnIfAbsent(identity, "get");
+      return null;
+    }
+    const multipleTabs = strip.filter((one) => !one.hidden).length > 1;
+    return readOnly(
+      {
+        name: tab.name,
+        identity,
+        label: tabStripLabel(tab.label, multipleTabs),
+        hidden: tab.hidden,
+      },
+      SNAPSHOT_IS_READ_ONLY,
+    );
+  }
+
+  // Host side, below: not part of what a script may call.
+
+  /** Whether the tab is on the strip right now, the replay or hold in flight included. */
+  isVisible(identity: string) {
+    return showsIn(this.resolved(), identity);
+  }
+
+  /** Whether the tab shows in what is drawn, a replay or hold in flight left out. */
+  isDrawn(identity: string) {
+    return showsIn(this.resolved(this.drawnOps), identity);
+  }
+
+  /** The applied overlay: committed ops only, never a replay or hold in flight. */
+  resolve(): Record<string, TabOverride> {
+    return this.fold(this.drawnOps);
+  }
+
+  /** One override per tab, in op order. A `Map`, not an object, for the reason `FieldsSurface.fold` gives. */
+  private fold(ops: Op[]): Record<string, TabOverride> {
+    const overrides = new Map<string, TabOverride>();
+    const into = (identity: string) => {
+      let override = overrides.get(identity);
+      if (!override) overrides.set(identity, (override = {}));
+      return override;
+    };
+    for (const op of ops) {
+      if (op.verb === "clear") {
+        for (const tab of this.identified()) into(tab.identity).hidden = true;
+      } else if (op.verb === "update") Object.assign(into(op.identity), op.patch);
+      else into(op.identity).hidden = op.verb === "hide";
+    }
+    return Object.fromEntries(overrides);
+  }
+
+  private raw(identity: string): (Tab & { identity: string }) | undefined {
+    return this.identified().find((tab) => tab.identity === identity);
+  }
+
+  /** The strip as it stands: `depends_on` against the doc, then the staged or drawn ops. */
+  private resolved(ops = this.currentOps) {
+    const overrides = this.fold(ops);
+    const doc = this.host.doc();
+    return this.identified().map((tab) => {
+      const conditional = resolveTabConditionals(
+        { ...tab, override: overrides[tab.identity] },
+        doc,
+      );
+      return { ...conditional, ...applyTabOverride(conditional) };
+    });
+  }
+
+  /** The same identities `FormLayout` resolves, so the two cannot disagree about an address. */
+  private identified() {
+    return identifyTabs(this.host.tabs() ?? []);
+  }
+
+  /**
+   * The op is recorded either way: before the layout lands, "absent" and "not
+   * here yet" are indistinguishable, and dropping it would lose it for good.
+   */
+  private warnIfAbsent(identity: string, verb: string) {
+    const tabs = this.host.tabs();
+    if (!tabs?.length || this.raw(identity)) return;
+    warnOnce(`page.form.tabs.${verb}("${identity}") — no such tab.`);
+  }
+}
+
+function showsIn(tabs: { identity: string; hidden?: boolean }[], identity: string) {
+  const tab = tabs.find((one) => one.identity === identity);
+  return !!tab && !tab.hidden;
+}
+
+/**
+ * `label` and nothing else: `hidden` is `hide`/`show`'s, and `dependsOn` is not
+ * patchable, since a script wanting conditional visibility has an `if` in `onRefresh`.
+ */
+function translate(identity: string, patch: PageFormTabPatch): TabOverride {
+  const translated: TabOverride = {};
+  for (const [key, value] of Object.entries(patch)) {
+    if (key === "label") {
+      translated.label = value as string;
+      continue;
+    }
+    warnOnce(
+      key === "hidden"
+        ? `page.form.tabs.update("${identity}", { hidden }) — use hide()/show(); dropped.`
+        : `page.form.tabs.update("${identity}", { ${key} }) — not a tab property a script may set; dropped.`,
+    );
+  }
+  return translated;
+}
+
+const warned = new Set<string>();
+
+function warnOnce(message: string) {
+  if (!import.meta.env.DEV || warned.has(message)) return;
+  warned.add(message);
+  console.warn(`[record-page] ${message}`);
+}
+
+/** Test seam: the warn-once memory is module state. */
+export function resetFormTabWarnings(): void {
+  warned.clear();
+}

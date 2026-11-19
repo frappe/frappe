@@ -1,0 +1,622 @@
+// The builder page mounted with a stubbed canvas and a faked API. Mounted with Vue's own `createApp`.
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createApp, defineComponent, h, nextTick, ref, type App } from "vue";
+import { RouterView, createMemoryHistory, createRouter, type Router } from "vue-router";
+
+const fake = vi.hoisted(() => ({
+  getDocument: vi.fn(),
+  copyDocument: vi.fn(),
+  createDocument: vi.fn(),
+  updateDocument: vi.fn(),
+  runMethod: vi.fn(),
+  fitView: vi.fn(),
+  toastError: vi.fn(),
+  confirmDiscard: vi.fn(),
+  rights: { loading: false, create: true },
+}));
+
+vi.mock(
+  "../../../frappe/automation/doctype/automation_flow/frontend/flow/confirmDiscard",
+  () => ({ confirmDiscard: fake.confirmDiscard })
+);
+vi.mock("@framework/ui/Link", () => ({
+  Link: defineComponent({
+    props: ["modelValue", "doctype"],
+    emits: ["update:modelValue"],
+    setup: (props, { emit }) => () =>
+      h("input", {
+        "data-link": props.doctype,
+        value: props.modelValue,
+        onChange: (e: Event) => emit("update:modelValue", (e.target as HTMLInputElement).value),
+      }),
+  }),
+}));
+
+vi.mock("@framework/ui/api", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  getDocument: fake.getDocument,
+  copyDocument: fake.copyDocument,
+  createDocument: fake.createDocument,
+  updateDocument: fake.updateDocument,
+  runMethod: fake.runMethod,
+}));
+vi.mock("@framework/ui/useDocPermissions", () => ({
+  useDocPermissions: () => ({
+    loading: {
+      get value() {
+        return fake.rights.loading;
+      },
+    },
+    holds: () => fake.rights.create,
+  }),
+}));
+vi.mock("@framework/ui/AutomationCanvas", () => ({
+  AutomationCanvas: defineComponent({
+    props: ["nodes", "edges"],
+    setup: (props, { expose }) => {
+      expose({ fitView: fake.fitView });
+      return () => h("div", { "data-canvas": props.nodes.length });
+    },
+  }),
+}));
+vi.mock("@shell", async () => ({
+  routeFor: (doctype: string, name?: string, options: { query?: object } = {}) => ({
+    name: "flow-test",
+    params: { doctype, name },
+    query: options.query,
+  }),
+  useUnloadGuard: (await import("../../src/unloadGuard")).useUnloadGuard,
+}));
+vi.mock("frappe-ui", async (importOriginal) => {
+  const original = await importOriginal<any>();
+  return { ...original, toast: { ...original.toast, error: fake.toastError } };
+});
+
+import { ApiError } from "@framework/ui/api";
+import FlowBuilder from "../../../frappe/automation/doctype/automation_flow/frontend/FlowBuilder.vue";
+
+const saved = {
+  name: "AUTO-00001",
+  title: "Notify",
+  enabled: 1,
+  document_type: "ToDo",
+  trigger_type: "Document Created",
+  modified: "2026-11-11 10:00:00",
+  actions: [
+    {
+      name: "row-1",
+      idx: 1,
+      step_type: "Action",
+      action_type: "SetFieldValue",
+      step_key: "step_1",
+      params: "{}",
+      parent_step: 0,
+      branch: "",
+    },
+  ],
+};
+
+let app: App;
+let router: Router;
+let host: HTMLElement;
+
+const routeName = ref<string | null>(null);
+
+async function mount(name: string | null, query: Record<string, string> = {}) {
+  router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: "/:pathMatch(.*)*",
+        name: "flow-test",
+        component: { render: () => null },
+      },
+    ],
+  });
+  host = document.createElement("div");
+  document.body.appendChild(host);
+  routeName.value = name;
+  app = createApp({ render: () => h("div", [h(FlowBuilder, { name: routeName.value, query })]) });
+  app.use(router);
+  app.mount(host);
+  await settle();
+}
+
+async function settle() {
+  for (let i = 0; i < 6; i++) await nextTick();
+  await new Promise((resolve) => setTimeout(resolve));
+}
+
+const button = (label: string) =>
+  [...host.querySelectorAll("button")].find(
+    (b) => b.textContent?.trim() === label
+  ) as HTMLElement;
+const titleInput = () =>
+  host.querySelector("[data-flow-title]") as HTMLInputElement;
+
+async function typeTitle(value: string) {
+  const input = titleInput();
+  input.value = value;
+  input.dispatchEvent(new Event("input"));
+  await settle();
+}
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  fake.rights.loading = false;
+  fake.rights.create = true;
+  fake.runMethod.mockResolvedValue({
+    data: { actions: [], trigger_events: [] },
+  });
+  fake.getDocument.mockResolvedValue({ data: structuredClone(saved) });
+});
+
+afterEach(() => {
+  app.unmount();
+  host.remove();
+});
+
+describe("Automation Flow builder", () => {
+  it("loads the flow and its steps onto the canvas", async () => {
+    await mount("AUTO-00001");
+
+    expect(fake.getDocument).toHaveBeenCalledWith(
+      "Automation Flow",
+      "AUTO-00001"
+    );
+    expect(titleInput().value).toBe("Notify");
+    expect(
+      host.querySelector("[data-canvas]")?.getAttribute("data-canvas")
+    ).toBe("2");
+    expect(host.textContent).not.toContain("Unsaved");
+  });
+
+  it("saves an edit as a PATCH with the title and no unsaved badge after", async () => {
+    fake.updateDocument.mockResolvedValue({
+      data: { ...structuredClone(saved), title: "Renamed" },
+    });
+    await mount("AUTO-00001");
+
+    await typeTitle("Renamed");
+    expect(host.textContent).toContain("Unsaved");
+    button("Save").click();
+    await settle();
+
+    const [doctype, name, payload] = fake.updateDocument.mock.calls[0];
+    expect([doctype, name, payload.title]).toEqual([
+      "Automation Flow",
+      "AUTO-00001",
+      "Renamed",
+    ]);
+    expect(host.textContent).not.toContain("Unsaved");
+  });
+
+  it("inserts a new flow and then replaces the address with the record", async () => {
+    fake.createDocument.mockResolvedValue({
+      data: {
+        ...structuredClone(saved),
+        name: "AUTO-00009",
+        title: "Fresh",
+        actions: [],
+      },
+    });
+    await mount(null);
+    const replace = vi.spyOn(router, "replace");
+
+    expect(host.textContent).toContain("Unsaved");
+    await typeTitle("Fresh");
+    button("Save").click();
+    await settle();
+
+    expect(fake.createDocument).toHaveBeenCalledOnce();
+    expect(fake.updateDocument).not.toHaveBeenCalled();
+    expect(replace).toHaveBeenCalledWith({
+      name: "flow-test",
+      params: { doctype: "Automation Flow", name: "AUTO-00009" },
+      state: { keepsPage: true },
+    });
+  });
+
+  it("refuses to save a flow with no title", async () => {
+    await mount(null);
+
+    button("Save").click();
+    await settle();
+
+    expect(fake.createDocument).not.toHaveBeenCalled();
+    expect(fake.toastError).toHaveBeenCalled();
+  });
+
+  it("shows the save conflict when the flow changed since it was opened", async () => {
+    fake.updateDocument.mockRejectedValue(
+      new ApiError(
+        {
+          type: "TimestampMismatchError",
+          message: "Document has been modified",
+        },
+        417
+      )
+    );
+    await mount("AUTO-00001");
+
+    await typeTitle("Renamed");
+    button("Save").click();
+    await settle();
+
+    expect(host.querySelector("[role=alert]")?.textContent).toContain(
+      "Someone else saved"
+    );
+    expect(host.textContent).toContain("Unsaved");
+  });
+
+  it("keeps the conflict banner when the reload fails", async () => {
+    fake.updateDocument.mockRejectedValue(
+      new ApiError(
+        {
+          type: "TimestampMismatchError",
+          message: "Document has been modified",
+        },
+        417
+      )
+    );
+    await mount("AUTO-00001");
+    await typeTitle("Renamed");
+    button("Save").click();
+    await settle();
+
+    fake.getDocument.mockRejectedValue(
+      new ApiError({ type: "ServerError", message: "down" }, 500)
+    );
+    button("Reload and discard my changes").click();
+    await settle();
+
+    expect(host.querySelector("[role=alert]")).not.toBeNull();
+    expect(fake.toastError).toHaveBeenCalled();
+  });
+
+  it("says who may open it when the server answers 403", async () => {
+    fake.getDocument.mockRejectedValue(
+      new ApiError({ type: "PermissionError", message: "no" }, 403)
+    );
+    await mount("AUTO-00001");
+
+    expect(host.textContent).toContain("Not permitted");
+    expect(host.textContent).toContain("System Manager");
+    expect(host.querySelector("[data-canvas]")).toBeNull();
+  });
+
+  describe("the test run", () => {
+    const bar = () => host.querySelector("[data-trial-bar]");
+
+    it("opens a bar with the record picker and hides the inspector while it is open", async () => {
+      await mount("AUTO-00001");
+      expect(bar()).toBeNull();
+      expect(host.querySelector("aside")).not.toBeNull();
+      button("Test run").click();
+      await settle();
+      expect(bar()).not.toBeNull();
+      expect(fake.fitView).toHaveBeenCalled();
+      expect(host.querySelector("aside")).toBeNull();
+      expect(button("Start test run").hasAttribute("disabled")).toBe(true);
+      button("Test run").click();
+      await settle();
+      expect(bar()).toBeNull();
+      expect(host.querySelector("aside")).not.toBeNull();
+    });
+
+    it("asks to save first while the flow has unsaved edits", async () => {
+      await mount("AUTO-00001");
+      await typeTitle("Renamed");
+      button("Test run").click();
+      await settle();
+      expect(bar()?.textContent).toContain("Save the flow before testing it.");
+      expect(button("Start test run").hasAttribute("disabled")).toBe(true);
+    });
+
+    it("keeps the bar through a new flow's first save", async () => {
+      fake.createDocument.mockResolvedValue({
+        data: { ...structuredClone(saved), name: "AUTO-00009", title: "Fresh", actions: [] },
+      });
+      await mount(null);
+      await typeTitle("Fresh");
+      button("Test run").click();
+      await settle();
+      button("Save").click();
+      await settle();
+      routeName.value = "AUTO-00009";
+      await settle();
+      expect(bar()).not.toBeNull();
+    });
+
+    it("closes the bar when another flow is opened", async () => {
+      await mount("AUTO-00001");
+      button("Test run").click();
+      await settle();
+      routeName.value = "AUTO-00002";
+      await settle();
+      expect(bar()).toBeNull();
+    });
+
+    it("leaves undo and redo off while the bar is open", async () => {
+      await mount("AUTO-00001");
+      await typeTitle("Renamed");
+      expect(host.querySelector('[aria-label="Undo"]')?.hasAttribute("disabled")).toBe(false);
+      button("Test run").click();
+      await settle();
+      expect(host.querySelector('[aria-label="Undo"]')?.hasAttribute("disabled")).toBe(true);
+      document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "z", ctrlKey: true, bubbles: true }));
+      await settle();
+      expect(titleInput().value).toBe("Renamed");
+      expect(button("Test run").getAttribute("aria-pressed")).toBe("true");
+    });
+
+    it("has no record picker for a flow that is not about a record", async () => {
+      fake.getDocument.mockResolvedValue({ data: { ...structuredClone(saved), document_type: "" } });
+      await mount("AUTO-00001");
+      button("Test run").click();
+      await settle();
+      expect(bar()?.textContent).toContain("runs on its own");
+      expect(button("Start test run").hasAttribute("disabled")).toBe(false);
+    });
+
+    it("runs the saved flow with POST and shows the result", async () => {
+      fake.getDocument.mockResolvedValue({ data: { ...structuredClone(saved), document_type: "" } });
+      fake.runMethod.mockImplementation(async (method: string) =>
+        method.endsWith("trial_run")
+          ? { data: { status: "Success", steps: [], branches: {}, error_summary: "" } }
+          : { data: { actions: [], trigger_events: [] } }
+      );
+      await mount("AUTO-00001");
+      button("Test run").click();
+      await settle();
+      button("Start test run").click();
+      await settle();
+      const call = fake.runMethod.mock.calls.find(([m]) => m.endsWith("trial_run"));
+      expect(call?.[1]).toEqual({ automation: "AUTO-00001", docname: null, branch_overrides: {} });
+      expect(call?.[2]).toBeUndefined();
+      expect(host.querySelector("[data-trial-summary]")?.textContent).toContain("Success");
+    });
+  });
+
+  describe("the Runs button", () => {
+    it("links to the Automation Run list filtered on the flow", async () => {
+      await mount("AUTO-00001");
+      const runs = [...host.querySelectorAll("a")].find((a) => a.textContent?.trim() === "Runs");
+      expect(runs?.getAttribute("href")).toContain("automation=AUTO-00001");
+    });
+
+    it("is off for a flow that is not saved yet", async () => {
+      await mount(null);
+      expect(button("Runs").hasAttribute("disabled")).toBe(true);
+      expect(host.querySelector('a[href*="automation="]')).toBeNull();
+    });
+  });
+
+  describe("a new flow", () => {
+    const source = {
+      title: "Notify",
+      enabled: 1,
+      document_type: "ToDo",
+      trigger_type: "Document Created",
+      actions: saved.actions.map(({ name, ...row }) => row),
+    };
+
+    it("opens prefilled from the flow `__copy_of` names, unsaved until the first Save", async () => {
+      fake.copyDocument.mockResolvedValue({ data: structuredClone(source) });
+      fake.createDocument.mockResolvedValue({
+        data: { ...structuredClone(saved), name: "AUTO-00010" },
+      });
+      await mount(null, { __copy_of: "AUTO-00001" });
+
+      expect(fake.copyDocument).toHaveBeenCalledWith(
+        "Automation Flow",
+        "AUTO-00001"
+      );
+      expect(fake.getDocument).not.toHaveBeenCalled();
+      expect(titleInput().value).toBe("Notify");
+      expect(
+        host.querySelector("[data-canvas]")?.getAttribute("data-canvas")
+      ).toBe("2");
+      expect(host.textContent).toContain("Unsaved");
+      expect(fake.createDocument).not.toHaveBeenCalled();
+
+      button("Save").click();
+      await settle();
+
+      const [doctype, payload] = fake.createDocument.mock.calls[0];
+      expect(doctype).toBe("Automation Flow");
+      expect([payload.name, payload.title, payload.actions.length]).toEqual([
+        undefined,
+        "Notify",
+        1,
+      ]);
+    });
+
+    it("lets the address's values sit over the empty flow", async () => {
+      await mount(null, {
+        title: "From the dialog",
+        document_type: "Lead",
+        enabled: "0",
+      });
+
+      expect(fake.copyDocument).not.toHaveBeenCalled();
+      expect(titleInput().value).toBe("From the dialog");
+    });
+
+    it("says the flow was not found when the copied flow is gone", async () => {
+      fake.copyDocument.mockRejectedValue(
+        new ApiError({ type: "DoesNotExistError", message: "no" }, 404)
+      );
+      await mount(null, { __copy_of: "AUTO-00404" });
+
+      expect(host.textContent).toContain("Flow not found");
+      expect(host.querySelector("[data-canvas]")).toBeNull();
+    });
+
+    it("shows the Not permitted state to a person with no create right", async () => {
+      fake.rights.create = false;
+      await mount(null);
+
+      expect(host.textContent).toContain("Not permitted");
+      expect(host.textContent).toContain("System Manager");
+      expect(host.querySelector("[data-canvas]")).toBeNull();
+      expect(button("Save")).toBeUndefined();
+    });
+
+    it("draws no page while the create right is still loading", async () => {
+      fake.rights.loading = true;
+      await mount(null);
+
+      expect(host.querySelector("[data-canvas]")).toBeNull();
+      expect(host.textContent).not.toContain("Not permitted");
+    });
+
+    it("does not ask for the create right to open a saved flow", async () => {
+      fake.rights.create = false;
+      await mount("AUTO-00001");
+
+      expect(host.querySelector("[data-canvas]")).not.toBeNull();
+    });
+  });
+
+  describe("leaving with unsaved changes", () => {
+    async function mountRouted(name: string) {
+      router = createRouter({
+        history: createMemoryHistory(),
+        routes: [
+          {
+            path: "/flow/:name",
+            name: "flow-test",
+            component: FlowBuilder,
+            props: (route) => ({ name: route.params.name }),
+          },
+          { path: "/elsewhere", component: { render: () => h("p", "elsewhere") } },
+        ],
+      });
+      host = document.createElement("div");
+      document.body.appendChild(host);
+      app = createApp({ render: () => h(RouterView) });
+      app.use(router);
+      await router.push(`/flow/${name}`);
+      app.mount(host);
+      await settle();
+    }
+
+    it("asks before a route change and stays when the person keeps editing", async () => {
+      fake.confirmDiscard.mockResolvedValue(false);
+      await mountRouted("AUTO-00001");
+      await typeTitle("Renamed");
+
+      await router.push("/elsewhere");
+
+      expect(fake.confirmDiscard).toHaveBeenCalledOnce();
+      expect(router.currentRoute.value.path).toBe("/flow/AUTO-00001");
+      expect(titleInput().value).toBe("Renamed");
+    });
+
+    it("leaves after the person discards the changes", async () => {
+      fake.confirmDiscard.mockResolvedValue(true);
+      await mountRouted("AUTO-00001");
+      await typeTitle("Renamed");
+
+      await router.push("/elsewhere");
+
+      expect(router.currentRoute.value.path).toBe("/elsewhere");
+    });
+
+    it("asks before the page is pointed at another flow", async () => {
+      fake.confirmDiscard.mockResolvedValue(false);
+      await mountRouted("AUTO-00001");
+      await typeTitle("Renamed");
+
+      await router.push("/flow/AUTO-00002");
+
+      expect(fake.confirmDiscard).toHaveBeenCalledOnce();
+      expect(router.currentRoute.value.path).toBe("/flow/AUTO-00001");
+    });
+
+    it("does not ask when there is nothing unsaved", async () => {
+      await mountRouted("AUTO-00001");
+
+      await router.push("/elsewhere");
+
+      expect(fake.confirmDiscard).not.toHaveBeenCalled();
+      expect(router.currentRoute.value.path).toBe("/elsewhere");
+    });
+
+    it("does not ask after a save", async () => {
+      fake.updateDocument.mockResolvedValue({
+        data: { ...structuredClone(saved), title: "Renamed" },
+      });
+      await mountRouted("AUTO-00001");
+      await typeTitle("Renamed");
+      button("Save").click();
+      await settle();
+
+      await router.push("/elsewhere");
+
+      expect(fake.confirmDiscard).not.toHaveBeenCalled();
+    });
+
+    it("asks the browser to hold a reload only while there are unsaved changes", async () => {
+      await mountRouted("AUTO-00001");
+      const reload = () => {
+        const event = new Event("beforeunload", { cancelable: true });
+        window.dispatchEvent(event);
+        return event.defaultPrevented;
+      };
+      expect(reload()).toBe(false);
+
+      await typeTitle("Renamed");
+
+      expect(reload()).toBe(true);
+    });
+  });
+
+  describe("the capabilities of a DocType", () => {
+  const capabilityCalls = (doctype: string) =>
+    fake.runMethod.mock.calls.filter(
+      ([method, args]) =>
+        method === "frappe.automation_engine.api.get_automation_capabilities" &&
+        args.doctype === doctype
+    ).length;
+
+  it("are fetched again when the DocType changes", async () => {
+    await mount("AUTO-00001");
+    expect(capabilityCalls("ToDo")).toBe(1);
+
+    const link = host.querySelector("[data-link=DocType]") as HTMLInputElement;
+    link.value = "Note";
+    link.dispatchEvent(new Event("change"));
+    await settle();
+    link.value = "ToDo";
+    link.dispatchEvent(new Event("change"));
+    await settle();
+
+    expect(capabilityCalls("Note")).toBe(1);
+    expect(capabilityCalls("ToDo")).toBe(2);
+  });
+
+  it("are fetched again when the page is shown after it was hidden", async () => {
+    await mount("AUTO-00001");
+    const before = capabilityCalls("ToDo");
+
+    document.dispatchEvent(new Event("visibilitychange"));
+    await settle();
+
+    expect(capabilityCalls("ToDo")).toBe(before + 1);
+  });
+
+  it("are not fetched while the page goes hidden", async () => {
+    await mount("AUTO-00001");
+    const before = capabilityCalls("ToDo");
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+
+    document.dispatchEvent(new Event("visibilitychange"));
+    await settle();
+    hidden.mockRestore();
+
+    expect(capabilityCalls("ToDo")).toBe(before);
+  });
+  });
+});

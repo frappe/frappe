@@ -1,7 +1,7 @@
 <!--
   The `in` / `not in` value input for a Link field: a frappe-ui MultiSelect whose
-  options are searched live from the link's target doctype (`search_link`, the same
-  endpoint `Link.vue` uses), so the user picks real records instead of typing a
+  options are searched live from the link's target doctype (the same search
+  `Link.vue` uses), so the user picks real records instead of typing a
   comma string of names. Its `v-model` is the condition's value — a `string[]` of
   the selected record names.
 
@@ -14,7 +14,7 @@
 		:modelValue="selected"
 		:options="options"
 		:filterable="!isName"
-		:loading="resource.loading && !resource.data"
+		:loading="resource.loading.value && !resource.data.value"
 		:placeholder="placeholder ?? `Search ${(field.options ?? '').toLowerCase()}`"
 		variant="subtle"
 		emptyText="No results found"
@@ -25,9 +25,11 @@
 </template>
 
 <script setup lang="ts">
-import { toIdOption, toLinkOption } from "../Link/linkOption";
+import { toIdOption } from "../Link/linkOption";
 import { computed, ref, watch } from "vue";
-import { MultiSelect, createResource, frappeRequest, debounce } from "frappe-ui";
+import { MultiSelect, debounce } from "frappe-ui";
+import { useLinkSearch } from "../../composables/useLinkSearch";
+import type { LinkSearchOption as LinkOption } from "../../composables/useLinkSearch";
 import type { FilterField } from "./types";
 
 const props = defineProps<{
@@ -41,12 +43,6 @@ const emit = defineEmits<{ "update:modelValue": [value: string[]] }>();
 // `name` stores IDs; server search still matches titles, so client filter is off.
 const isName = computed(() => props.field.fieldname === "name");
 
-interface LinkOption {
-	label: string;
-	value: string;
-	description?: string;
-}
-
 const selected = computed<string[]>(() =>
 	Array.isArray(props.modelValue) ? props.modelValue : []
 );
@@ -55,25 +51,20 @@ const selected = computed<string[]>(() =>
 // label after the query narrows the result set.
 const known = ref(new Map<string, LinkOption>());
 
-const resource = createResource({
-	url: "frappe.desk.search.search_link",
-	params: { doctype: props.field.options ?? "", txt: "", filters: {} },
-	method: "POST",
-	resourceFetcher: frappeRequest,
-	transform: (data: { value: string; label?: string; description?: string }[]): LinkOption[] =>
-		data.map(isName.value ? toIdOption : toLinkOption),
-});
+const resource = useLinkSearch(() => props.field.options);
 
-watch(
-	() => resource.data as LinkOption[] | undefined,
-	(data) => {
-		for (const o of data ?? []) known.value.set(o.value, o);
-	}
+// The search labels by title; relabelling its options by ID matches `toIdOption` on the raw rows.
+const results = computed(() =>
+	isName.value ? resource.data.value?.map(toIdOption) ?? null : resource.data.value
 );
+
+watch(results, (data) => {
+	for (const o of data ?? []) known.value.set(o.value, o);
+});
 
 const options = computed<LinkOption[]>(() => {
 	const byId = new Map<string, LinkOption>();
-	for (const o of (resource.data as LinkOption[]) ?? []) byId.set(o.value, o);
+	for (const o of results.value ?? []) byId.set(o.value, o);
 	// Merge selected-but-absent values so their chips stay resolvable.
 	for (const v of selected.value) {
 		if (!byId.has(v)) byId.set(v, known.value.get(v) ?? { label: v, value: v });
@@ -82,14 +73,12 @@ const options = computed<LinkOption[]>(() => {
 });
 
 function load(txt = "") {
-	if (!props.field.options) return;
-	resource.update({ params: { doctype: props.field.options, txt, filters: {} } });
-	resource.reload();
+	void resource.search(txt);
 }
 
 const onQuery = debounce((q: string) => load(q || ""), 300);
 
 function onOpen(isOpen: boolean) {
-	if (isOpen && !resource.data) load("");
+	if (isOpen && !resource.data.value) load("");
 }
 </script>

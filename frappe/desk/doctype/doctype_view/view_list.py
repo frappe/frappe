@@ -1,0 +1,108 @@
+# Each view one person can open of some doctypes: the plain views, then their own, the site's and the apps'.
+
+import frappe
+from frappe import _
+from frappe.desk.doctype.default_view.resolver import DefaultViews
+from frappe.desk.doctype.view_type.view_type import applies_to, view_types
+
+from .app_views import app_view_doctypes, app_views
+from .doctype_view import PLAIN_VIEW, SITE_ROW
+
+# A doctype's own address opens its plain List view when no layer's default resolves.
+FALLBACK_DEFAULT = "list"
+
+
+class ViewList:
+	"""One person's views in one app, as `{key, label, type, layer, default, default_for, overrides_app}`; never their settings."""
+
+	def __init__(self, user: str | None = None, app: str | None = None):
+		self.user = user or frappe.session.user
+		self.app = app
+
+	def of(self, doctypes: list[str] | None = None) -> dict[str, list[dict]]:
+		"""`{doctype: views}` for each of `doctypes` the person reads, else each they read that has a saved view."""
+		rows = {}
+		for row in self.stored_rows(doctypes):
+			rows.setdefault(row.reference_doctype, []).append(row)
+		if doctypes is None:
+			doctypes = set(rows) | set(app_view_doctypes())
+		names = self.readable(doctypes)
+		defaults = DefaultViews(self.user, self.app)
+		resolved, pointed = defaults.addresses(names), defaults.pointed_at(names)
+
+		return {
+			doctype: self.views(
+				doctype, rows.get(doctype, []), resolved.get(doctype), pointed.get(doctype, {})
+			)
+			for doctype in names
+		}
+
+	def stored_rows(self, doctypes: list[str] | None) -> list[frappe._dict]:
+		"""The person's own saved views and the site's, by label, in one query on `Doctype View`."""
+		filters = {"key": ("!=", PLAIN_VIEW), "user": ("in", (self.user, SITE_ROW))}
+		if doctypes is not None:
+			filters["reference_doctype"] = ("in", doctypes)
+
+		rows = frappe.get_all(
+			"Doctype View", filters=filters, fields=["reference_doctype", "key", "label", "type", "user"]
+		)
+		return sorted(rows, key=lambda row: (row.label.casefold(), row.key))
+
+	def readable(self, doctypes) -> list[str]:
+		"""The doctypes still on the site that the person reads, by name."""
+		if not doctypes:
+			return []
+
+		existing = frappe.get_all("DocType", filters={"name": ("in", list(doctypes))}, pluck="name")
+		return sorted(
+			doctype for doctype in existing if frappe.has_permission(doctype, "read", user=self.user)
+		)
+
+	def views(
+		self, doctype: str, rows: list[frappe._dict], default: str | None, pointed: dict[str, list[str]]
+	) -> list[dict]:
+		"""The doctype's views from its `rows` in lookup order, each key once at its first layer, the default marked."""
+		fitting = fitting_types(doctype)
+		listed = {}
+		for view in (*plain_views(fitting), *self.saved_views(doctype, rows)):
+			if view["type"] in fitting:
+				listed.setdefault(view["key"], view)
+
+		default = default or FALLBACK_DEFAULT
+		overridden = set(app_views(doctype))
+		return [
+			{
+				**view,
+				"default": key == default,
+				"default_for": pointed.get(key, []),
+				"overrides_app": view["layer"] == "site" and key in overridden,
+			}
+			for key, view in listed.items()
+		]
+
+	def saved_views(self, doctype: str, rows: list[frappe._dict]) -> list[dict]:
+		"""The person's own, then the site's, then the apps', each layer by label."""
+		stored = [
+			listed_view(row.key, row.label, row.type, layer)
+			for layer, user in (("own", self.user), ("site", SITE_ROW))
+			for row in rows
+			if row.user == user
+		]
+		shipped = [
+			listed_view(key, _(view.label), view.type, "app") for key, view in app_views(doctype).items()
+		]
+		return [*stored, *sorted(shipped, key=lambda view: (view["label"].casefold(), view["key"]))]
+
+
+def fitting_types(doctype: str) -> dict[str, frappe._dict]:
+	"""The view types that apply to `doctype`; a view of any other type is left out."""
+	return {name: record for name, record in view_types().items() if applies_to(name, doctype)}
+
+
+def plain_views(types: dict[str, frappe._dict]) -> list[dict]:
+	"""Each view type's plain view, at `/<doctype>/view/<type>`; it belongs to no layer."""
+	return [listed_view(name.lower(), _(record.label), name, None) for name, record in types.items()]
+
+
+def listed_view(key: str, label: str, type: str, layer: str | None) -> dict:
+	return {"key": key, "label": label, "type": type, "layer": layer}

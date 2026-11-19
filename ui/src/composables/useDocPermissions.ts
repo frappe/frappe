@@ -6,10 +6,12 @@ import { useUserRoles } from "./useUserRoles";
 export type FieldAccess = "write" | "read" | "none";
 
 export interface UseDocPermissions {
-  /** Doc-level rights from `docinfo.permissions` (`getdoc`); false until provided. */
+  /** Doc-level rights from the record read's `permissions` part; false until provided. */
   can: (right: string) => boolean;
   /** Permlevels the user's roles hold `right` on, from the meta's DocPerm rows. */
-  allowedPermlevels: (right: "read" | "write") => number[];
+  allowedPermlevels: (right: "read" | "write" | "create") => number[];
+  /** Whether the user's roles hold any right, custom ones too, at permlevel 0; false until both load. */
+  holds: (right: string) => boolean;
   /** What a permlevel'd field may render as. */
   fieldAccess: (field: { permlevel?: number }) => FieldAccess;
   /** True while roles or meta are still loading (field access is Write until then). */
@@ -20,7 +22,7 @@ export interface UseDocPermissions {
  * The Vue port of desk's `frappe.perm`: doc-level rights come from the
  * server-computed `docinfo.permissions`, field-level permlevel access from the
  * meta's DocPerm rows crossed with the session user's roles. Display-only —
- * enforcement stays server-side (`getdoc` applies field-level read permissions).
+ * enforcement stays server-side (the record read applies field-level read permissions).
  */
 export function useDocPermissions(
   doctype: MaybeRefOrGetter<string>,
@@ -31,17 +33,26 @@ export function useDocPermissions(
 
   const permlevels = computed(() => {
     if (!roles.value || !meta.value?.permissions) return null;
-    const held = { read: new Set<number>(), write: new Set<number>() };
+    const held = { read: new Set<number>(), write: new Set<number>(), create: new Set<number>() };
     for (const row of meta.value.permissions) {
       if (!roles.value.includes(row.role)) continue;
       if (row.read) held.read.add(row.permlevel ?? 0);
       if (row.write) held.write.add(row.permlevel ?? 0);
+      if (row.create) held.create.add(row.permlevel ?? 0);
     }
     return held;
   });
 
-  function allowedPermlevels(right: "read" | "write"): number[] {
+  function allowedPermlevels(right: "read" | "write" | "create"): number[] {
     return [...(permlevels.value?.[right] ?? [])].sort((a, b) => a - b);
+  }
+
+  function holds(right: string): boolean {
+    const held = roles.value;
+    if (!held || !meta.value?.permissions) return false;
+    return meta.value.permissions.some(
+      (row) => !row.permlevel && held.includes(row.role) && Boolean(row[right])
+    );
   }
 
   // Fail-open while roles/meta load: better a field the server refuses to save
@@ -57,6 +68,7 @@ export function useDocPermissions(
   return {
     can: (right) => Boolean(toValue(docPermissions)?.[right]),
     allowedPermlevels,
+    holds,
     fieldAccess,
     loading: computed(() => metaLoading.value || rolesLoading.value),
   };

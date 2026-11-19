@@ -13,13 +13,13 @@ import type {
 } from "../types";
 import type { UseDataImport } from "../useDataImport";
 
-const { callMock } = vi.hoisted(() => ({
-  callMock: vi.fn(async (): Promise<unknown> => []),
+const { listMock } = vi.hoisted(() => ({
+  listMock: vi.fn(async (): Promise<{ data: unknown[] }> => ({ data: [] })),
 }));
 
-vi.mock("frappe-ui", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("frappe-ui")>()),
-  call: callMock,
+vi.mock("../../../api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../../api")>()),
+  listDocuments: listMock,
 }));
 
 let app: App | undefined;
@@ -252,17 +252,18 @@ describe("ImportStep result", () => {
   });
 
   it("shows who started the import by full name, as a link to the user", async () => {
-    callMock.mockResolvedValueOnce([
-      { name: "admin@example.com", full_name: "Admin User" },
-      { name: "jane@example.com", full_name: "Jane Doe" },
-    ]);
+    listMock.mockResolvedValueOnce({
+      data: [
+        { name: "admin@example.com", full_name: "Admin User" },
+        { name: "jane@example.com", full_name: "Jane Doe" },
+      ],
+    });
     const { onOpenRecord } = mount(ImportStep, {
       logs: [successLog(1, "TD-1")],
     });
     await new Promise((resolve) => setTimeout(resolve));
     await nextTick();
-    expect(callMock).toHaveBeenCalledWith("frappe.client.get_list", {
-      doctype: "User",
+    expect(listMock).toHaveBeenCalledWith("User", {
       fields: ["name", "full_name"],
       filters: { name: ["in", ["admin@example.com", "jane@example.com"]] },
     });
@@ -401,7 +402,7 @@ describe("ImportStep result", () => {
     button("Download Skipped Rows").click();
     button("Download Failed Rows").click();
     button("Export Import Log").click();
-    const base = "/api/method/frappe.core.doctype.data_import.data_import.";
+    const base = "/api/v2/method/frappe.core.doctype.data_import.data_import.";
     expect(posted.map((p) => p.action)).toEqual([
       base + "download_skipped_rows",
       base + "download_errored_template",

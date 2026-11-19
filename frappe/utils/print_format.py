@@ -197,6 +197,87 @@ def get_document_print_language(doctype: str, name: str, print_format: str | Non
 	)
 
 
+def append_to_pdf(
+	pdf_writer,
+	print_doctype: str,
+	print_name: str,
+	format: str | None,
+	no_letterhead: bool,
+	letterhead: str | None,
+	options: dict | None,
+	language: str | None,
+):
+	"""Route one document into the shared writer: builder formats through the generator (which
+	dispatches Typst), everything else through get_print. Returns the writer."""
+	with print_language(get_document_print_language(print_doctype, print_name, format) or language):
+		from frappe.printing.doctype.print_format.classic_converter import (
+			get_default_print_format,
+			uses_beta_renderer,
+		)
+		from frappe.utils.print_utils import (
+			_print_format_doc_or_none,
+			_run_print_pdf_hooks,
+			resolve_pdf_generator,
+		)
+		from frappe.www.printview import set_link_titles, validate_print
+
+		pf_doc = _print_format_doc_or_none(format, print_doctype)
+		if not (
+			(pf_doc is None or uses_beta_renderer(pf_doc))
+			and resolve_pdf_generator(pf_doc) in ("chrome", "PlutoPrint", "Typst")
+		):
+			return frappe.get_print(
+				print_doctype,
+				print_name,
+				format,
+				as_pdf=True,
+				output=pdf_writer,
+				no_letterhead=no_letterhead,
+				letterhead=letterhead,
+				pdf_options=classic_page_options(options),
+			)
+
+		from pypdf import PdfReader
+
+		from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		doc = frappe.get_doc(print_doctype, print_name)
+		validate_print(doc)
+		set_link_titles(doc)
+		_run_print_pdf_hooks(print_doctype, print_name, format)
+		pf = pf_doc or get_default_print_format(print_doctype)
+		generator = PrintFormatGenerator(
+			pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
+		)
+		pdf = generator.render_pdf()
+		make_access_log(
+			doctype=doc.doctype,
+			document=doc.name,
+			file_type="PDF",
+			method="Print",
+			page=f"Print Format: {pf.name}",
+		)
+		reader = PdfReader(BytesIO(pdf))
+		first_new_page = len(pdf_writer.pages)
+		pdf_writer.append_pages_from_reader(reader)
+		PDFTransformer.resolve_internal_links(pdf_writer, reader, first_new_page)
+		return pdf_writer
+
+
+def save_pdf_file(pdf_writer, options: dict | None, file_name: str):
+	"""The merged PDF as a private File, encrypted when the options carry a password."""
+	with BytesIO() as merged_pdf:
+		if password := (options or {}).get("password"):
+			pdf_writer.encrypt(password)
+		pdf_writer.write(merged_pdf)
+		_file = frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": merged_pdf.getvalue(), "is_private": 1}
+		)
+		_file.save()
+		return _file
+
+
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -249,62 +330,9 @@ def _download_multi_pdf(
 	options = frappe.parse_json(options)
 
 	def print_into_writer(print_doctype, print_name):
-		"""Route one document into the shared writer — builder formats through the
-		generator (which dispatches Typst), everything else through get_print."""
-		with print_language(get_document_print_language(print_doctype, print_name, format) or language):
-			from frappe.printing.doctype.print_format.classic_converter import (
-				get_default_print_format,
-				uses_beta_renderer,
-			)
-			from frappe.utils.print_utils import (
-				_print_format_doc_or_none,
-				_run_print_pdf_hooks,
-				resolve_pdf_generator,
-			)
-			from frappe.www.printview import set_link_titles, validate_print
-
-			pf_doc = _print_format_doc_or_none(format, print_doctype)
-			if not (
-				(pf_doc is None or uses_beta_renderer(pf_doc))
-				and resolve_pdf_generator(pf_doc) in ("chrome", "PlutoPrint", "Typst")
-			):
-				return frappe.get_print(
-					print_doctype,
-					print_name,
-					format,
-					as_pdf=True,
-					output=pdf_writer,
-					no_letterhead=no_letterhead,
-					letterhead=letterhead,
-					pdf_options=classic_page_options(options),
-				)
-
-			from pypdf import PdfReader
-
-			from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
-			from frappe.utils.print_format_generator import PrintFormatGenerator
-
-			doc = frappe.get_doc(print_doctype, print_name)
-			validate_print(doc)
-			set_link_titles(doc)
-			_run_print_pdf_hooks(print_doctype, print_name, format)
-			pf = pf_doc or get_default_print_format(print_doctype)
-			generator = PrintFormatGenerator(
-				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
-			)
-			pdf = generator.render_pdf()
-			make_access_log(
-				doctype=doc.doctype,
-				document=doc.name,
-				file_type="PDF",
-				method="Print",
-				page=f"Print Format: {pf.name}",
-			)
-			reader = PdfReader(BytesIO(pdf))
-			first_new_page = len(pdf_writer.pages)
-			pdf_writer.append_pages_from_reader(reader)
-			PDFTransformer.resolve_internal_links(pdf_writer, reader, first_new_page)
-			return pdf_writer
+		return append_to_pdf(
+			pdf_writer, print_doctype, print_name, format, no_letterhead, letterhead, options, language
+		)
 
 	if not isinstance(doctype, dict):
 		result = frappe.parse_json(name)
@@ -383,26 +411,18 @@ def _download_multi_pdf(
 		if task_id is None:
 			frappe.local.response.filename = f"{name}.pdf"
 
-	with BytesIO() as merged_pdf:
-		if password := (options or {}).get("password"):
-			pdf_writer.encrypt(password)
-		pdf_writer.write(merged_pdf)
-		if task_id:
-			_file = frappe.get_doc(
-				{
-					"doctype": "File",
-					"file_name": f"{filename}{task_id}.pdf",
-					"content": merged_pdf.getvalue(),
-					"is_private": 1,
-				}
-			)
-			_file.save()
-			frappe.publish_realtime(
-				f"task_complete:{task_id}",
-				message={"file_url": _file.unique_url},
-				user=frappe.session.user,
-			)
-		else:
+	if task_id:
+		_file = save_pdf_file(pdf_writer, options, f"{filename}{task_id}.pdf")
+		frappe.publish_realtime(
+			f"task_complete:{task_id}",
+			message={"file_url": _file.unique_url},
+			user=frappe.session.user,
+		)
+	else:
+		with BytesIO() as merged_pdf:
+			if password := (options or {}).get("password"):
+				pdf_writer.encrypt(password)
+			pdf_writer.write(merged_pdf)
 			frappe.local.response.filecontent = merged_pdf.getvalue()
 			frappe.local.response.type = "pdf"
 

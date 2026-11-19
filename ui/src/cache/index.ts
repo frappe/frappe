@@ -1,0 +1,153 @@
+// The shared data cache: the API wrapper feeds it, and pages read documents and lists from it.
+import { shallowRef } from "vue";
+import type { DocumentRecord, Envelope, ListEnvelope, ListQuery } from "../api";
+import { DataCache } from "./dataCache";
+import type { DocumentEntry, ListEntry } from "./entries";
+import { listCacheKey } from "./listKey";
+
+export type { DocumentEntry, ListEntry } from "./entries";
+export { documentKey, LIST_ONLY_FIELDS, RECORD_PARTS } from "./entries";
+export { listCacheKey } from "./listKey";
+
+const cache = new DataCache();
+// The maps are plain and this counter moves once per feed, so a sync watcher sees a whole reply.
+const version = shallowRef(0);
+const leaveListeners = new Set<RecordLeft>();
+
+type RecordLeft = (doctype: string, name: string) => void;
+
+/** Reactive: a `computed` over it re-runs when the entry changes. */
+export function readCachedDocument(doctype: string, name: string): DocumentEntry | undefined {
+  track();
+  return cache.document(doctype, name);
+}
+
+export function readCachedList(doctype: string, query: ListQuery): ListEntry | undefined {
+  track();
+  return cache.list(listCacheKey(doctype, query));
+}
+
+/** The list's rows, each read from its document entry, in list order; frozen. */
+export function readCachedRows(doctype: string, query: ListQuery): DocumentRecord[] | undefined {
+  track();
+  return cache.rows(listCacheKey(doctype, query));
+}
+
+/** Calls the listener when a record's entry stops being complete or goes; returns the unsubscribe. */
+export function onRecordLeft(listener: RecordLeft): () => void {
+  leaveListeners.add(listener);
+  return () => leaveListeners.delete(listener);
+}
+
+export function clearDataCache(): void {
+  feed(() => cache.clear());
+}
+
+/** Taken when a request is sent, not when its reply lands. */
+export function takeTicket(): number {
+  return cache.takeTicket();
+}
+
+/** Once per ticket, after the request's reply or failure has been fed. */
+export function settleTicket(ticket: number): void {
+  cache.settleTicket(ticket);
+}
+
+/** `replySize` is the reply text's length; without it, the read meets only the count limit. */
+export function feedRecordRead(
+  ticket: number,
+  doctype: string,
+  envelope: Envelope<DocumentRecord>,
+  include: readonly string[],
+  replySize = 0
+): void {
+  feed(() => cache.recordRead(ticket, doctype, envelope, include, replySize));
+}
+
+export function feedListRead(
+  ticket: number,
+  doctype: string,
+  query: ListQuery,
+  envelope: ListEnvelope<DocumentRecord>
+): void {
+  feed(() => cache.listRead(ticket, doctype, query, envelope));
+}
+
+/** Keeps the entry past every limit until the returned function lets go of it. */
+export function holdDocument(doctype: string, name: string): () => void {
+  cache.hold(doctype, name);
+  let held = true;
+  return () => {
+    if (held) feed(() => cache.release(doctype, name));
+    held = false;
+  };
+}
+
+/** Some fields of one record, read with no list entry. */
+export function feedFieldRead(ticket: number, doctype: string, row: unknown): void {
+  feed(() => cache.fieldRead(ticket, doctype, row));
+}
+
+/** A save or a create. */
+export function feedDocumentWrite(ticket: number, doctype: string, doc: DocumentRecord): void {
+  feed(() => cache.documentWrite(ticket, doctype, doc));
+}
+
+/** One document of a reply's `docs`, which a method may send back unsaved. */
+export function feedDocsDocument(ticket: number, doctype: string, doc: DocumentRecord): void {
+  feed(() => cache.docsWrite(ticket, doctype, doc));
+}
+
+export function feedDelete(ticket: number, doctype: string, name: string): void {
+  feed(() => cache.delete(ticket, doctype, name));
+}
+
+/** A part write's reply: the refreshed part. */
+export function feedPartWrite(
+  ticket: number,
+  doctype: string,
+  name: string,
+  part: string,
+  value: unknown
+): void {
+  feed(() => cache.partWrite(ticket, doctype, name, part, value));
+}
+
+/** A 403 or 404 on a record read. */
+export function feedReadError(ticket: number, doctype: string, name: string, error: unknown): void {
+  feed(() => cache.readError(ticket, doctype, name, error));
+}
+
+/** A 403 or 404 on a list read. */
+export function feedListError(
+  ticket: number,
+  doctype: string,
+  query: ListQuery,
+  error: unknown
+): void {
+  feed(() => cache.listError(ticket, doctype, query, error));
+}
+
+function track(): number {
+  return version.value;
+}
+
+function feed(apply: () => void): void {
+  const before = cache.changes;
+  const complete = leaveListeners.size ? cache.completeEntries() : [];
+  try {
+    apply();
+  } finally {
+    if (cache.changes !== before) {
+      version.value++;
+      announceLeft(complete);
+    }
+  }
+}
+
+function announceLeft(complete: DocumentEntry[]): void {
+  const left = complete.filter((entry) => !cache.document(entry.doctype, entry.name)?.complete);
+  for (const entry of left) {
+    for (const listener of leaveListeners) listener(entry.doctype, entry.name);
+  }
+}

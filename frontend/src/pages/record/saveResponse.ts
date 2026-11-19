@@ -1,0 +1,126 @@
+// What the page makes of a failed save: the conflict it throws, the message it shows,
+// and the fields the reader would lose.
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { ActDeclined } from "@/acts/dispatcher";
+import { __ } from "@/i18n";
+import type { RecordPageApi } from "@/recordPage";
+import type { DocstatusAct } from "./docstatusActs";
+import type { Confirm } from "./discardChanges";
+import { sameContent } from "./refetchMerge";
+
+/** The name a save rejected for a conflict throws under; the dialog has already told the reader. */
+export const SAVE_CONFLICT = "SaveConflict";
+
+/** The name a save rejected for compile errors throws under; the dialog has listed them. */
+export const SAVE_CODE_ERRORS = "SaveCodeErrors";
+
+/** The name a save throws under when the reader cancels the required-fields dialog. */
+export const SAVE_CANCELLED = "SaveCancelled";
+
+/** Whether a dialog has already told the reader why the save failed. */
+export function shownInDialog(error: unknown): boolean {
+  const name = (error as Error | null)?.name;
+  return name === SAVE_CONFLICT || name === SAVE_CODE_ERRORS || name === SAVE_CANCELLED;
+}
+
+// A msgprint is often HTML; the page renders it as text, so the tags go and a break becomes a space.
+export function stripTags(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** The labels of the fields the draft changed, in meta order, then any key the meta does not carry. */
+export function changedFields(
+  doc: Record<string, any>,
+  saved: Record<string, any>,
+  fields: RawMetaField[] | undefined,
+): string[] {
+  const changed = new Set(
+    [...Object.keys(doc), ...Object.keys(saved)].filter(
+      (key) => !key.startsWith("_") && !sameContent(doc[key], saved[key]),
+    ),
+  );
+  const labelled: string[] = [];
+  for (const field of fields ?? []) {
+    if (!changed.delete(field.fieldname)) continue;
+    labelled.push(field.label || field.fieldname);
+  }
+  return [...labelled, ...changed];
+}
+
+/** Asks whether to reload over a save someone else made first, or, given `useTheirs`, to take their values; true for that button. */
+export async function confirmConflict(
+  confirm: Confirm,
+  editor: string,
+  changed: string[],
+  useTheirs?: string,
+): Promise<boolean> {
+  const labels = changed.map((label) => __(label)).join(", ");
+  const mine = changed.length ? __("your changes to {0}", [labels]) : __("your changes");
+  return askConflict(
+    confirm,
+    useTheirs
+      ? __(
+          "{0} saved this record after you opened it, so {1} cannot be saved over theirs. Use theirs, or keep editing to copy your values out first.",
+          [editor, mine],
+        )
+      : __(
+          "{0} saved this record after you opened it, so {1} cannot be saved over theirs. Reload to see their version, or keep editing to copy your values out first.",
+          [editor, mine],
+        ),
+    useTheirs,
+  );
+}
+
+/** The record page's conflict; a Submit or Cancel on a record with no unsaved changes gets its own text and a Reload button. */
+export async function confirmRecordConflict(
+  confirm: Confirm,
+  editor: string,
+  changed: string[],
+  act?: DocstatusAct,
+): Promise<boolean> {
+  if (!act || changed.length) return confirmConflict(confirm, editor, changed);
+  const message =
+    act === "submit"
+      ? __("{0} saved this record after you opened it. Reload to see their version before you submit.", [editor])
+      : __("{0} saved this record after you opened it. Reload to see their version before you cancel.", [editor]);
+  return askConflict(confirm, message, __("Reload"));
+}
+
+async function askConflict(confirm: Confirm, message: string, confirmLabel?: string): Promise<boolean> {
+  const confirmed = await confirm({
+    title: __("Saved by someone else"),
+    message,
+    confirmLabel: confirmLabel ?? __("Reload and lose my changes"),
+    cancelLabel: __("Keep editing"),
+  });
+  return !!confirmed;
+}
+
+/** `page.save()` for an act: the save's refusal is thrown, so the caller reads why. The page has shown it already. */
+export async function saveOrThrow(page: Pick<RecordPageApi, "save" | "saveRefusal">): Promise<true> {
+  if (await page.save()) return true;
+  throw page.saveRefusal ?? new Error("The page was left before the record saved.");
+}
+
+export function conflictError(): Error {
+  const error = new Error("Saved elsewhere; reload to save your changes.");
+  error.name = SAVE_CONFLICT;
+  return error;
+}
+
+export function codeErrorsError(message: string): Error {
+  const error = new Error(message);
+  error.name = SAVE_CODE_ERRORS;
+  return error;
+}
+
+/** A declined act: a save or a Submit stopped by the closed dialog ends declined, not failed. */
+export function cancelledError(): Error {
+  const error = new ActDeclined("header.save");
+  error.name = SAVE_CANCELLED;
+  return error;
+}

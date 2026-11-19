@@ -7,8 +7,7 @@ them (`useListView`) and optionally fetch rows (`useListData`).
 
 This guide covers what each piece exports, how the pieces fit together, and a full
 copy-paste integration. For the vocabulary (Sort, Filter, Column, Field Options,
-Meta…) see [`CONTEXT.md`](../../../CONTEXT.md); for the design rationale see the
-ADRs under [`ui/docs/adr/`](../../../docs/adr/).
+Meta…) see [`CONTEXT.md`](../../../CONTEXT.md).
 
 ## The mental model
 
@@ -88,7 +87,10 @@ carry-over when you change a row's field.
 | **v-model** | `FilterCondition[]` — `{ fieldname, operator, value, field? }[]` |
 
 `FilterOperator` is CRM's UI vocabulary (`equals`, `like`, `in`, `between`,
-`timespan`, …), mapped to the Frappe wire form by `serializeFilters`.
+`timespan`, …), mapped to the Frappe wire form by `serializeFilters`. The wire form
+is Frappe's list of `[fieldname, operator, value]` triples, not a dict keyed by
+fieldname, so one field can hold two conditions (`amount > 100` and `amount < 500`).
+Pass it straight to a list request's `filters`.
 
 **Helpers**
 
@@ -102,8 +104,14 @@ carry-over when you change a row's field.
 Inline quick-filter inputs in the toolbar — a convenience **projection over the same
 filter list** Filter edits. A quick input and its matching advanced condition
 describe the same underlying condition. Overflow collapses behind a "more" toggle;
-Link fields get a like/equals operator toggle; clearing a quick input removes every
-condition it owns.
+text fields and `name` get a like/equals operator toggle; clearing a quick input
+removes every condition it owns.
+
+A quick input owns only the conditions on its field whose operator is in its own set:
+`equals` for Check, Select, Autocomplete, Date, Datetime, Link and Dynamic Link, `like` or `equals`
+for the text fields and `name`, and `like` for the rest. It leaves every other
+condition alone. So a `Status in [Open, Won]` condition built in the Filter popover
+stays: the quick input shows empty, and setting it adds a second condition.
 
 ```vue
 <QuickFilter
@@ -128,7 +136,8 @@ drive the strip.
 
 **Helpers** (pure projection by canonical operator): `getQuickFilterFields`,
 `quickFilterOperator(s)`, `hasOperatorToggle`, `quickValue`, `quickOperator`,
-`applyQuick`.
+`applyQuick`. `quickFilterOperators` is its own table. Do not swap in Filter's
+`getDefaultOperator`: it starts a Date on `between`, and a quick input is one tap.
 
 ## ColumnSettings
 
@@ -232,8 +241,7 @@ v-models it, and the table writes header sorts and column widths back through
 extra_ explicit boundary (the "Done customizing" button). With the watcher above you
 do not need it at all.
 
-**The library owns no saving** ([ADR-0007](../../../docs/adr/0007-persistence-deferred-to-host-library-tops-out-at-view-snapshot.md));
-the host decides _when_ and _where_. Two common shapes:
+**The library owns no saving.** The host decides _when_ and _where_. Two common shapes:
 
 ```ts
 // (a) Autosave to a backend on every change (debounced so a drag-resize or fast
@@ -253,13 +261,13 @@ the _compact wire_ shape — convert with the library's `serialize*` helpers, th
 your own whitelisted method:
 
 ```ts
-import { call } from "frappe-ui";
+import { runMethod } from "@framework/ui/api";
 import { serializeFilters } from "@framework/ui/Filter";
 import { serializeOrderBy } from "@framework/ui/SortBy";
 import { serializeColumns } from "@framework/ui/ColumnSettings";
 
 async function saveView(snap: ListViewSnapshot) {
-  await call("my_app.api.save_list_view", {
+  await runMethod("my_app.api.save_list_view", {
     doctype: props.doctype,
     filters: serializeFilters(snap.filters), // → [[fieldname, op, value], …]
     order_by: serializeOrderBy(snap.sort), // → "modified desc, name asc"
@@ -310,9 +318,9 @@ quickFilterFields / groupBy) is the atom on both sides: `snapshot` saves them al
 
 ## `useListData(doctype, view)` — optional fetching
 
-The half ADR-0001 leaves to the host. Opt in for doctype-agnostic data out of the
+The half the controls leave to the host. Opt in for doctype-agnostic data out of the
 box, or skip it and keep your own data layer (the controls stay fetch-free either
-way). It binds `frappe.client.get_list` (rows) + `get_count` (total) and refetches
+way). It reads the rows and the total in one `/api/v2` list request and refetches
 from page 1 whenever a wire projection or the page length changes.
 
 ```ts
@@ -321,7 +329,10 @@ const data = useListData(doctype, view);
 data.rows; // ComputedRef<Record<string, unknown>[]>  — the table's rows
 data.loading; // first-page fetch in flight
 data.rowCount; // rows currently loaded
-data.totalCount; // total matching the filters
+data.totalCount; // total matching the filters; capped at 1000 on the wire
+data.totalCapped; // the total is a floor; the footer draws it as a button
+data.totalUnknown; // the server gave up counting; the footer reads "many"
+data.countExact(); // the exact total after a capped one, on the footer's `count` event
 data.pageLength; // Ref<number> — ListFooter v-models this; a change refetches
 data.loadMore(); // append the next page
 data.reload(); // refetch page 1
@@ -375,12 +386,14 @@ story.)
 
     <template #footer>
       <ListFooter
-        v-model="data.pageLength.value"
-        :options="{
-          rowCount: data.rowCount.value,
-          totalCount: data.totalCount.value,
-        }"
-        @loadMore="data.loadMore()"
+        v-model:pageSize="data.pageLength.value"
+        :rowCount="data.rowCount.value"
+        :totalCount="data.totalCount.value"
+        :totalCapped="data.totalCapped.value"
+        :totalUnknown="data.totalUnknown.value"
+        :hasCounts="!data.loading.value"
+        @load-more="data.loadMore()"
+        @count="data.countExact()"
       />
     </template>
   </ListViewShell>
@@ -389,7 +402,8 @@ story.)
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
 import { useDebounceFn } from "@vueuse/core";
-import { ListView, ListHeader, ListRows, ListFooter } from "frappe-ui";
+import { ListView, ListHeader, ListRows } from "frappe-ui";
+import { ListFooter } from "@framework/ui/experimental/List";
 import {
   ListViewShell,
   useListView,

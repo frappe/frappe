@@ -1,0 +1,65 @@
+// The `Form Layout` doctype's wire shapes: `get_form_layouts` returns rows as
+// authored — fieldnames stay strings, inline fields stay dicts; the meta join happens client-side.
+import type { DialogSize } from "frappe-ui";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+
+export type FormLayoutType = "Details" | "Side Panel" | "Quick Entry" | "New Record";
+
+export interface LayoutTreeColumn {
+	name?: string;
+	label?: string;
+	hideLabel?: boolean;
+	dependsOn?: string;
+	fields: (string | InlineField)[];
+}
+
+/** A field a Quick Entry or New Record row defines itself; it replaces a read-only meta field of its name. */
+export type InlineField = RawMetaField;
+
+export interface LayoutTreeSection {
+	name?: string;
+	label?: string;
+	hideLabel?: boolean;
+	description?: string;
+	hideBorder?: boolean;
+	collapsible?: boolean;
+	opened?: boolean;
+	collapsibleDependsOn?: string;
+	dependsOn?: string;
+	columns: LayoutTreeColumn[];
+}
+
+export interface LayoutTreeTab {
+	name?: string;
+	label?: string;
+	dependsOn?: string;
+	sections: LayoutTreeSection[];
+}
+
+export type LayoutTree = LayoutTreeTab[];
+
+export interface FormLayoutRow {
+	/** `null` for each of the app file's layouts, which come last and only when no row is the default. */
+	name: string | number | null;
+	/** Names the layout in the layout menu; an app file's layouts carry one too. */
+	title?: string | null;
+	condition?: string | null;
+	/** Site rows with a fingerprint only: whether the app layout or fallback they copied has changed. */
+	source_changed?: boolean;
+	layout: LayoutTree;
+	/** Fieldnames the row keeps off its layout on purpose; Details and New Record read it. */
+	omitted?: string[];
+	/** `Quick Entry` only: the Create dialog's size; `null` means xl. */
+	size?: DialogSize | null;
+}
+
+export interface FormLayoutsResponse {
+	/** Every row for the `(dt, type)`, `creation asc`, layouts parsed; `New Record` with none gets the `Details` rows. */
+	layouts: FormLayoutRow[];
+	/** Rendered when no row applies: the meta layout, or the mandatory-only set for `Quick Entry`. */
+	fallback: LayoutTree;
+	/** `Quick Entry` only: whether Create opens a dialog rather than the full-page new record. */
+	dialog?: boolean;
+	/** Each `Table` field's child doctype → its Details rows, which its row dialog reads; `[]` when it has none. */
+	children?: Record<string, FormLayoutRow[]>;
+}

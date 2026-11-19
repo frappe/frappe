@@ -30,6 +30,29 @@ class TagLink(Document):
 		if not has_tags(self.document_type):
 			frappe.client_cache.delete_value(f"doctype_has_tags::{self.document_type}")
 
+	def after_insert(self):
+		notify_tag_change(self.as_dict(), "add")
+
+
+def notify_tag_change(link: frappe._dict, action: str):
+	"""Tell the tagged document's room that its `tags` bucket changed."""
+	frappe.publish_realtime(
+		"docinfo_update",
+		{
+			"doc": {
+				"reference_doctype": link.document_type,
+				"reference_name": link.document_name,
+				"doctype": "Tag Link",
+				**link,
+			},
+			"key": "tags",
+			"action": action,
+		},
+		doctype=link.document_type,
+		docname=link.document_name,
+		after_commit=True,
+	)
+
 
 def on_doctype_update():
 	frappe.db.add_index("Tag Link", ["document_type", "document_name"])

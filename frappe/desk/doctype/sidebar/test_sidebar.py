@@ -2,6 +2,8 @@
 # License: MIT. See LICENSE
 
 import json
+import os
+import typing
 from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -16,6 +18,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	SYSTEM_WRITE_FLAGS,
 	UNROUTABLE_IN_A_TITLE,
 	ShellIndex,
+	Sidebar,
 	build_canonical_shells,
 	clear_computed_base_cache,
 	filter_sidebar_items,
@@ -528,22 +531,53 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 			make_sidebar(self.MODULE, title=self.LEADS)
 		frappe.db.rollback(save_point="duplicate_title")
 
-	def test_the_title_index_catches_a_row_whose_name_has_drifted(self):
-		"""What `unique` on `title` buys over the primary key, which already forbids two records of
-		one name.
+	def test_a_title_a_row_has_drifted_onto_is_still_refused(self):
+		"""What the title check buys over the primary key, which already forbids two records of one
+		name.
 
 		A row written straight to the table, such as a legacy row or a raw update that skips
-		`_sync_autoname_field`, can carry a title its name does not match. The index refuses to let a
-		second sidebar claim that title, and nothing else would.
+		`_sync_autoname_field`, can carry a title its name does not match. Nothing else refuses a
+		second sidebar claiming that title.
 
+		This used to be `unique: 1` on the column and is now a check in the controller, because desk
+		v2's three layers of one sidebar all carry the label that sidebar shows, and an index over
+		both desks would refuse the second layer.
 		"""
 		drifted = make_sidebar(self.MODULE)
 		frappe.db.set_value("Sidebar", drifted.name, "title", self.LEADS, update_modified=False)
 
 		frappe.db.savepoint("drifted_title")
-		with self.assertRaises(frappe.UniqueValidationError):
+		with self.assertRaises(frappe.ValidationError):
 			make_sidebar(self.MODULE, title=self.LEADS)
 		frappe.db.rollback(save_point="drifted_title")
+
+	def test_an_import_cannot_land_on_a_title_that_has_drifted(self):
+		"""The half of the old index that `validate` alone would not have covered.
+
+		`import_doc` sets `ignore_validate`, so an app's sidebar arriving by migrate runs none of
+		the checks above. What the row will store is its name, since the autoname sync copies it
+		over the column, so the collision it can still cause is with a row whose stored title has
+		drifted away from its own name.
+		"""
+		from frappe.modules.import_file import import_doc
+
+		# `import_doc` clears `in_import` after the insert and not in a `finally`, so a refused
+		# import leaves the flag set for whatever runs next
+		self.addCleanup(lambda: frappe.flags.update({"in_import": False}))
+
+		drifted = make_sidebar(self.MODULE)
+		frappe.db.set_value("Sidebar", drifted.name, "title", self.LEADS, update_modified=False)
+
+		with self.assertRaises(frappe.ValidationError):
+			import_doc(
+				{
+					"doctype": "Sidebar",
+					"name": self.LEADS,
+					"title": self.LEADS,
+					"module": self.MODULE,
+					"items": [],
+				}
+			)
 
 	def test_module_is_neither_required_nor_unique(self):
 		module = frappe.get_meta("Sidebar").get_field("module")
@@ -554,9 +588,11 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		"""`unique: 1` was silently indexing `module`, and nothing takes its place. Neither
 		`Custom Sidebar.module` nor `Workspace.module` declares one, and `Custom Sidebar` runs the
 		same access pattern on a larger table.
+
+		The index this doctype does declare is desk v2's, over the address rather than the module.
 		"""
 		self.assertFalse(frappe.get_meta("Sidebar").get_field("module").search_index)
-		self.assertFalse(hasattr(frappe.new_doc("Sidebar"), "on_doctype_update"))
+		self.assertFalse(frappe.get_meta("Sidebar").get_field("title").unique)
 
 	def test_a_module_lands_on_the_sidebar_named_after_it(self):
 		"""The naming rule, and why no `is_default` column is needed: which of a module's sidebars
@@ -666,8 +702,11 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 		"""
 		import os
 
+		# v1's sidebars only: desk v2's app-rooted sidebars carry an address and are named by it.
 		shipped = frappe.get_all(
-			"Sidebar", filters={"standard": 1, "app": "frappe"}, fields=["name", "module", "title"]
+			"Sidebar",
+			filters={"standard": 1, "app": "frappe", "link_doctype": ("is", "not set")},
+			fields=["name", "module", "title"],
 		)
 		self.assertEqual([row.name for row in shipped if row.name != row.module], [])
 		for row in shipped:
@@ -2242,6 +2281,221 @@ class TestComputedSidebarBase(IntegrationTestCase):
 			)
 
 
+class TestSidebarForDeskV2(IntegrationTestCase):
+	"""Desk v2's sidebars, which share this table with desk v1's and are told apart by an address.
+
+	Everything here turns on one column. A row with a `link_doctype` is desk v2's: named from its
+	address, layered per user, and rendering from `Navigation Item` rows. A row without one is desk
+	v1's and behaves exactly as it did, which is what the tests above still assert.
+	"""
+
+	ADDRESS: typing.ClassVar[dict] = {"link_doctype": "Module Def", "link_to": "Desk"}
+
+	def layer(self, **kwargs):
+		"""A desk v2 sidebar at the shared address, defaulting to the site layer.
+
+		The export is patched out rather than allowed to run: authoring and shipping are one step
+		for a standard row, and in a test that is a fixture leaking into the repo, since the
+		database is rolled back afterwards and the file is not.
+		"""
+		doc = frappe.new_doc("Sidebar")
+		doc.update(self.ADDRESS | kwargs)
+		# `key` on every row, because an app layer is held to the same rule `Rail` holds its own
+		# to: the key is what a site or user delta is filed against, so a shipped row without one
+		# is a row nobody can ever customize.
+		doc.append(
+			"navigation_items",
+			{"item_type": "DocType", "link_to": "User", "label": "Users", "key": "user"},
+		)
+		with developer_mode(), patch.object(Sidebar, "export_sidebar"):
+			doc.insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Sidebar", doc.name, force=True, ignore_permissions=True)
+		return doc
+
+	def test_an_app_layer_names_the_app_that_ships_it(self):
+		"""`app` is shared with desk v1 rather than duplicated, and a standard row still needs one:
+		it is the whole address of the file, since a v2 sidebar has no module to be written under.
+		"""
+		with developer_mode():
+			doc = frappe.new_doc("Sidebar")
+			doc.update(self.ADDRESS | {"standard": 1, "title": "Desk"})
+			self.assertRaises(frappe.ValidationError, doc.insert, ignore_permissions=True)
+
+	def test_an_app_layer_needs_a_key_on_every_row(self):
+		"""The same rule `Rail` holds its own rows to, and it lives in one place now.
+
+		The key is the identity of a shipped row: every site and user delta is filed against it,
+		so a row without one renders correctly and can never be arranged, which is the quiet
+		failure that gets misdiagnosed as a permission problem. This is the reverse of desk v1's
+		rule for `items`, whose keys `clear_stored_keys` blanks outright.
+		"""
+		doc = frappe.new_doc("Sidebar")
+		doc.update(self.ADDRESS | {"standard": 1, "app": "frappe", "title": "Desk"})
+		doc.append("navigation_items", {"item_type": "DocType", "link_to": "User"})
+
+		with developer_mode(), patch.object(Sidebar, "export_sidebar"):
+			self.assertRaises(frappe.ValidationError, doc.insert, ignore_permissions=True)
+
+	def test_an_app_layer_refuses_two_rows_with_one_key(self):
+		doc = frappe.new_doc("Sidebar")
+		doc.update(self.ADDRESS | {"standard": 1, "app": "frappe", "title": "Desk"})
+		for link_to in ("User", "Role"):
+			doc.append("navigation_items", {"item_type": "DocType", "link_to": link_to, "key": "same"})
+
+		with developer_mode(), patch.object(Sidebar, "export_sidebar"):
+			self.assertRaises(frappe.ValidationError, doc.insert, ignore_permissions=True)
+
+	def test_a_layer_is_not_asked_for_keys(self):
+		"""A layer's rows are addressed by the base key they name, and a row a layer added is
+		minted one when it is written."""
+		self.assertTrue(self.layer().name)
+
+	def test_an_app_layer_is_named_after_its_address(self):
+		"""The record name is the export path, and it is also what a rail item points at.
+
+		Both need the name to be knowable before the row exists, which a hash is not.
+		"""
+		doc = self.layer(standard=1, app="frappe", title="Desk")
+		self.assertEqual(doc.name, "module_def_desk")
+
+	def test_the_name_is_what_the_export_writes(self):
+		"""Orphan cleanup builds a record's path from `scrub(name)`, so a name that scrubs to
+		something else would have its file deleted on the next migrate."""
+		doc = self.layer(standard=1, app="frappe", title="Desk")
+		self.assertEqual(frappe.scrub(doc.name), doc.name)
+
+	def test_the_other_layers_get_a_hash(self):
+		"""A layer is looked up by filter and never by name, so two people arranging one sidebar
+		must not both reach for the name the address makes."""
+		site = self.layer(title="Desk")
+		self.assertNotEqual(site.name, "module_def_desk")
+
+	def test_three_layers_of_one_sidebar_may_share_a_title(self):
+		"""They all carry the label the sidebar shows, which is why `unique` came off `title`."""
+		app = self.layer(standard=1, app="frappe", title="Desk")
+		site = self.layer(title="Desk")
+		mine = self.layer(title="Desk", user="Administrator")
+
+		self.assertEqual(len({app.name, site.name, mine.name}), 3)
+
+	def test_two_layers_cannot_share_one_address(self):
+		"""The database holds this, not a hook, because a bulk write skips the document entirely."""
+		self.layer()
+
+		# postgres aborts the transaction on a failed statement, so recover to a savepoint
+		frappe.db.savepoint("shared_address")
+		with self.assertRaises(frappe.UniqueValidationError):
+			self.layer()
+		frappe.db.rollback(save_point="shared_address")
+
+	def test_desk_v1s_sidebars_all_sit_under_the_index(self):
+		"""Every one of them has an empty address, and a `NULL` is distinct from every other `NULL`.
+
+		`blank_the_empty_address` is what keeps that true for a row saved from the form, which sends
+		`""` for a Link it never filled in. Two such rows storing `""` would collide on an index a
+		hundred `NULL` rows sit under happily.
+		"""
+		first = self.v1_sidebar("Test V2 Neighbour One")
+		second = self.v1_sidebar("Test V2 Neighbour Two")
+
+		self.assertIsNone(frappe.db.get_value("Sidebar", first.name, "link_doctype"))
+		self.assertIsNone(frappe.db.get_value("Sidebar", second.name, "link_doctype"))
+
+	def v1_sidebar(self, title: str):
+		"""A desk v1 sidebar written the way the form writes one, with a blank rather than no
+		address."""
+		doc = frappe.new_doc("Sidebar")
+		doc.update({"module": "Desk", "title": title, "link_doctype": "", "link_to": ""})
+		with developer_mode():
+			doc.insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Sidebar", doc.name, force=True, ignore_permissions=True)
+		return doc
+
+	def test_a_v2_sidebar_may_be_titled_after_a_module(self):
+		"""It is titled after one as a matter of course, and claims no key by doing so: its name is
+		its address, so v1's rule that a title must not be another module's name does not apply."""
+		self.assertEqual(self.layer(title="Desk").title, "Desk")
+
+	def test_the_title_defaults_to_what_the_sidebar_is_addressed_to(self):
+		"""`reqd` stays, so an app shipping a sidebar for a module should not have to repeat its
+		name to satisfy it."""
+		self.assertEqual(self.layer().title, "Desk")
+
+	def test_editing_the_title_does_not_rename_the_record(self):
+		"""Relabelling is an ordinary field change; moving the record would strand every rail item
+		naming it."""
+		doc = self.layer(standard=1, app="frappe", title="Desk")
+		name = doc.name
+		doc.title = "Workbench"
+		with developer_mode(), patch.object(Sidebar, "export_sidebar"):
+			doc.save(ignore_permissions=True)
+
+		self.assertEqual(doc.name, name)
+
+	def test_a_layer_is_writable_outside_developer_mode(self):
+		"""Only the app layer is app content. The other two are written at runtime, on a customer
+		site, by people rearranging their own navigation."""
+		with no_developer_mode():
+			doc = frappe.new_doc("Sidebar")
+			doc.update(self.ADDRESS | {"user": "Administrator"})
+			doc.insert(ignore_permissions=True)
+			self.addCleanup(frappe.delete_doc, "Sidebar", doc.name, force=True, ignore_permissions=True)
+
+		self.assertTrue(doc.name)
+
+	def test_the_app_layer_is_still_app_content(self):
+		"""Otherwise anyone who may write a layer could turn a git-versioned sidebar into a site
+		row they own."""
+		with no_developer_mode():
+			doc = frappe.new_doc("Sidebar")
+			doc.update(self.ADDRESS | {"standard": 1, "app": "frappe", "title": "Desk"})
+			self.assertRaises(frappe.ValidationError, doc.insert, ignore_permissions=True)
+
+	def test_a_layer_with_no_user_is_the_site_layer(self):
+		"""One spelling of "not a user's own", so two site layers cannot look like one address."""
+		self.assertEqual(self.layer().user, "")
+
+	def test_the_type_fixes_the_destination_doctype(self):
+		"""`link_doctype` comes off the type, so a row cannot point into the wrong table. The same
+		row model the rail holds, behaving the same way in a sidebar."""
+		self.assertEqual(self.layer().navigation_items[0].link_doctype, "DocType")
+
+	def test_the_sidebar_item_type_ships_now_that_it_has_a_target(self):
+		"""Held back when it was authored, because a type row with a wrong target is worse than a
+		missing one. There is a container for it to point at now."""
+		self.assertEqual(frappe.db.get_value("Navigation Item Type", "Sidebar", "target_doctype"), "Sidebar")
+
+	def test_a_person_lists_only_their_own_layer_and_the_shared_ones(self):
+		"""A `Desk User` has read on this table, so without the query condition one person's
+		arrangement of a sidebar would be readable by everyone on the site.
+
+		Rows with no `user` stay visible to all of them: that is the navigation the site shares, and
+		it is every one of desk v1's sidebars.
+		"""
+		site = self.layer()
+
+		person = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "sidebar-layer-tester@example.com",
+				"first_name": "Sidebar",
+				"roles": [{"role": "Desk User"}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(person.delete)
+
+		mine = self.layer(user=person.name)
+		theirs = self.layer(user="Administrator")
+
+		# `get_list`, not `get_all`: the latter bypasses permissions by design.
+		with self.set_user(person.name):
+			visible = frappe.get_list("Sidebar", filters={"link_doctype": "Module Def"}, pluck="name")
+
+		self.assertIn(site.name, visible)
+		self.assertIn(mine.name, visible)
+		self.assertNotIn(theirs.name, visible)
+
+
 class TestAppSidebarLayer(IntegrationTestCase):
 	"""The editor's third layer, which is the `Sidebar` document itself.
 
@@ -2837,3 +3091,80 @@ class TestPrivateShell(IntegrationTestCase):
 		frappe.clear_cache(user=self.user)
 
 		self.assertIn(page.name, self.links())
+
+
+class TestSidebarSyncOrder(IntegrationTestCase):
+	def test_child_tables_sync_before_any_sidebar_record(self):
+		"""Migrate loads the stored rows of a changed Sidebar record before it writes the new ones,
+		so every child table must exist by then, or a site from v16 fails on the first one."""
+		import frappe.model.sync as sync
+
+		files = []
+		with (
+			patch.object(sync, "import_file_by_path", side_effect=lambda path, **kwargs: files.append(path)),
+			patch.object(sync, "import_desktop_icon_fixtures"),
+			patch.object(sync, "update_progress_bar"),
+		):
+			sync.sync_for("frappe")
+
+		parts = [path.split(os.sep) for path in files]
+		first_record = next(i for i, p in enumerate(parts) if p[-3] == "sidebar" and p[-4] != "doctype")
+		for table_field in frappe.get_meta("Sidebar").get_table_fields():
+			child = frappe.scrub(table_field.options)
+			position = next(i for i, p in enumerate(parts) if p[-3:] == ["doctype", child, f"{child}.json"])
+			self.assertLess(position, first_record, table_field.options)
+
+
+class TestAnOwnSidebarsKey(IntegrationTestCase):
+	"""A sidebar a level added is addressed by its `key`, not by a `link_doctype`."""
+
+	def setUp(self):
+		frappe.db.savepoint("own_sidebar_key")
+		self.addCleanup(lambda: frappe.db.rollback(save_point="own_sidebar_key"))
+
+	def own(self, key, **kwargs):
+		doc = frappe.get_doc({"doctype": "Sidebar", "app": "frappe", "key": key, **kwargs})
+		return doc.insert(ignore_permissions=True)
+
+	def test_a_keyed_record_is_addressed_and_named_by_a_hash(self):
+		doc = self.own("site:abc123")
+
+		self.assertTrue(doc.is_addressed)
+		self.assertNotEqual(doc.name, "site:abc123")
+		self.assertEqual(doc.title, "site:abc123")
+
+	def test_a_record_with_no_key_and_no_link_is_not_addressed(self):
+		self.assertFalse(frappe.new_doc("Sidebar").is_addressed)
+
+	def test_a_blank_key_is_stored_as_null(self):
+		doc = frappe.new_doc("Sidebar")
+		doc.key = ""
+		doc.blank_the_empty_address()
+
+		self.assertIsNone(doc.key)
+
+	def test_a_key_that_is_not_scope_and_six_base36_is_refused(self):
+		for key in ("abc123", "site:abc12", "site:ABC123", "role:abc123", "site:abc1234", "user:abc12!"):
+			with self.subTest(key=key), self.assertRaises(frappe.ValidationError):
+				self.own(key)
+
+	def test_a_user_key_needs_a_user(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.own("user:abc123")
+
+		self.assertTrue(self.own("user:abc123", user="Administrator").name)
+
+	def test_a_site_key_may_be_a_persons_arrangement_of_the_sites(self):
+		self.own("site:abc123")
+
+		self.assertTrue(self.own("site:abc123", user="Administrator").name)
+
+	def test_a_keyed_record_carries_no_link_and_is_not_standard(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.own("site:abc123", link_doctype="Module Def", link_to="Core")
+
+	def test_one_record_per_key_and_person(self):
+		self.own("site:abc123")
+
+		with self.assertRaises(frappe.UniqueValidationError):
+			self.own("site:abc123")

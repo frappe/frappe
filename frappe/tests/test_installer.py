@@ -38,7 +38,11 @@ def install_fake_app(after_install: str):
 
 	def fake_get_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
 		if app_name == FAKE_APP:
-			return frappe._dict({"after_install": [after_install]})
+			hooks = frappe._dict({"after_install": [after_install]})
+			if not hook:
+				return hooks
+			# Mirror the real reader: one hook comes back as its own value, not the whole map.
+			return hooks.get(hook, [] if default == "_KEEP_DEFAULT_LIST" else default)
 		return real_get_hooks(hook, default, app_name)
 
 	def fake_get_patches_from_app(app, patch_type=None):

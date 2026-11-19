@@ -443,6 +443,12 @@ onMounted(async () => {
 	);
 	// the page around the panel owns the window's viewport
 	if (!inPanel) uninstallViewport = installViewport();
+	// text handed in (desk v2's palette, through the launcher), in the box and not sent; off the
+	// address, which the launcher keeps for the next page
+	await router.isReady();
+	const { q, ...query } = route.query;
+	if (q != null) router.replace({ query });
+	if (q && typeof q === "string") store.setDraft(q);
 	store.refreshModels();
 	await store.refreshSessions();
 	// the route watcher, a click or a first message may have moved on while the list loaded,

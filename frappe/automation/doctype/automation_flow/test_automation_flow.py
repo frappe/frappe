@@ -50,6 +50,17 @@ class TestAutomationFlow(IntegrationTestCase):
 		messages = " ".join(str(message) for message in frappe.get_message_log())
 		self.assertIn("not_a_todo_field", messages)
 
+	def test_a_row_error_names_its_row_for_any_language(self):
+		doc = make_automation(actions=[set_field("priority", "Low"), set_field("not_a_todo_field", "Low")])
+
+		with self.assertRaises(frappe.ValidationError) as caught:
+			doc.insert()
+
+		[field_error] = caught.exception.field_errors
+		self.assertEqual((field_error["parentfield"], field_error["idx"]), ("actions", 2))
+		self.assertIn("not_a_todo_field", field_error["message"])
+		self.assertNotIn("Row", field_error["message"])
+
 	def test_enable_requires_at_least_one_action(self):
 		doc = make_automation(enabled=1, actions=[])
 		self.assertRaises(frappe.ValidationError, doc.insert)
@@ -142,7 +153,11 @@ class TestAutomationFlow(IntegrationTestCase):
 
 	def test_wait_step_requires_duration(self):
 		doc = make_automation(actions=[{"step_type": "Wait", "params": "{}"}])
-		self.assertRaises(frappe.ValidationError, doc.insert)
+		with self.assertRaises(frappe.ValidationError) as caught:
+			doc.insert()
+
+		[field_error] = caught.exception.field_errors
+		self.assertEqual((field_error["parentfield"], field_error["idx"]), ("actions", 1))
 
 	def test_wait_step_rejects_unknown_unit(self):
 		doc = make_automation(actions=[{"step_type": "Wait", "params": '{"value": 5, "unit": "weeks"}'}])

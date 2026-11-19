@@ -1,6 +1,6 @@
 <!--
   The Color control in its four states: empty, with a value, read-only, and the
-  open picker (v1's swatches and the browser's color dialog).
+  open picker (a saturation area, a hue slider, an eyedropper and v1's swatches).
 -->
 <template>
 	<div class="flex max-w-sm flex-col gap-6 p-6">
@@ -23,7 +23,11 @@
 			<div
 				class="w-max rounded-6 bg-surface-elevation-2 shadow-2xl ring-1 ring-black ring-opacity-5"
 			>
-				<ColorPicker :modelValue="picked" @pick="(v: string) => (picked = v)" />
+				<ColorPicker
+					:modelValue="picked"
+					@pick="(v: string) => (picked = v)"
+					@adjust="(v: string) => (picked = v)"
+				/>
 			</div>
 		</div>
 		<p class="text-p-sm text-ink-gray-5">Stored: {{ picked || "—" }}</p>

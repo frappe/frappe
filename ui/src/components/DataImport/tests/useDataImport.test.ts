@@ -3,10 +3,12 @@ import { createApp, h, nextTick, ref } from "vue";
 import type { App, Ref } from "vue";
 import type { RealtimeSocket } from "../../../socket";
 import type { DataImportDoc } from "../types";
+import { ApiError } from "../../../api/envelope";
 
 interface Call {
   method: string;
   args: Record<string, any>;
+  http: string;
 }
 
 const PREFIX = "frappe.core.doctype.data_import.data_import.";
@@ -14,13 +16,41 @@ const calls: Call[] = [];
 // keyed by the method name without the Data Import module prefix
 let responders: Record<string, (args: Record<string, any>) => unknown> = {};
 
-vi.mock("frappe-ui", () => ({
-  call: (method: string, args: Record<string, any>) => {
-    const short = method.replace(PREFIX, "");
-    calls.push({ method: short, args });
-    const respond = responders[short];
-    return Promise.resolve().then(() => (respond ? respond(args) : null));
-  },
+// Each wrapper call is logged under one name: the function, or the server method it runs.
+function answer(method: string, args: Record<string, any>, http = "POST") {
+  const short = method.replace(PREFIX, "");
+  calls.push({ method: short, args, http });
+  const respond = responders[short];
+  return Promise.resolve()
+    .then(() => (respond ? respond(args) : null))
+    .then((data) => ({ data }));
+}
+
+vi.mock("../../../api", () => ({
+  apiUrl: (path: string) => `/api/v2${path}`,
+  getDocument: (doctype: string, name: string) =>
+    answer("getDocument", { doctype, name }),
+  createDocument: (doctype: string, doc: Record<string, any>) =>
+    answer("createDocument", { doctype, doc }),
+  updateDocument: (doctype: string, name: string, doc: Record<string, any>) =>
+    answer("updateDocument", { doctype, name, doc }),
+  getMeta: (doctype: string, { include }: { include?: string } = {}) =>
+    answer("getMeta", { doctype, include }).then(({ data }) => ({
+      data,
+      children: [],
+    })),
+  runMethod: (
+    method: string,
+    args: Record<string, any>,
+    options: { http?: string } = {}
+  ) => answer(method, args, options.http),
+  runDocumentMethod: (
+    _doctype: string,
+    name: string,
+    method: string,
+    args: Record<string, any> = {},
+    options: { http?: string } = {}
+  ) => answer(method, { name, ...args }, options.http),
 }));
 
 import { useDataImport, type UseDataImport } from "../useDataImport";
@@ -114,16 +144,27 @@ beforeEach(() => {
   calls.length = 0;
   live = fakeSocket();
   responders = {
-    "frappe.client.get": (args) => serverDoc({ name: args.name }),
-    get_preview_from_template: (args) => preview(args.data_import),
+    getDocument: (args) => serverDoc({ name: args.name }),
+    get_preview_from_template: (args) => preview(args.name),
     get_import_fields: () => null,
-    "frappe.desk.form.load.getdoctype": (args) => ({
-      docs: [{ name: args.doctype, fields: [] }],
-    }),
+    getMeta: (args) => ({ name: args.doctype, fields: [] }),
   };
 });
 
+// A read sent as POST needs write permission on v2, so a read-only user would lose it.
+const READS = [
+  "get_preview_from_template",
+  "get_import_status",
+  "get_import_logs",
+  "get_import_fields",
+];
+const WRITES = ["start_import", "stop_data_import"];
+
 afterEach(() => {
+  for (const call of calls) {
+    if (READS.includes(call.method)) expect(call.http, call.method).toBe("GET");
+    if (WRITES.includes(call.method)) expect(call.http, call.method).toBe("POST");
+  }
   app?.unmount();
   host?.remove();
   app = undefined;
@@ -157,14 +198,14 @@ describe("useDataImport: a new import", () => {
       reference_doctype: "ToDo",
       status: "Pending",
     });
-    expect(callsTo("frappe.client.get")).toHaveLength(0);
-    expect(callsTo("frappe.client.insert")).toHaveLength(0);
+    expect(callsTo("getDocument")).toHaveLength(0);
+    expect(callsTo("createDocument")).toHaveLength(0);
     expect(callsTo("get_preview_from_template")).toHaveLength(0);
     expect(live.emitted).toEqual([]);
   });
 
   it("inserts on the first save, sets the name and keeps the doc instead of reloading", async () => {
-    responders["frappe.client.insert"] = (args) =>
+    responders.createDocument = (args) =>
       serverDoc({ ...args.doc, name: "DI-NEW" });
     const name = ref<string | null>(null);
     const di = mount(name, { doctype: "ToDo" });
@@ -173,7 +214,7 @@ describe("useDataImport: a new import", () => {
     await di.save();
     await settle();
 
-    expect(callsTo("frappe.client.insert")[0].args.doc).toMatchObject({
+    expect(callsTo("createDocument")[0].args.doc).toMatchObject({
       doctype: "Data Import",
       reference_doctype: "ToDo",
       import_type: "Insert New Records",
@@ -182,9 +223,9 @@ describe("useDataImport: a new import", () => {
     expect(name.value).toBe("DI-NEW");
     expect(di.isNew.value).toBe(false);
     expect(di.dirty.value).toBe(false);
-    expect(callsTo("frappe.client.get")).toHaveLength(0);
+    expect(callsTo("getDocument")).toHaveLength(0);
     expect(callsTo("get_preview_from_template")[0].args).toEqual({
-      data_import: "DI-NEW",
+      name: "DI-NEW",
       import_file: "/private/files/todo.csv",
       google_sheets_url: null,
     });
@@ -198,7 +239,7 @@ describe("useDataImport: an existing import", () => {
     const di = mount(ref("DI-1"));
     await settle();
 
-    expect(callsTo("frappe.client.get")[0].args).toEqual({
+    expect(callsTo("getDocument")[0].args).toEqual({
       doctype: "Data Import",
       name: "DI-1",
     });
@@ -218,7 +259,7 @@ describe("useDataImport: an existing import", () => {
   };
 
   it("ticks create on values the server just found and saves that before the preview", async () => {
-    responders["frappe.client.save"] = (args) => {
+    responders.updateDocument = (args) => {
       const known = args.doc.value_mappings.length > 0;
       return serverDoc({
         ...args.doc,
@@ -250,7 +291,7 @@ describe("useDataImport: an existing import", () => {
     await di.save();
     await settle();
 
-    const saves = callsTo("frappe.client.save");
+    const saves = callsTo("updateDocument");
     expect(saves).toHaveLength(2);
     expect(
       saves[1].args.doc.value_mappings.map((m: any) => m.create_new)
@@ -268,9 +309,9 @@ describe("useDataImport: an existing import", () => {
     const saved = [
       { ...orgMapping, can_create: 1 as const, create_new: 0 as const },
     ];
-    responders["frappe.client.get"] = (args) =>
+    responders.getDocument = (args) =>
       serverDoc({ name: args.name, value_mappings: saved });
-    responders["frappe.client.save"] = (args) => serverDoc(args.doc);
+    responders.updateDocument = (args) => serverDoc(args.doc);
     const di = mount(ref("DI-1"));
     await settle();
     expect(di.doc.value.value_mappings[0].create_new).toBe(0);
@@ -280,12 +321,12 @@ describe("useDataImport: an existing import", () => {
     await di.reload();
     await settle();
 
-    expect(callsTo("frappe.client.save")).toHaveLength(1);
+    expect(callsTo("updateDocument")).toHaveLength(1);
     expect(di.doc.value.value_mappings[0].create_new).toBe(0);
   });
 
   it("saves once when no new value can be created", async () => {
-    responders["frappe.client.save"] = (args) =>
+    responders.updateDocument = (args) =>
       serverDoc({
         ...args.doc,
         value_mappings: [
@@ -298,19 +339,19 @@ describe("useDataImport: an existing import", () => {
     await di.save();
     await settle();
 
-    expect(callsTo("frappe.client.save")).toHaveLength(1);
+    expect(callsTo("updateDocument")).toHaveLength(1);
     expect(di.doc.value.value_mappings[0].create_new).toBe(0);
     expect(di.dirty.value).toBe(false);
   });
 
   it("ticks create on a new import with one insert and one save", async () => {
-    responders["frappe.client.insert"] = (args) =>
+    responders.createDocument = (args) =>
       serverDoc({
         ...args.doc,
         name: "DI-NEW",
         value_mappings: [{ ...orgMapping, can_create: 1, create_new: 0 }],
       });
-    responders["frappe.client.save"] = (args) => serverDoc(args.doc);
+    responders.updateDocument = (args) => serverDoc(args.doc);
     const name = ref<string | null>(null);
     const di = mount(name, { doctype: "ToDo" });
     di.doc.value.import_file = "/private/files/todo.csv";
@@ -321,21 +362,21 @@ describe("useDataImport: an existing import", () => {
     expect(
       calls
         .map((c) => c.method)
-        .filter((method) => method.startsWith("frappe.client."))
-    ).toEqual(["frappe.client.insert", "frappe.client.save"]);
+        .filter((method) => method.endsWith("Document"))
+    ).toEqual(["createDocument", "updateDocument"]);
     expect(
-      callsTo("frappe.client.save")[0].args.doc.value_mappings[0].create_new
+      callsTo("updateDocument")[0].args.doc.value_mappings[0].create_new
     ).toBe(1);
     expect(name.value).toBe("DI-NEW");
     expect(di.doc.value.value_mappings[0].create_new).toBe(1);
     expect(di.dirty.value).toBe(false);
-    expect(callsTo("frappe.client.get")).toHaveLength(0);
+    expect(callsTo("getDocument")).toHaveLength(0);
     expect(callsTo("get_preview_from_template")).toHaveLength(1);
   });
 
   it("keeps the create ticks as an unsaved change when the second save fails", async () => {
     let failNext = false;
-    responders["frappe.client.save"] = (args) => {
+    responders.updateDocument = (args) => {
       if (failNext) {
         failNext = false;
         throw new Error("save failed");
@@ -354,7 +395,7 @@ describe("useDataImport: an existing import", () => {
     await expect(di.save()).rejects.toThrow("save failed");
     await settle();
 
-    expect(callsTo("frappe.client.save")).toHaveLength(2);
+    expect(callsTo("updateDocument")).toHaveLength(2);
     expect(di.doc.value.value_mappings[0].create_new).toBe(1);
     expect(di.dirty.value).toBe(true);
     expect(di.saving.value).toBe(false);
@@ -363,14 +404,14 @@ describe("useDataImport: an existing import", () => {
     await di.save();
     await settle();
 
-    const saves = callsTo("frappe.client.save");
+    const saves = callsTo("updateDocument");
     expect(saves).toHaveLength(3);
     expect(saves[2].args.doc.value_mappings[0].create_new).toBe(1);
     expect(di.dirty.value).toBe(false);
   });
 
   it("marks edits dirty, saves the whole doc, takes the server's copy and refetches the preview", async () => {
-    responders["frappe.client.get"] = () =>
+    responders.getDocument = () =>
       serverDoc({
         template_warnings: '[{"row": 2}]',
         value_mappings: [
@@ -383,7 +424,7 @@ describe("useDataImport: an existing import", () => {
           },
         ],
       });
-    responders["frappe.client.save"] = (args) =>
+    responders.updateDocument = (args) =>
       serverDoc({ ...args.doc, template_warnings: "" });
     const di = mount(ref("DI-1"));
     await settle();
@@ -396,7 +437,7 @@ describe("useDataImport: an existing import", () => {
     await di.save();
     await settle();
 
-    const sent = callsTo("frappe.client.save")[0].args.doc;
+    const sent = callsTo("updateDocument")[0].args.doc;
     expect(sent.value_mappings[0].target_value).toBe("High");
     expect(sent.skipped_rows).toEqual([{ row_number: 3, row_data: "[]" }]);
     expect(sent.import_file).toBe("/private/files/todo.csv");
@@ -406,9 +447,9 @@ describe("useDataImport: an existing import", () => {
   });
 
   it("does not refetch the preview after saving an import that is running", async () => {
-    responders["frappe.client.get"] = () =>
+    responders.getDocument = () =>
       serverDoc({ status: "In Progress" });
-    responders["frappe.client.save"] = (args) => serverDoc(args.doc);
+    responders.updateDocument = (args) => serverDoc(args.doc);
     const di = mount(ref("DI-1"));
     await settle();
     const before = callsTo("get_preview_from_template").length;
@@ -420,8 +461,8 @@ describe("useDataImport: an existing import", () => {
   });
 
   it("refetches the preview after saving fixes to a failed import, so a retry sees them", async () => {
-    responders["frappe.client.get"] = () => serverDoc({ status: "Error" });
-    responders["frappe.client.save"] = (args) => serverDoc(args.doc);
+    responders.getDocument = () => serverDoc({ status: "Error" });
+    responders.updateDocument = (args) => serverDoc(args.doc);
     const di = mount(ref("DI-1"));
     await settle();
     const before = callsTo("get_preview_from_template").length;
@@ -435,7 +476,7 @@ describe("useDataImport: an existing import", () => {
 
   it("exposes a failed preview's message and does not fetch it again on reload", async () => {
     responders.get_preview_from_template = () => {
-      throw Object.assign(new Error("x"), { messages: ["Bad file"] });
+      throw new ApiError({ type: "ValidationError", message: "Bad file" }, 417);
     };
     const di = mount(ref("DI-1"));
     await settle();
@@ -455,7 +496,7 @@ describe("useDataImport: stale previews", () => {
   it("ignores a delayed preview for an import that is no longer open", async () => {
     const slowA = deferred<unknown>();
     responders.get_preview_from_template = (args) =>
-      args.data_import === "DI-A" ? slowA.promise : preview("B");
+      args.name === "DI-A" ? slowA.promise : preview("B");
     const name = ref<string | null>("DI-A");
     const di = mount(name);
     await settle();
@@ -489,7 +530,7 @@ describe("useDataImport: stale previews", () => {
   });
 
   it("drops the old import's state when another one is opened", async () => {
-    responders["frappe.client.get"] = (args) =>
+    responders.getDocument = (args) =>
       args.name === "DI-A"
         ? serverDoc({ name: "DI-A", status: "Success" })
         : new Promise(() => {});
@@ -617,19 +658,19 @@ describe("useDataImport: realtime", () => {
 
     live.fire("data_import_refresh", { data_import: "OTHER" });
     await settle();
-    expect(callsTo("frappe.client.get")).toHaveLength(1);
+    expect(callsTo("getDocument")).toHaveLength(1);
 
-    responders["frappe.client.get"] = () => serverDoc({ status: "Success" });
+    responders.getDocument = () => serverDoc({ status: "Success" });
     live.fire("data_import_refresh", { data_import: "DI-1" });
     await settle();
-    expect(callsTo("frappe.client.get")).toHaveLength(2);
+    expect(callsTo("getDocument")).toHaveLength(2);
     expect(di.progress.value).toBeNull();
     expect(di.running.value).toBe(false);
     expect(callsTo("get_import_logs")).toHaveLength(1);
   });
 
   it("keeps the progress when a refresh still reads the run as going", async () => {
-    responders["frappe.client.get"] = () =>
+    responders.getDocument = () =>
       serverDoc({ status: "In Progress" });
     const di = mount(ref("DI-1"));
     await settle();
@@ -667,13 +708,13 @@ describe("useDataImport: realtime", () => {
     live.fire("data_import_blocked", { data_import: "OTHER" });
     await settle();
     expect(di.blocked.value).toBe(false);
-    expect(callsTo("frappe.client.get")).toHaveLength(1);
+    expect(callsTo("getDocument")).toHaveLength(1);
 
-    responders["frappe.client.get"] = () =>
+    responders.getDocument = () =>
       serverDoc({ template_warnings: '[{"row": 2}]' });
     live.fire("data_import_blocked", { data_import: "DI-1" });
     await settle();
-    expect(callsTo("frappe.client.get")).toHaveLength(2);
+    expect(callsTo("getDocument")).toHaveLength(2);
     expect(di.doc.value.template_warnings).toBe('[{"row": 2}]');
     expect(di.blocked.value).toBe(true);
   });
@@ -690,7 +731,7 @@ describe("useDataImport: status, progress counts and logs", () => {
   it("fetches progress counts while In Progress, at most once every 2s", async () => {
     let now = 10_000;
     vi.spyOn(Date, "now").mockImplementation(() => now);
-    responders["frappe.client.get"] = () =>
+    responders.getDocument = () =>
       serverDoc({ status: "In Progress" });
     responders.get_import_status = () => ({
       status: "In Progress",
@@ -724,7 +765,7 @@ describe("useDataImport: status, progress counts and logs", () => {
   });
 
   it("loads the status summary then the logs for the filter once finished", async () => {
-    responders["frappe.client.get"] = () =>
+    responders.getDocument = () =>
       serverDoc({ status: "Partial Success" });
     responders.get_import_status = () => ({
       status: "Partial Success",
@@ -756,7 +797,7 @@ describe("useDataImport: status, progress counts and logs", () => {
 describe("useDataImport: start and stop", () => {
   it("counts as running from Start until the server answers", async () => {
     const answer = deferred<boolean>();
-    responders.form_start_import = () => answer.promise;
+    responders.start_import = () => answer.promise;
     const di = mount(ref("DI-1"));
     await settle();
 
@@ -766,13 +807,11 @@ describe("useDataImport: start and stop", () => {
     answer.resolve(true);
 
     expect(await started).toBe(true);
-    expect(callsTo("form_start_import")[0].args).toEqual({
-      data_import: "DI-1",
-    });
+    expect(callsTo("start_import")[0].args).toEqual({ name: "DI-1" });
   });
 
   it("with waitForProgress, counts as running only once progress arrives", async () => {
-    responders.form_start_import = () => true;
+    responders.start_import = () => true;
     const di = mount(ref("DI-1"));
     await settle();
 
@@ -789,10 +828,14 @@ describe("useDataImport: start and stop", () => {
   });
 
   it("keeps the server's error when the run can't start and clears it on the next start", async () => {
-    responders.form_start_import = () => {
-      throw Object.assign(new Error("x"), {
-        messages: ["Scheduler is inactive. Cannot import data."],
-      });
+    responders.start_import = () => {
+      throw new ApiError(
+        {
+          type: "ValidationError",
+          message: "Scheduler is inactive. Cannot import data.",
+        },
+        417
+      );
     };
     const di = mount(ref("DI-1"));
     await settle();
@@ -803,7 +846,7 @@ describe("useDataImport: start and stop", () => {
       "Scheduler is inactive. Cannot import data."
     );
 
-    responders.form_start_import = () => true;
+    responders.start_import = () => true;
     expect(await di.start()).toBe(true);
     expect(di.startError.value).toBeNull();
   });
@@ -819,7 +862,7 @@ describe("useDataImport: start and stop", () => {
     const response = await di.stop();
     expect(callsTo("stop_data_import")[0].args).toEqual({ doc_name: "DI-1" });
     expect(response?.status).toBe("not_running");
-    expect(callsTo("frappe.client.get")).toHaveLength(2);
+    expect(callsTo("getDocument")).toHaveLength(2);
   });
 });
 
@@ -836,9 +879,9 @@ describe("useDataImport: import fields", () => {
     const di = mount(ref(null), { doctype: "ToDo" });
     await settle();
     expect(callsTo("get_import_fields")[0].args).toEqual({ doctype: "ToDo" });
-    expect(callsTo("frappe.desk.form.load.getdoctype")[0].args).toEqual({
+    expect(callsTo("getMeta")[0].args).toEqual({
       doctype: "ToDo",
-      with_parent: 1,
+      include: "children",
     });
     expect(di.providerSchema.value).toBeNull();
     expect(di.doctypeMeta.value).toEqual([{ name: "ToDo", fields: [] }]);
@@ -846,15 +889,15 @@ describe("useDataImport: import fields", () => {
 
   it("drops a meta answer for a DocType that is no longer chosen", async () => {
     const todoMeta = deferred<unknown>();
-    responders["frappe.desk.form.load.getdoctype"] = (args) =>
+    responders.getMeta = (args) =>
       args.doctype === "ToDo"
         ? todoMeta.promise
-        : { docs: [{ name: args.doctype, fields: [] }] };
+        : { name: args.doctype, fields: [] };
     const di = mount(ref(null), { doctype: "ToDo" });
     await settle();
     di.doc.value.reference_doctype = "Note";
     await settle();
-    todoMeta.resolve({ docs: [{ name: "ToDo", fields: [] }] });
+    todoMeta.resolve({ name: "ToDo", fields: [] });
     await settle();
     expect(di.doctypeMeta.value).toEqual([{ name: "Note", fields: [] }]);
   });

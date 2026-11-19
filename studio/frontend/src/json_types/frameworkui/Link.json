@@ -10,14 +10,37 @@
         "description": {
           "type": "string"
         },
+        "required": {
+          "type": "boolean"
+        },
         "error": {
           "anyOf": [
             {
               "type": "string"
             },
             {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
               "type": "object",
+              "additionalProperties": false,
               "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
                 "name": {
                   "type": "string"
                 },
@@ -29,15 +52,11 @@
                 }
               },
               "required": [
-                "name",
-                "message"
-              ],
-              "additionalProperties": false
+                "message",
+                "name"
+              ]
             }
           ]
-        },
-        "required": {
-          "type": "boolean"
         },
         "doctype": {
           "type": "string"
@@ -48,6 +67,12 @@
         },
         "creatable": {
           "type": "boolean"
+        },
+        "href": {
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "redirectable": {
           "type": "boolean"

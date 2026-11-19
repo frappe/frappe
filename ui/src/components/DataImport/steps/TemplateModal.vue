@@ -4,13 +4,17 @@
 			<div class="grid grid-cols-2 gap-4">
 				<Select v-model="fileType" :label="t('File Type')" :options="fileTypeOptions" />
 				<Select
+					v-if="!pinned"
 					v-model="exportRecords"
 					:label="t('Export Type')"
 					:options="exportRecordOptions"
 					:description="countMessage"
 				/>
+				<div v-else class="self-end pb-1.5 text-sm text-ink-gray-6">
+					{{ countMessage }}
+				</div>
 			</div>
-			<div v-if="exportRecords === 'by_filter'">
+			<div v-if="exportRecords === 'by_filter' && !pinned">
 				<Filter v-model="filters" :doctype="doctype" align="start" />
 			</div>
 
@@ -79,12 +83,13 @@
 </template>
 
 <script setup lang="ts">
-import { Button, Checkbox, Dialog, Select, TextInput, Tooltip, call } from "frappe-ui";
+import { Button, Checkbox, Dialog, Select, TextInput, Tooltip } from "frappe-ui";
 import { computed, ref, watch } from "vue";
+import { countDocuments } from "../../../api";
 import { Filter, serializeFilters } from "../../Filter";
 import type { FilterCondition } from "../../Filter";
 import {
-	METHODS,
+	methodUrl,
 	pickerColumns,
 	postDownload,
 	tableFields,
@@ -93,7 +98,7 @@ import {
 import { t } from "../translate";
 import type { DataImportType, DocType, ImportProviderSchema } from "../types";
 
-const DOWNLOAD_TEMPLATE_URL = `/api/method/${METHODS}.download_template`;
+const DOWNLOAD_TEMPLATE_URL = methodUrl("download_template");
 
 type ExportRecords = "all" | "by_filter" | "5_records" | "blank_template";
 
@@ -118,6 +123,8 @@ const props = defineProps<{
 	importType: DataImportType;
 	providerSchema: ImportProviderSchema | null;
 	doctypeMeta: DocType[] | null;
+	/** The records to export, as `download_template` filters: the dialog exports exactly these. */
+	pinned?: { filters: Record<string, unknown>; count: number };
 }>();
 
 const open = defineModel<boolean>("open", { default: false });
@@ -283,13 +290,15 @@ let countRequest = 0;
 async function updateRecordCount() {
 	const request = ++countRequest;
 	let count: number;
-	if (exportRecords.value === "blank_template") count = 0;
+	if (props.pinned) count = props.pinned.count;
+	else if (exportRecords.value === "blank_template") count = 0;
 	else if (exportRecords.value === "5_records") count = 5;
 	else
-		count = await call<number>("frappe.client.get_count", {
-			doctype: props.doctype,
+		count = await countDocuments(props.doctype, {
 			filters: exportRecords.value === "by_filter" ? wireFilters() : undefined,
-		}).catch(() => 0);
+		})
+			.then(({ data }) => Number(data))
+			.catch(() => 0);
 	if (request === countRequest) recordCount.value = Number(count) || 0;
 }
 
@@ -315,7 +324,8 @@ function exportRecordsNow() {
 		file_type: fileType.value,
 		export_records: exportRecords.value,
 		export_fields: exportFields,
-		export_filters: exportRecords.value === "by_filter" ? wireFilters() : null,
+		export_filters:
+			exportRecords.value === "by_filter" ? props.pinned?.filters ?? wireFilters() : null,
 	});
 }
 
@@ -326,7 +336,11 @@ watch(
 		search.value = "";
 		filters.value = [];
 		fileType.value = "CSV";
-		exportRecords.value = forInsert.value ? "blank_template" : "all";
+		exportRecords.value = props.pinned
+			? "by_filter"
+			: forInsert.value
+			? "blank_template"
+			: "all";
 		updateRecordCount();
 	},
 	{ immediate: true }

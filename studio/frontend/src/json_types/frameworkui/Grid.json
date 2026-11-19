@@ -18,6 +18,9 @@
               "reqd": {
                 "type": "boolean"
               },
+              "fieldtype": {
+                "type": "string"
+              },
               "align": {
                 "type": "string",
                 "enum": [
@@ -51,6 +54,12 @@
               "type": "string"
             },
             {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
               "type": "object",
               "properties": {
                 "name": {
@@ -79,6 +88,9 @@
         },
         "required": {
           "type": "boolean"
+        },
+        "cellError": {
+          "type": "object"
         },
         "newRow": {
           "type": "object"

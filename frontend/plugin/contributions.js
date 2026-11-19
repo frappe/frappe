@@ -1,0 +1,513 @@
+// Synthesises `virtual:frappe/contributions` from the Python manifest, since a raw glob would
+// sweep every app on the bench and lose the app name. Everything falls out of the path.
+// The list.js files go in `virtual:frappe/list-scripts`, which only the list page imports.
+
+import { readFileSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
+import { directories, files, isFile } from "./folders.js";
+import { pageClashes } from "./pageClashes.js";
+import { STANDARD_PAGES, clashes, declaredPages, pageKeys, unknownKeys } from "./replacements.js";
+
+const VIRTUAL_ID = "virtual:frappe/contributions";
+const RESOLVED_ID = "\0" + VIRTUAL_ID;
+const LIST_SCRIPTS_ID = "virtual:frappe/list-scripts";
+const RESOLVED_LIST_SCRIPTS_ID = "\0" + LIST_SCRIPTS_ID;
+const LIST_KINDS = new Set(["list", "customList"]);
+
+/**
+ * `crm_deal` -> `{name: "CRM Deal", istable}`, read from the doctype's own JSON: title-casing
+ * the folder yields "Crm Deal".
+ */
+function readDoctypes(sourceDirs) {
+	const definitions = new Map();
+
+	for (const source_dir of sourceDirs) {
+		for (const module of directories(source_dir)) {
+			const doctypeRoot = join(source_dir, module, "doctype");
+			for (const scrubbed of directories(doctypeRoot)) {
+				const definition = join(doctypeRoot, scrubbed, `${scrubbed}.json`);
+				if (!isFile(definition)) continue;
+				try {
+					const { name, istable, is_submittable } = JSON.parse(
+						readFileSync(definition, "utf-8")
+					);
+					if (name)
+						definitions.set(scrubbed, {
+							name,
+							istable: Boolean(istable),
+							submittable: Boolean(is_submittable),
+						});
+				} catch {
+					// A malformed definition is the doctype loader's to report. Fall back to the folder.
+				}
+			}
+		}
+	}
+
+	return definitions;
+}
+
+/** A submittable's record needs Submit and Cancel, so it opens the page and the opt-in does nothing. */
+function submittableDialogs(recordDialogs, definitions) {
+	const submittable = new Set(
+		[...definitions.values()].filter((entry) => entry.submittable).map((entry) => entry.name)
+	);
+	return recordDialogs
+		.filter(({ doctype }) => submittable.has(doctype))
+		.map(
+			({ app, doctype }) =>
+				`[frappe] '${app}' opens '${doctype}' in the record dialog, a submittable with Submit and ` +
+				"Cancel; its record still opens the page."
+		);
+}
+
+function titleCase(scrubbed) {
+	return scrubbed
+		.split("_")
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(" ");
+}
+
+export function discover(manifest, allSourceDirs = manifest.map((entry) => entry.source_dir)) {
+	const doctypes = [];
+	const pages = [];
+	const itemTypes = [];
+	const viewTypes = [];
+	const settings = [];
+	const acts = [];
+	const fieldActions = [];
+	const shellHooks = [];
+	let replacements = [];
+	let pageScripts = [];
+	const recordDialogs = [];
+	const declarations = [];
+	const warnings = [];
+	// Every app on the bench, not just the manifest: a `custom/` folder can name a doctype
+	// owned by an app that contributes nothing.
+	const definitions = readDoctypes(allSourceDirs);
+	const unscrub = (scrubbed) => definitions.get(scrubbed)?.name ?? titleCase(scrubbed);
+	const benchApps = allSourceDirs.map((dir) => basename(dir));
+
+	for (const { app, source_dir } of manifest) {
+		for (const module of directories(source_dir)) {
+			const modulePath = join(source_dir, module);
+
+			// Your own doctype: <module>/doctype/<scrubbed>/frontend/{record,list}.js
+			const doctypeRoot = join(modulePath, "doctype");
+			for (const scrubbed of directories(doctypeRoot)) {
+				for (const kind of STANDARD_PAGES) {
+					const file = join(doctypeRoot, scrubbed, "frontend", `${kind}.js`);
+					if (isFile(file))
+						doctypes.push({ kind, app, doctype: unscrub(scrubbed), file });
+				}
+
+				// A replaced standard page: <module>/doctype/<scrubbed>/frontend/pages.json
+				const frontend = join(doctypeRoot, scrubbed, "frontend");
+				const declarer = { app, doctype: unscrub(scrubbed), foreign: false };
+				const owned = declaredPages(frontend, declarer, benchApps);
+				replacements.push(...owned.found);
+				recordDialogs.push(...owned.dialogs);
+				pageScripts.push(...owned.pageScripts);
+				warnings.push(...owned.warnings);
+				if (owned.declaration) declarations.push(owned.declaration);
+			}
+
+			// A foreign doctype: <module>/custom/<scrubbed>/{record.js,list.js,pages.json}
+			const customRoot = join(modulePath, "custom");
+			for (const scrubbed of directories(customRoot)) {
+				const folder = join(customRoot, scrubbed);
+				const file = join(folder, "record.js");
+				if (isFile(file))
+					doctypes.push({ kind: "custom", app, doctype: unscrub(scrubbed), file });
+				const listFile = join(folder, "list.js");
+				if (isFile(listFile))
+					doctypes.push({
+						kind: "customList",
+						app,
+						doctype: unscrub(scrubbed),
+						file: listFile,
+					});
+
+				const declarer = { app, doctype: unscrub(scrubbed), foreign: true };
+				const custom = declaredPages(folder, declarer, benchApps);
+				replacements.push(...custom.found);
+				recordDialogs.push(...custom.dialogs);
+				pageScripts.push(...custom.pageScripts);
+				warnings.push(...custom.warnings);
+				if (custom.declaration) declarations.push(custom.declaration);
+			}
+
+			// A new page: <module>/frontend/pages/<slug>.js. The `frontend/` segment is load-bearing:
+			// `<module>/page/` is desk v1's Page doctype and `templates/pages/` is website templates.
+			const pagesRoot = join(modulePath, "frontend", "pages");
+			for (const file of files(pagesRoot)) {
+				pages.push({ app, slug: basename(file, ".js"), file: join(pagesRoot, file) });
+			}
+
+			// An item kind: <module>/navigation_item_type/<scrubbed>/frontend/item.js. Its name comes
+			// off the JSON beside it: `doctype` title-cases to "Doctype" and the kind is `DocType`.
+			const typeRoot = join(modulePath, "navigation_item_type");
+			for (const scrubbed of directories(typeRoot)) {
+				const file = join(typeRoot, scrubbed, "frontend", "item.js");
+				if (!isFile(file)) continue;
+
+				const definition = join(typeRoot, scrubbed, `${scrubbed}.json`);
+				const name = recordName(definition);
+				if (!name) {
+					// A guessed name would register the renderer under a string no item carries.
+					warnings.push(
+						`[frappe] ${file} has no ${scrubbed}.json beside it; the item type it renders cannot be named, so it is ignored.`
+					);
+					continue;
+				}
+
+				itemTypes.push({ app, type: name, file });
+			}
+
+			// A view type: <module>/view_type/<scrubbed>/frontend/view.js, named by the record beside it.
+			// The manifest refuses a renderer with no record, so this skips only what it already failed.
+			const viewTypeRoot = join(modulePath, "view_type");
+			for (const scrubbed of directories(viewTypeRoot)) {
+				const file = join(viewTypeRoot, scrubbed, "frontend", "view.js");
+				const name = recordName(join(viewTypeRoot, scrubbed, `${scrubbed}.json`));
+				if (isFile(file) && name) viewTypes.push({ app, type: name, file });
+			}
+
+			// A settings block's component: <module>/frontend/settings/<name>.vue. The app's
+			// `Settings Dialog` record names it by <name> alone.
+			const settingsRoot = join(modulePath, "frontend", "settings");
+			for (const file of files(settingsRoot, ".vue")) {
+				settings.push({
+					app,
+					name: basename(file, ".vue"),
+					file: join(settingsRoot, file),
+				});
+			}
+
+			// An app's global acts: <module>/frontend/acts.js, joined to the shell surface.
+			const actsFile = join(modulePath, "frontend", "acts.js");
+			if (isFile(actsFile)) acts.push({ app, file: actsFile });
+
+			// An app's field actions: <module>/frontend/field-actions.js, placing its acts on fields.
+			const fieldActionsFile = join(modulePath, "frontend", "field-actions.js");
+			if (isFile(fieldActionsFile)) fieldActions.push({ app, file: fieldActionsFile });
+
+			// An app's shell hook: <module>/frontend/shell.js, run once per tab at idle.
+			const shellFile = join(modulePath, "frontend", "shell.js");
+			if (isFile(shellFile)) shellHooks.push({ app, file: shellFile });
+		}
+	}
+
+	const keys = pageKeys(viewTypes);
+	warnings.push(...unknownKeys(replacements, keys));
+	replacements = replacements.filter((entry) => keys.has(entry.key));
+	pageScripts = pageScripts.filter((script) =>
+		replacements.some(
+			(entry) =>
+				entry.page === script.page && dirname(dirname(entry.file)) === dirname(script.file)
+		)
+	);
+	warnings.push(...submittableDialogs(recordDialogs, definitions));
+	warnings.push(...clashes(replacements));
+	warnings.push(...settingsClashes(settings));
+	warnings.push(...shellHookClashes(shellHooks));
+	// Terminal only: the router reports the clashes a site really has, and most sites have none.
+	const pageWarnings = pageClashes(pages, manifest, definitions.values(), allSourceDirs);
+	return {
+		doctypes,
+		pages,
+		itemTypes,
+		viewTypes,
+		settings: settings.filter((entry) => !sharesItsName(entry, settings)),
+		acts,
+		fieldActions,
+		shellHooks: shellHooks.filter((entry) => !sharesItsApp(entry, shellHooks)),
+		replacements,
+		recordDialogs,
+		pageScripts,
+		declarations,
+		warnings,
+		pageWarnings,
+	};
+}
+
+/** One warning per settings component name an app ships twice; none of them is used. */
+function settingsClashes(settings) {
+	const warned = new Set();
+	const found = [];
+
+	for (const entry of settings) {
+		const slot = `${entry.app}/${entry.name}`;
+		if (warned.has(slot) || !sharesItsName(entry, settings)) continue;
+		warned.add(slot);
+
+		const paths = settings
+			.filter((other) => other.app === entry.app && other.name === entry.name)
+			.map((other) => other.file);
+		found.push(
+			`[frappe] '${entry.app}' ships more than one settings component named '${entry.name}': ` +
+				`${paths.join(", ")}. None of them is used.`
+		);
+	}
+
+	return found;
+}
+
+function sharesItsName(entry, settings) {
+	return settings.some(
+		(other) => other !== entry && other.app === entry.app && other.name === entry.name
+	);
+}
+
+/** One warning per app that ships more than one `shell.js`; none of them runs. */
+function shellHookClashes(shellHooks) {
+	const clashing = shellHooks.filter((entry) => sharesItsApp(entry, shellHooks));
+	return [...new Set(clashing.map((entry) => entry.app))].map((app) => {
+		const paths = clashing.filter((entry) => entry.app === app).map((entry) => entry.file);
+		return (
+			`[frappe] '${app}' ships more than one shell.js: ${paths.join(", ")}. ` +
+			"An app has one shell hook, so none of them runs."
+		);
+	});
+}
+
+function sharesItsApp(entry, shellHooks) {
+	return shellHooks.some((other) => other !== entry && other.app === entry.app);
+}
+
+/** A record's real name, read from its own JSON. `null` if there is no readable one. */
+function recordName(definition) {
+	if (!isFile(definition)) return null;
+	try {
+		return JSON.parse(readFileSync(definition, "utf-8")).name ?? null;
+	} catch {
+		// A malformed record is `import_file`'s to report at migrate; it is still not a name.
+		return null;
+	}
+}
+
+const USABLE = [
+	"function usable(entry) {",
+	"  if (entry.handlers || entry.load) return true",
+	"  console.warn(`[frappe] ignoring contribution with no default export: ${entry.__file}`)",
+	"  return false",
+	"}",
+];
+
+function doctypeEntry(entry) {
+	return (
+		`    { kind: ${JSON.stringify(entry.kind)}, ` +
+		`app: ${JSON.stringify(entry.app)}, doctype: ${JSON.stringify(entry.doctype)}, ` +
+		`load: () => import(${JSON.stringify(entry.file)}), __file: ${JSON.stringify(
+			entry.file
+		)} },`
+	);
+}
+
+function generateListScripts({ doctypes }) {
+	const lines = ["// GENERATED by plugin/contributions.js. Do not edit.", ...USABLE];
+	lines.push("export default [");
+	for (const entry of doctypes) if (LIST_KINDS.has(entry.kind)) lines.push(doctypeEntry(entry));
+	lines.push("].filter(usable)");
+	return lines.join("\n");
+}
+
+function generate({
+	doctypes,
+	pages,
+	itemTypes,
+	viewTypes,
+	settings,
+	acts,
+	fieldActions,
+	shellHooks,
+	replacements,
+	recordDialogs,
+	pageScripts,
+	warnings,
+}) {
+	const lines = ["// GENERATED by plugin/contributions.js. Do not edit.", ...USABLE];
+	const imports = [];
+
+	pages.forEach((entry, index) => {
+		imports.push(`import p${index} from ${JSON.stringify(entry.file)}`);
+	});
+	itemTypes.forEach((entry, index) => {
+		imports.push(`import i${index} from ${JSON.stringify(entry.file)}`);
+	});
+	viewTypes.forEach((entry, index) => {
+		imports.push(`import v${index} from ${JSON.stringify(entry.file)}`);
+	});
+	replacements.forEach((entry, index) => {
+		imports.push(`import r${index} from ${JSON.stringify(entry.file)}`);
+	});
+	recordDialogs.forEach((entry, index) => {
+		if (entry.file) imports.push(`import b${index} from ${JSON.stringify(entry.file)}`);
+	});
+	pageScripts.forEach((entry, index) => {
+		imports.push(`import s${index} from ${JSON.stringify(entry.file)}`);
+	});
+
+	lines.push(...imports);
+	lines.push("export default {");
+
+	lines.push("  doctypes: [");
+	// A record script is fetched when its doctype's page opens, never with the shell.
+	for (const entry of doctypes) if (!LIST_KINDS.has(entry.kind)) lines.push(doctypeEntry(entry));
+	// Dropped with a warning, never a throw: `main.ts` imports this before anything renders,
+	// so one app's typo must not fail the mount bench-wide.
+	lines.push("  ].filter(usable),");
+
+	lines.push("  pages: [");
+	pages.forEach((entry, index) => {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, slug: ${JSON.stringify(entry.slug)}, ` +
+				`title: p${index}?.title, component: p${index}?.component, ` +
+				`handlers: p${index}?.component, __file: ${JSON.stringify(entry.file)} },`
+		);
+	});
+	lines.push("  ].filter(usable),");
+
+	// `handlers` is the same key the other two carry, so `usable` covers item types too.
+	lines.push("  itemTypes: [");
+	itemTypes.forEach((entry, index) => {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, type: ${JSON.stringify(entry.type)}, ` +
+				`handlers: i${index}, renderer: i${index}, __file: ${JSON.stringify(
+					entry.file
+				)} },`
+		);
+	});
+	lines.push("  ].filter(usable),");
+
+	// `view.js` is eager and small; its `renderer` is the lazy import, one chunk per type.
+	lines.push("  viewTypes: [");
+	viewTypes.forEach((entry, index) => {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, type: ${JSON.stringify(entry.type)}, ` +
+				`handlers: v${index}, renderer: v${index}?.renderer, ` +
+				`__file: ${JSON.stringify(entry.file)} },`
+		);
+	});
+	lines.push("  ].filter(usable),");
+
+	// Lazy: a component's chunk loads when a pane that holds its block opens, never at start.
+	lines.push("  settings: [");
+	for (const entry of settings) {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, name: ${JSON.stringify(entry.name)}, ` +
+				`component: () => import(${JSON.stringify(entry.file)}) },`
+		);
+	}
+	lines.push("  ],");
+
+	// Lazy: the shell imports these at idle after the first paint.
+	lines.push("  acts: [");
+	for (const entry of acts) {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, load: () => import(${JSON.stringify(
+				entry.file
+			)}) },`
+		);
+	}
+	lines.push("  ],");
+
+	lines.push("  fieldActions: [");
+	for (const entry of fieldActions) {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, load: () => import(${JSON.stringify(
+				entry.file
+			)}) },`
+		);
+	}
+	lines.push("  ],");
+
+	lines.push("  shellHooks: [");
+	for (const entry of shellHooks) {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, load: () => import(${JSON.stringify(
+				entry.file
+			)}) },`
+		);
+	}
+	lines.push("  ],");
+
+	lines.push("  replacements: [");
+	replacements.forEach((entry, index) => {
+		lines.push(
+			`    { app: ${JSON.stringify(entry.app)}, ` +
+				`doctype: ${JSON.stringify(entry.doctype)}, key: ${JSON.stringify(entry.key)}, ` +
+				(entry.apps ? `apps: ${JSON.stringify(entry.apps)}, ` : "") +
+				`foreign: ${entry.foreign}, ` +
+				`title: r${index}?.title, component: r${index}?.component, ` +
+				`handlers: r${index}?.component, __file: ${JSON.stringify(entry.file)} },`
+		);
+	});
+	lines.push("  ].filter(usable),");
+
+	lines.push("  recordDialogs: [");
+	recordDialogs.forEach(({ app, doctype, apps, foreign, file }, index) => {
+		lines.push(
+			`    { app: ${JSON.stringify(app)}, doctype: ${JSON.stringify(doctype)}, ` +
+				(apps ? `apps: ${JSON.stringify(apps)}, ` : "") +
+				(file ? `component: b${index}?.component, ` : "") +
+				`foreign: ${foreign} },`
+		);
+	});
+	lines.push("  ],");
+
+	lines.push("  pageScripts: [");
+	pageScripts.forEach(({ app, doctype, page, file }, index) => {
+		const [appText, doctypeText, pageText] = [app, doctype, page].map((v) =>
+			JSON.stringify(v)
+		);
+		lines.push(
+			`    { app: ${appText}, doctype: ${doctypeText}, page: ${pageText}, ` +
+				`handlers: s${index}, __file: ${JSON.stringify(file)} },`
+		);
+	});
+	lines.push("  ].filter(usable),");
+
+	lines.push("}");
+
+	// Discovery's warnings are replayed in the browser, where the person missing a kind looks.
+	for (const warning of warnings) {
+		lines.push(`console.warn(${JSON.stringify(warning)})`);
+	}
+
+	return lines.join("\n");
+}
+
+/**
+ * Prints discovery's warnings in the terminal that runs the build.
+ * @param {string[]} warnings
+ * @param {Pick<Console, "warn">} [logger]
+ */
+export function report(warnings, logger = console) {
+	for (const warning of warnings) logger.warn(warning);
+}
+
+export default function contributions(manifest, allSourceDirs) {
+	let logger;
+	return {
+		name: "frappe-contributions",
+		configResolved(config) {
+			logger = config.logger;
+		},
+		resolveId(id) {
+			if (id === VIRTUAL_ID) return RESOLVED_ID;
+			if (id === LIST_SCRIPTS_ID) return RESOLVED_LIST_SCRIPTS_ID;
+		},
+		load(id) {
+			// Discovery's warnings are reported once, by the shell's module.
+			if (id === RESOLVED_LIST_SCRIPTS_ID)
+				return generateListScripts(discover(manifest, allSourceDirs));
+			if (id !== RESOLVED_ID) return;
+			const found = discover(manifest, allSourceDirs);
+			// `pages.json` is read, never imported, so vite would not reload the module on an edit.
+			for (const declaration of found.declarations) this.addWatchFile(declaration);
+			report([...found.warnings, ...found.pageWarnings], logger);
+			return generate(found);
+		},
+	};
+}

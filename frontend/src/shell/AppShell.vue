@@ -1,0 +1,584 @@
+<!--
+  The shell's own surface: rail, panel, routed view and the overlay slot. Navigation lives here
+  because a save replaces the whole `{rail, sidebars}`, and the open sidebar is a fact about the address.
+-->
+<template>
+	<!-- Clipped: an sr-only span in a pane can have the shell as its containing block; unclipped, it makes
+	     the page taller than the window and the page itself scrolls. -->
+	<DesktopShell
+		ref="shellEl"
+		:scroll="false"
+		:nav-side="navSide()"
+		:style="{ '--shell-header-inset-start': drawer ? '2.25rem' : '0px' }"
+		class="relative h-screen w-screen overflow-clip bg-surface-base text-ink-gray-9"
+		:class="[
+			{ 'desk-shell': boot.app && !phone && !drawer, 'nav-right': navSide() === 'right' },
+			// DesktopShell reverses its row for a right-hand navigation, which in a right-to-left page puts it on the left.
+			navSide() === 'right' ? 'rtl:flex-row' : 'rtl:flex-row-reverse',
+		]"
+	>
+		<template v-if="boot.app && !sidebarOnly && !floating && !phone && !drawer" #rail>
+			<RailColumn
+				:items="navigation.rail"
+				:context="contexts.rail"
+				:current="current.railKey"
+				:pin="unpinnable ? 'unpin' : undefined"
+				@unpin="setLayout(unpin, 'main')"
+			/>
+		</template>
+
+		<template v-if="boot.app && !phone && !drawer" #sidebar>
+			<SidebarOnly
+				v-if="sidebarOnly"
+				:items="navigation.rail"
+				:contexts="contexts"
+				:sidebars="navigation.sidebars"
+				:sections="sections"
+				:current="current"
+			/>
+			<SidebarPanel
+				v-else-if="panel"
+				:address="panel.address"
+				:items="panel.items"
+				:context="panel.context"
+				:title="panel.title"
+				:current="current.rowKey"
+				:sections="sections[panel.address]"
+				:collapsed="overlay ? !overlayOpen : !floating && sidebarCollapsed"
+				:chrome="floating"
+				:customizable="!floating && !panel.views"
+				:views="panel.views"
+				:overlay="overlay"
+				@customize="customize.write('sidebar', panel.address)"
+				@close="overlayOpen = false"
+			/>
+		</template>
+
+		<!-- `tabindex`: Escape in the floating rail hands focus back here. The phone tab bar is fixed over the foot, so the page ends above it. -->
+		<main
+			tabindex="-1"
+			class="flex min-h-0 flex-1 flex-col pb-[var(--shell-nav-inset-bottom,0px)] focus:outline-none [&>*]:min-h-0 [&>*]:flex-1"
+		>
+			<RouterView />
+		</main>
+
+		<div
+			v-if="drawer"
+			class="absolute top-[10px] z-10"
+			:class="navSide() === 'right' ? 'right-5' : 'left-5'"
+		>
+			<Button
+				variant="ghost"
+				icon="lucide-menu"
+				data-key="open-navigation"
+				:label="__('Open navigation')"
+				:aria-expanded="drawerOpen"
+				aria-haspopup="dialog"
+				@click="drawerOpen = true"
+			/>
+		</div>
+
+		<NavigationDrawer
+			v-if="drawer"
+			:open="drawerOpen"
+			:has-sidebar="!!panel"
+			@close="drawerOpen = false"
+		>
+			<SidebarOnly
+				v-if="navigationLayout === 'sidebar_only'"
+				width="min(18rem, 85vw)"
+				:items="navigation.rail"
+				:contexts="contexts"
+				:sidebars="navigation.sidebars"
+				:sections="sections"
+				:current="current"
+			/>
+			<template v-else>
+				<RailColumn
+					:items="navigation.rail"
+					:context="contexts.rail"
+					:current="current.railKey"
+					:chrome="!panel"
+				/>
+				<SidebarPanel
+					v-if="panel"
+					:address="panel.address"
+					:items="panel.items"
+					:context="panel.context"
+					:title="panel.title"
+					:current="current.rowKey"
+					:sections="sections[panel.address]"
+					:collapsed="false"
+					:views="panel.views"
+					chrome
+				/>
+			</template>
+		</NavigationDrawer>
+
+		<FloatingRail
+			v-if="floating"
+			:items="navigation.rail"
+			:context="contexts.rail"
+			:current="current.railKey"
+			:has-sidebar="!!panel"
+			@pin="setLayout(pin, '[data-key=unpin-navigation]')"
+		/>
+
+		<PhoneNavigation
+			v-if="phone"
+			:items="navigation.rail"
+			:contexts="contexts"
+			:sidebars="navigation.sidebars"
+			:sections="sections"
+			:current="current"
+		/>
+
+		<div
+			v-if="!boot.app"
+			class="absolute bottom-3 z-10 flex flex-col items-center"
+			:class="navSide() === 'right' ? 'right-[11px]' : 'left-[11px]'"
+			data-index-foot
+		>
+			<div data-index-foot-notices />
+			<UserMenu />
+		</div>
+
+		<!-- The hash dialogs: one hash, one Dialog, above any page. -->
+		<NavigationEditor
+			v-if="editorOpened"
+			:target="customizing"
+			@saved="replace"
+			@close="customize.close()"
+		/>
+
+		<ShellSettingsDialog v-if="settingsOpened" :shell="shell" />
+		<AboutDialog v-if="aboutOpened" :open="about.open.value" @close="about.close()" />
+
+		<ShellPalette v-if="paletteLoaded" />
+		<LogoutDialog v-model="confirmingLogout" />
+
+		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
+		<ComposerWindow :user="boot.session.user" />
+		<ShellDialogs v-if="shellDialogs.entries.value.length" />
+		<BulkTray v-if="bulkTrayShown" />
+		<StandingWindows v-if="standingWindows.length" :windows="standingWindows" :shell="shell" />
+
+		<component
+			:is="createDialog()"
+			v-for="request in createRequests"
+			:key="request.id"
+			:request="request"
+		/>
+		<component
+			:is="recordDialog()"
+			v-for="request in recordDialogRequests"
+			:key="request.id"
+			:request="request"
+		/>
+
+		<ActKeys :open-argument="openArgument" />
+		<PaletteKey />
+		<AppSwitcherKey />
+		<ToastProvider />
+		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
+		<Dialogs />
+	</DesktopShell>
+</template>
+
+<script setup lang="ts">
+import { useEventListener } from "@vueuse/core";
+import {
+	computed,
+	defineAsyncComponent,
+	inject,
+	nextTick,
+	onUnmounted,
+	ref,
+	watch,
+	watchEffect,
+} from "vue";
+import { RouterView, useRoute, useRouter } from "vue-router";
+import { Button, DesktopShell, Dialogs, ToastProvider, toast } from "frappe-ui";
+import { keepInHistory } from "@framework/ui/utils";
+import type { Addresses } from "@/addresses";
+import { browserMemory } from "@/browserMemory";
+import type { Boot, Navigation, NavigationItem } from "@/boot";
+import { __ } from "@/i18n";
+import { itemContext } from "@/navigation/context";
+import {
+	currentFrom,
+	navigationDestinations,
+	type CurrentNavigation,
+	type NavigationContexts,
+} from "@/navigation/current";
+import { sidebarMemory } from "@/navigation/sidebarMemory";
+import { viewsSidebarDoctype, viewsSidebarFor } from "@/navigation/viewsSidebar";
+import { sectionMemory } from "@/navigation/sectionMemory";
+import type { OpenArgument } from "./actKeys";
+import ComposerWindow from "./ComposerWindow.vue";
+import { closeCreates, createDialog, createRequests } from "./create";
+import { closeRecordDialogs, recordDialog, recordDialogRequests } from "./recordDialog";
+import type { EditorTarget } from "@/navigation/editor/NavigationEditor.vue";
+import LogoutDialog from "./LogoutDialog.vue";
+import { bulkTrayShown } from "./bulkTrayFlag";
+import { shellDialogs } from "./dialog";
+import FloatingRail from "./FloatingRail.vue";
+import { openArgumentStep, paletteOpen } from "./palette";
+import { PaletteKey } from "./paletteKey";
+import { useNavigationInset } from "./navigationInset";
+import NavigationDrawer from "./NavigationDrawer.vue";
+import {
+	applyNavigationLayout,
+	navigationLayout,
+	pin,
+	pinned,
+	unpin,
+	useDrawMode,
+} from "./navigationLayout";
+import { navSide, seedNavigationSide } from "./navigationSide";
+import RailColumn from "./RailColumn.vue";
+import { useShellActs, type OpenSettings } from "./shellActs";
+import { useShellHooks } from "./shellHooks";
+import { useStaleBuildNotice } from "./staleBuild";
+import SidebarOnly from "./SidebarOnly.vue";
+import SidebarPanel from "./SidebarPanel.vue";
+import { useHashDialog } from "./useHashDialog";
+import UserMenu from "./UserMenu.vue";
+
+const NavigationEditor = defineAsyncComponent(
+	() => import("@/navigation/editor/NavigationEditor.vue")
+);
+const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
+const AboutDialog = defineAsyncComponent(() => import("./AboutDialog.vue"));
+const ShellDialogs = defineAsyncComponent(() => import("./ShellDialogs.vue"));
+// Only the phone width draws it, so the wider pages do not carry its code.
+const PhoneNavigation = defineAsyncComponent(() => import("./PhoneNavigation.vue"));
+const BulkTray = defineAsyncComponent(() => import("./BulkTray.vue"));
+const StandingWindows = defineAsyncComponent(() => import("./StandingWindows.vue"));
+// Keys wait for no paint, so their code stays out of the cold-load chunk.
+const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
+const AppSwitcherKey = defineAsyncComponent(() =>
+	import("./appSwitcherKey").then((module) => module.AppSwitcherKey)
+);
+// Opened before the apps' acts are in, the palette waits for them.
+const ShellPalette = defineAsyncComponent(() =>
+	Promise.all([import("./ShellPalette.vue"), appActsPending()]).then(([module]) => module)
+);
+
+const boot = inject<Boot>("boot")!;
+seedNavigationSide(boot.session);
+
+const { drawMode } = useDrawMode();
+// The index page has no app and so no navigation: nothing to draw, nothing to clear.
+const phone = computed(() => !!boot.app && drawMode.value === "phone");
+
+const shellEl = ref<{ $el: HTMLElement } | null>(null);
+useNavigationInset(
+	computed(() =>
+		shellEl.value?.$el.querySelector<HTMLElement>('[data-slot="desktop-shell-content"]')
+	),
+	phone
+);
+const addresses = inject<Addresses>("addresses")!;
+useStaleBuildNotice();
+const router = useRouter();
+const route = useRoute();
+
+watch(() => route.fullPath, closeCreates);
+watch(() => route.path, closeRecordDialogs);
+
+const navigation = ref<Navigation>(
+	boot.navigation ?? { rail: [], sidebars: {}, navigation_layout: "rail_and_sidebar" }
+);
+
+applyNavigationLayout(navigation.value);
+
+const sidebarOnly = computed(() => !!boot.app && drawMode.value === "sidebar_only");
+const floating = computed(() => !!boot.app && drawMode.value === "floating");
+const overlay = computed(() => !!boot.app && drawMode.value === "rail_overlay");
+const drawer = computed(() => !!boot.app && drawMode.value === "drawer");
+
+const overlayOpen = ref(false);
+const drawerOpen = ref(false);
+watch(drawMode, () => {
+	overlayOpen.value = false;
+	drawerOpen.value = false;
+});
+const unpinnable = computed(() => pinned.value && drawMode.value === "rail");
+
+// One context per container: `Module Contents` measures against `context.items`, so a
+// sidebar row handed the rail's list would answer about the rail.
+const contexts = computed<NavigationContexts>(() => {
+	const compose = (items: NavigationItem[]) =>
+		itemContext(boot, addresses, router, items, navigation.value.sidebars);
+
+	return {
+		rail: compose(navigation.value.rail),
+		sidebars: Object.fromEntries(
+			Object.entries(navigation.value.sidebars).map(([address, rows]) => [
+				address,
+				compose(rows),
+			])
+		),
+	};
+});
+
+// A reader's own disclosures, one store per panel by its address. The rail draws no sections.
+const sections = computed(() =>
+	Object.fromEntries(
+		Object.entries(navigation.value.sidebars).map(([address, rows]) => [
+			address,
+			sectionMemory(boot.session.user.name, `Sidebar:${address}`, rows),
+		])
+	)
+);
+
+const sidebarsByAddress = sidebarMemory(boot.session.user.name);
+
+// Off the payload, not per navigation: it costs a route resolution per row.
+const destinations = computed(() =>
+	navigationDestinations(navigation.value.rail, navigation.value.sidebars, contexts.value)
+);
+
+// A ref off a watcher, not a computed: the resolution feeds itself, since the open panel is
+// the next address's first preference and recording it is a write.
+const current = ref<CurrentNavigation>({});
+
+// The panel the address asked for, outranking the open one because a paste is deliberate.
+const asked = ref<string | undefined>(undefined);
+
+// `listen` fires on pops only, so this marks a back or a forward.
+let popped = false;
+const stopListening = router.options.history.listen(() => {
+	popped = true;
+});
+onUnmounted(stopListening);
+
+// What the address alone says, so the copy link names the panel only where it adds something.
+const canonical = computed(() => currentFrom(destinations.value, route.path));
+
+function resolve() {
+	const path = route.path;
+	// Most wanted first, each a tie-break only, so a stale or misspelled `?sidebar=` loses silently.
+	const prefer = [
+		asked.value,
+		stamped(),
+		current.value.sidebar,
+		sidebarsByAddress.recall(path),
+	].filter((sidebar): sidebar is string => !!sidebar);
+
+	current.value = currentFrom(destinations.value, path, prefer);
+	const sidebar = current.value.sidebar;
+	if (sidebar) {
+		// Onto the entry, so back and forward return to the sidebar a page was read in. The
+		// compare leaves a pop's own state alone, which its forward entries hang off.
+		if (stamped() !== sidebar) keepInHistory("sidebar", sidebar);
+		if (!popped) sidebarsByAddress.remember(path, sidebar);
+	}
+	popped = false;
+}
+
+/** The sidebar stamped on the entry being shown, if it carries one. */
+function stamped(): string | undefined {
+	const sidebar = history.state?.sidebar;
+	return typeof sidebar === "string" ? sidebar : undefined;
+}
+
+// The parameter seeds the record, then leaves the address by `replace` with no second history entry.
+// Each navigation, not each address: a back can land on the same address stamped with another sidebar.
+watch(
+	[router.currentRoute, destinations],
+	() => {
+		// Repeated in the address it arrives as an array, which must still be consumed.
+		const asking = route.query.sidebar;
+		const named = Array.isArray(asking) ? asking[0] : asking;
+		asked.value = typeof named === "string" ? named : undefined;
+
+		resolve();
+
+		if (asking !== undefined) {
+			const { sidebar: _consumed, ...query } = route.query;
+			asked.value = undefined;
+			// `hash` is not ours to drop. An aborted replace rejects, and the sidebar is recorded by then.
+			router.replace({ path: route.path, query, hash: route.hash }).catch(() => {});
+		}
+	},
+	{ immediate: true }
+);
+
+// The link to hand someone else; the parameter goes on only where it says something.
+// Built on the click: a link handed down as a value would redraw the rail on every route change.
+function shareLink(): string {
+	const sidebar = current.value.sidebar;
+	const query =
+		sidebar && sidebar !== canonical.value.sidebar ? { ...route.query, sidebar } : route.query;
+
+	const to = router.resolve({ path: route.path, query, hash: route.hash });
+	return new URL(to.href, window.location.origin).href;
+}
+
+// The panel, or nothing. An empty sidebar is absent from the payload; the count is the last fence.
+const panel = computed(() => sidebarPanel() ?? viewsPanel());
+
+function railOwner() {
+	return navigation.value.rail.find((item) => item.key === current.value.railKey);
+}
+
+function sidebarPanel() {
+	const address = current.value.sidebar;
+	const items = address ? navigation.value.sidebars[address] : undefined;
+	if (!address || !items?.length) return null;
+
+	return {
+		address,
+		items,
+		context: contexts.value.sidebars[address],
+		// The authored label only: `labelOf`'s last resort is `link_to`, here the scrubbed address.
+		title: railOwner()?.label,
+		views: undefined,
+	};
+}
+
+// A DocType rail item has no sidebar of its own: the panel lists its views, read when it opens.
+function viewsPanel() {
+	const views = viewsSidebarFor(railOwner(), (doctype) => addresses.isSingle(doctype));
+	if (!views) return null;
+	return {
+		address: `views:${views.doctype}`,
+		items: [] as NavigationItem[],
+		context: contexts.value.rail,
+		title: views.title,
+		views: views.doctype,
+	};
+}
+
+// One dialog for both containers; the endpoints take the container as an argument.
+const customize = useHashDialog("customize");
+
+// `#customize/rail` or `#customize/sidebar/<address>`; anything else under the root is nothing.
+const customizing = computed<EditorTarget | null>(() => {
+	const [what, address] = customize.segments.value;
+	if (what === "rail" && boot.app) return { tab: "rail" };
+	if (what === "sidebar" && address && boot.app) return { tab: "sidebar", address };
+	return null;
+});
+
+// Loaded on the first open, then kept, so a close plays the dialog's leave transition.
+const editorOpened = ref(false);
+watch(customizing, (target) => target && (editorOpened.value = true), { immediate: true });
+
+const settings = useHashDialog("settings");
+const openSettings: OpenSettings = (...segments) =>
+	settings.write(...segments.map((segment) => segment ?? ""));
+
+// Loaded on the first open, then kept, so a close plays the dialog's leave transition.
+const settingsOpened = ref(false);
+watch(settings.open, (isOpen) => isOpen && (settingsOpened.value = true), { immediate: true });
+
+const about = useHashDialog("about");
+const aboutOpened = ref(false);
+watch(about.open, (isOpen) => isOpen && (aboutOpened.value = true), { immediate: true });
+
+const openArgument: OpenArgument = (act) => openArgumentStep(act.name);
+
+// Loaded on the first open, then kept, like the settings dialog.
+const paletteLoaded = ref(false);
+watch(paletteOpen, (isOpen) => isOpen && (paletteLoaded.value = true), { immediate: true });
+
+function replace(next: Navigation) {
+	navigation.value = next;
+	applyNavigationLayout(next);
+	boot.navigation = next;
+}
+
+watch(
+	() => route.path,
+	() => (overlayOpen.value = false)
+);
+useEventListener(window, "keydown", (event: KeyboardEvent) => {
+	if (overlayOpen.value && event.key === "Escape" && !event.defaultPrevented)
+		overlayOpen.value = false;
+});
+
+// The pin and the unpin: a save of the person's layout, then the new navigation drawn at once.
+// A second press while one is saving does nothing; focus on the button that went lands on the new one.
+let saving = false;
+async function setLayout(save: (app: string) => Promise<Navigation>, focusAfter: string) {
+	if (saving) return;
+	saving = true;
+	try {
+		replace(await save(boot.app!));
+		await nextTick();
+		if (document.activeElement === document.body || !document.activeElement) {
+			document.querySelector<HTMLElement>(focusAfter)?.focus();
+		}
+	} catch (error) {
+		toast.error(error instanceof Error ? error.message : String(error));
+	} finally {
+		saving = false;
+	}
+}
+
+const collapsedMemory = browserMemory(
+	"collapsed-sidebar",
+	boot.session.user.name,
+	(value): value is boolean => typeof value === "boolean",
+	"frappe:desk:sidebar-collapsed"
+);
+const sidebarCollapsed = ref(collapsedMemory.recall() ?? false);
+watch(sidebarCollapsed, collapsedMemory.remember);
+
+// The crumb's menu drops the views only while the panel stays on screen beside the page.
+watchEffect(() => {
+	const beside =
+		!sidebarOnly.value && !overlay.value && !floating.value && !drawer.value && !phone.value;
+	viewsSidebarDoctype.value =
+		beside && !sidebarCollapsed.value ? panel.value?.views ?? null : null;
+});
+onUnmounted(() => (viewsSidebarDoctype.value = null));
+
+const confirmingLogout = ref(false);
+
+const { appActsPending, shell } = useShellActs({
+	boot,
+	router,
+	openSettings,
+	openAbout: () => about.write(),
+	confirmLogout: () => void (confirmingLogout.value = true),
+	rail: boot.app
+		? {
+				customize: () =>
+					panel.value && !panel.value.views
+						? customize.write("sidebar", panel.value.address)
+						: customize.write("rail"),
+				shareLink,
+				// No seam in these draw modes, so no act; the overlay's own state keeps `collapsed-sidebar`.
+				sidebarCollapsed: () =>
+					!panel.value ||
+					sidebarOnly.value ||
+					floating.value ||
+					phone.value ||
+					drawer.value
+						? null
+						: overlay.value
+						? !overlayOpen.value
+						: sidebarCollapsed.value,
+				toggleSidebar: () => {
+					if (overlay.value) overlayOpen.value = !overlayOpen.value;
+					else sidebarCollapsed.value = !sidebarCollapsed.value;
+				},
+		  }
+		: undefined,
+});
+const standingWindows = useShellHooks(boot.shell_hooks, shell);
+</script>
+
+<style scoped>
+/* The content's edge beside the navigation; the panel draws the other one, and drops it while collapsed. */
+.desk-shell :deep([data-slot="desktop-shell-content"]) {
+	@apply border-l border-outline-gray-1 bg-surface-base;
+}
+.desk-shell.nav-right :deep([data-slot="desktop-shell-content"]) {
+	@apply border-l-0 border-r;
+}
+</style>

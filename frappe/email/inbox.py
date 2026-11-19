@@ -1,7 +1,9 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.client import set_value
+from frappe.permissions import is_system_user
 
 
 def get_email_accounts(user=None):
@@ -35,6 +37,29 @@ def get_email_accounts(user=None):
 	)
 
 	return {"email_accounts": email_accounts, "all_accounts": all_accounts}
+
+
+@frappe.desk_v2_only
+@frappe.whitelist()
+def get_outgoing_senders() -> dict:
+	"""The session user's outgoing addresses and the address of the default outgoing account."""
+	if not is_system_user():
+		frappe.throw(_("Only desk users can send email."), frappe.PermissionError)
+
+	senders = [row.email_id for row in get_own_email_accounts() if row.enable_outgoing and row.email_id]
+	return {"senders": list(dict.fromkeys(senders)), "default": _default_outgoing_email()}
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["GET"])
+def get_own_email_accounts() -> list[dict]:
+	"""The session user's own User Email rows, which User's permlevel 1 hides from them."""
+	return frappe.get_all(
+		"User Email",
+		filters={"parent": frappe.session.user},
+		fields=["email_account", "email_id", "enable_outgoing", "awaiting_password"],
+		order_by="idx",
+	)
 
 
 @frappe.whitelist()
@@ -97,6 +122,13 @@ def create_email_flag_queue(names: str | list, action: str):
 				mark_as_seen_unseen(doc, action)
 
 
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def mark_read_unread(doctype: str, name: str, action: str) -> None:
+	"""The list page's Mark as Read / Unread, one Communication per call of the bulk runner."""
+	create_email_flag_queue([name], action)
+
+
 @frappe.whitelist()
 def mark_as_closed_open(communication: str, status: str):
 	"""Set status to open or close"""
@@ -132,3 +164,11 @@ def link_communication_to_document(doc, reference_doctype, reference_name, ignor
 		doc.reference_name = reference_name
 		doc.status = "Linked"
 		doc.save(ignore_permissions=True)
+
+
+def _default_outgoing_email() -> str | None:
+	from frappe.email.doctype.email_account.email_account import EmailAccount
+
+	# Not find_default_outgoing: it returns a placeholder account when emails are muted.
+	email_id = frappe.db.get_value("Email Account", {"enable_outgoing": 1, "default_outgoing": 1}, "email_id")
+	return email_id or EmailAccount.get_account_details_from_site_config().get("email_id")

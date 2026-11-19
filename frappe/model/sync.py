@@ -34,6 +34,10 @@ IMPORTABLE_DOCTYPES = [
 	("desk", "workspace"),
 	("desk", "workspace_sidebar"),
 	("desk", "sidebar"),
+	# Desk v2's navigation kinds: the record arrives at migrate through this walk, the JS at build.
+	("desk", "navigation_item_type"),
+	# Desk v2's view types, the same way: the record at migrate, `frontend/view.js` at build.
+	("desk", "view_type"),
 	("desk", "onboarding_step"),
 	("desk", "module_onboarding"),
 	("desk", "form_tour"),
@@ -57,7 +61,7 @@ IMPORTABLE_DOCTYPES = [
 # Do not confuse this with `APP_LEVEL_ENTITIES` below, which is the reaper's list of the old
 # hand-written app-level fixtures that are being retired. This is the ordinary export path,
 # rooted one level up.
-APP_ROOTED_DOCTYPES = [("desk", "dock"), ("desk", "sidebar")]
+APP_ROOTED_DOCTYPES = [("desk", "dock"), ("desk", "sidebar"), ("desk", "rail"), ("desk", "settings_dialog")]
 
 
 def sync_all(force=0, reset_permissions=False):
@@ -122,6 +126,8 @@ def sync_for(app_name, force=0, reset_permissions=False):
 			"workspace_sidebar",
 			"workspace_sidebar_item",
 			"sidebar_item",
+			# A changed Sidebar record loads its stored rows at import, so its tables come first.
+			"navigation_item",
 			"sidebar",
 		]:
 			files.append(os.path.join(FRAPPE_PATH, "desk", "doctype", desk_module, f"{desk_module}.json"))
@@ -252,6 +258,10 @@ ORPHANABLE_ENTITIES = [
 	"Notification",
 	"Sidebar",
 	"Dock",
+	"Rail",
+	"Settings Dialog",
+	"Navigation Item Type",
+	"View Type",
 	"List Filter",
 	"Kanban Board",
 ]
@@ -279,6 +289,10 @@ def remove_orphan_entities(entity_types=None):
 		# the same rule one table down: the app's own dock is the file-backed layer, and the
 		# site's arrangement and every person's own are never candidates
 		"Dock": {"standard": 1},
+		# Desk v2's rail: the app layer is file-backed; the site's and each person's are never candidates.
+		"Rail": {"standard": 1},
+		"Settings Dialog": {"standard": 1},
+		# `Navigation Item Type` and `View Type` have no filter: every row is app content, so file-backed.
 		# a user's own or a site-wide layout is never backed by a file
 		"List Filter": {"is_standard": 1},
 		"Kanban Board": {"is_standard": "Yes"},

@@ -68,6 +68,7 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 		super().setUp()
 		frappe.db.savepoint("notification_webhook_test")
 		self.addCleanup(frappe.db.rollback, save_point="notification_webhook_test")
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=0))
 		self.enterContext(patch.object(frappe.local, "lang", "en"))
 		self.enterContext(patch("frappe.utils.data.get_url", self._get_url))
 		self.enterContext(

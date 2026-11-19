@@ -57,7 +57,7 @@ def build(
 	using_cached=False,
 ):
 	"Compile JS and CSS source files"
-	from frappe.bundler import build_framework_islands, bundle
+	from frappe.bundler import build_framework_islands, build_shell, bundle
 	from frappe.gettext.translate import compile_translations
 	from frappe.utils.synchronization import filelock
 
@@ -92,6 +92,7 @@ def build(
 		if apps and isinstance(apps, str):
 			apps = apps.split(",")
 
+		listed_apps = apps
 		if not apps:
 			apps = frappe.get_all_apps()
 
@@ -101,6 +102,11 @@ def build(
 			compile_translations(app, force=force, verbose=verbose)
 
 		run_after_build_hook(apps)
+
+		# Last, so a failed shell build still exits non-zero but cannot leave a bench with no v1 assets.
+		build_shell(
+			frappe.get_app_source_path("frappe"), production=mode == "production", listed_apps=listed_apps
+		)
 
 
 def run_after_build_hook(built_apps: list[str]):

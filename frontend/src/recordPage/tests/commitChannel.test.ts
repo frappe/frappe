@@ -1,0 +1,187 @@
+import { describe, expect, it } from "vitest";
+import { createCommitChannel } from "../commitChannel";
+import type { RowAddress } from "@framework/ui/fields/types";
+
+function channel() {
+  const fired: string[] = [];
+  const addressed: (RowAddress | undefined)[] = [];
+  const commits = createCommitChannel({
+    dispatch: (event, row) => void (fired.push(event), addressed.push(row)),
+  });
+  return { commits, fired, addressed };
+}
+
+const row: RowAddress = { parentfield: "products", key: "row-1" };
+
+describe("createCommitChannel", () => {
+  it("drops a discarded edit, so a save fires no handler for the cancelled value", async () => {
+    const { commits, fired } = channel();
+    commits.pending("note", "draft");
+
+    commits.discard("note");
+    await commits.flush();
+
+    expect(fired).toEqual([]);
+  });
+
+  it("discards only the edit of its own field and row", async () => {
+    const { commits, fired } = channel();
+    commits.pending("note", "draft", row);
+
+    commits.discard("note");
+    commits.discard("other", row);
+    commits.discard("note", { ...row, key: "row-2" });
+    await commits.flush();
+
+    expect(fired).toEqual(["products.note"]);
+  });
+
+  it("fires a top-level field under its own name", () => {
+    const { commits, fired } = channel();
+    commits.commit("status", "Won");
+    expect(fired).toEqual(["status"]);
+  });
+
+  it("addresses a child field by its table", () => {
+    const { commits, fired } = channel();
+    commits.commit("qty", 3, row);
+    expect(fired).toEqual(["products.qty"]);
+  });
+
+  it("fires add and remove on the same dotted family", () => {
+    const { commits, fired } = channel();
+    commits.rowChanged(row, "add");
+    commits.rowChanged(row, "remove");
+    expect(fired).toEqual(["products.onAdd", "products.onRemove"]);
+  });
+
+  // A handle for a removed row throws on every access, so `.onRemove` gets `(page)` alone.
+  it("carries the row on add and drops it on remove", () => {
+    const { commits, addressed } = channel();
+    commits.rowChanged(row, "add");
+    commits.rowChanged(row, "remove");
+    expect(addressed).toEqual([row, undefined]);
+  });
+
+  it("triggers a field on every call, and a flush waits for the handler", async () => {
+    const running: (() => void)[] = [];
+    const done: string[] = [];
+    const commits = createCommitChannel({
+      dispatch: (event) =>
+        new Promise<void>((resolve) => running.push(resolve)).then(() => void done.push(event)),
+    });
+    commits.trigger("ping");
+    commits.trigger("ping");
+    const flushed = commits.flush().then(() => done.push("flushed"));
+    for (const finish of running) finish();
+    await flushed;
+    expect(done).toEqual(["ping", "ping", "flushed"]);
+  });
+
+  it("fires nothing while an edit is only pending", () => {
+    const { commits, fired } = channel();
+    commits.pending("qty", 3);
+    expect(fired).toEqual([]);
+  });
+
+  it("flushes a pending edit once, then has nothing left to flush", async () => {
+    const { commits, fired } = channel();
+    commits.pending("qty", 3);
+    await commits.flush();
+    await commits.flush();
+    expect(fired).toEqual(["qty"]);
+  });
+
+  it("flushes the pending edit at its row address", async () => {
+    const { commits, fired } = channel();
+    commits.pending("qty", 3, row);
+    await commits.flush();
+    expect(fired).toEqual(["products.qty"]);
+  });
+
+  it("a commit clears the pending edit, so a later save does not refire it", async () => {
+    const { commits, fired } = channel();
+    commits.pending("qty", 3);
+    commits.commit("qty", 3);
+    await commits.flush();
+    expect(fired).toEqual(["qty"]);
+  });
+
+  it("a row add or remove clears the pending edit", async () => {
+    const { commits, fired } = channel();
+    commits.pending("qty", 3, row);
+    commits.rowChanged(row, "remove");
+    await commits.flush();
+    expect(fired).toEqual(["products.onRemove"]);
+  });
+
+  it("ignores the echo a widget re-emits as it commits", async () => {
+    const { commits, fired } = channel();
+    commits.commit("qty", 3);
+    commits.pending("qty", 3);
+    await commits.flush();
+    expect(fired).toEqual(["qty"]);
+  });
+
+  it("ignores the commit a repaint fires as it unmounts a focused input", async () => {
+    const { commits, fired } = channel();
+    commits.pending("qty", 3);
+    await commits.flush();
+    commits.commit("qty", 3);
+    expect(fired).toEqual(["qty"]);
+  });
+
+  it("takes a real edit after a commit of the same field", async () => {
+    const { commits, fired } = channel();
+    commits.commit("qty", 3);
+    commits.pending("qty", 4);
+    await commits.flush();
+    expect(fired).toEqual(["qty", "qty"]);
+  });
+
+  it("does not flush the same edit twice", async () => {
+    const { commits, fired } = channel();
+    commits.pending("qty", 3);
+    await commits.flush();
+    commits.pending("qty", 3);
+    await commits.flush();
+    expect(fired).toEqual(["qty"]);
+  });
+
+  it("a second row committing the same value is not an echo of the first", () => {
+    const { commits, fired } = channel();
+    commits.commit("qty", 3, row);
+    commits.commit("qty", 3, { parentfield: "products", key: "row-2" });
+    expect(fired).toEqual(["products.qty", "products.qty"]);
+  });
+
+  it("flush waits for a commit's handler still running, so a save cannot outrun it", async () => {
+    const order: string[] = [];
+    let release!: () => void;
+    const commits = createCommitChannel({
+      dispatch: async (event) => {
+        await new Promise<void>((resolve) => (release = resolve));
+        order.push(event);
+      },
+    });
+    commits.commit("status", "Won");
+    const flushed = commits.flush().then(() => order.push("flushed"));
+    release();
+    await flushed;
+    expect(order).toEqual(["status", "flushed"]);
+  });
+
+  it("awaits the handler it flushes, so the save cannot outrun it", async () => {
+    const order: string[] = [];
+    const commits = createCommitChannel({
+      dispatch: async (event) => {
+        await Promise.resolve();
+        order.push(event);
+      },
+    });
+    commits.pending("qty", 3);
+    await commits.flush();
+    order.push("beforeSave");
+    expect(order).toEqual(["qty", "beforeSave"]);
+  });
+});

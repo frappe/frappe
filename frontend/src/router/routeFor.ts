@@ -1,0 +1,160 @@
+// The one place a doctype URL's shape lives: a hand-built one is wrong under a modular
+// prefix, and `TestNoHandBuiltDoctypeUrls` fails it. Every route stays inside the prefix.
+
+import type { RouteLocationRaw, Router } from "vue-router";
+import type { Boot } from "@/boot";
+import type { Addresses } from "@/addresses";
+import { opensInDialog, replacementFor } from "@/contributions/registry";
+
+export type Shell = { boot: Boot; addresses: Addresses; router: Router };
+
+// A slot, not a module-scope router: empty until `main.ts` fills it after boot.
+let shell: Shell | null = null;
+
+export function registerShell(context: Shell) {
+	shell = context;
+}
+
+function current(): Shell {
+	if (!shell)
+		throw new Error("routeFor was called before the shell was mounted");
+	return shell;
+}
+
+/** Does the app serving this prefix put the module in the address? */
+export function isModular(boot: Boot): boolean {
+	const prefix = boot.shell_base.split("/").filter(Boolean).pop();
+	return Boolean(prefix && boot.prefixes?.[prefix]?.modular);
+}
+
+export type RouteOptions = {
+	/** A saved view's key, `/<doctype>/view/<key>`. Never a view type. */
+	view?: string;
+	/** Context, not identity: `?view=`, `?layout=` and friends. */
+	query?: Record<string, string>;
+	/** The standard page's second address; the main one when no app replaced the page. */
+	standard?: boolean;
+};
+
+/**
+ * The route for a doctype's list, one of its saved views, or one record.
+ *
+ *   routeFor('CRM Deal')                          -> /crm-deal
+ *   routeFor('CRM Deal', 'CRM-DEAL-01')           -> /crm-deal/CRM-DEAL-01
+ *   routeFor('CRM Deal', null, { view: 'open' })  -> /crm-deal/view/open
+ *   routeFor('System Settings')                   -> /system-settings/System Settings
+ *
+ * A single has no list, so its list address is the document itself, whatever view was asked
+ * for. Under a modular prefix each is one segment deeper, with the doctype's own module.
+ */
+export function routeFor(
+	doctype: string,
+	name?: string | null,
+	options: RouteOptions = {}
+): RouteLocationRaw {
+	const { addresses, router } = current();
+	const params = doctypeParams(doctype);
+	// The editor holds `/doctype/<name>`: a named push to `record` would draw a page a reload does not.
+	if (doctype === "DocType" && name && name !== "new" && router.hasRoute("doctype-editor"))
+		return options.standard
+			? { name: "standard-record", params: { ...params, name }, query: options.query }
+			: { name: "doctype-editor", params: { name }, query: options.query };
+
+	if (!name && addresses.isSingle(doctype)) name = doctype;
+	// `/<doctype>/new` opens a new record, so a record named "new" has only its standard address.
+	if (name)
+		return {
+			name: name === "new" ? "standard-record" : standardOr(doctype, "record", options),
+			params: { ...params, name },
+			query: options.query,
+		};
+	if (options.view) {
+		return {
+			name: "saved-view",
+			params: { ...params, key: options.view },
+			query: options.query,
+		};
+	}
+	return { name: standardOr(doctype, "list", options), params, query: options.query };
+}
+
+/** Whether `routeFor` can spell the doctype's address under this prefix, without throwing. */
+export function canRoute(doctype: string): boolean {
+	const { boot, addresses } = current();
+	const address = addresses.addressOf(doctype);
+	return Boolean(address && (!isModular(boot) || address[1]));
+}
+
+/** The doctype's slug and, under a modular prefix, its module. */
+function doctypeParams(doctype: string): Record<string, string> {
+	const { boot, addresses } = current();
+	const address = addresses.addressOf(doctype);
+
+	if (!address) {
+		// A guessed slug would reach not-found one hop later, with the reason lost.
+		throw new Error(`routeFor: no address for doctype '${doctype}'`);
+	}
+
+	const [slug, module] = address;
+	const params: Record<string, string> = { doctype: slug };
+	if (isModular(boot)) {
+		if (!module)
+			throw new Error(
+				`routeFor: '${doctype}' has no module under a modular prefix`
+			);
+		params.module = module;
+	}
+	return params;
+}
+
+/** The standard page's route name when it was asked for and an app replaced the page. */
+function standardOr(doctype: string, key: "record" | "list", options: RouteOptions) {
+	if (!options.standard) return key;
+	const { app } = current().boot;
+	const opensDialog = key === "record" && opensInDialog(doctype, app);
+	return replacementFor(doctype, key, app) || opensDialog ? `standard-${key}` : key;
+}
+
+/** The full-page new record, `/<doctype>/new`, prefilled from the query; a table is JSON. */
+export function routeForNew(
+	doctype: string,
+	values: Record<string, unknown> = {}
+): RouteLocationRaw {
+	const query = newRecordQuery(values);
+	// The editor holds `/doctype/new` too, as `routeFor` says for a DocType record.
+	if (doctype === "DocType" && current().router.hasRoute("doctype-editor"))
+		return { name: "doctype-editor", params: { name: "new" }, query };
+	return { name: "new-record", params: doctypeParams(doctype), query };
+}
+
+/** `routeForNew` as an address under a list address another app gave, for a router with no doctype routes. */
+export function hrefForNew(listPath: string, values: Record<string, unknown> = {}): string {
+	const query = new URLSearchParams(newRecordQuery(values)).toString();
+	return `${listPath}/new${query ? `?${query}` : ""}`;
+}
+
+/** The route for a module's address, which lands on its sidebar's first row. Modular only. */
+export function routeForModule(moduleSlug: string): RouteLocationRaw {
+	return { name: "module", params: { module: moduleSlug } };
+}
+
+/**
+ * The same address as an href, for a `window.location` assignment or a plain `<a>`.
+ */
+export function urlFor(
+	doctype: string,
+	name?: string | null,
+	options: RouteOptions = {}
+): string {
+	return current().router.resolve(routeFor(doctype, name, options)).href;
+}
+
+/** The new record's prefill values as a query: empty ones left out, a table as JSON. */
+function newRecordQuery(values: Record<string, unknown>): Record<string, string> {
+	const query: Record<string, string> = {};
+	for (const [fieldname, value] of Object.entries(values)) {
+		if (value == null || value === "") continue;
+		query[fieldname] = typeof value === "object" ? JSON.stringify(value) : String(value);
+	}
+	return query;
+}

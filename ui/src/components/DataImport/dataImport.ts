@@ -1,3 +1,4 @@
+import { apiUrl, getMeta } from "../../api";
 import { t } from "./translate";
 import type {
   DataImportDoc,
@@ -9,6 +10,15 @@ import type {
 } from "./types";
 
 export const METHODS = "frappe.core.doctype.data_import.data_import";
+
+/** The v2 route of a Data Import module method, for the downloads that post a form to it. */
+export const methodUrl = (method: string) => apiUrl(`/method/${METHODS}.${method}`);
+
+/** The doctype's meta and every child table's, as one flat list read by `name`. */
+export async function fetchDoctypeBundle(doctype: string): Promise<DocType[]> {
+  const { data, children } = await getMeta<DocType>(doctype, { include: "children" });
+  return [data, ...((children as DocType[] | undefined) ?? [])];
+}
 
 /** Desk's is_import_complete: the records are in, so the import can't be edited. */
 export const isImportComplete = (status: DataImportStatus) =>

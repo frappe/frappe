@@ -1,5 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import errno
+import json
 import os
 import re
 import shlex
@@ -116,6 +118,121 @@ def bundle(
 
 	with suppress(Exception):
 		frappe.cache.flushdb()
+
+
+def build_shell(frappe_app_path: str, production: bool = False, listed_apps: list[str] | None = None):
+	"""Assemble the manifest and run the framework's one vite build.
+
+	`listed_apps` are the apps a `--app`/`--apps` run lists; the build is skipped when none adds to the shell.
+	"""
+	from frappe.shell.manifest import adds_to_shell, cost_report, record_published, shaping_apps
+	from frappe.shell.manifest import write as write_manifest
+
+	frontend_path = os.path.join(frappe_app_path, "frontend")
+	# Guard on the committed half: `package.json` is generated and gitignored, so a fresh clone
+	# would silently build nothing.
+	if not os.path.exists(os.path.join(frontend_path, "package.base.json")):
+		return
+
+	published = os.path.join(frappe.get_app_path("frappe"), "public", "frontend")
+	# A bench with no shell built yet takes the first run that comes, whatever it lists.
+	if (
+		listed_apps
+		and os.path.exists(os.path.join(published, "index.html"))
+		and not adds_to_shell(listed_apps, frontend_path)
+	):
+		click.echo(f"Skipping the desk v2 shell build: nothing in {', '.join(listed_apps)} adds to it.")
+		return
+
+	# Raises `SingletonConflict`, naming the package, the shipped version and the app's range.
+	manifest, apps, deps_changed = write_manifest(frontend_path)
+	shaping = shaping_apps(apps, manifest)
+	lock_refreshed = refresh_lockfile(frontend_path)
+
+	# devDependencies are the test and lint tools. `--production=false` because yarn v1 skips them
+	# under NODE_ENV=production.
+	dev_tools_missing = not production and installed_without_dev_tools(frontend_path)
+	if (
+		not os.path.exists(os.path.join(frontend_path, "node_modules"))
+		or deps_changed
+		or lock_refreshed
+		or dev_tools_missing
+	):
+		install = "yarn install --production" if production else "yarn install --production=false"
+		frappe.commands.popen(install, cwd=frontend_path, env=get_node_env(), raise_err=True)
+
+	for line in cost_report(manifest, frontend_path, apps):
+		click.echo(line)
+
+	# Build into a staging directory and swap it in on success: `emptyOutDir` would either take
+	# the running site's assets down on a failed build or leak every previous build.
+	staging = published + ".staging"
+
+	shutil.rmtree(staging, ignore_errors=True)
+
+	command = f"yarn build --outDir {shlex.quote(staging)} --emptyOutDir"
+	if production:
+		command += " --mode production --sourcemap false"
+	frappe.commands.popen(command, cwd=frontend_path, env=get_node_env(), raise_err=True)
+
+	if not os.path.exists(os.path.join(staging, "index.html")):
+		shutil.rmtree(staging, ignore_errors=True)
+		raise RuntimeError("The shell build produced no index.html; leaving the existing assets in place.")
+
+	swap_shell_assets(staging, published)
+	record_published(frontend_path, shaping)
+
+
+def refresh_lockfile(frontend_path: str) -> bool:
+	"""Copy the committed base lock into place when the generated one is absent or older than it."""
+	# The generated lock grows only what the apps add; a newer base carries the framework's new pins.
+	base = os.path.join(frontend_path, "yarn.lock.base")
+	lockfile = os.path.join(frontend_path, "yarn.lock")
+	if os.path.exists(lockfile) and os.path.getmtime(lockfile) >= os.path.getmtime(base):
+		return False
+	shutil.copyfile(base, lockfile)
+	return True
+
+
+def installed_without_dev_tools(frontend_path: str) -> bool:
+	"""Whether the last `yarn install` skipped devDependencies; yarn v1 records its flags."""
+	try:
+		# Bench-internal path; never request-derived.
+		with open(os.path.join(frontend_path, "node_modules", ".yarn-integrity")) as f:  # nosemgrep
+			return "production" in json.load(f).get("flags", [])
+	except (OSError, ValueError):
+		return False
+
+
+def swap_shell_assets(staging: str, published: str):
+	"""Move a built tree into place; a reader mid-request sees one tree or the other."""
+	previous = published + ".previous"
+	shutil.rmtree(previous, ignore_errors=True)
+	if os.path.exists(published):
+		try:
+			os.rename(published, previous)
+		except OSError as exc:
+			# overlayfs refuses to rename a directory an earlier image layer created.
+			if exc.errno != errno.EXDEV:
+				raise
+			overlay_shell_assets(staging, published)
+			return
+	os.rename(staging, published)
+	shutil.rmtree(previous, ignore_errors=True)
+
+
+def overlay_shell_assets(staging: str, published: str):
+	"""Copy the new tree over the old one, so the old shell stays readable until the new one is whole."""
+	shutil.copytree(staging, published, dirs_exist_ok=True)
+	for root, dirs, files in os.walk(published, topdown=False):
+		counterpart = os.path.join(staging, os.path.relpath(root, published))
+		for name in files:
+			if not os.path.exists(os.path.join(counterpart, name)):
+				os.remove(os.path.join(root, name))
+		for name in dirs:
+			if not os.path.isdir(os.path.join(counterpart, name)):
+				shutil.rmtree(os.path.join(root, name))
+	shutil.rmtree(staging)
 
 
 def watch(apps=None):

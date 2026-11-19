@@ -6,6 +6,9 @@ export interface LinkProps extends Omit<InputLabelingProps, "error"> {
   doctype: string;
   filters?: Record<string, unknown>;
   creatable?: boolean;
+  /** The current record's address; with one, the field shows an arrow to it whose plain click emits `redirect`. */
+  href?: string | null;
+  /** @deprecated Pass `href`. Kept for Studio apps; with no address the arrow's click emits `redirect`. */
   redirectable?: boolean;
   editable?: boolean;
   disabled?: boolean;
@@ -14,23 +17,29 @@ export interface LinkProps extends Omit<InputLabelingProps, "error"> {
   title?: string;
   /** Label options by ID, not title; disables client-side filtering. */
   idLabels?: boolean;
+  /** Drawn in a panel row: ghost, no label, description or error text, the full column wide. */
+  panel?: boolean;
 }
 
 export interface LinkSlots {
   /** Content rendered in the input's suffix region. Scoped. */
   suffix?: (props: Record<string, unknown>) => any;
-  /** Custom render for the "Create New" option; receives the typed query. */
+  /** Custom render for the "Create New" option, always the last row; receives the typed query. */
   "item-create"?: (props: { query: string }) => any;
 }
 
 export type LinkEmits = {
   create: [query: string];
+  /** A plain click on the arrow; a modified click is left to the browser. */
   redirect: [value: string];
   edit: [value: string];
 };
 
 export interface LinkExposed {
   reload: () => void;
+  /** `fresh` skips the browser's cached answer and replaces it. */
+  search: (text: string, options?: { fresh?: boolean }) => void;
+  focus: () => void;
 }
 
 export type LinkOption = {

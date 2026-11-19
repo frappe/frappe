@@ -1,0 +1,124 @@
+// The mount sequence. Boot resolves first: the router's base and shape come out of it.
+
+import "@/index.css";
+import { createApp, defineAsyncComponent, h } from "vue";
+import { FrappeUI } from "frappe-ui";
+import { provideSession } from "@framework/ui/useSession";
+// the types module, not the subsystem barrel: the shell must not load the dialog to boot
+import { UploadLimitsKey } from "@framework/ui/FileUpload";
+import { addRecipients, openEmailAway } from "@/pages/record/composer/emailSeed";
+import { fieldActions } from "@/shell/fieldActions";
+import { CreateRecordKey, FieldActionsKey, RecordLinkKey, TemplateNamesKey } from "@framework/ui/fields/types";
+// The one file of the template compiler the shell may load: the names, not the compiler.
+import templateNames from "../templateCompiler/names.json";
+
+import { fetchBoot, BootUnauthorized, type Boot } from "@/boot";
+import { fetchAddresses, type Addresses } from "@/addresses";
+import { useCreateRight } from "@/createRight";
+import { registerViewsSidebar } from "@/navigation/viewsSidebar";
+import { createShellRouter } from "@/router";
+import { registerShell } from "@/router/routeFor";
+import { recordLink } from "@/router/recordLink";
+import { installTranslate, loadTranslations } from "@/i18n";
+import { loadSprite, symbolGeometry } from "@/icons/sprite";
+import {
+	appPageScriptSource,
+	setAppPageScripts,
+	setDrawnProps,
+	setFormLayoutApp,
+	setIconSource,
+	watchClientScripts,
+} from "@/recordPage";
+import { recordDrawnProps } from "@/pages/record/drawnProps";
+import { registerContributions, registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
+import AppShell from "@/shell/AppShell.vue";
+import { openCreate, registerCreateDialog } from "@/shell/create";
+import { registerRecordDialog } from "@/shell/recordDialog";
+import { registerSettingsBlocks } from "@/shell/settingsBlocks";
+import { registerDeskAfterSave } from "@/shell/deskAfterSave";
+import { recentVisits } from "@/shell/recentVisits";
+import { recordRouteHistory } from "@/shell/routeHistory";
+import { createSocket } from "@/shell/socket";
+import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
+import { setBulkSocket } from "@/shell/bulkSocket";
+import Unauthorized from "@/shell/Unauthorized.vue";
+import BootError from "@/shell/BootError.vue";
+
+async function start() {
+	// Nothing renders before boot: the user, the timezone and the CSRF token are in it.
+	let boot: Boot;
+	try {
+		boot = await fetchBoot();
+	} catch (error) {
+		// The shell owns every error state; an app cannot brand it.
+		const fallback =
+			error instanceof BootUnauthorized ? Unauthorized : BootError;
+		createApp(h(fallback, { error: String(error) })).mount("#app");
+		return;
+	}
+
+	// Translations and the icon sprite are fired, not awaited.
+	loadTranslations(boot.translations_version, boot.session.lang);
+	loadSprite();
+	setIconSource(symbolGeometry);
+	setAppPageScripts(appPageScriptSource);
+	setDrawnProps(recordDrawnProps());
+	setFormLayoutApp(boot.app);
+	registerCreateDialog(defineAsyncComponent(() => import("@/pages/create/CreateDialog.vue")));
+	registerRecordDialog(
+		defineAsyncComponent(() => import("@/pages/recordDialog/RecordDialog.vue"))
+	);
+	registerSettingsBlocks(() => import("@/pages/settings/SettingsBlocks.vue"));
+	// Only a DocType rail item draws it, so the cold-load chunk does not carry it.
+	registerViewsSidebar(defineAsyncComponent(() => import("@/pages/list/viewSwitcher/ViewsSidebar.vue")));
+	registerDeskAfterSave(boot.session);
+
+	// The address table is awaited: the route table cannot resolve a URL without it, and
+	// it is keyed on `boot.metadata_version`, so it cannot be fetched alongside boot.
+	let addresses: Addresses;
+	try {
+		addresses = await fetchAddresses(boot.metadata_version);
+	} catch (error) {
+		createApp(h(BootError, { error: String(error) })).mount("#app");
+		return;
+	}
+
+	// Contributions register before the router's first resolution.
+	registerContributions(boot.app_order);
+	registerStandardPages(standardPages);
+
+	// Only now is the base known, and the shape: a modular app's route table is one segment deeper.
+	const router = createShellRouter(boot, addresses);
+
+	// Fill the shell slot before anything can call `routeFor`.
+	registerShell({ boot, addresses, router });
+	recordRouteHistory(router, boot.shell_base);
+	// Before `app.use(router)`, which makes the first navigation.
+	recentVisits.track(router, boot, addresses);
+
+	const app = createApp(AppShell);
+	installTranslate(app);
+	app.use(FrappeUI);
+	// Where `getSocketInstance` looks; the plugin no longer opens one.
+	app.config.globalProperties.$socket = createSocket(boot);
+	watchClientScripts(app.config.globalProperties.$socket);
+	watchDoctypeUpdates(app.config.globalProperties.$socket);
+	setBulkSocket(app.config.globalProperties.$socket);
+	app.use(router);
+	app.provide("boot", boot);
+	provideSession(app, boot.session);
+	// The site's own upload limits; the upload primitive reads them by injection.
+	app.provide(UploadLimitsKey, {
+		max_file_size: boot.max_file_size,
+		file_chunk_size: boot.file_chunk_size,
+	});
+	app.provide(TemplateNamesKey, templateNames.components);
+	app.provide(CreateRecordKey, { open: openCreate, useRight: useCreateRight });
+	app.provide(RecordLinkKey, recordLink(router));
+	app.provide(FieldActionsKey, fieldActions({ openAway: openEmailAway, addRecipients }));
+	app.provide("addresses", addresses);
+	app.mount("#app");
+}
+
+start();

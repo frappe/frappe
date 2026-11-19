@@ -248,7 +248,9 @@
 
 		<!-- Help text and validation error sit below the control. `showDescription`
 		     hides the description while an error is shown (frappe-ui convention). -->
-		<InputDescription v-if="showDescription" :id="descriptionId" :description="description" />
+		<InputDescription v-if="showDescription" :id="descriptionId" :description="description">
+			<slot name="description">{{ description }}</slot>
+		</InputDescription>
 		<InputError v-if="hasError" :id="errorMessageId" :lines="errorLines" />
 	</div>
 </template>
@@ -303,13 +305,14 @@ const rows = defineModel<Record<string, any>[]>({ default: () => [] });
 
 defineSlots<GridSlots<T>>();
 
-// Per-column track widths: `null` = flexible (`1fr`), a number = fixed px. Seeded
+// Per-column track widths: `null` = flexible (`minmax`), a number = fixed px. Seeded
 // from the column's `width`, overridden by a drag. Re-seeding on a columns change
 // keeps existing drags (the drag wins over `width`) and adds/drops by index.
 const MIN_COL_WIDTH = 48;
 // Below this a flexible column stops shrinking and the grid scrolls sideways.
 const FLEX_COL_MIN = 128;
 const colWidths = ref<(number | null)[]>([]);
+const flexMin = (i: number) => props.columns[i]?.minWidth ?? FLEX_COL_MIN;
 watch(
 	() => props.columns,
 	(cols) => {
@@ -322,16 +325,18 @@ watch(
 );
 
 // Header and rows are one css grid spanning every column, so there's no flex seam.
-// A field track is `minmax(FLEX_COL_MIN, 1fr)` while flexible and a fixed `${w}px`
-// once resized — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
+// A flexible track is `minmax(min, min fr)`: it never drops below its `minWidth` and takes
+// leftover space in proportion to it. A resized one is a fixed `${w}px`, so it stays put and can shrink.
 const FIXED_COL = "2.5rem"; // checkbox / `#` / row menu — matches `w-10`
 const canAddRows = computed(
 	() => !props.disabled && !props.cannotAddRows && props.columns.length > 0
 );
 const templateColumns = computed(() => {
-	const fields = colWidths.value.map((w) =>
-		w == null ? `minmax(${FLEX_COL_MIN}px, 1fr)` : `${w}px`
-	);
+	const fields = colWidths.value.map((w, i) => {
+		if (w != null) return `${w}px`;
+		const min = flexMin(i);
+		return `minmax(${min}px, ${min}fr)`;
+	});
 	const lead = props.disabled ? [FIXED_COL] : [FIXED_COL, FIXED_COL]; // (checkbox) + `#`
 	return [...lead, ...fields, FIXED_COL].join(" "); // + row menu
 });
@@ -340,7 +345,7 @@ const templateColumns = computed(() => {
 // backgrounds span the full content when the columns overflow.
 const gridMinWidth = computed(() => {
 	const fixedCount = (props.disabled ? 1 : 2) + 1; // lead tracks + row menu
-	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? FLEX_COL_MIN), 0);
+	const fieldPx = colWidths.value.reduce<number>((sum, w, i) => sum + (w ?? flexMin(i)), 0);
 	return `calc(${fixedCount * 2.5}rem + ${fieldPx}px)`;
 });
 
@@ -646,9 +651,11 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell :deep(textarea),
 .grid-cell :deep(select),
 .grid-cell
-	:deep(button:not([data-slot="clear"]):not([data-slot="redirect"]):not([data-slot="edit"]):not([data-slot="swatch"])),
+	:deep(button:not([data-slot="clear"]):not([data-slot="edit"]):not([data-slot="swatch"])),
 .grid-cell :deep(.combobox),
-.grid-cell :deep([data-slot="trigger"]:not(img)) {
+.grid-cell :deep([data-slot="trigger"]:not(img)),
+.grid-cell :deep([data-slot="link-value"]),
+.grid-cell :deep([data-slot="read-value"]) {
 	border: none;
 	border-radius: 0;
 	background-color: var(--surface-base);
@@ -675,6 +682,20 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell.text-right :deep(input:not([type="checkbox"])),
 .grid-cell.text-right :deep(textarea) {
 	text-align: right;
+}
+
+.grid-cell :deep([data-slot="read-value"]) {
+	width: 100%;
+}
+
+.grid-cell :deep([data-slot="read-value"] > span) {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.grid-cell.text-right :deep([data-slot="read-value"]) {
+	justify-content: flex-end;
 }
 
 .grid-cell.text-center :deep(input:not([type="checkbox"])),
@@ -791,17 +812,16 @@ function onRowClick(row: Record<string, any>, index: number) {
 }
 
 /* Read-only grid: a cell's content is inert, so a click reaches the row and the cell keeps
- * its hover. A readonly Link's redirect/edit buttons come back, shown on row hover. */
+ * its hover. A read-only Link's record link and edit button come back. */
 .grid-disabled :deep(.grid-cell > *) {
 	pointer-events: none;
 }
 
-.grid-disabled .grid-cell :deep([data-slot="redirect"]),
+.grid-disabled .grid-cell :deep([data-slot="link-value"] a),
 .grid-disabled .grid-cell :deep([data-slot="edit"]) {
 	pointer-events: auto;
 }
 
-.grid-disabled .grid-row:hover :deep([data-slot="redirect"]),
 .grid-disabled .grid-row:hover :deep([data-slot="edit"]) {
 	display: grid;
 }

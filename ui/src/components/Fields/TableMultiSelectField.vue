@@ -1,30 +1,50 @@
 <template>
 	<TableMultiSelect
+		ref="control"
 		v-model="value"
+		v-model:open="open"
 		:doctype="targetDoctype"
-		:filters="field.filters"
-		:label="field.label"
+		:filters="filters"
+		:label="panel ? undefined : field.label"
 		:description="
-			targetDoctype
+			panel
+				? undefined
+				: targetDoctype
 				? field.description
 				: 'Child table metadata unavailable — picker disabled.'
 		"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
+		:error="panel ? undefined : error"
+		:panel="panel"
+		:aria-invalid="panel && error?.length ? true : undefined"
 		:disabled="field.readOnly || !targetDoctype"
-	/>
+		:titles="titles"
+		:creatable="linkCreate.creatable.value"
+		@create="linkCreate.create"
+	>
+		<template
+			v-if="!panel && targetDoctype && field.description && !error?.length"
+			#description
+		>
+			<FieldDescription :html="field.description" />
+		</template>
+		<template #create="{ query }">{{ linkCreate.label(query) }}</template>
+	</TableMultiSelect>
 </template>
 
 <script setup lang="ts">
-// Frappe `Table MultiSelect`: a child table whose single Link field names the
-// target doctype; stored value is an array of child rows, bridged to the
-// control's `string[]` via `useChildRowModel`. Select-only, like `LinkField`.
-import { computed } from "vue";
+// Frappe `Table MultiSelect`: child rows whose Link field names the target doctype, bridged to
+// the control's `string[]` by `useChildRowModel`. Creates through `useLinkCreate`, like `LinkField`.
+import { computed, inject, ref, shallowRef } from "vue";
 import { TableMultiSelect } from "../TableMultiSelect";
+import type { TableMultiSelectExposed } from "../TableMultiSelect";
 import { useChildRowModel } from "../FormLayout/useChildRowModel";
 import { newRowValues } from "../FormLayout/newRowValues";
+import { LinkTitlesKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import { useLinkCreate } from "./useLinkCreate";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
@@ -32,6 +52,11 @@ const emit = defineEmits<FieldComponentEmits>();
 // Link field's `options` is the target doctype; its `fieldname` is the key each row stores the value under.
 const linkField = computed(() => props.field.childFields?.find((f) => f.fieldtype === "Link"));
 const targetDoctype = computed(() => linkField.value?.options ?? "");
+const filters = computed(() =>
+	linkField.value?.filters
+		? { ...linkField.value.filters, ...props.field.filters }
+		: props.field.filters
+);
 
 const value = useChildRowModel(
 	() => props.modelValue,
@@ -44,4 +69,33 @@ const value = useChildRowModel(
 	// those. Known limit, not a hole: it is the same subset the picker itself shows.
 	() => newRowValues(props.field.childFields ?? [])
 );
+
+const control = ref<TableMultiSelectExposed | null>(null);
+const open = ref(false);
+// `useLinkCreate` keeps only the last saved title; each created chip needs its own.
+const created = shallowRef<Record<string, string>>({});
+const recordTitles = inject(LinkTitlesKey, null);
+
+const titles = computed(() => {
+	const known: Record<string, string> = {};
+	for (const name of value.value) {
+		const title =
+			created.value[name] ?? recordTitles?.value[`${targetDoctype.value}::${name}`];
+		if (title) known[name] = title;
+	}
+	return known;
+});
+
+const linkCreate = useLinkCreate({
+	doctype: targetDoctype,
+	filters: () => filters.value,
+	disabled: () => Boolean(props.field.readOnly),
+	open,
+	link: control,
+	select: (name) => {
+		const title = linkCreate.title(name);
+		if (title) created.value = { ...created.value, [name]: title };
+		if (!value.value.includes(name)) value.value = [...value.value, name];
+	},
+});
 </script>

@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { createApp, defineComponent, h } from "vue";
+import { createApp, defineComponent, h, ref } from "vue";
 import type { App } from "vue";
 import FormLayoutColumn from "../FormLayoutColumn.vue";
 import { buildLayoutFromMeta } from "../buildLayoutFromMeta";
 import { resolveLayout } from "../resolveLayout";
-import { DocKey, ResolveFieldKey, UpdateKey } from "../types";
+import { ControlPageKey, DocKey, ResolveFieldKey, UpdateKey } from "../types";
 import type { FieldNode, FieldOverride, RawMetaField } from "../types";
 
 /**
@@ -68,7 +68,7 @@ function render(
   app = createApp({
     render: () => h(FormLayoutColumn, { column: layout[0].sections[0].columns[0] }),
   });
-  app.provide(DocKey, { value: doc } as any);
+  app.provide(DocKey, ref(doc));
   app.provide(UpdateKey, (name: string, value: any) => (doc[name] = value));
   app.provide(ResolveFieldKey, () => StubField);
   app.mount(host);
@@ -117,6 +117,7 @@ describe("meta → DOM", () => {
       [
         field({
           fieldname: "rate",
+          fieldtype: "Check",
           mandatory_depends_on: "eval:doc.billable",
           read_only_depends_on: "eval:doc.locked",
         }),
@@ -126,6 +127,16 @@ describe("meta → DOM", () => {
     const el = host.querySelector("[data-stub][data-fieldname='rate']")!;
     expect(el.getAttribute("data-reqd")).toBe("true");
     expect(el.getAttribute("data-read-only")).toBe("true");
+  });
+
+  it("draws a field resolved read-only as its value, not its control", () => {
+    const host = render(
+      [field({ fieldname: "code", read_only_depends_on: "eval:doc.locked" })],
+      { locked: 1, code: "X-1" }
+    );
+    expect(host.querySelector("[data-stub]")).toBeNull();
+    const value = host.querySelector("[data-fieldname='code'] [data-slot='read-value']");
+    expect(value?.textContent?.trim()).toBe("X-1");
   });
 
   it("an override puts a depends_on-hidden field back in the DOM", () => {
@@ -181,15 +192,16 @@ describe("meta → DOM", () => {
 });
 
 /** Render one hand-built column (no meta step) so a `ui` overlay is expressible. */
-function renderColumn(fields: FieldNode[], doc: Record<string, any> = {}) {
+function renderColumn(fields: FieldNode[], doc: Record<string, any> = {}, page?: unknown) {
   host = document.createElement("div");
   document.body.appendChild(host);
   app = createApp({
     render: () => h(FormLayoutColumn, { column: { name: "c", fields } }),
   });
-  app.provide(DocKey, { value: doc } as any);
+  app.provide(DocKey, ref(doc));
   app.provide(UpdateKey, (name: string, value: any) => (doc[name] = value));
   app.provide(ResolveFieldKey, () => StubField);
+  if (page) app.provide(ControlPageKey, ref(page));
   app.mount(host);
   return host;
 }
@@ -216,6 +228,23 @@ describe("the `ui` overlay reaches the DOM", () => {
     expect(host.querySelector("[data-stub]")!.getAttribute("data-fieldname")).toBe(
       "rate"
     );
+  });
+
+  it("hands a script's own control the record page as its `page` prop, and a stock control nothing", () => {
+    const PageProbe = defineComponent({
+      props: { field: { type: Object, required: true }, page: null },
+      setup: (props) => () => h("i", { "data-probe": (props.page as any)?.name ?? "none" }),
+    });
+    const host = renderColumn(
+      [
+        { fieldname: "rate", fieldtype: "Currency" },
+        { fieldname: "custom", fieldtype: "Data", ui: { component: PageProbe } },
+      ],
+      {},
+      { name: "the-page" }
+    );
+    expect(host.querySelector("[data-fieldname='rate']")!.hasAttribute("page")).toBe(false);
+    expect(host.querySelector("[data-probe]")!.getAttribute("data-probe")).toBe("the-page");
   });
 
   it("fires a ui.on.click handler — the route that makes a Button live", () => {

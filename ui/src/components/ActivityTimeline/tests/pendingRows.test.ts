@@ -1,64 +1,51 @@
 import { describe, expect, it } from "vitest";
+import { ref } from "vue";
 import type { Activity } from "../types";
-import {
-  addPendingActivity,
-  hasUnresolvedRowOfType,
-  pendingRowsFor,
-  retirePendingRows,
-  withAdoptedKeys,
-} from "../pendingRows";
+import { addPendingActivity, docKey, trackPendingRows, withPendingRows } from "../pendingRows";
 
 let ticket = 0;
-const newTicket = () => String(++ticket);
 
 const comment = (key: string): Activity =>
   ({ type: "comment", key, timestamp: "2026-09-28 12:00:00", data: {} }) as Activity;
 
-const addComment = (docname: string) =>
-  addPendingActivity("HD Ticket", docname, {
+/** A ticket whose feed is tracked, with your comment still saving. */
+function savingTicket() {
+  const docname = String(++ticket);
+  const doc = docKey("HD Ticket", docname);
+  const feed = ref<Activity[]>([]);
+  trackPendingRows(doc, feed);
+  const row = addPendingActivity("HD Ticket", docname, {
     type: "comment",
     timestamp: "2026-09-28 12:00:00",
     data: { name: "", content: "hi" },
   } as Parameters<typeof addPendingActivity>[2]);
+  const drawn = () => withPendingRows(doc, feed.value, undefined);
+  return { feed, row, drawn };
+}
 
 describe("pending rows", () => {
-  it("holds back live rows of its type only until the key lands", () => {
-    const docname = newTicket();
-    const row = addComment(docname);
-    expect(hasUnresolvedRowOfType("HD Ticket", docname, "comment")).toBe(true);
-    expect(hasUnresolvedRowOfType("HD Ticket", docname, "email")).toBe(false);
-
-    row.resolve("comment:abc");
-    expect(hasUnresolvedRowOfType("HD Ticket", docname, "comment")).toBe(false);
-  });
-
   it("retires when the feed has the row before the key lands", () => {
-    const docname = newTicket();
-    const row = addComment(docname);
-    const pendingKey = pendingRowsFor("HD Ticket", docname)[0].key;
-    const feed = [comment("comment:abc")];
+    const { feed, row, drawn } = savingTicket();
+    const pendingKey = drawn()[0].key;
 
-    // the echo came first: without the key there is no match, so nothing retires
-    retirePendingRows("HD Ticket", docname, feed);
-    expect(pendingRowsFor("HD Ticket", docname)).toHaveLength(1);
+    // the echo came first and says nothing to match on, so nothing retires
+    feed.value = [comment("comment:abc")];
+    expect(drawn().filter((a) => a.pending)).toHaveLength(1);
 
     row.resolve("comment:abc");
-    retirePendingRows("HD Ticket", docname, feed);
-    expect(pendingRowsFor("HD Ticket", docname)).toHaveLength(0);
-    expect(withAdoptedKeys("HD Ticket", docname, feed)[0].key).toBe(pendingKey);
+    expect(drawn()).toMatchObject([{ key: "comment:abc", renderKey: pendingKey }]);
   });
 
   it("never retires on a different row that looks the same", () => {
-    const docname = newTicket();
-    addComment(docname).resolve("comment:mine");
-    retirePendingRows("HD Ticket", docname, [comment("comment:theirs")]);
-    expect(pendingRowsFor("HD Ticket", docname)).toHaveLength(1);
+    const { feed, row, drawn } = savingTicket();
+    row.resolve("comment:mine");
+    feed.value = [comment("comment:theirs")];
+    expect(drawn().map((a) => a.key)).toEqual(["comment:theirs", "comment:mine"]);
   });
 
   it("drops a row whose request failed", () => {
-    const docname = newTicket();
-    addComment(docname).drop();
-    expect(pendingRowsFor("HD Ticket", docname)).toHaveLength(0);
-    expect(hasUnresolvedRowOfType("HD Ticket", docname, "comment")).toBe(false);
+    const { row, drawn } = savingTicket();
+    row.drop();
+    expect(drawn()).toHaveLength(0);
   });
 });

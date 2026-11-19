@@ -1,0 +1,351 @@
+// The fields surface: a script overrides properties of fields authored elsewhere.
+// Ops are recorded, not applied; `resolve()` folds them into one patch per field.
+import { markRaw, shallowReactive } from "vue";
+import {
+  DROPPED_FIELDTYPES,
+  mapField,
+  type Decorator,
+  resolveFieldConditionals,
+} from "@framework/ui/FormLayout";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import type { FieldAccess } from "@framework/ui/useDocPermissions";
+import { holdsChildRows } from "@framework/ui/fields";
+import { runningSource } from "@/pageEngine/context";
+import { withAccess } from "./formLayoutSource/fieldAccess";
+import type { FieldErrors } from "./fieldErrors";
+import { applyFieldPatch, type FieldPatch } from "./formLayoutSource/fieldPatch";
+import { readOnly, type ReadOnlyAdvice } from "./readOnly";
+import { StagedOverlay } from "@/pageEngine/staging";
+import type { PageChoice, PageField, PageFieldPatch, PageFields } from "./types";
+
+const SNAPSHOT_IS_READ_ONLY: ReadOnlyAdvice = {
+  path: "page.fields.get()",
+  instead: "page.fields.update(fieldname, { … }), which is the writable half",
+};
+
+type Slot = "meta" | "override" | "ui";
+
+interface Landing {
+  /** Which half of the `FieldPatch` this key lands on. */
+  on: Slot;
+  /** Its name there — the pipeline is camelCase, the script vocabulary is not. */
+  as: string;
+  coerce?: (value: any) => any;
+  /** Further node properties the same key sets, from the value as written. */
+  also?: (value: any) => Record<string, any>;
+  /** Handed back as itself, not a read-only view: comparing and re-feeding it is the point. */
+  opaque?: boolean;
+}
+
+const asBoolean = (value: any) => !!value;
+
+/** `options` is a newline-joined string, or a list of values and `{ value, label }` pairs. */
+function asOptions(value: any): string | null | undefined {
+  if (value == null || typeof value === "string") return value;
+  if (Array.isArray(value)) return toChoices(value).map((one) => one.value).join("\n");
+  warnOnce(`page.fields.update({ options }) — a string or a list of values and { value, label } pairs, not ${typeof value}; emptied.`);
+  return "";
+}
+
+/** The labelled pairs behind a list; a plain string clears the pairs a script set before it. */
+function choicesOf(value: any): { choices: PageChoice[] | undefined } {
+  return { choices: Array.isArray(value) ? toChoices(value) : undefined };
+}
+
+/** Each value once, first label wins; a value with no text or a newline (the join's separator) is dropped. */
+function toChoices(list: any[]): PageChoice[] {
+  const seen = new Map<string, PageChoice>();
+  for (const one of list) {
+    const raw = one !== null && typeof one === "object" ? one.value : one;
+    if (typeof raw !== "string" && typeof raw !== "number") continue;
+    const value = String(raw);
+    if (value.includes("\n") || seen.has(value)) continue;
+    seen.set(value, { value, label: String(one.label ?? value) });
+  }
+  return [...seen.values()];
+}
+
+/** Meta writes `precision` as a number; a script may reasonably say `"2"`. */
+function asPrecision(value: any): number | undefined {
+  if (value == null || value === "") return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
+/**
+ * The vocabulary and where each key lands. `hidden`/`read_only`/`reqd` are recomputed
+ * on every keystroke from `depends_on`, so they ride the slot applied last.
+ */
+const PATCH_KEYS: Record<string, Landing> = {
+  hidden: { on: "override", as: "hidden", coerce: asBoolean },
+  read_only: { on: "override", as: "readOnly", coerce: asBoolean },
+  reqd: { on: "override", as: "reqd", coerce: asBoolean },
+  label: { on: "meta", as: "label" },
+  placeholder: { on: "meta", as: "placeholder" },
+  description: { on: "meta", as: "description" },
+  options: { on: "meta", as: "options", coerce: asOptions, also: choicesOf },
+  link_filters: { on: "meta", as: "filters" },
+  precision: { on: "meta", as: "precision", coerce: asPrecision },
+  cannot_add_rows: { on: "meta", as: "cannotAddRows", coerce: asBoolean },
+  cannot_delete_rows: { on: "meta", as: "cannotDeleteRows", coerce: asBoolean },
+  // The stamp is what tells the outbound read-only wrapper to leave the component alone.
+  component: { on: "ui", as: "component", coerce: markRaw, opaque: true },
+  props: { on: "ui", as: "props" },
+  own_box: { on: "ui", as: "ownBox", coerce: asBoolean },
+};
+
+/** The reader's keys, derived from the writer's so a key added above is read back from the right slot. */
+const SNAPSHOT_KEYS = Object.entries(PATCH_KEYS);
+
+export interface FieldsSurfaceHost {
+  /** The doctype's flat meta `fields`; absent until the meta lands. */
+  fields: () => RawMetaField[] | undefined;
+  /** The draft document conditional expressions resolve against. */
+  doc: () => Record<string, any>;
+  fieldAccess: (fieldname: string) => FieldAccess;
+  /** The host's per-field overlay hook; without it `get` would report a `component` the renderer disagrees with. */
+  decorate?: Decorator;
+  /** Whether the panel carries this name, so a script reaching for a section here is told the verb that owns it. */
+  isSection?: (name: string) => boolean;
+  /** The marks `setError` and `clearError` write. */
+  errors: FieldErrors;
+  /** A child doctype's meta fields, by doctype name; absent while the metas load. */
+  childFields?: (doctype: string) => RawMetaField[] | undefined;
+}
+
+type Op =
+  | { verb: "hide" | "show"; source: string; fieldname: string }
+  | { verb: "update"; source: string; fieldname: string; patch: FieldPatch };
+
+export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
+  /** Installed by `createRecordPage`, which holds the replay state a focus waits on. */
+  declare focus: (fieldname: string) => void;
+
+  // Shallow: a deep proxy would hand `v-bind` a Proxy of whatever a script put in
+  // `props`, breaking a class instance.
+  constructor(private host: FieldsSurfaceHost) {
+    super(shallowReactive([]));
+  }
+
+  hide(fieldname: string) {
+    this.record({ verb: "hide", source: runningSource(), fieldname });
+    this.warnIfAbsent(fieldname, "hide");
+  }
+
+  show(fieldname: string) {
+    this.record({ verb: "show", source: runningSource(), fieldname });
+    this.warnIfAbsent(fieldname, "show");
+  }
+
+  update(fieldname: string, patch: PageFieldPatch) {
+    // Named before the keys are read, so a mistyped fieldname is heard first.
+    this.warnIfAbsent(fieldname, "update");
+    this.record({
+      verb: "update",
+      source: runningSource(),
+      fieldname,
+      patch: translate(fieldname, patch),
+    });
+  }
+
+  setError(fieldname: string, message: string) {
+    if (this.refuseColumn(fieldname, "setError")) return new Error(message);
+    this.warnIfAbsent(fieldname, "setError");
+    this.host.errors.mark(fieldname, message, runningSource());
+    return new Error(message);
+  }
+
+  clearError(fieldname: string) {
+    if (this.refuseColumn(fieldname, "clearError")) return;
+    this.warnIfAbsent(fieldname, "clearError");
+    this.host.errors.unmark(fieldname);
+  }
+
+  has(fieldname: string) {
+    return !!this.raw(fieldname);
+  }
+
+  get(fieldname: string): PageField | null {
+    const raw = this.raw(fieldname);
+    if (!raw) {
+      this.warnIfAbsent(fieldname, "get");
+      return null;
+    }
+    // Over the replay or hold in flight when there is one, as `Surface.has` reads: a
+    // source reading back its own work is told about it, not about what is drawn.
+    const resolved = this.resolveField(fieldname, raw, this.currentOps);
+    return readOnly(snapshot(resolved), SNAPSHOT_IS_READ_ONLY);
+  }
+
+  // Host side, below: not part of what a script may call.
+
+  /** Whether the name is a table's column, `<table>.<column>`, which has a cell per row and no place of its own. */
+  isColumn(name: string) {
+    return splitName(name).column !== undefined;
+  }
+
+  /** Whether the field shows in what is drawn, a replay or hold in flight left out. */
+  isDrawn(fieldname: string) {
+    const raw = this.raw(fieldname);
+    return !!raw && !this.resolveField(fieldname, raw, this.drawnOps).hidden;
+  }
+
+  /** The applied overlay: committed ops only, never a replay or hold in flight. */
+  resolve(): Record<string, FieldPatch> {
+    return this.fold(this.drawnOps);
+  }
+
+  // The same calls the join makes, in the same order, so the reader cannot drift from the renderer.
+  private resolveField(name: string, raw: RawMetaField, ops: Op[]) {
+    const patch = this.fold(ops)[name];
+    if (this.isColumn(name)) return resolveColumn(raw, patch, this.host.decorate);
+    const node = mapField(
+      withAccess(raw, (field) => this.host.fieldAccess(field.fieldname)),
+      {},
+      this.host.decorate,
+    );
+    return resolveFieldConditionals(applyFieldPatch(node, patch), this.host.doc());
+  }
+
+  /**
+   * One patch per field, in op order, later keys winning. A `Map`, not an object
+   * literal: a script-chosen `"__proto__"` would otherwise land on `Object.prototype`.
+   */
+  private fold(ops: Op[]): Record<string, FieldPatch> {
+    const patches = new Map<string, FieldPatch>();
+    for (const op of ops) {
+      let into = patches.get(op.fieldname);
+      if (!into) patches.set(op.fieldname, (into = {}));
+      if (op.verb === "update") mergeInto(into, op.patch);
+      else (into.override ??= {}).hidden = op.verb === "hide";
+    }
+    return Object.fromEntries(patches);
+  }
+
+  /** `DROPPED_FIELDTYPES` are excluded: `joinLayout` drops them before any patch could apply. */
+  private raw(name: string): RawMetaField | undefined {
+    const { field, column } = splitName(name);
+    if (column === undefined) return drawable(this.host.fields(), field);
+    const child = this.childFieldsOf(field);
+    return child && drawable(child, column);
+  }
+
+  private childFieldsOf(table: string): RawMetaField[] | undefined {
+    const field = this.host.fields()?.find((one) => one.fieldname === table);
+    if (!field?.options || !holdsChildRows(field.fieldtype)) return undefined;
+    return this.host.childFields?.(field.options);
+  }
+
+  /** Whether the meta the name would be found in has landed. */
+  private loaded(name: string) {
+    const fields = this.host.fields();
+    const { field, column } = splitName(name);
+    if (!fields || column === undefined) return !!fields;
+    const table = fields.find((one) => one.fieldname === field);
+    return !table || !holdsChildRows(table.fieldtype) || !!this.childFieldsOf(field);
+  }
+
+  private refuseColumn(name: string, verb: string) {
+    if (!this.isColumn(name)) return false;
+    if (import.meta.env.DEV)
+      warnOnce(`page.fields.${verb}("${name}") — a table column; row.${verb} in its row handler is the verb.`);
+    return true;
+  }
+
+  /**
+   * The op is recorded either way: before the meta lands, "absent" and "not here
+   * yet" are indistinguishable, and dropping it would lose it for good.
+   */
+  private warnIfAbsent(fieldname: string, verb: string) {
+    if (!this.loaded(fieldname) || this.raw(fieldname)) return;
+    // One name, one owner: `panelSections` speaks for a section's visibility.
+    if (this.host.isSection?.(fieldname)) {
+      const owner = verb === "get" ? "has" : verb;
+      warnOnce(
+        `page.fields.${verb}("${fieldname}") — a panel section, not a field; page.panelSections.${owner}("${fieldname}") is the verb.`,
+      );
+      return;
+    }
+    const what = this.isColumn(fieldname) ? "table column" : "field";
+    warnOnce(`page.fields.${verb}("${fieldname}") — no such ${what}.`);
+  }
+}
+
+/** `products.rate` names the `rate` column of the `products` table, as a field handler key does. */
+function splitName(name: string): { field: string; column?: string } {
+  const dot = name.indexOf(".");
+  return dot < 0 ? { field: name } : { field: name.slice(0, dot), column: name.slice(dot + 1) };
+}
+
+function drawable(fields: RawMetaField[] | undefined, fieldname: string) {
+  const field = fields?.find((one) => one.fieldname === fieldname);
+  return field && !DROPPED_FIELDTYPES.has(field.fieldtype) ? field : undefined;
+}
+
+/** A column's `depends_on` resolves per row, so its read leaves them out and reports the overlay alone. */
+function resolveColumn(raw: RawMetaField, patch: FieldPatch | undefined, decorate?: Decorator) {
+  const node = applyFieldPatch(mapField(raw, {}, decorate), patch);
+  const unconditional = {
+    ...node,
+    dependsOn: undefined,
+    mandatoryDependsOn: undefined,
+    readOnlyDependsOn: undefined,
+  };
+  return resolveFieldConditionals(unconditional, {});
+}
+
+/** Translate the script's vocabulary into the pipeline's, dropping the rest. */
+function translate(fieldname: string, patch: PageFieldPatch): FieldPatch {
+  const translated: FieldPatch = {};
+  for (const [key, value] of Object.entries(patch)) {
+    // `hasOwn`, or `toString` and `constructor` would slip through as truthy prototype members.
+    const landing = Object.hasOwn(PATCH_KEYS, key) ? PATCH_KEYS[key] : undefined;
+    if (!landing) {
+      warnOnce(
+        `page.fields.update("${fieldname}", { ${key} }) — not a field property a script may set; dropped.`,
+      );
+      continue;
+    }
+    const slot = (translated[landing.on] ??= {}) as Record<string, any>;
+    slot[landing.as] = landing.coerce ? landing.coerce(value) : value;
+    Object.assign(slot, landing.also?.(value));
+  }
+  return translated;
+}
+
+/** Shallow per half: two patches for one field merge key by key, last wins. */
+function mergeInto(into: FieldPatch, from: FieldPatch) {
+  if (from.meta) into.meta = { ...into.meta, ...from.meta };
+  if (from.override) into.override = { ...into.override, ...from.override };
+  if (from.ui) into.ui = { ...into.ui, ...from.ui };
+}
+
+/** Reads a resolved node back in the vocabulary `update` writes; the internal node carries far more. */
+function snapshot(resolved: Record<string, any>): PageField {
+  const field: PageField = {
+    fieldname: resolved.fieldname,
+    fieldtype: resolved.fieldtype,
+  };
+  for (const [key, { on, as, opaque }] of SNAPSHOT_KEYS) {
+    const value = on === "ui" ? resolved.ui?.[as] : resolved[as];
+    if (value === undefined) continue;
+    // A decorator's component arrives unstamped; stamp it so the wrapper leaves it alone.
+    (field as Record<string, any>)[key] = opaque ? markRaw(value) : value;
+  }
+  // Read back as it was written: the pairs, not the values joined for the controls that need none.
+  if (resolved.choices) field.options = resolved.choices;
+  return field;
+}
+
+const warned = new Set<string>();
+
+function warnOnce(message: string) {
+  if (!import.meta.env.DEV || warned.has(message)) return;
+  warned.add(message);
+  console.warn(`[record-page] ${message}`);
+}
+
+/** Test seam: the warn-once memory is module state. */
+export function resetFieldWarnings(): void {
+  warned.clear();
+}

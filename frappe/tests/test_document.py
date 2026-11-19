@@ -2,9 +2,11 @@
 # License: MIT. See LICENSE
 import inspect
 import pickle
+import re
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import timedelta
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import frappe
@@ -361,6 +363,84 @@ class TestDocument(IntegrationTestCase):
 		d = self.test_insert()
 		d.sender = "abcde" * 100 + "@user.com"
 		self.assertRaises(frappe.CharacterLengthExceededError, d.save)
+
+	def test_insert_leaves_seen_alone_with_desk_v2_off(self):
+		with (
+			self.change_settings("System Settings", enable_desk_v2=0),
+			patch.object(Document, "reset_seen") as reset_seen,
+			self.set_user("test@example.com"),
+		):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen off 47720"}).insert()
+
+		self.assertFalse([call for call in reset_seen.call_args_list if call.kwargs.get("on_insert")])
+		self.assertFalse(frappe.db.get_value("ToDo", todo.name, "_seen"))
+
+	def test_insert_adds_creator_to_seen(self):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
+		with self.set_user("test@example.com"):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen creator 46875"}).insert()
+
+		self.assertEqual(frappe.parse_json(todo._seen), ["test@example.com"])
+		self.assertEqual(
+			frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen")), ["test@example.com"]
+		)
+
+	def test_insert_replaces_a_preset_seen_with_the_creator(self):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
+		preset = frappe.as_json(["a@example.com"])
+		with self.set_user("test@example.com"):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "seen preset 46884", "_seen": preset})
+			todo.insert()
+
+		self.assertEqual(frappe.parse_json(todo._seen), ["test@example.com"])
+		self.assertEqual(
+			frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen")), ["test@example.com"]
+		)
+
+	def test_save_resets_seen_to_the_saver(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "seen save 46905"}).insert()
+		frappe.db.set_value(
+			"ToDo",
+			todo.name,
+			"_seen",
+			frappe.as_json(["a@example.com", "b@example.com"]),
+			update_modified=False,
+		)
+
+		with self.set_user("test@example.com"):
+			todo.description = "seen save 46905 changed"
+			todo.save(ignore_permissions=True)
+
+		seen = frappe.parse_json(frappe.db.get_value("ToDo", todo.name, "_seen"))
+		self.assertEqual(seen, ["test@example.com"])
+
+	def test_duplicate_insert_keeps_seen_of_existing_row(self):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
+		values = {"doctype": "Event", "subject": "seen dup 46875", "starts_on": now_datetime()}
+		event = frappe.get_doc(values).insert()
+		frappe.db.set_value("Event", event.name, "_seen", frappe.as_json(["a@example.com"]))
+
+		frappe.get_doc(values).insert(ignore_if_duplicate=True, set_name=event.name)
+
+		seen = frappe.parse_json(frappe.db.get_value("Event", event.name, "_seen"))
+		self.assertEqual(seen, ["a@example.com"])
+
+	def test_insert_does_not_write_seen_without_track_seen(self):
+		note = frappe.get_doc({"doctype": "Note", "title": "no seen 46875"}).insert()
+		self.assertFalse(note.get("_seen"))
+
+	def test_frontend_list_only_fields_match_optional_fields(self):
+		entries = Path(frappe.get_app_path("frappe")).parent / "ui/src/cache/entries.ts"
+		if not entries.exists():
+			self.skipTest("the desk v2 frontend source is not shipped")
+
+		source = entries.read_text()
+		declaration = re.search(r"LIST_ONLY_FIELDS[^=]*=\s*\[([^\]]*)\]", source)
+		self.assertIsNotNone(declaration, "LIST_ONLY_FIELDS not found in ui/src/cache/entries.ts")
+
+		self.assertEqual(
+			sorted(re.findall(r'"(\w+)"', declaration.group(1))), sorted(frappe.model.optional_fields)
+		)
 
 	def test_varchar_length_after_sanitization(self):
 		unclosed_tag = "<strong>"
@@ -1506,6 +1586,80 @@ class TestDocsCollection(IntegrationTestCase):
 		todo = ToDo.docs.new(description="docs instance access")
 		with self.assertRaises(AttributeError):
 			todo.docs
+
+
+class TestJSONFieldValues(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		json_field = {"fieldname": "payload", "fieldtype": "JSON", "label": "Payload"}
+		cls.child_dt = new_doctype(istable=1, fields=[json_field]).insert().name
+		cls.parent_dt = (
+			new_doctype(
+				fields=[
+					json_field,
+					{"fieldname": "rows", "fieldtype": "Table", "options": cls.child_dt, "label": "Rows"},
+				],
+			)
+			.insert()
+			.name
+		)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.delete_doc("DocType", cls.parent_dt, force=True)
+		frappe.delete_doc("DocType", cls.child_dt, force=True)
+		super().tearDownClass()
+
+	def stored(self, doc, doctype=None):
+		return frappe.db.get_value(doctype or self.parent_dt, doc.name, "payload")
+
+	def test_a_blank_value_is_stored_as_null(self):
+		for value in ("", "   ", "\n\t "):
+			with self.subTest(value=value):
+				doc = frappe.get_doc(
+					{"doctype": self.parent_dt, "payload": value, "rows": [{"payload": value}]}
+				).insert()
+				self.assertIsNone(self.stored(doc))
+				self.assertIsNone(self.stored(doc.rows[0], self.child_dt))
+
+	def test_a_blank_value_clears_a_saved_one(self):
+		doc = frappe.get_doc({"doctype": self.parent_dt, "payload": '{"a":1}'}).insert()
+		doc.payload = "  "
+		doc.save()
+		self.assertIsNone(self.stored(doc))
+
+	def test_invalid_json_is_refused_naming_the_field(self):
+		for value in ("{a: 1}", "NaN", "[Infinity]"):
+			with self.subTest(value=value):
+				doc = frappe.get_doc({"doctype": self.parent_dt, "payload": value})
+				with self.assertRaises(frappe.ValidationError) as caught:
+					doc.insert()
+				self.assertIn("Payload is not valid JSON", str(caught.exception))
+				[field_error] = caught.exception.field_errors
+				self.assertEqual(field_error["fieldname"], "payload")
+
+	def test_invalid_json_in_a_row_names_the_row(self):
+		doc = frappe.get_doc({"doctype": self.parent_dt, "rows": [{"payload": "{}"}, {"payload": "[1,"}]})
+		with self.assertRaises(frappe.ValidationError) as caught:
+			doc.insert()
+		[field_error] = caught.exception.field_errors
+		self.assertEqual(
+			(field_error["fieldname"], field_error["parentfield"], field_error["idx"]), ("payload", "rows", 2)
+		)
+		self.assertEqual(field_error["message"], "Row #2: Payload is not valid JSON")
+
+	def test_valid_json_is_stored_unchanged(self):
+		for value, stored in (
+			('"text"', '"text"'),
+			('{"a": 1}', '{"a": 1}'),
+			("[1, 2]", "[1, 2]"),
+			({"a": 1}, '{"a":1}'),
+			([1, 2], "[1,2]"),
+		):
+			with self.subTest(value=value):
+				doc = frappe.get_doc({"doctype": self.parent_dt, "payload": value}).insert()
+				self.assertEqual(self.stored(doc), stored)
 
 
 class TestReadDoc(IntegrationTestCase):

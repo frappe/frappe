@@ -13,6 +13,26 @@ describe("buildLayoutFromMeta", () => {
     expect(buildLayoutFromMeta([])).toEqual([]);
   });
 
+  it("carries a field's own placeholder, and none when it has none", () => {
+    const [named, bare] = buildLayoutFromMeta([
+      field({ fieldname: "named", placeholder: "Enter a nickname" }),
+      field({ fieldname: "bare", placeholder: "" }),
+    ])[0].sections[0].columns[0].fields;
+
+    expect(named.placeholder).toBe("Enter a nickname");
+    expect(bare.placeholder).toBeUndefined();
+  });
+
+  it("carries a field's grid `columns`, and none when it is Auto", () => {
+    const [sized, auto] = buildLayoutFromMeta([
+      field({ fieldname: "sized", columns: 4 }),
+      field({ fieldname: "auto", columns: 0 }),
+    ])[0].sections[0].columns[0].fields;
+
+    expect(sized.gridColumns).toBe(4);
+    expect(auto).not.toHaveProperty("gridColumns");
+  });
+
   it("seeds one implicit tab/section/column for a flat list with no breaks", () => {
     const layout = buildLayoutFromMeta([
       field({ fieldname: "a" }),
@@ -172,11 +192,48 @@ describe("buildLayoutFromMeta", () => {
     expect(layout[0].sections[0].dependsOn).toBe("eval:doc.show_section");
   });
 
+  it("carries a section's description and Starts open if, and a column's label and depends_on", () => {
+    const layout = buildLayoutFromMeta([
+      field({
+        fieldname: "s",
+        fieldtype: "Section Break",
+        label: "S",
+        description: "Shipping details",
+        collapsible: 1,
+        collapsible_depends_on: "eval:doc.ships",
+      }),
+      field({ fieldname: "a" }),
+      field({
+        fieldname: "c",
+        fieldtype: "Column Break",
+        label: "Right",
+        depends_on: "eval:doc.show_right",
+      }),
+      field({ fieldname: "b" }),
+    ]);
+    const [section] = layout[0].sections;
+
+    expect(section.description).toBe("Shipping details");
+    expect(section.collapsibleDependsOn).toBe("eval:doc.ships");
+    expect(section.columns[1].label).toBe("Right");
+    expect(section.columns[1].dependsOn).toBe("eval:doc.show_right");
+  });
+
   it("maps static read_only to readOnly", () => {
     const layout = buildLayoutFromMeta([
       field({ fieldname: "a", read_only: 1 }),
     ]);
     expect(layout[0].sections[0].columns[0].fields[0].readOnly).toBe(true);
+  });
+
+  it("maps a Duration's hide_days and hide_seconds", () => {
+    const layout = buildLayoutFromMeta([
+      field({ fieldname: "d", fieldtype: "Duration", hide_days: 1 }),
+      field({ fieldname: "s", fieldtype: "Duration", hide_seconds: 1 }),
+    ]);
+    const [days, seconds] = layout[0].sections[0].columns[0].fields;
+    expect([days.hideDays, days.hideSeconds]).toEqual([true, false]);
+    expect([seconds.hideDays, seconds.hideSeconds]).toEqual([false, true]);
   });
 
   it("treats the Read Only fieldtype as readOnly", () => {
@@ -450,6 +507,12 @@ describe("buildLayoutFromMeta", () => {
       expect(ui?.on?.change).toEqual([scriptChange, styleChange]);
       // a single contributor stays a bare function (not wrapped in an array).
       expect(ui?.on?.click).toBe(click);
+    });
+
+    it("keeps `ownBox` from the decorator that sets it", () => {
+      const own = () => ({ ownBox: true });
+      const ui = compose(own, () => ({ props: { size: "sm" } }))(field({ fieldname: "f" }) as any);
+      expect(ui?.ownBox).toBe(true);
     });
 
     it("returns undefined when every decorator opts out", () => {

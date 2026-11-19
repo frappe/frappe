@@ -1,6 +1,6 @@
-import { computed, ref, toValue, watch } from "vue";
+import { computed, ref, shallowRef, toValue, watch } from "vue";
 import type { ComputedRef, MaybeRefOrGetter, Ref } from "vue";
-import { createResource } from "frappe-ui";
+import { listAggregates } from "../../api";
 import type { WireFilters } from "../Filter/filters";
 import { serializeGroupBy, serializeGroupByTotals } from "./groupBy";
 import type { GroupBySettings } from "./types";
@@ -11,7 +11,7 @@ import type { GroupBySettings } from "./types";
  * rows out of the box opts in here, and a host with its own data layer runs
  * `serializeGroupBy` itself.
  *
- * It fetches one row per group through `frappe.client.get_list`, plus the group keys
+ * It fetches one row per group through `listAggregates`, plus the group keys
  * alone for the footer's "of N" (there's no count of distinct groups to ask for),
  * capped at `COUNT_CAP` so a field with many values can't pull the whole list.
  * Any change to the doctype, grouping, filters or page length refetches from the
@@ -70,43 +70,23 @@ export function useGroupByData(
     return settings;
   }
 
-  const groups = createResource({
-    url: "frappe.client.get_list",
-    makeParams: () => ({
-      doctype: toValue(doctype),
-      filters: toValue(filters),
-      ...serializeGroupBy(grouping()),
-      limit_page_length: limit.value,
-    }),
-  });
+  const groups = aggregateRead("groups", doctype, () => ({
+    filters: toValue(filters),
+    ...serializeGroupBy(grouping()),
+    limit: limit.value,
+  }));
 
   // The group fields alone, one row per group, to count them.
-  const groupKeys = createResource({
-    url: "frappe.client.get_list",
-    makeParams: () => {
-      const { fields, group_by } = serializeGroupBy({
-        ...grouping(),
-        aggregates: [],
-      });
-      return {
-        doctype: toValue(doctype),
-        filters: toValue(filters),
-        fields,
-        group_by,
-        limit_page_length: COUNT_CAP,
-      };
-    },
+  const groupKeys = aggregateRead("group keys", doctype, () => {
+    const { fields, group_by } = serializeGroupBy({ ...grouping(), aggregates: [] });
+    return { filters: toValue(filters), fields, group_by, limit: COUNT_CAP };
   });
 
-  const totals = createResource({
-    url: "frappe.client.get_list",
-    makeParams: () => ({
-      doctype: toValue(doctype),
-      filters: toValue(filters),
-      ...serializeGroupByTotals(grouping()),
-      limit_page_length: 1,
-    }),
-  });
+  const totals = aggregateRead("totals", doctype, () => ({
+    filters: toValue(filters),
+    fields: serializeGroupByTotals(grouping())?.fields ?? [],
+    limit: 1,
+  }));
 
   // An ungrouped list fetches nothing; the host shows its records instead.
   function reload() {
@@ -139,10 +119,10 @@ export function useGroupByData(
   );
 
   const rows = computed<Record<string, unknown>[]>(() =>
-    toValue(groupBy) ? groups.data ?? [] : []
+    toValue(groupBy) ? groups.data.value ?? [] : []
   );
 
-  const totalCount = computed<number>(() => groupKeys.data?.length ?? 0);
+  const totalCount = computed<number>(() => groupKeys.data.value?.length ?? 0);
   const totalCapped = computed(() => totalCount.value >= COUNT_CAP);
 
   return {
@@ -150,13 +130,13 @@ export function useGroupByData(
     totals: computed(() => {
       // Totals off, or nothing to total: none, whatever an earlier fetch left.
       if (!wantsTotals(toValue(groupBy))) return null;
-      return (totals.data as Record<string, unknown>[] | null)?.[0] ?? null;
+      return totals.data.value?.[0] ?? null;
     }),
-    loading: computed(() => Boolean(groups.loading)),
+    loading: computed(() => groups.loading.value),
     rowCount: computed(() => rows.value.length),
     totalCount,
     totalCapped,
-    hasCounts: computed(() => Boolean(groupKeys.data)),
+    hasCounts: computed(() => Boolean(groupKeys.data.value)),
     // Past a capped total, a full page is the only sign more groups exist.
     hasNextPage: computed(() =>
       totalCapped.value
@@ -167,4 +147,35 @@ export function useGroupByData(
     loadMore,
     reload,
   };
+}
+
+// The latest read wins: a newer read aborts the one before it, and one that lands
+// late is dropped. A failed read keeps the rows the last good one gave.
+function aggregateRead(
+  label: string,
+  doctype: MaybeRefOrGetter<string>,
+  makeQuery: () => Parameters<typeof listAggregates>[1]
+) {
+  const data = shallowRef<Record<string, unknown>[] | null>(null);
+  const loading = ref(false);
+  let generation = 0;
+  let inFlight: AbortController | null = null;
+
+  async function fetch() {
+    const mine = ++generation;
+    inFlight?.abort();
+    const controller = (inFlight = new AbortController());
+    loading.value = true;
+    try {
+      const { data: rows } = await listAggregates(toValue(doctype), makeQuery(), {
+        signal: controller.signal,
+      });
+      if (mine === generation) data.value = rows;
+    } catch (failure) {
+      if (mine === generation) console.error(`Could not read the GroupBy ${label}:`, failure);
+    } finally {
+      if (mine === generation) loading.value = false;
+    }
+  }
+  return { data, loading, fetch };
 }

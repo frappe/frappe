@@ -4,11 +4,15 @@ import type { Column } from "../../components/ColumnSettings/types";
 /** A shown column: the Column Settings shape plus the alignment a host derives from Meta. */
 export interface ListColumn extends Column {
   align?: "left" | "right";
+  /** False for a column the server cannot order by: its header is a plain label. */
+  sortable?: boolean;
 }
 
 export type ListRowData = Record<string, unknown>;
 
 export interface ListProps {
+  /** Room under the last row, for a bar that floats over it. */
+  bottomInset?: string;
   columns?: ListColumn[];
   rows?: ListRowData[];
   /** The row property that identifies it, for the selection and the render key. */
@@ -20,6 +24,12 @@ export interface ListProps {
   rowLink?: (row: ListRowData) => RouteLocationRaw;
   /** Where the checkbox and the last cell's text land, as a CSS length; the row bleeds past it. */
   gutter?: string;
+  /** A class for a cell, from its row and column; the host marks a cell without wrapping it. */
+  cellClass?: (row: ListRowData, column: ListColumn) => string;
+  /** Draws one more cell at the end of each row, filled by the `rowMenu` slot. */
+  rowMenu?: boolean;
+  /** Set as `data-act` on each sortable header: the name of the host's act that a header click equals. */
+  sortAct?: string;
 }
 
 /** A drag-resize result: the column and the fixed width it now has. */
@@ -28,6 +38,7 @@ export interface ColumnResize {
   width: string;
 }
 
+/** @deprecated Kept for apps built on develop, with `ListBulkBar`. */
 export interface BulkAction {
   label: string;
   theme?: "gray" | "blue" | "green" | "red";

@@ -1,7 +1,7 @@
 import type { Component, InjectionKey, Ref } from "vue";
 // The field contract (`FieldMeta`, `FieldComponentProps`, `FieldComponentEmits`)
 // and the form-context injection keys (`DocKey`/`ParentDocKey`/`UpdateKey`) now
-// live with the shared value-inputs (ADR-0004). Re-exported here so existing
+// live with the shared value-inputs. Re-exported here so existing
 // `from ".../FormLayout/types"` and `@framework/ui/FormLayout` imports keep working.
 import type { FieldMeta } from "../Fields/types";
 export type {
@@ -33,6 +33,8 @@ export type {
 export interface FieldUI {
   /** Structural swap for THIS node only (e.g. a themed Button). */
   component?: Component;
+  /** With `component`, the side panel draws the open control bare: it draws its own box and error look. */
+  ownBox?: boolean;
   /** Presentation props v-bound onto the control (variant / theme / size …). */
   props?: Record<string, unknown>;
   /**
@@ -56,6 +58,7 @@ export interface FieldUI {
  * Only these three need the carrier: `label`, `options`, `precision`,
  * `placeholder`, `description` and `filters` are set once when the node is
  * built and never recomputed, so an app applies those at build time instead.
+ * (A DocField's own `link_filters` merge into `filters` on each render.)
  *
  * Plain data, deliberately: it keeps `FormLayout` an independent component that
  * takes a schema and knows nothing about whoever wrote the override.
@@ -89,8 +92,20 @@ export interface RawMetaField {
   reqd?: boolean | 0 | 1;
   /** Decimal places; arrives as a number or numeric string from the backend. */
   precision?: number | string;
+  /** A CSS length that caps a tall control, such as a Text Editor. */
+  max_height?: string;
+  /** The server's pick of what a Link value's mark is read from on the target. */
+  link_mark?: { kind: "color" | "image"; field: string };
+  /** The target's field a Link value shows instead of the name, when the target shows titles in links. */
+  link_title?: string;
+  /** A Duration that folds days into hours. */
+  hide_days?: boolean | 0 | 1;
+  /** A Duration that rounds to the minute. */
+  hide_seconds?: boolean | 0 | 1;
   hidden?: boolean | 0 | 1;
   read_only?: boolean | 0 | 1;
+  /** The field stays editable on a submitted record. */
+  allow_on_submit?: boolean | 0 | 1;
   /** Field-level permission level; access is DocPerm rows × user roles. */
   permlevel?: number;
   /**
@@ -104,21 +119,36 @@ export interface RawMetaField {
   perm_denied?: boolean | 0 | 1;
   /** Whether a child-table field shows as a grid column. */
   in_list_view?: boolean | 0 | 1;
+  /** A child-table field's grid width, 1–10; 0 is Auto. */
+  columns?: number;
   /** Whether the field is surfaced as a default Quick Filter input (the
    *  `in_standard_filter` flag CRM's `get_quick_filters` reads). */
   in_standard_filter?: boolean | 0 | 1;
   /** Computed in Python, with no database column to query. */
   is_virtual?: boolean | 0 | 1;
   description?: string;
+  /** What an empty input shows. */
+  placeholder?: string;
   hide_border?: boolean | 0 | 1;
   collapsible?: boolean | 0 | 1;
+  collapsible_depends_on?: string;
   default?: string;
   depends_on?: string;
   mandatory_depends_on?: string;
   read_only_depends_on?: string;
+  /** A custom field's anchor: the field it follows, or the container it opens. */
+  insert_after?: string;
   filters?: Record<string, unknown>;
+  /** `[[doctype, fieldname, operator, value], ...]` as JSON; a value may be `eval:doc.x`. */
+  link_filters?: string | unknown[];
+  /** `<link fieldname>.<its target's fieldname>`: copied when that Link changes. */
+  fetch_from?: string;
+  /** Fetch only into an empty value. */
+  fetch_if_empty?: boolean | 0 | 1;
   cannot_add_rows?: boolean | 0 | 1;
   cannot_delete_rows?: boolean | 0 | 1;
+  /** Left out of a duplicate. */
+  no_copy?: boolean | 0 | 1;
 }
 
 /** A component a host places in the form; `label` frames it, none draws it bare. */
@@ -139,6 +169,8 @@ export interface Column {
   name?: string;
   label?: string;
   hideLabel?: boolean;
+  hidden?: boolean;
+  dependsOn?: string;
   fields: FieldNode[];
   parts?: ColumnPart[];
 }
@@ -147,9 +179,12 @@ export interface Section {
   name?: string;
   label?: string;
   hideLabel?: boolean;
+  description?: string;
   hideBorder?: boolean;
   opened?: boolean;
   collapsible?: boolean;
+  /** "Starts open if": on a collapsible section, `resolveLayout` bakes it into `opened`. */
+  collapsibleDependsOn?: string;
   hidden?: boolean;
   /** Conditional visibility; `resolveLayout` bakes it into `hidden`. */
   dependsOn?: string;
@@ -192,6 +227,10 @@ export type FormLayoutSchema = Tab[];
 export interface FormLayoutProps {
   /** Tabs → sections → columns → fields describing the form to render. */
   layout: FormLayoutSchema;
+  /** Marks the first editable field `[autofocus]`, which a frappe-ui `Dialog` focuses on open. */
+  autofocus?: boolean;
+  /** The DocType whose translations the tab, section and column labels are looked up in. */
+  doctype?: string;
 }
 
 /** Resolves a fieldtype to its component (falls back to the text component). */
@@ -201,3 +240,15 @@ export const ResolveFieldKey: InjectionKey<(fieldtype: string) => Component> =
 /** Whether the layout renders a visible tab strip (drives section padding). */
 export const HasTabsKey: InjectionKey<Ref<boolean>> =
   Symbol("FormLayoutHasTabs");
+
+/** The context `FormLayout` translates its container labels in: its DocType. */
+export const LabelContextKey: InjectionKey<Ref<string | undefined>> =
+  Symbol("FormLayoutLabelContext");
+
+/** The `page` a record page hands a control a script supplied (`ui.component`) as its `page` prop; absent off a record page. */
+export const ControlPageKey: InjectionKey<Ref<unknown>> =
+  Symbol("FormLayoutControlPage");
+
+/** The fieldname `FormLayout` marks `[autofocus]`, or `""` for none. */
+export const AutofocusKey: InjectionKey<Ref<string>> =
+  Symbol("FormLayoutAutofocus");

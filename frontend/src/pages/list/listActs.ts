@@ -1,0 +1,232 @@
+// The list page's act surface, `list`: its built-ins as named acts, which its buttons and menu draw.
+// A renderer's acts join as `<type>.<act>`, so List's own land on `list` too.
+import { toast } from "frappe-ui";
+import { onScopeDispose, shallowRef } from "vue";
+import { acts, passesRight, passesWhen, type ActCall, type ActEntry, type AvailableAct } from "@/acts/dispatcher";
+import { __ } from "@/i18n";
+import type { ListPageController, ListRendererState } from "@/listPage/createListPage";
+import type { ListPermissions } from "@/listPage/listPermissions";
+import type { ListPageApi } from "@/listPage/types";
+import { favouriteWording } from "@/pages/favourite/favouriteWording";
+import type { DefaultScope } from "./defaultView";
+import type { ListSchema } from "./listStateRuns";
+import type { HeaderItem } from "@/pageEngine/types";
+import { errorMessage } from "@/recordPage/errorMessage";
+import { headerEntries } from "@/recordPage/pageActs";
+import type { ViewLayer } from "@/list/savedView";
+import { typeKey } from "@/list/view";
+import type { EditorEntry } from "@/pages/doctypeEditor/entries/editorEntries";
+
+export interface ListActsHost {
+  /** The list page: the acts' context, and its `controls` items that have `run`. */
+  list: ListPageController;
+  permissions: ListPermissions;
+  create: () => unknown;
+  customizeQuickFilter: () => void;
+  customizing: () => boolean;
+  /** Whether this reader may see the field. */
+  readable: (fieldname: string) => boolean;
+  /** The DocType editor's entries this reader may open; each opens the editor in its mode. */
+  editorEntries: () => EditorEntry[];
+  openEditor: (entry: EditorEntry) => unknown;
+  /** False until a list settings read says what is starred. */
+  starsLoaded: () => boolean;
+  favourited: () => boolean;
+  toggleFavourite: () => unknown;
+  /** Opens the doctype's saved view `key`. */
+  openView: (key: string) => unknown;
+  /** Points one layer's default at the view `key`, a view type's name for its plain view. */
+  setDefaultView: (key: string, scope: DefaultScope) => unknown;
+  clearDefaultView: (scope: DefaultScope) => unknown;
+  /** The open view's layer, null for a type's plain view, and whether this person can save it. */
+  viewLayer: () => ViewLayer | null;
+  viewSaveable: () => boolean;
+  /** Runs a saved-view write act by name; the runs load on first use. */
+  writeView: (name: string, value: unknown, agent?: boolean) => Promise<unknown>;
+}
+
+export interface ListActs {
+  /** The list page, which every act's `run` gets. */
+  context: () => ListPageApi;
+  /** The act by its item name while the dispatcher would run it, so the page draws it. */
+  drawn: (name: string) => AvailableAct | undefined;
+  perform: (act: AvailableAct, value?: unknown) => void;
+}
+
+export interface PageActs extends ListActs {
+  /** Puts a renderer's acts on its type's surface, under the page's rights; they draw from the result. `state` is what the page reads its rows from. */
+  renderer: (entries: () => ActEntry[], state: ListRendererState) => ListActs;
+}
+
+/** Registers the `list` and `header` surfaces for the page's life; the page draws its controls from `drawn`. */
+export function useListActs(host: ListActsHost, type = "List"): PageActs {
+  const { list, permissions } = host;
+  const surface = typeKey(type);
+  const rendered = shallowRef<() => ActEntry[]>(() => []);
+  const header = () => headerEntries(list.engine.header.resolve(), allowsHeaderItem(list, permissions));
+  const pageEntries = () => [...listEntries(host, header()), ...controlEntries(list)];
+  const surfaces: Record<string, () => ActEntry[]> = { list: pageEntries, header };
+  if (surface === "list") surfaces.list = () => [...pageEntries(), ...rendered.value()];
+  else surfaces[surface] = () => rendered.value();
+  const release = acts.register({
+    surfaces,
+    ...listScope(list, permissions),
+    missing: (name) => list.renderer().missing?.(name.slice(name.indexOf(".") + 1)),
+    facts: async () => (await import("./listStateRuns")).listFacts(list, listSchema(host)),
+    hold: list.engine.hold,
+    failed: (error) => void toast.error(errorMessage(error)),
+  });
+  onScopeDispose(release);
+
+  return {
+    ...surfaceActs("list"),
+    renderer: (entries, state) => {
+      rendered.value = entries;
+      list.attach(state);
+      return surfaceActs(surface);
+    },
+  };
+}
+
+export function listScope(list: ListPageController, permissions: ListPermissions) {
+  return { context: () => list.page, passes: permissions.passes, settled: permissions.settled };
+}
+
+/** Whether a header item's `when` and `right` let it draw. */
+export function allowsHeaderItem(list: ListPageController, permissions: ListPermissions) {
+  const scope = listScope(list, permissions);
+  return (item: HeaderItem) => passesWhen(scope, item) && passesRight(scope, item);
+}
+
+function surfaceActs(surface: string): ListActs {
+  return {
+    context: () => acts.contextOf(surface) as ListPageApi,
+    drawn: (name) => acts.find(`${surface}.${name}`),
+    perform: (act, value) => void acts.perform(act.name, value),
+  };
+}
+
+/** A built-in act mirrors its header item: a script that hides or removes the item hides the act. */
+export function listEntries(host: ListActsHost, header: ActEntry[]): ActEntry[] {
+  const hiddenInHeader = (name: string) =>
+    header.find((entry) => entry.item.name === name)?.hidden ?? true;
+  return [
+    {
+      item: {
+        name: "create",
+        label: __("Create"),
+        icon: "lucide-plus",
+        right: "create",
+        asks: ["dialog"],
+        run: () => host.create(),
+      },
+      hidden: hiddenInHeader("new"),
+    },
+    {
+      item: {
+        name: "favourite",
+        ...favouriteWording(host.favourited()),
+        run: () => host.toggleFavourite(),
+      },
+      hidden: !host.starsLoaded() || hiddenInHeader("favourite"),
+    },
+    {
+      item: {
+        name: "open_view",
+        label: __("Open View"),
+        icon: "lucide-list",
+        // The palette has no list of views to offer as options yet.
+        palette: false,
+        run: (_context: unknown, { key }: { key: string }) => host.openView(key),
+      },
+      hidden: false,
+    },
+    {
+      item: {
+        name: "set_default_view",
+        label: __("Set Default View"),
+        icon: "lucide-star",
+        palette: false,
+        run: (_context: unknown, { key, scope }: { key: string; scope: DefaultScope }) =>
+          host.setDefaultView(key, scope),
+      },
+      hidden: false,
+    },
+    {
+      item: {
+        name: "clear_default_view",
+        label: __("Clear Default View"),
+        icon: "lucide-star-off",
+        palette: false,
+        run: (_context: unknown, { scope }: { scope: DefaultScope }) => host.clearDefaultView(scope),
+      },
+      hidden: false,
+    },
+    {
+      item: {
+        name: "customize_quick_filter",
+        label: __("Customize Quick Filter"),
+        icon: "lucide-sliders-horizontal",
+        run: () => host.customizeQuickFilter(),
+      },
+      hidden: host.customizing(),
+    },
+    ...stateEntries(host),
+    ...viewWriteEntries(host),
+    ...host.editorEntries().map((entry) => ({
+      item: { name: entry.name, label: __(entry.label), icon: entry.icon, run: () => host.openEditor(entry) },
+      hidden: false,
+    })),
+  ];
+}
+
+function listSchema({ list, readable }: ListActsHost): ListSchema {
+  return { meta: () => list.page.meta, readable };
+}
+
+/** The acts that set what the list shows and which rows are selected; their runs load on first use. */
+function stateEntries(host: ListActsHost): ActEntry[] {
+  const labels = { set_filters: __("Set Filters"), set_sort: __("Set Sort"), select: __("Select Rows") };
+  return Object.entries(labels).map(([name, label]) => ({
+    item: {
+      name,
+      label,
+      palette: false,
+      run: async (_context: unknown, value: unknown) => (await import("./listStateRuns")).RUNS[name](host.list, listSchema(host), value),
+    },
+    hidden: false,
+  }));
+}
+
+/** The acts that keep, rename, delete and share the doctype's saved views; their runs load on first use. */
+function viewWriteEntries(host: ListActsHost): ActEntry[] {
+  const plain = host.viewLayer() === null;
+  const hidden: Record<string, boolean> = { save_view: plain || !host.viewSaveable(), discard_changes: plain };
+  const labels = {
+    save_view: __("Save View"),
+    save_view_as: __("Save View As"),
+    discard_changes: __("Discard Changes"),
+    rename_view: __("Rename View"),
+    delete_view: __("Delete View"),
+    publish_view: __("Publish View"),
+  };
+  return Object.entries(labels).map(([name, label]) => ({
+    item: {
+      name,
+      label,
+      palette: false,
+      // An agent's delete asks first; a person's control asks before it runs the act.
+      ...(name === "delete_view" ? { asks: ["danger" as const] } : {}),
+      run: (_context: unknown, value: unknown, call?: ActCall) => host.writeView(name, value, call?.agent),
+    },
+    hidden: hidden[name] ?? false,
+  }));
+}
+
+/** A script's `controls` item with `run` is an act; a built-in one draws itself. */
+function controlEntries(list: ListPageController): ActEntry[] {
+  return list.lists.controls
+    .resolve()
+    .filter(({ item }) => item.run)
+    .map(({ item, hidden }) => ({ item, hidden }));
+}

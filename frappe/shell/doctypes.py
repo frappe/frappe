@@ -1,0 +1,199 @@
+# Which app owns a doctype, and what it is called in a URL.
+
+# A doctype belongs to the app owning its module, with `frappe` as the floor: an unresolvable
+# module never errors, it lands on the desk.
+
+import frappe
+from frappe import _
+from frappe.boot import get_boot_module_app
+from frappe.cache_manager import reset_metadata_version
+from frappe.utils.caching import http_cache
+
+DOCTYPES_CACHE_KEY = "shell_doctypes"
+
+
+def slug(doctype: str) -> str:
+	"""`CRM Deal` -> `crm-deal`. The address, not the identity."""
+	return frappe.scrub(doctype).replace("_", "-")
+
+
+def build_doctype_owners() -> dict[str, str]:
+	"""`{doctype: app}` over every doctype on the site."""
+	# `get_boot_module_app`, not the raw `module_app`: a Module Def created from the UI is in
+	# no modules.txt, and the raw map would drop its doctype to the `frappe` floor.
+	module_app = get_boot_module_app()
+	owners = {}
+
+	# `istable=0`: a child table has no page and no address.
+	for name, module in frappe.get_all(
+		"DocType", filters={"istable": 0}, fields=["name", "module"], as_list=True
+	):
+		owners[name] = module_app.get(frappe.scrub(module or ""), "frappe")
+
+	return owners
+
+
+def get_doctype_owners() -> dict[str, str]:
+	return get_shell_doctypes()["owners"]
+
+
+def get_address_table() -> dict:
+	return get_shell_doctypes()["table"]
+
+
+def get_shell_doctypes() -> dict:
+	"""`{"owners": ..., "table": ...}` under one key, cached on `metadata_version`."""
+	# Not a `doc_events` hook: `frappe.delete_doc("DocType", ...)` never reaches one, and
+	# `reset_metadata_version()` is already on every schema-change path.
+	version = metadata_version()
+	cached = frappe.client_cache.get_value(DOCTYPES_CACHE_KEY)
+
+	if isinstance(cached, dict) and cached.get("version") == version:
+		return cached
+
+	doctypes = {"version": version, "owners": build_doctype_owners(), "table": build_address_table()}
+	frappe.client_cache.set_value(DOCTYPES_CACHE_KEY, doctypes)
+	return doctypes
+
+
+def metadata_version() -> str:
+	"""The framework's own schema-change signal; every cache here hangs off it."""
+	return frappe.client_cache.get_value("metadata_version") or reset_metadata_version()
+
+
+def build_address_table() -> dict:
+	"""`{doctype: [slug, module_slug]}` over the whole bench, plus modules, singles, submittables and slug-less doctypes."""
+	# Full-bench, so the table is byte-identical for every user and prefix and can leave boot.
+	# The module *slug*, so the client never re-implements `frappe.scrub`.
+	doctypes = {}
+	holders = {}
+	used_modules = {}
+	singles = []
+	submittables = []
+	unaddressed = []
+
+	# Two rows sharing a slug: the one created first keeps the address and the later one has none.
+	for name, module, issingle, is_submittable in frappe.get_all(
+		"DocType",
+		filters={"istable": 0},
+		fields=["name", "module", "issingle", "is_submittable"],
+		order_by="creation asc",
+		as_list=True,
+	):
+		module = module or ""
+		if module:
+			used_modules[module] = None
+		if not claim(holders, "DocType", name):
+			unaddressed.append(name)
+			continue
+		doctypes[name] = [slug(name), slug(module) if module else ""]
+		# A single has no list: its address opens the document itself.
+		if issingle:
+			singles.append(name)
+		# A submittable's record has Submit and Cancel, which the record dialog has no buttons for.
+		if is_submittable:
+			submittables.append(name)
+
+	# A module with no Module Def row sorts last, keeping the order its doctypes gave it.
+	created = frappe.get_all("Module Def", order_by="creation asc", pluck="name")
+	rank = {module: index for index, module in enumerate(created)}
+	modules = {}
+	for module in sorted(used_modules, key=lambda module: rank.get(module, len(rank))):
+		claim(modules, "Module Def", module)
+
+	return {
+		"doctypes": doctypes,
+		"modules": modules,
+		"singles": singles,
+		"submittables": submittables,
+		"unaddressed": unaddressed,
+	}
+
+
+def claim(holders: dict[str, str], doctype: str, name: str) -> bool:
+	"""Whether `name` gets its slug; a taken one is logged, since the row then has no address."""
+	address = slug(name)
+	if holder := holders.get(address):
+		frappe.logger("shell").warning(
+			f"{doctype} {name} has no address: {address} belongs to {doctype} {holder}, created first."
+		)
+		return False
+	holders[address] = name
+	return True
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["GET"])
+@http_cache(max_age=31536000)
+def get_addresses(v: str | None = None) -> dict:
+	"""The address table, fetched separately from boot and cached for a year on `metadata_version`."""
+	# `methods=["GET"]` is not decoration: `http_cache` only sets its header on a GET.
+
+	# Whitelist excludes only Guest, and this enumerates every doctype; the gate is "may this
+	# session enter any prefix", because addressability is permission-independent.
+	from .permissions import may_enter_any_prefix
+
+	if not may_enter_any_prefix():
+		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
+
+	return get_address_table()
+
+
+def get_readable_doctypes() -> set[str]:
+	"""Every doctype this user may read, in one pass; the single input both filters share."""
+	# One bulk read, not per-doctype `has_permission`: that was 3,594 ms against 25 ms, and
+	# it imports every controller, so one broken app took down every rail.
+
+	# Shares too: `has_permission` with no doc is True for a doctype shared with the user.
+	from frappe.permissions import get_doctypes_with_read
+	from frappe.share import get_shared_doctypes
+
+	return set(get_doctypes_with_read()) | set(get_shared_doctypes())
+
+
+def contents_for_app(app: str, module: str | None = None) -> list[dict]:
+	"""What an app contains: its own doctypes, permission-filtered, optionally to one module."""
+	# Not the address table: addressability is full-bench and permission-independent;
+	# contents are per-app and filtered. Nothing reconciles this with the authored rail.
+	doctypes = get_shell_doctypes()
+	table, owners = doctypes["table"], doctypes["owners"]
+	readable = get_readable_doctypes()
+	entries = []
+
+	for doctype, owner in owners.items():
+		if owner != app:
+			continue
+		address = table["doctypes"].get(doctype)
+		if not address:
+			continue
+		if module and address[1] != module:
+			continue
+		if doctype not in readable:
+			continue
+
+		entries.append({"doctype": doctype, "slug": address[0], "module": address[1]})
+
+	entries.sort(key=lambda entry: entry["doctype"])
+	return entries
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["GET"])
+def get_contents(app: str, module: str | None = None) -> list[dict]:
+	"""An app's contents, or one module's, fetched when a `Module Contents` row expands."""
+	from .permissions import has_app_permission
+	from .registry import get_prefix_registry
+
+	# frappe accepts JSON bodies, so `app` can arrive as a list or a dict and reach `get_hooks`.
+	if not isinstance(app, str) or not isinstance(module, str | None):
+		frappe.throw(_("Invalid arguments"), frappe.ValidationError)
+
+	# Checked against the registry before `has_app_permission` passes it to `get_hooks(app_name=)`,
+	# an importlib call on a caller-supplied name.
+	if app not in set(get_prefix_registry().values()):
+		frappe.throw(_("No app named {0} is installed").format(app), frappe.DoesNotExistError)
+
+	if not has_app_permission(app):
+		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
+
+	return contents_for_app(app, module)

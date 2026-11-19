@@ -49,6 +49,7 @@ function recorder(): Recorded {
     channel: {
       pending: (fieldname, value) => pending.push([fieldname, value]),
       commit: (fieldname, value) => committed.push([fieldname, value]),
+      discard: () => {},
       rowChanged: () => {},
     },
   };

@@ -20,7 +20,19 @@
         "maxAttachments": {
           "type": "number"
         },
+        "allowedFileTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "submitting": {
+          "type": "boolean"
+        },
+        "fill": {
+          "type": "boolean"
+        },
+        "disabled": {
           "type": "boolean"
         },
         "showTo": {
@@ -72,6 +84,9 @@
           "type": "object"
         },
         "actions": {
+          "type": "object"
+        },
+        "attachments": {
           "type": "object"
         },
         "footer": {

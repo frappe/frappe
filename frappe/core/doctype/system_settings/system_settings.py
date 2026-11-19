@@ -58,6 +58,7 @@ class SystemSettings(Document):
 		email_footer_address: DF.SmallText | None
 		email_retry_limit: DF.Int
 		enable_combobox_link_field: DF.Check
+		enable_desk_v2: DF.Check
 		enable_mcp: DF.Check
 		enable_onboarding: DF.Check
 		enable_password_policy: DF.Check
@@ -87,6 +88,7 @@ class SystemSettings(Document):
 		max_signups_allowed_per_hour: DF.Int
 		max_zip_extract_size: DF.Int
 		minimum_password_score: DF.Literal["1", "2", "3", "4"]
+		navigation_side: DF.Literal["start", "end"]
 		number_format: DF.Literal[
 			"#,###.##",
 			"#.###,##",

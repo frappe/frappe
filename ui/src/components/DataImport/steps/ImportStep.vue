@@ -235,10 +235,11 @@
 </template>
 
 <script setup lang="ts">
-import { Badge, Button, Progress, Skeleton, TabButtons, call } from "frappe-ui";
+import { Badge, Button, Progress, Skeleton, TabButtons } from "frappe-ui";
 import { computed, ref, watch } from "vue";
+import { listDocuments } from "../../../api";
 import { dateFormat } from "../../ActivityTimeline/utils";
-import { METHODS, cint, isImportFinished, parseJson, postDownload } from "../dataImport";
+import { cint, isImportFinished, methodUrl, parseJson, postDownload } from "../dataImport";
 import {
 	etaMessage,
 	hasProgressCounts,
@@ -413,11 +414,12 @@ watch(
 			(user): user is string => !!user && !(user in fullNames.value)
 		);
 		if (!missing.length) return;
-		const rows = await call<{ name: string; full_name: string }[]>("frappe.client.get_list", {
-			doctype: "User",
+		const rows = await listDocuments<{ name: string; full_name: string }>("User", {
 			fields: ["name", "full_name"],
 			filters: { name: ["in", missing] },
-		}).catch(() => []);
+		})
+			.then(({ data }) => data)
+			.catch(() => []);
 		for (const { name, full_name } of rows) fullNames.value[name] = full_name || name;
 	},
 	{ immediate: true }
@@ -518,6 +520,6 @@ function toggle(index: number) {
 }
 
 function download(method: string) {
-	postDownload(`/api/method/${METHODS}.${method}`, { data_import_name: doc.value.name || "" });
+	postDownload(methodUrl(method), { data_import_name: doc.value.name || "" });
 }
 </script>

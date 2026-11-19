@@ -1,0 +1,322 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { toast, runMethod } = vi.hoisted(() => ({
+	toast: { error: vi.fn(), success: vi.fn() },
+	runMethod: vi.fn(),
+}));
+vi.mock("frappe-ui", () => ({ toast }));
+vi.mock("@framework/ui/api", () => ({ runMethod }));
+
+import { acts } from "@/acts/dispatcher";
+import { DANGER_METHOD, kindNotes, kindRefusal, type DangerHost } from "../dangerActs";
+import type { EditorState } from "../editorSource";
+import { mountEditor, taskNote } from "./editorFixture";
+
+let stop: () => void;
+beforeEach(() => {
+	runMethod.mockReset();
+	// Like the real runMethod: a 200 with no data throws unless the caller allows it.
+	runMethod.mockImplementation(async (_method: string, _args: object, options?: { nullable?: boolean }) => {
+		if (!options?.nullable) throw new Error("answered 200 with no data");
+		return { data: null };
+	});
+	toast.success.mockReset();
+	toast.error.mockReset();
+});
+afterEach(() => stop());
+
+function mount(state: Partial<EditorState> = {}, danger: Partial<DangerHost> = {}) {
+	const host: DangerHost = {
+		scope: () => ({ developerMode: true, administrator: true }),
+		settle: vi.fn(async () => true),
+		// A dialog confirms by sending the call, as the real ones do.
+		askKind: vi.fn(async (_state, submit) => submit("submittable")),
+		askName: vi.fn(async (_state, submit) => submit("Task Memo")),
+		askModule: vi.fn(async (_state, _standard, submit) => submit("Core")),
+		askDelete: vi.fn(async (_state, submit) => submit()),
+		renamed: vi.fn(async () => undefined),
+		deleted: vi.fn(async () => undefined),
+		reload: vi.fn(async () => undefined),
+		showing: vi.fn(() => true),
+		...danger,
+	};
+	const loaded = taskNote(state);
+	// Design's load carries the whole DocType, `custom` with it.
+	loaded.definition = { ...loaded.definition, custom: loaded.custom };
+	const mounted = mountEditor(loaded, { danger: host });
+	stop = mounted.stop;
+	return { host, mounted };
+}
+
+const offered = (name: string) => acts.available().some((act) => act.name === name);
+const DANGER = ["change_kind", "rename_doctype", "move_doctype", "make_standard", "delete_doctype"];
+
+describe("which Danger zone acts show", () => {
+	it("offers all five on a saved custom DocType in Design, in developer mode", () => {
+		mount();
+		expect(DANGER.filter((name) => offered(`danger.${name}`))).toEqual(DANGER);
+	});
+
+	it("offers none in Customize, before the first save, or with a child table open", () => {
+		mount({ mode: "Customize", modes: ["Customize"], custom: 0 });
+		expect(DANGER.some((name) => offered(`danger.${name}`))).toBe(false);
+		stop();
+		mount({ pending: true });
+		expect(DANGER.some((name) => offered(`danger.${name}`))).toBe(false);
+		stop();
+		mount({}, { scope: () => null });
+		expect(DANGER.some((name) => offered(`danger.${name}`))).toBe(false);
+	});
+
+	it("leaves out Make standard, but not Move, on a custom DocType without developer mode", () => {
+		mount({}, { scope: () => ({ developerMode: false, administrator: true }) });
+		expect(DANGER.filter((name) => offered(`danger.${name}`))).toEqual(["change_kind", "rename_doctype", "move_doctype", "delete_doctype"]);
+	});
+
+	it("leaves out Move on a standard DocType without developer mode", () => {
+		mount({ custom: 0 }, { scope: () => ({ developerMode: false, administrator: true }) });
+		expect(offered("danger.move_doctype")).toBe(false);
+	});
+});
+
+describe("running a Danger zone act", () => {
+	it("holds every edit until the act and its reload finish", async () => {
+		const seen: boolean[] = [];
+		const { host, mounted } = mount({}, { reload: vi.fn(async () => void seen.push(mounted.edits.locked.value)) });
+		runMethod.mockImplementationOnce(async () => {
+			seen.push(mounted.edits.locked.value);
+			return { data: null };
+		});
+		await acts.run("danger.change_kind");
+		expect(host.reload).toHaveBeenCalled();
+		expect(seen).toEqual([true, true]);
+		expect(mounted.edits.locked.value).toBe(false);
+	});
+
+	it("changes the kind the dialog picks, then reloads", async () => {
+		const { host } = mount();
+		await acts.run("danger.change_kind");
+		expect(host.askKind).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note" }), expect.any(Function), undefined);
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.change_kind, { doctype: "Task Note", kind: "submittable" }, { nullable: true });
+		expect(toast.success).toHaveBeenCalled();
+		expect(host.reload).toHaveBeenCalled();
+	});
+
+	it("takes the kind as its value without asking", async () => {
+		const { host } = mount();
+		await acts.run("danger.change_kind", { kind: "tree" });
+		expect(host.askKind).not.toHaveBeenCalled();
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.change_kind, { doctype: "Task Note", kind: "tree" }, { nullable: true });
+	});
+
+	it("does nothing when the dialog is cancelled", async () => {
+		const { host } = mount({}, { askKind: vi.fn(async () => null) });
+		await acts.run("danger.change_kind");
+		expect(runMethod).not.toHaveBeenCalled();
+		expect(host.reload).not.toHaveBeenCalled();
+	});
+
+	it("renames, then follows the name the server answers", async () => {
+		runMethod.mockResolvedValueOnce({ data: "Task Memo" });
+		const { host } = mount();
+		await acts.run("danger.rename_doctype");
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.rename_doctype, { doctype: "Task Note", new_name: "Task Memo" });
+		expect(host.renamed).toHaveBeenCalledWith("Task Memo");
+		expect(host.reload).not.toHaveBeenCalled();
+	});
+
+	it("moves to the module the dialog picks, and makes standard in one", async () => {
+		const { host } = mount();
+		await acts.run("danger.move_doctype");
+		expect(host.askModule).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note" }), false, expect.any(Function), undefined);
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.move_doctype, { doctype: "Task Note", module: "Core" }, { nullable: true });
+		await acts.run("danger.make_standard", { module: "Desk" });
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.make_standard, { doctype: "Task Note", module: "Desk" }, { nullable: true });
+		expect(host.reload).toHaveBeenCalledTimes(2);
+	});
+
+	it("deletes once confirmed, then leaves for the DocType list", async () => {
+		const { host } = mount();
+		await acts.run("danger.delete_doctype");
+		expect(host.askDelete).toHaveBeenCalledWith(expect.objectContaining({ doctype: "Task Note", record_count: 4 }), expect.any(Function));
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.delete_doctype, { doctype: "Task Note" }, { nullable: true });
+		expect(host.deleted).toHaveBeenCalled();
+	});
+
+	it("starts no act while another one holds the edits", async () => {
+		const { host, mounted } = mount();
+		let finish!: () => void;
+		runMethod.mockImplementationOnce(() => new Promise<void>((resolve) => (finish = resolve)));
+		const first = acts.run("danger.move_doctype", { module: "Desk" });
+		await vi.waitFor(() => expect(runMethod).toHaveBeenCalledTimes(1));
+		expect(offered("change_kind")).toBe(false);
+		await expect(acts.run("danger.change_kind", { kind: "tree" })).rejects.toThrow("hidden");
+		finish();
+		await first;
+		expect(mounted.edits.locked.value).toBe(false);
+		expect(host.reload).toHaveBeenCalledTimes(1);
+	});
+
+	it("locks the edits while its dialog is open, and frees them when the dialog is cancelled", async () => {
+		let lockedOpen: boolean | undefined;
+		const { mounted } = mount({}, {
+			askKind: vi.fn(async () => ((lockedOpen = mounted.edits.locked.value), null)),
+		});
+		await acts.run("danger.change_kind");
+		expect(lockedOpen).toBe(true);
+		expect(mounted.edits.locked.value).toBe(false);
+		expect(runMethod).not.toHaveBeenCalled();
+	});
+
+	it("leaves the dialog to show a failed call, and goes no further", async () => {
+		let shown = "";
+		const { host, mounted } = mount({}, {
+			askName: vi.fn(async (_state, submit) => {
+				await submit("Task Memo").catch((error: Error) => (shown = error.message));
+				return null;
+			}),
+		});
+		runMethod.mockRejectedValueOnce(new Error("Task Memo already exists"));
+		await acts.run("danger.rename_doctype");
+		expect(shown).toBe("Task Memo already exists");
+		expect(toast.success).not.toHaveBeenCalled();
+		expect(host.renamed).not.toHaveBeenCalled();
+		expect(mounted.edits.locked.value).toBe(false);
+	});
+
+	it("finishes the act when the reader closes the dialog while its call runs", async () => {
+		const { host } = mount({}, {
+			askDelete: vi.fn(async (_state, submit) => (void submit(), null)),
+		});
+		await acts.run("danger.delete_doctype");
+		expect(runMethod).toHaveBeenCalledWith(DANGER_METHOD.delete_doctype, { doctype: "Task Note" }, { nullable: true });
+		expect(host.deleted).toHaveBeenCalled();
+	});
+
+	it("toasts a failure that lands after the reader closed the dialog", async () => {
+		mount({}, { askDelete: vi.fn(async (_state, submit) => (void submit().catch(() => {}), null)) });
+		runMethod.mockRejectedValue(new Error("Link exists"));
+		await acts.run("danger.delete_doctype");
+		expect(toast.error).toHaveBeenCalledWith(expect.stringContaining("Link exists"));
+	});
+
+	it("skips the page's follow-up once the reader has left the DocType", async () => {
+		const { host } = mount({}, { showing: vi.fn(() => false) });
+		runMethod.mockResolvedValue({ data: "Task Memo" });
+		for (const act of DANGER) await acts.run(`danger.${act}`);
+		expect(runMethod).toHaveBeenCalledTimes(5);
+		expect(host.showing).toHaveBeenCalledWith("Task Note");
+		expect(host.reload).not.toHaveBeenCalled();
+		expect(host.renamed).not.toHaveBeenCalled();
+		expect(host.deleted).not.toHaveBeenCalled();
+	});
+
+	it("asks about pending edits first, and stops when they stay", async () => {
+		const order: string[] = [];
+		const { host, mounted } = mount(
+			{},
+			{
+				settle: vi.fn(async () => (order.push("settle"), false)),
+				askDelete: vi.fn(async () => (order.push("ask"), true as const)),
+			},
+		);
+		await acts.run("danger.delete_doctype");
+		expect(order).toEqual(["settle"]);
+		expect(runMethod).not.toHaveBeenCalled();
+		host.settle = vi.fn(async () => (order.push("settle"), true));
+		await acts.run("danger.delete_doctype");
+		expect(order).toEqual(["settle", "settle", "ask"]);
+		expect(mounted.edits.canUndo.value).toBe(false);
+	});
+});
+
+describe("the Change kind dialog's words", () => {
+	it("refuses Single always, and Child table either way while records exist", () => {
+		expect(kindRefusal("Contact", "regular", "single", 0)).toBe("Set when a DocType is made. Make a new Single instead.");
+		expect(kindRefusal("Contact", "regular", "child", 125)).toBe(
+			"Not while Contact has 125 records: a child table's rows need a parent record.",
+		);
+		expect(kindRefusal("Contact Phone", "child", "regular", 1)).toBe("Not while Contact Phone has 1 row: its rows belong to parent records.");
+		expect(kindRefusal("Contact", "regular", "child", 0)).toBe("");
+		expect(kindRefusal("Contact", "regular", "child", null)).toBe("");
+		expect(kindRefusal("Contact", "regular", "regular", 125)).toBe("");
+	});
+
+	it("says what the pick changes", () => {
+		expect(kindNotes("Contact", "regular", "submittable")).toEqual([
+			"Adds an Amended From field. Submit, Cancel and Amend join the permissions grid.",
+		]);
+		expect(kindNotes("Contact", "submittable", "tree")).toEqual([
+			"Records already submitted stay submitted.",
+			"Adds 5 fields: lft, rgt, Is Group, Old Parent and Parent Contact.",
+		]);
+		expect(kindNotes("Contact", "tree", "regular")).toEqual(["The tree fields stay. Remove them in the Editor."]);
+		expect(kindNotes("Contact", "regular", "regular")).toEqual([]);
+	});
+});
+
+describe("an agent's call to a Danger zone act", () => {
+	const cases = [
+		["change_kind", "askKind", { kind: "tree" }, DANGER_METHOD.change_kind, { doctype: "Task Note", kind: "tree" }],
+		["rename_doctype", "askName", { name: "Task Memo" }, DANGER_METHOD.rename_doctype, { doctype: "Task Note", new_name: "Task Memo" }],
+		["move_doctype", "askModule", { module: "Desk" }, DANGER_METHOD.move_doctype, { doctype: "Task Note", module: "Desk" }],
+		["make_standard", "askModule", { module: "Desk" }, DANGER_METHOD.make_standard, { doctype: "Task Note", module: "Desk" }],
+	] as const;
+
+	it.each(cases)("%s: a person's value skips the dialog", async (act, ask, value, method, args) => {
+		runMethod.mockResolvedValue({ data: Object.values(value)[0] });
+		const { host } = mount();
+		await acts.run(`danger.${act}`, value);
+		expect(host[ask]).not.toHaveBeenCalled();
+		expect(runMethod).toHaveBeenCalledWith(method, args, ...(act === "rename_doctype" ? [] : [expect.anything()]));
+	});
+
+	it.each(cases)("%s: an agent's value only fills the dialog, and nothing runs until a person confirms", async (act, ask, value) => {
+		runMethod.mockResolvedValue({ data: Object.values(value)[0] });
+		let confirm: () => unknown = () => undefined;
+		const waiting = new Promise<void>((resolve) => (confirm = resolve));
+		const { host } = mount({}, {
+			[ask]: vi.fn(async (...given: any[]) => {
+				await waiting;
+				return given[given.findIndex((one) => typeof one === "function")](given.at(-1));
+			}),
+		});
+		const result = acts.call(`danger.${act}`, value, { agent: true });
+		await vi.waitFor(() => expect(host[ask]).toHaveBeenCalled());
+		expect(host[ask]).toHaveBeenCalledWith(expect.anything(), ...(ask === "askModule" ? [act === "make_standard", expect.any(Function)] : [expect.any(Function)]), Object.values(value)[0]);
+		expect(runMethod).not.toHaveBeenCalled();
+		confirm();
+		expect(await result).toMatchObject({ ok: true });
+		expect(runMethod).toHaveBeenCalledTimes(1);
+	});
+
+	it.each(cases)("%s: an agent whose dialog the person cancels gets declined, and nothing runs", async (act, ask, value) => {
+		const { host } = mount({}, { [ask]: vi.fn(async () => null) });
+		const result = await acts.call(`danger.${act}`, value, { agent: true });
+		expect(result).toMatchObject({ ok: false, error: { code: "declined" } });
+		expect(host[ask]).toHaveBeenCalled();
+		expect(runMethod).not.toHaveBeenCalled();
+	});
+
+	it("an agent whose act lost the lock to another change gets a failure, not ok", async () => {
+		let release: (go: boolean) => void = () => undefined;
+		const gate = new Promise<boolean>((resolve) => (release = resolve));
+		const { host, mounted } = mount({}, {
+			settle: vi.fn().mockImplementationOnce(() => gate).mockResolvedValue(true),
+			askName: vi.fn(() => new Promise<null>(() => undefined)),
+		});
+		const late = acts.call("danger.change_kind", { kind: "tree" }, { agent: true });
+		void acts.call("danger.rename_doctype", { name: "Task Memo" }, { agent: true });
+		await vi.waitFor(() => expect(mounted.edits.locked.value).toBe(true));
+		release(true);
+		expect(await late).toMatchObject({ ok: false, error: { code: "failed" } });
+		expect(host.askKind).not.toHaveBeenCalled();
+	});
+
+	it("a person who cancels the same dialog ends the act with no error", async () => {
+		mount({}, { askKind: vi.fn(async () => null) });
+		await acts.perform("danger.change_kind");
+		expect(runMethod).not.toHaveBeenCalled();
+		expect(toast.error).not.toHaveBeenCalled();
+	});
+});

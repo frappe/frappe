@@ -1,49 +1,56 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Session } from "../../api";
 
 // Hoisted so the factory passed to `vi.mock` can reference them.
-const { createResourceMock, state } = vi.hoisted(() => ({
-  createResourceMock: vi.fn(),
+const { getMeta, getSession, state } = vi.hoisted(() => ({
+  getMeta: vi.fn(),
+  getSession: vi.fn(),
   state: {
     roles: null as string[] | null,
     permissions: undefined as Record<string, unknown>[] | undefined,
-    loading: false,
   },
 }));
 
-vi.mock("frappe-ui", () => ({
-  createResource: createResourceMock,
-  frappeRequest: vi.fn(),
+// Roles and meta both come through the v2 wrapper now.
+vi.mock("../../api", () => ({ getMeta, getSession }));
+
+function aSession(roles: string[]): Session {
+  return {
+    user: {
+      name: "alice@example.com",
+      full_name: "Alice",
+      email: "alice@example.com",
+      user_image: null,
+    },
+    roles,
+    lang: "en",
+    timezone: "Asia/Kolkata",
+    defaults: {},
+  };
+}
+
+// `roles: null` stands for a session still in flight, so the fetch never settles.
+getSession.mockImplementation(() =>
+  state.roles === null
+    ? new Promise(() => {})
+    : Promise.resolve({ data: aSession(state.roles) })
+);
+
+getMeta.mockImplementation(async (doctype: string) => ({
+  data: { name: doctype, fields: [], permissions: state.permissions },
+  children: [],
 }));
 
-const ROLES_URL = "frappe.core.doctype.user.user.get_current_user_roles";
-
-createResourceMock.mockImplementation((options: any) => {
-  const roles = options.url === ROLES_URL;
-  return {
-    get data() {
-      if (roles) return state.roles ?? undefined;
-      return {
-        docs: [
-          {
-            name: options.params.doctype,
-            fields: [],
-            permissions: state.permissions,
-          },
-        ],
-      };
-    },
-    get loading() {
-      return state.loading;
-    },
-    fetched: false,
-    error: null,
-    fetch: vi.fn(),
-    reload: vi.fn(),
-  };
-});
+/** Field access reads the session and the meta once they land, a tick after the call. */
+async function access(doctype = "Note") {
+  const perms = useDocPermissions(doctype);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  return perms;
+}
 
 import { useDocPermissions } from "../useDocPermissions";
 import { resetDoctypeMeta } from "../useDoctypeMeta";
+import { setSession } from "../useSession";
 import { resetUserRoles } from "../useUserRoles";
 
 function reset() {
@@ -52,31 +59,28 @@ function reset() {
   vi.clearAllMocks();
   state.roles = null;
   state.permissions = undefined;
-  state.loading = false;
 }
 
-describe("useUserRoles' endpoint", () => {
+describe("where the roles come from", () => {
   beforeEach(reset);
 
-  // The composable is useless if this name drifts from the whitelisted method,
-  // and nothing else would notice: every other test here mocks the transport, so
-  // the URL is never resolved against a server. It was in fact wrong once — the
-  // method was left behind when this code was split out of its original branch.
-  it("asks the whitelisted method that returns the session user's roles", () => {
-    useDocPermissions("Note");
+  it("reads the roles a host already published, without fetching", async () => {
+    setSession(aSession(["Accounts Manager"]));
+    state.permissions = [
+      { role: "Accounts Manager", permlevel: 1, read: 1, write: 1 },
+    ];
 
-    const urls = createResourceMock.mock.calls.map(([o]: any[]) => o.url);
-    expect(urls).toContain(ROLES_URL);
+    expect((await access()).fieldAccess({ permlevel: 1 })).toBe("write");
+    expect(getSession).not.toHaveBeenCalled();
   });
 
-  it("fetches the roles once, however many callers ask", () => {
+  it("fetches the session once, however many callers ask", async () => {
+    state.roles = [];
     useDocPermissions("Note");
     useDocPermissions("ToDo");
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const rolesCalls = createResourceMock.mock.calls.filter(
-      ([o]: any[]) => o.url === ROLES_URL
-    );
-    expect(rolesCalls).toHaveLength(1);
+    expect(getSession).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -92,47 +96,39 @@ describe("field-level access", () => {
     expect(fieldAccess({})).toBe("write");
   });
 
-  it("grants write on a permlevel one of the user's roles writes", () => {
+  it("grants write on a permlevel one of the user's roles writes", async () => {
     state.roles = ["Accounts Manager"];
     state.permissions = [
       { role: "Accounts Manager", permlevel: 1, read: 1, write: 1 },
     ];
 
-    expect(useDocPermissions("Note").fieldAccess({ permlevel: 1 })).toBe(
-      "write"
-    );
+    expect((await access()).fieldAccess({ permlevel: 1 })).toBe("write");
   });
 
-  it("grants read only, when the row reads but does not write", () => {
+  it("grants read only, when the row reads but does not write", async () => {
     state.roles = ["Sales User"];
     state.permissions = [{ role: "Sales User", permlevel: 2, read: 1 }];
 
-    expect(useDocPermissions("Note").fieldAccess({ permlevel: 2 })).toBe(
-      "read"
-    );
+    expect((await access()).fieldAccess({ permlevel: 2 })).toBe("read");
   });
 
-  it("refuses a permlevel no role of the user's holds", () => {
+  it("refuses a permlevel no role of the user's holds", async () => {
     state.roles = ["Sales User"];
     state.permissions = [
       { role: "Accounts Manager", permlevel: 1, read: 1, write: 1 },
     ];
 
-    expect(useDocPermissions("Note").fieldAccess({ permlevel: 1 })).toBe(
-      "none"
-    );
+    expect((await access()).fieldAccess({ permlevel: 1 })).toBe("none");
   });
 
-  it("ignores a DocPerm row for a role the user does not hold", () => {
+  it("ignores a DocPerm row for a role the user does not hold", async () => {
     state.roles = ["Sales User"];
     state.permissions = [
       { role: "Sales User", permlevel: 1, read: 1 },
       { role: "Accounts Manager", permlevel: 1, read: 1, write: 1 },
     ];
 
-    expect(useDocPermissions("Note").fieldAccess({ permlevel: 1 })).toBe(
-      "read"
-    );
+    expect((await access()).fieldAccess({ permlevel: 1 })).toBe("read");
   });
 
   // Better a field the server refuses to save than a form that flashes empty.
@@ -151,21 +147,45 @@ describe("field-level access", () => {
 describe("allowedPermlevels", () => {
   beforeEach(reset);
 
-  it("lists the permlevels the user's roles hold the right on, in order", () => {
+  it("lists the permlevels the user's roles hold the right on, in order", async () => {
     state.roles = ["Sales User", "Accounts Manager"];
     state.permissions = [
       { role: "Accounts Manager", permlevel: 2, read: 1, write: 1 },
       { role: "Sales User", permlevel: 1, read: 1 },
-      { role: "Sales User", permlevel: 0, read: 1, write: 1 },
+      { role: "Sales User", permlevel: 0, read: 1, write: 1, create: 1 },
+      { role: "Sales Manager", permlevel: 0, create: 1 },
     ];
-    const { allowedPermlevels } = useDocPermissions("Note");
+    const { allowedPermlevels } = await access();
 
     expect(allowedPermlevels("read")).toEqual([0, 1, 2]);
     expect(allowedPermlevels("write")).toEqual([0, 2]);
+    expect(allowedPermlevels("create")).toEqual([0]);
   });
 
   it("is empty while the meta is still loading", () => {
     expect(useDocPermissions("Note").allowedPermlevels("read")).toEqual([]);
+  });
+});
+
+describe("holds", () => {
+  beforeEach(reset);
+
+  it("answers any right at permlevel 0 from the user's roles, a custom one too", async () => {
+    state.roles = ["Sales User"];
+    state.permissions = [
+      { role: "Sales User", permlevel: 0, read: 1, approve_deal: 1 },
+      { role: "Sales User", permlevel: 1, delete: 1 },
+      { role: "Sales Manager", permlevel: 0, delete: 1, submit: 1 },
+    ];
+    const { holds } = await access();
+
+    expect(holds("approve_deal")).toBe(true);
+    expect(holds("delete")).toBe(false);
+    expect(holds("submit")).toBe(false);
+  });
+
+  it("is false while the meta is still loading", () => {
+    expect(useDocPermissions("Note").holds("read")).toBe(false);
   });
 });
 

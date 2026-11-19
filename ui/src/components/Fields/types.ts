@@ -1,22 +1,40 @@
-import type { InjectionKey, Ref } from "vue";
+import type { ComputedRef, InjectionKey, MaybeRefOrGetter, Ref } from "vue";
 // Type-only (erased at build) — `FieldMeta`'s Table fields carry FormLayout's
 // richer node/schema, while `FieldNode extends FieldMeta`. The cycle is purely
 // at the type level, so it disappears in the compiled output.
 import type { FieldNode, FormLayoutSchema } from "../FormLayout/types";
+import type { CodeError } from "../../api/envelope";
 
 /**
  * The portable meta a value-input reads. A subset of a Frappe DocField, shared by
  * both `FormLayout` (form fields) and the ListView `Filter` / `Quick Filter`
  * controls. `FieldNode` (FormLayout's layout node) extends this with a `ui` overlay.
  */
+/** One choice of a `Select` or `Autocomplete`: the stored value and what the reader sees. */
+export interface OptionChoice {
+  value: string;
+  label: string;
+}
+
+export interface LinkMarkSource {
+  kind: "color" | "image";
+  field: string;
+}
+
 export interface FieldMeta {
   fieldname: string;
   fieldtype: string;
   label?: string;
   /** Target doctype for `Link` fields, or child doctype for `Table` (Frappe `options`). */
   options?: string;
+  /** What a `Link` value's mark is read from on its target: a `color` field or an `image_field`. */
+  linkMark?: LinkMarkSource;
+  /** A `Select` or `Autocomplete`'s choices with labels, when a script set them; `options` then holds their values. */
+  choices?: OptionChoice[];
   /** Link search filters. */
   filters?: Record<string, unknown>;
+  /** The DocField's own `link_filters`, resolved against the record into `filters` on each render. */
+  linkFilters?: string | unknown[];
   /**
    * Child-table columns from the child's `in_list_view` fields. Used by `Table`
    * (grid columns) and `Table MultiSelect` (its single `Link` field gives the
@@ -24,20 +42,26 @@ export interface FieldMeta {
    * carry a `ui` overlay too — back-compatible since `FieldNode extends FieldMeta`.
    */
   childFields?: FieldNode[];
-  /**
-   * Full render-ready layout of the child doctype, for the `Table` row-edit
-   * dialog which shows every field (desk grid-row form), not just the
-   * `in_list_view` columns in `childFields`.
-   */
+  /** Every child field from the meta; the row dialog draws it without a `rowLayout`, and a new row takes its defaults. */
   childLayout?: FormLayoutSchema;
+  /** The row dialog's layout for one row, from the child doctype's Details layouts; absent when it has none. */
+  rowLayout?: (row: Record<string, any>) => FormLayoutSchema;
   /** Whether the field is mandatory. */
   reqd?: boolean;
   /** Raw DocField default, carried verbatim; `newRowValues` resolves it. */
   default?: string;
   /** Decimal places for numeric fields (Float/Currency/Percent); from meta. */
   precision?: number;
+  /** The height a tall control grows to before it scrolls; a CSS length, or pixels when bare. */
+  maxHeight?: string;
+  /** A `Duration` that folds days into hours. */
+  hideDays?: boolean;
+  /** A `Duration` that rounds to the minute. */
+  hideSeconds?: boolean;
   /** Initial grid-column width in px for a child-table column; omit for flexible. */
   width?: number;
+  /** The DocField's `columns`: its width as a grid column, 1–10 on desk v1's map; omit for Auto. */
+  gridColumns?: number;
   description?: string;
   placeholder?: string;
   /** Static visibility; `resolveLayout` may flip this from `dependsOn`. */
@@ -81,6 +105,14 @@ export interface FieldComponentProps {
   row?: Record<string, any>;
   /** Drawn under the input. Only the host sets it; a control never does. */
   error?: FieldError;
+  /** Drawn in a panel row: ghost, no label, description or error text; the row draws them. */
+  panel?: boolean;
+  /** The id of the row's error message, so a panel control can point at it with `aria-describedby`. */
+  errorId?: string;
+  /** A picker in a panel row opens its popover when it mounts: the row was opened by a pointer. */
+  openPicker?: boolean;
+  /** The record the control sits on, for the actions an app placed on a Phone or Email field. */
+  record?: FieldRecord;
 }
 
 export type FieldError = string | string[];
@@ -112,9 +144,65 @@ export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
 export const LinkTitlesKey: InjectionKey<Ref<Record<string, string>>> =
   Symbol("FormLayoutLinkTitles");
 
+/** The mark values a `Link` value shows before it, keyed `Doctype::name`: a colour or an image address. */
+export const LinkMarksKey: InjectionKey<Ref<Record<string, string>>> = Symbol("FormLayoutLinkMarks");
+
+/** The host's Create, which a Link or Dynamic Link field offers; absent or null, it offers none. */
+export interface CreateRecord {
+  /** Resolves with the saved record, or `null` when nothing was saved here. */
+  open: (
+    doctype: string,
+    options: { values: Record<string, unknown> }
+  ) => Promise<Record<string, any> | null>;
+  /** Whether the person may create the doctype's records; false while its meta loads. */
+  useRight: (doctype: MaybeRefOrGetter<string>) => ComputedRef<boolean>;
+}
+
+export const CreateRecordKey: InjectionKey<CreateRecord | null> = Symbol("CreateRecord");
+
+/** The host's record pages, which a Link or Dynamic Link field opens; absent or null, it opens none. */
+export interface RecordLink {
+  /** The record's address, or `null` when its doctype has none. */
+  href: (doctype: string, name: string) => string | null;
+  open: (doctype: string, name: string) => void;
+}
+
+export const RecordLinkKey: InjectionKey<RecordLink | null> = Symbol("RecordLink");
+
+/** One button an app placed on a field: its act already found and allowed now. */
+export interface FieldAction {
+  act: string;
+  label: string;
+  icon?: string;
+  run: () => void;
+}
+
+/** The record a field sits on, and whether the control draws on its page or in a list row. */
+export interface FieldRecord {
+  doctype: string;
+  name: string;
+  surface: "record" | "list";
+}
+
+/** The host's field actions, which a Phone or Email control draws; absent or null, it draws none. */
+export interface FieldActions {
+  /** The actions for this field and value, in the order the apps gave them. */
+  for: (field: FieldMeta, value: unknown, record?: FieldRecord) => FieldAction[];
+}
+
+export const FieldActionsKey: InjectionKey<FieldActions | null> = Symbol("FieldActions");
+
 /** Writes a field's live value into the doc on every change. Pure state sync. */
 export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
   Symbol("FormLayoutUpdate");
+
+/** The component names a `template:` string can use with no `components:` entry, from the host app. */
+export const TemplateNamesKey: InjectionKey<readonly string[]> =
+  Symbol("TemplateNames");
+
+/** Compile errors a host marks in its top-level Code fields, by fieldname; null cuts them off. */
+export const CodeErrorsKey: InjectionKey<Ref<readonly CodeError[]> | null> =
+  Symbol("CodeErrors");
 
 /** Where a child row sits: its table's fieldname plus `name ?? __row_id`. */
 export interface RowAddress {
@@ -130,6 +218,16 @@ export type FieldAddress = string | (RowAddress & { fieldname: string });
 export function fieldErrorKey(address: FieldAddress): string {
   if (typeof address === "string") return address;
   return JSON.stringify([address.parentfield, address.key, address.fieldname]);
+}
+
+/** The top-level field a `fieldErrorKey` belongs to: a row cell's is its table. */
+export function fieldnameOfErrorKey(key: string): string {
+  return key.startsWith("[") ? JSON.parse(key)[0] : key;
+}
+
+/** The top-level fields that hold an error; a row cell's error counts for its table. */
+export function markedFieldnames(errors: Readonly<Record<string, unknown>>): Set<string> {
+  return new Set(Object.keys(errors).map(fieldnameOfErrorKey));
 }
 
 /** The host's field errors by `fieldErrorKey`; display-only, and null where there is no form. */
@@ -150,6 +248,8 @@ export interface CommitChannel {
   /** A live edit whose commit has not arrived yet; `flush` fires it on save. */
   pending(fieldname: string, value: any, row?: RowAddress): void;
   commit(fieldname: string, value: any, row?: RowAddress): void;
+  /** Drops a field's live edit that was cancelled. Optional: callers use `discard?.()`. */
+  discard?(fieldname: string, row?: RowAddress): void;
   rowChanged(row: RowAddress, change: RowChange): void;
 }
 
@@ -157,6 +257,7 @@ export interface CommitChannel {
 export const NO_COMMIT: CommitChannel = {
   pending: () => {},
   commit: () => {},
+  discard: () => {},
   rowChanged: () => {},
 };
 

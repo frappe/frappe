@@ -44,10 +44,26 @@ function resolveOwnDependencies() {
 		},
 		// Unenforced, so vite resolves first and this only sees what the walk up
 		// from this package's realpath missed. Bare specifiers only.
-		resolveId(source, importer) {
+		async resolveId(source, importer) {
 			if (!importer?.startsWith(packageRoot)) return null;
 			if (/^[./]/.test(source)) return null;
-			return this.resolve(source, hostImporter);
+			const resolved = await this.resolve(source, hostImporter);
+			if (resolved || !(source in OPTIONAL_PEERS)) return resolved;
+			return OPTIONAL_PREFIX + source;
+		},
+		load(id) {
+			if (id.startsWith(OPTIONAL_PREFIX))
+				return OPTIONAL_PEERS[id.slice(OPTIONAL_PREFIX.length)];
+			return null;
 		},
 	};
 }
+
+// Peers only desk v2's code needs: a host that lacks one gets a stand-in, not a failed build.
+export const OPTIONAL_PREFIX = "\0framework-ui-optional:";
+// lang-javascript's stand-in throws on load; the editor's grammar loader catches it.
+export const OPTIONAL_PEERS = {
+	"@codemirror/lang-vue": "export const vueLanguage = undefined;",
+	"@codemirror/lang-javascript":
+		"export const javascriptLanguage = undefined;\nthrow new Error(\"Cannot find module '@codemirror/lang-javascript'\");",
+};

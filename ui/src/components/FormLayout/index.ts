@@ -1,18 +1,34 @@
 export { default as FormLayout } from "./FormLayout.vue";
+export { default as FormLayoutField } from "./FormLayoutField.vue";
 export { useFieldTypes } from "./useFieldTypes";
 export { registerFieldType, getFieldComponent } from "../Fields/fieldTypes";
 export type { RegisterFieldTypeOptions } from "../Fields/fieldTypes";
+export { gridColumnWidth } from "../Fields/gridColumnWidth";
 
 // The file-upload primitive now lives in its own module — import upload
 // consumers, the headless engine, and the source seam from "@framework/ui/FileUpload".
 export { useChildRowModel } from "./useChildRowModel";
-export { buildLayoutFromMeta, compose } from "./buildLayoutFromMeta";
+export { buildLayoutFromMeta, compose, DROPPED_FIELDTYPES, mapField } from "./buildLayoutFromMeta";
 export type { BuildLayoutOptions, Decorator } from "./buildLayoutFromMeta";
 export { fieldsToLayout } from "./fieldsToLayout";
-export { resolveLayout } from "./resolveLayout";
+export {
+  applyTabOverride,
+  resolveFieldConditionals,
+  resolveLayout,
+  resolveTabConditionals,
+} from "./resolveLayout";
+export { identifyTabs, tabStripLabel } from "./tabIdentity";
+export { resolveFieldCurrency, useDocValueReader } from "./resolveCurrency";
+export { displayValue, isSummaryField, selectedLinks, summarize } from "./displayValue";
+export { isEmptyValue } from "./emptyValue";
+export type { DisplayOptions } from "./displayValue";
+export { useFieldDisplay } from "./useFieldDisplay";
+export type { FieldDisplay } from "./useFieldDisplay";
+export { warnMissingCommit } from "./warnMissingCommit";
 export { CommitKey, LinkTitlesKey, NO_COMMIT } from "./types";
-export { newRowValues, layoutFields } from "./newRowValues";
+export { newRowValues, layoutFields, NO_VALUE } from "./newRowValues";
 export { evaluateDependsOn } from "./dependsOn";
+export { mergeLinkFilters, resolveLinkFilters, type LinkFilters } from "./linkFilters";
 export {
   flt,
   formatNumber,
@@ -22,8 +38,10 @@ export {
   getNumberFormatInfo,
   DEFAULT_NUMBER_FORMAT,
   DEFAULT_ROUNDING_METHOD,
+  NUMBER_FIELDTYPES,
 } from "./formatNumber";
 export {
+  dateTimeFormats,
   getFormatDefaults,
   setFormatDefaults,
   resetFormatDefaults,

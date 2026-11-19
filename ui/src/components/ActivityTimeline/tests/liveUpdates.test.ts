@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { ref } from "vue";
 import type { Activity } from "../types";
 
 const handlers: Record<string, (payload: unknown) => void> = {};
@@ -11,71 +12,37 @@ vi.mock("../../../socket", () => ({
   }),
   subscribeToDoc: () => () => {},
 }));
-vi.mock("../utils", () => ({
-  getAssignee: () => undefined,
-  stripHtml: (html: string) => html,
-}));
 
 const { createLiveUpdates } = await import("../liveUpdates");
-const { addPendingActivity } = await import("../pendingRows");
 
-let ticket = 0;
+describe("a live edit", () => {
+  it("keeps the author the feed already drew, avatar included", () => {
+    const author = { email: "a@x.com", fullname: "A", image: "/a.png" };
+    const original = {
+      type: "comment",
+      key: "comment:C1",
+      timestamp: "2026-09-28 12:00:00",
+      author,
+      data: { name: "C1", content: "<p>hi</p>" },
+    } as Activity;
+    const feed = { data: ref([original]), fetched: ref(true), prefetched: ref(true) };
+    createLiveUpdates("HD Ticket", "1", feed, undefined, () => Promise.resolve())();
 
-/** A ticket with your comment still saving, and a refetch that returns `feedAfterRefetch`. */
-function holdingTicket(feedAfterRefetch: () => Activity[]) {
-  const docname = String(++ticket);
-  const resource = { data: [] as Activity[], fetched: true };
-  let settleRefresh = () => {};
-  const refresh = () =>
-    new Promise<void>((resolve) => {
-      settleRefresh = () => {
-        resource.data = feedAfterRefetch();
-        resolve();
-      };
-    });
-  createLiveUpdates("HD Ticket", docname, resource as never, undefined, refresh)();
-  addPendingActivity("HD Ticket", docname, {
-    type: "comment",
-    timestamp: "2026-09-28 12:00:00",
-    data: { name: "", content: "mine" },
-  } as never);
-
-  const send = (action: string, name: string) =>
     handlers.docinfo_update({
-      action,
+      action: "update",
       key: "comments",
-      doc: { name, reference_doctype: "HD Ticket", reference_name: docname, creation: "" },
+      doc: {
+        name: "C1",
+        reference_doctype: "HD Ticket",
+        reference_name: "1",
+        content: "<p>edited</p>",
+        creation: "2026-09-28 12:00:00",
+        owner: "b@x.com",
+      },
     });
-  const keys = () => resource.data.map((a) => a.key);
-  const refetch = async () => {
-    settleRefresh();
-    await Promise.resolve();
-  };
-  return { send, keys, refetch };
-}
 
-describe("live rows held back while your comment saves", () => {
-  it("are not drawn until the refetch lands", async () => {
-    const t = holdingTicket(() => [{ key: "comment:theirs" } as Activity]);
-    t.send("add", "theirs");
-    expect(t.keys()).toEqual([]);
-    await t.refetch();
-    expect(t.keys()).toEqual(["comment:theirs"]);
-  });
-
-  it("come back when the refetch leaves them out", async () => {
-    // a failed fetch, or an email dated older than the first page
-    const t = holdingTicket(() => []);
-    t.send("add", "theirs");
-    await t.refetch();
-    expect(t.keys()).toEqual(["comment:theirs"]);
-  });
-
-  it("stay gone when deleted before the refetch lands", async () => {
-    const t = holdingTicket(() => []);
-    t.send("add", "theirs");
-    t.send("delete", "theirs");
-    await t.refetch();
-    expect(t.keys()).toEqual([]);
+    expect(feed.data.value).toMatchObject([
+      { key: "comment:C1", author, data: { content: "<p>edited</p>" } },
+    ]);
   });
 });

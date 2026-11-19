@@ -34,6 +34,8 @@ When desk-v2 goes green again, every pull request turns green on its own.
 
 To re-test desk-v2 at any other time: open the **Actions** tab of the repo, click **Develop Tests** in the list on the left, then click the **Run workflow** button on the right.
 
+Some server tests, such as `frappe/tests/test_shell.py`, read the desk-v2 frontend: `frontend/`, `ui/` and the `frontend/` folders in apps. A desk-v2 pull request that changes them does not run the server suite, so run those tests yourself (`bench --site <site> run-tests --module frappe.tests.test_shell`) or add `Run Server Tests`. The hourly desk-v2 run counts these files for the server suite.
+
 ## Settings
 
 - Merge queue: the develop branch protection rule in the repository settings.

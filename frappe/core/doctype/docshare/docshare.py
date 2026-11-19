@@ -9,7 +9,7 @@ from frappe.utils import cint, get_fullname
 exclude_from_linked_with = True
 
 
-class DocShare(Document):
+class DocShare(Document):  # nosemgrep: frappe-modifying-but-not-comitting-other-method
 	_DOCTYPE_NAME = "DocShare"
 
 	# begin: auto-generated types
@@ -81,6 +81,12 @@ class DocShare(Document):
 			doc.add_comment(
 				"Shared", _("{0} shared this document with {1}").format(owner, get_fullname(self.user))
 			)
+		self.notify_change("add")
+
+	def on_update(self):
+		# `is_new()` is already false here on insert; the insert flag still holds.
+		if not self.flags.in_insert:
+			self.notify_change("update")
 
 	def on_trash(self):
 		if not self.flags.ignore_share_permission:
@@ -91,6 +97,25 @@ class DocShare(Document):
 			_("{0} un-shared this document with {1}").format(
 				get_fullname(self.owner), get_fullname(self.user)
 			),
+		)
+		self.notify_change("delete")
+
+	def notify_change(self, action):
+		"""Tell the shared document's room that its `shared` bucket changed."""
+		frappe.publish_realtime(
+			"docinfo_update",
+			{
+				"doc": {
+					"reference_doctype": self.share_doctype,
+					"reference_name": self.share_name,
+					**self.as_dict(),
+				},
+				"key": "shared",
+				"action": action,
+			},
+			doctype=self.share_doctype,
+			docname=self.share_name,
+			after_commit=True,
 		)
 
 

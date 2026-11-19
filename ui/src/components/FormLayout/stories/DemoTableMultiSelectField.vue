@@ -1,13 +1,6 @@
 <!--
-  Demo of the host-side override pattern for `Table MultiSelect`: a field that
-  turns on the control's `creatable` affordance and wires `@create` to app
-  behaviour. The lib ships a plain select-only `TableMultiSelectField`; an app
-  that wants "Create '{query}'" registers its own component via
-  `registerFieldType('Table MultiSelect', …)` — no lib changes, no prop on
-  FormLayout. Mirrors `DemoLinkField`, and stays thin because the search +
-  trigger + footer all live in the shared `TableMultiSelect` control. Here the
-  handler just `console.log`s and optimistically selects the typed value; a real
-  host would open a quick-entry dialog and select the inserted record's name.
+  An app's own `Table MultiSelect` field, registered over the lib's: it turns on `creatable`
+  and, in place of a create dialog, selects the typed text.
 -->
 <template>
 	<TableMultiSelect
@@ -50,6 +43,6 @@ const value = useChildRowModel(
 function onCreate(query: string) {
 	console.log("create", { doctype: targetDoctype.value, query });
 	// Prove the round-trip: pretend the record was created and select it.
-	if (!value.value.includes(query)) value.value = [...value.value, query];
+	if (query && !value.value.includes(query)) value.value = [...value.value, query];
 }
 </script>

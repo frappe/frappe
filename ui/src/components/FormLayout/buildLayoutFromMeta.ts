@@ -37,11 +37,6 @@ export const DROPPED_FIELDTYPES = new Set([
  * App hook to attach per-field presentation/behavior during the build. Called
  * once per data field (and per grid column) with the field's resolved meta;
  * returns a `FieldUI` to overlay onto that node, or nothing to leave it plain.
- *
- * No caller in this repo right now — `useDoctypeLayout` was the last one and it
- * is gone. `joinLayout` (`experimental/FormLayoutSource`) is the incoming one;
- * it is what makes a `Button` field live, so `Decorator`/`compose` are kept
- * deliberately and their tests with them. Not dead code.
  */
 export type Decorator = (field: FieldMeta) => FieldUI | void;
 
@@ -54,7 +49,7 @@ export interface BuildLayoutOptions {
 
 /**
  * Compose several decorators into one. Each is run against the field meta and
- * their returned overlays are merged: `component` is last-wins, `props` shallow-
+ * their returned overlays are merged: `component` and `ownBox` are last-wins, `props` shallow-
  * merge, and `on` handlers **concat per event into an array so every handler
  * fires** (Vue's `v-on` accepts a handler array) — styling and scripting can
  * both contribute a `change`/`click` without one clobbering the other.
@@ -67,6 +62,7 @@ export function compose(...decorators: Decorator[]): Decorator {
       if (!ui) continue;
       merged ??= {};
       if (ui.component) merged.component = ui.component;
+      if (ui.ownBox !== undefined) merged.ownBox = ui.ownBox;
       if (ui.props) merged.props = { ...merged.props, ...ui.props };
       if (ui.on) {
         const on = (merged.on ??= {});
@@ -85,7 +81,12 @@ export function compose(...decorators: Decorator[]): Decorator {
 }
 
 function newColumn(field?: RawMetaField): Column {
-  return { name: field?.fieldname, label: field?.label, fields: [] };
+  return {
+    name: field?.fieldname,
+    label: field?.label,
+    dependsOn: field?.depends_on,
+    fields: [],
+  };
 }
 
 function newSection(field?: RawMetaField): Section {
@@ -94,8 +95,10 @@ function newSection(field?: RawMetaField): Section {
   return {
     name: field.fieldname,
     label: field.label,
+    description: field.description,
     hideBorder: !!field.hide_border,
     collapsible,
+    collapsibleDependsOn: field.collapsible_depends_on,
     // Open by default, collapsible or not. The stored-layout path
     // (`joinSection`) defaults `opened` to true and is the production path, so
     // both constructors agree rather than a section opening or closing
@@ -165,10 +168,14 @@ export function mapField(
     label: field.label,
     options: field.options,
     filters: field.filters,
+    linkFilters: field.link_filters || undefined,
     reqd: !!field.reqd,
     default: field.default,
     precision: coercePrecision(field.precision),
+    maxHeight: field.max_height || undefined,
+    linkMark: field.link_mark,
     description: field.description,
+    placeholder: field.placeholder || undefined,
     hidden: !!field.hidden,
     permlevel: field.permlevel,
     // Carried, not read here: `resolveLayout` needs it to tell a permlevel
@@ -186,6 +193,10 @@ export function mapField(
     // Child-table columns. Nested grids aren't supported (no deeper childMetas).
     ...(holdsChildRows(field.fieldtype)
       ? { childFields: resolveChildFields(field, childMetas, decorate) }
+      : {}),
+    ...(field.columns ? { gridColumns: field.columns } : {}),
+    ...(field.fieldtype === "Duration"
+      ? { hideDays: !!field.hide_days, hideSeconds: !!field.hide_seconds }
       : {}),
     // The row-edit dialog renders the full child form; `Table MultiSelect` has
     // no row dialog, so only `Table` carries a `childLayout`.

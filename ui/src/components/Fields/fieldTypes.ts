@@ -10,7 +10,6 @@ import DurationField from "./DurationField.vue";
 import DynamicLinkField from "./DynamicLinkField.vue";
 import AttachField from "./AttachField.vue";
 import ImageField from "./ImageField.vue";
-import GeolocationField from "./GeolocationField.vue";
 import HeadingField from "./HeadingField.vue";
 import HtmlField from "./HtmlField.vue";
 import LinkField from "./LinkField.vue";
@@ -23,7 +22,10 @@ import TableField from "./TableField.vue";
 import TableMultiSelectField from "./TableMultiSelectField.vue";
 import TextField from "./TextField.vue";
 import TextareaField from "./TextareaField.vue";
+import TextEditorField from "./TextEditorField.vue";
+import MarkdownEditorField from "./MarkdownEditorField.vue";
 import TimeField from "./TimeField.vue";
+import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 
 /** Process-global fieldtype → component registry. */
 const registry = new Map<string, Component>();
@@ -72,7 +74,7 @@ registerFieldType("Time", TimeField);
 
 // One numeric control formats per fieldtype with lib defaults; apps register
 // their own for site-accurate settings (see formatNumber.ts).
-for (const t of ["Int", "Long Int", "Float", "Currency", "Percent"]) {
+for (const t of NUMBER_FIELDTYPES) {
   registerFieldType(t, NumberField);
 }
 
@@ -86,9 +88,14 @@ for (const t of ["Small Text", "Text", "Long Text"]) {
 // CodeMirror is heavy, and it's the only field pulling `frappe-ui/code-editor`.
 const CodeEditorField = defineAsyncComponent(() => import("./CodeEditorField.vue"));
 
-for (const t of ["Code", "JSON", "Markdown Editor", "HTML Editor"]) {
+for (const t of ["Code", "JSON", "HTML Editor"]) {
   registerFieldType(t, CodeEditorField);
 }
+
+// Markdown Editor is the same editor in a form and a plain textarea in a panel row.
+registerFieldType("Markdown Editor", MarkdownEditorField);
+
+registerFieldType("Text Editor", TextEditorField);
 
 // `Heading`/`HTML` are display-only (no value, no emit).
 registerFieldType("Phone", PhoneField);
@@ -111,6 +118,9 @@ registerFieldType("Attach", AttachField);
 registerFieldType("Attach Image", AttachField);
 registerFieldType("Image", ImageField);
 
+// Lazy: its inlined map images would bloat every record page.
+const GeolocationField = defineAsyncComponent(() => import("./GeolocationField.vue"));
+
 registerFieldType("Geolocation", GeolocationField);
 
 // `Button` carries no value: its click rides the node's `ui.on.click` (schema- or
@@ -123,7 +133,8 @@ registerFieldType("Table", TableField);
 
 registerFieldType("Table MultiSelect", TableMultiSelectField);
 
-// buildLayoutFromMeta marks `Read Only` as `readOnly`, which TextField disables.
+// resolveFieldConditionals marks `Read Only` readOnly, so drawsReadValue draws the read look;
+// only one an override un-locks (`readOnly: false`) reaches this input.
 registerFieldType("Read Only", TextField);
 
 registerFieldType(FALLBACK, TextField);

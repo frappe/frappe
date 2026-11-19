@@ -1,0 +1,216 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "creation": "2026-09-01 10:00:00.000000",
+ "description": "One row of desk v2 navigation, serving both the rail and the sidebar.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "identity_section",
+  "key",
+  "parent_key",
+  "column_break_ident",
+  "item_type",
+  "destination_section",
+  "link_doctype",
+  "link_to",
+  "opens_sidebar",
+  "url",
+  "column_break_dest",
+  "payload",
+  "presentation_section",
+  "label",
+  "icon",
+  "column_break_pres",
+  "collapsible",
+  "keep_closed",
+  "customization_section",
+  "hidden",
+  "added",
+  "overrides",
+  "contribution_section",
+  "anchors",
+  "column_break_contrib",
+  "switches_app"
+ ],
+ "fields": [
+  {
+   "fieldname": "identity_section",
+   "fieldtype": "Section Break",
+   "label": "Identity"
+  },
+  {
+   "description": "Frozen address every site and user edit is filed against. Never changed once shipped.",
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Key"
+  },
+  {
+   "description": "Key of the row this one sits under. Blank, or naming a missing row, means top level.",
+   "fieldname": "parent_key",
+   "fieldtype": "Data",
+   "label": "Parent Key"
+  },
+  {
+   "fieldname": "column_break_ident",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "What this row opens. Required on an item, blank on a delta over a lower layer's item.",
+   "fieldname": "item_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Type",
+   "options": "Navigation Item Type"
+  },
+  {
+   "fieldname": "destination_section",
+   "fieldtype": "Section Break",
+   "label": "Destination"
+  },
+  {
+   "description": "Fetched from the type's Target DocType when blank; only a Record row sets its own.",
+   "fetch_from": "item_type.target_doctype",
+   "fetch_if_empty": 1,
+   "fieldname": "link_doctype",
+   "fieldtype": "Link",
+   "label": "Link DocType",
+   "options": "DocType"
+  },
+  {
+   "description": "The record this row opens.",
+   "fieldname": "link_to",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Link To",
+   "options": "link_doctype"
+  },
+  {
+   "description": "The key of the sidebar a rail row opens, when it also opens its own target.",
+   "fieldname": "opens_sidebar",
+   "fieldtype": "Data",
+   "label": "Opens Sidebar"
+  },
+  {
+   "description": "Where a Link row goes.",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "label": "URL"
+  },
+  {
+   "fieldname": "column_break_dest",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Type-specific JSON, such as a Link row's open-in-new-tab. Never a filter or a saved query.",
+   "fieldname": "payload",
+   "fieldtype": "Code",
+   "label": "Payload",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "presentation_section",
+   "fieldtype": "Section Break",
+   "label": "Presentation"
+  },
+  {
+   "description": "Shown as typed, never translated. Blank falls back to the type's label, then the destination.",
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "label": "Icon",
+   "options": "Emojis"
+  },
+  {
+   "fieldname": "column_break_pres",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "collapsible",
+   "fieldtype": "Check",
+   "label": "Collapsible"
+  },
+  {
+   "default": "0",
+   "description": "Whether a collapsible row starts folded.",
+   "fieldname": "keep_closed",
+   "fieldtype": "Check",
+   "label": "Keep Closed"
+  },
+  {
+   "collapsible": 1,
+   "description": "Site and user layers only: a delta against a shipped row, or an item this layer added.",
+   "fieldname": "customization_section",
+   "fieldtype": "Section Break",
+   "label": "Customization"
+  },
+  {
+   "default": "0",
+   "description": "Hides the item. Explicit, so a user's unticked Hidden can un-hide what the site hid.",
+   "fieldname": "hidden",
+   "fieldtype": "Check",
+   "label": "Hidden"
+  },
+  {
+   "default": "0",
+   "description": "0: a delta against the base row with this key. 1: an item this layer added outright.",
+   "fieldname": "added",
+   "fieldtype": "Check",
+   "label": "Added"
+  },
+  {
+   "description": "JSON list of fieldnames this delta has an opinion about, so a blank can clear a shipped value.",
+   "fieldname": "overrides",
+   "fieldtype": "Code",
+   "label": "Overrides",
+   "options": "JSON"
+  },
+  {
+   "collapsible": 1,
+   "description": "Where a contributed row lands. A site or user layer's moves are stored as anchors too.",
+   "fieldname": "contribution_section",
+   "fieldtype": "Section Break",
+   "label": "Contribution"
+  },
+  {
+   "description": "Ordered JSON list of placements naming after, before or parent_key. First to resolve wins.",
+   "fieldname": "anchors",
+   "fieldtype": "Code",
+   "label": "Anchors",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "column_break_contrib",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Following this row leaves the host app for the app that contributed it.",
+   "fieldname": "switches_app",
+   "fieldtype": "Check",
+   "label": "Switches App"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-11-14 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Navigation Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

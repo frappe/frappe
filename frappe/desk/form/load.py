@@ -15,7 +15,7 @@ from frappe import _, _dict
 from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.desk.link_title import send_link_titles
-from frappe.model.document import Document
+from frappe.model.document import Document, get_controller
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import (
 	check_doctype_permission,
@@ -63,6 +63,23 @@ def getdoc(doctype: str, name: str | int):
 	if frappe.response.docs is None:
 		frappe.local.response = _dict({"docs": []})
 	frappe.response.docs.append(doc)
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["GET"])
+def get_new_doc(doctype: str) -> dict:
+	"""A new `doctype` document with defaults filled by the insert's own rules; nothing is saved.
+
+	A controller's optional `set_new_doc_defaults(self)` fills empty fields; it must not write to the DB.
+	"""
+	frappe.has_permission(doctype, "create", throw=True)
+	values = frappe.new_doc(doctype, as_dict=True)
+	if not hasattr(get_controller(doctype), "set_new_doc_defaults"):
+		return values
+
+	doc = frappe.get_doc(values)
+	doc.set_new_doc_defaults()
+	return {**values, **doc.get_valid_dict(sanitize=False)}
 
 
 @frappe.whitelist()
@@ -149,10 +166,16 @@ def get_docinfo(
 
 
 ATTACHMENT_FIELDNAME_RE = re.compile(r"data-fieldname=['\"]([^'\"]*)['\"]")
+COMMENT_FIELDS = ["name", "creation", "content", "owner", "comment_type", "published"]
 
 
 def add_comments(doc, docinfo):
-	# divide comments into separate lists
+	comments = get_document_comments(doc.doctype, doc.name, fields=COMMENT_FIELDS)
+	divide_comments(doc, docinfo, comments)
+	return comments
+
+
+def divide_comments(doc, docinfo, comments: list) -> None:
 	docinfo.comments = []
 	docinfo.shared = []
 	docinfo.assignment_logs = []
@@ -160,12 +183,6 @@ def add_comments(doc, docinfo):
 	docinfo.info_logs = []
 	docinfo.like_logs = []
 	docinfo.workflow_logs = []
-
-	comments = get_document_comments(
-		doc.doctype,
-		doc.name,
-		fields=["name", "creation", "content", "owner", "comment_type", "published"],
-	)
 
 	restricted_fieldnames = None
 
@@ -192,16 +209,13 @@ def add_comments(doc, docinfo):
 			case "Workflow":
 				docinfo.workflow_logs.append(c)
 
-	return comments
 
-
-def get_milestones(doctype, name, start=0, limit=20):
-	# Newest first and paged: a long-lived document accumulates these without end. The page runs
-	# larger than the one on versions because a milestone row is four short columns, not a JSON diff.
+def get_milestones(doctype, name, start=0, limit=20, filters=None):
+	# Newest first and paged: a long-lived document accumulates these without end.
 	return frappe.get_all(
 		"Milestone",
 		fields=["name", "creation", "owner", "track_field", "value"],
-		filters=dict(reference_type=doctype, reference_name=str(name)),
+		filters=[["reference_type", "=", doctype], ["reference_name", "=", str(name)], *(filters or [])],
 		limit_start=start,
 		limit=limit,
 		order_by="creation desc",
@@ -220,6 +234,8 @@ def get_attachments(dt, dn):
 			"is_private",
 			"attached_to_field",
 			"folder",
+			"creation",
+			"owner",
 		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
@@ -294,7 +310,7 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 	)
 
 
-def get_versions(doc: "Document") -> list[dict]:
+def get_versions(doc: "Document", filters=None, limit=10) -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
 
@@ -304,9 +320,9 @@ def get_versions(doc: "Document") -> list[dict]:
 
 	versions = frappe.get_all(
 		"Version",
-		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
+		filters=[["ref_doctype", "=", doc.doctype], ["docname", "=", str(doc.name)], *(filters or [])],
 		fields=["name", "owner", "creation", "data"],
-		limit=10,
+		limit=limit,
 		order_by="creation desc",
 	)
 
@@ -418,7 +434,10 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 
 
 def _get_communications(doctype, name, start=0, limit=20):
-	communications = get_communication_data(doctype, name, start, limit)
+	return add_email_attachments(get_communication_data(doctype, name, start, limit))
+
+
+def add_email_attachments(communications: list) -> list:
 	for c in communications:
 		if c.communication_type in ("Communication", "Automated Message"):
 			c.attachments = json.dumps(
@@ -540,19 +559,21 @@ def run_onload(doc):
 	doc.run_method("onload")
 
 
-def get_view_logs(doc: "Document") -> list[dict]:
+def get_view_logs(doc: "Document", filters=None, limit=None) -> list[dict]:
 	"""get and return the latest view logs if available"""
 	if not doc.meta.track_views:
 		return []
 
 	return frappe.get_all(
 		"View Log",
-		filters={
-			"reference_doctype": doc.doctype,
-			"reference_name": str(doc.name),
-		},
+		filters=[
+			["reference_doctype", "=", doc.doctype],
+			["reference_name", "=", str(doc.name)],
+			*(filters or []),
+		],
 		fields=["name", "creation", "owner"],
 		order_by="creation desc",
+		limit=limit,
 	)
 
 

@@ -1,4 +1,3 @@
-import { call } from "frappe-ui";
 import {
   computed,
   onUnmounted,
@@ -8,8 +7,16 @@ import {
   type MaybeRefOrGetter,
   type Ref,
 } from "vue";
+import {
+  createDocument,
+  getDocument,
+  runDocumentMethod,
+  runMethod,
+  updateDocument,
+  type DocumentRecord,
+} from "../../api";
 import { getSocketInstance, subscribeToDoc } from "../../socket";
-import { METHODS, cint } from "./dataImport";
+import { METHODS, cint, fetchDoctypeBundle } from "./dataImport";
 import { t } from "./translate";
 import type {
   DataImportDoc,
@@ -24,6 +31,9 @@ import type {
 } from "./types";
 
 const DOCTYPE = "Data Import";
+
+/** The doc as the v2 document routes take and return it. */
+type SentDoc = DataImportDoc & DocumentRecord;
 const PROGRESS_COUNTS_MIN_INTERVAL_MS = 2000;
 const RECENT_ACTIVITY_LIMIT = 5;
 
@@ -166,10 +176,7 @@ export function useDataImport(
     const isCurrent = track();
     loading.value = true;
     try {
-      const serverDoc = await call<DataImportDoc>("frappe.client.get", {
-        doctype: DOCTYPE,
-        name: docname,
-      });
+      const { data: serverDoc } = await getDocument<SentDoc>(DOCTYPE, docname);
       if (!isCurrent()) return;
       // counts fetched mid-run would show as the result until the final ones load
       if (running.value && serverDoc.status !== "In Progress")
@@ -211,18 +218,13 @@ export function useDataImport(
     saving.value = true;
     try {
       const rowsBefore = new Set(doc.value.value_mappings.map(mappingRowKey));
-      let serverDoc = await call<DataImportDoc>(
-        wasNew ? "frappe.client.insert" : "frappe.client.save",
-        { doc: doc.value }
-      );
+      let serverDoc = await writeDoc(wasNew);
       if (!isCurrent()) return serverDoc;
       // The server rebuilds value_mappings and may clear template_warnings, so take its copy.
       applyServerDoc(serverDoc);
       if (wasNew) name.value = serverDoc.name!;
       if (tickCreateOnNewRows(rowsBefore)) {
-        serverDoc = await call<DataImportDoc>("frappe.client.save", {
-          doc: doc.value,
-        });
+        serverDoc = await writeDoc(false);
         if (!isCurrent()) return serverDoc;
         applyServerDoc(serverDoc);
       }
@@ -231,6 +233,14 @@ export function useDataImport(
     } finally {
       if (isCurrent()) saving.value = false;
     }
+  }
+
+  async function writeDoc(insert: boolean): Promise<DataImportDoc> {
+    const sent = doc.value as SentDoc;
+    const { data } = insert
+      ? await createDocument<SentDoc>(DOCTYPE, sent)
+      : await updateDocument<SentDoc>(DOCTYPE, sent.name, sent);
+    return data;
   }
 
   // Values the server just found that it can create default to being created.
@@ -275,15 +285,17 @@ export function useDataImport(
     previewFailedSource = null;
     previewError.value = null;
     previewLoading.value = true;
-    previewPromise = call<DataImportPreview | null>(
-      `${METHODS}.get_preview_from_template`,
+    previewPromise = runDocumentMethod<DataImportPreview>(
+      DOCTYPE,
+      docname!,
+      "get_preview_from_template",
       {
-        data_import: docname,
         import_file: doc.value.import_file,
         google_sheets_url: doc.value.google_sheets_url,
-      }
+      },
+      { http: "GET", nullable: true }
     )
-      .then((data) => {
+      .then(({ data }) => {
         if (isStale()) return null;
         if (!data) throw new Error(t("Failed to load import file"));
         preview.value = data;
@@ -337,9 +349,11 @@ export function useDataImport(
       progress.value = emptyProgress();
     }
     try {
-      const started = await call<boolean>(`${METHODS}.form_start_import`, {
-        data_import: docname,
-      });
+      const { data: started } = await runDocumentMethod<boolean>(
+        DOCTYPE,
+        docname,
+        "start_import"
+      );
       return started === true;
     } catch (error) {
       if (name.value === docname) {
@@ -357,7 +371,7 @@ export function useDataImport(
   async function stop(): Promise<StopImportResponse | undefined> {
     const docname = name.value;
     if (!docname) return;
-    const response = await call<StopImportResponse>(
+    const { data: response } = await runMethod<StopImportResponse>(
       `${METHODS}.stop_data_import`,
       { doc_name: docname }
     );
@@ -374,10 +388,7 @@ export function useDataImport(
     countsFetchedAt = Date.now();
     countsInFlight = true;
     try {
-      const status = await call<DataImportStatusSummary>(
-        `${METHODS}.get_import_status`,
-        { data_import_name: docname }
-      );
+      const status = await getImportStatus(docname);
       if (!isCurrent()) return;
       importStatus.value = status;
       const previous = progress.value ?? emptyProgress();
@@ -405,16 +416,16 @@ export function useDataImport(
     if (!docname) return;
     const isCurrent = track();
     const request = ++logsRequest;
-    const status = await call<DataImportStatusSummary>(
-      `${METHODS}.get_import_status`,
-      { data_import_name: docname }
-    ).catch(() => importStatus.value);
+    const status = await getImportStatus(docname).catch(
+      () => importStatus.value
+    );
     if (!isCurrent() || request !== logsRequest) return;
     importStatus.value = status;
-    const rows = await call<DataImportLog[]>(`${METHODS}.get_import_logs`, {
-      data_import: docname,
-      status: logFilter.value,
-    });
+    const { data: rows } = await runMethod<DataImportLog[]>(
+      `${METHODS}.get_import_logs`,
+      { data_import: docname, status: logFilter.value },
+      { http: "GET" }
+    );
     if (!isCurrent() || request !== logsRequest) return;
     logs.value = rows ?? [];
   }
@@ -424,17 +435,17 @@ export function useDataImport(
     doctypeMeta.value = null;
     if (!doctype) return;
     const isCurrent = () => doc.value.reference_doctype === doctype;
-    const schema = await call<ImportProviderSchema | null>(
+    const schema = await runMethod<ImportProviderSchema>(
       `${METHODS}.get_import_fields`,
-      { doctype }
-    ).catch(() => null);
+      { doctype },
+      { http: "GET", nullable: true }
+    )
+      .then(({ data }) => data)
+      .catch(() => null);
     if (!isCurrent()) return;
     providerSchema.value = schema ?? null;
-    const meta = await call<{ docs: DocType[] }>(
-      "frappe.desk.form.load.getdoctype",
-      { doctype, with_parent: 1 }
-    );
-    if (isCurrent()) doctypeMeta.value = meta.docs;
+    const meta = await fetchDoctypeBundle(doctype);
+    if (isCurrent()) doctypeMeta.value = meta;
   }
 
   const forThisImport = (payload: unknown) =>
@@ -617,6 +628,15 @@ function nextProgress(
     skipping: !!event.skipping,
     recentActivity,
   };
+}
+
+async function getImportStatus(docname: string) {
+  const { data } = await runMethod<DataImportStatusSummary>(
+    `${METHODS}.get_import_status`,
+    { data_import_name: docname },
+    { http: "GET" }
+  );
+  return data;
 }
 
 function serverErrorMessage(error: unknown, fallback: string): string {

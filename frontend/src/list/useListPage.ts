@@ -1,0 +1,352 @@
+// One view of a doctype: the state the list page's controls edit, seeded from the app default under
+// the site's and the person's stored rows, mirrored to the URL query, and written back on the person's acts.
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { useDocPermissions } from "@framework/ui/useDocPermissions";
+import { serializeFilters, type FilterCondition, type FilterField } from "@framework/ui/Filter";
+import type { Sort } from "@framework/ui/SortBy";
+import { holdFresh } from "@framework/ui/utils";
+import {
+	computed,
+	getCurrentScope,
+	onScopeDispose,
+	ref,
+	watch,
+	type ComputedRef,
+	type Ref,
+} from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { defaultSort, sameSort, type ListMeta } from "./defaults";
+import {
+	addressFromQuery,
+	completeFilters,
+	createValues,
+	ownedKeys,
+	queryFromAddress,
+	sameFilters,
+	sameQuery,
+} from "./query";
+import type { SavedView } from "./savedView";
+import {
+	filtersFrom,
+	quickFilterFieldsFrom,
+	sortFrom,
+	toStoredQuickFilterFields,
+	type ListSettings,
+	type ListSettingsKey,
+} from "./storedSettings";
+import { useListSettings } from "./useListSettings";
+import type { View } from "./view";
+import { useViewSettings } from "./viewSettings";
+
+export interface ListPage {
+	/** What the page hands its renderer, or a replacement page. */
+	view: View;
+	/** Written to the person's row when customizing ends. */
+	quickFilterFields: Ref<FilterField[] | undefined>;
+	customizing: Ref<boolean>;
+	/** Why the doctype's meta could not be read. */
+	metaError: ComputedRef<unknown>;
+	reloadMeta: () => void;
+	/** The site's defaults, which everyone without their own inherits; a System Manager's act. */
+	saveForSite: (settings: ListSettings) => Promise<void>;
+	resetForSite: (key: ListSettingsKey) => Promise<void>;
+	/** What a new record from this list starts with. */
+	createValues: ComputedRef<Record<string, unknown>>;
+	/** The settings the view would be saved with as the page shows it now. */
+	snapshot: () => ListSettings;
+	/** The settings a save wrote: they become the view's base, and the page's changes are gone. */
+	commit: (settings: ListSettings) => void;
+	/** Drops the page's changes: the filters, the sort and the settings go back to the view's own. */
+	discard: () => void;
+}
+
+/** The view a list address opens when it names none: the plain List view. */
+export const PLAIN_LIST: SavedView = {
+	key: "list",
+	label: "",
+	type: "List",
+	layer: null,
+	applies: true,
+};
+
+export function useListPage(doctype: string, opened: SavedView = PLAIN_LIST): ListPage {
+	const route = useRoute();
+	const router = useRouter();
+	const { meta, error, refreshing, refreshed, reload: reloadMeta } = useDoctypeMeta(doctype);
+	const permissions = useDocPermissions(doctype);
+	const settings = useListSettings(doctype);
+	// A saved view is its own row's settings, read on opening; the page's changes are not written back.
+	const saved = opened.layer ? useViewSettings(doctype, opened.key) : null;
+	const stored = computed(() => (saved ? saved.stored.value : settings.stored.value));
+	const listMeta = computed(() => meta.value as ListMeta | null);
+	const fields = computed(() => listMeta.value?.fields ?? []);
+
+	const filters = ref<FilterCondition[]>([]);
+	const sort = ref<Sort[]>([]);
+	const quickFilterFields = ref<FilterField[] | undefined>();
+	const customizing = ref(false);
+	// The renderer's keys the person changed; the stored rows show through every other key.
+	const changed = ref<Record<string, unknown>>({});
+	const seeded = ref(false);
+	// What the page last set itself, per key: a change that matches it is not the person's act.
+	const applied: Partial<Record<ListSettingsKey, string>> = {};
+	const acted = new Set<ListSettingsKey>();
+
+	const ready = computed(
+		() =>
+			Boolean(listMeta.value) &&
+			settings.loaded.value &&
+			(!saved || saved.loaded.value) &&
+			!permissions.loading.value
+	);
+
+	const readable = (fieldname: string) => {
+		const field = fields.value.find((one) => one.fieldname === fieldname);
+		return !field || permissions.fieldAccess(field) !== "none";
+	};
+
+	function resolvedSort(): Sort[] {
+		const own = sortFrom(stored.value.sort, fields.value, readable, listMeta.value ?? {});
+		return own.length ? own : defaultSort(listMeta.value!);
+	}
+
+	function resolvedFilters(): FilterCondition[] {
+		return filtersFrom(stored.value.filters, doctype, fields.value, readable);
+	}
+
+	// What the URL is a layer on: a saved view's own filters, or the plain view's before the person's.
+	function baseFilters(): FilterCondition[] {
+		if (saved) return resolvedFilters();
+		return filtersFrom(settings.shared.value.filters, doctype, fields.value, readable);
+	}
+
+	function resolvedQuickFilterFields(): FilterField[] | undefined {
+		const chosen = settings.stored.value.quick_filter_fields;
+		if (!chosen) return undefined;
+		return quickFilterFieldsFrom(chosen, doctype, fields.value, readable);
+	}
+
+	function applyStored() {
+		changed.value = {};
+		applyQuickFilterFields();
+	}
+
+	function applyQuickFilterFields() {
+		quickFilterFields.value = resolvedQuickFilterFields();
+		applied.quick_filter_fields = JSON.stringify(
+			quickFilterFields.value && toStoredQuickFilterFields(quickFilterFields.value)
+		);
+	}
+
+	function readQuery(value: ListMeta) {
+		const address = addressFromQuery(route.query, doctype, value.fields ?? []);
+		filters.value = address.filters ?? resolvedFilters();
+		applied.filters = JSON.stringify(wireOf(filters.value));
+		readSort();
+	}
+
+	/** After a row changed under the page: the sort follows, a filter still being typed stays. */
+	function readSort() {
+		const address = addressFromQuery(route.query, doctype, fields.value);
+		sort.value = address.sort ?? resolvedSort();
+		applied.sort = JSON.stringify(sort.value);
+	}
+
+	watch(
+		ready,
+		(value) => {
+			if (!value || seeded.value) return;
+			applyStored();
+			readQuery(listMeta.value!);
+			seeded.value = true;
+		},
+		{ immediate: true }
+	);
+
+	// After a DocType change the page shows the stale meta and settings, then both fresh ones in one step.
+	if (refreshing.value || settings.refreshing.value) {
+		const release = holdFresh();
+		if (getCurrentScope()) onScopeDispose(release);
+		void Promise.all([refreshed(), settings.refreshed()]).then(() => {
+			release();
+			applyFresh();
+		});
+	}
+
+	/** Each setting the page set from stale settings follows the fresh ones, unless the person changed it. */
+	function applyFresh() {
+		if (!seeded.value) return;
+		if (!acted.has("quick_filter_fields")) applyQuickFilterFields();
+		if (!acted.has("sort")) readSort();
+	}
+
+	// Only a query the page did not write itself is read back: Back, Forward, a pasted link.
+	watch(
+		() => route.query,
+		(query) => {
+			if (seeded.value && !sameQuery(query, stateQuery())) readQuery(listMeta.value!);
+		}
+	);
+
+	// A replace, so the tweak is not a step Back has to undo. A landed write moves the resolved
+	// sort, so the URL is spelled again and a `_sort` that became the default goes.
+	watch([filters, sort, stored], writeQuery, { deep: true });
+
+	function writeQuery() {
+		if (!seeded.value || sameQuery(route.query, stateQuery())) return;
+		router.replace({ query: stateQuery(), hash: route.hash }).catch(() => {});
+	}
+
+	/** The query the state spells: foreign keys kept, the resolved sort left unwritten. */
+	function stateQuery() {
+		const owned = ownedKeys(doctype, fields.value);
+		const kept = Object.fromEntries(
+			Object.entries(route.query).filter(([key]) => !owned.has(key))
+		);
+		const written = sameSort(sort.value, resolvedSort()) ? [] : sort.value;
+		const differs = !sameFilters(filters.value, baseFilters());
+		const cleared = differs && !completeFilters(filters.value).length;
+		const spelled = differs ? filters.value : [];
+		return { ...kept, ...queryFromAddress({ filters: spelled, sort: written, cleared }) };
+	}
+
+	// The person's own acts write; a value the page set itself, from a row or the URL, does not.
+	watch(sort, (value) => persist("sort", value), { deep: true });
+	watch(filters, persistFilters, { deep: true });
+	watch(customizing, (now, before) => {
+		if (before && !now && quickFilterFields.value) {
+			persist("quick_filter_fields", toStoredQuickFilterFields(quickFilterFields.value));
+		}
+	});
+
+	function persist<Key extends ListSettingsKey>(key: Key, value: ListSettings[Key]) {
+		const json = JSON.stringify(value);
+		// A saved view changes only on its Save; the quick filter fields belong to the type's plain view.
+		if (saved && key !== "quick_filter_fields") return;
+		if (!seeded.value || applied[key] === json) return;
+		applied[key] = json;
+		acted.add(key);
+		settings.save({ [key]: value });
+	}
+
+	// The plain view's filters stick for the person: their row holds them, or nothing when they match the shared ones.
+	// `wrote` covers a save still in flight, which `has` cannot see yet.
+	let wrote = false;
+	function persistFilters(value: FilterCondition[]) {
+		if (saved || !seeded.value) return;
+		const wire = wireOf(value);
+		const json = JSON.stringify(wire);
+		if (applied.filters === json) return;
+		applied.filters = json;
+		acted.add("filters");
+		if (!sameFilters(value, baseFilters())) {
+			wrote = true;
+			settings.save({ filters: wire });
+		} else if (wrote || settings.has("user", "filters")) {
+			wrote = false;
+			void settings.reset("filters");
+		}
+	}
+
+	const viewSettings = computed(() => ({ ...stored.value, ...changed.value }));
+
+	/** A renderer's change to its own keys: kept in page state and written to the person's row. */
+	function update(patch: Record<string, unknown>) {
+		const current = viewSettings.value as Record<string, unknown>;
+		const moved = Object.entries(patch).filter(
+			([key, value]) => JSON.stringify(value) !== JSON.stringify(current[key])
+		);
+		if (!moved.length) return;
+		changed.value = { ...changed.value, ...Object.fromEntries(moved) };
+		for (const [key, value] of moved) persist(key as ListSettingsKey, value as never);
+	}
+
+	const unstored = computed(() =>
+		Object.entries(changed.value).some(
+			([key, value]) =>
+				JSON.stringify(value) !== JSON.stringify(stored.value[key as ListSettingsKey])
+		)
+	);
+
+	async function afterSettingsWrite(write: Promise<void>) {
+		await write;
+		applyStored();
+		readSort();
+	}
+
+	const view: View = {
+		doctype,
+		key: opened.key,
+		type: opened.type,
+		layer: opened.layer,
+		settings: viewSettings,
+		filters,
+		sort,
+		seeded: computed(() => seeded.value),
+		modified: computed(
+			() =>
+				seeded.value &&
+				(!sameFilters(filters.value, baseFilters()) ||
+					!sameSort(sort.value, resolvedSort()) ||
+					unstored.value)
+		),
+		update,
+		saveable: computed(() => (saved ? saved.saveable.value : true)),
+		customized: (key) => !saved && settings.has("user", key as ListSettingsKey),
+		reset: async (key) => {
+			if (!saved) return afterSettingsWrite(settings.reset(key as ListSettingsKey));
+			// No tier sits under a saved view: its reset is the default, kept as a change until Save.
+			if (stored.value[key as ListSettingsKey] === undefined) delete changed.value[key];
+			else changed.value = { ...changed.value, [key]: [] };
+		},
+	};
+
+	function snapshot(): ListSettings {
+		const { quick_filter_fields: _quick, ...own } = viewSettings.value as ListSettings;
+		const sorted = sort.value.map(({ fieldname, direction }) => ({ fieldname, direction }));
+		return { ...own, filters: wireOf(filters.value), sort: sorted };
+	}
+
+	function commit(written: ListSettings) {
+		// Edits made while the save was in flight are not in `written`: they stay as changes, a reset as `[]`.
+		const now = viewSettings.value as Record<string, unknown>;
+		const own = new Set([...Object.keys(written), ...Object.keys(changed.value)]);
+		const edits: Record<string, unknown> = {};
+		for (const key of own) {
+			if (["filters", "sort", "quick_filter_fields"].includes(key)) continue;
+			const value = key in now ? now[key] : [];
+			if (JSON.stringify(value) !== JSON.stringify((written as Record<string, unknown>)[key])) edits[key] = value;
+		}
+		if (saved) saved.stored.value = written;
+		changed.value = edits as typeof changed.value;
+		applied.sort = JSON.stringify(sort.value);
+		writeQuery();
+	}
+
+	function discard() {
+		changed.value = {};
+		filters.value = baseFilters();
+		sort.value = resolvedSort();
+		applied.sort = JSON.stringify(sort.value);
+		writeQuery();
+	}
+
+	return {
+		view,
+		quickFilterFields,
+		customizing,
+		metaError: computed(() => error.value ?? saved?.failure.value ?? null),
+		reloadMeta: () => (saved?.failure.value ? void saved.retry() : reloadMeta()),
+		saveForSite: (value) => afterSettingsWrite(settings.saveForSite(value)),
+		resetForSite: (key) => afterSettingsWrite(settings.resetForSite(key)),
+		createValues: computed(() => createValues(filters.value, fields.value)),
+		snapshot,
+		commit,
+		discard,
+	};
+}
+
+/** The complete conditions as the wire triples a settings row holds. */
+function wireOf(filters: FilterCondition[]) {
+	return serializeFilters(completeFilters(filters));
+}

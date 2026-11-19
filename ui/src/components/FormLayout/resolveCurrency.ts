@@ -1,10 +1,7 @@
-/**
- * Currency-code resolution for `FormLayout`'s `Currency` fields, mirroring Frappe
- * desk's `frappe.meta.get_field_currency`. The cross-record read goes through an
- * overridable `getDocValue` seam (built-in reader below).
- */
-import { shallowRef } from "vue";
-import { createResource, getCachedResource } from "frappe-ui";
+// A Currency field's currency code, as desk's `frappe.meta.get_field_currency` finds it.
+import { getCurrentScope, onScopeDispose, shallowRef } from "vue";
+import { getDocumentFields } from "../../api";
+import { holdDocument, readCachedDocument } from "../../cache";
 import { pickSiblingValue } from "./pickSiblingValue";
 import type { RecordContext } from "./pickSiblingValue";
 
@@ -26,36 +23,56 @@ export interface CurrencyResolveContext extends RecordContext {
 
 // --- Built-in runtime reader -------------------------------------------------
 
-/** Cache namespace for the resources frappe-ui keys by doctype/name/field. */
-const CACHE_NS = "FormLayout:field_currency";
+/** Each doctype, name and field that readers on screen use: how many, and the cache hold. */
+const readers = new Map<string, { count: number; release: () => void }>();
 
-/**
- * Built-in reader, backed by frappe-ui's resource cache. Returns `undefined`
- * until the fetch lands (and always when there's no `window`); the reactive
- * `.data` re-runs the calling computed.
- *
- * The `getCachedResource` lookup matters: re-`createResource`-ing with the same
- * `cache` key while `auto` is set would `reload()` on every computed re-run (a
- * fetch storm), so the resource is created once and reused.
- */
-function builtinGetDocValue(
+/** The reader for one component; the first reader on screen reads the value into the cache. */
+export function useDocValueReader(): DocValueReader {
+  // With no scope nothing would release the value, so the reader reads the cache alone.
+  if (!getCurrentScope()) return (...args) => getDocValueReader()(...args);
+  const used = new Map<string, string>();
+  onScopeDispose(() => used.forEach(release));
+  return (doctype, name, field) => {
+    if (override.value) return override.value(doctype, name, field);
+    const slot = [doctype, field].join("\u0000");
+    const key = [doctype, name, field].join("\u0000");
+    const previous = used.get(slot);
+    if (previous !== key) {
+      if (previous) release(previous);
+      used.set(slot, key);
+      use(key, doctype, name, field);
+    }
+    return readCachedValue(doctype, name, field);
+  };
+}
+
+/** The linked record's value in the shared data cache; `undefined` when its entry lacks it. */
+function readCachedValue(
   doctype: string,
   name: string,
   field: string
 ): string | null | undefined {
-  if (typeof window === "undefined") return undefined;
+  const doc = readCachedDocument(doctype, name)?.doc;
+  if (!doc || !(field in doc)) return undefined;
+  const value = doc[field];
+  return value == null ? null : String(value);
+}
 
-  const cacheKey = [CACHE_NS, doctype, name, field];
-  const resource =
-    getCachedResource(cacheKey) ??
-    createResource({
-      url: "frappe.client.get_value",
-      params: { doctype, filters: name, fieldname: field },
-      cache: cacheKey,
-      auto: true,
-    });
-  // `frappe.client.get_value` returns `{ [field]: value }`; `.data` is reactive.
-  return resource.data?.[field] ?? undefined;
+function use(key: string, doctype: string, name: string, field: string): void {
+  const reader = readers.get(key);
+  if (reader) {
+    reader.count++;
+    return;
+  }
+  readers.set(key, { count: 1, release: holdDocument(doctype, name) });
+  if (typeof window !== "undefined") getDocumentFields(doctype, name, [field]).catch(() => {});
+}
+
+function release(key: string): void {
+  const reader = readers.get(key);
+  if (!reader || --reader.count > 0) return;
+  readers.delete(key);
+  reader.release();
 }
 
 /** App/test override for the cross-record reader; mirrors `setFormatDefaults`. */
@@ -66,14 +83,16 @@ export function setDocValueReader(reader: DocValueReader | null): void {
   override.value = reader;
 }
 
-/** Restore the built-in `frappe.client.get_value` reader (test isolation). */
+/** Restore the built-in reader and forget which values are in use (test isolation). */
 export function resetDocValueReader(): void {
   override.value = null;
+  readers.forEach((reader) => reader.release());
+  readers.clear();
 }
 
-/** The active cross-record reader: the override if set, else the built-in. */
+/** The active cross-record reader: the override if set, else a read of the cache alone. */
 export function getDocValueReader(): DocValueReader {
-  return override.value ?? builtinGetDocValue;
+  return override.value ?? readCachedValue;
 }
 
 // --- Resolution --------------------------------------------------------------

@@ -58,7 +58,9 @@ class TestRenameSingleDocType(IntegrationTestCase):
 		single.some_fieldname = "some value"
 		single.save()
 
-		self.assertEqual(new_name, frappe.rename_doc("DocType", old_name, new_name, force=True))
+		self.assertEqual(
+			new_name, frappe.rename_doc("DocType", old_name, new_name, force=True, rebuild_search=False)
+		)
 		self.assertEqual(frappe.db.get_single_value(new_name, "some_fieldname"), "some value")
 		self.assertEqual(frappe.db.get_single_value(new_name, "name"), new_name)
 		self.assertEqual(frappe.db.count("Singles", {"doctype": old_name}), 0)
@@ -182,7 +184,7 @@ class TestRenameDoc(IntegrationTestCase):
 		old_doctype_path = get_doc_path("Custom", "DocType", self.doctype.old)
 
 		# rename doc via wrapper API accessible via /desk
-		frappe.rename_doc("DocType", self.doctype.old, self.doctype.new)
+		frappe.rename_doc("DocType", self.doctype.old, self.doctype.new, rebuild_search=False)
 
 		# check if database and controllers are updated
 		self.assertTrue(frappe.db.exists("DocType", self.doctype.new))
@@ -211,9 +213,11 @@ class TestRenameDoc(IntegrationTestCase):
 			{"doctype": "Rename This", "linked_to_doctype": "Rename This"}
 		).insert()
 
-		# Rename doctype
+		# Rename doctype. A queued global search rebuild of DocType, run by a CI worker, deletes the
+		# `__global_search` row `tearDownClass` deletes, and Postgres refuses that as a concurrent delete.
 		self.assertEqual(
-			"Renamed Doc", frappe.rename_doc("DocType", "Rename This", "Renamed Doc", force=True)
+			"Renamed Doc",
+			frappe.rename_doc("DocType", "Rename This", "Renamed Doc", force=True, rebuild_search=False),
 		)
 
 		# Test if Doctype value has changed in Link field
@@ -237,7 +241,9 @@ class TestRenameDoc(IntegrationTestCase):
 			self.assertRaises(
 				frappe.NameError, frappe.rename_doc, "DocType", doctype.name, "Permission Manager"
 			)
-			self.assertEqual(same_route, frappe.rename_doc("DocType", doctype.name, same_route))
+			self.assertEqual(
+				same_route, frappe.rename_doc("DocType", doctype.name, same_route, rebuild_search=False)
+			)
 
 	def test_update_document_title_api(self):
 		test_doctype = "Module Def"

@@ -1,20 +1,13 @@
+import { holdsChildRows } from "../Fields/rowIdentity";
+import { NO_VALUE } from "../FormLayout/noValueFields";
 import type { RawMetaField } from "../FormLayout/types";
+import { collabColumns, type ColumnMeta } from "./collabColumns";
 import type { ColumnOption, SyntheticColumn } from "./types";
 
-/** Fieldtypes that hold no list-renderable value — layout/presentation breaks and
- *  child tables. A column can't be shown for any of these, so they're dropped from
- *  the add-column options. Mirrors CRM ColumnSettings' field filter. */
-const NON_COLUMN_FIELDTYPES = new Set([
-  "Section Break",
-  "Column Break",
-  "Tab Break",
-  "HTML",
-  "Heading",
-  "Button",
-  "Fold",
-  "Table",
-  "Table MultiSelect",
-]);
+/** A list column can't show a no-value field or a child table. */
+export function isColumnFieldtype(fieldtype: string): boolean {
+  return !NO_VALUE.has(fieldtype) && !holdsChildRows(fieldtype);
+}
 
 /** Standard fields every doctype can show as a column, appended after the meta
  *  fields. */
@@ -36,21 +29,23 @@ const toOption = (label: string, fieldname: string): ColumnOption => ({
  * Derive a doctype's available column Field Options from its Meta fields,
  * client-side: drop the layout/no-data fieldtypes and child tables, keep only
  * fields with both a label and fieldname, then append the standard fields and any
- * host-declared synthetic columns (ADR-0033) — the union so a hidden synthetic
+ * host-declared synthetic columns — the union so a hidden synthetic
  * column stays re-addable, since it is not a Meta field. The component filters out
  * already-selected columns; this stays a pure Meta→options map. See CONTEXT.md
  * ("Field Options").
  */
 export function getColumnOptions(
   fields: RawMetaField[],
-  synthetic: SyntheticColumn[] = []
+  synthetic: SyntheticColumn[] = [],
+  meta: ColumnMeta = {}
 ): ColumnOption[] {
   const fieldOptions = fields
     .filter(
-      (f) => !NON_COLUMN_FIELDTYPES.has(f.fieldtype) && f.label && f.fieldname
+      (f) => isColumnFieldtype(f.fieldtype) && f.label && f.fieldname
     )
     .map((f) => toOption(f.label as string, f.fieldname));
   const standard = STANDARD_FIELDS.map((f) => toOption(f.label, f.fieldname));
+  const collab = collabColumns(meta).map((f) => toOption(f.label, f.fieldname));
   const declared = synthetic.map((s) => toOption(s.label, s.key));
-  return [...fieldOptions, ...standard, ...declared];
+  return [...fieldOptions, ...standard, ...collab, ...declared];
 }

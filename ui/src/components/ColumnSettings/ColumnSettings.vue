@@ -2,7 +2,7 @@
   ColumnSettings — a controlled, meta-driven list-view control. Its `v-model` is
   an ordered list of Columns (`{ fieldname, label, width? }[]`): presence means
   shown, array order is display order, and `width` is the slice a column resize
-  co-writes (the host wires that sync via `useListView`, see ADR-0006). The
+  co-writes (the host wires that sync via `useListView`). The
   control owns no data resource and never persists — changes go live into the
   model with no apply button; reset / reset-to-defaults are host concerns.
 
@@ -31,24 +31,26 @@
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
 				aria-label="Columns"
+				:data-act="act"
 			/>
 		</template>
 	</Combobox>
 
 	<!-- Non-empty: the columns popover with its reorder / rename / remove rows. -->
-	<Popover v-else ref="popoverRef" side="bottom" align="end">
+	<Popover v-else :open="popoverOpen" side="bottom" align="end" @update:open="setOpen">
 		<template #trigger>
 			<Button
 				:label="hideLabel ? undefined : 'Columns'"
 				:icon="hideLabel ? 'lucide-columns-3' : undefined"
 				:iconLeft="!hideLabel ? 'lucide-columns-3' : undefined"
 				aria-label="Columns"
+				:data-act="act"
 				@click="confirmingReset = false"
 			/>
 		</template>
 		<template #default>
 			<!-- Reorder / rename / remove the shown columns, add more. Width is
-			     not edited here — drag-resize in the table owns it (ADR-0006). -->
+			     not edited here — drag-resize in the table owns it. -->
 			<div class="min-w-60 p-2">
 				<Draggable
 					v-if="model.length"
@@ -88,6 +90,7 @@
 								variant="ghost"
 								icon="lucide-x"
 								aria-label="Remove column"
+								:data-act="act"
 								@click="removeColumn(i)"
 							/>
 						</div>
@@ -108,6 +111,7 @@
 							<Button
 								variant="ghost"
 								label="Add Column"
+								data-view
 								iconLeft="lucide-plus"
 								:class="[
 									'!text-ink-gray-5',
@@ -116,7 +120,7 @@
 							/>
 						</template>
 					</Combobox>
-					<!-- Reset to the Meta defaults. The host owns the defaults (ADR-0006),
+					<!-- Reset to the Meta defaults. The host owns the defaults,
 					     so this only emits; `canReset` hides it when nothing to undo. The
 					     first click arms an inline confirm, the second emits. -->
 					<Button
@@ -125,6 +129,8 @@
 						:variant="confirmingReset ? 'subtle' : 'ghost'"
 						:theme="confirmingReset ? 'red' : 'gray'"
 						:label="confirmingReset ? 'Confirm Reset' : 'Reset'"
+						:data-act="confirmingReset ? act : undefined"
+						:data-view="confirmingReset ? undefined : ''"
 						@click="onResetClick"
 					/>
 				</div>
@@ -134,10 +140,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from "vue";
+import { computed, nextTick, ref, shallowRef, watch, type Component } from "vue";
 import { Button, Combobox, Popover, TextInput } from "frappe-ui";
-// @ts-ignore — vuedraggable ships no bundled types
-import Draggable from "vuedraggable";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getColumnOptions } from "./getColumnOptions";
 import type { Column, ColumnOption, ColumnSettingsProps } from "./types";
@@ -148,7 +152,7 @@ const props = withDefaults(defineProps<ColumnSettingsProps>(), {
 	synthetic: () => [],
 });
 
-// Reset is the host's job (ADR-0006): the controlled popover holds no defaults, so
+// Reset is the host's job: the controlled popover holds no defaults, so
 // it only signals intent and the host restores them.
 const emit = defineEmits<{ reset: [] }>();
 
@@ -170,17 +174,30 @@ function onResetClick() {
 // reads and re-emits this array, never a data resource and never persistence.
 const model = defineModel<Column[]>({ default: () => [] });
 
-// The popover only mounts once a column exists (`v-else`); a ref lets us open it
-// right after the empty-state picker seeds the first one, so the user lands on the
-// row list instead of having to click "Columns" again.
-const popoverRef = ref<{ open: () => void } | null>(null);
+// vuedraggable loads on the first open; the popover opens once it is in, never empty.
+const Draggable = shallowRef<Component>();
+const popoverOpen = ref(false);
+
+async function setOpen(value: boolean) {
+	// @ts-ignore — vuedraggable ships no bundled types
+	if (value) Draggable.value ??= (await import("vuedraggable")).default;
+	popoverOpen.value = value && model.value.length > 0;
+}
+
+// Emptying the columns unmounts the popover, so the next one starts closed.
+watch(
+	() => model.value.length,
+	(length) => {
+		if (!length) popoverOpen.value = false;
+	}
+);
 
 const { meta } = useDoctypeMeta(props.doctype);
 
 // Field Options derived client-side from Meta, unioned with the host's synthetic
-// columns (ADR-0033) — no CRM endpoint.
+// columns — no CRM endpoint.
 const allOptions = computed<ColumnOption[]>(() =>
-	getColumnOptions(meta.value?.fields ?? [], props.synthetic)
+	getColumnOptions(meta.value?.fields ?? [], props.synthetic, meta.value ?? {})
 );
 
 // The "add" picker offers every column not already shown.
@@ -198,13 +215,13 @@ function fieldnameOf(option: unknown): string | null {
 	return o.value ?? o.fieldname ?? null;
 }
 
-function addColumn(option: unknown) {
+async function addColumn(option: unknown) {
 	const fieldname = fieldnameOf(option);
 	if (!fieldname || model.value.some((c) => c.fieldname === fieldname)) return;
 	const label = allOptions.value.find((o) => o.fieldname === fieldname)?.label ?? fieldname;
 	model.value = [...model.value, { fieldname, label }];
-	// Open the popover once it mounts (no-op when adding from inside an open one).
-	nextTick(() => popoverRef.value?.open());
+	// The first column mounts the popover; open it so the user lands on the row list.
+	await setOpen(true);
 }
 
 function removeColumn(index: number) {
@@ -217,7 +234,7 @@ function reorder(next: Column[]) {
 
 // Inline rename holds a component-local draft so Esc discards the edit without
 // touching the model; only commit writes it back. Width is never edited here —
-// drag-resize in the table owns it (ADR-0006). An empty/whitespace label is
+// drag-resize in the table owns it. An empty/whitespace label is
 // rejected so a column never loses its header.
 const editIndex = ref<number | null>(null);
 const draft = ref("");

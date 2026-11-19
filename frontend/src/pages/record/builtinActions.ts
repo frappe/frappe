@@ -1,0 +1,145 @@
+// The actions every record gets from the framework, gated by its rights: quick actions on
+// the panel, the `⋯` menu's rows in the header. Each is an ordinary item a script hides or reorders by name.
+import type { RouteLocationRaw } from "vue-router";
+import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
+import type { TabCreateAction } from "@/recordPage/types";
+import { COPY_OF } from "@/newRecordValues";
+import { routeFor, routeForNew } from "@/router/routeFor";
+import { favouriteWording } from "@/pages/favourite/favouriteWording";
+import { assignItem, type AssignState } from "./assignAct";
+import { renameItem } from "./renameAct";
+import { editorRoute, type EditorEntry } from "@/pages/doctypeEditor/entries/editorEntries";
+import { editLayoutMenu, type LayoutRoutes } from "./editLayoutItem";
+
+export function quickActionBuiltins(
+  perms: Record<string, any>,
+  tagged = false,
+  follow?: FollowState,
+  attach?: TabCreateAction,
+  fieldActions: QuickAction[] = []
+): QuickAction[] {
+  const actions: QuickAction[] = [];
+  if (perms.email) actions.push({ name: "email", label: "Email", icon: "lucide-mail", run: openEmail });
+  actions.push(...fieldActions);
+  // No right gates it: a comment needs only read.
+  actions.push({ name: "comment", label: "Comment", icon: "lucide-message-square", run: openComment });
+  // The Files tab's own `+` entry, so it goes when that entry goes: no write right, or the tab hidden.
+  if (attach)
+    actions.push({ name: "attach", label: "Attach", icon: "lucide-paperclip", asks: ["dialog"], run: attach.run, right: attach.right });
+  if (perms.print) actions.push({ name: "print", label: "Print", icon: "lucide-printer", run: print });
+  actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: copyLink });
+  if (follow) actions.push({ name: "follow", ...followWording(follow), run: follow.toggle });
+  // Only while the record has no tag: a tagged record has the chips' own "+" instead.
+  if (perms.write && !tagged) actions.push({ name: "tags", label: "Tags", icon: "lucide-tag", tagging: true });
+  return actions;
+}
+
+/** The star's state and action, so the menu row can say the opposite and do the same. */
+export interface FavouriteState {
+  favourited: boolean;
+  toggle: (page: RecordPageApi) => any;
+}
+
+/** The reader's follow, absent while the gate is shut: neither row nor quick action then. */
+export interface FollowState {
+  following: boolean;
+  toggle: (page: RecordPageApi) => any;
+}
+
+function followWording({ following }: FollowState) {
+  return following ? { label: "Unfollow", icon: "lucide-bell-off" } : { label: "Follow", icon: "lucide-bell" };
+}
+
+/**
+ * The header's `⋯` rows: no `display`, so the projection files them under the menu.
+ * Five bands by `group`: the reader's own toggles, Assign to and Rename, the record's copies, the DocType editor, then Delete.
+ */
+export function headerMenuBuiltins(
+  perms: Record<string, any>,
+  favourite: FavouriteState,
+  options: {
+    single?: boolean;
+    follow?: FollowState;
+    assign?: AssignState;
+    rename?: boolean;
+    duplicate?: boolean;
+    submitted?: boolean;
+    fieldActions?: HeaderItem[];
+    editorEntries?: EditorEntry[];
+    /** The editor's route at each layout, the one the record shows where it has one; absent without the right. */
+    editLayout?: LayoutRoutes | null;
+  } = {}
+): HeaderItem[] {
+  const items: HeaderItem[] = [
+    {
+      name: "favourite_row",
+      group: "favourite_band",
+      run: favourite.toggle,
+      // The star is this act's palette row.
+      palette: false,
+      ...favouriteWording(favourite.favourited),
+    },
+  ];
+  if (options.follow)
+    items.push({
+      name: "follow_row",
+      group: "favourite_band",
+      run: options.follow.toggle,
+      ...followWording(options.follow),
+    });
+  if (options.assign) items.push(assignItem(options.assign));
+  if (options.rename && !options.single) items.push(renameItem());
+  items.push(...(options.fieldActions ?? []));
+  items.push(
+    { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
+    { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId }
+  );
+  if (options.duplicate)
+    items.push({ name: "duplicate", label: "Duplicate", icon: "lucide-copy", group: "copies", run: duplicate });
+  const customize = [...(options.editorEntries ?? []).map(editorItem), ...(options.editLayout ? editLayoutMenu(options.editLayout) : [])];
+  // Declared, so the Edit layout dropdown nests in `⋯`; under an undeclared band it would be a header button.
+  if (customize.length) items.push({ name: "customize", label: "", display: "section" }, ...customize);
+  // Deleting a single wipes its settings row and the page reloads it with defaults.
+  if (perms.delete && !options.single && !options.submitted)
+    items.push({ name: "delete", label: "Delete", icon: "lucide-trash-2", group: "danger", asks: ["danger"], run: async (page: RecordPageApi) => (await import("./deleteRun")).remove(page) });
+  return items;
+}
+
+function editorItem({ name, label, icon, mode }: EditorEntry): HeaderItem {
+  const run = (page: RecordPageApi) => page.router.push(editorRoute(page.doctype, mode));
+  return { name, label, icon, group: "customize", run };
+}
+
+function openComment(page: RecordPageApi) {
+  page.composer.open("comment");
+}
+
+function openEmail(page: RecordPageApi) {
+  page.composer.open("email");
+}
+
+// Desk v1's print view; the new shell has no print page of its own yet. It opens in the click's own tick, so a popup blocker allows it.
+function print(page: RecordPageApi) {
+  const query = new URLSearchParams({ doctype: page.doctype, name: page.docname });
+  window.open(`/printview?${query}`, "_blank");
+}
+
+// No clipboard outside a secure context; a throw here would reload the record over an unsaved draft.
+// The write stays in the click's own tick: a browser grants it only just after the click.
+async function copyLink(page: RecordPageApi) {
+  await copy(page, window.location.href, "Link copied");
+}
+
+async function copyId(page: RecordPageApi) {
+  await copy(page, page.docname, "ID copied");
+}
+
+function duplicate(page: RecordPageApi) {
+  return page.router.push(routeForNew(page.doctype, { [COPY_OF]: page.docname }));
+}
+
+async function copy(page: RecordPageApi, text: string, confirmation: string) {
+  if (!navigator.clipboard) return page.toast.error("Copying needs a secure connection");
+  await navigator.clipboard.writeText(text);
+  page.toast.success(confirmation);
+}

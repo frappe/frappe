@@ -16,6 +16,11 @@ const PHONE_WIDTH = 640; // narrower windows show the panel full screen
 const SLIDE_TIME = 200; // ms the panel takes to slide in or out
 // under the page's dialogs and toasts, which start at 1040 on Desk and 50 in frappe-ui apps
 const LAYER = location.pathname.startsWith("/desk") ? 1035 : 45;
+// desk v2's palette opens a chat as its dialog closes, so the panel goes over its dialogs
+// (not its popovers, at 100)
+const PANEL_LAYER = location.pathname.startsWith("/apps") ? 55 : LAYER;
+// the user may start a chat (sent by frappe/flow/launcher.py), so desk v2's palette offers it
+const READY = "ready" in SCRIPT.dataset;
 
 class FlowLauncher {
 	constructor() {
@@ -23,6 +28,7 @@ class FlowLauncher {
 		this.make();
 		this.bind();
 		this.place();
+		if (READY) document.documentElement.dataset.flow = "ready";
 		if (this.state.open) this.open({ focus: false, slide: false });
 		else prefetch_island();
 	}
@@ -51,6 +57,7 @@ class FlowLauncher {
 
 	bind() {
 		window.addEventListener("keydown", (event) => this.toggle_by_key(event), true);
+		window.addEventListener("flow:ask", (event) => this.ask(event.detail.text));
 		// the apps' own toggles, wherever they put them, including ones rendered later
 		document.addEventListener("click", (event) => {
 			if (event.target.closest?.("[data-flow-toggle]")) this.toggle();
@@ -91,6 +98,20 @@ class FlowLauncher {
 				() => this.focus_chat(),
 				() => this.panel.querySelector(".reload").focus()
 			);
+	}
+
+	// a new chat with the text in its box, not sent. The palette sends this and then closes,
+	// taking the focus back as it goes: a chat mounted sooner loses its box's focus to it
+	ask(text) {
+		if (!READY) return;
+		after_dialogs(() => {
+			this.chat_focus = null;
+			// the skeleton again, while the new chat mounts in place of the old one
+			this.host.removeAttribute("data-ready");
+			this.state.path = `/?new=1&q=${encodeURIComponent(text)}`;
+			this.make_island();
+			this.open();
+		});
 	}
 
 	// where the keyboard was in the chat, or its message box
@@ -309,6 +330,16 @@ function deep_active_element() {
 	return element;
 }
 
+// Calls back once no frappe-ui dialog is on the page and the closed one has given its focus
+// back (a task after it leaves), or after a second if one stays.
+function after_dialogs(callback, frames = 60) {
+	if (frames && document.querySelector('[role="dialog"][data-state]')) {
+		requestAnimationFrame(() => after_dialogs(callback, frames - 1));
+	} else {
+		setTimeout(callback);
+	}
+}
+
 // Calls back now and whenever an <html>'s data-theme changes.
 function on_theme_change(root, callback) {
 	callback();
@@ -364,7 +395,7 @@ const STYLE = `
    follows the page, as the chat's own layer turns them back on */
 :host { all: initial; pointer-events: inherit; }
 @media print { :host { display: none; } }
-.panel { position: fixed; z-index: ${LAYER}; box-sizing: border-box; }
+.panel { position: fixed; z-index: ${PANEL_LAYER}; box-sizing: border-box; }
 .panel { left: var(--left); top: var(--top); width: var(--width); height: var(--height); }
 .panel[inert] { visibility: hidden; transform: translateX(100%); }
 /* closing, it stays in view until it is out */

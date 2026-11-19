@@ -27,6 +27,24 @@ describe("getDefaultColumns", () => {
     ]);
   });
 
+  it("skips an in_list_view field whose fieldtype can't be a column", () => {
+    expect(
+      getDefaultColumns([
+        { fieldname: "photo", fieldtype: "Image", label: "Photo", in_list_view: 1 },
+        {
+          fieldname: "gallery",
+          fieldtype: "Attachment Gallery",
+          label: "Gallery",
+          in_list_view: 1,
+        },
+        { fieldname: "status", fieldtype: "Select", label: "Status", in_list_view: 1 },
+      ])
+    ).toEqual([
+      { fieldname: "name", label: "Name" },
+      { fieldname: "status", label: "Status" },
+    ]);
+  });
+
   it("falls back to the field's name when it has no label", () => {
     expect(
       getDefaultColumns([

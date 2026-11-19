@@ -1,8 +1,5 @@
-import type { Component } from "vue";
-import { Select, TextInput, DateRangePicker } from "frappe-ui";
-// A static list for Select/Autocomplete, a live link search for Link.
-import MultiSelectInput from "./MultiSelectInput.vue";
-import MultiLinkInput from "./MultiLinkInput.vue";
+import { defineAsyncComponent, type Component } from "vue";
+import { Select, TextInput } from "frappe-ui";
 // The shared, fieldtype-aware value inputs. Only the subset that needs no form
 // context is mounted here, so an input that would resolve currency from a form
 // falls back to site defaults.
@@ -12,8 +9,25 @@ import NumberField from "../Fields/NumberField.vue";
 import DateField from "../Fields/DateField.vue";
 import DatetimeField from "../Fields/DatetimeField.vue";
 import DurationField from "../Fields/DurationField.vue";
-import RatingField from "../Fields/RatingField.vue";
 import type { ValueControlId } from "./valueControl";
+
+type LazyControl = keyof typeof import("./lazyControls");
+
+/** Loads one popover-only input on first use; an empty input shows while it loads. */
+function lazyControl(name: LazyControl): Component {
+  return defineAsyncComponent({
+    loader: () => import("./lazyControls").then((module) => module[name] as Component),
+    loadingComponent: TextInput,
+    delay: 0,
+  });
+}
+
+/** Fetches the lazy module, so a popover opens with its inputs drawn. */
+export function preloadControls(): void {
+  // A failed fetch is not retried here: browsers cache a failed import, and staleBuild
+  // listens for `vite:preloadError` and asks for a reload.
+  import("./lazyControls").catch(() => {});
+}
 
 /**
  * The component behind each {@link ValueControlId}. Kept apart from
@@ -22,15 +36,15 @@ import type { ValueControlId } from "./valueControl";
 export const VALUE_CONTROLS: Record<ValueControlId, Component> = {
   set: Select,
   timespan: Select,
-  multiSelect: MultiSelectInput,
-  multiLink: MultiLinkInput,
+  multiSelect: lazyControl("MultiSelectInput"),
+  multiLink: lazyControl("MultiLinkInput"),
   text: TextInput,
   select: SelectField,
   link: LinkField,
   number: NumberField,
-  dateRange: DateRangePicker,
+  dateRange: lazyControl("DateRangePicker"),
   date: DateField,
   datetime: DatetimeField,
   duration: DurationField,
-  rating: RatingField,
+  rating: lazyControl("RatingField"),
 };

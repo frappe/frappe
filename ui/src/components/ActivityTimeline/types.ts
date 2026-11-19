@@ -4,24 +4,24 @@ import type { UploadedMedia } from "frappe-ui/editor";
 export interface ActivityTimelineProps {
   /** Rows in display order. Custom types render via the `#item-{type}` slot. */
   activities: Array<Activity | CustomActivity>;
-  /** First-load spinner; only shown while there are no activities yet. */
+  /** First-load skeleton; only shown while there are no activities yet. */
   loading?: boolean;
   /** Enables Load More; same object useActivityTimeline returns. */
   paginate?: Pagination;
+  /** Default true. False when an ancestor scrolls the feed: no overflow and no tab stop of its own. */
+  scrolls?: boolean;
 }
 
 export interface Pagination {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
-  fetchNextPage: () => void;
-  /**
-   * Rows the next page extends, which is where an inline `load_more` row sits.
-   * Defaults to email rows.
-   */
+  /** prepends the next older page */
+  fetchNextPage: () => void | Promise<void>;
+  /** @deprecated Rows an inline `load_more` row pages. Defaults to emails. */
   isPagedRow?: (activity: Activity | CustomActivity) => boolean;
   /** Load More affordance; omit for a default "Load more" button at the top. */
   loadMore?: {
-    /** Placement. "inline" injects a `load_more` row above the oldest paged row. */
+    /** "inline" is deprecated: a `load_more` row above the oldest paged row. */
     position?: "top" | "bottom" | "inline";
     /** Button copy; default "Load more" / "lucide-refresh-cw". */
     label?: string;
@@ -54,6 +54,8 @@ export interface BaseActivity<TType extends string, TData> {
   icon?: string | Component;
   /** set by addPendingActivity: not confirmed by the server yet, rendered muted */
   pending?: boolean;
+  /** v-for key when it differs from `key`: a confirmed row keeps its pending row's node */
+  renderKey?: string;
   data: TData;
 }
 
@@ -127,7 +129,7 @@ interface VersionChangeBase {
 export interface FieldChange {
   from: string;
   to: string;
-  timestamp: string;
+  timestamp?: string;
 }
 
 /** A shown field change; the frontend lays out the values. */
@@ -177,8 +179,8 @@ export type CustomActivity = Omit<BaseActivity<string, unknown>, "key"> & {
 export type VisibleTypes = Array<Activity["type"] | { version: string[] }>;
 
 export interface PendingActivity {
-  /** tell the row which key the server gave it; it retires when that row arrives */
-  resolve: (key: string) => void;
+  /** swaps the row to the key and timestamp the server gave it */
+  resolve: (key: string, timestamp?: string) => void;
   /** take the row back, e.g. the request failed */
   drop: () => void;
 }
@@ -202,7 +204,7 @@ export interface EmailItemSlots {
 export interface CommentItemProps {
   comment: CommentActivity;
   editable?: boolean;
-  /** classes on the editor content; default "prose-sm max-w-none" */
+  /** classes on the comment content, read or editing; default "prose-sm max-w-none" */
   editorClass?: string;
   /** image upload handler passed through to the editor while editing */
   uploadFunction?: (file: File) => Promise<UploadedMedia>;

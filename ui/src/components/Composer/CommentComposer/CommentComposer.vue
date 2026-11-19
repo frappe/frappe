@@ -8,10 +8,13 @@
 		:max-attachments="maxAttachments"
 		:allowed-file-types="allowedFileTypes"
 		:submitting="submitting"
+		:fill="fill"
+		:disabled="disabled"
 		:mentions="mentions"
 		v-model:body="body"
 		@submit="emit('submit', $event)"
 		@remove-attachment="emit('remove-attachment', $event)"
+		@discard="emit('discard')"
 	>
 		<template v-if="$slots.actions" #actions="actionProps">
 			<slot name="actions" v-bind="actionProps" />

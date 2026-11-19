@@ -6,6 +6,7 @@
 			:extensions="extensions"
 			:placeholder="placeholder"
 			:upload-function="uploadFunction"
+			:editable="!disabled"
 		>
 			<template #default>
 				<div
@@ -20,10 +21,12 @@
 				>
 					<slot name="top" />
 
-					<EditorTableMenu />
+					<!-- tiptap runs menu commands on a read-only editor, so a disabled one draws no menus. -->
+					<EditorTableMenu v-if="!disabled" />
 
 					<div
-						class="composer-body flex max-h-[50vh] min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
+						class="composer-body flex min-h-0 flex-1 flex-col overflow-y-auto px-2.5 pb-2.5"
+						:class="{ 'max-h-[50vh]': !fill }"
 					>
 						<EditorContent
 							class="prose-sm max-w-full flex-1 pb-8 pt-4 [&_p.reply-to-content]:hidden"
@@ -47,7 +50,7 @@
 							</summary>
 							<div
 								ref="quotedContentRef"
-								contenteditable="true"
+								:contenteditable="!disabled"
 								class="prose mx-1 my-2 !max-w-full border-s-4 border-outline-gray-2 ps-4 text-sm focus:outline-none"
 								@input="onQuotedInput"
 							/>
@@ -127,7 +130,9 @@
 										aria-label="Attach file"
 										class="shrink-0"
 										:loading="isUploading"
-										:disabled="attachments.length >= maxAttachments"
+										:disabled="
+											disabled || attachments.length >= maxAttachments
+										"
 										@click="attachInput?.click()"
 									/>
 									<input
@@ -141,13 +146,19 @@
 										name="actions"
 										v-bind="{ addAttachment, setUploading }"
 									/>
-									<!-- Same divider the menu uses between its own sections. -->
-									<span
-										v-if="uploadFunction || $slots.actions"
-										class="mx-1 h-5 w-px shrink-0 bg-surface-gray-3"
-										aria-hidden="true"
-									/>
-									<EditorFixedMenu :items="emailToolbar" button-size="sm" />
+									<template v-if="!disabled">
+										<!-- Same divider the menu uses between its own sections. -->
+										<span
+											v-if="uploadFunction || $slots.actions"
+											class="mx-1 h-5 w-px shrink-0 bg-surface-gray-3"
+											aria-hidden="true"
+										/>
+										<EditorFixedMenu
+											:key="toolbarKey"
+											:items="richTextToolbar"
+											size="sm"
+										/>
+									</template>
 								</div>
 								<div
 									v-show="!toolbarArrived.left"
@@ -173,7 +184,11 @@
 								/>
 							</div>
 							<div class="-mr-2 flex shrink-0 items-center gap-2">
-								<Button v-if="!isEmpty" label="Discard" @click="reset" />
+								<Button
+									v-if="!isEmpty && !submitting"
+									label="Discard"
+									@click="discard"
+								/>
 								<!-- The spinner trails the label; Button's own `loading` would lead it. -->
 								<Button
 									variant="solid"
@@ -196,63 +211,15 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useScroll } from "@vueuse/core";
+import { Extension } from "@tiptap/core";
 import { Button, Spinner, toast } from "frappe-ui";
 import LucidePaperclip from "~icons/lucide/paperclip";
-import {
-	Editor,
-	EditorContent,
-	EditorFixedMenu,
-	EditorTableMenu,
-	RichTextKit,
-	Paragraph,
-	H2,
-	H3,
-	H4,
-	Separator,
-	Bold,
-	Italic,
-	FontColor,
-	AlignLeft,
-	AlignCenter,
-	AlignRight,
-	BulletList,
-	OrderedList,
-	InsertImage,
-	InsertVideo,
-	InsertLink,
-	Blockquote,
-	InlineCode,
-	HorizontalRule,
-	InsertTable,
-} from "frappe-ui/editor";
+import { Editor, EditorContent, EditorFixedMenu, EditorTableMenu } from "frappe-ui/editor";
 import { sanitizeHtml } from "../../utils/sanitize";
+import { isEmptyHtml } from "../RichText/html";
+import { richTextKit, richTextToolbar, useToolbarKey } from "../RichText/kit";
 import { isAllowedType } from "../FileUpload/useUploader";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
-
-const emailToolbar = [
-	Paragraph,
-	H2,
-	H3,
-	H4,
-	Separator,
-	Bold,
-	Italic,
-	FontColor,
-	Separator,
-	AlignLeft,
-	AlignCenter,
-	AlignRight,
-	BulletList,
-	OrderedList,
-	Separator,
-	InsertImage,
-	InsertVideo,
-	InsertLink,
-	Blockquote,
-	InlineCode,
-	HorizontalRule,
-	InsertTable,
-];
 
 const props = withDefaults(defineProps<ComposerEditorProps>(), {
 	placeholder: "Type your message…",
@@ -265,6 +232,8 @@ const emit = defineEmits<{
 	"remove-attachment": [file: UploadedFile];
 	/** Host runs the send and calls `reset()` itself when done. */
 	submit: [payload: CoreSubmitPayload];
+	/** The reader's Discard or Esc, after the reset; a host's own `reset()` does not fire it. */
+	discard: [];
 }>();
 
 const editorRef = ref<InstanceType<typeof Editor> | null>(null);
@@ -281,16 +250,20 @@ const mentionItems = computed(() =>
 	}))
 );
 
+const { key: toolbarKey, extension: toolbarKeyExtension } = useToolbarKey();
+
 // Built once so the editor isn't torn down on change; reactive bits thread in via
 // getters. Host extensions land after RichTextKit so they can override its defaults.
 const extensions = [
-	RichTextKit.configure({
-		heading: { levels: [2, 3, 4, 5, 6] },
-		mention: { items: () => mentionItems.value },
-		// Server sanitizing drops iframes, so a pasted URL would turn into an embed that is lost on send.
-		iframe: false,
-	}),
+	richTextKit(() => mentionItems.value),
+	toolbarKeyExtension,
 	...(props.extensions ?? []),
+	// Lowest priority, so an open suggestion menu takes Esc first; 0 would read as the default.
+	Extension.create({
+		name: "composerDiscard",
+		priority: 1,
+		addKeyboardShortcuts: () => ({ Escape: discardFromBody }),
+	}),
 ];
 
 const body = defineModel<string>("body", { default: "" });
@@ -347,7 +320,7 @@ function onDeleteAcrossQuote(event: KeyboardEvent) {
 
 function onQuotedInput() {
 	const html = quotedContentRef.value?.innerHTML ?? "";
-	quotedContent.value = isContentEmpty(html) ? null : html;
+	quotedContent.value = isEmptyHtml(html) ? null : html;
 }
 
 // Paint the quoted block when the model changes from outside; user edits no-op.
@@ -436,19 +409,15 @@ function removeAttachment(file: UploadedFile) {
 
 // Sendable = body or attachment (a quoted reply alone isn't); never mid-upload.
 const isDisabled = computed(
-	() => (isContentEmpty(body.value) && !attachments.value.length) || isUploading.value
+	() =>
+		props.disabled ||
+		(isEmptyHtml(body.value) && !attachments.value.length) ||
+		isUploading.value
 );
 
 const isEmpty = computed(
-	() => isContentEmpty(body.value) && !attachments.value.length && !quotedContent.value
+	() => isEmptyHtml(body.value) && !attachments.value.length && !quotedContent.value
 );
-
-function isContentEmpty(content: string) {
-	if (!content) return true;
-	const doc = new DOMParser().parseFromString(content, "text/html");
-	if (doc.querySelector("img, video, iframe, embed, object")) return false;
-	return (doc.body.textContent ?? "").trim().length === 0;
-}
 
 function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);
@@ -461,9 +430,21 @@ function submit() {
 	emit("submit", { body: buildMessage(), attachments: attachments.value });
 }
 
-// An editor popup (mention list, etc.) that handled Esc marks it via preventDefault.
+// Esc outside the body. ProseMirror marks every Esc in the body handled, so those arrive
+// at `discardFromBody` instead, and only when no editor menu took them.
 function onEscape(event: KeyboardEvent) {
-	if (!event.defaultPrevented) reset();
+	if (!event.defaultPrevented && !props.submitting) discard();
+}
+
+function discardFromBody() {
+	if (props.submitting) return false;
+	discard();
+	return true;
+}
+
+function discard() {
+	reset();
+	emit("discard");
 }
 
 function reset() {

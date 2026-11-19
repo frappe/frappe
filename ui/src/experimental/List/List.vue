@@ -6,25 +6,49 @@
 	<ScrollArea
 		ref="scroller"
 		orientation="both"
-		viewportClass="overscroll-y-none"
+		viewportClass="overscroll-y-none [container-type:inline-size]"
 		class="min-h-0 flex-1"
 	>
 		<FrappeList
 			divider="inset"
 			:columns="tracks"
 			:rowHeight="rowHeight"
-			:style="{ '--list-row-padding-x': ROW_PADDING_X, paddingInline }"
+			:style="{
+				'--list-row-padding-x': ROW_PADDING_X,
+				'--list-gap': COLUMN_GAP,
+				paddingInline,
+				paddingBottom: bottomInset,
+			}"
 			class="flex w-max min-w-full flex-col"
 		>
 			<ListHeader class="group sticky top-0 z-10 bg-surface-base">
-				<div class="flex items-center ps-[calc(0.5rem+1px)]" role="columnheader">
+				<!-- Esc keys skip a focused input, and select-all is one. -->
+				<div
+					class="flex items-center ps-[calc(0.5rem+1px)] [&_input]:mt-0"
+					role="columnheader"
+					@keydown="$event.key === 'Escape' && (selection = [])"
+				>
+					<Skeleton v-if="skeletonRows" class="h-3.5 w-3.5 rounded-1" />
 					<Checkbox
+						v-else
 						:modelValue="selectAllState === 'all'"
 						:indeterminate="selectAllState === 'some'"
 						aria-label="Select all"
 						@update:modelValue="toggleSelectAll"
 					/>
 				</div>
+				<!-- A label-sized bar over each placeholder column until the columns are known. -->
+				<template v-if="skeletonHeader">
+					<div
+						v-for="column in skeletonColumns"
+						:key="column.fieldname"
+						class="flex min-w-0 items-center"
+						role="columnheader"
+						data-list-header-skeleton
+					>
+						<Skeleton class="h-2.5 w-16 rounded-1" />
+					</div>
+				</template>
 				<div
 					v-for="column in columns"
 					:key="column.fieldname"
@@ -32,27 +56,29 @@
 					:class="alignClass(column)"
 				>
 					<ListHeaderCellSort
-						v-if="sortable"
+						v-if="sortable && column.sortable !== false"
 						class="min-w-0"
+						:data-act="sortAct"
 						:direction="directionFor(sort, column.fieldname)"
-						:align="column.align === 'right' ? 'end' : 'start'"
+						:align="isRight(column) ? 'end' : 'start'"
 						@click="sort = nextSort(sort, column.fieldname)"
 					>
 						{{ column.label }}
 					</ListHeaderCellSort>
 					<ListHeaderCell v-else class="min-w-0">{{ column.label }}</ListHeaderCell>
-					<!-- The handle sits in the column gap, so a right-aligned label stays clear of it. -->
+					<!-- The handle sits mid-gap, so a right-aligned label stays clear of it. -->
 					<span
-						class="absolute inset-y-0 -right-2 flex w-2 cursor-col-resize items-center justify-center"
+						class="absolute inset-y-0 -right-3 flex w-2 cursor-col-resize items-center justify-center"
 						@pointerdown.stop.prevent="startResize(column, $event)"
 						@dblclick.stop.prevent="resetColumn(column)"
 					>
 						<span
-							class="h-4 border-l border-outline-gray-2 opacity-0 transition-opacity group-hover:opacity-100"
+							class="h-4 w-[1.5px] rounded-full bg-surface-gray-4 opacity-0 transition-opacity group-hover:opacity-100"
 							:class="{ 'opacity-100': resizingFieldname === column.fieldname }"
 						/>
 					</span>
 				</div>
+				<div v-if="rowMenu" role="columnheader" aria-hidden="true" />
 			</ListHeader>
 
 			<div v-if="rows.length" v-bind="wrapperProps" role="presentation">
@@ -61,18 +87,25 @@
 					:key="rowValue(row)"
 					:value="rowValue(row)"
 					:route="rowLink?.(row)"
+					@pointerenter="enter(rowValue(row))"
+					@pointerleave="leave(rowValue(row))"
+					@focusin="focus(rowValue(row))"
+					@focusout="blur(rowValue(row))"
+					@contextmenu="emit('row-contextmenu', { name: rowValue(row), event: $event })"
 				>
 					<!-- The molecule's own `selectable` turns a row click into a toggle; the row must stay
 						a link, so the checkbox is drawn here (frappe/frappe-ui#1131). -->
 					<ListCell class="ps-[calc(0.5rem+1px)]">
 						<div
 							role="checkbox"
+							class="flex items-center [&_input]:mt-0"
 							:aria-checked="isSelected(rowValue(row))"
 							:aria-label="`Select ${rowValue(row)}`"
 							tabindex="0"
-							@click.stop.prevent="toggle(rowValue(row))"
-							@keydown.enter.stop.prevent="toggle(rowValue(row))"
-							@keydown.space.stop.prevent="toggle(rowValue(row))"
+							@mousedown.shift.prevent
+							@click.stop.prevent="toggle(rowValue(row), $event.shiftKey)"
+							@keydown.enter.stop.prevent="toggle(rowValue(row), $event.shiftKey)"
+							@keydown.space.stop.prevent="toggle(rowValue(row), $event.shiftKey)"
 						>
 							<Checkbox
 								:modelValue="isSelected(rowValue(row))"
@@ -85,7 +118,7 @@
 					<ListCell
 						v-for="column in columns"
 						:key="column.fieldname"
-						:class="alignClass(column)"
+						:class="[alignClass(column), cellClass?.(row, column)]"
 					>
 						<slot
 							name="cell"
@@ -98,11 +131,19 @@
 							</div>
 						</slot>
 					</ListCell>
+					<!-- The row is a link: a click in this cell must not follow it, as the checkbox's. -->
+					<ListCell v-if="rowMenu">
+						<div class="flex w-full justify-end" @click.stop.prevent>
+							<slot name="rowMenu" :row="row" />
+						</div>
+					</ListCell>
 				</ListRow>
 			</div>
-			<template v-else-if="loading">
+			<template v-else-if="skeletonRows">
 				<ListRow v-for="index in SKELETON_ROW_COUNT" :key="index">
-					<ListCell />
+					<ListCell class="ps-[calc(0.5rem+1px)]">
+						<Skeleton class="h-3.5 w-3.5 rounded-1" />
+					</ListCell>
 					<ListCell v-for="column in skeletonColumns" :key="column.fieldname">
 						<Skeleton class="h-3 w-full rounded-1" />
 					</ListCell>
@@ -132,6 +173,7 @@ import type { Sort } from "../../components/SortBy/types";
 import { columnTracks } from "./columnTracks";
 import { directionFor, nextSort } from "./headerSort";
 import { useColumnResize } from "./useColumnResize";
+import { useRowCursor } from "./useRowCursor";
 import { useRowSelection } from "./useRowSelection";
 import { useVirtualRows } from "./useVirtualRows";
 import type { ColumnResize, ListColumn, ListProps, ListRowData } from "./types";
@@ -146,20 +188,26 @@ const props = withDefaults(defineProps<ListProps>(), {
 
 const selection = defineModel<string[]>("selection", { default: () => [] });
 const sort = defineModel<Sort[]>("sort", { default: () => [] });
+/** The row under the pointer or with focus, which the host's bare keys act on. */
+const cursor = defineModel<string | null>("cursor", { default: null });
 
 const emit = defineEmits<{
 	"column-resize": [payload: ColumnResize];
 	"column-reset": [payload: { fieldname: string }];
+	"row-contextmenu": [payload: { name: string; event: MouseEvent }];
 }>();
 
 defineSlots<{
 	cell?: (props: { row: ListRowData; column: ListColumn; value: string }) => unknown;
+	rowMenu?: (props: { row: ListRowData }) => unknown;
 	empty?: () => unknown;
 }>();
 
 /** The row's own inset; the checkbox column and the last cell sit this far inside it. The checkbox
  *  takes one pixel more, so its box reads level with text, whose ink starts inside its box. */
 const ROW_PADDING_X = "0.5rem";
+// Wide enough for the resize handle to sit mid-gap and clear of both labels.
+const COLUMN_GAP = "1rem";
 const SKELETON_ROW_COUNT = 10;
 const SKELETON_COLUMN_COUNT = 4;
 
@@ -169,6 +217,8 @@ defineExpose({
 	get viewportElement() {
 		return scroller.value?.viewportElement ?? null;
 	},
+	toggle: (value: string, range = false) => toggle(value, range),
+	extendTo: (value: string) => extendTo(value),
 });
 
 // The gutter is where the checkbox and the last cell's text land, so the row bleeds past it.
@@ -193,16 +243,22 @@ function rowValue(row: ListRowData) {
 	return String(row[props.rowKey]);
 }
 
-const { selectAllState, isSelected, toggle, toggleSelectAll } = useRowSelection(
+const { selectAllState, isSelected, toggle, extendTo, toggleSelectAll } = useRowSelection(
 	selection,
 	rows,
 	toRef(props, "rowKey")
+);
+const { enter, leave, focus, blur } = useRowCursor(cursor, () =>
+	virtualRows.value.map(({ data }) => rowValue(data))
 );
 
 const { drafts, resizingFieldname, startResize, resetColumn } = useColumnResize({
 	onResize: (fieldname, width) => emit("column-resize", { fieldname, width }),
 	onReset: (fieldname) => emit("column-reset", { fieldname }),
 });
+
+const skeletonRows = computed(() => props.loading && !rows.value.length);
+const skeletonHeader = computed(() => props.loading && !columns.value.length);
 
 const skeletonColumns = computed<ListColumn[]>(() => {
 	if (columns.value.length) return columns.value;
@@ -213,7 +269,7 @@ const skeletonColumns = computed<ListColumn[]>(() => {
 });
 
 const tracks = computed(() =>
-	columnTracks(props.loading ? skeletonColumns.value : columns.value, drafts)
+	columnTracks(props.loading ? skeletonColumns.value : columns.value, drafts, props.rowMenu)
 );
 
 function cellText(row: ListRowData, column: ListColumn): string {
@@ -224,8 +280,13 @@ function cellText(row: ListRowData, column: ListColumn): string {
 	return value == null ? "" : String(value);
 }
 
+// The last shown column aligns right whatever its type, as in CRM; it follows every add, drop and move.
+function isRight(column: ListColumn) {
+	return column.align === "right" || column === columns.value.at(-1);
+}
+
 function alignClass(column: ListColumn) {
-	return column.align === "right" ? "justify-end" : "";
+	return isRight(column) ? "justify-end" : "";
 }
 </script>
 

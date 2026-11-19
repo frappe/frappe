@@ -1,38 +1,13 @@
-import { createResource } from "frappe-ui";
-import { computed, effectScope, onMounted, onUnmounted, watch } from "vue";
-import { compareActivities, dropDuplicateKeys } from "./grouping";
-import {
-  createLiveUpdates,
-  type Subscribe,
-  type Unsubscribe,
-} from "./liveUpdates";
-import {
-  applyFirstPage,
-  createHistoryPagination,
-  createPagedSources,
-  isPagedRow,
-  type FirstPageResponse,
-  type PagedSources,
-} from "./pagination";
-import {
-  pendingRowsFor,
-  retirePendingRows,
-  withAdoptedKeys,
-} from "./pendingRows";
+import { computed, onMounted, onUnmounted, reactive } from "vue";
 import type { Activity, CustomActivity, VisibleTypes } from "./types";
+import { compareActivities, dropDuplicateKeys } from "./grouping";
+import type { Unsubscribe } from "./liveUpdates";
+import { docKey, withPendingRows } from "./pendingRows";
+import { StoreCache } from "./storeCache";
+import { TimelineStore } from "./timelineStore";
 
-// One store per cache key: reopening a doc is instant, paging state survives remounts.
-interface TimelineStore {
-  resource: ReturnType<typeof createResource>;
-  pagedSources: PagedSources;
-  /** one refetch however many callers ask; resolves when it lands */
-  refresh: () => Promise<void>;
-  subscribe: Subscribe;
-}
-const stores = new Map<string, TimelineStore>();
-
-// one save can fire several doc_updates: wait a moment, then fetch once
-const REFRESH_DEBOUNCE_MS = 300;
+// one store per cache key, kept past unmount as `StoreCache` allows
+const stores = new StoreCache();
 
 export function useActivityTimeline(
   doctype: string,
@@ -40,146 +15,191 @@ export function useActivityTimeline(
   visibleTypes?: VisibleTypes
 ) {
   const store = getTimelineStore(doctype, docname, visibleTypes);
-  const { resource } = store;
-
-  // the store is shared, so one socket serves every consumer of it
-  let unsubscribe: Unsubscribe | undefined;
-  onMounted(() => {
-    unsubscribe = store.subscribe();
-  });
-  onUnmounted(() => {
-    unsubscribe?.();
-    unsubscribe = undefined;
-  });
-
-  // deduped + sorted but ungrouped; the component folds version runs at render time
-  const activities = computed<Array<Activity | CustomActivity>>(() => {
-    const confirmed = dropDuplicateKeys(
-      (resource.data as Activity[] | undefined) ?? []
-    );
-    return [
-      ...withAdoptedKeys(doctype, docname, confirmed),
-      ...pendingRowsFor(doctype, docname),
-    ].sort(compareActivities);
-  });
+  subscribeWhileMounted(store, storeKey(doctype, docname, visibleTypes));
 
   return {
-    activities,
-    loading: computed<boolean>(() => resource.loading),
+    activities: shownActivities(store, typeNames(visibleTypes)),
+    loading: computed<boolean>(() => store.loading.value),
+    error: computed<unknown>(() => store.error.value),
     reload: () => store.refresh(),
-    paginate: createHistoryPagination(
-      doctype,
-      docname,
-      resource,
-      store.pagedSources
-    ),
+    // reactive() so the refs unwrap when read through the `paginate` prop
+    paginate: reactive({
+      hasNextPage: computed(
+        () => store.fetched.value && store.next.value !== null
+      ),
+      isFetchingNextPage: computed(() => store.fetchingOlder.value),
+      fetchNextPage: () => store.loadOlder(),
+    }),
   };
 }
 
-// filters are part of the cache identity
-const timelineCacheKey = (
+/** Starts the newest-page read before any component mounts; resolves once that page is in. */
+export function prefetchActivityTimeline(
   doctype: string,
   docname: string,
   visibleTypes?: VisibleTypes
-) =>
-  `${doctype}:${docname}:${visibleTypes ? JSON.stringify(visibleTypes) : "*"}`;
+): Promise<void> {
+  stores.hold(storeKey(doctype, docname, visibleTypes));
+  return readBeforeMount(doctype, docname, visibleTypes);
+}
+
+function readBeforeMount(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): Promise<void> {
+  const store = getTimelineStore(doctype, docname, visibleTypes);
+  // A mounted store's socket kept its rows current; an idle one's may have missed changes, so it re-reads.
+  const live = store.fetched.value && store.mounted > 0;
+  store.prefetched.value = !live;
+  if (live) return Promise.resolve();
+  // load() resolves even on failure, so a failed read must not leave the flag claiming a catch-up refresh is unneeded.
+  return store.load().then(() => {
+    if (store.error.value) store.prefetched.value = false;
+  });
+}
+
+/** The first paint is over: a mount after it catches up, as any late mount does. */
+export function endActivityPrefetch(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+) {
+  const key = storeKey(doctype, docname, visibleTypes);
+  const store = stores.get(key);
+  if (store) {
+    store.prefetched.value = false;
+    // A staged first read whose page never ran: the store reads when a body next asks for it.
+    if (!store.fetched.value && !store.reading) store.loading.value = false;
+  }
+  stores.letGo(key);
+}
+
+/** The rows a store holds, pending ones included, with no component mounted; none if no read began. */
+export function activityTimelineRows(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): Array<Activity | CustomActivity> {
+  const store = stores.get(storeKey(doctype, docname, visibleTypes));
+  return store ? shownRows(store, typeNames(visibleTypes)) : [];
+}
+
+/** True when a store for this read holds its newest page, mounted or kept idle. */
+export function hasActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): boolean {
+  const store = stores.get(storeKey(doctype, docname, visibleTypes));
+  return store?.fetched.value === true;
+}
+
+/** Reads a store's newest page, its first when none is kept; its rows change only when the returned function runs. Null with a mounted store. */
+export function stageActivityTimelineRead(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): Promise<() => void> | null {
+  const key = storeKey(doctype, docname, visibleTypes);
+  const store = stores.get(key) ?? addTimelineStore(doctype, docname, visibleTypes);
+  if (store.mounted > 0) return null;
+  stores.hold(key);
+  // Marked as a prefetch, so a mount before `endActivityPrefetch` reads nothing more.
+  store.prefetched.value = true;
+  const first = !store.fetched.value;
+  if (first) {
+    store.loading.value = true;
+    store.error.value = null;
+  }
+  return store.stageNewest().then(
+    (take) => () => {
+      take();
+      if (first) store.loading.value = false;
+    },
+    (failure) => {
+      store.prefetched.value = false;
+      if (first) {
+        store.loading.value = false;
+        store.error.value = failure;
+      }
+      if (store.mounted > 0) void store.refresh();
+      throw failure;
+    }
+  );
+}
+
+/** Re-reads the newest page with no component mounted; with no store yet, it starts the first read. */
+export function reloadActivityTimeline(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): Promise<void> {
+  const key = storeKey(doctype, docname, visibleTypes);
+  const store = stores.get(key);
+  if (store) return store.refresh();
+  stores.hold(key);
+  return readBeforeMount(doctype, docname, visibleTypes).finally(() => stores.letGo(key));
+}
 
 function getTimelineStore(
   doctype: string,
   docname: string,
   visibleTypes?: VisibleTypes
 ): TimelineStore {
-  const cacheKey = timelineCacheKey(doctype, docname, visibleTypes);
-  const existing = stores.get(cacheKey);
-  if (existing) return existing;
-
-  const visibleTypeNames = visibleTypes?.flatMap((visibleType) =>
-    typeof visibleType === "string" ? [visibleType] : Object.keys(visibleType)
-  );
-  const pagedSources = createPagedSources();
-
-  const resource: ReturnType<typeof createResource> = createResource({
-    url: "frappe.desk.form.activity.get_activity_timeline",
-    // filtered server-side so pagination math stays correct
-    params: { doctype, name: docname, visible_types: visibleTypes },
-    cache: `activities:${cacheKey}`,
-    auto: true,
-    // transform sets resource.data, onSuccess sees the raw response, so the paging flags are
-    // read there. On reload, re-append the older pages already loaded.
-    transform: (response: { activities: Activity[] }) => {
-      const firstPageKeys = new Set(response.activities.map((row) => row.key));
-      const olderRows = (
-        (resource.data as Activity[] | undefined) ?? []
-      ).filter((row) => isPagedRow(row) && !firstPageKeys.has(row.key));
-      return [...response.activities, ...olderRows];
-    },
-    onSuccess: (response: FirstPageResponse) =>
-      applyFirstPage(pagedSources, response),
-  });
-
-  const refresh = createRefresh(resource);
-  const store: TimelineStore = {
-    resource,
-    pagedSources,
-    refresh,
-    subscribe: createLiveUpdates(
-      doctype,
-      docname,
-      resource,
-      visibleTypeNames,
-      refresh
-    ),
-  };
-  stores.set(cacheKey, store);
-
-  // The store outlives the component that created it, so this watcher cannot hang off that
-  // component's scope: rows would stop retiring the moment the first consumer unmounts.
-  // sync: the feed and the rows drawn from it must not disagree for a render.
-  effectScope(true).run(() =>
-    watch(
-      // A row is confirmed by the feed carrying it and by its create request answering with
-      // the key, which lands on the pending row. Either can come last, so both are watched.
-      () => [resource.data, pendingRowsFor(doctype, docname)],
-      () =>
-        retirePendingRows(
-          doctype,
-          docname,
-          (resource.data as Activity[]) ?? []
-        ),
-      { flush: "sync" }
-    )
-  );
-
+  const store =
+    stores.get(storeKey(doctype, docname, visibleTypes)) ??
+    addTimelineStore(doctype, docname, visibleTypes);
+  if (!store.fetched.value && !store.loading.value) void store.load();
   return store;
 }
 
-/** Every trigger in the window joins the same fetch, so one save costs one request. */
-function createRefresh(resource: ReturnType<typeof createResource>) {
-  let runningRefresh: Promise<void> | undefined;
-  let changedSinceFetch = false;
+/** Adds a store to the cache without starting its read. */
+function addTimelineStore(
+  doctype: string,
+  docname: string,
+  visibleTypes?: VisibleTypes
+): TimelineStore {
+  const types = typeNames(visibleTypes);
+  const store = new TimelineStore(doctype, docname, visibleTypes, types);
+  stores.add(storeKey(doctype, docname, visibleTypes), store);
+  return store;
+}
 
-  return function refresh(): Promise<void> {
-    if (runningRefresh) {
-      changedSinceFetch = true;
-      return runningRefresh;
-    }
-    runningRefresh = (async () => {
-      do {
-        await new Promise((resolve) =>
-          setTimeout(resolve, REFRESH_DEBOUNCE_MS)
-        );
-        // a fetch already running was sent before the change, so it may miss it
-        if (resource.loading) await resource.promise?.catch(() => {});
-        // the window is closed, so everything in it is covered by the fetch below
-        changedSinceFetch = false;
-        await resource.reload();
-        // a change that landed mid-fetch is not in what came back: go again
-      } while (changedSinceFetch);
-    })()
-      .catch(() => {})
-      .finally(() => {
-        runningRefresh = undefined;
-      });
-    return runningRefresh;
-  };
+// filters are part of the cache identity
+function storeKey(doctype: string, docname: string, visibleTypes?: VisibleTypes) {
+  const types = visibleTypes ? JSON.stringify(visibleTypes) : "*";
+  return `${docKey(doctype, docname)}:${types}`;
+}
+
+// the store is shared, so one socket serves every consumer of it
+function subscribeWhileMounted(store: TimelineStore, key: string) {
+  let unsubscribe: Unsubscribe | undefined;
+  onMounted(() => {
+    unsubscribe = store.mount();
+  });
+  onUnmounted(() => {
+    unsubscribe?.();
+    unsubscribe = undefined;
+    stores.release(key);
+  });
+}
+
+// deduped + sorted but ungrouped; the component folds version runs at render time
+function shownActivities(store: TimelineStore, types: string[] | undefined) {
+  return computed(() => shownRows(store, types));
+}
+
+function shownRows(
+  store: TimelineStore,
+  types: string[] | undefined
+): Array<Activity | CustomActivity> {
+  const confirmed = dropDuplicateKeys(store.data.value);
+  return withPendingRows(store.doc, confirmed, types).sort(compareActivities);
+}
+
+function typeNames(visibleTypes?: VisibleTypes): string[] | undefined {
+  return visibleTypes?.flatMap((t) =>
+    typeof t === "string" ? [t] : Object.keys(t)
+  );
 }

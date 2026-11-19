@@ -1,23 +1,33 @@
 <template>
 	<Select
 		v-model="value"
+		v-model:open="open"
 		:options="options"
-		:label="field.label"
-		:description="field.description"
+		v-bind="frame"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
-		:error="error"
 		:disabled="field.readOnly"
-	/>
+	>
+		<template v-if="panel" #footer><PickerListFit /></template>
+		<template v-if="!panel && field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
+	</Select>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Select } from "frappe-ui";
+import { fieldChoices } from "./choices";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
+import PickerListFit from "./PickerListFit.vue";
+import { usePickerFrame } from "./inputFrame";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
+const frame = usePickerFrame(props);
+const open = ref(!!props.openPicker);
 
 const value = computed<string | null>({
 	get: () => props.modelValue ?? null,
@@ -28,8 +38,6 @@ const value = computed<string | null>({
 	},
 });
 
-/** Frappe `Select` options are a newline-joined string in meta. */
-const options = computed(() =>
-	(props.field.options ?? "").split("\n").map((o) => ({ label: o, value: o }))
-);
+/** Frappe `Select` options are a newline-joined string in meta; a script may set labelled pairs. */
+const options = computed(() => fieldChoices(props.field));
 </script>

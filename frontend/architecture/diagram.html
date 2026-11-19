@@ -1,0 +1,144 @@
+<!doctype html>
+<!-- diagram.mjs puts the data in DATA. -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title></title>
+<link rel="stylesheet" href="/assets/frappe/css/espresso/colors.css" />
+<link rel="stylesheet" href="/assets/frappe/css/espresso/spacing.css" />
+<link rel="stylesheet" href="/assets/frappe/css/espresso/radius.css" />
+<link rel="stylesheet" href="/assets/frappe/css/espresso/typography.css" />
+<link rel="stylesheet" href="/assets/frappe/css/espresso/effects.css" />
+<link rel="stylesheet" href="/assets/frappe/css/espresso/components/badge.css" />
+<link rel="stylesheet" href="/assets/frappe/css/espresso/components/button.css" />
+<style>
+	* { box-sizing: border-box; }
+	body { margin: 0; font: var(--text-sm, 13px)/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink-gray-8, #1f2328); background: var(--surface-gray-1, #f6f7f9); }
+	code { font: var(--text-xs, 12px) ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--surface-gray-2, #eef0f3); padding: 0 calc(var(--spacing, 4px) * .75); border-radius: var(--radius-sm, 4px); }
+	a { color: var(--ink-blue-8, #0b5cad); text-decoration: none; }
+	a:hover { text-decoration: underline; }
+	header { display: flex; gap: calc(var(--spacing, 4px) * 4); align-items: center; padding: calc(var(--spacing, 4px) * 2.5) calc(var(--spacing, 4px) * 4); background: var(--surface-base, #fff); border-bottom: 1px solid var(--outline-gray-2, #dde1e6); flex-wrap: wrap; }
+	header h1 { font-size: var(--text-lg, 16px); margin: 0; }
+	.stats { display: flex; gap: calc(var(--spacing, 4px) * 3); color: var(--ink-gray-6, #57606a); }
+	.stats b { color: var(--ink-gray-8, #1f2328); }
+	.stats .red b, #panel b.red { color: var(--ink-red-7, #c62828); }
+	main { display: flex; height: calc(100vh - 49px); }
+	#view { flex: 1; overflow: auto; padding: calc(var(--spacing, 4px) * 3.5) calc(var(--spacing, 4px) * 4) calc(var(--spacing, 4px) * 20); }
+	#panel { width: 380px; border-left: 1px solid var(--outline-gray-2, #dde1e6); background: var(--surface-base, #fff); overflow: auto; padding: calc(var(--spacing, 4px) * 3.5) calc(var(--spacing, 4px) * 4) calc(var(--spacing, 4px) * 20); }
+	#panel h2, h2.title { font-size: var(--text-lg, 16px); margin: 0 0 calc(var(--spacing, 4px) * 1); }
+	#panel h3 { font-size: var(--text-xs, 12px); text-transform: uppercase; letter-spacing: .04em; color: var(--ink-gray-6, #57606a); margin: calc(var(--spacing, 4px) * 4) 0 calc(var(--spacing, 4px) * 1.5); }
+	#panel table { border-collapse: collapse; width: 100%; }
+	#panel td { border-top: 1px solid var(--outline-gray-1, #eef0f3); padding: calc(var(--spacing, 4px) * .75) calc(var(--spacing, 4px) * 1); vertical-align: top; }
+	#panel .muted { color: var(--ink-gray-6, #57606a); }
+	#panel code { word-break: break-all; }
+	.es-badge { margin: calc(var(--spacing, 4px) * .25) calc(var(--spacing, 4px) * .5) calc(var(--spacing, 4px) * .25) 0; }
+	/* Plain looks for .es-badge and .es-button when /assets/ is not served (file opened from disk).
+	   :where() gives them no weight, so Espresso's own rules win whenever they load. */
+	:where(.es-badge) { display: inline-block; font-size: var(--text-2xs, 11px); padding: 0 calc(var(--spacing, 4px) * 1.5); border-radius: var(--radius-full, 9999px); background: var(--surface-gray-2, #eef0f3); }
+	:where(.es-badge[data-theme="red"]) { background: var(--surface-red-2, #fde2e1); color: var(--ink-red-8, #b3261e); }
+	:where(.es-badge[data-theme="green"]) { background: var(--surface-green-2, #e3f4e8); color: var(--ink-green-8, #1a7f37); }
+	:where(.es-badge[data-theme="blue"]) { background: var(--surface-blue-2, #e1ecfb); color: var(--ink-blue-8, #0b5cad); }
+	:where(.es-badge[data-theme="amber"]) { background: var(--surface-amber-2, #fff3cd); color: var(--ink-amber-8, #7a5b00); }
+	:where(.es-button) { border: 1px solid var(--outline-gray-2, #dde1e6); background: var(--surface-base, #fff); color: inherit; border-radius: var(--radius-3, 6px); padding: calc(var(--spacing, 4px) * 1) calc(var(--spacing, 4px) * 2.5); cursor: pointer; font: inherit; }
+	:where(.es-button[data-variant="solid"]) { background: var(--surface-gray-10, #1f2328); color: var(--ink-base, #fff); border-color: var(--outline-gray-8, #1f2328); }
+	/* Each .layer-<id> sets --layer, the layer's colour; the rules below paint with it. */
+	.layer-main { --layer: var(--gray-700, #525252); }
+	.layer-9 { --layer: var(--gray-600, #7c7c7c); }
+	.layer-8 { --layer: var(--purple-700, #6e399d); }
+	.layer-7 { --layer: var(--purple-500, #9c45e3); }
+	.layer-6 { --layer: var(--violet-600, #6e57d1); }
+	.layer-5 { --layer: var(--blue-600, #077ddf); }
+	.layer-4 { --layer: var(--teal-600, #0a857b); }
+	.layer-3 { --layer: var(--green-700, #14804d); }
+	.layer-2 { --layer: var(--amber-700, #bb6f0c); }
+	.layer-1 { --layer: var(--yellow-800, #8c5600); }
+	.layer-build { --layer: var(--orange-600, #d35a09); }
+	.legend { display: flex; gap: calc(var(--spacing, 4px) * 3.5); margin: 0 0 calc(var(--spacing, 4px) * 2.5); color: var(--ink-gray-6, #57606a); flex-wrap: wrap; align-items: center; }
+	.legend i { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--edge); vertical-align: middle; margin-right: calc(var(--spacing, 4px) * 1); }
+	.legend i.known { border-top-style: dashed; }
+	.legend label { cursor: pointer; }
+	svg text { font-size: var(--text-2xs, 11px); pointer-events: none; }
+	svg .title { font-weight: var(--font-weight-semibold, 600); font-size: var(--text-xs, 12px); }
+	svg .muted { fill: var(--ink-gray-5, #57606a); }
+	svg .faint { fill: var(--ink-gray-4, #8c959f); }
+	svg .empty { fill: none; stroke: var(--outline-gray-3, #c9ced4); stroke-dasharray: 4 3; }
+	.box rect { fill: var(--layer); stroke: var(--outline-base, #fff); stroke-width: 1; cursor: pointer; }
+	.box text { fill: var(--white, #fff); }
+	.box .name { font-weight: var(--font-weight-semibold, 600); }
+	.box.dim { opacity: .25; }
+	.box.sel rect { stroke: var(--outline-gray-8, #1f2328); stroke-width: 2; }
+	.box.loop rect { stroke: var(--orange-600, #e36209); stroke-width: 2; stroke-dasharray: 4 2; }
+	.layerlabel { cursor: pointer; }
+	.layerlabel .bg { fill: var(--surface-base, #fff); stroke: var(--outline-gray-2, #dde1e6); }
+	.layerlabel:hover .bg { fill: var(--surface-gray-3, #e7eaee); }
+	.layerlabel .swatch { fill: var(--layer); }
+	/* --edge is the line's colour, shared by the SVG edges and the legend marks. */
+	.edge { fill: none; stroke: var(--edge); }
+	.edge.break, .edge.known { --edge: var(--ink-red-7, #c62828); }
+	.edge.known { stroke-dasharray: 6 3; }
+	.edge.callback { --edge: var(--ink-blue-7, #0b5cad); }
+	.edge.out { --edge: var(--ink-gray-7, #3b4a5a); }
+	.edge.in { --edge: var(--ink-green-8, #1a7f37); }
+	.edge.plain { --edge: var(--ink-gray-4, #8c959f); }
+	.edge.hit { stroke: transparent; stroke-width: 9; cursor: pointer; }
+	/* matrix */
+	table.matrix { border-collapse: collapse; }
+	table.matrix th, table.matrix td { border: 1px solid var(--outline-gray-2, #dde1e6); padding: calc(var(--spacing, 4px) * 1) calc(var(--spacing, 4px) * 1.5); text-align: center; min-width: 46px; }
+	table.matrix th { background: var(--surface-base, #fff); font-weight: var(--font-weight-semibold, 600); font-size: var(--text-xs, 12px); }
+	table.matrix .row { text-align: left; }
+	table.matrix td.may { background: var(--surface-green-1, #f0faf3); }
+	table.matrix td.no { background: var(--surface-gray-1, #f6f7f9); }
+	table.matrix td.self { background: var(--surface-gray-2, #eef0f3); }
+	table.matrix td.bad { background: var(--surface-red-3, #fbd3d0); color: var(--ink-red-8, #b3261e); font-weight: var(--font-weight-bold, 700); }
+	table.matrix td.has { cursor: pointer; }
+	table.matrix td.has:hover { outline: 2px solid var(--outline-gray-8, #1f2328); }
+	h3.loops { margin-top: calc(var(--spacing, 4px) * 5.5); }
+	/* flow */
+	.flowtabs { display: flex; gap: calc(var(--spacing, 4px) * 1.5); flex-wrap: wrap; margin-bottom: calc(var(--spacing, 4px) * 3); }
+	.flow { display: grid; grid-template-columns: minmax(320px, 1fr) 300px; gap: calc(var(--spacing, 4px) * 4); }
+	.step { background: var(--surface-base, #fff); border: 1px solid var(--outline-gray-2, #dde1e6); border-radius: var(--radius-3, 6px); padding: calc(var(--spacing, 4px) * 1.5) calc(var(--spacing, 4px) * 2.5); margin-bottom: calc(var(--spacing, 4px) * 1.5); cursor: pointer; }
+	.step.on { border-color: var(--outline-gray-8, #1f2328); box-shadow: 0 0 0 1px var(--outline-gray-8, #1f2328); }
+	.step .n { font-weight: var(--font-weight-bold, 700); margin-right: calc(var(--spacing, 4px) * 1.5); }
+	.step .more { margin-top: calc(var(--spacing, 4px) * 1.5); }
+	.step .check { margin-top: calc(var(--spacing, 4px) * 1); }
+	.stack div { border-radius: var(--radius-2, 5px); padding: calc(var(--spacing, 4px) * 1.5) calc(var(--spacing, 4px) * 2.5); margin-bottom: calc(var(--spacing, 4px) * 1); background: var(--surface-base, #fff); border: 1px solid var(--outline-gray-2, #dde1e6); color: var(--ink-gray-4, #8c959f); }
+	.stack div.lit { background: var(--layer); color: var(--ink-base, #fff); border-color: transparent; }
+	.es-badge.chip { background: var(--layer); color: var(--white, #fff); }
+	/* extension points */
+	.ext { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--spacing, 4px) * 3.5); }
+	.ext h2 { font-size: var(--text-sm, 13px); margin: 0 0 calc(var(--spacing, 4px) * 2); }
+	.card { background: var(--surface-base, #fff); border: 1px solid var(--outline-gray-2, #dde1e6); border-left: 4px solid var(--layer); border-radius: var(--radius-3, 6px); padding: calc(var(--spacing, 4px) * 1.5) calc(var(--spacing, 4px) * 2.5); margin-bottom: calc(var(--spacing, 4px) * 1.5); cursor: pointer; }
+	.card.pairhit { outline: 2px solid var(--orange-600, #e36209); }
+	.card .pair { color: var(--orange-600, #e36209); font-size: var(--text-2xs, 11px); }
+	/* switcher */
+	#switcher { position: fixed; bottom: calc(var(--spacing, 4px) * 4); left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: calc(var(--spacing, 4px) * 1.5); background: var(--surface-gray-10, #1f2328); color: var(--ink-base, #fff); padding: calc(var(--spacing, 4px) * 1.5) calc(var(--spacing, 4px) * 2); border-radius: var(--radius-full, 9999px); box-shadow: var(--shadow-xl, 0 6px 20px rgba(0, 0, 0, 0.25)); z-index: 10; }
+	#switcher .es-button { background: transparent; color: var(--ink-base, #fff); border: 0; gap: 0; padding: 0; width: 30px; height: 30px; border-radius: var(--radius-full, 9999px); }
+	#switcher .es-button:hover { background: var(--surface-gray-9, #3a3f45); }
+	#switcher .icon { width: calc(var(--spacing, 0px) * 4); fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+	/* The ‹ › text stands in for the sprite icon when /assets/ is not served. --spacing comes
+	   from Espresso's spacing.css, so .icon and .alt each collapse to 0 in the other case. */
+	#switcher .alt { font-size: max(0px, var(--text-lg, 16px) - var(--spacing, 0px) * 99); }
+	#label { min-width: 210px; text-align: center; font-weight: var(--font-weight-semibold, 600); }
+</style>
+</head>
+<body>
+<header>
+	<h1 id="title"></h1>
+	<div class="stats" id="stats"></div>
+</header>
+<main>
+	<div id="view"></div>
+	<aside id="panel"></aside>
+</main>
+<div id="switcher">
+	<button id="prev" class="es-button" data-variant="ghost"><svg class="icon" width="16" height="16" aria-hidden="true"><use href="/assets/frappe/icons/lucide/icons.svg#icon-chevron-left"></use></svg><span class="alt">‹</span></button>
+	<span id="label"></span>
+	<button id="next" class="es-button" data-variant="ghost"><svg class="icon" width="16" height="16" aria-hidden="true"><use href="/assets/frappe/icons/lucide/icons.svg#icon-chevron-right"></use></svg><span class="alt">›</span></button>
+</div>
+<script>
+const MESSAGES = /*MESSAGES*/{};
+const DATA = /*DATA*/null;
+/*SCRIPTS*/
+</script>
+</body>
+</html>

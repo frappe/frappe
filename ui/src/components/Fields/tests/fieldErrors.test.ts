@@ -24,6 +24,7 @@ const VALUE_FIELDTYPES = [
   "JSON",
   "Markdown Editor",
   "HTML Editor",
+  "Text Editor",
   "Select",
   "Check",
   "Date",
@@ -84,6 +85,16 @@ describe("a control", () => {
       const field = { fieldname: "qty", fieldtype, label: "Qty", options: "" };
       const el = mount(getFieldComponent(fieldtype), { field, modelValue: null, error: MESSAGE });
       await vi.waitFor(() => expect(el.textContent).toContain(MESSAGE));
+    });
+  }
+
+  for (const fieldtype of ["Link", "Dynamic Link"]) {
+    it(`draws the error on a read-only ${fieldtype} in place of its description`, () => {
+      const field = { fieldname: "customer", fieldtype, label: "Customer", description: "Who pays", readOnly: true };
+      const el = mount(getFieldComponent(fieldtype), { field, modelValue: "C-1", error: MESSAGE });
+      expect(el.querySelector('[data-slot="link-value"]')).not.toBeNull();
+      expect(el.textContent).toContain(MESSAGE);
+      expect(el.textContent).not.toContain("Who pays");
     });
   }
 
@@ -165,8 +176,9 @@ describe("a grid cell", () => {
   it("rings and clears a cell under a focused input without rebuilding it", async () => {
     const errors = ref<Record<string, FieldError>>({});
     const el = mount(TableField, { field, modelValue: rows }, errors);
+    // The first focus replaces the input (its Tooltip mounts); take it after.
+    cell(el, "r2", "qty").querySelector("input")!.focus();
     const input = cell(el, "r2", "qty").querySelector("input")!;
-    input.focus();
 
     errors.value = { [qtyOfR2]: MESSAGE };
     await nextTick();

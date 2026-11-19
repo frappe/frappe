@@ -6,6 +6,9 @@
  * explicit arguments with lib-level defaults rather than reading globals.
  */
 
+/** Fieldtypes that hold a number. A number has no unset state: Frappe shows `0`. */
+export const NUMBER_FIELDTYPES = ["Int", "Long Int", "Float", "Currency", "Percent"];
+
 /** Locale grouping/decimal table, keyed by Frappe's number-format strings. */
 const NUMBER_FORMAT_INFO: Record<
   string,
@@ -346,4 +349,15 @@ function roundNumber(
     `[FormLayout] Unknown rounding method "${method}", falling back to Banker's Rounding (legacy)`
   );
   return roundNumber(num, precision, DEFAULT_ROUNDING_METHOD);
+}
+
+const ratingFormat = new Intl.NumberFormat(undefined, {
+  maximumFractionDigits: 1,
+});
+
+/** A Rating is stored as a fraction of its stars (0.6 of 5 is 3 stars); show it on
+ *  the field's own scale, as "3 / 5". `options` holds the star count, 5 when unset. */
+export function formatRating(value: number, options?: string): string {
+  const stars = Number(options) || 5;
+  return `${ratingFormat.format(value * stars)} / ${stars}`;
 }

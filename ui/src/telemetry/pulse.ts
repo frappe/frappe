@@ -2,7 +2,7 @@
 // so it's independent of the backend's framework version. Degrades to null if the
 // asset can't be loaded, leaving telemetry off.
 
-import { call } from "frappe-ui";
+import { runMethod } from "../api";
 
 export interface PulseContext {
   user?: string;
@@ -56,7 +56,7 @@ export const BOOT_CONFIG_METHOD =
 // window.frappe.boot). Degrades to {} on any error, including old backends (404).
 export async function fetchBootConfig(): Promise<BootConfig> {
   try {
-    return (await call(BOOT_CONFIG_METHOD)) || {};
+    return (await runMethod<BootConfig>(BOOT_CONFIG_METHOD)).data || {};
   } catch (error) {
     return {};
   }

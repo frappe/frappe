@@ -1,0 +1,82 @@
+<!-- The Cards type's control among the page's: which fields a card's title, body and image read. -->
+<template>
+	<Popover side="bottom" align="end">
+		<template #trigger>
+			<Button :label="__('Cards')" icon-left="lucide-layout-grid" />
+		</template>
+		<template #default>
+			<div class="flex min-w-60 flex-col gap-3 p-3">
+				<FormControl
+					type="select"
+					:label="__('Title')"
+					:modelValue="title"
+					:options="titleOptions"
+					@update:modelValue="update({ title_field: $event })"
+				/>
+				<FormControl
+					type="select"
+					:label="__('Body')"
+					:modelValue="body ?? ''"
+					:options="bodyOptions"
+					@update:modelValue="update({ body_field: $event })"
+				/>
+				<FormControl
+					type="select"
+					:label="__('Image')"
+					:modelValue="image ?? ''"
+					:options="imageOptions"
+					:disabled="imageOptions.length === 1"
+					:variant="imageOptions.length === 1 ? 'outline' : 'subtle'"
+					@update:modelValue="update({ image_field: $event })"
+				/>
+			</div>
+		</template>
+	</Popover>
+</template>
+
+<script setup lang="ts">
+import { NO_VALUE } from "@framework/ui/FormLayout/noValueFields";
+import { Button, FormControl, Popover } from "frappe-ui";
+import { computed } from "vue";
+import { __ } from "@/i18n";
+import type { ListMeta } from "@/list/defaults";
+import { BODY_FIELDTYPES, IMAGE_FIELDTYPE } from "./cardFields";
+
+const props = defineProps<{
+	meta: ListMeta | null;
+	title: string;
+	body: string | null;
+	image: string | null;
+	update: (patch: Record<string, unknown>) => void;
+}>();
+
+const shown = computed(() =>
+	(props.meta?.fields ?? []).filter((field) => !NO_VALUE.has(field.fieldtype) && !field.hidden)
+);
+const option = (field: { fieldname: string; label?: string }) => ({
+	label: field.label || field.fieldname,
+	value: field.fieldname,
+});
+
+const titleOptions = computed(() => [
+	{ label: __("ID"), value: "name" },
+	...shown.value.map(option),
+]);
+const bodyOptions = computed(() => [
+	{ label: __("None"), value: "" },
+	...shown.value.filter((field) => BODY_FIELDTYPES.has(field.fieldtype)).map(option),
+]);
+// A hidden image field (User's `user_image`) stays listed when in use or the doctype's own, so None can be undone.
+const imageOptions = computed(() => [
+	{ label: __("None"), value: "" },
+	...(props.meta?.fields ?? [])
+		.filter(
+			(field) =>
+				field.fieldtype === IMAGE_FIELDTYPE &&
+				(!field.hidden ||
+					field.fieldname === props.image ||
+					field.fieldname === props.meta?.image_field)
+		)
+		.map(option),
+]);
+</script>

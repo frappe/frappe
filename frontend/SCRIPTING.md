@@ -1,0 +1,1971 @@
+# Writing a Client Script for the record page
+
+What `page` offers a script, region by region, with the script each region's design was
+judged by as its worked example. [`COMPATIBILITY.md`](./COMPATIBILITY.md) says which of
+this survives an upgrade; this document says what there is.
+[`ARCHITECTURE.md`](./ARCHITECTURE.md) says where a script sits among the desk's layers
+and what it may import.
+
+One section per region of the page. A region's section lands with the region, so a
+region not listed here is not yet addressable.
+
+## The page engine
+
+The record page is built on `createPageEngine`. An app file imports it from `@shell`.
+Every page made with it gives its handlers a `page` with these members: `doctype`,
+`meta`, `perms`, `roles`, `frame`, `header`, `body`, `refresh()`, `toast`, `dialog`,
+`call`, `cached` and `router`. They work as this document describes them for the record
+page, except `cached`. `page.cached` keeps values through the `cached` provider
+(`CachedProvider`) that the page gives the builder. The record page gives its per-record
+cache. An app page that gives no provider gets the default one: a value is fetched once per
+key while the route stays on one path, and is dropped when the path changes or the reader
+leaves the page. Nothing is kept for the next visit.
+
+An app page builds its own engine. It gives the builder its own lists, its own event
+names and its own `page` members, and the builder adds the rest. The record page's own
+members, such as `doc`, `fields` and `save()`, are the record page's additions.
+
+An app page also gives the builder its `app` and its `pageName`, the name of its
+`pages/<name>.js` file. The builder then runs two tiers of handlers on it, in this order:
+
+1. The page's handler file: `<name>.js` in the same folder as `pages/<name>.js`, which
+   `pages.json` declares. Only the app that ships the page runs it. A `<name>.js` beside a
+   page that `pages.json` does not declare, or under `custom/` with no page beside it, is
+   ignored with a build warning.
+2. The `Client Script` rows with `view = App Page`, `dt` set to the page's doctype and
+   `page` set to its name, in `run_order`. When one is saved, reordered or deleted, an open
+   page re-runs its handlers.
+
+A `pages.json` key is `record`, `list`, or a view type's key (`cards` for the Cards type): a saved
+view of that type opens the page.
+
+```js
+// helpdesk/support/doctype/hd_ticket/frontend/pages.json: { "list": "inbox" }
+// helpdesk/support/doctype/hd_ticket/frontend/pages/inbox.js builds the page:
+const engine = createPageEngine({ doctype: "HD Ticket", name: "Inbox", app: "helpdesk", pageName: "inbox", ... });
+
+// helpdesk/support/doctype/hd_ticket/frontend/inbox.js holds its handlers:
+export default {
+	onRefresh(page) {
+		page.header.add({ name: "assign", label: "Assign" });
+	},
+};
+```
+
+A doctype can open its records in a dialog: `{"record": "dialog"}` names no file, and a record
+address then opens the Quick Entry form over the page the reader is on. The record script of the
+doctype runs in it as on the page: `page.form` and `page.fields` draw, field handlers, `beforeSave`
+and `afterSave` run, and `page.save()` saves. The header, tab, panel and feed surfaces, files and
+the composer are not drawn, so their items are ignored there. `page.dialog` opens over it. Create
+for such a doctype shows no "Edit full form".
+
+An entry can name a body, a component that the dialog draws in place of the form, with the same
+record, Save and frame: `{"record": {"page": "dialog", "body": "summary"}}` loads
+`pages/summary.js` beside the `pages.json`, which exports `{ component }` as a replacement page
+does. The body gets three props: `page`, the dialog's `page` (read `page.doc`, call `page.save()`),
+`edit()`, which switches the dialog to the form, and `header(read)`. Add `apps` to the entry to
+scope it.
+
+The dialog's header holds the title, the `⋯` menu (Copy link, Delete) and the close button. Its
+footer holds only Save. A body calls `header` once in setup with a function that returns
+`{ title, subtitle, buttons, menu, save }`; the dialog calls it again when what it reads changes.
+`title` replaces the record's name; `subtitle` is a quiet gray line under it, such as a date, and the
+buttons and the close button stay on the title's line. `buttons` are icon buttons left of `⋯`, each `{ label, icon, onClick }`
+with the label as its tooltip. `menu` rows of the same shape go above Copy link. `save: false`
+hides Save and Ctrl+S. All of these hold only while the body shows: after `edit()`, the form gets the
+record's name, the record's menu and Save back. Do not use `page.header` for this: a dialog does
+not draw it.
+
+```js
+// crm/crm/doctype/crm_call_log/frontend/pages.json: { "record": { "page": "dialog", "body": "summary" } }
+// crm/crm/doctype/crm_call_log/frontend/pages/summary.js:
+export default { component: () => import("./CallSummary.vue") };
+// CallSummary.vue:
+const props = defineProps(["page", "edit", "header"]);
+props.header(() => ({
+	title: __("Call Details"),
+	buttons: [{ label: __("Edit"), icon: "lucide-pencil", onClick: props.edit }],
+	menu: [{ label: __("Add Note"), icon: "lucide-notebook-pen", onClick: addNote }],
+	save: false,
+}));
+```
+
+## Where a script runs
+
+A record-page script is a `Client Script` row with `view = Record` and `dt` set to the
+doctype. Its body is an ES module whose default export is an object of handlers, keyed by
+event (`onRefresh`, `onOpen`, `beforeSave`, `afterSave`, `beforeSubmit`, `afterSubmit`, `beforeCancel`, `afterCancel`,
+`onTabChange`, `onFormTabChange`, `onPost`) or by a fieldname. Every handler receives `page`. An app ships the same module as a **file
+script** in its own tree; it is built into the bundle and runs before the site's Client
+Scripts. The record tabs' section below shows one.
+
+`onRefresh` is a **replay**: the surfaces are cleared and rebuilt from the host's
+built-ins on every pass, so a conditional customization is a plain `if` over `page.doc`,
+with no `else` to undo it. Scripts run in `run_order`, and on one name the last to write
+wins.
+
+`onRefresh` should be synchronous. A replay reads what the page already holds:
+`page.doc`, `page.saved`, `page.meta`, the rows, and server data read with `page.cached`,
+described below. An `async onRefresh`, or one that
+returns a promise, still works, but what it does after its first `await` lands later, in
+one paint when it settles: the first paint waits up to 500 ms for it; after that it lands
+as a later paint. The page stops waiting for it after 5 seconds. A member kept from
+`page` before the first `await` (`const { tabs } = page`) is not blocked once the reader
+has left, except `save`, `reload` and `refresh`, which then do nothing; do not keep one.
+It also gives a development warning and files an Error Log entry, both naming
+`page.cached`. Move the server read to `page.cached`, and the page paints once.
+
+```js
+export default {
+  onRefresh(page) {
+    if (page.doc.status === 'Won') page.header.hide('save')
+  },
+}
+```
+
+A `record.js` is fetched when its doctype's record or new-record page opens, and runs before the
+page draws. No other page downloads it.
+
+A script runs on its doctype in every app, so a `custom/<doctype>/record.js` that changes
+another app's doctype also changes it on `/apps/desk`. The record page's `page.app` is the
+name of the app the reader is in: `frappe` on `/apps/desk`, `crm` on `/apps/crm`. It is
+read-only, and an app page has no `page.app`. Gate a change to one app with a plain `if`:
+
+```js
+// crm/fcrm/custom/contact/record.js
+export default {
+  onRefresh(page) {
+    if (page.app === 'crm') page.tabs.add({ name: 'deals', label: 'Deals', component: Deals })
+  },
+}
+```
+
+`page.cached(key, fetcher)` is how `onRefresh` reads server data. It returns at once the
+value it holds for `key`, or `undefined` when it holds none yet. The page runs `fetcher`
+once per visit for each key:
+
+- On a first visit, the first paint waits for the fetch, within the 500 ms limit. The page
+  then replays once with the value. That replay drops its acts, as the second replay of a
+  return visit does.
+- On a return visit, the value from the earlier visit paints at once. The fetch runs with
+  the background reads, and the replay after them draws the new value if it changed.
+- A failed fetch keeps the value the page has, and the console names the script and the
+  key.
+
+The value is kept while the record is held in memory, and it goes with the record. A
+reload or a new tab starts with none. Each script has its own keys, so two scripts can use
+one key name. A script keeps at most 20 keys for each record, and the least recently used
+key goes first. Put what the value depends on in the key. Read it in `onRefresh`, before any
+`await`: after an `await` the page cannot tell which script asks. A key read in another
+handler, or first read in the replay that draws a fetched value, is fetched with the next
+replay. The page waits at most 5 seconds for a fetch. A script saved while the reader was
+away can read a key its old version did not. On that return, the new version first draws
+with `undefined` for the key, then again when its fetch lands.
+
+```js
+export default {
+  onRefresh(page) {
+    const { customer, grand_total } = page.doc
+    const limit = page.cached(`credit-limit:${customer}`, () =>
+      page.call('myapp.api.credit_limit', { customer }),
+    )
+    if (limit !== undefined && grand_total > limit)
+      page.frame.add(
+        { name: 'over_limit', component: OverLimitBanner, props: { limit } },
+        { after: 'header' },
+      )
+  },
+}
+```
+
+`onTabChange` and `onFormTabChange` receive `page` only and fire on a change between two
+shown tabs; the handler reads `page.tabs.active` or `page.form.tabs.active`. A script's
+`activate` during the first load opens the page on that tab and fires no `onTabChange`,
+because no tab was shown before it.
+
+`onOpen` runs once per visit, after the first replay has drawn, and never on a replay. It is
+the place for a one-time move: `page.tabs.activate`, `page.panelSections.open`,
+`page.fields.focus`, `page.activity.scrollTo` and `page.composer.open`. Scripts run it in
+`run_order`, so on one move the last script wins. Its acts land in the same step as the first
+paint, so the page opens on the tab it chose and fires no `onTabChange`. It sees what every
+`onRefresh` drew. When an `onRefresh` awaits, every `onOpen` runs after the part after that
+`await` lands. A first visit keeps its skeletons until then, within the 500 ms limit. A return
+visit paints first, so the move shows after the paint. On a first visit whose scripts arrive
+after the 500 ms limit, `onOpen` runs after their ops land. What `onOpen` does after
+its own `await` is not held: each act lands when it is made. Draw in `onRefresh`, not in
+`onOpen`: the next replay rebuilds every surface, so an item `onOpen` adds does not last. A
+script saved while the page is open runs its `onOpen` on the next visit. A return visit
+just after a save paints with the old version and runs its `onOpen`. The new version's
+`onRefresh` then draws in the same step as the record's re-read, and its `onOpen` runs on
+the visit after that.
+
+When a return visit puts back the reader's tab, form tab, sections and scroll, the restored
+view wins: `onOpen`'s view acts (`page.tabs.activate`, `page.form.tabs.activate`,
+`page.panelSections.open` and `close`, `page.fields.focus`, `page.activity.scrollTo` and
+`page.composer.open`) do nothing, before or after an `await`, and say so in developer mode.
+Its other acts still run, and on a new navigation every act runs as before. A `page` that
+`onOpen` keeps, in a listener, a timer or a component it builds, keeps dropping view acts
+for the rest of that visit, though the same act works on a new visit. For a move made
+later, use the `page` a quick action or an event handler receives.
+
+```js
+export default {
+  onOpen(page) {
+    if (!new URLSearchParams(location.search).has('tab')) page.tabs.activate('files')
+  },
+}
+```
+
+A script's module runs once per tab, not once per visit. Its top-level variables live for
+the whole tab, until the script is saved again, and every record of the doctype shares
+them. A flag set at the top level on one record is still set on the next record, and on a
+return visit. Keep a one-time move in `onOpen`, and read what belongs to a record from
+`page`.
+
+Every handler other than `onRefresh` and `onOpen` runs in a **hold** and paints once, when it finishes:
+a field handler, `onTabChange`, `onPost`, `beforeSave`, `afterSave`, the Submit and Cancel events, a header or quick
+action's `run` and a dialog's callbacks show all their changes together at the end. A
+handler that must show progress while it runs uses `page.toast.success`,
+`page.toast.error` or `page.toast.info`. The first paint waits at most 500 ms for the page's scripts and
+permissions. After that the page paints what it has, without any handler still running,
+the console names what it waits for, and the rest lands when it arrives.
+
+`page.create(doctype, { values })` opens Create for any doctype and inserts the record
+itself. It resolves with the saved document, or `null` when nothing was saved in the dialog:
+the reader dismissed it or picked "Edit full form", the route changed, or the page has gone.
+`values` is its one option, the values the new record starts with, over the server's
+defaults. The title is always "New {doctype}", and the layout is the doctype's Quick Entry
+Form Layout row whose condition holds. The server decides whether a dialog opens: it does
+for a doctype with a Quick Entry Form Layout row or [app file](#an-apps-layouts), or with Quick Entry set, mandatory fields
+and no mandatory table. Otherwise the full-page new record opens with
+`values` in its query string, and the promise resolves `null`. With no Form Layout row or file the
+dialog shows the mandatory fields and those marked for Quick Entry. A doctype named by
+prompt gets a name field at the top. Ctrl/Cmd+Enter and Ctrl/Cmd+S save it, and never the page
+under it.
+A Link or Dynamic Link field opens the same Create from the last row of its dropdown when the
+reader may create the linked doctype. The typed text and the field's equality `link_filters`
+fill the new record. After a save the field takes the new name and runs its change handler,
+as a pick does.
+`page.dialog.form({ doctype })` is the other tool: it always shows a dialog and only returns
+the values, and it never inserts. A table field (`Table MultiSelect`) names its columns in
+`child_fields`, in a doctype field's vocabulary: `{ fieldname: 'roles', fieldtype: 'Table MultiSelect',
+options: 'Has Role', child_fields: [{ fieldname: 'role', fieldtype: 'Link', options: 'Role' }] }`
+returns `{ roles: [{ role }] }`. A list page draws the dialog too.
+
+```js
+page.header.add({
+  name: 'new_contact',
+  label: 'New contact',
+  run: async (page) => {
+    const doc = await page.create('Contact', { values: { company: page.doc.company } })
+    if (!doc) return
+    page.doc.contact_person = doc.name
+  },
+})
+```
+
+`page.rename(name, { merge })` renames the record: it does what the `rename` row in `⋯` does,
+with no dialog. A dirty draft saves first, and a save that fails or is vetoed renames nothing. Then
+`frappe.client.rename_doc` runs, under the reader's write right and the doctype's *Allow
+Rename*, and the page opens the record at its new name. With `merge`, the record merges into
+the existing one of that name. It resolves with the new name, or `null` when the save or the
+server refused, after a toast that says why. On a new record it resolves `null`. A reader who
+edits during the rename and keeps those edits when asked stays on the old name, with a toast
+naming the new one.
+
+```js
+async organization_name(page) {
+  await page.rename(page.doc.organization_name)
+}
+```
+
+`page.openSettings(prefix, pane, block)` opens the settings dialog over the page at
+`#settings/<prefix>/<pane>/<block>`. The arguments are the address's segments in order, each
+one optional: `page.openSettings()` opens the current app's first pane, and a block scrolls
+the pane to that block. It writes the address and returns nothing; the page under the dialog
+does not change, and Back closes it. A call in a replay or a hold opens the dialog after the
+commit, and the last call wins. A pane that does not exist, or that the reader cannot see,
+opens the dialog with one message that does not say which. A block that the pane does not hold
+is ignored: the address stays, and the pane opens at the top with no message.
+
+A block that an app adds to another app's pane has that pane's address. CRM adds its
+`telephony` block to desk's Profile pane, so the block's address is
+`#settings/desk/profile/telephony`:
+
+```js
+page.header.add({
+  name: 'telephony',
+  label: 'Telephony settings',
+  run: (page) => page.openSettings('desk', 'profile', 'telephony'),
+})
+```
+
+`page.run(name, value)` runs an **act** by its full name, `<surface>.<item>`. An act is an
+item that has `run`: a header item (`header.delete`), a quick action (`quickActions.email`)
+or a tab's `create` entry (`tabs.attach_file`). A crumb with only an `href` is a link, and a
+`dropdown` or a `section` holds other items, so neither is an act. The act runs in a hold, as
+a click on it does, and its `run` receives `(page, value)`. `page.run` finds the act as the
+page drew it after the last replay, so an act a script adds under an `if` in `onRefresh` is
+there only while the `if` holds, and where two scripts add the same name, the later one's
+`run` is the one that runs. It rejects with what `run` threw, or with an `ActDenied` error,
+whose `act` is the name and whose `reason` is `'missing'` (no item has that name and a
+`run`), `'hidden'` (the item, or the container it sits in, is hidden) or `'right'` (the
+reader lacks its right). An act that asks for a confirm (`header.submit`, `header.cancel`,
+`header.delete`, the Merge confirm of `header.rename`, and `shell.open` when it asks to discard
+changes) throws `ActDeclined` when the person says no; `page.run` resolves nothing then, as it
+always has, while a caller outside the bundle gets `{ ok: false, error: { code: 'declined' } }`
+from the dispatcher's `call`. A click, and later the palette and a key, show a failure in a
+toast instead, and the record reloads unless a `beforeSave` vetoed a save.
+
+The record page also has the `record` surface, with no palette rows. `record.post_comment`
+takes `{ content }`, plain text: it is escaped, each line is a paragraph, and the comment is
+posted as the writer's Send posts it (the pending row shows and `onPost` fires, no
+mentions or attachments). It returns `{ comment }`, the comment's name, and leaves the
+composer's draft as it is. Only the record page has this act: a record dialog and a new record have the
+acts that fill the form, below.
+
+`page.run` also runs the shell's acts, which outlive the page and are named `shell.<item>`.
+Each menu entry in the rail and the avatar menu is one of them: `shell.all_apps`,
+`shell.customize_sidebar`, `shell.copy_link` and `shell.toggle_sidebar` (while a sidebar
+shows), `shell.open_settings` with `{ prefix, pane, block }`, `shell.my_settings`,
+`shell.theme` with `'light'`, `'dark'` or `'system'`, `shell.desk_v1`, and `shell.log_out`,
+which asks first. `shell.create` takes a doctype, or `{ doctype, values }`. `shell.open` takes
+`{ doctype, name, view }` and opens that record, the doctype's list, or (with `view` and no name)
+one of its saved views; the palette does not list it. A Single has no list, so it opens the
+document, and `view` is ignored with a name. It resolves `{ opened, path }`: the tab's path after
+the push, and whether the navigation happened. `shell.back` goes to the page before this one in the tab and
+answers `{ path }`; it fails with no earlier page, and ends declined when the reader keeps unsaved changes at the
+discard confirm. The palette does not list it. `page.create()`, `page.open()` and
+`page.openSettings()` run `shell.create`, `shell.open` and `shell.open_settings`.
+
+The `record` surface fills the form in front, as typing does, and never saves: each value commits
+through the same channel, so a Link is checked, `fetch_from` fills and your field handlers run
+before the call returns. None of them is in the palette.
+
+- `record.set_values({ values })` sets top-level fields by fieldname, in the order given. An unknown,
+  hidden (`depends_on`), read-only or table field rejects the whole call with `ActInvalid`, and nothing is
+  written. It resolves `{ values, errors }`: every field that changed, fetched ones too, and the marks on
+  screen by fieldname (`table.<idx>.<fieldname>` for a row's cell). A Link that is not found is a mark, not a rejection.
+- A child row is `{ table, idx }`, `idx` the 1-based number the grid shows. `record.add_child_row({ table, values })`
+  adds a row at the end with the child's defaults, fires `onAdd`, then sets `values` as above, and resolves
+  `{ idx, values, errors }`. `record.set_child_values({ table, idx, values })` sets cells of one row.
+  `record.remove_child_row({ table, idx })` fires `onRemove` and resolves `{ rows }`, the count left. A row's
+  `idx` moves up when a row above goes.
+
+```js
+await page.run('record.add_child_row', { table: 'items', values: { item_code: 'WIDGET', qty: 3 } })
+```
+
+A Create dialog in front registers its own `record.set_values` for its form. It has no child tables, no handlers and no Link check: it fills the shown fields and marks the form edited.
+
+```js
+page.header.add({ name: 'dark', label: 'Dark theme', run: (page) => page.run('shell.theme', 'dark') })
+```
+
+Open a record with `page.open(doctype, name?, { view }?)`, or `shell.open(...)` in an act, and
+never push a route yourself: `open` goes through the router, so a doctype that opens in the
+record dialog opens there (a Single or a submittable opens its page). It resolves when the
+navigation settles, whether a page, the dialog or nothing opened, and rejects when the doctype
+has no address. `shell.href(doctype, name?)` gives the address for a plain `<a>`, or `null`.
+
+```js
+run: (shell, deal) => shell.open('CRM Deal', deal.name)
+```
+
+An app adds its own global acts in `<module>/frontend/acts.js`, whose default export is a
+list of acts. Each joins the shell surface under the app's name, so CRM's `log_a_call` is
+`shell.crm.log_a_call`, and its `run` receives `(shell, value)`, where `shell` holds
+`router`, `toast` (`success`, `error` and `info`), `call`, `run`, `create`, `open`, `href`,
+`openSettings`, `record`, `dialog`, `windowOf` and `realtime`. `shell.dialog.confirm` and `shell.dialog.danger` take the options
+`page.dialog.confirm` and `page.dialog.danger` take and resolve `true` when confirmed and
+`null` when dismissed. `shell.dialog.open(component, props, options)` is `page.dialog.open`
+on the shell's own stack: it renders `component` in a dialog with a `close(result)` prop,
+takes the same `title`, `size` and `dismissible` options, and resolves what the component
+closes with, or `null` when the reader dismisses it. The dialog is not tied to a page and
+stays open across navigation. `shell.windowOf(app)` is the handle of that app's standing
+window (see `shell.js`): `open(props)` shows the window and hands `props` to its component,
+`close()` hides it, and `isOpen` reads whether the frame shows. The handle exists before the
+app's `shell.js` has attached the window, so an act never meets a window that is still loading:
+an `open(props)` made early opens the window the moment it attaches. `shell.realtime.on(event,
+handler)` calls `handler` with each socket event of that name and returns `off`. Called in a
+component's setup before any `await`, a page's or a window's, it stops by itself when the
+component unmounts;
+anywhere else, an act's `run` or a `shell.js` setup, it lasts until you call `off`. A handler
+that throws is logged and does not stop the others. The `setup(shell)` of an app's `shell.js` receives that same
+`shell`, plus `afterSave(doctype, handler)` and `window(component, options)`. A settings
+pane's component block gets it as a `shell` prop beside its `bindings`. The desk imports the file at idle after the first paint, and
+`page.run` and the palette wait for it when asked sooner. A shell act's `right` is `{
+doctype, ptype }`; an act whose right is a bare ptype such as `'create'` is ignored, with
+a warning. Give `label` as a getter, so it is translated each time it is read, also when
+the messages arrive late.
+
+```js
+// crm/fcrm/frontend/acts.js
+import { __ } from 'frappe/i18n'
+
+export default [
+  {
+    name: 'log_a_call',
+    get label() {
+      return __('Log a call')
+    },
+    icon: 'lucide-phone',
+    right: { doctype: 'CRM Call Log', ptype: 'create' },
+    run: (shell) => shell.create('CRM Call Log'),
+  },
+]
+```
+
+### The list page: `list.js`
+
+A doctype's `list.js` is a handler file, as `record.js` is. Its `onRefresh(page)` runs on the list
+page, and the page paints after it has run. The list page loads the doctype's `list.js` files on
+its first visit, one chunk request beside the meta. It runs `onRefresh` again on a return visit
+and on `page.refresh()`, and again when a `List Page` Client Script of the doctype is saved,
+reordered or deleted. A filter, a sort or Load More change only `page.rows`; they do not run
+`onRefresh`.
+
+To move a desk v1 list script (`frappe.listview_settings`) to a `list.js`, read
+[LIST-SCRIPTS.md](LIST-SCRIPTS.md).
+
+A `Client Script` row with `view = List Page` and `dt` set to the doctype has the same text as
+`list.js` and runs after the doctype's `list.js` files, in `run_order`. The list page fetches the
+rows beside the meta, one request more on a cold load, and paints after they have run. Desk v1
+never sees them. The script writer's permission is the record page's: `Client Script` write, and
+read on the doctype to fetch them.
+
+The list page has the base page members (`doctype`, `perms`, `roles`, `toast`, `dialog`, `run`,
+`open`, `create`) and these:
+
+| Member | What it holds |
+| --- | --- |
+| `page.controls` | The controls row, as one list. Built-ins: `quick_filter`, `filter`, `sort`, `columns` and `customize_quick_filter` (the `⋯` entry). An item with `run` draws as a button. |
+| `page.columns` | The table's columns, as one list. Built-ins: the default columns, one per fieldname. `update` sets how a column draws its cells (the cell keys below). |
+| `page.bulkActions` | The actions on the selected rows. Built-ins: the status and collaboration acts, `print`, `edit`, `copy`, `export`, `delete` (see below). While rows are selected, a floating bar at the bottom of the list draws them: a script item goes first in the **More** menu, under the doctype's name. |
+| `page.rowActions` | The actions in a row's menu. No built-ins. |
+| `page.view` | The view: `key` and `type`. |
+| `page.rows` | The rows loaded now; read only. This is not the record page's `page.rows(parentfield)`. |
+| `page.selection` | The names of the selected rows now; read only. |
+| `page.filters`, `page.sort` | The view's filters and sort. Set them to load the rows again. |
+| `page.reload()` | Loads the rows again, as the list does after its own change. |
+| `page.callSelected(method, args)` | Runs a whitelisted record function on the selected rows through the bulk runner. See below. |
+
+The four lists take the seven verbs and `clear`. A `controls` or `bulkActions` item is an act
+item (`name`, `label`, `icon`, `run(page, value)`, `right`, `when`, `palette`). A `rowActions`
+item takes `name`, `label`, `icon`, `right`, `fields` (the row fields it reads, added to the
+list query), `when(page, row)` and `run(page, row)`. A `when` that throws hides the action on
+that row. A bulk action's `run(page, names)` gets the selected names as they were at the press. Each item is an act: `list.<name>` for a control, `list.<name>` for a bulk action and
+`list.row_<name>` for a row action. A built-in list act, such as `list.create`, gets the page as
+`run(page, value)`.
+
+The bulk built-ins (`edit`, `print`, `export`, `delete` and the rest) come with the bulk bar's
+code, which loads on the first selection or when the pointer or focus enters the list. Until
+then `page.bulkActions.has('<built-in>')` is false and `find` returns `undefined`. A `hide`,
+`update`, `move` or `remove` on a built-in is kept and applies when the built-ins load, so a
+script can call it in `onRefresh` without a check. On a doctype with a workflow, `edit` and
+`delete` are not built-ins unless its List View Settings allow bulk edit.
+
+```js
+// frappe/automation/doctype/automation_flow/frontend/list.js
+import { __ } from 'frappe/i18n'
+
+export default {
+  columns: [{ fieldname: 'title' }, { fieldname: 'document_type' }, { fieldname: 'enabled' }],
+  onRefresh(page) {
+    page.columns.update('enabled', { switch: true })
+    page.rowActions.add({
+      name: 'duplicate',
+      label: __('Duplicate'),
+      icon: 'lucide-copy',
+      right: 'create',
+      run: (page, row) => page.run('shell.frappe.duplicate_automation_flow', row.name),
+    })
+  },
+}
+```
+
+A list.js holds handlers only: a key that is not a function is ignored. An app's default
+columns, sort and filters go in `<doctype>/frontend/views/list.json` beside it, a bare settings
+object: `{ "columns": [{ "fieldname": "title", "width": "200px" }], "sort": [{ "fieldname": "creation",
+"direction": "desc" }], "filters": [["status", "=", "Open"]], "quick_filter_fields": ["status"] }`.
+The site's and the person's saved settings win over it, key by key.
+
+The list page draws `page.header`, `page.frame` and `page.body` as the record page does, and an
+`onRefresh` edits them with the same verbs. The header's left holds the `module` crumb, the
+`doctype` crumb, the `view` crumb on a saved view, and the `favourite` star. Its right holds the
+`new` button (label "Create"), shown only with the create right, and the `⋯` menu, which has no
+built-ins and shows once a script adds an entry. A header item's `run(page)` gets the list page. As on the record page, a header item with `run` is an act, `header.<name>`: it takes `key`, `palette` and `argument`, and `page.run('header.<name>')` runs it. `right` is a right name or a `{ doctype, ptype }` object. A record dialog opened above the list (Create, for one) registers its own `header` acts, which shadow the list's while it is open; the list's are live again when it closes. Hiding `new` or `favourite` also stops `list.create` and `list.favourite`.
+The body's one built-in is `list`, the controls row and the rows; add a `component` item before
+or after it, or hide it. A `frame` band draws before the header, between the header and the body, or after the body.
+
+An app adds to another app's list from `<app>/<module>/custom/<scrubbed>/list.js`, the same file
+shape at the `custom/` path that `record.js` uses. The owner's `onRefresh` runs first, then each
+other app's in the site's app order. A new or changed file takes effect after the next `bench build`.
+
+#### A bulk action that runs on the server: `page.callSelected(method, args)`
+
+A bulk action that changes records on the server writes one **record function** and calls it with
+`page.callSelected`. The function takes the doctype and the name of one record, then the `args`
+the script sends:
+
+```py
+# my_app/api.py
+@frappe.whitelist(methods=["POST"])
+def add_roles_to_user(doctype: str, name: str, roles: list) -> None:
+    user = frappe.get_doc(doctype, name)
+    user.check_permission("write")
+    user.add_roles(*roles)
+```
+
+```js
+// my_app/.../user/frontend/list.js
+page.bulkActions.add({
+  name: 'add_roles',
+  label: __('Add Roles'),
+  right: 'write',
+  run: async (page) => {
+    const values = await page.dialog.form({ title: __('Add Roles'), fields: [/* ... */] })
+    if (values) await page.callSelected('my_app.api.add_roles_to_user', { roles: values.roles })
+  },
+})
+```
+
+The runner calls the function once for each selected record, each under its own savepoint, so a
+record that raises fails alone and its error shows in the result. The runner owns everything
+around it: the person's `bulk_actions` switch, the cap (`bulk_operation_limit`), running inline
+or as a Background Task above the threshold, progress, and the result. The function owns the
+right: **check the record's right in the function** (`check_permission`, or a save that checks
+it). The runner only checks that the method is whitelisted and that its HTTP method is `POST`.
+
+- The function is `method(doctype, name, **args)`. `args` is a dictionary and never holds `doctype` or `name`. An argument the function does not take is dropped, as a normal call does.
+- Type every argument: `frappe.whitelist` refuses a function that lacks annotations.
+- It returns nothing. It may return `"queued"` (`frappe.api.bulk.QUEUED`) when the work is queued elsewhere, and the result lists the record as queued, not done.
+- Its messages (`frappe.msgprint`) are dropped. Raise to fail the record.
+- The runner checks the whitelist, the HTTP method and the bulk right, then calls the function as a direct request would. The function owns every other check.
+- The method is a dotted path to a whitelisted function. A Server Script API is not supported.
+- The Background Task is named after the function: `add_roles_to_user` runs as "Add Roles To User User" (function name, then doctype).
+
+`page.callSelected` resolves `true` once the runner took the request and `false` after a toast
+when it refused it. The shell reports the outcome: a toast, the bulk tray for a background run,
+or the result panel with Retry when a record failed. It reloads the list when the run ends. With no row selected it sends nothing.
+
+`page.columns.update(fieldname, cell)` describes how a column draws its cells, as data (an app
+supplies no component):
+
+| Key | What it does |
+| --- | --- |
+| `icons` | A value to icon map. The icon draws before the plain label and replaces the default status badge. |
+| `badge` | A value to theme map (`gray`, `blue`, `green`, `orange`, `red`): the value shows as a badge. Or a function `(row) => ({ label, theme, filters })`, which replaces v1's `get_indicator`: see below. |
+| `fields` | The row fields a `badge` function reads besides the column's own, such as `['due_date']`. The list query fetches them; a field the reader may not read is left out. |
+| `icon` | One icon before any non-empty value. |
+| `format` | A dayjs format for a Date or Datetime, such as `'D MMM, hh:mm a'`. Its tooltip is the full date. |
+| `switch` | `true` on a Check column draws a switch that saves the field in place (a PATCH with the row's `modified`). It is read-only without a level 0 write right, and a refused write leaves it as it was. |
+
+A `badge` function gets the row and returns `{ label?, theme?, filters? }`, or nothing to keep the default cell. `label`
+defaults to the field's own text and `theme` to `gray`. It runs for an empty value as well, since it reads the row. With
+`filters`, a list of `[fieldname, operator, value]` triples, the badge is a button: a click adds them to the view's
+filters, in place of its conditions on the same fields. A function that throws leaves the default cell and logs the error.
+
+An icon is a name from the icon sprite, with or without the `lucide-` prefix. A key, value or fieldtype
+it does not fit keeps the default cell, and an empty value draws no icon. A Check, Rating, Color, Attach
+or Image column keeps its own cell, except a Check column marked `switch`.
+
+```js
+// crm/fcrm/doctype/crm_task/frontend/list.js
+export default {
+  columns: [{ fieldname: 'title' }, { fieldname: 'status' }, { fieldname: 'priority' }, { fieldname: 'due_date' }],
+  onRefresh(page) {
+    page.columns.update('status', { icons: { Todo: 'lucide-circle', Done: 'lucide-circle-check' } })
+    page.columns.update('priority', { badge: { High: 'red', Medium: 'orange', Low: 'gray' } })
+    page.columns.update('due_date', { icon: 'lucide-calendar', format: 'D MMM, hh:mm a' })
+  },
+}
+```
+
+```js
+// A badge that reads another field of the row and filters the list on a click.
+page.columns.update('status', {
+  fields: ['due_date'],
+  badge: (row) =>
+    row.due_date < today() && row.status !== 'Done'
+      ? { label: 'Overdue', theme: 'red', filters: [['status', '!=', 'Done']] }
+      : null,
+})
+```
+
+An act item takes nine more keys, on `page.header`, `page.quickActions` and a tab's `create`:
+
+| Key | What it does |
+| --- | --- |
+| `key` | A default key combo in `useKeyboardShortcut` syntax, such as `'Mod+Shift+D'`. The shell binds it while the act is available, and a press runs the act as a click does. Where a page act and a shell act share a combo, the page act runs. A combo with `Mod` or `Ctrl` also fires in a field, and none fires in a dialog, a popover or a dropdown. A key on an act that has an `argument` opens the palette at its argument step. |
+| `right` | A right the act needs: a ptype on this doctype (`'write'`), read from `page.perms`, or `{ doctype, ptype }` on another doctype, read from that doctype's level 0 permission rows and the reader's roles. |
+| `palette` | `false` keeps the act out of the palette. A script and a key still run it. |
+| `argument` | `{ label, options(page, query) }`: the one value the act asks for. `options` returns rows `{ value, label, description? }`, or a promise of them, and the chosen `value` reaches `run(page, value)`. The palette lists the rows under `label` (`'Users'`) and ranks them by the typed text, and asks `options` again after each pause in the typing. |
+| `when` | `(page) => boolean`, or `(shell) => boolean` on a shell act. While it returns `false` no surface draws the act (palette, header, menus, keys) and a run is refused as hidden. It runs on every read, so keep it sync and cheap: read state your app already holds, loaded at idle, never the server. A `when` that throws hides the act and logs the error. |
+| `description` | What the act does, what it returns, what it asks the person, and when not to use it, for an agent that lists the desk's acts. |
+| `input` | The value `run` takes, as JSON Schema limited to `type`, `properties`, `required`, `additionalProperties`, `enum`, `minLength`, `items` and `description`. The dispatcher checks every caller's value against it before `run` and refuses a value that does not fit. A value is required unless `type` includes `'null'`. Left out, the act takes any value; with a `description` and no `input` it takes none. |
+| `output` | The schema of what `run` returns. Left out, the act returns nothing. |
+| `asks` | The dialogs the act may wait on, a list of `'confirm'`, `'danger'`, `'dialog'` and `'picker'`. |
+
+```js
+page.header.add({
+  name: 'convert_to_deal',
+  label: 'Convert to deal',
+  right: { doctype: 'CRM Deal', ptype: 'create' },
+  run: (page) => page.call('my_app.api.convert_lead', { lead: page.docname }),
+})
+page.quickActions.add({ name: 'convert', label: 'Convert', run: (page) => page.run('header.convert_to_deal') })
+```
+
+### `window.desk`: what an agent sees
+
+An agent that drives the tab through a script tool finds `window.desk`, frozen, with
+`version: 1`. Every member but `version` returns a Promise. It runs as the session user, so
+the dispatcher's `right`, `hidden` and `when` checks apply as they do for a click. It sends no
+request of its own (an act's `options` may read the server, as the palette does) and has no cache; the first call loads its chunk.
+
+| Member | What it gives |
+| --- | --- |
+| `acts.list()` | The acts present, shown and allowed now: `{ name, label, description, input, output?, asks, surface, key?, has_options }`. `input` is null when the act takes none, `asks` is `[]`, and `description` falls back to the label. |
+| `acts.options(name, query)` | The act's argument options as `{ ok, data: [{ value, label, description?, disabled? }], route, dialogs }`. |
+| `acts.run(name, value)` | `{ ok: true, data, route, dialogs }`, or `{ ok: false, error: { code, message }, route, dialogs }`. It never rejects. |
+| `acts.wait(call, { timeout })` | The final result of a call that returned `waiting_for_user`. |
+| `state({ fields })` | `{ route, page, ...facts, dialogs }`. `page` is `home`, `list`, `record`, `new`, `editor`, `page` or `not_found`. |
+| `dialogs()` | The open dialogs: `id`, `kind`, `title`, `message`, buttons. |
+
+A `confirm` or `danger` dialog that opens before an act ends makes `run` return
+`waiting_for_user`, with `error.dialog` and `error.call` (a number). Do not answer that dialog;
+tell the person, then call `wait(call)`. While it is open, any other `run` returns
+`waiting_for_user` too. Escape or Cancel makes the waited call `declined`. A `wait` that times
+out returns `waiting_for_user` again, and an unknown call id is `missing`. A form dialog does not
+end the run: `run` stays pending, so read `dialogs()` meanwhile. `interrupted` is for the caller to
+report when its tab is gone. An agent's value never skips a confirm: for a call from `window.desk`, an act that
+asks first (`danger.change_kind`, `danger.rename_doctype`, `danger.move_doctype`, `danger.make_standard`,
+`fields.delete_field`, `layouts.reset_to_app`) uses the value to fill the dialog, opens it, and waits
+for the person, as above. A script's `page.run` with the same value still skips it. A confirm or danger dialog an agent's call
+opens ends with "An agent asked for this.". The state of a list is `doctype`, `filters` (REST v2 `[fieldname, operator, value]` triples), `sort`
+(`[{ fieldname, direction }]`), `selected` and `rows` (`{ name, title }` for the loaded rows, up to 20).
+Three list acts change it: `list.set_filters({ filters })` replaces the filters (an empty list clears
+them), `list.set_sort({ sort })` replaces the sort, and both answer `{ total, rows }` once the rows have
+loaded; `list.select({ names })` replaces the selection with loaded rows and answers `{ selected }`.
+An unknown field or operator, or a name that is not a loaded row, is `invalid`. A bulk act of a person
+whose "Allow bulk actions" is off is `missing`, and its message says to turn it on in My Settings.
+A record or new page adds `doctype`, `name` (not on a new record), `docstatus`, `unsaved`, `errors` and, with
+`fields: true`, the fields its layout shows (a text value is cut at 200 characters). A record route
+whose page has not loaded gives `loading: true`; read again.
+
+### The UI relay: a server call reaches the open tab
+
+A caller that cannot run script in the tab, such as `fr ui`, calls three whitelisted methods
+over REST API v2 as the token's user. Each refuses with `PermissionError` unless that user turned on
+"Let agents drive my open tabs" in My Settings (off by default; the tab reads it once, so a reload applies a change).
+Only the person can turn it on, in their own browser session: a token or OAuth request that tries is refused.
+`call` and `tabs` allow 60 a minute per user.
+
+| Method | What it does |
+| --- | --- |
+| `frappe.desk.ui_relay.tabs()` | `[{ tab, route, title, focused_at }]` for the tabs that listen, the last focused first. It collects for 1 s. |
+| `frappe.desk.ui_relay.call(op, tab?, act?, args?, call_id?)` | Runs `op` in a tab and waits up to about 25 s. `op` is `acts` (`args: { surface? }`), `state` (`args: { fields? }`), `dialogs`, `run` (`act`, `args` is the act's value) or `wait` (`call_id`). No `tab` means the tab focused last. |
+| `frappe.desk.ui_relay.reply(call_id, result, tab?, final?)` | Called only by a tab. |
+
+`call` answers the tab's `window.desk` result with `tab` added: `{ ok, data | error, tab, route, dialogs }`;
+`acts`, `state` and `dialogs` come as `{ ok: true, data }`. Errors the relay adds are `tab_not_found` (no tab named or open answered
+in about 1 s; run `tabs`) and `waiting_for_user`. For `waiting_for_user`, `error.call` is a string, the relay's call id (not
+`window.desk`'s number): the person must answer the dialog in `error.dialog` (when the tab sent one), or the tab has not
+ended the call in 25 s. Call `op: "wait"` with that id to wait again; the final result stays 15 minutes
+and can be read more than once. A tab runs relay calls one at a time, in order. A rate limit and a setting that is off fail the
+HTTP request (429 and 403), not the envelope.
+
+While calls run, and for 30 s after the last, the tab shows a mark at the foot of the page: "{client} is driving this tab"
+(the OAuth client's registered name; "An agent" for a plain token) with a **Stop** button. Stop ends every open call with
+`interrupted` and refuses each later call with `interrupted` until the person reloads the tab; a stopped tab still lists in `tabs`. An agent that gets `interrupted` must not
+retry: the person said no. A call already running when Stop was pressed may still have taken effect, so read the state
+before assuming it did not.
+
+On a **return visit**, a record seen earlier in the same tab and reached again by Back,
+Forward or a link, the page paints from memory before the first frame, and `onRefresh`
+runs twice: once over the remembered record, then once more when the background reads
+return: the record with its parts, the Activity rows if they were kept, and every
+`page.cached` key the first replay read. If nothing
+changed, the second replay draws nothing. Build new values in each replay: an object
+changed in place and handed over again reads as unchanged, so it is not drawn again. Acts
+in the first replay land as on a first visit; the second replay drops its acts with a
+development warning, so a one-time move such as `activate` or `scrollTo` belongs in
+`onOpen`, which runs once, after the first replay. While an `async onRefresh` started by the second replay is still
+running, the page drops every act, a quick action's among them. Values the background reads
+change fire no field handlers. If the reader is editing when they return, only the fields
+the reader has not touched take the server's values. A first visit, or a record not held
+in memory in full, loads as described above.
+
+**Every place on the page is a list, every list takes a component item, and `before` /
+`after` names a neighbour.** There is no vocabulary of places on top of that: no zone or
+slot words say where a thing goes, a neighbour does. The frame, the header row, the panel
+and the form are each a list that accepts the same item shape, `name`, `component`,
+`props`, and speaks the seven verbs and `clear`. A script author learns one item and one position
+spelling; the sections below only refer to it.
+
+## A new record
+
+`/<doctype>/new` opens a new record on the standard page. A doctype whose record page an app
+replaces opens that page there instead, with no `name` prop and the address's query as a `query` prop: it draws an unsaved record. Its query string sets the first values over the server's defaults:
+`/todo/new?priority=High`. `page.isNew` is true until the first save. Scripts run as on a
+saved record: `onOpen`, the field handlers and the tab events fire. Before the first save the
+record has no name, so the page shows the header and the form only. It has no panel,
+Activity, comment box, quick actions, favourite, follow or header menu, and `onPost` cannot
+fire. `page.save()` inserts the record, also with no changes. `beforeSave` runs before the
+insert, and `afterSave` after it, with `page.isNew` false and `page.doc.name` set. The page
+then opens the saved record, so `onOpen` runs again with `page.isNew` false.
+
+```js
+export default {
+  onOpen(page) {
+    if (page.isNew) page.doc.priority = 'High'
+  },
+}
+```
+
+## An app's layouts
+
+An app ships a `Form Layout` for one of its doctypes as a file in the doctype's folder:
+`<app>/<module>/doctype/<doctype>/frontend/layouts/<type>.json`. `<type>` is `details`,
+`side_panel`, `quick_entry` or `new_record`. Contact ships `quick_entry.json` and
+`new_record.json`.
+
+The file holds a list of layouts. Each has two keys. `layout` is the tree that a `Form Layout`
+row stores. `omitted` lists the fieldnames that the layout leaves out on purpose. An entry can
+also hold `title`, its name in the layout menu, and `condition`, as a row's. At most one entry
+has no condition: it is the default. A file of one bare object, the older shape, still reads. A
+`quick_entry.json` entry can also hold `size`, the Create dialog's size: a frappe-ui dialog size
+from `xs` to `7xl`. With no `size`, the dialog is `xl`.
+
+```json
+{
+ "layout": [
+  {
+   "name": "first_tab",
+   "sections": [
+    {
+     "columns": [
+      {
+       "fields": [
+        "first_name",
+        {
+         "fieldname": "email_id",
+         "fieldtype": "Data",
+         "label": "Email Address",
+         "options": "Email"
+        }
+       ],
+       "name": "column_1"
+      }
+     ],
+     "name": "contact"
+    }
+   ]
+  }
+ ],
+ "omitted": []
+}
+```
+
+The file is the lowest tier. The site's rows of the same doctype and type come first. A row
+with no condition replaces the file whole, and the rows and the file never merge. A row with
+a condition wins only when its condition holds. New Record with no row of its own uses the
+Details rows, and every site row comes before any file. So New Record reads its rows, then
+the Details rows, then the `new_record` file, then the `details` file. A Quick Entry file
+makes Create open a dialog, as a Quick Entry row does.
+
+A child table doctype has only `details`, which shapes its row dialog: each row picks its
+layout with the row as `doc`. A Single has `details` and `side_panel`, and a generated block
+of the Settings dialog that lists no fields draws the Single's Details layout in one column.
+`save_form_layout` refuses the other types for both, with a message.
+
+The server reads the file on each layout call. Its cache key is the file's path, modified
+time and size, so an edit applies on the next call without a build or a migrate. An open
+desk keeps the layout it has until the page loads again.
+
+Write the file as a server save writes it: `frappe.as_json` and a final newline. Then the same
+tree and `omitted` always give the same bytes and the same hash. Give each tab, section and
+column a `name`. The server names an unnamed one when it reads the file, but a stored name
+keeps a script's address when a label changes. The server refuses a file with two defaults
+when it reads it. `write_app_layouts(doctype, type, entries)` writes the file this way, after
+the checks a row gets on save; an empty list deletes it. Frappe's tests check every installed app's file with the checks a row gets on save,
+so an inline field is allowed only in `quick_entry` and `new_record`.
+
+The translation extractor reads every file that `**/doctype/*/frontend/layouts/*.json`
+names. It takes each container's `label` and `description`, and the label, description and
+options of each inline field.
+
+A New Record file lists every field of its doctype in `layout` or in `omitted`. A release
+that adds a field to the doctype also updates the file. Contact's test checks this.
+
+Limits:
+
+- A site row keeps winning over a newer file. Each save stores the file's fingerprint, so a
+  row comes back with `source_changed` once the file changes after its last save; an older
+  row has no fingerprint until its next save. An app that writes its own rows calls
+  `write_layout_row(row, **values)` from `frappe.desk.doctype.form_layout.form_layout`, so its
+  rows get the same checks and fingerprint.
+- When a doctype that rendered from its breaks gets a `details` or `new_record` file, the
+  site's Property Setters on breaks (a section label, `collapsible`) and its `field_order` no
+  longer apply on desk v2. They still apply on desk v1. A custom field stays in place through
+  its `insert_after` anchor ([#45894](https://github.com/frappe/frappe/issues/45894)).
+
+## An app's views
+
+An app ships a saved view as one JSON file. The file name is the view's key, and the
+view's address is `/<doctype>/view/<key>`.
+
+| Path | For |
+| --- | --- |
+| `<app>/<module>/doctype/<scrubbed>/frontend/views/<key>.json` | A doctype the app owns. |
+| `<app>/<module>/custom/<scrubbed>/views/<key>.json` | Another app's doctype. |
+
+The file holds the shape of a `Doctype View` row:
+
+```json
+{
+ "default": true,
+ "label": "Pipeline",
+ "settings": {
+  "filters": [
+   ["status", "=", "Open"]
+  ],
+  "sort": [
+   {
+    "direction": "desc",
+    "fieldname": "modified"
+   }
+  ]
+ },
+ "type": "List"
+}
+```
+
+- `label` names the view. The translation extractor reads it.
+- `type` is a view type.
+- `settings` is the object a `Doctype View` row stores, at most 16 KB. The view type reads
+  its keys. The List type does not apply `filters` yet.
+- `default` is optional. At most one view of a doctype in one app has it. A second one is
+  logged, and the first by key stays the default. Inside the app's prefix, that app's default
+  applies. Elsewhere, the default of the doctype's own app applies.
+- A view has no icon. The icon is on the sidebar row that shows the view.
+
+The key is lower-case letters, digits and dashes, and it is never a view type's name
+(`list`). A file that fails a check is left out and logged. Frappe's tests check every
+installed app's view files.
+
+An app's views show in every prefix where the doctype's list shows. When two apps ship one
+key for one doctype, the doctype's own app wins, else the first app in app order. The clash
+is logged.
+
+A person's own view and the site's view come before an app's view at the same key. A site
+administrator who saves an app view writes a site row at the same key, of the same type.
+That row replaces the app view for the site. Deleting the row brings the app view back. A new
+view never takes an app view's key.
+
+Never rename a shipped view file. A rename drops one view and adds another, and stars, links
+and sidebar rows name the old key. Ship a new file and delete the old one. When a release
+drops a view that a site overrode, the site row stays as an ordinary site view.
+
+The server reads the files once per worker process, so a deploy applies them. In developer
+mode, a new, edited or deleted file applies on the next request. The frontend never reads the
+files. It gets an app's views through the same server reads as the site's and a person's.
+
+## Writing a component
+
+Every list takes a Vue component. Write its markup as a `template:` string. The module
+below is valid without change in both places a script lives: a `Client Script` row with
+`view = Record` and `dt = CRM Deal`, or an app file,
+`<app>/<module>/doctype/crm_deal/frontend/record.js`.
+
+```js
+import { Badge } from 'frappe-ui'
+
+const DealStage = {
+  components: { Badge },
+  props: { page: Object },
+  template: `
+    <div class="flex items-center gap-2">
+      <Badge :label="page.doc.status" :theme="page.doc.status === 'Won' ? 'green' : 'gray'" />
+      <span v-if="page.doc.probability" class="text-sm text-ink-gray-5">
+        {{ __('{0}% likely', [page.doc.probability]) }}
+      </span>
+    </div>
+  `,
+}
+
+export default {
+  onRefresh(page) {
+    page.header.add({ name: 'deal_stage', zone: 'left', component: DealStage }, { after: 'record' })
+  },
+}
+```
+
+- **Components.** A template can use a component only if `components:` lists it. Import
+  each frappe-ui component and list it. `RouterLink`, `RouterView` and Vue's built-in
+  components, such as `Transition`, need no entry.
+- **Values.** A template reads its props, what `setup()` returns, and the global
+  functions `__` and `__n`. The full list of names is in
+  [`COMPATIBILITY.md`](./COMPATIBILITY.md#writing-a-component-with-a-template-string).
+- **The string.** `template:` takes a quoted or backtick string written in place, with no
+  `${}` parts. Standard Vue template rules apply.
+- **Styles.** A stored script can rely on frappe-ui components, `style` attributes and
+  the classes in [the palette](./COMPATIBILITY.md#the-palette-the-classes-a-stored-script-can-rely-on).
+  The build scans an app file, so any class works there.
+- **Errors.** A bad template or an unknown name stops the save. A dialog gives the line,
+  column and message, and the editor marks each error at its line. In an app file, the
+  same error stops `bench build`.
+- **`h()`.** `h()` stays valid. Use a render function when code builds the markup, for
+  example tags that differ by row.
+
+In the sections below, a name such as `PipelineChart` stands for any component written
+this way.
+
+## The frame: `page.frame`
+
+The page's column is **one list**. Its two built-in regions are `header`, the pinned row
+of crumbs and Save, and `body`, the Details form and the panel side by side. A script adds
+a **band** before, between or after them: a banner under the crumbs, a colour strip along
+the top, a footer. The surface speaks the eight verbs, `clear` among them.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. `header` and `body` are taken. |
+| `component` | A Vue component that draws the band. It receives `{ ...props, page }`, unfiltered, as a header or panel component does. |
+| `props` | Forwarded to the component beside `page`. |
+| `gutter` | `false` makes the wrapper bare, so the band runs edge to edge. Omitted, the wrapper takes the page's side padding, and the band's content lines up with the crumbs. |
+| any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. |
+
+A band is script only; it has no record form yet.
+
+### The built-ins
+
+| Name | What it is |
+| --- | --- |
+| `header` | The pinned header row: `page.header`'s list. `hide('header')` draws no row, the same result as `page.header.clear()`. |
+| `body` | The body row: `page.body`'s list, the Details form and the panel among its columns. `hide('body')` leaves the header and the bands. |
+
+`move` on a built-in warns in a development build and does nothing; so does an `add`
+under a built-in's name, and `order()` leaves a region it names where it is. `hide`, `show` and `update` on a built-in work as on any item,
+though `update` has nothing to draw on one. `clear()` hides both regions and every band
+present at the call: a blank page. A later `add` draws, and `show('header')` brings the
+row back.
+
+### Where a band sits
+
+`{ before: 'header' }` is the top of the page, `{ after: 'header' }` or `{ before: 'body' }`
+is between the row and the body, and `{ after: 'body' }` is the bottom. An anchor can also
+name another band; an absent anchor appends at the bottom. Two scripts adding at one place
+are ordered by run order, then by the position: a later script's `{ after: 'header' }`
+lands directly after the header, above the earlier script's band there.
+
+A band before or between the regions is pinned with the header row and does not scroll; a
+tall one takes its height from the scroll region. The band after the body sits at the
+bottom of the page. The wrapper is a bare block, with no vertical padding, border or
+minimum height: the component owns those, and `gutter` is the only word the shell adds for
+the look. A band is the way to a full-width strip; a header component with a negative
+margin is no longer needed for that.
+
+Places inside the body are not the frame's: a column beside the form is `page.body`'s,
+and a place above the tab strip or above the panel belongs to the form and panel lists. A band costs no new server call, cache key or
+permission check, since it comes from the scripts already loaded, and one wrapper element
+per band on a cold load.
+
+### Submitting and cancelling
+
+`header.submit` shows on a saved draft with no unsaved changes, and `header.cancel` sits in the `⋯`
+menu's danger group on a submitted record with none, for a submittable doctype. Each needs its
+own right (`submit` or `cancel`) and the `write` right, which the server's call also checks.
+Neither shows on a doctype with a workflow. `page.run('header.submit')` rejects as hidden while
+those conditions fail, so a script saves first. Both acts ask the reader to confirm, whoever
+runs them: `page.run('header.submit')` from a script resolves only after the reader confirms,
+and resolves without submitting when they decline. `page.doc.docstatus` is read-only to a
+script, like a locked field: it moves only through these acts.
+
+Each act fires a pair of events: `beforeSubmit` and `afterSubmit`, `beforeCancel` and
+`afterCancel`. The confirm comes first, as in desk v1, and `before*` fires only after the reader
+confirms; a declined confirm fires no event. A throw in a `before*` event is a veto, as in
+`beforeSave`: nothing is sent, and a click shows the message while `page.run` rejects with it. A
+`before*` handler that leaves unsaved edits also stops the act, because the server acts on the
+saved row: save inside the handler with `if (!(await page.save())) return`, and a failed save, which
+`page.save()` has already shown, leaves the act to the stale-edit stop. The `after*` event fires only when
+the server accepted.
+
+### The script this design was judged by
+
+```js
+// A band between the header row and the body, pinned with the header, aligned with the crumbs.
+page.frame.add({ name: 'stage_banner', component: StageBanner, props: { tone: 'warning' } }, { after: 'header' })
+
+// A colour strip at the top of the page, edge to edge.
+page.frame.add({ name: 'env_strip', component: EnvStrip, gutter: false }, { before: 'header' })
+
+// A footer.
+page.frame.add({ name: 'audit_note', component: AuditNote }, { after: 'body' })
+
+// A later script hides a band, or the header row, by name.
+page.frame.hide('stage_banner')
+page.frame.hide('header')
+```
+
+## The body: `page.body`
+
+The row under the header is **one list of columns**. Its two built-ins are `form`, the
+Details form, and `panel`, the side panel; the panel is a column that happens to be built
+in, with the same keys and the same verbs as one a script adds. A script adds a column
+before the form, between the two, or after the panel. All eight verbs work on every item,
+built-ins included: `move('panel', { before: 'form' })` puts the panel on the left.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. `form` and `panel` are taken. |
+| `component` | A Vue component that draws the column. It receives `{ ...props, page }`, and `collapsed` when the column is collapsible. |
+| `props` | Forwarded to the component beside `page`. |
+| `width` | Absent, the column **flexes**: it shares what the fixed columns leave with the other flex columns, equally. Present, the column is **fixed** at that many pixels, and the reader can drag it. |
+| `minWidth`, `maxWidth` | The drag range of a fixed column; 240 and 640 when omitted. Not read on a flex column. |
+| `collapsible` | `true` gives the column the round chevron and a 48px strip. The component draws the strip's content itself from `collapsed`. On a flex column the chevron sits on the left edge with no drag. Default `false`. |
+| `gutter` | `false` makes the content bare; omitted, the content takes the page's side padding. The strip never does. |
+| any other key | Not read: dropped on `add` and `update`, and a development build warns once, naming the item and the key. |
+
+A column is script only; it has no record form yet.
+
+### The built-ins
+
+| Name | What it is |
+| --- | --- |
+| `form` | The Details form, a flex column. `hide('form')` is allowed and warns in a development build; the panel keeps reading `page.fields`. |
+| `panel` | The side panel: fixed at 380 (drag range 320 to 640), `collapsible`. Its component is the host's. The host still draws no panel when every section is hidden, as it draws no header row when the row is empty; `has('panel')` stays true. |
+
+An `add` under a built-in's name warns and adds nothing. `clear()` hides every column,
+built-ins included: an empty body. A later `add` draws, and `show('form')` brings the form
+back.
+
+### What the engine draws
+
+Every column scrolls on its own. A 1px separator sits between adjacent visible columns; no
+column draws its own border. A fixed column gets a drag edge on the side that faces the
+nearest open flex column, and no edge when none is open. Dragging past the range
+clamps; a drag within 7px of the script's `width` snaps to it; on a collapsible column a
+drag 60px under `minWidth` shuts it.
+
+The reader's width and collapsed state are remembered in the browser, per user and column
+name, and **win over the script's `width`**, which is only the default the first time.
+The remembered width is clamped to the script's `minWidth` and `maxWidth` on read. There
+is no collapse verb: `hide` and `show` are a script's, the strip is the reader's.
+
+### Narrow screens
+
+An open flex column keeps at least 320px. When the row cannot fit that, or fixed columns
+alone overflow it, the host drops fixed columns from the outside in until it fits: right
+of the panel first, then left of the form, then the panel, then between the two. A flex
+column is never dropped. A dropped column is not drawn but stays on the surface, so `has`
+and `show` see no change. A dropped collapsible column draws its strip. A script cannot
+observe the drop.
+
+### The script this design was judged by
+
+```js
+// App file: myapp/myapp/custom/lead/record.js
+import Summary from './Summary.vue'
+import Assistant from './Assistant.vue'
+
+export default {
+  onRefresh(page) {
+    page.body.add({ name: 'summary', component: Summary, width: 280, minWidth: 200 }, { after: 'form' })
+    page.body.add({ name: 'assistant', component: Assistant, collapsible: true }, { after: 'panel' })
+    page.body.move('panel', { before: 'form' })
+    page.body.hide('form') // warns: the Details form is hidden
+  },
+}
+```
+
+On a phone that page draws the panel's strip and the flex assistant: the summary, right of
+the panel, is dropped first. On a desktop all three show; the reader drags the summary and
+collapses the assistant, and both are remembered.
+
+## The header row: `page.header`
+
+The row is **one flat list** of items, drawn in **two zones**. Every crumb, button, menu
+entry and `Save` is an item on it, so every one of them has a name a script can reach.
+
+The surface speaks the eight verbs: `add`, `hide`, `show`, `update`, `move`, `has`,
+`order`, `clear`. `add` takes one item or an array, and a `position` of `{ before }` or
+`{ after }` naming another item; an anchor that names nothing appends. `clear` hides
+every item present at the call, built-in or added by an earlier script; it is an op in
+source order like `hide`, so a later `add` draws, a later `show(name)` brings one item
+back, and the items stay addressable. The same verb is on `page.panelSections`,
+`page.tabs` and `page.quickActions`.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. One namespace for the whole row. |
+| `label` | The text drawn. |
+| `zone` | `'left'` or `'right'`. Omitted means `'right'`. |
+| `display` | On the right: `'button'`, `'dropdown'`, `'section'`, or omitted for an entry in `⋯`. On the left: `'crumb'`, `'dropdown'`, or omitted for a button. |
+| `href` | A path inside this app's prefix; a crumb with one is a link. |
+| `run` | `(page, value) => any`. A crumb or button with one runs it; `run` wins over `href`. An item with `run` is an act, `header.<name>`, and takes `key`, `right`, `palette` and `argument` (see `page.run`). |
+| `group` | The container this sits in. A member sits in its container's zone. A name no item declares forms a band of its own in `⋯`, with no heading. |
+| `icon` | `lucide-<name>`, any of the shell's lucide icons; the page draws one the bundle never used from its sprite. |
+| `component` | A Vue component that draws the item itself, as a panel section's does. It is a control in its zone and receives `{ ...props, page }`. |
+| `props` | Forwarded to whatever draws the item, filtered to what that thing declares. A control in the row (`display: 'button'`, a `display: 'dropdown'` trigger, `Save`) is drawn by frappe-ui's `Button`: `theme`, `size`, `variant`, `iconLeft`, `iconRight`, `tooltip`, `loading`, `loadingText`, `disabled`, `route`, `link`, `type`, plus `class`; not `style`. A row in a menu (an entry in `⋯`, a member of a dropdown, a button demoted into `⋯`) is drawn by the menu option: `description`, `selected`, `disabled`, `theme`, `condition`, `route`. An item's own `component` receives `{ ...props, page }` unfiltered. A key the drawer does not declare is dropped, and a development build warns once, naming the source, the item and the key. `label` and `icon` go on the item, not in `props`. With `run` or `href` on the item, `route` and `link` in `props` are dropped. A script's `props` beat the host's defaults, except `Save`'s `disabled` (the dirty flag) and `loading` (a save in flight). |
+| any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. The same holds on `page.quickActions`, `page.tabs` and `page.panelSections`. |
+
+`zone` and `display` are orthogonal: a favourite star is `{ zone: 'left', display: 'button' }`.
+A `section` on the left has no menu to title a band in, so its members render in its
+place. A `crumb` on the right draws nowhere, so it lands in `⋯`. Both warn in a
+development build.
+
+A `component` is a control in either zone. On the left its wrapper is `flex-1 min-w-0`:
+a sole component fills the row, and one between the crumbs and a button takes the spare
+width, so that button sits at the zone's far end; the crumbs keep their collapse rule.
+On the right its wrapper is `shrink-0` and it spends one of the zone's slots; past the
+budget it is not drawn, and a development build warns, since a component cannot live in
+`⋯`. `display`, `group`, `run` and `href` beside a `component` are ignored, each with a
+warning: the component draws itself and owns its clicks.
+
+### The built-ins
+
+The generated page seeds these items, in this order:
+
+| Name | Zone | What it is |
+| --- | --- | --- |
+| `doctype` | left | The doctype's crumb; links to the list. |
+| `record` | left | The record's crumb: its title field, or its name. |
+| `favourite` | left | The star, after the crumbs: toggles the reader's favourite, and lists everyone who favourited the record on hover. A favourite is a `Favourite` row, read off `docinfo`; it is not desk v1's like and posts nothing on the timeline. |
+| `save` | right | The Save button. Disabled by the host while nothing has changed. Pinned: it spends a slot and is never demoted. |
+| `favourite_row` | right | The star's row in `⋯`: *Add to favourites* or *Remove from favourites*, whichever the star would do next. Hiding the star keeps this row, and the other way round. |
+| `follow_row` | right | The reader's follow, in the star's band: *Follow* or *Unfollow*, whichever comes next. Seeded only when the doctype tracks changes and the reader's *Document follow* setting is on; the `follow` quick action goes with it. |
+| `assign` | right | A row in `⋯`, with the write right: *Assign to…*, which asks for a user. |
+| `rename` | right | A row in `⋯` under `assign`, with the write right, on a doctype with *Allow Rename* and not a single: *Rename…* asks for the new name and Merge, confirms a merge, then runs `page.rename`. |
+| `copy_url` | right | A row in `⋯`: copies the record's address, as the `copy_link` quick action does. |
+| `copy_id` | right | A row in `⋯`: copies the record's name. |
+| `duplicate` | right | A row in `⋯`, after the copies, only with the create right on a doctype that does not set *Hide Copy*. Opens the new record page at `/<doctype>/new?__copy_of=<name>`, filled from the server's copy of the saved record as desk v1's *Duplicate* fills it: child rows included, no *No Copy* or password field, and a default where the record has no value. Unsaved edits are not copied: leaving the record asks about them first. The doctype's naming rule names the copy on its first save. |
+| `delete` | right | A row in `⋯`, in a band of its own, only with the delete right. Confirms, deletes, and leaves for the list. |
+
+`Save` is **pinned**: it spends one of the right zone's slots and is never demoted into
+`⋯`, whatever a script adds around it. It is still an item. `hide('save')` removes it and
+frees its slot, as desk v1's `frm.disable_save()` does, and `update('save', { props })`
+restyles it, short of `disabled` and `loading`, which the host keeps. A new item with no
+anchor lands **after** `Save`; to sit to its left, anchor it:
+`page.header.add(item, { before: 'save' })`.
+
+### Fitting
+
+The host decides how many top-level controls the right zone keeps, and a script cannot
+observe it. The generated page keeps three. `Save` is pinned and holds one of them while
+it is shown. The script's controls fill the rest in list order, and beyond the budget
+they demote into `⋯` from the end, so `order()` and `move()` are the priority knob.
+With four script buttons before `Save` the row reads `Right one │ Right two │ ⋯ │ Save`,
+and `⋯` holds `Right three` and `Right four`. A `component` on the right is dropped
+rather than demoted, with a warning. The left zone has no menu and nothing in it is
+demoted.
+
+When the row is empty, because every item is hidden or a script called `clear()` and
+added nothing, the page draws no row at all: no padding, no border, no `⋯`. The
+sidebar's title still draws on its own side.
+
+### A component's edges
+
+The row's padding, border and minimum height are the shell's, not the item's. They come
+from frappe-ui's `PageHeader`, which the frame mounts: a minimum height of 48px, a bottom
+border, and side padding of `--page-gutter` (12px, and 20px from `sm`). No item key
+reaches them.
+
+A component that wants the row's full width pulls itself to the edges with a negative
+margin of the same gutter, and pads itself back if it wants its content aligned with
+the crumbs:
+
+```html
+<div style="margin-inline: calc(-1 * var(--page-gutter)); padding-inline: var(--page-gutter)">…</div>
+```
+
+The style form is the one a stored script can rely on: the build never scans a stored
+script, so a utility such as `-mx-[--page-gutter]` exists only if some scanned file
+already uses it. The height is a minimum: a taller component grows the row. A strip that
+wants the page's width is a band with `gutter: false` on `page.frame`, not a header
+component with a margin.
+
+### The script this design was judged by
+
+The first act of the map's proof walk: rename the record crumb on a real record.
+
+```js
+export default {
+  onRefresh(page) {
+    page.header.update('record', { label: `${page.doc.name} (reviewed)` })
+  },
+}
+```
+
+And a fuller one, touching both zones:
+
+```js
+export default {
+  onRefresh(page) {
+    // A crumb before the record's, linking to the deals of the same organization.
+    // Resolve paths through the router: a hand-built one is wrong under a modular prefix.
+    const { name, params } = page.router.currentRoute.value
+    page.header.add(
+      {
+        name: 'organization',
+        label: page.doc.organization,
+        zone: 'left',
+        display: 'crumb',
+        href: page.router.resolve({
+          name: 'list',
+          params,
+          query: { organization: page.doc.organization },
+        }).path,
+      },
+      { before: 'record' },
+    )
+
+    // A button to the left of Save, and an entry in ⋯
+    page.header.add(
+      { name: 'snapshot', label: 'Snapshot', display: 'button', run: (p) => p.toast.success('Saved a snapshot') },
+      { before: 'save' },
+    )
+    page.header.add({ name: 'copy_ref', label: 'Copy reference', run: (p) => p.toast.success(p.docname) })
+
+    if (page.doc.status === 'Won') page.header.hide('save')
+  },
+}
+```
+
+And the items the row's ownership was settled on: a button with `props`, a component in
+each zone, and no row at all.
+
+```js
+page.header.add({
+  name: 'approve',
+  label: 'Approve',
+  icon: 'lucide-check',
+  display: 'button',
+  props: { variant: 'solid', tooltip: 'Marks the record approved' },
+  run: (page) => page.call('myapp.api.approve', { name: page.docname }),
+})
+
+// A component in each zone. Each receives { ...item.props, page }.
+const StageBadge = {
+  props: { page: Object, size: String },
+  template: `<span :class="size === 'sm' ? 'text-sm' : 'text-base'">Stage: {{ page.doc.status }}</span>`,
+}
+page.header.add({ name: 'stage_badge', zone: 'left', component: StageBadge, props: { size: 'sm' } }, { after: 'record' })
+page.header.add({ name: 'owner_avatar', component: OwnerAvatar }, { before: 'save' })
+
+// Or, in a script of its own: no row at all.
+page.header.clear()
+```
+
+A stored script imports by bare name from the import map: `vue`, `vue-router`,
+`frappe-ui`, `@framework/ui` and `frappe/i18n`. An app adds names of its own,
+`<app>/<alias>`, with the `import_map` hook; see
+[`COMPATIBILITY.md`](./COMPATIBILITY.md#what-an-app-publishes-the-import_map-hook). An
+app file can also import a `.vue` file. The item is the same.
+
+## The panel: `page.panelSections`
+
+The panel is the column on the right of the record, and it is **one list**. The identity
+block, the quick actions, the people rows and the sections of the doctype's Side Panel
+layout are all items on it, so a script hides, moves or adds between any of them by name.
+Nothing above or beside the list is chrome the engine cannot name.
+
+The surface speaks the eight verbs, `clear` among them, and two **acts**: `open(name)`
+and `close(name)`. With every section hidden the page draws no panel, and the form takes
+the width.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. One namespace for the whole panel. |
+| `label` | Gives the item a header and a chevron. Without one it is a bare block, as the built-ins are. |
+| `component` | Rendered for any name the layout does not carry, with `props` and a `page` prop. |
+| `props` | Bound onto `component`. |
+| `opened` | Whether a section with a header starts open. Meaningless without a `label`, and a dev warning there. |
+| `actions` | A component drawn at the right end of the header, with `props` and a `page` prop, whether the section is open or shut. A click on it does not toggle the section. Also on a layout section, through `update`, where it gets only `page`. Meaningless without a `label`, and a dev warning there. |
+| any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. |
+
+A name the Side Panel layout carries renders that section's fields, one column, click to
+edit. Any other name renders its `component`. The header rule is derived, not declared: a
+`label` gives a header; `update('people', { label: 'People' })` gives a built-in one.
+
+### The built-ins
+
+The generated page seeds three items, in this order, and then the layout's sections after
+them under the names the Form Layout stores:
+
+| Name | What it is |
+| --- | --- |
+| `identity` | The title, subtitle, image and tags. The image tile draws when the doctype names an `image_field`; with write, a click uploads into that field, and the header's Save carries it like any edit. A field fetched from a linked record links there instead. |
+| `quick_actions` | `page.quickActions`, as buttons; as icons when the panel is collapsed to a strip. The framework seeds `print`, `copy_link`, `follow` and `tags` there: `print` with the right, `follow` under the same gate as `follow_row`, `tags` with write and only while the record has none. The row names its buttons from the left while the width lasts, then shows icons, then folds the rest into a `⋯` menu. A script hides or reorders them by name. |
+| `people` | Who the record is assigned to, and who it is shared with. |
+
+A doctype with no Side Panel row shows the three built-ins and nothing else. The panel never
+falls back to the Details layout, so no field shows twice; a doctype that wants fields in
+its panel ships a Side Panel row.
+
+### The people
+
+`people` edits with the rights the record's `docinfo.permissions` carries: assign and tag
+with `write`, share with `share`. Without the right the row reads, and still names the
+people. Each pick is one server call, and the row re-reads the sidecar after it; nothing is
+painted from the answer, so the row never disagrees with the server.
+
+| Act | Endpoint |
+| --- | --- |
+| Assign, unassign | `frappe.desk.form.assign_to.add`, `remove` |
+| Share, unshare | `frappe.share.add`, `set_permission` with `read` set to `0` |
+| Tag, untag | `frappe.desk.doctype.tag.tag.add_tag`, `remove_tag`; searched with `get_tags` |
+
+The share editor is a dialog on the page's own stack, opened through `page.dialog.open`.
+The tags stay on `identity`: hiding `people` leaves them standing. The first tag comes from
+the `tags` quick action, which goes once the record has one; from then on the chips carry
+their own "+".
+
+The surface gains no verb for any of this. A script assigns the way the row does, through
+`page.call`, and reloads so the row reads the new sidecar:
+
+```js
+export default {
+  onRefresh(page) {
+    page.quickActions.add({
+      name: 'assign_owner',
+      label: 'Assign to owner',
+      icon: 'lucide-user-check',
+      run: async (p) => {
+        await p.call('frappe.desk.form.assign_to.add', {
+          doctype: p.doctype,
+          name: p.docname,
+          assign_to: [p.doc.owner],
+        })
+        await p.reload()
+      },
+    })
+  },
+}
+```
+
+### Opening and shutting
+
+`open(name)` and `close(name)` are in-page acts on a section that has a header, on
+`activate`'s terms: resolved at the call, delivered when the replay or hold commits, and a miss
+warns in a development build and does nothing. A hidden section is a miss, since `show()`
+is the verb that reveals one. A script's act is the page's, not the reader's: the reader's
+own clicks are remembered per doctype in their browser, and a click outranks the act until the
+next replay re-issues it.
+
+`page.fields` speaks fieldnames only. Handed a section name, it warns and names the verb
+that owns it: `page.panelSections.hide(name)`.
+
+### The script this design was judged by
+
+The second act of the map's proof walk: hide one section by name, and its neighbour stands.
+
+```js
+export default {
+  onRefresh(page) {
+    page.panelSections.hide('people') // "Assigned to" and "Shared with" go
+    // 'identity' is still there, and so is 'organization_section'
+    console.log(page.panelSections.has('identity'))
+  },
+}
+```
+
+And a fuller one:
+
+```js
+const Note = {
+  props: { page: Object, text: String },
+  template: `<p class="p-3 text-sm">{{ text }}: {{ page.doc.status }}</p>`,
+}
+
+export default {
+  onRefresh(page) {
+    // A section of its own, before the people rows; a label gives it a header.
+    page.panelSections.add(
+      { name: 'note', label: 'Note', component: Note, props: { text: 'Status' } },
+      { before: 'people' },
+    )
+    // The layout's section, moved up and opened for a won deal.
+    page.panelSections.move('organization_section', { after: 'identity' })
+    if (page.doc.status === 'Won') page.panelSections.open('organization_section')
+  },
+}
+```
+
+## The form: `page.form`
+
+The Details form is the main column of the record, and it is **one list**. Its items are
+the sections of the doctype's `Details` layout, in layout order, and the **parts** a
+script adds between and inside them: a chart between two sections, a score beside its
+field, a note at the top. The surface speaks the eight verbs, `clear` among them, and
+every verb works on a section as on a part. Its strip of tabs is `page.form.tabs`, below.
+
+The fields themselves are not items here. A verb on `page.form` that names a data field
+records nothing and warns in a development build, naming the verb that owns it:
+`page.form.hide("credit_limit") — a field, not a section; page.fields.hide("credit_limit")
+is the verb.` A Section, Column or Tab Break is not a field for this rule.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. One namespace with the fields: a field first, then a section, so the Form Layout refuses a section or tab name equal to a fieldname of the doctype. |
+| `label` | Draws the part framed like its neighbour: a field label above it beside a field, a section heading above it beside a section. Without one the component is drawn bare. |
+| `component` | A Vue component that draws the part. It receives `{ ...props, page }`, as a panel section's does. |
+| `props` | Forwarded to the component beside `page`. |
+| any other key | Not read: dropped from the item on `add` and `update`, and a development build warns once, naming the item and the key. |
+
+A part is script only; it has no record form. A Form Layout row's column stays a list of
+fieldnames, and a part joins the header's component and the frame's band on the map of
+what the row does not yet carry.
+
+### The built-ins
+
+The layout's sections, under the names the Form Layout stores: a stored row is named at
+save, and a doctype with no `Details` row falls back to its meta, where a section is named
+after its Section Break's fieldname, or `section_1` when fields come before the first
+break. A section answers `hide`, `show`, `update` with a `label`, `move` and `order` like
+any item, and `move` past a section in another tab moves it into that tab. `clear()`
+hides every section and part present at the call, and the form draws no section; a later
+`add` or `show` draws.
+
+### Where a part sits
+
+The neighbour decides the grain. `{ after: 'credit_limit' }`, a field, draws the part as
+a **cell in that field's column**, taking the column's equal share of the width; columns
+have no stored width, so there is no width word. `{ after: 'pricing' }`, a section, draws
+it as a **full-width block** between the two sections. An absent position appends at the
+end of the form, in its last tab. There is no word for a tab: a part before a tab's first
+section or after its last one is in that tab. For a cell the neighbour is the position:
+`order` ranks the parts that share one neighbour, and a cell leaves its field only by
+`move`.
+
+Two scripts adding at one place are ordered by run order, then by the position, as on the
+frame. A part costs no new server call, cache key or permission check: it comes from the
+scripts already loaded, and folds over the layout the page already fetches, one wrapper
+element per part on a cold load.
+
+### The strip: `page.form.tabs`
+
+The tabs inside the form are an **overlay** on the Form Layout's tabs, on `page.fields`'
+terms: no `add`, `move` or `order`, since a tab there is a container of fields the
+administrator arranged. It speaks `hide`, `show`, `update` with a `label` and nothing
+else, `has`, `get`, and `clear()`, which hides every tab present at the call. A script
+beats `depends_on` in both directions: `hide()` closes a tab the condition opened,
+`show()` opens one it closed.
+
+Two members are the strip's own, since a strip has a reader standing on it. `active` reads
+the tab the reader is on as an **identity**, or `''` when the reader is not in the form;
+an identity is safe to store, because a Form Layout is named when it is saved and a
+relabelled tab keeps its address. `activate(name)` moves the reader, on the record strip's
+terms: resolved at the call, delivered when the replay or hold commits, and a hidden, unknown or
+other-strip name warns in a development build and moves nobody. Unlike `page.tabs`,
+`active` reads the old tab until the form has drawn the move. The handler for a change
+on this strip is `onFormTabChange`. The record's own strip, Details to Files, is
+`page.tabs` and is not this one.
+
+### The script this design was judged by
+
+```js
+// A full-width chart between two sections of the Details form.
+page.form.add({ name: 'pipeline_chart', label: 'Pipeline', component: PipelineChart, props: { limit: 12 } }, { after: 'pricing' })
+
+// A score beside its field, drawn like a field: label above, the column's width.
+page.form.add({ name: 'credit_score', label: 'Credit score', component: Score }, { after: 'credit_limit' })
+
+// A bare banner at the top of the form.
+page.form.add({ name: 'stale_note', component: StaleNote }, { before: 'overview' })
+
+// A section is an item: hide it, rename it, move it.
+page.form.hide('terms')
+page.form.update('pricing', { label: 'Commercials' })
+page.form.move('pricing', { before: 'overview' })
+
+// The strip inside the form.
+page.form.tabs.hide('products_tab')
+page.form.tabs.activate('details')
+
+// The field overlay is unchanged and still reaches the panel.
+page.fields.update('probability', { label: 'Win chance (%)' })
+```
+
+## The field: `page.fields`
+
+The Details form is the main column of the record: the doctype's `Details` layout, or its
+fields in DocType order when no row applies. `page.fields` is an **overlay** on the fields
+authored there, cleared before every replay. It has no `add`, `move` or `order`, since
+ordering is the Form Layout's job; it speaks `hide`, `show`, `update`, `has` and `get`,
+one **act**, `focus(fieldname)`, and the field errors, `setError` and `clearError`. The overlay reaches the panel too: one field patch
+feeds the Details form and the Side Panel layout, so `page.fields.hide('x')` hides `x` in
+both. A part beside a field is `page.form`'s to add, above.
+
+### What `update` takes
+
+| Key | What it does |
+| --- | --- |
+| `label`, `placeholder`, `description` | The text drawn. |
+| `hidden`, `read_only`, `reqd` | Booleans, or `0`/`1` as a DocField spells them. Win over `depends_on`; never lift a permission floor. |
+| `options` | A Link target, or the choices of a Select or Autocomplete: newline-separated, or a list of values and `{ value, label }` pairs. |
+| `link_filters` | Search filters for a Link field. |
+| `precision` | Decimal places for a numeric field. |
+| `cannot_add_rows`, `cannot_delete_rows` | Booleans, or `0`/`1`. A Table field's grid hides every way to add a row (Add Row, insert, duplicate, a paste past the last row), or to delete one. A script can still add or remove rows. |
+| `component`, `props` | Another control in the field's slot, and what to bind onto it. The control also receives `page`, the record's `page`, as a prop; a stock control does not. |
+| `own_box` | Boolean, or `0`/`1`. With `component`, the side panel draws the row bare in every state (no hover fill, no box on focus), and your control draws its own box and focus look. Without `component` it does nothing. |
+
+A key not named here is dropped with a development warning. `get(fieldname)` answers the
+field as it resolves now, post-override and post-`depends_on`, and is read-only.
+
+### A table's column: `'<table>.<column>'`
+
+A column of a Table or Table MultiSelect field is named by its table, as its field handler
+is: `products.rate`. `hide`, `show`, `update`, `has` and `get` take that name, with the keys
+above; the row limits mean nothing on a column. One patch reaches every place the column is
+drawn: the grid, the row dialog's form, and the child's Details row that the dialog picks.
+`hidden` takes the column out of the grid, header and cells. `show` does not add a column
+that the grid does not draw, because the child's `in_list_view` picks the grid's columns; it
+shows the field in the row dialog. A Table MultiSelect draws one picker, so its Link column
+takes `options` and `link_filters`, and the field's own `link_filters` win on a shared key;
+its label and the rest are the field's own. The patch is the same for every row. A change per row is
+the column's `depends_on`, so `get('<table>.<column>')` reads the column without it. `focus`,
+`setError` and `clearError` refuse a column and warn in a development build: an error marks a
+cell, which `row.setError(column, message)` in a row handler does.
+
+```js
+export default {
+  onRefresh(page) {
+    // The lead fields a form question may map to, and only enabled users to assign.
+    page.fields.update('questions.mapped_to', { options: leadFields.join('\n'), label: 'Lead field' })
+    page.fields.update('users.user', { link_filters: { enabled: 1 } })
+  },
+}
+```
+
+A Select's or Autocomplete's `options` are values one a line, and the control shows each value as its label. A list of
+`{ value, label }` pairs shows the label instead (a bare string in the list is both) while the saved value stays the
+`value`; the grid cell, the row form and a read-only field show the label too. `get` reads the list back.
+
+```js
+page.fields.update('questions.mapped_to', {
+  options: leadFields.map((df) => ({ value: df.fieldname, label: df.label })),
+})
+```
+
+### The act: `focus(fieldname)`
+
+`focus` switches the form to the field's tab, scrolls to it and puts the cursor in its
+control. A read-only field gets the tab and the scroll and no cursor. An unknown or a
+hidden field warns in a development build and moves nobody, since `show()` is the verb
+that reveals one. On `activate`'s terms: resolved at the call, and inside a replay or a hold
+delivered when the replay or hold commits. The panel's own expand of a long row uses it.
+
+### Field errors: `setError(fieldname, message)`
+
+`setError` draws a message on a field: under its control in the form, in red under its row
+in the panel, and as a red dot on its form tab. `clearError(fieldname)` removes it. A row
+handle has the same two verbs for its own cells: `row.setError('qty', message)`. An error
+is display-only and does not refuse a save. It clears when the reader edits the field, when
+a save starts, and when a replay runs, so a script that wants it to last sets it again in
+`onRefresh`. Inside a replay or a hold it shows when that commits. An unknown fieldname warns
+in a development build. There is no reader, and a `page.dialog.form` has no `setError`.
+
+`setError` returns an `Error` that carries the message, so `throw page.fields.setError(...)`
+in `beforeSave` vetoes the save and marks the field in one line.
+
+### Saving: `page.save()`
+
+`page.save()` is the one path; the Save button, `Mod+S` (`Cmd+S` on macOS, `Ctrl+S`
+elsewhere) and a script all call it. `Mod+S` is the `key` of the `header.save` act, so it does
+not save the page while focus is in a dialog, a popover or a dropdown, or while a script hides
+Save. The
+order is fixed:
+
+1. Every field error clears.
+2. The edit still pending in a focused control is flushed, so its field handler runs.
+3. `beforeSave` fires. A throw is a veto: nothing is sent, and the message shows.
+4. The mandatory check runs: each mandatory field shown after `depends_on` and still empty,
+   child rows included, is marked "{label} is required", and nothing is sent.
+5. The whole document goes to the server. A refusal shows its message and marks each field
+   it names.
+6. `afterSave` fires only when the server accepted. A handler that throws is isolated, and the
+   save stays saved.
+
+`page.save()` never rejects. It shows a failure itself, with one toast, and resolves `false`: a
+veto, a missing mandatory field, a server refusal, a conflict the reader met in a dialog, or the
+reader cancelling the required-fields dialog. It resolves `true` when the record was saved, and
+on a clean document. Do not show the failure again; branch on the result. After a `false`,
+`page.saveRefusal` holds the error it showed (`null` when the page was left), so a header act can
+throw the reason to its caller:
+
+```js
+if (!(await page.save())) return
+// the record is saved here
+```
+
+After a failed save the reader lands on the first marked field in form order, as `focus`
+moves them. A marked row cell lands on its table.
+
+On a clean document it resolves at once, sends nothing and shows nothing. The Save button
+is disabled then, with the tooltip "No changes to save", and the shortcut shows that text
+as a toast. A record saved by someone else since it was opened opens a dialog naming them
+and the fields changed here, with "Reload and lose my changes" and "Keep editing"; nothing
+is re-applied silently, and Save fails the same way until a reload.
+
+A field handler runs when the reader commits that field: `status(page)` on a status
+change, before any save. A child table's fields are addressed by the table, `products.qty`.
+A value a return visit's background read brings in fires no handler.
+
+A committed field change then re-runs `onRefresh` once, in the same hold as its handler, so
+the handler's changes and the redraw paint together. So a script does not call `page.refresh()`
+from a field handler to redraw: `onRefresh` already reads the new `page.doc`. The re-run
+follows a field of the form or of a child row, a row added or removed, and the edit a save
+flushes before `beforeSave`. It does not follow a Button's click, a change a script makes to
+`page.doc`, or a value a return visit brings in. What the handler itself draws with
+`page.fields`, `page.header`, `page.activity.types` and the like stays across that re-run: the page
+shows `onRefresh`'s work, then the handler's. The next edit's re-run drops it, as `page.refresh()`
+does. A `page.refresh()` the handler calls itself keeps what it drew before the call, the same way. A mark meant to last across later edits belongs in `onRefresh`, drawn from `page.doc`.
+
+A Button field holds no value: a click on it runs its handler, `authorize_api_access(page)`
+for a Button named `authorize_api_access`, as desk v1's `frm.trigger` does. A read-only
+Button is disabled. A Button in a child table's row runs nothing yet.
+
+### The script this design was judged by
+
+The third act of the map's proof walk, on a CRM Deal whose `probability` is a Percent field.
+
+```js
+export default {
+  onRefresh(page) {
+    // Rename one field by name; its control keeps working.
+    page.fields.update('probability', { label: 'Win chance (%)' })
+  },
+
+  // A field handler: runs when the reader commits `status`, before any save.
+  status(page) {
+    if (page.doc.status === 'Won') page.doc.probability = 100
+  },
+
+  // The save channel: a throw here is a veto, and the record stays unsaved.
+  beforeSave(page) {
+    if (page.doc.probability > 100) throw new Error('Win chance is a percentage')
+  },
+}
+```
+
+The walk: the label reads "Win chance (%)". Set status to Won, and the probability control
+shows 100 with no other click. Press Save, and a reload shows 100. Set probability to 120
+and press Save: the error shows and the server still has 100.
+
+And the field errors, on a `qty` field and on the `qty` column of a child table `items`:
+
+```js
+export default {
+  qty(page) {
+    if (page.doc.qty > 0) page.fields.clearError('qty')
+    else page.fields.setError('qty', __('Quantity must be positive'))
+  },
+  beforeSave(page) {
+    if (page.doc.qty <= 0) throw page.fields.setError('qty', __('Quantity must be positive'))
+  },
+  items: {
+    qty(page, row) {
+      if (row.qty > 0) row.clearError('qty')
+      else row.setError('qty', __('Quantity must be positive'))
+    },
+  },
+}
+```
+
+And the act, with its two misses:
+
+```js
+export default {
+  onRefresh(page) {
+    if (page.doc.status === 'Lost') page.fields.focus('lost_notes')
+    page.header.add({
+      name: 'focus_sla',
+      label: 'Focus SLA status',
+      display: 'button',
+      run: (p) => p.fields.focus('sla_status'), // read-only: tab and scroll, no cursor
+    })
+  },
+}
+```
+
+## The record tabs: `page.tabs`
+
+The strip above the record's body: Details, Activity, Emails and Files, in that order, then
+a script's own tabs. It speaks the eight verbs, `active` and `activate(name)`. A plain
+address opens the first shown tab, Details unless a script moved another ahead of it;
+`?tab=<name>` opens the named tab when it is shown.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address every verb uses. |
+| `label` | The text on the strip. |
+| `icon` | `lucide-<name>`, drawn before the label. |
+| `component` | Draws the tab's body. It receives `{ ...props, page }`. |
+| `props` | Bound onto `component`. |
+| `create` | `{ name, label, icon, run }`: an entry in the composer's `+` menu while the tab is on the strip. It is the act `tabs.<name>`, hidden with its tab, and takes the act keys of `page.run`. |
+| `composer` | `true` draws the composer band at the foot of the tab, as on Activity and Emails. |
+
+The page draws a tab's body inside a scroller. A component that draws its own scroller sets
+`defineOptions({ scrollsItself: true })`, or `scrollsItself: true` on the component object,
+and the tab body adds none.
+
+### The tab order
+
+`order(names)` moves the named tabs to the front in the order given; the rest keep their
+order after them, and a name not on the strip is skipped with no warning.
+
+A doctype sets its own order in a file script its app ships, calling `page.tabs.order` on
+the replay. The file holds the same text as a Client Script, at one of two paths:
+
+| Path | For |
+| --- | --- |
+| `<app>/<module>/doctype/<scrubbed>/frontend/record.js` | A doctype the app owns. |
+| `<app>/<module>/custom/<scrubbed>/record.js` | Another app's doctype. |
+
+File scripts run before the site's Client Scripts, so a site's own `page.tabs.order` wins
+over the app's. A new or changed file takes effect after the next `bench build`.
+
+CRM opens a deal on its conversation with a script like this one, in
+`crm/fcrm/doctype/crm_deal/frontend/record.js`:
+
+```js
+export default {
+  onRefresh(page) {
+    page.tabs.order(['activity', 'emails'])
+  },
+}
+```
+
+The deal's strip then reads Activity, Emails, Details, Files. A Contact has no such script
+and opens on Details. When a script puts Activity first, the tab reads its rows as it
+mounts and shows a skeleton of the feed until they arrive.
+
+## The feed: `page.activity`
+
+The Activity tab is **one list, ordered by time**. The server's rows and a script's own
+rows sit in it together, oldest first, and a script's row takes its place by its
+`timestamp`. Since time orders the list there are no position words: `move` and `order`
+warn and do nothing, and `add` takes no `before` or `after`.
+
+The surface speaks `add`, `remove` and `has`, reads its rows through `items`, and has three
+acts: `scrollTo(key)`, `reload()` and `types(list)`.
+
+### An item
+
+A script's row:
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address. It must not be a server row's key; that `add` warns and drops the row. |
+| `timestamp` | Where the row sits, written as the server writes one: `2026-09-23 10:15:00`, in the site's time zone. Required, and `update` cannot clear it. `add` and `update` rewrite an ISO `2026-09-23T10:15:00` that way, and move a time with a `Z` or an offset to the site's time zone, so `new Date().toISOString()` lands where it should. Without the site's time zone such a row is dropped, with a warning that prints in production too. |
+| `component` | Draws the row, with `props` and a `page` prop. Required. |
+| `props` | Bound onto `component`. |
+| `icon` | `lucide-<name>`, any of the shell's lucide icons, drawn in the row's gutter. Without one the row keeps the default gutter icon. |
+| any other key | Not read: dropped on `add`, and a development build warns once. |
+
+A server row, as `items` hands it back:
+
+| Key | What it holds |
+| --- | --- |
+| `name` | The row's key: `comment:<name>`, `email:<name>`, `version:<version>-<index>`, `attachment:<name>`, `log:<name>`, and so on. The same key a link or `scrollTo` uses. |
+| `type` | `comment`, `email`, `version`, `attachment_log` or `log`. |
+| `timestamp` | When it happened. |
+| `author` | `{ email, fullname, image }`. |
+| `data` | The row's own content, by type. |
+| `pending` | `true` on a row posted from this page that the server has not answered yet. |
+
+`items` is read-only; a write throws and names `add` as the verb to use. `has(name)`
+answers `true` for a loaded server row and for a script's row. `remove(name)` takes out a
+script's row; a server row stays, with a development warning.
+
+### The built-ins
+
+The built-ins are the rows the tab has loaded, not the whole history. The tab reads the
+newest 50 rows first and loads older pages as the reader scrolls up, so `items` grows as
+the reader goes. A comment, email or attachment another session adds arrives on its own,
+and a field change refreshes the newest page.
+
+The first `onRefresh` sees the newest page when the address opens the Activity tab, with
+`?tab=activity` or `?activity=<key>`: the page's first paint and first `onRefresh` wait
+for the newest activity page, a read that starts with the record read. On a return visit
+to that address with the rows kept from before, the first `onRefresh` reads the kept rows
+and does not wait; the rows read again arrive in the second replay. `?tab=emails`
+starts the Emails tab's read with the record read too, and the first paint does not wait
+for it. Any other address, a plain one included, starts no feed read: the rows are read
+as Activity first shows, so the first `onRefresh` sees none. That holds when a script puts
+Activity first, since the address named no tab; the tab shows a skeleton of the feed until
+its rows arrive.
+
+A script's rows are rebuilt on every replay, like any surface's, and survive `reload()`,
+which reads the server's rows again and leaves the script's alone.
+
+The Emails tab shows the same rows narrowed to emails. It has no surface of its own.
+
+### The acts
+
+`scrollTo(key)` opens the Activity tab, scrolls to the row and highlights it for two
+seconds. A row older than the loaded ones is found by loading older pages until it
+appears. A field change folded into a run of changes scrolls to the run. If the list ends
+without the row, or a script's body replaced the tab's feed, a development build warns
+naming the key, and the reader stays where they are. On `activate`'s terms: called in a replay or a hold, it is delivered
+when the replay or hold commits, and only the last call in it counts.
+
+`types(list)` sets the types the Activity tab shows, in `ActivityTimeline`'s spelling:
+`['comment', 'email']`, or `{ version: ['status'] }` for changes to named fields only. It
+is set by the replay like any op, so a replay that does not call it shows every type
+again.
+
+`reload()` reads the server's rows again and resolves when they are in.
+
+A link can point at a row: `…/deal/CRM-DEAL-0001?activity=comment:abc123` opens the
+Activity tab, scrolls to that comment and highlights it, as `scrollTo` does.
+
+### The script this design was judged by
+
+```js
+export default {
+  onRefresh(page) {
+    // scroll to a named activity; pages older rows until it is found
+    const last = page.activity.items.filter((a) => a.type === 'comment').at(-1)
+    if (last) page.activity.scrollTo(last.name)     // 'comment:abc123'
+
+    // a script's own row, ordered by its timestamp among the server rows
+    page.activity.add({
+      name: 'call:17',
+      timestamp: '2026-09-23 10:15:00',
+      component: CallRow,
+      props: { id: 17 },
+      icon: 'lucide-phone',    // the gutter icon; without one the row shows the default
+    })
+
+    console.log(page.files.items.map((f) => f.name))
+  },
+}
+```
+
+## The files: `page.files`
+
+The Files tab is a smaller list of the same kind: the record's attachments, oldest first,
+and a script's own rows placed among them by `timestamp`. It speaks `add`, `remove` and
+`has`, reads through `items`, and has one act, `reload()`. There is no `scrollTo` and no
+`types`.
+
+### An item
+
+A script's row takes the same keys as a row of `page.activity`: `name`, `timestamp`,
+`component` and `props`. The Files list ignores `icon`.
+
+An attachment, as `items` hands it back:
+
+| Key | What it holds |
+| --- | --- |
+| `name` | The File's name. |
+| `file_name`, `file_url` | What the reader sees, and where it downloads from. |
+| `file_type`, `file_size` | The extension and the size in bytes. |
+| `is_private` | `1` for a private file. |
+| `attached_to_field` | The field the file was uploaded into, or empty for a plain attachment. |
+| `creation`, `owner` | When and by whom it was attached; `creation` orders the list. |
+
+`items` is read-only. `remove(name)` takes out a script's row, never an attachment: the
+tab's own upload button and remove control are drawn only with write.
+
+### The built-ins
+
+The attachments are the record read's `attachments` part. The tab's upload button and a
+remove control replace that part from the server's answer, and an upload from another
+session arrives on its own. `reload()` reads the part again; a script's rows stay.
+
+### The script this design was judged by
+
+```js
+export default {
+  onRefresh(page) {
+    console.log(page.files.items.map((f) => f.name))
+  },
+}
+```
+
+## The composer: `page.composer`
+
+The band at the foot of the Activity and Emails tabs, and of a script's tab whose item says
+`composer: true`. It is not drawn on Files or Details. Collapsed it is a pill; open, it
+shows one **writer** in a card. The card is **docked** in the band, or **floating** over the
+page; a floating card stays open as the reader moves to another page, and names its record
+in its title. `page.composer` is the list of writers, and speaks the eight verbs and four
+acts: `open(name, { draft, window })`, `close()`, `active` and `window`.
+
+### An item
+
+| Key | What it does |
+| --- | --- |
+| `name` | The address `open` takes. |
+| `label` | The writer's name in the band. |
+| `icon` | `lucide-<name>`. |
+| `component` | Draws the writer's body. It receives `{ ...props, page, close }`. |
+| `props` | Bound onto `component`. |
+
+A script's writer owns its post: it calls the server, adds its own row with
+`page.activity.add`, and calls `close()`.
+
+### The built-ins
+
+`comment`, which posts a comment with its attachments. The row shows in the feed at once and
+takes its server key when the server answers; on an error the row goes and the writer
+reopens with the draft.
+
+### The acts
+
+`open(name, { draft, window })` opens a writer. If the reader is not on a tab that draws the
+band, it moves them to Activity first, or to the first such tab when Activity is hidden. An
+unknown or hidden writer, or a strip with no such tab, warns in a development build and
+opens nothing. `draft` seeds the writer's draft; a draft already in memory for this record
+wins. `window`, `'docked'` or `'floating'`, places the card for this open only; left out,
+the card opens where the reader last put it. Any other `window` warns in a development build
+and is dropped, so the writer still opens where the reader last put it. On `activate`'s
+terms: called in a replay or a hold, it
+is delivered when the replay or hold commits, with its `window`.
+
+One card is open at a time. Opening a writer on another record takes the card; the first
+record's draft stays in memory.
+
+`close()` collapses the band; the draft stays in memory for the session. `active` is the
+open writer's name, or `''`.
+
+`window` reads `'docked'` or `'floating'`: where this record's card is while its writer is
+open, and otherwise where the next open will put it. Setting it moves this record's open
+card for now; the reader's own choice, which only the card's dock and float button keeps,
+stays as it was. With no writer of this record open, or any other value, it warns in a
+development build and changes nothing.
+
+`onPost(page, { name })` fires after the server answers a `comment` post, with the new
+row's key, `comment:<name>`. It does not fire for a script's writer, which knows when it
+posted, nor when the answer comes while the record's page is not open, as for a floating
+card sent from another page.
+
+### The script this design was judged by
+
+```js
+export default {
+  onRefresh(page) {
+    page.composer.add({ name: 'call', label: 'Log a call', icon: 'lucide-phone', component: CallWriter })
+    if (page.doc.status === 'Lost') page.composer.open('comment', { draft: { content: 'Why lost: ' } })
+  },
+  onPost(page, { name }) {
+    page.activity.scrollTo(name)
+  },
+}
+```

@@ -16,7 +16,7 @@ import { getDefaultColumns, foldSyntheticColumns } from "./getDefaultColumns";
 import type { Column, SyntheticColumn, WireColumn } from "./types";
 
 export interface UseColumnsOptions {
-  /** Host-declared synthetic columns (ADR-0033) — columns not resolved from Meta.
+  /** Host-declared synthetic columns — columns not resolved from Meta.
    *  Folded into the default `shown` at their `place` anchor, wired from their own
    *  render metadata, and offered back by the picker. Default: none (byte-identical).
    *  A `MaybeRefOrGetter` so a host whose declarations resolve asynchronously (e.g. the
@@ -30,19 +30,19 @@ export interface UseColumns {
    *  Defaults to the doctype's `in_list_view` fields (from Meta) until customized.
    *  The single source of truth ColumnSettings `v-model`s and the table's
    *  drag-resize writes back into — both bind this one ref, so they stay in sync
-   *  with no cross-control events (ADR-0006). */
+   *  with no cross-control events. */
   shown: WritableComputedRef<Column[]>;
   /** Whether `shown` has been customized away from the Meta defaults — a Reset
    *  trigger reads this to show itself only when there is something to undo. */
   isCustomized: Ref<boolean>;
   /** Restore `shown` to the Meta-derived defaults (clears the customization, so the
    *  writable computed falls back to `getDefaultColumns`). ColumnSettings emits
-   *  `@reset` to this; defaults live here, not in the controlled popover (ADR-0006). */
+   *  `@reset` to this; defaults live here, not in the controlled popover. */
   reset: () => void;
   /** The frappe-ui `ListView` render columns (`serializeColumns`): the table binds
    *  these for headers + grid tracks, with `align`/`type`/`options` derived from Meta. */
   wire: Ref<WireColumn[]>;
-  /** The resolved host-declared synthetic columns (ADR-0033), so a host can bind
+  /** The resolved host-declared synthetic columns, so a host can bind
    *  ColumnSettings' `:synthetic` prop (its picker union) from the same place it reads
    *  `shown` — one source, threaded from `useListView`. A `ComputedRef` so it tracks a
    *  reactive/async declaration source. */
@@ -58,7 +58,7 @@ export interface UseColumns {
 }
 
 /**
- * Owns the shown `Column[]` (the ColumnSettings ↔ table-resize SoT, ADR-0006), its
+ * Owns the shown `Column[]` (the ColumnSettings ↔ table-resize SoT), its
  * Meta-derived defaults / reset, the wire render columns, and the resize writes.
  * Reads Meta itself (cached per doctype) so it's self-contained.
  *
@@ -79,7 +79,7 @@ export function useColumns(
   // `null` ⇒ "use the Meta-derived default"; a value ⇒ customized. The default
   // tracks Meta as it loads, yet the first write (a ColumnSettings edit or a resize)
   // sticks — no seed watch needed. Synthetic declarations fold into the default seed
-  // only (ADR-0033); once customized, the persisted layout carries them. A customized
+  // only; once customized, the persisted layout carries them. A customized
   // layout is scrubbed of orphaned synthetic keys on read (`dropOrphanedSyntheticColumns`):
   // a declaration can be removed after the user customized, leaving a `_`-prefixed column
   // that names no docfield and would error `get_list` — dropping it keeps the layout valid

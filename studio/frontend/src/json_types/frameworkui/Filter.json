@@ -6,6 +6,46 @@
       "properties": {
         "doctype": {
           "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "fieldname": {
+                    "type": "string"
+                  },
+                  "fieldtype": {
+                    "type": "string"
+                  },
+                  "options": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "label",
+                  "fieldname",
+                  "fieldtype"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "end"
+          ]
         }
       },
       "required": [

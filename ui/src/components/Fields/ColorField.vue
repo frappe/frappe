@@ -1,5 +1,13 @@
 <template>
-	<div>
+	<ColorTrigger
+		v-if="panel"
+		:field="field"
+		:modelValue="modelValue"
+		:error="error"
+		@update:modelValue="emit('update:modelValue', $event)"
+		@change="emit('change', $event)"
+	/>
+	<div v-else>
 		<TextInput
 			:modelValue="draft"
 			:label="field.label"
@@ -13,6 +21,9 @@
 			@keydown="onKeydown"
 			@blur="endEdit"
 		>
+			<template v-if="field.description && !error?.length" #description>
+				<FieldDescription :html="field.description" />
+			</template>
 			<template #prefix>
 				<span
 					v-if="field.readOnly"
@@ -38,7 +49,12 @@
 							:style="swatchStyle"
 						/>
 					</template>
-					<ColorPicker :modelValue="modelValue" @pick="commitPicked" />
+					<ColorPicker
+						:modelValue="modelValue"
+						@pick="commitPicked"
+						@adjust="adjustPicked"
+						@settle="settlePicked"
+					/>
 				</Popover>
 			</div>
 		</Teleport>
@@ -49,9 +65,11 @@
 import { computed, ref, watch } from "vue";
 import { Popover, TextInput } from "frappe-ui";
 import ColorPicker from "./ColorPicker.vue";
-import { normalizeHex } from "./colorHex";
+import ColorTrigger from "./ColorTrigger.vue";
+import { normalizeHex, parseColor, sameColor } from "./colorHex";
 import { translate as __ } from "../../utils/translate";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import FieldDescription from "./FieldDescription.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
@@ -61,6 +79,7 @@ const open = ref(false);
 const spacer = ref<HTMLElement | null>(null);
 let edit: { from: string; revertTo: string } | undefined;
 let emitted: string | undefined;
+let adjustFrom: string | undefined;
 
 watch(
 	() => props.modelValue,
@@ -69,6 +88,11 @@ watch(
 		else if (value !== emitted) edit = { from: value ?? "", revertTo: value ?? "" };
 	}
 );
+
+// Closing mid-drag still sends the drag's change.
+watch(open, (isOpen) => {
+	if (!isOpen) settlePicked(props.modelValue ?? "");
+});
 
 watch(
 	() => props.field.readOnly,
@@ -89,14 +113,6 @@ const swatchClass = computed(() =>
 	shown.value ? "border border-outline-gray-2" : "border border-dashed border-outline-gray-3"
 );
 
-function parse(text: string): string | null {
-	return text.trim() === "" ? "" : normalizeHex(text);
-}
-
-function sameColor(a: string | null | undefined, b: string | null | undefined): boolean {
-	return (parse(a ?? "") ?? a) === (parse(b ?? "") ?? b);
-}
-
 // Ctrl+S saves before blur, so a full hex reaches the record as it is typed;
 // `#rgb` waits for change, as typing `#rrggbb` passes through it.
 function onInput(text: string) {
@@ -104,7 +120,7 @@ function onInput(text: string) {
 	draft.value = text;
 	edit ??= { from: props.modelValue ?? "", revertTo: props.modelValue ?? "" };
 	const live = /^#?[0-9a-f]{6}$/i.test(text.trim()) || text.trim() === "";
-	setValue((live ? parse(text) : null) ?? edit.revertTo);
+	setValue((live ? parseColor(text) : null) ?? edit.revertTo);
 }
 
 function commitTyped(input: HTMLInputElement) {
@@ -114,7 +130,7 @@ function commitTyped(input: HTMLInputElement) {
 	};
 	edit = undefined;
 	emitted = undefined;
-	const hex = parse(input.value);
+	const hex = parseColor(input.value);
 	draft.value = input.value = hex ?? revertTo;
 	setValue(hex ?? revertTo);
 	if (hex !== null && !sameColor(hex, from)) emit("change", hex);
@@ -135,10 +151,25 @@ function endEdit() {
 function commitPicked(hex: string) {
 	open.value = false;
 	edit = undefined;
+	adjustFrom = undefined;
 	draft.value = hex;
 	if (sameColor(hex, props.modelValue)) return;
 	setValue(hex);
 	emit("change", hex);
+}
+
+// A drag shows its color live; one change goes out when it ends.
+function adjustPicked(hex: string) {
+	adjustFrom ??= props.modelValue ?? "";
+	edit = undefined;
+	setValue(hex);
+}
+
+function settlePicked(hex: string) {
+	if (adjustFrom === undefined) return;
+	const from = adjustFrom;
+	adjustFrom = undefined;
+	if (!sameColor(hex, from)) emit("change", hex);
 }
 
 function setValue(value: string) {

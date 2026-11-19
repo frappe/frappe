@@ -59,4 +59,32 @@ describe("evaluateDependsOn", () => {
     expect(evaluateDependsOn("eval:parent.qty > 1", { qty: 5 })).toBe(true);
     expect(evaluateDependsOn("eval:parent.qty > 1", { qty: 0 })).toBe(false);
   });
+
+  it("gives eval: desk's in_list", () => {
+    const expression = 'eval:in_list(["Open", "Replied"], doc.status)';
+    expect(evaluateDependsOn(expression, { status: "Open" })).toBe(true);
+    expect(evaluateDependsOn(expression, { status: "Closed" })).toBe(false);
+  });
+
+  it("gives eval: desk's cint", () => {
+    const isOne = (value: unknown) =>
+      evaluateDependsOn("eval:cint(doc.value) === 1", { value });
+    expect(isOne("1")).toBe(true);
+    expect(isOne("001")).toBe(true);
+    expect(isOne("1.9")).toBe(true);
+    expect(isOne(true)).toBe(true);
+    expect(isOne(false)).toBe(false);
+    expect(evaluateDependsOn("eval:cint(doc.value) === 0", { value: "abc" })).toBe(true);
+    expect(evaluateDependsOn("eval:cint(doc.value, 5) === 5", { value: "" })).toBe(true);
+  });
+
+  it("shows a field that gates on desk v1's boot, which v2 does not have", () => {
+    // v1 runs these with `frappe` in scope. In v2 it is undefined, the eval throws, the field shows.
+    for (const expression of [
+      "eval:cint(frappe.boot.sysdefaults.enable_desk_v2)",
+      "eval:cint(frappe.boot.sysdefaults.enable_desk_v2) || !!frappe.boot.versions.helpdesk",
+    ]) {
+      expect(evaluateDependsOn(expression, {})).toBe(true);
+    }
+  });
 });

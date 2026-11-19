@@ -184,6 +184,13 @@ class TestRegisteredEvents(IntegrationTestCase):
 		self.assertEqual(events["tests.replied"]["label"], "They replied")
 		self.assertEqual(events["tests.replied"]["correlation_options"], options)
 
+	def test_schema_supplies_an_optional_icon(self):
+		events = self._events([{"tests.replied": {"icon": "lucide-mail"}, "tests.silent": {}}, "tests.bare"])
+
+		self.assertEqual(events["tests.replied"]["icon"], "lucide-mail")
+		self.assertIsNone(events["tests.silent"]["icon"])
+		self.assertIsNone(events["tests.bare"]["icon"])
+
 	def test_a_registered_event_still_validates(self):
 		with self.patch_hooks({"automation_events": [{"tests.replied": {}}]}):
 			clear_automation_cache()

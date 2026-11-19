@@ -1,15 +1,17 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import re
 from unittest.mock import patch
 
 from werkzeug.wrappers import Response
 
 import frappe
 from frappe.flow.launcher import add_to_page, get_app_roots
+from frappe.flow.lib.model import clear_enabled_cache
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.flow.tests.test_flow_enabled import delete_models_and_providers
-from frappe.flow.tests.test_permissions import _user
+from frappe.flow.tests.test_permissions import _agent, _user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.www.flow import index
@@ -72,7 +74,7 @@ class TestFlowPage(IntegrationTestCase):
 		with patch("frappe.flow.launcher.get_assets_json", return_value=assets):
 			self.assertRegex(
 				page("/desk/user"),
-				r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer'
+				r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer(?: data-ready)?'
 				r' data-island="/assets/frappe/dist/flow/frappe\.flow\.chat\.island\.ABC\.js"'
 				r' data-island-css="/assets/frappe/dist/flow/frappe\.island\.DEF\.css"></script></body>',
 			)
@@ -81,7 +83,7 @@ class TestFlowPage(IntegrationTestCase):
 		self.assertNotIn("flow_launcher", page("/flow"))
 		# nor in Raven, which has an integration of its own
 		with patch("frappe.get_hooks", return_value=[{"route": "/desk"}, {"route": "/raven"}]):
-			self.assertEqual(get_app_roots(), {"desk", "studio"})
+			self.assertEqual(get_app_roots(), {"desk", "studio", "apps"})
 			self.assertNotIn("flow_launcher", page("/raven/channel/general"))
 		# nor for anyone who may not use Flow
 		for user in (outsider, "Guest"):
@@ -100,3 +102,35 @@ class TestFlowPage(IntegrationTestCase):
 		self.assertNotIn("flow_launcher", self._page("/desk/user"))
 		frappe.set_user(manager)
 		self.assertIn("flow_launcher", self._page("/desk/user"))
+
+	def test_the_launcher_says_flow_is_ready_once_a_chat_can_start(self):
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		ensure_flow_role()
+		member = _user("flow-ready-member@example.com", FLOW_USER_ROLE)
+		outsider = _user("flow-ready-none@example.com")
+		agent = _agent()
+		model = frappe.db.get_value("Flow Agent", agent, "model")
+		# only these two, not the site's own nor the assistant a new model brings (rolled back)
+		for doctype in ("Flow Model", "Flow Agent"):
+			frappe.db.set_value(doctype, {"enabled": 1}, "enabled", 0)
+		frappe.db.set_value("Flow Agent", agent, "enabled", 1)
+		frappe.db.set_value("Flow Model", model, {"enabled": 1, "base_url": "http://localhost:11434/v1"})
+		clear_enabled_cache()
+
+		def ready(path="/apps/desk"):
+			clear_enabled_cache()
+			launcher = re.search(r"<script [^>]*flow_launcher[^>]*>", self._page(path))
+			return bool(launcher) and " data-ready " in launcher[0]
+
+		frappe.set_user(member)
+		self.assertTrue(ready("/apps/desk"))
+		self.assertTrue(ready("/desk/user"))
+		frappe.db.set_value("Flow Model", model, "enabled", 0)
+		self.assertFalse(ready())
+		frappe.db.set_value("Flow Model", model, "enabled", 1)
+		frappe.db.set_value("Flow Agent", agent, "enabled", 0)
+		self.assertFalse(ready())
+		frappe.db.set_value("Flow Agent", agent, "enabled", 1)
+		self.assertTrue(ready())
+		frappe.set_user(outsider)
+		self.assertNotIn("flow_launcher", self._page("/apps/desk"))

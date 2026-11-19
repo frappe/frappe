@@ -67,6 +67,15 @@ class UserInvitation(Document):
 		)
 		return True
 
+	@frappe.desk_v2_only
+	@frappe.whitelist(methods=["POST"])
+	def resend_invite(self):
+		# run_doc_method only checks read before it calls a doc method.
+		self.check_permission("write")
+		if self.status != "Pending":
+			frappe.throw(title=_("Error"), msg=_("Only pending invitations can be resent"))
+		self.send_invitation_mail()
+
 	@frappe.whitelist()
 	def expire(self):
 		if self.status != "Pending":

@@ -1,0 +1,67 @@
+{
+ "app": "frappe",
+ "creation": "2026-11-17 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Sidebar",
+ "idx": 0,
+ "items": [],
+ "link_doctype": "Module Def",
+ "link_to": "Geo",
+ "modified": "2026-11-17 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "module_def_geo",
+ "navigation_items": [
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "country",
+   "label": "Country",
+   "link_doctype": "DocType",
+   "link_to": "Country",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "currency",
+   "label": "Currency",
+   "link_doctype": "DocType",
+   "link_to": "Currency",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "language",
+   "label": "Language",
+   "link_doctype": "DocType",
+   "link_to": "Language",
+   "switches_app": 0
+  },
+  {
+   "added": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "item_type": "DocType",
+   "keep_closed": 0,
+   "key": "translation",
+   "label": "Translation",
+   "link_doctype": "DocType",
+   "link_to": "Translation",
+   "switches_app": 0
+  }
+ ],
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Geo",
+ "user": ""
+}

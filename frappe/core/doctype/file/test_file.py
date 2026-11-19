@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
+import html
 import io
 import os
 import shutil
@@ -12,6 +13,7 @@ from unittest.mock import MagicMock, call, patch
 
 import frappe
 from frappe import _
+from frappe.api.v2 import create_doc, update_doc
 from frappe.core.api.file import (
 	create_new_folder,
 	get_attached_images,
@@ -27,6 +29,7 @@ from frappe.core.doctype.file.utils import (
 	get_web_image,
 	remove_file_by_url,
 )
+from frappe.desk.form.save import savedocs
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -2116,6 +2119,246 @@ class TestChildTableAttachments(IntegrationTestCase):
 		self.assertEqual(
 			frappe.db.get_value("About Us Team Member", row.name, "image_link"), attached.file_url
 		)
+
+
+class TestTextEditorFileAdoption(IntegrationTestCase):
+	"""A detached File a Text Editor field shows is attached when its uploader saves in desk v2."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.row_doctype = "Test Text Editor Row"
+		new_doctype(
+			cls.row_doctype,
+			istable=1,
+			fields=[{"label": "Notes", "fieldname": "notes", "fieldtype": "Text Editor"}],
+		).insert(ignore_if_duplicate=True)
+
+		fields = [
+			{"label": "Body", "fieldname": "body", "fieldtype": "Text Editor"},
+			{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": cls.row_doctype},
+		]
+		permissions = [{"role": "All", "read": 1, "write": 1, "create": 1}]
+		cls.parent_doctype = "Test Text Editor Parent"
+		new_doctype(cls.parent_doctype, fields=fields, permissions=permissions).insert(
+			ignore_if_duplicate=True
+		)
+		cls.public_doctype = "Test Text Editor Public"
+		new_doctype(
+			cls.public_doctype, fields=fields, permissions=permissions, make_attachments_public=1
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.public_doctype)
+		frappe.delete_doc_if_exists("DocType", cls.parent_doctype)
+		frappe.delete_doc_if_exists("DocType", cls.row_doctype)
+		super().tearDownClass()
+
+	def setUp(self):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
+		frappe.set_user("test@example.com")
+		set_request(method="POST", path="/api/v2/document/Test Text Editor Parent")
+
+	def tearDown(self):
+		frappe.local.request = None
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def make_file(self, content: bytes, file_name: str | None = None):
+		return frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": file_name or f"inline_{frappe.generate_hash(length=8)}.png",
+				"content": content,
+				"is_private": 1,
+			}
+		).insert(ignore_permissions=True)
+
+	def make_record(self, doctype=None, **values):
+		doctype = doctype or self.parent_doctype
+		frappe.local.form_dict = frappe._dict(values)
+		return frappe.get_doc(doctype, create_doc(doctype)["name"])
+
+	def save_record(self, record, **values):
+		frappe.local.form_dict = frappe._dict(values)
+		update_doc(record.doctype, record.name)
+		return frappe.get_doc(record.doctype, record.name)
+
+	def attachment_of(self, file):
+		return frappe.db.get_value(
+			"File",
+			file.name,
+			["attached_to_doctype", "attached_to_name", "attached_to_field", "is_private", "file_url"],
+			as_dict=True,
+		)
+
+	def test_adopts_the_callers_file_in_a_field(self):
+		file = self.make_file(b"field-image")
+		body = f'<p>Plan</p><p><img src="{file.file_url}"></p>'
+
+		record = self.make_record(body=body)
+
+		attached = self.attachment_of(file)
+		self.assertEqual(attached.attached_to_doctype, self.parent_doctype)
+		self.assertEqual(attached.attached_to_name, record.name)
+		self.assertIsNone(attached.attached_to_field)
+		self.assertEqual(attached.is_private, 1)
+		self.assertEqual(frappe.db.get_value(self.parent_doctype, record.name, "body"), body)
+
+	def test_makes_the_file_public_when_the_doctype_says_so(self):
+		file = self.make_file(b"public-image")
+		row_file = self.make_file(b"public-row-image")
+
+		record = self.make_record(
+			self.public_doctype,
+			body=f'<p>Plan</p><img src="{file.file_url}">',
+			rows=[{"notes": f'<img src="{row_file.file_url}">'}],
+		)
+
+		attached = self.attachment_of(file)
+		self.assertEqual(attached.is_private, 0)
+		self.assertEqual(attached.attached_to_name, record.name)
+		self.assertNotEqual(attached.file_url, file.file_url)
+		saved = frappe.get_doc(self.public_doctype, record.name)
+		self.assertEqual(saved.body, f'<p>Plan</p><img src="{attached.file_url}">')
+		row_attached = self.attachment_of(row_file)
+		self.assertEqual(row_attached.is_private, 0)
+		self.assertEqual(saved.rows[0].notes, f'<img src="{row_attached.file_url}">')
+
+	def test_repoints_every_place_an_escaped_url_shows(self):
+		file = self.make_file(b"escaped-image", "Tom & Ann's.png")
+		img = f'<img src="{html.escape(file.file_url, quote=False)}">'
+
+		record = self.make_record(self.public_doctype, body=img, rows=[{"notes": img}, {"notes": img}])
+
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.is_private, attached.attached_to_name), (0, record.name))
+		public = f'<img src="{html.escape(attached.file_url)}">'
+		self.assertEqual([record.body, *(row.notes for row in record.rows)], [public] * 3)
+
+	def test_makes_the_file_public_on_a_later_save(self):
+		record = self.make_record(self.public_doctype, body="<p>Plan</p>")
+		file = self.make_file(b"later-public-image")
+
+		record = self.save_record(record, body=f'<img src="{file.file_url}">')
+
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.is_private, attached.attached_to_name), (0, record.name))
+		self.assertEqual(frappe.db.get_value(self.public_doctype, record.name, "body"), record.body)
+		self.assertIn(attached.file_url, record.body)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
+	)
+	def test_keeps_the_file_private_when_the_caller_may_not_make_it_public(self):
+		frappe.set_user("test1@example.com")
+		self.assertNotIn("System Manager", frappe.get_roles())
+		file = self.make_file(b"restricted-image")
+		body = f'<img src="{file.file_url}">'
+
+		record = self.make_record(self.public_doctype, body=body)
+
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.is_private, attached.attached_to_name), (1, record.name))
+		self.assertEqual(frappe.db.get_value(self.public_doctype, record.name, "body"), body)
+
+	def test_leaves_an_attached_file_private(self):
+		first = self.make_record(self.public_doctype, body="<p>First</p>")
+		file = self.make_file(b"attached-private-image")
+		frappe.db.set_value(
+			"File", file.name, {"attached_to_doctype": self.public_doctype, "attached_to_name": first.name}
+		)
+
+		self.make_record(self.public_doctype, body=f'<img src="{file.file_url}">')
+
+		self.assertEqual(self.attachment_of(file).is_private, 1)
+
+	def test_adopts_the_callers_file_in_a_row(self):
+		file = self.make_file(b"row-image")
+
+		record = self.make_record(rows=[{"notes": f'<img src="{file.file_url}">'}])
+
+		attached = self.attachment_of(file)
+		self.assertEqual(attached.attached_to_doctype, self.parent_doctype)
+		self.assertEqual(attached.attached_to_name, record.name)
+
+	def test_adopts_on_a_later_save(self):
+		file = self.make_file(b"later-image")
+		record = self.make_record(body="<p>Plan</p>")
+
+		self.save_record(record, body=f'<p>Plan</p><img src="{file.file_url}">')
+
+		self.assertEqual(self.attachment_of(file).attached_to_name, record.name)
+
+	def test_leaves_another_users_file(self):
+		frappe.set_user("test4@example.com")
+		file = self.make_file(b"other-users-image")
+
+		frappe.set_user("test@example.com")
+		self.make_record(body=f'<img src="{file.file_url}">')
+
+		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
+
+	def test_leaves_files_outside_a_request(self):
+		file = self.make_file(b"background-image")
+		frappe.local.request = None
+
+		self.make_record(body=f'<img src="{file.file_url}">')
+
+		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
+
+	def test_leaves_a_guests_file(self):
+		frappe.set_user("Guest")
+		file = self.make_file(b"guest-image")
+
+		doc = frappe.get_doc({"doctype": self.parent_doctype, "body": f'<img src="{file.file_url}">'})
+		doc.flags.attach_text_editor_files = True
+		doc.insert(ignore_permissions=True)
+
+		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
+
+	def test_leaves_an_attached_file(self):
+		first = self.make_record(body="<p>First</p>")
+		file = self.make_file(b"attached-image")
+		frappe.db.set_value(
+			"File", file.name, {"attached_to_doctype": self.parent_doctype, "attached_to_name": first.name}
+		)
+
+		self.make_record(body=f'<img src="{file.file_url}">')
+
+		self.assertEqual(self.attachment_of(file).attached_to_name, first.name)
+
+	def test_leaves_the_file_on_a_desk_v1_save(self):
+		record = self.make_record(self.public_doctype, body="<p>Plan</p>")
+		file = self.make_file(b"desk-v1-image")
+		doc = frappe.get_doc(self.public_doctype, record.name).as_dict()
+		doc.body = f'<img src="{file.file_url}">'
+
+		for save in (frappe.client.save, lambda doc: savedocs(frappe.as_json(doc), "Save")):
+			with self.subTest(save=save):
+				save(doc)
+				doc.modified = frappe.db.get_value(self.public_doctype, record.name, "modified")
+
+				attached = self.attachment_of(file)
+				self.assertEqual((attached.attached_to_doctype, attached.is_private), (None, 1))
+
+		self.save_record(record, body=f'<p>Plan</p><img src="{file.file_url}">')
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.attached_to_name, attached.is_private), (record.name, 0))
+
+	def test_leaves_the_file_on_a_rest_save_with_desk_v2_off(self):
+		file = self.make_file(b"desk-v2-off-image")
+
+		with self.change_settings("System Settings", enable_desk_v2=0):
+			record = self.make_record(self.public_doctype, body=f'<img src="{file.file_url}">')
+
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.attached_to_doctype, attached.is_private), (None, 1))
+		self.assertEqual(record.body, f'<img src="{file.file_url}">')
 
 
 class TestAttachmentsAccess(IntegrationTestCase):

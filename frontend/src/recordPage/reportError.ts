@@ -1,0 +1,85 @@
+// A customization failure's Error Log row, which an admin can read without being in
+// the room. Fire-and-forget: an error channel that can itself error is a loop.
+import { runMethod } from "@framework/ui/api";
+import { HOST_SOURCE } from "@/pageEngine/context";
+
+const REPORT_METHOD =
+  "frappe.desk.customization_error.report_customization_error";
+
+const MESSAGE_LIMIT = 1000;
+const STACK_LIMIT = 4000;
+
+export type CustomizationTier = "client_script" | "extension" | "file_script";
+
+// One report per (source, event) per page session, which kills a replay storm before a request is made.
+const reported = new Set<string>();
+// An error already filed where more was known about it must not be filed again
+// by the handler catch that sees it on the way out.
+const filed = new WeakSet<object>();
+
+export interface CustomizationErrorContext {
+  /** `client-script:<name>`, an app name, or `host` — the attribution already carried. */
+  source: string;
+  /** A handler key, or `load` for a failure to arrive at all. */
+  event: string;
+  /** Overrides the tier the source implies: the tier's own fetch has no script. */
+  tier?: CustomizationTier;
+  doctype?: string;
+  record?: string;
+  route?: string;
+}
+
+/** `host` is the app's own bundled code; everything else unprefixed is an app. */
+export function tierOf(source: string): CustomizationTier {
+  if (source.startsWith("client-script:")) return "client_script";
+  return source === HOST_SOURCE ? "file_script" : "extension";
+}
+
+export function reportCustomizationError(
+  error: unknown,
+  context: CustomizationErrorContext,
+) {
+  if (typeof error === "object" && error !== null) {
+    if (filed.has(error)) return;
+    filed.add(error);
+  }
+  const key = `${context.source} ${context.event}`;
+  if (reported.has(key)) return;
+  reported.add(key);
+  // Every call site is already inside a catch, so a throw from here would escape
+  // as the failure of whatever it was reporting.
+  try {
+    const sent = runMethod(REPORT_METHOD, {
+      source: context.source,
+      tier: context.tier ?? tierOf(context.source),
+      event: context.event,
+      doctype: context.doctype ?? "",
+      message: messageOf(error).slice(0, MESSAGE_LIMIT),
+      stack: stackOf(error).slice(0, STACK_LIMIT),
+      record: context.record ?? "",
+      route: context.route ?? currentRoute(),
+    }, { nullable: true });
+    void Promise.resolve(sent).catch(() => {});
+  } catch {
+    // An error channel that can itself error is a loop.
+  }
+}
+
+/** Cleared alongside `toasted`, so a new page session reports afresh. */
+export function resetCustomizationErrorReports() {
+  reported.clear();
+}
+
+function messageOf(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function stackOf(error: unknown) {
+  return error instanceof Error ? (error.stack ?? "") : "";
+}
+
+function currentRoute() {
+  return typeof location === "undefined"
+    ? ""
+    : `${location.pathname}${location.hash}`;
+}

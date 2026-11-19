@@ -1,0 +1,121 @@
+// Type name -> renderer, and the two failure paths: no renderer, and a renderer that throws.
+// Both skip the item and log once; one app's bad row must not blank the rail.
+
+import { START_LOCATION, type RouteLocationRaw } from "vue-router";
+import type { NavigationItem } from "@/boot";
+import { itemRenderers } from "@/contributions/registry";
+import type { ItemContext, ItemRenderer, Rendering } from "./types";
+
+/** One line per type per page session, not one per render. */
+const reported = new Set<string>();
+
+/**
+ * A `Sidebar` item resolves rows inside its sidebar, so two sidebars pointing at each other
+ * would recurse. A depth, not a key set: a key is unique only within one container.
+ */
+const MAX_DEPTH = 8;
+let depth = 0;
+
+export function rendererFor(itemType: string): ItemRenderer | undefined {
+	return itemRenderers[itemType];
+}
+
+/** What this item does, or `null` if it cannot be drawn here. */
+export function renderingOf(
+	item: NavigationItem,
+	context: ItemContext
+): Rendering | null {
+	const renderer = rendererFor(item.item_type);
+
+	if (!renderer) {
+		report(
+			item.item_type,
+			`[frappe] no renderer for navigation item type '${item.item_type}'; ` +
+				`item '${item.key}' is not drawn. A kind is two files: the type record and ` +
+				`<module>/navigation_item_type/<scrubbed>/frontend/item.js.`
+		);
+		return null;
+	}
+
+	if (depth >= MAX_DEPTH) return null;
+	depth += 1;
+
+	try {
+		const rendering = withOpenedSidebar(item, renderer.render(item, context), context);
+
+		// Resolved here so an unresolvable route fails in this handler, not inside `RouterLink`.
+		if (rendering && "to" in rendering) resolveItemRoute(context, rendering.to);
+
+		return rendering;
+	} catch (error) {
+		report(
+			item.item_type,
+			`[frappe] the renderer for '${item.item_type}' threw on item '${item.key}'; ` +
+				`it is not drawn.`,
+			error
+		);
+		return null;
+	} finally {
+		depth -= 1;
+	}
+}
+
+/** A rail row that opens a sidebar keeps its own target and names that sidebar, in the route's query as `Sidebar` rows do. */
+function withOpenedSidebar(
+	item: NavigationItem,
+	rendering: Rendering | null,
+	context: ItemContext
+): Rendering | null {
+	if (!item.opens_sidebar || !rendering || "sidebar" in rendering) return rendering;
+	if ("href" in rendering) return { ...rendering, sidebar: item.opens_sidebar };
+	if (!("to" in rendering)) return rendering;
+
+	const { path, query, hash } = resolveItemRoute(context, rendering.to);
+	return {
+		...rendering,
+		to: { path, query: { ...query, sidebar: item.opens_sidebar }, hash },
+		sidebar: item.opens_sidebar,
+	};
+}
+
+/** An item's route, resolved without reading the current route. */
+// Resolved against the current route, every rail and sidebar row would redraw on each route change.
+export function resolveItemRoute(context: ItemContext, to: RouteLocationRaw) {
+	return context.router.resolve(to, START_LOCATION);
+}
+
+/**
+ * An authored label wins and is never translated; then the renderer's fallback; then the destination.
+ */
+export function labelOf(item: NavigationItem, context: ItemContext): string {
+	if (item.label) return item.label;
+
+	const renderer = rendererFor(item.item_type);
+
+	try {
+		const fallback = renderer?.label?.(item, context);
+		if (fallback) return fallback;
+	} catch {
+		// A renderer that cannot name the item still gets its destination drawn.
+	}
+
+	return item.link_to ?? item.key;
+}
+
+/** An authored icon wins; then the kind's own; then a dot, so a row that leads somewhere always draws one. */
+export function iconOf(item: NavigationItem): string {
+	return item.icon || rendererFor(item.item_type)?.icon || "circle-dot";
+}
+
+function report(itemType: string, message: string, error?: unknown) {
+	if (reported.has(itemType)) return;
+	reported.add(itemType);
+	// Console only: the client has no working Error Log channel on this branch.
+	if (error) console.error(message, error);
+	else console.error(message);
+}
+
+/** Cleared between page sessions, so a reload reports afresh. */
+export function resetNavigationReports() {
+	reported.clear();
+}

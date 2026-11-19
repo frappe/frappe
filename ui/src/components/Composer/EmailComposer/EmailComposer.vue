@@ -8,10 +8,13 @@
 		:max-attachments="maxAttachments"
 		:allowed-file-types="allowedFileTypes"
 		:submitting="submitting"
+		:fill="fill"
+		:disabled="disabled"
 		v-model:body="body"
 		v-model:quoted="quoted"
 		@submit="handleSubmit"
 		@remove-attachment="emit('remove-attachment', $event)"
+		@discard="emit('discard')"
 	>
 		<!-- Providing #header replaces the built-in rows, even when empty. -->
 		<template #top>

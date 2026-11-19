@@ -87,7 +87,11 @@ def get_files_list(pr_number, repo="frappe/frappe"):
 	:param repo: Repository name
 	:return: List of changed file names
 	"""
-	return [change["filename"] for change in fetch_pr_data(pr_number, repo, "files")]
+	files, page = [], 1
+	while changes := fetch_pr_data(pr_number, repo, f"files?per_page=100&page={page}"):
+		files += [change["filename"] for change in changes]
+		page += 1
+	return files
 
 
 def get_queue_files(repo, base, head):
@@ -329,11 +333,7 @@ if __name__ == "__main__":
 	elif only_docs_changed and not tests_requested:
 		print("Only docs were updated, stopping build process.")
 		sys.exit(0)
-	elif (
-		only_frontend_code_changed
-		and build_type == "server"
-		and not has_run_server_tests_label(pr_number, repo)
-	):
+	elif only_frontend_code_changed and build_type == "server" and not tests_requested:
 		print("Only Frontend code was updated; Stopping Python build process.")
 		sys.exit(0)
 	elif build_type == "ui" and only_py_changed and not has_run_ui_tests_label(pr_number, repo):

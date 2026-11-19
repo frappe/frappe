@@ -40,6 +40,12 @@
                 "string"
               ]
             },
+            "pending": {
+              "type": "boolean"
+            },
+            "renderKey": {
+              "type": "string"
+            },
             "data": {
               "type": "object",
               "properties": {

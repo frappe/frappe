@@ -1,0 +1,241 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const { toast } = vi.hoisted(() => ({ toast: { error: vi.fn(), success: vi.fn() } }));
+vi.mock("frappe-ui", () => ({ toast }));
+
+import { acts } from "@/acts/dispatcher";
+import type { EditorState } from "../editorSource";
+import { fieldnameMode, removeAction, rowMark, subtitle, typeGroups } from "../fieldPanel";
+import { mountEditor, taskNote } from "./editorFixture";
+
+let stop: () => void;
+beforeEach(() => toast.error.mockReset());
+afterEach(() => stop());
+
+/** Task Note as an app ships it, with this site's changes: a label, a custom field, and an app's custom field. */
+function customized(): EditorState {
+	const base = taskNote();
+	return {
+		...base,
+		mode: "Customize",
+		modes: ["Customize"],
+		custom: 0,
+		app_title: "ERPNext",
+		definition: {
+			...base.definition,
+			fields: [
+				{ fieldname: "subject", label: "Title", fieldtype: "Small Text" },
+				...base.definition.fields.slice(1),
+				{ fieldname: "custom_rating", label: "Rating", fieldtype: "Int", is_custom_field: 1 },
+				{ fieldname: "region", label: "Region", fieldtype: "Data", is_custom_field: 1, is_system_generated: 1 },
+			],
+		},
+		custom_fields: [
+			{ name: "Task Note-custom_rating", fieldname: "custom_rating", is_system_generated: 0 },
+			{ name: "Task Note-region", fieldname: "region", is_system_generated: 1 },
+		],
+		property_setters: [
+			{ field_name: "subject", doctype_or_field: "DocField", property: "label", value: "Title", app_value: "Subject", is_system_generated: 0 },
+			{ field_name: "status", doctype_or_field: "DocField", property: "bold", value: "1", app_value: 0, is_system_generated: 1 },
+		],
+		locks: { notes: { reqd: "The app makes this field mandatory." } },
+		fieldtype_changes: { subject: ["Small Text", "Text"], status: ["Select"] },
+	} as EditorState;
+}
+
+function mount() {
+	const mounted = mountEditor(customized());
+	stop = mounted.stop;
+	return mounted;
+}
+
+describe("the canvas marks in Customize", () => {
+	it("mark only what the site changed", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "status", property: "hidden", value: 1 });
+		const view = canvas.customize!;
+		expect(view.marks("custom_rating")).toEqual({ custom: true, changed: [], hidden: false });
+		expect(view.marks("region")).toEqual({ custom: false, changed: [], hidden: false });
+		expect(view.marks("subject")).toEqual({ custom: false, changed: ["label"], hidden: false });
+		expect(view.marks("status")).toEqual({ custom: false, changed: ["hidden"], hidden: true });
+		expect(view.marks("notes")).toEqual({ custom: false, changed: [], hidden: false });
+	});
+
+	it("drop the dot when a property is set back to the app's value", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "status", property: "hidden", value: 1 });
+		await acts.run("fields.set_field_property", { fieldname: "status", property: "hidden", value: 0 });
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "label", value: "Subject" });
+		expect(canvas.customize!.marks("status").changed).toEqual([]);
+		expect(canvas.customize!.marks("subject").changed).toEqual([]);
+		expect(canvas.customize!.unchanged("status", "hidden")).toBe(true);
+		expect(canvas.customize!.unchanged("subject", "label")).toBe(false);
+	});
+
+	it("mark a property set to zero, unless it is a check", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "notes", property: "precision", value: "0" });
+		await acts.run("fields.set_field_property", { fieldname: "notes", property: "bold", value: 0 });
+		expect(canvas.customize!.marks("notes").changed).toEqual(["precision"]);
+		expect(canvas.customize!.unchanged("notes", "precision")).toBe(false);
+		expect(canvas.customize!.unchanged("notes", "bold")).toBe(true);
+	});
+
+	it("a new field is a custom field named custom_ and its label", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.add_field", { label: "Due On", fieldtype: "Date", section: "main", column: "column_1" });
+		expect(canvas.field("custom_due_on")?.label).toBe("Due On");
+		expect(canvas.customize!.marks("custom_due_on").custom).toBe(true);
+		await acts.run("fields.set_field_property", { fieldname: "custom_due_on", property: "label", value: "Due" });
+		expect(canvas.field("custom_due")?.label).toBe("Due");
+	});
+
+	it("a fetched field is a custom field named custom_, as the save names it", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.add_field", { label: "Owner", fieldtype: "Link", options: "User", section: "main", column: "column_1", index: 1 });
+		const source = { fieldname: "full_name", label: "Full Name", fieldtype: "Data" };
+		await acts.run("fields.fetch_field", { link: "custom_owner", source });
+		expect(canvas.field("custom_full_name")?.fetch_from).toBe("custom_owner.full_name");
+		expect(canvas.customize!.marks("custom_full_name").custom).toBe(true);
+	});
+
+	it("draws no marks in Design", () => {
+		const mounted = mountEditor(taskNote());
+		stop = mounted.stop;
+		expect(mounted.canvas.customize).toBeNull();
+	});
+});
+
+describe("the panel in Customize", () => {
+	it("gives a locked property's reason, and refuses to change it", async () => {
+		const { canvas, edits } = mount();
+		expect(canvas.customize!.lock("notes", "reqd")).toBe("The app makes this field mandatory.");
+		expect(canvas.customize!.lock("notes", "label")).toBeUndefined();
+		await acts.perform("fields.set_field_property", { fieldname: "notes", property: "reqd", value: 0 });
+		expect(edits.staged.value).toEqual([]);
+		expect(toast.error).toHaveBeenCalledWith("The app makes this field mandatory.");
+	});
+
+	it("locks a Select's options until its type becomes Data, as the save checks them", async () => {
+		const { canvas, edits } = mount();
+		expect(canvas.customize!.lock("status", "options")).toBe("Options of a Select field cannot be changed.");
+		expect(canvas.customize!.lock("spare", "options")).toBeUndefined();
+		await acts.perform("fields.set_field_property", { fieldname: "status", properties: { fieldtype: "Data", options: "" } });
+		expect(edits.staged.value.map((edit) => edit.property)).toEqual(["fieldtype", "options"]);
+		expect(canvas.customize!.lock("status", "options")).toBeUndefined();
+		expect(toast.error).not.toHaveBeenCalled();
+	});
+
+	it("unlocks Translatable when a Code field becomes Text, as the save checks the new type", async () => {
+		const state = customized();
+		state.definition.fields.find((field) => field.fieldname === "subject")!.fieldtype = "Code";
+		state.locks = { subject: { translatable: "A Code field cannot be translated." } };
+		state.fieldtype_changes = { subject: ["Text"] };
+		const mounted = mountEditor(state);
+		stop = mounted.stop;
+		const { canvas } = mounted;
+		expect(canvas.customize!.lock("subject", "translatable")).toBe("A Code field cannot be translated.");
+		await acts.perform("fields.set_field_property", { fieldname: "subject", property: "fieldtype", value: "Text" });
+		expect(canvas.customize!.lock("subject", "translatable")).toBeUndefined();
+		expect(canvas.customize!.lock("subject", "in_list_view")).toBeUndefined();
+	});
+
+	it("resets one changed property to the app's value and keeps the others", async () => {
+		const { canvas, edits } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "subject", property: "bold", value: 1 });
+		await acts.run("fields.reset_field_property", { fieldname: "subject", property: "label" });
+		expect(canvas.field("subject")).toMatchObject({ label: "Subject", bold: 1 });
+		expect(canvas.customize!.marks("subject").changed).toEqual(["bold"]);
+		expect(edits.staged.value.at(-1)).toEqual({ act: "fields.reset_field_property", fieldname: "subject", property: "label" });
+		edits.undo();
+		expect(canvas.field("subject")?.label).toBe("Title");
+	});
+
+	it("lists a standard field's allowed types; a custom field takes any", () => {
+		const { canvas } = mount();
+		expect(canvas.customize!.fieldtypes("subject")).toEqual(["Small Text", "Text"]);
+		expect(canvas.customize!.fieldtypes("custom_rating")).toBeNull();
+	});
+
+	it("hides a standard field instead of removing it", async () => {
+		const { canvas } = mount();
+		expect(canvas.customize!.hidesOnRemove("status")).toBe(true);
+		expect(canvas.customize!.hidesOnRemove("custom_rating")).toBe(false);
+		await acts.perform("fields.delete_field", { fieldname: "status" });
+		expect(toast.error).toHaveBeenCalledWith("status is a standard field. Hide it instead.");
+	});
+});
+
+describe("the panel rows in Customize", () => {
+	it("lock a property with its reason, and offer a changed one's reset to the app's value", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.set_field_property", { fieldname: "status", property: "bold", value: 1 });
+		expect(rowMark(canvas, "notes", "reqd")).toEqual({ lock: "The app makes this field mandatory." });
+		expect(rowMark(canvas, "subject", "label")).toEqual({ changed: true, resetText: "Reset to ERPNext's value (Subject)" });
+		expect(rowMark(canvas, "status", "bold")).toEqual({ changed: true, resetText: "Reset to ERPNext's value (off)" });
+		expect(rowMark(canvas, "subject", "bold")).toEqual({});
+		expect(rowMark(canvas, "custom_rating", "label")).toEqual({});
+	});
+
+	it("draw no row marks in Design", () => {
+		const { canvas } = mountEditor(taskNote());
+		expect(rowMark(canvas, "notes", "reqd")).toEqual({});
+	});
+
+	it("offer only a standard field's allowed types, the rest disabled", () => {
+		const { canvas } = mount();
+		const { groups, more } = typeGroups(canvas, "subject");
+		expect(groups[0]).toEqual({
+			label: "A standard Small Text field can become",
+			types: [
+				{ name: "Small Text", disabled: false },
+				{ name: "Text", disabled: false },
+			],
+		});
+		expect(groups[1].label).toBe("Not on a standard field");
+		expect(groups[1].types.every((type) => type.disabled)).toBe(true);
+		expect(groups[1].types.map((type) => type.name)).toContain("Data");
+		expect(more).toEqual([]);
+	});
+
+	it("name where a field comes from", () => {
+		const { canvas } = mount();
+		const of = (fieldname: string) => subtitle(canvas, canvas.field(fieldname)!);
+		expect(of("region")).toBe("Data · From ERPNext · 0 values");
+		expect(of("custom_rating")).toBe("Int · Custom · 0 values");
+		expect(of("subject")).toBe("Small Text · Standard · 4 values");
+	});
+
+	it("rename only a site's custom field", () => {
+		const { canvas } = mount();
+		expect(fieldnameMode(canvas, "subject")).toBe("locked");
+		expect(fieldnameMode(canvas, "region")).toBe("locked");
+		expect(fieldnameMode(canvas, "custom_rating")).toBe("renamable");
+	});
+
+	it("keep a custom field's custom_ prefix on rename", async () => {
+		const { canvas, edits } = mount();
+		await acts.perform("fields.rename_field", { fieldname: "custom_rating", new_fieldname: "rating" });
+		expect(edits.staged.value).toEqual([]);
+		expect(toast.error).toHaveBeenCalledWith("A custom field's fieldname starts with custom_.");
+		await acts.perform("fields.rename_field", { fieldname: "custom_rating", new_fieldname: "custom_score" });
+		expect(canvas.field("custom_score")).toBeTruthy();
+	});
+
+	it("hide or show a standard field in place of remove", async () => {
+		const { canvas } = mount();
+		expect(removeAction(canvas, canvas.field("status")!)).toEqual({ label: "Hide field", icon: "lucide-eye-off" });
+		expect(removeAction(canvas, canvas.field("custom_rating")!)).toEqual({ label: "Remove field", icon: "lucide-trash-2" });
+		await acts.run("fields.set_field_property", { fieldname: "status", property: "hidden", value: 1 });
+		expect(removeAction(canvas, canvas.field("status")!)).toEqual({ label: "Show field", icon: "lucide-eye" });
+	});
+
+	it("name the field a custom field is placed after", async () => {
+		const { canvas } = mount();
+		await acts.run("fields.add_field", { label: "Due On", fieldtype: "Date", section: "more", column: "column_1", index: 0 });
+		expect(canvas.customize!.anchor("custom_due_on")?.fieldname).toBe("status");
+		await acts.run("fields.add_field", { label: "First", fieldtype: "Data", section: "main", column: "column_1", index: 0 });
+		expect(canvas.customize!.anchor("custom_first")).toBeNull();
+		expect(canvas.customize!.anchor("subject")).toBeUndefined();
+	});
+});

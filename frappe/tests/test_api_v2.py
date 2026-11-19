@@ -1,16 +1,25 @@
+import json
 import typing
+from base64 import b64encode
+from functools import cached_property
+from io import BytesIO
 from random import choice
 from unittest.mock import patch
 
 import requests
+from werkzeug.test import TestResponse
 
 import frappe
+import frappe.defaults
+import frappe.share
 from frappe.api import discovery
-from frappe.api.v2 import run_doc_method
+from frappe.api.v2 import copy_doc, run_doc_method
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
+from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.installer import update_site_config
+from frappe.model.document import Document
 from frappe.permissions import add_permission, update_permission_property
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
@@ -52,7 +61,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_unauthorized_call_v2(self):
 		# test 1: fetch documents without auth
 		response = requests.get(self.resource(self.DOCTYPE))
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 403, response.text[-3000:])
 
 	def test_get_list_v2(self):
 		# test 2: fetch documents without params
@@ -247,7 +256,7 @@ class TestResourceAPIV2(FrappeAPITestCase):
 				self.resource("Website Theme", "Standard", "method", "get_apps"), {"sid": self.sid}
 			)
 
-		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 	def test_update_document_v2(self):
 		generated_desc = frappe.mock("paragraph")
@@ -462,6 +471,12 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 		docs = [{"doctype": self.doctype, "name": self.name, "title": "y"}]
 		response = self.request("post", data={"docs": docs}, url=self.method("bulk_update"))
 		self.assertEqual(response["data"]["success_count"], 1)
+		self.assertIsNone(response["docs"][0].get("secret"))
+
+	def test_bulk_edit_omits_fields_without_read_permission(self):
+		with self.change_settings("System Settings", commit=True, enable_desk_v2=1):
+			response = self.request("post", "bulk_edit", data={"docs": [{"name": self.name, "title": "y"}]})
+		self.assertEqual(len(response["data"]["done"]), 1)
 		self.assertIsNone(response["docs"][0].get("secret"))
 
 	def test_run_doc_method_omits_fields_without_read_permission(self):
@@ -929,6 +944,623 @@ class TestBulkOperationsV2(FrappeAPITestCase):
 		job_id = response.json["data"]["job_id"]
 
 
+class TestBulkRemoveAsNormalUserV2(FrappeAPITestCase):
+	"""`bulk_remove` as a user with the `bulk_actions` gate and no System Manager role."""
+
+	version = "v2"
+
+	def setUp(self) -> None:
+		super().setUp()
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
+		frappe.set_user("Administrator")
+		self.user = "api.bulkremove@example.com"
+		self.created_user = not frappe.db.exists("User", self.user)
+		if self.created_user:
+			frappe.get_doc(
+				doctype="User",
+				email=self.user,
+				first_name="API Bulk Remove",
+				roles=[{"role": "Desk User"}],
+				send_welcome_email=0,
+			).insert()
+		frappe.db.set_value("User", self.user, "bulk_actions", 1)
+		frappe.clear_document_cache("User", self.user)
+		keys = generate_keys(self.user)
+		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+
+		frappe.set_user(self.user)
+		self.own = frappe.get_doc(doctype="ToDo", description="Bulk remove own").insert()
+		frappe.set_user("Administrator")
+		self.others = frappe.get_doc(doctype="ToDo", description="Bulk remove other").insert()
+		# Requests use a separate connection and must see these fixtures.
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self) -> None:
+		try:
+			frappe.set_user("Administrator")
+			for doc in (self.own, self.others):
+				frappe.delete_doc_if_exists("ToDo", doc.name)
+			if self.created_user:
+				frappe.delete_doc("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def bulk_remove(self, names: list[str]):
+		return make_request(
+			get_test_client(use_cookies=False).post,
+			args=(self.resource("ToDo", "bulk_remove"),),
+			kwargs={"json": {"names": names}, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+
+	def test_a_permitted_delete_succeeds(self):
+		response = self.bulk_remove([self.own.name])
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["data"]["done"], [self.own.name])
+		self.assertFalse(frappe.db.exists("ToDo", self.own.name))
+
+	def test_a_forbidden_delete_fails_and_leaves_the_record(self):
+		response = self.bulk_remove([self.own.name, self.others.name])
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["done"], [self.own.name])
+		self.assertEqual([row["name"] for row in data["failed"]], [self.others.name])
+		self.assertTrue(frappe.db.exists("ToDo", self.others.name))
+
+
+class TestBulkRunnerRoutesV2(FrappeAPITestCase):
+	"""The desk v2 shell's bulk_remove and bulk_edit routes, which run through `run_bulk`."""
+
+	version = "v2"
+	DOCTYPE = "ToDo"
+
+	def setUp(self) -> None:
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
+		self.post(self.method("login"), {"sid": self.sid})
+		return super().setUp()
+
+	def cleanup_docs(self, docs: list, job_id: str | None = None):
+		"""Delete `docs`, waiting for `job_id` first: the job touches these same rows."""
+		if job_id:
+			wait_for_job(job_id)
+		for doc in docs:
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc.name)
+		frappe.db.commit()  # nosemgrep
+
+	def test_bulk_delete_docs_single_doctype_v2(self):
+		# Create docs to delete
+		doc1 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete 1"}).insert()
+		doc2 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete 2"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		# Bulk delete
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_remove"),
+			{"names": [doc1.name, doc2.name], "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["total"], 2)
+		self.assertEqual(len(data["done"]), 2)
+		self.assertEqual(len(data["failed"]), 0)
+		self.assertIn(doc1.name, data["done"])
+		self.assertIn(doc2.name, data["done"])
+
+		# Verify deletion
+		self.assertFalse(frappe.db.exists(self.DOCTYPE, doc1.name))
+		self.assertFalse(frappe.db.exists(self.DOCTYPE, doc2.name))
+
+	def test_bulk_delete_docs_partial_failure_v2(self):
+		# Create one valid doc
+		doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": "To delete"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		# Try to delete valid and non-existent doc
+		non_existent = "non-existent-todo"
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_remove"),
+			{"names": [doc.name, non_existent], "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["total"], 2)
+		self.assertEqual(len(data["done"]), 1)
+		self.assertEqual(len(data["failed"]), 1)
+		self.assertIn(doc.name, data["done"])
+		self.assertEqual(len(data["failed"]), 1)
+		self.assertEqual(data["failed"][0]["name"], non_existent)
+
+	def test_bulk_update_docs_single_doctype_v2(self):
+		# Create fresh docs for this test
+		doc1 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Original 1"}).insert()
+		doc2 = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Original 2"}).insert()
+		frappe.db.commit()  # nosemgrep
+
+		try:
+			# Bulk update
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_edit"),
+				{
+					"docs": [
+						{"name": doc1.name, "description": "Updated description 1", "priority": "High"},
+						{"name": doc2.name, "description": "Updated description 2", "priority": "Low"},
+					],
+					"sid": self.sid,
+				},
+			)
+
+			self.assertEqual(response.status_code, 200)
+			data = response.json["data"]
+			self.assertEqual(data["total"], 2)
+			self.assertEqual(len(data["done"]), 2)
+			self.assertEqual(len(data["failed"]), 0)
+			self.assertIn(doc1.name, data["done"])
+			self.assertIn(doc2.name, data["done"])
+
+			# Verify updates
+			updated_doc1 = frappe.get_doc(self.DOCTYPE, doc1.name)
+			updated_doc2 = frappe.get_doc(self.DOCTYPE, doc2.name)
+			self.assertEqual(updated_doc1.description, "Updated description 1")
+			self.assertEqual(updated_doc1.priority, "High")
+			self.assertEqual(updated_doc2.description, "Updated description 2")
+			self.assertEqual(updated_doc2.priority, "Low")
+		finally:
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc1.name)
+			frappe.delete_doc_if_exists(self.DOCTYPE, doc2.name)
+			frappe.db.commit()  # nosemgrep
+
+	def test_bulk_update_partial_failure_v2(self):
+		# Create a fresh doc for this test
+		doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Original"}).insert()
+		frappe.db.commit()  # nosemgrep
+		valid_doc = doc.name
+		non_existent = "non-existent-todo"
+
+		try:
+			# Try to update valid and non-existent doc
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_edit"),
+				{
+					"docs": [
+						{"name": valid_doc, "description": "Updated"},
+						{"name": non_existent, "description": "Should fail"},
+					],
+					"sid": self.sid,
+				},
+			)
+
+			self.assertEqual(response.status_code, 200)
+			data = response.json["data"]
+			self.assertEqual(data["total"], 2)
+			self.assertEqual(len(data["done"]), 1)
+			self.assertEqual(len(data["failed"]), 1)
+			self.assertIn(valid_doc, data["done"])
+			self.assertEqual(len(data["failed"]), 1)
+			self.assertEqual(data["failed"][0]["name"], non_existent)
+
+			# Verify successful update
+			updated_doc = frappe.get_doc(self.DOCTYPE, valid_doc)
+			self.assertEqual(updated_doc.description, "Updated")
+		finally:
+			frappe.delete_doc_if_exists(self.DOCTYPE, valid_doc)
+			frappe.db.commit()  # nosemgrep
+
+	def test_bulk_update_invalid_format_v2(self):
+		# Test with invalid format (not a list)
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_edit"),
+			{"docs": {"name": "test", "description": "test"}, "sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 417)
+		self.assertIn("'docs' must be a list", response.json["errors"][0]["exception"])
+
+		# Test with missing name field
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_edit"),
+			{"docs": [{"description": "test"}], "sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(len(data["failed"]), 1)
+		self.assertIn("'name' must be a string or integer", data["failed"][0]["error"])
+
+	def test_bulk_routes_check_the_bulk_actions_gate_v2(self):
+		frappe.db.set_value("User", "Administrator", "bulk_actions", 0)
+		frappe.clear_document_cache("User", "Administrator")
+
+		def restore():
+			frappe.db.set_value("User", "Administrator", "bulk_actions", 1)
+			frappe.clear_document_cache("User", "Administrator")
+			frappe.db.commit()  # nosemgrep
+
+		self.addCleanup(restore)
+		frappe.db.commit()  # nosemgrep
+
+		for url, body in (
+			(self.resource(self.DOCTYPE, "bulk_remove"), {"names": ["x"]}),
+			(self.resource(self.DOCTYPE, "bulk_edit"), {"docs": [{"name": "x"}]}),
+		):
+			self.assertEqual(self.post(url, {**body, "sid": self.sid}).status_code, 403, url)
+
+	def test_bulk_routes_refuse_while_desk_v2_is_off_v2(self):
+		with self.change_settings("System Settings", commit=True, enable_desk_v2=0):
+			for url, body in (
+				(self.resource(self.DOCTYPE, "bulk_remove"), {"names": ["x"]}),
+				(self.resource(self.DOCTYPE, "bulk_edit"), {"docs": [{"name": "x"}]}),
+			):
+				response = self.post(url, {**body, "sid": self.sid})
+				self.assertEqual(response.status_code, 403, url)
+				self.assertEqual(response.json["errors"][0]["type"], "DeskV2DisabledError")
+
+	def test_develop_bulk_routes_ignore_the_desk_v2_switch_v2(self):
+		"""The four develop routes answer the same, with the switch on or off."""
+		for enabled in (1, 0):
+			with self.change_settings("System Settings", commit=True, enable_desk_v2=enabled):
+				doc = frappe.get_doc({"doctype": self.DOCTYPE, "description": "Switch walk"}).insert()
+				frappe.db.commit()  # nosemgrep
+				self.addCleanup(self.cleanup_docs, [doc])
+
+				update = self.post(
+					self.resource(self.DOCTYPE, "bulk_update"),
+					{"docs": [{"name": doc.name, "description": "Switch walk 2"}], "sid": self.sid},
+				)
+				self.assertEqual(update.status_code, 200, enabled)
+				self.assertEqual(update.json["data"]["success_count"], 1, enabled)
+
+				delete = self.post(
+					self.resource(self.DOCTYPE, "bulk_delete"), {"names": [doc.name], "sid": self.sid}
+				)
+				self.assertEqual(delete.status_code, 200, enabled)
+				self.assertEqual(delete.json["data"]["deleted"], [doc.name], enabled)
+
+	def test_bulk_routes_refuse_a_run_over_the_cap_v2(self):
+		with patch("frappe.api.bulk.get_limit", return_value=2):
+			response = self.post(
+				self.resource(self.DOCTYPE, "bulk_remove"), {"names": ["a", "b", "c"], "sid": self.sid}
+			)
+		self.assertEqual(response.status_code, 417)
+
+	def test_bulk_enqueue_v2(self):
+		# Create 25 docs
+		docs = [
+			frappe.get_doc({"doctype": self.DOCTYPE, "description": f"To delete {i}"}).insert()
+			for i in range(25)
+		]
+		frappe.db.commit()  # nosemgrep
+
+		# Late-bound on purpose: cleanup sees the job_id assigned below.
+		job_id = None
+		self.addCleanup(lambda: self.cleanup_docs(docs, job_id))
+
+		# Bulk delete > 20 docs
+		names = [doc.name for doc in docs]
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_remove"),
+			{"names": names, "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 202)
+		self.assertEqual(response.json["data"]["task_id"], response.json["data"]["job_id"])
+		job_id = response.json["data"]["job_id"]
+
+	def test_bulk_update_enqueue_v2(self):
+		# Create 25 docs
+		docs = [
+			frappe.get_doc({"doctype": self.DOCTYPE, "description": f"To update {i}"}).insert()
+			for i in range(25)
+		]
+		frappe.db.commit()  # nosemgrep
+
+		# Late-bound on purpose: cleanup sees the job_id assigned below.
+		job_id = None
+		self.addCleanup(lambda: self.cleanup_docs(docs, job_id))
+
+		# Bulk update > 20 docs
+		updates = [{"name": doc.name, "description": "Updated"} for doc in docs]
+		response = self.post(
+			self.resource(self.DOCTYPE, "bulk_edit"),
+			{"docs": updates, "sid": self.sid},
+		)
+
+		self.assertEqual(response.status_code, 202)
+		self.assertEqual(response.json["data"]["task_id"], response.json["data"]["job_id"])
+		job_id = response.json["data"]["job_id"]
+
+
+class TestQueueSubmitV2(FrappeAPITestCase):
+	version = "v2"
+	queue_submission = "frappe.core.doctype.submission_queue.submission_queue.queue_submission"
+	scheduler_inactive = "frappe.utils.scheduler.is_scheduler_inactive"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.doctype_name = "Test Queue Submit V2"
+		frappe.delete_doc_if_exists("DocType", cls.doctype_name, force=True)
+		cls.doctype = new_doctype(
+			cls.doctype_name,
+			is_submittable=1,
+			queue_in_background=1,
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
+				{"role": "Desk User", "read": 1, "write": 1},
+			],
+		).insert()
+		cls.writer = "queue.writer@example.com"
+		if not frappe.db.exists("User", cls.writer):
+			user = frappe.get_doc(
+				doctype="User", email=cls.writer, first_name="Queue Writer", send_welcome_email=0
+			).insert()
+			user.add_roles("Desk User")
+		keys = generate_keys(cls.writer)
+		cls.writer_authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		keys = generate_keys("Administrator")
+		cls.admin_authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		frappe.delete_doc("DocType", cls.doctype_name, force=True)
+		frappe.delete_doc_if_exists("User", cls.writer)
+		frappe.db.commit()  # nosemgrep
+
+	def setUp(self) -> None:
+		super().setUp()
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
+
+	def new_record(self, status: int = 0):
+		doc = frappe.get_doc(doctype=self.doctype_name, some_fieldname="Queue me").insert()
+		if status:
+			doc.submit()
+		frappe.db.commit()  # nosemgrep
+		return doc
+
+	def call(self, method, name, headers=None, modified=None):
+		return make_request(
+			get_test_client(use_cookies=False).post,
+			args=(self.resource(self.doctype_name, name, "method", method),),
+			kwargs={
+				"headers": headers or {"Authorization": self.admin_authorization},
+				**({"json": {"modified": modified}} if modified else {}),
+			},
+			site=frappe.local.site,
+		)
+
+	def saved_docstatus(self, name):
+		frappe.db.rollback()
+		return frappe.db.get_value(self.doctype_name, name, "docstatus")
+
+	def saved_modified(self, name):
+		frappe.db.rollback()
+		return str(frappe.db.get_value(self.doctype_name, name, "modified"))
+
+	def test_stale_modified_refuses_every_act_and_changes_nothing(self):
+		stale = "2000-01-01 00:00:00.000000"
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			responses = [
+				self.call("submit", draft.name, modified=stale),
+				self.call("queue_submit", draft.name, modified=stale),
+				self.call("cancel", submitted.name, modified=stale),
+				self.call("queue_cancel", submitted.name, modified=stale),
+			]
+
+		queue.assert_not_called()
+		for response in responses:
+			self.assertEqual(response.json["errors"][0]["type"], "TimestampMismatchError", response.json)
+		frappe.db.rollback()
+		self.assertEqual(frappe.db.get_value(self.doctype_name, draft.name, "docstatus"), 0)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, submitted.name, "docstatus"), 1)
+
+	def test_malformed_modified_is_refused_not_a_server_error(self):
+		doc = self.new_record()
+		for modified in ("garbage", "2026-13-45", "2026-11-02T10:00:00Z"):
+			response = self.call("submit", doc.name, modified=modified)
+			self.assertEqual(response.status_code, 417, response.json)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, doc.name, "docstatus"), 0)
+
+	def test_current_modified_acts(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.scheduler_inactive, return_value=True):
+			submit = self.call("submit", draft.name, modified=self.saved_modified(draft.name))
+			cancel = self.call("queue_cancel", submitted.name, modified=self.saved_modified(submitted.name))
+
+		self.assertEqual(submit.json["data"]["docstatus"], 1, submit.json)
+		self.assertEqual(cancel.json["data"]["docstatus"], 2, cancel.json)
+
+	def test_a_save_after_the_read_makes_the_act_stale(self):
+		doc = self.new_record()
+		read = self.saved_modified(doc.name)
+		doc.reload()
+		doc.some_fieldname = "Saved by someone else"
+		doc.save()
+		frappe.db.commit()  # nosemgrep
+
+		response = self.call("submit", doc.name, modified=read)
+
+		self.assertEqual(response.json["errors"][0]["type"], "TimestampMismatchError", response.json)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, doc.name, "docstatus"), 0)
+
+	def test_queue_submit_queues_and_leaves_the_draft(self):
+		doc = self.new_record()
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			response = self.call("queue_submit", doc.name)
+
+		self.assertEqual(response.status_code, 200, response.get_data(as_text=True)[-2000:])
+		queue.assert_called_once()
+		self.assertEqual(queue.call_args.args[1], "Submit")
+		self.assertEqual(response.json["data"]["docstatus"], 0)
+		self.assertEqual(frappe.db.get_value(self.doctype_name, doc.name, "docstatus"), 0)
+
+	def test_queue_cancel_queues_and_leaves_the_submitted_record(self):
+		doc = self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			response = self.call("queue_cancel", doc.name)
+
+		self.assertEqual(response.status_code, 200, response.get_data(as_text=True)[-2000:])
+		self.assertEqual(queue.call_args.args[1], "Cancel")
+		self.assertEqual(frappe.db.get_value(self.doctype_name, doc.name, "docstatus"), 1)
+
+	def test_queue_methods_act_directly_when_the_scheduler_is_inactive(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=True):
+			submit = self.call("queue_submit", draft.name)
+			cancel = self.call("queue_cancel", submitted.name)
+
+		queue.assert_not_called()
+		self.assertEqual(submit.json["data"]["docstatus"], 1)
+		self.assertEqual(cancel.json["data"]["docstatus"], 2)
+
+	def test_queue_methods_refuse_while_desk_v2_is_off(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=True):
+			with self.change_settings("System Settings", commit=True, enable_desk_v2=0):
+				submit = self.call("queue_submit", draft.name)
+				cancel = self.call("queue_cancel", submitted.name)
+
+		queue.assert_not_called()
+		for response in (submit, cancel):
+			self.assertEqual(response.status_code, 403)
+			self.assertEqual(response.json["errors"][0]["type"], "DeskV2DisabledError")
+		self.assertEqual(self.saved_docstatus(draft.name), 0)
+		self.assertEqual(self.saved_docstatus(submitted.name), 1)
+
+	def test_queue_methods_need_the_submit_and_cancel_rights(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		headers = {"Authorization": self.writer_authorization}
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			submit = self.call("queue_submit", draft.name, headers)
+			cancel = self.call("queue_cancel", submitted.name, headers)
+
+		queue.assert_not_called()
+		self.assertEqual(submit.status_code, 403)
+		self.assertEqual(cancel.status_code, 403)
+
+	def test_queue_methods_refuse_a_wrong_docstatus_before_queueing(self):
+		draft, submitted = self.new_record(), self.new_record(status=1)
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			cancel = self.call("queue_cancel", draft.name)
+			submit = self.call("queue_submit", submitted.name)
+
+		queue.assert_not_called()
+		self.assertEqual(cancel.status_code, 417)
+		self.assertEqual(submit.status_code, 417)
+
+	def test_plain_submit_never_queues(self):
+		doc = self.new_record()
+		with patch(self.queue_submission) as queue, patch(self.scheduler_inactive, return_value=False):
+			response = self.call("submit", doc.name)
+
+		queue.assert_not_called()
+		self.assertEqual(response.json["data"]["docstatus"], 1)
+
+
+class TestAmendCopyV2(FrappeAPITestCase):
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.doctype_name = "Test Amend Copy V2"
+		frappe.delete_doc_if_exists("DocType", cls.doctype_name, force=True)
+		cls.doctype = new_doctype(
+			cls.doctype_name,
+			is_submittable=1,
+			fields=[
+				{"label": "Title", "fieldname": "title_text", "fieldtype": "Data", "no_copy": 1},
+				{
+					"label": "Amended From",
+					"fieldname": "amended_from",
+					"fieldtype": "Link",
+					"options": cls.doctype_name,
+				},
+				{"label": "Amendment Date", "fieldname": "amendment_date", "fieldtype": "Date"},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
+				{"role": "Desk User", "read": 1},
+			],
+		).insert()
+		cls.reader = "amend.reader@example.com"
+		if not frappe.db.exists("User", cls.reader):
+			user = frappe.get_doc(
+				doctype="User", email=cls.reader, first_name="Amend Reader", send_welcome_email=0
+			).insert()
+			user.add_roles("Desk User")
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		frappe.delete_doc("DocType", cls.doctype_name, force=True)
+		frappe.delete_doc_if_exists("User", cls.reader)
+		frappe.db.commit()  # nosemgrep
+
+	def new_record(self, status: int):
+		doc = frappe.get_doc(doctype=self.doctype_name, title_text="Amend me").insert()
+		for step, target in ((doc.submit, 1), (doc.cancel, 2)):
+			if status >= target:
+				step()
+		frappe.db.commit()  # nosemgrep
+		return doc
+
+	def amend_copy(self, name, amend=1):
+		toggle_test_mode(False)
+		try:
+			return self.get(self.resource(self.doctype_name, name, "copy"), {"amend": amend, "sid": self.sid})
+		finally:
+			toggle_test_mode(True)
+
+	def test_amend_copy_of_cancelled_record(self):
+		doc = self.new_record(status=2)
+		response = self.amend_copy(doc.name)
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["amended_from"], doc.name)
+		self.assertEqual(data["amendment_date"], frappe.utils.today())
+		self.assertEqual(data["title_text"], "Amend me")
+		self.assertNotIn("name", data)
+		self.assertFalse(data.get("docstatus"))
+
+	def test_amended_copy_is_named_with_suffix_on_insert(self):
+		doc = self.new_record(status=2)
+		data = self.amend_copy(doc.name).json["data"]
+		data.pop("docstatus", None)
+		amended = self.post(self.resource(self.doctype_name), {**data, "sid": self.sid})
+		self.assertEqual(amended.json["data"]["name"], f"{doc.name}-1")
+
+	def test_copy_without_amend_flag_does_not_amend(self):
+		doc = self.new_record(status=2)
+		data = self.amend_copy(doc.name, amend=0).json["data"]
+		self.assertNotIn("amended_from", data)
+
+	def test_amend_refuses_records_that_are_not_cancelled(self):
+		for status in (0, 1):
+			with self.subTest(status=status):
+				doc = self.new_record(status=status)
+				self.assertEqual(self.amend_copy(doc.name).status_code, 417)
+
+	def test_amend_refuses_an_already_amended_record(self):
+		doc = self.new_record(status=2)
+		frappe.get_doc(doctype=self.doctype_name, amended_from=doc.name).insert()
+		frappe.db.commit()  # nosemgrep
+		self.assertEqual(self.amend_copy(doc.name).status_code, 417)
+
+	def test_amend_needs_the_amend_right(self):
+		doc = self.new_record(status=2)
+		frappe.set_user(self.reader)
+		try:
+			with self.assertRaises(frappe.PermissionError):
+				copy_doc(self.doctype_name, doc.name, amend=True)
+		finally:
+			frappe.set_user("Administrator")
+
+
 class TestDocTypeAPIV2(FrappeAPITestCase):
 	version = "v2"
 
@@ -1260,7 +1892,7 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			with self.subTest(path=path):
 				with suppress_stdout():
 					response = self.get(path, {"sid": sid})
-				self.assertEqual(response.status_code, 403)
+				self.assertEqual(response.status_code, 403, response.get_data(as_text=True)[-3000:])
 
 
 class TestReadOnlyMode(FrappeAPITestCase):
@@ -1306,3 +1938,2296 @@ def test(*, fail: int | bool = False, handled: int | bool = True, message: str =
 			1 / 0
 	else:
 		frappe.msgprint(message)
+
+
+class TestIncludePartsV2(FrappeAPITestCase):
+	"""`include=` parts beside a document read, and `include=children` beside a meta read."""
+
+	version = "v2"
+	TEST_USER = "api-include-user@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		if not frappe.db.exists("User", cls.TEST_USER):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": cls.TEST_USER,
+					"first_name": "Include User",
+					"send_welcome_email": 0,
+				}
+			).insert(ignore_permissions=True)
+		cls.todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": frappe.generate_hash(), "allocated_to": cls.TEST_USER}
+		).insert()
+		cls.assignment = frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": frappe.generate_hash(),
+				"allocated_to": cls.TEST_USER,
+				"reference_type": "ToDo",
+				"reference_name": cls.todo.name,
+			}
+		).insert()
+		frappe.share.add("ToDo", cls.todo.name, cls.TEST_USER, write=1)
+		frappe.get_doc(
+			{
+				"doctype": "Comment",
+				"comment_type": "Comment",
+				"reference_doctype": "ToDo",
+				"reference_name": cls.todo.name,
+				"content": "a comment",
+			}
+		).insert()
+		frappe.get_doc(
+			{
+				"doctype": "Favourite",
+				"user": cls.TEST_USER,
+				"reference_doctype": "ToDo",
+				"reference_name": cls.todo.name,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("ToDo", cls.assignment.name, force=True)
+		frappe.delete_doc_if_exists("ToDo", cls.todo.name, force=True)
+		frappe.delete_doc_if_exists("User", cls.TEST_USER, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@cached_property
+	def user_sid(self) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(self.TEST_USER)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+
+	def read(self, include: str, name: str | None = None):
+		return self.get(
+			self.resource("ToDo", name or self.todo.name), {"sid": self.user_sid, "include": include}
+		)
+
+	def seed_seen(self, users: list[str]):
+		frappe.db.set_value("ToDo", self.todo.name, "_seen", json.dumps(users), update_modified=False)
+		frappe.db.commit()  # nosemgrep
+
+	def test_parts_beside_the_document(self):
+		response = self.read("permissions,attachments,assignments,shares,tags,favourites,comments,users")
+		self.assertEqual(response.status_code, 200, response.json)
+		body = response.json
+		self.assertEqual(body["data"]["name"], self.todo.name)
+		self.assertEqual(body["permissions"]["read"], 1)
+		self.assertEqual(body["attachments"], [])
+		self.assertEqual(body["assignments"][0]["user"], self.TEST_USER)
+		self.assertNotIn("allocated_to", body["assignments"][0])
+		self.assertEqual(
+			body["shares"], [{"user": self.TEST_USER, "read": 1, "write": 1, "submit": 0, "share": 0}]
+		)
+		self.assertEqual(body["tags"], [])
+		self.assertEqual(body["favourites"][0]["user"], self.TEST_USER)
+		self.assertIn("a comment", body["comments"][0]["content"])
+		self.assertEqual(body["users"][self.TEST_USER]["full_name"], "Include User")
+		self.assertIn("Administrator", body["users"])
+
+	def test_bare_read_has_no_parts_and_marks_nothing(self):
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(set(response.json), {"data"})
+		add_seen.assert_not_called()
+
+	def test_seen_marks_and_returns_the_list(self):
+		# a GET's write is rolled back under test, so the mark is asserted on the call
+		self.seed_seen(["other@example.com"])
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("seen")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["seen"], ["other@example.com", self.TEST_USER])
+		add_seen.assert_called_once()
+
+	def test_users_ignores_parts_that_name_no_user(self):
+		frappe.get_doc({"doctype": "Tag", "name": "read"}).insert(
+			ignore_permissions=True, ignore_if_duplicate=True
+		)
+		frappe.db.commit()  # nosemgrep
+		from frappe.desk.doctype.tag.tag import add_tag
+
+		add_tag("read", "ToDo", self.todo.name)
+		frappe.db.commit()  # nosemgrep
+		response = self.read("permissions,tags,link_titles,users")
+		self.assertEqual(response.json["tags"], ["read"])
+		self.assertEqual(set(response.json["users"]), {"Administrator"})
+
+	def test_tag_colors_maps_each_coloured_tag_of_the_document(self):
+		from frappe.desk.doctype.tag.tag import add_tag, remove_tag
+
+		add_tag("include-red", "ToDo", self.todo.name, "Red")
+		add_tag("include-plain", "ToDo", self.todo.name)
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.read("tags,tag_colors")
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(set(response.json["tags"]), {"include-red", "include-plain"})
+			self.assertEqual(response.json["tag_colors"], {"include-red": "Red", "include-plain": ""})
+		finally:
+			frappe.set_user("Administrator")
+			for tag in ("include-red", "include-plain"):
+				remove_tag(tag, "ToDo", self.todo.name)
+				frappe.delete_doc_if_exists("Tag", tag, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_users_of_a_never_saved_single(self):
+		frappe.set_user("Administrator")
+		single = new_doctype(issingle=1).insert()
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(frappe.db.commit)  # nosemgrep
+		self.addCleanup(frappe.delete_doc, "DocType", single.name, force=True)
+		self.assertEqual(frappe.db.get_singles_dict(single.name), {})
+
+		response = self.get(self.resource(single.name, single.name), {"sid": self.sid, "include": "users"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["name"], single.name)
+		self.assertEqual(set(response.json["users"]), {"Administrator"})
+
+	def test_users_skips_a_missing_modified_by(self):
+		from frappe.api.include import users_named_by
+
+		# a single that was never saved reads with an owner and no `modified_by`
+		doc = frappe.new_doc("ToDo")
+		doc.owner, doc.modified_by = "Administrator", None
+		self.assertEqual(set(users_named_by(doc, {})), {"Administrator"})
+
+	def test_include_must_be_a_string(self):
+		with suppress_stdout():
+			response = self.get(self.resource("ToDo", self.todo.name), {"sid": self.sid, "include": ["seen"]})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "ValidationError")
+
+	def test_users_covers_the_seen_list(self):
+		self.seed_seen(["other@example.com"])
+		with patch.object(Document, "add_seen"):
+			response = self.read("seen,users")
+		self.assertIn(self.TEST_USER, response.json["users"])
+
+	def test_seen_does_not_mark_twice(self):
+		self.seed_seen([self.TEST_USER])
+		with patch.object(Document, "add_seen") as add_seen:
+			response = self.read("seen")
+		self.assertEqual(response.json["seen"], [self.TEST_USER])
+		add_seen.assert_not_called()
+
+	def test_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.read("permissions,views")
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+		self.assertNotIn("permissions", response.json)
+
+	def test_meta_children(self):
+		response = self.get(self.doctype_path("User", "meta"), {"sid": self.user_sid, "include": "children"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["name"], "User")
+		self.assertEqual(response.json["data"]["masked_fields"], [])
+		children = {child["name"]: child for child in response.json["children"]}
+		self.assertIn("Has Role", children)
+		self.assertEqual(children["Has Role"]["masked_fields"], [])
+
+	def test_meta_names_the_workflow_state_field(self):
+		path = self.doctype_path("ToDo", "meta")
+		response = self.get(path, {"sid": self.user_sid})
+		self.assertIsNone(response.json["data"]["workflow_state_field"])
+		self.assertEqual(response.json["data"]["workflow_state_styles"], {})
+		self.assertTrue(response.json["data"]["allow_bulk_edit"])
+
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		frappe.set_user("Administrator")
+		for state in ("Pending", "Done"):
+			if not frappe.db.exists("Workflow State", state):
+				frappe.get_doc({"doctype": "Workflow State", "workflow_state_name": state}).insert(
+					ignore_permissions=True
+				)
+		styles = {
+			state: frappe.db.get_value("Workflow State", state, "style") for state in ("Pending", "Done")
+		}
+		self.addCleanup(self.restore_state_styles, styles)
+		frappe.db.set_value("Workflow State", "Pending", "style", "")
+		frappe.db.set_value("Workflow State", "Done", "style", "Success")
+		if not frappe.db.exists("Workflow Action Master", "Finish"):
+			frappe.get_doc({"doctype": "Workflow Action Master", "workflow_action_name": "Finish"}).insert(
+				ignore_permissions=True
+			)
+		had_field = frappe.db.exists("Custom Field", "ToDo-workflow_state")
+		workflow = frappe.get_doc(
+			{
+				"doctype": "Workflow",
+				"workflow_name": "API v2 Meta Workflow",
+				"document_type": "ToDo",
+				"workflow_state_field": "workflow_state",
+				"is_active": 1,
+				"states": [{"state": "Pending", "allow_edit": "All"}, {"state": "Done", "allow_edit": "All"}],
+				"transitions": [
+					{"state": "Pending", "action": "Finish", "next_state": "Done", "allowed": "All"}
+				],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(self.drop_workflow, workflow, had_field)
+		frappe.db.commit()
+		response = self.get(path, {"sid": self.user_sid})
+		self.assertEqual(response.json["data"]["workflow_state_field"], "workflow_state")
+		self.assertEqual(response.json["data"]["workflow_state_styles"], {"Done": "Success"})
+		self.assertFalse(response.json["data"]["allow_bulk_edit"])
+
+		self.allow_bulk_edit("ToDo")
+		response = self.get(path, {"sid": self.user_sid})
+		self.assertTrue(response.json["data"]["allow_bulk_edit"])
+
+	def allow_bulk_edit(self, doctype):
+		if frappe.db.exists("List View Settings", doctype):
+			allowed = frappe.db.get_value("List View Settings", doctype, "allow_edit")
+			frappe.db.set_value("List View Settings", doctype, "allow_edit", 1)
+			self.addCleanup(frappe.db.commit)
+			self.addCleanup(frappe.db.set_value, "List View Settings", doctype, "allow_edit", allowed)
+		else:
+			frappe.get_doc({"doctype": "List View Settings", "name": doctype, "allow_edit": 1}).insert(
+				ignore_permissions=True
+			)
+			self.addCleanup(frappe.db.commit)
+			self.addCleanup(frappe.delete_doc, "List View Settings", doctype, force=True)
+		frappe.db.commit()
+
+	@staticmethod
+	def restore_state_styles(styles):
+		for state, style in styles.items():
+			frappe.db.set_value("Workflow State", state, "style", style or "")
+		frappe.db.commit()
+
+	@staticmethod
+	def drop_workflow(workflow, had_field):
+		frappe.delete_doc("Workflow", workflow.name, force=True)
+		if not had_field:
+			frappe.delete_doc("Custom Field", "ToDo-workflow_state", force=True, ignore_missing=True)
+		frappe.db.commit()
+
+	def test_meta_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.get(
+				self.doctype_path("User", "meta"), {"sid": self.user_sid, "include": "fields"}
+			)
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+
+	def test_list_or_filters(self):
+		response = self.get(
+			self.resource("ToDo"),
+			{
+				"sid": self.sid,
+				"fields": '["name"]',
+				"or_filters": json.dumps(
+					[["name", "=", self.todo.name], ["description", "=", self.assignment.description]]
+				),
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 2)
+
+	def test_list_or_filters_shape(self):
+		with suppress_stdout():
+			response = self.get(self.resource("ToDo"), {"sid": self.sid, "or_filters": '"name"'})
+		self.assertEqual(response.status_code, 417)
+
+
+class TestListPartsV2(FrappeAPITestCase):
+	"""`include=count` beside a list read, and the link-field search route."""
+
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		cls.prefix = f"api-search-{frappe.generate_hash(length=8)}"
+		cls.todos = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"{cls.prefix} {word}"}).insert()
+			for word in ("alpha", "bravo", "charlie")
+		]
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		for todo in cls.todos:
+			frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@property
+	def filters(self) -> str:
+		return json.dumps({"description": ["like", f"{self.prefix}%"]})
+
+	def list(self, **params):
+		return self.get(self.resource("ToDo"), {"sid": self.sid, "filters": self.filters, **params})
+
+	def search(self, **params):
+		return self.get(self.doctype_path("ToDo", "search"), {"sid": self.sid, **params})
+
+	def test_count_beside_the_list(self):
+		response = self.list(include="count", limit=1)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 1)
+		self.assertTrue(response.json["has_next_page"])
+		self.assertEqual(response.json["count"], 3)
+		self.assertFalse(response.json["count_capped"])
+		# get_count's own ten-minute cache header must not reach the list response
+		self.assertNotIn("max-age=600", response.headers["Cache-Control"])
+
+	def test_favourites_names_the_starred_rows_of_the_page(self):
+		star = frappe.get_doc(
+			doctype="Favourite",
+			user=frappe.session.user,
+			reference_doctype="ToDo",
+			reference_name=self.todos[1].name,
+			view="",
+		).insert(ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.list(include="favourites", fields=json.dumps(["name"]))
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(response.json["favourites"], [self.todos[1].name])
+			other = self.list(include="favourites", fields=json.dumps(["name"]), start=2, limit=1)
+			self.assertEqual(other.json["favourites"], [])
+		finally:
+			frappe.delete_doc("Favourite", star.name, ignore_permissions=True, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_users_names_the_assigned_and_liking_users(self):
+		todo = self.todos[0].name
+		frappe.db.set_value("ToDo", todo, "_assign", json.dumps(["Administrator"]), update_modified=False)
+		frappe.db.set_value("ToDo", todo, "_liked_by", json.dumps(["Guest"]), update_modified=False)
+		frappe.db.commit()  # nosemgrep
+		response = self.list(include="users", fields=json.dumps(["name", "_assign", "_liked_by"]))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(set(response.json["users"]), {"Administrator", "Guest"})
+		self.assertIn("full_name", response.json["users"]["Administrator"])
+
+	def test_comment_counts_count_the_comments_of_the_page_rows(self):
+		todo = self.todos[0].name
+		frappe.db.set_value(
+			"ToDo",
+			todo,
+			"_comments",
+			json.dumps([{"name": "a", "comment": "x"}, {"name": "b", "comment": "y"}]),
+			update_modified=False,
+		)
+		frappe.db.commit()  # nosemgrep
+		response = self.list(include="comment_counts", fields=json.dumps(["name"]))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["comment_counts"][todo], 2)
+		self.assertNotIn("_comments", response.json["data"][0])
+
+	def test_tag_colors_maps_the_tags_of_the_page_rows(self):
+		from frappe.desk.doctype.tag.tag import add_tag, remove_tag
+
+		add_tag("list-blue", "ToDo", self.todos[0].name, "Blue")
+		add_tag("list-plain", "ToDo", self.todos[1].name)
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.list(include="tag_colors", fields=json.dumps(["name", "_user_tags"]))
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(response.json["tag_colors"], {"list-blue": "Blue", "list-plain": ""})
+			bare = self.list(include="tag_colors", fields=json.dumps(["name"]))
+			self.assertEqual(bare.json["tag_colors"], {})
+		finally:
+			for todo, tag in ((self.todos[0], "list-blue"), (self.todos[1], "list-plain")):
+				remove_tag(tag, "ToDo", todo.name)
+				frappe.delete_doc_if_exists("Tag", tag, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_users_skips_a_malformed_assign_value(self):
+		todo = self.todos[0].name
+		frappe.db.set_value("ToDo", todo, "_assign", "not json", update_modified=False)
+		frappe.db.commit()  # nosemgrep
+		response = self.list(include="users", fields=json.dumps(["name", "_assign"]))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIn(todo, [row["name"] for row in response.json["data"]])
+
+	def test_count_stops_at_the_cap(self):
+		with patch("frappe.api.include.COUNT_CAP", 2):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 3)
+		self.assertEqual(response.json["count"], 2)
+		self.assertTrue(response.json["count_capped"])
+
+	def test_count_of_exactly_the_cap_is_not_capped(self):
+		with patch("frappe.api.include.COUNT_CAP", 3):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["count"], 3)
+		self.assertFalse(response.json["count_capped"])
+
+	def test_count_is_null_on_timeout(self):
+		with patch("frappe.desk.reportview.count_rows", return_value=None):
+			response = self.list(include="count")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsNone(response.json["count"])
+		self.assertFalse(response.json["count_capped"])
+
+	def test_count_follows_or_filters(self):
+		or_filters = json.dumps([["name", "=", self.todos[0].name], ["name", "=", self.todos[1].name]])
+		response = self.list(include="count", or_filters=or_filters)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["count"], 2)
+
+	def test_count_follows_group_by(self):
+		# the fixtures share one status; a grouped list of two statuses counts two groups, not three rows
+		closed = self.todos[2].name
+		frappe.db.set_value("ToDo", closed, "status", "Closed")
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.list(include="count", fields=json.dumps(["status"]), group_by="status")
+		finally:
+			frappe.db.set_value("ToDo", closed, "status", "Open")
+			frappe.db.commit()  # nosemgrep
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(len(response.json["data"]), 2)
+		self.assertEqual(response.json["count"], 2)
+
+	def test_group_by_with_sum_and_count(self):
+		aggregates = [{"COUNT": "name", "as": "_aggregate_0"}, {"SUM": "idx", "as": "_aggregate_1"}]
+		closed = self.todos[2].name
+		for todo, idx in zip(self.todos, (1, 2, 4), strict=True):
+			frappe.db.set_value("ToDo", todo.name, "idx", idx, update_modified=False)
+		frappe.db.set_value("ToDo", closed, "status", "Closed", update_modified=False)
+		frappe.db.commit()  # nosemgrep
+		try:
+			grouped = self.list(
+				fields=json.dumps(["status", *aggregates]),
+				group_by="status",
+				order_by="_aggregate_0 desc, status asc",
+			)
+			totals = self.list(fields=json.dumps(aggregates), limit=1)
+		finally:
+			for todo in self.todos:
+				frappe.db.set_value("ToDo", todo.name, {"idx": 0, "status": "Open"}, update_modified=False)
+			frappe.db.commit()  # nosemgrep
+		self.assertEqual(grouped.status_code, 200, grouped.json)
+		self.assertEqual(
+			grouped.json["data"],
+			[
+				{"status": "Open", "_aggregate_0": 2, "_aggregate_1": 3},
+				{"status": "Closed", "_aggregate_0": 1, "_aggregate_1": 4},
+			],
+		)
+		self.assertFalse(grouped.json["has_next_page"])
+		self.assertEqual(totals.status_code, 200, totals.json)
+		self.assertEqual(totals.json["data"], [{"_aggregate_0": 3, "_aggregate_1": 7}])
+
+	def test_no_count_without_include(self):
+		for params in ({}, {"include": ""}):
+			response = self.list(**params)
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(set(response.json), {"data", "has_next_page"})
+
+	def test_list_unknown_part_is_an_error(self):
+		with suppress_stdout():
+			response = self.list(include="count,totals")
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "UnknownPartError")
+		self.assertNotIn("count", response.json)
+
+	def test_search_rows(self):
+		response = self.search(txt=self.prefix)
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]
+		self.assertEqual({row["value"] for row in rows}, {todo.name for todo in self.todos})
+		self.assertEqual(set(rows[0]), {"value", "label", "description"})
+		self.assertEqual(response.headers["Cache-Control"], "private,max-age=60,stale-while-revalidate=300")
+
+	def test_search_limit_and_start(self):
+		first = self.search(txt=self.prefix, limit=2)
+		self.assertEqual(len(first.json["data"]), 2)
+		rest = self.search(txt=self.prefix, limit=2, start=2)
+		self.assertEqual(len(rest.json["data"]), 1)
+		self.assertNotIn(rest.json["data"][0]["value"], [row["value"] for row in first.json["data"]])
+
+	def test_search_takes_filters(self):
+		response = self.search(txt=self.prefix, filters=json.dumps({"name": self.todos[1].name}))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual([row["value"] for row in response.json["data"]], [self.todos[1].name])
+
+	def test_search_limit_zero_falls_back_to_the_default_page(self):
+		extra = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"{self.prefix} extra {index}"}).insert()
+			for index in range(8)
+		]
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.search(txt=self.prefix, limit=0)
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertEqual(len(response.json["data"]), 10)
+		finally:
+			for todo in extra:
+				frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_search_user_through_the_standard_query(self):
+		# User routes to user_query, which reads the filters as a dict
+		response = self.get(
+			self.doctype_path("User", "search"),
+			{
+				"sid": self.sid,
+				"txt": "Admin",
+				"filters": json.dumps({"enabled": 1, "user_type": "System User"}),
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIn("Administrator", [row["value"] for row in response.json["data"]])
+
+	def test_search_refuses_a_guest(self):
+		# no suppress_stdout: the refusal prints, and a None stdout turns that into a 500
+		response = self.get(self.doctype_path("ToDo", "search"), {"sid": "Guest", "txt": self.prefix})
+		self.assertEqual(response.status_code, 403)
+
+	def test_search_refuses_a_guest_the_doctype_names(self):
+		# a DocType search skips the permission check, so the route is the only refusal
+		response = self.get(self.doctype_path("DocType", "search"), {"sid": "Guest", "txt": "User"})
+		self.assertEqual(response.status_code, 403, response.json)
+
+
+class TestCollaborationWritesV2(FrappeAPITestCase):
+	"""`POST`, `DELETE` and `PATCH` on the collaboration parts of a document route."""
+
+	version = "v2"
+	TEST_USER = "api-collab-user@example.com"
+	PEER = "api-collab-peer@example.com"
+	# adding a tag creates a Tag master that outlives the class; these are the ones the tests add
+	TAGS = ("urgent", "slashed", "coloured")
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		for email in (cls.TEST_USER, cls.PEER):
+			cls.make_user(email)
+		cls.todo = cls.make_todo()
+		# owned by Administrator and allocated to someone else, so TEST_USER cannot read it
+		cls.unreadable = cls.make_todo(cls.PEER)
+		cls.note = frappe.get_doc({"doctype": "Note", "title": frappe.generate_hash(), "public": 1}).insert()
+		slash = cls.make_todo()
+		cls.slash_name = frappe.rename_doc("ToDo", slash.name, f"SO/2026/{slash.name}", force=True)
+		cls.admin_comment = cls.make_comment(cls.todo.name)
+		cls.other_comment = cls.make_comment(cls.slash_name)
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def make_user(cls, email: str):
+		if frappe.db.exists("User", email):
+			return
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "Collab User",
+				"send_welcome_email": 0,
+				"document_follow_notify": 1,
+			}
+		).insert(ignore_permissions=True)
+		user.add_roles("Desk User")
+
+	@classmethod
+	def make_todo(cls, allocated_to: str | None = None):
+		return frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": frappe.generate_hash(),
+				"allocated_to": allocated_to or cls.TEST_USER,
+			}
+		).insert()
+
+	@classmethod
+	def make_comment(cls, name: str) -> str:
+		return (
+			frappe.get_doc(
+				{
+					"doctype": "Comment",
+					"comment_type": "Comment",
+					"reference_doctype": "ToDo",
+					"reference_name": name,
+					"content": "a comment",
+				}
+			)
+			.insert()
+			.name
+		)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("ToDo", cls.slash_name, force=True)
+		frappe.delete_doc_if_exists("ToDo", cls.todo.name, force=True)
+		frappe.delete_doc_if_exists("ToDo", cls.unreadable.name, force=True)
+		frappe.delete_doc_if_exists("Note", cls.note.name, force=True)
+		for tag in cls.TAGS:
+			frappe.delete_doc_if_exists("Tag", tag, force=True)
+		for email in (cls.TEST_USER, cls.PEER):
+			frappe.delete_doc_if_exists("User", email, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@cached_property
+	def user_sid(self) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(self.TEST_USER)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+
+	def part(self, *parts, doctype: str = "ToDo", name: str | None = None):
+		return self.resource(doctype, name or self.todo.name, *parts)
+
+	def add(self, path: str, body: dict | None = None, sid: str | None = None):
+		return self.post(path, {"sid": sid or self.user_sid, **(body or {})})
+
+	def remove(self, path: str, sid: str | None = None):
+		return self.delete(path, data={"sid": sid or self.user_sid})
+
+	def edit(self, path: str, body: dict, sid: str | None = None):
+		return self.patch(path, {"sid": sid or self.user_sid, **body})
+
+	def test_assignment_add_and_remove(self):
+		response = self.add(self.part("assignments"), {"user": self.PEER, "description": "look"})
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]["assignments"]
+		self.assertEqual(rows[0]["user"], self.PEER)
+		self.assertEqual(set(rows[0]), {"user", "description", "priority", "date"})
+		self.assertIn(self.PEER, response.json["data"]["users"])
+
+		response = self.remove(self.part("assignments", self.PEER))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["assignments"], [])
+		frappe.db.rollback()
+		status = frappe.db.get_value(
+			"ToDo",
+			{"reference_type": "ToDo", "reference_name": self.todo.name, "allocated_to": self.PEER},
+			"status",
+		)
+		self.assertEqual(status, "Cancelled")
+
+	def test_assignment_rejects_an_unstringy_option(self):
+		with suppress_stdout():
+			response = self.add(self.part("assignments"), {"user": self.PEER, "priority": ["High"]})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_assignment_needs_write_on_the_document(self):
+		# not under suppress_stdout: it sets sys.stdout to None, and the share lookup this
+		# refusal walks prints a deprecation warning
+		response = self.add(
+			self.part("assignments", doctype="Note", name=self.note.name), {"user": self.PEER}
+		)
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_share_upserts_one_row(self):
+		self.add(self.part("shares"), {"user": self.PEER, "write": 1})
+		response = self.add(self.part("shares"), {"user": self.PEER, "write": 0, "share": 1})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(
+			response.json["data"]["shares"],
+			[{"user": self.PEER, "read": 1, "write": 0, "submit": 0, "share": 1}],
+		)
+		self.assertIn(self.PEER, response.json["data"]["users"])
+		response = self.remove(self.part("shares", self.PEER))
+		self.assertEqual(response.json["data"]["shares"], [])
+
+	def test_share_with_everyone(self):
+		response = self.add(self.part("shares"), {"user": "everyone"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["shares"][0]["user"], "everyone")
+		self.assertNotIn("everyone", response.json["data"]["users"])
+		response = self.remove(self.part("shares", "everyone"))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["shares"], [])
+
+	def test_share_cannot_drop_read(self):
+		with suppress_stdout():
+			response = self.add(self.part("shares"), {"user": self.PEER, "read": 0})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_share_needs_the_share_right(self):
+		response = self.add(self.part("shares", doctype="Note", name=self.note.name), {"user": self.PEER})
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_tag_add_and_remove(self):
+		response = self.add(self.part("tags"), {"tag": "urgent"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"tags": ["urgent"], "tag_colors": {"urgent": ""}})
+		response = self.remove(self.part("tags", "urgent"))
+		self.assertEqual(response.json["data"], {"tags": [], "tag_colors": {}})
+
+	def test_tag_add_sets_the_color_of_a_new_tag(self):
+		response = self.add(self.part("tags"), {"tag": "coloured", "color": "Red"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"tags": ["coloured"], "tag_colors": {"coloured": "Red"}})
+		self.remove(self.part("tags", "coloured"))
+		# a tag is the whole site's: adding it again with another colour keeps the stored one
+		response = self.add(self.part("tags"), {"tag": "coloured", "color": "Blue"})
+		self.assertEqual(response.json["data"]["tag_colors"], {"coloured": "Red"})
+		self.remove(self.part("tags", "coloured"))
+
+	def test_tag_needs_write(self):
+		response = self.add(self.part("tags", doctype="Note", name=self.note.name), {"tag": "urgent"})
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_tag_rejects_a_comma(self):
+		with suppress_stdout():
+			response = self.add(self.part("tags"), {"tag": "a,b"})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_favourite_add_and_remove(self):
+		response = self.add(self.part("favourites"))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["favourites"][0]["user"], self.TEST_USER)
+		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+		response = self.remove(self.part("favourites"))
+		self.assertEqual(response.json["data"]["favourites"], [])
+
+	def test_follow_add_read_and_remove(self):
+		path = self.part("follows", doctype="Note", name=self.note.name)
+		response = self.add(path)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"follows": True})
+		response = self.get(
+			self.resource("Note", self.note.name), {"sid": self.user_sid, "include": "follows"}
+		)
+		self.assertIs(response.json["follows"], True)
+		response = self.remove(path)
+		self.assertEqual(response.json["data"], {"follows": False})
+
+	def test_declined_follow_answers_with_the_true_state(self):
+		with suppress_stdout():
+			response = self.add(self.part("follows"))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"], {"follows": False})
+
+	def test_comment_add_edit_and_remove(self):
+		response = self.add(self.part("comments"), {"content": "hello"})
+		self.assertEqual(response.status_code, 200, response.json)
+		mine = [row for row in response.json["data"]["comments"] if row["owner"] == self.TEST_USER]
+		self.assertIn("hello", mine[0]["content"])
+		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+
+		response = self.edit(self.part("comments", mine[0]["name"]), {"content": "edited"})
+		self.assertEqual(response.status_code, 200, response.json)
+		contents = [row["content"] for row in response.json["data"]["comments"]]
+		self.assertTrue(any("edited" in content for content in contents))
+
+		response = self.remove(self.part("comments", mine[0]["name"]))
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual([row["name"] for row in response.json["data"]["comments"]], [self.admin_comment])
+
+	def test_comment_can_be_edited_to_a_video_alone_on_the_v2_route_only(self):
+		from frappe.desk.form.utils import update_comment
+
+		video = '<video src="/files/x.mp4"></video>'
+		response = self.add(self.part("comments"), {"content": "hello"})
+		name = next(
+			row["name"] for row in response.json["data"]["comments"] if row["owner"] == self.TEST_USER
+		)
+
+		response = self.edit(self.part("comments", name), {"content": video})
+		self.assertEqual(response.status_code, 200, response.json)
+		frappe.db.rollback()  # the route committed in the server's connection
+		with self.assertRaises(frappe.MandatoryError):
+			update_comment(name, video)
+
+	def test_comment_on_an_unreadable_record_is_refused(self):
+		response = self.add(self.part("comments", name=self.unreadable.name), {"content": "hello"})
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_comment_with_attachments_links_the_files(self):
+		todo = self.todo_with_cleanup()
+		files = [self.make_file(self.TEST_USER), self.make_file(self.TEST_USER)]
+		response = self.add(
+			self.part("comments", name=todo.name), {"content": "see files", "attachments": files}
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		added = response.json["data"]["added"]
+		self.assertIn(added, [row["name"] for row in response.json["data"]["comments"]])
+		frappe.db.rollback()
+		for file in files:
+			attached = frappe.db.get_value("File", file, ["attached_to_doctype", "attached_to_name"])
+			self.assertEqual(attached, ("Comment", added))
+
+	def test_comment_attaches_its_inline_images_to_the_record(self):
+		todo = self.todo_with_cleanup()
+		mine, peers = self.make_file(self.TEST_USER), self.make_file(self.PEER)
+		self.assertEqual(self.post_inline(todo, [mine, peers]).status_code, 200)
+		frappe.db.rollback()
+		self.assertEqual(self.attached_to(mine), ("ToDo", todo.name))
+		self.assertEqual(self.attached_to(peers), (None, None))
+
+	def test_inline_image_also_in_attachments_goes_to_the_comment(self):
+		todo = self.todo_with_cleanup()
+		file = self.make_file(self.TEST_USER)
+		response = self.post_inline(todo, [file], attachments=[file])
+		frappe.db.rollback()
+		self.assertEqual(self.attached_to(file), ("Comment", response.json["data"]["added"]))
+
+	def test_comment_attaches_its_inline_videos_to_the_record(self):
+		todo = self.todo_with_cleanup()
+		plain, nested = self.make_file(self.TEST_USER), self.make_file(self.TEST_USER)
+		urls = [frappe.db.get_value("File", file, "file_url") for file in (plain, nested)]
+		content = f'<video src="{urls[0]}"></video><video><source src="{urls[1]}"></video>'
+		response = self.add(self.part("comments", name=todo.name), {"content": content})
+		self.assertEqual(response.status_code, 200, response.json)
+		frappe.db.rollback()
+		self.assertEqual(self.attached_to(plain), ("ToDo", todo.name))
+		self.assertEqual(self.attached_to(nested), ("ToDo", todo.name))
+
+	def test_v1_add_comment_refuses_a_video_alone_with_desk_v2_on_or_off(self):
+		from frappe.desk.form.utils import add_comment
+
+		todo = self.todo_with_cleanup()
+		for enabled in (0, 1):
+			with self.change_settings("System Settings", enable_desk_v2=enabled):
+				with self.assertRaises(frappe.MandatoryError, msg=f"enable_desk_v2={enabled}"):
+					add_comment("ToDo", todo.name, '<video src="/files/x.mp4"></video>', "a@example.com", "A")
+
+	def post_inline(self, todo, files: list[str], attachments: list[str] | None = None):
+		"""Post a comment showing `files` as inline images."""
+		urls = [frappe.db.get_value("File", file, "file_url") for file in files]
+		content = "".join(f'<p><img src="{url}"></p>' for url in [*urls, "https://example.com/x.png"])
+		body = {"content": content, "attachments": attachments or []}
+		return self.add(self.part("comments", name=todo.name), body)
+
+	def attached_to(self, file: str) -> tuple:
+		return frappe.db.get_value("File", file, ["attached_to_doctype", "attached_to_name"])
+
+	def test_comment_with_a_file_of_the_same_record_is_refused(self):
+		todo = self.todo_with_cleanup()
+		self.assert_refused(todo, self.make_file(self.TEST_USER, attached_to=todo.name))
+
+	def test_comment_with_a_file_of_another_user_is_refused(self):
+		todo = self.todo_with_cleanup()
+		self.assert_refused(todo, self.make_file(self.PEER))
+
+	def test_comment_with_a_file_of_another_record_is_refused(self):
+		elsewhere = self.todo_with_cleanup()
+		file = self.make_file(self.TEST_USER, attached_to=elsewhere.name)
+		self.assert_refused(self.todo_with_cleanup(), file)
+
+	def test_comment_with_a_missing_file_is_refused(self):
+		self.assert_refused(self.todo_with_cleanup(), "no-such-file")
+
+	def test_comment_attachments_must_be_a_list_of_names(self):
+		with suppress_stdout():
+			response = self.add(self.part("comments"), {"content": "hi", "attachments": "a-file"})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_comment_with_only_attachments_is_accepted(self):
+		todo = self.todo_with_cleanup()
+		file = self.make_file(self.TEST_USER)
+		response = self.add(self.part("comments", name=todo.name), {"content": "", "attachments": [file]})
+		self.assertEqual(response.status_code, 200, response.json)
+		frappe.db.rollback()
+		self.assertEqual(self.attached_to(file), ("Comment", response.json["data"]["added"]))
+
+	def test_comment_with_no_content_and_no_attachments_is_refused(self):
+		with suppress_stdout():
+			response = self.add(self.part("comments"), {"content": " ", "attachments": []})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_comment_with_a_folder_is_refused(self):
+		todo = self.todo_with_cleanup()
+		self.assert_refused(todo, self.make_file(self.TEST_USER, is_folder=True))
+
+	def test_comment_with_too_many_attachments_is_refused(self):
+		todo = self.todo_with_cleanup()
+		names = [f"file-{index}" for index in range(11)]
+		with suppress_stdout():
+			response = self.add(
+				self.part("comments", name=todo.name), {"content": "hi", "attachments": names}
+			)
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def assert_refused(self, todo, file: str):
+		response = self.add(
+			self.part("comments", name=todo.name), {"content": "see file", "attachments": [file]}
+		)
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+		frappe.db.rollback()
+		written = {"reference_doctype": "ToDo", "reference_name": todo.name, "comment_type": "Comment"}
+		self.assertFalse(frappe.db.exists("Comment", written))
+
+	def todo_with_cleanup(self):
+		todo = self.make_todo()
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(self.drop_todo, todo.name)
+		return todo
+
+	def make_file(self, owner: str, attached_to: str | None = None, is_folder: bool = False) -> str:
+		"""A committed private File owned by `owner`, attached to the ToDo `attached_to` if given."""
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"{frappe.generate_hash(length=8)}"
+				if is_folder
+				else f"{frappe.generate_hash(length=8)}.txt",
+				"content": None if is_folder else "hello",
+				"is_folder": int(is_folder),
+				"folder": "Home" if is_folder else None,
+				"is_private": 1,
+				"attached_to_doctype": "ToDo" if attached_to else None,
+				"attached_to_name": attached_to,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("File", file.name, "owner", owner, update_modified=False)
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(self.drop_file, file.name)
+		return file.name
+
+	def drop_file(self, name: str):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("File", name, force=True)
+		frappe.db.commit()  # nosemgrep
+
+	def drop_todo(self, name: str):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.db.delete("Comment", {"reference_doctype": "ToDo", "reference_name": name})
+		frappe.delete_doc_if_exists("ToDo", name, force=True)
+		frappe.db.commit()  # nosemgrep
+
+	def test_comment_of_another_user_cannot_be_removed(self):
+		with suppress_stdout():
+			response = self.remove(self.part("comments", self.admin_comment))
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+		self.assertTrue(frappe.db.exists("Comment", self.admin_comment))
+
+	def test_comment_of_another_user_cannot_be_edited(self):
+		with suppress_stdout():
+			response = self.edit(self.part("comments", self.admin_comment), {"content": "mine now"})
+		self.assertEqual(response.status_code, 403)
+		self.assertEqual(response.json["errors"][0]["type"], "PermissionError")
+
+	def test_comment_on_another_record_cannot_be_removed(self):
+		with suppress_stdout():
+			response = self.remove(self.part("comments", self.other_comment))
+		self.assertEqual(response.status_code, 404)
+		self.assertEqual(response.json["errors"][0]["type"], "DoesNotExistError")
+		self.assertTrue(frappe.db.exists("Comment", self.other_comment))
+
+	def test_bad_body_is_an_error(self):
+		with suppress_stdout():
+			response = self.add(self.part("tags"), {"tag": ""})
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["errors"][0]["type"], "InvalidRequestError")
+
+	def test_key_rules(self):
+		with suppress_stdout():
+			keyless = self.remove(self.part("favourites", "someone"))
+			keyed = self.remove(self.part("tags"))
+			edited = self.edit(self.part("tags", "urgent"), {"tag": "x"})
+		self.assertEqual(keyless.status_code, 417)
+		self.assertEqual(keyed.status_code, 417)
+		self.assertEqual(edited.status_code, 417)
+		self.assertEqual(edited.json["errors"][0]["type"], "ValidationError")
+
+	def test_unknown_part_is_not_a_route(self):
+		with suppress_stdout():
+			response = self.add(self.part("views"))
+		self.assertEqual(response.status_code, 404)
+
+	def test_slash_named_record_routes(self):
+		name = self.slash_name
+		response = self.get(self.resource("ToDo", name), {"sid": self.user_sid, "include": "tags"})
+		self.assertEqual(response.json["data"]["name"], name)
+		response = self.add(self.part("tags", name=name), {"tag": "slashed"})
+		self.assertEqual(
+			response.json["data"], {"tags": ["slashed"], "tag_colors": {"slashed": ""}}, response.json
+		)
+		response = self.remove(self.part("tags", "slashed", name=name))
+		self.assertEqual(response.json["data"], {"tags": [], "tag_colors": {}}, response.json)
+		response = self.add(self.part("favourites", name=name))
+		self.assertEqual(response.json["data"]["favourites"][0]["user"], self.TEST_USER)
+		response = self.remove(self.part("favourites", name=name))
+		self.assertEqual(response.json["data"]["favourites"], [])
+		response = self.edit(self.resource("ToDo", name), {"description": "still a document"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["description"], "still a document")
+		response = self.remove(self.resource("ToDo", name))
+		self.assertEqual(response.status_code, 202, response.json)
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.exists("ToDo", name))
+
+
+class TestSessionAPIV2(FrappeAPITestCase):
+	version = "v2"
+	DEFAULTS_PROBE = "api_v2_defaults_probe"
+
+	def session_path(self):
+		return self.get_path("session")
+
+	def test_session_v2(self):
+		response = self.get(self.session_path(), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["user"]["name"], "Administrator")
+		self.assertIsInstance(data["roles"], list)
+		self.assertIn("System Manager", data["roles"])
+		self.assertTrue(data["lang"])
+		self.assertTrue(data["timezone"])
+		self.assertIsInstance(data["defaults"], dict)
+
+	def test_session_carries_the_follow_setting_v2(self):
+		before = frappe.db.get_value("User", "Administrator", "document_follow_notify")
+		frappe.db.set_value("User", "Administrator", "document_follow_notify", 1)
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.get(self.session_path(), {"sid": self.sid})
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertIs(response.json["data"]["user"]["document_follow_notify"], True)
+			frappe.db.set_value("User", "Administrator", "document_follow_notify", 0)
+			frappe.db.commit()  # nosemgrep
+			response = self.get(self.session_path(), {"sid": self.sid})
+			self.assertIs(response.json["data"]["user"]["document_follow_notify"], False)
+		finally:
+			frappe.db.set_value("User", "Administrator", "document_follow_notify", before)
+			frappe.db.commit()  # nosemgrep
+
+	def test_session_serves_a_guest_v2(self):
+		response = self.get(self.session_path(), {"sid": "Guest"})
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["user"]["name"], "Guest")
+		self.assertIn("Guest", data["roles"])
+
+	def test_session_withholds_site_defaults_from_a_guest_v2(self):
+		self.assertEqual(self.session_defaults("Guest"), {})
+
+	def test_session_withholds_site_defaults_from_a_website_user_v2(self):
+		email = "api-session-website-user@example.com"
+		created = not frappe.db.exists("User", email)
+		if created:
+			frappe.get_doc(
+				{"doctype": "User", "email": email, "first_name": "Website", "send_welcome_email": 0}
+			).insert(ignore_permissions=True)
+		try:
+			self.assertEqual(frappe.db.get_value("User", email, "user_type"), "Website User")
+			self.assertEqual(self.session_defaults(sid_of(email)), {})
+		finally:
+			if created:
+				frappe.delete_doc("User", email, force=True)
+				frappe.db.commit()  # nosemgrep
+
+	def test_session_gives_site_defaults_to_a_system_user_v2(self):
+		self.assertEqual(self.session_defaults(self.sid).get(self.DEFAULTS_PROBE), "probe")
+
+	def session_defaults(self, sid: str) -> dict:
+		frappe.db.set_default(self.DEFAULTS_PROBE, "probe")
+		frappe.db.commit()  # nosemgrep
+		try:
+			response = self.get(self.session_path(), {"sid": sid})
+			self.assertEqual(response.status_code, 200, response.json)
+			return response.json["data"]["defaults"]
+		finally:
+			frappe.defaults.clear_default(self.DEFAULTS_PROBE)
+			frappe.db.commit()  # nosemgrep
+
+
+def sid_of(user: str) -> str:
+	from frappe.auth import CookieManager, LoginManager
+	from frappe.utils import set_request
+
+	original_request = getattr(frappe.local, "request", None)
+	original_user = frappe.session.user
+	set_request(path="/")
+	try:
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.local.login_manager.login_as(user)
+		return frappe.session.sid
+	finally:
+		frappe.local.request = original_request
+		# logging in leaves this thread as that user, and the cleanup here runs as Administrator
+		frappe.set_user(original_user)
+
+
+PUBLIC_UPLOADS = "only_allow_system_managers_to_upload_public_files"
+
+
+class TestFileRoutesV2(FrappeAPITestCase):
+	"""Uploading through `POST /document/File`, and the `attachments` sub-resource."""
+
+	version = "v2"
+	TEST_USER = "api-file-user@example.com"
+	READER = "api-file-reader@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		# the test client answers on another thread, so fixtures are committed to be visible there
+		super().setUpClass()
+		for email in (cls.TEST_USER, cls.READER):
+			cls.make_user(email)
+		cls.todo = cls.make_todo()
+		cls.other = cls.make_todo()
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def make_user(cls, email: str):
+		if frappe.db.exists("User", email):
+			return
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "File User",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+		user.add_roles("Desk User")
+
+	@classmethod
+	def make_todo(cls):
+		return frappe.get_doc(
+			{
+				"doctype": "ToDo",
+				"description": frappe.generate_hash(),
+				"allocated_to": cls.TEST_USER,
+			}
+		).insert()
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		for todo in (cls.todo, cls.other):
+			for name in frappe.get_all(
+				"File",
+				filters={"attached_to_doctype": "ToDo", "attached_to_name": todo.name},
+				pluck="name",
+			):
+				frappe.delete_doc_if_exists("File", name, force=True)
+			frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+		for email in (cls.TEST_USER, cls.READER):
+			frappe.delete_doc_if_exists("User", email, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@cached_property
+	def user_sid(self) -> str:
+		return sid_of(self.TEST_USER)
+
+	def upload(self, path: str, content: bytes, file_name: str, **fields):
+		"""A multipart POST, the way the browser's chunk loop sends one."""
+		data = {"file": (BytesIO(content), file_name), "sid": self.user_sid, **fields}
+		return make_request(target=self.TEST_CLIENT.post, args=(path,), kwargs={"data": data})
+
+	def attachments_path(self, name: str, file_name: str | None = None) -> str:
+		parts = ("ToDo", name, "attachments")
+		return self.resource(*parts, file_name) if file_name else self.resource(*parts)
+
+	def attach_one(self, todo_name: str, file_name: str) -> str:
+		"""Upload a file to the document and return its File name, as the answer reports it."""
+		response = self.upload(self.attachments_path(todo_name), b"hello", file_name)
+		self.assertEqual(response.status_code, 200, response.json)
+		return response.json["data"]["attachments"][0]["name"]
+
+	def test_detached_upload_creates_a_file(self):
+		response = self.upload(
+			self.resource("File"), b"hello", "detached.txt", is_private="1", folder="Home/Attachments"
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(data["file_name"], "detached.txt")
+		self.assertTrue(data["file_url"])
+		frappe.delete_doc_if_exists("File", data["name"], force=True)
+
+	def test_the_file_route_does_not_take_over_the_file_list(self):
+		# the static POST rule shares its path with the dynamic list rule
+		response = self.get(self.resource("File"), {"sid": self.sid, "limit": 1})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsInstance(response.json["data"], list)
+
+	def test_the_lowercase_path_is_not_the_upload_route(self):
+		# werkzeug matches a rule by case, so the static rule does not catch this spelling
+		with suppress_stdout():
+			response = self.upload(self.resource("file"), b"hello", "lower.txt")
+		self.assertNotEqual(response.status_code, 200, response.json)
+
+	def test_json_create_is_still_a_plain_insert(self):
+		response = self.post(
+			self.resource("File"),
+			{
+				"sid": self.sid,
+				"file_name": "base64.txt",
+				"is_private": 1,
+				"content": b64encode(b"hello").decode(),
+				"decode": True,
+			},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["file_name"], "base64.txt")
+		frappe.delete_doc_if_exists("File", response.json["data"]["name"], force=True)
+
+	def test_the_file_route_refuses_the_attach_fields(self):
+		response = self.upload(
+			self.resource("File"), b"hello", "sideways.txt", doctype="ToDo", docname=self.todo.name
+		)
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_a_method_field_is_refused_on_the_document_route(self):
+		response = self.upload(self.resource("File"), b"hello", "redirect.txt", method="frappe.ping")
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_attach_answers_with_the_refreshed_part(self):
+		response = self.upload(self.attachments_path(self.todo.name), b"hello", "attached.txt")
+		self.assertEqual(response.status_code, 200, response.json)
+		rows = response.json["data"]["attachments"]
+		self.assertEqual([row["file_name"] for row in rows], ["attached.txt"])
+		# the part carries who uploaded it and when, and the users key names them
+		self.assertEqual(rows[0]["owner"], self.TEST_USER)
+		self.assertTrue(rows[0]["creation"])
+		self.assertIn(self.TEST_USER, response.json["data"]["users"])
+		# the browser reads this key to find the row it just made
+		self.assertEqual(response.json["data"]["file"], rows[0]["name"])
+
+	def test_attach_follows_the_doctypes_public_attachments(self):
+		photo = self.upload(
+			self.resource("User", self.TEST_USER, "attachments"), b"photo", "me.txt", is_private="1"
+		)
+		kept = self.upload(self.attachments_path(self.todo.name), b"hello", "kept.txt", is_private="1")
+		self.assertEqual(photo.status_code, 200, photo.json)
+		self.assertEqual(kept.status_code, 200, kept.json)
+		files = (photo.json["data"]["file"], kept.json["data"]["file"])
+		frappe.db.rollback()
+		self.addCleanup(self.drop_files, *files)
+
+		self.assertEqual(frappe.db.get_value("File", files[0], "is_private"), 0)
+		self.assertEqual(frappe.db.get_value("File", files[1], "is_private"), 1)
+
+	def test_attach_keeps_a_file_private_when_the_uploader_may_not_make_it_public(self):
+		previous = frappe.db.get_single_value("System Settings", PUBLIC_UPLOADS)
+		self.set_public_uploads(1)
+		self.addCleanup(self.set_public_uploads, previous)
+
+		photo = self.upload(
+			self.resource("User", self.TEST_USER, "attachments"), b"photo", "me.txt", is_private="0"
+		)
+		self.assertEqual(photo.status_code, 200, photo.json)
+		frappe.db.rollback()
+		self.addCleanup(self.drop_files, photo.json["data"]["file"])
+
+		self.assertEqual(frappe.db.get_value("File", photo.json["data"]["file"], "is_private"), 1)
+
+	def set_public_uploads(self, only_system_managers: int):
+		frappe.db.set_single_value("System Settings", PUBLIC_UPLOADS, only_system_managers)
+		frappe.db.commit()  # nosemgrep
+
+	def drop_files(self, *names: str):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		for name in names:
+			frappe.delete_doc_if_exists("File", name, force=True)
+		frappe.db.commit()  # nosemgrep
+
+	def test_a_chunk_that_is_not_the_last_answers_with_no_file(self):
+		response = self.upload(
+			self.attachments_path(self.todo.name),
+			b"half",
+			"chunked.txt",
+			chunk_index="0",
+			total_chunk_count="2",
+			chunk_byte_offset="0",
+			total_file_size="8",
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsNone(response.json.get("data"))
+
+	def test_the_last_chunk_answers_with_the_reassembled_file(self):
+		path = self.attachments_path(self.todo.name)
+		first = self.upload(
+			path,
+			b"0123",
+			"whole.txt",
+			chunk_index="0",
+			total_chunk_count="2",
+			chunk_byte_offset="0",
+			total_file_size="8",
+		)
+		self.assertIsNone(first.json["data"])
+		second = self.upload(
+			path,
+			b"4567",
+			"whole.txt",
+			chunk_index="1",
+			total_chunk_count="2",
+			chunk_byte_offset="4",
+			total_file_size="8",
+		)
+		self.assertEqual(second.status_code, 200, second.json)
+		file_name = second.json["data"]["file"]
+		frappe.db.rollback()
+		self.assertEqual(frappe.get_doc("File", file_name).get_content(), "01234567")
+		frappe.delete_doc_if_exists("File", file_name, force=True)
+
+	def test_attach_needs_write_on_the_document(self):
+		data = {"file": (BytesIO(b"hello"), "denied.txt"), "sid": sid_of(self.READER)}
+		response = make_request(
+			target=self.TEST_CLIENT.post,
+			args=(self.attachments_path(self.todo.name),),
+			kwargs={"data": data},
+		)
+		self.assertEqual(response.status_code, 403, response.json)
+
+	def test_attach_refuses_a_guest_who_cannot_read_the_document(self):
+		# a Guest upload skips the write check, and the answer lists the document's attachments
+		settings = {"allow_guests_to_upload_files": 1, "allowed_doctypes_for_guest_uploads": "ToDo"}
+		previous = {key: frappe.db.get_single_value("System Settings", key) for key in settings}
+		guest_file = {"attached_to_name": self.other.name, "file_name": "guest.txt"}
+		frappe.db.set_single_value("System Settings", settings)
+		frappe.db.commit()  # nosemgrep
+		try:
+			data = {"file": (BytesIO(b"hello"), "guest.txt"), "sid": "Guest"}
+			response = make_request(
+				target=self.TEST_CLIENT.post,
+				args=(self.attachments_path(self.other.name),),
+				kwargs={"data": data},
+			)
+			self.assertEqual(response.status_code, 403, response.json)
+			self.assertNotIn("attachments", response.json.get("data") or {})
+			frappe.db.rollback()
+			self.assertFalse(frappe.db.exists("File", guest_file))
+		finally:
+			for name in frappe.get_all("File", filters=guest_file, pluck="name"):
+				frappe.delete_doc("File", name, force=True)
+			frappe.db.set_single_value("System Settings", previous)
+			frappe.db.commit()  # nosemgrep
+
+	def test_attach_without_bytes_is_an_error(self):
+		response = self.post(self.attachments_path(self.todo.name), {"sid": self.user_sid})
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_detach_deletes_the_file(self):
+		file_name = self.attach_one(self.todo.name, "gone.txt")
+		response = self.delete(
+			self.attachments_path(self.todo.name, file_name), query_string={"sid": self.user_sid}
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		# another test attaches to the same document, so the part is read for this file alone
+		names = [row["name"] for row in response.json["data"]["attachments"]]
+		self.assertNotIn(file_name, names)
+		# the request ran on another thread: end this one's read view before asking the database
+		frappe.db.rollback()
+		self.assertFalse(frappe.db.exists("File", file_name))
+
+	def test_detach_refuses_a_file_on_another_document(self):
+		file_name = self.attach_one(self.other.name, "elsewhere.txt")
+		response = self.delete(
+			self.attachments_path(self.todo.name, file_name), query_string={"sid": self.user_sid}
+		)
+		self.assertEqual(response.status_code, 404, response.json)
+		frappe.db.rollback()
+		self.assertTrue(frappe.db.exists("File", file_name))
+		frappe.delete_doc_if_exists("File", file_name, force=True)
+
+	def test_a_file_response_passes_through_the_v2_method_route(self):
+		response = self.get(
+			self.method("frappe.core.doctype.data_import.data_import.download_template"),
+			{
+				"sid": self.sid,
+				"doctype": "ToDo",
+				"export_fields": {"ToDo": ["description"]},
+				"export_records": "blank_template",
+				"file_type": "CSV",
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertIn("text/csv", response.headers["Content-Type"])
+		self.assertIn("Description", response.get_data(as_text=True))
+
+
+class TestActivityAPIV2(FrappeAPITestCase):
+	"""`GET /document/<doctype>/<name>/activity`: one page of the merged feed behind a cursor."""
+
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.todo = frappe.get_doc({"doctype": "ToDo", "description": frappe.generate_hash()}).insert()
+		frappe.get_doc(
+			{
+				"doctype": "Comment",
+				"comment_type": "Comment",
+				"reference_doctype": "ToDo",
+				"reference_name": cls.todo.name,
+				"content": "a remark",
+			}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("ToDo", cls.todo.name, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def setUp(self):
+		super().setUp()
+		self.use_overrides({})
+
+	def use_overrides(self, overrides: dict):
+		"""Serve `override_whitelisted_methods` from `overrides`, whatever apps the site has installed."""
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "override_whitelisted_methods":
+				return overrides
+			return real_get_hooks(hook, *args, **kwargs)
+
+		patcher = patch.object(frappe, "get_hooks", side_effect=get_hooks)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	def activity(self, params: dict | None = None):
+		return self.get(
+			self.resource("ToDo", self.todo.name, "activity"), {"sid": self.sid, **(params or {})}
+		)
+
+	def test_a_page_carries_the_feed_and_its_cursor(self):
+		response = self.activity()
+		self.assertEqual(response.status_code, 200, response.json)
+		data = response.json["data"]
+		self.assertEqual(set(data), {"activities", "next"})
+		self.assertIn("comment", {row["type"] for row in data["activities"]})
+		self.assertIsNone(data["next"])
+
+	def test_comment_rows_carry_their_attachments(self):
+		comment = self.todo.add_comment("Comment", "with a file")
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"{frappe.generate_hash(length=8)}.txt",
+				"content": "hello",
+				"is_private": 1,
+				"attached_to_doctype": "Comment",
+				"attached_to_name": comment.name,
+			}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(self.drop_comment, comment.name, file.name)
+		page = self.read_page(self.todo, self.sid, {"types": json.dumps(["comment"])})
+		row = next(row for row in page["activities"] if row["key"] == f"comment:{comment.name}")
+		expected = {"file_url": file.file_url, "file_name": file.file_name, "is_private": 1}
+		self.assertEqual(row["data"]["attachments"], [expected])
+
+	def drop_comment(self, comment: str, file: str):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("File", file, force=True)
+		frappe.delete_doc_if_exists("Comment", comment, force=True)
+		frappe.db.commit()  # nosemgrep
+
+	def test_an_app_override_of_the_method_applies_on_both_routes(self):
+		self.assertIn("type", self.activity().json["data"]["activities"][0])
+		self.use_overrides({ACTIVITY_METHOD: [f"{__name__}.activity_without_type"]})
+		method_path = self.method(ACTIVITY_METHOD)
+		args = {"sid": self.sid, "doctype": "ToDo", "name": self.todo.name}
+		via_method = self.get(method_path, args)
+		via_part = self.activity()
+
+		for response in (via_method, via_part):
+			self.assertEqual(response.status_code, 200, response.json)
+			rows = response.json["data"]["activities"]
+			self.assertTrue(rows)
+			self.assertTrue(all("type" not in row for row in rows))
+
+	def test_types_limits_the_feed(self):
+		response = self.activity({"types": ["email"]})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual([row["type"] for row in response.json["data"]["activities"]], [])
+
+	def test_the_cursor_walks_every_row_once_for_a_reader(self):
+		user = "api-activity-reader@example.com"
+		todo = self.make_reader_todo(user)
+		for i in range(4):
+			todo.add_comment("Comment", f"remark {i}")
+			todo.description = f"paged {i}"
+			todo.save(ignore_version=False)
+		frappe.db.commit()  # nosemgrep
+		try:
+			sid = self.sid_for(user)
+			whole = self.read_page(todo, sid, {"limit": 500})
+			self.assertIsNone(whole["next"])
+			self.assertIn("version", {row["type"] for row in whole["activities"]})
+			walked = self.walk(todo, sid, {"limit": 3})
+			self.assertEqual([r["key"] for r in walked], [r["key"] for r in whole["activities"]])
+		finally:
+			self.drop_reader_todo(user, todo)
+
+	def test_more_rows_in_one_instant_than_the_limit_are_walked_once(self):
+		user = "api-activity-reader@example.com"
+		todo = self.make_reader_todo(user)
+		comments = [todo.add_comment("Comment", f"same instant {i}") for i in range(3)]
+		for comment in comments:
+			frappe.db.set_value(
+				"Comment", comment.name, "creation", "2026-01-01 10:00:00", update_modified=False
+			)
+		frappe.db.commit()  # nosemgrep
+		try:
+			walked = self.walk(todo, self.sid_for(user), {"types": json.dumps(["comment"]), "limit": 2})
+			self.assertEqual(
+				sorted(row["key"] for row in walked), sorted(f"comment:{c.name}" for c in comments)
+			)
+		finally:
+			self.drop_reader_todo(user, todo)
+
+	def test_emails_page_across_two_pages(self):
+		user = "api-activity-reader@example.com"
+		todo = self.make_reader_todo(user)
+		emails = [self.make_email(todo, f"2026-01-0{day} 10:00:00") for day in range(1, 4)]
+		frappe.db.commit()  # nosemgrep
+		try:
+			# An enabled Notification can mail on the ToDo's save, so the feed may hold other emails too.
+			sid, params = self.sid_for(user), {"types": json.dumps(["email"])}
+			whole = self.read_page(todo, sid, {**params, "limit": 500})
+			newest = self.read_page(todo, sid, {**params, "limit": 2})
+			walked = row_keys({"activities": self.walk(todo, sid, {**params, "limit": 2})})
+			ours = [f"email:{e.name}" for e in emails]
+			self.assertIsNone(whole["next"])
+			self.assertIsNotNone(newest["next"])
+			self.assertEqual(walked, row_keys(whole))
+			self.assertEqual([key for key in walked if key in ours], ours)
+		finally:
+			self.drop_reader_todo(user, todo)
+
+	def test_one_version_splits_across_two_pages(self):
+		user = "api-activity-reader@example.com"
+		todo = self.make_reader_todo(user)
+		todo.update({"description": "split", "priority": "High", "date": "2026-02-01"})
+		todo.save(ignore_version=False)
+		frappe.db.commit()  # nosemgrep
+		try:
+			sid, params = self.sid_for(user), {"types": json.dumps(["version"]), "limit": 2}
+			newest = self.read_page(todo, sid, params)
+			older = self.read_page(todo, sid, {**params, "before": newest["next"]})
+			whole = self.read_page(todo, sid, {**params, "limit": 500})
+			version = frappe.db.get_value("Version", {"ref_doctype": "ToDo", "docname": todo.name})
+			self.assertEqual(row_keys(older) + row_keys(newest), row_keys(whole))
+			self.assertEqual({key.rpartition("-")[0] for key in row_keys(whole)}, {f"version:{version}"})
+			self.assertEqual(len(row_keys(newest)), 2)
+			self.assertIsNone(older["next"])
+		finally:
+			self.drop_reader_todo(user, todo)
+
+	def test_milestones_page_with_the_cursor(self):
+		user = "api-activity-reader@example.com"
+		todo = self.make_reader_todo(user)
+		values = ("Open", "Closed", "Cancelled")
+		milestones = [
+			self.make_milestone(todo, value, f"2026-01-0{i} 10:00:00") for i, value in enumerate(values, 1)
+		]
+		frappe.db.commit()  # nosemgrep
+		try:
+			sid, params = self.sid_for(user), {"types": json.dumps(["log"])}
+			whole = row_keys(self.read_page(todo, sid, {**params, "limit": 500}))
+			walked = row_keys({"activities": self.walk(todo, sid, {**params, "limit": 2})})
+			self.assertEqual(walked, whole)
+			self.assertEqual(
+				[k for k in walked if k.startswith("milestone:")], [f"milestone:{m}" for m in milestones]
+			)
+		finally:
+			self.drop_reader_todo(user, todo)
+
+	def make_email(self, todo, when: str):
+		return frappe.get_doc(
+			{
+				"doctype": "Communication",
+				"communication_type": "Communication",
+				"communication_medium": "Email",
+				"sent_or_received": "Received",
+				"sender": "api-activity-sender@example.com",
+				"subject": when,
+				"content": "mail",
+				"communication_date": when,
+				"reference_doctype": "ToDo",
+				"reference_name": todo.name,
+			}
+		).insert(ignore_permissions=True)
+
+	def make_milestone(self, todo, value: str, when: str) -> str:
+		milestone = frappe.get_doc(
+			{
+				"doctype": "Milestone",
+				"reference_type": "ToDo",
+				"reference_name": todo.name,
+				"track_field": "status",
+				"value": value,
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Milestone", milestone.name, "creation", when, update_modified=False)
+		return milestone.name
+
+	def make_reader_todo(self, user: str):
+		frappe.set_user("Administrator")
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{"doctype": "User", "email": user, "first_name": "Reader", "send_welcome_email": 0}
+			).insert()
+		return frappe.get_doc({"doctype": "ToDo", "description": "paged", "allocated_to": user}).insert()
+
+	def drop_reader_todo(self, user: str, todo) -> None:
+		"""Deleting the ToDo drops its Versions and Comments, but not its emails or milestones."""
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		emails = frappe.get_all(
+			"Communication", {"reference_doctype": "ToDo", "reference_name": todo.name}, pluck="name"
+		)
+		frappe.db.delete("Communication Link", {"parent": ("in", emails)})
+		frappe.db.delete("Communication", {"name": ("in", emails)})
+		frappe.db.delete("Milestone", {"reference_type": "ToDo", "reference_name": todo.name})
+		frappe.delete_doc_if_exists("ToDo", todo.name, force=True)
+		frappe.delete_doc_if_exists("User", user, force=True)
+		frappe.db.commit()  # nosemgrep
+
+	def walk(self, todo, sid: str, params: dict) -> list[dict]:
+		walked, before = [], None
+		for _page in range(20):
+			page = self.read_page(todo, sid, {**params, "before": before})
+			walked = page["activities"] + walked
+			if not (before := page["next"]):
+				return walked
+		self.fail(f"the cursor never reached the end: {before}")
+
+	def read_page(self, todo, sid: str, params: dict) -> dict:
+		params = {key: value for key, value in params.items() if value is not None}
+		response = self.get(self.resource("ToDo", todo.name, "activity"), {"sid": sid, **params})
+		self.assertEqual(response.status_code, 200, response.json)
+		return response.json["data"]
+
+	def test_a_malformed_cursor_is_refused(self):
+		response = self.activity({"before": "yesterday"})
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_a_cursor_whose_timestamp_is_not_a_date_is_refused(self):
+		response = self.activity({"before": "yesterday|comment:x"})
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_a_cursor_with_a_timezone_is_refused(self):
+		response = self.activity({"before": "2026-01-01 00:00:00+05:30|comment:x"})
+		self.assertEqual(response.status_code, 417, response.json)
+
+	def test_a_document_the_user_cannot_read_is_refused(self):
+		user = "api-activity-user@example.com"
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(
+				{"doctype": "User", "email": user, "first_name": "Activity", "send_welcome_email": 0}
+			).insert(ignore_permissions=True)
+			frappe.db.commit()  # nosemgrep
+		try:
+			response = self.get(
+				self.resource("ToDo", self.todo.name, "activity"), {"sid": self.sid_for(user)}
+			)
+			self.assertEqual(response.status_code, 403, response.json)
+		finally:
+			frappe.db.rollback()
+			frappe.set_user("Administrator")
+			frappe.delete_doc_if_exists("User", user, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def sid_for(self, user: str) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		original_request = getattr(frappe.local, "request", None)
+		set_request(path="/")
+		try:
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(user)
+			return frappe.session.sid
+		finally:
+			frappe.local.request = original_request
+
+
+ACTIVITY_METHOD = "frappe.desk.form.activity.get_activity_timeline"
+
+
+@whitelist_for_tests()
+def activity_without_type(
+	doctype: str, name: str, visible_types: str | None = None, limit: int = 20, before: str | None = None
+):
+	"""A stand-in for an app override that strips a field from every row, as Helpdesk strips `cc`."""
+	from frappe.desk.form.activity import get_activity_timeline
+
+	page = get_activity_timeline(doctype, name, visible_types, limit, before)
+	for row in page["activities"]:
+		row.pop("type", None)
+	return page
+
+
+def row_keys(page: dict) -> list[str]:
+	return [row["key"] for row in page["activities"]]
+
+
+class TestDocumentMethodRoutesV2(FrappeAPITestCase):
+	"""The controller methods the desk reaches on `/document/<doctype>/<name>/method/<method>`."""
+
+	version = "v2"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+		cls.invitation = cls.make_invitation("api-invitee@example.com")
+		cls.data_import = frappe.get_doc(
+			{"doctype": "Data Import", "reference_doctype": "User", "import_type": "Insert New Records"}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("User Invitation", cls.invitation.name, force=True)
+		frappe.delete_doc_if_exists("Data Import", cls.data_import.name, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	@classmethod
+	def make_invitation(cls, email: str) -> Document:
+		with patch.object(UserInvitation, "send_invitation_mail"):
+			invitation = frappe.get_doc(
+				{
+					"doctype": "User Invitation",
+					"email": email,
+					"roles": [{"role": "System Manager"}],
+					"app_name": "frappe",
+					"redirect_to_path": "/app",
+				}
+			).insert()
+		frappe.db.commit()  # nosemgrep
+		return invitation
+
+	def setUp(self) -> None:
+		super().setUp()
+		self.enterContext(self.change_settings("System Settings", commit=True, enable_desk_v2=1))
+
+	def doc_method(self, doc: Document, method: str) -> str:
+		return self.resource(doc.doctype, doc.name, "method", method)
+
+	def test_resend_invite_sends_the_mail_again(self):
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			response = self.post(self.doc_method(self.invitation, "resend_invite"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200, response.json)
+		send.assert_called_once()
+
+	def test_resend_invite_refuses_while_desk_v2_is_off(self):
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			with self.change_settings("System Settings", commit=True, enable_desk_v2=0):
+				response = self.post(self.doc_method(self.invitation, "resend_invite"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], "DeskV2DisabledError")
+		send.assert_not_called()
+
+	def test_resend_invite_refuses_a_get(self):
+		response = self.get(self.doc_method(self.invitation, "resend_invite"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 403, response.json)
+
+	def test_cancel_invite_cancels_a_pending_invitation(self):
+		invitation = self.make_invitation("api-cancelled-invitee@example.com")
+		try:
+			with patch("frappe.sendmail"):
+				response = self.post(self.doc_method(invitation, "cancel_invite"), {"sid": self.sid})
+			self.assertEqual(response.status_code, 200, response.json)
+			self.assertTrue(response.json["data"])
+			frappe.db.rollback()
+			self.assertEqual(frappe.db.get_value("User Invitation", invitation.name, "status"), "Cancelled")
+
+			response = self.post(self.doc_method(invitation, "resend_invite"), {"sid": self.sid})
+			self.assertEqual(response.status_code, 417, response.json)
+		finally:
+			frappe.db.rollback()
+			frappe.delete_doc_if_exists("User Invitation", invitation.name, force=True)
+			frappe.db.commit()  # nosemgrep
+
+	def test_data_import_preview_reads_on_get(self):
+		response = self.get(self.doc_method(self.data_import, "get_preview_from_template"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertIsNone(response.json.get("data"))
+
+	def test_data_import_preview_reads_its_query_arguments(self):
+		response = self.get(
+			self.doc_method(self.data_import, "get_preview_from_template"),
+			{"sid": self.sid, "import_file": "/private/files/no-such-import.csv"},
+		)
+		self.assertEqual(response.status_code, 417, response.json)
+		self.assertEqual(response.json["errors"][0]["message"], "Invalid template file for import")
+
+	def test_data_import_start_is_a_post(self):
+		response = self.get(self.doc_method(self.data_import, "start_import"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 403, response.json)
+
+
+class OverridingController(Document):
+	"""A controller that overrides `submit`/`cancel`/`discard` without `@frappe.whitelist()`, like ERPNext's."""
+
+	calls: typing.ClassVar[list[str]] = []
+
+	def submit(self):
+		self.calls.append("submit")
+		return super().submit()
+
+	def cancel(self):
+		self.calls.append("cancel")
+		return super().cancel()
+
+	def discard(self):
+		self.calls.append("discard")
+		return super().discard()
+
+	def touch(self):
+		self.calls.append("touch")
+
+
+class PostOnlyController(Document):
+	"""A controller that whitelists its own `submit` for POST only."""
+
+	@whitelist_for_tests(methods=["POST"])
+	def submit(self):
+		return super().submit()
+
+
+class TestSubmitCancelOverrideV2(FrappeAPITestCase):
+	"""`execute_doc_method` runs a subclass override of the whitelisted `Document.submit`/`cancel`."""
+
+	version = "v2"
+	DOCTYPE = "Test Submit Override V2"
+	NO_SUBMIT_USER = "submit.override.reader@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("DocType", cls.DOCTYPE, force=True)
+		new_doctype(
+			cls.DOCTYPE,
+			is_submittable=1,
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1},
+				{"role": "Desk User", "read": 1, "write": 1},
+			],
+		).insert()
+		if not frappe.db.exists("User", cls.NO_SUBMIT_USER):
+			user = frappe.get_doc(
+				doctype="User", email=cls.NO_SUBMIT_USER, first_name="Submit Reader", send_welcome_email=0
+			).insert()
+			user.add_roles("Desk User")
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("DocType", cls.DOCTYPE, force=True)
+		frappe.delete_doc_if_exists("User", cls.NO_SUBMIT_USER, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def setUp(self):
+		super().setUp()
+		OverridingController.calls = []
+		controllers = frappe.controllers.setdefault(frappe.local.site, {})
+		patcher = patch.dict(controllers, {self.DOCTYPE: OverridingController})
+		patcher.start()
+		self.addCleanup(patcher.stop)
+		self.doc = frappe.get_doc(doctype=self.DOCTYPE, some_fieldname="override me").insert()
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(self.delete_doc)
+
+	def delete_doc(self):
+		frappe.set_user("Administrator")
+		frappe.db.delete(self.DOCTYPE, {"name": self.doc.name})
+		frappe.db.commit()  # nosemgrep
+
+	def call(self, method: str, sid: str | None = None) -> TestResponse:
+		return self.post(
+			self.resource(self.DOCTYPE, self.doc.name, "method", method), {"sid": sid or self.sid}
+		)
+
+	def test_stale_modified_stops_the_override_before_it_runs(self):
+		response = self.post(
+			self.resource(self.DOCTYPE, self.doc.name, "method", "submit"),
+			{"sid": self.sid, "modified": "2000-01-01 00:00:00.000000"},
+		)
+		self.assertEqual(response.json["errors"][0]["type"], "TimestampMismatchError", response.json)
+		self.assertEqual(OverridingController.calls, [])
+		self.assertEqual(self.docstatus(), 0)
+
+	def test_current_modified_lets_the_override_run(self):
+		frappe.db.rollback()
+		modified = str(frappe.db.get_value(self.DOCTYPE, self.doc.name, "modified"))
+		response = self.post(
+			self.resource(self.DOCTYPE, self.doc.name, "method", "submit"),
+			{"sid": self.sid, "modified": modified},
+		)
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(OverridingController.calls, ["submit"])
+
+	def docstatus(self) -> int:
+		frappe.db.rollback()
+		return frappe.db.get_value(self.DOCTYPE, self.doc.name, "docstatus")
+
+	def test_override_of_submit_and_cancel_runs(self):
+		response = self.call("submit")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(OverridingController.calls, ["submit"])
+		self.assertEqual(self.docstatus(), 1)
+
+		response = self.call("cancel")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(OverridingController.calls, ["submit", "cancel"])
+		self.assertEqual(self.docstatus(), 2)
+
+	def test_controller_without_an_override_still_submits(self):
+		with patch.dict(frappe.controllers[frappe.local.site], {self.DOCTYPE: Document}):
+			response = self.call("submit")
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(self.docstatus(), 1)
+
+	def test_other_methods_are_not_widened(self):
+		for method in ("touch", "discard", "_submit", "run_method", "save"):
+			with self.subTest(method=method):
+				response = self.call(method)
+				self.assertEqual(response.status_code, 403, (method, response.json))
+		self.assertEqual(OverridingController.calls, [])
+		self.assertEqual(self.docstatus(), 0)
+
+	def test_submit_needs_the_submit_right(self):
+		response = self.call("submit", sid_of(self.NO_SUBMIT_USER))
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(OverridingController.calls, [])
+		self.assertEqual(self.docstatus(), 0)
+
+	def test_cancel_needs_the_cancel_right(self):
+		self.call("submit")
+		OverridingController.calls = []
+		response = self.call("cancel", sid_of(self.NO_SUBMIT_USER))
+		self.assertEqual(response.status_code, 403, response.json)
+		self.assertEqual(OverridingController.calls, [])
+		self.assertEqual(self.docstatus(), 1)
+
+	def test_a_whitelisted_override_keeps_its_own_http_methods(self):
+		with patch.dict(frappe.controllers[frappe.local.site], {self.DOCTYPE: PostOnlyController}):
+			response = self.get(
+				self.resource(self.DOCTYPE, self.doc.name, "method", "submit"), {"sid": self.sid}
+			)
+			self.assertEqual(response.status_code, 403, response.json)
+			self.assertEqual(self.docstatus(), 0)
+			self.assertEqual(self.call("submit").status_code, 200)
+
+
+class TestFieldErrorsEntryV2(FrappeAPITestCase):
+	version = "v2"
+	ROLE = "Field Errors Tester"
+	USER = "field.errors@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.get_doc(doctype="Role", role_name=cls.ROLE, desk_access=1).insert(ignore_if_duplicate=True)
+		user = frappe.get_doc(
+			doctype="User", email=cls.USER, first_name="Field Errors", send_welcome_email=0
+		).insert(ignore_if_duplicate=True)
+		user.add_roles(cls.ROLE)
+		keys = generate_keys(cls.USER)
+		cls.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+
+		permissions = [{"role": cls.ROLE, "read": 1, "write": 1, "create": 1}]
+		child = new_doctype(
+			istable=1,
+			fields=[
+				{"fieldname": "item", "label": "Item", "fieldtype": "Data", "reqd": 1},
+				{"fieldname": "user", "label": "User", "fieldtype": "Link", "options": "User"},
+			],
+		).insert()
+		cls.parent = new_doctype(
+			permissions=permissions,
+			fields=[
+				{"fieldname": "title", "label": "Title", "fieldtype": "Data", "reqd": 1},
+				{"fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nClosed"},
+				{"fieldname": "email", "label": "Email", "fieldtype": "Data", "options": "Email"},
+				{"fieldname": "code", "label": "Code", "fieldtype": "Data", "length": 5},
+				{"fieldname": "phone", "label": "Phone", "fieldtype": "Phone"},
+				{"fieldname": "settings", "label": "Settings", "fieldtype": "JSON"},
+				{"fieldname": "user", "label": "User", "fieldtype": "Link", "options": "User"},
+				{"fieldname": "items", "label": "Items", "fieldtype": "Table", "options": child.name},
+			],
+		).insert()
+		cls.child = child
+		cls.record = frappe.get_doc(
+			{"doctype": cls.parent.name, "title": "Saved", "items": [{"item": "First"}]}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.delete_doc("DocType", cls.parent.name, force=True)
+		frappe.delete_doc("DocType", cls.child.name, force=True)
+		frappe.delete_doc("User", cls.USER, force=True)
+		frappe.delete_doc("Role", cls.ROLE, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def test_a_save_names_every_empty_mandatory_field(self):
+		row = self.record.items[0]
+		data = {"title": "", "items": [{"name": row.name, "item": ""}]}
+		response = self.send("put", self.resource(self.parent.name, self.record.name), data)
+
+		[entry] = self.errors(response, "MandatoryError")
+		self.assertEqual(
+			entry["field_errors"],
+			[
+				{"fieldname": "title", "message": "Title is required"},
+				{
+					"fieldname": "item",
+					"parentfield": "items",
+					"row": row.name,
+					"idx": 1,
+					"message": "Item is required",
+				},
+			],
+		)
+
+	def test_a_new_row_is_named_by_its_position(self):
+		data = {"title": "New row", "items": [{"item": "First"}, {"item": ""}]}
+		response = self.send("post", self.resource(self.parent.name), data)
+
+		[entry] = self.errors(response, "MandatoryError")
+		[field_error] = entry["field_errors"]
+		self.assertEqual((field_error["parentfield"], field_error["idx"]), ("items", 2))
+		self.assertEqual(field_error["message"], "Item is required")
+
+	def test_an_insert_names_every_invalid_link(self):
+		data = {
+			"title": "Links",
+			"user": "nobody@example.com",
+			"items": [{"item": "First", "user": "missing@example.com"}],
+		}
+		response = self.send("post", self.resource(self.parent.name), data)
+
+		[entry] = self.errors(response, "LinkValidationError")
+		self.assertEqual(
+			entry["field_errors"],
+			[
+				{"fieldname": "user", "message": "Could not find User: nobody@example.com"},
+				{
+					"fieldname": "user",
+					"parentfield": "items",
+					"idx": 1,
+					"message": "Could not find Row #1: User: missing@example.com",
+				},
+			],
+		)
+
+	def test_a_field_validator_names_its_field(self):
+		cases = {
+			"status": ("Pending", "ValidationError"),
+			"email": ("not-an-email", "InvalidEmailAddressError"),
+			"code": ("toolong", "CharacterLengthExceededError"),
+			"phone": ("12ab", "InvalidPhoneNumberError"),
+		}
+		for fieldname, (value, error_type) in cases.items():
+			with self.subTest(fieldname=fieldname):
+				data = {"title": "Validators", fieldname: value}
+				response = self.send("post", self.resource(self.parent.name), data)
+
+				[entry] = self.errors(response, error_type)
+				[field_error] = entry["field_errors"]
+				self.assertEqual(field_error["fieldname"], fieldname)
+				self.assertIn(value, field_error["message"])
+				self.assertNotIn("<", field_error["message"])
+
+	def test_invalid_json_names_its_field(self):
+		response = self.send("post", self.resource(self.parent.name), {"title": "JSON", "settings": "{a: 1}"})
+
+		[entry] = self.errors(response, "ValidationError")
+		self.assertEqual(
+			entry["field_errors"], [{"fieldname": "settings", "message": "Settings is not valid JSON"}]
+		)
+
+	def test_v1_has_no_field_errors(self):
+		self.version = ""
+		response = self.send("post", self.resource(self.parent.name), {"title": ""})
+
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["exc_type"], "MandatoryError")
+		self.assertNotIn("field_errors", response.json)
+
+	def send(self, method: str, path: str, data: dict) -> TestResponse:
+		return make_request(
+			getattr(get_test_client(use_cookies=False), method),
+			args=(path,),
+			kwargs={"json": data, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+
+	def errors(self, response: TestResponse, error_type: str) -> list[dict]:
+		self.assertEqual(response.status_code, 417, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], error_type)
+		return response.json["errors"]
+
+
+class StaleLinkedController(Document):
+	"""A controller whose hook saves another record from an older read, as a hook that edits a linked one."""
+
+	linked: typing.ClassVar[str] = ""
+
+	def before_submit(self):
+		linked = frappe.get_doc(TestStaleLinkedRecordV2.LINKED, self.linked)
+		linked.modified = "2000-01-01 00:00:00.000000"
+		linked.save(ignore_permissions=True)
+
+
+class TestStaleLinkedRecordV2(FrappeAPITestCase):
+	"""A mismatch on another record names it to a user who can read it, and only says "hidden" to one who cannot."""
+
+	version = "v2"
+	DOCTYPE = "Test Stale Linked V2"
+	LINKED = "Test Stale Linked Target V2"
+	WRITER = "stale.linked.writer@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.set_user("Administrator")
+		for name in (cls.DOCTYPE, cls.LINKED):
+			frappe.delete_doc_if_exists("DocType", name, force=True)
+		new_doctype(
+			cls.DOCTYPE,
+			is_submittable=1,
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "submit": 1},
+				{"role": "Desk User", "read": 1, "write": 1, "submit": 1},
+			],
+		).insert()
+		new_doctype(
+			cls.LINKED,
+			permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
+		).insert()
+		if not frappe.db.exists("User", cls.WRITER):
+			user = frappe.get_doc(
+				doctype="User", email=cls.WRITER, first_name="Stale Writer", send_welcome_email=0
+			).insert()
+			user.add_roles("Desk User")
+		keys = generate_keys(cls.WRITER)
+		cls.writer_authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		keys = generate_keys("Administrator")
+		cls.admin_authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.set_user("Administrator")
+		for name in (cls.DOCTYPE, cls.LINKED):
+			frappe.delete_doc_if_exists("DocType", name, force=True)
+		frappe.delete_doc_if_exists("User", cls.WRITER, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		self.linked = frappe.get_doc(doctype=self.LINKED, some_fieldname="Linked").insert()
+		self.record = frappe.get_doc(doctype=self.DOCTYPE, some_fieldname="Draft").insert()
+		frappe.db.commit()  # nosemgrep
+		controllers = frappe.controllers.setdefault(frappe.local.site, {})
+		patcher = patch.dict(controllers, {self.DOCTYPE: StaleLinkedController})
+		patcher.start()
+		self.addCleanup(patcher.stop)
+		patcher = patch.object(StaleLinkedController, "linked", self.linked.name)
+		patcher.start()
+		self.addCleanup(patcher.stop)
+
+	def submit(self, authorization, modified=None):
+		return make_request(
+			get_test_client(use_cookies=False).post,
+			args=(self.resource(self.DOCTYPE, self.record.name, "method", "submit"),),
+			kwargs={
+				"headers": {"Authorization": authorization},
+				**({"json": {"modified": modified}} if modified else {}),
+			},
+			site=frappe.local.site,
+		)
+
+	def mismatch(self, response) -> dict:
+		self.assertIn("errors", response.json, response.json)
+		error = response.json["errors"][0]
+		self.assertEqual(error["type"], "TimestampMismatchError", response.json)
+		return error
+
+	def test_the_page_own_record_names_itself(self):
+		response = self.submit(self.admin_authorization, modified="2000-01-01 00:00:00.000000")
+
+		error = self.mismatch(response)
+		self.assertEqual(error["stale_doc"], {"doctype": self.DOCTYPE, "name": self.record.name})
+
+	def test_a_readable_linked_record_is_named(self):
+		response = self.submit(self.admin_authorization)
+
+		error = self.mismatch(response)
+		self.assertEqual(error["stale_doc"], {"doctype": self.LINKED, "name": self.linked.name})
+
+	def test_a_normal_user_who_can_read_the_linked_record_gets_its_name(self):
+		user = frappe.get_doc("User", self.WRITER)
+		user.add_roles("System Manager")
+		self.addCleanup(lambda: (user.remove_roles("System Manager"), frappe.db.commit()))  # nosemgrep
+		frappe.db.commit()  # nosemgrep
+
+		response = self.submit(self.writer_authorization)
+
+		error = self.mismatch(response)
+		self.assertEqual(error["stale_doc"], {"doctype": self.LINKED, "name": self.linked.name})
+
+	def test_an_unreadable_linked_record_is_not_named(self):
+		response = self.submit(self.writer_authorization)
+
+		error = self.mismatch(response)
+		self.assertEqual(error["stale_doc"], {"hidden": True})
+		self.assertNotIn(self.linked.name, response.get_data(as_text=True))
+		self.assertNotIn(self.LINKED, response.get_data(as_text=True))

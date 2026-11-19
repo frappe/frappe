@@ -6,9 +6,9 @@
 
   Field Options come from the doctype's Meta (`useDoctypeMeta` → `getFilterableFields`),
   and the per-fieldtype operator table from `getOperators` — both pure ports of CRM's
-  `crm.api.doc.get_filterable_fields` + `getOperators` (ADR-0001, ADR-0003).
+  `crm.api.doc.get_filterable_fields` + `getOperators`.
 
-  The value inputs are the shared `Fields` module's components (ADR-0004), not CRM's
+  The value inputs are the shared `Fields` module's components, not CRM's
   bespoke Link/Duration/Rating trio. Which control a condition gets — the
   operator-driven swaps as well as the fieldtype ones — is decided by
   `valueControl.ts`, a sibling module rather than this file, so the nested
@@ -27,7 +27,13 @@
 		@update:selectedOption="addFilter"
 	>
 		<template #trigger>
-			<Button label="Filter" iconLeft="lucide-list-filter" />
+			<Button
+				label="Filter"
+				iconLeft="lucide-list-filter"
+				data-view
+				@pointerenter="preloadControls"
+				@focus="preloadControls"
+			/>
 		</template>
 	</Combobox>
 
@@ -39,6 +45,9 @@
 					label="Filter"
 					class="relative rounded-r-none focus-visible:z-10"
 					iconLeft="lucide-list-filter"
+					data-view
+					@pointerenter="preloadControls"
+					@focus="preloadControls"
 				>
 					<template #suffix>
 						<div
@@ -146,7 +155,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from "vue";
+import { computed, nextTick, provide, ref } from "vue";
 import { Button, Combobox, Popover, Select } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields, pickFilterFields } from "./getFilterableFields";
@@ -157,13 +166,19 @@ import type { Filter, FilterField, FilterOperator, FilterProps, FilterValue } fr
 // without duplicating them; it returns an id, and VALUE_CONTROLS maps that id to
 // the component (see valueControl.ts for why the two are separate files).
 import { valueControl } from "./valueControl";
-import { VALUE_CONTROLS } from "./valueControlComponents";
+import { VALUE_CONTROLS, preloadControls } from "./valueControlComponents";
+import { CreateRecordKey, FieldActionsKey, RecordLinkKey } from "../Fields/types";
 
 const props = defineProps<FilterProps>();
 
 // `v-model` is the list of Filter conditions. The component is controlled: it only
 // reads and re-emits this array, never a data resource.
 const model = defineModel<Filter[]>({ default: () => [] });
+
+// A filter's value input picks a record; it never creates or opens one.
+provide(CreateRecordKey, null);
+provide(RecordLinkKey, null);
+provide(FieldActionsKey, null);
 
 // The popover only mounts once a condition exists (`v-else`); a ref lets us open it
 // right after the empty-state picker seeds the first one, so the user lands on the

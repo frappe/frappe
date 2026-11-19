@@ -31,12 +31,11 @@ test.describe("Cloud Settings loader", () => {
 		});
 	};
 
-	const desktop = (page) =>
-		page.waitForFunction(() => frappe.pages.desktop?.desktop_page?.load_cloud_settings);
+	const desktop = (page) => page.waitForFunction(() => frappe.pages.desktop?.cloud_settings);
 
 	const open = (page) =>
 		page.evaluate(async (settings) => {
-			await frappe.pages.desktop.desktop_page.open_cloud_settings(settings);
+			await frappe.pages.desktop.cloud_settings.open(settings);
 			return window.cloud_settings_mounted;
 		}, SETTINGS);
 

@@ -1,15 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
-// Hoisted so the factories passed to `vi.mock` can reference them.
-const { createResourceMock } = vi.hoisted(() => ({
-  createResourceMock: vi.fn(),
-}));
+// Hoisted so the factory passed to `vi.mock` can reference it.
+const { runMethod } = vi.hoisted(() => ({ runMethod: vi.fn() }));
 
-vi.mock("frappe-ui", () => ({
-  call: vi.fn(),
-  createResource: createResourceMock,
-}));
+vi.mock("../../../api", () => ({ runMethod }));
 
 // A fresh ref per test, like a browser with no saved data.
 vi.mock("@vueuse/core", () => ({
@@ -29,19 +24,34 @@ const steps = () => [
   { name: "invite_team", title: "Invite your team", completed: false },
 ];
 
+// The calls that save the status, newest last.
+const saves = () =>
+  runMethod.mock.calls.filter(([method]) => method === "frappe.onboarding.update_onboarding_status");
+
+// Holds the saved-status read open so each test decides when it lands.
+let resolveStatus: (value: { data: unknown }) => void = () => {};
+
 async function load() {
   const { useOnboarding } = await import("../onboarding");
   const { showHelpModal } = await import("../help");
   const { showHelpCenter } = await import("../helpCenter");
   const onboarding = useOnboarding("frappecrm")!;
-  const onStatusLoaded = createResourceMock.mock.calls.at(-1)?.[0].onSuccess;
+  const onStatusLoaded = async (data: unknown) => {
+    resolveStatus({ data });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  };
   return { onboarding, showHelpModal, showHelpCenter, onStatusLoaded };
 }
 
 describe("useOnboarding", () => {
   beforeEach(() => {
     vi.resetModules();
-    createResourceMock.mockReset();
+    runMethod.mockReset();
+    runMethod.mockImplementation((method: string) =>
+      method === "frappe.onboarding.get_onboarding_status"
+        ? new Promise((resolve) => (resolveStatus = resolve))
+        : Promise.resolve({ data: null }),
+    );
   });
 
   it("closes the panel once the saved status shows onboarding is finished", async () => {
@@ -51,7 +61,7 @@ describe("useOnboarding", () => {
     // opened before the saved status is known
     expect(showHelpModal.value).toBe(true);
 
-    onStatusLoaded({
+    await onStatusLoaded({
       frappecrm_onboarding_status: steps().map((s) => ({
         name: s.name,
         completed: true,
@@ -64,7 +74,7 @@ describe("useOnboarding", () => {
     const { onboarding, showHelpModal, onStatusLoaded } = await load();
 
     onboarding.setUp(steps());
-    onStatusLoaded({
+    await onStatusLoaded({
       frappecrm_onboarding_status: [
         { name: "create_first_lead", completed: true },
         { name: "invite_team", completed: false },
@@ -99,7 +109,7 @@ describe("useOnboarding", () => {
       },
     ];
     onboarding.setUp(shown);
-    onStatusLoaded({
+    await onStatusLoaded({
       frappecrm_onboarding_status: [
         { name: "create_first_lead", completed: true },
         { name: "invite_team", completed: false },
@@ -119,7 +129,7 @@ describe("useOnboarding", () => {
       { name: "publish_first_lead", title: "Publish", completed: false },
     ];
     onboarding.setUp(shown);
-    onStatusLoaded({
+    await onStatusLoaded({
       frappecrm_onboarding_status: [
         { name: "create_first_lead", completed: true },
         { name: "invite_team", completed: true },
@@ -131,44 +141,41 @@ describe("useOnboarding", () => {
   });
 
   it("does not save a queued step before the saved status is known", async () => {
-    const { call } = await import("frappe-ui");
     const { onboarding, onStatusLoaded } = await load();
-    vi.mocked(call).mockClear();
+    runMethod.mockClear();
 
     const shown = steps();
     onboarding.updateOnboardingStep("invite_team");
     onboarding.setUp(shown);
     expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(true);
-    expect(vi.mocked(call)).not.toHaveBeenCalled();
+    expect(saves()).toHaveLength(0);
 
-    onStatusLoaded({
+    await onStatusLoaded({
       frappecrm_onboarding_status: [{ name: "a_role_only_step", completed: true }],
     });
-    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    const saved = JSON.parse(saves().at(-1)?.[1].steps);
     expect(saved).toContainEqual({ name: "invite_team", completed: true });
     expect(saved).toContainEqual({ name: "a_role_only_step", completed: true });
   });
 
   it("keeps Skip all pressed before the saved status is known", async () => {
-    const { call } = await import("frappe-ui");
     const { onboarding, onStatusLoaded } = await load();
-    vi.mocked(call).mockClear();
+    runMethod.mockClear();
 
     const shown = steps();
     onboarding.setUp(shown);
     onboarding.skipAll();
-    expect(vi.mocked(call)).not.toHaveBeenCalled();
+    expect(saves()).toHaveLength(0);
 
-    onStatusLoaded({});
+    await onStatusLoaded({});
     expect(shown.every((s) => s.completed)).toBe(true);
-    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    const saved = JSON.parse(saves().at(-1)?.[1].steps);
     expect(saved.every((s: { completed: boolean }) => s.completed)).toBe(true);
   });
 
   it("forgets a queued completion the user resets before the saved status is known", async () => {
-    const { call } = await import("frappe-ui");
     const { onboarding, onStatusLoaded } = await load();
-    vi.mocked(call).mockClear();
+    runMethod.mockClear();
 
     const shown = steps();
     onboarding.setUp(shown);
@@ -177,40 +184,38 @@ describe("useOnboarding", () => {
     onboarding.updateOnboardingStep("invite_team");
     onboarding.updateOnboardingStep("invite_team", false);
 
-    onStatusLoaded({});
+    await onStatusLoaded({});
     expect(shown.some((s) => s.completed)).toBe(false);
-    expect(vi.mocked(call)).not.toHaveBeenCalled();
+    expect(saves()).toHaveLength(0);
   });
 
   it("applies a step queued before setUp only once", async () => {
-    const { call } = await import("frappe-ui");
     const { onboarding, onStatusLoaded } = await load();
 
     const shown = steps();
     onboarding.updateOnboardingStep("invite_team");
-    onStatusLoaded({});
+    await onStatusLoaded({});
     onboarding.setUp(shown);
     onboarding.updateOnboardingStep("invite_team", false);
     onboarding.syncStatus();
 
     expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(false);
-    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    const saved = JSON.parse(saves().at(-1)?.[1].steps);
     expect(
       saved.find((s: { name: string }) => s.name === "invite_team")?.completed,
     ).toBe(false);
   });
 
   it("keeps a step completed before setUp, and saves it", async () => {
-    const { call } = await import("frappe-ui");
     const { onboarding, onStatusLoaded } = await load();
 
     const shown = steps();
     onboarding.updateOnboardingStep("invite_team");
     onboarding.setUp(shown);
-    onStatusLoaded({});
+    await onStatusLoaded({});
 
     expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(true);
-    const saved = JSON.parse(vi.mocked(call).mock.calls.at(-1)?.[1].steps);
+    const saved = JSON.parse(saves().at(-1)?.[1].steps);
     expect(saved).toEqual([
       { name: "create_first_lead", completed: false },
       { name: "invite_team", completed: true },
@@ -222,7 +227,7 @@ describe("useOnboarding", () => {
 
     const shown = steps();
     onboarding.updateOnboardingStep("invite_team");
-    onStatusLoaded({});
+    await onStatusLoaded({});
     onboarding.setUp(shown);
 
     expect(shown.find((s) => s.name === "invite_team")?.completed).toBe(true);

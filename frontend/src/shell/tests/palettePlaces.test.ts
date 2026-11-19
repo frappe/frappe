@@ -1,0 +1,273 @@
+// The palette's places read: once the tab holds a reply it asks no more, and each read retries on its own.
+// Go to draws a sidebar row in place of its doctype's row at one address, and tells two addresses apart.
+// Inside an app a place opens under its prefix, whoever owns it; the index opens the owner's address.
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { createMemoryHistory, createRouter } from "vue-router";
+
+import { Addresses } from "@/addresses";
+import type { Boot, NavigationItem } from "@/boot";
+import { registerContributions } from "@/contributions/registry";
+import { registerShell } from "@/router/routeFor";
+import { paletteGroups, type PaletteContext } from "../paletteGroups";
+import { goTo, loadPlaces, openPlace } from "../palettePlaces";
+import { recentVisits } from "../recentVisits";
+
+const server = vi.hoisted(() => ({ places: vi.fn(), panes: vi.fn() }));
+
+vi.mock("@framework/ui/api", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@framework/ui/api")>()),
+	runMethod: (method: string) =>
+		method === "frappe.shell.palette.places" ? server.places() : server.panes(),
+}));
+
+const boot = {
+	app: "crm",
+	app_title: "CRM",
+	shell_base: "/apps/crm",
+	metadata_version: "1",
+	prefixes: { crm: { app: "crm", modular: false }, desk: { app: "frappe", modular: false } },
+	session: { user: { name: "reader@example.com" } },
+} as unknown as Boot;
+
+// As `canonical_path` writes it, under the app that owns ToDo.
+const deskBase = "/apps/desk";
+
+const placesReply = {
+	doctypes: [
+		{ name: "ToDo", app: "frappe", route: `${deskBase}/todo`, can_create: true },
+		{ name: "CRM Deal", app: "crm", route: `${boot.shell_base}/crm-deal`, can_create: true },
+	],
+	apps: [
+		{ app: "crm", title: "CRM", route: boot.shell_base },
+		{ app: "frappe", title: "Desk", route: deskBase },
+	],
+	titles: { frappe: "Desk", crm: "CRM" },
+	recent: [],
+};
+
+const panesReply = {
+	panes: [{ app: "frappe", key: "users", label: "Users", blocks: [] }],
+	sidebars: {},
+	index: [],
+	titles: { frappe: "Desk" },
+};
+
+const page = { render: () => null };
+const router = createRouter({
+	history: createMemoryHistory(boot.shell_base),
+	routes: [
+		{ path: "/", name: "home", component: page },
+		{ path: "/:doctype", name: "list", component: page },
+		{ path: "/:doctype/:name", name: "record", component: page },
+	],
+});
+const context: PaletteContext = {
+	boot,
+	router,
+	addresses: new Addresses({
+		doctypes: { ToDo: ["todo", "desk"], "CRM Deal": ["crm-deal", "fcrm"] },
+		modules: { desk: "Desk", fcrm: "FCRM" },
+	}),
+};
+
+async function settle() {
+	for (let turn = 0; turn < 3; turn++) await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+function labels(query: string) {
+	return goTo.rows(query, context).map((row) => row.label);
+}
+
+beforeAll(async () => {
+	await registerContributions(["frappe"]);
+});
+
+beforeEach(() => {
+	vi.spyOn(console, "error").mockImplementation(() => {});
+	registerShell(context);
+});
+
+describe("reading the places", () => {
+	it("keeps the panes when the places fail, asks for the places again, then asks for nothing", async () => {
+		server.places.mockRejectedValueOnce(new Error("offline"));
+		server.panes.mockResolvedValue({ data: panesReply });
+
+		loadPlaces(boot);
+		await settle();
+		expect(labels("users")).toEqual(["Users"]);
+		expect(labels("todo")).toEqual([]);
+
+		server.places.mockResolvedValue({ data: placesReply });
+		loadPlaces(boot);
+		await settle();
+		expect(labels("todo")).toEqual(["ToDo"]);
+
+		loadPlaces(boot);
+		await settle();
+		expect(server.places).toHaveBeenCalledTimes(2);
+		expect(server.panes).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe("a sidebar row and a doctype row", () => {
+	const deals: NavigationItem = { key: "deals", item_type: "DocType", link_to: "CRM Deal", label: "Deals" };
+	const open: NavigationItem = {
+		key: "open",
+		item_type: "Link",
+		label: "CRM Deal",
+		url: `${boot.shell_base}/crm-deal?status=Open`,
+	};
+
+	function goToRows(rail: NavigationItem[], query: string) {
+		const withSidebar = { ...context, boot: { ...boot, navigation: { rail, sidebars: {}, navigation_layout: "rail_and_sidebar" as const } } };
+		registerShell(withSidebar);
+		return goTo.rows(query, withSidebar).map((row) => [row.id, row.label, row.description]);
+	}
+
+	beforeEach(async () => {
+		server.places.mockResolvedValue({ data: placesReply });
+		server.panes.mockResolvedValue({ data: panesReply });
+		loadPlaces(boot);
+		await settle();
+	});
+
+	it("draws one row for one address, the sidebar's, still found by the doctype's name", () => {
+		const deal = [`sidebar:${boot.shell_base}/crm-deal`, "Deals", "CRM"];
+		expect(goToRows([deals], "deal")).toEqual([deal]);
+		expect(goToRows([deals], "crm deal")).toEqual([deal]);
+	});
+
+	it("keeps the doctype row's Tab narrowing on a link row that stands in for it", () => {
+		const link: NavigationItem = { key: "link", item_type: "Link", label: "Deals", url: `${boot.shell_base}/crm-deal` };
+		const withSidebar = { ...context, boot: { ...boot, navigation: { rail: [link], sidebars: {}, navigation_layout: "rail_and_sidebar" as const } } };
+		registerShell(withSidebar);
+		expect(goTo.rows("deal", withSidebar).map((row) => [row.id, row.doctype])).toEqual([
+			[`sidebar:${link.url}`, "CRM Deal"],
+		]);
+	});
+
+	it("names this app on a sidebar row to another app's doctype, which Enter opens here", () => {
+		const todo: NavigationItem = { key: "todo", item_type: "DocType", link_to: "ToDo", label: "My ToDos" };
+		expect(goToRows([todo], "todo")).toEqual([[`sidebar:${boot.shell_base}/todo`, "My ToDos", "CRM"]]);
+	});
+
+	it("keeps a link row to the owner's address apart from the doctype row here, naming the app it opens", () => {
+		const todo: NavigationItem = { key: "todo", item_type: "Link", label: "My ToDos", url: `${deskBase}/todo` };
+		expect(goToRows([todo], "todo")).toEqual([
+			["doctype:ToDo", "ToDo", "CRM"],
+			[`sidebar:${todo.url}`, "My ToDos", "Desk"],
+		]);
+	});
+
+	it("keeps both rows for two addresses, and the sidebar's says so", () => {
+		expect(goToRows([open], "deal")).toEqual([
+			[`sidebar:${open.url}`, "CRM Deal", "Sidebar"],
+			["doctype:CRM Deal", "CRM Deal", "CRM"],
+		]);
+	});
+});
+
+describe("a place another app owns", () => {
+	const indexBoot = { ...boot, app: null, app_title: undefined, shell_base: "/apps" } as unknown as Boot;
+	const index: PaletteContext = {
+		...context,
+		boot: indexBoot,
+		router: createRouter({
+			history: createMemoryHistory(indexBoot.shell_base),
+			routes: [{ path: "/", name: "home", component: page }],
+		}),
+	};
+
+	beforeEach(async () => {
+		server.places.mockResolvedValue({ data: placesReply });
+		server.panes.mockResolvedValue({ data: panesReply });
+		loadPlaces(boot);
+		await settle();
+	});
+
+	it("goes to ToDo on this app's router, and Tab narrows on it", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const [todo] = goTo.rows("todo", context);
+
+		expect([todo.href, todo.doctype]).toEqual([`${boot.shell_base}/todo`, "ToDo"]);
+		todo.run();
+		await settle();
+
+		expect(router.currentRoute.value.fullPath).toBe("/todo");
+		expect(assign).not.toHaveBeenCalled();
+		assign.mockRestore();
+	});
+
+	it("loads the owner's address from the index, and offers no Tab there", () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		registerShell(index);
+		const [todo] = goTo.rows("todo", index);
+
+		expect([todo.href, todo.doctype]).toEqual([`${deskBase}/todo`, undefined]);
+		todo.run();
+
+		expect(assign).toHaveBeenCalledWith(`${deskBase}/todo`);
+		assign.mockRestore();
+	});
+
+	it("keeps the owner's address, and offers no Tab, for a doctype with no module under a modular prefix", () => {
+		const modularBoot = { ...boot, prefixes: { ...boot.prefixes, crm: { app: "crm", modular: true } } } as Boot;
+		const modular: PaletteContext = {
+			...context,
+			boot: modularBoot,
+			addresses: new Addresses({ doctypes: { ToDo: ["todo", ""], "CRM Deal": ["crm-deal", "fcrm"] }, modules: { fcrm: "FCRM" } }),
+		};
+		registerShell(modular);
+
+		expect(goTo.rows("todo", modular).map((row) => [row.href, row.doctype])).toEqual([[`${deskBase}/todo`, undefined]]);
+	});
+
+	it("offers the owner's address on another app's doctype, and none on this app's own", () => {
+		const [todo] = goTo.rows("todo", context);
+		const [deal] = goTo.rows("crm deal", context);
+
+		expect([todo.description, todo.elsewhere]).toEqual(["CRM", { label: "Desk", href: `${deskBase}/todo` }]);
+		expect([deal.description, deal.elsewhere]).toEqual(["CRM", undefined]);
+	});
+
+	it("keeps the owner's address on the sidebar row that stands in for the doctype", () => {
+		const link: NavigationItem = { key: "todo", item_type: "DocType", link_to: "ToDo", label: "My ToDos" };
+		const withSidebar = { ...context, boot: { ...boot, navigation: { rail: [link], sidebars: {}, navigation_layout: "rail_and_sidebar" as const } } };
+		registerShell(withSidebar);
+		const [todo] = goTo.rows("todo", withSidebar);
+
+		expect([todo.id, todo.elsewhere?.href]).toEqual([`sidebar:${boot.shell_base}/todo`, `${deskBase}/todo`]);
+	});
+
+	it("offers no second address on the index, and names the owner there", () => {
+		registerShell(index);
+		const [todo] = goTo.rows("todo", index);
+
+		expect([todo.description, todo.elsewhere]).toEqual(["Desk", undefined]);
+	});
+
+	it("is one Recent row when visited under two prefixes, and opens here", async () => {
+		recentVisits.track(router, boot, context.addresses);
+		await router.push("/todo");
+		recentVisits.heard([
+			{ route: `${deskBase}/todo`, doctype: "ToDo", title: "ToDo", kind: "list", description: "Desk", visited: 1 },
+		]);
+		const recent = paletteGroups[0].rows("", context);
+
+		expect(recent.map((row) => [row.label, row.href])).toEqual([["ToDo", `${boot.shell_base}/todo`]]);
+	});
+});
+
+describe("opening a place", () => {
+	it("routes to this app's own address instead of loading it again", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		await router.push("/todo");
+
+		openPlace(boot.shell_base, context);
+		await settle();
+
+		expect(router.currentRoute.value.fullPath).toBe("/");
+		expect(assign).not.toHaveBeenCalled();
+		assign.mockRestore();
+	});
+});

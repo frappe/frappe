@@ -1,0 +1,214 @@
+// The list page's states: a failed meta read takes the whole page, a failed or empty rows read the
+// table's place under the controls, and an address with no doctype is not found.
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createApp, defineComponent, h, nextTick, type App, type Component } from "vue";
+import { createMemoryHistory, createRouter } from "vue-router";
+import { ApiError } from "@framework/ui/api";
+
+function stub(name: string) {
+	return defineComponent({ setup: () => () => h("div", { [`data-stub-${name}`]: "" }) });
+}
+
+vi.mock("@/shell/PageFrame.vue", async () => {
+	const { defineComponent, h } = await import("vue");
+	const PageState = (await import("@/shell/PageState.vue")).default;
+	return {
+		default: defineComponent({
+			props: ["state"],
+			setup: (props, { slots }) => () => [
+				slots.header?.(),
+				props.state ? h(PageState, props.state) : slots.default?.(),
+			],
+		}),
+		pageGutter: "",
+	};
+});
+vi.mock("@framework/ui/QuickFilter", () => ({ QuickFilter: stub("quick-filter") }));
+vi.mock("@framework/ui/Filter", () => ({ Filter: stub("filter") }));
+vi.mock("@framework/ui/SortBy", () => ({ SortBy: stub("sort") }));
+vi.mock("@framework/ui/ColumnSettings", () => ({ ColumnSettings: stub("columns") }));
+// The list draws its `empty` slot when it has no rows, as the real one does once loaded.
+vi.mock("@framework/ui/experimental/List", async () => {
+	const { defineComponent, h } = await import("vue");
+	return {
+		List: defineComponent({
+			setup: (_, { slots }) => () => h("div", { "data-stub-list": "" }, slots.empty?.()),
+		}),
+		ListFooter: stub("footer"),
+	};
+});
+// The shell is not mounted here: a link back to a list resolves to home.
+vi.mock("@/router/routeFor", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/router/routeFor")>()),
+	routeFor: (_doctype: string, _name: unknown, options?: { view?: string }) => ({
+		name: "home",
+		query: options?.view ? { view: options.view } : {},
+	}),
+}));
+vi.mock("@/list/useScrollMemory", () => ({ useScrollMemory: () => {} }));
+vi.mock("@/list/useListPage", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/list/useListPage")>()),
+	useListPage: (await import("./fakeListPage")).useListPage,
+}));
+vi.mock("@/list/useListView", async () => ({
+	useListView: (await import("./fakeListPage")).useListView,
+}));
+
+import List from "../../List.vue";
+import type { SavedView } from "@/list/savedView";
+import { PLAIN_LIST } from "@/list/useListPage";
+import ViewPage from "../ViewPage.vue";
+import { fake, installListRenderer, resetFake } from "./fakeListPage";
+
+const apps: App[] = [];
+
+// The Create button reads meta and the session; no server answers here.
+beforeEach(async () => {
+	resetFake();
+	await installListRenderer();
+	vi.stubGlobal(
+		"fetch",
+		async () =>
+			new Response(JSON.stringify({ errors: [{ type: "NotFound" }] }), { status: 404 })
+	);
+});
+
+afterEach(() => {
+	for (const app of apps.splice(0)) app.unmount();
+	document.body.innerHTML = "";
+	vi.unstubAllGlobals();
+});
+
+const BASE = "/apps/crm";
+
+async function settle() {
+	for (let turn = 0; turn < 3; turn++) {
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		await nextTick();
+	}
+}
+
+const UNBUILT = [{ name: "Kanban", label: "Kanban", icon: "kanban" }];
+const KANBAN = { key: "kanban", label: "Kanban", type: "Kanban", layer: null, applies: true };
+
+async function mount(component: Component = ViewPage, doctype: string | null = "Contact", opened: SavedView = PLAIN_LIST) {
+	const router = createRouter({
+		history: createMemoryHistory(BASE),
+		routes: [
+			{ path: "/", name: "home", component: { render: () => null } },
+			{ path: "/:doctype", component: { render: () => null } },
+		],
+	});
+	await router.push("/contact");
+	const root = document.createElement("div");
+	document.body.appendChild(root);
+	const app = createApp(defineComponent({ render: () => h(component, { doctype, opened }) }));
+	app.use(router).provide("boot", { app: "crm", app_title: "CRM", unbuilt_view_types: UNBUILT, bulk_actions: true, bulk_operation_limit: 500, session: { user: { name: "jane@example.com" } } }).provide("addresses", {
+		moduleName: () => null,
+		doctypeOf: () => doctype,
+	});
+	app.mount(root);
+	apps.push(app);
+	await settle();
+	return {
+		state: () => root.querySelector<HTMLElement>("[data-page-state]")?.dataset.pageState,
+		text: () => root.textContent ?? "",
+		has: (selector: string) => root.querySelector(selector) !== null,
+		action: () => root.querySelector<HTMLAnchorElement>("[data-page-state] a"),
+		tryAgain: () =>
+			[...root.querySelectorAll("button")]
+				.find((button) => button.textContent?.trim() === "Try again")!
+				.click(),
+	};
+}
+
+async function set(key: string, value: unknown) {
+	fake.state[key].value = value;
+	await nextTick();
+}
+
+describe("a failed meta read", () => {
+	it("draws the no permission state in place of the controls and the table", async () => {
+		const list = await mount();
+		await set("metaError", new ApiError({ type: "PermissionError", message: "No" }, 403));
+
+		expect(list.state()).toBe("noPermission");
+		expect(list.has("[data-stub-filter]")).toBe(false);
+		expect(list.has("[data-stub-list]")).toBe(false);
+		expect(list.text()).toContain("Contact");
+	});
+
+	it("draws the not found state on a 404, which offers the app's home", async () => {
+		const list = await mount();
+		await set("metaError", new ApiError({ type: "DoesNotExistError", message: "Gone" }, 404));
+
+		expect(list.state()).toBe("notFound");
+		expect(list.action()?.textContent?.trim()).toBe("Go to CRM home");
+		expect(list.action()?.getAttribute("href")).toBe(`${BASE}/`);
+	});
+
+	it("draws the offline state on a network failure, and Try again reads the meta again", async () => {
+		const list = await mount();
+		await set("metaError", new ApiError({ type: "NetworkError", message: "Failed" }, 0));
+
+		expect(list.state()).toBe("offline");
+		list.tryAgain();
+		expect(fake.reloadMeta).toHaveBeenCalledOnce();
+	});
+});
+
+describe("a rows read", () => {
+	it("that failed draws the failed state under the controls, and Try again reads the rows again", async () => {
+		const list = await mount();
+		await set("error", new ApiError({ type: "Error", message: "<b>Query</b> timed out" }, 500));
+
+		expect(list.state()).toBe("failed");
+		expect(list.text()).toContain("Query timed out");
+		expect(list.has("[data-page-state] b")).toBe(false);
+		expect(list.has("[data-stub-filter]")).toBe(true);
+
+		list.tryAgain();
+		expect(fake.reload).toHaveBeenCalledOnce();
+	});
+
+	it("that failed past rows on show draws the failed state in the table's place", async () => {
+		const list = await mount();
+		await set("rows", [{ name: "LEAD-1" }]);
+		await set("error", new ApiError({ type: "Error", message: "Timed out" }, 500));
+
+		expect(list.state()).toBe("failed");
+		expect(list.has("[data-stub-list]")).toBe(false);
+	});
+
+	it("with no rows draws the empty state", async () => {
+		const list = await mount();
+		expect(list.state()).toBe("empty");
+	});
+
+	it("with no rows under a filter draws the filtered state", async () => {
+		const list = await mount();
+		await set("filters", [["status", "=", "Open"]]);
+		expect(list.state()).toBe("filtered");
+	});
+});
+
+describe("a view type that is not built yet", () => {
+	it("draws a placeholder in the table's place, under the controls, with a way back to the List view", async () => {
+		const list = await mount(ViewPage, "Contact", KANBAN);
+
+		await vi.waitFor(() => expect(list.text()).toContain("Kanban view is not built yet"));
+		expect(list.has("[data-stub-filter]")).toBe(true);
+		expect(list.has("[data-stub-list]")).toBe(false);
+		expect(list.action()?.textContent?.trim()).toBe("Open the List view");
+		expect(list.action()?.getAttribute("href")).toContain("view=list");
+	});
+});
+
+describe("an address with no doctype", () => {
+	it("draws the not found state, which offers the app's home", async () => {
+		const list = await mount(List, null);
+		expect(list.state()).toBe("notFound");
+		expect(list.action()?.textContent?.trim()).toBe("Go to CRM home");
+		expect(list.action()?.getAttribute("href")).toBe(`${BASE}/`);
+	});
+});

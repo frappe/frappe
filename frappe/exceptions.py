@@ -205,6 +205,10 @@ class AppDisabledError(AppNotInstalledError):
 	pass
 
 
+class DeskV2DisabledError(PermissionError):
+	pass
+
+
 class IncorrectSitePath(NotFound):
 	pass
 
@@ -333,3 +337,11 @@ class CommandFailedError(Exception):
 		super().__init__(message)
 		self.out = out
 		self.err = err
+
+
+class TemplateCompileError(ValidationError):
+	"""A script's `template:` strings did not compile. The v2 error entry carries `code_errors`."""
+
+	def __init__(self, message: str, code_errors: list[dict]):
+		super().__init__(message)
+		self.code_errors = code_errors

@@ -11,9 +11,37 @@ app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
 develop_version = "17.x.x-develop"
 app_home = "/desk/build"
 
+# --- desk v2 -----------------------------------------------------------------
+# The desk claims its prefix through the mechanism it is building; `desk` names the product.
+app_prefix = "desk"
+
+# No `app_permission` on purpose: its absence means "not a Website User", which `/desk` has always meant.
+
+# The save-time rule for each kind of row a person or the site may add; a module holding `validate_own_row`.
+navigation_item_validators = {
+	"Act": ["frappe.shell.act_row"],
+	"View": ["frappe.desk.navigation_item_type.view.view"],
+}
+
+# The type's `can_see`, which the `Custom` permission rule asks.
+navigation_item_resolvers = {"View": ["frappe.desk.navigation_item_type.view.view"]}
+
+# What the editor's read merges into a type's rows (e.g. `view_deleted`); a save drops it.
+navigation_item_markers = {"View": ["frappe.desk.navigation_item_type.view.view.mark_rows"]}
+
+# What a stored Client Script imports by bare name; the rule is in frontend/COMPATIBILITY.md.
+import_map = {
+	"vue": "vue",
+	"vue-router": "vue-router",
+	"frappe-ui": "frappe-ui",
+	"@framework/ui": "@framework/ui",
+	"frappe/i18n": "./frontend/i18n.js",
+}
+
 app_email = "developers@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
+before_app_install = "frappe.shell.install.before_app_install"
 after_install = [
 	"frappe.utils.install.after_install",
 	"frappe.flow.permissions.ensure_flow_role",
@@ -22,6 +50,8 @@ after_install = [
 ]
 after_app_install = [
 	"frappe.utils.install.create_desktop_icons_for_app",
+	# A newly installed app claims a prefix, so the cached registry is stale.
+	"frappe.shell.registry.clear_prefix_registry_for_app",
 	"frappe.studio.sync.after_app_install",
 	"frappe.flow.assistant.sync_assistant_skills",
 	"frappe.flow.lib.agent.sync_agents",
@@ -80,16 +110,19 @@ website_route_rules = [
 	{"from_route": "/flow/<path:app_path>", "to_route": "flow"},
 ]
 
-# Studio: a Studio App with a published page is served at its route by this renderer
-page_renderer = ["frappe.studio.doctype.studio_app.studio_app.StudioAppRenderer"]
-
 website_redirects = [
 	{"source": r"/app/(.*)", "target": r"/desk/\1", "forward_query_parameters": True},
-	{"source": "/apps", "target": "/desk"},
 	{"source": "/app", "target": "/desk"},
 ]
 
 base_template = "templates/base.html"
+
+page_renderer = [
+	# Studio: a Studio App with a published page is served at its route by this renderer
+	"frappe.studio.doctype.studio_app.studio_app.StudioAppRenderer",
+	# Only in developer mode.
+	"frappe.website.page_renderers.desk_architecture_page.DeskArchitecturePage",
+]
 
 write_file_keys = ["file_url", "file_name"]
 
@@ -139,6 +172,7 @@ permission_query_conditions = {
 	],
 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
+	"Favourite": "frappe.desk.doctype.favourite.favourite.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Dashboard Settings": "frappe.desk.doctype.dashboard_settings.dashboard_settings.get_permission_query_conditions",
 	"Notification Log": "frappe.desk.doctype.notification_log.notification_log.get_permission_query_conditions",
@@ -172,6 +206,10 @@ permission_query_conditions = {
 	"Scheduled Job Type": "frappe.core.doctype.scheduled_job_type.scheduled_job_type.get_permission_query_conditions",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.get_permission_query_conditions",
 	"Dock": "frappe.desk.doctype.dock.dock.get_permission_query_conditions",
+	"Rail": "frappe.desk.doctype.rail.rail.get_permission_query_conditions",
+	"Doctype View": "frappe.desk.doctype.doctype_view.doctype_view.get_permission_query_conditions",
+	"Default View": "frappe.desk.doctype.doctype_view.doctype_view.get_permission_query_conditions",
+	"Sidebar": "frappe.desk.doctype.sidebar.sidebar.get_permission_query_conditions",
 	"DocType": "frappe.app_state.get_module_permission_query_conditions",
 	"Page": "frappe.app_state.get_module_permission_query_conditions",
 	"Workspace": [
@@ -199,6 +237,7 @@ has_permission = {
 	"Report": "frappe.core.doctype.report.report.has_permission",
 	"Event": "frappe.desk.doctype.event.event.has_permission",
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
+	"Favourite": "frappe.desk.doctype.favourite.favourite.has_permission",
 	"Note": "frappe.desk.doctype.note.note.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission",
 	"Dashboard Chart": "frappe.desk.doctype.dashboard_chart.dashboard_chart.has_permission",
@@ -220,6 +259,10 @@ has_permission = {
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
 	"Dock": "frappe.desk.doctype.dock.dock.has_permission",
+	"Rail": "frappe.desk.doctype.rail.rail.has_permission",
+	"Doctype View": "frappe.desk.doctype.doctype_view.doctype_view.has_permission",
+	"Default View": "frappe.desk.doctype.doctype_view.doctype_view.has_permission",
+	"Sidebar": "frappe.desk.doctype.sidebar.sidebar.has_permission",
 	"Workspace": "frappe.desk.doctype.workspace.workspace.has_permission",
 	"Studio AI Session": "frappe.studio.permissions.has_session_permission",
 	"Studio AI Message": "frappe.studio.permissions.has_message_permission",
@@ -252,6 +295,8 @@ additional_timeline_content = {
 
 doc_events = {
 	"*": {
+		# Wildcard because three of WebsiteGenerator's four subclasses bypass its `validate()`.
+		"validate": "frappe.shell.route_guard.validate_route",
 		"after_insert": "frappe.flow.triggers.dispatch",
 		"on_update": [
 			"frappe.desk.notifications.clear_doctype_notifications",
@@ -300,7 +345,13 @@ doc_events = {
 		"on_update": "frappe.integrations.doctype.google_contacts.google_contacts.update_contacts_to_google_contacts",
 	},
 	"DocType": {
+		"validate": "frappe.shell.address_clash.validate_address",
+		"before_rename": "frappe.shell.address_clash.validate_renamed_address",
 		"on_update": "frappe.cache_manager.build_domain_restricted_doctype_cache",
+	},
+	"Module Def": {
+		"validate": "frappe.shell.address_clash.validate_address",
+		"before_rename": "frappe.shell.address_clash.validate_renamed_address",
 	},
 	"Page": {
 		"on_update": "frappe.cache_manager.build_domain_restricted_page_cache",
@@ -416,6 +467,7 @@ after_migrate = [
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
 	"frappe.studio.sync.after_migrate",
+	"frappe.shell.settings.check_shipped_records_after_migrate",
 	"frappe.flow.permissions.ensure_flow_role",
 	"frappe.flow.assistant.sync_builtin_assistant",
 	"frappe.flow.lib.agent.sync_agents",
@@ -539,6 +591,7 @@ ignore_links_on_delete = [
 	"File",
 	"Version",
 	"Document Follow",
+	"Favourite",
 	"Comment",
 	"View Log",
 	"Tag Link",
@@ -560,6 +613,8 @@ ignore_links_on_delete = [
 	"Sidebar",
 	"Custom Sidebar",
 	"Dock",
+	"Rail",
+	"Settings Dialog",
 	"Background Task",
 	# Flow keeps these as bookkeeping: an indexed doc, a trigger's target, a chat's model.
 	"Flow Knowledge Chunk",

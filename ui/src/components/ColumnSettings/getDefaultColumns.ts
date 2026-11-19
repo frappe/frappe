@@ -1,4 +1,5 @@
 import type { RawMetaField } from "../FormLayout/types";
+import { isColumnFieldtype } from "./getColumnOptions";
 import type { Column, SyntheticColumn } from "./types";
 
 /** The `name` standard field — the default leading column when the doctype has
@@ -23,7 +24,7 @@ function leadingColumn(fields: RawMetaField[], titleField?: string): Column {
  * default columns (Frappe's own list-view convention), mapped to the `Column`
  * shape with the leading column prepended. The leading column is the doctype's
  * `title_field` when set, else `name`; the title field is then dropped from the
- * `in_list_view` tail so it isn't listed twice. `width` is left unset so it
+ * `in_list_view` tail so it isn't listed twice, as is a no-value fieldtype. `width` is left unset so it
  * falls back to the default at serialize time. Used by `useListView` as the seed
  * the ColumnSettings control customizes; not a CRM columns endpoint.
  */
@@ -35,7 +36,12 @@ export function getDefaultColumns(
   return [
     leading,
     ...fields
-      .filter((f) => f.in_list_view && f.fieldname !== leading.fieldname)
+      .filter(
+        (f) =>
+          f.in_list_view &&
+          isColumnFieldtype(f.fieldtype) &&
+          f.fieldname !== leading.fieldname
+      )
       .map((f) => ({ fieldname: f.fieldname, label: f.label ?? f.fieldname })),
   ];
 }
@@ -43,7 +49,7 @@ export function getDefaultColumns(
 /** Convert a synthetic declaration to its persisted {@link Column} form: the `key`
  *  rides the `fieldname` slot, the declaration's default `width` seeds the column
  *  (dropped when unset so it flexes). Render metadata (`type`/`align`) is never
- *  stored — `serializeColumns` re-derives it from the declaration (ADR-0033). */
+ *  stored — `serializeColumns` re-derives it from the declaration. */
 function toColumn(declaration: SyntheticColumn): Column {
   const column: Column = {
     fieldname: declaration.key,
@@ -54,7 +60,7 @@ function toColumn(declaration: SyntheticColumn): Column {
 }
 
 /**
- * Fold host-declared synthetic columns (ADR-0033) into a Meta-derived default seed:
+ * Fold host-declared synthetic columns into a Meta-derived default seed:
  * each declaration is inserted at its `place` anchor (`'start'` | `'after-title'`
  * [right after the leading title/name column] | `'end'`, default `'end'`), and any
  * docfield it `subsumes` is dropped from the seed (default-only, so it stays

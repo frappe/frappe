@@ -1,4 +1,6 @@
 import { evaluateDependsOn } from "./dependsOn";
+import { isEmptyValue } from "./emptyValue";
+import { mergeLinkFilters, resolveLinkFilters } from "./linkFilters";
 import type {
   Column,
   FieldMeta,
@@ -37,7 +39,7 @@ function warnRefused(f: FieldMeta, key: string, wanted: boolean): void {
   warned.add(once);
   console.warn(
     `[FormLayout] ignored override.${key} = ${wanted} on "${f.fieldname}": ` +
-      `permlevel ${f.permlevel ?? "?"} denies access, which an override cannot lift.`
+      "the reader's access is denied here, which an override cannot lift."
   );
 }
 
@@ -118,16 +120,22 @@ export function resolveFieldConditionals<
       evaluateDependsOn(f.mandatoryDependsOn, doc, parent));
   const readOnly =
     f.readOnly ||
+    f.fieldtype === "Read Only" ||
     (!!f.readOnlyDependsOn &&
       evaluateDependsOn(f.readOnlyDependsOn, doc, parent));
 
+  // Desk v1 lets the DocField's filters win over a script's (`link.js`).
+  const own = f.linkFilters && resolveLinkFilters(f.linkFilters, doc, parent);
+  const filters = own ? mergeLinkFilters(f.filters, own, f.options) : f.filters;
+
   const override = f.override;
-  if (!override) return { ...f, hidden, reqd, readOnly };
+  if (!override) return { ...f, hidden, reqd, readOnly, filters };
 
   // Last word, on purpose: the override is the only thing here that can turn a
   // conditional result off, which is what lets an app beat `depends_on`.
   return {
     ...f,
+    filters,
     hidden: applyOverride(f, "hidden", hidden, override.hidden),
     reqd: applyReqd(f, reqd, override.reqd),
     readOnly: applyOverride(f, "readOnly", readOnly, override.readOnly),
@@ -144,7 +152,9 @@ export function resolveFieldConditionals<
  *
  * Resolution rules (a node with no expressions passes through unchanged):
  * - field-level rules: see `resolveFieldConditionals`;
- * - section / tab `hidden` = its static `hidden` OR `depends_on` false.
+ * - section / column / tab `hidden` = its static `hidden` OR `depends_on` false;
+ * - a collapsible section with `collapsibleDependsOn` is `opened` when it holds,
+ *   or while it has an empty mandatory field (desk's `has_missing_mandatory`).
  *
  * `parent` is the enclosing doc (the row dialog passes the parent doc so a
  * child's `parent.x` resolves); it defaults to `doc` for a top-level form,
@@ -158,18 +168,32 @@ export function resolveLayout(
   const resolveField = (f: FieldNode): FieldNode =>
     resolveFieldConditionals(f, doc, parent);
 
-  const resolveColumn = (c: Column): Column => ({
-    ...c,
-    fields: c.fields.map(resolveField),
-  });
+  const shown = (container: { hidden?: boolean; dependsOn?: string }) =>
+    !container.hidden &&
+    (!container.dependsOn ||
+      evaluateDependsOn(container.dependsOn, doc, parent));
 
-  const resolveSection = (s: Section): Section => ({
-    ...s,
-    hidden:
-      s.hidden ||
-      (!!s.dependsOn && !evaluateDependsOn(s.dependsOn, doc, parent)),
-    columns: s.columns.map(resolveColumn),
-  });
+  // A hidden column hides its fields too, so every reader of `field.hidden` (the
+  // required check, the side panel, autofocus) skips them without knowing columns.
+  const resolveColumn = (c: Column): Column => {
+    const fields = c.fields.map(resolveField);
+    if (shown(c)) return { ...c, fields };
+    return {
+      ...c,
+      hidden: true,
+      fields: fields.map((f) => ({ ...f, hidden: true })),
+    };
+  };
+
+  const resolveSection = (s: Section): Section => {
+    const columns = s.columns.map(resolveColumn);
+    const opened =
+      s.collapsible && s.collapsibleDependsOn
+        ? evaluateDependsOn(s.collapsibleDependsOn, doc, parent) ||
+          columns.some((c) => c.fields.some((f) => isMissing(f, doc)))
+        : s.opened;
+    return { ...s, hidden: !shown(s), opened, columns };
+  };
 
   const resolveTab = (t: Tab): Tab => ({
     ...resolveTabConditionals(t, doc, parent),
@@ -186,11 +210,11 @@ export function resolveLayout(
  * Exported because the Record page's `page.form.tabs` answers "is this one tab on
  * screen" without resolving the whole form, and the two must not drift.
  */
-export function resolveTabConditionals(
-  t: Tab,
+export function resolveTabConditionals<T extends Tab>(
+  t: T,
   doc: Record<string, any>,
   parent: Record<string, any> = doc
-): Tab {
+): T {
   return {
     ...t,
     hidden:
@@ -211,4 +235,8 @@ export function applyTabOverride(t: Tab): { hidden: boolean; label: string } {
     hidden: t.override?.hidden ?? !!t.hidden,
     label: t.override?.label ?? t.label ?? "",
   };
+}
+
+function isMissing(field: FieldNode, doc: Record<string, any>): boolean {
+  return !!field.reqd && !field.hidden && isEmptyValue(doc[field.fieldname]);
 }

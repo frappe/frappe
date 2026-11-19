@@ -1,0 +1,72 @@
+// The record page's acts on the dispatcher: the header items, quick actions and tab `create`
+// entries that have `run`, read as drawn after the replay.
+import { acts, passesRight, passesWhen, type ActEntry, type ActScope } from "@/acts/dispatcher";
+import { containerDisplay, hidingDenied, surviving } from "@/pageEngine/headerRenderings";
+import { postCommentItem, type PostComment } from "./commentAct";
+import type { ResolvedItem, Surface } from "@/pageEngine/surface";
+import type { HeaderItem, QuickAction, RecordPageApi, TabItem } from "./types";
+import type { PagePermissions } from "./pagePermissions";
+import { recordEntries, type RecordFormHost } from "./recordForm";
+
+export interface PageActsHost {
+  page: RecordPageApi;
+  header: Surface<HeaderItem>;
+  quickActions: Surface<QuickAction>;
+  tabs: Surface<TabItem>;
+  form: Omit<RecordFormHost, "page">;
+  permissions: Pick<PagePermissions, "passes" | "settled">;
+  postComment?: PostComment;
+  hold: ActScope["hold"];
+  failed: ActScope["failed"];
+}
+
+/** Registers the page's act surfaces: header, quickActions, tabs and `record`; the returned function takes them off again. */
+export function registerPageActs(host: PageActsHost): () => void {
+  return acts.register({
+    surfaces: {
+      header: () =>
+        headerEntries(
+          host.header.resolve(),
+          (item) => passesWhen({ context: () => host.page }, item) && passesRight(host.permissions, item)
+        ),
+      quickActions: () => host.quickActions.resolve(),
+      tabs: () => createEntries(host.tabs.resolve()),
+      record: () => [
+        ...recordEntries({ page: host.page, ...host.form }),
+        ...(host.postComment ? [{ item: postCommentItem(host.postComment), hidden: false }] : []),
+      ],
+    },
+    context: () => host.page,
+    passes: host.permissions.passes,
+    settled: host.permissions.settled,
+    hold: host.hold,
+    failed: host.failed,
+    facts: (fields) => import("./recordFacts").then((m) => m.recordFacts(host, fields)),
+  });
+}
+
+/** A container is no act, and a member of a container hidden or denied is hidden with it. */
+export function headerEntries(
+  resolved: ResolvedItem<HeaderItem>[],
+  allows: (item: HeaderItem) => boolean
+): ActEntry[] {
+  const shown = namesOf(surviving(resolved));
+  const drawn = namesOf(surviving(hidingDenied(resolved, allows)));
+  // An item denied by its own right or `when` is left to the dispatcher's right check, so `run` rejects it.
+  const hidden = (item: HeaderItem) =>
+    !shown.has(item.name) || (allows(item) && !drawn.has(item.name));
+  return resolved
+    .filter((entry) => !containerDisplay(entry.item))
+    .map((entry) => ({ item: entry.item, hidden: hidden(entry.item) }));
+}
+
+function namesOf(entries: ResolvedItem<HeaderItem>[]) {
+  return new Set(entries.map((entry) => entry.item.name));
+}
+
+/** A tab's `create` entry is hidden with its tab. */
+function createEntries(resolved: ResolvedItem<TabItem>[]): ActEntry[] {
+  return resolved.flatMap(({ item, hidden }) =>
+    item.create?.name ? [{ item: item.create, hidden }] : []
+  );
+}

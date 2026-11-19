@@ -1,0 +1,13 @@
+{
+ "creation": "2026-10-31 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "View Type",
+ "icon": "list",
+ "idx": 0,
+ "label": "List",
+ "modified": "2026-10-31 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "List",
+ "owner": "Administrator"
+}

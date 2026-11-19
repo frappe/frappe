@@ -1,0 +1,132 @@
+import { translate as __ } from "../utils/translate";
+
+/** One entry of the `errors` list a v2 response carries when a request failed. */
+export interface ErrorEntry {
+  type: string;
+  message?: string;
+  title?: string;
+  exception?: string;
+  indicator?: string;
+  code_errors?: CodeError[];
+  field_errors?: FieldError[];
+  stale_doc?: StaleDoc;
+}
+
+/**
+ * The record a `TimestampMismatchError` is about. `hidden` stands in for a record the user
+ * cannot read, so the response does not name it.
+ */
+export type StaleDoc = { doctype: string; name: string } | { hidden: true };
+
+/** A compile error in a Code field's text; line and column count from 1. */
+export interface CodeError {
+  field: string;
+  line: number;
+  column: number;
+  message: string;
+}
+
+/** A field a save refused; `row` (when the row has a name) and `idx` address a child row. */
+export interface FieldError {
+  fieldname: string;
+  parentfield?: string;
+  row?: string;
+  idx?: number;
+  message: string;
+}
+
+/** A v2 response body: `data`, plus what the route adds beside it (`has_next_page`, `include` parts). */
+export type Envelope<T> = { data: T } & Record<string, unknown>;
+
+export const TIMESTAMP_MISMATCH = "TimestampMismatchError";
+
+/** The first entry of a failed response's `errors` list, as a throwable. */
+export class ApiError extends Error {
+  readonly type: string;
+  readonly title?: string;
+  readonly exception?: string;
+  readonly indicator?: string;
+  readonly codeErrors?: CodeError[];
+  readonly fieldErrors?: FieldError[];
+  readonly staleDoc?: StaleDoc;
+  readonly status: number;
+
+  constructor(entry: ErrorEntry, status: number) {
+    super(entry.message || entry.type);
+    this.name = "ApiError";
+    this.type = entry.type;
+    this.title = entry.title;
+    this.exception = entry.exception;
+    this.indicator = entry.indicator;
+    this.codeErrors = entry.code_errors;
+    this.fieldErrors = entry.field_errors;
+    this.staleDoc = entry.stale_doc;
+    this.status = status;
+  }
+
+  get isTimestampMismatch(): boolean {
+    return this.type === TIMESTAMP_MISMATCH;
+  }
+}
+
+export function isApiError(error: unknown): error is ApiError {
+  return error instanceof ApiError;
+}
+
+export interface ReadOptions {
+  /** `METHOD /path`, named in the message of an error the wrapper makes itself. */
+  source?: string;
+  /** The route hands back what a function returned, so a body with no `data` is a `null`. */
+  nullable?: boolean;
+}
+
+/** Turn a parsed response body into an envelope, or throw its first error. */
+export function readEnvelope<T>(
+  body: unknown,
+  status: number,
+  { source, nullable = false }: ReadOptions = {}
+): Envelope<T> {
+  const errors = (body as { errors?: unknown } | null)?.errors;
+  if (Array.isArray(errors) && errors.length) {
+    throw new ApiError(errors[0] as ErrorEntry, status);
+  }
+  const where = source ?? "The request";
+  if (status >= 400) {
+    throw new ApiError({ type: "HTTPError", message: httpFailure(where, status) }, status);
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new ApiError(
+      { type: "InvalidResponse", message: `${where} did not answer with a JSON object` },
+      status
+    );
+  }
+  if (!("data" in body)) {
+    if (!nullable) {
+      throw new ApiError(
+        { type: "MissingData", message: `${where} answered ${status} with no data` },
+        status
+      );
+    }
+    return { ...body, data: null } as Envelope<T>;
+  }
+  return body as Envelope<T>;
+}
+
+/** A sentence a reader can act on. The raw line, with the status, goes to the console. */
+export function httpFailure(where: string, status: number): string {
+  console.error(`${where} failed with status ${status}`);
+  const [method, path = ""] = where.split(" ");
+  const [, route, name] = path.split("?")[0].split("/");
+  const what = route === "document" && name ? safeDecode(name) : __("the data");
+  if (method === "GET") return __("Could not load {0}. Try again.", [what]);
+  if (method === "DELETE") return __("Could not delete {0}. Try again.", [what]);
+  return __("Could not save {0}. Try again.", [what]);
+}
+
+function safeDecode(text: string): string {
+  try {
+    return decodeURIComponent(text);
+  } catch {
+    return text;
+  }
+}

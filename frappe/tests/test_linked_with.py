@@ -207,6 +207,23 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 2)
 		doc.reload().delete()
 
+	def test_cancel_all_linked_docs_refuses_a_stale_root(self):
+		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
+		doc.submit()
+		docs = [{"doctype": "Parent DocType", "name": doc.name, "docstatus": 1}]
+		args = {"docs": docs, "root_doctype": "Parent DocType", "root_name": doc.name}
+
+		with self.assertRaises(frappe.TimestampMismatchError):
+			linked_with.cancel_all_linked_docs(**args, root_modified="2000-01-01 00:00:00.000000")
+		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 1)
+
+		with self.assertRaises(frappe.ValidationError):
+			linked_with.cancel_all_linked_docs(docs=docs, root_modified=str(doc.modified))
+
+		linked_with.cancel_all_linked_docs(**args, root_modified=str(doc.modified))
+		self.assertEqual(frappe.db.get_value("Parent DocType", doc.name, "docstatus"), 2)
+		doc.reload().delete()
+
 	def test_get_submitted_linked_docs_deepest_first(self):
 		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
 		child1 = (
@@ -942,6 +959,63 @@ class TestLinkedWith(IntegrationTestCase):
 		)
 		self.assertIn("docs", result)
 		parent_record.delete()
+
+	def test_cancel_all_ignores_doctypes_from_the_hook(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		hooks = {"ignore_doctypes_on_cancel_all": {"Parent DocType": ["Child DocType1"]}}
+
+		with self.patch_hooks(hooks):
+			listed = linked_with.get_submitted_linked_docs(parent.doctype, parent.name)["docs"]
+			with patch.object(linked_with, "process_linked_docs_in_dependency_order") as process:
+				linked_with.cancel_all_linked_docs(
+					[{"doctype": child.doctype, "name": child.name, "docstatus": 1}],
+					root_doctype=parent.doctype,
+					root_name=parent.name,
+				)
+
+		self.assertEqual(listed, [])
+		self.assertEqual(
+			[(doc.doctype, doc.name) for doc in process.call_args.args[0]], [(parent.doctype, parent.name)]
+		)
+		child.reload().cancel()
+
+	def test_background_cancel_ignores_doctypes_from_the_hook(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+		hooks = {"ignore_doctypes_on_cancel_all": {"Parent DocType": ["Child DocType1"]}}
+
+		with (
+			self.patch_hooks(hooks),
+			patch.object(linked_with, "process_linked_docs_in_dependency_order") as process,
+		):
+			linked_with.cancel_all_linked_docs(root_doctype=parent.doctype, root_name=parent.name)
+
+		self.assertEqual(
+			[(doc.doctype, doc.name) for doc in process.call_args.args[0]], [(parent.doctype, parent.name)]
+		)
+		child.reload().cancel()
+
+	def test_hook_ignore_list_merges_with_the_passed_list_and_all_apps(self):
+		hooks = {"ignore_doctypes_on_cancel_all": {"Parent DocType": ["Comment"], "Other DocType": ["ToDo"]}}
+
+		with self.patch_hooks(hooks):
+			merged = linked_with.with_hooked_ignore_doctypes("Parent DocType", ["Child DocType1"])
+			from_json = linked_with.with_hooked_ignore_doctypes("Parent DocType", '["Comment", "ToDo"]')
+
+		self.assertEqual(merged, ["Child DocType1", "Comment"])
+		self.assertEqual(from_json, ["Comment", "ToDo"])
+
+	def test_ignore_list_without_the_hook_is_the_passed_list(self):
+		parent = frappe.get_doc({"doctype": "Parent DocType"}).insert().submit()
+		child = frappe.get_doc({"doctype": "Child DocType1", "parent_doctype": parent.name}).insert().submit()
+
+		listed = linked_with.get_submitted_linked_docs(parent.doctype, parent.name)["docs"]
+
+		self.assertEqual([doc["name"] for doc in listed], [child.name])
+		self.assertEqual(linked_with.with_hooked_ignore_doctypes("Parent DocType"), [])
+		self.assertEqual(linked_with.with_hooked_ignore_doctypes("Parent DocType", ["ToDo"]), ["ToDo"])
+		child.reload().cancel()
 
 	def test_get_linked_docs_accepts_native_linkinfo(self):
 		parent_record = frappe.get_doc({"doctype": "Parent DocType"}).insert()

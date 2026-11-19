@@ -1,12 +1,23 @@
 export { default as ActivityTimeline } from "./ActivityTimeline.vue";
 export { default as TimelineContainer } from "./TimelineContainer.vue";
+export { default as TimelineSkeleton } from "./TimelineSkeleton.vue";
 export { default as AttachmentChip } from "./AttachmentChip.vue";
 export { default as EmailItem } from "./EmailItem.vue";
 export { default as CommentItem } from "./CommentItem.vue";
 export { default as LogItem } from "./LogItem.vue";
 export { default as VersionItem } from "./VersionItem.vue";
+export { default as TimeAgo } from "./TimeAgo.vue";
+export {
+  activityTimelineRows,
+  endActivityPrefetch,
+  hasActivityTimeline,
+  prefetchActivityTimeline,
+  reloadActivityTimeline,
+  stageActivityTimelineRead,
+  useActivityTimeline,
+} from "./useActivityTimeline";
 export { addPendingActivity } from "./pendingRows";
-export { useActivityTimeline } from "./useActivityTimeline";
+export { compareActivities } from "./grouping";
 export type {
   Activity,
   ActivityTimelineProps,

@@ -118,7 +118,7 @@ describe("useListView snapshot / restore", () => {
     expect(view.columns.isCustomized.value).toBe(false);
   });
 
-  it("threads synthetic column declarations through to useColumns (ADR-0033)", () => {
+  it("threads synthetic column declarations through to useColumns", () => {
     const indicator = {
       key: "_indicator",
       label: "Status",

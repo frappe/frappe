@@ -11,8 +11,30 @@ export type {
 export * from "./components/Composer";
 export { useDoctypeMeta } from "./composables/useDoctypeMeta";
 export type { UseDoctypeMeta, DoctypeMeta } from "./composables/useDoctypeMeta";
+export { usePagedList } from "./composables/usePagedList";
+export type { UsePagedList, UsePagedListOptions, PageQuery } from "./composables/usePagedList";
+export { useLinkSearch } from "./composables/useLinkSearch";
+export type { UseLinkSearch, LinkSearchOption } from "./composables/useLinkSearch";
+export {
+  currentSession,
+  provideSession,
+  SessionKey,
+  setSession,
+  useSession,
+} from "./composables/useSession";
+export type { UseSession } from "./composables/useSession";
+export {
+  clearDataCache,
+  listCacheKey,
+  readCachedDocument,
+  readCachedList,
+  readCachedRows,
+  RECORD_PARTS,
+} from "./cache";
+export type { DocumentEntry, ListEntry } from "./cache";
 export * from "./utils";
 export * from "./components/Grid";
+export * from "./components/SectionMarks";
 export * from "./components/Phone";
 export * from "./components/TableMultiSelect";
 export * from "./components/Notifications";

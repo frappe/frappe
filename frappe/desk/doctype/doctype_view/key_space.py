@@ -1,0 +1,140 @@
+# One doctype's view keys: every layer's saved views share them, so a key names one view.
+
+import re
+import unicodedata
+
+import frappe
+from frappe import _
+from frappe.desk.doctype.view_type.view_type import applies_to, type_keys, view_types
+
+from .app_views import app_views
+from .doctype_view import PLAIN_VIEW, SITE_ROW
+
+UNBUILT_TYPES = {"Kanban": "kanban", "Calendar": "calendar", "Tree": "list-tree", "Report": "table"}
+UNBUILT_KEYS = frozenset(name.lower() for name in UNBUILT_TYPES)
+
+# `/<doctype>/view/record` is the standard page of the record named "view".
+HELD_KEYS = frozenset({"record"})
+
+KEY_LENGTH_LIMIT = 60
+RANDOM_KEY_LENGTH = 8
+
+
+class KeySpace:
+	"""The keys of one doctype's saved views, across each person's rows and the site's."""
+
+	def __init__(self, doctype: str):
+		self.doctype = doctype
+
+	def find(self, key: str, user: str | None = None) -> frappe._dict | None:
+		"""The view at `key` that `user` sees: their own, else the site's, else an app's."""
+		found = find_views([(self.doctype, key)], user)
+		return found.get((self.doctype, key))
+
+	def claim(self, wanted: str, lost: frozenset[str] = frozenset()) -> str:
+		"""A free key from `wanted` made URL-safe, with a suffix when taken or `lost` to another insert."""
+		base = url_safe(wanted) or frappe.generate_hash(length=RANDOM_KEY_LENGTH)
+		taken = self.taken(base) | lost
+		if base not in taken:
+			return base
+
+		suffix = 2
+		while f"{base}-{suffix}" in taken:
+			suffix += 1
+		return f"{base}-{suffix}"
+
+	def taken(self, base: str) -> set[str]:
+		"""The keys a new view cannot have that start with `base`: reserved names, every person's, the site's and the apps'."""
+		view = frappe.qb.DocType("Doctype View")
+		# A plain read misses keys committed after this transaction's snapshot; the insert's unique index catches those.
+		keys = (
+			frappe.qb.from_(view)
+			.select(view.key)
+			.where(view.reference_doctype == self.doctype)
+			.where((view.key == base) | view.key.like(f"{base}-%"))
+			.run(pluck=True)
+		)
+		return set(keys) | reserved_keys() | set(app_views(self.doctype))
+
+
+def reserved_keys() -> frozenset[str]:
+	"""Keys no saved view may take: `/<doctype>/view/<type>` is the plain view of each `View Type`."""
+	return frozenset(type_keys()) | UNBUILT_KEYS | HELD_KEYS
+
+
+def unbuilt_view_types() -> list[dict]:
+	"""The kept types still to build, in `view_types`' shape; a type drops out once its record exists."""
+	built = type_keys()
+	return [
+		{"name": name, "label": _(name), "icon": icon}
+		for name, icon in UNBUILT_TYPES.items()
+		if name.lower() not in built
+	]
+
+
+def find_views(
+	targets: list[tuple[str, str]], user: str | None = None, own: bool = True
+) -> dict[tuple[str, str], frappe._dict]:
+	"""`{(doctype, key): view}` for each target `user` sees, their own before the site's before an app's; one query."""
+	# `own=False` is what everyone sees: the site's rows and the apps', never a person's.
+	user = user or frappe.session.user
+	keys = {key for _doctype, key in targets if key and key != PLAIN_VIEW}
+	if not keys:
+		return {}
+
+	rows = frappe.get_all(
+		"Doctype View",
+		filters={
+			"reference_doctype": ("in", {doctype for doctype, _key in targets}),
+			"key": ("in", keys),
+			"user": ("in", (user, SITE_ROW) if own else (SITE_ROW,)),
+		},
+		fields=["name", "reference_doctype", "key", "label", "type", "user"],
+	)
+	found = {target: app_row(*target) for target in targets if target[1] in app_views(target[0])}
+	for row in sorted(rows, key=lambda row: row.user != SITE_ROW):
+		found[(row.reference_doctype, row.key)] = row  # the site's first, so the person's own overwrites it
+	return {target: found[target] for target in targets if target in found}
+
+
+def open_views(
+	targets: list[tuple[str, str]], user: str | None = None, own: bool = True
+) -> set[tuple[str, str]]:
+	"""The (doctype, key) targets that open: a plain view whose type fits, or a saved view whose type still fits."""
+	plain = type_keys()
+	saved = [target for target in targets if target[1] not in plain]
+	opened = {(doctype, key) for doctype, key in targets if key in plain and fits(plain[key], doctype)}
+
+	for target, view in find_views(saved, user, own).items():
+		if fits(view.type, target[0]):
+			opened.add(target)
+	return opened
+
+
+def fits(view_type: str, doctype: str) -> bool:
+	"""Whether the type exists and applies to the doctype; a doctype that is gone fits nothing."""
+	try:
+		return view_type in view_types() and applies_to(view_type, doctype)
+	except frappe.DoesNotExistError:
+		return False
+
+
+def app_row(doctype: str, key: str) -> frappe._dict:
+	"""An app view in a row's shape; it has no row name and no user."""
+	view = app_views(doctype)[key]
+	return frappe._dict(
+		name=None,
+		reference_doctype=doctype,
+		key=key,
+		label=_(view.label),
+		type=view.type,
+		user=None,
+		app=view.app,
+	)
+
+
+def url_safe(label: str) -> str:
+	"""The label in lower-case ASCII letters and digits, words joined by `-`; blank when none are left."""
+	ascii_label = unicodedata.normalize("NFKD", label or "").encode("ascii", "ignore").decode()
+	words = re.sub(r"[^a-z0-9]+", "-", ascii_label.lower()).strip("-")
+	return words[:KEY_LENGTH_LIMIT].rstrip("-")

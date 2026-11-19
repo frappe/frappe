@@ -128,3 +128,43 @@ test.describe("Flow launcher", () => {
 		await expect(launcher(page).getByText(/no-such-chat/)).toBeVisible();
 	});
 });
+
+test.describe("Flow from desk v2's palette", () => {
+	const MODEL = "Flow Palette Model";
+
+	// a model gives the built-in Assistant agent one, so a chat can start
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
+		await admin.insert_doc(
+			"Flow Model",
+			{ title: MODEL, model_id: "openai/gpt-4o-mini" },
+			true
+		);
+		await admin.update_doc("Flow Model", MODEL, { enabled: 1 });
+	});
+
+	// the Assistant keeps its model, so it is turned off rather than deleted
+	test.afterAll(async ({ admin }) => {
+		await admin.update_doc("Flow Model", MODEL, { enabled: 0 });
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
+	});
+
+	test("opens a new chat with the palette's text in its box, not sent", async ({ page }) => {
+		await page.goto("/apps/desk");
+		await expect(page.locator("html")).toHaveAttribute("data-flow", "ready");
+
+		await page.getByRole("button", { name: "Search", exact: true }).click();
+		await page.getByPlaceholder("Search or run an action").fill("plan my week");
+		await page.getByRole("option", { name: /Ask Flow/ }).click();
+
+		await expect(panel(page)).not.toHaveAttribute("inert");
+		const island = await chat(page);
+		const box = island.locator("textarea");
+		await expect(box).toHaveValue("plan my week");
+		// the text leaves the panel's route, which the next page opens
+		const path = () => page.evaluate(() => JSON.parse(localStorage.flow_launcher).path);
+		await expect.poll(path).toBe("/?new=1");
+		await expect(page.getByRole("dialog", { name: "Search and run" })).toHaveCount(0);
+		await expect(box).toBeFocused();
+	});
+});

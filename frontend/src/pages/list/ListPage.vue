@@ -1,0 +1,377 @@
+<!--
+  One view of a doctype in the frame: the crumbs, the star and Create, the quick filter and the
+  controls in one row under them, then the view's type's renderer in the rows area.
+-->
+<template>
+	<PageFrame :scroll="false" :state="metaError ? failedState(metaError, reloadMeta) : null">
+		<template #aboveHeader>
+			<FrameBands :bands="frame.before" :page="list.page" />
+		</template>
+
+		<!-- No slot when a script emptied or hid the row: the frame then draws no row at all. -->
+		<template v-if="frame.header && !isEmptyHeader(header)" #header>
+			<RecordHeader
+				:class="{ invisible: !list.engine.ready.value }"
+				:projection="header"
+				:page="list.page"
+				:favourited="favourited"
+				@run="runHeaderItem"
+			/>
+		</template>
+
+		<FrameBands :bands="frame.between" :page="list.page" />
+
+		<BodyColumns
+			v-if="frame.body"
+			kind="list"
+			:items="bodyItems"
+			:page="list.page"
+			:user="boot.session.user.name"
+		>
+			<template #list>
+				<!-- The column's scroller is a block: this gives the rows area a height to fill. -->
+				<div class="flex h-full min-h-0 flex-col">
+					<div
+						:class="[pageGutter, { invisible: !list.engine.ready.value }]"
+						class="flex shrink-0 items-start justify-between gap-2 pt-3.5"
+					>
+						<div
+							class="flex min-w-0 flex-1 flex-col"
+							:data-act="customizing ? undefined : 'list.set_filters'"
+						>
+							<QuickFilter
+								v-if="shown.has('quick_filter')"
+								v-model:filters="filters"
+								v-model:fields="quickFilterFields"
+								v-model:customizing="customizing"
+								:doctype="doctype"
+							/>
+						</div>
+						<div v-if="!customizing" class="flex shrink-0 items-center gap-2">
+							<template v-for="item in rowControls" :key="item.name">
+								<div
+									v-if="item.name === 'filter'"
+									class="contents"
+									data-act="list.set_filters"
+								>
+									<Filter v-model="filters" :doctype="doctype" />
+								</div>
+								<template v-else-if="item.name === 'sort'">
+									<div v-if="seeded" class="contents" data-act="list.set_sort">
+										<SortBy v-model="sort" :doctype="doctype" />
+									</div>
+									<!-- Sized to the default sort: a direction button joined to its field's label. -->
+									<Skeleton
+										v-else
+										class="h-7 w-36 shrink-0 rounded-4"
+										data-sort-skeleton
+									/>
+								</template>
+								<div
+									v-else-if="item.name === 'columns'"
+									:ref="setControls"
+									class="contents"
+								/>
+								<Button
+									v-else-if="scriptAct(item.name)"
+									:icon-left="scriptAct(item.name)!.icon"
+									:label="scriptAct(item.name)!.label"
+									:data-act="scriptAct(item.name)!.name"
+									@click="listActs.perform(scriptAct(item.name)!)"
+								/>
+							</template>
+							<Dropdown
+								v-if="menuOptions.length"
+								:options="menuOptions"
+								side="bottom"
+								align="end"
+							>
+								<div class="flex shrink-0">
+									<Button icon="lucide-ellipsis" label="More" data-view />
+								</div>
+							</Dropdown>
+						</div>
+					</div>
+
+					<div class="relative flex min-h-0 flex-1 flex-col pt-2">
+						<UnbuiltView v-if="unbuilt" :doctype="doctype" :label="unbuilt.label" />
+						<component
+							:is="rendererFor(view.type)"
+							v-else-if="list.engine.ready.value"
+							:view="view"
+							:host="host"
+						/>
+					</div>
+				</div>
+			</template>
+		</BodyColumns>
+
+		<FrameBands :bands="frame.after" :page="list.page" />
+		<PageDialogs v-if="list.engine.dialogs.value.length" :controller="list.engine" />
+	</PageFrame>
+</template>
+
+<script setup lang="ts">
+import { Button, Dropdown, Skeleton, toast } from "frappe-ui";
+import { withAct } from "@/acts/menuAct";
+import { Filter } from "@framework/ui/Filter";
+import { QuickFilter } from "@framework/ui/QuickFilter";
+import { SortBy } from "@framework/ui/SortBy";
+import { useDocPermissions } from "@framework/ui/useDocPermissions";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { computed, defineAsyncComponent, inject, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
+import { acts } from "@/acts/dispatcher";
+import type { Addresses } from "@/addresses";
+import { isEmptyHeader, projectFrame } from "@/pageEngine";
+import type { HeaderItem } from "@/pageEngine/types";
+import type { Boot } from "@/boot";
+import { __ } from "@/i18n";
+import { isModular, routeFor, routeForModule } from "@/router/routeFor";
+import { editorEntries, editorRoute } from "@/pages/doctypeEditor/entries/editorEntries";
+import { openCreate } from "@/shell/create";
+import type { ListPage } from "@/list/useListPage";
+import { createListPage } from "@/listPage/createListPage";
+import { useListPermissions } from "@/listPage/listPermissions";
+import { isViewModified, markModifiedView } from "@/list/modifiedView";
+import { refreshSavedViews } from "@/list/savedView";
+import { forgetFavouriteView, isFavourite, useListSettings } from "@/list/useListSettings";
+import BodyColumns from "@/pages/record/body/BodyColumns.vue";
+import FrameBands from "@/pages/record/FrameBands.vue";
+import RecordHeader from "@/pages/record/RecordHeader.vue";
+import { recordDialogWrite } from "@/shell/recordDialog";
+import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
+import { failedState } from "@/shell/pageState";
+import { LIST_PAGE_TIER } from "@/recordPage/clientScriptTypes";
+import { useLiveClientScripts } from "@/pages/record/liveClientScripts";
+import { createdMessage } from "./createdMessage";
+import { clearDefaultView, setDefaultView } from "./defaultView";
+import { allowsHeaderItem, useListActs } from "./listActs";
+import { listHeaderItems, projectListHeader } from "./listHeader";
+import { openView } from "./openView";
+import type { SwitcherHost } from "./viewSwitcher/switcherHost";
+import { isSiteAdmin } from "./viewSwitcher/viewRules";
+import { rendererFor, type RendererHost } from "./renderer";
+
+// A script's `page.dialog.form` needs a host; the stack loads only when one is open.
+const PageDialogs = defineAsyncComponent(() => import("@/pages/record/dialogs/PageDialogs.vue"));
+
+const props = defineProps<{ page: ListPage; label?: string }>();
+
+const router = useRouter();
+const boot = inject<Boot>("boot")!;
+const addresses = inject<Addresses>("addresses")!;
+const { view, quickFilterFields, customizing, metaError, reloadMeta, createValues } = props.page;
+const { doctype, filters, sort, seeded } = view;
+const UnbuiltView = defineAsyncComponent(() => import("./UnbuiltView.vue"));
+const unbuilt = boot.unbuilt_view_types?.find((one) => one.name === view.type);
+
+const { meta } = useDoctypeMeta(doctype);
+const created: (() => void)[] = [];
+let creating = false;
+
+async function create() {
+	if (creating) return;
+	creating = true;
+	const doc = await openCreate(doctype, { values: createValues.value }).finally(
+		() => (creating = false)
+	);
+	if (!doc) return;
+	for (const callback of created) callback();
+	toast.success(createdMessage(doctype, meta.value, doc), {
+		action: {
+			label: __("Open"),
+			onClick: () => router.push(routeFor(doctype, doc.name)),
+		},
+	});
+}
+
+// A record dialog over the list changed a row: the rows reload as after a Create.
+watch(recordDialogWrite, (write) => {
+	if (write?.doctype === doctype) for (const callback of created) callback();
+});
+
+// The plain List view is the doctype's own star; any other view is starred by its key.
+const starKey = view.key === "list" ? null : view.key;
+const settings = useListSettings(doctype);
+const starsLoaded = () => !unbuilt && settings.favourites.value !== null;
+const favourited = computed(() => isFavourite(settings.favourites.value, starKey));
+
+const permissions = useListPermissions(doctype);
+const fieldPermissions = useDocPermissions(doctype);
+const list = createListPage({
+	view,
+	router,
+	meta: () => meta.value,
+	permissions,
+	scripted: boot.list_script_doctypes?.includes(doctype) ?? true,
+	callSelected: (...run) =>
+		import("./callSelected").then((module) => module.callSelected(...run)),
+});
+list.lists.controls.provideBuiltins(() => [
+	{ name: "quick_filter", label: __("Quick Filter") },
+	{ name: "filter", label: __("Filter") },
+	{ name: "sort", label: __("Sort") },
+	{ name: "columns", label: __("Columns") },
+	{ name: "customize_quick_filter", label: __("Customize Quick Filter") },
+]);
+onMounted(list.paint);
+onUnmounted(list.leave);
+// A list holds no unsaved edits, so a changed List Page Client Script re-runs at once.
+useLiveClientScripts({
+	doctype: ref(doctype),
+	tier: LIST_PAGE_TIER,
+	dirty: () => false,
+	ready: () => list.engine.ready.value,
+	replaying: () => list.engine.isReplaying.value,
+	refresh: () => list.engine.refresh(),
+});
+
+const listActs = useListActs(
+	{
+		list,
+		permissions,
+		create,
+		customizeQuickFilter: () => (customizing.value = true),
+		customizing: () => customizing.value,
+		readable: (fieldname) => {
+			const field = meta.value?.fields?.find((one) => one.fieldname === fieldname);
+			return !field || fieldPermissions.fieldAccess(field) !== "none";
+		},
+		editorEntries: () =>
+			editorEntries(doctype, {
+				roles: boot.session.roles ?? [],
+				developerMode: boot.developer_mode,
+				meta: meta.value,
+			}),
+		openEditor: (entry) => router.push(editorRoute(doctype, entry.mode)),
+		starsLoaded,
+		favourited: () => favourited.value,
+		toggleFavourite: () => settings.toggleFavourite(starKey),
+		openView: (key) => openView(router, doctype, key),
+		// The views list names each default, so it reads again after a change.
+		setDefaultView: async (key, scope) => {
+			await setDefaultView(boot, doctype, key, scope);
+			refreshSavedViews();
+		},
+		clearDefaultView: async (scope) => {
+			await clearDefaultView(boot, doctype, scope);
+			refreshSavedViews();
+		},
+		viewLayer: () => view.layer,
+		viewSaveable: () => view.saveable.value,
+		writeView: async (name, value, agent) =>
+			(await import("./viewWriteRuns")).RUNS[name](
+				{
+					page: props.page,
+					boot,
+					router,
+					dialog: list.engine.page.dialog,
+					refreshViews: refreshSavedViews,
+					forgetStar: (key) => forgetFavouriteView(doctype, key),
+				},
+				value,
+				agent
+			),
+	},
+	view.type
+);
+
+// The view crumb's control: the views, and the open view's acts, which the menu runs on this page.
+if (!unbuilt) markModifiedView(view);
+const switcher: SwitcherHost = {
+	doctype,
+	app: boot.app,
+	view: () => ({
+		key: view.key,
+		label: props.label || __("List"),
+		type: view.type,
+		layer: view.layer,
+		modified: !unbuilt && isViewModified(doctype, view.key),
+		plainModified: !unbuilt && view.layer === null && view.modified.value,
+	}),
+	admin: isSiteAdmin(boot.session.roles ?? []),
+	types: boot.view_types ?? [],
+	unbuilt: boot.unbuilt_view_types ?? [],
+	drawn: (name) => Boolean(listActs.drawn(name)),
+	run: (name, value) => {
+		const act = listActs.drawn(name);
+		if (act) listActs.perform(act, value);
+	},
+	call: (name, value) => acts.run(`list.${name}`, value),
+};
+
+const controls = ref<HTMLElement | null>(null);
+// A function ref: a plain `ref` inside the `v-for` would collect an array.
+const setControls = (element: unknown) => void (controls.value = element as HTMLElement | null);
+const host: RendererHost = {
+	controls,
+	lists: list.lists,
+	acts: listActs.renderer,
+	switcher,
+	onCreate: (callback) => created.push(callback),
+};
+
+const quickFilterAct = computed(() => listActs.drawn("customize_quick_filter"));
+
+list.engine.header.provideBuiltins(() =>
+	listHeaderItems({
+		doctype,
+		module: moduleCrumb,
+		switcher,
+		listHref,
+		starsLoaded,
+		favourited: () => favourited.value,
+		toggleFavourite: () => settings.toggleFavourite(starKey),
+		create,
+	})
+);
+
+function moduleCrumb() {
+	const label = meta.value?.module;
+	if (!label) return null;
+	const slug = isModular(boot) ? addresses.addressOf(doctype)?.[1] : undefined;
+	return { label, href: slug ? router.resolve(routeForModule(slug)).path : undefined };
+}
+
+// The plain List is the bare address itself; every other view links back to it.
+function listHref() {
+	return view.key === "list" ? null : router.resolve(routeFor(doctype)).path;
+}
+
+const header = computed(() =>
+	projectListHeader(list.engine.header.resolve(), allowsHeaderItem(list, permissions))
+);
+const frame = computed(() => projectFrame(list.engine.frame.resolve()));
+const bodyItems = computed(() => list.engine.body.visible());
+
+function runHeaderItem(item: HeaderItem) {
+	if (item.run) void acts.perform(`header.${item.name}`);
+}
+
+const controlItems = computed(() => list.lists.controls.visible());
+const shown = computed(() => new Set(controlItems.value.map((item) => item.name)));
+const rowControls = computed(() =>
+	controlItems.value.filter(
+		(item) => !["quick_filter", "customize_quick_filter"].includes(item.name)
+	)
+);
+const scriptAct = (name: string) => listActs.drawn(name);
+
+const menuOptions = computed(() => {
+	const act = quickFilterAct.value;
+	const quickFilter =
+		act && shown.value.has("customize_quick_filter") && shown.value.has("quick_filter")
+			? [act]
+			: [];
+	const editor = ["customize_form", "edit_doctype"].map(listActs.drawn);
+	return [...quickFilter, ...editor]
+		.filter((each): each is NonNullable<typeof each> => Boolean(each))
+		.map((each) =>
+			withAct(
+				{ label: each.label, icon: each.icon, onClick: () => listActs.perform(each) },
+				each.name
+			)
+		);
+});
+</script>

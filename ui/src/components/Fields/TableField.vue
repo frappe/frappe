@@ -18,6 +18,9 @@
 		@remove="onRowRemove"
 		@edit="openEdit"
 	>
+		<template v-if="field.description && !error?.length" #description>
+			<FieldDescription :html="field.description" />
+		</template>
 		<template #cell="{ row, column, value, update, commit }">
 			<!-- Resolve conditionals against THIS row (so per-row conditions match the
 			     row-edit dialog, and `row` lets a cell resolve `options`-to-sibling-field
@@ -44,7 +47,7 @@
 						class="flex w-full items-center justify-center"
 					>
 						<component
-							:is="f.ui?.component ?? resolveField(f.fieldtype)"
+							:is="cellControl(f)"
 							:field="f"
 							:modelValue="value"
 							:row="row"
@@ -61,7 +64,7 @@
 						:data-preview="oneLine(value)"
 					>
 						<component
-							:is="f.ui?.component ?? resolveField(f.fieldtype)"
+							:is="cellControl(f)"
 							:field="f"
 							:modelValue="value"
 							:row="row"
@@ -72,7 +75,7 @@
 						/>
 					</div>
 					<component
-						:is="f.ui?.component ?? resolveField(f.fieldtype)"
+						:is="cellControl(f)"
 						v-else
 						class="w-full"
 						:field="f"
@@ -97,17 +100,28 @@
 	     The row object itself is the model — the dialog writes through, the way a
 	     grid cell already does. -->
 	<Dialog v-model:open="showEdit" :title="dialogTitle" size="3xl">
-		<FormLayout v-if="editRow" v-model:doc="editRow" :layout="editLayout" />
+		<FormLayout
+			v-if="editRow"
+			v-model:doc="editRow"
+			:layout="editLayout"
+			:doctype="field.options"
+		/>
 	</Dialog>
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, inject, provide, ref, watch } from "vue";
+import { computed, defineAsyncComponent, inject, provide, ref, shallowRef, watch } from "vue";
+import type { Component } from "vue";
 import { Dialog } from "frappe-ui";
 import { Grid } from "../Grid";
 import TextareaField from "./TextareaField.vue";
+import ReadOnlyField from "./ReadOnlyField.vue";
+import { drawsReadValue } from "./readView";
+import { gridColumnWidth } from "./gridColumnWidth";
 import type { GridColumn } from "../Grid";
+import { htmlToText } from "../RichText/html";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
+import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 import { resolveFieldConditionals } from "../FormLayout/resolveLayout";
 import { layoutFields, newRowValues } from "../FormLayout/newRowValues";
 import {
@@ -124,6 +138,7 @@ import { ResolveFieldKey } from "../FormLayout/types";
 import type { CommitChannel, FieldError, RowAddress } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { FieldNode, FormLayoutSchema } from "../FormLayout/types";
+import FieldDescription from "./FieldDescription.vue";
 
 // Async to break the module cycle (fieldTypes → TableField → FormLayout → fieldTypes).
 const FormLayout = defineAsyncComponent(() => import("../FormLayout/FormLayout.vue"));
@@ -150,6 +165,7 @@ const commit = inject(CommitKey, NO_COMMIT);
 const rowChannel: CommitChannel = {
 	pending: (fieldname, value) => withAddress((row) => commit.pending(fieldname, value, row)),
 	commit: (fieldname, value) => withAddress((row) => commit.commit(fieldname, value, row)),
+	discard: (fieldname) => withAddress((row) => commit.discard?.(fieldname, row)),
 	rowChanged: (row, change) => commit.rowChanged(row, change),
 };
 provide(CommitKey, rowChannel);
@@ -245,18 +261,16 @@ function onRowRemove({ rows: removed }: { rows: Record<string, any>[] }) {
 
 // Per-fieldtype alignment, applied to header + cells so they agree. Numeric
 // right-aligns (desk); checkbox/rating center.
-const NUMBER_FIELDTYPES = new Set(["Int", "Long Int", "Float", "Currency", "Percent"]);
 const CENTERED_FIELDTYPES = new Set(["Check", "Rating"]);
 
-// Fieldtypes whose editor can't live in a 34px single-row cell — multi-line code
-// editors, nested grids, and display-only blocks. The cell renders a read-only
-// summary instead; the row-edit dialog renders the full control. Button is NOT
-// here: it carries no value and its label fits a cell.
+// Fieldtypes whose editor can't live in a 34px cell; the row-edit dialog draws the control.
+// Button is not here: it carries no value and its label fits a cell.
 const SUMMARY_FIELDTYPES = new Set([
 	"Code",
 	"JSON",
 	"Markdown Editor",
 	"HTML Editor",
+	"Text Editor",
 	"Table",
 	"Table MultiSelect",
 	"Image",
@@ -270,13 +284,15 @@ const SUMMARY_FIELDTYPES = new Set([
 const KEEP_CELL_LABEL = new Set(["Button", "Heading"]);
 
 function alignFor(fieldtype: string): GridColumn["align"] {
-	if (NUMBER_FIELDTYPES.has(fieldtype)) return "right";
+	if (NUMBER_FIELDTYPES.includes(fieldtype)) return "right";
 	if (CENTERED_FIELDTYPES.has(fieldtype)) return "center";
 	return undefined;
 }
 
-const columns = computed<(FieldNode & Pick<GridColumn, "align">)[]>(() =>
-	(props.field.childFields ?? []).map((c) => ({ ...c, align: alignFor(c.fieldtype) }))
+const columns = computed<(FieldNode & Pick<GridColumn, "align" | "minWidth">)[]>(() =>
+	(props.field.childFields ?? [])
+		.filter((c) => !c.override?.hidden)
+		.map((c) => ({ ...c, align: alignFor(c.fieldtype), minWidth: gridColumnWidth(c) }))
 );
 
 // Label-less copies keyed by fieldname: the header already shows the label, so cells
@@ -334,13 +350,15 @@ function isSummaryField(field: FieldNode): boolean {
 
 // A textarea cannot cut its text with an ellipsis, so an idle cell shows its value on one line.
 function isTextarea(field: FieldNode): boolean {
-	return !field.ui?.component && resolveField(field.fieldtype) === TextareaField;
+	return cellControl(field) === TextareaField;
 }
 
-// Compact read-only text for a summary cell: a count for collections, resolved
-// presence for an Image, the label for a Heading, stripped text for HTML, and a
-// one-line collapse of the raw string for the code editors. Editing happens in
-// the row-edit dialog, which renders the real control.
+function cellControl(field: FieldNode): Component {
+	if (drawsReadValue(field)) return ReadOnlyField;
+	return field.ui?.component ?? resolveField(field.fieldtype);
+}
+
+// One line of read-only text for a summary cell: a count, presence, a label, or the text.
 function cellSummary(field: FieldNode, value: any, row: Record<string, any>): string {
 	switch (field.fieldtype) {
 		case "Table": {
@@ -358,13 +376,10 @@ function cellSummary(field: FieldNode, value: any, row: Record<string, any>): st
 		}
 		case "Heading":
 			return field.label ?? "";
-		case "HTML": {
-			const text = (field.options ?? "")
-				.replace(/<[^>]*>/g, " ")
-				.replace(/\s+/g, " ")
-				.trim();
-			return text || "HTML";
-		}
+		case "Text Editor":
+			return oneLine(htmlToText(value)) || "—";
+		case "HTML":
+			return oneLine(htmlToText(field.options)) || "HTML";
 		default:
 			// Code / JSON / Markdown Editor / HTML Editor — collapse to a single line.
 			return oneLine(value) || "—";
@@ -395,6 +410,8 @@ const editKey = ref<string | null>(null);
 // arrived at more confidently. A save replaces every row object, so this goes
 // stale by design; the key is what survives it.
 let openedRow: Record<string, any> | null = null;
+// The row as it opened: a layout chosen against the live row would swap while a condition's field is typed.
+const openedValues = shallowRef<Record<string, any> | null>(null);
 
 const editIndex = computed(() => {
 	if (editKey.value === null) return -1;
@@ -463,16 +480,21 @@ watch(editRow, (row) => {
 function closeEdit() {
 	editKey.value = null;
 	openedRow = null;
+	openedValues.value = null;
 }
 
 const dialogTitle = computed(() =>
 	editIndex.value === -1 ? "" : `${props.field.label ?? "Row"} — Row ${editIndex.value + 1}`
 );
 
-// Dialog renders the child's full form via `childLayout`; fall back to a flat form of
-// the visible columns when absent. A read-only table forces every field read-only.
+// Dialog renders the row's layout, else the child's full form via `childLayout`; fall back
+// to a flat form of the visible columns when absent. A read-only table forces every field read-only.
 const editLayout = computed(() => {
-	const base = props.field.childLayout ?? fieldsToLayout(columns.value);
+	const opened = openedValues.value;
+	const base =
+		(opened && props.field.rowLayout?.(opened)) ??
+		props.field.childLayout ??
+		fieldsToLayout(columns.value);
 	return props.field.readOnly ? readOnlyLayout(base) : base;
 });
 
@@ -498,6 +520,7 @@ function openEdit({ row, index }: { row: Record<string, any>; index: number }) {
 	// server (`rowIdentity.ts`).
 	editKey.value = addressOf(row).key;
 	openedRow = row;
+	openedValues.value = { ...row };
 }
 
 // There is no write-back: `FormLayout` mutates `doc.value[fieldname]` and never

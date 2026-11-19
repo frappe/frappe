@@ -1,0 +1,74 @@
+<!--
+  A generated page's root: the pinned header row and, unless `scroll=false`, the scroll region.
+  The page owns the row's contents, its top and bottom padding, and its max width.
+-->
+<template>
+	<!-- Always mounted and declared before the row: a deferred teleport takes its place in the
+	     target at mount, so a band the page supplies later still lands above the row. -->
+	<PageHeaderBase class="flex flex-col" :class="gutterVar" data-page-above>
+		<slot name="aboveHeader" />
+	</PageHeaderBase>
+
+	<!-- Read in the template, not a computed: the slots object is not reactive, and a page can
+	     supply its header after mount. Without a `PageHeader` the shell's target keeps no height. -->
+	<ScrollArea
+		v-if="scroll && !state"
+		class="min-h-0 flex-1"
+		:class="gutterVar"
+		:viewportClass="pageGutter"
+	>
+		<PageHeader v-if="title || $slots.header" :class="headerInset()">
+			<slot name="header"><PageHeaderTitle :title="title" /></slot>
+		</PageHeader>
+		<slot />
+	</ScrollArea>
+
+	<!-- No padding here: a pane that scrolls both ways puts the gutter on its own viewport. -->
+	<div v-else class="flex min-h-0 flex-1 flex-col overflow-hidden" :class="gutterVar">
+		<PageHeader v-if="title || $slots.header" :class="headerInset()">
+			<slot name="header"><PageHeaderTitle :title="title" /></slot>
+		</PageHeader>
+		<PageState v-if="state" v-bind="state" />
+		<slot v-else />
+	</div>
+</template>
+
+<script lang="ts">
+import { navSide } from "./navigationSide";
+
+/** The side padding a page's content shares with the header row; the frame root sets `--page-gutter`. */
+export const pageGutter = "px-[--page-gutter]";
+const gutterVar = "[--page-gutter:0.75rem] sm:[--page-gutter:1.25rem]";
+
+/** `--shell-header-inset-start` is 0 unless the drawer's menu button draws. */
+function headerInset() {
+	return navSide() === "right"
+		? "pr-[calc(0.75rem+var(--shell-header-inset-start,0px))] sm:pr-[calc(1.25rem+var(--shell-header-inset-start,0px))]"
+		: "pl-[calc(0.75rem+var(--shell-header-inset-start,0px))] sm:pl-[calc(1.25rem+var(--shell-header-inset-start,0px))]";
+}
+</script>
+
+<script setup lang="ts">
+import { PageHeader, PageHeaderBase, PageHeaderTitle, ScrollArea } from "frappe-ui";
+import type { PageStateValue } from "./pageState";
+import PageState from "./PageState.vue";
+
+withDefaults(
+	defineProps<{
+		/** Rendered as the row's title; the `header` slot replaces the row's whole content. */
+		title?: string;
+		/** `false` hands the scroll to the page: a list that scrolls both ways, a record in panes. */
+		scroll?: boolean;
+		/** Drawn under the header row in place of the content, which then does not render. */
+		state?: PageStateValue | null;
+	}>(),
+	{ scroll: true }
+);
+
+defineSlots<{
+	/** Pinned above the header row, in the shell's target; the page's bands before `header`. */
+	aboveHeader?: () => unknown;
+	header?: () => unknown;
+	default?: () => unknown;
+}>();
+</script>

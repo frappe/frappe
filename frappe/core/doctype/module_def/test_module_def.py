@@ -7,7 +7,7 @@ from unittest.mock import patch
 import frappe
 from frappe.app_state import get_disabled_modules
 from frappe.boot import get_app_modules
-from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.doctype.test_doctype import new_doctype, pages_at
 from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_cache, resolve_sidebar
 from frappe.desk.doctype.sidebar.test_sidebar import make_report, make_sidebar, sidebarless_module
 from frappe.installer import (
@@ -17,7 +17,9 @@ from frappe.installer import (
 	rename_conflicting_custom_module,
 	sync_module_defs,
 )
+from frappe.shell.address_clash import AddressClashError
 from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import make_test_records
 from frappe.utils.modules import get_module_placement
 
 
@@ -195,7 +197,11 @@ class TestDisablingTheHostAppLeavesTheModule(IntegrationTestCase):
 			patch("frappe.get_disabled_apps", return_value=[app]),
 			patch("frappe.app_state.is_disabled_app_filtering_active", return_value=True),
 		):
-			return get_disabled_modules()
+			disabled = get_disabled_modules()
+
+		# Left cached, the disabled app's doctypes stay unpermitted for every later test's user
+		frappe.local.request_cache.clear()
+		return disabled
 
 	def test_a_disabled_app_hides_its_own_modules_only(self):
 		with custom_module("Test Hosted Module", app="frappe") as module:
@@ -344,3 +350,73 @@ class TestSyncGivesEveryDeclaredModuleARow(IntegrationTestCase):
 
 		self.assertEqual(added.count(module), 1, "a module declared twice was added twice")
 		self.assertEqual(frappe.db.get_value("Module Def", module, "app_name"), declaring)
+
+
+class TestModuleAddressClash(IntegrationTestCase):
+	"""A new or renamed module may not take an address a modular app's page or another module has."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		make_test_records("User")
+
+	def setUp(self):
+		# A System Manager, the least a user needs to create a module.
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def test_a_modular_apps_page_refuses_the_module(self):
+		with (
+			pages_at(["test-clash-module"], modular_apps=True),
+			self.assertRaises(AddressClashError) as caught,
+		):
+			with custom_module("Test Clash Module"):
+				pass
+		self.assertIn("apps/probe/probe/probe/frontend/pages/test-clash-module.js", str(caught.exception))
+
+	def test_a_flat_apps_page_leaves_the_module_alone(self):
+		with pages_at(["test-clash-module"]), custom_module("Test Clash Module"):
+			pass
+
+	def test_another_module_refuses_the_module(self):
+		with custom_module("Test Clash Twin Module"), self.assertRaises(AddressClashError) as caught:
+			with custom_module("Test_Clash Twin Module"):
+				pass
+		self.assertIn("Test Clash Twin Module", str(caught.exception))
+
+	def test_a_doctype_and_a_module_do_not_clash(self):
+		"""A DocType's address and a module's sit at different places in the URL."""
+		self.addCleanup(frappe.delete_doc, "DocType", "Test Clash Crossing", force=True, ignore_missing=True)
+		new_doctype("Test Clash Crossing", issingle=1).insert()
+		with custom_module("Test_Clash Crossing") as module:
+			self.addCleanup(
+				frappe.delete_doc, "DocType", "Test_Clash Crossing Kind", force=True, ignore_missing=True
+			)
+			new_doctype("Test_Clash Crossing Kind", issingle=1, module=module).insert()
+
+	def test_a_rename_is_checked_against_the_new_name(self):
+		with custom_module("Test Clash Old Module") as old:
+			with pages_at(["test-clash-new-module"], modular_apps=True), self.assertRaises(AddressClashError):
+				frappe.rename_doc("Module Def", old, "Test Clash New Module")
+
+			freed = "Test Clash Freed Module"
+			self.addCleanup(frappe.delete_doc, "Module Def", freed, force=True, ignore_missing=True)
+			with pages_at(["test-clash-old-module"], modular_apps=True):
+				frappe.rename_doc("Module Def", old, freed)
+			self.assertTrue(frappe.db.exists("Module Def", freed))
+
+	def test_install_and_migrate_only_warn(self):
+		for flag, name in (
+			("in_migrate", "Test Clash Migrated Module"),
+			("in_install", "Test Clash Installed Module"),
+			("in_patch", "Test Clash Patched Module"),
+		):
+			with (
+				self.subTest(flag=flag),
+				pages_at([frappe.scrub(name).replace("_", "-")], modular_apps=True),
+				patch.dict(frappe.flags, {flag: True}),
+				self.assertLogs(frappe.logger("shell"), "WARNING") as logged,
+				custom_module(name),
+			):
+				pass
+			self.assertIn(f"Module Def {name} would take the address", logged.output[0])

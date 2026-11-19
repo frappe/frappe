@@ -21,7 +21,7 @@ from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.cache_manager import clear_user_cache, reset_metadata_version
 from frappe.database import savepoint
 from frappe.query_builder import Order
-from frappe.utils import cint, cstr, get_assets_json, get_user_display_id
+from frappe.utils import cint, cstr, get_assets_json, get_system_timezone, get_user_display_id
 from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.island import get_ui_islands
@@ -225,6 +225,30 @@ def get():
 	bootinfo.show_new_navigation_prompt = should_show_new_navigation_prompt()
 
 	return bootinfo
+
+
+def get_session_info() -> dict:
+	"""The signed-in person and the site settings a client renders for them."""
+	from frappe.defaults import get_defaults
+
+	user = frappe.get_cached_doc("User", frappe.session.user)
+	# the site's merged defaults (company, currency, fiscal year, anything an app set) are
+	# desk data, and this route also answers a Guest and a Website User
+	is_desk_user = user.name != "Guest" and user.user_type != "Website User"
+	return {
+		"user": {
+			"name": user.name,
+			"full_name": user.full_name,
+			"email": user.email,
+			"user_image": user.user_image,
+			"document_follow_notify": bool(user.document_follow_notify),
+			"navigation_side": user.navigation_side or "",
+		},
+		"roles": frappe.get_roles(),
+		"lang": frappe.local.lang or "en",
+		"timezone": get_system_timezone(),
+		"defaults": get_defaults() if is_desk_user else {},
+	}
 
 
 @frappe.whitelist()

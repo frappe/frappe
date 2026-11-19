@@ -1,0 +1,78 @@
+// Resolve an app's bare imports from the framework's tree, which node resolution walking up
+// from the app's own repo never reaches. Only what the app declared resolves; nothing is aliased.
+
+import { existsSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { isFileValue } from "./importMap.js";
+
+const here = dirname(fileURLToPath(import.meta.url));
+// A declared package resolves as if the shell imported it, so both get the same file.
+const SHELL_ENTRY = join(here, "..", "src", "main.ts");
+
+// `preserveSymlinks` keeps the linked `@framework/ui` under node_modules, so a relative
+// import that climbs out of the package lands in node_modules; resolve it from the real tree.
+export const LINKED_UI = join(here, "..", "node_modules", "@framework", "ui");
+export const REAL_UI = join(here, "..", "..", "ui");
+
+export default function oneTree(manifest) {
+	// Which app owns which source tree, so an importer can be attributed.
+	const apps = manifest.map(({ app, source_dir, runtime_deps }) => ({
+		app,
+		source_dir,
+		declared: new Set(Object.keys(runtime_deps ?? {})),
+	}));
+	const frameworkFiles = frameworkPublishedFiles(manifest);
+
+	const insideAnApp = (importer) => apps.some((entry) => importer.startsWith(entry.source_dir));
+
+	return {
+		name: "frappe-one-tree",
+		// Dev only: pre-bundled, ui's `.ts` would load twice, once for its raw `.vue` files.
+		config: () => ({ optimizeDeps: { exclude: ["@framework/ui"] } }),
+		async resolveId(source, importer) {
+			if (!importer) return;
+			if (source.startsWith("../")) return outOfLinkedPackage(source, importer);
+			// Relative, absolute and virtual specifiers are already somebody else's.
+			if (source.startsWith(".") || source.startsWith("/") || source.startsWith("\0"))
+				return;
+			if (source.includes(":")) return;
+			// `frappe/i18n` is the same line in a stored script and in app source; the shell's
+			// own tree and `@framework/ui` are not app source and keep their own imports.
+			if (Object.hasOwn(frameworkFiles, source) && insideAnApp(importer))
+				return frameworkFiles[source];
+
+			const owner = apps.find((entry) => importer.startsWith(entry.source_dir));
+			if (!owner) return;
+			// A scoped package's name is its first two segments, '@scope/pkg'.
+			const segments = source.split("/");
+			const packageName = source.startsWith("@")
+				? segments.slice(0, 2).join("/")
+				: segments[0];
+			if (!owner.declared.has(source) && !owner.declared.has(packageName)) return;
+
+			// frappe-ui exports only `import`, and vue's CommonJS build is not the shell's;
+			// resolve as vite would from the shell. A miss gives vite's "failed to resolve".
+			return this.resolve(source, SHELL_ENTRY, { skipSelf: true });
+		},
+	};
+}
+
+/** The framework's scoped published names, `frappe/<alias>`, each rooted at its source dir. */
+export function frameworkPublishedFiles(manifest) {
+	const frappe = manifest.find((entry) => entry.app === "frappe");
+	const files = {};
+	for (const [name, value] of Object.entries(frappe?.import_map ?? {})) {
+		if (name.startsWith("frappe/") && isFileValue(value))
+			files[name] = join(frappe.source_dir, value);
+	}
+	return files;
+}
+
+export function outOfLinkedPackage(source, importer, linked = LINKED_UI, real = REAL_UI) {
+	if (!importer.startsWith(linked + "/")) return;
+	const target = resolve(dirname(importer), source);
+	if (target.startsWith(linked + "/")) return;
+	const realTarget = resolve(dirname(real + importer.slice(linked.length)), source);
+	return existsSync(realTarget) ? realTarget : undefined;
+}

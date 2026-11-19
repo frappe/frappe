@@ -1,4 +1,4 @@
-// The operator table is composed rather than copied, per ADR-0008.
+// The operator table is composed rather than copied.
 import { getOperators } from "../../Filter/operators";
 import type { OperatorOption } from "../../Filter/operators";
 import type { ConditionOperator, ConditionOperatorOption } from "../types";

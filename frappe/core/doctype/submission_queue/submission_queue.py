@@ -109,7 +109,21 @@ class SubmissionQueue(Document):
 
 		values["ended_at"] = now()
 		frappe.db.set_value(self.doctype, self.name, values, update_modified=False)
+		if values["status"] == "Failed":
+			self.publish_failure(values["exception"])
 		self.notify(values["status"], action_for_queuing)
+
+	def publish_failure(self, exception: str):
+		frappe.publish_realtime(
+			"submission_failed",
+			{
+				"name": self.name,
+				"ref_doctype": self.ref_doctype,
+				"ref_docname": self.ref_docname,
+				"exception": format_tb(exception),
+			},
+			user=self.enqueued_by,
+		)
 
 	def notify(self, submission_status: str, action: str):
 		if submission_status == "Failed":

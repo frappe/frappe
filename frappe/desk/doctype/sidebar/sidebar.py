@@ -38,10 +38,17 @@ from itertools import chain, count
 import frappe
 from frappe import _
 from frappe.app_state import get_disabled_modules
+from frappe.database.utils import drop_index_if_exists
 from frappe.desk.desk_views import DeskViews
+from frappe.desk.doctype.navigation_item.navigation_item import (
+	OWN_KEY,
+	drop_reserved_keys,
+	validate_item_keys,
+)
 from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE
 from frappe.desk.utils import is_item_allowed
 from frappe.model.document import Document
+from frappe.model.naming import make_autoname
 from frappe.model.rename_doc import rename_doc
 from frappe.utils.modules import get_code_only_module_heirs, get_module_placement
 
@@ -95,6 +102,12 @@ LINKED_IDENTITY_FIELDS = ("type", "link_type", "link_to", "url", "filters", "rou
 # has to keep working when developer mode is off, or installing or updating an app that ships a
 # sidebar would fail on every customer site.
 SYSTEM_WRITE_FLAGS = ("in_import", "in_fixtures", "in_migrate", "in_install", "in_patch")
+
+# Blank, not `None`: the column is not nullable so that one spelling of "not a user's own layer"
+# reaches the index. Every `NULL` is distinct to an index, so a nullable column would let one
+# address hold two site layers that both look like one address. `Rail.SITE_LAYER` is the same
+# constant for the same reason; the two containers hold the same three layers.
+SITE_LAYER = ""
 
 # What a sidebar's title may not contain, because the title is the name, the name is the shell
 # identity, and a shell identity is a segment of the desk URL. See validate_title_is_routable.
@@ -166,6 +179,20 @@ def routable_title(title: str | None, module: str, name: str | None = None) -> s
 
 
 class Sidebar(Document, DeskViews):
+	"""A sidebar, in either desk.
+
+	One table holds two things, told apart by whether the row carries an address. Desk v1's
+	sidebar belongs to a module, is named after its title, and renders from `Sidebar Item` rows.
+	Desk v2's is addressed by a `link_doctype`/`link_to` pair -- the module or doctype it hangs
+	on -- is named after that address, and renders from `Navigation Item` rows, the same row type
+	the rail holds. `app` and `standard` mean the same thing on both, so neither is duplicated.
+
+	Extending in place rather than authoring a second container is a choice about names, not
+	about build order: `Rail` was a free name and `Sidebar` is not. A second doctype would have
+	had to be called something other than what it is, and every reader would then have had to
+	know which of the two spellings meant a sidebar.
+	"""
+
 	_DOCTYPE_NAME = "Sidebar"
 
 	# begin: auto-generated types
@@ -174,34 +201,140 @@ class Sidebar(Document, DeskViews):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.desk.doctype.navigation_item.navigation_item import NavigationItem
 		from frappe.desk.doctype.sidebar_item.sidebar_item import SidebarItem
 		from frappe.types import DF
 
 		app: DF.Autocomplete | None
 		header_icon: DF.Icon | None
 		items: DF.Table[SidebarItem]
+		key: DF.Data | None
+		link_doctype: DF.Link | None
+		link_to: DF.DynamicLink | None
 		merged_from: DF.LongText | None
 		module: DF.Link | None
+		navigation_items: DF.Table[NavigationItem]
 		standard: DF.Check
 		title: DF.Data
+		user: DF.Link
 	# end: auto-generated types
+
+	@property
+	def is_addressed(self) -> bool:
+		"""Whether this is a desk v2 sidebar, which is to say whether it has an address.
+
+		The address is the whole test: a `link_doctype`, or a `key` for a sidebar a level added.
+		Desk v1's sidebars carry neither and never will: nothing writes either column on them,
+		and the fixture conversion does not either. So no migration has to stamp the existing rows.
+		"""
+		return bool(self.link_doctype or self.key)
+
+	def autoname(self):
+		"""Name a desk v2 sidebar after its address, and leave desk v1's to `field:title`.
+
+		Returning early is what leaves v1 alone: `set_new_name` runs this first and falls back to
+		the doctype's own rule only when the controller left the name empty.
+
+		An app layer is named from the address because the export path is the record name, and a
+		hash-named standard record would write a folder a re-export from a fresh bench could not
+		find again -- `Rail.autoname` names the app layer for the same reason. It is also what lets
+		a rail item of type `Sidebar` name the sidebar it opens: the address is authored, so the
+		name it produces is known before the row exists.
+
+		The other two layers fall through to the doctype's `hash`, since a layer is looked up by
+		filter and never by name, and two people arranging one sidebar must not claim one name.
+		"""
+		if not self.is_addressed:
+			return
+
+		self.name = (
+			frappe.scrub(f"{self.link_doctype} {self.link_to}")
+			if self.standard
+			else make_autoname("hash", self.doctype)
+		)
+
+	def _sync_autoname_field(self):
+		"""Keep `field:title` from copying a desk v2 sidebar's name over its label.
+
+		The framework does this for every `field:` doctype, and desk v1 depends on it: it is what
+		corrects the title of an imported row whose file names it one thing and titles it another.
+		A v2 sidebar is named after its address instead, so the same pass would overwrite the label
+		it shows with a hash.
+
+		Overriding the framework's own pass is what `Dock` and `Custom Sidebar` already do to
+		`_validate_links` in this family, and it is narrower than the alternative: dropping
+		`field:title` from the doctype takes the correction away from v1's rows as well, and there
+		is no public hook that runs where this one does -- after `before_save`, and on an import,
+		which skips validation entirely.
+		"""
+		if self.is_addressed:
+			return
+
+		super()._sync_autoname_field()
 
 	def before_naming(self):
 		# the name is the title, so the default has to be in place before naming reads it
 		self.set_default_title()
 
 	def validate(self):
+		self.user = self.user or SITE_LAYER
+		self.blank_the_empty_address()
+		self.validate_own_key()
 		self.validate_app_content()
 		self.set_default_title()
 		self.validate_title_is_its_own()
-		self.validate_title_is_routable()
-		self.validate_title_has_its_own_url()
+		self.validate_title_is_unique()
+		# The URL rules are desk v1's: a v2 layer is reached by its address, never by its
+		# title's slug, and its title is shared with the other layers of the same sidebar.
+		if not self.is_addressed:
+			self.validate_title_is_routable()
+			self.validate_title_has_its_own_url()
+			self.validate_item_routes()
 		self.validate_standard()
-		self.validate_item_routes()
 		self.clear_stored_keys()
+		self.validate_navigation_item_keys()
 
 	def before_save(self):
 		self.rename_to_title()
+
+	def blank_the_empty_address(self):
+		"""Store a missing address as `NULL` rather than as two empty strings.
+
+		The unique index over the address has to let desk v1's rows through, and it does that on
+		`NULL` being distinct from every other `NULL`. A row saved from the form sends `""` for a
+		Link it never filled in, and two of those would collide on an index that a hundred `NULL`
+		rows sit under happily.
+		"""
+		if not self.link_doctype:
+			self.link_doctype = None
+			self.link_to = None
+
+		self.key = self.key or None
+
+	def validate_own_key(self):
+		"""Refuse a key that is not `<scope>:<6 base36>`, or whose scope the record's level cannot hold."""
+		if not self.key:
+			return
+
+		if not OWN_KEY.fullmatch(self.key):
+			frappe.throw(
+				_(
+					"{0} is not a sidebar key. It reads user: or site:, then six lowercase letters or digits."
+				).format(frappe.bold(self.key)),
+				title=_("Invalid Key"),
+			)
+
+		if self.key.startswith("user:") and not self.user:
+			frappe.throw(
+				_("A {0} sidebar belongs to a person, so it needs a user.").format("user:"),
+				title=_("Invalid Key"),
+			)
+
+		if self.link_doctype or self.standard:
+			frappe.throw(
+				_("A sidebar a level added has a key and no address, and is not standard."),
+				title=_("Invalid Key"),
+			)
 
 	def set_default_title(self):
 		"""Title an untitled sidebar after its module.
@@ -212,9 +345,63 @@ class Sidebar(Document, DeskViews):
 
 		Called from `before_naming` as well as `validate` because `field:` autoname reads the
 		column directly, before `validate` has filled it in.
+
+		A desk v2 sidebar falls back to what it is addressed to instead of to a module it does
+		not have. There the title is only a label -- the name comes from the address -- but it is
+		still required, so a sensible default is what keeps an app from having to repeat the
+		module's name to ship a sidebar for it.
 		"""
 		if not self.title:
-			self.title = self.module
+			self.title = self.link_to or self.key if self.is_addressed else self.module
+
+	def before_import(self):
+		"""Run the title check on the one path that skips `validate`.
+
+		`import_doc` sets `ignore_validate`, so nothing in `validate` runs when an app's sidebar
+		arrives by migrate. That did not matter while uniqueness was an index, because the database
+		held it whatever the caller skipped, and it is the half of the old constraint that moving
+		the check into the controller would otherwise drop.
+
+		The title checked is the record name, not the title in the file: `_sync_autoname_field`
+		copies the name over the column on the way in, so the name is what the row will end up
+		carrying. That is also why this is narrow in practice -- an imported row's title is its own
+		unique name -- and it leaves exactly one way to collide, which is a row whose stored title
+		has drifted away from its name.
+		"""
+		if self.standard:
+			drop_reserved_keys(self.navigation_items)
+
+		if self.is_addressed:
+			return
+
+		self.validate_title_is_unique(self.name)
+
+	def validate_title_is_unique(self, title: str | None = None):
+		"""Refuse a desk v1 sidebar claiming another v1 sidebar's title.
+
+		This used to be `unique: 1` on the column. It cannot stay there, because desk v2's three
+		layers of one sidebar all carry the label that sidebar shows, so an index over both desks
+		would refuse the second layer. Moving the check here narrows it to the rows it was written
+		for, which is the same narrowing `validate_title_is_its_own` already does.
+
+		What it buys over the primary key is unchanged: it refuses a second sidebar claiming the
+		title of a row whose name has drifted away from it -- a legacy row, or one written
+		straight to the table.
+		"""
+		if self.is_addressed:
+			return
+
+		title = title or self.title
+		twin = frappe.db.get_value(
+			"Sidebar", {"title": title, "link_doctype": ("is", "not set"), "name": ("!=", self.name)}
+		)
+		if twin:
+			frappe.throw(
+				_("{0} is already the title of the sidebar {1}.").format(
+					frappe.bold(title), frappe.bold(twin)
+				),
+				title=_("Pick another title"),
+			)
 
 	def validate_title_is_its_own(self):
 		"""Refuse a title that is another module's name.
@@ -224,8 +411,13 @@ class Sidebar(Document, DeskViews):
 		sidebar titled after another module would claim the same key and one of the two would
 		be dropped silently. We refuse it here, while the user can still pick another title.
 
-		Titling a sidebar after its own module is the default and is allowed.
+		Titling a sidebar after its own module is the default and is allowed. A desk v2 sidebar is
+		skipped outright: its name is its address, not its title, so a v2 sidebar for the Accounts
+		module is titled "Accounts" as a matter of course and claims no key by doing so.
 		"""
+		if self.is_addressed:
+			return
+
 		other = frappe.db.get_value("Module Def", self.title, cache=True)
 		if other and other != self.module:
 			frappe.throw(
@@ -314,7 +506,13 @@ class Sidebar(Document, DeskViews):
 		`ignore_validate`, so an import never reaches here, but it also leaves the flag set to
 		`False` instead of restoring the previous value, and a rename here moves a folder inside
 		an app.
+
+		A desk v2 sidebar never renames on a title edit, because its name is its address. Relabelling
+		one is an ordinary field change, and moving its record would strand every rail item naming it.
 		"""
+		if self.is_addressed:
+			return
+
 		if frappe.flags.in_import or self.is_new() or not self.title or self.title == self.name:
 			return
 
@@ -330,6 +528,21 @@ class Sidebar(Document, DeskViews):
 		from frappe.desk.doctype.dock.dock import rename_sidebar_rows
 
 		rename_sidebar_rows(old_name, new_name)
+
+	def validate_navigation_item_keys(self):
+		"""Hold desk v2's rows to the same rule `Rail` holds its own to: an app's rows each carry
+		a unique key.
+
+		Desk v1's `items` are exempt, and `clear_stored_keys` above blanks their key column
+		outright -- a v1 base row is identified by its own columns, so a stored key there would be
+		a second, possibly stale answer. Desk v2 reversed that: the key *is* the identity, so it
+		has to exist and it has to be unique, or the deltas filed against it go inert and the site
+		silently loses its arrangement.
+		"""
+		if not self.standard:
+			return
+
+		validate_item_keys(self.navigation_items, "Sidebar")
 
 	def clear_cache(self):
 		super().clear_cache()
@@ -376,7 +589,18 @@ class Sidebar(Document, DeskViews):
 		Deleting is not blocked. A delete cannot turn site intent into app content, and the
 		things that delete one, such as a module going away or orphan cleanup, have to keep
 		working on a customer site.
+
+		Desk v2's sidebars are guarded conditionally instead, the way `Rail` guards its own three
+		layers: only the app layer is app content, and the site's and each person's arrangements
+		have to stay writable at runtime. The `is_new()` check matters there -- on an unsaved
+		document `has_value_changed` returns `True` for every field, so without it every site- and
+		user-layer row would be refused outside developer mode.
 		"""
+		if self.is_addressed and not (
+			self.standard or (not self.is_new() and self.has_value_changed("standard"))
+		):
+			return
+
 		if frappe.conf.developer_mode:
 			return
 
@@ -533,6 +757,70 @@ class Sidebar(Document, DeskViews):
 # `standard` means an app ships this sidebar as a JSON file. The two actions below turn the
 # flag on and off, and both move the file as well.
 # ---------------------------------------------------------------------------------------
+
+
+def on_doctype_update():
+	"""Enforce one layer per address in the schema rather than in a `validate` hook.
+
+	A hook is bypassed by `db_insert`, a bulk write, or anything that skips the document, and two
+	documents at one address would give the merge two answers for the same layer.
+
+	The index is composite because an address is four columns, not two. `user` is in it because
+	each person arranges a sidebar for themselves, and `standard` because an app's own sidebar and
+	the site's arrangement of it are two documents at the same `(address, user)`: one shipped, one
+	curated, and resetting the site's must not touch the app's.
+
+	Desk v1's sidebars sit under this index without being constrained by it: they carry no address,
+	and a `NULL` is distinct from every other `NULL` to a unique index. `blank_the_empty_address`
+	is what keeps that true for a row saved from the form, which sends `""` rather than nothing.
+	"""
+	# The name is this table's own. SQLite holds index names for the whole database file rather
+	# than per table, and `add_unique` skips a name that already exists, so a name two doctypes
+	# share leaves the second one with no index at all. `Rail` carries its own name for the same
+	# reason; the drop clears the shared name from sites that took it before this one did.
+	drop_index_if_exists("tabSidebar", "unique_layer_address")
+	frappe.db.add_unique(
+		"Sidebar",
+		("link_doctype", "link_to", "user", "standard"),
+		constraint_name="unique_sidebar_address",
+	)
+	# `NULL` is distinct, so only a keyed record is held to one record per key and person.
+	frappe.db.add_unique("Sidebar", ("key", "user"), constraint_name="unique_sidebar_key")
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""Let a System Manager see every layer, and everyone else only their own and the shared ones.
+
+	Desk v1's rows are all app content, which is why this doctype needed no such hook until now.
+	A `user` column changes that: `Desk User` has read on this table, so without this hook one
+	person's arrangement of a sidebar would be readable by everyone on the site.
+
+	A row with no `user` -- an app layer, a site layer, or any of desk v1's -- stays readable by
+	everyone who can read the doctype, because that is the navigation the site shares.
+
+	`System Manager`, not `Workspace Manager`: curating what everyone sees is site administration
+	here, and a second role for it would be two ways to grant one capability.
+	"""
+	user = user or frappe.session.user
+	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
+		return True
+
+	return not doc.user or doc.user == user
+
+
+def get_permission_query_conditions(user=None):
+	"""Restrict list queries the same way, since reports and the API do not go through the document.
+
+	Returns a query-builder term rather than a SQL string -- the hook accepts either, and the term
+	keeps identifier quoting out of this file. The two older hooks beside this one still build
+	strings; they are desk v1's and are left alone.
+	"""
+	user = user or frappe.session.user
+	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
+		return None
+
+	sidebar = frappe.qb.DocType("Sidebar")
+	return sidebar.user.isnull() | (sidebar.user == "") | (sidebar.user == user)
 
 
 @frappe.whitelist()

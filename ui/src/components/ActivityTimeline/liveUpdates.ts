@@ -1,37 +1,39 @@
-import type { createResource } from "frappe-ui";
-import { getSocketInstance, subscribeToDoc } from "../../socket";
-import { hasUnresolvedRowOfType } from "./pendingRows";
+import type { Ref } from "vue";
+import {
+  getSocketInstance,
+  subscribeToDoc,
+  type RealtimeSocket,
+} from "../../socket";
 import type { Activity, UserInfo } from "./types";
-import { getAssignee, stripHtml } from "./utils";
+import { emailAddress, getAssignee, stripHtml } from "./utils";
+
+/** The slice of the timeline store the socket reads and writes. */
+export interface LiveFeed {
+  data: Ref<Activity[]>;
+  fetched: Ref<boolean>;
+  prefetched: Ref<boolean>;
+}
 
 export type Unsubscribe = () => void;
 export type Subscribe = () => Unsubscribe;
-
-// realtime is off, so there is nothing to join and nothing to leave
-const noLiveUpdates: Subscribe = () => () => {};
 
 /** Returns subscribe(): the first caller wires the socket, the last unwires it. */
 export function createLiveUpdates(
   doctype: string,
   docname: string,
-  resource: ReturnType<typeof createResource>,
+  feed: LiveFeed,
   visibleTypes: string[] | undefined,
   refresh: () => Promise<void>
 ): Subscribe {
-  const socket = getSocketInstance();
-  if (!socket) return noLiveUpdates;
-
   // The payload has no avatar, so reuse an author already resolved in the feed.
   const resolveAuthor = (email: string | undefined, fallback: UserInfo) => {
     if (!email) return fallback;
-    const known = ((resource.data as Activity[] | undefined) ?? []).find(
-      (a) => a.author?.email === email
+    const address = email.toLowerCase();
+    const known = feed.data.value.find(
+      (a) => a.author?.email?.toLowerCase() === address
     )?.author;
     return known ?? fallback;
   };
-
-  // live rows skipped while a pending row of their type waits for its key
-  const heldBack = new Map<string, Activity>();
 
   const onUpdate = (payload: unknown) => {
     const { doc, key, action } = payload as {
@@ -47,42 +49,19 @@ export function createLiveUpdates(
     // mirror the server-side visibleTypes filter
     if (visibleTypes && !visibleTypes.includes(activity.type)) return;
 
-    // A row of a type still in flight cannot be told apart from the one being waited for, and
-    // drawing both is a visible duplicate. The refetch below brings it in a moment later.
-    if (
-      action === "add" &&
-      hasUnresolvedRowOfType(doctype, docname, activity.type)
-    ) {
-      heldBack.set(activity.key, activity);
-      refresh().then(restoreHeldBack);
-      return;
-    }
-    if (heldBack.has(activity.key)) {
-      if (action === "delete") heldBack.delete(activity.key);
-      else heldBack.set(activity.key, activity);
-    }
-
-    const current = (resource.data as Activity[] | undefined) ?? [];
+    const current = feed.data.value;
     if (action === "add") {
-      resource.data = [...current, activity];
+      // the row may already be here, from a refresh or a resolved pending row
+      if (current.some((a) => a.key === activity.key)) return;
+      feed.data.value = [...current, activity];
     } else if (action === "delete") {
-      resource.data = current.filter((a) => a.key !== activity.key);
+      feed.data.value = current.filter((a) => a.key !== activity.key);
     } else {
       // an edit keeps its author, and the payload's may not resolve to an avatar
-      resource.data = current.map((a) =>
+      feed.data.value = current.map((a) =>
         a.key === activity.key ? { ...activity, author: a.author } : a
       );
     }
-  };
-
-  // The refetch can leave a held row out without it being deleted: the fetch failed, or it is
-  // an email dated older than the first page. Deleted ones were dropped from here on the way.
-  const restoreHeldBack = () => {
-    const current = (resource.data as Activity[] | undefined) ?? [];
-    const keys = new Set(current.map((a) => a.key));
-    const missing = [...heldBack.values()].filter((a) => !keys.has(a.key));
-    heldBack.clear();
-    if (missing.length) resource.data = [...current, ...missing];
   };
 
   const onDocUpdate = (payload: unknown) => {
@@ -112,13 +91,20 @@ export function createLiveUpdates(
 
   let subscribers = 0;
   let leaveRoom: (() => void) | undefined;
+  // Read at mount, not here: a prefetch builds the store outside any setup. A missing
+  // socket is not kept, since realtime may start after the first mount.
+  let socket: RealtimeSocket | undefined;
 
   return function subscribe() {
+    socket ??= getSocketInstance();
+    if (!socket) return () => {};
+    const live = socket;
     if (++subscribers === 1) {
-      leaveRoom = subscribeToDoc(socket, doctype, docname);
-      for (const event in handlers) socket.on(event, handlers[event]);
-      // nobody was listening while this was closed, so the feed may have moved
-      if (resource.fetched) refresh();
+      leaveRoom = subscribeToDoc(live, doctype, docname);
+      for (const event in handlers) live.on(event, handlers[event]);
+      // Nobody listened while this was closed, so the feed may have moved; a prefetch has just read it.
+      if (feed.fetched.value && !feed.prefetched.value) refresh();
+      feed.prefetched.value = false;
     }
 
     let stopped = false;
@@ -128,7 +114,7 @@ export function createLiveUpdates(
       if (--subscribers > 0) return;
       leaveRoom?.();
       leaveRoom = undefined;
-      for (const event in handlers) socket.off(event, handlers[event]);
+      for (const event in handlers) live.off(event, handlers[event]);
     };
   };
 }
@@ -209,14 +195,15 @@ function normalizeLiveActivity(
       };
     }
 
-    case "communications":
+    case "communications": {
+      const sender = doc.sender ? emailAddress(doc.sender as string) : undefined;
       return {
         type: "email",
         key: `email:${name}`,
         timestamp: String(doc.communication_date || doc.creation),
-        author: resolveAuthor(doc.sender as string, {
-          email: doc.sender as string,
-          fullname: (doc.sender_full_name || doc.sender) as string,
+        author: resolveAuthor(sender, {
+          email: sender,
+          fullname: (doc.sender_full_name || sender) as string,
         }),
         data: {
           name,
@@ -230,6 +217,7 @@ function normalizeLiveActivity(
           attachments: [],
         },
       };
+    }
 
     default:
       return null;

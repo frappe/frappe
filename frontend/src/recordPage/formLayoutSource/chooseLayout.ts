@@ -1,0 +1,52 @@
+import type { FormLayoutRow } from "./types";
+
+/** The first matching conditional row (rows arrive `creation asc`), else the default row, else `null`. */
+export function chooseRow(
+	rows: FormLayoutRow[],
+	doc: Record<string, any>
+): FormLayoutRow | null {
+	const matches = rows.filter(
+		(row) => row.condition && matchesCondition(row.condition, doc)
+	);
+	if (matches.length > 1 && import.meta.env?.DEV) {
+		console.warn(
+			`[form-layout] ${matches.length} conditional layouts match; using the earliest.`
+		);
+	}
+	return matches[0] ?? rows.find((row) => !row.condition) ?? null;
+}
+
+/**
+ * A site row's name, or an app file's layout as `app:<index>` among the app's layouts; `null` for
+ * an app layout under site rows, since Customize then loads the site rows only.
+ */
+export function editorRowId(rows: FormLayoutRow[], row: FormLayoutRow): string | null {
+	if (row.name !== null) return String(row.name);
+	const app = rows.filter((one) => one.name === null);
+	return app.length === rows.length ? `app:${app.indexOf(row)}` : null;
+}
+
+/**
+ * The `depends_on` dialect: an optional `eval:` prefix, a bare fieldname, or a JS expression
+ * over `doc`. An expression that throws matches nothing, so a broken condition cannot steal the layout.
+ */
+export function matchesCondition(
+	condition: string,
+	doc: Record<string, any>
+): boolean {
+	const expression = (
+		condition.startsWith("eval:") ? condition.slice(5) : condition
+	).trim();
+	if (!expression) return false;
+	if (/^[A-Za-z_$][\w$]*$/.test(expression)) {
+		const value = doc?.[expression];
+		return Array.isArray(value) ? value.length > 0 : Boolean(value);
+	}
+	try {
+		return Boolean(new Function("doc", `return (${expression})`)(doc));
+	} catch (error) {
+		if (import.meta.env?.DEV)
+			console.warn(`[form-layout] condition threw: ${condition}`, error);
+		return false;
+	}
+}

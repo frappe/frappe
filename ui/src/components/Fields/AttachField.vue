@@ -8,7 +8,69 @@
 		     a stray click never discards the current file. With no value,
 		     activating opens the uploader. Read-only keeps preview but hides the
 		     Replace/Clear affordances. -->
+		<!-- A panel row has no edit state: a click anywhere in the box attaches or replaces,
+		     the name is the file's. ↗ keeps the right-edge slot in every row; × sits before it and
+		     shows on hover and focus, on editable rows only. -->
+		<div v-if="panel" class="group flex h-7 w-full min-w-0 items-center">
+			<button
+				type="button"
+				data-slot="control"
+				class="flex h-full min-w-0 flex-1 items-center gap-2 ps-2 pe-2 text-start text-base focus:outline-none"
+				:class="field.readOnly ? 'cursor-default' : 'cursor-pointer'"
+				:disabled="field.readOnly && !modelValue"
+				:aria-label="field.label"
+				:aria-invalid="error?.length ? true : undefined"
+				@click="onPanelClick"
+			>
+				<span
+					v-if="busy"
+					class="lucide-loader-2 size-3.5 shrink-0 animate-spin text-ink-gray-5"
+					aria-hidden="true"
+				/>
+				<img
+					v-else-if="imageOnly && modelValue"
+					:src="modelValue"
+					alt=""
+					class="size-5 shrink-0 rounded-2 object-cover"
+				/>
+				<span class="truncate" :class="modelValue ? 'text-ink-gray-8' : 'text-ink-gray-4'">
+					{{ basename || field.placeholder }}
+				</span>
+			</button>
+			<span
+				v-if="modelValue"
+				class="flex shrink-0 items-center gap-1 pe-2"
+				:class="
+					field.readOnly
+						? ''
+						: 'opacity-0 focus-within:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100'
+				"
+			>
+				<button
+					v-if="!field.readOnly"
+					type="button"
+					data-slot="clear"
+					:aria-label="__('Clear')"
+					:title="__('Clear')"
+					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+					@click="clear"
+				>
+					<span class="lucide-x size-3.5" />
+				</button>
+				<a
+					:href="modelValue"
+					target="_blank"
+					rel="noopener"
+					:aria-label="__('Open file')"
+					:title="__('Open file')"
+					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				>
+					<span class="lucide-arrow-up-right size-3.5" />
+				</a>
+			</span>
+		</div>
 		<TextInput
+			v-else
 			:modelValue="basename"
 			:label="field.label"
 			:description="field.description"
@@ -21,6 +83,9 @@
 			@click="onActivate"
 			@keydown.enter.prevent="onActivate"
 		>
+			<template v-if="field.description && !error?.length" #description>
+				<FieldDescription :html="field.description" />
+			</template>
 			<template #prefix>
 				<!-- While the dialog is committing, the spinner wins over the
 				     thumbnail/icon so a Replace mid-upload reads as busy. -->
@@ -119,6 +184,9 @@ import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { HoverCard, TextInput } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { Restrictions, UploadResult, UploadTransport } from "../FileUpload/types";
+import FieldDescription from "./FieldDescription.vue";
+import { fileName } from "./fileName";
+import { translate as __ } from "../../utils/translate";
 
 const FileUploadDialog = defineAsyncComponent(() => import("../FileUpload/FileUploadDialog.vue"));
 
@@ -145,17 +213,7 @@ const busy = ref(false);
 const imageOnly = computed(() => props.field.fieldtype === "Attach Image");
 const placeholder = computed(() => (imageOnly.value ? "Attach an image" : "Attach a file"));
 
-// Show the trailing path segment as a friendly name; full URL stays in the doc.
-const basename = computed(() => {
-	const url = props.modelValue;
-	if (!url) return "";
-	try {
-		const path = new URL(url, "http://x").pathname;
-		return decodeURIComponent(path.split("/").filter(Boolean).pop() || url);
-	} catch {
-		return String(url);
-	}
-});
+const basename = computed(() => fileName(props.modelValue));
 
 const canOpen = computed(() => Boolean(props.modelValue) || !props.field.readOnly);
 
@@ -167,6 +225,13 @@ function onActivate() {
 	} else {
 		openDialog();
 	}
+}
+
+// A panel row replaces on a click; a read-only one has nothing to replace, so it opens the file.
+function onPanelClick() {
+	if (busy.value) return;
+	if (props.field.readOnly) return props.modelValue ? onActivate() : undefined;
+	openDialog();
 }
 
 function openDialog() {

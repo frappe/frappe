@@ -1,0 +1,157 @@
+// The Settings tab's rules: which rows each kind shows, the naming rules and the permission rights.
+import { describe, expect, it } from "vitest";
+import { autonameOf, namingProperties, patternRefusal, patternSeed, ruleOf, ruleRefusal } from "../namingRules";
+import { columns, moreRights, rightRefusal } from "../permissionColumns";
+import type { PermissionRow, SettingsState } from "../settingsModel";
+import { KINDS, kindProperties, settingRows, settingSections, type DangerScope, type DoctypeKind } from "../settingsRows";
+
+function settings(overrides: Partial<SettingsState> = {}): SettingsState {
+	return {
+		properties: {},
+		settable: null,
+		permissions: [],
+		pending: false,
+		kindFixed: true,
+		records: 3,
+		savedAutoname: "hash",
+		app: null,
+		sitePermissions: false,
+		permissionsRefusal: "",
+		...overrides,
+	};
+}
+
+const ofKind = (kind: DoctypeKind, pending = false) => settings({ properties: kindProperties(kind), pending, kindFixed: !pending });
+const keys = (state: SettingsState) => settingRows(state).map((row) => row.key);
+const sections = (state: SettingsState) => settingSections(state).map((section) => section.key);
+
+describe("the rows each kind shows", () => {
+	it("gives a child table no naming or permissions, only its rows and bulk edit, and a Single no naming", () => {
+		expect(sections(ofKind("regular"))).toEqual(["naming", "form", "list", "permissions"]);
+		expect(sections(ofKind("child"))).toEqual(["form", "list"]);
+		expect(keys(ofKind("child"))).toContain("editable_grid");
+		expect(keys(ofKind("child")).filter((key) => ["allow_import", "allow_bulk_edit"].includes(key))).toEqual(["allow_bulk_edit"]);
+		expect(sections(ofKind("single"))).not.toContain("naming");
+	});
+
+	it("shows the kind row only before the first save", () => {
+		expect(keys(ofKind("regular", true))).toContain("kind");
+		expect(keys(ofKind("regular"))).not.toContain("kind");
+	});
+
+	it("hides the kind row on a new child table its parent made", () => {
+		expect(keys(settings({ properties: kindProperties("child"), pending: true, kindFixed: true }))).not.toContain("kind");
+	});
+});
+
+describe("the Danger zone's rows", () => {
+	const ALL = ["change_kind", "rename_doctype", "move_doctype", "make_standard", "delete_doctype"];
+	const custom = settings({ properties: { custom: 1 } });
+	const danger = (state: SettingsState, scope: DangerScope | null = { developerMode: true, administrator: true }) =>
+		settingRows(state, scope)
+			.filter((row) => row.section === "danger")
+			.map((row) => row.key);
+
+	it("shows on a saved DocType in Design, with its own section", () => {
+		expect(danger(custom)).toEqual(ALL);
+		expect(settingSections(custom, { developerMode: true, administrator: true }).map((section) => section.key)).toContain("danger");
+		expect(sections(custom)).not.toContain("danger");
+	});
+
+	it("hides before the first save, in Customize, and on a child table opened from its parent", () => {
+		expect(danger(settings({ properties: { custom: 1 }, pending: true, kindFixed: false }))).toEqual([]);
+		expect(danger(settings({ app: { properties: {}, permissions: [] } }))).toEqual([]);
+		expect(danger(custom, null)).toEqual([]);
+	});
+
+	it("moves a standard DocType and makes a custom one standard only in developer mode", () => {
+		const off = { developerMode: false, administrator: true };
+		expect(danger(custom, off)).toEqual(["change_kind", "rename_doctype", "move_doctype", "delete_doctype"]);
+		expect(danger(settings({ properties: { custom: 0 } }), off)).not.toContain("move_doctype");
+		expect(danger(settings({ properties: { custom: 0 } }))).not.toContain("make_standard");
+		expect(danger(settings({ properties: { custom: 0 } }))).toContain("move_doctype");
+	});
+
+	it("renames and deletes a standard DocType only for Administrator", () => {
+		const manager = { developerMode: true, administrator: false };
+		expect(danger(settings({ properties: { custom: 0 } }), manager)).toEqual(["change_kind", "move_doctype"]);
+		expect(danger(custom, manager)).toEqual(ALL);
+	});
+
+	it("gives a Single no Change kind", () => {
+		expect(danger(settings({ properties: { custom: 1, ...kindProperties("single") } }))).not.toContain("change_kind");
+		expect(danger(settings({ properties: { custom: 1, ...kindProperties("child") } }))).toContain("change_kind");
+	});
+});
+
+describe("the naming rules", () => {
+	it("reads the rule from autoname and naming_rule", () => {
+		expect(ruleOf({})).toBe("hash");
+		expect(ruleOf({ autoname: "field:title" })).toBe("field");
+		expect(ruleOf({ autoname: "naming_series:" })).toBe("naming_series");
+		expect(ruleOf({ autoname: "format:WS-{#####}" })).toBe("format");
+		expect(ruleOf({ autoname: "WS-.#####" })).toBe("format");
+		expect(ruleOf({ autoname: "Prompt" })).toBe("prompt");
+		expect(ruleOf({ autoname: "make_name", naming_rule: "By script" })).toBe("script");
+	});
+
+	it("refuses a typed pattern that would read as another rule", () => {
+		expect(["WS-.#####", "format:WS-{#####}", "format:WS-#####"].map(patternRefusal)).toEqual(["", "", ""]);
+		expect(["WS-#####", "hash", "Prompt"].every((pattern) => patternRefusal(pattern))).toBe(true);
+	});
+
+	it("starts By pattern with a dot series under the DocType's own prefix", () => {
+		expect(patternSeed("Walk Item")).toBe("WI-.#####");
+		expect(namingProperties(patternSeed("Walk Item")).naming_rule).toBe("Expression");
+	});
+
+	it("names a braced pattern the old style expression, as v1 does", () => {
+		expect(namingProperties("format:WS-{#####}")).toEqual({ autoname: "format:WS-{#####}", naming_rule: "Expression (old style)" });
+		expect(namingProperties("WS-.#####").naming_rule).toBe("Expression");
+		expect(autonameOf("By fieldname", "title")).toBe("field:title");
+	});
+
+	it("refuses Number in order while records exist, and Customize's switch to it", () => {
+		expect(ruleRefusal(settings(), [], "autoincrement")).toBe("Not while 3 records exist: their names are not numbers.");
+		expect(ruleRefusal(settings({ records: 0 }), [], "autoincrement")).toBe("");
+		const app = { properties: {}, permissions: [] };
+		expect(ruleRefusal(settings({ app }), [], "autoincrement")).toBe("Customize cannot switch to or from Number in order.");
+	});
+
+	it("refuses a naming series in Customize without the field, and any switch from a script", () => {
+		const app = { properties: {}, permissions: [] };
+		expect(ruleRefusal(settings({ app }), [], "naming_series")).toBe("Add a Select field named naming_series first.");
+		expect(ruleRefusal(settings({ app }), [{ fieldname: "naming_series" }] as never, "naming_series")).toBe("");
+		const scripted = settings({ properties: { naming_rule: "By script", autoname: "x" } });
+		expect(ruleRefusal(scripted, [], "hash")).toBe("Another rule would be ignored.");
+	});
+});
+
+describe("the permission rights", () => {
+	const row = (permlevel: number) => ({ role: "Writer", permlevel, if_owner: 0 }) as PermissionRow;
+
+	it("gives a submittable DocType its submit columns, and a Single only read and write", () => {
+		expect(columns("submittable")).toEqual(["read", "write", "create", "delete", "submit", "cancel", "amend"]);
+		expect(columns("single")).toEqual(["read", "write"]);
+		expect(moreRights("single")).not.toContain("import");
+		expect(moreRights("regular")).toContain("import");
+	});
+
+	it("refuses create above level 0, and import while the DocType does not allow it", () => {
+		expect(rightRefusal(row(1), "create", true)).toBe("A rule above level 0 only reads and writes its fields.");
+		expect(rightRefusal(row(0), "create", true)).toBe("");
+		expect(rightRefusal(row(0), "import", false)).toBe("Turn on Allow import in List and search first.");
+	});
+});
+
+describe("the prototype's look", () => {
+	it("lists the kinds as Regular, Submittable, Tree, Child table, Single", () => {
+		expect(KINDS.map((kind) => kind.label)).toEqual(["Regular", "Submittable", "Tree", "Child table", "Single"]);
+	});
+
+	it("puts a Default view row first in List and search, for the kinds with a list", () => {
+		expect(settingRows(ofKind("regular")).filter((row) => row.section === "list")[0].key).toBe("default_view");
+		expect(keys(ofKind("single"))).not.toContain("default_view");
+		expect(keys(ofKind("child"))).not.toContain("default_view");
+	});
+});

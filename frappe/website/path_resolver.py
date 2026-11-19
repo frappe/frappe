@@ -12,6 +12,7 @@ from frappe.website.page_renderers.list_renderer import ListPage
 from frappe.website.page_renderers.not_found_page import NotFoundPage
 from frappe.website.page_renderers.print_page import PrintPage
 from frappe.website.page_renderers.redirect_page import RedirectPage
+from frappe.website.page_renderers.shell_page import ShellPage
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.page_renderers.template_page import TemplatePage
 from frappe.website.page_renderers.web_form import WebFormPage
@@ -55,6 +56,10 @@ class PathResolver:
 		except frappe.Redirect as e:
 			return frappe.flags.redirect_location, RedirectPage(self.path, e.http_status_code)
 
+		# Before the rewrite as well as after it, so no rule can move a path under /apps away from the shell.
+		if resolved := self.resolve_shell(self.path):
+			return resolved
+
 		if website_path_resolvers := frappe.get_hooks("website_path_resolver"):
 			for resolver in website_path_resolvers:
 				endpoint = frappe.get_attr(resolver)(self.path)
@@ -67,6 +72,9 @@ class PathResolver:
 
 		if not (frappe.conf.developer_mode or frappe.conf.allow_tests) and _is_frappe_test_fixture(endpoint):
 			return endpoint, NotFoundPage(endpoint)
+
+		if resolved := self.resolve_shell(endpoint):
+			return resolved
 
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = [
@@ -85,6 +93,15 @@ class PathResolver:
 				return endpoint, renderer_instance
 
 		return endpoint, NotFoundPage(endpoint)
+
+	def resolve_shell(self, path):
+		"""The shell or a 404 for a path under /apps, where no other renderer may serve; else None."""
+		# The home page: a renderer given no path reads the request's, which may be another one.
+		if not path:
+			return None
+		shell = ShellPage(path, self.http_status_code)
+		if shell.reserved:
+			return path, shell if shell.can_render() else NotFoundPage(path)
 
 	def is_valid_path(self):
 		_endpoint, renderer_instance = self.resolve()

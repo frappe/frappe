@@ -5,30 +5,31 @@ import type { DataImportDoc, DocType } from "../types";
 import type { UseDataImport } from "../useDataImport";
 
 const mocks = vi.hoisted(() => ({
-  call: vi.fn(),
+  count: vi.fn(),
   upload: vi.fn(),
   warning: vi.fn(),
   error: vi.fn(),
-  uploadState: { uploading: false, progress: 0 },
 }));
 
 vi.mock("frappe-ui", async (importOriginal) => {
   const actual = await importOriginal<typeof import("frappe-ui")>();
-  const { reactive } = await import("vue");
-  mocks.uploadState = reactive({ uploading: false, progress: 0 });
   return {
     ...actual,
-    call: mocks.call,
     toast: Object.assign(vi.fn(), {
       warning: mocks.warning,
       error: mocks.error,
     }),
-    useFileUpload: () => ({
-      upload: mocks.upload,
-      state: mocks.uploadState,
-    }),
   };
 });
+
+vi.mock("../../../api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../../api")>()),
+  countDocuments: mocks.count,
+}));
+
+vi.mock("../../FileUpload/useFileUpload", () => ({
+  defaultTransport: mocks.upload,
+}));
 
 vi.mock("../../Link", async () => {
   const { defineComponent, h } = await import("vue");
@@ -53,10 +54,9 @@ let app: App | undefined;
 let host: HTMLElement | undefined;
 
 beforeEach(() => {
-  mocks.call.mockReset();
-  mocks.call.mockResolvedValue(0);
+  mocks.count.mockReset();
+  mocks.count.mockResolvedValue({ data: 0 });
   mocks.upload.mockReset();
-  Object.assign(mocks.uploadState, { uploading: false, progress: 0 });
   mocks.warning.mockReset();
   mocks.error.mockReset();
 });
@@ -204,11 +204,10 @@ describe("ConfigStep settings", () => {
   });
 
   it("shows the pending imports banner for a new import", async () => {
-    mocks.call.mockResolvedValue(2);
+    mocks.count.mockResolvedValue({ data: 2 });
     render(savedDoc({ name: undefined, import_file: null }));
     await settle();
-    expect(mocks.call).toHaveBeenCalledWith("frappe.client.get_count", {
-      doctype: "Data Import",
+    expect(mocks.count).toHaveBeenCalledWith("Data Import", {
       filters: {
         reference_doctype: "ToDo",
         status: "Pending",
@@ -222,7 +221,7 @@ describe("ConfigStep settings", () => {
   });
 
   it("Review pending imports asks the app to show that doctype's imports", async () => {
-    mocks.call.mockResolvedValue(1);
+    mocks.count.mockResolvedValue({ data: 1 });
     const onOpenImports = vi.fn();
     render(savedDoc({ name: undefined, import_file: null }), null, {
       onOpenImports,
@@ -260,10 +259,12 @@ describe("ConfigStep upload", () => {
   });
 
   it("shows the file name and progress while uploading", async () => {
-    mocks.upload.mockReturnValue(new Promise(() => {}));
+    mocks.upload.mockImplementation((_file, _args, { onProgress }) => {
+      onProgress(40, 100);
+      return new Promise(() => {});
+    });
     render(savedDoc({ name: undefined, import_file: null }));
     pickFile(new File(["a,b"], "new.csv"));
-    Object.assign(mocks.uploadState, { uploading: true, progress: 40 });
     await settle();
     const progress = host!.querySelector('[data-slot="upload-progress"]')!;
     expect(progress.textContent).toContain("new.csv");

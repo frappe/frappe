@@ -47,6 +47,10 @@ interface BaseComposerProps {
   allowedFileTypes?: string[];
   /** Host is performing the send: the submit button shows a spinner and ignores clicks. */
   submitting?: boolean;
+  /** The host sets the height: the body fills it, with no 50vh cap. */
+  fill?: boolean;
+  /** Nothing can be written or sent: the body is read-only, attach and submit are off. */
+  disabled?: boolean;
 }
 
 export interface ComposerEditorProps extends BaseComposerProps {
@@ -73,6 +77,8 @@ interface BaseComposerEmits<Payload> {
   submit: [payload: Payload];
   /** Only on explicit chip removal (so the host can delete server-side). */
   "remove-attachment": [file: UploadedFile];
+  /** The reader's Discard or Esc; a host's own `reset()` does not fire it. */
+  discard: [];
 }
 
 // --- EmailComposer ----------------------------------------------------------

@@ -1,0 +1,101 @@
+// Turns a field's commit into the event key a script's handler is registered under,
+// so events are dispatched where the value changed, not diffed out of the document.
+import type { CommitChannel, RowAddress, RowChange } from "@framework/ui/fields/types";
+import { ROW_EVENTS } from "./flattenHandlers";
+
+export interface CommitChannelHost {
+  /** `edited` is false for a Button's click: it changes no value, so the page need not redraw. */
+  dispatch: (event: string, row: RowAddress | undefined, edited: boolean) => Promise<void> | void;
+}
+
+export interface RecordCommitChannel extends CommitChannel {
+  /** The engine always has it; `CommitChannel` leaves it optional for hosts built on develop. */
+  discard: (fieldname: string, row?: RowAddress) => void;
+  /** Resolves when the handlers of the structural edit have run. */
+  rowChanged: (row: RowAddress, change: RowChange) => Promise<void> | void;
+  /** False for an echo of the value last committed, which is no edit. */
+  pending: (fieldname: string, value: any, row?: RowAddress) => boolean;
+  /** Fires the handler of an edit whose commit never arrived, and waits for the handlers already running. */
+  flush: () => Promise<void>;
+  /** Fires a field's handler with no value to commit, a Button's click; a save waits for it too. */
+  trigger: (fieldname: string) => void;
+}
+
+interface Edit {
+  event: string;
+  value: any;
+  row?: RowAddress;
+}
+
+export function createCommitChannel(
+  host: CommitChannelHost,
+): RecordCommitChannel {
+  let pending: Edit | null = null;
+  let settled: Edit | null = null;
+  // Handlers a commit started and nobody awaited; a save waits for them before `beforeSave`.
+  const running = new Set<Promise<void>>();
+
+  // An echo of the value already committed is a no-op: a control that re-emits as it
+  // commits, or the `change` a save's repaint fires on a focused input, must not refire.
+  function settles(event: string, value: any, row?: RowAddress): boolean {
+    return !(
+      settled?.event === event &&
+      settled.row?.key === row?.key &&
+      Object.is(settled.value, value)
+    );
+  }
+
+  function track(dispatched: Promise<void> | void) {
+    if (!dispatched) return;
+    const done = dispatched.finally(() => running.delete(done));
+    running.add(done);
+    return done;
+  }
+
+  function commit(fieldname: string, value: any, row?: RowAddress) {
+    const event = fieldEvent(fieldname, row);
+    pending = null;
+    if (!settles(event, value, row)) return;
+    settled = { event, value, row };
+    return track(host.dispatch(event, row, true));
+  }
+
+  return {
+    pending: (fieldname, value, row) => {
+      const event = fieldEvent(fieldname, row);
+      if (!settles(event, value, row)) return false;
+      pending = { event, value, row };
+      return true;
+    },
+    commit,
+    discard: (fieldname, row) => {
+      if (pending?.event === fieldEvent(fieldname, row) && pending.row?.key === row?.key) pending = null;
+    },
+    rowChanged: (row, change) => {
+      // A structural edit is itself a commit, and a removed row's pending edit has nowhere to land.
+      pending = null;
+      // A removed row has no address left to hand on; its handle would throw on every access.
+      return track(host.dispatch(rowEvent(row, change), change === "add" ? row : undefined, true));
+    },
+    trigger: (fieldname) => void track(host.dispatch(fieldname, undefined, false)),
+    flush: async () => {
+      const edit = pending;
+      if (edit) {
+        pending = null;
+        settled = edit;
+        await host.dispatch(edit.event, edit.row, true);
+      }
+      await Promise.all([...running]);
+    },
+  };
+}
+
+/** A child field is addressed by its table, on the one character a fieldname cannot hold. */
+export function fieldEvent(fieldname: string, row?: RowAddress): string {
+  return row ? `${row.parentfield}.${fieldname}` : fieldname;
+}
+
+/** The lifecycle keys are `on`-prefixed, so they cannot collide with a child field called `add`. */
+export function rowEvent(row: RowAddress, change: RowChange): string {
+  return `${row.parentfield}.${ROW_EVENTS[change]}`;
+}

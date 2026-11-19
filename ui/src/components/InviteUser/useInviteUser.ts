@@ -1,5 +1,5 @@
-import { computed, reactive } from "vue";
-import { createResource } from "frappe-ui";
+import { computed, reactive, ref } from "vue";
+import { runMethod, searchDocuments } from "../../api";
 import type {
   InviteResult,
   InviteStore,
@@ -33,148 +33,170 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
   // backend still verifies them at invite time for apps that declare one.
   const roleOptions = options.roles ?? [];
 
-  const pendingResource = createResource({
-    url: `${API}.get_pending_invitations`,
-    method: "GET",
-    params: { app_name: appName },
-    auto: false,
-  });
+  const pendingInvites = ref<PendingInvitation[]>([]);
+  const loading = ref(false);
+  const pendingError = ref<unknown>(null);
 
-  // Emails already invited to this app (pending or accepted). The email field
-  // excludes these from its suggestions so you can't re-invite someone who's
-  // already in flight or has already joined.
-  const invitedEmailsResource = createResource({
-    url: "frappe.client.get_list",
-    params: {
-      doctype: "User Invitation",
-      filters: { app_name: appName, status: ["in", ["Pending", "Accepted"]] },
-      fields: ["email"],
-      limit_page_length: 0,
-    },
-    auto: false,
-    transform: (rows: Array<{ email: string }>): string[] =>
-      rows.map((r) => r.email),
-  });
+  // a later read supersedes an earlier one still in flight, so the stale rows never land
+  let pendingGeneration = 0;
 
-  // Existing users suggested in the email field — enabled, real (non-Website)
-  // users from the User doctype (NOT Contact). Driven by `searchUsers(query)`.
-  const usersResource = createResource({
-    url: "frappe.client.get_list",
-    transform: (
-      rows: Array<{ name: string; full_name?: string; user_image?: string }>
-    ): UserOption[] =>
-      rows.map((r) => ({
-        label: r.full_name || r.name,
-        value: r.name,
-        avatar: r.user_image || undefined,
-      })),
-  });
-
-  function searchUsers(query: string): void {
-    usersResource.submit({
-      doctype: "User",
-      filters: { enabled: 1, user_type: ["!=", "Website User"] },
-      or_filters: query
-        ? [
-            ["User", "name", "like", `%${query}%`],
-            ["User", "full_name", "like", `%${query}%`],
-          ]
-        : undefined,
-      fields: ["name", "full_name", "user_image"],
-      order_by: "full_name asc",
-      limit_page_length: 20,
-    });
+  async function fetchPending(): Promise<void> {
+    const mine = ++pendingGeneration;
+    loading.value = true;
+    try {
+      const { data } = await runMethod<PendingInvitation[]>(
+        `${API}.get_pending_invitations`,
+        { app_name: appName },
+        { http: "GET" }
+      );
+      if (mine !== pendingGeneration) return;
+      pendingInvites.value = data;
+      pendingError.value = null;
+    } catch (failure) {
+      if (mine === pendingGeneration) pendingError.value = failure;
+    } finally {
+      if (mine === pendingGeneration) loading.value = false;
+    }
   }
 
-  const inviteResource = createResource({
-    url: `${API}.invite_by_email`,
-    method: "POST",
-  });
+  // Existing users suggested in the email field: enabled, real (non-Website) users,
+  // minus anyone already invited to this app (pending or accepted).
+  const users = ref<UserOption[]>([]);
+  const usersLoading = ref(false);
+  const usersError = ref<unknown>(null);
+  let searchGeneration = 0;
+  // The last query typed, so a successful invite can drop the invited person from the suggestions.
+  let currentQuery: string | null = null;
 
-  const cancelResource = createResource({
-    url: `${API}.cancel_invitation`,
-    method: "PATCH",
-  });
+  async function searchUsers(query: string): Promise<void> {
+    const mine = ++searchGeneration;
+    currentQuery = query;
+    usersLoading.value = true;
+    try {
+      const { data: found } = await searchDocuments("User", {
+        txt: query,
+        filters: { enabled: 1, user_type: ["!=", "Website User"] },
+        limit: 20,
+      });
+      const invited = await invitedAmong(found.map((row) => row.value));
+      if (mine !== searchGeneration) return;
+      users.value = found
+        .filter((row) => !invited.has(row.value))
+        .map((row) => ({ label: row.label || row.value, value: row.value }));
+      usersError.value = null;
+    } catch (failure) {
+      if (mine === searchGeneration) usersError.value = failure;
+    } finally {
+      if (mine === searchGeneration) usersLoading.value = false;
+    }
+  }
 
-  const resendResource = createResource({
-    url: `${API}.resend_invitation`,
-    method: "POST",
-  });
+  async function invitedAmong(emails: string[]): Promise<Set<string>> {
+    if (!emails.length) return new Set();
+    const { data } = await runMethod<string[]>(
+      `${API}.get_invited_emails`,
+      { app_name: appName, emails },
+      { http: "GET" }
+    );
+    return new Set(data);
+  }
+
+  const inviting = ref(false);
+  const inviteError = ref<unknown>(null);
+  const cancellingName = ref<string | null>(null);
+  const cancelError = ref<unknown>(null);
+  const resendingName = ref<string | null>(null);
+  const resendError = ref<unknown>(null);
 
   async function invite(
     emails: string,
     roles: string[]
   ): Promise<InviteResult> {
-    const result = (await inviteResource.submit({
-      // `extraParams` first: the controller's core params (emails, roles,
-      // redirect_to_path, app_name) must win, so a host extra can't silently
-      // retarget the invite to a different app than the pending/invited lists poll.
-      ...extraParams,
-      emails,
-      roles: transformRoles(roles),
-      redirect_to_path: redirectPath,
-      app_name: appName,
-    })) as InviteResult;
-    pendingResource.reload();
-    invitedEmailsResource.reload();
-    return result;
+    inviting.value = true;
+    try {
+      const { data: result } = await runMethod<InviteResult>(`${API}.invite_by_email`, {
+        // `extraParams` first, so the core params (emails, roles, redirect_to_path, app_name)
+        // win and a host extra cannot retarget the invite to another app.
+        ...extraParams,
+        emails,
+        roles: transformRoles(roles),
+        redirect_to_path: redirectPath,
+        app_name: appName,
+      });
+      inviteError.value = null;
+      void fetchPending();
+      if (currentQuery !== null) void searchUsers(currentQuery);
+      return result;
+    } catch (failure) {
+      inviteError.value = failure;
+      throw failure;
+    } finally {
+      inviting.value = false;
+    }
   }
 
   async function cancel(name: string): Promise<void> {
-    await cancelResource.submit({ name, app_name: appName });
-    pendingResource.reload();
-    invitedEmailsResource.reload();
+    cancellingName.value = name;
+    try {
+      await runMethod(`${API}.cancel_invitation`, { name, app_name: appName });
+      cancelError.value = null;
+      void fetchPending();
+    } catch (failure) {
+      cancelError.value = failure;
+      throw failure;
+    } finally {
+      cancellingName.value = null;
+    }
   }
 
   async function resend(name: string): Promise<void> {
-    await resendResource.submit({ name, app_name: appName });
+    resendingName.value = name;
+    try {
+      await runMethod(
+        `${API}.resend_invitation`,
+        { name, app_name: appName },
+        { nullable: true }
+      );
+      resendError.value = null;
+    } catch (failure) {
+      resendError.value = failure;
+      throw failure;
+    } finally {
+      resendingName.value = null;
+    }
   }
 
   // Lazy initial fetch — runs once per controller (the panel calls it on mount).
   // Roles are a static host list; users for the email field stay on-demand via
-  // `searchUsers`. So only the pending list + already-invited set are fetched here.
+  // `searchUsers`. So only the pending list is fetched here.
   let loaded = false;
   function load(): void {
     if (loaded) return;
     loaded = true;
-    pendingResource.fetch();
-    invitedEmailsResource.fetch();
+    void fetchPending();
   }
 
   const store = reactive({
-    pendingInvites: computed<PendingInvitation[]>(
-      () => (pendingResource.data as PendingInvitation[]) ?? []
-    ),
+    pendingInvites: computed<PendingInvitation[]>(() => pendingInvites.value),
     roles: roleOptions,
-    users: computed<UserOption[]>(() => {
-      const invited = new Set(
-        (invitedEmailsResource.data as string[] | null) ?? []
-      );
-      const found = (usersResource.data as UserOption[] | null) ?? [];
-      return found.filter((u) => !invited.has(u.value));
-    }),
-    loading: computed(() => Boolean(pendingResource.loading)),
-    usersLoading: computed(() => Boolean(usersResource.loading)),
-    inviting: computed(() => Boolean(inviteResource.loading)),
+    users: computed<UserOption[]>(() => users.value),
+    loading: computed(() => loading.value),
+    usersLoading: computed(() => usersLoading.value),
+    inviting: computed(() => inviting.value),
     // surface which row is busy so a host acting on pending invites can show spinners
-    cancellingName: computed<string | null>(() =>
-      cancelResource.loading ? cancelResource.params?.name ?? null : null
-    ),
-    resendingName: computed<string | null>(() =>
-      resendResource.loading ? resendResource.params?.name ?? null : null
-    ),
+    cancellingName: computed<string | null>(() => cancellingName.value),
+    resendingName: computed<string | null>(() => resendingName.value),
     // Only the invite error is semantically the email field's — the panel binds
     // `error` to it. Background fetch/mutation failures go to `loadError` so a
     // permission error on the initial pending fetch doesn't light up a blank
     // email input; hosts can surface `loadError` however they like.
-    error: computed(() => inviteResource.error ?? null),
+    error: computed(() => inviteError.value ?? null),
     loadError: computed(
       () =>
-        pendingResource.error ??
-        invitedEmailsResource.error ??
-        cancelResource.error ??
-        resendResource.error ??
-        usersResource.error ??
+        pendingError.value ??
+        cancelError.value ??
+        resendError.value ??
+        usersError.value ??
         null
     ),
     invite,
@@ -183,8 +205,7 @@ export function useInviteUser(options: UseInviteUserOptions = {}): InviteStore {
     searchUsers,
     load,
     reload: () => {
-      pendingResource.reload();
-      invitedEmailsResource.reload();
+      void fetchPending();
     },
   }) as InviteStore;
 

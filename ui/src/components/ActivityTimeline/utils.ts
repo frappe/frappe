@@ -1,16 +1,16 @@
-import { dayjsLocal } from "frappe-ui";
 import { ref, type Ref } from "vue";
+import { relativeTime, siteTime } from "../../composables/relativeTime";
 
 export const dateTooltipFormat = "ddd, MMM D, YYYY h:mm A";
 
 export function dateFormat(date?: string, format = dateTooltipFormat): string {
   if (!date) return "";
-  return dayjsLocal(date).format(format);
+  return siteTime(date).format(format);
 }
 
 export function timeAgo(date?: string): string {
   if (!date) return "";
-  return dayjsLocal(date).fromNow();
+  return relativeTime(siteTime(date));
 }
 
 /** Plain text from an HTML fragment (used by the realtime normalizer). */
@@ -108,12 +108,20 @@ const COLOR_PROPS = new Set([
 ]);
 
 /** Strip color-related inline styles + bgcolor/color attrs so iframe CSS controls colors. */
-export function stripEmailColors(html: string): string {
-  if (!html) return html;
-  const div = document.createElement("div");
-  div.innerHTML = html;
+export function stripEmailColors(doc: Document): void;
+/** @deprecated Pass a parsed `Document`; this form returns the stripped markup. */
+export function stripEmailColors(html: string): string;
+export function stripEmailColors(input: Document | string): void | string {
+  if (!input) return input as string;
+  if (typeof input !== "string") return stripColors(input);
+  const template = document.createElement("template");
+  template.innerHTML = input;
+  stripColors(template.content);
+  return template.innerHTML;
+}
 
-  div.querySelectorAll("[style]").forEach((el) => {
+function stripColors(doc: ParentNode): void {
+  doc.querySelectorAll("[style]").forEach((el) => {
     const filtered = (el.getAttribute("style") || "")
       .split(";")
       .map((s) => s.trim())
@@ -125,14 +133,12 @@ export function stripEmailColors(html: string): string {
     else el.removeAttribute("style");
   });
 
-  div
+  doc
     .querySelectorAll("[bgcolor]")
     .forEach((el) => el.removeAttribute("bgcolor"));
-  div
+  doc
     .querySelectorAll("font[color]")
     .forEach((el) => el.removeAttribute("color"));
-
-  return div.innerHTML;
 }
 
 // Reactive mirror of <html data-theme>; lazy singleton MutationObserver, shared.
@@ -152,6 +158,12 @@ export function useDataTheme(): Ref<string> {
     });
   }
   return dataTheme;
+}
+
+/** The bare address in a `Full Name <address>` sender. */
+export function emailAddress(sender: string): string {
+  const bracketed = sender.match(/<([^>]+)>/);
+  return (bracketed ? bracketed[1] : sender).trim();
 }
 
 /** Split a comma-separated recipients string, respecting quoted display names. */

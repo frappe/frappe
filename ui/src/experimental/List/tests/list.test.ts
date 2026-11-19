@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { reactive } from "vue";
+import { h, reactive } from "vue";
 import { List } from "../index";
 import type { ListRowData } from "../types";
 import { flush, mount, unmountAll } from "./mount";
@@ -65,6 +65,36 @@ describe("List rows", () => {
     expect(cells[3].className).toContain("justify-end");
   });
 
+  it("right-aligns the last column whatever its type, and follows a change of columns", async () => {
+    const alignedCells = (root: HTMLElement) =>
+      [...rowsOf(root)[0].querySelectorAll("[data-slot='list-cell']")]
+        .slice(1)
+        .map((cell) => cell.className.includes("justify-end"));
+    const headerCells = (root: HTMLElement) =>
+      [...root.querySelectorAll("[data-slot='list-header'] > .relative")].map(
+        (cell) => cell.className.includes("justify-end")
+      );
+    const left = columns.slice(0, 2);
+    const state = reactive({ columns: left });
+    const { root } = await mount(List, {
+      get columns() {
+        return state.columns;
+      },
+      rows,
+    });
+    expect(alignedCells(root)).toEqual([false, true]);
+    expect(headerCells(root)).toEqual([false, true]);
+
+    state.columns = [...left, columns[2]];
+    await flush();
+    expect(alignedCells(root)).toEqual([false, false, true]);
+    expect(headerCells(root)).toEqual([false, false, true]);
+
+    state.columns = [columns[2], ...left];
+    await flush();
+    expect(alignedCells(root)).toEqual([true, false, true]);
+  });
+
   it("renders the cell slot in place of the text", async () => {
     const { root } = await mount(
       List,
@@ -73,6 +103,19 @@ describe("List rows", () => {
     );
     expect(rowsOf(root)[0].textContent).toContain("custom");
     expect(rowsOf(root)[0].textContent).not.toContain("Open");
+  });
+
+  it("puts cellClass's class on the cell it names, and no wrapper around the text", async () => {
+    const { root } = await mount(List, {
+      columns,
+      rows,
+      cellClass: (row: ListRowData, column: { fieldname: string }) =>
+        row.name === "A" && column.fieldname === "name" ? "dimmed" : "",
+    });
+    const marked = root.querySelectorAll(".dimmed");
+    expect(marked).toHaveLength(1);
+    expect(marked[0].parentElement).toBe(rowsOf(root)[0]);
+    expect(marked[0].textContent).toBe("A");
   });
 });
 
@@ -114,6 +157,34 @@ describe("List selection", () => {
     ).toBe("true");
   });
 
+  it("draws a menu cell per row only with rowMenu, and a click in it does not navigate", async () => {
+    const clicked: string[] = [];
+    const slots = {
+      rowMenu: ({ row }: { row: ListRowData }) =>
+        h("button", { onClick: () => clicked.push(String(row.name)) }, "menu"),
+    };
+    const plain = await mount(List, { columns, rows, rowLink }, slots);
+    expect(plain.root.querySelectorAll("button")).toHaveLength(0);
+    unmountAll();
+
+    const { root, router } = await mount(
+      List,
+      { columns, rows, rowLink, rowMenu: true },
+      slots
+    );
+    const buttons = root.querySelectorAll<HTMLElement>("button");
+    expect(buttons).toHaveLength(2);
+    expect(
+      root.querySelectorAll("[data-slot='list-header'] [role='columnheader']")
+    ).toHaveLength(5);
+
+    buttons[1].click();
+    await settle();
+
+    expect(clicked).toEqual(["B"]);
+    expect(router.currentRoute.value.path).toBe("/");
+  });
+
   it("a click on the row itself does navigate", async () => {
     const { root, router } = await mount(List, { columns, rows, rowLink });
 
@@ -142,6 +213,53 @@ describe("List selection", () => {
     await flush();
 
     expect(state.selection).toEqual(["A", "B"]);
+  });
+
+  it("Esc on the focused header checkbox clears the selection", async () => {
+    const state = reactive({ selection: ["A"] });
+    const { root } = await mount(List, {
+      columns,
+      rows,
+      get selection() {
+        return state.selection;
+      },
+      "onUpdate:selection": (value: string[]) => (state.selection = value),
+    });
+
+    root
+      .querySelector("[data-slot='list-header'] input[type='checkbox']")!
+      .dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await flush();
+
+    expect(state.selection).toEqual([]);
+  });
+});
+
+describe("List selection", () => {
+  it("keeps the column labels beside the live header checkbox while rows are selected", async () => {
+    const state = reactive({ selection: ["A"] });
+    const { root } = await mount(List, {
+      columns,
+      rows,
+      rowMenu: true,
+      get selection() {
+        return state.selection;
+      },
+      "onUpdate:selection": (value: string[]) => (state.selection = value),
+    });
+    const header = root.querySelector<HTMLElement>("[data-slot='list-header']")!;
+    const checkbox = header.querySelector<HTMLInputElement>("input[type='checkbox']")!;
+
+    expect(header.querySelectorAll("[data-slot='list-header-cell']")).toHaveLength(3);
+    expect(checkbox.indeterminate).toBe(true);
+    checkbox.click();
+    await flush();
+    expect(state.selection).toEqual(["A", "B"]);
+  });
+
+  it("pads the bottom by the inset, so the last row clears a floating bar", async () => {
+    const { root } = await mount(List, { columns, rows, bottomInset: "4.5rem" });
+    expect(root.innerHTML).toContain("padding-bottom: 4.5rem");
   });
 });
 
@@ -177,6 +295,17 @@ describe("List sort", () => {
         ?.getAttribute("aria-sort")
     ).toBe("descending");
   });
+
+  it("puts the host's sortAct on each sortable header button, and nothing without it", async () => {
+    const sortable = { sort: [], "onUpdate:sort": () => {} };
+    const marked = await mount(List, { columns, rows, ...sortable, sortAct: "list.set_sort" });
+    const buttons = headerButtons(marked.root);
+    expect(buttons.length).toBeGreaterThan(0);
+    for (const button of buttons) expect(button.closest("[data-act]")?.getAttribute("data-act")).toBe("list.set_sort");
+
+    const plain = await mount(List, { columns, rows, ...sortable });
+    for (const button of headerButtons(plain.root)) expect(button.closest("[data-act]")).toBeNull();
+  });
 });
 
 describe("List states", () => {
@@ -184,6 +313,85 @@ describe("List states", () => {
     const { root } = await mount(List, { columns, rows: [], loading: true });
     expect(rowsOf(root)).toHaveLength(10);
     expect(root.textContent).not.toContain("No records");
+  });
+
+  it("draws a checkbox-sized skeleton in each skeleton row's first cell", async () => {
+    const { root } = await mount(List, { columns, rows: [], loading: true });
+    for (const row of rowsOf(root)) {
+      const [first, ...rest] = row.querySelectorAll("[data-slot='list-cell']");
+      const box = first.querySelector(".fui-skeleton");
+      expect(box?.className).toContain("h-3.5 w-3.5 rounded-1");
+      expect(rest.map((cell) => cell.querySelectorAll(".fui-skeleton").length))
+        .toEqual([1, 1, 1]);
+      expect(row.querySelectorAll(".fui-skeleton")).toHaveLength(
+        columns.length + 1
+      );
+    }
+  });
+
+  it("draws a label bar per placeholder column until the columns are known", async () => {
+    const state = reactive({
+      columns: [] as typeof columns,
+      rows: [] as ListRowData[],
+      loading: true,
+    });
+    const { root } = await mount(List, {
+      get columns() {
+        return state.columns;
+      },
+      get rows() {
+        return state.rows;
+      },
+      get loading() {
+        return state.loading;
+      },
+    });
+    const bars = () =>
+      [...root.querySelectorAll("[data-list-header-skeleton] .fui-skeleton")];
+
+    expect(bars()).toHaveLength(4);
+    for (const bar of bars()) {
+      expect(bar.className).toContain("h-2.5 w-16 rounded-1");
+    }
+    // The checkbox's cell and track, then one per bar: the bars sit over the rows' bars.
+    const header = root.querySelector<HTMLElement>("[data-slot='list-header']")!;
+    expect(header.querySelectorAll("[role='columnheader']")).toHaveLength(5);
+    const grid = root.querySelector<HTMLElement>("[style*='--_list-columns-base']")!;
+    const tracks = grid.style.getPropertyValue("--_list-columns-base");
+    expect(tracks.match(/^2rem|minmax\([^)]*\)/g)).toHaveLength(5);
+
+    state.columns = columns;
+    await flush();
+    expect(bars()).toHaveLength(0);
+    expect(header.textContent).toContain("Status");
+  });
+
+  it("draws the header checkbox as a skeleton while the rows load, then the real one", async () => {
+    const state = reactive({ rows: [] as ListRowData[], loading: true });
+    const { root } = await mount(List, {
+      columns,
+      get rows() {
+        return state.rows;
+      },
+      get loading() {
+        return state.loading;
+      },
+    });
+    const box = () =>
+      root.querySelector<HTMLElement>(
+        "[data-slot='list-header'] [role='columnheader']"
+      )!;
+
+    expect(box().querySelector(".fui-skeleton")?.className).toContain(
+      "h-3.5 w-3.5 rounded-1"
+    );
+    expect(box().querySelector("input[type='checkbox']")).toBeNull();
+
+    state.rows = rows;
+    state.loading = false;
+    await flush();
+    expect(box().querySelector(".fui-skeleton")).toBeNull();
+    expect(box().querySelector("input[type='checkbox']")).not.toBeNull();
   });
 
   it("shows the empty text, or the empty slot, once loaded with no rows", async () => {

@@ -1,0 +1,40 @@
+# The canonical address of a document for a link built outside a session: the owner's prefix.
+# It never redirects; an address that changes shape per user is not an address.
+
+import frappe
+
+from . import SHELL_ROOT
+from .doctypes import get_shell_doctypes
+from .registry import declared_prefix, is_modular
+
+
+def canonical_path(doctype: str, name: str | None = None) -> str:
+	"""`/apps/erpnext/accounts/sales-invoice/SI-001` — path only, no host."""
+	from urllib.parse import quote
+
+	from frappe.utils import cstr, quoted
+
+	doctypes = get_shell_doctypes()
+	app = doctypes["owners"].get(doctype, "frappe")
+	prefix = declared_prefix(app)
+
+	table = doctypes["table"]
+	address = table["doctypes"].get(doctype)
+	if not address and doctype in table.get("unaddressed", ()):
+		# Its slug opens another DocType; spelled by name, the link reaches not-found instead.
+		address = (doctype, "")
+	# A doctype not yet in the table still gets a link: the cache lags a new DocType until the version resets.
+	slug, module = address if address else (frappe.scrub(doctype).replace("_", "-"), "")
+
+	segments = [SHELL_ROOT, prefix]
+	if is_modular(app) and module:
+		segments.append(module)
+	segments.append(quoted(slug))
+	if name:
+		# `quoted` keeps `#`, `?` and `/`, which would end or split the segment of a name holding them
+		segments.append(quote(cstr(name), safe="~@$&()*!+=:;,.'"))
+		# `/<doctype>/new` opens a new record, so a record named "new" has only its standard address.
+		if cstr(name) == "new":
+			segments.append("record")
+
+	return "/" + "/".join(segments)

@@ -1,24 +1,9 @@
 // What a freshly added child row starts with, from its docfield defaults.
 import { parseLongInt } from "./formatNumber";
+import { NO_VALUE } from "./noValueFields";
 import type { FieldNode, FormLayoutSchema } from "./types";
 
-/**
- * Frappe's own `no_value_fields` (`frappe/model/__init__.py`) minus the two
- * collection types, which DO hold a value in the document even though they have
- * no column of their own — a nested table's empty is `[]`.
- */
-const NO_VALUE = new Set([
-  "Section Break",
-  "Column Break",
-  "Tab Break",
-  "Heading",
-  "HTML",
-  "Fold",
-  "Button",
-  "Image",
-  "Attachment Gallery",
-  "Vue Component",
-]);
+export { NO_VALUE };
 
 const COLLECTIONS = new Set(["Table", "Table MultiSelect"]);
 
@@ -86,16 +71,19 @@ function defaultValue(field: FieldNode): any {
  * The date-ish types are `""` rather than the `null` the server sends
  * (`get_valid_dict` nulls an empty datetime on every write), as ticket 56
  * decided. The difference is only ever visible before the first save.
+ * JSON is `null`: the JSON column refuses `""`.
  */
 function emptyValue(field: FieldNode): any {
   if (COLLECTIONS.has(field.fieldtype)) return [];
   if (NUMBERS.has(field.fieldtype)) return 0;
+  if (field.fieldtype === "JSON") return null;
   return "";
 }
 
 /** A Select with no default lands on its first option, as desk does. */
 function firstOption(field: FieldNode): string | undefined {
   if (field.fieldtype !== "Select") return undefined;
+  if (field.choices) return field.choices[0]?.value || undefined;
   const options = typeof field.options === "string" ? field.options : "";
   return options.split("\n")[0] || undefined;
 }

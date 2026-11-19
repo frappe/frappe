@@ -1,0 +1,711 @@
+/**
+ * The one place the desk talks to the server: every request goes to
+ * `/api/v2`, and a later change of transport touches this folder only.
+ */
+import {
+  feedDelete,
+  feedDocumentWrite,
+  feedFieldRead,
+  feedListError,
+  feedListRead,
+  feedReadError,
+  feedRecordRead,
+  takeTicket,
+} from "../cache";
+import { fed, fedAfter, feedPartReply, includeNames, withModified } from "./feed";
+import { replySize, request, type Query } from "./request";
+import { ApiError, type Envelope } from "./envelope";
+
+export {
+  ApiError,
+  isApiError,
+  readEnvelope,
+  TIMESTAMP_MISMATCH,
+  type CodeError,
+  type Envelope,
+  type ErrorEntry,
+  type FieldError,
+  type StaleDoc,
+} from "./envelope";
+export { apiUrl, request, requestHeaders, type HttpMethod, type Query } from "./request";
+export {
+  attachFile,
+  downloadFile,
+  removeAttachment,
+  uploadFile,
+  DEFAULT_CHUNK_SIZE,
+  type Attachment,
+  type AttachmentsPart,
+  type FileDocument,
+  type UploadFields,
+  type UploadOptions,
+} from "./upload";
+
+export type DocumentRecord = Record<string, unknown> & { name: string; modified?: string };
+export type Args = Record<string, unknown>;
+
+export interface CallOptions {
+  signal?: AbortSignal;
+}
+
+export interface IncludeOptions extends CallOptions {
+  /** Named parts the server returns beside `data`, one key each; a string is sent as it is. */
+  include?: readonly string[] | string;
+}
+
+/** The list route's query, passed through by name; `filters` and `or_filters` are opaque JSON. */
+export interface ListQuery extends Query {
+  fields?: readonly string[];
+  filters?: unknown;
+  or_filters?: unknown;
+  order_by?: string;
+  start?: number;
+  limit?: number;
+  group_by?: string;
+}
+
+/** The list route's response; `count` is `null` when the server gave up counting in time. */
+export type ListEnvelope<T> = Envelope<T[]> & {
+  has_next_page: boolean;
+  count?: number | null;
+  count_capped?: boolean;
+};
+
+export interface CountQuery extends Query {
+  filters?: unknown;
+  or_filters?: unknown;
+  distinct?: boolean;
+}
+
+export interface SearchQuery extends Query {
+  txt: string;
+  filters?: unknown;
+  reference_doctype?: string;
+  query?: string;
+  limit?: number;
+  start?: number;
+}
+
+export interface SearchResult {
+  value: string;
+  label?: string;
+  description?: string;
+}
+
+export interface SessionUser {
+  name: string;
+  full_name: string;
+  email: string;
+  user_image: string | null;
+  document_follow_notify: boolean;
+  /** The person's own side: `start`, `end` or blank for the site's. */
+  navigation_side?: string;
+}
+
+/** The signed-in person and the site settings a client renders for them. */
+export interface Session {
+  user: SessionUser;
+  roles: string[];
+  lang: string;
+  timezone: string;
+  defaults: Record<string, unknown>;
+}
+
+export function getDocument<T extends DocumentRecord = DocumentRecord>(
+  doctype: string,
+  name: string,
+  { include, signal }: IncludeOptions = {}
+): Promise<Envelope<T>> {
+  const ticket = takeTicket();
+  const options = { query: { include: joinInclude(include) }, signal, ticket };
+  const sending = request<T>("GET", documentPath(doctype, name), options);
+  return fedAfter(
+    ticket,
+    sending,
+    (_, envelope) =>
+      feedRecordRead(ticket, doctype, envelope, includeNames(include), replySize(envelope)),
+    (error) => feedReadError(ticket, doctype, name, error)
+  );
+}
+
+export function listDocuments<T = DocumentRecord>(
+  doctype: string,
+  query: ListQuery = {},
+  { include, signal }: IncludeOptions = {}
+): Promise<ListEnvelope<T>> {
+  const ticket = takeTicket();
+  const sent = { ...withModified(query), include: joinInclude(include) };
+  const options = { query: sent, signal, ticket };
+  const sending = request<T[]>("GET", `/document/${segment(doctype)}`, options);
+  return fedAfter(
+    ticket,
+    sending,
+    (_, envelope) =>
+      feedListRead(ticket, doctype, query, envelope as ListEnvelope<DocumentRecord>),
+    (error) => feedListError(ticket, doctype, query, error)
+  ) as Promise<ListEnvelope<T>>;
+}
+
+/** A column, or an aggregate named by `as`, such as `{ SUM: "grand_total", as: "total" }`. */
+export type AggregateField = string | Readonly<Record<string, string>>;
+
+export interface AggregateQuery extends Query {
+  fields: readonly AggregateField[];
+  filters?: unknown;
+  or_filters?: unknown;
+  group_by?: string;
+  order_by?: string;
+  start?: number;
+  limit?: number;
+}
+
+/** Grouped or aggregate rows over the list route. They are not documents: no `modified`, no cache. */
+export function listAggregates<T = Record<string, unknown>>(
+  doctype: string,
+  query: AggregateQuery,
+  { signal }: CallOptions = {}
+): Promise<ListEnvelope<T>> {
+  const path = `/document/${segment(doctype)}`;
+  return request<T[]>("GET", path, { query, signal }) as Promise<ListEnvelope<T>>;
+}
+
+/** Some fields of one record, over the list route; feeds its document entry and no list entry. */
+export async function getDocumentFields<T = DocumentRecord>(
+  doctype: string,
+  name: string,
+  fields: readonly string[],
+  { signal }: CallOptions = {}
+): Promise<Envelope<T | null>> {
+  const asked = [...new Set([...fields, "name", "modified"])];
+  const query = { fields: asked, filters: { name }, limit: 1 };
+  const path = `/document/${segment(doctype)}`;
+  const envelope = await fed<T[]>("GET", path, { query, signal }, (ticket, reply) =>
+    feedFieldRead(ticket, doctype, reply.data[0])
+  );
+  return { ...envelope, data: envelope.data[0] ?? null };
+}
+
+export function countDocuments(
+  doctype: string,
+  query: CountQuery = {},
+  { signal }: CallOptions = {}
+): Promise<Envelope<number | null>> {
+  return request<number | null>("GET", `/doctype/${segment(doctype)}/count`, { query, signal });
+}
+
+/** The server answers with `max-age=60`; `cache: "reload"` skips the browser's cached reply. */
+export function searchDocuments(
+  doctype: string,
+  query: SearchQuery,
+  { signal, cache }: CallOptions & { cache?: RequestCache } = {}
+): Promise<Envelope<SearchResult[]>> {
+  return request<SearchResult[]>("GET", `/doctype/${segment(doctype)}/search`, { query, signal, cache });
+}
+
+export function createDocument<T extends DocumentRecord = DocumentRecord>(
+  doctype: string,
+  doc: Partial<T>,
+  { signal }: CallOptions = {}
+): Promise<Envelope<T>> {
+  const path = `/document/${segment(doctype)}`;
+  return fed<T>("POST", path, { body: doc, signal }, (ticket, envelope) =>
+    feedDocumentWrite(ticket, doctype, envelope.data)
+  );
+}
+
+/** Save the whole document; without `modified` the server cannot refuse a save over someone else's. */
+export function updateDocument<T extends DocumentRecord = DocumentRecord>(
+  doctype: string,
+  name: string,
+  doc: T,
+  { signal }: CallOptions = {}
+): Promise<Envelope<T>> {
+  if (!doc.modified) {
+    return Promise.reject(
+      new ApiError(
+        { type: "MissingModified", message: `${doctype} ${name}: the document has no "modified" value` },
+        0
+      )
+    );
+  }
+  const path = documentPath(doctype, name);
+  return fed<T>("PATCH", path, { body: doc, signal }, (ticket, envelope) =>
+    feedDocumentWrite(ticket, doctype, envelope.data)
+  );
+}
+
+export function deleteDocument(
+  doctype: string,
+  name: string,
+  { signal }: CallOptions = {}
+): Promise<Envelope<"ok">> {
+  return fed<"ok">("DELETE", documentPath(doctype, name), { signal }, (ticket) =>
+    feedDelete(ticket, doctype, name)
+  );
+}
+
+/** What a bulk run answers when it ran inline: `done` holds the names it finished. */
+export interface BulkResult {
+  total: number;
+  done: string[];
+  failed: { name: string; error: string }[];
+  /** Records a Submission Queue took: they settle later and are not in `done`. */
+  queued?: string[];
+}
+
+/** What a bulk run answers (status 202) when it went to the background. */
+export interface BulkQueued {
+  task_id: string;
+  job_id: string;
+}
+
+export function isBulkQueued(result: BulkResult | BulkQueued): result is BulkQueued {
+  return "task_id" in result;
+}
+
+/** Deletes the selected records in one request; each name in `done` leaves the cache. */
+export function bulkDeleteDocuments(
+  doctype: string,
+  selection: string[] | BulkSelection,
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/bulk_remove`;
+  const body = Array.isArray(selection) ? { names: selection } : selection;
+  return fed<BulkResult | BulkQueued>("POST", path, { body, signal }, (ticket, { data }) => {
+    if (isBulkQueued(data)) return;
+    for (const name of data.done) feedDelete(ticket, doctype, name);
+  });
+}
+
+/** Who a bulk run takes: the named records, or every record the list's filters show. */
+export interface BulkSelection {
+  names?: string[];
+  filters?: unknown;
+  or_filters?: unknown;
+}
+
+export type BulkStatusRoute = "bulk_submit" | "bulk_cancel" | "bulk_workflow";
+
+/** Submits, cancels or applies a workflow `action` to the selection in one request. */
+export function bulkStatusDocuments(
+  doctype: string,
+  route: BulkStatusRoute,
+  body: BulkSelection & { action?: string },
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/${route}`;
+  return fed<BulkResult | BulkQueued>("POST", path, { body, signal }, () => {});
+}
+
+/** Runs the whitelisted record function `method(doctype, name, **args)` on the selection in one request. */
+export function bulkCallDocuments(
+  doctype: string,
+  body: BulkSelection & { method: string; args?: Record<string, unknown> },
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/bulk_call`;
+  return fed<BulkResult | BulkQueued>("POST", path, { body, signal }, () => {});
+}
+
+/** The workflow actions the user can apply to every record of the selection; none when they differ. */
+export function bulkWorkflowActions(
+  doctype: string,
+  selection: BulkSelection,
+  { signal }: CallOptions = {}
+): Promise<Envelope<string[]>> {
+  const path = `/document/${segment(doctype)}/bulk_workflow_actions`;
+  return request<string[]>("POST", path, { body: selection, signal });
+}
+
+/** What a bulk print asks for: the records (`names`, or `filters`) and how to print them. */
+export type BulkPrintBody = BulkSelection & {
+  print_format?: string;
+  letterhead?: string;
+  no_letterhead?: boolean;
+  page_size?: string;
+};
+
+/** Starts one merged PDF of the records; it always runs in the background. */
+export function bulkPrintDocuments(
+  doctype: string,
+  body: BulkPrintBody,
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkQueued>> {
+  return request<BulkQueued>("POST", `/document/${segment(doctype)}/bulk_print`, { body, signal });
+}
+
+/** What one bulk edit sets on every selected record; `child_values` sets every row of a table field. */
+export interface BulkUpdate {
+  values?: Record<string, unknown>;
+  child_values?: Record<string, Record<string, unknown>>;
+}
+
+/** Sets the same values on the selected records in one request; it answers names, not documents, so the cache is not fed. */
+export function bulkUpdateDocuments(
+  doctype: string,
+  selection: BulkSelection,
+  update: BulkUpdate,
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/bulk_edit`;
+  return fed<BulkResult | BulkQueued>("POST", path, { body: { ...selection, ...update }, signal }, () => {});
+}
+
+/** The collaboration parts a bulk run changes, each at `bulk_<part>`. */
+export type BulkPart =
+  | "assignments"
+  | "assignment_rule"
+  | "tags"
+  | "follows"
+  | "favourites"
+  | "shares"
+  | "seen";
+
+/** Runs one collaboration change over the selected records: `POST` adds, `DELETE` removes. The list rereads after it. */
+export function bulkCollaborate(
+  doctype: string,
+  part: BulkPart,
+  method: "POST" | "DELETE",
+  selection: BulkSelection,
+  body: Record<string, unknown> = {},
+  { signal }: CallOptions = {}
+): Promise<Envelope<BulkResult | BulkQueued>> {
+  const path = `/document/${segment(doctype)}/bulk_${part}`;
+  return request<BulkResult | BulkQueued>(method, path, { body: { ...selection, ...body }, signal });
+}
+
+/** Renames through `frappe.client.rename_doc`; the old name leaves the cache, as a delete's does. */
+export function renameDocument(
+  doctype: string,
+  name: string,
+  newName: string,
+  { merge = false, signal }: CallOptions & { merge?: boolean } = {}
+): Promise<Envelope<string>> {
+  const body = { doctype, old_name: name, new_name: newName, merge };
+  return fed<string>("POST", "/method/frappe.client.rename_doc", { body, signal }, (ticket) =>
+    feedDelete(ticket, doctype, name)
+  );
+}
+
+export interface CopyOptions extends CallOptions {
+  /** The draft amendment of a cancelled record: it keeps no-copy fields and names the record it amends. */
+  amend?: boolean;
+}
+
+export function copyDocument<T extends DocumentRecord = DocumentRecord>(
+  doctype: string,
+  name: string,
+  { signal, amend }: CopyOptions = {}
+): Promise<Envelope<Partial<T>>> {
+  return request<Partial<T>>("GET", `${documentPath(doctype, name)}/copy`, {
+    signal,
+    ...(amend ? { query: { amend: 1 } } : {}),
+  });
+}
+
+export interface MethodOptions extends CallOptions {
+  /** `GET` for a read the browser may cache; the default `POST` for everything else. */
+  http?: "GET" | "POST";
+  /** The function returns nothing, so `data` is `null`. */
+  nullable?: boolean;
+  /** The request outlives the page, for a write sent as the tab is hidden. */
+  keepalive?: boolean;
+}
+
+export type NullableMethodOptions = MethodOptions & { nullable: true };
+
+export function runMethod<T = unknown>(
+  method: string,
+  args: Args | undefined,
+  options: NullableMethodOptions
+): Promise<Envelope<T | null>>;
+export function runMethod<T = unknown>(
+  method: string,
+  args?: Args,
+  options?: MethodOptions
+): Promise<Envelope<T>>;
+export function runMethod<T = unknown>(
+  method: string,
+  args: Args = {},
+  { http = "POST", signal, nullable, keepalive }: MethodOptions = {}
+): Promise<Envelope<T | null>> {
+  const path = `/method/${segment(method)}`;
+  if (http === "GET") return request<T>("GET", path, { query: args, signal, nullable });
+  return request<T>("POST", path, { body: args, signal, nullable, keepalive });
+}
+
+/** A whitelisted method that answers a record's part under its own key, as a part write does. */
+export function runPartMethod<T>(
+  method: string,
+  args: Args,
+  doctype: string,
+  name: string,
+  part: CollabPart
+): Promise<Envelope<T>> {
+  const path = `/method/${segment(method)}`;
+  return fed<T>("POST", path, { body: args }, feedPartReply(doctype, name, part));
+}
+
+export function runDocumentMethod<T = unknown>(
+  doctype: string,
+  name: string,
+  method: string,
+  args: Args | undefined,
+  options: NullableMethodOptions
+): Promise<Envelope<T | null>>;
+export function runDocumentMethod<T = unknown>(
+  doctype: string,
+  name: string,
+  method: string,
+  args?: Args,
+  options?: MethodOptions
+): Promise<Envelope<T>>;
+export function runDocumentMethod<T = unknown>(
+  doctype: string,
+  name: string,
+  method: string,
+  args: Args = {},
+  { http = "POST", signal, nullable }: MethodOptions = {}
+): Promise<Envelope<T | null>> {
+  const path = `${documentPath(doctype, name)}/method/${segment(method)}`;
+  if (http === "GET") return request<T>("GET", path, { query: args, signal, nullable });
+  return request<T>("POST", path, { body: args, signal, nullable });
+}
+
+/** A read beside the document, `GET /document/<doctype>/<name>/<part>`, such as `activity`. */
+export function getDocumentPart<T = unknown>(
+  doctype: string,
+  name: string,
+  part: string,
+  params: Query = {},
+  { signal }: CallOptions = {}
+): Promise<Envelope<T>> {
+  return request<T>("GET", `${documentPath(doctype, name)}/${segment(part)}`, {
+    query: params,
+    signal,
+  });
+}
+
+export function getMeta<T = Record<string, unknown>>(
+  doctype: string,
+  { include, signal }: IncludeOptions = {}
+): Promise<Envelope<T>> {
+  return request<T>("GET", `/doctype/${segment(doctype)}/meta`, {
+    query: { include: joinInclude(include) },
+    signal,
+  });
+}
+
+/** A Guest gets a Guest session rather than a refusal, so this never has to be guarded. */
+export function getSession({ signal }: CallOptions = {}): Promise<Envelope<Session>> {
+  return request<Session>("GET", "/session", { signal });
+}
+
+export function logout({ signal }: CallOptions = {}): Promise<Envelope<null>> {
+  return request<null>("POST", "/method/logout", { signal, nullable: true });
+}
+
+/** Cached server-side for a year: `version` is the only thing that invalidates it. */
+export function getTranslations(
+  lang: string,
+  version: string,
+  { signal }: CallOptions = {}
+): Promise<Envelope<Record<string, string>>> {
+  return request<Record<string, string>>("GET", "/method/frappe.translate.get_boot_translations", {
+    query: { lang, v: version },
+    signal,
+  });
+}
+
+function documentPath(doctype: string, name: string): string {
+  return `/document/${segment(doctype)}/${segment(name)}`;
+}
+
+function segment(value: string): string {
+  return encodeURIComponent(value);
+}
+
+function joinInclude(include?: readonly string[] | string): string | undefined {
+  if (typeof include === "string") return include || undefined;
+  return include?.length ? include.join(",") : undefined;
+}
+
+export type CollabPart =
+  | "assignments"
+  | "shares"
+  | "tags"
+  | "favourites"
+  | "follows"
+  | "comments";
+
+export interface Assignment {
+  user: string;
+  description?: string;
+  priority?: string;
+  date?: string;
+}
+export interface Share {
+  user: string;
+  read?: 0 | 1;
+  write?: 0 | 1;
+  submit?: 0 | 1;
+  share?: 0 | 1;
+}
+export interface Favourite {
+  user: string;
+  creation?: string;
+}
+export interface Comment {
+  name: string;
+  creation?: string;
+  content: string;
+  owner: string;
+  comment_type?: string;
+}
+export type Users = Record<string, { full_name?: string; user_image?: string }>;
+
+/** A collaboration write's answer: the refreshed part under its own key, and the people it names. */
+export type PartResponse<P extends CollabPart, T> = { [K in P]: T } & { users?: Users };
+
+export function addPart<T>(
+  doctype: string,
+  name: string,
+  part: CollabPart,
+  body?: unknown,
+  { signal }: CallOptions = {}
+): Promise<Envelope<T>> {
+  const path = partPath(doctype, name, part);
+  return fed<T>("POST", path, { body, signal }, feedPartReply(doctype, name, part));
+}
+
+export function removePart<T>(
+  doctype: string,
+  name: string,
+  part: CollabPart,
+  key?: string,
+  { signal }: CallOptions = {}
+): Promise<Envelope<T>> {
+  const path = partPath(doctype, name, part, key);
+  return fed<T>("DELETE", path, { signal }, feedPartReply(doctype, name, part));
+}
+
+export function updatePart<T>(
+  doctype: string,
+  name: string,
+  part: CollabPart,
+  key: string,
+  body: unknown,
+  { signal }: CallOptions = {}
+): Promise<Envelope<T>> {
+  const path = partPath(doctype, name, part, key);
+  return fed<T>("PATCH", path, { body, signal }, feedPartReply(doctype, name, part));
+}
+
+export function addAssignment(
+  doctype: string,
+  name: string,
+  assignment: Assignment,
+  options?: CallOptions
+) {
+  return addPart<PartResponse<"assignments", Assignment[]>>(
+    doctype, name, "assignments", assignment, options
+  );
+}
+
+export function removeAssignment(
+  doctype: string,
+  name: string,
+  user: string,
+  options?: CallOptions
+) {
+  return removePart<PartResponse<"assignments", Assignment[]>>(
+    doctype, name, "assignments", user, options
+  );
+}
+
+export function addShare(doctype: string, name: string, share: Share, options?: CallOptions) {
+  return addPart<PartResponse<"shares", Share[]>>(doctype, name, "shares", share, options);
+}
+
+/** `user` is the string "everyone" for the everyone share. */
+export function removeShare(doctype: string, name: string, user: string, options?: CallOptions) {
+  return removePart<PartResponse<"shares", Share[]>>(doctype, name, "shares", user, options);
+}
+
+/** A new tag takes `color`; so does one that has none. A tag's set colour never changes here. */
+export function addTag(doctype: string, name: string, tag: string, options?: CallOptions, color?: string) {
+  return addPart<TagsResponse>(doctype, name, "tags", color ? { tag, color } : { tag }, options);
+}
+
+export function removeTag(doctype: string, name: string, tag: string, options?: CallOptions) {
+  return removePart<TagsResponse>(doctype, name, "tags", tag, options);
+}
+
+type TagsResponse = PartResponse<"tags", string[]> & { tag_colors?: Record<string, string> };
+
+export function addFavourite(doctype: string, name: string, options?: CallOptions) {
+  return addPart<PartResponse<"favourites", Favourite[]>>(
+    doctype, name, "favourites", undefined, options
+  );
+}
+
+export function removeFavourite(doctype: string, name: string, options?: CallOptions) {
+  return removePart<PartResponse<"favourites", Favourite[]>>(
+    doctype, name, "favourites", undefined, options
+  );
+}
+
+export function addFollow(doctype: string, name: string, options?: CallOptions) {
+  return addPart<PartResponse<"follows", boolean>>(doctype, name, "follows", undefined, options);
+}
+
+export function removeFollow(doctype: string, name: string, options?: CallOptions) {
+  return removePart<PartResponse<"follows", boolean>>(
+    doctype, name, "follows", undefined, options
+  );
+}
+
+export interface AddCommentOptions extends CallOptions {
+  /** Names of the caller's unattached Files; the server links them to the new comment. */
+  attachments?: string[];
+}
+
+/** The comments part, and `added`: the name of the comment this call wrote. */
+export type AddedComment = PartResponse<"comments", Comment[]> & { added?: string };
+
+export function addComment(
+  doctype: string,
+  name: string,
+  content: string,
+  { attachments, signal }: AddCommentOptions = {}
+) {
+  return addPart<AddedComment>(doctype, name, "comments", { content, attachments }, { signal });
+}
+
+export function updateComment(
+  doctype: string,
+  name: string,
+  comment: string,
+  content: string,
+  options?: CallOptions
+) {
+  return updatePart<PartResponse<"comments", Comment[]>>(
+    doctype, name, "comments", comment, { content }, options
+  );
+}
+
+export function removeComment(
+  doctype: string,
+  name: string,
+  comment: string,
+  options?: CallOptions
+) {
+  return removePart<PartResponse<"comments", Comment[]>>(
+    doctype, name, "comments", comment, options
+  );
+}
+
+function partPath(doctype: string, name: string, part: CollabPart, key?: string): string {
+  const base = `${documentPath(doctype, name)}/${part}`;
+  return key === undefined ? base : `${base}/${segment(key)}`;
+}

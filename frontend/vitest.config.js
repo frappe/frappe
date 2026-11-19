@@ -1,0 +1,69 @@
+// The test runner. Separate from `vite.config.js`, which reads the `manifest.json` that
+// `bench build` generates and a clean clone lacks.
+import { readFileSync } from "node:fs";
+import { fileURLToPath, URL } from "node:url";
+import { defineConfig } from "vitest/config";
+import vue from "@vitejs/plugin-vue";
+import frappeui from "frappe-ui/vite";
+import contributions from "./plugin/contributions.js";
+import oneTree from "./plugin/oneTree.js";
+
+// Site-zone tests need a browser zone that is not the site's.
+process.env.TZ = "UTC";
+
+const ui = JSON.parse(readFileSync(new URL("../ui/package.json", import.meta.url), "utf8"));
+const declared = JSON.parse(readFileSync(new URL("./package.base.json", import.meta.url), "utf8"));
+// The manifest is stated inline: frappe's own item renderers are contributions, and a
+// test that mocked the virtual module would exercise the mock.
+const manifest = [
+	{
+		app: "frappe",
+		source_dir: fileURLToPath(new URL("../frappe", import.meta.url)),
+		runtime_deps: declared.dependencies,
+		import_map: { "frappe/i18n": "./frontend/i18n.js" },
+	},
+];
+
+export default defineConfig({
+	plugins: [
+		// Only for `~icons/*`; frappe-ui's own components import the lucide virtual modules.
+		...frappeui({ lucideIcons: true }),
+		vue(),
+		contributions(
+			manifest,
+			manifest.map((entry) => entry.source_dir)
+		),
+		// A contributed `.vue` file outside this root imports what frappe declares, as in the build.
+		oneTree(manifest),
+	],
+	resolve: {
+		alias: {
+			"@": fileURLToPath(new URL("./src", import.meta.url)),
+			// The surface a contributed file imports from; the framework's renderers are contributed files.
+			"@shell": fileURLToPath(new URL("./src/public.ts", import.meta.url)),
+		},
+		// `@framework/ui` is linked in as raw source and must resolve its imports in this tree.
+		preserveSymlinks: true,
+		// A `ui/` test imports `ui/` by its real path, where no `node_modules` lies above it.
+		dedupe: Object.keys({ ...ui.dependencies, ...ui.peerDependencies }),
+	},
+	// No postcss: `tailwind.config.js` reads `manifest.json` at module scope, and a frappe-ui
+	// `<style>` block would reach it through `vite:css`. An empty object overrides, not merges.
+	css: { postcss: {} },
+	test: {
+		globals: true,
+		environment: "happy-dom",
+		include: ["**/*.test.ts", "../ui/src/**/*.test.ts", "../ui/vite/*.test.mjs"],
+		server: {
+			deps: {
+				// frappe-ui imports extensionless; externalised as native Node ESM that fails, and
+				// inlining hands it to vite's resolver.
+				inline: ["frappe-ui"],
+			},
+		},
+	},
+	server: {
+		// `@framework/ui` is a sibling of this directory, outside the vite root.
+		fs: { allow: [fileURLToPath(new URL("..", import.meta.url))] },
+	},
+});

@@ -2,17 +2,26 @@
 # See license.txt
 
 import re
+from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 import frappe
 import frappe.utils
+from frappe.apps import get_default_path
+from frappe.auth import CookieManager, LoginManager
 from frappe.core.api.user_invitation import (
 	_accept_invitation,
 	cancel_invitation,
+	get_invited_emails,
 	get_pending_invitations,
 	invite_by_email,
+	resend_invitation,
 )
-from frappe.core.doctype.user_invitation.user_invitation import mark_expired_invitations
+from frappe.core.doctype.user.user import update_password
+from frappe.core.doctype.user_invitation.user_invitation import UserInvitation, mark_expired_invitations
+from frappe.handler import run_doc_method
 from frappe.tests import IntegrationTestCase
+from frappe.utils import set_request
 
 emails = [
 	"test_user_invite1@example.com",
@@ -46,10 +55,10 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		IntegrationTestUserInvitation.delete_all_invitations()
 		IntegrationTestUserInvitation.delete_all_user_roles()
 		frappe.db.delete("Email Queue")
+		frappe.set_user("Administrator")
 		for user_email in emails:
 			if frappe.db.exists("User", user_email):
 				frappe.delete_doc("User", user_email)
-		frappe.set_user("Administrator")
 		# some of the code under test commit internally
 		frappe.db.commit()  # nosemgrep
 
@@ -245,6 +254,60 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		IntegrationTestUserInvitation.delete_invitation(invitation.name)
 		frappe.delete_doc("User", user.name)
 
+	def test_new_invitee_lands_on_the_default_path_with_desk_v2_off(self):
+		invitation, key = self.accept_as_new_invitee(desk_v2=0)
+		self.assertFalse(frappe.db.get_value("User", invitation.email, "redirect_url"))
+
+		landing = update_password("Eastern_43A1W", key=key)
+
+		self.assertEqual(urlparse(landing).path, get_default_path() or "/desk")
+
+	def test_new_invitee_with_2fa_keeps_no_redirect_with_desk_v2_off(self):
+		invitation, key = self.accept_as_new_invitee(desk_v2=0)
+
+		with patch("frappe.core.doctype.user.user.should_run_2fa", return_value=True):
+			landing = update_password("Eastern_43A1W", key=key)
+
+		self.assertEqual(landing, "/login")
+		self.assertFalse(frappe.cache.hget("redirect_after_login", invitation.email))
+
+	def test_new_invitee_lands_on_redirect_after_setting_password(self):
+		invitation, key = self.accept_as_new_invitee()
+
+		landing = update_password("Eastern_43A1W", key=key)
+
+		self.assertEqual(frappe.db.get_value("User", invitation.email, "user_type"), "System User")
+		self.assertEqual(urlparse(landing).path, "/abc")
+		self.assertFalse(frappe.db.get_value("User", invitation.email, "redirect_url"))
+
+	def test_new_invitee_with_2fa_lands_on_redirect_after_login(self):
+		invitation, key = self.accept_as_new_invitee()
+		self.addCleanup(frappe.cache.hdel, "redirect_after_login", invitation.email)
+
+		with patch("frappe.core.doctype.user.user.should_run_2fa", return_value=True):
+			landing = update_password("Eastern_43A1W", key=key)
+
+		self.assertEqual(landing, "/login")
+		redirect_after_login = frappe.cache.hget("redirect_after_login", invitation.email)
+		self.assertEqual(urlparse(redirect_after_login).path, "/abc")
+
+	def test_pending_invitations_are_oldest_first_only_with_desk_v2_on(self):
+		for email, created in zip(emails[1:4], ("2026-01-03", "2026-01-01", "2026-01-02"), strict=True):
+			self.insert_invitation_without_mail(email).db_set("creation", created)
+
+		with self.change_settings("System Settings", enable_desk_v2=1):
+			on = [row["email"] for row in get_pending_invitations("frappe")]
+		with self.change_settings("System Settings", enable_desk_v2=0):
+			off = [row["email"] for row in get_pending_invitations("frappe")]
+
+		self.assertEqual(on, [emails[2], emails[3], emails[1]])
+		# develop's query has no order_by, so it takes the DocType's default order
+		develop = frappe.db.get_all(
+			"User Invitation", filters={"status": "Pending", "app_name": "frappe"}, pluck="email"
+		)
+		self.assertEqual(off, develop)
+		self.assertNotEqual(off, on)
+
 	def test_get_pending_invitations_api(self):
 		invitation = self.get_dummy_invitation()
 		invitation.insert()
@@ -279,10 +342,114 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		self.assertFalse(res["cancelled_now"])
 		self.assertEqual(len(self.get_email_names()), 2)
 
-	def get_dummy_invitation(self):
+	def test_resend_invite_needs_write(self):
+		invitation = self.insert_invitation_without_mail()
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		frappe.local.request = frappe._dict(method="POST")
+		reader = self.make_user("invitation-reader@example.com")
+		writer = self.make_user("invitation-writer@example.com")
+		frappe.share.add("User Invitation", invitation.name, reader, read=1, write=0)
+		frappe.share.add("User Invitation", invitation.name, writer, read=1, write=1)
+
+		frappe.set_user(reader)
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			self.assertRaises(
+				frappe.PermissionError,
+				run_doc_method,
+				"resend_invite",
+				dt="User Invitation",
+				dn=invitation.name,
+			)
+		send.assert_not_called()
+
+		frappe.set_user(writer)
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			run_doc_method("resend_invite", dt="User Invitation", dn=invitation.name)
+		send.assert_called_once()
+
+	def test_resend_invitation_api_works_for_an_app_role_without_write(self):
+		role = "Test Invitation Manager"
+		frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert(ignore_if_duplicate=True)
+		manager = self.make_user("invitation-manager@example.com", role)
+		invitation = self.insert_invitation_without_mail()
+
+		frappe.set_user(manager)
+		with (
+			self.patch_inviter_role(role),
+			patch.object(UserInvitation, "send_invitation_mail") as send,
+		):
+			resend_invitation(invitation.name, "frappe")
+		send.assert_called_once()
+
+	def test_reads_work_for_an_app_inviter_without_a_docperm(self):
+		role = "Test Invitation Manager"
+		frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert(ignore_if_duplicate=True)
+		manager = self.make_user("invitation-manager@example.com", role)
+		pending = self.insert_invitation_without_mail(emails[1])
+		self.insert_invitation_without_mail(emails[2]).db_set("status", "Accepted")
+		self.insert_invitation_without_mail(emails[3]).db_set("status", "Cancelled")
+
+		frappe.set_user(manager)
+		with self.patch_inviter_role(role):
+			self.assertFalse(frappe.has_permission("User Invitation", "read"))
+			self.assertEqual(
+				get_pending_invitations("frappe"),
+				[{"name": pending.name, "email": emails[1], "roles": ["System Manager"]}],
+			)
+			self.assertCountEqual(
+				get_invited_emails("frappe", frappe.as_json(emails[1:5])), [emails[1], emails[2]]
+			)
+			self.assertRaises(frappe.ValidationError, get_invited_emails, "frappe", frappe.as_json(emails[1]))
+
+	def test_reads_refuse_a_user_who_cannot_invite(self):
+		outsider = self.make_user("invitation-outsider@example.com", "Blogger")
+		self.insert_invitation_without_mail(emails[1])
+
+		frappe.set_user(outsider)
+		with self.patch_inviter_role("Test Invitation Manager"):
+			self.assertRaises(frappe.PermissionError, get_pending_invitations, "frappe")
+			self.assertRaises(frappe.PermissionError, get_invited_emails, "frappe", [emails[1]])
+
+	def patch_inviter_role(self, role: str):
+		get_hooks = frappe.get_hooks
+
+		def hooks_with_role(hook=None, *args, **kwargs):
+			if hook == "user_invitation":
+				return {"allowed_roles": {role: []}}
+			return get_hooks(hook, *args, **kwargs)
+
+		return patch("frappe.get_hooks", hooks_with_role)
+
+	def make_user(self, email: str, *roles: str) -> str:
+		user = frappe.get_doc(doctype="User", email=email, first_name=email, send_welcome_email=0)
+		user.append_roles(*roles)
+		user.insert(ignore_if_duplicate=True)
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		self.addCleanup(frappe.delete_doc, "User", email, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		return email
+
+	def insert_invitation_without_mail(self, email: str = emails[1]):
+		with patch.object(UserInvitation, "send_invitation_mail"):
+			return self.get_dummy_invitation(email).insert()
+
+	def accept_as_new_invitee(self, desk_v2=1):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=desk_v2))
+		invitation = self.get_dummy_invitation().insert()
+		self.addCleanup(frappe.delete_doc, "User", invitation.email)
+		self.addCleanup(IntegrationTestUserInvitation.delete_invitation, invitation.name)
+		_accept_invitation(invitation.send_invitation_mail(), True)
+		key = parse_qs(urlparse(frappe.local.response.location).query)["key"][0]
+		set_request(path="/update-password")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		self.addCleanup(frappe.set_user, emails[0])
+		return invitation, key
+
+	def get_dummy_invitation(self, email: str = emails[1]):
 		return frappe.get_doc(
 			doctype="User Invitation",
-			email=emails[1],
+			email=email,
 			roles=[dict(role="System Manager")],
 			redirect_to_path="/abc",
 			app_name="frappe",

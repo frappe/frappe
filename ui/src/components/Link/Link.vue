@@ -4,21 +4,26 @@
 		v-model="model"
 		v-model:open="open"
 		class="group !gap-1 [&_[data-slot=input]:disabled]:text-ink-gray-4"
-		:label="label"
-		:description="description"
-		:error="error"
+		:class="{ 'w-full': panel }"
+		:variant="panel ? 'ghost' : undefined"
+		:size="panel ? 'sm' : undefined"
+		:label="panel ? undefined : label"
+		:description="panel ? undefined : description"
+		:error="panel ? undefined : error"
 		:required="required"
 		:options="linkOptions"
 		:filterable="!idLabels"
 		:disabled="disabled"
-		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
-		:loading="options.loading && !options.data"
-		@update:query="handleInputChange"
-		@focus="() => loadOptions('')"
+		:placeholder="shownPlaceholder"
+		:loading="options.loading.value && !options.data.value"
+		@input="onInput(($event.target as HTMLInputElement).value)"
+		@focus="onFocus"
 	>
 		<template v-for="(_, name) in forwardedSlots" #[name]="slotProps" :key="name">
 			<slot :name="name" v-bind="slotProps" />
 		</template>
+
+		<template v-if="panel" #footer><PickerListFit /></template>
 
 		<template v-if="slots.suffix" #suffix="suffixProps">
 			<slot name="suffix" v-bind="suffixProps" />
@@ -46,10 +51,23 @@
 			>
 				<span class="lucide-square-pen size-3.5" />
 			</button>
+			<RecordAnchor
+				v-if="showRedirect && href"
+				:href="href"
+				:aria-label="openLabel"
+				:title="openLabel"
+				data-slot="redirect"
+				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				@open="emit('redirect', model!)"
+				@pointerdown.stop
+			>
+				<span class="lucide-arrow-up-right size-3.5" />
+			</RecordAnchor>
 			<button
-				v-if="showRedirect"
+				v-else-if="showRedirect"
 				type="button"
-				aria-label="Open linked record"
+				:aria-label="openLabel"
+				:title="openLabel"
 				data-slot="redirect"
 				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 				@click.stop="emit('redirect', model!)"
@@ -76,15 +94,21 @@
 </template>
 
 <script setup lang="ts">
-import { toIdOption, toLinkOption } from "./linkOption";
-import { computed, ref, useSlots, watch } from "vue";
-import { Combobox, createResource, frappeRequest, debounce } from "frappe-ui";
+import { toIdOption } from "./linkOption";
+import { computed, onBeforeUnmount, ref, useSlots, watch } from "vue";
+import { Combobox, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
-import type { LinkExposed, LinkOption, LinkProps, LinkEmits } from "./types";
+import { useLinkSearch } from "../../composables/useLinkSearch";
+import { translate as __ } from "../../utils/translate";
+import RecordAnchor from "./RecordAnchor.vue";
+import PickerListFit from "../Fields/PickerListFit.vue";
+import { useFittedPlaceholder } from "./fittedPlaceholder";
+import type { LinkExposed, LinkProps, LinkEmits } from "./types";
 
 const props = withDefaults(defineProps<LinkProps>(), {
 	filters: () => ({}),
 	creatable: false,
+	href: null,
 	redirectable: false,
 	editable: false,
 	disabled: false,
@@ -93,41 +117,55 @@ const props = withDefaults(defineProps<LinkProps>(), {
 const model = defineModel<string | null>({ default: null });
 const open = defineModel<boolean>("open", { default: false });
 const comboboxRef = ref<{ focus: () => void } | null>(null);
+const placeholderText = computed(
+	() => props.placeholder ?? `Search ${props.doctype.toLowerCase()}`
+);
+const fitted = useFittedPlaceholder(() => placeholderText.value);
+const shownPlaceholder = computed(() =>
+	props.panel ? fitted.placeholder.value : placeholderText.value
+);
 
 const emit = defineEmits<LinkEmits>();
+
+// A panel row hides the mark while the user types, so the text starts at the box's padding.
+const typing = ref(false);
 
 const slots = useSlots();
 
 const forwardedSlots = computed(() =>
 	Object.fromEntries(
-		Object.entries(slots).filter(([name]) => name !== "suffix" && name !== "item-create")
+		Object.entries(slots).filter(
+			([name]) =>
+				name !== "suffix" &&
+				name !== "item-create" &&
+				!(name === "footer" && props.panel) &&
+				!(name === "prefix" && typing.value)
+		)
 	)
 );
 
-const options = createResource({
-	url: "frappe.desk.search.search_link",
-	params: {
-		doctype: props.doctype,
-		txt: "",
-		filters: props.filters,
-	},
-	method: "POST",
-	resourceFetcher: frappeRequest,
-	transform: (data: LinkOption[]): LinkOption[] =>
-		data.map(props.idLabels ? toIdOption : toLinkOption),
-});
+const options = useLinkSearch(
+	() => props.doctype,
+	() => props.filters
+);
+
+// The search labels by title; relabelling its options by ID matches `toIdOption` on the raw rows.
+const searchOptions = computed(() =>
+	props.idLabels ? options.data.value?.map(toIdOption) ?? null : options.data.value
+);
 
 const createNewOption: ComboboxCustomOption = {
 	type: "custom",
 	key: "create",
 	label: "Create New",
 	slot: "create",
-	condition: ({ query }: { query: string }) => Boolean(query.trim()),
+	// Declared, so the row stays last whatever is typed: without it the label is filtered.
+	condition: () => true,
 	onClick: ({ query }: { query: string }) => emit("create", query),
 };
 
 const linkOptions = computed<ComboboxOption[]>(() => {
-	let _options: ComboboxOption[] = options.data || [];
+	let _options: ComboboxOption[] = searchOptions.value || [];
 	const known = model.value && _options.some((option: any) => option.value === model.value);
 	if (props.title && model.value && !known) {
 		_options = [{ label: props.title, value: model.value }, ..._options];
@@ -139,24 +177,43 @@ const linkOptions = computed<ComboboxOption[]>(() => {
 });
 
 const showClear = computed(() => !props.disabled && !!model.value);
-const showRedirect = computed(() => props.redirectable && !!model.value);
+const showRedirect = computed(() => (!!props.href || props.redirectable) && !!model.value);
+const openLabel = computed(() => {
+	const option: any = linkOptions.value.find((option: any) => option.value === model.value);
+	return __("Open {0}", [option?.label ?? model.value]);
+});
 const showEdit = computed(() => props.editable && !!model.value);
 
-const loadOptions = (txt: string = "") => {
-	if (!props.doctype) return;
-	options.update({
-		params: {
-			txt,
-			doctype: props.doctype,
-			filters: props.filters,
-		},
-	});
-	options.reload();
+// The server lets the browser keep a search answer this long; an open after it asks again.
+const OPTIONS_MAX_AGE_MS = 60_000;
+let searched: string | null = null;
+let searchedAt = 0;
+
+const loadOptions = (txt: string = "", fresh = false) => {
+	searched = txt;
+	searchedAt = Date.now();
+	void options.search(txt, { fresh });
 };
 
+function onFocus(event: FocusEvent) {
+	if (props.panel) fitted.fit(event.target as HTMLInputElement);
+	showAllOptions();
+}
+
+const showAllOptions = () => {
+	const expired = Date.now() - searchedAt > OPTIONS_MAX_AGE_MS;
+	if (searched !== "" || expired || options.error.value) loadOptions("");
+};
+
+// The input's native event, not `update:query`: the Combobox also sets the query to the shown value.
 const handleInputChange = debounce((value: string) => {
 	loadOptions(value || "");
 }, 300);
+
+function onInput(value: string) {
+	typing.value = !!props.panel;
+	handleInputChange(value);
+}
 
 const clearValue = () => {
 	model.value = null;
@@ -164,10 +221,27 @@ const clearValue = () => {
 	comboboxRef.value?.focus();
 };
 
-watch([() => props.doctype, () => props.filters], () => loadOptions(""), {
-	immediate: true,
-	deep: true,
+watch(
+	open,
+	(isOpen) => {
+		if (isOpen) showAllOptions();
+		else typing.value = false;
+	},
+	{ immediate: true }
+);
+watch(model, () => (typing.value = false));
+
+// By value: a form resolves a field's filters afresh on each render.
+watch([() => props.doctype, () => JSON.stringify(props.filters ?? {})], () => {
+	searched = null;
+	if (open.value) loadOptions("");
 });
 
-defineExpose<LinkExposed>({ reload: () => loadOptions("") });
+onBeforeUnmount(() => handleInputChange.cancel());
+
+defineExpose<LinkExposed>({
+	reload: () => loadOptions(""),
+	search: (text, { fresh = false } = {}) => loadOptions(text, fresh),
+	focus: () => comboboxRef.value?.focus(),
+});
 </script>

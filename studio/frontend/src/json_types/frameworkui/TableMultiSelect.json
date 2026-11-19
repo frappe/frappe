@@ -10,6 +10,51 @@
         "description": {
           "type": "string"
         },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "messages": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "message",
+                "name"
+              ]
+            }
+          ]
+        },
         "required": {
           "type": "boolean"
         },
@@ -28,11 +73,26 @@
         },
         "creatable": {
           "type": "boolean"
+        },
+        "titles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       },
       "required": [
         "doctype"
       ],
+      "additionalProperties": false
+    },
+    "TableMultiSelectSlots": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "object"
+        }
+      },
       "additionalProperties": false
     }
   }

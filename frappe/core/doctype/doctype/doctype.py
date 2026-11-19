@@ -193,22 +193,7 @@ class DocType(Document):
 
 	def before_insert(self):
 		if not self.istable and not self.permissions:
-			self.append(
-				"permissions",
-				{
-					"role": "System Manager",
-					"read": 1,
-					"write": 1,
-					"create": 1,
-					"delete": 1,
-					"report": 1,
-					"export": 1,
-					"share": 1,
-					"print": 1,
-					"email": 1,
-					"submit": 1 if self.is_submittable else 0,
-				},
-			)
+			self.append("permissions", default_permission(self.is_submittable))
 
 	def validate(self):
 		"""Validate DocType before saving.
@@ -405,16 +390,17 @@ class DocType(Document):
 							update_query += "WHERE ifnull(`target`.`{fieldname}`, '')=''"
 
 					else:
+						# `target.` keeps a column the source shares by name (`full_name`) unambiguous.
 						update_query = """
-							UPDATE `tab{doctype}`
+							UPDATE `tab{doctype}` as target
 							SET `{fieldname}` = source.`{source_fieldname}`
 							FROM `tab{link_doctype}` as source
-							WHERE `{link_fieldname}` = source.name
+							WHERE `target`.`{link_fieldname}` = `source`.`name`
 						"""
 						if df.not_nullable:
-							update_query += "AND `{fieldname}`=''"
+							update_query += "AND `target`.`{fieldname}`=''"
 						else:
-							update_query += "AND ifnull(`{fieldname}`, '')=''"
+							update_query += "AND ifnull(`target`.`{fieldname}`, '')=''"
 
 					self.flags.update_fields_to_fetch_queries.append(
 						update_query.format(
@@ -599,19 +585,27 @@ class DocType(Document):
 		if allow_doctype_export:
 			self.warn_on_module_change()
 
-			def export_doctype_files():
-				self.export_doc()
-				self.make_controller_template()
-				self.set_base_class_for_controller()
-				self.export_types_to_controller()
-				if defer_module_methods:
-					run_doctype_module_methods()
-
 			# Defer file writes until after the response so the client can sync the saved doc first.
 			if defer_doctype_export:
-				request.after_response.add(export_doctype_files)
+				saving_user = frappe.session.user
+
+				def export_and_report():
+					try:
+						self.export_files()
+						run_doctype_module_methods()
+					except Exception as e:
+						if self.flags.app_layouts:
+							# Kept for `write_doctype_files`, which reloads the DocType.
+							frappe.cache.set_value(
+								self.staged_app_layouts_key(), self.flags.app_layouts, expires_in_sec=86400
+							)
+						publish_export_result(self.name, saving_user, e)
+						raise
+					publish_export_result(self.name, saving_user, app_layouts=self.flags.app_layout_versions)
+
+				request.after_response.add(export_and_report)
 			else:
-				export_doctype_files()
+				self.export_files()
 
 		# update index
 		if not self.custom and not defer_module_methods:
@@ -940,6 +934,9 @@ class DocType(Document):
 			old_path = get_doc_path(previous.module, "doctype", self.name)
 		except Exception:
 			return
+		if not os.path.exists(old_path):
+			# The editor's Move took the folder along.
+			return
 
 		frappe.msgprint(
 			_(
@@ -947,6 +944,29 @@ class DocType(Document):
 			).format(frappe.bold(self.module), frappe.bold(str(old_path))),
 			alert=True,
 		)
+
+	def export_files(self):
+		"""Write the app files of a standard DocType: its JSON, controller, type hints and layouts."""
+		self.export_doc()
+		self.make_controller_template()
+		self.set_base_class_for_controller()
+		self.export_types_to_controller()
+		self.export_app_layouts()
+
+	def export_app_layouts(self):
+		"""Write the layout files a save staged in `flags.app_layouts`, per type."""
+		from frappe.desk.doctype.form_layout.app_layout_writer import write_app_layouts
+
+		if not self.flags.app_layouts:
+			return
+		self.flags.app_layout_versions = {
+			type: write_app_layouts(self.name, type, entries)
+			for type, entries in self.flags.app_layouts.items()
+		}
+		frappe.cache.delete_value(self.staged_app_layouts_key())
+
+	def staged_app_layouts_key(self) -> str:
+		return f"doctype_app_layouts_to_export:{self.name}"
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
@@ -1189,6 +1209,23 @@ class DocType(Document):
 
 		if len(unique_links) < len(self.links or []):
 			self.links = unique_links
+
+
+def default_permission(is_submittable: bool | int) -> dict:
+	"""The System Manager rule a DocType inserted with none gets."""
+	return {
+		"role": "System Manager",
+		"read": 1,
+		"write": 1,
+		"create": 1,
+		"delete": 1,
+		"report": 1,
+		"export": 1,
+		"share": 1,
+		"print": 1,
+		"email": 1,
+		"submit": 1 if is_submittable else 0,
+	}
 
 
 def validate_series(dt, autoname=None, name=None):
@@ -2244,6 +2281,43 @@ def get_field(doc, fieldname):
 	for field in doc.fields:
 		if field.fieldname == fieldname:
 			return field
+
+
+def publish_export_result(
+	doctype: str, user: str, error: Exception | None = None, app_layouts: dict | None = None
+) -> None:
+	"""Tell the saving user how the deferred export went, with the new hash of each app layout file it wrote."""
+	message = {
+		"doctype": doctype,
+		"ok": error is None,
+		"error": (str(error) or repr(error)) if error else None,
+	}
+	if app_layouts:
+		message["app_layouts"] = app_layouts
+	frappe.publish_realtime("doctype_export", message, user=user)
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def write_doctype_files(doctype: str) -> dict | None:
+	"""Run the export of a standard DocType again. It writes `.py` files, so a dev server may restart.
+
+	Returns the new hash of each app layout file it wrote, the editor's next base version."""
+	frappe.only_for("System Manager")
+	if not frappe.conf.developer_mode:
+		frappe.throw(_("Writing DocType files needs developer mode."), frappe.PermissionError)
+
+	doc = frappe.get_doc("DocType", doctype)
+	if doc.custom:
+		frappe.throw(_("{0} is a custom DocType and has no app files.").format(frappe.bold(doctype)))
+
+	doc.flags.app_layouts = frappe.cache.get_value(doc.staged_app_layouts_key())
+	try:
+		doc.export_files()
+		doc.run_module_method("on_doctype_update")
+	except Exception as e:
+		frappe.throw(str(e) or repr(e), title=_("DocType files not written"))
+	return doc.flags.app_layout_versions
 
 
 @frappe.whitelist()

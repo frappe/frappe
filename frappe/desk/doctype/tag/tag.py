@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.tag_link.tag_link import notify_tag_change
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import unique
@@ -19,6 +20,22 @@ class Tag(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		color: DF.Literal[
+			"",
+			"Gray",
+			"Black",
+			"Blue",
+			"Green",
+			"Red",
+			"Pink",
+			"Orange",
+			"Amber",
+			"Yellow",
+			"Cyan",
+			"Teal",
+			"Violet",
+			"Purple",
+		]
 		description: DF.SmallText | None
 	# end: auto-generated types
 
@@ -38,7 +55,7 @@ def check_user_tags(dt):
 @frappe.whitelist()
 def add_tag(tag: str, dt: str, dn: str, color: str | None = None):
 	"adds a new tag to a record, and creates the Tag master"
-	DocTags(dt).add(dn, tag)
+	DocTags(dt).add(dn, tag, color)
 
 	return tag
 
@@ -54,13 +71,63 @@ def add_tags(tags: str | list[str], dt: str, docs: str | list[str], color: str |
 	docs = frappe.parse_json(docs)
 	for doc in docs:
 		for tag in tags:
-			DocTags(dt).add(doc, tag)
+			DocTags(dt).add(doc, tag, color)
 
 
 @frappe.whitelist()
 def remove_tag(tag: str, dt: str, dn: str):
 	"removes tag from the record"
 	DocTags(dt).remove(dn, tag)
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def set_tag_color(tag: str, color: str):
+	"sets the colour of an existing Tag to one of the Select names"
+	tag_doc = frappe.get_doc("Tag", tag)
+	tag_doc.check_permission("write")
+	tag_doc.color = color
+	tag_doc.save()
+
+
+@frappe.desk_v2_only
+@frappe.whitelist(methods=["POST"])
+def update_record_tags(dt: str, dn: str, added: str | list | None = None, removed: str | list | None = None):
+	"""Applies one picker session to a record: `added` is `[{"tag", "color"}]`, `removed` a list of
+	tag names. All or none; returns the record's tags and their colours."""
+	from frappe.api.include import colors_of_tags, get_tags
+
+	doc = frappe.get_doc(dt, dn)
+	doc.check_permission("write")
+	added, removed = frappe.parse_json(added or []), frappe.parse_json(removed or [])
+	if not isinstance(added, list) or not isinstance(removed, list):
+		frappe.throw(_("added and removed must be lists"), frappe.ValidationError)
+	colors = (frappe.get_meta("Tag").get_field("color").options or "").split("\n")
+	for item in added:
+		name = item.get("tag") if isinstance(item, dict) else None
+		if not isinstance(name, str) or "," in name or not name.strip() or name != name.strip():
+			frappe.throw(_("A tag cannot be empty or contain a comma"), frappe.ValidationError)
+		if item.get("color") and item["color"] not in colors:
+			frappe.throw(_("{0} is not a tag colour").format(item["color"]), frappe.ValidationError)
+	if not all(isinstance(tag, str) for tag in removed):
+		frappe.throw(_("removed must be a list of tag names"), frappe.ValidationError)
+
+	# Each add and remove rewrites `_user_tags` from a read; the lock keeps two sessions from losing one.
+	frappe.db.get_value(dt, dn, "name", for_update=True)
+	frappe.db.savepoint("update_record_tags")
+	try:
+		doc_tags = DocTags(dt)
+		for tag in removed:
+			doc_tags.remove(dn, tag)
+		for item in added:
+			doc_tags.add(dn, item["tag"], item.get("color"))
+	except Exception:
+		frappe.db.rollback(save_point="update_record_tags")
+		raise
+	frappe.db.release_savepoint("update_record_tags")
+
+	tags = get_tags(doc)
+	return {"tags": tags, "tag_colors": colors_of_tags(tags)}
 
 
 @frappe.whitelist()
@@ -92,13 +159,12 @@ class DocTags:
 		"""Return tag for a particular item."""
 		return (frappe.db.get_value(self.dt, dn, "_user_tags", ignore=1) or "").strip()
 
-	def add(self, dn, tag):
+	def add(self, dn, tag, color=None):
 		"""Add a new user tag."""
 		tl = self.get_tags(dn).split(",")
 		if tag not in tl:
 			tl.append(tag)
-			if not frappe.db.exists("Tag", tag):
-				frappe.get_doc({"doctype": "Tag", "name": tag}).insert(ignore_permissions=True)
+			ensure_tag(tag, color)
 			self.update(dn, tl)
 
 	def remove(self, dn, tag):
@@ -140,6 +206,18 @@ class DocTags:
 		add_column(self.dt, "_user_tags", "Data")
 
 
+def ensure_tag(tag: str, color: str | None = None) -> None:
+	"""Create the Tag master with `color`, or fill `color` on one that has none."""
+	stored = frappe.db.get_value("Tag", tag, ["name", "color"], as_dict=True)
+	if not stored:
+		frappe.get_doc({"doctype": "Tag", "name": tag, "color": color}).insert(ignore_permissions=True)
+	# anyone who may tag one record gets here, and a tag is the whole site's: never recolour it
+	elif color and not stored.color:
+		tag_doc = frappe.get_doc("Tag", tag)
+		tag_doc.color = color
+		tag_doc.save(ignore_permissions=True)
+
+
 def delete_tags_for_document(doc):
 	"""Delete the Tag Link entry of a document that has been deleted.
 
@@ -178,8 +256,12 @@ def update_tags(doc, tags):
 		).insert(ignore_permissions=True)
 
 	deleted_tags = list(set(existing_tags) - set(new_tags))
-	for tag in deleted_tags:
-		frappe.db.delete("Tag Link", {"document_type": doc.doctype, "document_name": doc.name, "tag": tag})
+	if deleted_tags:
+		filters = {"document_type": doc.doctype, "document_name": doc.name, "tag": ("in", deleted_tags)}
+		links = frappe.get_all("Tag Link", filters=filters, fields=["*"])
+		frappe.db.delete("Tag Link", filters)
+		for link in links:
+			notify_tag_change(link, "delete")
 
 
 @frappe.whitelist()

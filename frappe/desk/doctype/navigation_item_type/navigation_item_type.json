@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:type_name",
+ "creation": "2026-09-01 10:00:00.000000",
+ "description": "The kinds of thing a Navigation Item can be. Code-owned: an app ships a row as a file, with a renderer beside it.",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "type_name",
+  "column_break_defn",
+  "module",
+  "target_doctype",
+  "permission_rule",
+  "addable"
+ ],
+ "fields": [
+  {
+   "description": "Named for what an item of this kind opens: DocType, Sidebar, Module.",
+   "fieldname": "type_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Type Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_defn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The module whose folder this row is exported to and imported from.",
+   "fieldname": "module",
+   "fieldtype": "Link",
+   "label": "Module",
+   "options": "Module Def",
+   "reqd": 1
+  },
+  {
+   "description": "Copied onto an item's blank Link DocType. Blank for Record, whose items choose, and for kinds that open nothing.",
+   "fieldname": "target_doctype",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Target DocType",
+   "options": "DocType"
+  },
+  {
+   "description": "Which rule decides whether a user sees an item of this kind. Custom defers to the type's own can_see.",
+   "fieldname": "permission_rule",
+   "fieldtype": "Select",
+   "label": "Permission Rule",
+   "options": "Readable DocType\nModule Contents\nDerived From Children\nPermitted Page\nAlways Visible\nCustom",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Whether a person or the site may add this type to a rail or sidebar.",
+   "fieldname": "addable",
+   "fieldtype": "Check",
+   "label": "Addable"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-11-14 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Navigation Item Type",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "role": "System Manager"
+  },
+  {
+   "read": 1,
+   "role": "Desk User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

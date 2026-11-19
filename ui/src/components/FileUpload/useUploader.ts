@@ -13,28 +13,31 @@
  * The transport is injected (defaults to the Frappe one), so the engine carries
  * no backend knowledge and is unit-testable with a fake transport.
  */
-import { computed, reactive, ref, type ComputedRef, type Ref } from "vue";
-import type {
-  Restrictions,
-  UploadArgs,
-  UploadItem,
-  UploadResult,
-  UploadTransport,
+import { computed, hasInjectionContext, inject, reactive, ref, type ComputedRef, type Ref } from "vue";
+import {
+  UploadLimitsKey,
+  UploadTransportKey,
+  type Restrictions,
+  type UploadArgs,
+  type UploadItem,
+  type UploadLimits,
+  type UploadResult,
+  type UploadTransport,
 } from "./types";
 
-// The Frappe default transport pulls in `frappe-ui`; import it lazily on first
-// use so consumers that inject their own transport (and the unit tests, which
-// always do) never drag `frappe-ui` into this module's graph. It also keeps the
-// chunked-upload code out of the bundle until an upload actually runs.
+// Imported lazily so the chunked-upload code stays out of the bundle until an upload
+// actually runs; a consumer that injects its own transport never loads it at all.
 const lazyDefaultTransport: UploadTransport = async (file, args, ctx) => {
   const { defaultTransport } = await import("./useFileUpload");
   return defaultTransport(file, args, ctx);
 };
 
 export interface UseUploaderOptions {
-  /** Backend seam; defaults to Frappe's `/api/method/upload_file`. */
+  /** Backend seam; defaults to the v2 document routes through `@framework/ui/api`. */
   transport?: UploadTransport;
   restrictions?: Restrictions;
+  /** The record every file in this queue attaches to; without it the file hangs on nothing. */
+  attachTo?: UploadArgs["attachTo"];
   /** Allow more than one queued file. Single-file fields pass `false`. */
   multiple?: boolean;
   /** Restrict to images (Attach Image); also enables crop upstream. */
@@ -82,9 +85,16 @@ export interface Uploader {
 }
 
 export function useUploader(options: UseUploaderOptions = {}): Uploader {
-  const transport = options.transport ?? lazyDefaultTransport;
+  const transport =
+    options.transport ??
+    (hasInjectionContext() ? inject(UploadTransportKey, null) : null) ??
+    lazyDefaultTransport;
   const restrictions = options.restrictions ?? {};
   const multiple = options.multiple ?? false;
+  // The site's own limits, provided by the host; a consumer's `restrictions` still wins.
+  const limits: UploadLimits = hasInjectionContext()
+    ? inject(UploadLimitsKey, {})
+    : {};
 
   const items = reactive<UploadItem[]>([]);
   const errors = ref<string[]>([]);
@@ -312,19 +322,21 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
         optimize: item.optimize ?? optimizeAll.value,
         maxWidth: options.maxWidth,
         maxHeight: options.maxHeight,
+        attachTo: options.attachTo,
       };
 
       try {
-        const { file_url } = await transport(item.file, args, {
+        const { file_url, name } = await transport(item.file, args, {
           signal: controller.signal,
           onProgress: (loaded, total) => {
             item.progress = total > 0 ? loaded / total : 0;
           },
+          chunkSize: limits.file_chunk_size ?? undefined,
         });
         item.status = "done";
         item.progress = 1;
         item.fileUrl = file_url;
-        results.push(toResult(item, file_url));
+        results.push(toResult(item, file_url, name));
       } catch (error: any) {
         item.status = "error";
         item.error =
@@ -340,11 +352,12 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
 
   // ── internals ────────────────────────────────────────────────────────────
 
-  function toResult(item: UploadItem, fileUrl: string): UploadResult {
+  function toResult(item: UploadItem, fileUrl: string, name?: string): UploadResult {
     return {
       file_url: fileUrl,
       file_name: item.name,
       is_private: item.isPrivate,
+      name,
     };
   }
 
@@ -372,7 +385,7 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
     if (!isAllowedType(file, effectiveAllowedTypes())) {
       return `"${file.name}" was skipped — file type not allowed.`;
     }
-    const max = restrictions.max_file_size;
+    const max = restrictions.max_file_size ?? limits.max_file_size;
     if (max != null && file.size != null && file.size > max) {
       return `"${file.name}" was skipped — exceeds ${formatBytes(max)}.`;
     }

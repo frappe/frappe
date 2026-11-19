@@ -1,0 +1,185 @@
+# Return-visit walk
+
+The walk opens a list, opens a record, goes Back and Forward, then reaches the list
+through the rail, sidebar or breadcrumb. It reopens the record through navigation when
+available, otherwise from its list row. On each step it counts the skeletons shown and how
+many times each field and each list row is drawn, on a normal and a throttled network.
+
+Before it starts, the walk stores a Client Script on the doctype, named `Return Visit Walk`.
+Its `onRefresh` draws a header item with the doctype's row count, read with
+`page.cached`. The walk deletes the script when it ends. It deletes only a script it made,
+so if the site already has another script of that name, the walk stops. The `script` column counts how
+many times that item is drawn on a record step.
+
+After those steps the walk goes to the list twice more. The first time, it saves version `v2`
+of its Client Script. The second time, it saves a Quick Entry Form Layout on the doctype,
+which the record page does not show. At the end it deletes the rows it saved, and any
+Quick Entry row on the doctype with its condition, `false /* Return Visit Walk */`. The server tells the desk
+about each change. Each time, the walk then opens the record again. Each run starts with
+version `v1` of the script.
+
+A return step fails when it shows a skeleton, draws any field or row more than once, or
+does not settle in time. A return step on the record also fails when the script's item is
+drawn more than once, is ever drawn without the count, or is missing at the end.
+
+A return to the record after a change has its own rule for the script's item. The old
+version may draw first, so the item may be drawn twice. It fails when it is ever drawn
+without the count, or does not end on its `v2` label. After the Form Layout save, the step
+also fails when the page did not read the doctype's meta again.
+
+The walk is run by hand, not in CI.
+
+## View-restore walk
+
+`viewRestore.js` checks that a return visit to a record shows the view the reader left.
+
+Before it starts, it stores two Form Layouts on the doctype and deletes them at the end:
+
+- a Details layout, copied from the doctype's own, with the first labelled section of a later
+  form tab closed by default;
+- a Side Panel layout with enough fields that the panel column scrolls.
+
+The walk picks the later tab with the most fields. Both rows carry the condition
+`true /* View Restore Walk */`, which every record matches. At the end the walk deletes
+exactly the rows it inserted. Before it starts, it deletes rows a crashed run left: only on
+the same doctype, of those two types, and with that exact condition.
+
+It also adds a Record item for the list's first row to the login user's rail, keyed
+`view-restore-walk`, and removes it at the end. It deletes only rows with that key, and the
+user's rail layer only when the walk created it and nothing else is left in it.
+
+On the first visit, the walk picks that form tab, opens the closed section, and scrolls
+the Details tab and the panel column halfway down. It then goes Back to the list, Forward
+to the record, to the list through the rail, sidebar or breadcrumb, Back to the record, to
+the list again, and to the record through that rail item. That step stops the walk when
+the rail does not show the item. On a site with no Record item kind it clicks the list row,
+still runs the checks, prints that the return from the rail is unproven, and exits with 1.
+On each return to the record it checks:
+
+- each scroll offset is within 1 px of the first visit's;
+- the form tab and the state of every section match the first visit's;
+- no frame, from the first one that shows the record, showed a different offset.
+
+Last, it opens a record from the list that it has not visited. That step fails unless both
+offsets are 0 and every section is as the layout starts it.
+
+A frame's offsets are read after that frame's animation-frame callbacks and layout, before
+it paints. A step also fails when it does not settle in time. The walk stops with a
+message when the doctype has no later form tab with a labelled section, or when a scroller
+moves less than 40 px.
+
+```sh
+yarn --cwd frontend/walks walk:view
+DOCTYPE=User yarn --cwd frontend/walks walk:view --json /tmp/view.json
+```
+
+Without `DOCTYPE`, it takes the navigation doctype with at least three rows whose later
+form tab has the most fields. `User` works on a stock site: its Settings tab scrolls.
+
+### Against a checkout's frontend
+
+The bench answers `/apps` with its built document. To walk a checkout's source without
+building, serve it with vite and point the walk at it:
+
+```sh
+cd frontend && ./node_modules/.bin/vite --config walks/vite.walk.config.js
+BASE_URL=http://<site>:8098 yarn --cwd frontend/walks walk:view
+```
+
+The config serves `/apps` from the checkout and sends every other bench path to the
+bench. It needs `frontend/manifest.json`; copy the one from a built checkout and point the
+`frappe` app's source directory at this checkout. `WALK_PORT` changes the port.
+
+The source is served unbundled, about 1800 requests and 65 MB for the first list, so the
+`slow` network does not load within the walk's limit. For `NETWORK=slow`, build the
+checkout to a folder outside the bench with the same config and serve it with
+`vite preview`; do not run `bench build` for it.
+
+## Run
+
+```sh
+yarn --cwd frontend/walks install
+yarn --cwd frontend/walks playwright install chromium
+yarn --cwd frontend/walks walk
+yarn --cwd frontend/walks walk --json /tmp/walk.json
+```
+
+`--json <path>` also writes every step's counts to that file. The walk exits with 0 when
+every return step passes on every network, and 1 otherwise.
+
+## Environment
+
+| Variable     | Default                                         | Meaning                                  |
+| ------------ | ----------------------------------------------- | ---------------------------------------- |
+| `BASE_URL`   | `http://localhost:8000`                         | The site to walk                         |
+| `USR`        | `Administrator`                                 | Login user                               |
+| `PWD_FRAPPE` | `admin`                                         | Login password                           |
+| `DOCTYPE`    | the first rail or sidebar doctype that has rows | The doctype whose list and record to use |
+| `NETWORK`    | both                                            | `normal` or `slow`                       |
+
+## Click-budget walk
+
+`clickBudget.js` measures the click budget and the shell's paint on a cold load, at a 4x
+slower CPU. It opens a list and a record cold, and clicks list → a list in another sidebar
+(a rail item) and list → record (a row). Each step runs in a new browser, `RUNS` times on
+the `normal` network and `SLOW_RUNS` times on the `slow` one. It prints the median of each
+column:
+
+- cold loads: when the rail, the sidebar and the first skeleton draw, when the last JS or
+  CSS file before the content arrived, when the content draws, and the layout shift;
+- clicks: when the address changes, the animation frame that first draws a change in the page
+  frame and when that frame has painted, the browser's click-to-next-paint time (Event
+  Timing, which drops a click under 16 ms), when the last JS or CSS file the click asked
+  for arrived, when the page draws, and the layout shift.
+
+Times count from the navigation start or the click. The walk exits with 1 when any run
+failed. Measure built code: build the checkout with `vite.budget.config.js` to a folder
+outside the bench, serve it with `vite preview`, and point the walk at it.
+
+```sh
+cd frontend
+OUT_DIR=/tmp/desk-build ./node_modules/.bin/vite build --config walks/vite.budget.config.js
+OUT_DIR=/tmp/desk-build WALK_PORT=8187 ./node_modules/.bin/vite preview --config walks/vite.budget.config.js
+BASE_URL=http://<site>:8187 yarn --cwd walks walk:budget --json /tmp/budget.json
+```
+
+| Variable          | Default                                  | Meaning                                         |
+| ----------------- | ---------------------------------------- | ----------------------------------------------- |
+| `LIST_PATH`       | `/apps/crm/crm-lead`                     | The list both clicks start from                 |
+| `OTHER_LIST_PATH` | `/apps/crm/crm-deal`                     | A list in another sidebar, opened from the rail |
+| `RECORD_PATH`     | `/apps/crm/crm-lead/CRM-LEAD-2026-00006` | A record with a row on the list's first page    |
+| `RUNS`            | `5`                                      | Runs of each step on the normal network         |
+| `SLOW_RUNS`       | `2`                                      | Runs of each step on the slow network           |
+| `ONLY`            | every step                               | Runs only the steps whose name contains it      |
+| `SID`             | none                                     | A session cookie to use in place of the login   |
+
+`BASE_URL`, `USR`, `PWD_FRAPPE` and `NETWORK` are as for the other walks.
+
+## Field-coverage seed
+
+`seed_field_coverage.py` makes a sample DocType with one field of every fieldtype, so each
+field control can be checked on the record page, in the side panel, in a grid cell and in
+the row dialog. It creates these rows in the `Custom` module:
+
+- `Field Coverage`: every fieldtype on five tabs. Data appears once for each of its
+  options. Each value field has a read-only twin on the `Read only` tab, and two fields
+  are hidden.
+- `Field Coverage Row`: a child table with every field it allows, all in the grid.
+- `Field Coverage Row Text`, `… Numbers`, `… Choices` and `… Media`: child tables with the
+  same fields and about ten of them in the grid each, so that a cell is wide enough to
+  check.
+- `Field Coverage Tag`: the child table of the Table MultiSelect field.
+- A Side Panel Form Layout with every value field.
+- `COV C39 field coverage commits`: a Client Script that logs one console line, `[C39] …`,
+  for each commit.
+- One record with a value in every field.
+
+Each run deletes what an earlier run made, then makes it again.
+
+```sh
+cd sites && ../env/bin/python ../apps/frappe/frontend/walks/seed_field_coverage.py <site>
+cd sites && ../env/bin/python ../apps/frappe/frontend/walks/seed_field_coverage.py <site> --delete
+```
+
+The first command prints the record's name. Open it at `/apps/desk/field-coverage/<name>`.
+The site needs at least two `CRM Deal` records, which the Link fields point at.

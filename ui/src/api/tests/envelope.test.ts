@@ -1,0 +1,126 @@
+import { describe, expect, it, vi } from "vitest";
+import { ApiError, isApiError, readEnvelope, TIMESTAMP_MISMATCH } from "../envelope";
+
+describe("readEnvelope", () => {
+  it("returns the body, data and the keys beside it", () => {
+    const body = { data: { name: "T-1" }, permissions: { read: 1 }, has_next_page: true };
+    expect(readEnvelope(body, 200)).toBe(body);
+  });
+
+  it("throws the first entry of errors as an ApiError", () => {
+    const body = {
+      errors: [
+        { type: TIMESTAMP_MISMATCH, message: "Error: Document has been modified", title: "Conflict" },
+        { type: "ValidationError" },
+      ],
+    };
+    let thrown: unknown;
+    try {
+      readEnvelope(body, 409);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(isApiError(thrown)).toBe(true);
+    const error = thrown as ApiError;
+    expect(error.type).toBe(TIMESTAMP_MISMATCH);
+    expect(error.isTimestampMismatch).toBe(true);
+    expect(error.message).toBe("Error: Document has been modified");
+    expect(error.title).toBe("Conflict");
+    expect(error.status).toBe(409);
+  });
+
+  it("carries the entry's code_errors as codeErrors", () => {
+    const codeErrors = [{ field: "script", line: 3, column: 12, message: "Missing end tag." }];
+    const entry = { type: "TemplateCompileError", message: "Line 3", code_errors: codeErrors };
+    const body = { errors: [entry] };
+    expect(() => readEnvelope(body, 417)).toThrow(expect.objectContaining({ codeErrors }));
+    expect(() => readEnvelope({ errors: [{ type: "ValidationError" }] }, 417)).toThrow(
+      expect.objectContaining({ codeErrors: undefined })
+    );
+  });
+
+  it("carries the entry's field_errors as fieldErrors", () => {
+    const fieldErrors = [
+      { fieldname: "title", message: "Title is required" },
+      { fieldname: "item", parentfield: "items", idx: 2, message: "Item is required" },
+    ];
+    const body = { errors: [{ type: "MandatoryError", field_errors: fieldErrors }] };
+    expect(() => readEnvelope(body, 417)).toThrow(expect.objectContaining({ fieldErrors }));
+    expect(() => readEnvelope({ errors: [{ type: "ValidationError" }] }, 417)).toThrow(
+      expect.objectContaining({ fieldErrors: undefined })
+    );
+  });
+
+  it("names the error by its type when the server sent no message", () => {
+    expect(() => readEnvelope({ errors: [{ type: "PermissionError" }] }, 403)).toThrow(
+      "PermissionError"
+    );
+  });
+
+  it("treats an empty errors list as success", () => {
+    expect(readEnvelope({ data: 1, errors: [] }, 200).data).toBe(1);
+  });
+
+  it("throws an HTTPError for a failed status with no errors list", () => {
+    expect(() => readEnvelope(null, 502)).toThrow(
+      expect.objectContaining({ type: "HTTPError", status: 502 })
+    );
+  });
+
+  it("throws when a 200 body is not a JSON object", () => {
+    expect(() => readEnvelope([1], 200)).toThrow(
+      expect.objectContaining({ type: "InvalidResponse" })
+    );
+    expect(() => readEnvelope(null, 200)).toThrow(
+      expect.objectContaining({ type: "InvalidResponse" })
+    );
+  });
+
+  it("throws a MissingData error for a 200 body with no data key", () => {
+    expect(() => readEnvelope({ permissions: { read: 1 } }, 200)).toThrow(
+      expect.objectContaining({ type: "MissingData", status: 200 })
+    );
+  });
+
+  it("fills a null data for a nullable route and keeps the keys beside it", () => {
+    const envelope = readEnvelope({ docs: [] }, 200, { nullable: true });
+    expect(envelope).toEqual({ docs: [], data: null });
+  });
+
+  it("names the request in the errors it makes itself", () => {
+    const source = "GET /document/ToDo/T-1";
+    expect(() => readEnvelope({}, 200, { source })).toThrow(`${source} answered 200 with no data`);
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => readEnvelope(null, 502, { source })).toThrow("Could not load ToDo. Try again.");
+    expect(logged).toHaveBeenCalledWith(`${source} failed with status 502`);
+    logged.mockRestore();
+    expect(() => readEnvelope("x", 200, { source })).toThrow(
+      `${source} did not answer with a JSON object`
+    );
+  });
+});
+
+describe("a failed status with no errors list", () => {
+  it.each([
+    ["GET /document/Module%20Def", "Could not load Module Def. Try again."],
+    ["DELETE /document/ToDo/T-1", "Could not delete ToDo. Try again."],
+    ["PUT /document/ToDo/T-1", "Could not save ToDo. Try again."],
+    ["POST /method/frappe.ping", "Could not save the data. Try again."],
+  ])("says %s as a sentence, and keeps the status in the console", (source, sentence) => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() => readEnvelope(null, 500, { source })).toThrow(sentence);
+    expect(logged).toHaveBeenCalledWith(`${source} failed with status 500`);
+    logged.mockRestore();
+  });
+});
+
+describe("stale_doc", () => {
+  it("carries the entry's stale_doc as staleDoc", () => {
+    const stale = { doctype: "Sales Invoice", name: "SINV-1" };
+    const body = { errors: [{ type: TIMESTAMP_MISMATCH, stale_doc: stale }] };
+    expect(() => readEnvelope(body, 409)).toThrow(expect.objectContaining({ staleDoc: stale }));
+    expect(() => readEnvelope({ errors: [{ type: TIMESTAMP_MISMATCH }] }, 409)).toThrow(
+      expect.objectContaining({ staleDoc: undefined })
+    );
+  });
+});

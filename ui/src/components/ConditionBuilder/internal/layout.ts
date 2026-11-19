@@ -3,8 +3,8 @@ import type { ComputedRef } from "vue";
 import { isGroup } from "../tree";
 import type { ConditionBorders, ConditionColumns } from "../types";
 
-/** The leading conjunction cell, wide enough for `Where` at any of its lengths. */
-const CONJUNCTION_TRACK = "minmax(66px, max-content)";
+/** The leading conjunction cell, as wide as `Where` or the operator button. */
+const CONJUNCTION_TRACK = "max-content";
 
 /**
  * Takes the row's leftover width, so the actions land on the end edge in every

@@ -5,7 +5,7 @@ import type { FilterField, FilterOperator, FilterValue } from "../Filter/types";
 export type Conjunction = "and" | "or";
 
 /**
- * Derived from the rules it composes (ADR-0008), so the two cannot drift.
+ * Derived from the rules it composes, so the two cannot drift.
  * `timespan` is excluded: no expression compiles from one.
  */
 export type ConditionOperator = Exclude<FilterOperator, "timespan">;
@@ -23,6 +23,14 @@ export interface ConditionExpressionOptions {
 export interface ConditionOperatorOption {
   label: string;
   value: ConditionOperator;
+}
+
+/** What a `depends_on` condition may name, as `dependsOnScope` builds it. */
+export interface DependsOnScope {
+  fields: ConditionField[];
+
+  /** Table fields, offered as a Check ("has rows") and written `doc.items.length`. */
+  tables: ReadonlySet<string>;
 }
 
 /** Child indices from the root group. `[]` addresses the root itself. */

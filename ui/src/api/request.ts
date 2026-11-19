@@ -1,0 +1,137 @@
+import { clearDataCache, feedDocsDocument, settleTicket, takeTicket } from "../cache";
+import type { DocumentRecord } from "./index";
+import { ApiError, readEnvelope, type Envelope, type ReadOptions } from "./envelope";
+
+const BASE = "/api/v2";
+const replySizes = new WeakMap<object, number>();
+
+export type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+export type Query = Record<string, unknown>;
+
+export interface RequestOptions extends Pick<ReadOptions, "nullable"> {
+  query?: Query;
+  body?: unknown;
+  signal?: AbortSignal;
+  /** The browser's HTTP cache mode; `"reload"` skips a cached reply. */
+  cache?: RequestCache;
+  /** The request outlives the page, for a write sent as the tab is hidden. */
+  keepalive?: boolean;
+  /** The cache ticket the caller took at send time and settles; absent, the call takes its own. */
+  ticket?: number;
+}
+
+export function apiUrl(path: string, query?: Query): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(query ?? {})) {
+    if (value === undefined || value === null) continue;
+    search.set(key, encodeQueryValue(value));
+  }
+  const encoded = search.toString();
+  return encoded ? `${BASE}${path}?${encoded}` : `${BASE}${path}`;
+}
+
+/** The headers every request sends; the uploader shares them with its XHR. */
+export function requestHeaders({ json = true } = {}): Record<string, string> {
+  const headers: Record<string, string> = { Accept: "application/json" };
+  if (json) headers["Content-Type"] = "application/json; charset=utf-8";
+  const site = globalThis.location?.hostname;
+  if (site) headers["X-Frappe-Site-Name"] = site;
+  const token = (globalThis as { csrf_token?: string }).csrf_token;
+  if (token && token !== "{{ csrf_token }}") headers["X-Frappe-CSRF-Token"] = token;
+  return headers;
+}
+
+export async function request<T>(
+  method: HttpMethod,
+  path: string,
+  options: RequestOptions = {}
+): Promise<Envelope<T>> {
+  if (options.ticket !== undefined) return send<T>(method, path, options, options.ticket);
+  const ticket = takeTicket();
+  try {
+    return await send<T>(method, path, options, ticket);
+  } finally {
+    feedSafely(() => settleTicket(ticket));
+  }
+}
+
+/** A cache fault empties the cache and surfaces on its own, so the request still answers. */
+export function feedSafely(feed: () => void): void {
+  try {
+    feed();
+  } catch (error) {
+    clearDataCache();
+    queueMicrotask(() => {
+      throw error;
+    });
+  }
+}
+
+async function send<T>(
+  method: HttpMethod,
+  path: string,
+  { query, body, signal, cache, nullable, keepalive }: RequestOptions,
+  ticket: number
+): Promise<Envelope<T>> {
+  let response: Response;
+  try {
+    response = await fetch(apiUrl(path, query), {
+      method,
+      headers: requestHeaders({ json: body !== undefined }),
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal,
+      cache,
+      keepalive,
+    });
+  } catch (error) {
+    if ((error as { name?: string })?.name === "AbortError") throw error;
+    throw new ApiError({ type: "NetworkError", message: String(error) }, 0);
+  }
+  const text = await response.text();
+  const envelope = readEnvelope<T>(parseBody(text), response.status, {
+    source: `${method} ${path}`,
+    nullable,
+  });
+  replySizes.set(envelope, text.length);
+  feedSafely(() => feedDocs(ticket, envelope));
+  return envelope;
+}
+
+/** The length of the reply text the envelope was read from; 0 for an envelope `request` did not read. */
+export function replySize(envelope: object): number {
+  return replySizes.get(envelope) ?? 0;
+}
+
+/** A document method returns its documents under `docs` whether or not it saved them. */
+function feedDocs(ticket: number, envelope: Envelope<unknown>) {
+  if (!Array.isArray(envelope.docs)) return;
+  for (const doc of envelope.docs as DocumentRecord[]) {
+    if (typeof doc?.doctype === "string") feedDocsDocument(ticket, doc.doctype, doc);
+  }
+}
+
+// The server reads a query flag with `bool()`, so the string "false" must not reach it.
+function encodeQueryValue(value: unknown): string {
+  if (typeof value === "boolean") return value ? "1" : "0";
+  return typeof value === "object" ? JSON.stringify(value) : String(value);
+}
+
+/** A reply's JSON, or `null` when it is empty or not JSON. */
+export function parseBody(text: string): unknown {
+  if (!text) return null;
+  try {
+    return LONG_DIGIT_RUN.test(text) ? JSON.parse(text, keepLongInteger) : JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+const LONG_DIGIT_RUN = /\d{16}/;
+
+// An integer past `MAX_SAFE_INTEGER` would round, so it stays a digit string, as `parseLongInt`
+// commits a Long Int. With no `context` (Chrome < 114, Firefox < 135, Safari < 18.4) it rounds.
+function keepLongInteger(_key: string, value: unknown, context?: { source?: string }): unknown {
+  if (typeof value !== "number" || Number.isSafeInteger(value)) return value;
+  const source = context?.source;
+  return source && /^-?\d+$/.test(source) ? source : value;
+}

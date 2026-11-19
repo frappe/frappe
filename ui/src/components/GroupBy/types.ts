@@ -56,7 +56,7 @@ export interface GroupByProps {
 export interface GroupByTableProps {
   doctype: string;
   groupBy: GroupBySettings;
-  /** The grouped query's result rows, as `frappe.client.get_list` returns them. */
+  /** The grouped query's result rows, as `listAggregates` returns them. */
   rows: Record<string, unknown>[];
   /** The totals row, aggregate values by `aggregateKey`; shown when `showTotals` is on. */
   totals?: Record<string, unknown> | null;

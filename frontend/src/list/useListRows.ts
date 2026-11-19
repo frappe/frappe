@@ -1,0 +1,365 @@
+// The rows and the total for one query, painted from the shared cache when it holds the query.
+// The pages are a buffer: the page size and Load More decide how much shows.
+import {
+	countDocuments,
+	deleteDocument,
+	isApiError,
+	listDocuments,
+	type ListEnvelope,
+	type ListQuery,
+} from "@framework/ui/api";
+import { LIST_ONLY_FIELDS, readCachedList, readCachedRows } from "@framework/ui/cache";
+import {
+	computed,
+	onScopeDispose,
+	reactive,
+	ref,
+	shallowRef,
+	watch,
+	type ComputedRef,
+} from "vue";
+import { currentSession } from "@framework/ui/useSession";
+import { seedFavourites, starsWritten } from "./favouriteStars";
+import { seedRowParts } from "./rowParts";
+
+export type ListRow = { name: string } & Record<string, unknown>;
+
+const QUERY_DEBOUNCE_MS = 300;
+
+export interface RowsQuery {
+	/** Names the filters and sort; the loaded rows carry it, so a memory is written under it. */
+	key: string;
+	fields: string[];
+	filters: Record<string, unknown>;
+	orderBy: string;
+	limit: number;
+	/** Parts the shown columns read beside the rows; no part of the cache key. */
+	include?: string[];
+}
+
+export interface ListRows {
+	rows: ComputedRef<ListRow[]>;
+	/** True until the first page of a query lands. */
+	loading: ComputedRef<boolean>;
+	error: ComputedRef<Error | null>;
+	rowCount: ComputedRef<number>;
+	totalCount: ComputedRef<number>;
+	/** True when the total stopped at the server's cap, or is unknown and a next page remains. */
+	totalCapped: ComputedRef<boolean>;
+	/** True when the server gave up counting; the footer reads "many". */
+	totalUnknown: ComputedRef<boolean>;
+	/** False until the count has answered; the footer shows a skeleton meanwhile, also after an error. */
+	hasCounts: ComputedRef<boolean>;
+	hasNextPage: ComputedRef<boolean>;
+	/** How many rows the page asked to show; the rows fall short when the query has fewer. */
+	shown: ComputedRef<number>;
+	/** Shows exactly `size` rows: a chosen page size, even the one already chosen after a Load More. */
+	show(size: number): void;
+	/** The `key` of the query the rows belong to, which trails the state while a change waits. */
+	loadedKey: ComputedRef<string | null>;
+	/** Resolves when the rows loaded are those of the query now set, or when their read failed. */
+	settled: () => Promise<void>;
+	/** The fields the rows are read with. */
+	readFields: () => string[];
+	next: () => void;
+	/** Refetches the query and shows as many rows as before. */
+	reload: () => void;
+	/** Asks for the exact total after a capped one. */
+	countExact: () => Promise<void>;
+	remove: (name: string) => Promise<unknown>;
+}
+
+interface Page {
+	data: ListRow[] | null;
+	error: Error | null;
+	hasNextPage: boolean;
+	/** The list positions the page covers, when some of its rows are missing from `data`. */
+	span?: number;
+}
+
+interface Total {
+	count: number | null;
+	capped: boolean;
+	answered: boolean;
+}
+
+export function useListRows(doctype: string, query: () => RowsQuery | null): ListRows {
+	const pages = shallowRef<Page[]>([]);
+	const shown = ref(0);
+	const loadedKey = ref<string | null>(null);
+	const total = ref<Total>({ count: null, capped: false, answered: false });
+	let generation = 0;
+	// The generation whose background read is out; a Load More meanwhile only raises `shown`.
+	let refreshing = -1;
+	// True while cached rows are on show and the read that checks them is still out.
+	const checking = ref(false);
+	// Why the check read failed; the cached rows stay on show, but an act waiting on them must know.
+	const checkFailure = ref<Error | null>(null);
+	let timer = 0;
+	// True while a changed query waits out its debounce, before any read is out.
+	const debouncing = ref(false);
+
+	const loaded = computed(() => pages.value.flatMap((page) => page.data ?? []));
+	// The next page's offset: a cached page may lack a row whose record entry went.
+	const covered = computed(() =>
+		pages.value.reduce((sum, page) => sum + (page.span ?? page.data?.length ?? 0), 0)
+	);
+	const rows = computed(() => loaded.value.slice(0, shown.value));
+	const rowCount = computed(() => rows.value.length);
+	const firstPage = computed(() => pages.value[0] ?? null);
+	const lastPage = computed(() => pages.value[pages.value.length - 1] ?? null);
+	const inFlight = computed(() => lastPage.value != null && lastPage.value.data == null);
+	const error = computed(() => pages.value.find((page) => page.error)?.error ?? null);
+	const hasNextPage = computed(
+		() => loaded.value.length > shown.value || (lastPage.value?.hasNextPage ?? false)
+	);
+
+	// The first query runs at once; a typed filter changes it per keystroke, so the rest wait.
+	watch(
+		queryKey,
+		(key, previous) => {
+			clearTimeout(timer);
+			debouncing.value = false;
+			if (!key) return;
+			if (previous === undefined) return reload();
+			debouncing.value = true;
+			timer = window.setTimeout(() => {
+				debouncing.value = false;
+				reload(query()!.limit);
+			}, QUERY_DEBOUNCE_MS);
+		},
+		{ immediate: true }
+	);
+
+	// A page size is not part of the query: it is how many rows show, and a bigger one fetches
+	// only the rows still missing. While a page is in flight the offset is not known yet, so
+	// the list starts over instead.
+	watch(
+		() => query()?.limit,
+		(size, previous) => {
+			if (size == null || previous == null || !lastPage.value) return;
+			if (inFlight.value) return reload();
+			show(size);
+		}
+	);
+
+	// A cache write to a list-only column (`_seen`, `_assign`, `_user_tags`...) shows in a mounted list
+	// with no read.
+	watch(
+		() => {
+			const current = query();
+			return current && readCachedRows(doctype, listQuery(current));
+		},
+		(cached) => cached && followListColumns(cached as ListRow[])
+	);
+
+	/** A reply that lands after a cache write holds the older column; the cache kept the newer one. */
+	function followCache() {
+		const current = query();
+		const cached = current && readCachedRows(doctype, listQuery(current));
+		if (cached) followListColumns(cached as ListRow[]);
+	}
+
+	onScopeDispose(() => clearTimeout(timer));
+
+	/** Loads on the first act that waits, so the page does not carry it. A page still out, or a changed query still in its debounce, holds it. */
+	async function settled(): Promise<void> {
+		const done = () =>
+			loadedKey.value === (query()?.key ?? null) &&
+			!checking.value &&
+			!debouncing.value &&
+			(firstPage.value?.data != null || Boolean(error.value)) &&
+			(!inFlight.value || Boolean(error.value));
+		return (await import("./settleRows")).settleRows(done, () => error.value ?? checkFailure.value);
+	}
+
+	/** Undefined while there is no query yet, so the first real one still counts as the first. */
+	function queryKey(): string | undefined {
+		const current = query();
+		if (!current) return undefined;
+		const { fields, filters, orderBy } = current;
+		return JSON.stringify({ fields, filters, orderBy, include: current.include });
+	}
+
+	function reload(target = shown.value) {
+		const current = query();
+		generation++;
+		loadedKey.value = current?.key ?? null;
+		checking.value = false;
+		checkFailure.value = null;
+		if (current && paintCached(current, target)) return void refresh(current);
+		pages.value = [];
+		shown.value = 0;
+		total.value = { count: null, capped: false, answered: false };
+		if (current) show(Math.max(target, current.limit));
+	}
+
+	function followListColumns(cached: ListRow[]) {
+		const byName = new Map(cached.map((row) => [row.name, row]));
+		const taken = pages.value.map((page) => {
+			const data = page.data?.map((row) => takeColumns(row, byName.get(row.name)));
+			if (!data || data.every((row, i) => row === page.data![i])) return page;
+			return landedPage(data, page.hasNextPage, page.span);
+		});
+		if (taken.some((page, i) => page !== pages.value[i])) pages.value = taken;
+	}
+
+	/** False when the cache holds no list for the query; otherwise shows every name it lists. */
+	function paintCached(current: RowsQuery, target: number): boolean {
+		const entry = readCachedList(doctype, listQuery(current));
+		const cached = entry && readCachedRows(doctype, listQuery(current));
+		if (!entry || !cached) return false;
+		pages.value = [landedPage(cached as ListRow[], entry.hasNextPage, entry.names.length)];
+		const { count, countCapped } = entry;
+		total.value = { count: count ?? null, capped: countCapped, answered: count !== undefined };
+		shown.value = Math.max(target, entry.names.length, current.limit);
+		return true;
+	}
+
+	/** Reads every shown row again and swaps rows and count in one step; a failure keeps them. */
+	async function refresh(current: RowsQuery) {
+		const mine = (refreshing = generation);
+		checking.value = true;
+		const limit = shown.value;
+		const sentAt = starsWritten();
+		const outcome = await listDocuments<ListRow>(
+			doctype,
+			{ ...listQuery(current), start: 0, limit },
+			{ include: ["count", ...(current.include ?? [])] }
+		).catch((failure: Error) => failure);
+		if (mine !== generation) return;
+		refreshing = -1;
+		checking.value = false;
+		if (isLostAccess(outcome)) return showError(outcome);
+		if (outcome instanceof Error) checkFailure.value = outcome;
+		if (!(outcome instanceof Error)) {
+			seedParts(outcome, sentAt);
+			pages.value = [landedPage(outcome.data, outcome.has_next_page)];
+			total.value = totalOf(outcome);
+			followCache();
+		}
+		if (shown.value > limit) show(shown.value);
+	}
+
+	/** As on a cold load: the error, and no count. */
+	function showError(failure: Error) {
+		pages.value = [{ data: null, error: failure, hasNextPage: false }];
+		total.value = { count: null, capped: false, answered: false };
+	}
+
+	/** Shows `target` rows: from the buffer where it reaches, fetched past its end. */
+	function show(target: number) {
+		shown.value = target;
+		if (refreshing === generation) return;
+		const missing = target - covered.value;
+		if (missing <= 0 || lastPage.value?.hasNextPage === false) return;
+		const page = reactive<Page>({ data: null, error: null, hasNextPage: false });
+		pages.value = [...pages.value, page];
+		void fetchPage(page, query()!, covered.value, missing);
+	}
+
+	// A page still in flight has no data yet; a second Load More then would start at a stale offset.
+	function next() {
+		const current = query();
+		if (!current || !lastPage.value || inFlight.value) return;
+		show(rowCount.value + current.limit);
+	}
+
+	function seedParts(answer: ListEnvelope<ListRow>, sentAt: number) {
+		const names = answer.data.map((row) => row.name);
+		seedFavourites(doctype, answer, names, currentSession()?.user.name, sentAt);
+		seedRowParts(doctype, answer, names);
+	}
+
+	// The first page of a query carries the count; a page from an earlier query lands nowhere.
+	async function fetchPage(page: Page, current: RowsQuery, start: number, limit: number) {
+		const mine = generation;
+		const sentAt = starsWritten();
+		const first = start === 0;
+		try {
+			const answer = await listDocuments<ListRow>(
+				doctype,
+				{ ...listQuery(current), start, limit },
+				{ include: [...(first ? ["count"] : []), ...(current.include ?? [])] }
+			);
+			if (mine !== generation) return;
+			seedParts(answer, sentAt);
+			page.hasNextPage = answer.has_next_page;
+			page.data = answer.data;
+			if (first) total.value = totalOf(answer);
+			followCache();
+		} catch (failure) {
+			if (mine !== generation) return;
+			page.error = failure as Error;
+		}
+	}
+
+	async function countExact() {
+		const current = query();
+		if (!current) return;
+		const mine = generation;
+		const { data } = await countDocuments(doctype, { filters: current.filters }).catch(() => ({
+			data: null,
+		}));
+		if (mine !== generation || data == null) return;
+		total.value = { count: data, capped: false, answered: true };
+	}
+
+	// An unknown total shows the rows as a floor; Load More follows the list's own next page.
+	const totalCapped = computed(() =>
+		total.value.count == null ? hasNextPage.value : total.value.capped
+	);
+
+	return {
+		rows,
+		loading: computed(
+			() => !firstPage.value || (firstPage.value.data == null && !error.value)
+		),
+		error,
+		rowCount,
+		totalCount: computed(() => total.value.count ?? rowCount.value),
+		totalCapped,
+		totalUnknown: computed(() => total.value.answered && total.value.count == null),
+		hasCounts: computed(() => total.value.answered),
+		hasNextPage,
+		shown: computed(() => shown.value),
+		loadedKey: computed(() => loadedKey.value),
+		settled,
+		readFields: () => query()?.fields ?? [],
+		show: (size) => {
+			if (!lastPage.value) return;
+			if (inFlight.value) return reload(size);
+			show(size);
+		},
+		next,
+		reload: () => reload(),
+		countExact,
+		remove: (name) => deleteDocument(doctype, name),
+	};
+}
+
+/** The read's filters, sort and fields: the shared cache keys the list by them. */
+function listQuery(current: RowsQuery): ListQuery {
+	return { fields: current.fields, filters: current.filters, order_by: current.orderBy };
+}
+
+/** The row with each list-only column the cache holds under another value; the same row when none moved. */
+function takeColumns(row: ListRow, cached: ListRow | undefined): ListRow {
+	const moved = LIST_ONLY_FIELDS.filter(
+		(field) => cached && field in cached && cached[field] !== row[field]
+	);
+	if (!cached || !moved.length) return row;
+	return { ...row, ...Object.fromEntries(moved.map((field) => [field, cached[field]])) };
+}
+
+function landedPage(data: ListRow[], hasNextPage: boolean, span?: number): Page {
+	return reactive<Page>({ data, error: null, hasNextPage, span });
+}
+
+function totalOf(answer: ListEnvelope<ListRow>): Total {
+	return { count: answer.count ?? null, capped: Boolean(answer.count_capped), answered: true };
+}
+
+function isLostAccess(failure: unknown): failure is Error {
+	return isApiError(failure) && (failure.status === 403 || failure.status === 404);
+}

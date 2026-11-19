@@ -13,13 +13,30 @@
       "import": "./src/components/FormLayout/index.ts",
       "types": "./src/components/FormLayout/index.ts"
     },
+    "./FormLayout/noValueFields": {
+      "import": "./src/components/FormLayout/noValueFields.ts",
+      "types": "./src/components/FormLayout/noValueFields.ts"
+    },
+    "./FormLayout/types": {
+      "import": "./src/components/FormLayout/types.ts",
+      "types": "./src/components/FormLayout/types.ts"
+    },
     "./ActivityTimeline": {
       "import": "./src/components/ActivityTimeline/index.ts",
       "types": "./src/components/ActivityTimeline/index.ts"
     },
+    "./Composer": {
+      "import": "./src/components/Composer/index.ts",
+      "types": "./src/components/Composer/index.ts"
+    },
     "./FileUpload": {
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
+    },
+    "./FileUpload/FileUploadDialog.vue": "./src/components/FileUpload/FileUploadDialog.vue",
+    "./SectionMarks": {
+      "import": "./src/components/SectionMarks/index.ts",
+      "types": "./src/components/SectionMarks/index.ts"
     },
     "./EmailAccounts": {
       "import": "./src/components/EmailAccounts/index.ts",
@@ -57,6 +74,10 @@
       "import": "./src/components/QuickFilter/index.ts",
       "types": "./src/components/QuickFilter/index.ts"
     },
+    "./ExportTemplate": {
+      "import": "./src/components/DataImport/exportTemplate.ts",
+      "types": "./src/components/DataImport/exportTemplate.ts"
+    },
     "./ColumnSettings": {
       "import": "./src/components/ColumnSettings/index.ts",
       "types": "./src/components/ColumnSettings/index.ts"
@@ -68,6 +89,50 @@
     "./fields": {
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"
+    },
+    "./fields/types": {
+      "import": "./src/components/Fields/types.ts",
+      "types": "./src/components/Fields/types.ts"
+    },
+    "./Link": {
+      "import": "./src/components/Link/index.ts",
+      "types": "./src/components/Link/index.ts"
+    },
+    "./RichText": {
+      "import": "./src/components/RichText/index.ts",
+      "types": "./src/components/RichText/index.ts"
+    },
+    "./api": {
+      "import": "./src/api/index.ts",
+      "types": "./src/api/index.ts"
+    },
+    "./cache": {
+      "import": "./src/cache/index.ts",
+      "types": "./src/cache/index.ts"
+    },
+    "./socket": {
+      "import": "./src/socket.ts",
+      "types": "./src/socket.ts"
+    },
+    "./relativeTime": {
+      "import": "./src/composables/relativeTime.ts",
+      "types": "./src/composables/relativeTime.ts"
+    },
+    "./useSession": {
+      "import": "./src/composables/useSession.ts",
+      "types": "./src/composables/useSession.ts"
+    },
+    "./useDoctypeMeta": {
+      "import": "./src/composables/useDoctypeMeta.ts",
+      "types": "./src/composables/useDoctypeMeta.ts"
+    },
+    "./useDocPermissions": {
+      "import": "./src/composables/useDocPermissions.ts",
+      "types": "./src/composables/useDocPermissions.ts"
+    },
+    "./useUserRoles": {
+      "import": "./src/composables/useUserRoles.ts",
+      "types": "./src/composables/useUserRoles.ts"
     },
     "./utils": {
       "import": "./src/utils/index.ts",
@@ -114,23 +179,30 @@
     "vuedraggable": "^4.1.0"
   },
   "peerDependencies": {
+    "@codemirror/autocomplete": "^6.0.0",
     "@codemirror/lang-css": "^6.0.0",
     "@codemirror/lang-html": "^6.0.0",
-    "@codemirror/lang-javascript": "^6.0.0",
+    "@codemirror/lang-javascript": "^6.1.2",
     "@codemirror/lang-json": "^6.0.0",
     "@codemirror/lang-markdown": "^6.0.0",
     "@codemirror/lang-python": "^6.0.0",
     "@codemirror/lang-sass": "^6.0.0",
     "@codemirror/lang-sql": "^6.0.0",
+    "@codemirror/lang-vue": "^0.1.3",
     "@codemirror/lang-xml": "^6.0.0",
     "@codemirror/lang-yaml": "^6.0.0",
+    "@codemirror/language": "^6.0.0",
     "@codemirror/lint": "^6.0.0",
     "@codemirror/state": "^6.0.0",
     "@codemirror/view": "^6.0.0",
+    "@lezer/common": "^1.0.0",
+    "@tiptap/core": "^3.26.0",
     "@vitejs/plugin-vue": ">=4",
     "@vueuse/core": ">=10.4.1",
     "autoprefixer": "^10.4.0",
-    "frappe-ui": ">=1.0.2",
+    "frappe-ui": ">=1.1.0",
+    "lowlight": "^3.3.0",
+    "reka-ui": "^2.9.6",
     "tailwindcss": "^3.4.0",
     "typescript": ">=5",
     "vite": ">=4",
@@ -142,9 +214,6 @@
       "optional": true
     },
     "@codemirror/lang-html": {
-      "optional": true
-    },
-    "@codemirror/lang-javascript": {
       "optional": true
     },
     "@codemirror/lang-json": {

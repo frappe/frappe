@@ -1,0 +1,110 @@
+# What a doctype's own address opens for one person: the first default, own then site then app, that resolves.
+
+import frappe
+from frappe.desk.doctype.doctype_view.app_views import app_defaults
+from frappe.desk.doctype.doctype_view.doctype_view import SITE_ROW
+from frappe.desk.doctype.doctype_view.key_space import find_views
+from frappe.desk.doctype.view_type.view_type import applies_to, view_types
+
+
+class DefaultViews:
+	"""One person's default views in one app, each named by its address's last segment: `/<doctype>/view/<segment>`."""
+
+	def __init__(self, user: str | None = None, app: str | None = None):
+		self.user = user or frappe.session.user
+		self.app = app
+
+	def addresses(self, doctypes: list[str] | None = None) -> dict[str, str]:
+		"""`{doctype: segment}` for each doctype the person reads whose default resolves at some layer."""
+		layers = [*self.stored_layers(doctypes), self.app_layer(doctypes), self.doctype_layer(doctypes)]
+		keyed = [
+			(doctype, pointer.view) for layer in layers for doctype, pointer in layer.items() if pointer.view
+		]
+		views = find_views(keyed, self.user)
+
+		resolved = {}
+		for doctype in self.existing({doctype for layer in layers for doctype in layer}):
+			segments = (segment(doctype, layer.get(doctype), views) for layer in layers)
+			first = next((found for found in segments if found), None)
+			if first and frappe.has_permission(doctype, "read", user=self.user):
+				resolved[doctype] = first
+		return resolved
+
+	def pointed_at(self, doctypes: list[str] | None = None) -> dict[str, dict[str, list[str]]]:
+		"""`{doctype: {segment: scopes}}`: the `user` and `site` pointers that name each view."""
+		layers = self.stored_layers(doctypes)
+		views = find_views(
+			[(doctype, row.view) for layer in layers for doctype, row in layer.items() if row.view], self.user
+		)
+		pointed: dict[str, dict[str, list[str]]] = {}
+		for scope, layer in zip(("user", "site"), layers, strict=True):
+			for doctype, pointer in layer.items():
+				if found := segment(doctype, pointer, views):
+					pointed.setdefault(doctype, {}).setdefault(found, []).append(scope)
+		return pointed
+
+	def stored_layers(self, doctypes: list[str] | None) -> list[dict[str, frappe._dict]]:
+		"""The person's pointers, then the site's, in one query on `Default View`."""
+		filters = {"user": ("in", (self.user, SITE_ROW))}
+		if doctypes is not None:
+			filters["reference_doctype"] = ("in", doctypes)
+
+		rows = frappe.get_all(
+			"Default View", filters=filters, fields=["reference_doctype", "user", "view", "type"]
+		)
+		return [
+			{row.reference_doctype: row for row in rows if row.user == layer_user}
+			for layer_user in (self.user, SITE_ROW)
+		]
+
+	def app_layer(self, doctypes: list[str] | None) -> dict[str, frappe._dict]:
+		"""The defaults apps' view files declare: this app's, else the one the doctype's own app ships."""
+		return {
+			doctype: frappe._dict(view=key, type=None)
+			for doctype, key in app_defaults(self.app).items()
+			if doctypes is None or doctype in doctypes
+		}
+
+	def doctype_layer(self, doctypes: list[str] | None) -> dict[str, frappe._dict]:
+		"""The doctype's own `default_view`, a view type's name; v1 values with no v2 view type never resolve."""
+		layer = {}
+		for doctype in self.with_default_view(doctypes):
+			if default_view := frappe.get_meta(doctype).default_view:
+				layer[doctype] = frappe._dict(view=None, type=default_view)
+		return layer
+
+	def with_default_view(self, doctypes: list[str] | None) -> set[str]:
+		"""Doctypes whose DocType row names a v2 view type, or that Customize Form sets (it may override to any value)."""
+		filters = {"name": ("in", doctypes)} if doctypes is not None else {}
+		own = frappe.get_all(
+			"DocType", filters={**filters, "default_view": ("in", list(view_types()))}, pluck="name"
+		)
+
+		customized = {"doctype_or_field": "DocType", "property": "default_view"}
+		if doctypes is not None:
+			customized["doc_type"] = ("in", doctypes)
+		setters = frappe.get_all("Property Setter", filters=customized, pluck="doc_type")
+		return {*own, *self.existing(set(setters))}
+
+	def existing(self, doctypes: set[str]) -> list[str]:
+		"""The doctypes still on the site: deleting a DocType leaves the rows that point at it."""
+		if not doctypes:
+			return []
+
+		return frappe.get_all("DocType", filters={"name": ("in", doctypes)}, pluck="name")
+
+
+def segment(doctype: str, pointer: frappe._dict | None, views: dict) -> str | None:
+	"""The pointer's address segment while it resolves for the person: a view they see, or a known type."""
+	if pointer is None:
+		return None
+
+	if pointer.view:
+		view = views.get((doctype, pointer.view))
+		return pointer.view if view and fits(view.type, doctype) else None
+
+	return pointer.type.lower() if fits(pointer.type, doctype) else None
+
+
+def fits(view_type: str, doctype: str) -> bool:
+	return view_type in view_types() and applies_to(view_type, doctype)

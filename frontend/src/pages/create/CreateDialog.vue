@@ -1,0 +1,299 @@
+<!-- One Create request: the doctype's Quick Entry form, inserted on save, or the full-page new
+     record when the server says the doctype gets no dialog. -->
+<template>
+	<Dialog
+		v-if="shown"
+		v-model:open="isOpen"
+		:title="title"
+		:dismissible="!saving"
+		:show-close-button="!saving"
+		:size="size"
+		@after-leave="request.dismiss()"
+	>
+		<div ref="body">
+			<FormLayout
+				v-if="layout.length"
+				v-model:doc="doc"
+				v-model:tab="formTab"
+				:layout="layout"
+				:doctype="doctype"
+				autofocus
+				@update:doc="typed = true"
+			/>
+			<ErrorMessage v-if="error" class="mt-2" :message="error" />
+		</div>
+		<template #actions>
+			<div class="flex items-center justify-between gap-2">
+				<Button
+					v-if="!inDialog"
+					variant="subtle"
+					:label="__('Edit full form')"
+					:disabled="saving"
+					@click="editFullForm"
+				/>
+				<Button
+					v-if="editLayout"
+					variant="ghost"
+					:label="__('Edit layout')"
+					data-view
+					:disabled="saving"
+					@click="openEditor(editLayout)"
+				/>
+				<Button
+					class="ms-auto"
+					variant="solid"
+					:label="__('Save')"
+					data-act="dialog.submit"
+					:loading="saving"
+					:disabled="layoutFailed"
+					@click="save"
+				/>
+			</div>
+		</template>
+	</Dialog>
+</template>
+
+<script setup lang="ts">
+import { computed, inject, nextTick, onUnmounted, provide, ref, useTemplateRef, watch } from "vue";
+import { useRouter, type RouteLocationRaw } from "vue-router";
+import { acts } from "@/acts/dispatcher";
+import type { Boot } from "@/boot";
+import { opensInDialog } from "@/contributions/registry";
+import { useEventListener } from "@vueuse/core";
+import { Button, Dialog, ErrorMessage, toast } from "frappe-ui";
+import { createDocument, isApiError } from "@framework/ui/api";
+import { FormLayout, layoutFields } from "@framework/ui/FormLayout";
+import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
+import { FieldErrorsKey, RecordLinkKey } from "@framework/ui/fields/types";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { __ } from "@/i18n";
+import { FieldErrors, missingRequired, useFormLayout } from "@/recordPage";
+import { setValuesEntry, type ValueForm } from "@/recordPage/recordActs";
+import { shownFields } from "@/recordPage/requiredFields";
+import { errorMessage } from "@/recordPage/errorMessage";
+import { formData, formDialogHandle, initialDoc } from "@/recordPage/formDialogLayout";
+import { landOnFirstMarked } from "@/pages/record/landOnField";
+import { useEditLayoutRoute } from "@/pages/editLayout";
+import { routeForNew } from "@/router/routeFor";
+import type { CreateRequest } from "@/shell/create";
+import { useReadableDialog } from "@/shell/dialogs/readableDialogs";
+import { loadDocument } from "@/shell/tabKeepAlive";
+import {
+	fetchNewDocument,
+	fieldDefaults,
+	fillEmpty,
+	insertBody,
+	typedValues,
+	withNameField,
+} from "@/newRecordValues";
+
+const errors = new FieldErrors();
+provide(FieldErrorsKey, errors.drawn);
+// The dialog's fields commit to nothing, or they would fire a record page's handlers.
+provide(CommitKey, errors.clearingOnEdit(NO_COMMIT));
+// A dialog has no guard for its unsaved values, so its Link fields open nothing.
+provide(RecordLinkKey, null);
+
+const props = defineProps<{ request: CreateRequest }>();
+const { doctype, values } = props.request;
+
+const router = useRouter();
+// The page's act surfaces stay off behind the dialog, as a record dialog's own take them over.
+// Its `record` surface fills this form: it has no handlers, and so no rows, to run.
+onUnmounted(
+	acts.register({
+		surfaces: {
+			header: () => [],
+			quickActions: () => [],
+			tabs: () => [],
+			record: () => [setValuesEntry(valueForm)],
+		},
+		context: () => undefined,
+		passes: () => false,
+		settled: () => undefined,
+		hold: async (work) => work(),
+		failed: () => {},
+	})
+);
+// An opted-in doctype has no full page to hand over to: the dialog is its only form.
+const inDialog = opensInDialog(doctype, inject<Boot | null>("boot", null)?.app ?? null);
+const { meta } = useDoctypeMeta(doctype);
+// A row's condition reads this, not the live draft: a layout switch mid-keystroke steals focus.
+const conditionDoc = ref<Record<string, any>>({ ...values });
+const quickEntry = useFormLayout({
+	doctype,
+	type: "Quick Entry",
+	doc: conditionDoc,
+	fallback: "meta",
+});
+
+const shown = ref(false);
+const isOpen = ref(true);
+const saving = ref(false);
+const error = ref("");
+const newDoc = ref<Record<string, any> | null>(null);
+const doc = ref<Record<string, any>>({ ...values });
+const typed = ref(false);
+const formTab = ref("");
+let saved: Record<string, any> | null = null;
+
+const layout = computed<FormLayoutSchema>(() =>
+	withNameField(quickEntry.layout.value, meta.value)
+);
+const defaults = computed(() => (newDoc.value ? fieldDefaults(newDoc.value, meta.value) : {}));
+
+watch(
+	layout,
+	(current) => {
+		doc.value = { ...initialDoc(current, values), ...doc.value };
+	},
+	{ immediate: true }
+);
+
+watch(defaults, (current) => {
+	doc.value = fillEmpty(doc.value, current);
+	// After the person types, the row stays: a layout switch mid-edit moves the fields.
+	if (!typed.value) conditionDoc.value = { ...current, ...values };
+});
+
+fetchNewDocument(doctype).then(
+	(data) => (newDoc.value = data),
+	(exception) => (error.value = errorMessage(exception))
+);
+
+const valueForm: ValueForm = {
+	doc: () => doc.value,
+	field: (fieldname) => {
+		const field = layoutFields(layout.value).find((one) => one.fieldname === fieldname);
+		const shown = shownFields(layout.value, doc.value).find(
+			(one) => one.fieldname === fieldname
+		);
+		return field && { fieldtype: field.fieldtype, hidden: !shown, read_only: shown?.readOnly };
+	},
+	commit: async (fieldname) => {
+		typed.value = true;
+		errors.clear(fieldname);
+	},
+	errors: () =>
+		Object.fromEntries(
+			Object.entries(errors.current()).map(([key, message]) => [
+				key,
+				[message].flat().join("; "),
+			])
+		),
+};
+
+const editLayoutRoute = useEditLayoutRoute(meta);
+const editLayout = computed(() => editLayoutRoute("quick-entry", quickEntry.editorRow.value));
+
+const layoutFailed = computed(() => Boolean(quickEntry.error.value));
+const size = computed(() => quickEntry.dialogSize.value ?? "xl");
+
+quickEntry.settled().then(() => {
+	if (props.request.settled()) return;
+	if (!layoutFailed.value && !quickEntry.dialog.value && !inDialog) {
+		props.request.dismiss();
+		return handOver(values);
+	}
+	if (layoutFailed.value) error.value = errorMessage(quickEntry.error.value);
+	shown.value = true;
+});
+
+// Settles once the close renders: until then the dialog traps focus, and pulls back any
+// focus the caller moves on the result.
+watch(isOpen, async (open) => {
+	if (open) return;
+	await nextTick();
+	props.request.settle(saved);
+});
+
+const body = useTemplateRef<HTMLElement>("body");
+useEventListener(
+	() => body.value?.closest<HTMLElement>('[role="dialog"]'),
+	"keydown",
+	(event: KeyboardEvent) => {
+		const key = event.key.toLowerCase();
+		if (!(event.ctrlKey || event.metaKey) || (key !== "enter" && key !== "s")) return;
+		event.preventDefault();
+		if (!event.repeat) void save();
+	}
+);
+
+async function save(): Promise<boolean> {
+	if (saving.value || layoutFailed.value || props.request.settled()) return false;
+	errors.clearAll();
+	error.value = "";
+	const missing = missingRequired(layout.value, doc.value);
+	for (const { address, message } of missing) errors.mark(address, message);
+	if (missing.length) {
+		landOnFirstMarked(errors, landing, doc.value);
+		return false;
+	}
+	saving.value = true;
+	try {
+		const { data } = await createDocument(
+			doctype,
+			insertBody(values, formData(layout.value, doc.value))
+		);
+		saved = data;
+		isOpen.value = false;
+		return true;
+	} catch (exception) {
+		if (isApiError(exception)) errors.markRefused(exception.fieldErrors, doc.value);
+		error.value = errorMessage(exception);
+		landOnFirstMarked(errors, landing, doc.value);
+		return false;
+	} finally {
+		saving.value = false;
+	}
+}
+
+const title = __("New {0}", [__(doctype)]);
+useReadableDialog(
+	() => shown.value && isOpen.value,
+	() => ({
+		kind: "form",
+		title,
+		buttons: [
+			...(inDialog ? [] : [__("Edit full form")]),
+			...(editLayout.value ? [__("Edit layout")] : []),
+			__("Save"),
+		],
+	}),
+	formDialogHandle(() => layout.value, doc, {
+		submit: save,
+		close: () => void (saving.value || (isOpen.value = false)),
+	})
+);
+
+const landing = {
+	root: () => body.value,
+	layout: () => layout.value,
+	showTab: (identity: string) => void (formTab.value = identity),
+};
+
+function editFullForm() {
+	const typed = typedValues(values, formData(layout.value, doc.value), defaults.value);
+	isOpen.value = false;
+	void handOver(typed);
+}
+
+function openEditor(route: RouteLocationRaw) {
+	isOpen.value = false;
+	props.request.settle(null);
+	void router.push(route);
+}
+
+async function handOver(carried: Record<string, any>) {
+	props.request.settle(null);
+	if (router.hasRoute("new-record")) return void router.push(routeForNew(doctype, carried));
+	// The index's router holds no doctype route: the new record opens in its owner's app.
+	try {
+		const { newRecordHref } = await import("@/shell/palettePlaces");
+		loadDocument(await newRecordHref(doctype, carried));
+	} catch {
+		toast.error(__("Could not open a new {0}", [__(doctype)]));
+	}
+}
+</script>

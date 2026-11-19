@@ -4,12 +4,14 @@
  * consumers of this engine; the contracts here are what the headless layer
  * (`useFileUpload`, `useUploader`, `uploadTray`) and the views agree on.
  *
- * The primitive is backend-agnostic: the default `UploadTransport` talks to
- * Frappe's `/api/method/upload_file`, but any consumer can inject its own.
+ * The primitive is backend-agnostic: the default `UploadTransport` sends to the v2
+ * document routes through `@framework/ui/api`, but any consumer can inject its own.
  */
 
+import type { InjectionKey } from "vue";
+
 /**
- * Per-upload server options. Mirrors the `upload_file` form fields the default
+ * Per-upload server options. Mirrors the File fields the default
  * transport sends. Folder defaults to `Home/Attachments`; `optimize` (+ the
  * optional max dimensions) asks the server to compress/downscale an image.
  */
@@ -20,14 +22,16 @@ export interface UploadArgs {
   optimize?: boolean;
   maxWidth?: number;
   maxHeight?: number;
+  /** The record the File hangs on; a private file is then readable by whoever can read the record. */
+  attachTo?: { doctype: string; docname: string; fieldname?: string };
 }
 
 /**
  * The single seam between the queue and a backend. Receives one file plus its
  * args and a context carrying an `AbortSignal` (cancel) and an `onProgress`
  * callback (bytes loaded / total). Resolves with at least the resulting
- * `file_url`. Swap this out for non-Frappe backends; the default wraps
- * frappe-ui's `useFileUpload` and ports desk's chunked loop for large files.
+ * `file_url`. Swap this out for non-Frappe backends; the default sends to the v2
+ * document routes.
  */
 export type UploadTransport = (
   file: File,
@@ -35,8 +39,23 @@ export type UploadTransport = (
   ctx: {
     signal: AbortSignal;
     onProgress: (loaded: number, total: number) => void;
+    /** Bytes per part, from the site's limits; the transport's own default without it. */
+    chunkSize?: number;
   }
-) => Promise<{ file_url: string }>;
+) => Promise<{ file_url: string; name?: string }>;
+
+/**
+ * What the site allows an upload to be. The host provides it; `ui/` never reads a global.
+ */
+export interface UploadLimits {
+  max_file_size?: number | null;
+  file_chunk_size?: number | null;
+}
+
+export const UploadLimitsKey: InjectionKey<UploadLimits> = Symbol("UploadLimits");
+
+/** A host's transport for every upload under it, e.g. one that refuses where nothing may be written. */
+export const UploadTransportKey: InjectionKey<UploadTransport> = Symbol("UploadTransport");
 
 /**
  * Upload restrictions, in desk's shape (`max_file_size` in bytes,
@@ -85,6 +104,8 @@ export interface UploadResult {
   file_url: string;
   file_name: string;
   is_private: boolean;
+  /** The File the server made; a link item has none, and detaching needs it. */
+  name?: string;
 }
 
 /**
@@ -100,6 +121,8 @@ export type ProgressMode = "inline" | "tray" | "field" | "toast";
 
 export interface FileUploadDialogProps {
   open: boolean;
+  /** The record every file in this dialog attaches to. */
+  attachTo?: UploadArgs["attachTo"];
   multiple?: boolean;
   imageOnly?: boolean;
   crop?: boolean;
@@ -107,6 +130,8 @@ export interface FileUploadDialogProps {
   transport?: UploadTransport;
   progressMode?: ProgressMode;
   folder?: string;
+  /** Whether a file starts private; the uploader can still change it. */
+  isPrivate?: boolean;
   /** Accepted for API compatibility with the tabbed dialog; not rendered here. */
   title?: string;
   trayLabel?: string;
@@ -114,6 +139,8 @@ export interface FileUploadDialogProps {
 
 export interface AttachmentsListProps {
   modelValue: UploadResult[];
+  /** The record the list hangs on; with it, removing a row deletes the file on the server. */
+  attachTo?: UploadArgs["attachTo"];
   imageOnly?: boolean;
   crop?: boolean;
   restrictions?: Restrictions;

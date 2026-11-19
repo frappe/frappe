@@ -1,0 +1,344 @@
+import type { ComputedRef, Ref } from "vue";
+import type { Router } from "vue-router";
+import { toast } from "frappe-ui";
+import { runMethod } from "@framework/ui/api";
+import { acts } from "@/acts/dispatcher";
+import { BodySurface } from "./body";
+import { appPageScripts } from "./appPageScripts";
+import { runningSource, withRunningSource } from "./context";
+import { createPageDialogs, type PageDialogEntry } from "@/shell/dialogs/pageDialogs";
+import { FrameSurface } from "./frame";
+import { HeaderSurface } from "./headerRenderings";
+import { createHeldActs } from "./heldActs";
+import { createPaintGate, type LateRefresh, type RefreshOptions } from "./paintGate";
+import { RouteCachedReads } from "./routeCachedReads";
+import type { Staging } from "./staging";
+import type { BodyItem, Handler, PageApi, Registration } from "./types";
+
+/** The events every page fires, whatever its own. */
+const ENGINE_EVENTS = ["onRefresh", "onOpen"];
+
+/** What backs `page.cached`: one value per source and key, and the fetches not yet made. */
+export interface CachedProvider {
+  read(source: string, key: string, fetch: () => unknown): unknown;
+  fetchUnfetched(): LateRefresh[];
+}
+
+export type PageEngineLists = Record<string, Staging>;
+
+export interface PageEngineSpec<Lists extends PageEngineLists, Extras extends object> {
+  doctype: string;
+  /** The record's or the page's name, for messages. */
+  name: string;
+  /** The page's kind in messages: `record`, or an app page's `pages/<name>.js` name. */
+  pageName?: string;
+  /** The app an app page ships in; the builder then runs the scripts the page's own app and Client Scripts give it. */
+  app?: string;
+  /** The page's own lists, each on `page` under its name. */
+  lists: Lists;
+  /** The body's built-in columns; absent, the record's `form` and `panel`. */
+  bodyBuiltins?: readonly BodyItem[];
+  /** Overlays every replay and hold stages that are not on `page` under a name. */
+  overlays?: Staging[];
+  /** The page's own events, for the default check of handler keys. */
+  events?: string[];
+  /** Every source's handlers, in run order; with `app`, the app page's scripts. */
+  sources?: () => Registration[];
+  /** The page's own members; a getter stays a getter. */
+  extras: (engine: PageEngineParts) => Extras;
+  meta: () => Record<string, any> | null;
+  perms: () => Record<string, any>;
+  roles: () => string[];
+  router: Router;
+  /** Absent, `page.cached` keeps each read for the route's path, and drops it when the page is left. */
+  cached?: CachedProvider;
+  /** Resolves when sources that register after mount are in. */
+  sourcesReady?: () => Promise<void>;
+  permissionsReady?: () => Promise<unknown>;
+  /** True when the sources and the permissions are already in, so a replay needs no wait. */
+  loaded?: () => boolean;
+  /** The sources a replay's first pass leaves out while their tier loads. */
+  skippedBeforeSources?: () => ReadonlySet<string>;
+  /** What the first paint names when it went ahead without the sources. */
+  lateLabel?: () => string;
+  /** The `page` `onOpen` gets, made from the one `onRefresh` gets. */
+  openView?: (view: EnginePage<Lists, Extras>) => EnginePage<Lists, Extras>;
+  /** Runs once every source is in; absent, a handler key that is no event warns once. */
+  warnUnknownHandlers?: () => void;
+  /** The events whose throw is rethrown to the caller, not reported. */
+  vetoes?: string[];
+  /** Files a handler's failure; the console has it already. */
+  report?: (error: unknown, source: string, event: string) => void;
+}
+
+export type EnginePage<Lists, Extras> = PageApi & Lists & Extras;
+
+export interface PageEngine<Lists extends PageEngineLists, Extras extends object> {
+  page: EnginePage<Lists, Extras>;
+  frame: FrameSurface;
+  header: HeaderSurface;
+  body: BodySurface;
+  lists: Lists;
+  heldActs: ReturnType<typeof createHeldActs>;
+  /** Runs every source's handler for `event` in one hold, so its ops paint once. */
+  fire: (event: string, detail?: unknown) => Promise<void>;
+  /** `fire` with no hold of its own, for a caller already in one: a nested hold would not be that hold's. */
+  dispatch: (event: string, detail?: unknown) => Promise<void>;
+  /** The replay: rebuilds every list from built-ins, then runs every source's `onRefresh`. */
+  refresh: (options?: RefreshOptions) => Promise<void>;
+  /** Replays and commits before it returns true; false, having run nothing, while sources or permissions load. */
+  paintNow: () => boolean;
+  /** Fetches the `page.cached` keys `paintNow` read; answers when they land or at the late limit. */
+  fetchCached: () => Promise<void>;
+  /** Runs code outside an event, so its ops paint once, when it finishes. */
+  hold: <T>(work: () => Promise<T> | T, keeps?: boolean) => Promise<T>;
+  /** True once the first replay has painted, or the first paint went ahead without a late source. */
+  ready: Ref<boolean>;
+  isReplaying: ComputedRef<boolean>;
+  /** The `open`/`form` dialogs on screen, for the host's `<PageDialogs>`. */
+  dialogs: Ref<PageDialogEntry[]>;
+  hasLeft: () => boolean;
+  /** The reader left: closes the dialogs and the `page` `onRefresh` and `onOpen` got. */
+  leave: () => void;
+}
+
+export type PageEngineParts = Pick<
+  PageEngine<PageEngineLists, object>,
+  "hold" | "hasLeft" | "heldActs" | "fire" | "refresh"
+>;
+
+// Gives itself back for any read, call or write, and an await on it never resumes.
+const INERT: any = new Proxy(() => {}, {
+  get: (_, key) => (key === Symbol.toPrimitive ? () => undefined : INERT),
+  apply: () => INERT,
+  set: () => true,
+});
+
+export function createPageEngine<Lists extends PageEngineLists, Extras extends object>(
+  spec: PageEngineSpec<Lists, Extras>,
+): PageEngine<Lists, Extras> {
+  const label = `[${spec.pageName ?? "app"} page]`;
+  if (spec.app && !spec.pageName)
+    throw new Error(`${label} an app page of ${spec.doctype} must name itself with pageName`);
+  if (spec.app && spec.sources)
+    throw new Error(`${label} an app page of ${spec.doctype} gets its sources from its app; drop sources`);
+  const scripts = spec.app ? appPageScripts(spec.app, spec.doctype, spec.pageName!) : null;
+  const sources = spec.sources ?? scripts?.sources ?? (() => []);
+  const routeReads = spec.cached ? null : new RouteCachedReads(spec.router, label);
+  const cached = spec.cached ?? routeReads!;
+  const frame = new FrameSurface();
+  const header = new HeaderSurface();
+  const body = new BodySurface(spec.bodyBuiltins);
+  const heldActs = createHeldActs({
+    isStaging: () => gate.isStaging(),
+    inBackground: () => gate.inBackground(),
+  });
+  let vocabularyChecked = false;
+
+  const gate = createPaintGate({
+    doctype: spec.doctype,
+    name: spec.name,
+    label,
+    surfaces: [frame, header, body, ...Object.values(spec.lists), ...(spec.overlays ?? [])],
+    sourcesReady: spec.sourcesReady ?? scripts?.sourcesReady,
+    permissionsReady: spec.permissionsReady ?? (() => Promise.resolve()),
+    loaded: () => (spec.loaded?.() ?? true) && (scripts?.loaded() ?? true),
+    runRefresh: (ran, beforeSources) =>
+      runRefresh(
+        ran,
+        beforeSources ? (spec.skippedBeforeSources ?? scripts?.skippedBeforeSources)?.() : undefined,
+      ),
+    fetchCached: () => cached.fetchUnfetched(),
+    runOpen: (registrations) => runOpen(registrations),
+    warnUnknownHandlers: spec.warnUnknownHandlers ?? warnUnknownHandlers,
+    deliverHeldActs: heldActs.release,
+    closeDialogs: () => dialogs.closeAll(),
+    lateLabel: spec.lateLabel ?? scripts?.lateLabel ?? (() => "the page's scripts"),
+  });
+  const { hold } = gate;
+
+  const dialogs = createPageDialogs({ source: runningSource, isReplaying: () => gate.isReplaying.value, hold });
+
+  const page = {
+    doctype: spec.doctype,
+    get meta() {
+      return spec.meta();
+    },
+    get perms() {
+      return spec.perms();
+    },
+    get roles() {
+      return spec.roles();
+    },
+    frame,
+    header,
+    body,
+    refresh: () => gate.refresh(),
+    toast: {
+      success: (message: string) => toast.success(message),
+      error: (message: string) => toast.error(message),
+      info: (message: string) => toast.info(message),
+    },
+    dialog: dialogs.api,
+    // Nullable: most whitelisted actions return nothing, and v1's frappe.call resolved for them.
+    call: (method: string, params?: Record<string, any>) =>
+      runMethod(method, params, { nullable: true }).then((envelope) => envelope.data),
+    cached: <T>(key: string, fetch: () => Promise<T> | T) =>
+      cached.read(runningSource(), key, fetch) as T | undefined,
+    run: (name: string, value?: unknown) => (gate.hasLeft() ? Promise.resolve() : acts.run(name, value)),
+    open: (doctype: string, name?: string | null, options?: { view?: string }) =>
+      gate.hasLeft()
+        ? Promise.resolve()
+        : (acts.run("shell.open", { doctype, name, view: options?.view }) as Promise<void>),
+    create: (doctype: string, options?: { values?: Record<string, any> }) => {
+      if (gate.hasLeft()) return Promise.resolve(null);
+      return acts.run("shell.create", { doctype, values: options?.values }) as Promise<Record<string, any> | null>;
+    },
+    // The one member handed straight through, and the only one; see frontend/CLAUDE.md.
+    router: spec.router,
+  } as EnginePage<Lists, Extras>;
+  addMembers(spec.lists, "list");
+
+  const refreshView = pageView(page);
+
+  const engine: PageEngine<Lists, Extras> = {
+    page,
+    frame,
+    header,
+    body,
+    lists: spec.lists,
+    heldActs,
+    fire,
+    dispatch,
+    refresh: gate.refresh,
+    paintNow: gate.paintNow,
+    fetchCached: gate.fetchCached,
+    hold,
+    ready: gate.ready,
+    isReplaying: gate.isReplaying,
+    dialogs: dialogs.entries,
+    hasLeft: gate.hasLeft,
+    leave: () => {
+      stopRerun?.();
+      refreshView.close();
+      gate.leave();
+      routeReads?.clear();
+    },
+  };
+  addMembers(spec.extras(engine), "extra member");
+  const stopRerun = scripts?.rerunOnChange(gate);
+  return engine;
+
+  function addMembers(members: object, kind: string) {
+    // Descriptors, not a spread: a spread would read each getter once, here.
+    const descriptors = Object.getOwnPropertyDescriptors(members);
+    for (const key of Object.keys(descriptors))
+      if (Object.hasOwn(page, key))
+        throw new Error(`${label} the ${kind} "${key}" on ${spec.doctype} would replace the page's own "${key}"`);
+    Object.defineProperties(page, descriptors);
+  }
+
+  function fire(event: string, detail?: unknown) {
+    return hold(() => dispatch(event, detail));
+  }
+
+  async function dispatch(event: string, detail?: unknown) {
+    for (const { source, handlers } of sources()) {
+      const handler = handlers[event];
+      if (!handler) continue;
+      const run = () =>
+        withRunningSource(source, async () => {
+          try {
+            await handler(page, detail);
+          } catch (error) {
+            reportHandlerError(source, event, error);
+          }
+        });
+      await gate.asSource(source, run);
+    }
+  }
+
+  /** A replay's pass, synchronous; `ran` carries its first pass into its second, so no source runs twice. */
+  function runRefresh(ran: Set<Registration>, skipping?: ReadonlySet<string>) {
+    const late: LateRefresh[] = [];
+    for (const registration of sources()) {
+      if (ran.has(registration) || skipping?.has(registration.source)) continue;
+      ran.add(registration);
+      const { source, handlers } = registration;
+      const handler = handlers.onRefresh;
+      const settled = handler && refreshWith(source, handler);
+      if (settled) late.push({ source, settled });
+    }
+    return late;
+  }
+
+  /** Answers when the rest of an `onRefresh` that returned a promise settles. */
+  function refreshWith(source: string, handler: Handler) {
+    try {
+      let result: unknown;
+      withRunningSource(source, () => {
+        result = handler(refreshView.page);
+      });
+      if (!(result instanceof Promise)) return;
+      warnAsyncRefresh(source);
+      return result.then(
+        () => {},
+        (error) => reportHandlerError(source, "onRefresh", error),
+      );
+    } catch (error) {
+      reportHandlerError(source, "onRefresh", error);
+    }
+  }
+
+  /** Its part after an await is not held and names no source, as `onRefresh`'s: handlers here overlap. */
+  function runOpen(registrations: Registration[]) {
+    const view = spec.openView ? spec.openView(refreshView.page) : refreshView.page;
+    for (const { source, handlers } of registrations) {
+      const handler = handlers.onOpen;
+      if (!handler) continue;
+      try {
+        let result: unknown;
+        withRunningSource(source, () => {
+          result = handler(view);
+        });
+        if (result instanceof Promise)
+          void result.catch((error) => reportHandlerError(source, "onOpen", error));
+      } catch (error) {
+        reportHandlerError(source, "onOpen", error);
+      }
+    }
+  }
+
+  // Filed in production too, so an admin sees which scripts to move to a cached read.
+  function warnAsyncRefresh(source: string) {
+    const message = `${label} ${source}.onRefresh on ${spec.doctype} returned a promise; onRefresh should be synchronous, and read server data with page.cached(key, fetcher). The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.`;
+    if (import.meta.env.DEV) console.warn(message);
+    spec.report?.(new Error(message), source, "onRefresh (async)");
+  }
+
+  function reportHandlerError(source: string, event: string, error: unknown) {
+    // A veto is not reported: the reader is looking straight at what it refused.
+    if (spec.vetoes?.includes(event)) throw error;
+    console.error(`${label} ${source}.${event} on ${spec.doctype} threw`, error);
+    spec.report?.(error, source, event);
+  }
+
+  function warnUnknownHandlers() {
+    if (!import.meta.env.DEV || vocabularyChecked) return;
+    const registrations = sources();
+    if (!registrations.length) return;
+    vocabularyChecked = true;
+    const known = new Set([...ENGINE_EVENTS, ...(spec.events ?? [])]);
+    for (const { source, handlers } of registrations)
+      for (const key of Object.keys(handlers))
+        if (!known.has(key))
+          console.warn(`${label} ${source}.${key} on ${spec.doctype} is not an event of this page — it will never fire`);
+  }
+}
+
+/** The `page` `onRefresh` and `onOpen` get; once closed, every member read off it is inert. */
+function pageView<Page extends object>(page: Page) {
+  let open = true;
+  const view = new Proxy(page, { get: (target, key) => (open ? Reflect.get(target, key) : INERT) });
+  return { page: view, close: () => void (open = false) };
+}

@@ -2155,13 +2155,18 @@ def get_absolute_url(doctype: str, name: str) -> str:
 	return f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
 
-def get_url_to_form(doctype: str, name: str | None = None) -> str:
-	"""Return the absolute URL for the form view of the given document in the desk.
+def is_desk_v2_enabled() -> bool:
+	"""True where System Settings turns desk v2 on for this site."""
+	return bool(cint(frappe.get_system_settings("enable_desk_v2")))
 
-	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/desk/sales-invoice/INV-00001'
-	"""
-	if not name:
+
+def get_url_to_form(doctype: str, name: str | None = None) -> str:
+	"""Return the record's absolute URL: `/desk/sales-invoice/X`, or `/apps/erpnext/accounts/sales-invoice/X` with desk v2 on."""
+	if is_desk_v2_enabled():
+		from frappe.shell.links import canonical_path
+
+		uri = canonical_path(doctype, name)
+	elif not name:
 		uri = f"/desk/{quoted(slug(doctype))}"
 	else:
 		uri = f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"

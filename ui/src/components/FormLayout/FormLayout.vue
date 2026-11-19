@@ -13,13 +13,27 @@
 				`[&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tab']]:shrink-0 [&_[role='tabpanel']]:overflow-visible !overflow-visible`,
 			]"
 		>
+			<template v-if="$slots['tab-label']" #tab-label="{ tab }">
+				<slot name="tab-label" :label="tab.label" :unlabelled="tab.unlabelled" />
+			</template>
+			<template #tab-suffix="{ tab }">
+				<span
+					v-if="markedTabs.has(tab.value)"
+					class="size-1.5 shrink-0 rounded-full bg-surface-red-6"
+					aria-hidden="true"
+				/>
+			</template>
 			<template #tab-panel="{ tab }">
 				<div :ref="untabPanel" class="sections" :class="{ 'my-4 sm:my-5': hasTabs }">
 					<template
 						v-for="(section, index) in tab.sections"
-						:key="section.name ?? index"
+						:key="sectionKey(tab, section, index)"
 					>
-						<FormLayoutSection :section="section" />
+						<FormLayoutSection
+							:section="section"
+							:open="sectionOpen(tab, section, index)"
+							@update:open="openSection(sectionKey(tab, section, index), $event)"
+						/>
 					</template>
 				</div>
 			</template>
@@ -29,15 +43,27 @@
 
 <script setup lang="ts">
 import { Tabs } from "frappe-ui";
-import { computed, inject, provide, watch } from "vue";
+import { computed, inject, provide, toRef, watch } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { applyTabOverride, resolveLayout } from "./resolveLayout";
 import { identifyTabs, tabStripLabel } from "./tabIdentity";
-import { CommitKey, DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
+import { NO_VALUE } from "./newRowValues";
+import { translate } from "../../utils/translate";
+import { FieldErrorsKey, markedFieldnames } from "../Fields/types";
+import {
+	AutofocusKey,
+	CommitKey,
+	DocKey,
+	HasTabsKey,
+	LabelContextKey,
+	ParentDocKey,
+	ResolveFieldKey,
+	UpdateKey,
+} from "./types";
 import { warnMissingCommit } from "./warnMissingCommit";
-import type { FormLayoutProps } from "./types";
+import type { FormLayoutProps, Section } from "./types";
 
 const props = defineProps<FormLayoutProps>();
 
@@ -60,6 +86,10 @@ const emit = defineEmits<{ "update:activeTab": [identity: string] }>();
 // wants the reader's place to outlive this component being rebuilt — as the
 // Record page does on every save — holds the ref itself.
 const desired = defineModel<string>("tab", { default: "" });
+
+// The sections the reader opened or shut, keyed by tab identity and section name or index;
+// held by a host on the terms of `tab`, so the reader's sections outlive a rebuild.
+const sections = defineModel<Record<string, boolean>>("sections", { default: () => ({}) });
 
 // Enclosing doc when this form is a child-row dialog, so `eval:parent.x` resolves
 // against the parent. Absent at top level → `parent` falls back to `doc`.
@@ -86,9 +116,29 @@ const visibleTabs = computed(() => {
 	return tabs.map((tab) => ({
 		...tab,
 		value: tab.identity,
-		label: tabStripLabel(tab.label, multipleTabs),
+		unlabelled: !tab.label,
+		label: tabStripLabel(tab.label && translate(tab.label, [], props.doctype), multipleTabs),
 		sections: tab.sections.filter((section) => !section.hidden),
 	}));
+});
+
+const errors = inject(FieldErrorsKey, null);
+
+// A hidden field draws no error, so it marks no tab.
+const markedTabs = computed(() => {
+	const marked = markedFieldnames(errors?.value ?? {});
+	if (!marked.size) return new Set<string>();
+	return new Set(
+		visibleTabs.value
+			.filter((tab) =>
+				tab.sections.some((section) =>
+					section.columns.some((column) =>
+						column.fields.some((field) => !field.hidden && marked.has(field.fieldname))
+					)
+				)
+			)
+			.map((tab) => tab.identity)
+	);
 });
 
 // Which tab is *shown* is derived, never stored: it is `desired` looked up in the
@@ -115,6 +165,48 @@ function select(value: string | number) {
 	// blanking it would snap them to the first tab and forget a returning tab.
 	const chosen = visibleTabs.value.find((tab) => tab.identity === String(value));
 	if (chosen) desired.value = chosen.identity;
+}
+
+// JSON, so a section named "2" and the unnamed section at index 2 keep two keys.
+function sectionKey(tab: { identity: string }, section: Section, index: number) {
+	return JSON.stringify([tab.identity, section.name || index]);
+}
+
+function openSection(key: string, open: boolean) {
+	sections.value = { ...sections.value, [key]: open };
+}
+
+function sectionOpen(tab: { identity: string }, section: Section, index: number) {
+	const key = sectionKey(tab, section, index);
+	return sections.value[key] ?? startsOpen(key, section) ?? section.opened ?? true;
+}
+
+// "Starts open if" is read once per record, as desk reads it on refresh: read live, or on a
+// layout rebuild (a script's field property), it would shut a section the reader types in.
+const firstOpened = new Map<string, boolean | undefined>();
+watch(
+	() => doc.value?.name,
+	() => firstOpened.clear()
+);
+
+function startsOpen(key: string, section: Section) {
+	if (!section.collapsibleDependsOn) return undefined;
+	if (!firstOpened.has(key)) firstOpened.set(key, section.opened);
+	return firstOpened.get(key);
+}
+
+const autofocusField = computed(() =>
+	props.autofocus && active.value ? firstEditableField(active.value) : ""
+);
+
+function firstEditableField(tab: { identity: string; sections: Section[] }) {
+	const fields = tab.sections
+		.filter((section, index) => sectionOpen(tab, section, index))
+		.flatMap((section) => section.columns.flatMap((column) => column.fields));
+	const field = fields.find(
+		(field) => !field.hidden && !field.readOnly && !NO_VALUE.has(field.fieldtype)
+	);
+	return field?.fieldname ?? "";
 }
 
 const hasTabs = computed(
@@ -144,6 +236,8 @@ provide(DocKey, doc);
 provide(UpdateKey, update);
 provide(ResolveFieldKey, resolve);
 provide(HasTabsKey, hasTabs);
+provide(AutofocusKey, autofocusField);
+provide(LabelContextKey, toRef(props, "doctype"));
 </script>
 
 <style scoped>

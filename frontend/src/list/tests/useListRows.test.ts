@@ -1,0 +1,368 @@
+// The rows composable on its own: when the first query runs, what a page-size change fetches,
+// and how the count beside the first page reads in the footer.
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError } from "@framework/ui/api";
+import {
+	clearDataCache,
+	feedListRead,
+	feedPartWrite,
+	feedReadError,
+	settleTicket,
+	takeTicket,
+} from "@framework/ui/cache";
+import { nextTick, ref } from "vue";
+import { useListRows, type RowsQuery } from "../useListRows";
+
+const fake = vi.hoisted(() => ({
+	listDocuments: vi.fn(),
+	countDocuments: vi.fn(),
+	deleteDocument: vi.fn(),
+}));
+
+vi.mock("@framework/ui/api", async (original) => ({
+	ApiError: (await original<typeof import("@framework/ui/api")>()).ApiError,
+	isApiError: (await original<typeof import("@framework/ui/api")>()).isApiError,
+	listDocuments: fake.listDocuments,
+	countDocuments: fake.countDocuments,
+	deleteDocument: fake.deleteDocument,
+}));
+
+type Answer = {
+	data: { name: string }[];
+	has_next_page: boolean;
+	count?: number | null;
+	count_capped?: boolean;
+};
+
+const answers: ((answer: Answer) => void)[] = [];
+
+function fakeList() {
+	return new Promise<Answer>((resolve) => answers.push(resolve));
+}
+
+function queryOf(limit: number): RowsQuery {
+	return { key: "q", fields: ["name"], filters: { status: "Open" }, orderBy: "modified desc", limit };
+}
+
+function fetches() {
+	return fake.listDocuments.mock.calls.map(([, query]) => [query.start, query.limit]);
+}
+
+async function settle() {
+	await Promise.resolve();
+	await nextTick();
+}
+
+/** What an earlier visit's reads left in the shared cache for `queryOf`. */
+function cacheList(count: number, hasNextPage: boolean) {
+	const ticket = takeTicket();
+	const query = { fields: ["name"], filters: { status: "Open" }, order_by: "modified desc" };
+	const data = Array.from({ length: count }, (_, i) => ({ name: `T-${i}` }));
+	feedListRead(ticket, "ToDo", query, { data, has_next_page: hasNextPage, count: 50 } as never);
+	settleTicket(ticket);
+}
+
+beforeEach(() => {
+	clearDataCache();
+	answers.length = 0;
+	fake.listDocuments.mockReset().mockImplementation(fakeList);
+	fake.countDocuments.mockReset().mockResolvedValue({ data: 1234 });
+	fake.deleteDocument.mockReset().mockResolvedValue({ data: "ok" });
+});
+
+describe("useListRows", () => {
+	it("runs the first query at once, also when it lands after a null one", async () => {
+		const query = ref<RowsQuery | null>(null);
+		useListRows("ToDo", () => query.value);
+		await nextTick();
+		expect(fake.listDocuments).not.toHaveBeenCalled();
+		query.value = queryOf(20);
+		await nextTick();
+		expect(fetches()).toEqual([[0, 20]]);
+		expect(fake.listDocuments.mock.calls[0][2]).toEqual({ include: ["count"] });
+	});
+
+	it("a bigger page size while a page is in flight starts over instead of stacking", async () => {
+		const limit = ref(20);
+		useListRows("ToDo", () => queryOf(limit.value));
+		await nextTick();
+		limit.value = 100;
+		await nextTick();
+		expect(fetches()).toEqual([
+			[0, 20],
+			[0, 100],
+		]);
+	});
+
+	it("asks only the first page for the count", async () => {
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await nextTick();
+		const data = Array.from({ length: 20 }, (_, i) => ({ name: `T-${i}` }));
+		answers[0]({ data, has_next_page: true, count: 50 });
+		await settle();
+		rows.next();
+		expect(fake.listDocuments.mock.calls[1][2]).toEqual({ include: [] });
+		expect(rows.totalCount.value).toBe(50);
+		expect(rows.totalCapped.value).toBe(false);
+	});
+
+	it("reads a capped count as a floor, and the exact count on request", async () => {
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await nextTick();
+		answers[0]({ data: [{ name: "T-1" }], has_next_page: true, count: 1000, count_capped: true });
+		await settle();
+		expect(rows.hasCounts.value).toBe(true);
+		expect(rows.totalCount.value).toBe(1000);
+		expect(rows.totalCapped.value).toBe(true);
+		expect(rows.totalUnknown.value).toBe(false);
+
+		await rows.countExact();
+		expect(fake.countDocuments).toHaveBeenCalledWith("ToDo", { filters: { status: "Open" } });
+		expect(rows.totalCount.value).toBe(1234);
+		expect(rows.totalCapped.value).toBe(false);
+	});
+
+	it("shows the rows as a floor when the server gave up counting", async () => {
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await nextTick();
+		answers[0]({ data: [{ name: "T-1" }], has_next_page: true, count: null });
+		await settle();
+		expect(rows.hasCounts.value).toBe(true);
+		expect(rows.totalUnknown.value).toBe(true);
+		expect(rows.totalCount.value).toBe(1);
+		expect(rows.totalCapped.value).toBe(true);
+	});
+
+	it("keeps the count unanswered when the first page fails", async () => {
+		fake.listDocuments.mockRejectedValue(new Error("Not permitted"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await nextTick();
+		await settle();
+		expect(rows.error.value?.message).toBe("Not permitted");
+		expect(rows.loading.value).toBe(false);
+		expect(rows.hasCounts.value).toBe(false);
+		expect(rows.totalUnknown.value).toBe(false);
+	});
+
+	it("deletes a row through the wrapper", async () => {
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await rows.remove("T-1");
+		expect(fake.deleteDocument).toHaveBeenCalledWith("ToDo", "T-1");
+	});
+});
+
+describe("a query the shared cache holds", () => {
+	it("paints the cached rows and count at once, and reads every shown row again", async () => {
+		cacheList(40, true);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		expect(rows.loading.value).toBe(false);
+		expect(rows.rows.value).toHaveLength(40);
+		expect(rows.totalCount.value).toBe(50);
+		expect(fetches()).toEqual([[0, 40]]);
+		expect(fake.listDocuments.mock.calls[0][2]).toEqual({ include: ["count"] });
+	});
+
+	it("paints the part of a page the cache holds, and the background read brings the rest", async () => {
+		cacheList(5, true);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		expect(rows.rows.value).toHaveLength(5);
+		const data = Array.from({ length: 20 }, (_, i) => ({ name: `T-${i}` }));
+		answers[0]({ data, has_next_page: true, count: 50 });
+		await settle();
+		expect(fetches()).toEqual([[0, 20]]);
+		expect(rows.rows.value).toHaveLength(20);
+	});
+
+	it("fetches the rows a Load More asked for while the background read was out", async () => {
+		cacheList(20, true);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		rows.next();
+		const data = Array.from({ length: 20 }, (_, i) => ({ name: `T-${i}` }));
+		answers[0]({ data, has_next_page: true, count: 50 });
+		await settle();
+		expect(rows.shown.value).toBe(40);
+		expect(fetches()).toEqual([
+			[0, 20],
+			[20, 20],
+		]);
+	});
+
+	it("keeps the painted rows when the background read fails", async () => {
+		cacheList(20, true);
+		fake.listDocuments.mockRejectedValue(new Error("Network down"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await settle();
+		expect(rows.error.value).toBeNull();
+		expect(rows.rows.value).toHaveLength(20);
+	});
+
+	it("shows the error when the list is no longer readable", async () => {
+		cacheList(20, true);
+		const denied = new ApiError({ type: "PermissionError", message: "Not permitted" }, 403);
+		fake.listDocuments.mockRejectedValue(denied);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await settle();
+		expect(rows.error.value?.message).toBe("Not permitted");
+		expect(rows.rows.value).toEqual([]);
+		expect(rows.hasCounts.value).toBe(false);
+	});
+
+	it("shows every name the list entry holds, and reads again the rows it lacks", async () => {
+		cacheList(20, true);
+		const ticket = takeTicket();
+		const denied = new ApiError({ type: "DoesNotExistError", message: "Gone" }, 404);
+		feedReadError(ticket, "ToDo", "T-3", denied);
+		settleTicket(ticket);
+		const rows = useListRows("ToDo", () => queryOf(10));
+		expect(rows.rows.value).toHaveLength(19);
+		expect(fetches()).toEqual([[0, 20]]);
+	});
+
+	it("loads more from the list's own position when a row is missing and the read failed", async () => {
+		cacheList(20, true);
+		const ticket = takeTicket();
+		const gone = new ApiError({ type: "DoesNotExistError", message: "Gone" }, 404);
+		feedReadError(ticket, "ToDo", "T-3", gone);
+		settleTicket(ticket);
+		fake.listDocuments.mockRejectedValueOnce(new Error("Network down"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await settle();
+		rows.next();
+		expect(fetches()).toEqual([
+			[0, 20],
+			[20, 19],
+		]);
+	});
+});
+
+describe("a record opened while the list stays mounted", () => {
+	it("shows its row seen from the cache write, with no new read", async () => {
+		cacheList(3, false);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		fake.listDocuments.mockClear();
+		const ticket = takeTicket();
+		feedPartWrite(ticket, "ToDo", "T-1", "seen", ["Administrator"]);
+		settleTicket(ticket);
+		await settle();
+		expect(rows.rows.value.map((row) => row._seen)).toEqual([
+			undefined,
+			'["Administrator"]',
+			undefined,
+		]);
+		expect(fake.listDocuments).not.toHaveBeenCalled();
+	});
+});
+
+describe("a record changed in its dialog while the list stays mounted", () => {
+	it("shows its assignees and tags from the cache write, with no new read", async () => {
+		cacheList(3, false);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		fake.listDocuments.mockClear();
+		const ticket = takeTicket();
+		feedPartWrite(ticket, "ToDo", "T-1", "assignments", [{ user: "a@example.com" }]);
+		feedPartWrite(ticket, "ToDo", "T-1", "tags", ["urgent", "api"]);
+		settleTicket(ticket);
+		await settle();
+		expect(rows.rows.value.map((row) => [row._assign, row._user_tags])).toEqual([
+			[undefined, undefined],
+			['["a@example.com"]', "urgent,api"],
+			[undefined, undefined],
+		]);
+		expect(fake.listDocuments).not.toHaveBeenCalled();
+	});
+
+	it("keeps a column the cache wrote while the background read was out", async () => {
+		cacheList(2, false);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await settle();
+		const ticket = takeTicket();
+		feedPartWrite(ticket, "ToDo", "T-1", "tags", ["urgent"]);
+		settleTicket(ticket);
+		answers[0]({ data: [{ name: "T-0" }, { name: "T-1" }], has_next_page: false, count: 2 });
+		await vi.waitFor(() => expect(rows.rows.value.map((row) => row._user_tags)).toEqual([undefined, "urgent"]));
+	});
+
+	it("leaves a row alone when the cache write does not touch it", async () => {
+		cacheList(2, false);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		const untouched = rows.rows.value[0];
+		const ticket = takeTicket();
+		feedPartWrite(ticket, "ToDo", "T-1", "tags", ["urgent"]);
+		settleTicket(ticket);
+		await settle();
+		expect(rows.rows.value[0]).toBe(untouched);
+	});
+});
+
+describe("settled", () => {
+	it("waits for the rows of the query on show, and resolves when they land", async () => {
+		const rows = useListRows("ToDo", () => queryOf(20));
+		let done = false;
+		void rows.settled().then(() => (done = true));
+		await new Promise((resolve) => setTimeout(resolve, 20));
+		expect(done).toBe(false);
+		answers[0]({ data: [{ name: "T-1" }], has_next_page: false, count: 1 });
+		await vi.waitFor(() => expect(done).toBe(true));
+	});
+
+	it("waits for the read that checks cached rows, so the answer is not stale", async () => {
+		cacheList(20, false);
+		const rows = useListRows("ToDo", () => queryOf(20));
+		let done = false;
+		void rows.settled().then(() => (done = true));
+		await settle();
+		await new Promise((resolve) => setTimeout(resolve, 20));
+		expect(rows.rows.value).toHaveLength(20);
+		expect(done).toBe(false);
+		answers[0]({ data: [{ name: "T-9" }], has_next_page: false, count: 1 });
+		await vi.waitFor(() => expect(done).toBe(true));
+		expect(rows.rows.value).toHaveLength(1);
+	});
+
+	it("waits for a later page a Load More asked for", async () => {
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await nextTick();
+		answers[0]({ data: Array.from({ length: 20 }, (_, i) => ({ name: `T-${i}` })), has_next_page: true, count: 50 });
+		await settle();
+		rows.next();
+		let done = false;
+		void rows.settled().then(() => (done = true));
+		await new Promise((resolve) => setTimeout(resolve, 20));
+		expect(done).toBe(false);
+		answers[1]({ data: Array.from({ length: 20 }, (_, i) => ({ name: `U-${i}` })), has_next_page: true });
+		await vi.waitFor(() => expect(done).toBe(true));
+		expect(rows.rows.value).toHaveLength(40);
+	});
+
+	it("waits for the read of a changed query, which starts after its debounce", async () => {
+		const fields = ref(["name"]);
+		const rows = useListRows("ToDo", () => ({ ...queryOf(20), fields: fields.value }));
+		await nextTick();
+		answers[0]({ data: [{ name: "T-0" }], has_next_page: false, count: 1 });
+		await settle();
+		fields.value = ["name", "status"];
+		await nextTick();
+		let done = false;
+		void rows.settled().then(() => (done = true));
+		await new Promise((resolve) => setTimeout(resolve, 20));
+		expect(done).toBe(false);
+		await vi.waitFor(() => expect(answers).toHaveLength(2));
+		answers[1]({ data: [{ name: "T-0", status: "Open" }] as any, has_next_page: false, count: 1 });
+		await vi.waitFor(() => expect(done).toBe(true));
+		expect(rows.rows.value[0]).toMatchObject({ status: "Open" });
+	});
+
+	it("rejects with the error when the rows cannot be read", async () => {
+		fake.listDocuments.mockRejectedValue(new Error("Network down"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await expect(rows.settled()).rejects.toThrow("Network down");
+	});
+
+	it("rejects when the read that checks cached rows fails, though the cached rows stay on show", async () => {
+		cacheList(20, false);
+		fake.listDocuments.mockRejectedValue(new Error("Network down"));
+		const rows = useListRows("ToDo", () => queryOf(20));
+		await expect(rows.settled()).rejects.toThrow("Network down");
+		expect(rows.rows.value).toHaveLength(20);
+	});
+});

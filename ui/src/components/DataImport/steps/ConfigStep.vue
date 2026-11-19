@@ -178,15 +178,15 @@
 						@change="onPick"
 					/>
 					<Progress
-						v-if="uploader.state.uploading"
+						v-if="upload.uploading"
 						data-slot="upload-progress"
 						class="w-full max-w-sm text-start"
-						:value="uploader.state.progress"
+						:value="upload.progress"
 						:label="uploadingFile"
 					>
 						<template #hint>
 							<span class="shrink-0 text-base text-ink-gray-5">
-								{{ `${t("Uploading")} ${uploader.state.progress}%` }}
+								{{ `${t("Uploading")} ${upload.progress}%` }}
 							</span>
 						</template>
 					</Progress>
@@ -292,12 +292,13 @@ import {
 	TabTrigger,
 	Tabs,
 	TextInput,
-	call,
-	getConfig,
 	toast,
-	useFileUpload,
 } from "frappe-ui";
-import { computed, ref, watch } from "vue";
+import { computed, inject, reactive, ref, watch } from "vue";
+import { countDocuments, listDocuments, removeAttachment as detachFile } from "../../../api";
+import { defaultTransport } from "../../FileUpload/useFileUpload";
+import { UploadLimitsKey } from "../../FileUpload/types";
+import type { UploadArgs } from "../../FileUpload/types";
 import { Link } from "../../Link";
 import { isImportComplete } from "../dataImport";
 import { t } from "../translate";
@@ -322,7 +323,8 @@ const confirmingClear = ref(false);
 const pendingCount = ref(0);
 const fileInput = ref<HTMLInputElement | null>(null);
 const dragging = ref(false);
-const uploader = useFileUpload();
+const uploadLimits = inject(UploadLimitsKey, {});
+const upload = reactive({ uploading: false, progress: 0 });
 const uploadingFile = ref("");
 
 const importTypeOptions = computed(() =>
@@ -390,10 +392,11 @@ watch(
 		const request = ++pendingRequest;
 		pendingCount.value = 0;
 		if (!stillNew || !doctype) return;
-		const count = await call<number>("frappe.client.get_count", {
-			doctype: "Data Import",
+		const count = await countDocuments("Data Import", {
 			filters: { reference_doctype: doctype, status: "Pending", import_file: ["is", "set"] },
-		}).catch(() => 0);
+		})
+			.then(({ data }) => data)
+			.catch(() => 0);
 		if (request === pendingRequest) pendingCount.value = Number(count) || 0;
 	},
 	{ immediate: true }
@@ -416,7 +419,7 @@ const fileMeta = computed(() => {
 });
 
 const maxFileSizeMb = computed(() => {
-	const bytes = Number(getConfig("maxFileSize"));
+	const bytes = Number(uploadLimits.max_file_size);
 	return bytes > 0 ? Math.round(bytes / (1024 * 1024)) : null;
 });
 
@@ -431,33 +434,41 @@ async function uploadFile(file: File | undefined) {
 		toast.warning(t('File "{0}" was skipped because of invalid file type', [file.name]));
 		return;
 	}
-	const attachTo: Partial<Record<"doctype" | "docname" | "fieldname", string>> = isNew.value
-		? {}
-		: { doctype: "Data Import", docname: doc.value.name, fieldname: "import_file" };
+	const attachTo: UploadArgs["attachTo"] = isNew.value
+		? undefined
+		: { doctype: "Data Import", docname: doc.value.name!, fieldname: "import_file" };
 	uploadingFile.value = file.name;
+	Object.assign(upload, { uploading: true, progress: 0 });
 	let fileUrl: string;
 	try {
-		({ file_url: fileUrl } = await uploader.upload(file, {
-			private: true,
-			folder: "Home/Attachments",
-			...attachTo,
-		}));
+		({ file_url: fileUrl } = await defaultTransport(
+			file,
+			{ isPrivate: true, folder: "Home/Attachments", attachTo },
+			{
+				signal: new AbortController().signal,
+				onProgress: (loaded, total) =>
+					(upload.progress = total ? Math.round((loaded / total) * 100) : 0),
+				chunkSize: uploadLimits.file_chunk_size ?? undefined,
+			}
+		));
 	} catch (error) {
 		toast.error((error as Error).message);
 		return;
+	} finally {
+		upload.uploading = false;
 	}
 	doc.value.import_file = fileUrl;
 	await props.dataImport.save().catch(() => {});
 }
 
 function browse() {
-	if (uploadLocked.value || uploader.state.uploading) return;
+	if (uploadLocked.value || upload.uploading) return;
 	fileInput.value?.click();
 }
 
 function onDrop(event: DragEvent) {
 	dragging.value = false;
-	if (uploadLocked.value || uploader.state.uploading) return;
+	if (uploadLocked.value || upload.uploading) return;
 	uploadFile(event.dataTransfer?.files?.[0]);
 }
 
@@ -477,21 +488,19 @@ async function clearFile({ close }: { close: () => void }) {
 }
 
 async function removeAttachment(fileUrl: string, saved: DataImportDoc) {
-	const file = await call<{ name: string } | undefined>("frappe.client.get_value", {
-		doctype: "File",
+	const file = await listDocuments<{ name: string }>("File", {
+		fields: ["name"],
 		filters: {
 			file_url: fileUrl,
 			attached_to_doctype: "Data Import",
 			attached_to_name: saved.name,
 		},
-		fieldname: "name",
-	}).catch(() => undefined);
+		limit: 1,
+	})
+		.then(({ data }) => data[0])
+		.catch(() => undefined);
 	if (!file?.name) return;
-	await call("frappe.desk.form.utils.remove_attach", {
-		fid: file.name,
-		dt: "Data Import",
-		dn: saved.name,
-	}).catch(() => {});
+	await detachFile("Data Import", saved.name!, file.name).catch(() => {});
 }
 
 async function clearGoogleSheet() {

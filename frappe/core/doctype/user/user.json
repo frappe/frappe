@@ -55,6 +55,7 @@
   "notifications",
   "show_my_space",
   "dock_mode",
+  "navigation_side",
   "list_settings_section",
   "bulk_actions",
   "list_sidebar",
@@ -67,6 +68,8 @@
   "show_absolute_datetime_in_timeline",
   "report_settings_section",
   "report_split_view",
+  "agent_settings_section",
+  "agent_ui_relay",
   "change_password",
   "new_password",
   "logout_all_sessions",
@@ -815,6 +818,14 @@
    "options": "Floating\nPinned"
   },
   {
+   "depends_on": "eval:cint(frappe.boot.sysdefaults.enable_desk_v2)",
+   "description": "start = left (right in RTL languages). Blank uses the site's value.",
+   "fieldname": "navigation_side",
+   "fieldtype": "Select",
+   "label": "Navigation side",
+   "options": "\nstart\nend"
+  },
+  {
    "collapsible": 1,
    "fieldname": "list_settings_section",
    "fieldtype": "Section Break",
@@ -881,6 +892,20 @@
    "fieldname": "report_split_view",
    "fieldtype": "Check",
    "label": "Split view in reports"
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:cint(frappe.boot.sysdefaults.enable_desk_v2)",
+   "fieldname": "agent_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Agents"
+  },
+  {
+   "default": "0",
+   "description": "An agent you sign in for, such as frappectl, can read and drive the desk tabs you have open. Applies after a reload.",
+   "fieldname": "agent_ui_relay",
+   "fieldtype": "Check",
+   "label": "Let agents drive my open tabs"
   },
   {
    "fieldname": "sessions_tab",
@@ -954,7 +979,7 @@
   }
  ],
  "make_attachments_public": 1,
- "modified": "2026-11-04 11:04:34.776148",
+ "modified": "2026-11-17 18:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "User",

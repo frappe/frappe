@@ -8,6 +8,9 @@ frappe.ui.form.on("Client Script", {
 		frappe.utils.highlight_pre(sample_field.$wrapper);
 	},
 	refresh(frm) {
+		frm.events.hide_desk_v2_options(frm);
+		frm.previous_view = frm.doc.view;
+
 		if (frm.doc.dt && frm.doc.script) {
 			frm.add_custom_button(__("Go to {0}", [frm.doc.dt]), () => {
 				if (frappe.model.is_single(frm.doc.dt)) {
@@ -70,6 +73,15 @@ frappe.ui.form.on("Client Script", {
 		});
 	},
 
+	hide_desk_v2_options(frm) {
+		if (cint(frappe.boot.sysdefaults.enable_desk_v2)) return;
+		frm.toggle_display("run_order", false);
+		// Record, App Page and List Page scripts run only in desk v2. Such a doc (say, a duplicate)
+		// keeps its own option so its value shows.
+		const own = V2_VIEWS.includes(frm.doc.view) ? [frm.doc.view] : [];
+		frm.set_df_property("view", "options", ["List", "Form", ...own]);
+	},
+
 	dt(frm) {
 		frm.toggle_display("view", !frappe.boot.single_types.includes(frm.doc.dt));
 
@@ -84,17 +96,35 @@ frappe.ui.form.on("Client Script", {
 	},
 
 	view(frm) {
-		let has_form_boilerplate = frm.doc.script.includes("frappe.ui.form.on");
-		if (frm.doc.view === "List" && has_form_boilerplate) {
+		const previous_view = frm.previous_view;
+		frm.previous_view = frm.doc.view;
+
+		const script = frm.doc.script || "";
+		const has_form_boilerplate = script.includes("frappe.ui.form.on");
+		const has_record_boilerplate = script.includes("export default");
+		// A Form script may contain `export default` without being a v2 handlers module.
+		const left_v2_view =
+			V2_VIEWS.includes(previous_view) || script.trim() === RECORD_BOILERPLATE.trim();
+		if (
+			frm.doc.view === "List" &&
+			(has_form_boilerplate || (has_record_boilerplate && left_v2_view))
+		) {
 			frm.set_value("script", "");
 		}
 		if (frm.doc.view === "Form" && !has_form_boilerplate) {
 			frm.trigger("dt");
 		}
+		if (HANDLER_VIEWS.includes(frm.doc.view) && !has_record_boilerplate) {
+			frm.set_value("script", RECORD_BOILERPLATE);
+		}
 	},
 
 	add_script_for_doctype(frm, doctype) {
 		if (!doctype) return;
+		if (HANDLER_VIEWS.includes(frm.doc.view)) {
+			frm.set_value("script", RECORD_BOILERPLATE);
+			return;
+		}
 		let boilerplate = `
 frappe.ui.form.on('${doctype}', {
 	refresh(frm) {
@@ -109,6 +139,17 @@ frappe.ui.form.on('${doctype}', {
 		frm.set_value("script", script + boilerplate);
 	},
 });
+
+const V2_VIEWS = ["Record", "App Page", "List Page"];
+// The views whose script is a handlers module.
+const HANDLER_VIEWS = ["Record", "List Page"];
+
+const RECORD_BOILERPLATE = `export default {
+	onRefresh(page) {
+		// your code here
+	},
+};
+`;
 
 const SAMPLE_HTML = `<h3>Client Script Help</h3>
 <p>Client Scripts are executed only on the client-side (i.e. in Forms). Here are some examples to get you started</p>
