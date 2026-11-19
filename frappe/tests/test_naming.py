@@ -3,6 +3,7 @@
 
 import time
 import uuid
+from unittest.mock import patch
 from uuid import UUID
 
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_full_jitter
@@ -483,11 +484,24 @@ class TestNaming(IntegrationTestCase):
 
 	def test_hash_collision(self):
 		doctype = new_doctype(autoname="hash").insert().name
-		name = frappe.generate_hash()
-		for _ in range(10):
-			frappe.flags.in_import = True
-			frappe.new_doc(doctype).update({"name": name}).insert()
-		frappe.flags.pop("in_import", None)
+		taken = frappe.new_doc(doctype).insert().name
+
+		for _ in range(2):
+			with patch("frappe.model.naming.make_autoname", side_effect=[taken] * 3 + ["_test_free"]):
+				doc = frappe.new_doc(doctype).insert()
+			self.assertEqual(doc.name, "_test_free")
+			doc.delete()
+
+	def test_explicit_name_on_hash_doctype_is_not_renamed(self):
+		doctype = new_doctype(autoname="hash").insert().name
+		taken = frappe.new_doc(doctype).insert().name
+
+		frappe.new_doc(doctype).insert(set_name=taken, ignore_if_duplicate=True)
+		self.assertEqual(frappe.db.count(doctype), 1)
+
+		frappe.db.savepoint("explicit_hash_name")
+		self.assertRaises(frappe.DuplicateEntryError, frappe.new_doc(doctype).insert, set_name=taken)
+		frappe.db.rollback(save_point="explicit_hash_name")
 
 	def test_custom_parser(self):
 		# check naming with custom parser
