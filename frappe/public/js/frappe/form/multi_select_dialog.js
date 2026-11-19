@@ -681,7 +681,9 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 	async get_filtered_parents_for_child_search() {
 		const parent_search_args = this.get_args_for_search();
 		parent_search_args.filter_fields = ["name"];
-		parent_search_args.filters.push(...(this.child_search_filters || []));
+		if (!parent_search_args.query) {
+			parent_search_args.filters.push(...(this.child_search_filters || []));
+		}
 		const [results, _] = await this.perform_search(parent_search_args);
 
 		let parent_names = [];
