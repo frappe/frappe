@@ -124,6 +124,15 @@ class TestClearOldLogs(IntegrationTestCase):
 		self.assertTrue(frappe.db.exists("File", file))
 		self.server_delete.assert_not_called()
 
+	def test_a_guests_old_chat_is_purged(self):
+		chat, run, _ = self._session_with_run(age_days=100, source="Manual")
+		frappe.db.set_value("Flow Session", chat, "owner", "Guest", update_modified=False)
+
+		FlowSession.clear_old_logs(days=30)
+
+		self.assertFalse(frappe.db.exists("Flow Session", chat))
+		self.assertFalse(frappe.db.exists("Flow Run", run))
+
 	def test_old_session_and_linked_run_and_messages_are_purged(self):
 		old_session, old_run, old_file = self._session_with_run(age_days=100)
 		frappe.share.add_docshare("Flow Session", old_session, "Administrator")
