@@ -23,6 +23,7 @@ from frappe.flow.lib.session import (
 	call_on_complete,
 	fail_running,
 	flow_server,
+	is_guest_chat,
 	sync_with_retry,
 )
 from frappe.model.document import Document
@@ -56,6 +57,7 @@ class FlowSession(Document):
 		model: DF.Link | None
 		source: DF.Literal["Manual", "Trigger"]
 		title: DF.Data | None
+		guest_token: DF.Data | None
 	# end: auto-generated types
 
 	def before_insert(self):
@@ -117,11 +119,14 @@ class FlowSession(Document):
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		"""Delete trigger sessions idle for `days` with their runs, transcript and server copies.
-		A person's chats are kept."""
+		"""Delete trigger sessions and guest chats idle for `days` with their runs, transcript
+		and server copies. A person's chats are kept."""
 		cutoff = frappe.utils.add_days(frappe.utils.now(), -days)
 		sessions = frappe.get_all(
-			"Flow Session", filters={"source": "Trigger", "modified": ["<", cutoff]}, pluck="name"
+			"Flow Session",
+			filters={"modified": ["<", cutoff]},
+			or_filters={"source": "Trigger", "owner": "Guest"},
+			pluck="name",
 		)
 		for batch in frappe.utils.create_batch(sessions, 100):
 			# lock the chats before their rows, the order a sync takes
@@ -170,7 +175,7 @@ class FlowSession(Document):
 		config = {
 			"session_id": self.name,
 			"title": self.title,
-			**model_config(self.model or agent.model),
+			**model_config(self.model or agent.model, check_permission=not is_guest_chat(agent)),
 			**agent.session_tool_config(self.name),
 			"subagents": agent.subagent_configs(self.name, context),
 			"skills_enabled": False,
@@ -339,12 +344,14 @@ class FlowSession(Document):
 		from frappe.flow.lib.model import model_config
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
-		frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
+		guest = is_guest_chat(agent)
+		if not guest:
+			frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
 		if self.model and not frappe.db.exists("Flow Model", self.model):
 			frappe.throw(_("This chat's model was deleted. Pick another model."), title=_("Model Deleted"))
-		model_config(self.model or agent.model)
+		model_config(self.model or agent.model, check_permission=not guest)
 
 	def set_model(self, model: str) -> None:
 		self._send_model(model)

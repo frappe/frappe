@@ -61,6 +61,7 @@ class FlowAgent(Document):
 		knowledge_bases: DF.TableMultiSelect[FlowAgentKnowledgeBase]
 		max_iterations: DF.Int
 		model: DF.Link
+		public: DF.Check
 		roles: DF.TableMultiSelect[HasRole]
 		skills: DF.TableMultiSelect[FlowAgentSkill]
 		sub_agents: DF.TableMultiSelect[FlowAgentSubAgent]
@@ -117,6 +118,7 @@ class FlowAgent(Document):
 				"description",
 				"instructions",
 				"max_iterations",
+				"public",
 				"tools",
 				# the site may add skills and knowledge to the assistant
 				*(() if self.name == ASSISTANT_AGENT_NAME else ("knowledge_bases", "skills")),
@@ -361,10 +363,12 @@ class FlowAgent(Document):
 		]
 
 	def _skills(self, fields: tuple[str, ...], **filters: Any) -> list[dict[str, Any]]:
+		bound = ["name", "in", [row.skill for row in self.skills]]
+		or_filters = [bound] if frappe.session.user == "Guest" else [["is_global", "=", 1], bound]
 		return frappe.get_all(
 			"Flow Skill",
 			filters={"enabled": 1, **filters},
-			or_filters=[["is_global", "=", 1], ["name", "in", [row.skill for row in self.skills]]],
+			or_filters=or_filters,
 			fields=["name", *fields],
 			order_by="name",
 		)
