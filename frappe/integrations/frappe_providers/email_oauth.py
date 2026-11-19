@@ -296,7 +296,6 @@ def connect_mailbox(
 		return "already_connected", email
 
 	connected_app = create_relay_app(note, email, token)
-	# a new personal mailbox Microsoft won't let send is added for receiving only, when another account sends
 	receive_only_fallback = (
 		personal
 		and not account_name
