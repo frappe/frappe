@@ -27,7 +27,7 @@ query($owner: String!, $name: String!, $number: Int!) {
 """
 
 CHECKS = """
-query($owner: String!, $name: String!, $number: Int!, $oid: GitObjectID!) {
+query($owner: String!, $name: String!, $oid: GitObjectID!%s) {
 	repository(owner: $owner, name: $name) {
 		object(oid: $oid) {
 			... on Commit {
@@ -78,11 +78,15 @@ def group_commit(repo, base, number):
 
 def failed_checks(owner, name, number, commit):
 	"""Failed checks of the workflows that failed a required check."""
-	variables = {"owner": owner, "name": name, "number": number, "oid": commit}
+	variables = {"owner": owner, "name": name, "oid": commit}
 	try:
-		data = graphql(CHECKS % "isRequired(pullRequestNumber: $number)", **variables)
+		data = graphql(
+			CHECKS % (", $number: Int!", "isRequired(pullRequestNumber: $number)"),
+			number=number,
+			**variables,
+		)
 	except RuntimeError:
-		data = graphql(CHECKS % "", **variables)
+		data = graphql(CHECKS % ("", ""), **variables)
 
 	failed = []
 	for suite in data["object"]["checkSuites"]["nodes"]:
