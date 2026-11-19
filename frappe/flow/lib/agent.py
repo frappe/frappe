@@ -77,7 +77,8 @@ class Agent:
 	`sub_agents` are Agents this one may hand a task to; they are synced before it.
 	`skills` are Flow Skill names. One without an app prefix, like `onboarding`, is this app's
 	skill if it ships one, else the site's skill of that name.
-	`public` opens the agent to people who are not signed in, through Flow's guest API.
+	`public` opens the agent to people who are not signed in, through Flow's guest API. Their
+	chats run its tools without asking for approval, as a trigger's do.
 	The doc is named and titled `<app>/<name>`, after the app whose code builds the Agent.
 	"""
 

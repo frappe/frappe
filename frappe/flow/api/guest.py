@@ -3,8 +3,9 @@
 
 """Chats for people who are not signed in, with an agent marked Public.
 
-A guest chat belongs to Guest and its tools run as Guest. They are all Guest, so the chat is
-opened by the token `start` returns and by nothing else. Replies come live from the
+A guest chat belongs to Guest and its tools run as Guest. It starts in Auto-approve, like a
+trigger's chat, so a tool that asks for approval runs without it. They are all Guest, so the
+chat is opened by the token `start` returns and by nothing else. Replies come live from the
 realtime relay (`flow:subscribe` with the session and the token), or from `entries`."""
 
 from __future__ import annotations
@@ -38,7 +39,7 @@ def start(agent: str) -> dict[str, str]:
 	"""Start a chat with a public agent. `token` is given only here; every other call needs it."""
 	token = secrets.token_urlsafe(32)
 	with _as_guest():
-		# no guest can approve a call, and a public agent has no tool that asks first
+		# like a trigger's chat: nobody is there to approve a call
 		doc = new_session(agent, approval_mode="Auto-approve")
 		doc.db_set("guest_token", _hash_token(token), update_modified=False)
 	return {"session": doc.name, "token": token}

@@ -180,7 +180,7 @@
   },
   {
    "default": "0",
-   "description": "Let people who are not signed in chat with this agent through Flow's guest API. Its tools run as Guest, none of them may ask for approval, and global skills are left out.",
+   "description": "Let people who are not signed in chat with this agent through Flow's guest API. Its tools run as Guest and without asking for approval, as in a trigger's chat, so give it only tools that are safe for anyone to use. Global skills are left out.",
    "fieldname": "public",
    "fieldtype": "Check",
    "label": "Public"

@@ -57,7 +57,7 @@
   },
   {
    "default": "Auto",
-   "description": "Ask stops at every confirmation-gated tool call. Auto lets the helper model approve the calls the user asked for and asks about the rest. Auto-approve runs everything; always so for Trigger sessions.",
+   "description": "Ask stops at every confirmation-gated tool call. Auto lets the helper model approve the calls the user asked for and asks about the rest. Auto-approve runs everything; always so for Trigger sessions, and guest chats start in it.",
    "fieldname": "approval_mode",
    "fieldtype": "Select",
    "label": "Approval Mode",
