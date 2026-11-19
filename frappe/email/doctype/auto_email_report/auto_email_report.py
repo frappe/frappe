@@ -190,7 +190,7 @@ class AutoEmailReport(Document):
 			is_excel = self.format == "XLSX"
 
 			xlsx_data, column_widths, styles = build_xlsx_data(
-				report_data, [], 1, ignore_visible_idx=True, build_styles=is_excel
+				report_data, include_indentation=1, build_styles=is_excel
 			)
 
 			if is_excel:

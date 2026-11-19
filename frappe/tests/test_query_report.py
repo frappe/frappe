@@ -343,11 +343,10 @@ class TestQueryReport(IntegrationTestCase):
 		# Create mock data
 		data = create_mock_data()
 
-		# Define the visible rows
-		visible_idx = [0, 2, 3]
+		data.result = [data.result[idx] for idx in [0, 2, 3]]
 
 		# Build the result
-		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
@@ -368,13 +367,11 @@ class TestQueryReport(IntegrationTestCase):
 		# Create mock data
 		data = create_mock_data()
 
-		# Define the visible rows
-		visible_idx = [0, 2, 3]
+		data.result = [data.result[idx] for idx in [0, 2, 3]]
 
 		# Build the result
 		xlsx_data, _column_widths, _ = build_xlsx_data(
 			data,
-			visible_idx,
 			include_indentation=False,
 			include_filters=True,
 		)
@@ -399,11 +396,8 @@ class TestQueryReport(IntegrationTestCase):
 			{"column_a": 22.1, "column_b": ["Dummy 1", "Dummy 2"]},  # composite value in column_b
 		]
 
-		# Define the visible rows
-		visible_idx = [0, 1]
-
 		# Build the result
-		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, include_indentation=0)
 		# Export to excel
 		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
