@@ -81,7 +81,7 @@ def _load_session(session: str, token: str) -> FlowSession:
 
 
 def _is_valid_token(session: str, token: str) -> bool:
-	saved = frappe.db.get_value("Flow Session", {"name": session}, "guest_token")
+	saved = frappe.db.get_value("Flow Session", {"name": session, "owner": "Guest"}, "guest_token")
 	return bool(saved) and compare_digest(saved, _hash_token(token))
 
 
