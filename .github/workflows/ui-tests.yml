@@ -25,6 +25,8 @@ jobs:
 
     outputs:
       build: ${{ steps.check-build.outputs.build }}
+      studio: ${{ steps.check-build.outputs.studio }}
+      flow: ${{ steps.check-build.outputs.flow }}
 
     steps:
       - name: Clone
@@ -37,6 +39,8 @@ jobs:
         env:
           TYPE: "ui"
           PR_NUMBER: ${{ github.event.number }}
+          BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.merge_group.head_sha }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -71,7 +75,7 @@ jobs:
   studio:
     name: Studio Component Tests
     needs: checkrun
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    if: ${{ needs.checkrun.outputs.studio == 'strawberry' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -139,7 +143,7 @@ jobs:
   flow:
     name: Flow Page Tests
     needs: checkrun
-    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    if: ${{ needs.checkrun.outputs.flow == 'strawberry' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
