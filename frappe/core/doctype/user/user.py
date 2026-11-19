@@ -255,11 +255,12 @@ class User(Document):
 
 		if self.email:
 			self.email = self.email.strip().lower()
-			if self.name not in STANDARD_USERS and self.has_value_changed("email"):
+			if self.has_value_changed("email"):
 				self.validate_email_change_allowed()
-				self.validate_email_type(self.email)
-				self.validate_email_domain(self.email)
-				self.validate_email_is_not_another_users_id()
+				if self.name not in STANDARD_USERS:
+					self.validate_email_type(self.email)
+					self.validate_email_domain(self.email)
+					self.validate_email_is_not_another_users_id()
 
 		self.move_role_profile_name_to_role_profiles()
 		self.populate_role_profile_roles()
