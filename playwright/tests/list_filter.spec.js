@@ -220,6 +220,14 @@ test.describe("List filter", () => {
 			expect(await page.evaluate(() => location.search)).not.toContain("assigned_by");
 		});
 
+		test("a URL value that looks like a list is a plain value", async ({ page }) => {
+			await page.goto("/desk/todo/view/report?description=%5BA%5D");
+			await page.waitForFunction(
+				() => window.cur_list?.view_name === "Report" && cur_list.filter_area
+			);
+			await expect.poll(() => applied(page)).toContainEqual(["description", "=", "[A]"]);
+		});
+
 		test("a Check field filters only once Yes or No is chosen", async ({ page, desk }) => {
 			await desk.go_to_list("Web Page");
 			await desk.clear_filters();
