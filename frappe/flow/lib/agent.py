@@ -77,6 +77,8 @@ class Agent:
 	`sub_agents` are Agents this one may hand a task to; they are synced before it.
 	`skills` are Flow Skill names. One without an app prefix, like `onboarding`, is this app's
 	skill if it ships one, else the site's skill of that name.
+	`public` opens the agent to people who are not signed in, through Flow's guest API. Their
+	chats run its tools without asking for approval, as a trigger's do.
 	The doc is named and titled `<app>/<name>`, after the app whose code builds the Agent.
 	"""
 
@@ -93,6 +95,7 @@ class Agent:
 		sub_agents: list[Agent] | None = None,
 		max_iterations: int = DEFAULT_MAX_ITERATIONS,
 		auto_approve: bool = False,
+		public: bool = False,
 	):
 		if knowledge and not isinstance(knowledge, list):
 			knowledge = [knowledge]
@@ -108,6 +111,7 @@ class Agent:
 		self.sub_agents = list(sub_agents or [])
 		self.max_iterations = max_iterations
 		self.auto_approve = auto_approve
+		self.public = public
 
 	def sync(self) -> None:
 		"""Write this definition to the site. The model is set only when the doc is created,
@@ -130,6 +134,7 @@ class Agent:
 		doc.description = self.description
 		doc.instructions = self.instructions
 		doc.max_iterations = self.max_iterations
+		doc.public = int(self.public)
 		doc.is_system_generated = 1
 		doc.set("tools", [{"tool": _ensure_tool(tool)} for tool in self.tools])
 		doc.set("knowledge_bases", [{"knowledge_base": kb.name} for kb in self.knowledge])
