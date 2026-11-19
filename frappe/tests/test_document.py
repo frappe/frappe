@@ -65,7 +65,7 @@ class TestDocument(IntegrationTestCase):
 		d = frappe.get_doc("DocType", "User")
 		self.assertEqual(d.doctype, "DocType")
 		self.assertEqual(d.name, "User")
-		self.assertEqual(d.allow_rename, 1)
+		self.assertEqual(d.allow_rename, 0)
 		self.assertTrue(isinstance(d.fields, list))
 		self.assertTrue(isinstance(d.permissions, list))
 		self.assertTrue(filter(lambda d: d.fieldname == "email", d.fields))

@@ -505,7 +505,7 @@ class TestUser(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True, ignore_if_duplicate=True)
 
-		frappe.rename_doc("User", user.name, new_name)
+		frappe.rename_doc("User", user.name, new_name, force=True)
 		self.assertTrue(frappe.db.exists("Notification Settings", new_name))
 
 		frappe.delete_doc("User", new_name)
@@ -523,7 +523,7 @@ class TestUser(IntegrationTestCase):
 		)
 
 		with patch("frappe.enqueue") as enqueue:
-			frappe.rename_doc("User", user.name, new_name)
+			frappe.rename_doc("User", user.name, new_name, force=True)
 
 		enqueue.assert_any_call(
 			"frappe.core.doctype.user.user.rewrite_owner_fields",
@@ -603,18 +603,20 @@ class TestUser(IntegrationTestCase):
 			patch("frappe.core.doctype.user.user.get_running_jobs_in_queue", return_value=[]),
 		):
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.rename_doc("User", renamed, "test_user_rename_pending_new@example.com")
+				frappe.rename_doc("User", renamed, "test_user_rename_pending_new@example.com", force=True)
 
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.rename_doc("User", other, renamed, merge=True)
+				frappe.rename_doc("User", other, renamed, merge=True, force=True)
 
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
-				frappe.rename_doc("User", freed, "test_user_rename_pending_freed_new@example.com")
+				frappe.rename_doc("User", freed, "test_user_rename_pending_freed_new@example.com", force=True)
 
 			with self.assertRaisesRegex(frappe.ValidationError, "still being applied"):
 				frappe.delete_doc("User", freed)
 
-			frappe.rename_doc("User", unrelated, "test_user_rename_pending_unrelated_new@example.com")
+			frappe.rename_doc(
+				"User", unrelated, "test_user_rename_pending_unrelated_new@example.com", force=True
+			)
 
 	def test_user_rename_updates_private_workspace(self):
 		old_name = "test_user_rename_ws@example.com"
@@ -664,7 +666,7 @@ class TestUser(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 
 		with self.set_user(actor_name):
-			frappe.rename_doc("User", old_name, new_name)
+			frappe.rename_doc("User", old_name, new_name, force=True)
 
 		new_workspace = f"Test Rename Workspace-{new_name}"
 		self.assertTrue(frappe.db.exists("Workspace", new_workspace))
@@ -1121,7 +1123,7 @@ class TestUserEmailHelpers(IntegrationTestCase):
 				user.save()
 
 		with test_user(roles=[]) as user, self.assertRaises(frappe.ValidationError):
-			frappe.rename_doc("User", user.name, f"{user.name}.invalid")
+			frappe.rename_doc("User", user.name, f"{user.name}.invalid", force=True)
 
 	def test_email_patch_moves_administrators_email_off_a_users_id(self):
 		from frappe.patches.v16_0.set_user_email_from_name import execute
