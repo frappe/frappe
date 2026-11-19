@@ -3,7 +3,7 @@
 
 .es-filter-chip {
 	--fc-h: calc(var(--spacing) * 7);
-	--fc-icon: calc(var(--spacing) * 3.5);
+	--fc-icon: calc(var(--spacing) * 4);
 
 	display: inline-flex;
 	flex-shrink: 0;
@@ -11,8 +11,9 @@
 	height: var(--fc-h);
 	border: 1px dashed var(--outline-gray-2);
 	border-radius: var(--radius);
-	color: var(--ink-gray-6);
+	color: var(--ink-gray-8);
 	font-size: var(--text-base);
+	letter-spacing: 0.02em;
 	line-height: 1;
 	transition: background-color 120ms, border-color 120ms;
 }
@@ -24,7 +25,6 @@
 
 @media (hover: hover) {
 	.es-filter-chip[data-state="empty"]:hover {
-		border-style: solid;
 		border-color: var(--outline-gray-3);
 	}
 }
@@ -51,7 +51,7 @@
 /* the button fills the chip, also when the chip is held wider than its words */
 .es-filter-chip__main {
 	flex-grow: 1;
-	gap: calc(var(--spacing) * 1.5);
+	gap: calc(var(--spacing) * 2);
 	padding-inline: calc(var(--spacing) * 2) calc(var(--spacing) * 1.5);
 	border-radius: inherit;
 }
@@ -69,15 +69,7 @@
 	width: var(--fc-icon);
 	height: var(--fc-icon);
 	margin: 0;
-	color: var(--ink-gray-4);
-}
-
-.es-filter-chip[data-state="applied"] svg {
-	color: var(--ink-gray-7);
-}
-
-.es-filter-chip__main > svg:last-child:not(:first-child) {
-	color: var(--ink-gray-5);
+	color: inherit;
 }
 
 .es-filter-chip__operator {
@@ -88,7 +80,7 @@
 .es-filter-chip__operator,
 .es-filter-chip__value,
 .es-filter-chip__more {
-	margin-inline-start: calc(var(--spacing) * -0.5);
+	margin-inline-start: calc(var(--spacing) * -1);
 }
 
 /* an ellipsis clips what overflows: a full line height keeps the g, y and p */
@@ -134,7 +126,6 @@
 
 .es-filter-chip__value {
 	min-width: 0;
-	color: var(--ink-gray-9);
 	font-weight: var(--font-weight-medium);
 }
 
@@ -147,30 +138,22 @@
 	justify-content: center;
 	flex-shrink: 0;
 	width: var(--fc-h);
-	border-inline-start: 1px solid var(--outline-gray-2);
+	/* the hairline seam of an Espresso split button */
+	border-inline-start: 0.5px solid var(--surface-base);
 	border-start-end-radius: inherit;
 	border-end-end-radius: inherit;
-	color: var(--ink-gray-5);
-}
-
-/* outranks the applied chip's icon colour */
-.es-filter-chip .es-filter-chip__remove svg {
-	color: inherit;
 }
 
 @media (hover: hover) {
-	.es-filter-chip[data-state="empty"] .es-filter-chip__main:hover {
-		background: var(--surface-gray-1);
-	}
-
-	.es-filter-chip[data-state="applied"] .es-filter-chip__main:hover,
+	.es-filter-chip[data-state="applied"] .es-filter-chip__main:not([aria-expanded="true"]):hover,
 	.es-filter-chip__remove:hover {
 		background: var(--surface-gray-3);
 	}
+}
 
-	.es-filter-chip__remove:hover {
-		color: var(--ink-gray-9);
-	}
+.es-filter-chip__main:active,
+.es-filter-chip__remove:active {
+	background: var(--surface-gray-4);
 }
 
 /* a box holding a filter it can't edit opens a note on click */
@@ -179,10 +162,6 @@
 }
 
 .es-filter-chip__main[aria-expanded="true"] {
-	background: var(--surface-gray-2);
-}
-
-.es-filter-chip[data-state="applied"] > .es-filter-chip__main[aria-expanded="true"] {
 	background: var(--surface-gray-4);
 }
 
@@ -226,7 +205,7 @@
 	padding: 0;
 	border: 0;
 	background: transparent;
-	color: var(--ink-gray-9);
+	color: inherit;
 	font: inherit;
 	outline: none;
 }

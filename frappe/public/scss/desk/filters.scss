@@ -476,10 +476,16 @@
 	min-width: 100px;
 }
 
-// filter picker boxes focus as a whole, with the same ring as .form-control:focus
+// filter picker boxes focus as a whole, with the Combobox's ring
 .es-filter-picker__condition:focus-within,
 .es-filter-picker__search:focus-within {
-	box-shadow: $input-focus-box-shadow;
+	outline: var(--focus-outline-default);
+	outline-offset: 0;
+}
+
+// the condition button rings itself
+.es-filter-picker__condition:has(> .es-button:focus-visible) {
+	outline: none;
 }
 
 .layout-dialog-back {

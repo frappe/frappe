@@ -40,7 +40,9 @@ frappe.ui.FilterPanel = class FilterPanel {
 		this.$pane = $('<section class="es-filter-panel__pane"></section>').appendTo(
 			this.$wrapper
 		);
-		this.$advanced = $('<section class="es-filter-panel__advanced-view"></section>')
+		this.$advanced = $(
+			'<section class="es-filter-panel__advanced-view" tabindex="-1"></section>'
+		)
 			.attr("aria-label", __("Advanced filters"))
 			.prop("hidden", true)
 			.appendTo(this.$wrapper);
@@ -177,7 +179,8 @@ frappe.ui.FilterPanel = class FilterPanel {
 			)
 				.append(icon("sliders-horizontal"))
 				.append($('<span class="es-menu__label"></span>').text(__("Advanced filters")))
-				.on("click", () => this.show_advanced());
+				// a click (detail 1+) has no ring to carry to Back; Enter from the search does
+				.on("click", (e) => this.show_advanced({ keyboard: !e.detail }));
 			$('<div class="es-filter-panel__footer"></div>')
 				.append(this.$advanced_row)
 				.appendTo(this.$fields);
@@ -308,7 +311,7 @@ frappe.ui.FilterPanel = class FilterPanel {
 		return "";
 	}
 
-	show_advanced() {
+	show_advanced({ keyboard = true } = {}) {
 		this.picker?.destroy?.();
 		this.picker = null;
 		this.$fields.prop("hidden", true);
@@ -347,7 +350,7 @@ frappe.ui.FilterPanel = class FilterPanel {
 		);
 		this.advanced_shown = true;
 		// the field list it hid had focus
-		focus_soon($back[0]);
+		focus_soon(keyboard ? $back[0] : this.$advanced[0]);
 	}
 
 	hide_advanced() {

@@ -151,7 +151,7 @@
 }
 
 .es-filter-picker__condition > .es-filter-picker__search:focus-within {
-	box-shadow: none;
+	outline: none;
 }
 
 .es-filter-picker__search {
@@ -230,11 +230,6 @@
 	margin-top: calc(var(--spacing) * 1);
 }
 
-.es-filter-picker__group > .es-button {
-	color: var(--ink-gray-5);
-	font-size: var(--text-sm);
-}
-
 .es-filter-picker__skeleton {
 	display: flex;
 	align-items: center;
@@ -277,7 +272,14 @@
 	height: auto;
 	border-start-end-radius: 0;
 	border-end-end-radius: 0;
-	background: transparent;
+}
+
+/* a value's count, where a menu row would show its shortcut, but on every screen size */
+.es-filter-picker__count {
+	margin-inline-start: auto;
+	color: var(--ink-gray-6);
+	font-size: var(--text-xs);
+	font-variant-numeric: tabular-nums;
 }
 
 .es-filter-picker__condition > .es-filter-picker__scan {
@@ -354,10 +356,6 @@
 	margin-top: calc(var(--spacing) * 1.5);
 	padding-top: calc(var(--spacing) * 1.5);
 	border-top: 1px solid var(--outline-elevation-2);
-}
-
-.es-filter-picker__periods .es-menu__item > svg {
-	margin-inline-start: auto;
 }
 
 .es-filter-picker__calendar {
@@ -710,6 +708,10 @@
 	background: var(--surface-gray-3);
 }
 
+.es-filter-panel .es-menu__item[aria-current="true"][data-highlighted] {
+	background: var(--surface-gray-4);
+}
+
 .es-filter-panel .es-menu__item.is-filtered .es-menu__label {
 	color: var(--ink-gray-9);
 	font-weight: var(--font-weight-medium);
@@ -743,6 +745,11 @@
 	flex-shrink: 0;
 	padding: calc(var(--spacing) * 1.5);
 	border-top: 1px solid var(--outline-elevation-2);
+}
+
+/* holds focus after a click opens it, so Tab starts at Back */
+.es-filter-panel__advanced-view:focus {
+	outline: none;
 }
 
 .es-filter-panel__pane,
@@ -810,6 +817,81 @@
 
 .es-filter-panel__picker .es-filter-picker__periods {
 	max-height: none;
+}
+
+/* in the panel a condition and its inputs are a bare row like the field search, split by lines */
+.es-filter-panel__picker .es-filter-picker__condition {
+	flex-shrink: 0;
+	height: calc(var(--spacing) * 10);
+	padding-inline-start: calc(var(--spacing) * 1.5);
+	border-bottom: 1px solid var(--outline-elevation-2);
+	border-radius: 0;
+	background: transparent;
+}
+
+/* like the field search, the caret marks focus; the button keeps its own ring */
+.es-filter-panel__picker .es-filter-picker__condition:focus-within,
+.es-filter-panel__picker .es-filter-picker__condition > .es-filter-picker__search:focus-within {
+	outline: none;
+}
+
+.es-filter-panel__picker .es-filter-picker__condition[data-only-condition] {
+	width: auto;
+}
+
+.es-filter-panel__picker .es-filter-picker__condition > .es-button:first-child {
+	align-self: center;
+	height: var(--es-bt-h);
+	border-radius: var(--radius);
+}
+
+.es-filter-panel__picker .es-filter-picker__condition > .es-button:first-child + * {
+	margin-inline-start: calc(var(--spacing) * 1.5);
+}
+
+.es-filter-panel__picker .es-filter-picker__condition > .es-filter-picker__search,
+.es-filter-panel__picker .es-filter-picker__condition > .es-filter-picker__input {
+	height: 100%;
+	padding-inline: calc(var(--spacing) * 3);
+	border-color: var(--outline-elevation-2);
+}
+
+.es-filter-panel__picker .es-filter-picker__tools {
+	padding: 0;
+}
+
+/* a field with no conditions (a tree) has only the search: the same bare row */
+.es-filter-panel__picker .es-filter-picker__tools > .es-filter-picker__search {
+	flex-shrink: 0;
+	height: calc(var(--spacing) * 10);
+	padding-inline: calc(var(--spacing) * 3);
+	border-bottom: 1px solid var(--outline-elevation-2);
+	border-radius: 0;
+	background: transparent;
+	outline: none;
+}
+
+.es-filter-panel__picker .es-filter-picker--number > .es-filter-picker__condition,
+.es-filter-panel__picker .es-filter-picker--text > .es-filter-picker__condition {
+	margin: calc(var(--spacing) * -3) calc(var(--spacing) * -3) 0;
+}
+
+.es-filter-panel__picker .es-filter-picker__head {
+	padding: 0;
+}
+
+.es-filter-panel__picker .es-filter-picker__head > .es-filter-picker__condition {
+	border-bottom: 0;
+}
+
+.es-filter-panel__picker .es-filter-picker__head > p {
+	margin: 0 calc(var(--spacing) * 3) calc(var(--spacing) * 2);
+}
+
+/* the line after the date's condition carries on as the presets' edge */
+.es-filter-panel__picker .es-filter-picker--date .es-filter-picker__condition > .es-button:first-child {
+	width: calc(var(--spacing) * 37 - 1px);
+	justify-content: space-between;
 }
 
 /* the desk centres a lone .icon with auto margins; in these rows it sits at the start */

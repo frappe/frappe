@@ -241,7 +241,7 @@ function condition_box({ label, options, value }, on_pick) {
 	);
 	const text = (v) => options.find((o) => o.value === v)?.label || "";
 	const $trigger = frappe.ui.dropdown({
-		button: { label: text(value), icon_right: "chevron-down" },
+		button: { label: text(value), icon_right: "chevron-down", variant: "ghost" },
 		options: () => {
 			const item = (o) => ({
 				label: o.label,
@@ -630,7 +630,7 @@ export function values(ctx) {
 		}
 		$row.append($label).on("click", () => toggle(option.value));
 		if (option.count != null) {
-			$row.append($('<span class="es-menu__shortcut"></span>').text(option.count));
+			$row.append($('<span class="es-filter-picker__count"></span>').text(option.count));
 		}
 		$row.data("value", option.value);
 		return $row;
@@ -1192,7 +1192,6 @@ export function date(ctx) {
 			.attr("data-state", active ? "checked" : null)
 			.attr("data-key", JSON.stringify(rule))
 			.append($label)
-			.append(active ? icon("check") : "")
 			.on("click", () => {
 				apply(active ? [] : [rule]);
 				refresh();
@@ -2078,7 +2077,6 @@ export function check(ctx) {
 	};
 	draw();
 	arrow_keys($root[0], ".es-menu__item");
-	focus_soon($root.children('[aria-checked="true"]')[0] || $root.children()[0], ctx);
 	return $root[0];
 }
 
