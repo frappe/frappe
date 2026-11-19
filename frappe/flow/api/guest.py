@@ -59,7 +59,8 @@ def send(session: str, token: str, message: str) -> dict[str, str]:
 @frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 def entries(session: str, token: str, since: int | str = 0) -> dict[str, Any]:
 	"""The chat's log after entry `since`, for a guest who is not listening live."""
-	return _load_session(session, token).entries(since=cint(since))
+	since = cint(since)
+	return _load_session(session, token).entries(since=since, path="all" if since else "active")
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
