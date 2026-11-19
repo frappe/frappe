@@ -75,7 +75,11 @@ def search_link(
 
 def get_image_field(doctype: str) -> str | None:
 	"""The DocType's image_field, if it is a real column this user may read."""
-	# select-only access covers the search fields, not the image
+	# select-only access covers the search fields, not the image. Check this before
+	# `has_permission`, which can return True from a doc share alone (e.g. every user's
+	# own User record is auto-shared with them) even though their role only grants select.
+	if frappe.only_has_select_perm(doctype):
+		return None
 	if not frappe.has_permission(doctype, "read"):
 		return None
 	meta = frappe.get_meta(doctype)

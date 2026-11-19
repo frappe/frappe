@@ -208,6 +208,31 @@ class TestSearch(IntegrationTestCase):
 			self.assertIsNone(get_image_field(doctype))
 		self.assertEqual(get_image_field(doctype), "image")
 
+	def test_image_field_ignores_self_share_for_select_only_user(self):
+		"""A user's own User doc is auto-shared with them (User.share_with_self), which grants
+		doctype-level `has_permission(..., "read")` on User through the share alone. A Desk User,
+		who only has `select` on User via role permissions, must still be denied the image field."""
+		from frappe.desk.search import get_image_field
+
+		test_user = "test_search_select_only_user@example.com"
+		if not frappe.db.exists("User", test_user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": test_user,
+					"first_name": "Select Only",
+					"user_type": "System User",
+				}
+			).insert(ignore_permissions=True).add_roles("Desk User")
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+
+		# the self-share exists and grants read at the doc level ...
+		self.assertTrue(frappe.has_permission("User", "read", test_user, user=test_user))
+		# ... but the role only grants select, so the image field must not be exposed
+		with self.set_user(test_user):
+			self.assertIsNone(get_image_field("User"))
+		self.assertEqual(get_image_field("User"), "user_image")
+
 	def test_boot_link_settings(self):
 		from frappe.boot import get_link_settings
 
