@@ -182,6 +182,21 @@ test.describe("List filter", () => {
 			expect(await applied(page)).toContainEqual(["description", "like", "%todo"]);
 		});
 
+		test("clearing a toolbar date box drops its filter", async ({ page, desk }) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			await page.evaluate(() =>
+				cur_list.page.fields_dict.date.set_value(frappe.datetime.get_today())
+			);
+			const url = () => page.evaluate(() => location.search);
+			await expect.poll(url).toContain("date=");
+
+			const box = page.locator('.standard-filter-section input[data-fieldname="date"]');
+			await box.fill("");
+			await box.blur();
+			await expect.poll(url).not.toContain("date=");
+		});
+
 		test("a Check field filters only once Yes or No is chosen", async ({ page, desk }) => {
 			await desk.go_to_list("Web Page");
 			await desk.clear_filters();
