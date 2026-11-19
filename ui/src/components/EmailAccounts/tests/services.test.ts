@@ -9,7 +9,7 @@ import {
   oauthHelpLink,
   oauthMessage,
   reconnectable,
-  sendBlocked,
+  saveErrorText,
   serviceOf,
   services,
   validate,
@@ -277,18 +277,16 @@ describe("reconnectable", () => {
   });
 });
 
-describe("sendBlocked", () => {
-  it("blocks sending only on a personal Outlook.com mailbox signed in through Frappe Cloud", () => {
-    const personal = {
-      authKind: "oauth" as const,
-      service: "Outlook.com",
-      smtp_server: "smtp-mail.outlook.com",
-      enable_outgoing: 0 as const,
-    };
-    expect(sendBlocked(personal)).toBe(true);
-    expect(sendBlocked({ ...personal, enable_outgoing: 1 })).toBe(false);
-    expect(sendBlocked({ ...personal, smtp_server: "smtp.office365.com" })).toBe(false);
-    expect(sendBlocked({ ...personal, authKind: "oauth-custom" })).toBe(false);
+describe("saveErrorText", () => {
+  it("explains Microsoft's SMTP refusal, and passes other errors through", () => {
+    const refused = { messages: ["Please check your email login credentials. 535 5.7.139 SmtpClientAuthentication is disabled for the Mailbox"] };
+    const personal = { service: "Outlook.com", smtp_server: "smtp-mail.outlook.com" };
+    expect(saveErrorText(personal, refused)).toBe(oauthMessage("smtp_disabled_personal", "microsoft"));
+    expect(saveErrorText({ ...personal, smtp_server: "smtp.office365.com" }, refused)).toBe(
+      oauthMessage("smtp_disabled", "microsoft"),
+    );
+    expect(saveErrorText({ service: "GMail", smtp_server: "smtp.gmail.com" }, refused)).toBe(refused.messages[0]);
+    expect(saveErrorText(personal, { messages: ["Not permitted"] })).toBe("Not permitted");
   });
 });
 

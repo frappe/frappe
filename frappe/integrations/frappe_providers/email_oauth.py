@@ -296,15 +296,19 @@ def connect_mailbox(
 		return "already_connected", email
 
 	connected_app = create_relay_app(note, email, token)
-	result = try_save_email_account(note, email, connected_app, personal)
-	if (
-		result == "smtp_disabled_personal"
+	# a new personal mailbox Microsoft won't let send is added for receiving only, when another account sends
+	receive_only_fallback = (
+		personal
 		and not account_name
-		and (
+		and bool(
 			frappe.db.exists("Email Account", {"default_outgoing": 1, "enable_outgoing": 1})
 			or EmailAccount.get_account_details_from_site_config()
 		)
-	):
+	)
+	result = try_save_email_account(
+		note, email, connected_app, personal, retries_receive_only=receive_only_fallback
+	)
+	if result == "smtp_disabled_personal" and receive_only_fallback:
 		result = try_save_email_account(note, email, connected_app, personal, outgoing=False)
 		if not result:
 			return "connected_receive_only", email
@@ -316,16 +320,25 @@ def connect_mailbox(
 
 
 def try_save_email_account(
-	note: dict, email: str, connected_app: str, personal: bool, outgoing: bool = True
+	note: dict,
+	email: str,
+	connected_app: str,
+	personal: bool,
+	outgoing: bool = True,
+	retries_receive_only: bool = False,
 ) -> str | None:
-	"""Save the mailbox; return the result code when the mail server refuses it."""
+	"""Save the mailbox; return the result code when the mail server refuses it.
+	With `retries_receive_only`, a refused send isn't logged, as the caller saves the mailbox without it."""
 	try:
 		save_email_account(note, email, connected_app, personal, outgoing)
 	except Exception as e:
 		frappe.db.rollback()
-		frappe.log_error("Email OAuth connect failed")
 		result = matched_error(note["provider"], "save", str(e)) or "failed"
-		return "smtp_disabled_personal" if result == "smtp_disabled" and personal else result
+		if result == "smtp_disabled" and personal:
+			result = "smtp_disabled_personal"
+		if not (retries_receive_only and result == "smtp_disabled_personal"):
+			frappe.log_error("Email OAuth connect failed")
+		return result
 
 
 def matched_error(provider: str, source: str, message: str | None) -> str | None:

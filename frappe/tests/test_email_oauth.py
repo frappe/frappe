@@ -747,9 +747,13 @@ class TestCallback(IntegrationTestCase):
 			if account.enable_outgoing:
 				raise frappe.ValidationError("5.7.139 SmtpClientAuthentication is disabled for the Mailbox")
 
-		with patch.object(EmailAccount, "validate", autospec=True, side_effect=refuse_smtp):
+		with (
+			patch.object(EmailAccount, "validate", autospec=True, side_effect=refuse_smtp),
+			patch("frappe.log_error") as log,
+		):
 			email_oauth.callback(state=self.note(), code="c")
 
+		log.assert_not_called()  # Microsoft's refusal is handled, so it isn't a failure
 		self.assertTrue(
 			self.landed().endswith(
 				"?email_oauth=connected_receive_only&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft"

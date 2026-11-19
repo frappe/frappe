@@ -72,7 +72,6 @@
 						v-model:form="form"
 						:service="service"
 						:oauth="account.auth_method === 'OAuth'"
-						:send-blocked="sendBlocked(account)"
 						:error="invalid"
 						editing
 					/>
@@ -96,7 +95,7 @@ import {
 	emptyForm,
 	errorText,
 	reconnectable as canReconnect,
-	sendBlocked,
+	saveErrorText,
 	serviceOf,
 	validate,
 } from "./services";
@@ -146,7 +145,7 @@ async function persist(focused: HTMLElement | null) {
 		toast.success(__("Email account saved"));
 		emit("back", newName ?? props.account.name);
 	} catch (e) {
-		toast.error(errorText(e) || __("Couldn't save the email account"));
+		toast.error(saveErrorText(props.account, e) || __("Couldn't save the email account"));
 		saving.value = false;
 		await nextTick();
 		if (document.activeElement === document.body) focused?.focus();
