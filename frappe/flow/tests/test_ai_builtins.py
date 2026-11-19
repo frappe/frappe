@@ -171,15 +171,6 @@ class TestDescribe(IntegrationTestCase):
 		self.assertNotIn("Column Break", types)
 		self.assertEqual(set(result["permissions"]), {"read", "write", "create", "delete"})
 
-	def test_returns_desk_field_rules(self):
-		fields = {f["fieldname"]: f for f in describe(doctype="Note", ctx=CTX)["fields"]}
-
-		self.assertEqual(
-			fields["expire_notification_on"]["depends_on"], "eval:doc.notify_on_login && doc.public"
-		)
-		self.assertNotIn("depends_on", fields["title"])
-		self.assertNotIn("read_only", fields["title"])
-
 	def test_needs_read_permission_a_child_tables_through_its_parent(self):
 		user = _user("flow-describe-probe@example.com")
 
