@@ -1635,7 +1635,8 @@ class Document(_DocumentBase):
 		if not self.docstatus.is_draft():
 			raise frappe.ValidationError(_("Only draft documents can be discarded"), self.docstatus)
 
-		frappe.has_permission(self.doctype, "write", self.name, throw=True)
+		if not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, "write", self.name, throw=True)
 
 		self.run_method("before_discard")
 		self.db_set("docstatus", DocStatus.CANCELLED)
