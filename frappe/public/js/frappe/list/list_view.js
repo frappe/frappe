@@ -614,6 +614,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.render_skeleton();
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
+		// add_action_item shows Actions; on a list it waits for a selection
+		if (!this.checked_docnames.size) this.page.hide_actions_menu();
 		this.show_restricted_list_indicator_if_applicable();
 	}
 
