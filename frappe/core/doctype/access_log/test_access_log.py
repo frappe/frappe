@@ -253,6 +253,19 @@ class TestAccessLog(IntegrationTestCase):
 		self.assertNotEqual(clash.name, first.name)
 		self.assertTrue(log_db.exists("Access Log", clash.name))
 
+	def test_explicit_duplicate_is_skipped_or_raised(self):
+		ensure_log_table("Access Log")
+		first = frappe.get_doc({"doctype": "Access Log", "user": frappe.session.user})
+		first.db_insert()
+		self.addCleanup(self._delete_log, first.name)
+
+		duplicate = frappe.get_doc({"doctype": "Access Log", "user": frappe.session.user})
+		duplicate.insert(set_name=first.name, ignore_if_duplicate=True)
+		self.assertEqual(get_log_db().count("Access Log", {"name": first.name}), 1)
+
+		duplicate = frappe.get_doc({"doctype": "Access Log", "user": frappe.session.user})
+		self.assertRaises(frappe.DuplicateEntryError, duplicate.insert, set_name=first.name)
+
 	@staticmethod
 	def _delete_log(name):
 		log_db = get_log_db()
