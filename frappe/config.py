@@ -61,7 +61,7 @@ def _get_site_config(sites_path: str, site_path: str) -> _dict[str, Any]:
 	# Generalized env variable overrides and defaults
 	def db_default_ports(db_type):
 		if db_type == "mariadb":
-			from frappe.database.mariadb.database import MariaDBDatabase
+			from frappe.database.mariadb.mysqlclient import MariaDBDatabase
 
 			return MariaDBDatabase.default_port
 		elif db_type == "postgres":

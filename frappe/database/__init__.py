@@ -76,16 +76,10 @@ def get_db(socket=None, host=None, user=None, password=None, port=None, cur_db_n
 		import frappe.database.sqlite.database
 
 		return frappe.database.sqlite.database.SQLiteDatabase(cur_db_name=cur_db_name)
-	elif conf.get("use_mysqlclient", 1):
+	else:
 		import frappe.database.mariadb.mysqlclient
 
 		return frappe.database.mariadb.mysqlclient.MariaDBDatabase(
-			socket, host, user, password, port, cur_db_name
-		)
-	else:
-		import frappe.database.mariadb.database
-
-		return frappe.database.mariadb.database.MariaDBDatabase(
 			socket, host, user, password, port, cur_db_name
 		)
 

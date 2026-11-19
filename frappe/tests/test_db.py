@@ -1527,14 +1527,14 @@ class TestDB(IntegrationTestCase):
 
 	@run_only_if(db_type_is.MARIADB)
 	def test_session_time_zone_falls_back_to_utc_offset(self):
-		from frappe.database.mariadb.database import MariaDBDatabase
-		from frappe.database.mariadb.mysqlclient import MariaDBDatabase as MySQLClientDatabase
+		from frappe.database.mariadb.mysqlclient import MariaDBDatabase
 
-		for db_class in (MariaDBDatabase, MySQLClientDatabase):
-			with patch.object(db_class, "sql", side_effect=[db_class.OperationalError, None]) as mocked_sql:
-				db_class(cur_db_name=frappe.db.cur_db_name).set_session_time_zone("Asia/Kolkata")
+		with patch.object(
+			MariaDBDatabase, "sql", side_effect=[MariaDBDatabase.OperationalError, None]
+		) as mocked_sql:
+			MariaDBDatabase(cur_db_name=frappe.db.cur_db_name).set_session_time_zone("Asia/Kolkata")
 
-			mocked_sql.assert_called_with("set session time_zone = %s", "+05:30")
+		mocked_sql.assert_called_with("set session time_zone = %s", "+05:30")
 
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_connect_survives_session_time_zone_failure(self):
@@ -3187,11 +3187,11 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_exception_utils_handle_empty_args(self):
 		"""Exception utility methods should not raise IndexError when e.args is empty."""
-		import pymysql
+		import MySQLdb
 
-		from frappe.database.mariadb.database import MariaDBExceptionUtil
+		from frappe.database.mariadb.mysqlclient import MariaDBExceptionUtil
 
-		e = pymysql.Error()  # no args
+		e = MySQLdb.Error()  # no args
 
 		# None of these should raise; all should return False
 		self.assertFalse(MariaDBExceptionUtil.is_deadlocked(e))
@@ -3211,18 +3211,18 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 	@run_only_if(db_type_is.MARIADB)
 	def test_exception_utils_recognize_frappe_wrappers(self):
 		"""The wrappers Database.sql() raises must satisfy the driver error predicates too."""
-		import pymysql
+		import MySQLdb
 
-		from frappe.database.mariadb.database import MariaDBExceptionUtil
+		from frappe.database.mariadb.mysqlclient import MariaDBExceptionUtil
 
 		self.assertTrue(
 			MariaDBExceptionUtil.is_deadlocked(
-				frappe.QueryDeadlockError(pymysql.OperationalError(1213, "Deadlock or lock wait timeout"))
+				frappe.QueryDeadlockError(MySQLdb.OperationalError(1213, "Deadlock or lock wait timeout"))
 			)
 		)
 		self.assertTrue(
 			MariaDBExceptionUtil.is_timedout(
-				frappe.QueryTimeoutError(pymysql.OperationalError(1205, "Lock wait timeout exceeded"))
+				frappe.QueryTimeoutError(MySQLdb.OperationalError(1205, "Lock wait timeout exceeded"))
 			)
 		)
 
