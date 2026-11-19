@@ -108,6 +108,8 @@ def is_ci(file):
 def is_frontend_code(file):
 	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
 		return True
+	if file.endswith(".html") and file.startswith("frappe/") and not file.startswith("frappe/public/"):
+		return False
 	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html"))
 
 
@@ -126,6 +128,7 @@ def _selftest():
 	)
 	assert queue_runs("ui", ["frappe/core/doctype/user/user.json"]), "doctype JSON runs UI tests"
 	assert queue_runs("server", ["frappe/core/doctype/user/user.json"]), "doctype JSON runs server tests"
+	assert queue_runs("server", ["frappe/templates/base.html"]), "Jinja runs server tests"
 	assert not queue_runs("server", ["README.md"]), "docs alone run nothing"
 	assert queue_runs("ui", None), "a cut short file list runs everything"
 	assert queue_runs("ui", [".github/workflows/ui-tests.yml"])
