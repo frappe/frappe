@@ -207,8 +207,7 @@ class PersonalDataDeletionRequest(Document):
 				if column not in log_db.DEFAULT_COLUMNS and not meta.get_field(column):
 					continue
 
-				for value in get_user_values(self.user, email):
-					log_db.delete(doctype, {column: value})
+				log_db.delete(doctype, {column: ("in", get_user_values(self.user, email))})
 				swept = True
 
 			# Deleting nothing because no column exists is a broken `user_data_fields` entry,
