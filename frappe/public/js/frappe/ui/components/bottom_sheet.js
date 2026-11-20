@@ -1,4 +1,11 @@
-import { validated, is_thenable, icon_html, TABBABLE, resolve_content } from "./utils.js";
+import {
+	validated,
+	is_thenable,
+	icon_html,
+	TABBABLE,
+	resolve_content,
+	field_popup_open,
+} from "./utils.js";
 import { normalize_options, build_item } from "./menu.js";
 import { place, VIEWPORT_PAD } from "./position.js";
 
@@ -69,15 +76,6 @@ function layer_above_open_dialogs(root) {
 }
 
 const z_of = (el) => parseInt(getComputedStyle(el).zIndex) || 0;
-
-// a classic Link / Autocomplete suggestion list or the date picker, open on the field
-function field_popup_open(target) {
-	const list = target
-		.closest?.(".awesomplete")
-		?.querySelector(":scope > ul, :scope > [role='listbox']");
-	if (list && !list.hidden && list.children.length) return true;
-	return !!document.querySelector(".datepicker.active");
-}
 
 // a header or footer: one piece of the caller's content, or several side by side
 function slot_parts(content, sheet) {

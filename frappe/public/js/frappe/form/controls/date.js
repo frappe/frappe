@@ -246,6 +246,7 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 			}
 			return this.eval_expression(value, "date");
 		}
+		return value;
 	}
 	format_for_input(value) {
 		if (value) {

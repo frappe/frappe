@@ -99,6 +99,7 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 			}
 			return this.eval_expression(value, "time");
 		}
+		return value;
 	}
 	format_for_input(value) {
 		if (value) {

@@ -342,6 +342,23 @@ frappe.ui.Filter = class {
 		// the value can be set asynchronously; callers wait on this
 		this._filter_value_set = Promise.resolve();
 
+		// the box drops the whole list when one value is not an option
+		if (this.field.df.fieldtype === "MultiSelect" && Array.isArray(value)) {
+			const raw = this.field.df.options;
+			const list = typeof raw === "string" ? raw.split("\n") : raw || [];
+			const options = list.map((option) => String(option?.value ?? option));
+			const unknown = value.find((v) => !options.includes(String(v)));
+			if (options.length && unknown !== undefined) {
+				frappe.msgprint({
+					message: __('"{0}" is not a valid {1}.', [
+						frappe.utils.escape_html(unknown),
+						__(this.field.df.label),
+					]),
+					indicator: "red",
+				});
+			}
+		}
+
 		// an "in" list kept as text by older filters and links: "a,b" or '["a","b"]'
 		if (
 			RECORD_PICKERS.includes(this.field.df.fieldtype) &&
@@ -460,7 +477,9 @@ frappe.ui.Filter = class {
 	}
 
 	make_field(df, old_fieldtype) {
-		let old_text = this.field ? this.field.get_value() : null;
+		const same_field =
+			this.field?.df.fieldname === df.fieldname && this.field?.df.parent === df.parent;
+		let old_text = same_field ? this.field.get_value() : null;
 		this.hide_invalid_conditions(df.fieldtype, df.original_type);
 		this.set_special_condition_labels(df.original_type);
 		this.toggle_nested_set_conditions(df);
