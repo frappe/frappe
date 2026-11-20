@@ -222,6 +222,7 @@ class User(Document):
 			self.name = self.first_name
 		elif frappe.in_test and not self.flags.random_id:
 			# most tests address users by email, like users created before v17
+			self.email = self.email.strip().lower()
 			self.name = self.email
 		elif self.meta.autoname != "hash":
 			self.name = make_autoname("hash", self.doctype)
