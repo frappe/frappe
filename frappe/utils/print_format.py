@@ -503,7 +503,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		frappe.db.get_value(
 			"Letter Head",
 			letterhead or {"is_default": 1},
-			["content", "footer", "header_script", "footer_script"],
+			["content", "footer", "header_script", "footer_script", "custom_css"],
 			as_dict=True,
 		)
 		or {}
@@ -518,6 +518,8 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 	if letter_head.content:
 		header = render_template(letter_head.content, {"doc": context_doc})
 		header = str(BeautifulSoup(header, "html.parser"))
+		if letter_head.custom_css:
+			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
 		if letter_head.header_script:
 			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
 		rendered["header"] = header
