@@ -102,7 +102,7 @@ def preload_database_drivers():
 	drivers = {driver.strip() for driver in value.split(",") if driver.strip()}
 
 	if "mariadb" in drivers:
-		import frappe.database.mariadb.mysqlclient
+		import frappe.database.mariadb.database
 
 	if "postgres" in drivers:
 		import frappe.database.postgres.database

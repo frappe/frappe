@@ -156,8 +156,15 @@ class TestKnowledgeStore(IntegrationTestCase):
 		self.assertTrue(store.table_exists())
 		self.assertEqual(store.table_dimension(), DIM)
 		self.assertEqual(store.search([1.0, 0.0, 0.0, 0.0]), [])
+
+		# an empty table takes a new width, one with rows does not
+		store.ensure_table_for_dimension(DIM + 1)
+		self.assertEqual(store.table_dimension(), DIM + 1)
+		store.ensure_table_for_dimension(DIM)
+		store.add(_rows())
 		with self.assertRaisesRegex(frappe.ValidationError, "Rebuild"):
 			store.ensure_table_for_dimension(DIM + 1)
+		self.assertEqual(_store_ids(), {1, 2, 3})
 
 	def test_search_ranks_scopes_and_matches_keywords(self):
 		self._seed()

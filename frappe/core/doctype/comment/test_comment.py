@@ -139,6 +139,37 @@ class TestComment(IntegrationTestCase):
 
 		self.assertIn(comment.name, visible)
 
+	def test_portal_mails_match_the_whole_address(self):
+		from frappe.core.doctype.user.test_user import test_user
+		from frappe.website.utils import get_comment_list
+
+		web_page = frappe.get_doc("Web Page", "test-web-page-1")
+
+		def make_mail(recipients):
+			return frappe.get_doc(
+				doctype="Communication",
+				communication_type="Communication",
+				content=f"mail to {recipients}",
+				recipients=recipients,
+				reference_doctype="Web Page",
+				reference_name=web_page.name,
+			).insert(ignore_permissions=True)
+
+		with test_user(email="ann_portal@example.com", roles=[], generated_id=True) as user:
+			to_user = make_mail("Ann <ann_portal@example.com>")
+			to_other = make_mail("joann_portal@example.com")
+
+			with set_user(user.name):
+				visible = [c["name"] for c in get_comment_list("Web Page", web_page.name)]
+
+		self.assertIn(to_user.name, visible)
+		self.assertNotIn(to_other.name, visible)
+
+		to_guest = make_mail(frappe.db.get_value("User", "Guest", "email") or "guest@example.com")
+		with set_user("Guest"):
+			visible = [c["name"] for c in get_comment_list("Web Page", web_page.name)]
+		self.assertNotIn(to_guest.name, visible)
+
 	def test_user_not_logged_in(self):
 		some_system_user = frappe.db.get_value("User", {"name": ("not in", frappe.STANDARD_USERS)})
 

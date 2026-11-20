@@ -11,11 +11,12 @@ def get_context(context):
 	context.csrf_token = csrf_token
 	context.site_url = get_site_url()
 	context.site_name = frappe.local.site
+	context.socketio_port = cint(frappe.conf.socketio_port)
 	context.is_developer_mode = cint(frappe.conf.developer_mode)
 	context.assets = get_editor_assets("index.html")
 
 
-@frappe.whitelist(methods=["POST"], allow_guest=True)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(methods=["POST"], allow_guest=True, rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def get_context_for_dev():
 	if not frappe.conf.developer_mode:
 		frappe.throw(frappe._("This method is only meant for developer mode"))
@@ -23,6 +24,7 @@ def get_context_for_dev():
 		{
 			"site_url": get_site_url(),
 			"site_name": frappe.local.site,
+			"socketio_port": cint(frappe.conf.socketio_port),
 			"is_developer_mode": cint(frappe.conf.developer_mode),
 		}
 	)

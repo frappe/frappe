@@ -4,6 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils import extract_email_id
 
 
 class EmailUnsubscribe(Document):
@@ -24,6 +25,8 @@ class EmailUnsubscribe(Document):
 	# end: auto-generated types
 
 	def validate(self):
+		self.email = extract_email_id(self.email)
+
 		if not self.global_unsubscribe and not (self.reference_doctype and self.reference_name):
 			frappe.throw(_("Reference DocType and Reference Name are required"), frappe.MandatoryError)
 

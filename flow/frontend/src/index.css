@@ -59,6 +59,11 @@ body {
 	font-family: inherit;
 }
 
+/* a long server error stays a few lines, not a wall over the chat */
+:host [data-sonner-toast] [data-title] {
+	@apply line-clamp-4;
+}
+
 /* the panel's dialogs cover the page, but its toasts keep to the panel */
 :host([data-panel]) [data-sonner-toaster] {
 	position: absolute;

@@ -90,6 +90,39 @@ def get_files_list(pr_number, repo="frappe/frappe"):
 	return [change["filename"] for change in fetch_pr_data(pr_number, repo, "files")]
 
 
+def get_queue_files(repo, base, head):
+	"""Files a merge queue group changes, or None when GitHub cuts the list short."""
+	files = json.loads(req(f"https://api.github.com/repos/{repo}/compare/{base}...{head}").read())["files"]
+	if len(files) >= 300:
+		return None
+	return [
+		name for change in files for name in (change["filename"], change.get("previous_filename")) if name
+	]
+
+
+def queue_jobs(build_type, files):
+	"""The jobs a merge queue group needs. Python only skips the UI workflow, frontend only skips the
+	server suite, and the Studio and Flow jobs run for their own folders and the `ui/` package they link."""
+	if files is None or any(is_ci(f) for f in files):
+		return {"build", "studio", "flow"}
+	files = [f for f in files if f.endswith(".csv") or not is_docs(f)]
+	if build_type == "server":
+		return {"build"} if any(not is_frontend_code(f) for f in files) else set()
+	jobs = set()
+	if any(not is_server_side_code(f) and not f.startswith(("flow/", "studio/")) for f in files):
+		jobs.add("build")
+	if any(f.startswith(("studio/", "frappe/studio/", "ui/")) for f in files):
+		jobs.add("studio")
+	if any(f.startswith(("flow/", "ui/")) for f in files):
+		jobs.add("flow")
+	return jobs
+
+
+def run_jobs(jobs=("build", "studio", "flow")):
+	for job in jobs:
+		os.system(f'echo "{job}=strawberry" >> $GITHUB_OUTPUT')
+
+
 def get_output(command, shell=True):
 	"""
 	Execute a shell command and return its output.
@@ -123,15 +156,15 @@ def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
 
 
 def base_failing(pr_number, repo, workflow):
-	"""Is this suite's latest full run failing on the branch the PR targets, or on develop for other branches?"""
+	"""Is this suite's latest full run failing on the desk-v2 branch the PR targets?"""
 	from develop_status import BRANCHES, failing_suites
 
 	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
-	return workflow in failing_suites(base if base in BRANCHES else "develop")
+	return base in BRANCHES and workflow in failing_suites(base)
 
 
 def skips_test_suites(pr_number, repo="frappe/frappe"):
-	"""Check if the PR targets develop, desk-v2 or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
+	"""Check if the PR targets develop, desk-v2 or a hotfix branch: develop runs the suites in its merge queue, desk-v2 every hour, hotfix on the release PR."""
 	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
 	return base in ("develop", "desk-v2") or base.endswith("-hotfix")
 
@@ -213,6 +246,20 @@ def _selftest():
 		"test_shell.py reads contributions"
 	)
 	assert not is_desk_frontend("frappe/public/js/frappe/ui/dialog.js"), "desk v1 is not desk-v2's frontend"
+	assert queue_jobs("ui", ["frappe/model/document.py"]) == set(), "python alone skips the UI workflow"
+	assert queue_jobs("server", ["frappe/public/js/frappe/form/form.js"]) == set(), (
+		"frontend alone skips the server suite"
+	)
+	assert queue_jobs("ui", ["flow/frontend/src/App.vue"]) == {"flow"}, "flow alone runs only its page tests"
+	assert queue_jobs("ui", ["frappe/studio/api.py"]) == {"studio"}, "studio's server code runs its tests"
+	assert queue_jobs("ui", ["frappe/core/doctype/user/user.json"]) == {"build"}, "doctype JSON runs UI tests"
+	assert queue_jobs("ui", ["ui/src/index.ts"]) == {"build", "studio", "flow"}, "studio and flow link ui/"
+	assert queue_jobs("server", ["README.md"]) == set(), "docs alone run nothing"
+	assert queue_jobs("server", ["frappe/core/doctype/data_import/fixtures/sample_import_file.csv"]) == {
+		"build"
+	}, "tests read CSV files"
+	assert queue_jobs("ui", None) == {"build", "studio", "flow"}, "a cut short file list runs everything"
+	assert queue_jobs("ui", [".github/workflows/ui-tests.yml"]) == {"build", "studio", "flow"}
 	print("roulette selftest OK")
 
 
@@ -226,9 +273,16 @@ if __name__ == "__main__":
 	pr_number = os.environ.get("PR_NUMBER")
 	repo = os.environ.get("REPO_NAME")
 
+	base_sha, head_sha = os.environ.get("BASE_SHA"), os.environ.get("HEAD_SHA")
+	if not pr_number and base_sha and head_sha:
+		jobs = queue_jobs(build_type, files_list or get_queue_files(repo, base_sha, head_sha))
+		print(f"Merge queue group runs: {', '.join(sorted(jobs)) or 'nothing'}")
+		run_jobs(jobs)
+		sys.exit(0)
+
 	# If it's a push build, run all builds
 	if not pr_number:
-		os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+		run_jobs()
 		sys.exit(0)
 
 	# Get list of changed files if not provided
@@ -290,5 +344,5 @@ if __name__ == "__main__":
 		sys.exit(0)
 
 	# If we reach here, run the build
-	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
+	run_jobs()
 	os.system(f'echo "run_postgres={"true" if run_postgres else "false"}" >> $GITHUB_OUTPUT')

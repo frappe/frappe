@@ -22,14 +22,14 @@ def request_specific_api(a: list | tuple | dict | int, b: int) -> int:
 	return a**b * todays_value
 
 
-@whitelist_for_tests(allow_guest=True)
+@whitelist_for_tests(allow_guest=True, methods=["GET"], rate_limit=None)
 @site_cache
 def ping() -> str:
 	register_with_external_service(frappe.local.site)
 	return "pong"
 
 
-@whitelist_for_tests(allow_guest=True)
+@whitelist_for_tests(allow_guest=True, methods=["GET"], rate_limit=None)
 @site_cache(ttl=CACHE_TTL)
 def ping_with_ttl() -> str:
 	register_with_external_service(frappe.local.site)

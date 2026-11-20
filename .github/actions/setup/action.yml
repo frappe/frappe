@@ -259,7 +259,6 @@ runs:
 
       if [ "$DB" == "mariadb" ]; then
         bench --site test_site set-config monitor 1 --parse
-        bench --site test_site set-config use_mysqlclient 1 --parse
       fi
 
       if [ -n "$build_pid" ]; then

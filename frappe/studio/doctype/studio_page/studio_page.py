@@ -575,7 +575,7 @@ def get_app_page(app_name: str, page_name: str, cached: bool = True) -> "StudioP
 	return page
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def get_page(app_name: str, page_name: str, preview: bool = False) -> dict:
 	"""Serve a page definition to the app renderer in a single call.
 

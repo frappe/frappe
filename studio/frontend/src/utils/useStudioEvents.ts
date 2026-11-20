@@ -14,6 +14,12 @@ const store = useStudioStore()
 const canvasStore = useCanvasStore()
 
 export function useStudioEvents(saveFragmentMode: () => void) {
+	// frappe-ui's shortcuts read `e.target`, which is the host of a shadow root, not the input
+	// in it. Keys typed in such an input, as in Flow's chat, must not reach them.
+	useEventListener(document.body, "keydown", (e) => {
+		if (e.target !== e.composedPath()[0] && isTargetEditable(e)) e.stopPropagation()
+	})
+
 	useEventListener(document, "copy", (e) => {
 		if (isTargetEditable(e) || window.getSelection()?.toString()) return
 		copyBlocks(e)

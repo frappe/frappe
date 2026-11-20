@@ -12,8 +12,9 @@ optional `Studio Page Resource` rows, and page logic.
 - Read [DESIGN.md](DESIGN.md) before building or restyling a page.
 - Read [ROUTING.md](ROUTING.md) when working on navigation, redirects, guards,
   or `boot` data.
-- Check `studio/frontend/src/data/components.ts` and
-  `studio/frontend/src/data/componentFamilies.ts` for available components.
+- Read [BUILT_IN_COMPONENTS.md](BUILT_IN_COMPONENTS.md) before choosing
+  components. It lists the built-in components and shows how to get the full
+  props of one.
 
 ## Custom and standard apps
 
@@ -164,6 +165,9 @@ colors, spacing, and section structure. Complete one page before starting the
 next. There should be some consistency across pages in terms of layout and
 design. When you add a page, update navigation on the pages that link to it.
 
+Create or change one page in each tool call. A call that writes several pages
+is slow to produce, can time out, and loses all of the pages when one fails.
+
 ## Build the page
 
 ### Data
@@ -258,16 +262,8 @@ family as a complete working tree from a template.
 - The family members and their props are in
   `studio/frontend/src/data/componentFamilies.ts`.
 
-#### List
-
-A `List` does not accept table-style `rows` and `columns` objects.
-
-- Set `List.columns` to CSS grid track sizes.
-- Put `ListHeader` and `ListRows` directly inside `List`.
-- Bind records to `ListRows.items`. Put one `ListRow` template in the
-  `ListRows` `default` component slot.
-- The slot exposes `item`, `index`, and `value`. Bind cells with
-  `{{ item.<field> }}`. Bind the row's `value` prop with `{{ value }}`.
+The rules and an example block for `List` are in
+[BUILT_IN_COMPONENTS.md](BUILT_IN_COMPONENTS.md).
 
 ## Page code
 
@@ -326,7 +322,8 @@ Choose the smallest tool that does the job:
 - **Built-in component**: use it when it already does the job. Do not write a
   Vue component only to restyle a built-in component.
 - **Studio Component**: use it for a reusable part of the UI that you can
-  build from ordinary blocks, such as a card, a list row, or a form section.
+  build from ordinary blocks, such as a card, a list row, a form section, or
+  a sidebar that all pages share.
   Its script gives it props, state, logic, and events. See
   [Component code](#component-code).
 - **Vue component**: use it only when built-in components and block

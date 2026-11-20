@@ -1,4 +1,6 @@
 import base64
+import json
+import re
 import time
 import urllib
 
@@ -114,6 +116,15 @@ def read_local_resource(url: str) -> tuple[str, str | None] | None:
 	return None
 
 
+HEADER_NAME = re.compile(r"[!#$%&'*+\-.^_`|~0-9A-Za-z]+")
+
+
+def get_origin(url: str) -> str:
+	"""Origin of a network request URL as Chromium reports it, which is already canonical (punycode, no default port)."""
+	parts = urllib.parse.urlsplit(url)
+	return f"{parts.scheme}://{parts.netloc.rpartition('@')[2]}"
+
+
 class Page:
 	def __init__(self, session, browser_context_id, page_type):
 		self.session = session
@@ -139,9 +150,11 @@ class Page:
 		self.block_external_requests = False
 
 	# TODO: make send to return future and don't wait for it by default.
-	def send(self, method, params=None, return_future=False):
+	def send(self, method, params=None, return_future=False, timeout=None):
 		if params is None:
 			params = {}
+		if timeout:
+			return self.session.send(method, params, self.session_id, return_future, timeout=timeout)
 		return self.session.send(method, params, self.session_id, return_future)
 
 	def get_frame_id_on_demand(self):
@@ -276,6 +289,36 @@ class Page:
 		# Enable request interception for the specified URL pattern
 		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
 
+	def set_extra_headers_for_origin(self, url, headers):
+		"""Add `headers` to requests for `url`'s origin, as Chromium parses it; requests to other
+		origins continue without them. A URL without an origin, such as `data:`, gets none."""
+		for name, value in headers.items():
+			if not HEADER_NAME.fullmatch(name) or any(c in str(value) for c in "\r\n\0"):
+				raise ValueError(f"Invalid HTTP header: {name}")
+		result, error = self.send("Runtime.evaluate", {"expression": f"new URL({json.dumps(url)}).origin"})
+		if error or "exceptionDetails" in result:
+			raise ValueError(f"Invalid URL: {url}")
+		page_origin = result["result"]["value"]
+		header_names = {name.lower() for name in headers}
+
+		def on_request_paused_event(future, response):
+			params = response.get("params") or {}
+			request = params.get("request") or {}
+			continue_params = {"requestId": params["requestId"]}
+			if get_origin(request.get("url", "")) == page_origin:
+				request_headers = [
+					{"name": name, "value": value}
+					for name, value in (request.get("headers") or {}).items()
+					if name.lower() not in header_names
+				]
+				continue_params["headers"] = request_headers + [
+					{"name": name, "value": str(value)} for name, value in headers.items()
+				]
+			self.send("Fetch.continueRequest", continue_params, return_future=True)
+
+		self.session.start_listener("Fetch.requestPaused", on_request_paused_event, self.session_id)
+		self.send("Fetch.enable", {"patterns": [{"urlPattern": "*"}]})
+
 	def set_tab_url(self, url):
 		"""Navigate to a URL and fulfill the request with status code 200."""
 
@@ -292,13 +335,18 @@ class Page:
 
 		self.wait_for_navigate = wait_for_navigate
 
-	def navigate(self, url, wait_for=None):
-		"""Really load a URL and wait for render (vs set_tab_url's empty-body stub)."""
+	def navigate(self, url, wait_for=None, timeout=None):
+		"""Really load a URL and wait for render (vs set_tab_url's empty-body stub).
+		With `timeout`, loading and rendering share that many seconds."""
+		deadline = time.monotonic() + (timeout or 0)
 		wait_start = self.wait_for_load(wait_for=wait_for or ["load", "DOMContentLoaded", "networkIdle"])
-		_result, error = self.send("Page.navigate", {"url": url})
+		_result, error = self.send("Page.navigate", {"url": url}, timeout=timeout)
 		if error:
 			raise RuntimeError(f"Error navigating to URL: {error}")
-		wait_start()
+		if timeout:
+			wait_start(max(deadline - time.monotonic(), 0))
+		else:
+			wait_start()
 
 	def evaluate(self, expression, await_promise=False):
 		self.send("Runtime.enable")
@@ -354,8 +402,8 @@ class Page:
 			"Page.lifecycleEvent", on_lifecycle_event, self.session_id, self.target_id, self.frame_id
 		)
 
-		def start_wait():
-			self.session.wait_for_event(event, timeout)
+		def start_wait(wait_timeout=timeout):
+			self.session.wait_for_event(event, wait_timeout)
 			self.session.remove_listener("Page.lifecycleEvent", event)
 
 		return start_wait
@@ -471,14 +519,16 @@ class Page:
 		)
 		return (result or {}).get("result", {}).get("value") or 0
 
-	def capture_screenshot(self, image_format="jpeg", quality=30):
-		"""Screenshot the current viewport; returns raw image bytes."""
-		params = {"format": image_format, "captureBeyondViewport": False}
+	def capture_screenshot(self, image_format="jpeg", quality=30, clip=None):
+		"""Screenshot the current viewport, or the `clip` rectangle beyond it; returns raw image bytes."""
+		params = {"format": image_format, "captureBeyondViewport": bool(clip)}
+		if clip:
+			params["clip"] = clip
 		if image_format in ("jpeg", "webp"):  # quality is only valid for lossy formats
 			params["quality"] = quality
 		result, error = self.send("Page.captureScreenshot", params)
-		if error:
-			raise RuntimeError(f"Error capturing screenshot: {error}")
+		if error or not result.get("data"):
+			raise RuntimeError(f"Error capturing screenshot: {error or 'no image data'}")
 		return base64.b64decode(result["data"])
 
 	def generate_pdf(self, wait_for_pdf=True, raw=False):

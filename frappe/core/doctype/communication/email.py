@@ -92,6 +92,9 @@ def make(
 			category=DeprecationWarning,
 		)
 
+	if not frappe.permissions.is_system_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	if doctype and name:
 		frappe.has_permission(doctype, doc=name, ptype="email", throw=True)
 	else:
@@ -329,7 +332,7 @@ def add_attachments(name: str, attachments: Iterable[str | dict]) -> None:
 		_file.save(ignore_permissions=True)
 
 
-@frappe.whitelist(allow_guest=True, methods=("GET",))
+@frappe.whitelist(allow_guest=True, methods=("GET",), rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def mark_email_as_seen(name: str | None = None):
 	commit_after_response(lambda: _mark_email_as_seen(name))
 	frappe.response.update(frappe.utils.get_imaginary_pixel_response())

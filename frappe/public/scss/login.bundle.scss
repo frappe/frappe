@@ -51,24 +51,6 @@ body {
 			.btn-salesforce i {
 				color: var(--blue-400);
 			}
-
-			.social-login-buttons {
-				margin-top: var(--margin-md);
-
-				.login-button-wrapper {
-					@include media-breakpoint-up(md) {
-						min-width: 33.33%;
-					}
-
-					min-width: 50%;
-					padding: 0 4px;
-					margin-bottom: var(--margin-md);
-
-					&:last-child {
-						margin-bottom: 0;
-					}
-				}
-			}
 		}
 
 		.page-card-body {
@@ -103,6 +85,23 @@ body {
 
 			.field-error {
 				display: none;
+			}
+
+			.es-alert {
+				align-items: flex-start;
+				padding-block: calc(var(--spacing) * 2.5);
+
+				> svg {
+					margin-top: calc(var(--spacing) * 0.5);
+				}
+
+				ul {
+					margin: 0;
+					padding-left: 0;
+					list-style: none;
+					color: var(--ink-gray-6);
+					font-weight: var(--font-weight-regular);
+				}
 			}
 
 			.form-group.invalid {

@@ -6,6 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 import frappe
+from frappe.utils.user import get_system_managers as _get_system_managers
 
 if TYPE_CHECKING:
 	from frappe.email.doctype.email_queue.email_queue import EmailQueue
@@ -87,13 +88,9 @@ def get_recipient_avatars(emails: str | list) -> dict:
 	return {"user_info": user_info, "contact_images": contact_images}
 
 
-def get_system_managers():
-	return frappe.db.sql_list(
-		"""select parent FROM `tabHas Role`
-		WHERE role='System Manager'
-		AND parent!='Administrator'
-		AND parent IN (SELECT email FROM tabUser WHERE enabled=1)"""
-	)
+def get_system_managers() -> list[str]:
+	"""Return the email addresses of enabled System Managers, excluding Administrator."""
+	return _get_system_managers(only_email=True)
 
 
 @frappe.whitelist()
@@ -259,6 +256,7 @@ def sendmail(
 
 	from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 
+	recipients, cc, bcc, (sender,) = _user_ids_to_emails(recipients, cc, bcc, [sender])
 	builder = QueueBuilder(
 		recipients=recipients,
 		sender=sender,
@@ -303,3 +301,30 @@ def sendmail(
 	if now and q:
 		frappe.db.after_commit.add(q.send)
 	return q
+
+
+def _user_ids_to_emails(*address_lists):
+	"""Replace user IDs with the user's email, for callers that still pass IDs (as recipients or sender).
+	Removed in v18."""
+	from frappe.deprecation_dumpster import deprecation_warning
+	from frappe.utils import split_emails
+
+	address_lists = [split_emails(r) if isinstance(r, str) else list(r) for r in address_lists]
+	# also look up values with an "@": a user whose ID is an old email may have a new one
+	values = {value for addresses in address_lists for value in addresses} - set(frappe.STANDARD_USERS)
+	if not values:
+		return address_lists
+
+	user_emails = {
+		name: email
+		for name, email in frappe.get_all(
+			"User", filters={"name": ("in", list(values))}, fields=["name", "email"], as_list=True
+		)
+		if name != email
+	}
+	if user_emails:
+		deprecation_warning(
+			"2026-11-18", "v18", f"Pass emails to `sendmail`, not user IDs: {', '.join(user_emails)}"
+		)
+
+	return [[user_emails.get(value, value) for value in addresses] for addresses in address_lists]

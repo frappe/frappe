@@ -614,6 +614,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.render_skeleton();
 		this.setup_events();
 		this.settings.onload && this.settings.onload(this);
+		// add_action_item shows Actions; on a list it waits for a selection
+		if (!this.checked_docnames.size) this.page.hide_actions_menu();
 		this.show_restricted_list_indicator_if_applicable();
 	}
 
@@ -3591,6 +3593,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			params = new Map(Object.entries(frappe.route_options));
 		}
 
+		// a plain value can look like a list too, e.g. "[A]"
+		const parse_list = (text) => {
+			try {
+				return JSON.parse(text);
+			} catch {
+				return text;
+			}
+		};
+
 		params.forEach((value, field) => {
 			let doctype = null;
 
@@ -3603,10 +3614,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			) {
 				value_array = [];
 				for (var i = 0; i < value.length; i++) {
-					value_array.push(JSON.parse(value[i]));
+					value_array.push(parse_list(value[i]));
 				}
 			} else if (typeof value === "string" && value.startsWith("[") && value.endsWith("]")) {
-				value = JSON.parse(value);
+				value = parse_list(value);
 			}
 
 			// if `Child DocType.fieldname`

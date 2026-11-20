@@ -150,6 +150,8 @@ class TestWebPageView(IntegrationTestCase):
 		previous_request = getattr(frappe.local, "request", None)
 		self.addCleanup(setattr, frappe.local, "request", previous_request)
 		frappe.local.request = Request(builder.get_environ())
+		self.addCleanup(setattr, frappe.local, "request_ip", getattr(frappe.local, "request_ip", None))
+		frappe.local.request_ip = "127.0.0.1"
 
 		with self.change_settings("Website Settings", enable_view_tracking=1):
 			# `make_view_log` queues the row rather than inserting it, and decides `is_unique`

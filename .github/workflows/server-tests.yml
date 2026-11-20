@@ -2,6 +2,7 @@ name: Server
 
 on:
   pull_request:
+  merge_group:
   workflow_dispatch:
   schedule:
     # Run everday at midnight UTC / 5:30 IST
@@ -35,6 +36,8 @@ jobs:
           TYPE: "server"
           SKIP_ON_PRS: "true"
           PR_NUMBER: ${{ github.event.number }}
+          BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.merge_group.head_sha }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -251,7 +254,7 @@ jobs:
   # TIP: Require this single check in branch protection, e.g. Server / Success
   success:
     name: Server Success
-    needs: [test, migrate]
+    needs: [checkrun, test, migrate]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -259,6 +262,7 @@ jobs:
         shell: python
         run: |
           stati = [
+            '${{ needs.checkrun.result }}',
             '${{ needs.test.result }}',
             '${{ needs.migrate.result }}',
           ]
@@ -274,7 +278,7 @@ jobs:
   develop-status:
     name: Update Develop Status
     needs: success
-    if: ${{ always() && github.event_name != 'pull_request' && contains(fromJSON('["refs/heads/develop", "refs/heads/desk-v2"]'), github.ref) }}
+    if: ${{ always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/desk-v2' }}
     runs-on: ubuntu-latest
     concurrency:
       group: develop-status-all

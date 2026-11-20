@@ -49,7 +49,13 @@ test.describe("Table MultiSelect", () => {
 		);
 		await input.press("Enter");
 		const selected_value = page.locator(`${selected_values} .btn-link-to-form`);
-		await expect(selected_value).toContainText("test@erpnext.com");
+		const full_name = await page.evaluate(
+			async () =>
+				(
+					await frappe.db.get_value("User", "test@erpnext.com", "full_name")
+				).message.full_name
+		);
+		await expect(selected_value).toContainText(full_name);
 
 		const saved = page.waitForResponse(
 			(res) =>
@@ -58,7 +64,7 @@ test.describe("Table MultiSelect", () => {
 		);
 		await page.locator(".primary-action:visible").click();
 		expect((await saved).status()).toBe(200);
-		await expect(selected_value).toContainText("test@erpnext.com");
+		await expect(selected_value).toContainText(full_name);
 	});
 
 	test("delete value using backspace", async ({ page, desk }) => {

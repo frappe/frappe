@@ -343,15 +343,17 @@ def get_fullname_and_avatar(user: str) -> _dict:
 	)
 
 
-def get_system_managers(only_name: bool = False) -> list[str]:
+def get_system_managers(only_name: bool = False, *, only_email: bool = False) -> list[str]:
 	"""Return all system manager's user details."""
 	HasRole = DocType("Has Role")
 	User = DocType("User")
 
 	if only_name:
 		fields = [User.name]
+	elif only_email:
+		fields = [User.email]
 	else:
-		fields = [User.full_name, User.name]
+		fields = [User.full_name, User.email]
 
 	system_managers = (
 		frappe.qb.from_(User)
@@ -371,8 +373,10 @@ def get_system_managers(only_name: bool = False) -> list[str]:
 
 	if only_name:
 		return [p.name for p in system_managers]
+	elif only_email:
+		return [p.email for p in system_managers]
 	else:
-		return [formataddr((p.full_name, p.name)) for p in system_managers]
+		return [formataddr((p.full_name, p.email)) for p in system_managers]
 
 
 def add_role(user: str, role: str) -> None:
@@ -440,7 +444,7 @@ def is_system_user(username: str | None = None) -> str | None:
 	return frappe.db.get_value(
 		"User",
 		{
-			"email": username or frappe.session.user,
+			"email": username or frappe.utils.get_email_address(),
 			"enabled": 1,
 			"user_type": "System User",
 		},
@@ -455,11 +459,13 @@ def get_users() -> list[dict]:
 
 	return [
 		{
-			"full_name": get_user_fullname(user),
-			"email": user,
-			"is_system_manager": user in system_managers,
+			"full_name": get_user_fullname(user.name),
+			"email": user.email,
+			"is_system_manager": user.name in system_managers,
 		}
-		for user in get_system_users()
+		for user in frappe.get_all(
+			"User", filters={"name": ("in", get_system_users())}, fields=["name", "email"]
+		)
 	]
 
 

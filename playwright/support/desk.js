@@ -92,7 +92,12 @@ export class Desk {
 			await input.press("Enter");
 			await input.blur();
 			await expect(dropdown).toHaveCount(0);
-			await expect(input).toHaveValue(value);
+			// a Link that shows titles displays the title, so check the value it holds
+			await expect
+				.poll(() =>
+					input.evaluate((el) => el.closest(".frappe-control").fieldobj.get_value())
+				)
+				.toBe(value);
 		} else if (fieldtype === "Select") {
 			await input.selectOption(value);
 		} else {

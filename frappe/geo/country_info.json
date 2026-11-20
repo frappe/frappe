@@ -1739,7 +1739,7 @@
  },
  "Mauritania": {
   "code": "mr",
-  "currency": "MRO",
+  "currency": "MRU",
   "currency_fraction": "Khoums",
   "currency_fraction_units": 5,
   "currency_name": "Ouguiya",
@@ -2353,7 +2353,7 @@
  },
  "Sao Tome and Principe": {
   "code": "st",
-  "currency": "STD",
+  "currency": "STN",
   "currency_fraction": "Cêntimo",
   "currency_fraction_units": 100,
   "currency_name": "Dobra",
@@ -2413,7 +2413,7 @@
  },
  "Sierra Leone": {
   "code": "sl",
-  "currency": "SLL",
+  "currency": "SLE",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
   "currency_name": "Leone",
@@ -2931,7 +2931,7 @@
  "Venezuela, Bolivarian Republic of": {
   "code": "ve",
   "number_format": "#.###,##",
-  "currency": "VEF",
+  "currency": "VES",
   "currency_symbol": "Bs.",
   "currency_fraction": "Centimos",
   "currency_fraction_units": 100,
@@ -3013,11 +3013,11 @@
  },
  "Zimbabwe": {
   "code": "zw",
-  "currency": "ZWL",
+  "currency": "ZWG",
   "currency_fraction": "Cent",
   "currency_fraction_units": 100,
-  "currency_name": "Zimbabwe Dollar",
-  "currency_symbol": "ZWL$",
+  "currency_name": "Zimbabwe Gold",
+  "currency_symbol": "ZiG",
   "number_format": "# ###.##",
   "timezones": [
    "Africa/Harare"

@@ -23,7 +23,9 @@ from frappe.flow.lib.session import (
 	call_on_complete,
 	fail_running,
 	flow_server,
+	is_guest_chat,
 	sync_with_retry,
+	throw_server_error,
 )
 from frappe.model.document import Document
 from frappe.utils.password import get_decrypted_password
@@ -54,8 +56,10 @@ class FlowSession(Document):
 		last_synced_seq: DF.Int
 		messages: DF.Table[FlowSessionMessage]
 		model: DF.Link | None
+		personal_trigger: DF.Check
 		source: DF.Literal["Manual", "Trigger"]
 		title: DF.Data | None
+		guest_token: DF.Data | None
 	# end: auto-generated types
 
 	def before_insert(self):
@@ -80,7 +84,7 @@ class FlowSession(Document):
 		try:
 			_delete_server_session(self.name)
 		except DaemonError as exc:
-			frappe.throw(str(exc), title=_("Flow Server"))
+			throw_server_error(exc)
 		_delete_runs([self.name])
 		_purge_attachment_chunks(self.name)
 
@@ -117,9 +121,15 @@ class FlowSession(Document):
 
 	@staticmethod
 	def clear_old_logs(days=30):
-		"""Delete sessions idle for `days` with their runs, transcript and server copies."""
+		"""Delete trigger sessions and guest chats idle for `days` with their runs, transcript
+		and server copies. A person's chats are kept."""
 		cutoff = frappe.utils.add_days(frappe.utils.now(), -days)
-		sessions = frappe.get_all("Flow Session", filters={"modified": ["<", cutoff]}, pluck="name")
+		sessions = frappe.get_all(
+			"Flow Session",
+			filters={"modified": ["<", cutoff]},
+			or_filters={"source": "Trigger", "owner": "Guest"},
+			pluck="name",
+		)
 		for batch in frappe.utils.create_batch(sessions, 100):
 			# lock the chats before their rows, the order a sync takes
 			frappe.db.get_values("Flow Session", {"name": ["in", batch]}, "name", for_update=True)
@@ -167,7 +177,7 @@ class FlowSession(Document):
 		config = {
 			"session_id": self.name,
 			"title": self.title,
-			**model_config(self.model or agent.model),
+			**model_config(self.model or agent.model, check_permission=not is_guest_chat(agent)),
 			**agent.session_tool_config(self.name),
 			"subagents": agent.subagent_configs(self.name, context),
 			"skills_enabled": False,
@@ -253,7 +263,7 @@ class FlowSession(Document):
 			cleanup_indexed_files(self.name, turn.indexed_files)
 			if exc.status == 404:
 				frappe.throw(_(READ_ONLY), title=_("Flow Server"))
-			frappe.throw(str(exc), title=_("Flow Server"))
+			throw_server_error(exc)
 		if reply.get("status") == "steered":
 			run = self._active_run()
 			if on_complete and not run.on_complete:  # a run keeps the first on_complete it is given
@@ -336,16 +346,20 @@ class FlowSession(Document):
 		from frappe.flow.lib.model import model_config
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
-		frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
+		guest = is_guest_chat(agent)
+		if not guest:
+			frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
 		if not agent.enabled:
 			frappe.throw(_("Flow Agent {0} is disabled.").format(agent.name), title=_("Disabled Agent"))
-		model_config(self.model or agent.model)
+		if self.model and not frappe.db.exists("Flow Model", self.model):
+			frappe.throw(_("This chat's model was deleted. Pick another model."), title=_("Model Deleted"))
+		model_config(self.model or agent.model, check_permission=not guest)
 
-	def set_model(self, model: str, reasoning_effort: str | None = None) -> None:
-		self._send_model(model, reasoning_effort)
+	def set_model(self, model: str) -> None:
+		self._send_model(model)
 		self.db_set("model", model)
 
-	def _send_model(self, model: str, reasoning_effort: str | None = None) -> None:
+	def _send_model(self, model: str) -> None:
 		from frappe.flow.lib.model import model_config
 
 		config = model_config(model)
@@ -356,7 +370,6 @@ class FlowSession(Document):
 				api_key=config["api_key"],
 				api_base=config["api_base"],
 				model_params=config.get("model_params"),
-				reasoning_effort=reasoning_effort,
 			)
 
 	def set_title(self, title: str) -> None:
@@ -397,7 +410,7 @@ class FlowSession(Document):
 					rows = client.entries(self.name, since=self.last_synced_seq, path="all")["entries"]
 		except DaemonError as exc:
 			if exc.status != 404:
-				frappe.throw(str(exc), title=_("Flow Server"))
+				throw_server_error(exc)
 			fail_running(self.name, GONE)
 			return
 		if rows:
@@ -412,6 +425,8 @@ class FlowSession(Document):
 		if info["title"] and info["title"] != self.title:
 			self.title = info["title"]
 		self.flags.ignore_validate = True
+		# a model deleted since must not stop the transcript being recorded
+		self.flags.ignore_links = True
 		self.save(ignore_permissions=True)
 
 	def _lock(self) -> None:

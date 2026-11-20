@@ -14,10 +14,12 @@ from frappe.contacts.doctype.contact.contact import (
 )
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.assign_to import add as assign_to
+from frappe.email import get_system_managers
 from frappe.model.document import Document
 from frappe.utils import (
 	add_days,
 	date_diff,
+	get_email_addresses,
 	getdate,
 	month_diff,
 	split_emails,
@@ -25,7 +27,6 @@ from frappe.utils import (
 )
 from frappe.utils.background_jobs import get_jobs
 from frappe.utils.jinja import validate_template
-from frappe.utils.user import get_system_managers
 
 month_map = {"Monthly": 1, "Quarterly": 3, "Half-yearly": 6, "Yearly": 12}
 day_map = {"Daily": 1, "Weekly": 7, "Fortnightly": 14}
@@ -533,8 +534,9 @@ class AutoRepeat(Document):
 		frappe.db.set_value("Auto Repeat", self.name, "disabled", 1)
 
 	def notify_error_to_user(self, error_log):
-		recipients = list(get_system_managers(only_name=True))
-		recipients.append(self.owner)
+		recipients = set(get_system_managers())
+		if self.owner != "Administrator":
+			recipients.update(get_email_addresses([self.owner]))
 		subject = _("Auto Repeat Document Creation Failed")
 
 		form_link = frappe.utils.get_link_to_form(self.reference_doctype, self.reference_document)
@@ -690,8 +692,7 @@ def update_reference(docname: str, reference: str):
 def generate_message_preview(name: str):
 	frappe.has_permission("Auto Repeat", "write", throw=True)
 	auto_repeat = frappe.get_doc("Auto Repeat", str(name))
-	doc = frappe.get_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
-	doc.check_permission()
+	doc = frappe.read_doc(auto_repeat.reference_doctype, auto_repeat.reference_document)
 	subject_preview = _("Please add a subject to your email")
 	msg_preview = auto_repeat.get_message_without_print(doc)
 	if not msg_preview:

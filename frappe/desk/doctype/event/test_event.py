@@ -72,6 +72,56 @@ class TestEvent(IntegrationTestCase):
 
 		self.assertIn(event.name, [e.name for e in events])
 
+	def test_participant_by_email_or_user_link(self):
+		from frappe.core.doctype.user.test_user import test_user
+		from frappe.desk.doctype.event.event import update_attending_status
+
+		def make_event(reference_doctype, reference_docname, email=None):
+			return frappe.get_doc(
+				doctype="Event",
+				subject="_Test Participant Event",
+				event_type="Private",
+				starts_on="2025-05-10 10:00:00",
+				event_participants=[
+					{
+						"reference_doctype": reference_doctype,
+						"reference_docname": reference_docname,
+						"email": email,
+					}
+				],
+			).insert()
+
+		with test_user(roles=[], generated_id=True) as user:
+			contact = frappe.db.get_value("Contact", {"user": user.name})
+			by_email = make_event("Contact", contact, user.email)
+			by_link = make_event("User", user.name)
+			other = make_event("User", "Guest", "someone_else@example.com")
+
+			with self.set_user(user.name):
+				listed = frappe.get_list("Event", pluck="name")
+				in_calendar = [e.name for e in get_events(start="2025-05-01", end="2025-05-31")]
+				for event in (by_email, by_link):
+					self.assertTrue(frappe.has_permission("Event", doc=event))
+					self.assertIn(event.name, listed)
+					self.assertIn(event.name, in_calendar)
+
+				self.assertFalse(frappe.has_permission("Event", doc=other))
+				self.assertNotIn(other.name, listed)
+				self.assertNotIn(other.name, in_calendar)
+
+				update_attending_status(by_email.name, user.email, "Yes")
+
+			self.assertEqual(
+				frappe.db.get_value("Event Participants", {"parent": by_email.name}, "attending"), "Yes"
+			)
+
+			update_attending_status(by_email.name, user.name, "No")
+
+			self.assertEqual(
+				frappe.db.get_value("Event Participants", {"parent": by_email.name}, "attending"), "No"
+			)
+			self.assertFalse(frappe.db.get_value("Event", by_email.name, "attending"))
+
 	def test_get_events_for_different_timezone(self):
 		frappe.set_user("Administrator")
 		frappe.get_doc(

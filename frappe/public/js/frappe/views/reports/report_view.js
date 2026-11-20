@@ -329,6 +329,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			translations: frappe.utils.datatable.get_translations(),
 			checkboxColumn: true,
 			inlineFilters: true,
+			filterMode: "fuzzy",
 			noDataMessage: __("No matching entries in the current results"),
 			cellHeight: 35,
 			direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
@@ -1667,6 +1668,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 						total_data["name"] = __("Total");
 						total_data.is_total_row = true;
+						total_data._is_report_total = true;
 						rows_in_order.push(total_data);
 					}
 

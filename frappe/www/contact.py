@@ -29,7 +29,7 @@ def get_context(context):
 	return out
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=100, seconds=60 * 60)
 def send_message(sender: str, message: str, subject: str = "Website Query"):
 	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")

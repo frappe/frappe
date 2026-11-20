@@ -476,14 +476,16 @@ def notify_mentions(ref_doctype, ref_name, content, source_doctype=None, source_
 		sender_fullname = get_fullname(frappe.session.user)
 		title = get_title(ref_doctype, ref_name)
 
-		recipients = [
-			frappe.db.get_value(
-				"User",
-				{"enabled": 1, "name": name, "user_type": "System User", "allowed_in_mentions": 1},
-				"email",
-			)
-			for name in mentions
-		]
+		recipients = frappe.get_all(
+			"User",
+			filters={
+				"enabled": 1,
+				"name": ("in", mentions),
+				"user_type": "System User",
+				"allowed_in_mentions": 1,
+			},
+			pluck="name",
+		)
 
 		notification_message = _("""{0} mentioned you in a comment in {1} {2}""").format(
 			frappe.bold(sender_fullname), frappe.bold(ref_doctype), get_title_html(title)

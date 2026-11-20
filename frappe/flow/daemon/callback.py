@@ -26,7 +26,7 @@ JOB_TIMEOUT = 1500  # seconds a background tool may run, unless flow_background_
 DELIVERY_RETRY_DELAYS = (0, 1, 5)  # seconds before each try to post a result
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def callback(callback_type: str, **payload) -> dict:
 	"""Authenticate once, then hand the payload to its focused callback."""
 	_authenticate()

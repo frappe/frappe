@@ -83,7 +83,6 @@ def test_serve_wires_policy_into_the_store(tmp_path, monkeypatch):
 	monkeypatch.setattr(config, "CALLBACK_HOSTS", [])
 	monkeypatch.setattr(config, "POLICY", None)
 	monkeypatch.setattr(config, "EXTENSIONS_PATH", str(tmp_path / "no-extensions"))
-	monkeypatch.setattr(cli_main, "_warm_litellm", lambda: None)
 	monkeypatch.setattr(cli_main, "_run_server", lambda *args, **kwargs: None)
 
 	captured: dict = {}

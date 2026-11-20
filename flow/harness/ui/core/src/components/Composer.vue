@@ -389,7 +389,7 @@
 
 						<!-- the pickers, by the send button; a host adds its own around the model button -->
 						<slot name="toolbar" :open-palette="openPalette">
-							<ModelButton :providers="has('providers')" :tall="tall" @open="openPalette" />
+							<ModelButton :providers="has('providers')" :thinking="has('thinking')" :tall="tall" @open="openPalette" />
 						</slot>
 
 						<Tooltip v-if="running && !submitting" :text="__('Stop')">

@@ -2,8 +2,8 @@
 	<div class="flex h-full flex-col">
 		<div class="flex shrink-0 items-start justify-between gap-4">
 			<div class="flex min-w-0 flex-col gap-1">
-				<h2 :id="ids.heading" class="text-md-semibold text-ink-gray-8">
-					{{ __("Email accounts") }}
+				<h2 :id="ids.heading" class="text-lg-semibold text-ink-gray-8">
+					{{ __("Email Accounts") }}
 				</h2>
 				<p class="text-p-sm text-ink-gray-6">
 					{{ __("Connect mailboxes to send and receive email.") }}
@@ -22,9 +22,13 @@
 		<Banner
 			v-if="oauthResult"
 			class="mt-6 shrink-0"
-			:theme="oauthResult === 'cancelled' ? 'gray' : 'red'"
+			:theme="receiveOnly ? 'amber' : oauthResult === 'cancelled' ? 'gray' : 'red'"
 			:title="
-				oauthMailbox
+				receiveOnly
+					? oauthMailbox
+						? __('Connected {0} for receiving only', [oauthMailbox])
+						: __('Connected for receiving only')
+					: oauthMailbox
 					? __('Couldn\'t connect {0}', [oauthMailbox])
 					: __('Couldn\'t connect the mailbox')
 			"
@@ -32,7 +36,19 @@
 			@dismiss="dismissResult"
 		>
 			<template #description>
-				{{ oauthMessage(oauthResult, oauthProvider) }}
+				<template v-if="receiveOnly">
+					{{
+						defaultOutgoing
+							? __(
+									"Microsoft doesn't let this mailbox send email from other apps. Replies go out from {0}.",
+									[defaultOutgoing]
+							  )
+							: __(
+									"Microsoft doesn't let this mailbox send email from other apps. Replies go out from your default outgoing account."
+							  )
+					}}
+				</template>
+				<template v-else>{{ oauthMessage(oauthResult, oauthProvider) }}</template>
 				<a
 					v-if="helpLink"
 					:href="helpLink"
@@ -284,6 +300,7 @@ import {
 	oauthHelpLink,
 	oauthMessage,
 	reconnectable,
+	saveErrorText,
 	serviceOf,
 } from "./services";
 import type { EmailAccount, EmailAccountsController } from "./types";
@@ -303,6 +320,10 @@ const oneClick = useOneClick();
 const oauthResult = defineModel<string | null>("oauthResult");
 const helpLink = computed(
 	() => oauthResult.value && oauthHelpLink(oauthResult.value, props.oauthProvider)
+);
+const receiveOnly = computed(() => oauthResult.value === "connected_receive_only");
+const defaultOutgoing = computed(
+	() => props.controller.accounts.find((a) => a.default_outgoing)?.email_id
 );
 const adminSteps = computed(
 	() =>
@@ -385,7 +406,7 @@ function toggle(account: EmailAccount, field: "enable_incoming" | "enable_outgoi
 			// turning a direction off also clears the account's default for it, on save
 			await props.controller.update(account, changes);
 		} catch (e) {
-			toast.error(errorText(e) || __("Couldn't update the email account"));
+			toast.error(saveErrorText(account, e) || __("Couldn't update the email account"));
 		} finally {
 			saving.delete(account.name);
 		}

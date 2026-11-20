@@ -92,25 +92,28 @@ def table_dimension() -> int | None:
 def ensure_table_for_dimension(dimension: int) -> None:
 	"""Create the chunks table for the given vector width if it is missing.
 
-	An existing table with a different width is an error — the embedding model
-	changed and the store must be rebuilt, not silently mixed.
+	An empty table with a different width is recreated. One with rows is an error —
+	the embedding model changed and the store must be rebuilt, not silently mixed.
 	"""
 	if not isinstance(dimension, int) or dimension < 1:
 		raise ValueError(f"Invalid embedding dimension: {dimension!r}")
 
 	with _connect(write=True) as db:
 		existing = _shape(db, TABLE_NAME)
+		if existing is not None and int(existing) != dimension:
+			if db.execute(f"select 1 from {TABLE_NAME} limit 1").fetchone():
+				frappe.throw(
+					_(
+						"Knowledge store has dimension {0} but {1} was requested. Rebuild the knowledge store."
+					).format(existing, dimension),
+					title=_("Embedding Dimension Mismatch"),
+				)
+			_drop_table(db, TABLE_NAME)
+			existing = None
 		if existing is None:
 			_create_table(db, TABLE_NAME, "id integer primary key, kb text, source text", dimension)
 			db.execute(f"create index {TABLE_NAME}_kb on {TABLE_NAME}(kb)")
 			db.execute(f"create index {TABLE_NAME}_source on {TABLE_NAME}(source)")
-		elif int(existing) != dimension:
-			frappe.throw(
-				_(
-					"Knowledge store has dimension {0} but {1} was requested. Rebuild the knowledge store."
-				).format(existing, dimension),
-				title=_("Embedding Dimension Mismatch"),
-			)
 
 
 def add(rows: list[dict[str, Any]]) -> None:

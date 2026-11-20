@@ -10,7 +10,7 @@ using a Redis-backed semaphore (LIST + BLPOP).
 
 Usage::
 
-    @frappe.whitelist(allow_guest=True)
+    @frappe.whitelist()
     @frappe.concurrent_limit(limit=3)
     def download_pdf(...):
         ...

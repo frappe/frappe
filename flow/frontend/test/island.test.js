@@ -40,6 +40,27 @@ test("in a page's panel the island loads boot before it mounts, opens the saved 
 	assert.equal(location.pathname, "/flow/s/S1");
 });
 
+test("a new path moves an open panel to that route, and the same path leaves it be", async () => {
+	transport.answers["frappe.flow.api.boot"] = { user: "riya@example.com" };
+	const routes = [];
+	const panelIsland = await mount(target(), {
+		props: { panel: "app", path: "/s/S2", onNavigate: (path) => routes.push(path) },
+	});
+	const { router } = last();
+	await router.isReady();
+	panelIsland.update({ path: "/s/S4", asked: "S4" });
+	await new Promise((resolve) => setTimeout(resolve));
+	assert.equal(router.currentRoute.value.fullPath, "/s/S4");
+	// the chat an app asked for, which the page may say it could not open
+	assert.equal(panel.askedSession, "S4");
+	assert.deepEqual(routes.slice(-1), ["/s/S4"]);
+	const count = routes.length;
+	panelIsland.update({ path: "/s/S4" });
+	panelIsland.update({ title: "no path" });
+	await new Promise((resolve) => setTimeout(resolve));
+	assert.equal(routes.length, count);
+});
+
 test("a panel whose boot fails mounts without it, leaving App to try again and say why", async () => {
 	transport.answers["frappe.flow.api.boot"] = () => {
 		throw new Error("down");
