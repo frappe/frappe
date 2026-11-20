@@ -137,7 +137,10 @@ class TestWebsite(FrappeTestCase):
 		self.assertEqual(response.status_code, 417)
 
 	def test_login(self):
+		from frappe.auth import CookieManager
+
 		set_request(method="GET", path="/login")
+		frappe.local.cookie_manager = CookieManager()
 		response = get_response()
 		self.assertEqual(response.status_code, 200)
 
