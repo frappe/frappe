@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 import frappe
 from frappe.core.doctype.doctype.doctype import clear_permissions_cache
-from frappe.model.db_query import DatabaseQuery
+from frappe.model.qb_query import DatabaseQuery
 from frappe.permissions import add_permission, reset_perms
 from frappe.tests import IntegrationTestCase
 

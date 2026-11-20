@@ -21,9 +21,13 @@ import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
 from frappe.exceptions import DoesNotExistError
-from frappe.model.db_query import requires_owner_constraint
 from frappe.model.document import Document
-from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read, get_role_permissions
+from frappe.permissions import (
+	SYSTEM_USER_ROLE,
+	get_doctypes_with_read,
+	get_role_permissions,
+	requires_owner_constraint,
+)
 from frappe.utils import (
 	cint,
 	get_link_to_form,

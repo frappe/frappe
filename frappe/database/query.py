@@ -162,6 +162,71 @@ def _apply_datetime_field_filter_conversion(between_values: tuple | list, doctyp
 	return (from_val, to_val)
 
 
+def get_between_date_filter(value, df=None) -> str:
+	"""Handle datetime filter bounds for between filter values.
+
+	If date is passed but fieldtype is datetime then
+	        from part is converted to start of day and to part is converted to end of day.
+	If any of filter part (to or from) are missing then:
+	        start or end of current day is assumed as fallback.
+	If fieldtypes match with filter values then:
+	        no change is applied.
+	"""
+	from frappe.utils.data import convert_type_for_between_filters
+
+	fieldtype = (df and df.fieldtype) or "Datetime"
+
+	from_date = frappe.utils.nowdate()
+	to_date = frappe.utils.nowdate()
+
+	if value and isinstance(value, list | tuple):
+		if len(value) >= 1:
+			from_date = value[0]
+		if len(value) >= 2:
+			to_date = value[1]
+
+	if fieldtype == "Datetime":
+		from_date = convert_type_for_between_filters(from_date, set_time=datetime.time())
+		to_date = convert_type_for_between_filters(to_date, set_time=datetime.time(23, 59, 59, 999999))
+		return f"'{frappe.db.format_datetime(from_date)}' AND '{frappe.db.format_datetime(to_date)}'"
+
+	return f"'{frappe.db.format_date(from_date)}' AND '{frappe.db.format_date(to_date)}'"
+
+
+def get_additional_filter_field(additional_filters_config, f, value):
+	additional_filter = additional_filters_config[f.operator.lower()]
+	f = frappe._dict(frappe.get_attr(additional_filter["get_field"])())
+	if f.query_value:
+		for option in f.options:
+			option = frappe._dict(option)
+			if option.value == value:
+				f.value = option.query_value
+	return f
+
+
+def get_date_range(operator: str, value: str):
+	from frappe.utils import get_timespan_date_range
+
+	timespan_map = {
+		"1 week": "week",
+		"1 month": "month",
+		"3 months": "quarter",
+		"6 months": "6 months",
+		"1 year": "year",
+	}
+	period_map = {
+		"previous": "last",
+		"next": "next",
+	}
+
+	if operator != "timespan":
+		timespan = f"{period_map[operator]} {timespan_map[value]}"
+	else:
+		timespan = value
+
+	return get_timespan_date_range(timespan)
+
+
 if TYPE_CHECKING:
 	from frappe.query_builder import DocType
 
@@ -659,8 +724,6 @@ class Engine:
 		additional_filters_config = get_additional_filters_from_hooks()
 		if operator.lower() in additional_filters_config:
 			f = frappe._dict(doctype=doctype or self.doctype, fieldname=field, operator=operator, value=value)
-			from frappe.model.db_query import get_additional_filter_field
-
 			resolved = get_additional_filter_field(additional_filters_config, f, value)
 			operator = resolved.get("operator")
 			value = resolved.get("value", value)
@@ -696,8 +759,6 @@ class Engine:
 				_value = f"%{_value}%"
 
 		if _operator.lower() in ("timespan", "previous", "next"):
-			from frappe.model.db_query import get_date_range
-
 			_value = get_date_range(_operator.lower(), _value)
 			_operator = "between"
 
@@ -712,8 +773,6 @@ class Engine:
 			if isinstance(_value, list | tuple) and len(_value) == 2:
 				_value = _apply_datetime_field_filter_conversion(_value, doctype or self.doctype, field)
 			elif isinstance(_value, str):
-				from frappe.model.db_query import get_between_date_filter
-
 				target_meta = frappe.get_meta(doctype or self.doctype)
 				df = target_meta.get_field(field)
 				_value = tuple(
@@ -1837,7 +1896,7 @@ class Engine:
 		# build conditions from: if_owner constraint OR user permissions
 		conditions = []
 
-		if self.requires_owner_constraint(role_permissions):
+		if frappe.permissions.requires_owner_constraint(role_permissions):
 			# skip user perm check if owner constraint is required
 			conditions.append(table.owner == self.user)
 		elif user_perm_conditions := self.get_user_permission_conditions(doctype, table):
@@ -1929,24 +1988,6 @@ class Engine:
 		if frappe.only_has_select_perm(doctype, user=self.user):
 			return "select"
 		return "read"
-
-	def requires_owner_constraint(self, role_permissions):
-		"""Return True if "select" or "read" isn't available without being creator."""
-		if not role_permissions.get("has_if_owner_enabled"):
-			return
-
-		if_owner_perms = role_permissions.get("if_owner")
-		if not if_owner_perms:
-			return
-
-		# has select or read without if owner, no need for constraint
-		for perm_type in ("select", "read"):
-			if role_permissions.get(perm_type) and perm_type not in if_owner_perms:
-				return
-
-		# not checking if either select or read if present in if_owner_perms
-		# because either of those is required to perform a query
-		return True
 
 	def build_match_conditions(self, as_condition: bool = True) -> str | list:
 		"""Build permission-based conditions for the doctype."""
