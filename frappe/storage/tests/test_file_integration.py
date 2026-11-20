@@ -14,7 +14,7 @@ from frappe.storage.memory_driver import fake
 from frappe.storage.tests import file_permissions_enforced, storage_v2, unique_bytes, unique_png
 from frappe.storage.tests.test_gc_backfill import backdate
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date, get_files_path, now_datetime
+from frappe.utils import add_to_date, get_files_path, get_user_by_email, now_datetime
 
 WEAK_USER = "storage-v2-weak-user@example.com"
 
@@ -39,10 +39,11 @@ class TestFileStorageIntegration(IntegrationTestCase):
 		)
 
 	def make_weak_user(self):
-		if not frappe.db.exists("User", WEAK_USER):
+		if not get_user_by_email(WEAK_USER):
 			frappe.get_doc(
 				doctype="User", email=WEAK_USER, first_name="Storage Weak", send_welcome_email=0
 			).insert(ignore_permissions=True)
+		return get_user_by_email(WEAK_USER)
 
 	def make_legacy_row(self, content):
 		"""Insert a private v1 File row with bytes on disk and no blob link."""
@@ -237,7 +238,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 	def test_legacy_upload_apis_store_blobs(self):
 		from frappe.utils.file_manager import save_file
 
-		self.make_weak_user()
+		weak_user = self.make_weak_user()
 		content = "storage v2 attach " + frappe.generate_hash(length=32)
 		with storage_v2(), fake() as store:
 			file = save_file(
@@ -249,7 +250,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 			self.assertTrue(store.exists(key, is_private=True))
 
 			attach = {"filedata": content, "doctype": "Language", "docname": "en", "is_private": 1}
-			with self.set_user(WEAK_USER):
+			with self.set_user(weak_user):
 				# read on Language is granted to All; write is not
 				self.assertRaises(frappe.PermissionError, attach_file, filename="denied.txt", **attach)
 
@@ -260,7 +261,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 
 	def test_new_row_needs_permission_on_the_private_blob_it_links(self):
 		# knowing a private blob URL or name must not grant access through a new row
-		self.make_weak_user()
+		weak_user = self.make_weak_user()
 		with storage_v2(), fake(), file_permissions_enforced():
 			original = self.make_file(unique_png(), "secret.png", is_private=1)
 
@@ -271,14 +272,14 @@ class TestFileStorageIntegration(IntegrationTestCase):
 
 			# the stored URL, and the same blob under another download name
 			urls = (original.file_url, f"/private/files/{original.blob}/renamed.png")
-			with self.set_user(WEAK_USER):
+			with self.set_user(weak_user):
 				for url in urls:
 					with self.subTest(url=url):
 						self.assertRaises(frappe.PermissionError, copy(url).insert)
 			self.assertFalse(frappe.db.exists("File", {"blob": original.blob, "file_name": "stolen.png"}))
 
 			# a trusted caller may still relink it
-			with self.set_user(WEAK_USER):
+			with self.set_user(weak_user):
 				trusted = copy(urls[1]).insert(ignore_permissions=True)
 			self.delete_later("File", trusted.name)
 			self.assertEqual(trusted.blob, original.blob)
@@ -293,7 +294,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 					({}, frappe.PermissionError),
 					({"file_url": "https://example.com/a.txt"}, frappe.ValidationError),
 				)
-				with self.set_user("test@example.com"):
+				with self.set_user(get_user_by_email("test@example.com")):
 					for fields, error in rows:
 						row = frappe.get_doc(
 							doctype="File", file_name="stolen.png", is_private=1, blob=secret.blob, **fields
@@ -304,7 +305,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 	def test_existing_row_needs_permission_on_the_private_blob_it_links(self):
 		with storage_v2(), fake(), file_permissions_enforced():
 			secret = self.make_file(unique_png(), "secret.png", is_private=1)
-			with self.set_user("test@example.com"):
+			with self.set_user(get_user_by_email("test@example.com")):
 				own = self.make_file(unique_png(), "own.png", is_private=0)
 				own.blob = secret.blob
 				own.is_private = 1
@@ -334,7 +335,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 		buffer = io.BytesIO()
 		Image.effect_noise((1200, 900), 100).convert("RGB").save(buffer, format="JPEG", quality=100)
 		with storage_v2(), fake():
-			user = frappe.get_doc("User", "test@example.com")
+			user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 			file = self.make_file(
 				buffer.getvalue(),
 				"optimize.jpg",
@@ -400,7 +401,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 					{"doctype": "File", "file_url": file_url, "file_name": "copy.png", "is_private": 1}
 				)
 
-			with self.set_user("test@example.com"):
+			with self.set_user(get_user_by_email("test@example.com")):
 				self.assertRaises(frappe.PermissionError, copy().insert)
 
 			for enabled in (True, False):
