@@ -256,7 +256,7 @@ def sendmail(
 
 	from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 
-	recipients, cc, bcc = _user_ids_to_emails(recipients, cc, bcc)
+	recipients, cc, bcc, (sender,) = _user_ids_to_emails(recipients, cc, bcc, [sender])
 	builder = QueueBuilder(
 		recipients=recipients,
 		sender=sender,
@@ -304,7 +304,8 @@ def sendmail(
 
 
 def _user_ids_to_emails(*recipient_lists):
-	"""Replace user IDs with the user's email, for callers that still pass IDs. Removed in v18."""
+	"""Replace user IDs with the user's email, for callers that still pass IDs (as recipients or sender).
+	Removed in v18."""
 	from frappe.deprecation_dumpster import deprecation_warning
 	from frappe.utils import split_emails
 

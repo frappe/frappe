@@ -292,6 +292,16 @@ class TestEmail(IntegrationTestCase):
 
 		self.assertEqual([r.recipient for r in email_queue.recipients], [user.email])
 
+	def test_sendmail_sends_from_the_email_of_a_user_id(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as user:
+			email_queue = frappe.sendmail(
+				recipients=["test@example.com"], sender=user.name, subject="Testing", message="Hello"
+			)
+
+		self.assertEqual(email_queue.sender, user.email)
+
 	def test_unsubscribe(self):
 		from frappe.email.queue import unsubscribe
 
