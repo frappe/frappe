@@ -3,6 +3,8 @@
 
 from unittest.mock import patch
 
+import responses
+
 import frappe
 from frappe.automation_engine.actions.base import (
 	USER_CONTROL,
@@ -438,6 +440,24 @@ class TestCallWebhook(IntegrationTestCase):
 			self.assertRaises(
 				AutomationParamError, CallWebhook().execute, None, {"url": "https://example.com/hook"}, {}
 			)
+
+	def test_a_host_resolving_internally_when_sent_is_blocked(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		addresses = iter(("93.184.216.34", "10.0.0.5"))
+
+		def getaddrinfo(host, *args, **kwargs):
+			return [(2, 1, 6, "", (next(addresses), 0))]
+
+		with (
+			patch("socket.getaddrinfo", side_effect=getaddrinfo),
+			responses.RequestsMock(assert_all_requests_are_fired=False) as mocked,
+		):
+			mocked.add(responses.POST, "https://example.com/hook")
+			self.assertRaises(
+				frappe.ValidationError, CallWebhook().execute, None, {"url": "https://example.com/hook"}, {}
+			)
+			self.assertFalse(mocked.calls)
 
 
 class TestRunScript(IntegrationTestCase):
