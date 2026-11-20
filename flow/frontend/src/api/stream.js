@@ -1,14 +1,19 @@
 import { FlowAPIError } from "@flow/ui-core/client.js";
 import { __ } from "@flow/ui-core/translate.js";
 
+import { RESTART, retrying } from "./retry.js";
+
 const SUBSCRIBE_TIMEOUT = 15_000;
+// a refusal, or a flow server that is down, which the call has already waited for
+const FINAL = [401, 403, 404, 503];
 
 // Live events for one session, as the store's async event source. The relay room is
 // joined first, then the log since `since` is fetched, so nothing published in between
 // is lost; live events are then deduplicated by seq (durable) or revision (deltas). A
 // seq gap, a resync notice, a reconnect or a changed stream_id re-fetches the log since
-// the cursor. Live events pass through `present` (fetched rows arrive presented). Each
-// durable run_ended of the session's own turn is reported once through `onTerminal`.
+// the cursor, and a failed fetch is tried again: the bench's servers may be restarting.
+// Live events pass through `present` (fetched rows arrive presented). Each durable
+// run_ended of the session's own turn is reported once through `onTerminal`.
 export class SessionStream {
 	constructor({
 		socket,
@@ -138,7 +143,12 @@ export class SessionStream {
 
 	// durable rows after the cursor, then the in-flight preview of a running turn
 	async *resnapshot() {
-		const data = await this.fetchEntries(this.cursor);
+		const data = await retrying(() => this.fetchEntries(this.cursor), {
+			retriable: (error) => !this.closed && !FINAL.includes(error?.status),
+			within: RESTART,
+		}).catch((error) => {
+			if (!this.closed) throw error;
+		});
 		if (this.closed) return;
 		if (data.stream_id) this.streamId = data.stream_id;
 		if (typeof data.revision === "number") this.revision = data.revision;
