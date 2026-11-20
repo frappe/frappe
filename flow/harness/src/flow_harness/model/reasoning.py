@@ -19,6 +19,7 @@ from __future__ import annotations
 from typing import Any
 
 from flow_harness.events import ReasoningEffort
+from flow_harness.model.catalog import load_litellm
 
 # pi's budgets for Anthropic's budget-based thinking. The map has no xhigh/max rungs:
 # pi clamps both down to high on this path, and so does flow.
@@ -76,7 +77,7 @@ def _litellm_params(model: str, effort: ReasoningEffort) -> dict[str, Any] | Non
 
 
 def _model_info(model: str) -> dict[str, Any] | None:
-	import litellm
+	litellm = load_litellm()
 
 	try:
 		return dict(litellm.get_model_info(model))
@@ -103,7 +104,7 @@ def _anthropic_params(model: str, effort: ReasoningEffort) -> dict[str, Any]:
 
 
 def _max_output_tokens(model: str) -> int | None:
-	import litellm
+	litellm = load_litellm()
 
 	try:
 		return litellm.get_max_tokens(model)
