@@ -286,6 +286,8 @@ class FormTimeline extends BaseTimeline {
 	get_communication_timeline_content(doc, allow_reply = true) {
 		doc._url = frappe.utils.get_form_link("Communication", doc.name);
 		this.set_communication_doc_status(doc);
+		doc._recipients = this.get_recipient_names(doc.recipients);
+		doc._cc = this.get_recipient_names(doc.cc);
 		if (doc.attachments && typeof doc.attachments === "string") {
 			doc.attachments = JSON.parse(doc.attachments);
 		}
@@ -312,6 +314,18 @@ class FormTimeline extends BaseTimeline {
 		}
 		doc._doc_status = doc.delivery_status;
 		doc._doc_status_indicator = indicator_color;
+	}
+
+	get_recipient_names(addresses) {
+		return frappe.utils
+			.split_emails(addresses)
+			.map((address) => {
+				const [, name, email] = address.match(/^"?([^"<]*?)"?\s*<([^>]+)>$/) || [];
+				if (!name) return frappe.utils.escape_html(email || address);
+				const title = frappe.utils.escape_html(email);
+				return `<span title="${title}">${frappe.utils.escape_html(name)}</span>`;
+			})
+			.join(", ");
 	}
 
 	get_auto_messages_timeline_contents(more_items) {
