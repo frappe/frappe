@@ -303,16 +303,16 @@ def sendmail(
 	return q
 
 
-def _user_ids_to_emails(*recipient_lists):
+def _user_ids_to_emails(*address_lists):
 	"""Replace user IDs with the user's email, for callers that still pass IDs (as recipients or sender).
 	Removed in v18."""
 	from frappe.deprecation_dumpster import deprecation_warning
 	from frappe.utils import split_emails
 
-	recipient_lists = [split_emails(r) if isinstance(r, str) else list(r) for r in recipient_lists]
-	values = {value for recipients in recipient_lists for value in recipients} - set(frappe.STANDARD_USERS)
+	address_lists = [split_emails(r) if isinstance(r, str) else list(r) for r in address_lists]
+	values = {value for addresses in address_lists for value in addresses} - set(frappe.STANDARD_USERS)
 	if not values:
-		return recipient_lists
+		return address_lists
 
 	user_emails = {
 		name: email
@@ -326,4 +326,4 @@ def _user_ids_to_emails(*recipient_lists):
 			"2026-11-18", "v18", f"Pass emails to `sendmail`, not user IDs: {', '.join(user_emails)}"
 		)
 
-	return [[user_emails.get(value, value) for value in recipients] for recipients in recipient_lists]
+	return [[user_emails.get(value, value) for value in addresses] for addresses in address_lists]
