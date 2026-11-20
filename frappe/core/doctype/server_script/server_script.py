@@ -151,7 +151,12 @@ class ServerScript(Document):
 			keys.add(variable.key)
 
 	def validate_guest_rate_limit(self):
-		if self.script_type == "API" and self.allow_guest and not self.enable_rate_limit:
+		if (
+			self.script_type == "API"
+			and self.allow_guest
+			and not self.enable_rate_limit
+			and not self.disabled
+		):
 			frappe.throw(
 				_("{0} is required for API scripts that allow guests").format(
 					frappe.bold(_("Enable Rate Limit"))
