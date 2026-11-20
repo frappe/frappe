@@ -399,10 +399,10 @@ class FlowAgent(Document):
 		session: str | None = None,
 		source: str = "Manual",
 		trigger: str | None = None,
-		personal_trigger: bool = False,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
 		on_complete: str | None = None,
+		personal_trigger: bool = False,
 	) -> FlowRun:
 		"""Start `input` and return its Running Flow Run, in a new or existing session.
 		Once the run ends, Flow calls the function at the dotted path `on_complete` with it.
