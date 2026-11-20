@@ -330,7 +330,7 @@ export function oauthMessage(result: string, provider?: string | null): string {
         "SMTP AUTH is turned off for this mailbox. Ask your Microsoft 365 admin to turn on Authenticated SMTP for it.",
       ),
       smtp_disabled_personal: __(
-        "Microsoft doesn't let this mailbox send email from other apps. To send, connect a work or school Microsoft 365 account.",
+        "Microsoft doesn't let this mailbox send email from other apps. To send, connect a work Microsoft 365 account.",
       ),
       imap_disabled: __(
         "IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin.",
