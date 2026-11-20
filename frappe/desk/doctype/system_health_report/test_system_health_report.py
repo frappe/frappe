@@ -7,6 +7,7 @@ import frappe
 from frappe.desk.doctype.system_health_report.system_health_report import get_scheduler_health_status
 from frappe.desk.form.load import getdoc
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.utils import get_user_by_email
 
 HEALTH_REPORT_MODULE = "frappe.desk.doctype.system_health_report.system_health_report"
 
@@ -49,9 +50,10 @@ class TestSystemHealthReport(IntegrationTestCase):
 		getdoc("System Health Report", "System Health Report")
 
 	def test_permission_check_does_not_load_report(self):
-		frappe.get_doc("User", "test1@example.com").add_roles("System Manager")
+		user = get_user_by_email("test1@example.com")
+		frappe.get_doc("User", user).add_roles("System Manager")
 
-		with self.set_user("test1@example.com"), patch("frappe.enqueue") as enqueue:
+		with self.set_user(user), patch("frappe.enqueue") as enqueue:
 			self.assertTrue(frappe.has_permission("System Health Report"))
 
 		enqueue.assert_not_called()

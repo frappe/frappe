@@ -6,11 +6,12 @@ import frappe
 from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.doctype.number_card.number_card import create_number_card, get_cards_for_user
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestNumberCard(IntegrationTestCase):
 	def test_report_card_hidden_when_report_is_not_allowed(self):
-		user = "test2@example.com"
+		user = get_user_by_email("test2@example.com")
 		report_name = "Test Restricted Number Card Report"
 		card_name = "Test Restricted Report Number Card"
 		baseline_role = "Desk User"
@@ -62,7 +63,7 @@ class TestNumberCard(IntegrationTestCase):
 		)
 
 	def test_link_search_hides_cards_from_blocked_modules(self):
-		user = "test2@example.com"
+		user = get_user_by_email("test2@example.com")
 		blocked_module = "Contacts"
 		blocked_card_name = "Test Blocked Module Card"
 		allowed_card_name = "Test No Module Card"
