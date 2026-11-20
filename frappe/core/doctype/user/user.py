@@ -792,9 +792,6 @@ class User(Document):
 
 		self.validate_email_change_allowed()
 		self.reset_password_key = ""
-		if self.name in STANDARD_USERS:
-			return
-
 		self.validate_email_type(self.email)
 		self.validate_email_domain(self.email)
 		self.validate_email_is_not_another_users_id()

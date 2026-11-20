@@ -1214,6 +1214,15 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			new.email = old.name
 			self.assertRaises(frappe.ValidationError, new.save)
 
+			admin = frappe.get_doc("User", "Administrator")
+			admin.email = old.name
+			self.assertRaises(frappe.ValidationError, admin.run_method, "validate")
+
+	def test_standard_users_need_a_valid_email(self):
+		admin = frappe.get_doc("User", "Administrator")
+		admin.email = "not-an-email"
+		self.assertRaises(frappe.InvalidEmailAddressError, admin.run_method, "validate")
+
 	def test_users_are_found_by_email(self):
 		from frappe.core.doctype.user.user import user_query
 
