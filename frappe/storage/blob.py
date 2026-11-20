@@ -8,6 +8,7 @@ import tempfile
 from typing import IO, TYPE_CHECKING
 
 import filetype
+from pypika.terms import Function
 
 import frappe
 from frappe import _
@@ -15,6 +16,9 @@ from frappe.storage.driver import get_driver
 from frappe.utils import cint, now
 
 if TYPE_CHECKING:
+	from pypika.queries import Table
+	from pypika.terms import Criterion
+
 	from frappe.core.doctype.file_blob.file_blob import FileBlob
 	from frappe.storage.driver import StorageDriver
 
@@ -94,6 +98,13 @@ def key_filename(filename: str | None) -> str:
 def make_key(driver: "StorageDriver", blob_name: str, filename: str | None) -> str:
 	"""Object key for a blob: ``[<site prefix>/]<blob>/<filename>``, also its local path under the files root."""
 	return f"{driver.key_prefix}{blob_name}/{key_filename(filename)}"
+
+
+def other_site_key_criterion(blob: "Table") -> "Criterion":
+	"""Keys under another site's ``sites/<name>/`` prefix: a renamed site's former name, or a restored backup's source site."""
+	own_prefix = f"sites/{frappe.local.site}/"
+	# a prefix compare, not LIKE: "_" in a site name is a wildcard, and SQLite has no default LIKE escape
+	return blob.key.like("sites/%") & (Function("SUBSTR", blob.key, 1, len(own_prefix)) != own_prefix)
 
 
 def key_basename(key: str) -> str:

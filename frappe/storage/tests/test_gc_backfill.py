@@ -4,14 +4,19 @@ import hashlib
 import io
 import json
 import os
+import sqlite3
 from contextlib import contextmanager
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from pypika.queries import Table
+
 import frappe
 import frappe.storage
+from frappe.database.sqlite.query_parameters import convert_frappe_query_parameters
+from frappe.query_builder.utils import get_query_builder, prepare_query
 from frappe.storage import backfill, gc
-from frappe.storage.blob import put_blob
+from frappe.storage.blob import other_site_key_criterion, put_blob
 from frappe.storage.gc import collect_garbage
 from frappe.storage.memory_driver import fake
 from frappe.storage.tests import storage_v2, unique_bytes
@@ -217,6 +222,72 @@ class TestCollectGarbage(IntegrationTestCase):
 		for blob in blobs:
 			self.assertFalse(frappe.db.exists("File Blob", blob.name))
 			self.assertFalse(store.exists(blob.key))
+
+	def rekey(self, store, blob, key):
+		"""Store the blob's bytes at ``key`` and point its row there."""
+		store.write(key, io.BytesIO(b"rekeyed"), is_private=bool(blob.is_private))
+		frappe.db.set_value("File Blob", blob.name, "key", key, update_modified=False)
+		blob.key = key
+
+	def test_blobs_under_another_sites_prefix_are_not_collected(self):
+		"""A key under another site's prefix belongs to a former name or a restored source site.
+
+		The driver refuses to delete those bytes, so collecting would only drop the row
+		that relocation and old backups still need."""
+		with fake() as store:
+			foreign, own, plain = self.old_blobs(3)
+			self.rekey(store, foreign, f"sites/other.example/storage/{foreign.name}/a.txt")
+			self.rekey(store, own, f"sites/{frappe.local.site}/storage/{own.name}/a.txt")
+
+			collect_garbage()
+
+			self.assert_kept(store, foreign)
+			self.assert_deleted(store, own, plain)
+
+	def test_other_site_check_escapes_like_wildcards(self):
+		"""An underscore in this site's name must not match another site's prefix."""
+		with fake() as store:
+			lookalike, own = self.put(), self.put()
+			self.rekey(store, lookalike, f"sites/aXb.example/storage/{lookalike.name}/a.txt")
+			self.rekey(store, own, f"sites/a_b.example/storage/{own.name}/a.txt")
+
+		blob = frappe.qb.DocType("File Blob")
+		with patch.object(frappe.local, "site", "a_b.example"):
+			query = (
+				frappe.qb.from_(blob)
+				.select(blob.name)
+				.where(blob.name.isin([lookalike.name, own.name]))
+				.where(other_site_key_criterion(blob))
+			)
+			matched = query.run(pluck=True)
+
+		self.assertEqual(matched, [lookalike.name])
+
+	def test_other_site_check_works_on_sqlite(self):
+		"""SQLite has no default LIKE escape, so the check must not depend on one."""
+		keys = {
+			"own": "sites/a_b.example/storage/x/a.txt",
+			"lookalike": "sites/aXb.example/storage/x/a.txt",
+			"other": "sites/other.example/storage/x/a.txt",
+			"legacy": "public/abc/x/a.txt",
+		}
+		blob = Table("blob_check")
+		with patch.object(frappe.local, "site", "a_b.example"):
+			query = (
+				get_query_builder("sqlite")
+				.from_(blob)
+				.select(blob.label)
+				.where(other_site_key_criterion(blob))
+				.orderby(blob.label)
+			)
+			sql, params = prepare_query(query)
+		connection = sqlite3.connect(":memory:")
+		connection.execute('create table blob_check (label text, "key" text)')
+		connection.executemany("insert into blob_check values (?, ?)", keys.items())
+
+		matched = [row[0] for row in connection.execute(*convert_frappe_query_parameters(sql, params))]
+
+		self.assertEqual(matched, ["lookalike", "other"])
 
 	def test_blobs_listed_in_a_backup_index_are_kept(self):
 		"""A blob that a backup's File index lists stays, so that backup can still be restored."""
