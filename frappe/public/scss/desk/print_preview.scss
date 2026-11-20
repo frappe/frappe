@@ -419,3 +419,11 @@
 	height: 0;
 	border: 0;
 }
+
+.letter-head-preview {
+	width: 100%;
+	height: 60vh;
+	border: 1px solid var(--outline-gray-1);
+	border-radius: var(--radius);
+	background-color: var(--surface-gray-2);
+}
