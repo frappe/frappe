@@ -3,6 +3,7 @@ from unittest.mock import patch
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.www.printview import get_html_and_style
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
@@ -26,7 +27,10 @@ class PrintViewTest(IntegrationTestCase):
 		).insert()
 
 		params = frappe._dict(doctype=doctype.name, name=doc.name, format=print_format.name)
-		with self.set_user("test@example.com"), patch.object(frappe.local, "form_dict", params):
+		with (
+			self.set_user(get_user_by_email("test@example.com")),
+			patch.object(frappe.local, "form_dict", params),
+		):
 			context = get_context({})
 
 		self.assertFalse(context["standalone"])
@@ -56,7 +60,10 @@ class PrintViewTest(IntegrationTestCase):
 		for print_format in ("Standard", custom_format.name):
 			with self.subTest(print_format=print_format):
 				params = frappe._dict(doctype=doc.doctype, name=doc.name, print_format=print_format)
-				with self.set_user("test@example.com"), patch.object(frappe.local, "form_dict", params):
+				with (
+					self.set_user(get_user_by_email("test@example.com")),
+					patch.object(frappe.local, "form_dict", params),
+				):
 					context = frappe._dict()
 					get_context(context)
 				self._assert_print_link_titles(context.body, doc, links)
@@ -71,7 +78,7 @@ class PrintViewTest(IntegrationTestCase):
 		doc, links = self._make_linked_print_doc()
 		print_format, _ = resolve_print_format("Standard", doc.meta)
 		print_format.pdf_generator = "chrome"
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			html = render_builder_preview(print_format.as_dict(), doc.doctype, doc.name)
 			self._assert_print_link_titles(html, doc, links)
 			with (
@@ -209,7 +216,7 @@ class PrintViewTest(IntegrationTestCase):
 
 		print_format = frappe.get_doc(doctype="Print Format", doc_type="Note", paper_size="A5")
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			self.assertIn("width: 148mm", get_preview_page_css(print_format))
 
 	def test_preview_sheet_uses_the_print_format_class_page_size(self):
@@ -218,7 +225,7 @@ class PrintViewTest(IntegrationTestCase):
 		print_format = frappe.get_doc(doctype="Print Format", doc_type="Note")
 		html = "<style>.print-format { page-size: A5; }</style>"
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			self.assertIn("width: 148mm", get_preview_page_css(print_format, html))
 
 	def test_preview_sheet_uses_the_page_size_in_the_format_html(self):
@@ -232,7 +239,7 @@ class PrintViewTest(IntegrationTestCase):
 			html="<style>@page { size: A5; }</style>",
 		).insert()
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			out = get_html_and_style(doc="Note", name=note.name, print_format=print_format.name)
 
 		self.assertIn("width: 148.0mm", out["page_style"])
@@ -303,7 +310,7 @@ class PrintViewTest(IntegrationTestCase):
 		self.addCleanup(report_letter_head.delete)
 		todo = frappe.get_doc(doctype="ToDo", description="_Test ToDo").insert()
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			letter_head = get_letter_head(todo, no_letterhead=False)
 
 		self.assertNotEqual(letter_head.get("content"), report_letter_head.content)

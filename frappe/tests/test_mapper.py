@@ -4,6 +4,7 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
+from frappe.utils import get_user_by_email
 
 
 @whitelist_for_tests()
@@ -45,7 +46,7 @@ class TestMapper(IntegrationTestCase):
 	def test_get_mapped_doc_accepts_dict_parent(self):
 		from frappe.model.mapper import get_mapped_doc
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			note = frappe.get_doc({"doctype": "Note", "title": "Mapper Source Note for Parent"}).insert()
 			parent = frappe.new_doc("Contact").as_dict()
 
@@ -62,4 +63,4 @@ class TestMapper(IntegrationTestCase):
 			)
 
 		self.assertEqual(doc.doctype, "Contact")
-		self.assertEqual(doc.email_ids[0].email_id, "test@example.com")
+		self.assertEqual(doc.email_ids[0].email_id, note.owner)

@@ -8,6 +8,7 @@ from frappe.desk.form.load import get_docinfo, get_versions, getdoc, getdoctype
 from frappe.share import add as add_share
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
+from frappe.utils import get_user_by_email
 from frappe.utils.file_manager import save_file
 
 
@@ -39,7 +40,7 @@ class TestFormLoad(IntegrationTestCase):
 
 		blog.insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
@@ -114,7 +115,7 @@ class TestFormLoad(IntegrationTestCase):
 		contact.append("phone_nos", {"phone": "123456"})
 		contact.insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
@@ -189,7 +190,7 @@ class TestFormLoad(IntegrationTestCase):
 			}
 		).insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
 		user.add_roles("Blogger")
@@ -256,7 +257,7 @@ class TestFormLoad(IntegrationTestCase):
 			}
 		).insert()
 
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		user_roles = frappe.get_roles()
 		user.remove_roles(*user_roles)
 		user.add_roles("Accounts User")
@@ -351,10 +352,9 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 	  role or an explicit DocShare, never ambiently.
 	"""
 
-	RESTRICTED_USER = "test@example.com"
-	SHARED_USER = "test1@example.com"
-
 	def setUp(self):
+		self.restricted_user = get_user_by_email("test@example.com")
+		self.shared_user = get_user_by_email("test1@example.com")
 		# Contact does not track changes out of the box, and versions are what we filter
 		make_property_setter("Contact", None, "track_changes", 1, "Check", for_doctype=True)
 		# the whole phone_nos table sits above permlevel 0 ...
@@ -367,12 +367,12 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 		# the role and the DocShare are actually contributing
 		update("Contact", "All", 0, "read", 0)
 
-		self._set_roles(self.RESTRICTED_USER, ["Sales User"])
-		self._set_roles(self.SHARED_USER, [])
+		self._set_roles(self.restricted_user, ["Sales User"])
+		self._set_roles(self.shared_user, [])
 
-	def _set_roles(self, email, roles):
-		user = frappe.get_doc("User", email)
-		user.remove_roles(*frappe.get_roles(email))
+	def _set_roles(self, user_id, roles):
+		user = frappe.get_doc("User", user_id)
+		user.remove_roles(*frappe.get_roles(user_id))
 		if roles:
 			user.add_roles(*roles)
 
@@ -427,7 +427,7 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 	def test_restricted_table_field_excluded_from_versions(self):
 		contact = self._make_contact()
 
-		with self.set_user(self.RESTRICTED_USER):
+		with self.set_user(self.restricted_user):
 			versions = get_versions(frappe.get_doc("Contact", contact.name))
 
 		self.assertTrue(versions, "expected at least one version to be recorded")
@@ -446,7 +446,7 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 		"""A readable table still hides the child fields sitting above the user's permlevel."""
 		contact = self._make_contact()
 
-		with self.set_user(self.RESTRICTED_USER):
+		with self.set_user(self.restricted_user):
 			versions = get_versions(frappe.get_doc("Contact", contact.name))
 
 		tables, _, _ = self._collect(versions)
@@ -462,7 +462,7 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 		add("Contact", "Sales User", 1)
 		update("Contact", "Sales User", 1, "read", 1)
 
-		with self.set_user(self.RESTRICTED_USER):
+		with self.set_user(self.restricted_user):
 			versions = get_versions(frappe.get_doc("Contact", contact.name))
 
 		tables, _, _ = self._collect(versions)
@@ -474,7 +474,7 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 		"""Precondition for the share test: no role means no permlevel access at all."""
 		contact = self._make_contact()
 
-		with self.set_user(self.SHARED_USER):
+		with self.set_user(self.shared_user):
 			doc = frappe.get_doc("Contact", contact.name)
 			self.assertEqual(doc.get_permlevel_access(permission_type="read"), [])
 			versions = get_versions(doc)
@@ -486,9 +486,9 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 	def test_shared_document_grants_permlevel_zero_only(self):
 		"""A DocShare unlocks permlevel 0, and must not drag permlevel 1 along with it."""
 		contact = self._make_contact()
-		add_share("Contact", contact.name, self.SHARED_USER, read=1)
+		add_share("Contact", contact.name, self.shared_user, read=1)
 
-		with self.set_user(self.SHARED_USER):
+		with self.set_user(self.shared_user):
 			versions = get_versions(frappe.get_doc("Contact", contact.name))
 
 		tables, changed, blob = self._collect(versions)
@@ -509,7 +509,7 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 				ignore_permissions=True
 			)
 
-		with self.set_user(self.RESTRICTED_USER):
+		with self.set_user(self.restricted_user):
 			versions = get_versions(frappe.get_doc("Contact", contact.name))
 
 		self.assertTrue(versions)
@@ -533,9 +533,8 @@ class TestStandardFieldsInVersions(IntegrationTestCase):
 	the permlevel filter in get_versions has to allow them through on its own. Without that
 	a submit-only version carries no changes at all and drops out of the timeline."""
 
-	RESTRICTED_USER = "test@example.com"
-
 	def setUp(self):
+		self.restricted_user = get_user_by_email("test@example.com")
 		self.dt = new_doctype(
 			is_submittable=1,
 			track_changes=1,
@@ -568,7 +567,7 @@ class TestStandardFieldsInVersions(IntegrationTestCase):
 	def test_docstatus_change_survives_permlevel_filtering(self):
 		doc = self._submitted_doc()
 
-		with self.set_user(self.RESTRICTED_USER):
+		with self.set_user(self.restricted_user):
 			versions = get_versions(frappe.get_doc(self.dt.name, doc.name))
 
 		changed = self._changed(versions)

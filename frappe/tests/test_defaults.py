@@ -4,6 +4,7 @@ import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.defaults import *
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestDefaults(IntegrationTestCase):
@@ -54,7 +55,7 @@ class TestDefaults(IntegrationTestCase):
 		self.assertEqual(get_user_default_as_list("language"), ["en"])
 
 		old_user = frappe.session.user
-		user = "test@example.com"
+		user = get_user_by_email("test@example.com")
 		frappe.set_user(user)
 
 		perm_doc = frappe.get_doc(
@@ -69,8 +70,7 @@ class TestDefaults(IntegrationTestCase):
 		frappe.set_user(old_user)
 
 	def test_user_permission_defaults(self):
-		user = "user_default_test@example.com"
-		create_user(user, "Website Manager")
+		user = create_user("user_default_test@example.com", "Website Manager").name
 
 		with self.set_user(user):
 			set_global_default("country", "United States")
