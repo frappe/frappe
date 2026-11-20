@@ -273,6 +273,10 @@ class Browser:
 				style.name not in ("page-width", "page-height")
 				or re.fullmatch(PAGE_LENGTH, style.value.strip())
 			)
+			and (
+				style.name != "header-spacing"
+				or re.fullmatch(rf"{PAGE_LENGTH}|[+-]?(\d*\.)?\d+", style.value.strip())
+			)
 		}
 		self.options.update(options)
 		self._set_page_size_from_print_format()
@@ -436,7 +440,12 @@ class Browser:
 
 		if self.header_page:
 			header_with_top_margin = self.header_height + (0 if header_owns_top_margin else margin_top)
-			header_spacing = options.get("header-spacing", 0)
+			header_spacing = options.get("header-spacing") or 0
+			if header_spacing:
+				parsed = parse_float_and_unit(header_spacing, default_unit="mm")
+				header_spacing = (
+					convert_uom(parsed["value"], parsed["unit"], "px", only_number=True) if parsed else 0
+				)
 			header_with_spacing_top_margin = header_with_top_margin + header_spacing
 			self.header_page.options["paperHeight"] = (
 				convert_uom(header_with_spacing_top_margin, "px", "in", only_number=True)
