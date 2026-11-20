@@ -18,6 +18,11 @@
 	overflow: hidden;
 }
 
+.preview-beta-wrapper iframe {
+	// a frame whose color scheme differs from the desk's gets an opaque canvas
+	color-scheme: light;
+}
+
 .print-toolbar {
 	margin: 0px;
 	padding: var(--padding-md) 0;
@@ -37,7 +42,8 @@
 }
 
 [data-theme="dark"] {
-	.print-preview-wrapper {
+	.print-preview-wrapper,
+	.preview-beta-wrapper {
 		background-color: var(--gray-700);
 	}
 }
@@ -366,6 +372,7 @@
 
 .preview-beta-wrapper {
 	position: relative;
+	background-color: var(--gray-200);
 }
 
 .print-preview-bar {
