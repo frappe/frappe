@@ -68,6 +68,7 @@ def download_multi_pdf_async(
 		no_letterhead=no_letterhead,
 		letterhead=letterhead,
 		options=options,
+		language=frappe.local.lang,
 		queue="long" if doc_count > 20 else "short",
 	)
 	frappe.local.response["http_status_code"] = http.HTTPStatus.CREATED
@@ -82,6 +83,7 @@ def _download_multi_pdf(
 	letterhead: str | None = None,
 	options: str | None = None,
 	task_id: str | None = None,
+	language: str | None = None,
 ):
 	"""Return a PDF compiled by concatenating multiple documents.
 
@@ -126,6 +128,15 @@ def _download_multi_pdf(
 	if isinstance(options, str):
 		options = json.loads(options)
 
+	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
+
+	def document_language(print_doctype, print_name):
+		"""The document's own language, then the format's default, then the requesting user's language."""
+		doc_language = None
+		if frappe.get_meta(print_doctype).has_field("language"):
+			doc_language = frappe.db.get_value(print_doctype, print_name, "language")
+		return doc_language or format_language or language
+
 	if not isinstance(doctype, dict):
 		result = json.loads(name)
 		total_docs = len(result)
@@ -134,16 +145,17 @@ def _download_multi_pdf(
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
 			try:
-				pdf_writer = frappe.get_print(
-					doctype,
-					ss,
-					format,
-					as_pdf=True,
-					output=pdf_writer,
-					no_letterhead=no_letterhead,
-					letterhead=letterhead,
-					pdf_options=options,
-				)
+				with print_language(document_language(doctype, ss)):
+					pdf_writer = frappe.get_print(
+						doctype,
+						ss,
+						format,
+						as_pdf=True,
+						output=pdf_writer,
+						no_letterhead=no_letterhead,
+						letterhead=letterhead,
+						pdf_options=options,
+					)
 			except Exception:
 				if task_id:
 					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
@@ -171,16 +183,17 @@ def _download_multi_pdf(
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
 				try:
-					pdf_writer = frappe.get_print(
-						doctype_name,
-						doc_name,
-						format,
-						as_pdf=True,
-						output=pdf_writer,
-						no_letterhead=no_letterhead,
-						letterhead=letterhead,
-						pdf_options=options,
-					)
+					with print_language(document_language(doctype_name, doc_name)):
+						pdf_writer = frappe.get_print(
+							doctype_name,
+							doc_name,
+							format,
+							as_pdf=True,
+							output=pdf_writer,
+							no_letterhead=no_letterhead,
+							letterhead=letterhead,
+							pdf_options=options,
+						)
 				except Exception:
 					if task_id:
 						frappe.publish_realtime(task_id=task_id, message="Failed")
