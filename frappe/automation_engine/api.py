@@ -179,7 +179,7 @@ def _walk_values(value):
 def _user_options(doctype, params, search_text):
 	or_filters = None
 	if search_text:
-		or_filters = [[field, "like", f"%{search_text}%"] for field in ("full_name", "email")]
+		or_filters = [[field, "like", f"%{search_text}%"] for field in ("name", "full_name", "email")]
 	return frappe.get_all(
 		"User", filters={"enabled": 1}, or_filters=or_filters, fields=["name", "full_name"], limit=20
 	)
