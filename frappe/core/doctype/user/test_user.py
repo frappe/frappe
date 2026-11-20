@@ -1167,6 +1167,23 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			self.assertIn(user.email, get_system_manager_emails())
 			self.assertTrue(any(user.email in manager for manager in get_system_managers()))
 
+	def test_contact_follows_a_changed_email(self):
+		from frappe.contacts.doctype.address.address import get_user_contacts
+
+		with test_user(roles=[], generated_id=True) as user:
+			old_email = user.email
+			contact = frappe.get_doc("Contact", {"user": user.name})
+			frappe.db.set_value("User", user.name, "email", f"changed_{old_email}")
+			user.reload()
+			create_contact(user)
+
+			self.assertEqual(
+				frappe.get_all("Contact", filters={"user": user.name}, pluck="name"), [contact.name]
+			)
+			emails = frappe.get_doc("Contact", contact.name).email_ids
+			self.assertEqual({row.email_id: row.is_primary for row in emails}, {old_email: 0, user.email: 1})
+			self.assertEqual(get_user_contacts(user.name), [contact.name])
+
 	def test_contact_of_another_user_is_left_alone(self):
 		with test_user(roles=[]) as owner, test_user(roles=[]) as user:
 			contact = frappe.get_doc("Contact", {"user": owner.name})
