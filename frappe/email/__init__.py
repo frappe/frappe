@@ -310,6 +310,7 @@ def _user_ids_to_emails(*address_lists):
 	from frappe.utils import split_emails
 
 	address_lists = [split_emails(r) if isinstance(r, str) else list(r) for r in address_lists]
+	# also look up values with an "@": a user whose ID is an old email may have a new one
 	values = {value for addresses in address_lists for value in addresses} - set(frappe.STANDARD_USERS)
 	if not values:
 		return address_lists
