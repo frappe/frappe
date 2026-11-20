@@ -96,9 +96,7 @@ def approve(*args, **kwargs):
 		return generate_json_error_response(e)
 
 
-@frappe.whitelist(
-	allow_guest=True, methods=["GET", "POST"], rate_limit=None
-)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def authorize(**kwargs):
 	request_data = frappe.request.get_data(as_text=True) if frappe.request.method == "POST" else ""
 	if request_data and frappe.request.mimetype != "application/x-www-form-urlencoded":
@@ -218,9 +216,7 @@ def revoke_token(*args, **kwargs):
 	return
 
 
-@frappe.whitelist(
-	allow_guest=True, methods=["GET", "POST"], rate_limit=None
-)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def openid_profile(*args, **kwargs):
 	try:
 		r = frappe.request

@@ -949,9 +949,7 @@ def update_translations_for_source(source: str | None = None, translation_dict: 
 	return translation_records
 
 
-@frappe.whitelist(
-	allow_guest=True, methods=["GET", "POST"], rate_limit=None
-)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def get_all_languages(with_language_name: bool = False) -> list:
 	"""Return all enabled language codes ar, ch etc."""
 

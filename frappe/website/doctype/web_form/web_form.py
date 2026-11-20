@@ -1162,9 +1162,7 @@ def check_webform_perm(doctype, name):
 			return True
 
 
-@frappe.whitelist(
-	allow_guest=True, methods=["GET", "POST"], rate_limit=None
-)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 @frappe.read_only()
 def get_web_form_filters(web_form_name: str):
 	web_form = frappe.get_doc("Web Form", web_form_name)

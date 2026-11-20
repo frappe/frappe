@@ -299,8 +299,6 @@ def modify_header_footer_items(items: list):
 	return top_items
 
 
-@frappe.whitelist(
-	allow_guest=True, methods=["GET", "POST"], rate_limit=None
-)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def get_auto_account_deletion():
 	return frappe.db.get_single_value("Website Settings", "auto_account_deletion")

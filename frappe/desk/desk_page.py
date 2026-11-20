@@ -32,9 +32,7 @@ def get(name):
 		raise frappe.PermissionError("No read permission for Page %s" % (page.title or name))
 
 
-@frappe.whitelist(
-	allow_guest=True, methods=["GET", "POST"], rate_limit=None
-)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def getpage(name: str):
 	"""
 	Load the page from `frappe.form` and send it via `frappe.response`
