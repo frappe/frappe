@@ -4,7 +4,13 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
-from frappe.installer import install_app, is_required_by, parse_required_app_name
+from frappe.installer import (
+	add_module_defs,
+	install_app,
+	is_required_by,
+	parse_required_app_name,
+	remove_from_installed_apps,
+)
 from frappe.tests import IntegrationTestCase, UnitTestCase
 
 # an app that is not on the bench, so no remote can name it
@@ -76,6 +82,7 @@ def install_fake_app(after_install: str):
 
 	real_get_hooks = frappe.get_hooks
 	real_get_all_apps = frappe.get_all_apps
+	real_get_installed_apps = frappe.get_installed_apps
 
 	def fake_get_hooks(hook=None, default="_KEEP_DEFAULT_LIST", app_name=None):
 		if app_name == FAKE_APP:
@@ -87,13 +94,20 @@ def install_fake_app(after_install: str):
 			return FAKE_PATCHES
 		return real_get_patches_from_app(app, patch_type)
 
+	def installed_apps_on_bench(*, _ensure_on_bench=False):
+		apps = real_get_installed_apps()
+		if _ensure_on_bench:
+			on_bench = real_get_all_apps()
+			apps = [app for app in apps if app in on_bench]
+		return apps
+
 	with (
 		patch.object(frappe, "get_hooks", fake_get_hooks),
 		patch.object(frappe, "get_all_apps", lambda *a, **kw: [*real_get_all_apps(*a, **kw), FAKE_APP]),
+		patch.object(frappe, "get_installed_apps", installed_apps_on_bench),
 		patch.object(frappe, "setup_module_map"),
 		patch("frappe.model.sync.sync_for"),
 		patch("frappe.installer.add_module_defs"),
-		patch("frappe.installer.add_to_installed_apps"),
 		patch("frappe.installer.sync_dashboards"),
 		patch("frappe.core.doctype.scheduled_job_type.scheduled_job_type.sync_jobs"),
 		patch("frappe.utils.fixtures.sync_fixtures"),
@@ -109,6 +123,11 @@ class TestInstallAppOrdering(IntegrationTestCase):
 		install_hook_calls.clear()
 		frappe.set_user("Administrator")
 		self.addCleanup(self.delete_fake_patch_log_rows)
+		self.addCleanup(self.uninstall_fake_app)
+
+	def uninstall_fake_app(self):
+		frappe.flags.in_install = False
+		remove_from_installed_apps(FAKE_APP)
 
 	def delete_fake_patch_log_rows(self):
 		frappe.db.delete("Patch Log", {"patch": ["in", FAKE_PATCHES]})
@@ -131,3 +150,51 @@ class TestInstallAppOrdering(IntegrationTestCase):
 
 		self.assertEqual(install_hook_calls, ["after_install_failing"])
 		self.assertEqual(self.stamped_fake_patches(), set())
+
+	def test_failed_install_can_be_retried(self):
+		with install_fake_app(after_install=f"{__name__}.fail_after_install"):
+			with self.assertRaises(AfterInstallFailure):
+				install_app(FAKE_APP)
+
+		self.assertNotIn(FAKE_APP, frappe.get_installed_apps())
+
+		with install_fake_app(after_install=f"{__name__}.record_after_install"):
+			install_app(FAKE_APP)
+
+		self.assertEqual(install_hook_calls, ["after_install_failing", "after_install_ok"])
+		self.assertIn(FAKE_APP, frappe.get_installed_apps())
+		self.assertEqual(self.stamped_fake_patches(), set(FAKE_PATCHES))
+
+	def test_failed_forced_reinstall_keeps_the_app_installed(self):
+		with install_fake_app(after_install=f"{__name__}.record_after_install"):
+			install_app(FAKE_APP)
+
+		with install_fake_app(after_install=f"{__name__}.fail_after_install"):
+			with self.assertRaises(AfterInstallFailure):
+				install_app(FAKE_APP, force=True)
+
+		self.assertIn(FAKE_APP, frappe.get_installed_apps())
+
+	def test_retry_after_patches_were_stamped_stamps_each_patch_once(self):
+		with install_fake_app(after_install=f"{__name__}.record_after_install"):
+			with patch("frappe.utils.fixtures.sync_fixtures", side_effect=RuntimeError):
+				with self.assertRaises(RuntimeError):
+					install_app(FAKE_APP)
+
+			install_app(FAKE_APP)
+
+		self.assertCountEqual(
+			frappe.get_all("Patch Log", filters={"patch": ["in", FAKE_PATCHES]}, pluck="patch"),
+			FAKE_PATCHES,
+		)
+
+
+class TestAddModuleDefs(IntegrationTestCase):
+	def test_skips_modules_the_app_already_has(self):
+		modules = frappe.get_all("Module Def", {"app_name": "frappe", "custom": 0}, pluck="name")
+
+		add_module_defs("frappe")
+
+		self.assertCountEqual(
+			frappe.get_all("Module Def", {"app_name": "frappe", "custom": 0}, pluck="name"), modules
+		)
