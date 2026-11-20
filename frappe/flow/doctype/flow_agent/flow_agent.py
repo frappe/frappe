@@ -399,18 +399,20 @@ class FlowAgent(Document):
 		session: str | None = None,
 		source: str = "Manual",
 		trigger: str | None = None,
+		personal_trigger: bool = False,
 		reference_doctype: str | None = None,
 		reference_name: str | None = None,
 		on_complete: str | None = None,
 	) -> FlowRun:
 		"""Start `input` and return its Running Flow Run, in a new or existing session.
-		Once the run ends, Flow calls the function at the dotted path `on_complete` with it."""
+		Once the run ends, Flow calls the function at the dotted path `on_complete` with it.
+		`personal_trigger` keeps a new Trigger session from System Managers."""
 		from frappe.flow.lib.session import load_session, new_session
 
 		if session:
 			convo = load_session(session, agent=self.name)
 		else:
-			convo = new_session(self, source=source)
+			convo = new_session(self, source=source, personal_trigger=personal_trigger)
 		return convo.chat(
 			input,
 			source=source,
