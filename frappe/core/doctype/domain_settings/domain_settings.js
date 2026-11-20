@@ -9,6 +9,7 @@ frappe.ui.form.on("Domain Settings", {
 				df: {
 					fieldname: "domains_multicheck",
 					fieldtype: "MultiCheck",
+					search_placeholder: __("Search Domains"),
 					get_data: () => {
 						let active_domains = (frm.doc.active_domains || []).map(
 							(row) => row.domain

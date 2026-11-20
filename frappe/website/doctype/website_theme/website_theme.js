@@ -62,6 +62,7 @@ frappe.ui.form.on("Website Theme", {
 						fieldname: "apps",
 						fieldtype: "MultiCheck",
 						columns: 4,
+						search_placeholder: __("Search Apps"),
 						on_change: () => {
 							let value = form
 								.get_field("apps")

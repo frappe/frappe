@@ -11,17 +11,31 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 			);
 		}
 		this.$load_state = $(`<div class="load-state text-muted small">${__("Loading")}...</div>`);
+		this.$search = $(`<input type="text" class="form-control input-xs" placeholder="${__(this.df.search_placeholder || "Search")}">`).appendTo(this.wrapper);
 		this.$select_buttons = this.get_select_buttons().appendTo(this.wrapper);
+		if (!this.df.select_all) {
+			this.$select_buttons.hide();
+		}
+		this.$select_buttons.find(".select-all").on("click", () => this.select_all());
+		this.$select_buttons.find(".deselect-all").on("click", () => this.select_all(true));
 		this.$load_state.appendTo(this.wrapper);
 
 		// In your implementation, you may use the 'columns' property to specify either of:
 		// - minimum column width, e.g. `"15rem"`
 		// - fixed number of columns, e.g. `3`
 		// - both minimum column width and maximum number of columns, e.g. `"15rem 5"`
+		
 		const columns = this.df.columns;
 		this.$checkbox_area = $('<div class="checkbox-options"></div>').appendTo(this.wrapper);
 		this.$checkbox_area.get(0).style.setProperty("--checkbox-options-columns", columns);
 		this.$checkbox_area.get(0).style.setProperty("padding", "1em");
+
+		this.$search.on("input", (e) => {
+			const search_term = e.target.value.toLowerCase();
+			this.$checkbox_area.find(".checkbox").each(function () {
+				$(this).toggle($(this).text().toLowerCase().includes(search_term));
+			});
+		});
 	}
 
 	refresh() {
@@ -36,7 +50,6 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 
 	set_options() {
 		this.$load_state.show();
-		this.$select_buttons.hide();
 		this.parse_df_options();
 
 		if (this.df.get_data) {
@@ -116,12 +129,6 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 
 	setup_select_all() {
 		this.$select_buttons.show();
-		this.$select_buttons.find(".select-all").on("click", () => {
-			this.select_all();
-		});
-		this.$select_buttons.find(".deselect-all").on("click", () => {
-			this.select_all(true);
-		});
 	}
 
 	select_all(deselect = false) {

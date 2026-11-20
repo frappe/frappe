@@ -44,6 +44,7 @@ frappe.ui.form.on("Success Action", {
 				label: __("Next Actions"),
 				fieldname: "next_actions_multicheck",
 				fieldtype: "MultiCheck",
+				search_placeholder: __("Search Actions"),
 				options: action_multicheck_options,
 				select_all: true,
 			},
