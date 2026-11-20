@@ -621,6 +621,9 @@ use_json_request_body = True
 
 # before_tests = "{app_name}.install.before_tests"
 
+# New users get random IDs in tests, like on a site, once every installed app sets this.
+random_user_ids_in_tests = True
+
 # Extend DocType Class
 # ------------------------------
 #
