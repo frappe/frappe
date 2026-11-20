@@ -156,8 +156,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.concurrency_limiter import concurrent_limit
 	from frappe.config import get_common_site_config, get_conf, get_site_config
 	from frappe.core.doctype.system_settings.system_settings import get_system_settings
-	from frappe.database.mariadb.database import MariaDBDatabase as PyMariaDBDatabase
-	from frappe.database.mariadb.mysqlclient import MariaDBDatabase
+	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.database.sqlite.database import SQLiteDatabase
 	from frappe.deprecation_dumpster import frappe_get_test_records as get_test_records
@@ -244,7 +243,7 @@ type ResponseDict = _dict[str, Any]  # type: ignore[no-any-explicit]
 type FlagsDict = _dict[str, Any]  # type: ignore[no-any-explicit]
 type FormDict = _dict[str, str]
 
-db: LocalProxy["PyMariaDBDatabase" | "MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
+db: LocalProxy["MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
 qb: LocalProxy["MariaDB" | "Postgres" | "SQLite"] = local("qb")
 conf: LocalProxy[ConfType] = local("conf")
 form_dict: LocalProxy[FormDict] = local("form_dict")
@@ -265,7 +264,7 @@ lang: LocalProxy[str] = local("lang")
 if TYPE_CHECKING:  # pragma: no cover
 	# trick because some type checkers fail to follow "RedisWrapper", etc (written as string literal)
 	# trough a generic wrapper; seems to be a bug
-	db: PyMariaDBDatabase | MariaDBDatabase | PostgresDatabase | SQLiteDatabase
+	db: MariaDBDatabase | PostgresDatabase | SQLiteDatabase
 	qb: MariaDB | Postgres
 	conf: ConfType
 	form_dict: FormDict

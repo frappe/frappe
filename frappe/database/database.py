@@ -59,8 +59,6 @@ if TYPE_CHECKING:
 	from MySQLdb.cursors import Cursor as MySQLdbCursor
 	from psycopg import Connection as PostgresConnection
 	from psycopg import Cursor as PostgresCursor
-	from pymysql.connections import Connection as MariadbConnection
-	from pymysql.cursors import Cursor as MariadbCursor
 
 ALLOWED_TYPES_FOR_VALUES = tuple | list | dict
 
@@ -186,10 +184,8 @@ class Database:
 
 	def connect(self):
 		"""Connects to a database as set in `site_config.json`."""
-		self._conn: MySQLdbConnection | MariadbConnection | PostgresConnection | SQLiteConnection = (
-			self.get_connection()
-		)
-		self._cursor: MySQLdbCursor | MariadbCursor | PostgresCursor | SQLiteCursor = self._conn.cursor()
+		self._conn: MySQLdbConnection | PostgresConnection | SQLiteConnection = self.get_connection()
+		self._cursor: MySQLdbCursor | PostgresCursor | SQLiteCursor = self._conn.cursor()
 
 		try:
 			if execution_timeout := get_query_execution_timeout():
@@ -276,7 +272,7 @@ class Database:
 		:param pluck: Get the plucked field only.
 		:param explain: Print `EXPLAIN` in error log.
 		:param as_iterator: Returns iterator over results instead of fetching all results at once.
-		        This should be used with unbuffered cursor as default cursors used by pymysql and postgres
+		        This should be used with unbuffered cursor as default cursors used by mysqlclient and postgres
 		        buffer the results internally. See `Database.unbuffered_cursor`.
 		Examples:
 
