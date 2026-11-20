@@ -18,7 +18,12 @@ from frappe.storage.cache import get_cache_path
 from frappe.storage.memory_driver import fake
 from frappe.storage.tests import unique_bytes
 from frappe.tests import IntegrationTestCase
-from frappe.utils.backups import BackupGenerator, backup_sqlite_database, fetch_latest_backups
+from frappe.utils.backups import (
+	BackupGenerator,
+	backup_sqlite_database,
+	fetch_latest_backups,
+	get_remote_blob_filters,
+)
 
 
 class TestLatestBackup(IntegrationTestCase):
@@ -69,8 +74,17 @@ class TestRemoteBlobBackup(IntegrationTestCase):
 	def setUp(self):
 		super().setUp()
 		self.addCleanup(frappe.db.rollback)
-		# real remote rows would make network calls; the rollback restores them
-		frappe.db.delete("File Blob", {"driver": ("!=", "local")})
+		# Ignore existing blobs without deleting documents or touching their remote storage.
+		existing_checksums = frappe.get_all("File Blob", pluck="checksum")
+		self.enterContext(
+			patch(
+				"frappe.utils.backups.get_remote_blob_filters",
+				side_effect=lambda is_private: {
+					**get_remote_blob_filters(is_private),
+					"checksum": ("not in", existing_checksums),
+				},
+			)
+		)
 		self.store = self.enterContext(fake())
 		self.directory = Path(self.enterContext(TemporaryDirectory()))
 
