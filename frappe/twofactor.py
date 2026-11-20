@@ -10,6 +10,7 @@ import frappe
 import frappe.defaults
 from frappe import _
 from frappe.permissions import ALL_USER_ROLE
+from frappe.sessions import clear_sessions
 from frappe.utils import cint, get_datetime, get_url, time_diff_in_seconds
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.password import decrypt, encrypt
@@ -443,6 +444,9 @@ def reset_otp_secret(user: str):
 
 	clear_default(user + "_otplogin")
 	clear_default(user + "_otpsecret")
+
+	if settings.logout_on_password_reset:
+		clear_sessions(user=user, keep_current=(frappe.session.user == user), force=True)
 
 	email_args = {
 		"recipients": user_email,

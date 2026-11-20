@@ -691,6 +691,15 @@ export const SPECS = {
 				},
 				when: (doc) => doc.search_provider && doc.search_provider !== "DuckDuckGo",
 			},
+			{
+				name: "guest_messages_per_hour",
+				label: __("Guest messages per hour"),
+				type: "int",
+				placeholder: __("Default"),
+				description:
+					__("Messages one address may send to public agents in an hour. Leave empty to use the default of 30."),
+				zeroMessage: __("Cannot be 0. Using the default."),
+			},
 		],
 	},
 	memories: {

@@ -449,15 +449,9 @@ onMounted(async () => {
 	// and a page keeps its place
 	if (store.state.sessionId || store.state.conversation.sending.length || route.params.kind)
 		return;
-	// an address asking for a new chat (?new=1) gets one
-	const wanted =
-		route.params.session ?? (route.query.new ? null : store.state.prefs.lastSession);
-	if (
-		wanted &&
-		(route.params.session ||
-			store.state.sessions.some((session) => session.session_id === wanted))
-	)
-		store.openSession(wanted, { quiet: reopened(wanted) });
+	// an address with no chat is a new one
+	const wanted = route.params.session;
+	if (wanted) store.openSession(wanted, { quiet: reopened(wanted) });
 });
 // in the panel, a chat the user didn't pick: the one it last showed, or Back to one, either of
 // which may since be gone. One an app asked for is picked

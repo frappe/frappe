@@ -1230,11 +1230,12 @@ def get_form_data(
 		docname = frappe.db.get_value(doctype, {"owner": frappe.session.user}, "name")
 
 	if docname:
-		doc = frappe.get_doc(doctype, docname)
-		if web_form.has_web_form_permission(doctype, docname, ptype="read"):
-			out.doc = doc
-		else:
+		if not frappe.db.exists(doctype, docname) or not web_form.has_web_form_permission(
+			doctype, docname, ptype="read"
+		):
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
+
+		out.doc = frappe.get_doc(doctype, docname)
 
 	# For Table fields, server-side processing for meta
 	for field in out.web_form.web_form_fields:

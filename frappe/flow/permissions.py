@@ -16,7 +16,11 @@
 
 Triggers run as their run_as account or owner, which must be able to read the agent, and skip
 documents that account cannot read. Flow Users manage their own triggers, which run as them.
-The flow server's callbacks act as the session owner."""
+The flow server's callbacks act as the session owner.
+
+Someone not signed in chats only with an agent marked Public, through the guest API. The chat
+is Guest's and its tools run as Guest. Guest has no role on Flow Session, so only the token
+its start returns opens it. System Managers see these chats too."""
 
 from __future__ import annotations
 
@@ -35,22 +39,23 @@ def ensure_flow_role() -> None:
 
 
 def has_session_permission(doc, ptype: str, user: str) -> bool:
-	"""Allows the owner, anyone reading a chat open to everyone, and System Managers on Trigger chats."""
+	"""Allows the owner, anyone reading a chat open to everyone, and System Managers on Trigger
+	and guest chats."""
 	if user in (doc.owner, "Administrator"):
 		return True
 	if ptype == "read" and doc.get("general_access") == "Everyone":
 		return True
-	return doc.source == "Trigger" and "System Manager" in frappe.get_roles(user)
+	return (doc.source == "Trigger" or doc.owner == "Guest") and "System Manager" in frappe.get_roles(user)
 
 
 def session_query_conditions(user: str | None = None, doctype: str | None = None) -> str:
-	"""Limits lists to your own chats, plus Trigger chats for System Managers."""
+	"""Limits lists to your own chats, plus Trigger and guest chats for System Managers."""
 	user = user or frappe.session.user
 	if user == "Administrator":
 		return ""
 	owned = f"`tab{doctype}`.`owner` = {frappe.db.escape(user)}"
 	if "System Manager" in frappe.get_roles(user):
-		return f"({owned} or `tab{doctype}`.`source` = 'Trigger')"
+		return f"({owned} or `tab{doctype}`.`source` = 'Trigger' or `tab{doctype}`.`owner` = 'Guest')"
 	return f"({owned})"
 
 
