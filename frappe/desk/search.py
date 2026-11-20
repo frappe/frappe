@@ -521,6 +521,8 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 
 	results = []
 	meta = frappe.get_meta(doctype)
+	# a random ID tells the reader less than the search fields, so it goes last
+	random_id = (meta.autoname or "").lower() in ("hash", "uuid")
 	if meta.show_title_field_in_link:
 		for item in res:
 			item = list(item)
@@ -539,7 +541,8 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 				# remove redundant title ("label") value
 				del item[2]
 
-			autosuggest_row = {"value": item[0], "description": to_string(item[1:])}
+			description = [*item[2:], item[1]] if random_id else item[1:]
+			autosuggest_row = {"value": item[0], "description": to_string(description)}
 			if label:
 				autosuggest_row["label"] = label
 

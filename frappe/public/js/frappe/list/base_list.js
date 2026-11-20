@@ -853,8 +853,10 @@ class FilterArea {
 			let label, fieldtype;
 			if (fieldname === "assigned_to") {
 				label = __("Assigned To");
+				fieldtype = "Link";
 			} else if (fieldname === "owner") {
 				label = __("Created By");
+				fieldtype = "Link";
 			} else if (fieldname === "tags") {
 				label = __("Tags");
 			}

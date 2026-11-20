@@ -12,6 +12,7 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.link_title import get_report_link_titles
 from frappe.desk.search import (
 	awesomebar_search,
+	build_for_autosuggest,
 	get_link_title,
 	get_names_for_mentions,
 	like_contains,
@@ -28,6 +29,13 @@ class TestSearch(IntegrationTestCase):
 		if self._testMethodName == "test_link_field_order":
 			setup_test_link_field_order(self)
 			self.addCleanup(teardown_test_link_field_order, self)
+
+	def test_random_id_comes_last_in_link_descriptions(self):
+		self.assertEqual(frappe.get_meta("Flow Knowledge Source").autoname, "hash")
+		rows = build_for_autosuggest([("a1b2c3d4e5", "Guide", "guide.pdf")], "Flow Knowledge Source")
+		self.assertEqual(
+			rows, [{"value": "a1b2c3d4e5", "label": "Guide", "description": "guide.pdf, a1b2c3d4e5"}]
+		)
 
 	def test_search_field_sanitizer(self):
 		results = search_link("DocType", "User", query=None, filters=None, page_length=20, searchfield="name")
