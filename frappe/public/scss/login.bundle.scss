@@ -87,6 +87,23 @@ body {
 				display: none;
 			}
 
+			.es-alert {
+				align-items: flex-start;
+				padding-block: calc(var(--spacing) * 2.5);
+
+				> svg {
+					margin-top: calc(var(--spacing) * 0.5);
+				}
+
+				ul {
+					margin: 0;
+					padding-left: 0;
+					list-style: none;
+					color: var(--ink-gray-6);
+					font-weight: var(--font-weight-regular);
+				}
+			}
+
 			.form-group.invalid {
 				input[type="text"],
 				input[type="email"],
