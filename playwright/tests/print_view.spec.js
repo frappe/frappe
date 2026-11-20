@@ -26,4 +26,18 @@ test.describe("Print View without System Manager", () => {
 			/print_format=Print\+View\+Format/
 		);
 	});
+
+	test("ctrl wheel zooms the preview", async ({ page, desk, api }) => {
+		await desk.login(test_user);
+		const todo = await api.insert_doc("ToDo", { description: "print view todo" });
+		await page.goto(`/desk/print/ToDo/${todo.name}`);
+		await desk.ready();
+
+		const zoom_label = page.locator(".print-preview-bar .zoom-label");
+		await expect(zoom_label).toHaveText("100%");
+		await page.locator(".preview-beta-wrapper iframe").hover();
+		await page.keyboard.down("Control");
+		await page.mouse.wheel(0, -100);
+		await expect(zoom_label).toHaveText("125%");
+	});
 });
