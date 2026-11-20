@@ -76,7 +76,7 @@ def search_link(
 def get_image_field(doctype: str) -> str | None:
 	"""The DocType's image_field, if it is a real column this user may read."""
 	# select-only access covers the search fields, not the image
-	if not frappe.has_permission(doctype, "read"):
+	if frappe.only_has_select_perm(doctype) or not frappe.has_permission(doctype, "read"):
 		return None
 	meta = frappe.get_meta(doctype)
 	if not meta.image_field:
