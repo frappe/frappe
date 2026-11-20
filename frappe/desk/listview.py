@@ -52,7 +52,7 @@ def get_group_by_count(doctype: str, current_filters: str | list, field: str) ->
 			.from_(User)
 			.select(ToDo.allocated_to.as_("name"), count)
 			.where(
-				(ToDo.status != "Cancelled")
+				ToDo.status.notin(("Cancelled", "Closed"))
 				& (ToDo.allocated_to == User.name)
 				& (User.user_type == "System User")
 				& (ToDo.reference_type == doctype)

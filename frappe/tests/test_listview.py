@@ -89,6 +89,22 @@ class TestListView(IntegrationTestCase):
 		data = get_group_by_count("MapReduce Job", [["name", "=", job.name]], "assigned_to")
 		self.assertEqual(data, [{"name": "Administrator", "count": 1}])
 
+	def test_assigned_to_count_leaves_out_closed_assignments(self):
+		job = frappe.get_doc(
+			doctype="MapReduce Job", job_name="Test closed assignment", map="m", reduce="r", data="[]"
+		).insert()
+		frappe.get_doc(
+			doctype="ToDo",
+			description="Test closed assignment",
+			allocated_to="Administrator",
+			reference_type="MapReduce Job",
+			reference_name=job.name,
+			status="Closed",
+		).insert()
+
+		data = get_group_by_count("MapReduce Job", [["name", "=", job.name]], "assigned_to")
+		self.assertEqual(data, [])
+
 	def test_get_group_by_invalid_field(self):
 		self.assertRaises(
 			ValueError,
