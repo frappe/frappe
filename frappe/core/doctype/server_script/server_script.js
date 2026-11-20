@@ -26,6 +26,57 @@ frappe.ui.form.on("Server Script", {
 		}, 100);
 
 		frm.trigger("check_safe_exec");
+		if (frm.is_new()) {
+			frm.saved_script_source = null;
+			frm.saved_script_name = null;
+		} else if (!frm.is_dirty() || frm.saved_script_name !== frm.doc.name) {
+			frm.saved_script_source = frm.doc.script_source;
+			frm.saved_script_name = frm.doc.name;
+		}
+		frm.trigger("toggle_file_source");
+
+		const editor_url = frm.doc.script_source === "File" && frm.doc.__onload?.editor_url;
+		if (editor_url) {
+			frm.add_custom_button(__("Open in Editor"), () =>
+				window.open(editor_url, "_blank", "noopener,noreferrer")
+			);
+		}
+	},
+
+	script_source(frm) {
+		const moving_to_file =
+			!frm.is_new() &&
+			frm.saved_script_source !== "File" &&
+			frm.doc.script_source === "File";
+		if (moving_to_file) {
+			frappe.confirm(
+				__(
+					"Switching to File moves this script's code to the server and cannot be undone. Continue?"
+				),
+				() => frm.trigger("toggle_file_source"),
+				() => frm.set_value("script_source", frm.saved_script_source || "Database")
+			);
+			return;
+		}
+		frm.trigger("toggle_file_source");
+	},
+
+	toggle_file_source(frm) {
+		const is_file = frm.doc.script_source === "File";
+		frm.set_df_property("script", "read_only", is_file ? 1 : 0);
+		frm.set_df_property(
+			"script_source",
+			"read_only",
+			frm.saved_script_source === "File" ? 1 : 0
+		);
+		if (is_file && frm.doc.__onload?.file_path) {
+			frm.set_intro(
+				__("This script's code lives on the server at {0}. Edit it there.", [
+					frm.doc.__onload.file_path,
+				]),
+				"blue"
+			);
+		}
 	},
 
 	check_safe_exec(frm) {

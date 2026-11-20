@@ -155,6 +155,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.cache_manager import clear_cache, reset_metadata_version
 	from frappe.concurrency_limiter import concurrent_limit
 	from frappe.config import get_common_site_config, get_conf, get_site_config
+	from frappe.core.doctype.server_script.server_script import ServerScriptEnv
 	from frappe.core.doctype.system_settings.system_settings import get_system_settings
 	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
@@ -254,6 +255,8 @@ response: LocalProxy[ResponseDict] = local("response")
 session: LocalProxy[SessionType] = local("session")
 user: LocalProxy[str] = local("user")
 flags: LocalProxy[FlagsDict] = local("flags")
+# variables of the File Server Script that is running
+env: LocalProxy["ServerScriptEnv"] = local("server_script_env")
 
 error_log: LocalProxy[list[dict[str, str]]] = local("error_log")
 debug_log: LocalProxy[list[str]] = local("debug_log")

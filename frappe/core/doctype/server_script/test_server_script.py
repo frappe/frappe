@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
 from frappe.core.doctype.server_script.server_script import ServerScript
+from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
@@ -578,3 +579,654 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		self.assertIsNone(
 			get_decrypted_password(new_row.doctype, new_row.name, "value", raise_exception=False)
 		)
+
+	def test_file_sourced_script(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_sourced",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		frappe.client_cache.delete_value("server_script_map")
+
+		self.assertTrue(os.path.exists(path))
+
+		with open(path, "w") as f:
+			f.write("doc.status = 'Cancelled'\n")
+		self.assertEqual(frappe.get_doc(doctype="ToDo", description="file one").insert().status, "Cancelled")
+
+		with open(path, "w") as f:
+			f.write("doc.status = 'Closed'\n")
+		os.utime(path, ns=(1, os.stat(path).st_mtime_ns + 1_000_000))
+		self.assertEqual(frappe.get_doc(doctype="ToDo", description="file two").insert().status, "Closed")
+
+		script.save()
+		self.assertIn("doc.status = 'Closed'", open(path).read())
+
+		os.remove(path)
+		with self.assertRaises(frappe.DoesNotExistError):
+			frappe.get_doc(doctype="ToDo", description="file three").insert()
+
+	def test_file_sourced_script_body_is_never_stored_in_db(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_sourced_nodb",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="frappe.throw('from db')",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		self.assertEqual(script.script, "")
+
+		frappe.db.set_value("Server Script", script.name, "script", "frappe.throw('from db')")
+		script.reload().save()
+		self.assertEqual(script.script, "")
+		self.assertNotIn("from db", open(path).read())
+
+	def test_file_sourced_script_syntax_error_is_reported(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_sourced_syntax",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		frappe.client_cache.delete_value("server_script_map")
+
+		with open(path, "w") as f:
+			f.write("def broken(:\n")
+		with self.assertRaises(frappe.ValidationError):
+			script.get_compiled_file_code()
+
+	def test_file_sourced_script_onload_shows_file_body(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_sourced_onload",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+
+		with open(path, "w") as f:
+			f.write("doc.status = 'Closed'\n")
+		script = frappe.get_doc("Server Script", script.name)
+		script.run_method("onload")
+		self.assertEqual(script.script, "doc.status = 'Closed'\n")
+		self.assertEqual(script.get_onload("file_path"), path)
+
+		script.save()
+		self.assertEqual(frappe.db.get_value("Server Script", script.name, "script"), "")
+
+	def test_file_sourced_script_onload_links_to_pilot_editor(self):
+		from unittest.mock import patch
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test file editor link",
+			script_type="API",
+			api_method="test_file_editor_link",
+			script_source="File",
+		).insert()
+		self.addCleanup(script.delete)
+		pilot_urls = {
+			"cloud_server_url": "https://pilot.example.com/",
+			"pilot_endpoint": "http://127.0.0.1:7000",
+		}
+
+		with patch.dict(frappe.conf, pilot_urls):
+			script.run_method("onload")
+			self.assertEqual(
+				script.get_onload("editor_url"),
+				f"https://pilot.example.com/editor/site/{frappe.local.site}?open=test%20file%20editor%20link.py",
+			)
+
+		with patch.dict(frappe.conf, pilot_urls):
+			del frappe.conf["cloud_server_url"]
+			del frappe.conf["pilot_endpoint"]
+			script.run_method("onload")
+			self.assertIsNone(script.get_onload("editor_url"))
+
+	def test_script_is_required_only_for_database_scripts(self):
+		import os
+
+		args = {
+			"doctype": "Server Script",
+			"script_type": "DocType Event",
+			"reference_doctype": "ToDo",
+			"doctype_event": "Before Insert",
+		}
+		with self.assertRaises(frappe.MandatoryError):
+			frappe.get_doc(**args, name="test_db_no_body", script_source="Database").insert()
+
+		script = frappe.get_doc(**args, name="test_file_no_body", script_source="File").insert()
+		self.addCleanup(script.delete)
+		self.addCleanup(lambda: os.path.exists(script.get_file_path()) and os.remove(script.get_file_path()))
+
+	def test_file_script_cannot_switch_back_to_database(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_no_switch_back",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		self.addCleanup(script.delete)
+		self.addCleanup(lambda: os.path.exists(script.get_file_path()) and os.remove(script.get_file_path()))
+
+		script.script_source = "Database"
+		script.script = "doc.status = 'Closed'"
+		with self.assertRaises(frappe.ValidationError):
+			script.save()
+
+	def test_database_script_body_moves_to_file_on_switch(self):
+		import os
+
+		body = "doc.status = 'Closed'\n"
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_db_to_file_switch",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script=body,
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+
+		script.script_source = "File"
+		script.save()
+		self.assertEqual(open(path).read(), body)
+		self.assertEqual(frappe.db.get_value("Server Script", script.name, "script"), "")
+
+	def test_switch_to_file_refuses_to_overwrite_existing_file(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_db_to_file_existing",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="doc.status = 'Closed'",
+		).insert()
+		self.addCleanup(script.delete)
+		path = script.get_file_path()
+		os.makedirs(os.path.dirname(path), exist_ok=True)
+		with open(path, "w") as f:
+			f.write("# existing\n")
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+
+		script.script_source = "File"
+		with self.assertRaises(frappe.ValidationError):
+			script.save()
+		self.assertEqual(open(path).read(), "# existing\n")
+
+	def test_deleting_file_script_removes_its_file(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_file_delete",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		path = script.get_file_path()
+		self.assertTrue(os.path.exists(path))
+
+		script.delete()
+		self.assertFalse(os.path.exists(path))
+
+	def test_deleting_database_script_leaves_files_alone(self):
+		import os
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_db_delete",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="doc.status = 'Closed'",
+		).insert()
+		path = script.get_file_path()
+		os.makedirs(os.path.dirname(path), exist_ok=True)
+		with open(path, "w") as f:
+			f.write("# unrelated\n")
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+
+		script.delete()
+		self.assertTrue(os.path.exists(path))
+
+	def test_delete_file_script_helper(self):
+		import os
+
+		from frappe.core.doctype.server_script.server_script import delete_file_script
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_delete_helper_file",
+			script_type="DocType Event",
+			script_source="File",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		).insert()
+		path = script.get_file_path()
+		delete_file_script(script.name)
+		self.assertFalse(frappe.db.exists("Server Script", script.name))
+		self.assertFalse(os.path.exists(path))
+
+	def test_delete_file_script_helper_refuses_database_script(self):
+		from frappe.core.doctype.server_script.server_script import delete_file_script
+
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_delete_helper_db",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="doc.status = 'Closed'",
+		).insert()
+		self.addCleanup(script.delete)
+		with self.assertRaises(frappe.ValidationError):
+			delete_file_script(script.name)
+		self.assertTrue(frappe.db.exists("Server Script", script.name))
+
+	def test_delete_file_script_helper_removes_orphan_file(self):
+		import os
+
+		from frappe.core.doctype.server_script.server_script import delete_file_script
+
+		path = frappe.get_site_path("server_scripts", "test_orphan_file.py")
+		os.makedirs(os.path.dirname(path), exist_ok=True)
+		with open(path, "w") as f:
+			f.write("# orphan\n")
+		delete_file_script("test_orphan_file")
+		self.assertFalse(os.path.exists(path))
+
+	def test_only_administrator_can_switch_script_to_file(self):
+		user = frappe.get_doc("User", "test@example.com")
+		user.add_roles("Script Manager")
+		self.addCleanup(user.remove_roles, "Script Manager")
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_switch_needs_admin",
+			script_type="DocType Event",
+			script_source="Database",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			script="doc.status = 'Closed'",
+		).insert()
+		self.addCleanup(script.delete)
+
+		with self.set_user("test@example.com"):
+			script.script_source = "File"
+			with self.assertRaises(frappe.PermissionError):
+				script.save()
+		self.assertEqual(frappe.db.get_value("Server Script", script.name, "script_source"), "Database")
+
+	def make_file_script(self, name, body="", **fields):
+		script = frappe.get_doc(doctype="Server Script", name=name, script_source="File", **fields).insert()
+		self.addCleanup(script.delete)
+		self.write_file_script(script, body)
+		return script
+
+	def write_file_script(self, script, body):
+		import os
+
+		path = script.get_file_path()
+		with open(path, "w") as f:
+			f.write(body)
+		os.utime(path, ns=(1, os.stat(path).st_mtime_ns + 1_000_000))
+		frappe.client_cache.delete_value("server_script_map")
+
+	def test_file_api_script_over_http(self):
+		self.addCleanup(frappe.db.commit)
+		script = self.make_file_script(
+			"test_file_api",
+			"frappe.response['message'] = 'hello from file'\n",
+			script_type="API",
+			api_method="test_file_api",
+			allow_guest=1,
+		)
+		script.execute_method()
+		self.assertEqual(frappe.response.pop("message"), "hello from file")
+		frappe.db.commit()
+
+		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_file_api")
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json()["message"], "hello from file")
+
+	def test_file_api_script_guest_access(self):
+		self.addCleanup(frappe.db.commit)
+		script = self.make_file_script(
+			"test_file_api_private",
+			"frappe.response['message'] = 'private'\n",
+			script_type="API",
+			api_method="test_file_api_private",
+			allow_guest=0,
+		)
+		frappe.db.commit()
+		url = get_site_url(frappe.local.site) + "/api/method/test_file_api_private"
+		self.assertEqual(requests.post(url).status_code, 403)
+
+		script.allow_guest = 1
+		script.save()
+		frappe.db.commit()
+		self.assertEqual(requests.post(url).json()["message"], "private")
+
+	def test_file_api_script_rate_limit(self):
+		self.addCleanup(frappe.db.commit)
+		script = self.make_file_script(
+			"test_file_rate_limited",
+			"frappe.response['message'] = 'ok'\n",
+			script_type="API",
+			api_method="test_file_rate_limited",
+			allow_guest=1,
+			enable_rate_limit=1,
+			rate_limit_count=2,
+			rate_limit_seconds=60,
+		)
+		counter_prefix = f"rl:server_script:{script.name}:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
+		frappe.db.commit()
+
+		client = FrappeClient(get_site_url(frappe.local.site))
+		for _ in range(2):
+			client.get_api(script.api_method)
+		self.assertRaises(FrappeException, client.get_api, script.api_method)
+
+	def test_file_scheduler_script_runs_through_its_job(self):
+		description = "scheduled from file"
+		body = f'frappe.get_doc({{"doctype": "ToDo", "description": "{description}"}}).insert()\n'
+		script = self.make_file_script(
+			"test_file_scheduled", body, script_type="Scheduler Event", event_frequency="Hourly"
+		)
+		self.addCleanup(frappe.db.delete, "ToDo", {"description": description})
+		sync_jobs()
+		job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": script.name})
+		self.assertTrue(job_name)
+
+		frappe.get_doc("Scheduled Job Type", job_name).execute()
+		self.assertTrue(frappe.db.exists("ToDo", {"description": description}))
+		log = frappe.get_all(
+			"Scheduled Job Log",
+			filters={"scheduled_job_type": job_name},
+			fields=["status"],
+			order_by="creation desc",
+			limit=1,
+		)
+		self.assertEqual(log[0].status, "Complete")
+
+	def test_file_scheduler_script_every_frequency(self):
+		frequencies = [
+			"All",
+			"Hourly",
+			"Daily",
+			"Weekly",
+			"Monthly",
+			"Yearly",
+			"Hourly Long",
+			"Daily Long",
+			"Weekly Long",
+			"Monthly Long",
+			"Cron",
+		]
+		scripts = {}
+		for index, frequency in enumerate(frequencies):
+			fields = {"cron_format": "0 0 1 1 *"} if frequency == "Cron" else {}
+			scripts[frequency] = self.make_file_script(
+				f"test_file_freq_{index}",
+				"",
+				script_type="Scheduler Event",
+				event_frequency=frequency,
+				**fields,
+			)
+		sync_jobs()
+
+		for frequency, script in scripts.items():
+			with self.subTest(frequency=frequency):
+				job_name = frappe.db.get_value("Scheduled Job Type", {"server_script": script.name})
+				self.assertTrue(job_name)
+				job = frappe.get_doc("Scheduled Job Type", job_name)
+				self.assertEqual(job.frequency, frequency)
+				if frequency == "Cron":
+					self.assertEqual((job.next_execution.day, job.next_execution.month), (1, 1))
+
+	def test_file_permission_query_script(self):
+		self.make_file_script(
+			"test_file_perm_query",
+			'conditions = "(1 = 2)"\n',
+			script_type="Permission Query",
+			reference_doctype="Note",
+		)
+		self.assertIn("(1 = 2)", frappe.db.get_list("Note", run=False).get_sql())
+		self.assertEqual(frappe.db.get_list("Note"), [])
+
+	def test_file_workflow_task_script(self):
+		script = self.make_file_script(
+			"test_file_workflow_task",
+			'doc.description = "set by file workflow task"\n',
+			script_type="Workflow Task",
+		)
+		todo = frappe.new_doc("ToDo")
+		script.execute_workflow_task(todo)
+		self.assertEqual(todo.description, "set by file workflow task")
+
+	def test_file_doctype_events(self):
+		events = ["Before Insert", "Before Validate", "Before Save", "After Insert", "After Save"]
+		delete_events = ["Before Delete", "After Delete"]
+		save_body = 'doc.flags.fired = (doc.flags.fired or []) + ["{}"]\n'
+		# delete hooks run on a fresh document, so they leave a mark in the database instead
+		delete_body = 'frappe.get_doc({{"doctype": "ToDo", "description": "fired {}"}}).insert()\n'
+		for index, event in enumerate(events + delete_events):
+			body = delete_body if event in delete_events else save_body
+			self.make_file_script(
+				f"test_file_event_{index}",
+				body.format(event),
+				script_type="DocType Event",
+				reference_doctype="ToDo",
+				doctype_event=event,
+			)
+		self.addCleanup(frappe.db.delete, "ToDo", {"description": ("like", "fired %")})
+
+		todo = frappe.get_doc(doctype="ToDo", description="events from file").insert()
+		self.assertEqual(set(todo.flags.fired), set(events))
+
+		todo.delete()
+		for event in delete_events:
+			self.assertTrue(frappe.db.exists("ToDo", {"description": f"fired {event}"}), event)
+
+	def test_file_doctype_event_cannot_commit(self):
+		self.make_file_script(
+			"test_file_commit",
+			"frappe.db.commit()\n",
+			script_type="DocType Event",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+		)
+		with self.assertWarns(Warning):
+			frappe.get_doc(doctype="ToDo", description="commit me").insert()
+		self.assertFalse(frappe.db._disable_transaction_control)
+
+	def test_disabled_file_script_is_never_dispatched(self):
+		import os
+
+		script = self.make_file_script(
+			"test_file_disabled",
+			"frappe.throw('should not run')\n",
+			script_type="DocType Event",
+			reference_doctype="ToDo",
+			doctype_event="Before Insert",
+			disabled=1,
+		)
+		os.remove(script.get_file_path())
+		frappe.get_doc(doctype="ToDo", description="disabled file script").insert()
+		self.assertNotIn(script.name, get_server_script_map().get("ToDo", {}).get("Before Insert", []))
+
+	def test_every_script_type_fails_loudly_on_bad_file(self):
+		import os
+
+		cases = {
+			"API": (
+				{"script_type": "API", "api_method": "test_file_loud_api"},
+				lambda script: script.execute_method(),
+			),
+			"Scheduler Event": (
+				{"script_type": "Scheduler Event", "event_frequency": "Hourly"},
+				lambda script: script.execute_scheduled_method(),
+			),
+			"Workflow Task": (
+				{"script_type": "Workflow Task"},
+				lambda script: script.execute_workflow_task(frappe.new_doc("ToDo")),
+			),
+			"Permission Query": (
+				{"script_type": "Permission Query", "reference_doctype": "Note"},
+				lambda script: script.get_permission_query_conditions("Administrator"),
+			),
+			"DocType Event": (
+				{
+					"script_type": "DocType Event",
+					"reference_doctype": "ToDo",
+					"doctype_event": "Before Insert",
+				},
+				lambda script: script.execute_doc(frappe.new_doc("ToDo")),
+			),
+		}
+		for index, (script_type, (fields, run)) in enumerate(cases.items()):
+			with self.subTest(script_type=script_type):
+				script = self.make_file_script(f"test_file_loud_{index}", "", **fields)
+				self.write_file_script(script, "def broken(:\n")
+				with self.assertRaises(frappe.ValidationError):
+					run(script)
+
+				os.remove(script.get_file_path())
+				with self.assertRaises(frappe.DoesNotExistError):
+					run(script)
+
+	def test_file_script_reads_environment_variables(self):
+		from frappe.utils.safe_exec import UnavailableEnv
+
+		script = self.make_file_script(
+			"test_file_env",
+			"frappe.response['message'] = frappe.env.API_TOKEN\n",
+			script_type="API",
+			api_method="test_file_env",
+			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+		)
+
+		with self.set_user("test@example.com"):
+			frappe.get_doc("Server Script", script.name).execute_method()
+		self.assertEqual(frappe.response.pop("message"), "s3cr3t")
+		self.assertIsInstance(frappe.local.server_script_env, UnavailableEnv)
+
+		self.write_file_script(script, "frappe.response['message'] = frappe.env.MISSING\n")
+		with self.set_user("test@example.com"):
+			self.assertRaisesRegex(frappe.ValidationError, "MISSING", script.execute_method)
+
+	def test_file_script_runs_plain_python(self):
+		self.make_file_script(
+			"test_file_plain_python",
+			"import json\n"
+			"from frappe.utils import cint\n"
+			"\n"
+			"def as_json(value):\n"
+			"    return json.dumps({'total': cint(value)})\n"
+			"\n"
+			"frappe.response['message'] = as_json('41') + frappe.local.site\n",
+			script_type="API",
+			api_method="test_file_plain_python",
+		).execute_method()
+
+		self.assertEqual(frappe.response.pop("message"), '{"total": 41}' + frappe.local.site)
+
+	def test_file_script_cannot_replace_request_flags(self):
+		from frappe.deferred_insert import save_to_db
+
+		request_flags = vars(frappe)["flags"]
+		script = self.make_file_script(
+			"test_file_replaces_flags",
+			"frappe.flags = {'result': 'old style'}\n",
+			script_type="API",
+			api_method="test_file_replaces_flags",
+		)
+
+		frappe.db.savepoint("before_flags")
+		self.assertRaisesRegex(frappe.ValidationError, "frappe.flags", script.execute_method)
+		frappe.db.rollback(save_point="before_flags")
+
+		self.assertIs(vars(frappe)["flags"], request_flags)
+		self.assertTrue(frappe.flags.in_test)
+		save_to_db()
+		error_logs = frappe.get_all(
+			"Error Log", filters={"reference_doctype": "Server Script", "reference_name": script.name}
+		)
+		self.assertTrue(error_logs)
+
+	def test_file_script_can_write_with_sql(self):
+		todo = frappe.get_doc(doctype="ToDo", description="before").insert()
+		script = self.make_file_script(
+			"test_file_sql_write",
+			"frappe.db.sql('update `tabToDo` set description = %s where name = %s', ('after', doc.name))\n",
+			script_type="Workflow Task",
+		)
+
+		script.execute_workflow_task(todo)
+
+		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "description"), "after")
+
+	def test_only_administrator_changes_file_script_triggers(self):
+		user = frappe.get_doc("User", "test@example.com")
+		user.add_roles("Script Manager")
+		self.addCleanup(user.remove_roles, "Script Manager")
+		script = self.make_file_script(
+			"test_file_triggers", "pass\n", script_type="API", api_method="test_file_triggers"
+		)
+
+		with self.set_user("test@example.com"):
+			script = frappe.get_doc("Server Script", script.name)
+			script.allow_guest = 1
+			self.assertRaisesRegex(frappe.PermissionError, "Allow Guest", script.save)
+
+			script.reload()
+			script.disabled = 1
+			script.save()
+
+		script.reload()
+		script.allow_guest = 1
+		script.save()
+		self.assertEqual(frappe.db.get_value("Server Script", script.name, "allow_guest"), 1)
