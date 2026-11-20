@@ -68,6 +68,22 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		this.frame = frame;
 		this.zoom_style = doc.head.appendChild(doc.createElement("style"));
 		doc.addEventListener("scroll", () => this.update_page_label());
+<<<<<<< HEAD
+=======
+		doc.defaultView.addEventListener("resize", () => this.apply_zoom());
+		doc.addEventListener(
+			"wheel",
+			(e) => {
+				if (!e.ctrlKey) return;
+				e.preventDefault();
+				this.zoom_set_by_user = true;
+				const scale = Math.min(1.25, Math.max(0.75, Math.exp(-e.deltaY / 100)));
+				this.zoom = Math.min(2, Math.max(0.5, this.zoom * scale));
+				this.apply_zoom();
+			},
+			{ passive: false }
+		);
+>>>>>>> 586997e (feat(print): ctrl + scroll zooms the print preview)
 		if (fit && !this.zoom_set_by_user) this.fit(1);
 		this.apply_zoom();
 	}
