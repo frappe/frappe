@@ -23,6 +23,7 @@ from frappe.utils.safe_exec import (
 	is_safe_exec_enabled,
 	safe_exec,
 )
+from frappe.utils.user import is_website_user
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
@@ -44,6 +45,7 @@ class ServerScript(Document):
 		from frappe.types import DF
 
 		allow_guest: DF.Check
+		allow_website_user: DF.Check
 		api_method: DF.Data | None
 		cron_format: DF.Data | None
 		disabled: DF.Check
@@ -101,6 +103,8 @@ class ServerScript(Document):
 
 	def validate(self):
 		frappe.only_for("Script Manager", True)
+		if self.allow_guest:
+			self.allow_website_user = 0
 		self.validate_variables()
 		self.check_if_compilable_in_restricted_context()
 
@@ -214,6 +218,7 @@ class ServerScript(Document):
 		Raise:
 		        frappe.DoesNotExistError: If self.script_type is not API.
 		        frappe.PermissionError: If self.allow_guest is unset for API accessed by Guest user.
+		        frappe.WebsiteUserNotAllowedError: If self.allow_guest and self.allow_website_user are unset for API accessed by Website User.
 
 		Return:
 		        dict: Evaluate self.script with frappe.utils.safe_exec.safe_exec and return the flags set in its safe globals.
@@ -318,6 +323,13 @@ def execute_api_server_script(script: ServerScript, *args, **kwargs):
 	# validate if guest is allowed
 	if frappe.session.user == "Guest" and not script.allow_guest:
 		raise frappe.PermissionError
+
+	if not (script.allow_guest or script.allow_website_user) and is_website_user():
+		frappe.throw(
+			_("API {0} is not available to Website Users.").format(frappe.bold(script.api_method)),
+			frappe.WebsiteUserNotAllowedError,
+			title=_("Method Not Allowed"),
+		)
 
 	# output can be stored in flags
 	_globals, _locals = script.run_script()

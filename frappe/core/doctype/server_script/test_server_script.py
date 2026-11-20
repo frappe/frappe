@@ -8,6 +8,7 @@ from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJ
 from frappe.core.doctype.server_script.server_script import ServerScript
 from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_api import get_test_user
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_site_url
 from frappe.utils.password import Auth, encrypt, get_decrypted_password
@@ -42,6 +43,26 @@ if "validate" in doc.description:
 		script="""
 frappe.response['message'] = 'hello'
 """,
+	),
+	dict(
+		name="test_api_desk_only",
+		script_type="API",
+		api_method="test_api_desk_only",
+		script="frappe.flags = 'hello'",
+	),
+	dict(
+		name="test_api_website_user",
+		script_type="API",
+		api_method="test_api_website_user",
+		allow_website_user=1,
+		script="frappe.flags = 'hello'",
+	),
+	dict(
+		name="test_api_guest",
+		script_type="API",
+		api_method="test_api_guest",
+		allow_guest=1,
+		script="frappe.flags = 'hello'",
 	),
 	dict(
 		name="test_return_value",
@@ -159,6 +180,40 @@ class TestServerScript(IntegrationTestCase):
 		response = requests.post(get_site_url(frappe.local.site) + "/api/method/test_server_script")
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual("hello", response.json()["message"])
+
+	def test_api_denies_website_user_by_default(self):
+		script = frappe.get_doc("Server Script", "test_api_desk_only")
+
+		with self.set_user(get_test_user("Website User")):
+			self.assertRaises(frappe.WebsiteUserNotAllowedError, script.execute_method)
+
+	def test_api_allows_website_user_when_opted_in(self):
+		for name in ("test_api_website_user", "test_api_guest"):
+			with self.subTest(script=name), self.set_user(get_test_user("Website User")):
+				self.assertEqual(frappe.get_doc("Server Script", name).execute_method(), "hello")
+
+	def test_api_desk_only_allows_other_user_types(self):
+		script = frappe.get_doc("Server Script", "test_api_desk_only")
+
+		for user_type in ("System User", "_Test Custom User Type"):
+			with self.subTest(user_type=user_type), self.set_user(get_test_user(user_type)):
+				self.assertEqual(script.execute_method(), "hello")
+
+	def test_api_allow_guest_unsets_allow_website_user(self):
+		script = frappe.get_doc("Server Script", "test_api_guest")
+		script.allow_website_user = 1
+		script.save()
+
+		self.assertEqual(script.allow_website_user, 0)
+
+	def test_api_guest_needs_allow_guest(self):
+		for name in ("test_api_desk_only", "test_api_website_user"):
+			script = frappe.get_doc("Server Script", name)
+
+			with self.subTest(script=name), self.set_user("Guest"):
+				with self.assertRaises(frappe.PermissionError) as context:
+					script.execute_method()
+				self.assertNotIsInstance(context.exception, frappe.WebsiteUserNotAllowedError)
 
 	def test_api_return(self):
 		self.assertEqual(frappe.get_doc("Server Script", "test_return_value").execute_method(), "hello")
