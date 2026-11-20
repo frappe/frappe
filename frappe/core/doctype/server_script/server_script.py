@@ -102,6 +102,7 @@ class ServerScript(Document):
 	def validate(self):
 		frappe.only_for("Script Manager", True)
 		self.validate_variables()
+		self.validate_guest_rate_limit()
 		self.check_if_compilable_in_restricted_context()
 
 	def on_update(self):
@@ -148,6 +149,15 @@ class ServerScript(Document):
 					title=_("Duplicate Key"),
 				)
 			keys.add(variable.key)
+
+	def validate_guest_rate_limit(self):
+		if self.script_type == "API" and self.allow_guest and not self.enable_rate_limit:
+			frappe.throw(
+				_("{0} is required for API scripts that allow guests").format(
+					frappe.bold(_("Enable Rate Limit"))
+				),
+				title=_("Rate Limit Required"),
+			)
 
 	@property
 	def scheduled_jobs(self) -> list[dict[str, str]]:

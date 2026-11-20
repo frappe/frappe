@@ -26,6 +26,24 @@ frappe.ui.form.on("Server Script", {
 		}, 100);
 
 		frm.trigger("check_safe_exec");
+		frm.trigger("toggle_enable_rate_limit");
+	},
+
+	script_type(frm) {
+		frm.trigger("toggle_enable_rate_limit");
+	},
+
+	enable_rate_limit(frm) {
+		frm.trigger("toggle_enable_rate_limit");
+	},
+
+	toggle_enable_rate_limit(frm) {
+		const required = frm.doc.script_type === "API" && frm.doc.allow_guest;
+		frm.set_df_property(
+			"enable_rate_limit",
+			"read_only",
+			required && frm.doc.enable_rate_limit ? 1 : 0
+		);
 	},
 
 	check_safe_exec(frm) {
@@ -44,8 +62,10 @@ frappe.ui.form.on("Server Script", {
 	},
 
 	allow_guest(frm) {
-		if (frm.doc.allow_guest) {
+		if (frm.doc.allow_guest && !frm.doc.enable_rate_limit) {
 			frm.set_value("enable_rate_limit", 1);
+		} else {
+			frm.trigger("toggle_enable_rate_limit");
 		}
 	},
 
