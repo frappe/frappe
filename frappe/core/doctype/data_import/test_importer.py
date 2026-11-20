@@ -22,7 +22,7 @@ from frappe.core.doctype.data_import.importer import (
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
-from frappe.utils import cint, flt, format_duration, getdate
+from frappe.utils import cint, flt, format_duration, get_user_by_email, getdate
 from frappe.utils.number_format import NumberFormat
 
 doctype_name = "DocType for Import"
@@ -93,7 +93,7 @@ class UserScopedImportProvider(RecordingImportProvider):
 	# offers Description only to test@example.com, like a provider hiding tables a user can't read
 	def get_import_fields(self):
 		schema = super().get_import_fields()
-		if frappe.session.user == "test@example.com":
+		if frappe.session.user == get_user_by_email("test@example.com"):
 			schema["fields"].append({"fieldname": "description", "label": "Description", "fieldtype": "Data"})
 		return schema
 
@@ -227,7 +227,7 @@ class TestImporter(IntegrationTestCase):
 
 	def test_file_with_no_column_for_the_record_itself_still_saves(self):
 		# like a Zoho export whose only known heading belongs to a child table
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			import_file = frappe.get_doc(
 				doctype="File",
 				file_name="only_child_columns.csv",
@@ -430,7 +430,7 @@ class TestImporter(IntegrationTestCase):
 		)
 		self.addCleanup(_delete_doctype_records, "DocType", [doctype])
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			changed_doc = frappe.new_doc(doctype, some_fieldname="draft rate").insert()
 			unchanged_doc = frappe.new_doc(doctype, some_fieldname="confirmed rate").insert()
 
@@ -687,7 +687,7 @@ class TestImporter(IntegrationTestCase):
 
 		with self.set_user(self._user_without_gender_create()):
 			self.assertIsNone(get_create_field("Gender"))
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			self.assertEqual(get_create_field("Gender"), "gender")
 
 	def test_import_creates_missing_link_records_marked_create_new(self):
@@ -717,13 +717,15 @@ class TestImporter(IntegrationTestCase):
 		gender = "Data Import Test Gender Allowed"
 		data_import = self._contact_import_creating_gender(gender, "Zed Allowed Test")
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			data_import.start_import()
 		contact = frappe.db.get_value("Contact", {"first_name": "Zed Allowed Test"}, ["name", "gender"])
 		if contact:
 			self.addCleanup(_delete_doctype_records, "Contact", [contact[0]])
 		self.assertEqual(data_import.reload().status, "Success")
-		self.assertEqual(frappe.db.get_value("Gender", gender, "owner"), "test@example.com")
+		self.assertEqual(
+			frappe.db.get_value("Gender", gender, "owner"), get_user_by_email("test@example.com")
+		)
 		self.assertEqual(contact[1], gender)
 
 	def test_user_without_create_permission_gets_the_link_error(self):
@@ -770,19 +772,21 @@ class TestImporter(IntegrationTestCase):
 	def _user_without_gender_create(self):
 		"""Can create Contacts but not Genders."""
 		email = "data-import-sales-user@example.com"
-		if not frappe.db.exists("User", email):
-			frappe.get_doc(
-				{
-					"doctype": "User",
-					"email": email,
-					"first_name": "Data Import Sales User",
-					"send_welcome_email": 0,
-					"roles": [{"role": "Sales User"}],
-				}
-			).insert(ignore_permissions=True)
-			frappe.db.commit()  # nosemgrep
-			self.addCleanup(_delete_doctype_records, "User", [email])
-		return email
+		if user := get_user_by_email(email):
+			return user
+
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": email,
+				"first_name": "Data Import Sales User",
+				"send_welcome_email": 0,
+				"roles": [{"role": "Sales User"}],
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(_delete_doctype_records, "User", [user.name])
+		return user.name
 
 	def _contact_import_with_late_bad_row(self):
 		rows = [f"Late Row Test {i},Open" for i in range(12)] + ["Late Row Zed,Open,extra"]
@@ -943,7 +947,7 @@ class TestImporter(IntegrationTestCase):
 		self.addCleanup(frappe.local.request_cache.clear)
 		frappe.local.lang = "en"
 		frappe.local.request_cache.clear()
-		frappe.local.job = frappe._dict(user="test@example.com")
+		frappe.local.job = frappe._dict(user=get_user_by_email("test@example.com"))
 		self.addCleanup(delattr, frappe.local, "job")
 
 		import_file = frappe.get_doc(
@@ -957,7 +961,7 @@ class TestImporter(IntegrationTestCase):
 		self.addCleanup(_delete_doctype_records, "Currency", ["_Test User Language"])
 
 		with (
-			self.set_user("test@example.com"),
+			self.set_user(get_user_by_email("test@example.com")),
 			patch("frappe.translate.get_user_lang", return_value="de"),
 		):
 			self.get_importer("Currency", import_file).start_import()
@@ -1005,7 +1009,7 @@ class TestImporter(IntegrationTestCase):
 		import_doctype = create_import_doctype_without_payload_count()
 		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			import_doc = frappe.get_doc(
 				{
 					"doctype": import_doctype,
@@ -1071,12 +1075,12 @@ class TestImporter(IntegrationTestCase):
 		frappe.local.request_cache.clear()  # a fresh request
 
 		with self.patch_hooks(_provider_hooks(UserScopedImportProvider)):
-			with self.set_user("test@example.com"):
+			with self.set_user(get_user_by_email("test@example.com")):
 				self.assertEqual(
 					get_df_for_column_header(doctype_name, "Description").fieldname, "description"
 				)
 			# another user must not get the first user's columns
-			with self.set_user("test1@example.com"):
+			with self.set_user(get_user_by_email("test1@example.com")):
 				self.assertIsNone(get_df_for_column_header(doctype_name, "Description"))
 				self.assertEqual(get_df_for_column_header(doctype_name, "Title").fieldname, "title")
 
@@ -1154,13 +1158,13 @@ class TestImporter(IntegrationTestCase):
 		return data_import
 
 	def test_import_reads_numbers_in_user_number_format(self):
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			self.start_currency_import("#.###,##", "19,18")
 		value = frappe.db.get_value("Currency", "_Test Number Format", "smallest_currency_fraction_value")
 		self.assertEqual(flt(value), 19.18)
 
 	def test_import_blocks_numbers_in_other_format(self):
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			data_import = self.start_currency_import("#,###.##", "19,18")
 		self.assertIn("is not a valid number", data_import.template_warnings)
 		self.assertFalse(frappe.db.exists("Currency", "_Test Number Format"))
@@ -1727,7 +1731,7 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 
 		rows = [("Leaf Node", "0", ""), ("Leaf Node", "0", "")]
 		data_import = self._get_importer(self._make_csv_file(rows))
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			Importer(self.doctype_name, data_import=data_import).import_data()
 
 		self.assertEqual(frappe.db.count(self.doctype_name, {"node_label": "Leaf Node"}), 2)
@@ -1735,7 +1739,7 @@ class TestTreeAliasDataImport(IntegrationTestCase):
 	def test_tree_alias_preview_lists_rows_with_same_label(self):
 		rows = [("Leaf Node", "0", ""), ("Leaf Node", "0", "")]
 		data_import = self._get_importer(self._make_csv_file(rows))
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			preview = data_import.get_preview_from_template()
 
 		self.assertEqual(len(preview.tree_preview.nodes), 2)
