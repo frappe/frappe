@@ -1,10 +1,32 @@
 import frappe
 from frappe.api.v2 import run_doc_method as run_doc_method_v2
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.handler import run_doc_method
 from frappe.tests import IntegrationTestCase
 
 
+def approved_only(doc, ptype=None, user=None, debug=False):
+	return ptype == "read" or bool(doc.approved)
+
+
 class TestRunDocMethodPermission(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.doctype = (
+			new_doctype(
+				is_submittable=1,
+				allow_rename=1,
+				fields=[{"label": "Approved", "fieldname": "approved", "fieldtype": "Check"}],
+				permissions=[{"role": "Desk User", "read": 1, "write": 1, "submit": 1, "cancel": 1}],
+			)
+			.insert()
+			.name
+		)
+		cls.approval_hooks = {
+			"has_permission": {cls.doctype: ["frappe.tests.test_run_doc_method_permission.approved_only"]}
+		}
+
 	def setUp(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 
@@ -56,6 +78,10 @@ class TestRunDocMethodPermission(IntegrationTestCase):
 			"modified": str(note.modified),
 		}
 
+	def forged_approval(self):
+		record = frappe.get_doc({"doctype": self.doctype}).insert(ignore_permissions=True)
+		return {**record.as_dict(), "approved": 1}
+
 	def test_v2_checks_write_against_stored_row(self):
 		self.assertRaises(
 			frappe.PermissionError, run_doc_method_v2, "discard", self.forged(self.private_note)
@@ -70,3 +96,17 @@ class TestRunDocMethodPermission(IntegrationTestCase):
 		self.assertRaises(
 			frappe.PermissionError, run_doc_method, "discard", docs=self.forged(self.public_note)
 		)
+
+	def test_submit_checks_permission_against_stored_row(self):
+		with self.patch_hooks(self.approval_hooks):
+			self.assertRaises(frappe.PermissionError, run_doc_method, "submit", docs=self.forged_approval())
+
+	def test_rename_checks_write_against_stored_row(self):
+		with self.patch_hooks(self.approval_hooks):
+			self.assertRaises(
+				frappe.PermissionError,
+				run_doc_method,
+				"rename",
+				docs=self.forged_approval(),
+				args={"name": frappe.generate_hash()},
+			)
