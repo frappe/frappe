@@ -7,7 +7,7 @@ import { onMounted, ref, watch } from "vue";
 
 const props = defineProps({
 	df: { type: Object, required: true },
-	modelValue: { type: String, default: "" },
+	modelValue: { type: [String, Array], default: "" },
 });
 const emit = defineEmits(["update:modelValue"]);
 

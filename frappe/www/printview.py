@@ -75,7 +75,9 @@ def get_context(context) -> PrintContext:
 
 	meta = frappe.get_meta(doc.doctype)
 
-	print_format, standalone = resolve_print_format(None, meta)
+	print_format, standalone = resolve_print_format(
+		None, meta, frappe._dict(doctype=frappe.form_dict.doctype, name=frappe.form_dict.name)
+	)
 	legacy_weasyprint = uses_legacy_weasyprint(print_format)
 	if legacy_weasyprint:
 		standalone = False
@@ -182,25 +184,35 @@ def cast_client_values(document: "Document"):
 				del frappe.local.message_log[messages:]
 
 
-def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
+def get_print_format_doc(
+	print_format_name: str, meta: "Meta", doc: "Document | None" = None
+) -> "PrintFormat" | None:
 	"""Return print format document."""
-	if not print_format_name:
-		print_format_name = frappe.form_dict.format or meta.default_print_format or "Standard"
+	from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
+
+	requested = print_format_name or frappe.form_dict.format
+	print_format_name = requested or meta.default_print_format or "Standard"
 
 	if print_format_name == "Standard":
 		return None
-	else:
-		try:
-			return frappe.get_doc("Print Format", print_format_name)
-		except frappe.DoesNotExistError:
-			# if old name, return standard!
-			return None
+	try:
+		print_format = frappe.get_doc("Print Format", print_format_name)
+	except frappe.DoesNotExistError:
+		# if old name, return standard!
+		return None
+	if can_print_with(print_format):
+		return print_format
+	if print_format_name == requested and requested != meta.default_print_format and not has_share_key(doc):
+		check_print_format_roles(print_format)
+	return None
 
 
-def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat | None", bool]:
+def resolve_print_format(
+	print_format_name: "str | None", meta: "Meta", doc: "Document | None" = None
+) -> tuple["PrintFormat | None", bool]:
 	"""Resolve a print format name to its document and whether it renders through
 	the builder renderer."""
-	print_format = get_print_format_doc(print_format_name, meta=meta)
+	print_format = get_print_format_doc(print_format_name, meta=meta, doc=doc)
 	return print_format, uses_beta_renderer(print_format)
 
 
@@ -612,6 +624,16 @@ def run_before_print(doc: "Document", print_settings: dict) -> None:
 	doc.flags.print_settings = print_settings
 	set_link_titles(doc)
 	doc.run_method("before_print", print_settings)
+
+
+def has_share_key(doc: "Document | dict | None") -> bool:
+	key = frappe.form_dict.key
+	if not doc or not doc.get("name") or not isinstance(key, str):
+		return False
+	try:
+		return validate_key(key, doc) is not False
+	except frappe.exceptions.LinkExpired:
+		return False
 
 
 def validate_key(key: str, doc: "Document") -> None:

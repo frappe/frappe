@@ -19,15 +19,21 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 	"""The Print Format doc, or None for an empty, "Standard" or deleted name so a
 	notification referencing a removed format still sends with the Standard render.
 	With a doctype, an empty name means the doctype's default print format."""
-	if not print_format and doctype:
-		print_format = frappe.get_meta(doctype).default_print_format
+	from frappe.printing.doctype.print_format.print_format import can_print_with, check_print_format_roles
+
+	default = frappe.get_meta(doctype).default_print_format if doctype else None
+	requested = print_format and print_format != default
+	print_format = print_format or default
 	if not print_format or print_format == "Standard":
 		return None
 	try:
-		return frappe.get_cached_doc("Print Format", print_format)
+		doc = frappe.get_cached_doc("Print Format", print_format)
 	except frappe.DoesNotExistError:
 		frappe.clear_last_message()
 		return None
+	if requested:
+		check_print_format_roles(doc)
+	return doc if can_print_with(doc) else None
 
 
 def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -> str:
@@ -113,7 +119,9 @@ def get_print(
 	from frappe.website.serve import get_response_without_exception_handling
 
 	local = frappe.local
-	pf_doc = _print_format_doc_or_none(print_format)
+	pf_doc = _print_format_doc_or_none(print_format, doctype if print_format else None)
+	if print_format:
+		print_format = pf_doc.name if pf_doc else "Standard"
 	generator = local.form_dict.get("pdf_generator")
 	if not generator or (uses_beta_renderer(pf_doc) and generator not in GENERATOR_ENGINES):
 		generator = resolve_pdf_generator(pf_doc, pdf_generator)
@@ -191,7 +199,7 @@ def get_print(
 					# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 					pdf = frappe.call(
 						hook,
-						print_format=print_format,
+						print_format=pf_doc.name if pf_doc else None,
 						html=html,
 						options=pdf_options,
 						output=output,
@@ -268,6 +276,7 @@ def attach_print(
 	frappe.local.flags.ignore_print_permissions = True
 
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
+	kwargs["print_format"] = pf_doc.name if pf_doc else "Standard"
 
 	try:
 		with print_language(lang):

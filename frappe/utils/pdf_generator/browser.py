@@ -7,7 +7,6 @@ import frappe
 from frappe.utils.data import cint, cstr, flt
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import (
-	_print_format_doc_or_none,
 	convert_uom,
 	parse_float_and_unit,
 	resolve_pdf_generator,
@@ -304,10 +303,11 @@ class Browser:
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 		from frappe.www.printview import get_page_rule_margins
 
-		print_format = _print_format_doc_or_none(self.print_format)
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format, cache=True):
+			return {}
+		print_format = frappe.get_cached_doc("Print Format", self.print_format)
 		if (
-			not print_format
-			or not print_format.css
+			not print_format.css
 			or uses_beta_renderer(print_format)
 			or (print_format.pdf_generator or resolve_pdf_generator()) not in ("chrome", "PlutoPrint")
 		):

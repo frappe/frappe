@@ -87,8 +87,11 @@ def legacy_blockers(print_format, layout) -> list[str]:
 
 @frappe.whitelist()
 def download_pdf(doctype: str, name: str | int, print_format: str, letterhead: str | None = None):
+	from frappe.printing.doctype.print_format.print_format import check_print_format_roles
+
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("print")
+	check_print_format_roles(frappe.get_cached_doc("Print Format", print_format))
 	generator = PrintFormatGenerator(print_format, doc, letterhead)
 	pdf = generator.render_pdf()
 
