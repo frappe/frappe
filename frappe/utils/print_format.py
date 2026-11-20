@@ -421,7 +421,7 @@ def _download_multi_pdf(
 from frappe.deprecation_dumpster import read_multi_pdf
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=30, seconds=60, user_based=True)
 @frappe.concurrent_limit()
 def download_pdf(

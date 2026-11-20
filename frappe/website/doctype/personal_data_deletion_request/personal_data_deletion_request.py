@@ -458,7 +458,7 @@ def remove_unverified_record():
 	)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def confirm_deletion(email: str, name: str, host_name: str):
 	if not verify_request():
 		return

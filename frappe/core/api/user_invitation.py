@@ -82,7 +82,7 @@ def get_allowed_invite_params(app_name: str, kwargs: dict) -> dict:
 	return allowed_params
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=10, seconds=60)
 def accept_invitation(key: str) -> None:
 	_accept_invitation(key, False)

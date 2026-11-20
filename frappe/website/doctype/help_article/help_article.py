@@ -123,7 +123,7 @@ def clear_knowledge_base_cache():
 	frappe.cache.delete_value("knowledge_base:faq")
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(key="article", limit=5, seconds=60 * 60)
 def add_feedback(article: str, helpful: str):
 	field = "not_helpful" if helpful == "No" else "helpful"

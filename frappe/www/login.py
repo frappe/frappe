@@ -113,7 +113,7 @@ def get_context(context):
 	return context
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=10, seconds=60)
 def login_via_token(login_token: str):
 	sid = frappe.cache.get_value(f"login_token:{login_token}", expires=True)

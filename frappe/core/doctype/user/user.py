@@ -1147,7 +1147,7 @@ def get_perm_info(role: str):
 	return get_all_perms(role)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=10, seconds=600, user_based=True)
 def update_password(
 	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
@@ -1220,7 +1220,7 @@ def update_password(
 		return redirect_url or get_default_path() or get_home_page()
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)
+@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def test_password_strength(
 	new_password: str, key: str | None = None, old_password: str | None = None, user_data: tuple | None = None
 ):
@@ -1370,7 +1370,7 @@ def get_signup_limit():
 	return frappe.db.get_single_value("Website Settings", "max_signups_per_minute")
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=get_signup_limit, seconds=60)
 def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	allow = True

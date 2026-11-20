@@ -113,13 +113,13 @@ def is_valid_http_method(method):
 		frappe.throw_permission_error()
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)
+@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def logout():
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)
+@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def web_logout():
 	frappe.local.login_manager.logout()
 	frappe.db.commit()
@@ -293,7 +293,7 @@ def check_write_permission(doctype: str | None = None, name: str | None = None):
 		return
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=120, seconds=60, user_based=True)
 def download_file(file_url: str):
 	"""

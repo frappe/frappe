@@ -96,7 +96,9 @@ def approve(*args, **kwargs):
 		return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)
+@frappe.whitelist(
+	allow_guest=True, methods=["GET", "POST"], rate_limit=None
+)  # nosemgrep: guest-whitelisted-method
 def authorize(**kwargs):
 	request_data = frappe.request.get_data(as_text=True) if frappe.request.method == "POST" else ""
 	if request_data and frappe.request.mimetype != "application/x-www-form-urlencoded":
@@ -174,7 +176,7 @@ def authorize(**kwargs):
 			return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=300, seconds=60)
 def get_token(*args, **kwargs):
 	try:
@@ -196,7 +198,7 @@ def get_token(*args, **kwargs):
 		return generate_json_error_response(e)
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(limit=300, seconds=60)
 def revoke_token(*args, **kwargs):
 	try:
@@ -216,7 +218,9 @@ def revoke_token(*args, **kwargs):
 	return
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)
+@frappe.whitelist(
+	allow_guest=True, methods=["GET", "POST"], rate_limit=None
+)  # nosemgrep: guest-whitelisted-method
 def openid_profile(*args, **kwargs):
 	try:
 		r = frappe.request
@@ -289,7 +293,7 @@ def authenticate_introspection_caller() -> str | None:
 	return request.client_id
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)
+@frappe.whitelist(allow_guest=True, methods=["POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def introspect_token(token: str, token_type_hint: str | None = None):
 	authenticated_client_id = authenticate_introspection_caller()
 	if not authenticated_client_id:

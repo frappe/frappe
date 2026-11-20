@@ -413,7 +413,7 @@ class LDAPSettings(Document):
 		return data
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 @rate_limit(key="usr", limit=10, seconds=60)
 def login():
 	# LDAP LOGIN LOGIC

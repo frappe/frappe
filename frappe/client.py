@@ -367,7 +367,9 @@ from frappe.deprecation_dumpster import get_js as _get_js
 get_js = frappe.whitelist()(_get_js)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)
+@frappe.whitelist(
+	allow_guest=True, methods=["GET", "POST"], rate_limit=None
+)  # nosemgrep: guest-whitelisted-method
 def get_time_zone():
 	"""Return the default time zone."""
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}

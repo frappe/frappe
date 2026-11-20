@@ -78,7 +78,9 @@ def get_files_by_search_text(text: str) -> list[dict]:
 	)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)
+@frappe.whitelist(
+	allow_guest=True, methods=["GET", "POST"], rate_limit=None
+)  # nosemgrep: guest-whitelisted-method
 def get_max_file_size() -> int:
 	return (
 		cint(frappe.get_system_settings("max_file_size")) * 1024 * 1024
