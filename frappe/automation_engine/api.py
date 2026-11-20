@@ -177,10 +177,12 @@ def _walk_values(value):
 
 
 def _user_options(doctype, params, search_text):
-	filters = {"enabled": 1}
+	or_filters = None
 	if search_text:
-		filters["name"] = ("like", f"%{search_text}%")
-	return frappe.get_all("User", filters=filters, fields=["name", "full_name"], limit=20)
+		or_filters = [[field, "like", f"%{search_text}%"] for field in ("full_name", "email")]
+	return frappe.get_all(
+		"User", filters={"enabled": 1}, or_filters=or_filters, fields=["name", "full_name"], limit=20
+	)
 
 
 def _notification_recipient_options(doctype, params, search_text):

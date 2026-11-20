@@ -284,6 +284,14 @@ class TestEmail(IntegrationTestCase):
 		email_account.always_use_account_name_as_sender_name = 1
 		_patched_assertion(email_account, "_Test Email Account 1 <test@example.com>")
 
+	def test_sendmail_sends_to_the_email_of_a_user_id(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as user:
+			email_queue = frappe.sendmail(recipients=[user.name], subject="Testing", message="Hello")
+
+		self.assertEqual([r.recipient for r in email_queue.recipients], [user.email])
+
 	def test_unsubscribe(self):
 		from frappe.email.queue import unsubscribe
 

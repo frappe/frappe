@@ -256,6 +256,7 @@ def sendmail(
 
 	from frappe.email.doctype.email_queue.email_queue import QueueBuilder
 
+	recipients, cc, bcc = _user_ids_to_emails(recipients, cc, bcc)
 	builder = QueueBuilder(
 		recipients=recipients,
 		sender=sender,
@@ -300,3 +301,28 @@ def sendmail(
 	if now and q:
 		frappe.db.after_commit.add(q.send)
 	return q
+
+
+def _user_ids_to_emails(*recipient_lists):
+	"""Replace user IDs with the user's email, for callers that still pass IDs. Removed in v18."""
+	from frappe.deprecation_dumpster import deprecation_warning
+	from frappe.utils import split_emails
+
+	recipient_lists = [split_emails(r) if isinstance(r, str) else list(r) for r in recipient_lists]
+	values = {value for recipients in recipient_lists for value in recipients} - set(frappe.STANDARD_USERS)
+	if not values:
+		return recipient_lists
+
+	user_emails = {
+		name: email
+		for name, email in frappe.get_all(
+			"User", filters={"name": ("in", list(values))}, fields=["name", "email"], as_list=True
+		)
+		if name != email
+	}
+	if user_emails:
+		deprecation_warning(
+			"2026-11-18", "v18", f"Pass emails to `sendmail`, not user IDs: {', '.join(user_emails)}"
+		)
+
+	return [[user_emails.get(value, value) for value in recipients] for recipients in recipient_lists]
