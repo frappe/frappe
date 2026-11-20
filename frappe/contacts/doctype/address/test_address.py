@@ -13,6 +13,7 @@ from frappe.contacts.doctype.address.address import (
 from frappe.core.doctype.user.test_user import test_user
 from frappe.permissions import add_permission, update_permission_property
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestAddress(IntegrationTestCase):
@@ -163,7 +164,7 @@ class TestAddress(IntegrationTestCase):
 				first_name="_Test Stale Contact",
 				user=user.name,
 				email_ids=[{"email_id": "_test_stale@example.com", "is_primary": 1}],
-				links=[{"link_doctype": "User", "link_name": "test1@example.com"}],
+				links=[{"link_doctype": "User", "link_name": get_user_by_email("test1@example.com")}],
 			).insert()
 
 			first, second, stale, other = (
@@ -174,7 +175,12 @@ class TestAddress(IntegrationTestCase):
 					country="India",
 					links=[{"link_doctype": "User", "link_name": link_name}],
 				).insert()
-				for link_name in ("Administrator", "Guest", "test1@example.com", "test@example.com")
+				for link_name in (
+					"Administrator",
+					"Guest",
+					get_user_by_email("test1@example.com"),
+					get_user_by_email("test@example.com"),
+				)
 			)
 
 			with self.set_user(user.name):
@@ -188,7 +194,7 @@ class TestAddress(IntegrationTestCase):
 			doctype="Contact",
 			first_name="_Test Guest Contact",
 			email_ids=[{"email_id": frappe.db.get_value("User", "Guest", "email"), "is_primary": 1}],
-			links=[{"link_doctype": "User", "link_name": "test1@example.com"}],
+			links=[{"link_doctype": "User", "link_name": get_user_by_email("test1@example.com")}],
 		).insert()
 		self.assertEqual(contact.user, "Guest")
 		address = frappe.get_doc(
@@ -196,7 +202,7 @@ class TestAddress(IntegrationTestCase):
 			address_line1="1",
 			city="Mumbai",
 			country="India",
-			links=[{"link_doctype": "User", "link_name": "test1@example.com"}],
+			links=[{"link_doctype": "User", "link_name": get_user_by_email("test1@example.com")}],
 		).insert()
 
 		with self.set_user("Guest"):
