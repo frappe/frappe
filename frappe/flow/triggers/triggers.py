@@ -111,6 +111,7 @@ def fire(
 			prompt,
 			source="Trigger",
 			trigger=t.name,
+			personal_trigger=frappe.session.user == t.owner and "System Manager" not in frappe.get_roles(),
 			reference_doctype=target_doctype if doc else None,
 			reference_name=target_name if doc else None,
 		)
