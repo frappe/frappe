@@ -37,6 +37,8 @@ if TYPE_CHECKING:
 {fields}
 {end_block}"""
 
+# A class body that is only `pass`, followed by top-level code or end of file
+lone_pass_body = re.compile(r"\A[ \t]+pass[ \t]*(?:\n|\Z)(?=\n*(?:\S|\Z))")
 
 non_nullable_types = {
 	"Check",
@@ -85,17 +87,21 @@ class TypeExporter:
 			existing_block_start = code.find(first_line)
 			existing_block_end = code.find(last_line) + len(last_line)
 
-			code = code[:existing_block_start] + new_code + "\n\n" + code[existing_block_end:].lstrip("\n")
+			code = self._join_code(code[:existing_block_start], new_code, code[existing_block_end:])
 		elif class_definition in code:  # Add just after class definition
 			# Regex by default will only match till line ends, span end is when we need to stop
 			if class_def := re.search(rf"class {despaced_name}\(.*", code):  # )
 				class_definition_end = class_def.span()[1] + 1
-				code = (
-					code[:class_definition_end] + new_code + "\n\n" + code[class_definition_end:].lstrip("\n")
-				)
+				rest = lone_pass_body.sub("", code[class_definition_end:].lstrip("\n"), count=1)
+				code = self._join_code(code[:class_definition_end], new_code, rest)
 
 		if self._validate_code(code):
 			self.controller_path.write_text(code)
+
+	@staticmethod
+	def _join_code(head: str, types_block: str, tail: str) -> str:
+		tail = tail.lstrip("\n")
+		return head + types_block + ("\n\n" + tail if tail else "\n")
 
 	def _generate_code(self):
 		for field in self.doc.fields:
