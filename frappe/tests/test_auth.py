@@ -195,6 +195,84 @@ class TestAuth(IntegrationTestCase):
 		self.assertNotEqual(frappe.local.response.get("message"), "Password Reset")
 		self.assertNotIn("redirect_to", frappe.local.response)
 
+<<<<<<< HEAD
+=======
+	def test_forced_password_reset_counts_from_account_creation(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+
+		frappe.db.set_value(
+			"User",
+			self.test_user_email,
+			{"last_password_reset_date": None, "creation": add_days(today(), -2)},
+		)
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.70"
+		self.addCleanup(frappe.form_dict.clear)
+
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
+
+	def test_login_lands_on_default_app(self):
+		from frappe.auth import LoginManager
+		from frappe.hooks import app_home
+		from frappe.utils import set_request
+
+		def home_page_after_login():
+			frappe.cache.hdel("home_page", self.test_user_email)
+			set_request(method="POST", path="/api/method/login")
+			frappe.form_dict.usr = self.test_user_email
+			frappe.form_dict.pwd = self.test_user_password
+			frappe.local.response = frappe._dict()
+			frappe.local.request_ip = "127.0.0.68"
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			return frappe.local.response.home_page
+
+		self.addCleanup(frappe.form_dict.clear)
+		self.addCleanup(self.set_system_settings, "default_app", "")
+		for doctype, field in (("Website Settings", "home_page"), ("Portal Settings", "default_portal_home")):
+			self.addCleanup(
+				frappe.db.set_single_value, doctype, field, frappe.db.get_single_value(doctype, field)
+			)
+		self.addCleanup(frappe.db.set_value, "Role", "System Manager", "home_page", None)
+		self.addCleanup(frappe.db.set_value, "User", self.test_user_email, "default_workspace", None)
+
+		# only frappe is installed in CI, and the apps screen leaves it out
+		with patch("frappe.apps.get_apps", return_value=[{"name": "test_app", "route": "/desk/test-app"}]):
+			self.assertEqual(home_page_after_login(), "desk")
+
+			self.set_system_settings("default_app", "frappe")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_single_value("Website Settings", "home_page", "about")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_single_value("Portal Settings", "default_portal_home", "/contact")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", "Users")
+			self.assertEqual(home_page_after_login(), "/desk/users")
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", None)
+			frappe.db.set_single_value("Portal Settings", "default_portal_home", None)
+			with self.patch_hooks({"role_home_page": {"System Manager": ["orders"]}}):
+				self.assertEqual(home_page_after_login(), "orders")
+
+			frappe.db.set_value("Role", "System Manager", "home_page", "todo")
+			self.assertEqual(home_page_after_login(), "todo")
+
+	@requires_test_service(TestService.WEB_SERVER)
+>>>>>>> 748bc58 (fix(auth): open the default app after login)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
 

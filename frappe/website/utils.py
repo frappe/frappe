@@ -103,11 +103,15 @@ def get_home_page():
 		home_page = None
 		# for user
 		if frappe.session.user != "Guest":
+<<<<<<< HEAD
 			# by role
 			for role in frappe.get_roles():
 				home_page = frappe.db.get_value("Role", role, "home_page")
 				if home_page:
 					break
+=======
+			home_page = get_role_home_page()
+>>>>>>> 947130c (fix(auth): open the default app over the website home page)
 
 			# portal default
 			if not home_page:
@@ -143,6 +147,14 @@ def get_home_page():
 	return frappe.cache.hget("home_page", frappe.session.user, _get_home_page)
 
 
+def get_role_home_page():
+	# For most of scenarios,Role table have `home_page` as NULL for all rows/roles, so we do a batch query to reduce DB calls.
+	# and later check if got the `home_page`for any of the roles.
+	all_home_pages = frappe.db.get_values("Role", frappe.get_roles(), "home_page", pluck=True)
+	assert isinstance(all_home_pages, list)
+	return next((home_page for home_page in all_home_pages if home_page is not None), None)
+
+
 def get_home_page_via_hooks():
 	home_page = None
 
@@ -153,12 +165,7 @@ def get_home_page_via_hooks():
 		home_page = frappe.get_hooks("website_user_home_page")[-1]
 
 	if not home_page:
-		role_home_page = frappe.get_hooks("role_home_page")
-		if role_home_page:
-			for role in frappe.get_roles():
-				if role in role_home_page:
-					home_page = role_home_page[role][-1]
-					break
+		home_page = get_role_home_page_via_hooks()
 
 	if not home_page:
 		home_page = frappe.get_hooks("home_page")
@@ -169,6 +176,14 @@ def get_home_page_via_hooks():
 		home_page = home_page.strip("/")
 
 	return home_page
+
+
+def get_role_home_page_via_hooks():
+	role_home_page = frappe.get_hooks("role_home_page")
+	if role_home_page:
+		for role in frappe.get_roles():
+			if role in role_home_page:
+				return role_home_page[role][-1]
 
 
 def get_boot_data():
