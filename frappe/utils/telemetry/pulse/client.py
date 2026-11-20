@@ -20,7 +20,7 @@ def is_enabled() -> bool:
 	return bool(not frappe.conf.get("developer_mode", 0) and frappe.get_system_settings("enable_telemetry"))
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)  # nosemgrep: guest-whitelisted-method  # fmt: skip
 def boot_config() -> dict:
 	"""Direct-mode config for the browser client.
 

@@ -511,6 +511,9 @@ def export_query():
 
 	export_in_background = int(form_params.export_in_background or 0)
 	if export_in_background:
+		if frappe.request and frappe.request.method != "POST":
+			frappe.throw_permission_error()
+
 		user = frappe.session.user
 		user_email = frappe.get_cached_value("User", user, "email")
 		frappe.enqueue(
@@ -673,12 +676,10 @@ def format_filter_value(value):
 
 def build_xlsx_data(
 	data: frappe._dict,
-	visible_idx: list[int] | None = None,
+	*,
 	include_indentation: bool = False,
 	include_filters: bool = False,
-	ignore_visible_idx: bool = False,
 	include_hidden_columns: bool = False,
-	*,
 	build_styles: bool = False,
 ) -> tuple[list[list[Any]], list[int], dict | None]:
 	"""
@@ -686,10 +687,8 @@ def build_xlsx_data(
 
 	Args:
 		data: Report data containing columns, result, filters, applied_filters, report_name etc.
-		visible_idx: Deprecated (v17). Row indices to include.
 		include_indentation: Whether to include indentation for tree-like data
 		include_filters: Whether to include filter rows at the top of the Excel sheet
-		ignore_visible_idx: Deprecated (v17). Skips visible_idx filtering.
 		include_hidden_columns: Whether to include columns marked as hidden
 		build_styles: Whether to build style metadata for Excel formatting
 
@@ -714,24 +713,6 @@ def build_xlsx_data(
 		datetime.time,
 		datetime.timedelta,
 	)
-	if visible_idx or ignore_visible_idx:
-		from frappe.deprecation_dumpster import deprecation_warning
-
-		deprecation_warning(
-			"2026-04-19",
-			"v17",
-			"The 'visible_idx' and 'ignore_visible_idx' parameters of build_xlsx_data are deprecated. "
-			"Filter data.result before calling build_xlsx_data instead.",
-		)
-
-	# NOTE: for backwards compatibility. remove in v17.
-	if not visible_idx or len(visible_idx) == len(data.result):
-		# It's not possible to have same length and different content.
-		ignore_visible_idx = True
-	else:
-		# Note: converted for faster lookups
-		visible_idx = set(visible_idx)
-
 	result = []
 	column_data = []
 	column_widths = []
@@ -792,11 +773,7 @@ def build_xlsx_data(
 
 	# build table from result
 	handle_indentation = include_indentation and not build_styles
-	for row_idx, row in enumerate(data.result):
-		# NOTE: for backwards compatibility. remove in v17.
-		if not (ignore_visible_idx or row_idx in visible_idx):
-			continue
-
+	for row in data.result:
 		row_data = []
 		row_is_dict = isinstance(row, dict)
 

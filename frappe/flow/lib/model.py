@@ -12,6 +12,43 @@ from frappe import _
 
 # Grove, Frappe Cloud's AI gateway, keyed by site config: the provider of its models
 SITE_PROVIDER = "grove"
+ENABLED_CACHE_KEY = "flow_enabled"
+
+
+def is_enabled() -> bool:
+	"""Whether Flow can chat on this site: an enabled chat model with its own key or address, or
+	whose provider is enabled. The same for every user; callers check the user's access to Flow
+	themselves."""
+	return frappe.cache.get_value(ENABLED_CACHE_KEY, generator=_enabled_state)["ready"]
+
+
+def _enabled_state() -> dict[str, bool]:
+	providers = set(frappe.get_all("Flow Provider", filters={"enabled": 1}, pluck="name"))
+	models = frappe.get_all(
+		"Flow Model",
+		filters={"enabled": 1, "embedding": 0},
+		fields=["provider", "model_id", "api_key", "base_url"],
+	)
+	return {
+		"ready": any(
+			model.api_key or model.base_url or _model_provider(model) in providers for model in models
+		),
+	}
+
+
+def _model_provider(model) -> str:
+	return model.provider or model.model_id.partition("/")[0]
+
+
+def clear_enabled_cache() -> None:
+	"""Clears now and again once the transaction ends, so a read in between can't keep the old answer."""
+	_delete_enabled_cache()
+	frappe.db.after_commit.add(_delete_enabled_cache)
+	frappe.db.after_rollback.add(_delete_enabled_cache)
+
+
+def _delete_enabled_cache() -> None:
+	frappe.cache.delete_value(ENABLED_CACHE_KEY)
 
 
 def model_config(model: str, *, check_permission: bool = True) -> dict[str, Any]:

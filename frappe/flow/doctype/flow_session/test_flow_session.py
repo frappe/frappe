@@ -8,9 +8,10 @@ from flow_harness.session.config import SessionConfig
 
 import frappe
 from frappe.flow.daemon import lifecycle
-from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.daemon.client import DaemonClient, DaemonDown, DaemonError
 from frappe.flow.doctype.flow_session.flow_session import FlowSession
 from frappe.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
+from frappe.flow.lib.session import FlowServerDown
 from frappe.flow.memory import store as memory_store
 from frappe.flow.permissions import FLOW_USER_ROLE
 from frappe.flow.tests.test_fake_daemon import TITLE, FakeDaemon, pause
@@ -90,11 +91,13 @@ class TestClearOldLogs(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _session_with_run(self, *, age_days: int) -> tuple[str, str, str]:
+	def _session_with_run(self, *, age_days: int, source: str = "Trigger") -> tuple[str, str, str]:
 		f = frappe.get_doc({"doctype": "File", "file_name": "f.txt", "content": "x", "is_private": 1}).insert(
 			ignore_permissions=True
 		)
-		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent, "title": "chat"})
+		session = frappe.get_doc(
+			{"doctype": "Flow Session", "agent": self.agent, "title": "chat", "source": source}
+		)
 		session.append("messages", {"role": "user", "content": "hi"})
 		session.append("attachments", {"file": f.name, "file_name": "f.txt", "file_size": 1})
 		session.insert(ignore_permissions=True)
@@ -111,6 +114,25 @@ class TestClearOldLogs(IntegrationTestCase):
 		old = frappe.utils.add_days(frappe.utils.now(), -age_days)
 		frappe.db.set_value("Flow Session", session.name, "modified", old, update_modified=False)
 		return session.name, run.name, f.name
+
+	def test_a_persons_chats_are_kept(self):
+		chat, run, file = self._session_with_run(age_days=1000, source="Manual")
+
+		FlowSession.clear_old_logs(days=30)
+
+		self.assertTrue(frappe.db.exists("Flow Session", chat))
+		self.assertTrue(frappe.db.exists("Flow Run", run))
+		self.assertTrue(frappe.db.exists("File", file))
+		self.server_delete.assert_not_called()
+
+	def test_a_guests_old_chat_is_purged(self):
+		chat, run, _ = self._session_with_run(age_days=100, source="Manual")
+		frappe.db.set_value("Flow Session", chat, "owner", "Guest", update_modified=False)
+
+		FlowSession.clear_old_logs(days=30)
+
+		self.assertFalse(frappe.db.exists("Flow Session", chat))
+		self.assertFalse(frappe.db.exists("Flow Run", run))
 
 	def test_old_session_and_linked_run_and_messages_are_purged(self):
 		old_session, old_run, old_file = self._session_with_run(age_days=100)
@@ -172,7 +194,7 @@ class TestClearOldLogs(IntegrationTestCase):
 			frappe.delete_doc("Flow Session", session, ignore_permissions=True)
 		queries = [str(c.args[0]).lower() for c in sql.call_args_list]
 		[update] = [q for q in queries if q.startswith("update") and "tabflow agent memory" in q]
-		self.assertIn("where `name` in", update)
+		self.assertRegex(update, r"where [`\"]name[`\"] in")
 		self.assertIsNone(frappe.db.get_value("Flow Agent Memory", memory.name, "source_run"))
 
 	def test_purge_locks_the_chats_before_their_rows(self):
@@ -418,6 +440,22 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 			doc.db_set("enabled", 1)
 		self.assertEqual(self.calls("run"), [])
 
+	def test_a_chat_whose_model_was_deleted_asks_for_another(self):
+		picked = frappe.get_doc(
+			{"doctype": "Flow Model", "title": "Picked Model", "model_id": "openai/gpt-4o", "enabled": 1}
+		).insert()
+		self.session.db_set("model", picked.name)
+		frappe.delete_doc("Flow Model", picked.name)
+
+		self.session.sync()  # the transcript is still recorded
+		with self.assertRaisesRegex(frappe.ValidationError, "model was deleted"):
+			self.session.chat("hello")
+		self.assertEqual(self.calls("run"), [])
+
+		self.session.set_model(self.model.name)
+		self.session.chat("hello")
+		self.assertEqual(len(self.calls("run")), 1)
+
 	def test_a_server_refusal_is_a_validation_error(self):
 		for error, message in (
 			(DaemonError(400, "attachment 'x' not found"), "400.*not found"),
@@ -431,6 +469,15 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 				self.assertRaisesRegex(frappe.ValidationError, message),
 			):
 				self.session.chat("hello")
+		self.assertEqual(self.runs(), 0)
+
+	def test_a_server_that_is_down_answers_503_and_nothing_is_recorded(self):
+		with (
+			patch.object(self.daemon, "run", side_effect=DaemonDown(None, "ConnectError")),
+			self.assertRaises(FlowServerDown) as caught,
+		):
+			self.session.chat("hello")
+		self.assertEqual(caught.exception.http_status_code, 503)
 		self.assertEqual(self.runs(), 0)
 
 

@@ -26,7 +26,8 @@
   "section_break_knowledge",
   "knowledge_bases",
   "section_break_access",
-  "roles"
+  "roles",
+  "public"
  ],
  "fields": [
   {
@@ -176,11 +177,18 @@
    "fieldtype": "Table MultiSelect",
    "label": "Roles",
    "options": "Has Role"
+  },
+  {
+   "default": "0",
+   "description": "Let people who are not signed in chat with this agent through Flow's guest API. Its tools run as Guest and without asking for approval, as in a trigger's chat, so give it only tools that are safe for anyone to use. Global skills are left out.",
+   "fieldname": "public",
+   "fieldtype": "Check",
+   "label": "Public"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-30 12:00:00.000000",
+ "modified": "2026-11-18 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

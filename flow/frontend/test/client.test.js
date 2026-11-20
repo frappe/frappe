@@ -187,10 +187,7 @@ test("the model list comes from the page's boot first, then refreshes from the s
 				},
 			],
 		},
-		"frappe.flow.api.set_model": ({ model }) => ({
-			model,
-			reasoning_effort: "high",
-		}),
+		"frappe.flow.api.set_model": ({ model }) => ({ model }),
 	});
 	const client = new FrappeClient({ boot, transport });
 	assert.deepEqual(
@@ -208,15 +205,16 @@ test("the model list comes from the page's boot first, then refreshes from the s
 			context_window: null,
 		},
 	]);
+	// a thinking level the store still holds is not sent: Flow offers none
 	const switched = await client.setModel("S1", { model: "GPT", reasoning_effort: "high" });
 	assert.deepEqual(switched, { model: "GPT", context_window: null });
 	assert.deepEqual(transport.calls.at(-1), [
 		"frappe.flow.api.set_model",
-		{ session: "S1", model: "GPT", reasoning_effort: "high" },
+		{ session: "S1", model: "GPT" },
 	]);
 });
 
-test("shared provider IDs preserve the session's model when its thinking level changes", async (t) => {
+test("shared provider IDs preserve the session's model", async (t) => {
 	const { createFlowStore } = await import("@flow/ui-core/store.js");
 	const { fakeSocket } = await import("./helpers/socket.js");
 	globalThis.localStorage = { getItem: () => null, setItem() {} };
@@ -237,11 +235,6 @@ test("shared provider IDs preserve the session's model when its thinking level c
 	t.after(() => store.detach());
 	await store.openSession("S1");
 	assert.equal(store.state.conversation.model, "Sonnet");
-	await store.selectEffort("high");
-	assert.equal(
-		transport.calls.find(([method]) => method === "frappe.flow.api.set_model")[1].model,
-		"Sonnet"
-	);
 	await client.setModel("S1", { model: "Other account" });
 	assert.equal(
 		client.present({ type: "model_changed", model: models[0].model_id }, "S1").model,

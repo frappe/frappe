@@ -63,6 +63,7 @@ _LAZY_IMPORTS: dict[str, tuple[str, str]] = {
 	"get_doc": ("frappe.model.document", "get_doc"),
 	"get_docs": ("frappe.model.document", "get_docs"),
 	"get_lazy_doc": ("frappe.model.document", "get_lazy_doc"),
+	"read_doc": ("frappe.model.document", "read_doc"),
 	"copy_doc": ("frappe.model.document", "copy_doc"),
 	"new_doc": ("frappe.model.document", "new_doc"),
 	"get_cached_doc": ("frappe.model.document", "get_cached_doc"),
@@ -155,8 +156,7 @@ if TYPE_CHECKING:  # pragma: no cover
 	from frappe.concurrency_limiter import concurrent_limit
 	from frappe.config import get_common_site_config, get_conf, get_site_config
 	from frappe.core.doctype.system_settings.system_settings import get_system_settings
-	from frappe.database.mariadb.database import MariaDBDatabase as PyMariaDBDatabase
-	from frappe.database.mariadb.mysqlclient import MariaDBDatabase
+	from frappe.database.mariadb.database import MariaDBDatabase
 	from frappe.database.postgres.database import PostgresDatabase
 	from frappe.database.sqlite.database import SQLiteDatabase
 	from frappe.deprecation_dumpster import frappe_get_test_records as get_test_records
@@ -177,6 +177,7 @@ if TYPE_CHECKING:  # pragma: no cover
 		get_single,
 		get_single_value,
 		new_doc,
+		read_doc,
 	)
 	from frappe.model.meta import get_meta
 	from frappe.modules.utils import (
@@ -242,7 +243,7 @@ type ResponseDict = _dict[str, Any]  # type: ignore[no-any-explicit]
 type FlagsDict = _dict[str, Any]  # type: ignore[no-any-explicit]
 type FormDict = _dict[str, str]
 
-db: LocalProxy["PyMariaDBDatabase" | "MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
+db: LocalProxy["MariaDBDatabase" | "PostgresDatabase" | "SQLiteDatabase"] = local("db")
 qb: LocalProxy["MariaDB" | "Postgres" | "SQLite"] = local("qb")
 conf: LocalProxy[ConfType] = local("conf")
 form_dict: LocalProxy[FormDict] = local("form_dict")
@@ -263,7 +264,7 @@ lang: LocalProxy[str] = local("lang")
 if TYPE_CHECKING:  # pragma: no cover
 	# trick because some type checkers fail to follow "RedisWrapper", etc (written as string literal)
 	# trough a generic wrapper; seems to be a bug
-	db: PyMariaDBDatabase | MariaDBDatabase | PostgresDatabase | SQLiteDatabase
+	db: MariaDBDatabase | PostgresDatabase | SQLiteDatabase
 	qb: MariaDB | Postgres
 	conf: ConfType
 	form_dict: FormDict
@@ -577,7 +578,7 @@ def _in_request_or_test():
 	return getattr(local, "request", None) or in_test
 
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None):
+def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None, rate_limit=None):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
@@ -586,6 +587,8 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	:param methods: Allowed http method to access the method.
 	:param force_types: Method should have type annotations. If unset, defaults to hooks
 						specification.
+	:param rate_limit: Pass `rate_limit=None` on a guest method that is deliberately not rate limited.
+						To rate limit a method, put `@frappe.rate_limiter.rate_limit` below this decorator.
 
 	Use as:
 
@@ -593,6 +596,12 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	        def myfunc(param1, param2):
 	                pass
 	"""
+
+	if rate_limit is not None:
+		raise TypeError(
+			"Use the @rate_limit(...) decorator to rate limit a method; "
+			"rate_limit=None only marks a guest method as deliberately not rate limited."
+		)
 
 	if not methods:
 		methods = ("GET", "POST", "PUT", "DELETE", "QUERY")
@@ -1475,7 +1484,7 @@ def is_setup_complete():
 	return setup_complete
 
 
-@whitelist(allow_guest=True)
+@whitelist(allow_guest=True, methods=["GET", "POST"], rate_limit=None)
 def ping():
 	return "pong"
 

@@ -5,6 +5,7 @@ from typing import Literal
 import frappe
 from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
+from frappe.studio import components
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
 from frappe.studio.doctype.studio_component.studio_component import find_component
 from frappe.studio.files import (
@@ -41,8 +42,7 @@ from frappe.utils import sbool, touch_file
 
 @frappe.whitelist()
 def get_app_boot(app_name: str) -> dict:
-	app = frappe.get_doc("Studio App", app_name)
-	app.check_permission("read")
+	app = frappe.read_doc("Studio App", app_name)
 	return app.get_boot()
 
 
@@ -119,6 +119,18 @@ def get_sort_fields(doctype: str):
 		fields.append(field)
 
 	return fields
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def get_component_definition(component: str) -> dict:
+	"""Return the props of a built-in component, for an agent that builds a page."""
+	return components.get_component_definition(component)
+
+
+@frappe.whitelist()
+def can_use_flow() -> bool:
+	return bool(frappe.has_permission("Flow Session", "read"))
 
 
 @frappe.whitelist()
@@ -423,7 +435,7 @@ def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None
 	_sync_component_script(file_path, target)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def get_app_files(app_name: str) -> list[dict]:
 	"""Return a database app's source files for compilation in the browser.
 

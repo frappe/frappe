@@ -833,7 +833,12 @@ class FilterArea {
 					if (fields_dict[fieldname].df) {
 						fields_dict[fieldname].df.match_type = condition;
 					}
-					return fields_dict[fieldname].set_value(value);
+					// the box adds the wildcards back (get_standard_filters)
+					const box_value =
+						condition === "like" && typeof value === "string"
+							? value.replace(/^%([^%]*)%$/, "$1")
+							: value;
+					return fields_dict[fieldname].set_value(box_value);
 				});
 			} else {
 				// filter out non standard filters
@@ -848,8 +853,10 @@ class FilterArea {
 			let label, fieldtype;
 			if (fieldname === "assigned_to") {
 				label = __("Assigned To");
+				fieldtype = "Link";
 			} else if (fieldname === "owner") {
 				label = __("Created By");
+				fieldtype = "Link";
 			} else if (fieldname === "tags") {
 				label = __("Tags");
 			}

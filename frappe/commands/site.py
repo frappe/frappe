@@ -12,7 +12,7 @@ import click
 import frappe
 from frappe.commands import get_site, pass_context
 from frappe.exceptions import SiteNotSpecifiedError
-from frappe.utils import CallbackManager
+from frappe.utils import CallbackManager, get_user_by_email
 from frappe.utils.bench_helper import CliCtxObj
 
 
@@ -757,7 +757,7 @@ def disable_user(context: CliCtxObj, email):
 	site = get_site(context)
 	with frappe.init_site(site):
 		frappe.connect()
-		user = frappe.get_doc("User", email)
+		user = frappe.get_doc("User", get_user_id(email))
 		user.enabled = 0
 		user.save(ignore_permissions=True)
 		frappe.db.commit()
@@ -1249,6 +1249,18 @@ def set_admin_password(context: CliCtxObj, admin_password=None, logout_all_sessi
 		set_user_password(site, "Administrator", admin_password, logout_all_sessions)
 
 
+def get_user_id(user: str) -> str:
+	"""Return the ID of the user with this ID or email, or exit if there is none."""
+	if user in frappe.STANDARD_USERS:
+		return user
+
+	if user_id := frappe.db.get_value("User", user) or get_user_by_email(user):
+		return user_id
+
+	click.echo(f"User {user} does not exist")
+	sys.exit(1)
+
+
 def set_user_password(site, user, password, logout_all_sessions=False):
 	from frappe.utils.password import update_password
 
@@ -1259,9 +1271,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 			password = getpass.getpass(f"{user}'s password for {site}: ")
 
 		frappe.connect()
-		if not frappe.db.exists("User", user):
-			print(f"User {user} does not exist")
-			sys.exit(1)
+		user = get_user_id(user)
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
 		frappe.db.set_value("User", user, "last_password_reset_date", frappe.utils.today())
@@ -1282,6 +1292,9 @@ def set_last_active_for_user(context: CliCtxObj, user=None):
 
 	with frappe.init_site(site):
 		frappe.connect()
+		if user:
+			user = get_user_id(user)
+
 		if not user:
 			user = get_system_users(limit=1)
 			if len(user) > 0:
@@ -1314,7 +1327,7 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 				event,
 				message=message,
 				room=room,
-				user=user,
+				user=get_user_id(user) if user else None,
 				doctype=doctype,
 				docname=docname,
 				after_commit=after_commit,
@@ -1367,9 +1380,7 @@ def browse(
 	sid = ""
 	login_path = ""
 	if user:
-		if not frappe.db.exists("User", user):
-			click.echo(f"User {user} does not exist")
-			sys.exit(1)
+		user = get_user_id(user)
 
 		if frappe.conf.developer_mode or user == "Administrator":
 			frappe.utils.set_request(path="/")

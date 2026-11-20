@@ -13,6 +13,7 @@ import frappe
 import frappe.defaults
 from frappe import _
 from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.lib.model import is_enabled as flow_is_enabled
 from frappe.flow.lib.session import new_session, sync_with_retry
 from frappe.query_builder.functions import Locate, Lower
 from frappe.utils import cint, escape_html, get_fullname, get_url
@@ -26,7 +27,6 @@ TITLE_LIMIT = 140
 LIST_LIMIT = 100
 RUN_FIELDS = ["name", "daemon_run_id", "status", "error"]
 FEEDBACK_FIELDS = ["feedback_rating", "feedback_comment"]
-REASONING_EFFORTS = ("off", "minimal", "low", "medium", "high", "xhigh", "max")
 # What the /flow page's settings manage; boot reports the caller's rights on each.
 SETTINGS_DOCTYPES = (
 	"Flow Provider",
@@ -56,12 +56,11 @@ def boot() -> dict[str, Any]:
 	from, the default agent, whether a provider is set up, the file types it may attach, who is
 	signed in, what they may manage and the chat preferences they keep."""
 	frappe.has_permission("Flow Session", "read", throw=True)
-	from frappe.flow.api.setup import sync_site_provider
+	from frappe.flow.api.setup import offers_site_key
 	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
 	from frappe.flow.doctype.flow_tool.flow_tool import unavailable_tools
 	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
 
-	sync_site_provider()
 	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"])
 	# an app's agent shows without its app, unless another app's agent is named the same
 	short = [agent.name.rpartition("/")[2] for agent in agents]
@@ -84,6 +83,7 @@ def boot() -> dict[str, Any]:
 		"providers": frappe.get_all(
 			"Flow Provider", filters={"enabled": 1}, pluck="name", order_by="creation asc"
 		),
+		"site_key": offers_site_key(),
 		"file_types": sorted(FILE_EXTENSIONS),
 		"prefs": _user_prefs(),
 		"unavailable_tools": unavailable_tools(),
@@ -99,6 +99,12 @@ def boot() -> dict[str, Any]:
 			for doctype in SETTINGS_DOCTYPES
 		},
 	}
+
+
+@frappe.whitelist(methods=["GET"])
+def is_enabled() -> bool:
+	"""Whether Flow can chat on this site, for clients without Desk's boot."""
+	return flow_is_enabled()
 
 
 @frappe.whitelist(methods=["POST"])
@@ -300,21 +306,12 @@ def system_prompt(session: str) -> str | None:
 
 
 @frappe.whitelist(methods=["POST"])
-def set_model(session: str, model: str, reasoning_effort: str | None = None) -> dict[str, Any]:
-	"""Switch the session's model; `reasoning_effort` sets its thinking level, empty for the default."""
+def set_model(session: str, model: str) -> dict[str, str]:
+	"""Switch the session's model. No thinking level goes with it: a model's Extra Params set one."""
 	if not isinstance(model, str) or not model.strip():
 		frappe.throw(_("Model is required."), title=_("Invalid Model"))
-	effort = (reasoning_effort or "").strip() or None
-	if effort is not None and effort not in REASONING_EFFORTS:
-		frappe.throw(
-			_("Reasoning effort must be one of {0}.").format(", ".join(REASONING_EFFORTS)),
-			title=_("Invalid Reasoning Effort"),
-		)
-	_load_session(session, "write").set_model(model.strip(), reasoning_effort=effort)
-	return {
-		"model": model.strip(),
-		"reasoning_effort": effort,
-	}
+	_load_session(session, "write").set_model(model.strip())
+	return {"model": model.strip()}
 
 
 @frappe.whitelist(methods=["POST"])

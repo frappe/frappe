@@ -38,7 +38,6 @@ import { Button, Dialog } from "frappe-ui"
 import useStudioStore from "@/stores/studioStore"
 import AppSettings from "@/components/Settings/AppSettings.vue"
 import PagesSettings from "@/components/Settings/PagesSettings.vue"
-import AISettings from "@/components/Settings/AISettings.vue"
 import type { SettingsTab } from "@/types"
 
 const store = useStudioStore()
@@ -60,7 +59,6 @@ const tabs: Tab[] = [
 		component: AppSettings,
 	},
 	{ name: "pages", label: "Pages", title: "Pages", icon: "lucide-files", component: PagesSettings },
-	{ name: "ai", label: "AI", title: "AI", icon: "lucide-sparkles", component: AISettings },
 ]
 
 const activeTab = computed(() => tabs.find((tab) => tab.name === store.settingsTab) || tabs[0])

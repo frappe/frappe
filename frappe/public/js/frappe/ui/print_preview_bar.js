@@ -40,8 +40,23 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		this.frame = frame;
 		this.pages = [];
 		this.zoom_style = doc.head.appendChild(doc.createElement("style"));
+		// an image, even a transparent one, stops the body's white from filling the whole frame
+		doc.head.appendChild(doc.createElement("style")).textContent =
+			"@media screen { :root { background: linear-gradient(transparent, transparent); } }";
 		doc.addEventListener("scroll", () => this.update_page_label());
 		doc.defaultView.addEventListener("resize", () => this.apply_zoom());
+		doc.addEventListener(
+			"wheel",
+			(e) => {
+				if (!e.ctrlKey) return;
+				e.preventDefault();
+				this.zoom_set_by_user = true;
+				const scale = Math.min(1.25, Math.max(0.8, Math.exp(-e.deltaY / 100)));
+				this.zoom = Math.min(2, Math.max(0.5, this.zoom * scale));
+				this.apply_zoom();
+			},
+			{ passive: false }
+		);
 		if (fit && !this.zoom_set_by_user) this.fit(1);
 		this.apply_zoom();
 

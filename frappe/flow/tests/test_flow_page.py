@@ -8,6 +8,7 @@ from werkzeug.wrappers import Response
 import frappe
 from frappe.flow.launcher import add_to_page, get_app_roots
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
+from frappe.flow.tests.test_flow_enabled import delete_models_and_providers
 from frappe.flow.tests.test_permissions import _user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
@@ -41,17 +42,27 @@ class TestFlowPage(IntegrationTestCase):
 		# back to the chat asked for, not just the page
 		self.assertEqual(frappe.local.flags.redirect_location, "/login?redirect-to=%2Fflow%2Fs%2F4uaiaqp7g3")
 
+	def _page(self, path):
+		set_request(path=path)
+		response = Response("<html><body><p>page</p></body></html>", mimetype="text/html")
+		add_to_page(response, frappe.local.request)
+		return response.get_data(as_text=True)
+
 	def test_the_launcher_joins_app_pages_of_flow_users(self):
 		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
 		ensure_flow_role()
 		member = _user("flow-launcher-member@example.com", FLOW_USER_ROLE)
 		outsider = _user("flow-launcher-none@example.com")
-
-		def page(path):
-			set_request(path=path)
-			response = Response("<html><body><p>page</p></body></html>", mimetype="text/html")
-			add_to_page(response, frappe.local.request)
-			return response.get_data(as_text=True)
+		page = self._page
+		frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Launcher Model",
+				"model_id": "openai/gpt-4o-mini",
+				"api_key": "sk-launcher",
+				"enabled": 1,
+			}
+		).insert()
 
 		frappe.set_user(member)
 		assets = {
@@ -76,3 +87,15 @@ class TestFlowPage(IntegrationTestCase):
 		for user in (outsider, "Guest"):
 			frappe.set_user(user)
 			self.assertNotIn("flow_launcher", page("/desk/user"))
+
+	def test_the_launcher_waits_for_flow_to_chat_unless_the_user_can_set_it_up(self):
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		delete_models_and_providers()
+		ensure_flow_role()
+		member = _user("flow-launcher-member@example.com", FLOW_USER_ROLE)
+		manager = _user("flow-launcher-manager@example.com", "System Manager")
+
+		frappe.set_user(member)
+		self.assertNotIn("flow_launcher", self._page("/desk/user"))
+		frappe.set_user(manager)
+		self.assertIn("flow_launcher", self._page("/desk/user"))

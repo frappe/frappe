@@ -9,7 +9,7 @@ import frappe.utils
 from frappe import _
 from frappe.model import log_types
 from frappe.query_builder import DocType
-from frappe.utils import get_url_to_form
+from frappe.utils import get_email_address, get_url_to_form, get_user_display_id
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -117,7 +117,7 @@ def send_email_alert(receiver, docinfo, timeline):
 	if receiver:
 		frappe.sendmail(
 			subject=_("Document Follow Notification"),
-			recipients=[receiver],
+			recipients=[get_email_address(receiver)],
 			template="document_follow",
 			args={
 				"docinfo": docinfo,
@@ -253,9 +253,9 @@ def get_comments(doctype, doc_name, frequency, user):
 	)
 	for comment in comments:
 		if comment.comment_type == "Like":
-			by = f""" By : <b>{comment.modified_by}<b>"""
+			by = f""" By : <b>{get_user_display_id(comment.modified_by)}<b>"""
 		elif comment.comment_type == "Comment":
-			by = f"""Commented by : <b>{comment.modified_by}<b>"""
+			by = f"""Commented by : <b>{get_user_display_id(comment.modified_by)}<b>"""
 		else:
 			by = ""
 
@@ -303,7 +303,7 @@ def get_row_changed(row_changed, time, doctype, doc_name, v, user):
 				"doctype": doctype,
 				"doc_name": doc_name,
 				"type": "row changed",
-				"by": v.modified_by,
+				"by": get_user_display_id(v.modified_by),
 			}
 		)
 	return items
@@ -317,7 +317,7 @@ def get_added_row(added, time, doctype, doc_name, v, user):
 			"doctype": doctype,
 			"doc_name": doc_name,
 			"type": "row added",
-			"by": v.modified_by,
+			"by": get_user_display_id(v.modified_by),
 		}
 		for d in added
 		if _can_read_table_field(doctype, d[0], user)
@@ -350,7 +350,7 @@ def get_field_changed(changed, time, doctype, doc_name, v, user):
 				"doctype": doctype,
 				"doc_name": doc_name,
 				"type": "field changed",
-				"by": v.modified_by,
+				"by": get_user_display_id(v.modified_by),
 			}
 		)
 	return items

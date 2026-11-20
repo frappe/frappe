@@ -234,7 +234,7 @@ class CustomizeForm(Document):
 		self.doc_type = doc_type
 		self.name = "Customize Form"
 
-	@frappe.whitelist()
+	@frappe.whitelist(methods=["POST"])
 	def save_customization(self):
 		if not self.doc_type:
 			return

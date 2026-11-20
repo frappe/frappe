@@ -7,7 +7,9 @@
   "small_model",
   "web_search_section",
   "search_provider",
-  "search_api_key"
+  "search_api_key",
+  "guest_section",
+  "guest_messages_per_hour"
  ],
  "fields": [
   {
@@ -36,11 +38,24 @@
    "fieldtype": "Password",
    "label": "Search API Key",
    "mandatory_depends_on": "eval:doc.search_provider && doc.search_provider !== \"DuckDuckGo\""
+  },
+  {
+   "fieldname": "guest_section",
+   "fieldtype": "Section Break",
+   "label": "Guest Chats"
+  },
+  {
+   "default": "0",
+   "description": "How many messages one address may send to public agents in an hour. Leave empty to use the default of 30.",
+   "fieldname": "guest_messages_per_hour",
+   "fieldtype": "Int",
+   "label": "Guest Messages per Hour",
+   "non_negative": 1
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-10-29 22:00:00.000000",
+ "modified": "2026-11-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Settings",

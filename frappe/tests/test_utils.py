@@ -438,12 +438,12 @@ class TestMoney(IntegrationTestCase):
 				(0, "NGN Zero only."),
 				("Fail", ""),
 			],
-			"MRO": [
-				(5000, "MRO Five Thousand only."),
-				(5000.0, "MRO Five Thousand only."),
-				(1.4, "MRO One and Two Khoums only."),
+			"MRU": [
+				(5000, "MRU Five Thousand only."),
+				(5000.0, "MRU Five Thousand only."),
+				(1.4, "MRU One and Two Khoums only."),
 				(0.2, "One Khoums only."),
-				(0, "MRO Zero only."),
+				(0, "MRU Zero only."),
 				("Fail", ""),
 			],
 			"USD": [
@@ -1948,11 +1948,14 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertIn(frappe.local.site, get_sites())
 
 	def test_get_site_info(self):
-		info = get_site_info()
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=["System Manager"], generated_id=True) as user:
+			info = get_site_info()
 
 		installed_apps = [app["app_name"] for app in info["installed_apps"]]
 		self.assertIn("frappe", installed_apps)
-		self.assertGreaterEqual(len(info["users"]), 1)
+		self.assertIn(user.email, [u["email"] for u in info["users"]])
 
 	def test_get_url_to_form(self):
 		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
@@ -2587,3 +2590,30 @@ class TestMsgPrint(UnitTestCase):
 		self.assertEqual(str(raised.exception), "first<br>second")
 		printed.assert_called_once()
 		self.assertNotIn("<br>", printed.call_args.args[0])
+
+
+class TestAddUserInfo(IntegrationTestCase):
+	def test_add_user_info_by_id_or_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as user:
+			user_info = {}
+			frappe.utils.add_user_info([user.name, user.email.upper(), None], user_info)
+
+			self.assertEqual(user_info[user.name].name, user.name)
+			self.assertEqual(user_info[user.email.upper()].name, user.name)
+
+	def test_add_user_info_prefers_the_id(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[], generated_id=True) as other:
+			legacy = frappe.new_doc(
+				"User", email=f"legacy_{other.email}", first_name="Legacy", send_welcome_email=0
+			)
+			legacy.flags.skip_email_from_name = True
+			legacy.insert(set_name=other.email)
+			self.addCleanup(legacy.delete, force=True, ignore_permissions=True)
+
+			user_info = {}
+			frappe.utils.add_user_info(other.email, user_info)
+			self.assertEqual(user_info[other.email].name, legacy.name)

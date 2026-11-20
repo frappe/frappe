@@ -299,6 +299,69 @@ class TestFire(IntegrationTestCase):
 				self.assertEqual(frappe.get_doc("Flow Session", run.session).owner, account)
 				self.assertEqual(self.daemon.configs[run.session]["user_context"]["user"], account)
 
+	def test_a_flow_users_own_trigger_keeps_its_session_from_system_managers(self):
+		from frappe.flow.lib.session import LogRecorder
+		from frappe.patches.v17_0.keep_flow_user_trigger_sessions_private import execute
+
+		member = _user("trigger-member@example.com", FLOW_USER_ROLE)
+		manager = _user("trigger-manager@example.com", "System Manager", FLOW_USER_ROLE)
+		viewer = _user("trigger-viewer@example.com", "System Manager")
+		# open to managers unless a Flow User's trigger ran as them
+		cases = (
+			(member, member, False),
+			(member, manager, True),
+			(manager, None, True),
+			(manager, member, True),
+		)
+		triggers, runs = [], {}
+		for owner, run_as, seen in cases:
+			trigger = frappe.get_doc(
+				_trigger(
+					self.agent.name,
+					title=f"Owned Trigger {len(runs)}",
+					event="Scheduled",
+					target_doctype=None,
+					doc_event=None,
+					cron_expression="0 9 * * 5",
+					prompt_template="weekly",
+				)
+			).insert()
+			trigger.db_set({"owner": owner, "run_as": run_as})
+			triggers.append(trigger)
+			runs[fire(trigger.name)] = seen
+
+		def check():
+			for name, seen in runs.items():
+				run = frappe.get_doc("Flow Run", name)
+				for doc in (run, frappe.get_doc("Flow Session", run.session)):
+					with self.subTest(doc.doctype, owner=doc.owner, seen=seen):
+						self.assertTrue(frappe.has_permission(doc.doctype, "read", doc, user=doc.owner))
+						self.assertEqual(frappe.has_permission(doc.doctype, "read", doc, user=viewer), seen)
+						listed = frappe.get_list(doc.doctype, filters={"name": doc.name}, user=viewer)
+						self.assertEqual(bool(listed), seen)
+
+		check()
+		# its owner cannot hide a session a manager's trigger started
+		shown = frappe.get_doc("Flow Session", {"owner": member, "personal_trigger": 0})
+		shown.personal_trigger = 1
+		self.assertRaises(frappe.CannotChangeConstantError, shown.save)
+
+		frappe.db.set_value("Flow Session", {"owner": ("in", (member, manager))}, "personal_trigger", 0)
+		execute()
+		check()
+
+		# a run the log recorder adds stays with its session
+		for name, seen in runs.items():
+			session = frappe.get_doc("Flow Session", frappe.db.get_value("Flow Run", name, "session"))
+			frappe.db.set_value("Flow Run", name, "status", "Completed")
+			added = LogRecorder(session)._find_or_create_run()
+			self.assertEqual(frappe.has_permission("Flow Run", "read", added, user=viewer), seen)
+
+		for trigger in triggers:
+			trigger.delete()
+		frappe.get_doc(_trigger(self.agent.name, title=triggers[0].name)).insert()
+		check()
+
 	def test_fire_skips_without_running_the_agent(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "open", "status": "Open"}).insert()
 		for case, values, target in (
@@ -455,6 +518,15 @@ class TestShippedTriggers(IntegrationTestCase):
 			return get_hooks(name, *args, **kwargs)
 
 		return patch("frappe.get_hooks", side_effect=hooks)
+
+	def test_run_as_takes_the_users_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[FLOW_USER_ROLE], generated_id=True, first_name="Runner") as user:
+			Trigger(
+				title="By email", agent="Researcher", cron="0 8 * * *", prompt="x", run_as=user.email
+			).sync()
+			self.assertEqual(frappe.db.get_value("Flow Trigger", "frappe/By email", "run_as"), user.name)
 
 	def test_names_are_the_apps_own_unless_named_with_their_app(self):
 		trigger = Trigger(title="Daily", agent="Researcher", cron="0 8 * * *", prompt="x")

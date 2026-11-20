@@ -139,6 +139,28 @@ test("skill previews load once per folder and never land in another folder's lis
 	assert.equal(flow.state.sessionId, null)
 })
 
+test("a chat still opening loads its own skills, so one that cannot open says why once", async () => {
+	const asked = []
+	let fail
+	const client = {
+		session: () => new Promise((_, reject) => (fail = reject)),
+		async skills(sid) {
+			asked.push(sid)
+			throw new Error("gone")
+		},
+	}
+	const flow = createFlowStore(client)
+	const opened = flow.openSession("s1")
+	await flow.loadSkills()
+	assert.deepEqual(asked, ["s1"])
+	// a skill that changed meanwhile is still fetched
+	await flow.loadSkills({ force: true })
+	assert.deepEqual(asked, ["s1", "s1"])
+	fail(new Error("gone"))
+	await opened
+	assert.equal(flow.state.sessionId, null)
+})
+
 test("an open session refetches its skills only when forced, and the newest refetch wins", async () => {
 	const requests = []
 	const client = {

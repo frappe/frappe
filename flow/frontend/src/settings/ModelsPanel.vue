@@ -294,14 +294,13 @@ function providerMenu(service) {
 			icon: service.enabled ? "lucide-power-off" : "lucide-power",
 			onClick: () => setEnabled(service, !service.enabled),
 		},
-		// a server of one's own goes with its models; a listed one is turned off instead
-		canDeleteProvider.value &&
-			!serviceFor(service.name) && {
-				label: __("Delete"),
-				icon: "lucide-trash-2",
-				theme: "red",
-				onClick: () => removeProvider(service),
-			},
+		// a provider goes with its models
+		canDeleteProvider.value && {
+			label: __("Delete"),
+			icon: "lucide-trash-2",
+			theme: "red",
+			onClick: () => removeProvider(service),
+		},
 	].filter(Boolean);
 }
 function removeProvider(service) {

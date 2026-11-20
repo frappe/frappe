@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 LAYOUT_FIELDTYPES = NO_VALUE_FIELDS - {"Table", "Table MultiSelect"}
 PERMISSION_TYPES = ("read", "write", "create", "delete", "submit", "cancel", "amend")
+DEPENDS_ON_PROPERTIES = ("depends_on", "mandatory_depends_on", "read_only_depends_on")
 SEARCH_LIMIT = 50
 
 
@@ -81,7 +82,11 @@ def doctype_schema(doctype: str) -> dict:
 		"is_single": bool(meta.issingle),
 		"is_child_table": bool(meta.istable),
 		"title_field": meta.title_field,
-		"fields": [field_schema(field) for field in meta.fields if field.fieldtype not in LAYOUT_FIELDTYPES],
+		"fields": [
+			field_schema(field, meta.is_submittable)
+			for field in meta.fields
+			if field.fieldtype not in LAYOUT_FIELDTYPES
+		],
 		"permissions": {
 			# The return value is exposed as metadata, not used to authorize an operation.
 			# nosemgrep: frappe-semgrep-rules.rules.unchecked-frappe-permission-call
@@ -92,7 +97,7 @@ def doctype_schema(doctype: str) -> dict:
 	return result
 
 
-def field_schema(field: "DocField") -> dict:
+def field_schema(field: "DocField", is_submittable: bool = False) -> dict:
 	result = {
 		"fieldname": field.fieldname,
 		"fieldtype": field.fieldtype,
@@ -102,6 +107,11 @@ def field_schema(field: "DocField") -> dict:
 		"read_only": bool(field.read_only),
 		"permlevel": field.permlevel or 0,
 	}
+	if is_submittable and field.allow_on_submit:
+		result["allow_on_submit"] = True
+	for prop in DEPENDS_ON_PROPERTIES:
+		if expression := field.get(prop):
+			result[prop] = expression
 	return {key: value for key, value in result.items() if value is not None}
 
 
@@ -122,7 +132,11 @@ SEARCH_DOCTYPES = Tool(
 
 GET_DOCTYPE_SCHEMA = Tool(
 	name="get_doctype_schema",
-	description="Get fields and permissions of a DocType.",
+	description=(
+		"Get fields and permissions of a DocType. Respect the depends_on, mandatory_depends_on and "
+		"read_only_depends_on rules of the fields: the desk UI evaluates them, but the server does not, "
+		"so check them yourself before you write."
+	),
 	arguments=GetDoctypeSchemaArguments,
 	handler=doctype_schema,
 	annotations={"readOnlyHint": True},

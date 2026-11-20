@@ -8,10 +8,10 @@ from frappe.utils.caching import site_cache
 
 def get_jenv(*, restrict_globals=None):
 	import frappe
-	from frappe.utils.safe_exec import get_safe_globals, is_render_exec_enabled, render_safe_globals
+	from frappe.utils.safe_exec import get_safe_globals, render_safe_globals
 
 	if restrict_globals is None:
-		restrict_globals = is_render_exec_enabled()
+		restrict_globals = True
 
 	local_key = "jenv_restricted" if restrict_globals else "jenv_unrestricted"
 	if jenv := getattr(frappe.local, local_key, None):
@@ -69,8 +69,8 @@ def _get_jenv():
 	return jenv
 
 
-def get_template(path):
-	jenv = get_jenv()
+def get_template(path, *, restrict_globals=None):
+	jenv = get_jenv(restrict_globals=restrict_globals)
 	# Note: jenv globals are reapplied here because we don't have true "global"/"local" separation.
 	# Ideally globals should never change as per Jinja design.
 	return jenv.get_template(path, globals=jenv.globals)
@@ -131,7 +131,7 @@ def render_template(template, context=None, is_path=None, safe_render=True, *, r
 	try:
 		if is_path or guess_is_path(template):
 			is_path = True
-			compiled_template = get_template(template)
+			compiled_template = get_template(template, restrict_globals=restrict_globals)
 		else:
 			jenv: SandboxedEnvironment = get_jenv(restrict_globals=restrict_globals)
 			if safe_render and ".__" in template:

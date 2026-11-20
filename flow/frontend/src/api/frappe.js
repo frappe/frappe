@@ -2,11 +2,17 @@ import { FlowAPIError } from "@flow/ui-core/client.js";
 import { __ } from "@flow/ui-core/translate.js";
 import { call as frappeCall, upload } from "frappe-ui";
 
+import { RESTART, retrying } from "./retry.js";
+
 // Every request the page makes goes through here, so a Frappe failure reaches the
 // store as the FlowAPIError its toasts expect, with the server's message as text.
 export async function call(method, args = {}) {
 	try {
-		return await frappeCall(method, args);
+		// a flow server that is down saw nothing of the call, so it is safe to send again
+		return await retrying(() => frappeCall(method, args), {
+			retriable: (error) => error?.exc_type === "FlowServerDown",
+			within: RESTART,
+		});
 	} catch (error) {
 		throw toApiError(error);
 	}

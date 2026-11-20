@@ -1,9 +1,7 @@
 # Copyright (c) 2015, Maxwell Morais and contributors
 # License: MIT. See LICENSE
 
-import functools
 import hashlib
-import inspect
 import os
 import re
 import sys
@@ -187,60 +185,6 @@ def log_error_snapshot(exception: Exception):
 		add_data_to_monitor(exception=exception.__class__.__name__)
 	except Exception as e:
 		logger.error(f"Could not take error snapshot: {e}", exc_info=True)
-
-
-def get_default_args(func):
-	"""Get default arguments of a function from its signature."""
-	signature = inspect.signature(func)
-	return {k: v.default for k, v in signature.parameters.items() if v.default is not inspect.Parameter.empty}
-
-
-def raise_error_on_no_output(error_message, error_type=None, keep_quiet=None):
-	"""Decorate any function to throw error incase of missing output.
-
-	:param error_message: error message to raise
-	:param error_type: type of error to raise
-	:param keep_quiet: control error raising with external factor.
-	:type error_message: str
-	:type error_type: Exception Class
-	:type keep_quiet: function
-
-	---
-	Example:
-
-	```py
-	@raise_error_on_no_output("Ingredients are missing")
-	def get_ingredients(_raise_error=1):
-	    return
-
-
-	# this will raise an Exception with message "Ingredients are missing"
-	ingredients = get_ingredients()
-	```
-
-	---
-
-	TODO: Remove keep_quiet flag after testing and fixing sendmail flow.
-	"""
-
-	def decorator_raise_error_on_no_output(func):
-		@functools.wraps(func)
-		def wrapper_raise_error_on_no_output(*args, **kwargs):
-			response = func(*args, **kwargs)
-			if callable(keep_quiet) and keep_quiet():
-				return response
-
-			default_kwargs = get_default_args(func)
-			default_raise_error = default_kwargs.get("_raise_error")
-			raise_error = kwargs.get("_raise_error") if "_raise_error" in kwargs else default_raise_error
-
-			if (not response) and raise_error:
-				frappe.throw(error_message, error_type or Exception)
-			return response
-
-		return wrapper_raise_error_on_no_output
-
-	return decorator_raise_error_on_no_output
 
 
 def guess_exception_source(exception: str) -> str | None:

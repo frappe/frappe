@@ -178,7 +178,7 @@ frappe.ui.form.on("User", {
 					frappe.call({
 						method: "frappe.core.doctype.user.user.reset_password",
 						args: {
-							user: frm.doc.name,
+							user: frm.doc.email,
 						},
 					});
 				},

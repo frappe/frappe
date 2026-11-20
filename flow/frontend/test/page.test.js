@@ -504,9 +504,9 @@ test("without a model the normal page shows the setup state and no composer, and
 	const saved = { ...transport.answers };
 	t.after(() => Object.assign(transport.answers, saved));
 	let refreshes = 0;
-	const mountSetup = (permissions, provider = null) => {
+	const mountSetup = (permissions, provider = null, siteKey = false) => {
 		const page = createPage(
-			{ ...boot, models: [], permissions, providers: provider ? [provider] : [] },
+			{ ...boot, models: [], permissions, providers: provider ? [provider] : [], site_key: siteKey },
 			{ refresh: () => refreshes++ }
 		);
 		const state = { opened: 0 };
@@ -552,11 +552,59 @@ test("without a model the normal page shows the setup state and no composer, and
 	await nextTick();
 	assert.equal(pick().getAttribute("provider"), "anthropic");
 
+	const keyed = mountSetup({ "Flow Provider": ["create"], "Flow Model": ["create"] }, null, true);
+	const notice = () => keyed.setup.querySelector("[data-stub=SiteKeyNotice]");
+	assert.ok(notice());
+	assert.equal(keyed.setup.querySelector("[data-stub=ConnectSetup]"), null);
+	refreshes = 0;
+	notice().dispatchEvent(new Event("accepted"));
+	assert.equal(refreshes, 1);
+	notice().dispatchEvent(new Event("rejected"));
+	await nextTick();
+	assert.equal(notice(), null);
+	assert.ok(keyed.setup.querySelector("[data-stub=ConnectSetup]"));
+
 	// anyone else is told an admin needs to connect a provider
 	const user = mountSetup({});
 	assert.equal(user.setup.querySelector("[data-stub=ConnectSetup]"), null);
 	assert.equal(user.setup.querySelector("button"), null);
 	assert.ok(user.setup.textContent.includes("An admin needs to connect a provider first."));
+});
+
+test("the site key's notice links the processors, adds the key's provider once accepted and says why when it can't", async (t) => {
+	const SiteKeyNotice = await loadComponent("chat/setup/SiteKeyNotice.vue");
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	const events = [];
+	const el = document.createElement("div");
+	const app = createApp(SiteKeyNotice, {
+		onAccepted: () => events.push("accepted"),
+		onRejected: () => events.push("rejected"),
+	});
+	app.mount(el);
+	t.after(() => app.unmount());
+	const [accept, reject] = el.querySelectorAll("button");
+	const settle = () => new Promise((resolve) => setTimeout(resolve));
+
+	assert.ok(el.textContent.includes("third-party inference provider"));
+	assert.equal(
+		el.querySelector("a").href,
+		"https://docs.frappe.io/legal/data-protection/data-processors#proposed-ai-processors"
+	);
+	reject.click();
+	assert.deepEqual(events, ["rejected"]);
+
+	transport.answers["frappe.flow.api.setup.use_site_key"] = { ok: false, message: "Couldn't reach Grove." };
+	accept.click();
+	await settle();
+	assert.ok(el.textContent.includes("Couldn't reach Grove."));
+	assert.equal(accept.disabled, false, "it can be tried again");
+
+	transport.answers["frappe.flow.api.setup.use_site_key"] = { ok: true };
+	accept.click();
+	await settle();
+	assert.deepEqual(events, ["rejected", "accepted"]);
+	assert.equal(accept.disabled, false, "a failed boot refresh leaves it usable");
 });
 
 test("an explicit conversation URL opens even outside the recent session list, syncing a run that ended as it opened", async (t) => {
@@ -584,6 +632,36 @@ test("an explicit conversation URL opens even outside the recent session list, s
 	assert.equal(args("frappe.flow.api.session").session, "older");
 	assert.equal(router.currentRoute.value.path, "/s/older");
 	assert.deepEqual(args("frappe.flow.api.sync_session"), { session: "older" });
+});
+
+test("in the panel a chat that cannot open gives way to a new one without a word, unless an app asked for it", async (t) => {
+	const { toast } = await import("./helpers/components.js");
+	const { setAskedSession } = await loadModule("panel.js");
+	const saved = { ...transport.answers };
+	setPanel("desk");
+	t.after(() => {
+		Object.assign(transport.answers, saved);
+		setPanel(null);
+		setAskedSession(null);
+	});
+	transport.answers["frappe.flow.api.session"] = ({ session }) => {
+		throw new Error(`Flow Session ${session} not found`);
+	};
+	toast.errors.length = 0;
+
+	// the chat the panel last showed, since deleted
+	await router.replace("/s/gone");
+	transport.calls.length = 0;
+	mountPage(t);
+	await until(() => called("frappe.flow.api.session") && router.currentRoute.value.path === "/");
+	assert.deepEqual(toast.errors, []);
+
+	// one an app asked for
+	setAskedSession("wrong");
+	await router.replace("/s/wrong");
+	await until(() => toast.errors.length);
+	assert.deepEqual(toast.errors, ["Flow Session wrong not found"]);
+	await until(() => router.currentRoute.value.path === "/");
 });
 
 test("the chat list offers the next page on demand and asks for it past the last row", async (t) => {
@@ -892,7 +970,28 @@ test("a loading chat shows the agent and model of its sidebar row, and names non
 	assert.ok(el.textContent.includes("Sonnet"));
 });
 
-test("a first message sent while the chat list loads keeps the page on its new chat, as does an address asking for one", async (t) => {
+test("the page offers no thinking levels: the model button opens the models alone, and no command sets one", async (t) => {
+	await router.replace("/");
+	const el = mountPage(t);
+	await until(() => el.querySelector("fieldset button[title='Sonnet']"));
+	const model = el.querySelector("fieldset button[title='Sonnet']");
+	model.click();
+	await nextTick();
+	assert.ok(model.parentElement.querySelector("[data-stub=ModelPalette]"));
+	assert.equal(model.parentElement.querySelector("[data-palette-item]"), null);
+	model.click();
+	await nextTick();
+
+	const textarea = el.querySelector("textarea");
+	textarea.value = "/";
+	textarea.dispatchEvent(new Event("input"));
+	await nextTick();
+	const commands = [...el.querySelectorAll("[data-palette-item]")].map((row) => row.textContent);
+	assert.ok(commands.some((command) => command.includes("Choose the model")));
+	assert.ok(!commands.some((command) => command.includes("Thinking")));
+});
+
+test("a first message sent while the chat list loads keeps the page on its new chat, as does an address with no chat", async (t) => {
 	await router.replace("/");
 	transport.calls.length = 0;
 	const saved = { ...transport.answers };
@@ -930,8 +1029,8 @@ test("a first message sent while the chat list loads keeps the page on its new c
 		!transport.calls.some(([name, a]) => name === "frappe.flow.api.session" && a.session === "OLD")
 	);
 
-	// a reload at an address asking for a new chat stays on it, though the last chat is listed
-	await router.replace("/?new=1");
+	// a reload at an address with no chat stays on a new one, though the last chat is listed
+	await router.replace("/");
 	await nextTick();
 	localStorage.setItem(prefs, JSON.stringify({ lastSession: "OLD" }));
 	transport.calls.length = 0;

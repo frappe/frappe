@@ -11,7 +11,7 @@ import frappe.defaults
 from frappe import _
 from frappe.permissions import ALL_USER_ROLE
 from frappe.sessions import clear_sessions
-from frappe.utils import cint
+from frappe.utils import cint, get_user_display_id
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.password import decrypt, encrypt
 
@@ -94,6 +94,7 @@ def authenticate_for_2factor(user):
 
 def cache_2fa_data(user, token, otp_secret, tmp_id):
 	"""Cache and set expiry for data."""
+	usr = frappe.form_dict.get("usr")
 	pwd = frappe.form_dict.get("pwd")
 	verification_method = get_verification_method()
 
@@ -103,7 +104,7 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 		frappe.cache.set_value(tmp_id + "_token", token, expires_in_sec=expiry_time)
 	else:
 		expiry_time = frappe.flags.otp_expiry or 180
-	for k, v in {"_usr": user, "_pwd": pwd, "_otp_secret": otp_secret}.items():
+	for k, v in {"_usr": usr, "_pwd": pwd, "_otp_secret": otp_secret}.items():
 		frappe.cache.set_value(f"{tmp_id}{k}", v, expires_in_sec=expiry_time)
 
 
@@ -199,7 +200,7 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 def get_otp_app_setup_obj(user, otp_secret):
 	"""Return the QR code and secret to register the user's OTP App."""
 	otp_issuer = frappe.get_system_settings("otp_issuer_name")
-	totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
+	totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(get_user_display_id(user), issuer_name=otp_issuer)
 	return {
 		"method": "OTP App",
 		"qrcode": get_qr_svg_code(totp_uri).decode(),

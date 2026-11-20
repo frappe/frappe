@@ -246,7 +246,8 @@ function replaceMapKey(map: Map<any, any>, oldKey: string, newKey: string) {
 }
 
 function isTargetEditable(e: Event) {
-	const target = e.target as HTMLElement;
+	// the first element in the path: `e.target` of a shadow root is its host
+	const target = (e.composedPath()[0] ?? e.target) as HTMLElement;
 	const isEditable = target.isContentEditable;
 	const isInput = target.tagName === "INPUT" || target.tagName === "TEXTAREA";
 	return isEditable || isInput;

@@ -119,6 +119,8 @@ def install_basic_docs():
 		{"doctype": "Workflow Action Master", "workflow_action_name": "Approve"},
 		{"doctype": "Workflow Action Master", "workflow_action_name": "Reject"},
 		{"doctype": "Workflow Action Master", "workflow_action_name": "Review"},
+		{"doctype": "Email Unsubscribe", "email": "admin@example.com", "global_unsubscribe": 1},
+		{"doctype": "Email Unsubscribe", "email": "guest@example.com", "global_unsubscribe": 1},
 	]
 
 	for d in install_docs:

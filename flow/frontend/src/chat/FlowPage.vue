@@ -158,7 +158,7 @@ import { FrappeClient } from "../api/client.js";
 import * as transport from "../api/frappe.js";
 import { connectSocket } from "../api/socket.js";
 import { createPage } from "../page.js";
-import { inPanel, panelHost } from "../panel.js";
+import { askedSession, inPanel, panelHost } from "../panel.js";
 import RecordPage from "../pages/RecordPage.vue";
 import { FORMS } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
@@ -174,11 +174,10 @@ import { readScreen } from "./screen.js";
 import { presentTool } from "./toolMeta.js";
 
 // the composer commands Flow serves, its own agent picker first; the rest need the
-// daemon's file system or providers
+// daemon's file system or providers, and a thinking level is set in a model's Extra Params
 const COMMANDS = [
 	{ name: "agents", label: __("Agent"), icon: "lucide-bot", hint: __("Choose the agent"), view: "agents" },
 	"model",
-	"thinking",
 	"transcript",
 	"new",
 	"rewind",
@@ -393,9 +392,7 @@ watch(
 	() => route.params.session,
 	(id) => {
 		if (pageKind.value) return; // the chat waits behind a page as it was, its box and all
-		// in the panel, a route the user didn't pick: the chat it last showed, or Back to one,
-		// either of which may since be gone
-		if (id && id !== store.state.sessionId) store.openSession(id, { quiet: inPanel });
+		if (id && id !== store.state.sessionId) store.openSession(id, { quiet: reopened(id) });
 		else if (!id && store.state.sessionId) store.startNewChat();
 	}
 );
@@ -452,16 +449,15 @@ onMounted(async () => {
 	// and a page keeps its place
 	if (store.state.sessionId || store.state.conversation.sending.length || route.params.kind)
 		return;
-	// an address asking for a new chat (?new=1) gets one
-	const wanted =
-		route.params.session ?? (route.query.new ? null : store.state.prefs.lastSession);
-	if (
-		wanted &&
-		(route.params.session ||
-			store.state.sessions.some((session) => session.session_id === wanted))
-	)
-		store.openSession(wanted, { quiet: inPanel });
+	// an address with no chat is a new one
+	const wanted = route.params.session;
+	if (wanted) store.openSession(wanted, { quiet: reopened(wanted) });
 });
+// in the panel, a chat the user didn't pick: the one it last showed, or Back to one, either of
+// which may since be gone. One an app asked for is picked
+function reopened(id) {
+	return inPanel && id !== askedSession;
+}
 onBeforeUnmount(() => {
 	uninstallShortcuts?.();
 	uninstallFocusRings?.();

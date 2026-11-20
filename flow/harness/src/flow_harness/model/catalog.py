@@ -123,7 +123,7 @@ def model_supports_images(name: str) -> bool | None:
 		# capabilities; provider metadata cannot safely be borrowed across surfaces.
 		return None
 	try:
-		import litellm
+		litellm = load_litellm()
 
 		# LiteLLM returns False for unknown names as well as known text-only models.
 		# Read explicit catalog metadata first; unlike ``get_model_info``, this is not
@@ -143,7 +143,7 @@ def _litellm_chat_models() -> Iterator[tuple[str, str]]:
 	"""(flow model name, provider id) pairs from `litellm.model_cost`. Chat models with
 	function calling only — the agent loop needs tools. `ft:` fine-tune templates are
 	placeholders, not callable ids."""
-	import litellm
+	litellm = load_litellm()
 
 	for key, spec in litellm.model_cost.items():
 		if not isinstance(spec, dict):
@@ -157,3 +157,14 @@ def _litellm_chat_models() -> Iterator[tuple[str, str]]:
 			continue
 		name = key if key.split("/", 1)[0] == provider_id else f"{provider_id}/{key}"
 		yield name, provider_id
+
+
+def load_litellm():
+	"""litellm, imported on first use: it is most of the server's memory, and a bench
+	that never runs a model never pays for it."""
+	# this can run in a worker thread: litellm 1.104+ breaks when another thread logs during its import
+	import litellm
+
+	# silence the "Provider List / Give Feedback" lines litellm prints on errors
+	litellm.suppress_debug_info = True
+	return litellm

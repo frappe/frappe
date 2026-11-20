@@ -181,14 +181,13 @@
 		:type="inputType"
 		:variant="variant"
 		:label="field.label"
-		:description="field.description"
+		:description="zeroNote || field.description"
 		:required="field.required"
 		:placeholder="field.placeholder"
 		:model-value="inputValue"
 		:disabled="disabled"
-		@update:model-value="
-			(value) => (doc[field.name] = field.type === 'int' ? Number(value) || 0 : value)
-		"
+		@update:model-value="setInput"
+		@change="clearZero"
 	/>
 </template>
 
@@ -230,6 +229,22 @@ const inputValue = computed(() => {
 	if (props.field.type === "int" && props.field.placeholder && !value) return "";
 	return value ?? "";
 });
+// a typed 0 gets a note under the field, e.g. "Cannot be 0. Using the default."
+const zeroNote = ref("");
+function setInput(value) {
+	const { field, doc } = props;
+	if (field.type !== "int") return (doc[field.name] = value);
+	doc[field.name] = Number(value) || 0;
+	// the cleared input reports "" next, so only a real number takes the note away
+	if (Number(value)) zeroNote.value = "";
+	else if (String(value) !== "") zeroNote.value = field.zeroMessage ?? "";
+}
+// and goes back to the placeholder; the input keeps it when the value was 0 already
+function clearZero(event) {
+	if (props.field.type === "int" && props.field.placeholder && !Number(event.target.value)) {
+		event.target.value = "";
+	}
+}
 
 // a saved provider the list leaves out still shows as itself
 const providerOptions = computed(() => {

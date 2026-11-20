@@ -372,14 +372,6 @@ body.pfb-dragging * {
 	margin: 0;
 }
 
-.print-format-doc .ql-editor li[data-list] {
-	padding-left: 0;
-}
-
-.print-format-doc .ql-editor .ql-ui {
-	display: none;
-}
-
 .pfb-static-text-input {
 	resize: vertical;
 	margin-bottom: 6px;

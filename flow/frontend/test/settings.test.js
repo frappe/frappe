@@ -588,7 +588,7 @@ test("the Models tab lists each provider's models, switches one on without askin
 	await until(() => !button("Add model"));
 });
 
-test("a server of one's own is deleted from its menu with its models; a listed provider can't be", async (t) => {
+test("a provider is deleted from its menu with its models", async (t) => {
 	const ModelsPanel = await loadComponent("settings/ModelsPanel.vue");
 	const saved = { ...transport.answers };
 	t.after(() => Object.assign(transport.answers, saved));
@@ -611,8 +611,8 @@ test("a server of one's own is deleted from its menu with its models; a listed p
 		await nextTick();
 		return [...el.querySelectorAll("[role=menuitem]")];
 	};
-	assert.ok(!(await items("Anthropic")).some((b) => b.textContent === "Delete"));
-	(await items("gateway.example.com")).find((b) => b.textContent === "Delete").click();
+	assert.ok((await items("Anthropic")).some((b) => b.textContent === "Delete"));
+	(await items("gateway.example.com")).findLast((b) => b.textContent === "Delete").click();
 	const asked = dialog.asked.at(-1);
 	assert.equal(asked.message, "“gateway.example.com” and its 1 model will be permanently removed.");
 	gone = true;

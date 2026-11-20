@@ -136,6 +136,11 @@ const TOOLS = {
 		view: SnippetView,
 		stat: (result) => hits(result.length),
 	},
+	search_docs: {
+		icon: "lucide-book-open",
+		label: __("Searching the docs"),
+		done: __("Searched the docs"),
+	},
 	update_memory: {
 		icon: "lucide-bookmark",
 		label: __("Saving memory"),

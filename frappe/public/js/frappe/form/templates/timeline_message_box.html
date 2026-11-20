@@ -58,6 +58,12 @@
 						{% if (doc.subject) { %}
 							<div class="text-muted my-1">{{doc.subject}}</div>
 						{% } %}
+						{% if (doc._recipients) { %}
+							<div class="text-muted">{{ __("To") }}: {{ doc._recipients }}</div>
+						{% } %}
+						{% if (doc._cc) { %}
+							<div class="text-muted">{{ __("CC") }}: {{ doc._cc }}</div>
+						{% } %}
 					</div>
 			{% } %}
 		</span>

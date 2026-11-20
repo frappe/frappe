@@ -29,6 +29,7 @@ from frappe.utils import (
 	add_days,
 	cint,
 	cstr,
+	extract_email_id,
 	get_hook_method,
 	get_string_between,
 	get_url,
@@ -591,6 +592,12 @@ def get_email_retry_limit():
 	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
 
 
+def is_undeliverable(email: str) -> bool:
+	"""Whether `email` is Administrator's or Guest's placeholder, or on the reserved `.invalid` domain."""
+	email = extract_email_id(email).lower()
+	return email.endswith(".invalid") or email in ("admin@example.com", "guest@example.com")
+
+
 class QueueBuilder:
 	"""Builds Email Queue from the given data"""
 
@@ -735,7 +742,7 @@ class QueueBuilder:
 
 	@property
 	def sender(self):
-		if not self._sender or self._sender == "Administrator":
+		if not self._sender or self._sender == "Administrator" or is_undeliverable(self._sender):
 			email_account = self.get_outgoing_email_account()
 			return email_account.default_sender
 		return self._sender
@@ -791,7 +798,7 @@ class QueueBuilder:
 		if self._unsubscribed_user_emails is not None:
 			return self._unsubscribed_user_emails
 
-		all_ids = list(set(self.recipients + self.cc + self.bcc))
+		all_ids = list({extract_email_id(email) for email in self.recipients + self.cc + self.bcc})
 
 		EmailUnsubscribe = DocType("Email Unsubscribe")
 
@@ -814,20 +821,26 @@ class QueueBuilder:
 		else:
 			unsubscribed = None
 
-		self._unsubscribed_user_emails = unsubscribed or []
+		# `.invalid` is reserved and never delivers
+		self._unsubscribed_user_emails = [
+			*(unsubscribed or []),
+			*(email for email in all_ids if email.lower().endswith(".invalid")),
+		]
 		return self._unsubscribed_user_emails
 
 	def final_recipients(self):
 		unsubscribed_emails = self.get_unsubscribed_user_emails()
-		return [mail_id for mail_id in self.recipients if mail_id not in unsubscribed_emails]
+		return [
+			mail_id for mail_id in self.recipients if extract_email_id(mail_id) not in unsubscribed_emails
+		]
 
 	def final_cc(self):
 		unsubscribed_emails = self.get_unsubscribed_user_emails()
-		return [mail_id for mail_id in self.cc if mail_id not in unsubscribed_emails]
+		return [mail_id for mail_id in self.cc if extract_email_id(mail_id) not in unsubscribed_emails]
 
 	def final_bcc(self):
 		unsubscribed_emails = self.get_unsubscribed_user_emails()
-		return [mail_id for mail_id in self.bcc if mail_id not in unsubscribed_emails]
+		return [mail_id for mail_id in self.bcc if extract_email_id(mail_id) not in unsubscribed_emails]
 
 	def get_attachments(self):
 		attachments = []

@@ -1,5 +1,5 @@
 import { place, SIDES, ALIGNS } from "./position.js";
-import { validated, TABBABLE, resolve_content } from "./utils.js";
+import { validated, TABBABLE, resolve_content, field_popup_open } from "./utils.js";
 
 frappe.provide("frappe.ui");
 
@@ -130,9 +130,20 @@ frappe.ui.Popover = class Popover {
 		// Escape and Tab bookkeeping live on the panel — focus is inside it
 		// (tabindex -1 keeps it there), so there's no need for a global key
 		// listener that could fight other components' handlers
+		// capture phase, before the field closes its own list: that Escape is the field's
+		this.onkeydowncapture = (e) => {
+			this.escape_for_field = e.key === "Escape" && field_popup_open(e.target);
+		};
 		this.onkeydown = (e) => {
 			if (e.key === "Escape") {
 				e.stopPropagation();
+				if (this.escape_for_field) {
+					// the date picker blurs its input on Escape; keep focus here for the next one
+					if (!this.panel.contains(document.activeElement)) {
+						this.panel.focus({ preventScroll: true });
+					}
+					return;
+				}
 				this.close("escape");
 			} else if (e.key === "Tab") {
 				this.handle_tab(e);
@@ -167,6 +178,7 @@ frappe.ui.Popover = class Popover {
 				this.close("escape");
 			}
 		};
+		panel.addEventListener("keydown", this.onkeydowncapture, true);
 		panel.addEventListener("keydown", this.onkeydown);
 		this.trigger_el.addEventListener("keydown", this.ontriggerkeydown);
 		document.addEventListener("pointerdown", this.onpointerdown, { capture: true });
@@ -215,6 +227,7 @@ frappe.ui.Popover = class Popover {
 		const panel = this.panel;
 		this.panel = null;
 
+		panel.removeEventListener("keydown", this.onkeydowncapture, true);
 		panel.removeEventListener("keydown", this.onkeydown);
 		this.trigger_el.removeEventListener("keydown", this.ontriggerkeydown);
 		document.removeEventListener("pointerdown", this.onpointerdown, { capture: true });

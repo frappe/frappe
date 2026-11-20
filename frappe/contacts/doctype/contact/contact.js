@@ -144,7 +144,7 @@ frappe.ui.form.on("Contact", {
 		if (frm.doc.sync_with_google_contacts) {
 			frappe.db.get_value(
 				"Google Contacts",
-				{ email_id: frappe.session.user },
+				{ email_id: frappe.session.user_email },
 				"name",
 				(r) => {
 					if (r && r.name) {

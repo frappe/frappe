@@ -9,6 +9,7 @@ import {
   oauthHelpLink,
   oauthMessage,
   reconnectable,
+  saveErrorText,
   serviceOf,
   services,
   validate,
@@ -273,6 +274,19 @@ describe("reconnectable", () => {
     expect(reconnectable({ ...outlook, authKind: "oauth" }, oneClick)).toBe(true);
     expect(reconnectable({ service: "GMail", authKind: "oauth" }, oneClick)).toBe(false);
     expect(reconnectable({ ...outlook, authKind: "password" }, oneClick)).toBe(false);
+  });
+});
+
+describe("saveErrorText", () => {
+  it("explains Microsoft's SMTP refusal, and passes other errors through", () => {
+    const refused = { messages: ["Please check your email login credentials. 535 5.7.139 SmtpClientAuthentication is disabled for the Mailbox"] };
+    const personal = { service: "Outlook.com", smtp_server: "smtp-mail.outlook.com" };
+    expect(saveErrorText(personal, refused)).toBe(oauthMessage("smtp_disabled_personal", "microsoft"));
+    expect(saveErrorText({ ...personal, smtp_server: "smtp.office365.com" }, refused)).toBe(
+      oauthMessage("smtp_disabled", "microsoft"),
+    );
+    expect(saveErrorText({ service: "GMail", smtp_server: "smtp.gmail.com" }, refused)).toBe(refused.messages[0]);
+    expect(saveErrorText(personal, { messages: ["Not permitted"] })).toBe("Not permitted");
   });
 });
 

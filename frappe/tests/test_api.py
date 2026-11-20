@@ -951,7 +951,7 @@ def test(
 		frappe.msgprint(message)
 
 
-@whitelist_for_tests(allow_guest=True)
+@whitelist_for_tests(allow_guest=True, methods=["POST"], rate_limit=None)
 def test_array(data: typing.Any):
 	return data
 

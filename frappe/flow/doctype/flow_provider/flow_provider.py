@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 import frappe
 from frappe import _
+from frappe.flow.lib.model import clear_enabled_cache
 from frappe.model.document import Document
 
 
@@ -33,6 +34,12 @@ class FlowProvider(Document):
 		self._normalize()
 		self._validate_provider_known()
 		self._validate_base_url()
+
+	def on_change(self):
+		clear_enabled_cache()
+
+	def on_trash(self):
+		clear_enabled_cache()
 
 	def _normalize(self):
 		self.provider = (self.provider or "").strip().lower()

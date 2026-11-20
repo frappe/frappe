@@ -130,7 +130,6 @@ dev = [
     "responses==0.26.3",
     # typechecking
     "basedmypy",
-    "types-PyMySQL",
     "types-PyYAML",
     "types-Pygments",
     "types-beautifulsoup4",

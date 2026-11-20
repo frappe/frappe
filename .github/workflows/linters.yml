@@ -3,13 +3,14 @@ name: Linters
 
 on:
   pull_request:
+  merge_group:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: commitcheck-frappe-${{ github.event_name }}-${{ github.event.number }}
+  group: commitcheck-frappe-${{ github.event_name }}-${{ github.event.number || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -102,7 +103,7 @@ jobs:
   precommit:
     name: 'Pre-Commit'
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name != 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v7

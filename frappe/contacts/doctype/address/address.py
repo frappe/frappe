@@ -11,7 +11,8 @@ from frappe.contacts.address_and_contact import set_link_title
 from frappe.core.doctype.dynamic_link.dynamic_link import deduplicate_dynamic_links
 from frappe.model.document import Document
 from frappe.model.naming import make_autoname
-from frappe.utils import cstr
+from frappe.query_builder.functions import Lower
+from frappe.utils import cstr, get_email_address
 
 
 class Address(Document):
@@ -83,9 +84,8 @@ class Address(Document):
 	def link_address(self):
 		"""Link address based on owner"""
 		if not self.links:
-			contact_name = frappe.db.get_value("Contact", {"email_id": self.owner})
-			if contact_name:
-				contact = frappe.get_cached_doc("Contact", contact_name)
+			if contacts := get_user_contacts(self.owner):
+				contact = frappe.get_cached_doc("Contact", contacts[0])
 				for link in contact.links:
 					self.append("links", dict(link_doctype=link.link_doctype, link_name=link.link_name))
 				return True
@@ -240,15 +240,39 @@ def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, o
 	return addresses
 
 
+def get_user_contacts(user: str) -> list[str]:
+	"""Return the contacts linked to the user that have the user's email as primary."""
+	if user in frappe.STANDARD_USERS:
+		return []
+
+	email = get_email_address(user)
+	if not email:
+		return []
+
+	Contact = frappe.qb.DocType("Contact")
+	return (
+		frappe.qb.from_(Contact)
+		.select(Contact.name)
+		.where((Contact.user == user) & (Lower(Contact.email_id) == email.lower()))
+		.run(pluck=True)
+	)
+
+
 def has_website_permission(doc, ptype, user, verbose=False):
-	"""Return True if there is a related lead or contact related to this document."""
-	contact_name = frappe.db.get_value("Contact", {"email_id": frappe.session.user})
+	"""Return True if any of the user's contacts shares a link with the address."""
+	contacts = get_user_contacts(user)
+	if not contacts:
+		return False
 
-	if contact_name:
-		contact = frappe.get_doc("Contact", contact_name)
-		return contact.has_common_link(doc)
+	contact_links = frappe.get_all(
+		"Dynamic Link",
+		filters={"parenttype": "Contact", "parent": ("in", contacts)},
+		fields=["link_doctype", "link_name"],
+		as_list=True,
+	)
+	address_links = {(link.link_doctype, link.link_name) for link in doc.links}
 
-	return False
+	return any(tuple(link) in address_links for link in contact_links)
 
 
 def get_address_templates(address):

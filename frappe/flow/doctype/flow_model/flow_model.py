@@ -9,6 +9,7 @@ import requests
 
 import frappe
 from frappe import _
+from frappe.flow.lib.model import clear_enabled_cache
 from frappe.model.document import Document
 from frappe.model.naming import validate_name
 
@@ -53,6 +54,12 @@ class FlowModel(Document):
 		from frappe.flow.assistant import ensure_builtin_assistant
 
 		ensure_builtin_assistant(model=self.name)
+
+	def on_change(self):
+		clear_enabled_cache()
+
+	def on_trash(self):
+		clear_enabled_cache()
 
 	def before_rename(self, old: str, new: str, merge: bool = False) -> None:
 		# move the setting here, so Frappe's update doesn't treat the rename as a new model

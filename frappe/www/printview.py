@@ -72,7 +72,9 @@ def get_context(context) -> PrintContext:
 
 	meta = frappe.get_meta(doc.doctype)
 
-	print_format, standalone = resolve_print_format(None, meta)
+	print_format, standalone = resolve_print_format(
+		None, meta, frappe._dict(doctype=frappe.form_dict.doctype, name=frappe.form_dict.name)
+	)
 
 	print_format_name = getattr(print_format, "name", "Standard")
 	pdf_generator = resolve_pdf_generator(print_format, frappe.form_dict.get("pdf_generator"))
@@ -162,7 +164,9 @@ def cast_client_values(document: "Document"):
 				del frappe.local.message_log[messages:]
 
 
-def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" | None:
+def get_print_format_doc(
+	print_format_name: str, meta: "Meta", doc: "Document | None" = None
+) -> "PrintFormat" | None:
 	"""Return print format document."""
 	requested = print_format_name or frappe.form_dict.format
 	print_format_name = requested or meta.default_print_format or "Standard"
@@ -172,26 +176,28 @@ def get_print_format_doc(print_format_name: str, meta: "Meta") -> "PrintFormat" 
 
 	def fetch(name):
 		try:
-			doc = frappe.get_doc("Print Format", name)
+			print_format = frappe.get_doc("Print Format", name)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 			return None
-		if can_print_with(doc):
-			return doc
-		if name == requested and name != meta.default_print_format:
-			check_print_format_roles(doc)
+		if can_print_with(print_format):
+			return print_format
+		if name == requested and name != meta.default_print_format and not has_share_key(doc):
+			check_print_format_roles(print_format)
 		return None
 
 	# a renamed or deleted format — or a caller interpolating a missing name into
 	# the url — resolves to the doctype's default, like an omitted name does
-	if doc := fetch(print_format_name):
-		return doc
+	if print_format := fetch(print_format_name):
+		return print_format
 	if meta.default_print_format in (None, "", "Standard", print_format_name):
 		return None
 	return fetch(meta.default_print_format)
 
 
-def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple["PrintFormat", bool]:
+def resolve_print_format(
+	print_format_name: "str | None", meta: "Meta", doc: "Document | None" = None
+) -> tuple["PrintFormat", bool]:
 	"""Resolve a print format name to its document — falling back to the doctype's
 	default beta format — and whether it renders through the beta renderer."""
 	from frappe.printing.doctype.print_format.classic_converter import (
@@ -199,7 +205,9 @@ def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple
 		uses_beta_renderer,
 	)
 
-	print_format = get_print_format_doc(print_format_name, meta=meta) or get_default_print_format(meta.name)
+	print_format = get_print_format_doc(print_format_name, meta=meta, doc=doc) or get_default_print_format(
+		meta.name
+	)
 	return print_format, uses_beta_renderer(print_format)
 
 
@@ -357,7 +365,7 @@ def convert_markdown(doc: "Document") -> None:
 		if field.fieldtype == "Text Editor":
 			value = doc.get(field.fieldname)
 			if value and "<!-- markdown -->" in value:
-				doc.set(field.fieldname, frappe.utils.md_to_html(value))
+				doc.set(field.fieldname, frappe.utils.sanitize_html(frappe.utils.md_to_html(value)))
 
 
 @frappe.whitelist()
@@ -570,6 +578,16 @@ def run_before_print(doc: "Document", print_settings: dict) -> None:
 	doc.flags.print_settings = print_settings
 	set_link_titles(doc)
 	doc.run_method("before_print", print_settings)
+
+
+def has_share_key(doc: "Document | dict | None") -> bool:
+	key = frappe.form_dict.key
+	if not doc or not doc.get("name") or not isinstance(key, str):
+		return False
+	try:
+		return validate_key(key, doc) is not False
+	except frappe.exceptions.LinkExpired:
+		return False
 
 
 def validate_key(key: str, doc: "Document") -> None:

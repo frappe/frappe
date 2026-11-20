@@ -343,11 +343,10 @@ class TestQueryReport(IntegrationTestCase):
 		# Create mock data
 		data = create_mock_data()
 
-		# Define the visible rows
-		visible_idx = [0, 2, 3]
+		data.result = [data.result[idx] for idx in [0, 2, 3]]
 
 		# Build the result
-		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, include_indentation=0)
 
 		self.assertEqual(type(xlsx_data), list)
 		self.assertEqual(len(xlsx_data), 4)  # columns + data
@@ -368,13 +367,11 @@ class TestQueryReport(IntegrationTestCase):
 		# Create mock data
 		data = create_mock_data()
 
-		# Define the visible rows
-		visible_idx = [0, 2, 3]
+		data.result = [data.result[idx] for idx in [0, 2, 3]]
 
 		# Build the result
 		xlsx_data, _column_widths, _ = build_xlsx_data(
 			data,
-			visible_idx,
 			include_indentation=False,
 			include_filters=True,
 		)
@@ -399,11 +396,8 @@ class TestQueryReport(IntegrationTestCase):
 			{"column_a": 22.1, "column_b": ["Dummy 1", "Dummy 2"]},  # composite value in column_b
 		]
 
-		# Define the visible rows
-		visible_idx = [0, 1]
-
 		# Build the result
-		xlsx_data, column_widths, _ = build_xlsx_data(data, visible_idx, include_indentation=0)
+		xlsx_data, column_widths, _ = build_xlsx_data(data, include_indentation=0)
 		# Export to excel
 		make_xlsx(xlsx_data, "Query Report", column_widths=column_widths)
 
@@ -1188,11 +1182,12 @@ data = columns, result
 		self.assertEqual(frappe.local.response["_link_titles"]["User::Administrator"], full_name)
 
 	def test_run_skips_link_titles_when_doctype_does_not_show_them(self):
+		frappe.get_doc(doctype="ToDo", description="Link title check").insert(set_name="todo-1")
 		report = self.make_link_column_report()
 
 		self.run_report(report)
 
-		self.assertNotIn("User::Administrator", frappe.local.response.get("_link_titles", {}))
+		self.assertNotIn("ToDo::todo-1", frappe.local.response.get("_link_titles", {}))
 
 	def test_legacy_string_columns_resolve_link_titles(self):
 		"""Prepared reports can still carry `Label:Link/DocType:width` column strings."""

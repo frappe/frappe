@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
@@ -18,10 +19,10 @@ function relay() {
 		{
 			module,
 			console,
-			require: () => ({
-				get_conf: () => ({}),
-				get_redis_subscriber: () => redis,
-			}),
+			require: (name) =>
+				name === "crypto"
+					? { createHash }
+					: { get_conf: () => ({}), get_redis_subscriber: () => redis },
 		}
 	);
 	const delivered = [];
@@ -68,6 +69,25 @@ test("Redis recovery resyncs all subscribed rooms even when no further event arr
 		delivered.map((event) => event.session),
 		["s2"]
 	);
+});
+
+test("a guest chat is relayed to whoever holds its token, asked of the guest API by its hash", async () => {
+	const { socket } = relay();
+	const guest = socket("site-a", "guest");
+	// the site knows one guest chat and lets Guest read no chat by login
+	guest.frappe_request = async (path, args) => {
+		const yes =
+			path === "/api/method/frappe.flow.api.guest.can_stream" &&
+			args.session === "g1" &&
+			args.token_hash === createHash("sha256").update("its-token").digest("hex");
+		return { ok: true, json: async () => ({ message: yes }) };
+	};
+	const subscribe = (...args) =>
+		new Promise((resolve) => guest.emit("flow:subscribe", ...args, resolve));
+	assert.equal((await subscribe("g1")).subscribed, false);
+	assert.equal((await subscribe("g1", "another-token")).subscribed, false);
+	assert.equal((await subscribe("g1", "its-token")).subscribed, true);
+	assert.deepEqual([...guest.flow_sessions], ["g1"]);
 });
 
 test("a view taken back: the owner is left alone, whoever may have lost it stays only on a clear yes, and one who leaves is told", async () => {

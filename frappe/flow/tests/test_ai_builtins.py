@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import frappe
 from frappe.api import discovery
@@ -23,6 +23,7 @@ from frappe.flow.tools.builtins import (
 	read_records,
 	run_action,
 	run_report,
+	search_docs,
 	sync_builtin_tools,
 	update,
 )
@@ -634,6 +635,56 @@ if (filters.based_on, filters.days) != ("Sales Order", 30):
 				**values,
 			}
 		).insert()
+
+
+class TestSearchDocs(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(self.set_user("test@example.com"))
+		self.ctx = ToolContext(session_id="test", agent="Test Agent", user="test@example.com")
+
+	def search(self, status: int, hits: list[dict] | None = None) -> dict:
+		"""What search_docs returns when docs.frappe.io answers `status` with `hits`."""
+		response = Mock(status_code=status)
+		response.json.return_value = {"message": {"results": hits or []}}
+		with patch("requests.get", return_value=response) as self.get:
+			return search_docs(query="naming series", ctx=self.ctx)
+
+	def test_results_are_plain_text_with_links(self):
+		found = self.search(
+			200,
+			[
+				{
+					"title": "<mark>Naming</mark> <mark>Series</mark>",
+					"route": "erpnext/v14/naming-series",
+					"content": "A &amp; B\n<mark>series</mark>" + "x" * 400,
+				},
+				{"title": "No page", "route": "", "content": "a hit without a route has no link"},
+				*[{"title": f"Page {i}", "route": f"erpnext/page-{i}", "content": ""} for i in range(20)],
+			],
+		)
+
+		self.assertEqual(list(found), ["results"])
+		results = found["results"]
+		self.assertEqual(len(results), 10)
+		self.assertEqual(results[0]["title"], "Naming Series")
+		self.assertEqual(results[0]["url"], "https://docs.frappe.io/erpnext/v14/naming-series")
+		self.assertEqual(results[0]["snippet"], ("A & B series" + "x" * 400)[:300])
+		self.assertEqual(results[1]["title"], "Page 0")
+		url, kwargs = self.get.call_args.args[0], self.get.call_args.kwargs
+		self.assertEqual(
+			url, "https://docs.frappe.io/api/method/wiki.frappe_wiki.doctype.wiki_document.search.search"
+		)
+		self.assertEqual(kwargs["params"], {"query": "naming series"})
+		self.assertFalse(kwargs["allow_redirects"])
+
+	def test_no_match_asks_for_fewer_words(self):
+		note = "No docs page has every word of 'naming series'. Search again with fewer, plainer words."
+		self.assertEqual(self.search(200), {"results": [], "note": note})
+
+	def test_a_redirect_or_a_failure_is_an_error(self):
+		for status in (302, 500):
+			with self.assertRaisesRegex(frappe.ValidationError, f"docs.frappe.io answered HTTP {status}"):
+				self.search(status)
 
 
 class TestExecute(IntegrationTestCase):

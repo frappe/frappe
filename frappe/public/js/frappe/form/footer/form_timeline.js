@@ -285,6 +285,8 @@ class FormTimeline extends BaseTimeline {
 	get_communication_timeline_content(doc, allow_reply = true) {
 		doc._url = frappe.utils.get_form_link("Communication", doc.name);
 		this.set_communication_doc_status(doc);
+		doc._recipients = this.get_recipient_names(doc.recipients);
+		doc._cc = this.get_recipient_names(doc.cc);
 		if (doc.attachments && typeof doc.attachments === "string") {
 			doc.attachments = JSON.parse(doc.attachments);
 		}
@@ -293,6 +295,12 @@ class FormTimeline extends BaseTimeline {
 		doc.content = frappe.dom.remove_script_and_style(doc.content);
 		let communication_content = $(frappe.render_template("timeline_message_box", { doc }));
 		this.setup_more_actions(communication_content, doc);
+		communication_content.find(".timeline-recipient").each((i, recipient) => {
+			frappe.ui.tooltip(recipient, { text: recipient.dataset.email });
+		});
+		communication_content.on("click", ".timeline-recipient", (e) => {
+			frappe.utils.copy_to_clipboard(e.currentTarget.dataset.email);
+		});
 		if (allow_reply) {
 			this.setup_reply(communication_content, doc);
 		}
@@ -312,6 +320,18 @@ class FormTimeline extends BaseTimeline {
 		}
 		doc._doc_status = doc.delivery_status;
 		doc._doc_status_indicator = indicator_color;
+	}
+
+	get_recipient_names(addresses) {
+		return frappe.utils
+			.split_emails(addresses)
+			.map((address) => {
+				const [, name, email] = address.match(/^"?([^"<]*?)"?\s*<([^>]+)>$/) || [];
+				const email_id = frappe.utils.escape_html(email || address);
+				const label = name ? frappe.utils.escape_html(name) : email_id;
+				return `<span class="timeline-recipient cursor-pointer" data-email="${email_id}">${label}</span>`;
+			})
+			.join(", ");
 	}
 
 	get_auto_messages_timeline_contents(more_items) {

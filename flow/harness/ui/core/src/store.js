@@ -841,6 +841,9 @@ export function createFlowStore(client, options = {}) {
 	async function loadSkills({ force = false } = {}) {
 		if (!options.skillsEnabled) return
 		const sid = state.sessionId
+		// a chat still opening loads its own, and says once why it can't open; a forced
+		// refetch still runs, for a skill that changed meanwhile
+		if (sid && state.loading && !force) return
 		const cwd = state.prefs.cwd
 		// a live session reports what it can invoke; before one exists, preview the folder
 		const fetcher = sid ? client.skills : client.previewSkills
