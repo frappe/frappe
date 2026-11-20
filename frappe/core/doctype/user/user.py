@@ -1121,7 +1121,6 @@ class User(Document):
 		self.restrict_ip = ",".join(self.get_restricted_ip_list())
 
 
-@frappe.whitelist()
 def random_user_ids_in_tests() -> bool:
 	"""Whether tests give new users random IDs, like a site does: only when every installed app
 	sets `random_user_ids_in_tests` in hooks. Otherwise their ID is their email, like users created
@@ -1131,6 +1130,7 @@ def random_user_ids_in_tests() -> bool:
 	)
 
 
+@frappe.whitelist()
 def get_timezones():
 	return {"timezones": _get_timezones()}
 
