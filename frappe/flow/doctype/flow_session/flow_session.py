@@ -55,6 +55,7 @@ class FlowSession(Document):
 		last_synced_seq: DF.Int
 		messages: DF.Table[FlowSessionMessage]
 		model: DF.Link | None
+		personal_trigger: DF.Check
 		source: DF.Literal["Manual", "Trigger"]
 		title: DF.Data | None
 		guest_token: DF.Data | None

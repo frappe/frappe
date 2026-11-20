@@ -53,6 +53,7 @@ def new_session(
 	source: str = "Manual",
 	approval_mode: str | None = None,
 	guest_token: str | None = None,
+	personal_trigger: bool = False,
 ) -> FlowSession:
 	"""Start a Flow Session and its flow server twin. `agent` defaults to the Assistant.
 	`guest_token` is the hash of the token that opens a guest chat."""
@@ -69,6 +70,7 @@ def new_session(
 			"model": model,
 			"title": title,
 			"source": source,
+			"personal_trigger": personal_trigger,
 			"approval_mode": "Auto-approve" if source == "Trigger" else approval_mode or "Auto",
 			"guest_token": guest_token,
 		}
