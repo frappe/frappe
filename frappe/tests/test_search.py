@@ -201,7 +201,7 @@ class TestSearch(IntegrationTestCase):
 					"email": test_user,
 					"first_name": "Test Search Image Limited",
 					"user_type": "System User",
-					"roles": [{"role": "Projects User"}],
+					"roles": [{"role": "Desk User"}],
 				}
 			).insert(ignore_permissions=True)
 			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
