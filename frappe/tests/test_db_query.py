@@ -18,6 +18,7 @@ from frappe.query_builder import Field
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.utils import get_user_by_email
 from frappe.utils.testutils import add_custom_field, clear_custom_fields
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
@@ -25,7 +26,7 @@ EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 @contextmanager
 def setup_test_user(set_user=False):
-	test_user = frappe.get_doc("User", "test@example.com")
+	test_user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 	original_user = frappe.session.user
 	original_roles = [role.role for role in test_user.roles]
 
@@ -437,11 +438,11 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertEqual(result[0].child_value, "Child")
 
 	def test_build_match_conditions(self):
-		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
+		test2user = frappe.get_doc("User", get_user_by_email("test2@example.com"))
+		clear_user_permissions_for_doctype("Test Blog Post", test2user.name)
 
-		test2user = frappe.get_doc("User", "test2@example.com")
 		test2user.add_roles("Blogger")
-		frappe.set_user("test2@example.com")
+		frappe.set_user(test2user.name)
 
 		# this will get match conditions for Blog Post
 		build_match_conditions = DatabaseQuery("Test Blog Post").build_match_conditions
@@ -452,8 +453,8 @@ class TestDBQuery(IntegrationTestCase):
 		# get as conditions
 		self.assertEqual(build_match_conditions(as_condition=True), "")
 
-		add_user_permission("Test Blog Post", "_Test Blog Post", "test2@example.com", True)
-		add_user_permission("Test Blog Post", "_Test Blog Post 1", "test2@example.com", True)
+		add_user_permission("Test Blog Post", "_Test Blog Post", test2user.name, True)
+		add_user_permission("Test Blog Post", "_Test Blog Post 1", test2user.name, True)
 
 		# After applying user permission
 		# get as filters
@@ -749,7 +750,7 @@ class TestDBQuery(IntegrationTestCase):
 			self.assertEqual(rows, [{"name": folder.name}])
 
 	def test_ignore_permissions_for_get_filters_cond(self):
-		frappe.set_user("test2@example.com")
+		frappe.set_user(get_user_by_email("test2@example.com"))
 		self.assertRaises(frappe.PermissionError, get_filters_cond, "DocType", dict(istable=1), [])
 		self.assertTrue(get_filters_cond("DocType", dict(istable=1), [], ignore_permissions=True))
 		frappe.set_user("Administrator")
@@ -966,14 +967,15 @@ class TestDBQuery(IntegrationTestCase):
 		clear_user_permissions_for_doctype("Nested DocType")
 
 		# user permission for only one root folder
-		add_user_permission("Nested DocType", "Level 1 A", "test2@example.com")
+		user = get_user_by_email("test2@example.com")
+		add_user_permission("Nested DocType", "Level 1 A", user)
 
 		from frappe.core.page.permission_manager.permission_manager import update
 
 		# to avoid if_owner filter
 		update("Nested DocType", "All", 0, "if_owner", 0)
 
-		with self.set_user("test2@example.com"):
+		with self.set_user(user):
 			data = DatabaseQuery("Nested DocType").execute()
 
 		# children of root folder (for which we added user permission) should be accessible
@@ -1850,7 +1852,7 @@ class TestDBQuery(IntegrationTestCase):
 
 	def test_setup_test_user_restores_user_and_roles(self):
 		original_user = frappe.session.user
-		test_user = frappe.get_doc("User", "test@example.com")
+		test_user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		original_roles = {role.role for role in test_user.roles}
 
 		with setup_test_user(set_user=True):
@@ -1971,7 +1973,7 @@ class TestReportView(IntegrationTestCase):
 		self.assertLessEqual(count, limit)
 
 	def test_reportview_get(self):
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		add_child_table_to_blog_post()
 
 		user_roles = frappe.get_roles()

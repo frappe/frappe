@@ -17,6 +17,7 @@ from frappe.tests.test_db_query import (
 )
 from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.test_query_builder import db_type_is, run_only_if
+from frappe.utils import get_user_by_email
 from frappe.utils.nestedset import get_ancestors_of, get_descendants_of
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
@@ -961,18 +962,18 @@ class TestQuery(IntegrationTestCase):
 	def test_build_match_conditions(self):
 		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
-		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
+		test2user = frappe.get_doc("User", get_user_by_email("test2@example.com"))
+		clear_user_permissions_for_doctype("Test Blog Post", test2user.name)
 
-		test2user = frappe.get_doc("User", "test2@example.com")
 		test2user.add_roles("Blogger")
-		frappe.set_user("test2@example.com")
+		frappe.set_user(test2user.name)
 
 		# Before any user permission is applied, there should be no conditions
 		query = frappe.qb.get_query("Test Blog Post", ignore_permissions=False)
 		self.assertNotIn("(`tabBlog Post`.`name` in (", str(query))
 		# Add user permissions
-		add_user_permission("Test Blog Post", "_Test Blog Post", "test2@example.com", True)
-		add_user_permission("Test Blog Post", "_Test Blog Post 1", "test2@example.com", True)
+		add_user_permission("Test Blog Post", "_Test Blog Post", test2user.name, True)
+		add_user_permission("Test Blog Post", "_Test Blog Post 1", test2user.name, True)
 
 		# After applying user permission, condition should be in query
 		query = str(frappe.qb.get_query("Test Blog Post", ignore_permissions=False))
@@ -986,11 +987,11 @@ class TestQuery(IntegrationTestCase):
 			)  # works in pg due to `coalesce` sub during sql execution
 
 		frappe.set_user("Administrator")
-		clear_user_permissions_for_doctype("Test Blog Post", "test2@example.com")
+		clear_user_permissions_for_doctype("Test Blog Post", test2user.name)
 		test2user.remove_roles("Blogger")
 
 	def test_ignore_permissions_for_query(self):
-		frappe.set_user("test2@example.com")
+		frappe.set_user(get_user_by_email("test2@example.com"))
 
 		with self.assertRaises(frappe.PermissionError):
 			frappe.qb.get_query("DocType", filters={"istable": 1}, ignore_permissions=False)
@@ -1050,7 +1051,7 @@ class TestQuery(IntegrationTestCase):
 
 		# Cleanup
 		frappe.set_user("Administrator")
-		test_user = frappe.get_doc("User", test_user_email)
+		test_user = frappe.get_doc("User", get_user_by_email(test_user_email))
 		test_user.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
 		frappe.delete_doc("Note", {"title": test_note_title}, ignore_missing=True, force=True)
@@ -1068,7 +1069,7 @@ class TestQuery(IntegrationTestCase):
 			doctype="Note", title=test_note_title, public=1, seen_by=[{"user": "Administrator"}]
 		).insert(ignore_permissions=True)
 
-		frappe.set_user(test_user_email)
+		frappe.set_user(test_user.name)
 		query = frappe.qb.get_query(
 			"Note",
 			filters={"name": note.name},
@@ -1100,7 +1101,7 @@ class TestQuery(IntegrationTestCase):
 
 		# Cleanup previous runs
 		frappe.set_user("Administrator")
-		test_user = frappe.get_doc("User", test_user_email)
+		test_user = frappe.get_doc("User", get_user_by_email(test_user_email))
 		test_user.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
 		frappe.delete_doc("Note", {"title": test_note_title}, ignore_missing=True, force=True)
@@ -1125,7 +1126,7 @@ class TestQuery(IntegrationTestCase):
 
 		self.addCleanup(cleanup)
 
-		frappe.set_user(test_user_email)
+		frappe.set_user(test_user.name)
 
 		# 'content' is a permlevel 0 field but NOT a search field
 		result = frappe.qb.get_query(
@@ -1144,7 +1145,7 @@ class TestQuery(IntegrationTestCase):
 		test_user_email = "test2@example.com"
 
 		frappe.set_user("Administrator")
-		test_user = frappe.get_doc("User", test_user_email)
+		test_user = frappe.get_doc("User", get_user_by_email(test_user_email))
 		test_user.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
 
@@ -1160,7 +1161,7 @@ class TestQuery(IntegrationTestCase):
 
 		self.addCleanup(cleanup)
 
-		frappe.set_user(test_user_email)
+		frappe.set_user(test_user.name)
 
 		# filter by user_type and enabled — the exact filters used by search_link for assignment
 		result = frappe.qb.get_query(
@@ -1177,7 +1178,7 @@ class TestQuery(IntegrationTestCase):
 		test_user_email = "test2@example.com"
 
 		frappe.set_user("Administrator")
-		test_user = frappe.get_doc("User", test_user_email)
+		test_user = frappe.get_doc("User", get_user_by_email(test_user_email))
 		test_user.remove_roles(test_role)
 		frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
 
@@ -1194,7 +1195,7 @@ class TestQuery(IntegrationTestCase):
 
 		self.addCleanup(cleanup)
 
-		frappe.set_user(test_user_email)
+		frappe.set_user(test_user.name)
 
 		self.assertFalse(
 			frappe.only_has_select_perm("User"),
@@ -1236,16 +1237,16 @@ class TestQuery(IntegrationTestCase):
 		clear_user_permissions_for_doctype("Nested DocType")
 
 		# Add user permission for only one root folder
-		add_user_permission("Nested DocType", "Level 1 A", "test2@example.com")
+		test2user = frappe.get_doc("User", get_user_by_email("test2@example.com"))
+		add_user_permission("Nested DocType", "Level 1 A", test2user.name)
 
 		from frappe.core.page.permission_manager.permission_manager import update
 
 		# To avoid if_owner filter
 		update("Nested DocType", "All", 0, "if_owner", 0)
 
-		test2user = frappe.get_doc("User", "test2@example.com")
 		test2user.add_roles("Blogger")
-		with self.set_user("test2@example.com"):
+		with self.set_user(test2user.name):
 			data = frappe.qb.get_query("Nested DocType", ignore_permissions=False).run(as_dict=1)
 
 		# Children of the permitted node should be accessible
@@ -1333,7 +1334,7 @@ class TestQuery(IntegrationTestCase):
 
 		# Create a Dashboard Settings for test user
 		self.doctype = "Dashboard Settings"
-		self.user = "test@example.com"
+		self.user = get_user_by_email("test@example.com")
 
 		original_hooks = frappe.get_hooks("permission_query_conditions") or {}
 
@@ -1372,7 +1373,7 @@ class TestQuery(IntegrationTestCase):
 		"""A permission_query_conditions hook may return a pypika criterion, not just a SQL string."""
 		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
 
-		self.user = "test@example.com"
+		self.user = get_user_by_email("test@example.com")
 		create_dashboard_settings(self.user)
 
 		with self.patch_hooks(
@@ -1403,7 +1404,7 @@ class TestQuery(IntegrationTestCase):
 
 		with self.patch_hooks({"permission_query_conditions": {"ToDo": [hook]}}):
 			engine = Engine()
-			engine.get_query("ToDo", user="test@example.com", db_query_compat=True)
+			engine.get_query("ToDo", user=get_user_by_email("test@example.com"), db_query_compat=True)
 			condition = engine.build_match_conditions()
 
 		return frappe.db.sql(f"select name from `tabToDo` where {condition}", pluck=True)
@@ -1413,7 +1414,7 @@ class TestQuery(IntegrationTestCase):
 		target_dt_name = "TargetDocForLinkPerm"
 		source_dt_name = "SourceDocForLinkPerm"
 		test_role = "LinkPermTestRole"
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 
 		# Cleanup previous runs
 		frappe.set_user("Administrator")
@@ -1533,7 +1534,7 @@ class TestQuery(IntegrationTestCase):
 		target_dt_name = "TargetDocForOptionalLink"
 		source_dt_name = "SourceDocForOptionalLink"
 		test_role = "OptionalLinkPermTestRole"
-		test_user = "test3@example.com"
+		test_user = get_user_by_email("test3@example.com")
 
 		# Cleanup previous runs
 		frappe.set_user("Administrator")
@@ -2036,7 +2037,7 @@ class TestQuery(IntegrationTestCase):
 		target_dt_name = "TargetDocForGroupOrderPerm"
 		source_dt_name = "SourceDocForGroupOrderPerm"
 		test_role = "GroupOrderPermTestRole"
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 
 		frappe.set_user("Administrator")
 		frappe.delete_doc("DocType", target_dt_name, ignore_missing=True, force=True)
@@ -2140,7 +2141,7 @@ class TestQuery(IntegrationTestCase):
 		frappe.delete_doc("DocType", parent_dt_name, ignore_missing=True, force=True)
 		frappe.delete_doc("Role", test_role, ignore_missing=True, force=True)
 
-		test_user_doc = frappe.get_doc("User", test_user_email)
+		test_user_doc = frappe.get_doc("User", get_user_by_email(test_user_email))
 		test_user_doc.remove_roles(test_role)
 
 		child_dt = new_doctype(
@@ -2175,7 +2176,7 @@ class TestQuery(IntegrationTestCase):
 		update_permission_property(child_dt_name, test_role, 1, "read", 0, validate=False)
 		test_user_doc.add_roles(test_role)
 
-		frappe.set_user(test_user_email)
+		frappe.set_user(test_user_doc.name)
 
 		try:
 			frappe.qb.get_query(
@@ -2183,7 +2184,7 @@ class TestQuery(IntegrationTestCase):
 				fields=["child_table.public_child_field", "name"],
 				group_by="child_table.public_child_field",
 				ignore_permissions=False,
-				user=test_user_email,
+				user=test_user_doc.name,
 			).get_sql()
 		except frappe.PermissionError as e:
 			self.fail(f"GROUP BY with permitted child field failed: {e}")
@@ -2194,7 +2195,7 @@ class TestQuery(IntegrationTestCase):
 				fields=["child_table.restricted_child_field", "name"],
 				group_by="child_table.restricted_child_field",
 				ignore_permissions=False,
-				user=test_user_email,
+				user=test_user_doc.name,
 			).get_sql()
 		self.assertIn("You do not have permission to access field", str(cm.exception))
 		self.assertIn("restricted_child_field", str(cm.exception))
@@ -2205,7 +2206,7 @@ class TestQuery(IntegrationTestCase):
 				fields=["name"],
 				order_by="child_table.restricted_child_field",
 				ignore_permissions=False,
-				user=test_user_email,
+				user=test_user_doc.name,
 			).get_sql()
 		self.assertIn("You do not have permission to access field", str(cm.exception))
 		self.assertIn("restricted_child_field", str(cm.exception))
@@ -2230,7 +2231,7 @@ class TestQuery(IntegrationTestCase):
 		role = frappe.get_doc({"doctype": "Role", "role_name": "Direct Child Query Role"}).insert(
 			ignore_if_duplicate=True
 		)
-		user = frappe.get_doc("User", "test2@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test2@example.com"))
 		add_permission(parent_dt.name, role.name, 0, ptype="read")
 		user.add_roles(role.name)
 		self.addCleanup(frappe.delete_doc, "Role", role.name, force=True)
@@ -2606,7 +2607,7 @@ class TestQuery(IntegrationTestCase):
 
 		self.assertIn("IS NULL", frappe.qb.get_query("ToDo", filters=[["date", "in", [None]]]).get_sql())
 
-		with self.set_user("test2@example.com"):
+		with self.set_user(get_user_by_email("test2@example.com")):
 			todo = frappe.get_doc(
 				{
 					"doctype": "ToDo",
@@ -2646,7 +2647,7 @@ class TestQuery(IntegrationTestCase):
 		self.assertIn(self.normalize_sql("`creation` `created_date`"), self.normalize_sql(sql))
 
 	def test_order_by_expression_alias_with_group_by(self):
-		with self.set_user("test2@example.com"):
+		with self.set_user(get_user_by_email("test2@example.com")):
 			for priority, count in (("Low", 1), ("Medium", 2), ("High", 3)):
 				for _ in range(count):
 					frappe.get_doc(
@@ -2855,7 +2856,7 @@ class TestQuery(IntegrationTestCase):
 		"""Test that shared docs grant access when user has no role permissions."""
 		import frappe.share
 
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 
 		# Create a private event (only owner can see by default)
 		event = frappe.get_doc(
@@ -2887,7 +2888,7 @@ class TestQuery(IntegrationTestCase):
 		import frappe.share
 		from frappe.core.page.permission_manager.permission_manager import update
 
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 		test_user_doc = frappe.get_doc("User", test_user)
 		test_user_doc.add_roles("Blogger")
 
@@ -2930,7 +2931,7 @@ class TestQuery(IntegrationTestCase):
 		import frappe.share
 		from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 		test_user_doc = frappe.get_doc("User", test_user)
 		test_user_doc.add_roles("Blogger")
 
@@ -2989,7 +2990,7 @@ class TestQuery(IntegrationTestCase):
 		from frappe.core.page.permission_manager.permission_manager import update
 		from frappe.permissions import clear_user_permissions_for_doctype
 
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 		test_user_doc = frappe.get_doc("User", test_user)
 		test_user_doc.add_roles("Blogger")
 
@@ -3033,7 +3034,7 @@ class TestQuery(IntegrationTestCase):
 		# DocField is a child table of DocType
 		# When querying with parent_doctype, permissions should be checked against DocType
 
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 		test_user_doc = frappe.get_doc("User", test_user)
 		self.ensure_system_manager(test_user_doc, should_have=False)
 		self.addCleanup(lambda: frappe.set_user("Administrator"))
@@ -3078,7 +3079,7 @@ class TestQuery(IntegrationTestCase):
 
 	def test_child_table_filters_orphaned_rows(self):
 		"""Test that child table queries filter out orphaned rows (rows without valid parent)."""
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 		test_user_doc = frappe.get_doc("User", test_user)
 		self.ensure_system_manager(test_user_doc, should_have=True)
 
@@ -3112,7 +3113,7 @@ class TestQuery(IntegrationTestCase):
 		Single doctypes don't have physical tables, so we can't join to them.
 		This tests that the query works correctly without the join.
 		"""
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 		test_user_doc = frappe.get_doc("User", test_user)
 		self.ensure_system_manager(test_user_doc, should_have=True)
 		self.addCleanup(lambda: frappe.set_user("Administrator"))
@@ -3133,7 +3134,7 @@ class TestQuery(IntegrationTestCase):
 
 	def test_child_table_of_single_doctype_without_permission(self):
 		"""Test that permission checks work for child tables of Single doctypes."""
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 		test_user_doc = frappe.get_doc("User", test_user)
 		self.ensure_system_manager(test_user_doc, should_have=False)
 		self.addCleanup(lambda: frappe.set_user("Administrator"))
@@ -3189,7 +3190,7 @@ class TestQuery(IntegrationTestCase):
 		This is a regression test for the CombinedRawCriterion fix - ensures that
 		explicit filters are not bypassed by shared doc conditions.
 		"""
-		test_user = "test2@example.com"
+		test_user = get_user_by_email("test2@example.com")
 		test_user_doc = frappe.get_doc("User", test_user)
 		self.ensure_system_manager(test_user_doc, should_have=True)
 		self.addCleanup(lambda: frappe.set_user("Administrator"))
@@ -3474,7 +3475,7 @@ class TestQuery(IntegrationTestCase):
 			self.assertIn("OFFSET 10", query)
 
 	def test_get_list_with_offset_and_no_limit(self):
-		with self.set_user("test2@example.com"):
+		with self.set_user(get_user_by_email("test2@example.com")):
 			for _ in range(12):
 				frappe.get_doc({"doctype": "ToDo", "description": "_Test offset without limit"}).insert()
 			query = {
@@ -3670,7 +3671,7 @@ class TestJSONFieldQueries(IntegrationTestCase):
 	def test_permlevel_json_field_with_distinct(self):
 		"""The select cast runs after the permission pass, which only checks Field terms."""
 		role = "JSON Query Test Role"
-		user = "test2@example.com"
+		user = get_user_by_email("test2@example.com")
 		frappe.get_doc({"doctype": "Role", "role_name": role}).insert(ignore_if_duplicate=True)
 		add_permission(self.doctype, role, 0, ptype="read")
 		add_permission(self.doctype, "System Manager", 1, ptype="read")
