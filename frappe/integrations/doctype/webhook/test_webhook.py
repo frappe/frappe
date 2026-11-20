@@ -300,12 +300,12 @@ class TestWebhook(IntegrationTestCase):
 			json={},
 		)
 
-		if not frappe.db.get_value("User", "user2@integration.webhooks.test.com"):
+		if user := get_user_by_email("user2@integration.webhooks.test.com"):
+			user = frappe.get_doc("User", user)
+		else:
 			user = frappe.get_doc(
 				{"doctype": "User", "email": "user2@integration.webhooks.test.com", "first_name": "user2"}
 			).insert()
-		else:
-			user = frappe.get_doc("User", "user2@integration.webhooks.test.com")
 
 		webhook = frappe.get_doc("Webhook", {"webhook_doctype": "User"})
 		enqueue_webhook(user, webhook)
