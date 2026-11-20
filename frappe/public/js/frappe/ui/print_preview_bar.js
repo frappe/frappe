@@ -48,7 +48,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 				if (!e.ctrlKey) return;
 				e.preventDefault();
 				this.zoom_set_by_user = true;
-				const scale = Math.min(1.25, Math.max(0.75, Math.exp(-e.deltaY / 100)));
+				const scale = Math.min(1.25, Math.max(0.8, Math.exp(-e.deltaY / 100)));
 				this.zoom = Math.min(2, Math.max(0.5, this.zoom * scale));
 				this.apply_zoom();
 			},
