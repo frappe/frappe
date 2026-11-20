@@ -40,8 +40,9 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		this.frame = frame;
 		this.pages = [];
 		this.zoom_style = doc.head.appendChild(doc.createElement("style"));
+		// an image, even a transparent one, stops the body's white from filling the whole frame
 		doc.head.appendChild(doc.createElement("style")).textContent =
-			"@media screen { :root { background: none; } }";
+			"@media screen { :root { background: linear-gradient(transparent, transparent); } }";
 		doc.addEventListener("scroll", () => this.update_page_label());
 		doc.defaultView.addEventListener("resize", () => this.apply_zoom());
 		if (fit && !this.zoom_set_by_user) this.fit(1);
