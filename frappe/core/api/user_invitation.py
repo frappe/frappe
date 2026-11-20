@@ -2,6 +2,7 @@ import frappe
 import frappe.utils
 from frappe import _
 from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
+from frappe.rate_limiter import rate_limit
 
 
 @frappe.whitelist(methods=["POST"])
@@ -81,7 +82,8 @@ def get_allowed_invite_params(app_name: str, kwargs: dict) -> dict:
 	return allowed_params
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
+@rate_limit(limit=10, seconds=60)
 def accept_invitation(key: str) -> None:
 	_accept_invitation(key, False)
 

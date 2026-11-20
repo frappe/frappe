@@ -1176,6 +1176,9 @@ class TestFile(IntegrationTestCase):
 
 class TestChunkedUpload(IntegrationTestCase):
 	def setUp(self):
+		counter_prefix = "rl:frappe.handler.upload_file:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
 		self.enterContext(self.change_settings("System Settings", {"max_file_size": 1}))
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.addCleanup(frappe.local.form_dict.clear)

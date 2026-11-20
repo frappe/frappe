@@ -58,6 +58,11 @@ user_module = frappe.core.doctype.user.user
 
 
 class TestUser(IntegrationTestCase):
+	def setUp(self):
+		counter_prefix = "rl:frappe.core.doctype.user.user.update_password:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
+
 	def tearDown(self):
 		# disable password strength test
 		frappe.db.set_single_value("System Settings", "enable_password_policy", 0)

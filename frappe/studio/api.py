@@ -435,7 +435,7 @@ def delete_studio_file(frappe_app: str, studio_app: str, file_path: str) -> None
 	_sync_component_script(file_path, target)
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["GET"], rate_limit=None)  # nosemgrep: guest-whitelisted-method
 def get_app_files(app_name: str) -> list[dict]:
 	"""Return a database app's source files for compilation in the browser.
 

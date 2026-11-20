@@ -20,6 +20,7 @@ from frappe.desk.query_report import (
 )
 from frappe.desk.utils import send_report_email
 from frappe.model.document import Document
+from frappe.rate_limiter import rate_limit
 from frappe.translate import print_language
 from frappe.utils import cint, get_datetime, get_link_to_form, get_system_timezone
 from frappe.utils.jinja import render_template
@@ -420,7 +421,8 @@ def _download_multi_pdf(
 from frappe.deprecation_dumpster import read_multi_pdf
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True, methods=["GET", "POST"])  # nosemgrep: guest-whitelisted-method
+@rate_limit(limit=30, seconds=60, user_based=True)
 @frappe.concurrent_limit()
 def download_pdf(
 	doctype: str,

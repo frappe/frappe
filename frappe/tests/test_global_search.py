@@ -27,6 +27,12 @@ class TestGlobalSearch(IntegrationTestCase):
 		make_property_setter(doctype, "repeat_on", "in_global_search", 0, "Int")
 		self.global_search_priorities = get_doctypes_for_global_search()
 
+		counter_prefix = "rl:frappe.utils.global_search.web_search:"
+		frappe.cache.delete_keys(counter_prefix)
+		self.addCleanup(frappe.cache.delete_keys, counter_prefix)
+		self.addCleanup(setattr, frappe.local, "request_ip", getattr(frappe.local, "request_ip", None))
+		frappe.local.request_ip = "127.0.0.1"
+
 	def tearDown(self):
 		self.set_global_search_priorities(self.global_search_priorities)
 		frappe.db.delete("ToDo", {"description": "Quarterly roadmap review"})

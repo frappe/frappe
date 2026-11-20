@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 import frappe
 import frappe.utils
+from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import redis_cache
 from frappe.utils.logging import ensure_log_table, get_log_db, log_cutoff, log_table
 from frappe.utils.sqlite_document import SQLiteLogDocument
@@ -63,7 +64,8 @@ class WebPageView(SQLiteLogDocument):
 # a query, the path comes from the `Referer` header and is kept only if `is_site_link`
 # passes and it is not a desk, API or asset route, and the write is deferred so a caller
 # cannot drive one database insert per request.
-@frappe.whitelist(allow_guest=True)  # nosemgrep: guest-whitelisted-method
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
+@rate_limit(limit=120, seconds=60)
 def make_view_log(
 	referrer: str | None = None,
 	browser: str | None = None,

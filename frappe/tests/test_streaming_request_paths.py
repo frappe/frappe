@@ -9,7 +9,7 @@ METHOD = "frappe.tests.test_streaming_request_paths.inspect_request_body"
 ENDPOINT = f"/api/method/{METHOD}"
 
 
-@whitelist_for_tests(allow_guest=True)
+@whitelist_for_tests(allow_guest=True, methods=["POST", "PUT"], rate_limit=None)
 def inspect_request_body(offset: int | None = None, payload: str | None = None):
 	request = frappe.request
 	state = {

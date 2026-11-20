@@ -39,6 +39,8 @@ if "validate" in doc.description:
 		script_type="API",
 		api_method="test_server_script",
 		allow_guest=1,
+		enable_rate_limit=1,
+		rate_limit_count=1000,
 		script="""
 frappe.response['message'] = 'hello'
 """,
@@ -48,6 +50,8 @@ frappe.response['message'] = 'hello'
 		script_type="API",
 		api_method="test_return_value",
 		allow_guest=1,
+		enable_rate_limit=1,
+		rate_limit_count=1000,
 		script="""
 frappe.flags = 'hello'
 """,
@@ -214,6 +218,8 @@ class TestServerScript(IntegrationTestCase):
 			script_type="API",
 			api_method="test_qb_restrictions",
 			allow_guest=1,
+			enable_rate_limit=1,
+			rate_limit_count=1000,
 			# whitelisted update
 			script=f"""
 frappe.db.set_value("ToDo", "{todo.name}", "description", "safe")
