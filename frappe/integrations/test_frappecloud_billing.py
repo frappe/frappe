@@ -26,7 +26,7 @@ class TestFrappeCloudBilling(IntegrationTestCase):
 	@patch.dict(frappe.conf, FC)
 	@patch("requests.post", side_effect=requests.exceptions.SSLError)
 	def test_current_site_info_ignores_network_errors(self, _):
-		frappe.cache().delete_value(f"fc_current_site_info:{frappe.local.site}")
+		frappe.cache.delete_value(f"fc_current_site_info:{frappe.local.site}")
 		self.assertIsNone(current_site_info())
 
 
