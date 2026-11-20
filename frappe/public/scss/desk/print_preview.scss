@@ -32,6 +32,8 @@
 	display: block;
 	width: 100%;
 	border: 0;
+	// a frame whose color scheme differs from the desk's gets an opaque canvas
+	color-scheme: light;
 }
 
 .print-toolbar {
@@ -369,6 +371,7 @@
 
 .preview-beta-wrapper {
 	position: relative;
+	background-color: var(--gray-200);
 }
 
 .print-preview-bar {
