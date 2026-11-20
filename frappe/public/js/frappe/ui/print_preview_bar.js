@@ -67,6 +67,8 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		const doc = frame.contentDocument;
 		this.frame = frame;
 		this.zoom_style = doc.head.appendChild(doc.createElement("style"));
+		doc.head.appendChild(doc.createElement("style")).textContent =
+			"@media screen { :root { background: none; } }";
 		doc.addEventListener("scroll", () => this.update_page_label());
 		if (fit && !this.zoom_set_by_user) this.fit(1);
 		this.apply_zoom();

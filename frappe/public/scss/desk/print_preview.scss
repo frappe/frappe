@@ -15,7 +15,25 @@
 
 .preview-beta-wrapper {
 	border-radius: var(--radius);
+<<<<<<< HEAD
 	overflow: hidden;
+=======
+	padding: 0;
+	min-height: 11.69in;
+	overflow-x: auto;
+
+	.print-format-container {
+		min-width: 8.3in;
+	}
+}
+
+.preview-beta-wrapper iframe {
+	display: block;
+	width: 100%;
+	border: 0;
+	// a frame whose color scheme differs from the desk's gets an opaque canvas
+	color-scheme: light;
+>>>>>>> e7f4c15 (fix(print): print preview keeps a light background in dark mode)
 }
 
 .print-toolbar {
@@ -366,6 +384,7 @@
 
 .preview-beta-wrapper {
 	position: relative;
+	background-color: var(--gray-200);
 }
 
 .print-preview-bar {

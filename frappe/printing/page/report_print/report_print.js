@@ -29,7 +29,6 @@ const PREVIEW_STYLE = `<style>
 	@media screen {
 		:root {
 			margin: 0;
-			background-color: var(--gray-200);
 		}
 		:root body {
 			margin: 0;
