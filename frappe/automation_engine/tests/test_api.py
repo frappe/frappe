@@ -82,6 +82,19 @@ class TestApi(IntegrationTestCase):
 		options = api.get_param_options("AssignToUser", "assign_to", "ToDo", search_text="Admin")
 		self.assertIn("Administrator", [option.name for option in options])
 
+	def test_get_param_options_finds_users_by_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with (
+			test_user(roles=["System Manager"]) as searcher,
+			test_user(roles=[], generated_id=True, email="_test_automation_find@example.com") as user,
+			self.set_user(searcher.name),
+		):
+			options = api.get_param_options(
+				"AssignToUser", "assign_to", "ToDo", search_text="_test_automation_find"
+			)
+			self.assertIn(user.name, [option.name for option in options])
+
 	def test_get_param_options_unknown_field_throws(self):
 		self.assertRaises(frappe.ValidationError, api.get_param_options, "SetFieldValue", "bogus", "ToDo")
 

@@ -651,7 +651,6 @@ def email_setup_wizard_exception(traceback, args):  # nosemgrep
 
 	frappe.sendmail(
 		recipients=frappe.conf.setup_wizard_exception_email,
-		sender=frappe.session.user,
 		subject=f"Setup failed: {frappe.local.site}",
 		message=message,
 		delayed=False,
