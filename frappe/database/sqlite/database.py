@@ -28,11 +28,25 @@ class SQLiteExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e: sqlite3.Error) -> bool:
+<<<<<<< HEAD
 		return "database is locked" in str(e)
 
 	@staticmethod
 	def is_timedout(e: sqlite3.Error) -> bool:
 		return "database is locked" in str(e)
+=======
+		if isinstance(e, frappe.QueryDeadlockError):
+			return True
+		return getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY_SNAPSHOT
+
+	@classmethod
+	def is_timedout(cls, e: sqlite3.Error) -> bool:
+		if isinstance(e, frappe.QueryTimeoutError):
+			return True
+		return not cls.is_deadlocked(e) and (
+			getattr(e, "sqlite_errorcode", None) == sqlite3.SQLITE_BUSY or "database is locked" in str(e)
+		)
+>>>>>>> f44d156 (fix: recognize frappe deadlock and lock-timeout wrappers in is_deadlocked and is_timedout)
 
 	@staticmethod
 	def is_read_only_mode_error(e: sqlite3.Error) -> bool:

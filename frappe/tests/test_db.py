@@ -1613,6 +1613,254 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		self.assertFalse(MariaDBExceptionUtil.is_data_too_long(e))
 		self.assertFalse(MariaDBExceptionUtil.is_db_table_size_limit(e))
 
+<<<<<<< HEAD
+=======
+	@run_only_if(db_type_is.MARIADB)
+	def test_exception_utils_recognize_frappe_wrappers(self):
+		"""The wrappers Database.sql() raises must satisfy the driver error predicates too."""
+		import pymysql
+
+		from frappe.database.mariadb.database import MariaDBExceptionUtil
+
+		self.assertTrue(
+			MariaDBExceptionUtil.is_deadlocked(
+				frappe.QueryDeadlockError(pymysql.OperationalError(1213, "Deadlock or lock wait timeout"))
+			)
+		)
+		self.assertTrue(
+			MariaDBExceptionUtil.is_timedout(
+				frappe.QueryTimeoutError(pymysql.OperationalError(1205, "Lock wait timeout exceeded"))
+			)
+		)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_lock_wait_timeout_raised_by_sql_is_timedout(self):
+		conf = frappe.conf
+		other = get_db(
+			socket=conf.db_socket,
+			host=conf.db_host,
+			port=conf.db_port,
+			user=conf.db_user,
+			password=conf.db_password,
+			cur_db_name=conf.db_name,
+		)
+		other.connect()
+		self.addCleanup(other.close)
+		self.addCleanup(other.rollback)
+		other.sql("select name from `tabDocType` where name = 'ToDo' for update")
+
+		previous_timeout = frappe.db.sql("select @@session.innodb_lock_wait_timeout")[0][0]
+		self.addCleanup(frappe.db.sql, f"set session innodb_lock_wait_timeout = {int(previous_timeout)}")
+		frappe.db.sql("set session innodb_lock_wait_timeout = 1")
+
+		with self.assertRaises(frappe.QueryTimeoutError) as raised:
+			frappe.db.sql("update `tabDocType` set modified = modified where name = 'ToDo'")
+		frappe.db.rollback()
+
+		self.assertTrue(frappe.db.is_timedout(raised.exception))
+		self.assertFalse(frappe.db.is_deadlocked(raised.exception))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_serialization_failure_is_treated_as_deadlock(self):
+		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
+		deadlocks; otherwise they surface as unhandled query errors (e.g. on the per-request session
+		update under concurrency)."""
+		from psycopg.errors import DeadlockDetected, SerializationFailure, UniqueViolation
+
+		from frappe.database.postgres.database import PostgresExceptionUtil
+
+		for error in (SerializationFailure, DeadlockDetected):
+			self.assertTrue(PostgresExceptionUtil.is_deadlocked(error()))
+
+		self.assertFalse(PostgresExceptionUtil.is_deadlocked(UniqueViolation()))
+
+		self.assertTrue(PostgresExceptionUtil.is_deadlocked(frappe.QueryDeadlockError(UniqueViolation())))
+		self.assertTrue(PostgresExceptionUtil.is_timedout(frappe.QueryTimeoutError(UniqueViolation())))
+
+
+class TestSQLiteExceptionUtil(UnitTestCase):
+	def test_date_converter_accepts_mariadb_date_format(self):
+		from frappe.database.sqlite.compatibility import convert_sqlite_date
+
+		self.assertEqual(convert_sqlite_date(b"2000-1-1"), datetime.date(2000, 1, 1))
+		self.assertEqual(convert_sqlite_date(b"2000-01-01 12:30:45"), datetime.date(2000, 1, 1))
+
+	def test_date_converter_rejects_invalid_dates(self):
+		from frappe.database.sqlite.compatibility import convert_sqlite_date
+
+		for value in (b"2000-13-1", b"2000-1-32", b"not-a-date"):
+			with self.subTest(value=value), self.assertRaises(ValueError):
+				convert_sqlite_date(value)
+
+	def test_time_converter_accepts_erpnext_time_formats(self):
+		from frappe.database.sqlite.compatibility import parse_mariadb_time_duration
+
+		cases = {
+			"02:00": datetime.timedelta(hours=2),
+			"14:28:0.330404": datetime.timedelta(hours=14, minutes=28, microseconds=330_404),
+			"-27:05": -datetime.timedelta(hours=27, minutes=5),
+		}
+		for value, expected in cases.items():
+			with self.subTest(value=value):
+				self.assertEqual(parse_mariadb_time_duration(value), expected)
+
+	def test_time_converter_rejects_invalid_clock_components(self):
+		from frappe.database.sqlite.compatibility import parse_mariadb_time_duration
+
+		for value in ("12:60", "12:30:60", "12", "not-a-time"):
+			with self.subTest(value=value), self.assertRaises(ValueError):
+				parse_mariadb_time_duration(value)
+
+	def test_busy_snapshot_is_a_deadlock(self):
+		from frappe.database.sqlite.database import SQLiteExceptionUtil
+
+		error = sqlite3.OperationalError("database is locked")
+		error.sqlite_errorcode = sqlite3.SQLITE_BUSY_SNAPSHOT
+
+		self.assertTrue(SQLiteExceptionUtil.is_deadlocked(error))
+		self.assertFalse(SQLiteExceptionUtil.is_timedout(error))
+
+	def test_frappe_wrappers_are_recognized_as_deadlock_and_timeout(self):
+		from frappe.database.sqlite.database import SQLiteExceptionUtil
+
+		error = sqlite3.OperationalError("database is locked")
+
+		self.assertTrue(SQLiteExceptionUtil.is_deadlocked(frappe.QueryDeadlockError(error)))
+		self.assertTrue(SQLiteExceptionUtil.is_timedout(frappe.QueryTimeoutError(error)))
+		self.assertFalse(SQLiteExceptionUtil.is_deadlocked(error))
+		self.assertTrue(SQLiteExceptionUtil.is_timedout(error))
+
+	def test_plain_busy_is_a_timeout(self):
+		from frappe.database.sqlite.database import SQLiteExceptionUtil
+
+		error = sqlite3.OperationalError("database is locked")
+		error.sqlite_errorcode = sqlite3.SQLITE_BUSY
+
+		self.assertFalse(SQLiteExceptionUtil.is_deadlocked(error))
+		self.assertTrue(SQLiteExceptionUtil.is_timedout(error))
+
+
+class TestAdvisoryLockMariaDB(IntegrationTestCase):
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_get_release(self):
+		# Exercises the MariaDB GET_LOCK / RELEASE_LOCK path (the Postgres test uses pg_locks).
+		import hashlib
+
+		name = hashlib.sha256(f"{frappe.db.cur_db_name}:frappe-test-lock".encode()).hexdigest()
+
+		def held():
+			# IS_USED_LOCK returns the connection id holding the lock, or NULL when free.
+			return frappe.db.sql("SELECT IS_USED_LOCK(%s)", (name,))[0][0] is not None
+
+		self.assertFalse(held())
+		with frappe.db.advisory_lock("frappe-test-lock"):
+			self.assertTrue(held())
+		self.assertFalse(held())
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_retries_on_transient_null(self):
+		# GET_LOCK returns NULL on a transient server error (e.g. a killed thread). The acquire loop
+		# must retry within the budget and self-heal, not fail the whole operation with a bare error.
+		from unittest.mock import patch
+
+		real_sql = frappe.db.sql
+		get_lock_calls = []
+
+		def fake_sql(query, values=(), **kwargs):
+			if isinstance(query, str) and "GET_LOCK" in query:
+				get_lock_calls.append(values)
+				return ((None,),) if len(get_lock_calls) < 3 else ((1,),)  # two blips, then acquire
+			return real_sql(query, values, **kwargs)
+
+		with patch.object(frappe.db, "sql", fake_sql):
+			with frappe.db.advisory_lock("frappe-test-null", timeout=5):
+				pass
+
+		self.assertGreaterEqual(len(get_lock_calls), 3)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_advisory_lock_is_scoped_to_the_database(self):
+		# GET_LOCK names are server-wide: the same key must block this site but not another one.
+		with frappe.db.advisory_lock("frappe-test-lock"), self.secondary_connection():
+			frappe.db.sql("SELECT 1")  # connect to this site's database before faking another name
+			with patch.object(frappe.db, "cur_db_name", "another_site"):
+				with frappe.db.advisory_lock("frappe-test-lock", timeout=0):
+					pass
+			with self.assertRaises(frappe.QueryTimeoutError):
+				with frappe.db.advisory_lock("frappe-test-lock", timeout=0):
+					pass
+
+
+class TestBulkInsertCopy(IntegrationTestCase):
+	def test_bulk_insert_copy(self):
+		# postgres bulk_insert streams via COPY, other engines use multi-row INSERT; both must
+		# round-trip NULLs and tab/newline characters (the COPY text encoding escapes these).
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkLoadTest`")
+		frappe.db.sql("CREATE TABLE `tabBulkLoadTest` (`name` varchar(140), `qty` int, `note` text)")
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkLoadTest`")
+
+		rows = [("a", 1, "x"), ("b", 2, None), ("c\twith\ttabs", 3, "line\nbreak")]
+		frappe.db.bulk_insert("BulkLoadTest", ["name", "qty", "note"], rows)
+		frappe.db.commit()  # nosemgrep
+
+		got = frappe.db.sql("SELECT `name`, `qty`, `note` FROM `tabBulkLoadTest` ORDER BY `qty`")
+		self.assertEqual(len(got), 3)
+		self.assertIsNone(got[1][2])
+		self.assertEqual(got[2][0], "c\twith\ttabs")
+		self.assertEqual(got[2][2], "line\nbreak")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_time(self):
+		# COPY encodes Time (timedelta) values itself: a sub-24h value must round-trip rather than
+		# str()'s "H:MM:SS" formatting drifting or a days component becoming "1 day, ...".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkTimeTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkTimeTest" ("name" varchar(140), "at" time)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkTimeTest`")
+
+		value = datetime.timedelta(hours=2, minutes=30, seconds=15)
+		frappe.db.bulk_insert("BulkTimeTest", ["name", "at"], [("a", value)])
+		frappe.db.commit()  # nosemgrep
+
+		self.assertEqual(frappe.db.sql('SELECT "at" FROM "tabBulkTimeTest"')[0][0], value)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_check_field(self):
+		# Check fields are smallint; COPY must encode Python True/False as 1/0 -- smallint_in("true")
+		# would raise "invalid input syntax for type smallint".
+		frappe.db.sql_ddl("DROP TABLE IF EXISTS `tabBulkFlagTest`")
+		frappe.db.sql('CREATE TABLE "tabBulkFlagTest" ("name" varchar(140), "flag" smallint)')
+		self.addCleanup(frappe.db.sql_ddl, "DROP TABLE IF EXISTS `tabBulkFlagTest`")
+
+		frappe.db.bulk_insert("BulkFlagTest", ["name", "flag"], [("a", True), ("b", False)])
+		frappe.db.commit()  # nosemgrep
+
+		got = dict(frappe.db.sql('SELECT "name", "flag" FROM "tabBulkFlagTest"'))
+		self.assertEqual(got["a"], 1)
+		self.assertEqual(got["b"], 0)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_bulk_insert_copy_matches_insert(self):
+		# COPY parses text strictly: floats in Check and text columns and bytes must store what INSERT does
+		title = f"test_bulk_insert_copy - {random_string(10)}"
+		fields = ["name", "title", "public", "content", "_user_tags"]
+		row = (title, 1.0, b"abc", 2.0)
+		frappe.db.bulk_insert("Note", fields, [(f"{title} copy", *row)])
+		frappe.db.sql(
+			"INSERT INTO `tabNote` (`name`, `title`, `public`, `content`, `_user_tags`) VALUES (%s, %s, %s, %s, %s)",
+			(f"{title} insert", *row),
+		)
+
+		copied, inserted = frappe.get_all(
+			"Note",
+			filters={"title": title},
+			fields=["public", "content", "_user_tags"],
+			order_by="name",
+			as_list=True,
+		)
+		self.assertEqual(copied, inserted)
+		self.assertRaises(TypeError, frappe.db.bulk_insert, "Note", fields, [(title, title, 0, ["a"], "")])
+
+>>>>>>> f44d156 (fix: recognize frappe deadlock and lock-timeout wrappers in is_deadlocked and is_timedout)
 
 class TestBacktickIdentifierConversion(UnitTestCase):
 	"""The postgres and sqlite drivers translate MySQL-style raw SQL into ANSI quoting.

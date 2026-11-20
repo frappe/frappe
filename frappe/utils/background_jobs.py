@@ -277,7 +277,12 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 		if retry < 5 and (
 			isinstance(e, frappe.RetryBackgroundJobError)
+<<<<<<< HEAD
 			or (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e))
+=======
+			or frappe.db.is_deadlocked(e)
+			or frappe.db.is_timedout(e)
+>>>>>>> a1539ea (refactor: drop redundant wrapper checks now covered by is_deadlocked/is_timedout)
 		):
 			# retry the job if
 			# 1213 = deadlock

@@ -56,12 +56,33 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_deadlocked(e):
+<<<<<<< HEAD
 		return getattr(e, "pgcode", None) == DEADLOCK_DETECTED
 
 	@staticmethod
 	def is_timedout(e):
 		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
 		return isinstance(e, (psycopg2.extensions.QueryCanceledError | LockNotAvailable))
+=======
+		# Treat serialization failures like deadlocks: both are retriable transaction-rollback
+		# (class 40) errors. Under REPEATABLE READ, a write-write conflict makes MariaDB lock and
+		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
+		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
+		# retry instead of surfacing as an unhandled query error.
+		return isinstance(
+			e, errors.DeadlockDetected | errors.SerializationFailure | frappe.QueryDeadlockError
+		)
+
+	@staticmethod
+	def is_timedout(e):
+<<<<<<< HEAD
+		return isinstance(e, errors.QueryCanceled | errors.LockNotAvailable) or isinstance(
+			e, frappe.QueryTimeoutError
+		)
+>>>>>>> f44d156 (fix: recognize frappe deadlock and lock-timeout wrappers in is_deadlocked and is_timedout)
+=======
+		return isinstance(e, errors.QueryCanceled | errors.LockNotAvailable | frappe.QueryTimeoutError)
+>>>>>>> a1539ea (refactor: drop redundant wrapper checks now covered by is_deadlocked/is_timedout)
 
 	@staticmethod
 	def is_read_only_mode_error(e) -> bool:
@@ -109,7 +130,7 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_statement_timeout(e):
-		return PostgresDatabase.is_timedout(e) or isinstance(e, frappe.QueryTimeoutError)
+		return PostgresDatabase.is_timedout(e)
 
 	@staticmethod
 	def is_data_too_long(e):
