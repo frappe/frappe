@@ -332,6 +332,7 @@ frappe.patches.v17_0.move_flow_lancedb_out_of_files
 frappe.patches.v17_0.drop_flow_lancedb
 frappe.patches.v17_0.strip_display_names_from_email_unsubscribe
 frappe.patches.v16_0.unsubscribe_placeholder_emails
+frappe.patches.v17_0.keep_flow_user_trigger_sessions_private
 
 
 [post_fixture_sync]
