@@ -3,7 +3,7 @@
 """Removed legacy list query engine.
 
 `frappe.get_list` / `frappe.get_all` run on `frappe.model.qb_query.DatabaseQuery`.
-The helpers that used to live here are re-exported from their new modules until v18.
+The helpers that used to live here are re-exported from their new modules until v17.
 """
 
 import importlib
@@ -31,7 +31,7 @@ def __getattr__(name: str):
 	if module := _MOVED.get(name):
 		deprecation_warning(
 			"2026-11-20",
-			"v18",
+			"v17",
 			f"Import {name} from {module} instead of frappe.model.db_query.",
 		)
 		return getattr(importlib.import_module(module), name)
