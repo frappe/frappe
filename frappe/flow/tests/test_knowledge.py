@@ -7,6 +7,8 @@ import tempfile
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import responses
+
 import frappe
 from frappe.flow import ToolContext
 from frappe.flow.knowledge import Knowledge, attachment_store, store
@@ -607,6 +609,23 @@ class TestExtract(IntegrationTestCase):
 				_validate_public_url(url)
 		with patch("socket.getaddrinfo", return_value=[(2, 1, 6, "", ("93.184.216.34", 0))]):
 			_validate_public_url("https://example.com/page")
+
+	def test_url_fetch_rechecks_resolved_address(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		url = "https://example.com/page"
+		addresses = iter(("93.184.216.34", "127.0.0.1"))
+
+		def getaddrinfo(host, *args, **kwargs):
+			return [(2, 1, 6, "", (next(addresses), 0))]
+
+		with (
+			patch("socket.getaddrinfo", side_effect=getaddrinfo),
+			responses.RequestsMock(assert_all_requests_are_fired=False) as mocked,
+		):
+			mocked.add(responses.GET, url, body="<p>Opening hours</p>")
+			self.assertRaises(frappe.ValidationError, extract, frappe._dict(source_type="URL", url=url))
+			self.assertFalse(mocked.calls)
 
 
 class TestIngest(IntegrationTestCase):
