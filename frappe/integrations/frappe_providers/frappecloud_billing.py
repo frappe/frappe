@@ -94,7 +94,7 @@ def current_site_info():
 		# not cached, so tweaking site_config shows up on the next reload
 		return mock_site_info()
 	cache_key = f"fc_current_site_info:{frappe.local.site}"
-	cached_data = frappe.cache().get_value(cache_key)
+	cached_data = frappe.cache.get_value(cache_key)
 	if cached_data:
 		return cached_data
 
@@ -115,7 +115,7 @@ def current_site_info():
 		"setup_complete": cint(frappe.get_system_settings("setup_complete")),
 	}
 
-	frappe.cache().set_value(cache_key, site_info, expires_in_sec=600)
+	frappe.cache.set_value(cache_key, site_info, expires_in_sec=600)
 
 	return site_info
 
