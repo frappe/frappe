@@ -2,7 +2,6 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe import _
 from frappe.rate_limiter import rate_limit
 from frappe.utils import cint, is_markdown, markdown
 from frappe.website.utils import get_comment_list
@@ -68,32 +67,6 @@ class HelpArticle(WebsiteGenerator):
 
 	def get_parents(self, context):
 		return [{"title": context.category.category_name, "route": context.category.route}]
-
-
-def get_list_context(context=None):
-	filters = dict(published=1)
-
-	category = frappe.db.get_value("Help Category", {"route": frappe.local.path})
-
-	if category:
-		filters["category"] = category
-
-	list_context = frappe._dict(
-		title=category or _("Knowledge Base"),
-		get_level_class=get_level_class,
-		show_sidebar=True,
-		sidebar_items=get_sidebar_items(),
-		hide_filters=True,
-		filters=filters,
-		category=frappe.local.form_dict.category,
-		no_breadcrumbs=True,
-	)
-
-	if frappe.local.form_dict.txt:
-		list_context.blog_subtitle = _('Filtered by "{0}"').format(frappe.local.form_dict.txt)
-	#
-	# list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict())
-	return list_context
 
 
 def get_level_class(level):

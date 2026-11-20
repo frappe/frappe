@@ -132,7 +132,7 @@ export default class WebFormList {
 		} else {
 			args = {
 				type: "GET",
-				method: "frappe.www.list.get_list_data",
+				method: "frappe.website.doctype.web_form.web_form.get_list_data",
 				args: {
 					doctype: this.doctype,
 					limit_start: this.web_list_start,

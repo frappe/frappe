@@ -82,11 +82,8 @@ class TestAddress(IntegrationTestCase):
 		]
 		self.assertEqual(address_template_calls, [])
 
-	def test_get_list_context_preserves_page_template(self):
-		context = get_list_context(frappe._dict(template="www/portal.html"))
-
-		self.assertEqual(context.template, "www/portal.html")
-		self.assertEqual(context.list_template, "templates/includes/list/list.html")
+	def test_get_list_context_lists_own_addresses(self):
+		self.assertEqual(get_list_context().get_list, get_address_list)
 
 	def test_address_query(self):
 		def query(doctype="Address", txt="", searchfield="name", start=0, page_len=20, filters=None):

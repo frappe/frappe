@@ -210,16 +210,13 @@ def get_list_context(context=None):
 		{
 			"title": _("Addresses"),
 			"get_list": get_address_list,
-			"list_template": "templates/includes/list/list.html",
-			"row_template": "templates/includes/address_row.html",
-			"no_breadcrumbs": True,
 		}
 	)
 	return context
 
 
 def get_address_list(doctype, txt, filters, limit_start, limit_page_length=20, order_by=None):
-	from frappe.www.list import get_list
+	from frappe.website.doctype.web_form.web_form import get_list
 
 	user = frappe.session.user
 

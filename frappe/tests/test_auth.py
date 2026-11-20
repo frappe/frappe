@@ -373,10 +373,12 @@ class TestAuth(IntegrationTestCase):
 
 		self.addCleanup(frappe.form_dict.clear)
 		self.addCleanup(self.set_system_settings, "default_app", "")
-		for doctype, field in (("Website Settings", "home_page"), ("Portal Settings", "default_portal_home")):
-			self.addCleanup(
-				frappe.db.set_single_value, doctype, field, frappe.db.get_single_value(doctype, field)
-			)
+		self.addCleanup(
+			frappe.db.set_single_value,
+			"Website Settings",
+			"home_page",
+			frappe.db.get_single_value("Website Settings", "home_page"),
+		)
 		self.addCleanup(frappe.db.set_value, "Role", "System Manager", "home_page", None)
 		self.addCleanup(frappe.db.set_value, "User", self.test_user_email, "default_workspace", None)
 
@@ -390,14 +392,10 @@ class TestAuth(IntegrationTestCase):
 			frappe.db.set_single_value("Website Settings", "home_page", "about")
 			self.assertEqual(home_page_after_login(), app_home)
 
-			frappe.db.set_single_value("Portal Settings", "default_portal_home", "/contact")
-			self.assertEqual(home_page_after_login(), app_home)
-
 			frappe.db.set_value("User", self.test_user_email, "default_workspace", "Users")
 			self.assertEqual(home_page_after_login(), "/desk/users")
 
 			frappe.db.set_value("User", self.test_user_email, "default_workspace", None)
-			frappe.db.set_single_value("Portal Settings", "default_portal_home", None)
 			with self.patch_hooks({"role_home_page": {"System Manager": ["orders"]}}):
 				self.assertEqual(home_page_after_login(), "orders")
 

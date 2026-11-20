@@ -10,9 +10,7 @@ import yaml
 from werkzeug.wrappers import Response
 
 import frappe
-from frappe.app_state import get_disabled_doctypes
 from frappe.apps import get_apps, get_default_path, is_desk_apps
-from frappe.model.document import Document
 from frappe.utils import (
 	cint,
 	cstr,
@@ -24,7 +22,6 @@ from frappe.utils import (
 	split_emails,
 )
 from frappe.utils.data import get_url_to_workspace
-from frappe.utils.user import is_portal_user
 
 FRONTMATTER_PATTERN = re.compile(r"^\s*(?:---|\+\+\+)(.*?)(?:---|\+\+\+)\s*(.+)$", re.S | re.M)
 H1_TAG_PATTERN = re.compile("<h1>([^<]*)")
@@ -124,10 +121,6 @@ def get_home_page():
 		if frappe.session.user != "Guest":
 			home_page = get_role_home_page()
 
-			# portal default
-			if not home_page:
-				home_page = frappe.db.get_single_value("Portal Settings", "default_portal_home")
-
 		# by hooks
 		if not home_page:
 			home_page = get_home_page_via_hooks()
@@ -142,8 +135,6 @@ def get_home_page():
 		home_page = home_page.strip("/")
 		if home_page == "me" and frappe.session.data.user_type == "System User":
 			home_page = "desk"
-		if home_page == "me" and is_portal_user():
-			home_page = "portal"
 
 		default_workspace = frappe.get_user().load_user_default_workspace()
 		if default_workspace:
@@ -429,7 +420,6 @@ def clear_cache(path=None):
 		frappe.clear_cache("Guest")
 		delete_page_cache()
 		keys += [
-			"portal_menu_items",
 			"home_page",
 			"website_route_rules",
 			"doctypes_with_web_view",
@@ -463,8 +453,6 @@ def get_frontmatter(string):
 
 
 def get_sidebar_items(parent_sidebar, basepath=None):
-	import frappe.www.list
-
 	sidebar_items = []
 
 	hooks = frappe.get_hooks("look_for_sidebar_json")
@@ -480,43 +468,6 @@ def get_sidebar_items(parent_sidebar, basepath=None):
 			fields=["title", "route", "`group`"],
 			order_by="idx asc",
 		)
-
-	if not sidebar_items:
-		sidebar_items = get_portal_sidebar_items()
-
-	return sidebar_items
-
-
-def get_portal_sidebar_items():
-	sidebar_items = frappe.cache.hget("portal_menu_items", frappe.session.user)
-	if sidebar_items is None:
-		sidebar_items = []
-		roles = frappe.get_roles()
-		portal_settings = frappe.get_doc("Portal Settings", "Portal Settings")
-
-		disabled_doctypes = get_disabled_doctypes()
-
-		def add_items(sidebar_items, items):
-			for d in items:
-				if d.get("reference_doctype") in disabled_doctypes:
-					continue
-
-				if d.get("enabled") and ((not d.get("role")) or d.get("role") in roles):
-					sidebar_items.append(d.as_dict() if isinstance(d, Document) else d)
-
-		if not portal_settings.hide_standard_menu:
-			add_items(sidebar_items, portal_settings.get("menu"))
-
-		if portal_settings.custom_menu:
-			add_items(sidebar_items, portal_settings.get("custom_menu"))
-
-		items_via_hooks = frappe.get_hooks("portal_menu_items")
-		if items_via_hooks:
-			for i in items_via_hooks:
-				i["enabled"] = 1
-			add_items(sidebar_items, items_via_hooks)
-
-		frappe.cache.hset("portal_menu_items", frappe.session.user, sidebar_items)
 
 	return sidebar_items
 

@@ -1410,11 +1410,6 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 	user.flags.ignore_password_policy = True
 	user.insert()
 
-	# set default signup role as per Portal Settings
-	default_role = frappe.get_single_value("Portal Settings", "default_role")
-	if default_role:
-		user.add_roles(default_role)
-
 	if redirect_to:
 		frappe.cache.hset("redirect_after_login", user.name, sanitize_redirect(redirect_to))
 
