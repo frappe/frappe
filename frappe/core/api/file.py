@@ -35,7 +35,7 @@ def get_attached_images(doctype: str, names: list[str] | str) -> frappe._dict:
 	return out
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> dict:
 	attachment_folder = frappe.db.get_value(
 		"File",
@@ -58,7 +58,7 @@ def get_files_in_folder(folder: str, start: int = 0, page_length: int = 20) -> d
 	return {"files": files[:page_length], "has_more": len(files) > page_length}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_files_by_search_text(text: str) -> list[dict]:
 	if not text:
 		return []

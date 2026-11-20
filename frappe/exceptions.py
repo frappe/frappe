@@ -42,6 +42,10 @@ class PermissionError(Exception):
 	http_status_code = 403
 
 
+class WebsiteUserNotAllowedError(PermissionError):
+	pass
+
+
 class DoesNotExistError(ValidationError):
 	http_status_code = 404
 

@@ -12,7 +12,7 @@ from frappe.website.path_resolver import resolve_path
 no_cache = 1
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_list_data(
 	doctype: str,
 	txt: str | None = None,

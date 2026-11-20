@@ -14,6 +14,7 @@ from filetype import guess_mime
 from werkzeug.test import TestResponse
 
 import frappe
+from frappe.desk.search import search_link
 from frappe.installer import update_site_config
 from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase
@@ -654,6 +655,41 @@ class TestMethodAPI(FrappeAPITestCase):
 		self.assertEqual(response.json["message"], test_data)
 
 
+class TestWebsiteUserAccess(IntegrationTestCase):
+	def test_website_user_denied_by_default(self):
+		with self.set_user(get_test_user("Website User")):
+			self.assertRaises(frappe.WebsiteUserNotAllowedError, frappe.is_whitelisted, desk_only_method)
+
+	def test_website_user_allowed_when_opted_in(self):
+		for method in (website_user_method, test_array):
+			with self.subTest(method=method.__name__), self.set_user(get_test_user("Website User")):
+				frappe.is_whitelisted(method)
+
+	def test_website_user_can_search_user_links(self):
+		user = get_test_user("Website User")
+		with self.set_user(user):
+			results = search_link("User", "api-")
+
+		self.assertEqual([result["value"] for result in results], [user])
+
+	def test_other_user_types_unaffected(self):
+		for user_type in ("System User", "_Test Custom User Type"):
+			with self.subTest(user_type=user_type), self.set_user(get_test_user(user_type)):
+				frappe.is_whitelisted(desk_only_method)
+
+	def test_guest_unaffected(self):
+		with self.set_user("Guest"):
+			frappe.is_whitelisted(test_array)
+
+			for method in (desk_only_method, website_user_method):
+				with (
+					self.subTest(method=method.__name__),
+					self.assertRaises(frappe.PermissionError) as context,
+				):
+					frappe.is_whitelisted(method)
+				self.assertNotIsInstance(context.exception, frappe.WebsiteUserNotAllowedError)
+
+
 class TestQueryMethod(FrappeAPITestCase):
 	"""QUERY (RFC 10008) is a safe method with a request body: parsed like POST,
 	but DB transactions are rolled back like GET."""
@@ -959,3 +995,23 @@ def test_array(data: typing.Any):
 @whitelist_for_tests()
 def create_todo_for_testing(description: str):
 	return frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
+
+
+@whitelist_for_tests()
+def desk_only_method():
+	pass
+
+
+@whitelist_for_tests(allow_website_user=True)
+def website_user_method():
+	pass
+
+
+def get_test_user(user_type: str) -> str:
+	email = f"api-{frappe.scrub(user_type)}@example.com"
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(
+			{"doctype": "User", "email": email, "first_name": user_type, "send_welcome_email": 0}
+		).insert()
+	frappe.db.set_value("User", email, "user_type", user_type)
+	return email

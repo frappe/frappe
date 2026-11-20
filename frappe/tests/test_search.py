@@ -1404,7 +1404,7 @@ def query_by_title(
 	return frappe.get_list(doctype, filters={"title": ("like", f"%{txt}%")}, as_list=True)
 
 
-@whitelist_for_tests()
+@whitelist_for_tests(allow_website_user=True)
 @frappe.validate_and_sanitize_search_inputs
 def paginated_query(
 	doctype: str,
@@ -1523,7 +1523,7 @@ def teardown_test_link_field_order(TestCase):
 	TestCase.tree_doc.delete()
 
 
-@whitelist_for_tests()
+@whitelist_for_tests(allow_website_user=True)
 @frappe.validate_and_sanitize_search_inputs
 def category_query(
 	doctype: str,

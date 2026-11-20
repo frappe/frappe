@@ -69,7 +69,7 @@ def encode_params(params):
 	return urlencode(params, quote_via=quote)
 
 
-@frappe.whitelist(methods=["POST"])
+@frappe.whitelist(methods=["POST"], allow_website_user=True)
 def approve(*args, **kwargs):
 	r = frappe.request
 

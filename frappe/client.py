@@ -22,7 +22,7 @@ Requests via FrappeClient are also handled here.
 """
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_list(
 	doctype: str,
 	fields: str | list[str | dict[str, Any]] | None = None,
@@ -74,7 +74,7 @@ def get_list(
 	return _list
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_count(
 	doctype: str,
 	filters: str | list | dict[str, Any] | None = None,
@@ -90,7 +90,7 @@ def get_count(
 	return get_count()
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get(
 	doctype: str,
 	name: str | int | None = None,
@@ -113,7 +113,7 @@ def get(
 	return doc.as_dict(no_nulls=True)
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_value(
 	doctype: str,
 	fieldname: str | list[str] | dict[str, Any],
@@ -168,12 +168,12 @@ def get_value(
 	return value[0] if len(fields) > 1 else value[0][0]
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_single_value(doctype: str, field: str):
 	return frappe.read_doc(doctype).get(field)
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@frappe.whitelist(methods=["POST", "PUT"], allow_website_user=True)
 def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], value: Any | None = None):
 	"""Set a value using get_doc, group of values
 
@@ -219,7 +219,7 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@frappe.whitelist(methods=["POST", "PUT"], allow_website_user=True)
 def insert(doc: str | dict[str, Any] | None = None):
 	"""Insert a document
 
@@ -229,7 +229,7 @@ def insert(doc: str | dict[str, Any] | None = None):
 	return insert_doc(doc).copy_with_fieldlevel_read_permissions().as_dict()
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@frappe.whitelist(methods=["POST", "PUT"], allow_website_user=True)
 def insert_many(docs: str | list[dict[str, Any]] | None = None):
 	"""Insert multiple documents
 
@@ -242,7 +242,7 @@ def insert_many(docs: str | list[dict[str, Any]] | None = None):
 	return [insert_doc(doc).name for doc in docs]
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@frappe.whitelist(methods=["POST", "PUT"], allow_website_user=True)
 def save(doc: str | dict[str, Any]):
 	"""Update (save) an existing document
 
@@ -255,7 +255,7 @@ def save(doc: str | dict[str, Any]):
 	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@frappe.whitelist(methods=["POST", "PUT"], allow_website_user=True)
 def rename_doc(doctype: str, old_name: str | int, new_name: str | int, merge: bool = False):
 	"""Rename document
 
@@ -266,7 +266,7 @@ def rename_doc(doctype: str, old_name: str | int, new_name: str | int, merge: bo
 	return new_name
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@frappe.whitelist(methods=["POST", "PUT"], allow_website_user=True)
 def submit(doc: str | dict[str, Any]):
 	"""Submit a document
 
@@ -279,7 +279,7 @@ def submit(doc: str | dict[str, Any]):
 	return doc.copy_with_fieldlevel_read_permissions().as_dict()
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@frappe.whitelist(methods=["POST", "PUT"], allow_website_user=True)
 def cancel(doctype: str, name: str | int):
 	"""Cancel a document
 
@@ -291,7 +291,7 @@ def cancel(doctype: str, name: str | int):
 	return wrapper.copy_with_fieldlevel_read_permissions().as_dict()
 
 
-@frappe.whitelist(methods=["DELETE", "POST"])
+@frappe.whitelist(methods=["DELETE", "POST"], allow_website_user=True)
 def delete(doctype: str, name: str | int):
 	"""Delete a remote document
 
@@ -300,7 +300,7 @@ def delete(doctype: str, name: str | int):
 	delete_doc(doctype, name)
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@frappe.whitelist(methods=["POST", "PUT"], allow_website_user=True)
 def bulk_update(docs: str | list):
 	"""Bulk update documents
 
@@ -319,7 +319,7 @@ def bulk_update(docs: str | list):
 	return {"failed_docs": failed_docs}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def has_permission(doctype: str, docname: str | int, perm_type: str = "read"):
 	"""Return a JSON with data whether the document has the requested permission.
 
@@ -330,7 +330,7 @@ def has_permission(doctype: str, docname: str | int, perm_type: str = "read"):
 	return {"has_permission": frappe.has_permission(doctype, perm_type.lower(), docname)}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_doc_permissions(doctype: str, docname: str | int):
 	"""Return an evaluated document permissions dict like `{"read":1, "write":1}`.
 
@@ -373,7 +373,7 @@ def get_time_zone():
 	return {"time_zone": frappe.defaults.get_defaults().get("time_zone")}
 
 
-@frappe.whitelist(methods=["POST", "PUT"])
+@frappe.whitelist(methods=["POST", "PUT"], allow_website_user=True)
 def attach_file(
 	filename: str | None = None,
 	filedata: str | None = None,
@@ -418,7 +418,7 @@ def attach_file(
 	return file
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 @http_cache(max_age=10 * 60)
 def is_document_amended(doctype: str, docname: str | int):
 	if frappe.permissions.has_permission(doctype):
@@ -430,7 +430,7 @@ def is_document_amended(doctype: str, docname: str | int):
 	return False
 
 
-@frappe.whitelist(methods=["GET", "POST"])
+@frappe.whitelist(methods=["GET", "POST"], allow_website_user=True)
 def validate_link_and_fetch(
 	doctype: str,
 	docname: str | int,

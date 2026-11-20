@@ -37,7 +37,7 @@ class GoogleSettings(Document):
 				)
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_file_picker_settings():
 	"""Return all the data FileUploader needs to start the Google Drive Picker."""
 	google_settings = frappe.get_cached_doc("Google Settings")

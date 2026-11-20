@@ -258,6 +258,7 @@ def _method_document(path: str, fn: Callable) -> dict[str, Any]:
 			"name": fn.__name__,
 			"http_methods": frappe.allowed_http_methods_for_whitelisted_func.get(fn, []),
 			"allow_guest": fn in frappe.guest_methods,
+			"allow_website_user": fn in frappe.website_user_methods,
 			"params": _method_params(fn),
 			"endpoint": f"/api/v2/method/{path}",
 			"docstring": inspect.getdoc(fn),

@@ -54,7 +54,7 @@ def get_first_login(client):
 	return login_date
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def delete_client(client_id: str):
 	active_client_id_tokens = frappe.get_all(
 		"OAuth Bearer Token", filters=[["user", "=", frappe.session.user], ["client", "=", client_id]]
