@@ -566,6 +566,7 @@ def get_request_header(key, default=None):
 whitelisted: set[Callable] = set()
 guest_methods: set[Callable] = set()
 xss_safe_methods: set[Callable] = set()
+website_user_methods: set[Callable] = set()
 allowed_http_methods_for_whitelisted_func: dict[Callable, tuple[str, ...]] = {}
 
 
@@ -579,12 +580,14 @@ def _in_request_or_test():
 	return getattr(local, "request", None) or in_test
 
 
-def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None):
+def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None, allow_website_user=False):
 	"""
 	Decorator for whitelisting a function and making it accessible via HTTP.
 	Standard request will be `/api/method/[path.to.method]`
 
 	:param allow_guest: Allow non logged-in user to access this method.
+	:param allow_website_user: Allow Website Users (portal users) to access this method.
+	                           Implied by `allow_guest`.
 	:param methods: Allowed http method to access the method.
 	:param force_types: Method should have type annotations. If unset, defaults to hooks
 						specification.
@@ -609,7 +612,8 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	def innerfn(fn):
 		from frappe.utils.typing_validations import validate_argument_types
 
-		global whitelisted, guest_methods, xss_safe_methods, allowed_http_methods_for_whitelisted_func
+		global whitelisted, guest_methods, xss_safe_methods, website_user_methods
+		global allowed_http_methods_for_whitelisted_func
 
 		# validate argument types if request is present or in test context
 		fn = validate_argument_types(fn, apply_condition=_in_request_or_test, force_types=force_types)
@@ -623,6 +627,9 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 			if xss_safe:
 				xss_safe_methods.add(fn)
 
+		if allow_guest or allow_website_user:
+			website_user_methods.add(fn)
+
 		return fn
 
 	return innerfn
@@ -630,6 +637,7 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 
 def is_whitelisted(method):
 	from frappe.utils import sanitize_html_payload
+	from frappe.utils.user import is_website_user
 
 	app_name = (method.__module__ or "").split(".", 1)[0]
 	from frappe.apps import get_disabled_apps
@@ -646,6 +654,14 @@ def is_whitelisted(method):
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<p>{summary}</p><div>{detail}</div>"
 		throw(msg, PermissionError, title=_("Method Not Allowed"))
+
+	if method not in website_user_methods and is_website_user():
+		method_path = bold(f"{method.__module__}.{method.__name__}")
+		throw(
+			_("Function {0} is not available to Website Users.").format(method_path),
+			WebsiteUserNotAllowedError,
+			title=_("Method Not Allowed"),
+		)
 
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict
