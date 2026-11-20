@@ -204,7 +204,7 @@ class TestTrialRun(AutomationRunnerTestCase):
 
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request") as request,
+			patch("requests.Session.request") as request,
 		):
 			result = trial_run(auto, todo.name)
 			request.assert_not_called()

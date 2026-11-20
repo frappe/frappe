@@ -531,13 +531,18 @@ def _guard_url(url: str):
 
 def _send_guarded_request(method, url, headers, payload, timeout):
 	"""Follow redirects by hand so every hop is guarded; requests would only check the first."""
-	import requests
+	from requests.adapters import Retry
+
+	from frappe.utils.safe_exec import get_safe_request_session
 
 	body = frappe.as_json(payload) if payload else None
 	headers = {"Content-Type": "application/json", **(headers or {})} if body else dict(headers or {})
+	session = get_safe_request_session()
+	for adapter in session.adapters.values():
+		adapter.max_retries = Retry(total=0, read=False)
 	for _hop in range(MAX_REDIRECTS + 1):
 		_guard_url(url)
-		response = requests.request(
+		response = session.request(
 			method=method, url=url, data=body, headers=headers, timeout=timeout, allow_redirects=False
 		)
 		location = response.headers.get("Location") if response.is_redirect else None
