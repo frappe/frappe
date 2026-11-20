@@ -48,8 +48,6 @@ ARGUMENT_NOT_SET = object()
 SAFE_EXEC_CONFIG_KEY = "server_script_enabled"
 SERVER_SCRIPT_FILE_PREFIX = "<serverscript>"
 
-RENDER_EXEC_CONFIG_KEY = "disable_render_safe_exec"
-
 
 class NamespaceDict(frappe._dict):
 	"""Raise AttributeError if function not found in namespace"""
@@ -99,10 +97,6 @@ class FrappePrintCollector(PrintCollector):
 def is_safe_exec_enabled() -> bool:
 	# server scripts can only be enabled via common_site_config.json
 	return bool(frappe.get_common_site_config(cached=True).get(SAFE_EXEC_CONFIG_KEY))
-
-
-def is_render_exec_enabled() -> bool:
-	return not bool(frappe.get_common_site_config(cached=True).get(RENDER_EXEC_CONFIG_KEY, 0))
 
 
 def safe_exec(

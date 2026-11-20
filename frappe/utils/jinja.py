@@ -8,10 +8,10 @@ from frappe.utils.caching import site_cache
 
 def get_jenv(*, restrict_globals=None):
 	import frappe
-	from frappe.utils.safe_exec import get_safe_globals, is_render_exec_enabled, render_safe_globals
+	from frappe.utils.safe_exec import get_safe_globals, render_safe_globals
 
 	if restrict_globals is None:
-		restrict_globals = is_render_exec_enabled()
+		restrict_globals = True
 
 	local_key = "jenv_restricted" if restrict_globals else "jenv_unrestricted"
 	if jenv := getattr(frappe.local, local_key, None):
