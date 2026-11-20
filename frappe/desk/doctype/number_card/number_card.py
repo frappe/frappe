@@ -4,6 +4,8 @@
 from datetime import date, datetime
 from typing import Any
 
+from pypika.terms import PseudoColumn
+
 import frappe
 from frappe import _
 from frappe.boot import get_allowed_report_names
@@ -89,9 +91,11 @@ def get_permission_query_conditions(user=None):
 	if "System Manager" in frappe.get_roles():
 		return
 
-	allowed_reports = get_allowed_report_names()
-	allowed_doctypes = get_doctypes_with_read()
-	allowed_modules = [module.get("module_name") for module in get_modules_from_all_apps_for_user()]
+	allowed_reports = escape_values(get_allowed_report_names())
+	allowed_doctypes = escape_values(get_doctypes_with_read())
+	allowed_modules = escape_values(
+		module.get("module_name") for module in get_modules_from_all_apps_for_user()
+	)
 
 	nc = frappe.qb.DocType("Number Card")
 	conditions = (
@@ -101,6 +105,15 @@ def get_permission_query_conditions(user=None):
 	) & (nc.module.isin(allowed_modules) | nc.module.isnull() | nc.module == "")
 
 	return conditions.get_sql(quote_char="`")
+
+
+def escape_values(values) -> list[PseudoColumn]:
+	"""Inline values as driver-escaped literals.
+
+	The condition is rendered to a SQL string, and pypika only doubles quotes, which a
+	backslash breaks out of on MariaDB.
+	"""
+	return [PseudoColumn(frappe.db.escape(value, percent=False)) for value in values]
 
 
 def has_permission(doc, ptype, user):
