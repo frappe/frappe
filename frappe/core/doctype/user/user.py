@@ -1538,10 +1538,10 @@ def user_query(doctype: str, txt: str, searchfield: str, start: int, page_len: i
 	return frappe.get_list(
 		doctype,
 		filters=list_filters,
-		fields=["name", "full_name", "email"],
+		fields=["name", "full_name"],
 		limit_start=start,
 		limit_page_length=page_len,
-		order_by="full_name asc",
+		order_by="name asc",
 		or_filters=or_filters,
 		as_list=True,
 	)
