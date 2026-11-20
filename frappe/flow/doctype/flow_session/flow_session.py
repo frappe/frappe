@@ -25,6 +25,7 @@ from frappe.flow.lib.session import (
 	flow_server,
 	is_guest_chat,
 	sync_with_retry,
+	throw_server_error,
 )
 from frappe.model.document import Document
 from frappe.utils.password import get_decrypted_password
@@ -82,7 +83,7 @@ class FlowSession(Document):
 		try:
 			_delete_server_session(self.name)
 		except DaemonError as exc:
-			frappe.throw(str(exc), title=_("Flow Server"))
+			throw_server_error(exc)
 		_delete_runs([self.name])
 		_purge_attachment_chunks(self.name)
 
@@ -261,7 +262,7 @@ class FlowSession(Document):
 			cleanup_indexed_files(self.name, turn.indexed_files)
 			if exc.status == 404:
 				frappe.throw(_(READ_ONLY), title=_("Flow Server"))
-			frappe.throw(str(exc), title=_("Flow Server"))
+			throw_server_error(exc)
 		if reply.get("status") == "steered":
 			run = self._active_run()
 			if on_complete and not run.on_complete:  # a run keeps the first on_complete it is given
@@ -408,7 +409,7 @@ class FlowSession(Document):
 					rows = client.entries(self.name, since=self.last_synced_seq, path="all")["entries"]
 		except DaemonError as exc:
 			if exc.status != 404:
-				frappe.throw(str(exc), title=_("Flow Server"))
+				throw_server_error(exc)
 			fail_running(self.name, GONE)
 			return
 		if rows:

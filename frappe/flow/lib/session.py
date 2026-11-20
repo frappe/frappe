@@ -8,11 +8,11 @@ from __future__ import annotations
 import json
 from collections.abc import Generator
 from contextlib import contextmanager
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import frappe
 from frappe import _
-from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.daemon.client import DaemonClient, DaemonDown, DaemonError
 
 if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_agent.flow_agent import FlowAgent
@@ -43,6 +43,12 @@ GONE = "Run abandoned: the flow server no longer has this session."
 READ_ONLY = "This session's flow server copy is missing, so it is available as read-only history."
 USAGE_KEYS = ("input_tokens", "output_tokens", "cache_read_tokens", "cache_write_tokens", "cost")
 PENDING_KEYS = ("id", "name", "args", "prompt")
+
+
+class FlowServerDown(frappe.ValidationError):
+	"""The flow server is restarting and saw nothing of the call, so the caller can send it again."""
+
+	http_status_code = 503
 
 
 def new_session(
@@ -127,7 +133,12 @@ def flow_server() -> Generator[DaemonClient]:
 		with DaemonClient.for_site() as client:
 			yield client
 	except DaemonError as exc:
-		frappe.throw(str(exc), title=_("Flow Server"))
+		throw_server_error(exc)
+
+
+def throw_server_error(exc: DaemonError) -> NoReturn:
+	kind = FlowServerDown if isinstance(exc, DaemonDown) else frappe.ValidationError
+	frappe.throw(str(exc), exc=kind, title=_("Flow Server"))
 
 
 class LogRecorder:
