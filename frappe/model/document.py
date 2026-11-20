@@ -1803,7 +1803,7 @@ class Document(_DocumentBase):
 						frappe.DocstatusTransitionError,
 					)
 				self._action = "submit"
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif to_docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
@@ -1814,10 +1814,10 @@ class Document(_DocumentBase):
 		elif from_docstatus == DocStatus.SUBMITTED:
 			if to_docstatus.is_submitted():
 				self._action = "update_after_submit"
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif to_docstatus.is_cancelled():
 				self._action = "cancel"
-				self.check_permission("cancel")
+				self._check_transition_permission("cancel")
 			elif to_docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)")
@@ -1827,6 +1827,11 @@ class Document(_DocumentBase):
 
 		elif from_docstatus == DocStatus.CANCELLED:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
+
+	def _check_transition_permission(self, permtype):
+		self.check_permission(permtype)
+		if (doc_before_save := self.get_doc_before_save()) and not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, permtype, doc_before_save, throw=True)
 
 	def set_parent_in_children(self):
 		"""Updates `parent` and `parenttype` property in all children."""
@@ -2188,6 +2193,8 @@ class Document(_DocumentBase):
 	@frappe.whitelist()
 	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
+		if not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		return self._rename(name=name, merge=merge, force=force)
 
 	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):
