@@ -77,7 +77,6 @@ dependencies = [
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.0.4",
     "typing_extensions>=4.6.1,<5",
-    "tomli~=2.0.1",
     "xlrd~=2.0.1",
     "zxcvbn~=4.4.28",
     "markdownify~=0.14.1",
@@ -114,7 +113,7 @@ freezegun = "~=1.2.2"
 
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
