@@ -235,83 +235,156 @@ body.desktop-page .desktop-icon:hover .icon-container {
   transform: scale(1.05);
   transition: transform 0.1s;
 }
-/* An app's `module_icons` fan out from behind its own icon. Odd ones lean left, even ones right,
-   and the third and fourth sit a step further out. Hovering the tile opens the fan; hovering one
-   card straightens it and brings it in front of the app's icon.
-   The link only takes the fan's pose and the card inside it does the lift, so the hover target
-   stays put under the pointer while the card moves. */
-body.desktop-page .module-icons {
-  position: absolute;
-  top: 13px;
-  left: calc(50% - var(--desktop-icon-dimension) / 2);
-  width: var(--desktop-icon-dimension);
-  height: var(--desktop-icon-dimension);
+body.desktop-page button.icon-link,
+body.desktop-page button.icon-title {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
 }
-body.desktop-page .module-icon {
-  --side: -1;
-  --step: 1;
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: 16px;
-  transform-origin: bottom center;
-  transform: translateX(calc(var(--side) * var(--step) * 16px))
-    rotate(calc(var(--side) * var(--step) * 10deg)) scale(0.84);
-  transition: transform 0.3s cubic-bezier(0.34, 1.36, 0.64, 1);
+body.desktop-page .icon-container.module-folder-face {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-content: start;
+  gap: calc(var(--desktop-icon-dimension) * 0.074);
+  padding: calc(var(--desktop-icon-dimension) * 0.13);
+  background-color: var(--surface-gray-3);
 }
-body.desktop-page .module-icon-card {
+body.desktop-page .module-folder-mini,
+body.desktop-page .module-folder-mini img {
   display: block;
   width: 100%;
-  height: 100%;
-  border-radius: 16px;
-  box-shadow: var(--shadow-md);
-  transform-origin: bottom center;
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  height: auto;
+  aspect-ratio: 1;
 }
-body.desktop-page .module-icon:nth-child(even) {
-  --side: 1;
-}
-body.desktop-page .module-icon:nth-child(n + 3) {
-  --step: 2;
-}
-body.desktop-page .module-icon img,
-body.desktop-page .module-icon svg {
+body.desktop-page .module-folder-mini .icon-container,
+body.desktop-page .module-folder-logo .icon-container {
   width: 100%;
   height: 100%;
-  border-radius: 16px;
+  padding: 18%;
+  border-radius: 28%;
 }
-body.desktop-page .has-module-icons:hover .module-icon,
-body.desktop-page .has-module-icons:focus-within .module-icon {
-  transform: translateX(calc(var(--side) * var(--step) * 36px))
-    rotate(calc(var(--side) * var(--step) * 16deg)) scale(0.9);
+body.desktop-page .module-folder-mini .icon-container svg,
+body.desktop-page .module-folder-logo .icon-container svg {
+  width: 100%;
+  height: 100%;
 }
-body.desktop-page .has-module-icons .module-icon:hover,
-body.desktop-page .has-module-icons .module-icon:focus-visible {
-  z-index: 3;
+body.desktop-page .has-module-icons.is-open .module-folder-face,
+body.desktop-page .has-module-icons.is-flying .module-folder-face {
+  visibility: hidden;
 }
-body.desktop-page .module-icon:hover .module-icon-card,
-body.desktop-page .module-icon:focus-visible .module-icon-card {
-  transform: translateY(-8px) rotate(calc(var(--side) * var(--step) * -12deg)) scale(1.11);
-}
-body.desktop-page .has-module-icons .icon-subtitle {
-  transition: opacity 0.15s;
-}
-body.desktop-page .has-module-icons:hover .icon-subtitle,
-body.desktop-page .has-module-icons:focus-within .icon-subtitle {
+body.desktop-page .module-folder-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 10;
+  transform: translate(
+    calc(-50% + var(--folder-shift-x, 0px)),
+    calc(-50% + var(--folder-shift-y, 0px))
+  );
   opacity: 0;
+  pointer-events: none;
 }
-body.desktop-page .has-module-icons .icon-container {
+body.desktop-page .is-open .module-folder-card,
+body.desktop-page .is-flying .module-folder-card {
+  opacity: 1;
+}
+body.desktop-page .is-open .module-folder-card {
+  pointer-events: auto;
+}
+body.desktop-page .module-folder-shadow,
+body.desktop-page .module-folder-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+}
+body.desktop-page .module-folder-shadow {
+  box-shadow: var(--shadow-xl);
+  transform-origin: 0 0;
+}
+body.desktop-page .module-folder-bg {
+  border: 1px solid var(--outline-gray-1);
+  background-color: var(--surface-gray-3);
+}
+body.desktop-page .module-folder-body {
   position: relative;
-  z-index: 2;
+  padding: 8px;
+}
+body.desktop-page .module-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 92px);
+}
+body.desktop-page .module-folder-card.is-wide .module-folder-grid {
+  grid-template-columns: repeat(3, 92px);
+}
+body.desktop-page .module-folder-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px 6px;
+  border-radius: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.15s;
+}
+body.desktop-page .has-module-icons.is-hover-ready:not(.is-flying) .module-folder-app:hover,
+body.desktop-page .module-folder-app:focus-visible {
+  background-color: var(--surface-gray-4);
+  text-decoration: none;
+}
+body.desktop-page .module-folder-logo {
+  display: block;
+  width: 44px;
+  height: 44px;
+  transform-origin: 0 0;
+}
+body.desktop-page .module-folder-logo img {
+  display: block;
+  width: 44px;
+  height: 44px;
+  transition: transform 0.1s;
+}
+@media (hover: hover) and (pointer: fine) {
+  body.desktop-page .has-module-icons.is-hover-ready:not(.is-flying) .module-folder-app:hover .module-folder-logo img {
+    transform: scale(1.05);
+  }
+}
+body.desktop-page .module-folder-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1.35;
+  color: var(--ink-gray-6);
+}
+[data-theme="dark"] body.desktop-page .icon-container.module-folder-face,
+[data-theme="dark"] body.desktop-page .module-folder-bg {
+  background-color: var(--surface-gray-2);
+}
+[data-theme="dark"] body.desktop-page .has-module-icons.is-hover-ready:not(.is-flying) .module-folder-app:hover,
+[data-theme="dark"] body.desktop-page .module-folder-app:focus-visible {
+  background-color: var(--surface-gray-3);
+}
+body.desktop-page .module-folder-mini > *,
+body.desktop-page .module-folder-logo > * {
+  border-radius: 28%;
+}
+body.desktop-page .module-folder-mini > * {
+  box-shadow: var(--shadow-sm);
+}
+body.desktop-page .module-folder-logo > * {
   box-shadow: var(--shadow-md);
 }
-body.desktop-page .has-module-icons:has(.module-icon:hover, .module-icon:focus-visible) .icon-container {
-  transform: scale(0.92);
-}
 @media (prefers-reduced-motion: reduce) {
-  body.desktop-page .module-icon,
-  body.desktop-page .module-icon-card {
-    transition: none;
+  body.desktop-page .icon-container:hover,
+  body.desktop-page .desktop-icon:hover .icon-container,
+  body.desktop-page .has-module-icons.is-hover-ready:not(.is-flying) .module-folder-app:hover .module-folder-logo img {
+    transform: none;
   }
 }
 body.desktop-page a.icon-subtitle:hover {
