@@ -431,7 +431,7 @@ function show_email_oauth_result(code, mailbox, provider) {
 					"How to turn it on"
 				)}</a>`,
 			smtp_disabled_personal: __(
-				"Microsoft doesn't let this mailbox send email from other apps. To send, connect a work or school Microsoft 365 account."
+				"Microsoft doesn't let this mailbox send email from other apps. To send, connect a work Microsoft 365 account."
 			),
 			imap_disabled: __(
 				"IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin."
