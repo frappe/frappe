@@ -220,12 +220,18 @@ class User(Document):
 	def autoname(self):
 		if self.get("is_admin") or self.get("is_guest"):
 			self.name = self.first_name
-		elif frappe.in_test and not self.flags.random_id:
-			# most tests address users by email, like users created before v17
+		elif frappe.in_test and self._email_as_id_in_test():
 			self.email = self.email.strip().lower()
 			self.name = self.email
 		elif self.meta.autoname != "hash":
 			self.name = make_autoname("hash", self.doctype)
+
+	def _email_as_id_in_test(self) -> bool:
+		if self.flags.email_as_id:
+			return True
+		if self.flags.random_id:
+			return False
+		return not random_user_ids_in_tests()
 
 	def onload(self):
 		from frappe.utils.modules import get_blockable_module_names
@@ -1116,6 +1122,15 @@ class User(Document):
 
 
 @frappe.whitelist()
+def random_user_ids_in_tests() -> bool:
+	"""Whether tests give new users random IDs, like a site does: only when every installed app
+	sets `random_user_ids_in_tests` in hooks. Otherwise their ID is their email, like users created
+	before v17."""
+	return all(
+		any(frappe.get_hooks("random_user_ids_in_tests", app_name=app)) for app in frappe.get_installed_apps()
+	)
+
+
 def get_timezones():
 	return {"timezones": _get_timezones()}
 

@@ -1168,6 +1168,31 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			admin.email = "_test_changed_admin@example.com"
 			self.assertRaises(frappe.PermissionError, admin.run_method, "validate")
 
+	def test_random_user_ids_in_tests_needs_every_installed_app(self):
+		from frappe.core.doctype.user.user import random_user_ids_in_tests
+
+		apps = ["frappe", "_test_app"]
+		with patch("frappe.get_installed_apps", return_value=apps):
+			with patch("frappe.get_hooks", side_effect=lambda hook, app_name: [True]):
+				self.assertTrue(random_user_ids_in_tests())
+			with patch(
+				"frappe.get_hooks", side_effect=lambda hook, app_name: [True] if app_name == "frappe" else []
+			):
+				self.assertFalse(random_user_ids_in_tests())
+
+	def test_test_user_id_follows_random_user_ids_in_tests(self):
+		with patch("frappe.core.doctype.user.user.random_user_ids_in_tests", return_value=True):
+			with test_user(roles=[]) as user:
+				self.assertNotEqual(user.name, user.email)
+			with test_user(roles=[], email_as_id=True) as user:
+				self.assertEqual(user.name, user.email)
+
+		with patch("frappe.core.doctype.user.user.random_user_ids_in_tests", return_value=False):
+			with test_user(roles=[]) as user:
+				self.assertEqual(user.name, user.email)
+			with test_user(roles=[], generated_id=True) as user:
+				self.assertNotEqual(user.name, user.email)
+
 	def test_changing_the_email_invalidates_a_sent_reset_link(self):
 		with test_user(roles=[], generated_id=True) as user:
 			user.db_set("reset_password_key", "_test_reset_key")
@@ -1232,13 +1257,15 @@ def test_user(
 	roles: list[str],
 	commit=False,
 	generated_id=False,
+	email_as_id=False,
 	**kwargs,
 ):
 	"""Create a user for the duration of the test.
 
-	The user's ID is their email, like users created before v17; `generated_id` gives them a
-	random ID, like new users get.
+	The user's ID follows `random_user_ids_in_tests`. `generated_id` gives them a random ID, like new
+	users get; `email_as_id` makes their email the ID, for tests about users created before v17.
 	"""
+	assert not (generated_id and email_as_id), "pass only one of `generated_id` and `email_as_id`"
 	try:
 		first_name = first_name or frappe.generate_hash()
 		email = email or (first_name + "@example.com")
@@ -1251,6 +1278,7 @@ def test_user(
 		)
 		user.append_roles(*roles)
 		user.flags.random_id = generated_id
+		user.flags.email_as_id = email_as_id
 		user.insert()
 		yield user
 		commit and frappe.db.commit()
