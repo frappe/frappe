@@ -1168,6 +1168,15 @@ class TestUserEmailHelpers(IntegrationTestCase):
 			admin.email = "_test_changed_admin@example.com"
 			self.assertRaises(frappe.PermissionError, admin.run_method, "validate")
 
+	def test_changing_the_email_invalidates_a_sent_reset_link(self):
+		with test_user(roles=[], generated_id=True) as user:
+			user.db_set("reset_password_key", "_test_reset_key")
+			user.reload()
+			user.email = "_test_changed_email@example.com"
+			user.save()
+
+			self.assertFalse(frappe.db.get_value("User", user.name, "reset_password_key"))
+
 	def test_email_cant_be_another_users_id(self):
 		with (
 			test_user(roles=[], email="_test_old_id@example.com") as old,

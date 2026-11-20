@@ -785,6 +785,7 @@ class User(Document):
 			return
 
 		self.validate_email_change_allowed()
+		self.reset_password_key = ""
 		if self.name in STANDARD_USERS:
 			return
 
