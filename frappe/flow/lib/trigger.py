@@ -107,6 +107,7 @@ class Trigger:
 					"is_system_generated": 1,
 				}
 			)
+		run_as = self.run_as or "Administrator"
 		doc.update(
 			{
 				"agent": self.agent,
@@ -116,8 +117,7 @@ class Trigger:
 				"cron_expression": self.cron,
 				"condition": self.condition,
 				"prompt_template": self.prompt,
-				"run_as": (self.run_as and (get_user_by_email(self.run_as) or self.run_as))
-				or "Administrator",
+				"run_as": get_user_by_email(run_as) or run_as,
 			}
 		)
 		doc.save(ignore_permissions=True)
