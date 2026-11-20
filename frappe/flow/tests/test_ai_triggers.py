@@ -346,7 +346,6 @@ class TestFire(IntegrationTestCase):
 		shown.personal_trigger = 1
 		self.assertRaises(frappe.CannotChangeConstantError, shown.save)
 
-		# the patch marks what a Flow User's own trigger started before the field existed
 		frappe.db.set_value("Flow Session", {"owner": ("in", (member, manager))}, "personal_trigger", 0)
 		execute()
 		check()
@@ -357,7 +356,7 @@ class TestFire(IntegrationTestCase):
 			frappe.db.set_value("Flow Run", name, "status", "Completed")
 			added = LogRecorder(session)._find_or_create_run()
 			self.assertEqual(frappe.has_permission("Flow Run", "read", added, user=viewer), seen)
-		# a manager's trigger taking a deleted one's name opens nothing
+
 		for trigger in triggers:
 			trigger.delete()
 		frappe.get_doc(_trigger(self.agent.name, title=triggers[0].name)).insert()
