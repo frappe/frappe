@@ -456,6 +456,15 @@ class TestShippedTriggers(IntegrationTestCase):
 
 		return patch("frappe.get_hooks", side_effect=hooks)
 
+	def test_run_as_takes_the_users_email(self):
+		from frappe.core.doctype.user.test_user import test_user
+
+		with test_user(roles=[FLOW_USER_ROLE], generated_id=True, first_name="Runner") as user:
+			Trigger(
+				title="By email", agent="Researcher", cron="0 8 * * *", prompt="x", run_as=user.email
+			).sync()
+			self.assertEqual(frappe.db.get_value("Flow Trigger", "frappe/By email", "run_as"), user.name)
+
 	def test_names_are_the_apps_own_unless_named_with_their_app(self):
 		trigger = Trigger(title="Daily", agent="Researcher", cron="0 8 * * *", prompt="x")
 		self.assertEqual((trigger.name, trigger.agent), ("frappe/Daily", "frappe/Researcher"))
