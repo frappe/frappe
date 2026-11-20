@@ -133,7 +133,7 @@ class Contact(Document):
 
 	def set_user(self):
 		if not self.user and self.email_id:
-			self.user = frappe.db.get_value("User", {"email": self.email_id})
+			self.user = frappe.utils.get_user_by_email(self.email_id)
 
 	def get_link_for(self, link_doctype):
 		"""Return the link name, if exists for the given link DocType"""
