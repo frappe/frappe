@@ -866,15 +866,35 @@ class TestDocType(IntegrationTestCase):
 
 		from frappe.types.exporter import TypeExporter
 
-		doctype = new_doctype(custom=0).insert()
-		code = TypeExporter(doctype).controller_path.read_text()
+		kinds = {
+			"regular": ({}, "Document"),
+			"tree": ({"is_tree": 1}, "NestedSet"),
+			"child table": ({"istable": 1}, "Document"),
+			"virtual": ({"is_virtual": 1}, "Document"),
+		}
 
-		class_def = next(node for node in ast.parse(code).body if isinstance(node, ast.ClassDef))
-		self.assertFalse([node for node in class_def.body if isinstance(node, ast.Pass)])
-		self.assertTrue(code.endswith("# end: auto-generated types\n"))
+		for kind, (flags, base_class) in kinds.items():
+			with self.subTest(kind):
+				doctype = new_doctype(custom=0, **flags).insert()
+				try:
+					code = TypeExporter(doctype).controller_path.read_text()
+				finally:
+					doctype.delete()
+					frappe.db.commit()
 
-		doctype.delete()
-		frappe.db.commit()
+				class_def = next(node for node in ast.parse(code).body if isinstance(node, ast.ClassDef))
+				self.assertEqual(class_def.bases[0].id, base_class)
+				self.assertIn("# end: auto-generated types", code)
+				self.assertFalse([node for node in class_def.body if isinstance(node, ast.Pass)])
+
+				methods = [node.name for node in class_def.body if isinstance(node, ast.FunctionDef)]
+				if flags.get("is_virtual"):
+					# Virtual boilerplate methods stay below the types block
+					self.assertIn("db_insert", methods)
+					self.assertIn("get_list", methods)
+				else:
+					self.assertFalse(methods)
+					self.assertTrue(code.endswith("# end: auto-generated types\n"))
 
 	def test_export_types_lone_pass_cases(self):
 		import tempfile
