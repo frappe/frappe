@@ -8,9 +8,10 @@ from flow_harness.session.config import SessionConfig
 
 import frappe
 from frappe.flow.daemon import lifecycle
-from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.daemon.client import DaemonClient, DaemonDown, DaemonError
 from frappe.flow.doctype.flow_session.flow_session import FlowSession
 from frappe.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
+from frappe.flow.lib.session import FlowServerDown
 from frappe.flow.memory import store as memory_store
 from frappe.flow.permissions import FLOW_USER_ROLE
 from frappe.flow.tests.test_fake_daemon import TITLE, FakeDaemon, pause
@@ -468,6 +469,15 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 				self.assertRaisesRegex(frappe.ValidationError, message),
 			):
 				self.session.chat("hello")
+		self.assertEqual(self.runs(), 0)
+
+	def test_a_server_that_is_down_answers_503_and_nothing_is_recorded(self):
+		with (
+			patch.object(self.daemon, "run", side_effect=DaemonDown(None, "ConnectError")),
+			self.assertRaises(FlowServerDown) as caught,
+		):
+			self.session.chat("hello")
+		self.assertEqual(caught.exception.http_status_code, 503)
 		self.assertEqual(self.runs(), 0)
 
 
