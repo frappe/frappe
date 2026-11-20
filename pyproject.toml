@@ -4,21 +4,18 @@ authors = [
     { name = "Frappe Technologies Pvt Ltd", email = "developers@frappe.io"}
 ]
 description = "Metadata driven, full-stack low code web framework"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.11,<3.15"
 readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
     "Babel~=2.18.0",
     "Click~=8.4.1",
-    # filelock and Pillow dropped Python 3.10 in their security releases
-    "filelock~=3.20.1; python_version < '3.11'",
-    "filelock~=4.2.7; python_version >= '3.11'",
+    "filelock~=4.2.7",
     "filetype~=1.2.0",
     "GitPython~=3.2.1",
     "Jinja2~=3.1.2",
-    "Pillow~=12.3.0; python_version < '3.11'",
-    "Pillow~=13.0.0; python_version >= '3.11'",
+    "Pillow~=13.0.0",
     "PyJWT~=2.15.0",
     "duckdb~=1.4.3",
     "pyarrow~=25.0.0",
@@ -31,6 +28,8 @@ dependencies = [
     "PyYAML~=6.0.2",
     "RestrictedPython~=8.5",
     "WeasyPrint==70.0",
+    # WeasyPrint allows fonttools[woff]>=4.59.2, which keeps brotli<1.2.1 (CVE-2026-111497)
+    "fonttools[woff]>=4.68.0",
     "pydyf==0.12.1",
     "Werkzeug==3.1.9",
     "Whoosh~=2.7.4",
@@ -80,7 +79,6 @@ dependencies = [
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.0.4",
     "typing_extensions>=4.6.1,<5",
-    "tomli~=2.0.1",
     "xlrd~=2.0.1",
     "zxcvbn~=4.4.28",
     "markdownify~=0.14.1",
@@ -117,7 +115,7 @@ freezegun = "~=1.2.2"
 
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
