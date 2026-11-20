@@ -6,10 +6,12 @@ import contextlib
 import gzip
 import os
 import sqlite3
+import stat
 import sys
+import tarfile
 import tempfile
 from calendar import timegm
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from datetime import datetime
 from glob import glob
 from pathlib import Path
@@ -32,6 +34,7 @@ _verbose = verbose
 base_tables = ["__Auth", "__global_search", "__UserSettings"]
 
 BACKUP_ENCRYPTION_CONFIG_KEY = "backup_encryption_key"
+REMOTE_BLOB_BATCH_SIZE = 1000
 
 
 def backup_sqlite_database(database_path: str | os.PathLike, backup_path: str | os.PathLike) -> None:
@@ -51,6 +54,11 @@ def backup_sqlite_database(database_path: str | os.PathLike, backup_path: str | 
 			gzip.open(backup_path, "wb") as compressed_backup,
 		):
 			copyfileobj(snapshot, compressed_backup)
+
+
+def get_remote_blob_filters(is_private: bool) -> dict:
+	"""File Blob filters for blobs that are not on local disk."""
+	return {"driver": ("!=", "local"), "status": "Ready", "is_private": is_private}
 
 
 class BackupGenerator:
@@ -395,27 +403,92 @@ class BackupGenerator:
 		for folder in ("public", "private"):
 			files_path = frappe.get_site_path(folder, "files")
 			backup_path = self.backup_path_files if folder == "public" else self.backup_path_private_files
+			is_private = folder == "private"
+			# a streamed backup writes to a named pipe, which cannot be appended to
+			is_pipe = os.path.exists(backup_path) and stat.S_ISFIFO(os.stat(backup_path).st_mode)
+			should_add_blobs = not is_pipe and self.has_remote_blobs(is_private)
+			archive_path = backup_path
 
-			if self.compress_files:
+			if self.compress_files and not should_add_blobs:
 				cmd_string = "set -o pipefail; tar cf - {1} | gzip > {0}"
 			else:
 				cmd_string = "tar -cf {0} {1}"
+				# a .tgz cannot be appended to; gzip runs after the blobs are added
+				if self.compress_files:
+					archive_path = backup_path.removesuffix(".tgz") + ".tar.part"
 
 			try:
-				frappe.utils.execute_in_shell(
-					cmd_string.format(backup_path, files_path),
-					verbose=self.verbose,
-					low_priority=True,
-					check_exit_code=True,
-				)
-			except frappe.CommandFailedError as e:
-				if e.err and "file changed as we read it" in e.err:
-					click.secho(
-						"Ignoring `tar: file changed as we read it` to prevent backup failure",
-						fg="red",
+				try:
+					frappe.utils.execute_in_shell(
+						cmd_string.format(archive_path, files_path),
+						verbose=self.verbose,
+						low_priority=True,
+						check_exit_code=True,
 					)
-				else:
-					raise e
+				except frappe.CommandFailedError as e:
+					if e.err and "file changed as we read it" in e.err:
+						click.secho(
+							"Ignoring `tar: file changed as we read it` to prevent backup failure",
+							fg="red",
+						)
+					else:
+						raise e
+
+				if should_add_blobs:
+					self.add_blobs_to_archive(archive_path, files_path, is_private)
+				if archive_path != backup_path:
+					self.compress_archive(archive_path, backup_path)
+			finally:
+				if archive_path != backup_path and os.path.exists(archive_path):
+					os.remove(archive_path)
+
+	def has_remote_blobs(self, is_private: bool) -> bool:
+		"""True when a Ready blob of this privacy lives on a driver other than ``local``."""
+		return bool(frappe.db.exists("File Blob", get_remote_blob_filters(is_private)))
+
+	def get_remote_blobs(self, is_private: bool) -> Iterator[frappe._dict]:
+		"""Remote blob rows of one privacy, paged by name."""
+		after_name = ""
+		while True:
+			rows = frappe.get_all(
+				"File Blob",
+				filters={**get_remote_blob_filters(is_private), "name": (">", after_name)},
+				fields=["name", "key", "driver", "is_private", "file_size", "creation"],
+				order_by="name asc",
+				limit=REMOTE_BLOB_BATCH_SIZE,
+			)
+			if not rows:
+				return
+			yield from rows
+			after_name = rows[-1].name
+
+	def add_blobs_to_archive(self, archive_path: str, files_path: str, is_private: bool) -> None:
+		"""Append remote blobs to a plain tar, at the path their cached copy would have."""
+		from frappe.storage.cache import get_cache_key
+		from frappe.storage.driver import get_driver
+
+		with tarfile.open(archive_path, "a") as tar:
+			for row in self.get_remote_blobs(is_private):
+				info = tarfile.TarInfo(os.path.join(files_path, get_cache_key(row)))
+				info.size = int(row.file_size)
+				info.mtime = int(row.creation.timestamp())
+				info.mode = 0o644
+				try:
+					stream = get_driver(row.driver).read(row.key, is_private=is_private)
+				except FileNotFoundError:
+					click.secho(f"Skipping blob {row.name}: its object is missing from storage", fg="red")
+					continue
+				with stream:
+					tar.addfile(info, stream)
+
+	def compress_archive(self, archive_path: str, backup_path: str) -> None:
+		"""Gzip a plain tar into the backup path."""
+		frappe.utils.execute_in_shell(
+			f"gzip -c {archive_path} > {backup_path}",
+			verbose=self.verbose,
+			low_priority=True,
+			check_exit_code=True,
+		)
 
 	def copy_site_config(self):
 		site_config_backup_path = self.backup_path_conf
