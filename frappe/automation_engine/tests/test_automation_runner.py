@@ -474,7 +474,7 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 		name = self.queue_row(auto, todo.name)
 		with (
 			public_dns({"example.com": "93.184.216.34"}),
-			patch("requests.request", return_value=FakeResponse(text="ok")) as request,
+			patch("requests.Session.request", return_value=FakeResponse(text="ok")) as request,
 		):
 			execute_automation(name)
 
@@ -492,7 +492,7 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 		try:
 			with (
 				public_dns({"example.com": "93.184.216.34"}),
-				patch("requests.request", return_value=FakeResponse(text="ok")) as request,
+				patch("requests.Session.request", return_value=FakeResponse(text="ok")) as request,
 				patch(
 					"frappe.automation_engine.runner._publish_update",
 					side_effect=ValueError("realtime is down"),
@@ -517,7 +517,7 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 		try:
 			with (
 				public_dns({"example.com": "93.184.216.34"}),
-				patch("requests.request", return_value=FakeResponse(status_code=500, text="boom")),
+				patch("requests.Session.request", return_value=FakeResponse(status_code=500, text="boom")),
 			):
 				execute_automation(name)
 
@@ -538,7 +538,7 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 		try:
 			with (
 				public_dns({"example.com": "93.184.216.34"}),
-				patch("requests.request", return_value=FakeResponse(status_code=500, text="boom")),
+				patch("requests.Session.request", return_value=FakeResponse(status_code=500, text="boom")),
 				patch(
 					"frappe.automation_engine.runner._publish_update",
 					side_effect=ValueError("realtime is down"),
@@ -569,7 +569,7 @@ class TestWebhookAndScriptSteps(AutomationRunnerTestCase):
 				}
 			]
 		)
-		with patch("requests.request") as request:
+		with patch("requests.Session.request") as request:
 			execute_automation(self.queue_row(auto, todo.name))
 			request.assert_not_called()
 
