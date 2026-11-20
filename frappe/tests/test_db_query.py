@@ -393,7 +393,7 @@ class TestDBQuery(IntegrationTestCase):
 
 			self.assertEqual(result[0].target_title, target_doc.target_title)
 			if frappe.db.db_type == "postgres":
-				self.assertIn('CAST("TABTEST AUTO LINK TARGET_1"."NAME" AS VARCHAR)', str(query).upper())
+				self.assertIn('CAST("TAB_TEST AUTO LINK TARGET_1"."NAME" AS VARCHAR)', str(query).upper())
 			else:
 				self.assertNotIn("CAST(", str(query).upper())
 

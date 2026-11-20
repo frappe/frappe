@@ -483,6 +483,13 @@ class TestMaskFieldsInChildTable(IntegrationTestCase):
 		)
 		self.assertEqual(rows[0][1], "XXXXXXXX")
 
+		rows = frappe.get_list(
+			self.dt,
+			filters={"name": self.docname},
+			fields=["name", f"`tab{self.child_dt}`.`secret_note` as `child_secret_note`"],
+		)
+		self.assertEqual(rows[0]["child_secret_note"], "XXXXXXXX")
+
 	def test_dotted_child_field_masked_in_query_engine(self):
 		frappe.set_user(self.TEST_USER)
 		rows = frappe.qb.get_query(
