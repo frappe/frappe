@@ -261,7 +261,8 @@ test("a reconnect or a resync replaces the streaming preview instead of appendin
 
 // lets the stream run on to its next wait
 const settle = () => new Promise((resolve) => setImmediate(resolve));
-const down = () => new FlowAPIError(502, "Bad Gateway");
+// any failure but a refusal or FlowServerDown, as a site under maintenance
+const down = () => new FlowAPIError(503, "Session Stopped");
 
 test("a log that cannot be read while the servers restart is read again, not the end of the stream", async (t) => {
 	t.mock.timers.enable({ apis: ["setTimeout", "Date"] });
@@ -311,7 +312,9 @@ test("a refusal or a flow server that stayed down ends the stream at once, a web
 	assert.match(refused.error.message, /Not permitted/);
 
 	// the call waited for the flow server before it gave this error
-	const flowServerDown = reading(new FlowAPIError(503, "flow server unreachable"));
+	const flowServerDown = reading(
+		new FlowAPIError(503, "flow server unreachable", { exc_type: "FlowServerDown" })
+	);
 	await settle();
 	assert.match(flowServerDown.error.message, /flow server unreachable/);
 
@@ -326,5 +329,5 @@ test("a refusal or a flow server that stayed down ends the stream at once, a web
 		t.mock.timers.tick(2000);
 		await settle();
 	}
-	assert.match(stayedDown.error.message, /Bad Gateway/);
+	assert.match(stayedDown.error.message, /Session Stopped/);
 });

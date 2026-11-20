@@ -4,8 +4,7 @@ import { __ } from "@flow/ui-core/translate.js";
 import { RESTART, retrying } from "./retry.js";
 
 const SUBSCRIBE_TIMEOUT = 15_000;
-// a refusal, or a flow server that is down, which the call has already waited for
-const FINAL = [401, 403, 404, 503];
+const REFUSALS = [401, 403, 404];
 
 // Live events for one session, as the store's async event source. The relay room is
 // joined first, then the log since `since` is fetched, so nothing published in between
@@ -144,7 +143,7 @@ export class SessionStream {
 	// durable rows after the cursor, then the in-flight preview of a running turn
 	async *resnapshot() {
 		const data = await retrying(() => this.fetchEntries(this.cursor), {
-			retriable: (error) => !this.closed && !FINAL.includes(error?.status),
+			retriable: (error) => !this.closed && !final(error),
 			within: RESTART,
 		}).catch((error) => {
 			if (!this.closed) throw error;
@@ -169,6 +168,11 @@ export class SessionStream {
 		this.synced.add(event.seq);
 		this.onTerminal?.(event.seq, event);
 	}
+}
+
+// a refusal, or a flow server that is down, which the call has already waited for
+function final(error) {
+	return REFUSALS.includes(error?.status) || error?.data?.exc_type === "FlowServerDown";
 }
 
 function refused() {
