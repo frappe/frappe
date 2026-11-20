@@ -84,7 +84,7 @@ class DiscussionReply(Document):
 		)
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def delete_message(reply_name: str):
 	owner = frappe.db.get_value("Discussion Reply", reply_name, "owner")
 	if owner == frappe.session.user:

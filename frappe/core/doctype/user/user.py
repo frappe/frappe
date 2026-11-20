@@ -1490,7 +1490,7 @@ def change_password(user: str, new_password: str, logout_all_sessions: int = 1) 
 	user_doc.save()
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 @frappe.validate_and_sanitize_search_inputs
 def user_query(doctype: str, txt: str, searchfield: str, start: int, page_len: int, filters: dict[str, Any]):
 	doctype = "User"

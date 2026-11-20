@@ -24,7 +24,7 @@ class DiscussionTopic(Document):
 	pass
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def submit_discussion(
 	doctype: str,
 	docname: str | int,

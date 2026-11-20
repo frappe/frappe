@@ -61,7 +61,7 @@ class LinkSearchResults(TypedDict):
 
 
 # this is called by the Link Field
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 @http_cache(max_age=60, stale_while_revalidate=5 * 60)
 def search_link(
 	doctype: str,
@@ -148,7 +148,7 @@ def make_dict_from_filter_list(filters: list) -> dict:
 
 
 # this is called by the search box
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def search_widget(
 	doctype: str,
 	txt: str,
@@ -716,7 +716,7 @@ def _normalize_awesomebar_result(item) -> dict | None:
 	return result
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_link_title(doctype: str, docname: str | int):
 	meta = frappe.get_meta(doctype)
 

@@ -259,7 +259,7 @@ def get_permlevel_restricted_fieldnames(dt) -> set:
 	return restricted
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_website_user=True)
 def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 	frappe.read_doc(dt, dn)
 	filters = frappe.parse_json(filters)

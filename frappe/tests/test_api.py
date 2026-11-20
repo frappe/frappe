@@ -14,6 +14,7 @@ from filetype import guess_mime
 from werkzeug.test import TestResponse
 
 import frappe
+from frappe.desk.search import search_link
 from frappe.installer import update_site_config
 from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase
@@ -663,6 +664,13 @@ class TestWebsiteUserAccess(IntegrationTestCase):
 		for method in (website_user_method, test_array):
 			with self.subTest(method=method.__name__), self.set_user(get_test_user("Website User")):
 				frappe.is_whitelisted(method)
+
+	def test_website_user_can_search_user_links(self):
+		user = get_test_user("Website User")
+		with self.set_user(user):
+			results = search_link("User", "api-")
+
+		self.assertEqual([result["value"] for result in results], [user])
 
 	def test_other_user_types_unaffected(self):
 		for user_type in ("System User", "_Test Custom User Type"):

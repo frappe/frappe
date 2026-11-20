@@ -1125,7 +1125,7 @@ def delete(web_form_name: str, docname: str | int, web_form_request_key: str | N
 		frappe.throw(_("Not Allowed"), frappe.PermissionError)
 
 
-@frappe.whitelist(methods=["POST", "DELETE"])
+@frappe.whitelist(methods=["POST", "DELETE"], allow_website_user=True)
 @rate_limit(key="web_form_name", limit=999, seconds=60)
 def delete_multiple(web_form_name: str, docnames: str | list):
 	web_form = frappe.get_lazy_doc("Web Form", web_form_name)
