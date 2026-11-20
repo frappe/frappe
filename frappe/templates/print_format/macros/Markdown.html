@@ -1,13 +1,8 @@
 {% extends "templates/print_format/macros/Data.html" %}
 
 {%- block value -%}
-<<<<<<< HEAD
 <div class="value">
-	{{ frappe.utils.md_to_html(doc.get(df.fieldname)) }}
-=======
-<div class="value{% if _val_style %} value--colored{% endif %}"{% if _val_style %} style="{{ _val_style|e }}"{% endif %}>
 	{{ frappe.sanitize_html(frappe.utils.md_to_html(doc.get(df.fieldname))) }}
->>>>>>> 182f527 (fix(print): sanitize markdown fields before printing)
 </div>
 {%- endblock -%}
 
