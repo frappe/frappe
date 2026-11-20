@@ -443,7 +443,7 @@ frappe.create_shadow_element = function (wrapper, html, css, js) {
 	wrapper.innerHTML = `<${random_id}></${random_id}>`;
 };
 
-// bind online/offline events; they share one toast (see frappe.call), so it updates instead of stacking
+// bind online/offline events; they share one toast (see frappe.request.call), so it updates instead of stacking
 $(window).on("online", function () {
 	if (document.hidden) return;
 	frappe.ui.toast({
