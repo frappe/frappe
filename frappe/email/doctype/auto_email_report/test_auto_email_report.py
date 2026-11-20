@@ -1,16 +1,17 @@
 # Copyright (c) 2015, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import json
+from io import BytesIO
+
+from pypdf import PdfReader
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, get_link_to_form, today
 from frappe.utils.data import is_html
 
-# test_records = frappe.get_test_records('Auto Email Report')
 
-
-class TestAutoEmailReport(FrappeTestCase):
+class TestAutoEmailReport(IntegrationTestCase):
 	def test_auto_email(self):
 		frappe.delete_doc("Auto Email Report", "Permitted Documents For User")
 
@@ -30,6 +31,43 @@ class TestAutoEmailReport(FrappeTestCase):
 
 		data = auto_email_report.get_report_content()
 
+		auto_email_report.format = "PDF"
+
+		data = auto_email_report.get_report_content()
+		PdfReader(stream=BytesIO(data))
+
+	def test_mandatory_filters_come_from_validated_report(self):
+		auto_email_report = get_auto_email_report()
+		auto_email_report.filter_meta = None
+		auto_email_report.filters = json.dumps({"user": "Administrator"})
+
+		with self.assertRaisesRegex(frappe.ValidationError, "DocType.*is mandatory"):
+			auto_email_report.save()
+
+	def test_run_as_user_permission(self):
+		test1 = frappe.get_doc("User", "test1@example.com")
+		test1.add_roles("System Manager")
+		self.addCleanup(test1.remove_roles, "System Manager")
+		test2 = frappe.get_doc("User", "test2@example.com")
+		test2.add_roles("Report Manager")
+		self.addCleanup(test2.remove_roles, "Report Manager")
+		auto_email_report = get_auto_email_report()
+		auto_email_report.filters = json.dumps({"user": "test1@example.com", "doctype": "DocType"})
+		auto_email_report.save()
+
+		with self.set_user("test2@example.com"):
+			auto_email_report.user = "test1@example.com"
+			self.assertRaises(frappe.PermissionError, auto_email_report.save)
+
+		auto_email_report.reload()
+		with self.set_user("test@example.com"):
+			auto_email_report.user = "Administrator"
+			self.assertRaises(frappe.PermissionError, auto_email_report.save)
+
+			auto_email_report.reload()
+			auto_email_report.user = "test1@example.com"
+			auto_email_report.save()
+
 	def test_dynamic_date_filters(self):
 		auto_email_report = get_auto_email_report()
 
@@ -46,17 +84,15 @@ class TestAutoEmailReport(FrappeTestCase):
 def get_auto_email_report():
 	if not frappe.db.exists("Auto Email Report", "Permitted Documents For User"):
 		auto_email_report = frappe.get_doc(
-			dict(
-				doctype="Auto Email Report",
-				report="Permitted Documents For User",
-				report_type="Script Report",
-				user="Administrator",
-				enabled=1,
-				email_to="test@example.com",
-				format="HTML",
-				frequency="Daily",
-				filters=json.dumps(dict(user="Administrator", doctype="DocType")),
-			)
+			doctype="Auto Email Report",
+			report="Permitted Documents For User",
+			report_type="Script Report",
+			user="Administrator",
+			enabled=1,
+			email_to="test@example.com",
+			format="HTML",
+			frequency="Daily",
+			filters=json.dumps(dict(user="Administrator", doctype="DocType")),
 		).insert()
 	else:
 		auto_email_report = frappe.get_doc("Auto Email Report", "Permitted Documents For User")
