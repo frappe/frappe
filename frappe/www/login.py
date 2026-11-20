@@ -141,6 +141,12 @@ def send_login_link(email: str):
 	if not frappe.get_system_settings("login_with_email_link"):
 		return
 
+	frappe.enqueue(_send_login_link, queue="short", email=email, lang=frappe.local.lang)
+
+
+def _send_login_link(email: str, lang: str):
+	frappe.local.lang = lang
+
 	try:
 		expiry = frappe.get_system_settings("login_with_email_link_expiry") or 10
 		link = _generate_temporary_login_link(email, expiry)
