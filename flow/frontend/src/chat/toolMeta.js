@@ -1,14 +1,16 @@
 import { __ } from "@flow/ui-core/translate.js";
 
+import ApiView from "./tools/ApiView.vue";
+import ArgsView from "./tools/ArgsView.vue";
 import CodeCard from "./tools/CodeCard.vue";
 import CodeView from "./tools/CodeView.vue";
 import CreateView from "./tools/CreateView.vue";
 import FunctionCard from "./tools/FunctionCard.vue";
-import JsonView from "./tools/JsonView.vue";
 import NamesView from "./tools/NamesView.vue";
 import ReadView from "./tools/ReadView.vue";
 import ReportView from "./tools/ReportView.vue";
-import { humanize, parseResult } from "./tools/result.js";
+import { blank, humanize, parseResult } from "./tools/result.js";
+import ResultView from "./tools/ResultView.vue";
 import SecretView from "./tools/SecretView.vue";
 import SnippetView from "./tools/SnippetView.vue";
 
@@ -45,7 +47,7 @@ const TOOLS = {
 		icon: "lucide-play",
 		label: __("Calling API"),
 		done: __("Called APIs"),
-		view: JsonView,
+		view: ApiView,
 		argsView: FunctionCard,
 		asks: true,
 		subject: (args) => args.method ?? "",
@@ -93,7 +95,7 @@ const TOOLS = {
 		label: (args) =>
 			ACTIONS[args.action] ?? (isFunction(args) ? __("Calling API") : actionName(args.action)),
 		done: (args) => (isFunction(args) ? __("Called APIs") : __("Ran document actions")),
-		view: NamesView,
+		view: (args) => (isFunction(args) ? ApiView : NamesView),
 		argsView: (args) => (isFunction(args) ? FunctionCard : NamesView),
 		asks: true,
 		stat: (result) =>
@@ -183,13 +185,13 @@ export function presentTool(name, args = {}, result = null) {
 	if (CORE_TOOLS.has(name)) return {};
 	const tool = TOOLS[name];
 	// a custom Imported or Script tool: its return is the point, so always show it
-	if (!tool) return { resultComponent: JsonView };
+	if (!tool) return { ...customCard(args), resultComponent: ResultView };
+	const view = pick(tool.view, args);
 	const parsed = tool.stat ? parseResult(result) : null;
 	const stat = parsed ? readStat(tool, parsed) : "";
-	// a cut result is no longer JSON, and an older one may not fit the view, so show
-	// their text; execute's view already does
-	const plain =
-		(result?.details?.truncation?.truncated || stat === null) && tool.view !== CodeView;
+	// a cut result is no longer JSON, and an older one may not fit the view, so the
+	// view of any return draws them; execute's view already does
+	const plain = (result?.details?.truncation?.truncated || stat === null) && view !== CodeView;
 	return {
 		icon: tool.icon,
 		label: typeof tool.label === "function" ? tool.label(args) : tool.label,
@@ -197,10 +199,10 @@ export function presentTool(name, args = {}, result = null) {
 		subject: tool.subject?.(args, result) ?? subject(args),
 		codeSubject: isCodeSubject(name, args),
 		stat: stat ?? "",
-		expandable: tool.view ? undefined : false,
-		argsComponent: tool.asks ? argsView(tool, args) : undefined,
+		expandable: view ? undefined : false,
+		argsComponent: tool.asks ? pick(tool.argsView, args) ?? view : undefined,
 		ownAnswers: tool.ownAnswers,
-		resultComponent: plain ? JsonView : tool.view,
+		resultComponent: plain ? ResultView : view,
 	};
 }
 
@@ -230,8 +232,14 @@ function isFunction(args) {
 	return typeof args?.action === "string" && /^\w+(\.\w+)+$/.test(args.action);
 }
 
-function argsView(tool, args) {
-	return typeof tool.argsView === "function" ? tool.argsView(args) : tool.argsView ?? tool.view;
+// a custom tool's card shows its arguments in words, or nothing when it has none
+function customCard(args) {
+	return blank(args) ? { body: "" } : { argsComponent: ArgsView };
+}
+
+// a view may depend on the call: run_action runs a record's action, or a function
+function pick(view, args) {
+	return typeof view === "function" ? view(args) : view;
 }
 
 // as the server names it (function_title): the last two parts of its path, in words
