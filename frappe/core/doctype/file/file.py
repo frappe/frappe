@@ -318,8 +318,13 @@ class File(Document):
 			filters["name"] = ["!=", self.name]
 
 		private_files = frappe.get_all(
-			"File", filters=filters, fields=["name", "owner", "is_private", "attached_to_doctype"]
+			"File", filters=filters, fields=["name", "owner", "file_url", "is_private", "attached_to_doctype"]
 		)
+		# the database collation ignores case and the filesystem may not;
+		# when some rows match exactly, only those point at this file
+		private_files = [
+			file for file in private_files if file.file_url == filters["file_url"]
+		] or private_files
 		if not private_files:
 			return
 

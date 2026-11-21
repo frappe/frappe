@@ -1132,6 +1132,8 @@ class TypstEmitter:
 		import base64
 		import os
 
+		from frappe.core.doctype.file.utils import find_file_by_url
+
 		if src.startswith("data:"):
 			try:
 				return base64.b64decode(src.split(",", 1)[1])
@@ -1143,8 +1145,7 @@ class TypstEmitter:
 		if src.startswith("/private/files/"):
 			# private files are permission-gated through the File doctype — the
 			# browser path enforces this over HTTP, so the direct read must too
-			file_names = frappe.get_all("File", filters={"file_url": src}, pluck="name")
-			if not any(frappe.has_permission("File", doc=name, ptype="read") for name in file_names):
+			if not find_file_by_url(src):
 				return None
 			root, rel = frappe.get_site_path("private", "files"), src[len("/private/files/") :]
 		elif src.startswith("/files/"):
