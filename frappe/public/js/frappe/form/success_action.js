@@ -44,11 +44,15 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 				message = __(stored);
 			}
 
+			let $alert;
 			const $buttons = this.get_actions().map((action) => {
 				const $btn = $(
 					`<button class="next-action"><span>${__(action.label)}</span></button>`
 				);
-				$btn.click(() => action.action(this.form));
+				$btn.click(() => {
+					$alert?.find(".es-toast__close").trigger("click");
+					action.action(this.form);
+				});
 				return $btn;
 			});
 
@@ -56,7 +60,7 @@ frappe.ui.form.SuccessAction = class SuccessAction {
 			next_action_container.append($buttons);
 			const html = next_action_container;
 
-			frappe.show_alert(
+			$alert = frappe.show_alert(
 				{
 					message: message,
 					body: html,
