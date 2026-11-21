@@ -236,7 +236,6 @@ class TestDBUpdate(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value(doctype.name, ticked.name, "flag"), 1)
 		self.assertEqual(frappe.db.get_value(doctype.name, unticked.name, "flag"), 0)
 
-	@run_only_if(db_type_is.POSTGRES)
 	def test_type_change_to_numeric_sets_not_null(self):
 		fieldtypes = {"quantity": "Int", "is_done": "Check", "amount": "Currency"}
 		doctype = new_doctype(

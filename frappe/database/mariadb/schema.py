@@ -1,6 +1,6 @@
 import frappe
 from frappe import _
-from frappe.database.schema import DbColumn, DBTable
+from frappe.database.schema import NOT_NULL_TYPES, DbColumn, DBTable
 from frappe.query_builder.functions import Trim
 from frappe.utils.defaults import get_not_null_defaults
 
@@ -148,8 +148,8 @@ class MariaDBTable(DBTable):
 		# drop each index only once
 		drop_index_query = list(dict.fromkeys(drop_index_query))
 
-		for col in self.change_nullability:
-			if col.not_nullable:
+		for col in {*self.change_nullability, *self.change_type}:
+			if col.not_nullable or col.fieldtype in NOT_NULL_TYPES:
 				try:
 					table = frappe.qb.DocType(self.doctype)
 					frappe.qb.update(table).set(
