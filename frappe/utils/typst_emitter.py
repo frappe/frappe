@@ -1145,7 +1145,7 @@ class TypstEmitter:
 		if src.startswith("/private/files/"):
 			# private files are permission-gated through the File doctype — the
 			# browser path enforces this over HTTP, so the direct read must too
-			if not find_file_by_url(src):
+			if frappe.session.user == "Guest" or not find_file_by_url(src):
 				return None
 			root, rel = frappe.get_site_path("private", "files"), src[len("/private/files/") :]
 		elif src.startswith("/files/"):
