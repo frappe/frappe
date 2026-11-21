@@ -118,6 +118,9 @@ export default class OnboardingWidget extends Widget {
 
 	set_open_step(step) {
 		if (step && step !== this.open_step) {
+			// a closed step's player keeps playing unseen, so its media goes when it closes
+			this.step_elements.get(this.open_step)?.find(".onboarding-step-media").empty();
+
 			// filled on opening, so a closed step loads no thumbnail and shows its current state
 			const $step = this.step_elements.get(step);
 			$step.find(".onboarding-step-body").empty().append(this.make_step_content(step));
