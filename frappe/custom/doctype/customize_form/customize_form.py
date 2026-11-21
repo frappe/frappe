@@ -28,6 +28,7 @@ from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.model.meta import trim_table
 from frappe.utils import cint
+from frappe.utils.business_modules import validate_show_for_module
 
 
 class CustomizeForm(Document):
@@ -248,6 +249,8 @@ class CustomizeForm(Document):
 		]
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
+		for df in self.get("fields"):
+			validate_show_for_module(df, self.doc_type)
 		self.update_custom_fields()
 		self.set_property_setters()
 		self.set_name_translation()
@@ -810,6 +813,7 @@ docfield_properties = {
 	"ignore_versioning": "Check",
 	"ignore_xss_filter": "Check",
 	"hidden": "Check",
+	"show_for_module": "Data",
 	"collapsible": "Check",
 	"collapsible_depends_on": "Data",
 	"print_hide": "Check",

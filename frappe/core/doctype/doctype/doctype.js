@@ -3,6 +3,8 @@
 
 frappe.ui.form.on("DocType", {
 	onload: function (frm) {
+		frappe.meta.get_docfield("DocField", "show_for_module", frm.docname).options =
+			frappe.business_modules.get_select_options();
 		if (frm.is_new()) {
 			frm.set_value("allow_auto_repeat", 0);
 			if (!frm.doc?.fields) {
