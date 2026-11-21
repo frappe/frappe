@@ -850,7 +850,7 @@ export function values(ctx) {
 			.map((c) => {
 				if (c.name == null) return { ...not_set, count: c.count };
 				if (people && c.name === me) return { ...me_option(), count: c.count };
-				const label = people ? frappe.user.full_name(c.name) : c.title || c.name;
+				const label = c.title || (people ? frappe.user.full_name(c.name) : c.name);
 				return { value: c.name, label, count: c.count, search: `${label} ${c.name}` };
 			});
 	}

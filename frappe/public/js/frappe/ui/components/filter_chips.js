@@ -348,10 +348,16 @@ function number_text(df, raw) {
 	return format_number(value, null, df.fieldtype === "Int" ? 0 : undefined);
 }
 
+// only "in" and "not in" hold a list; another value keeps its commas ("Acme, Inc.")
+const values_of = (condition, value) =>
+	["in", "not in"].includes(condition) ? list_of(value) : is_blank(value) ? [] : [value];
+
 function value_text(df, condition, value) {
 	const kind = kind_of(df);
 	if (kind === "values") {
-		const values = condition.includes("like") ? [strip_like(value)] : list_of(value);
+		const values = condition.includes("like")
+			? [strip_like(value)]
+			: values_of(condition, value);
 		const labels = values.map((v) => value_label(df, v));
 		// "is not Draft or On Hold": with "or", it's plain that both are left out
 		if (labels.length === 2 && condition === "not in") return __("{0} or {1}", labels);
@@ -438,7 +444,8 @@ function describe(df, rules) {
 	const template = word ? word() : PLAIN();
 	const full = value_text(df, condition, value);
 	// a list names its first value and counts the rest, so the chip stays short: "To Bill +2"
-	const labels = kind === "values" ? list_of(value).map((v) => value_label(df, v)) : [];
+	const labels =
+		kind === "values" ? values_of(condition, value).map((v) => value_label(df, v)) : [];
 	if (labels.length > 2 || (labels.length === 2 && condition !== "not in")) {
 		return { template, value: labels[0], more: `+${labels.length - 1}`, full };
 	}
@@ -751,7 +758,9 @@ frappe.ui.FilterChips = class FilterChips {
 			if (clearing) ease_width(box, from);
 			if (df.fieldtype === "Link" && df.options === "User") {
 				name_people(
-					rules.flatMap(([, value]) => list_of(value).map(strip_like)),
+					rules.flatMap(([condition, value]) =>
+						values_of(condition, value).map(strip_like)
+					),
 					() => this.render()
 				);
 			}
