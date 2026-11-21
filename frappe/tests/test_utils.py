@@ -13,6 +13,7 @@ from mimetypes import guess_type
 from typing import Literal
 from unittest.mock import patch
 
+import responses
 from hypothesis import given
 from hypothesis import strategies as st
 from PIL import Image
@@ -901,6 +902,25 @@ class TestImage(IntegrationTestCase):
 			dst.write(src.read())
 		self.addCleanup(os.remove, public)
 		self.assertTrue(get_image_thumbnail_uri("/files/thumbnail_public.jpg").startswith("data:image/"))
+
+	def test_image_thumbnail_fetch_rechecks_resolved_address(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.local._print_thumbnail_cache = {}
+		url = "https://images.example.com/photo.jpg"
+		addresses = iter(("93.184.216.34", "127.0.0.1"))
+
+		def getaddrinfo(host, *args, **kwargs):
+			return [(2, 1, 6, "", (next(addresses), 0))]
+
+		with (
+			open(frappe.get_app_path("frappe", "tests", "data", "exif_sample_image.jpg"), "rb") as image,
+			responses.RequestsMock(assert_all_requests_are_fired=False) as mocked,
+			patch("socket.getaddrinfo", side_effect=getaddrinfo),
+		):
+			mocked.add(responses.GET, url, body=image.read())
+			self.assertEqual(get_image_thumbnail_uri(url), url)
+			self.assertFalse(mocked.calls)
 
 	def test_optimize_image(self):
 		image_file_path = frappe.get_app_path("frappe", "tests", "data", "sample_image_for_optimization.jpg")
