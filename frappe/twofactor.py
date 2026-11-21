@@ -13,7 +13,7 @@ from frappe.permissions import ALL_USER_ROLE
 from frappe.sessions import clear_sessions
 from frappe.utils import cint, get_user_display_id
 from frappe.utils.background_jobs import enqueue
-from frappe.utils.password import decrypt, encrypt
+from frappe.utils.password import decrypt, encrypt, get_password_fingerprint
 
 PARENT_FOR_DEFAULTS = "__2fa"
 
@@ -68,23 +68,15 @@ def should_run_2fa(user):
 	return two_factor_is_enabled(user=user)
 
 
-def get_cached_user_pass():
-	"""Get user and password if set."""
-	user = pwd = None
-	tmp_id = frappe.form_dict.get("tmp_id")
-	if tmp_id:
-		user = frappe.cache.get_value(tmp_id + "_usr", use_local_cache=False)
-		pwd = frappe.cache.get_value(tmp_id + "_pwd", use_local_cache=False)
-	return (user, pwd)
-
-
 def authenticate_for_2factor(user):
 	"""Authenticate two factor for enabled user before login."""
 	if frappe.form_dict.get("otp"):
 		return
+	if previous_tmp_id := frappe.form_dict.get("tmp_id"):
+		clear_2fa_data(previous_tmp_id)
 	otp_secret = get_otpsecret_for_(user)
 	token = int(pyotp.TOTP(otp_secret).now())
-	tmp_id = frappe.generate_hash(length=8)
+	tmp_id = frappe.generate_hash(length=32)
 	cache_2fa_data(user, token, otp_secret, tmp_id)
 	verification_obj = get_verification_obj(user, token, otp_secret)
 	# Save data in local
@@ -94,8 +86,6 @@ def authenticate_for_2factor(user):
 
 def cache_2fa_data(user, token, otp_secret, tmp_id):
 	"""Cache and set expiry for data."""
-	usr = frappe.form_dict.get("usr")
-	pwd = frappe.form_dict.get("pwd")
 	verification_method = get_verification_method()
 
 	# set increased expiry time for SMS, Email and the email step of OTP App setup
@@ -104,8 +94,18 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 		frappe.cache.set_value(tmp_id + "_token", token, expires_in_sec=expiry_time)
 	else:
 		expiry_time = frappe.flags.otp_expiry or 180
-	for k, v in {"_usr": usr, "_pwd": pwd, "_otp_secret": otp_secret}.items():
+	for k, v in {
+		"_usr": user,
+		"_password_fingerprint": get_password_fingerprint(user),
+		"_otp_secret": otp_secret,
+	}.items():
 		frappe.cache.set_value(f"{tmp_id}{k}", v, expires_in_sec=expiry_time)
+
+
+def clear_2fa_data(tmp_id):
+	frappe.cache.delete_value(
+		[tmp_id + k for k in ("_usr", "_password_fingerprint", "_otp_secret", "_token", "_email_verified")]
+	)
 
 
 def two_factor_is_enabled_for_(user):
@@ -167,14 +167,15 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	hotp = pyotp.HOTP(otp_secret)
 	if hotp_token is not None:
 		if hotp.verify(otp, int(hotp_token)):
-			frappe.cache.delete_value(tmp_id + "_token")
 			if otp_setup_pending:
+				frappe.cache.delete_value(tmp_id + "_token")
 				frappe.cache.set_value(
 					tmp_id + "_email_verified", 1, expires_in_sec=frappe.flags.token_expiry or 300
 				)
 				frappe.local.response["verification"] = get_otp_app_setup_obj(login_manager.user, otp_secret)
 				frappe.local.response["tmp_id"] = tmp_id
 				return False
+			clear_2fa_data(tmp_id)
 			tracker.add_success_attempt()
 			return True
 		else:
@@ -190,6 +191,7 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 		# show qr code only once
 		if not get_default(login_manager.user + "_otplogin"):
 			set_default(login_manager.user + "_otplogin", 1)
+		clear_2fa_data(tmp_id)
 		tracker.add_success_attempt()
 		return True
 	else:

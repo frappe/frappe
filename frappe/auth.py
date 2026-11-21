@@ -21,9 +21,9 @@ from frappe.core.doctype.activity_log.activity_log import add_authentication_log
 from frappe.sessions import Session, clear_sessions, delete_session, get_expiry_in_seconds
 from frappe.translate import get_language
 from frappe.twofactor import (
+	ExpiredLoginException,
 	authenticate_for_2factor,
 	confirm_otp_token,
-	get_cached_user_pass,
 	should_run_2fa,
 )
 from frappe.utils import cint, date_diff, datetime, today
@@ -31,6 +31,7 @@ from frappe.utils.password import (
 	MAX_PASSWORD_SIZE,
 	check_password,
 	get_decrypted_password,
+	get_password_fingerprint,
 	validate_password_size,
 )
 from frappe.website.utils import get_home_page, get_role_home_page, get_role_home_page_via_hooks
@@ -168,14 +169,18 @@ class LoginManager:
 		if frappe.get_system_settings("disable_user_pass_login"):
 			frappe.throw(_("Login with username and password is not allowed."), frappe.AuthenticationError)
 
-		user, pwd = get_cached_user_pass()
-		self.authenticate(user=user, pwd=pwd)
+		if tmp_id := frappe.form_dict.get("tmp_id"):
+			self.authenticate_pending_2fa(tmp_id)
+		else:
+			self.authenticate()
 		frappe.clear_cache(user=self.user)
 
 		if should_run_2fa(self.user):
 			authenticate_for_2factor(self.user)
 			if not confirm_otp_token(self):
 				return False
+		elif tmp_id:
+			raise ExpiredLoginException(_("Login session expired, refresh page to retry"))
 
 		if self.force_user_to_reset_password():
 			doc = frappe.get_doc("User", self.user)
@@ -326,6 +331,29 @@ class LoginManager:
 			ip_tracker and ip_tracker.add_success_attempt()
 		self.user = user.name
 		assert self.user, "authenticated user name must be set after successful authentication"
+
+	def authenticate_pending_2fa(self, tmp_id: str):
+		"""Authenticate the user whose password was checked in the first step of a 2FA login."""
+		user = frappe.cache.get_value(tmp_id + "_usr", use_local_cache=False)
+		password_fingerprint = frappe.cache.get_value(tmp_id + "_password_fingerprint", use_local_cache=False)
+		if not (user and password_fingerprint):
+			raise ExpiredLoginException(_("Login session expired, refresh page to retry"))
+
+		ip_tracker = get_login_attempt_tracker(frappe.local.request_ip)
+		user_tracker = get_login_attempt_tracker(user)
+
+		if not (user == "Administrator" or frappe.db.get_value("User", user, "enabled")):
+			user_tracker.add_failure_attempt()
+			ip_tracker and ip_tracker.add_failure_attempt()
+			self.fail("User disabled or missing", user=user)
+
+		if password_fingerprint != get_password_fingerprint(user):
+			user_tracker.add_failure_attempt()
+			ip_tracker and ip_tracker.add_failure_attempt()
+			self.fail("Invalid login credentials", user=user)
+
+		ip_tracker and ip_tracker.add_success_attempt()
+		self.user = user
 
 	def force_user_to_reset_password(self):
 		if not self.user:

@@ -11,7 +11,7 @@ from pypika.terms import Values
 import frappe
 from frappe import _
 from frappe.query_builder import Table
-from frappe.utils import cstr, encode
+from frappe.utils import cstr, encode, sha256_hash
 
 Auth = Table("__Auth")
 MAX_PASSWORD_SIZE = 512
@@ -153,6 +153,24 @@ def has_password(user: str) -> bool:
 		.limit(1)
 		.run()
 	)
+
+
+def get_password_fingerprint(user: str) -> str:
+	"""Short digest of the user's stored password hash, which changes with the password.
+	Safe to cache where the hash itself is not."""
+	password_hash = (
+		frappe.qb.from_(Auth)
+		.select(Auth.password)
+		.where(
+			(Auth.doctype == "User")
+			& (Auth.name == user)
+			& (Auth.fieldname == "password")
+			& (Auth.encrypted == 0)
+		)
+		.limit(1)
+		.run(pluck=True)
+	)
+	return sha256_hash(password_hash[0] if password_hash else "")[:16]
 
 
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):

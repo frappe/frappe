@@ -8,7 +8,7 @@ from frappe.auth import get_login_attempt_tracker
 from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import make_request
-from frappe.twofactor import clear_default, get_otpsecret_for_, set_default
+from frappe.twofactor import clear_2fa_data, clear_default, get_otpsecret_for_, set_default
 from frappe.utils import get_test_client
 from frappe.utils.password import update_password
 
@@ -118,18 +118,18 @@ class TestTwoFactorLogin(IntegrationTestCase):
 
 	def test_otp_attempt_limit_survives_login_restarts(self):
 		tmp_id = self.start_login()
-		code = self.email_code(tmp_id)
 		for credentials in (
-			{"usr": self.user, "pwd": self.password},
-			{"usr": self.user, "tmp_id": tmp_id},
-			{"tmp_id": tmp_id},
+			lambda tmp_id: {"usr": self.user, "pwd": self.password},
+			lambda tmp_id: {"usr": self.user, "tmp_id": tmp_id},
+			lambda tmp_id: {"tmp_id": tmp_id},
 		):
-			response = self.post_login(credentials)
+			response = self.post_login(credentials(tmp_id))
 			self.assertEqual(response.status_code, 200)
+			tmp_id = response.json["tmp_id"]
 			response = self.post_login({"tmp_id": tmp_id, "otp": "wrong-code"})
 			self.assertEqual(response.status_code, 401)
 
-		response = self.post_login({"tmp_id": tmp_id, "otp": code})
+		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
 		self.assertEqual(response.json.get("exc_type"), "SecurityException")
 		response = self.post_login({"usr": self.user, "pwd": self.password})
 		self.assertEqual(response.json.get("exc_type"), "SecurityException")
@@ -146,6 +146,93 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.TOTP(self.secret).now()})
 		self.assert_logged_in(response)
 		self.assertFalse(tracker.login_failed_count)
+
+	def test_password_is_not_cached(self):
+		tmp_id = self.start_login()
+		keys = frappe.cache.get_keys(tmp_id)
+		self.assertTrue(keys)
+		for key in keys:
+			self.assertNotIn(self.password.encode(), frappe.cache.get(key))
+
+	def test_password_change_fails_pending_login(self):
+		tmp_id = self.start_login()
+		update_password(self.user, "TwoFactor-changed-43A1W")
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
+		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.json["message"], "Invalid login credentials")
+
+	def test_disabled_user_fails_pending_login(self):
+		tmp_id = self.start_login()
+		frappe.db.set_value("User", self.user, "enabled", 0)
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
+		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.json["message"], "User disabled or missing")
+
+	def test_locked_user_fails_pending_login(self):
+		tmp_id = self.start_login()
+		tracker = get_login_attempt_tracker(self.user)
+		for _ in range(3):
+			tracker.add_failure_attempt()
+		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
+		self.assertEqual(response.json.get("exc_type"), "SecurityException")
+
+	def test_pending_login_needs_2fa(self):
+		tmp_id = self.start_login()
+		for role in ("All", self.role):
+			frappe.db.set_value("Role", role, "two_factor_auth", 0)
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
+		self.assertEqual(response.json.get("exc_type"), "ExpiredLoginException")
+
+	def test_tmp_id_expires_after_login(self):
+		set_default(self.user + "_otplogin", 1)
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+		tmp_id = self.start_login(method="OTP App")
+		otp = pyotp.TOTP(self.secret).now()
+		self.assert_logged_in(self.post_login({"tmp_id": tmp_id, "otp": otp}))
+		response = self.post_login({"tmp_id": tmp_id, "otp": otp})
+		self.assertEqual(response.json.get("exc_type"), "ExpiredLoginException")
+
+	def test_restart_expires_previous_tmp_id(self):
+		tmp_id = self.start_login()
+		code = self.email_code(tmp_id)
+		response = self.post_login({"tmp_id": tmp_id})
+		self.assertEqual(response.status_code, 200)
+		response = self.post_login({"tmp_id": tmp_id, "otp": code})
+		self.assertEqual(response.json.get("exc_type"), "ExpiredLoginException")
+
+	def test_pending_login_from_before_upgrade_expires(self):
+		tmp_id = frappe.generate_hash(length=8)
+		self.addCleanup(frappe.cache.delete_value, tmp_id + "_pwd")
+		self.tmp_ids.append(tmp_id)
+		for key, value in {"_usr": self.user, "_pwd": self.password, "_otp_secret": self.secret}.items():
+			frappe.cache.set_value(tmp_id + key, value, expires_in_sec=60)
+		response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.TOTP(self.secret).now()})
+		self.assertEqual(response.json.get("exc_type"), "ExpiredLoginException")
+
+	def test_ldap_login(self):
+		with (
+			self.change_settings("System Settings", {"two_factor_method": "Email"}, commit=True),
+			test_user(roles=[self.role], commit=True) as user,
+			patch(
+				"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.authenticate",
+				return_value=user,
+			),
+		):
+			self.addCleanup(clear_default, user.name + "_otpsecret")
+			secret = get_otpsecret_for_(user.name)
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+			response = self.post_login(
+				{"usr": user.email, "pwd": "ldap-password"},
+				method="frappe.integrations.doctype.ldap_settings.ldap_settings.login",
+			)
+			tmp_id = response.json["tmp_id"]
+			token = frappe.cache.get_value(tmp_id + "_token", use_local_cache=False)
+			response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.HOTP(secret).at(token)})
+			self.assert_logged_in(response)
 
 	def test_password_login_resets_attempt_limit_without_2fa(self):
 		with self.change_settings("System Settings", {"enable_two_factor_auth": 0}, commit=True):
@@ -164,10 +251,10 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		self.assertNotIn("otp_secret", response.json["verification"])
 		return response.json["tmp_id"]
 
-	def post_login(self, data):
+	def post_login(self, data, method="login"):
 		response = make_request(
 			target=self.client.post,
-			args=("/api/method/login",),
+			args=(f"/api/method/{method}",),
 			kwargs={"data": data},
 			site=frappe.local.site,
 		)
@@ -192,9 +279,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 			clear_default(self.user + suffix)
 		get_login_attempt_tracker(self.user, raise_locked_exception=False).add_success_attempt()
 		for tmp_id in self.tmp_ids:
-			frappe.cache.delete_value(
-				[tmp_id + suffix for suffix in ("_usr", "_pwd", "_otp_secret", "_token", "_email_verified")]
-			)
+			clear_2fa_data(tmp_id)
 		for doctype, name in (("User", self.user), ("Role", self.role)):
 			if frappe.db.exists(doctype, name):
 				frappe.delete_doc(doctype, name, force=True)

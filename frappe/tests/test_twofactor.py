@@ -13,7 +13,6 @@ from frappe.twofactor import (
 	authenticate_for_2factor,
 	clear_default,
 	confirm_otp_token,
-	get_cached_user_pass,
 	get_default,
 	get_email_body_for_2fa,
 	get_otpsecret_for_,
@@ -48,11 +47,6 @@ class TestTwoFactor(IntegrationTestCase):
 		toggle_2fa_all_role(state=False)
 		self.assertFalse(should_run_2fa(self.user))
 
-	def test_get_cached_user_pass(self):
-		"""Cached data should not contain user and pass before 2fa."""
-		user, pwd = get_cached_user_pass()
-		self.assertTrue(all([not user, not pwd]))
-
 	def test_2fa_email_bodies_render(self):
 		code_body = get_email_body_for_2fa({"otp": "123456", "otp_issuer": "Frappe"})
 		self.assertIn("123456", code_body)
@@ -82,7 +76,7 @@ class TestTwoFactor(IntegrationTestCase):
 		tmp_id = frappe.local.response["tmp_id"]
 		self.assertTrue(verification_obj)
 		self.assertTrue(tmp_id)
-		for k in ["_usr", "_pwd", "_otp_secret"]:
+		for k in ["_usr", "_password_fingerprint", "_otp_secret"]:
 			self.assertTrue(
 				frappe.cache.get_value(f"{tmp_id}{k}", use_local_cache=False), f"{k} not available"
 			)
