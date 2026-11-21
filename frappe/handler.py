@@ -337,17 +337,8 @@ def run_doc_method(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	else:
 		docs = frappe.parse_json(docs)
 		doc = frappe.get_doc(docs)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-		if doc.meta.issingle or bool(frappe.db.exists(doc.doctype, doc.get("name"))):
-=======
 		if not doc.is_new() or doc.meta.issingle or frappe.db.exists(doc.doctype, doc.name):
->>>>>>> 94e99fc (fix: saved virtual records need write, not create, to run a method)
 			frappe.has_permission(doc.doctype, "read", doc.name, throw=True)
-		else:
-			doc.check_permission("read")
->>>>>>> a8b7e0e (fix: check whitelisted method permission on the stored document)
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 

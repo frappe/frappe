@@ -1015,15 +1015,9 @@ class Document(_DocumentBase):
 		original_modified = get_datetime(self._original_modified) if self._original_modified else None
 		if previous_modified != original_modified:
 			frappe.msgprint(
-<<<<<<< HEAD
-				_("Error: Document has been modified after you have opened it")
-				+ (f" ({previous.modified}, {self.modified}). ")
-				+ _("Please refresh to get the latest document."),
-=======
 				_(
 					"Error: {0} ({1}) has been modified after you have opened it. Please refresh to get the latest document."
 				).format(self.name, self.doctype),
->>>>>>> a8b7e0e (fix: check whitelisted method permission on the stored document)
 				raise_exception=frappe.TimestampMismatchError,
 			)
 
@@ -1045,13 +1039,8 @@ class Document(_DocumentBase):
 				self._action = "save"
 			elif self.docstatus.is_submitted():
 				self._action = "submit"
-<<<<<<< HEAD
-				self.check_permission("submit")
-			elif self.docstatus.is_cancelled():
-=======
 				self._check_transition_permission("submit")
-			elif to_docstatus.is_cancelled():
->>>>>>> cd62556 (fix: submit, cancel and rename check permission on the stored document)
+			elif self.docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
 				)
@@ -1061,19 +1050,11 @@ class Document(_DocumentBase):
 		elif to_docstatus == DocStatus.SUBMITTED:
 			if self.docstatus.is_submitted():
 				self._action = "update_after_submit"
-<<<<<<< HEAD
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif self.docstatus.is_cancelled():
 				self._action = "cancel"
-				self.check_permission("cancel")
-			elif self.docstatus.is_draft():
-=======
-				self._check_transition_permission("submit")
-			elif to_docstatus.is_cancelled():
-				self._action = "cancel"
 				self._check_transition_permission("cancel")
-			elif to_docstatus.is_draft():
->>>>>>> cd62556 (fix: submit, cancel and rename check permission on the stored document)
+			elif self.docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)")
 				)
@@ -1279,29 +1260,6 @@ class Document(_DocumentBase):
 		return self._cancel()
 
 	@frappe.whitelist()
-<<<<<<< HEAD
-=======
-	def discard(self):
-		"""Discard the draft document. Sets `docstatus` = 2 with db_set."""
-		self._action = "discard"
-
-		self.check_if_locked()
-		self.set_user_and_timestamp()
-		self.check_if_latest()
-
-		if not self.docstatus.is_draft():
-			raise frappe.ValidationError(_("Only draft documents can be discarded"), self.docstatus)
-
-		if not self.flags.ignore_permissions:
-			frappe.has_permission(self.doctype, "write", self.name, throw=True)
-
-		self.run_method("before_discard")
-		self.db_set("docstatus", DocStatus.CANCELLED)
-		delattr(self, "_action")
-		self.run_method("on_discard")
-
-	@frappe.whitelist()
->>>>>>> a8b7e0e (fix: check whitelisted method permission on the stored document)
 	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
 		if not self.flags.ignore_permissions:

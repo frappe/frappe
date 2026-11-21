@@ -171,19 +171,8 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 		kwargs = {}
 
 	doc = frappe.get_doc(document)
-<<<<<<< HEAD
-=======
-	ptype = PERMISSION_MAP[frappe.request.method]
-	# unsaved docs need create, not write; `__islocal` comes from the client, so check the DB too
-	# (a Single always exists, whatever name the client sends)
-	stored = not doc.is_new() or bool(doc.meta.issingle or frappe.db.exists(doc.doctype, doc.name))
-	if ptype == "write" and not stored:
-		ptype = "create"
-	if stored:
-		frappe.has_permission(doc.doctype, ptype, doc.name, throw=True)
-	else:
-		doc.check_permission(ptype)
->>>>>>> a8b7e0e (fix: check whitelisted method permission on the stored document)
+	if not doc.is_new() or doc.meta.issingle or frappe.db.exists(doc.doctype, doc.name):
+		frappe.has_permission(doc.doctype, PERMISSION_MAP[frappe.request.method], doc.name, throw=True)
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
 
