@@ -74,7 +74,15 @@ class TestSetupWizardUrl(UnitTestCase):
 class TestCompleteAppSetup(IntegrationTestCase):
 	def test_a_site_without_a_region_still_gets_the_site_defaults(self):
 		# Like a Frappe Cloud v2 site: no region, so no time zone or formats saved either.
-		fields = ["backup_limit", "language", "time_zone", "date_format", "number_format", "rounding_method"]
+		fields = [
+			"backup_limit",
+			"language",
+			"time_zone",
+			"date_format",
+			"number_format",
+			"rounding_method",
+			"enable_telemetry",
+		]
 		before = frappe.db.get_singles_dict("System Settings")
 
 		def restore():
