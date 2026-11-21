@@ -1,0 +1,29 @@
+.badge {
+	display: inline-block;
+	padding: 0.25em 0.4em;
+	font-size: 75%;
+	font-weight: var(--font-weight-bold);
+	line-height: 1;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	border-radius: var(--radius);
+	transition: none;
+
+	&:empty {
+		display: none;
+	}
+}
+
+.badge-pill {
+	padding-right: 0.6em;
+	padding-left: 0.6em;
+	border-radius: var(--radius-full);
+}
+
+@each $name in secondary, warning, danger, light, dark {
+	.badge-#{$name} {
+		color: desk-color-text($name);
+		background-color: map-get($desk-colors, $name);
+	}
+}

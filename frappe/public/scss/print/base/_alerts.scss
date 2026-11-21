@@ -1,0 +1,46 @@
+.alert {
+	padding: 10px;
+	margin-bottom: 20px;
+	border: 1px solid transparent;
+	border-radius: $print-radius;
+
+	h4 {
+		margin-top: 0;
+		color: inherit;
+	}
+	.alert-link {
+		font-weight: bold;
+	}
+	> p,
+	> ul {
+		margin-bottom: 0;
+	}
+	> p + p {
+		margin-top: 5px;
+	}
+}
+.alert-dismissable,
+.alert-dismissible {
+	padding-right: 30px;
+
+	.close {
+		position: relative;
+		top: -2px;
+		right: -21px;
+		color: inherit;
+	}
+}
+@each $state, $colors in $print-states {
+	.alert-#{$state} {
+		color: nth($colors, 1);
+		background-color: rgba(255, 255, 255, 0.9);
+		border-color: nth($colors, 1);
+
+		hr {
+			border-top-color: nth($colors, 2);
+		}
+		.alert-link {
+			color: nth($colors, 3);
+		}
+	}
+}

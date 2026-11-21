@@ -30,7 +30,7 @@
 	width: 100%;
 	background-color: var(--surface-elevation-2);
 	box-shadow: var(--shadow-sm);
-	border-radius: 12px;
+	border-radius: var(--radius-lg);
 	padding: 16px;
 }
 .frappe-card-description {

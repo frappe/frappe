@@ -157,7 +157,7 @@
 }
 
 .awesomebar-modal-footer {
-	font-size: 12px;
+	font-size: var(--text-xs);
 
 	.help-navigation {
 		display: flex;
@@ -186,14 +186,14 @@
 
 .navbar.bg-dark {
 	.dropdown-menu {
-		font-size: 0.75rem;
-		background-color: $dark;
+		font-size: var(--text-xs);
+		background-color: $gray-800;
 		border-radius: 0;
 	}
 
 	.nav-link {
 		white-space: nowrap;
-		color: $light;
+		color: $gray-100;
 
 		&:hover {
 			color: $primary;

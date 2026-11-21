@@ -169,7 +169,11 @@
 }
 
 .section-with-cards .card {
-	@include transition();
+	transition: all 0.2s ease-in-out;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
 
 	&:hover {
 		border-color: $gray-500;
@@ -236,7 +240,11 @@
 		padding: 1rem 0.5rem;
 		margin-right: 2rem;
 		white-space: nowrap;
-		@include transition();
+		transition: all 0.2s ease-in-out;
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+		}
 
 		&:hover {
 			color: $primary;
@@ -512,7 +520,11 @@
 }
 
 .collapsible-icon .vertical {
-	@include transition();
+	transition: all 0.2s ease-in-out;
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
+	}
 }
 
 .collapsible-icon.is-opened .vertical {

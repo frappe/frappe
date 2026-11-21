@@ -1,0 +1,119 @@
+$tooltip-arrow-width: 0.8rem;
+$tooltip-arrow-height: 0.4rem;
+
+.tooltip,
+.popover {
+	font-family: var(--font-stack);
+	font-style: normal;
+	font-weight: 400;
+	line-height: 1.5;
+	text-align: left;
+	text-align: start;
+	text-decoration: none;
+	text-shadow: none;
+	text-transform: none;
+	letter-spacing: normal;
+	word-break: normal;
+	white-space: normal;
+	word-spacing: normal;
+	line-break: auto;
+	font-size: var(--text-xs);
+	word-wrap: break-word;
+}
+
+.tooltip {
+	position: absolute;
+	z-index: 1070;
+	display: block;
+	margin: 0;
+	opacity: 0;
+
+	&.show {
+		opacity: 0.9;
+	}
+
+	.arrow {
+		position: absolute;
+		display: block;
+		width: $tooltip-arrow-width;
+		height: $tooltip-arrow-height;
+
+		&::before {
+			position: absolute;
+			content: "";
+			border-color: transparent;
+			border-style: solid;
+		}
+	}
+}
+
+.bs-tooltip-top {
+	padding: $tooltip-arrow-height 0;
+
+	.arrow {
+		bottom: 0;
+
+		&::before {
+			top: 0;
+			border-width: $tooltip-arrow-height ($tooltip-arrow-width * 0.5) 0;
+			border-top-color: var(--black);
+		}
+	}
+}
+
+.bs-tooltip-right {
+	padding: 0 $tooltip-arrow-height;
+
+	.arrow {
+		left: 0;
+		width: $tooltip-arrow-height;
+		height: $tooltip-arrow-width;
+
+		&::before {
+			right: 0;
+			border-width: ($tooltip-arrow-width * 0.5) $tooltip-arrow-height
+				($tooltip-arrow-width * 0.5) 0;
+			border-right-color: var(--black);
+		}
+	}
+}
+
+.bs-tooltip-bottom {
+	padding: $tooltip-arrow-height 0;
+
+	.arrow {
+		top: 0;
+
+		&::before {
+			bottom: 0;
+			border-width: 0 ($tooltip-arrow-width * 0.5) $tooltip-arrow-height;
+			border-bottom-color: var(--black);
+		}
+	}
+}
+
+.bs-tooltip-left {
+	padding: 0 $tooltip-arrow-height;
+
+	.arrow {
+		right: 0;
+		width: $tooltip-arrow-height;
+		height: $tooltip-arrow-width;
+
+		&::before {
+			left: 0;
+			border-width: ($tooltip-arrow-width * 0.5) 0 ($tooltip-arrow-width * 0.5)
+				$tooltip-arrow-height;
+			border-left-color: var(--black);
+		}
+	}
+}
+
+.tooltip-inner {
+	max-width: 200px;
+	padding: 0.25rem 0.5rem;
+	color: var(--white);
+	text-align: center;
+	background-color: var(--black);
+	border-radius: var(--radius);
+}

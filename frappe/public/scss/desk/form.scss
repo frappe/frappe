@@ -185,8 +185,8 @@ body.full-width {
 
 		.comment-title {
 			@extend .head-title;
-			font-size: 16px;
-			font-weight: 500;
+			font-size: var(--text-lg);
+			font-weight: var(--font-weight-medium);
 		}
 
 		.comment-count {

@@ -1,0 +1,237 @@
+.card {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	height: $card-height;
+	word-wrap: break-word;
+	background-color: $card-bg;
+	background-clip: border-box;
+	border: $card-border-width solid $card-border-color;
+	@include border-radius($card-border-radius);
+
+	> hr {
+		margin-right: 0;
+		margin-left: 0;
+	}
+
+	> .list-group {
+		border-top: inherit;
+		border-bottom: inherit;
+
+		&:first-child {
+			border-top-width: 0;
+			@include border-top-radius($card-inner-border-radius);
+		}
+
+		&:last-child {
+			border-bottom-width: 0;
+			@include border-bottom-radius($card-inner-border-radius);
+		}
+	}
+
+	> .card-header + .list-group,
+	> .list-group + .card-footer {
+		border-top: 0;
+	}
+}
+
+.card-body {
+	flex: 1 1 auto;
+	min-height: 1px;
+	padding: $card-spacer-x;
+	color: $card-color;
+}
+
+.card-title {
+	margin-bottom: $card-spacer-y;
+}
+
+.card-subtitle {
+	margin-top: -$card-spacer-y * 0.5;
+	margin-bottom: 0;
+}
+
+.card-text:last-child {
+	margin-bottom: 0;
+}
+
+.card-link {
+	@include hover() {
+		text-decoration: none;
+	}
+
+	+ .card-link {
+		margin-left: $card-spacer-x;
+	}
+}
+
+.card-header {
+	padding: $card-spacer-y $card-spacer-x;
+	margin-bottom: 0;
+	color: $card-cap-color;
+	background-color: $card-cap-bg;
+	border-bottom: $card-border-width solid $card-border-color;
+
+	&:first-child {
+		@include border-radius($card-inner-border-radius $card-inner-border-radius 0 0);
+	}
+}
+
+.card-footer {
+	padding: $card-spacer-y $card-spacer-x;
+	color: $card-cap-color;
+	background-color: $card-cap-bg;
+	border-top: $card-border-width solid $card-border-color;
+
+	&:last-child {
+		@include border-radius(0 0 $card-inner-border-radius $card-inner-border-radius);
+	}
+}
+
+.card-header-tabs {
+	margin-right: -$card-spacer-x * 0.5;
+	margin-bottom: -$card-spacer-y;
+	margin-left: -$card-spacer-x * 0.5;
+	border-bottom: 0;
+}
+
+.card-header-pills {
+	margin-right: -$card-spacer-x * 0.5;
+	margin-left: -$card-spacer-x * 0.5;
+}
+
+.card-img-overlay {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	padding: $card-img-overlay-padding;
+	@include border-radius($card-inner-border-radius);
+}
+
+.card-img,
+.card-img-top,
+.card-img-bottom {
+	flex-shrink: 0;
+	width: 100%;
+}
+
+.card-img,
+.card-img-top {
+	@include border-top-radius($card-inner-border-radius);
+}
+
+.card-img,
+.card-img-bottom {
+	@include border-bottom-radius($card-inner-border-radius);
+}
+
+.card-deck {
+	.card {
+		margin-bottom: $card-deck-margin;
+	}
+
+	@include media-breakpoint-up(sm) {
+		display: flex;
+		flex-flow: row wrap;
+		margin-right: -$card-deck-margin;
+		margin-left: -$card-deck-margin;
+
+		.card {
+			flex: 1 0 0%;
+			margin-right: $card-deck-margin;
+			margin-bottom: 0;
+			margin-left: $card-deck-margin;
+		}
+	}
+}
+
+.card-group {
+	> .card {
+		margin-bottom: $card-group-margin;
+	}
+
+	@include media-breakpoint-up(sm) {
+		display: flex;
+		flex-flow: row wrap;
+		> .card {
+			flex: 1 0 0%;
+			margin-bottom: 0;
+
+			+ .card {
+				margin-left: 0;
+				border-left: 0;
+			}
+
+			@if $enable-rounded {
+				&:not(:last-child) {
+					@include border-right-radius(0);
+
+					.card-img-top,
+					.card-header {
+						border-top-right-radius: 0;
+					}
+					.card-img-bottom,
+					.card-footer {
+						border-bottom-right-radius: 0;
+					}
+				}
+
+				&:not(:first-child) {
+					@include border-left-radius(0);
+
+					.card-img-top,
+					.card-header {
+						border-top-left-radius: 0;
+					}
+					.card-img-bottom,
+					.card-footer {
+						border-bottom-left-radius: 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+.card-columns {
+	.card {
+		margin-bottom: $card-columns-margin;
+	}
+
+	@include media-breakpoint-up(sm) {
+		column-count: $card-columns-count;
+		column-gap: $card-columns-gap;
+		orphans: 1;
+		widows: 1;
+
+		.card {
+			display: inline-block;
+			width: 100%;
+		}
+	}
+}
+
+.accordion {
+	overflow-anchor: none;
+
+	> .card {
+		overflow: hidden;
+
+		&:not(:last-of-type) {
+			border-bottom: 0;
+			@include border-bottom-radius(0);
+		}
+
+		&:not(:first-of-type) {
+			@include border-top-radius(0);
+		}
+
+		> .card-header {
+			@include border-radius(0);
+			margin-bottom: -$card-border-width;
+		}
+	}
+}

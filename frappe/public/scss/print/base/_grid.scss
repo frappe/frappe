@@ -1,0 +1,90 @@
+@use "sass:math";
+@use "sass:list";
+
+$print-grid-breakpoints: (
+	xs: 0,
+	sm: 768px,
+	md: 992px,
+	lg: 1200px,
+);
+$print-container-widths: (
+	sm: 750px,
+	md: 970px,
+	lg: 1170px,
+);
+$print-grid-columns: 12;
+
+@function grid-width($i) {
+	@return math.div(math.round(math.div($i, $print-grid-columns) * 1e10), 1e8) * 1%;
+}
+
+@mixin grid-columns-for($size) {
+	$floats: ();
+	@for $i from 1 through $print-grid-columns {
+		$floats: list.append($floats, ".col-#{$size}-#{$i}", comma);
+	}
+	#{$floats} {
+		float: left;
+	}
+	@for $i from $print-grid-columns through 1 {
+		.col-#{$size}-#{$i} {
+			width: grid-width($i);
+		}
+	}
+	@each $type, $prop in (pull: right, push: left) {
+		@for $i from $print-grid-columns through 0 {
+			.col-#{$size}-#{$type}-#{$i} {
+				#{$prop}: if($i == 0, auto, grid-width($i));
+			}
+		}
+	}
+	@for $i from $print-grid-columns through 0 {
+		.col-#{$size}-offset-#{$i} {
+			margin-left: if($i == 0, 0, grid-width($i));
+		}
+	}
+}
+
+.container,
+.container-fluid {
+	padding-right: 15px;
+	padding-left: 15px;
+	margin-right: auto;
+	margin-left: auto;
+	@extend %clearfix;
+}
+@each $size, $width in $print-container-widths {
+	@media (min-width: map-get($print-grid-breakpoints, $size)) {
+		.container {
+			width: $width;
+		}
+	}
+}
+.row {
+	margin-right: -15px;
+	margin-left: -15px;
+	@extend %clearfix;
+}
+
+$all-columns: ();
+@for $i from 1 through $print-grid-columns {
+	@each $size, $min in $print-grid-breakpoints {
+		$all-columns: list.append($all-columns, ".col-#{$size}-#{$i}", comma);
+	}
+}
+#{$all-columns} {
+	position: relative;
+	min-height: 1px;
+	padding-right: 15px;
+	padding-left: 15px;
+}
+
+@each $size, $min in $print-grid-breakpoints {
+	@if $min == 0 {
+		@include grid-columns-for($size);
+	} @else {
+		@media (min-width: $min) {
+			@include grid-columns-for($size);
+		}
+	}
+}

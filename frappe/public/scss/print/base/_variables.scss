@@ -1,0 +1,67 @@
+$print-font-family: "Helvetica Neue", Helvetica, Arial, "Open Sans", sans-serif;
+$print-font-size: 14px;
+$print-font-size-sm: 12px;
+$print-font-size-lg: 18px;
+$print-line-height: 1.42857143;
+$print-line-height-sm: 1.5;
+$print-line-height-lg: 1.33;
+
+$print-text-color: #36414c;
+$print-text-muted: #8d99a6;
+$print-gray-light: #777;
+$print-border-color: #d1d8dd;
+$print-light-bg: #f0f4f7;
+$print-input-color: #555;
+
+$print-radius: 4px;
+$print-radius-sm: 3px;
+$print-radius-lg: 6px;
+
+$print-primary: #5e64ff;
+$print-primary-border: #444bff;
+
+$print-states: (
+	success: (
+		#98d85b,
+		#8bd346,
+		#7ece32,
+	),
+	info: (
+		#935eff,
+		#8244ff,
+		#712bff,
+	),
+	warning: (
+		#ffa00a,
+		#f09300,
+		#d68300,
+	),
+	danger: (
+		#ff5858,
+		#ff3f3f,
+		#ff2525,
+	),
+);
+
+@function print-state($state, $shade: 1) {
+	@return nth(map-get($print-states, $state), $shade);
+}
+
+$print-control-sizes: (
+	sm: (
+		5px 10px,
+		$print-font-size-sm,
+		$print-line-height-sm,
+		$print-radius-sm,
+	),
+	lg: (
+		10px 16px,
+		$print-font-size-lg,
+		$print-line-height-lg,
+		$print-radius-lg,
+	),
+);
+$print-input-heights: (
+	sm: 30px,
+	lg: 46px,
+);
