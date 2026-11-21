@@ -218,6 +218,13 @@ class CustomField(Document):
 		if self.get("translatable", 0) and not supports_translation(self.fieldtype):
 			self.translatable = 0
 
+		if self.get("allow_in_quick_entry", 0) and self.fieldtype in (
+			"Tab Break",
+			"Table",
+			"Attachment Gallery",
+		):
+			self.allow_in_quick_entry = 0
+
 		check_fieldname_conflicts(self)
 
 	def on_update(self):
