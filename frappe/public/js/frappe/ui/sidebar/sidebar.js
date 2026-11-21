@@ -1186,6 +1186,9 @@ frappe.ui.Sidebar = class Sidebar {
 
 	module_for_workspace(name) {
 		if (!name) return null;
+		const linking = this.get_modules_linking(name, "Workspace")[0];
+		if (linking) return linking;
+
 		const entry = Object.values(frappe.boot.module_sidebars || {}).find((sidebar) =>
 			(sidebar.workspaces || []).includes(name)
 		);
