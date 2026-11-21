@@ -12,6 +12,7 @@ import os
 import posixpath
 import re
 import zipfile
+from collections.abc import Iterator
 from typing import TYPE_CHECKING
 from urllib.parse import quote, unquote
 
@@ -316,7 +317,9 @@ class File(Document):
 		if not self.is_new():
 			filters["name"] = ["!=", self.name]
 
-		private_files = frappe.get_all("File", filters=filters, fields=["name", "owner"])
+		private_files = frappe.get_all(
+			"File", filters=filters, fields=["name", "owner", "is_private", "attached_to_doctype"]
+		)
 		if not private_files:
 			return
 
@@ -325,7 +328,7 @@ class File(Document):
 			return
 
 		# a file can be attached to multiple documents; access to any one of them is enough
-		for private_file in private_files:
+		for private_file in _without_unreadable_attachments(private_files):
 			if user == private_file.owner:
 				return
 
@@ -1102,6 +1105,42 @@ def has_permission(doc, ptype=None, user=None, debug=False):
 			return frappe.has_permission(attached_to_doctype, "read", doc=ref_doc, user=user, debug=debug)
 
 	return False
+
+
+def _without_unreadable_attachments(files: list[frappe._dict]) -> Iterator[frappe._dict]:
+	"""Rows need `name`, `owner`, `is_private` and `attached_to_doctype`; owned and shared rows always pass."""
+	if any(frappe.get_hooks("ignore_file_permissions")):
+		yield from files
+		return
+
+	user = frappe.session.user
+	readable_doctypes = {}
+	shared_files = None
+	for file in files:
+		doctype = file.attached_to_doctype
+		# a child table cannot be checked without its parent document
+		if not file.is_private or file.owner == user or not doctype or frappe.is_table(doctype):
+			yield file
+			continue
+
+		if doctype not in readable_doctypes:
+			try:
+				readable_doctypes[doctype] = frappe.has_permission(doctype, "read", user=user)
+			except frappe.DoesNotExistError:
+				frappe.clear_last_message()
+				readable_doctypes[doctype] = False
+		if readable_doctypes[doctype]:
+			yield file
+			continue
+
+		if shared_files is None:
+			shared_files = set(
+				frappe.share.get_shared(
+					"File", user, filters=[["share_name", "in", [candidate.name for candidate in files]]]
+				)
+			)
+		if file.name in shared_files:
+			yield file
 
 
 def get_permission_query_conditions(user: str | None = None) -> str:
