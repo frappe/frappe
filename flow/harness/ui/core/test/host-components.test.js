@@ -256,6 +256,25 @@ test("a host view that declares a call prop reads the call and keeps the card's 
 	assert.deepEqual([...el.querySelectorAll("button")].map((button) => button.textContent), ["Ask for changes", "Deny", "Approve"])
 })
 
+test("a card says in its header why auto mode held the call, and nowhere else", async (t) => {
+	const prompt = 'Send Email\n{\n  "to": "a@b.c"\n}\n\nNot auto-approved: it mails a customer'
+	const call = { id: "c9", name: "send_email", args: { to: "a@b.c" }, prompt }
+	const header = (el) => [...el.firstElementChild.firstElementChild.firstElementChild.children].map((line) => line.textContent.trim())
+	const plain = mount(t, ApprovalCard, { call }, { options: {} })
+	assert.deepEqual(header(plain.el), ["Send Email", "Not auto-approved: it mails a customer"])
+	assert.equal(plain.el.querySelector("pre").textContent, '{\n  "to": "a@b.c"\n}')
+
+	// a host's view reads the prompt without it
+	const ReadsPrompt = { props: { arguments: Object, call: Object }, setup: (props) => () => h("p", props.call.prompt) }
+	const hosted = mount(t, ApprovalCard, { call }, { options: { presentTool: () => ({ argsComponent: ReadsPrompt }) } })
+	assert.equal(hosted.el.querySelector("p").textContent, 'Send Email\n{\n  "to": "a@b.c"\n}')
+	assert.deepEqual(header(hosted.el), ["Send Email", "Not auto-approved: it mails a customer"])
+
+	// a call that was only asked about has no second line
+	const asked = mount(t, ApprovalCard, { call: { ...call, prompt: "Send Email\nMail it" } }, { options: {} })
+	assert.deepEqual(header(asked.el), ["Send Email"])
+})
+
 test("a row leaves a host's counts to the result, showing the user's decision or an error instead; a host picks its dropdown", async (t) => {
 	const presentTool = () => ({ stat: "3 updated" })
 	const step = { call: { id: "c1", name: "update_document", arguments: args }, result: { content: "ok", details: { lines: 12 } } }
