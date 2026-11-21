@@ -592,12 +592,6 @@ def get_email_retry_limit():
 	return cint(frappe.db.get_system_setting("email_retry_limit")) or 3
 
 
-def is_undeliverable(email: str) -> bool:
-	"""Whether `email` is Administrator's or Guest's placeholder, or on the reserved `.invalid` domain."""
-	email = extract_email_id(email).lower()
-	return email.endswith(".invalid") or email in ("admin@example.com", "guest@example.com")
-
-
 class QueueBuilder:
 	"""Builds Email Queue from the given data"""
 
@@ -742,7 +736,7 @@ class QueueBuilder:
 
 	@property
 	def sender(self):
-		if not self._sender or self._sender == "Administrator" or is_undeliverable(self._sender):
+		if not self._sender or self._sender == "Administrator":
 			email_account = self.get_outgoing_email_account()
 			return email_account.default_sender
 		return self._sender
