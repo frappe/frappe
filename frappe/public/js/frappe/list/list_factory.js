@@ -22,20 +22,18 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 			// may redirect to the last or first board, so route[3] is set before we pick the engine
 			if (frappe.views.KanbanView.load_last_view()) return;
 			frappe.views.get_kanban_engine(route[3]).then((use_v2) => {
-				frappe.provide("frappe.views.list_view." + doctype);
-				const build = (View) => {
-					frappe.views.list_view[me.page_name] = new View({
-						doctype,
-						parent: me.make_page(true, me.page_name, null),
-					});
-					me.set_cur_list();
-				};
+				const build = (View) => me.build_view(View, doctype, me.page_name);
 				if (use_v2) {
 					frappe.require("kanban.bundle.js", () => build(frappe.views.KanbanV2View));
 				} else {
 					build(frappe.views.KanbanView);
 				}
 			});
+			return;
+		}
+
+		if (view_name === "Split") {
+			this.make_split_view(doctype);
 			return;
 		}
 
@@ -59,7 +57,34 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		me.set_cur_list();
 	}
 
+	make_split_view(doctype) {
+		if (!frappe.get_meta(doctype)?.allow_split_view) {
+			frappe.route_flags.replace_route = true;
+			frappe.set_route("List", doctype, "List");
+			return;
+		}
+		const page_name = this.page_name;
+		frappe.require("split_view.bundle.js", () => {
+			// the route moved on, or an earlier call made the page, while the bundle loaded
+			const route_page = frappe.views.get_split_page_name(frappe.get_route());
+			if (route_page !== page_name || frappe.pages[page_name]) return;
+			this.build_view(frappe.views.SplitView, doctype, page_name);
+		});
+	}
+
+	build_view(View, doctype, page_name) {
+		frappe.provide("frappe.views.list_view." + doctype);
+		frappe.views.list_view[page_name] = new View({
+			doctype,
+			parent: this.make_page(true, page_name, null),
+		});
+		this.set_cur_list();
+	}
+
 	before_show() {
+		if (this.route[2] === "Split") {
+			this.page_name = frappe.views.get_split_page_name(this.route);
+		}
 		if (this.re_route_to_view()) {
 			return false;
 		}
@@ -103,6 +128,9 @@ frappe.views.ListFactory = class ListFactory extends frappe.views.Factory {
 		}
 	}
 };
+
+/** A split page serves every record it opens, so its name leaves out the route's last part. */
+frappe.views.get_split_page_name = (route) => route.slice(0, 3).join("/");
 
 // board name -> uses Kanban v2. Primed by KanbanView.get_kanbans; the board form clears its entry on save.
 frappe.views._kanban_engine_cache = frappe.views._kanban_engine_cache || {};

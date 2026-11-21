@@ -88,6 +88,7 @@ frappe.router = {
 		"list",
 		"kanban",
 		"report",
+		"split",
 		"calendar",
 		"tree",
 		"gantt",
@@ -100,6 +101,7 @@ frappe.router = {
 		list: "List",
 		kanban: "Kanban",
 		report: "Report",
+		split: "Split",
 		calendar: "Calendar",
 		tree: "Tree",
 		gantt: "Gantt",
@@ -364,6 +366,9 @@ frappe.router = {
 			this.meta = meta;
 			let default_view = meta.default_view;
 			if (default_view === "Report" && !frappe.model.can_get_report(doctype_route.doctype)) {
+				default_view = null;
+			}
+			if (default_view === "Split" && !meta.allow_split_view) {
 				default_view = null;
 			}
 			if (route[1] && route[1] === "view" && route[2]) {
