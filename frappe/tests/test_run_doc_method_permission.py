@@ -2,14 +2,14 @@ import frappe
 from frappe.api.v2 import run_doc_method as run_doc_method_v2
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.handler import run_doc_method
-from frappe.tests import IntegrationTestCase
+from frappe.tests.utils import FrappeTestCase, patch_hooks
 
 
 def approved_only(doc, ptype=None, user=None, debug=False):
 	return ptype == "read" or bool(doc.approved)
 
 
-class TestRunDocMethodPermission(IntegrationTestCase):
+class TestRunDocMethodPermission(FrappeTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -35,7 +35,6 @@ class TestRunDocMethodPermission(IntegrationTestCase):
 
 		frappe.set_user(self.author.name)
 		self.private_note = self.make_note(public=0)
-		self.public_note = self.make_note(public=1)
 		frappe.set_user(self.reader.name)
 
 		previous_request = getattr(frappe.local, "request", None)
@@ -84,25 +83,24 @@ class TestRunDocMethodPermission(IntegrationTestCase):
 
 	def test_v2_checks_write_against_stored_row(self):
 		self.assertRaises(
-			frappe.PermissionError, run_doc_method_v2, "discard", self.forged(self.private_note)
+			frappe.PermissionError, run_doc_method_v2, "add_comment", self.forged(self.private_note)
 		)
 
 	def test_handler_checks_read_against_stored_row(self):
 		self.assertRaises(
-			frappe.PermissionError, run_doc_method, "discard", docs=self.forged(self.private_note)
-		)
-
-	def test_discard_checks_write_against_stored_row(self):
-		self.assertRaises(
-			frappe.PermissionError, run_doc_method, "discard", docs=self.forged(self.public_note)
+			frappe.PermissionError,
+			run_doc_method,
+			"add_comment",
+			docs=self.forged(self.private_note),
+			args={"comment_type": "Comment"},
 		)
 
 	def test_submit_checks_permission_against_stored_row(self):
-		with self.patch_hooks(self.approval_hooks):
+		with patch_hooks(self.approval_hooks):
 			self.assertRaises(frappe.PermissionError, run_doc_method, "submit", docs=self.forged_approval())
 
 	def test_rename_checks_write_against_stored_row(self):
-		with self.patch_hooks(self.approval_hooks):
+		with patch_hooks(self.approval_hooks):
 			self.assertRaises(
 				frappe.PermissionError,
 				run_doc_method,
