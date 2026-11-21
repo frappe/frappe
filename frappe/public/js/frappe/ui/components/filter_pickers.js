@@ -449,6 +449,16 @@ function search_filters(df, filters, people) {
 const NOT_SET = "\u0000not set";
 // the user search leaves out the built-in users, yet records are made by them too
 const STANDARD_USERS = ["Administrator", "Guest"];
+
+// a user search row's name: its title, or its search fields without the ID, as a site that
+// doesn't show titles in links sends it
+function person_name({ value, label, description }) {
+	if (label && label !== value) return strip_html(label);
+	const rest = strip_html(description || "")
+		.split(", ")
+		.filter((part) => part && part !== value);
+	return rest.join(", ") || value;
+}
 // a picked row glides to its group gently enough for the eye to follow it
 const MOTION = { duration: 300, easing: "cubic-bezier(0, 0, 0.2, 1)" };
 
@@ -933,7 +943,7 @@ export function values(ctx) {
 		if (gone || id !== request) return;
 		const found = (page?.message || []).map((r) => {
 			const option = people
-				? { value: r.value, label: r.description || r.value, description: r.value }
+				? { value: r.value, label: person_name(r), description: r.value }
 				: {
 						value: r.value,
 						label: strip_html(r.label || r.value),
