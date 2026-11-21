@@ -1428,6 +1428,8 @@ export function date(ctx) {
 					$from.val(show(first_day));
 					$to.val("");
 					before = `${$from.val()}|${$to.val()}`;
+					// a sheet's Apply counts it as a change, as it does a typed date
+					$from.trigger("input");
 					draw_periods();
 					return;
 				} else {

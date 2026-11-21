@@ -203,6 +203,18 @@ const whole_time = (value, end) => {
 		.join(":");
 };
 
+// the time picker shows hours and minutes and writes a start at :00, an end at :59; a filter
+// with other seconds goes to Advanced filters, or an edit would change it
+const in_minutes = ([condition, value]) => {
+	const fits = (v, end) => {
+		const seconds = /^\d{1,2}:\d{1,2}:(\d{1,2})/.exec(String(v ?? ""))?.[1];
+		return seconds == null || +seconds === (end ? 59 : 0);
+	};
+	if (condition !== "Between") return fits(value, ["<=", ">"].includes(condition));
+	const [from, to] = list_of(value);
+	return fits(from) && fits(to, true);
+};
+
 // a time range is its two ends, as a number's is: the server's Between reads dates
 function time_rules([condition, value]) {
 	if (condition === "is") return [[condition, value]];
@@ -347,7 +359,11 @@ function value_text(df, condition, value) {
 	}
 	if (kind === "check") return cint(value) ? __("Yes") : __("No");
 	if (kind === "time") {
-		const shown = (v) => String(v).slice(0, 5);
+		// seconds the picker doesn't write (:00, :59) show, as they are why it can't edit them
+		const shown = (v) => {
+			const seconds = String(v).slice(6, 8);
+			return String(v).slice(0, ["", "00", "59"].includes(seconds) ? 5 : 8);
+		};
 		if (condition === "Between") return span(...list_of(value).map(shown));
 		return shown(value);
 	}
@@ -839,6 +855,7 @@ frappe.ui.FilterChips = class FilterChips {
 		const df = this.resolved(field);
 		const rules = this.rules_for(df);
 		if (df.fieldtype === "Datetime" && !rules.every(whole_days)) return false;
+		if (df.fieldtype === "Time" && !rules.every(in_minutes)) return false;
 		// the pickers write "contains" as "%text%"; "Echo%" would be rewritten on the first edit
 		const pattern = ([c, v]) => !c.includes("like") || df.match === "like" || is_contains(v);
 		return (

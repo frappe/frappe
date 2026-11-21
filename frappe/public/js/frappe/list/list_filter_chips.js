@@ -258,6 +258,12 @@ frappe.views.ListFilterChips = class ListFilterChips {
 						...this.chip_opts,
 						filters: this.next_draft || this.area.filter_chips.filters,
 					});
+					// a list script narrows a quick filter's search on the toolbar's box
+					for (const box of this.area.filter_chips.boxes.values()) {
+						if (!box.get_query) continue;
+						const copy = this.draft.box_of(box.df.doctype, box.df.fieldname);
+						if (copy) copy.get_query = box.get_query;
+					}
 					this.next_draft = null;
 					this.draft.on_render(update);
 					update();
