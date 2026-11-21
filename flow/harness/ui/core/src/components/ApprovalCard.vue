@@ -163,7 +163,10 @@ const body = computed(() => {
 	if (props.call.name === "edit") return null
 	// generic: server-provided prompt already includes the argument JSON
 	const rest = asked.value.prompt.split("\n").slice(1).join("\n").trim()
-	return rest || JSON.stringify(a, null, 2)
+	const dump = JSON.stringify(a, null, 2)
+	// a call with no arguments has nothing to show, unless its tool wrote a prompt
+	if (!Object.keys(a).length && (!rest || rest === dump)) return ""
+	return rest || dump
 })
 
 function sendAsk() {

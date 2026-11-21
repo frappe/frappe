@@ -232,9 +232,10 @@ function isFunction(args) {
 	return typeof args?.action === "string" && /^\w+(\.\w+)+$/.test(args.action);
 }
 
-// a custom tool's card shows its arguments in words, or nothing when it has none
+// a custom tool's card shows its arguments in words; one with none keeps the plain card,
+// which shows its author's prompt if there is one
 function customCard(args) {
-	return blank(args) ? { body: "" } : { argsComponent: ArgsView };
+	return blank(args) ? {} : { argsComponent: ArgsView };
 }
 
 // a view may depend on the call: run_action runs a record's action, or a function
