@@ -1774,7 +1774,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			} else if (df.fieldtype === "Select") {
 				html = _value
 					? frappe.ui.badge.html({
-							label: __(_value),
+							label: __(value_display, null, df.parent),
 							theme: frappe.utils.guess_colour(_value),
 							css_class: `${filterable} ellipsis`.trim(),
 							attrs: {

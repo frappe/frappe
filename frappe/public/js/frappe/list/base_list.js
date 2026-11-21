@@ -1268,6 +1268,7 @@ class FilterArea {
 						ignore_link_validation: fieldtype === "Dynamic Link",
 						is_filter: 1,
 						link_filters: df.link_filters,
+						context: df.parent,
 					};
 				})
 		);
