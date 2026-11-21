@@ -30,6 +30,7 @@ from frappe.core.doctype.file.utils import (
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests.test_query_builder import db_type_is, run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_files_path, set_request
 
@@ -1014,6 +1015,7 @@ class TestFile(IntegrationTestCase):
 			file = frappe.get_doc(doctype="File", file_url="/private/files/casecheck.txt", is_private=1)
 			self.assertRaises(frappe.PermissionError, file.insert)
 
+	@run_only_if(db_type_is.MARIADB)
 	def test_private_file_access_without_an_exact_url_match(self):
 		self.insert_case_variant_files()
 
