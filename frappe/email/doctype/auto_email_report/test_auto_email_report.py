@@ -36,6 +36,41 @@ class TestAutoEmailReport(IntegrationTestCase):
 		data = auto_email_report.get_report_content()
 		PdfReader(stream=BytesIO(data))
 
+<<<<<<< HEAD
+=======
+	def test_mandatory_filters_come_from_validated_report(self):
+		auto_email_report = get_auto_email_report()
+		auto_email_report.filter_meta = None
+		auto_email_report.filters = json.dumps({"user": "Administrator"})
+
+		with self.assertRaisesRegex(frappe.ValidationError, "DocType.*is mandatory"):
+			auto_email_report.save()
+
+	def test_run_as_user_permission(self):
+		test1 = frappe.get_doc("User", "test1@example.com")
+		test1.add_roles("System Manager")
+		self.addCleanup(test1.remove_roles, "System Manager")
+		test2 = frappe.get_doc("User", "test2@example.com")
+		test2.add_roles("Report Manager")
+		self.addCleanup(test2.remove_roles, "Report Manager")
+		auto_email_report = get_auto_email_report()
+		auto_email_report.filters = json.dumps({"user": "test1@example.com", "doctype": "DocType"})
+		auto_email_report.save()
+
+		with self.set_user("test2@example.com"):
+			auto_email_report.user = "test1@example.com"
+			self.assertRaises(frappe.PermissionError, auto_email_report.save)
+
+		auto_email_report.reload()
+		with self.set_user("test@example.com"):
+			auto_email_report.user = "Administrator"
+			self.assertRaises(frappe.PermissionError, auto_email_report.save)
+
+			auto_email_report.reload()
+			auto_email_report.user = "test1@example.com"
+			auto_email_report.save()
+
+>>>>>>> b639f03 (fix(auto email report): check run-as user permission on save and send)
 	def test_dynamic_date_filters(self):
 		auto_email_report = get_auto_email_report()
 
