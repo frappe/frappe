@@ -384,13 +384,11 @@ frappe.show_progress = (title, count, total = 100, description, hide_on_completi
 		dialog = new frappe.ui.Dialog({
 			title: title,
 		});
-		dialog.progress = $(`<div>
-			<div class="progress">
-				<div class="progress-bar"></div>
-			</div>
-			<p class="description text-muted small"></p>
-		</div`).appendTo(dialog.body);
-		dialog.progress_bar = dialog.progress.css({ "margin-top": "10px" }).find(".progress-bar");
+		dialog.progress_bar = new frappe.ui.Progress({ size: "lg" });
+		dialog.progress = $(`<div><p class="description text-muted small"></p></div>`)
+			.prepend(dialog.progress_bar.$el)
+			.css({ "margin-top": "10px" })
+			.appendTo(dialog.body);
 		dialog.$wrapper.removeClass("fade");
 		dialog.show();
 		frappe.cur_progress = dialog;
@@ -399,7 +397,7 @@ frappe.show_progress = (title, count, total = 100, description, hide_on_completi
 		dialog.progress.find(".description").text(description);
 	}
 	dialog.percent = cint((flt(count) * 100) / total);
-	dialog.progress_bar.css({ width: dialog.percent + "%" });
+	dialog.progress_bar.set_value(dialog.percent);
 	if (hide_on_completion && dialog.percent === 100) {
 		// timeout to avoid abrupt hide
 		setTimeout(frappe.hide_progress, 500);

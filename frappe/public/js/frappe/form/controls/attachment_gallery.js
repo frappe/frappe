@@ -189,14 +189,13 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 		const label = __("Delete attachment");
 		const $button = $('<button type="button" class="attachment-gallery-delete"></button>')
 			.html(frappe.utils.icon("trash", "xs"))
-			.attr({ title: label, "aria-label": label })
-			.appendTo($item_wrapper)
-			.tooltip({ delay: { show: 100, hide: 100 }, trigger: "hover" });
+			.attr("aria-label", label)
+			.appendTo($item_wrapper);
+		frappe.ui.tooltip($button, { text: label, delay: 100 });
 
 		$button.on("click", (event) => {
 			event.preventDefault();
 			event.stopPropagation();
-			$button.tooltip("hide");
 			this.delete_attachment(attachment);
 		});
 	}
@@ -207,12 +206,11 @@ frappe.ui.form.ControlAttachmentGallery = class ControlAttachmentGallery extends
 			'<button type="button" class="attachment-gallery-item attachment-gallery-upload"></button>'
 		)
 			.html(frappe.utils.icon("upload", "lg"))
-			.attr({ title: label, "aria-label": label })
-			.appendTo($grid)
-			.tooltip({ delay: { show: 600, hide: 100 }, trigger: "hover" });
+			.attr("aria-label", label)
+			.appendTo($grid);
+		frappe.ui.tooltip($button, { text: label, delay: 600 });
 
 		$button.on("click", () => {
-			$button.tooltip("hide");
 			this.frm.attachments.new_attachment(this.df.fieldname);
 		});
 	}

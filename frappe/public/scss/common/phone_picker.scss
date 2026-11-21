@@ -57,14 +57,8 @@
 	}
 }
 
-.phone-picker-popover {
-	max-width: 325px;
-	.picker-arrow {
-		left: 15px !important;
-	}
-	@media (max-width: 992px) {
-		max-width: 325px;
-	}
+.es-popover.phone-picker-popover {
+	width: auto;
 }
 
 .frappe-control[data-fieldtype="Phone"] {

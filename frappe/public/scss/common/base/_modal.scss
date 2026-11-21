@@ -1,0 +1,222 @@
+.modal-open {
+	overflow: hidden;
+
+	.modal {
+		overflow-x: hidden;
+		overflow-y: auto;
+	}
+}
+
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: $zindex-modal;
+	display: none;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	outline: 0;
+}
+
+.modal-dialog {
+	position: relative;
+	width: auto;
+	margin: $modal-dialog-margin;
+	pointer-events: none;
+
+	.modal.fade & {
+		@include component-transition($modal-transition);
+		transform: $modal-fade-transform;
+	}
+	.modal.show & {
+		transform: $modal-show-transform;
+	}
+
+	.modal.modal-static & {
+		transform: $modal-scale-transform;
+	}
+}
+
+.modal-dialog-scrollable {
+	display: flex;
+	max-height: subtract(100%, $modal-dialog-margin * 2);
+
+	.modal-content {
+		max-height: subtract(100vh, $modal-dialog-margin * 2);
+		overflow: hidden;
+	}
+
+	.modal-header,
+	.modal-footer {
+		flex-shrink: 0;
+	}
+
+	.modal-body {
+		overflow-y: auto;
+	}
+}
+
+.modal-dialog-centered {
+	display: flex;
+	align-items: center;
+	min-height: subtract(100%, $modal-dialog-margin * 2);
+
+	&::before {
+		display: block;
+		height: subtract(100vh, $modal-dialog-margin * 2);
+		height: min-content;
+		content: "";
+	}
+
+	&.modal-dialog-scrollable {
+		flex-direction: column;
+		justify-content: center;
+		height: 100%;
+
+		.modal-content {
+			max-height: none;
+		}
+
+		&::before {
+			content: none;
+		}
+	}
+}
+
+.modal-content {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	color: $modal-content-color;
+	pointer-events: auto;
+	background-color: $modal-content-bg;
+	background-clip: padding-box;
+	border: if(
+		$modal-content-border-width == 0,
+		0,
+		$modal-content-border-width solid $modal-content-border-color
+	);
+	@include border-radius($modal-content-border-radius);
+	@include box-shadow($modal-content-box-shadow-xs);
+	outline: 0;
+}
+
+.modal-backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: $zindex-modal-backdrop;
+	width: 100vw;
+	height: 100vh;
+	background-color: $modal-backdrop-bg;
+
+	&.fade {
+		opacity: 0;
+	}
+	&.show {
+		opacity: $modal-backdrop-opacity;
+	}
+}
+
+.modal-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	padding: $modal-header-padding;
+	border-bottom: if(
+		$modal-header-border-width == 0,
+		0,
+		$modal-header-border-width solid $modal-header-border-color
+	);
+	@include border-top-radius($modal-content-inner-border-radius);
+
+	.close {
+		padding: $modal-header-padding;
+		margin: (-$modal-header-padding-y) (-$modal-header-padding-x) (-$modal-header-padding-y)
+			auto;
+	}
+}
+
+.modal-title {
+	margin-bottom: 0;
+	line-height: $modal-title-line-height;
+}
+
+.modal-body {
+	position: relative;
+	flex: 1 1 auto;
+	padding: $modal-inner-padding;
+}
+
+.modal-footer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	padding: $modal-inner-padding - $modal-footer-margin-between * 0.5;
+	border-top: if(
+		$modal-footer-border-width == 0,
+		0,
+		$modal-footer-border-width solid $modal-footer-border-color
+	);
+	@include border-bottom-radius($modal-content-inner-border-radius);
+
+	> * {
+		margin: $modal-footer-margin-between * 0.5;
+	}
+}
+
+.modal-scrollbar-measure {
+	position: absolute;
+	top: -9999px;
+	width: 50px;
+	height: 50px;
+	overflow: scroll;
+}
+
+@include media-breakpoint-up(sm) {
+	.modal-dialog {
+		max-width: $modal-md;
+		margin: $modal-dialog-margin-y-sm-up auto;
+	}
+
+	.modal-dialog-scrollable {
+		max-height: subtract(100%, $modal-dialog-margin-y-sm-up * 2);
+
+		.modal-content {
+			max-height: subtract(100vh, $modal-dialog-margin-y-sm-up * 2);
+		}
+	}
+
+	.modal-dialog-centered {
+		min-height: subtract(100%, $modal-dialog-margin-y-sm-up * 2);
+
+		&::before {
+			height: subtract(100vh, $modal-dialog-margin-y-sm-up * 2);
+			height: min-content;
+		}
+	}
+
+	.modal-content {
+		@include box-shadow($modal-content-box-shadow-sm-up);
+	}
+
+	.modal-sm {
+		max-width: $modal-sm;
+	}
+}
+
+@include media-breakpoint-up(lg) {
+	.modal-lg,
+	.modal-xl {
+		max-width: $modal-lg;
+	}
+}
+
+@include media-breakpoint-up(xl) {
+	.modal-xl {
+		max-width: $modal-xl;
+	}
+}

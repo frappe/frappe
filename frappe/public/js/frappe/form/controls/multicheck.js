@@ -82,7 +82,12 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		}
 		this.options.forEach((option) => {
 			let checkbox = this.get_checkbox_element(option).appendTo(this.$checkbox_area);
-			checkbox.find('[data-toggle="tooltip"]').tooltip();
+			if (option.warning) {
+				frappe.ui.tooltip(checkbox.find(".multicheck-warning-icon"), {
+					text: option.warning_title || __("Condition based field"),
+					delay: 0,
+				});
+			}
 
 			option.$checkbox = checkbox;
 		});
@@ -165,11 +170,8 @@ frappe.ui.form.ControlMultiCheck = class ControlMultiCheck extends frappe.ui.for
 		const mandatory_marker = option.danger
 			? `<span class="text-danger" style="margin-left: 4px;">*</span>`
 			: "";
-		const warning_title = frappe.utils.escape_html(
-			option.warning_title || __("Condition based field")
-		);
 		const warning_icon = option.warning
-			? `<span class="text-muted multicheck-warning-icon" data-toggle="tooltip" title="${warning_title}">${frappe.utils.icon(
+			? `<span class="text-muted multicheck-warning-icon">${frappe.utils.icon(
 					"info",
 					"xs"
 			  )}</span>`

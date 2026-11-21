@@ -1,0 +1,76 @@
+$print-visibility-queries: (
+	xs: "(max-width: 767px)",
+	sm: "(min-width: 768px) and (max-width: 991px)",
+	md: "(min-width: 992px) and (max-width: 1199px)",
+	lg: "(min-width: 1200px)",
+);
+$print-visibility-displays: block, inline, inline-block;
+
+@mixin print-visible($class) {
+	.#{$class} {
+		display: block !important;
+	}
+	table.#{$class} {
+		display: table;
+	}
+	tr.#{$class} {
+		display: table-row !important;
+	}
+	th.#{$class},
+	td.#{$class} {
+		display: table-cell !important;
+	}
+}
+
+@each $size, $query in $print-visibility-queries {
+	.visible-#{$size} {
+		display: none !important;
+	}
+}
+@each $size, $query in $print-visibility-queries {
+	@each $display in $print-visibility-displays {
+		.visible-#{$size}-#{$display} {
+			display: none !important;
+		}
+	}
+}
+@each $size, $query in $print-visibility-queries {
+	@media #{unquote($query)} {
+		@include print-visible(visible-#{$size});
+
+		@each $display in $print-visibility-displays {
+			.visible-#{$size}-#{$display} {
+				display: $display !important;
+			}
+		}
+	}
+}
+@each $size, $query in $print-visibility-queries {
+	@media #{unquote($query)} {
+		.hidden-#{$size} {
+			display: none !important;
+		}
+	}
+}
+
+.visible-print {
+	display: none !important;
+}
+@media print {
+	@include print-visible(visible-print);
+}
+@each $display in $print-visibility-displays {
+	.visible-print-#{$display} {
+		display: none !important;
+	}
+	@media print {
+		.visible-print-#{$display} {
+			display: $display !important;
+		}
+	}
+}
+@media print {
+	.hidden-print {
+		display: none !important;
+	}
+}

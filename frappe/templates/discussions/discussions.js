@@ -21,14 +21,8 @@ frappe.ready(() => {
 		login_from_discussion(e);
 	});
 
-	$("#discussion-modal .close").click((e) => {
-		$("#discussion-modal .discussions-comment").html("");
-	});
-
 	$(document).on("click", ".sidebar-parent", (e) => {
-		if ($(e.currentTarget).attr("aria-expanded") == "true") {
-			e.stopPropagation();
-		}
+		show_topic($(e.currentTarget).attr("data-topic"));
 		setTimeout(() => {
 			let element = $(".discussion-form:visible .discussions-comment");
 			if (!element.find(".ql-editor").length) make_comment_editor(element);
@@ -39,7 +33,7 @@ frappe.ready(() => {
 		if (
 			(e.ctrlKey || e.metaKey) &&
 			(e.keyCode == 13 || e.which == 13) &&
-			!$(".discussion-modal").hasClass("show")
+			!this.topic_dialog?.display
 		) {
 			e.preventDefault();
 			submit_discussion(e);
@@ -69,8 +63,16 @@ frappe.ready(() => {
 
 const show_new_topic_modal = (e) => {
 	e.preventDefault();
-	$("#discussion-modal").modal("show");
-	make_comment_editor($("#discussion-modal .discussions-comment"));
+	if (!this.topic_dialog) {
+		const $template = $("#discussion-modal");
+		this.topic_dialog = new frappe.ui.Dialog({
+			title: $template.attr("data-title"),
+			onhide: () => this.topic_dialog.$body.find(".discussions-comment").html(""),
+		});
+		this.topic_dialog.$body.append($template.children());
+	}
+	this.topic_dialog.show();
+	make_comment_editor(this.topic_dialog.$body.find(".discussions-comment"));
 	let topic = $(e.currentTarget).attr("data-topic");
 	$("#submit-discussion").attr("data-topic", topic ? topic : "");
 };
@@ -121,7 +123,6 @@ const insert_message = (data) => {
 		$(data.sidebar).insertBefore($(`.discussions-sidebar .sidebar-parent`).first());
 		$(`#discussion-group`).prepend(data.new_topic_template);
 		if (topic.owner == frappe.session.user) {
-			$(".discussion-on-page") && $(".discussion-on-page").collapse();
 			$(".sidebar-parent").first().click();
 			setTimeout(() => {
 				make_comment_editor($(".discussion-form:visible .discussions-comment"));
@@ -150,16 +151,14 @@ const update_message = (data) => {
 
 const post_message_cleanup = () => {
 	$(".topic-title").val("");
-	$("#discussion-modal .discussions-comment").html("");
-	$("#discussion-modal").modal("hide");
+	this.topic_dialog?.hide();
 	$("#no-discussions").addClass("hide");
 	this.comment_editor && this.comment_editor.set_value("comment_editor", "");
 };
 
 const update_reply_count = (topic) => {
-	let reply_count = $(`[data-target='#t${topic}']`).find(".reply-count").text();
-	reply_count = parseInt(reply_count) + 1;
-	$(`[data-target='#t${topic}']`).find(".reply-count").text(reply_count);
+	const $count = $(`.sidebar-parent[data-topic='${topic}'] .reply-count`);
+	$count.text(parseInt($count.text()) + 1);
 };
 
 const search_topic = (e) => {
@@ -172,7 +171,7 @@ const search_topic = (e) => {
 	}
 
 	topics.each((i, elem) => {
-		let topic_id = $(elem).closest(".sidebar-parent").attr("data-target");
+		let topic_id = `#t${$(elem).closest(".sidebar-parent").attr("data-topic")}`;
 
 		/* Check match in replies */
 		let match_in_reply = false;
@@ -219,10 +218,13 @@ const submit_discussion = (e) => {
 	let reply = this.comment_editor.get_value("comment_editor");
 
 	if (strip_html(reply).trim() != "" || reply.includes("img")) {
-		let doctype = target.closest(".discussions-parent").attr("data-doctype");
+		let $parent = target.closest(".discussions-parent");
+		if (!$parent.length) $parent = $(".discussions-parent");
+
+		let doctype = $parent.attr("data-doctype");
 		doctype = doctype ? decodeURIComponent(doctype) : doctype;
 
-		let docname = target.closest(".discussions-parent").attr("data-docname");
+		let docname = $parent.attr("data-docname");
 		docname = docname ? decodeURIComponent(docname) : docname;
 
 		frappe.call({
@@ -275,10 +277,18 @@ const hide_sidebar = () => {
 	$(".reply").addClass("hide");
 };
 
+const show_topic = (topic) => {
+	$(".sidebar-parent").attr("aria-expanded", "false");
+	$(`.sidebar-parent[data-topic='${topic}']`).attr("aria-expanded", "true");
+	$("#discussion-group .discussion-on-page").removeClass("show");
+	$(`#t${topic}`).addClass("show");
+};
+
 const back_to_sidebar = () => {
 	$(".discussions-sidebar").removeClass("hide");
 	$("#discussion-group").addClass("hide");
-	$(".discussion-on-page").collapse("hide");
+	$(".sidebar-parent").attr("aria-expanded", "false");
+	$(".discussion-on-page").removeClass("show");
 	$(".search-field").removeClass("hide");
 	$(".reply").removeClass("hide");
 };

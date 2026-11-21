@@ -32,7 +32,11 @@
 	}
 
 	.kanban-column {
-		@include transition();
+		transition: all 0.2s ease-in-out;
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+		}
 
 		flex: 1 0 260px;
 		max-width: 300px;
@@ -44,7 +48,11 @@
 
 		.add-card {
 			@include flex(flex, center, center, null);
-			@include transition();
+			transition: all 0.2s ease-in-out;
+
+			@media (prefers-reduced-motion: reduce) {
+				transition: none;
+			}
 
 			color: var(--text-light);
 			background-color: var(--bg-color);
@@ -94,25 +102,6 @@
 
 				&:before {
 					margin-right: 0px;
-				}
-			}
-
-			.column-options {
-				.button-group {
-					display: flex;
-					padding: 8px;
-
-					div.indicator-pill {
-						margin: 0 5px;
-					}
-
-					.btn.indicator {
-						flex: 1;
-					}
-				}
-
-				.indicator::before {
-					margin: 0;
 				}
 			}
 		}

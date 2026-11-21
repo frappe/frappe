@@ -1,0 +1,34 @@
+$print-label-colors: (
+	default: $print-light-bg,
+	primary: #d9f6ff,
+	success: #e4ffc1,
+	info: #e8ddff,
+	warning: #ffe6bf,
+	danger: #ffdcdc,
+);
+
+.label {
+	display: inline;
+	padding: 0.2em 0.6em 0.3em;
+	font-size: 75%;
+	font-weight: bold;
+	line-height: 1;
+	color: inherit;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: baseline;
+	border-radius: 0.25em;
+
+	&:empty {
+		display: none;
+	}
+	.btn & {
+		position: relative;
+		top: -1px;
+	}
+}
+@each $variant, $background in $print-label-colors {
+	.label-#{$variant} {
+		background-color: $background;
+	}
+}

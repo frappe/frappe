@@ -339,7 +339,6 @@ body.desktop-page .desktop-modal {
   justify-content: center;
 }
 body.desktop-page .desktop-modal .modal-dialog .modal-content {
-  top: 120px;
   border-radius: var(--desktop-modal-radius);
 }
 body.desktop-page #desktop-modal {

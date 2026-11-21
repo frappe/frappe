@@ -219,7 +219,7 @@ body {
 				.indicator::after {
 					height: 12px;
 					width: 12px;
-					border-radius: 12px;
+					border-radius: var(--radius-full);
 				}
 			}
 		}

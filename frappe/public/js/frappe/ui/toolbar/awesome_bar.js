@@ -1,5 +1,6 @@
 // Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
+
 frappe.provide("frappe.search");
 frappe.provide("frappe.tags");
 
@@ -22,12 +23,16 @@ frappe.search.AwesomeBar = class AwesomeBar {
 		let search_modal = new frappe.get_modal("Search", "");
 		this.search_modal = search_modal;
 		search_modal.removeClass("fade");
-		search_modal.on("shown.bs.modal", () => {
-			const input = search_modal.find("#navbar-search").get(0);
-			setTimeout(() => input.focus(), 10);
-		});
-		search_modal.on("hide.bs.modal", () => {
-			this._hook_search_seq = (this._hook_search_seq || 0) + 1;
+		this.modal = new frappe.ui.Modal({
+			element: search_modal,
+			position: "top",
+			on_shown: () => {
+				const input = search_modal.find("#navbar-search").get(0);
+				setTimeout(() => input.focus(), 10);
+			},
+			on_hide: () => {
+				this._hook_search_seq = (this._hook_search_seq || 0) + 1;
+			},
 		});
 
 		let search_modal_body = `<div class="align-baseline flex p-2 relative navbar-modal-wrapper">
@@ -75,21 +80,20 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				this.close();
 				return;
 			}
-			search_modal.modal("show");
+			this.modal.show();
 			this.setup_event_listeners(search_modal);
 		});
 	}
 
-	open(search_modal) {
-		const modal = search_modal || this.search_modal;
-		if (!modal) return;
-		modal.modal("show");
-		this.setup_event_listeners(modal);
+	open() {
+		if (!this.modal) return;
+		this.modal.show();
+		this.setup_event_listeners(this.search_modal);
 	}
 
 	close() {
 		if (!this.is_open()) return;
-		this.search_modal.modal("hide");
+		this.modal.hide();
 	}
 
 	is_open() {
@@ -214,7 +218,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 			me.open_option(awesomplete.get_item(o.text.value), o.originalEvent);
 			$input.val("");
 			$input.trigger("blur");
-			search_modal.modal("hide");
+			me.modal.hide();
 		});
 
 		$input.on("awesomplete-selectcomplete", function (e) {

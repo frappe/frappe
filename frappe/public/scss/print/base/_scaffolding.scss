@@ -1,0 +1,72 @@
+*,
+*:before,
+*:after {
+	box-sizing: border-box;
+}
+html {
+	font-size: 10px;
+}
+body {
+	font-family: $print-font-family;
+	font-size: $print-font-size;
+	line-height: $print-line-height;
+	color: $print-text-color;
+	background-color: #fff;
+}
+input,
+button,
+select,
+textarea {
+	font-family: inherit;
+	font-size: inherit;
+	line-height: inherit;
+}
+a {
+	color: $print-text-color;
+	text-decoration: none;
+}
+figure {
+	margin: 0;
+}
+img {
+	vertical-align: middle;
+}
+.img-responsive,
+.thumbnail > img,
+.thumbnail a > img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+}
+.img-rounded {
+	border-radius: $print-radius-lg;
+}
+.img-thumbnail {
+	display: inline-block;
+	max-width: 100%;
+	height: auto;
+	padding: 4px;
+	line-height: $print-line-height;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-radius: $print-radius;
+}
+.img-circle {
+	border-radius: 50%;
+}
+hr {
+	margin-top: 20px;
+	margin-bottom: 20px;
+	border: 0;
+	border-top: 1px solid $print-border-color;
+}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}

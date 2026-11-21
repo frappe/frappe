@@ -1,28 +1,73 @@
+class LinkPreviewCard extends frappe.ui.HoverCard {
+	open() {
+		if (this.trigger_el === document.activeElement) return;
+		this.waiting_for_data = !this.opts.get_data();
+		if (!this.waiting_for_data) super.open();
+	}
+
+	close() {
+		this.waiting_for_data = false;
+		super.close();
+	}
+
+	data_ready() {
+		if (this.waiting_for_data && this.trigger_el.matches(":hover")) this.open();
+	}
+}
+
 frappe.ui.LinkPreview = class {
 	constructor() {
-		this.popovers_list = [];
 		// tree labels carry their own hover card (frappe.ui.Tree)
-		this.LINK_CLASSES =
-			'a[data-doctype]:not(.tree-label), input[data-fieldtype="Link"], .popover';
-		this.popover_timeout = null;
+		this.LINK_CLASSES = 'a[data-doctype]:not(.tree-label), input[data-fieldtype="Link"]';
 		this.setup_events();
 	}
 
 	setup_events() {
 		$(document.body).on("mouseover", this.LINK_CLASSES, (e) => {
-			this.link_hovered = true;
-			this.element = $(e.currentTarget);
-			this.is_link = this.element.get(0).tagName.toLowerCase() === "a";
+			const element = e.currentTarget;
+			if (element.closest(".es-hover-card")) return;
+			const key = this.get_doc_key(element);
+			if (!this.name || !(frappe.boot.link_preview_doctypes || []).includes(this.doctype)) {
+				return;
+			}
 
-			if (!this.element.parents().find(".popover").length) {
-				this.identify_doc();
-				this.popover = this.element.data("bs.popover");
-				if (this.name && this.doctype) {
-					this.setup_popover_control(e);
-				}
+			if ($(element).data("link-preview")?.key !== key) {
+				clearTimeout(this.data_timeout);
+				const { doctype, name } = this;
+				this.data_timeout = setTimeout(() => {
+					this.get_preview_data(doctype, name).then((data) => {
+						if (!data) return;
+						$(element).data("link-preview", { key, data });
+						$(element).data("es-hover-card")?.data_ready();
+					});
+				}, 100);
+			}
+			if (!$(element).data("es-hover-card")) {
+				this.make_card(element);
+				element.dispatchEvent(new PointerEvent("pointerenter"));
 			}
 		});
-		this.handle_popover_hide();
+
+		$(document.body).on("mouseout", this.LINK_CLASSES, () => clearTimeout(this.data_timeout));
+
+		frappe.router.on("change", () => this.open_card?.close());
+	}
+
+	make_card(element) {
+		const get_data = () => {
+			const cached = $(element).data("link-preview");
+			return cached?.key === this.get_doc_key(element) ? cached.data : null;
+		};
+		const card = new LinkPreviewCard(element, {
+			side: "top",
+			open_delay: 1000,
+			css_class: "link-preview-popover",
+			get_data,
+			content: () => $("<div>").html(this.get_popover_html(get_data()))[0],
+			on_open: () => (this.open_card = card),
+			on_close: () => (this.open_card = null),
+		});
+		$(element).data("es-hover-card", card);
 	}
 
 	identify_doc() {
@@ -41,141 +86,20 @@ frappe.ui.LinkPreview = class {
 		}
 	}
 
-	setup_popover_control(e) {
-		if (!(frappe.boot.link_preview_doctypes || []).includes(this.doctype)) {
-			return;
-		}
-
-		if (!this.popover || this.element.data("link-preview-key") !== this.get_doc_key()) {
-			this.data_timeout = setTimeout(() => {
-				this.create_popover(e);
-			}, 100);
-		} else {
-			this.popover_timeout = setTimeout(() => {
-				if (this.element.is(":focus")) {
-					return;
-				}
-				this.show_popover(e);
-			}, 1000);
-		}
-	}
-
-	create_popover(e) {
-		if (this.element.is(":focus")) {
-			return;
-		}
-
-		// by the time the preview arrives, another link may be hovered or the
-		// field may hold another doc: drop it then, or it gets cached as theirs
-		const element = this.element;
-		const key = this.get_doc_key();
-		const is_current = () => element.is(this.element) && this.get_doc_key() === key;
-
-		this.get_preview_data().then((preview_data) => {
-			if (preview_data && is_current()) {
-				if (this.popover_timeout) {
-					clearTimeout(this.popover_timeout);
-				}
-
-				this.popover_timeout = setTimeout(() => {
-					if (!is_current()) {
-						return;
-					}
-					const popover = element.data("bs.popover");
-					if (popover && popover.config) {
-						popover.config.content = this.get_popover_html(preview_data);
-					} else {
-						this.init_preview_popover(preview_data);
-					}
-					element.data("link-preview-key", key);
-					this.show_popover(e);
-				}, 1000);
-			}
-		});
-	}
-
-	get_doc_key() {
+	get_doc_key(element) {
+		this.element = $(element);
+		this.is_link = element.tagName.toLowerCase() === "a";
 		this.identify_doc();
 		return `${this.doctype}::${this.name}`;
 	}
 
-	show_popover(e) {
-		this.default_timeout = setTimeout(() => {
-			this.clear_all_popovers();
-		}, 10000);
-
-		if (!this.is_link) {
-			var left = e.pageX;
-			this.element.popover("show");
-			var width = $(".popover").width();
-			$(".control-field-popover").css("left", left - width / 2 + "px");
-		} else {
-			this.element.popover("show");
-		}
-	}
-
-	handle_popover_hide() {
-		$(document).on("mouseout", this.LINK_CLASSES, () => {
-			// To allow popover to be hovered on
-			if (!$(".popover:hover").length) {
-				this.link_hovered = false;
-			}
-			if (!this.link_hovered) {
-				if (this.data_timeout) {
-					clearTimeout(this.data_timeout);
-				}
-				if (this.popover_timeout) {
-					clearTimeout(this.popover_timeout);
-				}
-				if (this.default_timeout) {
-					clearTimeout(this.default_timeout);
-				}
-				this.clear_all_popovers();
-			}
-		});
-
-		frappe.router.on("change", () => {
-			this.clear_all_popovers();
-		});
-	}
-
-	clear_all_popovers() {
-		this.popovers_list.forEach(($el) => $el.hide());
-	}
-
-	get_preview_data() {
+	get_preview_data(doctype, docname) {
 		return frappe.xcall(
 			"frappe.desk.link_preview.get_preview_data",
-			{
-				doctype: this.doctype,
-				docname: this.name,
-			},
+			{ doctype, docname },
 			"GET",
 			{ cache: true }
 		);
-	}
-
-	init_preview_popover(preview_data) {
-		let popover_content = this.get_popover_html(preview_data);
-		this.element.popover({
-			container: "body",
-			template: `
-				<div class="link-preview-popover popover">
-					<div class="arrow"></div>
-					<div class="popover-body popover-content">
-					</div>
-				</div>
-			`,
-			html: true,
-			sanitizeFn: (content) => content,
-			content: popover_content,
-			trigger: "manual",
-			placement: "top",
-		});
-
-		const $popover = $(this.element.data("bs.popover").tip);
-		$popover.toggleClass("control-field-popover", this.is_link);
-		this.popovers_list.push(this.element.data("bs.popover"));
 	}
 
 	get_popover_html(preview_data) {

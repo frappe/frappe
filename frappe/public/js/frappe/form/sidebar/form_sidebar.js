@@ -75,10 +75,12 @@ frappe.ui.form.Sidebar = class {
 
 		$(this.sidebar)
 			.find(".sidebar-meta-details " + classes.join(", "))
-			.tooltip()
 			.on("click", (e) => {
 				frappe.utils.copy_to_clipboard($(e.currentTarget).attr("data-copy"));
 			});
+
+		let $name = $(this.sidebar).find(".sidebar-meta-details .form-name-copy");
+		if ($name.length) frappe.ui.tooltip($name, { text: $name.attr("data-copy"), delay: 0 });
 	}
 
 	setup_editable_title() {

@@ -68,13 +68,11 @@ export default class WebFormList {
 						only_input: field.fieldtype == "Check" ? false : true,
 					});
 
-					$(input.wrapper)
-						.addClass("col-md-2")
-						.attr("title", __(field.label, null, field.parent))
-						.tooltip({
-							delay: { show: 600, hide: 100 },
-							trigger: "hover",
-						});
+					$(input.wrapper).addClass("col-md-2");
+					frappe.ui.tooltip(input.wrapper, {
+						text: __(field.label, null, field.parent),
+						delay: 600,
+					});
 
 					input.$input.attr("placeholder", __(field.label, null, field.parent));
 					this.filter_input.push(input);
@@ -247,11 +245,14 @@ export default class WebFormList {
 		const key = frappe.web_form_doc.web_form_request_key;
 		const query = key ? `?web_form_request_key=${encodeURIComponent(key)}` : "";
 		let new_button = `
-			<a
-				class="btn btn-primary btn-sm btn-new-doc hidden-xs"
-				href="${location.pathname.replace("/list", "")}/new${query}">
-				${__("Create a new {0}", [__(this.doctype)])}
-			</a>
+			<div class="hidden-xs">
+				<a
+					class="es-button btn-new-doc"
+					data-variant="solid"
+					href="${location.pathname.replace("/list", "")}/new${query}">
+					${__("Create a new {0}", [__(this.doctype)])}
+				</a>
+			</div>
 		`;
 
 		let empty_state = $(`
@@ -319,10 +320,10 @@ export default class WebFormList {
 		if ($(`.${name}`).length) return;
 
 		hidden = hidden ? "hide" : "";
-		type = type == "danger" ? "danger button-delete" : type;
+		const attrs = type == "danger" ? 'data-variant="solid" data-theme="red"' : "";
 
 		let button = $(`
-			<button class="${name} btn btn-${type} btn-sm ml-2 ${hidden}">${text}</button>
+			<button class="${name} es-button ml-2 ${hidden}" ${attrs}>${text}</button>
 		`);
 
 		button.on("click", () => action());

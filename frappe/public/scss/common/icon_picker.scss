@@ -79,10 +79,8 @@
 		margin-top: 2px;
 	}
 }
-.icon-picker-popover {
-	.picker-arrow {
-		left: 15px !important;
-	}
+.es-popover.icon-picker-popover {
+	width: auto;
 }
 
 .frappe-control[data-fieldtype="Icon"] {

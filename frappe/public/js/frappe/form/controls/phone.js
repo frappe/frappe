@@ -70,25 +70,13 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			}
 			this.update_padding();
 			// hide popover and focus input
-			this.$wrapper.popover("hide");
+			this.popover?.close();
 			if (focus) {
 				this.$input.focus();
 			}
 		};
 
-		this.$wrapper.find(".selected-phone").on("click", (e) => {
-			this.$wrapper.popover("toggle");
-			e.stopPropagation();
-
-			$("body").on("click.phone-popover", (ev) => {
-				if (!$(ev.target).parents().is(".popover")) {
-					this.$wrapper.popover("hide");
-				}
-			});
-			$(window).on("hashchange.phone-popover", () => {
-				this.$wrapper.popover("hide");
-			});
-		});
+		this.$wrapper.find(".selected-phone").on("click", (e) => e.stopPropagation());
 	}
 
 	setup_country_code_picker() {
@@ -97,32 +85,6 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			parent: picker_wrapper,
 			countries: this.country_codes,
 		});
-
-		this.$wrapper
-			.popover({
-				trigger: "manual",
-				offset: (offsets) => this.get_popover_offset(offsets),
-				boundary: "viewport",
-				placement: "bottom",
-				template: `
-				<div class="popover phone-picker-popover">
-					<div class="picker-arrow arrow"></div>
-					<div class="popover-body popover-content"></div>
-				</div>
-			`,
-				content: () => picker_wrapper,
-				html: true,
-			})
-			.on("show.bs.popover", () => {
-				setTimeout(() => {
-					this.country_code_picker.refresh();
-					this.country_code_picker.search_input.focus();
-				}, 10);
-			})
-			.on("hidden.bs.popover", () => {
-				$("body").off("click.phone-popover");
-				$(window).off("hashchange.phone-popover");
-			});
 
 		// Default icon when nothing is selected.
 		this.selected_icon = this.$wrapper.find(".selected-phone");
@@ -134,17 +96,19 @@ frappe.ui.form.ControlPhone = class ControlPhone extends frappe.ui.form.ControlD
 			this.selected_icon.append($(`<span class= "country"></span>`));
 			this.$isd = this.selected_icon.find(".country");
 		}
-	}
 
-	get_popover_offset(offsets) {
-		const { reference: ref, popper: pop } = offsets;
-		return {
-			popper: {
-				...pop,
-				left: frappe.utils.is_rtl() ? ref.left + ref.width - pop.width : ref.left,
-				top: pop.top + 5,
+		this.popover = new frappe.ui.Popover({
+			trigger: this.selected_icon,
+			content: () => picker_wrapper[0],
+			offset: 9,
+			css_class: "phone-picker-popover",
+			on_open: () => {
+				this.country_code_picker.refresh();
+				this.country_code_picker.search_input.focus();
+				$(window).on("hashchange.phone-popover", () => this.popover.close());
 			},
-		};
+			on_close: () => $(window).off("hashchange.phone-popover"),
+		});
 	}
 
 	refresh() {

@@ -42,32 +42,6 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 			include_emoji: this.df.options == "Emojis",
 		});
 
-		let namespace = `icon-popover-${frappe.dom.get_unique_id()}`;
-		this.$wrapper
-			.popover({
-				trigger: "manual",
-				offset: `${-this.$wrapper.width() / 4.5}, 5`,
-				boundary: "viewport",
-				placement: "bottom",
-				template: `
-				<div class="popover icon-picker-popover">
-					<div class="picker-arrow arrow"></div>
-					<div class="popover-body popover-content"></div>
-				</div>
-			`,
-				content: () => picker_wrapper,
-				html: true,
-			})
-			.on("show.bs.popover", () => {
-				setTimeout(() => {
-					this.picker.refresh();
-				}, 10);
-			})
-			.on("hidden.bs.popover", () => {
-				$("body").off(`pointerdown.${namespace}`);
-				$(window).off(`hashchange.${namespace}`);
-			});
-
 		this.picker.on_change = (icon) => {
 			this.set_value(icon);
 		};
@@ -79,33 +53,20 @@ frappe.ui.form.ControlIcon = class ControlIcon extends frappe.ui.form.ControlDat
 			this.selected_icon.insertAfter(this.$input);
 		}
 
-		this.$wrapper
-			.find(".selected-icon")
-			.parent()
-			.on("click", (e) => {
-				this.$wrapper.popover("toggle");
-				if (!this.get_icon()) {
-					this.$input.val("");
-				}
-				e.stopPropagation();
-				$("body").on(`pointerdown.${namespace}`, (ev) => {
-					if (
-						!$(ev.target).parents().is(".popover") &&
-						!this.$wrapper[0].contains(ev.target)
-					) {
-						this.$wrapper.popover("hide");
-					}
-				});
-				$(window).on(`hashchange.${namespace}`, () => {
-					this.$wrapper.popover("hide");
-				});
-			});
-
-		this.$input.on("blur", (e) => {
-			if (e.relatedTarget && !$(e.relatedTarget).parents().is(".popover")) {
-				this.$wrapper.popover("hide");
-			}
+		let namespace = `icon-popover-${frappe.dom.get_unique_id()}`;
+		const $trigger = this.$wrapper.find(".selected-icon").parent();
+		this.popover = new frappe.ui.Popover({
+			trigger: $trigger,
+			content: () => picker_wrapper[0],
+			css_class: "icon-picker-popover",
+			on_open: () => {
+				this.$input.trigger("focus");
+				this.picker.refresh();
+				$(window).on(`hashchange.${namespace}`, () => this.popover.close());
+			},
+			on_close: () => $(window).off(`hashchange.${namespace}`),
 		});
+		$trigger.on("click", (e) => e.stopPropagation());
 	}
 
 	refresh() {

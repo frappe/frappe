@@ -31,7 +31,7 @@
 							<textarea class="form-control" name="comment" rows=5 aria-label="{{ _("Add a comment") }}"></textarea>
 							<div class="text-muted small mt-1 mb-4">{{ _("Ctrl+Enter to add comment") }}</div>
 						</div>
-						<button class="btn btn-sm btn-primary small" id="submit-comment">{{ _("Comment") }}</button>
+						<button class="es-button" data-variant="solid" id="submit-comment">{{ _("Comment") }}</button>
 					</fieldset>
 				</form>
 			</div>
@@ -44,7 +44,7 @@
 	<div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
 		<div class="add-comment mb-5">
 			<div class="timeline-dot"></div>
-			<button class="btn btn-sm btn-primary small add-comment-button">{{ _("Add a comment") }}</button>
+			<button class="es-button add-comment-button" data-variant="solid">{{ _("Add a comment") }}</button>
 		</div>
 		<div class="comment-list">
 			{% for comment in comment_list %}

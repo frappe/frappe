@@ -185,8 +185,8 @@ body.full-width {
 
 		.comment-title {
 			@extend .head-title;
-			font-size: 16px;
-			font-weight: 500;
+			font-size: var(--text-lg);
+			font-weight: var(--font-weight-medium);
 		}
 
 		.comment-count {
@@ -647,11 +647,6 @@ body.full-width {
 	.form-section .form-section-heading {
 		margin-top: 10px;
 	}
-}
-
-.popover-header {
-	background: var(--bg-color);
-	color: var(--ink-gray-9);
 }
 
 .web-form-request-list.embedded-list {

@@ -330,7 +330,10 @@ frappe.ui.form.FormTour = class FormTour {
 				this.driver.moveNext();
 				this.driver.overlay.refresh();
 
-				modal_element.closest(".modal").on("hidden.bs.modal", () => {
+				const dialog = frappe.ui.open_dialogs.find((d) =>
+					d.$wrapper.is(modal_element.closest(".modal"))
+				);
+				dialog?.on("hidden", () => {
 					this.driver.moveNext();
 				});
 			}, 500);

@@ -1,8 +1,8 @@
+@import "./print/base/index";
 @import "./desk/variables";
-@import "frappe/public/css/bootstrap.css";
 @import "./common/quill";
 
-@import "~bootstrap/scss/utilities/spacing";
+@import "./print/base/spacing";
 @import "./desk/css_variables";
 @import "./element/checkbox";
 
