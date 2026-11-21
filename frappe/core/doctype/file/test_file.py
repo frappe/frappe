@@ -1007,6 +1007,20 @@ class TestFile(IntegrationTestCase):
 		self.assertFalse(frappe.db.exists("File", upper.name))
 		self.assertTrue(frappe.db.exists("File", lower.name))
 
+	def test_private_file_access_matches_the_exact_file_url(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test@example.com"):
+			file = frappe.get_doc(doctype="File", file_url="/private/files/casecheck.txt", is_private=1)
+			self.assertRaises(frappe.PermissionError, file.insert)
+
+	def test_private_file_access_without_an_exact_url_match(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test2@example.com"):
+			file = frappe.get_doc(doctype="File", file_url="/private/files/CASECHECK.txt", is_private=1)
+			self.assertRaises(frappe.PermissionError, file.insert)
+
 	def test_zip_files_adds_a_repeated_file_once(self):
 		from frappe.core.doctype.file.file import File
 
