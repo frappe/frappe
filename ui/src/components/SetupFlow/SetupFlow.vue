@@ -14,7 +14,7 @@
 					@click="confirmSkip = true"
 				/>
 			</header>
-			<main class="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-10">
+			<main class="mx-auto flex w-full max-w-md flex-1 flex-col pb-10 pt-[12vh]">
 				<div class="flex h-7 items-center justify-between">
 					<span class="text-sm text-ink-gray-6">{{ stepOf }}</span>
 					<Button
@@ -51,8 +51,9 @@
 		<aside
 			v-if="$slots.preview"
 			class="sticky top-0 hidden h-screen bg-surface-gray-1 lg:block"
+			:class="previewSide === 'start' && 'lg:order-first'"
 		>
-			<slot name="preview" :step="steps[current]" />
+			<slot name="preview" :step="steps[current]" :index="current" />
 		</aside>
 		<Dialog
 			v-model:open="confirmSkip"
@@ -73,7 +74,10 @@ import { computed, reactive, ref, watch } from "vue";
 import { useTelemetry } from "../../telemetry";
 import type { SetupFlowLabels, SetupFlowProps, SetupFlowResult } from "./types";
 
-const props = withDefaults(defineProps<SetupFlowProps>(), { backButton: true });
+const props = withDefaults(defineProps<SetupFlowProps>(), {
+	backButton: true,
+	previewSide: "end",
+});
 const emit = defineEmits<{ finish: [result: SetupFlowResult] }>();
 
 const defaults: SetupFlowLabels = {
