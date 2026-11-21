@@ -13,6 +13,7 @@ from frappe.desk.query_report import add_total_row, run, save_report
 from frappe.desk.reportview import delete_report
 from frappe.desk.reportview import save_report as _save_report
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
@@ -372,8 +373,8 @@ class TestReport(IntegrationTestCase):
 			).insert()
 
 			# Check for PermissionError
-			create_user("test_report_owner@example.com", "Website Manager")
-			frappe.set_user("test_report_owner@example.com")
+			owner = create_user("test_report_owner@example.com", "Website Manager")
+			frappe.set_user(owner.name)
 			self.assertRaises(frappe.PermissionError, delete_report, report.name)
 
 			# Check for Report Type
@@ -387,7 +388,7 @@ class TestReport(IntegrationTestCase):
 			)
 
 			# Check if creating and deleting works with proper validations
-			frappe.set_user("test@example.com")
+			frappe.set_user(get_user_by_email("test@example.com"))
 			report_name = _save_report(
 				"Dummy Report",
 				"User",
@@ -509,7 +510,7 @@ class TestReport(IntegrationTestCase):
 		else:
 			report = frappe.get_doc("Report", "Test Report")
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			# remove role "Test Has Role" from user if found
 			frappe.db.delete("Has Role", {"parent": frappe.session.user, "role": "Test Has Role"})
 			self.assertNotEqual(report.is_permitted(), True)
@@ -534,7 +535,7 @@ class TestReport(IntegrationTestCase):
 			report = frappe.get_doc("Report", "Test Custom Role Report")
 
 		# check report is permitted without custom role created
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			self.assertEqual(report.is_permitted(), True)
 
 		# create custom role for report
@@ -548,7 +549,7 @@ class TestReport(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 
 		# check report is not permitted with custom role created
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			self.assertNotEqual(report.is_permitted(), True)
 
 	# test for the `_format` method if report data doesn't have sort_by parameter
@@ -679,13 +680,13 @@ result = [
 		status = doc.disabled
 
 		# User has write permission on reports and should pass through
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		doc.toggle_disable(not status)
 		doc.reload()
 		self.assertNotEqual(status, doc.disabled)
 
 		# User has no write permission on reports, permission error is expected.
-		frappe.set_user("test1@example.com")
+		frappe.set_user(get_user_by_email("test1@example.com"))
 		doc = frappe.get_doc("Report", report_name)
 		with self.assertRaises(frappe.exceptions.ValidationError):
 			doc.toggle_disable(1)
@@ -841,11 +842,11 @@ result = [
 			unpermitted = create_user("test_read_blocked@example.com", "Website Manager")
 			permitted = create_user("test_read_allowed@example.com", role)
 
-			with self.set_user(unpermitted.email):
+			with self.set_user(unpermitted.name):
 				with self.assertRaises(frappe.PermissionError):
 					frappe.get_doc("Report", report_name, check_permission=True)
 
-			with self.set_user(permitted.email):
+			with self.set_user(permitted.name):
 				doc = frappe.get_doc("Report", report_name, check_permission=True)
 				self.assertEqual(doc.name, report_name)
 
@@ -876,11 +877,11 @@ result = [
 			unpermitted = create_user("test_list_blocked@example.com", "Website Manager")
 			permitted = create_user("test_list_allowed@example.com", role)
 
-			with self.set_user(unpermitted.email):
+			with self.set_user(unpermitted.name):
 				results = frappe.get_list("Report", filters={"name": report_name}, fields=["name", "query"])
 				self.assertEqual(results, [])
 
-			with self.set_user(permitted.email):
+			with self.set_user(permitted.name):
 				results = frappe.get_list("Report", filters={"name": report_name}, fields=["name", "query"])
 				self.assertEqual(len(results), 1)
 				self.assertEqual(results[0].name, report_name)
@@ -894,7 +895,7 @@ result = [
 		import frappe.sessions
 		from frappe.utils import set_request
 
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		set_request(method="GET", path="/app")
 
 		try:

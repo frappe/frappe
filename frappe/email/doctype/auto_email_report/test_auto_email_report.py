@@ -7,7 +7,7 @@ from pypdf import PdfReader
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date, get_link_to_form, today
+from frappe.utils import add_to_date, get_link_to_form, get_user_by_email, today
 from frappe.utils.data import is_html
 
 
@@ -45,27 +45,27 @@ class TestAutoEmailReport(IntegrationTestCase):
 			auto_email_report.save()
 
 	def test_run_as_user_permission(self):
-		test1 = frappe.get_doc("User", "test1@example.com")
+		test1 = frappe.get_doc("User", get_user_by_email("test1@example.com"))
 		test1.add_roles("System Manager")
 		self.addCleanup(test1.remove_roles, "System Manager")
-		test2 = frappe.get_doc("User", "test2@example.com")
+		test2 = frappe.get_doc("User", get_user_by_email("test2@example.com"))
 		test2.add_roles("Report Manager")
 		self.addCleanup(test2.remove_roles, "Report Manager")
 		auto_email_report = get_auto_email_report()
-		auto_email_report.filters = json.dumps({"user": "test1@example.com", "doctype": "DocType"})
+		auto_email_report.filters = json.dumps({"user": test1.name, "doctype": "DocType"})
 		auto_email_report.save()
 
-		with self.set_user("test2@example.com"):
-			auto_email_report.user = "test1@example.com"
+		with self.set_user(test2.name):
+			auto_email_report.user = test1.name
 			self.assertRaises(frappe.PermissionError, auto_email_report.save)
 
 		auto_email_report.reload()
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			auto_email_report.user = "Administrator"
 			self.assertRaises(frappe.PermissionError, auto_email_report.save)
 
 			auto_email_report.reload()
-			auto_email_report.user = "test1@example.com"
+			auto_email_report.user = test1.name
 			auto_email_report.save()
 
 	def test_dynamic_date_filters(self):

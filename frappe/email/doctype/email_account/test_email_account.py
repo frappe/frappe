@@ -16,6 +16,7 @@ from frappe.email.doctype.email_account.email_account import EmailAccount, notif
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestEmailAccount(IntegrationTestCase):
@@ -417,7 +418,7 @@ class TestEmailAccount(IntegrationTestCase):
 				frappe.throw(_("This mailbox needs reconnecting"))
 
 		with (
-			self.set_user("test@example.com"),
+			self.set_user(get_user_by_email("test@example.com")),
 			patch.object(EmailAccount, "validate", autospec=True, side_effect=validate),
 		):
 			account.default_outgoing = 1
@@ -455,7 +456,7 @@ class TestEmailAccount(IntegrationTestCase):
 		server.connect.side_effect = imaplib.IMAP4.error("[AUTHENTICATIONFAILED] Invalid credentials")
 
 		with (
-			self.set_user("test@example.com"),
+			self.set_user(get_user_by_email("test@example.com")),
 			patch.object(email_account, "handle_incoming_connect_error") as mocked_handler,
 			self.assertRaises(imaplib.IMAP4.error),
 		):
@@ -469,7 +470,7 @@ class TestEmailAccount(IntegrationTestCase):
 		server = MagicMock()
 		server.connect.side_effect = OSError("timed out")
 
-		with self.set_user("test@example.com"), self.assertRaises(OSError):
+		with self.set_user(get_user_by_email("test@example.com")), self.assertRaises(OSError):
 			email_account.check_email_server_connection(server, in_receive=True)
 
 	def test_append_to(self):
@@ -636,7 +637,7 @@ class TestEmailAccount(IntegrationTestCase):
 	def test_unparseable_mail_keeps_the_rest_of_the_batch(self):
 		email_account = self.make_imap_account({"RFQ": 7})
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		mailbox = IMAPMailbox({"RFQ": {7: "rfq-7", 8: "rfq-8"}})
 		init = InboundMail.__init__
 

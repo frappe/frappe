@@ -11,6 +11,7 @@ import frappe.utils.scheduler
 from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.form import assign_to
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 from .notification import get_comments_for_context, get_context, trigger_notifications
 
@@ -72,7 +73,7 @@ def create_test_file(file_name="test_attachment.txt", content="Test file content
 class TestNotification(IntegrationTestCase):
 	def setUp(self):
 		self.enterContext(patch.object(frappe.db, "_disable_transaction_control", 1))
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 
 		if not frappe.db.exists("Notification", {"name": "ToDo Status Update"}, "name"):
 			notification = frappe.new_doc("Notification")
@@ -482,7 +483,7 @@ class TestNotification(IntegrationTestCase):
 
 		assign_to.add(
 			{
-				"assign_to": ["test2@example.com"],
+				"assign_to": [get_user_by_email("test2@example.com")],
 				"doctype": todo.doctype,
 				"name": todo.name,
 				"description": "Close this Todo",
@@ -491,7 +492,7 @@ class TestNotification(IntegrationTestCase):
 
 		assign_to.add(
 			{
-				"assign_to": ["test1@example.com"],
+				"assign_to": [get_user_by_email("test1@example.com")],
 				"doctype": todo.doctype,
 				"name": todo.name,
 				"description": "Close this Todo",
@@ -613,7 +614,7 @@ class TestNotification(IntegrationTestCase):
 		with get_test_notification(notification) as n:
 			frappe.db.delete("Notification Log", {"subject": n.subject})
 
-			user = frappe.get_doc("User", "test@example.com")
+			user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 			user.birth_date = frappe.utils.add_days(user.birth_date, 1).date()
 			user.save()
 
@@ -770,7 +771,7 @@ class TestNotification(IntegrationTestCase):
 			todo.delete(ignore_permissions=True)
 
 	def test_attach_print_uses_document_language(self):
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		user.language = "de"
 
 		attachment = frappe.new_doc("Notification").get_print(user)
@@ -779,8 +780,8 @@ class TestNotification(IntegrationTestCase):
 
 	def test_attach_print_without_print_format_sets_no_language(self):
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
-		user = frappe.get_doc("User", "test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 		user.language = None
 
 		attachment = frappe.new_doc("Notification").get_print(user)
@@ -788,12 +789,12 @@ class TestNotification(IntegrationTestCase):
 		self.assertIsNone(attachment["lang"])
 
 	def test_attach_print_of_non_submittable_document(self):
-		user = frappe.get_doc("User", "test@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test@example.com"))
 
 		with self.change_settings("Print Settings", allow_print_for_draft=0):
 			attachment = frappe.new_doc("Notification").get_print(user)
 
-		self.assertEqual(attachment["name"], "test@example.com")
+		self.assertEqual(attachment["name"], user.name)
 
 	@classmethod
 	def tearDownClass(cls):
@@ -818,7 +819,7 @@ class TestNotification(IntegrationTestCase):
 
 		todo = frappe.new_doc("ToDo")
 		todo.description = "Checking email notification with jinja template"
-		todo.allocated_to = "test1@example.com"
+		todo.allocated_to = get_user_by_email("test1@example.com")
 		todo.save()
 
 		email_queue = frappe.get_doc(
@@ -848,7 +849,7 @@ class TestNotification(IntegrationTestCase):
 
 		todo = frappe.new_doc("ToDo")
 		todo.description = "Checking email notification with filters condition"
-		todo.allocated_to = "test1@example.com"
+		todo.allocated_to = get_user_by_email("test1@example.com")
 		todo.save()
 
 		email_queue = frappe.get_doc(

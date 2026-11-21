@@ -7,7 +7,7 @@ from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_site_url
+from frappe.utils import get_site_url, get_user_by_email
 
 
 @whitelist_for_tests(methods=["GET"])
@@ -439,7 +439,7 @@ class TestMethodLookupErrors(IntegrationTestCase):
 		from frappe.handler import execute_cmd
 
 		with (
-			self.set_user("test@example.com"),
+			self.set_user(get_user_by_email("test@example.com")),
 			self.change_settings("System Settings", allow_error_traceback=1),
 		):
 			with self.assertRaises(frappe.ValidationError) as missing_app:

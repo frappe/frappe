@@ -4,6 +4,7 @@
 import frappe
 from frappe.desk.doctype_settings.settings_map import get_settings_map
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestSettingsMap(IntegrationTestCase):
@@ -20,7 +21,7 @@ class TestSettingsMap(IntegrationTestCase):
 			}
 		).insert()
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 
 		fields = get_settings_map("ToDo")[0]["fields"]
 

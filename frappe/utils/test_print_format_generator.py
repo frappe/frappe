@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe.printing.layout import iter_layout_columns
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestPrintFormatGenerator(IntegrationTestCase):
@@ -193,7 +194,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			format_data=json.dumps({"sections": [{"columns": [{"fields": [barcode]}]}]})
 		)
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		todo = frappe.get_doc(
 			{
 				"doctype": "ToDo",
@@ -304,7 +305,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		print_format = self._make_print_format(pdf_generator="Typst")
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		todo = frappe.get_doc(
 			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
 		).insert()
@@ -340,7 +341,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			),
 		)
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		todos = [
 			frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
 			for description in ("Send the Q3 price list to Contoso", "Renew the Fabrikam support contract")
@@ -365,7 +366,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		print_format = self._make_print_format(pdf_generator="Typst")
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		todo = frappe.get_doc(
 			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
 		).insert()
@@ -415,7 +416,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		pf = self._make_print_format()
 		todo = self._make_todo()
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 
 		layout = json.loads(pf.format_data)
 		layout["sections"][0]["columns"][0]["fields"] += [
@@ -438,9 +439,9 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		pf = self._make_print_format()
 		todo = self._make_todo()
-		todo.allocated_to = "test@example.com"
+		todo.allocated_to = get_user_by_email("test@example.com")
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		generator = PrintFormatGenerator(pf, todo)
 
 		self.assertEqual(generator.resolve_linked_path("allocated_to.email")[0], "test@example.com")
@@ -497,7 +498,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		print_format = self._make_print_format(pdf_generator="Typst")
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		todo = frappe.get_doc(
 			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
 		).insert()
@@ -530,7 +531,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			frappe.set_user("Administrator")
 			jinja.db_set("pdf_generator", value)
 			frappe.clear_document_cache("Print Format", jinja.name)
-			frappe.set_user("test@example.com")
+			frappe.set_user(get_user_by_email("test@example.com"))
 			todo = frappe.get_doc({"doctype": "ToDo", "description": "pdf engine fallback"}).insert()
 			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none(jinja.name)), "PlutoPrint")
 			self.assertEqual(resolve_pdf_generator(None, value), "PlutoPrint")
@@ -547,7 +548,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		from frappe.utils.print_utils import resolve_pdf_generator
 
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		jinja = frappe._dict(
 			pdf_generator="PlutoPrint",
 			html='{%- set ongoing = doc.status == "Open" -%}<p>{{ doc.description }}</p>',
@@ -679,7 +680,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		pf = self._make_print_format()
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		todo = self._make_todo()
 		section = {
 			"columns": [{"fields": [{"fieldtype": "Static Text", "text": "Page {page} of {page_count}"}]}]
@@ -1413,7 +1414,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		doc = self._make_submittable_doc(0)
 		print_format = self._make_print_format(doc_type=doc.doctype, pdf_generator="Typst")
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		with self.change_settings("Print Settings", add_draft_heading=1):
 			source, _assets = TypstEmitter(PrintFormatGenerator(print_format, doc)).emit()
 		self.assertIn('"DRAFT"', source)
@@ -1425,7 +1426,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		doc = self._make_submittable_doc(2)
 		print_format = self._make_print_format(doc_type=doc.doctype, pdf_generator="Typst")
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		source, _assets = TypstEmitter(PrintFormatGenerator(print_format, doc)).emit()
 		self.assertIn('"CANCELLED"', source)
 
@@ -1826,7 +1827,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		from pypdf import PdfReader
 
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "settings handoff"}).insert()
 
 		self.addCleanup(lambda: frappe.form_dict.pop("settings", None))
@@ -1843,7 +1844,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		from frappe.utils.print_utils import attach_print
 
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "attachment"}).insert()
 
 		with patch("frappe.utils.print_utils._render_builder_pdf", return_value=b"%PDF-") as render:

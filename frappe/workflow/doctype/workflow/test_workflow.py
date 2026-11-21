@@ -17,7 +17,7 @@ from frappe.model.workflow import (
 )
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
-from frappe.utils import random_string
+from frappe.utils import get_user_by_email, random_string
 
 
 class TestWorkflow(IntegrationTestCase):
@@ -119,9 +119,9 @@ class TestWorkflow(IntegrationTestCase):
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "workflow_state"), "Approved")
 
 	def test_if_workflow_actions_were_processed_using_role(self):
-		user = frappe.get_doc("User", "test2@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test2@example.com"))
 		user.add_roles("Test Approver", "System Manager")
-		frappe.set_user("test2@example.com")
+		frappe.set_user(user.name)
 
 		doc = self.test_default_condition()
 		workflow_actions = frappe.get_all("Workflow Action", fields=["*"])
@@ -136,7 +136,7 @@ class TestWorkflow(IntegrationTestCase):
 
 	def add_approver(self):
 		"""Give the workflow a mail recipient other than the document owner."""
-		user = frappe.get_doc("User", "test2@example.com")
+		user = frappe.get_doc("User", get_user_by_email("test2@example.com"))
 		user.add_roles("Test Approver", "System Manager")
 		self.addCleanup(user.remove_roles, "Test Approver", "System Manager")
 
@@ -215,7 +215,7 @@ class TestWorkflow(IntegrationTestCase):
 			{"doctype": create_new_submittable_doctype().name, "test_field": "test"}
 		).insert()
 		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
+		frappe.set_user(get_user_by_email("test@example.com"))
 
 		with self.change_settings("Print Settings", allow_print_for_draft=0):
 			self.assertEqual(get_common_email_args(doc)["attachments"], [])
@@ -307,7 +307,7 @@ class TestWorkflow(IntegrationTestCase):
 
 		create_new_todo()
 
-		frappe.set_user("test2@example.com")
+		frappe.set_user(get_user_by_email("test2@example.com"))
 		self.addCleanup(frappe.set_user, "Administrator")
 
 		with self.assertRaises(frappe.PermissionError):
@@ -908,15 +908,16 @@ class TestWorkflowFieldLevelRead(IntegrationTestCase):
 		from frappe.core.doctype.user.user import generate_keys
 
 		frappe.set_user("Administrator")
-		self.user = "workflow.fieldlevel@example.com"
-		if not frappe.db.exists("User", self.user):
+		email = "workflow.fieldlevel@example.com"
+		if not get_user_by_email(email):
 			frappe.get_doc(
 				doctype="User",
-				email=self.user,
+				email=email,
 				first_name="Workflow Field Level",
 				roles=[{"role": "Desk User"}],
 				send_welcome_email=0,
 			).insert()
+		self.user = get_user_by_email(email)
 		keys = generate_keys(self.user)
 		self.headers = {"Authorization": f"token {keys['api_key']}:{keys['api_secret']}"}
 

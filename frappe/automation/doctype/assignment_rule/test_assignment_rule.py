@@ -8,6 +8,7 @@ from frappe.automation.doctype.assignment_rule.assignment_rule import reopen_clo
 from frappe.core.doctype.user.test_user import test_user
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
+from frappe.utils import get_user_by_email
 
 TEST_DOCTYPE = "Assignment Test"
 
@@ -26,6 +27,10 @@ class TestAutoAssign(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		make_test_records("User")
+		self.user = get_user_by_email("test@example.com")
+		self.user1 = get_user_by_email("test1@example.com")
+		self.user2 = get_user_by_email("test2@example.com")
+		self.user3 = get_user_by_email("test3@example.com")
 		days = [
 			dict(day="Sunday"),
 			dict(day="Monday"),
@@ -48,7 +53,7 @@ class TestAutoAssign(IntegrationTestCase):
 				dict(reference_type=TEST_DOCTYPE, reference_name=record.name, status="Open"),
 				"allocated_to",
 			),
-			"test@example.com",
+			self.user,
 		)
 
 		# check if auto assigned to second user
@@ -59,7 +64,7 @@ class TestAutoAssign(IntegrationTestCase):
 				dict(reference_type=TEST_DOCTYPE, reference_name=record.name, status="Open"),
 				"allocated_to",
 			),
-			"test1@example.com",
+			self.user1,
 		)
 
 		clear_assignments()
@@ -73,7 +78,7 @@ class TestAutoAssign(IntegrationTestCase):
 				dict(reference_type=TEST_DOCTYPE, reference_name=record.name, status="Open"),
 				"allocated_to",
 			),
-			"test2@example.com",
+			self.user2,
 		)
 
 		# check loop back to first user
@@ -84,7 +89,7 @@ class TestAutoAssign(IntegrationTestCase):
 				dict(reference_type=TEST_DOCTYPE, reference_name=record.name, status="Open"),
 				"allocated_to",
 			),
-			"test@example.com",
+			self.user,
 		)
 
 	def test_users_are_required_only_on_an_enabled_rotation(self):
@@ -103,9 +108,9 @@ class TestAutoAssign(IntegrationTestCase):
 		self.assertRaises(frappe.MandatoryError, rule.save)
 
 	def test_round_robin_ignores_stale_last_user(self):
-		frappe.db.set_value("Assignment Rule", self.assignment_rule.name, "last_user", "test@example.com")
+		frappe.db.set_value("Assignment Rule", self.assignment_rule.name, "last_user", self.user)
 
-		self.assertEqual(self.assignment_rule.get_user_round_robin(), "test1@example.com")
+		self.assertEqual(self.assignment_rule.get_user_round_robin(), self.user1)
 
 	def test_load_balancing(self):
 		self.assignment_rule.rule = "Load Balancing"
@@ -115,16 +120,14 @@ class TestAutoAssign(IntegrationTestCase):
 			_make_test_record(public=1)
 
 		# check if each user has 10 assignments (?)
-		for user in ("test@example.com", "test1@example.com", "test2@example.com"):
+		for user in (self.user, self.user1, self.user2):
 			self.assertEqual(
 				len(frappe.get_all("ToDo", dict(allocated_to=user, reference_type=TEST_DOCTYPE))), 10
 			)
 
 		# clear 5 assignments for first user
 		# can't do a limit in "delete" since postgres does not support it
-		for d in frappe.get_all(
-			"ToDo", dict(reference_type=TEST_DOCTYPE, allocated_to="test@example.com"), limit=5
-		):
+		for d in frappe.get_all("ToDo", dict(reference_type=TEST_DOCTYPE, allocated_to=self.user), limit=5):
 			frappe.db.delete("ToDo", {"name": d.name})
 
 		# add 5 more assignments
@@ -132,7 +135,7 @@ class TestAutoAssign(IntegrationTestCase):
 			_make_test_record(public=1)
 
 		# check if each user still has 10 assignments
-		for user in ("test@example.com", "test1@example.com", "test2@example.com"):
+		for user in (self.user, self.user1, self.user2):
 			self.assertEqual(
 				len(frappe.get_all("ToDo", dict(allocated_to=user, reference_type=TEST_DOCTYPE))), 10
 			)
@@ -140,8 +143,8 @@ class TestAutoAssign(IntegrationTestCase):
 	def test_weighted_distribution(self):
 		self.assignment_rule.rule = "Weighted Distribution"
 		self.assignment_rule.weighted_users.clear()
-		self.assignment_rule.append("weighted_users", dict(user="test@example.com", weight=1))
-		self.assignment_rule.append("weighted_users", dict(user="test1@example.com", weight=2))
+		self.assignment_rule.append("weighted_users", dict(user=self.user, weight=1))
+		self.assignment_rule.append("weighted_users", dict(user=self.user1, weight=2))
 		self.assignment_rule.save()
 
 		for _ in range(5):
@@ -150,10 +153,10 @@ class TestAutoAssign(IntegrationTestCase):
 		# check if users are assigned based on weights (out of 5,
 		# test@example.com should have 2 assignments and test1@example.com should have 3 assignments )
 		self.assertEqual(
-			len(frappe.get_all("ToDo", dict(allocated_to="test@example.com", reference_type=TEST_DOCTYPE))), 2
+			len(frappe.get_all("ToDo", dict(allocated_to=self.user, reference_type=TEST_DOCTYPE))), 2
 		)
 		self.assertEqual(
-			len(frappe.get_all("ToDo", dict(allocated_to="test1@example.com", reference_type=TEST_DOCTYPE))),
+			len(frappe.get_all("ToDo", dict(allocated_to=self.user1, reference_type=TEST_DOCTYPE))),
 			3,
 		)
 
@@ -176,7 +179,7 @@ class TestAutoAssign(IntegrationTestCase):
 		self.assignment_rule.field = "owner"
 		self.assignment_rule.save()
 
-		for user in ("test1@example.com", "test2@example.com"):
+		for user in (self.user1, self.user2):
 			frappe.set_user(user)
 			note = _make_test_record(public=1)
 			# check if auto assigned to doc owner, test1@example.com
@@ -227,7 +230,7 @@ class TestAutoAssign(IntegrationTestCase):
 		)[0]
 
 		todo = frappe.get_doc("ToDo", todo["name"])
-		self.assertEqual(todo.allocated_to, "test@example.com")
+		self.assertEqual(todo.allocated_to, self.user)
 
 		# test auto unassign
 		note.public = 0
@@ -247,7 +250,7 @@ class TestAutoAssign(IntegrationTestCase):
 		)[0]
 
 		todo = frappe.get_doc("ToDo", todo["name"])
-		self.assertEqual(todo.allocated_to, "test@example.com")
+		self.assertEqual(todo.allocated_to, self.user)
 
 		note.content = "Closed"
 		note.save()
@@ -257,10 +260,10 @@ class TestAutoAssign(IntegrationTestCase):
 		# check if todo is closed
 		self.assertEqual(todo.status, "Closed")
 		# check if closed todo retained assignment
-		self.assertEqual(todo.allocated_to, "test@example.com")
+		self.assertEqual(todo.allocated_to, self.user)
 
 	def test_closed_assignments_looked_up_once_per_save(self):
-		frappe.set_user("test@example.com")
+		frappe.set_user(self.user)
 		note = _make_test_record(public=1, content="valid")
 
 		with patch(
@@ -281,7 +284,7 @@ class TestAutoAssign(IntegrationTestCase):
 				dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
 				"allocated_to",
 			),
-			"test@example.com",
+			self.user,
 		)
 
 	def check_assignment_rule_scheduling(self):
@@ -302,7 +305,7 @@ class TestAutoAssign(IntegrationTestCase):
 				dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
 				"allocated_to",
 			),
-			["test@example.com", "test1@example.com", "test2@example.com"],
+			[self.user, self.user1, self.user2],
 		)
 
 		frappe.flags.assignment_day = "Friday"
@@ -314,7 +317,7 @@ class TestAutoAssign(IntegrationTestCase):
 				dict(reference_type=TEST_DOCTYPE, reference_name=note.name, status="Open"),
 				"allocated_to",
 			),
-			["test3@example.com"],
+			[self.user3],
 		)
 
 	def test_assignment_rule_condition(self):
@@ -328,7 +331,7 @@ class TestAutoAssign(IntegrationTestCase):
 			due_date_based_on="expiry_date",
 			assignment_days=self.days,
 			users=[
-				dict(user="test@example.com"),
+				dict(user=self.user),
 			],
 		).insert()
 
@@ -374,7 +377,7 @@ class TestAutoAssign(IntegrationTestCase):
 		assignment_rule.document_type = submittable_doctype
 		assignment_rule.rule = "Round Robin"
 		assignment_rule.extend("assignment_days", self.days)
-		assignment_rule.append("users", {"user": "test@example.com"})
+		assignment_rule.append("users", {"user": self.user})
 		assignment_rule.assign_condition = "docstatus == 1"
 		assignment_rule.unassign_condition = "docstatus == 2"
 		assignment_rule.save()
@@ -391,7 +394,7 @@ class TestAutoAssign(IntegrationTestCase):
 				"reference_type": submittable_doctype,
 				"reference_name": doc.name,
 				"status": "Open",
-				"allocated_to": "test@example.com",
+				"allocated_to": self.user,
 			},
 		)
 		self.assertEqual(len(todos), 1)
@@ -404,7 +407,7 @@ class TestAutoAssign(IntegrationTestCase):
 				"reference_type": submittable_doctype,
 				"reference_name": doc.name,
 				"status": "Cancelled",
-				"allocated_to": "test@example.com",
+				"allocated_to": self.user,
 			},
 		)
 		self.assertEqual(len(todos), 1)
@@ -431,9 +434,9 @@ def get_assignment_rule(days, assign=None):
 		rule="Round Robin",
 		assignment_days=days[0],
 		users=[
-			dict(user="test@example.com"),
-			dict(user="test1@example.com"),
-			dict(user="test2@example.com"),
+			dict(user=get_user_by_email("test@example.com")),
+			dict(user=get_user_by_email("test1@example.com")),
+			dict(user=get_user_by_email("test2@example.com")),
 		],
 	).insert()
 
@@ -449,7 +452,7 @@ def get_assignment_rule(days, assign=None):
 		unassign_condition="notify_on_login == 0",
 		rule="Round Robin",
 		assignment_days=days[1],
-		users=[dict(user="test3@example.com")],
+		users=[dict(user=get_user_by_email("test3@example.com"))],
 	).insert()
 
 	return assignment_rule

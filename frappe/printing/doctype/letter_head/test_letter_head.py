@@ -5,6 +5,7 @@ import shutil
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 from frappe.utils.print_format import render_letterhead_for_print
 
 
@@ -17,7 +18,7 @@ class TestLetterHead(IntegrationTestCase):
 		doc.footer = '<div class="address">{% if doc.company %}Mumbai</div>{% endif %}'
 		doc.insert()
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			rendered = render_letterhead_for_print(doc.name, {})
 
 		self.assertEqual(rendered["header"], '<div class="logo"></div>')
@@ -31,7 +32,7 @@ class TestLetterHead(IntegrationTestCase):
 		doc.header_script = "document.title = 'Test Letter Head';"
 		doc.insert()
 
-		with self.set_user("test@example.com"):
+		with self.set_user(get_user_by_email("test@example.com")):
 			rendered = render_letterhead_for_print(doc.name, {})
 
 		self.assertIn(doc.header_script, rendered["header"])

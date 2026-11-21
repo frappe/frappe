@@ -14,6 +14,7 @@ from frappe.installer import (
 	set_app_disabled,
 )
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.utils import get_user_by_email
 
 FAKE_APP = "zzz_test_app"
 # sits inside the requirement string `frappe/erpnext` without being the app it names
@@ -288,7 +289,7 @@ class TestAppToggle(IntegrationTestCase):
 		frappe.db.set_global("installed_apps", json.dumps([*installed, "abc_test_missing_app"]))
 		frappe.clear_cache()
 
-		with fake_app(), self.set_user("test@example.com"):
+		with fake_app(), self.set_user(get_user_by_email("test@example.com")):
 			disable_app(FAKE_APP)
 
 		self.assertIn(FAKE_APP, read_disabled_apps())

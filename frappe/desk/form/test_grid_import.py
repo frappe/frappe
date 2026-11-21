@@ -34,9 +34,9 @@ class TestGridImport(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		create_user(USER, "Translator")
+		cls.user = create_user(USER, "Translator").name
 		cls.other_contact = frappe.get_doc({"doctype": "Contact", "first_name": "Not Yours"}).insert().name
-		frappe.set_user(USER)
+		frappe.set_user(cls.user)
 		cls.contact = frappe.get_doc({"doctype": "Contact", "first_name": "Grid Import"}).insert().name
 		cls.library_file = cls.attach_file(cls.contact, content=b"phone\n123\n")
 		frappe.set_user("Administrator")
@@ -58,7 +58,7 @@ class TestGridImport(IntegrationTestCase):
 		return file
 
 	def setUp(self):
-		frappe.set_user(USER)
+		frappe.set_user(self.user)
 
 	def tearDown(self):
 		frappe.set_user("Administrator")

@@ -13,6 +13,7 @@ from frappe.core.doctype.duckdb_sync.duckdb_sync import (
 from frappe.database import get_duckdb
 from frappe.database.duckdb.database import get_latest_sync
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.utils import get_user_by_email
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Role", "User"]
 
@@ -115,7 +116,7 @@ class IntegrationTestDuckDBSync(IntegrationTestCase):
 		sync = frappe.get_doc(doctype="DuckDB Sync", doc_type="Role").insert()
 		with patch("frappe.enqueue"):
 			sync.submit()
-			with self.set_user("test@example.com"):
+			with self.set_user(get_user_by_email("test@example.com")):
 				self.assertTrue(is_data_sync_pending(sync.name))
 				sync_data_to_duckdb(sync.name)
 				self.assertFalse(is_data_sync_pending(sync.name))

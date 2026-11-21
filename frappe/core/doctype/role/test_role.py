@@ -5,24 +5,26 @@ import frappe
 from frappe.core.doctype.role.role import get_info_based_on_role
 from frappe.permissions import reset_perms
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_user_by_email
 
 
 class TestUser(IntegrationTestCase):
 	def test_disable_role(self):
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 3")
+		user = get_user_by_email("test@example.com")
+		frappe.get_doc("User", user).add_roles("_Test Role 3")
 
 		role = frappe.get_doc("Role", "_Test Role 3")
 		role.disabled = 1
 		role.save()
 
-		self.assertTrue("_Test Role 3" not in frappe.get_roles("test@example.com"))
+		self.assertTrue("_Test Role 3" not in frappe.get_roles(user))
 
 		role = frappe.get_doc("Role", "_Test Role 3")
 		role.disabled = 0
 		role.save()
 
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 3")
-		self.assertTrue("_Test Role 3" in frappe.get_roles("test@example.com"))
+		frappe.get_doc("User", user).add_roles("_Test Role 3")
+		self.assertTrue("_Test Role 3" in frappe.get_roles(user))
 
 	def test_change_desk_access(self):
 		"""if we change desk acecss from role, remove from user"""
@@ -52,8 +54,9 @@ class TestUser(IntegrationTestCase):
 			self.assertIn(role, frappe.get_roles(user))
 
 	def test_has_role_query_needs_parent_doctype(self):
-		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
-		frappe.set_user("test@example.com")
+		user = get_user_by_email("test@example.com")
+		frappe.get_doc("User", user).add_roles("_Test Role 2")
+		frappe.set_user(user)
 		try:
 			self.assertRaises(
 				frappe.PermissionError,
@@ -69,7 +72,7 @@ class TestUser(IntegrationTestCase):
 				fields=["parent"],
 				parent_doctype="User",
 			)
-			self.assertIn("test@example.com", [p.parent for p in parents])
+			self.assertIn(user, [p.parent for p in parents])
 		finally:
 			frappe.set_user("Administrator")
 
