@@ -829,6 +829,48 @@ class TestPermissions(IntegrationTestCase):
 			self.assertNotIn(child_doctype, frappe.flags.error_message)
 			self.assertNotIn(row.name, frappe.flags.error_message)
 
+	def test_high_permlevel_child_fields_reset_on_insert(self):
+		with self.set_user("Administrator"):
+			child_doctype = (
+				new_doctype(
+					istable=1,
+					fields=[
+						{
+							"label": "Secret",
+							"fieldname": "secret",
+							"fieldtype": "Data",
+							"permlevel": 1,
+							"default": "default",
+						}
+					],
+				)
+				.insert()
+				.name
+			)
+			parent_doctype = (
+				new_doctype(
+					fields=[
+						{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child_doctype}
+					],
+					permissions=[
+						{"role": "Blogger", "read": 1, "write": 1, "create": 1},
+						{"role": "Website Manager", "read": 1, "write": 1, "create": 1},
+						{"role": "Website Manager", "read": 1, "write": 1, "permlevel": 1},
+					],
+				)
+				.insert()
+				.name
+			)
+
+		def insert_as(user):
+			with self.set_user(user):
+				doc = frappe.new_doc(parent_doctype)
+				doc.append("rows", {"secret": "set by user"})
+				return doc.insert().rows[0].secret
+
+		self.assertEqual(insert_as("test2@example.com"), "default")
+		self.assertEqual(insert_as("testperm@example.com"), "set by user")
+
 	def test_select_user(self):
 		"""If test3@example.com is restricted by a User Permission to see only
 		users linked to a certain doctype (in this case: Gender "Female"), he
