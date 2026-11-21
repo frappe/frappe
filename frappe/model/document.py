@@ -1400,13 +1400,8 @@ class Document(_DocumentBase):
 				self._action = "save"
 			elif self.docstatus.is_submitted():
 				self._action = "submit"
-<<<<<<< HEAD
-				self.check_permission("submit")
-			elif self.docstatus.is_cancelled():
-=======
 				self._check_transition_permission("submit")
-			elif to_docstatus.is_cancelled():
->>>>>>> cd62556 (fix: submit, cancel and rename check permission on the stored document)
+			elif self.docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
 				)
@@ -1416,19 +1411,11 @@ class Document(_DocumentBase):
 		elif to_docstatus == DocStatus.SUBMITTED:
 			if self.docstatus.is_submitted():
 				self._action = "update_after_submit"
-<<<<<<< HEAD
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif self.docstatus.is_cancelled():
 				self._action = "cancel"
-				self.check_permission("cancel")
-			elif self.docstatus.is_draft():
-=======
-				self._check_transition_permission("submit")
-			elif to_docstatus.is_cancelled():
-				self._action = "cancel"
 				self._check_transition_permission("cancel")
-			elif to_docstatus.is_draft():
->>>>>>> cd62556 (fix: submit, cancel and rename check permission on the stored document)
+			elif self.docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)")
 				)
