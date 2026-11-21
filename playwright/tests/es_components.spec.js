@@ -738,4 +738,215 @@ test.describe("Espresso components", () => {
 			await expect(page.locator(".es-toast")).toContainText("Paid");
 		});
 	});
+
+	test.describe("List", () => {
+		const applicants = (page) => explorer_group(page, "Rows");
+		const row = (group, title) =>
+			group.locator(".es-list__row", { hasText: containing(title) }).first();
+		const use_list = (group, change) =>
+			group.locator(".es-list").evaluate((el, change) => {
+				const list = $(el).data("es-list");
+				return new Function("list", change)(list);
+			}, change);
+
+		test.beforeEach(async ({ page }) => {
+			await show(page, "List");
+		});
+
+		test("rows with an href are links, so cmd-click and middle-click work", async ({
+			page,
+		}) => {
+			const rows = applicants(page).locator(".es-list__row");
+
+			await expect(rows).toHaveCount(3);
+			await expect(rows.first()).toHaveJSProperty("tagName", "A");
+			await expect(rows.first()).toHaveAttribute("href", "/desk/job-applicant/jane");
+		});
+
+		test("a title with markup renders as text", async ({ page }) => {
+			const group = applicants(page);
+
+			await use_list(group, 'list.update_item("wade", { title: "<b>Wade</b> Warren" })');
+			await expect(row(group, "Warren").locator(".es-list__title")).toHaveText(
+				"<b>Wade</b> Warren"
+			);
+			await expect(group.locator(".es-list b")).toHaveCount(0);
+		});
+
+		test("update_item changes one row and keeps the others", async ({ page }) => {
+			const group = applicants(page);
+
+			await use_list(
+				group,
+				'list.update_item("wade", { subtitle: "wade@acme.com", meta: "1h ago" })'
+			);
+			await expect(row(group, "Wade Warren").locator(".es-list__subtitle")).toHaveText(
+				"wade@acme.com"
+			);
+			await expect(row(group, "Wade Warren").locator(".es-list__meta")).toHaveText("1h ago");
+			await expect(group.locator(".es-list__row")).toHaveCount(3);
+		});
+
+		test("remove_item drops the row", async ({ page }) => {
+			const group = applicants(page);
+
+			await use_list(group, 'list.remove_item("wade")');
+			await expect(group.locator(".es-list__row")).toHaveCount(2);
+			await expect(row(group, "Wade Warren")).toHaveCount(0);
+		});
+
+		test("max folds the list until Show all, and set_items keeps it open", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Folds after max");
+			const rows = group.locator(".es-list__row");
+			const more = group.locator(".es-list__more");
+
+			await expect(rows).toHaveCount(3);
+			await expect(more).toHaveText("Show all 7");
+
+			await more.click();
+			await expect(rows).toHaveCount(7);
+			await expect(more).toHaveCount(0);
+
+			await use_list(group, "list.set_items(list.get_items().slice(0, 5))");
+			await expect(rows).toHaveCount(5);
+		});
+
+		test("no items shows the empty state instead of the box", async ({ page }) => {
+			const list = explorer_group(page, "Empty (shows").locator(".es-list");
+
+			await expect(list).toHaveAttribute("data-empty", "");
+			await expect(list.getByText("No new applicants")).toBeVisible();
+			await expect(list.locator(".es-list__row")).toHaveCount(0);
+		});
+
+		test("selected marks one row, follows set_selected and survives a re-render", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Selected row");
+			const selected = group.locator(".es-list__row[data-selected]");
+
+			await expect(selected).toHaveCount(1);
+			await expect(selected).toContainText("Wade Warren");
+			await expect(selected).toHaveAttribute("aria-current", "true");
+
+			await row(group, "Jane Cooper").click();
+			await expect(selected).toContainText("Jane Cooper");
+			await expect(group.locator("[aria-current]")).toHaveCount(1);
+
+			await use_list(group, "list.set_items(list.get_items().slice())");
+			await expect(selected).toContainText("Jane Cooper");
+
+			await use_list(group, 'list.remove_item("jane")');
+			await expect(selected).toHaveCount(0);
+			expect(await use_list(group, "return list.get_selected()")).toBeNull();
+
+			await use_list(group, 'list.set_selected("esther")');
+			await expect(selected).toContainText("Esther Howard");
+			await use_list(group, "list.set_selected(null)");
+			await expect(selected).toHaveCount(0);
+		});
+
+		test("flat variant drops the box", async ({ page }) => {
+			const flat = explorer_group(page, "Flat variant").locator(".es-list");
+			await expect(flat).toHaveAttribute("data-variant", "flat");
+			await expect(flat).toHaveCSS("border-top-width", "0px");
+			await expect(flat.locator(".es-list__row")).toHaveCount(3);
+		});
+
+		test("an action click does not open the row", async ({ page }) => {
+			const group = applicants(page);
+			const jane = row(group, "Jane Cooper");
+			const opened = page.locator(".es-toast", { hasText: containing("Opened") });
+
+			await jane.hover();
+			await jane.getByRole("button", { name: "Shortlist" }).click();
+			await expect(jane.locator(".es-badge")).toHaveText("Shortlisted");
+			await expect(opened).toHaveCount(0);
+
+			await jane.locator(".es-list__title").click();
+			await expect(opened.first()).toContainText("Opened Jane Cooper");
+		});
+
+		test("a second click on a busy action does not open the row", async ({ page }) => {
+			const group = applicants(page);
+			const jane = row(group, "Jane Cooper");
+			const hold = jane.locator(".es-list__actions .es-button");
+			const opened = page.locator(".es-toast", { hasText: containing("Opened") });
+
+			await use_list(
+				group,
+				'list.update_item("jane", { actions: [{ label: "Hold", onclick: () => new Promise(() => {}) }] })'
+			);
+			await jane.hover();
+			await hold.click();
+			await expect(hold).toHaveAttribute("aria-busy", "true");
+			// a busy button ignores pointer events, so this click lands on the actions around it
+			await hold.click({ force: true });
+			await expect(opened).toHaveCount(0);
+		});
+
+		test("controls show without hover", async ({ page }) => {
+			const group = explorer_group(page, "Controls");
+
+			await page.mouse.move(0, 0);
+			await expect(group.locator(".es-list__controls")).toHaveCount(3);
+			await expect(
+				row(group, "Wade Warren").getByRole("button", { name: "Applied" })
+			).toBeVisible();
+		});
+
+		test("a control click in a link row neither opens the row nor follows the link", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "Controls");
+			const jane = row(group, "Jane Cooper");
+			const opened = page.locator(".es-toast", { hasText: containing("Opened") });
+			const url = page.url();
+
+			await expect(jane).toHaveJSProperty("tagName", "A");
+			await jane.getByRole("button", { name: "Applied" }).click();
+			await menu_item(page, "Shortlisted").click();
+			await expect(jane.getByRole("button", { name: "Shortlisted" })).toBeVisible();
+			await expect(opened).toHaveCount(0);
+			expect(page.url()).toBe(url);
+
+			await jane.locator(".es-list__title").click();
+			await expect(opened.first()).toContainText("Opened Jane Cooper");
+		});
+
+		test("groups show a heading and count, with their rows under them", async ({ page }) => {
+			const list = explorer_group(page, "Grouped rows").locator(".es-list");
+			const heads = list.locator(".es-list__group-head");
+			const rows_under = (head) =>
+				head.locator("xpath=following-sibling::*[1]").locator(".es-list__row");
+
+			await expect(list).toHaveAttribute("data-grouped", "");
+			await expect(heads).toHaveCount(2);
+			await expect(heads.locator(".es-list__group-label")).toHaveText([
+				"Feedback due",
+				"Cleared",
+			]);
+			await expect(heads.locator(".es-list__group-count")).toHaveText(["2", "1"]);
+			await expect(rows_under(heads.nth(0))).toHaveText([/Jane Cooper/, /Wade Warren/]);
+			await expect(rows_under(heads.nth(1))).toHaveText([/Esther Howard/]);
+		});
+	});
+
+	test.describe("Rating", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Rating");
+		});
+
+		test("rounds the value to the step and names it for screen readers", async ({ page }) => {
+			const whole = explorer_group(page, "Values").locator(".es-rating").nth(2);
+			await expect(whole).toHaveAttribute("aria-label", "4 out of 5");
+			await expect(whole.locator('.es-rating__half[data-state="filled"]')).toHaveCount(8);
+
+			const half = explorer_group(page, "Half steps").locator(".es-rating").first();
+			await expect(half).toHaveAttribute("aria-label", "3.5 out of 5");
+			await expect(half.locator('.es-rating__half[data-state="filled"]')).toHaveCount(7);
+		});
+	});
 });
