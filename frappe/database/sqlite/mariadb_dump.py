@@ -250,8 +250,10 @@ class TableShape:
 		keys = [self.primary_key, *unique] if self.primary_key else unique
 		return list(dict.fromkeys(keys))
 
-	def covers_index(self, columns: tuple[str, ...]) -> bool:
-		return columns == self.primary_key or any(index.columns == columns for index in self.indexes)
+	def covers_index(self, columns: tuple[str, ...], unique: bool) -> bool:
+		return columns == self.primary_key or any(
+			index.columns == columns and (index.unique or not unique) for index in self.indexes
+		)
 
 	def add_index(
 		self, name: str | None, columns: tuple[str, ...], unique: bool = False, fulltext: bool = False
@@ -680,7 +682,7 @@ class MariaDBDumpWriter:
 				row[2]
 				for row in connection.execute(f"PRAGMA index_info({quote_sqlite_identifier(index_name)})")
 			)
-			if not columns or None in columns or shape.covers_index(columns):
+			if not columns or None in columns or shape.covers_index(columns, bool(unique)):
 				continue
 			text_columns = [
 				column for column in columns if shape.columns[column].base_type in UNINDEXABLE_TYPES
