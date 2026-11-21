@@ -1186,12 +1186,11 @@ frappe.ui.Sidebar = class Sidebar {
 
 	module_for_workspace(name) {
 		if (!name) return null;
-		const linking = this.get_modules_linking(name, "Workspace")[0];
-		if (linking) return linking;
-
-		const entry = Object.values(frappe.boot.module_sidebars || {}).find((sidebar) =>
+		const owners = Object.values(frappe.boot.module_sidebars || {}).filter((sidebar) =>
 			(sidebar.workspaces || []).includes(name)
 		);
+		const linking = this.get_modules_linking(name, "Workspace");
+		const entry = owners.find((sidebar) => linking.includes(sidebar.name)) || owners[0];
 		return entry ? entry.name : null;
 	}
 
