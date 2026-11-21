@@ -347,6 +347,17 @@ function get_version_timeline_content(version_doc, frm) {
 			)
 		);
 		out.push(get_version_comment(version_doc, message));
+<<<<<<< HEAD
+=======
+	} else if (data.agent && !data.changed) {
+		// An insert by an agent keeps only the agent, while an update always has a diff.
+		let message = get_user_message(
+			version_doc.owner,
+			__("You created this document", null, "Form timeline"),
+			__("{0} created this document", [get_user_link(version_doc.owner)], "Form timeline")
+		);
+		out.push(get_version_comment(version_doc, message));
+>>>>>>> 69489f2 (fix: keep only the agent in the Version of an insert by an agent)
 	}
 	const impersonated_by = data.impersonated_by;
 

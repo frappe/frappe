@@ -61,12 +61,21 @@ class Version(Document):
 		if not updater_reference:
 			return False
 
+<<<<<<< HEAD
 		data = {
 			"creation": doc.creation,
 			"updater_reference": updater_reference,
 			"created_by": doc.owner,
 		}
 		self.set_impersonator(data)
+=======
+		# Version's own owner and creation already say who made the document and when,
+		# so an insert by an agent keeps only the session context.
+		data = {}
+		if updater_reference:
+			data = {"creation": doc.creation, "created_by": doc.owner, "updater_reference": updater_reference}
+		self.set_session_context(data)
+>>>>>>> 69489f2 (fix: keep only the agent in the Version of an insert by an agent)
 		self.ref_doctype = doc.doctype
 		self.docname = doc.name
 		self.data = frappe.as_json(data, indent=None, separators=(",", ":"))
