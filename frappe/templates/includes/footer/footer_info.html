@@ -1,16 +1,15 @@
 <div class="footer-info">
-	<div class="row">
-		<div class="footer-col-left col-sm-6 col-12">
-			{% if copyright %}
-			&copy; {{ copyright }}
-			{% endif %}
-			{% if footer_address %}
-			{% if copyright %}<br>{% endif %}
-			{{ footer_address }}
-			{% endif %}
-		</div>
-		{# powered #}
-		<div class="footer-col-right col-sm-6 col-12 footer-powered">
+	<div class="footer-col-left">
+		{%- if footer_address -%}
+		{{ footer_address }}
+		{%- endif -%}
+	</div>
+	{# powered #}
+	<div class="footer-col-right footer-powered">
+		<div class="footer-legal">
+			{%- if copyright -%}
+			<span class="footer-copyright">&copy; {{ copyright }}</span>
+			{%- endif %}
 			{% block powered %}
 			{%- if footer_powered -%}
 				{{ footer_powered }}
@@ -19,5 +18,6 @@
 			{%- endif -%}
 			{% endblock %}
 		</div>
+		{% include "templates/includes/footer/footer_links.html" %}
 	</div>
 </div>
