@@ -296,6 +296,18 @@ class TestMariaDBCompatibleBackup(IntegrationTestCase):
 		self.assertNotIn("NO_BACKSLASH_ESCAPES", dump)
 		self.assertIn("`path` longtext DEFAULT 'c:\\\\'", dump)
 
+	def test_keeps_unique_index_on_columns_with_a_plain_index(self):
+		dump = self.write_dump(
+			{
+				"tabToDo": (
+					"name varchar(140) primary key, creation datetime(6) unique",
+					[("todo-1", "2026-01-01 10:30:00")],
+				)
+			}
+		)
+		self.assertIn("index creation(creation)", dump)
+		self.assertRegex(dump, r"CREATE UNIQUE INDEX IF NOT EXISTS `[^`]+` ON `tabToDo` \(`creation`\);")
+
 	def test_refuses_keys_that_collide_in_mariadb_collation(self):
 		with self.assertRaises(MariaDBDumpError) as error:
 			self.write_dump(
