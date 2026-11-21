@@ -3,9 +3,10 @@
 
 frappe.ui.form.on("Flow Tool", {
 	async refresh(frm) {
-		const { message: unavailable } = await frappe.call(
-			"frappe.flow.doctype.flow_tool.flow_tool.unavailable_tools"
-		);
+		const { message: unavailable } = await frappe.call({
+			method: "frappe.flow.doctype.flow_tool.flow_tool.unavailable_tools",
+			type: "GET",
+		});
 		if (unavailable.includes(frm.doc.name)) {
 			frm.set_intro(__("Server scripts are off on this bench, so this tool can't run."));
 		}

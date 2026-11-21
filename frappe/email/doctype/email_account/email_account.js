@@ -124,6 +124,7 @@ function set_default_max_attachment_size(frm) {
 	if (frm.doc.__islocal && !frm.doc["attachment_limit"]) {
 		frappe.call({
 			method: "frappe.core.api.file.get_max_file_size",
+			type: "GET",
 			callback: function (r) {
 				if (!r.exc) {
 					frm.set_value("attachment_limit", Number(r.message) / (1024 * 1024));
@@ -296,6 +297,7 @@ frappe.ui.form.on("Email Account", {
 					connected_app: frm.doc.connected_app,
 					connected_user: frm.doc.connected_user,
 				},
+				type: "GET",
 				callback: (r) => {
 					if (r.message) {
 						frm.toggle_display("authorize_api_access", true);

@@ -220,7 +220,8 @@ frappe.ui.form.on("Customize Form", {
 	async trim_table(frm) {
 		let dropped_columns = await frappe.xcall(
 			"frappe.custom.doctype.customize_form.customize_form.get_orphaned_columns",
-			{ doctype: frm.doc.doc_type }
+			{ doctype: frm.doc.doc_type },
+			"GET"
 		);
 
 		if (!dropped_columns?.length) {

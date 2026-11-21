@@ -263,7 +263,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	}
 
 	async read() {
-		const items = await frappe.xcall(this.layer_config.read, this.layer_args());
+		const items = await frappe.xcall(this.layer_config.read, this.layer_args(), "GET");
 		this.folded = null;
 
 		this.entries = new Map(items.map((item) => [item.key, item]));

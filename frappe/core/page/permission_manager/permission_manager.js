@@ -108,6 +108,7 @@ frappe.PermissionEngine = class PermissionEngine {
 				page: "permission_manager",
 				method: "get_standard_permissions",
 				args: { doctype: doctype },
+				type: "GET",
 				callback: callback,
 			});
 		}
@@ -355,6 +356,7 @@ frappe.PermissionEngine = class PermissionEngine {
 					page: "permission_manager",
 					method: "get_users_with_role",
 					args: { role },
+					type: "GET",
 					callback: function (r) {
 						let message_html = "";
 

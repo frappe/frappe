@@ -3,7 +3,7 @@
 
 frappe.ui.form.on("User Invitation", {
 	refresh(frm) {
-		frappe.xcall("frappe.apps.get_apps").then((r) => {
+		frappe.xcall("frappe.apps.get_apps", undefined, "GET").then((r) => {
 			const apps = r?.map((r) => r.name) ?? [];
 			const default_app = "frappe";
 			frm.set_df_property("app_name", "options", [default_app, ...apps]);

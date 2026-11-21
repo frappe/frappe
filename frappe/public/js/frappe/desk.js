@@ -212,6 +212,7 @@ frappe.Application = class Application {
 			args: {
 				user: user,
 			},
+			type: "GET",
 			callback: function (email_account) {
 				email_account = email_account["message"];
 				if (email_account) {
@@ -534,7 +535,7 @@ frappe.Application = class Application {
 
 	show_update_available() {
 		if (!frappe.boot.has_app_updates || !frappe.boot.setup_complete) return;
-		frappe.xcall("frappe.utils.change_log.show_update_popup");
+		frappe.xcall("frappe.utils.change_log.show_update_popup", undefined, "GET");
 	}
 
 	add_browser_class() {

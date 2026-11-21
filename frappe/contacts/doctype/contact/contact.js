@@ -69,6 +69,7 @@ frappe.ui.form.on("Contact", {
 				frappe.call({
 					method: "frappe.contacts.doctype.contact.contact.address_query",
 					args: { links: filtered_links },
+					type: "GET",
 					callback: function (r) {
 						if (r && r.message) {
 							frm.set_query("address", function () {

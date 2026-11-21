@@ -76,9 +76,13 @@ frappe.ui.form.FormViewers = class FormViewers {
 		}
 		if (!unknown_users.length) return;
 
-		const data = await frappe.xcall("frappe.desk.form.load.get_user_info_for_viewers", {
-			users: unknown_users,
-		});
+		const data = await frappe.xcall(
+			"frappe.desk.form.load.get_user_info_for_viewers",
+			{
+				users: unknown_users,
+			},
+			"GET"
+		);
 		Object.assign(frappe.boot.user_info, data);
 	}
 };

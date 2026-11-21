@@ -22,7 +22,9 @@ class PrintDesignerMigration {
 
 	refresh() {
 		this.highlight = frappe.get_route()[1];
-		frappe.xcall(`${METHOD}.get_print_designer_formats`).then((rows) => this.render(rows));
+		frappe
+			.xcall(`${METHOD}.get_print_designer_formats`, undefined, "GET")
+			.then((rows) => this.render(rows));
 	}
 
 	render(rows) {

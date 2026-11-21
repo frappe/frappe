@@ -5,9 +5,10 @@ frappe.listview_settings["Flow Tool"] = {
 	unavailable: [],
 
 	async onload(listview) {
-		const { message } = await frappe.call(
-			"frappe.flow.doctype.flow_tool.flow_tool.unavailable_tools"
-		);
+		const { message } = await frappe.call({
+			method: "frappe.flow.doctype.flow_tool.flow_tool.unavailable_tools",
+			type: "GET",
+		});
 		this.unavailable = message;
 		if (message.length) listview.refresh();
 	},

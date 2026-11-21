@@ -2,6 +2,7 @@ frappe.ui.form.on("System Settings", {
 	refresh: function (frm) {
 		frappe.call({
 			method: "frappe.core.doctype.system_settings.system_settings.load",
+			type: "GET",
 			callback: function (data) {
 				frappe.all_timezones = data.message.timezones;
 				frm.set_df_property("time_zone", "options", frappe.all_timezones);
@@ -17,7 +18,7 @@ frappe.ui.form.on("System Settings", {
 			},
 		});
 
-		frappe.xcall("frappe.apps.get_apps").then((r) => {
+		frappe.xcall("frappe.apps.get_apps", undefined, "GET").then((r) => {
 			let apps = r?.map((r) => r.name) || [];
 			frm.set_df_property("default_app", "options", ["", ...apps]);
 		});

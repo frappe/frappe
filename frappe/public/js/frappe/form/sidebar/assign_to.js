@@ -159,12 +159,16 @@ frappe.ui.form.AssignToDialog = class AssignToDialog {
 				})
 				.then((response) => {
 					user_group_members = response.map((group_member) => group_member.user);
-					return frappe.xcall("frappe.desk.search.search_link", {
-						doctype: "User",
-						txt: "",
-						filters: { enabled: 1, name: ["in", user_group_members] },
-						page_length: 0,
-					});
+					return frappe.xcall(
+						"frappe.desk.search.search_link",
+						{
+							doctype: "User",
+							txt: "",
+							filters: { enabled: 1, name: ["in", user_group_members] },
+							page_length: 0,
+						},
+						"GET"
+					);
 				})
 				.then((users) => {
 					me.dialog.set_value(
