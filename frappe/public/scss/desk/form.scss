@@ -415,6 +415,10 @@ body.full-width {
 		@include form-message-background("red");
 	}
 
+	&:has(.close-message) {
+		padding-right: calc(var(--spacing) * 8);
+	}
+
 	.close-message {
 		position: absolute;
 		top: 0;

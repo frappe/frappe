@@ -5,7 +5,20 @@
 	width: 100%;
 }
 
+.kanban-v2-quick-filters {
+	// one row with Filter / Sort / Group / Settings: the fields shrink before they wrap
+	flex-wrap: nowrap;
+	min-width: 0;
+
+	.form-group {
+		flex: 0 1 150px;
+		min-width: 90px;
+	}
+}
+
 .kanban-v2-filter-section {
+	flex-shrink: 0;
+
 	.group-selector .es-button,
 	.settings-button {
 		margin: var(--margin-xs);

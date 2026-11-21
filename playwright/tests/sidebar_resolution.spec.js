@@ -53,6 +53,30 @@ function ask(page, world, question) {
 	);
 }
 
+// Shows a shell listing ToDo on ToDo's route followed by `view`. With `claimed`, the shell also
+// lists a URL item linking ToDo's route followed by `claimed`.
+function view_world(page, view, claimed = null) {
+	return page.evaluate(
+		([view, claimed]) => {
+			const todo = { type: "Link", label: "ToDo", link_type: "DocType", link_to: "ToDo" };
+			const route = frappe.ui.sidebar_item.get_route(todo, false, "View Shell");
+			const items = [todo];
+			if (claimed) {
+				items.push({
+					type: "Link",
+					label: "Board",
+					link_type: "URL",
+					url: route + claimed,
+				});
+			}
+			frappe.boot.module_sidebars["View Shell"] = { name: "View Shell", items };
+			history.replaceState(history.state, "", route + view);
+			frappe.app.sidebar.setup("View Shell");
+		},
+		[view, claimed]
+	);
+}
+
 const erpnext_hrms = {
 	sidebars: {
 		Accounts: { links: ["Journal Entry", "Sales Order"], app: "erpnext" },
@@ -216,6 +240,21 @@ test.describe("Sidebar resolution", () => {
 				expect.soft(shell, name).toBe(expected);
 			});
 		}
+	});
+
+	for (const [name, view] of [
+		["Kanban board", "/view/kanban/Open Tasks"],
+		["Report view", "/view/report"],
+	]) {
+		test(`lights a DocType's item on its ${name}`, async ({ page }) => {
+			await view_world(page, view);
+			await expect(page.locator(".body-sidebar .active-sidebar")).toHaveText("ToDo");
+		});
+	}
+
+	test("lights an item that claims the exact URL over its DocType's item", async ({ page }) => {
+		await view_world(page, "/view/kanban/Open Tasks", "/view/kanban/Open Tasks");
+		await expect(page.locator(".body-sidebar .active-sidebar")).toHaveText("Board");
 	});
 
 	test("lands on the home shell the server worked out, else the first shell", async ({
