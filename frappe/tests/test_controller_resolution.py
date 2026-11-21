@@ -68,3 +68,11 @@ class TestControllerResolution(IntegrationTestCase):
 			self.assertIs(import_controller("ToDo"), SiteToDo)
 		finally:
 			del ToDo.resolve_controller
+
+	def test_import_controller_rejects_wrong_case_name(self):
+		if frappe.db.db_type != "mariadb":
+			self.skipTest("only MariaDB matches DocType names case-insensitively")
+
+		with self.assertRaises(frappe.DoesNotExistError) as cm:
+			import_controller("todo")
+		self.assertEqual(cm.exception.doctype, "ToDo")
