@@ -2,6 +2,7 @@ const KINDS = {
 	Check: "check",
 	Date: "date",
 	Datetime: "date",
+	Time: "time",
 	Currency: "number",
 	Float: "number",
 	Int: "number",
@@ -13,7 +14,7 @@ const KINDS = {
 	Autocomplete: "values",
 };
 
-/** Which picker a field gets: values, date, number, check or text. */
+/** Which picker a field gets: values, date, time, number, check or text. */
 export function kind_of(df) {
 	// an Autocomplete whose options a script fills has none to list
 	if (df.fieldtype === "Autocomplete" && !String(df.options || "").trim()) return "text";
@@ -112,14 +113,27 @@ export function std_field(doctype, fieldname) {
 			],
 		};
 	}
-	const df = frappe.model.std_fields.find((d) => d.fieldname === fieldname);
-	if (!df) return undefined;
+	const found = frappe.model.std_fields.find((d) => d.fieldname === fieldname);
+	if (!found) return undefined;
+	// every DocType has these, so each gets an icon of its own rather than its type's
+	const df = { ...found, icon: STD_ICONS[fieldname] };
 	if (LISTED_IN_TEXT[fieldname]) {
 		const options = LISTED_IN_TEXT[fieldname];
 		return { ...df, label: __(df.label), fieldtype: "Link", options, match: "like" };
 	}
 	return { ...df, label: __(df.label), options: fieldname === "name" ? doctype : df.options };
 }
+
+const STD_ICONS = {
+	name: "hash",
+	_assign: "user-check",
+	owner: "user-plus",
+	creation: "calendar-plus",
+	modified_by: "user-pen",
+	modified: "calendar-clock",
+	_liked_by: "heart",
+	_user_tags: "tag",
+};
 
 // Assigned To and Liked By keep users, Tags keeps tags, as a list in one text column
 const LISTED_IN_TEXT = { _assign: "User", _liked_by: "User", _user_tags: "Tag" };

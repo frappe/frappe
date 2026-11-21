@@ -138,8 +138,8 @@
 	justify-content: center;
 	flex-shrink: 0;
 	width: var(--fc-h);
-	/* the hairline seam of an Espresso split button */
-	border-inline-start: 0.5px solid var(--surface-base);
+	/* the same seam as the Filter button's × */
+	border-inline-start: 1px solid var(--outline-gray-2);
 	border-start-end-radius: inherit;
 	border-end-end-radius: inherit;
 }
@@ -170,10 +170,20 @@
 	border-color: var(--outline-gray-3);
 }
 
-.es-filter-chip__main:focus-visible,
-.es-filter-chip__remove:focus-visible {
+/* one ring for the chip, whichever part has focus; the focused part of a split chip is filled */
+.es-filter-chip:has(.es-filter-chip__main:focus-visible, .es-filter-chip__remove:focus-visible) {
 	outline: var(--focus-outline-default);
 	outline-offset: 0;
+}
+
+.es-filter-chip__main:focus-visible,
+.es-filter-chip__remove:focus-visible {
+	outline: none;
+}
+
+.es-filter-chip[data-state="applied"] .es-filter-chip__main:focus-visible,
+.es-filter-chip[data-state="applied"] .es-filter-chip__remove:focus-visible {
+	background: var(--surface-gray-3);
 }
 
 .es-filter-chip__field {
@@ -223,6 +233,4 @@
 .es-filter-chip:has(.es-filter-chip__input:focus) {
 	border-color: transparent;
 	background: var(--control-bg);
-	outline: var(--focus-outline-default);
-	outline-offset: 0;
 }

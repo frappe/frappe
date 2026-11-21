@@ -21,6 +21,8 @@ export const still = () => matchMedia("(prefers-reduced-motion: reduce)").matche
  * @property {function} [onremove] Called with the chip when × is pressed. An input chip clears its
  *   box and calls `input.onchange("")` instead.
  * @property {function} [onclick] For a chip with no `content`: called with the chip on click.
+ * @property {function} [onpress] Called with the chip when it is clicked, before its picker opens;
+ *   returning false keeps the picker shut, for a host that shows it somewhere else.
  * @property {function} [onopen] Called with the chip after its picker opens.
  * @property {function} [onclose] Called with the chip and Popover's close reason.
  * @property {string} [popover_class] Extra classes on the picker's panel, e.g. its width.
@@ -86,6 +88,12 @@ frappe.ui.FilterChip = class FilterChip {
 		this.$main[0].addEventListener("focus", set_tip, true);
 		if (this.opts.content) {
 			this.make_popover();
+			const popover = this.popover;
+			popover.trigger_el.removeEventListener("click", popover.ontriggerclick);
+			popover.trigger_el.addEventListener("click", (e) => {
+				if (this.opts.onpress?.(this) === false) e.preventDefault();
+				else popover.ontriggerclick(e);
+			});
 		} else if (this.opts.onclick) {
 			this.$main.on("click", (e) => {
 				this.opts.onclick(this, e);
@@ -141,7 +149,7 @@ frappe.ui.FilterChip = class FilterChip {
 			this.$main.on("click", (e) => {
 				if (!this.locked) return;
 				e.preventDefault();
-				this.popover.toggle();
+				if (this.opts.onpress?.(this) !== false) this.popover.toggle();
 			});
 		}
 	}

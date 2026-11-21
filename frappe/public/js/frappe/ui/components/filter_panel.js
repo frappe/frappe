@@ -15,7 +15,8 @@ frappe.provide("frappe.ui");
  *   open on when no field is filtered.
  * @property {function} [on_pick] Called with the field the person picks in the list.
  * @property {Object} [advanced] The host's editor for filters the pickers can't show:
- *   `{ element() → Element, on_hide() }`.
+ *   `{ element() → Element, on_hide() }` to show it in the panel, or `{ open() }` to open it
+ *   somewhere else.
  */
 
 const icon = (name) => frappe.utils.icon(name, "sm", "", "", "", true);
@@ -129,7 +130,17 @@ frappe.ui.FilterPanel = class FilterPanel {
 			placeholder: __("Search fields"),
 			"aria-label": __("Search fields"),
 		});
-		$search.append(icon("search"), this.$search);
+		// clears the search; a phone's keyboard stays down, the next tap in the box brings it back
+		const $clear = frappe.ui
+			.button({ icon: "x", size: "xs", variant: "ghost", tooltip: __("Clear search") })
+			.addClass("es-filter-panel__search-clear")
+			.prop("hidden", true)
+			.on("click", () => {
+				this.$search.val("").trigger("input");
+				if (frappe.is_mobile()) this.$search.trigger("blur");
+				else this.$search.trigger("focus");
+			});
+		$search.append(icon("search"), this.$search, $clear);
 		this.$list = $('<div class="es-filter-panel__list" role="listbox" tabindex="-1"></div>')
 			.attr("aria-label", __("Fields"))
 			.appendTo(this.$fields);
@@ -170,7 +181,10 @@ frappe.ui.FilterPanel = class FilterPanel {
 		this.cue = scroll_cue(this.$list[0]);
 		this.cue();
 
-		this.$search.on("input", () => this.search());
+		this.$search.on("input", () => {
+			$clear.prop("hidden", !this.$search.val());
+			this.search();
+		});
 		this.make_field_keys();
 
 		if (this.opts.advanced) {
@@ -203,6 +217,18 @@ frappe.ui.FilterPanel = class FilterPanel {
 		this.$empty.text(__("No results for {0}", [typed])).prop("hidden", !none);
 		this.cue();
 		this.keys.reset();
+		// one field left: on a phone, where the list and the picker share the screen, show it
+		// while typing goes on in the search
+		const shown = this.rows.filter((row) => !row.$row.prop("hidden"));
+		if (
+			frappe.is_mobile() &&
+			query &&
+			shown.length === 1 &&
+			!same_field(shown[0].df, this.current)
+		) {
+			this.select(shown[0].df, { focus: false });
+			this.opts.on_pick?.(shown[0].df);
+		}
 	}
 
 	update_counts() {
@@ -266,7 +292,10 @@ frappe.ui.FilterPanel = class FilterPanel {
 		this.turn_watch = watch?.turn;
 		$head.append(
 			watch || icon(field_icon),
-			$('<h3 class="es-filter-panel__title truncate"></h3>').text(df.label)
+			// a child table's field says whose it is: "Project (Dependent Tasks)"
+			$('<h3 class="es-filter-panel__title truncate"></h3>').text(
+				df.table_label ? __("{0} ({1})", [df.label, df.table_label]) : df.label
+			)
 		);
 		const hint = this.hint_of(df);
 		if (hint)
@@ -312,6 +341,7 @@ frappe.ui.FilterPanel = class FilterPanel {
 	}
 
 	show_advanced({ keyboard = true } = {}) {
+		if (this.opts.advanced.open) return this.opts.advanced.open();
 		this.picker?.destroy?.();
 		this.picker = null;
 		this.$fields.prop("hidden", true);
@@ -332,7 +362,7 @@ frappe.ui.FilterPanel = class FilterPanel {
 			$back,
 			$('<h3 class="es-filter-panel__title truncate"></h3>').text(__("Advanced filters"))
 		);
-		const $body = $('<div class="es-filter-panel__advanced-body p-4"></div>')
+		const $body = $('<div class="es-filter-panel__advanced-body p-3"></div>')
 			.append(this.opts.advanced.element())
 			.appendTo(this.$advanced);
 		// heard on the way down, while the removed row's button is still in it
@@ -416,6 +446,9 @@ frappe.ui.FilterPanel = class FilterPanel {
 			.filter((o) => o.fieldname !== "idx")
 			.map((o) => ({ ...std_field(doctype, o.fieldname), doctype }))
 			.filter((df) => df.fieldtype);
+		// the ID leads the list, as its chip leads the bar
+		const id = standard.findIndex((df) => df.fieldname === "name");
+		if (id !== -1) sections[0].fields.unshift(...standard.splice(id, 1));
 
 		const tables = new Map();
 		for (const o of list.options.filter((o) => o.doctype !== doctype)) {
@@ -423,7 +456,9 @@ frappe.ui.FilterPanel = class FilterPanel {
 			if (!df || is_scan_helper(df)) continue;
 			const group = o.group || __(o.doctype);
 			if (!tables.has(group)) tables.set(group, []);
-			tables.get(group).push({ ...df, doctype: o.doctype, label: o.label });
+			tables
+				.get(group)
+				.push({ ...df, doctype: o.doctype, label: o.label, table_label: group });
 		}
 		for (const [label, fields] of tables) sections.push({ label, table: true, fields });
 		if (standard.length) sections.push({ label: __("Activity"), fields: standard });

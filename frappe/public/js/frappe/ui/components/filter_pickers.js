@@ -31,11 +31,18 @@ const has_soft_keyboard = () =>
 // keyboard down
 export function focus_soon(el, ctx) {
 	if (!el || ctx?.autofocus === false || has_soft_keyboard()) return;
-	// a box that holds a value has it selected, so typing replaces it
+	// a box that holds a value gets the cursor after it, as a text box does
 	const take = () => {
 		if (!el.isConnected) return false;
 		el.focus({ preventScroll: true });
-		if (el.value && el.select) el.select();
+		const end = el.value?.length;
+		if (end) {
+			try {
+				el.setSelectionRange(end, end);
+			} catch {
+				// a number box has no cursor position to set
+			}
+		}
 		return true;
 	};
 	queueMicrotask(() => {
@@ -199,6 +206,7 @@ export function scroll_cue(list) {
 	const update = () => {
 		const below = list.scrollHeight - list.scrollTop - list.clientHeight > 2;
 		list.toggleAttribute("data-more-below", below);
+		list.toggleAttribute("data-more-above", list.scrollTop > 2);
 		// a row that scrolls sideways (the chips on a short screen); RTL counts down from 0
 		const before = Math.abs(list.scrollLeft);
 		list.toggleAttribute("data-more-start", before > 2);
@@ -384,6 +392,14 @@ function input_el({ placeholder, value = "", label, type = "text" }) {
 		.val(value);
 }
 
+// a range's two boxes, each followed by its name: shown once the box is filled where the
+// boxes stack and their placeholders are gone (a phone)
+function range_boxes($from, $to) {
+	const name = (text) =>
+		$('<span class="es-filter-picker__box-label" aria-hidden="true"></span>').text(text);
+	return [$from, name(__("From")), $to, name(__("To"))];
+}
+
 const PAGE = 20;
 
 // Select options as rows: text options, or { value, label } ones (Document Status)
@@ -431,6 +447,8 @@ function search_filters(df, filters, people) {
 }
 
 const NOT_SET = "\u0000not set";
+// the user search leaves out the built-in users, yet records are made by them too
+const STANDARD_USERS = ["Administrator", "Guest"];
 // a picked row glides to its group gently enough for the eye to follow it
 const MOTION = { duration: 300, easing: "cubic-bezier(0, 0, 0.2, 1)" };
 
@@ -444,6 +462,7 @@ export function values(ctx) {
 	const like = df.match === "like";
 	const single = tree || like;
 	const listed = listed_options(df);
+	const counts = typeof df.counts === "function" ? df.counts() : !!df.counts;
 
 	let positive =
 		!rule ||
@@ -494,9 +513,13 @@ export function values(ctx) {
 		.button({ icon: "x", size: "xs", variant: "ghost", tooltip: __("Clear search") })
 		.prop("hidden", true)
 		.on("click", () => {
-			$search.val("").trigger("input").trigger("focus");
+			$search.val("").trigger("input");
+			// a phone's keyboard stays down; the next tap in the box brings it back
+			if (has_soft_keyboard()) $search.trigger("blur");
+			else $search.trigger("focus");
 		});
-	$field.append(icon("search"), $search, $clear);
+	const $spinner = $('<span class="es-spinner" aria-hidden="true" hidden></span>');
+	$field.append(icon("search"), $search, $spinner, $clear);
 	const search = frappe.utils.debounce(() => {
 		start = 0;
 		load();
@@ -716,17 +739,30 @@ export function values(ctx) {
 		}
 		unpicked.forEach(add_row);
 		for (const key of [...drawn.keys()]) if (!shown.has(key)) drawn.delete(key);
-		if (loading) {
+		// loading looks as the Combobox's does: a spinner in the search, placeholder rows while
+		// the list is empty, and a row at the end while more pages are left
+		$spinner.prop("hidden", !loading || Boolean(start));
+		if (loading && !rows.length) {
 			$list.append(
-				[1, 2, 3].map(() =>
-					$('<div class="es-filter-picker__skeleton"></div>').append(
-						frappe.ui.skeleton({ width: "60%" })
+				$('<div class="es-menu__group"></div>').append(
+					["55%", "70%", "45%"].map(
+						(width) =>
+							`<div class="flex items-center gap-2 px-2 py-1.5">${frappe.ui.skeleton.html(
+								{ css_class: "size-6 rounded-full" }
+							)}${frappe.ui.skeleton.html({ width, height: "12px" })}</div>`
 					)
+				)
+			);
+		} else if (more && rows.length) {
+			$list.append(
+				$('<div class="es-menu__loading" aria-hidden="true"></div>').append(
+					'<span class="es-spinner"></span>',
+					document.createTextNode(__("Loading more..."))
 				)
 			);
 		} else if (failed) {
 			$list.append(
-				$('<p class="es-filter-picker__empty"></p>').text(
+				$('<div class="es-menu__empty"></div>').text(
 					__("Couldn't load {0}", [__(df.options)])
 				)
 			);
@@ -736,17 +772,17 @@ export function values(ctx) {
 			);
 		} else if (!rows.length && !picked.length) {
 			$list.append(
-				$('<p class="es-filter-picker__empty"></p>').text(
+				$('<div class="es-menu__empty"></div>').text(
 					listed
 						? __("No options to pick")
-						: df.counts
+						: counts
 						? __("Nothing to pick yet")
 						: __("There are no {0} records yet", [__(df.options)])
 				)
 			);
 		}
 		$list.append($end, $status);
-		$status.text(loading ? __("Loading more") : "");
+		$status.text(loading && start ? __("Loading more...") : "");
 		$list.scrollTop(top);
 		slide(was);
 		keys.settle();
@@ -809,6 +845,20 @@ export function values(ctx) {
 			});
 	}
 
+	function standard_users(found) {
+		const q = query.toLowerCase();
+		return STANDARD_USERS.filter(
+			(user) =>
+				user !== frappe.session.user &&
+				user.toLowerCase().includes(q) &&
+				!found.some((r) => r.value === user)
+		).map((user) => {
+			const option = { value: user, label: frappe.user.full_name(user), description: user };
+			known.set(user, option);
+			return option;
+		});
+	}
+
 	function me_option() {
 		const me = frappe.session.user;
 		const name = frappe.user_info(me).fullname;
@@ -839,7 +889,7 @@ export function values(ctx) {
 	}
 
 	async function load() {
-		if (df.counts) return load_counts();
+		if (counts) return load_counts();
 		const asked = query;
 		if (listed) {
 			const q = query.toLowerCase();
@@ -899,7 +949,9 @@ export function values(ctx) {
 		more = found.length === PAGE;
 		const asks_me = !query || __("Me").toLowerCase().startsWith(query.toLowerCase());
 		const add_me = !start && asks_me && !method && !filters;
-		rows = start ? [...rows, ...found] : found;
+		const built_in =
+			people && !start && query && !method && !filters ? standard_users(found) : [];
+		rows = start ? [...rows, ...found] : [...found, ...built_in];
 		if (people) rows = me_first(rows, add_me);
 		start += found.length;
 		loading = false;
@@ -1151,6 +1203,8 @@ export function date(ctx) {
 		refresh();
 	}
 
+	// a box shown as unreadable is read again even when its text is back to what is applied
+	const changed = () => `${$from.val()}|${$to.val()}` !== before || !$error.prop("hidden");
 	// typing applies on Enter or on leaving the boxes, and only when something was typed, so a
 	// period such as "This Month" stays a period when the boxes are left as they were
 	let before = "";
@@ -1161,12 +1215,22 @@ export function date(ctx) {
 				commit_typed();
 			}
 		});
+		// in the phone sheet a whole typed date is the draft at once, so Apply counts it
+		$input.on("input", () => {
+			if (!$input.closest(".es-bottom-sheet").length) return;
+			const boxes = condition === "Between" ? [$from, $to] : [$from];
+			const whole = boxes.every(($i) => {
+				const day = read_day($i.val());
+				return day && show(day) === $i.val();
+			});
+			if (whole && changed()) commit_typed();
+		});
 		// moving from one box to the other saves nothing yet; a period clicked next is the filter
 		$input.on("blur", (e) => {
 			const next = e.relatedTarget;
 			if (next === $from[0] || next === $to[0] || pressing === "period") return;
 			const save = () => {
-				if (!gone && `${$from.val()}|${$to.val()}` !== before) commit_typed();
+				if (!gone && changed()) commit_typed();
 			};
 			// a calendar day pressed is clicked next: the typed day is saved first, so the click
 			// adds to it ("From" typed, "To" clicked)
@@ -1184,31 +1248,89 @@ export function date(ctx) {
 	$periods.on("pointerdown", press("period"));
 	$calendar.on("pointerdown", press("calendar"));
 
+	// a menu row beside the calendar; a phone's are buttons, the pick the outline button
 	function period_row(label, active, rule) {
-		const $label = $('<span class="es-menu__label"></span>').text(label);
-		frappe.ui.tooltip($label, { text: label, only_on_overflow: true });
-		return $('<button type="button" class="es-menu__item"></button>')
+		let $row;
+		if (frappe.is_mobile()) {
+			$row = frappe.ui.button({ label, variant: active ? "outline" : undefined });
+		} else {
+			const $label = $('<span class="es-menu__label"></span>').text(label);
+			frappe.ui.tooltip($label, { text: label, only_on_overflow: true });
+			$row = $('<button type="button" class="es-menu__item"></button>').append($label);
+		}
+		return $row
 			.attr("aria-pressed", active ? "true" : "false")
 			.attr("data-state", active ? "checked" : null)
 			.attr("data-key", JSON.stringify(rule))
-			.append($label)
 			.on("click", () => {
 				apply(active ? [] : [rule]);
 				refresh();
+				show_top();
 			});
+	}
+
+	// a phone shows the boxes and the calendar a pick filled, at the pane's top, not the period
+	// the redraw scrolled to; a popover's periods scroll in a column of their own
+	function show_top() {
+		const $scroller = $root.closest(".es-bottom-sheet .es-filter-panel__picker");
+		requestAnimationFrame(() => $scroller.scrollTop(0));
+	}
+
+	// a phone has no room for forty fiscal years: one button opens them in a menu under it, the
+	// current year first. It is kept across redraws, so focus comes back to it when the menu closes
+	const hook_menus = new Map();
+	function hook_menu(hook) {
+		const is_on = (choice) =>
+			!first_day &&
+			current?.condition === hook.key &&
+			String(current.value) === choice.value;
+		let $menu = hook_menus.get(hook.key);
+		if (!$menu) {
+			$menu = frappe.ui
+				.dropdown({
+					button: { label: __(hook.label), icon_right: "chevron-down" },
+					options: () =>
+						hook_choices(hook).map((choice) => ({
+							label: choice.label,
+							selected: is_on(choice),
+							onclick: () => {
+								apply(is_on(choice) ? [] : [[hook.key, choice.value]]);
+								refresh();
+								show_top();
+							},
+						})),
+				})
+				.addClass("es-filter-picker__period-menu");
+			hook_menus.set(hook.key, $menu);
+		}
+		const on = hook.choices.find(is_on);
+		$menu.find(".es-button__label").text(on ? on.label : __(hook.label));
+		return $menu.attr("data-state", on ? "checked" : null);
+	}
+
+	// the period holding today first (a `query_value` is its from and to days), then as listed
+	function hook_choices(hook) {
+		const today = frappe.datetime.get_today();
+		const now = hook.choices.find(
+			({ query_value: days }) => Array.isArray(days) && days[0] <= today && today <= days[1]
+		);
+		return now ? [now, ...hook.choices.filter((c) => c !== now)] : hook.choices;
 	}
 
 	function draw_periods() {
 		// the period clicked keeps focus once redrawn, so the keyboard (and Escape) stays here
 		const active = document.activeElement;
 		const focused = $periods[0].contains(active) ? active.dataset.key : null;
+		$periods.find(".es-filter-picker__period-menu").detach();
 		$periods.empty().prop("hidden", condition !== "Between");
 		const timespan = !first_day && current?.condition === "Timespan" ? current.value : null;
 		const other = timespan && !PERIODS.flat().includes(timespan) ? [[timespan]] : [];
 		[...other, ...PERIODS].forEach((group) => {
 			const $group = $(
 				'<div class="es-filter-picker__period-group flex flex-col gap-0.5"></div>'
-			).appendTo($periods);
+			)
+				.attr("data-count", group.length)
+				.appendTo($periods);
 			group.forEach((value) => {
 				const label = period_label(value);
 				$group.append(period_row(label, timespan === value, ["Timespan", value]));
@@ -1217,9 +1339,12 @@ export function date(ctx) {
 		for (const hook of hooks.filter((h) => h.choices.length)) {
 			const $group = $(
 				'<div class="es-filter-picker__period-group flex flex-col gap-0.5"></div>'
-			)
-				.append($('<div class="es-menu__group-label"></div>').text(__(hook.label)))
-				.appendTo($periods);
+			).appendTo($periods);
+			if (frappe.is_mobile()) {
+				$group.append(hook_menu(hook));
+				continue;
+			}
+			$group.prepend($('<div class="es-menu__group-label"></div>').text(__(hook.label)));
 			for (const choice of hook.choices) {
 				const active =
 					!first_day &&
@@ -1230,7 +1355,7 @@ export function date(ctx) {
 		}
 		if (focused) {
 			$periods
-				.find(".es-menu__item")
+				.find("[data-key]")
 				.filter((i, el) => el.dataset.key === focused)
 				.trigger("focus");
 		}
@@ -1339,12 +1464,13 @@ export function date(ctx) {
 
 	function draw() {
 		$box.find(".es-filter-picker__input").detach();
+		$box.children(".es-filter-picker__box-label").remove();
 		$from.attr({
 			placeholder: condition === "Between" ? __("From") : show(frappe.datetime.get_today()),
 			"aria-label": condition === "Between" ? __("From date") : __("Date"),
 		});
 		const empty_check = is_set_condition(condition);
-		if (!empty_check) $box.append(condition === "Between" ? [$from, $to] : [$from]);
+		if (!empty_check) $box.append(condition === "Between" ? range_boxes($from, $to) : [$from]);
 		$body.prop("hidden", empty_check);
 		$hint.prop("hidden", !ctx.hint || empty_check);
 		show_set_hint($box, df, condition);
@@ -1383,15 +1509,23 @@ const number_options = (df) => [
 ];
 
 // a pill clicked again lets go, so none may be picked
+// a phone's choices are buttons in even rows, the pick the outline button; wider screens keep
+// Tab Buttons. `data-count` sets the rows out
 function choice_buttons($row, choices, on_pick) {
-	$row.addClass("es-tab-buttons");
+	const phone = frappe.is_mobile();
+	$row.addClass(phone ? "es-filter-picker__choices" : "es-tab-buttons").attr(
+		"data-count",
+		choices.length
+	);
 	for (const choice of choices) {
-		const $choice = $('<button type="button" class="es-pill"></button>')
-			.text(choice.label)
-			.on("click", () => {
-				choice.pick(choice.on());
-				on_pick?.();
-			});
+		const $choice = (
+			phone
+				? frappe.ui.button({ label: choice.label })
+				: $('<button type="button" class="es-pill"></button>').text(choice.label)
+		).on("click", () => {
+			choice.pick(choice.on());
+			on_pick?.();
+		});
 		$choice[0].is_on = choice.on;
 		$row.append($choice);
 	}
@@ -1402,6 +1536,8 @@ function mark_choices($row) {
 	$row.children().each(function () {
 		const on = this.is_on();
 		$(this).attr({ "aria-pressed": String(on), "data-state": on ? "active" : "inactive" });
+		if (this.classList.contains("es-button"))
+			$(this).attr("data-variant", on ? "outline" : null);
 	});
 }
 
@@ -1441,7 +1577,7 @@ export function number(ctx) {
 	});
 	const $value = input_el({
 		type: "number",
-		placeholder: "0" + unit,
+		placeholder: __("Value") + unit,
 		label: __(df.label, null, df.doctype),
 		value: rule && !["Between", "is"].includes(rule[0]) ? shown(rule[1]) : "",
 	});
@@ -1495,6 +1631,7 @@ export function number(ctx) {
 	const not_whole = () =>
 		whole && shown_boxes().some(($i) => !Number.isInteger(Number($i.val() || 0)));
 	[$from, $to, $value].forEach(($i) => {
+		$i.attr("inputmode", whole ? "numeric" : "decimal");
 		if (whole) {
 			$i.attr("step", 1).on("keydown", (e) => {
 				if (["e", "E"].includes(e.key)) e.preventDefault();
@@ -1533,11 +1670,12 @@ export function number(ctx) {
 
 	function draw() {
 		$box.find(".es-filter-picker__input").detach();
+		$box.children(".es-filter-picker__box-label").remove();
 		$extra.empty();
 		show_set_hint($box, df, condition);
 		$whole_hint.prop("hidden", !not_whole());
 		if (is_set_condition(condition)) return;
-		$box.append(condition === "Between" ? [$from, $to] : [$value]);
+		$box.append(condition === "Between" ? range_boxes($from, $to) : [$value]);
 		if (!bounds) return;
 		if (condition === "Between") {
 			const cuts = [0, 25, 50, 75, 100];
@@ -1555,7 +1693,7 @@ export function number(ctx) {
 						save();
 						draw();
 						// the redrawn range keeps focus, so the keyboard (and Escape) stays here
-						$extra.find(".es-pill").eq(i).trigger("focus");
+						$extra.find(".es-filter-picker__ranges").children().eq(i).trigger("focus");
 					},
 				};
 			});
@@ -1590,6 +1728,163 @@ export function number(ctx) {
 			);
 			$extra.append($slider, $scale);
 		}
+	}
+
+	draw();
+	focus_soon((condition === "Between" ? $from : $value)[0], ctx);
+	$root[0].destroy = later.flush;
+	return $root[0];
+}
+
+// parts of the day a time filter offers at once; each stays within one day
+const DAY_PARTS = () => [
+	[__("Morning"), "06:00", "11:59"],
+	[__("Afternoon"), "12:00", "16:59"],
+	[__("Evening"), "17:00", "20:59"],
+];
+
+const show_time = (hhmm) => {
+	const time = moment(hhmm, "HH:mm");
+	return hhmm && time.isValid() ? time.format("HH:mm") : hhmm || "";
+};
+
+/**
+ * A typed time as "HH:mm": "9", "930", "0930" or "9:30".
+ * Null for an empty box, undefined for one that isn't a time.
+ */
+function read_time(text) {
+	const t = String(text || "").trim();
+	if (!t) return null;
+	const digits = /^\d{1,4}$/.exec(t) && t.padStart(t.length <= 2 ? 2 : 4, "0");
+	const [h, m] = digits ? [+digits.slice(0, 2), +(digits.slice(2) || 0)] : [];
+	if (digits)
+		return h < 24 && m < 60 ? moment({ hour: h, minute: m }).format("HH:mm") : undefined;
+	const time = moment(t, ["H:mm", "HH:mm"], true);
+	return time.isValid() ? time.format("HH:mm") : undefined;
+}
+
+/** A time of day: a date's conditions without its calendar, and parts of the day for a range. */
+export function time(ctx) {
+	const { df } = ctx;
+	const [rule] = ctx.rules;
+	const options = [
+		{ label: __("Between"), value: "Between" },
+		{ label: __("At"), value: "=" },
+		{ label: __("Before"), value: "<" },
+		{ label: __("After"), value: ">" },
+		{ label: __("At or before"), value: "<=" },
+		{ label: __("At or after"), value: ">=" },
+		...set_options(df),
+	];
+	let condition = rule ? condition_of(rule) : "Between";
+	// the server keeps seconds too; the box shows hours and minutes
+	const shown = (v) => (is_blank(v) ? "" : show_time(String(v).slice(0, 5)));
+	const [from, to] = rule?.[0] === "Between" ? list_of(rule[1]).map(shown) : [];
+
+	const $root = $('<div class="es-filter-picker es-filter-picker--number"></div>');
+	const box = (placeholder, label, value) =>
+		input_el({ placeholder, label, value: value ?? "" }).attr("inputmode", "numeric");
+	const $from = box(__("From"), __("From"), from);
+	const $to = box(__("To"), __("To"), to);
+	const $value = box(
+		__("Time"),
+		__(df.label, null, df.doctype),
+		rule && !["Between", "is"].includes(rule[0]) ? shown(rule[1]) : ""
+	);
+	const $box = condition_box(
+		{ label: __(df.label, null, df.doctype), options, value: condition },
+		(value) => {
+			const carried = carried_value(condition, value, {
+				value: $value.val(),
+				from: $from.val(),
+				to: $to.val(),
+			});
+			if (carried && "value" in carried) $value.val(carried.value);
+			else if (carried) {
+				$from.val(carried.from);
+				$to.val(carried.to);
+			}
+			condition = value;
+			draw();
+			save();
+		}
+	);
+	const $error = $('<p class="es-filter-picker__error" role="alert" hidden></p>');
+	const $extra = $('<div class="es-filter-picker__extra"></div>');
+	$root.append($box, $error, $extra);
+
+	const boxes = () => (condition === "Between" ? [$from, $to] : [$value]);
+	function show_error($bad, text) {
+		$from.add($to).add($value).removeAttr("aria-invalid");
+		$bad?.attr("aria-invalid", "true");
+		$error.text(text || "").prop("hidden", !$bad);
+	}
+	// a box it can't read, or a range across midnight, saves nothing and says why
+	function save() {
+		if (is_set_condition(condition)) return show_error(), ctx.set(set_rule(condition));
+		const $bad = boxes().find(($i) => read_time($i.val()) === undefined);
+		if ($bad) {
+			return show_error(
+				$bad,
+				__("Can't read {0}. Type a time like {1}.", [$bad.val(), show_time("09:30")])
+			);
+		}
+		if (condition === "Between") {
+			const [a, b] = [read_time($from.val()), read_time($to.val())];
+			if (a && b && a > b) {
+				return show_error($to, __("A time range can't cross midnight."));
+			}
+			show_error();
+			return ctx.set(a == null && b == null ? [] : [["Between", [a || "", b || ""]]]);
+		}
+		show_error();
+		const v = read_time($value.val());
+		ctx.set(v ? [[condition, v]] : []);
+	}
+	const later = frappe.utils.debounce(save, 300);
+	$from
+		.add($to)
+		.add($value)
+		.on("input", () => {
+			const $parts = $extra.children(".es-filter-picker__ranges");
+			if ($parts.length) mark_choices($parts);
+			later();
+		})
+		// "930" becomes "09:30"
+		.on("blur", function () {
+			const read = read_time(this.value);
+			if (read) this.value = show_time(read);
+			later.flush();
+		});
+
+	function draw() {
+		$box.find(".es-filter-picker__input").detach();
+		$box.children(".es-filter-picker__box-label").remove();
+		$extra.empty();
+		show_set_hint($box, df, condition);
+		if (is_set_condition(condition)) return;
+		$box.append(condition === "Between" ? range_boxes($from, $to) : [$value]);
+		if (condition !== "Between") return;
+		const $parts = $('<div class="es-filter-picker__ranges" role="group"></div>')
+			.attr("aria-label", __("Parts of the day"))
+			.appendTo($extra);
+		choice_buttons(
+			$parts,
+			DAY_PARTS().map(([label, a, b]) => ({
+				label,
+				on: () => read_time($from.val()) === a && read_time($to.val()) === b,
+				pick: (on) => {
+					$from.val(on ? "" : show_time(a));
+					$to.val(on ? "" : show_time(b));
+					save();
+					mark_choices($parts);
+				},
+			}))
+		);
+		$parts.children().each(function (i) {
+			const [, a, b] = DAY_PARTS()[i];
+			frappe.ui.tooltip($(this), { text: `${show_time(a)} – ${show_time(b)}` });
+		});
 	}
 
 	draw();
@@ -1679,7 +1974,13 @@ function duration_input(label, get, set) {
 			// a box emptied with only zeros left beside it empties the side; a 0 typed stays 0
 			set(this.value === "" && !seconds ? null : seconds);
 		})
-		.on("blur", $group.fill);
+		.on("blur", $group.fill)
+		// the 0 filled in beside a typed hour is replaced by what is typed, not added to
+		.on("focus", function () {
+			setTimeout(
+				() => this === document.activeElement && this.value === "0" && this.select()
+			);
+		});
 	// the box's empty room types the hours, as a plain input would
 	$group.on("click", (e) => e.target === $group[0] && $hours.trigger("focus"));
 	$group.fill();
@@ -1759,7 +2060,8 @@ function time_ruler({ label, state, pick }) {
 		});
 		const drop = () => {
 			if (!dragging) return;
-			pick(dragging, state()[dragging], true);
+			// a resting knob let go without a move sets nothing
+			if (state()[dragging] != null) pick(dragging, state()[dragging], true);
 			dragging = null;
 			$ruler.removeAttr("data-dragging");
 		};
@@ -1822,21 +2124,23 @@ function time_ruler({ label, state, pick }) {
 		const keys = condition === "Between" ? ["from", "to"] : ["value"];
 		knobs.forEach(($knob, i) => {
 			const key = keys[i];
-			const s = key && state()[key];
-			$knob.prop("hidden", s == null);
-			if (s == null) return;
+			$knob.prop("hidden", !key);
+			if (!key) return;
+			const s = state()[key];
+			// an end not set yet rests at 0: an empty range's two knobs sit as one
 			const name = { from: __("From"), to: __("To") }[key] || label;
 			$knob
 				.attr({
 					"data-key": key,
+					"data-empty": s == null ? "" : null,
 					"aria-label": name,
-					"aria-valuenow": s,
-					"aria-valuetext": time_text(s),
+					"aria-valuenow": s ?? null,
+					"aria-valuetext": s == null ? null : time_text(s),
 				})
-				.css("inset-inline-start", `${time_place(s) * 100}%`)
+				.css("inset-inline-start", `${time_place(s ?? 0) * 100}%`)
 				.attr("data-not", condition === "!=" ? "" : null)
 				.children()
-				.text(time_text(s));
+				.text(s == null ? "" : time_text(s));
 		});
 	};
 	return $ruler;
@@ -1936,11 +2240,14 @@ export function duration(ctx) {
 
 	function draw() {
 		$box.children(".es-filter-picker__duration").detach();
+		$box.children(".es-filter-picker__box-label").remove();
 		show_set_hint($box, df, condition);
 		const empty_check = is_set_condition(condition);
 		$extra.prop("hidden", empty_check);
 		if (empty_check) return;
-		$box.append(condition === "Between" ? [inputs.from, inputs.to] : [inputs.value]);
+		$box.append(
+			condition === "Between" ? range_boxes(inputs.from, inputs.to) : [inputs.value]
+		);
 		draw_choices();
 		$ruler.update();
 	}
@@ -1994,7 +2301,8 @@ export function text(ctx) {
 	];
 	// a big table matches a whole value unless the person chose otherwise, as its rows do
 	const large = df.fieldtype === "Data" && frappe.get_meta(ctx.doctype)?.is_large_table;
-	let condition = ctx.condition || (large ? "=" : "like");
+	// a barcode is read whole, from a scanner or a label
+	let condition = ctx.condition || (large || df.fieldtype === "Barcode" ? "=" : "like");
 	if (rule) condition = condition_of(rule);
 	const $root = $('<div class="es-filter-picker es-filter-picker--text"></div>');
 	const $input = input_el({
@@ -2084,20 +2392,20 @@ export function check(ctx) {
 export function advanced_notice(ctx, lines, on_edit) {
 	const $root = $('<div class="es-filter-picker es-filter-picker--notice"></div>');
 	$root.append(
-		...lines.map((line) => $('<p class="m-0 text-base text-ink-gray-8"></p>').text(line)),
-		$('<p class="m-0 text-p-sm text-ink-gray-5"></p>').text(
-			__("These conditions can be changed in Advanced filters.")
-		)
+		...lines.map((line) => $('<p class="m-0 text-base text-ink-gray-8"></p>').text(line))
 	);
-	if (on_edit) {
-		$root.append(
-			frappe.ui.button({
-				label: __("Edit in Advanced filters"),
-				icon_right: "arrow-right",
-				css_class: "es-filter-picker__forward",
-				onclick: on_edit,
-			})
-		);
-	}
+	// the button says where to change them; without one, a line does
+	$root.append(
+		on_edit
+			? frappe.ui.button({
+					label: __("Edit in Advanced filters"),
+					icon_right: "arrow-right",
+					css_class: "es-filter-picker__forward",
+					onclick: on_edit,
+			  })
+			: $('<p class="m-0 text-p-sm text-ink-gray-5"></p>').text(
+					__("These conditions can be changed in Advanced filters.")
+			  )
+	);
 	return $root[0];
 }

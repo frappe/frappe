@@ -75,12 +75,12 @@ frappe.ui.FilterGroup = class {
 		});
 		this.set_clear_all_filters_event();
 
-		// the button picks the panel or, on phones, the bottom sheet on every click
+		// on every click: the chips' panel, else the rows in a sheet on phones or a popover
 		this.popover.trigger_el.removeEventListener("click", this.popover.ontriggerclick);
 		this.filter_button[0].addEventListener("click", (e) => {
 			e.preventDefault();
-			if (frappe.is_mobile()) this.open_sheet();
-			else if (this.toolbar?.filter_chips) this.toolbar.toggle_filter_panel();
+			if (this.toolbar?.filter_chips) this.toolbar.toggle_filter_panel();
+			else if (frappe.is_mobile()) this.open_sheet();
 			else this.popover.toggle();
 		});
 		this.intercept_row_pickers();
@@ -88,15 +88,27 @@ frappe.ui.FilterGroup = class {
 		frappe.router.on("change", () => this.hide_popover());
 	}
 
-	async open_sheet() {
+	/** `on_back`: a Back button before the title, for a host that opened the sheet from its own. */
+	async open_sheet({ on_back = null } = {}) {
 		// the sheet isn't in the desk bundle
 		await frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]);
+		this.sheet_back = on_back;
 		if (!this.sheet)
 			this.sheet = new frappe.ui.BottomSheet({
 				header: () => [
+					this.sheet_back &&
+						frappe.ui.button({
+							icon: "chevron-left",
+							variant: "ghost",
+							title: __("Back"),
+							css_class: "es-bottom-sheet__back filter-sheet-back",
+							onclick: () => this.sheet_back(),
+						}),
 					$('<div class="es-bottom-sheet__title"></div>').text(__("Filters")),
 					frappe.ui.button({
 						label: __("Clear all"),
+						// a ghost, as in the Filter sheet it was opened from
+						variant: this.sheet_back ? "ghost" : undefined,
 						css_class: "filter-sheet-clear",
 						// like removing each row: Apply clears them, closing keeps them
 						onclick: () => {
@@ -115,7 +127,7 @@ frappe.ui.FilterGroup = class {
 						size: "md",
 						onclick: () => this.add_sheet_filter(),
 					}),
-					frappe.ui.button({
+					(this.$sheet_apply = frappe.ui.button({
 						label: __("Apply"),
 						variant: "solid",
 						size: "md",
@@ -123,7 +135,7 @@ frappe.ui.FilterGroup = class {
 							this.apply_sheet();
 							this.sheet.close("action");
 						},
-					}),
+					})),
 				],
 				on_open: () => this.on_sheet_open(),
 				on_close: (reason) => this.on_sheet_close(reason),
@@ -328,6 +340,7 @@ frappe.ui.FilterGroup = class {
 		this.return_edited_row();
 		if (!this.$sheet_rows) return;
 		const filters = this.filters.filter((f) => f.field);
+		this.count_sheet_apply();
 		this.$sheet_rows.empty();
 		if (!filters.length) {
 			this.$sheet_rows.append(
@@ -347,6 +360,21 @@ frappe.ui.FilterGroup = class {
 				if (this.sheet?.is_open && !this.editing) this.render_sheet_rows();
 			});
 		}
+	}
+
+	// opened from the Filter sheet, Apply says how many fields it filters on, as that sheet's does
+	count_sheet_apply() {
+		if (!this.$sheet_apply) return;
+		const fields = this.sheet_back
+			? new Set(
+					this.filters
+						.filter((f) => this.is_complete(f))
+						.map((f) => f.get_value().slice(0, 2).join("."))
+			  ).size
+			: 0;
+		this.$sheet_apply
+			.find(".es-button__label")
+			.text(fields ? __("Apply ({0})", [fields]) : __("Apply"));
 	}
 
 	make_sheet_row(filter) {
@@ -899,7 +927,7 @@ frappe.ui.FilterGroup = class {
 			frappe.ui.button({
 				label: __("Clear all"),
 				variant: "ghost",
-				css_class: "clear-filters text-ink-gray-6",
+				css_class: "clear-filters",
 			})
 		);
 		return $area;

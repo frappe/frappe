@@ -36,9 +36,12 @@ frappe.provide("frappe.ui");
  *   a child table's field.
  * @property {function} [on_condition] Called with (key, condition) when that choice changes.
  * @property {function} [onopen] Called with the field when its chip's picker opens.
+ * @property {function} [open_picker] Called with the field when its chip is clicked; returning true
+ *   means the host showed the picker itself (a phone's sheet), so the chip's own stays shut.
  *
  * A field may also carry `get_query` (as a Link field does) to narrow its records, and
- * `counts: true` to list its values with how many records have each.
+ * `counts: true` to list its values with how many records have each (or a function, asked each
+ * time its picker opens, that returns whether to).
  */
 
 // one sentence each ({0} the field, {1} the value), so a language keeps its own word order
@@ -62,6 +65,15 @@ const WORDS = {
 		">": () => __("{0} after {1}"),
 		"<=": () => __("{0} on or before {1}"),
 		">=": () => __("{0} on or after {1}"),
+	},
+	time: {
+		Between: "",
+		"=": () => __("{0} at {1}"),
+		"<": () => __("{0} before {1}"),
+		">": () => __("{0} after {1}"),
+		"<=": () => __("{0} at or before {1}"),
+		">=": () => __("{0} at or after {1}"),
+		is: "",
 	},
 	number: {
 		Between: "",
@@ -169,7 +181,7 @@ function day_starting(value) {
  * midnights to the next. `from_rules` reads them back.
  */
 function to_rules(df, rules) {
-	if (df.fieldtype === "Time") return rules.map(time_rule);
+	if (df.fieldtype === "Time") return rules.flatMap(time_rules);
 	const kind = kind_of(df);
 	if (kind !== "number" && kind !== "date") return rules;
 	if (df.fieldtype === "Datetime") return rules.flatMap(datetime_rules);
@@ -181,13 +193,26 @@ function to_rules(df, rules) {
 	});
 }
 
-// the server matches a time whole, with its seconds: "9:5" or "10:15" is sent as "10:15:00"
-function time_rule([condition, value]) {
-	const parts =
-		["=", "!="].includes(condition) && /^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/.exec(value);
-	if (!parts) return [condition, value];
-	const time = parts.slice(1, 4).map((n) => String(n || 0).padStart(2, "0"));
-	return [condition, time.join(":")];
+// the server matches a time whole, with its seconds: an end includes its whole minute
+const whole_time = (value, end) => {
+	const parts = /^(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/.exec(value);
+	if (!parts) return value;
+	return parts
+		.slice(1, 4)
+		.map((n) => String(n ?? (end ? 59 : 0)).padStart(2, "0"))
+		.join(":");
+};
+
+// a time range is its two ends, as a number's is: the server's Between reads dates
+function time_rules([condition, value]) {
+	if (condition === "is") return [[condition, value]];
+	if (condition !== "Between")
+		return [[condition, whole_time(value, ["<=", ">"].includes(condition))]];
+	const [from, to] = list_of(value);
+	return [
+		...(is_blank(from) ? [] : [[">=", whole_time(from)]]),
+		...(is_blank(to) ? [] : [["<=", whole_time(to, true)]]),
+	];
 }
 
 function datetime_rules([condition, value]) {
@@ -213,6 +238,14 @@ function datetime_rules([condition, value]) {
 /** A field's filters as its picker shows them, the other way round from `to_rules`. */
 function from_rules(df, rules) {
 	const kind = kind_of(df);
+	if (kind === "time") {
+		const from = rules.find(([condition]) => condition === ">=");
+		const to = rules.find(([condition]) => condition === "<=");
+		if (rules.length === 2 && from && to && from[1] <= to[1]) {
+			return [["Between", [from[1], to[1]]]];
+		}
+		return rules;
+	}
 	if (kind !== "number" && kind !== "date") return rules;
 	if (df.fieldtype === "Datetime") return datetime_from_rules(rules);
 	const from = rules.find(([condition]) => condition === ">=");
@@ -313,6 +346,11 @@ function value_text(df, condition, value) {
 		return labels.join(", ");
 	}
 	if (kind === "check") return cint(value) ? __("Yes") : __("No");
+	if (kind === "time") {
+		const shown = (v) => String(v).slice(0, 5);
+		if (condition === "Between") return span(...list_of(value).map(shown));
+		return shown(value);
+	}
 	if (kind === "text") return `“${condition.includes("like") ? strip_like(value) : value}”`;
 	if (kind === "date") {
 		const timed = df.fieldtype === "Datetime";
@@ -405,11 +443,16 @@ function ease_width(el, from) {
 
 function close_gap(gap) {
 	if (still() || !gap.isConnected) return gap.remove();
-	const space = getComputedStyle(gap.parentElement).columnGap;
+	const bar = getComputedStyle(gap.parentElement);
+	// a flex bar adds its gap after the gap too; chips that flow as words carry their own margin
+	const end = bar.display.includes("flex") ? `-${bar.columnGap}` : "0px";
 	gap.animate(
 		[
-			{ width: `${gap.offsetWidth}px`, marginInlineEnd: "0px" },
-			{ width: "0px", marginInlineEnd: `-${space}` },
+			{
+				width: `${gap.offsetWidth}px`,
+				marginInlineEnd: getComputedStyle(gap).marginInlineEnd,
+			},
+			{ width: "0px", marginInlineEnd: end },
 		],
 		SETTLE
 	).finished.then(
@@ -735,6 +778,7 @@ frappe.ui.FilterChips = class FilterChips {
 					},
 				})),
 			popover_class: `es-filter-picker-panel es-filter-picker-panel--${kind_of(df)}`,
+			onpress: () => this.opts.open_picker?.(df) !== true,
 			onopen: () => {
 				this.open_key = key;
 				this.opts.onopen?.(df);
@@ -855,8 +899,8 @@ frappe.ui.FilterChips = class FilterChips {
 	}
 
 	/**
-	 * While on, nothing in the bar moves under the pointer: a chip that gets shorter keeps its
-	 * width, and one that goes leaves a gap of its size. Off lets every chip settle.
+	 * While on, a chip that gets shorter keeps its width, so it doesn't move under the pointer.
+	 * Off lets every chip settle.
 	 */
 	hold_widths(on) {
 		this.holding = on;
@@ -865,20 +909,18 @@ frappe.ui.FilterChips = class FilterChips {
 		this.$wrapper.children(".es-filter-chips__gap").each((i, gap) => close_gap(gap));
 	}
 
-	// a removed chip fades where it was; its room stays while the bar is held
+	// a removed chip fades where it was while its room closes
 	leave_gap(chip) {
 		const el = chip.$wrapper[0];
-		if (!el.isConnected || !el.offsetWidth) return;
-		if (still() && !this.holding) return;
+		if (!el.isConnected || !el.offsetWidth || still()) return;
 		const ghost = el.cloneNode(true);
 		ghost.inert = true;
 		const gap = $('<span class="es-filter-chips__gap" aria-hidden="true"></span>')
 			.css("width", el.offsetWidth)
 			.append(ghost)
 			.insertBefore(el)[0];
-		if (still()) return ghost.remove();
 		ghost.animate([{ opacity: 1 }, { opacity: 0 }], { ...SETTLE, fill: "forwards" });
-		if (!this.holding) close_gap(gap);
+		close_gap(gap);
 	}
 
 	/** Close the chip whose picker is open, if any. */

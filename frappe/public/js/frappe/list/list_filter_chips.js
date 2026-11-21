@@ -2,6 +2,23 @@ import { GROUP_BY_KEYS, is_scan_helper, std_field } from "../ui/components/filte
 
 frappe.provide("frappe.views");
 
+// the fields whose filters differ between two lists, each counted once
+function changed_fields(next, applied) {
+	const by_field = (filters) => {
+		const map = new Map();
+		for (const f of filters) {
+			const key = `${f[0]}.${f[1]}`;
+			map.set(key, [...(map.get(key) || []), JSON.stringify(f.slice(2))].sort());
+		}
+		return map;
+	};
+	const a = by_field(next);
+	const b = by_field(applied);
+	return [...new Set([...a.keys(), ...b.keys()])].filter(
+		(key) => JSON.stringify(a.get(key)) !== JSON.stringify(b.get(key))
+	).length;
+}
+
 /**
  * A list's quick filter chips and its Filter panel, kept in step with the list's filter rows.
  * Loaded with the filter_chips bundle, only where the chips are switched on; `area` is the list's
@@ -49,7 +66,8 @@ frappe.views.ListFilterChips = class ListFilterChips {
 		for (const [key, fieldname] of Object.entries(GROUP_BY_KEYS)) {
 			if (!group_by_fields.includes(key)) continue;
 			const df = std_field(doctype, fieldname);
-			fields.push({ ...df, doctype, counts: true });
+			// counting every record's owner is slow on a list too big to count
+			fields.push({ ...df, doctype, counts: () => !this.count_is_estimated() });
 		}
 
 		const start = (list_view.filters = list_view.filters || []);
@@ -65,19 +83,29 @@ frappe.views.ListFilterChips = class ListFilterChips {
 		const from_link =
 			frappe.route_options &&
 			frappe.views.ListView.prototype.parse_filters_from_route_options.call(list_view);
-		const chips = (area.filter_chips = new frappe.ui.FilterChips({
+		// the phone sheet's draft is a second bar on the same fields, kept off the page
+		this.chip_opts = {
 			doctype,
-			filters: from_link?.length ? from_link : start.filter((f) => f.length >= 4),
 			fields: fields.map((df) => ({ ...df, label: __(df.label, null, df.parent) })),
 			conditions,
 			on_condition: (key, condition) => {
 				conditions[key] = condition;
 				list_view.save_view_user_settings?.({ filter_conditions: { ...conditions } });
 			},
+		};
+		const chips = (area.filter_chips = new frappe.ui.FilterChips({
+			...this.chip_opts,
+			filters: from_link?.length ? from_link : start.filter((f) => f.length >= 4),
 			onchange: (filters) => this.set_rows(filters),
 			on_advanced: (doctype, fieldname) =>
 				this.open_panel({ view: "advanced", focus: { doctype, fieldname } }),
 			onopen: () => this.close_on_route_change(),
+			// on a phone a chip opens the Filter sheet on its field
+			open_picker: (df) => {
+				if (!frappe.is_mobile()) return false;
+				this.open_panel({ focus: { doctype: df.doctype, fieldname: df.fieldname } });
+				return true;
+			},
 		}));
 		// list scripts reach a quick filter at page.fields_dict.<fieldname>
 		for (const df of fields.filter((df) => df.doctype === doctype)) {
@@ -88,6 +116,7 @@ frappe.views.ListFilterChips = class ListFilterChips {
 		// the page shows its form row once a field is added; the chips add none
 		list_view.page.show_form();
 		this.hold_toolbar();
+		this.keep_room_for_buttons();
 		// the rows fill the room the toolbar leaves: chips taking more rows or fewer change it
 		const fit = frappe.utils.debounce(() => {
 			if (list_view.$result?.is(":visible")) list_view.set_result_height?.();
@@ -119,6 +148,22 @@ frappe.views.ListFilterChips = class ListFilterChips {
 		});
 	}
 
+	// the chips' first line leaves the buttons' width free, as the buttons grow or shrink
+	keep_room_for_buttons() {
+		const chips = this.area.filter_chips.$wrapper[0];
+		const buttons = this.list_view.page.page_form.find(".filter-section")[0];
+		if (!buttons) return;
+		new ResizeObserver(() => {
+			const gap = parseFloat(getComputedStyle(chips).columnGap) || 0;
+			const button = buttons.querySelector(".filter-button");
+			chips.style.setProperty("--filter-section-width", `${buttons.offsetWidth + gap}px`);
+			chips.style.setProperty(
+				"--filter-section-height",
+				`${(button?.offsetHeight || 0) + gap}px`
+			);
+		}).observe(buttons);
+	}
+
 	/** The rows take the chips' filters; one rebuild at a time, in order. */
 	set_rows(filters) {
 		this.pending++;
@@ -144,6 +189,12 @@ frappe.views.ListFilterChips = class ListFilterChips {
 	}
 
 	open_panel({ view, focus } = {}) {
+		this.view = { view, focus };
+		if (frappe.is_mobile()) {
+			// a phone edits what the pickers can't show in its own filter sheet
+			if (view === "advanced") return this.area.filter_list.open_sheet();
+			return this.open_sheet();
+		}
 		const button = this.area.filter_button;
 		if (!this.popover) {
 			this.popover = new frappe.ui.Popover({
@@ -164,14 +215,157 @@ frappe.views.ListFilterChips = class ListFilterChips {
 			// the button's own click handler decides which panel opens
 			this.popover.trigger_el.removeEventListener("click", this.popover.ontriggerclick);
 		}
-		this.view = { view, focus };
 		this.popover.close("owner");
 		this.popover.open();
 	}
 
+	/**
+	 * A phone gets the same panel in a full-height sheet. Its picks go to a draft bar, so a tap
+	 * costs no list load: Apply hands the draft to the rows once, and closing drops it.
+	 */
+	async open_sheet() {
+		// the sheet isn't in the desk bundle
+		await frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]);
+		if (!this.sheet) {
+			const update = () => {
+				const filters = this.draft?.filters || [];
+				this.$clear_all?.prop("hidden", !filters.length);
+				const changed = changed_fields(filters, this.area.filter_chips.filters);
+				// the filters the list will have, as the Filter button counts them
+				const count = new Set(filters.map((f) => `${f[0]}.${f[1]}`)).size;
+				this.$apply
+					?.prop("disabled", !changed)
+					.find(".es-button__label")
+					.text(changed && count ? __("Apply ({0})", [count]) : __("Apply"));
+			};
+			this.sheet = new frappe.ui.BottomSheet({
+				height: "full",
+				header: () => [
+					$('<div class="es-bottom-sheet__title"></div>').text(__("Filters")),
+					(this.$clear_all = frappe.ui.button({
+						label: __("Clear all"),
+						variant: "ghost",
+						onclick: () => {
+							// the open picker saves what it still holds as it goes, so it goes first
+							this.drop_picker();
+							this.draft.set_filters([]);
+							this.panel?.select(this.panel.current, { focus: false });
+						},
+					})),
+				],
+				content: () => {
+					this.draft = new frappe.ui.FilterChips({
+						...this.chip_opts,
+						filters: this.next_draft || this.area.filter_chips.filters,
+					});
+					this.next_draft = null;
+					this.draft.on_render(update);
+					update();
+					const panel = this.make_panel({
+						chips: this.draft,
+						advanced: { open: () => this.open_rows_sheet() },
+					});
+					// a box typed in saves when left; Apply is what leaves it
+					$(panel).on("input", ".es-filter-picker__input", (e) => {
+						if ($(e.target).closest(".es-filter-picker__search").length) return;
+						this.$apply?.prop("disabled", false);
+					});
+					return panel;
+				},
+				footer: () => {
+					this.$apply = frappe.ui.button({
+						label: __("Apply"),
+						variant: "solid",
+						size: "md",
+						onclick: () =>
+							this.after_typing(() => {
+								this.set_rows(this.draft.filters);
+								this.sheet.close("action");
+							}),
+					});
+					update();
+					return this.$apply;
+				},
+				on_open: () => this.close_on_route_change(),
+				on_close: () => {
+					this.panel?.destroy();
+					this.panel = null;
+					this.draft?.destroy();
+					this.draft = null;
+					this.remember_panel_field();
+				},
+			});
+		}
+		this.sheet.close("owner");
+		this.sheet.open();
+	}
+
+	// the rows' own phone sheet holds its edits until its Apply, and closing it puts back what
+	// is applied; it starts from the draft, so nothing changes on the list until then
+	open_rows_sheet() {
+		this.after_typing(async () => {
+			const filters = this.draft.filters;
+			const group = this.area.filter_list;
+			this.sheet.close("owner");
+			await group.open_sheet({ on_back: () => this.back_from_rows() });
+			// the toolbar boxes' rows stay: the draft, made from the chips, doesn't hold them
+			const own = group.filters.filter((f) => !f.standard_field);
+			own.forEach((f) => f.remove());
+			group.filters = group.filters.filter((f) => f.standard_field);
+			await group.add_filters(filters);
+			// closed while the rows were being added: put back what is applied
+			if (!group.sheet?.is_open) {
+				group.filters.forEach((f) => f.remove());
+				group.filters = [];
+				await group.add_filters(this.area.filter_chips.filters);
+				return;
+			}
+			group.render_sheet_rows();
+		});
+	}
+
+	// Back from the rows' sheet: nothing applied, its rows (kept or changed) are the draft again
+	back_from_rows() {
+		const group = this.area.filter_list;
+		// the rows as they stand in the sheet, not what is applied (get_filters while staged)
+		this.next_draft = group.filters
+			.filter((f) => !f.standard_field && group.is_complete(f))
+			.map((f) => f.get_value());
+		group.sheet.close("owner");
+		this.open_sheet();
+	}
+
+	// a tap doesn't always take focus on iOS; a box typed in saves when left, on the next tick,
+	// and a save still waiting on a pause in typing runs now (a picker's destroy flushes it)
+	after_typing(then) {
+		document.activeElement?.blur();
+		setTimeout(() => {
+			// a box it can't read keeps the sheet open on its message, not the value before it
+			const $bad = this.panel?.$wrapper.find('[aria-invalid="true"]');
+			if ($bad?.length) return $bad[0].scrollIntoView({ block: "nearest" });
+			this.drop_picker();
+			then();
+		});
+	}
+
+	drop_picker() {
+		if (!this.panel?.picker) return;
+		this.panel.picker.destroy?.();
+		this.panel.picker = null;
+	}
+
 	toggle_panel() {
 		if (this.popover?.is_open) this.popover.close("owner");
+		else if (this.sheet?.is_open) this.sheet.close("owner");
 		else this.open_panel();
+	}
+
+	// the list shows "1,000+" rather than counting every record
+	count_is_estimated() {
+		const { count_upper_bound, total_count } = this.list_view;
+		return (
+			Boolean(count_upper_bound) && (total_count == null || total_count == count_upper_bound)
+		);
 	}
 
 	// the field picked last in the panel opens next time; saved once, as the panel closes
@@ -197,7 +391,7 @@ frappe.views.ListFilterChips = class ListFilterChips {
 		});
 	}
 
-	make_panel() {
+	make_panel(opts = {}) {
 		const group = this.area.filter_list;
 		if (!this.sections)
 			this.sections = frappe.ui.FilterPanel.sections_for(this.list_view.doctype);
@@ -221,6 +415,7 @@ frappe.views.ListFilterChips = class ListFilterChips {
 					this.sync_now();
 				},
 			},
+			...opts,
 		});
 		return this.panel.$wrapper[0];
 	}

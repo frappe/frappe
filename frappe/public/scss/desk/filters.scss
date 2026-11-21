@@ -22,6 +22,18 @@
 		border-inline-start: 1px solid var(--outline-gray-2);
 	}
 
+	// with its ×, the button is one control, as an applied chip is: one ring, the focused part filled
+	> div:has(> .filter-x-button:not(.hidden)):has(> .es-button:focus-visible) {
+		border-radius: var(--radius);
+		outline: var(--focus-outline-default);
+		outline-offset: 0;
+
+		> .es-button:focus-visible {
+			outline: none;
+			background: var(--surface-gray-3);
+		}
+	}
+
 	// phones hide the label, so with no count either it is a square like its neighbours
 	@include media-breakpoint-down(xs) {
 		.filter-button:has(> .filter-label.hidden) {
@@ -29,6 +41,11 @@
 			width: var(--es-bt-h);
 		}
 	}
+}
+
+// beside Add filter, Clear all is the quieter action
+.filter-action-buttons .es-button.clear-filters {
+	color: var(--ink-gray-6);
 }
 
 .filter-popover {
@@ -224,8 +241,24 @@
 
 .es-bottom-sheet {
 	// a filled button, so it lines up with the rows; the header's inset is for ghost icons
-	.filter-sheet-clear {
+	.filter-sheet-clear:not([data-variant="ghost"]) {
 		margin-inline-end: calc(var(--spacing) * 2);
+	}
+
+	// as the sheet's own Back: its icon, not its box, sits on the gutter line, 4px from the title
+	.es-bottom-sheet__header:has(.filter-sheet-back) {
+		padding-inline-start: calc(var(--es-sheet-gutter) - var(--spacing) * 1.5);
+	}
+
+	.es-bottom-sheet__header-slot > .filter-sheet-back {
+		flex: none;
+		margin-inline-end: calc(var(--spacing) * -1);
+	}
+
+	// the title, not Back, takes the header's room, so Clear all keeps to the end
+	.es-bottom-sheet__header-slot > .filter-sheet-back + .es-bottom-sheet__title {
+		flex: 1 1 0;
+		min-width: 0;
 	}
 
 	// nothing to clear while every row is still empty
@@ -476,16 +509,36 @@
 	min-width: 100px;
 }
 
-// filter picker boxes focus as a whole, with the Combobox's ring
-.es-filter-picker__condition:focus-within,
-.es-filter-picker__search:focus-within {
-	outline: var(--focus-outline-default);
-	outline-offset: 0;
+// a box being typed in rings as a form input does; its condition button keeps a button's ring
+.es-filter-picker__condition:has(input:focus),
+.es-filter-chip:has(.es-filter-chip__input:focus) {
+	box-shadow: $input-focus-box-shadow;
 }
 
-// the condition button rings itself
-.es-filter-picker__condition:has(> .es-button:focus-visible) {
-	outline: none;
+// in the phone sheet the boxes stack, so each one rings on its own
+.es-bottom-sheet {
+	.es-filter-panel__picker .es-filter-picker__condition:has(input:focus) {
+		box-shadow: none;
+	}
+
+	.es-filter-panel__search:focus-within,
+	.es-filter-panel__picker
+		:is(.es-filter-picker__search, .es-filter-picker__duration):focus-within,
+	.es-filter-panel__picker .es-filter-picker__input:not(.es-filter-picker__search *):focus {
+		outline: none;
+		box-shadow: $input-focus-box-shadow;
+	}
+
+	// a barcode's box and its scan button are one box: the ring goes round both
+	.es-filter-panel__picker
+		.es-filter-picker__input:focus:has(+ .es-filter-picker__scan:not([hidden])) {
+		clip-path: inset(-2px 0 -2px -2px);
+	}
+
+	.es-filter-panel__picker .es-filter-picker__input:focus + .es-filter-picker__scan {
+		box-shadow: $input-focus-box-shadow;
+		clip-path: inset(-2px -2px -2px 0);
+	}
 }
 
 .layout-dialog-back {
