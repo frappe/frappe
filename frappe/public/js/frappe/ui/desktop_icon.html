@@ -5,7 +5,7 @@
     {% if (icon.folder) { %}
     <button type="button" class="icon-link" tabindex="-1" aria-hidden="true">
         <div class="icon-container module-folder-face">
-            {% for (var i = 0; i < Math.min(icon.folder.length, 4); i++) { %}
+            {% for (let i = 0; i < Math.min(icon.folder.length, 4); i++) { %}
             <span class="module-folder-mini" data-folder-item="{{ i }}">
                 {% if (icon.folder[i].logo) { %}
                     <img src="{{ frappe.utils.escape_html(icon.folder[i].logo) }}" alt="" />
@@ -46,7 +46,7 @@
         <div class="module-folder-bg"></div>
         <div class="module-folder-body">
             <div class="module-folder-grid">
-                {% for (var i = 0; i < icon.folder.length; i++) { %}
+                {% for (let i = 0; i < icon.folder.length; i++) { %}
                 <a class="module-folder-app" href="{{ frappe.utils.escape_html(icon.folder[i].route) }}">
                     <span class="module-folder-logo" data-folder-item="{{ i }}">
                         {% if (icon.folder[i].logo) { %}

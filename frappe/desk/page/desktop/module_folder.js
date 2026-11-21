@@ -1,6 +1,9 @@
 const FOLDER_SPRING =
 	"linear(0, 0.0238, 0.0842, 0.1675, 0.2628, 0.3623, 0.4603, 0.5528, 0.6372, 0.7124, 0.7776, 0.8331, 0.8792, 0.9167, 0.9466, 0.9698, 0.9873, 1.0001, 1.009, 1.0148, 1.0181, 1.0197, 1.0199, 1.0191, 1.0177, 1.0159, 1.014, 1.012, 1.0101, 1.0083, 1.0067, 1.0053, 1.004, 1.003, 1.0021, 1.0014, 1.0009, 1.0005, 1.0002, 0.9999, 1)";
 
+const open_folders = new Set();
+frappe.router.on("change", () => open_folders.forEach((folder) => folder.reset()));
+
 frappe.ui.ModuleFolder = class ModuleFolder {
 	constructor(tile) {
 		this.tile = tile;
@@ -39,6 +42,7 @@ frappe.ui.ModuleFolder = class ModuleFolder {
 		this.tile.classList.remove("is-hover-ready");
 		this.keep_on_screen();
 		this.set_state();
+		open_folders.add(this);
 		document.addEventListener("keydown", this.on_keydown);
 		document.addEventListener("pointerdown", this.on_pointerdown);
 		this.card.querySelector(".module-folder-app")?.focus({ preventScroll: true });
@@ -76,6 +80,7 @@ frappe.ui.ModuleFolder = class ModuleFolder {
 	}
 
 	remove_listeners() {
+		open_folders.delete(this);
 		document.removeEventListener("keydown", this.on_keydown);
 		document.removeEventListener("pointerdown", this.on_pointerdown);
 	}
@@ -142,7 +147,9 @@ frappe.ui.ModuleFolder = class ModuleFolder {
 					{
 						clipPath: `inset(${f.top - c.top}px ${c.right - f.right}px ${
 							c.bottom - f.bottom
-						}px ${f.left - c.left}px round 16px)`,
+						}px ${f.left - c.left}px round ${
+							getComputedStyle(this.face).borderTopLeftRadius
+						})`,
 						backgroundColor: getComputedStyle(this.face).backgroundColor,
 					},
 					{

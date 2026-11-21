@@ -298,7 +298,7 @@ body.desktop-page .module-folder-shadow,
 body.desktop-page .module-folder-bg {
   position: absolute;
   inset: 0;
-  border-radius: 22px;
+  border-radius: var(--radius-8);
 }
 body.desktop-page .module-folder-shadow {
   box-shadow: var(--shadow-xl);
@@ -325,7 +325,7 @@ body.desktop-page .module-folder-app {
   align-items: center;
   gap: 6px;
   padding: 8px 4px 6px;
-  border-radius: 14px;
+  border-radius: var(--radius-6);
   color: inherit;
   text-decoration: none;
   transition: background-color 0.15s;
@@ -602,6 +602,10 @@ body.desktop-page .desktop-wrapper[data-mode=Edit] .edit-mode-buttons {
   body.desktop-page .desktop-container > .icons-container > .icons > .desktop-icon .icon-container {
     min-width: var(--desktop-icon-dimension);
     min-height: var(--desktop-icon-dimension);
+  }
+  body.desktop-page .desktop-container > .icons-container > .icons > .desktop-icon :is(.module-folder-mini, .module-folder-logo) .icon-container {
+    min-width: 0;
+    min-height: 0;
   }
   body.desktop-page .desktop-modal-body {
     width: calc(100vw - 20px);
