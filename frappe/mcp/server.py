@@ -6,6 +6,7 @@ from typing import Any
 
 from frappe.mcp import protocol
 from frappe.mcp.protocol import INVALID_PARAMS, METHOD_NOT_FOUND, McpError
+from frappe.mcp.skills import SKILLS_EXTENSION, SkillCatalog
 
 
 def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
@@ -16,7 +17,7 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 	if method == "server/discover" and version == protocol.LATEST_VERSION:
 		return {
 			"supportedVersions": list(protocol.SUPPORTED_VERSIONS),
-			"capabilities": {"tools": {}},
+			"capabilities": capabilities(),
 			**server_configuration(),
 			"ttlMs": 3600000,
 			"cacheScope": "private",
@@ -27,7 +28,22 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 		if method == "tools/list":
 			return {"tools": tools.definitions(), "ttlMs": 3600000, "cacheScope": "private"}
 		return tools.call(params)
-
+	if method == "resources/list":
+		return {"resources": []}
+	if method in (
+		"skills/list",
+		"skills/get",
+		"resources/read",
+		"resources/directory/read",
+	):
+		catalog = SkillCatalog()
+		if method == "skills/list":
+			return catalog.list_skills(params.get("cursor"))
+		if method == "skills/get":
+			return catalog.get_skill(params.get("uri"))
+		if method == "resources/read":
+			return catalog.read_resource(params.get("uri"))
+		return catalog.read_directory(params.get("uri"), params.get("cursor"))
 	raise McpError(METHOD_NOT_FOUND, "Unknown MCP method: {0}".format(method), status=404)
 
 
@@ -42,13 +58,21 @@ def initialize(params: dict[str, Any]) -> dict:
 	# Modern revisions cannot be negotiated through the legacy handshake.
 	return {
 		"protocolVersion": protocol.LEGACY_VERSION,
-		"capabilities": {"tools": {"listChanged": False}},
+		"capabilities": capabilities(),
 		**server_configuration(),
 	}
 
 
 def server_configuration() -> dict:
 	return {"serverInfo": protocol.server_info(), "instructions": protocol.server_instructions()}
+
+
+def capabilities() -> dict:
+	return {
+		"tools": {"listChanged": False},
+		"resources": {},
+		"extensions": {SKILLS_EXTENSION: {"directoryRead": True}},
+	}
 
 
 def valid_identity(value: Any) -> bool:
