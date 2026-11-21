@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 import frappe
+import frappe.client
 from frappe.desk.page.setup_wizard import setup_wizard
 from frappe.tests import IntegrationTestCase, UnitTestCase, set_user
 from frappe.utils.synchronization import LockTimeoutError
@@ -141,7 +142,7 @@ class TestCompleteAppSetup(IntegrationTestCase):
 
 	def test_a_site_without_a_region_still_gets_the_site_defaults(self):
 		# Like a Frappe Cloud v2 site: no region, so no time zone or formats saved either.
-		fields = ["backup_limit", "time_zone", "date_format", "number_format", "rounding_method"]
+		fields = ["backup_limit", "language", "time_zone", "date_format", "number_format", "rounding_method"]
 		before = frappe.db.get_singles_dict("System Settings")
 
 		def restore():
@@ -155,8 +156,17 @@ class TestCompleteAppSetup(IntegrationTestCase):
 		self.addCleanup(restore)
 		frappe.db.set_single_value(
 			"System Settings",
-			{"backup_limit": 1, "time_zone": None, "date_format": None, "number_format": None},
+			{
+				"backup_limit": 1,
+				"language": None,
+				"time_zone": None,
+				"date_format": None,
+				"number_format": None,
+			},
 		)
+		# The time zone it falls back to is read through the System Settings caches.
+		frappe.local.system_settings = None
+		frappe.client_cache.delete_value(frappe.get_document_cache_key("System Settings", "System Settings"))
 
 		setup_wizard.update_system_settings({})
 
@@ -164,6 +174,12 @@ class TestCompleteAppSetup(IntegrationTestCase):
 		self.assertEqual(
 			frappe.db.get_single_value("System Settings", "rounding_method"), "Banker's Rounding"
 		)
+		self.assertEqual(frappe.db.get_single_value("System Settings", "language"), "en")
+		self.assertEqual(frappe.db.get_single_value("System Settings", "time_zone"), "Asia/Kolkata")
+		self.assertEqual(frappe.db.get_single_value("System Settings", "date_format"), "yyyy-mm-dd")
+		self.assertEqual(frappe.db.get_single_value("System Settings", "number_format"), "#,###.##")
+		# An app's setup saves a single setting, like the telemetry choice, through the doc.
+		frappe.client.set_value("System Settings", "System Settings", "enable_telemetry", 0)
 
 	def test_a_failed_prefilled_setup_is_not_tried_again(self):
 		with (
