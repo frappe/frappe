@@ -10,12 +10,7 @@ from frappe.core.doctype.installed_applications.installed_applications import ge
 from frappe.geo.country_info import get_country_info
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.translate import send_translations, set_default_language
-<<<<<<< HEAD
-from frappe.utils import cint, now, strip
-=======
-from frappe.utils import cint, get_system_timezone, get_user_by_email, now, strip
-from frappe.utils.background_jobs import defer_enqueue_after_commit
->>>>>>> 77c919d (fix(setup): fill the System Settings a site set up without a region needs)
+from frappe.utils import cint, get_system_timezone, now, strip
 from frappe.utils.password import update_password
 from frappe.utils.synchronization import LockTimeoutError, filelock
 
