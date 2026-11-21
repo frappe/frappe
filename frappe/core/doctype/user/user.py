@@ -802,7 +802,13 @@ class User(Document):
 		validate_email_address(email, True)
 
 	def validate_email_change_allowed(self):
-		if self.is_new() or self.flags.ignore_permissions or "System Manager" in frappe.get_roles():
+		if self.is_new():
+			return
+
+		if self.name == "Guest":
+			throw(_("Guest's email can't be changed."))
+
+		if self.flags.ignore_permissions or "System Manager" in frappe.get_roles():
 			return
 
 		throw(_("Only a System Manager can change a user's email."), frappe.PermissionError)

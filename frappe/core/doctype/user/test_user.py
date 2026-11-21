@@ -1223,6 +1223,12 @@ class TestUserEmailHelpers(IntegrationTestCase):
 		admin.email = "not-an-email"
 		self.assertRaises(frappe.InvalidEmailAddressError, admin.run_method, "validate")
 
+	def test_guests_email_cant_be_changed(self):
+		guest = frappe.get_doc("User", "Guest")
+		guest.email = "_test_guest_inbox@example.com"
+		guest.flags.ignore_permissions = True
+		self.assertRaises(frappe.ValidationError, guest.run_method, "validate")
+
 	def test_users_are_found_by_email(self):
 		from frappe.core.doctype.user.user import user_query
 
