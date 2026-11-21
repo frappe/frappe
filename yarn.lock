@@ -1193,10 +1193,10 @@ fill-range@^7.1.1:
   dependencies:
     to-regex-range "^5.0.1"
 
-frappe-charts@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.1.0.tgz#4abcc39f2397faf66fe78c51037c74650a80d5d5"
-  integrity sha512-hDhCzndHOPQF6xbmvGIo707nvPD12QcQ1y+Fam8Ho2BvWluw5jnqJJytUPG+Mb9+SCVySfCcdUrcpH+SInDQnA==
+frappe-charts@2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.1.1.tgz#a009752e3f725f54f5f2e55fc80ed22ab35d7a41"
+  integrity sha512-WYPC4L2v6CAd1TWlTkcSvacUO3ZgeZWc+QpfMg7d8CaALvSh8Tf+iOT9Qtd6EVWSHmCiBxO4OEuqEZmSmkuU2w==
 
 frappe-datatable@1.26.0:
   version "1.26.0"
