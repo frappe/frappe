@@ -6,7 +6,20 @@
 			:class="[expandable || link ? 'group cursor-pointer' : '', live ? 'flow-tool-live' : '']"
 			@click="link ? flow.openSubagent(subagentId(step.call)) : expandable && (open = !open)"
 		>
-			<span class="size-3.5 flex-none self-center text-ink-gray-5" :class="icon" aria-hidden="true" />
+			<!-- the icon gives way to a chevron on hover, and to the turned chevron while open -->
+			<span class="relative size-3.5 flex-none self-center text-ink-gray-5">
+				<span
+					class="size-3.5 transition-opacity"
+					:class="[icon, open ? 'opacity-0' : expandable || link ? 'group-hover:opacity-0' : '']"
+					aria-hidden="true"
+				/>
+				<span
+					v-if="expandable || link"
+					class="lucide-chevron-right absolute inset-0 size-3.5 transition-[opacity,transform]"
+					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
+					aria-hidden="true"
+				/>
+			</span>
 			<!-- one sentence in one colour: what ran, on what, and what came of it -->
 			<span class="flex min-w-0 items-baseline text-base text-ink-gray-6 group-hover:text-ink-gray-8">
 				<span class="min-w-0 truncate">
@@ -43,12 +56,6 @@
 					<span :class="statClass">{{ rowStat }}</span>
 				</span>
 			</span>
-			<span
-				v-if="expandable || link"
-				class="size-3.5 flex-none self-center text-ink-gray-5 transition-[opacity,transform]"
-				:class="[link ? 'lucide-chevron-right' : 'lucide-chevron-down', open ? 'rotate-180' : 'opacity-0 group-hover:opacity-100']"
-				aria-hidden="true"
-			/>
 		</component>
 
 		<div

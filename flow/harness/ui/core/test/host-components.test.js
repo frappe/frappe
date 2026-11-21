@@ -165,8 +165,13 @@ test("an opened tool row shows its output, or a host's views of its arguments an
 	assert.equal(el.querySelector("button"), null)
 	bash.streaming = false
 	await nextTick()
-	el.querySelector("button").click()
+	// its one chevron sits in the icon's place, not after the text
+	const row = el.querySelector("button")
+	assert.equal(row.querySelectorAll("[class*=lucide-chevron]").length, 1)
+	assert.ok(row.firstElementChild.querySelector(".lucide-chevron-right"))
+	row.click()
 	await nextTick()
+	assert.ok(row.querySelector(".lucide-chevron-right").classList.contains("rotate-90"))
 	assert.equal(el.querySelector("pre").textContent, "$ pwd")
 	bash.result = { content: "/project" }
 	await nextTick()
@@ -1379,12 +1384,22 @@ test("open thoughts and tool rows stay open as the run ends, and their turn unfo
 	rowButton(el, "Thinking").click()
 	await nextTick()
 	assert.ok(panel())
+	// a thought's one chevron sits in its icon's place, turned while open
+	const chevron = (label) => {
+		const row = rowButton(el, label)
+		const found = row.querySelectorAll("[class*=lucide-chevron]")
+		assert.equal(found.length, 1)
+		assert.equal(found[0].parentElement, row.firstElementChild)
+		return found[0]
+	}
+	assert.ok(chevron("Thinking").classList.contains("rotate-90"))
 
 	// the thought merges into a tool group
 	applyEvent(conversation, { type: "tool_call_display_ready", id: "call-1", name: "bash", arguments: { command: "ls" } })
 	await nextTick()
 	assert.ok(rowButton(el, "Thought"))
 	assert.ok(panel())
+	assert.ok(chevron("Thought").classList.contains("rotate-90"))
 
 	applyEvent(conversation, {
 		type: "assistant_message",
