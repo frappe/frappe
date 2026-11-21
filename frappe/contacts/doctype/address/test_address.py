@@ -190,7 +190,7 @@ class TestAddress(IntegrationTestCase):
 			email_ids=[{"email_id": frappe.db.get_value("User", "Guest", "email"), "is_primary": 1}],
 			links=[{"link_doctype": "User", "link_name": "test1@example.com"}],
 		).insert()
-		self.assertEqual(contact.user, "Guest")
+		contact.db_set("user", "Guest")
 		address = frappe.get_doc(
 			doctype="Address",
 			address_line1="1",

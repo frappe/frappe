@@ -1686,12 +1686,13 @@ def get_module_profile(module_profile: str):
 
 
 def create_contact(user, ignore_links=False, ignore_mandatory=False):
-	from frappe.contacts.doctype.contact.contact import get_contact_name
-
 	if user.name in ["Administrator", "Guest"]:
 		return
 
-	contact_name = get_contact_name(user.email)
+	# a contact created before the user isn't linked to anyone yet, so fall back to its primary email
+	contact_name = frappe.db.get_value("Contact", {"user": user.name}) or frappe.db.get_value(
+		"Contact", {"email_id": user.email, "user": ("is", "not set")}
+	)
 	if not contact_name:
 		with savepoint(catch=frappe.DuplicateEntryError):
 			contact = frappe.get_doc(
@@ -1722,6 +1723,13 @@ def create_contact(user, ignore_links=False, ignore_mandatory=False):
 			contact.first_name = user.first_name
 			contact.last_name = user.last_name
 			contact.gender = user.gender
+			contact.user = user.name
+
+			if user.email and (contact.email_id or "").lower() != user.email:
+				for row in contact.email_ids:
+					row.is_primary = (row.email_id or "").lower() == user.email
+				if not any(row.is_primary for row in contact.email_ids):
+					contact.add_email(user.email, is_primary=True)
 
 			# Add mobile number if phone does not exists in contact
 			if user.phone and not any(new_contact.phone == user.phone for new_contact in contact.phone_nos):
