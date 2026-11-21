@@ -275,6 +275,16 @@ test("a card says in its header why auto mode held the call, and nowhere else", 
 	assert.deepEqual(header(asked.el), ["Send Email"])
 })
 
+test("a card for a call with no arguments shows its tool's own prompt, and no empty braces", async (t) => {
+	const card = (prompt) => mount(t, ApprovalCard, { call: { id: "c10", name: "restart_queue", args: {}, prompt } }, { options: {} }).el
+	assert.equal(card("Restart Queue\n{}").querySelector("pre"), null)
+	assert.equal(card("Restart Queue").querySelector("pre"), null)
+	assert.equal(card("Restart Queue\nJobs that are running will be lost.").querySelector("pre").textContent, "Jobs that are running will be lost.")
+	const held = card("Restart Queue\nJobs that are running will be lost.\n\nNot auto-approved: nobody asked for a restart")
+	assert.equal(held.querySelector("pre").textContent, "Jobs that are running will be lost.")
+	assert.ok(held.textContent.includes("Not auto-approved: nobody asked for a restart"))
+})
+
 test("a row leaves a host's counts to the result, showing the user's decision or an error instead; a host picks its dropdown", async (t) => {
 	const presentTool = () => ({ stat: "3 updated" })
 	const step = { call: { id: "c1", name: "update_document", arguments: args }, result: { content: "ok", details: { lines: 12 } } }

@@ -446,10 +446,10 @@ test("an approval card gets the view, a custom tool always shows its output, and
 		mount(t, ArgsView, { arguments: args, call: written }).textContent,
 		"Mail the invoice to a@b.c"
 	);
-	// a tool called with no arguments has nothing for its card or its row to show
+	// a tool called with no arguments keeps the plain card, and its row has nothing to open
 	const bare = presentTool("ping", {});
 	assert.equal(bare.argsComponent, undefined);
-	assert.equal(bare.body, "");
+	assert.equal(bare.body, undefined);
 
 	// a part's table leaves the scrolling to the box around it
 	const capped = (el) => el.querySelectorAll(".max-h-\\[260px\\]").length;
