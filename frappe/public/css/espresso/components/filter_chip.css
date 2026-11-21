@@ -1,0 +1,236 @@
+/* Espresso FilterChip (frappe.ui.FilterChip): data-state="applied" is a filter in use, filled;
+   "empty" is one that can be added, dashed. */
+
+.es-filter-chip {
+	--fc-h: calc(var(--spacing) * 7);
+	--fc-icon: calc(var(--spacing) * 4);
+
+	display: inline-flex;
+	flex-shrink: 0;
+	max-inline-size: calc(var(--spacing) * 80);
+	height: var(--fc-h);
+	border: 1px dashed var(--outline-gray-2);
+	border-radius: var(--radius);
+	color: var(--ink-gray-8);
+	font-size: var(--text-base);
+	letter-spacing: 0.02em;
+	line-height: 1;
+	transition: background-color 120ms, border-color 120ms;
+}
+
+.es-filter-chip[data-state="applied"] {
+	border: 0;
+	background: var(--surface-gray-2);
+}
+
+@media (hover: hover) {
+	.es-filter-chip[data-state="empty"]:hover {
+		border-color: var(--outline-gray-3);
+	}
+}
+
+.es-filter-chip > [hidden] {
+	display: none;
+}
+
+.es-filter-chip__main,
+.es-filter-chip__remove {
+	display: inline-flex;
+	align-items: center;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+	outline: none;
+}
+
+/* the button fills the chip, also when the chip is held wider than its words */
+.es-filter-chip__main {
+	flex-grow: 1;
+	gap: calc(var(--spacing) * 2);
+	padding-inline: calc(var(--spacing) * 2) calc(var(--spacing) * 1.5);
+	border-radius: inherit;
+}
+
+/* with no border, the text starts 1px further in, where the empty chip's border left it */
+.es-filter-chip[data-state="applied"] .es-filter-chip__main {
+	padding-inline-start: calc(var(--spacing) * 2 + 1px);
+	border-start-end-radius: 0;
+	border-end-end-radius: 0;
+}
+
+/* the desk centres a lone .icon with auto margins; in a chip it sits beside its words */
+.es-filter-chip svg {
+	flex-shrink: 0;
+	width: var(--fc-icon);
+	height: var(--fc-icon);
+	margin: 0;
+	color: inherit;
+}
+
+.es-filter-chip__operator {
+	flex-shrink: 0;
+	white-space: nowrap;
+}
+
+.es-filter-chip__operator,
+.es-filter-chip__value,
+.es-filter-chip__more {
+	margin-inline-start: calc(var(--spacing) * -1);
+}
+
+/* an ellipsis clips what overflows: a full line height keeps the g, y and p */
+.es-filter-chip__label,
+.es-filter-chip__value {
+	line-height: 1.5;
+}
+
+/* the name shows whole and the value gives way; only a name longer than any real one is cut */
+.es-filter-chip__label {
+	flex-shrink: 0;
+	max-inline-size: calc(var(--spacing) * 48);
+}
+
+/* on a phone the ID box shares its line with Filter and Sort: the box gives way, they stay */
+@media (max-width: 767.98px) {
+	.list-page-form .filter-section {
+		max-width: 100%;
+	}
+}
+
+.mobile-id-filter {
+	flex: 0 1 auto;
+	min-width: 0;
+	/* the toolbar's own gap: a long ID keeps its × apart from Reload */
+	margin-inline-end: var(--spacing);
+}
+
+.mobile-id-filter .es-filter-chip {
+	flex-shrink: 1;
+	min-width: 0;
+	max-inline-size: 100%;
+}
+
+.mobile-id-filter .es-filter-chip__field {
+	flex: 1 1 auto;
+}
+
+.mobile-id-filter .es-filter-chip__input {
+	flex: 1 1 auto;
+	min-inline-size: calc(var(--spacing) * 16);
+}
+
+.es-filter-chip__value {
+	min-width: 0;
+	font-weight: var(--font-weight-medium);
+}
+
+.es-filter-chip__more {
+	flex-shrink: 0;
+	font-weight: var(--font-weight-medium);
+}
+
+.es-filter-chip__remove {
+	justify-content: center;
+	flex-shrink: 0;
+	width: var(--fc-h);
+	/* the same seam as the Filter button's × */
+	border-inline-start: 1px solid var(--outline-gray-2);
+	border-start-end-radius: inherit;
+	border-end-end-radius: inherit;
+}
+
+@media (hover: hover) {
+	.es-filter-chip[data-state="applied"] .es-filter-chip__main:not([aria-expanded="true"]):hover,
+	.es-filter-chip__remove:hover {
+		background: var(--surface-gray-3);
+	}
+}
+
+.es-filter-chip__main:active,
+.es-filter-chip__remove:active {
+	background: var(--surface-gray-4);
+}
+
+/* a box holding a filter it can't edit opens a note on click */
+.es-filter-chip[data-locked] .es-filter-chip__input {
+	cursor: pointer;
+}
+
+.es-filter-chip__main[aria-expanded="true"] {
+	background: var(--surface-gray-4);
+}
+
+.es-filter-chip[data-state="empty"]:has(> .es-filter-chip__main[aria-expanded="true"]) {
+	border-style: solid;
+	border-color: var(--outline-gray-3);
+}
+
+/* one ring for the chip, whichever part has focus; the focused part of a split chip is filled */
+.es-filter-chip:has(.es-filter-chip__main:focus-visible, .es-filter-chip__remove:focus-visible) {
+	outline: var(--focus-outline-default);
+	outline-offset: 0;
+}
+
+.es-filter-chip__main:focus-visible,
+.es-filter-chip__remove:focus-visible {
+	outline: none;
+}
+
+.es-filter-chip[data-state="applied"] .es-filter-chip__main:focus-visible,
+.es-filter-chip[data-state="applied"] .es-filter-chip__remove:focus-visible {
+	background: var(--surface-gray-3);
+}
+
+.es-filter-chip__field {
+	display: inline-flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1.5);
+	min-width: 0;
+	margin: 0;
+	padding-inline: calc(var(--spacing) * 2);
+	cursor: text;
+}
+
+/* the border's 2px go to the padding, so a box keeps its width once it holds a value */
+.es-filter-chip[data-state="applied"] .es-filter-chip__field {
+	padding-inline: calc(var(--spacing) * 2 + 1px) calc(var(--spacing) * 1 + 1px);
+}
+
+.es-filter-chip__colon {
+	flex-shrink: 0;
+	margin-inline: calc(var(--spacing) * -1.5) calc(var(--spacing) * -0.5);
+}
+
+.es-filter-chip__input {
+	/* one width whether empty, focused or holding a short value; `size` widens it for long text */
+	min-inline-size: calc(var(--spacing) * 28);
+	field-sizing: content;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	outline: none;
+}
+
+/* the × takes its room from the text, so the first letter typed doesn't widen the box */
+.es-filter-chip[data-state="applied"] .es-filter-chip__input {
+	min-inline-size: calc(var(--spacing) * 28 - var(--fc-h) + var(--spacing) * 1);
+	font-weight: var(--font-weight-medium);
+}
+
+.es-filter-chip__input::placeholder {
+	color: var(--ink-gray-4);
+}
+
+.es-filter-chip:has(.es-filter-chip__input:focus) {
+	border-color: transparent;
+	background: var(--control-bg);
+}

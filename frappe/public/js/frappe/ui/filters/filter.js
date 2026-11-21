@@ -378,11 +378,22 @@ frappe.ui.Filter = class {
 				: value.join(",");
 		}
 
+		// a filters_config condition (Fiscal Year) builds its box after a server call
+		const set = (v) =>
+			this.field_ready
+				? this.field_ready.then(
+						() => this.field.set_value(v),
+						// the server shows the error; only this row is dropped
+						() => {}
+				  )
+				: this.field.set_value(v);
 		if (Array.isArray(value)) {
-			this._filter_value_set = this.field.set_value(value);
+			this._filter_value_set = set(value);
 		} else if (value !== undefined && value !== null) {
-			const field_value = typeof value === "number" ? value : String(value).trim();
-			this._filter_value_set = this.field.set_value(field_value);
+			// a Select holds its options as text: the number 0 (Draft) would read as empty
+			const keep_number = typeof value === "number" && this.field.df.fieldtype !== "Select";
+			const field_value = keep_number ? value : String(value).trim();
+			this._filter_value_set = set(field_value);
 		}
 		return this._filter_value_set;
 	}
@@ -466,10 +477,16 @@ frappe.ui.Filter = class {
 				let field = this.filters_config[condition].data;
 				setup_field(field);
 			} else {
-				frappe.xcall(this.filters_config[condition].get_field, args).then((field) => {
-					this.filters_config[condition].data = field;
-					setup_field(field);
-				});
+				const ready = frappe
+					.xcall(this.filters_config[condition].get_field, args)
+					.then((field) => {
+						this.filters_config[condition].data = field;
+						setup_field(field);
+					});
+				this.field_ready = ready;
+				// the server shows a failure itself; this only stops waiting on it
+				const done = () => this.field_ready === ready && (this.field_ready = null);
+				ready.then(done, done);
 			}
 		} else {
 			this.make_field(df, cur.fieldtype);

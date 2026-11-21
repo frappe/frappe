@@ -241,7 +241,8 @@ input.es-combobox__value:disabled {
     color: transparent;
 }
 
-.es-combobox__pill {
+/* white fill on the gray box; outranks the outline badge's fill */
+.es-combobox__pills > .es-badge.es-combobox__pill {
     min-width: 0;
     max-width: 100%;
     gap: calc(var(--spacing) * 0.5);
@@ -291,6 +292,30 @@ input.es-combobox__value:disabled {
     width: calc(var(--spacing) * 2.5);
     height: calc(var(--spacing) * 2.5);
     stroke-width: 3;
+}
+
+.es-combobox__radio {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: calc(var(--spacing) * 3.5);
+    height: calc(var(--spacing) * 3.5);
+    border: 1px solid var(--outline-gray-4);
+    border-radius: 50%;
+    background: var(--surface-base);
+    transition: border-color 120ms;
+}
+
+.es-menu__item[data-highlighted] > .es-combobox__radio {
+    border-color: var(--outline-gray-5);
+}
+
+.es-menu__item:is([aria-selected="true"], [aria-checked="true"]) > .es-combobox__radio {
+    border-width: 4px;
+    border-color: var(--surface-gray-10);
+}
+
+.es-menu__item:is([aria-selected="true"], [aria-checked="true"])[data-highlighted] > .es-combobox__radio {
+    border-color: var(--surface-gray-9);
 }
 
 .es-menu__item[aria-selected="true"] > .es-combobox__check {

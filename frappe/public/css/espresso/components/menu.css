@@ -212,7 +212,8 @@
 .es-menu__description {
     display: block;
     font-size: var(--text-p-sm, var(--text-sm));
-    line-height: 1.5;
+    /* a whole number of pixels, so the rows under a two-line row stay on the pixel grid */
+    line-height: calc(var(--spacing) * 5);
     color: var(--ink-gray-5);
     overflow: hidden;
     text-overflow: ellipsis;

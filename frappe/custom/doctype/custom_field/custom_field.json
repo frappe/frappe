@@ -27,6 +27,7 @@
   "hide_days",
   "options",
   "sort_options",
+  "icon",
   "fetch_from",
   "fetch_if_empty",
   "options_help",
@@ -566,6 +567,13 @@
    "fieldname": "in_import_template",
    "fieldtype": "Check",
    "label": "Include in Import Template"
+  },
+  {
+   "depends_on": "eval:![\"Section Break\", \"Column Break\", \"Tab Break\", \"HTML\", \"Heading\", \"Fold\", \"Table\", \"Table MultiSelect\"].includes(doc.fieldtype)",
+   "description": "Icon associated with the field",
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "label": "Icon"
   }
  ],
  "grid_page_length": 50,
@@ -573,7 +581,7 @@
  "idx": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-30 10:30:00.000000",
+ "modified": "2026-11-15 18:47:59.791578",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",

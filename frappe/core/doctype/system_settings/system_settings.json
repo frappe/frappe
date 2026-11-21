@@ -101,6 +101,7 @@
   "hide_empty_read_only_fields",
   "disable_product_suggestion",
   "use_classic_charts",
+  "use_smart_filters",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -913,12 +914,19 @@
   {
    "fieldname": "frappectl_help",
    "fieldtype": "HTML"
+  },
+  {
+   "default": "0",
+   "description": "Lists show filter chips above the rows, and the Filter button opens a panel to filter by any field.",
+   "fieldname": "use_smart_filters",
+   "fieldtype": "Check",
+   "label": "Use Smart Filters"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-11-13 13:00:00.000000",
+ "modified": "2026-11-18 12:37:04.005929",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

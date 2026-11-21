@@ -26,6 +26,7 @@
   "column_break_18",
   "options",
   "sort_options",
+  "icon",
   "show_dashboard",
   "link_filters",
   "defaults_section",
@@ -691,6 +692,13 @@
    "fieldname": "in_import_template",
    "fieldtype": "Check",
    "label": "Include in Import Template"
+  },
+  {
+   "depends_on": "eval:![\"Section Break\", \"Column Break\", \"Tab Break\", \"HTML\", \"Heading\", \"Fold\", \"Table\", \"Table MultiSelect\"].includes(doc.fieldtype)",
+   "description": "Icon associated with the field",
+   "fieldname": "icon",
+   "fieldtype": "Icon",
+   "label": "Icon"
   }
  ],
  "grid_page_length": 50,
@@ -698,7 +706,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-23 16:52:20.730244",
+ "modified": "2026-11-15 18:47:43.566590",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

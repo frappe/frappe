@@ -230,6 +230,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 		this._on_board_height_sync = () => {
 			this.sync_board_height();
+			this.place_id_filter();
 			// a phone board is built differently, so turning a tablet rebuilds it; a pinch zoom doesn't
 			const zoomed =
 				window.visualViewport && Math.abs(window.visualViewport.scale - 1) > 0.01;
@@ -689,6 +690,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	setup_filter_bar() {
 		const $filter_section = this.$filter_section;
 		$filter_section.empty();
+		this.$mobile_id = $('<div class="mobile-id-filter hidden-lg"></div>').appendTo(
+			$filter_section
+		);
 
 		this.setup_filter_button($filter_section);
 		this.setup_group_button($filter_section);
@@ -702,6 +706,11 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			this.$quick_filters = $(
 				'<div class="standard-filter-section kanban-v2-quick-filters flex"></div>'
 			).insertBefore(this.$filter_section);
+		}
+		if (frappe.defaults.is_enabled("use_smart_filters")) {
+			await this.setup_filter_chips();
+			this.place_id_filter();
+			return;
 		}
 		// the boxes' filters outlive them (board or swimlane change), each replacing the filter its
 		// box would hold: the new boxes take back the ones they can hold, the rest stay in the panel
@@ -743,8 +752,63 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			page.add_field(this.quick_filter_config(df), this.$quick_filters);
 			this._quick_filter_fields.push(df.fieldname);
 		});
+		// a phone hides the boxes, as on the list view, and keeps an ID box beside its buttons
+		if (frappe.is_mobile() && !frappe.listview_settings[this.doctype]?.hide_name_filter) {
+			const id = { fieldname: "name", label: "ID", fieldtype: "Data" };
+			page.add_field(this.quick_filter_config(id), this.$mobile_id);
+			this._quick_filter_fields.push("name");
+		}
 
 		await this.seed_quick_filters();
+		this.sync_board_height();
+	}
+
+	/** The ID chip sits beside the buttons on a phone, as on the list view. */
+	place_id_filter() {
+		const chips = this.chips_area?.filter_chips;
+		const id = chips?.chip_of(this.doctype, "name")?.$wrapper[0];
+		if (!id || !this.$mobile_id) return;
+		const phone = window.matchMedia("(max-width: 767.98px)").matches;
+		const target = phone ? this.$mobile_id : chips.$wrapper;
+		if (id.parentElement === target[0]) return;
+		if (phone) target.append(id);
+		else target.prepend(id);
+	}
+
+	/** The list view's quick filter chips and Filter panel, in place of the boxes. */
+	async setup_filter_chips() {
+		// each board makes its own filter group
+		if (this.chips?.area.filter_list === this.filter_group) return;
+		this.$quick_filters.empty();
+		this._quick_filter_fields = [];
+		await Promise.all(
+			["filter_chips.bundle.js", "filter_chips.bundle.css"].map((name) => {
+				const path = frappe.assets.bundled_asset(name);
+				return frappe.assets.load_asset(path, path);
+			})
+		);
+		const doctype = this.doctype;
+		const area = (this.chips_area = {
+			list_view: {
+				doctype,
+				meta: frappe.get_meta(doctype),
+				settings: frappe.listview_settings[doctype] || {},
+				view_name: "Kanban",
+				filters: this.filters,
+				page: this.page,
+				// the board fills the room the toolbar leaves, as chips wrap to more rows or fewer
+				$result: this.$container,
+				set_result_height: () => this.sync_board_height(),
+				save_view_user_settings: (values) =>
+					frappe.model.user_settings.save(doctype, "Kanban", values),
+			},
+			filter_list: this.filter_group,
+			filter_button: this.filter_group.filter_button,
+			filter_x_button: this.filter_group.filter_x_button,
+			debounced_refresh_list_view: () => this.on_filter_change(),
+		});
+		this.chips = new frappe.views.ListFilterChips(area);
+		await this.chips.make();
 	}
 
 	/** Mirrors the list view's standard filters. */
@@ -960,6 +1024,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 	}
 
 	setup_filter_button($parent) {
+		const page = this;
 		// the list view's own filter button
 		const { $selector, filter_button, filter_x_button } = frappe.ui.FilterGroup.make_buttons();
 
@@ -977,9 +1042,21 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			default_filters: [],
 			// the quick filter boxes show as rows in the panel, as on the list view
 			toolbar: {
-				get_standard_field: (fieldname) => this.page.fields_dict[fieldname],
+				// a chip isn't a box: its filter is a row
+				get_standard_field: (fieldname) => {
+					const field = this.page.fields_dict[fieldname];
+					return field?.is_filter_chip ? undefined : field;
+				},
 				get_standard_filters: () => this.get_quick_filters(),
 				clear: () => this.clear_filters(),
+				get filter_chips() {
+					return page.chips_area?.filter_chips;
+				},
+				toggle_filter_panel: () => this.chips?.toggle_panel(),
+				// with chips, a range counts as one filter on the Filter button
+				filter_count: () =>
+					this.chips &&
+					new Set(this.filter_group.get_filters().map((f) => `${f[0]}.${f[1]}`)).size,
 			},
 			on_change: () => this.on_filter_change(),
 		});
@@ -1007,6 +1084,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 
 	sync_filter_ui() {
 		this.filter_group.update_filter_button();
+		this.chips?.sync();
 	}
 
 	apply_filters() {

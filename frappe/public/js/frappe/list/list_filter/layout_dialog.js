@@ -4,13 +4,14 @@ frappe.provide("frappe.ui");
 
 /** Create or edit a saved list layout (name, filters, sort, columns). */
 export default class LayoutDialog {
-	constructor({ list_view, layout = null, duplicate_from = null, on_save }) {
+	constructor({ list_view, layout = null, duplicate_from = null, on_save, on_back = null }) {
 		this.list_view = list_view;
 		this.doctype = list_view.doctype;
 		this.layout = duplicate_from ? null : layout;
 		this.duplicate_from = duplicate_from;
 		this.source_layout = duplicate_from || layout;
 		this.on_save = on_save;
+		this.on_back = on_back;
 		this.can_add_global = frappe.user.has_role(["System Manager", "Administrator"]);
 		// an existing layout can't be made standard, so only offered on create
 		this.can_add_standard = this.can_add_global && frappe.boot.developer_mode && !this.layout;
@@ -102,6 +103,20 @@ export default class LayoutDialog {
 			primary_action: () => this.save_layout(),
 		});
 
+		if (this.on_back) {
+			frappe.ui
+				.button({
+					icon: "arrow-left",
+					variant: "ghost",
+					title: __("Back to layouts"),
+					css_class: "layout-dialog-back",
+					onclick: () => {
+						this.dialog.hide();
+						this.on_back();
+					},
+				})
+				.prependTo(this.dialog.header.find(".title-section"));
+		}
 		this.make_filter_area(this.dialog.get_field("filter_area").$wrapper);
 		this.preserved_layout_columns = [];
 		this.field_selector = new LayoutFieldSelector({
@@ -141,6 +156,7 @@ export default class LayoutDialog {
 	}
 
 	make_filter_area(parent) {
+		parent.addClass("layout-dialog-filters");
 		this.filter_group = new frappe.ui.FilterGroup({
 			parent,
 			doctype: this.doctype,

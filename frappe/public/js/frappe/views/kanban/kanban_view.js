@@ -66,6 +66,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 					() => this.hide_skeleton(),
 					() => this.check_permissions(),
 					() => this.init(),
+					() => this.filter_area?.place_id_filter(),
 					() => this.before_refresh(),
 					() => this.refresh(),
 				]);
@@ -188,7 +189,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	setup_page() {
-		this.hide_page_form = true;
+		this.hide_page_form = !frappe.defaults.is_enabled("use_smart_filters");
 		this.hide_card_layout = true;
 		this.hide_sort_selector = true;
 		super.setup_page();
