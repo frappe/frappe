@@ -75,7 +75,7 @@ def preload_modules():
 	import frappe.database.query
 	import frappe.desk.desktop  # workspace
 	import frappe.desk.form.save
-	import frappe.model.db_query
+	import frappe.model.qb_query
 	import frappe.query_builder
 	import frappe.utils.background_jobs  # Enqueue is very common
 	import frappe.utils.data  # common utils

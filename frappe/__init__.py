@@ -1287,7 +1287,7 @@ def build_match_conditions(doctype, as_condition=True):
 
 
 def get_list(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will also check for permissions.
+	"""List database query via `frappe.model.qb_query`. Will also check for permissions.
 
 	:param doctype: DocType on which query is to be made.
 	:param fields: List of fields or `*`.
@@ -1310,7 +1310,7 @@ def get_list(doctype, *args, **kwargs):
 
 
 def get_all(doctype, *args, **kwargs):
-	"""List database query via `frappe.model.db_query`. Will **not** check for permissions.
+	"""List database query via `frappe.model.qb_query`. Will **not** check for permissions.
 	Parameters are same as `frappe.get_list`
 
 	:param doctype: DocType on which query is to be made.
