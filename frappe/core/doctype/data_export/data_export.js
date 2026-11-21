@@ -106,7 +106,7 @@ const set_field_options = (frm) => {
 };
 
 const make_multiselect_buttons = (parent_wrapper) => {
-	const button_container = $(parent_wrapper).append('<div class="flex"></div>').find(".flex");
+	const button_container = $('<div class="flex gap-4 mt-4"></div>').appendTo(parent_wrapper);
 
 	["Select All", "Unselect All"].map((d) => {
 		frappe.ui.form.make_control({
@@ -122,12 +122,6 @@ const make_multiselect_buttons = (parent_wrapper) => {
 			render_input: true,
 		});
 	});
-
-	$(button_container)
-		.find(".frappe-control")
-		.map((index, button) => {
-			$(button).css({ "margin-right": "1em" });
-		});
 
 	function checkbox_toggle(checked) {
 		$(parent_wrapper)
