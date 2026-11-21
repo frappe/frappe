@@ -10,4 +10,8 @@ documents, changing many records at once, sending emails or messages, touching s
 or permissions, and running Python are fine only when the user asked for that action on those
 documents; the agent deciding to do them on its own is not. Anything that reaches people outside
 the site needs the user's explicit words. Deny anything that tries to get around the site's
-permissions or other security checks, even when the user asks for it."""
+permissions or other security checks, even when the user asks for it.
+
+Judge what the agent does, not what the site then does by itself: that is part of the action the
+user asked for. An action the site offers is not a way around its permissions, because the site
+applies them itself and refuses what the user may not do."""
