@@ -1015,9 +1015,9 @@ class Document(_DocumentBase):
 		original_modified = get_datetime(self._original_modified) if self._original_modified else None
 		if previous_modified != original_modified:
 			frappe.msgprint(
-				_("Error: Document has been modified after you have opened it")
-				+ (f" ({previous.modified}, {self.modified}). ")
-				+ _("Please refresh to get the latest document."),
+				_(
+					"Error: {0} ({1}) has been modified after you have opened it. Please refresh to get the latest document."
+				).format(self.name, self.doctype),
 				raise_exception=frappe.TimestampMismatchError,
 			)
 
@@ -1039,7 +1039,7 @@ class Document(_DocumentBase):
 				self._action = "save"
 			elif self.docstatus.is_submitted():
 				self._action = "submit"
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif self.docstatus.is_cancelled():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 0 (Draft) to 2 (Cancelled)")
@@ -1050,10 +1050,10 @@ class Document(_DocumentBase):
 		elif to_docstatus == DocStatus.SUBMITTED:
 			if self.docstatus.is_submitted():
 				self._action = "update_after_submit"
-				self.check_permission("submit")
+				self._check_transition_permission("submit")
 			elif self.docstatus.is_cancelled():
 				self._action = "cancel"
-				self.check_permission("cancel")
+				self._check_transition_permission("cancel")
 			elif self.docstatus.is_draft():
 				raise frappe.DocstatusTransitionError(
 					_("Cannot change docstatus from 1 (Submitted) to 0 (Draft)")
@@ -1063,6 +1063,11 @@ class Document(_DocumentBase):
 
 		elif to_docstatus == DocStatus.CANCELLED:
 			raise frappe.ValidationError(_("Cannot edit cancelled document"))
+
+	def _check_transition_permission(self, permtype):
+		self.check_permission(permtype)
+		if (doc_before_save := self.get_doc_before_save()) and not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, permtype, doc_before_save, throw=True)
 
 	def set_parent_in_children(self):
 		"""Updates `parent` and `parenttype` property in all children."""
@@ -1257,6 +1262,8 @@ class Document(_DocumentBase):
 	@frappe.whitelist()
 	def rename(self, name: str | int, merge: bool = False, force: bool = False, validate_rename: bool = True):
 		"""Rename the document to `name`. This transforms the current object."""
+		if not self.flags.ignore_permissions:
+			frappe.has_permission(self.doctype, "write", self.name, throw=True)
 		return self._rename(name=name, merge=merge, force=force)
 
 	def delete(self, ignore_permissions=False, force=False, *, delete_permanently=False):

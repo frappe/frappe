@@ -171,6 +171,8 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 		kwargs = {}
 
 	doc = frappe.get_doc(document)
+	if not doc.is_new() or doc.meta.issingle or frappe.db.exists(doc.doctype, doc.name):
+		frappe.has_permission(doc.doctype, PERMISSION_MAP[frappe.request.method], doc.name, throw=True)
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
 
