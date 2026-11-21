@@ -38,7 +38,14 @@ from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase, timeout
 from frappe.tests.test_query_builder import run_only_if
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_to_date, execute_in_shell, get_bench_path, get_bench_relative_path, now
+from frappe.utils import (
+	add_to_date,
+	execute_in_shell,
+	get_bench_path,
+	get_bench_relative_path,
+	get_user_by_email,
+	now,
+)
 from frappe.utils.backups import BackupGenerator, fetch_latest_backups
 from frappe.utils.logging import get_log_db
 from frappe.utils.scheduler import enable_scheduler, is_scheduler_inactive
@@ -1262,7 +1269,7 @@ class TestAddNewUser(BaseTestCommands):
 			"bench --site {site} add-user test@gmail.com --first-name test --last-name test --password 123 --user-type 'System User' --add-role 'Accounts User' --add-role 'Sales User'"
 		)
 		self.assertEqual(self.returncode, 0)
-		user = frappe.get_doc("User", "test@gmail.com")
+		user = frappe.get_doc("User", get_user_by_email("test@gmail.com"))
 		roles = {r.role for r in user.roles}
 		self.assertEqual({"Accounts User", "Sales User"}, roles)
 

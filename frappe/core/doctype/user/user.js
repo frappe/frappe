@@ -315,9 +315,7 @@ frappe.ui.form.on("User", {
 			frm.set_df_property("enabled", "read_only", 0);
 		}
 
-		if (frm.doc.name !== "Administrator") {
-			frm.toggle_enable("email", frm.is_new());
-		}
+		frm.toggle_enable("email", frm.is_new() || frappe.user.has_role("System Manager"));
 	},
 	create_user_email: function (frm) {
 		frappe.call({
@@ -419,7 +417,7 @@ frappe.ui.form.on("User", {
 							})
 							.then(() => window.location.reload());
 					},
-					__("Impersonate as {0}", [frm.doc.name]),
+					__("Impersonate as {0}", [frm.doc.full_name]),
 					__("Confirm")
 				);
 			});

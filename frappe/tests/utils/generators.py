@@ -312,6 +312,8 @@ def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
 
 	if record.get("name"):
 		d.name = record.get("name")
+	elif d.doctype == "User" and (name := frappe.db.get_value("User", {"email": d.email})):
+		d.name = name
 	else:
 		d.set_new_name()
 

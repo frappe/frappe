@@ -17,7 +17,7 @@ from frappe.website.doctype.personal_data_download_request.test_personal_data_do
 
 class TestPersonalDataDeletionRequest(IntegrationTestCase):
 	def setUp(self):
-		create_user_if_not_exists(email="test_delete@example.com")
+		create_user_if_not_exists(email="test_delete@example.com", email_as_id=True)
 		self.delete_request = frappe.get_doc(
 			{"doctype": "Personal Data Deletion Request", "email": "test_delete@example.com"}
 		)
