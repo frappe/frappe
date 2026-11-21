@@ -1,0 +1,31 @@
+name: Merge Queue Failure
+
+on:
+  pull_request_target:
+    types: [dequeued]
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+  pull-requests: write
+
+jobs:
+  comment:
+    name: Comment the failed checks
+    if: ${{ !github.event.pull_request.merged }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/helper
+
+      - name: Comment the failed checks on the pull request
+        run: python3 .github/helper/queue_failure.py
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+          REASON: ${{ github.event.reason }}
+          REPO_NAME: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
